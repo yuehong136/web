@@ -12,9 +12,38 @@ import {
 } from '@/stores/ui'
 
 class TestResizeObserver implements ResizeObserver {
-  disconnect = vi.fn()
-  observe = vi.fn()
-  unobserve = vi.fn()
+  static instances = new Set<TestResizeObserver>()
+  targets = new Set<Element>()
+  constructor(private callback: ResizeObserverCallback) {
+    TestResizeObserver.instances.add(this)
+  }
+  disconnect = () => {
+    TestResizeObserver.instances.delete(this)
+  }
+  observe = (target: Element) => {
+    this.targets.add(target)
+  }
+  unobserve = (target: Element) => {
+    this.targets.delete(target)
+  }
+  static notify() {
+    for (const observer of TestResizeObserver.instances) {
+      observer.callback(
+        [...observer.targets].map((target) => {
+          const rect = target.getBoundingClientRect()
+          const size = [{ inlineSize: rect.width, blockSize: rect.height }]
+          return {
+            target,
+            contentRect: rect,
+            borderBoxSize: size,
+            contentBoxSize: size,
+            devicePixelContentBoxSize: size,
+          }
+        }),
+        observer,
+      )
+    }
+  }
 }
 
 vi.mock('../activity-rail', () => ({
@@ -38,6 +67,47 @@ describe('DesktopWorkbench', () => {
       }
     ).IS_REACT_ACT_ENVIRONMENT = true
     globalThis.ResizeObserver = TestResizeObserver
+    vi.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockImplementation(
+      function (this: HTMLElement) {
+        if (this.hasAttribute('data-separator')) return 1
+        if (this.hasAttribute('data-panel')) {
+          return (
+            (959 *
+              Number(this.style.flexGrow || parseFloat(this.style.flexBasis))) /
+            100
+          )
+        }
+        return 960
+      },
+    )
+    vi.spyOn(HTMLElement.prototype, 'offsetLeft', 'get').mockImplementation(
+      function (this: HTMLElement) {
+        if (
+          this.hasAttribute('data-separator') ||
+          this.id === 'desktop-main-workspace'
+        ) {
+          return (
+            this.parentElement?.querySelector<HTMLElement>(
+              '#desktop-context-panel',
+            )?.offsetWidth ?? 0
+          )
+        }
+        return 0
+      },
+    )
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(
+      function (this: HTMLElement) {
+        const context = this.parentElement?.querySelector<HTMLElement>(
+          '#desktop-context-panel',
+        )
+        const left =
+          this.hasAttribute('data-separator') ||
+          this.id === 'desktop-main-workspace'
+            ? (context?.offsetWidth ?? 0)
+            : 0
+        return new DOMRect(left, 0, this.offsetWidth, 720)
+      },
+    )
     window.requestAnimationFrame = (callback: FrameRequestCallback) => {
       window.setTimeout(() => callback(0), 0)
       return 1
@@ -62,6 +132,7 @@ describe('DesktopWorkbench', () => {
     await act(async () => root.unmount())
     container.remove()
     window.localStorage.clear()
+    vi.restoreAllMocks()
   })
 
   it('keeps the desktop rail, context panel, and workspace at 960px', async () => {
@@ -156,14 +227,11 @@ describe('DesktopWorkbench', () => {
     })
     expect('conversation' in useUIStore.getState()).toBe(false)
     expect(
-      container
-        .querySelector('[data-panel-id="desktop-context-panel"]')
-        ?.getAttribute('data-panel-size'),
-    ).toBe('0.0')
+      container.querySelector<HTMLElement>('#desktop-context-panel')?.style
+        .flexGrow,
+    ).toBe('0')
     expect(
-      container
-        .querySelector('[data-panel-resize-handle-id]')
-        ?.getAttribute('aria-hidden'),
+      container.querySelector('[data-separator]')?.getAttribute('aria-hidden'),
     ).toBe('true')
     expect(mounts).toHaveBeenCalledOnce()
 
@@ -172,15 +240,29 @@ describe('DesktopWorkbench', () => {
     })
 
     expect(
-      container
-        .querySelector('[data-panel-id="desktop-context-panel"]')
-        ?.getAttribute('data-panel-size'),
-    ).toBe('27.0')
+      container.querySelector<HTMLElement>('#desktop-context-panel')?.style
+        .flexGrow,
+    ).toBe('27')
     expect(
-      container
-        .querySelector('[data-panel-resize-handle-id]')
-        ?.getAttribute('aria-hidden'),
+      container.querySelector('[data-separator]')?.getAttribute('aria-hidden'),
     ).toBe('false')
+    expect(mounts).toHaveBeenCalledOnce()
+
+    const separator = container.querySelector<HTMLElement>('[data-separator]')!
+    expect(separator.tabIndex).toBe(0)
+    await act(async () => {
+      separator.focus()
+      separator.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }),
+      )
+    })
+    expect(document.activeElement).toBe(separator)
+    await act(async () => TestResizeObserver.notify())
+    expect(useUIStore.getState().desktopSidebarWidth).toBe(30)
+    expect(
+      JSON.parse(window.localStorage.getItem('ui-storage')!).state
+        .desktopSidebarWidth,
+    ).toBe(30)
     expect(mounts).toHaveBeenCalledOnce()
   })
 })

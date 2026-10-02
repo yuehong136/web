@@ -693,7 +693,7 @@
 | 8    | Ant Design X / antd              | peers、A2UI action 补丁、Markdown/卡片/安全渲染与实际 UI                                  | 已完成                 |
 | 9    | ESLint                           | 全插件、自定义规则、typed lint；不降低规则                                                | peer 阻塞，保留 9.39.5 |
 | 10   | Lexical 家族                     | 输入法、序列化、焦点及实际编辑器验收                                                      | 已完成（DOM 组合输入） |
-| 11   | react-resizable-panels           | 键盘、焦点、布局持久化及实际 UI                                                           | 待执行                 |
+| 11   | react-resizable-panels           | 键盘、焦点、布局持久化及实际 UI                                                           | 已完成                 |
 
 Tailwind 4 保留待决：Firefox >=114 与 >=128 的支持边界冲突。Compiler 全局启用、框架替换、Run/取消重写、Markdown 收敛、观测/E2E 平台建设另行规划；SEC-7/8 保持暂停。
 
@@ -722,6 +722,10 @@ Tailwind 4 保留待决：Firefox >=114 与 >=128 的支持边界冲突。Compil
 第十项验收（2026-10-02）：Lexical 及 plain-text/react/utils/rich-text 同步锁定 0.52.0；补齐生产直接导入的 rich-text 依赖，未替换编辑器或改变变量协议。按新 PASTE_COMMAND 的 ClipboardEvent/InputEvent union 做类型守卫，非剪贴板事件继续交给默认处理；将业务变量图标字段改为 variableIcon，避免与新版 MenuOption.icon 冲突。[官方发布](https://github.com/facebook/lexical/releases/tag/v0.52.0)与 peer 已核对。
 
 新增序列化往返（中文文本、变量值/标签/来源/类型）和真实 Lexical + 输入插件的 DOM compositionstart/input/compositionend、多行粘贴及 InputEvent fallback 回归。实际通过 Web build、Agent strict、lint、file-size、四 lane test:ci（541 source-node + 179 Vitest + 81 desktop + 7 tooling）、npm ls、Bundle budget（总 JS 98.9%，入口 99.6%）。本地浏览器实看 PromptEditor 中文输入、多行粘贴、Tab 失焦保留内容、外部 value 更新和明暗渲染；已保存截图。内置浏览器不支持 Input.imeSetComposition，因此组合输入由 DOM 回归验证，未实跑操作系统原生 IME 或真实后端 Agent 编辑保存。ESLint 兼容性记录提交为 `28d205d`。
+
+第十一项验收（2026-10-02）：react-resizable-panels 2.1.9 → 4.14.1；[官方发布](https://github.com/bvaughn/react-resizable-panels/releases/tag/4.14.1)、React peers 和 npm 类型/源码已核对。共享组件、Desktop、Studio、工具工作台、Memory 与 Agent log 调用方直接迁移到 Group/Separator、orientation、panelRef、onResize 和显式百分比；未保留旧运行时 API。Desktop 用实例 API 响应折叠/展开，避免重挂载工作区；Studio 从实例读取折叠状态，避免 DOM 像素取整误判。useDefaultLayout 使用稳定 panel ID、onLayoutChanged；新增窄范围存储迁移，正确映射 v2 排序 key 和原始页面顺序的尺寸，保留旧记录且仅写新格式，损坏记录安全回落默认布局。
+
+新增存储迁移/新格式读写/无效记录回归；Desktop 既有 rehydrate 回归迁移至新 DOM，并覆盖键盘调整、焦点、宽度持久化及工作区不重挂载。实际通过 Web build、Agent/Desktop typecheck、lint（0 errors、1494 warnings）、file-size、四 lane test:ci（543 + 179 + 81 + 7）、npm ls、Bundle budget（总 JS 98.9%，入口 99.5%）、Desktop build/stage/verify。浏览器使用真实共享三栏模板和 DesktopWorkbench fixture，实看旧布局 28/44/28 恢复、键盘及拖拽调整、刷新保存、4% 折叠和 20% 展开、Desktop 折叠恢复/键盘宽度与明暗主题。保存明暗截图；未验证真实后端页面加载/保存、Electron 窗口或 Windows 安装包。最终 lock 在独立临时目录使用 npm 11.9.0 正常 npm ci，x-card 2.9.0 postinstall 补丁成功，npm ls 无 peer 错误，TS native bin 与 Compiler API 6.0.3 再次读回。Lexical 项提交为 `c520f8a`。
 
 ### HYG-3 规范、环境变量与进度账本漂移
 

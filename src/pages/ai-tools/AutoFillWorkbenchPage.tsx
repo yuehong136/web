@@ -27,18 +27,18 @@ const AutoFillWorkbenchPage: React.FC = () => {
   const [processedData, setProcessedData] = useState<ProcessedFile | null>(null)
   const [filledFileData, setFilledFileData] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  
+
   const steps = [
     { id: 1, title: '上传文档', icon: FileText },
     { id: 2, title: '填写数据', icon: Database },
-    { id: 3, title: '完成下载', icon: Download }
+    { id: 3, title: '完成下载', icon: Download },
   ]
-  
+
   // 只有第二步使用分割布局
   const useSplitLayout = currentStep === 2
 
   return (
-    <div className="h-full flex flex-col bg-background-body">
+    <div className="flex h-full flex-col bg-background-body">
       {/* 顶部导航栏 */}
       <header className="shrink-0 border-b border-border-default bg-components-card-bg px-6 py-4">
         <div className="flex items-center justify-between">
@@ -46,7 +46,7 @@ const AutoFillWorkbenchPage: React.FC = () => {
             <BreadcrumbList>
               <BreadcrumbItem>
                 <BreadcrumbLink onClick={() => navigate('/home')}>
-                  <House className="w-4 h-4" />
+                  <House className="h-4 w-4" />
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
@@ -63,34 +63,40 @@ const AutoFillWorkbenchPage: React.FC = () => {
           </Breadcrumb>
 
           {/* 步骤指示器 */}
-          <div className="hidden md:flex items-center gap-1">
+          <div className="hidden items-center gap-1 md:flex">
             {steps.map((step, index) => {
               const Icon = step.icon
               const isActive = step.id === currentStep
               const isCompleted = step.id < currentStep
-              
+
               return (
                 <React.Fragment key={step.id}>
                   <div
                     className={cn(
-                      'flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-all',
-                      isCompleted && 'bg-components-steps-completed-bg text-components-steps-completed-text',
-                      isActive && 'bg-components-steps-active-bg text-components-steps-active-text',
-                      !isActive && !isCompleted && 'bg-components-steps-inactive-bg text-components-steps-inactive-text'
+                      'flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium transition-all',
+                      isCompleted &&
+                        'bg-components-steps-completed-bg text-components-steps-completed-text',
+                      isActive &&
+                        'bg-components-steps-active-bg text-components-steps-active-text',
+                      !isActive &&
+                        !isCompleted &&
+                        'bg-components-steps-inactive-bg text-components-steps-inactive-text',
                     )}
                   >
                     {isCompleted ? (
-                      <CheckCircle2 className="w-4 h-4" />
+                      <CheckCircle2 className="h-4 w-4" />
                     ) : (
-                      <Icon className="w-4 h-4" />
+                      <Icon className="h-4 w-4" />
                     )}
                     <span className="hidden lg:inline">{step.title}</span>
                   </div>
                   {index < steps.length - 1 && (
                     <div
                       className={cn(
-                        'w-8 h-0.5 rounded-full transition-colors',
-                        step.id < currentStep ? 'bg-components-steps-line-completed' : 'bg-components-steps-line'
+                        'h-0.5 w-8 rounded-full transition-colors',
+                        step.id < currentStep
+                          ? 'bg-components-steps-line-completed'
+                          : 'bg-components-steps-line',
                       )}
                     />
                   )}
@@ -98,42 +104,45 @@ const AutoFillWorkbenchPage: React.FC = () => {
               )
             })}
           </div>
-      </div>
+        </div>
       </header>
 
       {/* 主内容区 */}
       <main className="flex-1 overflow-hidden">
         {useSplitLayout ? (
           // 第二步：左右分割布局
-          <ResizablePanelGroup direction="horizontal" className="h-full">
-            <ResizablePanel defaultSize={50} minSize={30}>
+          <ResizablePanelGroup orientation="horizontal" className="h-full">
+            <ResizablePanel defaultSize="50%" minSize="30%">
               <div className="h-full overflow-auto p-6">
-                <div className="max-w-2xl mx-auto">
+                <div className="mx-auto max-w-2xl">
                   {/* 页面标题 */}
                   <div className="mb-6 text-center">
-                    <h1 className="text-xl font-semibold text-text-primary mb-1">
+                    <h1 className="mb-1 text-xl font-semibold text-text-primary">
                       填写表单数据
                     </h1>
                     <p className="text-sm text-text-secondary">
                       填写或使用 AI 自动生成占位符对应的数据
-        </p>
-      </div>
+                    </p>
+                  </div>
 
                   {/* 内容区 */}
-                  <div className="bg-components-card-bg rounded-2xl border border-border-default shadow-shadow-sm overflow-hidden">
+                  <div className="overflow-hidden rounded-2xl border border-border-default bg-components-card-bg shadow-shadow-sm">
                     <div className="p-6">
                       {processedData && (
                         <DataInput
                           placeholders={processedData.placeholders}
                           processedFile={processedData.file}
                           originalFileName={uploadedFile?.name}
-                          onDataFilled={(file) => { setFilledFileData(file); setCurrentStep(3) }}
+                          onDataFilled={(file) => {
+                            setFilledFileData(file)
+                            setCurrentStep(3)
+                          }}
                           onBackToUpload={() => setCurrentStep(1)}
                           isLoading={isLoading}
                           setIsLoading={setIsLoading}
                         />
                       )}
-                </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -141,54 +150,63 @@ const AutoFillWorkbenchPage: React.FC = () => {
 
             <ResizableHandle withHandle />
 
-            <ResizablePanel defaultSize={50} minSize={30}>
+            <ResizablePanel defaultSize="50%" minSize="30%">
               <div className="h-full border-l border-border-default">
                 <DocxPreview fileData={processedData?.file || null} />
-        </div>
+              </div>
             </ResizablePanel>
           </ResizablePanelGroup>
         ) : (
           // 第一步和第三步：居中布局
           <div className="h-full overflow-auto">
-            <div className="max-w-4xl mx-auto px-6 py-8">
+            <div className="mx-auto max-w-4xl px-6 py-8">
               {/* 页面标题 */}
               <div className="mb-8 text-center">
-                <h1 className="text-2xl font-semibold text-text-primary mb-2">
+                <h1 className="mb-2 text-2xl font-semibold text-text-primary">
                   {currentStep === 1 && '上传您的文档'}
                   {currentStep === 3 && '填充完成'}
                 </h1>
                 <p className="text-text-secondary">
-                  {currentStep === 1 && '支持 .docx 格式的 Word 文档，系统将自动识别占位符'}
+                  {currentStep === 1 &&
+                    '支持 .docx 格式的 Word 文档，系统将自动识别占位符'}
                   {currentStep === 3 && '您的文档已填充完成，可以下载使用'}
                 </p>
-      </div>
+              </div>
 
               {/* 步骤内容 */}
-              <div className="bg-components-card-bg rounded-2xl border border-border-default shadow-shadow-sm overflow-hidden">
+              <div className="overflow-hidden rounded-2xl border border-border-default bg-components-card-bg shadow-shadow-sm">
                 <div className="p-6 md:p-8">
-            {currentStep === 1 && (
-              <FileUpload
-                onFileUploaded={setUploadedFile}
-                onFileProcessed={(data) => { setProcessedData(data); setCurrentStep(2) }}
-                isLoading={isLoading}
-                setIsLoading={setIsLoading}
-              />
-            )}
+                  {currentStep === 1 && (
+                    <FileUpload
+                      onFileUploaded={setUploadedFile}
+                      onFileProcessed={(data) => {
+                        setProcessedData(data)
+                        setCurrentStep(2)
+                      }}
+                      isLoading={isLoading}
+                      setIsLoading={setIsLoading}
+                    />
+                  )}
 
-            {currentStep === 3 && filledFileData && (
-              <ResultDownload
-                fileData={filledFileData}
-                onReset={() => { setCurrentStep(1); setUploadedFile(null); setProcessedData(null); setFilledFileData(null) }}
-                originalFileName={uploadedFile?.name || 'document.docx'}
+                  {currentStep === 3 && filledFileData && (
+                    <ResultDownload
+                      fileData={filledFileData}
+                      onReset={() => {
+                        setCurrentStep(1)
+                        setUploadedFile(null)
+                        setProcessedData(null)
+                        setFilledFileData(null)
+                      }}
+                      originalFileName={uploadedFile?.name || 'document.docx'}
                       onBackToFill={() => setCurrentStep(2)}
-              />
-            )}
+                    />
+                  )}
                 </div>
-        </div>
+              </div>
 
               {/* 底部提示 */}
               {currentStep === 1 && (
-                <p className="text-center text-sm text-text-secondary mt-6">
+                <p className="mt-6 text-center text-sm text-text-secondary">
                   文档在本地处理，数据安全可靠
                 </p>
               )}

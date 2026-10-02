@@ -18,37 +18,43 @@ const CreateAppPageComponent: React.FC = () => {
   return (
     <>
       <StudioTriPanePageTemplate
-        header={<EditorHeader controller={controller} onBack={() => navigate('/studio')} />}
-        autoSaveId={STUDIO_CREATE_APP_LAYOUT_ID}
+        header={
+          <EditorHeader
+            controller={controller}
+            onBack={() => navigate('/studio')}
+          />
+        }
+        layoutId={STUDIO_CREATE_APP_LAYOUT_ID}
         leftPanelRef={controller.leftPanelRef}
         rightPanelRef={controller.rightPanelRef}
         leftPanelProps={{
           id: 'studio-create-left',
-          order: 1,
-          defaultSize: 33,
-          minSize: 20,
-          maxSize: 50,
+          defaultSize: '33%',
+          minSize: '20%',
+          maxSize: '50%',
           collapsible: true,
-          collapsedSize: 4,
-          onCollapse: () => controller.setLeftCollapsed(true),
-          onExpand: () => controller.setLeftCollapsed(false),
+          collapsedSize: '4%',
+          onResize: () =>
+            controller.setLeftCollapsed(
+              controller.leftPanelRef.current?.isCollapsed() ?? false,
+            ),
         }}
         centerPanelProps={{
           id: 'studio-create-center',
-          order: 2,
-          defaultSize: 34,
-          minSize: 30,
+          defaultSize: '34%',
+          minSize: '30%',
         }}
         rightPanelProps={{
           id: 'studio-create-right',
-          order: 3,
-          defaultSize: 33,
-          minSize: 20,
-          maxSize: 50,
+          defaultSize: '33%',
+          minSize: '20%',
+          maxSize: '50%',
           collapsible: true,
-          collapsedSize: 4,
-          onCollapse: () => controller.setRightCollapsed(true),
-          onExpand: () => controller.setRightCollapsed(false),
+          collapsedSize: '4%',
+          onResize: () =>
+            controller.setRightCollapsed(
+              controller.rightPanelRef.current?.isCollapsed() ?? false,
+            ),
         }}
         leftPane={<PromptPane controller={controller} />}
         centerPane={<ConfigPane controller={controller} />}

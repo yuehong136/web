@@ -81,13 +81,13 @@ export default function AgentLogsPage() {
         />
       ) : (
         <ResizablePanelGroup
-          direction="horizontal"
+          orientation="horizontal"
           className="h-full min-h-0 bg-components-split-pane-bg"
         >
           <ResizablePanel
-            defaultSize={16}
-            minSize={12}
-            maxSize={22}
+            defaultSize="16%"
+            minSize="12%"
+            maxSize="22%"
             className="min-w-[280px] bg-components-console-surface"
           >
             <SessionListPane
@@ -106,7 +106,7 @@ export default function AgentLogsPage() {
             />
           </ResizablePanel>
           <ResizableHandle className="w-px bg-transparent transition-colors hover:bg-border-accent" />
-          <ResizablePanel defaultSize={72} minSize={52} className="min-w-0">
+          <ResizablePanel defaultSize="72%" minSize="52%" className="min-w-0">
             <SessionDetailPane
               canvasId={canvasId}
               sessionId={logList.params.sessionId}

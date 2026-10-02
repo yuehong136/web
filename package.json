@@ -152,7 +152,7 @@
     "react-markdown": "^10.1.0",
     "react-pdf-highlighter": "^8.0.0-rc.0",
     "react-photo-view": "^1.2.7",
-    "react-resizable-panels": "^2.1.9",
+    "react-resizable-panels": "4.14.1",
     "react-router-dom": "^7.18.2",
     "react-shiki": "^0.10.1",
     "react-syntax-highlighter": "^16.1.0",

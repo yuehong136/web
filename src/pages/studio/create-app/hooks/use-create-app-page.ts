@@ -12,7 +12,7 @@ import {
 import { toast } from '@/lib/toast'
 import type { MyLLMProvider } from '@/stores/model'
 import type { KnowledgeBase, LLMModel } from '@/types/api'
-import { ResizablePanel } from '@/components/ui/resizable'
+import { usePanelRef } from 'react-resizable-panels'
 import {
   DEFAULT_VARIABLE_FORM,
   KNOWLEDGE_PAGE_SIZE,
@@ -38,8 +38,8 @@ export const useCreateAppPage = () => {
 
   const [leftCollapsed, setLeftCollapsed] = useState(false)
   const [rightCollapsed, setRightCollapsed] = useState(false)
-  const leftPanelRef = useRef<React.ElementRef<typeof ResizablePanel>>(null)
-  const rightPanelRef = useRef<React.ElementRef<typeof ResizablePanel>>(null)
+  const leftPanelRef = usePanelRef()
+  const rightPanelRef = usePanelRef()
   const iconInputRef = useRef<HTMLInputElement>(null)
 
   const [showEditModal, setShowEditModal] = useState(false)
@@ -241,22 +241,22 @@ export const useCreateAppPage = () => {
   const collapseLeftPanel = useCallback(() => {
     setLeftCollapsed(true)
     leftPanelRef.current?.collapse()
-  }, [])
+  }, [leftPanelRef])
 
   const expandLeftPanel = useCallback(() => {
     setLeftCollapsed(false)
-    leftPanelRef.current?.expand(20)
-  }, [])
+    leftPanelRef.current?.resize('20%')
+  }, [leftPanelRef])
 
   const collapseRightPanel = useCallback(() => {
     setRightCollapsed(true)
     rightPanelRef.current?.collapse()
-  }, [])
+  }, [rightPanelRef])
 
   const expandRightPanel = useCallback(() => {
     setRightCollapsed(false)
-    rightPanelRef.current?.expand(20)
-  }, [])
+    rightPanelRef.current?.resize('20%')
+  }, [rightPanelRef])
 
   const handlePresetChange = useCallback((presetType: GenerationPresetType) => {
     if (
