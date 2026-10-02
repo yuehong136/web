@@ -106,8 +106,8 @@ Web 应用仍是唯一生产产品，且保持独立构建与发布。在 `CLP-D
 
 ### 环境要求
 
-- Node.js 22+
-- npm 10+
+- Node.js 24+（构建基线由 `.nvmrc` 选择）
+- 使用 `package.json` 的 `packageManager` 声明的 npm 版本
 
 ### 安装
 
@@ -188,4 +188,4 @@ Chrome/Edge 111+、Firefox 128+、Safari 16.4+。
 
 ---
 
-**版本**：0.9.8 — 基于 React 19 · TypeScript 5.8 · Vite 8
+**版本**：0.9.8 — 基于 React 19 · TypeScript 7 · Vite 8 · Tailwind CSS 4。精确依赖版本以 `package.json` 和 `package-lock.json` 为准。

@@ -217,30 +217,13 @@ Tailwind 4 集成 (themes/tailwind.css + tailwind-tokens-*.generated.css):
 
 ## 🚀 自动化工具链
 
-### 1. 主题生成器 (theme-generator.ts)
+运行 `npm run build:themes`，由 [build-themes.ts](./build-themes.ts) 统一写入并格式化生成物：
 
-```typescript
-// 自动生成主题 CSS 文件
-generateThemeCSS(lightTokens, 'light.css')
-generateThemeCSS(darkTokens, 'dark.css')
-```
+- [theme-generator.ts](./theme-generator.ts) 的 `generateThemeFiles()` 生成明暗 CSS 与 typed JS 值，并通过 `validateTokens()` 检查令牌。
+- [tailwind-theme-generator.ts](./tailwind-theme-generator.ts) 的 `generateTailwindThemeFiles()` 从共享颜色注册表生成 Tailwind CSS 映射。
+- 提交 `light.css`、`dark.css`、`token-values.generated.ts` 和 `tailwind-tokens-*.generated.css`，不手改生成物。
 
-### 2. 令牌验证器 (token-validator.ts)
-
-```typescript
-// 验证设计令牌完整性
-validateTokenCompleteness()
-validateTokenNaming()
-validateColorContrast()
-```
-
-### 3. 类型生成器 (type-generator.ts)
-
-```typescript
-// 自动生成 TypeScript 类型
-generateDesignTokenTypes()
-generateTailwindTypes()
-```
+生成器检查不代表所有组件的颜色对比度和交互已经验收。令牌及样式合同执行 `npm run test:design-tokens`，UI 仍按[验证规则](../../docs/agent-guidance/verification.md#scope)检查明暗主题、焦点和实际交互。
 
 ## 📋 开发规范
 

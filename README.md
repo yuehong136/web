@@ -106,8 +106,8 @@ The Web application remains the only production product and can still build and 
 
 ### Prerequisites
 
-- Node.js 22+
-- npm 10+
+- Node.js 24+ (`.nvmrc` selects the build baseline)
+- Use the npm version declared in `package.json` (`packageManager`)
 
 ### Setup
 
@@ -188,4 +188,4 @@ Licensed under the [Apache License 2.0](./LICENSE).
 
 ---
 
-**Version**: 0.9.8 — built with React 19 · TypeScript 5.8 · Vite 8
+**Version**: 0.9.8 — built with React 19 · TypeScript 7 · Vite 8 · Tailwind CSS 4. Exact dependency versions are recorded in `package.json` and `package-lock.json`.

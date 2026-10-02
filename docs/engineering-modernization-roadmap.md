@@ -78,7 +78,7 @@
 |  15 | ARCH-8 | 共享 Chat Workbench：composer、附件、滚动、停止/重试、工具调用、反馈和可访问状态                     |   P2   |  XL，15–25 人日 | 依赖 ARCH-7、ENG-2；需稳定消息/工具协议           | 未开始           |
 |  16 | ENG-12 | 按活跃度拆 ApiKeys、Provider modal、MCPChat、Explore，并收紧文件棘轮                                 |   P2   | XXL，25–40 人日 | 先修业务正确性，避免重构错误行为                  | 未开始           |
 |  17 | ARCH-9 | 试点 Projects/Spaces + Assets 信息架构，整合聊天、文件、知识、指令与 Studio                          |   P3   | XXL，25–45 人日 | 跨产品/前后端；需数据模型、权限和迁移方案         | 未开始           |
-|  18 | ARCH-5 | Tailwind 4 评估与设计令牌内部简化                                                                    |   P3   |    L，8–12 人日 | 可靠性、体验和 Bundle 工作稳定后再做              | 部分完成         |
+|  18 | ARCH-5 | 设计令牌用量治理（Tailwind 4 迁移已完成）                                                            |   P3   |    L，8–12 人日 | 可靠性、体验和 Bundle 工作稳定后再做              | 部分完成         |
 
 ### 推荐执行波次
 
@@ -363,19 +363,19 @@
 | 2026-06-22 | Step 7：纯客户端 store 审计 + auth 例外声明                                                  | 本提交  | `ui`/`studio`/`home`/`team`/`search` 审计为纯客户端态（无服务器副本、服务器数据已各自走 use-\*-request），不迁；`auth.ts` 审计后状态 "audited, deferred to SEC-1/AUTH bootstrap"——`auth-storage` 仍持久化 token/user/tenant/isAuthenticated 属 SEC-1 已知例外，本任务未触碰 login/register（ARCH-2 契约），不宣称把所有 persist store 变 UI-only                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | 2026-06-22 | Step 8：终态验收，状态置已完成                                                               | 本提交  | store 总行数 3498→1714（−1784，−51%）；精确 grep：`isLoading` 仅存于 auth（会话态）与 ui（globalLoading），无 store 持有"列表+loading+error"三件套、无 `loadX()` fetch-effect、无 useModelStore/useKnowledgeStore/useConversationStore/useChatStore 残留。全量门禁绿：lint 0err、lint:file-size（33 在册）、lint:typed 0err、typecheck:agent-strict、test:agent-t1 48 pass、test:streaming、test:design-tokens、build、check:bundle-size（raw 24.85/26.13MB、入口 gzip 114/120KB、最大 chunk gzip 708/739KB）。未 push，待 owner 指示                                                                                                                                                                                                                                                                                                                                                                       |
 
-### ARCH-5 设计令牌治理 + Tailwind 4 评估
+### ARCH-5 设计令牌治理 + Tailwind 4 迁移
 
 - **状态**：部分完成；Tailwind 4 迁移完成，存量 token 用量治理另行推进
-- **优先级 / 工作量**：P3 / L，8–12 前端人日；只做用量治理和 go/no-go 评估，实际迁移另估
-- **问题**：1472 个 token、`theme-generator.ts` 2206 行；`components-*` 粒度 token 随组件数线性增长，对比主流（shadcn/Radix Themes 30–60 个语义变量）成本过高。Tailwind 停在 3.4，落后主流一个大版本；Tailwind 4 的 CSS-first `@theme` 与 build:themes 管线天然同构，迁移可能反而删管线。
-- **方案**：(a) 先做 token 用量统计（哪些 token 全仓 0 引用 → 删）；(b) 新组件默认复用语义层 token，`components-*` 新增需 review 说明理由；(c) 单独立项评估 Tailwind 4 迁移（eslint-plugin-tailwindcss 兼容性、@theme 映射 PoC）。
-- **验收**：0 引用 token 清零；token 新增有治理流程；Tailwind 4 评估有结论文档。
+- **优先级 / 工作量**：P3 / L，8–12 前端人日为原始用量治理估算；Tailwind 4 迁移已单独完成
+- **问题**：立项时统计为 1472 个 token、`theme-generator.ts` 2206 行；`components-*` 粒度 token 随组件数线性增长，需持续控制维护成本。原 Tailwind 3.4 迁移问题已解决，剩余工作是核对当前引用、删除无用 token 和收敛语义层。
+- **方案**：(a) 做 token 用量统计（哪些 token 全仓 0 引用 → 删）；(b) 新组件默认复用语义层 token，`components-*` 新增需 review 说明理由；(c) 保持现有 Tailwind 4 CSS-first 主题生成及样式合同。
+- **验收**：0 引用 token 清零；token 新增有治理流程。Tailwind 4 已有独立迁移、构建与明暗交互验收，详见 HYG-2。
 - **状态与进展记录**：
 
-| 日期       | 动作                               | 提交         | 备注                                                                               |
-| ---------- | ---------------------------------- | ------------ | ---------------------------------------------------------------------------------- |
-| 2026-06-10 | 立项                               | —            | —                                                                                  |
-| 2026-10-02 | 用户批准后完成 Tailwind 4 原生迁移 | 本轮本地提交 | Vite 插件、CSS-first 配置、主题生成、样式合同与明暗验收完成；未开展无用 token 删除 |
+| 日期       | 动作                               | 提交      | 备注                                                                               |
+| ---------- | ---------------------------------- | --------- | ---------------------------------------------------------------------------------- |
+| 2026-06-10 | 立项                               | —         | —                                                                                  |
+| 2026-10-02 | 用户批准后完成 Tailwind 4 原生迁移 | `8e43107` | Vite 插件、CSS-first 配置、主题生成、样式合同与明暗验收完成；未开展无用 token 删除 |
 
 ### ARCH-6 channel 管理页：provider 知识散落在客户端，三处独立断裂
 
@@ -682,21 +682,22 @@
 
 按序执行，每项独立验证并提交；版本以执行时官方 release、registry 和 peer 为准。基础指令与路径别名兼容调整已提交为 `ad052e0`。原有取消相关业务改动不纳入本队列。
 
-| 顺序 | 工作单元                         | 完成标准                                                                                  | 状态                   |
-| ---- | -------------------------------- | ----------------------------------------------------------------------------------------- | ---------------------- |
-| 1    | TypeScript 7 + TS 6 Compiler API | 干净安装、实际 bin/API、Web/Agent/Desktop 类型、lint、完整测试、Bundle 和 Desktop staging | 已完成                 |
-| 2    | React hooks lint                 | 分类新增诊断、保持既有门禁、lint 与受影响回归                                             | 部分整改，保留 5.2.0   |
-| 3    | Vite 8 / React 插件              | Rolldown/Oxc、Web build、Bundle、Desktop build/stage/verify                               | 已完成                 |
-| 4    | React / React DOM / types        | 类型、路由、表单、流式与 widget 回归和渲染                                                | 已完成                 |
-| 5    | TanStack Query 5                 | mutation、认证缓存隔离、query key 合同                                                    | 已完成                 |
-| 6    | Zustand 5                        | selector、UI 持久化边界                                                                   | 已完成                 |
-| 7    | Vitest                           | Node/CI engines、配置及四 lane 完整 inventory                                             | 已完成（4.x 补丁）     |
-| 8    | Ant Design X / antd              | peers、A2UI action 补丁、Markdown/卡片/安全渲染与实际 UI                                  | 已完成                 |
-| 9    | ESLint                           | 全插件、自定义规则、typed lint；不降低规则                                                | peer 阻塞，保留 9.39.5 |
-| 10   | Lexical 家族                     | 输入法、序列化、焦点及实际编辑器验收                                                      | 已完成（DOM 组合输入） |
-| 11   | react-resizable-panels           | 键盘、焦点、布局持久化及实际 UI                                                           | 已完成                 |
+| 顺序 | 工作单元                         | 完成标准                                                                                  | 状态                          |
+| ---- | -------------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------- |
+| 1    | TypeScript 7 + TS 6 Compiler API | 干净安装、实际 bin/API、Web/Agent/Desktop 类型、lint、完整测试、Bundle 和 Desktop staging | 已完成                        |
+| 2    | React hooks lint                 | 分类新增诊断、保持既有门禁、lint 与受影响回归                                             | 已完成（7.1.1）               |
+| 3    | Vite 8 / React 插件              | Rolldown/Oxc、Web build、Bundle、Desktop build/stage/verify                               | 已完成                        |
+| 4    | React / React DOM / types        | 类型、路由、表单、流式与 widget 回归和渲染                                                | 已完成                        |
+| 5    | TanStack Query 5                 | mutation、认证缓存隔离、query key 合同                                                    | 已完成                        |
+| 6    | Zustand 5                        | selector、UI 持久化边界                                                                   | 已完成                        |
+| 7    | Vitest                           | Node/CI engines、配置及四 lane 完整 inventory                                             | 已完成（4.x 补丁）            |
+| 8    | Ant Design X / antd              | peers、A2UI action 补丁、Markdown/卡片/安全渲染与实际 UI                                  | 已完成                        |
+| 9    | ESLint                           | 全插件、自定义规则、typed lint；不降低规则                                                | 已完成（10；a11y 本地兼容包） |
+| 10   | Lexical 家族                     | 输入法、序列化、焦点及实际编辑器验收                                                      | 已完成（DOM 组合输入）        |
+| 11   | react-resizable-panels           | 键盘、焦点、布局持久化及实际 UI                                                           | 已完成                        |
+| 12   | Tailwind 4 / 主题生成            | 原生 Vite 插件、CSS-first、样式合同、明暗主题与焦点验收                                   | 已完成（4.3.3）               |
 
-Tailwind 4 已获用户批准迁移，Firefox 支持下限同步提高到 128；CSS、插件和主题仍须独立验收。Compiler 全局启用、框架替换、Run/取消重写、Markdown 收敛、观测/E2E 平台建设另行规划；SEC-7/8 保持暂停。
+以上为当前完成状态，下文保留各阶段当时的试跑与验收记录；“保留旧版本”“阻塞”和测试数量仅对对应阶段有效。Tailwind 4 已完成迁移及独立验收，Firefox 支持下限为 128；a11y 本地包的退出条件见 [vendor/README.md](../vendor/README.md)。Compiler 全局启用、框架替换、Run/取消重写、Markdown 收敛、观测/E2E 平台建设另行规划；SEC-7/8 保持暂停。
 
 后续升级环境验收（2026-10-02）：用户批准提高要求及必要重构。Node engine 改为 `>=24.0.0`、`.nvmrc` 改为 `24`，CI 继续读取该文件；Firefox 下限从 114 提高到 128，README 中英同步。依据为 [ESLint 10 engines](https://eslint.org/docs/latest/use/migrate-to-10.0.0) 与 [Tailwind 4 浏览器要求](https://tailwindcss.com/docs/upgrade-guide)。本机 Node 24.4.1 下独立正常 `npm ci`、`npm ls --depth=0`、lint（0 errors / 1493 warnings）、四 lane `test:ci`（543 + 185 + 81 + 7）、完整 Web build、Bundle budget、Desktop build/stage/verify（1062 文件）均通过。未实跑远程 CI、Firefox 或 Windows 安装包。后续顺序为 hooks 7 全量源码整改、ESLint 10 兼容性解决、Tailwind 4 独立迁移；依赖尚未切换的阶段不记为完成。
 
@@ -780,7 +781,7 @@ hooks 7 最新全量试跑为 151 errors / 93 files：set-state-in-effect 87、r
 | 2：核心可靠性      | ENG-8、ENG-9、ARCH-7、SEC-1、SEC-2、ENG-10 | 后端/部署契约冻结                                               | 业务闭环、数据口径、流终态、会话安全和观测均可验收                         |
 | 3：质量门禁        | ENG-2、HYG-2、ARCH-2、ENG-11               | 波次 1/2 的关键路径稳定                                         | 单元测试全收口，三条 E2E 稳定，依赖与路由性能有门禁                        |
 | 4：规模化偿债      | ENG-3、HYG-3、ARCH-8、ENG-12               | 有 RUM/E2E 基线                                                 | a11y/响应式/i18n/大文件与共享 Chat 合同按棘轮持续下降                      |
-| 5：战略试点        | ARCH-9、ARCH-5                             | 前四波稳定且有明确产品 owner                                    | 单一 Project/Space 试点得出数据；Tailwind 4 有 go/no-go 结论               |
+| 5：战略试点        | ARCH-9、ARCH-5                             | 前四波稳定且有明确产品 owner                                    | 单一 Project/Space 试点得出数据；存量 token 用量治理完成                   |
 
 ### 已完成历史（不占当前排序）
 

@@ -595,7 +595,7 @@ Widget bundle 是关键链路 — 重型依赖（Lexical、Monaco、mermaid、pd
 ### 19.1 记忆化
 
 - 仅在 props 稳定且收益明确时用 `useMemo` / `useCallback` / `memo`
-- React Compiler 启用后将整体反向（详见 §11.4）
+- Compiler 试点通过测量与回归后再调整对应组件的记忆化；采用边界见 [§11.2](#112-suspensecompiler-与新能力)。
 
 ### 19.2 懒加载
 

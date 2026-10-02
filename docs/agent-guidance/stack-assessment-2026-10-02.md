@@ -2,6 +2,8 @@
 
 本文是有日期的选型依据，不是每次任务的必读规则，也不替代[工程路线图](../engineering-modernization-roadmap.md)的进度账本。版本来自本次 package/lock、已安装依赖和 npm registry 的检查；执行升级时需重新核实。
 
+> **实施后的阅读提示**：下文候选表、兼容阻塞和“本次验证边界”记录升级前的评估。后续已完成 TS 7、Vite/React、Query/Zustand、Ant Design X、Lexical、分栏组件、Hooks 7、ESLint 10 和 Tailwind 4 升级；Node 构建基线为 24、Firefox 支持下限为 128。当前依赖以 package/lock 为准，实际验收和剩余限制见[HYG-2 升级队列](../engineering-modernization-roadmap.md#2026-10-02-技术栈升级队列)。
+
 ## 结论
 
 继续采用 React + Vite SPA、TanStack Query、Zustand、Radix + 语义化 token、现有领域 API/SSE 运行时。它们适合当前独立后端、Web、iframe/widget 和共享 Desktop Renderer 的边界。当前主要成本在于规则重复、编译反馈、消息渲染分叉、运行生命周期和真实流程验收；换成另一套全栈框架不会自动解决这些问题。
@@ -25,7 +27,7 @@ Claude Code 支持 `@path` 导入；普通文字“请读 AGENTS.md”不是同�
 
 [OpenAI 的文章](https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra)倡导精确触发、渐进加载、明确完成条件。开源对照也体现类似原则：[Dify 的 web/AGENTS.md](https://github.com/langgenius/dify/blob/main/web/AGENTS.md)把规则链接到所属组件/测试文档，仅相关任务读取；[LobeHub 的 AGENTS.md](https://github.com/lobehub/lobehub/blob/main/AGENTS.md)把详细规则放 skill，并区分静态检查与产品验收。这些是可借鉴的工程实践，不代表它们的框架、数据库或发布流程适用于本仓。
 
-## 依赖分组评估
+## 依赖分组评估（升级前快照）
 
 以下“候选”是本次查询的版本，不是已升级版本。本次没有修改 package.json 或锁文件，也没有把 outdated 数量当作漏洞数量。
 
@@ -48,9 +50,9 @@ TS 7 首次检查被 `baseUrl` 已移除和 paths 非相对路径阻断。本次
 
 TS 7.0 没有旧 JavaScript Compiler API，不能仅把当前 `typescript` 依赖替换成 7 就宣称迁移完成。依赖 Compiler API 的工具可按官方方式与 TypeScript 6 兼容包并存，再核对 typescript-eslint 等消费者。见 [TypeScript 7 公告与并存方案](https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/)。本次未测性能收益，不把官方速度数字当成本仓实测。
 
-### Tailwind：有实际支持范围冲突
+### Tailwind：升级前的支持范围冲突
 
-当前 `package.json` 声明 Firefox >= 114；[Tailwind 4 兼容说明](https://tailwindcss.com/docs/compatibility)要求 Firefox >= 128。是否提升浏览器最低版本是产品支持范围决策，不能升级时静默修改。Vite 中还存在 X Markdown 高亮 CSS 的适配，token 生成和 scoped-theme 也需一起验收。保留 ARCH-5 独立评估。
+评估时 `package.json` 声明 Firefox >= 114；[Tailwind 4 兼容说明](https://tailwindcss.com/docs/compatibility)要求 Firefox >= 128。是否提升浏览器最低版本是产品支持范围决策，不能升级时静默修改。当时 Vite 中还存在 X Markdown 高亮 CSS 的适配，token 生成和 scoped-theme 也需一起验收，因此保留 ARCH-5 独立评估。后续用户已批准提高支持下限，迁移结果见账本。
 
 ### Ant Design X：补丁就是合同
 
@@ -67,7 +69,7 @@ TS 7.0 没有旧 JavaScript Compiler API，不能仅把当前 `typescript` 依�
 
 本仓暂不需要因同类项目使用 Next.js/SWR/tRPC 就替换 Vite/Query/既有后端。AI SDK 也不是通用 SSE 的即插即用替代品：[其 UI Message 流协议](https://ai-sdk.dev/docs/ai-sdk-ui/stream-protocol)有专门事件与响应约定。若试用，应在适配层证明现有消息/工具/取消合同可映射，再比较维护成本；不并行维护第二套 Run 所有权。
 
-## 本次验证边界
+## 初始评估的验证边界（历史）
 
 - 修改前 TS 5.8 src 类型检查通过。
 - 修改后 `npm run build` 通过；存在既有大 chunk 警告。

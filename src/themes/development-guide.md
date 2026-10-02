@@ -283,16 +283,8 @@ const Badge: React.FC<{
 # 生成主题文件（每次修改设计令牌后运行）
 npm run build:themes
 
-# 输出示例：
-# 🎨 开始生成主题文件...
-# ✅ 主题文件生成成功!
-#    📄 src/themes/light.css
-#    📄 src/themes/dark.css
-# 📊 统计信息:
-#    🌞 亮色主题令牌数量: <N>
-#    🌙 暗色主题令牌数量: <N>
-#    📦 文件大小: 17.1KB + 18.4KB
-#    ✨ 所有设计令牌验证通过
+# 产物：light.css、dark.css、token-values.generated.ts
+# 以及 tailwind-tokens-*.generated.css；检查这些文件的 diff 并一起提交。
 ```
 
 ### 2. 添加新的设计令牌
@@ -399,8 +391,8 @@ import { ThemeSwitcher } from '@/components/ui/theme-switcher'
 
 ### 4. 浏览器兼容性
 
-- CSS 自定义属性支持现代浏览器
-- 如需支持 IE11，需要使用 PostCSS 插件进行转换
+- 支持范围以 `package.json` 的 browserslist 为准：Chrome/Edge 111+、Firefox 128+、Safari 16.4+。
+- Tailwind 4 使用现代 CSS 能力；本仓不提供 IE11 兼容转换。
 
 ## 📚 扩展阅读
 

@@ -1,6 +1,6 @@
 # Client Platform 版本基线
 
-> 唯一精确版本快照，核验时间：2026-08-13（Asia/Shanghai）。其他 Client Platform 文档只描述 stable 通道和兼容政策。
+> 本文件保留 2026-08-13（Asia/Shanghai）的选型快照，并记录 2026-10-02（Asia/Hong_Kong）的升级结果入口。当前 Web 依赖以 package/lock 为准；历史快照和候选目标不代表当前安装版本。
 
 ## 1. 使用方法
 
@@ -25,11 +25,11 @@
 | npm engine             | `>=10`        | Current 声明                                |
 | package manager        | `npm@11.9.0`  | Current 声明；实际发布应由 Corepack/CI 对齐 |
 
-TypeScript registry 在本次核验时的 latest 为 `7.0.2`，但升级跨度涉及 Vite、ESLint、类型定义和全仓编译验证，**不进入 CLP-DESK 改造**；当前继续锁 `5.8.3`。
+2026-08-13 核验时 TypeScript registry 的 latest 为 `7.0.2`，当时未将编译器升级纳入 CLP-DESK 改造，继续锁 `5.8.3`。后续独立技术栈任务已迁移到 TS 7 原生编译器，并保留 TS 6 Compiler API alias 给工具消费者。
 
-### 2026-10-02 环境基线更新
+### 2026-10-02 环境与技术栈基线更新
 
-用户已批准提高升级要求。后续 Web 与 Desktop 构建使用 Node 24：项目 engine 为 `>=24.0.0`，`.nvmrc` 为 `24`，现有 CI 通过该文件选择版本。浏览器支持下限调整为 Chrome/Edge 111+、Firefox 128+、Safari 16.4+；Firefox 调整用于解除 Tailwind 4 的浏览器边界阻塞，CSS 迁移仍须独立验收。
+用户已批准提高升级要求。Web 与 Desktop 构建使用 Node 24：项目 engine 为 `>=24.0.0`，`.nvmrc` 为 `24`，现有 CI 通过该文件选择版本。浏览器支持下限调整为 Chrome/Edge 111+、Firefox 128+、Safari 16.4+。Tailwind 4 已完成 CSS-first、原生 Vite 插件及主题生成迁移；Hooks 7 与 ESLint 10 已切换，a11y 使用实现和许可证完整性已验证的本地兼容包。
 
 上表保留历史事实；当前依赖以 package/lock 为准，2026-10-02 技术栈升级和后续整改结果见[唯一进度账本](../engineering-modernization-roadmap.md#2026-10-02-技术栈升级队列)。Node 基线变更不代表 Windows 安装包、编辑器运行时或远程 CI 已验证。
 
