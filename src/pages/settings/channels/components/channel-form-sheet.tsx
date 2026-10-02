@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQueryClient } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
@@ -132,7 +132,9 @@ export const ChannelFormSheet = ({
   // the server never sends back, so nothing on screen revealed the loss.
   // The channel is read through a ref so the dependency list stays honest.
   const currentChannelRef = useRef(currentChannel)
-  currentChannelRef.current = currentChannel
+  useLayoutEffect(() => {
+    currentChannelRef.current = currentChannel
+  }, [currentChannel])
   const currentChannelId = currentChannel?.id ?? null
   const isDirty = form.formState.isDirty
   useEffect(() => {

@@ -797,3 +797,5 @@ hooks 7 最新全量试跑为 151 errors / 93 files：set-state-in-effect 87、r
 | ENG-1  | 文件体积棘轮完成，债务数量仍由 ENG-12 偿还                                                                   |
 | ENG-4  | `dist/js` 三预算门禁完成，真实路由/全资产覆盖转 ENG-11                                                       |
 | HYG-1  | LICENSE、CHANGELOG、版本 tag 流程完成                                                                        |
+
+2026-10-02 渠道补充整改（ARCH-6 / CHN-P7）：编辑抽屉的最新服务端快照在 layout commit 后更新 ref，保留 channel ID 与 dirty guard，避免并发 render 尚未提交的数据进入重置逻辑。现有渠道 API/密钥表单合同与完整 test:ci（543 + 210 + 81 + 7）通过；Web build 与 Hooks 7 lint 通过，未修改端点或生产渠道。
