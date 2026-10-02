@@ -690,7 +690,7 @@
 | 5    | TanStack Query 5                 | mutation、认证缓存隔离、query key 合同                                                    | 已完成             |
 | 6    | Zustand 5                        | selector、UI 持久化边界                                                                   | 已完成             |
 | 7    | Vitest                           | Node/CI engines、配置及四 lane 完整 inventory                                             | 已完成（4.x 补丁） |
-| 8    | Ant Design X / antd              | peers、A2UI action 补丁、Markdown/卡片/安全渲染与实际 UI                                  | 待执行             |
+| 8    | Ant Design X / antd              | peers、A2UI action 补丁、Markdown/卡片/安全渲染与实际 UI                                  | 已完成             |
 | 9    | ESLint                           | 全插件、自定义规则、typed lint；不降低规则                                                | 待执行             |
 | 10   | Lexical 家族                     | 输入法、序列化、焦点及实际编辑器验收                                                      | 待执行             |
 | 11   | react-resizable-panels           | 键盘、焦点、布局持久化及实际 UI                                                           | 待执行             |
@@ -712,6 +712,10 @@ Tailwind 4 保留待决：Firefox >=114 与 >=128 的支持边界冲突。Compil
 第六项验收（2026-10-02）：Zustand 5.0.6 → 5.0.15；核对[官方 persist/devtools 修复](https://github.com/pmndrs/zustand/releases/tag/v5.0.15)和 React/immer peers。新增真实 UI store 回归：持久化只包含七个布局/语言/主题偏好、不含通知/加载/弹窗临时内容；useShallow selector 在无关状态更新时保持快照并在所选宽度变化时更新。Desktop 原有 rehydrate/宽度/折叠与 Agent graph store 回归继续通过。实际通过 `npm ls --depth=0`、Web build、lint、file-size、四 lane `test:ci`（新增两项 Vitest 自动归入 source-vitest）、Bundle budget；未改存储版本、状态边界或业务源码。Query 项提交为 `0bfed1b`。
 
 第七项验收（2026-10-02）：Vitest 4.1.10 → 4.1.11，配套 expect/mocker/runner/snapshot/spy/utils 同步。核对[官方 backport](https://github.com/vitest-dev/vitest/releases/tag/v4.1.11)、Node engines、Vite 8/jsdom peer；保留 Node/tsx runner、inventory 与当前配置。5.0.3 的 engines 虽满足，但本项所需并发/重定向 mock 修复已有 4.x backport，选择安全补丁，未迁移 5.x。系统 npm 11.5.1 曾报 Arborist `edgesOut` 内部错误，改用 packageManager 声明的 npm 11.9.0 后正常安装，无 force/legacy-peer-deps。更新后的 `npm ls --depth=0`、四 lane `test:ci`、Web build、lint、Bundle budget 均通过。Zustand 项提交为 `d9d0bf0`。
+
+第八项验收（2026-10-02）：x/card/sdk 2.7.0 → 2.9.0，markdown 保持 2.9.0 并锁定，antd 6.0.1 →满足 peer 的 6.1.1；[官方更新日志](https://github.com/ant-design/x/blob/main/CHANGELOG.zh-CN.md)与 peers 已核对。原补丁在 2.9.0 npm tarball 上 dry-run 成功，上游仍无 sourceComponentId/timestamp；移植为 `@ant-design+x-card+2.9.0.patch`，保留 ESM/CJS runtime 与类型声明的全部修复。正常 postinstall 与独立干净 `npm ci` 均应用成功。
+
+新增真实 AgentXCardRenderer 回归核对点击 sourceComponentId、ISO timestamp、已有 `{ value: ... }` 包装的 action context，以及工具文本作为文本显示（无 img/script 节点）；使用本地注册 catalog fixture，不依赖网络。实际通过 Web build、Agent/Desktop typecheck、lint、file-size、四 lane `test:ci`（540 + 178 + 81 + 7）、Bundle budget、Desktop build/stage/verify；本地浏览器实看 A2UI action 与 StreamingXMarkdown 流中→终态及明暗主题，已保存截图。真实外部 `a2ui.org` catalog 加载在首次检查失败，本项仅验证本地 catalog 的注册/渲染，未宣称外部 schema 或服务端模型请求通过。Vitest 项提交为 `cfe0a5f`。
 
 ### HYG-3 规范、环境变量与进度账本漂移
 
