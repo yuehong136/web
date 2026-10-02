@@ -180,7 +180,7 @@ VITE_WS_BASE_URL=ws://localhost:8000
 
 ## 浏览器支持
 
-Chrome/Edge 111+、Firefox 114+、Safari 16.4+。
+Chrome/Edge 111+、Firefox 128+、Safari 16.4+。
 
 ## 许可证
 

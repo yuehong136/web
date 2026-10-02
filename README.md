@@ -180,7 +180,7 @@ For a local macOS desktop preview, set those origins in `.env.local`, start the 
 
 ## Browser Support
 
-Chrome/Edge 111+, Firefox 114+, and Safari 16.4+.
+Chrome/Edge 111+, Firefox 128+, and Safari 16.4+.
 
 ## License
 

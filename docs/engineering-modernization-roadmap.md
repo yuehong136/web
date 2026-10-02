@@ -695,7 +695,9 @@
 | 10   | Lexical 家族                     | 输入法、序列化、焦点及实际编辑器验收                                                      | 已完成（DOM 组合输入） |
 | 11   | react-resizable-panels           | 键盘、焦点、布局持久化及实际 UI                                                           | 已完成                 |
 
-Tailwind 4 保留待决：Firefox >=114 与 >=128 的支持边界冲突。Compiler 全局启用、框架替换、Run/取消重写、Markdown 收敛、观测/E2E 平台建设另行规划；SEC-7/8 保持暂停。
+Tailwind 4 已获用户批准迁移，Firefox 支持下限同步提高到 128；CSS、插件和主题仍须独立验收。Compiler 全局启用、框架替换、Run/取消重写、Markdown 收敛、观测/E2E 平台建设另行规划；SEC-7/8 保持暂停。
+
+后续升级环境验收（2026-10-02）：用户批准提高要求及必要重构。Node engine 改为 `>=24.0.0`、`.nvmrc` 改为 `24`，CI 继续读取该文件；Firefox 下限从 114 提高到 128，README 中英同步。依据为 [ESLint 10 engines](https://eslint.org/docs/latest/use/migrate-to-10.0.0) 与 [Tailwind 4 浏览器要求](https://tailwindcss.com/docs/upgrade-guide)。本机 Node 24.4.1 下独立正常 `npm ci`、`npm ls --depth=0`、lint（0 errors / 1493 warnings）、四 lane `test:ci`（543 + 185 + 81 + 7）、完整 Web build、Bundle budget、Desktop build/stage/verify（1062 文件）均通过。未实跑远程 CI、Firefox 或 Windows 安装包。后续顺序为 hooks 7 全量源码整改、ESLint 10 兼容性解决、Tailwind 4 独立迁移；依赖尚未切换的阶段不记为完成。
 
 第一项验收（2026-10-02）：`@typescript/native` alias 锁定原生 TS 7.0.2，`typescript` alias 为官方 `@typescript/typescript6` 6.0.2（锁定 Compiler API 实际 6.0.3）。`tsc` 实际指向 native，`tsc6` 指向兼容包。Agent strict 显式声明 `types: ["node"]`，覆盖 Node test 与既有工具类型；未降低严格选项。旧 i18n peer 仅接受 TS 5，配套升级 i18next 25.10.10 / react-i18next 16.6.6，保持各自主版本。
 
