@@ -48,6 +48,23 @@ describe('StreamingXMarkdown', () => {
     vi.unstubAllGlobals()
   })
 
+  it('starts a subsequent stream with its own content after a final update', async () => {
+    await act(async () =>
+      root.render(<StreamingXMarkdown content="first stream" isStreaming />),
+    )
+    await act(async () =>
+      root.render(
+        <StreamingXMarkdown content="first final" isStreaming={false} />,
+      ),
+    )
+    expect(container.textContent).toBe('first final')
+    await act(async () =>
+      root.render(<StreamingXMarkdown content="second stream" isStreaming />),
+    )
+    expect(container.textContent).toBe('second stream')
+    expect(frameCallbacks.size).toBe(1)
+  })
+
   it('coalesces a burst of streaming updates into the latest animation frame', async () => {
     await act(async () => {
       root.render(<StreamingXMarkdown content="chunk 0" isStreaming={true} />)

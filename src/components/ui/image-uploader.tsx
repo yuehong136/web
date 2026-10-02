@@ -2,7 +2,10 @@
 
 import * as React from 'react'
 import { Upload, ImageIcon, Replace, Trash2 } from 'lucide-react'
-import Dropzone, { type DropzoneProps, type FileRejection } from 'react-dropzone'
+import Dropzone, {
+  type DropzoneProps,
+  type FileRejection,
+} from 'react-dropzone'
 import { cn, formatBytes } from '@/lib/utils'
 import { Button } from './button'
 import { Progress } from './progress'
@@ -18,79 +21,82 @@ function isFileWithPreview(file: File): file is File & { preview: string } {
 /**
  * 图片上传组件 Props
  */
-export interface ImageUploaderProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'title'> {
+export interface ImageUploaderProps extends Omit<
+  React.HTMLAttributes<HTMLDivElement>,
+  'title'
+> {
   /**
    * 当前选择的文件列表
    */
   value?: File[]
-  
+
   /**
    * 文件变化回调
    */
   onValueChange?: (files: File[]) => void
-  
+
   /**
    * 上传进度（可选）
    */
   progresses?: Record<string, number>
-  
+
   /**
    * 接受的文件类型
    * @default { 'image/png': [], 'image/jpeg': [], 'image/webp': [] }
    */
   accept?: DropzoneProps['accept']
-  
+
   /**
    * 最大文件大小（字节）
    * @default 10MB
    */
   maxSize?: DropzoneProps['maxSize']
-  
+
   /**
    * 最大文件数量
    * @default 1
    */
   maxFileCount?: number
-  
+
   /**
    * 达到最大文件数量时是否隐藏上传区域
    * @default true
    */
   hideDropzoneOnMaxFileCount?: boolean
-  
+
   /**
    * 是否允许多文件上传
    * @default false
    */
   multiple?: boolean
-  
+
   /**
    * 是否禁用
    * @default false
    */
   disabled?: boolean
-  
+
   /**
    * 标题
    */
   title?: React.ReactNode
-  
+
   /**
    * 描述文字
    */
   description?: React.ReactNode
-  
+
   /**
    * 上传区域高度样式
    * @default 'h-48'
    */
   dropzoneHeight?: string
-  
+
   /**
    * 文件被拒绝时的回调
    */
   onFilesRejected?: (rejectedFiles: FileRejection[]) => void
-  
+
   /**
    * 显示模式
    * - default: 默认完整上传区域
@@ -102,7 +108,7 @@ export interface ImageUploaderProps extends Omit<React.HTMLAttributes<HTMLDivEle
 
 /**
  * 图片上传组件
- * 
+ *
  * 基于 react-dropzone 实现的图片上传组件，支持拖拽上传、预览和删除。
  * 主要用于图片类型分块（Image Chunk）的编辑场景。
  */
@@ -132,20 +138,18 @@ export function ImageUploader(props: ImageUploaderProps) {
   } = props
 
   // 使用内部状态管理文件列表
-  const [files, setFilesInternal] = React.useState<File[]>(value ?? [])
+  const [internalFiles, setFilesInternal] = React.useState<File[]>(value ?? [])
 
-  // 同步外部 value 到内部状态
-  React.useEffect(() => {
-    if (value !== undefined) {
-      setFilesInternal(value)
-    }
-  }, [value])
+  const files = value ?? internalFiles
 
   // 更新文件列表
-  const setFiles = React.useCallback((newFiles: File[]) => {
-    setFilesInternal(newFiles)
-    onValueChange?.(newFiles)
-  }, [onValueChange])
+  const setFiles = React.useCallback(
+    (newFiles: File[]) => {
+      setFilesInternal(newFiles)
+      onValueChange?.(newFiles)
+    },
+    [onValueChange],
+  )
 
   const reachesMaxFileCount = files.length >= maxFileCount
 
@@ -175,7 +179,10 @@ export function ImageUploader(props: ImageUploaderProps) {
       if (rejectedFiles.length > 0) {
         onFilesRejected?.(rejectedFiles)
         rejectedFiles.forEach(({ file, errors }) => {
-          console.warn(`文件 ${file.name} 被拒绝:`, errors.map(e => e.message).join(', '))
+          console.warn(
+            `文件 ${file.name} 被拒绝:`,
+            errors.map((e) => e.message).join(', '),
+          )
         })
       }
     },
@@ -183,10 +190,13 @@ export function ImageUploader(props: ImageUploaderProps) {
   )
 
   // 移除文件
-  const onRemove = React.useCallback((index: number) => {
-    const newFiles = files.filter((_, i) => i !== index)
-    setFiles(newFiles)
-  }, [files, setFiles])
+  const onRemove = React.useCallback(
+    (index: number) => {
+      const newFiles = files.filter((_, i) => i !== index)
+      setFiles(newFiles)
+    },
+    [files, setFiles],
+  )
 
   // 组件卸载时清理预览 URL
   React.useEffect(() => {
@@ -210,34 +220,40 @@ export function ImageUploader(props: ImageUploaderProps) {
         {files.length > 0 && (
           <div className="space-y-3">
             {files.map((file, index) => (
-              <div 
+              <div
                 key={`${file.name}-${index}`}
-                className="relative group rounded-lg overflow-hidden"
-                style={{ 
+                className="group relative overflow-hidden rounded-lg"
+                style={{
                   backgroundColor: 'var(--color-background-default)',
-                  border: '1px solid var(--color-border-subtle)'
+                  border: '1px solid var(--color-border-subtle)',
                 }}
               >
                 {/* 图片预览 */}
-                <div className="aspect-video flex items-center justify-center p-3">
+                <div className="flex aspect-video items-center justify-center p-3">
                   {isFileWithPreview(file) && (
                     <img
                       src={file.preview}
                       alt={file.name}
-                      className="max-w-full max-h-full object-contain rounded"
+                      className="max-h-full max-w-full rounded object-contain"
                     />
                   )}
                 </div>
-                
+
                 {/* 文件信息和操作 */}
-                <div className="px-3 pb-3 flex items-center justify-between">
-                  <div className="flex-1 min-w-0 mr-3">
+                <div className="flex items-center justify-between px-3 pb-3">
+                  <div className="mr-3 min-w-0 flex-1">
                     <Tooltip content={file.name}>
-                      <p className="text-sm font-medium truncate" style={{ color: 'var(--color-text-primary)' }}>
+                      <p
+                        className="truncate text-sm font-medium"
+                        style={{ color: 'var(--color-text-primary)' }}
+                      >
                         {file.name}
                       </p>
                     </Tooltip>
-                    <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
+                    <p
+                      className="text-xs"
+                      style={{ color: 'var(--color-text-tertiary)' }}
+                    >
                       {formatBytes(file.size)}
                     </p>
                   </div>
@@ -246,13 +262,13 @@ export function ImageUploader(props: ImageUploaderProps) {
                     variant="ghost"
                     size="sm"
                     onClick={() => onRemove(index)}
-                    className="text-text-error hover:text-text-error hover:bg-red-50"
+                    className="text-text-error hover:bg-red-50 hover:text-text-error"
                   >
-                    <Trash2 className="w-4 h-4 mr-1" />
+                    <Trash2 className="mr-1 h-4 w-4" />
                     移除
                   </Button>
                 </div>
-                
+
                 {/* 进度条 */}
                 {typeof progresses?.[file.name] === 'number' && (
                   <div className="px-3 pb-3">
@@ -278,36 +294,56 @@ export function ImageUploader(props: ImageUploaderProps) {
               <div
                 {...getRootProps()}
                 className={cn(
-                  'group relative flex items-center justify-center gap-3 cursor-pointer rounded-lg border border-dashed px-4 py-3 transition',
-                  isDragActive 
-                    ? 'border-text-accent bg-state-hover' 
+                  'group relative flex cursor-pointer items-center justify-center gap-3 rounded-lg border border-dashed px-4 py-3 transition',
+                  isDragActive
+                    ? 'border-text-accent bg-state-hover'
                     : 'border-border-default hover:border-text-accent hover:bg-state-hover',
                   isDisabled && 'pointer-events-none opacity-60',
                   className,
                 )}
                 style={{
-                  backgroundColor: isDragActive ? 'var(--color-state-hover)' : 'transparent',
+                  backgroundColor: isDragActive
+                    ? 'var(--color-state-hover)'
+                    : 'transparent',
                 }}
                 {...dropzoneProps}
               >
                 <input {...getInputProps()} />
-                <div 
-                  className="flex items-center justify-center w-8 h-8 rounded-full transition-colors"
-                  style={{ 
-                    backgroundColor: isDragActive ? 'var(--color-primary-subtle)' : 'var(--color-background-subtle)',
+                <div
+                  className="flex h-8 w-8 items-center justify-center rounded-full transition-colors"
+                  style={{
+                    backgroundColor: isDragActive
+                      ? 'var(--color-primary-subtle)'
+                      : 'var(--color-background-subtle)',
                   }}
                 >
                   {isDragActive ? (
-                    <Upload className="w-4 h-4" style={{ color: 'var(--color-text-accent)' }} />
+                    <Upload
+                      className="h-4 w-4"
+                      style={{ color: 'var(--color-text-accent)' }}
+                    />
                   ) : (
-                    <Replace className="w-4 h-4" style={{ color: 'var(--color-text-tertiary)' }} />
+                    <Replace
+                      className="h-4 w-4"
+                      style={{ color: 'var(--color-text-tertiary)' }}
+                    />
                   )}
                 </div>
                 <div className="flex flex-col">
-                  <p className="text-sm font-medium" style={{ color: isDragActive ? 'var(--color-text-accent)' : 'var(--color-text-secondary)' }}>
-                    {isDragActive ? '释放以上传' : (title || '上传新图片替换')}
+                  <p
+                    className="text-sm font-medium"
+                    style={{
+                      color: isDragActive
+                        ? 'var(--color-text-accent)'
+                        : 'var(--color-text-secondary)',
+                    }}
+                  >
+                    {isDragActive ? '释放以上传' : title || '上传新图片替换'}
                   </p>
-                  <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
+                  <p
+                    className="text-xs"
+                    style={{ color: 'var(--color-text-tertiary)' }}
+                  >
                     {description || 'PNG、JPG、WebP、GIF，最大 10MB'}
                   </p>
                 </div>
@@ -326,44 +362,61 @@ export function ImageUploader(props: ImageUploaderProps) {
       {files.length > 0 && (
         <div className="space-y-3">
           {files.map((file, index) => (
-            <div 
+            <div
               key={`${file.name}-${index}`}
-              className="relative group rounded-lg overflow-hidden"
-              style={{ 
+              className="group relative overflow-hidden rounded-lg"
+              style={{
                 backgroundColor: 'var(--color-background-default)',
-                border: '1px solid var(--color-border-subtle)'
+                border: '1px solid var(--color-border-subtle)',
               }}
             >
               {/* 图片预览 */}
-              <div className="aspect-video flex items-center justify-center p-4" style={{ backgroundColor: 'var(--color-background-subtle)' }}>
+              <div
+                className="flex aspect-video items-center justify-center p-4"
+                style={{ backgroundColor: 'var(--color-background-subtle)' }}
+              >
                 {isFileWithPreview(file) && (
                   <img
                     src={file.preview}
                     alt={file.name}
-                    className="max-w-full max-h-full object-contain rounded shadow-sm"
+                    className="max-h-full max-w-full rounded object-contain shadow-sm"
                   />
                 )}
               </div>
-              
+
               {/* 文件信息和操作 */}
-              <div className="p-3 flex items-center justify-between" style={{ borderTop: '1px solid var(--color-border-subtle)' }}>
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0" style={{ backgroundColor: 'var(--color-background-subtle)' }}>
+              <div
+                className="flex items-center justify-between p-3"
+                style={{ borderTop: '1px solid var(--color-border-subtle)' }}
+              >
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                  <div
+                    className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-lg"
+                    style={{
+                      backgroundColor: 'var(--color-background-subtle)',
+                    }}
+                  >
                     {isFileWithPreview(file) && (
                       <img
                         src={file.preview}
                         alt=""
-                        className="w-full h-full object-cover"
+                        className="h-full w-full object-cover"
                       />
                     )}
                   </div>
-                  <div className="flex-1 min-w-0">
+                  <div className="min-w-0 flex-1">
                     <Tooltip content={file.name}>
-                      <p className="text-sm font-medium truncate" style={{ color: 'var(--color-text-primary)' }}>
+                      <p
+                        className="truncate text-sm font-medium"
+                        style={{ color: 'var(--color-text-primary)' }}
+                      >
                         {file.name}
                       </p>
                     </Tooltip>
-                    <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
+                    <p
+                      className="text-xs"
+                      style={{ color: 'var(--color-text-tertiary)' }}
+                    >
                       {formatBytes(file.size)}
                     </p>
                   </div>
@@ -373,13 +426,13 @@ export function ImageUploader(props: ImageUploaderProps) {
                   variant="ghost"
                   size="sm"
                   onClick={() => onRemove(index)}
-                  className="text-text-error hover:text-text-error hover:bg-red-50"
+                  className="text-text-error hover:bg-red-50 hover:text-text-error"
                 >
-                  <Trash2 className="w-4 h-4 mr-1" />
+                  <Trash2 className="mr-1 h-4 w-4" />
                   移除
                 </Button>
               </div>
-              
+
               {/* 进度条 */}
               {typeof progresses?.[file.name] === 'number' && (
                 <div className="px-3 pb-3">
@@ -407,49 +460,66 @@ export function ImageUploader(props: ImageUploaderProps) {
               className={cn(
                 'group relative grid w-full cursor-pointer place-items-center rounded-lg border-2 border-dashed px-5 py-6 text-center transition-all duration-200',
                 dropzoneHeight,
-                isDragActive 
-                  ? 'border-text-accent bg-primary-subtle scale-[1.01]' 
+                isDragActive
+                  ? 'bg-primary-subtle scale-[1.01] border-text-accent'
                   : 'border-border-default hover:border-text-accent hover:bg-state-hover',
                 isDisabled && 'pointer-events-none opacity-60',
                 className,
               )}
               style={{
-                backgroundColor: isDragActive ? 'var(--color-primary-subtle)' : 'var(--color-background-subtle)',
+                backgroundColor: isDragActive
+                  ? 'var(--color-primary-subtle)'
+                  : 'var(--color-background-subtle)',
               }}
               {...dropzoneProps}
             >
               <input {...getInputProps()} />
               <div className="flex flex-col items-center justify-center gap-3">
                 {/* 图标容器 */}
-                <div 
+                <div
                   className={cn(
-                    "flex items-center justify-center w-14 h-14 rounded-full transition-all duration-200",
-                    isDragActive ? "scale-110" : "group-hover:scale-105"
+                    'flex h-14 w-14 items-center justify-center rounded-full transition-all duration-200',
+                    isDragActive ? 'scale-110' : 'group-hover:scale-105',
                   )}
-                  style={{ 
-                    backgroundColor: isDragActive ? 'var(--color-text-accent)' : 'var(--color-background-default)',
-                    boxShadow: isDragActive 
-                      ? '0 8px 24px rgba(var(--color-primary-rgb), 0.3)' 
-                      : '0 2px 8px rgba(0,0,0,0.06)'
+                  style={{
+                    backgroundColor: isDragActive
+                      ? 'var(--color-text-accent)'
+                      : 'var(--color-background-default)',
+                    boxShadow: isDragActive
+                      ? '0 8px 24px rgba(var(--color-primary-rgb), 0.3)'
+                      : '0 2px 8px rgba(0,0,0,0.06)',
                   }}
                 >
                   {isDragActive ? (
-                    <Upload className="w-6 h-6 text-white" />
+                    <Upload className="h-6 w-6 text-white" />
                   ) : (
-                    <ImageIcon className="w-6 h-6" style={{ color: 'var(--color-text-tertiary)' }} />
+                    <ImageIcon
+                      className="h-6 w-6"
+                      style={{ color: 'var(--color-text-tertiary)' }}
+                    />
                   )}
                 </div>
-                
+
                 {/* 文字内容 */}
                 <div className="flex flex-col gap-1">
-                  <p 
+                  <p
                     className="text-sm font-medium transition-colors"
-                    style={{ color: isDragActive ? 'var(--color-text-accent)' : 'var(--color-text-primary)' }}
+                    style={{
+                      color: isDragActive
+                        ? 'var(--color-text-accent)'
+                        : 'var(--color-text-primary)',
+                    }}
                   >
-                    {isDragActive ? '释放以上传图片' : (title || '点击或拖拽图片到此处')}
+                    {isDragActive
+                      ? '释放以上传图片'
+                      : title || '点击或拖拽图片到此处'}
                   </p>
-                  <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
-                    {description || `支持 PNG、JPG、WebP、GIF，最大 ${formatBytes(maxSize)}`}
+                  <p
+                    className="text-xs"
+                    style={{ color: 'var(--color-text-tertiary)' }}
+                  >
+                    {description ||
+                      `支持 PNG、JPG、WebP、GIF，最大 ${formatBytes(maxSize)}`}
                   </p>
                 </div>
               </div>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { ROUTES } from '@/constants'
@@ -43,9 +43,10 @@ export const useKnowledgeListPage = () => {
   })
   const { deleteKnowledge } = useDeleteKnowledge()
 
-  useEffect(() => {
-    setCurrentPage((prevPage) => (prevPage === 1 ? prevPage : 1))
-  }, [searchQuery])
+  const changeSearchQuery = useCallback((query: string) => {
+    setSearchQuery(query)
+    setCurrentPage(1)
+  }, [])
 
   const totalPages = Math.ceil(total / pageSize)
 
@@ -206,7 +207,7 @@ export const useKnowledgeListPage = () => {
     setCurrentPage,
     setEditingKnowledgeBase,
     setPageSize,
-    setSearchQuery,
+    setSearchQuery: changeSearchQuery,
     setShowCreateModal,
     setSortDesc,
     setTimeFormat,

@@ -17,11 +17,16 @@ function useFrameThrottledContent(
   const latestContentRef = useRef(content)
   const [renderedContent, setRenderedContent] = useState(content)
 
+  const [previousStreaming, setPreviousStreaming] = useState(isStreaming)
+  if (previousStreaming !== isStreaming) {
+    setPreviousStreaming(isStreaming)
+    setRenderedContent(content)
+  }
+
   useEffect(() => {
     latestContentRef.current = content
 
     if (!isStreaming) {
-      setRenderedContent(content)
       return undefined
     }
 

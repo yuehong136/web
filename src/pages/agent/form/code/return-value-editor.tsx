@@ -8,14 +8,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Braces } from 'lucide-react'
-import {
-  type ChangeEvent,
-  useCallback,
-  useEffect,
-  useId,
-  useMemo,
-  useState,
-} from 'react'
+import { type ChangeEvent, useCallback, useId, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { JsonSchemaDataType, TypesWithArray } from '../../constant'
 import {
@@ -42,9 +35,12 @@ const codeOutputTypeOptions = [
 function useReturnValueDraft(contract: CodeOutputContract) {
   const [draft, setDraft] = useState(contract)
 
-  useEffect(() => {
+  const [previousContract, setPreviousSource] = useState(contract)
+  if (previousContract !== contract) {
+    setPreviousSource(contract)
+
     setDraft(contract)
-  }, [contract])
+  }
 
   return [draft, setDraft] as const
 }

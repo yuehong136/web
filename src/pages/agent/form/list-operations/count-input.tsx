@@ -1,4 +1,4 @@
-import { useEffect, useState, type ComponentProps } from 'react'
+import { useState, type ComponentProps } from 'react'
 import { Input } from '@/components/ui/input'
 import { parseListCountInput } from './utils'
 
@@ -18,7 +18,11 @@ export function ListCountInput({
   ...props
 }: CountInputProps) {
   const [draft, setDraft] = useState(String(value ?? ''))
-  useEffect(() => setDraft(String(value ?? '')), [value])
+  const [previousValue, setPreviousSource] = useState(value)
+  if (previousValue !== value) {
+    setPreviousSource(value)
+    setDraft(String(value ?? ''))
+  }
   return (
     <Input
       {...props}

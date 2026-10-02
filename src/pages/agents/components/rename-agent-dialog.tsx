@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
@@ -35,11 +35,18 @@ export function RenameAgentDialog({
   )
   const [title, setTitle] = useState(initialTitle)
 
-  useEffect(() => {
+  const resetInputs = [initialTitle, open]
+  const [previousInputs, setPreviousInputs] = useState<unknown[] | null>(null)
+  if (
+    previousInputs === null ||
+    resetInputs.some((value, index) => !Object.is(value, previousInputs[index]))
+  ) {
+    setPreviousInputs(resetInputs)
+
     if (open) {
       setTitle(initialTitle)
     }
-  }, [initialTitle, open])
+  }
 
   const trimmed = title.trim()
   const disabled = !trimmed || trimmed === initialTitle.trim() || isLoading

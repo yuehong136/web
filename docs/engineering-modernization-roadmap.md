@@ -747,6 +747,10 @@ hooks 7 最新全量试跑为 151 errors / 93 files：set-state-in-effect 87、r
 
 该组受影响文件的 Hooks 7 lint、Web build、Agent strict、file-size、完整 test:ci（543 + 188 + 81 + 7）和 Bundle budget 通过。浏览器使用真实组件验证节点标题输入/Escape/切换节点、创建弹窗取消/重开清空，以及四种运行状态明暗渲染；保存截图，控制台无 error。未提交创建请求或后端保存。其余表单/流式生命周期诊断继续整改；正式 hooks 7 升级仍待全量通过。
 
+后续整改 C3（2026-10-02）：共享上传器直接消费受控 value，Portal 删除挂载镜像状态；主题和命令 registry 订阅外部变化并清理监听。最近 scoped 主题在弹层保持打开时也可更新。Markdown 验证缓存和异步校验结果直接派生渲染状态，流式结束立即显示最终内容，下一轮开始重置快照。表单草稿使用所属输入变化的条件重置；模型凭据弹窗关闭时卸载、按厂商身份重新创建，默认模型/地址直接初始化。数据源字段直接派生，Box 初始凭据仅在初始化解析；知识库搜索同时重置页码。未改接口、取消协议或全局启用 Compiler。
+
+新增八项正式回归覆盖流重启、registry 订阅/释放、无效数值草稿、重命名重开、元数据校验清空、scoped/active/global 主题订阅。该组受影响文件 Hooks 7 lint（0 errors）、Web build、file-size、完整 test:ci（543 + 196 + 81 + 7）和 Bundle budget 通过；模型弹窗基线收紧。浏览器实看外部数值覆盖、共享 Select Portal 选择、重命名取消/重开及明暗弹层，控制台无 error，截图已保存。hooks 7 全量剩余 97 errors / 54 files（主要是异步页面和 Agent 生命周期），尚未正式切换依赖。
+
 ### HYG-3 规范、环境变量与进度账本漂移
 
 - **状态**：部分完成

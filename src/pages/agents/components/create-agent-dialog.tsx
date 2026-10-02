@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   Dialog,
@@ -65,12 +65,19 @@ export function CreateAgentDialog({
   const [kind, setKind] = useState(initialKind)
   const [submitting, setSubmitting] = useState(false)
 
-  useEffect(() => {
+  const resetInputs = [defaultTitle, initialKind, open]
+  const [previousInputs, setPreviousInputs] = useState<unknown[] | null>(null)
+  if (
+    previousInputs === null ||
+    resetInputs.some((value, index) => !Object.is(value, previousInputs[index]))
+  ) {
+    setPreviousInputs(resetInputs)
+
     if (open) {
       setName(defaultTitle)
       setKind(initialKind)
     }
-  }, [defaultTitle, initialKind, open])
+  }
 
   const handleConfirm = async () => {
     const nextName = name.trim()

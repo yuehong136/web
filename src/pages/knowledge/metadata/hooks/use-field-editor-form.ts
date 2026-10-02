@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { MetadataTableData } from '@/types/api'
 
@@ -59,22 +59,30 @@ export function useFieldEditorForm(
   const [tempValues, setTempValues] = useState<string[]>([])
   const [errors, setErrors] = useState<FieldEditorErrors>({})
 
-  useEffect(() => {
-    if (!open) return
-    if (initialData) {
-      setFormData({
-        field: initialData.field,
-        description: initialData.description || '',
-        values: initialData.values,
-        restrictDefinedValues: initialData.restrictDefinedValues || false,
-      })
-      setTempValues([...initialData.values])
-    } else {
-      setFormData(EMPTY_FORM)
-      setTempValues([])
+  const resetInputs = [open, initialData]
+  const [previousInputs, setPreviousInputs] = useState<unknown[] | null>(null)
+  if (
+    previousInputs === null ||
+    resetInputs.some((value, index) => !Object.is(value, previousInputs[index]))
+  ) {
+    setPreviousInputs(resetInputs)
+
+    if (open) {
+      if (initialData) {
+        setFormData({
+          field: initialData.field,
+          description: initialData.description || '',
+          values: initialData.values,
+          restrictDefinedValues: initialData.restrictDefinedValues || false,
+        })
+        setTempValues([...initialData.values])
+      } else {
+        setFormData(EMPTY_FORM)
+        setTempValues([])
+      }
+      setErrors({})
     }
-    setErrors({})
-  }, [open, initialData])
+  }
 
   const fieldChange = useCallback(
     (value: string) => {

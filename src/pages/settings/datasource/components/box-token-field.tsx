@@ -27,23 +27,21 @@ export function BoxTokenField({
   const { t } = useTranslation()
   const [authStatus, setAuthStatus] = useState<AuthStatus>('idle')
   const [errorMessage, setErrorMessage] = useState<string>('')
-  const [clientId, setClientId] = useState('')
-  const [clientSecret, setClientSecret] = useState('')
-  const pollingRef = useRef<NodeJS.Timeout | null>(null)
-
-  // 仅在组件首次挂载时解析初始值
-  useEffect(() => {
+  const [initialCredentials] = useState(() => {
     try {
-      if (value) {
-        const parsed = JSON.parse(value)
-        if (parsed.client_id) setClientId(parsed.client_id)
-        if (parsed.client_secret) setClientSecret(parsed.client_secret)
+      return JSON.parse(value || '{}') as {
+        client_id?: string
+        client_secret?: string
       }
     } catch {
-      // 忽略解析错误
+      return {}
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  })
+  const [clientId, setClientId] = useState(initialCredentials.client_id || '')
+  const [clientSecret, setClientSecret] = useState(
+    initialCredentials.client_secret || '',
+  )
+  const pollingRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     return () => {

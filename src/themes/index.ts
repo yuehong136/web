@@ -83,40 +83,24 @@ export const initTheme = () => {
   return undefined
 }
 
-// React hook: 检测当前是否为暗黑模式
-import { useState, useEffect } from 'react'
+import { useSyncExternalStore } from 'react'
 
-export const useIsDarkTheme = (): boolean => {
-  const [isDark, setIsDark] = useState(() => getResolvedTheme() === 'dark')
-
-  useEffect(() => {
-    // 检查初始状态
-    setIsDark(getResolvedTheme() === 'dark')
-
-    // 监听 data-theme 属性变化
-    const observer = new MutationObserver(() => {
-      setIsDark(getResolvedTheme() === 'dark')
-    })
-
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['data-theme'],
-    })
-
-    // 监听系统主题变化
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    const handleChange = () => {
-      if (getTheme() === Theme.SYSTEM) {
-        setIsDark(mediaQuery.matches)
-      }
-    }
-    mediaQuery.addEventListener('change', handleChange)
-
-    return () => {
-      observer.disconnect()
-      mediaQuery.removeEventListener('change', handleChange)
-    }
-  }, [])
-
-  return isDark
+export function subscribeTheme(listener: () => void) {
+  const observer = new MutationObserver(listener)
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['data-theme'],
+  })
+  const media = window.matchMedia('(prefers-color-scheme: dark)')
+  media.addEventListener('change', listener)
+  window.addEventListener('storage', listener)
+  return () => {
+    observer.disconnect()
+    media.removeEventListener('change', listener)
+    window.removeEventListener('storage', listener)
+  }
 }
+
+const readDarkTheme = () => getResolvedTheme() === 'dark'
+export const useIsDarkTheme = (): boolean =>
+  useSyncExternalStore(subscribeTheme, readDarkTheme, () => false)

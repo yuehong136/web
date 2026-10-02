@@ -33,10 +33,14 @@ export const ApplicationCommandProvider: React.FC<React.PropsWithChildren> = ({
   const { commandSource, platform } = useApplicationComposition()
   const useRendererShortcuts =
     platform.kind === PlatformKind.WEB || !platform.capabilities().nativeMenu
-  const registry = React.useRef(new CommandRegistry()).current
+  const [registry] = React.useState(() => new CommandRegistry())
   const [paletteOpen, setPaletteOpen] = React.useState(false)
   const paletteOpenRef = React.useRef(false)
-  const [revision, setRevision] = React.useState(0)
+  const revision = React.useSyncExternalStore(
+    registry.subscribe,
+    registry.getRevision,
+    registry.getRevision,
+  )
   const previousFocus = React.useRef<HTMLElement | null>(null)
 
   const setCommandPaletteOpen = React.useCallback((open: boolean) => {
@@ -149,7 +153,6 @@ export const ApplicationCommandProvider: React.FC<React.PropsWithChildren> = ({
     ]
 
     const disposers = commands.map((command) => registry.register(command))
-    setRevision((value) => value + 1)
     return () => disposers.reverse().forEach((dispose) => dispose())
   }, [navigate, platform.kind, registry, setCommandPaletteOpen])
 

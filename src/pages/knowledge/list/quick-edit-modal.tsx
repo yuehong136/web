@@ -1,5 +1,5 @@
 import type { ChangeEvent, FC, FormEvent } from 'react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -30,12 +30,15 @@ export const KnowledgeQuickEditDialog: FC<KnowledgeEditDialogProps> = ({
     description: knowledgeBase.description || '',
   })
 
-  useEffect(() => {
+  const [previousKnowledgeBase, setPreviousSource] = useState(knowledgeBase)
+  if (previousKnowledgeBase !== knowledgeBase) {
+    setPreviousSource(knowledgeBase)
+
     setFormData({
       name: knowledgeBase.name || '',
       description: knowledgeBase.description || '',
     })
-  }, [knowledgeBase])
+  }
 
   const handleInputChange =
     (field: keyof typeof formData) =>

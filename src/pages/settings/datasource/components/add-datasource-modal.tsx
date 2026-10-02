@@ -1,6 +1,5 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   Dialog,
@@ -13,7 +12,7 @@ import {
   useDataSourceFormFields,
   DataSourceFormDefaultValues,
 } from '../constants'
-import { type IDataSourceInfo, type FormFieldConfig, DataSourceKey } from '../types'
+import { type IDataSourceInfo, DataSourceKey } from '../types'
 import type { DataSourceSetRequest } from '@/api/datasource'
 
 interface AddDataSourceModalProps {
@@ -36,14 +35,9 @@ export function AddDataSourceModal({
 }: AddDataSourceModalProps) {
   const { t } = useTranslation()
   const { formFields, baseFields } = useDataSourceFormFields()
-  const [fields, setFields] = useState<FormFieldConfig[]>([])
-
-  useEffect(() => {
-    if (sourceData) {
-      const sourceFields = formFields[sourceData.id as DataSourceKey] || []
-      setFields([...baseFields, ...sourceFields])
-    }
-  }, [sourceData, formFields, baseFields])
+  const fields = sourceData
+    ? [...baseFields, ...(formFields[sourceData.id as DataSourceKey] || [])]
+    : []
 
   const handleOk = async (values: any) => {
     const data: DataSourceSetRequest = {
@@ -53,21 +47,20 @@ export function AddDataSourceModal({
     await onOk(data)
   }
 
-  const defaultValues = DataSourceFormDefaultValues[sourceData?.id as DataSourceKey] || {}
+  const defaultValues =
+    DataSourceFormDefaultValues[sourceData?.id as DataSourceKey] || {}
 
   return (
     <Dialog open={visible} onOpenChange={(open) => !open && hideModal()}>
-      <DialogContent 
-        size="md" 
-        className="max-h-[85vh] flex flex-col p-0 gap-0 overflow-hidden"
+      <DialogContent
+        size="md"
+        className="flex max-h-[85vh] flex-col gap-0 overflow-hidden p-0"
       >
         {/* 头部 */}
-        <DialogHeader className="px-6 py-5 border-b border-border-default bg-background-subtle">
+        <DialogHeader className="border-b border-border-default bg-background-subtle px-6 py-5">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-lg bg-background-body 
-                            flex items-center justify-center
-                            shadow-sm border border-border-default">
-              <div className="w-7 h-7 flex items-center justify-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-border-default bg-background-body shadow-sm">
+              <div className="flex h-7 w-7 items-center justify-center">
                 {sourceData?.icon}
               </div>
             </div>
@@ -92,18 +85,16 @@ export function AddDataSourceModal({
               labelClassName="text-sm font-medium text-text-secondary"
             >
               {/* 底部操作按钮 */}
-              <div className="sticky bottom-0 flex items-center justify-end gap-3 
-                              pt-5 mt-6 border-t border-border-default 
-                              bg-surface-primary">
-                <DynamicForm.CancelButton 
+              <div className="bg-surface-primary sticky bottom-0 mt-6 flex items-center justify-end gap-3 border-t border-border-default pt-5">
+                <DynamicForm.CancelButton
                   handleCancel={hideModal}
-                  className="px-5 h-10 text-sm font-medium"
+                  className="h-10 px-5 text-sm font-medium"
                 />
                 <DynamicForm.SavingButton
                   submitLoading={loading}
                   buttonText={t('common.confirm')}
                   submitFunc={handleOk}
-                  className="px-6 h-10 text-sm font-medium"
+                  className="h-10 px-6 text-sm font-medium"
                 />
               </div>
             </DynamicForm.Root>

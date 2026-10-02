@@ -7,7 +7,6 @@ import {
   forwardRef,
   memo,
   useCallback,
-  useEffect,
   useState,
 } from 'react'
 import {
@@ -60,65 +59,69 @@ function getOtherFieldValues(
     .filter((name): name is string => typeof name === 'string')
 }
 
-const InnerNameInput = forwardRef<HTMLInputElement, InputProps & NameInputProps>(
-  function InnerNameInput(
-    { value, onChange, otherNames, validate, ...props },
-    ref,
-  ) {
-    const { t } = useTranslation()
-    const [name, setName] = useState<string | undefined>(value)
+const InnerNameInput = forwardRef<
+  HTMLInputElement,
+  InputProps & NameInputProps
+>(function InnerNameInput(
+  { value, onChange, otherNames, validate, ...props },
+  ref,
+) {
+  const { t } = useTranslation()
+  const [name, setName] = useState<string | undefined>(value)
 
-    const handleNameChange: ChangeEventHandler<HTMLInputElement> = useCallback(
-      (event) => {
-        const nextValue = event.target.value
-        const trimmedValue = trim(nextValue)
-        setName(nextValue)
+  const handleNameChange: ChangeEventHandler<HTMLInputElement> = useCallback(
+    (event) => {
+      const nextValue = event.target.value
+      const trimmedValue = trim(nextValue)
+      setName(nextValue)
 
-        if (trimmedValue === '') {
-          validate(t('flow.nameRequiredMsg', 'Name is required'))
-          return
-        }
+      if (trimmedValue === '') {
+        validate(t('flow.nameRequiredMsg', 'Name is required'))
+        return
+      }
 
-        if (otherNames?.some((item) => item === trimmedValue)) {
-          validate(t('flow.nameRepeatedMsg', 'Name already exists'))
-          return
-        }
+      if (otherNames?.some((item) => item === trimmedValue)) {
+        validate(t('flow.nameRepeatedMsg', 'Name already exists'))
+        return
+      }
 
-        validate('')
-      },
-      [otherNames, t, validate],
-    )
+      validate('')
+    },
+    [otherNames, t, validate],
+  )
 
-    const handleNameBlur: FocusEventHandler<HTMLInputElement> = useCallback(
-      (event) => {
-        const trimmedValue = trim(event.target.value)
-        setName(trimmedValue)
+  const handleNameBlur: FocusEventHandler<HTMLInputElement> = useCallback(
+    (event) => {
+      const trimmedValue = trim(event.target.value)
+      setName(trimmedValue)
 
-        if (
-          trimmedValue &&
-          otherNames?.every((item) => item !== trimmedValue) !== false
-        ) {
-          onChange?.(trimmedValue)
-        }
-      },
-      [onChange, otherNames],
-    )
+      if (
+        trimmedValue &&
+        otherNames?.every((item) => item !== trimmedValue) !== false
+      ) {
+        onChange?.(trimmedValue)
+      }
+    },
+    [onChange, otherNames],
+  )
 
-    useEffect(() => {
-      setName(value)
-    }, [value])
+  const [previousValue, setPreviousSource] = useState(value)
+  if (previousValue !== value) {
+    setPreviousSource(value)
 
-    return (
-      <Input
-        {...props}
-        ref={ref}
-        value={name ?? ''}
-        onChange={handleNameChange}
-        onBlur={handleNameBlur}
-      />
-    )
-  },
-)
+    setName(value)
+  }
+
+  return (
+    <Input
+      {...props}
+      ref={ref}
+      value={name ?? ''}
+      onChange={handleNameChange}
+      onBlur={handleNameBlur}
+    />
+  )
+})
 
 const NameInput = memo(InnerNameInput)
 
@@ -127,9 +130,8 @@ function CategorizeItemFields({ index }: { index: number }) {
   const form = useFormContext<CategorizeFormValues>()
 
   const buildFieldName = useCallback(
-    <TName extends 'name' | 'description' | 'uuid' | 'examples'>(
-      name: TName,
-    ) => `items.${index}.${name}` as FieldPath<CategorizeFormValues>,
+    <TName extends 'name' | 'description' | 'uuid' | 'examples'>(name: TName) =>
+      `items.${index}.${name}` as FieldPath<CategorizeFormValues>,
     [index],
   )
 
@@ -228,7 +230,13 @@ function InnerDynamicCategorize({ nodeId }: DynamicCategorizeProps) {
         updateNodeInternals(nodeId)
       }
     },
-    [deleteEdgesBySourceAndSourceHandle, fields, nodeId, remove, updateNodeInternals],
+    [
+      deleteEdgesBySourceAndSourceHandle,
+      fields,
+      nodeId,
+      remove,
+      updateNodeInternals,
+    ],
   )
 
   return (
@@ -236,12 +244,12 @@ function InnerDynamicCategorize({ nodeId }: DynamicCategorizeProps) {
       {fields.map((field, index) => (
         <div key={field.id}>
           <Collapsible defaultOpen>
-            <div className="flex items-center justify-between gap-space-sm pb-space-sm">
+            <div className="gap-space-sm pb-space-sm flex items-center justify-between">
               <span className="text-sm font-medium text-text-primary">
                 {form.watch(`items.${index}.name`) ||
                   `${t('flow.categoryName', 'Category')} ${index + 1}`}
               </span>
-              <div className="flex items-center gap-space-xs">
+              <div className="gap-space-xs flex items-center">
                 <Button
                   type="button"
                   variant="ghost"

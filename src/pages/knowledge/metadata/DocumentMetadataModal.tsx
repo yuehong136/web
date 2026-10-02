@@ -1,4 +1,4 @@
-import { useEffect, useState, type FC } from 'react'
+import { useState, type FC } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   Dialog,
@@ -43,11 +43,18 @@ export const DocumentMetadataModal: FC<DocumentMetadataModalProps> = ({
 
   const updateMetaMutation = useUpdateDocumentMeta()
 
-  useEffect(() => {
+  const resetInputs = [open, metaFields]
+  const [previousInputs, setPreviousInputs] = useState<unknown[] | null>(null)
+  if (
+    previousInputs === null ||
+    resetInputs.some((value, index) => !Object.is(value, previousInputs[index]))
+  ) {
+    setPreviousInputs(resetInputs)
+
     if (open) {
       setLocalMeta(metaFields || {})
     }
-  }, [open, metaFields])
+  }
 
   const handleSave = async () => {
     await updateMetaMutation.mutateAsync({

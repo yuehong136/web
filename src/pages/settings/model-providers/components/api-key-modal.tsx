@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Eye, EyeOff, ExternalLink, RefreshCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -43,7 +43,10 @@ import {
 } from '../constants'
 import type { BedrockAuthMode } from '../constants'
 
-export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
+export const ApiKeyModal: React.FC<ApiKeyModalProps> = (props) =>
+  props.isOpen ? <ApiKeyModalForm key={props.providerName} {...props} /> : null
+
+const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
   isOpen,
   onClose,
   providerName,
@@ -59,9 +62,13 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
 
   // 通用表单状态
   const [apiKey, setApiKey] = useState('')
-  const [baseUrl, setBaseUrl] = useState('')
-  const [modelType, setModelType] = useState('chat')
-  const [modelName, setModelName] = useState('')
+  const [baseUrl, setBaseUrl] = useState(DEFAULT_BASE_URLS[providerName] || '')
+  const [modelType, setModelType] = useState(() =>
+    getDefaultModelType(providerName),
+  )
+  const [modelName, setModelName] = useState(
+    providerName === 'Azure-OpenAI' ? 'gpt-3.5-turbo' : '',
+  )
   const [maxTokens, setMaxTokens] = useState<number>(8192)
   const [vision, setVision] = useState(false)
   const [groupId, setGroupId] = useState('') // MiniMax 专用
@@ -131,67 +138,10 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
   )
   const [error, setError] = useState('')
 
+  const defaultBaseUrl = DEFAULT_BASE_URLS[providerName] || ''
   const docLink = FACTORY_DOC_LINKS[providerName]
   const modelTypes =
     FACTORY_MODEL_TYPES[providerName] || FACTORY_MODEL_TYPES['Default']
-  const defaultBaseUrl = DEFAULT_BASE_URLS[providerName] || ''
-
-  // 重置表单
-  useEffect(() => {
-    if (isOpen) {
-      setApiKey('')
-      setBaseUrl(defaultBaseUrl)
-      setModelType(getDefaultModelType(providerName))
-      setModelName(providerName === 'Azure-OpenAI' ? 'gpt-3.5-turbo' : '')
-      setMaxTokens(8192)
-      setVision(false)
-      setGroupId('')
-      // TencentCloud
-      setTencentCloudSid('')
-      setTencentCloudSk('')
-      // Spark
-      setSparkApiPassword('')
-      setSparkAppId('')
-      setSparkApiSecret('')
-      setSparkApiKey('')
-      // Fish Audio
-      setFishAudioAk('')
-      setFishAudioRefId('')
-      // Google Cloud
-      setGoogleProjectId('')
-      setGoogleRegion('')
-      setGoogleServiceAccountKey('')
-      // Azure
-      setAzureApiVersion('2024-02-01')
-      // VolcEngine
-      setEndpointId('')
-      setArkApiKey('')
-      // Bedrock
-      setBedrockAuthMode('access_key_secret')
-      setBedrockAk('')
-      setBedrockSk('')
-      setBedrockRegion('')
-      setAwsRoleArn('')
-      // MinerU
-      setMineruApiServer('')
-      setMineruOutputDir('')
-      setMineruBackend('pipeline')
-      setMineruServerUrl('')
-      setMineruDeleteOutput(true)
-      // PaddleOCR
-      setPaddleocrApiUrl('')
-      setPaddleocrAccessToken('')
-      setPaddleocrAlgorithm('PaddleOCR-VL')
-      // OpenDataLoader
-      setOpendataloaderApiServer('')
-      setOpendataloaderApiKey('')
-      setOpendataloaderTimeout(600)
-      // Verify 状态
-      setIsVerifying(false)
-      setVerifyResult(null)
-      setError('')
-    }
-  }, [isOpen, defaultBaseUrl, providerName])
 
   const handleSave = async (isVerify = false) => {
     if (isVerify) {

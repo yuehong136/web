@@ -1,4 +1,4 @@
-import { useEffect, useState, type FC } from 'react'
+import { useState, type FC } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Plus, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -43,13 +43,20 @@ export const DocumentMetadataEditor: FC<DocumentMetadataEditorProps> = ({
   const { t } = useTranslation()
   const [entries, setEntries] = useState<MetadataEntry[]>([])
 
-  useEffect(() => {
+  const resetInputs = [value]
+  const [previousInputs, setPreviousInputs] = useState<unknown[] | null>(null)
+  if (
+    previousInputs === null ||
+    resetInputs.some((value, index) => !Object.is(value, previousInputs[index]))
+  ) {
+    setPreviousInputs(resetInputs)
+
     const initialEntries = Object.entries(value || {}).map(([key, val]) => ({
       key,
       value: Array.isArray(val) ? val.join(', ') : String(val || ''),
     }))
     setEntries(initialEntries.length > 0 ? initialEntries : [])
-  }, [value])
+  }
 
   const syncToParent = (newEntries: MetadataEntry[]) => {
     const newValue: DocumentMetadataRecord = {}
@@ -215,7 +222,7 @@ export const DocumentMetadataEditor: FC<DocumentMetadataEditorProps> = ({
                 value: entry.key || entry.value,
               })}
             >
-              <X className="w-icon-sm h-icon-sm" />
+              <X className="h-icon-sm w-icon-sm" />
             </Button>
           </div>
         )
@@ -229,7 +236,7 @@ export const DocumentMetadataEditor: FC<DocumentMetadataEditorProps> = ({
           onClick={handleAdd}
           className="w-full"
         >
-          <Plus className="w-icon-sm h-icon-sm mr-space-xs" />
+          <Plus className="mr-space-xs h-icon-sm w-icon-sm" />
           {t('knowledge.metadata.editor.addMetadataButton')}
         </Button>
       )}

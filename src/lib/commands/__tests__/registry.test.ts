@@ -51,6 +51,25 @@ describe('CommandRegistry', () => {
     ])
   })
 
+  it('publishes registration and disposal revisions once and releases subscribers', () => {
+    const registry = new CommandRegistry()
+    const listener = vi.fn()
+    const unsubscribe = registry.subscribe(listener)
+    expect(registry.getRevision()).toBe(0)
+    const dispose = registry.register(
+      createCommand(ProductCommandId.NAVIGATE_HOME),
+    )
+    expect(registry.getRevision()).toBe(1)
+    expect(listener).toHaveBeenCalledTimes(1)
+    dispose()
+    dispose()
+    expect(registry.getRevision()).toBe(2)
+    expect(listener).toHaveBeenCalledTimes(2)
+    unsubscribe()
+    registry.register(createCommand(ProductCommandId.NAVIGATE_HOME))
+    expect(listener).toHaveBeenCalledTimes(2)
+  })
+
   it('rejects duplicate stable command ids', () => {
     const registry = new CommandRegistry()
     registry.register(createCommand(ProductCommandId.NAVIGATE_HOME))

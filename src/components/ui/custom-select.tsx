@@ -22,17 +22,6 @@ export interface CustomSelectProps {
 
 // Portal组件，将下拉菜单渲染到body
 const Portal: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [mounted, setMounted] = React.useState(false)
-
-  React.useEffect(() => {
-    setMounted(true)
-    return () => setMounted(false)
-  }, [])
-
-  if (!mounted) {
-    return null
-  }
-
   return createPortal(children, document.body)
 }
 

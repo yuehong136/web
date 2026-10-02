@@ -114,40 +114,28 @@ const SafeMermaid: React.FC<{
     () => normalizeMermaidSource(code),
     [code],
   )
-  const [canRenderMermaid, setCanRenderMermaid] = React.useState<boolean>(
-    () => {
-      const cached = mermaidValidationCache.get(normalizedCode)
-      return cached ?? true
-    },
-  )
+  const [validation, setValidation] = React.useState<{
+    code: string
+    valid: boolean
+  } | null>(null)
+  const cached = mermaidValidationCache.get(normalizedCode)
+  const canRenderMermaid =
+    streamStatus === 'loading' ||
+    (cached ?? (validation?.code === normalizedCode ? validation.valid : true))
 
   React.useEffect(() => {
+    if (cached !== undefined || streamStatus === 'loading') return
     let cancelled = false
-    const cached = mermaidValidationCache.get(normalizedCode)
-    if (cached !== undefined) {
-      setCanRenderMermaid(cached)
-      return () => {
-        cancelled = true
-      }
-    }
-
-    if (streamStatus === 'loading') {
-      setCanRenderMermaid(true)
-      return () => {
-        cancelled = true
-      }
-    }
-
     void validateMermaidSource(normalizedCode).then((isValid) => {
       if (!cancelled) {
-        setCanRenderMermaid(isValid)
+        setValidation({ code: normalizedCode, valid: isValid })
       }
     })
 
     return () => {
       cancelled = true
     }
-  }, [normalizedCode, streamStatus])
+  }, [cached, normalizedCode, streamStatus])
 
   if (!canRenderMermaid) {
     return <CodeBlock code={normalizedCode} language="mermaid" />

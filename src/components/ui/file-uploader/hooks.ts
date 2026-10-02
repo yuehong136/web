@@ -19,14 +19,10 @@ export function useFileUploader({
   onRetry,
   texts,
 }: UseFileUploaderOptions) {
-  const [files, setFilesInternal] = useState<UploadFile[]>(value ?? [])
+  const [internalFiles, setFilesInternal] = useState<UploadFile[]>(value ?? [])
   const fileIdCounter = useRef(0)
 
-  useEffect(() => {
-    if (value !== undefined) {
-      setFilesInternal(value)
-    }
-  }, [value])
+  const files = value ?? internalFiles
 
   const generateFileId = useCallback(() => {
     return `file-${Date.now()}-${++fileIdCounter.current}`

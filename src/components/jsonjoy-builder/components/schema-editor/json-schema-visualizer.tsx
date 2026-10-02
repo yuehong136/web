@@ -49,7 +49,6 @@ const JsonSchemaVisualizer: FC<JsonSchemaVisualizerProps> = ({
   }, [onValidationChange, schema])
 
   useEffect(() => {
-    setLoadTimedOut(false)
     const timer = window.setTimeout(() => {
       if (!editorRef.current) {
         setLoadTimedOut(true)
@@ -117,31 +116,28 @@ const JsonSchemaVisualizer: FC<JsonSchemaVisualizerProps> = ({
 
   return (
     <div
-      className={cn(
-        'relative overflow-hidden h-full flex flex-col',
-        className,
-      )}
+      className={cn('relative flex h-full flex-col overflow-hidden', className)}
     >
       {showHeader && (
-        <div className="flex items-center justify-between bg-surface-secondary px-space-md py-space-sm border-b border-border-primary shrink-0">
-          <div className="flex items-center gap-space-sm">
+        <div className="bg-surface-secondary px-space-md py-space-sm border-border-primary flex shrink-0 items-center justify-between border-b">
+          <div className="gap-space-sm flex items-center">
             <FileJson size={18} />
-            <span className="font-medium text-sm">{t.visualizerSource}</span>
+            <span className="text-sm font-medium">{t.visualizerSource}</span>
           </div>
           <button
             type="button"
             onClick={handleDownload}
-            className="p-1.5 hover:bg-surface-tertiary rounded-radius-md transition-colors"
+            className="hover:bg-surface-tertiary rounded-radius-md p-1.5 transition-colors"
             title={t.visualizerDownloadTitle}
           >
             <Download size={16} />
           </button>
         </div>
       )}
-      <div className="grow flex min-h-0">
+      <div className="flex min-h-0 grow">
         {loadTimedOut && (
-          <div className="absolute inset-x-space-md bottom-space-md z-10 rounded-radius-md border border-status-warning bg-surface-primary p-space-sm shadow-elevation-low">
-            <div className="flex items-start gap-space-sm">
+          <div className="inset-x-space-md bottom-space-md rounded-radius-md bg-surface-primary p-space-sm shadow-elevation-low absolute z-10 border border-status-warning">
+            <div className="gap-space-sm flex items-start">
               <AlertCircle className="mt-0.5 h-icon-sm w-icon-sm shrink-0 text-status-warning" />
               <div className="space-y-space-xs">
                 <p className="text-sm font-medium text-text-primary">
@@ -161,9 +157,9 @@ const JsonSchemaVisualizer: FC<JsonSchemaVisualizerProps> = ({
           onChange={handleEditorChange}
           beforeMount={handleBeforeMount}
           onMount={handleEditorDidMount}
-          className="w-full h-full"
+          className="h-full w-full"
           loading={
-            <div className="flex items-center justify-center h-full w-full bg-surface-secondary">
+            <div className="bg-surface-secondary flex h-full w-full items-center justify-center">
               <Loader2 className="h-6 w-6 animate-spin" />
             </div>
           }
