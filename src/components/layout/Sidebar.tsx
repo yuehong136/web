@@ -90,18 +90,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }
   }
 
-  const ThemeIcon = () => {
-    switch (currentTheme) {
-      case Theme.LIGHT:
-        return <Sun className="h-5 w-5" />
-      case Theme.DARK:
-        return <Moon className="h-5 w-5" />
-      case Theme.SYSTEM:
-        return <Monitor className="h-5 w-5" />
-      default:
-        return <Monitor className="h-5 w-5" />
-    }
-  }
+  const ThemeIcon =
+    currentTheme === Theme.LIGHT
+      ? Sun
+      : currentTheme === Theme.DARK
+        ? Moon
+        : Monitor
 
   return (
     <aside
@@ -444,7 +438,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 'text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover hover:text-text-primary',
               )}
             >
-              <ThemeIcon />
+              <ThemeIcon className="h-5 w-5" />
               <span
                 className={cn(
                   'whitespace-nowrap text-sm',

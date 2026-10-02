@@ -1,4 +1,4 @@
-import { act } from 'react'
+import { act, useLayoutEffect } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { createInstance } from 'i18next'
 import { I18nextProvider } from 'react-i18next'
@@ -14,15 +14,18 @@ let runner: ReturnType<typeof useSharedAgentRunner>
 const buildInputs = () => ({})
 const i18n = createInstance()
 function Harness() {
-  runner = useSharedAgentRunner({
+  const currentRunner = useSharedAgentRunner({
     agentId: 'list-agent',
     betaToken: 'fixture',
     buildInputs,
   })
+  useLayoutEffect(() => {
+    runner = currentRunner
+  }, [currentRunner])
   return (
     <div>
-      {runner.lastError}
-      {runner.messages.map((message) => message.content).join('')}
+      {currentRunner.lastError}
+      {currentRunner.messages.map((message) => message.content).join('')}
     </div>
   )
 }
