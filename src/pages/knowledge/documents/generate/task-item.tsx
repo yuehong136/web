@@ -76,9 +76,10 @@ const TaskItemComponent: React.FC<TaskItemProps> = ({
     if (canTrigger) onRun(type)
   }, [canTrigger, onRun, type])
 
+  const taskId = traceData?.id
   const handlePause = useCallback(() => {
-    if (traceData?.id) onPause(traceData.id, type)
-  }, [traceData?.id, onPause, type])
+    if (taskId) onPause(taskId, type)
+  }, [taskId, onPause, type])
 
   const handleDelete = useCallback(() => {
     onDelete(type)

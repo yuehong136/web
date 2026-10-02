@@ -115,36 +115,33 @@ export function useFindAgentStructuredOutputTypeByValue() {
   const { getOperatorTypeFromId } = useGraphStore((state) => state)
   const filterStructuredOutput = useGetStructuredOutputByValue()
 
-  const findTypeByValue = useCallback(
-    (
-      values: unknown,
-      target: string,
-      path: string = '',
-    ): string | undefined => {
-      const properties =
-        get(values, 'properties') || get(values, 'items.properties')
+  const findTypeByValue = useCallback(function findType(
+    values: unknown,
+    target: string,
+    path: string = '',
+  ): string | undefined {
+    const properties =
+      get(values, 'properties') || get(values, 'items.properties')
 
-      if (isPlainObject(values) && properties) {
-        for (const [key, value] of Object.entries(properties)) {
-          const nextPath = path ? `${path}.${key}` : key
-          const { dataType, compositeDataType } = getStructuredDatatype(value)
+    if (isPlainObject(values) && properties) {
+      for (const [key, value] of Object.entries(properties)) {
+        const nextPath = path ? `${path}.${key}` : key
+        const { dataType, compositeDataType } = getStructuredDatatype(value)
 
-          if (nextPath === target) {
-            return compositeDataType
-          }
+        if (nextPath === target) {
+          return compositeDataType
+        }
 
-          if (['object', 'array'].includes(dataType)) {
-            const type = findTypeByValue(value, target, nextPath)
-            if (type) {
-              return type
-            }
+        if (['object', 'array'].includes(dataType)) {
+          const type = findType(value, target, nextPath)
+          if (type) {
+            return type
           }
         }
       }
-      return undefined
-    },
-    [],
-  )
+    }
+    return undefined
+  }, [])
 
   const findAgentStructuredOutputTypeByValue = useCallback(
     (value?: string) => {

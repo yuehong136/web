@@ -103,21 +103,14 @@ export const getActionIcon = (kind: string) => {
   return Bot
 }
 
-export const getStatusIcon = (status: string) => {
-  if (status === 'loading') {
-    return Loader2
-  }
-
-  if (status === 'success') {
-    return CircleCheck
-  }
-
-  if (status === 'error') {
-    return OctagonAlert
-  }
-
-  return XCircle
+const STATUS_ICONS: Record<string, typeof Loader2> = {
+  loading: Loader2,
+  success: CircleCheck,
+  error: OctagonAlert,
+  abort: XCircle,
 }
+
+export const getStatusIcon = (status: string) => STATUS_ICONS[status] || XCircle
 
 export function RuntimeThoughtPayload({
   label,
@@ -135,7 +128,7 @@ export function RuntimeThoughtPayload({
   }
 
   return (
-    <div className="space-y-space-xs rounded-radius-md border border-border-subtle bg-surface-secondary p-space-sm">
+    <div className="space-y-space-xs rounded-radius-md bg-surface-secondary p-space-sm border border-border-subtle">
       <div
         className={
           tone === 'error'
@@ -150,16 +143,16 @@ export function RuntimeThoughtPayload({
           data={value}
           className={
             tone === 'error'
-              ? 'max-h-44 max-w-full whitespace-pre-wrap break-words bg-status-error/10 text-status-error'
-              : 'max-h-44 max-w-full whitespace-pre-wrap break-words bg-surface-primary text-text-secondary'
+              ? 'bg-status-error/10 max-h-44 max-w-full whitespace-pre-wrap break-words text-status-error'
+              : 'bg-surface-primary max-h-44 max-w-full whitespace-pre-wrap break-words text-text-secondary'
           }
         />
       ) : (
         <pre
           className={
             tone === 'error'
-              ? 'max-h-44 max-w-full overflow-auto whitespace-pre-wrap break-words rounded-radius-sm bg-status-error/10 p-space-sm text-xs text-status-error'
-              : 'max-h-44 max-w-full overflow-auto whitespace-pre-wrap break-words rounded-radius-sm bg-surface-primary p-space-sm text-xs text-text-secondary'
+              ? 'rounded-radius-sm bg-status-error/10 p-space-sm max-h-44 max-w-full overflow-auto whitespace-pre-wrap break-words text-xs text-status-error'
+              : 'rounded-radius-sm bg-surface-primary p-space-sm max-h-44 max-w-full overflow-auto whitespace-pre-wrap break-words text-xs text-text-secondary'
           }
         >
           {content}
@@ -170,7 +163,7 @@ export function RuntimeThoughtPayload({
 }
 
 export function RuntimeStatusBadge({ status }: { status: string }) {
-  const StatusIcon = getStatusIcon(status)
+  const StatusIcon = STATUS_ICONS[status] || XCircle
 
   return (
     <Badge variant={STATUS_BADGE_MAP[status]} className="gap-space-xs">

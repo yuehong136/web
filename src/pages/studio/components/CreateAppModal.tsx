@@ -93,6 +93,16 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({
     return null
   }, [])
 
+  const handleClose = useCallback(() => {
+    setFormData({
+      name: '',
+      description: '',
+      icon: '',
+    })
+    setNameError(null)
+    onClose()
+  }, [onClose])
+
   const handleCreate = useCallback(() => {
     // 验证应用名称
     const error = validateName(formData.name)
@@ -130,8 +140,14 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({
         },
       },
     )
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- handleClose 是本组件方法，此 callback 失败路径不会触发关闭，无需相互依赖
-  }, [formData, navigate, onCreate, setDialogAppMutation, validateName])
+  }, [
+    formData,
+    handleClose,
+    navigate,
+    onCreate,
+    setDialogAppMutation,
+    validateName,
+  ])
 
   const handleNameChange = useCallback(
     (value: string) => {
@@ -140,16 +156,6 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({
     },
     [validateName],
   )
-
-  const handleClose = useCallback(() => {
-    setFormData({
-      name: '',
-      description: '',
-      icon: '',
-    })
-    setNameError(null)
-    onClose()
-  }, [onClose])
 
   const isLoading = setDialogAppMutation.isPending
 

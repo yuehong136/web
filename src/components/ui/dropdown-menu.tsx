@@ -98,13 +98,15 @@ export const DropdownMenuContent: React.FC<DropdownMenuContentProps> = ({
     Boolean(context?.isOpen),
   )
 
+  const isOpen = context?.isOpen
+  const triggerRef = context?.triggerRef
   // 计算下拉菜单位置
   const updatePosition = React.useCallback(() => {
-    if (!context?.isOpen || !context.triggerRef.current) {
+    if (!isOpen || !triggerRef?.current) {
       return
     }
 
-    const rect = context.triggerRef.current.getBoundingClientRect()
+    const rect = triggerRef.current.getBoundingClientRect()
     const menuWidth = dropdownRef.current?.offsetWidth ?? 180
     const preferredLeft = align === 'right' ? rect.right - menuWidth : rect.left
     const maxLeft = window.innerWidth - menuWidth - DROPDOWN_VIEWPORT_MARGIN
@@ -116,7 +118,7 @@ export const DropdownMenuContent: React.FC<DropdownMenuContentProps> = ({
         Math.max(DROPDOWN_VIEWPORT_MARGIN, maxLeft),
       ),
     })
-  }, [align, context?.isOpen, context?.triggerRef])
+  }, [align, isOpen, triggerRef])
 
   React.useLayoutEffect(() => {
     if (!context?.isOpen) {
@@ -208,7 +210,7 @@ export const DropdownMenuItem: React.FC<DropdownMenuItemProps> = ({
     <button
       type="button"
       className={cn(
-        'gap-space-sm rounded-radius-sm px-space-sm [&_svg]:h-icon-sm [&_svg]:w-icon-sm flex h-8 w-full items-center text-left text-sm font-medium text-text-primary transition-colors hover:bg-background-subtle disabled:pointer-events-none disabled:opacity-50 [&_svg]:shrink-0 [&_svg]:stroke-[1.75] [&_svg]:text-text-secondary',
+        'gap-space-sm rounded-radius-sm px-space-sm flex h-8 w-full items-center text-left text-sm font-medium text-text-primary transition-colors hover:bg-background-subtle disabled:pointer-events-none disabled:opacity-50 [&_svg]:h-icon-sm [&_svg]:w-icon-sm [&_svg]:shrink-0 [&_svg]:stroke-[1.75] [&_svg]:text-text-secondary',
         className,
       )}
       onClick={handleClick}

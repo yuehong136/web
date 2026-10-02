@@ -1,5 +1,8 @@
 import type { RAGFlowNodeType } from '../../../types'
-import { resolveFormRendererComponent } from './form-renderer-registry'
+import {
+  legacyFormRenderers,
+  migratedFormRenderers,
+} from './form-renderer-registry'
 
 interface FormRendererProps {
   node?: RAGFlowNodeType
@@ -16,7 +19,9 @@ export function FormRenderer({
     return null
   }
 
-  const FormComponent = resolveFormRendererComponent(rendererKey)
+  const FormComponent = rendererKey
+    ? migratedFormRenderers[rendererKey] || legacyFormRenderers[rendererKey]
+    : null
 
   if (!FormComponent) {
     return (

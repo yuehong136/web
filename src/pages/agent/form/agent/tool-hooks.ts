@@ -33,7 +33,9 @@ function buildToolName(operator: Operator, tools: AgentToolRecord[]) {
       const nextIndex =
         typeof matchedIndex === 'string' ? Number(matchedIndex) : NaN
 
-      return Number.isFinite(nextIndex) ? Math.max(maxIndex, nextIndex) : maxIndex
+      return Number.isFinite(nextIndex)
+        ? Math.max(maxIndex, nextIndex)
+        : maxIndex
     }, -1)
 
   return `${operator}_${lastIndex + 1}`
@@ -52,9 +54,11 @@ export function useAgentToolActions(node?: RAGFlowNodeType) {
   const { tools, mcp } = useAgentToolState(node)
   const { data } = useFetchMCPServers({ page_size: 200 })
 
+  const nodeId = node?.id
+  const servers = data?.mcp_servers
   const appendTool = useCallback(
     (operator: Operator) => {
-      if (!node?.id) {
+      if (!nodeId) {
         return
       }
 
@@ -68,14 +72,14 @@ export function useAgentToolActions(node?: RAGFlowNodeType) {
         },
       ]
 
-      updateNodeForm(node.id, nextTools, ['tools'])
+      updateNodeForm(nodeId, nextTools, ['tools'])
     },
-    [initializeAgentToolValues, node?.id, tools, updateNodeForm],
+    [initializeAgentToolValues, nodeId, tools, updateNodeForm],
   )
 
   const toggleTool = useCallback(
     (operator: Operator) => {
-      if (!node?.id) {
+      if (!nodeId) {
         return
       }
 
@@ -97,29 +101,29 @@ export function useAgentToolActions(node?: RAGFlowNodeType) {
             },
           ]
 
-      updateNodeForm(node.id, nextTools, ['tools'])
+      updateNodeForm(nodeId, nextTools, ['tools'])
     },
-    [appendTool, initializeAgentToolValues, node?.id, tools, updateNodeForm],
+    [appendTool, initializeAgentToolValues, nodeId, tools, updateNodeForm],
   )
 
   const removeTool = useCallback(
     (toolId: string) => {
-      if (!node?.id) {
+      if (!nodeId) {
         return
       }
 
       updateNodeForm(
-        node.id,
+        nodeId,
         tools.filter((item) => item.id !== toolId),
         ['tools'],
       )
     },
-    [node?.id, tools, updateNodeForm],
+    [nodeId, tools, updateNodeForm],
   )
 
   const setMcpIds = useCallback(
     (ids: string[]) => {
-      if (!node?.id) {
+      if (!nodeId) {
         return
       }
 
@@ -130,7 +134,7 @@ export function useAgentToolActions(node?: RAGFlowNodeType) {
           return result
         }
 
-        const server = data?.mcp_servers?.find((item) => item.id === id)
+        const server = servers?.find((item) => item.id === id)
         if (server && hasServerTools(server)) {
           result.push({ mcp_id: id, tools: {} })
         }
@@ -138,24 +142,24 @@ export function useAgentToolActions(node?: RAGFlowNodeType) {
         return result
       }, [])
 
-      updateNodeForm(node.id, nextMcp, ['mcp'])
+      updateNodeForm(nodeId, nextMcp, ['mcp'])
     },
-    [data?.mcp_servers, mcp, node?.id, updateNodeForm],
+    [servers, mcp, nodeId, updateNodeForm],
   )
 
   const removeMcp = useCallback(
     (mcpId: string) => {
-      if (!node?.id) {
+      if (!nodeId) {
         return
       }
 
       updateNodeForm(
-        node.id,
+        nodeId,
         mcp.filter((item) => item?.mcp_id !== mcpId),
         ['mcp'],
       )
     },
-    [mcp, node?.id, updateNodeForm],
+    [mcp, nodeId, updateNodeForm],
   )
 
   return {
@@ -199,13 +203,7 @@ export function useSyncAgentToolNode(node?: RAGFlowNodeType) {
         id: NodeHandleId.Tool,
       })()
     }
-  }, [
-    addCanvasNode,
-    deleteAgentToolNodeById,
-    node?.id,
-    toolNodeId,
-    total,
-  ])
+  }, [addCanvasNode, deleteAgentToolNodeById, node?.id, toolNodeId, total])
 
   return toolNodeId
 }

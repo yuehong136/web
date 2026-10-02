@@ -56,6 +56,7 @@ export function useEmbedEditorActions({
     }))
   }, [versionQuery.data])
 
+  const flowTitle = flow?.title
   const handlePublish = useCallback(
     async (note: string) => {
       if (!id) return
@@ -63,10 +64,7 @@ export function useEmbedEditorActions({
       try {
         const nextTitle =
           title.trim() ||
-          resolveLocalizedText(
-            flow?.title,
-            t('agent.unnamedAsset', '未命名资产'),
-          )
+          resolveLocalizedText(flowTitle, t('agent.unnamedAsset', '未命名资产'))
         const saved = await saveGraph(nextTitle, undefined, { release: true })
         if (!saved) {
           toast.error(
@@ -99,7 +97,7 @@ export function useEmbedEditorActions({
         )
       }
     },
-    [deliveryToken, flow?.title, id, onTitleSaved, saveGraph, t, title],
+    [deliveryToken, flowTitle, id, onTitleSaved, saveGraph, t, title],
   )
 
   const panels = flow ? (

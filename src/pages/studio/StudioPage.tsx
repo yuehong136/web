@@ -1,3 +1,4 @@
+import { useStudioStats } from './use-studio-stats'
 /**
  * 工作室页面
  * 布局参考记忆库管理页面，保持一致的交互和视觉体验
@@ -120,22 +121,7 @@ export const StudioPage: React.FC = () => {
 
   const totalPages = Math.ceil(total / pagination.pageSize)
 
-  // 统计数据（基于当前页数据的估算）
-  const stats = React.useMemo(() => {
-    const published = dialogApps.filter((app) => app.status === '1').length
-    const draft = dialogApps.filter((app) => app.status !== '1').length
-    const oneWeekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000
-    const recentUpdated = dialogApps.filter(
-      (app) => new Date(app.update_date).getTime() > oneWeekAgo,
-    ).length
-
-    return {
-      total,
-      published,
-      draft,
-      recentUpdated,
-    }
-  }, [dialogApps, total])
+  const stats = useStudioStats(dialogApps, total)
 
   // 分页和搜索状态同步到 store
   const page = pagination.current

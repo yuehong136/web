@@ -69,17 +69,18 @@ export function WebhookSheet({
     }
   }, [])
 
+  const flowId = flow?.id
   const config = useMemo(() => getWebhookBeginConfig(flow), [flow])
   const testUrl = useMemo(
     () =>
-      flow?.id
-        ? `${location.protocol}//${location.host}/api/v1/agents/${flow.id}/webhook/test`
+      flowId
+        ? `${location.protocol}//${location.host}/api/v1/agents/${flowId}/webhook/test`
         : '',
-    [flow?.id],
+    [flowId],
   )
   const testBuild = useMemo(
-    () => buildWebhookTestRequest(flow?.id || '', config),
-    [config, flow?.id],
+    () => buildWebhookTestRequest(flowId || '', config),
+    [config, flowId],
   )
   const curlExample = useMemo(
     () => buildWebhookCurlExample(testUrl || webhookUrl, testBuild.request),
@@ -106,7 +107,7 @@ export function WebhookSheet({
 
   const pollTrace = useCallback(
     async (baseline?: AgentWebhookTraceSummary) => {
-      if (!flow?.id) {
+      if (!flowId) {
         return
       }
 
@@ -120,7 +121,7 @@ export function WebhookSheet({
         }
 
         const nextTrace = adaptAgentWebhookTrace(
-          await agentAPI.fetchWebhookTrace(flow.id, {
+          await agentAPI.fetchWebhookTrace(flowId, {
             since_ts: nextSinceTs,
             webhook_id: webhookId,
           }),
@@ -138,11 +139,11 @@ export function WebhookSheet({
         await wait(2000)
       }
     },
-    [flow?.id],
+    [flowId],
   )
 
   const handleTest = useCallback(async () => {
-    if (!flow?.id) {
+    if (!flowId) {
       return
     }
 
@@ -154,7 +155,7 @@ export function WebhookSheet({
 
     try {
       const baseline = adaptAgentWebhookTrace(
-        await agentAPI.fetchWebhookTrace(flow.id),
+        await agentAPI.fetchWebhookTrace(flowId),
       )
       setTrace(baseline)
 
@@ -177,17 +178,17 @@ export function WebhookSheet({
     } finally {
       setTesting(false)
     }
-  }, [flow?.id, pollTrace, t, testBuild.request])
+  }, [flowId, pollTrace, t, testBuild.request])
 
   const handleRefreshTrace = useCallback(async () => {
-    if (!flow?.id) {
+    if (!flowId) {
       return
     }
     const nextTrace = adaptAgentWebhookTrace(
-      await agentAPI.fetchWebhookTrace(flow.id),
+      await agentAPI.fetchWebhookTrace(flowId),
     )
     setTrace(nextTrace)
-  }, [flow?.id])
+  }, [flowId])
 
   return (
     <Sheet open onOpenChange={hideModal} modal={false}>
@@ -263,7 +264,7 @@ export function WebhookSheet({
           <div className="gap-space-sm flex flex-wrap">
             <Button
               onClick={() => void handleTest()}
-              disabled={testing || !flow?.id}
+              disabled={testing || !flowId}
             >
               {testing ? (
                 <Loader2 className="mr-space-xs h-4 w-4 animate-spin" />
@@ -275,7 +276,7 @@ export function WebhookSheet({
             <Button
               variant="outline"
               onClick={() => void handleRefreshTrace()}
-              disabled={testing || !flow?.id}
+              disabled={testing || !flowId}
             >
               <RefreshCw className="mr-space-xs h-4 w-4" />
               刷新 Trace

@@ -743,6 +743,10 @@ hooks 7 最新全量试跑为 151 errors / 93 files：set-state-in-effect 87、r
 
 后续整改 C1（2026-10-02，ARCH-6 / CHN-O13）：渠道连接测试冷却状态由 mutation 的 onSettled 和到期 timer 更新，消除 render 的 Date.now。请求体、服务端限流与成功/失败反馈不变。新增真实 Query + React DOM 回归覆盖成功和失败后的十秒禁用及精确到期；两项回归通过。整体 Web build、完整 test:ci、Agent strict、Bundle budget 和 file-size 通过；Hooks 7 仅用于本地整改检查，尚未完成全量切换。
 
+后续整改 C2（2026-10-02）：表单 registry、运行状态图标直接引用模块级组件；引用复制、工具节点、MCP 工具动作、发布/Webhook、生成任务与数据源回调捕获明确字段，保留原 memo 依赖粒度。结构化输出递归使用命名函数；创建应用关闭回调先声明并纳入依赖，删除旧依赖豁免。节点标题在所属节点/名称变化时于本组件 render 中有条件重置草稿，不再产生旧标题的一帧。Studio 统计拆为有定时清理的 hook，页面降到 600 行以下并收紧基线，新增滚动周统计回归。
+
+该组受影响文件的 Hooks 7 lint、Web build、Agent strict、file-size、完整 test:ci（543 + 188 + 81 + 7）和 Bundle budget 通过。浏览器使用真实组件验证节点标题输入/Escape/切换节点、创建弹窗取消/重开清空，以及四种运行状态明暗渲染；保存截图，控制台无 error。未提交创建请求或后端保存。其余表单/流式生命周期诊断继续整改；正式 hooks 7 升级仍待全量通过。
+
 ### HYG-3 规范、环境变量与进度账本漂移
 
 - **状态**：部分完成

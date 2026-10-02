@@ -48,14 +48,15 @@ export default function DataSourceDetailPage() {
   const isActive = isDataSourceActive(detail?.status)
   const logsState = useDataSourceLogs(id, isActive)
 
+  const source = detail?.source
   const fields = useMemo<FormFieldConfig[]>(() => {
-    if (!detail?.source) return []
-    const sourceFields = formFields[detail.source as DataSourceKey] || []
+    if (!source) return []
+    const sourceFields = formFields[source as DataSourceKey] || []
     const readOnlyBaseFields = baseFields.map((field) =>
       field.name === 'name' ? { ...field, disabled: true } : field,
     )
     return [...readOnlyBaseFields, ...sourceFields]
-  }, [baseFields, detail?.source, formFields])
+  }, [baseFields, source, formFields])
 
   const handleSave = async (values: Record<string, unknown>) => {
     if (!detail) return

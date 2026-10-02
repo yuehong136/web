@@ -2,13 +2,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { toast } from '@/lib/toast'
 import { PenLine } from 'lucide-react'
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from 'react'
+import { useCallback, useLayoutEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useChangeNodeName } from '../../../hooks/use-change-node-name'
 import type { RAGFlowNodeType } from '../../../types'
@@ -25,10 +19,13 @@ export function NodeTitleInput({ node, titleEditable }: NodeTitleInputProps) {
   const { changeNodeName, validateNodeName } = useChangeNodeName()
   const { t } = useTranslation()
 
-  useEffect(() => {
-    setDraftName(node?.data?.name || '')
+  const name = node?.data?.name || ''
+  const [previousNode, setPreviousNode] = useState({ id: node?.id, name })
+  if (previousNode.id !== node?.id || previousNode.name !== name) {
+    setPreviousNode({ id: node?.id, name })
+    setDraftName(name)
     setIsEditing(false)
-  }, [node?.data?.name, node?.id])
+  }
 
   useLayoutEffect(() => {
     if (isEditing) {
@@ -37,14 +34,15 @@ export function NodeTitleInput({ node, titleEditable }: NodeTitleInputProps) {
     }
   }, [isEditing])
 
+  const nodeId = node?.id
   const commitNodeName = useCallback(() => {
-    if (!titleEditable || !node?.id) {
+    if (!titleEditable || !nodeId) {
       setIsEditing(false)
       return true
     }
 
     const nextName = draftName.trim()
-    const validation = validateNodeName(node.id, nextName)
+    const validation = validateNodeName(nodeId, nextName)
     if (!validation.valid) {
       toast.error(
         validation.error || t('flow.invalidNodeName', 'Invalid node name'),
@@ -52,7 +50,7 @@ export function NodeTitleInput({ node, titleEditable }: NodeTitleInputProps) {
       return false
     }
 
-    const changed = changeNodeName(node.id, nextName)
+    const changed = changeNodeName(nodeId, nextName)
     if (!changed) {
       toast.error(t('flow.duplicateNodeName', 'Node name already exists'))
       return false
@@ -60,7 +58,7 @@ export function NodeTitleInput({ node, titleEditable }: NodeTitleInputProps) {
 
     setIsEditing(false)
     return true
-  }, [changeNodeName, draftName, node?.id, t, titleEditable, validateNodeName])
+  }, [changeNodeName, draftName, nodeId, t, titleEditable, validateNodeName])
 
   const handleBlur = useCallback(() => {
     const committed = commitNodeName()

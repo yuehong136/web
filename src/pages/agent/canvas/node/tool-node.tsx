@@ -36,7 +36,12 @@ type ToolSummaryItem =
       title: string
     }
 
-function InnerToolNode({ id, data, selected, isConnectable = true }: NodeProps) {
+function InnerToolNode({
+  id,
+  data,
+  selected,
+  isConnectable = true,
+}: NodeProps) {
   const { t } = useTranslation()
   const { edges, getNode, setClickedToolId } = useGraphStore((state) => state)
   const { findMcpById } = useFindMcpById()
@@ -45,17 +50,16 @@ function InnerToolNode({ id, data, selected, isConnectable = true }: NodeProps) 
     [edges, id],
   )
   const upstreamAgentNode = getNode(upstreamAgentNodeId)
-  const items = useMemo<ToolSummaryItem[]>(
-    () => {
-      const tools = Array.isArray(upstreamAgentNode?.data?.form?.tools)
-        ? (upstreamAgentNode.data.form.tools as AgentToolRecord[])
-        : []
-      const mcpList = Array.isArray(upstreamAgentNode?.data?.form?.mcp)
-        ? (upstreamAgentNode.data.form.mcp as AgentMcpRecord[])
-        : []
+  const formTools = upstreamAgentNode?.data?.form?.tools
+  const formMcp = upstreamAgentNode?.data?.form?.mcp
+  const items = useMemo<ToolSummaryItem[]>(() => {
+    const tools = Array.isArray(formTools)
+      ? (formTools as AgentToolRecord[])
+      : []
+    const mcpList = Array.isArray(formMcp) ? (formMcp as AgentMcpRecord[]) : []
 
-      return [
-        ...tools.map((tool) => ({
+    return [
+      ...tools.map((tool) => ({
         kind: 'tool' as const,
         id: tool.id || tool.component_name,
         operator: tool.component_name,
@@ -64,16 +68,14 @@ function InnerToolNode({ id, data, selected, isConnectable = true }: NodeProps) 
             ? tool.name || tool.component_name
             : tool.component_name,
         disabled: tool.component_name === Operator.Code,
-        })),
-        ...mcpList.map((item) => ({
+      })),
+      ...mcpList.map((item) => ({
         kind: 'mcp' as const,
         id: item.mcp_id,
         title: findMcpById(item.mcp_id)?.name || item.mcp_id,
-        })),
-      ]
-    },
-    [findMcpById, upstreamAgentNode?.data?.form?.mcp, upstreamAgentNode?.data?.form?.tools],
-  )
+      })),
+    ]
+  }, [findMcpById, formMcp, formTools])
 
   const handleItemClick =
     (item: ToolSummaryItem): MouseEventHandler<HTMLElement> =>
@@ -110,7 +112,9 @@ function InnerToolNode({ id, data, selected, isConnectable = true }: NodeProps) 
       <SummaryList
         items={items}
         empty={
-          <LabelCard>{t('flow.noToolsSelected', 'No tools selected yet.')}</LabelCard>
+          <LabelCard>
+            {t('flow.noToolsSelected', 'No tools selected yet.')}
+          </LabelCard>
         }
         renderItem={(item, index, { withDivider }) => (
           <button
@@ -120,14 +124,14 @@ function InnerToolNode({ id, data, selected, isConnectable = true }: NodeProps) 
             data-tool-id={item.id}
             data-tool={item.kind === 'tool' ? item.operator : item.id}
             className={cn(
-              'flex w-full items-center gap-space-sm px-space-sm py-space-sm text-left transition-colors',
+              'gap-space-sm px-space-sm py-space-sm flex w-full items-center text-left transition-colors',
               withDivider && 'border-t border-border-subtle',
               item.kind === 'tool' && item.disabled
                 ? 'cursor-default opacity-70'
-                : 'cursor-pointer hover:bg-surface-secondary/40',
+                : 'hover:bg-surface-secondary/40 cursor-pointer',
             )}
           >
-            <div className="pointer-events-none flex min-w-0 flex-1 items-center gap-space-sm">
+            <div className="gap-space-sm pointer-events-none flex min-w-0 flex-1 items-center">
               {item.kind === 'tool' ? (
                 <OperatorIcon name={item.operator as Operator} />
               ) : (

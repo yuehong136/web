@@ -175,9 +175,10 @@ export const ReferenceDetailSheet: React.FC<ReferenceDetailSheetProps> = ({
       .slice(0, 3)
   }, [allChunks, chunk])
 
+  const content = chunk?.content
   const handleCopyContent = React.useCallback(async () => {
-    if (!chunk?.content) return
-    const textContent = chunk.content
+    if (!content) return
+    const textContent = content
       .replace(/<[^>]*>/g, ' ')
       .replace(/\s+/g, ' ')
       .trim()
@@ -190,7 +191,7 @@ export const ReferenceDetailSheet: React.FC<ReferenceDetailSheetProps> = ({
     } catch {
       toast.error('复制失败')
     }
-  }, [chunk?.content, onCopySuccess])
+  }, [content, onCopySuccess])
 
   // 条件返回必须在所有 hooks 之后
   if (!chunk) return null
