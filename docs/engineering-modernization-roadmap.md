@@ -684,7 +684,7 @@
 | 顺序 | 工作单元                         | 完成标准                                                                                  | 状态                   |
 | ---- | -------------------------------- | ----------------------------------------------------------------------------------------- | ---------------------- |
 | 1    | TypeScript 7 + TS 6 Compiler API | 干净安装、实际 bin/API、Web/Agent/Desktop 类型、lint、完整测试、Bundle 和 Desktop staging | 已完成                 |
-| 2    | React hooks lint                 | 分类新增诊断、保持既有门禁、lint 与受影响回归                                             | 待整改，保留 5.2.0     |
+| 2    | React hooks lint                 | 分类新增诊断、保持既有门禁、lint 与受影响回归                                             | 部分整改，保留 5.2.0   |
 | 3    | Vite 8 / React 插件              | Rolldown/Oxc、Web build、Bundle、Desktop build/stage/verify                               | 已完成                 |
 | 4    | React / React DOM / types        | 类型、路由、表单、流式与 widget 回归和渲染                                                | 已完成                 |
 | 5    | TanStack Query 5                 | mutation、认证缓存隔离、query key 合同                                                    | 已完成                 |
@@ -732,6 +732,12 @@ Tailwind 4 保留待决：Firefox >=114 与 >=128 的支持边界冲突。Compil
 新增存储迁移/新格式读写/无效记录回归；Desktop 既有 rehydrate 回归迁移至新 DOM，并覆盖键盘调整、焦点、宽度持久化及工作区不重挂载。实际通过 Web build、Agent/Desktop typecheck、lint（0 errors、1494 warnings）、file-size、四 lane test:ci（543 + 179 + 81 + 7）、npm ls、Bundle budget（总 JS 98.9%，入口 99.5%）、Desktop build/stage/verify。浏览器使用真实共享三栏模板和 DesktopWorkbench fixture，实看旧布局 28/44/28 恢复、键盘及拖拽调整、刷新保存、4% 折叠和 20% 展开、Desktop 折叠恢复/键盘宽度与明暗主题。保存明暗截图；未验证真实后端页面加载/保存、Electron 窗口或 Windows 安装包。最终 lock 在独立临时目录使用 npm 11.9.0 正常 npm ci，x-card 2.9.0 postinstall 补丁成功，npm ls 无 peer 错误，TS native bin 与 Compiler API 6.0.3 再次读回。Lexical 项提交为 `c520f8a`。
 
 整改 A 补记：提交 `700ab39` 的格式化钩子把图表展开至 678 行，提交后 file-size 复查因此失败。随即拆出 `task-executor-chart-parts.tsx`，编排 387 行、子组件 301 行；格式化后重新通过 file-size、局部 lint、两项组件身份回归及 Web build。保留原提交历史，以独立修复提交收口，不放宽基线。
+
+第二项追加整改 B（2026-10-02）：两套 ToolCall 渲染器与完整结果弹窗共用 `parseToolJsonObject`，try/catch 只包 JSON.parse；格式错误或未完成 JSON 保持文本回退，React 子树渲染失败交给已有错误边界。对象/数组的结构化查看、标量及长结果入口保持。新增四项回归覆盖解析边界、两套真实卡片的结构化/未完成/恶意 HTML 文本、完整结果弹窗；Node 环境仅替换无法加载外部 CSS 的 react-shiki 高亮 hook 和未使用的 engine factory，保留真实 CodeBlock 文本回退。浏览器另行验证真实高亮、折叠展开、长结果弹窗、未完成 JSON 和明暗渲染，HTML 仍为文本且无 img 节点。ToolCallDisplay 降至 593 行，移出超限基线；没有关闭规则或新增依赖。
+
+hooks 7 最新全量试跑为 151 errors / 93 files：set-state-in-effect 87、refs 22、immutability 19、preserve-manual-memoization 19、purity 2、static-components 2；本轮累计消除 21 项诊断，工具渲染器无剩余诊断。其余涉及流式状态、表单重置、异步结果和动态 registry，需要按领域补足验收，继续保留待整改状态。hooks 7 package/配置试改已撤回，hooks 5.2.0 与全部既有门禁保持；ESLint 10 的 a11y peer/Node 基线阻塞及 Tailwind 4 的浏览器边界决策不变。整改 A 与格式化后拆分修复分别为 `700ab39` / `79b9e39`。
+
+最终源码收口检查通过：Web build、lint（0 errors / 1493 warnings）、lint:typed（0 errors / 84 warnings）、Agent/Desktop typecheck、file-size、四 lane test:ci（543 source-node + 185 Vitest + 81 desktop + 7 tooling，共 816 项）、npm ls、Bundle budget（总 JS 98.9%、入口 gzip 99.5%）、Desktop build → stage → verify（1062 文件）。package/lock 与分栏项已验证的独立正常 npm ci 合同一致；x-card 补丁仍生效。源码与本地 fixture 已验，不等同于 Linux CI、Windows/Electron 安装、操作系统原生 IME、后端生产请求或生产发布验收；本队列没有 push 或部署。
 
 ### HYG-3 规范、环境变量与进度账本漂移
 

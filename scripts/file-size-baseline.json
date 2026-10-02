@@ -27,7 +27,6 @@
   "src/pages/settings/MCPToolsPage.tsx": 678,
   "src/components/ui/file-icon.tsx": 630,
   "src/pages/home/components/ChatSection.tsx": 630,
-  "src/components/chat/ToolCallDisplay.tsx": 604,
   "src/pages/settings/MCPTestPage.tsx": 604,
   "src/pages/studio/StudioPage.tsx": 602
 }

@@ -15,6 +15,7 @@ import {
   Zap,
 } from 'lucide-react'
 import { CodeBlock } from './CodeBlock'
+import { parseToolJsonObject } from '@/components/chat/tool-json'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Loading } from '@/components/ui/loading'
@@ -112,19 +113,15 @@ const ParamValue: React.FC<{ value: any }> = ({ value }) => {
     )
   }
   if (typeof value === 'string') {
-    try {
-      const parsed = JSON.parse(value)
-      if (typeof parsed === 'object' && parsed !== null) {
-        return (
-          <CodeBlock
-            code={JSON.stringify(parsed, null, 2)}
-            language="json"
-            showHeader={false}
-          />
-        )
-      }
-    } catch {
-      /* ignore */
+    const parsed = parseToolJsonObject(value)
+    if (parsed !== undefined) {
+      return (
+        <CodeBlock
+          code={JSON.stringify(parsed, null, 2)}
+          language="json"
+          showHeader={false}
+        />
+      )
     }
     const lang = detectLang(value)
     if (lang !== 'plaintext' || value.length > 80 || value.includes('\n')) {
@@ -148,7 +145,9 @@ const ParamValue: React.FC<{ value: any }> = ({ value }) => {
   )
 }
 
-const ParamsList: React.FC<{ args: Record<string, any> }> = ({ args }) => {
+const ParamsList: React.FC<{ args: Record<string, unknown> | unknown[] }> = ({
+  args,
+}) => {
   const entries = Object.entries(args)
   if (entries.length === 0) return null
   return (
@@ -199,23 +198,19 @@ const ResultContent: React.FC<{ result: any; status: string }> = ({
   }
 
   if (typeof result === 'string') {
-    try {
-      const parsed = JSON.parse(result)
-      if (typeof parsed === 'object' && parsed !== null) {
-        const entries = Object.entries(parsed)
-        if (entries.length > 0 && entries.length <= 20) {
-          return <ParamsList args={parsed} />
-        }
-        return (
-          <CodeBlock
-            code={JSON.stringify(parsed, null, 2)}
-            language="json"
-            showHeader={false}
-          />
-        )
+    const parsed = parseToolJsonObject(result)
+    if (parsed !== undefined) {
+      const entries = Object.entries(parsed)
+      if (entries.length > 0 && entries.length <= 20) {
+        return <ParamsList args={parsed} />
       }
-    } catch {
-      /* ignore */
+      return (
+        <CodeBlock
+          code={JSON.stringify(parsed, null, 2)}
+          language="json"
+          showHeader={false}
+        />
+      )
     }
     const lang = detectLang(result)
     if (lang !== 'plaintext' || result.includes('\n') || result.length > 100) {

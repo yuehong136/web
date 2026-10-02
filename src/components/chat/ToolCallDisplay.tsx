@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { CodeBlock } from './CodeBlock'
+import { parseToolJsonObject } from '@/components/chat/tool-json'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -95,19 +96,15 @@ function ParamValue({ value }: { value: any }) {
     )
   }
   if (typeof value === 'string') {
-    try {
-      const parsed = JSON.parse(value)
-      if (typeof parsed === 'object' && parsed !== null) {
-        return (
-          <CodeBlock
-            code={JSON.stringify(parsed, null, 2)}
-            language="json"
-            showHeader={false}
-          />
-        )
-      }
-    } catch {
-      /* ignore */
+    const parsed = parseToolJsonObject(value)
+    if (parsed !== undefined) {
+      return (
+        <CodeBlock
+          code={JSON.stringify(parsed, null, 2)}
+          language="json"
+          showHeader={false}
+        />
+      )
     }
     const lang = detectLang(value)
     if (lang !== 'plaintext' || value.length > 80 || value.includes('\n')) {
@@ -131,7 +128,7 @@ function ParamValue({ value }: { value: any }) {
   )
 }
 
-function ParamsList({ args }: { args: Record<string, any> }) {
+function ParamsList({ args }: { args: Record<string, unknown> | unknown[] }) {
   const entries = Object.entries(args || {})
   if (entries.length === 0) {
     return (
@@ -184,38 +181,34 @@ function ResultView({
 
   // Try parse as JSON object – render as structured key-value
   if (typeof result === 'string') {
-    try {
-      const parsed = JSON.parse(result)
-      if (typeof parsed === 'object' && parsed !== null) {
-        const entries = Object.entries(parsed)
-        if (entries.length > 0 && entries.length <= 20) {
-          return (
-            <div className="space-y-1">
-              <ParamsList args={parsed} />
-              {onOpenModal && text.length > 300 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onOpenModal(text)}
-                  className="mt-1 h-auto py-1 text-xs"
-                  style={{ color: 'var(--color-text-secondary)' }}
-                >
-                  在对话框查看完整结果
-                </Button>
-              )}
-            </div>
-          )
-        }
+    const parsed = parseToolJsonObject(result)
+    if (parsed !== undefined) {
+      const entries = Object.entries(parsed)
+      if (entries.length > 0 && entries.length <= 20) {
         return (
-          <CodeBlock
-            code={JSON.stringify(parsed, null, 2)}
-            language="json"
-            showHeader={false}
-          />
+          <div className="space-y-1">
+            <ParamsList args={parsed} />
+            {onOpenModal && text.length > 300 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onOpenModal(text)}
+                className="mt-1 h-auto py-1 text-xs"
+                style={{ color: 'var(--color-text-secondary)' }}
+              >
+                在对话框查看完整结果
+              </Button>
+            )}
+          </div>
         )
       }
-    } catch {
-      /* ignore */
+      return (
+        <CodeBlock
+          code={JSON.stringify(parsed, null, 2)}
+          language="json"
+          showHeader={false}
+        />
+      )
     }
   }
 
@@ -579,13 +572,9 @@ export function ToolCallDisplay({
           </DialogHeader>
           <div className="mt-2 max-h-[70vh] overflow-y-auto">
             {(() => {
-              try {
-                const parsed = JSON.parse(modalText)
-                if (typeof parsed === 'object' && parsed !== null) {
-                  return <ParamsList args={parsed} />
-                }
-              } catch {
-                /* ignore */
+              const parsed = parseToolJsonObject(modalText)
+              if (parsed !== undefined) {
+                return <ParamsList args={parsed} />
               }
               const lang = detectLang(modalText)
               return (
