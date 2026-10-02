@@ -1,19 +1,20 @@
 'use client'
 
 import {
-  useEffect,
+  useLayoutEffect,
   useId,
   useMemo,
+  useRef,
   type FC,
   type ReactNode,
   type Dispatch,
   type SetStateAction,
 } from 'react'
 import { useTranslation } from 'react-i18next'
-import { createPortal } from 'react-dom'
 import { Play, Trash2, Tag, AlertCircle, FileText, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
 import type { KnowledgeBase, Document } from '@/types/api'
 import type { ReparseOptions } from '@/api/knowledge-document-ingest'
@@ -44,6 +45,8 @@ export const ReparseConfirmModal: FC<ReparseConfirmModalProps> = ({
 }) => {
   const { t } = useTranslation()
   const titleId = useId()
+  const contentRef = useRef<HTMLDivElement>(null)
+  const returnFocusRef = useRef<HTMLElement | null>(null)
   const { deleteChunks, applyMetadataSettings } = options
 
   const stats = useMemo(() => {
@@ -80,35 +83,35 @@ export const ReparseConfirmModal: FC<ReparseConfirmModalProps> = ({
     })
   }
 
-  useEffect(() => {
-    if (open) {
-      document.body.style.overflow = 'hidden'
-    }
-    return () => {
-      document.body.style.overflow = 'unset'
-    }
-  }, [open])
+  useLayoutEffect(() => {
+    // Native disabled buttons lose focus; keep it in Radix's modal scope.
+    if (open && isLoading) contentRef.current?.focus()
+  }, [open, isLoading])
 
   if (!open) return null
 
-  const content = (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Overlay */}
-      <button
-        type="button"
-        aria-label={t('common.close')}
-        className="animate-in fade-in-0 fixed inset-0 bg-black/50 backdrop-blur-xs duration-200"
-        onClick={onClose}
-        disabled={isLoading}
-      />
-
-      {/* Modal */}
-      <div
-        role="dialog"
-        aria-modal="true"
+  return (
+    <Sheet
+      open={open}
+      onOpenChange={(next) => !next && !isLoading && onClose()}
+    >
+      <SheetContent
+        ref={contentRef}
+        showCloseButton={false}
         aria-busy={isLoading}
         aria-labelledby={titleId}
-        className="animate-in fade-in-0 zoom-in-95 relative z-10 mx-4 w-full max-w-[480px] rounded-xl bg-[var(--color-background-surface)] shadow-2xl duration-200"
+        aria-describedby={undefined}
+        onOpenAutoFocus={() => {
+          returnFocusRef.current = document.activeElement as HTMLElement | null
+        }}
+        onCloseAutoFocus={(event) => {
+          event.preventDefault()
+          if (returnFocusRef.current?.isConnected)
+            returnFocusRef.current.focus()
+        }}
+        onEscapeKeyDown={(event) => isLoading && event.preventDefault()}
+        onInteractOutside={(event) => isLoading && event.preventDefault()}
+        className="top-1/2 right-auto bottom-auto left-1/2 h-auto w-[calc(100%-2rem)] max-w-[480px] -translate-x-1/2 -translate-y-1/2 rounded-xl border-0 bg-[var(--color-background-surface)] p-0 shadow-2xl sm:max-w-[480px]"
       >
         {/* Close button */}
         <button
@@ -127,12 +130,12 @@ export const ReparseConfirmModal: FC<ReparseConfirmModalProps> = ({
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--color-primary)]/10">
               <Play className="h-4 w-4 text-[var(--color-primary)]" />
             </div>
-            <h2
+            <SheetTitle
               id={titleId}
               className="text-lg font-semibold text-[var(--color-text-primary)]"
             >
               {t('knowledge.documents.reparse.title')}
-            </h2>
+            </SheetTitle>
           </div>
         </div>
 
@@ -223,11 +226,9 @@ export const ReparseConfirmModal: FC<ReparseConfirmModalProps> = ({
             {t('knowledge.documents.reparse.title')}
           </Button>
         </div>
-      </div>
-    </div>
+      </SheetContent>
+    </Sheet>
   )
-
-  return createPortal(content, document.body)
 }
 
 interface OptionCardProps {

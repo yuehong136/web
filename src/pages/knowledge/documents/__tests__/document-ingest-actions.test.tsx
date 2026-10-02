@@ -72,6 +72,9 @@ describe('document operations in actual list/actions/page-modal ownership', () =
     })
     return (
       <>
+        <button onClick={modals.handleBatchStartParse}>
+          Open confirmation
+        </button>
         <ReparseConfirmModal
           open={modals.reparseModalOpen}
           onClose={modals.closeReparse}
@@ -263,6 +266,71 @@ describe('document operations in actual list/actions/page-modal ownership', () =
     await act(async () => resolve())
     expect([...state.selectedDocs]).toEqual(['new'])
     expect(modals.reparseModalOpen).toBe(false)
+  })
+  it('keeps Radix focus scope while busy, blocks Escape, and restores the keyboard opener after failure/cancel', async () => {
+    let reject!: (error: Error) => void
+    mocks.ingest.mockImplementation(
+      () =>
+        new Promise<void>((_resolve, fail) => {
+          reject = fail
+        }),
+    )
+    await select('a')
+    const opener = [...container.querySelectorAll('button')].find(
+      (button) => button.textContent === 'Open confirmation',
+    )!
+    opener.focus()
+    await act(async () => opener.click())
+    const dialog = document.querySelector<HTMLElement>('[role="dialog"]')!
+    expect(dialog.contains(document.activeElement)).toBe(true)
+    await chooseKeep()
+    await confirm()
+    expect(document.activeElement).toBe(dialog)
+    await act(async () => {
+      dialog.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          key: 'Tab',
+          bubbles: true,
+          cancelable: true,
+        }),
+      )
+      dialog.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          key: 'Escape',
+          bubbles: true,
+          cancelable: true,
+        }),
+      )
+    })
+    expect(document.activeElement).toBe(dialog)
+    expect(modals.reparseModalOpen).toBe(true)
+    expect(mocks.ingest).toHaveBeenCalledTimes(1)
+    await act(async () =>
+      reject(
+        new APIError(200, '500', 'private', {
+          results: { a: { error: 'failed' } },
+        }),
+      ),
+    )
+    expect(dialog.getAttribute('aria-busy')).toBe('false')
+    expect(modals.reparseOptions).toEqual({
+      deleteChunks: false,
+      applyMetadataSettings: false,
+    })
+    await act(async () =>
+      dialog.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          key: 'Escape',
+          bubbles: true,
+          cancelable: true,
+        }),
+      ),
+    )
+    expect(modals.reparseModalOpen).toBe(false)
+    await act(async () => new Promise((resolve) => setTimeout(resolve, 0)))
+    expect(document.activeElement).toBe(opener)
+    expect([...state.selectedDocs]).toEqual(['a'])
+    expect(mocks.ingest).toHaveBeenCalledTimes(1)
   })
   it.each([
     new APIError(200, '102', 'secret'),
