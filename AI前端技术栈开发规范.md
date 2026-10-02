@@ -2,9 +2,10 @@
 
 面向团队成员的详尽规范。讲清楚**做什么、不做什么、为什么**。
 
-- 强约束清单见 `AGENTS.md`（中文）/ `CLAUDE.md`（英文）
+- 编码入口与按需导航统一见 [AGENTS.md](AGENTS.md)；[CLAUDE.md](CLAUDE.md) 仅导入该文件；专题规则在 `docs/agent-guidance/`，只读任务相关章节。本文保留理由与示例，不要求每次修改前通读。
+- 完成标准：实施目标、运行相关验证、查看结果并修复本次引入的失败；本地已授权工作连续完成，外部或不可逆动作遵循现有授权边界。
 - 设计令牌细节见 `src/themes/design-system.md` / `development-guide.md` / `migration-guide.md`
-- Agent 领域专项见 `docs/agent-*` 系列
+- Agent 领域规则见 [运行时专题](docs/agent-guidance/runtime.md)，工程进度见 [工程路线图](docs/engineering-modernization-roadmap.md)
 
 文档目标读者：在这个仓库写代码、改代码、Review 代码的人。
 
@@ -21,48 +22,46 @@ Multi-RAG Frontend 是企业级 AI 前端，覆盖：
 - MCP Servers 接入与管理
 - 系统设置与资源管理
 
-当前代码体量（2026-05 校核）：
+实现规模和依赖版本以代码、测试 inventory 与锁文件为准；历史指标见工程路线图对应日期的快照。
 
-- 65+ 原子 UI 组件、6 个页面模板、约 1452 个设计 token
-- 13 个 Zustand store、20+ 测试文件
-- React 19 / TypeScript 5.8 / Vite 8 / TanStack Query 5 / React Router 7
+## 2. 技术栈一览
 
-## 2. 技术栈一览（已校核版本）
+具体版本以 [package.json](package.json) 和 [package-lock.json](package-lock.json) 为准；下表记录选型，不维护第二份版本快照。
 
-| 层                       | 选型                                                                          | 版本        |
-| ------------------------ | ----------------------------------------------------------------------------- | ----------- |
-| 框架                     | React                                                                         | 19.1        |
-| 语言                     | TypeScript（strict）                                                          | 5.8         |
-| 构建                     | Vite                                                                          | 8.0         |
-| 路由                     | react-router-dom                                                              | 7.7         |
-| 服务器状态               | TanStack Query                                                                | 5.83        |
-| 客户端状态               | Zustand                                                                       | 5.0         |
-| 样式                     | Tailwind CSS + 语义化 token                                                   | 3.4         |
-| 原子组件                 | Radix UI                                                                      | 1.1 – 2.2   |
-| 表单                     | react-hook-form + zod                                                         | 7.60 / 4.0  |
-| 图标                     | lucide-react（**唯一**）                                                      | 0.525       |
-| 聊天 UI                  | @ant-design/x 套件（x、x-card、x-markdown、x-sdk）                            | 2.7         |
-| 画布                     | @xyflow/react、@antv/g6                                                       | 12.9 / 5.0  |
-| 编辑器                   | @monaco-editor/react、@lexical/react                                          | 4.7 / 0.40  |
-| Markdown                 | react-markdown + markdown-it + remark-gfm + mathjax3                          | —           |
-| 流式                     | eventsource-parser                                                            | 3.0         |
-| 拖拽                     | @dnd-kit/core / sortable / utilities                                          | —           |
-| 文档预览                 | docx-preview、pptx-preview、mammoth、@js-preview/excel、react-pdf-highlighter | —           |
-| 图表                     | recharts                                                                      | 3.1         |
-| 流程图                   | mermaid                                                                       | 11.12       |
-| 净化                     | DOMPurify                                                                     | 3.3         |
-| 国际化                   | react-i18next + i18next + browser-languagedetector                            | 16.5 / 25.8 |
-| Toast / Drawer / Command | sonner / vaul / cmdk                                                          | —           |
-| 可拖动分栏               | react-resizable-panels                                                        | 2.1         |
+| 层                       | 选型                                                                          |
+| ------------------------ | ----------------------------------------------------------------------------- |
+| 框架                     | React                                                                         |
+| 语言                     | TypeScript（strict）                                                          |
+| 构建                     | Vite                                                                          |
+| 路由                     | react-router-dom                                                              |
+| 服务器状态               | TanStack Query                                                                |
+| 客户端状态               | Zustand                                                                       |
+| 样式                     | Tailwind CSS + 语义化 token                                                   |
+| 原子组件                 | Radix UI                                                                      |
+| 表单                     | react-hook-form + zod                                                         |
+| 图标                     | lucide-react（**唯一**）                                                      |
+| 聊天 UI                  | @ant-design/x 套件（x、x-card、x-markdown、x-sdk）                            |
+| 画布                     | @xyflow/react、@antv/g6                                                       |
+| 编辑器                   | @monaco-editor/react、@lexical/react                                          |
+| Markdown                 | react-markdown + markdown-it + remark-gfm + mathjax3                          |
+| 流式                     | eventsource-parser                                                            |
+| 拖拽                     | @dnd-kit/core / sortable / utilities                                          |
+| 文档预览                 | docx-preview、pptx-preview、mammoth、@js-preview/excel、react-pdf-highlighter |
+| 图表                     | recharts                                                                      |
+| 流程图                   | mermaid                                                                       |
+| 净化                     | DOMPurify                                                                     |
+| 国际化                   | react-i18next + i18next + browser-languagedetector                            |
+| Toast / Drawer / Command | sonner / vaul / cmdk                                                          |
+| 可拖动分栏               | react-resizable-panels                                                        |
 
 **已正式弃用 / 不再使用**：
 
 - ❌ Next.js 体系（不写 SSR、不用 `next-intl`、不用 `next/image`、不用 `dynamic()`）
 - ❌ "layout/feature/forms" 旧目录叙事
 - ❌ Day.js 之外的旧 moment 系（避免新增）
-- ❌ Jest（存量正式测试仍用 `tsx --test`；Vitest 基础配置已落地用于后续新增/迁移）
+- ❌ Jest（正式测试使用 Node/tsx 与 Vitest，均由测试 inventory 收口）
 - ❌ Emotion / styled-components / 任意 CSS-in-JS（统一 Tailwind + token）
-- ❌ 自带的或第三方的图标库（`heroicons`、`react-icons`、`@ant-design/icons` 之外的等等）
+- ❌ 新增其他图标库（业务图标统一 `lucide-react`，第三方内部依赖不作为业务入口）
 - ❌ Vite 7 时代的 `build.rollupOptions.output.manualChunks` 拆包配置（Vite 8 统一走 Rolldown `codeSplitting.groups`）
 
 ## 3. 目录结构基线
@@ -233,18 +232,13 @@ export function UserProfile({ user, className }: UserProfileProps) {
 | 400–600 | 🔶 注意 | 排期重构 |
 | > 600   | ❌ 禁止 | 必须拆   |
 
-**已知技术债（不得继续扩张）**：
-`ApiKeysPage.tsx`(3293)、`ExplorePage.tsx`(2279)、`DocumentChunksPage.tsx`(2239)、`api-key-modal.tsx`(1757)、`agent/options/google.ts`(1589)、`agent/constant/index.ts`(1443)、`MCPChatPage.tsx`(1409)、`KnowledgeListPage.tsx`(1219)。修改时必须减少或拆分。
+**已知技术债（不得继续扩张）**：当前清单和行数以 `scripts/file-size-baseline.json` 为准，在册源文件不得增长。偿还债务后运行 `npm run lint:file-size:update`，只收紧基线；无需为无关小改动强制重构整个文件。
 
 **正面参考**：`pages/studio/create-app/` 是把原来 2178 行的 `CreateAppPage.tsx` 拆模块的标准范例。
 
-### 6.4 重构顺序
+### 6.4 模块拆分
 
-1. 抽 hooks → `hooks/use-*.ts`
-2. 抽子组件
-3. 抽类型 → `types.ts`
-4. 抽常量 → `constants.ts`
-5. 仅在确有跨页复用时再抬升到平台层（`operators/`、`adapters/`）
+按职责拆出 hooks、子组件、类型和常量；仅在确有跨页复用时抬升到平台层。具体顺序由改动决定，不为行数机械创建空模块。
 
 ## 7. TypeScript 规范
 
@@ -393,7 +387,11 @@ export function ExampleStudioPage() {
 路由树使用一个无 `path` 的顶层分支统一承载共享 `ErrorFallback`；后代路由继承边界，嵌套 render / loader / lazy import 错误向上冒泡。顶层同时声明显式 `*` catch-all，呈现产品化 404。路由组件继续使用 `lazy` + `Suspense`：
 
 ```tsx
-const KnowledgePage = lazy(() => import('@/pages/knowledge'))
+// 在 src/lib/router.tsx 中沿用现有 lazyNamed helper
+const KnowledgePage = lazyNamed(
+  () => import('@/pages/knowledge/KnowledgeListPage'),
+  'KnowledgeListPage',
+)
 {
   errorElement: <ErrorFallback />,
   children: [
@@ -410,37 +408,21 @@ const KnowledgePage = lazy(() => import('@/pages/knowledge'))
 
 ## 11. React 19 时代的范式更新
 
-### 11.1 `useOptimistic`
+### 11.1 乐观反馈与表单
 
-聊天发送、收藏、改名等乐观更新优先用 `useOptimistic`，在 mutation 的 `onSettled` 里对账。
+先确定状态由 Query、表单还是流式运行时拥有，再选 API。TanStack Query 支持用 mutation variables 表达待提交 UI，或用 `onMutate` 更新缓存并在失败时恢复、结束时对账。已有可靠机制无需改成 `useOptimistic`；同一数据不维护两套乐观状态。
 
-```tsx
-const [optimisticMessages, addOptimistic] = useOptimistic(
-  messages,
-  (state, msg) => [...state, msg],
-)
+使用 `useOptimistic` 时，更新必须处于 Action/Transition 中，异步 Action 等待真实操作完成。不能在普通点击回调里调用 optimistic setter 后仅发起 `mutate()`，便假定 pending 生命周期会自动关联。见 [React 文档](https://react.dev/reference/react/useOptimistic) 与 [Query 文档](https://tanstack.com/query/latest/docs/framework/react/guides/optimistic-updates)。
 
-const send = (text: string) => {
-  addOptimistic({ id: 'temp', text, pending: true })
-  sendMutation.mutate({ text })
-}
-```
+表单默认复用 react-hook-form + zod；需要 React Action 提交模型时可选择 `useActionState`。不为追逐新 API 重写已验证的表单。
 
-### 11.2 `useActionState` + `<form action>`
+### 11.2 Suspense、Compiler 与新能力
 
-新代码的简单表单（认证、设置切换）优先用。复杂多步表单仍归 react-hook-form。
+`use()` 读取稳定来源的 promise/context；服务器数据保留 Query 所有权，不在 render 内创建请求 promise。
 
-### 11.3 `use()` hook
+React Compiler 当前未启用。可以针对高频消息渲染局部试点，以提交次数、长任务和交互延迟比较收益；通过回归后再扩展。不要因启用 Compiler 就批量删除已有手写记忆化。
 
-Suspense 边界内读取 promise / context，替代在 render 中 `await`。
-
-### 11.4 React Compiler
-
-**当前未启用**。继续克制使用 `memo`、`useMemo`、`useCallback`：仅在 props 稳定且收益明确时用。启用后会反向：要求**移除**手写记忆化。届时单独通知。
-
-### 11.5 `<ViewTransition>` / Activity
-
-实验态，未立项不要用。
+Activity 自 React 19.2 起已可用，但隐藏期间会清理 Effect，采用前需检查流订阅所有权。ViewTransition 的采用依据安装版本、浏览器支持与降级验证，不用“所有新能力都是实验态”的长期禁令。详见 [前端规则](docs/agent-guidance/frontend.md#ui)。
 
 ## 12. AI 流式 UI（核心规范）
 
@@ -450,27 +432,13 @@ Suspense 边界内读取 promise / context，替代在 render 中 `await`。
 
 **原因**：Query cache 设计假设是"完整的、可重放的快照"。流式 chunk 是部分的、瞬时的，写入 cache 会让其他订阅者看到半截数据并触发非预期重渲染。
 
-**做法**：用 Zustand 临时字段（如 `streamingMessages`）或 `useRef` 缓冲。流结束后：
+**做法**：用 Zustand 临时字段（如 `streamingMessages`）或 `useRef` 缓冲；终态确认后，通过所属领域的 query key factory 更新或失效完整快照。
 
-```ts
-queryClient.setQueryData(['conversation', id], finalSnapshot)
-```
+### 12.2 连接清理与任务取消
 
-### 12.2 AbortController 必须自持
+每条连接有明确的 `AbortController` 所有者。页面卸载、订阅 key 变化时释放旧连接；`abort` 只表示本地断流，不能证明服务端任务停止。
 
-每条流配一个 `AbortController`：
-
-- 组件卸载 → abort
-- 用户取消 → abort
-- 上游请求 key（会话 id 等）变化 → abort 旧的、起新的
-
-```ts
-useEffect(() => {
-  const ctrl = new AbortController()
-  startStream({ signal: ctrl.signal })
-  return () => ctrl.abort()
-}, [conversationId])
-```
+用户点击“停止任务”时调用既有后端取消接口并确认结果；无法确认时保留真实的未确认状态。跨页面持久任务由运行时 owner 管理，页面只订阅/退订。后端尚未提供的 durable Run 能力不得用前端状态伪造。详见 [运行时规则](docs/agent-guidance/runtime.md#streaming) 与 [平台合同](docs/client-platform/CONTRACTS.md)。
 
 ### 12.3 SSE 解析
 
@@ -541,7 +509,7 @@ agent share 表面（`src/pages/agent/share/` 与运行时组件）外嵌 iframe
 
 ### 14.2 跨域消息
 
-走 `lib/agent/embed/` 的类型化 `postMessage` envelope。新事件加进类型映射，不要 untyped。
+走 `src/pages/agent/share/widget.tsx` / `widget-shell.tsx` 的类型化 `postMessage` envelope。新事件加进类型映射，不要 untyped。
 
 ### 14.3 附件链路
 
@@ -584,7 +552,7 @@ Widget bundle 是关键链路 — 重型依赖（Lexical、Monaco、mermaid、pd
 5. **组件保持无语言业务逻辑**：组件只使用 `useTranslation()` + `t('namespace.key', fallback)`；禁止根据当前语言写 `if/else` 拼接文案，禁止在组件内维护第二套语言状态。
 6. **格式化跟随产品语言**：日期、时间、相对时间、数字、货币等格式化统一走 helper 或 `getCurrentLanguage()`，不要在页面中硬写 `zh-CN`、`en-US`。
 7. **公共嵌入隔离**：share、widget、embed、iframe 页面可通过 URL 或 postMessage 临时指定 locale，但只能影响当前路由，不能覆盖主应用本地产品语言。
-8. **验收标准**：中文 → English → 中文即时切换；刷新后语言持久化；share/widget 语言隔离；控制台没有 `missingKey` 和 `rejecting language code not found in supportedLngs`；Agent/Layout 新文案通过 `npm run lint:i18n-agent`。
+8. **验收标准**：文案改动验证所改表面的中英切换、无 `missingKey`，Agent/Layout 新文案跑 `npm run lint:i18n-agent`。语言服务或 share/widget 改动另验证刷新持久化、路由语言隔离及无 unsupported-language 警告。
 
 ## 17. 实时能力（SSE / WebSocket）
 
@@ -599,16 +567,18 @@ Widget bundle 是关键链路 — 重型依赖（Lexical、Monaco、mermaid、pd
 
 - 测试分别运行在 `tsx --test`、Node test 与 Vitest；存量测试不做机械迁移
 - 覆盖：Agent serializer/adapter/runtime、设计令牌、共享流式运行时、API 契约、产品 capability、路由恢复、mutation 错误归属与安全边界
-- 正式脚本：`test:agent-t1`、`test:design-tokens`、`test:streaming`、`test:api`、`test:product-ui`、`test:security`，全部进入 CI
+- 正式入口为 `test:ci`：先校验 inventory，再执行 src/tooling/desktop 全量测试；`test:unit` 不含 Desktop，`test:agent-t1` 等专项脚本用于局部反馈
 - `test:product-ui` 同时承载产品能力、Search 导出和路由恢复合同；未知路由、懒加载/render 错误不泄露原始内容、权限拒绝、恢复动作/焦点与登录深链必须保持回归覆盖
 - `vitest.config.ts` 已落地；新增 Vitest 测试必须范围明确，不得替代现有正式门禁
 
-### 18.2 必须测的层
+### 18.2 关键行为的回归覆盖
 
 - Serializer、adapter、registry、parser
 - `lib/` 下纯工具
 - 流式 reducer（chunk 合并逻辑）
-- 关键页面状态切换
+- API 端点、信封、响应归一化与关键页面状态切换
+
+新增或改变这些行为时补足回归；无行为变化或已有充分覆盖时不新增重复测试。纯文档只检查内容、链接、命令及 diff。具体门禁见 [验证矩阵](docs/agent-guidance/verification.md#scope)。
 
 ### 18.3 不要
 
@@ -618,7 +588,7 @@ Widget bundle 是关键链路 — 重型依赖（Lexical、Monaco、mermaid、pd
 
 ### 18.4 后续演进
 
-继续把新增行为接入对应正式脚本，不新增游离于 CI 的测试入口。是否统一测试运行时由 ENG-2 单独评估；在此之前保持 `tsx --test` / Node test / Vitest 并存，不做大面积框架替换。
+新增测试必须被 `verify:test-inventory` 分配唯一 lane，并由 `test:ci` 执行；仅加入某个专项脚本不够。是否统一测试运行时由 ENG-2 单独评估；在此之前保持 `tsx --test` / Node test / Vitest 并存，不做大面积框架替换。
 
 ## 19. 性能
 
@@ -631,7 +601,11 @@ Widget bundle 是关键链路 — 重型依赖（Lexical、Monaco、mermaid、pd
 
 ```ts
 // ✅ 路由级
-const KnowledgePage = lazy(() => import('@/pages/knowledge'))
+// 在 src/lib/router.tsx 中沿用现有 lazyNamed helper
+const KnowledgePage = lazyNamed(
+  () => import('@/pages/knowledge/KnowledgeListPage'),
+  'KnowledgeListPage',
+)
 
 // ✅ feature 级（重型依赖）
 const Monaco = lazy(() => import('@monaco-editor/react'))
@@ -641,8 +615,8 @@ const Monaco = lazy(() => import('@monaco-editor/react'))
 
 ### 19.3 列表
 
-- < 200 行：直接渲染
-- ≥ 200 行：虚拟滚动（TanStack Table 虚拟化或手写）
+- ≤ 200 行：可直接渲染
+- 超过 200 行：虚拟滚动（TanStack Table 虚拟化或手写）
 
 ### 19.4 分栏
 
@@ -650,7 +624,7 @@ const Monaco = lazy(() => import('@monaco-editor/react'))
 
 ### 19.5 Bundle
 
-- locale 资源按语言分包
+- 当前中英 locale 资源静态加载；按语言分包是后续优化，通过 `ensureLocaleLoaded()` 统一接入
 - 监控 `npm run build` 输出，单 chunk > 500KB 必须分析
 - 使用 `npm run build:analyze` 生成 `dist/stats.html` 做 bundle treemap 分析；`stats.html` 与 `.map` 文件不得进入公开部署包
 - Vite 8 生产拆包通过 `build.rolldownOptions.output.codeSplitting.groups` 管理；调整前先量化，禁止无基线地整段删除或回退到 Rollup `manualChunks`
@@ -724,37 +698,31 @@ docs: refresh handbook for 2026 stack
 
 ### 23.3 提交前检查
 
-```bash
-npm run lint
-npm run build
-# 接触 Agent serializer/adapter/operator 时补充：
-npm run lint:typed
-npm run typecheck:agent-strict
-npm run test:agent-t1
-```
+按 [验证矩阵](docs/agent-guidance/verification.md#scope) 选择检查，修复本次引入的失败后重跑受影响项。纯文档无需业务测试或 Web build；源码变更保留 lint/build 和对应专题门禁。CI 仍运行完整门禁。
 
-UI 改动：附明暗双主题截图。
+只暂存本任务文件，保留无关改动。UI 改动附明暗双主题截图；报告实际运行结果及未验证项，不用计划代替通过证据。
 
 ### 23.4 PR
 
 - 标题简洁（< 70 字符）
-- Body 含摘要、变更范围、测试清单、双主题截图
+- Body 含摘要、变更范围、实际验证结果；UI 改动附双主题截图，无法验证时明确说明
 - **不**用 `--no-verify` 绕过 hook（除非用户明确）
 
 ## 24. 文档导航
 
-- `CLAUDE.md` — Agent 行为约束（英文）
-- `AGENTS.md` — Agent 行为约束（中文）
+- `CLAUDE.md` — Claude Code 导入入口，不维护独立规则
+- `AGENTS.md` — Agent 规则唯一入口
+- `docs/agent-guidance/` — 按需读取的前端、运行时与安全、验证专题（单一来源）
 - `AI前端技术栈开发规范.md`（本文）— 团队详尽手册
 - `src/themes/design-system.md` — 设计系统总论
 - `src/themes/development-guide.md` — token 开发指南
 - `src/themes/migration-guide.md` — token 迁移指南
-- `docs/agent-frontend-rewrite-plan.md` — Agent 前端重写计划
-- `docs/agent-capability-completion-roadmap.md` — Agent 能力路线图
-- `docs/agent-t*-summary.md` — 各阶段（T1–T10）落地纪要
-- `docs/agent-share-*.md` — Agent Share 集成与重构指南
-- `docs/style-modernization-roadmap.md` — 视觉现代化路线
-- `docs/project-style-*.md` — 视觉风格库
+- [工程现代化路线图](docs/engineering-modernization-roadmap.md) — 工程债与进度账本
+- [流式运行时设计](docs/streaming-runtime-design.md) — SSE 共享运行时
+- [Channel 设计](docs/channel-frontend-design.md) — Channel 跨仓边界
+- [Client Platform](docs/client-platform/README.md) — Web/Desktop 架构与合同入口
+
+历史 Agent 计划、阶段总结不在当前 checkout 中；追溯时按相关代码和 Git 历史核实，不把缺失文档当成前置阅读要求。
 
 `README.md` / `README_zh.md` 是项目门面，不放规范细节。
 
@@ -772,6 +740,9 @@ npm run lint:all          # eslint .
 npm run lint:typed        # type-aware lint，先覆盖 Agent 关键目录
 npm run typecheck:agent-strict # Agent 关键目录严格类型检查
 npm run build:themes      # 重生 themes/{light,dark}.css
+npm run verify:test-inventory # 验证测试唯一 lane
+npm run test:ci           # src/tooling/desktop 完整测试
+npm run test:unit         # 不含 Desktop 的单元测试
 npm run test:agent-t1     # 跑 agent T1 相关测试
 npm run test:design-tokens # 设计令牌合同
 npm run test:streaming    # 共享流式运行时合同
@@ -795,4 +766,4 @@ npm run test:security     # 安全规则与渲染边界合同
 9. **类型 + Schema 驱动**：JSON Schema 是表单/渲染/校验的单一真相
 10. **测试关键映射**：序列化、解析、注册表必有测试
 
-本仓库的所有规则都在服务这十条。每次修改时回头对一下，不要让规则成为僵化的形式。
+本仓库的所有规则都在服务这十条。按本次影响面查阅相关章节，不把整份手册当作每次修改的检查清单。
