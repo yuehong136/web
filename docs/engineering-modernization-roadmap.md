@@ -681,25 +681,29 @@
 
 按序执行，每项独立验证并提交；版本以执行时官方 release、registry 和 peer 为准。基础指令与路径别名兼容调整已提交为 `ad052e0`。原有取消相关业务改动不纳入本队列。
 
-| 顺序 | 工作单元                         | 完成标准                                                                                  | 状态   |
-| ---- | -------------------------------- | ----------------------------------------------------------------------------------------- | ------ |
-| 1    | TypeScript 7 + TS 6 Compiler API | 干净安装、实际 bin/API、Web/Agent/Desktop 类型、lint、完整测试、Bundle 和 Desktop staging | 已完成 |
-| 2    | React hooks lint                 | 分类新增诊断、保持既有门禁、lint 与受影响回归                                             | 待执行 |
-| 3    | Vite 8 / React 插件              | Rolldown/Oxc、Web build、Bundle、Desktop build/stage/verify                               | 待执行 |
-| 4    | React / React DOM / types        | 类型、路由、表单、流式与 widget 回归和渲染                                                | 待执行 |
-| 5    | TanStack Query 5                 | mutation、认证缓存隔离、query key 合同                                                    | 待执行 |
-| 6    | Zustand 5                        | selector、UI 持久化边界                                                                   | 待执行 |
-| 7    | Vitest                           | Node/CI engines、配置及四 lane 完整 inventory                                             | 待执行 |
-| 8    | Ant Design X / antd              | peers、A2UI action 补丁、Markdown/卡片/安全渲染与实际 UI                                  | 待执行 |
-| 9    | ESLint                           | 全插件、自定义规则、typed lint；不降低规则                                                | 待执行 |
-| 10   | Lexical 家族                     | 输入法、序列化、焦点及实际编辑器验收                                                      | 待执行 |
-| 11   | react-resizable-panels           | 键盘、焦点、布局持久化及实际 UI                                                           | 待执行 |
+| 顺序 | 工作单元                         | 完成标准                                                                                  | 状态               |
+| ---- | -------------------------------- | ----------------------------------------------------------------------------------------- | ------------------ |
+| 1    | TypeScript 7 + TS 6 Compiler API | 干净安装、实际 bin/API、Web/Agent/Desktop 类型、lint、完整测试、Bundle 和 Desktop staging | 已完成             |
+| 2    | React hooks lint                 | 分类新增诊断、保持既有门禁、lint 与受影响回归                                             | 待整改，保留 5.2.0 |
+| 3    | Vite 8 / React 插件              | Rolldown/Oxc、Web build、Bundle、Desktop build/stage/verify                               | 已完成             |
+| 4    | React / React DOM / types        | 类型、路由、表单、流式与 widget 回归和渲染                                                | 待执行             |
+| 5    | TanStack Query 5                 | mutation、认证缓存隔离、query key 合同                                                    | 待执行             |
+| 6    | Zustand 5                        | selector、UI 持久化边界                                                                   | 待执行             |
+| 7    | Vitest                           | Node/CI engines、配置及四 lane 完整 inventory                                             | 待执行             |
+| 8    | Ant Design X / antd              | peers、A2UI action 补丁、Markdown/卡片/安全渲染与实际 UI                                  | 待执行             |
+| 9    | ESLint                           | 全插件、自定义规则、typed lint；不降低规则                                                | 待执行             |
+| 10   | Lexical 家族                     | 输入法、序列化、焦点及实际编辑器验收                                                      | 待执行             |
+| 11   | react-resizable-panels           | 键盘、焦点、布局持久化及实际 UI                                                           | 待执行             |
 
 Tailwind 4 保留待决：Firefox >=114 与 >=128 的支持边界冲突。Compiler 全局启用、框架替换、Run/取消重写、Markdown 收敛、观测/E2E 平台建设另行规划；SEC-7/8 保持暂停。
 
 第一项验收（2026-10-02）：`@typescript/native` alias 锁定原生 TS 7.0.2，`typescript` alias 为官方 `@typescript/typescript6` 6.0.2（锁定 Compiler API 实际 6.0.3）。`tsc` 实际指向 native，`tsc6` 指向兼容包。Agent strict 显式声明 `types: ["node"]`，覆盖 Node test 与既有工具类型；未降低严格选项。旧 i18n peer 仅接受 TS 5，配套升级 i18next 25.10.10 / react-i18next 16.6.6，保持各自主版本。
 
 实际通过：独立临时目录正常 `npm ci`（无 force/legacy-peer-deps）、`npm ls --depth=0`、x-card 2.7.0 postinstall 补丁、`npm run build`（app/node references）、`lint`（0 errors、1494 warnings）、`lint:typed`（0 errors、84 warnings）、`lint:desktop`、`typecheck:agent-strict`、`desktop:typecheck`、`test:ci`（四 lane，540 source-node + 174 Vitest + 81 desktop + 7 tooling）、`check:bundle-size`、`desktop:build` → `desktop:stage` → `desktop:verify:stage`。保留跨平台 Windows signing 的原锁记录；原有大 chunk/lint 警告和 audit 告警未在本项扩范围处理。Node 本机 24.4.1，CI 仍使用 `.nvmrc` 声明；未实跑 Linux CI、编辑器语言服务、Windows 安装包或性能对比。共享工作区 `__488-pipeline.tsx` 在其他任务活动期间消失，本任务未编辑、移动或删除它；取消相关源码仍不纳入本提交。
+
+第二项试跑（2026-10-02）：7.1.1 的 flat recommended-latest 可正常加载，Node >=18、ESLint 9 peer 均满足，但当前源码新增 172 errors / 99 files：set-state-in-effect 87、immutability 19、preserve-manual-memoization 19、error-boundaries 9、static-components 13、refs 22、purity 2、globals 1。包含其他任务正在编辑的 runtime/pipeline hooks；不能在本次依赖维护中安全完成全部行为迁移。撤回 package/配置试改，保留 5.2.0 及原规则强度，没有关闭规则或提交失败升级。后续应按 effect 派生状态、可变引用/纯度、组件稳定性、工具卡片错误边界拆成有针对性回归的整改单元，再恢复本项。详见[官方诊断与渐进整改说明](https://react.dev/reference/eslint-plugin-react-hooks)。TypeScript 项提交为 `e9cbebe`。
+
+第三项验收（2026-10-02）：Vite 8.2.1 → 8.3.2，React 插件 6.0.5 → 6.1.1；官方 engines 仍为 Node ^20.19.0 / >=22.12.0，满足现有项目/CI 基线。保留原 Rolldown/Oxc、codeSplitting、网络 policy receipt 与 staging 配置。`npm ls --depth=0`、Web build、四 lane `test:ci`、lint、Bundle budget、Desktop build/stage/verify 均通过。入口 gzip 预算占比 99.5%、总 JS 98.5%；已有大 chunk/lint 警告仍保留。未实跑 Linux CI、Windows 打包或生产网络验收。Release 依据：[Vite 8.3.2](https://github.com/vitejs/vite/releases/tag/v8.3.2)、[React 插件 6.1.1](https://github.com/vitejs/vite-plugin-react/releases/tag/plugin-react@6.1.1)。
 
 ### HYG-3 规范、环境变量与进度账本漂移
 
