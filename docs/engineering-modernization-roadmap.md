@@ -687,7 +687,7 @@
 | 2    | React hooks lint                 | 分类新增诊断、保持既有门禁、lint 与受影响回归                                             | 待整改，保留 5.2.0 |
 | 3    | Vite 8 / React 插件              | Rolldown/Oxc、Web build、Bundle、Desktop build/stage/verify                               | 已完成             |
 | 4    | React / React DOM / types        | 类型、路由、表单、流式与 widget 回归和渲染                                                | 已完成             |
-| 5    | TanStack Query 5                 | mutation、认证缓存隔离、query key 合同                                                    | 待执行             |
+| 5    | TanStack Query 5                 | mutation、认证缓存隔离、query key 合同                                                    | 已完成             |
 | 6    | Zustand 5                        | selector、UI 持久化边界                                                                   | 待执行             |
 | 7    | Vitest                           | Node/CI engines、配置及四 lane 完整 inventory                                             | 待执行             |
 | 8    | Ant Design X / antd              | peers、A2UI action 补丁、Markdown/卡片/安全渲染与实际 UI                                  | 待执行             |
@@ -706,6 +706,8 @@ Tailwind 4 保留待决：Firefox >=114 与 >=128 的支持边界冲突。Compil
 第三项验收（2026-10-02）：Vite 8.2.1 → 8.3.2，React 插件 6.0.5 → 6.1.1；官方 engines 仍为 Node ^20.19.0 / >=22.12.0，满足现有项目/CI 基线。保留原 Rolldown/Oxc、codeSplitting、网络 policy receipt 与 staging 配置。`npm ls --depth=0`、Web build、四 lane `test:ci`、lint、Bundle budget、Desktop build/stage/verify 均通过。入口 gzip 预算占比 99.5%、总 JS 98.5%；已有大 chunk/lint 警告仍保留。未实跑 Linux CI、Windows 打包或生产网络验收。Release 依据：[Vite 8.3.2](https://github.com/vitejs/vite/releases/tag/v8.3.2)、[React 插件 6.1.1](https://github.com/vitejs/vite-plugin-react/releases/tag/plugin-react@6.1.1)。
 
 第四项验收（2026-10-02）：React / React DOM 19.2.8 → 19.3.0，types 同步 19.3.0；未启用 Compiler/ViewTransition 或改写渲染器。[官方发布](https://react.dev/blog/2026/09/09/react-19-3)与 registry peer 已核对。`npm ls --depth=0`、Web build、Agent/Desktop typecheck、lint、四 lane `test:ci`、Bundle budget 通过（总 JS 98.6%，入口 gzip 99.6%）。现有回归覆盖路由恢复、React 表单、Streaming X Markdown、共享 widget/error 合同；本地浏览器实看登录表单空值错误、登录→注册导航，以及注册页暗色系统偏好，控制台无 error，保存明暗截图。没有提交注册或发送模型请求；真实后端认证/流式 E2E 与 Windows 安装包仍未验证。Vite 项提交为 `806db5f`。
+
+第五项验收（2026-10-02）：TanStack React Query / devtools 5.101.4 → 5.104.0，core/devtools 链同步；React ^18/^19 peers 满足。[官方 changelog](https://github.com/TanStack/query/blob/main/packages/react-query/CHANGELOG.md)已核对。`npm ls --depth=0`、Web build、lint、四 lane `test:ci`、Bundle budget 均通过；其中 auth-session-isolation 覆盖退出、失效、直接换账号和注册的缓存隔离，query-client-mutation-errors 覆盖 Global/Local/Silent 与 rollback，已有 query key 合同也在正式 lane。服务端调用和状态归属实现未更改。React 项提交为 `4fa5660`。
 
 ### HYG-3 规范、环境变量与进度账本漂移
 
