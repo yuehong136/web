@@ -84,6 +84,9 @@ export default {
       uploadErrorHint: 'Some attachments failed. Click a card to retry.',
     },
     attachmentStatus: {
+      retry: 'Retry {{name}}',
+      remove: 'Remove {{name}}',
+      failed: 'Upload failed',
       uploading: 'Uploading {{percent}}%',
       error: 'Upload failed. Click to retry',
       ready: 'Ready · {{type}} · {{size}}',

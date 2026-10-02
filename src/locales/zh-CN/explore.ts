@@ -82,6 +82,9 @@ export default {
       uploadErrorHint: '有附件上传失败，可点击卡片重试',
     },
     attachmentStatus: {
+      retry: '重试 {{name}}',
+      remove: '移除 {{name}}',
+      failed: '上传失败',
       uploading: '上传中 {{percent}}%',
       error: '上传失败，点击重试',
       ready: '已就绪 · {{type}} · {{size}}',

@@ -1,3 +1,4 @@
+import { ControlledAttachments } from '@/components/chat/controlled-attachments'
 import { useChatAbortController } from '@/hooks/use-chat-abort-controller'
 import {
   useCallback,
@@ -25,12 +26,10 @@ import {
   Sender,
   Prompts,
   Welcome,
-  Attachments,
   type AttachmentsProps,
   type BubbleListProps,
   type PromptsProps,
 } from '@ant-design/x'
-import type { RcFile } from 'antd/es/upload/interface'
 import { ChatBubbleLoading } from '@/components/chat/ChatBubbleLoading'
 import {
   markdownConfig,
@@ -138,12 +137,6 @@ const getAttachmentStatusLabel = (file: UploadFile, t: TFunction) => {
   }
 
   return formatBytes(file.size || 0)
-}
-
-const toRcFile = (file: File, uid: string): RcFile => {
-  const rcFile = file as RcFile
-  rcFile.uid = uid
-  return rcFile
 }
 
 // 消息类型
@@ -361,25 +354,16 @@ export const ExplorePage: FC = () => {
     !hasUploadingFiles &&
     (inputValue.trim().length > 0 || hasReadyUploads)
   const attachmentItems = useMemo<ExploreAttachment[]>(() => {
-    return uploadFiles.map((file) => ({
+    return uploadFiles.map(({ originFileObj: _originFileObj, ...file }) => ({
       ...file,
       className: file.status === 'error' ? 'cursor-pointer' : undefined,
       description: getAttachmentStatusLabel(file, t),
       icon: file.response ? (
         <FileIcon fileName={file.response.name} size="sm" />
       ) : undefined,
-      originFileObj: file.originFileObj
-        ? toRcFile(file.originFileObj, file.uid)
-        : undefined,
       src: file.thumbUrl,
-      onClick:
-        file.status === 'error'
-          ? () => {
-              void retryUploadFile(file.uid)
-            }
-          : undefined,
     }))
-  }, [retryUploadFile, t, uploadFiles])
+  }, [t, uploadFiles])
 
   if (!modelsLoading && myLLMs && !hasEnabledModelName(myLLMs, selectedModel)) {
     const firstModel = findFirstEnabledModelByType(myLLMs, 'chat')
@@ -1976,20 +1960,24 @@ export const ExplorePage: FC = () => {
                               },
                             }}
                           >
-                            <Attachments
+                            <ControlledAttachments
                               items={attachmentItems}
+                              uploadLabel={t('explore.sender.uploadFile')}
+                              removeLabel={(name) =>
+                                t('explore.attachmentStatus.remove', { name })
+                              }
+                              failureLabel={t(
+                                'explore.attachmentStatus.failed',
+                              )}
                               maxCount={uploadConfig.maxCount}
-                              disabled={hasUploadingFiles}
                               getDropContainer={() => dropContainerRef.current}
-                              onRemove={(file) => {
-                                if (
-                                  file &&
-                                  typeof file === 'object' &&
-                                  'uid' in file
-                                ) {
-                                  removeUploadFile((file as UploadFile).uid)
-                                }
+                              onRemove={removeUploadFile}
+                              onRetry={(uid) => {
+                                void retryUploadFile(uid)
                               }}
+                              retryLabel={(name) =>
+                                t('explore.attachmentStatus.retry', { name })
+                              }
                               overflow="scrollX"
                               placeholder={(type) => ({
                                 icon: (
@@ -2088,27 +2076,12 @@ export const ExplorePage: FC = () => {
                                   fontSize: '12px',
                                 },
                               }}
-                              // 自定义上传请求，通过 useChatUpload 统一管理状态
-                              customRequest={async (options) => {
-                                const { file, onSuccess, onError } = options
-                                try {
-                                  const result = await uploadFile(file as File)
-                                  if (result) {
-                                    onSuccess?.(result, new XMLHttpRequest())
-                                    toast.success(
-                                      t('explore.toast.uploadSuccess', {
-                                        name: (file as File).name,
-                                      }),
-                                    )
-                                  } else {
-                                    onError?.(new Error('Upload failed'))
-                                  }
-                                } catch (error) {
-                                  console.error('Upload error:', error)
-                                  onError?.(error as Error)
-                                  toast.error(
-                                    t('explore.toast.uploadFailed', {
-                                      message: (error as Error).message,
+                              onUpload={async (file) => {
+                                const result = await uploadFile(file)
+                                if (result) {
+                                  toast.success(
+                                    t('explore.toast.uploadSuccess', {
+                                      name: file.name,
                                     }),
                                   )
                                 }

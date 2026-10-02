@@ -1,8 +1,10 @@
+import { useTranslation } from 'react-i18next'
+import { ControlledAttachments } from '@/components/chat/controlled-attachments'
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { ChatSidebar } from '@/components/chat/ChatSidebar'
 import { ChatHeader } from '@/components/chat/ChatHeader'
 import { WelcomeMessage } from '@/components/chat/WelcomeMessage'
-import { Bubble, Think, Sender, Attachments } from '@ant-design/x'
+import { Bubble, Think, Sender } from '@ant-design/x'
 import type { AttachmentsProps, BubbleListProps } from '@ant-design/x'
 import { User, Bot, Paperclip, Square, Upload } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -28,7 +30,7 @@ import { useMcpUpload } from '@/hooks/use-mcp-upload'
 import { useStreamBatcher } from '@/hooks/useStreamBatcher'
 import { toast } from '@/lib/toast'
 import { cn, copyToClipboard } from '@/lib/utils'
-import { uploadConfig, type UploadFile } from '@/config/chat'
+import { uploadConfig } from '@/config/chat'
 import type { ChatSession, MCPChatConfig } from '@/types/mcp'
 
 // Think 组件 - 处理 <think> 标签
@@ -229,6 +231,7 @@ const createInitialSessions = (): ChatSession[] => {
 type ChatLayout = 'default' | 'center' | 'full'
 
 export default function MCPChatPage() {
+  const { t } = useTranslation()
   const [sessions, setSessions] = useState<ChatSession[]>(
     createInitialSessions(),
   )
@@ -299,7 +302,6 @@ export default function MCPChatPage() {
     removeFile: removeUploadFile,
     clearFiles: clearUploadFiles,
     getFileIds,
-    setFiles: setUploadFiles,
   } = useMcpUpload()
   const attachmentItems = useMemo<NonNullable<AttachmentsProps['items']>>(
     () => uploadFiles.map(({ originFileObj: _originFileObj, ...file }) => file),
@@ -1298,21 +1300,19 @@ export default function MCPChatPage() {
                       },
                     }}
                   >
-                    <Attachments
+                    <ControlledAttachments
                       items={attachmentItems}
+                      uploadLabel={t('explore.sender.uploadFile')}
+                      removeLabel={(name) =>
+                        t('explore.attachmentStatus.remove', { name })
+                      }
+                      retryLabel={(name) =>
+                        t('explore.attachmentStatus.retry', { name })
+                      }
+                      failureLabel={t('explore.attachmentStatus.failed')}
                       maxCount={uploadConfig.maxCount}
                       getDropContainer={() => dropContainerRef.current}
-                      onChange={(info) => {
-                        // 处理 Attachments 组件的文件变化
-                        if (info && Array.isArray(info)) {
-                          setUploadFiles(info as UploadFile[])
-                        }
-                      }}
-                      onRemove={(file) => {
-                        if (file && typeof file === 'object' && 'uid' in file) {
-                          removeUploadFile((file as UploadFile).uid)
-                        }
-                      }}
+                      onRemove={removeUploadFile}
                       overflow="scrollX"
                       placeholder={(type) => ({
                         icon: (
@@ -1403,27 +1403,15 @@ export default function MCPChatPage() {
                           fontSize: '12px',
                         },
                       }}
-                      // 自定义上传请求，使用 /api/v1/documents/upload 接口
-                      customRequest={async (options) => {
-                        const { file, onSuccess, onError } = options
-                        try {
-                          // 调用上传 API
-                          const result = await uploadFile(file as File)
-
-                          if (result) {
-                            onSuccess?.(result, new XMLHttpRequest())
-                            toast.success(
-                              `文件 ${(file as File).name} 上传成功`,
-                            )
-                            // 上传成功后自动收起面板
-                            setHeaderOpen(false)
-                          } else {
-                            onError?.(new Error('Upload failed'))
-                          }
-                        } catch (error) {
-                          console.error('Upload error:', error)
-                          onError?.(error as Error)
-                          toast.error(`上传失败: ${(error as Error).message}`)
+                      onUpload={async (file) => {
+                        const result = await uploadFile(file)
+                        if (result) {
+                          toast.success(
+                            t('explore.toast.uploadSuccess', {
+                              name: file.name,
+                            }),
+                          )
+                          setHeaderOpen(false)
                         }
                       }}
                     />
