@@ -53,7 +53,7 @@ export const ProviderGallery = ({
         </p>
       ) : null}
 
-      <ul className="gap-space-base grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3">
+      <ul className="grid grid-cols-1 gap-space-base md:grid-cols-2 2xl:grid-cols-3">
         {providers.map((manifest) => {
           const connected = connectedCounts[manifest.provider] ?? 0
           return (
@@ -65,7 +65,7 @@ export const ProviderGallery = ({
                 type="button"
                 disabled={disabled}
                 onClick={() => onSelect(manifest.provider)}
-                className="gap-space-base rounded-radius-lg p-space-base hover:bg-surface-secondary focus-visible:ring-accent-primary group flex h-full w-full items-start border border-border-subtle text-left transition-colors hover:border-border-strong focus-visible:outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-60"
+                className="group flex h-full w-full items-start gap-space-base rounded-radius-lg border border-border-subtle p-space-base text-left transition-colors hover:border-border-strong hover:bg-background-subtle focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-60"
               >
                 <ProviderLogo
                   provider={manifest.provider}
@@ -73,7 +73,7 @@ export const ProviderGallery = ({
                   className="size-icon-lg shrink-0"
                 />
                 <div className="min-w-0 flex-1">
-                  <div className="gap-space-sm flex items-center">
+                  <div className="flex items-center gap-space-sm">
                     <span className="truncate font-medium text-text-primary">
                       {/* Our translation wins, the server's English name is
                           the fallback — so a provider registered after the
@@ -102,7 +102,7 @@ export const ProviderGallery = ({
                   </p>
                 </div>
                 <span
-                  className="gap-space-xs flex shrink-0 items-center text-sm text-text-secondary group-hover:text-text-primary"
+                  className="flex shrink-0 items-center gap-space-xs text-sm text-text-secondary group-hover:text-text-primary"
                   aria-hidden="true"
                 >
                   <Plus className="size-icon-sm" />

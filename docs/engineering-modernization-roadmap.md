@@ -809,8 +809,10 @@ hooks 7 最新全量试跑为 151 errors / 93 files：set-state-in-effect 87、r
 
 完整 test:ci 为 543 + 210 + 81 + 10 = 844，全部通过；全量 lint（0 errors / 1497 warnings）、typed lint（0 / 84）、Agent strict、Desktop lint/typecheck、Web build、file-size、原 Bundle budget、Desktop build/stage/verify（1065 文件）通过。独立普通 npm ci 与 npm ls 无 peer 冲突，不使用 force/legacy-peer-deps。安全规则继续进入正式测试。官方 a11y 兼容发行版发布后应移除本地包；Tailwind 4 仍为下一独立单元。
 
-2026-10-02 HYG-2 / ARCH-5 正式 Tailwind 4 迁移：Tailwind 4.3.3 与同版原生 Vite 插件，scrollbar 4.0.2、ESLint Tailwind 插件 4.4.0；删除旧 JS 配置、PostCSS 配置、直接 autoprefixer/postcss 和 container-queries 插件。主题别名仍来自同一注册表，build:themes 同步产出四份小于 600 行的 CSS-first 映射，用 reference 导入避免重复运行时变量。间距、圆角、阴影、动画转为原生主题配置，删除约 600 行手写工具类及重复定义；补齐 2xs 间距，迁移已删除的 flex 工具类、渐变、阴影/模糊命名和可访问 outline，调整 Sidebar 的独立变换过渡。模板回退文案和分类标题中英同步。
+2026-10-02 HYG-2 / ARCH-5 正式 Tailwind 4 迁移（`8e43107`）：Tailwind 4.3.3 与同版原生 Vite 插件，scrollbar 4.0.2、ESLint Tailwind 插件 4.4.0；删除旧 JS 配置、PostCSS 配置、直接 autoprefixer/postcss 和 container-queries 插件。主题别名仍来自同一注册表，build:themes 同步产出四份小于 600 行的 CSS-first 映射，用 reference 导入避免重复运行时变量。间距、圆角、阴影、动画转为原生主题配置，删除约 600 行手写工具类及重复定义；补齐 2xs 间距，迁移已删除的 flex 工具类、渐变、阴影/模糊命名和可访问 outline，调整 Sidebar 的独立变换过渡。模板回退文案和分类标题中英同步。
 
 新增七项正式 source-node 样式合同，验证生成物可重建、语义颜色与透明度、响应式/hover、局部暗色、forms/typography/scrollbar/容器查询、独立 CSS reference 和 reset 层级。生产登录页实看发现 Ant Design reset 覆盖按钮颜色，已移入独立低优先级 reset 层；读回按钮颜色为白色，背景为深色，生产登录→懒加载注册→返回流程通过，控制台无错误。组件预览实看明暗弹窗、焦点边框、选择器、搜索模式及模板改动的中英切换；未提交登录、注册、连接测试或后端数据写入。
 
 最终完整 test:ci 为 550 Node + 210 Vitest（46 文件）+ 81 Desktop + 10 tooling = 851，全部通过。完整 Web build、全量 lint（0 errors / 1497 warnings）、typed lint（0 / 84）、Agent strict、Desktop lint/typecheck、Agent i18n、file-size、原 Bundle budget、独立普通 npm ci/npm ls 通过；JS 总量 25.84 MB、入口 gzip 119 KB、最大 chunk gzip 725 KB，未放宽预算。Desktop build/stage/verify 继续通过。Tailwind Vite 插件仍产生 CSS source map 精度警告，未屏蔽；未实跑 Firefox、Safari、远程 CI 或 Windows 安装包。ARCH-5 剩余的是存量 token 治理，不影响本轮 Tailwind 4 完成状态；SEC-7/8 与全局 Compiler 保持原范围。
+
+2026-10-02 渠道样式补充（ARCH-6 / CHN-P7）：ProviderGallery 切换为新版可访问 outline，悬浮背景和焦点颜色改用实际存在的 background-subtle / state-focus 令牌，修复旧别名没有生成 CSS 的问题。浏览器在明暗两种主题下读回键盘焦点的 2px 语义色 ring，Enter 触发选择并读回 feishu；使用本地组件 fixture，不调用创建或连接接口。保留 manifest 驱动、disabled 和选择回调合同，未修改 API、凭据或生产数据。专项 lint 与 Web build、Bundle/file-size 门禁通过。
