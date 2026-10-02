@@ -681,19 +681,19 @@
 
 按序执行，每项独立验证并提交；版本以执行时官方 release、registry 和 peer 为准。基础指令与路径别名兼容调整已提交为 `ad052e0`。原有取消相关业务改动不纳入本队列。
 
-| 顺序 | 工作单元                         | 完成标准                                                                                  | 状态               |
-| ---- | -------------------------------- | ----------------------------------------------------------------------------------------- | ------------------ |
-| 1    | TypeScript 7 + TS 6 Compiler API | 干净安装、实际 bin/API、Web/Agent/Desktop 类型、lint、完整测试、Bundle 和 Desktop staging | 已完成             |
-| 2    | React hooks lint                 | 分类新增诊断、保持既有门禁、lint 与受影响回归                                             | 待整改，保留 5.2.0 |
-| 3    | Vite 8 / React 插件              | Rolldown/Oxc、Web build、Bundle、Desktop build/stage/verify                               | 已完成             |
-| 4    | React / React DOM / types        | 类型、路由、表单、流式与 widget 回归和渲染                                                | 已完成             |
-| 5    | TanStack Query 5                 | mutation、认证缓存隔离、query key 合同                                                    | 已完成             |
-| 6    | Zustand 5                        | selector、UI 持久化边界                                                                   | 已完成             |
-| 7    | Vitest                           | Node/CI engines、配置及四 lane 完整 inventory                                             | 已完成（4.x 补丁） |
-| 8    | Ant Design X / antd              | peers、A2UI action 补丁、Markdown/卡片/安全渲染与实际 UI                                  | 已完成             |
-| 9    | ESLint                           | 全插件、自定义规则、typed lint；不降低规则                                                | 待执行             |
-| 10   | Lexical 家族                     | 输入法、序列化、焦点及实际编辑器验收                                                      | 待执行             |
-| 11   | react-resizable-panels           | 键盘、焦点、布局持久化及实际 UI                                                           | 待执行             |
+| 顺序 | 工作单元                         | 完成标准                                                                                  | 状态                   |
+| ---- | -------------------------------- | ----------------------------------------------------------------------------------------- | ---------------------- |
+| 1    | TypeScript 7 + TS 6 Compiler API | 干净安装、实际 bin/API、Web/Agent/Desktop 类型、lint、完整测试、Bundle 和 Desktop staging | 已完成                 |
+| 2    | React hooks lint                 | 分类新增诊断、保持既有门禁、lint 与受影响回归                                             | 待整改，保留 5.2.0     |
+| 3    | Vite 8 / React 插件              | Rolldown/Oxc、Web build、Bundle、Desktop build/stage/verify                               | 已完成                 |
+| 4    | React / React DOM / types        | 类型、路由、表单、流式与 widget 回归和渲染                                                | 已完成                 |
+| 5    | TanStack Query 5                 | mutation、认证缓存隔离、query key 合同                                                    | 已完成                 |
+| 6    | Zustand 5                        | selector、UI 持久化边界                                                                   | 已完成                 |
+| 7    | Vitest                           | Node/CI engines、配置及四 lane 完整 inventory                                             | 已完成（4.x 补丁）     |
+| 8    | Ant Design X / antd              | peers、A2UI action 补丁、Markdown/卡片/安全渲染与实际 UI                                  | 已完成                 |
+| 9    | ESLint                           | 全插件、自定义规则、typed lint；不降低规则                                                | peer 阻塞，保留 9.39.5 |
+| 10   | Lexical 家族                     | 输入法、序列化、焦点及实际编辑器验收                                                      | 待执行                 |
+| 11   | react-resizable-panels           | 键盘、焦点、布局持久化及实际 UI                                                           | 待执行                 |
 
 Tailwind 4 保留待决：Firefox >=114 与 >=128 的支持边界冲突。Compiler 全局启用、框架替换、Run/取消重写、Markdown 收敛、观测/E2E 平台建设另行规划；SEC-7/8 保持暂停。
 
@@ -716,6 +716,8 @@ Tailwind 4 保留待决：Firefox >=114 与 >=128 的支持边界冲突。Compil
 第八项验收（2026-10-02）：x/card/sdk 2.7.0 → 2.9.0，markdown 保持 2.9.0 并锁定，antd 6.0.1 →满足 peer 的 6.1.1；[官方更新日志](https://github.com/ant-design/x/blob/main/CHANGELOG.zh-CN.md)与 peers 已核对。原补丁在 2.9.0 npm tarball 上 dry-run 成功，上游仍无 sourceComponentId/timestamp；移植为 `@ant-design+x-card+2.9.0.patch`，保留 ESM/CJS runtime 与类型声明的全部修复。正常 postinstall 与独立干净 `npm ci` 均应用成功。
 
 新增真实 AgentXCardRenderer 回归核对点击 sourceComponentId、ISO timestamp、已有 `{ value: ... }` 包装的 action context，以及工具文本作为文本显示（无 img/script 节点）；使用本地注册 catalog fixture，不依赖网络。实际通过 Web build、Agent/Desktop typecheck、lint、file-size、四 lane `test:ci`（540 + 178 + 81 + 7）、Bundle budget、Desktop build/stage/verify；本地浏览器实看 A2UI action 与 StreamingXMarkdown 流中→终态及明暗主题，已保存截图。真实外部 `a2ui.org` catalog 加载在首次检查失败，本项仅验证本地 catalog 的注册/渲染，未宣称外部 schema 或服务端模型请求通过。Vitest 项提交为 `cfe0a5f`。
+
+第九项兼容性结论（2026-10-02）：ESLint 10.11.0 暂不安装。registry 与已安装 metadata 核对：jsx-a11y 最新 6.10.2 peer 仅到 ESLint ^9；保留的 react-hooks 5.2.0 peer 也不接受 ^10。import-x 4.17.1、typescript-eslint 8.66.0 接受 ^10，resolver/refresh 没有同类冲突，但不足以覆盖前两项阻塞。10.11.0 还要求 Node ^22.13.0（项目当前下限为 22.12.0），需要明确调整环境合同。继续保留 9.39.5、自定义安全规则及 typed lint；未用 force/legacy-peer-deps、未删除 a11y/安全门禁，未宣称 ESLint 10 检查通过。恢复条件：hooks 整改完成、a11y 发布兼容 peer、明确 Node 基线后，独立执行全插件和自定义规则回归。Ant Design X 项提交为 `5efb51a`。
 
 ### HYG-3 规范、环境变量与进度账本漂移
 
