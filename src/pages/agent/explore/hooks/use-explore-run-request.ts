@@ -161,14 +161,16 @@ export function useExploreRunRequest({
           request.controller.signal.aborted ||
           (error instanceof Error && error.name === 'AbortError')
         const message = t(
-          stopped ? 'agent.runtime.runStopped' : 'agent.runtime.runFailed',
+          stopped
+            ? 'agent.runtime.listeningStopped'
+            : 'agent.runtime.runFailed',
         )
         updateRequest(request, (view) => ({
           ...view,
           status: stopped
             ? AgentRuntimeStatus.STOPPED
             : AgentRuntimeStatus.ERROR,
-          lastError: message,
+          lastError: stopped ? view.lastError || message : message,
           messages: view.messages.map((row) =>
             row.id === request.assistantId
               ? {

@@ -19,7 +19,8 @@ import { useStopMessage } from '../../../hooks/use-stop-message'
 import useGraphStore from '../../../store'
 import { buildBeginQueryWithObject } from '../../../utils'
 import type { BeginQuery } from '../../../types'
-import { agentAPI } from '@/api/agent'
+import { useTaskRunOwner } from '../../../hooks/use-task-run-owner'
+import { useAgentRuntimeRequest } from './use-agent-runtime-request'
 import {
   AgentRuntimeStatus,
   RuntimeWorkbenchView,
@@ -37,11 +38,8 @@ import {
   normalizeRuntimeEvent,
 } from '../utils'
 import { shouldStoreRuntimeThoughtEvent } from '../thought-chain-utils'
-import {
-  consumeRuntimeStream,
-  createLocalRuntimeMessageId,
-} from '../runtime-stream'
-import { detachRuntimeTransport, stopRuntimeRun } from '../runtime-lifecycle'
+import { createLocalRuntimeMessageId } from '../runtime-stream'
+import { stopRuntimeRun } from '../runtime-lifecycle'
 import {
   buildA2UIActionInput,
   mergeSurfaceIds,
@@ -77,6 +75,7 @@ export function useAgentRuntimeWorkbench({
     currentEventListWithoutMessageById,
     currentMessageId,
     latestTaskId,
+    setLatestTaskId,
     setCurrentMessageId,
   } = useCacheChatLog()
   const [messages, setMessages] = useState<RuntimeMessage[]>([])
@@ -88,7 +87,7 @@ export function useAgentRuntimeWorkbench({
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [viewingSessionId, setViewingSessionId] = useState<string>()
 
-  const abortControllerRef = useRef<AbortController | null>(null)
+  const owner = useTaskRunOwner(canvasId)
   const messageStateRef = useRef<
     Record<string, ReturnType<typeof consumeRuntimeMessageChunk>['nextState']>
   >({})
@@ -112,9 +111,8 @@ export function useAgentRuntimeWorkbench({
     startButNotFinishedNodeIds[startButNotFinishedNodeIds.length - 1]
 
   const clearRuntimeState = useCallback(
-    (nextSessionId = sessionId) => {
-      abortControllerRef.current?.abort()
-      abortControllerRef.current = null
+    (nextSessionId?: string | null) => {
+      owner.reset()
       messageStateRef.current = {}
       setMessages([])
       setSessionId(nextSessionId ?? null)
@@ -123,7 +121,7 @@ export function useAgentRuntimeWorkbench({
       setLastError(undefined)
       setStatus(AgentRuntimeStatus.IDLE)
     },
-    [clearEventList, sessionId, setCurrentMessageId],
+    [clearEventList, owner, setCurrentMessageId],
   )
 
   const updateMessageById = useCallback(
@@ -346,131 +344,22 @@ export function useAgentRuntimeWorkbench({
     [addEventList, setCurrentMessageId, updateMessageById],
   )
 
-  const runRequest = useCallback(
-    async ({
-      content = '',
-      files = [],
-      runtimeInputs,
-      a2ui,
-      metadata,
-      appendUserMessage,
-      userMessageContent,
-      skipSave = false,
-    }: {
-      content?: string
-      files?: RuntimeAttachment[]
-      runtimeInputs: Record<string, unknown>
-      a2ui?: Array<Record<string, unknown>>
-      metadata?: Record<string, unknown>
-      appendUserMessage: boolean
-      userMessageContent?: string
-      skipSave?: boolean
-    }) => {
-      if (!canvasId) {
-        toast.error('缺少画布 ID，无法运行当前 Agent')
-        return
-      }
-
-      if (!skipSave) {
-        setStatus(AgentRuntimeStatus.PREPARING)
-        const saved = await saveCurrentGraph()
-        if (!saved) {
-          setStatus(AgentRuntimeStatus.ERROR)
-          return
-        }
-      }
-
-      if (appendUserMessage) {
-        setMessages((previous) => [
-          ...previous,
-          {
-            id: createLocalRuntimeMessageId('user'),
-            role: 'user',
-            content: userMessageContent || content.trim(),
-            files,
-          },
-        ])
-      }
-
-      const assistantId = appendAssistantPlaceholder()
-      onViewChange(RuntimeWorkbenchView.CONVERSATION)
-      setLastRunAt(Date.now())
-      setLastError(undefined)
-      setStatus(AgentRuntimeStatus.RUNNING)
-
-      const abortController = new AbortController()
-      abortControllerRef.current = abortController
-
-      try {
-        const response = await agentAPI.runAgent(
-          {
-            id: canvasId,
-            query: content,
-            session_id: sessionId,
-            files,
-            inputs: runtimeInputs,
-            a2ui,
-            metadata,
-          },
-          {
-            signal: abortController.signal,
-          },
-        )
-
-        await consumeRuntimeStream(response, (parsedEvent) => {
-          handleNormalizedEvent(assistantId, parsedEvent)
-        })
-
-        setStatus((current) =>
-          current === AgentRuntimeStatus.ERROR
-            ? current
-            : AgentRuntimeStatus.SUCCESS,
-        )
-        updateMessageById(assistantId, (message) => ({
-          ...message,
-          isStreaming: false,
-        }))
-        void sessionsQuery.refetch()
-      } catch (error) {
-        const isAbortError =
-          error instanceof DOMException && error.name === 'AbortError'
-        const errorMessage = t(
-          isAbortError ? 'agent.runtime.runStopped' : 'agent.runtime.runFailed',
-        )
-
-        setLastError(errorMessage)
-        setStatus(
-          isAbortError ? AgentRuntimeStatus.STOPPED : AgentRuntimeStatus.ERROR,
-        )
-        updateMessageById(assistantId, (message) => ({
-          ...message,
-          content: message.content || errorMessage,
-          error: errorMessage,
-          isStreaming: false,
-        }))
-
-        if (!isAbortError) {
-          toast.error(errorMessage)
-        }
-        void sessionsQuery.refetch()
-      } finally {
-        if (abortControllerRef.current === abortController) {
-          abortControllerRef.current = null
-        }
-      }
-    },
-    [
-      appendAssistantPlaceholder,
-      canvasId,
-      handleNormalizedEvent,
-      onViewChange,
-      saveCurrentGraph,
-      sessionsQuery,
-      sessionId,
-      t,
-      updateMessageById,
-    ],
-  )
+  const runRequest = useAgentRuntimeRequest({
+    canvasId,
+    sessionId,
+    owner,
+    saveCurrentGraph,
+    appendAssistantPlaceholder,
+    handleNormalizedEvent,
+    updateMessageById,
+    setMessages,
+    setStatus,
+    setLastRunAt,
+    setLastError,
+    setLatestTaskId,
+    onViewChange,
+    refetchSessions: sessionsQuery.refetch,
+  })
 
   const handleRun = useCallback(
     async (values: BeginQuery[]) => {
@@ -575,8 +464,26 @@ export function useAgentRuntimeWorkbench({
   )
 
   const handleStop = useCallback(async () => {
-    await stopRuntimeRun(abortControllerRef.current, latestTaskId, stopMessage)
-  }, [latestTaskId, stopMessage])
+    const attempt = owner.current.current
+    if (!attempt || !attempt.active || attempt.stopRequested) return
+    attempt.stopRequested = true
+    attempt.active = false
+    setStatus(AgentRuntimeStatus.STOPPED)
+    setLastError(t('agent.runtime.listeningStopped'))
+    setMessages((previous) =>
+      previous.map((message) => ({ ...message, isStreaming: false })),
+    )
+    try {
+      await stopRuntimeRun(attempt.controller, attempt.taskId, stopMessage)
+      if (attempt.taskId && owner.owns(attempt))
+        setLastError(t('agent.runtime.cancelRequested'))
+    } catch {
+      if (!owner.owns(attempt)) return
+      const message = t('agent.runtime.cancelRequestFailed')
+      setLastError(message)
+      toast.error(message)
+    }
+  }, [owner, stopMessage, t])
 
   const handleReset = useCallback(() => {
     clearRuntimeState(sessionId)
@@ -649,10 +556,8 @@ export function useAgentRuntimeWorkbench({
   }, [onSummaryChange, summary])
 
   useEffect(() => {
-    return () => {
-      detachRuntimeTransport(abortControllerRef.current)
-    }
-  }, [])
+    clearRuntimeState()
+  }, [canvasId, clearRuntimeState])
 
   return {
     canvasId,

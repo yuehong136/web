@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { formatRelativeTime } from '@/lib/utils'
@@ -20,13 +21,15 @@ interface RuntimeHeaderProps {
   onViewChange: (view: RuntimeWorkbenchView) => void
 }
 
-const STATUS_LABEL_MAP: Record<AgentRuntimeStatus, string> = {
+const STATUS_LABEL_MAP: Record<
+  Exclude<AgentRuntimeStatus, AgentRuntimeStatus.STOPPED>,
+  string
+> = {
   [AgentRuntimeStatus.IDLE]: '待运行',
   [AgentRuntimeStatus.PREPARING]: '准备中',
   [AgentRuntimeStatus.RUNNING]: '运行中',
   [AgentRuntimeStatus.SUCCESS]: '已完成',
   [AgentRuntimeStatus.ERROR]: '失败',
-  [AgentRuntimeStatus.STOPPED]: '已停止',
 }
 
 const STATUS_VARIANT_MAP: Record<
@@ -48,22 +51,26 @@ export function RuntimeHeader({
   onReset,
   onViewChange,
 }: RuntimeHeaderProps) {
+  const { t } = useTranslation()
   const visibleSessionId = controller.viewingSessionId || summary.sessionId
   const visibleSessionName =
-    controller.viewingSessionId && controller.viewingSessionId !== summary.sessionId
+    controller.viewingSessionId &&
+    controller.viewingSessionId !== summary.sessionId
       ? '历史会话'
       : summary.sessionName || 'Live · 未命名'
 
   return (
-    <div className="border-b border-border-primary px-space-md py-space-sm">
-      <div className="flex items-start justify-between gap-space-sm">
+    <div className="border-border-primary px-space-md py-space-sm border-b">
+      <div className="gap-space-sm flex items-start justify-between">
         <div className="space-y-space-xs">
-          <div className="flex items-center gap-space-sm">
+          <div className="gap-space-sm flex items-center">
             <h2 className="text-base font-medium text-text-primary">
               Agent 运行与单步调试工作台
             </h2>
             <Badge variant={STATUS_VARIANT_MAP[summary.status]}>
-              {STATUS_LABEL_MAP[summary.status]}
+              {summary.status === AgentRuntimeStatus.STOPPED
+                ? t('agent.runtime.outputDetached')
+                : STATUS_LABEL_MAP[summary.status]}
             </Badge>
           </div>
           <p className="text-sm text-text-secondary">
@@ -85,7 +92,7 @@ export function RuntimeHeader({
           ) : null}
         </div>
 
-        <div className="flex items-center gap-space-xs">
+        <div className="gap-space-xs flex items-center">
           <Button
             type="button"
             variant="ghost"
@@ -111,7 +118,7 @@ export function RuntimeHeader({
         </div>
       </div>
 
-      <div className="mt-space-sm flex flex-wrap items-center justify-between gap-space-sm rounded-radius-md border border-border-default bg-surface-secondary px-space-sm py-space-xs">
+      <div className="mt-space-sm gap-space-sm rounded-radius-md bg-surface-secondary px-space-sm py-space-xs flex flex-wrap items-center justify-between border border-border-default">
         <div className="min-w-0">
           <p className="truncate text-xs font-medium text-text-primary">
             当前会话：{visibleSessionName}
@@ -120,7 +127,7 @@ export function RuntimeHeader({
             {visibleSessionId || '运行后由后端返回 session_id'}
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-space-xs">
+        <div className="gap-space-xs flex flex-wrap items-center">
           <Button
             type="button"
             variant="outline"
@@ -147,7 +154,7 @@ export function RuntimeHeader({
                 to={`/agent/${controller.canvasId}/explore?sessionId=${encodeURIComponent(visibleSessionId)}`}
               >
                 <ExternalLink className="size-4" />
-                在 Explore 中查看
+                {t('agent.runtime.viewInExplore')}
               </Link>
             </Button>
           ) : null}

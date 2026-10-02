@@ -5,7 +5,7 @@
  * 供 GenerateButton / TaskDock / DeleteConfirm 共享。
  */
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useLayoutEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from '@/lib/toast'
 import {
@@ -41,16 +41,58 @@ export function useGenerateState(kbId: string) {
 
   const isActionPending = isRunPending || isPausing || isUnbinding
 
+  const feedbackScope = useRef({
+    kbId,
+    generations: new Map<GenerateTaskType, object>(),
+  })
+  const mounted = useRef(true)
+  const pendingPauses = useRef(new Set<string>())
+  useLayoutEffect(() => {
+    feedbackScope.current = { kbId, generations: new Map() }
+    return () => {
+      feedbackScope.current = { kbId: '', generations: new Map() }
+    }
+  }, [kbId])
+  useLayoutEffect(() => {
+    mounted.current = true
+    return () => {
+      mounted.current = false
+    }
+  }, [])
+  const captureFeedback = useCallback(
+    (type: GenerateTaskType, newRun = false) => {
+      const scope = feedbackScope.current
+      if (newRun || !scope.generations.has(type))
+        scope.generations.set(type, {})
+      const generation = scope.generations.get(type)
+      return () =>
+        mounted.current &&
+        feedbackScope.current === scope &&
+        scope.generations.get(type) === generation
+    },
+    [],
+  )
+
+  useLayoutEffect(() => {
+    feedbackScope.current.generations.set(GenerateTaskType.GraphRAG, {})
+  }, [graph.traceData?.id])
+  useLayoutEffect(() => {
+    feedbackScope.current.generations.set(GenerateTaskType.Raptor, {})
+  }, [raptor.traceData?.id])
+
   const handleRun = useCallback(
     async (type: GenerateTaskType) => {
+      const ownsFeedback = captureFeedback(type, true)
       try {
         await runTask({ kbId, type })
+        if (!ownsFeedback()) return
         toast.success(
           t('knowledge.documents.generate.runSuccess', {
             label: t(TASK_TYPE_CONFIG[type].labelKey),
           }),
         )
       } catch {
+        if (!ownsFeedback()) return
         toast.error(
           t('knowledge.documents.generate.runError', {
             label: t(TASK_TYPE_CONFIG[type].labelKey),
@@ -58,27 +100,34 @@ export function useGenerateState(kbId: string) {
         )
       }
     },
-    [kbId, runTask, t],
+    [captureFeedback, kbId, runTask, t],
   )
 
   const handlePause = useCallback(
     async (taskId: string, type: GenerateTaskType) => {
+      if (!taskId || pendingPauses.current.has(taskId)) return
+      const ownsFeedback = captureFeedback(type)
+      pendingPauses.current.add(taskId)
       try {
         await pauseTask({ taskId, kbId, type })
+        if (!ownsFeedback()) return
         toast.success(
           t('knowledge.documents.generate.pauseSuccess', {
             label: t(TASK_TYPE_CONFIG[type].labelKey),
           }),
         )
       } catch {
+        if (!ownsFeedback()) return
         toast.error(
           t('knowledge.documents.generate.pauseError', {
             label: t(TASK_TYPE_CONFIG[type].labelKey),
           }),
         )
+      } finally {
+        pendingPauses.current.delete(taskId)
       }
     },
-    [kbId, pauseTask, t],
+    [captureFeedback, kbId, pauseTask, t],
   )
 
   const handleDeleteRequest = useCallback((type: GenerateTaskType) => {

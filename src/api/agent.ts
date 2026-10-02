@@ -1,6 +1,7 @@
 import { API_BASE_URL, STORAGE_KEYS } from '@/constants'
 import { resolveCanvasCategory } from '@/lib/agent'
 import { apiClient } from './client'
+import { requestTaskCancellation } from './agent-cancellation'
 import type {
   AgentCanvasUploadResult,
   AgentExternalInputs,
@@ -339,10 +340,10 @@ export const agentAPI = {
     ),
 
   cancelTask: async (taskId: string) =>
-    apiClient.put(`/v1/canvas/cancel/${taskId}`),
+    requestTaskCancellation(taskId, restBase),
 
   cancelDataflow: async (taskId: string) =>
-    apiClient.put(`/v1/canvas/cancel/${taskId}`),
+    requestTaskCancellation(taskId, restBase),
 
   inputForm: async (canvasId: string, componentId: string) =>
     apiClient.get<AgentInputFormSchema>(

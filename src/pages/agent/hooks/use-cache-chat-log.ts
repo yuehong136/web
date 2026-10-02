@@ -35,9 +35,7 @@ export function useCacheChatLog() {
 
   const filterEventListByMessageId = useCallback(
     (messageId: string) => {
-      return messageIdPool[messageId]?.filter(
-        (x) => x.message_id === messageId,
-      )
+      return messageIdPool[messageId]?.filter((x) => x.message_id === messageId)
     },
     [messageIdPool],
   )
@@ -60,7 +58,7 @@ export function useCacheChatLog() {
   const addEventList = useCallback((events: IEventList, message_id: string) => {
     if (!isEmpty(events)) {
       const taskId = get(events, '0.task_id')
-      setLatestTaskId(taskId || '')
+      if (taskId) setLatestTaskId(taskId)
 
       setMessageIdPool((prev) => {
         const list = [...(prev[message_id] ?? [])]
@@ -107,5 +105,6 @@ export function useCacheChatLog() {
     setCurrentMessageId,
     currentMessageId,
     latestTaskId,
+    setLatestTaskId,
   }
 }

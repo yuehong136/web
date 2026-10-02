@@ -264,6 +264,15 @@ export default {
       createSessionFailed: 'Failed to create session',
       deleteSessionFailed: 'Failed to delete session',
       cancelPipelineFailed: 'Failed to cancel Pipeline',
+      runFile: 'Run file: {{name}}',
+      unnamedDocument: 'Untitled document',
+      viewInExplore: 'View in Explore',
+      outputDetached: 'Output disconnected',
+      listeningStopped: 'Stopped receiving output for this run.',
+      cancelRequested:
+        'Cancellation requested. Waiting for the task to respond.',
+      cancelRequestFailed:
+        'Stopped receiving output. The cancellation request failed. Try again later.',
       runStopped: 'The current run was stopped',
       runFailed: 'The run failed. Try again later.',
       pipelineRunStopped: 'The current Pipeline run was stopped',

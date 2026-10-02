@@ -35,6 +35,7 @@ import type {
 import { useExploreRuntimeEvents } from './use-explore-runtime-events'
 import { useExploreRequestOwner } from './use-explore-request-owner'
 import { useExploreRunRequest } from './use-explore-run-request'
+import { toast } from '@/lib/toast'
 import { extractSessionStatus } from '../../adapters/session'
 
 function initialView(selection: ExploreSelection): ExploreSessionView {
@@ -337,7 +338,7 @@ export function useExploreSessionChat({
     const request = owner.active.current
     if (!request || !owner.owns(request)) return
     const taskId = visible.latestTaskId
-    const message = t('agent.runtime.runStopped')
+    const message = t('agent.runtime.listeningStopped')
     updateRequest(request, (previous) => ({
       ...previous,
       status: AgentRuntimeStatus.STOPPED,
@@ -351,8 +352,18 @@ export function useExploreSessionChat({
     if (taskId) {
       try {
         await cancelConversation(taskId)
+        updateRequest(request, (previous) => ({
+          ...previous,
+          lastError: t('agent.runtime.cancelRequested'),
+        }))
       } catch {
-        /* local stop owns the feedback */
+        if (!owner.owns(request)) return
+        const message = t('agent.runtime.cancelRequestFailed')
+        updateRequest(request, (previous) => ({
+          ...previous,
+          lastError: message,
+        }))
+        toast.error(message)
       }
     }
   }, [cancelConversation, owner, t, updateRequest, visible.latestTaskId])

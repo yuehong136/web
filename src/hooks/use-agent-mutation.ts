@@ -255,7 +255,7 @@ export const useDebugSingle = () => {
 
 export const useCancelConversation = () => {
   const mutation = useMutation({
-    meta: { errorFeedback: MutationErrorFeedback.Silent },
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: async (taskId: string) => agentAPI.cancelTask(taskId),
   })
 

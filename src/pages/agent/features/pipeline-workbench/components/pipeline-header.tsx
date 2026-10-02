@@ -1,11 +1,9 @@
+import { useTranslation } from 'react-i18next'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { cn, formatRelativeTime } from '@/lib/utils'
 import { RotateCcw, X } from 'lucide-react'
-import {
-  PipelineRuntimeStatus,
-  type PipelineWorkbenchSummary,
-} from '../types'
+import { PipelineRuntimeStatus, type PipelineWorkbenchSummary } from '../types'
 
 interface PipelineHeaderProps {
   summary: PipelineWorkbenchSummary
@@ -13,13 +11,15 @@ interface PipelineHeaderProps {
   onReset: () => void
 }
 
-const STATUS_LABEL_MAP: Record<PipelineRuntimeStatus, string> = {
+const STATUS_LABEL_MAP: Record<
+  Exclude<PipelineRuntimeStatus, PipelineRuntimeStatus.STOPPED>,
+  string
+> = {
   [PipelineRuntimeStatus.IDLE]: '待运行',
   [PipelineRuntimeStatus.PREPARING]: '准备中',
   [PipelineRuntimeStatus.RUNNING]: '运行中',
   [PipelineRuntimeStatus.SUCCESS]: '已完成',
   [PipelineRuntimeStatus.ERROR]: '失败',
-  [PipelineRuntimeStatus.STOPPED]: '已停止',
 }
 
 const STATUS_VARIANT_MAP: Record<
@@ -39,16 +39,19 @@ export function PipelineHeader({
   onClose,
   onReset,
 }: PipelineHeaderProps) {
+  const { t } = useTranslation()
   return (
-    <div className="border-b border-border-primary px-space-md py-space-sm">
-      <div className="flex items-start justify-between gap-space-sm">
+    <div className="border-border-primary px-space-md py-space-sm border-b">
+      <div className="gap-space-sm flex items-start justify-between">
         <div className="space-y-space-xs">
-          <div className="flex items-center gap-space-sm">
+          <div className="gap-space-sm flex items-center">
             <h2 className="text-base font-medium text-text-primary">
               Pipeline 运行与日志工作台
             </h2>
             <Badge variant={STATUS_VARIANT_MAP[summary.status]}>
-              {STATUS_LABEL_MAP[summary.status]}
+              {summary.status === PipelineRuntimeStatus.STOPPED
+                ? t('agent.runtime.outputDetached')
+                : STATUS_LABEL_MAP[summary.status]}
             </Badge>
           </div>
           <p className="text-sm text-text-secondary">
@@ -58,7 +61,13 @@ export function PipelineHeader({
           </p>
           {summary.uploadedFile ? (
             <p className="text-xs text-text-tertiary">
-              本次文件：{String(summary.uploadedFile.name || summary.uploadedFile.id || '未命名文档')}
+              {t('agent.runtime.runFile', {
+                name: String(
+                  summary.uploadedFile.name ||
+                    summary.uploadedFile.id ||
+                    t('agent.runtime.unnamedDocument'),
+                ),
+              })}
             </p>
           ) : null}
           {summary.lastError ? (
@@ -75,7 +84,7 @@ export function PipelineHeader({
           ) : null}
         </div>
 
-        <div className="flex items-center gap-space-xs">
+        <div className="gap-space-xs flex items-center">
           <Button
             type="button"
             variant="ghost"

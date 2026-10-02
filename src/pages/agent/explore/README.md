@@ -63,3 +63,7 @@ The workflow used deterministic actual components with no remote model calls, re
 Cleanup independently verified 71 SQL tables with zero rows, Redis DB 1/2 with zero keys, and the deleted user's JWT rejected with 401. Both dedicated containers and the PostgreSQL anonymous volume were removed; all four dedicated listeners closed. The temporary Web entry, credentials and scratch directory were deleted; browser local/session storage had zero keys before closing the tab.
 
 Evidence: [local acceptance report](/Users/xldu/.codex/visualizations/2026/09/27/01a0e29f-d9be-73e2-ab9b-7e11f071915c/4f-acceptance/report.md), original HTTP/SSE audit, before/after readback, verification and cleanup JSON, gate logs, and 31 screenshots reviewed through four annotated contact sheets. This acceptance covers the current Explore workflow; production deployment and complete model-driven templates were not tested.
+
+## Current Task cancellation (488)
+
+Stop now uses the current SSE `task_id` with `POST /api/v1/tasks/{id}/cancel` through the shared typed client. No current ID means local output detach only. Literal business 0 / data true displays request submission or no-op; failure is visible with fixed bilingual copy. Old cancellation replies cannot overwrite a new run or an A → B → A selection, and abort handling retains the owned feedback. See [Task cancellation contract](../features/runtime-workbench/README.md) for formal regressions, real cross-end acceptance and its worker/provider boundaries.

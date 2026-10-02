@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { SectionCard } from '@/components/patterns'
@@ -45,13 +46,15 @@ interface EditorRuntimeRailProps {
   onOpenVariables: () => void
 }
 
-const STATUS_LABEL_MAP: Record<AgentRuntimeStatus, string> = {
+const STATUS_LABEL_MAP: Record<
+  Exclude<AgentRuntimeStatus, AgentRuntimeStatus.STOPPED>,
+  string
+> = {
   [AgentRuntimeStatus.IDLE]: '待运行',
   [AgentRuntimeStatus.PREPARING]: '准备中',
   [AgentRuntimeStatus.RUNNING]: '运行中',
   [AgentRuntimeStatus.SUCCESS]: '已完成',
   [AgentRuntimeStatus.ERROR]: '失败',
-  [AgentRuntimeStatus.STOPPED]: '已停止',
 }
 
 const STATUS_VARIANT_MAP: Record<
@@ -83,6 +86,7 @@ export function EditorRuntimeRail({
   onOpenShare,
   onOpenVariables,
 }: EditorRuntimeRailProps) {
+  const { t } = useTranslation()
   const title = resolveLocalizedText(flow?.title, '未命名资产')
   const description = resolveLocalizedText(
     flow?.description,
@@ -166,12 +170,14 @@ export function EditorRuntimeRail({
               variant={STATUS_VARIANT_MAP[runtimeSummary.status]}
               className="shrink-0"
             >
-              {STATUS_LABEL_MAP[runtimeSummary.status]}
+              {runtimeSummary.status === AgentRuntimeStatus.STOPPED
+                ? t('agent.runtime.outputDetached')
+                : STATUS_LABEL_MAP[runtimeSummary.status]}
             </Badge>
           </div>
 
           {runtimeSummary.lastError ? (
-            <div className="rounded-radius-md border-border-primary bg-surface-secondary px-space-sm py-space-xs text-status-error border text-xs">
+            <div className="rounded-radius-md border-border-primary bg-surface-secondary px-space-sm py-space-xs border text-xs text-status-error">
               {runtimeSummary.lastError}
             </div>
           ) : null}
@@ -299,7 +305,7 @@ export function EditorRuntimeRail({
       <SectionCard title="最近活动" padding="default" className="min-h-0">
         <div className="space-y-space-sm text-sm">
           <div className="gap-space-sm rounded-radius-lg bg-surface-secondary p-space-sm flex items-start">
-            <Activity className="h-icon-sm w-icon-sm mt-[2px] shrink-0 text-text-accent" />
+            <Activity className="mt-[2px] h-icon-sm w-icon-sm shrink-0 text-text-accent" />
             <div className="min-w-0">
               <p className="font-medium text-text-primary">
                 {runtimeSummary.lastRunAt ? '最近运行' : '等待首次运行'}

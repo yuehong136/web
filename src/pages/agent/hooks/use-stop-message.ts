@@ -10,11 +10,7 @@ export function useStopMessage() {
         return
       }
 
-      try {
-        await cancelConversation(taskId)
-      } catch {
-        // The runtime workbench already handles the local aborted state.
-      }
+      await cancelConversation(taskId)
     },
     [cancelConversation],
   )

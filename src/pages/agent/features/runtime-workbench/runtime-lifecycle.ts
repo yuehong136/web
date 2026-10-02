@@ -23,5 +23,5 @@ export async function stopRuntimeRun(
   cancelRun: CancelRuntimeRun,
 ): Promise<void> {
   detachRuntimeTransport(transport)
-  await cancelRun(taskId)
+  if (taskId) await cancelRun(taskId)
 }

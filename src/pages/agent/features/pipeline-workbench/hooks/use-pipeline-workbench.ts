@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
@@ -12,6 +12,7 @@ import { adaptAgentTraceItems } from '../../../adapters'
 import { BeginId, Operator } from '../../../constant'
 import { useGetBeginNodeDataInputs } from '../../../hooks/use-get-begin-query'
 import { useSaveGraph } from '../../../hooks/use-save-graph'
+import { useTaskRunOwner } from '../../../hooks/use-task-run-owner'
 import useGraphStore from '../../../store'
 import type { BeginQuery } from '../../../types'
 import { buildBeginQueryWithObject } from '../../../utils'
@@ -67,7 +68,7 @@ export function usePipelineWorkbench({
   const [lastTaskId, setLastTaskId] = useState<string>()
   const [uploadedFile, setUploadedFile] =
     useState<PipelineRuntimeController['uploadedFile']>()
-  const abortControllerRef = useRef<AbortController | null>(null)
+  const owner = useTaskRunOwner(canvasId)
 
   const traceQuery = useQuery<AgentTraceItem[]>({
     queryKey: agentQueryKeys.pipelineTrace(canvasId, messageId),
@@ -99,6 +100,8 @@ export function usePipelineWorkbench({
 
     if (completed) {
       setStatus(PipelineRuntimeStatus.SUCCESS)
+      const attempt = owner.current.current
+      if (attempt) owner.finish(attempt)
       return
     }
 
@@ -106,8 +109,10 @@ export function usePipelineWorkbench({
     if (failure) {
       setLastError(failure)
       setStatus(PipelineRuntimeStatus.ERROR)
+      const attempt = owner.current.current
+      if (attempt) owner.finish(attempt)
     }
-  }, [completed, status, trace])
+  }, [completed, owner, status, trace])
 
   const resolveCanvasTitle = useMemo(
     () => resolveLocalizedText(agent?.title, '未命名资产'),
@@ -139,14 +144,13 @@ export function usePipelineWorkbench({
   }, [canvasId, resolveCanvasTitle, saveGraph])
 
   const clearPipelineState = useCallback(() => {
-    abortControllerRef.current?.abort()
-    abortControllerRef.current = null
+    owner.reset()
     setMessageId('')
     setLastTaskId(undefined)
     setLastError(undefined)
     setUploadedFile(undefined)
     setStatus(PipelineRuntimeStatus.IDLE)
-  }, [])
+  }, [owner])
 
   const handleRun = useCallback(
     async (values: BeginQuery[]) => {
@@ -173,9 +177,13 @@ export function usePipelineWorkbench({
       updateNodeForm(BeginId, nextInputs, ['inputs'])
 
       clearPipelineState()
+      const attempt = owner.begin()
+      const isActive = () =>
+        owner.owns(attempt) && !attempt.controller.signal.aborted
       setStatus(PipelineRuntimeStatus.PREPARING)
 
       const saved = await saveCurrentGraph()
+      if (!isActive()) return
       if (!saved) {
         setStatus(PipelineRuntimeStatus.ERROR)
         return
@@ -195,8 +203,7 @@ export function usePipelineWorkbench({
       setStatus(PipelineRuntimeStatus.RUNNING)
       setLastRunAt(Date.now())
 
-      const abortController = new AbortController()
-      abortControllerRef.current = abortController
+      const abortController = attempt.controller
 
       try {
         const response = await agentAPI.runAgent(
@@ -212,9 +219,16 @@ export function usePipelineWorkbench({
           },
         )
 
+        if (!isActive()) {
+          await response.body?.cancel()
+          return
+        }
         const resolvedMessageId = await resolvePipelineRunMessageId(response)
+        if (!isActive()) return
 
         if (resolvedMessageId) {
+          // Debug ingestion returns the actual enqueued Task ID as message_id.
+          attempt.taskId = resolvedMessageId
           setMessageId(resolvedMessageId)
           setLastTaskId(resolvedMessageId)
           onViewChange(PipelineWorkbenchView.LOG)
@@ -222,6 +236,8 @@ export function usePipelineWorkbench({
           throw new Error('未从 Pipeline 接口拿到 message_id')
         }
       } catch (error) {
+        if (!isActive()) return
+        owner.finish(attempt)
         const isAbort =
           error instanceof DOMException && error.name === 'AbortError'
         const errorMessage = t(
@@ -238,10 +254,6 @@ export function usePipelineWorkbench({
         if (!isAbort) {
           toast.error(errorMessage)
         }
-      } finally {
-        if (abortControllerRef.current === abortController) {
-          abortControllerRef.current = null
-        }
       }
     },
     [
@@ -250,6 +262,7 @@ export function usePipelineWorkbench({
       findNodeByName,
       getNode,
       onViewChange,
+      owner,
       saveCurrentGraph,
       t,
       updateNodeForm,
@@ -257,23 +270,24 @@ export function usePipelineWorkbench({
   )
 
   const handleCancel = useCallback(async () => {
-    abortControllerRef.current?.abort()
-    abortControllerRef.current = null
-
-    if (!messageId) {
-      setStatus(PipelineRuntimeStatus.STOPPED)
-      return
-    }
-
+    const attempt = owner.current.current
+    if (!attempt || !attempt.active || attempt.stopRequested) return
+    attempt.stopRequested = true
+    attempt.active = false
+    attempt.controller.abort()
+    setStatus(PipelineRuntimeStatus.STOPPED)
+    setLastError(t('agent.runtime.listeningStopped'))
+    if (!attempt.taskId) return
     try {
-      await cancelDataflow(messageId)
-      setStatus(PipelineRuntimeStatus.STOPPED)
+      await cancelDataflow(attempt.taskId)
+      if (owner.owns(attempt)) setLastError(t('agent.runtime.cancelRequested'))
     } catch {
-      const message = t('agent.runtime.cancelPipelineFailed')
+      if (!owner.owns(attempt)) return
+      const message = t('agent.runtime.cancelRequestFailed')
       setLastError(message)
       toast.error(message)
     }
-  }, [cancelDataflow, messageId, t])
+  }, [cancelDataflow, owner, t])
 
   const handleReset = useCallback(() => {
     clearPipelineState()
@@ -338,10 +352,8 @@ export function usePipelineWorkbench({
   }, [onSummaryChange, summary])
 
   useEffect(() => {
-    return () => {
-      abortControllerRef.current?.abort()
-    }
-  }, [])
+    clearPipelineState()
+  }, [canvasId, clearPipelineState])
 
   return {
     canvasId,
