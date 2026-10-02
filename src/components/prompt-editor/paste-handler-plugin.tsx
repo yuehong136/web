@@ -20,8 +20,11 @@ function PasteHandlerPlugin() {
   useEffect(() => {
     const removeListener = editor.registerCommand(
       PASTE_COMMAND,
-      (clipboardEvent: ClipboardEvent) => {
-        const clipboardData = clipboardEvent.clipboardData
+      (clipboardEvent) => {
+        const clipboardData =
+          'clipboardData' in clipboardEvent
+            ? clipboardEvent.clipboardData
+            : null
         if (!clipboardData) {
           return false
         }

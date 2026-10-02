@@ -692,7 +692,7 @@
 | 7    | Vitest                           | Node/CI engines、配置及四 lane 完整 inventory                                             | 已完成（4.x 补丁）     |
 | 8    | Ant Design X / antd              | peers、A2UI action 补丁、Markdown/卡片/安全渲染与实际 UI                                  | 已完成                 |
 | 9    | ESLint                           | 全插件、自定义规则、typed lint；不降低规则                                                | peer 阻塞，保留 9.39.5 |
-| 10   | Lexical 家族                     | 输入法、序列化、焦点及实际编辑器验收                                                      | 待执行                 |
+| 10   | Lexical 家族                     | 输入法、序列化、焦点及实际编辑器验收                                                      | 已完成（DOM 组合输入） |
 | 11   | react-resizable-panels           | 键盘、焦点、布局持久化及实际 UI                                                           | 待执行                 |
 
 Tailwind 4 保留待决：Firefox >=114 与 >=128 的支持边界冲突。Compiler 全局启用、框架替换、Run/取消重写、Markdown 收敛、观测/E2E 平台建设另行规划；SEC-7/8 保持暂停。
@@ -718,6 +718,10 @@ Tailwind 4 保留待决：Firefox >=114 与 >=128 的支持边界冲突。Compil
 新增真实 AgentXCardRenderer 回归核对点击 sourceComponentId、ISO timestamp、已有 `{ value: ... }` 包装的 action context，以及工具文本作为文本显示（无 img/script 节点）；使用本地注册 catalog fixture，不依赖网络。实际通过 Web build、Agent/Desktop typecheck、lint、file-size、四 lane `test:ci`（540 + 178 + 81 + 7）、Bundle budget、Desktop build/stage/verify；本地浏览器实看 A2UI action 与 StreamingXMarkdown 流中→终态及明暗主题，已保存截图。真实外部 `a2ui.org` catalog 加载在首次检查失败，本项仅验证本地 catalog 的注册/渲染，未宣称外部 schema 或服务端模型请求通过。Vitest 项提交为 `cfe0a5f`。
 
 第九项兼容性结论（2026-10-02）：ESLint 10.11.0 暂不安装。registry 与已安装 metadata 核对：jsx-a11y 最新 6.10.2 peer 仅到 ESLint ^9；保留的 react-hooks 5.2.0 peer 也不接受 ^10。import-x 4.17.1、typescript-eslint 8.66.0 接受 ^10，resolver/refresh 没有同类冲突，但不足以覆盖前两项阻塞。10.11.0 还要求 Node ^22.13.0（项目当前下限为 22.12.0），需要明确调整环境合同。继续保留 9.39.5、自定义安全规则及 typed lint；未用 force/legacy-peer-deps、未删除 a11y/安全门禁，未宣称 ESLint 10 检查通过。恢复条件：hooks 整改完成、a11y 发布兼容 peer、明确 Node 基线后，独立执行全插件和自定义规则回归。Ant Design X 项提交为 `5efb51a`。
+
+第十项验收（2026-10-02）：Lexical 及 plain-text/react/utils/rich-text 同步锁定 0.52.0；补齐生产直接导入的 rich-text 依赖，未替换编辑器或改变变量协议。按新 PASTE_COMMAND 的 ClipboardEvent/InputEvent union 做类型守卫，非剪贴板事件继续交给默认处理；将业务变量图标字段改为 variableIcon，避免与新版 MenuOption.icon 冲突。[官方发布](https://github.com/facebook/lexical/releases/tag/v0.52.0)与 peer 已核对。
+
+新增序列化往返（中文文本、变量值/标签/来源/类型）和真实 Lexical + 输入插件的 DOM compositionstart/input/compositionend、多行粘贴及 InputEvent fallback 回归。实际通过 Web build、Agent strict、lint、file-size、四 lane test:ci（541 source-node + 179 Vitest + 81 desktop + 7 tooling）、npm ls、Bundle budget（总 JS 98.9%，入口 99.6%）。本地浏览器实看 PromptEditor 中文输入、多行粘贴、Tab 失焦保留内容、外部 value 更新和明暗渲染；已保存截图。内置浏览器不支持 Input.imeSetComposition，因此组合输入由 DOM 回归验证，未实跑操作系统原生 IME 或真实后端 Agent 编辑保存。ESLint 兼容性记录提交为 `28d205d`。
 
 ### HYG-3 规范、环境变量与进度账本漂移
 

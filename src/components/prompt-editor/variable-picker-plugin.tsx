@@ -44,7 +44,7 @@ class VariableMenuOption extends MenuOption {
   label: string
   value: string
   parentLabel?: string
-  icon?: ReactNode
+  variableIcon?: ReactNode
   type?: string
   groupTitle: string
   insertMode?: 'text' | 'variable'
@@ -62,7 +62,7 @@ class VariableMenuOption extends MenuOption {
     this.label = label
     this.value = value
     this.parentLabel = parentLabel
-    this.icon = icon
+    this.variableIcon = icon
     this.type = type
     this.groupTitle = groupTitle
     this.insertMode = insertMode
@@ -311,7 +311,7 @@ export default function VariablePickerMenuPlugin({
           String(resolvedLabel),
           selectedOption.parentLabel ?? selectedOption.groupTitle,
           selectedOption.type,
-          selectedOption.icon,
+          selectedOption.variableIcon,
         )
 
         // Prefer nodeToRemove.replace because it works even when the
