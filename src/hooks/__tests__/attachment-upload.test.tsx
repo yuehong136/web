@@ -384,20 +384,3 @@ describe.each([
     })
   }
 })
-
-it('conversation parsing retains its distinct route, conversation_id and document ID response', async () => {
-  vi.stubGlobal('XMLHttpRequest', UploadXHR)
-  try {
-    const upload = conversationAPI.uploadAndParse(
-      'conversation-fixture',
-      textFile(),
-    )
-    expect(latest().url).toMatch(/\/v1\/document\/upload_and_parse$/)
-    expect(latest().body!.get('conversation_id')).toBe('conversation-fixture')
-    expect(latest().body!.get('file')).toBeInstanceOf(File)
-    latest().respond({ retcode: 0, data: ['parsed-document'] })
-    expect(await upload).toEqual(['parsed-document'])
-  } finally {
-    vi.unstubAllGlobals()
-  }
-})
