@@ -27,6 +27,8 @@ UI 变更检查明暗主题、键盘交互及受影响流程。新增或改变 s
 
 ## Toolchain
 
+- `tsc` 使用 TypeScript 7 原生编译器；`typescript` npm alias 保留官方 TS 6 Compiler API 给 ESLint 等消费者，`tsc6` 可用于兼容性诊断。具体 alias/版本以 package/lock 为准。不要把 Compiler API 消费者改成导入 native 包，也不要因它们的 peer 需求恢复旧版构建编译器。
+
 - 测试使用 `tsx --test` / Node test / Vitest；不引入 Jest，不顺手迁移存量 runner。测试放对应 `__tests__/`；API 合同在 `src/api/__tests__/`。
 - 新增测试必须被 `verify:test-inventory` 归到唯一正式 lane 并进入 `test:ci`；仅加进专项脚本不够。lane 为 `source-node`、`source-vitest`、`desktop-node`、`tooling-node`。
 - `patch-package` 在 postinstall 执行，补丁失效要修补丁，不能通过删除补丁绕过。

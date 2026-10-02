@@ -75,3 +75,7 @@ TS 7.0 没有旧 JavaScript Compiler API，不能仅把当前 `typescript` 依�
 - `npm run check:bundle-size` 通过：总 JS 25.73/26.13 MB、入口 gzip 120/120 KB（精确占比 99.6%）、最大 chunk gzip 725/739 KB。
 - `npm run lint:typed` 退出成功：0 errors、84 warnings；未扩大为警告清理。8 份文档的 41 个本地链接/锚点、31 个 npm 脚本引用、Prettier 与 diff 检查通过；22 个原有非本任务文件的哈希保持不变。
 - 本次变更为指令文档与等价路径别名配置；未改变产品运行行为，未新增浏览器验收或全业务测试。不宣称 Desktop 打包或生产验收通过。
+
+## 后续实施记录 · 2026-10-02
+
+以上依赖表和验证边界保留评估当时事实。基础改动已提交 `ad052e0`；后续第一项正式迁移了 TS 7 原生编译器 + 官方 TS 6 API alias，并在各自主版本内升级 i18next/react-i18next 以满足 TS 6 peer。Web project references、Agent/Desktop 类型检查、ESLint、四 lane 完整测试、独立干净安装与 Desktop staging 已实跑通过；完整结果和有序升级队列统一记录于[HYG-2](../engineering-modernization-roadmap.md#hyg-2-仓库杂物与依赖治理)。未核验编辑器语言服务、Linux CI/Windows 安装包，未测编译性能收益。
