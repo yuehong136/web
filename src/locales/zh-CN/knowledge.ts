@@ -563,11 +563,11 @@ export default {
         documentEnabled: '文档已启用',
         documentDisabled: '文档已禁用',
         bulkEnablePartial:
-          '批量启用完成: 成功 {{successCount}} 个，失败 {{errorCount}} 个',
+          '启用结果：已确认 {{successCount}} 个，失败或未确认 {{errorCount}} 个，请刷新后重试',
         bulkEnableSuccess: '成功启用 {{count}} 个文档',
         bulkEnableError: '批量启用失败，请重试',
         bulkDisablePartial:
-          '批量禁用完成: 成功 {{successCount}} 个，失败 {{errorCount}} 个',
+          '禁用结果：已确认 {{successCount}} 个，失败或未确认 {{errorCount}} 个，请刷新后重试',
         bulkDisableSuccess: '成功禁用 {{count}} 个文档',
         bulkDisableError: '批量禁用失败，请重试',
         renameSuccess: '文档已重命名',

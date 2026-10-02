@@ -1,3 +1,4 @@
+import { changeDatasetDocumentStatus } from './knowledge-document-status'
 import type {
   Document,
   DocumentChunk,
@@ -230,16 +231,7 @@ export const knowledgeDocumentAPI = {
     errors?: unknown[]
   }> => apiClient.post('/v1/document/batch', { operation, ...data }),
 
-  changeStatus: (params: {
-    doc_ids: string[] | string
-    status: number
-    doc_id?: string
-  }): Promise<{
-    [docId: string]: {
-      status?: string
-      error?: string
-    }
-  }> => apiClient.post('/v1/document/change_status', params),
+  changeStatus: changeDatasetDocumentStatus,
 
   updateStatus: (docIds: string[], status: '0' | '1'): Promise<void> =>
     apiClient.post('/v1/document/status', { doc_ids: docIds, status }),

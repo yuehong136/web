@@ -591,11 +591,11 @@ export default {
         documentEnabled: 'Document enabled.',
         documentDisabled: 'Document disabled.',
         bulkEnablePartial:
-          'Bulk enable finished: {{successCount}} succeeded, {{errorCount}} failed.',
+          'Enable result: {{successCount}} confirmed, {{errorCount}} failed or unconfirmed. Refresh and retry.',
         bulkEnableSuccess: 'Enabled {{count}} documents.',
         bulkEnableError: 'Failed to enable documents. Try again.',
         bulkDisablePartial:
-          'Bulk disable finished: {{successCount}} succeeded, {{errorCount}} failed.',
+          'Disable result: {{successCount}} confirmed, {{errorCount}} failed or unconfirmed. Refresh and retry.',
         bulkDisableSuccess: 'Disabled {{count}} documents.',
         bulkDisableError: 'Failed to disable documents. Try again.',
         renameSuccess: 'Document renamed.',

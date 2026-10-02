@@ -6,6 +6,10 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useParams } from 'react-router-dom'
+import {
+  captureDocumentStatusRequest,
+  type DocumentStatusRequest,
+} from '@/api/knowledge-document-status'
 import { knowledgeAPI } from '@/api/knowledge'
 import { knowledgeKeys } from './use-knowledge-request'
 import { MutationErrorFeedback } from '@/lib/mutation-error-feedback'
@@ -15,6 +19,9 @@ import type { DocumentFilter } from '@/types/api'
 export const documentKeys = {
   all: ['documents'] as const,
   lists: () => [...documentKeys.all, 'list'] as const,
+  datasetLists: (id: string) => [...documentKeys.lists(), id] as const,
+  documentChunks: (id: string) => [...documentKeys.all, 'chunks', id] as const,
+  documentChunkList: (id: string) => ['documentChunks', id] as const,
   list: (knowledgeBaseId: string, params: Record<string, any>) =>
     [...documentKeys.lists(), knowledgeBaseId, params] as const,
   details: () => [...documentKeys.all, 'detail'] as const,
@@ -390,26 +397,47 @@ export const useRunDocument = (datasetId: string) => {
   }
 }
 
-// 更改文档启用状态
+// 更改文档启用状态；partial 也可能已写入，始终对原请求的数据集对账。
 export const useChangeDocumentStatus = () => {
   const queryClient = useQueryClient()
-
   const { mutateAsync, isPending, isError, error } = useMutation({
     meta: { errorFeedback: MutationErrorFeedback.Local },
-    mutationFn: async (params: { docIds: string[]; status: 0 | 1 }) => {
-      const result = await knowledgeAPI.document.changeStatus({
-        doc_ids: params.docIds,
-        status: params.status,
-      })
-      return result
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: documentKeys.lists() })
+    mutationFn: (request: DocumentStatusRequest) =>
+      knowledgeAPI.document.changeStatus(request.datasetId, {
+        doc_ids: request.docIds,
+        status: request.status,
+      }),
+    onSettled: async (_data, _error, request) => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: documentKeys.datasetLists(request.datasetId),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: documentKeys.filter(request.datasetId),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: knowledgeKeys.detail(request.datasetId),
+        }),
+        ...request.docIds
+          .flatMap((id) => [
+            documentKeys.detail(id),
+            documentKeys.standaloneDetail(id),
+            documentKeys.documentChunks(id),
+            documentKeys.documentChunkList(id),
+          ])
+          .map((queryKey) => queryClient.invalidateQueries({ queryKey })),
+      ])
     },
   })
-
   return {
-    changeStatus: mutateAsync,
+    changeStatus: (request: DocumentStatusRequest) =>
+      mutateAsync(
+        captureDocumentStatusRequest(
+          request.datasetId,
+          request.docIds,
+          request.status,
+        ),
+      ),
     isLoading: isPending,
     isError,
     error,

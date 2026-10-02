@@ -134,6 +134,14 @@ export function useDocumentListState(): DocumentListState {
     [documents],
   )
 
+  const removeSelectedDocs = useCallback((ids: string[]) => {
+    setSelectedDocs((previous) => {
+      const next = new Set(previous)
+      ids.forEach((id) => next.delete(id))
+      return next
+    })
+  }, [])
+
   const clearSelection = useCallback(() => {
     setSelectedDocs(new Set())
   }, [])
@@ -185,6 +193,7 @@ export function useDocumentListState(): DocumentListState {
     selectDoc,
     selectAll,
     clearSelection,
+    removeSelectedDocs,
     clearAllFilters,
     refreshFilterOptions,
     refetch,

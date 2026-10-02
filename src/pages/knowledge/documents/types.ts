@@ -76,6 +76,7 @@ export interface DocumentListState {
   selectDoc: (docId: string, checked: boolean) => void
   selectAll: (checked: boolean) => void
   clearSelection: () => void
+  removeSelectedDocs: (ids: string[]) => void
 
   // 筛选操作
   clearAllFilters: () => void

@@ -20,16 +20,25 @@ import {
 import { useDocumentTableColumns } from './document-table-columns'
 
 export function KnowledgeDocumentsPage() {
+  const { id } = useParams<{ id: string }>()
+  return <DocumentsPage key={id} />
+}
+
+function DocumentsPage() {
   const { id: kbId } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { knowledgeBase: currentKnowledgeBase } = useFetchKnowledgeDetail(kbId)
   const listState = useDocumentListState()
   const filterCollections = useFilterCollections(listState.filterOptions)
   const filterGroup = useFilterGroup()
-  const actions = useDocumentActions(() => {
-    listState.clearSelection()
-    listState.refetch()
-  }, kbId)
+  const actions = useDocumentActions(
+    () => {
+      listState.clearSelection()
+      listState.refetch()
+    },
+    kbId,
+    listState.removeSelectedDocs,
+  )
   const logModal = useDocumentLogModal(listState.documents)
   const generate = useGenerateState(kbId || '')
   const pageModals = useDocumentPageModals({

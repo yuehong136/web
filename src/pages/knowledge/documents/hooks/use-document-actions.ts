@@ -1,7 +1,6 @@
 import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
-  useChangeDocumentStatus,
   useDeleteDocument,
   useDownloadDocument,
   useRenameDocument,
@@ -9,27 +8,16 @@ import {
 } from '@/hooks/use-document-request'
 import { toast } from '@/lib/toast'
 import type { Document } from '@/types/api'
+import { useDocumentStatusActions } from './use-document-status-actions'
 
-const getMutationCounts = (result: Record<string, { error?: string }>) => {
-  let successCount = 0
-  let errorCount = 0
-
-  Object.values(result).forEach((res) => {
-    if (res.error) {
-      errorCount += 1
-    } else {
-      successCount += 1
-    }
-  })
-
-  return { successCount, errorCount }
-}
-
-export function useDocumentActions(onSuccess?: () => void, datasetId?: string) {
+export function useDocumentActions(
+  onSuccess?: () => void,
+  datasetId?: string,
+  onBulkStatus?: (succeededIds: string[]) => void,
+) {
   const { t } = useTranslation()
   const { runDocument, isLoading: isRunning } = useRunDocument(datasetId ?? '')
-  const { changeStatus, isLoading: isChangingStatus } =
-    useChangeDocumentStatus()
+  const statusActions = useDocumentStatusActions(datasetId, onBulkStatus)
   const { renameDocument, isLoading: isRenaming } = useRenameDocument()
   // TODO(2026-08-01): datasetId 可选是兼容期设计（见 api/knowledge-rest.ts），
   // 后端全部升级后收紧为必填。
@@ -68,88 +56,6 @@ export function useDocumentActions(onSuccess?: () => void, datasetId?: string) {
       }
     },
     [runDocument, onSuccess, t],
-  )
-
-  const handleToggleStatus = useCallback(
-    async (doc: Document) => {
-      const newStatus = doc.status === '1' ? 0 : 1
-      try {
-        const result = await changeStatus({
-          docIds: [doc.id],
-          status: newStatus as 0 | 1,
-        })
-        const docResult = result[doc.id]
-        if (docResult?.error) {
-          toast.error(t('knowledge.documents.toasts.statusToggleError'))
-          return
-        }
-        toast.success(
-          t(
-            newStatus === 1
-              ? 'knowledge.documents.toasts.documentEnabled'
-              : 'knowledge.documents.toasts.documentDisabled',
-          ),
-        )
-        onSuccess?.()
-      } catch {
-        toast.error(t('knowledge.documents.toasts.statusToggleError'))
-      }
-    },
-    [changeStatus, onSuccess, t],
-  )
-
-  const handleBulkEnable = useCallback(
-    async (docIds: string[]) => {
-      try {
-        const result = await changeStatus({ docIds, status: 1 })
-        const { successCount, errorCount } = getMutationCounts(result)
-        if (errorCount > 0) {
-          toast.warning(
-            t('knowledge.documents.toasts.bulkEnablePartial', {
-              successCount,
-              errorCount,
-            }),
-          )
-        } else {
-          toast.success(
-            t('knowledge.documents.toasts.bulkEnableSuccess', {
-              count: successCount,
-            }),
-          )
-        }
-        onSuccess?.()
-      } catch {
-        toast.error(t('knowledge.documents.toasts.bulkEnableError'))
-      }
-    },
-    [changeStatus, onSuccess, t],
-  )
-
-  const handleBulkDisable = useCallback(
-    async (docIds: string[]) => {
-      try {
-        const result = await changeStatus({ docIds, status: 0 })
-        const { successCount, errorCount } = getMutationCounts(result)
-        if (errorCount > 0) {
-          toast.warning(
-            t('knowledge.documents.toasts.bulkDisablePartial', {
-              successCount,
-              errorCount,
-            }),
-          )
-        } else {
-          toast.success(
-            t('knowledge.documents.toasts.bulkDisableSuccess', {
-              count: successCount,
-            }),
-          )
-        }
-        onSuccess?.()
-      } catch {
-        toast.error(t('knowledge.documents.toasts.bulkDisableError'))
-      }
-    },
-    [changeStatus, onSuccess, t],
   )
 
   const handleRename = useCallback(
@@ -194,16 +100,13 @@ export function useDocumentActions(onSuccess?: () => void, datasetId?: string) {
   )
 
   return {
+    ...statusActions,
     handleStartParse,
     handleStopParse,
-    handleToggleStatus,
     handleRename,
     handleDownload,
     handleDelete,
-    handleBulkEnable,
-    handleBulkDisable,
     isRunning,
-    isChangingStatus,
     isRenaming,
     isDeleting,
     isDownloading,
