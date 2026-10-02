@@ -83,16 +83,16 @@ export const MCPBatchPage: React.FC = () => {
 
     try {
       setOperating(true)
-
       let mcpServers
       try {
         mcpServers = JSON.parse(importData)
       } catch (e) {
-        throw new Error('导入数据格式错误，请确保是有效的JSON格式')
+        throw new Error('导入数据格式错误，请确保是有效的JSON格式', {
+          cause: e,
+        })
       }
 
       const result = await mcpAPI.import({ mcpServers })
-
       const operation: BatchOperation = {
         type: 'import',
         data: { serversCount: Object.keys(mcpServers).length },

@@ -44,7 +44,9 @@ async function assertDirectory(directoryPath, label) {
     stats = await fs.lstat(directoryPath)
   } catch (error) {
     if (error?.code === 'ENOENT') {
-      throw new Error(`${label} does not exist: ${directoryPath}`)
+      throw new Error(`${label} does not exist: ${directoryPath}`, {
+        cause: error,
+      })
     }
     throw error
   }
@@ -60,7 +62,7 @@ async function assertRegularFile(filePath, label) {
     stats = await fs.lstat(filePath)
   } catch (error) {
     if (error?.code === 'ENOENT') {
-      throw new Error(`${label} does not exist: ${filePath}`)
+      throw new Error(`${label} does not exist: ${filePath}`, { cause: error })
     }
     throw error
   }

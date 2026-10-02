@@ -189,7 +189,7 @@ const DataInput: React.FC<DataInputProps> = ({
       setSettingsOpen(true)
       return
     }
-    let baseData: PlaceholderData = formData
+    let baseData: PlaceholderData
     try {
       baseData = JSON.parse(jsonInput)
     } catch {

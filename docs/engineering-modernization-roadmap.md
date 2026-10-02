@@ -799,3 +799,11 @@ hooks 7 最新全量试跑为 151 errors / 93 files：set-state-in-effect 87、r
 | HYG-1  | LICENSE、CHANGELOG、版本 tag 流程完成                                                                        |
 
 2026-10-02 渠道补充整改（ARCH-6 / CHN-P7）：编辑抽屉的最新服务端快照在 layout commit 后更新 ref，保留 channel ID 与 dirty guard，避免并发 render 尚未提交的数据进入重置逻辑。现有渠道 API/密钥表单合同与完整 test:ci（543 + 210 + 81 + 7）通过；Web build 与 Hooks 7 lint 通过，未修改端点或生产渠道。
+
+2026-10-02 HYG-2 正式 Hooks 7 升级（`e275a2d`）：全量新版 Hooks 诊断清零，切换到 7.1.1 的 flat recommended-latest；未降级规则，未开启全局 React Compiler。处理 committed refs、预览请求与 URL 释放、Query 归属、表单和搜索状态重置、Agent canvas 切换、分享任务一次性启动，以及 API 文档和 Token 查询。拆分 share startup、运行 summary、搜索样式和 MCP 展示块，体积基线只收紧。可选注册路由按需加载，Bundle 保持原预算。
+
+新增十四项正式回归，完整 test:ci 为 543 Node + 210 Vitest（46 文件）+ 81 Desktop + 7 tooling = 841，全部通过。Web build、全量 lint（0 errors / 1497 warnings）、typed lint（0 / 84）、Agent strict、file-size、Bundle budget、独立普通 npm ci 及 npm ls 通过。浏览器实看 MCP 编辑切换新建时清空草稿、搜索预填与模式切换、明暗渲染；未执行连接测试、保存或语音权限操作。原有取消及会话 A/B/A 归属回归继续通过。截图为 `/tmp/web-hooks7-{mcp,search}-{light,dark}.png`。ESLint 10 与 Tailwind 4 作为后续独立单元继续推进。
+
+2026-10-02 HYG-2 正式 ESLint 10 升级：切换 ESLint 10.11.0、@eslint/js 10.0.1 与 react-refresh 0.5.7；修复新版发现的两处无用赋值和五处丢失原始错误的包装，没有关闭规则。jsx-a11y 官方 6.10.2 尚未声明 ESLint 10 peer，采用可复现的本地 `6.10.2-web.1` 包，仅扩展 package 元数据；固定官方 tarball SHA-512，逐文件证明其余 228 个文件和许可证未修改。来源、重建及退出条件见 [vendor/README.md](../vendor/README.md)。三个正式 tooling 回归验证全部 a11y 规则可运行、实际违规仍产生诊断、实现与许可证完整性。
+
+完整 test:ci 为 543 + 210 + 81 + 10 = 844，全部通过；全量 lint（0 errors / 1497 warnings）、typed lint（0 / 84）、Agent strict、Desktop lint/typecheck、Web build、file-size、原 Bundle budget、Desktop build/stage/verify（1065 文件）通过。独立普通 npm ci 与 npm ls 无 peer 冲突，不使用 force/legacy-peer-deps。安全规则继续进入正式测试。官方 a11y 兼容发行版发布后应移除本地包；Tailwind 4 仍为下一独立单元。

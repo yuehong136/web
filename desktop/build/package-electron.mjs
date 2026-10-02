@@ -67,7 +67,9 @@ async function assertStagedApplication(projectDirectory) {
       stats = await fs.lstat(absolutePath)
     } catch (error) {
       if (error?.code === 'ENOENT') {
-        throw new Error(`staged application is incomplete: ${relativePath}`)
+        throw new Error(`staged application is incomplete: ${relativePath}`, {
+          cause: error,
+        })
       }
       throw error
     }

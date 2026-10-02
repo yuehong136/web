@@ -137,7 +137,7 @@ export const TemplatesPage = ({ onBack }: TemplatesPageProps) => {
 
   // 根据分类和搜索过滤模版 - 照抄RAGFlow逻辑
   const filteredTemplates = useMemo(() => {
-    let result = templates
+    let result: typeof templates
 
     // 按分类过滤 - RAGFlow的逻辑
     if (

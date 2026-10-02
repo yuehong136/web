@@ -12,7 +12,9 @@ async function assertRegularInput(buildName, inputPath) {
     stats = await fs.lstat(inputPath)
   } catch (error) {
     if (error?.code === 'ENOENT') {
-      throw new Error(`${buildName} input does not exist: ${inputPath}`)
+      throw new Error(`${buildName} input does not exist: ${inputPath}`, {
+        cause: error,
+      })
     }
     throw error
   }
