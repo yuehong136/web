@@ -731,6 +731,8 @@ Tailwind 4 保留待决：Firefox >=114 与 >=128 的支持边界冲突。Compil
 
 新增存储迁移/新格式读写/无效记录回归；Desktop 既有 rehydrate 回归迁移至新 DOM，并覆盖键盘调整、焦点、宽度持久化及工作区不重挂载。实际通过 Web build、Agent/Desktop typecheck、lint（0 errors、1494 warnings）、file-size、四 lane test:ci（543 + 179 + 81 + 7）、npm ls、Bundle budget（总 JS 98.9%，入口 99.5%）、Desktop build/stage/verify。浏览器使用真实共享三栏模板和 DesktopWorkbench fixture，实看旧布局 28/44/28 恢复、键盘及拖拽调整、刷新保存、4% 折叠和 20% 展开、Desktop 折叠恢复/键盘宽度与明暗主题。保存明暗截图；未验证真实后端页面加载/保存、Electron 窗口或 Windows 安装包。最终 lock 在独立临时目录使用 npm 11.9.0 正常 npm ci，x-card 2.9.0 postinstall 补丁成功，npm ls 无 peer 错误，TS native bin 与 Compiler API 6.0.3 再次读回。Lexical 项提交为 `c520f8a`。
 
+整改 A 补记：提交 `700ab39` 的格式化钩子把图表展开至 678 行，提交后 file-size 复查因此失败。随即拆出 `task-executor-chart-parts.tsx`，编排 387 行、子组件 301 行；格式化后重新通过 file-size、局部 lint、两项组件身份回归及 Web build。保留原提交历史，以独立修复提交收口，不放宽基线。
+
 ### HYG-3 规范、环境变量与进度账本漂移
 
 - **状态**：部分完成
