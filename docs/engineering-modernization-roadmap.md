@@ -741,6 +741,8 @@ hooks 7 最新全量试跑为 151 errors / 93 files：set-state-in-effect 87、r
 
 最终源码收口检查通过：Web build、lint（0 errors / 1493 warnings）、lint:typed（0 errors / 84 warnings）、Agent/Desktop typecheck、file-size、四 lane test:ci（543 source-node + 185 Vitest + 81 desktop + 7 tooling，共 816 项）、npm ls、Bundle budget（总 JS 98.9%、入口 gzip 99.5%）、Desktop build → stage → verify（1062 文件）。package/lock 与分栏项已验证的独立正常 npm ci 合同一致；x-card 补丁仍生效。源码与本地 fixture 已验，不等同于 Linux CI、Windows/Electron 安装、操作系统原生 IME、后端生产请求或生产发布验收；本队列没有 push 或部署。
 
+后续整改 C1（2026-10-02，ARCH-6 / CHN-O13）：渠道连接测试冷却状态由 mutation 的 onSettled 和到期 timer 更新，消除 render 的 Date.now。请求体、服务端限流与成功/失败反馈不变。新增真实 Query + React DOM 回归覆盖成功和失败后的十秒禁用及精确到期；两项回归通过。整体 Web build、完整 test:ci、Agent strict、Bundle budget 和 file-size 通过；Hooks 7 仅用于本地整改检查，尚未完成全量切换。
+
 ### HYG-3 规范、环境变量与进度账本漂移
 
 - **状态**：部分完成

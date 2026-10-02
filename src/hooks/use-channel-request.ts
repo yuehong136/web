@@ -127,20 +127,23 @@ export const CHANNEL_VERIFY_COOLDOWN_MS = 10 * 1000
  */
 export const useVerifyChannel = () => {
   const [cooldownUntil, setCooldownUntil] = useState(0)
-  const [, forceTick] = useState(0)
+  const [coolingDown, setCoolingDown] = useState(false)
 
   const mutation = useMutation({
     meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: channelAPI.verify,
-    onSettled: () => setCooldownUntil(Date.now() + CHANNEL_VERIFY_COOLDOWN_MS),
+    onSettled: () => {
+      setCoolingDown(true)
+      setCooldownUntil(Date.now() + CHANNEL_VERIFY_COOLDOWN_MS)
+    },
   })
 
   // Re-render once when the cooldown lapses; without this the button stays
   // disabled until some unrelated render happens to come along.
   useEffect(() => {
-    if (cooldownUntil <= Date.now()) return
+    if (!cooldownUntil) return
     const timer = setTimeout(
-      () => forceTick((tick) => tick + 1),
+      () => setCoolingDown(false),
       cooldownUntil - Date.now(),
     )
     return () => clearTimeout(timer)
@@ -148,7 +151,7 @@ export const useVerifyChannel = () => {
 
   return {
     ...mutation,
-    coolingDown: cooldownUntil > Date.now(),
+    coolingDown,
   }
 }
 
