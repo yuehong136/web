@@ -60,7 +60,9 @@ it('refreshes document lists after a partially executed batch rejects', async ()
       hook.current().runDocument({ docIds: ['valid', 'missing'], run: 1 }),
     ).rejects.toBe(failure)
   })
-  expect(invalidate).toHaveBeenCalledWith({ queryKey: documentKeys.lists() })
+  expect(invalidate).toHaveBeenCalledWith({
+    queryKey: documentKeys.datasetLists('kb'),
+  })
 })
 
 it('pause only cancels; explicit delete clears the selected index', async () => {

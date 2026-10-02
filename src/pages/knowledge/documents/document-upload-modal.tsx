@@ -15,6 +15,11 @@ import { toast } from '@/lib/toast'
 const DOCUMENT_UPLOAD_MAX_SIZE = 1024 * 1024 * 1024
 const DOCUMENT_UPLOAD_MAX_FILE_COUNT = 32
 
+// Keep the native File intact; spreading it loses its prototype-backed fields.
+type DocumentUploadEntry = Pick<UploadFile, 'status' | 'progress' | 'error'> & {
+  file: UploadFile
+}
+
 interface DocumentUploadModalProps {
   open: boolean
   onClose: () => void
@@ -29,7 +34,7 @@ export function DocumentUploadModal({
   onSuccess,
 }: DocumentUploadModalProps) {
   const { t } = useTranslation()
-  const [uploadFiles, setUploadFiles] = useState<UploadFile[]>([])
+  const [uploadFiles, setUploadFiles] = useState<DocumentUploadEntry[]>([])
   const [uploading, setUploading] = useState(false)
   const [parseOnUpload, setParseOnUpload] = useState(true)
   const uploadTexts: Partial<FileUploaderTexts> = {
@@ -71,7 +76,14 @@ export function DocumentUploadModal({
   }
 
   const handleUploadFilesChange = useCallback((files: UploadFile[]) => {
-    setUploadFiles(files)
+    setUploadFiles(
+      files.map((file) => ({
+        file,
+        status: file.status,
+        progress: file.progress,
+        error: file.error,
+      })),
+    )
   }, [])
 
   const handleFilesRejected = useCallback(
@@ -124,7 +136,7 @@ export function DocumentUploadModal({
 
       const uploadedDocs = await knowledgeAPI.document.upload(
         kbId,
-        filesToUpload,
+        filesToUpload.map(({ file }) => file),
       )
 
       if (uploadedDocs && uploadedDocs.length > 0) {
@@ -151,8 +163,7 @@ export function DocumentUploadModal({
                 count: docIds.length,
               }),
             )
-          } catch (parseError) {
-            console.error('Auto parse failed:', parseError)
+          } catch {
             toast.error(t('knowledge.documents.upload.autoParseError'))
           }
         }
@@ -279,7 +290,9 @@ export function DocumentUploadModal({
     >
       <div className="space-y-6">
         <FileUploader
-          value={uploadFiles}
+          value={uploadFiles.map(({ file, ...feedback }) =>
+            Object.assign(file, feedback),
+          )}
           onValueChange={handleUploadFilesChange}
           onFilesRejected={handleFilesRejected}
           onRetry={handleRetryUpload}
@@ -293,7 +306,7 @@ export function DocumentUploadModal({
           texts={uploadTexts}
         />
 
-        <div className="rounded-radius-lg bg-surface-secondary flex items-center justify-between px-4 py-3">
+        <div className="bg-surface-secondary flex items-center justify-between rounded-radius-lg px-4 py-3">
           <div className="flex flex-col">
             <span className="text-sm font-medium text-text-primary">
               {t('knowledge.documents.upload.parseOnUpload')}

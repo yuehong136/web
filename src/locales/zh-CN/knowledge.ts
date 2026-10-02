@@ -554,9 +554,13 @@ export default {
         yesterdayAt: '昨天 {{time}}',
       },
       toasts: {
-        parseStarted: '已开始解析 {{count}} 个文档',
-        parseStartError: '开始解析失败，请重试',
-        parseStopped: '已停止 {{count}} 个文档的解析',
+        parseStarted: '已确认提交 {{count}} 个文档的解析请求',
+        parseStartError: '解析请求未确认，请刷新后重试',
+        parsePartial:
+          '解析提交结果：已确认 {{successCount}} 个，失败或未确认 {{errorCount}} 个，请刷新后重试',
+        stopPartial:
+          '取消提交结果：已确认 {{successCount}} 个，失败或未确认 {{errorCount}} 个，请刷新后重试',
+        parseStopped: '已确认提交 {{count}} 个文档的取消请求',
         parseStopError: '停止任务失败',
         statusToggleDetailError: '状态切换失败: {{error}}',
         statusToggleError: '状态切换失败，请重试',

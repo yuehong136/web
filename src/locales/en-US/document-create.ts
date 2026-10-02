@@ -26,7 +26,7 @@ export default {
     createFailed:
       'Could not create the document. Check the input and try again.',
     parseFailed:
-      'Document created, but parsing could not start. Start it from the document list.',
-    parseStarted: 'Document parsing started.',
+      'Document created, but parsing was not confirmed. Refresh the document list and retry.',
+    parseStarted: 'Document parsing request confirmed.',
   },
 }

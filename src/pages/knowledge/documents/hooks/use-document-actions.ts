@@ -4,11 +4,11 @@ import {
   useDeleteDocument,
   useDownloadDocument,
   useRenameDocument,
-  useRunDocument,
 } from '@/hooks/use-document-request'
 import { toast } from '@/lib/toast'
 import type { Document } from '@/types/api'
 import { useDocumentStatusActions } from './use-document-status-actions'
+import { useDocumentIngestActions } from './use-document-ingest-actions'
 
 export function useDocumentActions(
   onSuccess?: () => void,
@@ -16,47 +16,13 @@ export function useDocumentActions(
   onBulkStatus?: (succeededIds: string[]) => void,
 ) {
   const { t } = useTranslation()
-  const { runDocument, isLoading: isRunning } = useRunDocument(datasetId ?? '')
+  const ingestActions = useDocumentIngestActions(datasetId, onBulkStatus)
   const statusActions = useDocumentStatusActions(datasetId, onBulkStatus)
   const { renameDocument, isLoading: isRenaming } = useRenameDocument()
   // TODO(2026-08-01): datasetId 可选是兼容期设计（见 api/knowledge-rest.ts），
   // 后端全部升级后收紧为必填。
   const { deleteDocument, isLoading: isDeleting } = useDeleteDocument(datasetId)
   const { downloadDocument, isLoading: isDownloading } = useDownloadDocument()
-
-  const handleStartParse = useCallback(
-    async (docIds: string[], deleteHistory = false) => {
-      try {
-        await runDocument({ docIds, run: 1, deleteHistory })
-        toast.success(
-          t('knowledge.documents.toasts.parseStarted', {
-            count: docIds.length,
-          }),
-        )
-        onSuccess?.()
-      } catch {
-        toast.error(t('knowledge.documents.toasts.parseStartError'))
-      }
-    },
-    [runDocument, onSuccess, t],
-  )
-
-  const handleStopParse = useCallback(
-    async (docIds: string[]) => {
-      try {
-        await runDocument({ docIds, run: 2 })
-        toast.success(
-          t('knowledge.documents.toasts.parseStopped', {
-            count: docIds.length,
-          }),
-        )
-        onSuccess?.()
-      } catch {
-        toast.error(t('knowledge.documents.toasts.parseStopError'))
-      }
-    },
-    [runDocument, onSuccess, t],
-  )
 
   const handleRename = useCallback(
     async (docId: string, newName: string) => {
@@ -101,12 +67,10 @@ export function useDocumentActions(
 
   return {
     ...statusActions,
-    handleStartParse,
-    handleStopParse,
+    ...ingestActions,
     handleRename,
     handleDownload,
     handleDelete,
-    isRunning,
     isRenaming,
     isDeleting,
     isDownloading,

@@ -2,6 +2,7 @@ import type { APIResponse } from '@/types/api'
 import { STORAGE_KEYS, API_BASE_URL, API_VERSION } from '@/constants'
 import { APIError, extractErrorMessage, te } from './client-types'
 import type { RequestConfig } from './client-types'
+import { assertRest200Contract } from './response-contract'
 import { uploadWithProgress } from './upload-transport'
 
 // 错误契约与请求配置类型见 ./client-types，这里重新导出以保持既有导入路径不变
@@ -115,6 +116,7 @@ class APIClient {
       params,
       data,
       withEnvelope = false,
+      responseContract,
       ...requestConfig
     } = config
 
@@ -206,6 +208,7 @@ class APIClient {
 
       // 解析JSON响应
       const rawData = await response.json()
+      assertRest200Contract(responseContract, response.status, rawData)
 
       // 兼容不同的响应格式
       let data: APIResponse<T>

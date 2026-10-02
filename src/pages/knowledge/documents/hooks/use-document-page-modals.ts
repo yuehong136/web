@@ -1,4 +1,5 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useLayoutEffect, useRef, useState } from 'react'
+import type { ReparseOptions } from '@/api/knowledge-document-ingest'
 import { useTranslation } from 'react-i18next'
 import { DocumentCreationMode } from '@/api/knowledge-rest'
 import { useUpdateDocumentParser } from '@/hooks/use-document-request'
@@ -9,12 +10,14 @@ import type { useDocumentActions } from './use-document-actions'
 type DocumentActions = ReturnType<typeof useDocumentActions>
 
 interface UseDocumentPageModalsProps {
+  datasetId: string
   currentKnowledgeBase: KnowledgeBase | null
   listState: DocumentListState
   actions: DocumentActions
 }
 
 export function useDocumentPageModals({
+  datasetId,
   currentKnowledgeBase,
   listState,
   actions,
@@ -32,6 +35,18 @@ export function useDocumentPageModals({
   const [reparseModalOpen, setReparseModalOpen] = useState(false)
   const [reparsingDocs, setReparsingDocs] = useState<Document[]>([])
   const [isReparsing, setIsReparsing] = useState(false)
+  const [reparseOptions, setReparseOptions] = useState<ReparseOptions>({
+    deleteChunks: true,
+    applyMetadataSettings: true,
+  })
+  const ownerRef = useRef({ active: false, session: 0, busy: false })
+  useLayoutEffect(() => {
+    const owner = { active: true, session: 0, busy: false }
+    ownerRef.current = owner
+    return () => {
+      owner.active = false
+    }
+  }, [datasetId])
   const [metadataModalOpen, setMetadataModalOpen] = useState(false)
   const [docMetadataModalOpen, setDocMetadataModalOpen] = useState(false)
   const [editingDocMeta, setEditingDocMeta] = useState<Document | null>(null)
@@ -57,52 +72,80 @@ export function useDocumentPageModals({
     [currentKnowledgeBase],
   )
 
+  const openReparse = useCallback(
+    (docs: Document[]) => {
+      const owner = ownerRef.current
+      if (
+        !owner.active ||
+        owner.busy ||
+        actions.isOperationBusy() ||
+        !docs.length
+      )
+        return
+      owner.session += 1
+      setReparsingDocs([...docs])
+      setReparseOptions({ deleteChunks: true, applyMetadataSettings: true })
+      setReparseModalOpen(true)
+    },
+    [actions],
+  )
+
+  const closeReparse = useCallback(() => {
+    const owner = ownerRef.current
+    if (owner.busy) return
+    owner.session += 1
+    setReparseModalOpen(false)
+    setReparsingDocs([])
+  }, [])
+
   const handleStartParse = useCallback(
     (doc: Document) => {
-      if (needsParseConfirmation([doc])) {
-        setReparsingDocs([doc])
-        setReparseModalOpen(true)
-      } else {
-        actions.handleStartParse([doc.id], false)
-      }
+      if (needsParseConfirmation([doc])) openReparse([doc])
+      else void actions.handleStartParse([doc.id])
     },
-    [needsParseConfirmation, actions],
+    [needsParseConfirmation, openReparse, actions],
   )
 
   const handleBatchStartParse = useCallback(() => {
     const docs = listState.selectedDocuments
-    if (needsParseConfirmation(docs)) {
-      setReparsingDocs(docs)
-      setReparseModalOpen(true)
-    } else {
-      actions.handleStartParse(
-        docs.map((d) => d.id),
-        false,
-      )
-      listState.clearSelection()
-    }
-  }, [needsParseConfirmation, actions, listState])
+    if (needsParseConfirmation(docs)) openReparse(docs)
+    else void actions.handleStartParse(docs.map((doc) => doc.id))
+  }, [
+    needsParseConfirmation,
+    openReparse,
+    actions,
+    listState.selectedDocuments,
+  ])
 
   const handleConfirmParse = useCallback(
-    async (options: {
-      deleteChunks: boolean
-      applyMetadataSettings: boolean
-    }) => {
-      if (reparsingDocs.length === 0) return
+    async (options: ReparseOptions) => {
+      const owner = ownerRef.current
+      if (!owner.active || owner.busy || !reparsingDocs.length) return
+      const session = owner.session
+      const documents = [...reparsingDocs]
+      owner.busy = true
       setIsReparsing(true)
+      setReparseOptions({ ...options })
       try {
-        await actions.handleStartParse(
-          reparsingDocs.map((d) => d.id),
-          options.deleteChunks,
+        const outcome = await actions.handleStartParse(
+          documents.map((doc) => doc.id),
+          options,
         )
-        setReparseModalOpen(false)
-        setReparsingDocs([])
-        listState.clearSelection()
+        if (!owner.active || owner.session !== session || !outcome) return
+        if (outcome.complete) {
+          setReparseModalOpen(false)
+          setReparsingDocs([])
+        } else {
+          setReparsingDocs(
+            documents.filter((doc) => outcome.failedIds.includes(doc.id)),
+          )
+        }
       } finally {
-        setIsReparsing(false)
+        owner.busy = false
+        if (owner.active && owner.session === session) setIsReparsing(false)
       }
     },
-    [reparsingDocs, actions, listState],
+    [reparsingDocs, actions],
   )
 
   const openRenameModal = useCallback((doc: Document) => {
@@ -186,6 +229,9 @@ export function useDocumentPageModals({
     reparsingDocs,
     setReparsingDocs,
     isReparsing,
+    reparseOptions,
+    setReparseOptions,
+    closeReparse,
     metadataModalOpen,
     setMetadataModalOpen,
     docMetadataModalOpen,

@@ -4,9 +4,10 @@ import {
   useEffect,
   useId,
   useMemo,
-  useState,
   type FC,
   type ReactNode,
+  type Dispatch,
+  type SetStateAction,
 } from 'react'
 import { useTranslation } from 'react-i18next'
 import { createPortal } from 'react-dom'
@@ -15,6 +16,7 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { cn } from '@/lib/utils'
 import type { KnowledgeBase, Document } from '@/types/api'
+import type { ReparseOptions } from '@/api/knowledge-document-ingest'
 
 interface ReparseConfirmModalProps {
   open: boolean
@@ -23,6 +25,8 @@ interface ReparseConfirmModalProps {
     deleteChunks: boolean
     applyMetadataSettings: boolean
   }) => void
+  options: ReparseOptions
+  onOptionsChange: Dispatch<SetStateAction<ReparseOptions>>
   documents: Document[]
   knowledgeBase: KnowledgeBase | null
   isLoading?: boolean
@@ -33,12 +37,14 @@ export const ReparseConfirmModal: FC<ReparseConfirmModalProps> = ({
   onClose,
   onConfirm,
   documents,
+  options,
+  onOptionsChange,
   knowledgeBase,
   isLoading = false,
 }) => {
   const { t } = useTranslation()
-  const [deleteChunks, setDeleteChunks] = useState(true)
-  const [applyMetadataSettings, setApplyMetadataSettings] = useState(true)
+  const titleId = useId()
+  const { deleteChunks, applyMetadataSettings } = options
 
   const stats = useMemo(() => {
     let totalChunks = 0
@@ -67,6 +73,7 @@ export const ReparseConfirmModal: FC<ReparseConfirmModalProps> = ({
   const hasExistingChunks = stats.totalChunks > 0
 
   const handleConfirm = () => {
+    if (isLoading) return
     onConfirm({
       deleteChunks: hasExistingChunks ? deleteChunks : false,
       applyMetadataSettings: hasMetadataEnabled ? applyMetadataSettings : false,
@@ -89,18 +96,26 @@ export const ReparseConfirmModal: FC<ReparseConfirmModalProps> = ({
       {/* Overlay */}
       <button
         type="button"
-        aria-label={t('knowledge.common.close')}
+        aria-label={t('common.close')}
         className="animate-in fade-in-0 fixed inset-0 bg-black/50 backdrop-blur-xs duration-200"
         onClick={onClose}
+        disabled={isLoading}
       />
 
       {/* Modal */}
-      <div className="animate-in fade-in-0 zoom-in-95 relative z-10 mx-4 w-full max-w-[480px] rounded-xl bg-[var(--color-background-surface)] shadow-2xl duration-200">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-busy={isLoading}
+        aria-labelledby={titleId}
+        className="animate-in fade-in-0 zoom-in-95 relative z-10 mx-4 w-full max-w-[480px] rounded-xl bg-[var(--color-background-surface)] shadow-2xl duration-200"
+      >
         {/* Close button */}
         <button
           type="button"
-          aria-label={t('knowledge.common.close')}
+          aria-label={t('common.close')}
           onClick={onClose}
+          disabled={isLoading}
           className="absolute top-4 right-4 rounded-md p-1.5 text-[var(--color-text-tertiary)] transition-colors hover:bg-[var(--color-surface-secondary)] hover:text-[var(--color-text-primary)]"
         >
           <X className="h-4 w-4" />
@@ -112,7 +127,10 @@ export const ReparseConfirmModal: FC<ReparseConfirmModalProps> = ({
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--color-primary)]/10">
               <Play className="h-4 w-4 text-[var(--color-primary)]" />
             </div>
-            <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
+            <h2
+              id={titleId}
+              className="text-lg font-semibold text-[var(--color-text-primary)]"
+            >
               {t('knowledge.documents.reparse.title')}
             </h2>
           </div>
@@ -133,7 +151,10 @@ export const ReparseConfirmModal: FC<ReparseConfirmModalProps> = ({
             {hasExistingChunks && (
               <OptionCard
                 checked={deleteChunks}
-                onChange={setDeleteChunks}
+                onChange={(deleteChunks) =>
+                  onOptionsChange((previous) => ({ ...previous, deleteChunks }))
+                }
+                disabled={isLoading}
                 icon={<Trash2 className="h-4 w-4" />}
                 iconColor="text-[var(--color-status-error)]"
                 title={t('knowledge.documents.reparse.clearChunksTitle', {
@@ -149,7 +170,13 @@ export const ReparseConfirmModal: FC<ReparseConfirmModalProps> = ({
             {hasMetadataEnabled && (
               <OptionCard
                 checked={applyMetadataSettings}
-                onChange={setApplyMetadataSettings}
+                onChange={(applyMetadataSettings) =>
+                  onOptionsChange((previous) => ({
+                    ...previous,
+                    applyMetadataSettings,
+                  }))
+                }
+                disabled={isLoading}
                 icon={<Tag className="h-4 w-4" />}
                 iconColor="text-[var(--color-primary)]"
                 title={t('knowledge.documents.reparse.applyMetadataTitle')}
@@ -187,7 +214,11 @@ export const ReparseConfirmModal: FC<ReparseConfirmModalProps> = ({
           <Button variant="outline" onClick={onClose} disabled={isLoading}>
             {t('knowledge.common.cancel')}
           </Button>
-          <Button onClick={handleConfirm} loading={isLoading}>
+          <Button
+            onClick={handleConfirm}
+            loading={isLoading}
+            disabled={isLoading}
+          >
             <Play className="mr-2 h-4 w-4" />
             {t('knowledge.documents.reparse.title')}
           </Button>
@@ -244,14 +275,15 @@ const OptionCard: FC<OptionCardProps> = ({
         <div className="min-w-0 flex-1 space-y-1">
           <div className="flex items-center gap-2">
             <span className={cn('shrink-0', iconColor)}>{icon}</span>
-            <span
+            <label
+              htmlFor={checkboxId}
               className={cn(
                 'text-sm font-medium text-[var(--color-text-primary)]',
                 disabled ? 'cursor-not-allowed' : 'cursor-default',
               )}
             >
               {title}
-            </span>
+            </label>
           </div>
           {description && (
             <p className="text-xs leading-relaxed text-[var(--color-text-tertiary)]">

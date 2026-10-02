@@ -582,9 +582,14 @@ export default {
         yesterdayAt: 'Yesterday {{time}}',
       },
       toasts: {
-        parseStarted: 'Started parsing {{count}} documents.',
-        parseStartError: 'Failed to start parsing. Try again.',
-        parseStopped: 'Stopped parsing {{count}} documents.',
+        parseStarted: 'Parsing requests confirmed for {{count}} documents.',
+        parseStartError: 'Parsing was not confirmed. Refresh and retry.',
+        parsePartial:
+          'Parsing submission: {{successCount}} confirmed, {{errorCount}} failed or unconfirmed. Refresh and retry.',
+        stopPartial:
+          'Cancellation submission: {{successCount}} confirmed, {{errorCount}} failed or unconfirmed. Refresh and retry.',
+        parseStopped:
+          'Cancellation requests confirmed for {{count}} documents.',
         parseStopError: 'Failed to stop the task.',
         statusToggleDetailError: 'Failed to change status: {{error}}',
         statusToggleError: 'Failed to change status. Try again.',

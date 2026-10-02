@@ -67,6 +67,8 @@ export interface RequestConfig extends RequestInit {
    * 默认 false —— 其它接口行为完全不变（opt-in）。
    */
   withEnvelope?: boolean
+  /** Require actual HTTP 200 and an original integer REST code before normalization. */
+  responseContract?: 'rest200'
 }
 
 /**

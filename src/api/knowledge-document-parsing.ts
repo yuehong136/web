@@ -1,5 +1,6 @@
-import { APIError, apiClient } from './client'
+import { APIError, apiClient, type ApiEnvelope } from './client'
 import { knowledgeRestConfig } from './knowledge-config'
+import { captureDocumentOperation } from './knowledge-document-ingest'
 
 interface ParseBatchResult {
   success_count: number
@@ -11,20 +12,23 @@ async function runBatch(
   documentIds: string[],
   operation: 'parse' | 'stop',
 ): Promise<void> {
-  if (!datasetId || !documentIds.length) {
-    throw new APIError(
-      400,
-      'INVALID_DOCUMENT_SELECTION',
-      'A dataset and documents are required',
-    )
-  }
-  const uniqueIds = [...new Set(documentIds)]
-  const result = await apiClient.post<ParseBatchResult>(
+  const { docIds: uniqueIds } = captureDocumentOperation(
+    datasetId,
+    documentIds,
+    operation === 'parse' ? 1 : 2,
+  )
+  const acknowledgement = await apiClient.post<ApiEnvelope<ParseBatchResult>>(
     `/v1/datasets/${encodeURIComponent(datasetId)}/documents/${operation}`,
     { document_ids: uniqueIds },
-    knowledgeRestConfig,
+    { ...knowledgeRestConfig, withEnvelope: true, responseContract: 'rest200' },
   )
-  if (result?.success_count !== uniqueIds.length || result.errors?.length) {
+  const result = acknowledgement?.data
+  if (
+    acknowledgement?.retcode !== 0 ||
+    result?.success_count !== uniqueIds.length ||
+    (result.errors !== undefined &&
+      (!Array.isArray(result.errors) || result.errors.length > 0))
+  ) {
     throw new APIError(
       200,
       'INCOMPLETE_DOCUMENT_OPERATION',
@@ -37,24 +41,7 @@ async function runBatch(
 export async function parseDatasetDocuments(
   datasetId: string,
   documentIds: string[],
-  deleteHistory = false,
 ): Promise<void> {
-  // The legacy clear-history option has no equivalent in the canonical parse contract yet.
-  if (deleteHistory) {
-    if (!datasetId || !documentIds.length) {
-      throw new APIError(
-        400,
-        'INVALID_DOCUMENT_SELECTION',
-        'A dataset and documents are required',
-      )
-    }
-    await apiClient.post('/v1/document/run', {
-      doc_ids: [...new Set(documentIds)],
-      run: 1,
-      delete: true,
-    })
-    return
-  }
   await runBatch(datasetId, documentIds, 'parse')
 }
 

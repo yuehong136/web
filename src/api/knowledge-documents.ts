@@ -1,3 +1,4 @@
+import { ingestDatasetDocuments } from './knowledge-document-ingest'
 import { changeDatasetDocumentStatus } from './knowledge-document-status'
 import type {
   Document,
@@ -179,6 +180,7 @@ export const knowledgeDocumentAPI = {
   ): Promise<{ task_id: string }> =>
     apiClient.post(`/v1/document/${docId}/reparse`, options),
 
+  ingest: ingestDatasetDocuments,
   parse: parseDatasetDocuments,
   stop: stopDatasetDocuments,
 

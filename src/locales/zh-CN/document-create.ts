@@ -23,7 +23,7 @@ export default {
     webSuccess: '网页文档已创建',
     blankSuccess: '空白文档已创建',
     createFailed: '创建文档失败，请检查输入后重试',
-    parseFailed: '文档已创建，但启动解析失败；可在文档列表中手动解析',
-    parseStarted: '已开始解析文档',
+    parseFailed: '文档已创建，但解析请求未确认；请在文档列表刷新后重试',
+    parseStarted: '文档解析请求已确认提交',
   },
 }

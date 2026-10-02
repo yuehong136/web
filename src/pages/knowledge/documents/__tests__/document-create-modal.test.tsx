@@ -128,6 +128,43 @@ describe('knowledge document creation', () => {
     expect(onCreated).toHaveBeenCalledWith(created, DocumentCreationMode.WEB)
   })
 
+  it('preserves a created web document when canonical parse is not confirmed', async () => {
+    const onCreated = vi.fn()
+    const created = { id: 'doc-web', name: 'Article.pdf', dataset_id: 'kb-1' }
+    mocks.createWeb.mockResolvedValue(created)
+    mocks.parse.mockRejectedValue(new Error('private parse detail'))
+    await act(async () => {
+      root.render(
+        <DocumentCreateModal
+          mode={DocumentCreationMode.WEB}
+          kbId="kb-1"
+          onClose={vi.fn()}
+          onCreated={onCreated}
+        />,
+      )
+    })
+    const inputs = [
+      ...document.body.querySelectorAll<HTMLInputElement>('input'),
+    ]
+    await act(async () => {
+      setInput(inputs.find((input) => input.type === 'text')!, 'Article')
+      setInput(
+        inputs.find((input) => input.type === 'url')!,
+        'https://example.com/article',
+      )
+      submit()
+    })
+    expect(mocks.parse).toHaveBeenCalledWith('kb-1', ['doc-web'])
+    expect(mocks.success).toHaveBeenCalledWith('documentCreate.webSuccess')
+    expect(mocks.success).not.toHaveBeenCalledWith(
+      'documentCreate.parseStarted',
+    )
+    expect(mocks.error).toHaveBeenCalledWith('documentCreate.parseFailed')
+    expect(mocks.error).not.toHaveBeenCalledWith('private parse detail')
+    expect(mocks.error).not.toHaveBeenCalledWith('documentCreate.createFailed')
+    expect(onCreated).toHaveBeenCalledWith(created, DocumentCreationMode.WEB)
+  })
+
   it('creates a blank document and returns its id for the chunk editor', async () => {
     const onCreated = vi.fn()
     const created = { id: 'doc-empty', name: 'Draft.txt', dataset_id: 'kb-1' }

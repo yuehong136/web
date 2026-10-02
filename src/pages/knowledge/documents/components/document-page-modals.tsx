@@ -143,10 +143,9 @@ export function DocumentPageModals({
 
       <ReparseConfirmModal
         open={pageModals.reparseModalOpen}
-        onClose={() => {
-          pageModals.setReparseModalOpen(false)
-          pageModals.setReparsingDocs([])
-        }}
+        onClose={pageModals.closeReparse}
+        options={pageModals.reparseOptions}
+        onOptionsChange={pageModals.setReparseOptions}
         onConfirm={pageModals.handleConfirmParse}
         documents={pageModals.reparsingDocs}
         knowledgeBase={currentKnowledgeBase}

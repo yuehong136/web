@@ -150,7 +150,7 @@ test('parse/stop deduplicate ids and reject incomplete batch success', async (t)
     'post',
     async (path: string, body: unknown, config?: RequestConfig) => {
       calls.push([path, body, config?.baseURL])
-      return result
+      return { retcode: 0, data: result }
     },
   )
   await knowledgeAPI.document.parse('kb/1', ['doc', 'doc'])
@@ -171,12 +171,6 @@ test('parse/stop deduplicate ids and reject incomplete batch success', async (t)
   )
   await assert.rejects(knowledgeAPI.document.parse('', ['doc']), APIError)
   await assert.rejects(knowledgeAPI.document.parse('kb', []), APIError)
-  result = true
-  await knowledgeAPI.document.parse('kb/1', ['doc'], true)
-  assert.deepEqual((calls.at(-1) as unknown[]).slice(0, 2), [
-    '/v1/document/run',
-    { doc_ids: ['doc'], run: 1, delete: true },
-  ])
 })
 
 test('nonzero business errors from parsing are never swallowed or retried on legacy', async (t) => {

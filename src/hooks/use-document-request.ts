@@ -1,3 +1,7 @@
+import {
+  captureDocumentOperation,
+  type DocumentOperationRequest,
+} from '@/api/knowledge-document-ingest'
 /**
  * Document Request Hooks
  *
@@ -356,41 +360,52 @@ export const useFetchDocumentFilter = (knowledgeBaseId?: string) => {
   }
 }
 
-// 运行/停止文档解析
+// Each settled operation reconciles only the request's original dataset/documents.
 export const useRunDocument = (datasetId: string) => {
   const queryClient = useQueryClient()
-
   const { mutateAsync, isPending, isError, error } = useMutation({
     meta: { errorFeedback: MutationErrorFeedback.Local },
-    mutationFn: async (params: {
-      docIds: string[]
-      run: 1 | 2 // 1=开始, 2=停止
-      deleteHistory?: boolean
-    }) => {
-      if (params.run === 1) {
-        await knowledgeAPI.document.parse(
-          datasetId,
-          params.docIds,
-          params.deleteHistory,
-        )
+    mutationFn: async (request: DocumentOperationRequest) => {
+      const { reparseOptions } = request
+      if (reparseOptions || request.run === 0) {
+        await knowledgeAPI.document.ingest(request.datasetId, request.docIds, {
+          run: request.run,
+          delete: reparseOptions?.deleteChunks ?? false,
+          apply_kb: reparseOptions?.applyMetadataSettings ?? false,
+        })
+      } else if (request.run === 1) {
+        await knowledgeAPI.document.parse(request.datasetId, request.docIds)
       } else {
-        await knowledgeAPI.document.stop(datasetId, params.docIds)
+        await knowledgeAPI.document.stop(request.datasetId, request.docIds)
       }
-      return params
+      return request
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: documentKeys.lists() })
-      queryClient.invalidateQueries({
-        queryKey: documentKeys.filter(datasetId),
-      })
-      queryClient.invalidateQueries({
-        queryKey: knowledgeKeys.detail(datasetId),
-      })
+    onSettled: async (_data, _error, request) => {
+      await Promise.all(
+        [
+          documentKeys.datasetLists(request.datasetId),
+          documentKeys.filter(request.datasetId),
+          knowledgeKeys.detail(request.datasetId),
+          ...request.docIds.flatMap((id) => [
+            documentKeys.detail(id),
+            documentKeys.standaloneDetail(id),
+            documentKeys.documentChunks(id),
+            documentKeys.documentChunkList(id),
+          ]),
+        ].map((queryKey) => queryClient.invalidateQueries({ queryKey })),
+      )
     },
   })
-
   return {
-    runDocument: mutateAsync,
+    runDocument: (params: Omit<DocumentOperationRequest, 'datasetId'>) =>
+      mutateAsync(
+        captureDocumentOperation(
+          datasetId,
+          params.docIds,
+          params.run,
+          params.reparseOptions,
+        ),
+      ),
     isLoading: isPending,
     isError,
     error,

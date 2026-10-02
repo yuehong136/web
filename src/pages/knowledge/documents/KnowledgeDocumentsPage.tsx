@@ -42,6 +42,7 @@ function DocumentsPage() {
   const logModal = useDocumentLogModal(listState.documents)
   const generate = useGenerateState(kbId || '')
   const pageModals = useDocumentPageModals({
+    datasetId: kbId ?? '',
     currentKnowledgeBase,
     listState,
     actions,
