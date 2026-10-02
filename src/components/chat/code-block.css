@@ -3,7 +3,7 @@
  *
  * react-shiki 多主题输出：默认色（light）以内联样式写在 `.shiki` 上，
  * dark 主题的颜色写入 `--shiki-dark*` CSS 变量。这里通过项目的暗色选择器
- * （.dark / [data-theme="dark"]，与 tailwind.config 对齐）切换到 dark 变量，
+ * （.dark / [data-theme="dark"]，与主题 CSS 的 dark variant 对齐）切换到 dark 变量，
  * 纯 CSS 实现、切换主题时无需重新高亮。
  */
 

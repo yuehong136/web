@@ -114,7 +114,7 @@ export function GroupedSelectWithSecondaryMenu({
           role="combobox"
           aria-expanded={open}
           className={cn(
-            'min-h-10 h-auto w-full justify-between gap-space-sm border-border-default bg-background-surface px-space-sm py-space-xs font-normal outline-offset-0 outline-none hover:bg-components-dropdown-item-bg-hover focus-visible:outline-[3px] [&_svg]:pointer-events-auto',
+            'h-auto min-h-10 w-full justify-between gap-space-sm border-border-default bg-background-surface px-space-sm py-space-xs font-normal outline-hidden outline-offset-0 hover:bg-components-dropdown-item-bg-hover focus-visible:outline-[3px] [&_svg]:pointer-events-auto',
             triggerClassName,
           )}
         >
@@ -156,7 +156,7 @@ export function GroupedSelectWithSecondaryMenu({
       </PopoverTrigger>
 
       <PopoverContent
-        className="w-[var(--radix-popover-trigger-width)] min-w-[220px] max-w-[420px] bg-components-dropdown-bg p-0 shadow-lg"
+        className="w-[var(--radix-popover-trigger-width)] max-w-[420px] min-w-[220px] bg-components-dropdown-bg p-0 shadow-lg"
         align="start"
         sideOffset={6}
       >

@@ -1,16 +1,31 @@
 'use client'
 
 import * as React from 'react'
-import { useForm, Controller, type FieldValues, type UseFormReturn } from 'react-hook-form'
+import {
+  useForm,
+  Controller,
+  type FieldValues,
+  type UseFormReturn,
+} from 'react-hook-form'
 import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import { FormTooltip } from '@/components/ui/tooltip'
 import { Label } from '@/components/ui/label'
-import { FormFieldType, type FormFieldConfig, type FormFieldShowWhen } from '@/pages/settings/datasource/types'
+import {
+  FormFieldType,
+  type FormFieldConfig,
+  type FormFieldShowWhen,
+} from '@/pages/settings/datasource/types'
 import { TagEditor } from '@/components/ui/tag-editor'
 import { Eye, EyeOff } from 'lucide-react'
 
@@ -37,9 +52,12 @@ export const useFormInstance = () => {
 /**
  * 检查字段是否应该显示
  */
-const shouldShowField = (showWhen: FormFieldShowWhen | undefined, formValues: Record<string, any>): boolean => {
+const shouldShowField = (
+  showWhen: FormFieldShowWhen | undefined,
+  formValues: Record<string, any>,
+): boolean => {
   if (!showWhen) return true
-  
+
   const fieldValue = getNestedValue(formValues, showWhen.field)
   if (Array.isArray(showWhen.value)) {
     return showWhen.value.includes(fieldValue)
@@ -57,30 +75,35 @@ const getNestedValue = (obj: Record<string, any>, path: string): any => {
 /**
  * 密码输入框组件（带显示/隐藏切换）
  */
-const PasswordInput = React.forwardRef<HTMLInputElement, React.ComponentPropsWithoutRef<typeof Input>>(
-  (props, ref) => {
-    const [showPassword, setShowPassword] = React.useState(false)
-    
-    return (
-      <div className="relative">
-        <Input
-          {...props}
-          ref={ref}
-          type={showPassword ? 'text' : 'password'}
-          rightIcon={
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="focus:outline-none"
-            >
-              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
-          }
-        />
-      </div>
-    )
-  }
-)
+const PasswordInput = React.forwardRef<
+  HTMLInputElement,
+  React.ComponentPropsWithoutRef<typeof Input>
+>((props, ref) => {
+  const [showPassword, setShowPassword] = React.useState(false)
+
+  return (
+    <div className="relative">
+      <Input
+        {...props}
+        ref={ref}
+        type={showPassword ? 'text' : 'password'}
+        rightIcon={
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="focus:outline-hidden"
+          >
+            {showPassword ? (
+              <EyeOff className="h-4 w-4" />
+            ) : (
+              <Eye className="h-4 w-4" />
+            )}
+          </button>
+        }
+      />
+    </div>
+  )
+})
 PasswordInput.displayName = 'PasswordInput'
 
 /**
@@ -90,7 +113,7 @@ const renderField = (
   field: FormFieldConfig,
   control: any,
   formValues: Record<string, any>,
-  labelClassName?: string
+  labelClassName?: string,
 ) => {
   if (field.hidden) return null
   if (!shouldShowField(field.showWhen, formValues)) return null
@@ -107,9 +130,16 @@ const renderField = (
           <div className="space-y-2">
             {field.label && (
               <div className="flex items-center gap-1">
-                <Label className={cn('text-sm font-medium text-text-primary', labelClassName)}>
+                <Label
+                  className={cn(
+                    'text-sm font-medium text-text-primary',
+                    labelClassName,
+                  )}
+                >
                   {field.label}
-                  {field.required && <span className="text-status-error ml-1">*</span>}
+                  {field.required && (
+                    <span className="ml-1 text-status-error">*</span>
+                  )}
                 </Label>
                 {field.tooltip && <FormTooltip tooltip={field.tooltip} />}
               </div>
@@ -131,14 +161,21 @@ const renderField = (
         <div className="space-y-2">
           {field.label && (
             <div className="flex items-center gap-1">
-              <Label className={cn('text-sm font-medium text-text-primary', labelClassName)}>
+              <Label
+                className={cn(
+                  'text-sm font-medium text-text-primary',
+                  labelClassName,
+                )}
+              >
                 {field.label}
-                {field.required && <span className="text-status-error ml-1">*</span>}
+                {field.required && (
+                  <span className="ml-1 text-status-error">*</span>
+                )}
               </Label>
               {field.tooltip && <FormTooltip tooltip={field.tooltip} />}
             </div>
           )}
-          
+
           {field.type === FormFieldType.Text && (
             <Input
               {...fieldProps}
@@ -147,7 +184,7 @@ const renderField = (
               error={fieldState.error?.message}
             />
           )}
-          
+
           {field.type === FormFieldType.Password && (
             <PasswordInput
               {...fieldProps}
@@ -156,7 +193,7 @@ const renderField = (
               error={fieldState.error?.message}
             />
           )}
-          
+
           {field.type === FormFieldType.Number && (
             <Input
               {...fieldProps}
@@ -164,10 +201,14 @@ const renderField = (
               placeholder={field.placeholder}
               disabled={field.disabled}
               error={fieldState.error?.message}
-              onChange={(e) => fieldProps.onChange(e.target.value ? Number(e.target.value) : '')}
+              onChange={(e) =>
+                fieldProps.onChange(
+                  e.target.value ? Number(e.target.value) : '',
+                )
+              }
             />
           )}
-          
+
           {field.type === FormFieldType.Textarea && (
             <Textarea
               {...fieldProps}
@@ -176,7 +217,7 @@ const renderField = (
               rows={4}
             />
           )}
-          
+
           {field.type === FormFieldType.Select && (
             <Select
               value={fieldProps.value}
@@ -195,7 +236,7 @@ const renderField = (
               </SelectContent>
             </Select>
           )}
-          
+
           {field.type === FormFieldType.Checkbox && (
             <div className="flex items-center gap-2">
               <Checkbox
@@ -205,7 +246,7 @@ const renderField = (
               />
             </div>
           )}
-          
+
           {field.type === FormFieldType.Tag && (
             <TagEditor
               value={fieldProps.value || []}
@@ -213,19 +254,19 @@ const renderField = (
               placeholder={field.placeholder}
             />
           )}
-          
+
           {field.type === FormFieldType.Segmented && (
-            <div className="flex gap-1 p-1 bg-surface-secondary rounded-lg">
+            <div className="bg-surface-secondary flex gap-1 rounded-lg p-1">
               {field.options?.map((option) => (
                 <button
                   key={option.value}
                   type="button"
                   onClick={() => fieldProps.onChange(option.value)}
                   className={cn(
-                    'flex-1 px-3 py-1.5 text-sm rounded-md transition-colors',
+                    'flex-1 rounded-md px-3 py-1.5 text-sm transition-colors',
                     fieldProps.value === option.value
-                      ? 'bg-surface-primary text-text-primary shadow-sm'
-                      : 'text-text-secondary hover:text-text-primary'
+                      ? 'bg-surface-primary text-text-primary shadow-xs'
+                      : 'text-text-secondary hover:text-text-primary',
                   )}
                 >
                   {option.label}
@@ -258,8 +299,13 @@ function DynamicFormRoot<T extends FieldValues>({
 
   return (
     <FormContext.Provider value={form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className={cn('space-y-4', className)}>
-        {fields.map((field) => renderField(field, form.control, formValues, labelClassName))}
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className={cn('space-y-4', className)}
+      >
+        {fields.map((field) =>
+          renderField(field, form.control, formValues, labelClassName),
+        )}
         {children}
       </form>
     </FormContext.Provider>
@@ -269,9 +315,20 @@ function DynamicFormRoot<T extends FieldValues>({
 /**
  * 取消按钮
  */
-function CancelButton({ handleCancel, className }: { handleCancel: () => void; className?: string }) {
+function CancelButton({
+  handleCancel,
+  className,
+}: {
+  handleCancel: () => void
+  className?: string
+}) {
   return (
-    <Button type="button" variant="outline" onClick={handleCancel} className={className}>
+    <Button
+      type="button"
+      variant="outline"
+      onClick={handleCancel}
+      className={className}
+    >
       取消
     </Button>
   )
@@ -301,7 +358,12 @@ function SavingButton({
   }
 
   return (
-    <Button type="button" onClick={handleClick} disabled={submitLoading} className={className}>
+    <Button
+      type="button"
+      onClick={handleClick}
+      disabled={submitLoading}
+      className={className}
+    >
       {submitLoading ? '处理中...' : buttonText || '确定'}
     </Button>
   )

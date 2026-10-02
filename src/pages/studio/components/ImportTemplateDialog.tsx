@@ -1,5 +1,12 @@
 import React, { useState, useCallback, useRef } from 'react'
-import { Upload, FileJson, AlertCircle, CheckCircle2, XCircle, Loader2 } from 'lucide-react'
+import {
+  Upload,
+  FileJson,
+  AlertCircle,
+  CheckCircle2,
+  XCircle,
+  Loader2,
+} from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -75,20 +82,26 @@ export const ImportTemplateDialog: React.FC<ImportTemplateDialogProps> = ({
     return true
   }, [])
 
-  const handleFileSelect = useCallback(async (file: File) => {
-    const valid = await validateFile(file)
-    if (valid) {
-      setSelectedFile(file)
-      setValidationError(null)
-    }
-  }, [validateFile])
+  const handleFileSelect = useCallback(
+    async (file: File) => {
+      const valid = await validateFile(file)
+      if (valid) {
+        setSelectedFile(file)
+        setValidationError(null)
+      }
+    },
+    [validateFile],
+  )
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragOver(false)
-    const file = e.dataTransfer.files[0]
-    if (file) handleFileSelect(file)
-  }, [handleFileSelect])
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault()
+      setIsDragOver(false)
+      const file = e.dataTransfer.files[0]
+      if (file) handleFileSelect(file)
+    },
+    [handleFileSelect],
+  )
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -100,11 +113,14 @@ export const ImportTemplateDialog: React.FC<ImportTemplateDialogProps> = ({
     setIsDragOver(false)
   }, [])
 
-  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) handleFileSelect(file)
-    if (fileInputRef.current) fileInputRef.current.value = ''
-  }, [handleFileSelect])
+  const handleInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0]
+      if (file) handleFileSelect(file)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    },
+    [handleFileSelect],
+  )
 
   const handleImport = useCallback(() => {
     if (!selectedFile) return
@@ -121,7 +137,12 @@ export const ImportTemplateDialog: React.FC<ImportTemplateDialogProps> = ({
   }, [selectedFile, importMutation])
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) handleClose() }}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) handleClose()
+      }}
+    >
       <DialogContent size="md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -133,14 +154,14 @@ export const ImportTemplateDialog: React.FC<ImportTemplateDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="px-6 py-4 space-y-4">
+        <div className="space-y-4 px-6 py-4">
           {stage === 'select' && (
             <>
               <div
                 className={cn(
-                  'border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors',
+                  'cursor-pointer rounded-xl border-2 border-dashed p-8 text-center transition-colors',
                   isDragOver
-                    ? 'border-text-accent bg-surface-accent/5'
+                    ? 'bg-surface-accent/5 border-text-accent'
                     : 'border-border-default hover:border-text-accent/50',
                 )}
                 onDrop={handleDrop}
@@ -155,8 +176,8 @@ export const ImportTemplateDialog: React.FC<ImportTemplateDialogProps> = ({
                   className="hidden"
                   onChange={handleInputChange}
                 />
-                <FileJson className="h-10 w-10 mx-auto mb-3 text-text-tertiary" />
-                <p className="text-sm text-text-secondary mb-1">
+                <FileJson className="mx-auto mb-3 h-10 w-10 text-text-tertiary" />
+                <p className="mb-1 text-sm text-text-secondary">
                   拖拽文件到此处，或点击选择文件
                 </p>
                 <p className="text-xs text-text-tertiary">
@@ -166,21 +187,27 @@ export const ImportTemplateDialog: React.FC<ImportTemplateDialogProps> = ({
 
               {validationError && (
                 <div className="flex items-center gap-2 text-sm text-status-error">
-                  <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                  <AlertCircle className="h-4 w-4 shrink-0" />
                   {validationError}
                 </div>
               )}
 
               {selectedFile && !validationError && (
-                <div className="flex items-center justify-between p-3 rounded-lg bg-surface-secondary">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <FileJson className="h-5 w-5 text-text-accent flex-shrink-0" />
-                    <span className="text-sm text-text-primary truncate">{selectedFile.name}</span>
-                    <span className="text-xs text-text-tertiary flex-shrink-0">
+                <div className="bg-surface-secondary flex items-center justify-between rounded-lg p-3">
+                  <div className="flex min-w-0 items-center gap-2">
+                    <FileJson className="h-5 w-5 shrink-0 text-text-accent" />
+                    <span className="truncate text-sm text-text-primary">
+                      {selectedFile.name}
+                    </span>
+                    <span className="shrink-0 text-xs text-text-tertiary">
                       ({(selectedFile.size / 1024).toFixed(1)} KB)
                     </span>
                   </div>
-                  <Button variant="ghost" size="sm" onClick={() => setSelectedFile(null)}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSelectedFile(null)}
+                  >
                     更换
                   </Button>
                 </div>
@@ -190,7 +217,7 @@ export const ImportTemplateDialog: React.FC<ImportTemplateDialogProps> = ({
 
           {stage === 'uploading' && (
             <div className="flex flex-col items-center py-8">
-              <Loader2 className="h-10 w-10 animate-spin text-text-accent mb-3" />
+              <Loader2 className="mb-3 h-10 w-10 animate-spin text-text-accent" />
               <p className="text-sm text-text-secondary">正在导入模版...</p>
             </div>
           )}
@@ -204,14 +231,24 @@ export const ImportTemplateDialog: React.FC<ImportTemplateDialogProps> = ({
               {result.imported.length > 0 && (
                 <div className="space-y-2">
                   {result.imported.map((item) => (
-                    <div key={item.id} className="flex items-start gap-2 p-2 rounded-lg bg-surface-secondary">
-                      <CheckCircle2 className="h-4 w-4 text-status-success flex-shrink-0 mt-0.5" />
+                    <div
+                      key={item.id}
+                      className="bg-surface-secondary flex items-start gap-2 rounded-lg p-2"
+                    >
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-status-success" />
                       <div className="min-w-0">
-                        <p className="text-sm text-text-primary truncate">{item.name}</p>
+                        <p className="truncate text-sm text-text-primary">
+                          {item.name}
+                        </p>
                         {item.warnings.length > 0 && (
                           <div className="mt-1 space-y-0.5">
                             {item.warnings.map((w, i) => (
-                              <p key={i} className="text-xs text-status-warning">{w}</p>
+                              <p
+                                key={i}
+                                className="text-xs text-status-warning"
+                              >
+                                {w}
+                              </p>
                             ))}
                           </div>
                         )}
@@ -224,11 +261,18 @@ export const ImportTemplateDialog: React.FC<ImportTemplateDialogProps> = ({
               {result.failed.length > 0 && (
                 <div className="space-y-2">
                   {result.failed.map((item, i) => (
-                    <div key={i} className="flex items-start gap-2 p-2 rounded-lg bg-surface-secondary">
-                      <XCircle className="h-4 w-4 text-status-error flex-shrink-0 mt-0.5" />
+                    <div
+                      key={i}
+                      className="bg-surface-secondary flex items-start gap-2 rounded-lg p-2"
+                    >
+                      <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-status-error" />
                       <div className="min-w-0">
-                        <p className="text-sm text-text-primary truncate">{item.name}</p>
-                        <p className="text-xs text-status-error">{item.error}</p>
+                        <p className="truncate text-sm text-text-primary">
+                          {item.name}
+                        </p>
+                        <p className="text-xs text-status-error">
+                          {item.error}
+                        </p>
                       </div>
                     </div>
                   ))}
@@ -241,15 +285,15 @@ export const ImportTemplateDialog: React.FC<ImportTemplateDialogProps> = ({
         <DialogFooter>
           {stage === 'select' && (
             <>
-              <Button variant="outline" onClick={handleClose}>取消</Button>
+              <Button variant="outline" onClick={handleClose}>
+                取消
+              </Button>
               <Button onClick={handleImport} disabled={!selectedFile}>
                 开始导入
               </Button>
             </>
           )}
-          {stage === 'result' && (
-            <Button onClick={handleClose}>完成</Button>
-          )}
+          {stage === 'result' && <Button onClick={handleClose}>完成</Button>}
         </DialogFooter>
       </DialogContent>
     </Dialog>

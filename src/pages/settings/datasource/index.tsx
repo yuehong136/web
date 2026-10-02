@@ -3,7 +3,10 @@
 import { Database, Plus } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
-import { useListDataSource, useAddDataSource } from '@/hooks/use-datasource-request'
+import {
+  useListDataSource,
+  useAddDataSource,
+} from '@/hooks/use-datasource-request'
 import { DataSourceKey, type IDataSourceInfo } from './types'
 import { useDataSourceInfo } from './constants'
 import { AddDataSourceModal } from './components/add-datasource-modal'
@@ -16,25 +19,27 @@ interface AvailableSourceCardProps extends IDataSourceInfo {
   onAdd: (source: IDataSourceInfo) => void
 }
 
-function AvailableSourceCard({ id, name, description, icon, onAdd }: AvailableSourceCardProps) {
+function AvailableSourceCard({
+  id,
+  name,
+  description,
+  icon,
+  onAdd,
+}: AvailableSourceCardProps) {
   const { t } = useTranslation()
 
   return (
     <div
-      className="group relative p-4 bg-components-card-bg border border-components-card-border rounded-lg 
-                 hover:bg-components-card-bg-hover hover:shadow-elevation-low
-                 cursor-pointer transition-all duration-200"
+      className="group relative cursor-pointer rounded-lg border border-components-card-border bg-components-card-bg p-4 transition-all duration-200 hover:bg-components-card-bg-hover hover:shadow-elevation-low"
       onClick={() => onAdd({ id, name, description, icon })}
     >
       {/* 添加按钮 - 悬浮显示 */}
-      <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 
-                      transform translate-y-1 group-hover:translate-y-0
-                      transition-all duration-200">
+      <div className="absolute top-3 right-3 translate-y-1 transform opacity-0 transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100">
         <Button
           size="sm"
-          className="h-7 px-3 text-xs font-medium rounded-md gap-1.5"
+          className="h-7 gap-1.5 rounded-md px-3 text-xs font-medium"
         >
-          <Plus className="w-3.5 h-3.5" />
+          <Plus className="h-3.5 w-3.5" />
           {t('common.add')}
         </Button>
       </div>
@@ -42,19 +47,16 @@ function AvailableSourceCard({ id, name, description, icon, onAdd }: AvailableSo
       {/* 内容区域 */}
       <div className="flex items-start gap-3">
         {/* 图标容器 */}
-        <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-background-subtle 
-                        flex items-center justify-center">
-          <div className="w-6 h-6 flex items-center justify-center">
-            {icon}
-          </div>
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-background-subtle">
+          <div className="flex h-6 w-6 items-center justify-center">{icon}</div>
         </div>
 
         {/* 文字内容 */}
-        <div className="flex-1 min-w-0 pt-0.5">
-          <h3 className="text-sm font-medium text-text-primary truncate pr-16">
+        <div className="min-w-0 flex-1 pt-0.5">
+          <h3 className="truncate pr-16 text-sm font-medium text-text-primary">
             {name}
           </h3>
-          <p className="mt-1 text-xs text-text-tertiary line-clamp-2 leading-relaxed">
+          <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-text-tertiary">
             {description}
           </p>
         </div>
@@ -89,38 +91,34 @@ export default function DataSourcePage() {
   }))
 
   return (
-    <div className="flex flex-col h-full bg-background-body">
+    <div className="flex h-full flex-col bg-background-body">
       {/* 页面头部 */}
-      <header className="flex-shrink-0 px-8 py-6 border-b border-border-default">
-        <h1 className="text-2xl font-bold text-text-primary tracking-tight">
+      <header className="shrink-0 border-b border-border-default px-8 py-6">
+        <h1 className="text-2xl font-bold tracking-tight text-text-primary">
           {t('datasource.title')}
         </h1>
-        <p className="mt-1.5 text-sm text-text-secondary max-w-2xl">
+        <p className="mt-1.5 max-w-2xl text-sm text-text-secondary">
           {t('datasource.description')}
         </p>
       </header>
 
       {/* 内容区域 */}
       <div className="flex-1 overflow-y-auto">
-        <div className="px-8 py-6 space-y-10 max-w-[1400px]">
-          
+        <div className="max-w-[1400px] space-y-10 px-8 py-6">
           {/* 已添加的数据源 */}
           <section>
-            <div className="flex items-center justify-between mb-4">
+            <div className="mb-4 flex items-center justify-between">
               <h2 className="text-lg font-semibold text-text-primary">
                 {t('datasource.addedSources')}
               </h2>
             </div>
 
             {categorizedList.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 
-                              border-2 border-dashed border-border-default rounded-lg 
-                              bg-background-subtle/30">
-                <div className="w-16 h-16 rounded-xl bg-background-subtle 
-                                flex items-center justify-center mb-4">
-                  <Database className="w-8 h-8 text-text-tertiary" />
+              <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-border-default bg-background-subtle/30 py-16">
+                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-xl bg-background-subtle">
+                  <Database className="h-8 w-8 text-text-tertiary" />
                 </div>
-                <p className="text-sm text-text-secondary font-medium">
+                <p className="text-sm font-medium text-text-secondary">
                   {t('datasource.emptyTip')}
                 </p>
                 <p className="mt-1 text-xs text-text-tertiary">
@@ -128,7 +126,7 @@ export default function DataSourcePage() {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
                 {categorizedList.map((item) => (
                   <DataSourceCard
                     key={item.id}
@@ -153,7 +151,7 @@ export default function DataSourcePage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {dataSourceTemplates.map((item) => (
                 <AvailableSourceCard
                   key={item.id}

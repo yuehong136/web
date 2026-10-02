@@ -32,37 +32,37 @@ export const MetadataFieldTable: FC<MetadataFieldTableProps> = ({
     <div
       className={cn(
         'overflow-hidden rounded-xl border border-border-default',
-        'bg-surface-primary shadow-sm',
+        'bg-surface-primary shadow-xs',
       )}
     >
-      <div className="bg-surface-secondary/40 border-border-default/60 flex items-center border-b">
+      <div className="bg-surface-secondary/40 flex items-center border-b border-border-default/60">
         <div className="w-[140px] shrink-0 px-4 py-2.5">
-          <span className="text-xs font-medium uppercase tracking-wider text-text-secondary">
+          <span className="text-xs font-medium tracking-wider text-text-secondary uppercase">
             {t('knowledge.metadata.modal.fieldName')}
           </span>
         </div>
         {isSettingMode && (
           <div className="w-[160px] shrink-0 px-4 py-2.5">
-            <span className="text-xs font-medium uppercase tracking-wider text-text-secondary">
+            <span className="text-xs font-medium tracking-wider text-text-secondary uppercase">
               {t('knowledge.metadata.modal.description')}
             </span>
           </div>
         )}
         <div className="flex-1 px-4 py-2.5">
-          <span className="text-xs font-medium uppercase tracking-wider text-text-secondary">
+          <span className="text-xs font-medium tracking-wider text-text-secondary uppercase">
             {isSettingMode
               ? t('knowledge.metadata.modal.optionalValues')
               : t('knowledge.metadata.modal.values')}
           </span>
         </div>
         <div className="w-[88px] shrink-0 px-4 py-2.5">
-          <span className="text-xs font-medium uppercase tracking-wider text-text-secondary">
+          <span className="text-xs font-medium tracking-wider text-text-secondary uppercase">
             {t('knowledge.metadata.modal.actions')}
           </span>
         </div>
       </div>
 
-      <div className="max-h-[360px] overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-border-default">
+      <div className="scrollbar-thin max-h-[360px] scrollbar-thumb-border-default scrollbar-track-transparent overflow-y-auto">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-16 text-text-secondary">
             <div className="relative mb-3 h-10 w-10">
@@ -75,7 +75,7 @@ export const MetadataFieldTable: FC<MetadataFieldTableProps> = ({
           </div>
         ) : data.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="from-surface-secondary to-surface-tertiary mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br shadow-sm">
+            <div className="from-surface-secondary to-surface-tertiary mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br shadow-xs">
               <Database className="h-7 w-7 text-text-tertiary" />
             </div>
             <p className="mb-1 text-sm font-medium text-text-secondary">

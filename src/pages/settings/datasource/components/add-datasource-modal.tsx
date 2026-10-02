@@ -59,7 +59,7 @@ export function AddDataSourceModal({
         {/* 头部 */}
         <DialogHeader className="border-b border-border-default bg-background-subtle px-6 py-5">
           <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-border-default bg-background-body shadow-sm">
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-border-default bg-background-body shadow-xs">
               <div className="flex h-7 w-7 items-center justify-center">
                 {sourceData?.icon}
               </div>

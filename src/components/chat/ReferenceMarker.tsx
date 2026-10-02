@@ -97,8 +97,8 @@ export const ReferenceMarker: React.FC<ReferenceMarkerProps> = ({
             'mx-0.5 -mt-1 h-[20px] min-w-[20px] px-1.5',
             'rounded-md text-xs font-semibold',
             'transition-all duration-200 ease-out',
-            'hover:scale-110 hover:shadow-sm',
-            'focus:outline-none focus:ring-2 focus:ring-offset-1',
+            'hover:scale-110 hover:shadow-xs',
+            'focus:ring-2 focus:ring-offset-1 focus:outline-hidden',
           )}
           style={{
             backgroundColor: 'var(--color-state-focus-10)',
@@ -137,7 +137,7 @@ export const ReferenceMarker: React.FC<ReferenceMarkerProps> = ({
               </span>
             </div>
             <span
-              className="flex-shrink-0 rounded-full px-2 py-0.5 text-xs font-medium"
+              className="shrink-0 rounded-full px-2 py-0.5 text-xs font-medium"
               style={{
                 backgroundColor: similarityColor,
                 color: '#fff',

@@ -4,6 +4,9 @@ export default {
     centerDescription:
       'The information architecture, routing, types, and runtime entry are ready; node forms and runtime details can be replaced incrementally.',
     templates: 'Agent Templates',
+    unnamedTemplate: 'Untitled template',
+    templateDescriptionFallback: 'No template description yet.',
+    templateCategories: 'Template categories',
     agents: 'Agents',
     pipelines: 'Pipelines',
     logs: 'Run logs',

@@ -1,4 +1,5 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import {
   CATEGORY_ORDER,
@@ -13,12 +14,10 @@ interface TemplateCategorySidebarProps {
   className?: string
 }
 
-export const TemplateCategorySidebar: React.FC<TemplateCategorySidebarProps> = ({
-  value,
-  onChange,
-  counts,
-  className,
-}) => {
+export const TemplateCategorySidebar: React.FC<
+  TemplateCategorySidebarProps
+> = ({ value, onChange, counts, className }) => {
+  const { t } = useTranslation()
   const renderItem = (category: TemplateCategory) => {
     const Icon = category.icon
     const isActive = value === category.key
@@ -33,14 +32,14 @@ export const TemplateCategorySidebar: React.FC<TemplateCategorySidebarProps> = (
         className={cn(
           'group relative flex w-full items-center gap-space-sm rounded-radius-md px-space-base py-space-sm text-left',
           'transition-colors duration-150',
-          'focus:outline-none focus-visible:ring-2 focus-visible:ring-state-focus',
+          'focus:outline-hidden focus-visible:ring-2 focus-visible:ring-state-focus',
           isActive
             ? 'bg-transparent text-text-primary'
             : 'text-text-secondary hover:bg-background-subtle hover:text-text-primary',
         )}
       >
         {isActive ? (
-          <span className="absolute left-0 top-2 bottom-2 w-0.5 rounded-radius-full bg-state-focus" />
+          <span className="absolute top-2 bottom-2 left-0 w-0.5 rounded-radius-full bg-state-focus" />
         ) : null}
         <div
           className={cn(
@@ -66,9 +65,7 @@ export const TemplateCategorySidebar: React.FC<TemplateCategorySidebarProps> = (
           <span
             className={cn(
               'min-w-6 text-right text-xs font-semibold tabular-nums',
-              isActive
-                ? 'text-state-focus'
-                : 'text-text-tertiary',
+              isActive ? 'text-state-focus' : 'text-text-tertiary',
             )}
           >
             {count}
@@ -80,7 +77,9 @@ export const TemplateCategorySidebar: React.FC<TemplateCategorySidebarProps> = (
 
   const allItem = CATEGORY_ORDER.find((c) => c.isAll)!
   const recommendedItem = CATEGORY_ORDER.find((c) => c.isRecommended)!
-  const regularItems = CATEGORY_ORDER.filter((c) => !c.isAll && !c.isRecommended)
+  const regularItems = CATEGORY_ORDER.filter(
+    (c) => !c.isAll && !c.isRecommended,
+  )
 
   return (
     <aside
@@ -91,7 +90,7 @@ export const TemplateCategorySidebar: React.FC<TemplateCategorySidebarProps> = (
     >
       <div className="border-b border-border-subtle px-space-lg py-space-base">
         <p className="text-sm font-semibold text-text-primary">
-          模板分类
+          {t('agents.templateCategories')}
         </p>
       </div>
 

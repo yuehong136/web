@@ -78,7 +78,7 @@
 |  15 | ARCH-8 | 共享 Chat Workbench：composer、附件、滚动、停止/重试、工具调用、反馈和可访问状态                     |   P2   |  XL，15–25 人日 | 依赖 ARCH-7、ENG-2；需稳定消息/工具协议           | 未开始           |
 |  16 | ENG-12 | 按活跃度拆 ApiKeys、Provider modal、MCPChat、Explore，并收紧文件棘轮                                 |   P2   | XXL，25–40 人日 | 先修业务正确性，避免重构错误行为                  | 未开始           |
 |  17 | ARCH-9 | 试点 Projects/Spaces + Assets 信息架构，整合聊天、文件、知识、指令与 Studio                          |   P3   | XXL，25–45 人日 | 跨产品/前后端；需数据模型、权限和迁移方案         | 未开始           |
-|  18 | ARCH-5 | Tailwind 4 评估与设计令牌内部简化                                                                    |   P3   |    L，8–12 人日 | 可靠性、体验和 Bundle 工作稳定后再做              | 未开始           |
+|  18 | ARCH-5 | Tailwind 4 评估与设计令牌内部简化                                                                    |   P3   |    L，8–12 人日 | 可靠性、体验和 Bundle 工作稳定后再做              | 部分完成         |
 
 ### 推荐执行波次
 
@@ -365,16 +365,17 @@
 
 ### ARCH-5 设计令牌治理 + Tailwind 4 评估
 
-- **状态**：未开始
+- **状态**：部分完成；Tailwind 4 迁移完成，存量 token 用量治理另行推进
 - **优先级 / 工作量**：P3 / L，8–12 前端人日；只做用量治理和 go/no-go 评估，实际迁移另估
 - **问题**：1472 个 token、`theme-generator.ts` 2206 行；`components-*` 粒度 token 随组件数线性增长，对比主流（shadcn/Radix Themes 30–60 个语义变量）成本过高。Tailwind 停在 3.4，落后主流一个大版本；Tailwind 4 的 CSS-first `@theme` 与 build:themes 管线天然同构，迁移可能反而删管线。
 - **方案**：(a) 先做 token 用量统计（哪些 token 全仓 0 引用 → 删）；(b) 新组件默认复用语义层 token，`components-*` 新增需 review 说明理由；(c) 单独立项评估 Tailwind 4 迁移（eslint-plugin-tailwindcss 兼容性、@theme 映射 PoC）。
 - **验收**：0 引用 token 清零；token 新增有治理流程；Tailwind 4 评估有结论文档。
 - **状态与进展记录**：
 
-| 日期       | 动作 | 提交 | 备注 |
-| ---------- | ---- | ---- | ---- |
-| 2026-06-10 | 立项 | —    | —    |
+| 日期       | 动作                               | 提交         | 备注                                                                               |
+| ---------- | ---------------------------------- | ------------ | ---------------------------------------------------------------------------------- |
+| 2026-06-10 | 立项                               | —            | —                                                                                  |
+| 2026-10-02 | 用户批准后完成 Tailwind 4 原生迁移 | 本轮本地提交 | Vite 插件、CSS-first 配置、主题生成、样式合同与明暗验收完成；未开展无用 token 删除 |
 
 ### ARCH-6 channel 管理页：provider 知识散落在客户端，三处独立断裂
 
@@ -807,3 +808,9 @@ hooks 7 最新全量试跑为 151 errors / 93 files：set-state-in-effect 87、r
 2026-10-02 HYG-2 正式 ESLint 10 升级：切换 ESLint 10.11.0、@eslint/js 10.0.1 与 react-refresh 0.5.7；修复新版发现的两处无用赋值和五处丢失原始错误的包装，没有关闭规则。jsx-a11y 官方 6.10.2 尚未声明 ESLint 10 peer，采用可复现的本地 `6.10.2-web.1` 包，仅扩展 package 元数据；固定官方 tarball SHA-512，逐文件证明其余 228 个文件和许可证未修改。来源、重建及退出条件见 [vendor/README.md](../vendor/README.md)。三个正式 tooling 回归验证全部 a11y 规则可运行、实际违规仍产生诊断、实现与许可证完整性。
 
 完整 test:ci 为 543 + 210 + 81 + 10 = 844，全部通过；全量 lint（0 errors / 1497 warnings）、typed lint（0 / 84）、Agent strict、Desktop lint/typecheck、Web build、file-size、原 Bundle budget、Desktop build/stage/verify（1065 文件）通过。独立普通 npm ci 与 npm ls 无 peer 冲突，不使用 force/legacy-peer-deps。安全规则继续进入正式测试。官方 a11y 兼容发行版发布后应移除本地包；Tailwind 4 仍为下一独立单元。
+
+2026-10-02 HYG-2 / ARCH-5 正式 Tailwind 4 迁移：Tailwind 4.3.3 与同版原生 Vite 插件，scrollbar 4.0.2、ESLint Tailwind 插件 4.4.0；删除旧 JS 配置、PostCSS 配置、直接 autoprefixer/postcss 和 container-queries 插件。主题别名仍来自同一注册表，build:themes 同步产出四份小于 600 行的 CSS-first 映射，用 reference 导入避免重复运行时变量。间距、圆角、阴影、动画转为原生主题配置，删除约 600 行手写工具类及重复定义；补齐 2xs 间距，迁移已删除的 flex 工具类、渐变、阴影/模糊命名和可访问 outline，调整 Sidebar 的独立变换过渡。模板回退文案和分类标题中英同步。
+
+新增七项正式 source-node 样式合同，验证生成物可重建、语义颜色与透明度、响应式/hover、局部暗色、forms/typography/scrollbar/容器查询、独立 CSS reference 和 reset 层级。生产登录页实看发现 Ant Design reset 覆盖按钮颜色，已移入独立低优先级 reset 层；读回按钮颜色为白色，背景为深色，生产登录→懒加载注册→返回流程通过，控制台无错误。组件预览实看明暗弹窗、焦点边框、选择器、搜索模式及模板改动的中英切换；未提交登录、注册、连接测试或后端数据写入。
+
+最终完整 test:ci 为 550 Node + 210 Vitest（46 文件）+ 81 Desktop + 10 tooling = 851，全部通过。完整 Web build、全量 lint（0 errors / 1497 warnings）、typed lint（0 / 84）、Agent strict、Desktop lint/typecheck、Agent i18n、file-size、原 Bundle budget、独立普通 npm ci/npm ls 通过；JS 总量 25.84 MB、入口 gzip 119 KB、最大 chunk gzip 725 KB，未放宽预算。Desktop build/stage/verify 继续通过。Tailwind Vite 插件仍产生 CSS source map 精度警告，未屏蔽；未实跑 Firefox、Safari、远程 CI 或 Windows 安装包。ARCH-5 剩余的是存量 token 治理，不影响本轮 Tailwind 4 完成状态；SEC-7/8 与全局 Compiler 保持原范围。

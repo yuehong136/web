@@ -125,7 +125,7 @@ export const MemoryCard: FC<MemoryCardProps> = ({
       className={cn(
         'group relative cursor-pointer rounded-2xl border transition-all duration-300',
         'hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/5',
-        isHovered && 'ring-text-accent/20 ring-2',
+        isHovered && 'ring-2 ring-text-accent/20',
         selected && 'ring-2 ring-text-accent',
       )}
       style={{
@@ -167,7 +167,7 @@ export const MemoryCard: FC<MemoryCardProps> = ({
               <div
                 className={cn(
                   'flex h-12 w-12 items-center justify-center rounded-xl',
-                  'bg-gradient-to-br shadow-sm',
+                  'bg-linear-to-br shadow-xs',
                   avatarGradient,
                 )}
               >

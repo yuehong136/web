@@ -129,7 +129,7 @@ export const ChatSection = ({
       )
     }
     return (
-      <div className="flex h-8 min-h-[32px] w-8 min-w-[32px] flex-shrink-0 items-center justify-center rounded-full bg-components-avatar-gradient-purple-from">
+      <div className="flex h-8 min-h-[32px] w-8 min-w-[32px] shrink-0 items-center justify-center rounded-full bg-components-avatar-gradient-purple-from">
         <Bot className="h-4 w-4 text-text-inverted" />
       </div>
     )
@@ -137,7 +137,7 @@ export const ChatSection = ({
 
   const getUserAvatar = useCallback(
     () => (
-      <div className="flex h-8 min-h-[32px] w-8 min-w-[32px] flex-shrink-0 items-center justify-center rounded-full bg-components-avatar-gradient-blue-from">
+      <div className="flex h-8 min-h-[32px] w-8 min-w-[32px] shrink-0 items-center justify-center rounded-full bg-components-avatar-gradient-blue-from">
         <User className="h-4 w-4 text-text-inverted" />
       </div>
     ),
@@ -370,7 +370,7 @@ export const ChatSection = ({
                     {/* Think 组件 */}
                     {thinkContent && (
                       <ThinkWrapper status={status} messageId={msg.id}>
-                        <div className="whitespace-pre-wrap text-sm text-text-secondary">
+                        <div className="text-sm whitespace-pre-wrap text-text-secondary">
                           {thinkContent}
                         </div>
                       </ThinkWrapper>
@@ -463,7 +463,7 @@ export const ChatSection = ({
           <div className="space-y-4">
             {thinkContent && (
               <ThinkWrapper status={status} messageId="streaming">
-                <div className="whitespace-pre-wrap text-sm text-text-secondary">
+                <div className="text-sm whitespace-pre-wrap text-text-secondary">
                   {thinkContent}
                 </div>
               </ThinkWrapper>
@@ -558,7 +558,7 @@ export const ChatSection = ({
           {isLoadingHistory ? (
             <div className="flex items-center justify-center py-12">
               <div className="flex flex-col items-center gap-3">
-                <div className="border-3 h-8 w-8 animate-spin rounded-full border-text-tertiary border-t-text-accent" />
+                <div className="h-8 w-8 animate-spin rounded-full border-3 border-text-tertiary border-t-text-accent" />
                 <span className="text-sm text-text-tertiary">
                   {t('home.input.loadingHistory', '加载对话历史...')}
                 </span>
@@ -575,7 +575,7 @@ export const ChatSection = ({
       </div>
 
       {/* 底部输入区域 */}
-      <div className="flex-shrink-0 px-6 pb-6 pt-2">
+      <div className="shrink-0 px-6 pt-2 pb-6">
         <div className="mx-auto max-w-4xl">
           <ChatInputBox
             inputValue={inputValue}

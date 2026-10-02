@@ -210,7 +210,7 @@ const ChunkItem: FC<ChunkItemProps> = ({ chunk, index, onClick }) => {
     >
       {/* 索引标记 */}
       <span
-        className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded text-xs font-medium"
+        className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-xs font-medium"
         style={{
           backgroundColor: 'var(--color-state-focus-10)',
           color: 'var(--color-text-accent)',
@@ -250,7 +250,7 @@ const ChunkItem: FC<ChunkItemProps> = ({ chunk, index, onClick }) => {
       </div>
 
       <ChevronRight
-        className="mt-0.5 h-4 w-4 flex-shrink-0"
+        className="mt-0.5 h-4 w-4 shrink-0"
         style={{ color: 'var(--color-text-tertiary)' }}
       />
     </button>

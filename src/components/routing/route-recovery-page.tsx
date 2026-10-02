@@ -119,7 +119,7 @@ export function RouteRecoveryPage({ kind, onRetry }: RouteRecoveryPageProps) {
       data-route-error-kind={kind}
       aria-label={t(`routeErrors.${copyKey}.title`)}
       role={kind === RouteErrorKind.NOT_FOUND ? undefined : 'alert'}
-      className="min-h-screen bg-background-body outline-none"
+      className="min-h-screen bg-background-body outline-hidden"
     >
       <PageErrorState
         className="min-h-screen"

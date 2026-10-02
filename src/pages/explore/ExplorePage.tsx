@@ -1009,7 +1009,7 @@ export const ExplorePage: FC = () => {
           avatar:
             msg.role === 'user' ? (
               <div
-                className="flex h-8 min-h-[32px] w-8 min-w-[32px] flex-shrink-0 items-center justify-center rounded-full text-sm font-medium"
+                className="flex h-8 min-h-[32px] w-8 min-w-[32px] shrink-0 items-center justify-center rounded-full text-sm font-medium"
                 style={{
                   background: 'var(--color-chat-bubble-user-avatar-bg)',
                   color: 'var(--color-chat-bubble-user-avatar-text)',
@@ -1018,7 +1018,7 @@ export const ExplorePage: FC = () => {
                 U
               </div>
             ) : currentAppIconUrl ? (
-              <div className="h-8 min-h-[32px] w-8 min-w-[32px] flex-shrink-0 overflow-hidden rounded-full">
+              <div className="h-8 min-h-[32px] w-8 min-w-[32px] shrink-0 overflow-hidden rounded-full">
                 <img
                   src={currentAppIconUrl}
                   alt={currentApp?.name || 'AI'}
@@ -1027,7 +1027,7 @@ export const ExplorePage: FC = () => {
               </div>
             ) : (
               <div
-                className="flex h-8 min-h-[32px] w-8 min-w-[32px] flex-shrink-0 items-center justify-center rounded-full"
+                className="flex h-8 min-h-[32px] w-8 min-w-[32px] shrink-0 items-center justify-center rounded-full"
                 style={{
                   background: 'var(--color-components-gradient-primary)',
                 }}
@@ -1128,7 +1128,7 @@ export const ExplorePage: FC = () => {
                       {thinkContent && (
                         <ThinkWrapper status={status} messageId={msg.id}>
                           <div
-                            className="whitespace-pre-wrap text-sm"
+                            className="text-sm whitespace-pre-wrap"
                             style={{ color: 'var(--color-text-secondary)' }}
                           >
                             {thinkContent}
@@ -1174,7 +1174,7 @@ export const ExplorePage: FC = () => {
               : msg.files?.length
                 ? () => (
                     <div>
-                      <div className="whitespace-pre-wrap break-words">
+                      <div className="break-words whitespace-pre-wrap">
                         {msg.content}
                       </div>
                       {renderMessageAttachments(msg.files)}
@@ -1410,7 +1410,7 @@ export const ExplorePage: FC = () => {
             <div className="flex items-center space-x-3">
               {/* 显示当前应用图标 */}
               {mode === 'chat' && currentApp && (
-                <div className="flex-shrink-0">
+                <div className="shrink-0">
                   {currentApp.icon ? (
                     <img
                       src={

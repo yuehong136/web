@@ -23,11 +23,11 @@ export function DocumentListPanel({
   const totalPages = Math.ceil(listState.total / listState.pageSize)
 
   return (
-    <div className="rounded-radius-lg shadow-elevation-low flex min-h-0 flex-1 flex-col overflow-hidden bg-background-surface">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-radius-lg bg-background-surface shadow-elevation-low">
       <div className="border-b border-border-default px-4 py-4">
         <div className="flex items-center justify-between">
-          <div className="gap-space-md flex min-w-0 items-center">
-            <div className="gap-space-xs flex min-w-0 cursor-pointer items-center">
+          <div className="flex min-w-0 items-center gap-space-md">
+            <div className="flex min-w-0 cursor-pointer items-center gap-space-xs">
               <Checkbox
                 aria-label={t('knowledge.documents.selectAll')}
                 checked={listState.allSelected}
@@ -35,7 +35,7 @@ export function DocumentListPanel({
                   listState.selectAll(checked as boolean)
                 }
               />
-              <span className="whitespace-nowrap text-sm text-text-secondary">
+              <span className="text-sm whitespace-nowrap text-text-secondary">
                 {t('knowledge.documents.selectAll')} (
                 {listState.selectedDocs.size > 0
                   ? t('knowledge.documents.selectedCount', {
@@ -57,7 +57,7 @@ export function DocumentListPanel({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto scrollbar-thin">
+      <div className="scrollbar-thin flex-1 overflow-y-auto">
         <Table<Document>
           columns={columns}
           data={listState.documents}
@@ -82,7 +82,7 @@ export function DocumentListPanel({
       </div>
 
       {listState.total > 0 && (
-        <div className="shadow-elevation-high sticky bottom-0 border-t border-components-pagination-border bg-components-pagination-bg backdrop-blur-sm">
+        <div className="sticky bottom-0 border-t border-components-pagination-border bg-components-pagination-bg shadow-elevation-high backdrop-blur-xs">
           <div className="flex items-center justify-between px-6 py-4">
             <div className="text-sm text-components-pagination-text">
               {t('knowledge.documents.totalItems', {

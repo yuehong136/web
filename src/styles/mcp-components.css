@@ -11,7 +11,7 @@
 
 /* 悬停提升效果 */
 .hover-lift {
-  @apply hover:-translate-y-1 hover:shadow-lg transition-transform duration-300;
+  @apply transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg;
 }
 
 /* 平滑过渡 */
@@ -55,7 +55,11 @@
 
 /* 渐变背景 */
 .gradient-bg {
-  background: linear-gradient(135deg, var(--color-components-badge-info-bg) 0%, var(--color-components-badge-info-text) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-components-badge-info-bg) 0%,
+    var(--color-components-badge-info-text) 100%
+  );
 }
 
 /* 加载动画 */
@@ -76,7 +80,8 @@
 
 /* 状态指示器动画 */
 @keyframes pulse-dot {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -100,3 +105,4 @@
     display: none;
   }
 }
+@reference '../index.css';

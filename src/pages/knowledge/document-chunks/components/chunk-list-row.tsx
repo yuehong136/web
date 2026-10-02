@@ -64,7 +64,7 @@ export const ChunkListRow = ({
         isActive
           ? 'border-2 border-text-accent'
           : 'border-components-card-border',
-        isSelected && 'ring-text-accent/50 ring-1',
+        isSelected && 'ring-1 ring-text-accent/50',
       )}
       onClick={() => onSelectChunk(chunk)}
       onDoubleClick={(event) => {
@@ -74,7 +74,7 @@ export const ChunkListRow = ({
     >
       <span
         className={cn(
-          'absolute right-0 top-0 rounded-bl-xl rounded-tr-lg border-b border-l border-border-default px-3 py-1 text-xs font-medium',
+          'absolute top-0 right-0 rounded-tr-lg rounded-bl-xl border-b border-l border-border-default px-3 py-1 text-xs font-medium',
           typeStyles.bg,
           typeStyles.text,
         )}
@@ -100,7 +100,7 @@ export const ChunkListRow = ({
               }
             />
           </div>
-          <span className="inline-flex items-center rounded bg-background-subtle px-2 py-1 text-xs font-medium tabular-nums text-text-primary">
+          <span className="inline-flex items-center rounded bg-background-subtle px-2 py-1 text-xs font-medium text-text-primary tabular-nums">
             {t('knowledge.chunks.list.itemLabel', { no: sliceNo })}
             {pageNo ? (
               <span className="ml-1.5 text-text-tertiary">
@@ -136,7 +136,7 @@ export const ChunkListRow = ({
 
         <div className="flex items-center space-x-2 opacity-0 transition-opacity group-hover:opacity-100">
           <div onClick={(event) => event.stopPropagation()}>
-            <div className="rounded-lg border border-border-default bg-background-surface px-2 py-1 shadow-md backdrop-blur-sm">
+            <div className="rounded-lg border border-border-default bg-background-surface px-2 py-1 shadow-md backdrop-blur-xs">
               <ToggleSwitch
                 checked={chunk.available_int === 1}
                 onChange={() => onToggleChunkStatus(chunk)}
@@ -180,7 +180,7 @@ export const ChunkListRow = ({
           <button
             type="button"
             aria-label={t('knowledge.chunks.list.previewImage')}
-            className="group/thumb relative flex-shrink-0 cursor-pointer self-stretch border-0 bg-transparent p-0 text-left"
+            className="group/thumb relative shrink-0 cursor-pointer self-stretch border-0 bg-transparent p-0 text-left"
             onClick={(event) => {
               event.stopPropagation()
               onPreviewImage(
@@ -259,7 +259,7 @@ interface KeywordRowProps {
 
 const KeywordRow = ({ icon, label, values, variant }: KeywordRowProps) => (
   <div className="flex items-start gap-2">
-    <div className="flex flex-shrink-0 items-center gap-1 text-xs text-text-tertiary">
+    <div className="flex shrink-0 items-center gap-1 text-xs text-text-tertiary">
       {icon}
       <span>{label}</span>
     </div>
@@ -287,7 +287,7 @@ const StatusBadge = ({ available }: { available: boolean }) => {
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold shadow-sm',
+        'inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold shadow-xs',
         available
           ? 'bg-components-badge-success-bg text-components-badge-success-text'
           : 'bg-components-badge-error-bg text-components-badge-error-text',

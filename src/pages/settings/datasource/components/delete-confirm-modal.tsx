@@ -36,9 +36,9 @@ export function DeleteConfirmModal({
     <Dialog open={visible} onOpenChange={(open) => !open && onCancel()}>
       <DialogContent size="sm" className="gap-0 overflow-hidden p-0">
         {/* 警示头部 */}
-        <DialogHeader className="px-6 pb-4 pt-6">
+        <DialogHeader className="px-6 pt-6 pb-4">
           <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-status-error-10">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-status-error-10">
               <AlertTriangle className="h-6 w-6 text-status-error" />
             </div>
             <div className="min-w-0 flex-1 pt-1">

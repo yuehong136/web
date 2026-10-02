@@ -85,56 +85,64 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
 
         {/* 内容区域 */}
         <div className="px-6 py-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {projectTypes.map((projectType) => {
               const Icon = projectType.icon
               const isSelected = selectedType === projectType.type
-              
+
               return (
                 <div
                   key={projectType.type}
                   onClick={() => setSelectedType(projectType.type)}
                   className={cn(
-                    'group relative rounded-2xl p-5 cursor-pointer transition-all duration-200',
+                    'group relative cursor-pointer rounded-2xl p-5 transition-all duration-200',
                     'border-2',
                     isSelected
                       ? `border-transparent ring-2 ${projectType.ringColor} bg-[var(--color-surface-secondary)]`
-                      : 'border-border-default hover:border-border-hover hover:bg-[var(--color-surface-secondary)]/50'
+                      : 'hover:border-border-hover border-border-default hover:bg-[var(--color-surface-secondary)]/50',
                   )}
                 >
                   {/* 选中标记 */}
                   {isSelected && (
-                    <div className={cn(
-                      'absolute top-3 right-3 w-5 h-5 rounded-full flex items-center justify-center',
-                      projectType.checkBg
-                    )}>
-                      <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                    <div
+                      className={cn(
+                        'absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full',
+                        projectType.checkBg,
+                      )}
+                    >
+                      <Check className="h-3 w-3 text-white" strokeWidth={3} />
                     </div>
                   )}
 
                   {/* 图标 */}
-                  <div className={cn(
-                    'w-12 h-12 rounded-xl flex items-center justify-center mb-4',
-                    'bg-gradient-to-br',
-                    projectType.gradientFrom,
-                    projectType.gradientTo,
-                    'shadow-lg',
-                    isSelected ? 'scale-110' : 'group-hover:scale-105',
-                    'transition-transform duration-200'
-                  )}>
-                    <Icon className="w-6 h-6 text-white" />
+                  <div
+                    className={cn(
+                      'mb-4 flex h-12 w-12 items-center justify-center rounded-xl',
+                      'bg-linear-to-br',
+                      projectType.gradientFrom,
+                      projectType.gradientTo,
+                      'shadow-lg',
+                      isSelected ? 'scale-110' : 'group-hover:scale-105',
+                      'transition-transform duration-200',
+                    )}
+                  >
+                    <Icon className="h-6 w-6 text-white" />
                   </div>
 
                   {/* 标题 */}
-                  <h3 className={cn(
-                    'text-base font-semibold mb-2 transition-colors',
-                    isSelected ? 'text-text-primary' : 'text-text-primary group-hover:text-text-primary'
-                  )}>
+                  <h3
+                    className={cn(
+                      'mb-2 text-base font-semibold transition-colors',
+                      isSelected
+                        ? 'text-text-primary'
+                        : 'text-text-primary group-hover:text-text-primary',
+                    )}
+                  >
                     {projectType.title}
                   </h3>
 
                   {/* 描述 */}
-                  <p className="text-sm text-text-secondary leading-relaxed mb-4">
+                  <p className="mb-4 text-sm leading-relaxed text-text-secondary">
                     {projectType.description}
                   </p>
 
@@ -144,8 +152,8 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                       <span
                         key={index}
                         className={cn(
-                          'inline-flex items-center px-2 py-0.5 rounded-md text-xs',
-                          'bg-[var(--color-surface-tertiary)] text-text-secondary'
+                          'inline-flex items-center rounded-md px-2 py-0.5 text-xs',
+                          'bg-[var(--color-surface-tertiary)] text-text-secondary',
                         )}
                       >
                         {feature}
@@ -158,7 +166,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
           </div>
 
           {/* 提示文字 */}
-          <p className="text-xs text-text-tertiary text-center mt-5">
+          <p className="mt-5 text-center text-xs text-text-tertiary">
             {STUDIO_TEXTS.projectType.tip}
           </p>
         </div>
@@ -167,13 +175,13 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
           <Button variant="outline" onClick={handleClose}>
             取消
           </Button>
-          <Button 
-            onClick={handleConfirm} 
+          <Button
+            onClick={handleConfirm}
             disabled={!selectedType}
             className="gap-1.5"
           >
             继续
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="h-4 w-4" />
           </Button>
         </DialogFooter>
       </DialogContent>

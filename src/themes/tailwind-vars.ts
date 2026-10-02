@@ -6,46 +6,43 @@
 import { cssVariables } from './tokens'
 
 // 生成 Tailwind 兼容的变量映射
-const tailwindVars = {
+export const tailwindColors = {
   // 直接映射所有设计令牌
   ...cssVariables,
-  
-  // Tailwind 默认颜色系统兼容
-  'primary': 'var(--color-components-button-primary-bg)',
-  'secondary': 'var(--color-text-secondary)',
-  // 强调色：用于浅色悬浮背景等
-  'accent': 'var(--color-accent)',
+
+  background: 'rgb(var(--twc-background))',
+  foreground: 'rgb(var(--twc-foreground))',
+  card: 'var(--color-components-card-bg)',
+  'card-foreground': 'var(--color-text-primary)',
+  popover: 'var(--color-components-dropdown-bg)',
+  'popover-foreground': 'var(--color-text-primary)',
+  primary: 'rgb(var(--twc-primary))',
+  'primary-foreground': 'rgb(var(--twc-primary-foreground))',
+  secondary: 'var(--color-components-button-secondary-bg)',
+  'secondary-foreground': 'var(--color-components-button-secondary-text)',
+  muted: 'var(--color-background-subtle)',
+  'muted-foreground': 'var(--color-text-secondary)',
+  border: 'rgb(var(--twc-border))',
+  input: 'var(--color-components-input-border)',
+  ring: 'rgb(var(--twc-ring))',
+  accent: 'var(--color-accent)',
   'accent-foreground': 'var(--color-accent-foreground)',
-  // 与参考项目一致的通用语义色
-  'foreground': 'var(--color-foreground)',
-  'muted': 'var(--color-muted)',
-  'muted-foreground': 'var(--color-muted-foreground)',
   'card-base': 'var(--color-card)',
   'card-base-foreground': 'var(--color-card-foreground)',
-  'popover': 'var(--color-popover)',
-  'popover-foreground': 'var(--color-popover-foreground)',
-  'destructive': 'var(--color-destructive)',
+  destructive: 'var(--color-destructive)',
   'destructive-foreground': 'var(--color-destructive-foreground)',
-  'border': 'var(--color-border)',
-  'ring': 'var(--color-ring)',
-  'neutral': 'var(--color-text-primary)',
+  neutral: 'var(--color-text-primary)',
   'base-100': 'var(--color-background-body)',
   'base-200': 'var(--color-background-default)',
   'base-300': 'var(--color-background-subtle)',
-  'info': 'var(--color-text-accent)',
-  'success': 'var(--color-text-success)',
-  'warning': 'var(--color-text-warning)',
-  'error': 'var(--color-text-error)',
-  
-  // 常用组合变量 - 简化使用
-  'card': 'var(--color-components-card-bg)',
+  info: 'var(--color-text-accent)',
+  success: 'var(--color-text-success)',
+  warning: 'var(--color-text-warning)',
+  error: 'var(--color-text-error)',
   'card-hover': 'var(--color-components-card-bg-hover)',
-  'sidebar': 'var(--color-components-sidebar-bg)',
-  'nav': 'var(--color-components-nav-bg)',
-  'input': 'var(--color-components-input-bg)',
-  'dropdown': 'var(--color-components-dropdown-bg)',
-  'modal': 'var(--color-components-modal-bg)',
-  'table': 'var(--color-components-table-bg)',
+  sidebar: 'var(--color-components-sidebar-bg)',
+  nav: 'var(--color-components-nav-bg)',
+  dropdown: 'var(--color-components-dropdown-bg)',
+  modal: 'var(--color-components-modal-bg)',
+  table: 'var(--color-components-table-bg)',
 }
-
-export default tailwindVars

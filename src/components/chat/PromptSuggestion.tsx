@@ -192,7 +192,7 @@ export function PromptSuggestion({
         onKeyDown={handleKeyDown}
       >
         {/* 搜索框 - 固定在顶部 */}
-        <div className="flex-shrink-0 border-b border-[var(--color-border-subtle)] p-4">
+        <div className="shrink-0 border-b border-[var(--color-border-subtle)] p-4">
           <Input
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
@@ -216,13 +216,13 @@ export function PromptSuggestion({
                     variant="ghost"
                     className={`mb-2 h-auto w-full justify-start rounded-lg p-3 text-left transition-all duration-200 ${
                       index === selectedIndex
-                        ? 'border border-[var(--color-border-accent)] bg-[var(--color-state-hover)] text-[var(--color-text-primary)] shadow-sm'
+                        ? 'border border-[var(--color-border-accent)] bg-[var(--color-state-hover)] text-[var(--color-text-primary)] shadow-xs'
                         : 'border border-transparent text-[var(--color-text-secondary)] hover:bg-[var(--color-state-hover)]'
                     }`}
                     onClick={() => onSelect(prompt)}
                   >
                     <div className="flex w-full items-start gap-3">
-                      <div className="mt-1 flex-shrink-0 text-[var(--color-text-tertiary)]">
+                      <div className="mt-1 shrink-0 text-[var(--color-text-tertiary)]">
                         {prompt.icon}
                       </div>
                       <div className="min-w-0 flex-1">
@@ -257,7 +257,7 @@ export function PromptSuggestion({
         </div>
 
         {/* 底部提示 - 固定在底部 */}
-        <div className="bg-[var(--color-background-subtle)]/30 flex-shrink-0 border-t border-[var(--color-border-subtle)] px-4 py-3">
+        <div className="shrink-0 border-t border-[var(--color-border-subtle)] bg-[var(--color-background-subtle)]/30 px-4 py-3">
           <div className="flex items-center justify-between text-xs text-[var(--color-text-tertiary)]">
             <div className="flex items-center gap-3">
               <span className="flex items-center gap-1">

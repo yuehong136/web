@@ -1,6 +1,6 @@
 import { StrictMode, type ReactNode } from 'react'
 import { createRoot } from 'react-dom/client'
-import 'antd/dist/reset.css'
+import '@/styles/application-reset.css'
 import '@ant-design/x-markdown/dist/x-markdown.css'
 import '@/index.css'
 import '@/locales/i18n'

@@ -133,19 +133,19 @@ export function McpTestSidebar({
         <CardContent>
           <div className="space-y-3 text-sm text-muted-foreground">
             <div className="flex gap-2">
-              <div className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-blue-500"></div>
+              <div className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500"></div>
               <p>测试将验证服务器URL的可访问性</p>
             </div>
             <div className="flex gap-2">
-              <div className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-blue-500"></div>
+              <div className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500"></div>
               <p>检查协议类型是否匹配</p>
             </div>
             <div className="flex gap-2">
-              <div className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-blue-500"></div>
+              <div className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500"></div>
               <p>获取服务器提供的工具列表</p>
             </div>
             <div className="flex gap-2">
-              <div className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-blue-500"></div>
+              <div className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500"></div>
               <p>测量连接响应时间</p>
             </div>
           </div>

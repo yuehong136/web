@@ -1,0 +1,3 @@
+/* Application-only reset must not outrank semantic component utilities. */
+@layer reset, theme, base, components, utilities;
+@import 'antd/dist/reset.css' layer(reset);

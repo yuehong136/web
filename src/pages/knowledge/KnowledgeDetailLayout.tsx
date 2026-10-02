@@ -47,7 +47,7 @@ const KnowledgeAvatar: React.FC<{ kb: KnowledgeBase }> = ({ kb }) => {
       aria-hidden
       className={cn(
         'flex h-10 w-10 items-center justify-center rounded-xl',
-        'bg-gradient-to-br shadow-sm',
+        'bg-linear-to-br shadow-xs',
         getAvatarGradient(kb.name),
       )}
     >
@@ -62,7 +62,7 @@ const KnowledgeStats: React.FC<{ kb: KnowledgeBase }> = ({ kb }) => {
   const { t } = useTranslation()
 
   return (
-    <div className="gap-space-base flex items-center text-sm text-text-secondary">
+    <div className="flex items-center gap-space-base text-sm text-text-secondary">
       <span>
         {t('knowledge.common.documentsCount', { count: kb.doc_num || 0 })}
       </span>

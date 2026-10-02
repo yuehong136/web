@@ -39,10 +39,10 @@ export interface SelectOption {
 
 // 分组选项类型（用于按厂商分组）
 export interface SelectOptionGroup {
-  label: ReactNode  // 分组标题
-  value?: string    // 如果有 value 则为普通选项
+  label: ReactNode // 分组标题
+  value?: string // 如果有 value 则为普通选项
   disabled?: boolean
-  options?: SelectOption[]  // 分组下的选项
+  options?: SelectOption[] // 分组下的选项
 }
 
 export interface SelectWithSearchProps {
@@ -98,7 +98,7 @@ export const SelectWithSearch = forwardRef<
     // 获取当前选中项的 label
     const selectLabel = useMemo(() => {
       if (!value) return null
-      
+
       if (options.every((x) => x.options === undefined)) {
         return findLabelWithoutOptions(options, value)
       } else if (options.every((x) => Array.isArray(x.options))) {
@@ -153,34 +153,36 @@ export const SelectWithSearch = forwardRef<
             ref={ref}
             disabled={disabled}
             className={cn(
-              'bg-transparent hover:bg-accent/30 border border-border w-full justify-between px-3 font-normal outline-offset-0 outline-none focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary/30 [&_svg]:pointer-events-auto group h-10',
+              'group h-10 w-full justify-between border border-border bg-transparent px-3 font-normal outline-hidden outline-offset-0 hover:bg-accent/30 focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary/30 [&_svg]:pointer-events-auto',
               triggerClassName,
             )}
           >
             {value && selectLabel ? (
-              <div className="flex-1 min-w-0 overflow-hidden text-left">
+              <div className="min-w-0 flex-1 overflow-hidden text-left">
                 {selectLabel}
               </div>
             ) : (
-              <span className="flex-1 text-text-tertiary text-left">{placeholder}</span>
+              <span className="flex-1 text-left text-text-tertiary">
+                {placeholder}
+              </span>
             )}
-            <div className="flex items-center shrink-0 ml-2">
+            <div className="ml-2 flex shrink-0 items-center">
               {value && allowClear && (
                 <XIcon
-                  className="h-4 w-4 mx-1 cursor-pointer text-text-tertiary opacity-0 group-hover:opacity-100 transition-opacity hover:text-text-secondary"
+                  className="mx-1 h-4 w-4 cursor-pointer text-text-tertiary opacity-0 transition-opacity group-hover:opacity-100 hover:text-text-secondary"
                   onClick={handleClear}
                 />
               )}
               <ChevronDownIcon
                 size={16}
-                className="text-text-tertiary shrink-0 ml-1"
+                className="ml-1 shrink-0 text-text-tertiary"
                 aria-hidden="true"
               />
             </div>
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className="border-border w-full min-w-[var(--radix-popper-anchor-width)] p-0"
+          className="w-full min-w-[var(--radix-popper-anchor-width)] border-border p-0"
           align="start"
         >
           <Command className="p-4">
@@ -190,7 +192,7 @@ export const SelectWithSearch = forwardRef<
                 className="placeholder:text-text-tertiary"
               />
             )}
-            <CommandList className="mt-2 outline-none">
+            <CommandList className="mt-2 outline-hidden">
               <CommandEmpty>
                 <div className="text-text-tertiary">{emptyText}</div>
               </CommandEmpty>
@@ -205,18 +207,25 @@ export const SelectWithSearch = forwardRef<
                             value={option.value}
                             keywords={buildOptionSearchKeywords(option.label, [
                               option.value,
-                              typeof group.label === 'string' ? group.label : undefined,
+                              typeof group.label === 'string'
+                                ? group.label
+                                : undefined,
                             ])}
                             disabled={option.disabled}
                             onSelect={handleSelect}
                             className={cn(
                               'min-h-9',
-                              value === option.value ? 'bg-card' : ''
+                              value === option.value ? 'bg-card' : '',
                             )}
                           >
-                            <span className="leading-none flex-1">{option.label}</span>
+                            <span className="flex-1 leading-none">
+                              {option.label}
+                            </span>
                             {value === option.value && (
-                              <CheckIcon size={16} className="ml-auto text-primary" />
+                              <CheckIcon
+                                size={16}
+                                className="ml-auto text-primary"
+                              />
                             )}
                           </CommandItem>
                         ))}
@@ -228,15 +237,17 @@ export const SelectWithSearch = forwardRef<
                     <CommandItem
                       key={group.value}
                       value={group.value}
-                      keywords={buildOptionSearchKeywords(group.label, [group.value])}
+                      keywords={buildOptionSearchKeywords(group.label, [
+                        group.value,
+                      ])}
                       disabled={group.disabled}
                       onSelect={handleSelect}
                       className={cn(
                         'min-h-9',
-                        value === group.value ? 'bg-card' : ''
+                        value === group.value ? 'bg-card' : '',
                       )}
                     >
-                      <span className="leading-none flex-1">{group.label}</span>
+                      <span className="flex-1 leading-none">{group.label}</span>
                       {value === group.value && (
                         <CheckIcon size={16} className="ml-auto text-primary" />
                       )}

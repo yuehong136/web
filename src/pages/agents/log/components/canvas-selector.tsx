@@ -42,12 +42,12 @@ export function CanvasSelector({
       <PopoverTrigger asChild>
         <Button
           variant="outline"
-          className="px-space-xs h-9 min-w-[260px] justify-between"
+          className="h-9 min-w-[260px] justify-between px-space-xs"
         >
-          <span className="gap-space-xs flex min-w-0 items-center">
+          <span className="flex min-w-0 items-center gap-space-xs">
             <span
               className={cn(
-                'rounded-radius-sm flex h-6 w-6 shrink-0 items-center justify-center bg-gradient-to-br text-xs font-semibold text-text-inverted',
+                'flex h-6 w-6 shrink-0 items-center justify-center rounded-radius-sm bg-linear-to-br text-xs font-semibold text-text-inverted',
                 getAvatarGradient(title),
               )}
             >
@@ -65,7 +65,7 @@ export function CanvasSelector({
           <ChevronsUpDown className="size-4 text-text-tertiary" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="p-space-sm w-[360px]">
+      <PopoverContent align="start" className="w-[360px] p-space-sm">
         <Input
           type="search"
           inputSize="sm"
@@ -90,7 +90,7 @@ export function CanvasSelector({
                   key={agent.id}
                   type="button"
                   className={cn(
-                    'rounded-radius-md px-space-sm py-space-sm flex w-full items-center justify-between text-left transition-colors',
+                    'flex w-full items-center justify-between rounded-radius-md px-space-sm py-space-sm text-left transition-colors',
                     active
                       ? 'bg-components-card-bg-hover text-text-primary'
                       : 'hover:bg-surface-secondary text-text-secondary',

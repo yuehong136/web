@@ -35,7 +35,7 @@ export const PageSizeSelector: React.FC<PageSizeSelectorProps> = ({
             onClick={() => onChange(size)}
             className={cn(
               'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
-              pageSize === size && 'shadow-sm',
+              pageSize === size && 'shadow-xs',
             )}
             style={{
               backgroundColor:

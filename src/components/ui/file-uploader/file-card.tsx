@@ -58,7 +58,7 @@ export const FileCard = memo(function FileCard({
     >
       <div
         className={cn(
-          'relative flex flex-shrink-0 items-center justify-center overflow-hidden rounded-lg transition-transform duration-200 group-hover:scale-105',
+          'relative flex shrink-0 items-center justify-center overflow-hidden rounded-lg transition-transform duration-200 group-hover:scale-105',
           compact ? 'h-10 w-10' : 'h-12 w-12',
         )}
         style={{ backgroundColor: colors.bg }}
@@ -78,7 +78,7 @@ export const FileCard = memo(function FileCard({
         )}
         <span
           className={cn(
-            'absolute -bottom-0.5 -right-0.5 rounded px-1 py-0.5 font-bold uppercase',
+            'absolute -right-0.5 -bottom-0.5 rounded px-1 py-0.5 font-bold uppercase',
             compact ? 'text-[8px]' : 'text-[9px]',
           )}
           style={{

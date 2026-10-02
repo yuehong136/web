@@ -44,12 +44,12 @@ export const ChunkEditImageSection = ({
               <img
                 src={selectedImageUrl}
                 alt={t('knowledge.chunks.edit.currentImageAlt')}
-                className="max-h-full max-w-full rounded object-contain shadow-sm"
+                className="max-h-full max-w-full rounded object-contain shadow-xs"
               />
             </div>
 
             <div className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all duration-200 group-hover:bg-black/40 group-hover:opacity-100">
-              <div className="bg-components-card-bg/95 flex items-center gap-2 rounded-full px-4 py-2 shadow-lg">
+              <div className="flex items-center gap-2 rounded-full bg-components-card-bg/95 px-4 py-2 shadow-lg">
                 <ZoomIn className="h-4 w-4 text-text-accent" />
                 <span className="text-sm font-medium text-text-accent">
                   {t('knowledge.chunks.edit.zoom')}

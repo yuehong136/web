@@ -79,13 +79,13 @@ const VideoPreviewInner: FC<{
           onEnded={() => setIsPlaying(false)}
         />
       </div>
-      <div className="bg-background-overlay px-4 py-3 backdrop-blur-sm">
+      <div className="bg-background-overlay px-4 py-3 backdrop-blur-xs">
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
             size="sm"
             onClick={togglePlay}
-            className="hover:bg-background-surface/20 text-white"
+            className="text-white hover:bg-background-surface/20"
             aria-label={
               isPlaying
                 ? t('knowledge.preview.pause')
@@ -108,7 +108,7 @@ const VideoPreviewInner: FC<{
             value={progress}
             onChange={handleSeek}
             aria-label={t('knowledge.preview.videoProgress')}
-            className="bg-background-surface/30 h-1 flex-1 cursor-pointer appearance-none rounded-full [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-background-surface"
+            className="h-1 flex-1 cursor-pointer appearance-none rounded-full bg-background-surface/30 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-background-surface"
           />
           <span className="min-w-[40px] text-xs text-white/80">
             {formatMediaTime(duration)}
@@ -117,7 +117,7 @@ const VideoPreviewInner: FC<{
             variant="ghost"
             size="sm"
             onClick={toggleMute}
-            className="hover:bg-background-surface/20 text-white"
+            className="text-white hover:bg-background-surface/20"
             aria-label={
               isMuted
                 ? t('knowledge.preview.unmute')

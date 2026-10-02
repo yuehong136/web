@@ -41,29 +41,29 @@ Multi-RAG 平台的企业级 React 前端，并已加入早期 Electron 安全�
 
 ## 技术栈
 
-| 层            | 选型                                                                          | 版本        |
-| ------------- | ----------------------------------------------------------------------------- | ----------- |
-| 框架          | React                                                                         | 19.1        |
-| 语言          | TypeScript（strict）                                                          | 5.8         |
-| 构建          | Vite                                                                          | 8.0         |
-| 路由          | react-router-dom                                                              | 7.7         |
-| 服务器状态    | TanStack Query                                                                | 5.83        |
-| 客户端状态    | Zustand                                                                       | 5.0         |
-| 样式          | Tailwind CSS + 语义化 token                                                   | 3.4         |
-| 原子组件      | Radix UI（16 个包）                                                           | 1.1 – 2.2   |
-| 聊天 UI       | @ant-design/x 套件                                                            | 2.7         |
-| 表单          | react-hook-form + zod                                                         | 7.60 / 4.0  |
-| 图标          | lucide-react（**唯一**）                                                      | 0.525       |
-| 画布          | @xyflow/react / @antv/g6                                                      | 12.9 / 5.0  |
-| 编辑器        | @monaco-editor/react、@lexical/react                                          | 4.7 / 0.40  |
-| Markdown      | react-markdown + markdown-it + remark-gfm + mathjax3                          | —           |
-| 流式          | eventsource-parser                                                            | 3.0         |
-| 拖拽          | @dnd-kit/core + sortable + utilities                                          | —           |
-| 文档预览      | docx-preview、pptx-preview、mammoth、@js-preview/excel、react-pdf-highlighter | —           |
-| 图表 / 流程图 | recharts / mermaid                                                            | 3.1 / 11.12 |
-| 净化          | DOMPurify                                                                     | 3.3         |
-| 国际化        | react-i18next + i18next + browser-languagedetector                            | 16.5 / 25.8 |
-| 桌面安全壳    | Electron + Rolldown 独立构建 main/preload                                     | 43.4 / 1.2  |
+| 层            | 选型                                                                          | 版本         |
+| ------------- | ----------------------------------------------------------------------------- | ------------ |
+| 框架          | React                                                                         | 19.3         |
+| 语言          | TypeScript（strict）                                                          | 7.0          |
+| 构建          | Vite                                                                          | 8.3          |
+| 路由          | react-router-dom                                                              | 7.18         |
+| 服务器状态    | TanStack Query                                                                | 5.104        |
+| 客户端状态    | Zustand                                                                       | 5.0          |
+| 样式          | Tailwind CSS + 语义化 token                                                   | 4.3          |
+| 原子组件      | Radix UI（16 个包）                                                           | 1.1 – 2.2    |
+| 聊天 UI       | @ant-design/x 套件                                                            | 2.9          |
+| 表单          | react-hook-form + zod                                                         | 7.60 / 4.0   |
+| 图标          | lucide-react（**唯一**）                                                      | 0.525        |
+| 画布          | @xyflow/react / @antv/g6                                                      | 12.9 / 5.0   |
+| 编辑器        | @monaco-editor/react、@lexical/react                                          | 4.7 / 0.52   |
+| Markdown      | react-markdown + markdown-it + remark-gfm + mathjax3                          | —            |
+| 流式          | eventsource-parser                                                            | 3.0          |
+| 拖拽          | @dnd-kit/core + sortable + utilities                                          | —            |
+| 文档预览      | docx-preview、pptx-preview、mammoth、@js-preview/excel、react-pdf-highlighter | —            |
+| 图表 / 流程图 | recharts / mermaid                                                            | 3.1 / 11.12  |
+| 净化          | DOMPurify                                                                     | 3.3          |
+| 国际化        | react-i18next + i18next + browser-languagedetector                            | 16.6 / 25.10 |
+| 桌面安全壳    | Electron + Rolldown 独立构建 main/preload                                     | 43.4 / 1.2   |
 
 完整依赖见 `package.json`。
 

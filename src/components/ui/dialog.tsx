@@ -165,11 +165,11 @@ export const DialogContent: React.FC<DialogContentProps> = ({
         <button
           type="button"
           aria-label="关闭弹窗"
-          className="animate-in fade-in-0 fixed inset-0 bg-black/50 backdrop-blur-sm duration-200"
+          className="animate-in fade-in-0 fixed inset-0 bg-black/50 backdrop-blur-xs duration-200"
           onClick={() => onOpenChange(false)}
         />
       ) : (
-        <div className="animate-in fade-in-0 fixed inset-0 bg-black/50 backdrop-blur-sm duration-200" />
+        <div className="animate-in fade-in-0 fixed inset-0 bg-black/50 backdrop-blur-xs duration-200" />
       )}
 
       {/* Dialog Container */}
@@ -188,7 +188,7 @@ export const DialogContent: React.FC<DialogContentProps> = ({
           <button
             onClick={() => onOpenChange(false)}
             className={cn(
-              'absolute right-4 top-4 z-10',
+              'absolute top-4 right-4 z-10',
               'rounded-lg p-1.5',
               'text-[var(--color-text-tertiary)]',
               'hover:bg-[var(--color-surface-secondary)] hover:text-[var(--color-text-primary)]',
@@ -214,7 +214,7 @@ export const DialogContent: React.FC<DialogContentProps> = ({
 export const DialogHeader: React.FC<DialogHeaderProps> = ({
   className,
   ...props
-}) => <div className={cn('shrink-0 px-6 pb-4 pt-6', className)} {...props} />
+}) => <div className={cn('shrink-0 px-6 pt-6 pb-4', className)} {...props} />
 
 /**
  * Dialog 标题

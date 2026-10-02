@@ -1,7 +1,7 @@
 /**
  * 引用图片列表组件
  * 用于在聊天消息底部展示图片类型的引用
- * 
+ *
  * 遵循展示组件原则：只接收 props，不包含业务逻辑
  * 参考 RAGFlow 的 ReferenceImageList 组件设计
  */
@@ -14,10 +14,10 @@ import {
   CarouselPrevious,
 } from '@/components/ui/carousel'
 import { cn } from '@/lib/utils'
-import { 
-  findAllReferenceMatches, 
-  isImageChunk, 
-  buildImageUrl 
+import {
+  findAllReferenceMatches,
+  isImageChunk,
+  buildImageUrl,
 } from '@/utils/reference-utils'
 import type { ReferenceChunk } from '@/utils/reference-replacer'
 import { PhotoProvider, PhotoView } from 'react-photo-view'
@@ -76,17 +76,17 @@ const PhotoToolbar: React.FC<{
   return (
     <>
       <RotateCw
-        className="mr-4 cursor-pointer text-white/60 hover:text-white transition-colors"
+        className="mr-4 cursor-pointer text-white/60 transition-colors hover:text-white"
         size={20}
         onClick={() => onRotate(rotate + 90)}
       />
       <ZoomIn
-        className="mr-4 cursor-pointer text-white/60 hover:text-white transition-colors"
+        className="mr-4 cursor-pointer text-white/60 transition-colors hover:text-white"
         size={20}
         onClick={() => onScale(scale + 0.5)}
       />
       <ZoomOut
-        className="cursor-pointer text-white/60 hover:text-white transition-colors"
+        className="cursor-pointer text-white/60 transition-colors hover:text-white"
         size={20}
         onClick={() => onScale(scale - 0.5)}
       />
@@ -96,7 +96,7 @@ const PhotoToolbar: React.FC<{
 
 /**
  * 引用图片列表组件
- * 
+ *
  * 从消息内容中提取引用 ID，过滤出图片类型的引用，
  * 以轮播形式展示在消息底部。点击图片可打开全屏预览。
  */
@@ -109,7 +109,7 @@ export const ReferenceImageList: React.FC<ReferenceImageListProps> = ({
   // 从消息内容中提取所有引用 ID
   const referencedIndices = useMemo(() => {
     const matches = findAllReferenceMatches(messageContent)
-    return matches.map(match => parseInt(match.id, 10))
+    return matches.map((match) => parseInt(match.id, 10))
   }, [messageContent])
 
   // 过滤出图片类型的引用
@@ -171,18 +171,18 @@ export const ReferenceImageList: React.FC<ReferenceImageListProps> = ({
                   '@sm:basis-1/2',
                   '@md:basis-1/3',
                   '@lg:basis-1/4',
-                  '@2xl:basis-1/6'
+                  '@2xl:basis-1/6',
                 )}
               >
                 <div className="flex flex-col items-center gap-space-xs p-space-xs">
                   <PhotoView src={imageUrl}>
-                    <div className="relative w-full cursor-pointer group">
+                    <div className="group relative w-full cursor-pointer">
                       <img
                         src={imageUrl}
                         alt={`Fig. ${chunkIndex + 1}`}
                         className={cn(
-                          'w-full h-40 object-contain rounded-radius-md',
-                          'transition-transform group-hover:scale-[1.02]'
+                          'h-40 w-full rounded-radius-md object-contain',
+                          'transition-transform group-hover:scale-[1.02]',
                         )}
                         style={{
                           backgroundColor: 'var(--color-background-subtle)',
@@ -192,7 +192,8 @@ export const ReferenceImageList: React.FC<ReferenceImageListProps> = ({
                         onError={(e) => {
                           const target = e.currentTarget
                           target.style.display = 'none'
-                          const placeholder = target.nextElementSibling as HTMLElement
+                          const placeholder =
+                            target.nextElementSibling as HTMLElement
                           if (placeholder) {
                             placeholder.style.display = 'flex'
                           }
@@ -200,8 +201,10 @@ export const ReferenceImageList: React.FC<ReferenceImageListProps> = ({
                       />
                       {/* 错误占位符 */}
                       <div
-                        className="hidden items-center justify-center h-40 w-full rounded-radius-md"
-                        style={{ backgroundColor: 'var(--color-background-subtle)' }}
+                        className="hidden h-40 w-full items-center justify-center rounded-radius-md"
+                        style={{
+                          backgroundColor: 'var(--color-background-subtle)',
+                        }}
                       >
                         <span
                           className="text-sm"
@@ -213,9 +216,9 @@ export const ReferenceImageList: React.FC<ReferenceImageListProps> = ({
                       {/* 图片序号标签 */}
                       <div
                         className={cn(
-                          'absolute bottom-2 right-2',
-                          'px-space-sm py-0.5 rounded-radius-xl',
-                          'text-xs font-normal backdrop-blur-sm'
+                          'absolute right-2 bottom-2',
+                          'rounded-radius-xl px-space-sm py-0.5',
+                          'text-xs font-normal backdrop-blur-xs',
                         )}
                         style={{
                           backgroundColor: 'var(--color-surface-accent)',

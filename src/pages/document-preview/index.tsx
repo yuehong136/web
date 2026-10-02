@@ -73,7 +73,7 @@ const DocumentPreviewPage: React.FC = () => {
   return (
     <div className="flex h-full flex-col">
       <div
-        className="gap-space-sm px-space-md py-space-sm flex shrink-0 items-center"
+        className="flex shrink-0 items-center gap-space-sm px-space-md py-space-sm"
         style={{
           backgroundColor: 'var(--color-background-surface)',
           borderBottom: '1px solid var(--color-border-default)',
@@ -96,7 +96,7 @@ const DocumentPreviewPage: React.FC = () => {
         </Tooltip>
 
         <FileText
-          className="h-4 w-4 flex-shrink-0"
+          className="h-4 w-4 shrink-0"
           style={{ color: 'var(--color-text-secondary)' }}
         />
         <span

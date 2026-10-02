@@ -167,7 +167,7 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({
             <div
               className={cn(
                 'flex h-10 w-10 items-center justify-center rounded-xl',
-                'bg-gradient-to-br from-components-avatar-gradient-purple-from to-components-avatar-gradient-blue-to',
+                'bg-linear-to-br from-components-avatar-gradient-purple-from to-components-avatar-gradient-blue-to',
               )}
             >
               <Sparkles className="h-5 w-5 text-white" />
@@ -196,7 +196,7 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({
                   'border-2 border-dashed border-border-default',
                   formData.icon
                     ? 'border-solid bg-transparent'
-                    : 'bg-gradient-to-br from-components-avatar-gradient-purple-from to-components-avatar-gradient-blue-to',
+                    : 'bg-linear-to-br from-components-avatar-gradient-purple-from to-components-avatar-gradient-blue-to',
                 )}
               >
                 {formData.icon ? (
@@ -237,7 +237,7 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({
                     onClick={() =>
                       setFormData((prev) => ({ ...prev, icon: '' }))
                     }
-                    className="hover:bg-status-error/10 gap-1.5 text-status-error hover:text-status-error"
+                    className="gap-1.5 text-status-error hover:bg-status-error/10 hover:text-status-error"
                     disabled={isLoading}
                   >
                     <Trash2 className="h-4 w-4" />

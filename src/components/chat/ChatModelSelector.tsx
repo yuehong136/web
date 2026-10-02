@@ -192,7 +192,7 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
         <button
           onClick={handleGoToModelProviders}
           className={cn(
-            'gap-space-sm px-space-md rounded-radius-lg flex h-10 items-center transition-all',
+            'flex h-10 items-center gap-space-sm rounded-radius-lg px-space-md transition-all',
             'text-base font-medium',
             'text-status-warning hover:bg-status-warning-subtle',
             triggerClassName,
@@ -219,11 +219,11 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
           <button
             disabled={disabled}
             className={cn(
-              'gap-space-sm px-space-md rounded-radius-lg flex h-10 items-center transition-all',
+              'flex h-10 items-center gap-space-sm rounded-radius-lg px-space-md transition-all',
               'text-base font-medium',
               isOpen
-                ? 'shadow-elevation-low bg-state-focus-subtle text-state-focus'
-                : 'hover:shadow-elevation-low bg-transparent text-text-tertiary hover:bg-background-subtle',
+                ? 'bg-state-focus-subtle text-state-focus shadow-elevation-low'
+                : 'bg-transparent text-text-tertiary hover:bg-background-subtle hover:shadow-elevation-low',
               disabled && 'cursor-not-allowed opacity-50',
               triggerClassName,
             )}
@@ -257,7 +257,7 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
                 className="placeholder:text-text-tertiary"
               />
             )}
-            <CommandList className="mt-2 outline-none">
+            <CommandList className="mt-2 outline-hidden">
               <CommandEmpty>
                 <div className="text-text-tertiary">未找到匹配的模型</div>
               </CommandEmpty>
@@ -314,7 +314,7 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
         <button
           onClick={handleGoToModelProviders}
           className={cn(
-            'gap-space-sm px-space-md rounded-radius-lg flex h-10 items-center transition-all',
+            'flex h-10 items-center gap-space-sm rounded-radius-lg px-space-md transition-all',
             'border border-status-warning',
             'text-base font-medium',
             'text-status-warning hover:bg-status-warning-subtle',
@@ -342,12 +342,12 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
           <button
             disabled={disabled}
             className={cn(
-              'gap-space-sm px-space-md rounded-radius-lg flex h-10 items-center transition-all',
+              'flex h-10 items-center gap-space-sm rounded-radius-lg px-space-md transition-all',
               'border border-border',
               'text-base font-medium',
               isOpen
-                ? 'shadow-elevation-low border-transparent bg-state-focus-subtle text-state-focus'
-                : 'hover:shadow-elevation-low bg-transparent text-text-tertiary hover:bg-background-subtle',
+                ? 'border-transparent bg-state-focus-subtle text-state-focus shadow-elevation-low'
+                : 'bg-transparent text-text-tertiary hover:bg-background-subtle hover:shadow-elevation-low',
               disabled && 'cursor-not-allowed opacity-50',
               triggerClassName,
             )}
@@ -381,7 +381,7 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
                 className="placeholder:text-text-tertiary"
               />
             )}
-            <CommandList className="mt-2 outline-none">
+            <CommandList className="mt-2 outline-hidden">
               <CommandEmpty>
                 <div className="text-text-tertiary">未找到匹配的模型</div>
               </CommandEmpty>
@@ -430,7 +430,7 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
         <label className="block text-xs font-medium text-text-primary">
           聊天模型
         </label>
-        <div className="bg-accent/20 flex h-10 w-full items-center rounded-md border border-border px-3 py-2">
+        <div className="flex h-10 w-full items-center rounded-md border border-border bg-accent/20 px-3 py-2">
           <div className="h-3 w-3 animate-spin rounded-full border-b-2 border-primary"></div>
           <span className="ml-2 text-xs text-text-tertiary">加载模型中...</span>
         </div>
@@ -444,7 +444,7 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
         <label className="block text-xs font-medium text-text-primary">
           聊天模型
         </label>
-        <div className="bg-error/10 flex h-10 w-full items-center rounded-md border border-error px-3 py-2">
+        <div className="flex h-10 w-full items-center rounded-md border border-error bg-error/10 px-3 py-2">
           <AlertCircle className="h-3 w-3 text-error" />
           <span className="ml-2 text-xs text-error">{error}</span>
         </div>
@@ -460,7 +460,7 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
         </label>
         <button
           onClick={handleGoToModelProviders}
-          className="hover:bg-status-warning/20 flex h-10 w-full cursor-pointer items-center rounded-md border border-status-warning bg-status-warning-subtle px-3 py-2 transition-colors"
+          className="flex h-10 w-full cursor-pointer items-center rounded-md border border-status-warning bg-status-warning-subtle px-3 py-2 transition-colors hover:bg-status-warning/20"
         >
           <AlertCircle className="h-3 w-3 shrink-0 text-status-warning" />
           <span className="ml-2 text-xs text-status-warning">

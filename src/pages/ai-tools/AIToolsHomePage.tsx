@@ -249,7 +249,7 @@ export const AIToolsHomePage: React.FC = () => {
               <div className="flex-1">
                 <div className="relative">
                   <Search
-                    className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                    className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground"
                     aria-hidden
                   />
                   <Input
@@ -332,7 +332,7 @@ export const AIToolsHomePage: React.FC = () => {
                 {filtered.map((tool) => (
                   <Card
                     key={tool.id}
-                    className="relative h-full outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                    className="relative h-full outline-hidden focus-visible:ring-2 focus-visible:ring-offset-2"
                     role="button"
                     tabIndex={0}
                     onClick={() => openTool(tool.id)}
@@ -451,7 +451,7 @@ export const AIToolsHomePage: React.FC = () => {
               className="absolute inset-0 bg-black/40"
               onClick={() => setShowCategoriesDrawer(false)}
             />
-            <div className="shadow-elevation-high absolute inset-y-0 left-0 w-72 animate-slide-down border-r border-components-card-border bg-components-card-bg p-4">
+            <div className="absolute inset-y-0 left-0 w-72 animate-slide-down border-r border-components-card-border bg-components-card-bg p-4 shadow-elevation-high">
               <div className="mb-3 text-sm font-medium text-text-tertiary">
                 {t('tools.categories.title', '分类')}
               </div>

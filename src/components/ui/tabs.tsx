@@ -1,4 +1,4 @@
-import * as React from "react"
+import * as React from 'react'
 
 export interface TabsProps {
   defaultValue?: string
@@ -32,17 +32,17 @@ const TabsContext = React.createContext<{
   onValueChange?: (value: string) => void
 }>({})
 
-export const Tabs: React.FC<TabsProps> = ({ 
-  defaultValue, 
-  value, 
-  onValueChange, 
+export const Tabs: React.FC<TabsProps> = ({
+  defaultValue,
+  value,
+  onValueChange,
   children,
-  className = ""
+  className = '',
 }) => {
-  const [internalValue, setInternalValue] = React.useState(defaultValue || "")
-  
+  const [internalValue, setInternalValue] = React.useState(defaultValue || '')
+
   const currentValue = value !== undefined ? value : internalValue
-  
+
   const handleValueChange = (newValue: string) => {
     if (value === undefined) {
       setInternalValue(newValue)
@@ -51,32 +51,37 @@ export const Tabs: React.FC<TabsProps> = ({
   }
 
   return (
-    <TabsContext.Provider value={{ value: currentValue, onValueChange: handleValueChange }}>
-      <div className={className}>
-        {children}
-      </div>
+    <TabsContext.Provider
+      value={{ value: currentValue, onValueChange: handleValueChange }}
+    >
+      <div className={className}>{children}</div>
     </TabsContext.Provider>
   )
 }
 
-export const TabsList: React.FC<TabsListProps> = ({ children, className = "" }) => {
+export const TabsList: React.FC<TabsListProps> = ({
+  children,
+  className = '',
+}) => {
   return (
-    <div className={`inline-flex h-11 items-center justify-center rounded-lg p-1 ${className}`}
-         style={{ 
-           backgroundColor: 'var(--color-components-tabs-bg)', 
-           color: 'var(--color-components-tabs-inactive-text)',
-           border: '1px solid var(--color-components-tabs-border)'
-         }}>
+    <div
+      className={`inline-flex h-11 items-center justify-center rounded-lg p-1 ${className}`}
+      style={{
+        backgroundColor: 'var(--color-components-tabs-bg)',
+        color: 'var(--color-components-tabs-inactive-text)',
+        border: '1px solid var(--color-components-tabs-border)',
+      }}
+    >
       {children}
     </div>
   )
 }
 
-export const TabsTrigger: React.FC<TabsTriggerProps> = ({ 
-  value, 
-  children, 
-  className = "",
-  disabled = false 
+export const TabsTrigger: React.FC<TabsTriggerProps> = ({
+  value,
+  children,
+  className = '',
+  disabled = false,
 }) => {
   const { value: activeValue, onValueChange } = React.useContext(TabsContext)
   const isActive = activeValue === value
@@ -86,20 +91,27 @@ export const TabsTrigger: React.FC<TabsTriggerProps> = ({
       type="button"
       disabled={disabled}
       onClick={() => !disabled && onValueChange?.(value)}
-      className={`inline-flex items-center justify-center whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ${className}`}
+      className={`inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium whitespace-nowrap transition-all focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50 ${className}`}
       style={{
-        backgroundColor: isActive ? 'var(--color-components-tabs-active-bg)' : 'transparent',
-        color: isActive ? 'var(--color-components-tabs-active-text)' : 'var(--color-components-tabs-inactive-text)',
-        boxShadow: isActive ? '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1)' : 'none'
+        backgroundColor: isActive
+          ? 'var(--color-components-tabs-active-bg)'
+          : 'transparent',
+        color: isActive
+          ? 'var(--color-components-tabs-active-text)'
+          : 'var(--color-components-tabs-inactive-text)',
+        boxShadow: isActive
+          ? '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1)'
+          : 'none',
       }}
       onMouseEnter={(e) => {
         if (!isActive) {
-          (e.target as HTMLElement).style.backgroundColor = 'var(--color-state-hover)'
+          ;(e.target as HTMLElement).style.backgroundColor =
+            'var(--color-state-hover)'
         }
       }}
       onMouseLeave={(e) => {
         if (!isActive) {
-          (e.target as HTMLElement).style.backgroundColor = 'transparent'
+          ;(e.target as HTMLElement).style.backgroundColor = 'transparent'
         }
       }}
     >
@@ -108,19 +120,21 @@ export const TabsTrigger: React.FC<TabsTriggerProps> = ({
   )
 }
 
-export const TabsContent: React.FC<TabsContentProps> = ({ 
-  value, 
-  children, 
-  className = "" 
+export const TabsContent: React.FC<TabsContentProps> = ({
+  value,
+  children,
+  className = '',
 }) => {
   const { value: activeValue } = React.useContext(TabsContext)
-  
+
   if (activeValue !== value) {
     return null
   }
 
   return (
-    <div className={`mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${className}`}>
+    <div
+      className={`mt-2 ring-offset-background focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden ${className}`}
+    >
       {children}
     </div>
   )

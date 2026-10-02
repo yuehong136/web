@@ -15,7 +15,8 @@ interface ProfileIdentityHeroProps {
   onAvatarChange: (avatar: string) => void
 }
 
-const getInitial = (value: string) => value.trim().charAt(0).toUpperCase() || 'U'
+const getInitial = (value: string) =>
+  value.trim().charAt(0).toUpperCase() || 'U'
 
 export const ProfileIdentityHero: React.FC<ProfileIdentityHeroProps> = ({
   profile,
@@ -41,18 +42,23 @@ export const ProfileIdentityHero: React.FC<ProfileIdentityHeroProps> = ({
                 tips=""
               />
             ) : (
-              <Avatar className="h-24 w-24 rounded-radius-xl border border-border-subtle shadow-sm">
-                <AvatarImage src={profile.avatar || undefined} alt={profile.userName || profile.email} />
-                <AvatarFallback className="rounded-radius-xl bg-surface-accent text-lg font-semibold text-text-on-accent">
+              <Avatar className="h-24 w-24 rounded-radius-xl border border-border-subtle shadow-xs">
+                <AvatarImage
+                  src={profile.avatar || undefined}
+                  alt={profile.userName || profile.email}
+                />
+                <AvatarFallback className="bg-surface-accent text-text-on-accent rounded-radius-xl text-lg font-semibold">
                   {getInitial(profile.userName || profile.email)}
                 </AvatarFallback>
               </Avatar>
             )}
           </div>
 
-          <div className="min-w-0 flex-1 flex flex-col gap-space-sm">
+          <div className="flex min-w-0 flex-1 flex-col gap-space-sm">
             <div className="flex flex-col gap-space-xs">
-              <p className="text-sm font-medium text-text-secondary">账户身份</p>
+              <p className="text-sm font-medium text-text-secondary">
+                账户身份
+              </p>
               <h2 className="text-2xl font-semibold text-text-primary">
                 {currentProfile.userName || '未设置显示名称'}
               </h2>
@@ -80,7 +86,10 @@ export const ProfileIdentityHero: React.FC<ProfileIdentityHeroProps> = ({
 
         {!isEditing ? (
           <div className="flex shrink-0 items-center">
-            <Button onClick={onEdit} leftIcon={<PencilLine className="h-4 w-4" />}>
+            <Button
+              onClick={onEdit}
+              leftIcon={<PencilLine className="h-4 w-4" />}
+            >
               编辑资料
             </Button>
           </div>

@@ -4,7 +4,7 @@
  */
 
 export { cssVariables, defaultTokens } from './tokens'
-export { default as tailwindVars } from './tailwind-vars'
+export { tailwindColors } from './tailwind-vars'
 export type { DesignTokens } from './tokens'
 export { ScopedTheme, resolveScopedTheme } from './scoped-theme'
 export type { ScopedThemeValue } from './scoped-theme'

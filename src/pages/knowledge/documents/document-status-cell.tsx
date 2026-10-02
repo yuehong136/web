@@ -47,12 +47,12 @@ export const DocumentStatusCell: React.FC<DocumentStatusCellProps> = ({
             />
             {/* 光晕效果 */}
             <div
-              className="absolute inset-y-0 left-0 rounded-full bg-components-task-status-running-progress-glow opacity-50 blur-sm transition-all duration-300"
+              className="absolute inset-y-0 left-0 rounded-full bg-components-task-status-running-progress-glow opacity-50 blur-xs transition-all duration-300"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
           {/* 百分比 */}
-          <span className="text-xs font-medium tabular-nums text-components-task-status-running-text">
+          <span className="text-xs font-medium text-components-task-status-running-text tabular-nums">
             {progressPercent}%
           </span>
         </div>

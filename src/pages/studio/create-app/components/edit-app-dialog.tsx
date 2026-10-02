@@ -53,11 +53,11 @@ export const EditAppDialog: React.FC<EditAppDialogProps> = ({ controller }) => {
               className="hidden"
               onChange={handleIconInputChange}
             />
-            <div className="gap-space-base flex items-center">
+            <div className="flex items-center gap-space-base">
               <button
                 type="button"
                 onClick={handleOpenIconPicker}
-                className="rounded-radius-full focus:outline-none focus-visible:ring-2 focus-visible:ring-border-accent"
+                className="rounded-radius-full focus:outline-hidden focus-visible:ring-2 focus-visible:ring-border-accent"
                 title="点击上传图标"
               >
                 <Avatar className="h-16 w-16">

@@ -92,7 +92,7 @@ export default tseslint.config([
     },
     settings: {
       tailwindcss: {
-        config: 'tailwind.config.ts',
+        cssConfigPath: './src/index.css',
       },
       'import-x/resolver': {
         typescript: {
@@ -144,7 +144,7 @@ export default tseslint.config([
     },
   },
   {
-    files: ['vite.config.ts', 'tailwind.config.ts', 'vitest.config.ts'],
+    files: ['vite.config.ts', 'vitest.config.ts'],
     languageOptions: {
       globals: globals.node,
     },

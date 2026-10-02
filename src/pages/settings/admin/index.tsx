@@ -46,7 +46,7 @@ const FilterSelect: React.FC<{
 }> = memo(({ value, onChange, options }) => {
   return (
     <Select value={value} onValueChange={onChange}>
-      <SelectTrigger className="rounded-radius-lg bg-surface-secondary px-space-base hover:bg-surface-tertiary h-10 w-36 border-border-default text-sm text-text-secondary">
+      <SelectTrigger className="bg-surface-secondary hover:bg-surface-tertiary h-10 w-36 rounded-radius-lg border-border-default px-space-base text-sm text-text-secondary">
         <SelectValue placeholder="请选择" />
       </SelectTrigger>
       <SelectContent>
@@ -64,20 +64,20 @@ FilterSelect.displayName = 'FilterSelect'
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 
 const TableSkeleton: React.FC = () => (
-  <div className="rounded-radius-lg bg-surface-secondary animate-pulse overflow-hidden border border-border-subtle">
+  <div className="bg-surface-secondary animate-pulse overflow-hidden rounded-radius-lg border border-border-subtle">
     <div className="bg-surface-tertiary h-11" />
     {Array.from({ length: 5 }).map((_, i) => (
       <div
         key={i}
-        className="gap-space-base px-space-md py-space-base flex items-center border-t border-border-subtle"
+        className="flex items-center gap-space-base border-t border-border-subtle px-space-md py-space-base"
       >
         <div className="bg-surface-tertiary h-10 w-10 rounded-full" />
         <div className="flex-1 space-y-2">
-          <div className="rounded-radius-lg bg-surface-tertiary h-3.5 w-32" />
-          <div className="rounded-radius-lg bg-surface-tertiary h-3 w-48" />
+          <div className="bg-surface-tertiary h-3.5 w-32 rounded-radius-lg" />
+          <div className="bg-surface-tertiary h-3 w-48 rounded-radius-lg" />
         </div>
         <div className="bg-surface-tertiary h-5 w-14 rounded-full" />
-        <div className="rounded-radius-lg bg-surface-tertiary h-3.5 w-24" />
+        <div className="bg-surface-tertiary h-3.5 w-24 rounded-radius-lg" />
       </div>
     ))}
   </div>
@@ -119,10 +119,10 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ onSuccess }) => {
   )
 
   return (
-    <div className="py-space-xl flex min-h-[60vh] flex-col items-center justify-center">
+    <div className="flex min-h-[60vh] flex-col items-center justify-center py-space-xl">
       <div className="w-full max-w-lg">
-        <div className="rounded-radius-xl p-space-2xl shadow-elevation-medium border border-border-subtle bg-background-surface">
-          <div className="mb-space-xl gap-space-sm flex flex-col items-center">
+        <div className="rounded-radius-xl border border-border-subtle bg-background-surface p-space-2xl shadow-elevation-medium">
+          <div className="mb-space-xl flex flex-col items-center gap-space-sm">
             <div className="bg-surface-accent/10 flex h-14 w-14 items-center justify-center rounded-2xl">
               <Lock className="h-7 w-7 text-text-accent" />
             </div>
@@ -181,7 +181,7 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ onSuccess }) => {
               />
             </div>
             {error && (
-              <p className="rounded-radius-lg px-space-sm py-space-xs bg-status-error-subtle text-sm text-text-error">
+              <p className="rounded-radius-lg bg-status-error-subtle px-space-sm py-space-xs text-sm text-text-error">
                 {error}
               </p>
             )}
@@ -331,11 +331,11 @@ const UsersPanel: React.FC<{
   return (
     <div className="space-y-space-xl">
       {/* Header */}
-      <div className="gap-space-lg flex flex-wrap items-start justify-between">
-        <div className="gap-space-md flex items-center">
-          <Shield className="h-6 w-6 flex-shrink-0 text-text-accent" />
+      <div className="flex flex-wrap items-start justify-between gap-space-lg">
+        <div className="flex items-center gap-space-md">
+          <Shield className="h-6 w-6 shrink-0 text-text-accent" />
           <div>
-            <h1 className="text-2xl font-bold leading-tight text-text-primary">
+            <h1 className="text-2xl leading-tight font-bold text-text-primary">
               用户管理
             </h1>
             <p className="mt-space-xs text-sm text-text-tertiary">
@@ -343,12 +343,12 @@ const UsersPanel: React.FC<{
             </p>
           </div>
         </div>
-        <div className="gap-space-sm flex items-center">
+        <div className="flex items-center gap-space-sm">
           <Button
             variant="outline"
             size="sm"
             onClick={onLogout}
-            className="px-space-sm h-10"
+            className="h-10 px-space-sm"
             title="退出管理"
           >
             <LogOut className="h-3.5 w-3.5" />
@@ -358,7 +358,7 @@ const UsersPanel: React.FC<{
             size="sm"
             onClick={() => refetch()}
             disabled={isRefetching}
-            className="px-space-sm h-10"
+            className="h-10 px-space-sm"
           >
             <RefreshCw
               className={`h-3.5 w-3.5 ${isRefetching ? 'animate-spin' : ''}`}
@@ -367,7 +367,7 @@ const UsersPanel: React.FC<{
           <Button
             size="sm"
             onClick={() => setCreateOpen(true)}
-            className="px-space-md h-10"
+            className="h-10 px-space-md"
           >
             <UserPlus className="mr-1.5 h-3.5 w-3.5" />
             新建用户
@@ -379,8 +379,8 @@ const UsersPanel: React.FC<{
       {!isLoading && users.length > 0 && <StatsBar users={users} />}
 
       {/* Toolbar */}
-      <div className="gap-space-sm rounded-radius-xl p-space-sm flex flex-wrap items-center border border-border-subtle bg-background-surface">
-        <div className="min-w-[240px] max-w-md flex-1">
+      <div className="flex flex-wrap items-center gap-space-sm rounded-radius-xl border border-border-subtle bg-background-surface p-space-sm">
+        <div className="max-w-md min-w-[240px] flex-1">
           <Input
             inputSize="sm"
             placeholder="搜索邮箱或昵称..."
@@ -459,7 +459,7 @@ const AdminUsersPage: React.FC = () => {
   }, [])
 
   return (
-    <div className="p-space-xl min-h-full bg-components-settings-content-bg">
+    <div className="min-h-full bg-components-settings-content-bg p-space-xl">
       <div className="mx-auto max-w-6xl">
         {isAdminAuthed ? (
           <UsersPanel

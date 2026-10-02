@@ -40,9 +40,9 @@ export const SidebarConversations: React.FC<SidebarConversationsProps> = ({
   if (isCollapsed) return null
 
   return (
-    <div className="px-space-sm py-space-sm flex min-h-0 flex-1 flex-col">
+    <div className="flex min-h-0 flex-1 flex-col px-space-sm py-space-sm">
       {/* 标题栏 */}
-      <div className="rounded-radius-lg px-space-sm py-space-xs flex flex-shrink-0 items-center justify-between bg-background-subtle">
+      <div className="flex shrink-0 items-center justify-between rounded-radius-lg bg-background-subtle px-space-sm py-space-xs">
         <span className="flex-1 truncate text-xs font-medium text-text-tertiary">
           {t('desktop.conversations.panelTitle', {
             appName: appName || t('desktop.conversations.appFallback'),
@@ -51,7 +51,7 @@ export const SidebarConversations: React.FC<SidebarConversationsProps> = ({
         <button
           type="button"
           onClick={onCreateNew}
-          className="rounded-radius-sm p-space-2xs flex-shrink-0 transition-colors hover:bg-components-sidebar-item-bg-hover"
+          className="shrink-0 rounded-radius-sm p-space-2xs transition-colors hover:bg-components-sidebar-item-bg-hover"
           aria-label={t('desktop.conversations.newConversation')}
           title={t('desktop.conversations.newConversation')}
         >
@@ -60,10 +60,10 @@ export const SidebarConversations: React.FC<SidebarConversationsProps> = ({
       </div>
 
       {/* 对话列表 - 移除高度限制，使用 flex-1 充分利用空间 */}
-      <div className="px-space-sm min-h-0 flex-1 overflow-y-auto">
+      <div className="min-h-0 flex-1 overflow-y-auto px-space-sm">
         {isLoading ? (
-          <div className="py-space-lg flex items-center justify-center">
-            <div className="rounded-radius-full size-icon-sm animate-spin border-2 border-text-tertiary border-t-transparent" />
+          <div className="flex items-center justify-center py-space-lg">
+            <div className="size-icon-sm animate-spin rounded-radius-full border-2 border-text-tertiary border-t-transparent" />
           </div>
         ) : conversations.length === 0 ? (
           <p className="py-space-lg text-center text-xs text-text-tertiary">
@@ -75,8 +75,8 @@ export const SidebarConversations: React.FC<SidebarConversationsProps> = ({
               ({ group, conversations: groupConvs }) => (
                 <div key={group}>
                   {/* 分组标题 */}
-                  <div className="px-space-sm py-space-xs sticky top-0 z-10 bg-components-sidebar-bg">
-                    <span className="text-xs font-medium uppercase tracking-wide text-text-tertiary">
+                  <div className="sticky top-0 z-10 bg-components-sidebar-bg px-space-sm py-space-xs">
+                    <span className="text-xs font-medium tracking-wide text-text-tertiary uppercase">
                       {t(`desktop.conversations.groups.${group}`)}
                     </span>
                   </div>
@@ -88,13 +88,13 @@ export const SidebarConversations: React.FC<SidebarConversationsProps> = ({
                         key={conv.id}
                         onClick={() => onSelectConversation(conv.id)}
                         className={cn(
-                          'gap-space-sm rounded-radius-lg px-space-sm py-space-sm flex w-full items-center text-left transition-colors',
+                          'flex w-full items-center gap-space-sm rounded-radius-lg px-space-sm py-space-sm text-left transition-colors',
                           currentConversationId === conv.id
                             ? 'bg-state-focus-subtle text-state-focus'
                             : 'text-text-secondary hover:bg-background-subtle',
                         )}
                       >
-                        <MessageSquare className="size-icon-sm flex-shrink-0" />
+                        <MessageSquare className="size-icon-sm shrink-0" />
                         <div className="min-w-0 flex-1">
                           <div className="truncate text-xs">
                             {conv.name ||

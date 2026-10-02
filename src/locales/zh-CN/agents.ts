@@ -4,6 +4,9 @@ export default {
     centerDescription:
       '先把信息架构、路由、类型与运行入口搭好，再逐步增量替换每个节点表单和运行细节。',
     templates: '智能体模板',
+    unnamedTemplate: '未命名模板',
+    templateDescriptionFallback: '暂无模板描述。',
+    templateCategories: '模板分类',
     agents: '智能体',
     pipelines: '流水线',
     logs: '运行记录',

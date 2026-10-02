@@ -49,7 +49,7 @@ export const DesktopWorkbench: React.FC<React.PropsWithChildren> = ({
         <Separator
           disabled={collapsed}
           className={cn(
-            'bg-components-split-pane-border transition-colors focus:outline-none',
+            'bg-components-split-pane-border transition-colors focus:outline-hidden',
             collapsed
               ? 'w-0'
               : 'w-px hover:bg-state-focus focus:bg-state-focus',

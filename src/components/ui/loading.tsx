@@ -130,7 +130,7 @@ const Loading = React.forwardRef<HTMLDivElement, LoadingProps>(
         <div
           ref={ref}
           className={cn(
-            'fixed inset-0 z-50 flex items-center justify-center bg-background-overlay backdrop-blur-sm',
+            'fixed inset-0 z-50 flex items-center justify-center bg-background-overlay backdrop-blur-xs',
             className,
           )}
           {...props}

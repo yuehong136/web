@@ -60,7 +60,7 @@ export const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent size="md" showCloseButton>
         <DialogHeader>
-          <DialogTitle className="gap-space-sm flex items-center">
+          <DialogTitle className="flex items-center gap-space-sm">
             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-status-warning-subtle">
               <KeyRound className="h-4 w-4 text-text-warning" />
             </span>
@@ -69,8 +69,8 @@ export const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
         </DialogHeader>
 
         {user && (
-          <div className="mx-space-lg gap-space-sm rounded-radius-xl bg-surface-secondary px-space-md py-space-base flex items-center">
-            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary/15">
+          <div className="bg-surface-secondary mx-space-lg flex items-center gap-space-sm rounded-radius-xl px-space-md py-space-base">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/15">
               <span className="text-sm font-semibold text-text-accent">
                 {(user.nickname || user.email)[0].toUpperCase()}
               </span>

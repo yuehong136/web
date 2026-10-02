@@ -75,7 +75,7 @@ const AgentAvatar: FC<{ name: string; avatar?: string }> = ({
       <img
         src={src}
         alt={name}
-        className="rounded-radius-lg h-12 w-12 object-cover"
+        className="h-12 w-12 rounded-radius-lg object-cover"
         onError={(e) => {
           e.currentTarget.style.display = 'none'
         }}
@@ -86,8 +86,8 @@ const AgentAvatar: FC<{ name: string; avatar?: string }> = ({
   return (
     <div
       className={cn(
-        'rounded-radius-lg flex h-12 w-12 items-center justify-center',
-        'shadow-elevation-low bg-gradient-to-br',
+        'flex h-12 w-12 items-center justify-center rounded-radius-lg',
+        'bg-linear-to-br shadow-elevation-low',
         gradient,
       )}
     >

@@ -119,11 +119,11 @@ export function AgentCard({
   return (
     <div
       className={cn(
-        'rounded-radius-xl shadow-elevation-low group relative border border-components-card-border bg-components-card-bg transition-all duration-300',
-        'hover:shadow-elevation-medium hover:-translate-y-0.5 hover:border-state-focus',
+        'group relative rounded-radius-xl border border-components-card-border bg-components-card-bg shadow-elevation-low transition-all duration-300',
+        'hover:-translate-y-0.5 hover:border-state-focus hover:shadow-elevation-medium',
       )}
     >
-      <div className="right-space-sm top-space-sm absolute z-10">
+      <div className="absolute top-space-sm right-space-sm z-10">
         <Dropdown
           trigger={
             <Button
@@ -176,14 +176,14 @@ export function AgentCard({
         onClick={() => onOpen(flow)}
       >
         <div className="relative p-4 pt-5">
-          <div className="pr-space-xl mb-3 flex items-start justify-between">
+          <div className="mb-3 flex items-start justify-between pr-space-xl">
             <div className="flex min-w-0 flex-1 items-center gap-3">
               <div className="relative">
                 {renderAvatar()}
                 <div
                   className={cn(
                     'flex h-12 w-12 items-center justify-center rounded-xl',
-                    'shadow-elevation-low bg-gradient-to-br',
+                    'bg-linear-to-br shadow-elevation-low',
                     avatarGradient,
                     flow.avatar && 'hidden',
                   )}

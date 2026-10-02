@@ -77,7 +77,7 @@ export const LoginForm: React.FC = () => {
 
       {showExpiredAlert ? (
         <div
-          className="mb-space-lg px-space-md py-space-base rounded-radius-lg shadow-elevation-low animate-fade-in border border-components-alert-warning-border bg-components-alert-warning-bg text-components-alert-warning-text"
+          className="mb-space-lg animate-fade-in rounded-radius-lg border border-components-alert-warning-border bg-components-alert-warning-bg px-space-md py-space-base text-components-alert-warning-text shadow-elevation-low"
           role="alert"
         >
           <div className="flex items-center">
@@ -93,7 +93,7 @@ export const LoginForm: React.FC = () => {
             <button
               type="button"
               onClick={() => setShowExpiredAlert(false)}
-              className="ml-space-sm rounded-radius-md p-space-xs text-components-alert-warning-text hover:bg-status-warning-subtle focus:outline-none focus:ring-2 focus:ring-state-focus"
+              className="ml-space-sm rounded-radius-md p-space-xs text-components-alert-warning-text hover:bg-status-warning-subtle focus:ring-2 focus:ring-state-focus focus:outline-hidden"
               aria-label={t('auth.login.closeAlert')}
             >
               <X className="size-icon-sm" />
@@ -105,7 +105,7 @@ export const LoginForm: React.FC = () => {
       <form className="space-y-space-base" onSubmit={handleSubmit(onSubmit)}>
         {errors.root ? (
           <div
-            className="px-space-md py-space-base rounded-radius-md border border-components-alert-error-border bg-components-alert-error-bg text-components-alert-error-text"
+            className="rounded-radius-md border border-components-alert-error-border bg-components-alert-error-bg px-space-md py-space-base text-components-alert-error-text"
             role="alert"
           >
             {errors.root.message}
@@ -152,7 +152,7 @@ export const LoginForm: React.FC = () => {
           }
         />
 
-        <div className="gap-space-xs flex items-center">
+        <div className="flex items-center gap-space-xs">
           <Controller
             name="remember"
             control={control}
@@ -190,7 +190,7 @@ export const LoginForm: React.FC = () => {
           {t('auth.login.noAccount')}{' '}
           <Link
             to={ROUTES.REGISTER}
-            className="hover:text-text-accent/80 font-medium text-text-accent"
+            className="font-medium text-text-accent hover:text-text-accent/80"
           >
             {t('auth.login.register')}
           </Link>

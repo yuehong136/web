@@ -51,7 +51,7 @@ export const UserInputSection: React.FC<UserInputSectionProps> = ({
           className={cn(
             'flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-all',
             userInputMode === 'manual'
-              ? 'bg-background-body text-text-primary shadow-sm'
+              ? 'bg-background-body text-text-primary shadow-xs'
               : 'text-text-secondary hover:text-text-primary',
           )}
         >
@@ -63,7 +63,7 @@ export const UserInputSection: React.FC<UserInputSectionProps> = ({
           className={cn(
             'flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-all',
             userInputMode === 'file'
-              ? 'bg-background-body text-text-primary shadow-sm'
+              ? 'bg-background-body text-text-primary shadow-xs'
               : 'text-text-secondary hover:text-text-primary',
           )}
         >
@@ -75,7 +75,7 @@ export const UserInputSection: React.FC<UserInputSectionProps> = ({
           className={cn(
             'flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-all',
             userInputMode === 'datasource'
-              ? 'bg-background-body text-text-primary shadow-sm'
+              ? 'bg-background-body text-text-primary shadow-xs'
               : 'text-text-secondary hover:text-text-primary',
           )}
         >

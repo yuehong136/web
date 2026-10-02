@@ -337,7 +337,7 @@ const DataInput: React.FC<DataInputProps> = ({
             size="sm"
             onClick={handleAIFill}
             disabled={isLoading || aiFilling || placeholderKeys.length === 0}
-            className="border-0 bg-gradient-to-r from-violet-500 to-purple-500 text-white hover:from-violet-600 hover:to-purple-600"
+            className="border-0 bg-linear-to-r from-violet-500 to-purple-500 text-white hover:from-violet-600 hover:to-purple-600"
           >
             {aiFilling ? (
               <Loader2 className="mr-1 h-4 w-4 animate-spin" />
@@ -404,7 +404,7 @@ const DataInput: React.FC<DataInputProps> = ({
           {activeTab === 'form' && (
             <div className="flex items-center gap-3">
               <div className="relative">
-                <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary" />
+                <Search className="absolute top-1/2 left-2.5 h-4 w-4 -translate-y-1/2 text-text-secondary" />
                 <Input
                   value={searchKey}
                   onChange={(e) => setSearchKey(e.target.value)}
@@ -467,7 +467,7 @@ const DataInput: React.FC<DataInputProps> = ({
               variant="ghost"
               size="sm"
               onClick={copyJson}
-              className="absolute right-2 top-2"
+              className="absolute top-2 right-2"
             >
               <Copy className="h-4 w-4" />
             </Button>
@@ -491,7 +491,7 @@ const DataInput: React.FC<DataInputProps> = ({
               </button>
               {showAiRaw && (
                 <div className="bg-background-body p-4">
-                  <pre className="max-h-40 overflow-auto whitespace-pre-wrap text-xs text-text-secondary">
+                  <pre className="max-h-40 overflow-auto text-xs whitespace-pre-wrap text-text-secondary">
                     {aiRawOutput}
                   </pre>
                 </div>

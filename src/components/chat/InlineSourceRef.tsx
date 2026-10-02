@@ -1,7 +1,7 @@
 /**
  * @deprecated 此组件已废弃，请使用 ReferenceMarker 组件代替
  * @see {@link ./ReferenceMarker.tsx} 新版内联引用标记组件
- * 
+ *
  * 内联引用组件
  * 用于在消息内容中展示引用标记，支持悬浮显示详情
  * 参考 ragflow 的引用交互设计和 @ant-design/x Sources 组件
@@ -37,7 +37,7 @@ export interface InlineSourceRefProps {
  */
 function getDocIcon(docName?: string) {
   if (!docName) return <FileText className="h-3 w-3" />
-  
+
   const ext = docName.split('.').pop()?.toLowerCase()
   switch (ext) {
     case 'pdf':
@@ -46,7 +46,12 @@ function getDocIcon(docName?: string) {
     case 'docx':
       return <FileText className="h-3 w-3 text-blue-500" />
     default:
-      return <FileText className="h-3 w-3" style={{ color: 'var(--color-text-tertiary)' }} />
+      return (
+        <FileText
+          className="h-3 w-3"
+          style={{ color: 'var(--color-text-tertiary)' }}
+        />
+      )
   }
 }
 
@@ -67,25 +72,27 @@ export function InlineSourceRef({
   references,
   onReferenceClick,
   mode = 'inline',
-  children
+  children,
 }: InlineSourceRefProps) {
   const reference = references[index]
-  
+
   // 如果找不到对应引用，显示普通上标
   if (!reference) {
     return <sup className="text-blue-500">{children}</sup>
   }
-  
+
   // inline 模式 - 使用 Sources 组件的 inline 属性
   if (mode === 'inline') {
-    const items: SourcesProps['items'] = [{
-      key: reference.id || `ref-${index}`,
-      title: reference.document_name || `来源 ${index + 1}`,
-      icon: getDocIcon(reference.document_name),
-      description: truncateContent(reference.content || ''),
-      url: reference.url || undefined
-    }]
-    
+    const items: SourcesProps['items'] = [
+      {
+        key: reference.id || `ref-${index}`,
+        title: reference.document_name || `来源 ${index + 1}`,
+        icon: getDocIcon(reference.document_name),
+        description: truncateContent(reference.content || ''),
+        url: reference.url || undefined,
+      },
+    ]
+
     return (
       <Sources
         activeKey={index}
@@ -96,7 +103,7 @@ export function InlineSourceRef({
       />
     )
   }
-  
+
   // popover 模式 - 使用悬浮卡片展示详情（参考 ragflow）
   if (mode === 'popover') {
     return (
@@ -104,12 +111,12 @@ export function InlineSourceRef({
         <PopoverTrigger asChild>
           <sup
             className={cn(
-              "inline-flex items-center justify-center cursor-pointer",
-              "min-w-[18px] h-[18px] px-1 mx-0.5 -mt-1",
-              "text-xs font-medium rounded",
-              "bg-blue-100 text-blue-700 hover:bg-blue-200",
-              "dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-800/50",
-              "transition-colors"
+              'inline-flex cursor-pointer items-center justify-center',
+              'mx-0.5 -mt-1 h-[18px] min-w-[18px] px-1',
+              'rounded text-xs font-medium',
+              'bg-blue-100 text-blue-700 hover:bg-blue-200',
+              'dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-800/50',
+              'transition-colors',
             )}
             onClick={() => onReferenceClick?.(reference, index)}
           >
@@ -117,15 +124,15 @@ export function InlineSourceRef({
           </sup>
         </PopoverTrigger>
         <PopoverContent className="w-80 p-0" align="start">
-          <div 
+          <div
             className="p-4"
             style={{ backgroundColor: 'var(--color-components-card-bg)' }}
           >
             {/* 文档标题 */}
-            <div className="flex items-center gap-2 mb-2">
+            <div className="mb-2 flex items-center gap-2">
               {getDocIcon(reference.document_name)}
-              <span 
-                className="font-medium text-sm truncate flex-1"
+              <span
+                className="flex-1 truncate text-sm font-medium"
                 style={{ color: 'var(--color-text-primary)' }}
                 title={reference.document_name}
               >
@@ -136,34 +143,34 @@ export function InlineSourceRef({
                   href={reference.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-shrink-0"
+                  className="shrink-0"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <ExternalLink 
-                    className="h-3.5 w-3.5" 
+                  <ExternalLink
+                    className="h-3.5 w-3.5"
                     style={{ color: 'var(--color-text-tertiary)' }}
                   />
                 </a>
               )}
             </div>
-            
+
             {/* 内容摘要 */}
             {reference.content && (
-              <div 
-                className="text-sm leading-relaxed line-clamp-4"
+              <div
+                className="line-clamp-4 text-sm leading-relaxed"
                 style={{ color: 'var(--color-text-secondary)' }}
               >
                 {reference.content}
               </div>
             )}
-            
+
             {/* 相似度信息 */}
             {reference.similarity !== undefined && (
-              <div 
-                className="mt-2 pt-2 text-xs flex items-center gap-1"
-                style={{ 
+              <div
+                className="mt-2 flex items-center gap-1 pt-2 text-xs"
+                style={{
                   borderTop: '1px solid var(--color-border-subtle)',
-                  color: 'var(--color-text-tertiary)'
+                  color: 'var(--color-text-tertiary)',
                 }}
               >
                 <Info className="h-3 w-3" />
@@ -175,17 +182,17 @@ export function InlineSourceRef({
       </Popover>
     )
   }
-  
+
   // badge 模式 - 简单的徽章样式
   return (
     <sup
       className={cn(
-        "inline-flex items-center justify-center cursor-pointer",
-        "min-w-[16px] h-[16px] px-1 mx-0.5",
-        "text-[10px] font-medium rounded-full",
-        "bg-blue-100 text-blue-600 hover:bg-blue-200",
-        "dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-800/50",
-        "transition-colors"
+        'inline-flex cursor-pointer items-center justify-center',
+        'mx-0.5 h-[16px] min-w-[16px] px-1',
+        'rounded-full text-[10px] font-medium',
+        'bg-blue-100 text-blue-600 hover:bg-blue-200',
+        'dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-800/50',
+        'transition-colors',
       )}
       title={reference.document_name || `来源 ${index + 1}`}
       onClick={() => onReferenceClick?.(reference, index)}
@@ -204,11 +211,11 @@ export function createSupComponent(
   options?: {
     mode?: InlineSourceRefProps['mode']
     onReferenceClick?: InlineSourceRefProps['onReferenceClick']
-  }
+  },
 ) {
   return function SupComponent(props: ComponentProps) {
     const refIndex = parseInt(`${props?.children}` || '0', 10)
-    
+
     return (
       <InlineSourceRef
         index={refIndex}

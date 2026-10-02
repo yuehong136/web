@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import { execSync } from 'node:child_process'
 import { defineConfig, loadEnv, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
 import { visualizer } from 'rollup-plugin-visualizer'
 import { createRendererNetworkPolicyReceipt } from './desktop/build/network-policy.mjs'
@@ -118,9 +119,7 @@ function normalizeModuleId(id: string): string {
   return id.replaceAll('\\', '/')
 }
 
-// react-shiki 的 dist/style.css 使用了裸 `@layer base`，在 Tailwind v3 的 PostCSS
-// 流程里（该 css 被单独处理、缺少 @tailwind 指令）会报错。我们用自定义的
-// code-block.css 提供样式，不需要它的默认样式，这里直接把它置空以跳过 PostCSS。
+// 代码块使用项目的 code-block.css；避免 react-shiki 默认样式覆盖主题和布局。
 function stubReactShikiCss(): Plugin {
   return {
     name: 'stub-react-shiki-css',
@@ -179,6 +178,7 @@ export default defineConfig(({ mode }) => {
       stubReactShikiCss(),
       rendererNetworkPolicyReceiptPlugin(env, mode),
       react(),
+      tailwindcss(),
       monacoStaticAssetsPlugin(),
       ...(shouldAnalyze
         ? [

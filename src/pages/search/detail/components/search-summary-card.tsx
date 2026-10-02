@@ -98,10 +98,10 @@ const SearchSummaryCard = ({
   if (!displaySummary.trim() && !thinkContent && !isStreaming) return null
 
   return (
-    <div className="rounded-radius-xl bg-surface-primary overflow-hidden border border-border-default">
-      <div className="h-1 bg-gradient-to-r from-text-accent via-status-info to-status-success" />
+    <div className="bg-surface-primary overflow-hidden rounded-radius-xl border border-border-default">
+      <div className="h-1 bg-linear-to-r from-text-accent via-status-info to-status-success" />
       <div className="p-space-base">
-        <div className="mb-space-sm gap-space-xs flex items-center">
+        <div className="mb-space-sm flex items-center gap-space-xs">
           <Sparkles className="h-4 w-4 text-text-accent" />
           <span className="text-sm font-semibold text-text-accent">
             AI 摘要
@@ -115,7 +115,7 @@ const SearchSummaryCard = ({
               messageId="search-summary"
               autoCollapseDelay={isStreaming ? 0 : 800}
             >
-              <div className="whitespace-pre-wrap text-sm leading-relaxed text-text-secondary">
+              <div className="text-sm leading-relaxed whitespace-pre-wrap text-text-secondary">
                 {thinkContent}
               </div>
             </ThinkWrapper>
@@ -123,7 +123,7 @@ const SearchSummaryCard = ({
 
           {displaySummary ? (
             <>
-              <div className="bubble-copy-text search-summary-markdown [&_h1]:mb-space-sm [&_h1]:mt-space-sm [&_h2]:mb-space-sm [&_h2]:mt-space-sm [&_h3]:mb-space-xs [&_h3]:mt-space-sm [&_li]:my-space-xs [&_ol]:my-space-sm [&_p]:my-space-sm [&_ul]:my-space-sm max-w-none text-sm leading-7 text-text-primary [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_h1]:text-lg [&_h1]:font-semibold [&_h1]:text-text-primary [&_h2]:text-base [&_h2]:font-semibold [&_h2]:text-text-primary [&_h3]:text-base [&_h3]:font-semibold [&_h3]:text-text-primary [&_li]:leading-7 [&_li]:text-text-primary [&_p]:leading-7 [&_p]:text-text-primary [&_strong]:font-semibold [&_strong]:text-text-primary">
+              <div className="bubble-copy-text search-summary-markdown max-w-none text-sm leading-7 text-text-primary [&_h1]:mt-space-sm [&_h1]:mb-space-sm [&_h1]:text-lg [&_h1]:font-semibold [&_h1]:text-text-primary [&_h2]:mt-space-sm [&_h2]:mb-space-sm [&_h2]:text-base [&_h2]:font-semibold [&_h2]:text-text-primary [&_h3]:mt-space-sm [&_h3]:mb-space-xs [&_h3]:text-base [&_h3]:font-semibold [&_h3]:text-text-primary [&_li]:my-space-xs [&_li]:leading-7 [&_li]:text-text-primary [&_ol]:my-space-sm [&_p]:my-space-sm [&_p]:leading-7 [&_p]:text-text-primary [&_strong]:font-semibold [&_strong]:text-text-primary [&_ul]:my-space-sm [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
                 <style>{`
                   .search-summary-markdown {
                     color: var(--color-text-primary) !important;
@@ -205,14 +205,14 @@ const SearchSummaryCard = ({
                 </>
               ) : null}
               {isStreaming ? (
-                <span className="rounded-radius-sm mt-1 inline-block h-4 w-1.5 animate-pulse bg-text-accent" />
+                <span className="mt-1 inline-block h-4 w-1.5 animate-pulse rounded-radius-sm bg-text-accent" />
               ) : null}
             </>
           ) : !thinkContent && isStreaming ? (
             <div className="space-y-space-xs">
-              <div className="rounded-radius-md h-4 w-full animate-pulse bg-background-subtle" />
-              <div className="rounded-radius-md h-4 w-4/5 animate-pulse bg-background-subtle" />
-              <div className="rounded-radius-md h-4 w-3/5 animate-pulse bg-background-subtle" />
+              <div className="h-4 w-full animate-pulse rounded-radius-md bg-background-subtle" />
+              <div className="h-4 w-4/5 animate-pulse rounded-radius-md bg-background-subtle" />
+              <div className="h-4 w-3/5 animate-pulse rounded-radius-md bg-background-subtle" />
             </div>
           ) : null}
         </div>

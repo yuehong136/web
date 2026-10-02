@@ -109,7 +109,7 @@ export const SkillPanel: React.FC<SkillPanelProps> = ({
       {/* 搜索框 */}
       <div className="border-b border-border-default p-3">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-tertiary" />
+          <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-text-tertiary" />
           <input
             type="text"
             placeholder={t(
@@ -118,7 +118,7 @@ export const SkillPanel: React.FC<SkillPanelProps> = ({
             )}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full rounded-lg border-none bg-background-subtle py-2 pl-9 pr-3 text-sm text-text-primary outline-none placeholder:text-text-tertiary"
+            className="w-full rounded-lg border-none bg-background-subtle py-2 pr-3 pl-9 text-sm text-text-primary outline-hidden placeholder:text-text-tertiary"
             autoFocus
           />
         </div>

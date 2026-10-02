@@ -136,7 +136,7 @@ export const MCPServerCard: React.FC<MCPServerCardProps> = ({
         {/* 顶部渐变装饰 */}
         <div
           className={cn(
-            'absolute inset-x-0 top-0 h-24 bg-gradient-to-b opacity-60 transition-opacity',
+            'absolute inset-x-0 top-0 h-24 bg-linear-to-b opacity-60 transition-opacity',
             typeConfig.gradient,
             isHovered && 'opacity-100',
           )}
@@ -184,7 +184,7 @@ export const MCPServerCard: React.FC<MCPServerCardProps> = ({
                   size="sm"
                   className={cn(
                     'h-8 w-8 p-0 opacity-0 transition-opacity group-hover:opacity-100',
-                    'dark:hover:bg-background-surface/10 hover:bg-black/5',
+                    'hover:bg-black/5 dark:hover:bg-background-surface/10',
                   )}
                   onClick={(e) => e.stopPropagation()}
                 >
@@ -266,12 +266,12 @@ export const MCPServerCard: React.FC<MCPServerCardProps> = ({
             }
           >
             <div
-              className="dark:hover:bg-background-surface/5 mb-4 flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 transition-colors hover:bg-black/5"
+              className="mb-4 flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 transition-colors hover:bg-black/5 dark:hover:bg-background-surface/5"
               style={{ backgroundColor: 'var(--color-background-subtle)' }}
               onClick={handleCopyUrl}
             >
               <Globe
-                className="h-3.5 w-3.5 flex-shrink-0"
+                className="h-3.5 w-3.5 shrink-0"
                 style={{ color: 'var(--color-text-tertiary)' }}
               />
               <code
@@ -369,7 +369,7 @@ export const MCPServerCard: React.FC<MCPServerCardProps> = ({
         {/* 悬浮工具预览（最多显示3个） */}
         {isHovered && tools.length > 0 && (
           <div
-            className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-components-card-bg via-components-card-bg to-transparent p-3"
+            className="absolute right-0 bottom-0 left-0 bg-linear-to-t from-components-card-bg via-components-card-bg to-transparent p-3"
             style={{ transform: 'translateY(100%)', zIndex: 10 }}
           >
             {/* 这部分可以在未来添加工具预览 */}

@@ -46,11 +46,11 @@ export const CreateKnowledgeModal: FC<CreateKnowledgeModalProps> = ({
     <Dialog onOpenChange={handleOpenChange} open={open}>
       <DialogContent className="max-h-[90vh] overflow-hidden" size="lg">
         <DialogHeader className="pb-0">
-          <div className="gap-space-sm flex items-center">
+          <div className="flex items-center gap-space-sm">
             <div
               className={cn(
-                'rounded-radius-xl flex h-10 w-10 items-center justify-center',
-                'bg-gradient-to-br from-components-avatar-gradient-indigo-from to-components-avatar-gradient-indigo-to',
+                'flex h-10 w-10 items-center justify-center rounded-radius-xl',
+                'bg-linear-to-br from-components-avatar-gradient-indigo-from to-components-avatar-gradient-indigo-to',
               )}
             >
               <Database className="h-5 w-5 text-text-inverted" />

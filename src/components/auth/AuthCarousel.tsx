@@ -43,7 +43,7 @@ export function AuthCarousel({
 
   return (
     <div
-      className={`relative hidden min-h-screen overflow-hidden bg-gradient-to-br lg:flex lg:w-1/2 ${gradientFrom} ${gradientTo}`}
+      className={`relative hidden min-h-screen overflow-hidden bg-linear-to-br lg:flex lg:w-1/2 ${gradientFrom} ${gradientTo}`}
     >
       {/* Background Images */}
       {carouselData.map((slide, index) => (
@@ -59,7 +59,7 @@ export function AuthCarousel({
             className="h-full w-full object-contain"
             darkEnhance
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/10 to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-t from-black/35 via-black/10 to-transparent" />
         </div>
       ))}
 

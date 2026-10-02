@@ -98,7 +98,7 @@ export function CreateAgentDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent size="lg">
         <DialogHeader>
-          <div className="mb-space-sm rounded-radius-xl flex h-11 w-11 items-center justify-center bg-components-studio-surface">
+          <div className="mb-space-sm flex h-11 w-11 items-center justify-center rounded-radius-xl bg-components-studio-surface">
             <Sparkles className="h-5 w-5 text-text-accent" />
           </div>
           <DialogTitle>
@@ -113,7 +113,7 @@ export function CreateAgentDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="gap-space-lg px-space-lg pb-space-lg flex flex-col">
+        <div className="flex flex-col gap-space-lg px-space-lg pb-space-lg">
           {allowKindChange ? (
             <div className="space-y-space-sm">
               <p className="text-sm font-medium text-text-primary">
@@ -122,7 +122,7 @@ export function CreateAgentDialog({
               <RadioGroup
                 value={kind}
                 onValueChange={(value) => setKind(value as AgentCanvasType)}
-                className="gap-space-sm grid md:grid-cols-2"
+                className="grid gap-space-sm md:grid-cols-2"
                 aria-label={t('agent.center.chooseAgentType', '选择智能体类型')}
               >
                 {kindCards.map((item) => {
@@ -133,22 +133,22 @@ export function CreateAgentDialog({
                     <label
                       key={item.value}
                       className={cn(
-                        'gap-space-base rounded-radius-lg p-space-md flex cursor-pointer items-center border bg-transparent transition-colors focus-within:outline-none focus-within:ring-1 focus-within:ring-state-focus',
+                        'flex cursor-pointer items-center gap-space-base rounded-radius-lg border bg-transparent p-space-md transition-colors focus-within:ring-1 focus-within:ring-state-focus focus-within:outline-hidden',
                         active
-                          ? 'shadow-elevation-low border-state-focus bg-state-focus-subtle text-text-primary'
+                          ? 'border-state-focus bg-state-focus-subtle text-text-primary shadow-elevation-low'
                           : 'hover:bg-surface-secondary border-border-default text-text-secondary hover:border-border-strong',
                       )}
                     >
                       <div
                         className={cn(
-                          'rounded-radius-lg flex h-10 w-10 shrink-0 items-center justify-center',
+                          'flex h-10 w-10 shrink-0 items-center justify-center rounded-radius-lg',
                           item.tone,
                         )}
                       >
                         <Icon className="h-5 w-5" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-base font-semibold leading-tight text-text-primary">
+                        <p className="text-base leading-tight font-semibold text-text-primary">
                           {t(item.titleKey, item.title)}
                         </p>
                         <p className="mt-space-xs text-sm leading-snug text-text-secondary">

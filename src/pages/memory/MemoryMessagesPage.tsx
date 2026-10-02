@@ -118,7 +118,7 @@ export function MemoryMessagesPage() {
   return (
     <div className="flex h-full flex-col">
       {/* 页面头部 */}
-      <div className="flex-shrink-0 border-b border-border-default bg-background-surface px-6 py-4">
+      <div className="shrink-0 border-b border-border-default bg-background-surface px-6 py-4">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-text-primary">
             {t('memory.messages.title')}
@@ -129,14 +129,14 @@ export function MemoryMessagesPage() {
         </div>
 
         {/* 提示信息 */}
-        <div className="rounded-radius-lg p-space-sm flex items-start gap-2 border border-status-info-subtle bg-status-info-10 text-status-info">
+        <div className="flex items-start gap-2 rounded-radius-lg border border-status-info-subtle bg-status-info-10 p-space-sm text-status-info">
           <Info className="mt-0.5 h-4 w-4 shrink-0" />
           <p className="text-sm">{t('memory.messages.description')}</p>
         </div>
       </div>
 
       {/* 筛选工具栏 */}
-      <div className="flex-shrink-0 border-b border-border-default bg-background-surface px-6 py-3">
+      <div className="shrink-0 border-b border-border-default bg-background-surface px-6 py-3">
         <div className="flex items-center gap-3">
           {/* 搜索框 */}
           <div className="max-w-md flex-1">

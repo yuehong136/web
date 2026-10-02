@@ -134,16 +134,16 @@ const SearchTurnItem: React.FC<SearchTurnItemProps> = ({
   }, [turn.phase])
 
   return (
-    <section className="rounded-radius-xl bg-surface-primary overflow-hidden border border-border-default">
+    <section className="bg-surface-primary overflow-hidden rounded-radius-xl border border-border-default">
       {isLatest ? (
-        <div className="h-0.5 bg-gradient-to-r from-text-accent via-status-info to-status-success" />
+        <div className="h-0.5 bg-linear-to-r from-text-accent via-status-info to-status-success" />
       ) : null}
-      <div className="p-space-base space-y-space-sm">
-        <div className="gap-space-sm flex items-center justify-between">
-          <div className="gap-space-sm flex min-w-0 items-center">
+      <div className="space-y-space-sm p-space-base">
+        <div className="flex items-center justify-between gap-space-sm">
+          <div className="flex min-w-0 items-center gap-space-sm">
             <span
               className={cn(
-                'rounded-radius-full px-space-sm py-space-xs inline-flex items-center border text-xs font-semibold',
+                'inline-flex items-center rounded-radius-full border px-space-sm py-space-xs text-xs font-semibold',
                 isLatest
                   ? 'bg-surface-accent-subtle border-border-accent text-text-accent'
                   : 'bg-surface-secondary border-border-default text-text-secondary',
@@ -157,9 +157,9 @@ const SearchTurnItem: React.FC<SearchTurnItemProps> = ({
             </span>
           </div>
 
-          <div className="gap-space-sm flex shrink-0 items-center">
+          <div className="flex shrink-0 items-center gap-space-sm">
             {expanded && enabledExecutionLabels.length ? (
-              <div className="gap-space-sm hidden items-center xl:flex">
+              <div className="hidden items-center gap-space-sm xl:flex">
                 {enabledExecutionLabels.map((label) => (
                   <span
                     key={label}
@@ -172,17 +172,17 @@ const SearchTurnItem: React.FC<SearchTurnItemProps> = ({
             ) : null}
             <span
               className={cn(
-                'gap-space-xs rounded-radius-full px-space-sm py-space-xs inline-flex items-center text-xs font-medium',
+                'inline-flex items-center gap-space-xs rounded-radius-full px-space-sm py-space-xs text-xs font-medium',
                 statusClassName,
               )}
             >
-              <span className="rounded-radius-full h-1.5 w-1.5 bg-current" />
+              <span className="h-1.5 w-1.5 rounded-radius-full bg-current" />
               {statusLabel}
             </span>
             <button
               type="button"
               onClick={onToggleExpand}
-              className="rounded-radius-sm inline-flex items-center justify-center text-text-tertiary hover:text-text-primary"
+              className="inline-flex items-center justify-center rounded-radius-sm text-text-tertiary hover:text-text-primary"
               aria-expanded={expanded}
               title={expanded ? '收起本轮' : '展开本轮'}
             >
@@ -199,16 +199,16 @@ const SearchTurnItem: React.FC<SearchTurnItemProps> = ({
           type="button"
           onClick={onToggleExpand}
           className={cn(
-            'rounded-radius-lg w-full border text-left transition-colors',
+            'w-full rounded-radius-lg border text-left transition-colors',
             expanded
-              ? 'bg-surface-primary px-space-md py-space-sm border-border-default'
-              : 'bg-surface-secondary px-space-md py-space-sm hover:bg-surface-primary border-border-default',
+              ? 'bg-surface-primary border-border-default px-space-md py-space-sm'
+              : 'bg-surface-secondary hover:bg-surface-primary border-border-default px-space-md py-space-sm',
           )}
           aria-expanded={expanded}
         >
-          <div className="gap-space-sm flex items-start">
+          <div className="flex items-start gap-space-sm">
             {expanded ? (
-              <span className="rounded-radius-full bg-surface-accent-subtle inline-flex h-7 min-w-7 items-center justify-center text-text-accent">
+              <span className="bg-surface-accent-subtle inline-flex h-7 min-w-7 items-center justify-center rounded-radius-full text-text-accent">
                 <User className="h-4 w-4" />
               </span>
             ) : (
@@ -220,8 +220,8 @@ const SearchTurnItem: React.FC<SearchTurnItemProps> = ({
                 className={cn(
                   'mt-space-xs break-words text-text-primary',
                   expanded
-                    ? 'text-xl font-semibold leading-snug'
-                    : 'text-lg font-medium leading-snug',
+                    ? 'text-xl leading-snug font-semibold'
+                    : 'text-lg leading-snug font-medium',
                 )}
               >
                 {turn.query}
@@ -231,16 +231,16 @@ const SearchTurnItem: React.FC<SearchTurnItemProps> = ({
         </button>
 
         {!expanded ? (
-          <div className="rounded-radius-lg bg-surface-secondary px-space-sm py-space-xs border border-border-default text-sm leading-relaxed text-text-secondary">
+          <div className="bg-surface-secondary rounded-radius-lg border border-border-default px-space-sm py-space-xs text-sm leading-relaxed text-text-secondary">
             {summaryPreview}
           </div>
         ) : null}
       </div>
 
       {expanded ? (
-        <div className="space-y-space-sm px-space-base pb-space-base min-w-0">
+        <div className="min-w-0 space-y-space-sm px-space-base pb-space-base">
           {turn.summaryEnabled ? (
-            <div className="gap-space-sm grid grid-cols-1 items-start xl:grid-cols-[1fr_280px]">
+            <div className="grid grid-cols-1 items-start gap-space-sm xl:grid-cols-[1fr_280px]">
               <SearchSummaryCard
                 summary={turn.summary}
                 thinking={turn.thinking}
@@ -267,11 +267,11 @@ const SearchTurnItem: React.FC<SearchTurnItemProps> = ({
           <button
             type="button"
             onClick={() => setShowChunks((prev) => !prev)}
-            className="rounded-radius-lg bg-surface-secondary px-space-sm py-space-xs w-full border border-border-default text-left"
+            className="bg-surface-secondary w-full rounded-radius-lg border border-border-default px-space-sm py-space-xs text-left"
             aria-expanded={showChunks}
           >
-            <div className="gap-space-sm flex items-center justify-between">
-              <div className="gap-space-xs flex min-w-0 items-center">
+            <div className="flex items-center justify-between gap-space-sm">
+              <div className="flex min-w-0 items-center gap-space-xs">
                 {showChunks ? (
                   <ChevronDown className="h-3.5 w-3.5 shrink-0 text-text-tertiary" />
                 ) : (
@@ -286,7 +286,7 @@ const SearchTurnItem: React.FC<SearchTurnItemProps> = ({
               </div>
               <span
                 className={cn(
-                  'rounded-radius-full px-space-sm py-space-xs inline-flex items-center border text-xs font-medium',
+                  'inline-flex items-center rounded-radius-full border px-space-sm py-space-xs text-xs font-medium',
                   phasePill.className,
                 )}
               >
@@ -317,7 +317,7 @@ const SearchTurnItem: React.FC<SearchTurnItemProps> = ({
             />
           ) : null}
           {turn.errorMessage ? (
-            <div className="rounded-radius-md border-status-error/30 bg-status-error/10 px-space-sm py-space-xs border text-sm text-status-error">
+            <div className="rounded-radius-md border border-status-error/30 bg-status-error/10 px-space-sm py-space-xs text-sm text-status-error">
               {turn.errorMessage}
             </div>
           ) : null}

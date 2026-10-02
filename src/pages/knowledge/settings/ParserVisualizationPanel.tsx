@@ -100,7 +100,7 @@ export const ParserVisualizationPanel: React.FC<
       {/* 头部信息 */}
       <div className="border-b border-border-default p-6">
         <div className="flex items-start gap-4">
-          <div className="rounded-radius-xl flex h-11 w-11 flex-shrink-0 items-center justify-center bg-status-info-subtle">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-radius-xl bg-status-info-subtle">
             <Lightbulb className="h-5 w-5 text-text-accent" />
           </div>
           <div className="min-w-0 flex-1">
@@ -124,7 +124,7 @@ export const ParserVisualizationPanel: React.FC<
         <h3 className="mb-3 text-base font-medium text-text-primary">
           {t('knowledge.settings.parserDescription.methodDescription')}
         </h3>
-        <div className="whitespace-pre-line text-sm leading-relaxed text-text-secondary">
+        <div className="text-sm leading-relaxed whitespace-pre-line text-text-secondary">
           {detailedInfo.description}
         </div>
       </div>

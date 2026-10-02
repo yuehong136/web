@@ -255,7 +255,7 @@ export function MCPToolSelector({
                 <span className="text-sm">加载中...</span>
               </div>
             ) : filteredServers.length > 0 ? (
-              <div className="scrollbar-thumb-[var(--color-border-default)] max-h-[280px] space-y-3 overflow-y-auto pr-1 scrollbar-thin scrollbar-track-transparent">
+              <div className="scrollbar-thin max-h-[280px] scrollbar-thumb-[var(--color-border-default)] scrollbar-track-transparent space-y-3 overflow-y-auto pr-1">
                 {filteredServers.map((server) => (
                   <ServerCard
                     key={server.id}
@@ -269,7 +269,7 @@ export function MCPToolSelector({
               </div>
             ) : servers.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[var(--color-background-subtle)] to-[var(--color-background-default)] shadow-sm">
+                <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-[var(--color-background-subtle)] to-[var(--color-background-default)] shadow-xs">
                   <Plug className="h-7 w-7 text-[var(--color-text-tertiary)]" />
                 </div>
                 <p className="mb-1 text-sm font-medium text-[var(--color-text-secondary)]">

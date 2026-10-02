@@ -206,10 +206,10 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
         <div className="pointer-events-none absolute inset-0 z-10">
           <div className="flex h-full">
             {/* 行号区域 - 匹配 Monaco 的行号宽度 */}
-            <div className="w-14 flex-shrink-0 bg-transparent"></div>
+            <div className="w-14 shrink-0 bg-transparent"></div>
             {/* 内容区域 - 匹配 Monaco 的内容区域 */}
-            <div className="flex-1 pl-1 pt-1">
-              <div className="text-muted-foreground/50 select-none whitespace-pre-wrap font-mono text-sm leading-[1.6]">
+            <div className="flex-1 pt-1 pl-1">
+              <div className="font-mono text-sm leading-[1.6] whitespace-pre-wrap text-muted-foreground/50 select-none">
                 {placeholder}
               </div>
             </div>
@@ -1356,9 +1356,9 @@ const ApiDocumentationPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex h-full items-center justify-center bg-gradient-to-br from-background-body via-background-default to-background-subtle">
+      <div className="flex h-full items-center justify-center bg-linear-to-br from-background-body via-background-default to-background-subtle">
         <Card className="w-full max-w-md space-y-4 border-components-glassmorphism-border bg-components-glassmorphism-bg p-8 text-center shadow-2xl">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-linear-to-br from-blue-500 to-purple-600 shadow-lg">
             <BookOpen className="h-8 w-8 text-white" />
           </div>
           <div>
@@ -1380,7 +1380,7 @@ const ApiDocumentationPage: React.FC = () => {
   }
 
   return (
-    <div className="to-muted/20 min-h-screen bg-gradient-to-br from-background-body via-background-default">
+    <div className="min-h-screen bg-linear-to-br from-background-body via-background-default to-muted/20">
       <div className="flex h-screen bg-background">
         {/* 左侧导航 - API列表 */}
         <div className="flex w-80 flex-col border-r bg-background">
@@ -1389,7 +1389,7 @@ const ApiDocumentationPage: React.FC = () => {
             <div className="space-y-4">
               {/* 主标题和图标 */}
               <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 shadow-lg ring-2 ring-blue-500/10">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-linear-to-br from-blue-500 via-purple-500 to-indigo-600 shadow-lg ring-2 ring-blue-500/10">
                   <BookOpen className="h-6 w-6 text-white" />
                 </div>
                 <div className="flex-1">
@@ -1440,7 +1440,7 @@ const ApiDocumentationPage: React.FC = () => {
               </div>
             </div>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-muted-foreground" />
+              <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-muted-foreground" />
               <Input
                 placeholder="搜索 API 接口..."
                 value={searchQuery}
@@ -1450,11 +1450,11 @@ const ApiDocumentationPage: React.FC = () => {
             </div>
 
             {/* 功能说明卡片 */}
-            <div className="from-muted/40 via-muted/30 relative overflow-hidden rounded-xl border bg-gradient-to-r to-background p-4">
+            <div className="relative overflow-hidden rounded-xl border bg-linear-to-r from-muted/40 via-muted/30 to-background p-4">
               <div className="relative z-10">
                 <div className="mb-2 flex items-center gap-2">
                   <div className="h-1.5 w-1.5 rounded-full bg-green-500"></div>
-                  <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  <span className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
                     功能特性
                   </span>
                 </div>
@@ -1474,7 +1474,7 @@ const ApiDocumentationPage: React.FC = () => {
                 </div>
               </div>
               {/* 装饰性背景 */}
-              <div className="absolute right-0 top-0 h-16 w-16 -translate-y-8 translate-x-8 rounded-full bg-gradient-to-br from-blue-500/5 to-purple-500/5"></div>
+              <div className="absolute top-0 right-0 h-16 w-16 translate-x-8 -translate-y-8 rounded-full bg-linear-to-br from-blue-500/5 to-purple-500/5"></div>
             </div>
 
             {/* 错误提示 */}
@@ -1489,7 +1489,7 @@ const ApiDocumentationPage: React.FC = () => {
 
             {/* 统计信息 */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="to-muted/20 group relative overflow-hidden rounded-lg border bg-gradient-to-br from-background p-3 transition-all duration-200 hover:border-primary/20 hover:shadow-md">
+              <div className="group relative overflow-hidden rounded-lg border bg-linear-to-br from-background to-muted/20 p-3 transition-all duration-200 hover:border-primary/20 hover:shadow-md">
                 <div className="mb-1 flex items-center gap-2">
                   <div className="h-2 w-2 rounded-full bg-blue-500"></div>
                   <span className="text-xs font-medium text-muted-foreground">
@@ -1499,9 +1499,9 @@ const ApiDocumentationPage: React.FC = () => {
                 <div className="text-xl font-bold text-foreground">
                   {apiEndpoints.length}
                 </div>
-                <div className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full bg-blue-500/5"></div>
+                <div className="absolute -right-1 -bottom-1 h-8 w-8 rounded-full bg-blue-500/5"></div>
               </div>
-              <div className="to-muted/20 group relative overflow-hidden rounded-lg border bg-gradient-to-br from-background p-3 transition-all duration-200 hover:border-primary/20 hover:shadow-md">
+              <div className="group relative overflow-hidden rounded-lg border bg-linear-to-br from-background to-muted/20 p-3 transition-all duration-200 hover:border-primary/20 hover:shadow-md">
                 <div className="mb-1 flex items-center gap-2">
                   <div className="h-2 w-2 rounded-full bg-purple-500"></div>
                   <span className="text-xs font-medium text-muted-foreground">
@@ -1511,7 +1511,7 @@ const ApiDocumentationPage: React.FC = () => {
                 <div className="text-xl font-bold text-foreground">
                   {Object.keys(groupedEndpoints).length}
                 </div>
-                <div className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full bg-purple-500/5"></div>
+                <div className="absolute -right-1 -bottom-1 h-8 w-8 rounded-full bg-purple-500/5"></div>
               </div>
             </div>
           </div>
@@ -1553,10 +1553,10 @@ const ApiDocumentationPage: React.FC = () => {
                     open={!isCollapsed}
                     onOpenChange={() => toggleGroup(tag)}
                   >
-                    <CollapsibleTrigger className="hover:bg-muted/50 group flex w-full items-center justify-between rounded-lg p-3 transition-colors">
+                    <CollapsibleTrigger className="group flex w-full items-center justify-between rounded-lg p-3 transition-colors hover:bg-muted/50">
                       <div className="flex items-center gap-2">
                         <IconComponent className="h-4 w-4 text-muted-foreground" />
-                        <h3 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
+                        <h3 className="text-sm font-medium tracking-wide text-muted-foreground uppercase">
                           {getDisplayName(tag)}
                         </h3>
                         <Badge variant="secondary" className="text-xs">
@@ -1574,9 +1574,9 @@ const ApiDocumentationPage: React.FC = () => {
                         <button
                           key={api.id}
                           onClick={() => setSelectedAPI(api)}
-                          className={`hover:bg-muted/50 w-full rounded-lg border-2 border-transparent p-3 text-left transition-colors duration-150 ${
+                          className={`w-full rounded-lg border-2 border-transparent p-3 text-left transition-colors duration-150 hover:bg-muted/50 ${
                             selectedAPI?.id === api.id
-                              ? 'border-primary/20 bg-primary/5 shadow-sm'
+                              ? 'border-primary/20 bg-primary/5 shadow-xs'
                               : 'hover:border-muted'
                           }`}
                         >
@@ -1608,7 +1608,7 @@ const ApiDocumentationPage: React.FC = () => {
                               </Badge>
                             )}
                           </div>
-                          <div className="mb-1 text-sm font-medium leading-relaxed">
+                          <div className="mb-1 text-sm leading-relaxed font-medium">
                             {api.summary}
                           </div>
                           {api.description && (
@@ -1632,7 +1632,7 @@ const ApiDocumentationPage: React.FC = () => {
             {selectedAPI ? (
               <div className="flex h-full flex-col">
                 {/* 顶部模式切换标签 */}
-                <div className="to-muted/20 flex items-center gap-6 border-b bg-gradient-to-r from-background px-6 py-4">
+                <div className="flex items-center gap-6 border-b bg-linear-to-r from-background to-muted/20 px-6 py-4">
                   <Tabs
                     value={mainMode}
                     onValueChange={(value) => {
@@ -1670,7 +1670,7 @@ const ApiDocumentationPage: React.FC = () => {
                         <Button
                           variant="outline"
                           size="default"
-                          className="h-10 gap-2 border border-border/50 bg-background shadow-sm transition-colors hover:border-border"
+                          className="h-10 gap-2 border border-border/50 bg-background shadow-xs transition-colors hover:border-border"
                         >
                           <Key className="h-4 w-4" />
                           API Key
@@ -1680,7 +1680,7 @@ const ApiDocumentationPage: React.FC = () => {
                         size="3xl"
                         className="flex h-[80vh] flex-col gap-0 p-0"
                       >
-                        <DialogHeader className="shrink-0 px-6 pb-4 pt-6">
+                        <DialogHeader className="shrink-0 px-6 pt-6 pb-4">
                           <DialogTitle className="flex items-center gap-2">
                             <Key className="h-5 w-5" />
                             API Key 管理
@@ -1696,7 +1696,7 @@ const ApiDocumentationPage: React.FC = () => {
                           <div className="mb-4 flex shrink-0 items-center justify-between gap-4">
                             <div className="flex items-center gap-3">
                               <div className="relative">
-                                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-muted-foreground" />
+                                <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-muted-foreground" />
                                 <Input
                                   placeholder="搜索 API Key..."
                                   value={apiKeySearchQuery}
@@ -1730,7 +1730,7 @@ const ApiDocumentationPage: React.FC = () => {
                             ) : (
                               <div className="flex h-full flex-col">
                                 {/* 表头 */}
-                                <div className="bg-muted/50 shrink-0 border-b">
+                                <div className="shrink-0 border-b bg-muted/50">
                                   <div className="grid grid-cols-12 gap-3 p-4 text-sm font-semibold">
                                     <div className="col-span-2">名称</div>
                                     <div className="col-span-3">Token</div>
@@ -1760,7 +1760,7 @@ const ApiDocumentationPage: React.FC = () => {
                                       {apiKeys.map((apiKey) => (
                                         <div
                                           key={apiKey.tenant_id}
-                                          className="hover:bg-muted/30 grid grid-cols-12 gap-3 p-4 transition-colors"
+                                          className="grid grid-cols-12 gap-3 p-4 transition-colors hover:bg-muted/30"
                                         >
                                           {/* 名称 */}
                                           <div className="col-span-2">
@@ -1901,7 +1901,7 @@ const ApiDocumentationPage: React.FC = () => {
                                   上一页
                                 </Button>
 
-                                <div className="bg-muted/50 flex items-center gap-1 rounded-lg p-1">
+                                <div className="flex items-center gap-1 rounded-lg bg-muted/50 p-1">
                                   {Array.from(
                                     {
                                       length: Math.min(
@@ -2029,7 +2029,7 @@ const ApiDocumentationPage: React.FC = () => {
                             <div className="text-base leading-relaxed text-muted-foreground">
                               <MarkdownRenderer
                                 content={selectedAPI.description}
-                                className="[&_code]:bg-muted/80 [&_blockquote]:bg-muted/30 prose-lg [&_blockquote]:rounded-r [&_blockquote]:py-2 [&_code]:px-2 [&_code]:py-1 [&_code]:text-sm [&_code]:text-foreground [&_li]:text-sm [&_ol]:ml-4 [&_p]:mb-3 [&_p]:leading-relaxed [&_p]:text-muted-foreground [&_strong]:font-semibold [&_strong]:text-foreground [&_ul]:ml-4"
+                                className="prose-lg [&_blockquote]:rounded-r [&_blockquote]:bg-muted/30 [&_blockquote]:py-2 [&_code]:bg-muted/80 [&_code]:px-2 [&_code]:py-1 [&_code]:text-sm [&_code]:text-foreground [&_li]:text-sm [&_ol]:ml-4 [&_p]:mb-3 [&_p]:leading-relaxed [&_p]:text-muted-foreground [&_strong]:font-semibold [&_strong]:text-foreground [&_ul]:ml-4"
                               />
                             </div>
                           )}
@@ -2059,7 +2059,7 @@ const ApiDocumentationPage: React.FC = () => {
                                   <CardContent>
                                     {/* 表格形式展示参数 */}
                                     <div className="rounded-lg border">
-                                      <div className="bg-muted/50 grid grid-cols-4 gap-4 border-b p-4 text-sm font-medium">
+                                      <div className="grid grid-cols-4 gap-4 border-b bg-muted/50 p-4 text-sm font-medium">
                                         <div>参数名</div>
                                         <div>位置</div>
                                         <div>类型</div>
@@ -2070,7 +2070,7 @@ const ApiDocumentationPage: React.FC = () => {
                                           (param, index) => (
                                             <div
                                               key={index}
-                                              className="hover:bg-muted/20 grid grid-cols-4 gap-4 p-4"
+                                              className="grid grid-cols-4 gap-4 p-4 hover:bg-muted/20"
                                             >
                                               <div>
                                                 <div className="flex items-center gap-2">
@@ -2183,7 +2183,7 @@ const ApiDocumentationPage: React.FC = () => {
                                           Object.keys(properties).length >
                                             0 && (
                                             <div className="rounded-lg border">
-                                              <div className="bg-muted/50 grid grid-cols-4 gap-4 border-b p-3 text-sm font-medium">
+                                              <div className="grid grid-cols-4 gap-4 border-b bg-muted/50 p-3 text-sm font-medium">
                                                 <div>字段名</div>
                                                 <div>类型</div>
                                                 <div>必填</div>
@@ -2233,7 +2233,7 @@ const ApiDocumentationPage: React.FC = () => {
 
                                         {example !== undefined &&
                                           example !== null && (
-                                            <div className="bg-muted/30 rounded border">
+                                            <div className="rounded border bg-muted/30">
                                               <div className="p-3">
                                                 <div className="mb-2 text-sm font-medium">
                                                   示例
@@ -2333,12 +2333,12 @@ const ApiDocumentationPage: React.FC = () => {
                     /* 测试模式 - Apifox风格全宽度测试面板 */
                     <div className="flex h-full flex-col">
                       {/* 顶部：API 地址栏 */}
-                      <div className="to-muted/20 flex-shrink-0 border-b bg-gradient-to-r from-background px-6 py-4">
+                      <div className="shrink-0 border-b bg-linear-to-r from-background to-muted/20 px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="flex h-10 items-center">
                             <MethodBadge method={selectedAPI.method} />
                           </div>
-                          <div className="bg-muted/50 flex h-10 flex-1 items-center rounded-lg border px-3 py-2 font-mono text-sm">
+                          <div className="flex h-10 flex-1 items-center rounded-lg border bg-muted/50 px-3 py-2 font-mono text-sm">
                             {getFullApiUrl(selectedAPI.path)}
                           </div>
                           <div className="flex items-center gap-3">
@@ -2382,7 +2382,7 @@ const ApiDocumentationPage: React.FC = () => {
                         {/* 左侧：参数配置区域 */}
                         <div className="flex flex-1 flex-col border-r">
                           <div className="flex h-full flex-col">
-                            <div className="from-muted/20 to-muted/40 border-b bg-gradient-to-r px-6 py-3">
+                            <div className="border-b bg-linear-to-r from-muted/20 to-muted/40 px-6 py-3">
                               <Tabs
                                 value={activeTestTab}
                                 onValueChange={setActiveTestTab}
@@ -2491,8 +2491,8 @@ const ApiDocumentationPage: React.FC = () => {
                                   </div>
 
                                   {/* 参数表格 - 精美设计 */}
-                                  <div className="overflow-hidden rounded-xl border bg-background shadow-sm">
-                                    <div className="from-muted/40 to-muted/60 border-b bg-gradient-to-r">
+                                  <div className="overflow-hidden rounded-xl border bg-background shadow-xs">
+                                    <div className="border-b bg-linear-to-r from-muted/40 to-muted/60">
                                       <div className="grid grid-cols-12 gap-4 p-4 text-sm font-semibold text-foreground">
                                         <div className="col-span-1 text-center">
                                           ✓
@@ -2844,7 +2844,7 @@ const ApiDocumentationPage: React.FC = () => {
                                     {bodyType === 'none' && (
                                       <div className="flex flex-1 items-center justify-center p-12 text-center">
                                         <div className="text-muted-foreground">
-                                          <div className="bg-muted/50 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+                                          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted/50">
                                             <Minus className="h-8 w-8" />
                                           </div>
                                           <p className="text-sm">
@@ -2856,7 +2856,7 @@ const ApiDocumentationPage: React.FC = () => {
 
                                     {bodyType === 'form-data' && (
                                       <div className="flex flex-1 flex-col">
-                                        <div className="bg-muted/50 flex items-center justify-between border-b p-3">
+                                        <div className="flex items-center justify-between border-b bg-muted/50 p-3">
                                           <span className="text-sm font-medium">
                                             multipart/form-data
                                           </span>
@@ -2875,7 +2875,7 @@ const ApiDocumentationPage: React.FC = () => {
                                             {formDataRows.map((row) => (
                                               <div
                                                 key={row.id}
-                                                className="bg-muted/30 flex items-center gap-3 rounded-md p-3"
+                                                className="flex items-center gap-3 rounded-md bg-muted/30 p-3"
                                               >
                                                 <Switch
                                                   checked={row.enabled}
@@ -3002,7 +3002,7 @@ const ApiDocumentationPage: React.FC = () => {
 
                                     {bodyType === 'x-www-form-urlencoded' && (
                                       <div className="flex flex-1 flex-col">
-                                        <div className="bg-muted/50 flex items-center justify-between border-b p-3">
+                                        <div className="flex items-center justify-between border-b bg-muted/50 p-3">
                                           <span className="text-sm font-medium">
                                             application/x-www-form-urlencoded
                                           </span>
@@ -3043,7 +3043,7 @@ const ApiDocumentationPage: React.FC = () => {
                                                 {urlEncodedRows.map((row) => (
                                                   <div
                                                     key={row.id}
-                                                    className="hover:bg-muted/30 group -mx-2 grid grid-cols-12 items-center gap-4 rounded-md px-2 py-2 transition-colors"
+                                                    className="group -mx-2 grid grid-cols-12 items-center gap-4 rounded-md px-2 py-2 transition-colors hover:bg-muted/30"
                                                   >
                                                     <div className="col-span-1 flex justify-center">
                                                       <Switch
@@ -3209,7 +3209,7 @@ const ApiDocumentationPage: React.FC = () => {
                                       bodyType === 'graphql' ||
                                       bodyType === 'msgpack') && (
                                       <div className="flex flex-1 flex-col">
-                                        <div className="bg-muted/50 flex items-center justify-between border-b p-3">
+                                        <div className="flex items-center justify-between border-b bg-muted/50 p-3">
                                           <span className="text-sm font-medium">
                                             {bodyType === 'json' &&
                                               'application/json'}
@@ -3252,7 +3252,7 @@ const ApiDocumentationPage: React.FC = () => {
                                     {bodyType === 'binary' && (
                                       <div className="flex flex-1 items-center justify-center p-12 text-center">
                                         <div className="text-muted-foreground">
-                                          <div className="bg-muted/50 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+                                          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted/50">
                                             <FileText className="h-8 w-8" />
                                           </div>
                                           <p className="mb-4 text-sm">
@@ -3331,8 +3331,8 @@ const ApiDocumentationPage: React.FC = () => {
                                   </div>
 
                                   {/* Headers表格 */}
-                                  <div className="overflow-hidden rounded-xl border bg-background shadow-sm">
-                                    <div className="from-muted/40 to-muted/60 border-b bg-gradient-to-r">
+                                  <div className="overflow-hidden rounded-xl border bg-background shadow-xs">
+                                    <div className="border-b bg-linear-to-r from-muted/40 to-muted/60">
                                       <div className="grid grid-cols-12 gap-4 p-4 text-sm font-semibold text-foreground">
                                         <div className="col-span-1 text-center">
                                           ✓
@@ -3459,9 +3459,9 @@ const ApiDocumentationPage: React.FC = () => {
                         </div>
 
                         {/* 右侧：响应区域 */}
-                        <div className="bg-muted/30 flex w-2/5 flex-col">
+                        <div className="flex w-2/5 flex-col bg-muted/30">
                           {/* 响应标题栏 */}
-                          <div className="flex-shrink-0 border-b bg-background px-6 py-3">
+                          <div className="shrink-0 border-b bg-background px-6 py-3">
                             <h3 className="text-sm font-medium text-muted-foreground">
                               响应结果
                             </h3>
@@ -3519,7 +3519,7 @@ const ApiDocumentationPage: React.FC = () => {
                                             <div className="font-mono font-medium text-purple-600 dark:text-purple-400">
                                               {key}
                                             </div>
-                                            <div className="col-span-2 break-all font-mono text-muted-foreground">
+                                            <div className="col-span-2 font-mono break-all text-muted-foreground">
                                               {String(value)}
                                             </div>
                                           </div>
@@ -3630,8 +3630,8 @@ const ApiDocumentationPage: React.FC = () => {
                             ) : (
                               <div className="flex h-full items-center justify-center p-6">
                                 <div className="space-y-4 text-center">
-                                  <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-blue-500/20 to-green-500/20">
-                                    <Play className="text-muted-foreground/50 h-10 w-10" />
+                                  <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-linear-to-br from-blue-500/20 to-green-500/20">
+                                    <Play className="h-10 w-10 text-muted-foreground/50" />
                                   </div>
                                   <div>
                                     <h4 className="mb-2 text-lg font-semibold">

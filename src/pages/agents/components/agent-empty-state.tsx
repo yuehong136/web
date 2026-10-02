@@ -48,16 +48,16 @@ export const AgentEmptyState: React.FC<AgentEmptyStateProps> = ({
         className,
       )}
     >
-      <div className="mb-space-lg relative">
+      <div className="relative mb-space-lg">
         <div
           className={cn(
-            'rounded-radius-xl flex h-20 w-20 items-center justify-center',
-            'from-components-avatar-gradient-purple-from/10 to-components-avatar-gradient-purple-to/10 bg-gradient-to-br',
+            'flex h-20 w-20 items-center justify-center rounded-radius-xl',
+            'bg-linear-to-br from-components-avatar-gradient-purple-from/10 to-components-avatar-gradient-purple-to/10',
           )}
         >
-          <Icon className="w-icon-2xl h-icon-2xl text-components-badge-purple-text" />
+          <Icon className="h-icon-2xl w-icon-2xl text-components-badge-purple-text" />
         </div>
-        <div className="absolute -right-1 -top-1 h-3 w-3 animate-pulse rounded-full bg-components-avatar-gradient-purple-from" />
+        <div className="absolute -top-1 -right-1 h-3 w-3 animate-pulse rounded-full bg-components-avatar-gradient-purple-from" />
         <div className="absolute -bottom-1 -left-1 h-2 w-2 animate-pulse rounded-full bg-components-avatar-gradient-purple-to delay-150" />
       </div>
 
@@ -69,10 +69,10 @@ export const AgentEmptyState: React.FC<AgentEmptyStateProps> = ({
       </p>
 
       {type === 'list' ? (
-        <div className="gap-space-sm flex flex-wrap items-center justify-center">
+        <div className="flex flex-wrap items-center justify-center gap-space-sm">
           {onCreate && (
             <Button onClick={onCreate} className="gap-space-sm">
-              <Plus className="w-icon-sm h-icon-sm" />
+              <Plus className="h-icon-sm w-icon-sm" />
               {t('agents.createAsset', '新建资产')}
             </Button>
           )}
@@ -82,7 +82,7 @@ export const AgentEmptyState: React.FC<AgentEmptyStateProps> = ({
               onClick={onTemplate}
               className="gap-space-sm"
             >
-              <LayoutTemplate className="w-icon-sm h-icon-sm" />
+              <LayoutTemplate className="h-icon-sm w-icon-sm" />
               {t('agents.createFromTemplate', '从模板创建')}
             </Button>
           )}
@@ -92,7 +92,7 @@ export const AgentEmptyState: React.FC<AgentEmptyStateProps> = ({
               onClick={onImport}
               className="gap-space-sm"
             >
-              <FileInput className="w-icon-sm h-icon-sm" />
+              <FileInput className="h-icon-sm w-icon-sm" />
               {t('agents.importJson', '导入 JSON')}
             </Button>
           )}

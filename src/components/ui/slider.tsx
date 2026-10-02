@@ -18,25 +18,28 @@ const Slider = React.forwardRef<
   <SliderPrimitive.Root
     ref={ref}
     className={cn(
-      'relative flex w-full touch-none select-none items-center',
+      'relative flex w-full touch-none items-center select-none',
       className,
     )}
     {...props}
   >
-    <SliderPrimitive.Track 
+    <SliderPrimitive.Track
       className="relative h-2 w-full grow overflow-hidden rounded-full"
       style={{ backgroundColor: 'var(--color-components-slider-track)' }}
     >
-      <SliderPrimitive.Range 
+      <SliderPrimitive.Range
         className="absolute"
-        style={{ backgroundColor: 'var(--color-components-slider-range)', height: '100%' }}
+        style={{
+          backgroundColor: 'var(--color-components-slider-range)',
+          height: '100%',
+        }}
       />
     </SliderPrimitive.Track>
-    <SliderPrimitive.Thumb 
-      className="block h-5 w-5 rounded-full ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
-      style={{ 
-        backgroundColor: 'var(--color-components-slider-thumb)', 
-        border: '2px solid var(--color-components-slider-thumb-border)' 
+    <SliderPrimitive.Thumb
+      className="block h-5 w-5 rounded-full ring-offset-background transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50"
+      style={{
+        backgroundColor: 'var(--color-components-slider-thumb)',
+        border: '2px solid var(--color-components-slider-thumb-border)',
       }}
     />
   </SliderPrimitive.Root>
@@ -64,6 +67,3 @@ const FormSlider = React.forwardRef<
 FormSlider.displayName = 'FormSlider'
 
 export { FormSlider, Slider }
-
-
-

@@ -19,7 +19,7 @@ export function ReferenceMarker({
   documentName,
   similarity,
   onClick,
-  className
+  className,
 }: ReferenceMarkerProps) {
   const handleClick = () => {
     if (onClick) {
@@ -27,20 +27,20 @@ export function ReferenceMarker({
     }
   }
 
-  const title = documentName 
-    ? `引用: ${documentName}${similarity ? ` (相似度: ${Math.round(similarity * 100)}%)` : ''}` 
+  const title = documentName
+    ? `引用: ${documentName}${similarity ? ` (相似度: ${Math.round(similarity * 100)}%)` : ''}`
     : '引用'
 
   return (
     <sup
       className={cn(
         'reference-marker',
-        'inline-block px-1 py-0.5 text-xs font-medium rounded',
+        'inline-block rounded px-1 py-0.5 text-xs font-medium',
         'bg-blue-100 text-blue-700 hover:bg-blue-200',
         'cursor-pointer transition-colors duration-200',
         'border border-blue-200 hover:border-blue-300',
-        onClick && 'hover:shadow-sm',
-        className
+        onClick && 'hover:shadow-xs',
+        className,
       )}
       title={title}
       onClick={handleClick}
@@ -73,20 +73,25 @@ export function ReferenceList({ references, className }: ReferenceListProps) {
   if (!references.length) return null
 
   return (
-    <div className={cn('reference-list border-t border-border-default pt-4 mt-6', className)}>
-      <h3 className="text-sm font-medium text-text-primary mb-3">参考文献</h3>
+    <div
+      className={cn(
+        'reference-list mt-6 border-t border-border-default pt-4',
+        className,
+      )}
+    >
+      <h3 className="mb-3 text-sm font-medium text-text-primary">参考文献</h3>
       <div className="space-y-2">
         {references.map((ref) => (
           <div
             key={ref.id}
-            className="flex items-start space-x-3 p-3 bg-background-subtle rounded-lg text-sm"
+            className="flex items-start space-x-3 rounded-lg bg-background-subtle p-3 text-sm"
           >
-            <span className="flex-shrink-0 inline-block px-1.5 py-0.5 text-xs font-medium rounded bg-blue-100 text-blue-700 border border-blue-200">
+            <span className="inline-block shrink-0 rounded border border-blue-200 bg-blue-100 px-1.5 py-0.5 text-xs font-medium text-blue-700">
               [{ref.displayNumber}]
             </span>
             <div className="flex-1">
               {ref.documentName && (
-                <div className="font-medium text-text-primary mb-1">
+                <div className="mb-1 font-medium text-text-primary">
                   {ref.documentName}
                   {ref.similarity && (
                     <span className="ml-2 text-xs text-text-tertiary">
@@ -95,7 +100,7 @@ export function ReferenceList({ references, className }: ReferenceListProps) {
                   )}
                 </div>
               )}
-              <div className="text-text-secondary line-clamp-3">
+              <div className="line-clamp-3 text-text-secondary">
                 {ref.content}
               </div>
               {ref.url && (
@@ -103,7 +108,7 @@ export function ReferenceList({ references, className }: ReferenceListProps) {
                   href={ref.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-600 hover:text-blue-800 text-xs mt-1 inline-block"
+                  className="mt-1 inline-block text-xs text-blue-600 hover:text-blue-800"
                 >
                   查看来源 →
                 </a>

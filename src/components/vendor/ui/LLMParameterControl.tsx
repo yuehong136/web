@@ -9,11 +9,11 @@ import { Tooltip } from '@/components/ui/tooltip'
 
 /**
  * LLM 参数控制组件 - 参考 ragflow 的布局设计
- * 
+ *
  * 布局结构（单行紧凑设计）：
  * [标签 ⓘ]
  * [Switch] [======Slider======] [Input]
- * 
+ *
  * 特点：
  * 1. 开关控制参数是否启用
  * 2. 滑块用于快速调整
@@ -90,14 +90,16 @@ export const LLMParameterControl: React.FC<LLMParameterControlProps> = ({
   }
 
   const displayPrecision = step < 1 ? 2 : 0
-  const displayValue = formatter ? formatter(value) : value.toFixed(displayPrecision)
+  const displayValue = formatter
+    ? formatter(value)
+    : value.toFixed(displayPrecision)
   const isActive = showSwitch ? enabled : true
 
   return (
     <div className={cn('space-y-2', className)}>
       {/* 标签行 */}
       <div className="flex items-center gap-1">
-        <span 
+        <span
           className="text-sm font-medium"
           style={{ color: 'var(--color-text-primary)' }}
         >
@@ -105,7 +107,7 @@ export const LLMParameterControl: React.FC<LLMParameterControlProps> = ({
         </span>
         {tooltip && (
           <Tooltip content={<p className="max-w-xs text-xs">{tooltip}</p>}>
-            <HelpCircle 
+            <HelpCircle
               className="h-3.5 w-3.5 cursor-help"
               style={{ color: 'var(--color-text-tertiary)' }}
             />
@@ -150,17 +152,17 @@ export const LLMParameterControl: React.FC<LLMParameterControlProps> = ({
             style={{ width: inputWidth }}
             className={cn(
               'h-8 rounded-md border px-2 text-center text-sm',
-              'bg-[var(--color-components-input-bg)] border-[var(--color-components-input-border)]',
-              'focus:outline-none focus:ring-1 focus:ring-primary focus:border-[var(--color-components-input-border-focus)]',
-              '[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none',
-              disabled && 'opacity-50 cursor-not-allowed'
+              'border-[var(--color-components-input-border)] bg-[var(--color-components-input-bg)]',
+              'focus:border-[var(--color-components-input-border-focus)] focus:ring-1 focus:ring-primary focus:outline-hidden',
+              '[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none',
+              disabled && 'cursor-not-allowed opacity-50',
             )}
           />
         )}
 
         {/* 禁用时显示值 */}
         {!isActive && (
-          <span 
+          <span
             className="text-sm"
             style={{ color: 'var(--color-text-disabled)' }}
           >

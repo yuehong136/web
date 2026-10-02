@@ -58,7 +58,7 @@ export const TeamMemberListRow: React.FC<TeamMemberListRowProps> = ({
         'h-[68px] rounded-xl px-4',
         'border border-transparent',
         'transition-all duration-200 ease-out',
-        'hover:bg-surface-secondary/60 hover:border-state-focus hover:shadow-sm',
+        'hover:bg-surface-secondary/60 hover:border-state-focus hover:shadow-xs',
       )}
     >
       {/* 成员信息列 */}

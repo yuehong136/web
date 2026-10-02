@@ -22,7 +22,7 @@ function GraphSidePanelComponent({
   if (!selectedElement) return null
 
   return (
-    <div className="animate-in rounded-radius-xl shadow-elevation-high slide-in-from-right-4 absolute bottom-3 right-3 top-3 z-10 flex w-80 flex-col overflow-hidden border border-components-settings-rail-border bg-components-settings-rail-bg backdrop-blur duration-200">
+    <div className="animate-in slide-in-from-right-4 absolute top-3 right-3 bottom-3 z-10 flex w-80 flex-col overflow-hidden rounded-radius-xl border border-components-settings-rail-border bg-components-settings-rail-bg shadow-elevation-high backdrop-blur-sm duration-200">
       <div className="flex shrink-0 items-center justify-between border-b border-components-settings-rail-border px-4 py-3">
         <span className="text-sm font-semibold text-components-settings-rail-title">
           {selectedElement.type === 'node'

@@ -44,7 +44,7 @@ const FileStatusBadge: FC<FileStatusBadgeProps> = ({
       {showDot && (
         <span
           className={cn(
-            'h-1.5 w-1.5 flex-shrink-0 rounded-full',
+            'h-1.5 w-1.5 shrink-0 rounded-full',
             classes.dot,
             isRunning && 'animate-pulse',
           )}

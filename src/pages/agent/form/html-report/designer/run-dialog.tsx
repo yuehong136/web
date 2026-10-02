@@ -142,22 +142,22 @@ export function RunDialog({
       open
       aria-modal="true"
       aria-label={t('flow.htmlReportRunTitle', 'Trial run')}
-      className="p-space-lg absolute inset-0 z-20 m-0 flex h-full w-full max-w-none items-center justify-center border-0 bg-transparent"
+      className="absolute inset-0 z-20 m-0 flex h-full w-full max-w-none items-center justify-center border-0 bg-transparent p-space-lg"
     >
       {busy ? (
-        <div className="absolute inset-0 bg-background-overlay backdrop-blur-sm" />
+        <div className="absolute inset-0 bg-background-overlay backdrop-blur-xs" />
       ) : (
         <button
           type="button"
           aria-label={t('common.close', 'Close')}
-          className="absolute inset-0 bg-background-overlay backdrop-blur-sm"
+          className="absolute inset-0 bg-background-overlay backdrop-blur-xs"
           onClick={onClose}
         />
       )}
 
-      <div className="rounded-radius-lg shadow-elevation-high relative z-10 flex max-h-full w-full max-w-3xl flex-col overflow-hidden border border-border-default bg-background-surface">
-        <div className="px-space-lg pt-space-lg pb-space-sm shrink-0">
-          <div className="gap-space-sm flex items-start justify-between">
+      <div className="relative z-10 flex max-h-full w-full max-w-3xl flex-col overflow-hidden rounded-radius-lg border border-border-default bg-background-surface shadow-elevation-high">
+        <div className="shrink-0 px-space-lg pt-space-lg pb-space-sm">
+          <div className="flex items-start justify-between gap-space-sm">
             <h2 className="text-base font-semibold text-text-primary">
               {t('flow.htmlReportRunTitle', 'Trial run')}
             </h2>
@@ -179,7 +179,7 @@ export function RunDialog({
           </p>
         </div>
 
-        <div className="space-y-space-md px-space-lg pb-space-md min-h-0 flex-1 overflow-auto">
+        <div className="min-h-0 flex-1 space-y-space-md overflow-auto px-space-lg pb-space-md">
           <div className="space-y-space-xs">
             <Label className="text-xs text-text-secondary">
               {t('flow.htmlReportAiModel', 'Model')}
@@ -218,7 +218,7 @@ export function RunDialog({
                 {t('flow.htmlReportRunVariables', 'Sample variable values')}
               </Label>
               {variableRefs.map((ref) => (
-                <div key={ref} className="gap-space-xs flex items-center">
+                <div key={ref} className="flex items-center gap-space-xs">
                   <code className="shrink-0 text-xs text-text-tertiary">
                     {ref}
                   </code>
@@ -240,7 +240,7 @@ export function RunDialog({
 
           {busy && (
             <div
-              className="gap-space-xs flex items-center text-xs text-text-tertiary"
+              className="flex items-center gap-space-xs text-xs text-text-tertiary"
               aria-live="polite"
               aria-busy="true"
             >
@@ -271,7 +271,7 @@ export function RunDialog({
           )}
         </div>
 
-        <div className="gap-space-sm px-space-lg py-space-base flex shrink-0 items-center justify-end border-t border-border-subtle">
+        <div className="flex shrink-0 items-center justify-end gap-space-sm border-t border-border-subtle px-space-lg py-space-base">
           {busy ? (
             <Button variant="outline" size="sm" onClick={cancel}>
               {t('flow.htmlReportAiCancel', 'Cancel')}

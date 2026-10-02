@@ -402,7 +402,7 @@ export const StudioPage: React.FC = () => {
       ) : (
         <>
           {/* 可滚动内容区域 - pt-1 pb-2 为悬停效果留出空间 */}
-          <div className="-mx-1 flex-1 overflow-y-auto px-1 pb-2 pt-1">
+          <div className="-mx-1 flex-1 overflow-y-auto px-1 pt-1 pb-2">
             {viewMode === 'grid' ? (
               /* 卡片网格视图 */
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -445,7 +445,7 @@ export const StudioPage: React.FC = () => {
           {/* 分页控件 - 固定在底部，参考记忆库/知识库页面 */}
           {totalPages > 0 && (
             <div
-              className="mt-4 rounded-lg border shadow-sm"
+              className="mt-4 rounded-lg border shadow-xs"
               style={{
                 borderColor: 'var(--color-components-card-border)',
                 backgroundColor: 'var(--color-components-card-bg)',
@@ -570,7 +570,7 @@ export const StudioPage: React.FC = () => {
             <AlertDialogCancel>{t('common.cancel', '取消')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDelete}
-              className="hover:bg-status-error/90 bg-status-error"
+              className="bg-status-error hover:bg-status-error/90"
             >
               {t('common.delete', '删除')}
             </AlertDialogAction>

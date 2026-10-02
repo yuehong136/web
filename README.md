@@ -41,29 +41,29 @@ This README is the project front door — it intentionally stays short. The auth
 
 ## Tech Stack
 
-| Layer             | Choice                                                                        | Version     |
-| ----------------- | ----------------------------------------------------------------------------- | ----------- |
-| Framework         | React                                                                         | 19.1        |
-| Language          | TypeScript (strict)                                                           | 5.8         |
-| Build             | Vite                                                                          | 8.0         |
-| Routing           | react-router-dom                                                              | 7.7         |
-| Server state      | TanStack Query                                                                | 5.83        |
-| Client state      | Zustand                                                                       | 5.0         |
-| Styling           | Tailwind CSS + semantic tokens                                                | 3.4         |
-| UI primitives     | Radix UI (16 packages)                                                        | 1.1 – 2.2   |
-| Chat UI           | @ant-design/x suite                                                           | 2.7         |
-| Forms             | react-hook-form + zod                                                         | 7.60 / 4.0  |
-| Icons             | lucide-react (only allowed)                                                   | 0.525       |
-| Canvas            | @xyflow/react / @antv/g6                                                      | 12.9 / 5.0  |
-| Editors           | @monaco-editor/react, @lexical/react                                          | 4.7 / 0.40  |
-| Markdown          | react-markdown + markdown-it + remark-gfm + mathjax3                          | —           |
-| Streaming         | eventsource-parser                                                            | 3.0         |
-| Drag & drop       | @dnd-kit/core + sortable + utilities                                          | —           |
-| Doc preview       | docx-preview, pptx-preview, mammoth, @js-preview/excel, react-pdf-highlighter | —           |
-| Charts / Diagrams | recharts / mermaid                                                            | 3.1 / 11.12 |
-| Sanitization      | DOMPurify                                                                     | 3.3         |
-| i18n              | react-i18next + i18next + browser-languagedetector                            | 16.5 / 25.8 |
-| Desktop shell     | Electron + direct Rolldown main/preload build                                 | 43.4 / 1.2  |
+| Layer             | Choice                                                                        | Version      |
+| ----------------- | ----------------------------------------------------------------------------- | ------------ |
+| Framework         | React                                                                         | 19.3         |
+| Language          | TypeScript (strict)                                                           | 7.0          |
+| Build             | Vite                                                                          | 8.3          |
+| Routing           | react-router-dom                                                              | 7.18         |
+| Server state      | TanStack Query                                                                | 5.104        |
+| Client state      | Zustand                                                                       | 5.0          |
+| Styling           | Tailwind CSS + semantic tokens                                                | 4.3          |
+| UI primitives     | Radix UI (16 packages)                                                        | 1.1 – 2.2    |
+| Chat UI           | @ant-design/x suite                                                           | 2.9          |
+| Forms             | react-hook-form + zod                                                         | 7.60 / 4.0   |
+| Icons             | lucide-react (only allowed)                                                   | 0.525        |
+| Canvas            | @xyflow/react / @antv/g6                                                      | 12.9 / 5.0   |
+| Editors           | @monaco-editor/react, @lexical/react                                          | 4.7 / 0.52   |
+| Markdown          | react-markdown + markdown-it + remark-gfm + mathjax3                          | —            |
+| Streaming         | eventsource-parser                                                            | 3.0          |
+| Drag & drop       | @dnd-kit/core + sortable + utilities                                          | —            |
+| Doc preview       | docx-preview, pptx-preview, mammoth, @js-preview/excel, react-pdf-highlighter | —            |
+| Charts / Diagrams | recharts / mermaid                                                            | 3.1 / 11.12  |
+| Sanitization      | DOMPurify                                                                     | 3.3          |
+| i18n              | react-i18next + i18next + browser-languagedetector                            | 16.6 / 25.10 |
+| Desktop shell     | Electron + direct Rolldown main/preload build                                 | 43.4 / 1.2   |
 
 Full list lives in `package.json`.
 

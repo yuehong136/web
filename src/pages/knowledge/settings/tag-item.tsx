@@ -119,7 +119,7 @@ export function TagSetItem({
                                 {option?.label || value}
                                 <button
                                   type="button"
-                                  className="ml-1 rounded-full outline-none hover:bg-background-subtle"
+                                  className="ml-1 rounded-full outline-hidden hover:bg-background-subtle"
                                   onClick={(e) => {
                                     e.stopPropagation()
                                     handleRemove(value)

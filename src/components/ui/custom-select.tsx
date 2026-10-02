@@ -134,7 +134,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
         onClick={handleToggle}
         className={cn(
           'w-full rounded-lg border text-left transition-all duration-200',
-          'focus:outline-none focus:ring-2',
+          'focus:ring-2 focus:outline-hidden',
           getSizeClasses(),
         )}
         style={{
@@ -198,7 +198,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                 boxShadow: 'var(--color-components-dropdown-shadow)',
               }}
             >
-              <div className="max-h-64 overflow-y-auto scrollbar-thin">
+              <div className="scrollbar-thin max-h-64 overflow-y-auto">
                 {options.map((option) => (
                   <button
                     key={option.value}

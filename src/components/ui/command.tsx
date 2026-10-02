@@ -25,15 +25,12 @@ const CommandInput = React.forwardRef<
   React.ComponentRef<typeof CommandPrimitive.Input>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>
 >(({ className, ...props }, ref) => (
-  <div
-    className="flex items-center px-3"
-    data-cmdk-input-wrapper=""
-  >
+  <div className="flex items-center px-3" data-cmdk-input-wrapper="">
     <Search className="mr-2 h-4 w-4 shrink-0 text-text-tertiary" />
     <CommandPrimitive.Input
       ref={ref}
       className={cn(
-        'flex min-h-8 w-full bg-transparent py-2 text-sm outline-none placeholder:text-text-tertiary disabled:cursor-not-allowed disabled:opacity-50',
+        'flex min-h-8 w-full bg-transparent py-2 text-sm outline-hidden placeholder:text-text-tertiary disabled:cursor-not-allowed disabled:opacity-50',
         className,
       )}
       {...props}
@@ -49,10 +46,7 @@ const CommandList = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <CommandPrimitive.List
     ref={ref}
-    className={cn(
-      'max-h-[300px] overflow-y-auto overflow-x-hidden',
-      className,
-    )}
+    className={cn('max-h-[300px] overflow-x-hidden overflow-y-auto', className)}
     onWheel={(e) => e.stopPropagation()}
     onMouseEnter={(e) => e.currentTarget.focus()}
     tabIndex={-1}
@@ -82,7 +76,7 @@ const CommandGroup = React.forwardRef<
   <CommandPrimitive.Group
     ref={ref}
     className={cn(
-      'overflow-hidden p-1 text-text-primary [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-2 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-text-secondary [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider',
+      'overflow-hidden p-1 text-text-primary [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-2 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-text-secondary [&_[cmdk-group-heading]]:uppercase',
       className,
     )}
     {...props}
@@ -110,7 +104,7 @@ const CommandItem = React.forwardRef<
   <CommandPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex cursor-pointer gap-2 select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none data-[disabled=true]:pointer-events-none data-[selected='true']:bg-background-subtle data-[selected=true]:text-text-primary data-[disabled=true]:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+      "relative flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50 data-[selected='true']:bg-background-subtle data-[selected=true]:text-text-primary [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
       className,
     )}
     {...props}

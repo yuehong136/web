@@ -54,17 +54,17 @@ export function MemoryEmptyState({
       )}
     >
       {/* 图标 */}
-      <div className="mb-space-lg relative">
+      <div className="relative mb-space-lg">
         <div
           className={cn(
-            'rounded-radius-xl flex h-20 w-20 items-center justify-center',
-            'from-components-avatar-gradient-purple-from/10 to-components-avatar-gradient-purple-to/10 bg-gradient-to-br',
+            'flex h-20 w-20 items-center justify-center rounded-radius-xl',
+            'bg-linear-to-br from-components-avatar-gradient-purple-from/10 to-components-avatar-gradient-purple-to/10',
           )}
         >
-          <Icon className="w-icon-2xl h-icon-2xl text-components-badge-purple-text" />
+          <Icon className="h-icon-2xl w-icon-2xl text-components-badge-purple-text" />
         </div>
         {/* 装饰点 */}
-        <div className="absolute -right-1 -top-1 h-3 w-3 animate-pulse rounded-full bg-components-avatar-gradient-purple-from" />
+        <div className="absolute -top-1 -right-1 h-3 w-3 animate-pulse rounded-full bg-components-avatar-gradient-purple-from" />
         <div className="absolute -bottom-1 -left-1 h-2 w-2 animate-pulse rounded-full bg-components-avatar-gradient-purple-to delay-150" />
       </div>
 
@@ -81,7 +81,7 @@ export function MemoryEmptyState({
       {/* 操作按钮 */}
       {config.showAction && onAction && (
         <Button onClick={onAction} className="gap-space-sm">
-          <Plus className="w-icon-sm h-icon-sm" />
+          <Plus className="h-icon-sm w-icon-sm" />
           {config.actionTextKey ? t(config.actionTextKey) : null}
         </Button>
       )}

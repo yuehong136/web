@@ -50,7 +50,7 @@ const SearchAvatar: React.FC<{ app: SearchAppListItem }> = ({ app }) => {
     <div
       className={cn(
         'flex h-12 w-12 items-center justify-center rounded-xl',
-        'bg-gradient-to-br shadow-sm',
+        'bg-linear-to-br shadow-xs',
         gradient,
       )}
     >

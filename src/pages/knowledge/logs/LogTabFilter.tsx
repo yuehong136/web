@@ -36,9 +36,9 @@ function TabButton({ active, onClick, children }: TabButtonProps) {
       onClick={onClick}
       className={cn(
         'rounded-radius-lg px-4 py-2 text-sm font-medium transition-all duration-200',
-        'focus:outline-none focus:ring-2 focus:ring-state-focus-10 focus:ring-offset-1',
+        'focus:ring-2 focus:ring-state-focus-10 focus:ring-offset-1 focus:outline-hidden',
         active
-          ? 'shadow-elevation-low bg-background-default text-text-primary'
+          ? 'bg-background-default text-text-primary shadow-elevation-low'
           : 'text-text-secondary',
       )}
     >
@@ -58,7 +58,7 @@ function FilterOption({ status, selected, onToggle }: FilterOptionProps) {
     <button
       type="button"
       onClick={onToggle}
-      className="rounded-radius-md flex w-full items-center justify-between px-3 py-2 text-sm transition-colors hover:bg-background-subtle"
+      className="flex w-full items-center justify-between rounded-radius-md px-3 py-2 text-sm transition-colors hover:bg-background-subtle"
     >
       <FileStatusBadge status={status} />
       {selected && <Check className="h-4 w-4 text-state-focus" />}
@@ -100,7 +100,7 @@ export function LogTabFilter({
 
   return (
     <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
-      <div className="rounded-radius-lg flex items-center bg-background-subtle p-1">
+      <div className="flex items-center rounded-radius-lg bg-background-subtle p-1">
         {LogTabOptions.map((tab) => (
           <TabButton
             key={tab.key}

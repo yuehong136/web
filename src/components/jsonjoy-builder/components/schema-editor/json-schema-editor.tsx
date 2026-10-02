@@ -40,26 +40,26 @@ const JsonSchemaEditor: FC<JsonSchemaEditorProps> = ({
   return (
     <div
       className={cn(
-        'bg-surface-primary border border-border-primary rounded-radius-lg shadow-elevation-low w-full',
+        'bg-surface-primary border-border-primary w-full rounded-radius-lg border shadow-elevation-low',
         fullscreenClass,
         className,
       )}
     >
       {/* For mobile screens - show as tabs */}
-      <div className="block lg:hidden w-full">
+      <div className="block w-full lg:hidden">
         <Tabs defaultValue="json" className="w-full">
-          <div className="flex items-center justify-between px-space-md py-space-base border-b border-border-primary w-full">
+          <div className="border-border-primary flex w-full items-center justify-between border-b px-space-md py-space-base">
             <h3 className="font-medium">{t.schemaEditorTitle}</h3>
             <div className="flex items-center gap-space-sm">
               <button
                 type="button"
                 onClick={toggleFullscreen}
-                className="p-1.5 rounded-radius-md hover:bg-surface-secondary transition-colors"
+                className="hover:bg-surface-secondary rounded-radius-md p-1.5 transition-colors"
                 aria-label="Toggle fullscreen"
               >
                 <Maximize2 size={16} />
               </button>
-              <TabsList className="grid grid-cols-1 w-[100px]">
+              <TabsList className="grid w-[100px] grid-cols-1">
                 <TabsTrigger value="json">
                   {t.schemaEditorEditModeJson}
                 </TabsTrigger>
@@ -70,7 +70,7 @@ const JsonSchemaEditor: FC<JsonSchemaEditorProps> = ({
           <TabsContent
             value="json"
             className={cn(
-              'focus:outline-none w-full',
+              'w-full focus:outline-hidden',
               isFullscreen ? 'h-screen' : 'h-[500px]',
             )}
           >
@@ -86,25 +86,23 @@ const JsonSchemaEditor: FC<JsonSchemaEditorProps> = ({
       <div
         ref={containerRef}
         className={cn(
-          'hidden lg:flex lg:flex-col w-full',
+          'hidden w-full lg:flex lg:flex-col',
           isFullscreen ? 'h-screen' : 'h-[600px]',
         )}
       >
-        <div className="flex items-center justify-between px-space-md py-space-base border-b border-border-primary w-full shrink-0">
+        <div className="border-border-primary flex w-full shrink-0 items-center justify-between border-b px-space-md py-space-base">
           <h3 className="font-medium">{t.schemaEditorTitle}</h3>
           <button
             type="button"
             onClick={toggleFullscreen}
-            className="p-1.5 rounded-radius-md hover:bg-surface-secondary transition-colors"
+            className="hover:bg-surface-secondary rounded-radius-md p-1.5 transition-colors"
             aria-label={t.schemaEditorToggleFullscreen}
           >
             <Maximize2 size={16} />
           </button>
         </div>
-        <div className="flex flex-row w-full grow min-h-0">
-          <div
-            className="h-full min-h-0 w-full"
-          >
+        <div className="flex min-h-0 w-full grow flex-row">
+          <div className="h-full min-h-0 w-full">
             <JsonSchemaVisualizer
               schema={schema}
               onChange={handleSchemaChange}

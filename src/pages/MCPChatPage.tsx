@@ -51,7 +51,7 @@ const _ThinkComponent = React.memo((props: ComponentProps) => {
       onClick={() => setExpand(!expand)}
     >
       <div
-        className="whitespace-pre-wrap text-sm"
+        className="text-sm whitespace-pre-wrap"
         style={{ color: 'var(--color-text-secondary)' }}
       >
         {props.children}
@@ -482,7 +482,7 @@ export default function MCPChatPage() {
     // 没有厂商信息时使用默认图标
     return (
       <div
-        className="flex h-8 min-h-[32px] w-8 min-w-[32px] flex-shrink-0 items-center justify-center rounded-full"
+        className="flex h-8 min-h-[32px] w-8 min-w-[32px] shrink-0 items-center justify-center rounded-full"
         style={{
           background: 'var(--color-chat-bubble-assistant-avatar-bg)',
           color: 'var(--color-chat-bubble-assistant-avatar-text)',
@@ -496,7 +496,7 @@ export default function MCPChatPage() {
   const getUserAvatar = useCallback(
     () => (
       <div
-        className="flex h-8 min-h-[32px] w-8 min-w-[32px] flex-shrink-0 items-center justify-center rounded-full"
+        className="flex h-8 min-h-[32px] w-8 min-w-[32px] shrink-0 items-center justify-center rounded-full"
         style={{
           background: 'var(--color-chat-bubble-user-avatar-bg)',
           color: 'var(--color-chat-bubble-user-avatar-text)',
@@ -572,7 +572,7 @@ export default function MCPChatPage() {
                       defaultExpanded={false}
                     >
                       <div
-                        className="whitespace-pre-wrap text-sm"
+                        className="text-sm whitespace-pre-wrap"
                         style={{ color: 'var(--color-text-secondary)' }}
                       >
                         {thinkContent}
@@ -653,7 +653,7 @@ export default function MCPChatPage() {
                 blink={isThinking}
               >
                 <div
-                  className="whitespace-pre-wrap text-sm"
+                  className="text-sm whitespace-pre-wrap"
                   style={{ color: 'var(--color-text-secondary)' }}
                 >
                   {thinkContent}
@@ -978,14 +978,14 @@ export default function MCPChatPage() {
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
+          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-xs md:hidden"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
 
       {/* Sidebar - 现代化的半透明设计 */}
       <div
-        className={` ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} fixed z-50 h-full w-80 flex-shrink-0 transition-all duration-300 ease-out md:relative md:z-0 md:w-80 md:translate-x-0`}
+        className={` ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} fixed z-50 h-full w-80 shrink-0 transition-all duration-300 ease-out md:relative md:z-0 md:w-80 md:translate-x-0`}
         style={{
           backgroundColor: 'var(--color-components-sidebar-bg)',
           borderRight: '1px solid var(--color-components-sidebar-border)',
@@ -1007,7 +1007,7 @@ export default function MCPChatPage() {
       <div className="relative flex h-full min-w-0 flex-1 flex-col">
         {/* Header - 半透明效果 */}
         <div
-          className="relative z-10 flex-shrink-0"
+          className="relative z-10 shrink-0"
           style={{
             backgroundColor: 'var(--color-chat-header-bg)',
             borderBottom: '1px solid var(--color-chat-header-border)',
@@ -1104,7 +1104,7 @@ export default function MCPChatPage() {
           </div>
 
           {/* 输入区域（参考 ExplorePage 重构） */}
-          <div className="flex-shrink-0 px-6 pb-6 pt-2">
+          <div className="shrink-0 px-6 pt-2 pb-6">
             <div
               className={cn(
                 'mcp-sender-area mx-auto overflow-hidden rounded-2xl',

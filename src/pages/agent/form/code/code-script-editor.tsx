@@ -132,7 +132,7 @@ export function CodeScriptEditor({
 
   const loading = (
     <output
-      className="gap-space-sm bg-surface-secondary flex h-full items-center justify-center text-sm text-text-secondary"
+      className="bg-surface-secondary flex h-full items-center justify-center gap-space-sm text-sm text-text-secondary"
       aria-live="polite"
     >
       <Loader2 className="size-icon-md animate-spin" />
@@ -143,14 +143,14 @@ export function CodeScriptEditor({
   return (
     <TooltipProvider delayDuration={300}>
       <DialogPrimitive.Root open={isExpanded} onOpenChange={setIsExpanded}>
-        <div className="rounded-radius-lg bg-surface-primary shadow-elevation-low overflow-hidden border border-border-default">
-          <div className="px-space-sm py-space-xs bg-surface-secondary flex items-center justify-between border-b border-border-subtle">
-            <div className="gap-space-sm flex min-w-0 items-center">
+        <div className="bg-surface-primary overflow-hidden rounded-radius-lg border border-border-default shadow-elevation-low">
+          <div className="bg-surface-secondary flex items-center justify-between border-b border-border-subtle px-space-sm py-space-xs">
+            <div className="flex min-w-0 items-center gap-space-sm">
               <Code2 className="size-icon-sm shrink-0 text-text-secondary" />
               <span className="text-sm font-medium text-text-primary">
                 {t('flow.code', 'Code')}
               </span>
-              <span className="rounded-radius-sm px-space-xs py-space-xs bg-surface-primary border border-border-subtle text-xs font-medium text-text-secondary">
+              <span className="bg-surface-primary rounded-radius-sm border border-border-subtle px-space-xs py-space-xs text-xs font-medium text-text-secondary">
                 {languageLabel}
               </span>
             </div>
@@ -193,11 +193,11 @@ export function CodeScriptEditor({
         </div>
 
         <DialogPrimitive.Portal>
-          <DialogPrimitive.Overlay className="data-[state=closed]:animate-out data-[state=open]:animate-in data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-[70] bg-background/80 backdrop-blur-sm" />
+          <DialogPrimitive.Overlay className="data-[state=closed]:animate-out data-[state=open]:animate-in data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-[70] bg-background/80 backdrop-blur-xs" />
           <DialogPrimitive.Content
             ref={expandedContentRef}
             tabIndex={-1}
-            className="rounded-radius-lg bg-surface-primary shadow-elevation-high fixed left-1/2 top-1/2 z-[71] flex h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[1600px] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden border border-border-default focus:outline-none xl:h-[90vh] xl:w-[90vw]"
+            className="bg-surface-primary fixed top-1/2 left-1/2 z-[71] flex h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[1600px] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-radius-lg border border-border-default shadow-elevation-high focus:outline-hidden xl:h-[90vh] xl:w-[90vw]"
             onOpenAutoFocus={(event) => {
               event.preventDefault()
               expandedContentRef.current?.focus()
@@ -205,9 +205,9 @@ export function CodeScriptEditor({
             }}
             onPointerDownOutside={(event) => event.preventDefault()}
           >
-            <header className="px-space-base py-space-sm bg-surface-secondary flex shrink-0 items-center justify-between border-b border-border-subtle">
-              <div className="gap-space-sm flex min-w-0 items-center">
-                <span className="rounded-radius-md flex size-icon-xl shrink-0 items-center justify-center bg-components-system-accent-soft text-components-system-accent-text">
+            <header className="bg-surface-secondary flex shrink-0 items-center justify-between border-b border-border-subtle px-space-base py-space-sm">
+              <div className="flex min-w-0 items-center gap-space-sm">
+                <span className="flex size-icon-xl shrink-0 items-center justify-center rounded-radius-md bg-components-system-accent-soft text-components-system-accent-text">
                   <Code2 className="size-icon-sm" />
                 </span>
                 <div className="min-w-0">
@@ -221,7 +221,7 @@ export function CodeScriptEditor({
                     )}
                   </DialogPrimitive.Description>
                 </div>
-                <span className="rounded-radius-sm px-space-xs py-space-xs bg-surface-primary border border-border-subtle text-xs font-medium text-text-secondary">
+                <span className="bg-surface-primary rounded-radius-sm border border-border-subtle px-space-xs py-space-xs text-xs font-medium text-text-secondary">
                   {languageLabel}
                 </span>
               </div>
@@ -262,14 +262,14 @@ export function CodeScriptEditor({
               />
             </div>
 
-            <footer className="px-space-base py-space-xs bg-surface-secondary flex shrink-0 items-center justify-between border-t border-border-subtle text-xs text-text-secondary">
+            <footer className="bg-surface-secondary flex shrink-0 items-center justify-between border-t border-border-subtle px-space-base py-space-xs text-xs text-text-secondary">
               <span>
                 {t('flow.codeEditorLineCount', 'Lines: {{count}}', {
                   count: lineCount,
                 })}
               </span>
-              <span className="gap-space-xs hidden items-center sm:flex">
-                <kbd className="rounded-radius-sm px-space-xs py-space-xs bg-surface-primary border border-border-default font-mono text-xs text-text-primary">
+              <span className="hidden items-center gap-space-xs sm:flex">
+                <kbd className="bg-surface-primary rounded-radius-sm border border-border-default px-space-xs py-space-xs font-mono text-xs text-text-primary">
                   Esc
                 </kbd>
                 {t('flow.codeEditorEscapeHint', 'Return to node configuration')}

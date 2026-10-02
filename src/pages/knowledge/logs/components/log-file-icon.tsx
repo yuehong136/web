@@ -22,5 +22,5 @@ export function LogFileIcon({ suffix }: LogFileIconProps) {
     FILE_ICON_CLASS_BY_SUFFIX[suffix?.toLowerCase() || ''] ||
     'text-text-tertiary'
 
-  return <FileText className={cn('h-4 w-4 flex-shrink-0', iconClassName)} />
+  return <FileText className={cn('h-4 w-4 shrink-0', iconClassName)} />
 }

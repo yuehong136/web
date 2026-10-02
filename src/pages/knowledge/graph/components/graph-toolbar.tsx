@@ -24,7 +24,7 @@ export function GraphToolbar({
     : t('knowledge.graph.controls.fullscreen')
 
   return (
-    <div className="rounded-radius-xl shadow-elevation-high absolute bottom-4 right-4 z-10 flex flex-col gap-1 border border-components-workspace-border bg-components-workspace-surface p-1 backdrop-blur">
+    <div className="absolute right-4 bottom-4 z-10 flex flex-col gap-1 rounded-radius-xl border border-components-workspace-border bg-components-workspace-surface p-1 shadow-elevation-high backdrop-blur-sm">
       <Tooltip content={t('knowledge.graph.controls.zoomIn')}>
         <Button
           variant="ghost"

@@ -85,7 +85,7 @@ export const KnowledgeBaseAvatar: FC<KnowledgeBaseAvatarProps> = ({
   return (
     <div
       className={cn(
-        'flex shrink-0 items-center justify-center rounded-md bg-gradient-to-br font-medium text-white',
+        'flex shrink-0 items-center justify-center rounded-md bg-linear-to-br font-medium text-white',
         gradientClass,
         sizeClass,
         className,

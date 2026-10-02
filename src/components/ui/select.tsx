@@ -166,7 +166,7 @@ export const SelectTrigger = React.forwardRef<
     <button
       ref={ref}
       type="button"
-      className={`flex h-12 w-full items-center justify-between rounded-xl border px-4 py-3 text-sm transition-colors focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
+      className={`flex h-12 w-full items-center justify-between rounded-xl border px-4 py-3 text-sm transition-colors focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
       style={
         {
           backgroundColor: 'var(--color-components-select-bg)',
@@ -260,7 +260,7 @@ export const SelectContent: React.FC<SelectContentProps> = ({
       ref={contentRef}
       data-select-content=""
       data-theme={theme}
-      className={`pointer-events-auto z-[1000] mt-1 max-h-60 overflow-auto rounded-xl border shadow-lg scrollbar-thin ${className}`}
+      className={`pointer-events-auto z-[1000] mt-1 scrollbar-thin max-h-60 overflow-auto rounded-xl border shadow-lg ${className}`}
       style={{
         position: 'fixed',
         left: position.left,
@@ -314,7 +314,7 @@ export const SelectItem = React.forwardRef<HTMLButtonElement, SelectItemProps>(
         ref={ref}
         type="button"
         disabled={disabled}
-        className={`relative flex w-full cursor-pointer select-none items-center rounded-lg py-2 pl-8 pr-2 text-sm outline-none transition-colors ${className}`}
+        className={`relative flex w-full cursor-pointer items-center rounded-lg py-2 pr-2 pl-8 text-sm outline-hidden transition-colors select-none ${className}`}
         style={{
           backgroundColor: isSelected
             ? 'rgba(59, 130, 246, 0.1)'
@@ -373,7 +373,7 @@ export const SelectLabel: React.FC<{
 }> = ({ children, className = '' }) => {
   return (
     <div
-      className={`py-1.5 pl-8 pr-2 text-sm font-semibold ${className}`}
+      className={`py-1.5 pr-2 pl-8 text-sm font-semibold ${className}`}
       style={{ color: 'var(--color-text-primary)' }}
     >
       {children}

@@ -48,8 +48,8 @@ export const KnowledgeCard: FC<KnowledgeCardProps> = ({
   return (
     <Card
       className={cn(
-        'rounded-radius-xl group relative cursor-pointer transition-all duration-300',
-        'hover:shadow-elevation-medium hover:-translate-y-0.5 hover:border-state-focus',
+        'group relative cursor-pointer rounded-radius-xl transition-all duration-300',
+        'hover:-translate-y-0.5 hover:border-state-focus hover:shadow-elevation-medium',
         selected && 'ring-2 ring-text-accent',
       )}
       onClick={onClick}
@@ -57,7 +57,7 @@ export const KnowledgeCard: FC<KnowledgeCardProps> = ({
     >
       <div className="p-space-lg">
         <div className="mb-space-base flex items-start justify-between">
-          <div className="gap-space-sm flex min-w-0 flex-1 items-center">
+          <div className="flex min-w-0 flex-1 items-center gap-space-sm">
             <Checkbox
               checked={selected}
               onCheckedChange={onSelect}
@@ -76,8 +76,8 @@ export const KnowledgeCard: FC<KnowledgeCardProps> = ({
             ) : (
               <div
                 className={cn(
-                  'rounded-radius-xl flex h-10 w-10 items-center justify-center',
-                  'shadow-elevation-low bg-gradient-to-br',
+                  'flex h-10 w-10 items-center justify-center rounded-radius-xl',
+                  'bg-linear-to-br shadow-elevation-low',
                   gradient,
                 )}
               >
@@ -92,7 +92,7 @@ export const KnowledgeCard: FC<KnowledgeCardProps> = ({
               </h3>
               <span
                 className={cn(
-                  'rounded-radius-full px-space-sm inline-flex items-center py-0.5 text-xs font-medium',
+                  'inline-flex items-center rounded-radius-full px-space-sm py-0.5 text-xs font-medium',
                   getStatusClassName(knowledgeBase),
                 )}
               >
@@ -141,7 +141,7 @@ export const KnowledgeCard: FC<KnowledgeCardProps> = ({
 
         <div
           className={cn(
-            'gap-space-sm grid grid-cols-2 text-sm text-text-tertiary',
+            'grid grid-cols-2 gap-space-sm text-sm text-text-tertiary',
             !knowledgeBase.description && 'mt-space-base',
           )}
         >

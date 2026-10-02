@@ -127,7 +127,7 @@ const MetadataItem: React.FC<MetadataItemProps> = ({
           </span>
           {copyable && (
             <button
-              className="flex-shrink-0 rounded p-1 transition-colors"
+              className="shrink-0 rounded p-1 transition-colors"
               style={{
                 color: copied
                   ? 'var(--color-text-success)'
@@ -242,7 +242,7 @@ export const ReferenceDetailSheet: React.FC<ReferenceDetailSheetProps> = ({
             </div>
             {chunk.document_id && (
               <button
-                className="flex flex-shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors"
+                className="flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors"
                 style={{
                   color: 'var(--color-text-accent)',
                   backgroundColor: 'var(--color-state-focus-10)',
@@ -389,7 +389,7 @@ export const ReferenceDetailSheet: React.FC<ReferenceDetailSheetProps> = ({
                   />
                 ) : (
                   <p
-                    className="whitespace-pre-wrap text-sm"
+                    className="text-sm whitespace-pre-wrap"
                     style={{ color: 'var(--color-text-primary)' }}
                   >
                     {chunk.content || '无内容'}

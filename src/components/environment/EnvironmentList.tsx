@@ -197,7 +197,7 @@ export function EnvironmentList({
 
         <div
           className={cn(
-            'hover:bg-muted/50 flex cursor-pointer items-center gap-3 rounded-lg p-3 transition-colors',
+            'flex cursor-pointer items-center gap-3 rounded-lg p-3 transition-colors hover:bg-muted/50',
             selectedEnvironmentId === 'global'
               ? 'border border-primary/20 bg-primary/10'
               : 'bg-muted/20',
@@ -236,7 +236,7 @@ export function EnvironmentList({
               <div
                 key={env.id}
                 className={cn(
-                  'hover:bg-muted/50 group relative flex cursor-pointer items-center gap-3 rounded-lg p-3 transition-colors',
+                  'group relative flex cursor-pointer items-center gap-3 rounded-lg p-3 transition-colors hover:bg-muted/50',
                   selectedEnvironmentId === env.id
                     ? 'border border-primary/20 bg-primary/10'
                     : 'bg-background',
@@ -252,7 +252,7 @@ export function EnvironmentList({
                 />
 
                 {/* 环境图标 */}
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-100 to-purple-100">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-linear-to-br from-blue-100 to-purple-100">
                   <span className="text-sm font-semibold text-blue-700">
                     {env.name.charAt(0).toUpperCase()}
                   </span>
@@ -363,11 +363,11 @@ export function EnvironmentList({
               </span>{' '}
               吗？
             </p>
-            <div className="bg-destructive/10 border-destructive/20 rounded-lg border p-3">
+            <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-3">
               <p className="mb-1 text-sm font-medium text-destructive">
                 ⚠️ 此操作不可逆
               </p>
-              <p className="text-destructive/80 text-xs">
+              <p className="text-xs text-destructive/80">
                 删除环境将同时删除环境下的所有变量，请谨慎操作。
               </p>
             </div>

@@ -35,23 +35,28 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
   const validate = useCallback(() => {
     const errs: Record<string, string> = {}
     if (!email) errs.email = '请输入邮箱'
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errs.email = '邮箱格式不正确'
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+      errs.email = '邮箱格式不正确'
     if (!password) errs.password = '请输入密码'
     else if (password.length < 8) errs.password = '密码至少 8 位'
     if (!confirmPassword) errs.confirmPassword = '请确认密码'
-    else if (password !== confirmPassword) errs.confirmPassword = '两次密码不一致'
+    else if (password !== confirmPassword)
+      errs.confirmPassword = '两次密码不一致'
     return errs
   }, [email, password, confirmPassword])
 
-  const handleSubmit = useCallback((e: React.FormEvent) => {
-    e.preventDefault()
-    const errs = validate()
-    if (Object.keys(errs).length > 0) {
-      setErrors(errs)
-      return
-    }
-    onSubmit({ username: email, password, role: isAdmin ? 'admin' : 'user' })
-  }, [validate, onSubmit, email, password, isAdmin])
+  const handleSubmit = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault()
+      const errs = validate()
+      if (Object.keys(errs).length > 0) {
+        setErrors(errs)
+        return
+      }
+      onSubmit({ username: email, password, role: isAdmin ? 'admin' : 'user' })
+    },
+    [validate, onSubmit, email, password, isAdmin],
+  )
 
   const handleClose = useCallback(() => {
     setEmail('')
@@ -67,9 +72,7 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
       <DialogContent size="md" showCloseButton>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-space-sm">
-            <span
-              className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/12"
-            >
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/12">
               <UserPlus className="h-4 w-4 text-text-accent" />
             </span>
             新建用户
@@ -77,7 +80,7 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
         </DialogHeader>
 
         <form id="create-user-form" onSubmit={handleSubmit}>
-          <div className="px-space-lg pt-space-sm pb-space-lg space-y-space-lg">
+          <div className="space-y-space-lg px-space-lg pt-space-sm pb-space-lg">
             {/* Email */}
             <div className="space-y-space-xs">
               <label className="text-sm font-medium text-text-secondary">
@@ -88,7 +91,10 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
                 inputSize="sm"
                 placeholder="user@example.com"
                 value={email}
-                onChange={e => { setEmail(e.target.value); setErrors(prev => ({ ...prev, email: '' })) }}
+                onChange={(e) => {
+                  setEmail(e.target.value)
+                  setErrors((prev) => ({ ...prev, email: '' }))
+                }}
                 error={errors.email}
               />
             </div>
@@ -103,15 +109,22 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
                 inputSize="sm"
                 placeholder="至少 8 位"
                 value={password}
-                onChange={e => { setPassword(e.target.value); setErrors(prev => ({ ...prev, password: '' })) }}
+                onChange={(e) => {
+                  setPassword(e.target.value)
+                  setErrors((prev) => ({ ...prev, password: '' }))
+                }}
                 error={errors.password}
                 rightIcon={
                   <button
                     type="button"
-                    onClick={() => setShowPassword(v => !v)}
-                    className="text-text-tertiary hover:text-text-secondary transition-colors"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="text-text-tertiary transition-colors hover:text-text-secondary"
                   >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
                   </button>
                 }
               />
@@ -127,44 +140,61 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
                 inputSize="sm"
                 placeholder="再次输入密码"
                 value={confirmPassword}
-                onChange={e => { setConfirmPassword(e.target.value); setErrors(prev => ({ ...prev, confirmPassword: '' })) }}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value)
+                  setErrors((prev) => ({ ...prev, confirmPassword: '' }))
+                }}
                 error={errors.confirmPassword}
               />
             </div>
 
             {/* Admin Toggle */}
             <label
-              className="flex cursor-pointer items-center gap-space-sm rounded-radius-xl border border-border-default bg-surface-secondary px-space-md py-space-base hover:bg-surface-tertiary transition-colors"
-              onClick={() => setIsAdmin(v => !v)}
+              className="bg-surface-secondary hover:bg-surface-tertiary flex cursor-pointer items-center gap-space-sm rounded-radius-xl border border-border-default px-space-md py-space-base transition-colors"
+              onClick={() => setIsAdmin((v) => !v)}
             >
               <div
                 className={cn(
-                  'relative h-5 w-9 rounded-full transition-colors flex-shrink-0',
+                  'relative h-5 w-9 shrink-0 rounded-full transition-colors',
                   isAdmin
                     ? 'bg-state-focus'
-                    : 'bg-background-default border border-border-default'
+                    : 'border border-border-default bg-background-default',
                 )}
               >
                 <span
                   className={cn(
-                    'absolute top-0.5 h-4 w-4 rounded-full bg-background-surface shadow-sm transition-transform',
-                    isAdmin ? 'translate-x-4' : 'translate-x-0.5'
+                    'absolute top-0.5 h-4 w-4 rounded-full bg-background-surface shadow-xs transition-transform',
+                    isAdmin ? 'translate-x-4' : 'translate-x-0.5',
                   )}
                 />
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-text-primary">设为管理员</p>
-                <p className="text-xs text-text-tertiary">管理员拥有系统全部权限</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-text-primary">
+                  设为管理员
+                </p>
+                <p className="text-xs text-text-tertiary">
+                  管理员拥有系统全部权限
+                </p>
               </div>
             </label>
           </div>
         </form>
 
         <DialogFooter className="gap-space-sm">
-          <Button variant="outline" size="sm" onClick={handleClose} disabled={isLoading}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleClose}
+            disabled={isLoading}
+          >
             取消
           </Button>
-          <Button size="sm" type="submit" form="create-user-form" disabled={isLoading}>
+          <Button
+            size="sm"
+            type="submit"
+            form="create-user-form"
+            disabled={isLoading}
+          >
             {isLoading ? '创建中...' : '创建用户'}
           </Button>
         </DialogFooter>

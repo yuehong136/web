@@ -517,7 +517,7 @@ export const MCPBatchPage: React.FC = () => {
                         <Checkbox
                           checked={selectedServers.has(server.id)}
                           onChange={() => handleSelectServer(server.id)}
-                          className="flex-shrink-0"
+                          className="shrink-0"
                         />
                         <div className="flex flex-1 items-center gap-3">
                           <div className="rounded-lg bg-background-subtle p-2">
@@ -609,19 +609,19 @@ export const MCPBatchPage: React.FC = () => {
             <CardContent>
               <div className="space-y-3 text-sm text-muted-foreground">
                 <div className="flex gap-2">
-                  <div className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-blue-500"></div>
+                  <div className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500"></div>
                   <p>导入：支持JSON格式的批量配置导入</p>
                 </div>
                 <div className="flex gap-2">
-                  <div className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-green-500"></div>
+                  <div className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-green-500"></div>
                   <p>导出：将选中的服务器配置导出为JSON文件</p>
                 </div>
                 <div className="flex gap-2">
-                  <div className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-red-500"></div>
+                  <div className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-red-500"></div>
                   <p>删除：批量删除选中的服务器（不可恢复）</p>
                 </div>
                 <div className="flex gap-2">
-                  <div className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-text-tertiary"></div>
+                  <div className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-text-tertiary"></div>
                   <p>支持搜索和全选功能，提高操作效率</p>
                 </div>
               </div>

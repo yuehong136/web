@@ -31,7 +31,7 @@ export const ListPagination: React.FC<ListPaginationProps> = ({
 
   return (
     <div
-      className="mt-4 rounded-lg border shadow-sm"
+      className="mt-4 rounded-lg border shadow-xs"
       style={{
         borderColor: 'var(--color-components-card-border)',
         backgroundColor: 'var(--color-components-card-bg)',

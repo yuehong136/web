@@ -18,7 +18,11 @@ import { StatusCard } from '@/components/ui/status-card'
 import { TaskExecutorChart } from '@/components/ui/task-executor-chart'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { useSystemStatus, useRefreshSystemStatus, useSystemVersion } from '@/hooks/use-system-status'
+import {
+  useSystemStatus,
+  useRefreshSystemStatus,
+  useSystemVersion,
+} from '@/hooks/use-system-status'
 
 interface ComponentCardData {
   id: string
@@ -29,7 +33,8 @@ interface ComponentCardData {
   error?: string
 }
 
-const sectionTitleClass = 'text-xs font-semibold uppercase tracking-wider text-components-system-section-title'
+const sectionTitleClass =
+  'text-xs font-semibold uppercase tracking-wider text-components-system-section-title'
 const statusPriority: Record<ComponentCardData['status'], number> = {
   red: 0,
   yellow: 1,
@@ -45,60 +50,67 @@ const getResponseTimeMs = (metrics: ComponentCardData['metrics']): number => {
 
 // 健康概览横幅
 const HealthBanner: React.FC<{ cards: ComponentCardData[] }> = ({ cards }) => {
-  const greenCount = cards.filter(c => c.status === 'green').length
-  const yellowCount = cards.filter(c => c.status === 'yellow').length
-  const redCount = cards.filter(c => c.status === 'red').length
+  const greenCount = cards.filter((c) => c.status === 'green').length
+  const yellowCount = cards.filter((c) => c.status === 'yellow').length
+  const redCount = cards.filter((c) => c.status === 'red').length
   const allHealthy = redCount === 0 && yellowCount === 0
 
   const statusStyle = allHealthy
     ? {
-      container: 'bg-components-system-health-ok-bg border-components-system-health-ok-border',
-      text: 'text-components-system-health-ok-text',
-      icon: 'text-components-system-health-ok-text',
-    }
+        container:
+          'bg-components-system-health-ok-bg border-components-system-health-ok-border',
+        text: 'text-components-system-health-ok-text',
+        icon: 'text-components-system-health-ok-text',
+      }
     : redCount > 0
       ? {
-        container: 'bg-components-system-health-error-bg border-components-system-health-error-border',
-        text: 'text-components-system-health-error-text',
-        icon: 'text-components-system-health-error-text',
-      }
+          container:
+            'bg-components-system-health-error-bg border-components-system-health-error-border',
+          text: 'text-components-system-health-error-text',
+          icon: 'text-components-system-health-error-text',
+        }
       : {
-        container: 'bg-components-system-health-warning-bg border-components-system-health-warning-border',
-        text: 'text-components-system-health-warning-text',
-        icon: 'text-components-system-health-warning-text',
-      }
+          container:
+            'bg-components-system-health-warning-bg border-components-system-health-warning-border',
+          text: 'text-components-system-health-warning-text',
+          icon: 'text-components-system-health-warning-text',
+        }
 
   return (
-    <div className={cn('flex items-center gap-3 rounded-xl border px-4 py-2.5', statusStyle.container)}>
-      {allHealthy ? (
-        <CheckCircle2 className={cn('h-5 w-5 flex-shrink-0', statusStyle.icon)} />
-      ) : redCount > 0 ? (
-        <XCircle className={cn('h-5 w-5 flex-shrink-0', statusStyle.icon)} />
-      ) : (
-        <AlertTriangle className={cn('h-5 w-5 flex-shrink-0', statusStyle.icon)} />
+    <div
+      className={cn(
+        'flex items-center gap-3 rounded-xl border px-4 py-2.5',
+        statusStyle.container,
       )}
-      <div className="flex-1 min-w-0">
+    >
+      {allHealthy ? (
+        <CheckCircle2 className={cn('h-5 w-5 shrink-0', statusStyle.icon)} />
+      ) : redCount > 0 ? (
+        <XCircle className={cn('h-5 w-5 shrink-0', statusStyle.icon)} />
+      ) : (
+        <AlertTriangle className={cn('h-5 w-5 shrink-0', statusStyle.icon)} />
+      )}
+      <div className="min-w-0 flex-1">
         <p className={cn('text-sm font-semibold', statusStyle.text)}>
           {allHealthy
             ? '所有系统正常运行'
-            : `${redCount > 0 ? `${redCount} 个组件异常` : ''}${redCount > 0 && yellowCount > 0 ? '，' : ''}${yellowCount > 0 ? `${yellowCount} 个组件警告` : ''}`
-          }
+            : `${redCount > 0 ? `${redCount} 个组件异常` : ''}${redCount > 0 && yellowCount > 0 ? '，' : ''}${yellowCount > 0 ? `${yellowCount} 个组件警告` : ''}`}
         </p>
       </div>
-      <div className="flex items-center gap-3 text-xs text-text-tertiary flex-shrink-0">
+      <div className="flex shrink-0 items-center gap-3 text-xs text-text-tertiary">
         <span className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full bg-components-system-status-ok-text" />
+          <span className="h-2 w-2 rounded-full bg-components-system-status-ok-text" />
           {greenCount}
         </span>
         {yellowCount > 0 && (
           <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-components-system-status-warning-text" />
+            <span className="h-2 w-2 rounded-full bg-components-system-status-warning-text" />
             {yellowCount}
           </span>
         )}
         {redCount > 0 && (
           <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-components-system-status-error-text" />
+            <span className="h-2 w-2 rounded-full bg-components-system-status-error-text" />
             {redCount}
           </span>
         )}
@@ -108,11 +120,17 @@ const HealthBanner: React.FC<{ cards: ComponentCardData[] }> = ({ cards }) => {
 }
 
 // 紧凑版本信息标签
-const VersionTag: React.FC<{ icon: React.ReactNode; label: string; value: string }> = ({ icon, label, value }) => (
+const VersionTag: React.FC<{
+  icon: React.ReactNode
+  label: string
+  value: string
+}> = ({ icon, label, value }) => (
   <div className="inline-flex items-center gap-1.5 rounded-lg border border-components-system-version-tag-border bg-components-system-version-tag-bg px-3 py-1.5 text-xs">
     <span className="text-components-system-version-tag-label">{icon}</span>
     <span className="text-components-system-version-tag-label">{label}</span>
-    <span className="font-mono font-semibold text-components-system-version-tag-value">{value}</span>
+    <span className="font-mono font-semibold text-components-system-version-tag-value">
+      {value}
+    </span>
   </div>
 )
 
@@ -141,8 +159,8 @@ const SystemPage: React.FC = () => {
         title: `数据库 (${data.database.database.toUpperCase()})`,
         icon: <Database className="h-4 w-4" />,
         status: data.database.status,
-        metrics: { '响应时间': `${data.database.elapsed}ms` },
-        error: data.database.error
+        metrics: { 响应时间: `${data.database.elapsed}ms` },
+        error: data.database.error,
       })
     }
 
@@ -153,14 +171,14 @@ const SystemPage: React.FC = () => {
         icon: <Activity className="h-4 w-4" />,
         status: data.database_pool.status,
         metrics: {
-          '响应时间': `${data.database_pool.elapsed}ms`,
-          '连接池大小': data.database_pool.pool_size,
-          '活动连接': data.database_pool.checked_out,
-          '空闲连接': data.database_pool.checked_in,
-          '总连接数': data.database_pool.total_connections,
-          '使用率': data.database_pool.usage_rate,
+          响应时间: `${data.database_pool.elapsed}ms`,
+          连接池大小: data.database_pool.pool_size,
+          活动连接: data.database_pool.checked_out,
+          空闲连接: data.database_pool.checked_in,
+          总连接数: data.database_pool.total_connections,
+          使用率: data.database_pool.usage_rate,
         },
-        error: data.database_pool.error
+        error: data.database_pool.error,
       })
     }
 
@@ -171,10 +189,10 @@ const SystemPage: React.FC = () => {
         icon: <FileText className="h-4 w-4" />,
         status: data.doc_engine.status,
         metrics: {
-          '响应时间': `${data.doc_engine.elapsed}ms`,
-          '版本': data.doc_engine.version || 'N/A',
+          响应时间: `${data.doc_engine.elapsed}ms`,
+          版本: data.doc_engine.version || 'N/A',
         },
-        error: data.doc_engine.error
+        error: data.doc_engine.error,
       })
     }
 
@@ -184,8 +202,8 @@ const SystemPage: React.FC = () => {
         title: '缓存 (Redis)',
         icon: <Zap className="h-4 w-4" />,
         status: data.redis.status,
-        metrics: { '响应时间': `${data.redis.elapsed}ms` },
-        error: data.redis.error
+        metrics: { 响应时间: `${data.redis.elapsed}ms` },
+        error: data.redis.error,
       })
     }
 
@@ -195,8 +213,8 @@ const SystemPage: React.FC = () => {
         title: `对象存储 (${data.storage.storage.toUpperCase()})`,
         icon: <HardDrive className="h-4 w-4" />,
         status: data.storage.status,
-        metrics: { '响应时间': `${data.storage.elapsed}ms` },
-        error: data.storage.error
+        metrics: { 响应时间: `${data.storage.elapsed}ms` },
+        error: data.storage.error,
       })
     }
 
@@ -207,9 +225,10 @@ const SystemPage: React.FC = () => {
     })
   }, [data])
 
-  const hasUnhealthyCards = cards.some(card => card.status !== 'green')
+  const hasUnhealthyCards = cards.some((card) => card.status !== 'green')
   const canCollapseHealthyCards = !hasUnhealthyCards && cards.length > 3
-  const visibleCards = canCollapseHealthyCards && !showAllHealthyCards ? cards.slice(0, 3) : cards
+  const visibleCards =
+    canCollapseHealthyCards && !showAllHealthyCards ? cards.slice(0, 3) : cards
 
   const taskExecutors = data?.task_executor_heartbeats || {}
 
@@ -220,7 +239,9 @@ const SystemPage: React.FC = () => {
       const parts = versionData.split(' ')
       const versionPart = parts[0]
       const buildType = parts[1]
-      const versionMatch = versionPart?.match(/^(v[\d.]+)(?:-(\d+)-g([a-f0-9]+))?/)
+      const versionMatch = versionPart?.match(
+        /^(v[\d.]+)(?:-(\d+)-g([a-f0-9]+))?/,
+      )
       return {
         version: versionMatch?.[1] || versionPart || '',
         commits: versionMatch?.[2],
@@ -232,7 +253,10 @@ const SystemPage: React.FC = () => {
       const obj = versionData as Record<string, unknown>
       return {
         version: typeof obj.version === 'string' ? obj.version : '',
-        gitCommit: typeof obj.git_commit === 'string' ? obj.git_commit.substring(0, 8) : undefined,
+        gitCommit:
+          typeof obj.git_commit === 'string'
+            ? obj.git_commit.substring(0, 8)
+            : undefined,
         buildType: typeof obj.platform === 'string' ? obj.platform : undefined,
       }
     }
@@ -244,13 +268,16 @@ const SystemPage: React.FC = () => {
       <div className="min-h-full bg-components-system-page-bg p-4 md:p-6">
         <div className="animate-pulse space-y-4 md:space-y-5">
           <div className="flex items-center justify-between">
-            <div className="h-8 bg-components-skeleton-bg rounded-lg w-40" />
-            <div className="h-9 bg-components-skeleton-bg rounded-lg w-20" />
+            <div className="h-8 w-40 rounded-lg bg-components-skeleton-bg" />
+            <div className="h-9 w-20 rounded-lg bg-components-skeleton-bg" />
           </div>
-          <div className="h-12 bg-components-skeleton-bg rounded-xl" />
+          <div className="h-12 rounded-xl bg-components-skeleton-bg" />
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="h-40 bg-components-skeleton-bg rounded-xl" />
+              <div
+                key={i}
+                className="h-40 rounded-xl bg-components-skeleton-bg"
+              />
             ))}
           </div>
         </div>
@@ -263,7 +290,9 @@ const SystemPage: React.FC = () => {
       <div className="min-h-full bg-components-system-page-bg p-4 md:p-6">
         <div className="space-y-4 rounded-2xl border border-components-system-panel-border bg-components-system-panel-bg p-4 shadow-components-system-panel-shadow backdrop-blur-md md:space-y-5 md:p-5">
           <div className="flex items-center justify-between">
-            <h1 className="text-xl font-semibold text-components-system-header-title">系统状态</h1>
+            <h1 className="text-xl font-semibold text-components-system-header-title">
+              系统状态
+            </h1>
             <Button
               onClick={() => refreshStatus()}
               disabled={isRefetching}
@@ -271,16 +300,22 @@ const SystemPage: React.FC = () => {
               size="sm"
               className="border-components-system-accent-border text-components-system-accent-text hover:bg-components-system-accent-bg"
             >
-              <RefreshCw className={cn('mr-2 h-4 w-4', isRefetching && 'animate-spin')} />
+              <RefreshCw
+                className={cn('mr-2 h-4 w-4', isRefetching && 'animate-spin')}
+              />
               刷新
             </Button>
           </div>
           <div className="rounded-xl border border-components-system-health-error-border bg-components-system-health-error-bg p-6">
             <div className="flex items-center gap-3">
-              <AlertCircle className="h-5 w-5 flex-shrink-0 text-components-system-health-error-text" />
+              <AlertCircle className="h-5 w-5 shrink-0 text-components-system-health-error-text" />
               <div>
-                <h3 className="text-sm font-semibold text-components-system-health-error-text">加载系统状态失败</h3>
-                <p className="mt-0.5 text-sm text-components-system-health-error-text/90">{error.message}</p>
+                <h3 className="text-sm font-semibold text-components-system-health-error-text">
+                  加载系统状态失败
+                </h3>
+                <p className="mt-0.5 text-sm text-components-system-health-error-text/90">
+                  {error.message}
+                </p>
               </div>
             </div>
           </div>
@@ -291,18 +326,24 @@ const SystemPage: React.FC = () => {
 
   return (
     <div className="min-h-full bg-components-system-page-bg p-4 md:p-6">
-      <div className="space-y-4 rounded-2xl border border-components-system-panel-border border-t-2 border-t-components-system-accent-border bg-components-system-panel-bg p-4 shadow-components-system-panel-shadow backdrop-blur-md md:space-y-5 md:p-5">
+      <div className="space-y-4 rounded-2xl border border-t-2 border-components-system-panel-border border-t-components-system-accent-border bg-components-system-panel-bg p-4 shadow-components-system-panel-shadow backdrop-blur-md md:space-y-5 md:p-5">
         {/* Page Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-semibold text-components-system-header-title">系统状态</h1>
-            <p className="mt-0.5 text-sm text-components-system-header-description">监控组件运行状况和任务执行器心跳</p>
+            <h1 className="text-xl font-semibold text-components-system-header-title">
+              系统状态
+            </h1>
+            <p className="mt-0.5 text-sm text-components-system-header-description">
+              监控组件运行状况和任务执行器心跳
+            </p>
             <div className="mt-2 flex items-center gap-2">
               <span className="inline-flex items-center rounded-full border border-components-system-accent-border bg-components-system-accent-bg px-2.5 py-0.5 text-xs font-medium text-components-system-accent-text">
                 实时监控
               </span>
               {isRefetching && (
-                <span className="text-xs text-components-system-version-tag-label">正在更新...</span>
+                <span className="text-xs text-components-system-version-tag-label">
+                  正在更新...
+                </span>
               )}
             </div>
           </div>
@@ -313,7 +354,9 @@ const SystemPage: React.FC = () => {
             size="sm"
             className="border-components-system-accent-border text-components-system-accent-text hover:bg-components-system-accent-bg"
           >
-            <RefreshCw className={cn('mr-2 h-4 w-4', isRefetching && 'animate-spin')} />
+            <RefreshCw
+              className={cn('mr-2 h-4 w-4', isRefetching && 'animate-spin')}
+            />
             刷新
           </Button>
         </div>
@@ -325,16 +368,32 @@ const SystemPage: React.FC = () => {
         {!versionLoading && versionInfo && (
           <div className="flex flex-wrap items-center gap-2">
             {versionInfo.version && (
-              <VersionTag icon={<Tag className="h-3 w-3" />} label="版本" value={versionInfo.version} />
+              <VersionTag
+                icon={<Tag className="h-3 w-3" />}
+                label="版本"
+                value={versionInfo.version}
+              />
             )}
             {versionInfo.gitCommit && (
-              <VersionTag icon={<GitCommit className="h-3 w-3" />} label="提交" value={versionInfo.gitCommit} />
+              <VersionTag
+                icon={<GitCommit className="h-3 w-3" />}
+                label="提交"
+                value={versionInfo.gitCommit}
+              />
             )}
             {versionInfo.commits && (
-              <VersionTag icon={<Package className="h-3 w-3" />} label="提交数" value={versionInfo.commits} />
+              <VersionTag
+                icon={<Package className="h-3 w-3" />}
+                label="提交数"
+                value={versionInfo.commits}
+              />
             )}
             {versionInfo.buildType && (
-              <VersionTag icon={<Package className="h-3 w-3" />} label="构建" value={versionInfo.buildType} />
+              <VersionTag
+                icon={<Package className="h-3 w-3" />}
+                label="构建"
+                value={versionInfo.buildType}
+              />
             )}
           </div>
         )}
@@ -363,7 +422,9 @@ const SystemPage: React.FC = () => {
                   className="h-7 px-2 text-xs text-components-system-accent-text hover:bg-components-system-accent-bg hover:text-components-system-accent-text"
                   onClick={() => setShowAllHealthyCards((prev) => !prev)}
                 >
-                  {showAllHealthyCards ? '收起为核心组件' : `显示全部组件（${cards.length}）`}
+                  {showAllHealthyCards
+                    ? '收起为核心组件'
+                    : `显示全部组件（${cards.length}）`}
                 </Button>
               </div>
             )}

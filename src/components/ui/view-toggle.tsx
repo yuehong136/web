@@ -93,7 +93,7 @@ export function ViewToggle<T extends string = string>({
             className={cn(
               // 基础样式
               'inline-flex items-center justify-center rounded-md transition-all duration-150',
-              'focus:outline-none focus-visible:ring-2 focus-visible:ring-inset',
+              'focus:outline-hidden focus-visible:ring-2 focus-visible:ring-inset',
               sizes.button,
               // 选中/未选中状态 - 使用 CSS 类确保样式正确应用
               isSelected ? 'view-toggle-selected' : 'view-toggle-unselected',

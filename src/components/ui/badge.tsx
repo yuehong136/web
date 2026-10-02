@@ -2,14 +2,24 @@ import React from 'react'
 import { cn } from '@/lib/utils'
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: 'default' | 'secondary' | 'destructive' | 'success' | 'warning' | 'outline' | 'blue' | 'orange' | 'purple' | 'green'
+  variant?:
+    | 'default'
+    | 'secondary'
+    | 'destructive'
+    | 'success'
+    | 'warning'
+    | 'outline'
+    | 'blue'
+    | 'orange'
+    | 'purple'
+    | 'green'
 }
 
 /**
  * Badge 徽标组件
- * 
+ *
  * 用于标签、状态指示等场景
- * 
+ *
  * 变体说明：
  * - default: 默认主色调
  * - secondary: 次要色调
@@ -22,12 +32,16 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLDivElement> {
  * - purple: 紫色 (用于语义记忆等标签)
  * - green: 绿色 (用于情景记忆等标签)
  */
-const Badge: React.FC<BadgeProps> = ({ className, variant = 'default', ...props }) => {
+const Badge: React.FC<BadgeProps> = ({
+  className,
+  variant = 'default',
+  ...props
+}) => {
   return (
     <div
       className={cn(
-        'inline-flex shrink-0 items-center whitespace-nowrap rounded-full px-2 py-1 text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
-        className
+        'inline-flex shrink-0 items-center rounded-full px-2 py-1 text-xs font-medium whitespace-nowrap transition-colors focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-hidden',
+        className,
       )}
       style={getVariantStyles(variant)}
       {...props}

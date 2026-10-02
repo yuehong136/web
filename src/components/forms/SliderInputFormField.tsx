@@ -71,7 +71,9 @@ export function SliderInputFormField({
       render={({ field }) => {
         const rawValue = normalizeNumber(field.value)
         // 显示值：百分比模式下乘以100
-        const displayValue = percentage ? Math.round(rawValue * multiplier) : rawValue
+        const displayValue = percentage
+          ? Math.round(rawValue * multiplier)
+          : rawValue
 
         const handleSliderChange = (values: number[]) => {
           field.onChange(values[0])
@@ -95,15 +97,22 @@ export function SliderInputFormField({
         // 百分比模式下的显示范围
         const displayMin = percentage ? min * multiplier : min
         const displayMax = percentage ? max * multiplier : max
-        const displayStep = percentage ? Math.round(step * multiplier) || 1 : step
+        const displayStep = percentage
+          ? Math.round(step * multiplier) || 1
+          : step
 
         return (
-          <FormItem className={cn(isHorizontal && 'flex items-start gap-3 space-y-0', className)}>
+          <FormItem
+            className={cn(
+              isHorizontal && 'flex items-start gap-3 space-y-0',
+              className,
+            )}
+          >
             <FormLabel
               tooltip={tooltip}
               className={cn(
-                'text-sm text-text-secondary pt-1.5',
-                isHorizontal && 'w-[140px] shrink-0'
+                'pt-1.5 text-sm text-text-secondary',
+                isHorizontal && 'w-[140px] shrink-0',
               )}
             >
               {label}
@@ -111,7 +120,7 @@ export function SliderInputFormField({
             <div
               className={cn(
                 'flex items-center gap-4',
-                isHorizontal ? 'flex-1 min-w-0' : 'w-full'
+                isHorizontal ? 'min-w-0 flex-1' : 'w-full',
               )}
             >
               <FormControl>
@@ -125,7 +134,7 @@ export function SliderInputFormField({
                   className="flex-1"
                 />
               </FormControl>
-              <div className="flex items-center shrink-0">
+              <div className="flex shrink-0 items-center">
                 <input
                   type="number"
                   value={displayValue}
@@ -136,9 +145,9 @@ export function SliderInputFormField({
                   disabled={disabled}
                   className={cn(
                     'h-7 w-16 rounded-md border border-border bg-background px-2 text-center text-sm',
-                    'focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary',
-                    '[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none',
-                    disabled && 'opacity-50 cursor-not-allowed'
+                    'focus:border-primary focus:ring-1 focus:ring-primary focus:outline-hidden',
+                    '[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none',
+                    disabled && 'cursor-not-allowed opacity-50',
                   )}
                 />
                 {percentage && (

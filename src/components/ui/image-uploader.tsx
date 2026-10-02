@@ -379,7 +379,7 @@ export function ImageUploader(props: ImageUploaderProps) {
                   <img
                     src={file.preview}
                     alt={file.name}
-                    className="max-h-full max-w-full rounded object-contain shadow-sm"
+                    className="max-h-full max-w-full rounded object-contain shadow-xs"
                   />
                 )}
               </div>
@@ -391,7 +391,7 @@ export function ImageUploader(props: ImageUploaderProps) {
               >
                 <div className="flex min-w-0 flex-1 items-center gap-3">
                   <div
-                    className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-lg"
+                    className="h-10 w-10 shrink-0 overflow-hidden rounded-lg"
                     style={{
                       backgroundColor: 'var(--color-background-subtle)',
                     }}

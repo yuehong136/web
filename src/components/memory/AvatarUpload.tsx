@@ -115,7 +115,7 @@ export function AvatarUpload({
           className={cn(
             'flex items-center justify-center overflow-hidden rounded-full',
             'cursor-pointer disabled:cursor-not-allowed',
-            'bg-gradient-to-br shadow-md transition-transform',
+            'bg-linear-to-br shadow-md transition-transform',
             'group-hover:scale-105',
             sizeClasses[size],
             gradientClass,
@@ -140,9 +140,9 @@ export function AvatarUpload({
             type="button"
             aria-label={t('memory.upload.changeAvatar')}
             className={cn(
-              'bg-surface-primary absolute -bottom-0.5 -right-0.5 border border-border-default',
+              'bg-surface-primary absolute -right-0.5 -bottom-0.5 border border-border-default',
               'flex cursor-pointer items-center justify-center rounded-full',
-              'hover:bg-surface-secondary shadow-sm transition-colors',
+              'hover:bg-surface-secondary shadow-xs transition-colors',
               editIconSizeClasses[size],
             )}
             onClick={(e) => {
@@ -171,9 +171,9 @@ export function AvatarUpload({
             type="button"
             aria-label={t('memory.upload.removeAvatar')}
             className={cn(
-              'border-surface-primary absolute -right-0.5 -top-0.5 border bg-status-error',
+              'border-surface-primary absolute -top-0.5 -right-0.5 border bg-status-error',
               'flex cursor-pointer items-center justify-center rounded-full',
-              'hover:bg-status-error/80 shadow-sm transition-colors',
+              'shadow-xs transition-colors hover:bg-status-error/80',
               'opacity-0 group-hover:opacity-100',
               editIconSizeClasses[size],
             )}

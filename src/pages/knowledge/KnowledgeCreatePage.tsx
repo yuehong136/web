@@ -25,7 +25,7 @@ export const KnowledgeCreatePage: FC = () => {
 
   return (
     <div className="min-h-screen bg-background-body">
-      <div className="px-space-lg py-space-xl mx-auto max-w-3xl">
+      <div className="mx-auto max-w-3xl px-space-lg py-space-xl">
         <div className="mb-space-xl">
           <Button
             className="mb-space-base gap-space-xs text-text-secondary hover:text-text-primary"
@@ -37,11 +37,11 @@ export const KnowledgeCreatePage: FC = () => {
             {t('knowledge.create.actions.back')}
           </Button>
 
-          <div className="gap-space-base flex items-center">
+          <div className="flex items-center gap-space-base">
             <div
               className={cn(
-                'rounded-radius-xl flex h-12 w-12 items-center justify-center',
-                'bg-gradient-to-br from-components-avatar-gradient-indigo-from to-components-avatar-gradient-indigo-to',
+                'flex h-12 w-12 items-center justify-center rounded-radius-xl',
+                'bg-linear-to-br from-components-avatar-gradient-indigo-from to-components-avatar-gradient-indigo-to',
                 'shadow-elevation-low',
               )}
             >

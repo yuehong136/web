@@ -74,8 +74,8 @@ export function InnerIterationNode({
     >
       <section
         className={cn(
-          'group relative h-full w-full rounded-radius-lg border border-dashed border-border-primary transition-[border-color,outline-color]',
-          'bg-gradient-to-br from-surface-secondary/40 via-transparent to-components-system-accent-soft/20',
+          'group border-border-primary relative h-full w-full rounded-radius-lg border border-dashed transition-[border-color,outline-color]',
+          'from-surface-secondary/40 bg-linear-to-br via-transparent to-components-system-accent-soft/20',
         )}
         style={
           selected
@@ -109,18 +109,18 @@ export function InnerIterationNode({
 
         <div
           className={cn(
-            'absolute left-0 top-0 z-10 inline-flex max-w-[60%] items-center gap-space-xs rounded-bl-none rounded-br-radius-md rounded-tl-radius-lg rounded-tr-none bg-components-system-accent-soft px-space-sm py-1 text-components-system-accent-text shadow-elevation-low',
+            'absolute top-0 left-0 z-10 inline-flex max-w-[60%] items-center gap-space-xs rounded-tl-radius-lg rounded-tr-none rounded-br-radius-md rounded-bl-none bg-components-system-accent-soft px-space-sm py-1 text-components-system-accent-text shadow-elevation-low',
           )}
         >
           <OperatorIcon name={data.label as Operator} />
-          <span className="truncate text-xs font-semibold leading-none">
+          <span className="truncate text-xs leading-none font-semibold">
             {data.name}
           </span>
         </div>
 
         {!hasUserChildren && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-            <div className="flex flex-col items-center gap-space-xs rounded-radius-md border border-dashed border-border-subtle bg-surface-primary/40 px-space-md py-space-sm text-center">
+            <div className="bg-surface-primary/40 flex flex-col items-center gap-space-xs rounded-radius-md border border-dashed border-border-subtle px-space-md py-space-sm text-center">
               <span className="text-xs text-text-secondary">
                 {t(
                   'flow.iterationEmptyHint',
@@ -148,7 +148,7 @@ export function InnerIterationStartNode({
 }: NodeProps<IIterationStartNode>) {
   return (
     <NodeWrapper
-      className="!w-9 !rounded-full !p-0 flex size-9 items-center justify-center !bg-components-system-accent-soft !border-components-system-accent-text"
+      className="flex size-9 !w-9 items-center justify-center !rounded-full !border-components-system-accent-text !bg-components-system-accent-soft !p-0"
       selected={selected}
       id={id}
     >

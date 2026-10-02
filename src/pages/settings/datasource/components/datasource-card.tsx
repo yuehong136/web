@@ -40,10 +40,10 @@ export function DataSourceCard({ name, icon, list }: DataSourceCardProps) {
   if (list.length === 0) return null
 
   return (
-    <div className="hover:shadow-elevation-low overflow-hidden rounded-lg border border-components-card-border bg-components-card-bg shadow-sm transition-shadow duration-200">
+    <div className="overflow-hidden rounded-lg border border-components-card-border bg-components-card-bg shadow-xs transition-shadow duration-200 hover:shadow-elevation-low">
       {/* 类型头部 */}
       <div className="flex items-center gap-3 border-b border-border-default bg-background-subtle px-4 py-3">
-        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-background-body shadow-sm">
+        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-background-body shadow-xs">
           <div className="flex h-5 w-5 items-center justify-center">{icon}</div>
         </div>
         <div className="flex items-center gap-2">
@@ -60,10 +60,10 @@ export function DataSourceCard({ name, icon, list }: DataSourceCardProps) {
           {list.map((item) => (
             <div
               key={item.id}
-              className="bg-background-subtle/50 group flex items-center justify-between rounded-md px-3 py-2.5 transition-colors duration-150 hover:bg-background-subtle"
+              className="group flex items-center justify-between rounded-md bg-background-subtle/50 px-3 py-2.5 transition-colors duration-150 hover:bg-background-subtle"
             >
               <div className="flex min-w-0 items-center gap-3">
-                <div className="h-2 w-2 flex-shrink-0 rounded-full bg-status-success" />
+                <div className="h-2 w-2 shrink-0 rounded-full bg-status-success" />
                 <span className="truncate text-sm font-medium text-text-primary">
                   {item.name}
                 </span>

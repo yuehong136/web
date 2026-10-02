@@ -67,7 +67,7 @@ export function MemorySidebar({
     return (
       <div className="flex h-full flex-col border-r border-border-default bg-background-surface">
         {/* 返回按钮 - 加载时也可用 */}
-        <div className="px-4 pb-0 pt-4">
+        <div className="px-4 pt-4 pb-0">
           <Button
             variant="ghost"
             size="sm"
@@ -79,7 +79,7 @@ export function MemorySidebar({
           </Button>
         </div>
         {/* 骨架屏 */}
-        <div className="animate-pulse space-y-4 px-6 pb-6 pt-4">
+        <div className="animate-pulse space-y-4 px-6 pt-4 pb-6">
           <div className="h-16 w-16 rounded-2xl bg-background-subtle" />
           <div className="h-5 w-3/4 rounded bg-background-subtle" />
           <div className="h-4 w-1/2 rounded bg-background-subtle" />
@@ -91,7 +91,7 @@ export function MemorySidebar({
   return (
     <div className="flex h-full flex-col border-r border-border-default bg-background-surface">
       {/* 返回按钮 */}
-      <div className="px-4 pb-0 pt-4">
+      <div className="px-4 pt-4 pb-0">
         <Button
           variant="ghost"
           size="sm"
@@ -104,14 +104,14 @@ export function MemorySidebar({
       </div>
 
       {/* 头部信息区 */}
-      <div className="border-b border-border-default px-6 pb-6 pt-4">
+      <div className="border-b border-border-default px-6 pt-4 pb-6">
         {/* 头像带渐变光环和状态指示 */}
         <div className="relative mb-4 inline-block">
           {/* 渐变光环背景 */}
           <div
             className={cn(
-              'absolute -inset-1 rounded-2xl opacity-30 blur-sm',
-              'bg-gradient-to-br',
+              'absolute -inset-1 rounded-2xl opacity-30 blur-xs',
+              'bg-linear-to-br',
               avatarGradient,
             )}
           />
@@ -127,7 +127,7 @@ export function MemorySidebar({
             <div
               className={cn(
                 'relative flex h-16 w-16 items-center justify-center rounded-2xl',
-                'bg-gradient-to-br shadow-sm',
+                'bg-linear-to-br shadow-xs',
                 avatarGradient,
               )}
             >
@@ -140,7 +140,7 @@ export function MemorySidebar({
           {/* 状态指示点 */}
           <div
             className={cn(
-              'absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full',
+              'absolute -right-0.5 -bottom-0.5 h-4 w-4 rounded-full',
               'border-surface-primary border-2',
               'bg-status-success',
             )}
@@ -206,7 +206,7 @@ export function MemorySidebar({
                 <>
                   {/* 左侧活跃指示条 */}
                   {isActive && (
-                    <div className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-text-accent" />
+                    <div className="absolute top-1/2 left-0 h-5 w-1 -translate-y-1/2 rounded-r-full bg-text-accent" />
                   )}
                   <item.icon
                     className={cn(

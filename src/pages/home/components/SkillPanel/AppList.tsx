@@ -76,7 +76,7 @@ export const AppList: React.FC<AppListProps> = ({
             >
               <div
                 className={cn(
-                  'flex h-8 w-8 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg',
+                  'flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg',
                   isSelected
                     ? 'bg-state-focus text-text-inverted'
                     : 'bg-background-subtle text-text-secondary',
@@ -106,7 +106,7 @@ export const AppList: React.FC<AppListProps> = ({
                 )}
               </div>
               {/* 右箭头，表示有子菜单 */}
-              <ChevronRight className="h-4 w-4 flex-shrink-0 text-text-tertiary" />
+              <ChevronRight className="h-4 w-4 shrink-0 text-text-tertiary" />
             </button>
 
             {/* 向右展开的历史面板 */}

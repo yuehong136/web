@@ -24,7 +24,7 @@ const ContextMenuContent = React.forwardRef<
         ref={ref}
         data-theme={theme}
         className={cn(
-          'z-50 min-w-[180px] rounded-radius-md border border-border-primary bg-surface-primary p-space-xs text-text-primary shadow-elevation-medium',
+          'border-border-primary bg-surface-primary z-50 min-w-[180px] rounded-radius-md border p-space-xs text-text-primary shadow-elevation-medium',
           className,
         )}
         {...props}
@@ -41,7 +41,7 @@ const ContextMenuItem = React.forwardRef<
   <ContextMenuPrimitive.Item
     ref={ref}
     className={cn(
-      'flex cursor-default select-none items-center gap-space-sm rounded-radius-sm px-space-sm py-space-xs text-sm outline-none focus:bg-surface-secondary data-[disabled]:pointer-events-none data-[disabled]:text-text-disabled',
+      'focus:bg-surface-secondary flex cursor-default items-center gap-space-sm rounded-radius-sm px-space-sm py-space-xs text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:text-text-disabled',
       className,
     )}
     {...props}
@@ -55,7 +55,7 @@ const ContextMenuSeparator = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <ContextMenuPrimitive.Separator
     ref={ref}
-    className={cn('my-space-xs h-px bg-border-primary', className)}
+    className={cn('bg-border-primary my-space-xs h-px', className)}
     {...props}
   />
 ))

@@ -171,7 +171,7 @@ export const AppCard: React.FC<AppCardProps> = ({
               <div
                 className={cn(
                   'flex h-12 w-12 items-center justify-center rounded-xl',
-                  'bg-gradient-to-br shadow-sm',
+                  'bg-linear-to-br shadow-xs',
                   avatarGradient,
                   data.icon && 'hidden',
                 )}

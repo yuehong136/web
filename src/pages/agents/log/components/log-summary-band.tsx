@@ -61,17 +61,17 @@ export function LogSummaryBand({
 
   return (
     <div className="grid border-b border-components-page-toolbar-border bg-components-console-surface xl:grid-cols-[minmax(280px,1.5fr)_minmax(0,2.5fr)]">
-      <div className="gap-space-sm px-space-lg py-space-base flex min-w-0 items-center border-r border-border-subtle">
+      <div className="flex min-w-0 items-center gap-space-sm border-r border-border-subtle px-space-lg py-space-base">
         <div
           className={cn(
-            'rounded-radius-lg flex h-12 w-12 shrink-0 items-center justify-center bg-gradient-to-br text-base font-semibold text-text-inverted',
+            'flex h-12 w-12 shrink-0 items-center justify-center rounded-radius-lg bg-linear-to-br text-base font-semibold text-text-inverted',
             getAvatarGradient(title),
           )}
         >
           {title.charAt(0).toUpperCase() || <Bot className="size-5" />}
         </div>
         <div className="min-w-0">
-          <div className="gap-space-xs flex flex-wrap items-center">
+          <div className="flex flex-wrap items-center gap-space-xs">
             <h2 className="truncate text-sm font-semibold text-text-primary">
               {title}
             </h2>
@@ -79,7 +79,7 @@ export function LogSummaryBand({
               {isPipelineFlow(agent) ? 'Pipeline' : 'Agent'}
             </Badge>
           </div>
-          <div className="mt-space-xs gap-space-xs flex flex-wrap items-center text-xs text-text-tertiary">
+          <div className="mt-space-xs flex flex-wrap items-center gap-space-xs text-xs text-text-tertiary">
             <span>
               {isFiltered ? `筛选后 ${filteredTotal}` : `${total} 会话`}
             </span>
@@ -112,9 +112,9 @@ export function LogSummaryBand({
           description={failures ? `${failures} 个失败` : '无失败'}
           tone={failures ? 'danger' : 'default'}
         />
-        <div className="px-space-lg py-space-base min-w-0">
+        <div className="min-w-0 px-space-lg py-space-base">
           <div className="text-xs font-medium text-text-tertiary">来源</div>
-          <div className="mt-space-xs gap-space-xs flex min-w-0 flex-wrap">
+          <div className="mt-space-xs flex min-w-0 flex-wrap gap-space-xs">
             {topSources.length > 0 ? (
               topSources.map(([source, count]) => (
                 <Badge key={source} variant="secondary">
@@ -145,9 +145,9 @@ function SummaryStat({
   tone?: 'default' | 'danger'
 }) {
   return (
-    <div className="px-space-lg py-space-base min-w-0 border-r border-border-subtle last:border-r-0">
+    <div className="min-w-0 border-r border-border-subtle px-space-lg py-space-base last:border-r-0">
       <div className="text-xs font-medium text-text-tertiary">{label}</div>
-      <div className="mt-space-xs text-xl font-semibold leading-none text-text-primary">
+      <div className="mt-space-xs text-xl leading-none font-semibold text-text-primary">
         {value}
       </div>
       {description ? (

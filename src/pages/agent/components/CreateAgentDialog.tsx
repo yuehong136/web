@@ -52,7 +52,9 @@ export const CreateAgentDialog = ({
   onClose,
   onCreate,
 }: CreateAgentDialogProps) => {
-  const [selectedType, setSelectedType] = useState<'agent' | 'pipeline'>('agent')
+  const [selectedType, setSelectedType] = useState<'agent' | 'pipeline'>(
+    'agent',
+  )
   const [title, setTitle] = useState('')
 
   const handleCreate = () => {
@@ -76,10 +78,10 @@ export const CreateAgentDialog = ({
       <DialogContent size="md" className="overflow-hidden">
         <DialogHeader className="pb-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600">
-              <Bot className="w-5 h-5 text-white" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-violet-500 to-purple-600">
+              <Bot className="h-5 w-5 text-white" />
             </div>
-            <div className="flex-1 min-w-0">
+            <div className="min-w-0 flex-1">
               <DialogTitle className="text-lg font-semibold text-text-primary">
                 创建智能体
               </DialogTitle>
@@ -90,59 +92,63 @@ export const CreateAgentDialog = ({
           </div>
         </DialogHeader>
 
-        <div className="px-6 py-5 space-y-5">
+        <div className="space-y-5 px-6 py-5">
           {/* 类型选择 */}
           <div>
-            <Label className="text-sm font-medium text-text-primary mb-3 block">
+            <Label className="mb-3 block text-sm font-medium text-text-primary">
               选择类型
             </Label>
             <div className="grid grid-cols-2 gap-3">
               {agentTypes.map((agentType) => {
                 const Icon = agentType.icon
                 const isSelected = selectedType === agentType.type
-                
+
                 return (
                   <button
                     key={agentType.type}
                     type="button"
                     onClick={() => setSelectedType(agentType.type)}
                     className={cn(
-                      'relative p-4 rounded-xl text-left transition-all duration-200',
+                      'relative rounded-xl p-4 text-left transition-all duration-200',
                       'border-2',
                       isSelected
                         ? `border-transparent ring-2 ${agentType.ringColor} bg-[var(--color-surface-secondary)]`
-                        : 'border-border-default hover:border-border-hover hover:bg-[var(--color-surface-secondary)]/50'
+                        : 'hover:border-border-hover border-border-default hover:bg-[var(--color-surface-secondary)]/50',
                     )}
                   >
                     {/* 选中标记 */}
                     {isSelected && (
-                      <div className={cn(
-                        'absolute top-3 right-3 w-5 h-5 rounded-full flex items-center justify-center',
-                        agentType.checkBg
-                      )}>
-                        <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                      <div
+                        className={cn(
+                          'absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full',
+                          agentType.checkBg,
+                        )}
+                      >
+                        <Check className="h-3 w-3 text-white" strokeWidth={3} />
                       </div>
                     )}
 
                     {/* 图标 */}
-                    <div className={cn(
-                      'w-10 h-10 rounded-lg flex items-center justify-center mb-3',
-                      'bg-gradient-to-br shadow-md',
-                      agentType.gradientFrom,
-                      agentType.gradientTo,
-                      isSelected ? 'scale-105' : '',
-                      'transition-transform duration-200'
-                    )}>
-                      <Icon className="w-5 h-5 text-white" />
+                    <div
+                      className={cn(
+                        'mb-3 flex h-10 w-10 items-center justify-center rounded-lg',
+                        'bg-linear-to-br shadow-md',
+                        agentType.gradientFrom,
+                        agentType.gradientTo,
+                        isSelected ? 'scale-105' : '',
+                        'transition-transform duration-200',
+                      )}
+                    >
+                      <Icon className="h-5 w-5 text-white" />
                     </div>
 
                     {/* 标题 */}
-                    <div className="font-medium text-text-primary text-sm mb-1">
+                    <div className="mb-1 text-sm font-medium text-text-primary">
                       {agentType.title}
                     </div>
-                    
+
                     {/* 描述 */}
-                    <div className="text-xs text-text-tertiary leading-relaxed line-clamp-2">
+                    <div className="line-clamp-2 text-xs leading-relaxed text-text-tertiary">
                       {agentType.description}
                     </div>
                   </button>
@@ -153,7 +159,10 @@ export const CreateAgentDialog = ({
 
           {/* 名称输入 */}
           <div>
-            <Label htmlFor="agent-name" className="text-sm font-medium text-text-primary mb-2 block">
+            <Label
+              htmlFor="agent-name"
+              className="mb-2 block text-sm font-medium text-text-primary"
+            >
               名称
             </Label>
             <Input
@@ -171,7 +180,7 @@ export const CreateAgentDialog = ({
               }}
               autoFocus
             />
-            <p className="text-xs text-text-tertiary mt-1.5">
+            <p className="mt-1.5 text-xs text-text-tertiary">
               给智能体起一个清晰、描述性的名称
             </p>
           </div>
@@ -187,7 +196,7 @@ export const CreateAgentDialog = ({
             className="gap-1.5"
           >
             创建
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="h-4 w-4" />
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -29,7 +29,7 @@ const DocumentPreviewHeader: FC<{
   return (
     <div className="flex items-center justify-between border-b border-border-default bg-background-surface px-4 py-2.5">
       <div className="flex min-w-0 flex-1 items-center gap-2">
-        <FileText className="h-4 w-4 flex-shrink-0 text-text-secondary" />
+        <FileText className="h-4 w-4 shrink-0 text-text-secondary" />
         <Tooltip content={title}>
           <span className="truncate text-sm font-medium text-text-primary">
             {title}

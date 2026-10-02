@@ -110,7 +110,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Logo区域 - 固定高度(预留2行文字空间)避免展开/收起时跳动 */}
       <div
         className={cn(
-          'pb-space-md pt-space-sm transition-[padding] duration-300',
+          'pt-space-sm pb-space-md transition-[padding] duration-300',
           isCollapsed ? 'px-space-xs' : 'px-space-sm',
         )}
       >
@@ -139,7 +139,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           >
             {/* Logo - 固定尺寸，位置不变 */}
             <div
-              className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl"
               style={{ background: 'var(--color-components-gradient-primary)' }}
             >
               <span className="text-sm font-bold text-text-inverted">MR</span>
@@ -147,8 +147,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
             {/* 文字区域 - 支持换行，最多2行 */}
             <span
               className={cn(
-                'text-base font-semibold leading-tight text-text-primary',
-                'transition-[opacity,transform] duration-300 ease-out',
+                'text-base leading-tight font-semibold text-text-primary',
+                'transition-[opacity,translate] duration-300 ease-out',
                 isCollapsed
                   ? 'pointer-events-none w-0 translate-x-[-10px] overflow-hidden opacity-0'
                   : 'line-clamp-2 w-auto max-w-[120px] translate-x-0 break-words opacity-100 delay-100',
@@ -162,9 +162,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <button
               onClick={() => setCollapsed(!isCollapsed)}
               className={cn(
-                'flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg',
+                'flex h-7 w-7 shrink-0 items-center justify-center rounded-lg',
                 'text-components-icon-button-text hover:bg-components-icon-button-bg-hover hover:text-components-icon-button-text-hover',
-                'transition-[opacity,transform] duration-200',
+                'transition-[opacity,scale] duration-200',
                 'scale-100 opacity-100 delay-150',
               )}
               title={
@@ -222,13 +222,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         ? 'justify-center p-2.5'
                         : 'gap-3 px-3 py-2.5',
                       isActive
-                        ? 'shadow-elevation-low bg-components-sidebar-item-bg-active text-components-sidebar-item-text-active'
+                        ? 'bg-components-sidebar-item-bg-active text-components-sidebar-item-text-active shadow-elevation-low'
                         : 'text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover hover:text-text-primary',
                     )}
                   >
                     <Icon
                       className={cn(
-                        'h-5 w-5 flex-shrink-0 transition-transform duration-200',
+                        'h-5 w-5 shrink-0 transition-transform duration-200',
                         isActive
                           ? 'text-components-sidebar-item-text-active'
                           : '',
@@ -236,7 +236,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     />
                     <span
                       className={cn(
-                        'whitespace-nowrap text-sm font-medium',
+                        'text-sm font-medium whitespace-nowrap',
                         'transition-all duration-300 ease-out',
                         isCollapsed
                           ? 'pointer-events-none w-0 translate-x-[-10px] opacity-0'
@@ -310,7 +310,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* 底部功能区域 */}
       <div
         className={cn(
-          'm-space-sm space-y-space-2xs rounded-radius-xl p-space-xs bg-background-subtle',
+          'm-space-sm space-y-space-2xs rounded-radius-xl bg-background-subtle p-space-xs',
           'transition-[margin,padding] duration-300',
           isCollapsed && 'mx-space-xs',
         )}
@@ -334,10 +334,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 'text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover hover:text-text-primary',
               )}
             >
-              <Bell className="h-5 w-5 flex-shrink-0" />
+              <Bell className="h-5 w-5 shrink-0" />
               <span
                 className={cn(
-                  'whitespace-nowrap text-sm',
+                  'text-sm whitespace-nowrap',
                   'transition-all duration-300 ease-out',
                   isCollapsed
                     ? 'pointer-events-none w-0 translate-x-[-10px] opacity-0'
@@ -351,7 +351,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   className={cn(
                     'min-w-[18px] rounded-full bg-status-error text-center text-xs text-text-inverted',
                     isCollapsed
-                      ? 'absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center'
+                      ? 'absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center'
                       : 'ml-auto px-1.5 py-0.5',
                   )}
                 >
@@ -365,7 +365,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <div
               className={cn(
                 'absolute bottom-full z-50 mb-2 rounded-xl border border-border-default bg-components-dropdown-bg py-2 shadow-lg',
-                isCollapsed ? 'left-full ml-2 w-80' : 'left-0 right-0 w-80',
+                isCollapsed ? 'left-full ml-2 w-80' : 'right-0 left-0 w-80',
               )}
             >
               <div className="border-b border-border-subtle px-4 py-2">
@@ -441,7 +441,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <ThemeIcon className="h-5 w-5" />
               <span
                 className={cn(
-                  'whitespace-nowrap text-sm',
+                  'text-sm whitespace-nowrap',
                   'transition-all duration-300 ease-out',
                   isCollapsed
                     ? 'pointer-events-none w-0 translate-x-[-10px] opacity-0'
@@ -525,10 +525,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 'text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover hover:text-text-primary',
               )}
             >
-              <Languages className="h-5 w-5 flex-shrink-0" />
+              <Languages className="h-5 w-5 shrink-0" />
               <span
                 className={cn(
-                  'whitespace-nowrap text-sm',
+                  'text-sm whitespace-nowrap',
                   'transition-all duration-300 ease-out',
                   isCollapsed
                     ? 'pointer-events-none w-0 translate-x-[-10px] opacity-0'
@@ -596,11 +596,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <img
                     src={user.avatar}
                     alt={t('layout.sidebar.userAvatar', '用户头像')}
-                    className="h-6 w-6 flex-shrink-0 rounded-lg object-cover"
+                    className="h-6 w-6 shrink-0 rounded-lg object-cover"
                   />
                 ) : (
                   <div
-                    className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-lg"
+                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg"
                     style={{
                       background: 'var(--color-components-gradient-secondary)',
                     }}
@@ -612,7 +612,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 )}
                 <span
                   className={cn(
-                    'truncate whitespace-nowrap text-sm',
+                    'truncate text-sm whitespace-nowrap',
                     'transition-all duration-300 ease-out',
                     isCollapsed
                       ? 'pointer-events-none w-0 translate-x-[-10px] opacity-0'
@@ -630,7 +630,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <div
                 className={cn(
                   'absolute bottom-full z-50 mb-2 rounded-xl border border-border-default bg-components-dropdown-bg py-1 shadow-lg',
-                  isCollapsed ? 'left-full ml-2 w-48' : 'left-0 right-0',
+                  isCollapsed ? 'left-full ml-2 w-48' : 'right-0 left-0',
                 )}
               >
                 <div className="border-b border-border-subtle px-3 py-2">
@@ -683,10 +683,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 'text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover hover:text-text-primary',
               )}
             >
-              <User className="h-5 w-5 flex-shrink-0" />
+              <User className="h-5 w-5 shrink-0" />
               <span
                 className={cn(
-                  'whitespace-nowrap text-sm',
+                  'text-sm whitespace-nowrap',
                   'transition-all duration-300 ease-out',
                   isCollapsed
                     ? 'pointer-events-none w-0 translate-x-[-10px] opacity-0'
@@ -707,7 +707,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             isCollapsed ? 'h-0 opacity-0' : 'h-auto opacity-100 delay-[350ms]',
           )}
         >
-          <p className="whitespace-nowrap text-xs text-text-muted">v0.9.8</p>
+          <p className="text-xs whitespace-nowrap text-text-muted">v0.9.8</p>
         </div>
       </div>
 

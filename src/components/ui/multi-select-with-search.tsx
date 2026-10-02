@@ -56,10 +56,7 @@ export interface MultiSelectWithSearchProps {
   maxDisplayItems?: number
 }
 
-function findLabel(
-  options: SelectOptionGroup[],
-  value: string,
-): ReactNode {
+function findLabel(options: SelectOptionGroup[], value: string): ReactNode {
   // Check flat options first
   for (const opt of options) {
     if (opt.value === value) return opt.label
@@ -142,51 +139,55 @@ export const MultiSelectWithSearch = forwardRef<
             ref={ref}
             disabled={disabled}
             className={cn(
-              'bg-transparent hover:bg-accent/30 border border-border w-full justify-between px-3 font-normal outline-offset-0 outline-none focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary/30 [&_svg]:pointer-events-auto group h-auto min-h-10 py-1.5',
+              'group h-auto min-h-10 w-full justify-between border border-border bg-transparent px-3 py-1.5 font-normal outline-hidden outline-offset-0 hover:bg-accent/30 focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary/30 [&_svg]:pointer-events-auto',
               triggerClassName,
             )}
           >
             {values.length > 0 ? (
-              <div className="flex-1 min-w-0 flex flex-wrap gap-1 items-center">
-                {selectedLabels.slice(0, maxDisplayItems).map(({ value, label }) => (
-                  <Badge
-                    key={value}
-                    variant="secondary"
-                    className="text-xs px-2 py-0.5"
-                  >
-                    {label}
-                    <XIcon
-                      className="h-3 w-3 ml-1 cursor-pointer hover:text-destructive"
-                      onClick={(e) => handleRemove(value, e)}
-                    />
-                  </Badge>
-                ))}
+              <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1">
+                {selectedLabels
+                  .slice(0, maxDisplayItems)
+                  .map(({ value, label }) => (
+                    <Badge
+                      key={value}
+                      variant="secondary"
+                      className="px-2 py-0.5 text-xs"
+                    >
+                      {label}
+                      <XIcon
+                        className="ml-1 h-3 w-3 cursor-pointer hover:text-destructive"
+                        onClick={(e) => handleRemove(value, e)}
+                      />
+                    </Badge>
+                  ))}
                 {values.length > maxDisplayItems && (
-                  <Badge variant="secondary" className="text-xs px-2 py-0.5">
+                  <Badge variant="secondary" className="px-2 py-0.5 text-xs">
                     +{values.length - maxDisplayItems}
                   </Badge>
                 )}
               </div>
             ) : (
-              <span className="flex-1 text-text-tertiary text-left">{placeholder}</span>
+              <span className="flex-1 text-left text-text-tertiary">
+                {placeholder}
+              </span>
             )}
-            <div className="flex items-center shrink-0 ml-2">
+            <div className="ml-2 flex shrink-0 items-center">
               {values.length > 0 && allowClear && (
                 <XIcon
-                  className="h-4 w-4 mx-1 cursor-pointer text-text-tertiary opacity-0 group-hover:opacity-100 transition-opacity hover:text-text-secondary"
+                  className="mx-1 h-4 w-4 cursor-pointer text-text-tertiary opacity-0 transition-opacity group-hover:opacity-100 hover:text-text-secondary"
                   onClick={handleClear}
                 />
               )}
               <ChevronDownIcon
                 size={16}
-                className="text-text-tertiary shrink-0 ml-1"
+                className="ml-1 shrink-0 text-text-tertiary"
                 aria-hidden="true"
               />
             </div>
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className="border-border w-full min-w-[var(--radix-popper-anchor-width)] p-0"
+          className="w-full min-w-[var(--radix-popper-anchor-width)] border-border p-0"
           align="start"
         >
           <Command className="p-4">
@@ -196,7 +197,7 @@ export const MultiSelectWithSearch = forwardRef<
                 className="placeholder:text-text-tertiary"
               />
             )}
-            <CommandList className="mt-2 outline-none">
+            <CommandList className="mt-2 outline-hidden">
               <CommandEmpty>
                 <div className="text-text-tertiary">{emptyText}</div>
               </CommandEmpty>
@@ -211,18 +212,25 @@ export const MultiSelectWithSearch = forwardRef<
                             value={option.value}
                             keywords={buildOptionSearchKeywords(option.label, [
                               option.value,
-                              typeof group.label === 'string' ? group.label : undefined,
+                              typeof group.label === 'string'
+                                ? group.label
+                                : undefined,
                             ])}
                             disabled={option.disabled}
                             onSelect={() => handleSelect(option.value)}
                             className={cn(
                               'min-h-9',
-                              values.includes(option.value) ? 'bg-card' : ''
+                              values.includes(option.value) ? 'bg-card' : '',
                             )}
                           >
-                            <span className="leading-none flex-1">{option.label}</span>
+                            <span className="flex-1 leading-none">
+                              {option.label}
+                            </span>
                             {values.includes(option.value) && (
-                              <CheckIcon size={16} className="ml-auto text-primary" />
+                              <CheckIcon
+                                size={16}
+                                className="ml-auto text-primary"
+                              />
                             )}
                           </CommandItem>
                         ))}
@@ -234,15 +242,17 @@ export const MultiSelectWithSearch = forwardRef<
                     <CommandItem
                       key={group.value}
                       value={group.value}
-                      keywords={buildOptionSearchKeywords(group.label, [group.value])}
+                      keywords={buildOptionSearchKeywords(group.label, [
+                        group.value,
+                      ])}
                       disabled={group.disabled}
                       onSelect={() => handleSelect(group.value!)}
                       className={cn(
                         'min-h-9',
-                        values.includes(group.value) ? 'bg-card' : ''
+                        values.includes(group.value) ? 'bg-card' : '',
                       )}
                     >
-                      <span className="leading-none flex-1">{group.label}</span>
+                      <span className="flex-1 leading-none">{group.label}</span>
                       {values.includes(group.value) && (
                         <CheckIcon size={16} className="ml-auto text-primary" />
                       )}

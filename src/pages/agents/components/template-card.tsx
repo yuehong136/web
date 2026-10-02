@@ -1,4 +1,5 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import { GitBranch, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -18,7 +19,10 @@ interface TemplateCardProps {
   className?: string
 }
 
-const TemplateAvatar: React.FC<{ name: string; avatar?: string }> = ({ name, avatar }) => {
+const TemplateAvatar: React.FC<{ name: string; avatar?: string }> = ({
+  name,
+  avatar,
+}) => {
   if (avatar) {
     const src =
       avatar.startsWith('data:') || avatar.startsWith('http')
@@ -41,7 +45,7 @@ const TemplateAvatar: React.FC<{ name: string; avatar?: string }> = ({ name, ava
     <div
       className={cn(
         'flex h-12 w-12 items-center justify-center rounded-radius-lg',
-        'bg-gradient-to-br shadow-elevation-low',
+        'bg-linear-to-br shadow-elevation-low',
         gradient,
       )}
     >
@@ -57,8 +61,15 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({
   onSelect,
   className,
 }) => {
-  const title = resolveLocalizedText(template.title, '未命名模板')
-  const description = resolveLocalizedText(template.description, '模板描述将在后续增量补齐。')
+  const { t } = useTranslation()
+  const title = resolveLocalizedText(
+    template.title,
+    t('agents.unnamedTemplate'),
+  )
+  const description = resolveLocalizedText(
+    template.description,
+    t('agents.templateDescriptionFallback'),
+  )
   const nodeCount = countFlowNodes(template)
   const categoryKey = normalizeCategoryKey(template.canvas_type)
   const category = getCategory(categoryKey)
@@ -82,7 +93,7 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({
         'group relative flex h-full flex-col rounded-radius-lg',
         'border-components-card-border bg-components-card-bg',
         'transition-all duration-200 hover:-translate-y-0.5 hover:border-state-focus hover:bg-components-card-bg-hover hover:shadow-elevation-low',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-focus',
+        'focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden',
         className,
       )}
       onClick={() => onSelect(template)}
@@ -115,7 +126,7 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({
         <div className="mt-auto flex items-center justify-between gap-space-base border-t border-border-subtle pt-space-base">
           <span className="flex items-center gap-space-xs text-sm font-medium text-text-tertiary">
             <GitBranch className="h-4 w-4" />
-            {nodeCount} 节点
+            {t('agents.nodeCount', { count: nodeCount })}
           </span>
           <Button
             variant="outline"
@@ -127,7 +138,7 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({
             }}
           >
             <Plus className="h-3.5 w-3.5" />
-            使用模板
+            {t('agents.createFromTemplate')}
           </Button>
         </div>
       </div>

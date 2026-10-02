@@ -271,7 +271,7 @@ export const KnowledgeBaseSelector: FC<KnowledgeBaseSelectorProps> = ({
             aria-expanded={open}
             disabled={disabled}
             className={cn(
-              'hover:bg-accent/30 group min-h-10 w-full justify-between border border-border bg-transparent px-3 font-normal outline-none outline-offset-0 focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary/30',
+              'group min-h-10 w-full justify-between border border-border bg-transparent px-3 font-normal outline-hidden outline-offset-0 hover:bg-accent/30 focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary/30',
               selectedIds.length > 0 ? 'h-auto py-1.5' : 'h-10',
             )}
           >
@@ -335,7 +335,7 @@ export const KnowledgeBaseSelector: FC<KnowledgeBaseSelectorProps> = ({
               onValueChange={handleSearch}
               className="placeholder:text-text-tertiary"
             />
-            <CommandList className="mt-2 max-h-64 outline-none">
+            <CommandList className="mt-2 max-h-64 outline-hidden">
               {isSearching ? (
                 <div className="py-6 text-center text-sm text-text-tertiary">
                   {t('knowledge.shared.knowledgeBaseSelector.searching')}
@@ -379,7 +379,7 @@ export const KnowledgeBaseSelector: FC<KnowledgeBaseSelectorProps> = ({
             </CommandList>
 
             {displayKbs.length > 0 && (
-              <div className="bg-background-primary absolute bottom-0 left-0 right-0 mx-4 flex items-center justify-between border-t border-border-subtle">
+              <div className="bg-background-primary absolute right-0 bottom-0 left-0 mx-4 flex items-center justify-between border-t border-border-subtle">
                 <CommandSeparator />
                 {selectedIds.length > 0 && (
                   <>

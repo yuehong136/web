@@ -76,7 +76,7 @@ export const AppHistoryPanel: React.FC<AppHistoryPanelProps> = ({
   return (
     <div
       className={cn(
-        'absolute left-full top-0 ml-1',
+        'absolute top-0 left-full ml-1',
         'w-72 rounded-xl bg-components-card-bg',
         'border border-border-default shadow-lg',
         'z-50',
@@ -102,7 +102,7 @@ export const AppHistoryPanel: React.FC<AppHistoryPanelProps> = ({
           }}
           className="flex w-full items-center gap-3 px-4 py-3 transition-colors hover:bg-background-subtle"
         >
-          <Sparkles className="h-4 w-4 flex-shrink-0 text-state-focus" />
+          <Sparkles className="h-4 w-4 shrink-0 text-state-focus" />
           <span className="text-sm font-medium text-text-primary">
             {t('home.skillPanel.newConversation', '开启新对话')}
           </span>
@@ -132,7 +132,7 @@ export const AppHistoryPanel: React.FC<AppHistoryPanelProps> = ({
               }}
               className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-background-subtle"
             >
-              <MessageSquare className="h-4 w-4 flex-shrink-0 text-text-tertiary" />
+              <MessageSquare className="h-4 w-4 shrink-0 text-text-tertiary" />
               <div className="min-w-0 flex-1">
                 <div className="truncate text-sm text-text-primary">
                   {conv.name ||

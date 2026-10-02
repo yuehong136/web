@@ -14,6 +14,8 @@ import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { generateThemeFiles } from './theme-generator'
+import { generateTailwindThemeFiles } from './tailwind-theme-generator'
+import { format, resolveConfig } from 'prettier'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -22,7 +24,7 @@ const LIGHT_CSS_PATH = path.join(THEMES_DIR, 'light.css')
 const DARK_CSS_PATH = path.join(THEMES_DIR, 'dark.css')
 const TOKEN_VALUES_PATH = path.join(THEMES_DIR, 'token-values.generated.ts')
 
-function main() {
+async function main() {
   console.log('🎨 开始生成主题文件...')
 
   try {
@@ -37,9 +39,25 @@ function main() {
     }
 
     // 写入文件
-    fs.writeFileSync(LIGHT_CSS_PATH, light, 'utf8')
-    fs.writeFileSync(DARK_CSS_PATH, dark, 'utf8')
-    fs.writeFileSync(TOKEN_VALUES_PATH, tokenValues, 'utf8')
+    const options = await resolveConfig(LIGHT_CSS_PATH)
+    const outputs = {
+      [LIGHT_CSS_PATH]: light,
+      [DARK_CSS_PATH]: dark,
+      [TOKEN_VALUES_PATH]: tokenValues,
+      ...Object.fromEntries(
+        Object.entries(generateTailwindThemeFiles()).map(([filename, css]) => [
+          path.join(THEMES_DIR, filename),
+          css,
+        ]),
+      ),
+    }
+    for (const [filepath, content] of Object.entries(outputs)) {
+      fs.writeFileSync(
+        filepath,
+        await format(content, { ...options, plugins: [], filepath }),
+        'utf8',
+      )
+    }
 
     console.log('✅ 主题文件生成成功!')
     console.log(`   📄 ${path.relative(process.cwd(), LIGHT_CSS_PATH)}`)
@@ -104,7 +122,7 @@ function main() {
 
 // 如果直接运行此文件
 if (import.meta.url === `file://${process.argv[1]}`) {
-  main()
+  void main()
 }
 
 export { main as buildThemes }

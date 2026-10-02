@@ -106,18 +106,18 @@ export const AvailableModels: React.FC<AvailableModelsProps> = ({
       {/* 搜索框 - 使用主题感知样式 */}
       <div className="mb-5">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-tertiary" />
+          <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-text-tertiary" />
           <input
             type="text"
             placeholder="搜索"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className={cn(
-              'h-9 w-full rounded-lg pl-10 pr-4 text-sm',
+              'h-9 w-full rounded-lg pr-4 pl-10 text-sm',
               'bg-[var(--color-bg-input,var(--color-background-secondary))]',
               'border border-[var(--color-border-button,var(--color-border))]',
               'text-text-primary placeholder:text-text-tertiary',
-              'focus:outline-none focus:ring-1 focus:ring-primary',
+              'focus:ring-1 focus:ring-primary focus:outline-hidden',
               'transition-colors',
             )}
           />
@@ -133,7 +133,7 @@ export const AvailableModels: React.FC<AvailableModelsProps> = ({
             'h-6 rounded-sm px-2 text-xs transition-colors',
             selectedTag === null
               ? 'bg-text-primary text-background'
-              : 'hover:bg-accent/80 bg-[var(--color-bg-card,var(--color-background-secondary))] text-text-secondary',
+              : 'bg-[var(--color-bg-card,var(--color-background-secondary))] text-text-secondary hover:bg-accent/80',
           )}
         >
           All
@@ -148,7 +148,7 @@ export const AvailableModels: React.FC<AvailableModelsProps> = ({
               'h-6 rounded-sm px-2 text-xs transition-colors',
               selectedTag === tag
                 ? 'bg-text-primary text-background'
-                : 'hover:bg-accent/80 bg-[var(--color-bg-card,var(--color-background-secondary))] text-text-secondary',
+                : 'bg-[var(--color-bg-card,var(--color-background-secondary))] text-text-secondary hover:bg-accent/80',
             )}
           >
             {tag}

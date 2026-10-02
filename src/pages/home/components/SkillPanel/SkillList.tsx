@@ -72,7 +72,7 @@ export const SkillList: React.FC<SkillListProps> = ({
           >
             <div
               className={cn(
-                'flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg',
+                'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg',
                 isSelected
                   ? 'bg-state-focus text-text-inverted'
                   : 'bg-background-subtle text-text-secondary',
@@ -91,7 +91,7 @@ export const SkillList: React.FC<SkillListProps> = ({
               )}
             </div>
             {isSelected && (
-              <div className="h-2 w-2 flex-shrink-0 rounded-full bg-state-focus" />
+              <div className="h-2 w-2 shrink-0 rounded-full bg-state-focus" />
             )}
           </button>
         )

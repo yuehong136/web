@@ -176,9 +176,9 @@ export const ExploreSidebar: FC<ExploreSidebarProps> = ({
 
   return (
     <aside className="flex w-72 shrink-0 flex-col border-r border-components-sidebar-border bg-components-sidebar-bg">
-      <div className="p-space-sm border-b border-border-subtle">
+      <div className="border-b border-border-subtle p-space-sm">
         <div
-          className="gap-space-2xs rounded-radius-lg bg-surface-secondary p-space-2xs grid grid-cols-3"
+          className="bg-surface-secondary grid grid-cols-3 gap-space-2xs rounded-radius-lg p-space-2xs"
           role="tablist"
           aria-label={t('explore.sidebar.navigation')}
         >
@@ -197,8 +197,8 @@ export const ExploreSidebar: FC<ExploreSidebarProps> = ({
                   tab === 'topics' ? onTopicsClick() : onTabChange(tab)
                 }
                 className={cn(
-                  'rounded-radius-md px-space-xs py-space-xs min-w-0 text-center text-sm font-medium text-components-sidebar-item-text transition-colors',
-                  'hover:bg-components-sidebar-item-bg-hover hover:text-text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-state-focus',
+                  'min-w-0 rounded-radius-md px-space-xs py-space-xs text-center text-sm font-medium text-components-sidebar-item-text transition-colors',
+                  'hover:bg-components-sidebar-item-bg-hover hover:text-text-primary focus-visible:ring-1 focus-visible:ring-state-focus focus-visible:outline-hidden',
                   selected &&
                     'bg-components-sidebar-item-bg-active text-components-sidebar-item-text-active',
                   disabled && 'cursor-not-allowed opacity-50',
@@ -219,8 +219,8 @@ export const ExploreSidebar: FC<ExploreSidebarProps> = ({
                 type="button"
                 onClick={onDiscoverClick}
                 className={cn(
-                  'gap-space-sm rounded-radius-lg px-space-md py-space-sm flex w-full items-center text-left text-sm font-medium text-components-sidebar-item-text transition-colors',
-                  'hover:bg-components-sidebar-item-bg-hover hover:text-text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-state-focus',
+                  'flex w-full items-center gap-space-sm rounded-radius-lg px-space-md py-space-sm text-left text-sm font-medium text-components-sidebar-item-text transition-colors',
+                  'hover:bg-components-sidebar-item-bg-hover hover:text-text-primary focus-visible:ring-1 focus-visible:ring-state-focus focus-visible:outline-hidden',
                   mode === 'market' &&
                     'bg-components-sidebar-item-bg-active text-components-sidebar-item-text-active',
                 )}
@@ -234,7 +234,7 @@ export const ExploreSidebar: FC<ExploreSidebarProps> = ({
 
             <div className="mx-space-sm border-t border-border-subtle" />
 
-            <div className="space-y-space-2xs p-space-sm min-h-0 flex-1 overflow-y-auto">
+            <div className="min-h-0 flex-1 space-y-space-2xs overflow-y-auto p-space-sm">
               {dialogAppsLoading ? (
                 <div className="py-space-xl text-center text-sm text-text-tertiary">
                   {t('explore.sidebar.loadingApps')}
@@ -259,8 +259,8 @@ export const ExploreSidebar: FC<ExploreSidebarProps> = ({
                         onClick={() => onAppSelect(app.id)}
                         title={app.name}
                         className={cn(
-                          'gap-space-sm rounded-radius-lg px-space-md py-space-sm flex w-full items-center text-left text-sm text-components-sidebar-item-text transition-colors',
-                          'hover:bg-components-sidebar-item-bg-hover hover:text-text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-state-focus',
+                          'flex w-full items-center gap-space-sm rounded-radius-lg px-space-md py-space-sm text-left text-sm text-components-sidebar-item-text transition-colors',
+                          'hover:bg-components-sidebar-item-bg-hover hover:text-text-primary focus-visible:ring-1 focus-visible:ring-state-focus focus-visible:outline-hidden',
                           selected &&
                             'bg-components-sidebar-item-bg-active text-components-sidebar-item-text-active',
                         )}
@@ -285,8 +285,8 @@ export const ExploreSidebar: FC<ExploreSidebarProps> = ({
               />
             ) : (
               <>
-                <div className="p-space-sm border-b border-border-subtle">
-                  <div className="rounded-radius-lg bg-surface-secondary p-space-sm flex items-center">
+                <div className="border-b border-border-subtle p-space-sm">
+                  <div className="bg-surface-secondary flex items-center rounded-radius-lg p-space-sm">
                     {getExploreAppIcon(currentApp, 'md')}
                     <div className="ml-space-sm min-w-0 flex-1">
                       <p className="truncate text-sm font-medium text-text-primary">

@@ -33,6 +33,7 @@ UI 变更检查明暗主题、键盘交互及受影响流程。新增或改变 s
 - 新增测试必须被 `verify:test-inventory` 归到唯一正式 lane 并进入 `test:ci`；仅加进专项脚本不够。lane 为 `source-node`、`source-vitest`、`desktop-node`、`tooling-node`。
 - `patch-package` 在 postinstall 执行，补丁失效要修补丁，不能通过删除补丁绕过。
 - Vite 使用 Rolldown/Oxc。生产拆包配置为 `build.rolldownOptions.output.codeSplitting.groups`；不恢复 Rollup `manualChunks`，不为桌面构建降级 Vite 8。预构建/压缩优先使用 `rolldownOptions` / `oxc`，临时兼容需有第三方插件不兼容证据。
+- Tailwind 使用原生 Vite 插件与 CSS 配置；`build:themes` 同时生成语义工具类映射，格式化后产物应无漂移。独立样式的 `@apply` 使用 `@reference`，不引入旧 PostCSS 或 JavaScript Tailwind 配置。样式编译合同进入 source-node lane，并配合明暗主题、焦点和实际交互验收。
 
 ## 命令
 

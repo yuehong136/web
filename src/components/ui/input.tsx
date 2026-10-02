@@ -3,7 +3,7 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 const inputVariants = cva(
-  'flex w-full rounded-xl border px-4 py-3 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus:ring-0 focus-visible:ring-0 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 transition-colors',
+  'flex w-full rounded-xl border px-4 py-3 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus:ring-0 focus-visible:ring-0 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 transition-colors',
   {
     variants: {
       variant: {
@@ -121,7 +121,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         <div className="relative">
           {leftIcon && (
             <div
-              className="absolute left-4 top-1/2 -translate-y-1/2 transform"
+              className="absolute top-1/2 left-4 -translate-y-1/2 transform"
               style={{ color: 'var(--color-text-tertiary)' }}
             >
               {leftIcon}
@@ -151,7 +151,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           />
           {rightIcon && (
             <div
-              className="absolute right-4 top-1/2 -translate-y-1/2 transform"
+              className="absolute top-1/2 right-4 -translate-y-1/2 transform"
               style={{ color: 'var(--color-text-tertiary)' }}
             >
               {rightIcon}

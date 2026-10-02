@@ -31,9 +31,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-components-dialog-overlay backdrop-blur-sm" />
+        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-components-dialog-overlay backdrop-blur-xs" />
         <DialogPrimitive.Content
-          className="rounded-radius-xl shadow-elevation-high fixed left-1/2 top-1/3 z-50 w-full max-w-lg -translate-x-1/2 overflow-hidden border border-components-dialog-border bg-components-dialog-bg focus:outline-none"
+          className="fixed top-1/3 left-1/2 z-50 w-full max-w-lg -translate-x-1/2 overflow-hidden rounded-radius-xl border border-components-dialog-border bg-components-dialog-bg shadow-elevation-high focus:outline-hidden"
           onOpenAutoFocus={(event) => {
             event.preventDefault()
             inputRef.current?.focus()

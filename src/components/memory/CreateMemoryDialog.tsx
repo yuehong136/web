@@ -168,8 +168,8 @@ export const CreateMemoryDialog: FC<CreateMemoryDialogProps> = ({
             <div className="flex items-center gap-3">
               <div
                 className={cn(
-                  'rounded-radius-lg flex h-10 w-10 items-center justify-center',
-                  'bg-gradient-to-br',
+                  'flex h-10 w-10 items-center justify-center rounded-radius-lg',
+                  'bg-linear-to-br',
                   avatarGradient,
                 )}
               >
@@ -262,8 +262,8 @@ export const CreateMemoryDialog: FC<CreateMemoryDialogProps> = ({
           <div className="flex items-center gap-3">
             <div
               className={cn(
-                'rounded-radius-lg flex h-10 w-10 items-center justify-center',
-                'bg-gradient-to-br from-components-avatar-gradient-purple-from to-components-avatar-gradient-purple-to',
+                'flex h-10 w-10 items-center justify-center rounded-radius-lg',
+                'bg-linear-to-br from-components-avatar-gradient-purple-from to-components-avatar-gradient-purple-to',
               )}
             >
               <Brain className="h-icon-md w-icon-md text-components-button-primary-text" />

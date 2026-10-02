@@ -84,7 +84,7 @@ export function ModernEnvironmentSelector({
       <Button
         variant="outline"
         className={cn(
-          'min-w-[160px] max-w-[200px] gap-2 text-muted-foreground',
+          'max-w-[200px] min-w-[160px] gap-2 text-muted-foreground',
           className,
         )}
         onClick={onManageClick}
@@ -101,9 +101,9 @@ export function ModernEnvironmentSelector({
         <Button
           variant="outline"
           className={cn(
-            'h-10 min-w-[160px] max-w-[200px] justify-between gap-3 px-4',
+            'h-10 max-w-[200px] min-w-[160px] justify-between gap-3 px-4',
             'border-border bg-background',
-            'hover:border-border/80 hover:bg-background/90 hover:shadow-sm',
+            'hover:border-border/80 hover:bg-background/90 hover:shadow-xs',
             'transition-colors duration-150',
             className,
           )}
@@ -113,7 +113,7 @@ export function ModernEnvironmentSelector({
               {/* Environment Icon */}
               <div
                 className={cn(
-                  'flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-sm font-bold text-white shadow-sm',
+                  'flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white shadow-xs',
                   getEnvironmentColor(selectedEnvironment.name),
                 )}
               >
@@ -126,10 +126,10 @@ export function ModernEnvironmentSelector({
                   {selectedEnvironment.name}
                 </span>
                 {selectedEnvironment.is_default && (
-                  <Zap className="h-3 w-3 flex-shrink-0 text-amber-500" />
+                  <Zap className="h-3 w-3 shrink-0 text-amber-500" />
                 )}
                 {selectedEnvironment.is_global && (
-                  <Globe className="h-3 w-3 flex-shrink-0 text-blue-500" />
+                  <Globe className="h-3 w-3 shrink-0 text-blue-500" />
                 )}
               </div>
             </div>
@@ -145,7 +145,7 @@ export function ModernEnvironmentSelector({
 
           <ChevronDown
             className={cn(
-              'h-4 w-4 flex-shrink-0 text-muted-foreground transition-transform duration-200',
+              'h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200',
             )}
           />
         </Button>
@@ -177,7 +177,7 @@ export function ModernEnvironmentSelector({
                     {/* 第一行：选中指示器 + 图标 + 名称 + 状态标识 + 变量数量 */}
                     <div className="flex items-center gap-3">
                       {/* 选中指示器 - 最左侧 */}
-                      <div className="flex w-2 flex-shrink-0 justify-start">
+                      <div className="flex w-2 shrink-0 justify-start">
                         {isSelected && (
                           <div className="h-2 w-2 rounded-full bg-primary" />
                         )}
@@ -186,7 +186,7 @@ export function ModernEnvironmentSelector({
                       {/* Environment Icon */}
                       <div
                         className={cn(
-                          'flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-sm font-bold text-white shadow-sm',
+                          'flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white shadow-xs',
                           bgColor,
                         )}
                       >
@@ -202,20 +202,20 @@ export function ModernEnvironmentSelector({
                         {/* Status Badges */}
                         {env.is_default && (
                           <div
-                            className="h-2 w-2 flex-shrink-0 rounded-full bg-amber-400"
+                            className="h-2 w-2 shrink-0 rounded-full bg-amber-400"
                             title="默认环境"
                           />
                         )}
                         {env.is_global && (
                           <div
-                            className="h-2 w-2 flex-shrink-0 rounded-full bg-blue-400"
+                            className="h-2 w-2 shrink-0 rounded-full bg-blue-400"
                             title="全局环境"
                           />
                         )}
                       </div>
 
                       {/* 右侧：变量数量 */}
-                      <span className="flex-shrink-0 text-xs text-muted-foreground">
+                      <span className="shrink-0 text-xs text-muted-foreground">
                         {env.variables_count} 变量
                       </span>
                     </div>
@@ -247,10 +247,10 @@ export function ModernEnvironmentSelector({
           >
             <div className="flex items-center gap-3">
               {/* 占位符保持对齐 */}
-              <div className="w-2 flex-shrink-0"></div>
+              <div className="w-2 shrink-0"></div>
 
               {/* 管理图标 */}
-              <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary/15">
+              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/15">
                 <Settings2 className="h-4 w-4 text-primary" />
               </div>
 

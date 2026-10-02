@@ -225,7 +225,7 @@ export const TemplatesPage = ({ onBack }: TemplatesPageProps) => {
   return (
     <div className="flex h-full">
       {/* 左侧分类边栏 */}
-      <aside className="flex w-64 flex-shrink-0 flex-col border-r border-border bg-card">
+      <aside className="flex w-64 shrink-0 flex-col border-r border-border bg-card">
         {/* 返回按钮 */}
         <div className="border-b border-border p-4">
           <Button
@@ -277,7 +277,7 @@ export const TemplatesPage = ({ onBack }: TemplatesPageProps) => {
       {/* 右侧主内容区 */}
       <main className="flex flex-1 flex-col overflow-hidden bg-background">
         {/* 顶部标题和搜索 */}
-        <div className="flex-shrink-0 border-b border-border bg-card px-8 py-6">
+        <div className="shrink-0 border-b border-border bg-card px-8 py-6">
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold text-foreground">创建智能体</h2>
@@ -288,7 +288,7 @@ export const TemplatesPage = ({ onBack }: TemplatesPageProps) => {
 
             {/* 搜索框 */}
             <div className="relative w-80">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-muted-foreground" />
+              <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-muted-foreground" />
               <Input
                 placeholder="搜索模版..."
                 value={searchKeyword}
@@ -353,7 +353,7 @@ export const TemplatesPage = ({ onBack }: TemplatesPageProps) => {
                       {/* 头部：小图标 + 标题 */}
                       <div className="mb-4 flex items-start gap-4">
                         {/* Avatar小图标 - 参考RAGFlow策略 */}
-                        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-blue-500 to-purple-600">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-linear-to-br from-blue-500 to-purple-600">
                           <TemplateAvatar
                             key={template.avatar || 'fallback'}
                             src={template.avatar}
@@ -400,7 +400,7 @@ export const TemplatesPage = ({ onBack }: TemplatesPageProps) => {
                     </div>
 
                     {/* 悬停遮罩和按钮 */}
-                    <div className="absolute inset-0 flex items-end justify-center bg-gradient-to-t from-black/90 via-black/50 to-transparent pb-8 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                    <div className="absolute inset-0 flex items-end justify-center bg-linear-to-t from-black/90 via-black/50 to-transparent pb-8 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
                       <Button
                         size="lg"
                         className="bg-background-surface text-text-primary shadow-2xl hover:bg-background-subtle"
@@ -426,7 +426,7 @@ export const TemplatesPage = ({ onBack }: TemplatesPageProps) => {
         <DialogContent size="md" className="overflow-hidden">
           <DialogHeader className="pb-0">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-md">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-violet-500 to-purple-600 shadow-md">
                 <Sparkles className="h-5 w-5 text-white" />
               </div>
               <div className="min-w-0 flex-1">
@@ -448,10 +448,10 @@ export const TemplatesPage = ({ onBack }: TemplatesPageProps) => {
           {selectedTemplate && (
             <div className="space-y-5 px-6 py-5">
               {/* 模版卡片预览 */}
-              <div className="bg-[var(--color-surface-secondary)]/50 rounded-xl border-2 border-[var(--color-border-default)] p-4">
+              <div className="rounded-xl border-2 border-[var(--color-border-default)] bg-[var(--color-surface-secondary)]/50 p-4">
                 <div className="flex items-start gap-4">
                   {/* 模版图标 */}
-                  <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 shadow-md">
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-linear-to-br from-blue-500 to-purple-600 shadow-md">
                     {selectedTemplate.avatar ? (
                       <img
                         src={selectedTemplate.avatar}

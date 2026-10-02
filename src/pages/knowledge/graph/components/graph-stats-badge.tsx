@@ -10,7 +10,7 @@ export function GraphStatsBadge({ stats }: GraphStatsBadgeProps) {
   const { t } = useTranslation()
 
   return (
-    <div className="rounded-radius-lg shadow-elevation-medium absolute left-3 top-3 z-10 flex items-center gap-3 border border-components-workspace-border bg-components-workspace-surface px-3 py-2 text-xs text-text-secondary backdrop-blur">
+    <div className="absolute top-3 left-3 z-10 flex items-center gap-3 rounded-radius-lg border border-components-workspace-border bg-components-workspace-surface px-3 py-2 text-xs text-text-secondary shadow-elevation-medium backdrop-blur-sm">
       <span className="flex items-center gap-1.5">
         <CircleDot className="size-3.5 text-text-accent" />
         {t('knowledge.graph.stats.nodes', { count: stats.nodeCount })}

@@ -422,7 +422,7 @@ export const AvatarUpload = React.forwardRef<
             >
               <Pencil
                 size={16}
-                className="absolute bottom-1.5 right-1.5 text-text-inverted opacity-0 transition-opacity group-hover:opacity-100"
+                className="absolute right-1.5 bottom-1.5 text-text-inverted opacity-0 transition-opacity group-hover:opacity-100"
               />
             </div>
             {/* 删除按钮 */}
@@ -432,8 +432,8 @@ export const AvatarUpload = React.forwardRef<
                 size="icon"
                 variant="destructive"
                 className={cn(
-                  'absolute -right-2 -top-2 z-10 h-5 w-5 rounded-full border-2 border-white',
-                  'opacity-0 shadow-sm transition-opacity group-hover:opacity-100',
+                  'absolute -top-2 -right-2 z-10 h-5 w-5 rounded-full border-2 border-white',
+                  'opacity-0 shadow-xs transition-opacity group-hover:opacity-100',
                 )}
                 aria-label="删除头像"
                 type="button"
@@ -449,7 +449,7 @@ export const AvatarUpload = React.forwardRef<
           accept="image/*"
           title=""
           className={cn(
-            'absolute left-0 top-0 h-full w-full cursor-pointer opacity-0',
+            'absolute top-0 left-0 h-full w-full cursor-pointer opacity-0',
             disabled && 'cursor-not-allowed',
           )}
           onChange={handleChange}

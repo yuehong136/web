@@ -65,7 +65,7 @@ const StatCard: React.FC<StatCardProps> = ({
       {/* 背景渐变装饰 - 使用设计令牌中的渐变 */}
       <div
         className={cn(
-          'absolute -right-4 -top-4 h-28 w-28 rounded-full blur-2xl transition-all duration-300',
+          'absolute -top-4 -right-4 h-28 w-28 rounded-full blur-2xl transition-all duration-300',
           isHovered ? 'scale-110 opacity-80' : 'opacity-50',
         )}
         style={{ background: gradient }}

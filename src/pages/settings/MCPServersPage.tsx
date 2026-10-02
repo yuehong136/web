@@ -291,7 +291,7 @@ export const MCPServersPage: React.FC<ServerListPageProps> = ({
                 'h-[68px] cursor-pointer rounded-xl px-4',
                 'border border-transparent',
                 'transition-all duration-200 ease-out',
-                'hover:bg-surface-secondary/60 hover:border-state-focus hover:shadow-sm',
+                'hover:bg-surface-secondary/60 hover:border-state-focus hover:shadow-xs',
               )}
               style={{ gridTemplateColumns: '2fr 80px 1fr 80px 120px 60px' }}
               onClick={() => onServerSelect?.(server.id)}
@@ -493,7 +493,7 @@ export const MCPServersPage: React.FC<ServerListPageProps> = ({
       >
         {/* 左侧紫色竖条 */}
         <div
-          className="absolute bottom-0 left-0 top-0 w-1"
+          className="absolute top-0 bottom-0 left-0 w-1"
           style={{ backgroundColor: 'var(--color-state-focus)' }}
         />
 
@@ -533,7 +533,7 @@ export const MCPServersPage: React.FC<ServerListPageProps> = ({
 
           {/* 右侧火箭图标 */}
           <div
-            className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-xl"
+            className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl"
             style={{ backgroundColor: 'var(--color-components-card-bg)' }}
           >
             <Rocket

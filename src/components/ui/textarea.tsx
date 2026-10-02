@@ -1,24 +1,25 @@
-import * as React from "react"
-import { cva, type VariantProps } from "class-variance-authority"
-import { cn } from "@/lib/utils"
+import * as React from 'react'
+import { cva, type VariantProps } from 'class-variance-authority'
+import { cn } from '@/lib/utils'
 
 const textareaVariants = cva(
-  "flex w-full text-sm focus:ring-0 focus-visible:ring-0 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 transition-colors resize-none",
+  'flex w-full text-sm focus:ring-0 focus-visible:ring-0 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 transition-colors resize-none',
   {
     variants: {
       variant: {
-        default: "min-h-[80px] rounded-xl border px-4 py-3",
-        chat: "bg-transparent border-none",
+        default: 'min-h-[80px] rounded-xl border px-4 py-3',
+        chat: 'bg-transparent border-none',
       },
     },
     defaultVariants: {
-      variant: "default",
+      variant: 'default',
     },
-  }
+  },
 )
 
 export interface TextareaProps
-  extends React.TextareaHTMLAttributes<HTMLTextAreaElement>,
+  extends
+    React.TextareaHTMLAttributes<HTMLTextAreaElement>,
     VariantProps<typeof textareaVariants> {}
 
 const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
@@ -37,17 +38,21 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
 
     // chat 变体使用透明背景，不需要动态样式
     const getStyles = (): React.CSSProperties => {
-      if (variant === "chat") {
+      if (variant === 'chat') {
         return {
           color: 'var(--color-text-primary)',
-          ...style
+          ...style,
         }
       }
       return {
-        backgroundColor: isFocused ? 'var(--color-components-input-bg-focus)' : 'var(--color-components-input-bg)',
-        borderColor: isFocused ? 'var(--color-components-input-border-focus)' : 'var(--color-components-input-border)',
+        backgroundColor: isFocused
+          ? 'var(--color-components-input-bg-focus)'
+          : 'var(--color-components-input-bg)',
+        borderColor: isFocused
+          ? 'var(--color-components-input-border-focus)'
+          : 'var(--color-components-input-border)',
         color: 'var(--color-text-primary)',
-        ...style
+        ...style,
       }
     }
 
@@ -61,8 +66,8 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         {...props}
       />
     )
-  }
+  },
 )
-Textarea.displayName = "Textarea"
+Textarea.displayName = 'Textarea'
 
 export { Textarea, textareaVariants }

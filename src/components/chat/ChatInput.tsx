@@ -509,7 +509,7 @@ export function ChatInput({
           {/* 主输入区域 - 参考Ant Design X的结构 */}
           <div
             ref={inputContainerRef}
-            className={`relative ${floating ? 'bg-transparent' : 'bg-[var(--color-components-input-bg)]'} rounded-[28px] border ${floating ? 'border-transparent' : 'border-border'} overflow-hidden shadow-sm transition-shadow duration-200 hover:shadow-md`}
+            className={`relative ${floating ? 'bg-transparent' : 'bg-[var(--color-components-input-bg)]'} rounded-[28px] border ${floating ? 'border-transparent' : 'border-border'} overflow-hidden shadow-xs transition-shadow duration-200 hover:shadow-md`}
           >
             {/* 输入框区域 */}
             <div className="relative p-5">
@@ -524,7 +524,7 @@ export function ChatInput({
                     ? '正在进行语音识别...'
                     : '发消息、输入 @ 选择技能 或 选择文件'
                 }
-                className={`placeholder:text-muted-foreground/60 w-full resize-none border-0 bg-transparent p-0 text-sm text-[var(--color-components-input-text)] focus-visible:ring-0 ${className} ${classNames.input}`}
+                className={`w-full resize-none border-0 bg-transparent p-0 text-sm text-[var(--color-components-input-text)] placeholder:text-muted-foreground/60 focus-visible:ring-0 ${className} ${classNames.input}`}
                 style={{ ...styles.input }}
                 disabled={disabled}
                 readOnly={readOnly}
@@ -540,7 +540,7 @@ export function ChatInput({
 
             {/* Footer区域 - 参考Ant Design X的footer结构 */}
             <div
-              className={`bg-[var(--color-background-subtle)]/30 flex items-center justify-between px-5 py-3 ${classNames.footer}`}
+              className={`flex items-center justify-between bg-[var(--color-background-subtle)]/30 px-5 py-3 ${classNames.footer}`}
               style={styles.footer}
             >
               {/* 左侧功能区 */}
@@ -565,7 +565,7 @@ export function ChatInput({
                   size="sm"
                   className={`h-8 px-3 text-sm transition-colors ${
                     globalSearchEnabled
-                      ? 'border-[var(--color-state-focus)]/30 border bg-[var(--color-state-focus-10)] text-[var(--color-state-focus)]'
+                      ? 'border border-[var(--color-state-focus)]/30 bg-[var(--color-state-focus-10)] text-[var(--color-state-focus)]'
                       : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-background-subtle)]'
                   }`}
                   onClick={() => setGlobalSearchEnabled(!globalSearchEnabled)}

@@ -90,7 +90,7 @@ export const ReparseConfirmModal: FC<ReparseConfirmModalProps> = ({
       <button
         type="button"
         aria-label={t('knowledge.common.close')}
-        className="animate-in fade-in-0 fixed inset-0 bg-black/50 backdrop-blur-sm duration-200"
+        className="animate-in fade-in-0 fixed inset-0 bg-black/50 backdrop-blur-xs duration-200"
         onClick={onClose}
       />
 
@@ -101,15 +101,15 @@ export const ReparseConfirmModal: FC<ReparseConfirmModalProps> = ({
           type="button"
           aria-label={t('knowledge.common.close')}
           onClick={onClose}
-          className="absolute right-4 top-4 rounded-md p-1.5 text-[var(--color-text-tertiary)] transition-colors hover:bg-[var(--color-surface-secondary)] hover:text-[var(--color-text-primary)]"
+          className="absolute top-4 right-4 rounded-md p-1.5 text-[var(--color-text-tertiary)] transition-colors hover:bg-[var(--color-surface-secondary)] hover:text-[var(--color-text-primary)]"
         >
           <X className="h-4 w-4" />
         </button>
 
         {/* Header */}
-        <div className="px-6 pb-4 pt-6">
+        <div className="px-6 pt-6 pb-4">
           <div className="flex items-center gap-3">
-            <div className="bg-[var(--color-primary)]/10 flex h-8 w-8 items-center justify-center rounded-lg">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--color-primary)]/10">
               <Play className="h-4 w-4 text-[var(--color-primary)]" />
             </div>
             <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
@@ -227,7 +227,7 @@ const OptionCard: FC<OptionCardProps> = ({
       className={cn(
         'relative rounded-lg border transition-all duration-200',
         disabled
-          ? 'bg-[var(--color-surface-secondary)]/50 border-[var(--color-border-subtle)] opacity-60'
+          ? 'border-[var(--color-border-subtle)] bg-[var(--color-surface-secondary)]/50 opacity-60'
           : checked
             ? 'border-[var(--color-primary)]/30 bg-[var(--color-primary)]/5'
             : 'border-[var(--color-border-default)] bg-[var(--color-background-surface)] hover:border-[var(--color-border-accent)]',

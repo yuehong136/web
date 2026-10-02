@@ -136,7 +136,7 @@ function PromptContent({
   return (
     <section
       className={cn(
-        'rounded-radius-lg overflow-hidden border bg-background-surface transition-[border-color,box-shadow]',
+        'overflow-hidden rounded-radius-lg border bg-background-surface transition-[border-color,box-shadow]',
         isFocused
           ? 'border-components-system-accent-border ring-1 ring-components-system-accent-border'
           : 'border-border-default',
@@ -145,14 +145,14 @@ function PromptContent({
       {showToolbar && (
         <div
           className={cn(
-            'gap-space-sm px-space-sm py-space-xs flex items-center justify-between border-b transition-colors',
+            'flex items-center justify-between gap-space-sm border-b px-space-sm py-space-xs transition-colors',
             isFocused
               ? 'border-components-system-accent-border'
               : 'border-border-default',
           )}
         >
           <Tooltip content={<p>{t('flow.mergePathTip')}</p>}>
-            <label className="gap-space-xs flex min-w-0 cursor-pointer items-center text-xs text-text-secondary">
+            <label className="flex min-w-0 cursor-pointer items-center gap-space-xs text-xs text-text-secondary">
               <Switch
                 size="sm"
                 checked={pathAutoMergeEnabled}
@@ -183,10 +183,10 @@ function PromptContent({
       <div className="relative">
         <ContentEditable
           className={cn(
-            'prompt-editor-content px-space-sm relative w-full text-base text-text-primary focus-visible:outline-none',
+            'prompt-editor-content relative w-full px-space-sm text-base text-text-primary focus-visible:outline-hidden',
             {
-              'py-space-sm max-h-[50vh] min-h-40 overflow-auto': multiLine,
-              'py-space-sm min-h-10 overflow-x-auto overflow-y-hidden whitespace-pre':
+              'max-h-[50vh] min-h-40 overflow-auto py-space-sm': multiLine,
+              'min-h-10 overflow-x-auto overflow-y-hidden py-space-sm whitespace-pre':
                 !multiLine,
             },
           )}
@@ -197,7 +197,7 @@ function PromptContent({
           <div
             aria-hidden="true"
             className={cn(
-              'left-space-sm right-space-sm pointer-events-none absolute text-base text-text-secondary',
+              'pointer-events-none absolute right-space-sm left-space-sm text-base text-text-secondary',
               {
                 'top-space-sm': multiLine,
                 'top-1/2 -translate-y-1/2 truncate': !multiLine,

@@ -68,7 +68,7 @@ export const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({
         onClick={toggleTheme}
         className={cn(
           'inline-flex items-center justify-center rounded-md p-2 text-sm font-medium transition-colors',
-          'hover:bg-state-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-focus',
+          'hover:bg-state-hover focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden',
           'text-text-secondary hover:text-text-primary',
           className,
         )}
@@ -90,7 +90,7 @@ export const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({
           onClick={() => setIsOpen(!isOpen)}
           className={cn(
             'inline-flex items-center justify-center rounded-md p-2 text-sm font-medium transition-colors',
-            'hover:bg-state-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-focus',
+            'hover:bg-state-hover focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden',
             'text-text-secondary hover:text-text-primary',
             className,
           )}
@@ -106,7 +106,7 @@ export const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({
             />
             <div
               className={cn(
-                'absolute right-0 top-full z-50 mt-1 min-w-[140px]',
+                'absolute top-full right-0 z-50 mt-1 min-w-[140px]',
                 'rounded-md border bg-components-dropdown-bg shadow-components-dropdown-shadow',
                 'border-components-dropdown-border py-1',
               )}
@@ -146,7 +146,7 @@ export const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({
           'inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium transition-colors',
           'bg-components-button-secondary-bg text-components-button-secondary-text',
           'border-components-button-secondary-border hover:bg-components-button-secondary-bg-hover',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-focus',
+          'focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden',
         )}
       >
         <CurrentIcon className="h-4 w-4" />
@@ -174,7 +174,7 @@ export const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({
           />
           <div
             className={cn(
-              'absolute right-0 top-full z-50 mt-1 min-w-[160px]',
+              'absolute top-full right-0 z-50 mt-1 min-w-[160px]',
               'rounded-md border bg-components-dropdown-bg shadow-components-dropdown-shadow',
               'border-components-dropdown-border py-1',
             )}

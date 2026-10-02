@@ -104,8 +104,8 @@ export const ResourceListContainer: React.FC<ResourceListContainerProps> = ({
 }) => (
   <div
     className={cn(
-      'w-full bg-surface-primary rounded-xl border border-border-default',
-      className
+      'bg-surface-primary w-full rounded-xl border border-border-default',
+      className,
     )}
   >
     {children}
@@ -115,198 +115,204 @@ export const ResourceListContainer: React.FC<ResourceListContainerProps> = ({
 /**
  * 资源列表表头
  */
-export const ResourceListHeader: React.FC<ResourceListHeaderProps> = memo(({
-  columns,
-  allSelected,
-  onSelectAll,
-  showSelect = true,
-  gridCols = 'grid-cols-[2fr_repeat(5,1fr)_60px]',
-}) => (
-  <div
-    className={cn(
-      'grid items-center gap-4 px-6 h-12',
-      'border-b border-border-default bg-surface-secondary/30',
-      gridCols
-    )}
-  >
-    {/* 名称列（含选择框） */}
-    <div className="flex items-center gap-3 text-xs font-medium text-text-tertiary uppercase tracking-wider">
-      {showSelect && onSelectAll && (
-        <Checkbox checked={allSelected} onCheckedChange={onSelectAll} />
+export const ResourceListHeader: React.FC<ResourceListHeaderProps> = memo(
+  ({
+    columns,
+    allSelected,
+    onSelectAll,
+    showSelect = true,
+    gridCols = 'grid-cols-[2fr_repeat(5,1fr)_60px]',
+  }) => (
+    <div
+      className={cn(
+        'grid h-12 items-center gap-4 px-6',
+        'bg-surface-secondary/30 border-b border-border-default',
+        gridCols,
       )}
-      <span>{columns[0]?.label || '名称'}</span>
-    </div>
-    {/* 中间列 */}
-    {columns.slice(1, -1).map((col) => (
-      <div
-        key={col.key}
-        className={cn(
-          'text-xs font-medium text-text-tertiary uppercase tracking-wider',
-          col.align === 'center' && 'text-center',
-          col.align === 'right' && 'text-right'
+    >
+      {/* 名称列（含选择框） */}
+      <div className="flex items-center gap-3 text-xs font-medium tracking-wider text-text-tertiary uppercase">
+        {showSelect && onSelectAll && (
+          <Checkbox checked={allSelected} onCheckedChange={onSelectAll} />
         )}
-      >
-        {col.label}
+        <span>{columns[0]?.label || '名称'}</span>
       </div>
-    ))}
-    {/* 操作列 */}
-    <div className="text-xs font-medium text-text-tertiary uppercase tracking-wider text-right">
-      {columns[columns.length - 1]?.label || '操作'}
+      {/* 中间列 */}
+      {columns.slice(1, -1).map((col) => (
+        <div
+          key={col.key}
+          className={cn(
+            'text-xs font-medium tracking-wider text-text-tertiary uppercase',
+            col.align === 'center' && 'text-center',
+            col.align === 'right' && 'text-right',
+          )}
+        >
+          {col.label}
+        </div>
+      ))}
+      {/* 操作列 */}
+      <div className="text-right text-xs font-medium tracking-wider text-text-tertiary uppercase">
+        {columns[columns.length - 1]?.label || '操作'}
+      </div>
     </div>
-  </div>
-))
+  ),
+)
 ResourceListHeader.displayName = 'ResourceListHeader'
 
 /**
  * 资源列表内容区域
  * 提供内边距，让行与容器边框有间距
  */
-export const ResourceListBody: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className="p-2 space-y-1">
-    {children}
-  </div>
-)
+export const ResourceListBody: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => <div className="space-y-1 p-2">{children}</div>
 
 /**
  * 资源列表行
  * 封装整行点击、悬停高亮、选中状态、名称列、操作列
  * 悬停效果：浅色模式绿色边框、深色模式紫色边框（使用 --color-state-focus）
  */
-export const ResourceListRow: React.FC<ResourceListRowProps> = memo(({
-  onClick,
-  selected,
-  onSelect,
-  avatar,
-  name,
-  description,
-  children,
-  actions,
-  gridCols = 'grid-cols-[2fr_repeat(5,1fr)_60px]',
-  className,
-}) => {
-  const handleClick = (e: React.MouseEvent) => {
-    // 如果点击的是选择框或操作菜单，不触发行点击
-    if ((e.target as HTMLElement).closest('[data-stop-propagation]')) {
-      return
+export const ResourceListRow: React.FC<ResourceListRowProps> = memo(
+  ({
+    onClick,
+    selected,
+    onSelect,
+    avatar,
+    name,
+    description,
+    children,
+    actions,
+    gridCols = 'grid-cols-[2fr_repeat(5,1fr)_60px]',
+    className,
+  }) => {
+    const handleClick = (e: React.MouseEvent) => {
+      // 如果点击的是选择框或操作菜单，不触发行点击
+      if ((e.target as HTMLElement).closest('[data-stop-propagation]')) {
+        return
+      }
+      onClick()
     }
-    onClick()
-  }
 
-  return (
-    <div
-      className={cn(
-        'group relative grid items-center gap-4',
-        'px-4 h-[68px] rounded-xl cursor-pointer',
-        'border border-transparent',
-        'transition-all duration-200 ease-out',
-        // 悬停效果：背景 + 主题色边框（浅色绿/深色紫）
-        'hover:bg-surface-secondary/60 hover:border-state-focus hover:shadow-sm',
-        // 选中效果
-        selected && [
-          'bg-surface-accent-subtle',
-          'border-state-focus',
-          'shadow-sm',
-        ],
-        gridCols,
-        className
-      )}
-      onClick={handleClick}
-    >
-      {/* 名称列 */}
-      <div className="flex items-center gap-4 min-w-0">
-        {onSelect && (
-          <div data-stop-propagation onClick={(e) => e.stopPropagation()}>
-            <Checkbox
-              checked={selected}
-              onCheckedChange={onSelect}
-              className="transition-transform duration-150 hover:scale-110"
-            />
-          </div>
-        )}
-        {/* 头像 */}
-        <div className="shrink-0 transition-transform duration-200 group-hover:scale-105">
-          {avatar}
-        </div>
-        {/* 名称和描述 */}
-        <div className="flex-1 min-w-0 h-11 flex flex-col justify-center">
-          <div className="flex items-center gap-1.5">
-            <h3
-              className="font-medium text-text-primary truncate group-hover:text-text-accent transition-colors duration-200"
-              title={name}
-            >
-              {name}
-            </h3>
-            <ChevronRight className="h-4 w-4 text-text-tertiary opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-200 shrink-0" />
-          </div>
-          {description && (
-            <p
-              className="text-sm text-text-tertiary truncate mt-0.5"
-              title={description}
-            >
-              {description}
-            </p>
-          )}
-        </div>
-      </div>
-
-      {/* 中间列（由调用方提供） */}
-      {children}
-
-      {/* 操作列 */}
+    return (
       <div
-        className="flex justify-end"
-        data-stop-propagation
-        onClick={(e) => e.stopPropagation()}
+        className={cn(
+          'group relative grid items-center gap-4',
+          'h-[68px] cursor-pointer rounded-xl px-4',
+          'border border-transparent',
+          'transition-all duration-200 ease-out',
+          // 悬停效果：背景 + 主题色边框（浅色绿/深色紫）
+          'hover:bg-surface-secondary/60 hover:border-state-focus hover:shadow-xs',
+          // 选中效果
+          selected && [
+            'bg-surface-accent-subtle',
+            'border-state-focus',
+            'shadow-xs',
+          ],
+          gridCols,
+          className,
+        )}
+        onClick={handleClick}
       >
-        <Dropdown
-          trigger={
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              className="opacity-0 group-hover:opacity-100 transition-opacity"
-            >
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          }
+        {/* 名称列 */}
+        <div className="flex min-w-0 items-center gap-4">
+          {onSelect && (
+            <div data-stop-propagation onClick={(e) => e.stopPropagation()}>
+              <Checkbox
+                checked={selected}
+                onCheckedChange={onSelect}
+                className="transition-transform duration-150 hover:scale-110"
+              />
+            </div>
+          )}
+          {/* 头像 */}
+          <div className="shrink-0 transition-transform duration-200 group-hover:scale-105">
+            {avatar}
+          </div>
+          {/* 名称和描述 */}
+          <div className="flex h-11 min-w-0 flex-1 flex-col justify-center">
+            <div className="flex items-center gap-1.5">
+              <h3
+                className="truncate font-medium text-text-primary transition-colors duration-200 group-hover:text-text-accent"
+                title={name}
+              >
+                {name}
+              </h3>
+              <ChevronRight className="h-4 w-4 shrink-0 text-text-tertiary opacity-0 transition-all duration-200 group-hover:translate-x-0.5 group-hover:opacity-100" />
+            </div>
+            {description && (
+              <p
+                className="mt-0.5 truncate text-sm text-text-tertiary"
+                title={description}
+              >
+                {description}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* 中间列（由调用方提供） */}
+        {children}
+
+        {/* 操作列 */}
+        <div
+          className="flex justify-end"
+          data-stop-propagation
+          onClick={(e) => e.stopPropagation()}
         >
-          {actions.map((action) => (
-            <DropdownItem
-              key={action.key}
-              icon={action.icon}
-              onClick={action.onClick}
-              danger={action.danger}
-            >
-              {action.label}
-            </DropdownItem>
-          ))}
-        </Dropdown>
+          <Dropdown
+            trigger={
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="opacity-0 transition-opacity group-hover:opacity-100"
+              >
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            }
+          >
+            {actions.map((action) => (
+              <DropdownItem
+                key={action.key}
+                icon={action.icon}
+                onClick={action.onClick}
+                danger={action.danger}
+              >
+                {action.label}
+              </DropdownItem>
+            ))}
+          </Dropdown>
+        </div>
       </div>
-    </div>
-  )
-})
+    )
+  },
+)
 ResourceListRow.displayName = 'ResourceListRow'
 
 /**
  * 资源列表骨架屏行
  */
-export const ResourceListSkeletonRow: React.FC<ResourceListSkeletonRowProps> = ({
+export const ResourceListSkeletonRow: React.FC<
+  ResourceListSkeletonRowProps
+> = ({
   columnWidths = ['w-14', 'w-8', 'w-8', 'w-12', 'w-28'],
   gridCols = 'grid-cols-[2fr_repeat(5,1fr)_60px]',
 }) => (
-  <div className={cn('grid items-center gap-4 px-4 h-[68px] rounded-xl', gridCols)}>
+  <div
+    className={cn('grid h-[68px] items-center gap-4 rounded-xl px-4', gridCols)}
+  >
     {/* 名称列骨架 */}
     <div className="flex items-center gap-4">
-      <div className="w-12 h-12 rounded-xl bg-surface-secondary animate-pulse" />
+      <div className="bg-surface-secondary h-12 w-12 animate-pulse rounded-xl" />
       <div className="flex flex-col gap-2">
-        <div className="h-4 w-32 bg-surface-secondary rounded animate-pulse" />
-        <div className="h-3 w-48 bg-surface-secondary rounded animate-pulse" />
+        <div className="bg-surface-secondary h-4 w-32 animate-pulse rounded" />
+        <div className="bg-surface-secondary h-3 w-48 animate-pulse rounded" />
       </div>
     </div>
     {/* 中间列骨架 */}
     {columnWidths.map((width, i) => (
       <div
         key={i}
-        className={cn('h-4 bg-surface-secondary rounded animate-pulse', width)}
+        className={cn('bg-surface-secondary h-4 animate-pulse rounded', width)}
       />
     ))}
     {/* 操作列留空 */}
@@ -320,7 +326,5 @@ ResourceListSkeletonRow.displayName = 'ResourceListSkeletonRow'
  */
 export const ResourceListEmpty: React.FC<{ text?: string }> = ({
   text = '暂无数据',
-}) => (
-  <div className="py-12 text-center text-text-tertiary">{text}</div>
-)
+}) => <div className="py-12 text-center text-text-tertiary">{text}</div>
 ResourceListEmpty.displayName = 'ResourceListEmpty'

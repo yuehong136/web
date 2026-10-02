@@ -32,7 +32,7 @@ const UserAvatar: React.FC<{ user: AdminUser }> = memo(({ user }) => {
   const color = AVATAR_COLORS[initial.charCodeAt(0) % AVATAR_COLORS.length]
   return (
     <div
-      className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full"
+      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
       style={{
         background: `linear-gradient(135deg, ${color.from}, ${color.to})`,
       }}
@@ -205,14 +205,14 @@ export const UserTable: React.FC<UserTableProps> = memo(
     return (
       <div className="overflow-hidden rounded-xl bg-background-surface">
         {/* Table Head */}
-        <div className="gap-space-sm px-space-md py-space-sm grid grid-cols-[1fr_100px_140px_44px] items-center border-b border-border-subtle">
-          <span className="text-[11px] font-medium uppercase tracking-wider text-text-tertiary">
+        <div className="grid grid-cols-[1fr_100px_140px_44px] items-center gap-space-sm border-b border-border-subtle px-space-md py-space-sm">
+          <span className="text-[11px] font-medium tracking-wider text-text-tertiary uppercase">
             用户
           </span>
-          <span className="text-[11px] font-medium uppercase tracking-wider text-text-tertiary">
+          <span className="text-[11px] font-medium tracking-wider text-text-tertiary uppercase">
             状态
           </span>
-          <span className="text-[11px] font-medium uppercase tracking-wider text-text-tertiary">
+          <span className="text-[11px] font-medium tracking-wider text-text-tertiary uppercase">
             创建时间
           </span>
           <span />
@@ -223,13 +223,13 @@ export const UserTable: React.FC<UserTableProps> = memo(
           {users.map((user) => (
             <div
               key={user.email}
-              className="gap-space-sm px-space-md hover:bg-surface-accent/[0.03] grid grid-cols-[1fr_100px_140px_44px] items-center py-3 transition-colors"
+              className="hover:bg-surface-accent/[0.03] grid grid-cols-[1fr_100px_140px_44px] items-center gap-space-sm px-space-md py-3 transition-colors"
             >
               {/* User info */}
-              <div className="gap-space-sm flex min-w-0 items-center">
+              <div className="flex min-w-0 items-center gap-space-sm">
                 <UserAvatar user={user} />
                 <div className="min-w-0">
-                  <p className="gap-space-xs flex items-center truncate text-sm font-medium text-text-primary">
+                  <p className="flex items-center gap-space-xs truncate text-sm font-medium text-text-primary">
                     {user.nickname || user.email}
                     {user.email === currentUserEmail && (
                       <span className="bg-surface-accent/10 inline-flex items-center rounded-full px-1.5 text-xs text-text-accent">
@@ -249,7 +249,7 @@ export const UserTable: React.FC<UserTableProps> = memo(
               <StatusPill active={user.is_active} />
 
               {/* Create date */}
-              <span className="text-xs tabular-nums text-text-tertiary">
+              <span className="text-xs text-text-tertiary tabular-nums">
                 {formatRelativeTime(user.create_date)}
               </span>
 

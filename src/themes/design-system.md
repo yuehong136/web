@@ -27,9 +27,9 @@
   - --color-* 语义变量
   - --twc-* 通道变量 (RGB 三通道，供 Tailwind /alpha 使用)
        ↓
-Tailwind 集成 (tailwind.config.js):
-  - colors.primary = rgb(var(--twc-primary) / <alpha-value>)
-  - foreground/background/ring/border 同理
+Tailwind 4 集成 (themes/tailwind.css + tailwind-tokens-*.generated.css):
+  - @theme inline 将语义工具类映射到运行时 --color-* / --twc-* 变量
+  - build:themes 从同一令牌注册表生成 CSS 映射，不手改生成物
        ↓
 组件应用 (React / Tailwind 工具类)
 ```
@@ -183,14 +183,16 @@ Tailwind 集成 (tailwind.config.js):
 - 通过代码生成确保一致性
 - 支持注释标记防止手动修改
 
-### 第三层：Tailwind 集成 (tailwind-vars.ts)
+### 第三层：Tailwind 4 集成
 
 - 无缝集成到 Tailwind CSS
 - 支持所有设计令牌作为 Tailwind 类名
-- 向后兼容现有样式
-- 通过 `--twc-*` 通道变量获得 Tailwind 原生的斜杠透明度能力：
+- `tailwind-vars.ts` 定义语义颜色别名，`build:themes` 同步生成四份 `@theme inline` CSS；每份生成物小于 600 行
+- `themes/tailwind.css` 配置间距、圆角、阴影、动画和插件；Vite 使用 `@tailwindcss/vite`，不再使用 Tailwind JS 配置或旧 PostCSS 流程
+- 通过运行时变量和 Tailwind 4 的 `color-mix()` 获得斜杠透明度能力：
   - 示例：`bg-primary/10`、`hover:bg-primary/90`、`ring-ring/50`、`border-border/30`
-- 暗黑模式：`darkMode: ['class', '[data-theme="dark"]']`，配合 `html[data-theme="dark"]` 即可切换
+- 暗黑模式使用 CSS `@custom-variant dark`，同时识别 `.dark` 与 `[data-theme="dark"]`，支持局部主题作用域
+- 间距和圆角使用原生主题命名空间，支持 `md:p-space-lg`、`hover:shadow-elevation-low` 等变体；容器查询使用 Tailwind 4 原生能力
 
 #### 通道变量规范
 
@@ -208,7 +210,7 @@ Tailwind 集成 (tailwind.config.js):
 示例（推荐的 Tailwind 写法，搭配语义颜色键）：
 
 ```tsx
-<button className="inline-flex items-center justify-center rounded-md border border-primary bg-primary px-4 py-2 text-sm font-medium text-primary-foreground ring-offset-background hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50">
+<button className="inline-flex items-center justify-center rounded-md border border-primary bg-primary px-4 py-2 text-sm font-medium text-primary-foreground ring-offset-background hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:opacity-50">
   提交
 </button>
 ```

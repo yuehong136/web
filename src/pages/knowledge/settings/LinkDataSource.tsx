@@ -66,7 +66,7 @@ function DataSourceItemCard({
   return (
     <div className="hover:bg-surface-secondary group flex h-12 items-center justify-between gap-2 rounded-lg border border-border px-3 transition-colors">
       <div className="flex items-center gap-2">
-        <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center">
+        <div className="flex h-6 w-6 shrink-0 items-center justify-center">
           {sourceInfo.icon}
         </div>
         <div className="text-sm font-medium text-text-primary">
@@ -166,7 +166,7 @@ function LinkDataSourceModal({
       <DialogContent size="md">
         <DialogHeader>
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-blue-500 to-cyan-600">
               <Link className="h-5 w-5 text-white" />
             </div>
             <div className="min-w-0 flex-1">

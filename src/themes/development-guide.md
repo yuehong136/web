@@ -139,12 +139,14 @@ const cardBg = getTokenValue('components-card-bg', theme)
 
 ### 2. Tailwind CSS 类名使用（结合 --twc-\* 通道变量）
 
+Tailwind 4 配置在 `themes/tailwind.css`，语义颜色映射由 `npm run build:themes` 同步生成；独立 CSS 文件如需 `@apply`，使用 `@reference` 引用 `src/index.css`，避免重复输出主题。新增工具类优先使用 `@theme` / `@utility`，不恢复 JavaScript 配置。浏览器下限见 README 和 package.json。
+
 ```tsx
 {
   /* ✅ 推荐做法 - 使用语义颜色键与斜杠透明度 */
 }
 ;<div className="border border-border bg-card text-foreground">
-  <button className="inline-flex items-center justify-center rounded-md border border-primary bg-primary px-4 py-2 text-sm font-medium text-primary-foreground ring-offset-background hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50">
+  <button className="inline-flex items-center justify-center rounded-md border border-primary bg-primary px-4 py-2 text-sm font-medium text-primary-foreground ring-offset-background hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:opacity-50">
     点击我
   </button>
 </div>
