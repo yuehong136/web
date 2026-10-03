@@ -8,12 +8,15 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { DynamicForm } from '@/components/dynamic-form'
-import {
-  useDataSourceFormFields,
-  DataSourceFormDefaultValues,
-} from '../constants'
+import { useDataSourceFormFields } from '../constants'
 import { type IDataSourceInfo, DataSourceKey } from '../types'
 import type { DataSourceSetRequest } from '@/api/datasource'
+import { toast } from 'sonner'
+import {
+  getDataSourceDefaultValues,
+  prepareDataSourceValues,
+  validateJiraCredentials,
+} from '@/pages/settings/datasource/constants/form-values'
 
 interface AddDataSourceModalProps {
   visible: boolean
@@ -39,22 +42,30 @@ export function AddDataSourceModal({
     ? [...baseFields, ...(formFields[sourceData.id as DataSourceKey] || [])]
     : []
 
-  const handleOk = async (values: any) => {
+  const handleOk = async (values: Record<string, unknown>) => {
+    if (loading) return
+    const errorKey = validateJiraCredentials(sourceData.id, values)
+    if (errorKey) {
+      toast.error(t(errorKey))
+      return
+    }
+    const preparedValues = prepareDataSourceValues(sourceData.id, values)
     const data: DataSourceSetRequest = {
-      ...values,
+      ...preparedValues,
+      name: String(values.name ?? ''),
+      config: preparedValues.config ?? {},
       source: sourceData.id,
     }
     await onOk(data)
   }
 
-  const defaultValues =
-    DataSourceFormDefaultValues[sourceData?.id as DataSourceKey] || {}
+  const defaultValues = getDataSourceDefaultValues(sourceData.id)
 
   return (
     <Dialog open={visible} onOpenChange={(open) => !open && hideModal()}>
       <DialogContent
         size="md"
-        className="flex max-h-[85vh] flex-col gap-0 overflow-hidden p-0"
+        className="flex max-h-[85vh] flex-col gap-0 overflow-clip p-0"
       >
         {/* 头部 */}
         <DialogHeader className="border-b border-border-default bg-background-subtle px-6 py-5">
@@ -76,7 +87,7 @@ export function AddDataSourceModal({
         </DialogHeader>
 
         {/* 表单内容区域 */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="min-h-0 flex-1 overflow-y-auto">
           <div className="px-6 py-5">
             <DynamicForm.Root
               fields={fields}

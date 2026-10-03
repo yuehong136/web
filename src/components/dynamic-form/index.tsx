@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   useForm,
   Controller,
@@ -113,10 +114,25 @@ const renderField = (
   field: FormFieldConfig,
   control: any,
   formValues: Record<string, any>,
+  idPrefix: string,
+  requiredMessage: string,
   labelClassName?: string,
 ) => {
   if (field.hidden) return null
   if (!shouldShowField(field.showWhen, formValues)) return null
+  const id = `${idPrefix}-${field.name}`
+  const labelId = `${id}-label`
+  const rules = {
+    validate: (value: unknown) =>
+      !field.required ||
+      field.disabled ||
+      (typeof value === 'string'
+        ? value.trim().length > 0
+        : Array.isArray(value)
+          ? value.length > 0
+          : value != null) ||
+      requiredMessage,
+  }
 
   // 如果有自定义渲染函数
   if (field.render) {
@@ -125,12 +141,14 @@ const renderField = (
         key={field.name}
         name={field.name}
         control={control}
+        rules={rules}
         defaultValue={field.defaultValue}
-        render={({ field: fieldProps }) => (
+        render={({ field: fieldProps, fieldState }) => (
           <div className="space-y-2">
             {field.label && (
               <div className="flex items-center gap-1">
                 <Label
+                  id={labelId}
                   className={cn(
                     'text-sm font-medium text-text-primary',
                     labelClassName,
@@ -144,7 +162,14 @@ const renderField = (
                 {field.tooltip && <FormTooltip tooltip={field.tooltip} />}
               </div>
             )}
-            {field.render!(fieldProps)}
+            <div role="group" aria-labelledby={labelId}>
+              {field.render!(fieldProps)}
+            </div>
+            {fieldState.error && (
+              <p role="alert" className="text-sm text-status-error">
+                {fieldState.error.message}
+              </p>
+            )}
           </div>
         )}
       />
@@ -156,12 +181,15 @@ const renderField = (
       key={field.name}
       name={field.name}
       control={control}
+      rules={rules}
       defaultValue={field.defaultValue ?? ''}
       render={({ field: fieldProps, fieldState }) => (
         <div className="space-y-2">
           {field.label && (
             <div className="flex items-center gap-1">
               <Label
+                id={labelId}
+                htmlFor={id}
                 className={cn(
                   'text-sm font-medium text-text-primary',
                   labelClassName,
@@ -179,6 +207,8 @@ const renderField = (
           {field.type === FormFieldType.Text && (
             <Input
               {...fieldProps}
+              id={id}
+              aria-invalid={!!fieldState.error}
               placeholder={field.placeholder}
               disabled={field.disabled}
               error={fieldState.error?.message}
@@ -188,6 +218,8 @@ const renderField = (
           {field.type === FormFieldType.Password && (
             <PasswordInput
               {...fieldProps}
+              id={id}
+              aria-invalid={!!fieldState.error}
               placeholder={field.placeholder}
               disabled={field.disabled}
               error={fieldState.error?.message}
@@ -197,6 +229,8 @@ const renderField = (
           {field.type === FormFieldType.Number && (
             <Input
               {...fieldProps}
+              id={id}
+              aria-invalid={!!fieldState.error}
               type="number"
               placeholder={field.placeholder}
               disabled={field.disabled}
@@ -212,6 +246,8 @@ const renderField = (
           {field.type === FormFieldType.Textarea && (
             <Textarea
               {...fieldProps}
+              id={id}
+              aria-invalid={!!fieldState.error}
               placeholder={field.placeholder}
               disabled={field.disabled}
               rows={4}
@@ -224,7 +260,7 @@ const renderField = (
               onValueChange={fieldProps.onChange}
               disabled={field.disabled}
             >
-              <SelectTrigger>
+              <SelectTrigger id={id} aria-labelledby={labelId}>
                 <SelectValue placeholder={field.placeholder || 'Select...'} />
               </SelectTrigger>
               <SelectContent>
@@ -240,6 +276,7 @@ const renderField = (
           {field.type === FormFieldType.Checkbox && (
             <div className="flex items-center gap-2">
               <Checkbox
+                id={id}
                 checked={fieldProps.value}
                 onCheckedChange={fieldProps.onChange}
                 disabled={field.disabled}
@@ -248,19 +285,26 @@ const renderField = (
           )}
 
           {field.type === FormFieldType.Tag && (
-            <TagEditor
-              value={fieldProps.value || []}
-              onChange={fieldProps.onChange}
-              placeholder={field.placeholder}
-            />
+            <div role="group" aria-labelledby={labelId}>
+              <TagEditor
+                value={fieldProps.value || []}
+                onChange={fieldProps.onChange}
+                placeholder={field.placeholder}
+              />
+            </div>
           )}
 
           {field.type === FormFieldType.Segmented && (
-            <div className="bg-surface-secondary flex gap-1 rounded-lg p-1">
+            <div
+              role="group"
+              aria-labelledby={labelId}
+              className="bg-surface-secondary flex gap-1 rounded-lg p-1"
+            >
               {field.options?.map((option) => (
                 <button
                   key={option.value}
                   type="button"
+                  aria-pressed={fieldProps.value === option.value}
                   onClick={() => fieldProps.onChange(option.value)}
                   className={cn(
                     'flex-1 rounded-md px-3 py-1.5 text-sm transition-colors',
@@ -274,6 +318,16 @@ const renderField = (
               ))}
             </div>
           )}
+          {fieldState.error &&
+            ![
+              FormFieldType.Text,
+              FormFieldType.Password,
+              FormFieldType.Number,
+            ].includes(field.type) && (
+              <p role="alert" className="text-sm text-status-error">
+                {fieldState.error.message}
+              </p>
+            )}
         </div>
       )}
     />
@@ -291,6 +345,8 @@ function DynamicFormRoot<T extends FieldValues>({
   className,
   labelClassName,
 }: DynamicFormRootProps<T>) {
+  const { t } = useTranslation()
+  const idPrefix = React.useId()
   const form = useForm<T>({
     defaultValues: defaultValues as any,
   })
@@ -304,7 +360,14 @@ function DynamicFormRoot<T extends FieldValues>({
         className={cn('space-y-4', className)}
       >
         {fields.map((field) =>
-          renderField(field, form.control, formValues, labelClassName),
+          renderField(
+            field,
+            form.control,
+            formValues,
+            idPrefix,
+            t('common.required'),
+            labelClassName,
+          ),
         )}
         {children}
       </form>
@@ -322,6 +385,7 @@ function CancelButton({
   handleCancel: () => void
   className?: string
 }) {
+  const { t } = useTranslation()
   return (
     <Button
       type="button"
@@ -329,7 +393,7 @@ function CancelButton({
       onClick={handleCancel}
       className={className}
     >
-      取消
+      {t('common.cancel')}
     </Button>
   )
 }
@@ -348,6 +412,7 @@ function SavingButton({
   submitFunc?: (values: any) => void
   className?: string
 }) {
+  const { t } = useTranslation()
   const form = useFormInstance()
 
   const handleClick = async () => {
@@ -364,7 +429,9 @@ function SavingButton({
       disabled={submitLoading}
       className={className}
     >
-      {submitLoading ? '处理中...' : buttonText || '确定'}
+      {submitLoading
+        ? t('common.processing')
+        : buttonText || t('common.confirm')}
     </Button>
   )
 }

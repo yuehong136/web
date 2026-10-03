@@ -21,15 +21,16 @@ import {
   useDataSourceResume,
   useFetchDataSourceDetail,
 } from '@/hooks/use-datasource-request'
-import {
-  DataSourceFormDefaultValues,
-  useDataSourceFormFields,
-  useDataSourceInfo,
-} from '../constants'
+import { useDataSourceFormFields, useDataSourceInfo } from '../constants'
 import { DataSourceKey, type FormFieldConfig } from '../types'
 import { DataSourceLogsTable } from './logs-table'
 import { DataSourceStatusBadge, isDataSourceActive } from './status-display'
 import { SyncOverview } from './sync-overview'
+import {
+  getDataSourceDefaultValues,
+  prepareDataSourceValues,
+  validateJiraCredentials,
+} from '@/pages/settings/datasource/constants/form-values'
 
 /** Data source configuration and sync operations console. */
 export default function DataSourceDetailPage() {
@@ -59,26 +60,35 @@ export default function DataSourceDetailPage() {
   }, [baseFields, source, formFields])
 
   const handleSave = async (values: Record<string, unknown>) => {
-    if (!detail) return
+    if (!detail || saveLoading) return
 
+    const errorKey = validateJiraCredentials(detail.source, values)
+    if (errorKey) {
+      toast.error(t(errorKey))
+      return
+    }
+    const preparedValues = prepareDataSourceValues(
+      detail.source,
+      values,
+      detail.config,
+    )
     try {
       setSaveLoading(true)
       const data: DataSourceSetRequest = {
-        ...values,
+        ...preparedValues,
         id: detail.id,
         name: detail.name,
         source: detail.source,
-        config: (values.config as Record<string, unknown>) || detail.config,
+        config:
+          (preparedValues.config as Record<string, unknown>) || detail.config,
       }
       await datasourceAPI.connector.set(data)
       await queryClient.invalidateQueries({
         queryKey: datasourceKeys.detail(id),
       })
       toast.success(t('common.saved'))
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : t('common.saveFailed'),
-      )
+    } catch {
+      toast.error(t('common.saveFailed'))
     } finally {
       setSaveLoading(false)
     }
@@ -157,22 +167,19 @@ export default function DataSourceDetailPage() {
       />
 
       <main className="p-space-lg">
-        <div className="gap-space-lg mx-auto grid w-full max-w-7xl grid-cols-1 xl:grid-cols-3">
+        <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-space-lg xl:grid-cols-3">
           <SectionCard
             title={t('datasource.configuration')}
             className="xl:col-span-2"
           >
             <DynamicForm.Root
+              key={detail.id}
               fields={fields}
               onSubmit={handleSave}
-              defaultValues={{
-                ...DataSourceFormDefaultValues[detail.source as DataSourceKey],
-                ...detail,
-                ...detail.config,
-              }}
+              defaultValues={getDataSourceDefaultValues(detail.source, detail)}
               labelClassName="font-normal"
             >
-              <div className="mt-space-lg pt-space-base flex justify-end border-t border-border-subtle">
+              <div className="mt-space-lg flex justify-end border-t border-border-subtle pt-space-base">
                 <DynamicForm.SavingButton
                   submitLoading={saveLoading}
                   buttonText={t('common.save')}

@@ -285,7 +285,7 @@ export const useDataSourceFormFields = () => {
   const { t } = useTranslation()
 
   const formFields = useMemo(() => getDataSourceFormFields(t), [t])
-  const baseFields = useMemo(() => getBaseFormFields(), [])
+  const baseFields = useMemo(() => getBaseFormFields(t), [t])
 
   return { formFields, baseFields }
 }

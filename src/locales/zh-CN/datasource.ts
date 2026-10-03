@@ -146,6 +146,33 @@ export default {
     confluencePageIdTip: '要索引的起始页面 ID',
     confluenceTokenTip: '从 Atlassian 账户设置中获取 API Token',
 
+    syncDeletedFiles: '同步源端删除',
+    syncDeletedFilesTip:
+      '默认关闭，仅作用于后续同步，首次导入和重建不执行删除核对。成功获取源端完整清单时，会删除知识库中已不在清单内的文档；完整空清单会删除全部关联文档。清单以当前凭证和配置范围为准；缩小权限、路径或 JQL 范围也可能移除本地文档。权限或分页失败时不会根据部分结果删除。',
+    notionSyncDeletedFilesTip:
+      '默认关闭。Notion 删除同步需填写 Root Page Id，并完整递归遍历该根页面；工作区 Search 不支持删除同步。清单外的知识库文档会被移除，完整空清单会删除全部关联文档。清单以当前凭证和配置范围为准；缩小权限或根页面范围也可能移除本地文档。权限或分页失败时不会根据部分结果删除。',
+    jiraBaseUrl: 'Jira 基础 URL',
+    jiraProjectKey: '项目 Key',
+    jiraJql: '自定义 JQL',
+    jiraBatchSize: '批次大小',
+    jiraAttachmentSize: '附件大小上限（字节）',
+    jiraAttachmentSizeTip: '允许同步的单个附件大小上限。',
+    jiraLabelsToSkip: '跳过的标签',
+    jiraCommentBlacklist: '评论邮箱黑名单',
+    jiraIncludeComments: '包含评论',
+    jiraIncludeAttachments: '包含附件',
+    jiraMode: '认证模式',
+    jiraTokenAuthentication: 'API Token',
+    jiraPasswordAuthentication: '用户名和密码',
+    jiraEmail: 'Jira 用户邮箱',
+    jiraToken: 'Jira API Token',
+    jiraUsername: 'Jira 用户名',
+    jiraPassword: 'Jira 密码',
+    jiraPasswordTip: 'Jira Server 的用户名密码认证。',
+    jiraScopedToken: '使用限定范围 Token',
+    jiraServerCredentialsRequired: '请填写 Jira 用户名和密码。',
+    jiraCloudCredentialsRequired: '请填写 Jira API Token。',
+
     // Jira 相关
     jiraDescription: '连接 Jira 项目，同步问题和评论',
     jiraBaseUrlTip: 'Jira 实例的基础 URL',

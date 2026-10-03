@@ -329,3 +329,51 @@ test('oauth polling maps the pending retcode to a status instead of throwing', a
     restoreError()
   }
 })
+
+test('deletion sync and Jira credentials survive create/PATCH configuration payloads', async () => {
+  const calls: Call[] = []
+  const restorePost = stub('post', async (endpoint: string, data?: unknown) => {
+    calls.push({ endpoint, data })
+    return { id: 'conn-1' }
+  })
+  const restorePatch = stub(
+    'patch',
+    async (endpoint: string, data?: unknown) => {
+      calls.push({ endpoint, data })
+      return { id: 'conn-1' }
+    },
+  )
+  try {
+    const config = {
+      sync_deleted_files: true,
+      credentials: {
+        jira_username: 'example-user',
+        jira_password: 'example-password',
+      },
+    }
+    await datasourceAPI.connector.set({
+      name: 'Jira',
+      source: 'jira' as never,
+      config,
+    })
+    await datasourceAPI.connector.set({
+      id: 'conn-1',
+      name: 'Jira',
+      source: 'jira' as never,
+      config: { ...config, sync_deleted_files: false },
+    })
+    assert.deepEqual(calls, [
+      {
+        endpoint: '/v1/connectors',
+        data: { name: 'Jira', source: 'jira', config },
+      },
+      {
+        endpoint: '/v1/connectors/conn-1',
+        data: { config: { ...config, sync_deleted_files: false } },
+      },
+    ])
+  } finally {
+    restorePost()
+    restorePatch()
+  }
+})

@@ -8,11 +8,15 @@ import {
   getR2FormFields,
 } from './cloud-storage'
 import { getMySQLFormFields, getPostgreSQLFormFields } from './rdbms'
+import { getJiraFormFields } from '@/pages/settings/datasource/constants/jira'
+import { getDeletionSyncFields } from '@/pages/settings/datasource/constants/sync-settings'
 
 /**
  * 基础表单字段（所有数据源共用）
  */
-export const getBaseFormFields = (): FormFieldConfig[] => [
+export const getBaseFormFields = (
+  t: (key: string) => string,
+): FormFieldConfig[] => [
   {
     label: 'Id',
     name: 'id',
@@ -21,7 +25,7 @@ export const getBaseFormFields = (): FormFieldConfig[] => [
     hidden: true,
   },
   {
-    label: 'Name',
+    label: t('common.name'),
     name: 'name',
     type: FormFieldType.Text,
     required: true,
@@ -42,7 +46,7 @@ export const getBaseFormFields = (): FormFieldConfig[] => [
 /**
  * 获取各数据源的表单字段配置
  */
-export const getDataSourceFormFields = (
+const getSourceFormFields = (
   t: (key: string) => string,
 ): Record<DataSourceKey, FormFieldConfig[]> => ({
   [DataSourceKey.S3]: getS3FormFields(t),
@@ -124,70 +128,7 @@ export const getDataSourceFormFields = (
     },
   ],
   [DataSourceKey.CONFLUENCE]: getConfluenceFormFields(t),
-  [DataSourceKey.JIRA]: [
-    {
-      label: 'Jira Base URL',
-      name: 'config.base_url',
-      type: FormFieldType.Text,
-      required: true,
-      placeholder: 'https://your-domain.atlassian.net',
-      tooltip: t('datasource.jiraBaseUrlTip'),
-    },
-    {
-      label: 'Project Key',
-      name: 'config.project_key',
-      type: FormFieldType.Text,
-      required: false,
-      placeholder: 'RAGFlow',
-      tooltip: t('datasource.jiraProjectKeyTip'),
-    },
-    {
-      label: 'Custom JQL',
-      name: 'config.jql_query',
-      type: FormFieldType.Textarea,
-      required: false,
-      placeholder: 'project = RAG AND updated >= -7d',
-      tooltip: t('datasource.jiraJqlTip'),
-    },
-    {
-      label: 'Batch Size',
-      name: 'config.batch_size',
-      type: FormFieldType.Number,
-      required: false,
-      tooltip: t('datasource.jiraBatchSizeTip'),
-    },
-    {
-      label: 'Include Comments',
-      name: 'config.include_comments',
-      type: FormFieldType.Checkbox,
-      required: false,
-      defaultValue: true,
-      tooltip: t('datasource.jiraCommentsTip'),
-    },
-    {
-      label: 'Include Attachments',
-      name: 'config.include_attachments',
-      type: FormFieldType.Checkbox,
-      required: false,
-      defaultValue: false,
-      tooltip: t('datasource.jiraAttachmentsTip'),
-    },
-    {
-      label: 'Jira User Email',
-      name: 'config.credentials.jira_user_email',
-      type: FormFieldType.Text,
-      required: true,
-      placeholder: 'you@example.com',
-      tooltip: t('datasource.jiraEmailTip'),
-    },
-    {
-      label: 'Jira API Token',
-      name: 'config.credentials.jira_api_token',
-      type: FormFieldType.Password,
-      required: false,
-      tooltip: t('datasource.jiraTokenTip'),
-    },
-  ],
+  [DataSourceKey.JIRA]: getJiraFormFields(t),
   [DataSourceKey.ASANA]: [
     {
       label: 'API Token',
@@ -489,3 +430,14 @@ export const getDataSourceFormFields = (
     },
   ],
 })
+
+/** Shared configuration used by both create and detail forms. */
+export function getDataSourceFormFields(
+  t: (key: string) => string,
+): Record<DataSourceKey, FormFieldConfig[]> {
+  const fields = getSourceFormFields(t)
+  for (const source of Object.values(DataSourceKey)) {
+    fields[source] = [...fields[source], ...getDeletionSyncFields(source, t)]
+  }
+  return fields
+}

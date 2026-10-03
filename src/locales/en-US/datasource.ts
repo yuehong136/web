@@ -161,6 +161,33 @@ export default {
     confluencePageIdTip: 'Starting page ID to index',
     confluenceTokenTip: 'Get API Token from Atlassian account settings',
 
+    syncDeletedFiles: 'Sync source deletions',
+    syncDeletedFilesTip:
+      'Off by default. Applies to subsequent syncs; initial imports and rebuilds do not check deletions. A successful complete source listing removes knowledge base documents missing from that listing. A complete empty listing removes all linked documents. The listing follows your current credentials and configuration; narrowing permissions, paths or JQL may also remove local documents. Permission or pagination failures never delete based on partial results.',
+    notionSyncDeletedFilesTip:
+      'Off by default. Notion deletion sync requires Root Page Id and a complete recursive listing of that root; workspace Search does not support deletion sync. Missing documents are removed from the knowledge base, and a complete empty listing removes all linked documents. The listing follows your current credentials and configuration; narrowing permissions or root scope may also remove local documents. Permission or pagination failures never delete based on partial results.',
+    jiraBaseUrl: 'Jira Base URL',
+    jiraProjectKey: 'Project Key',
+    jiraJql: 'Custom JQL',
+    jiraBatchSize: 'Batch Size',
+    jiraAttachmentSize: 'Attachment Size Limit (bytes)',
+    jiraAttachmentSizeTip: 'Maximum size of each attachment to sync.',
+    jiraLabelsToSkip: 'Labels to Skip',
+    jiraCommentBlacklist: 'Comment Email Blacklist',
+    jiraIncludeComments: 'Include Comments',
+    jiraIncludeAttachments: 'Include Attachments',
+    jiraMode: 'Authentication Mode',
+    jiraTokenAuthentication: 'API token',
+    jiraPasswordAuthentication: 'Username and password',
+    jiraEmail: 'Jira User Email',
+    jiraToken: 'Jira API Token',
+    jiraUsername: 'Jira Username',
+    jiraPassword: 'Jira Password',
+    jiraPasswordTip: 'Username and password authentication for Jira Server.',
+    jiraScopedToken: 'Use Scoped Token',
+    jiraServerCredentialsRequired: 'Enter a Jira username and password.',
+    jiraCloudCredentialsRequired: 'Enter a Jira API token.',
+
     // Jira related
     jiraDescription: 'Connect to Jira project and sync issues and comments',
     jiraBaseUrlTip: 'Base URL of your Jira instance',
