@@ -9,6 +9,34 @@ export default {
       defaults: 'Default models',
       defaultDescription: 'Choose the models used by your workspace.',
       chooseProvider: 'Choose a provider from the available models.',
+      paddleOCR: {
+        title: 'Add PaddleOCR model',
+        description: 'Configure a remote OCR service.',
+        modelType: 'Model type',
+        modelName: 'Model name (required)',
+        algorithm: 'PaddleOCR algorithm',
+        deploymentHint:
+          'Choose the algorithm deployed by your service. This selection does not change the server deployment.',
+        apiUrl: 'Inference URL (required)',
+        apiUrlHint:
+          'Enter the complete synchronous inference URL, including {{endpoint}}.',
+        accessToken: 'AI Studio access token (optional)',
+        tokenPlaceholder: 'Enter your access token',
+        validationHint:
+          'Validation checks configuration only. It does not verify service connectivity, the access token, or inference results.',
+        modelNameRequired: 'Enter a model name.',
+        apiUrlRequired: 'Enter the complete PaddleOCR inference URL.',
+        apiUrlInvalid: 'Enter a complete HTTP or HTTPS inference URL.',
+        algorithmUnsupported: 'Choose a supported PaddleOCR algorithm.',
+        configurationValid: 'Configuration is valid',
+        configurationInvalid:
+          'Configuration validation failed. Check your settings and try again.',
+        saveFailed:
+          'Could not save the model. Check your settings and try again.',
+        documentation: 'Service documentation',
+        validate: 'Validate configuration',
+        saving: 'Saving…',
+      },
     },
     groups: {
       workspace: 'Workspace',

@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Eye, EyeOff, ExternalLink, RefreshCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -28,6 +29,11 @@ import {
   type ApiKeyModalProps,
 } from './api-key-modal-utils'
 import { OpenDataLoaderFields } from './opendataloader-fields'
+import { PaddleOCRFields } from './paddleocr-fields'
+import {
+  buildPaddleOCRParams,
+  DEFAULT_PADDLEOCR_ALGORITHM,
+} from './paddleocr-config'
 
 import {
   API_KEY_WITH_BASE_URL,
@@ -54,6 +60,9 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
   onSave,
   onVerify,
 }) => {
+  const { t } = useTranslation()
+  const paddleKey = 'settings.models.paddleOCR'
+  const isPaddleOCR = providerName === 'PaddleOCR'
   // 判断厂商类型
   const isLocal = isLocalProp ?? LOCAL_MODEL_FACTORIES.includes(providerName)
   const isSpecialForm = SPECIAL_FORM_FACTORIES.includes(providerName)
@@ -124,7 +133,9 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
   // PaddleOCR 字段
   const [paddleocrApiUrl, setPaddleocrApiUrl] = useState('')
   const [paddleocrAccessToken, setPaddleocrAccessToken] = useState('')
-  const [paddleocrAlgorithm, setPaddleocrAlgorithm] = useState('PaddleOCR-VL')
+  const [paddleocrAlgorithm, setPaddleocrAlgorithm] = useState<string>(
+    DEFAULT_PADDLEOCR_ALGORITHM,
+  )
   // OpenDataLoader fields
   const [opendataloaderApiServer, setOpendataloaderApiServer] = useState('')
   const [opendataloaderApiKey, setOpendataloaderApiKey] = useState('')
@@ -407,29 +418,17 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
 
       // PaddleOCR
       else if (providerName === 'PaddleOCR') {
-        if (!modelName.trim()) {
-          setError('请输入模型名称')
+        const result = buildPaddleOCRParams({
+          modelName,
+          apiUrl: paddleocrApiUrl,
+          accessToken: paddleocrAccessToken,
+          algorithm: paddleocrAlgorithm,
+        })
+        if (!result.ok) {
+          setError(t(`${paddleKey}.${result.error}`))
           return
         }
-        if (!paddleocrApiUrl.trim()) {
-          setError('请输入 PaddleOCR API URL')
-          return
-        }
-
-        const paddleocrConfig: Record<string, any> = {
-          paddleocr_api_url: paddleocrApiUrl.trim(),
-          paddleocr_algorithm: paddleocrAlgorithm || 'PaddleOCR-VL',
-        }
-        if (paddleocrAccessToken.trim()) {
-          paddleocrConfig.paddleocr_access_token = paddleocrAccessToken.trim()
-        }
-
-        additionalParams.llm_name = modelName
-        additionalParams.mdl_type = 'ocr'
-        additionalParams.max_tokens = 0
-        additionalParams.llm_factory = providerName
-        additionalParams.api_key = paddleocrConfig
-        additionalParams.api_base = ''
+        Object.assign(additionalParams, result.params)
       }
 
       // OpenDataLoader
@@ -521,7 +520,17 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
           finalBaseUrl,
           additionalParams,
         )
-        setVerifyResult(normalizeVerifyResult(verifyResponse))
+        const result = normalizeVerifyResult(verifyResponse)
+        setVerifyResult(
+          isPaddleOCR
+            ? {
+                isValid: result.isValid,
+                logs: t(
+                  `${paddleKey}.${result.isValid ? 'configurationValid' : 'configurationInvalid'}`,
+                ),
+              }
+            : result,
+        )
       } else {
         await onSave(finalApiKey, finalBaseUrl, additionalParams)
         handleClose()
@@ -530,10 +539,14 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
       if (isVerify) {
         setVerifyResult({
           isValid: false,
-          logs: '验证失败，请重试',
+          logs: isPaddleOCR
+            ? t(`${paddleKey}.configurationInvalid`)
+            : '验证失败，请重试',
         })
       } else {
-        setError('保存失败，请重试')
+        setError(
+          isPaddleOCR ? t(`${paddleKey}.saveFailed`) : '保存失败，请重试',
+        )
       }
     } finally {
       if (isVerify) {
@@ -558,6 +571,7 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
 
   // 获取模态框标题
   const getModalTitle = () => {
+    if (isPaddleOCR) return t(`${paddleKey}.title`)
     if (isLocal) return `添加 ${providerName} 模型`
     if (isSpecialForm) return `添加 ${providerName} LLM`
     return `设置 ${providerName}`
@@ -565,6 +579,7 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
 
   // 获取模态框描述
   const getModalDescription = () => {
+    if (isPaddleOCR) return t(`${paddleKey}.description`)
     if (isLocal) return '配置本地模型服务'
     if (isSpecialForm) return '配置模型参数'
     return '设置 API 密钥'
@@ -1301,67 +1316,16 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
 
           {/* ========== PaddleOCR 专用表单 ========== */}
           {providerName === 'PaddleOCR' && (
-            <>
-              <div>
-                <label className="mb-2 block text-sm font-medium text-text-primary">
-                  模型类型
-                </label>
-                <Input
-                  value="OCR"
-                  disabled
-                  className="cursor-not-allowed bg-muted"
-                />
-              </div>
-              <div>
-                <label className="mb-2 block text-sm font-medium text-text-primary">
-                  模型名称 <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  value={modelName}
-                  onChange={(e) => setModelName(e.target.value)}
-                  placeholder="paddleocr-from-env-1"
-                />
-              </div>
-              <div>
-                <label className="mb-2 block text-sm font-medium text-text-primary">
-                  PaddleOCR API URL <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  value={paddleocrApiUrl}
-                  onChange={(e) => setPaddleocrApiUrl(e.target.value)}
-                  placeholder="https://paddleocr-server.com/layout-parsing"
-                />
-              </div>
-              <div>
-                <label className="mb-2 block text-sm font-medium text-text-primary">
-                  AI Studio 访问令牌{' '}
-                  <span className="ml-1 font-normal text-text-tertiary">
-                    (可选)
-                  </span>
-                </label>
-                <Input
-                  value={paddleocrAccessToken}
-                  onChange={(e) => setPaddleocrAccessToken(e.target.value)}
-                  placeholder="您的 AI Studio Token（可选）"
-                />
-              </div>
-              <div>
-                <label className="mb-2 block text-sm font-medium text-text-primary">
-                  PaddleOCR 算法
-                </label>
-                <Select
-                  value={paddleocrAlgorithm}
-                  onValueChange={setPaddleocrAlgorithm}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="PaddleOCR-VL">PaddleOCR-VL</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </>
+            <PaddleOCRFields
+              modelName={modelName}
+              apiUrl={paddleocrApiUrl}
+              accessToken={paddleocrAccessToken}
+              algorithm={paddleocrAlgorithm}
+              onModelNameChange={setModelName}
+              onApiUrlChange={setPaddleocrApiUrl}
+              onAccessTokenChange={setPaddleocrAccessToken}
+              onAlgorithmChange={setPaddleocrAlgorithm}
+            />
           )}
 
           {/* ========== OpenDataLoader 专用表单 ========== */}
@@ -1456,7 +1420,7 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setShowApiKey(!showApiKey)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-secondary"
+                    className="absolute top-1/2 right-3 -translate-y-1/2 text-text-tertiary hover:text-text-secondary"
                   >
                     {showApiKey ? (
                       <EyeOff className="h-4 w-4" />
@@ -1512,7 +1476,7 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setShowApiKey(!showApiKey)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-secondary"
+                    className="absolute top-1/2 right-3 -translate-y-1/2 text-text-tertiary hover:text-text-secondary"
                   >
                     {showApiKey ? (
                       <EyeOff className="h-4 w-4" />
@@ -1644,10 +1608,16 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
                     : 'text-sm text-[var(--color-status-error)]'
                 }
               >
-                {verifyResult.isValid ? '验证通过' : '验证失败'}
+                {isPaddleOCR
+                  ? t(
+                      `${paddleKey}.${verifyResult.isValid ? 'configurationValid' : 'configurationInvalid'}`,
+                    )
+                  : verifyResult.isValid
+                    ? '验证通过'
+                    : '验证失败'}
               </p>
-              {verifyResult.logs && (
-                <pre className="mt-2 max-h-40 overflow-auto whitespace-pre-wrap text-xs text-text-secondary">
+              {verifyResult.logs && !isPaddleOCR && (
+                <pre className="mt-2 max-h-40 overflow-auto text-xs whitespace-pre-wrap text-text-secondary">
                   {verifyResult.logs}
                 </pre>
               )}
@@ -1665,7 +1635,7 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
                 rel="noopener noreferrer"
                 className="flex items-center gap-1 text-sm text-[var(--color-text-accent)] hover:underline"
               >
-                如何获取？
+                {isPaddleOCR ? t(`${paddleKey}.documentation`) : '如何获取？'}
                 <ExternalLink className="h-3 w-3" />
               </a>
             )}
@@ -1683,7 +1653,7 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
                     isVerifying ? 'h-3.5 w-3.5 animate-spin' : 'h-3.5 w-3.5'
                   }
                 />
-                验证
+                {isPaddleOCR ? t(`${paddleKey}.validate`) : '验证'}
               </Button>
             )}
           </div>
@@ -1695,13 +1665,17 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
               onClick={handleClose}
               disabled={isLoading || isVerifying}
             >
-              取消
+              {isPaddleOCR ? t('common.cancel') : '取消'}
             </Button>
             <Button
               onClick={() => handleSave(false)}
               disabled={isLoading || isVerifying}
             >
-              {isLoading ? '保存中...' : '确定'}
+              {isPaddleOCR
+                ? t(isLoading ? `${paddleKey}.saving` : 'common.save')
+                : isLoading
+                  ? '保存中...'
+                  : '确定'}
             </Button>
           </div>
         </DialogFooter>
