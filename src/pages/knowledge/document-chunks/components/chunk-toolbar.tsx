@@ -244,7 +244,7 @@ export const ChunkToolbar = ({
               size="sm"
               onClick={onBulkDeleteClick}
               disabled={isDeletePending}
-              className="hover:text-text-error/80 gap-1 text-text-error"
+              className="gap-1 text-text-error hover:text-text-error/80"
             >
               <Trash2 className="h-4 w-4" />
               <span>{t('knowledge.chunks.toolbar.delete')}</span>
@@ -291,6 +291,7 @@ const FilterOption = ({
 }: FilterOptionProps) => (
   <button
     type="button"
+    aria-pressed={active}
     onClick={onClick}
     className={cn(
       'flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm transition-colors',

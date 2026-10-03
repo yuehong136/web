@@ -1,4 +1,5 @@
-import { apiClient } from './client'
+import { APIError, apiClient } from './client'
+import { API_BASE_URL } from '@/constants'
 import { uploadConversationAttachment } from './conversation-upload'
 import type {
   Conversation,
@@ -267,11 +268,30 @@ export const conversationAPI = {
     apiClient.post('/v1/conversation/mindmap', data),
 
   // 生成相关问题
-  generateRelatedQuestions: (data: {
+  generateRelatedQuestions: async (data: {
     question: string
     search_id?: string
-  }): Promise<string[]> =>
-    apiClient.post('/v1/conversation/related_questions', data),
+  }): Promise<string[]> => {
+    const questions = await apiClient.post<unknown>(
+      '/chat/recommendation',
+      data,
+      {
+        baseURL: `${API_BASE_URL}/api`,
+        responseContract: 'rest200',
+      },
+    )
+    if (
+      !Array.isArray(questions) ||
+      questions.some((item) => typeof item !== 'string')
+    ) {
+      throw new APIError(
+        200,
+        'INVALID_RECOMMENDATION_RESPONSE',
+        'Unexpected recommendation response',
+      )
+    }
+    return questions
+  },
 
   // 生成对话标题
   generateTitle: (conversationId: string): Promise<{ title: string }> =>
