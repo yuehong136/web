@@ -1,264 +1,164 @@
 import type { FC } from 'react'
-import { useCallback, useEffect } from 'react'
+import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FormProvider, useForm, useWatch } from 'react-hook-form'
 import { Settings2 } from 'lucide-react'
 import { Button, Modal } from '@/components/ui'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import {
-  SelectWithSearch,
-  type SelectOptionGroup,
-} from '@/components/ui/select-with-search'
 import { ChunkMethodForm } from '@/pages/knowledge/settings/ChunkMethodForm'
 import type { Document } from '@/types/api'
-import { DocumentParserType } from '@/types/document-parser'
+import type { DocumentParserSubmission } from '@/hooks/use-document-parser-modal'
+import { ParserFieldScope } from '@/components/forms/parser-field-scope'
+import {
+  hydrateParserDraft,
+  serializeParserDraft,
+  type ParserFormValues,
+} from './document-parser/draft'
+import { parserErrorKey } from './document-parser/errors'
+import {
+  DocumentBuiltinSelector,
+  DocumentPipelineSelector,
+  ParserModeSelector,
+} from './document-parser/selectors'
 
 interface ChunkMethodModalProps {
   open: boolean
   onClose: () => void
   document: Document | null
-  onSubmit: (data: {
-    docId: string
-    parserId: string
-    parserConfig?: Record<string, unknown>
-  }) => Promise<void>
+  datasetId: string
+  tenantId: string
+  actorKey: number
+  session: number
+  errorKey?: string
+  onSubmit: (data: DocumentParserSubmission) => Promise<void>
   onMetadataSettingsClick?: (document: Document) => void
   isLoading?: boolean
 }
 
-interface FormValues {
-  parseType: 1 | 2
-  parser_id: string
-  pipeline_id: string
-  parser_config: Record<string, unknown>
+type DraftProps = Omit<ChunkMethodModalProps, 'document'> & {
+  document: Document
 }
 
-const PARSER_OPTIONS: SelectOptionGroup[] = [
-  { value: 'naive', label: 'General' },
-  { value: 'qa', label: 'Q&A' },
-  { value: 'resume', label: 'Resume' },
-  { value: 'manual', label: 'Manual' },
-  { value: 'table', label: 'Table' },
-  { value: 'paper', label: 'Paper' },
-  { value: 'book', label: 'Book' },
-  { value: 'laws', label: 'Laws' },
-  { value: 'presentation', label: 'Presentation' },
-  { value: 'one', label: 'One' },
-  { value: 'tag', label: 'Tag' },
-]
-
-const ParseTypeSelector: FC<{
-  value: 1 | 2
-  onChange: (value: 1 | 2) => void
-}> = ({ value, onChange }) => {
-  const { t } = useTranslation()
-
-  return (
-    <div className="rounded-radius-lg bg-surface-secondary p-space-base border border-border-default">
-      <div className="mb-space-sm block text-sm font-medium text-text-primary">
-        {t('knowledge.documents.chunkMethodModal.parseMethod')}
-      </div>
-      <RadioGroup
-        value={String(value)}
-        onValueChange={(val) => onChange(Number(val) as 1 | 2)}
-        className="gap-space-lg flex items-center"
-      >
-        <div className="gap-space-xs flex cursor-pointer items-center">
-          <RadioGroupItem value="1" />
-          <span className="text-sm text-text-secondary">
-            {t('knowledge.documents.chunkMethodModal.builtin')}
-          </span>
-        </div>
-        <div className="gap-space-xs flex cursor-pointer items-center">
-          <RadioGroupItem value="2" />
-          <span className="text-sm text-text-secondary">
-            {t('knowledge.documents.chunkMethodModal.selectPipeline')}
-          </span>
-        </div>
-      </RadioGroup>
-    </div>
-  )
-}
-
-const BuiltInParserSelector: FC<{
-  value: string
-  onChange: (value: string) => void
-}> = ({ value, onChange }) => {
-  const { t } = useTranslation()
-
-  return (
-    <div className="space-y-2">
-      <div className="flex items-center gap-1 text-sm font-medium text-text-primary">
-        <span className="text-text-error">*</span>
-        {t('knowledge.documents.chunkMethodModal.builtin')}
-      </div>
-      <SelectWithSearch
-        value={value}
-        onChange={onChange}
-        options={PARSER_OPTIONS}
-        placeholder={t(
-          'knowledge.documents.chunkMethodModal.parserPlaceholder',
-        )}
-        emptyText={t('knowledge.documents.chunkMethodModal.parserEmpty')}
-      />
-    </div>
-  )
-}
-
-const PipelineSelector: FC<{
-  value: string
-  onChange: (value: string) => void
-  options?: SelectOptionGroup[]
-}> = ({ value, onChange, options = [] }) => {
-  const { t } = useTranslation()
-
-  return (
-    <div className="space-y-2">
-      <div className="flex items-center gap-1 text-sm font-medium text-text-primary">
-        <span className="text-text-error">*</span>
-        {t('knowledge.documents.chunkMethodModal.selectPipeline')}
-      </div>
-      <SelectWithSearch
-        value={value}
-        onChange={onChange}
-        options={options}
-        placeholder={t(
-          'knowledge.documents.chunkMethodModal.pipelinePlaceholder',
-        )}
-        emptyText={t('knowledge.documents.chunkMethodModal.pipelineEmpty')}
-      />
-      <p className="text-xs text-text-tertiary">
-        {t('knowledge.documents.chunkMethodModal.pipelineTip')}
-      </p>
-    </div>
-  )
-}
-
-export const ChunkMethodModal: FC<ChunkMethodModalProps> = ({
+function ParserDraftModal({
   open,
   onClose,
   document,
+  datasetId,
+  tenantId,
+  actorKey,
   onSubmit,
   onMetadataSettingsClick,
+  errorKey,
   isLoading = false,
-}) => {
+}: DraftProps) {
   const { t } = useTranslation()
-
-  const methods = useForm<FormValues>({
-    defaultValues: {
-      parseType: 1,
-      parser_id: document?.parser_id || DocumentParserType.Naive,
-      pipeline_id: '',
-      parser_config: document?.parser_config || {},
-    },
+  // One immutable snapshot per open/session; background list updates do not rebase edits.
+  const [initial] = useState(() => hydrateParserDraft(document))
+  const [draftError, setDraftError] = useState<string>()
+  const methods = useForm<ParserFormValues>({
+    defaultValues: structuredClone(initial),
   })
+  const { dirtyFields, isSubmitting } = methods.formState
+  const busy = isLoading || isSubmitting
 
-  useEffect(() => {
-    if (document && open) {
-      methods.reset({
-        parseType: 1,
-        parser_id: document.parser_id || DocumentParserType.Naive,
-        pipeline_id: '',
-        parser_config: document.parser_config || {},
-      })
+  const handleSubmit = async (data: ParserFormValues) => {
+    if (busy) return
+    setDraftError(undefined)
+    try {
+      const patch = serializeParserDraft(initial, data, dirtyFields)
+      await onSubmit({ docId: document.id, patch })
+    } catch (error) {
+      setDraftError(parserErrorKey(error))
     }
-  }, [document, methods, open])
-
-  const handleSubmit = async (data: FormValues) => {
-    if (!document) return
-
-    if (data.parseType === 2 && !data.pipeline_id) {
-      return
-    }
-
-    await onSubmit({
-      docId: document.id,
-      parserId: data.parseType === 1 ? data.parser_id : data.pipeline_id,
-      parserConfig: data.parseType === 1 ? data.parser_config : {},
-    })
   }
 
   const handleMetadataSettingsClick = useCallback(() => {
-    if (document) {
-      onMetadataSettingsClick?.(document)
-    }
+    onMetadataSettingsClick?.(document)
   }, [document, onMetadataSettingsClick])
-
-  const parseType = useWatch({
-    control: methods.control,
-    name: 'parseType',
-  })
-
-  const currentParserId = useWatch({
-    control: methods.control,
-    name: 'parser_id',
-  })
-
-  if (!document) return null
+  const parseType = useWatch({ control: methods.control, name: 'parseType' })
+  const parserId = useWatch({ control: methods.control, name: 'parser_id' })
+  const pipelineId = useWatch({ control: methods.control, name: 'pipeline_id' })
 
   return (
-    <>
-      <Modal
-        open={open}
-        onClose={onClose}
-        title={t('knowledge.settings.fields.chunkMethod')}
-        icon={<Settings2 className="h-5 w-5" />}
-        size="lg"
-        footer={
-          <div className="flex w-full justify-end gap-3">
-            <Button variant="outline" onClick={onClose} disabled={isLoading}>
-              {t('knowledge.common.cancel')}
-            </Button>
-            <Button
-              onClick={methods.handleSubmit(handleSubmit)}
-              loading={isLoading}
-            >
-              {t('knowledge.common.save')}
-            </Button>
-          </div>
-        }
-      >
-        <FormProvider {...methods}>
-          <form className="space-y-4">
-            <ParseTypeSelector
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={t('knowledge.settings.fields.chunkMethod')}
+      icon={<Settings2 className="size-icon-lg" />}
+      size="lg"
+      footer={
+        <div className="flex w-full justify-end gap-space-md">
+          <Button type="button" variant="outline" onClick={onClose}>
+            {t('knowledge.common.cancel')}
+          </Button>
+          <Button type="submit" form="document-parser-draft" loading={busy}>
+            {t('knowledge.common.save')}
+          </Button>
+        </div>
+      }
+    >
+      <FormProvider {...methods}>
+        <ParserFieldScope.Provider value="document">
+          <form
+            id="document-parser-draft"
+            onSubmit={methods.handleSubmit(handleSubmit)}
+            className="space-y-space-base"
+          >
+            {(draftError || errorKey) && (
+              <p role="alert" className="text-status-error">
+                {t(draftError || errorKey!)}
+              </p>
+            )}
+            <ParserModeSelector
               value={parseType}
-              onChange={(value) => {
-                methods.setValue('parseType', value)
-                if (value === 1) {
-                  methods.setValue('pipeline_id', '')
-                }
-              }}
+              disabled={busy}
+              onChange={(value) =>
+                methods.setValue('parseType', value, { shouldDirty: true })
+              }
             />
-
-            {parseType === 1 && (
-              <div className="rounded-radius-lg bg-surface-secondary p-space-base space-y-4 border border-border-default">
-                <BuiltInParserSelector
-                  value={currentParserId}
-                  onChange={(value) => {
-                    methods.setValue('parser_id', value)
-                    methods.setValue('parser_config', {})
-                  }}
+            <fieldset disabled={busy} className="space-y-space-base">
+              {parseType === 1 ? (
+                <DocumentBuiltinSelector
+                  document={document}
+                  value={parserId}
+                  disabled={busy}
+                  onChange={(value) =>
+                    methods.setValue('parser_id', value, { shouldDirty: true })
+                  }
                 />
-              </div>
-            )}
-
-            {parseType === 2 && (
-              <div className="rounded-radius-lg bg-surface-secondary p-space-base border border-border-default">
-                <PipelineSelector
-                  value={methods.watch('pipeline_id')}
-                  onChange={(value) => methods.setValue('pipeline_id', value)}
+              ) : (
+                <DocumentPipelineSelector
+                  value={pipelineId}
+                  datasetId={datasetId}
+                  tenantId={tenantId}
+                  actorKey={actorKey}
+                  disabled={busy}
+                  onChange={(value) =>
+                    methods.setValue('pipeline_id', value, {
+                      shouldDirty: true,
+                    })
+                  }
                 />
-              </div>
-            )}
-
-            {parseType === 1 && currentParserId && (
-              <ChunkMethodForm
-                onMetadataSettingsClick={handleMetadataSettingsClick}
-              />
-            )}
+              )}
+              {parseType === 1 && parserId && (
+                <ChunkMethodForm
+                  onMetadataSettingsClick={handleMetadataSettingsClick}
+                />
+              )}
+            </fieldset>
           </form>
-        </FormProvider>
-      </Modal>
-    </>
+        </ParserFieldScope.Provider>
+      </FormProvider>
+    </Modal>
+  )
+}
+
+export const ChunkMethodModal: FC<ChunkMethodModalProps> = (props) => {
+  if (!props.open || !props.document) return null
+  return (
+    <ParserDraftModal
+      key={`${props.datasetId}:${props.document.id}:${props.actorKey}:${props.session}`}
+      {...props}
+      document={props.document}
+    />
   )
 }

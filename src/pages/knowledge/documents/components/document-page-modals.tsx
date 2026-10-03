@@ -48,7 +48,6 @@ export function DocumentPageModals({
   isRenaming,
 }: DocumentPageModalsProps) {
   const { t } = useTranslation()
-
   return (
     <>
       <Modal
@@ -160,10 +159,12 @@ export function DocumentPageModals({
 
       <ChunkMethodModal
         open={pageModals.chunkMethodModalOpen}
-        onClose={() => {
-          pageModals.setChunkMethodModalOpen(false)
-          pageModals.setEditingParserDoc(null)
-        }}
+        onClose={pageModals.closeChunkMethodModal}
+        datasetId={kbId ?? ''}
+        tenantId={currentKnowledgeBase?.tenant_id ?? ''}
+        actorKey={pageModals.parserModalActorKey}
+        session={pageModals.parserModalSession}
+        errorKey={pageModals.parserModalErrorKey}
         document={pageModals.editingParserDoc}
         onSubmit={pageModals.handleChunkMethodSubmit}
         onMetadataSettingsClick={

@@ -5,6 +5,10 @@ import { useFormContext } from 'react-hook-form'
 import { cn } from '@/lib/utils'
 import { Slider } from '@/components/ui/slider'
 import {
+  documentOverlapFraction,
+  useDocumentParserFields,
+} from './parser-field-scope'
+import {
   FormField,
   FormItem,
   FormLabel,
@@ -43,6 +47,13 @@ export function SliderInputFormField({
   percentage = false,
 }: SliderInputFormFieldProps) {
   const form = useFormContext()
+  const documentScope = useDocumentParserFields()
+  const dualOverlap =
+    documentScope && name === 'parser_config.overlapped_percent'
+  if (documentScope && name === 'parser_config.chunk_token_num')
+    max = Math.min(max, 8192)
+  if (documentScope && name === 'parser_config.auto_keywords') max = 32
+  if (dualOverlap) max = 0.9
   const isHorizontal = layout === 'horizontal'
 
   // 百分比模式下的转换系数
@@ -69,7 +80,10 @@ export function SliderInputFormField({
       name={name}
       defaultValue={defaultValue}
       render={({ field }) => {
-        const rawValue = normalizeNumber(field.value)
+        const storedValue = normalizeNumber(field.value)
+        const rawValue = dualOverlap
+          ? documentOverlapFraction(storedValue)
+          : storedValue
         // 显示值：百分比模式下乘以100
         const displayValue = percentage
           ? Math.round(rawValue * multiplier)

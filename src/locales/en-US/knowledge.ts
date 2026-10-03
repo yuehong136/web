@@ -796,6 +796,25 @@ export default {
           'Documents will be parsed with the knowledge base default configuration.',
       },
       chunkMethodModal: {
+        pipelineLabel: 'Pipeline',
+        pipelineSearch: 'Search pipelines',
+        pipelineLoading: 'Loading pipelines…',
+        pipelineError: 'Could not load pipelines.',
+        pipelineUnavailable:
+          'The selected pipeline is unavailable. Its selection is retained.',
+        pipelineMore: 'Load more',
+        untitledPipeline: 'Untitled pipeline',
+        sourceParserHint:
+          'This source type requires its automatic built-in parser.',
+        permissionError: 'You do not have permission to save this document.',
+        unavailableError: 'The document or pipeline is unavailable.',
+        configurationError: 'Check the parser selection and configuration.',
+        conflictError:
+          'The document is running or changed during saving. Read its current state before trying again.',
+        saveError:
+          'Could not save the parser configuration. Your edits are retained.',
+        unconfirmed:
+          'The save outcome could not be confirmed. Your edits are retained. Check the document before submitting again.',
         parseMethod: 'Parse method',
         builtin: 'Built-in',
         selectPipeline: 'Select pipeline',

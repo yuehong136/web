@@ -18,10 +18,13 @@ import {
 } from '@/components/ui/form'
 import { SliderInputFormField } from './SliderInputFormField'
 import {
+  mineruLanguageOptions,
+  useDocumentParserFields,
+} from './parser-field-scope'
+import {
   LayoutRecognizeOptions,
   PermissionOptions,
   MineruParseMethodOptions,
-  MineruLanguageOptions,
 } from '@/types/knowledge-form'
 
 // =====================================================
@@ -558,16 +561,14 @@ export function MinerUOptionsFormField({
 }: MinerUOptionsFormFieldProps) {
   const { t } = useTranslation()
   const form = useFormContext()
+  const documentScope = useDocumentParserFields()
 
-  // 监听 layout_recognize 字段的变化
   const layoutRecognize = form.watch('parser_config.layout_recognize')
 
-  // 检查是否选择了 MinerU
   const isMinerUSelected =
     layoutRecognize?.includes('MinerU') ||
     layoutRecognize?.toLowerCase()?.includes('mineru')
 
-  // 如果没有选择 MinerU，不渲染任何内容
   if (!isMinerUSelected) {
     return null
   }
@@ -579,12 +580,7 @@ export function MinerUOptionsFormField({
     }),
   )
 
-  const languageOptions: SelectOptionGroup[] = MineruLanguageOptions.map(
-    (opt) => ({
-      label: opt.label,
-      value: opt.value,
-    }),
-  )
+  const languageOptions = mineruLanguageOptions(documentScope)
 
   return (
     <div
@@ -626,7 +622,6 @@ export function MinerUOptionsFormField({
         )}
       />
 
-      {/* OCR 语言 */}
       <FormField
         control={form.control}
         name="parser_config.mineru_lang"

@@ -725,7 +725,6 @@ export interface ListKbsRequest {
   owner_ids?: string[]
 }
 
-// 后端知识库删除请求
 export interface RemoveKnowledgebaseRequest {
   kb_id: string
 }
@@ -738,6 +737,7 @@ export interface Document {
   kb_id: string
   location: string
   status: string // '0' = 禁用, '1' = 启用
+  enabled?: boolean
   run: string // '0' = 未解析, '1' = 解析中, '2' = 取消, '3' = 成功, '4' = 失败
   chunk_num: number
   token_num: number
@@ -749,6 +749,7 @@ export interface Document {
   update_time: number
   thumbnail?: string
   parser_id: string
+  pipeline_id?: string | null
   parser_config?: Record<string, any>
   source_type: string
   progress: number // 解析进度 0-1
@@ -769,7 +770,6 @@ export interface UploadDocumentRequest {
   parser_config?: Record<string, any>
 }
 
-// 文档过滤器参数
 export interface DocumentFilter {
   run_status?: string[] // 运行状态过滤
   types?: string[] // 文件类型过滤

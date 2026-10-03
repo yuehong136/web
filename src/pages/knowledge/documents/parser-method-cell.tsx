@@ -41,17 +41,16 @@ export const ParserMethodCell: React.FC<ParserMethodCellProps> = ({
   onShowChunkMethodModal,
 }) => {
   const { t } = useTranslation()
-  const parserLabel = getParserLabel(
-    document.parser_id,
-    t('knowledge.documents.defaultParser'),
-  )
+  const parserLabel = document.pipeline_id
+    ? t('knowledge.documents.chunkMethodModal.pipelineLabel')
+    : getParserLabel(document.parser_id, t('knowledge.documents.defaultParser'))
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="hover:shadow-elevation-low inline-flex cursor-pointer items-center rounded-sm px-2 py-1 transition-colors hover:bg-state-hover"
+          className="inline-flex cursor-pointer items-center rounded-sm px-2 py-1 transition-colors hover:bg-state-hover hover:shadow-elevation-low"
           aria-label={t('knowledge.documents.configureParser')}
         >
           <span className="max-w-[80px] truncate text-sm text-text-secondary">

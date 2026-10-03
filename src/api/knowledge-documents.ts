@@ -152,12 +152,6 @@ export const knowledgeDocumentAPI = {
   createWeb: createWebDatasetDocument,
   createEmpty: createEmptyDatasetDocument,
 
-  changeParser: (data: {
-    doc_id: string
-    parser_id: string
-    parser_config?: Record<string, unknown>
-  }): Promise<void> => apiClient.post('/v1/document/change_parser', data),
-
   /**
    * 删除文档。
    *

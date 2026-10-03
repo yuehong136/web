@@ -11,7 +11,7 @@
   "src/pages/agent/constant/index.ts": 1397,
   "src/components/chat/ChatSettingsPanel.tsx": 1072,
   "src/components/environment/EnvironmentDetail.tsx": 982,
-  "src/components/forms/KnowledgeFormFields.tsx": 911,
+  "src/components/forms/KnowledgeFormFields.tsx": 906,
   "src/pages/agent/operators/serializers.ts": 860,
   "src/pages/search/detail/components/SearchSettingsSheet.tsx": 806,
   "src/pages/agent/store.ts": 783,

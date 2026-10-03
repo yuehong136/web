@@ -2,7 +2,7 @@ import { useCallback, useLayoutEffect, useRef, useState } from 'react'
 import type { ReparseOptions } from '@/api/knowledge-document-ingest'
 import { useTranslation } from 'react-i18next'
 import { DocumentCreationMode } from '@/api/knowledge-rest'
-import { useUpdateDocumentParser } from '@/hooks/use-document-request'
+import { useDocumentParserModal } from '@/hooks/use-document-parser-modal'
 import type { Document, KnowledgeBase } from '@/types/api'
 import type { DocumentListState } from '../types'
 import type { useDocumentActions } from './use-document-actions'
@@ -50,16 +50,14 @@ export function useDocumentPageModals({
   const [metadataModalOpen, setMetadataModalOpen] = useState(false)
   const [docMetadataModalOpen, setDocMetadataModalOpen] = useState(false)
   const [editingDocMeta, setEditingDocMeta] = useState<Document | null>(null)
-  const [chunkMethodModalOpen, setChunkMethodModalOpen] = useState(false)
-  const [editingParserDoc, setEditingParserDoc] = useState<Document | null>(
-    null,
-  )
+  const parserModal = useDocumentParserModal(datasetId)
+  const chunkMethodModalOpen = parserModal.open
+  const editingParserDoc = parserModal.document
+  const isUpdatingParser = parserModal.busy
   const [singleFileMetadataModalOpen, setSingleFileMetadataModalOpen] =
     useState(false)
   const [singleFileMetadataDoc, setSingleFileMetadataDoc] =
     useState<Document | null>(null)
-  const { updateDocumentParser, isLoading: isUpdatingParser } =
-    useUpdateDocumentParser()
 
   const needsParseConfirmation = useCallback(
     (docs: Document[]) => {
@@ -184,10 +182,12 @@ export function useDocumentPageModals({
     listState.clearSelection()
   }, [listState, actions, t])
 
-  const handleShowChunkMethodModal = useCallback((doc: Document) => {
-    setEditingParserDoc(doc)
-    setChunkMethodModalOpen(true)
-  }, [])
+  const handleShowChunkMethodModal = useCallback(
+    (doc: Document) => {
+      parserModal.show(doc)
+    },
+    [parserModal],
+  )
 
   const handleShowSingleFileMetadataSettings = useCallback((doc: Document) => {
     setSingleFileMetadataDoc(doc)
@@ -199,19 +199,7 @@ export function useDocumentPageModals({
     setDocMetadataModalOpen(true)
   }, [])
 
-  const handleChunkMethodSubmit = useCallback(
-    async (data: {
-      docId: string
-      parserId: string
-      parserConfig?: Record<string, unknown>
-    }) => {
-      await updateDocumentParser(data)
-      setChunkMethodModalOpen(false)
-      setEditingParserDoc(null)
-      listState.refetch()
-    },
-    [updateDocumentParser, listState],
-  )
+  const handleChunkMethodSubmit = parserModal.submit
 
   return {
     uploadModalOpen,
@@ -238,10 +226,12 @@ export function useDocumentPageModals({
     setDocMetadataModalOpen,
     editingDocMeta,
     setEditingDocMeta,
+    closeChunkMethodModal: parserModal.close,
+    parserModalSession: parserModal.session,
+    parserModalActorKey: parserModal.actorKey,
+    parserModalErrorKey: parserModal.errorKey,
     chunkMethodModalOpen,
-    setChunkMethodModalOpen,
     editingParserDoc,
-    setEditingParserDoc,
     singleFileMetadataModalOpen,
     setSingleFileMetadataModalOpen,
     singleFileMetadataDoc,

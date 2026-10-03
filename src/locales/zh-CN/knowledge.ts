@@ -757,6 +757,22 @@ export default {
         defaultTip: '将使用知识库默认配置开始解析文档',
       },
       chunkMethodModal: {
+        pipelineLabel: '流水线',
+        pipelineSearch: '搜索数据处理流水线',
+        pipelineLoading: '正在加载流水线…',
+        pipelineError: '无法加载流水线。',
+        pipelineUnavailable: '所选流水线当前不可用，已保留原选择。',
+        pipelineMore: '加载更多',
+        untitledPipeline: '未命名流水线',
+        sourceParserHint: '此源文件类型要求使用对应的自动内置解析器。',
+        permissionError: '你没有保存此文档的权限。',
+        unavailableError: '文档或流水线当前不可用。',
+        configurationError: '请检查解析方式和配置。',
+        conflictError:
+          '文档正在解析或保存期间已发生变化。请先查看当前状态，再决定是否重试。',
+        saveError: '无法保存解析配置，已保留你的编辑。',
+        unconfirmed:
+          '暂时无法确认保存结果，已保留你的编辑。请先核对文档状态，再决定是否重新提交。',
         parseMethod: '解析方法',
         builtin: '内置',
         selectPipeline: '选择pipeline',
