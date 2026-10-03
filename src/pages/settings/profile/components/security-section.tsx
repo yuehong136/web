@@ -1,56 +1,42 @@
-import React from 'react'
-import { LockKeyhole, ShieldCheck } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { SectionCard } from '@/components/patterns'
 import { Button } from '@/components/ui/button'
-import { ProfileFieldRow } from './profile-field-row'
+import { ProfileFieldRow } from '@/pages/settings/profile/components/profile-field-row'
 
-interface SecuritySectionProps {
-  disabled?: boolean
-  onChangePassword: () => void
-}
-
-export const SecuritySection: React.FC<SecuritySectionProps> = ({
+export const SecuritySection = ({
   disabled = false,
   onChangePassword,
+}: {
+  disabled?: boolean
+  onChangePassword: () => void
 }) => {
+  const { t } = useTranslation()
   return (
     <SectionCard
-      padding="lg"
-      title={
-        <div className="gap-space-xs flex flex-col">
-          <span className="text-base font-semibold text-text-primary">
-            安全信息
-          </span>
-          <p className="text-sm text-text-secondary">
-            与登录和账户保护相关的操作集中放在这里，避免与基础资料混排。
-          </p>
-        </div>
-      }
-      actions={
-        <Button
-          variant="outline"
-          type="button"
-          onClick={onChangePassword}
-          disabled={disabled}
-          leftIcon={<LockKeyhole className="h-4 w-4" />}
-        >
-          修改密码
-        </Button>
-      }
+      title={t('settings.profile.security')}
+      headingLevel={2}
+      padding="none"
     >
-      <div className="gap-space-base grid md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+      <dl className="px-space-lg">
         <ProfileFieldRow
-          label="密码"
-          value="已设置密码"
-          hint="如需提升安全性，建议定期更新密码，并避免与其他服务复用相同密码。"
+          label={t('settings.profile.password')}
+          value={
+            <div className="flex flex-wrap items-center justify-between gap-space-sm">
+              <p className="max-w-sm text-sm text-text-secondary">
+                {t('settings.profile.passwordHint')}
+              </p>
+              <Button
+                variant="outline"
+                type="button"
+                onClick={onChangePassword}
+                disabled={disabled}
+              >
+                {t('settings.profile.changePassword')}
+              </Button>
+            </div>
+          }
         />
-        <div className="flex items-start justify-start md:justify-end">
-          <div className="gap-space-xs rounded-radius-full px-space-base py-space-sm inline-flex items-center bg-background-subtle text-sm text-text-secondary">
-            <ShieldCheck className="h-4 w-4 text-status-success" />
-            账户安全设置集中管理
-          </div>
-        </div>
-      </div>
+      </dl>
     </SectionCard>
   )
 }

@@ -33,6 +33,7 @@ interface PersistedUIState {
   theme: Theme
   language: Language
   sidebarCollapsed: boolean
+  contextSidebarCollapsed: boolean
   sidebarWidth: number
   desktopActivity: DesktopActivity
   desktopSidebarCollapsed: boolean
@@ -82,6 +83,10 @@ const normalizePersistedUIState = (value: unknown): PersistedUIState => {
       typeof record.sidebarCollapsed === 'boolean'
         ? record.sidebarCollapsed
         : false,
+    contextSidebarCollapsed:
+      typeof record.contextSidebarCollapsed === 'boolean'
+        ? record.contextSidebarCollapsed
+        : false,
     sidebarWidth:
       typeof record.sidebarWidth === 'number' &&
       Number.isFinite(record.sidebarWidth)
@@ -100,6 +105,7 @@ interface UIState {
 
   // 布局设置
   sidebarCollapsed: boolean
+  contextSidebarCollapsed: boolean
   sidebarWidth: number
   desktopActivity: DesktopActivity
   desktopSidebarCollapsed: boolean
@@ -128,6 +134,7 @@ interface UIState {
   setLanguage: (language: Language) => void
   toggleSidebar: () => void
   setSidebarCollapsed: (collapsed: boolean) => void
+  setContextSidebarCollapsed: (collapsed: boolean) => void
   setSidebarWidth: (width: number) => void
   setDesktopActivity: (activity: DesktopActivity) => void
   toggleDesktopSidebar: () => void
@@ -161,6 +168,7 @@ export const useUIStore = create<UIState>()(
       theme: Theme.SYSTEM,
       language: getCurrentLanguage(),
       sidebarCollapsed: false,
+      contextSidebarCollapsed: false,
       sidebarWidth: 256,
       desktopActivity: DesktopActivity.WORK,
       desktopSidebarCollapsed: false,
@@ -193,6 +201,8 @@ export const useUIStore = create<UIState>()(
 
       // 设置侧边栏折叠状态
       setSidebarCollapsed: (collapsed) => set({ sidebarCollapsed: collapsed }),
+      setContextSidebarCollapsed: (contextSidebarCollapsed) =>
+        set({ contextSidebarCollapsed }),
 
       // 设置侧边栏宽度
       setSidebarWidth: (width) => set({ sidebarWidth: width }),
@@ -292,6 +302,7 @@ export const useUIStore = create<UIState>()(
         theme: state.theme,
         language: state.language,
         sidebarCollapsed: state.sidebarCollapsed,
+        contextSidebarCollapsed: state.contextSidebarCollapsed,
         sidebarWidth: state.sidebarWidth,
         desktopActivity: state.desktopActivity,
         desktopSidebarCollapsed: state.desktopSidebarCollapsed,

@@ -84,6 +84,8 @@
 - 新页面**必须**优先选 `page-template`，不得自定义新整页壳层
 - 页面级 header/toolbar/loading/empty/error **必须**复用 `patterns/`
 - `Layout` 是路由入口壳，紧贴 `AppShell`，**不得**再造第二根布局（`/settings/*` 的历史回归是反例，不要重蹈）
+- Web 的一级图标栏保持固定，仅二级面板折叠。路由通过 `useRegisterSecondaryNavigation` 或 `ManagedSecondaryNavigation` 提供内容，由 `AppShell` 统一呈现常驻面板、悬浮预览和移动端抽屉；不再叠加页面自己的侧栏。没有该 provider 的独立或 Desktop 布局保留本地导航。
+- 交给壳层的二级内容须通过 props 携带详情 ID 等页面参数，不能依赖原页面 Outlet 的路由上下文；悬浮打开状态不持久化。
 - 跨 feature 复用面（如 `studio-panel-shell`、`stat-grid`）放 `patterns/`，不放 pages
 
 #### 页面模板选择（强制）
@@ -113,7 +115,7 @@
 
 | 类别         | ✅ 使用                                                         | ❌ 禁止                                   |
 | ------------ | --------------------------------------------------------------- | ----------------------------------------- |
-| 表面         | `bg-surface-primary`、`bg-surface-secondary`                    | `bg-white`、`bg-[#1a73e8]`、`bg-blue-600` |
+| 表面         | `bg-background-surface`、`bg-background-subtle`                 | `bg-white`、`bg-[#1a73e8]`、`bg-blue-600` |
 | 文字         | `text-text-primary`、`text-text-secondary`、`text-text-caption` | `text-gray-*`、`text-black`               |
 | 边框         | `border-border-default`、`border-border-subtle`                 | `border-gray-*`                           |
 | 状态（反馈） | `text-status-success`、`bg-status-error-subtle`                 | `text-green-500`、`bg-red-100`            |

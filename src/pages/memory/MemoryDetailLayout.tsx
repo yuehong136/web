@@ -12,12 +12,39 @@ import {
 } from '@/components/ui/resizable'
 import { MemorySidebar } from '@/components/memory'
 import { useMemoryDetail } from '@/hooks/use-memory'
+import { useTranslation } from 'react-i18next'
+import { useRegisterSecondaryNavigation } from '@/components/layout/workbench-navigation'
 
 export const MemoryDetailLayout: React.FC = () => {
   const { id } = useParams<{ id: string }>()
+  const { t } = useTranslation()
 
   // 获取记忆库详情
   const { data: memory, isLoading } = useMemoryDetail(id)
+  const definition = React.useMemo(
+    () => ({
+      section: 'knowledge' as const,
+      title: memory?.name || t('layout.nav.memory'),
+      groups: [],
+      contentOnly: true,
+      content: (
+        <MemorySidebar
+          memory={memory || null}
+          memoryId={id}
+          isLoading={isLoading}
+        />
+      ),
+    }),
+    [memory, id, isLoading, t],
+  )
+  const managed = useRegisterSecondaryNavigation(definition)
+
+  if (managed)
+    return (
+      <div className="bg-background-page h-full overflow-auto">
+        <Outlet />
+      </div>
+    )
 
   return (
     <div className="bg-background-page h-full">
@@ -29,7 +56,11 @@ export const MemoryDetailLayout: React.FC = () => {
           maxSize="30%"
           className="min-w-[200px]"
         >
-          <MemorySidebar memory={memory || null} isLoading={isLoading} />
+          <MemorySidebar
+            memory={memory || null}
+            memoryId={id}
+            isLoading={isLoading}
+          />
         </ResizablePanel>
 
         <ResizableHandle withHandle />

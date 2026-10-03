@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { authAPI } from '@/api/auth'
 import { toast } from '@/lib/toast'
 import { MutationErrorFeedback } from '@/lib/mutation-error-feedback'
@@ -93,15 +94,21 @@ const getFirstIssueMessage = (errors: Record<string, string[] | undefined>) => {
 }
 
 export const useProfile = () => {
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
-  const { updateUser } = useAuthStore()
+  const updateUser = useAuthStore((state) => state.updateUser)
 
   const [profile, setProfile] = useState<ProfileData>(defaultProfileData)
   const [draft, setDraft] = useState<ProfileData>(defaultProfileData)
   const [profileErrors, setProfileErrors] = useState<ProfileFormErrors>({})
   const [mode, setMode] = useState<ProfileMode>(ProfileMode.VIEW)
 
-  const { data: userInfo, isLoading: loading } = useQuery({
+  const {
+    data: userInfo,
+    isLoading: loading,
+    isError,
+    refetch,
+  } = useQuery({
     queryKey: profileKeys.all,
     queryFn: async () => authAPI.getUserProfile(),
     gcTime: 0,
@@ -188,7 +195,9 @@ export const useProfile = () => {
         avatar: flattened.avatar?.[0],
       })
 
-      toast.error(getFirstIssueMessage(flattened) || '请完善基础资料后再保存')
+      toast.error(
+        t(getFirstIssueMessage(flattened) || 'settings.profile.incomplete'),
+      )
       return false
     }
 
@@ -198,7 +207,7 @@ export const useProfile = () => {
       const response = await saveProfileMutation.mutateAsync(nextProfile)
 
       if (response.retcode !== 0) {
-        toast.error('个人资料保存失败')
+        toast.error(t('settings.profile.saveFailed'))
         return false
       }
 
@@ -213,20 +222,20 @@ export const useProfile = () => {
       })
 
       queryClient.invalidateQueries({ queryKey: profileKeys.all })
-      toast.success('个人资料已更新')
+      toast.success(t('settings.profile.updated'))
       return true
     } catch {
-      toast.error('个人资料保存失败，请稍后重试')
+      toast.error(t('settings.profile.saveFailed'))
       return false
     }
-  }, [draft, queryClient, saveProfileMutation, updateUser])
+  }, [draft, queryClient, saveProfileMutation, updateUser, t])
 
   const changePassword = useCallback(
     async (data: PasswordChangeFormData) => {
       const parsed = passwordChangeSchema.safeParse(data)
 
       if (!parsed.success) {
-        toast.error('请检查密码输入后重试')
+        toast.error(t('settings.profile.passwordInvalid'))
         return false
       }
 
@@ -234,19 +243,19 @@ export const useProfile = () => {
         const response = await changePasswordMutation.mutateAsync(parsed.data)
 
         if (response.retcode !== 0) {
-          toast.error('密码修改失败，请稍后重试')
+          toast.error(t('settings.profile.passwordFailed'))
           return false
         }
 
         setMode(ProfileMode.VIEW)
-        toast.success('密码修改成功')
+        toast.success(t('settings.profile.passwordUpdated'))
         return true
       } catch {
-        toast.error('密码修改失败，请稍后重试')
+        toast.error(t('settings.profile.passwordFailed'))
         return false
       }
     },
-    [changePasswordMutation],
+    [changePasswordMutation, t],
   )
 
   return useMemo(
@@ -255,6 +264,8 @@ export const useProfile = () => {
       draft,
       profileErrors,
       loading,
+      isError,
+      refetch,
       savingProfile: saveProfileMutation.isPending,
       changingPassword: changePasswordMutation.isPending,
       mode,
@@ -273,6 +284,8 @@ export const useProfile = () => {
       closePasswordDialog,
       draft,
       loading,
+      isError,
+      refetch,
       mode,
       profile,
       profileErrors,

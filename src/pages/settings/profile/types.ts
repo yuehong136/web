@@ -7,22 +7,36 @@ export enum ProfileMode {
 }
 
 export const profileSchema = z.object({
-  userName: z.string().trim().min(1, { message: '用户名不能为空' }),
-  timeZone: z.string().trim().min(1, { message: '请选择时区' }),
+  userName: z
+    .string()
+    .trim()
+    .min(1, { message: 'settings.profile.validation.nameRequired' }),
+  timeZone: z
+    .string()
+    .trim()
+    .min(1, { message: 'settings.profile.validation.timeZoneRequired' }),
   avatar: z.string().optional().default(''),
 })
 
 export const passwordChangeSchema = z
   .object({
-    currPasswd: z.string().trim().min(1, { message: '请输入当前密码' }),
-    newPasswd: z.string().trim().min(8, { message: '新密码至少需要8个字符' }),
-    confirmPasswd: z.string().trim().min(8, { message: '确认密码至少需要8个字符' }),
+    currPasswd: z.string().trim().min(1, {
+      message: 'settings.profile.validation.currentPasswordRequired',
+    }),
+    newPasswd: z
+      .string()
+      .trim()
+      .min(8, { message: 'settings.profile.validation.newPasswordLength' }),
+    confirmPasswd: z
+      .string()
+      .trim()
+      .min(8, { message: 'settings.profile.validation.confirmPasswordLength' }),
   })
   .superRefine((data, ctx) => {
     if (data.newPasswd !== data.confirmPasswd) {
       ctx.addIssue({
         path: ['confirmPasswd'],
-        message: '两次输入的密码不一致',
+        message: 'settings.profile.validation.passwordMismatch',
         code: z.ZodIssueCode.custom,
       })
     }

@@ -1,52 +1,76 @@
-import React from 'react'
 import { useTranslation } from 'react-i18next'
-import { Menu } from 'lucide-react'
+import type { Ref } from 'react'
+import { Menu, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { ThemeSwitcher } from '@/components/ui/theme-switcher'
+import { NavigationTooltip } from '@/components/ui/navigation-tooltip'
+import { InvitationBell } from '@/components/layout/InvitationBell'
 import { cn } from '@/lib/utils'
-import { InvitationBell } from './InvitationBell'
 
-interface AppTopBarProps extends React.HTMLAttributes<HTMLElement> {
+interface AppTopBarProps {
   onOpenSidebar: () => void
+  secondaryCollapsed?: boolean
+  onToggleSecondary?: () => void
+  secondaryPanelId?: string
   showSidebarToggle?: boolean
   mobileOnly?: boolean
+  mobileToggleRef?: Ref<HTMLButtonElement>
 }
 
-export const AppTopBar: React.FC<AppTopBarProps> = ({
+export const AppTopBar = ({
   onOpenSidebar,
+  secondaryCollapsed = false,
+  onToggleSecondary = onOpenSidebar,
+  secondaryPanelId,
   showSidebarToggle = true,
-  mobileOnly = true,
-  className,
-  ...props
-}) => {
+  mobileOnly = false,
+  mobileToggleRef,
+}: AppTopBarProps) => {
   const { t } = useTranslation()
-
+  const label = t(
+    secondaryCollapsed
+      ? 'layout.sidebar.expandSecondary'
+      : 'layout.sidebar.collapseSecondary',
+  )
   return (
     <header
       className={cn(
-        'px-space-base py-space-sm z-20 flex items-center justify-between border-b border-components-nav-border bg-components-nav-bg',
-        mobileOnly && 'lg:hidden',
-        className,
+        'flex h-10 shrink-0 items-center justify-between border-b border-border-subtle bg-components-nav-bg px-space-sm',
+        mobileOnly && 'md:hidden',
       )}
-      {...props}
     >
-      <div className="gap-space-sm flex items-center">
-        {showSidebarToggle ? (
+      {showSidebarToggle && (
+        <>
           <Button
+            ref={mobileToggleRef}
             variant="ghost"
-            size="icon"
+            size="icon-sm"
             onClick={onOpenSidebar}
-            aria-label={t('layout.sidebar.openNavigation', '打开导航')}
+            aria-label={t('layout.sidebar.openNavigation')}
+            className="md:hidden"
           >
-            <Menu className="h-5 w-5" />
+            <Menu className="size-icon-sm" />
           </Button>
-        ) : null}
-      </div>
-
-      <div className="gap-space-xs flex items-center">
-        <InvitationBell />
-        <ThemeSwitcher variant="compact" />
-      </div>
+          <div className="hidden md:block">
+            <NavigationTooltip content={label}>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={onToggleSecondary}
+                aria-label={label}
+                aria-expanded={!secondaryCollapsed}
+                aria-controls={secondaryPanelId}
+              >
+                {secondaryCollapsed ? (
+                  <PanelLeftOpen className="size-icon-sm" />
+                ) : (
+                  <PanelLeftClose className="size-icon-sm" />
+                )}
+              </Button>
+            </NavigationTooltip>
+          </div>
+        </>
+      )}
+      <InvitationBell />
     </header>
   )
 }

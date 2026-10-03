@@ -1,6 +1,7 @@
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
+import { ManagedSecondaryNavigation } from '@/components/layout/workbench-navigation'
 import {
   CATEGORY_ORDER,
   getToneClasses,
@@ -82,31 +83,36 @@ export const TemplateCategorySidebar: React.FC<
   )
 
   return (
-    <aside
-      className={cn(
-        'flex w-64 shrink-0 flex-col border-r border-components-console-border bg-components-console-surface',
-        className,
-      )}
+    <ManagedSecondaryNavigation
+      section="agents"
+      title={t('agents.templateCategories')}
+      fallbackClassName={cn('h-full w-64 shrink-0', className)}
     >
-      <div className="border-b border-border-subtle px-space-lg py-space-base">
-        <p className="text-sm font-semibold text-text-primary">
-          {t('agents.templateCategories')}
-        </p>
-      </div>
-
-      <div className="flex-1 overflow-y-auto px-space-base py-space-base">
-        <div className="flex flex-col gap-space-xs">
-          {renderItem(allItem)}
-          {renderItem(recommendedItem)}
+      <aside
+        className={cn(
+          'flex h-full w-full min-w-0 flex-col bg-components-console-surface',
+        )}
+      >
+        <div className="border-b border-border-subtle px-space-lg py-space-base">
+          <p className="text-sm font-semibold text-text-primary">
+            {t('agents.templateCategories')}
+          </p>
         </div>
 
-        <div className="my-space-md h-px bg-border-subtle" />
+        <div className="flex-1 overflow-y-auto px-space-base py-space-base">
+          <div className="flex flex-col gap-space-xs">
+            {renderItem(allItem)}
+            {renderItem(recommendedItem)}
+          </div>
 
-        <div className="flex flex-col gap-space-xs">
-          {regularItems.map(renderItem)}
+          <div className="my-space-md h-px bg-border-subtle" />
+
+          <div className="flex flex-col gap-space-xs">
+            {regularItems.map(renderItem)}
+          </div>
         </div>
-      </div>
-    </aside>
+      </aside>
+    </ManagedSecondaryNavigation>
   )
 }
 

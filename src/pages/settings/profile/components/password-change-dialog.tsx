@@ -1,179 +1,161 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Eye, EyeOff, LockKeyhole } from 'lucide-react'
+import { Eye, EyeOff, X } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+  ModalRoot,
+  ModalContent,
+  ModalTitle,
+  ModalDescription,
+} from '@/components/ui/modal-primitives'
 import { Input } from '@/components/ui/input'
-import { passwordChangeSchema, type PasswordChangeFormData } from '../types'
+import {
+  passwordChangeSchema,
+  type PasswordChangeFormData,
+} from '@/pages/settings/profile/types'
 
 interface PasswordChangeDialogProps {
   open: boolean
   loading: boolean
   onClose: () => void
   onSubmit: (data: PasswordChangeFormData) => Promise<boolean>
+  returnFocus?: HTMLElement | null
 }
 
-export const PasswordChangeDialog: React.FC<PasswordChangeDialogProps> = (
-  props,
-) => (props.open ? <PasswordChangeForm {...props} /> : null)
+export const PasswordChangeDialog = (props: PasswordChangeDialogProps) =>
+  props.open ? <PasswordChangeForm {...props} /> : null
 
-const PasswordChangeForm: React.FC<PasswordChangeDialogProps> = ({
+const fields = [
+  {
+    name: 'currPasswd',
+    label: 'settings.profile.currentPassword',
+    autoComplete: 'current-password',
+  },
+  {
+    name: 'newPasswd',
+    label: 'settings.profile.newPassword',
+    autoComplete: 'new-password',
+  },
+  {
+    name: 'confirmPasswd',
+    label: 'settings.profile.confirmPassword',
+    autoComplete: 'new-password',
+  },
+] as const
+
+const PasswordChangeForm = ({
   open,
   loading,
   onClose,
   onSubmit,
-}) => {
-  const [showPasswords, setShowPasswords] = useState({
-    current: false,
-    next: false,
-    confirm: false,
-  })
-
+  returnFocus,
+}: PasswordChangeDialogProps) => {
+  const { t } = useTranslation()
+  const [visible, setVisible] = useState<
+    Record<keyof PasswordChangeFormData, boolean>
+  >({ currPasswd: false, newPasswd: false, confirmPasswd: false })
   const form = useForm<PasswordChangeFormData>({
     resolver: zodResolver(passwordChangeSchema),
-    defaultValues: {
-      currPasswd: '',
-      newPasswd: '',
-      confirmPasswd: '',
-    },
+    defaultValues: { currPasswd: '', newPasswd: '', confirmPasswd: '' },
   })
-
   const handleSubmit = form.handleSubmit(async (data) => {
-    const success = await onSubmit(data)
-
-    if (success) {
+    if (await onSubmit(data)) {
       form.reset()
       onClose()
     }
   })
-
   return (
-    <Dialog open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
-      <DialogContent size="sm">
-        <DialogHeader>
-          <div className="gap-space-base flex items-center">
-            <div className="rounded-radius-xl bg-surface-accent text-text-on-accent flex h-10 w-10 items-center justify-center">
-              <LockKeyhole className="h-5 w-5" />
-            </div>
-            <div className="gap-space-xs flex flex-col">
-              <DialogTitle>修改密码</DialogTitle>
-              <DialogDescription>
-                为了保护您的账户安全，请先验证当前密码，再设置新的登录密码。
-              </DialogDescription>
-            </div>
+    <ModalRoot
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen && !loading) onClose()
+      }}
+    >
+      <ModalContent className="max-w-md" returnFocus={returnFocus}>
+        <div className="flex items-start justify-between gap-space-base border-b border-border-subtle p-space-lg">
+          <div>
+            <ModalTitle className="text-lg font-semibold">
+              {t('settings.profile.changePassword')}
+            </ModalTitle>
+            <ModalDescription className="mt-space-xs text-sm text-text-secondary">
+              {t('settings.profile.passwordDescription')}
+            </ModalDescription>
           </div>
-        </DialogHeader>
-
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label={t('common.close')}
+            onClick={onClose}
+            disabled={loading}
+          >
+            <X className="size-icon-sm" />
+          </Button>
+        </div>
         <form
           onSubmit={handleSubmit}
-          className="gap-space-lg px-space-lg pb-space-lg flex flex-col"
+          className="flex flex-col gap-space-base p-space-lg"
         >
-          <Input
-            label="当前密码"
-            type={showPasswords.current ? 'text' : 'password'}
-            autoComplete="current-password"
-            {...form.register('currPasswd')}
-            error={form.formState.errors.currPasswd?.message}
-            rightIcon={
-              <button
-                type="button"
-                onClick={() =>
-                  setShowPasswords((prev) => ({
-                    ...prev,
-                    current: !prev.current,
-                  }))
+          {fields.map(({ name, label, autoComplete }) => {
+            const message = form.formState.errors[name]?.message
+            return (
+              <Input
+                key={name}
+                label={t(label)}
+                type={visible[name] ? 'text' : 'password'}
+                autoComplete={autoComplete}
+                disabled={loading}
+                {...form.register(name)}
+                error={message ? t(message) : undefined}
+                helpText={
+                  name === 'newPasswd'
+                    ? t('settings.profile.passwordLength')
+                    : undefined
                 }
-                className="text-text-tertiary transition-colors hover:text-text-secondary"
-                aria-label={
-                  showPasswords.current ? '隐藏当前密码' : '显示当前密码'
+                rightIcon={
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() =>
+                      setVisible((previous) => ({
+                        ...previous,
+                        [name]: !previous[name],
+                      }))
+                    }
+                    aria-label={t(
+                      visible[name]
+                        ? 'settings.profile.hidePassword'
+                        : 'settings.profile.showPassword',
+                      { field: t(label) },
+                    )}
+                  >
+                    {visible[name] ? (
+                      <EyeOff className="size-icon-sm" />
+                    ) : (
+                      <Eye className="size-icon-sm" />
+                    )}
+                  </Button>
                 }
-              >
-                {showPasswords.current ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
-              </button>
-            }
-          />
-
-          <Input
-            label="新密码"
-            type={showPasswords.next ? 'text' : 'password'}
-            autoComplete="new-password"
-            {...form.register('newPasswd')}
-            error={form.formState.errors.newPasswd?.message}
-            helpText="新密码至少需要 8 个字符。"
-            rightIcon={
-              <button
-                type="button"
-                onClick={() =>
-                  setShowPasswords((prev) => ({ ...prev, next: !prev.next }))
-                }
-                className="text-text-tertiary transition-colors hover:text-text-secondary"
-                aria-label={showPasswords.next ? '隐藏新密码' : '显示新密码'}
-              >
-                {showPasswords.next ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
-              </button>
-            }
-          />
-
-          <Input
-            label="确认新密码"
-            type={showPasswords.confirm ? 'text' : 'password'}
-            autoComplete="new-password"
-            {...form.register('confirmPasswd')}
-            error={form.formState.errors.confirmPasswd?.message}
-            rightIcon={
-              <button
-                type="button"
-                onClick={() =>
-                  setShowPasswords((prev) => ({
-                    ...prev,
-                    confirm: !prev.confirm,
-                  }))
-                }
-                className="text-text-tertiary transition-colors hover:text-text-secondary"
-                aria-label={
-                  showPasswords.confirm ? '隐藏确认密码' : '显示确认密码'
-                }
-              >
-                {showPasswords.confirm ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
-              </button>
-            }
-          />
-
-          <DialogFooter className="px-0 pb-0">
+              />
+            )
+          })}
+          <div className="flex justify-end gap-space-sm border-t border-border-subtle pt-space-base">
             <Button
               variant="outline"
               type="button"
               onClick={onClose}
               disabled={loading}
             >
-              取消
+              {t('common.cancel')}
             </Button>
             <Button type="submit" loading={loading}>
-              保存密码
+              {t('settings.profile.savePassword')}
             </Button>
-          </DialogFooter>
+          </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </ModalContent>
+    </ModalRoot>
   )
 }

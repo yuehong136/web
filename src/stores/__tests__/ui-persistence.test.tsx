@@ -22,13 +22,16 @@ afterEach(() => {
 it('persists layout preferences without transient dialogs, loading or notices', () => {
   const state = useUIStore.getState()
   state.setSidebarWidth(280)
+  state.setContextSidebarCollapsed(true)
   state.openModal('transient-dialog')
   state.setGlobalLoading(true, 'transient-message')
   state.addNotification({ type: 'info', title: 'notice', message: 'transient' })
 
   const saved = JSON.parse(localStorage.getItem('ui-storage') ?? '{}')
   expect(saved.state.sidebarWidth).toBe(280)
+  expect(saved.state.contextSidebarCollapsed).toBe(true)
   expect(Object.keys(saved.state).sort()).toEqual([
+    'contextSidebarCollapsed',
     'desktopActivity',
     'desktopSidebarCollapsed',
     'desktopSidebarWidth',
@@ -38,6 +41,23 @@ it('persists layout preferences without transient dialogs, loading or notices', 
     'theme',
   ])
   expect(JSON.stringify(saved)).not.toContain('transient')
+})
+
+it('rehydrates the page navigation preference and defaults legacy or invalid values', async () => {
+  for (const preference of [true, undefined, 'true']) {
+    localStorage.setItem(
+      'ui-storage',
+      JSON.stringify({
+        state: { sidebarCollapsed: true, contextSidebarCollapsed: preference },
+        version: 1,
+      }),
+    )
+    await useUIStore.persist.rehydrate()
+    expect(useUIStore.getState().contextSidebarCollapsed).toBe(
+      preference === true,
+    )
+    expect(useUIStore.getState().sidebarCollapsed).toBe(true)
+  }
 })
 
 it('keeps shallow selector snapshots stable across unrelated UI updates', async () => {

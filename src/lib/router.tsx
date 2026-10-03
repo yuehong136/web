@@ -184,6 +184,10 @@ const ProfilePage = lazyNamed(
   () => import('@/pages/settings/profile'),
   'ProfilePage',
 )
+const SettingsIndexRedirect = lazyNamed(
+  () => import('@/pages/settings/SettingsLayout'),
+  'SettingsIndexRedirect',
+)
 const ModelProvidersPage = lazyNamed(
   () => import('@/pages/settings/model-providers'),
   'ModelProvidersPage',
@@ -238,7 +242,7 @@ function placeholderElement(
   description: string,
 ) {
   return (
-    <div className="p-space-lg flex h-full items-center justify-center">
+    <div className="flex h-full items-center justify-center p-space-lg">
       <PageEmptyState
         scene={scene}
         title={title}
@@ -510,7 +514,7 @@ const topLevelRoutes: RouteObject[] = [
         children: [
           {
             index: true,
-            element: <Navigate to={ROUTES.SETTINGS_PROFILE} replace />,
+            element: withLoading(SettingsIndexRedirect),
           },
           {
             path: 'datasource',

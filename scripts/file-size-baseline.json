@@ -17,7 +17,6 @@
   "src/pages/agent/store.ts": 783,
   "src/pages/memory/MemorySettingsPage.tsx": 742,
   "src/pages/ai-tools/ref/DataInput.tsx": 736,
-  "src/components/layout/Sidebar.tsx": 731,
   "src/pages/studio/create-app/components/config-pane.tsx": 716,
   "src/components/memory/MemoryMessageTable.tsx": 702,
   "src/components/chat/ChatInput.tsx": 691,

@@ -1,30 +1,27 @@
-import React from 'react'
+import type { HTMLAttributes, ReactNode } from 'react'
 import { cn } from '@/lib/utils'
-import { AppTopBar } from './app-top-bar'
-import { MainSurface } from './main-surface'
+import { MainSurface } from '@/components/layout/main-surface'
 
-interface MainWorkbenchProps extends React.HTMLAttributes<HTMLDivElement> {
-  onOpenSidebar: () => void
+interface MainWorkbenchProps extends HTMLAttributes<HTMLDivElement> {
+  header?: ReactNode
 }
 
-export const MainWorkbench: React.FC<MainWorkbenchProps> = ({
-  onOpenSidebar,
+export const MainWorkbench = ({
+  header,
   className,
   children,
   ...props
-}) => {
-  return (
-    <div
-      className={cn(
-        'flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden',
-        className,
-      )}
-      {...props}
-    >
-      <MainSurface>
-        <AppTopBar onOpenSidebar={onOpenSidebar} />
-        <div className="min-h-0 flex-1 overflow-hidden">{children}</div>
-      </MainSurface>
-    </div>
-  )
-}
+}: MainWorkbenchProps) => (
+  <div
+    className={cn(
+      'flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden',
+      className,
+    )}
+    {...props}
+  >
+    <MainSurface>
+      {header}
+      <div className="min-h-0 flex-1 overflow-hidden">{children}</div>
+    </MainSurface>
+  </div>
+)

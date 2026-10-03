@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import type { TFunction } from 'i18next'
 import { PageEmptyState } from '@/components/patterns/page-states'
+import { ManagedSecondaryNavigation } from '@/components/layout/workbench-navigation'
 import { cn } from '@/lib/utils'
 import {
   ConversationDateGroup,
@@ -175,258 +176,275 @@ export const ExploreSidebar: FC<ExploreSidebarProps> = ({
     document.documentElement.classList.contains('dark')
 
   return (
-    <aside className="flex w-72 shrink-0 flex-col border-r border-components-sidebar-border bg-components-sidebar-bg">
-      <div className="border-b border-border-subtle p-space-sm">
-        <div
-          className="bg-surface-secondary grid grid-cols-3 gap-space-2xs rounded-radius-lg p-space-2xs"
-          role="tablist"
-          aria-label={t('explore.sidebar.navigation')}
-        >
-          {TAB_ITEMS.map((tab) => {
-            const disabled = tab === 'topics' && !selectedApp
-            const selected = activeTab === tab
-            return (
-              <button
-                key={tab}
-                type="button"
-                role="tab"
-                aria-selected={selected}
-                disabled={disabled}
-                title={getTabLabel(tab, t)}
-                onClick={() =>
-                  tab === 'topics' ? onTopicsClick() : onTabChange(tab)
-                }
-                className={cn(
-                  'min-w-0 rounded-radius-md px-space-xs py-space-xs text-center text-sm font-medium text-components-sidebar-item-text transition-colors',
-                  'hover:bg-components-sidebar-item-bg-hover hover:text-text-primary focus-visible:ring-1 focus-visible:ring-state-focus focus-visible:outline-hidden',
-                  selected &&
-                    'bg-components-sidebar-item-bg-active text-components-sidebar-item-text-active',
-                  disabled && 'cursor-not-allowed opacity-50',
-                )}
-              >
-                <span className="block truncate">{getTabLabel(tab, t)}</span>
-              </button>
-            )
-          })}
-        </div>
-      </div>
-
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-        {activeTab === 'workspace' ? (
-          <>
-            <div className="p-space-sm">
-              <button
-                type="button"
-                onClick={onDiscoverClick}
-                className={cn(
-                  'flex w-full items-center gap-space-sm rounded-radius-lg px-space-md py-space-sm text-left text-sm font-medium text-components-sidebar-item-text transition-colors',
-                  'hover:bg-components-sidebar-item-bg-hover hover:text-text-primary focus-visible:ring-1 focus-visible:ring-state-focus focus-visible:outline-hidden',
-                  mode === 'market' &&
-                    'bg-components-sidebar-item-bg-active text-components-sidebar-item-text-active',
-                )}
-              >
-                <Search className="h-4 w-4 shrink-0" />
-                <span className="truncate">
-                  {t('explore.sidebar.discover')}
-                </span>
-              </button>
+    <>
+      <ManagedSecondaryNavigation
+        section="explore"
+        title={t('layout.nav.explore')}
+        fallbackClassName="h-full w-72 shrink-0"
+      >
+        <aside className="flex h-full w-full min-w-0 flex-col bg-components-sidebar-bg">
+          <div className="border-b border-border-subtle p-space-sm">
+            <div
+              className="bg-surface-secondary grid grid-cols-3 gap-space-2xs rounded-radius-lg p-space-2xs"
+              role="tablist"
+              aria-label={t('explore.sidebar.navigation')}
+            >
+              {TAB_ITEMS.map((tab) => {
+                const disabled = tab === 'topics' && !selectedApp
+                const selected = activeTab === tab
+                return (
+                  <button
+                    key={tab}
+                    type="button"
+                    role="tab"
+                    aria-selected={selected}
+                    disabled={disabled}
+                    title={getTabLabel(tab, t)}
+                    onClick={() =>
+                      tab === 'topics' ? onTopicsClick() : onTabChange(tab)
+                    }
+                    className={cn(
+                      'min-w-0 rounded-radius-md px-space-xs py-space-xs text-center text-sm font-medium text-components-sidebar-item-text transition-colors',
+                      'hover:bg-components-sidebar-item-bg-hover hover:text-text-primary focus-visible:ring-1 focus-visible:ring-state-focus focus-visible:outline-hidden',
+                      selected &&
+                        'bg-components-sidebar-item-bg-active text-components-sidebar-item-text-active',
+                      disabled && 'cursor-not-allowed opacity-50',
+                    )}
+                  >
+                    <span className="block truncate">
+                      {getTabLabel(tab, t)}
+                    </span>
+                  </button>
+                )
+              })}
             </div>
+          </div>
 
-            <div className="mx-space-sm border-t border-border-subtle" />
-
-            <div className="min-h-0 flex-1 space-y-space-2xs overflow-y-auto p-space-sm">
-              {dialogAppsLoading ? (
-                <div className="py-space-xl text-center text-sm text-text-tertiary">
-                  {t('explore.sidebar.loadingApps')}
-                </div>
-              ) : dialogAppsError ? (
-                <div className="py-space-xl text-center text-sm text-text-error">
-                  {t('explore.sidebar.loadFailed')}
-                </div>
-              ) : dialogApps.length === 0 ? (
-                <div className="py-space-xl text-center text-sm text-text-tertiary">
-                  {t('explore.sidebar.noApps')}
-                </div>
-              ) : (
-                dialogApps
-                  .filter((app) => app.status === '1')
-                  .map((app) => {
-                    const selected = selectedApp === app.id && mode === 'chat'
-                    return (
-                      <button
-                        key={app.id}
-                        type="button"
-                        onClick={() => onAppSelect(app.id)}
-                        title={app.name}
-                        className={cn(
-                          'flex w-full items-center gap-space-sm rounded-radius-lg px-space-md py-space-sm text-left text-sm text-components-sidebar-item-text transition-colors',
-                          'hover:bg-components-sidebar-item-bg-hover hover:text-text-primary focus-visible:ring-1 focus-visible:ring-state-focus focus-visible:outline-hidden',
-                          selected &&
-                            'bg-components-sidebar-item-bg-active text-components-sidebar-item-text-active',
-                        )}
-                      >
-                        <span className="shrink-0">
-                          {getExploreAppIcon(app)}
-                        </span>
-                        <span className="truncate">{app.name}</span>
-                      </button>
-                    )
-                  })
-              )}
-            </div>
-          </>
-        ) : activeTab === 'topics' ? (
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-            {!selectedApp ? (
+            {activeTab === 'workspace' ? (
+              <>
+                <div className="p-space-sm">
+                  <button
+                    type="button"
+                    onClick={onDiscoverClick}
+                    className={cn(
+                      'flex w-full items-center gap-space-sm rounded-radius-lg px-space-md py-space-sm text-left text-sm font-medium text-components-sidebar-item-text transition-colors',
+                      'hover:bg-components-sidebar-item-bg-hover hover:text-text-primary focus-visible:ring-1 focus-visible:ring-state-focus focus-visible:outline-hidden',
+                      mode === 'market' &&
+                        'bg-components-sidebar-item-bg-active text-components-sidebar-item-text-active',
+                    )}
+                  >
+                    <Search className="h-4 w-4 shrink-0" />
+                    <span className="truncate">
+                      {t('explore.sidebar.discover')}
+                    </span>
+                  </button>
+                </div>
+
+                <div className="mx-space-sm border-t border-border-subtle" />
+
+                <div className="min-h-0 flex-1 space-y-space-2xs overflow-y-auto p-space-sm">
+                  {dialogAppsLoading ? (
+                    <div className="py-space-xl text-center text-sm text-text-tertiary">
+                      {t('explore.sidebar.loadingApps')}
+                    </div>
+                  ) : dialogAppsError ? (
+                    <div className="py-space-xl text-center text-sm text-text-error">
+                      {t('explore.sidebar.loadFailed')}
+                    </div>
+                  ) : dialogApps.length === 0 ? (
+                    <div className="py-space-xl text-center text-sm text-text-tertiary">
+                      {t('explore.sidebar.noApps')}
+                    </div>
+                  ) : (
+                    dialogApps
+                      .filter((app) => app.status === '1')
+                      .map((app) => {
+                        const selected =
+                          selectedApp === app.id && mode === 'chat'
+                        return (
+                          <button
+                            key={app.id}
+                            type="button"
+                            onClick={() => onAppSelect(app.id)}
+                            title={app.name}
+                            className={cn(
+                              'flex w-full items-center gap-space-sm rounded-radius-lg px-space-md py-space-sm text-left text-sm text-components-sidebar-item-text transition-colors',
+                              'hover:bg-components-sidebar-item-bg-hover hover:text-text-primary focus-visible:ring-1 focus-visible:ring-state-focus focus-visible:outline-hidden',
+                              selected &&
+                                'bg-components-sidebar-item-bg-active text-components-sidebar-item-text-active',
+                            )}
+                          >
+                            <span className="shrink-0">
+                              {getExploreAppIcon(app)}
+                            </span>
+                            <span className="truncate">{app.name}</span>
+                          </button>
+                        )
+                      })
+                  )}
+                </div>
+              </>
+            ) : activeTab === 'topics' ? (
+              <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+                {!selectedApp ? (
+                  <PageEmptyState
+                    compact
+                    icon={<MessageSquare className="h-6 w-6" />}
+                    title={t('explore.sidebar.selectAppFirst')}
+                  />
+                ) : (
+                  <>
+                    <div className="border-b border-border-subtle p-space-sm">
+                      <div className="bg-surface-secondary flex items-center rounded-radius-lg p-space-sm">
+                        {getExploreAppIcon(currentApp, 'md')}
+                        <div className="ml-space-sm min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium text-text-primary">
+                            {currentApp?.name}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="min-h-0 flex-1 overflow-y-auto">
+                      <div className={CONVERSATION_CLASSNAME}>
+                        <style>{CONVERSATION_STYLES}</style>
+                        <ConfigProvider
+                          theme={{
+                            algorithm: isDarkTheme
+                              ? theme.darkAlgorithm
+                              : theme.defaultAlgorithm,
+                          }}
+                        >
+                          {dialogConversationsLoading ? (
+                            <div className="explore-conversations-empty">
+                              {t('explore.conversations.loading')}
+                            </div>
+                          ) : dialogConversationsError ? (
+                            <div className="explore-conversations-empty text-text-error">
+                              {t('explore.sidebar.loadFailed')}
+                            </div>
+                          ) : (
+                            <Conversations
+                              activeKey={activeConversationKey}
+                              creation={{
+                                icon: <Plus className="h-4 w-4" />,
+                                label: t('explore.conversations.new'),
+                                onClick: onCreateConversation,
+                              }}
+                              groupable={{
+                                label: (group) =>
+                                  translateConversationGroup(
+                                    String(group) as ConversationDateGroup,
+                                    t,
+                                  ),
+                              }}
+                              items={
+                                dialogConversations.length === 0
+                                  ? []
+                                  : [...dialogConversations]
+                                      .sort((a, b) => {
+                                        const timeA =
+                                          a.update_time > 1000000000000
+                                            ? a.update_time
+                                            : a.update_time * 1000
+                                        const timeB =
+                                          b.update_time > 1000000000000
+                                            ? b.update_time
+                                            : b.update_time * 1000
+                                        return timeB - timeA
+                                      })
+                                      .map((conversation) => ({
+                                        key: conversation.id,
+                                        label:
+                                          conversation.name ||
+                                          t(
+                                            'explore.conversations.fallbackName',
+                                          ),
+                                        group: getConversationDateGroup(
+                                          conversation.update_time,
+                                        ),
+                                      }))
+                              }
+                              menu={(conversation) => ({
+                                items: [
+                                  {
+                                    label: t('explore.conversations.rename'),
+                                    key: 'rename',
+                                    icon: <Edit3 className="h-3 w-3" />,
+                                  },
+                                  {
+                                    label: t('explore.conversations.delete'),
+                                    key: 'delete',
+                                    icon: <Trash2 className="h-3 w-3" />,
+                                    danger: true,
+                                  },
+                                ],
+                                onClick: (menuInfo) => {
+                                  menuInfo.domEvent.stopPropagation()
+                                  const conversationId = String(
+                                    conversation.key,
+                                  )
+                                  const conversationData =
+                                    dialogConversations.find(
+                                      (item) => item.id === conversationId,
+                                    )
+
+                                  if (
+                                    menuInfo.key === 'rename' &&
+                                    conversationData
+                                  ) {
+                                    onRenameConversation(
+                                      conversationId,
+                                      conversationData.name ||
+                                        t('explore.conversations.fallbackName'),
+                                    )
+                                  } else if (menuInfo.key === 'delete') {
+                                    void onDeleteConversation(conversationId)
+                                  }
+                                },
+                              })}
+                              onActiveChange={(key) =>
+                                onConversationSelect(key || undefined)
+                              }
+                            />
+                          )}
+                        </ConfigProvider>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            ) : (
               <PageEmptyState
                 compact
-                icon={<MessageSquare className="h-6 w-6" />}
-                title={t('explore.sidebar.selectAppFirst')}
+                icon={<Settings2 className="h-6 w-6" />}
+                title={t('explore.sidebar.settingsComingSoon')}
               />
-            ) : (
-              <>
-                <div className="border-b border-border-subtle p-space-sm">
-                  <div className="bg-surface-secondary flex items-center rounded-radius-lg p-space-sm">
-                    {getExploreAppIcon(currentApp, 'md')}
-                    <div className="ml-space-sm min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium text-text-primary">
-                        {currentApp?.name}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="min-h-0 flex-1 overflow-y-auto">
-                  <div className={CONVERSATION_CLASSNAME}>
-                    <style>{CONVERSATION_STYLES}</style>
-                    <ConfigProvider
-                      theme={{
-                        algorithm: isDarkTheme
-                          ? theme.darkAlgorithm
-                          : theme.defaultAlgorithm,
-                      }}
-                    >
-                      {dialogConversationsLoading ? (
-                        <div className="explore-conversations-empty">
-                          {t('explore.conversations.loading')}
-                        </div>
-                      ) : dialogConversationsError ? (
-                        <div className="explore-conversations-empty text-text-error">
-                          {t('explore.sidebar.loadFailed')}
-                        </div>
-                      ) : (
-                        <Conversations
-                          activeKey={activeConversationKey}
-                          creation={{
-                            icon: <Plus className="h-4 w-4" />,
-                            label: t('explore.conversations.new'),
-                            onClick: onCreateConversation,
-                          }}
-                          groupable={{
-                            label: (group) =>
-                              translateConversationGroup(
-                                String(group) as ConversationDateGroup,
-                                t,
-                              ),
-                          }}
-                          items={
-                            dialogConversations.length === 0
-                              ? []
-                              : [...dialogConversations]
-                                  .sort((a, b) => {
-                                    const timeA =
-                                      a.update_time > 1000000000000
-                                        ? a.update_time
-                                        : a.update_time * 1000
-                                    const timeB =
-                                      b.update_time > 1000000000000
-                                        ? b.update_time
-                                        : b.update_time * 1000
-                                    return timeB - timeA
-                                  })
-                                  .map((conversation) => ({
-                                    key: conversation.id,
-                                    label:
-                                      conversation.name ||
-                                      t('explore.conversations.fallbackName'),
-                                    group: getConversationDateGroup(
-                                      conversation.update_time,
-                                    ),
-                                  }))
-                          }
-                          menu={(conversation) => ({
-                            items: [
-                              {
-                                label: t('explore.conversations.rename'),
-                                key: 'rename',
-                                icon: <Edit3 className="h-3 w-3" />,
-                              },
-                              {
-                                label: t('explore.conversations.delete'),
-                                key: 'delete',
-                                icon: <Trash2 className="h-3 w-3" />,
-                                danger: true,
-                              },
-                            ],
-                            onClick: (menuInfo) => {
-                              menuInfo.domEvent.stopPropagation()
-                              const conversationId = String(conversation.key)
-                              const conversationData = dialogConversations.find(
-                                (item) => item.id === conversationId,
-                              )
-
-                              if (
-                                menuInfo.key === 'rename' &&
-                                conversationData
-                              ) {
-                                onRenameConversation(
-                                  conversationId,
-                                  conversationData.name ||
-                                    t('explore.conversations.fallbackName'),
-                                )
-                              } else if (menuInfo.key === 'delete') {
-                                void onDeleteConversation(conversationId)
-                              }
-                            },
-                          })}
-                          onActiveChange={(key) =>
-                            onConversationSelect(key || undefined)
-                          }
-                        />
-                      )}
-                    </ConfigProvider>
-                  </div>
-                </div>
-
-                <Modal
-                  title={t('explore.conversations.renameTitle')}
-                  open={!!renamingConversationId}
-                  onOk={onConfirmRenameConversation}
-                  onCancel={onCloseRenameConversation}
-                  okText={t('common.confirm')}
-                  cancelText={t('common.cancel')}
-                  destroyOnHidden
-                >
-                  <Input
-                    value={newConversationName}
-                    onChange={(event) =>
-                      onNewConversationNameChange(event.target.value)
-                    }
-                    onPressEnter={onConfirmRenameConversation}
-                    placeholder={t('explore.conversations.namePlaceholder')}
-                  />
-                </Modal>
-              </>
             )}
           </div>
-        ) : (
-          <PageEmptyState
-            compact
-            icon={<Settings2 className="h-6 w-6" />}
-            title={t('explore.sidebar.settingsComingSoon')}
+        </aside>
+      </ManagedSecondaryNavigation>
+      {activeTab === 'topics' && selectedApp && (
+        <Modal
+          title={t('explore.conversations.renameTitle')}
+          open={!!renamingConversationId}
+          onOk={onConfirmRenameConversation}
+          onCancel={onCloseRenameConversation}
+          okText={t('common.confirm')}
+          cancelText={t('common.cancel')}
+          destroyOnHidden
+        >
+          <Input
+            value={newConversationName}
+            onChange={(event) =>
+              onNewConversationNameChange(event.target.value)
+            }
+            onPressEnter={onConfirmRenameConversation}
+            placeholder={t('explore.conversations.namePlaceholder')}
           />
-        )}
-      </div>
-    </aside>
+        </Modal>
+      )}
+    </>
   )
 }

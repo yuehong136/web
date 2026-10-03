@@ -4,6 +4,7 @@
  */
 
 import React, { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { Bell } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -17,6 +18,7 @@ import { TenantRole } from '@/types/team'
 import { useTeamStore } from '@/stores/team'
 
 export const InvitationBell: React.FC = () => {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const { joinedTeams, isLoading } = useFetchJoinedTeams()
   const { setActiveTab } = useTeamStore()
@@ -44,12 +46,12 @@ export const InvitationBell: React.FC = () => {
           variant="ghost"
           size="icon"
           className="relative"
-          aria-label="团队邀请通知"
+          aria-label={t('layout.invitations.label')}
         >
           <Bell className="h-5 w-5" />
           {hasPendingInvitations && (
             <span
-              className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-medium text-white"
+              className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-medium text-white"
               style={{ backgroundColor: 'var(--color-status-error)' }}
             >
               {pendingInvitations.length > 9 ? '9+' : pendingInvitations.length}
@@ -59,27 +61,27 @@ export const InvitationBell: React.FC = () => {
       </PopoverTrigger>
       <PopoverContent
         align="end"
-        className="w-80 p-0"
-        style={{
-          backgroundColor: 'var(--color-surface-primary)',
-          borderColor: 'var(--color-border-default)',
-        }}
+        className="w-80 max-w-[calc(100vw-2rem)] border-border-default bg-background-surface p-0"
       >
         <div
           className="border-b p-4"
           style={{ borderColor: 'var(--color-border-subtle)' }}
         >
-          <h3 className="font-semibold text-text-primary">团队邀请</h3>
+          <h3 className="font-semibold text-text-primary">
+            {t('layout.invitations.title')}
+          </h3>
           <p className="mt-1 text-sm text-text-secondary">
             {hasPendingInvitations
-              ? `你有 ${pendingInvitations.length} 个待处理的团队邀请`
-              : '暂无新的邀请'}
+              ? t('layout.invitations.pending', {
+                  count: pendingInvitations.length,
+                })
+              : t('layout.invitations.empty')}
           </p>
         </div>
 
         {isLoading ? (
           <div className="p-4 text-center text-sm text-text-tertiary">
-            加载中...
+            {t('common.loading')}
           </div>
         ) : hasPendingInvitations ? (
           <>
@@ -102,7 +104,7 @@ export const InvitationBell: React.FC = () => {
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-medium text-text-primary">
-                      {team.nickname || '未命名团队'}
+                      {team.nickname || t('layout.invitations.untitled')}
                     </p>
                     <p className="truncate text-sm text-text-tertiary">
                       {team.email}
@@ -121,14 +123,16 @@ export const InvitationBell: React.FC = () => {
                 className="w-full"
                 onClick={handleViewInvitations}
               >
-                查看全部邀请
+                {t('layout.invitations.viewAll')}
               </Button>
             </div>
           </>
         ) : (
           <div className="p-8 text-center">
             <Bell className="text-text-quaternary mx-auto mb-3 h-10 w-10" />
-            <p className="text-sm text-text-secondary">暂无待处理的邀请</p>
+            <p className="text-sm text-text-secondary">
+              {t('layout.invitations.empty')}
+            </p>
           </div>
         )}
       </PopoverContent>

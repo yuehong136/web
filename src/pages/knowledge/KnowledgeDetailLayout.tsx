@@ -1,12 +1,6 @@
 import React from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  Link,
-  Outlet,
-  useParams,
-  useNavigate,
-  useLocation,
-} from 'react-router-dom'
+import { Outlet, useParams, useNavigate, useLocation } from 'react-router-dom'
 import {
   ArrowLeft,
   FileText,
@@ -26,10 +20,12 @@ import { cn } from '@/lib/utils'
 import { ConsolePageTemplate } from '@/components/page-templates'
 import {
   PageHeader,
-  SettingsRail,
-  type SettingsRailGroup,
+  ContextRail,
+  type ContextRailGroup,
 } from '@/components/patterns'
 import type { KnowledgeBase } from '@/types/api'
+import { useUIStore } from '@/stores/ui'
+import { useRegisterSecondaryNavigation } from '@/components/layout/workbench-navigation'
 
 const KnowledgeAvatar: React.FC<{ kb: KnowledgeBase }> = ({ kb }) => {
   if (kb.avatar) {
@@ -79,13 +75,17 @@ const KnowledgeDetailLayout: React.FC = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const location = useLocation()
+  const railCollapsed = useUIStore((state) => state.contextSidebarCollapsed)
+  const setRailCollapsed = useUIStore(
+    (state) => state.setContextSidebarCollapsed,
+  )
   const {
     knowledgeBase: currentKnowledgeBase,
     isError,
     refetch,
   } = useFetchKnowledgeDetail(id)
 
-  const navGroups: SettingsRailGroup[] = React.useMemo(() => {
+  const navGroups: ContextRailGroup[] = React.useMemo(() => {
     if (!id) return []
     const base = `/knowledge/${id}`
     const startsWith = (prefix: string) => (pathname: string) =>
@@ -128,6 +128,24 @@ const KnowledgeDetailLayout: React.FC = () => {
     ]
   }, [id, t])
 
+  const navigationManaged = useRegisterSecondaryNavigation(
+    React.useMemo(
+      () =>
+        id
+          ? {
+              section: 'knowledge' as const,
+              title: currentKnowledgeBase?.name || t('layout.nav.knowledge'),
+              groups: navGroups,
+              backLink: {
+                href: ROUTES.KNOWLEDGE,
+                label: t('knowledge.nav.backToList'),
+              },
+            }
+          : null,
+      [id, currentKnowledgeBase?.name, navGroups, t],
+    ),
+  )
+
   if (isError) {
     return (
       <div
@@ -154,41 +172,22 @@ const KnowledgeDetailLayout: React.FC = () => {
     <ConsolePageTemplate
       bodyOverflow="hidden"
       rail={
-        <SettingsRail
-          className="hidden md:flex"
-          navAriaLabel={t('knowledge.nav.label')}
-          groups={navGroups}
-          currentPath={location.pathname}
-        />
-      }
-      toolbar={
-        <nav
-          aria-label={t('knowledge.nav.label')}
-          className="flex shrink-0 gap-1 overflow-x-auto border-b border-components-settings-rail-border px-3 py-2 md:hidden"
-        >
-          {navGroups
-            .flatMap((group) => group.items)
-            .map((item) => (
-              <Button
-                key={item.href}
-                asChild
-                variant={
-                  item.matcher?.(location.pathname) ? 'secondary' : 'ghost'
-                }
-                size="sm"
-                className="shrink-0"
-              >
-                <Link
-                  to={item.href}
-                  aria-current={
-                    item.matcher?.(location.pathname) ? 'page' : undefined
-                  }
-                >
-                  {item.title}
-                </Link>
-              </Button>
-            ))}
-        </nav>
+        navigationManaged ? undefined : (
+          <ContextRail
+            title={t('layout.nav.knowledge')}
+            navAriaLabel={t('knowledge.nav.label')}
+            groups={navGroups}
+            currentPath={location.pathname}
+            collapsed={railCollapsed}
+            onCollapsedChange={setRailCollapsed}
+            labels={{
+              expand: t('layout.sidebar.expandPageNavigation'),
+              collapse: t('layout.sidebar.collapsePageNavigation'),
+              open: t('layout.sidebar.openPageNavigation'),
+              close: t('layout.sidebar.closePageNavigation'),
+            }}
+          />
+        )
       }
       header={
         <PageHeader

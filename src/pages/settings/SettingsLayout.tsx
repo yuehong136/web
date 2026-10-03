@@ -1,22 +1,19 @@
 import * as React from 'react'
-import { Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Link, Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
   Database,
   Server,
   Users,
   User,
-  House,
   Activity,
-  LogOut,
   Key,
   UserCog,
-  Settings as SettingsIcon,
   MessageCircleMore,
+  Plug,
 } from 'lucide-react'
-import { useAuthStore } from '@/stores'
-import { IconFontFill } from '@/components/ui/icon-font'
-import { Button } from '@/components/ui/button'
+import { useUIStore } from '@/stores'
+import { SidebarUtilities } from '@/components/layout/sidebar-utilities'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -26,61 +23,34 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
 import { ConsolePageTemplate } from '@/components/page-templates'
-import {
-  PageHeader,
-  SettingsRail,
-  type SettingsRailGroup,
-} from '@/components/patterns'
+import { ContextRail, type ContextRailGroup } from '@/components/patterns'
+import { ROUTES } from '@/constants'
+import { useRegisterSecondaryNavigation } from '@/components/layout/workbench-navigation'
 
-const McpIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <IconFontFill name="mcp" className={className} />
-)
+export const SettingsIndexRedirect = () => {
+  const { state } = useLocation()
+  return <Navigate to={ROUTES.SETTINGS_PROFILE} state={state} replace />
+}
 
 export const SettingsLayout: React.FC = () => {
   const { t } = useTranslation()
   const location = useLocation()
-  const navigate = useNavigate()
-  const logout = useAuthStore((state) => state.logout)
+  const [returnTo] = React.useState(() => {
+    const origin = location.state?.returnTo
+    return typeof origin === 'string' &&
+      origin.startsWith('/') &&
+      !origin.startsWith('//') &&
+      !origin.startsWith('/settings')
+      ? origin
+      : '/home'
+  })
+  const railCollapsed = useUIStore((state) => state.contextSidebarCollapsed)
+  const setRailCollapsed = useUIStore(
+    (state) => state.setContextSidebarCollapsed,
+  )
 
-  const defaultPageDescription = t('settings.description')
-  const settingsGroups = React.useMemo<SettingsRailGroup[]>(
+  const settingsGroups = React.useMemo<ContextRailGroup[]>(
     () => [
-      {
-        label: t('settings.groups.workspace'),
-        items: [
-          {
-            title: t('settings.nav.datasource'),
-            href: '/settings/datasource',
-            icon: Database,
-          },
-          {
-            title: t('settings.nav.modelProviders'),
-            href: '/settings/model-providers',
-            icon: Server,
-          },
-          {
-            title: t('settings.nav.mcp'),
-            href: '/settings/mcp-servers',
-            icon: McpIcon,
-            matcher: (pathname) => pathname.startsWith('/settings/mcp'),
-          },
-          {
-            title: t('settings.nav.channels'),
-            href: '/settings/channels',
-            icon: MessageCircleMore,
-          },
-        ],
-      },
-      {
-        label: t('settings.groups.collaboration'),
-        items: [
-          {
-            title: t('settings.nav.team'),
-            href: '/settings/team',
-            icon: Users,
-          },
-        ],
-      },
       {
         label: t('settings.groups.account'),
         items: [
@@ -92,22 +62,39 @@ export const SettingsLayout: React.FC = () => {
         ],
       },
       {
-        label: t('settings.groups.developer'),
+        label: t('settings.groups.workspace'),
         items: [
+          {
+            title: t('settings.nav.team'),
+            href: '/settings/team',
+            icon: Users,
+          },
+          {
+            title: t('settings.nav.modelProviders'),
+            href: '/settings/model-providers',
+            icon: Server,
+          },
+          {
+            title: t('settings.nav.datasource'),
+            href: '/settings/datasource',
+            icon: Database,
+            matcher: (pathname) => pathname.startsWith('/settings/datasource'),
+          },
+          {
+            title: t('settings.nav.mcp'),
+            href: '/settings/mcp-servers',
+            icon: Plug,
+            matcher: (pathname) => pathname.startsWith('/settings/mcp'),
+          },
+          {
+            title: t('settings.nav.channels'),
+            href: '/settings/channels',
+            icon: MessageCircleMore,
+          },
           {
             title: t('settings.nav.api'),
             href: '/settings/api-keys',
             icon: Key,
-          },
-        ],
-      },
-      {
-        label: t('settings.groups.system'),
-        items: [
-          {
-            title: t('settings.nav.systemStatus'),
-            href: '/settings/system',
-            icon: Activity,
           },
         ],
       },
@@ -119,139 +106,86 @@ export const SettingsLayout: React.FC = () => {
             href: '/settings/admin',
             icon: UserCog,
           },
+          {
+            title: t('settings.nav.systemStatus'),
+            href: '/settings/system',
+            icon: Activity,
+          },
         ],
       },
     ],
     [t],
   )
 
-  const pageMeta = React.useMemo<
-    Record<string, { title: string; description: string }>
-  >(
-    () => ({
-      '/settings/datasource': {
-        title: t('settings.nav.datasource'),
-        description: defaultPageDescription,
-      },
-      '/settings/model-providers': {
-        title: t('settings.nav.modelProviders'),
-        description: defaultPageDescription,
-      },
-      '/settings/mcp-servers': {
-        title: t('settings.nav.mcp'),
-        description: defaultPageDescription,
-      },
-      '/settings/mcp-tools': {
-        title: t('settings.nav.mcpTools'),
-        description: defaultPageDescription,
-      },
-      '/settings/mcp-test': {
-        title: t('settings.nav.mcpTest'),
-        description: defaultPageDescription,
-      },
-      '/settings/mcp-batch': {
-        title: t('settings.nav.mcpBatch'),
-        description: defaultPageDescription,
-      },
-      '/settings/channels': {
-        title: t('channel.title'),
-        description: t('channel.description'),
-      },
-      '/settings/team': {
-        title: t('settings.nav.team'),
-        description: defaultPageDescription,
-      },
-      '/settings/profile': {
-        title: t('settings.nav.profile'),
-        description: t('settings.profileDescription'),
-      },
-      '/settings/system': {
-        title: t('settings.nav.systemStatus'),
-        description: defaultPageDescription,
-      },
-      '/settings/api-keys': {
-        title: t('settings.nav.api'),
-        description: defaultPageDescription,
-      },
-      '/settings/admin': {
-        title: t('settings.nav.userManagement'),
-        description: defaultPageDescription,
-      },
-    }),
-    [defaultPageDescription, t],
+  const currentTitle =
+    settingsGroups
+      .flatMap((group) => group.items)
+      .find((item) =>
+        item.matcher
+          ? item.matcher(location.pathname)
+          : location.pathname.startsWith(item.href),
+      )?.title || t('settings.title')
+
+  const navigationManaged = useRegisterSecondaryNavigation(
+    React.useMemo(
+      () => ({
+        section: 'settings' as const,
+        title: t('settings.title'),
+        groups: settingsGroups,
+        backLink: {
+          href: returnTo,
+          label: t('layout.sidebar.backToWorkspace'),
+        },
+      }),
+      [settingsGroups, returnTo, t],
+    ),
   )
-
-  const handleLogout = React.useCallback(async () => {
-    try {
-      await logout()
-    } catch (error) {
-      console.error('Logout failed:', error)
-    }
-  }, [logout])
-
-  const currentMeta = pageMeta[location.pathname] || {
-    title: t('settings.title'),
-    description: defaultPageDescription,
-  }
 
   const breadcrumb = (
     <Breadcrumb>
       <BreadcrumbList className="gap-space-xs">
         <BreadcrumbItem>
-          <BreadcrumbLink
-            onClick={() => navigate('/home')}
-            className="rounded-radius-md p-space-xs hover:bg-surface-secondary inline-flex items-center"
-          >
-            <House className="h-4 w-4" />
+          <BreadcrumbLink asChild>
+            <Link to="/settings/profile">{t('settings.title')}</Link>
           </BreadcrumbLink>
         </BreadcrumbItem>
         <BreadcrumbSeparator />
         <BreadcrumbItem>
-          <BreadcrumbLink
-            onClick={() => navigate('/settings/profile')}
-            className="gap-space-xs inline-flex items-center"
-          >
-            <SettingsIcon className="h-4 w-4" />
-            {t('settings.title')}
-          </BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbSeparator />
-        <BreadcrumbItem>
-          <BreadcrumbPage>{currentMeta.title}</BreadcrumbPage>
+          <BreadcrumbPage>{currentTitle}</BreadcrumbPage>
         </BreadcrumbItem>
       </BreadcrumbList>
     </Breadcrumb>
   )
 
-  const railFooter = (
-    <div className="px-space-sm">
-      <Button
-        variant="outline"
-        className="w-full justify-center"
-        onClick={handleLogout}
-      >
-        <LogOut className="h-4 w-4" />
-        {t('settings.logout')}
-      </Button>
-    </div>
-  )
-
   return (
     <ConsolePageTemplate
       rail={
-        <SettingsRail
-          groups={settingsGroups}
-          currentPath={location.pathname}
-          footer={railFooter}
-        />
+        navigationManaged ? undefined : (
+          <ContextRail
+            title={t('settings.title')}
+            navAriaLabel={t('settings.title')}
+            groups={settingsGroups}
+            currentPath={location.pathname}
+            collapsed={railCollapsed}
+            onCollapsedChange={setRailCollapsed}
+            labels={{
+              expand: t('layout.sidebar.expandPageNavigation'),
+              collapse: t('layout.sidebar.collapsePageNavigation'),
+              open: t('layout.sidebar.openPageNavigation'),
+              close: t('layout.sidebar.closePageNavigation'),
+            }}
+            backLink={{
+              href: returnTo,
+              label: t('layout.sidebar.backToWorkspace'),
+            }}
+            footer={(collapsed) => <SidebarUtilities collapsed={collapsed} />}
+          />
+        )
       }
       header={
-        <PageHeader
-          title={currentMeta.title}
-          description={currentMeta.description}
-          breadcrumb={breadcrumb}
-          compact
-        />
+        <div className="border-b border-border-subtle px-space-lg py-space-sm">
+          {breadcrumb}
+        </div>
       }
     >
       <div className="h-full bg-components-settings-content-bg">
