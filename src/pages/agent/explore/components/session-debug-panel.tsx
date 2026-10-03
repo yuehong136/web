@@ -3,6 +3,8 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { AppScene, PageEmptyState } from '@/components/patterns'
 import { downloadJsonFile } from '@/lib/download'
+import { formatRelativeTime } from '@/lib/utils'
+import { getExploreSessionTitle } from '../utils'
 import { extractSessionStatus } from '../../adapters/session'
 import { LogDetail } from '../../features/log-detail'
 import { ExploreDebugTab } from '../types'
@@ -69,7 +71,12 @@ export function SessionDebugPanel({
                 {t('agent.explore.conversation')}
               </dt>
               <dd className="mt-space-xs break-words text-text-primary">
-                {session.name}
+                {getExploreSessionTitle(
+                  session,
+                  t('agent.explore.untitledChatNamed', {
+                    id: sessionId.slice(-6),
+                  }),
+                )}
               </dd>
             </div>
           ) : null}
@@ -81,6 +88,22 @@ export function SessionDebugPanel({
               {session?.message_count ?? session?.messages?.length ?? 0}
             </dd>
           </div>
+          {(['create_time', 'update_time'] as const).map((field) =>
+            session?.[field] ? (
+              <div key={field}>
+                <dt className="text-text-secondary">
+                  {t(
+                    field === 'create_time'
+                      ? 'agent.explore.createdAt'
+                      : 'agent.explore.updatedAt',
+                  )}
+                </dt>
+                <dd className="mt-space-xs text-text-primary">
+                  {formatRelativeTime(session[field])}
+                </dd>
+              </div>
+            ) : null,
+          )}
           {session?.version_title ? (
             <div>
               <dt className="text-text-secondary">

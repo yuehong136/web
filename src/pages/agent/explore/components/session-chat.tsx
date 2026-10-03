@@ -132,24 +132,19 @@ export function SessionChat({
             }
           />
         ) : messages.length === 0 ? (
-          <PageEmptyState
-            scene={AppScene.SPLIT_DETAIL}
-            className="h-auto min-h-0"
-            icon={<Bot className="size-icon-lg" />}
-            title={
-              <span className="text-2xl">
-                {t(
-                  isTaskMode
-                    ? 'agent.explore.taskWelcome'
-                    : 'agent.explore.welcome',
-                  { name: agentName || t('agent.agent') },
-                )}
-              </span>
-            }
-            description={
-              agentDescription || t('agent.explore.noMessagesDescription')
-            }
-          />
+          <header className="mx-auto w-full max-w-3xl px-space-lg pt-space-2xl pb-space-md text-center">
+            <h2 className="text-2xl font-semibold tracking-tight text-balance text-text-primary sm:text-3xl">
+              {t(
+                isTaskMode
+                  ? 'agent.explore.taskWelcome'
+                  : 'agent.explore.welcome',
+                { name: agentName || t('agent.agent') },
+              )}
+            </h2>
+            <p className="mx-auto mt-space-sm max-w-xl text-sm leading-relaxed text-text-secondary">
+              {agentDescription || t('agent.explore.noMessagesDescription')}
+            </p>
+          </header>
         ) : (
           <ScrollArea
             className="h-full"

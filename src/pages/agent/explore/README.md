@@ -2,19 +2,21 @@
 
 ## Current experience structure (2026-10-03)
 
-Explore is a conversation workspace for one Agent. It uses `WorkspacePageTemplate`, with a centered conversation and composer. History collapses on desktop and opens in a separate mobile drawer. Search stays visible; dates and sorting expand on demand. Conversation rows show the name, time, message count and recorded errors, without raw IDs or inferred success badges.
+Explore is a conversation workspace for one Agent. A single compact toolbar and `WorkspacePageTemplate` frame the centered conversation and composer. Opening without a session ID shows a local draft immediately; no server session is created until the first submission. Draft configuration must load before sending so task mode and required Begin parameters cannot be bypassed.
 
-The toolbar identifies the execution source. Draft/published selection, source explanations, overview, execution logs, raw data and download live in the run details drawer. The copied conversation link still requires the existing authentication and access permissions. New conversations use the Agent's actual name and description; no suggested tasks, favorites, model selection or usage metrics are invented.
+History is compact navigation: single-line titles grouped by the selected timestamp, with dates and sorting in a popover. Search opens on demand and debounces requests; it searches backend message content, not conversation names. Non-default saved names are preserved. Default/empty names use the first plain user text as a display-only title, without rewriting stored data or calling a model. Invalid or missing timestamps stay in an undated group; name sorting preserves the backend order without date headings.
 
-The layout retains the source / request owner / streaming hooks, attachments, parameter forms, user-input pauses, references and XCard rendering. History and details toggles do not unmount the conversation. Deleting another conversation preserves the current selection. Stop only confirms output detachment; cancellation feedback is shown separately and does not prove the server task was canceled.
+The current MultiRAG Agent REST API supports list, create, detail and delete, but has no rename/update endpoint. Ordinary Chat session PATCH uses a different service and table and cannot be reused. Each saved conversation offers a scoped link and confirmed deletion. Time, derived message count, recorded version, error feedback, execution logs and raw data stay in details. Tokens, duration, pinning and favorites are not presented as supported capabilities.
 
-Official source references:
+New conversations select draft debug or published execution from the toolbar or details. Saved conversations retain their server snapshot. History, source and details toggles preserve the composer and current stream; deletion resolves against the current selection when the response arrives. Stop confirms output detachment, with cancellation request feedback displayed separately.
 
-- [Dify: centered conversation, composer and opening content](https://github.com/langgenius/dify/blob/43af5082d3c4ab8a96067370d2f86f214e3c85ae/web/app/components/base/chat/chat-with-history/chat-wrapper.tsx#L296).
-- [Open WebUI: expandable status history](https://github.com/open-webui/open-webui/blob/8bd8b4fac5e059578ac0c74b3c18d11139f88b7d/src/lib/components/chat/Messages/ResponseMessage/StatusHistory.svelte#L7).
-- [RAGFlow: Explore session and runtime composition](https://github.com/infiniflow/ragflow/blob/98b48a085786fb9e14be8753b5a9a9ea02230ccf/web/src/pages/agent/explore/index.tsx#L61).
+Official source references, rechecked on 2026-10-03:
 
-This iteration's component regressions and browser checks of light/dark themes, Chinese/English and small screens used controlled session and response data. They verify the actual layout, interactions and frontend contracts, not real-backend/model/retrieval/attachment-parsing E2E. Historical acceptance records below remain bound to their stated revisions and environments.
+- [Open WebUI: date-grouped history](https://github.com/open-webui/open-webui/blob/8bd8b4fac5e059578ac0c74b3c18d11139f88b7d/src/lib/components/layout/Sidebar.svelte#L1618) and [direct first-screen composer](https://github.com/open-webui/open-webui/blob/8bd8b4fac5e059578ac0c74b3c18d11139f88b7d/src/lib/components/chat/Placeholder.svelte#L241).
+- [Dify: compact conversation navigation](https://github.com/langgenius/dify/blob/43af5082d3c4ab8a96067370d2f86f214e3c85ae/web/app/components/base/chat/chat-with-history/sidebar/item.tsx#L27).
+- [RAGFlow: Explore delete menu](https://github.com/infiniflow/ragflow/blob/98b48a085786fb9e14be8753b5a9a9ea02230ccf/web/src/pages/agent/explore/components/session-dropdown.tsx#L53).
+
+This revision has actual authenticated-page rendering and read-only history/detail/search checks against the configured MultiRAG backend, plus controlled transport regressions for creation, streaming, cancellation and deletion. Browser confirmation was canceled without deleting user history. It does not establish new model/retrieval/attachment-parsing E2E acceptance. Historical acceptance records below remain bound to their stated revisions and environments.
 
 ## 跟进范围
 

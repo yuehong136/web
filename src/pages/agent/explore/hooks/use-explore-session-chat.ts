@@ -111,12 +111,17 @@ export function useExploreSessionChat({
     hasHistory ? sessionQuery.data : undefined,
     isNew && newSessionMode === 'published',
   )
+  const needsDraftSource = isNew && newSessionMode === 'draft'
+  const draftSourceUnavailable = needsDraftSource && !agentQuery.data
+  const sourceFailure =
+    runSource.error ?? (draftSourceUnavailable ? agentQuery.error : null)
   const sessionError =
-    (needsHistory && sessionQuery.isError) || Boolean(runSource.error)
+    (needsHistory && sessionQuery.isError) || Boolean(sourceFailure)
   const loadingSession =
     !sessionError &&
     ((needsHistory && (sessionQuery.isLoading || !hasHistory)) ||
-      runSource.loading)
+      runSource.loading ||
+      draftSourceUnavailable)
   const canSend = Boolean(
     canvasId && (isNew || sessionId) && !sessionError && !loadingSession,
   )
@@ -402,10 +407,17 @@ export function useExploreSessionChat({
     loading: visible.status === AgentRuntimeStatus.RUNNING,
     loadingSession,
     sessionError,
-    sourceError: runSource.error
-      ? t(agentRunErrorKey(runSource.error))
+    sourceError: sourceFailure
+      ? t(
+          agentRunErrorKey(
+            sourceFailure,
+            draftSourceUnavailable
+              ? 'agent.explore.loadFailedDescription'
+              : 'agent.runtime.runFailed',
+          ),
+        )
       : undefined,
-    retrySource: runSource.retry,
+    retrySource: needsDraftSource ? agentQuery.refetch : runSource.retry,
     canSend,
     lastError:
       !visible.hasLocalMessages && historyFailure

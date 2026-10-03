@@ -5,6 +5,7 @@ import {
   useFetchAgentSessions,
 } from '@/hooks/use-agent-request'
 import { toast } from '@/lib/toast'
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import type { AgentSession } from '@/types/agent'
 import {
   createDefaultExploreSessionParams,
@@ -32,7 +33,11 @@ export function useExploreSessions({
   const [params, setParams] = useState<ExploreSessionListParams>(
     createDefaultExploreSessionParams,
   )
-  const sessionsQuery = useFetchAgentSessions(canvasId, params)
+  const debouncedKeywords = useDebouncedValue(params.keywords || '', 250)
+  const sessionsQuery = useFetchAgentSessions(canvasId, {
+    ...params,
+    keywords: params.keywords ? debouncedKeywords : '',
+  })
   const { deleteAgentSession, isLoading: deleting } =
     useDeleteAgentSession(canvasId)
   const [temporarySession, setTemporarySession] =

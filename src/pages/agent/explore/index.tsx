@@ -11,11 +11,19 @@ import { useExploreSessionChat } from './hooks/use-explore-session-chat'
 import { useExploreUrlParams } from './hooks/use-explore-url-params'
 import { ExploreDebugTab } from './types'
 import { AgentRunMode } from '../components/agent-run-mode'
+import { getExploreSessionTitle } from './utils'
 
 export default function AgentExplorePage() {
   const { t } = useTranslation()
-  const { canvasId, sessionId, isNew, newSessionMode, setSessionId } =
-    useExploreUrlParams()
+  const {
+    canvasId,
+    sessionId,
+    isNew: explicitNew,
+    newSessionMode,
+    setSessionId,
+  } = useExploreUrlParams()
+  // Opening Explore is a local draft; persistence begins with the first send.
+  const isNew = explicitNew || !sessionId
   const agentQuery = useFetchAgent(canvasId)
   const [selectionRevision, setSelectionRevision] = useState(0)
   const [historyOpen, setHistoryOpen] = useState(false)
@@ -71,7 +79,11 @@ export default function AgentExplorePage() {
       editorPath={buildAgentCanvasPath(canvasId, agentQuery.data)}
       onCreateSession={sessions.handleCreateTemporarySession}
       sessionId={savedSessionId}
-      sessionName={isNew ? t('agent.explore.newChat') : chat.session?.name}
+      sessionName={
+        isNew
+          ? undefined
+          : getExploreSessionTitle(chat.session, t('agent.explore.unnamedChat'))
+      }
       status={chat.status}
       runModeLabel={t(
         `agent.runtime.mode.${isNew ? newSessionMode : 'session'}`,
@@ -80,6 +92,7 @@ export default function AgentExplorePage() {
       onHistoryOpenChange={setHistoryOpen}
       history={
         <SessionRail
+          canvasId={canvasId}
           sessions={sessions.sessions}
           params={sessions.params}
           total={sessions.total}

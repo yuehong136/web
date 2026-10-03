@@ -29,9 +29,9 @@ afterEach(async () => {
   await page?.dispose()
   vi.unstubAllGlobals()
 })
-function button(name: string) {
+function button(name: string, scope: ParentNode = page.container) {
   const element = Array.from(
-    page.container.querySelectorAll<HTMLElement>('button,[role=button]'),
+    scope.querySelectorAll<HTMLElement>('button,[role=button]'),
   ).find(
     (item) =>
       item.textContent?.trim() === name ||
@@ -67,13 +67,13 @@ async function changeInput(input: HTMLInputElement | null, value: string) {
 
 function labeledInput(name: string) {
   const label = Array.from(
-    page.container.querySelectorAll<HTMLLabelElement>('label'),
+    document.body.querySelectorAll<HTMLLabelElement>('label'),
   ).find((element) => element.textContent === name)
   return label?.control instanceof HTMLInputElement ? label.control : null
 }
 
 async function selectOption(label: string, value: string) {
-  await act(async () => button(label).click())
+  await act(async () => button(label, document.body).click())
   const option = Array.from(
     document.body.querySelectorAll<HTMLButtonElement>(
       '[data-select-content] button',
@@ -85,17 +85,33 @@ async function selectOption(label: string, value: string) {
   )
 }
 
+async function openDeleteConfirmation(name: string) {
+  await act(async () => button(`Options for “${name}”`).click())
+  await act(async () => button('Delete conversation', document.body).click())
+  const dialog = document.body.querySelector('[role="alertdialog"]')
+  if (!dialog) throw new Error('Missing deletion confirmation')
+  return dialog
+}
+
+async function confirmDelete(name: string) {
+  const dialog = await openDeleteConfirmation(name)
+  await act(async () => button('Delete conversation', dialog).click())
+}
+
+async function escapePopup() {
+  await act(async () =>
+    document.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }),
+    ),
+  )
+}
+
 async function deleteOtherSession() {
   api.fetchSessions.mockResolvedValue({
     sessions: [session('A')],
     total: 1,
   })
-  const deleteButton =
-    button('B').parentElement?.querySelector<HTMLButtonElement>(
-      'button[aria-label]',
-    )
-  if (!deleteButton) throw new Error('Missing B deletion action')
-  await act(async () => deleteButton.click())
+  await confirmDelete('B')
   await waitForState(() =>
     expect(api.deleteSession).toHaveBeenCalledWith('canvas', 'B'),
   )
@@ -178,13 +194,24 @@ it('keeps filters collapsed by default and preserves search, date, sort, and res
   page = await mountPage()
   await waitForState(() => expect(button('B')).toBeTruthy())
   expect(button('Filter and sort').getAttribute('aria-expanded')).toBe('false')
-  expect(page.container.querySelector('input[type="date"]')).toBeNull()
+  expect(document.body.querySelector('input[type="date"]')).toBeNull()
+  expect(
+    button('Search conversation content').getAttribute('aria-expanded'),
+  ).toBe('false')
+  expect(
+    page.container.querySelector(
+      'input[aria-label="Search conversation content"]',
+    ),
+  ).toBeNull()
   const latestParams = () => api.fetchSessions.mock.calls.at(-1)?.[1]
 
   await act(async () => button('Next page').click())
   await waitForState(() => expect(latestParams()?.page).toBe(2))
+  await act(async () => button('Search conversation content').click())
   await changeInput(
-    page.container.querySelector('input[aria-label="Search conversations"]'),
+    page.container.querySelector(
+      'input[aria-label="Search conversation content"]',
+    ),
     'retrieval example',
   )
   await waitForState(() =>
@@ -193,7 +220,7 @@ it('keeps filters collapsed by default and preserves search, date, sort, and res
       page: 1,
     }),
   )
-  expect(page.container.querySelector('input[type="date"]')).toBeNull()
+  expect(document.body.querySelector('input[type="date"]')).toBeNull()
 
   await act(async () => button('Filter and sort').click())
   expect(button('Filter and sort').getAttribute('aria-expanded')).toBe('true')
@@ -212,20 +239,25 @@ it('keeps filters collapsed by default and preserves search, date, sort, and res
     }),
   )
 
-  await act(async () => button('Clear filters').click())
+  await act(async () => button('Clear filters', document.body).click())
   expect(
     page.container.querySelector<HTMLInputElement>(
-      'input[aria-label="Search conversations"]',
+      'input[aria-label="Search conversation content"]',
     )?.value,
   ).toBe('')
   expect(labeledInput('From date')?.value).toBe('')
   expect(labeledInput('To date')?.value).toBe('')
-  expect(button('Sort by').textContent).toBe('Updated')
-  expect(button('Sort direction').textContent).toBe('Descending')
+  expect(button('Sort by', document.body).textContent).toBe('Updated')
+  expect(button('Sort direction', document.body).textContent).toBe('Descending')
+  await escapePopup()
+  expect(button('Filter and sort').getAttribute('aria-expanded')).toBe('false')
+  expect(document.body.querySelector('input[type="date"]')).toBeNull()
   // Clearing can reuse the cached default query. The next uncached search
   // verifies that all reset values reach the API rather than only the form.
   await changeInput(
-    page.container.querySelector('input[aria-label="Search conversations"]'),
+    page.container.querySelector(
+      'input[aria-label="Search conversation content"]',
+    ),
     'another retrieval example',
   )
   await waitForState(() =>
@@ -433,16 +465,92 @@ it('a delayed delete resolves against the current selection instead of the selec
   await waitForState(() => expect(button('B')).toBeTruthy())
   const deletion = deferred<boolean>()
   api.deleteSession.mockReturnValueOnce(deletion.promise)
-  const deleteB =
-    button('B').parentElement?.querySelector<HTMLButtonElement>(
-      'button[aria-label]',
-    )
-  if (!deleteB) throw new Error('Missing B delete action')
-  await act(async () => deleteB.click())
+  await confirmDelete('B')
   await act(async () => button('B').click())
   expect(page.location).toBe('?sessionId=B')
   api.fetchSessions.mockResolvedValue({ sessions: [session('A')], total: 1 })
   await act(async () => deletion.resolve(true))
   await waitForState(() => expect(page.location).toBe('?sessionId=A'))
   expect(page.container.textContent).toContain('A history')
+})
+
+it('first entry starts with a local composer and creates exactly one session on first send', async () => {
+  page = await mountPage([], '/agent/canvas/explore')
+  await waitForState(() =>
+    expect(page.container.querySelector('textarea')).not.toBeNull(),
+  )
+  expect(page.location).toBe('')
+  expect(api.createSession).not.toHaveBeenCalled()
+  expect(api.runAgentSession).not.toHaveBeenCalled()
+  api.createSession.mockResolvedValueOnce(session('first-created'))
+  const body = stream()
+  api.runAgentSession.mockResolvedValueOnce(body.response)
+  await type('first entry request')
+  expect(api.createSession).not.toHaveBeenCalled()
+  await act(async () => button('Send').click())
+  await waitForState(() =>
+    expect(page.location).toBe('?sessionId=first-created'),
+  )
+  expect(api.createSession).toHaveBeenCalledTimes(1)
+  expect(api.runAgentSession).toHaveBeenCalledTimes(1)
+  expect(api.runAgentSession.mock.calls[0]?.[0]).toMatchObject({
+    session_id: 'first-created',
+    query: 'first entry request',
+  })
+  expect(
+    (api.runAgentSession.mock.calls[0]?.[1].signal as AbortSignal).aborted,
+  ).toBe(false)
+  await act(async () => {
+    body.emit({
+      event: 'message',
+      session_id: 'first-created',
+      data: { content: 'first entry answer' },
+    })
+    body.end()
+  })
+  await waitForState(() =>
+    expect(page.container.textContent).toContain('first entry answer'),
+  )
+  expect(api.createSession).toHaveBeenCalledTimes(1)
+  expect(api.runAgentSession).toHaveBeenCalledTimes(1)
+})
+
+it('history derives default session names from user content without exposing unsupported rename', async () => {
+  api.fetchSessions.mockResolvedValue({
+    sessions: [
+      {
+        ...session('B', '  **Research**\n  next quarter  '),
+        name: 'New session',
+      },
+    ],
+    total: 1,
+  })
+  page = await mountPage()
+  await waitForState(() => expect(button('Research next quarter')).toBeTruthy())
+  await act(async () => button('Options for “Research next quarter”').click())
+  expect(document.body.textContent).toContain('Copy conversation link')
+  expect(document.body.textContent).toContain('Delete conversation')
+  expect(document.body.querySelector('[aria-label*="Rename"]')).toBeNull()
+  expect(
+    Array.from(document.body.querySelectorAll('button')).some(
+      (item) => item.textContent?.trim() === 'Rename',
+    ),
+  ).toBe(false)
+  expect(api.createSession).not.toHaveBeenCalled()
+  expect(api.deleteSession).not.toHaveBeenCalled()
+})
+
+it('cancelling the conversation deletion dialog leaves the selected draft and server state intact', async () => {
+  page = await mountPage()
+  await waitForState(() => expect(button('B')).toBeTruthy())
+  await type('keep this A draft')
+  const dialog = await openDeleteConfirmation('B')
+  expect(api.deleteSession).not.toHaveBeenCalled()
+  await act(async () => button('Cancel', dialog).click())
+  expect(document.body.querySelector('[role="alertdialog"]')).toBeNull()
+  expect(api.deleteSession).not.toHaveBeenCalled()
+  expect(page.location).toBe('?sessionId=A')
+  expect(page.container.querySelector('textarea')?.value).toBe(
+    'keep this A draft',
+  )
 })

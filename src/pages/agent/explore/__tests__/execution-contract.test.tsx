@@ -7,6 +7,7 @@ import zhAgent from '@/locales/zh-CN/agent'
 import {
   api,
   agentKeys,
+  deferred,
   mountChat,
   resetAPI,
   session,
@@ -55,7 +56,7 @@ for (const language of ['en-US', 'zh-CN'] as const) {
   }
 }
 
-function dsl(name: string) {
+function dsl(name: string, optional = true) {
   return {
     components: {
       begin: {
@@ -64,7 +65,7 @@ function dsl(name: string) {
           params: {
             mode: 'task',
             inputs: {
-              [name]: { name, type: 'line', optional: true, value: '' },
+              [name]: { name, type: 'line', optional, value: '' },
             },
           },
         },
@@ -76,6 +77,93 @@ function dsl(name: string) {
     history: [],
   }
 }
+
+it('a cold draft waits for its task mode and required Begin input before any creation or run', async () => {
+  const detail = deferred<unknown>()
+  api.fetchAgent.mockReturnValueOnce(detail.promise)
+  harness = await mountChat({ id: '', isNew: true })
+  let refresh!: Promise<void>
+  await act(async () => {
+    refresh = harness.queryClient.resetQueries({
+      queryKey: agentKeys.detail('canvas'),
+    })
+    await Promise.resolve()
+  })
+  await waitForState(() => expect(harness.chat.loadingSession).toBe(true))
+  expect(harness.chat.canSend).toBe(false)
+  await act(async () =>
+    harness.chat.handleSendMessage({ content: 'early send' }),
+  )
+  expect(api.createSession).not.toHaveBeenCalled()
+  expect(api.runAgentSession).not.toHaveBeenCalled()
+
+  await act(async () => {
+    detail.resolve({ id: 'canvas', dsl: dsl('required-input', false) })
+    await refresh
+  })
+  await waitForState(() => expect(harness.chat.canSend).toBe(true))
+  expect(harness.chat.isTaskMode).toBe(true)
+  expect(harness.chat.beginInputs).toMatchObject([
+    { key: 'required-input', optional: false },
+  ])
+  await act(async () => harness.chat.handleSendMessage({ content: '' }))
+  expect(harness.chat.parameterDialogOpen).toBe(true)
+  expect(api.createSession).not.toHaveBeenCalled()
+  expect(api.runAgentSession).not.toHaveBeenCalled()
+
+  api.createSession.mockResolvedValueOnce(session('created'))
+  const body = stream()
+  api.runAgentSession.mockResolvedValueOnce(body.response)
+  let pending!: Promise<void>
+  await act(async () => {
+    pending = harness.chat.handleParametersOk(
+      harness.chat.beginInputs.map((input) => ({
+        ...input,
+        value: 'task value',
+      })),
+    )
+    await Promise.resolve()
+  })
+  await waitForState(() => expect(api.runAgentSession).toHaveBeenCalledOnce())
+  expect(api.runAgentSession.mock.calls[0]?.[0].inputs).toMatchObject({
+    'required-input': { value: 'task value', optional: false },
+  })
+  body.end()
+  await act(async () => pending)
+})
+
+it('a failed cold draft blocks creation and execution until the Agent detail retry succeeds', async () => {
+  await setProductLanguage('en-US')
+  api.fetchAgent.mockRejectedValueOnce(new Error('private detail failed'))
+  harness = await mountChat({ id: '', isNew: true })
+  await act(async () =>
+    harness.queryClient.resetQueries({ queryKey: agentKeys.detail('canvas') }),
+  )
+  await waitForState(() => expect(harness.chat.sessionError).toBe(true))
+  expect(harness.chat.loadingSession).toBe(false)
+  expect(harness.chat.canSend).toBe(false)
+  expect(harness.chat.sourceError).toBe(
+    enAgent.agent.explore.loadFailedDescription,
+  )
+  expect(harness.chat.sourceError).not.toContain('private')
+  await act(async () => {
+    await harness.chat.handleSendMessage({ content: 'blocked send' })
+    await harness.chat.handleParametersOk([])
+  })
+  expect(api.createSession).not.toHaveBeenCalled()
+  expect(api.runAgentSession).not.toHaveBeenCalled()
+
+  api.fetchAgent.mockResolvedValueOnce({
+    id: 'canvas',
+    dsl: dsl('retry-input', false),
+  })
+  await act(async () => harness.chat.retrySource())
+  await waitForState(() => expect(harness.chat.canSend).toBe(true))
+  expect(harness.chat.sessionError).toBe(false)
+  expect(harness.chat.isTaskMode).toBe(true)
+  expect(harness.chat.beginInputs[0]?.key).toBe('retry-input')
+})
+
 it('published creation previews published inputs and passes mode only to creation', async () => {
   api.fetchVersions.mockResolvedValue([
     { id: 'pub', release: true, create_time: 2 },

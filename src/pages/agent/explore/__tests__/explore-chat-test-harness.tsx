@@ -205,7 +205,10 @@ export async function mountChat(
 
 export type ChatHarness = Awaited<ReturnType<typeof mountChat>>
 
-export async function mountPage(cached = ['A', 'B']) {
+export async function mountPage(
+  cached = ['A', 'B'],
+  entry = '/agent/canvas/explore?sessionId=A',
+) {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: { retry: false, staleTime: Infinity },
@@ -229,7 +232,7 @@ export async function mountPage(cached = ['A', 'B']) {
   }
   const router = createMemoryRouter(
     [{ path: '/agent/:id/explore', element: <Page /> }],
-    { initialEntries: ['/agent/canvas/explore?sessionId=A'] },
+    { initialEntries: [entry] },
   )
   await act(async () =>
     root.render(

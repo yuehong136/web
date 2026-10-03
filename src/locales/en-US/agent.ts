@@ -12,6 +12,19 @@ export default {
     runtimeWorkbench: 'Runtime Workbench',
     pipelineWorkbench: 'Pipeline Workbench',
     explore: {
+      untitledChatNamed: 'Conversation · {{id}}',
+      chatActionsNamed: 'Options for “{{name}}”',
+      deleteChat: 'Delete conversation',
+      deleteChatDescription:
+        'This permanently deletes the conversation and its messages.',
+      filtersApplied: 'Filters applied',
+      groups: {
+        today: 'Today',
+        yesterday: 'Yesterday',
+        previous7Days: 'Previous 7 days',
+        previous30Days: 'Previous 30 days',
+        undated: 'Other conversations',
+      },
       submitContinue: 'Submit and continue',
       downloadAttachment: 'Download attachment',
       conversation: 'Conversation',
@@ -21,7 +34,7 @@ export default {
         'Ask questions, run tasks, and keep the conversation going.',
       history: 'Conversations',
       newChat: 'New chat',
-      searchChats: 'Search conversations',
+      searchChats: 'Search conversation content',
       filterAndSort: 'Filter and sort',
       clearFilters: 'Clear filters',
       fromDate: 'From date',
@@ -98,7 +111,7 @@ export default {
         'Start a new conversation, or pick up where you left off from the conversation list.',
       noMessages: 'No messages yet',
       noMessagesDescription:
-        'Describe what you need. This Agent will follow its configured workflow.',
+        'Ask a question, or tell me what you would like to get done.',
       beginInputs: 'Run parameters',
       beginInputsDescription:
         'Complete the required inputs before starting this conversation.',
