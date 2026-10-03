@@ -3,6 +3,7 @@ import { knowledgeRestConfig as sdkBase } from './knowledge-config'
 import { knowledgeDocumentAPI } from './knowledge-documents'
 import { knowledgeMetadataAPI } from './knowledge-metadata'
 import { knowledgeIndexAPI } from './knowledge-index'
+import { knowledgeGraphAPI, knowledgeRetrievalAPI } from './knowledge-retrieval'
 import { knowledgeTagAPI } from './knowledge-tags'
 import { knowledgeIngestionAPI } from './knowledge-ingestions'
 export type { IngestionSummary } from './knowledge-ingestions'
@@ -12,10 +13,8 @@ import type {
   CreateKBRequest,
   UpdateKBRequest,
   DocumentChunk,
-  KnowledgeGraph,
   PaginatedData,
   PaginationRequest,
-  MetadataCondition,
 } from '../types/api'
 
 /**
@@ -154,10 +153,8 @@ export const knowledgeAPI = {
     duplicate: (kbId: string, newName: string): Promise<{ kb_id: string }> =>
       apiClient.post(`/v1/kb/${kbId}/duplicate`, { name: newName }),
 
-    // 获取知识图谱 —— RESTful GET /api/v1/datasets/{dataset_id}/knowledge_graph
-    // 返回 { graph:{nodes,edges}, mind_map }，由 use-knowledge-request 的 normalizeGraphResponse 兼容
-    getKnowledgeGraph: (kbId: string): Promise<KnowledgeGraph> =>
-      apiClient.get(`/v1/datasets/${kbId}/knowledge_graph`, sdkBase),
+    // 数据集聚合图；文档子图可经 knowledgeGraphAPI.get 的 docId 参数读取。
+    getKnowledgeGraph: knowledgeGraphAPI.get,
 
     // 搜索知识库
     search: (data: {
@@ -261,58 +258,7 @@ export const knowledgeAPI = {
       apiClient.delete('/v1/kb/search/history'),
   },
 
-  // 检索测试
-  retrievalTest: {
-    // 执行检索测试
-    test: (data: {
-      kb_ids: string[]
-      question: string
-      page?: number
-      size?: number
-      doc_ids?: string[] | null
-      similarity_threshold?: number
-      vector_similarity_weight?: number
-      use_kg?: boolean
-      top_k?: number
-      rerank_id?: string | null
-      highlight?: boolean
-      keyword?: boolean
-      search_mode?: {
-        type: 'sparse' | 'dense' | 'hybrid' | 'fusion'
-        weight_dense?: number
-        weight_sparse?: number
-        weights?: string
-      } | null
-      cross_languages?: string[] | null
-      meta_data_filter?: {
-        method: 'auto' | 'semi_auto' | 'manual'
-        logic?: 'and' | 'or'
-        semi_auto?: Array<string | { key: string; op?: string }>
-        manual?: Array<{ key: string; op: string; value: string }>
-      }
-      metadata_condition?: MetadataCondition
-    }): Promise<{
-      total: number
-      chunks: Array<{
-        chunk_id: string
-        text: string
-        doc_id: string
-        docnm_kwd: string
-        kb_id: string
-        similarity: number
-        vector_similarity: number
-        term_similarity: number
-        highlight?: string
-        positions?: number[][]
-      }>
-      doc_aggs: Array<{
-        doc_name: string
-        doc_id: string
-        count: number
-      }>
-      labels: Record<string, any>
-    }> => apiClient.post('/v1/chunk/retrieval_test', data),
-  },
+  retrievalTest: knowledgeRetrievalAPI,
 
   logs: knowledgeIngestionAPI,
 
