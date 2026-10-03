@@ -245,7 +245,8 @@ export default {
     googleDriveDescription: '连接 Google Drive，同步文档和文件',
     google_drivePrimaryAdminTip: '拥有管理员权限的 Google 账户邮箱',
     google_driveTokenTip: 'OAuth 凭据 JSON，包含访问令牌和刷新令牌',
-    google_driveMyDriveEmailsTip: '要索引的用户邮箱列表，用逗号分隔',
+    google_driveMyDriveEmailsTip:
+      '仅服务账号支持：要索引的用户邮箱，用逗号分隔。OAuth 连接请留空。',
     google_driveSharedFoldersTip: '要索引的共享文件夹 URL，用逗号分隔',
 
     // Gmail 相关

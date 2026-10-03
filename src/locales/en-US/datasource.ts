@@ -272,7 +272,7 @@ export default {
     google_driveTokenTip:
       'OAuth credentials JSON containing access token and refresh token',
     google_driveMyDriveEmailsTip:
-      'List of user emails to index, separated by commas',
+      'Service accounts only: comma-separated user emails. Leave blank for OAuth connections.',
     google_driveSharedFoldersTip:
       'Shared folder URLs to index, separated by commas',
 
