@@ -103,7 +103,7 @@ export function assembleConfig(
 
 当前门禁以 [验证与构建](agent-guidance/verification.md) 为准。`npm run test:ci` 会校验测试 inventory，并运行全部 source-node/source-vitest 测试；`src/pages/settings/channels/__tests__/utils.test.ts` 已纳入正式测试 lane。API 合同由 `src/api/__tests__/channel.test.ts` 验证；组件流程仍需按实际覆盖补充回归，并进行浏览器验收。
 
-设置壳层只提供导航与面包屑。渠道页通过共享 `PageHeader`、`PageToolbar` 提供自己的主标题、创建入口与筛选，避免重复标题，并适应窄屏。
+设置壳层统一提供导航与紧凑顶部定位栏，并保留当前页的语义主标题。渠道页从实际内容开始，通过共享 `PageToolbar` 提供创建入口与筛选，避免正文重复菜单标题，并适应窄屏。
 
 体积：新增文件均须 <600 行且**不得写入 `scripts/file-size-baseline.json`**；
 `channel-form-sheet.tsx` 当前 310 行已进"300-400 计划拆分"档，本条目只能让它变小。

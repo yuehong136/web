@@ -16,7 +16,6 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
-  PageHeader,
   PageToolbar,
   PageEmptyState,
   PageErrorState,
@@ -169,19 +168,8 @@ export const ChannelsPage = () => {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <PageHeader
-        title={t('channel.title')}
-        description={t('channel.overview')}
-        titleSize="md"
-        wrapActions
-        actions={
-          <Button onClick={() => openCreate()} disabled={providersUnavailable}>
-            <Plus className="size-icon-sm" aria-hidden="true" />
-            {t('channel.actions.create')}
-          </Button>
-        }
-      />
       <PageToolbar
+        wrap
         left={
           <div className="w-full max-w-md">
             <Input
@@ -194,6 +182,12 @@ export const ChannelsPage = () => {
               className="h-9 rounded-radius-md"
             />
           </div>
+        }
+        right={
+          <Button onClick={() => openCreate()} disabled={providersUnavailable}>
+            <Plus className="size-icon-sm" aria-hidden="true" />
+            {t('channel.actions.create')}
+          </Button>
         }
       />
 
