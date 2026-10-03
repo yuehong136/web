@@ -1,5 +1,12 @@
 export default {
   mcp: {
+    tools: {
+      refresh: 'Refresh tools',
+    },
+    batch: {
+      selectedServers_one: '{{count}} server selected',
+      selectedServers_other: '{{count}} servers selected',
+    },
     form: {
       basic: 'Basic',
       headers: 'Headers',

@@ -77,7 +77,9 @@ const WorkbenchFrame = ({ children }: React.PropsWithChildren) => {
               secondaryCollapsed={collapsed}
               onToggleSecondary={() => setCollapsed(!collapsed)}
               secondaryPanelId={panelId}
-            />
+            >
+              {definition.header}
+            </AppTopBar>
           }
         >
           {children}

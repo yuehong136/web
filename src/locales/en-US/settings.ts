@@ -32,6 +32,20 @@ export default {
       api: 'API',
       userManagement: 'User management',
     },
+    admin: {
+      actions: {
+        createUser: 'New user',
+        exitAdministration: 'Exit administration',
+      },
+    },
+    system: {
+      live: 'Live monitoring',
+      updating: 'Updating',
+    },
+    api: {
+      documentation: 'API documentation',
+      refreshDocumentation: 'Refresh API documentation',
+    },
     profileDescription:
       'Manage your avatar, identity information, and account security settings.',
     profile: {

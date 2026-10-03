@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import type { Ref } from 'react'
+import type { ReactNode, Ref } from 'react'
 import { Menu, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { NavigationTooltip } from '@/components/ui/navigation-tooltip'
@@ -13,6 +13,7 @@ interface AppTopBarProps {
   showSidebarToggle?: boolean
   mobileOnly?: boolean
   mobileToggleRef?: Ref<HTMLButtonElement>
+  children?: ReactNode
 }
 
 export const AppTopBar = ({
@@ -23,6 +24,7 @@ export const AppTopBar = ({
   showSidebarToggle = true,
   mobileOnly = false,
   mobileToggleRef,
+  children,
 }: AppTopBarProps) => {
   const { t } = useTranslation()
   const label = t(
@@ -33,7 +35,8 @@ export const AppTopBar = ({
   return (
     <header
       className={cn(
-        'flex h-10 shrink-0 items-center justify-between border-b border-border-subtle bg-components-nav-bg px-space-sm',
+        'flex shrink-0 items-center gap-space-sm border-b border-border-subtle bg-components-nav-bg px-space-sm',
+        children ? 'h-12' : 'h-10',
         mobileOnly && 'md:hidden',
       )}
     >
@@ -69,6 +72,7 @@ export const AppTopBar = ({
           </div>
         </>
       )}
+      {children && <div className="min-w-0 flex-1">{children}</div>}
     </header>
   )
 }

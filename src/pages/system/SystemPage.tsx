@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Database,
   FileText,
@@ -17,7 +18,9 @@ import {
 import { StatusCard } from '@/components/ui/status-card'
 import { TaskExecutorChart } from '@/components/ui/task-executor-chart'
 import { Button } from '@/components/ui/button'
+import { PageToolbar } from '@/components/patterns'
 import { cn } from '@/lib/utils'
+import { getCurrentLanguage } from '@/locales/i18n'
 import {
   useSystemStatus,
   useRefreshSystemStatus,
@@ -143,7 +146,9 @@ const SectionTitle: React.FC<{ title: string }> = ({ title }) => (
 )
 
 const SystemPage: React.FC = () => {
-  const { data, isLoading, error, isRefetching } = useSystemStatus()
+  const { t } = useTranslation()
+  const { data, isLoading, error, isRefetching, dataUpdatedAt } =
+    useSystemStatus()
   const { data: versionData, isLoading: versionLoading } = useSystemVersion()
   const refreshStatus = useRefreshSystemStatus()
   const [showAllHealthyCards, setShowAllHealthyCards] = useState(false)
@@ -289,23 +294,23 @@ const SystemPage: React.FC = () => {
     return (
       <div className="min-h-full bg-components-system-page-bg p-4 md:p-6">
         <div className="space-y-4 rounded-2xl border border-components-system-panel-border bg-components-system-panel-bg p-4 shadow-components-system-panel-shadow backdrop-blur-md md:space-y-5 md:p-5">
-          <div className="flex items-center justify-between">
-            <h1 className="text-xl font-semibold text-components-system-header-title">
-              系统状态
-            </h1>
-            <Button
-              onClick={() => refreshStatus()}
-              disabled={isRefetching}
-              variant="outline"
-              size="sm"
-              className="border-components-system-accent-border text-components-system-accent-text hover:bg-components-system-accent-bg"
-            >
-              <RefreshCw
-                className={cn('mr-2 h-4 w-4', isRefetching && 'animate-spin')}
-              />
-              刷新
-            </Button>
-          </div>
+          <PageToolbar
+            surface="plain"
+            right={
+              <Button
+                onClick={() => refreshStatus()}
+                disabled={isRefetching}
+                variant="outline"
+                size="sm"
+                className="border-components-system-accent-border text-components-system-accent-text hover:bg-components-system-accent-bg"
+              >
+                <RefreshCw
+                  className={cn('mr-2 h-4 w-4', isRefetching && 'animate-spin')}
+                />
+                {t('common.refresh')}
+              </Button>
+            }
+          />
           <div className="rounded-xl border border-components-system-health-error-border bg-components-system-health-error-bg p-6">
             <div className="flex items-center gap-3">
               <AlertCircle className="h-5 w-5 shrink-0 text-components-system-health-error-text" />
@@ -327,39 +332,46 @@ const SystemPage: React.FC = () => {
   return (
     <div className="min-h-full bg-components-system-page-bg p-4 md:p-6">
       <div className="space-y-4 rounded-2xl border border-t-2 border-components-system-panel-border border-t-components-system-accent-border bg-components-system-panel-bg p-4 shadow-components-system-panel-shadow backdrop-blur-md md:space-y-5 md:p-5">
-        {/* Page Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-semibold text-components-system-header-title">
-              系统状态
-            </h1>
-            <p className="mt-0.5 text-sm text-components-system-header-description">
-              监控组件运行状况和任务执行器心跳
-            </p>
-            <div className="mt-2 flex items-center gap-2">
+        <PageToolbar
+          surface="plain"
+          wrap
+          left={
+            <div className="flex flex-wrap items-center gap-space-sm">
               <span className="inline-flex items-center rounded-full border border-components-system-accent-border bg-components-system-accent-bg px-2.5 py-0.5 text-xs font-medium text-components-system-accent-text">
-                实时监控
+                {t('settings.system.live')}
               </span>
+              {dataUpdatedAt > 0 && (
+                <span className="text-xs text-components-system-version-tag-label">
+                  {t('common.updateTime')}:{' '}
+                  <time dateTime={new Date(dataUpdatedAt).toISOString()}>
+                    {new Intl.DateTimeFormat(getCurrentLanguage(), {
+                      timeStyle: 'medium',
+                    }).format(dataUpdatedAt)}
+                  </time>
+                </span>
+              )}
               {isRefetching && (
                 <span className="text-xs text-components-system-version-tag-label">
-                  正在更新...
+                  {t('settings.system.updating')}
                 </span>
               )}
             </div>
-          </div>
-          <Button
-            onClick={() => refreshStatus()}
-            disabled={isRefetching}
-            variant="outline"
-            size="sm"
-            className="border-components-system-accent-border text-components-system-accent-text hover:bg-components-system-accent-bg"
-          >
-            <RefreshCw
-              className={cn('mr-2 h-4 w-4', isRefetching && 'animate-spin')}
-            />
-            刷新
-          </Button>
-        </div>
+          }
+          right={
+            <Button
+              onClick={() => refreshStatus()}
+              disabled={isRefetching}
+              variant="outline"
+              size="sm"
+              className="border-components-system-accent-border text-components-system-accent-text hover:bg-components-system-accent-bg"
+            >
+              <RefreshCw
+                className={cn('mr-2 h-4 w-4', isRefetching && 'animate-spin')}
+              />
+              {t('common.refresh')}
+            </Button>
+          }
+        />
 
         {/* Health Banner */}
         {cards.length > 0 && <HealthBanner cards={cards} />}

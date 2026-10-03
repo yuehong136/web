@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { SectionCard } from '@/components/patterns'
 import { Button } from '@/components/ui/button'
@@ -23,6 +24,7 @@ interface BasicInfoSectionProps {
   errors: ProfileFormErrors
   isEditing: boolean
   saving: boolean
+  actions?: ReactNode
   onDraftChange: (patch: Partial<ProfileData>) => void
   onCancel: () => void
   onSave: () => void
@@ -34,6 +36,7 @@ export const BasicInfoSection = ({
   errors,
   isEditing,
   saving,
+  actions,
   onDraftChange,
   onCancel,
   onSave,
@@ -44,6 +47,7 @@ export const BasicInfoSection = ({
       title={t('settings.profile.accountInfo')}
       headingLevel={2}
       padding="none"
+      actions={actions}
     >
       <div className="px-space-lg">
         <dl className="divide-y divide-border-subtle">

@@ -3,6 +3,8 @@ import {
   type BatchOperation,
 } from '@/pages/settings/components/mcp-batch-history'
 import React, { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { PageToolbar } from '@/components/patterns'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -33,6 +35,7 @@ import { toast } from '@/lib/toast'
 import { copyToClipboardWithFeedback } from '@/lib/clipboard'
 
 export const MCPBatchPage: React.FC = () => {
+  const { t } = useTranslation()
   const {
     data: serverData,
     isFetching: loading,
@@ -263,32 +266,28 @@ export const MCPBatchPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* 页面头部 */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-text-primary">MCP批量操作</h1>
-          <p className="mt-1 text-muted-foreground">
-            批量管理MCP服务器配置，支持导入、导出和删除操作
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Badge className="border-blue-200 bg-blue-50 text-blue-700">
-            已选择 {selectedServers.size} 个服务器
+    <div className="space-y-space-lg p-space-lg">
+      <PageToolbar
+        wrap
+        surface="plain"
+        left={
+          <Badge variant="blue">
+            {t('mcp.batch.selectedServers', { count: selectedServers.size })}
           </Badge>
+        }
+        right={
           <Button
             onClick={() => void loadServers()}
             variant="outline"
-            className="smooth-transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
             disabled={loading}
           >
             <RefreshCw
-              className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`}
+              className={`size-icon-sm ${loading ? 'animate-spin' : ''}`}
             />
-            刷新
+            {t('mcp.servers.refresh')}
           </Button>
-        </div>
-      </div>
+        }
+      />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* 主要操作区域 */}

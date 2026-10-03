@@ -1,4 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
+import { PageToolbar } from '@/components/patterns'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -54,6 +56,7 @@ interface TestResult {
 }
 
 export const MCPToolsPage: React.FC<MCPToolsPageProps> = ({ serverId }) => {
+  const { t } = useTranslation()
   const {
     data: serverData,
     isFetching: loadingServers,
@@ -229,38 +232,9 @@ export const MCPToolsPage: React.FC<MCPToolsPageProps> = ({ serverId }) => {
 
   return (
     <div className="flex h-full flex-col bg-background-body">
-      {/* 页面头部 */}
+      {/* 统计概览 */}
       <div className="p-8 pb-4">
         <div className="rounded-3xl border border-components-card-border bg-components-card-bg p-8 shadow-lg">
-          <div className="mb-8 flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-components-button-primary-bg shadow-lg">
-                <Zap className="h-8 w-8 text-components-button-primary-text" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-text-primary">
-                  MCP工具管理
-                </h1>
-                <p className="mt-1 text-lg text-text-secondary">
-                  管理和测试所有MCP服务器提供的工具能力
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-3">
-              <Button
-                onClick={loadServersAndTools}
-                variant="outline"
-                className="rounded-xl border-components-input-border px-6 py-3 transition-all hover:border-components-input-border-hover hover:bg-state-hover"
-                disabled={loading}
-              >
-                <RefreshCw
-                  className={`mr-2 h-5 w-5 ${loading ? 'animate-spin' : ''}`}
-                />
-                刷新工具
-              </Button>
-            </div>
-          </div>
-
           {/* 统计卡片 */}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
             <Card className="border-components-card-border bg-components-card-bg transition-colors hover:bg-components-card-bg-hover">
@@ -344,45 +318,61 @@ export const MCPToolsPage: React.FC<MCPToolsPageProps> = ({ serverId }) => {
 
       {/* 工具栏 */}
       <div className="px-8 pb-4">
-        <div className="rounded-2xl border border-components-card-border bg-components-card-bg p-6 shadow-md">
-          <div className="flex items-center gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 transform text-text-muted" />
-              <Input
-                placeholder="搜索工具名称、描述或服务器..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="h-12 rounded-xl border-components-input-border bg-components-input-bg pl-12 transition-colors hover:border-components-input-border-hover focus:border-components-input-border-focus"
-              />
-            </div>
-
-            {servers.length > 1 && (
-              <div className="flex items-center gap-2">
-                <Filter className="h-5 w-5 text-text-secondary" />
-                <select
-                  value={selectedServer}
-                  onChange={(e) => setSelectedServer(e.target.value)}
-                  className="h-12 rounded-xl border border-components-input-border bg-components-input-bg px-4 text-text-primary transition-colors focus:border-components-input-border-focus"
-                >
-                  <option value="all">所有服务器</option>
-                  {servers.map((server) => (
-                    <option key={server.id} value={server.id}>
-                      {server.name}
-                    </option>
-                  ))}
-                </select>
+        <PageToolbar
+          wrap
+          surface="plain"
+          left={
+            <div className="flex w-full flex-wrap items-center gap-space-sm">
+              <div className="relative min-w-0 flex-1 basis-60">
+                <Search className="absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 transform text-text-muted" />
+                <Input
+                  placeholder="搜索工具名称、描述或服务器..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="h-12 rounded-xl border-components-input-border bg-components-input-bg pl-12 transition-colors hover:border-components-input-border-hover focus:border-components-input-border-focus"
+                />
               </div>
-            )}
 
+              {servers.length > 1 && (
+                <div className="flex items-center gap-2">
+                  <Filter className="h-5 w-5 text-text-secondary" />
+                  <select
+                    value={selectedServer}
+                    onChange={(e) => setSelectedServer(e.target.value)}
+                    className="h-12 rounded-xl border border-components-input-border bg-components-input-bg px-4 text-text-primary transition-colors focus:border-components-input-border-focus"
+                  >
+                    <option value="all">所有服务器</option>
+                    {servers.map((server) => (
+                      <option key={server.id} value={server.id}>
+                        {server.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <Button
+                onClick={() => setSearchTerm('')}
+                variant="outline"
+                className="h-12 rounded-xl border-components-input-border px-6 transition-all hover:border-components-input-border-hover hover:bg-state-hover"
+              >
+                清除
+              </Button>
+            </div>
+          }
+          right={
             <Button
-              onClick={() => setSearchTerm('')}
+              onClick={loadServersAndTools}
               variant="outline"
-              className="h-12 rounded-xl border-components-input-border px-6 transition-all hover:border-components-input-border-hover hover:bg-state-hover"
+              disabled={loading}
             >
-              清除
+              <RefreshCw
+                className={`size-icon-sm ${loading ? 'animate-spin' : ''}`}
+              />
+              {t('mcp.tools.refresh')}
             </Button>
-          </div>
-        </div>
+          }
+        />
       </div>
 
       {/* 内容区域 */}
@@ -393,7 +383,7 @@ export const MCPToolsPage: React.FC<MCPToolsPageProps> = ({ serverId }) => {
               <div className="flex h-64 flex-col items-center justify-center space-y-4">
                 <div className="relative">
                   <div className="h-12 w-12 animate-spin rounded-full border-4 border-background-subtle"></div>
-                  <div className="absolute left-0 top-0 h-12 w-12 animate-spin rounded-full border-4 border-components-spinner-color border-t-transparent"></div>
+                  <div className="absolute top-0 left-0 h-12 w-12 animate-spin rounded-full border-4 border-components-spinner-color border-t-transparent"></div>
                 </div>
                 <p className="font-medium text-text-secondary">
                   正在加载工具列表...
@@ -431,7 +421,7 @@ export const MCPToolsPage: React.FC<MCPToolsPageProps> = ({ serverId }) => {
                               <div className="relative flex h-12 w-12 items-center justify-center rounded-xl bg-components-button-primary-bg shadow-md">
                                 <Zap className="h-6 w-6 text-components-button-primary-text" />
                                 <div
-                                  className={`absolute -right-1 -top-1 h-6 w-6 ${status.bg} flex items-center justify-center rounded-full shadow-lg`}
+                                  className={`absolute -top-1 -right-1 h-6 w-6 ${status.bg} flex items-center justify-center rounded-full shadow-lg`}
                                 >
                                   <StatusIcon className="h-3 w-3 text-components-button-primary-text" />
                                 </div>

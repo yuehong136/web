@@ -31,6 +31,20 @@ export default {
       api: 'API',
       userManagement: '用户管理',
     },
+    admin: {
+      actions: {
+        createUser: '新建用户',
+        exitAdministration: '退出管理',
+      },
+    },
+    system: {
+      live: '实时监控',
+      updating: '正在更新',
+    },
+    api: {
+      documentation: '接口文档',
+      refreshDocumentation: '刷新接口文档',
+    },
     profileDescription: '管理您的头像、身份信息和账户安全设置。',
     profile: {
       accountInfo: '账户资料',

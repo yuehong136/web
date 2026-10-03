@@ -23,6 +23,8 @@ export interface SecondaryNavigation {
   backLink?: { href: string; label: string }
   content?: React.ReactNode
   contentOnly?: boolean
+  /** Route context displayed alongside the navigation toggle in the top bar. */
+  header?: React.ReactNode
 }
 
 const NavigationContext = React.createContext<{

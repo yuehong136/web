@@ -80,8 +80,12 @@ const render = async (returnTo: string, pathname = '/settings/mcp-servers') => {
             element: <SettingsLayout />,
             children: [
               { index: true, element: <SettingsIndexRedirect /> },
-              { path: 'mcp-servers', element: <h1>MCP servers</h1> },
-              { path: 'profile', element: <h1>Profile page</h1> },
+              { path: 'mcp-servers', element: <p>MCP servers content</p> },
+              { path: 'mcp-tools', element: <p>MCP tools content</p> },
+              { path: 'mcp-test', element: <p>MCP test content</p> },
+              { path: 'mcp-batch', element: <p>MCP batch content</p> },
+              { path: 'profile', element: <p>Profile page</p> },
+              { path: 'datasource-detail', element: <h1>Source entity</h1> },
             ],
           },
           { path: 'agent', element: <h1>Agent workspace</h1> },
@@ -150,7 +154,7 @@ it('keeps a fixed primary rail, collapses only the secondary panel, and restores
   await click(
     container.querySelector<HTMLElement>('a[href="/settings/profile"]')!,
   )
-  expect(container.querySelector('h1')?.textContent).toBe('Profile page')
+  expect(container.querySelector('h1')?.textContent).toBe('Profile')
   await click(button('Collapse secondary navigation'))
   expect(
     container.querySelectorAll('[data-primary-navigation] nav a'),
@@ -165,6 +169,50 @@ it('keeps a fixed primary rail, collapses only the secondary panel, and restores
   expect(router.state.location.pathname).toBe('/agent')
   expect(container.querySelector('[data-primary-navigation]')).toBeTruthy()
   expect(useUIStore.getState().sidebarCollapsed).toBe(false)
+})
+
+it('keeps one precise settings heading in the top bar through route, locale, and navigation changes', async () => {
+  const router = await render('/home')
+  const title = () => container.querySelector('header h1')?.textContent
+  expect(title()).toBe('MCP servers')
+  expect(
+    container.querySelectorAll('nav[aria-label="breadcrumb"]'),
+  ).toHaveLength(1)
+  await click(button('Collapse secondary navigation'))
+  expect(title()).toBe('MCP servers')
+  for (const [route, expected] of [
+    ['mcp-tools', 'MCP tools'],
+    ['mcp-tools/', 'MCP tools'],
+    ['mcp-test', 'MCP test'],
+    ['mcp-test/', 'MCP test'],
+    ['mcp-batch', 'MCP batch'],
+    ['mcp-batch/', 'MCP batch'],
+  ]) {
+    await act(async () => router.navigate(`/settings/${route}`))
+    expect(title()).toBe(expected)
+    expect(container.querySelectorAll('h1')).toHaveLength(1)
+    expect(
+      container.querySelector('header a[href="/settings/mcp-servers"]'),
+    ).toBeTruthy()
+  }
+  await act(async () => i18n.changeLanguage('zh-CN'))
+  expect(title()).toBe('MCP 批处理')
+  await act(async () => router.navigate('/home'))
+  expect(container.querySelector('header h1')).toBeNull()
+  expect(container.querySelector('h1')?.textContent).toBe('Home workspace')
+})
+
+it('leaves the entity heading to data source details and keeps a parent breadcrumb', async () => {
+  const router = await render('/home', '/settings/datasource-detail')
+  await act(async () => router.navigate('/settings/datasource-detail/'))
+  expect(container.querySelectorAll('h1')).toHaveLength(1)
+  expect(container.querySelector('h1')?.textContent).toBe('Source entity')
+  expect(
+    container.querySelector('header a[href="/settings/datasource"]'),
+  ).toBeTruthy()
+  expect(
+    container.querySelector('header [aria-current="page"]')?.textContent,
+  ).toBe(i18n.t('datasource.configuration'))
 })
 
 it('defaults Settings to Profile, preserves its return location, and orders account before workspace and administration', async () => {

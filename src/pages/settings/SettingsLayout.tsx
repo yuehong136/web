@@ -127,14 +127,66 @@ export const SettingsLayout: React.FC = () => {
     [t, pendingCount, setActiveTab],
   )
 
+  const pathname = location.pathname.replace(/\/+$/, '') || '/'
+  const currentItem = settingsGroups
+    .flatMap((group) => group.items)
+    .find((item) =>
+      item.matcher ? item.matcher(pathname) : pathname.startsWith(item.href),
+    )
+  const pageTitles: Record<string, string> = {
+    '/settings': t('settings.nav.profile'),
+    '/settings/mcp-servers': t('mcp.servers.title'),
+    '/settings/mcp-tools': t('settings.nav.mcpTools'),
+    '/settings/mcp-test': t('settings.nav.mcpTest'),
+    '/settings/mcp-batch': t('settings.nav.mcpBatch'),
+    '/settings/datasource-detail': t('datasource.configuration'),
+  }
   const currentTitle =
-    settingsGroups
-      .flatMap((group) => group.items)
-      .find((item) =>
-        item.matcher
-          ? item.matcher(location.pathname)
-          : location.pathname.startsWith(item.href),
-      )?.title || t('settings.title')
+    pageTitles[pathname] || currentItem?.title || t('settings.title')
+  const isDatasourceDetail = pathname === '/settings/datasource-detail'
+  const parentHref =
+    isDatasourceDetail ||
+    [
+      '/settings/mcp-tools',
+      '/settings/mcp-test',
+      '/settings/mcp-batch',
+    ].includes(pathname)
+      ? currentItem?.href
+      : undefined
+  const parentTitle = currentItem?.title
+  const CurrentTitle = isDatasourceDetail ? 'span' : 'h1'
+  const breadcrumb = React.useMemo(
+    () => (
+      <Breadcrumb>
+        <BreadcrumbList className="flex-nowrap gap-space-xs">
+          <BreadcrumbItem className="shrink-0">
+            <BreadcrumbLink asChild>
+              <Link to="/settings/profile">{t('settings.title')}</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          {parentHref && (
+            <>
+              <BreadcrumbItem className="shrink-0">
+                <BreadcrumbLink asChild>
+                  <Link to={parentHref}>{parentTitle}</Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+            </>
+          )}
+          <BreadcrumbItem className="min-w-0">
+            <CurrentTitle className="min-w-0 truncate text-sm font-medium">
+              <BreadcrumbPage className="font-medium">
+                {currentTitle}
+              </BreadcrumbPage>
+            </CurrentTitle>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+    ),
+    [CurrentTitle, currentTitle, parentHref, parentTitle, t],
+  )
 
   const navigationManaged = useRegisterSecondaryNavigation(
     React.useMemo(
@@ -142,29 +194,14 @@ export const SettingsLayout: React.FC = () => {
         section: 'settings' as const,
         title: t('settings.title'),
         groups: settingsGroups,
+        header: breadcrumb,
         backLink: {
           href: returnTo,
           label: t('layout.sidebar.backToWorkspace'),
         },
       }),
-      [settingsGroups, returnTo, t],
+      [settingsGroups, breadcrumb, returnTo, t],
     ),
-  )
-
-  const breadcrumb = (
-    <Breadcrumb>
-      <BreadcrumbList className="gap-space-xs">
-        <BreadcrumbItem>
-          <BreadcrumbLink asChild>
-            <Link to="/settings/profile">{t('settings.title')}</Link>
-          </BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbSeparator />
-        <BreadcrumbItem>
-          <BreadcrumbPage>{currentTitle}</BreadcrumbPage>
-        </BreadcrumbItem>
-      </BreadcrumbList>
-    </Breadcrumb>
   )
 
   return (
@@ -175,7 +212,7 @@ export const SettingsLayout: React.FC = () => {
             title={t('settings.title')}
             navAriaLabel={t('settings.title')}
             groups={settingsGroups}
-            currentPath={location.pathname}
+            currentPath={pathname}
             collapsed={railCollapsed}
             onCollapsedChange={setRailCollapsed}
             labels={{
@@ -193,9 +230,11 @@ export const SettingsLayout: React.FC = () => {
         )
       }
       header={
-        <div className="border-b border-border-subtle px-space-lg py-space-sm">
-          {breadcrumb}
-        </div>
+        !navigationManaged && (
+          <div className="flex h-12 shrink-0 items-center border-b border-border-subtle px-space-lg">
+            {breadcrumb}
+          </div>
+        )
       }
     >
       <div className="h-full bg-components-settings-content-bg">

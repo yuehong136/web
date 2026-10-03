@@ -92,16 +92,6 @@ export default function DataSourcePage() {
 
   return (
     <div className="flex h-full flex-col bg-background-body">
-      {/* 页面头部 */}
-      <header className="shrink-0 border-b border-border-default px-8 py-6">
-        <h1 className="text-2xl font-bold tracking-tight text-text-primary">
-          {t('datasource.title')}
-        </h1>
-        <p className="mt-1.5 max-w-2xl text-sm text-text-secondary">
-          {t('datasource.description')}
-        </p>
-      </header>
-
       {/* 内容区域 */}
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-[1400px] space-y-10 px-8 py-6">

@@ -4,7 +4,6 @@ import { PencilLine } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   AppScene,
-  PageHeader,
   PageLoadingState,
   PageErrorState,
 } from '@/components/patterns'
@@ -65,12 +64,12 @@ export const ProfilePage: React.FC = () => {
   return (
     <>
       <div className="mx-auto flex min-h-full w-full max-w-4xl flex-col gap-space-lg p-space-lg">
-        <PageHeader
-          title={t('settings.nav.profile')}
-          description={t('settings.profileDescription')}
-          titleSize="md"
-          surface="plain"
-          wrapActions
+        <BasicInfoSection
+          profile={profile}
+          draft={draft}
+          errors={profileErrors}
+          isEditing={isEditing}
+          saving={savingProfile}
           actions={
             !isEditing && (
               <Button
@@ -83,14 +82,6 @@ export const ProfilePage: React.FC = () => {
               </Button>
             )
           }
-        />
-
-        <BasicInfoSection
-          profile={profile}
-          draft={draft}
-          errors={profileErrors}
-          isEditing={isEditing}
-          saving={savingProfile}
           onDraftChange={updateDraft}
           onCancel={() => {
             cancelEditing()

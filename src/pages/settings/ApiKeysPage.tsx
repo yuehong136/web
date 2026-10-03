@@ -5,6 +5,7 @@ import {
   loadApiSpecification,
 } from '@/pages/settings/api-documentation-data'
 import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { createPortal } from 'react-dom'
 import './api-keys-page.css'
 import {
@@ -240,6 +241,7 @@ const formatDateTime = (dateStr: string) => {
 }
 
 const ApiDocumentationPage: React.FC = () => {
+  const { t } = useTranslation()
   const [selectedAPI, setSelectedAPI] = useState<APIEndpoint | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -1380,27 +1382,15 @@ const ApiDocumentationPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-background-body via-background-default to-muted/20">
-      <div className="flex h-screen bg-background">
+    <div className="@container/api h-full min-h-0 overflow-auto bg-background">
+      <div className="flex min-h-full min-w-0 flex-col bg-background @3xl/api:h-full @3xl/api:min-h-0 @3xl/api:flex-row">
         {/* 左侧导航 - API列表 */}
-        <div className="flex w-80 flex-col border-r bg-background">
-          <div className="space-y-4 p-4">
-            {/* 精美的标题区域 */}
+        <div className="flex h-72 min-h-0 w-full shrink-0 flex-col border-b bg-background @3xl/api:h-auto @3xl/api:w-80 @3xl/api:border-r @3xl/api:border-b-0">
+          <div className="shrink-0 space-y-4 p-4">
             <div className="space-y-4">
-              {/* 主标题和图标 */}
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-linear-to-br from-blue-500 via-purple-500 to-indigo-600 shadow-lg ring-2 ring-blue-500/10">
-                  <BookOpen className="h-6 w-6 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h1 className="mb-1 text-xl font-bold text-foreground">
-                    用户管理系统 API
-                  </h1>
-                  <p className="text-sm text-muted-foreground">
-                    开放接口文档与 API Key 管理
-                  </p>
-                </div>
-              </div>
+              <h2 className="text-base font-semibold text-text-primary">
+                {t('settings.api.documentation')}
+              </h2>
 
               {/* 元信息和操作区 */}
               <div className="flex items-center justify-between">
@@ -1430,12 +1420,12 @@ const ApiDocumentationPage: React.FC = () => {
                   onClick={() => loadAPIData(true)}
                   disabled={isLoading}
                   className="gap-2 transition-all duration-200 hover:border-primary/20 hover:bg-primary/5"
-                  title="刷新API文档数据（从后端获取过滤后的接口）"
+                  aria-label={t('settings.api.refreshDocumentation')}
                 >
                   <RefreshCw
                     className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`}
                   />
-                  {isLoading ? '加载中' : '刷新'}
+                  {isLoading ? t('common.loading') : t('common.refresh')}
                 </Button>
               </div>
             </div>
@@ -1450,7 +1440,7 @@ const ApiDocumentationPage: React.FC = () => {
             </div>
 
             {/* 功能说明卡片 */}
-            <div className="relative overflow-hidden rounded-xl border bg-linear-to-r from-muted/40 via-muted/30 to-background p-4">
+            <div className="relative hidden overflow-hidden rounded-xl border bg-linear-to-r from-muted/40 via-muted/30 to-background p-4 @3xl/api:block">
               <div className="relative z-10">
                 <div className="mb-2 flex items-center gap-2">
                   <div className="h-1.5 w-1.5 rounded-full bg-green-500"></div>
@@ -1488,7 +1478,7 @@ const ApiDocumentationPage: React.FC = () => {
             )}
 
             {/* 统计信息 */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="hidden grid-cols-2 gap-3 @3xl/api:grid">
               <div className="group relative overflow-hidden rounded-lg border bg-linear-to-br from-background to-muted/20 p-3 transition-all duration-200 hover:border-primary/20 hover:shadow-md">
                 <div className="mb-1 flex items-center gap-2">
                   <div className="h-2 w-2 rounded-full bg-blue-500"></div>
@@ -1516,7 +1506,7 @@ const ApiDocumentationPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="api-keys-scrollbar flex-1 overflow-auto">
+          <div className="api-keys-scrollbar min-h-0 flex-1 overflow-auto">
             <div className="space-y-4 px-4 pb-4">
               {Object.entries(groupedEndpoints).map(([tag, endpoints]) => {
                 const IconComponent =
@@ -1627,12 +1617,12 @@ const ApiDocumentationPage: React.FC = () => {
         </div>
 
         {/* 右侧主内容区 - 两栏布局的第二栏 */}
-        <div className="flex flex-1 flex-col">
-          <div className="flex-1 overflow-hidden">
+        <div className="flex h-[32rem] min-h-0 min-w-0 shrink-0 grow flex-col @3xl/api:h-auto @3xl/api:flex-1">
+          <div className="min-h-0 flex-1 overflow-hidden">
             {selectedAPI ? (
               <div className="flex h-full flex-col">
                 {/* 顶部模式切换标签 */}
-                <div className="flex items-center gap-6 border-b bg-linear-to-r from-background to-muted/20 px-6 py-4">
+                <div className="flex shrink-0 flex-wrap items-center gap-3 border-b bg-linear-to-r from-background to-muted/20 px-4 py-3 lg:px-6">
                   <Tabs
                     value={mainMode}
                     onValueChange={(value) => {
@@ -1660,7 +1650,7 @@ const ApiDocumentationPage: React.FC = () => {
                     </TabsList>
                   </Tabs>
 
-                  <div className="ml-auto flex items-center gap-3">
+                  <div className="ml-auto flex min-w-0 flex-wrap items-center gap-3">
                     {/* API Key 管理按钮 */}
                     <Dialog
                       open={apiKeyManagementOpen}
@@ -2006,25 +1996,25 @@ const ApiDocumentationPage: React.FC = () => {
                 </div>
 
                 {/* 主内容区 */}
-                <div className="flex-1 overflow-auto">
+                <div className="min-h-0 flex-1 overflow-auto">
                   {mainMode === 'interface' ? (
                     /* 接口详情模式 - 全宽度 */
                     <div className="p-6">
                       <div className="mx-auto max-w-6xl space-y-6">
                         {/* API 头部信息 */}
                         <div className="mb-8">
-                          <div className="mb-4 flex items-center gap-3">
+                          <div className="mb-4 flex flex-wrap items-center gap-3">
                             <MethodBadge method={selectedAPI.method} />
-                            <code className="rounded-lg border bg-muted px-4 py-2 font-mono text-lg">
+                            <code className="min-w-0 rounded-lg border bg-muted px-4 py-2 font-mono text-sm break-all lg:text-lg">
                               {getFullApiUrl(selectedAPI.path)}
                             </code>
                             {selectedAPI.deprecated && (
                               <Badge variant="destructive">已弃用</Badge>
                             )}
                           </div>
-                          <h1 className="mb-3 text-3xl font-semibold">
+                          <h2 className="mb-3 text-3xl font-semibold">
                             {selectedAPI.summary}
-                          </h1>
+                          </h2>
                           {selectedAPI.description && (
                             <div className="text-base leading-relaxed text-muted-foreground">
                               <MarkdownRenderer

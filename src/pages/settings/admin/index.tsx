@@ -1,9 +1,9 @@
 import React, { useState, useMemo, useCallback, memo, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   UserPlus,
   Search,
   RefreshCw,
-  Shield,
   Lock,
   Eye,
   EyeOff,
@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { PageToolbar } from '@/components/patterns'
 import {
   Select,
   SelectContent,
@@ -212,6 +213,7 @@ const UsersPanel: React.FC<{
   currentUserEmail?: string
   onLogout: () => void
 }> = ({ currentUserEmail, onLogout }) => {
+  const { t } = useTranslation()
   const [keyword, setKeyword] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>(UserStatusFilter.ALL)
   const [createOpen, setCreateOpen] = useState(false)
@@ -330,81 +332,77 @@ const UsersPanel: React.FC<{
 
   return (
     <div className="space-y-space-xl">
-      {/* Header */}
-      <div className="flex flex-wrap items-start justify-between gap-space-lg">
-        <div className="flex items-center gap-space-md">
-          <Shield className="h-6 w-6 shrink-0 text-text-accent" />
-          <div>
-            <h1 className="text-2xl leading-tight font-bold text-text-primary">
-              用户管理
-            </h1>
-            <p className="mt-space-xs text-sm text-text-tertiary">
-              管理系统中所有用户的账号与权限
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-space-sm">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onLogout}
-            className="h-10 px-space-sm"
-            title="退出管理"
-          >
-            <LogOut className="h-3.5 w-3.5" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => refetch()}
-            disabled={isRefetching}
-            className="h-10 px-space-sm"
-          >
-            <RefreshCw
-              className={`h-3.5 w-3.5 ${isRefetching ? 'animate-spin' : ''}`}
-            />
-          </Button>
-          <Button
-            size="sm"
-            onClick={() => setCreateOpen(true)}
-            className="h-10 px-space-md"
-          >
-            <UserPlus className="mr-1.5 h-3.5 w-3.5" />
-            新建用户
-          </Button>
-        </div>
-      </div>
-
       {/* Stats */}
       {!isLoading && users.length > 0 && <StatsBar users={users} />}
 
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-space-sm rounded-radius-xl border border-border-subtle bg-background-surface p-space-sm">
-        <div className="max-w-md min-w-[240px] flex-1">
-          <Input
-            inputSize="sm"
-            placeholder="搜索邮箱或昵称..."
-            value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
-            leftIcon={<Search className="h-4 w-4 text-text-tertiary" />}
-            className="bg-surface-secondary h-10"
-          />
-        </div>
-        <FilterSelect
-          value={statusFilter}
-          onChange={setStatusFilter}
-          options={[
-            { value: UserStatusFilter.ALL, label: '所有状态' },
-            { value: UserStatusFilter.ACTIVE, label: '活跃' },
-            { value: UserStatusFilter.INACTIVE, label: '已停用' },
-          ]}
-        />
-        {keyword || statusFilter !== UserStatusFilter.ALL ? (
-          <span className="text-xs text-text-tertiary">
-            共 {filteredUsers.length} 条结果
-          </span>
-        ) : null}
-      </div>
+      <PageToolbar
+        wrap
+        surface="plain"
+        className="rounded-radius-xl border border-border-subtle bg-background-surface p-space-sm"
+        left={
+          <div className="flex w-full flex-wrap items-center gap-space-sm">
+            <div className="max-w-md min-w-0 flex-1 basis-60">
+              <Input
+                inputSize="sm"
+                placeholder="搜索邮箱或昵称..."
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                leftIcon={<Search className="h-4 w-4 text-text-tertiary" />}
+                className="bg-surface-secondary h-10"
+              />
+            </div>
+            <FilterSelect
+              value={statusFilter}
+              onChange={setStatusFilter}
+              options={[
+                { value: UserStatusFilter.ALL, label: '所有状态' },
+                { value: UserStatusFilter.ACTIVE, label: '活跃' },
+                { value: UserStatusFilter.INACTIVE, label: '已停用' },
+              ]}
+            />
+            {keyword || statusFilter !== UserStatusFilter.ALL ? (
+              <span className="text-xs text-text-tertiary">
+                共 {filteredUsers.length} 条结果
+              </span>
+            ) : null}
+          </div>
+        }
+        right={
+          <>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onLogout}
+              className="h-10 px-space-sm"
+              title={t('settings.admin.actions.exitAdministration')}
+              aria-label={t('settings.admin.actions.exitAdministration')}
+            >
+              <LogOut className="size-icon-sm" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => refetch()}
+              disabled={isRefetching}
+              className="h-10 px-space-sm"
+              aria-label={t('common.refresh')}
+            >
+              <RefreshCw
+                className={`size-icon-sm ${isRefetching ? 'animate-spin' : ''}`}
+              />
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => setCreateOpen(true)}
+              className="h-10 px-space-md"
+            >
+              <UserPlus className="size-icon-sm" />
+              {t('settings.admin.actions.createUser')}
+            </Button>
+          </>
+        }
+      />
 
       {/* Table */}
       {isLoading ? (

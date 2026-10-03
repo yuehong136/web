@@ -111,14 +111,19 @@ it('shows account details once in their intended order and translates the full v
     'Password',
   ])
   expect(container.textContent?.split('admin@example.com')).toHaveLength(2)
-  expect(container.querySelectorAll('h1')).toHaveLength(1)
+  expect(container.querySelectorAll('h1')).toHaveLength(0)
+  expect(
+    container
+      .querySelector('h2')
+      ?.parentElement?.contains(button('Edit profile')),
+  ).toBe(true)
   expect(
     Array.from(container.querySelectorAll('h2')).map(
       (element) => element.textContent,
     ),
   ).toEqual(['Account details', 'Account security'])
   await act(async () => i18n.changeLanguage('zh-CN'))
-  expect(container.querySelector('h1')?.textContent).toBe('个人资料')
+  expect(container.querySelector('h2')?.textContent).toBe('账户资料')
   expect(
     Array.from(container.querySelectorAll('dt')).map(
       (element) => element.textContent,
@@ -213,6 +218,6 @@ it('shows a retry state instead of an editable empty profile when loading fails'
   expect(container.textContent).toContain('Could not load your profile')
   expect(button('Edit profile')).toBeUndefined()
   await click(button('Retry'))
-  expect(container.querySelector('h1')?.textContent).toBe('Profile')
+  expect(button('Edit profile')).toBeTruthy()
   expect(container.textContent).toContain('admin@example.com')
 })

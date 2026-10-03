@@ -254,19 +254,6 @@ export const MCPServersPage: React.FC<ServerListPageProps> = ({
     <>
       <ListPageTemplate
         className="@container mx-auto max-w-6xl"
-        title={t('mcp.servers.title')}
-        description={t('mcp.servers.description')}
-        headerActions={
-          <>
-            <Button variant="ghost" asChild>
-              <Link to="/mcp-chat">
-                <Rocket className="size-icon-sm" />
-                {t('mcp.servers.playgroundTitle')}
-              </Link>
-            </Button>
-            {createButton}
-          </>
-        }
         stats={<MCPServerSummary {...stats} />}
         toolbarLeft={
           <div className="w-full max-w-md">
@@ -342,6 +329,13 @@ export const MCPServersPage: React.FC<ServerListPageProps> = ({
                 },
               ]}
             />
+            <Button variant="ghost" asChild>
+              <Link to="/mcp-chat">
+                <Rocket className="size-icon-sm" />
+                {t('mcp.servers.playgroundTitle')}
+              </Link>
+            </Button>
+            {createButton}
           </>
         }
         state={

@@ -1,5 +1,12 @@
 export default {
   mcp: {
+    tools: {
+      refresh: '刷新工具',
+    },
+    batch: {
+      selectedServers_one: '已选择 {{count}} 个服务器',
+      selectedServers_other: '已选择 {{count}} 个服务器',
+    },
     form: {
       basic: '基本配置',
       headers: '请求头',

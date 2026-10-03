@@ -1,5 +1,5 @@
 {
-  "src/pages/settings/ApiKeysPage.tsx": 3742,
+  "src/pages/settings/ApiKeysPage.tsx": 3732,
   "src/pages/explore/ExplorePage.tsx": 2180,
   "src/themes/theme-generator.ts": 2206,
   "src/types/index.ts": 2075,
@@ -20,8 +20,8 @@
   "src/pages/studio/create-app/components/config-pane.tsx": 716,
   "src/components/memory/MemoryMessageTable.tsx": 702,
   "src/components/chat/ChatInput.tsx": 691,
-  "src/pages/settings/MCPToolsPage.tsx": 670,
-  "src/pages/settings/MCPBatchPage.tsx": 634,
+  "src/pages/settings/MCPToolsPage.tsx": 660,
+  "src/pages/settings/MCPBatchPage.tsx": 633,
   "src/components/ui/file-icon.tsx": 630,
   "src/pages/home/components/ChatSection.tsx": 630
 }

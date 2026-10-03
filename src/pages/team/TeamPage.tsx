@@ -65,16 +65,6 @@ export const TeamPage: React.FC = () => {
 
   return (
     <div className="flex h-full flex-col p-6">
-      {/* 页面头部 */}
-      <div className="mb-4 flex items-start justify-between">
-        <div>
-          <h1 className="text-xl font-semibold text-text-primary">团队管理</h1>
-          <p className="mt-1 text-sm text-text-secondary">
-            管理您的团队成员和已加入的团队
-          </p>
-        </div>
-      </div>
-
       {/* 统计卡片 */}
       <div className="mb-4">
         <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">

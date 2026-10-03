@@ -3,6 +3,8 @@ import {
   type TestResult,
 } from '@/pages/settings/components/mcp-test-sidebar'
 import React, { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { PageToolbar } from '@/components/patterns'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -32,6 +34,7 @@ import { useFetchMCPServers } from '@/hooks/use-mcp-request'
 import { toast } from '@/lib/toast'
 
 export const MCPTestPage: React.FC = () => {
+  const { t } = useTranslation()
   const {
     data: serverData,
     isFetching: loading,
@@ -222,27 +225,22 @@ export const MCPTestPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* 页面头部 */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-text-primary">MCP连接测试</h1>
-          <p className="mt-1 text-muted-foreground">
-            测试MCP服务器连接性能和可用性
-          </p>
-        </div>
-        <Button
-          onClick={() => void loadServers()}
-          variant="outline"
-          className="smooth-transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
-          disabled={loading}
-        >
-          <RefreshCw
-            className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`}
-          />
-          刷新服务器列表
-        </Button>
-      </div>
+    <div className="space-y-space-lg p-space-lg">
+      <PageToolbar
+        surface="plain"
+        right={
+          <Button
+            onClick={() => void loadServers()}
+            variant="outline"
+            disabled={loading}
+          >
+            <RefreshCw
+              className={`size-icon-sm ${loading ? 'animate-spin' : ''}`}
+            />
+            {t('mcp.servers.refresh')}
+          </Button>
+        }
+      />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* 测试配置 */}

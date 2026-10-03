@@ -8,7 +8,7 @@ import {
   useEnableLLM,
   useDeleteFactory,
 } from '@/hooks/use-llm-request'
-import { PageHeader, PageLoadingState } from '@/components/patterns'
+import { PageLoadingState } from '@/components/patterns'
 import { SystemSetting } from './components/system-setting'
 import { UsedModels } from './components/used-models'
 import { AvailableModels } from './components/available-models'
@@ -149,11 +149,6 @@ export const ModelProvidersPage: React.FC = () => {
 
   return (
     <div className="@container flex h-full min-h-0 flex-col gap-space-lg p-space-lg">
-      <PageHeader
-        title={t('settings.nav.modelProviders')}
-        titleSize="md"
-        surface="plain"
-      />
       <div className="relative flex min-h-0 flex-1 flex-col overflow-auto rounded-radius-lg border border-border-default bg-background-surface @4xl:flex-row @4xl:overflow-hidden">
         {/* 左侧区域 - 系统设置 + 已添加模型 */}
         <section className="flex shrink-0 flex-col gap-space-base p-space-base @4xl:w-3/5 @4xl:overflow-auto @4xl:border-r @4xl:border-border-subtle">

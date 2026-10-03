@@ -123,9 +123,10 @@ const menuItem = (text: string) =>
     (element) => element.textContent === text,
   )!
 
-it('has one page heading, sortable resources, and permanently accessible card actions', async () => {
-  expect(container.querySelectorAll('h1')).toHaveLength(1)
-  expect(container.querySelector('h1')?.textContent).toBe('MCP servers')
+it('leaves the page heading to the settings shell and keeps toolbar and card actions accessible', async () => {
+  expect(container.querySelectorAll('h1')).toHaveLength(0)
+  expect(textButton('Create server')).toBeTruthy()
+  expect(container.querySelector('a[href="/mcp-chat"]')).toBeTruthy()
   expect(container.querySelector('article h2')?.textContent).toBe('new-server')
   expect(button('Copy URL for new-server')).toBeTruthy()
   expect(button('Test connection to new-server')).toBeTruthy()
