@@ -1,7 +1,7 @@
 import get from 'lodash/get.js'
 import isEmpty from 'lodash/isEmpty.js'
 import { downloadJsonFile } from '@/lib/download'
-import { assertSSEResponse, readSSEStream } from '@/lib/streaming'
+import { assertResponse, readSSEStream } from '@/lib/streaming'
 import type { AgentTraceItem } from '@/types/agent'
 import {
   PipelineRuntimeStatus,
@@ -144,7 +144,7 @@ export function extractMessageIdFromChunk(
 export async function resolvePipelineRunMessageId(
   response: Response,
 ): Promise<string | undefined> {
-  await assertSSEResponse(response)
+  await assertResponse(response)
 
   const contentType = response.headers.get('content-type')?.toLowerCase() || ''
   if (contentType.includes('json')) {

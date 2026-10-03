@@ -6,6 +6,7 @@ import {
 import type { APIResponse } from '@/types/api'
 import { STORAGE_KEYS, API_BASE_URL, API_VERSION } from '@/constants'
 import { APIError, extractErrorMessage, te } from './client-types'
+import { responseError } from './response-error'
 import type { RequestConfig } from './client-types'
 import { assertRest200Contract } from './response-contract'
 import { uploadWithProgress } from './upload-transport'
@@ -267,12 +268,7 @@ class APIClient {
           throw new APIError(401, 'UNAUTHORIZED', te('unauthorized'))
         }
 
-        throw new APIError(
-          response.status,
-          data.retcode?.toString() || 'API_ERROR',
-          data.retmsg || te('serverError'),
-          data.data,
-        )
+        throw responseError(response.status, rawData, te('serverError'))
       }
 
       // 对于登录等特殊接口，需要返回完整数据（包含auth字段）

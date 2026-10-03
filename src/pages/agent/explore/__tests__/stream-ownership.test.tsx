@@ -187,7 +187,7 @@ describe('Explore request owns setup, frames and completion', () => {
       expect(harness.chat.currentMessageId).toBeUndefined()
       expect(harness.chat.latestTaskId).toBeUndefined()
       expect(harness.chat.messages.at(-1)).toMatchObject({
-        content: 'The run failed. Try again later.',
+        content: '',
         error: 'The run failed. Try again later.',
         isStreaming: false,
       })

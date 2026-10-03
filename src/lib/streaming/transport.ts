@@ -1,4 +1,6 @@
 import { EventSourceParserStream } from 'eventsource-parser/stream'
+import { readResponseError } from '@/api/response-error'
+import { APIError } from '@/api/client-types'
 
 /**
  * Shared SSE transport (ARCH-1 phase 1).
@@ -9,26 +11,30 @@ import { EventSourceParserStream } from 'eventsource-parser/stream'
  * through the pipe chain and closes the connection.
  */
 
-export async function assertSSEResponse(response: Response): Promise<void> {
-  if (!response.ok) {
-    let errorMessage = `HTTP ${response.status}: ${response.statusText}`
-
-    try {
-      const errorBody = (await response.clone().json()) as {
-        message?: string
-        retmsg?: string
-      } | null
-      errorMessage = errorBody?.message || errorBody?.retmsg || errorMessage
-    } catch {
-      // ignore non-json error bodies
+/** Shared preflight for stream responses and queued-task acknowledgements. */
+export async function assertResponse(response: Response): Promise<void> {
+  if (!response.ok) throw await readResponseError(response)
+  if (response.headers.get('content-type')?.includes('application/json')) {
+    const body: unknown = await response.clone().json()
+    if (typeof body === 'object' && body !== null) {
+      const record = body as Record<string, unknown>
+      const code = record.retcode ?? record.code
+      if (record.error_code || (code !== undefined && code !== 0))
+        throw await readResponseError(response)
     }
-
-    throw new Error(errorMessage)
   }
+}
 
-  if (!response.body) {
-    throw new Error('流式接口没有返回可读的数据流')
-  }
+export async function assertSSEResponse(response: Response): Promise<void> {
+  await assertResponse(response)
+  if (response.headers.get('content-type')?.includes('application/json'))
+    throw new APIError(
+      response.status,
+      'INVALID_STREAM',
+      'Expected an event stream',
+    )
+  if (!response.body)
+    throw new APIError(response.status, 'INVALID_STREAM', 'Missing stream body')
 }
 
 export interface ReadSSEStreamOptions<T> {

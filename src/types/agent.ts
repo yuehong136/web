@@ -179,6 +179,13 @@ export interface UpdateAgentSettingsPayload {
   permission?: string
 }
 
+export type AgentRunMode = 'draft' | 'published'
+
+export interface CreateAgentSessionInput {
+  name: string
+  mode: AgentRunMode
+}
+
 export interface RunAgentPayload {
   id: string
   query?: string
@@ -187,6 +194,8 @@ export interface RunAgentPayload {
   inputs?: Record<string, unknown>
   a2ui?: Array<Record<string, unknown>>
   metadata?: Record<string, unknown>
+  mode?: AgentRunMode
+  /** Legacy share links; new callers use mode. Session resumes omit both. */
   release?: boolean | string
   user_id?: string
 }

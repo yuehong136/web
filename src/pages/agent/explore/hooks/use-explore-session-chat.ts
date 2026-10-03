@@ -37,6 +37,9 @@ import { useExploreRequestOwner } from './use-explore-request-owner'
 import { useExploreRunRequest } from './use-explore-run-request'
 import { toast } from '@/lib/toast'
 import { extractSessionStatus } from '../../adapters/session'
+import type { AgentRunMode } from '@/types/agent'
+import { useExploreRunSource } from './use-explore-run-source'
+import { agentRunErrorKey } from '../../runtime-errors'
 
 function initialView(selection: ExploreSelection): ExploreSessionView {
   return {
@@ -55,12 +58,14 @@ export function useExploreSessionChat({
   sessionId,
   isNew,
   selectionRevision = 0,
+  newSessionMode = 'draft',
   onSessionReady,
 }: {
   canvasId: string
   sessionId: string
   isNew: boolean
   selectionRevision?: number
+  newSessionMode?: AgentRunMode
   onSessionReady: (sessionId: string) => void
 }) {
   const { t } = useTranslation()
@@ -70,8 +75,14 @@ export function useExploreSessionChat({
   const { createAgentSession } = useCreateAgentSession(canvasId)
   const { cancelConversation } = useCancelConversation()
   const selection = useMemo(
-    () => ({ canvasId, sessionId, isNew, revision: selectionRevision }),
-    [canvasId, sessionId, isNew, selectionRevision],
+    () => ({
+      canvasId,
+      sessionId,
+      isNew,
+      revision: selectionRevision,
+      mode: newSessionMode,
+    }),
+    [canvasId, sessionId, isNew, selectionRevision, newSessionMode],
   )
   const [view, setView] = useState(() => initialView(selection))
   const onSelectionChange = useCallback(
@@ -94,9 +105,18 @@ export function useExploreSessionChat({
       ? t('agent.runtime.runFailed')
       : undefined
   const needsHistory = Boolean(!isNew && sessionId && !visible.hasLocalMessages)
-  const sessionError = needsHistory && sessionQuery.isError
+  const runSource = useExploreRunSource(
+    canvasId,
+    agentQuery.data,
+    hasHistory ? sessionQuery.data : undefined,
+    isNew && newSessionMode === 'published',
+  )
+  const sessionError =
+    (needsHistory && sessionQuery.isError) || Boolean(runSource.error)
   const loadingSession =
-    needsHistory && !sessionError && (sessionQuery.isLoading || !hasHistory)
+    !sessionError &&
+    ((needsHistory && (sessionQuery.isLoading || !hasHistory)) ||
+      runSource.loading)
   const canSend = Boolean(
     canvasId && (isNew || sessionId) && !sessionError && !loadingSession,
   )
@@ -105,12 +125,12 @@ export function useExploreSessionChat({
       ? mapSessionMessagesToRuntimeMessages(sessionQuery.data, historyFailure)
       : visible.messages
   const beginInputs = useMemo(
-    () => getBeginInputsFromAgent(agentQuery.data),
-    [agentQuery.data],
+    () => getBeginInputsFromAgent(runSource.source),
+    [runSource.source],
   )
   const isTaskMode = useMemo(
-    () => isExploreTaskMode(agentQuery.data),
-    [agentQuery.data],
+    () => isExploreTaskMode(runSource.source),
+    [runSource.source],
   )
 
   const seedHistory = useCallback(
@@ -382,6 +402,10 @@ export function useExploreSessionChat({
     loading: visible.status === AgentRuntimeStatus.RUNNING,
     loadingSession,
     sessionError,
+    sourceError: runSource.error
+      ? t(agentRunErrorKey(runSource.error))
+      : undefined,
+    retrySource: runSource.retry,
     canSend,
     lastError:
       !visible.hasLocalMessages && historyFailure

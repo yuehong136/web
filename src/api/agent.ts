@@ -2,8 +2,10 @@ import { API_BASE_URL, STORAGE_KEYS } from '@/constants'
 import { resolveCanvasCategory } from '@/lib/agent'
 import { apiClient } from './client'
 import { requestTaskCancellation } from './agent-cancellation'
+import { buildAgentRunBody } from './agent-execution'
 import type {
   AgentCanvasUploadResult,
+  CreateAgentSessionInput,
   AgentExternalInputs,
   AgentFlow,
   AgentInputFormSchema,
@@ -36,6 +38,25 @@ const getAuthToken = () =>
   typeof localStorage === 'undefined'
     ? null
     : localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)
+
+async function requestAgentCompletion(
+  payload: RunAgentPayload,
+  options?: { signal?: AbortSignal },
+) {
+  const token = getAuthToken()
+  return fetch(`${getRuntimeApiBaseUrl()}/api/v1/agents/chat/completion`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({
+      agent_id: payload.id,
+      ...buildAgentRunBody(payload),
+    }),
+    signal: options?.signal,
+  })
+}
 
 export function buildAgentSessionListQuery(
   params: AgentSessionListParams = {},
@@ -125,67 +146,8 @@ export const agentAPI = {
   deleteAgent: async (id: string) =>
     apiClient.delete(`/agents/${encodeURIComponent(id)}`, restBase),
 
-  runAgent: async (
-    payload: RunAgentPayload,
-    options?: {
-      signal?: AbortSignal
-    },
-  ) => {
-    const baseURL = getRuntimeApiBaseUrl()
-    const token = getAuthToken()
-    const response = await fetch(`${baseURL}/api/v1/agents/chat/completion`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: JSON.stringify({
-        agent_id: payload.id,
-        query: payload.query || '',
-        session_id: payload.session_id,
-        files: payload.files || [],
-        inputs: payload.inputs || {},
-        ...(payload.a2ui ? { a2ui: payload.a2ui } : {}),
-        ...(payload.metadata ? { metadata: payload.metadata } : {}),
-        ...(payload.release !== undefined ? { release: payload.release } : {}),
-        ...(payload.user_id ? { user_id: payload.user_id } : {}),
-      }),
-      signal: options?.signal,
-    })
-
-    return response
-  },
-
-  runAgentSession: async (
-    payload: RunAgentPayload,
-    options?: {
-      signal?: AbortSignal
-    },
-  ) => {
-    const baseURL = getRuntimeApiBaseUrl()
-    const token = getAuthToken()
-    const response = await fetch(`${baseURL}/api/v1/agents/chat/completion`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: JSON.stringify({
-        agent_id: payload.id,
-        query: payload.query || '',
-        session_id: payload.session_id,
-        files: payload.files || [],
-        inputs: payload.inputs || {},
-        ...(payload.a2ui ? { a2ui: payload.a2ui } : {}),
-        ...(payload.metadata ? { metadata: payload.metadata } : {}),
-        ...(payload.release !== undefined ? { release: payload.release } : {}),
-        ...(payload.user_id ? { user_id: payload.user_id } : {}),
-      }),
-      signal: options?.signal,
-    })
-
-    return response
-  },
+  runAgent: requestAgentCompletion,
+  runAgentSession: requestAgentCompletion,
 
   resetAgent: async (id: string) =>
     apiClient.post(`/agents/${encodeURIComponent(id)}/reset`, {}, restBase),
@@ -326,10 +288,10 @@ export const agentAPI = {
       restBase,
     ),
 
-  createSession: async (canvasId: string, name: string) =>
+  createSession: async (canvasId: string, input: CreateAgentSessionInput) =>
     apiClient.post<AgentSession>(
       `/agents/${encodeURIComponent(canvasId)}/sessions`,
-      { name },
+      { name: input.name, release: input.mode === 'published' },
       restBase,
     ),
 
@@ -380,36 +342,20 @@ export const agentAPI = {
       signal?: AbortSignal
     },
   ) => {
-    const search = new URLSearchParams()
-    if (payload.release !== undefined && payload.release !== false) {
-      search.set('release', String(payload.release))
-    }
-    const queryString = search.toString()
-    const response = await fetch(
-      `${EXTERNAL_API_BASE_URL}/v1/agentbots/${payload.id}/completions${queryString ? `?${queryString}` : ''}`,
+    const body = buildAgentRunBody(payload)
+    const search = body.release ? '?release=true' : ''
+    return fetch(
+      `${EXTERNAL_API_BASE_URL}/v1/agentbots/${encodeURIComponent(payload.id)}/completions${search}`,
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${payload.betaToken}`,
         },
-        body: JSON.stringify({
-          query: payload.query || '',
-          inputs: payload.inputs || {},
-          ...(payload.a2ui ? { a2ui: payload.a2ui } : {}),
-          ...(payload.metadata ? { metadata: payload.metadata } : {}),
-          files: payload.files || [],
-          session_id: payload.session_id,
-          ...(payload.release !== undefined
-            ? { release: payload.release }
-            : {}),
-          ...(payload.user_id ? { user_id: payload.user_id } : {}),
-        }),
+        body: JSON.stringify(body),
         signal: options?.signal,
       },
     )
-
-    return response
   },
 
   uploadCanvasFileWithProgress: async (

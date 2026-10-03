@@ -161,3 +161,14 @@ test('reloaded strict failure gets fixed feedback without a saved successful ass
   assert.equal(JSON.stringify(messages).includes('private'), false)
   assert.deepEqual(session, original)
 })
+
+test('published new-session intent survives URL construction without becoming a revision', () => {
+  const params = buildExploreSessionSearchParams({
+    isNew: true,
+    mode: 'published',
+  })
+  assert.equal(params.get('runMode'), 'published')
+  assert.equal(params.get('isNew'), 'true')
+  assert.equal(params.has('agent_revision_id'), false)
+  assert.equal(resolveExploreSessionId(params).sessionId, '')
+})

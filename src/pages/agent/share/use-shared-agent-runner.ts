@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { agentAPI } from '@/api/agent'
+import { agentRunErrorKey } from '../runtime-errors'
 import { assertSSEResponse, readSSEStream } from '@/lib/streaming'
 import {
   consumeRuntimeMessageChunk,
@@ -292,7 +293,7 @@ export function useSharedAgentRunner({
             metadata,
             files,
             session_id: sessionId,
-            release,
+            mode: release ? 'published' : 'draft',
             user_id: userId,
           },
           { signal: abortController.signal },
@@ -317,12 +318,12 @@ export function useSharedAgentRunner({
           error instanceof DOMException && error.name === 'AbortError'
         const errorMessage = isAbortError
           ? t('agent.runtime.runStopped')
-          : t('agent.runtime.runFailed')
+          : t(agentRunErrorKey(error))
 
         setLastError(errorMessage)
         updateMessageById(assistantId, (message) => ({
           ...message,
-          content: message.content || errorMessage,
+          content: message.content,
           error: errorMessage,
           isStreaming: false,
         }))

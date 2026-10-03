@@ -3,6 +3,7 @@ import type { BeginQuery } from '../types'
 import { getOrderedBeginInputEntries } from '../utils/begin-input-order'
 import type {
   AgentFlow,
+  AgentRunMode,
   AgentSession,
   AgentSessionMessage,
 } from '@/types/agent'
@@ -39,6 +40,7 @@ export function resolveExploreSessionId(searchParams: URLSearchParams): {
 export function buildExploreSessionSearchParams(params: {
   sessionId?: string
   isNew?: boolean
+  mode?: AgentRunMode
 }) {
   const searchParams = new URLSearchParams()
   if (params.sessionId) {
@@ -47,6 +49,7 @@ export function buildExploreSessionSearchParams(params: {
   if (params.isNew) {
     searchParams.set('isNew', 'true')
   }
+  if (params.mode === 'published') searchParams.set('runMode', 'published')
   return searchParams
 }
 

@@ -26,6 +26,7 @@ export {
   type StructuredChatState,
 } from './structured-chat-reducer'
 export {
+  assertResponse,
   assertSSEResponse,
   readSSEStream,
   type ReadSSEStreamOptions,

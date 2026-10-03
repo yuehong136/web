@@ -1,3 +1,4 @@
+import { agentRunErrorKey } from '../../../runtime-errors'
 import { useRuntimeSummary } from './use-runtime-summary'
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -496,13 +497,18 @@ export function useAgentRuntimeWorkbench({
       }
 
       try {
-        const session = await createAgentSession(name || '新会话')
+        const session = await createAgentSession({
+          name: name || t('agent.runtime.newSession'),
+          mode: 'draft',
+        })
         clearRuntimeState(session.id)
         setViewingSessionId(undefined)
         onViewChange(RuntimeWorkbenchView.CONVERSATION)
-        toast.success('已创建新会话')
-      } catch {
-        toast.error(t('agent.runtime.createSessionFailed'))
+        toast.success(t('agent.runtime.sessionCreated'))
+      } catch (error) {
+        toast.error(
+          t(agentRunErrorKey(error, 'agent.runtime.createSessionFailed')),
+        )
       }
     },
     [canvasId, clearRuntimeState, createAgentSession, onViewChange, t],

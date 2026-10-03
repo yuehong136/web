@@ -63,3 +63,7 @@ The actual Go task handler/router/service, built from the same backend revision,
 Evidence: [acceptance report](/Users/xldu/.codex/visualizations/2026/09/27/01a0e29f-d9be-73e2-ab9b-7e11f071915c/488-acceptance/report.md), original HTTP/SSE and Go proxy audits, readbacks, verification and cleanup JSON, gate logs and captioned contact sheets. Deployment, remote models, object uploads, full background workers and Desktop packaging were not tested.
 
 Final gates passed on the current checkout: `test:ci` (121 files / 804 cases), `lint` (0 errors / 1494 existing warnings), `lint:typed`, `typecheck:agent-strict`, `lint:i18n-agent`, `lint:file-size`, `build` and `check:bundle-size`. Concurrent dependency upgrades were kept outside this task; the final formal test suite was rerun on the resulting installed versions.
+
+## Web execution authorization
+
+The editor explicitly uses draft mode; existing sessions retain their original server snapshot. HTTP/SSE preflight refusals share typed errors and fixed bilingual feedback with Explore and share/widget. See the [Agent runtime contract](../../runtime-contract.md).

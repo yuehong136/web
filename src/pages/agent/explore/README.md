@@ -67,3 +67,7 @@ Evidence: [local acceptance report](/Users/xldu/.codex/visualizations/2026/09/27
 ## Current Task cancellation (488)
 
 Stop now uses the current SSE `task_id` with `POST /api/v1/tasks/{id}/cancel` through the shared typed client. No current ID means local output detach only. Literal business 0 / data true displays request submission or no-op; failure is visible with fixed bilingual copy. Old cancellation replies cannot overwrite a new run or an A → B → A selection, and abort handling retains the owned feedback. See [Task cancellation contract](../features/runtime-workbench/README.md) for formal regressions, real cross-end acceptance and its worker/provider boundaries.
+
+## Current execution source and authorization feedback
+
+New sessions select draft debug or published execution. Resumes retain the original server snapshot, and Begin inputs prefer the session DSL. Authorization failures share typed errors and fixed bilingual feedback. See the [Agent runtime contract](../runtime-contract.md) for requests, share boundaries and browser acceptance.

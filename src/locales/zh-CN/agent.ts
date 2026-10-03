@@ -218,6 +218,32 @@ export default {
       continue: '继续',
     },
     runtime: {
+      newSession: '新会话',
+      sessionCreated: '已创建会话',
+      mode: {
+        label: '运行模式',
+        draft: '草稿调试',
+        published: '发布运行',
+        session: '会话原始快照',
+        draftDescription: '使用当前草稿；委托工具需要独立的开发授权。',
+        publishedDescription: '新建会话时使用最新发布版本。',
+        sessionDescription:
+          '沿用会话原始配置；修改草稿或发布新版本不会切换本会话。',
+      },
+      authorization: {
+        contextRequired: '本会话缺少已验证的执行来源，请新建会话使用委托工具。',
+        grantRequired:
+          '当前运行缺少工具授权，请联系管理员为所选运行模式配置授权。',
+        toolDenied:
+          '本次运行不允许使用该工具；Web 委托目前仅支持已授权的只读工具。',
+        assuranceRequired: '当前登录未满足工具的身份验证要求，请联系管理员。',
+        serviceUnavailable: '工具授权服务暂不可用，请稍后重试。',
+        configurationRequired: '工具授权配置不完整，请联系管理员检查连接。',
+        signInRequired: '请重新登录后运行此 Agent。',
+        accessDenied: '你已无权运行此 Agent。',
+        targetUnavailable:
+          'Agent、会话或原始发布版本不可用，请检查权限或新建会话。',
+      },
       idle: '待运行',
       preparing: '准备中',
       running: '运行中',

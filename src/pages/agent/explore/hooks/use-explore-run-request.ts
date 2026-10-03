@@ -2,7 +2,8 @@ import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { agentAPI } from '@/api/agent'
 import { toast } from '@/lib/toast'
-import type { AgentSession } from '@/types/agent'
+import type { AgentSession, CreateAgentSessionInput } from '@/types/agent'
+import { agentRunErrorKey } from '../../runtime-errors'
 import { AgentRuntimeStatus } from '../../features/runtime-workbench/types'
 import {
   consumeRuntimeStream,
@@ -28,7 +29,7 @@ export function useExploreRunRequest({
 }: {
   owner: ReturnType<typeof useExploreRequestOwner>
   canSend: boolean
-  createAgentSession: (name: string) => Promise<AgentSession>
+  createAgentSession: (input: CreateAgentSessionInput) => Promise<AgentSession>
   onSessionReady: (sessionId: string) => void
   updateRequest: (
     request: ExploreRequestOwner,
@@ -59,16 +60,19 @@ export function useExploreRunRequest({
       try {
         if (!request.sessionId) {
           try {
-            const session = await createAgentSession(
-              buildExploreSessionName(content),
-            )
+            const session = await createAgentSession({
+              name: buildExploreSessionName(content),
+              mode: request.selection.mode ?? 'draft',
+            })
             if (!session.id) throw new Error('Missing session ID')
             if (!owner.rememberCreated(request, session.id)) return
             onSessionReady(session.id)
-          } catch {
+          } catch (error) {
             if (!owner.owns(request) || request.controller.signal.aborted)
               return
-            const message = t('agent.runtime.createSessionFailed')
+            const message = t(
+              agentRunErrorKey(error, 'agent.runtime.createSessionFailed'),
+            )
             updateRequest(request, (view) => ({
               ...view,
               status: AgentRuntimeStatus.ERROR,
@@ -161,9 +165,7 @@ export function useExploreRunRequest({
           request.controller.signal.aborted ||
           (error instanceof Error && error.name === 'AbortError')
         const message = t(
-          stopped
-            ? 'agent.runtime.listeningStopped'
-            : 'agent.runtime.runFailed',
+          stopped ? 'agent.runtime.listeningStopped' : agentRunErrorKey(error),
         )
         updateRequest(request, (view) => ({
           ...view,
@@ -175,7 +177,7 @@ export function useExploreRunRequest({
             row.id === request.assistantId
               ? {
                   ...row,
-                  content: row.content || message,
+                  content: row.content,
                   error: message,
                   isStreaming: false,
                 }

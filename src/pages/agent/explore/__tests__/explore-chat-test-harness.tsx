@@ -15,6 +15,8 @@ import AgentExplorePage from '../index'
 
 const mockAPI = vi.hoisted(() => ({
   fetchAgent: vi.fn(),
+  fetchVersions: vi.fn(),
+  fetchVersion: vi.fn(),
   fetchSession: vi.fn(),
   createSession: vi.fn(),
   runAgentSession: vi.fn(),
@@ -125,6 +127,7 @@ export async function mountChat(
     id?: string
     isNew?: boolean
     cached?: string[]
+    mode?: 'draft' | 'published'
   } = {},
 ) {
   const queryClient = new QueryClient({
@@ -148,6 +151,7 @@ export async function mountChat(
     canvasId,
     sessionId: options.id ?? 'A',
     isNew: options.isNew ?? false,
+    newSessionMode: options.mode ?? 'draft',
   }
   let chat!: ReturnType<typeof useExploreSessionChat>
   function Harness() {
@@ -175,7 +179,7 @@ export async function mountChat(
     queryClient,
     onSessionReady,
     async select(id: string, isNew = false, nextCanvasId = canvasId) {
-      props = { canvasId: nextCanvasId, sessionId: id, isNew }
+      props = { ...props, canvasId: nextCanvasId, sessionId: id, isNew }
       await render()
     },
     async start(content = 'question') {

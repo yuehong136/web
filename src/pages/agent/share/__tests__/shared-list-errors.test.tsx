@@ -115,3 +115,27 @@ it('HTTP failure keeps private error text out of share feedback', async () => {
   expect(runner.lastError).toBe(enAgent.agent.runtime.runFailed)
   expect(container.textContent).not.toContain('private')
 })
+
+it.each(['en-US', 'zh-CN'])(
+  'share shows fixed delegation feedback in %s',
+  async (language) => {
+    await mount(language)
+    vi.spyOn(agentAPI, 'runExternalAgent').mockResolvedValue(
+      Response.json(
+        {
+          retcode: 104,
+          data: false,
+          error_code: 'token_issuance_failed',
+          retmsg: 'private issuer failure',
+        },
+        { status: 503 },
+      ),
+    )
+    await act(async () => runner.submit({ query: 'tool', values: {} }))
+    const expected = (language === 'en-US' ? enAgent : zhAgent).agent.runtime
+      .authorization.serviceUnavailable
+    expect(runner.lastError).toBe(expected)
+    expect(runner.isRunning).toBe(false)
+    expect(container.textContent).not.toContain('private')
+  },
+)

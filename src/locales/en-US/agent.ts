@@ -242,6 +242,38 @@ export default {
       continue: 'Continue',
     },
     runtime: {
+      newSession: 'New session',
+      sessionCreated: 'Session created',
+      mode: {
+        label: 'Run mode',
+        draft: 'Draft debug',
+        published: 'Published run',
+        session: 'Original session snapshot',
+        draftDescription:
+          'Use the current draft. Delegated tools require separate development authorization.',
+        publishedDescription:
+          'Use the latest published version when creating this session.',
+        sessionDescription:
+          'Continue with the original configuration. Draft edits and new releases do not switch this session.',
+      },
+      authorization: {
+        contextRequired:
+          'This session has no verified execution source. Start a new session to use delegated tools.',
+        grantRequired:
+          'Tool authorization is missing for this run. Ask an administrator to authorize the selected run mode.',
+        toolDenied:
+          'This tool is not allowed for this run. Web delegation currently supports authorized read-only tools.',
+        assuranceRequired:
+          'Your sign-in does not meet this tool’s verification requirements. Contact an administrator.',
+        serviceUnavailable:
+          'Tool authorization is temporarily unavailable. Try again later.',
+        configurationRequired:
+          'Tool authorization is not configured correctly. Ask an administrator to check the connection.',
+        signInRequired: 'Sign in again before running this Agent.',
+        accessDenied: 'You no longer have permission to run this Agent.',
+        targetUnavailable:
+          'The Agent, session or original published version is unavailable. Check access or start a new session.',
+      },
       idle: 'Idle',
       preparing: 'Preparing',
       running: 'Running',

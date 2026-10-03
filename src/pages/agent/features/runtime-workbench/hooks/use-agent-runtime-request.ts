@@ -2,6 +2,7 @@ import { useCallback, type Dispatch, type SetStateAction } from 'react'
 import { useTranslation } from 'react-i18next'
 import { agentAPI } from '@/api/agent'
 import { toast } from '@/lib/toast'
+import { agentRunErrorKey } from '../../../runtime-errors'
 import type { useTaskRunOwner } from '../../../hooks/use-task-run-owner'
 import {
   AgentRuntimeStatus,
@@ -112,6 +113,7 @@ export function useAgentRuntimeRequest({
           {
             id: canvasId,
             query: content,
+            mode: 'draft',
             session_id: sessionId,
             files,
             inputs: runtimeInputs,
@@ -144,16 +146,16 @@ export function useAgentRuntimeRequest({
           isStreaming: false,
         }))
         void refetchSessions()
-      } catch {
+      } catch (error) {
         // Explicit stop already owns local feedback; obsolete requests own nothing.
         if (!isActive()) return
-        const message = t('agent.runtime.runFailed')
+        const message = t(agentRunErrorKey(error))
         setLastError(message)
         setStatus(AgentRuntimeStatus.ERROR)
         if (attempt.assistantId)
           updateMessageById(attempt.assistantId, (row) => ({
             ...row,
-            content: row.content || message,
+            content: row.content,
             error: message,
             isStreaming: false,
           }))

@@ -12,6 +12,7 @@ import {
   type RuntimeWorkbenchSummary,
 } from '../types'
 import { SessionPicker } from './session-picker'
+import { AgentRunMode } from '../../../components/agent-run-mode'
 
 interface RuntimeHeaderProps {
   summary: RuntimeWorkbenchSummary
@@ -60,10 +61,10 @@ export function RuntimeHeader({
       : summary.sessionName || 'Live · 未命名'
 
   return (
-    <div className="border-border-primary px-space-md py-space-sm border-b">
-      <div className="gap-space-sm flex items-start justify-between">
+    <div className="border-border-primary border-b px-space-md py-space-sm">
+      <div className="flex items-start justify-between gap-space-sm">
         <div className="space-y-space-xs">
-          <div className="gap-space-sm flex items-center">
+          <div className="flex items-center gap-space-sm">
             <h2 className="text-base font-medium text-text-primary">
               Agent 运行与单步调试工作台
             </h2>
@@ -73,6 +74,7 @@ export function RuntimeHeader({
                 : STATUS_LABEL_MAP[summary.status]}
             </Badge>
           </div>
+          <AgentRunMode mode={visibleSessionId ? 'session' : 'draft'} />
           <p className="text-sm text-text-secondary">
             {summary.lastRunAt
               ? `最近一次运行 ${formatRelativeTime(summary.lastRunAt)}`
@@ -92,7 +94,7 @@ export function RuntimeHeader({
           ) : null}
         </div>
 
-        <div className="gap-space-xs flex items-center">
+        <div className="flex items-center gap-space-xs">
           <Button
             type="button"
             variant="ghost"
@@ -118,7 +120,7 @@ export function RuntimeHeader({
         </div>
       </div>
 
-      <div className="mt-space-sm gap-space-sm rounded-radius-md bg-surface-secondary px-space-sm py-space-xs flex flex-wrap items-center justify-between border border-border-default">
+      <div className="bg-surface-secondary mt-space-sm flex flex-wrap items-center justify-between gap-space-sm rounded-radius-md border border-border-default px-space-sm py-space-xs">
         <div className="min-w-0">
           <p className="truncate text-xs font-medium text-text-primary">
             当前会话：{visibleSessionName}
@@ -127,7 +129,7 @@ export function RuntimeHeader({
             {visibleSessionId || '运行后由后端返回 session_id'}
           </p>
         </div>
-        <div className="gap-space-xs flex flex-wrap items-center">
+        <div className="flex flex-wrap items-center gap-space-xs">
           <Button
             type="button"
             variant="outline"

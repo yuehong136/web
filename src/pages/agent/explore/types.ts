@@ -1,4 +1,8 @@
-import type { AgentSession, AgentSessionListParams } from '@/types/agent'
+import type {
+  AgentRunMode,
+  AgentSession,
+  AgentSessionListParams,
+} from '@/types/agent'
 import type { BeginQuery } from '../types'
 import type {
   AgentRuntimeStatus,
@@ -42,6 +46,7 @@ export interface ExploreSelection {
   sessionId: string
   isNew: boolean
   revision: number
+  mode?: AgentRunMode
 }
 
 export interface ExploreRequestOwner {

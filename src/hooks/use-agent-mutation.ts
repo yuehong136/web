@@ -1,3 +1,4 @@
+import type { CreateAgentSessionInput } from '@/types/agent'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { agentAPI } from '@/api/agent'
 import { toast } from '@/lib/toast'
@@ -285,8 +286,8 @@ export const useCreateAgentSession = (canvasId: string) => {
   const queryClient = useQueryClient()
   const mutation = useMutation({
     meta: { errorFeedback: MutationErrorFeedback.Local },
-    mutationFn: async (name: string) =>
-      adaptAgentSession(await agentAPI.createSession(canvasId, name)),
+    mutationFn: async (input: CreateAgentSessionInput) =>
+      adaptAgentSession(await agentAPI.createSession(canvasId, input)),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: agentQueryKeys.sessionsByCanvas(canvasId),

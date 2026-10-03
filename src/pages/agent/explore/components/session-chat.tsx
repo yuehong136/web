@@ -31,6 +31,8 @@ interface SessionChatProps {
   isTaskMode: boolean
   loadingSession: boolean
   sessionError: boolean
+  sourceError?: string
+  runError?: string
   onRetrySession: () => void
   messages: RuntimeMessage[]
   status: AgentRuntimeStatus
@@ -53,6 +55,8 @@ export function SessionChat({
   isTaskMode,
   loadingSession,
   sessionError,
+  sourceError,
+  runError,
   onRetrySession,
   messages,
   status,
@@ -68,12 +72,21 @@ export function SessionChat({
   const { t } = useTranslation()
   return (
     <section className="bg-surface-primary flex h-full min-h-0 flex-col">
+      {runError &&
+      status === AgentRuntimeStatus.ERROR &&
+      !messages.some((message) => message.error) ? (
+        <p role="alert" className="p-space-md text-sm text-status-error">
+          {runError}
+        </p>
+      ) : null}
       <div className="min-h-0 flex-1">
         {sessionError ? (
           <PageErrorState
             scene={AppScene.SPLIT_DETAIL}
             title={t('agent.explore.loadFailed')}
-            description={t('agent.explore.loadFailedDescription')}
+            description={
+              sourceError || t('agent.explore.loadFailedDescription')
+            }
             retryLabel={t('common.retry')}
             onRetry={onRetrySession}
           />

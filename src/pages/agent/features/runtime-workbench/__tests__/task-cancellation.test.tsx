@@ -345,3 +345,30 @@ it.each(['runtime', 'pipeline'] as const)(
       }
   },
 )
+
+it.each(['en-US', 'zh-CN'] as const)(
+  'editor shows delegation refusal safely in %s',
+  async (language) => {
+    await setProductLanguage(language)
+    const hook = await mountWorkbench()
+    mocks.runAgent.mockResolvedValueOnce(
+      Response.json(
+        {
+          retcode: 104,
+          data: false,
+          error_code: 'context_required',
+          retmsg: 'private origin detail',
+        },
+        { status: 403 },
+      ),
+    )
+    const run = await hook.start()
+    await act(async () => run.pending)
+    expect(hook.runtime.lastError).toBe(
+      language === 'en-US'
+        ? 'This session has no verified execution source. Start a new session to use delegated tools.'
+        : '本会话缺少已验证的执行来源，请新建会话使用委托工具。',
+    )
+    expect(hook.runtime.status).toBe(AgentRuntimeStatus.ERROR)
+  },
+)
