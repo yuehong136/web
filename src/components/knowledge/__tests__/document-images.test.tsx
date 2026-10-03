@@ -283,6 +283,36 @@ describe('actual image consumers and authenticated resource ownership', () => {
     )
     expect(container.textContent).toContain('Fig. 4')
   })
+  it('reference image preview and citation caption perform separate actions', async () => {
+    const onImageClick = vi.fn()
+    await render(
+      <ReferenceImageList
+        referenceChunks={[chunk]}
+        messageContent="answer[ID:0]"
+        onImageClick={onImageClick}
+      />,
+    )
+    await act(async () =>
+      container.querySelector<HTMLImageElement>('img')!.click(),
+    )
+    expect(document.querySelector('.PhotoView-Slider__Backdrop')).not.toBeNull()
+    expect(onImageClick).not.toHaveBeenCalled()
+    await render(null)
+    expect(document.querySelector('.PhotoView-Slider__Backdrop')).toBeNull()
+    await render(
+      <ReferenceImageList
+        referenceChunks={[chunk]}
+        messageContent="answer[ID:0]"
+        onImageClick={onImageClick}
+      />,
+    )
+    const caption = [
+      ...container.querySelectorAll<HTMLButtonElement>('button'),
+    ].find((button) => button.textContent === 'Fig. 1')!
+    await act(async () => caption.click())
+    expect(onImageClick).toHaveBeenCalledExactlyOnceWith(chunk, 0)
+    expect(document.querySelector('.PhotoView-Slider__Backdrop')).toBeNull()
+  })
   it('actual Search summary maps real img_id/doc_type_kwd while text with img_id stays text', async () => {
     const wire = {
       chunk_id: 'c',

@@ -73,12 +73,21 @@ export const ReferenceImageList = ({
                     source={{ kind: 'dataset', imageId: chunk.image_id! }}
                     alt={`Fig. ${(chunk.reference_index ?? idx) + 1}`}
                     preview
-                    onClick={() => onImageClick?.(chunk, idx)}
                     className="h-40 w-full rounded-radius-md border border-border-subtle bg-background-subtle object-contain"
                   />
-                  <span className="text-xs text-text-accent">
-                    Fig. {(chunk.reference_index ?? idx) + 1}
-                  </span>
+                  {onImageClick ? (
+                    <button
+                      type="button"
+                      onClick={() => onImageClick(chunk, idx)}
+                      className="text-xs text-text-accent hover:underline"
+                    >
+                      Fig. {(chunk.reference_index ?? idx) + 1}
+                    </button>
+                  ) : (
+                    <span className="text-xs text-text-accent">
+                      Fig. {(chunk.reference_index ?? idx) + 1}
+                    </span>
+                  )}
                 </div>
               </CarouselItem>
             ))}
