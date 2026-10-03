@@ -47,7 +47,10 @@ import { GeneralForm } from './settings/GeneralForm'
 import { ChunkMethodForm } from './settings/ChunkMethodForm'
 import { PipelineSelect, type PipelineOption } from './settings/PipelineSelect'
 import { LinkDataSource } from './settings/LinkDataSource'
-import { buildKnowledgeSettingsFormValues } from './settings/knowledge-settings-form-values'
+import {
+  buildKnowledgeSettingsFormValues,
+  buildKnowledgeSettingsParserConfig,
+} from './settings/knowledge-settings-form-values'
 import { MetadataManageType } from '@/types/api'
 import { PageEmptyState, PageHeader, SectionCard } from '@/components/patterns'
 import { SplitDetailPageTemplate } from '@/components/page-templates'
@@ -256,12 +259,7 @@ const KnowledgeSettingsPage: React.FC = () => {
       // 处理 parser_config，添加字段映射
       const parserConfig =
         data.parseType === 1 && data.parser_config
-          ? {
-              ...data.parser_config,
-              // 将 image_table_context_window 映射到后端的两个字段
-              image_context_size: data.parser_config.image_table_context_window,
-              table_context_size: data.parser_config.image_table_context_window,
-            }
+          ? buildKnowledgeSettingsParserConfig(data.parser_config)
           : null
 
       const updateData: UpdateKBRequest = {

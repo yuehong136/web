@@ -25,6 +25,8 @@ export const buildKnowledgeSettingsFormValues = (
   normalizeEmbdId: (value: string) => string,
 ): KnowledgeSettingsFormData => {
   const defaultValues = getDefaultFormValues()
+  const config = currentKnowledgeBase.parser_config
+  const parentChild = config?.parent_child
   const rawValues = {
     name: currentKnowledgeBase.name || '',
     description: currentKnowledgeBase.description || '',
@@ -38,6 +40,13 @@ export const buildKnowledgeSettingsFormValues = (
     parser_config: {
       ...defaultValues.parser_config,
       ...currentKnowledgeBase.parser_config,
+      // REST stores a nested parent_child object; the existing controls edit leaves.
+      ...(parentChild && typeof parentChild === 'object'
+        ? {
+            enable_children: parentChild.use_parent_child ?? false,
+            children_delimiter: parentChild.children_delimiter ?? '\n',
+          }
+        : {}),
       chunk_token_num: normalizeChunkTokenNum(
         currentKnowledgeBase.parser_config?.chunk_token_num,
         defaultValues.parser_config?.chunk_token_num ?? 512,
@@ -52,4 +61,19 @@ export const buildKnowledgeSettingsFormValues = (
   }
 
   return knowledgeSettingsFormSchema.parse(rawValues)
+}
+
+/** Keep persisted and execution parent-child fields consistent, including disablement. */
+export function buildKnowledgeSettingsParserConfig(
+  config: NonNullable<KnowledgeSettingsFormData['parser_config']>,
+): Record<string, unknown> {
+  return {
+    ...config,
+    parent_child: {
+      use_parent_child: config.enable_children,
+      children_delimiter: config.children_delimiter,
+    },
+    image_context_size: config.image_table_context_window,
+    table_context_size: config.image_table_context_window,
+  }
 }
