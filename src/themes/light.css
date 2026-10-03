@@ -96,9 +96,9 @@ html[data-theme='light'],
   --color-components-sidebar-border: rgba(0, 0, 0, 0.06);
   --color-components-sidebar-item-bg: transparent;
   --color-components-sidebar-item-bg-hover: rgba(0, 0, 0, 0.04);
-  --color-components-sidebar-item-bg-active: rgba(59, 130, 246, 0.08);
+  --color-components-sidebar-item-bg-active: rgba(0, 0, 0, 0.06);
   --color-components-sidebar-item-text: #6b7280;
-  --color-components-sidebar-item-text-active: #00d4c8;
+  --color-components-sidebar-item-text-active: #0f172a;
   --color-components-sidebar-backdrop: blur(12px);
 
   /* ===== 导航组件 ===== */
@@ -809,7 +809,7 @@ html[data-theme='light'],
   --color-components-settings-rail-border: rgba(0, 0, 0, 0.06);
   --color-components-settings-rail-title: #0f172a;
   --color-components-settings-rail-description: #6b7280;
-  --color-components-settings-rail-section-text: #9ca3af;
+  --color-components-settings-rail-section-text: #6b7280;
   --color-components-console-bg: #f7f8fa;
   --color-components-console-surface: #ffffff;
   --color-components-console-border: rgba(0, 0, 0, 0.06);

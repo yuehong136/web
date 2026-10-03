@@ -40,6 +40,7 @@ test('semantic utilities preserve scoped runtime tokens and opacity modifiers', 
   assert.match(css, /background-color: var\(--color-background-surface\)/)
   assert.match(css, /color: var\(--color-text-primary\)/)
   assert.match(css, /border-color: var\(--color-border-default\)/)
+  assert.doesNotMatch(css, /::placeholder::placeholder/)
   assert.doesNotMatch(
     css,
     /--color-text-primary:\s*var\(--color-text-primary\)/,
@@ -109,7 +110,10 @@ test('application reset stays in a lower cascade layer than semantic button colo
     { base: sourceRoot, onDependency() {} },
   )
   const css = result.build(['text-components-button-primary-text'])
-  assert.match(css, /@layer reset, theme, base, components, utilities;/)
+  assert.match(
+    css,
+    /@layer reset, theme, base, antd, antdx, components, utilities;/,
+  )
   assert.match(css, /@layer reset \{[\s\S]*?input,[\s\S]*?color: inherit;/)
   assert.match(
     css,

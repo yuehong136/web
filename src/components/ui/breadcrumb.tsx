@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { Slot } from '@radix-ui/react-slot'
 import { ChevronRight, MoreHorizontal } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -17,7 +18,7 @@ const BreadcrumbList = React.forwardRef<
   <ol
     ref={ref}
     className={cn(
-      'flex flex-wrap items-center gap-1.5 break-words text-sm sm:gap-2.5',
+      'flex flex-wrap items-center gap-1.5 text-sm break-words sm:gap-2.5',
       className,
     )}
     {...props}
@@ -45,18 +46,49 @@ const BreadcrumbLink = React.forwardRef<
   React.ComponentPropsWithoutRef<'a'> & {
     asChild?: boolean
   }
->(({ className, ...props }, ref) => {
-  return (
-    <a
-      ref={ref}
-      className={cn(
-        'transition-colors hover:text-text-primary cursor-pointer',
-        className,
-      )}
-      {...props}
-    />
-  )
-})
+>(
+  (
+    {
+      asChild = false,
+      className,
+      href,
+      onClick,
+      onKeyDown,
+      role,
+      tabIndex,
+      ...props
+    },
+    ref,
+  ) => {
+    const Component = asChild ? Slot : 'a'
+    const isActionLink = !href && Boolean(onClick)
+    return (
+      <Component
+        ref={ref}
+        href={href}
+        role={role ?? (isActionLink ? 'link' : undefined)}
+        tabIndex={tabIndex ?? (isActionLink ? 0 : undefined)}
+        onClick={onClick}
+        onKeyDown={(event) => {
+          onKeyDown?.(event)
+          if (
+            !event.defaultPrevented &&
+            isActionLink &&
+            event.key === 'Enter'
+          ) {
+            event.preventDefault()
+            event.currentTarget.click()
+          }
+        }}
+        className={cn(
+          'cursor-pointer rounded-radius-sm text-text-secondary transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden motion-reduce:transition-none',
+          className,
+        )}
+        {...props}
+      />
+    )
+  },
+)
 BreadcrumbLink.displayName = 'BreadcrumbLink'
 
 const BreadcrumbPage = React.forwardRef<
@@ -82,7 +114,7 @@ const BreadcrumbSeparator = ({
   <li
     role="presentation"
     aria-hidden="true"
-    className={cn('[&>svg]:w-3.5 [&>svg]:h-3.5 text-text-tertiary', className)}
+    className={cn('text-text-tertiary [&>svg]:h-3.5 [&>svg]:w-3.5', className)}
     {...props}
   >
     {children ?? <ChevronRight />}
@@ -115,7 +147,3 @@ export {
   BreadcrumbPage,
   BreadcrumbSeparator,
 }
-
-
-
-

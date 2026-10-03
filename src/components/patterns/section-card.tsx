@@ -2,8 +2,12 @@ import React from 'react'
 import { Card } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 
-interface SectionCardProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'title'> {
+interface SectionCardProps extends Omit<
+  React.HTMLAttributes<HTMLDivElement>,
+  'title'
+> {
   title?: React.ReactNode
+  headingLevel?: 2 | 3
   actions?: React.ReactNode
   padding?: 'none' | 'sm' | 'default' | 'lg'
   children: React.ReactNode
@@ -11,12 +15,14 @@ interface SectionCardProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 't
 
 export const SectionCard: React.FC<SectionCardProps> = ({
   title,
+  headingLevel = 3,
   actions,
   padding = 'default',
   children,
   className,
   ...props
 }) => {
+  const Heading = headingLevel === 2 ? 'h2' : 'h3'
   return (
     <Card
       variant="default"
@@ -29,8 +35,16 @@ export const SectionCard: React.FC<SectionCardProps> = ({
     >
       {title || actions ? (
         <div className="flex items-center justify-between gap-space-sm border-b border-border-subtle px-space-lg py-space-base">
-          {title ? <h3 className="text-base font-semibold text-text-primary">{title}</h3> : <div />}
-          {actions ? <div className="flex items-center gap-space-sm">{actions}</div> : null}
+          {title ? (
+            <Heading className="text-base font-semibold text-text-primary">
+              {title}
+            </Heading>
+          ) : (
+            <div />
+          )}
+          {actions ? (
+            <div className="flex items-center gap-space-sm">{actions}</div>
+          ) : null}
         </div>
       ) : null}
       <div

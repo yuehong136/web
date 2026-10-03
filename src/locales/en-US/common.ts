@@ -1,5 +1,14 @@
 export default {
   common: {
+    avatarUpload: {
+      choose: 'Choose an avatar',
+      hint: 'Image files, up to 4 MB.',
+      tooLarge: 'The image must be no larger than 4 MB.',
+      remove: 'Remove avatar',
+      crop: 'Crop avatar',
+      image: 'Image to crop',
+      cropHint: 'Drag to position the crop. Scroll to resize.',
+    },
     documentImage: {
       loading: 'Loading image...',
       unavailable: 'Image is unavailable.',

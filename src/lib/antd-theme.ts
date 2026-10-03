@@ -1,47 +1,58 @@
 import { theme as antdTheme, type ThemeConfig } from 'antd'
+import { getTokenValue } from '@/lib/design-tokens'
 
 export function buildAntdTheme(isDark: boolean): ThemeConfig {
+  const mode = isDark ? 'dark' : 'light'
+  const token = (name: Parameters<typeof getTokenValue>[0]) =>
+    getTokenValue(name, mode)
+  const input = {
+    colorBgContainer: token('components-input-bg'),
+    colorText: token('components-input-text'),
+    colorTextPlaceholder: token('components-input-text-placeholder'),
+    colorBorder: token('components-input-border'),
+    activeBorderColor: token('components-input-border-focus'),
+    hoverBorderColor: token('components-input-border-hover'),
+  }
+
   return {
     algorithm: isDark ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm,
     token: {
-      colorPrimary: isDark ? '#818cf8' : '#18181b',
+      colorPrimary: token('components-button-primary-bg'),
+      colorText: token('text-primary'),
+      colorTextSecondary: token('text-secondary'),
+      colorLink: token('text-accent'),
+      colorLinkHover: token('text-primary'),
+      colorLinkActive: token('text-primary'),
+      colorBgContainer: token('background-surface'),
+      colorBgElevated: token('components-dropdown-bg'),
+      colorBorder: token('border-default'),
       borderRadius: 8,
     },
     components: {
       Slider: {
-        railBg: isDark ? 'rgba(255, 255, 255, 0.25)' : '#e5e7eb',
-        railHoverBg: isDark ? 'rgba(255, 255, 255, 0.35)' : '#d1d5db',
-        trackBg: isDark ? '#818cf8' : '#18181b',
-        trackHoverBg: isDark ? '#6366f1' : '#27272a',
-        handleColor: isDark ? '#818cf8' : '#18181b',
-        handleActiveColor: isDark ? '#6366f1' : '#27272a',
+        railBg: token('border-strong'),
+        railHoverBg: token('components-input-border-hover'),
+        trackBg: token('components-button-primary-bg'),
+        trackHoverBg: token('components-button-primary-bg-hover'),
+        handleColor: token('components-button-primary-bg'),
+        handleActiveColor: token('components-button-primary-bg-hover'),
       },
       Select: {
-        optionSelectedBg: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)',
-        optionActiveBg: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.06)',
-        optionSelectedColor: isDark ? '#ffffff' : '#1f2937',
+        optionSelectedBg: token('components-sidebar-item-bg-active'),
+        optionActiveBg: token('components-sidebar-item-bg-hover'),
+        optionSelectedColor: token('text-primary'),
       },
-      Input: {
-        colorBgContainer: isDark ? '#1f1f1f' : '#ffffff',
-        colorText: isDark ? '#ffffff' : '#1f2937',
-        colorTextPlaceholder: isDark ? 'rgba(255, 255, 255, 0.45)' : 'rgba(0, 0, 0, 0.45)',
-        colorBorder: isDark ? '#424242' : '#d9d9d9',
-      },
-      InputNumber: {
-        colorBgContainer: isDark ? '#1f1f1f' : '#ffffff',
-        colorText: isDark ? '#ffffff' : '#1f2937',
-        colorTextPlaceholder: isDark ? 'rgba(255, 255, 255, 0.45)' : 'rgba(0, 0, 0, 0.45)',
-        colorBorder: isDark ? '#424242' : '#d9d9d9',
-      },
+      Input: input,
+      InputNumber: input,
       Tabs: {
-        inkBarColor: isDark ? '#818cf8' : '#18181b',
-        itemSelectedColor: isDark ? '#818cf8' : '#18181b',
-        itemHoverColor: isDark ? '#a5b4fc' : '#3f3f46',
-        itemColor: isDark ? '#9ca3af' : '#71717a',
+        inkBarColor: token('components-button-primary-bg'),
+        itemSelectedColor: token('text-primary'),
+        itemHoverColor: token('text-primary'),
+        itemColor: token('components-nav-item-text'),
       },
       Switch: {
-        colorPrimary: isDark ? '#818cf8' : '#18181b',
-        colorPrimaryHover: isDark ? '#6366f1' : '#27272a',
+        colorPrimary: token('components-button-primary-bg'),
+        colorPrimaryHover: token('components-button-primary-bg-hover'),
       },
     },
   }

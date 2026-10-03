@@ -160,10 +160,6 @@
   a {
     color: var(--color-text-accent);
   }
-
-  a:hover {
-    opacity: 0.8;
-  }
 }
 
 @layer components {
@@ -231,7 +227,7 @@
   }
 
   .input-field::placeholder {
-    @apply placeholder:text-muted-foreground;
+    @apply text-text-secondary;
   }
 
   .input-field:hover {
@@ -934,33 +930,6 @@ html[data-theme='dark'] .ppt-previewer canvas {
 /* 使用 loader-primary 语义令牌：浅色绿色 / 深色紫色 */
 .ant-bubble-dot-item {
   background-color: var(--color-components-loader-primary) !important;
-}
-
-/* ===== 视图切换组件样式（非分层，确保优先级） ===== */
-/* 放在 @layer 外部，避免 CSS 变量在分层中的优先级问题 */
-
-/* 选中状态 - 浅色模式（默认：黑色） */
-.view-toggle-selected {
-  background-color: #18181b !important;
-  color: #ffffff !important;
-  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-}
-
-/* 选中状态 - 深色模式覆盖（蓝色） */
-html[data-theme='dark'] .view-toggle-selected {
-  background-color: #3b82f6 !important;
-  color: #ffffff !important;
-}
-
-/* 未选中状态 */
-.view-toggle-unselected {
-  background-color: transparent !important;
-  color: var(--color-text-secondary) !important;
-}
-
-.view-toggle-unselected:hover {
-  background-color: var(--color-state-hover) !important;
-  color: var(--color-text-primary) !important;
 }
 
 /* ===== 首页输入框样式覆盖 ===== */

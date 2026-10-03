@@ -7,7 +7,7 @@ import { cn } from './utils'
  * 用于在不同视图模式之间切换（如网格/列表视图）
  *
  * 设计规范：
- * - 选中状态使用 components-button-primary 令牌（浅色黑/深色蓝）
+ * - 选中状态使用中性 state-active 令牌，保留主要操作的强调色
  * - 未选中状态使用透明背景 + 次要文字色
  * - 自动支持深色/浅色模式切换
  * - 纯展示组件，通过 props 接收状态和回调
@@ -93,10 +93,12 @@ export function ViewToggle<T extends string = string>({
             className={cn(
               // 基础样式
               'inline-flex items-center justify-center rounded-md transition-all duration-150',
-              'focus:outline-hidden focus-visible:ring-2 focus-visible:ring-inset',
+              'focus:outline-hidden focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:ring-inset',
               sizes.button,
               // 选中/未选中状态 - 使用 CSS 类确保样式正确应用
-              isSelected ? 'view-toggle-selected' : 'view-toggle-unselected',
+              isSelected
+                ? 'bg-state-active text-text-primary'
+                : 'text-text-secondary hover:bg-state-hover hover:text-text-primary',
               // 禁用状态
               disabled && 'pointer-events-none',
             )}

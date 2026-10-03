@@ -59,6 +59,7 @@
     "desktop/**/*.{mjs,ts,tsx}": "eslint"
   },
   "dependencies": {
+    "@ant-design/cssinjs": "2.1.0",
     "@ant-design/x": "2.9.0",
     "@ant-design/x-card": "2.9.0",
     "@ant-design/x-markdown": "2.9.0",

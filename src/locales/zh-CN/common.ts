@@ -1,5 +1,14 @@
 export default {
   common: {
+    avatarUpload: {
+      choose: '选择头像',
+      hint: '支持图片文件，最大 4MB。',
+      tooLarge: '图片大小不能超过 4MB。',
+      remove: '移除头像',
+      crop: '裁剪头像',
+      image: '待裁剪图片',
+      cropHint: '拖动选择裁剪区域，滚动调整大小。',
+    },
     documentImage: {
       loading: '正在加载图片…',
       unavailable: '图片暂不可用。',

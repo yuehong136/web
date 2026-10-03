@@ -2,6 +2,7 @@
 // 参考 ragflow 的头像上传组件，支持裁剪功能
 
 import React, { useState, useRef, useCallback, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Pencil, X, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from './button'
@@ -80,7 +81,7 @@ export const AvatarUpload = React.forwardRef<
   {
     value,
     onChange,
-    tips = '你可以上传4MB的文件',
+    tips,
     size = 64,
     disabled = false,
     loading = false,
@@ -88,6 +89,8 @@ export const AvatarUpload = React.forwardRef<
   },
   ref,
 ) {
+  const { t } = useTranslation()
+  const tipText = tips ?? t('common.avatarUpload.hint')
   const [avatarBase64Str, setAvatarBase64Str] = useState('')
   const [isCropModalOpen, setIsCropModalOpen] = useState(false)
   const [imageToCrop, setImageToCrop] = useState<string | null>(null)
@@ -120,7 +123,7 @@ export const AvatarUpload = React.forwardRef<
       if (file && /\.(jpg|jpeg|png|webp|bmp|gif)$/i.test(file.name)) {
         // 检查文件大小 (4MB)
         if (file.size > 4 * 1024 * 1024) {
-          alert('文件大小不能超过 4MB')
+          alert(t('common.avatarUpload.tooLarge'))
           return
         }
 
@@ -138,7 +141,7 @@ export const AvatarUpload = React.forwardRef<
       }
       e.target.value = ''
     },
-    [],
+    [t],
   )
 
   // 移除头像
@@ -392,7 +395,9 @@ export const AvatarUpload = React.forwardRef<
               {loading ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
               ) : (
-                <span className="text-xs">点击上传</span>
+                <span className="text-xs">
+                  {t('common.avatarUpload.choose')}
+                </span>
               )}
             </div>
           </div>
@@ -435,7 +440,7 @@ export const AvatarUpload = React.forwardRef<
                   'absolute -top-2 -right-2 z-10 h-5 w-5 rounded-full border-2 border-white',
                   'opacity-0 shadow-xs transition-opacity group-hover:opacity-100',
                 )}
-                aria-label="删除头像"
+                aria-label={t('common.avatarUpload.remove')}
                 type="button"
               >
                 <X className="h-3 w-3" />
@@ -447,7 +452,8 @@ export const AvatarUpload = React.forwardRef<
         <input
           type="file"
           accept="image/*"
-          title=""
+          aria-label={t('common.avatarUpload.choose')}
+          title={t('common.avatarUpload.choose')}
           className={cn(
             'absolute top-0 left-0 h-full w-full cursor-pointer opacity-0',
             disabled && 'cursor-not-allowed',
@@ -458,8 +464,10 @@ export const AvatarUpload = React.forwardRef<
         />
       </div>
 
-      {tips && (
-        <span className="self-center text-xs text-text-tertiary">{tips}</span>
+      {tipText && (
+        <span className="self-center text-xs text-text-tertiary">
+          {tipText}
+        </span>
       )}
 
       {/* 裁剪弹窗 */}
@@ -469,7 +477,7 @@ export const AvatarUpload = React.forwardRef<
       >
         <DialogContent className="sm:max-w-[420px]">
           <DialogHeader>
-            <DialogTitle>裁剪头像</DialogTitle>
+            <DialogTitle>{t('common.avatarUpload.crop')}</DialogTitle>
           </DialogHeader>
 
           <div className="flex flex-col items-center py-4">
@@ -494,7 +502,7 @@ export const AvatarUpload = React.forwardRef<
                   <img
                     ref={imageRef}
                     src={imageToCrop}
-                    alt="待裁剪"
+                    alt={t('common.avatarUpload.image')}
                     className="absolute block"
                     style={
                       imageLoaded
@@ -526,7 +534,7 @@ export const AvatarUpload = React.forwardRef<
                   )}
                 </div>
                 <p className="mt-3 text-center text-sm text-text-secondary">
-                  拖动选择区域，滚轮缩放大小
+                  {t('common.avatarUpload.cropHint')}
                 </p>
                 <canvas ref={canvasRef} className="hidden" />
               </div>
@@ -539,11 +547,11 @@ export const AvatarUpload = React.forwardRef<
               onClick={handleCancelCrop}
               disabled={isCropping}
             >
-              取消
+              {t('common.cancel')}
             </Button>
             <Button onClick={handleCrop} disabled={isCropping}>
               {isCropping && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              确认
+              {t('common.confirm')}
             </Button>
           </DialogFooter>
         </DialogContent>

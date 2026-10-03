@@ -87,9 +87,9 @@ export const lightTokens: DesignTokens = {
   'components-sidebar-border': 'rgba(0, 0, 0, 0.06)',
   'components-sidebar-item-bg': 'transparent',
   'components-sidebar-item-bg-hover': 'rgba(0, 0, 0, 0.04)',
-  'components-sidebar-item-bg-active': 'rgba(59, 130, 246, 0.08)',
+  'components-sidebar-item-bg-active': 'rgba(0, 0, 0, 0.06)',
   'components-sidebar-item-text': '#6b7280',
-  'components-sidebar-item-text-active': '#00D4C8',
+  'components-sidebar-item-text-active': '#0f172a',
 
   // ===== 导航组件 =====
   'components-nav-bg': '#ffffff',
@@ -879,7 +879,7 @@ export const lightTokens: DesignTokens = {
   'components-settings-rail-border': 'rgba(0, 0, 0, 0.06)',
   'components-settings-rail-title': '#0f172a',
   'components-settings-rail-description': '#6b7280',
-  'components-settings-rail-section-text': '#9ca3af',
+  'components-settings-rail-section-text': '#6b7280',
   'components-console-bg': '#f7f8fa',
   'components-console-surface': '#ffffff',
   'components-console-border': 'rgba(0, 0, 0, 0.06)',
@@ -1046,9 +1046,9 @@ export const darkTokens: DesignTokens = {
   'components-sidebar-border': 'rgba(255, 255, 255, 0.10)',
   'components-sidebar-item-bg': 'transparent',
   'components-sidebar-item-bg-hover': 'rgba(255, 255, 255, 0.07)',
-  'components-sidebar-item-bg-active': 'rgba(99, 102, 241, 0.15)',
+  'components-sidebar-item-bg-active': 'rgba(255, 255, 255, 0.10)',
   'components-sidebar-item-text': '#a1a1aa',
-  'components-sidebar-item-text-active': '#818cf8',
+  'components-sidebar-item-text-active': '#ffffff',
 
   // ===== 导航组件 =====
   'components-nav-bg': '#161618',
@@ -1839,7 +1839,7 @@ export const darkTokens: DesignTokens = {
   'components-settings-rail-border': 'rgba(255, 255, 255, 0.10)',
   'components-settings-rail-title': '#ffffff',
   'components-settings-rail-description': '#a1a1aa',
-  'components-settings-rail-section-text': '#6b7280',
+  'components-settings-rail-section-text': '#a1a1aa',
   'components-console-bg': '#121417',
   'components-console-surface': '#181b20',
   'components-console-border': 'rgba(255, 255, 255, 0.10)',

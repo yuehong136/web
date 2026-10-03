@@ -15,8 +15,9 @@ interface PageHeaderProps extends Omit<
    */
   leading?: React.ReactNode
   compact?: boolean
+  wrapActions?: boolean
   align?: 'start' | 'center'
-  surface?: 'default' | 'elevated'
+  surface?: 'default' | 'elevated' | 'plain'
   /**
    * Title font size. Defaults to `'lg'` (text-2xl). Use `'md'` (text-xl) for
    * dense detail headers (e.g. resource detail with avatar + stats).
@@ -31,6 +32,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   breadcrumb,
   leading,
   compact = false,
+  wrapActions = false,
   align = 'start',
   surface = 'default',
   titleSize = 'lg',
@@ -40,24 +42,31 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   return (
     <header
       className={cn(
-        'border-b border-components-page-header-border',
+        surface !== 'plain' && 'border-b border-components-page-header-border',
         surface === 'elevated'
           ? 'bg-background-surface'
-          : 'bg-components-page-header-bg',
-        compact ? 'px-space-lg py-space-base' : 'px-space-lg py-space-lg',
+          : surface !== 'plain' && 'bg-components-page-header-bg',
+        surface !== 'plain' &&
+          (compact ? 'px-space-lg py-space-base' : 'px-space-lg py-space-lg'),
         className,
       )}
       {...props}
     >
       <div
         className={cn(
-          'gap-space-lg flex justify-between',
+          'flex justify-between gap-space-lg',
+          wrapActions && 'flex-wrap',
           align === 'center' ? 'items-center' : 'items-start',
         )}
       >
-        <div className="gap-space-base flex min-w-0 flex-1 items-center">
+        <div
+          className={cn(
+            'flex min-w-0 flex-1 items-center gap-space-base',
+            wrapActions && 'basis-60',
+          )}
+        >
           {leading ? (
-            <div className="gap-space-sm flex shrink-0 items-center">
+            <div className="flex shrink-0 items-center gap-space-sm">
               {leading}
             </div>
           ) : null}
@@ -67,15 +76,17 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
                 {breadcrumb}
               </div>
             ) : null}
-            <div className="gap-space-xs flex flex-col">
-              <h1
-                className={cn(
-                  'font-semibold text-components-page-header-title',
-                  titleSize === 'md' ? 'text-xl' : 'text-2xl',
-                )}
-              >
-                {title}
-              </h1>
+            <div className="flex flex-col gap-space-xs">
+              {title ? (
+                <h1
+                  className={cn(
+                    'font-semibold text-components-page-header-title',
+                    titleSize === 'md' ? 'text-xl' : 'text-2xl',
+                  )}
+                >
+                  {title}
+                </h1>
+              ) : null}
               {description ? (
                 <p className="max-w-3xl text-sm text-components-page-header-description">
                   {description}
@@ -86,7 +97,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
         </div>
 
         {actions ? (
-          <div className="gap-space-sm flex shrink-0 items-center">
+          <div className="flex shrink-0 items-center gap-space-sm">
             {actions}
           </div>
         ) : null}
