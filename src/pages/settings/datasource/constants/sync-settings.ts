@@ -6,6 +6,9 @@ import {
 
 /** Only sources with a complete snapshot contract expose deletion sync. */
 export const deletionSyncSources = new Set<DataSourceKey>([
+  DataSourceKey.AIRTABLE,
+  DataSourceKey.GOOGLE_DRIVE,
+  DataSourceKey.BITBUCKET,
   DataSourceKey.GITHUB,
   DataSourceKey.CONFLUENCE,
   DataSourceKey.BOX,

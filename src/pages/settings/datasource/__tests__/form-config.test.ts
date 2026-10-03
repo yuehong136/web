@@ -11,13 +11,34 @@ import { deletionSyncSources } from '@/pages/settings/datasource/constants/sync-
 const t = (key: string) => key
 
 describe('connector configuration contracts', () => {
-  it('exposes deletion sync only for the nine approved complete snapshot sources', () => {
+  it('keeps Drive default personal scope usable without forcing explicit email or folder scopes', () => {
+    const fields = getDataSourceFormFields(t)[DataSourceKey.GOOGLE_DRIVE]
+    for (const name of [
+      'config.my_drive_emails',
+      'config.shared_folder_urls',
+    ]) {
+      expect(fields.find((field) => field.name === name)?.required).toBe(false)
+    }
+    expect(
+      getDataSourceDefaultValues(DataSourceKey.GOOGLE_DRIVE).config,
+    ).toMatchObject({
+      include_my_drives: true,
+      my_drive_emails: '',
+      shared_folder_urls: '',
+      sync_deleted_files: false,
+    })
+  })
+
+  it('exposes deletion sync only for approved complete snapshot sources', () => {
     const fields = getDataSourceFormFields(t)
     expect([...deletionSyncSources].sort()).toEqual([
+      'airtable',
+      'bitbucket',
       'box',
       'confluence',
       'github',
       'google_cloud_storage',
+      'google_drive',
       'jira',
       'notion',
       'oci_storage',

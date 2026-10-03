@@ -223,7 +223,10 @@ export default {
     bitbucketWorkspaceTip: 'Bitbucket workspace ID',
     bitbucketRepoSlugsTip: 'Repository slugs to index, separated by commas',
     bitbucketProjectsTip: 'Project keys to index, separated by commas',
-    bitbucketTokenTip: 'Generate app password from Bitbucket settings',
+    bitbucketAccountEmail: 'Bitbucket account email',
+    bitbucketAccountEmailTip:
+      'Email of the Atlassian account associated with the API token',
+    bitbucketTokenTip: 'API token for the specified Bitbucket account',
 
     // Database related
     fieldHost: 'Host',

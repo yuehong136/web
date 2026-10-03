@@ -3,7 +3,9 @@ import { FormFieldType, type FormFieldConfig } from '../types'
 /**
  * Bitbucket 数据源表单字段配置
  */
-export const getBitbucketFormFields = (t: (key: string) => string): FormFieldConfig[] => [
+export const getBitbucketFormFields = (
+  t: (key: string) => string,
+): FormFieldConfig[] => [
   {
     label: 'Workspace',
     name: 'config.workspace',
@@ -43,6 +45,14 @@ export const getBitbucketFormFields = (t: (key: string) => string): FormFieldCon
     tooltip: t('datasource.bitbucketProjectsTip'),
   },
   {
+    label: t('datasource.bitbucketAccountEmail'),
+    name: 'config.credentials.bitbucket_account_email',
+    type: FormFieldType.Text,
+    required: true,
+    placeholder: 'account@example.com',
+    tooltip: t('datasource.bitbucketAccountEmailTip'),
+  },
+  {
     label: 'Bitbucket API Token',
     name: 'config.credentials.bitbucket_api_token',
     type: FormFieldType.Password,
@@ -63,6 +73,7 @@ export const bitbucketDefaultValues = {
     repository_slugs: '',
     projects: '',
     credentials: {
+      bitbucket_account_email: '',
       bitbucket_api_token: '',
     },
   },

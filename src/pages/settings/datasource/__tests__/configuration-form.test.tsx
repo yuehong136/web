@@ -159,3 +159,34 @@ it('preserves an unsupported historical deletion setting when saving without dis
   await click(button('Save'))
   expect(submit.mock.calls[0][0].config).toMatchObject(detail.config)
 })
+
+it('requires Bitbucket account email and submits backend credential keys with deletion sync', async () => {
+  await renderAdd(DataSourceKey.BITBUCKET)
+  await change(input('name'), 'Scratch')
+  await change(input('config.workspace'), 'scratch-workspace')
+  await change(input('config.credentials.bitbucket_api_token'), 'scratch-token')
+  await click(button('Confirm'))
+  expect(submit).not.toHaveBeenCalled()
+  expect(
+    input('config.credentials.bitbucket_account_email').getAttribute(
+      'aria-invalid',
+    ),
+  ).toBe('true')
+  await change(
+    input('config.credentials.bitbucket_account_email'),
+    'scratch@example.com',
+  )
+  const deletion = Array.from(document.querySelectorAll('label')).find(
+    (label) => label.textContent === 'Sync source deletions',
+  )!
+  await click(deletion)
+  await click(button('Confirm'))
+  expect(submit).toHaveBeenCalledTimes(1)
+  expect(submit.mock.calls[0][0].config).toMatchObject({
+    sync_deleted_files: true,
+    credentials: {
+      bitbucket_account_email: 'scratch@example.com',
+      bitbucket_api_token: 'scratch-token',
+    },
+  })
+})

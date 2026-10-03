@@ -204,7 +204,9 @@ export default {
     bitbucketWorkspaceTip: 'Bitbucket 工作区 ID',
     bitbucketRepoSlugsTip: '要索引的仓库 slug，用逗号分隔',
     bitbucketProjectsTip: '要索引的项目 Key，用逗号分隔',
-    bitbucketTokenTip: '从 Bitbucket 设置中生成应用密码',
+    bitbucketAccountEmail: 'Bitbucket 账号邮箱',
+    bitbucketAccountEmailTip: 'API Token 所属的 Atlassian 账号邮箱',
+    bitbucketTokenTip: '指定 Bitbucket 账号的 API Token',
 
     // 数据库相关
     fieldHost: '主机',
