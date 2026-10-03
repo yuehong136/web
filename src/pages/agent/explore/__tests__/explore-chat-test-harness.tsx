@@ -19,20 +19,21 @@ const mockAPI = vi.hoisted(() => ({
   fetchVersion: vi.fn(),
   fetchSession: vi.fn(),
   createSession: vi.fn(),
+  deleteSession: vi.fn(),
   runAgentSession: vi.fn(),
   cancelTask: vi.fn(),
   fetchSessions: vi.fn(),
 }))
-const mockNotifications = vi.hoisted(() => ({ error: vi.fn() }))
+const mockNotifications = vi.hoisted(() => ({
+  error: vi.fn(),
+  success: vi.fn(),
+}))
 export const agentKeys = agentQueryKeys
 export const api = mockAPI
 export const notifications = mockNotifications
 vi.mock('@/api/agent', () => ({ agentAPI: mockAPI }))
 vi.mock('@/lib/toast', () => ({ toast: mockNotifications }))
 vi.mock('../../debug-content', () => ({ default: () => null }))
-vi.mock('../components/session-debug-panel', () => ({
-  SessionDebugPanel: () => null,
-}))
 vi.mock('../../components/runtime-chat/runtime-chat-message-list', () => ({
   RuntimeChatMessageList: ({
     messages,
@@ -113,6 +114,8 @@ export async function waitForState(check: () => void) {
 export function resetAPI() {
   Object.values(api).forEach((mock) => mock.mockReset())
   notifications.error.mockReset()
+  notifications.success.mockReset()
+  api.deleteSession.mockResolvedValue(true)
   api.fetchSession.mockImplementation(async (_canvas: string, id: string) =>
     session(id),
   )

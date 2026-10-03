@@ -1,12 +1,9 @@
-import { Badge } from '@/components/ui/badge'
+import { useTranslation } from 'react-i18next'
+import { CircleAlert, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn, formatRelativeTime } from '@/lib/utils'
-import {
-  extractSessionStatus,
-  type AgentSessionRuntimeStatus,
-} from '../../adapters/session'
+import { extractSessionStatus } from '../../adapters/session'
 import type { ExploreSession } from '../types'
-import { Trash2 } from 'lucide-react'
 
 interface SessionCardProps {
   session: ExploreSession
@@ -16,21 +13,6 @@ interface SessionCardProps {
   onDelete: () => void
 }
 
-const STATUS_LABEL_MAP: Record<AgentSessionRuntimeStatus, string> = {
-  success: '成功',
-  error: '失败',
-  unknown: '未知',
-}
-
-const STATUS_VARIANT_MAP: Record<
-  AgentSessionRuntimeStatus,
-  'success' | 'destructive' | 'outline'
-> = {
-  success: 'success',
-  error: 'destructive',
-  unknown: 'outline',
-}
-
 export function SessionCard({
   session,
   selected,
@@ -38,64 +20,62 @@ export function SessionCard({
   onSelect,
   onDelete,
 }: SessionCardProps) {
-  const status = extractSessionStatus(session)
+  const { t } = useTranslation()
+  const name = session.isTemporary
+    ? t('agent.explore.newChat')
+    : session.name || t('agent.explore.unnamedChat')
+  const messageCount = session.message_count ?? session.messages?.length ?? 0
+  const hasError = extractSessionStatus(session) === 'error'
 
   return (
     <div
-      role="button"
-      tabIndex={0}
       className={cn(
-        'group w-full rounded-radius-lg border p-space-base text-left transition-colors',
-        selected
-          ? 'border-state-focus bg-surface-secondary'
-          : 'border-border-default hover:bg-surface-secondary',
+        'group relative flex items-start rounded-radius-lg transition-colors',
+        selected ? 'bg-state-focus-10' : 'hover:bg-background-subtle',
       )}
-      onClick={onSelect}
-      onKeyDown={(event) => {
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault()
-          onSelect()
-        }
-      }}
     >
-      <div className="flex items-start justify-between gap-space-sm">
-        <div className="min-w-0">
-          <p className="truncate text-sm font-medium text-text-primary">
-            {session.isTemporary ? '新会话' : session.name || '未命名会话'}
-          </p>
-          <p className="mt-space-xs text-xs text-text-tertiary">
-            {session.update_time
-              ? formatRelativeTime(session.update_time)
-              : '暂无时间信息'}
-          </p>
-        </div>
-        <div className="flex shrink-0 items-center gap-space-xs">
-          <Badge variant={STATUS_VARIANT_MAP[status]}>
-            {STATUS_LABEL_MAP[status]}
-          </Badge>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            disabled={disabled}
-            className="opacity-0 transition-opacity group-hover:opacity-100"
-            onClick={(event) => {
-              event.stopPropagation()
-              onDelete()
-            }}
-            title="删除会话"
-            aria-label="删除会话"
-          >
-            <Trash2 className="size-4" />
-          </Button>
-        </div>
-      </div>
-      <div className="mt-space-sm flex items-center justify-between gap-space-sm text-xs text-text-tertiary">
-        <span>{session.isTemporary ? '首次发送后创建' : session.id}</span>
-        <span className="rounded-radius-full bg-surface-primary px-space-sm py-[2px] text-text-secondary">
-          {session.message_count || session.messages?.length || 0}
+      <button
+        type="button"
+        aria-pressed={selected}
+        className="flex min-w-0 flex-1 flex-col gap-space-xs rounded-radius-lg py-space-base pr-space-2xl pl-space-base text-left outline-hidden focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:ring-inset"
+        onClick={onSelect}
+      >
+        <span className="block w-full truncate text-sm font-medium text-text-primary">
+          {name}
         </span>
-      </div>
+        <span className="flex w-full flex-wrap items-center gap-x-space-sm gap-y-space-xs text-xs text-text-tertiary">
+          {session.isTemporary ? (
+            <span>{t('agent.explore.temporaryChatHint')}</span>
+          ) : (
+            <>
+              {session.update_time ? (
+                <span>{formatRelativeTime(session.update_time)}</span>
+              ) : null}
+              <span>
+                {t('agent.explore.messageCount', { count: messageCount })}
+              </span>
+            </>
+          )}
+          {hasError ? (
+            <span className="flex items-center gap-space-xs text-status-error">
+              <CircleAlert className="size-icon-sm" aria-hidden="true" />
+              {t('agent.explore.sessionError')}
+            </span>
+          ) : null}
+        </span>
+      </button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-sm"
+        disabled={disabled}
+        className="absolute top-space-sm right-space-xs text-text-tertiary opacity-100 transition-opacity hover:text-status-error focus-visible:opacity-100 md:opacity-0 md:group-focus-within:opacity-100 md:group-hover:opacity-100"
+        onClick={onDelete}
+        title={t('agent.explore.deleteChatNamed', { name })}
+        aria-label={t('agent.explore.deleteChatNamed', { name })}
+      >
+        <Trash2 className="size-icon-sm" aria-hidden="true" />
+      </Button>
     </div>
   )
 }

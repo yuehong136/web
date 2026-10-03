@@ -1,4 +1,5 @@
 import { Fragment, useCallback, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Bubble } from '@ant-design/x'
 import type { BubbleListProps } from '@ant-design/x'
 import { CarouselWrapper } from '@/components/chat/CarouselWrapper'
@@ -67,6 +68,7 @@ export function RuntimeChatMessageList({
   onXCardAction,
   onDownloadAttachment,
 }: RuntimeChatMessageListProps) {
+  const { t } = useTranslation()
   const [detailOpen, setDetailOpen] = useState(false)
   const [selectedChunk, setSelectedChunk] = useState<ReferenceChunk | null>(
     null,
@@ -85,14 +87,17 @@ export function RuntimeChatMessageList({
     [],
   )
 
-  const handleCopyContent = useCallback(async (content: string) => {
-    try {
-      await copyToClipboard(content)
-      toast.success('已复制到剪贴板')
-    } catch {
-      toast.error('复制失败')
-    }
-  }, [])
+  const handleCopyContent = useCallback(
+    async (content: string) => {
+      try {
+        await copyToClipboard(content)
+        toast.success(t('agent.share.copiedToClipboard'))
+      } catch {
+        toast.error(t('agent.share.copyFailedRetry'))
+      }
+    },
+    [t],
+  )
 
   const bubbleItems = useMemo<BubbleListProps['items']>(() => {
     return messages.map((message, index) => {
@@ -246,7 +251,7 @@ export function RuntimeChatMessageList({
                 {isUser ? (
                   <>
                     {message.content ? (
-                      <div className="whitespace-pre-wrap break-words text-sm">
+                      <div className="text-sm break-words whitespace-pre-wrap">
                         {message.content}
                       </div>
                     ) : null}
@@ -267,7 +272,7 @@ export function RuntimeChatMessageList({
                         status={thinkingStatus}
                         messageId={message.id}
                       >
-                        <div className="whitespace-pre-wrap text-sm text-text-secondary">
+                        <div className="text-sm whitespace-pre-wrap text-text-secondary">
                           {thinkContent}
                         </div>
                       </ThinkWrapper>
@@ -309,7 +314,7 @@ export function RuntimeChatMessageList({
                     ) : null}
 
                     {message.awaitingInputs?.length && isLatest ? (
-                      <div className="mt-space-md rounded-radius-md border-border-primary bg-surface-primary p-space-sm border">
+                      <div className="border-border-primary bg-surface-primary mt-space-md rounded-radius-md border p-space-sm">
                         <DebugContent
                           canvasId={canvasId}
                           parameters={message.awaitingInputs}
@@ -318,7 +323,7 @@ export function RuntimeChatMessageList({
                           }
                           isNext={false}
                           loading={status === AgentRuntimeStatus.RUNNING}
-                          btnText="提交继续运行"
+                          btnText={t('agent.explore.submitContinue')}
                           className="min-h-0"
                           maxHeight="max-h-none"
                         />
@@ -356,18 +361,19 @@ export function RuntimeChatMessageList({
     onSubmitAwaitingInputs,
     onXCardAction,
     status,
+    t,
   ])
 
   return (
     <>
       <div
         className={cn(
-          'runtime-chat-message-list py-space-lg mx-auto w-full',
+          'runtime-chat-message-list mx-auto w-full py-space-lg',
           density === 'flush'
             ? 'max-w-full px-0'
             : density === 'compact'
-              ? 'px-space-md max-w-full'
-              : 'px-space-lg max-w-4xl',
+              ? 'max-w-full px-space-md'
+              : 'max-w-4xl px-space-lg',
           className,
         )}
       >

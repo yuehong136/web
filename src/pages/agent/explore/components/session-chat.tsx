@@ -14,6 +14,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { Button } from '@/components/ui/button'
+import { Bot, Plus } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import DebugContent from '../../debug-content'
 import type { BeginQuery } from '../../types'
 import { AgentRuntimeStatus } from '../../features/runtime-workbench/types'
@@ -27,6 +30,9 @@ import {
 
 interface SessionChatProps {
   canvasId: string
+  agentName?: string
+  agentDescription?: string
+  onCreateSession?: () => void
   active: boolean
   isTaskMode: boolean
   loadingSession: boolean
@@ -51,6 +57,9 @@ interface SessionChatProps {
 
 export function SessionChat({
   canvasId,
+  agentName,
+  agentDescription,
+  onCreateSession,
   active,
   isTaskMode,
   loadingSession,
@@ -70,8 +79,15 @@ export function SessionChat({
   onStop,
 }: SessionChatProps) {
   const { t } = useTranslation()
+  const readyEmpty =
+    active && !loadingSession && !sessionError && messages.length === 0
   return (
-    <section className="bg-surface-primary flex h-full min-h-0 flex-col">
+    <section
+      className={cn(
+        'flex h-full min-h-0 flex-col bg-components-console-surface',
+        readyEmpty && 'overflow-auto',
+      )}
+    >
       {runError &&
       status === AgentRuntimeStatus.ERROR &&
       !messages.some((message) => message.error) ? (
@@ -79,7 +95,9 @@ export function SessionChat({
           {runError}
         </p>
       ) : null}
-      <div className="min-h-0 flex-1">
+      <div
+        className={cn('min-h-0', readyEmpty ? 'mt-auto shrink-0' : 'flex-1')}
+      >
         {sessionError ? (
           <PageErrorState
             scene={AppScene.SPLIT_DETAIL}
@@ -99,21 +117,50 @@ export function SessionChat({
         ) : !active ? (
           <PageEmptyState
             scene={AppScene.SPLIT_DETAIL}
-            title={t('agent.explore.selectSession')}
-            description={t('agent.explore.selectSessionDescription')}
+            icon={<Bot className="size-icon-lg" />}
+            title={agentName || t('agent.explore.selectSession')}
+            description={
+              agentDescription || t('agent.explore.selectSessionDescription')
+            }
+            action={
+              onCreateSession ? (
+                <Button onClick={onCreateSession}>
+                  <Plus className="size-icon-sm" />
+                  {t('agent.explore.newChat')}
+                </Button>
+              ) : undefined
+            }
           />
         ) : messages.length === 0 ? (
           <PageEmptyState
             scene={AppScene.SPLIT_DETAIL}
-            title={t('agent.explore.noMessages')}
-            description={t('agent.explore.noMessagesDescription')}
+            className="h-auto min-h-0"
+            icon={<Bot className="size-icon-lg" />}
+            title={
+              <span className="text-2xl">
+                {t(
+                  isTaskMode
+                    ? 'agent.explore.taskWelcome'
+                    : 'agent.explore.welcome',
+                  { name: agentName || t('agent.agent') },
+                )}
+              </span>
+            }
+            description={
+              agentDescription || t('agent.explore.noMessagesDescription')
+            }
           />
         ) : (
-          <ScrollArea className="h-full">
+          <ScrollArea
+            className="h-full"
+            aria-live="polite"
+            aria-busy={status === AgentRuntimeStatus.RUNNING}
+          >
             <RuntimeChatMessageList
               canvasId={canvasId}
               messages={messages}
               status={status}
+              className="max-w-3xl"
               onSubmitAwaitingInputs={onSubmitAwaitingInputs}
               onXCardAction={onXCardAction}
             />
@@ -122,13 +169,25 @@ export function SessionChat({
       </div>
 
       {active && !loadingSession && !sessionError ? (
-        <RuntimeChatComposer
-          canvasId={canvasId}
-          status={status}
-          isTaskMode={isTaskMode}
-          onSend={onSend}
-          onStop={onStop}
-        />
+        <div className={cn('shrink-0', readyEmpty && 'mb-auto')}>
+          <RuntimeChatComposer
+            canvasId={canvasId}
+            status={status}
+            isTaskMode={isTaskMode}
+            className="border-t-0 px-space-md md:px-space-lg"
+            contentClassName="max-w-3xl"
+            placeholder={t(
+              isTaskMode
+                ? 'agent.explore.taskPlaceholder'
+                : 'agent.explore.messagePlaceholder',
+            )}
+            onSend={onSend}
+            onStop={onStop}
+          />
+          <p className="px-space-md pb-space-base text-center text-xs text-text-secondary">
+            {t('agent.explore.composerHint')}
+          </p>
+        </div>
       ) : null}
 
       <Dialog

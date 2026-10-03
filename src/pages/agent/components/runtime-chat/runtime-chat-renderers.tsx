@@ -1,5 +1,6 @@
 import { FileCard } from '@ant-design/x'
 import type { ComponentProps } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Bot, User } from 'lucide-react'
 import {
   markdownConfig,
@@ -58,7 +59,7 @@ export function RuntimeChatMarkdown({
   }
 
   return (
-    <div className="prose prose-sm max-w-none dark:prose-invert bubble-copy-text markdown-content">
+    <div className="bubble-copy-text markdown-content prose prose-sm max-w-none dark:prose-invert">
       <StreamingXMarkdown
         paragraphTag="div"
         config={markdownConfig}
@@ -70,34 +71,34 @@ export function RuntimeChatMarkdown({
   )
 }
 
-const fileCardIconMap: Record<string, ComponentProps<typeof FileCard>['icon']> = {
-  csv: 'excel',
-  doc: 'word',
-  docx: 'word',
-  html: 'default',
-  jpeg: 'image',
-  jpg: 'image',
-  js: 'javascript',
-  markdown: 'markdown',
-  md: 'markdown',
-  mdx: 'markdown',
-  mp3: 'audio',
-  mp4: 'video',
-  pdf: 'pdf',
-  png: 'image',
-  ppt: 'ppt',
-  pptx: 'ppt',
-  py: 'python',
-  txt: 'default',
-  wav: 'audio',
-  xls: 'excel',
-  xlsx: 'excel',
-  zip: 'zip',
-}
+const fileCardIconMap: Record<string, ComponentProps<typeof FileCard>['icon']> =
+  {
+    csv: 'excel',
+    doc: 'word',
+    docx: 'word',
+    html: 'default',
+    jpeg: 'image',
+    jpg: 'image',
+    js: 'javascript',
+    markdown: 'markdown',
+    md: 'markdown',
+    mdx: 'markdown',
+    mp3: 'audio',
+    mp4: 'video',
+    pdf: 'pdf',
+    png: 'image',
+    ppt: 'ppt',
+    pptx: 'ppt',
+    py: 'python',
+    txt: 'default',
+    wav: 'audio',
+    xls: 'excel',
+    xlsx: 'excel',
+    zip: 'zip',
+  }
 
 const getAttachmentExtension = (file: RuntimeAttachment) => {
-  const explicitType =
-    typeof file.type === 'string' ? file.type : undefined
+  const explicitType = typeof file.type === 'string' ? file.type : undefined
   const explicitFormat =
     typeof file.format === 'string' ? file.format : undefined
   const extensionFromName = file.name.includes('.')
@@ -116,6 +117,7 @@ export function RuntimeAttachmentList({
   message: RuntimeMessage
   onDownloadAttachment?: (file: RuntimeAttachment) => void | Promise<void>
 }) {
+  const { t } = useTranslation()
   if (!message.files?.length) {
     return null
   }
@@ -130,7 +132,11 @@ export function RuntimeAttachmentList({
           size="small"
           type="file"
           icon={fileCardIconMap[getAttachmentExtension(file)] || 'default'}
-          description={onDownloadAttachment ? '点击下载' : undefined}
+          description={
+            onDownloadAttachment
+              ? t('agent.explore.downloadAttachment')
+              : undefined
+          }
           className={onDownloadAttachment ? 'cursor-pointer' : undefined}
           onClick={
             onDownloadAttachment

@@ -1,5 +1,21 @@
 # Explore 会话选择与请求归属
 
+## Current experience structure (2026-10-03)
+
+Explore is a conversation workspace for one Agent. It uses `WorkspacePageTemplate`, with a centered conversation and composer. History collapses on desktop and opens in a separate mobile drawer. Search stays visible; dates and sorting expand on demand. Conversation rows show the name, time, message count and recorded errors, without raw IDs or inferred success badges.
+
+The toolbar identifies the execution source. Draft/published selection, source explanations, overview, execution logs, raw data and download live in the run details drawer. The copied conversation link still requires the existing authentication and access permissions. New conversations use the Agent's actual name and description; no suggested tasks, favorites, model selection or usage metrics are invented.
+
+The layout retains the source / request owner / streaming hooks, attachments, parameter forms, user-input pauses, references and XCard rendering. History and details toggles do not unmount the conversation. Deleting another conversation preserves the current selection. Stop only confirms output detachment; cancellation feedback is shown separately and does not prove the server task was canceled.
+
+Official source references:
+
+- [Dify: centered conversation, composer and opening content](https://github.com/langgenius/dify/blob/43af5082d3c4ab8a96067370d2f86f214e3c85ae/web/app/components/base/chat/chat-with-history/chat-wrapper.tsx#L296).
+- [Open WebUI: expandable status history](https://github.com/open-webui/open-webui/blob/8bd8b4fac5e059578ac0c74b3c18d11139f88b7d/src/lib/components/chat/Messages/ResponseMessage/StatusHistory.svelte#L7).
+- [RAGFlow: Explore session and runtime composition](https://github.com/infiniflow/ragflow/blob/98b48a085786fb9e14be8753b5a9a9ea02230ccf/web/src/pages/agent/explore/index.tsx#L61).
+
+This iteration's component regressions and browser checks of light/dark themes, Chinese/English and small screens used controlled session and response data. They verify the actual layout, interactions and frontend contracts, not real-backend/model/retrieval/attachment-parsing E2E. Historical acceptance records below remain bound to their stated revisions and environments.
+
 ## 跟进范围
 
 目标为 `4f6651968a4d3bd2d6635c048e1b5cf454b5221f` 的前端会话选择行为：页面选中的会话优先，明确的新建状态创建新会话。

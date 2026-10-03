@@ -36,6 +36,7 @@ function button(name: string) {
     (item) =>
       item.textContent?.trim() === name ||
       item.querySelector('p')?.textContent === name ||
+      item.querySelector('span')?.textContent === name ||
       item.getAttribute('aria-label') === name,
   )
   if (!element) throw new Error(`Missing button ${name}`)
@@ -52,6 +53,193 @@ async function type(value: string) {
     textarea.dispatchEvent(new Event('input', { bubbles: true }))
   })
 }
+
+async function changeInput(input: HTMLInputElement | null, value: string) {
+  if (!input) throw new Error('Missing input')
+  await act(async () => {
+    Object.getOwnPropertyDescriptor(
+      HTMLInputElement.prototype,
+      'value',
+    )?.set?.call(input, value)
+    input.dispatchEvent(new Event('input', { bubbles: true }))
+  })
+}
+
+function labeledInput(name: string) {
+  const label = Array.from(
+    page.container.querySelectorAll<HTMLLabelElement>('label'),
+  ).find((element) => element.textContent === name)
+  return label?.control instanceof HTMLInputElement ? label.control : null
+}
+
+async function selectOption(label: string, value: string) {
+  await act(async () => button(label).click())
+  const option = Array.from(
+    document.body.querySelectorAll<HTMLButtonElement>(
+      '[data-select-content] button',
+    ),
+  ).find((element) => element.textContent === value)
+  if (!option) throw new Error(`Missing ${label} option ${value}`)
+  await act(async () =>
+    option.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true })),
+  )
+}
+
+async function deleteOtherSession() {
+  api.fetchSessions.mockResolvedValue({
+    sessions: [session('A')],
+    total: 1,
+  })
+  const deleteButton =
+    button('B').parentElement?.querySelector<HTMLButtonElement>(
+      'button[aria-label]',
+    )
+  if (!deleteButton) throw new Error('Missing B deletion action')
+  await act(async () => deleteButton.click())
+  await waitForState(() =>
+    expect(api.deleteSession).toHaveBeenCalledWith('canvas', 'B'),
+  )
+}
+
+it('deleting another conversation preserves the selected conversation and its composer draft', async () => {
+  page = await mountPage()
+  await waitForState(() => expect(button('B')).toBeTruthy())
+  await type('unsent A draft')
+  const composer = page.container.querySelector('textarea')
+
+  await deleteOtherSession()
+
+  expect(page.location).toBe('?sessionId=A')
+  expect(page.container.querySelector('textarea')).toBe(composer)
+  expect(page.container.querySelector('textarea')?.value).toBe('unsent A draft')
+  expect(page.container.textContent).toContain('A history')
+})
+
+it('deleting another conversation keeps the selected conversation stream alive', async () => {
+  page = await mountPage()
+  await waitForState(() => expect(button('B')).toBeTruthy())
+  const body = stream()
+  api.runAgentSession.mockResolvedValueOnce(body.response)
+  await type('A question')
+  await act(async () => button('Send').click())
+  const signal = api.runAgentSession.mock.calls[0]?.[1].signal as AbortSignal
+
+  await deleteOtherSession()
+
+  expect(page.location).toBe('?sessionId=A')
+  expect(signal.aborted).toBe(false)
+  expect(page.container.textContent).toContain('A question')
+  await act(async () => {
+    body.emit({
+      event: 'message',
+      session_id: 'A',
+      data: { content: 'A answer after deleting B' },
+    })
+    body.end()
+  })
+  await waitForState(() =>
+    expect(page.container.textContent).toContain('A answer after deleting B'),
+  )
+  expect(page.container.querySelector('textarea')?.disabled).toBe(false)
+  expect(api.runAgentSession).toHaveBeenCalledTimes(1)
+})
+
+it('hiding and reopening conversation history preserves the selected conversation draft', async () => {
+  page = await mountPage()
+  await waitForState(() => expect(button('B')).toBeTruthy())
+  await type('A draft while changing the layout')
+  const composer = page.container.querySelector('textarea')
+
+  await act(async () => button('Hide conversations').click())
+
+  expect(page.container.querySelector('#explore-history')).toBeNull()
+  expect(page.container.querySelector('textarea')).toBe(composer)
+  expect(page.container.querySelector('textarea')?.value).toBe(
+    'A draft while changing the layout',
+  )
+  expect(page.location).toBe('?sessionId=A')
+
+  await act(async () => button('Show conversations').click())
+
+  expect(page.container.querySelector('#explore-history')).not.toBeNull()
+  expect(page.container.querySelector('textarea')).toBe(composer)
+  expect(page.container.querySelector('textarea')?.value).toBe(
+    'A draft while changing the layout',
+  )
+  expect(page.container.textContent).toContain('A history')
+  expect(page.location).toBe('?sessionId=A')
+})
+
+it('keeps filters collapsed by default and preserves search, date, sort, and reset parameters', async () => {
+  api.fetchSessions.mockResolvedValue({
+    sessions: [session('A'), session('B')],
+    total: 24,
+  })
+  page = await mountPage()
+  await waitForState(() => expect(button('B')).toBeTruthy())
+  expect(button('Filter and sort').getAttribute('aria-expanded')).toBe('false')
+  expect(page.container.querySelector('input[type="date"]')).toBeNull()
+  const latestParams = () => api.fetchSessions.mock.calls.at(-1)?.[1]
+
+  await act(async () => button('Next page').click())
+  await waitForState(() => expect(latestParams()?.page).toBe(2))
+  await changeInput(
+    page.container.querySelector('input[aria-label="Search conversations"]'),
+    'retrieval example',
+  )
+  await waitForState(() =>
+    expect(latestParams()).toMatchObject({
+      keywords: 'retrieval example',
+      page: 1,
+    }),
+  )
+  expect(page.container.querySelector('input[type="date"]')).toBeNull()
+
+  await act(async () => button('Filter and sort').click())
+  expect(button('Filter and sort').getAttribute('aria-expanded')).toBe('true')
+  await changeInput(labeledInput('From date'), '2026-10-01')
+  await changeInput(labeledInput('To date'), '2026-10-03')
+  await selectOption('Sort by', 'Created')
+  await selectOption('Sort direction', 'Ascending')
+  await waitForState(() =>
+    expect(latestParams()).toMatchObject({
+      keywords: 'retrieval example',
+      from_date: '2026-10-01',
+      to_date: '2026-10-03',
+      orderby: 'create_time',
+      desc: false,
+      page: 1,
+    }),
+  )
+
+  await act(async () => button('Clear filters').click())
+  expect(
+    page.container.querySelector<HTMLInputElement>(
+      'input[aria-label="Search conversations"]',
+    )?.value,
+  ).toBe('')
+  expect(labeledInput('From date')?.value).toBe('')
+  expect(labeledInput('To date')?.value).toBe('')
+  expect(button('Sort by').textContent).toBe('Updated')
+  expect(button('Sort direction').textContent).toBe('Descending')
+  // Clearing can reuse the cached default query. The next uncached search
+  // verifies that all reset values reach the API rather than only the form.
+  await changeInput(
+    page.container.querySelector('input[aria-label="Search conversations"]'),
+    'another retrieval example',
+  )
+  await waitForState(() =>
+    expect(latestParams()).toMatchObject({
+      keywords: 'another retrieval example',
+      from_date: '',
+      to_date: '',
+      orderby: 'update_time',
+      desc: true,
+      page: 1,
+    }),
+  )
+  expect(page.location).toBe('?sessionId=A')
+})
 
 it('actual Explore page hides the composer during B load and shows only B history before sending', async () => {
   page = await mountPage(['A'])
@@ -73,7 +261,7 @@ it('actual Explore page hides the composer during B load and shows only B histor
   const body = stream()
   api.runAgentSession.mockResolvedValueOnce(body.response)
   await type('B message')
-  await act(async () => button('发送').click())
+  await act(async () => button('Send').click())
   expect(api.runAgentSession.mock.calls[0]?.[0].session_id).toBe('B')
   body.end()
   await waitForState(() =>
@@ -109,7 +297,7 @@ it('old A composer completion cannot clear a draft typed in actual B page', asyn
   const a = stream()
   api.runAgentSession.mockResolvedValueOnce(a.response)
   await type('A question')
-  await act(async () => button('发送').click())
+  await act(async () => button('Send').click())
   await act(async () => button('B').click())
   await type('B draft')
   await act(async () => {
@@ -134,9 +322,9 @@ it('actual new-session promotion retains the stream and continues with the creat
   api.createSession.mockResolvedValueOnce(session('created'))
   const first = stream()
   api.runAgentSession.mockResolvedValueOnce(first.response)
-  await act(async () => button('新建').click())
+  await act(async () => button('New chat').click())
   await type('first new message')
-  await act(async () => button('发送').click())
+  await act(async () => button('Send').click())
   await waitForState(() => expect(page.location).toBe('?sessionId=created'))
   expect(api.runAgentSession.mock.calls[0]?.[0].session_id).toBe('created')
   const signal = api.runAgentSession.mock.calls[0]?.[1].signal as AbortSignal
@@ -157,34 +345,34 @@ it('actual new-session promotion retains the stream and continues with the creat
   const second = stream()
   api.runAgentSession.mockResolvedValueOnce(second.response)
   await type('continue new session')
-  await act(async () => button('发送').click())
+  await act(async () => button('Send').click())
   expect(api.createSession).toHaveBeenCalledTimes(1)
   expect(api.runAgentSession.mock.calls[1]?.[0].session_id).toBe('created')
   await act(async () => second.end())
 })
 
-it.each(['B', '新建'])(
+it.each(['B', 'New chat'])(
   'late creation cannot promote the page after selecting %s',
   async (target) => {
     page = await mountPage()
     await waitForState(() => expect(button('B')).toBeTruthy())
     const obsolete = deferred<AgentSession>()
     api.createSession.mockReturnValueOnce(obsolete.promise)
-    await act(async () => button('新建').click())
+    await act(async () => button('New chat').click())
     await type('old new question')
-    await act(async () => button('发送').click())
+    await act(async () => button('Send').click())
     expect(api.createSession).toHaveBeenCalledTimes(1)
     await act(async () => button(target).click())
     await act(async () => obsolete.resolve(session('obsolete')))
     expect(api.runAgentSession).not.toHaveBeenCalled()
     expect(page.location).toBe(target === 'B' ? '?sessionId=B' : '?isNew=true')
     expect(page.container.textContent).not.toContain('old new question')
-    if (target === '新建') {
+    if (target === 'New chat') {
       api.createSession.mockResolvedValueOnce(session('fresh'))
       const next = stream()
       api.runAgentSession.mockResolvedValueOnce(next.response)
       await type('fresh new question')
-      await act(async () => button('发送').click())
+      await act(async () => button('Send').click())
       expect(api.createSession).toHaveBeenCalledTimes(2)
       expect(api.runAgentSession.mock.calls[0]?.[0].session_id).toBe('fresh')
       await act(async () => next.end())
@@ -209,9 +397,9 @@ it('retains frames and completion queued before new-session URL promotion in Str
   })
   body.end()
   api.runAgentSession.mockResolvedValueOnce(body.response)
-  await act(async () => button('新建').click())
+  await act(async () => button('New chat').click())
   await type('fast new question')
-  await act(async () => button('发送').click())
+  await act(async () => button('Send').click())
   await waitForState(() =>
     expect(page.location).toBe('?sessionId=fast-created'),
   )
@@ -220,4 +408,41 @@ it('retains frames and completion queued before new-session URL promotion in Str
   )
   expect(page.container.textContent).toContain('fast new question')
   expect(page.container.querySelector('textarea')?.disabled).toBe(false)
+})
+
+it('stopping output shows the owned feedback in details without claiming an execution error', async () => {
+  page = await mountPage()
+  await waitForState(() => expect(button('B')).toBeTruthy())
+  const body = stream()
+  api.runAgentSession.mockResolvedValueOnce(body.response)
+  await type('question')
+  await act(async () => button('Send').click())
+  await act(async () => button('Stop').click())
+  expect(page.container.textContent).toContain('Output disconnected')
+  await act(async () => button('Run details').click())
+  expect(document.body.textContent).toContain('No recorded errors')
+  expect(document.body.textContent).toContain('Stop request')
+  expect(document.body.textContent).not.toContain(
+    'An execution error was recorded',
+  )
+  body.end()
+})
+
+it('a delayed delete resolves against the current selection instead of the selection at click time', async () => {
+  page = await mountPage()
+  await waitForState(() => expect(button('B')).toBeTruthy())
+  const deletion = deferred<boolean>()
+  api.deleteSession.mockReturnValueOnce(deletion.promise)
+  const deleteB =
+    button('B').parentElement?.querySelector<HTMLButtonElement>(
+      'button[aria-label]',
+    )
+  if (!deleteB) throw new Error('Missing B delete action')
+  await act(async () => deleteB.click())
+  await act(async () => button('B').click())
+  expect(page.location).toBe('?sessionId=B')
+  api.fetchSessions.mockResolvedValue({ sessions: [session('A')], total: 1 })
+  await act(async () => deletion.resolve(true))
+  await waitForState(() => expect(page.location).toBe('?sessionId=A'))
+  expect(page.container.textContent).toContain('A history')
 })

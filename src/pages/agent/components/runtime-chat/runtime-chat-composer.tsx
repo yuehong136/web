@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ArrowUp, Paperclip, Square, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { FileIcon } from '@/components/ui/file-icon'
@@ -18,6 +19,8 @@ interface RuntimeChatComposerProps {
   isTaskMode?: boolean
   density?: 'comfortable' | 'compact'
   placeholder?: string
+  className?: string
+  contentClassName?: string
   onSend: (request: RuntimeChatSendRequest) => Promise<void>
   onStop: () => Promise<void>
 }
@@ -28,9 +31,12 @@ export function RuntimeChatComposer({
   isTaskMode = false,
   density = 'comfortable',
   placeholder,
+  className,
+  contentClassName,
   onSend,
   onStop,
 }: RuntimeChatComposerProps) {
+  const { t } = useTranslation()
   const [value, setValue] = useState('')
   const [files, setFiles] = useState<RuntimeAttachment[]>([])
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -86,32 +92,34 @@ export function RuntimeChatComposer({
   return (
     <div
       className={cn(
-        'border-border-primary bg-surface-primary border-t',
+        'border-t border-border-default bg-components-console-surface',
         density === 'compact'
           ? 'px-space-md py-space-sm'
           : 'px-space-lg py-space-base',
+        className,
       )}
     >
       <div
         className={cn(
           'mx-auto w-full',
           density === 'compact' ? 'max-w-full' : 'max-w-4xl',
+          contentClassName,
         )}
       >
-        <div className="rounded-radius-xl p-space-base shadow-elevation-low border border-components-card-border bg-components-card-bg">
+        <div className="rounded-radius-xl border border-components-card-border bg-components-card-bg p-space-base shadow-elevation-low">
           {files.length > 0 ? (
-            <div className="mb-space-sm gap-space-xs flex flex-wrap">
+            <div className="mb-space-sm flex flex-wrap gap-space-xs">
               {files.map((file, index) => (
                 <div
                   key={`${file.id || file.name}-${index}`}
-                  className="gap-space-xs rounded-radius-md bg-surface-secondary px-space-sm py-space-xs flex items-center border border-border-default"
+                  className="flex max-w-full min-w-0 items-center gap-space-xs rounded-radius-md border border-border-default bg-background-subtle px-space-sm py-space-xs"
                 >
                   <FileIcon
                     fileType={file.type}
                     fileName={file.name}
                     size="sm"
                   />
-                  <span className="max-w-[220px] truncate text-sm text-text-secondary">
+                  <span className="max-w-[220px] min-w-0 flex-1 truncate text-sm text-text-secondary">
                     {file.name}
                   </span>
                   <Button
@@ -121,7 +129,9 @@ export function RuntimeChatComposer({
                     className="size-5 text-text-tertiary hover:text-text-primary"
                     onClick={() => handleRemoveFile(index)}
                     disabled={loading}
-                    aria-label={`移除 ${file.name}`}
+                    aria-label={t('agent.explore.removeAttachment', {
+                      name: file.name,
+                    })}
                   >
                     <X className="size-3" />
                   </Button>
@@ -133,12 +143,17 @@ export function RuntimeChatComposer({
           <Textarea
             ref={textareaRef}
             variant="chat"
+            aria-label={placeholder || t('agent.explore.messagePlaceholder')}
             value={value}
             onChange={(event) => setValue(event.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={
               placeholder ||
-              (isTaskMode ? '给我发消息或布置任务' : '继续发送会话消息...')
+              t(
+                isTaskMode
+                  ? 'agent.explore.taskPlaceholder'
+                  : 'agent.explore.messagePlaceholder',
+              )
             }
             className={cn(
               'w-full placeholder:text-text-tertiary',
@@ -151,7 +166,7 @@ export function RuntimeChatComposer({
           />
 
           <div className="mt-space-sm flex items-center justify-between">
-            <div className="gap-space-xs flex items-center">
+            <div className="flex items-center gap-space-xs">
               <FileUploadDirectUpload
                 canvasId={canvasId}
                 value={files}
@@ -162,7 +177,7 @@ export function RuntimeChatComposer({
                 compact
                 iconOnly
                 showFileList={false}
-                buttonLabel="附件"
+                buttonLabel={t('agent.share.uploadAttachment')}
                 buttonVariant="ghost"
                 buttonSize="icon"
                 buttonClassName="size-10 rounded-radius-full text-text-tertiary hover:bg-components-button-ghost-bg-hover hover:text-text-primary"
@@ -176,11 +191,11 @@ export function RuntimeChatComposer({
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="rounded-radius-full hover:bg-status-error/90 bg-status-error text-text-inverted"
+                className="rounded-radius-full bg-status-error text-text-inverted hover:bg-status-error/90"
                 onClick={() => {
                   void onStop()
                 }}
-                aria-label="停止"
+                aria-label={t('agent.share.stop')}
               >
                 <Square className="size-4" />
               </Button>
@@ -199,7 +214,7 @@ export function RuntimeChatComposer({
                 onClick={() => {
                   void handleSend()
                 }}
-                aria-label="发送"
+                aria-label={t('agent.share.send')}
               >
                 <ArrowUp className="size-4" />
               </Button>

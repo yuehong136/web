@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   useDeleteAgentSession,
@@ -25,6 +25,10 @@ export function useExploreSessions({
   onSelectSession: (sessionId?: string, isNew?: boolean) => void
 }) {
   const { t } = useTranslation()
+  const selectionRef = useRef({ sessionId, isNew })
+  useLayoutEffect(() => {
+    selectionRef.current = { sessionId, isNew }
+  }, [sessionId, isNew])
   const [params, setParams] = useState<ExploreSessionListParams>(
     createDefaultExploreSessionParams,
   )
@@ -77,22 +81,23 @@ export function useExploreSessions({
 
       try {
         await deleteAgentSession(target.id)
-        const nextSessionId =
-          sessionId === target.id
-            ? selectNextSessionIdAfterDelete(
-                sessionsQuery.data.sessions,
-                target.id,
-              )
-            : sessionId
-
-        onSelectSession(nextSessionId || undefined, false)
+        if (
+          !selectionRef.current.isNew &&
+          selectionRef.current.sessionId === target.id
+        ) {
+          const nextSessionId = selectNextSessionIdAfterDelete(
+            sessionsQuery.data.sessions,
+            target.id,
+          )
+          onSelectSession(nextSessionId || undefined, false)
+        }
         void sessionsQuery.refetch()
-        toast.success('会话已删除')
+        toast.success(t('agent.explore.sessionDeleted'))
       } catch {
         toast.error(t('agent.runtime.deleteSessionFailed'))
       }
     },
-    [deleteAgentSession, onSelectSession, sessionId, sessionsQuery, t],
+    [deleteAgentSession, onSelectSession, sessionsQuery, t],
   )
 
   return {

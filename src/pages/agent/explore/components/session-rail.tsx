@@ -1,12 +1,28 @@
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  Search,
+  SlidersHorizontal,
+} from 'lucide-react'
+import {
+  AppScene,
   PageEmptyState,
   PageErrorState,
   PageLoadingState,
-  AppScene,
-  SectionCard,
+  PageToolbar,
 } from '@/components/patterns'
 import { Button } from '@/components/ui/button'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible'
 import { Input } from '@/components/ui/input'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   Select,
   SelectContent,
@@ -14,12 +30,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import type { QueryObserverResult } from '@tanstack/react-query'
 import type { AgentSessionListResponse } from '@/types/agent'
 import type { ExploreSession, ExploreSessionListParams } from '../types'
 import { SessionCard } from './session-card'
-import { ChevronLeft, ChevronRight, Plus, Search } from 'lucide-react'
 
 interface SessionRailProps {
   sessions: ExploreSession[]
@@ -52,40 +66,101 @@ export function SessionRail({
   onDeleteSession,
   onRetry,
 }: SessionRailProps) {
+  const { t } = useTranslation()
+  const advancedFilterCount = [
+    Boolean(params.from_date),
+    Boolean(params.to_date),
+    params.orderby !== 'update_time',
+    !params.desc,
+  ].filter(Boolean).length
+  const hasFilters = Boolean(params.keywords?.trim()) || advancedFilterCount > 0
+  const hasResultFilters = Boolean(
+    params.keywords?.trim() || params.from_date || params.to_date,
+  )
+  const [filtersOpen, setFiltersOpen] = useState(advancedFilterCount > 0)
   const totalPages = Math.max(1, Math.ceil(total / params.page_size))
+  const savedSessionCount = sessions.filter(
+    (session) => !session.isTemporary,
+  ).length
+  const clearFilters = () =>
+    onChangeParams({
+      keywords: '',
+      from_date: '',
+      to_date: '',
+      orderby: 'update_time',
+      desc: true,
+      page: 1,
+    })
 
   return (
-    <div className="gap-space-base p-space-lg flex h-full min-h-0 flex-col">
-      <SectionCard
-        title="Explore 会话"
-        padding="sm"
-        actions={
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={onCreateSession}
-          >
-            <Plus className="size-4" />
-            新建
-          </Button>
+    <aside
+      className="flex h-full min-h-0 flex-col gap-space-md p-space-base"
+      aria-label={t('agent.explore.history')}
+    >
+      <PageToolbar
+        className="hidden border-0 px-space-xs py-space-xs md:flex"
+        left={
+          <h2 className="text-sm font-semibold text-text-secondary">
+            {t('agent.explore.history')}
+          </h2>
         }
-      >
-        <div className="space-y-space-base">
-          <Input
-            inputSize="sm"
-            value={params.keywords || ''}
-            leftIcon={<Search className="size-4" />}
-            placeholder="搜索会话"
-            onChange={(event) =>
-              onChangeParams({ keywords: event.target.value })
-            }
-          />
+      />
+      <Button type="button" className="w-full" onClick={onCreateSession}>
+        <Plus className="size-icon-sm" aria-hidden="true" />
+        {t('agent.explore.newChat')}
+      </Button>
 
-          <div className="gap-space-sm grid grid-cols-2">
+      <Input
+        inputSize="sm"
+        value={params.keywords || ''}
+        leftIcon={<Search className="size-icon-sm" aria-hidden="true" />}
+        aria-label={t('agent.explore.searchChats')}
+        placeholder={t('agent.explore.searchChats')}
+        onChange={(event) => onChangeParams({ keywords: event.target.value })}
+      />
+
+      <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen}>
+        <div className="flex items-center justify-between gap-space-sm">
+          <CollapsibleTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="px-space-xs text-xs text-text-secondary"
+            >
+              <SlidersHorizontal className="size-icon-sm" aria-hidden="true" />
+              {t('agent.explore.filterAndSort')}
+              {advancedFilterCount > 0 ? (
+                <span className="rounded-radius-full bg-state-focus-10 px-space-xs text-text-accent">
+                  {advancedFilterCount}
+                </span>
+              ) : null}
+              <ChevronDown
+                className={
+                  filtersOpen ? 'size-icon-sm rotate-180' : 'size-icon-sm'
+                }
+                aria-hidden="true"
+              />
+            </Button>
+          </CollapsibleTrigger>
+          {hasFilters ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="px-space-xs text-xs text-text-secondary"
+              onClick={clearFilters}
+            >
+              {t('agent.explore.clearFilters')}
+            </Button>
+          ) : null}
+        </div>
+        <CollapsibleContent className="space-y-space-sm pt-space-base pb-space-sm">
+          <div className="grid grid-cols-2 gap-space-sm">
             <Input
               inputSize="sm"
               type="date"
+              label={t('agent.explore.fromDate')}
               value={params.from_date || ''}
               onChange={(event) =>
                 onChangeParams({ from_date: event.target.value })
@@ -94,25 +169,32 @@ export function SessionRail({
             <Input
               inputSize="sm"
               type="date"
+              label={t('agent.explore.toDate')}
               value={params.to_date || ''}
               onChange={(event) =>
                 onChangeParams({ to_date: event.target.value })
               }
             />
           </div>
-
-          <div className="gap-space-sm grid grid-cols-2">
+          <div className="grid grid-cols-2 gap-space-sm">
             <Select
               value={params.orderby}
               onValueChange={(value) => onChangeParams({ orderby: value })}
             >
-              <SelectTrigger className="rounded-radius-md h-10">
+              <SelectTrigger
+                className="rounded-radius-md"
+                aria-label={t('agent.explore.sortField')}
+              >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="update_time">更新时间</SelectItem>
-                <SelectItem value="create_time">创建时间</SelectItem>
-                <SelectItem value="name">名称</SelectItem>
+                <SelectItem value="update_time">
+                  {t('agent.explore.updatedAt')}
+                </SelectItem>
+                <SelectItem value="create_time">
+                  {t('agent.explore.createdAt')}
+                </SelectItem>
+                <SelectItem value="name">{t('agent.explore.name')}</SelectItem>
               </SelectContent>
             </Select>
             <Select
@@ -121,97 +203,135 @@ export function SessionRail({
                 onChangeParams({ desc: value === 'desc' })
               }
             >
-              <SelectTrigger className="rounded-radius-md h-10">
+              <SelectTrigger
+                className="rounded-radius-md"
+                aria-label={t('agent.explore.sortDirection')}
+              >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="desc">倒序</SelectItem>
-                <SelectItem value="asc">正序</SelectItem>
+                <SelectItem value="desc">
+                  {t('agent.explore.descending')}
+                </SelectItem>
+                <SelectItem value="asc">
+                  {t('agent.explore.ascending')}
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
-        </div>
-      </SectionCard>
+        </CollapsibleContent>
+      </Collapsible>
 
-      <div className="min-h-0 flex-1">
-        {loading && sessions.length === 0 ? (
-          <PageLoadingState
-            scene={AppScene.SPLIT_DETAIL}
-            compact
-            title="正在加载会话"
-            description="正在读取最近的 Explore 会话。"
-          />
-        ) : error ? (
-          <PageErrorState
-            scene={AppScene.SPLIT_DETAIL}
-            compact
-            title="会话加载失败"
-            description="暂时无法读取会话列表，请稍后重试。"
-            onRetry={() => {
-              void onRetry()
-            }}
-          />
-        ) : sessions.length === 0 ? (
-          <PageEmptyState
-            scene={AppScene.SPLIT_DETAIL}
-            compact
-            title="还没有会话"
-            description="新建会话并发送第一条消息后会显示在这里。"
-          />
-        ) : (
-          <ScrollArea className="pr-space-xs h-full">
-            <div className="space-y-space-sm">
-              {sessions.map((session) => (
-                <SessionCard
-                  key={`${session.id}-${session.isTemporary ? 'temporary' : 'server'}`}
-                  session={session}
-                  selected={
-                    session.isTemporary
-                      ? isNew && !selectedSessionId
-                      : selectedSessionId === session.id
-                  }
-                  disabled={deleting}
-                  onSelect={() =>
-                    onSelectSession(
-                      session.isTemporary ? undefined : session.id,
-                      Boolean(session.isTemporary),
-                    )
-                  }
-                  onDelete={() => onDeleteSession(session)}
-                />
-              ))}
-            </div>
-          </ScrollArea>
-        )}
+      <div className="min-h-0 flex-1" aria-busy={loading}>
+        <ScrollArea className="h-full">
+          <div className="space-y-space-xs">
+            {sessions.map((session) => (
+              <SessionCard
+                key={`${session.id}-${session.isTemporary ? 'temporary' : 'server'}`}
+                session={session}
+                selected={
+                  session.isTemporary
+                    ? isNew && !selectedSessionId
+                    : selectedSessionId === session.id
+                }
+                disabled={deleting}
+                onSelect={() =>
+                  onSelectSession(
+                    session.isTemporary ? undefined : session.id,
+                    Boolean(session.isTemporary),
+                  )
+                }
+                onDelete={() => onDeleteSession(session)}
+              />
+            ))}
+          </div>
+          {loading && savedSessionCount === 0 ? (
+            <PageLoadingState
+              scene={AppScene.SPLIT_DETAIL}
+              compact
+              title={t('agent.explore.historyLoading')}
+              description={t('agent.explore.historyLoadingDescription')}
+            />
+          ) : error ? (
+            <PageErrorState
+              scene={AppScene.SPLIT_DETAIL}
+              compact
+              title={t('agent.explore.historyLoadFailed')}
+              description={t('agent.explore.historyLoadFailedDescription')}
+              retryLabel={t('agent.explore.retry')}
+              onRetry={() => {
+                void onRetry()
+              }}
+            />
+          ) : savedSessionCount === 0 ? (
+            <PageEmptyState
+              scene={AppScene.SPLIT_DETAIL}
+              compact
+              title={t(
+                hasResultFilters
+                  ? 'agent.explore.noMatchingChats'
+                  : 'agent.explore.noSavedChats',
+              )}
+              description={t(
+                hasResultFilters
+                  ? 'agent.explore.noMatchingChatsDescription'
+                  : 'agent.explore.noSavedChatsDescription',
+              )}
+              icon={
+                hasResultFilters ? (
+                  <Search className="size-icon-lg" aria-hidden="true" />
+                ) : undefined
+              }
+              action={
+                hasResultFilters ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={clearFilters}
+                  >
+                    {t('agent.explore.clearFilters')}
+                  </Button>
+                ) : undefined
+              }
+            />
+          ) : null}
+        </ScrollArea>
       </div>
 
-      <SectionCard padding="sm">
-        <div className="gap-space-sm flex items-center justify-between">
+      {total > 0 ? (
+        <div className="flex items-center justify-between gap-space-sm border-t border-border-subtle pt-space-sm">
           <p className="text-xs text-text-tertiary">
-            共 {total} 条 · 第 {params.page} / {totalPages} 页
+            {t('agent.explore.paginationLabel', {
+              count: total,
+              page: params.page,
+              pages: totalPages,
+            })}
           </p>
-          <div className="gap-space-xs flex items-center">
+          <div className="flex items-center gap-space-xs">
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
               size="icon-sm"
-              disabled={params.page <= 1}
+              disabled={params.page <= 1 || loading}
+              aria-label={t('agent.explore.previousPage')}
               onClick={() => onChangeParams({ page: params.page - 1 })}
             >
-              <ChevronLeft className="size-4" />
+              <ChevronLeft className="size-icon-sm" aria-hidden="true" />
             </Button>
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
               size="icon-sm"
-              disabled={params.page >= totalPages}
+              disabled={params.page >= totalPages || loading}
+              aria-label={t('agent.explore.nextPage')}
               onClick={() => onChangeParams({ page: params.page + 1 })}
             >
-              <ChevronRight className="size-4" />
+              <ChevronRight className="size-icon-sm" aria-hidden="true" />
             </Button>
           </div>
         </div>
-      </SectionCard>
-    </div>
+      ) : null}
+    </aside>
   )
 }
