@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { type AddLlmParams, type ModelVerifyResult } from '@/stores/model'
 import {
   useFetchMyLLMs,
@@ -7,7 +8,7 @@ import {
   useEnableLLM,
   useDeleteFactory,
 } from '@/hooks/use-llm-request'
-import { Loading } from '@/components/ui/loading'
+import { PageHeader, PageLoadingState } from '@/components/patterns'
 import { SystemSetting } from './components/system-setting'
 import { UsedModels } from './components/used-models'
 import { AvailableModels } from './components/available-models'
@@ -45,6 +46,7 @@ const SPECIAL_CONFIG_FACTORIES = [
 ]
 
 export const ModelProvidersPage: React.FC = () => {
+  const { t } = useTranslation()
   const { myLLMs, isLoading } = useFetchMyLLMs()
   const { setApiKey } = useSetApiKey()
   const { addLLM } = useAddLLM()
@@ -142,36 +144,35 @@ export const ModelProvidersPage: React.FC = () => {
   )
 
   if (isLoading && Object.keys(myLLMs).length === 0) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <div className="text-center">
-          <Loading variant="spinner" size="lg" />
-          <p className="mt-4 text-text-secondary">加载中...</p>
-        </div>
-      </div>
-    )
+    return <PageLoadingState title={t('common.loading')} description={null} />
   }
 
   return (
-    <div className="relative flex h-full w-full overflow-hidden rounded-lg border border-border bg-background">
-      {/* 左侧区域 - 系统设置 + 已添加模型 */}
-      <section className="flex w-3/5 flex-col gap-4 overflow-auto border-r border-border px-5 py-4">
-        {/* 系统默认模型设置 */}
-        <SystemSetting />
+    <div className="@container flex h-full min-h-0 flex-col gap-space-lg p-space-lg">
+      <PageHeader
+        title={t('settings.nav.modelProviders')}
+        titleSize="md"
+        surface="plain"
+      />
+      <div className="relative flex min-h-0 flex-1 flex-col overflow-auto rounded-radius-lg border border-border-default bg-background-surface @4xl:flex-row @4xl:overflow-hidden">
+        {/* 左侧区域 - 系统设置 + 已添加模型 */}
+        <section className="flex shrink-0 flex-col gap-space-base p-space-base @4xl:w-3/5 @4xl:overflow-auto @4xl:border-r @4xl:border-border-subtle">
+          {/* 系统默认模型设置 */}
+          <SystemSetting />
 
-        {/* 已添加的模型 */}
-        <UsedModels
-          handleAddModel={handleAddModel}
-          handleDeleteFactory={handleDeleteFactory}
-          handleEnableModel={handleEnableModel}
-        />
-      </section>
+          {/* 已添加的模型 */}
+          <UsedModels
+            handleAddModel={handleAddModel}
+            handleDeleteFactory={handleDeleteFactory}
+            handleEnableModel={handleEnableModel}
+          />
+        </section>
 
-      {/* 右侧区域 - 可选模型 */}
-      <section className="flex w-2/5 flex-col overflow-auto">
-        <AvailableModels handleAddModel={handleAddModel} />
-      </section>
-
+        {/* 右侧区域 - 可选模型 */}
+        <section className="flex shrink-0 flex-col @4xl:w-2/5 @4xl:overflow-auto">
+          <AvailableModels handleAddModel={handleAddModel} />
+        </section>
+      </div>
       {/* API Key 设置弹窗 */}
       <ApiKeyModal
         isOpen={apiKeyModal.isOpen}

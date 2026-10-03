@@ -16,6 +16,8 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
+  PageHeader,
+  PageToolbar,
   PageEmptyState,
   PageErrorState,
   PageLoadingState,
@@ -167,28 +169,36 @@ export const ChannelsPage = () => {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="gap-space-md px-space-lg py-space-base flex shrink-0 items-center justify-between border-b border-border-subtle">
-        <p className="max-w-3xl text-sm text-text-secondary">
-          {t('channel.overview')}
-        </p>
-        <div className="gap-space-sm flex shrink-0 items-center">
-          <Input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder={t('channel.filter.placeholder')}
-            aria-label={t('channel.filter.placeholder')}
-            leftIcon={<Search className="size-icon-sm" aria-hidden="true" />}
-            className="w-56"
-          />
+      <PageHeader
+        title={t('channel.title')}
+        description={t('channel.overview')}
+        titleSize="md"
+        wrapActions
+        actions={
           <Button onClick={() => openCreate()} disabled={providersUnavailable}>
             <Plus className="size-icon-sm" aria-hidden="true" />
             {t('channel.actions.create')}
           </Button>
-        </div>
-      </div>
+        }
+      />
+      <PageToolbar
+        left={
+          <div className="w-full max-w-md">
+            <Input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder={t('channel.filter.placeholder')}
+              aria-label={t('channel.filter.placeholder')}
+              leftIcon={<Search className="size-icon-sm" aria-hidden="true" />}
+              inputSize="sm"
+              className="h-9 rounded-radius-md"
+            />
+          </div>
+        }
+      />
 
       {providersUnavailable ? (
-        <output className="gap-space-sm px-space-lg py-space-sm flex w-full shrink-0 items-center border-b border-status-warning-subtle bg-status-warning-subtle text-sm text-status-warning">
+        <output className="flex w-full shrink-0 items-center gap-space-sm border-b border-status-warning-subtle bg-status-warning-subtle px-space-lg py-space-sm text-sm text-status-warning">
           <TriangleAlert className="size-icon-sm shrink-0" aria-hidden="true" />
           <span>{t('channel.states.providersUnavailable')}</span>
           <Button
@@ -202,12 +212,12 @@ export const ChannelsPage = () => {
         </output>
       ) : null}
 
-      <div className="scroll-area p-space-lg space-y-space-xl min-h-0 flex-1 overflow-y-auto">
+      <div className="scroll-area min-h-0 flex-1 space-y-space-xl overflow-y-auto p-space-lg">
         <section
           className="space-y-space-base"
           aria-labelledby="channel-connected-heading"
         >
-          <div className="gap-space-sm flex items-center">
+          <div className="flex items-center gap-space-sm">
             <h3
               id="channel-connected-heading"
               className="font-semibold text-text-primary"

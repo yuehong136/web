@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Search, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { type LLMFactoryInterface } from '@/stores/model'
@@ -45,6 +46,7 @@ interface AvailableModelsProps {
 export const AvailableModels: React.FC<AvailableModelsProps> = ({
   handleAddModel,
 }) => {
+  const { t } = useTranslation()
   const { factories } = useFetchFactories()
   const { myLLMs } = useFetchMyLLMs()
   const [searchTerm, setSearchTerm] = useState('')
@@ -99,9 +101,11 @@ export const AvailableModels: React.FC<AvailableModelsProps> = ({
   }
 
   return (
-    <div className="h-full p-4 text-text-primary">
+    <div className="p-space-base text-text-primary">
       {/* 标题 */}
-      <h2 className="mb-4 text-base font-medium">可选模型</h2>
+      <h2 className="mb-space-base text-base font-semibold">
+        {t('settings.models.available')}
+      </h2>
 
       {/* 搜索框 - 使用主题感知样式 */}
       <div className="mb-5">
@@ -157,7 +161,7 @@ export const AvailableModels: React.FC<AvailableModelsProps> = ({
       </div>
 
       {/* 模型列表 */}
-      <div className="flex h-[calc(100vh-300px)] flex-col gap-4 overflow-auto">
+      <div className="flex flex-col gap-space-base">
         {filteredModels.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-text-tertiary">
             <Search className="mb-4 h-12 w-12 opacity-30" />
@@ -187,13 +191,11 @@ const AvailableModelCard: React.FC<AvailableModelCardProps> = ({
   factory,
   onAdd,
 }) => {
+  const { t } = useTranslation()
   const sortedTags = sortTags(factory.tags)
 
   return (
-    <div
-      className="group cursor-pointer rounded-lg border border-border p-3 transition-colors hover:bg-[var(--color-bg-input,var(--color-accent))]"
-      onClick={onAdd}
-    >
+    <div className="rounded-radius-lg border border-border-default p-space-base">
       {/* 头部：图标 + 名称 + 添加按钮 */}
       <div className="mb-3 flex items-center gap-3">
         {/* 图标 - 使用 ProviderIcon 组件 */}
@@ -210,15 +212,16 @@ const AvailableModelCard: React.FC<AvailableModelCardProps> = ({
 
         {/* 添加按钮 - hover 时显示 */}
         <Button
+          variant="outline"
           size="sm"
           onClick={(e) => {
             e.stopPropagation()
             onAdd()
           }}
-          className="h-6 gap-0.5 rounded-md px-2 text-xs opacity-0 transition-opacity group-hover:opacity-100"
+          className="shrink-0"
         >
           <Plus className="h-3 w-3" />
-          添加模型
+          {t('common.add')}
         </Button>
       </div>
 

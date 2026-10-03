@@ -1,16 +1,18 @@
-import React, { useState, useCallback } from 'react'
+import * as React from 'react'
+import { useState, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ChevronDown, ChevronUp, Settings, Trash2, Edit } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
-import { 
-  AlertDialog, 
-  AlertDialogAction, 
-  AlertDialogCancel, 
-  AlertDialogContent, 
-  AlertDialogDescription, 
-  AlertDialogFooter, 
-  AlertDialogHeader, 
-  AlertDialogTitle 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { ProviderIcon } from '@/components/ui/provider-icon'
 import { cn } from '@/lib/utils'
@@ -27,26 +29,37 @@ type TagType =
   | 'MODERATION'
 
 const TAG_ORDER: Record<TagType, number> = {
-  'LLM': 1,
+  LLM: 1,
   'TEXT EMBEDDING': 2,
   'TEXT RE-RANK': 3,
-  'TTS': 4,
-  'SPEECH2TEXT': 5,
-  'IMAGE2TEXT': 6,
-  'MODERATION': 7
+  TTS: 4,
+  SPEECH2TEXT: 5,
+  IMAGE2TEXT: 6,
+  MODERATION: 7,
 }
 
 const sortTags = (tags: string): string[] => {
   return tags
     .split(',')
-    .map(tag => tag.trim())
+    .map((tag) => tag.trim())
     .filter(Boolean)
-    .sort((a, b) => (TAG_ORDER[a as TagType] || 999) - (TAG_ORDER[b as TagType] || 999))
+    .sort(
+      (a, b) =>
+        (TAG_ORDER[a as TagType] || 999) - (TAG_ORDER[b as TagType] || 999),
+    )
 }
 
 // 判断是否是本地模型厂商
 const isLocalFactory = (name: string): boolean => {
-  const localFactories = ['Ollama', 'Xinference', 'LocalAI', 'LM-Studio', 'GPUStack', 'VLLM', 'ModelScope']
+  const localFactories = [
+    'Ollama',
+    'Xinference',
+    'LocalAI',
+    'LM-Studio',
+    'GPUStack',
+    'VLLM',
+    'ModelScope',
+  ]
   return localFactories.includes(name)
 }
 
@@ -57,7 +70,11 @@ interface ModelProviderCardProps {
   onApiKeyClick: (name: string) => void
   onDeleteClick: (name: string) => void
   onEditModel?: (model: MyLLMModel, providerName: string) => void
-  onEnableModel?: (modelName: string, providerName: string, enabled: boolean) => void
+  onEnableModel?: (
+    modelName: string,
+    providerName: string,
+    enabled: boolean,
+  ) => void
 }
 
 export const ModelProviderCard: React.FC<ModelProviderCardProps> = ({
@@ -67,84 +84,71 @@ export const ModelProviderCard: React.FC<ModelProviderCardProps> = ({
   onApiKeyClick,
   onDeleteClick,
   onEditModel,
-  onEnableModel
+  onEnableModel,
 }) => {
+  const { t } = useTranslation()
   const [isExpanded, setIsExpanded] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
   const handleToggleExpand = useCallback(() => {
-    setIsExpanded(prev => !prev)
+    setIsExpanded((prev) => !prev)
   }, [])
 
-  const handleApiKeyClick = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation()
-    onApiKeyClick(name)
-  }, [name, onApiKeyClick])
+  const handleApiKeyClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation()
+      onApiKeyClick(name)
+    },
+    [name, onApiKeyClick],
+  )
 
   const handleDeleteConfirm = useCallback(() => {
     onDeleteClick(name)
     setShowDeleteDialog(false)
   }, [name, onDeleteClick])
-  
+
   const sortedTags = sortTags(tags)
   const isLocal = isLocalFactory(name)
 
   return (
     <>
       <div className="w-full rounded-lg border border-border bg-background">
-        {/* 卡片头部 */}
-        <div className="flex h-16 items-center justify-between px-4 cursor-pointer transition-colors hover:bg-accent/5">
-          <div className="flex items-center gap-3" onClick={handleToggleExpand}>
-            {/* 供应商图标 - 使用 ProviderIcon 组件 */}
-            <div className="w-10 h-10 bg-background rounded-lg border border-border flex items-center justify-center overflow-hidden">
-              <ProviderIcon provider={name} className="w-7 h-7" size={28} />
-            </div>
-
-            {/* 供应商名称 */}
-            <h3 className="font-medium text-xl text-text-primary">
-              {name}
-            </h3>
-          </div>
-
-          {/* 操作按钮 */}
-          <div className="flex items-center gap-2">
-            {/* API Key / 添加模型 按钮 */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleApiKeyClick}
-              className="h-8 px-3 text-sm gap-1.5"
-            >
-              <Settings className="w-3.5 h-3.5" />
-              {isLocal ? '添加' : 'API-Key'}
-            </Button>
-
-            {/* 展开/收起按钮 */}
-            <Button
-              variant="outline"
-              size="sm"
+        <div className="flex flex-wrap items-center gap-space-sm p-space-base">
+          <h3 className="min-w-0 flex-1 basis-36">
+            <button
+              type="button"
               onClick={handleToggleExpand}
-              className="h-8 px-3 text-sm gap-1.5"
+              aria-expanded={isExpanded}
+              className="flex w-full min-w-0 items-center gap-space-sm rounded-radius-md text-left text-base font-medium text-text-primary focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden"
             >
-              <span>{isExpanded ? '隐藏模型' : '展示更多模型'}</span>
+              <ProviderIcon
+                provider={name}
+                className="size-icon-xl shrink-0"
+                size={28}
+              />
+              <span className="min-w-0 flex-1 truncate" title={name}>
+                {name}
+              </span>
               {isExpanded ? (
-                <ChevronUp className="w-4 h-4" />
+                <ChevronUp className="size-icon-sm shrink-0 text-text-secondary" />
               ) : (
-                <ChevronDown className="w-4 h-4" />
+                <ChevronDown className="size-icon-sm shrink-0 text-text-secondary" />
               )}
+            </button>
+          </h3>
+          <div className="flex shrink-0 items-center gap-space-xs">
+            <Button variant="outline" size="sm" onClick={handleApiKeyClick}>
+              <Settings className="size-icon-sm" />
+              {isLocal ? t('common.add') : 'API-Key'}
             </Button>
-
-            {/* 删除按钮 */}
             <Button
-              variant="outline"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation()
-                setShowDeleteDialog(true)
-              }}
-              className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/50"
+              variant="ghost"
+              size="icon-sm"
+              aria-label={`${t('common.delete')}: ${name}`}
+              onClick={() => setShowDeleteDialog(true)}
+              className="text-text-secondary hover:text-status-error"
             >
-              <Trash2 className="w-4 h-4" />
+              <Trash2 className="size-icon-sm" />
             </Button>
           </div>
         </div>
@@ -153,11 +157,11 @@ export const ModelProviderCard: React.FC<ModelProviderCardProps> = ({
         {isExpanded && (
           <div className="border-t border-border">
             {/* 标签 */}
-            <div className="px-4 pt-3 flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-1.5 px-4 pt-3">
               {sortedTags.map((tag, index) => (
                 <span
                   key={index}
-                  className="px-2 py-1 text-xs bg-accent/50 text-text-secondary rounded-md"
+                  className="rounded-md bg-accent/50 px-2 py-1 text-xs text-text-secondary"
                 >
                   {tag}
                 </span>
@@ -165,9 +169,9 @@ export const ModelProviderCard: React.FC<ModelProviderCardProps> = ({
             </div>
 
             {/* 模型列表 */}
-            <div className="m-4 bg-accent/30 rounded-lg max-h-96 overflow-auto">
+            <div className="m-4 max-h-96 overflow-auto rounded-lg bg-accent/30">
               {llm.length === 0 ? (
-                <div className="py-8 text-center text-text-tertiary text-sm">
+                <div className="py-8 text-center text-sm text-text-tertiary">
                   暂无模型
                 </div>
               ) : (
@@ -175,20 +179,20 @@ export const ModelProviderCard: React.FC<ModelProviderCardProps> = ({
                   <div
                     key={model.name}
                     className={cn(
-                      "flex items-center justify-between p-3 hover:bg-accent/50 transition-colors",
-                      index !== llm.length - 1 && "border-b border-border"
+                      'flex items-center justify-between p-3 transition-colors hover:bg-accent/50',
+                      index !== llm.length - 1 && 'border-b border-border',
                     )}
                   >
-                    <div className="flex items-center gap-3">
-                      <span className="font-medium text-text-primary">
+                    <div className="flex min-w-0 flex-1 flex-wrap items-center gap-space-sm">
+                      <span className="min-w-0 truncate font-medium text-text-primary">
                         {model.name}
                       </span>
-                      <span className="px-2 py-0.5 text-xs bg-background text-text-secondary rounded-md border border-border">
+                      <span className="rounded-md border border-border bg-background px-2 py-0.5 text-xs text-text-secondary">
                         {model.type}
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex shrink-0 items-center gap-space-xs">
                       {/* 本地模型可编辑 */}
                       {isLocal && onEditModel && (
                         <Button
@@ -197,7 +201,7 @@ export const ModelProviderCard: React.FC<ModelProviderCardProps> = ({
                           onClick={() => onEditModel(model, name)}
                           className="h-7 w-7 p-0"
                         >
-                          <Edit className="w-3.5 h-3.5" />
+                          <Edit className="h-3.5 w-3.5" />
                         </Button>
                       )}
 
@@ -205,7 +209,9 @@ export const ModelProviderCard: React.FC<ModelProviderCardProps> = ({
                       {onEnableModel && (
                         <Switch
                           checked={model.status ? model.status === '1' : true}
-                          onCheckedChange={(checked) => onEnableModel(model.name, name, checked)}
+                          onCheckedChange={(checked) =>
+                            onEnableModel(model.name, name, checked)
+                          }
                         />
                       )}
                     </div>
@@ -224,8 +230,10 @@ export const ModelProviderCard: React.FC<ModelProviderCardProps> = ({
             <AlertDialogTitle>确认删除</AlertDialogTitle>
             <AlertDialogDescription>
               <div className="flex items-center gap-2 py-2">
-                <ProviderIcon provider={name} className="w-6 h-6" size={24} />
-                <span className="font-medium text-text-primary">{name}</span>
+                <ProviderIcon provider={name} className="h-6 w-6" size={24} />
+                <span className="min-w-0 truncate font-medium text-text-primary">
+                  {name}
+                </span>
               </div>
               <p className="mt-2">
                 删除后将移除该供应商的所有模型配置，此操作无法撤销。

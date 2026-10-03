@@ -2,21 +2,28 @@ import {
   mcpServerFormDefaults,
   type MCPServerFormData as FormData,
 } from './mcp-server-form-state'
-import React, { useState } from 'react'
+import * as React from 'react'
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import {
+  SegmentedTabs,
+  SegmentedTabsList,
+  SegmentedTabsTrigger,
+  SegmentedTabsContent,
+} from '@/components/ui/segmented-tabs'
+import { MCPFormKeyValues } from '@/components/mcp/mcp-form-key-values'
+import { MCPProtocolSelect } from '@/components/mcp/mcp-protocol-select'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import {
   Server,
-  Globe,
   Settings,
   TestTube,
   CheckCircle,
   XCircle,
   Loader2,
-  Plus,
-  Trash2,
   Info,
   Zap,
   Link2,
@@ -31,7 +38,6 @@ import type {
   MCPTool,
 } from '@/types/mcp'
 import { ToolItem } from './tool-item'
-import { AutoResizeTextarea } from './auto-resize-textarea'
 import { mcpAPI } from '@/api/mcp'
 import { toast } from '@/lib/toast'
 import { cn } from '@/lib/utils'
@@ -44,21 +50,11 @@ interface MCPServerFormProps {
 
 type TabType = 'basic' | 'headers' | 'variables' | 'test'
 
-const tabs: { id: TabType; label: string; icon: React.ElementType }[] = [
-  { id: 'basic', label: '基本配置', icon: Server },
-  { id: 'headers', label: '请求头', icon: FileCode },
-  { id: 'variables', label: '环境变量', icon: Settings },
-  { id: 'test', label: '连接测试', icon: TestTube },
-]
-
-const protocolOptions = [
-  {
-    value: 'streamable-http',
-    label: 'Streamable HTTP',
-    description: '流式 HTTP 传输协议',
-  },
-  { value: 'sse', label: 'SSE', description: '服务器发送事件' },
-  { value: 'stdio', label: 'STDIO', description: '标准输入输出' },
+const tabs: { id: TabType; labelKey: string; icon: React.ElementType }[] = [
+  { id: 'basic', labelKey: 'mcp.form.basic', icon: Server },
+  { id: 'headers', labelKey: 'mcp.form.headers', icon: FileCode },
+  { id: 'variables', labelKey: 'mcp.form.variables', icon: Settings },
+  { id: 'test', labelKey: 'mcp.form.test', icon: TestTube },
 ]
 
 export const MCPServerForm: React.FC<MCPServerFormProps> = ({
@@ -66,6 +62,8 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
   onSuccess,
   onCancel,
 }) => {
+  const { t } = useTranslation()
+  const formId = React.useId()
   const isEditing = Boolean(server)
   const [activeTab, setActiveTab] = useState<TabType>('basic')
 
@@ -93,7 +91,10 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
     setHeaderEntries(next.headerEntries)
   }
 
-  const handleInputChange = (field: keyof FormData, value: any) => {
+  const handleInputChange = <K extends keyof FormData>(
+    field: K,
+    value: FormData[K],
+  ) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
@@ -177,7 +178,7 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
 
   const handleTestConnection = async () => {
     if (!formData.url || !formData.server_type) {
-      toast.error('请先填写服务器 URL 和协议类型')
+      toast.error(t('mcp.form.testRequired'))
       return
     }
 
@@ -197,13 +198,13 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
         success: true,
         tools,
       })
-      toast.success(`连接成功，发现 ${tools.length} 个工具`)
+      toast.success(t('mcp.servers.testSuccess', { count: tools.length }))
     } catch (error: any) {
       setTestResult({
         success: false,
-        error: error.message || '连接测试失败',
+        error: error.message || t('mcp.form.testFailed'),
       })
-      toast.error('连接测试失败')
+      toast.error(t('mcp.form.testFailed'))
     } finally {
       setTesting(false)
     }
@@ -213,7 +214,7 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
     e.preventDefault()
 
     if (!formData.name.trim() || !formData.url.trim()) {
-      toast.error('请填写必填字段')
+      toast.error(t('mcp.form.required'))
       return
     }
 
@@ -226,135 +227,40 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
           ...formData,
         }
         await mcpAPI.updateServer(request)
-        toast.success('服务器更新成功')
+        toast.success(t('mcp.form.updated'))
       } else {
         const request: CreateMCPServerRequest = formData
         await mcpAPI.createServer(request)
-        toast.success('服务器创建成功')
+        toast.success(t('mcp.form.created'))
       }
 
       onSuccess()
     } catch (error: any) {
-      toast.error(error.message || (isEditing ? '更新失败' : '创建失败'))
+      toast.error(
+        error.message ||
+          (isEditing ? t('mcp.form.updateFailed') : t('mcp.form.createFailed')),
+      )
     } finally {
       setLoading(false)
     }
   }
 
-  // 渲染键值对编辑器
-  const renderKeyValueEditor = (
-    entries: Array<{ key: string; value: string }>,
-    onChange: (index: number, field: 'key' | 'value', value: string) => void,
-    onRemove: (index: number) => void,
-    onAdd: () => void,
-    keyPlaceholder: string,
-    valuePlaceholder: string,
-    emptyText: string,
-    emptyDescription: string,
-  ) => {
-    if (entries.length === 0) {
-      return (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-[var(--color-border-subtle)] py-12 text-center">
-          <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--color-background-subtle)]">
-            <Plus className="h-5 w-5 text-[var(--color-text-tertiary)]" />
-          </div>
-          <p className="mb-0.5 text-sm font-medium text-[var(--color-text-secondary)]">
-            {emptyText}
-          </p>
-          <p className="mb-4 text-xs text-[var(--color-text-tertiary)]">
-            {emptyDescription}
-          </p>
-          <Button type="button" variant="outline" size="sm" onClick={onAdd}>
-            <Plus className="mr-2 h-4 w-4" />
-            添加
-          </Button>
-        </div>
-      )
-    }
-
-    return (
-      <div className="space-y-3">
-        {/* 条目列表 */}
-        <div className="divide-y divide-[var(--color-border-subtle)] overflow-hidden rounded-lg border border-[var(--color-border-default)]">
-          {entries.map((entry, index) => (
-            <div
-              key={index}
-              className="group bg-[var(--color-background-surface)]"
-            >
-              <div className="flex items-start gap-3 p-3">
-                {/* Key + Value 垂直布局 */}
-                <div className="min-w-0 flex-1 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <label className="w-8 shrink-0 text-xs font-medium text-[var(--color-text-tertiary)]">
-                      Key
-                    </label>
-                    <Input
-                      placeholder={keyPlaceholder}
-                      value={entry.key}
-                      onChange={(e) => onChange(index, 'key', e.target.value)}
-                      inputSize="sm"
-                      className="font-mono text-sm"
-                    />
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <label className="mt-2 w-8 shrink-0 text-xs font-medium text-[var(--color-text-tertiary)]">
-                      Value
-                    </label>
-                    <AutoResizeTextarea
-                      placeholder={valuePlaceholder}
-                      value={entry.value}
-                      onChange={(e) => onChange(index, 'value', e.target.value)}
-                      maxHeight={160}
-                      className="flex-1 font-mono text-sm"
-                    />
-                  </div>
-                </div>
-                {/* 删除按钮 */}
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => onRemove(index)}
-                  className="mt-0.5 h-8 w-8 shrink-0 text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-status-error-subtle)] hover:text-[var(--color-status-error)]"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* 添加按钮 */}
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={onAdd}
-          className="h-9 w-full border border-dashed border-[var(--color-border-subtle)] text-[var(--color-text-tertiary)] hover:border-[var(--color-border-default)] hover:text-[var(--color-text-secondary)]"
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          添加一行
-        </Button>
-      </div>
-    )
-  }
-
   return (
-    <div className="flex h-full max-h-[85vh] flex-col">
+    <div className="@container flex h-full max-h-[85dvh] flex-col">
       {/* Header */}
       <div className="flex shrink-0 items-center justify-between border-b border-[var(--color-border-subtle)] px-6 py-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-components-button-primary-bg)]">
-            <Server className="h-5 w-5 text-[var(--color-text-inverted)]" />
+        <div className="flex min-w-0 flex-wrap items-center gap-space-sm">
+          <div className="flex h-9 w-9 items-center justify-center rounded-radius-md bg-background-subtle">
+            <Server className="size-icon-md text-text-secondary" />
           </div>
           <div>
             <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
-              {isEditing ? '编辑 MCP 服务器' : '添加 MCP 服务器'}
+              {isEditing ? t('mcp.form.editTitle') : t('mcp.form.createTitle')}
             </h2>
             <p className="text-sm text-[var(--color-text-tertiary)]">
               {isEditing
-                ? `正在编辑: ${server?.name}`
-                : '配置新的 MCP 服务器连接'}
+                ? t('mcp.form.editDescription', { name: server?.name })
+                : t('mcp.form.createDescription')}
             </p>
           </div>
         </div>
@@ -363,6 +269,7 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
           variant="ghost"
           size="icon"
           onClick={onCancel}
+          aria-label={t('common.close')}
           className="h-8 w-8 text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)]"
         >
           <X className="h-4 w-4" />
@@ -370,121 +277,66 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
       </div>
 
       <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
-        <div className="flex min-h-0 flex-1">
-          {/* 左侧导航 */}
-          <div className="w-48 shrink-0 space-y-1 border-r border-[var(--color-border-subtle)] p-3">
+        <SegmentedTabs
+          value={activeTab}
+          onValueChange={(value) => setActiveTab(value as TabType)}
+          className="flex min-h-0 flex-1 flex-col"
+        >
+          <SegmentedTabsList aria-label={t('mcp.form.sections')}>
             {tabs.map((tab) => {
               const Icon = tab.icon
-              const isActive = activeTab === tab.id
               return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveTab(tab.id)}
-                  className={cn(
-                    'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
-                    isActive
-                      ? 'bg-[var(--color-components-button-primary-bg)] text-[var(--color-text-inverted)]'
-                      : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-background-subtle)] hover:text-[var(--color-text-primary)]',
-                  )}
-                >
-                  <Icon className="h-4 w-4" />
-                  {tab.label}
+                <SegmentedTabsTrigger key={tab.id} value={tab.id}>
+                  <Icon className="size-icon-sm" />
+                  {t(tab.labelKey)}
                   {tab.id === 'headers' && headerEntries.length > 0 && (
-                    <Badge
-                      variant="secondary"
-                      className="ml-auto h-5 min-w-5 justify-center text-xs"
-                    >
-                      {headerEntries.length}
-                    </Badge>
+                    <Badge variant="secondary">{headerEntries.length}</Badge>
                   )}
                   {tab.id === 'variables' && variableEntries.length > 0 && (
-                    <Badge
-                      variant="secondary"
-                      className="ml-auto h-5 min-w-5 justify-center text-xs"
-                    >
-                      {variableEntries.length}
-                    </Badge>
+                    <Badge variant="secondary">{variableEntries.length}</Badge>
                   )}
-                </button>
+                </SegmentedTabsTrigger>
               )
             })}
-          </div>
-
+          </SegmentedTabsList>
           {/* 右侧内容 */}
-          <div className="flex-1 overflow-y-auto p-6">
+          <div className="min-h-0 flex-1 overflow-y-auto p-space-lg">
             {/* 基本配置 */}
-            {activeTab === 'basic' && (
+            <SegmentedTabsContent value="basic">
               <div className="max-w-2xl space-y-6">
                 {/* 服务器名称 */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-[var(--color-text-primary)]">
-                    服务器名称{' '}
+                  <label
+                    htmlFor={`${formId}-name`}
+                    className="text-sm font-medium text-[var(--color-text-primary)]"
+                  >
+                    {t('mcp.form.name')}{' '}
                     <span className="text-[var(--color-status-error)]">*</span>
                   </label>
                   <Input
+                    id={`${formId}-name`}
                     value={formData.name}
                     onChange={(e) => handleInputChange('name', e.target.value)}
-                    placeholder="例如: My MCP Server"
+                    placeholder={t('mcp.form.namePlaceholder')}
                   />
                 </div>
 
-                {/* 协议类型 */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-[var(--color-text-primary)]">
-                    协议类型{' '}
-                    <span className="text-[var(--color-status-error)]">*</span>
-                  </label>
-                  <div className="grid grid-cols-3 gap-3">
-                    {protocolOptions.map((protocol) => (
-                      <button
-                        key={protocol.value}
-                        type="button"
-                        onClick={() =>
-                          handleInputChange('server_type', protocol.value)
-                        }
-                        className={cn(
-                          'flex flex-col items-start rounded-xl border-2 p-3 text-left transition-all',
-                          formData.server_type === protocol.value
-                            ? 'border-[var(--color-components-input-border-focus)] bg-[var(--color-state-focus-subtle)]'
-                            : 'border-[var(--color-border-subtle)] bg-[var(--color-background-subtle)] hover:border-[var(--color-border-default)]',
-                        )}
-                      >
-                        <div className="mb-1 flex items-center gap-2">
-                          <Globe
-                            className={cn(
-                              'h-4 w-4',
-                              formData.server_type === protocol.value
-                                ? 'text-[var(--color-state-focus)]'
-                                : 'text-[var(--color-text-tertiary)]',
-                            )}
-                          />
-                          <span
-                            className={cn(
-                              'text-sm font-medium',
-                              formData.server_type === protocol.value
-                                ? 'text-[var(--color-state-focus)]'
-                                : 'text-[var(--color-text-primary)]',
-                            )}
-                          >
-                            {protocol.label}
-                          </span>
-                        </div>
-                        <span className="text-xs text-[var(--color-text-tertiary)]">
-                          {protocol.description}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                <MCPProtocolSelect
+                  value={formData.server_type}
+                  onChange={(value) => handleInputChange('server_type', value)}
+                />
 
                 {/* 服务器地址 */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-[var(--color-text-primary)]">
-                    服务器地址{' '}
+                  <label
+                    htmlFor={`${formId}-url`}
+                    className="text-sm font-medium text-[var(--color-text-primary)]"
+                  >
+                    {t('mcp.form.url')}{' '}
                     <span className="text-[var(--color-status-error)]">*</span>
                   </label>
                   <Input
+                    id={`${formId}-url`}
                     value={formData.url}
                     onChange={(e) => handleInputChange('url', e.target.value)}
                     placeholder="http://localhost:3000/mcp"
@@ -495,87 +347,91 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
 
                 {/* 描述 */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-[var(--color-text-primary)]">
-                    描述{' '}
+                  <label
+                    htmlFor={`${formId}-description`}
+                    className="text-sm font-medium text-[var(--color-text-primary)]"
+                  >
+                    {t('mcp.form.description')}{' '}
                     <span className="font-normal text-[var(--color-text-tertiary)]">
-                      (可选)
+                      {t('mcp.form.optional')}
                     </span>
                   </label>
                   <Textarea
+                    id={`${formId}-description`}
                     value={formData.description}
                     onChange={(e) =>
                       handleInputChange('description', e.target.value)
                     }
-                    placeholder="描述此服务器的用途..."
+                    placeholder={t('mcp.form.descriptionPlaceholder')}
                     className="min-h-[100px] resize-none"
                     rows={4}
                   />
                 </div>
               </div>
-            )}
+            </SegmentedTabsContent>
 
             {/* 请求头 */}
-            {activeTab === 'headers' && (
+            <SegmentedTabsContent value="headers">
               <div className="max-w-2xl">
                 <div className="mb-6">
                   <h3 className="mb-1 text-base font-medium text-[var(--color-text-primary)]">
-                    HTTP 请求头
+                    {t('mcp.form.httpHeaders')}
                   </h3>
                   <p className="text-sm text-[var(--color-text-tertiary)]">
-                    配置发送到 MCP 服务器的自定义请求头，如认证令牌等
+                    {t('mcp.form.headersDescription')}
                   </p>
                 </div>
-                {renderKeyValueEditor(
-                  headerEntries,
-                  handleHeaderChange,
-                  removeHeaderEntry,
-                  addHeaderEntry,
-                  'Header 名称',
-                  'Header 值',
-                  '暂无请求头',
-                  '点击下方按钮添加自定义请求头',
-                )}
+                <MCPFormKeyValues
+                  entries={headerEntries}
+                  onChange={handleHeaderChange}
+                  onRemove={removeHeaderEntry}
+                  onAdd={addHeaderEntry}
+                  keyPlaceholder={t('mcp.form.headerKey')}
+                  valuePlaceholder={t('mcp.form.headerValue')}
+                  emptyText={t('mcp.form.headersEmpty')}
+                  emptyDescription={t('mcp.form.headersEmptyDescription')}
+                />
               </div>
-            )}
+            </SegmentedTabsContent>
 
             {/* 环境变量 */}
-            {activeTab === 'variables' && (
+            <SegmentedTabsContent value="variables">
               <div className="max-w-2xl">
                 <div className="mb-6">
                   <h3 className="mb-1 text-base font-medium text-[var(--color-text-primary)]">
-                    环境变量
+                    {t('mcp.form.variables')}
                   </h3>
                   <p className="text-sm text-[var(--color-text-tertiary)]">
-                    配置传递给 MCP 服务器的环境变量，值支持 JSON 格式
+                    {t('mcp.form.variablesDescription')}
                   </p>
                 </div>
-                {renderKeyValueEditor(
-                  variableEntries,
-                  handleVariableChange,
-                  removeVariableEntry,
-                  addVariableEntry,
-                  '变量名',
-                  '变量值 (支持 JSON)',
-                  '暂无环境变量',
-                  '点击下方按钮添加环境变量',
-                )}
+                <MCPFormKeyValues
+                  entries={variableEntries}
+                  onChange={handleVariableChange}
+                  onRemove={removeVariableEntry}
+                  onAdd={addVariableEntry}
+                  keyPlaceholder={t('mcp.form.variableKey')}
+                  valuePlaceholder={t('mcp.form.variableValue')}
+                  emptyText={t('mcp.form.variablesEmpty')}
+                  emptyDescription={t('mcp.form.variablesEmptyDescription')}
+                />
               </div>
-            )}
+            </SegmentedTabsContent>
 
             {/* 连接测试 */}
-            {activeTab === 'test' && (
+            <SegmentedTabsContent value="test">
               <div className="max-w-2xl space-y-6">
                 <div className="mb-6">
                   <h3 className="mb-1 text-base font-medium text-[var(--color-text-primary)]">
-                    连接测试
+                    {t('mcp.form.test')}
                   </h3>
                   <p className="text-sm text-[var(--color-text-tertiary)]">
-                    测试与 MCP 服务器的连接，验证配置是否正确
+                    {t('mcp.form.testDescription')}
                   </p>
                 </div>
 
                 {/* 测试按钮 + 状态 */}
-                <div className="flex items-center gap-3">
+                <div className="flex min-w-0 flex-wrap items-center gap-space-sm">
                   <Button
                     type="button"
                     onClick={handleTestConnection}
@@ -586,7 +442,7 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
                     ) : (
                       <Zap className="mr-2 h-4 w-4" />
                     )}
-                    {testing ? '测试中...' : '开始测试'}
+                    {testing ? t('mcp.form.testing') : t('mcp.form.startTest')}
                   </Button>
 
                   {testResult && (
@@ -603,7 +459,9 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
                       ) : (
                         <XCircle className="h-4 w-4" />
                       )}
-                      {testResult.success ? '连接成功' : '连接失败'}
+                      {testResult.success
+                        ? t('mcp.form.connected')
+                        : t('mcp.form.failed')}
                     </div>
                   )}
                 </div>
@@ -615,9 +473,9 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
                       <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-status-error)]" />
                       <div className="min-w-0 space-y-1">
                         <p className="text-sm font-medium text-[var(--color-status-error)]">
-                          连接失败
+                          {t('mcp.form.failed')}
                         </p>
-                        <p className="break-all text-sm text-[var(--color-text-secondary)]">
+                        <p className="text-sm break-all text-[var(--color-text-secondary)]">
                           {testResult.error}
                         </p>
                       </div>
@@ -633,7 +491,7 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
                       <div className="flex items-center gap-2">
                         <Braces className="h-4 w-4 text-[var(--color-text-tertiary)]" />
                         <span className="text-sm font-medium text-[var(--color-text-primary)]">
-                          可用工具
+                          {t('mcp.form.availableTools')}
                         </span>
                         <Badge
                           variant="secondary"
@@ -654,7 +512,7 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
                       <div className="flex flex-col items-center justify-center py-10 text-center">
                         <Info className="mb-2 h-5 w-5 text-[var(--color-text-tertiary)]" />
                         <p className="text-sm text-[var(--color-text-secondary)]">
-                          服务器未提供任何工具
+                          {t('mcp.form.noTools')}
                         </p>
                       </div>
                     )}
@@ -666,15 +524,15 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
                   <div className="flex items-start gap-3 rounded-lg border border-[var(--color-border-subtle)] bg-[var(--color-background-subtle)] p-4">
                     <Info className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-text-tertiary)]" />
                     <div className="space-y-1 text-sm text-[var(--color-text-tertiary)]">
-                      <p>测试将验证服务器 URL 的可访问性和协议兼容性</p>
-                      <p>建议在保存配置前先进行连接测试</p>
+                      <p>{t('mcp.form.testHint')}</p>
+                      <p>{t('mcp.form.saveHint')}</p>
                     </div>
                   </div>
                 )}
               </div>
-            )}
+            </SegmentedTabsContent>
           </div>
-        </div>
+        </SegmentedTabs>
 
         {/* Footer */}
         <div className="flex shrink-0 items-center justify-end gap-3 border-t border-[var(--color-border-subtle)] bg-[var(--color-background-subtle)] px-6 py-4">
@@ -684,7 +542,7 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
             onClick={onCancel}
             disabled={loading}
           >
-            取消
+            {t('mcp.form.cancel')}
           </Button>
           <Button
             type="submit"
@@ -695,7 +553,11 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
             ) : (
               <CheckCircle className="mr-2 h-4 w-4" />
             )}
-            {loading ? '保存中...' : isEditing ? '保存更改' : '创建服务器'}
+            {loading
+              ? t('mcp.form.saving')
+              : isEditing
+                ? t('mcp.form.saveChanges')
+                : t('mcp.form.create')}
           </Button>
         </div>
       </form>

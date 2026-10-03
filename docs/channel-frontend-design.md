@@ -101,15 +101,9 @@ export function assembleConfig(
 
 ## 6. 测试与门禁
 
-**只有 `src/api/__tests__/*.ts` 能被 CI 碰到 channel 代码。**
-`src/pages/settings/channels/__tests__/utils.test.ts` 今天存在、写得完整、
-**但不被任何 npm script 的 glob 命中**，等于零回归保护。
+当前门禁以 [验证与构建](agent-guidance/verification.md) 为准。`npm run test:ci` 会校验测试 inventory，并运行全部 source-node/source-vitest 测试；`src/pages/settings/channels/__tests__/utils.test.ts` 已纳入正式测试 lane。API 合同由 `src/api/__tests__/channel.test.ts` 验证；组件流程仍需按实际覆盖补充回归，并进行浏览器验收。
 
-所以：
-
-- 新增的纯函数必须是可从 `src/api/__tests__/channel.test.ts` 直接 import 的无 React 依赖导出。
-- `utils.test.ts` 的 4 条 `revision_stale` 断言迁进 `src/api/__tests__/`，然后删掉原文件。
-- 组件行为没有测试门禁——**把人工验证方式写进账本，不要假装有测试**。
+设置壳层只提供导航与面包屑。渠道页通过共享 `PageHeader`、`PageToolbar` 提供自己的主标题、创建入口与筛选，避免重复标题，并适应窄屏。
 
 体积：新增文件均须 <600 行且**不得写入 `scripts/file-size-baseline.json`**；
 `channel-form-sheet.tsx` 当前 310 行已进"300-400 计划拆分"档，本条目只能让它变小。

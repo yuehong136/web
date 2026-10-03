@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { FormTooltip } from '@/components/ui/tooltip'
 import {
   SelectWithSearch,
@@ -95,6 +96,7 @@ const ModelOptionLabel: React.FC<{ provider: string; modelName: string }> = ({
 }
 
 export const SystemSetting: React.FC = () => {
+  const { t } = useTranslation()
   const { myLLMs } = useFetchMyLLMs()
   const _isDark = useIsDarkTheme()
   const [tenantInfo, setTenantInfo] = useState<TenantInfo>({
@@ -248,9 +250,11 @@ export const SystemSetting: React.FC = () => {
     <div className="w-full rounded-lg">
       {/* 标题 */}
       <div className="flex flex-col py-4">
-        <h2 className="text-2xl font-medium text-text-primary">设置默认模型</h2>
+        <h2 className="text-base font-semibold text-text-primary">
+          {t('settings.models.defaults')}
+        </h2>
         <p className="mt-1 text-sm text-text-secondary">
-          请在开始之前完成这些设置
+          {t('settings.models.defaultDescription')}
         </p>
       </div>
 

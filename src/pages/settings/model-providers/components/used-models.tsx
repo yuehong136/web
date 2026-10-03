@@ -1,4 +1,5 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import { useFetchMyLLMs } from '@/hooks/use-llm-request'
 import { ModelProviderCard } from './model-provider-card'
 
@@ -17,6 +18,7 @@ export const UsedModels: React.FC<UsedModelsProps> = ({
   handleDeleteFactory,
   handleEnableModel,
 }) => {
+  const { t } = useTranslation()
   const { myLLMs } = useFetchMyLLMs()
 
   const providerList = Object.entries(myLLMs)
@@ -24,13 +26,13 @@ export const UsedModels: React.FC<UsedModelsProps> = ({
   return (
     <div className="mb-4 flex w-full flex-col gap-4">
       {/* 标题 */}
-      <h2 className="mt-4 text-2xl font-medium text-text-primary">
-        添加了的模型
+      <h2 className="mt-space-base text-base font-semibold text-text-primary">
+        {t('settings.models.configured')}
       </h2>
 
       {/* 供应商列表 */}
       {providerList.length === 0 ? (
-        <div className="bg-accent/10 flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-12">
+        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-accent/10 py-12">
           <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-accent">
             <svg
               className="h-8 w-8 text-text-tertiary"
@@ -50,7 +52,7 @@ export const UsedModels: React.FC<UsedModelsProps> = ({
             还没有添加模型
           </h3>
           <p className="max-w-sm text-center text-sm text-text-secondary">
-            从右侧的可选模型中选择您需要的AI模型供应商
+            {t('settings.models.chooseProvider')}
           </p>
         </div>
       ) : (
