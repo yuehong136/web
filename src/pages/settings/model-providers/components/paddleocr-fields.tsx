@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { PADDLEOCR_ALGORITHMS } from './paddleocr-config'
+import { isPaddleOCRJobUrl, PADDLEOCR_ALGORITHMS } from './paddleocr-config'
 
 interface PaddleOCRFieldsProps {
   modelName: string
@@ -27,6 +27,7 @@ export function PaddleOCRFields(props: PaddleOCRFieldsProps) {
   const id = useId()
   const key = 'settings.models.paddleOCR'
   const endpoint = props.algorithm === 'PP-OCRv5' ? '/ocr' : '/layout-parsing'
+  const isJob = isPaddleOCRJobUrl(props.apiUrl)
   return (
     <>
       <div className="space-y-space-sm">
@@ -80,11 +81,14 @@ export function PaddleOCRFields(props: PaddleOCRFieldsProps) {
         </p>
       </div>
       <div className="space-y-space-sm">
-        <Label htmlFor={`${id}-token`}>{t(`${key}.accessToken`)}</Label>
+        <Label htmlFor={`${id}-token`}>
+          {t(`${key}.${isJob ? 'accessTokenJob' : 'accessToken'}`)}
+        </Label>
         <Input
           id={`${id}-token`}
           type="password"
           autoComplete="off"
+          aria-required={isJob}
           value={props.accessToken}
           onChange={(event) => props.onAccessTokenChange(event.target.value)}
           placeholder={t(`${key}.tokenPlaceholder`)}

@@ -180,3 +180,51 @@ it('shows configuration validation with its inference boundary and translates th
   expect(field('AI Studio 访问令牌（可选）').type).toBe('password')
   expect(button('保存')).toBeTruthy()
 })
+
+it('explains both service protocols and keeps a cloud URL when switching algorithms', async () => {
+  await render()
+  const apiUrl = 'https://paddleocr.aistudio-app.com/api/v2/ocr/jobs'
+  expect(document.body.textContent).toContain(
+    '/layout-parsing for a self-hosted synchronous service',
+  )
+  expect(document.body.textContent).toContain(apiUrl)
+  await change(field('Model name (required)'), 'cloud-model')
+  await change(field('Inference URL (required)'), apiUrl)
+  expect(
+    field('AI Studio access token (required)').getAttribute('aria-required'),
+  ).toBe('true')
+  expect(field('AI Studio access token (required)').type).toBe('password')
+  await act(async () => button('Save').click())
+  expect(save).not.toHaveBeenCalled()
+  expect(document.body.textContent).toContain(
+    'Enter an access token for the cloud Job API.',
+  )
+  await change(field('AI Studio access token (required)'), ' fixture-token ')
+  await select('PP-OCRv5')
+  expect(field('Inference URL (required)').value).toBe(apiUrl)
+  expect(document.body.textContent).toContain(
+    '/ocr for a self-hosted synchronous service',
+  )
+  expect(document.body.textContent).toContain(
+    'The cloud service requires an AI Studio access token.',
+  )
+  await act(async () => i18n.changeLanguage('zh-CN'))
+  expect(document.body.textContent).toContain('自托管同步服务使用 /ocr')
+  expect(document.body.textContent).toContain('官方云 Job API 使用')
+  expect(document.body.textContent).toContain(
+    '校验仅检查配置，不验证服务连通性、访问令牌或推理结果。',
+  )
+  await act(async () => button('保存').click())
+  expect(save).toHaveBeenCalledExactlyOnceWith('', undefined, {
+    llm_factory: 'PaddleOCR',
+    llm_name: 'cloud-model',
+    mdl_type: 'ocr',
+    max_tokens: 0,
+    api_base: '',
+    api_key: {
+      paddleocr_api_url: apiUrl,
+      paddleocr_algorithm: 'PP-OCRv5',
+      paddleocr_access_token: 'fixture-token',
+    },
+  })
+})

@@ -8,6 +8,16 @@ export const PADDLEOCR_ALGORITHMS = [
 export type PaddleOCRAlgorithm = (typeof PADDLEOCR_ALGORITHMS)[number]
 export const DEFAULT_PADDLEOCR_ALGORITHM: PaddleOCRAlgorithm = 'PaddleOCR-VL'
 
+export function isPaddleOCRJobUrl(apiUrl: string): boolean {
+  try {
+    return new URL(apiUrl.trim()).pathname
+      .replace(/\/+$/, '')
+      .endsWith('/api/v2/ocr/jobs')
+  } catch {
+    return false
+  }
+}
+
 export function buildPaddleOCRParams({
   modelName,
   apiUrl,
@@ -35,6 +45,9 @@ export function buildPaddleOCRParams({
   }
   if (!PADDLEOCR_ALGORITHMS.some((value) => value === algorithm)) {
     return { ok: false, error: 'algorithmUnsupported' } as const
+  }
+  if (isPaddleOCRJobUrl(apiUrl) && !accessToken.trim()) {
+    return { ok: false, error: 'jobTokenRequired' } as const
   }
   const config = {
     paddleocr_api_url: apiUrl.trim(),

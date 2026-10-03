@@ -16,8 +16,11 @@ export default {
         algorithm: 'PaddleOCR 算法',
         deploymentHint: '请选择服务已部署的算法；此选择不会改变服务端部署。',
         apiUrl: '推理地址（必填）',
-        apiUrlHint: '请输入完整的同步推理地址，包含 {{endpoint}} 路径。',
+        apiUrlHint:
+          '请输入完整服务地址：自托管同步服务使用 {{endpoint}}，官方云 Job API 使用 https://paddleocr.aistudio-app.com/api/v2/ocr/jobs。云服务需要 AI Studio 访问令牌。',
         accessToken: 'AI Studio 访问令牌（可选）',
+        accessTokenJob: 'AI Studio 访问令牌（必填）',
+        jobTokenRequired: '使用云 Job API 时请输入访问令牌。',
         tokenPlaceholder: '请输入访问令牌',
         validationHint:
           '校验仅检查配置，不验证服务连通性、访问令牌或推理结果。',

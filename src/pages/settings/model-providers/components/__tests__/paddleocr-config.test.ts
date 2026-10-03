@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
   buildPaddleOCRParams,
+  isPaddleOCRJobUrl,
   DEFAULT_PADDLEOCR_ALGORITHM,
   PADDLEOCR_ALGORITHMS,
 } from '../paddleocr-config'
@@ -91,4 +92,56 @@ test('PaddleOCR rejects malformed and non-HTTP inference URLs', () => {
       { ok: false, error: 'apiUrlInvalid' },
     )
   }
+})
+
+test('PaddleOCR preserves the complete cloud Job API URL for every algorithm', () => {
+  const apiUrl = 'https://paddleocr.aistudio-app.com/api/v2/ocr/jobs'
+  for (const algorithm of PADDLEOCR_ALGORITHMS) {
+    const result = buildPaddleOCRParams({
+      modelName: 'cloud-model',
+      apiUrl,
+      accessToken: ' fixture-token ',
+      algorithm,
+    })
+    assert.equal(result.ok, true)
+    if (result.ok) {
+      assert.equal(result.params.api_key.paddleocr_api_url, apiUrl)
+      assert.equal(result.params.api_key.paddleocr_algorithm, algorithm)
+      assert.equal(
+        result.params.api_key.paddleocr_access_token,
+        'fixture-token',
+      )
+    }
+  }
+})
+
+test('Job URLs retain gateway prefixes and queries and require a nonblank token', () => {
+  const apiUrl = 'https://gateway.example/paddle/api/v2/ocr/jobs?region=cn'
+  assert.equal(isPaddleOCRJobUrl(apiUrl), true)
+  assert.equal(isPaddleOCRJobUrl(`${apiUrl.split('?')[0]}/?region=cn`), true)
+  assert.equal(isPaddleOCRJobUrl('https://service.example/ocr'), false)
+  assert.equal(
+    isPaddleOCRJobUrl('https://service.example/api/v2/ocr/jobs-preview'),
+    false,
+  )
+  assert.equal(isPaddleOCRJobUrl('not-a-url'), false)
+  for (const accessToken of ['', ' ', '\n\t']) {
+    assert.deepEqual(
+      buildPaddleOCRParams({
+        modelName: 'cloud-model',
+        apiUrl,
+        accessToken,
+        algorithm: 'PaddleOCR-VL',
+      }),
+      { ok: false, error: 'jobTokenRequired' },
+    )
+  }
+  const result = buildPaddleOCRParams({
+    modelName: 'cloud-model',
+    apiUrl,
+    accessToken: 'fixture-token',
+    algorithm: 'PaddleOCR-VL',
+  })
+  assert.equal(result.ok, true)
+  if (result.ok) assert.equal(result.params.api_key.paddleocr_api_url, apiUrl)
 })

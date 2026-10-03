@@ -19,8 +19,10 @@ export default {
           'Choose the algorithm deployed by your service. This selection does not change the server deployment.',
         apiUrl: 'Inference URL (required)',
         apiUrlHint:
-          'Enter the complete synchronous inference URL, including {{endpoint}}.',
+          'Enter the complete service URL: {{endpoint}} for a self-hosted synchronous service, or https://paddleocr.aistudio-app.com/api/v2/ocr/jobs for the official cloud Job API. The cloud service requires an AI Studio access token.',
         accessToken: 'AI Studio access token (optional)',
+        accessTokenJob: 'AI Studio access token (required)',
+        jobTokenRequired: 'Enter an access token for the cloud Job API.',
         tokenPlaceholder: 'Enter your access token',
         validationHint:
           'Validation checks configuration only. It does not verify service connectivity, the access token, or inference results.',
