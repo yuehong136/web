@@ -1,5 +1,17 @@
 export default {
   searchPage: {
+    feedback: {
+      knowledgeRequired: 'Select at least one knowledge base.',
+      nameRequired: 'Enter a search app name.',
+      createTitle: 'Created',
+      createSuccess: 'Search app created.',
+      createFailedTitle: 'Create failed',
+      createFailed: 'Could not create the search app. Try again.',
+      saveTitle: 'Saved',
+      saveSuccess: 'Search configuration updated.',
+      saveFailedTitle: 'Save failed',
+      saveFailed: 'Could not update the search configuration. Try again.',
+    },
     title: 'Search apps',
     description:
       'Build dedicated search apps with retrieval and AI summaries on selected knowledge bases.',

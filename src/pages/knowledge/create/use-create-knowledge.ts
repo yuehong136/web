@@ -1,7 +1,7 @@
+import { toast } from '@/lib/toast'
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useCreateKnowledge as useCreateKnowledgeRequest } from '@/hooks/use-knowledge-request'
-import { useUIStore } from '@/stores/ui'
 import type { CreateKBRequest } from '@/types/api'
 import { DEFAULT_CREATE_FORM_VALUES } from './constants'
 import { getCreateKnowledgeErrorMessage, validateKnowledgeName } from './utils'
@@ -16,7 +16,6 @@ export const useCreateKnowledge = ({
 }: UseCreateKnowledgeOptions) => {
   const { t } = useTranslation()
   const { createKnowledge } = useCreateKnowledgeRequest()
-  const { addNotification } = useUIStore()
 
   const [formData, setFormData] = useState<CreateKnowledgeFormValues>(
     DEFAULT_CREATE_FORM_VALUES,
@@ -60,19 +59,15 @@ export const useCreateKnowledge = ({
 
     if (error) {
       setNameError(error)
-      addNotification({
-        type: 'error',
-        title: t('knowledge.create.validation.title'),
-        message: error,
+      toast.error(t('knowledge.create.validation.title'), {
+        description: error,
       })
       return
     }
 
     if (!formData.embd_id) {
-      addNotification({
-        type: 'error',
-        title: t('knowledge.create.validation.title'),
-        message: t('knowledge.create.validation.embeddingRequired'),
+      toast.error(t('knowledge.create.validation.title'), {
+        description: t('knowledge.create.validation.embeddingRequired'),
       })
       return
     }
@@ -91,24 +86,20 @@ export const useCreateKnowledge = ({
 
       const result = await createKnowledge(createData)
 
-      addNotification({
-        type: 'success',
-        title: t('knowledge.create.success.title'),
-        message: t('knowledge.create.success.message'),
+      toast.success(t('knowledge.create.success.title'), {
+        description: t('knowledge.create.success.message'),
       })
 
       resetForm()
       onCreated?.(result.kb_id)
     } catch (error) {
-      addNotification({
-        type: 'error',
-        title: t('knowledge.create.errors.title'),
-        message: getCreateKnowledgeErrorMessage(error, t),
+      toast.error(t('knowledge.create.errors.title'), {
+        description: getCreateKnowledgeErrorMessage(error, t),
       })
     } finally {
       setIsLoading(false)
     }
-  }, [addNotification, createKnowledge, formData, onCreated, resetForm, t])
+  }, [createKnowledge, formData, onCreated, resetForm, t])
 
   const canSubmit = Boolean(
     formData.name.trim() && formData.embd_id && !nameError,

@@ -1,3 +1,4 @@
+import { toast } from '@/lib/toast'
 import { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
@@ -6,7 +7,6 @@ import {
   useDeleteKnowledge,
   useFetchKnowledgeList,
 } from '@/hooks/use-knowledge-request'
-import { useUIStore } from '@/stores/ui'
 import type { KnowledgeBase } from '@/types/api'
 import { DEFAULT_PAGE_SIZE } from './constants'
 import { useQuickEdit } from './use-quick-edit'
@@ -16,7 +16,6 @@ import type { KnowledgeTimeFormat, KnowledgeViewMode } from './types'
 export const useKnowledgeListPage = () => {
   const navigate = useNavigate()
   const { t } = useTranslation()
-  const { addNotification } = useUIStore()
 
   const [viewMode, setViewMode] = useState<KnowledgeViewMode>('grid')
   const [selectedBases, setSelectedBases] = useState<string[]>([])
@@ -105,20 +104,16 @@ export const useKnowledgeListPage = () => {
 
       try {
         await deleteKnowledge(knowledgeBaseId)
-        addNotification({
-          type: 'success',
-          title: t('knowledge.list.notifications.deleteSuccessTitle'),
-          message: t('knowledge.list.notifications.deleteSuccessMessage'),
+        toast.success(t('knowledge.list.notifications.deleteSuccessTitle'), {
+          description: t('knowledge.list.notifications.deleteSuccessMessage'),
         })
       } catch {
-        addNotification({
-          type: 'error',
-          title: t('knowledge.list.notifications.deleteErrorTitle'),
-          message: t('knowledge.list.notifications.deleteErrorMessage'),
+        toast.error(t('knowledge.list.notifications.deleteErrorTitle'), {
+          description: t('knowledge.list.notifications.deleteErrorMessage'),
         })
       }
     },
-    [addNotification, deleteKnowledge, t],
+    [deleteKnowledge, t],
   )
 
   const handleBulkDelete = useCallback(async () => {
@@ -139,21 +134,20 @@ export const useKnowledgeListPage = () => {
     try {
       await Promise.all(selectedBases.map((id) => deleteKnowledge(id)))
       setSelectedBases([])
-      addNotification({
-        type: 'success',
-        title: t('knowledge.list.notifications.bulkDeleteSuccessTitle'),
-        message: t('knowledge.list.notifications.bulkDeleteSuccessMessage', {
-          count: selectedBases.length,
-        }),
+      toast.success(t('knowledge.list.notifications.bulkDeleteSuccessTitle'), {
+        description: t(
+          'knowledge.list.notifications.bulkDeleteSuccessMessage',
+          {
+            count: selectedBases.length,
+          },
+        ),
       })
     } catch {
-      addNotification({
-        type: 'error',
-        title: t('knowledge.list.notifications.bulkDeleteErrorTitle'),
-        message: t('knowledge.list.notifications.deleteErrorMessage'),
+      toast.error(t('knowledge.list.notifications.bulkDeleteErrorTitle'), {
+        description: t('knowledge.list.notifications.deleteErrorMessage'),
       })
     }
-  }, [addNotification, deleteKnowledge, selectedBases, t])
+  }, [deleteKnowledge, selectedBases, t])
 
   const { handleQuickEditSubmit, isQuickEditSubmitting } = useQuickEdit({
     editingKnowledgeBase,

@@ -26,6 +26,8 @@ import { ConsolePageTemplate } from '@/components/page-templates'
 import { ContextRail, type ContextRailGroup } from '@/components/patterns'
 import { ROUTES } from '@/constants'
 import { useRegisterSecondaryNavigation } from '@/components/layout/workbench-navigation'
+import { usePendingTeamInvitations } from '@/hooks/use-pending-team-invitations'
+import { useTeamStore } from '@/stores/team'
 
 export const SettingsIndexRedirect = () => {
   const { state } = useLocation()
@@ -34,6 +36,8 @@ export const SettingsIndexRedirect = () => {
 
 export const SettingsLayout: React.FC = () => {
   const { t } = useTranslation()
+  const { pendingCount } = usePendingTeamInvitations()
+  const setActiveTab = useTeamStore((state) => state.setActiveTab)
   const location = useLocation()
   const [returnTo] = React.useState(() => {
     const origin = location.state?.returnTo
@@ -68,6 +72,12 @@ export const SettingsLayout: React.FC = () => {
             title: t('settings.nav.team'),
             href: '/settings/team',
             icon: Users,
+            badge: pendingCount,
+            badgeLabel: t('layout.invitations.pending', {
+              count: pendingCount,
+            }),
+            onSelect:
+              pendingCount > 0 ? () => setActiveTab('joined-teams') : undefined,
           },
           {
             title: t('settings.nav.modelProviders'),
@@ -114,7 +124,7 @@ export const SettingsLayout: React.FC = () => {
         ],
       },
     ],
-    [t],
+    [t, pendingCount, setActiveTab],
   )
 
   const currentTitle =

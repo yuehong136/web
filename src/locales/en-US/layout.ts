@@ -18,8 +18,6 @@ export default {
       more: 'More',
       expandSecondary: 'Expand secondary navigation',
       collapseSecondary: 'Collapse secondary navigation',
-      notifications: 'Notifications',
-      noNotifications: 'No notifications',
       theme: 'Theme',
       lightTheme: 'Light',
       darkTheme: 'Dark',
@@ -33,13 +31,9 @@ export default {
       logout: 'Log out',
     },
     invitations: {
-      label: 'Team invitations',
       title: 'Team invitations',
       pending_one: '{{count}} pending invitation',
       pending_other: '{{count}} pending invitations',
-      empty: 'No pending invitations',
-      untitled: 'Unnamed team',
-      viewAll: 'View all invitations',
     },
     nav: {
       home: 'Home',

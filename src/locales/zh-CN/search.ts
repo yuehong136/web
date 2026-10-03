@@ -1,5 +1,17 @@
 export default {
   searchPage: {
+    feedback: {
+      knowledgeRequired: '请至少选择一个知识库。',
+      nameRequired: '请输入搜索应用名称。',
+      createTitle: '创建成功',
+      createSuccess: '搜索应用已创建。',
+      createFailedTitle: '创建失败',
+      createFailed: '无法创建搜索应用，请重试。',
+      saveTitle: '保存成功',
+      saveSuccess: '搜索配置已更新。',
+      saveFailedTitle: '保存失败',
+      saveFailed: '无法更新搜索配置，请重试。',
+    },
     title: '搜索应用',
     description: '在选定知识库之上完成检索与 AI 总结，打造专用搜索应用。',
     create: '创建搜索应用',

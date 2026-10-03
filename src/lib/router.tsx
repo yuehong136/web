@@ -263,11 +263,6 @@ const workflowElement = placeholderElement(
   '工作流模块即将推出',
   '工作流会在后续以统一 Studio 骨架接入。',
 )
-const notificationsElement = placeholderElement(
-  AppScene.CONSOLE,
-  '通知设置即将推出',
-  '该设置项会复用统一 Console 模板补充。',
-)
 const appearanceElement = placeholderElement(
   AppScene.CONSOLE,
   '界面设置即将推出',
@@ -531,10 +526,6 @@ const topLevelRoutes: RouteObject[] = [
           {
             path: 'team',
             element: withLoading(TeamPage),
-          },
-          {
-            path: 'notifications',
-            element: notificationsElement,
           },
           {
             path: 'appearance',

@@ -1,8 +1,8 @@
 import * as React from 'react'
-import { NavLink, useLocation } from 'react-router-dom'
+import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
-  Bell,
+  Users,
   ChevronDown,
   LogOut,
   Monitor,
@@ -32,6 +32,8 @@ import { useAuthStore, useUIStore } from '@/stores'
 import { getTheme, setTheme, subscribeTheme, Theme } from '@/themes'
 import { supportedLocales, type ProductLocale } from '@/locales/i18n'
 import { cn } from '@/lib/utils'
+import { usePendingTeamInvitations } from '@/hooks/use-pending-team-invitations'
+import { useTeamStore } from '@/stores/team'
 
 /** Shared account and appearance controls for global and settings navigation. */
 export const SidebarUtilities = ({
@@ -41,10 +43,12 @@ export const SidebarUtilities = ({
 }) => {
   const { t } = useTranslation()
   const location = useLocation()
+  const navigate = useNavigate()
+  const { pendingCount } = usePendingTeamInvitations()
+  const setActiveTab = useTeamStore((state) => state.setActiveTab)
   const user = useAuthStore((state) => state.user)
   const authenticated = useAuthStore((state) => state.isAuthenticated)
   const logout = useAuthStore((state) => state.logout)
-  const notifications = useUIStore((state) => state.notifications)
   const language = useUIStore((state) => state.language)
   const setLanguage = useUIStore((state) => state.setLanguage)
   const theme = React.useSyncExternalStore(
@@ -53,6 +57,8 @@ export const SidebarUtilities = ({
     () => Theme.SYSTEM,
   )
   const name = user?.nickname || user?.username || t('layout.sidebar.user')
+  const pendingLabel = t('layout.invitations.pending', { count: pendingCount })
+  const pendingDescriptionId = React.useId()
   const origin = location.pathname.startsWith('/settings')
     ? '/home'
     : location.pathname
@@ -69,23 +75,43 @@ export const SidebarUtilities = ({
       className={cn('flex items-center gap-space-xs', collapsed && 'flex-col')}
     >
       <ActionMenu>
-        <NavigationTooltip content={name} enabled={collapsed}>
+        <NavigationTooltip
+          content={pendingCount > 0 ? `${name} · ${pendingLabel}` : name}
+          enabled={collapsed}
+        >
           <ActionMenuTrigger asChild>
             <Button
               variant="ghost"
               size="sm"
               aria-label={t('layout.sidebar.accountMenu', { name })}
+              aria-describedby={
+                pendingCount > 0 ? pendingDescriptionId : undefined
+              }
               className={cn(
                 'min-w-0 flex-1 justify-start px-space-xs text-text-secondary',
                 collapsed && 'w-full justify-center',
               )}
             >
-              <Avatar className="h-6 w-6 shrink-0">
-                <AvatarImage src={user?.avatar} alt="" />
-                <AvatarFallback className="bg-background-subtle text-xs font-medium text-text-primary">
-                  {name.charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
+              <span className="relative shrink-0">
+                <Avatar className="h-6 w-6">
+                  <AvatarImage src={user?.avatar} alt="" />
+                  <AvatarFallback className="bg-background-subtle text-xs font-medium text-text-primary">
+                    {name.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                {pendingCount > 0 && (
+                  <>
+                    <span
+                      aria-hidden
+                      data-pending-invitations={pendingCount}
+                      className="absolute -top-0.5 -right-0.5 size-1.5 rounded-radius-full bg-text-secondary ring-2 ring-components-sidebar-bg"
+                    />
+                    <span id={pendingDescriptionId} className="sr-only">
+                      {pendingLabel}
+                    </span>
+                  </>
+                )}
+              </span>
               {!collapsed && (
                 <>
                   <span className="min-w-0 flex-1 truncate text-left">
@@ -130,6 +156,20 @@ export const SidebarUtilities = ({
                 <User className="size-icon-sm" />
                 {t('layout.sidebar.login')}
               </NavLink>
+            </ActionMenuItem>
+          )}
+          {authenticated && pendingCount > 0 && (
+            <ActionMenuItem
+              onSelect={() => {
+                setActiveTab('joined-teams')
+                navigate('/settings/team', { state: { returnTo: origin } })
+              }}
+            >
+              <Users className="size-icon-sm" />
+              <span className="flex-1">{t('layout.invitations.title')}</span>
+              <span className="rounded-radius-sm bg-background-subtle px-space-xs text-xs text-text-secondary tabular-nums">
+                {pendingCount > 99 ? '99+' : pendingCount}
+              </span>
             </ActionMenuItem>
           )}
           <ActionMenuSub>
@@ -186,45 +226,6 @@ export const SidebarUtilities = ({
                 {t('layout.sidebar.logout')}
               </ActionMenuItem>
             </>
-          )}
-        </ActionMenuContent>
-      </ActionMenu>
-      <ActionMenu>
-        <NavigationTooltip content={t('layout.sidebar.notifications')}>
-          <ActionMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              className="relative shrink-0 text-text-secondary"
-              aria-label={t('layout.sidebar.notifications')}
-            >
-              <Bell className="size-icon-sm" />
-              {notifications.length > 0 && (
-                <span className="absolute top-0 right-0 flex h-4 min-w-4 items-center justify-center rounded-radius-full bg-status-error px-space-2xs text-xs text-text-inverted">
-                  {notifications.length}
-                </span>
-              )}
-            </Button>
-          </ActionMenuTrigger>
-        </NavigationTooltip>
-        <ActionMenuContent side="top" align="end" className="w-64">
-          <ActionMenuLabel className="px-space-sm py-space-xs font-medium">
-            {t('layout.sidebar.notifications')}
-          </ActionMenuLabel>
-          <ActionMenuSeparator />
-          {notifications.length ? (
-            notifications.map((notice) => (
-              <div key={notice.id} className="px-space-sm py-space-sm">
-                <p className="text-sm font-medium">{notice.title}</p>
-                <p className="mt-space-xs text-xs text-text-secondary">
-                  {notice.message}
-                </p>
-              </div>
-            ))
-          ) : (
-            <p className="px-space-sm py-space-sm text-sm text-text-secondary">
-              {t('layout.sidebar.noNotifications')}
-            </p>
           )}
         </ActionMenuContent>
       </ActionMenu>

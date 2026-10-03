@@ -119,16 +119,6 @@ interface UIState {
   globalLoading: boolean
   loadingMessage: string
 
-  // 通知设置
-  notifications: Array<{
-    id: string
-    type: 'info' | 'success' | 'warning' | 'error'
-    title: string
-    message: string
-    duration?: number
-    timestamp: number
-  }>
-
   // 动作
   setTheme: (theme: Theme) => void
   setLanguage: (language: Language) => void
@@ -148,13 +138,6 @@ interface UIState {
 
   // 加载状态管理
   setGlobalLoading: (loading: boolean, message?: string) => void
-
-  // 通知管理
-  addNotification: (
-    notification: Omit<UIState['notifications'][0], 'id' | 'timestamp'>,
-  ) => void
-  removeNotification: (id: string) => void
-  clearNotifications: () => void
 
   // 工具方法
   getEffectiveTheme: () => 'light' | 'dark'
@@ -176,7 +159,6 @@ export const useUIStore = create<UIState>()(
       modals: {},
       globalLoading: false,
       loadingMessage: '',
-      notifications: [],
 
       // 设置主题
       setTheme: (theme) => {
@@ -247,38 +229,6 @@ export const useUIStore = create<UIState>()(
           globalLoading: loading,
           loadingMessage: message,
         }),
-
-      // 添加通知
-      addNotification: (notification) => {
-        const id = Math.random().toString(36).substr(2, 9)
-        const newNotification = {
-          ...notification,
-          id,
-          timestamp: Date.now(),
-        }
-
-        set((state) => ({
-          notifications: [...state.notifications, newNotification],
-        }))
-
-        // 自动移除通知
-        if (notification.duration !== 0) {
-          setTimeout(() => {
-            get().removeNotification(id)
-          }, notification.duration || 4000)
-        }
-
-        return id
-      },
-
-      // 移除通知
-      removeNotification: (id) =>
-        set((state) => ({
-          notifications: state.notifications.filter((n) => n.id !== id),
-        })),
-
-      // 清除所有通知
-      clearNotifications: () => set({ notifications: [] }),
 
       // 获取有效主题
       getEffectiveTheme: () => {

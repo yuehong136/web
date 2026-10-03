@@ -64,7 +64,10 @@ export const SecondaryNavigationContent = ({
                     <Link
                       to={item.href}
                       aria-current={active ? 'page' : undefined}
-                      onClick={onNavigate}
+                      onClick={() => {
+                        item.onSelect?.()
+                        onNavigate?.()
+                      }}
                       className={cn(
                         'flex min-h-9 items-center gap-space-sm rounded-radius-md px-space-sm py-space-xs text-sm focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden',
                         touchTargets && 'min-h-[44px]',
@@ -74,7 +77,15 @@ export const SecondaryNavigationContent = ({
                       )}
                     >
                       {Icon && <Icon className="size-icon-sm shrink-0" />}
-                      <span className="truncate">{item.title}</span>
+                      <span className="flex-1 truncate">{item.title}</span>
+                      {Boolean(item.badge) && (
+                        <span
+                          aria-label={item.badgeLabel}
+                          className="rounded-radius-sm bg-background-subtle px-space-xs text-xs text-text-secondary tabular-nums"
+                        >
+                          {(item.badge ?? 0) > 99 ? '99+' : item.badge}
+                        </span>
+                      )}
                     </Link>
                   </li>
                 )

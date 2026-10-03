@@ -66,16 +66,19 @@ export const useFetchTeamMembers = (tenantId?: string) => {
 
 // 获取已加入的团队列表
 // 返回当前用户加入的所有团队（包括自己的团队和被邀请加入的团队）
-export const useFetchJoinedTeams = () => {
+export const useFetchJoinedTeams = (
+  options: { enabled?: boolean; refetchOnWindowFocus?: boolean } = {},
+) => {
   const { data, isFetching, isError, error, refetch } = useQuery({
     queryKey: teamKeys.joinedTeams(),
+    enabled: options.enabled,
     queryFn: async () => {
       const response = await teamAPI.listJoinedTeams()
       return response
     },
     staleTime: 2 * 60 * 1000,
     gcTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: options.refetchOnWindowFocus ?? false,
   })
 
   return {

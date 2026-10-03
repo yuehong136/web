@@ -1,7 +1,7 @@
+import { toast } from '@/lib/toast'
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useUpdateKnowledge } from '@/hooks/use-knowledge-request'
-import { useUIStore } from '@/stores/ui'
 import type { KnowledgeBase, UpdateKBRequest } from '@/types/api'
 import type { QuickEditValues } from './types'
 
@@ -22,7 +22,6 @@ export const useQuickEdit = ({
 }) => {
   const { t } = useTranslation()
   const { updateKnowledge } = useUpdateKnowledge()
-  const { addNotification } = useUIStore()
   const [isQuickEditSubmitting, setIsQuickEditSubmitting] = useState(false)
 
   const getQuickEditErrorMessage = useCallback(
@@ -80,28 +79,22 @@ export const useQuickEdit = ({
       const namePattern = /^[a-zA-Z][a-zA-Z0-9_]*$/
 
       if (!name) {
-        addNotification({
-          type: 'error',
-          title: t('knowledge.list.quickEdit.validation.title'),
-          message: t('knowledge.list.quickEdit.validation.nameRequired'),
+        toast.error(t('knowledge.list.quickEdit.validation.title'), {
+          description: t('knowledge.list.quickEdit.validation.nameRequired'),
         })
         return
       }
 
       if (!namePattern.test(name)) {
-        addNotification({
-          type: 'error',
-          title: t('knowledge.list.quickEdit.validation.title'),
-          message: t('knowledge.list.quickEdit.validation.namePattern'),
+        toast.error(t('knowledge.list.quickEdit.validation.title'), {
+          description: t('knowledge.list.quickEdit.validation.namePattern'),
         })
         return
       }
 
       if (name.length > 100) {
-        addNotification({
-          type: 'error',
-          title: t('knowledge.list.quickEdit.validation.title'),
-          message: t('knowledge.list.quickEdit.validation.nameMaxLength', {
+        toast.error(t('knowledge.list.quickEdit.validation.title'), {
+          description: t('knowledge.list.quickEdit.validation.nameMaxLength', {
             count: 100,
           }),
         })
@@ -117,24 +110,19 @@ export const useQuickEdit = ({
       try {
         setIsQuickEditSubmitting(true)
         await updateKnowledge(updateData)
-        addNotification({
-          type: 'success',
-          title: t('knowledge.list.quickEdit.success.title'),
-          message: t('knowledge.list.quickEdit.success.message'),
+        toast.success(t('knowledge.list.quickEdit.success.title'), {
+          description: t('knowledge.list.quickEdit.success.message'),
         })
         onUpdated()
       } catch (error) {
-        addNotification({
-          type: 'error',
-          title: t('knowledge.list.quickEdit.errors.title'),
-          message: getQuickEditErrorMessage(error),
+        toast.error(t('knowledge.list.quickEdit.errors.title'), {
+          description: getQuickEditErrorMessage(error),
         })
       } finally {
         setIsQuickEditSubmitting(false)
       }
     },
     [
-      addNotification,
       editingKnowledgeBase,
       getQuickEditErrorMessage,
       onUpdated,

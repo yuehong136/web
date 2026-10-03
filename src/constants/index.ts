@@ -33,7 +33,6 @@ export const ROUTES = {
   SYSTEM: '/system',
   SETTINGS: '/settings',
   SETTINGS_PROFILE: '/settings/profile',
-  SETTINGS_NOTIFICATIONS: '/settings/notifications',
   SETTINGS_APPEARANCE: '/settings/appearance',
   SETTINGS_MODEL_PROVIDERS: '/settings/model-providers',
   SETTINGS_CHANNELS: '/settings/channels',

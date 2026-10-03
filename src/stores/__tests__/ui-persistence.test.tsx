@@ -19,13 +19,12 @@ afterEach(() => {
   localStorage.clear()
 })
 
-it('persists layout preferences without transient dialogs, loading or notices', () => {
+it('persists layout preferences without transient dialogs or loading', () => {
   const state = useUIStore.getState()
   state.setSidebarWidth(280)
   state.setContextSidebarCollapsed(true)
   state.openModal('transient-dialog')
   state.setGlobalLoading(true, 'transient-message')
-  state.addNotification({ type: 'info', title: 'notice', message: 'transient' })
 
   const saved = JSON.parse(localStorage.getItem('ui-storage') ?? '{}')
   expect(saved.state.sidebarWidth).toBe(280)

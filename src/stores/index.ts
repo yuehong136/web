@@ -22,6 +22,7 @@ import { useAuthStore } from './auth'
 import { useUIStore } from './ui'
 import { apiClient } from '@/api/client'
 import { authAPI } from '@/api/auth'
+import { toast } from '@/lib/toast'
 
 // 导出类型
 export type {} from './auth'
@@ -31,13 +32,12 @@ export type {} from './ui'
 export const resetAllStores = () => {
   // 获取所有store的引用并重置
   const authStore = useAuthStore.getState()
-  const uiStore = useUIStore.getState()
 
   // 执行登出操作，这会清理相关状态
   authStore.logout().catch(console.error)
 
-  // 清理UI状态
-  uiStore.clearNotifications()
+  // 关闭退出前的操作反馈
+  toast.dismiss()
 }
 
 // 创建一个初始化函数

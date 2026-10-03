@@ -3,7 +3,6 @@ import type { Ref } from 'react'
 import { Menu, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { NavigationTooltip } from '@/components/ui/navigation-tooltip'
-import { InvitationBell } from '@/components/layout/InvitationBell'
 import { cn } from '@/lib/utils'
 
 interface AppTopBarProps {
@@ -70,7 +69,6 @@ export const AppTopBar = ({
           </div>
         </>
       )}
-      <InvitationBell />
     </header>
   )
 }

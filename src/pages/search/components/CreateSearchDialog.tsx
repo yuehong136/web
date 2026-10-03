@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next'
+import { toast } from '@/lib/toast'
 import React, { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Search, Loader2 } from 'lucide-react'
@@ -16,7 +18,6 @@ import { Textarea } from '@/components/ui/textarea'
 import { MultiSelectWithSearch } from '@/components/ui/multi-select-with-search'
 import { useCreateSearch } from '@/hooks/use-search-request'
 import { useFetchKnowledgeList } from '@/hooks/use-knowledge-request'
-import { useUIStore } from '@/stores/ui'
 import { ROUTES } from '@/constants'
 import { cn } from '@/lib/utils'
 import { getAvatarGradient } from '@/components/ui/resource-list'
@@ -33,8 +34,8 @@ const CreateSearchDialog: React.FC<CreateSearchDialogProps> = ({
   onClose,
   onSuccess,
 }) => {
+  const { t } = useTranslation()
   const navigate = useNavigate()
-  const { addNotification } = useUIStore()
   const { createSearch, isLoading } = useCreateSearch()
   const { knowledgeBases } = useFetchKnowledgeList({ page_size: 1000 })
 
@@ -63,15 +64,11 @@ const CreateSearchDialog: React.FC<CreateSearchDialogProps> = ({
   const handleSubmit = useCallback(async () => {
     const trimmedName = name.trim()
     if (!trimmedName) {
-      setNameError('搜索应用名称不能为空')
+      setNameError(t('searchPage.feedback.nameRequired'))
       return
     }
     if (kbIds.length === 0) {
-      addNotification({
-        type: 'error',
-        title: '请选择知识库',
-        message: '至少选择一个知识库',
-      })
+      toast.error(t('searchPage.feedback.knowledgeRequired'))
       return
     }
 
@@ -95,10 +92,8 @@ const CreateSearchDialog: React.FC<CreateSearchDialogProps> = ({
         },
       })
 
-      addNotification({
-        type: 'success',
-        title: '创建成功',
-        message: '搜索应用已成功创建',
+      toast.success(t('searchPage.feedback.createTitle'), {
+        description: t('searchPage.feedback.createSuccess'),
       })
       resetForm()
       onClose()
@@ -109,18 +104,16 @@ const CreateSearchDialog: React.FC<CreateSearchDialogProps> = ({
         navigate(`${ROUTES.SEARCH}/${result.search_id}`)
       }
     } catch {
-      addNotification({
-        type: 'error',
-        title: '创建失败',
-        message: '创建搜索应用时发生错误',
+      toast.error(t('searchPage.feedback.createFailedTitle'), {
+        description: t('searchPage.feedback.createFailed'),
       })
     }
   }, [
+    t,
     name,
     description,
     kbIds,
     createSearch,
-    addNotification,
     navigate,
     resetForm,
     onClose,

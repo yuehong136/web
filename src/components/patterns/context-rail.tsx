@@ -24,6 +24,9 @@ export interface ContextRailItem {
   href: string
   icon?: React.ComponentType<{ className?: string }>
   matcher?: (pathname: string) => boolean
+  badge?: number
+  badgeLabel?: string
+  onSelect?: () => void
 }
 
 export interface ContextRailGroup {
@@ -84,7 +87,10 @@ const RailLinks = ({
               <NavigationTooltip content={item.title} enabled={collapsed}>
                 <Link
                   to={item.href}
-                  onClick={onNavigate}
+                  onClick={() => {
+                    item.onSelect?.()
+                    onNavigate?.()
+                  }}
                   aria-label={collapsed ? item.title : undefined}
                   aria-current={active ? 'page' : undefined}
                   className={cn(
@@ -101,9 +107,17 @@ const RailLinks = ({
                   ) : collapsed ? (
                     <span aria-hidden>{item.title.charAt(0)}</span>
                   ) : null}
-                  <span className={collapsed ? 'sr-only' : 'truncate'}>
+                  <span className={collapsed ? 'sr-only' : 'flex-1 truncate'}>
                     {item.title}
                   </span>
+                  {!collapsed && Boolean(item.badge) && (
+                    <span
+                      aria-label={item.badgeLabel}
+                      className="rounded-radius-sm bg-background-subtle px-space-xs text-xs text-text-secondary tabular-nums"
+                    >
+                      {(item.badge ?? 0) > 99 ? '99+' : item.badge}
+                    </span>
+                  )}
                 </Link>
               </NavigationTooltip>
             </li>

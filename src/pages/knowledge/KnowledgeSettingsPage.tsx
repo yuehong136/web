@@ -1,3 +1,4 @@
+import { toast } from '@/lib/toast'
 import { useConsumedSearchFlag } from '@/hooks/use-consumed-search-flag'
 
 import React from 'react'
@@ -16,7 +17,6 @@ import {
   useFetchKnowledgeDetail,
   useUpdateKnowledge,
 } from '@/hooks/use-knowledge-request'
-import { useUIStore } from '@/stores/ui'
 import { IconMap, LLMFactory, isLLMModelEnabled } from '@/stores/model'
 import { useFetchMyLLMs } from '@/hooks/use-llm-request'
 import { useIsDarkTheme } from '@/themes'
@@ -111,7 +111,6 @@ const KnowledgeSettingsPage: React.FC = () => {
   const navigate = useNavigate()
   const { knowledgeBase: currentKnowledgeBase } = useFetchKnowledgeDetail(id)
   const { updateKnowledge } = useUpdateKnowledge()
-  const { addNotification } = useUIStore()
   const { myLLMs, isLoading: isLoadingModels } = useFetchMyLLMs()
 
   const [isLoading, setIsLoading] = React.useState(false)
@@ -245,10 +244,8 @@ const KnowledgeSettingsPage: React.FC = () => {
 
     const trimmedName = data.name.trim()
     if (!trimmedName) {
-      addNotification({
-        type: 'error',
-        title: t('knowledge.settings.validationTitle'),
-        message: t('knowledge.settings.emptyName'),
+      toast.error(t('knowledge.settings.validationTitle'), {
+        description: t('knowledge.settings.emptyName'),
       })
       return
     }
@@ -282,16 +279,12 @@ const KnowledgeSettingsPage: React.FC = () => {
 
       await updateKnowledge(updateData)
 
-      addNotification({
-        type: 'success',
-        title: t('knowledge.settings.successTitle'),
-        message: t('knowledge.settings.successMessage'),
+      toast.success(t('knowledge.settings.successTitle'), {
+        description: t('knowledge.settings.successMessage'),
       })
     } catch {
-      addNotification({
-        type: 'error',
-        title: t('knowledge.settings.errorTitle'),
-        message: t('knowledge.settings.errorMessage'),
+      toast.error(t('knowledge.settings.errorTitle'), {
+        description: t('knowledge.settings.errorMessage'),
       })
     } finally {
       setIsLoading(false)
@@ -380,7 +373,7 @@ const KnowledgeSettingsPage: React.FC = () => {
               <SectionCard title={t('knowledge.settings.sections.indexing')}>
                 <div className="space-y-space-lg">
                   <GraphRagFormFields />
-                  <div className="pt-space-md border-t border-border-subtle">
+                  <div className="border-t border-border-subtle pt-space-md">
                     <RaptorFormFields />
                   </div>
                 </div>
@@ -392,7 +385,7 @@ const KnowledgeSettingsPage: React.FC = () => {
                     control={form.control}
                     name="parseType"
                     render={({ field }) => (
-                      <FormItem className="gap-space-xs flex items-center space-y-0">
+                      <FormItem className="flex items-center gap-space-xs space-y-0">
                         <FormLabel className="w-1/4 shrink-0 text-sm text-text-secondary">
                           {t('knowledge.settings.fields.parseType')}
                         </FormLabel>
@@ -403,12 +396,12 @@ const KnowledgeSettingsPage: React.FC = () => {
                               onValueChange={(val) =>
                                 field.onChange(Number(val))
                               }
-                              className="gap-space-lg flex"
+                              className="flex gap-space-lg"
                             >
                               {ParseTypeOptions.map((opt) => (
                                 <label
                                   key={opt.value}
-                                  className="gap-space-sm flex cursor-pointer items-center"
+                                  className="flex cursor-pointer items-center gap-space-sm"
                                 >
                                   <RadioGroupItem value={String(opt.value)} />
                                   <span className="text-sm text-text-secondary">
@@ -434,7 +427,7 @@ const KnowledgeSettingsPage: React.FC = () => {
                         control={form.control}
                         name="parser_id"
                         render={({ field }) => (
-                          <FormItem className="gap-space-xs flex items-center space-y-0">
+                          <FormItem className="flex items-center gap-space-xs space-y-0">
                             <FormLabel
                               required
                               tooltip={t(
@@ -462,9 +455,9 @@ const KnowledgeSettingsPage: React.FC = () => {
                       />
 
                       {parserDescription ? (
-                        <div className="gap-space-xs flex items-start">
+                        <div className="flex items-start gap-space-xs">
                           <div className="w-1/4" />
-                          <div className="rounded-radius-md px-space-base py-space-sm w-3/4 border border-border-accent bg-status-info-subtle">
+                          <div className="w-3/4 rounded-radius-md border border-border-accent bg-status-info-subtle px-space-base py-space-sm">
                             <p className="text-sm text-text-accent">
                               {parserDescription}
                             </p>
@@ -473,7 +466,7 @@ const KnowledgeSettingsPage: React.FC = () => {
                       ) : null}
 
                       {selectedParserId ? (
-                        <div className="space-y-space-md pt-space-md border-t border-border-subtle">
+                        <div className="space-y-space-md border-t border-border-subtle pt-space-md">
                           <ChunkMethodForm
                             onMetadataSettingsClick={() =>
                               setMetadataModalOpen(true)

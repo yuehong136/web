@@ -1,3 +1,4 @@
+import { toast } from '@/lib/toast'
 import React, { useCallback, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -14,7 +15,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { useUIStore } from '@/stores/ui'
 import { useSearchStore } from '@/stores/search'
 import {
   useDeleteSearch,
@@ -40,7 +40,6 @@ type SearchSortBy = 'update_time' | 'create_time' | 'name'
 export const SearchListPage: React.FC = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { addNotification } = useUIStore()
   const { viewMode, setViewMode } = useSearchStore()
   const { deleteSearch } = useDeleteSearch()
 
@@ -171,26 +170,25 @@ export const SearchListPage: React.FC = () => {
 
     try {
       await deleteSearch(deleteTarget.id)
-      addNotification({
-        type: 'success',
-        title: t('searchPage.notifications.deleteSuccessTitle', '删除成功'),
-        message: t(
-          'searchPage.notifications.deleteSuccessMessage',
-          '搜索应用已删除',
-        ),
-      })
+      toast.success(
+        t('searchPage.notifications.deleteSuccessTitle', '删除成功'),
+        {
+          description: t(
+            'searchPage.notifications.deleteSuccessMessage',
+            '搜索应用已删除',
+          ),
+        },
+      )
       setDeleteTarget(null)
     } catch {
-      addNotification({
-        type: 'error',
-        title: t('searchPage.notifications.deleteFailedTitle', '删除失败'),
-        message: t(
+      toast.error(t('searchPage.notifications.deleteFailedTitle', '删除失败'), {
+        description: t(
           'searchPage.notifications.deleteFailedMessage',
           '删除搜索应用时发生错误',
         ),
       })
     }
-  }, [addNotification, deleteSearch, deleteTarget, t])
+  }, [deleteSearch, deleteTarget, t])
 
   const showEmptyState = !isLoading && pageData.length === 0
   const emptyStateType = keyword || hasActiveFilters ? 'search' : 'list'
@@ -258,7 +256,7 @@ export const SearchListPage: React.FC = () => {
         </div>
       ) : (
         <>
-          <div className="-mx-1 flex-1 overflow-y-auto px-1 pb-2 pt-1">
+          <div className="-mx-1 flex-1 overflow-y-auto px-1 pt-1 pb-2">
             {viewMode === 'grid' ? (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {isLoading

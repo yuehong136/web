@@ -25,8 +25,8 @@ vi.mock('@/hooks/use-llm-request', () => ({
   }),
 }))
 
-vi.mock('@/components/layout/InvitationBell', () => ({
-  InvitationBell: () => null,
+vi.mock('@/hooks/use-pending-team-invitations', () => ({
+  usePendingTeamInvitations: () => ({ pendingCount: 0 }),
 }))
 vi.mock('@/components/layout/SidebarConversations', () => ({
   SidebarConversations: () => null,

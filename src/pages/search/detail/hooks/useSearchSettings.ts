@@ -1,7 +1,7 @@
+import { useTranslation } from 'react-i18next'
 import { useCallback, useMemo, useState } from 'react'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import { useUpdateSearch } from '@/hooks/use-search-request'
-import { useUIStore } from '@/stores/ui'
 import { DEFAULT_SEARCH_CONFIG } from '../../constants'
 import type { SearchApp, SearchConfig } from '@/types/search'
 
@@ -50,8 +50,8 @@ const normalizeModelConfig = (
 }
 
 export const useSearchSettings = (searchApp: SearchApp | null) => {
+  const { t } = useTranslation()
   const { updateSearch, isLoading } = useUpdateSearch()
-  const { addNotification } = useUIStore()
   const [config, setConfig] = useState<SearchConfig>(buildDefaultConfig)
   const [savedConfig, setSavedConfig] =
     useState<SearchConfig>(buildDefaultConfig)
@@ -117,15 +117,13 @@ export const useSearchSettings = (searchApp: SearchApp | null) => {
   const saveConfig = useCallback(async () => {
     if (!searchApp) return
     if (!config.kb_ids?.length) {
-      toast.error('至少需要选择一个知识库。')
+      toast.error(t('searchPage.feedback.knowledgeRequired'))
       return
     }
     const trimmedName = (basicInfo.name || '').trim()
     if (!trimmedName) {
-      addNotification({
-        type: 'error',
-        title: '保存失败',
-        message: '名称不能为空。',
+      toast.error(t('searchPage.feedback.saveFailedTitle'), {
+        description: t('searchPage.feedback.nameRequired'),
       })
       return
     }
@@ -147,20 +145,16 @@ export const useSearchSettings = (searchApp: SearchApp | null) => {
         description: (basicInfo.description || '').trim(),
         avatar: basicInfo.avatar || '',
       })
-      addNotification({
-        type: 'success',
-        title: '保存成功',
-        message: '搜索配置已更新。',
+      toast.success(t('searchPage.feedback.saveTitle'), {
+        description: t('searchPage.feedback.saveSuccess'),
       })
     } catch {
-      addNotification({
-        type: 'error',
-        title: '保存失败',
-        message: '更新搜索配置时发生错误。',
+      toast.error(t('searchPage.feedback.saveFailedTitle'), {
+        description: t('searchPage.feedback.saveFailed'),
       })
     }
   }, [
-    addNotification,
+    t,
     basicInfo.avatar,
     basicInfo.description,
     basicInfo.name,

@@ -18,8 +18,6 @@ export default {
       more: '更多',
       expandSecondary: '展开二级导航',
       collapseSecondary: '收起二级导航',
-      notifications: '通知',
-      noNotifications: '暂无通知',
       theme: '主题',
       lightTheme: '浅色主题',
       darkTheme: '深色主题',
@@ -33,12 +31,8 @@ export default {
       logout: '退出登录',
     },
     invitations: {
-      label: '团队邀请',
       title: '团队邀请',
       pending_other: '{{count}} 个待处理的邀请',
-      empty: '暂无待处理的邀请',
-      untitled: '未命名团队',
-      viewAll: '查看全部邀请',
     },
     nav: {
       home: '首页',

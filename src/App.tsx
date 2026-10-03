@@ -75,7 +75,12 @@ export function Application({ composition }: ApplicationProps) {
             router={router}
             onError={handleCaughtApplicationError}
           />
-          <Toaster position="top-right" richColors closeButton />
+          <Toaster
+            theme={isDark ? 'dark' : 'light'}
+            position="top-right"
+            richColors
+            closeButton
+          />
           <ReactQueryDevtools initialIsOpen={false} />
         </ApplicationStyleProvider>
       </QueryClientProvider>

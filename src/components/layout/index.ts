@@ -1,7 +1,6 @@
 export { Header } from './Header'
 export { Sidebar } from './Sidebar'
 export { Layout } from './Layout'
-export { InvitationBell } from './InvitationBell'
 export { AppShell } from './app-shell'
 export { AppTopBar } from './app-top-bar'
 export { MainSurface } from './main-surface'
