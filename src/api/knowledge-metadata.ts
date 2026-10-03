@@ -9,6 +9,38 @@ import { apiClient } from './client'
 import { knowledgeRestConfig } from './knowledge-config'
 import { withLegacyFallback } from './legacy-fallback'
 
+/** Document lists return JSON Schema; metadata saves accept field arrays. */
+export function metadataConfigToFields(
+  config: unknown,
+): MetadataFieldDefinition[] {
+  if (Array.isArray(config)) return config as MetadataFieldDefinition[]
+  if (!config || typeof config !== 'object' || !('properties' in config))
+    return []
+  const properties = config.properties
+  if (
+    !properties ||
+    typeof properties !== 'object' ||
+    Array.isArray(properties)
+  )
+    return []
+  return Object.entries(properties).map(([key, value]) => {
+    const field = value && typeof value === 'object' ? value : {}
+    return {
+      key,
+      description:
+        'description' in field && typeof field.description === 'string'
+          ? field.description
+          : '',
+      enum:
+        'enum' in field && Array.isArray(field.enum)
+          ? field.enum.filter(
+              (item: unknown): item is string => typeof item === 'string',
+            )
+          : undefined,
+    }
+  })
+}
+
 export const knowledgeMetadataAPI = {
   getConfig: (
     datasetId: string,

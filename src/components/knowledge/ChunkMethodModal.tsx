@@ -1,11 +1,12 @@
 import type { FC } from 'react'
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FormProvider, useForm, useWatch } from 'react-hook-form'
 import { Settings2 } from 'lucide-react'
 import { Button, Modal } from '@/components/ui'
 import { ChunkMethodForm } from '@/pages/knowledge/settings/ChunkMethodForm'
-import type { Document } from '@/types/api'
+import type { Document, MetadataFieldDefinition } from '@/types/api'
+import { metadataConfigToFields } from '@/api/knowledge-metadata'
 import type { DocumentParserSubmission } from '@/hooks/use-document-parser-modal'
 import { ParserFieldScope } from '@/components/forms/parser-field-scope'
 import {
@@ -31,6 +32,7 @@ interface ChunkMethodModalProps {
   errorKey?: string
   onSubmit: (data: DocumentParserSubmission) => Promise<void>
   onMetadataSettingsClick?: (document: Document) => void
+  savedMetadataSettings?: MetadataFieldDefinition[]
   isLoading?: boolean
 }
 
@@ -47,6 +49,7 @@ function ParserDraftModal({
   actorKey,
   onSubmit,
   onMetadataSettingsClick,
+  savedMetadataSettings,
   errorKey,
   isLoading = false,
 }: DraftProps) {
@@ -60,6 +63,15 @@ function ParserDraftModal({
   const { dirtyFields, isSubmitting } = methods.formState
   const busy = isLoading || isSubmitting
 
+  useEffect(() => {
+    // Undefined means no metadata save; [] is an intentional clear.
+    if (open && savedMetadataSettings !== undefined) {
+      methods.setValue('parser_config.metadata', savedMetadataSettings, {
+        shouldDirty: true,
+      })
+    }
+  }, [methods, open, savedMetadataSettings])
+
   const handleSubmit = async (data: ParserFormValues) => {
     if (busy) return
     setDraftError(undefined)
@@ -72,8 +84,15 @@ function ParserDraftModal({
   }
 
   const handleMetadataSettingsClick = useCallback(() => {
-    onMetadataSettingsClick?.(document)
-  }, [document, onMetadataSettingsClick])
+    onMetadataSettingsClick?.({
+      ...document,
+      parser_config: methods.getValues('parser_config'),
+    })
+  }, [document, methods, onMetadataSettingsClick])
+  const metadata = useWatch({
+    control: methods.control,
+    name: 'parser_config.metadata',
+  })
   const parseType = useWatch({ control: methods.control, name: 'parseType' })
   const parserId = useWatch({ control: methods.control, name: 'parser_id' })
   const pipelineId = useWatch({ control: methods.control, name: 'pipeline_id' })
@@ -142,6 +161,7 @@ function ParserDraftModal({
               {parseType === 1 && parserId && (
                 <ChunkMethodForm
                   onMetadataSettingsClick={handleMetadataSettingsClick}
+                  metadataCount={metadataConfigToFields(metadata).length}
                 />
               )}
             </fieldset>

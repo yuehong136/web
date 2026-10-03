@@ -3,7 +3,11 @@ import type { ReparseOptions } from '@/api/knowledge-document-ingest'
 import { useTranslation } from 'react-i18next'
 import { DocumentCreationMode } from '@/api/knowledge-rest'
 import { useDocumentParserModal } from '@/hooks/use-document-parser-modal'
-import type { Document, KnowledgeBase } from '@/types/api'
+import type {
+  Document,
+  KnowledgeBase,
+  MetadataFieldDefinition,
+} from '@/types/api'
 import type { DocumentListState } from '../types'
 import type { useDocumentActions } from './use-document-actions'
 
@@ -58,6 +62,8 @@ export function useDocumentPageModals({
     useState(false)
   const [singleFileMetadataDoc, setSingleFileMetadataDoc] =
     useState<Document | null>(null)
+  const [savedMetadataSettings, setSavedMetadataSettings] =
+    useState<MetadataFieldDefinition[]>()
 
   const needsParseConfirmation = useCallback(
     (docs: Document[]) => {
@@ -184,9 +190,18 @@ export function useDocumentPageModals({
 
   const handleShowChunkMethodModal = useCallback(
     (doc: Document) => {
+      setSavedMetadataSettings(undefined)
       parserModal.show(doc)
     },
     [parserModal],
+  )
+
+  const handleSingleFileMetadataSaved = useCallback(
+    (settings?: MetadataFieldDefinition[]) => {
+      if (settings !== undefined) setSavedMetadataSettings(settings)
+      listState.refetch()
+    },
+    [listState],
   )
 
   const handleShowSingleFileMetadataSettings = useCallback((doc: Document) => {
@@ -236,6 +251,7 @@ export function useDocumentPageModals({
     setSingleFileMetadataModalOpen,
     singleFileMetadataDoc,
     setSingleFileMetadataDoc,
+    savedMetadataSettings,
     isUpdatingParser,
     handleStartParse,
     handleBatchStartParse,
@@ -248,6 +264,7 @@ export function useDocumentPageModals({
     handleShowDocumentMetadata,
     handleShowChunkMethodModal,
     handleShowSingleFileMetadataSettings,
+    handleSingleFileMetadataSaved,
     handleChunkMethodSubmit,
   }
 }

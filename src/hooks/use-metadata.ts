@@ -83,7 +83,6 @@ export function tableDataToSettings(
     key: item.field,
     description: item.description,
     enum: item.values.length > 0 ? item.values : undefined,
-    restrictDefinedValues: item.restrictDefinedValues,
   }))
 }
 

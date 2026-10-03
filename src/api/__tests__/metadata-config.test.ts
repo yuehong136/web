@@ -2,7 +2,10 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { APIError, apiClient, type RequestConfig } from '../client'
 import { knowledgeAPI } from '../knowledge'
-import { knowledgeMetadataAPI } from '../knowledge-metadata'
+import {
+  knowledgeMetadataAPI,
+  metadataConfigToFields,
+} from '../knowledge-metadata'
 
 type Call = { endpoint: string; data?: unknown; config?: RequestConfig }
 
@@ -12,6 +15,27 @@ const settings = [
 
 test('knowledge facade exposes the domain metadata client', () => {
   assert.equal(knowledgeAPI.metadata, knowledgeMetadataAPI)
+})
+
+test('document metadata reads both field arrays and the list API JSON Schema without inventing fields', () => {
+  assert.equal(metadataConfigToFields(settings), settings)
+  assert.deepEqual(
+    metadataConfigToFields({
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        author: { description: '作者', enum: ['alice'] },
+        category: {},
+      },
+    }),
+    [
+      { key: 'author', description: '作者', enum: ['alice'] },
+      { key: 'category', description: '', enum: undefined },
+    ],
+  )
+  for (const config of [undefined, null, [], {}, { properties: {} }]) {
+    assert.deepEqual(metadataConfigToFields(config), [])
+  }
 })
 
 test('metadata methods preserve their REST and legacy transport contracts', async () => {

@@ -1,13 +1,15 @@
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { NavigateFunction } from 'react-router-dom'
 import { Button, ConfirmModal, Input, Modal } from '@/components/ui'
 import { ChunkMethodModal, ReparseConfirmModal } from '@/components/knowledge'
 import { MetadataManageType as MetadataType } from '@/types/api'
-import type { KnowledgeBase, MetadataFieldDefinition } from '@/types/api'
+import type { KnowledgeBase } from '@/types/api'
 import { ManageMetadataModal } from '../../metadata'
 import { DocumentUploadModal } from '../document-upload-modal'
 import { DocumentCreateModal } from '../document-create-modal'
 import { DocumentCreationMode } from '@/api/knowledge-rest'
+import { metadataConfigToFields } from '@/api/knowledge-metadata'
 import { GenerateDeleteConfirm } from '../generate'
 import { ProcessLogModal } from '../process-log-modal'
 import type { DocumentListState } from '../types'
@@ -18,13 +20,6 @@ import type { useGenerateState } from '../generate/hooks'
 type PageModals = ReturnType<typeof useDocumentPageModals>
 type LogModal = ReturnType<typeof useDocumentLogModal>
 type GenerateState = ReturnType<typeof useGenerateState>
-
-function getDocumentMetadataSettings(
-  parserConfig?: Record<string, unknown>,
-): MetadataFieldDefinition[] {
-  const metadata = parserConfig?.metadata
-  return Array.isArray(metadata) ? (metadata as MetadataFieldDefinition[]) : []
-}
 
 interface DocumentPageModalsProps {
   kbId?: string
@@ -48,6 +43,12 @@ export function DocumentPageModals({
   isRenaming,
 }: DocumentPageModalsProps) {
   const { t } = useTranslation()
+  const metadata = pageModals.singleFileMetadataDoc?.parser_config?.metadata
+  const metadataSettings = useMemo(
+    () => metadataConfigToFields(metadata),
+    [metadata],
+  )
+
   return (
     <>
       <Modal
@@ -170,6 +171,7 @@ export function DocumentPageModals({
         onMetadataSettingsClick={
           pageModals.handleShowSingleFileMetadataSettings
         }
+        savedMetadataSettings={pageModals.savedMetadataSettings}
         isLoading={pageModals.isUpdatingParser}
       />
 
@@ -183,10 +185,8 @@ export function DocumentPageModals({
           kbId={kbId}
           mode={MetadataType.SINGLE_FILE_SETTING}
           documentId={pageModals.singleFileMetadataDoc.id}
-          initialSettings={getDocumentMetadataSettings(
-            pageModals.singleFileMetadataDoc.parser_config,
-          )}
-          onSuccess={listState.refetch}
+          initialSettings={metadataSettings}
+          onSuccess={pageModals.handleSingleFileMetadataSaved}
         />
       )}
 
