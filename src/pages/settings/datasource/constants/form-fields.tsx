@@ -199,6 +199,7 @@ const getSourceFormFields = (
     {
       label: 'Content',
       name: 'config.zendesk_content_type',
+      tooltip: t('datasource.zendeskDeletionLimit'),
       type: FormFieldType.Segmented,
       required: true,
       options: [

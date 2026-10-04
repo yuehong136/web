@@ -66,6 +66,15 @@ export function prepareDataSourceValues(
   previousConfig?: Record<string, unknown>,
 ): FormValues {
   const { jiraAuthMode, ...prepared } = values
+  if (
+    source === DataSourceKey.ZENDESK &&
+    values.config?.zendesk_content_type === 'tickets'
+  ) {
+    return {
+      ...prepared,
+      config: { ...values.config, sync_deleted_files: false },
+    }
+  }
   if (source !== DataSourceKey.JIRA) return prepared
   const config = { ...values.config }
   const credentials = { ...getCredentials(config) }

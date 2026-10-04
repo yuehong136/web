@@ -70,6 +70,7 @@ describe('connector configuration contracts', () => {
       'r2',
       's3',
       'seafile',
+      'zendesk',
     ])
     for (const source of Object.values(DataSourceKey)) {
       const deletionFields = fields[source].filter(
@@ -85,6 +86,25 @@ describe('connector configuration contracts', () => {
         ).toBe(false)
       }
     }
+  })
+
+  it('disables Zendesk deletion when switching to tickets while preserving credentials', () => {
+    const config = {
+      zendesk_content_type: 'tickets',
+      sync_deleted_files: true,
+      custom: 'keep',
+      credentials: { zendesk_token: 'synthetic' },
+    }
+    expect(
+      prepareDataSourceValues(DataSourceKey.ZENDESK, { config }).config,
+    ).toEqual({ ...config, sync_deleted_files: false })
+    const field = getDataSourceFormFields(t)[DataSourceKey.ZENDESK].find(
+      (field) => field.name === 'config.sync_deleted_files',
+    )
+    expect(field?.showWhen).toEqual({
+      field: 'config.zendesk_content_type',
+      value: 'articles',
+    })
   })
 
   it('fills missing defaults while preserving stored config, credentials and enabled deletion sync', () => {

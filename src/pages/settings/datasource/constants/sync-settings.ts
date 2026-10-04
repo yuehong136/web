@@ -17,6 +17,7 @@ export const deletionSyncSources = new Set<DataSourceKey>([
   DataSourceKey.DROPBOX,
   DataSourceKey.SEAFILE,
   DataSourceKey.ASANA,
+  DataSourceKey.ZENDESK,
   DataSourceKey.S3,
   DataSourceKey.R2,
   DataSourceKey.GOOGLE_CLOUD_STORAGE,
@@ -36,6 +37,14 @@ export function getDeletionSyncFields(
           name: 'config.sync_deleted_files',
           type: FormFieldType.Checkbox,
           defaultValue: false,
+          ...(source === DataSourceKey.ZENDESK
+            ? {
+                showWhen: {
+                  field: 'config.zendesk_content_type',
+                  value: 'articles',
+                },
+              }
+            : {}),
           tooltip: t(
             source === DataSourceKey.NOTION
               ? 'datasource.notionSyncDeletedFilesTip'

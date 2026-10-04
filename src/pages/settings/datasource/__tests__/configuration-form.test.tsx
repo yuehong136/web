@@ -289,3 +289,30 @@ it('submits Asana deletion sync with workspace and credentials intact', async ()
     credentials: { asana_api_token_secret: 'synthetic' },
   })
 })
+
+it('only offers Zendesk source deletion sync for articles and clears it for tickets', async () => {
+  await renderAdd(DataSourceKey.ZENDESK)
+  await change(input('name'), 'Zendesk scratch')
+  await change(input('config.credentials.zendesk_subdomain'), 'synthetic')
+  await change(input('config.credentials.zendesk_email'), 'owner@test')
+  await change(input('config.credentials.zendesk_token'), 'synthetic')
+  const deletion = Array.from(document.querySelectorAll('label')).find(
+    (label) => label.textContent === 'Sync source deletions',
+  )!
+  expect(deletion.control?.getAttribute('aria-checked')).toBe('false')
+  await click(deletion)
+  await click(button('Confirm'))
+  expect(submit.mock.calls[0][0].config.sync_deleted_files).toBe(true)
+  await click(button('Tickets'))
+  expect(
+    Array.from(document.querySelectorAll('label')).some(
+      (label) => label.textContent === 'Sync source deletions',
+    ),
+  ).toBe(false)
+  await click(button('Confirm'))
+  expect(submit.mock.calls[1][0].config).toMatchObject({
+    zendesk_content_type: 'tickets',
+    sync_deleted_files: false,
+    credentials: { zendesk_token: 'synthetic' },
+  })
+})

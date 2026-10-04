@@ -177,6 +177,8 @@ export default {
       'Library and directory scopes require a library ID. Directory scope also requires a non-root path.',
     seafileCredentialsTip:
       'Supply an account token, or a library token for library/directory scope.',
+    zendeskDeletionLimit:
+      'Source deletion sync is available for articles only. Ticket exports omit the most recent minute, so ticket deletion sync stays off.',
     syncDeletedFiles: 'Sync source deletions',
     syncDeletedFilesTip:
       'Off by default. Applies to subsequent syncs; initial imports and rebuilds do not check deletions. A successful complete source listing removes knowledge base documents missing from that listing. A complete empty listing removes all linked documents. The listing follows your current credentials and configuration; narrowing permissions, paths or JQL may also remove local documents. Permission or pagination failures never delete based on partial results.',
