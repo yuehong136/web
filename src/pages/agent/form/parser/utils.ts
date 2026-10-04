@@ -1,3 +1,4 @@
+import { parserCleanupDefaults, normalizeParserCleanup } from './cleanup'
 import type { OutputMap } from '../components/output'
 import type { ParserSetupFormValue } from './schema'
 import {
@@ -10,6 +11,7 @@ import {
 
 export const ParserFileType = {
   PDF: 'pdf',
+  Html: 'html',
   Spreadsheet: 'spreadsheet',
   Image: 'image',
   Email: 'email',
@@ -79,6 +81,7 @@ export const parserFileTypeOrder: ParserFileTypeValue[] = [
   ParserFileType.Slides,
   ParserFileType.Audio,
   ParserFileType.Video,
+  ParserFileType.Html,
 ]
 
 export const parserDefaultVisibleFileTypes: ParserFileTypeValue[] =
@@ -92,6 +95,7 @@ export const parserOutputs: OutputMap = {
 }
 
 export const parserFileTypeSuffixMap: Record<ParserFileTypeValue, string[]> = {
+  [ParserFileType.Html]: ['htm', 'html'],
   [ParserFileType.PDF]: ['pdf'],
   [ParserFileType.Spreadsheet]: ['xls', 'xlsx', 'csv'],
   [ParserFileType.Image]: ['jpg', 'jpeg', 'png', 'gif'],
@@ -140,6 +144,7 @@ export const parserVisibleOutputFormatsMap: Record<
   ParserFileTypeValue,
   string[]
 > = {
+  [ParserFileType.Html]: ['text', 'json'],
   [ParserFileType.PDF]: ['json', 'markdown'],
   [ParserFileType.Spreadsheet]: ['json', 'html'],
   [ParserFileType.Image]: ['json'],
@@ -200,6 +205,11 @@ export const parserPreprocessOptionsMap: Partial<
 }
 
 const defaultParserSetupMap: Record<ParserFileTypeValue, ParserSetupValue> = {
+  [ParserFileType.Html]: {
+    fileFormat: ParserFileType.Html,
+    output_format: 'json',
+    suffix: parserFileTypeSuffixMap[ParserFileType.Html],
+  },
   [ParserFileType.PDF]: {
     fileFormat: ParserFileType.PDF,
     output_format: 'json',
@@ -327,6 +337,7 @@ export function getDefaultParserSetup(fileType: string): ParserSetupValue {
 
   return cloneValue({
     ...baseSetup,
+    ...parserCleanupDefaults(fileType),
     ...(supportsParserMediaFlattening(fileType)
       ? { flatten_media_to_text: false }
       : {}),
@@ -384,6 +395,7 @@ export function normalizeParserSetup(
   return {
     ...baseValue,
     ...rawValue,
+    ...normalizeParserCleanup(fileFormat, rawValue),
     fileFormat,
     suffix: normalizeStringArray(rawValue.suffix ?? baseValue.suffix),
     output_format: outputFormat,
@@ -549,7 +561,10 @@ export function serializeParserSetupsForDsl(value: unknown) {
         normalizeBoolean(item.flatten_media_to_text, false) ?? false
     }
 
-    acc[item.fileFormat] = stripUndefined(nextSetup)
+    acc[item.fileFormat] = stripUndefined({
+      ...nextSetup,
+      ...normalizeParserCleanup(item.fileFormat, item),
+    })
     return acc
   }, {})
 }

@@ -1060,6 +1060,7 @@ export default {
       '使用 LLM 从文档块（例如摘要、分类等）中提取结构化见解。',
     fileFormat: '文件格式',
     fileFormatOptions: {
+      html: 'HTML',
       pdf: 'PDF',
       spreadsheet: '表格',
       image: '图片',
@@ -1106,6 +1107,10 @@ Tokenizer 会根据所选方式将内容存储为对应的数据结构。`,
     },
     filenameEmbdWeight: '文件名嵌入权重',
     parserMethod: '解析方法',
+    removeHeaderFooter: '移除页眉页脚',
+    removeHeaderFooterTip:
+      '移除识别出的页眉和页脚区域。PDF 纯文本解析无法识别这些区域。',
+    removeToc: '移除目录',
     flattenMediaToText: '将媒体内容按文本处理',
     flattenMediaToTextTip:
       '把检测到的图片和表格归类为文本，并跳过视觉模型增强。',

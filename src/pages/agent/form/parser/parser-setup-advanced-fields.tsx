@@ -1,3 +1,4 @@
+import { supportsHeaderFooterRemoval, supportsTocRemoval } from './cleanup'
 import { PromptEditor } from '@/components/prompt-editor'
 import { FormControl, FormField, FormItem } from '@/components/ui/form'
 import { useFormContext } from 'react-hook-form'
@@ -51,6 +52,21 @@ export function ParserSetupAdvancedFields({
 
   return (
     <>
+      {supportsHeaderFooterRemoval(fileFormat) ? (
+        <ParserSwitchField
+          control={form.control}
+          name={`setups.${index}.remove_header_footer`}
+          label={t('flow.removeHeaderFooter')}
+          description={t('flow.removeHeaderFooterTip')}
+        />
+      ) : null}
+      {supportsTocRemoval(fileFormat) ? (
+        <ParserSwitchField
+          control={form.control}
+          name={`setups.${index}.remove_toc`}
+          label={t('flow.removeToc')}
+        />
+      ) : null}
       {showMediaFlattening ? (
         <ParserSwitchField
           control={form.control}
@@ -79,7 +95,7 @@ export function ParserSetupAdvancedFields({
       ) : null}
 
       {showTCADPOptions ? (
-        <div className="gap-space-xl grid md:grid-cols-2">
+        <div className="grid gap-space-xl md:grid-cols-2">
           <ParserSelectField
             control={form.control}
             name={`setups.${index}.table_result_type`}
@@ -115,7 +131,7 @@ export function ParserSetupAdvancedFields({
           <div className="text-base font-semibold text-text-secondary">
             MinerU
           </div>
-          <div className="gap-space-xl grid md:grid-cols-2">
+          <div className="grid gap-space-xl md:grid-cols-2">
             <ParserSelectField
               control={form.control}
               name={`setups.${index}.mineru_parse_method`}
@@ -141,7 +157,7 @@ export function ParserSetupAdvancedFields({
               triggerClassName={controlTriggerClassName}
             />
           </div>
-          <div className="gap-space-xl grid md:grid-cols-2">
+          <div className="grid gap-space-xl md:grid-cols-2">
             <ParserSwitchField
               control={form.control}
               name={`setups.${index}.mineru_formula_enable`}
@@ -188,7 +204,7 @@ export function ParserSetupAdvancedFields({
       ) : null}
 
       {showImageVisualFields ? (
-        <div className="gap-space-xl grid md:grid-cols-2">
+        <div className="grid gap-space-xl md:grid-cols-2">
           <ParserSelectField
             control={form.control}
             name={`setups.${index}.lang`}

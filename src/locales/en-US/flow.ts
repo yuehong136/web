@@ -107,6 +107,7 @@ export default {
       'Extract raw text and structure from incoming files before downstream processing.',
     fileFormat: 'File format',
     fileFormatOptions: {
+      html: 'HTML',
       pdf: 'PDF',
       spreadsheet: 'Spreadsheet',
       image: 'Image',
@@ -161,6 +162,10 @@ export default {
       needsAttention: 'Needs attention',
     },
     parserMethod: 'Parse method',
+    removeHeaderFooter: 'Remove headers and footers',
+    removeHeaderFooterTip:
+      'Remove identified header and footer regions. Plain-text PDF parsing cannot identify these regions.',
+    removeToc: 'Remove table of contents',
     flattenMediaToText: 'Treat media as text',
     flattenMediaToTextTip:
       'Classify detected images and tables as text and skip vision-model enrichment.',

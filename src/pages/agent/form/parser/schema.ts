@@ -8,6 +8,8 @@ export const parserSchema = z.object({
         suffix: z.array(z.string()).optional(),
         preprocess: z.array(z.string()).optional(),
         output_format: z.string().optional(),
+        remove_header_footer: z.boolean().optional(),
+        remove_toc: z.boolean().optional(),
         flatten_media_to_text: z.boolean().optional(),
         parse_method: z.string().optional(),
         lang: z.string().optional(),

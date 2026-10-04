@@ -15,6 +15,7 @@ import {
 } from './utils'
 
 const parserFileTypeLabelKeyMap: Record<ParserFileTypeValue, string> = {
+  [ParserFileType.Html]: 'html',
   [ParserFileType.PDF]: 'pdf',
   [ParserFileType.Spreadsheet]: 'spreadsheet',
   [ParserFileType.Image]: 'image',
@@ -29,6 +30,7 @@ const parserFileTypeLabelKeyMap: Record<ParserFileTypeValue, string> = {
 }
 
 const parserFileTypeFallbackLabelMap: Record<ParserFileTypeValue, string> = {
+  [ParserFileType.Html]: 'HTML',
   [ParserFileType.PDF]: 'PDF',
   [ParserFileType.Spreadsheet]: 'Spreadsheet',
   [ParserFileType.Image]: 'Image',
@@ -43,6 +45,8 @@ const parserFileTypeFallbackLabelMap: Record<ParserFileTypeValue, string> = {
 }
 
 const parserFileTypeBadgeClassNameMap: Record<ParserFileTypeValue, string> = {
+  [ParserFileType.Html]:
+    'bg-components-badge-purple-bg text-components-badge-purple-text',
   [ParserFileType.PDF]:
     'bg-components-badge-blue-bg text-components-badge-blue-text',
   [ParserFileType.Spreadsheet]:
@@ -86,6 +90,7 @@ const preprocessLabelKeyMap: Record<string, string> = {
 
 export const parserFileTypeOptions = parserFileTypeOrder
 export const parserAddableFileTypeOptions = [
+  ParserFileType.Html,
   ...parserDefaultVisibleFileTypes,
   ParserFileType.Audio,
   ParserFileType.Video,

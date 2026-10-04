@@ -590,3 +590,30 @@ test('begin webhook schema derives direct outputs for query, headers, and body k
     'body.payload': { type: 'object' },
   })
 })
+
+test('parser cleanup switches survive saved DSL reload for every supported format', () => {
+  for (const fileType of [
+    ParserFileType.PDF,
+    ParserFileType.Doc,
+    ParserFileType.Docx,
+    ParserFileType.Html,
+  ]) {
+    assert.equal(getDefaultParserSetup(fileType).remove_header_footer, false)
+    for (const enabled of [true, false, 'true', 'false']) {
+      const setups = normalizeParserSetupsForStore({
+        [fileType]: { remove_header_footer: enabled, remove_toc: enabled },
+      })
+      const dsl = serializeParserSetupsForDsl(setups)
+      const expected = enabled === true || enabled === 'true'
+      assert.equal(dsl[fileType]?.remove_header_footer, expected)
+      assert.equal(dsl[fileType]?.remove_toc, expected)
+      const reloaded = normalizeParserSetupsForStore(
+        JSON.parse(JSON.stringify(dsl)),
+      )
+      assert.equal(reloaded[0]?.fileFormat, fileType)
+      assert.equal(reloaded[0]?.remove_header_footer, expected)
+      assert.equal(reloaded[0]?.remove_toc, expected)
+      assert.deepEqual(serializeParserSetupsForDsl(reloaded), dsl)
+    }
+  }
+})
