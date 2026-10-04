@@ -5,6 +5,14 @@ import { skillsAPI } from '../skills'
 import { skillResponse } from '../skill-response'
 import { acceptedSkillOperationSchema, skillModelSchema } from '../skill-types'
 import { z } from 'zod'
+import { parseSkillProtocol } from '../skill-protocol'
+
+test('Skills protocol is explicit, defaults to assets, and rejects unknown deployments', () => {
+  assert.equal(parseSkillProtocol(undefined), 'multirag-assets-v1')
+  assert.equal(parseSkillProtocol('ragflow-skills-v1'), 'ragflow-skills-v1')
+  assert.throws(() => parseSkillProtocol('auto'))
+  assert.throws(() => parseSkillProtocol('python'))
+})
 
 const id = 'a'.repeat(32)
 const accepted = { operation_id: id, resource_id: null, state: 'pending' }
@@ -113,7 +121,7 @@ test('Skills directory and ZIP uploads use shared auth, preserve manifest order 
     )
     assert.match(
       calls[0].url,
-      new RegExp(`/api/v1/skills/spaces/${id}/versions$`),
+      new RegExp(`/api/v1/skill-assets/spaces/${id}/versions$`),
     )
     assert.equal(
       calls[0].headers.get('authorization'),

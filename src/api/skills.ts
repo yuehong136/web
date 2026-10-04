@@ -21,7 +21,7 @@ import {
 } from './skill-types'
 
 const baseURL = `${API_BASE_URL}/api`
-const root = '/v1/skills'
+const root = '/v1/skill-assets'
 const path = (id: string) => `${root}/spaces/${encodeURIComponent(id)}`
 const jsonConfig = <T>(schema: z.ZodType<T>, signal?: AbortSignal) => ({
   baseURL,
