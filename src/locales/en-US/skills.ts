@@ -1,5 +1,62 @@
 export const skillsResource = {
   skills: {
+    readOnly:
+      'This library is available for reading and download. Changes are disabled on this service.',
+    advanced: 'Advanced settings',
+    import: 'Import skill',
+    close: 'Close',
+    space: 'Space',
+    history: 'Version history',
+    sourceText: 'View source',
+    localSource: 'Local package',
+    retryIndex: 'Retry indexing',
+    taskDetails: 'Task details',
+    filesStored:
+      'Files are saved. Search availability is shown separately below.',
+    spaceDescription:
+      'Group related skills so they are easier to discover and search.',
+    discoverDescription:
+      'Discover reusable skills, read their instructions, and import your own. Skills are never executed automatically.',
+    previewPackage: 'Preview selected files ({{count}})',
+    noMatches:
+      'No matching skills. Try another query or check the search configuration.',
+    core: {
+      importDescription:
+        'Choose a directory containing SKILL.md. Files are saved first; rebuild the search index when ready. Existing version folders are not overwritten here.',
+      filesSaved: 'All {{count}} files saved.',
+      partialFiles:
+        '{{count}} of {{total}} files saved. Inspect this folder before importing again.',
+      indexReady: 'Search index is ready.',
+      indexPending:
+        'Files can be read and downloaded. Search has not yet been rebuilt.',
+      inspectFiles: 'Inspect saved files',
+      deletionPending: 'Removing files and search entries…',
+      rerankNotApplied:
+        'Reranking is not executed by this search service. A saved reranking preference will not change results.',
+      configDescription:
+        'Choose a model for semantic search. Save changes, then rebuild the index.',
+      strategyHint:
+        '0 uses keyword search, 1 uses semantic search; values in between blend both.',
+      emptySpace:
+        'Import a skill directory to start. Browsing files does not require a search index.',
+      readDescription: 'Open the skill to read its instructions and files.',
+      versionDescription:
+        'Read instructions and browse the files stored in this skill.',
+      defaultVersion: 'Default version: {{version}}',
+      legacyVersion: 'Skill folder',
+      removeIndex: 'Remove from search',
+      indexRemoved: 'Search entry removed. Files remain available.',
+    },
+    operations: {
+      install: 'Import skill',
+      activate: 'Change published version',
+      reindex: 'Build search index',
+      delete_version: 'Delete version',
+      delete_skill: 'Uninstall skill',
+      delete_space: 'Delete space',
+      delete_skills: 'Uninstall skills',
+      delete_spaces: 'Delete spaces',
+    },
     title: 'Skill library',
     subtitle:
       'Versioned skill assets. Stored here, never executed automatically.',
@@ -98,6 +155,15 @@ export const skillsResource = {
     ascending: 'Ascending',
     descending: 'Descending',
     errors: {
+      CORE_VERSION_EXISTS:
+        'This version folder already exists. Inspect it or choose another version name.',
+      CORE_REQUEST_FAILED:
+        'This request failed. Refresh the resource and check your inputs before retrying.',
+      CORE_INDEX_PARTIAL:
+        'Some skills could not be indexed. Your files are retained; check the model configuration and rebuild the index.',
+      CORE_DELETE_PARTIAL:
+        'Some files could not be deleted. Refresh to inspect what remains, then retry.',
+      DELETE_FAILED: 'Deletion did not finish. Retry to continue cleaning up.',
       MODEL_NOT_CONFIGURED:
         'Select an embedding model in search configuration before rebuilding the index.',
       MODEL_NOT_FOUND:

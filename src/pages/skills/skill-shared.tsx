@@ -3,7 +3,11 @@ import { useSearchParams } from 'react-router-dom'
 import { APIError } from '@/api/client'
 import type { AcceptedSkillOperation } from '@/api/skill-types'
 import { skillsAPI } from '@/api/skills'
-import { useSkillAction, useSkillOperation } from '@/hooks/use-skill-request'
+import {
+  useSkillAction,
+  useSkillOperation,
+  useSkillCapabilities,
+} from '@/hooks/use-skill-request'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -151,6 +155,7 @@ function SkillOperationCard({
   const { t } = useTranslation()
   const query = useSkillOperation(id)
   const action = useSkillAction(onAccepted)
+  const capabilities = useSkillCapabilities()
   const operation = query.data
   return (
     <section
@@ -159,8 +164,9 @@ function SkillOperationCard({
     >
       <div className="flex flex-wrap items-center justify-between gap-space-sm">
         <strong>
-          {t('skills.operation')}{' '}
-          <span className="font-mono text-xs">{id.slice(0, 8)}</span>
+          {operation
+            ? t(`skills.operations.${operation.kind}`)
+            : t('skills.operation')}
         </strong>
         <Button variant="ghost" size="sm" onClick={onDismiss}>
           {t('skills.dismiss')}
@@ -173,6 +179,14 @@ function SkillOperationCard({
             {t(`skills.states.${operation.state}`)} ·{' '}
             {t(`skills.phases.${operation.phase}`)}
           </p>
+          {operation.kind === 'install' &&
+            (['sealed', 'indexing'].includes(operation.phase) ||
+              (operation.phase === 'done' &&
+                operation.state === 'succeeded')) && (
+              <p className="text-sm text-text-secondary">
+                {t('skills.filesStored')}
+              </p>
+            )}
           <p className="text-sm text-text-secondary">
             {t('skills.progress', operation.progress)}
           </p>
@@ -200,7 +214,7 @@ function SkillOperationCard({
             (operation.error?.retryable ||
               operation.result.items.some((item) => item.retryable)) && (
               <Button
-                disabled={action.isPending}
+                disabled={action.isPending || !capabilities.data?.writable}
                 onClick={() => {
                   const key = action.requestKey(`retry/${id}`)
                   action.mutate(() => skillsAPI.retry(id, key))
@@ -213,6 +227,10 @@ function SkillOperationCard({
       ) : (
         !query.error && <p>{t('skills.loading')}</p>
       )}
+      <details className="pt-space-xs text-xs text-text-caption">
+        <summary className="cursor-pointer">{t('skills.taskDetails')}</summary>
+        <span className="font-mono break-all">{id}</span>
+      </details>
       {query.error && (
         <Button variant="outline" onClick={() => void query.refetch()}>
           {t('skills.refresh')}

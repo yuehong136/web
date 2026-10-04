@@ -99,6 +99,7 @@ export const skillModelSchema = z.object({
 })
 export const skillCapabilitiesSchema = z.object({
   backend: z.enum(['python', 'go']),
+  writable: z.boolean(),
   schema_version: z.literal(1),
   sources: z.array(z.literal('local')),
   search_modes: z.array(z.enum(['keyword', 'vector', 'hybrid'])),

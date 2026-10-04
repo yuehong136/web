@@ -65,6 +65,7 @@ export function SkillSpacePage() {
     retrieving,
   )
   const writable =
+    capabilities.data?.writable &&
     space.data?.backend_owner === capabilities.data?.backend &&
     space.data?.state === 'active'
   const query = retrieving ? search : assets
@@ -159,7 +160,11 @@ export function SkillSpacePage() {
           />
           {space.data && !writable && capabilities.data && (
             <p className="text-sm text-status-warning">
-              {t('skills.ownerMismatch')}
+              {t(
+                capabilities.data?.writable === false
+                  ? 'skills.readOnly'
+                  : 'skills.ownerMismatch',
+              )}
             </p>
           )}
           {capabilities.data && !capabilities.data.storage_available && (
@@ -193,24 +198,29 @@ export function SkillSpacePage() {
                   onChange={(event) => setDraft(event.target.value)}
                 />
               </div>
-              <SkillSelect
-                label={t('skills.search')}
-                value={mode}
-                options={Array.from(
-                  new Set([
-                    'keyword',
-                    ...(capabilities.data?.search_modes || []),
-                  ]),
-                ).map((value) => ({
-                  value,
-                  label: t(`skills.${value}`),
-                  disabled: !draft.trim() && value !== 'keyword',
-                }))}
-                onChange={(value) => {
-                  setMode(value as SkillSearchMode)
-                  resetPage()
-                }}
-              />
+              <details>
+                <summary className="cursor-pointer py-space-sm text-sm">
+                  {t('skills.advanced')}
+                </summary>
+                <SkillSelect
+                  label={t('skills.search')}
+                  value={mode}
+                  options={Array.from(
+                    new Set([
+                      'keyword',
+                      ...(capabilities.data?.search_modes || []),
+                    ]),
+                  ).map((value) => ({
+                    value,
+                    label: t(`skills.${value}`),
+                    disabled: !draft.trim() && value !== 'keyword',
+                  }))}
+                  onChange={(value) => {
+                    setMode(value as SkillSearchMode)
+                    resetPage()
+                  }}
+                />
+              </details>
               <Button
                 type="submit"
                 disabled={

@@ -102,68 +102,75 @@ function ConfigForm({
           )}
         />
       ))}
-      <div className="grid gap-space-base sm:grid-cols-3">
-        <Input
-          disabled={action.isPending}
-          label={t('skills.topK')}
-          type="number"
-          min={1}
-          max={100}
-          {...form.register('top_k', { valueAsNumber: true })}
-        />
-        <Input
-          disabled={action.isPending}
-          label={t('skills.vectorWeight')}
-          type="number"
-          min={0}
-          max={1}
-          step={0.05}
-          {...form.register('vector_weight', { valueAsNumber: true })}
-        />
-        <Input
-          disabled={action.isPending}
-          label={t('skills.threshold')}
-          type="number"
-          min={0}
-          max={1}
-          step={0.05}
-          {...form.register('similarity_threshold', { valueAsNumber: true })}
-        />
-      </div>
-      {(['name', 'tags', 'description', 'content'] as const).map((name) => (
-        <div
-          className="grid grid-cols-2 items-center gap-space-base"
-          key={name}
-        >
-          <Controller
-            control={form.control}
-            name={`fields.${name}.enabled`}
-            render={({ field }) => (
-              <Label
-                htmlFor={`skill-field-${name}`}
-                className="flex items-center gap-space-sm"
-              >
-                <Checkbox
-                  disabled={action.isPending}
-                  id={`skill-field-${name}`}
-                  checked={field.value}
-                  onCheckedChange={(value) => field.onChange(value === true)}
-                />
-                {t(`skills.${name}`)}
-              </Label>
-            )}
+      <details>
+        <summary className="cursor-pointer py-space-sm font-medium">
+          {t('skills.advanced')}
+        </summary>
+        <div className="grid gap-space-base sm:grid-cols-3">
+          <Input
+            disabled={action.isPending}
+            label={t('skills.topK')}
+            type="number"
+            min={1}
+            max={100}
+            {...form.register('top_k', { valueAsNumber: true })}
           />
           <Input
             disabled={action.isPending}
-            aria-label={`${t(`skills.${name}`)} ${t('skills.weight')}`}
+            label={t('skills.vectorWeight')}
             type="number"
             min={0}
-            max={10}
-            step={0.1}
-            {...form.register(`fields.${name}.weight`, { valueAsNumber: true })}
+            max={1}
+            step={0.05}
+            {...form.register('vector_weight', { valueAsNumber: true })}
+          />
+          <Input
+            disabled={action.isPending}
+            label={t('skills.threshold')}
+            type="number"
+            min={0}
+            max={1}
+            step={0.05}
+            {...form.register('similarity_threshold', { valueAsNumber: true })}
           />
         </div>
-      ))}
+        {(['name', 'tags', 'description', 'content'] as const).map((name) => (
+          <div
+            className="grid grid-cols-2 items-center gap-space-base"
+            key={name}
+          >
+            <Controller
+              control={form.control}
+              name={`fields.${name}.enabled`}
+              render={({ field }) => (
+                <Label
+                  htmlFor={`skill-field-${name}`}
+                  className="flex items-center gap-space-sm"
+                >
+                  <Checkbox
+                    disabled={action.isPending}
+                    id={`skill-field-${name}`}
+                    checked={field.value}
+                    onCheckedChange={(value) => field.onChange(value === true)}
+                  />
+                  {t(`skills.${name}`)}
+                </Label>
+              )}
+            />
+            <Input
+              disabled={action.isPending}
+              aria-label={`${t(`skills.${name}`)} ${t('skills.weight')}`}
+              type="number"
+              min={0}
+              max={10}
+              step={0.1}
+              {...form.register(`fields.${name}.weight`, {
+                valueAsNumber: true,
+              })}
+            />
+          </div>
+        ))}
+      </details>
       {!!Object.keys(form.formState.errors).length && (
         <SkillError error="HTTP_422" />
       )}

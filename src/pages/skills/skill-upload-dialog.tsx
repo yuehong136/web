@@ -148,6 +148,20 @@ export function SkillUploadDialog({
           <p className="text-sm text-text-secondary">
             {t('skills.packageRules')}
           </p>
+          {!!files.length && (
+            <details>
+              <summary>
+                {t('skills.previewPackage', { count: files.length })}
+              </summary>
+              <ul className="max-h-48 overflow-auto text-sm text-text-secondary">
+                {files.slice(0, 100).map((file) => (
+                  <li key={file.webkitRelativePath || file.name}>
+                    {file.webkitRelativePath || file.name}
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
           <Input
             disabled={action.isPending}
             label={t('skills.name')}

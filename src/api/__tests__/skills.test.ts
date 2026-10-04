@@ -3,7 +3,11 @@ import test from 'node:test'
 import { apiClient, APIError } from '../client'
 import { skillsAPI } from '../skills'
 import { skillResponse } from '../skill-response'
-import { acceptedSkillOperationSchema, skillModelSchema } from '../skill-types'
+import {
+  acceptedSkillOperationSchema,
+  skillModelSchema,
+  skillCapabilitiesSchema,
+} from '../skill-types'
 import { z } from 'zod'
 import { parseSkillProtocol } from '../skill-protocol'
 
@@ -12,6 +16,22 @@ test('Skills protocol is explicit, defaults to assets, and rejects unknown deplo
   assert.equal(parseSkillProtocol('ragflow-skills-v1'), 'ragflow-skills-v1')
   assert.throws(() => parseSkillProtocol('auto'))
   assert.throws(() => parseSkillProtocol('python'))
+})
+
+test('fixed asset namespace requires an explicit writable capability', () => {
+  const capability = {
+    backend: 'go',
+    schema_version: 1,
+    sources: ['local'],
+    search_modes: ['keyword'],
+    search_available: true,
+    storage_available: true,
+  }
+  assert.equal(skillCapabilitiesSchema.safeParse(capability).success, false)
+  assert.equal(
+    skillCapabilitiesSchema.parse({ ...capability, writable: false }).writable,
+    false,
+  )
 })
 
 const id = 'a'.repeat(32)

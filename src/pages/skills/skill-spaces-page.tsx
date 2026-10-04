@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
 import { SkillSpaceDialog } from './skill-space-dialog'
+import { SkillUploadDialog } from './skill-upload-dialog'
 import {
   SkillDeleteDialog,
   SkillError,
@@ -34,21 +35,23 @@ export function SkillSpacesPage() {
   const [selected, setSelected] = useState<string[]>([])
   const [editing, setEditing] = useState<SkillSpace | 'new' | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [importing, setImporting] = useState<SkillSpace | null>(null)
   const tracker = useSkillOperationRoute()
   const action = useSkillAction(tracker.accepted)
   const query = useSkillSpaces({ page, page_size: 20, keywords })
   const capabilities = useSkillCapabilities()
   const writable = (space: SkillSpace) =>
+    capabilities.data?.writable &&
     capabilities.data?.backend === space.backend_owner &&
     space.state === 'active'
   return (
     <>
       <ListPageTemplate
         title={t('skills.title')}
-        description={t('skills.subtitle')}
+        description={t('skills.discoverDescription')}
         headerActions={
           <Button
-            disabled={!capabilities.data}
+            disabled={!capabilities.data?.writable}
             onClick={() => setEditing('new')}
           >
             <Plus className="size-icon-sm" />
@@ -136,6 +139,17 @@ export function SkillSpacesPage() {
                     {space.description}
                   </p>
                   <div className="flex items-center justify-between gap-space-sm">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={
+                        !writable(space) ||
+                        !capabilities.data?.storage_available
+                      }
+                      onClick={() => setImporting(space)}
+                    >
+                      {t('skills.import')}
+                    </Button>
                     <span className="text-sm text-text-secondary">
                       {t(`skills.states.${space.state}`)}
                     </span>
@@ -150,7 +164,11 @@ export function SkillSpacesPage() {
                   </div>
                   {!writable(space) && capabilities.data && (
                     <p className="text-sm text-text-secondary">
-                      {t('skills.ownerMismatch')}
+                      {t(
+                        capabilities.data?.writable === false
+                          ? 'skills.readOnly'
+                          : 'skills.ownerMismatch',
+                      )}
                     </p>
                   )}
                 </article>
@@ -163,6 +181,13 @@ export function SkillSpacesPage() {
         <SkillSpaceDialog
           space={editing === 'new' ? undefined : editing}
           onClose={() => setEditing(null)}
+        />
+      )}
+      {importing && (
+        <SkillUploadDialog
+          space={importing.id}
+          onClose={() => setImporting(null)}
+          onAccepted={tracker.accepted}
         />
       )}
       <SkillDeleteDialog

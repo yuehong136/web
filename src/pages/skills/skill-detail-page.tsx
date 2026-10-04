@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react'
+import { SkillDocument } from './skill-document'
+import { useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { FileText, Folder } from 'lucide-react'
+import { SkillFileTree } from './skill-file-tree'
 import { skillsAPI } from '@/api/skills'
-import type { SkillFile } from '@/api/skill-types'
 import {
   useSkillAction,
   useSkillCapabilities,
@@ -13,11 +13,7 @@ import {
   useSkillSpace,
 } from '@/hooks/use-skill-request'
 import { ConsolePageTemplate } from '@/components/page-templates'
-import {
-  PageHeader,
-  PageLoadingState,
-  PageEmptyState,
-} from '@/components/patterns'
+import { PageHeader, PageLoadingState } from '@/components/patterns'
 import { Button } from '@/components/ui/button'
 import { SkillSelect } from './skill-select'
 import {
@@ -28,60 +24,6 @@ import {
   useSkillOperationRoute,
 } from './skill-shared'
 
-function FileTree({
-  files,
-  prefix = '',
-  selected,
-  onSelect,
-}: {
-  files: SkillFile[]
-  prefix?: string
-  selected: string
-  onSelect: (path: string) => void
-}) {
-  const children = new Map<string, SkillFile[]>()
-  for (const file of files) {
-    const part = file.path.slice(prefix.length).split('/')[0]
-    children.set(part, [...(children.get(part) || []), file])
-  }
-  return (
-    <ul className="flex flex-col gap-space-xs pl-space-sm">
-      {[...children].map(([name, entries]) => {
-        const path = `${prefix}${name}`
-        const isFile = entries.length === 1 && entries[0].path === path
-        return (
-          <li key={path}>
-            {isFile ? (
-              <Button
-                variant={selected === path ? 'secondary' : 'ghost'}
-                className="max-w-full justify-start"
-                onClick={() => onSelect(path)}
-                title={path}
-              >
-                <FileText className="size-icon-sm shrink-0" />
-                <span className="truncate">{name}</span>
-              </Button>
-            ) : (
-              <details open>
-                <summary className="flex cursor-pointer items-center gap-space-xs py-space-xs text-sm">
-                  <Folder className="size-icon-sm" />
-                  {name}
-                </summary>
-                <FileTree
-                  files={entries}
-                  prefix={`${path}/`}
-                  selected={selected}
-                  onSelect={onSelect}
-                />
-              </details>
-            )}
-          </li>
-        )
-      })}
-    </ul>
-  )
-}
-
 function FilePreview({
   space,
   version,
@@ -91,59 +33,8 @@ function FilePreview({
   version: string
   path: string
 }) {
-  const { t } = useTranslation()
   const query = useSkillFile(space, version, path)
-  const [content, setContent] = useState<{
-    blob: Blob
-    text: string | null
-  } | null>(null)
-  useEffect(() => {
-    let active = true
-    const blob = query.data
-    if (blob)
-      void blob.arrayBuffer().then((bytes) => {
-        let text: string | null = null
-        try {
-          text = new TextDecoder('utf-8', { fatal: true }).decode(bytes)
-          if (text.includes('\0')) text = null
-        } catch {
-          /* Binary content is available through download. */
-        }
-        if (active) setContent({ blob, text })
-      })
-    return () => {
-      active = false
-    }
-  }, [query.data])
-  if (!path || !version)
-    return <PageEmptyState title={t('skills.chooseFile')} />
-  if (query.error) return <SkillError error={query.error} />
-  if (!query.data || content?.blob !== query.data)
-    return (
-      <PageLoadingState compact title={t('skills.loading')} description="" />
-    )
-  return (
-    <div className="flex min-h-0 flex-col gap-space-base">
-      <div className="flex flex-wrap items-center justify-between gap-space-sm">
-        <span className="font-mono text-sm break-all">{path}</span>
-        <Button
-          variant="outline"
-          onClick={() =>
-            saveSkillBlob(query.data, path.split('/').pop() || 'file')
-          }
-        >
-          {t('skills.downloadFile')}
-        </Button>
-      </div>
-      {content.text === null ? (
-        <p>{t('skills.binary')}</p>
-      ) : (
-        <pre className="scroll-area max-h-[60vh] overflow-auto rounded-radius-lg bg-background-subtle p-space-base font-mono text-sm break-words whitespace-pre-wrap">
-          {content.text}
-        </pre>
-      )}
-    </div>
-  )
+  return <SkillDocument path={path} blob={query.data} error={query.error} />
 }
 
 export function SkillDetailPage() {
@@ -151,7 +42,7 @@ export function SkillDetailPage() {
   const [params, setParams] = useSearchParams()
   const { t } = useTranslation()
   const [deleting, setDeleting] = useState<'skill' | 'version' | null>(null)
-  const [mobilePane, setMobilePane] = useState<'files' | 'preview'>('files')
+  const [mobilePane, setMobilePane] = useState<'files' | 'preview'>('preview')
   const tracker = useSkillOperationRoute()
   const action = useSkillAction(tracker.accepted)
   const detail = useSkillDetail(spaceId, skillId)
@@ -165,8 +56,13 @@ export function SkillDetailPage() {
     : skill?.active_version_id || versions[0]?.id || ''
   const version = versions.find((item) => item.id === chosenVersion)
   const files = useSkillFiles(spaceId, version?.id || '')
-  const file = params.get('file') || ''
+  const file =
+    params.get('file') ||
+    files.data?.files.find((item) => item.path === 'SKILL.md')?.path ||
+    files.data?.files[0]?.path ||
+    ''
   const writable =
+    capabilities.data?.writable &&
     space.data?.backend_owner === capabilities.data?.backend &&
     space.data?.state === 'active'
   const setSelection = (key: string, value: string) =>
@@ -222,7 +118,11 @@ export function SkillDetailPage() {
               </p>
               {!writable && capabilities.data && (
                 <p className="text-sm text-status-warning">
-                  {t('skills.ownerMismatch')}
+                  {t(
+                    capabilities.data?.writable === false
+                      ? 'skills.readOnly'
+                      : 'skills.ownerMismatch',
+                  )}
                 </p>
               )}
               <div className="flex flex-wrap items-end gap-space-sm">
@@ -353,7 +253,7 @@ export function SkillDetailPage() {
                       description=""
                     />
                   ) : (
-                    <FileTree
+                    <SkillFileTree
                       files={files.data?.files || []}
                       selected={file}
                       onSelect={(path) => {

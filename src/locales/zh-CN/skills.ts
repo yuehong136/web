@@ -1,5 +1,53 @@
 export const skillsResource = {
   skills: {
+    readOnly: '此技能库可阅读和下载，当前服务不允许修改。',
+    advanced: '高级设置',
+    import: '导入技能',
+    close: '关闭',
+    space: '空间',
+    history: '版本历史',
+    sourceText: '查看源文',
+    localSource: '本地包',
+    retryIndex: '重试索引',
+    taskDetails: '任务详情',
+    filesStored: '文件已保存。检索是否可用请查看下方索引状态。',
+    spaceDescription: '把相关技能放在一起，方便发现、阅读和检索。',
+    discoverDescription:
+      '发现可复用的技能，阅读使用说明，或导入自己的技能。此处不会自动执行技能。',
+    previewPackage: '预览所选文件（{{count}} 个）',
+    noMatches: '没有匹配的技能。请换一个搜索词，或检查检索配置。',
+    core: {
+      importDescription:
+        '选择包含 SKILL.md 的目录。先保存文件，再按需重建检索索引。此处不会覆盖已有版本目录。',
+      filesSaved: '全部 {{count}} 个文件已保存。',
+      partialFiles:
+        '已保存 {{count}} / {{total}} 个文件。再次导入前请检查此目录。',
+      indexReady: '检索索引已就绪。',
+      indexPending: '文件可阅读和下载，检索索引尚未重建。',
+      inspectFiles: '检查已保存文件',
+      deletionPending: '正在清理文件与检索条目…',
+      rerankNotApplied:
+        '当前检索服务不执行重排序。保存的重排序偏好不会改变检索结果。',
+      configDescription: '选择语义检索模型。保存修改后，重建索引使其生效。',
+      strategyHint: '0 使用关键词检索，1 使用语义检索，中间值混合两种方式。',
+      emptySpace: '导入技能目录即可开始。浏览文件无需先建立索引。',
+      readDescription: '打开技能以阅读使用说明和附件。',
+      versionDescription: '阅读使用说明，浏览此技能保存的文件。',
+      defaultVersion: '默认版本：{{version}}',
+      legacyVersion: '技能目录',
+      removeIndex: '从检索中移除',
+      indexRemoved: '检索条目已移除，文件仍可读取。',
+    },
+    operations: {
+      install: '导入技能',
+      activate: '切换发布版本',
+      reindex: '构建检索索引',
+      delete_version: '删除版本',
+      delete_skill: '卸载技能',
+      delete_space: '删除空间',
+      delete_skills: '批量卸载技能',
+      delete_spaces: '批量删除空间',
+    },
     title: '技能库',
     subtitle: '管理技能资产与版本，不会自动执行技能。',
     createUnknown:
@@ -93,6 +141,13 @@ export const skillsResource = {
     ascending: '升序',
     descending: '降序',
     errors: {
+      CORE_VERSION_EXISTS:
+        '此版本目录已存在。请先检查已有内容，或选择其他版本名称。',
+      CORE_REQUEST_FAILED: '请求未成功。请刷新资源并检查输入，再重试。',
+      CORE_INDEX_PARTIAL:
+        '部分技能未能建立索引。文件已保留，请检查模型配置并重建索引。',
+      CORE_DELETE_PARTIAL: '部分文件未能删除。请刷新检查剩余内容，再重试。',
+      DELETE_FAILED: '删除尚未完成。重试可继续清理。',
       MODEL_NOT_CONFIGURED: '请先在检索配置中选择嵌入模型，再重建索引。',
       MODEL_NOT_FOUND: '所选模型不可用，请选择已启用的模型。',
       MODEL_DRIVER_UNAVAILABLE: '当前后端不支持此模型提供商。',
