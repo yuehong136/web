@@ -19,7 +19,6 @@ import { toast } from '@/lib/toast'
 import { applyRouteLocale } from '@/locales/i18n'
 import { ScopedTheme } from '@/themes'
 import type { AgentCanvasUploadResult } from '@/types/agent'
-import { MessageCircle, X } from 'lucide-react'
 import { AgentDialogueMode } from '../constant'
 import {
   buildRuntimeInputObject,
@@ -36,6 +35,7 @@ import { useSharedAgentRunner } from './use-shared-agent-runner'
 import {
   WidgetLauncher,
   WidgetShell,
+  WidgetStandalonePreview,
   useTransparentDocument,
 } from './widget-shell'
 import { isEmptyShareValue, runnerStatusFromState } from './widget-utils'
@@ -62,10 +62,16 @@ export default function AgentWidgetPage() {
 
   useTransparentDocument()
 
+  useEffect(() => {
+    applyRouteLocale(access.locale)
+  }, [access.locale])
+
   return (
     <ScopedTheme theme={access.theme}>
       {access.mode === 'master' && isStandalone ? (
-        <WidgetStandalonePreview access={access} />
+        <WidgetStandalonePreview>
+          <WidgetChatWindow access={access} shellVariant="panel" />
+        </WidgetStandalonePreview>
       ) : access.mode === 'master' ? (
         <WidgetLauncher />
       ) : (
@@ -81,43 +87,6 @@ function useIsStandaloneWidgetPreview() {
   )
 
   return isStandalone
-}
-
-function WidgetStandalonePreview({
-  access,
-}: {
-  access: ReturnType<typeof parseAgentShareAccess>
-}) {
-  const { t } = useTranslation()
-  const [open, setOpen] = useState(true)
-
-  return (
-    <div className="bg-surface-secondary min-h-screen">
-      {open ? (
-        <div className="rounded-radius-lg fixed bottom-24 right-6 h-[500px] w-[380px] max-w-[calc(100vw-48px)] overflow-hidden">
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            className="right-space-sm top-space-sm absolute z-10"
-            onClick={() => setOpen(false)}
-            aria-label={t('agent.share.closeWidget', '关闭聊天浮窗')}
-          >
-            <X className="h-4 w-4" />
-          </Button>
-          <WidgetChatWindow access={access} shellVariant="panel" />
-        </div>
-      ) : (
-        <Button
-          size="icon-lg"
-          className="rounded-radius-full shadow-elevation-high fixed bottom-6 right-24"
-          onClick={() => setOpen(true)}
-          aria-label={t('agent.share.openWidget', '打开聊天浮窗')}
-        >
-          <MessageCircle className="h-5 w-5" />
-        </Button>
-      )}
-    </div>
-  )
 }
 
 function WidgetChatWindow({
@@ -207,10 +176,6 @@ function WidgetChatWindow({
           ),
     [access.streaming, runner.messages],
   )
-
-  useEffect(() => {
-    applyRouteLocale(access.locale)
-  }, [access.locale])
 
   const validateInputs = useCallback(() => {
     const missing = inputEntries.find(({ key, field }) => {
@@ -405,7 +370,7 @@ function WidgetChatWindow({
           </div>
         ) : isWebhookMode ? (
           <div className="p-space-lg">
-            <div className="rounded-radius-md bg-surface-secondary p-space-base border border-border-default text-sm text-text-secondary">
+            <div className="rounded-radius-md border border-border-default bg-background-subtle p-space-base text-sm text-text-secondary">
               {t(
                 'agent.share.webhookWidgetHint',
                 'Webhook Agent 通过外部 HTTP 请求触发，不使用浮窗对话输入框。',
@@ -427,8 +392,8 @@ function WidgetChatWindow({
       </div>
 
       {isWebhookMode ? null : isTaskMode ? (
-        <div className="p-space-base border-t border-border-subtle">
-          <div className="gap-space-sm flex items-center justify-between">
+        <div className="border-t border-border-subtle p-space-base">
+          <div className="flex items-center justify-between gap-space-sm">
             <Badge variant="purple">{t('agent.share.task', 'Task')}</Badge>
             <Button
               size="sm"

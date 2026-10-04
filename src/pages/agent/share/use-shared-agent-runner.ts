@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { agentAPI } from '@/api/agent'
 import { agentRunErrorKey } from '../runtime-errors'
@@ -51,6 +51,13 @@ export function useSharedAgentRunner({
   >({})
 
   const hasMessages = messages.length > 0
+
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort()
+      abortControllerRef.current = null
+    }
+  }, [agentId, betaToken, release, userId])
 
   const updateMessageById = useCallback(
     (

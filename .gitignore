@@ -41,5 +41,6 @@ docs/*
 .env.production
 
 .codex
+.claude/settings.local.json
 
 *.html

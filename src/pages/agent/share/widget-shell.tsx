@@ -4,50 +4,97 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { MessageCircle, X } from 'lucide-react'
 
+type WidgetHostMessage =
+  | { type: 'CREATE_CHAT_WINDOW'; src: string }
+  | { type: 'TOGGLE_CHAT'; isOpen: boolean }
+
+function postWidgetHostMessage(message: WidgetHostMessage) {
+  window.parent.postMessage(message, '*')
+}
+
 export function WidgetLauncher() {
-  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
-    window.parent.postMessage(
-      {
-        type: 'CREATE_CHAT_WINDOW',
-        src: window.location.href.replace('mode=master', 'mode=window'),
-      },
-      '*',
-    )
+    const url = new URL(window.location.href)
+    url.searchParams.set('mode', 'window')
+    postWidgetHostMessage({ type: 'CREATE_CHAT_WINDOW', src: url.href })
   }, [])
 
   const toggle = () => {
     const nextOpen = !open
     setOpen(nextOpen)
-    window.parent.postMessage(
-      {
-        type: 'TOGGLE_CHAT',
-        isOpen: nextOpen,
-      },
-      '*',
-    )
+    postWidgetHostMessage({ type: 'TOGGLE_CHAT', isOpen: nextOpen })
   }
 
   return (
     <div className="flex h-screen w-screen items-center justify-center bg-transparent">
-      <Button
-        size="icon-lg"
-        className="rounded-radius-full shadow-elevation-high"
-        onClick={toggle}
-        aria-label={
-          open
-            ? t('agent.share.closeWidget', '关闭聊天浮窗')
-            : t('agent.share.openWidget', '打开聊天浮窗')
-        }
-      >
-        {open ? (
-          <X className="h-5 w-5" />
-        ) : (
-          <MessageCircle className="h-5 w-5" />
-        )}
-      </Button>
+      <WidgetToggleButton open={open} onToggle={toggle} />
+    </div>
+  )
+}
+
+function WidgetToggleButton({
+  open,
+  onToggle,
+}: {
+  open: boolean
+  onToggle: () => void
+}) {
+  const { t } = useTranslation()
+  return (
+    <Button
+      size="icon-lg"
+      className="rounded-radius-full shadow-elevation-high"
+      onClick={onToggle}
+      aria-expanded={open}
+      aria-label={
+        open
+          ? t('agent.share.closeWidget', '关闭聊天浮窗')
+          : t('agent.share.openWidget', '打开聊天浮窗')
+      }
+    >
+      {open ? (
+        <X className="size-icon-lg" />
+      ) : (
+        <MessageCircle className="size-icon-lg" />
+      )}
+    </Button>
+  )
+}
+
+export function WidgetStandalonePreview({ children }: { children: ReactNode }) {
+  const { t } = useTranslation()
+  const [open, setOpen] = useState(false)
+  const [hasOpened, setHasOpened] = useState(false)
+
+  const toggle = () => {
+    setHasOpened(true)
+    setOpen((previous) => !previous)
+  }
+
+  return (
+    <div className="min-h-screen bg-background-body">
+      {hasOpened && (
+        <div
+          hidden={!open}
+          className="fixed right-6 bottom-24 h-[500px] max-h-[calc(100dvh-120px)] w-[380px] max-w-[calc(100vw-48px)] overflow-hidden rounded-radius-lg"
+        >
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            className="absolute top-space-sm right-space-sm z-10"
+            onClick={() => setOpen(false)}
+            aria-label={t('agent.share.closeWidget', '关闭聊天浮窗')}
+          >
+            <X className="size-icon-md" />
+          </Button>
+          {children}
+        </div>
+      )}
+      <div className="fixed right-space-lg bottom-space-lg">
+        <WidgetToggleButton open={open} onToggle={toggle} />
+      </div>
     </div>
   )
 }
@@ -65,11 +112,11 @@ export function WidgetShell({
   return (
     <div
       className={cn(
-        'rounded-radius-lg bg-surface-primary shadow-elevation-high flex flex-col overflow-hidden border border-border-default',
+        'flex flex-col overflow-hidden rounded-radius-lg border border-border-default bg-background-surface shadow-elevation-high',
         variant === 'iframe' ? 'h-screen w-screen' : 'h-full w-full',
       )}
     >
-      <header className="px-space-base py-space-sm flex items-center justify-between border-b border-border-subtle">
+      <header className="flex items-center justify-between border-b border-border-subtle px-space-base py-space-sm">
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold text-text-primary">
             {title}
