@@ -24,6 +24,7 @@ import {
 import { PageLoadingState } from '@/components/patterns'
 import { SkillError } from '../skill-shared'
 import { SkillSelect } from '../skill-select'
+import { SkillConfigAdvanced, SkillConfigField } from '../skill-config-advanced'
 
 function CoreConfigForm({
   space,
@@ -46,7 +47,7 @@ function CoreConfigForm({
   })
   return (
     <form
-      className="flex flex-col gap-space-base px-space-lg pb-space-lg"
+      className="flex flex-col gap-space-base px-space-lg pb-space-lg text-text-primary"
       onSubmit={form.handleSubmit((data) =>
         action.mutate(async () => {
           const result = await skillCoreAPI.updateConfig(space, data)
@@ -105,44 +106,46 @@ function CoreConfigForm({
           {t('skills.core.rerankNotApplied')}
         </p>
       )}
-      <details className="flex flex-col gap-space-base">
-        <summary className="cursor-pointer py-space-sm font-medium">
-          {t('skills.advanced')}
-        </summary>
-        <div className="flex flex-col gap-space-base pt-space-base">
-          <Input
-            label={t('skills.topK')}
-            type="number"
-            min={1}
-            max={100}
-            {...form.register('top_k', { valueAsNumber: true })}
-          />
-          <Input
-            label={t('skills.vectorWeight')}
-            type="number"
-            min={0}
-            max={1}
-            step={0.05}
-            {...form.register('vector_similarity_weight', {
-              valueAsNumber: true,
-            })}
-          />
-          <p className="text-sm text-text-secondary">
-            {t('skills.core.strategyHint')}
-          </p>
-          <Input
-            label={t('skills.threshold')}
-            type="number"
-            min={0}
-            max={1}
-            step={0.05}
-            {...form.register('similarity_threshold', { valueAsNumber: true })}
-          />
-          {(['name', 'tags', 'description', 'content'] as const).map((name) => (
-            <div
-              key={name}
-              className="grid grid-cols-2 items-center gap-space-base"
-            >
+      <SkillConfigAdvanced
+        parameters={
+          <>
+            <Input
+              label={t('skills.topK')}
+              type="number"
+              min={1}
+              max={100}
+              {...form.register('top_k', { valueAsNumber: true })}
+            />
+            <Input
+              label={t('skills.vectorWeight')}
+              type="number"
+              min={0}
+              max={1}
+              step={0.05}
+              {...form.register('vector_similarity_weight', {
+                valueAsNumber: true,
+              })}
+            />
+            <p className="text-sm text-text-secondary sm:order-last sm:col-span-3">
+              {t('skills.core.strategyHint')}
+            </p>
+            <Input
+              label={t('skills.threshold')}
+              type="number"
+              min={0}
+              max={1}
+              step={0.05}
+              {...form.register('similarity_threshold', {
+                valueAsNumber: true,
+              })}
+            />
+          </>
+        }
+      >
+        {(['name', 'tags', 'description', 'content'] as const).map((name) => (
+          <SkillConfigField
+            key={name}
+            control={
               <Controller
                 name={`field_config.${name}.enabled`}
                 control={form.control}
@@ -162,7 +165,11 @@ function CoreConfigForm({
                   </Label>
                 )}
               />
+            }
+            weight={
               <Input
+                inputSize="sm"
+                className="text-right tabular-nums"
                 aria-label={`${t(`skills.${name}`)} ${t('skills.weight')}`}
                 type="number"
                 min={0}
@@ -172,17 +179,17 @@ function CoreConfigForm({
                   valueAsNumber: true,
                 })}
               />
-            </div>
-          ))}
-        </div>
-      </details>
+            }
+          />
+        ))}
+      </SkillConfigAdvanced>
       <SkillError error={action.error} />
       {(saved || indexed) && (
         <p aria-live="polite" className="text-sm text-status-info">
           {t(indexed ? 'skills.core.indexReady' : 'skills.requiresReindex')}
         </p>
       )}
-      <div className="flex flex-wrap justify-end gap-space-sm">
+      <div className="flex flex-wrap justify-end gap-space-sm border-t border-border-subtle pt-space-base">
         <Button
           type="button"
           variant="outline"
@@ -225,7 +232,7 @@ export function CoreConfigDialog({
         if (!open) onClose()
       }}
     >
-      <DialogContent className="max-h-[90vh] overflow-auto">
+      <DialogContent className="overflow-y-auto text-text-primary">
         <DialogHeader>
           <DialogTitle>{t('skills.configuration')}</DialogTitle>
           <DialogDescription>

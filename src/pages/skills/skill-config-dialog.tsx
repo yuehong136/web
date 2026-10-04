@@ -27,6 +27,7 @@ import {
 import { PageLoadingState } from '@/components/patterns'
 import { SkillError } from './skill-shared'
 import { SkillSelect } from './skill-select'
+import { SkillConfigAdvanced, SkillConfigField } from './skill-config-advanced'
 
 const schema = skillConfigSchema.refine(
   (config) =>
@@ -54,7 +55,7 @@ function ConfigForm({
   const action = useSkillAction(onAccepted)
   return (
     <form
-      className="flex flex-col gap-space-base px-space-lg pb-space-lg"
+      className="flex flex-col gap-space-base px-space-lg pb-space-lg text-text-primary"
       onSubmit={form.handleSubmit((data) =>
         action.mutate(async () => {
           const result = await skillsAPI.updateConfig(space, data)
@@ -102,75 +103,83 @@ function ConfigForm({
           )}
         />
       ))}
-      <details>
-        <summary className="cursor-pointer py-space-sm font-medium">
-          {t('skills.advanced')}
-        </summary>
-        <div className="grid gap-space-base sm:grid-cols-3">
-          <Input
-            disabled={action.isPending}
-            label={t('skills.topK')}
-            type="number"
-            min={1}
-            max={100}
-            {...form.register('top_k', { valueAsNumber: true })}
-          />
-          <Input
-            disabled={action.isPending}
-            label={t('skills.vectorWeight')}
-            type="number"
-            min={0}
-            max={1}
-            step={0.05}
-            {...form.register('vector_weight', { valueAsNumber: true })}
-          />
-          <Input
-            disabled={action.isPending}
-            label={t('skills.threshold')}
-            type="number"
-            min={0}
-            max={1}
-            step={0.05}
-            {...form.register('similarity_threshold', { valueAsNumber: true })}
-          />
-        </div>
-        {(['name', 'tags', 'description', 'content'] as const).map((name) => (
-          <div
-            className="grid grid-cols-2 items-center gap-space-base"
-            key={name}
-          >
-            <Controller
-              control={form.control}
-              name={`fields.${name}.enabled`}
-              render={({ field }) => (
-                <Label
-                  htmlFor={`skill-field-${name}`}
-                  className="flex items-center gap-space-sm"
-                >
-                  <Checkbox
-                    disabled={action.isPending}
-                    id={`skill-field-${name}`}
-                    checked={field.value}
-                    onCheckedChange={(value) => field.onChange(value === true)}
-                  />
-                  {t(`skills.${name}`)}
-                </Label>
-              )}
+      <SkillConfigAdvanced
+        parameters={
+          <>
+            <Input
+              disabled={action.isPending}
+              label={t('skills.topK')}
+              type="number"
+              min={1}
+              max={100}
+              {...form.register('top_k', { valueAsNumber: true })}
             />
             <Input
               disabled={action.isPending}
-              aria-label={`${t(`skills.${name}`)} ${t('skills.weight')}`}
+              label={t('skills.vectorWeight')}
               type="number"
               min={0}
-              max={10}
-              step={0.1}
-              {...form.register(`fields.${name}.weight`, {
+              max={1}
+              step={0.05}
+              {...form.register('vector_weight', { valueAsNumber: true })}
+            />
+            <Input
+              disabled={action.isPending}
+              label={t('skills.threshold')}
+              type="number"
+              min={0}
+              max={1}
+              step={0.05}
+              {...form.register('similarity_threshold', {
                 valueAsNumber: true,
               })}
             />
-          </div>
+          </>
+        }
+      >
+        {(['name', 'tags', 'description', 'content'] as const).map((name) => (
+          <SkillConfigField
+            key={name}
+            control={
+              <Controller
+                control={form.control}
+                name={`fields.${name}.enabled`}
+                render={({ field }) => (
+                  <Label
+                    htmlFor={`skill-field-${name}`}
+                    className="flex items-center gap-space-sm"
+                  >
+                    <Checkbox
+                      disabled={action.isPending}
+                      id={`skill-field-${name}`}
+                      checked={field.value}
+                      onCheckedChange={(value) =>
+                        field.onChange(value === true)
+                      }
+                    />
+                    {t(`skills.${name}`)}
+                  </Label>
+                )}
+              />
+            }
+            weight={
+              <Input
+                inputSize="sm"
+                className="text-right tabular-nums"
+                disabled={action.isPending}
+                aria-label={`${t(`skills.${name}`)} ${t('skills.weight')}`}
+                type="number"
+                min={0}
+                max={10}
+                step={0.1}
+                {...form.register(`fields.${name}.weight`, {
+                  valueAsNumber: true,
+                })}
+              />
+            }
+          />
         ))}
-      </details>
+      </SkillConfigAdvanced>
       {!!Object.keys(form.formState.errors).length && (
         <SkillError error="HTTP_422" />
       )}
@@ -180,7 +189,7 @@ function ConfigForm({
           {t('skills.requiresReindex')}
         </output>
       )}
-      <div className="flex flex-wrap justify-end gap-space-sm">
+      <div className="flex flex-wrap justify-end gap-space-sm border-t border-border-subtle pt-space-base">
         <Button
           type="button"
           variant="outline"
@@ -220,7 +229,7 @@ export function SkillConfigDialog({
         if (!open) onClose()
       }}
     >
-      <DialogContent className="max-h-[90vh] overflow-y-auto">
+      <DialogContent className="overflow-y-auto text-text-primary">
         <DialogHeader>
           <DialogTitle>{t('skills.configuration')}</DialogTitle>
           <DialogDescription>
