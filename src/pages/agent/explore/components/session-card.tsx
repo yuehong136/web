@@ -47,7 +47,9 @@ export function SessionCard({
     <div
       className={cn(
         'group flex items-center rounded-radius-md transition-colors motion-reduce:transition-none',
-        selected ? 'bg-background-subtle' : 'hover:bg-background-subtle',
+        selected
+          ? 'bg-state-selected-bg text-state-selected-text'
+          : 'text-text-primary hover:bg-background-subtle',
       )}
     >
       <button
@@ -57,7 +59,7 @@ export function SessionCard({
         className="flex min-w-0 flex-1 items-center gap-space-sm rounded-radius-md px-space-sm py-space-sm text-left outline-hidden focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:ring-inset"
         onClick={onSelect}
       >
-        <span className="truncate text-sm text-text-primary">{name}</span>
+        <span className="truncate text-sm">{name}</span>
         {hasError ? (
           <CircleAlert
             className="size-icon-sm shrink-0 text-status-error"

@@ -91,7 +91,7 @@ export const TabsTrigger: React.FC<TabsTriggerProps> = ({
       type="button"
       disabled={disabled}
       onClick={() => !disabled && onValueChange?.(value)}
-      className={`inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium whitespace-nowrap transition-all focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50 ${className}`}
+      className={`inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium whitespace-nowrap transition-all focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50 ${className}`}
       style={{
         backgroundColor: isActive
           ? 'var(--color-components-tabs-active-bg)'
@@ -133,7 +133,7 @@ export const TabsContent: React.FC<TabsContentProps> = ({
 
   return (
     <div
-      className={`mt-2 ring-offset-background focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden ${className}`}
+      className={`mt-2 ring-offset-background focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:ring-offset-2 focus-visible:outline-hidden ${className}`}
     >
       {children}
     </div>

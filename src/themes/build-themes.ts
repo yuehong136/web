@@ -90,8 +90,7 @@ async function main() {
       `   📦 文件大小: ${(fs.statSync(LIGHT_CSS_PATH).size / 1024).toFixed(1)}KB + ${(fs.statSync(DARK_CSS_PATH).size / 1024).toFixed(1)}KB + ${(fs.statSync(TOKEN_VALUES_PATH).size / 1024).toFixed(1)}KB`,
     )
 
-    // 漂移校验（CSS 分类器对少量令牌有已知遗漏，故 JS 是完整超集，不强制 CSS==JS）：
-    //  - 两个 CSS 主题键数一致；两个 JS 主题键数一致；JS 为 CSS 的超集。
+    // 两种消费入口必须覆盖同一套令牌，不能让组件因分类遗漏而缺少 CSS 值。
     if (lightTokenCount !== darkTokenCount) {
       console.error(
         `❌ CSS 明暗令牌数不一致: light=${lightTokenCount} dark=${darkTokenCount}`,
@@ -104,9 +103,9 @@ async function main() {
       )
       process.exit(1)
     }
-    if (jsLightCount < lightTokenCount) {
+    if (jsLightCount !== lightTokenCount) {
       console.error(
-        `❌ JS 产物未覆盖 CSS 令牌(应为超集): JS=${jsLightCount} < CSS=${lightTokenCount}`,
+        `❌ CSS 与 JS 令牌数量不一致: JS=${jsLightCount} CSS=${lightTokenCount}`,
       )
       process.exit(1)
     }

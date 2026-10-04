@@ -153,7 +153,7 @@ export const LLMParameterControl: React.FC<LLMParameterControlProps> = ({
             className={cn(
               'h-8 rounded-md border px-2 text-center text-sm',
               'border-[var(--color-components-input-border)] bg-[var(--color-components-input-bg)]',
-              'focus:border-[var(--color-components-input-border-focus)] focus:ring-1 focus:ring-primary focus:outline-hidden',
+              'focus:border-[var(--color-components-input-border-focus)] focus:ring-1 focus:ring-state-focus focus:outline-hidden',
               '[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none',
               disabled && 'cursor-not-allowed opacity-50',
             )}

@@ -36,6 +36,25 @@ Tailwind 4 集成 (themes/tailwind.css + tailwind-tokens-*.generated.css):
 
 ## 📚 令牌分类系统
 
+### 明暗主题的交互色配对
+
+| 语义             | 浅色主题 | 深色主题 | 消费入口                                                                 |
+| ---------------- | -------- | -------- | ------------------------------------------------------------------------ |
+| 选中、优选、焦点 | 绿色     | 紫色     | checkbox/radio/switch/slider 的组件令牌、`state-focus`、选中背景与文字   |
+| 主要操作         | 黑色     | 蓝色     | `components-button-primary-*`、`primary`、主操作链接、步骤与分页的当前项 |
+
+两组颜色由 `interaction-palette.ts` 统一定义，`theme-generator.ts` 分发到组件令牌。通用选中填充、可读文字、弱底分别使用 `state-selected`、`state-selected-text`、`state-selected-bg`；焦点使用 `state-focus`。选中填充与白色勾选/日期文本保持可辨对比，焦点和选中文字可使用同一色系的不同明度。不要把表单选中态映射到主按钮色，也不要按页面分别写明暗颜色。
+
+Tailwind 的 `--twc-primary` 从主按钮背景生成，`--twc-ring` 从 `state-focus` 生成；Radix、Antd 与原生表单控件消费对应组件令牌。反馈状态继续按 `status-*` 表达成功、错误、警告和信息，分类/图表颜色使用各自令牌，不承担交互配对语义。
+
+### 背景与文字层次
+
+`surface-palette.ts` 统一中性灰阶：浅色使用白色内容面板与细微灰色工作区底，深色使用炭灰底、稍亮面板和弹层。Console、Workspace、Studio、Settings 与 System 等模板共享这些层次；边框承担结构分隔，品牌色承担选中与焦点，避免整块区域带无意义色偏。
+
+共享 UI 使用的 `surface-primary/secondary/tertiary`、`border-primary/hover/focus`、`text-caption/on-accent` 等简写也注册为真实令牌，由同一调色板生成，不依赖不存在的工具类或浏览器默认色。
+
+主文字、说明与辅助文字对常用背景保持阅读对比；placeholder 仍需要可读，不使用禁用色代替。CSS 与 JS 主题产物必须包含完整且相同的令牌集合，生成器分类后补齐剩余令牌，禁止手改生成物或给漏发令牌写页面兜底色。
+
 ### 基础令牌 (Foundation Tokens)
 
 ```typescript

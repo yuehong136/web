@@ -9,8 +9,14 @@
  * - state-{交互状态}
  */
 
+import {
+  emptyInteractionTokens,
+  type InteractionTokens,
+} from './interaction-tokens'
+import { emptySurfaceTokens, type SurfaceTokens } from './surface-tokens'
+
 // 设计令牌类型定义
-export interface DesignTokens {
+export interface DesignTokens extends InteractionTokens, SurfaceTokens {
   // ===== 文本系统 =====
   'text-primary': string
   'text-secondary': string
@@ -135,18 +141,6 @@ export interface DesignTokens {
   'components-table-header-bg': string
   'components-table-row-bg-hover': string
   'components-table-row-bg-selected': string
-
-  // ===== 交互状态 =====
-  'state-hover': string
-  'state-active': string
-  'state-focus': string
-  'state-disabled': string
-
-  // ===== 状态透明度变体 (10% opacity) =====
-  'state-focus-10': string
-  'state-neutral-10': string
-  // 语义化别名（subtle = 10% opacity）
-  'state-focus-subtle': string
 
   // ===== 反馈状态 status-* (canonical feedback palette) =====
   // status-* 是反馈态（success/warning/error/info）的 canonical token，含 -10/-subtle 变体。
@@ -968,6 +962,7 @@ const generateCSSVars = (
 
 // 默认令牌定义（用于类型检查）
 export const defaultTokens: DesignTokens = {
+  ...emptySurfaceTokens,
   // 文本系统
   'text-primary': '',
   'text-secondary': '',
@@ -1093,17 +1088,7 @@ export const defaultTokens: DesignTokens = {
   'components-table-row-bg-hover': '',
   'components-table-row-bg-selected': '',
 
-  // 交互状态
-  'state-hover': '',
-  'state-active': '',
-  'state-focus': '',
-  'state-disabled': '',
-
-  // 状态透明度变体 (10% opacity)
-  'state-focus-10': '',
-  'state-neutral-10': '',
-  // 语义化别名（subtle = 10% opacity）
-  'state-focus-subtle': '',
+  ...emptyInteractionTokens,
 
   // 反馈状态 status-* (canonical feedback palette)
   'status-success': '',

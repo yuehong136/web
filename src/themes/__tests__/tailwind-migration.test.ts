@@ -93,6 +93,45 @@ test('typography, forms, scrollbar plugins and native container queries compile'
   assert.match(css, /@container \(width >= 24rem\)/)
 })
 
+test('native choice controls override forms defaults with scoped selection colors', async () => {
+  const css = (await compiler).build(['form-checkbox', 'form-radio'])
+  assert.match(
+    css,
+    /accent-color: var\(--color-components-checkbox-bg-checked\)/,
+  )
+  assert.match(css, /accent-color: var\(--color-components-radio-dot\)/)
+  assert.match(css, /accent-color: var\(--color-components-slider-range\)/)
+  assert.match(
+    css,
+    /background-color: var\(--color-components-checkbox-bg-checked\)/,
+  )
+  assert.match(css, /background-color: var\(--color-components-radio-dot\)/)
+  assert.match(css, /--tw-ring-offset-color: var\(--color-background-body\)/)
+  assert.ok(
+    css.lastIndexOf('--tw-ring-color: var(--color-state-focus)') >
+      css.indexOf('.form-checkbox:focus'),
+    'selection focus colors must override the forms plugin defaults',
+  )
+})
+
+test('selected input text and options compile independently of action colors', async () => {
+  const css = (await compiler).build([
+    'selection:bg-state-selected',
+    'selection:text-text-on-accent',
+    'data-[state=checked]:bg-state-selected-bg',
+    'data-[state=checked]:text-state-selected-text',
+    'bg-components-button-primary-bg',
+  ])
+  assert.match(css, /background-color: var\(--color-state-selected\)/)
+  assert.match(css, /color: var\(--color-text-on-accent\)/)
+  assert.match(css, /background-color: var\(--color-state-selected-bg\)/)
+  assert.match(css, /color: var\(--color-state-selected-text\)/)
+  assert.match(
+    css,
+    /background-color: var\(\s*--color-components-button-primary-bg\s*\)/,
+  )
+})
+
 test('independent component CSS can apply utilities without duplicating the theme', async () => {
   const base = path.join(sourceRoot, 'styles')
   const css = await readFile(path.join(base, 'mcp-components.css'), 'utf8')

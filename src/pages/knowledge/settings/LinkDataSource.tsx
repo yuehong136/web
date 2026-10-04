@@ -64,7 +64,7 @@ function DataSourceItemCard({
   }
 
   return (
-    <div className="hover:bg-surface-secondary group flex h-12 items-center justify-between gap-2 rounded-lg border border-border px-3 transition-colors">
+    <div className="group flex h-12 items-center justify-between gap-2 rounded-lg border border-border px-3 transition-colors hover:bg-surface-secondary">
       <div className="flex items-center gap-2">
         <div className="flex h-6 w-6 shrink-0 items-center justify-center">
           {sourceInfo.icon}
@@ -198,13 +198,13 @@ function LinkDataSourceModal({
                   className={cn(
                     'flex cursor-pointer items-center justify-between rounded-xl border-2 px-4 py-3 transition-all',
                     isSelected
-                      ? 'bg-surface-accent-subtle border-border-accent'
-                      : 'hover:border-border-hover hover:bg-surface-secondary border-border',
+                      ? 'border-border-accent bg-state-selected-bg'
+                      : 'border-border hover:border-border-hover hover:bg-surface-secondary',
                   )}
                   onClick={() => setSelected(source.id)}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="bg-surface-secondary flex h-9 w-9 items-center justify-center rounded-lg">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-surface-secondary">
                       {sourceInfo.icon}
                     </div>
                     <div className="flex flex-col">
@@ -220,7 +220,7 @@ function LinkDataSourceModal({
                     className={cn(
                       'flex h-5 w-5 items-center justify-center rounded-full border-2 transition-all',
                       isSelected
-                        ? 'bg-surface-accent border-border-accent'
+                        ? 'border-border-accent bg-surface-accent'
                         : 'border-border',
                     )}
                   >
@@ -233,7 +233,7 @@ function LinkDataSourceModal({
             })
           ) : (
             <div className="py-10 text-center">
-              <div className="bg-surface-secondary mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-surface-secondary">
                 <Database className="h-8 w-8 text-text-tertiary" />
               </div>
               <p className="text-sm font-medium text-text-secondary">

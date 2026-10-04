@@ -50,7 +50,7 @@ const SearchGridCard: React.FC<SearchGridCardProps> = ({
       className={cn(
         'group relative cursor-pointer rounded-2xl border transition-all duration-300',
         'hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/5',
-        isHovered && 'ring-2 ring-blue-500/20',
+        isHovered && 'ring-2 ring-state-focus-10',
       )}
       style={{
         backgroundColor: 'var(--color-components-card-bg)',
@@ -107,7 +107,7 @@ const SearchGridCard: React.FC<SearchGridCardProps> = ({
                   className={cn(
                     'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
                     relatedEnabled
-                      ? 'bg-[var(--color-status-info-10)] text-text-accent'
+                      ? 'bg-status-info-10 text-status-info'
                       : 'bg-background-subtle text-text-secondary',
                   )}
                 >

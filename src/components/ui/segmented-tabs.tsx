@@ -27,7 +27,7 @@ export const SegmentedTabsTrigger = React.forwardRef<
   <Tabs.Trigger
     ref={ref}
     className={cn(
-      'flex shrink-0 items-center gap-space-xs rounded-radius-md px-space-sm py-space-sm text-sm font-medium whitespace-nowrap text-text-secondary hover:bg-state-hover focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden data-[state=active]:bg-state-active data-[state=active]:text-text-primary',
+      'flex shrink-0 items-center gap-space-xs rounded-radius-md px-space-sm py-space-sm text-sm font-medium whitespace-nowrap text-text-secondary hover:bg-state-hover focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden data-[state=active]:bg-state-selected-bg data-[state=active]:text-state-selected-text',
       className,
     )}
     {...props}

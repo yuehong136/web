@@ -27,12 +27,12 @@ export const RecommendCards: React.FC<RecommendCardsProps> = ({
             onClick={() => onCardClick(title)}
             aria-label={title}
             className={cn(
-              'group relative flex h-[200px] flex-1 cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border-0 p-5 text-left',
+              'group relative flex h-[200px] flex-1 cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border border-border-default p-5 text-left transition-colors hover:border-state-focus focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-none',
               card.bgColor,
             )}
           >
             <div className="flex flex-col gap-2">
-              <p className="text-sm font-medium leading-relaxed text-components-recommend-card-text">
+              <p className="text-sm leading-relaxed font-medium text-components-recommend-card-text">
                 {title}
               </p>
               {card.hasImage && card.imageUrl && (
@@ -51,10 +51,10 @@ export const RecommendCards: React.FC<RecommendCardsProps> = ({
             </p>
 
             {/* 悬停时显示的聊一聊按钮 */}
-            <div className="absolute bottom-0 left-0 right-0 translate-y-full transition-transform duration-300 ease-out group-hover:translate-y-0 group-focus-visible:translate-y-0">
+            <div className="absolute right-0 bottom-0 left-0 translate-y-full transition-transform duration-300 ease-out group-hover:translate-y-0 group-focus-visible:translate-y-0">
               <div className="h-px bg-border-subtle" />
               <div className="p-3">
-                <span className="flex w-full items-center justify-center gap-2 rounded-full bg-text-primary py-2.5 text-sm font-medium text-text-inverted transition-colors hover:bg-text-secondary">
+                <span className="flex w-full items-center justify-center gap-2 rounded-full bg-components-button-primary-bg py-2.5 text-sm font-medium text-components-button-primary-text transition-colors">
                   <span aria-hidden="true" className="text-base">
                     ✨
                   </span>

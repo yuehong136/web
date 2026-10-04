@@ -153,7 +153,7 @@ export const SelectWithSearch = forwardRef<
             ref={ref}
             disabled={disabled}
             className={cn(
-              'group h-10 w-full justify-between border border-border bg-transparent px-3 font-normal outline-hidden outline-offset-0 hover:bg-accent/30 focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary/30 [&_svg]:pointer-events-auto',
+              'group h-10 w-full justify-between border border-border bg-transparent px-3 font-normal outline-hidden outline-offset-0 hover:bg-accent/30 focus-visible:border-components-select-border-focus focus-visible:ring-1 focus-visible:ring-state-focus/30 [&_svg]:pointer-events-auto',
               triggerClassName,
             )}
           >
@@ -215,7 +215,9 @@ export const SelectWithSearch = forwardRef<
                             onSelect={handleSelect}
                             className={cn(
                               'min-h-9',
-                              value === option.value ? 'bg-card' : '',
+                              value === option.value
+                                ? "bg-state-selected-bg data-[selected='true']:bg-state-selected-bg"
+                                : '',
                             )}
                           >
                             <span className="flex-1 leading-none">
@@ -224,7 +226,7 @@ export const SelectWithSearch = forwardRef<
                             {value === option.value && (
                               <CheckIcon
                                 size={16}
-                                className="ml-auto text-primary"
+                                className="ml-auto text-state-selected-text"
                               />
                             )}
                           </CommandItem>
@@ -244,12 +246,17 @@ export const SelectWithSearch = forwardRef<
                       onSelect={handleSelect}
                       className={cn(
                         'min-h-9',
-                        value === group.value ? 'bg-card' : '',
+                        value === group.value
+                          ? "bg-state-selected-bg data-[selected='true']:bg-state-selected-bg"
+                          : '',
                       )}
                     >
                       <span className="flex-1 leading-none">{group.label}</span>
                       {value === group.value && (
-                        <CheckIcon size={16} className="ml-auto text-primary" />
+                        <CheckIcon
+                          size={16}
+                          className="ml-auto text-state-selected-text"
+                        />
                       )}
                     </CommandItem>
                   )

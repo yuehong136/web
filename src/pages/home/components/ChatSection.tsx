@@ -504,7 +504,7 @@ export const ChatSection = ({
               color: var(--color-text-primary) !important;
             }
             .home-chat-area .markdown-content a {
-              color: var(--color-components-button-primary-bg) !important;
+              color: var(--color-text-accent) !important;
             }
             .home-chat-area .markdown-content table:not(pre) {
               border-collapse: collapse !important;

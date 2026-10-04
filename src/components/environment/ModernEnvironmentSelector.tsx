@@ -153,7 +153,7 @@ export function ModernEnvironmentSelector({
 
       <DropdownMenuContent
         align="right"
-        className="w-[240px] border border-border bg-background p-1 shadow-xl"
+        className="w-[240px] border border-components-dropdown-border bg-components-dropdown-bg p-1 shadow-xl"
       >
         <div className="py-0.5">
           {environments.map((env, index) => {
@@ -167,10 +167,10 @@ export function ModernEnvironmentSelector({
                   onClick={() => handleEnvironmentSelect(env.id)}
                   className={cn(
                     'mx-1 cursor-pointer rounded-lg border-0 px-3 py-2.5',
-                    'hover:bg-accent focus:bg-accent',
+                    'hover:bg-state-hover focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden',
                     'transition-colors duration-150',
                     isSelected &&
-                      'bg-primary/20 ring-1 ring-primary/30 hover:bg-primary/25 focus:bg-primary/25',
+                      'bg-state-selected-bg text-state-selected-text ring-1 ring-state-selected/20 hover:bg-state-selected-bg',
                   )}
                 >
                   <div className="flex flex-col gap-0.5">
@@ -179,7 +179,7 @@ export function ModernEnvironmentSelector({
                       {/* 选中指示器 - 最左侧 */}
                       <div className="flex w-2 shrink-0 justify-start">
                         {isSelected && (
-                          <div className="h-2 w-2 rounded-full bg-primary" />
+                          <div className="h-2 w-2 rounded-full bg-state-selected" />
                         )}
                       </div>
 
@@ -195,7 +195,14 @@ export function ModernEnvironmentSelector({
 
                       {/* 名称和状态标识 */}
                       <div className="flex min-w-0 flex-1 items-center gap-2">
-                        <span className="truncate text-sm font-medium text-foreground">
+                        <span
+                          className={cn(
+                            'truncate text-sm font-medium',
+                            isSelected
+                              ? 'text-state-selected-text'
+                              : 'text-foreground',
+                          )}
+                        >
                           {env.name}
                         </span>
 

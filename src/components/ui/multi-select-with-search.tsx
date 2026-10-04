@@ -139,7 +139,7 @@ export const MultiSelectWithSearch = forwardRef<
             ref={ref}
             disabled={disabled}
             className={cn(
-              'group h-auto min-h-10 w-full justify-between border border-border bg-transparent px-3 py-1.5 font-normal outline-hidden outline-offset-0 hover:bg-accent/30 focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary/30 [&_svg]:pointer-events-auto',
+              'group h-auto min-h-10 w-full justify-between border border-border bg-transparent px-3 py-1.5 font-normal outline-hidden outline-offset-0 hover:bg-accent/30 focus-visible:border-components-select-border-focus focus-visible:ring-1 focus-visible:ring-state-focus/30 [&_svg]:pointer-events-auto',
               triggerClassName,
             )}
           >
@@ -220,7 +220,9 @@ export const MultiSelectWithSearch = forwardRef<
                             onSelect={() => handleSelect(option.value)}
                             className={cn(
                               'min-h-9',
-                              values.includes(option.value) ? 'bg-card' : '',
+                              values.includes(option.value)
+                                ? "bg-state-selected-bg data-[selected='true']:bg-state-selected-bg"
+                                : '',
                             )}
                           >
                             <span className="flex-1 leading-none">
@@ -229,7 +231,7 @@ export const MultiSelectWithSearch = forwardRef<
                             {values.includes(option.value) && (
                               <CheckIcon
                                 size={16}
-                                className="ml-auto text-primary"
+                                className="ml-auto text-state-selected-text"
                               />
                             )}
                           </CommandItem>
@@ -249,12 +251,17 @@ export const MultiSelectWithSearch = forwardRef<
                       onSelect={() => handleSelect(group.value!)}
                       className={cn(
                         'min-h-9',
-                        values.includes(group.value) ? 'bg-card' : '',
+                        values.includes(group.value)
+                          ? "bg-state-selected-bg data-[selected='true']:bg-state-selected-bg"
+                          : '',
                       )}
                     >
                       <span className="flex-1 leading-none">{group.label}</span>
                       {values.includes(group.value) && (
-                        <CheckIcon size={16} className="ml-auto text-primary" />
+                        <CheckIcon
+                          size={16}
+                          className="ml-auto text-state-selected-text"
+                        />
                       )}
                     </CommandItem>
                   )

@@ -5,15 +5,19 @@
  */
 
 import type { DesignTokens } from './tokens'
-
-// 亮色主题令牌值定义
+import { interactionPalette as palette } from './interaction-palette'
+import { surfacePalette as surfaces } from './surface-palette'
+import { buildSurfaceTokens } from './surface-tokens'
+import { generateThemeCSS } from './theme-css-generator'
+export { generateThemeCSS } from './theme-css-generator'
 export const lightTokens: DesignTokens = {
+  ...buildSurfaceTokens(surfaces.light, palette.light),
   // ===== 文本系统 =====
-  'text-primary': '#0f172a',
-  'text-secondary': '#717182',
-  'text-tertiary': '#a3a3a3',
-  'text-muted': '#d4d4d4',
-  'text-disabled': '#e5e7eb',
+  'text-primary': surfaces.light.text,
+  'text-secondary': surfaces.light.secondary,
+  'text-tertiary': surfaces.light.tertiary,
+  'text-muted': surfaces.light.muted,
+  'text-disabled': surfaces.light.disabled,
   'text-accent': '#1a1a1a',
   'text-success': '#059669',
   'text-warning': '#d97706',
@@ -21,31 +25,31 @@ export const lightTokens: DesignTokens = {
   'text-inverted': '#ffffff',
 
   // ===== 背景系统 =====
-  'background-body': '#ffffff',
-  'background-default': '#f5f5f5',
-  'background-subtle': '#f0f0f0',
-  'background-section': '#ffffff',
+  'background-body': surfaces.light.body,
+  'background-default': surfaces.light.canvas,
+  'background-subtle': surfaces.light.subtle,
+  'background-section': surfaces.light.canvas,
   'background-overlay': 'rgba(0, 0, 0, 0.5)',
-  'background-surface': '#ffffff',
+  'background-surface': surfaces.light.surface,
 
   // ===== 边框系统 =====
-  'border-default': 'rgba(0, 0, 0, 0.08)',
-  'border-subtle': 'rgba(0, 0, 0, 0.05)',
-  'border-strong': 'rgba(0, 0, 0, 0.12)',
-  'border-accent': 'rgba(0, 0, 0, 0.1)',
+  'border-default': surfaces.light.border,
+  'border-subtle': surfaces.light.borderSubtle,
+  'border-strong': surfaces.light.borderStrong,
+  'border-accent': palette.light.focus,
   'border-success': '#10b981',
   'border-warning': '#f59e0b',
   'border-error': '#ef4444',
 
   // ===== 按钮组件 - Primary =====
-  'components-button-primary-bg': '#18181b',
-  'components-button-primary-bg-hover': '#27272a',
-  'components-button-primary-bg-active': '#09090b',
+  'components-button-primary-bg': palette.light.action,
+  'components-button-primary-bg-hover': palette.light.actionHover,
+  'components-button-primary-bg-active': palette.light.actionActive,
   'components-button-primary-bg-disabled': '#ececf0',
   'components-button-primary-text': '#ffffff',
   'components-button-primary-text-disabled': '#9ca3af',
-  'components-button-primary-border': '#18181b',
-  'components-button-primary-border-hover': '#27272a',
+  'components-button-primary-border': palette.light.action,
+  'components-button-primary-border-hover': palette.light.actionHover,
 
   // ===== 按钮组件 - Secondary =====
   'components-button-secondary-bg': '#f3f3f5',
@@ -67,88 +71,91 @@ export const lightTokens: DesignTokens = {
   'components-input-bg-hover': '#f9fafb',
   'components-input-bg-focus': '#ffffff',
   'components-input-bg-disabled': '#f5f5f5',
-  'components-input-border': '#e2e8f0',
-  'components-input-border-hover': '#cbd5e1',
-  'components-input-border-focus': '#00BEB4',
+  'components-input-border': surfaces.light.inputBorder,
+  'components-input-border-hover': surfaces.light.inputBorderHover,
+  'components-input-border-focus': palette.light.focus,
   'components-input-border-error': '#ef4444',
-  'components-input-text': '#111827',
-  'components-input-text-placeholder': '#9ca3af',
-  'components-input-text-disabled': '#9ca3af',
+  'components-input-text': surfaces.light.text,
+  'components-input-text-placeholder': surfaces.light.tertiary,
+  'components-input-text-disabled': surfaces.light.disabled,
 
   // ===== 卡片组件 =====
-  'components-card-bg': '#ffffff',
+  'components-card-bg': surfaces.light.surface,
   'components-card-bg-hover': '#fafafa',
   'components-card-border': 'rgba(0, 0, 0, 0.08)',
   'components-card-shadow':
     '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1)',
 
   // ===== 侧边栏组件 =====
-  'components-sidebar-bg': '#f7f8fa',
+  'components-sidebar-bg': surfaces.light.canvas,
   'components-sidebar-border': 'rgba(0, 0, 0, 0.06)',
   'components-sidebar-item-bg': 'transparent',
   'components-sidebar-item-bg-hover': 'rgba(0, 0, 0, 0.04)',
   'components-sidebar-item-bg-active': 'rgba(0, 0, 0, 0.06)',
-  'components-sidebar-item-text': '#6b7280',
-  'components-sidebar-item-text-active': '#0f172a',
+  'components-sidebar-item-text': surfaces.light.secondary,
+  'components-sidebar-item-text-active': surfaces.light.text,
 
   // ===== 导航组件 =====
-  'components-nav-bg': '#ffffff',
+  'components-nav-bg': surfaces.light.canvas,
   'components-nav-border': '#e5e7eb',
-  'components-nav-item-text': '#6b7280',
-  'components-nav-item-text-hover': '#374151',
-  'components-nav-item-text-active': '#00BEB4',
+  'components-nav-item-text': surfaces.light.secondary,
+  'components-nav-item-text-hover': surfaces.light.secondary,
+  'components-nav-item-text-active': palette.light.selectionText,
 
   // ===== 下拉菜单组件 =====
-  'components-dropdown-bg': '#ffffff',
+  'components-dropdown-bg': surfaces.light.elevated,
   'components-dropdown-border': '#e5e7eb',
   'components-dropdown-shadow':
     '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
   'components-dropdown-item-bg-hover': '#f3f4f6',
-  'components-dropdown-item-text': '#374151',
+  'components-dropdown-item-text': surfaces.light.secondary,
 
   // ===== 模型选择器组件 =====
-  'components-model-selector-dropdown-bg': '#ffffff',
+  'components-model-selector-dropdown-bg': surfaces.light.elevated,
   'components-model-selector-dropdown-border': '#e5e7eb',
   'components-model-selector-dropdown-shadow':
     '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
   'components-model-selector-search-bg': '#f9fafb',
   'components-model-selector-search-border': '#d1d5db',
-  'components-model-selector-search-text': '#111827',
+  'components-model-selector-search-text': surfaces.light.text,
   'components-model-selector-provider-header-bg': '#f3f4f6',
   'components-model-selector-provider-header-border': '#e5e7eb',
-  'components-model-selector-provider-header-text': '#374151',
+  'components-model-selector-provider-header-text': surfaces.light.secondary,
   'components-model-selector-item-bg': '#ffffff',
   'components-model-selector-item-border': '#e5e7eb',
-  'components-model-selector-item-text': '#374151',
+  'components-model-selector-item-text': surfaces.light.secondary,
   'components-model-selector-item-bg-hover': '#f3f4f6',
-  'components-model-selector-item-bg-selected': 'rgba(59, 130, 246, 0.1)',
-  'components-model-selector-item-text-selected': '#33D4CB',
+  'components-model-selector-item-bg-selected': palette.light.selectionTint,
+  'components-model-selector-item-text-selected': palette.light.selectionText,
   'components-model-selector-overlay-bg': 'rgba(0, 0, 0, 0.3)',
 
   // ===== 模态框组件 =====
-  'components-modal-bg': '#ffffff',
+  'components-modal-bg': surfaces.light.surface,
   'components-modal-overlay': 'rgba(0, 0, 0, 0.5)',
   'components-modal-border': '#e5e7eb',
   'components-modal-shadow': '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
 
   // ===== 表格组件 =====
-  'components-table-bg': '#ffffff',
+  'components-table-bg': surfaces.light.surface,
   'components-table-border': '#e5e7eb',
-  'components-table-header-bg': '#f9fafb',
+  'components-table-header-bg': surfaces.light.canvas,
   'components-table-row-bg-hover': '#f9fafb',
-  'components-table-row-bg-selected': 'rgba(30, 64, 175, 0.1)',
+  'components-table-row-bg-selected': palette.light.selectionTint,
 
   // ===== 交互状态 =====
   'state-hover': '#f3f4f6',
   'state-active': '#e5e7eb',
-  'state-focus': '#00BEB4',
+  'state-focus': palette.light.focus,
+  'state-selected': palette.light.selection,
+  'state-selected-text': palette.light.selectionText,
+  'state-selected-bg': palette.light.selectionTint,
   'state-disabled': '#e5e7eb',
 
   // ===== 状态透明度变体 (10% opacity) =====
-  'state-focus-10': 'rgba(0, 190, 180, 0.1)',
+  'state-focus-10': palette.light.selectionTint,
   'state-neutral-10': 'rgba(107, 114, 128, 0.1)',
   // 语义化别名（subtle = 10% opacity）
-  'state-focus-subtle': 'rgba(0, 190, 180, 0.1)',
+  'state-focus-subtle': palette.light.selectionTint,
 
   // ===== 反馈状态 status-* (canonical feedback palette) =====
   'status-success': '#10b981',
@@ -218,35 +225,35 @@ export const lightTokens: DesignTokens = {
   'shadow-xl':
     '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
 
-  // ===== 表单控件 =====
+  // ===== 表单控件：品牌选中态 =====
   'components-checkbox-bg': '#ffffff',
-  'components-checkbox-bg-checked': '#00BEB4',
+  'components-checkbox-bg-checked': palette.light.selection,
   'components-checkbox-border': '#d1d5db',
-  'components-checkbox-border-checked': '#00BEB4',
+  'components-checkbox-border-checked': palette.light.selection,
   'components-checkbox-icon': '#ffffff',
 
   'components-radio-bg': '#ffffff',
   'components-radio-bg-checked': '#ffffff',
   'components-radio-border': '#d1d5db',
-  'components-radio-border-checked': '#00BEB4',
-  'components-radio-dot': '#00BEB4',
+  'components-radio-border-checked': palette.light.selection,
+  'components-radio-dot': palette.light.selection,
 
   'components-select-bg': '#ffffff',
   'components-select-border': '#d1d5db',
-  'components-select-border-focus': '#00BEB4',
-  'components-select-text': '#111827',
-  'components-select-placeholder': '#9ca3af',
+  'components-select-border-focus': palette.light.focus,
+  'components-select-text': surfaces.light.text,
+  'components-select-placeholder': surfaces.light.tertiary,
 
   'components-switch-bg': '#e5e7eb',
-  'components-switch-bg-checked': '#00BEB4',
+  'components-switch-bg-checked': palette.light.selection,
   'components-switch-thumb': '#ffffff',
   'components-switch-thumb-checked': '#ffffff',
 
   // ===== 滑块组件 =====
   'components-slider-track': '#e5e7eb',
-  'components-slider-range': '#00BEB4',
+  'components-slider-range': palette.light.selection,
   'components-slider-thumb': '#ffffff',
-  'components-slider-thumb-border': '#00BEB4',
+  'components-slider-thumb-border': palette.light.selection,
 
   // ===== 滚动条系统 =====
   'components-scrollbar-track': '#f3f4f6',
@@ -254,12 +261,12 @@ export const lightTokens: DesignTokens = {
   'components-scrollbar-thumb-hover': '#9ca3af',
 
   // ===== 对话框和覆盖层 =====
-  'components-dialog-bg': '#ffffff',
+  'components-dialog-bg': surfaces.light.surface,
   'components-dialog-border': '#e5e7eb',
   'components-dialog-shadow': '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
   'components-dialog-overlay': 'rgba(0, 0, 0, 0.5)',
 
-  'components-popover-bg': '#ffffff',
+  'components-popover-bg': surfaces.light.elevated,
   'components-popover-border': '#e5e7eb',
   'components-popover-shadow':
     '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
@@ -272,12 +279,12 @@ export const lightTokens: DesignTokens = {
   // ===== 导航和标签 =====
   'components-tabs-border': '#e5e7eb',
   'components-tabs-bg': '#f5f5f5',
-  'components-tabs-active-bg': '#ffffff',
-  'components-tabs-active-text': '#1a1a1a',
+  'components-tabs-active-bg': palette.light.selectionTint,
+  'components-tabs-active-text': palette.light.selectionText,
   'components-tabs-inactive-text': '#737373',
 
-  'components-breadcrumb-text': '#6b7280',
-  'components-breadcrumb-text-current': '#1f2937',
+  'components-breadcrumb-text': surfaces.light.secondary,
+  'components-breadcrumb-text-current': surfaces.light.text,
   'components-breadcrumb-separator': '#9ca3af',
 
   // ===== 状态和通知 =====
@@ -300,8 +307,8 @@ export const lightTokens: DesignTokens = {
   // ===== 加载和进度 =====
   'components-skeleton-bg': '#f3f4f6',
   'components-progress-bg': '#e5e7eb',
-  'components-progress-fill': '#00BEB4',
-  'components-spinner-color': '#00BEB4',
+  'components-progress-fill': palette.light.selection,
+  'components-spinner-color': palette.light.selection,
 
   // ===== 代码和预格式化文本 =====
   'components-code-bg': '#f6f8fa',
@@ -331,7 +338,7 @@ export const lightTokens: DesignTokens = {
   'components-badge-error-bg': '#fee2e2',
   'components-badge-error-text': '#991b1b',
   'components-badge-info-bg': '#dbeafe',
-  'components-badge-info-text': '#00BEB4',
+  'components-badge-info-text': '#1e40af',
   'components-badge-neutral-bg': '#f3f4f6',
   'components-badge-neutral-text': '#6b7280',
   'components-badge-blue-bg': '#dbeafe',
@@ -406,16 +413,13 @@ export const lightTokens: DesignTokens = {
   'components-task-status-idle-text': '#4b5563',
   'components-task-status-idle-dot': '#9ca3af',
 
-  'components-task-status-running-bg':
-    'linear-gradient(to right, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1))',
-  'components-task-status-running-border': 'rgba(59, 130, 246, 0.2)',
-  'components-task-status-running-text': '#00D4C8',
-  'components-task-status-running-dot': '#33D4CB',
+  'components-task-status-running-bg': palette.light.selectionTint,
+  'components-task-status-running-border': palette.light.selectionTint,
+  'components-task-status-running-text': palette.light.selectionText,
+  'components-task-status-running-dot': palette.light.selection,
   'components-task-status-running-progress-bg': 'rgba(107, 114, 128, 0.2)',
-  'components-task-status-running-progress-fill':
-    'linear-gradient(to right, #33D4CB, #8b5cf6)',
-  'components-task-status-running-progress-glow':
-    'linear-gradient(to right, rgba(59, 130, 246, 0.5), rgba(139, 92, 246, 0.5))',
+  'components-task-status-running-progress-fill': palette.light.selection,
+  'components-task-status-running-progress-glow': palette.light.selectionSoft,
 
   'components-task-status-cancelled-bg': 'rgba(245, 158, 11, 0.1)',
   'components-task-status-cancelled-border': 'rgba(245, 158, 11, 0.2)',
@@ -433,19 +437,19 @@ export const lightTokens: DesignTokens = {
   'components-task-status-failed-dot': '#ef4444',
 
   'components-tag-bg': '#f3f4f6',
-  'components-tag-text': '#374151',
-  'components-tag-border': '#e5e7eb',
-  'components-tag-bg-hover': '#e5e7eb',
+  'components-tag-text': surfaces.light.secondary,
+  'components-tag-border': surfaces.light.border,
+  'components-tag-bg-hover': surfaces.light.subtle,
   'components-tag-close-hover': '#dc2626',
 
   // 分页器
   'components-pagination-bg': '#ffffff',
-  'components-pagination-text': '#6b7280',
+  'components-pagination-text': surfaces.light.secondary,
   'components-pagination-border': '#e5e7eb',
   'components-pagination-item-bg': '#ffffff',
   'components-pagination-item-bg-hover': '#f9fafb',
-  'components-pagination-item-bg-active': '#18181b',
-  'components-pagination-item-text': '#374151',
+  'components-pagination-item-bg-active': palette.light.action,
+  'components-pagination-item-text': surfaces.light.secondary,
   'components-pagination-item-text-active': '#ffffff',
   'components-pagination-disabled-bg': '#f9fafb',
   'components-pagination-disabled-text': '#d1d5db',
@@ -455,40 +459,40 @@ export const lightTokens: DesignTokens = {
   'components-steps-border': '#e5e7eb',
   'components-steps-completed-bg': '#10b981',
   'components-steps-completed-text': '#ffffff',
-  'components-steps-active-bg': '#030213',
+  'components-steps-active-bg': palette.light.action,
   'components-steps-active-text': '#ffffff',
   'components-steps-inactive-bg': '#f3f3f5',
-  'components-steps-inactive-text': '#717182',
+  'components-steps-inactive-text': surfaces.light.secondary,
   'components-steps-line': '#e5e7eb',
   'components-steps-line-completed': '#10b981',
 
   // 其余新增组件令牌使用合适的基础颜色
-  'components-loader-primary': '#00BEB4',
+  'components-loader-primary': palette.light.selection,
   'components-loader-secondary': '#d1d5db',
   'components-skeleton-base': '#f3f4f6',
   'components-skeleton-shimmer': '#ffffff',
-  'components-skeleton-text': '#e5e7eb',
+  'components-skeleton-text': surfaces.light.tertiary,
 
   'components-divider-bg': '#e5e7eb',
-  'components-divider-text': '#9ca3af',
+  'components-divider-text': surfaces.light.tertiary,
 
   'components-timeline-line': '#e5e7eb',
   'components-timeline-dot': '#d1d5db',
-  'components-timeline-dot-active': '#00BEB4',
+  'components-timeline-dot-active': palette.light.selection,
   'components-timeline-content-bg': '#ffffff',
   'components-timeline-content-border': '#e5e7eb',
 
   'components-calendar-bg': '#ffffff',
   'components-calendar-border': '#e5e7eb',
   'components-calendar-header-bg': '#f9fafb',
-  'components-calendar-header-text': '#374151',
+  'components-calendar-header-text': surfaces.light.secondary,
   'components-calendar-cell-bg': '#ffffff',
-  'components-calendar-cell-text': '#374151',
+  'components-calendar-cell-text': surfaces.light.secondary,
   'components-calendar-cell-bg-hover': '#f3f4f6',
-  'components-calendar-cell-bg-selected': '#00BEB4',
+  'components-calendar-cell-bg-selected': palette.light.selection,
   'components-calendar-cell-text-selected': '#ffffff',
-  'components-calendar-cell-bg-today': '#eff6ff',
-  'components-calendar-cell-text-today': '#00D4C8',
+  'components-calendar-cell-bg-today': palette.light.selectionTint,
+  'components-calendar-cell-text-today': palette.light.selectionText,
   'components-calendar-cell-bg-disabled': '#f9fafb',
   'components-calendar-cell-text-disabled': '#d1d5db',
 
@@ -503,7 +507,7 @@ export const lightTokens: DesignTokens = {
   'components-collapse-border': '#e5e7eb',
   'components-collapse-header-bg': '#f9fafb',
   'components-collapse-header-bg-hover': '#f3f4f6',
-  'components-collapse-header-text': '#374151',
+  'components-collapse-header-text': surfaces.light.secondary,
   'components-collapse-content-bg': '#ffffff',
   'components-collapse-content-border': '#e5e7eb',
 
@@ -511,45 +515,45 @@ export const lightTokens: DesignTokens = {
   'components-tree-border': '#e5e7eb',
   'components-tree-node-bg': 'transparent',
   'components-tree-node-bg-hover': '#f3f4f6',
-  'components-tree-node-bg-selected': '#eff6ff',
-  'components-tree-node-text': '#374151',
-  'components-tree-node-text-selected': '#00D4C8',
+  'components-tree-node-bg-selected': palette.light.selectionTint,
+  'components-tree-node-text': surfaces.light.secondary,
+  'components-tree-node-text-selected': palette.light.selectionText,
   'components-tree-indent-line': '#e5e7eb',
   'components-tree-expand-icon': '#9ca3af',
 
   'components-transfer-bg': '#ffffff',
   'components-transfer-border': '#e5e7eb',
   'components-transfer-header-bg': '#f9fafb',
-  'components-transfer-header-text': '#374151',
+  'components-transfer-header-text': surfaces.light.secondary,
   'components-transfer-item-bg': '#ffffff',
   'components-transfer-item-bg-hover': '#f3f4f6',
-  'components-transfer-item-bg-selected': '#eff6ff',
-  'components-transfer-item-text': '#374151',
-  'components-transfer-item-text-selected': '#00D4C8',
+  'components-transfer-item-bg-selected': palette.light.selectionTint,
+  'components-transfer-item-text': surfaces.light.secondary,
+  'components-transfer-item-text-selected': palette.light.selectionText,
 
   'components-upload-bg': 'transparent',
-  'components-upload-bg-dragover': 'rgba(3, 2, 19, 0.05)',
+  'components-upload-bg-dragover': palette.light.selectionTint,
   'components-upload-border': 'rgba(113, 113, 130, 0.25)',
   'components-upload-border-hover': 'rgba(113, 113, 130, 0.5)',
-  'components-upload-border-dragover': '#030213',
-  'components-upload-text': '#374151',
-  'components-upload-text-secondary': '#9ca3af',
+  'components-upload-border-dragover': palette.light.focus,
+  'components-upload-text': surfaces.light.secondary,
+  'components-upload-text-secondary': surfaces.light.tertiary,
   'components-upload-icon': '#d1d5db',
   'components-upload-progress-bg': '#e5e7eb',
-  'components-upload-progress-fill': '#00BEB4',
+  'components-upload-progress-fill': palette.light.selection,
 
-  'components-statistic-title': '#9ca3af',
+  'components-statistic-title': surfaces.light.tertiary,
   'components-statistic-value': '#1f2937',
-  'components-statistic-suffix': '#6b7280',
-  'components-statistic-prefix': '#6b7280',
+  'components-statistic-suffix': surfaces.light.secondary,
+  'components-statistic-prefix': surfaces.light.secondary,
 
   'components-result-bg': '#ffffff',
   'components-result-icon-success': '#10b981',
   'components-result-icon-error': '#ef4444',
   'components-result-icon-warning': '#f59e0b',
   'components-result-icon-info': '#00BEB4',
-  'components-result-title': '#1f2937',
-  'components-result-subtitle': '#6b7280',
+  'components-result-title': surfaces.light.text,
+  'components-result-subtitle': surfaces.light.secondary,
 
   'components-rate-star': '#d1d5db',
   'components-rate-star-active': '#fbbf24',
@@ -558,25 +562,25 @@ export const lightTokens: DesignTokens = {
   'components-anchor-bg': '#ffffff',
   'components-anchor-border': '#e5e7eb',
   'components-anchor-link': '#6b7280',
-  'components-anchor-link-active': '#00BEB4',
+  'components-anchor-link-active': palette.light.selectionText,
   'components-anchor-link-hover': '#374151',
 
   'components-backtop-bg': '#ffffff',
-  'components-backtop-text': '#6b7280',
+  'components-backtop-text': surfaces.light.secondary,
   'components-backtop-border': '#e5e7eb',
   'components-backtop-shadow': '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
   'components-backtop-bg-hover': '#f9fafb',
 
   'components-image-placeholder-bg': '#f3f4f6',
-  'components-image-placeholder-text': '#9ca3af',
+  'components-image-placeholder-text': surfaces.light.tertiary,
   'components-image-preview-bg': '#000000',
   'components-image-preview-overlay': 'rgba(0, 0, 0, 0.8)',
   'components-image-preview-toolbar-bg': 'rgba(0, 0, 0, 0.7)',
   'components-image-preview-toolbar-text': '#ffffff',
 
   'components-empty-bg': '#ffffff',
-  'components-empty-text': '#9ca3af',
-  'components-empty-text-secondary': '#d1d5db',
+  'components-empty-text': surfaces.light.tertiary,
+  'components-empty-text-secondary': surfaces.light.tertiary,
   'components-empty-icon': '#e5e7eb',
 
   'components-watermark-text': 'rgba(0, 0, 0, 0.15)',
@@ -591,9 +595,9 @@ export const lightTokens: DesignTokens = {
   'components-segmented-border': '#eaeaea',
   'components-segmented-item-bg': 'transparent',
   'components-segmented-item-bg-hover': '#eaeaea',
-  'components-segmented-item-bg-active': '#ffffff',
+  'components-segmented-item-bg-active': palette.light.selectionTint,
   'components-segmented-item-text': '#737373',
-  'components-segmented-item-text-active': '#1a1a1a',
+  'components-segmented-item-text-active': palette.light.selectionText,
 
   'components-mentions-bg': '#ffffff',
   'components-mentions-border': '#d1d5db',
@@ -601,7 +605,7 @@ export const lightTokens: DesignTokens = {
   'components-mentions-dropdown-border': '#e5e7eb',
   'components-mentions-dropdown-shadow': '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
   'components-mentions-item-bg-hover': '#f3f4f6',
-  'components-mentions-item-text': '#374151',
+  'components-mentions-item-text': surfaces.light.secondary,
 
   'components-colorpicker-bg': '#ffffff',
   'components-colorpicker-border': '#e5e7eb',
@@ -623,8 +627,8 @@ export const lightTokens: DesignTokens = {
 
   'components-grid-gutter': '#ffffff',
 
-  'components-card-meta-title': '#1f2937',
-  'components-card-meta-description': '#6b7280',
+  'components-card-meta-title': surfaces.light.text,
+  'components-card-meta-description': surfaces.light.secondary,
   'components-card-actions-bg': '#f9fafb',
   'components-card-actions-border': '#e5e7eb',
   'components-card-cover-bg': '#f3f4f6',
@@ -634,32 +638,32 @@ export const lightTokens: DesignTokens = {
   'components-list-item-bg': '#ffffff',
   'components-list-item-bg-hover': '#f9fafb',
   'components-list-item-border': '#e5e7eb',
-  'components-list-item-meta-title': '#1f2937',
-  'components-list-item-meta-description': '#6b7280',
+  'components-list-item-meta-title': surfaces.light.text,
+  'components-list-item-meta-description': surfaces.light.secondary,
   'components-list-item-actions': '#9ca3af',
 
   'components-descriptions-bg': '#ffffff',
-  'components-descriptions-border': '#e5e7eb',
-  'components-descriptions-title': '#374151',
-  'components-descriptions-content': '#1f2937',
-  'components-descriptions-label': '#6b7280',
+  'components-descriptions-border': surfaces.light.border,
+  'components-descriptions-title': surfaces.light.secondary,
+  'components-descriptions-content': surfaces.light.text,
+  'components-descriptions-label': surfaces.light.secondary,
   'components-descriptions-item-border': '#f3f4f6',
 
   // ===== 聊天页面专用布局 =====
-  'chat-header-bg': 'rgba(255, 255, 255, 0.95)',
-  'chat-header-border': 'rgba(0, 0, 0, 0.06)',
+  'chat-header-bg': surfaces.light.surface,
+  'chat-header-border': surfaces.light.borderSubtle,
   'chat-header-backdrop': 'blur(12px)',
-  'chat-main-bg': '#fafafa',
-  'chat-content-bg': '#ffffff',
-  'chat-content-border': 'rgba(0, 0, 0, 0.04)',
-  'chat-input-area-bg': 'rgba(255, 255, 255, 0.98)',
-  'chat-input-area-border': 'rgba(0, 0, 0, 0.06)',
+  'chat-main-bg': surfaces.light.canvas,
+  'chat-content-bg': surfaces.light.surface,
+  'chat-content-border': surfaces.light.borderSubtle,
+  'chat-input-area-bg': surfaces.light.surface,
+  'chat-input-area-border': surfaces.light.borderSubtle,
   'chat-input-area-shadow': '0 -1px 3px rgba(0, 0, 0, 0.05)',
   'chat-gradient-primary':
     'linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(147, 197, 253, 0.08) 50%, rgba(219, 234, 254, 0.05) 100%)',
   'chat-gradient-secondary':
     'linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(110, 231, 183, 0.08) 100%)',
-  'chat-welcome-border': 'rgba(59, 130, 246, 0.1)',
+  'chat-welcome-border': palette.light.selectionTint,
   'chat-welcome-shadow': '0 4px 20px rgba(59, 130, 246, 0.08)',
   'chat-input-area-backdrop': 'blur(20px)',
 
@@ -669,12 +673,12 @@ export const lightTokens: DesignTokens = {
   // ===== 编辑器组件 =====
   'components-editor-bg': '#ffffff',
   'components-editor-toolbar-bg': '#f9fafb',
-  'components-editor-text': '#374151',
+  'components-editor-text': surfaces.light.secondary,
   'components-editor-border': '#e5e7eb',
 
   // ===== 面板组件 =====
   'components-panel-header-bg': '#f9fafb',
-  'components-panel-header-text': '#374151',
+  'components-panel-header-text': surfaces.light.secondary,
   'components-panel-content-bg': '#ffffff',
 
   // ===== 图标按钮 =====
@@ -683,14 +687,14 @@ export const lightTokens: DesignTokens = {
   'components-icon-button-bg-hover': '#f3f4f6',
 
   // ===== 聊天预览增强 =====
-  'chat-bubble-ai-bg': '#f8fafc',
-  'chat-bubble-ai-text': '#1f2937',
-  'chat-input-container-bg': '#f8fafc',
-  'chat-preview-debug-bg': '#f9fafb',
-  'chat-preview-debug-text': '#374151',
-  'chat-think-bg': '#f3f4f6',
-  'chat-think-border': '#e5e7eb',
-  'chat-think-text': '#6b7280',
+  'chat-bubble-ai-bg': surfaces.light.subtle,
+  'chat-bubble-ai-text': surfaces.light.text,
+  'chat-input-container-bg': surfaces.light.surface,
+  'chat-preview-debug-bg': surfaces.light.canvas,
+  'chat-preview-debug-text': surfaces.light.secondary,
+  'chat-think-bg': surfaces.light.subtle,
+  'chat-think-border': surfaces.light.border,
+  'chat-think-text': surfaces.light.secondary,
 
   // ===== 应用头像 =====
   'components-app-avatar-bg':
@@ -702,8 +706,8 @@ export const lightTokens: DesignTokens = {
   'chat-bubble-assistant-avatar-text': '#1890ff',
   'chat-bubble-user-avatar-bg': '#87d068',
   'chat-bubble-user-avatar-text': '#ffffff',
-  'chat-bubble-user-bg': '#f3f4f6',
-  'chat-bubble-user-text': '#374151',
+  'chat-bubble-user-bg': surfaces.light.subtle,
+  'chat-bubble-user-text': surfaces.light.text,
 
   // ===== API 密钥管理 =====
   'components-api-key-card-bg': '#ffffff',
@@ -712,7 +716,7 @@ export const lightTokens: DesignTokens = {
   'components-api-key-card-shadow':
     '0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06)',
   'components-api-key-header-bg': '#f8fafc',
-  'components-api-key-header-text': '#374151',
+  'components-api-key-header-text': surfaces.light.secondary,
   'components-api-key-value-bg': '#f1f5f9',
   'components-api-key-value-text': '#1e293b',
   'components-api-key-value-masked': '#94a3b8',
@@ -758,7 +762,7 @@ export const lightTokens: DesignTokens = {
   'components-api-docs-content-bg': '#ffffff',
   'components-api-docs-search-bg': '#ffffff',
   'components-api-docs-search-border': '#d1d5db',
-  'components-api-docs-search-focus-border': '#33D4CB',
+  'components-api-docs-search-focus-border': palette.light.focus,
 
   // ===== 现代化增强组件 =====
   'components-glassmorphism-bg': 'rgba(255, 255, 255, 0.75)',
@@ -776,12 +780,12 @@ export const lightTokens: DesignTokens = {
     '0 8px 24px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)',
 
   // ===== 首页推荐卡片系统 =====
-  'components-recommend-card-bg-1': '#F0EDE8',
-  'components-recommend-card-bg-2': '#E8E4DF',
-  'components-recommend-card-bg-3': '#F5F3F0',
-  'components-recommend-card-bg-4': '#EDEDED',
-  'components-recommend-card-text': '#1f2937',
-  'components-recommend-card-tag': '#9ca3af',
+  'components-recommend-card-bg-1': surfaces.light.surface,
+  'components-recommend-card-bg-2': surfaces.light.surface,
+  'components-recommend-card-bg-3': surfaces.light.surface,
+  'components-recommend-card-bg-4': surfaces.light.surface,
+  'components-recommend-card-text': surfaces.light.text,
+  'components-recommend-card-tag': surfaces.light.secondary,
 
   // ===== 画布系统 (Agent Canvas) - 亮色主题 =====
   // 画布背景
@@ -793,7 +797,7 @@ export const lightTokens: DesignTokens = {
   'components-canvas-node-bg': '#ffffff',
   'components-canvas-node-border': 'rgba(0, 0, 0, 0.1)',
   'components-canvas-node-border-hover': 'rgba(0, 0, 0, 0.15)',
-  'components-canvas-node-border-selected': '#00BEB4',
+  'components-canvas-node-border-selected': palette.light.selection,
   'components-canvas-node-shadow': '0 2px 8px rgba(0, 0, 0, 0.08)',
 
   // 节点运行态
@@ -810,13 +814,13 @@ export const lightTokens: DesignTokens = {
   // 边线
   'components-canvas-edge-stroke': 'rgb(156, 163, 175)',
   'components-canvas-edge-stroke-hover': 'rgb(107, 114, 128)',
-  'components-canvas-edge-stroke-selected': '#00BEB4',
+  'components-canvas-edge-stroke-selected': palette.light.selection,
   'components-canvas-edge-stroke-flowing': '#0ea5e9', // sky-500
   'components-canvas-edge-marker': 'rgb(156, 163, 175)',
-  'components-canvas-edge-marker-selected': '#00BEB4',
+  'components-canvas-edge-marker-selected': palette.light.selection,
 
   // 连接点
-  'components-canvas-handle-bg': '#00BEB4',
+  'components-canvas-handle-bg': palette.light.selection,
   'components-canvas-handle-border': '#ffffff',
   'components-canvas-handle-icon': '#ffffff',
 
@@ -853,74 +857,74 @@ export const lightTokens: DesignTokens = {
   'components-canvas-note-text': '#854d0e', // yellow-800
 
   // ===== 骨架与页面模板 =====
-  'components-app-shell-bg': '#f3f4f6',
-  'components-app-shell-surface': 'rgba(255, 255, 255, 0.96)',
-  'components-app-shell-border': 'rgba(0, 0, 0, 0.08)',
+  'components-app-shell-bg': surfaces.light.canvas,
+  'components-app-shell-surface': surfaces.light.surface,
+  'components-app-shell-border': surfaces.light.border,
   'components-app-shell-shadow': '0 16px 32px -24px rgba(15, 23, 42, 0.25)',
-  'components-main-workbench-bg': '#ffffff',
-  'components-main-workbench-surface': '#ffffff',
-  'components-main-workbench-border': 'rgba(0, 0, 0, 0.08)',
+  'components-main-workbench-bg': surfaces.light.canvas,
+  'components-main-workbench-surface': surfaces.light.surface,
+  'components-main-workbench-border': surfaces.light.border,
   'components-main-workbench-shadow':
     '0 18px 36px -24px rgba(15, 23, 42, 0.28)',
-  'components-page-header-bg': 'rgba(255, 255, 255, 0.94)',
-  'components-page-header-border': 'rgba(0, 0, 0, 0.06)',
-  'components-page-header-title': '#0f172a',
-  'components-page-header-description': '#6b7280',
-  'components-page-toolbar-bg': 'rgba(255, 255, 255, 0.92)',
-  'components-page-toolbar-border': 'rgba(0, 0, 0, 0.06)',
-  'components-page-toolbar-text': '#6b7280',
-  'components-page-state-bg': '#ffffff',
-  'components-page-state-border': 'rgba(0, 0, 0, 0.08)',
+  'components-page-header-bg': surfaces.light.surface,
+  'components-page-header-border': surfaces.light.borderSubtle,
+  'components-page-header-title': surfaces.light.text,
+  'components-page-header-description': surfaces.light.secondary,
+  'components-page-toolbar-bg': surfaces.light.surface,
+  'components-page-toolbar-border': surfaces.light.borderSubtle,
+  'components-page-toolbar-text': surfaces.light.secondary,
+  'components-page-state-bg': surfaces.light.surface,
+  'components-page-state-border': surfaces.light.borderSubtle,
   'components-page-state-icon-bg': 'rgba(0, 0, 0, 0.04)',
-  'components-page-state-icon': '#00BEB4',
-  'components-page-state-title': '#0f172a',
-  'components-page-state-description': '#6b7280',
-  'components-settings-rail-bg': '#ffffff',
-  'components-settings-rail-border': 'rgba(0, 0, 0, 0.06)',
-  'components-settings-rail-title': '#0f172a',
-  'components-settings-rail-description': '#6b7280',
-  'components-settings-rail-section-text': '#6b7280',
-  'components-console-bg': '#f7f8fa',
-  'components-console-surface': '#ffffff',
-  'components-console-border': 'rgba(0, 0, 0, 0.06)',
-  'components-workspace-bg': '#f5f7f8',
-  'components-workspace-surface': '#ffffff',
-  'components-workspace-border': 'rgba(0, 0, 0, 0.06)',
-  'components-studio-bg': '#f4f6f8',
-  'components-studio-surface': '#ffffff',
-  'components-studio-border': 'rgba(0, 0, 0, 0.08)',
-  'components-split-pane-bg': '#f6f8fa',
-  'components-split-pane-surface': '#ffffff',
-  'components-split-pane-border': 'rgba(0, 0, 0, 0.08)',
+  'components-page-state-icon': palette.light.selection,
+  'components-page-state-title': surfaces.light.text,
+  'components-page-state-description': surfaces.light.secondary,
+  'components-settings-rail-bg': surfaces.light.surface,
+  'components-settings-rail-border': surfaces.light.borderSubtle,
+  'components-settings-rail-title': surfaces.light.text,
+  'components-settings-rail-description': surfaces.light.secondary,
+  'components-settings-rail-section-text': surfaces.light.secondary,
+  'components-console-bg': surfaces.light.canvas,
+  'components-console-surface': surfaces.light.surface,
+  'components-console-border': surfaces.light.border,
+  'components-workspace-bg': surfaces.light.canvas,
+  'components-workspace-surface': surfaces.light.surface,
+  'components-workspace-border': surfaces.light.border,
+  'components-studio-bg': surfaces.light.canvas,
+  'components-studio-surface': surfaces.light.surface,
+  'components-studio-border': surfaces.light.border,
+  'components-split-pane-bg': surfaces.light.canvas,
+  'components-split-pane-surface': surfaces.light.surface,
+  'components-split-pane-border': surfaces.light.border,
 
   // ===== 设置页面专用 =====
-  'components-settings-sidebar-section-text': '#9ca3af',
-  'components-settings-content-bg': '#f9fafb',
-  'components-settings-section-bg': '#ffffff',
-  'components-settings-section-border': 'rgba(0, 0, 0, 0.06)',
-  'components-settings-section-title': '#0f172a',
-  'components-settings-section-description': '#6b7280',
-  'components-settings-user-role-bg': 'rgba(0, 190, 180, 0.1)',
+  'components-settings-sidebar-section-text': surfaces.light.secondary,
+  'components-settings-content-bg': surfaces.light.canvas,
+  'components-settings-section-bg': surfaces.light.surface,
+  'components-settings-section-border': surfaces.light.borderSubtle,
+  'components-settings-section-title': surfaces.light.text,
+  'components-settings-section-description': surfaces.light.secondary,
+  'components-settings-user-role-bg': palette.light.selectionTint,
 
   // ===== 系统状态页面专用 =====
-  'components-system-accent-bg': 'rgba(0, 190, 180, 0.12)',
-  'components-system-accent-border': '#00BEB4',
-  'components-system-accent-text': '#00BEB4',
-  'components-system-accent-soft': 'rgba(0, 190, 180, 0.06)',
-  'components-system-page-bg': '#f9fafb',
-  'components-system-panel-bg': '#ffffff',
+  'components-system-accent-bg': palette.light.selectionTint,
+  'components-system-accent-border': palette.light.selection,
+  'components-system-accent-text': palette.light.selectionText,
+  'components-system-accent-soft': palette.light.selectionSoft,
+  'components-system-page-bg': surfaces.light.canvas,
+  'components-system-panel-bg': surfaces.light.surface,
   'components-system-panel-border': '#e5e7eb',
   'components-system-panel-shadow':
     '0 10px 25px -15px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.06)',
-  'components-system-header-title': '#1f2937',
-  'components-system-header-description': '#6b7280',
+  'components-system-header-title': surfaces.light.text,
+  'components-system-header-description': surfaces.light.secondary,
   'components-system-version-tag-bg': '#f3f4f6',
-  'components-system-version-tag-border': '#e5e7eb',
-  'components-system-version-tag-label': '#9ca3af',
-  'components-system-version-tag-value': '#374151',
-  'components-system-section-title': '#6b7280',
+  'components-system-version-tag-border': surfaces.light.border,
+  'components-system-version-tag-label': surfaces.light.secondary,
+  'components-system-version-tag-value': surfaces.light.secondary,
+  'components-system-section-title': surfaces.light.secondary,
   'components-system-section-divider': '#e5e7eb',
-  'components-system-empty-bg': '#f9fafb',
+  'components-system-empty-bg': surfaces.light.canvas,
   'components-system-empty-border': '#e5e7eb',
 
   'components-system-health-ok-bg': 'rgba(16, 185, 129, 0.1)',
@@ -933,7 +937,7 @@ export const lightTokens: DesignTokens = {
   'components-system-health-error-border': '#ef4444',
   'components-system-health-error-text': '#dc2626',
 
-  'components-system-status-card-bg': '#ffffff',
+  'components-system-status-card-bg': surfaces.light.surface,
   'components-system-status-card-border': '#e5e7eb',
   'components-system-status-card-border-hover': '#b7becb',
   'components-system-status-card-shadow':
@@ -949,10 +953,10 @@ export const lightTokens: DesignTokens = {
   'components-system-status-error-text': '#dc2626',
 
   'components-system-chart-grid': '#e5e7eb',
-  'components-system-chart-axis': '#9ca3af',
+  'components-system-chart-axis': surfaces.light.secondary,
   'components-system-chart-tooltip-bg': '#ffffff',
   'components-system-chart-tooltip-border': '#e5e7eb',
-  'components-system-chart-tooltip-text': '#1f2937',
+  'components-system-chart-tooltip-text': surfaces.light.text,
   'components-system-chart-tooltip-muted': '#6b7280',
   'components-system-chart-done': '#10b981',
   'components-system-chart-done-soft': 'rgba(16, 185, 129, 0.1)',
@@ -962,17 +966,18 @@ export const lightTokens: DesignTokens = {
   'components-system-chart-pending-soft': 'rgba(245, 158, 11, 0.1)',
   'components-system-chart-lag': '#9ca3af',
   'components-system-chart-info-pill-bg': '#f3f4f6',
-  'components-system-chart-info-pill-text': '#6b7280',
+  'components-system-chart-info-pill-text': surfaces.light.secondary,
 }
 
 // 暗色主题令牌值定义
 export const darkTokens: DesignTokens = {
+  ...buildSurfaceTokens(surfaces.dark, palette.dark),
   // ===== 文本系统 =====
-  'text-primary': '#ffffff',
-  'text-secondary': '#e5e7eb',
-  'text-tertiary': '#d1d5db',
-  'text-muted': '#9ca3af',
-  'text-disabled': '#6b7280',
+  'text-primary': surfaces.dark.text,
+  'text-secondary': surfaces.dark.secondary,
+  'text-tertiary': surfaces.dark.tertiary,
+  'text-muted': surfaces.dark.muted,
+  'text-disabled': surfaces.dark.disabled,
   'text-accent': '#60a5fa',
   'text-success': '#4ade80',
   'text-warning': '#fbbf24',
@@ -980,31 +985,31 @@ export const darkTokens: DesignTokens = {
   'text-inverted': '#111827',
 
   // ===== 背景系统 =====
-  'background-body': '#161618',
-  'background-default': '#1c1e22',
-  'background-subtle': '#2a2d33',
-  'background-section': '#202025',
+  'background-body': surfaces.dark.body,
+  'background-default': surfaces.dark.canvas,
+  'background-subtle': surfaces.dark.subtle,
+  'background-section': surfaces.dark.canvas,
   'background-overlay': 'rgba(0, 0, 0, 0.75)',
-  'background-surface': '#202025',
+  'background-surface': surfaces.dark.surface,
 
   // ===== 边框系统 =====
-  'border-default': 'rgba(255, 255, 255, 0.12)',
-  'border-subtle': 'rgba(255, 255, 255, 0.08)',
-  'border-strong': 'rgba(255, 255, 255, 0.18)',
-  'border-accent': 'rgba(255, 255, 255, 0.16)',
+  'border-default': surfaces.dark.border,
+  'border-subtle': surfaces.dark.borderSubtle,
+  'border-strong': surfaces.dark.borderStrong,
+  'border-accent': palette.dark.focus,
   'border-success': '#22c55e',
   'border-warning': '#f59e0b',
   'border-error': '#ef4444',
 
   // ===== 按钮组件 - Primary =====
-  'components-button-primary-bg': '#3b82f6',
-  'components-button-primary-bg-hover': '#2563eb',
-  'components-button-primary-bg-active': '#1d4ed8',
-  'components-button-primary-bg-disabled': 'rgba(59, 130, 246, 0.1)',
+  'components-button-primary-bg': palette.dark.action,
+  'components-button-primary-bg-hover': palette.dark.actionHover,
+  'components-button-primary-bg-active': palette.dark.actionActive,
+  'components-button-primary-bg-disabled': 'rgba(37, 99, 235, 0.16)',
   'components-button-primary-text': '#ffffff',
   'components-button-primary-text-disabled': 'rgba(255, 255, 255, 0.4)',
-  'components-button-primary-border': '#3b82f6',
-  'components-button-primary-border-hover': '#2563eb',
+  'components-button-primary-border': palette.dark.action,
+  'components-button-primary-border-hover': palette.dark.actionHover,
 
   // ===== 按钮组件 - Secondary =====
   'components-button-secondary-bg': 'rgba(255, 255, 255, 0.06)',
@@ -1026,47 +1031,47 @@ export const darkTokens: DesignTokens = {
   'components-input-bg-hover': 'rgba(255, 255, 255, 0.09)',
   'components-input-bg-focus': 'rgba(255, 255, 255, 0.12)',
   'components-input-bg-disabled': 'rgba(255, 255, 255, 0.04)',
-  'components-input-border': '#64748b',
-  'components-input-border-hover': '#94a3b8',
-  'components-input-border-focus': '#818cf8',
+  'components-input-border': surfaces.dark.inputBorder,
+  'components-input-border-hover': surfaces.dark.inputBorderHover,
+  'components-input-border-focus': palette.dark.focus,
   'components-input-border-error': '#ef4444',
-  'components-input-text': '#ffffff',
-  'components-input-text-placeholder': '#94a3b8',
-  'components-input-text-disabled': '#64748b',
+  'components-input-text': surfaces.dark.text,
+  'components-input-text-placeholder': surfaces.dark.tertiary,
+  'components-input-text-disabled': surfaces.dark.disabled,
 
   // ===== 卡片组件 =====
-  'components-card-bg': '#202025',
+  'components-card-bg': surfaces.dark.surface,
   'components-card-bg-hover': '#292c32',
   'components-card-border': 'rgba(255, 255, 255, 0.12)',
   'components-card-shadow':
     '0 1px 3px 0 rgba(0, 0, 0, 0.2), 0 1px 2px -1px rgba(0, 0, 0, 0.15)',
 
   // ===== 侧边栏组件 =====
-  'components-sidebar-bg': 'rgba(22, 22, 24, 0.98)',
+  'components-sidebar-bg': surfaces.dark.canvas,
   'components-sidebar-border': 'rgba(255, 255, 255, 0.10)',
   'components-sidebar-item-bg': 'transparent',
   'components-sidebar-item-bg-hover': 'rgba(255, 255, 255, 0.07)',
   'components-sidebar-item-bg-active': 'rgba(255, 255, 255, 0.10)',
-  'components-sidebar-item-text': '#a1a1aa',
-  'components-sidebar-item-text-active': '#ffffff',
+  'components-sidebar-item-text': surfaces.dark.tertiary,
+  'components-sidebar-item-text-active': surfaces.dark.text,
 
   // ===== 导航组件 =====
-  'components-nav-bg': '#161618',
+  'components-nav-bg': surfaces.dark.canvas,
   'components-nav-border': 'rgba(255, 255, 255, 0.12)',
-  'components-nav-item-text': '#a1a1aa',
-  'components-nav-item-text-hover': '#ffffff',
-  'components-nav-item-text-active': '#818cf8',
+  'components-nav-item-text': surfaces.dark.tertiary,
+  'components-nav-item-text-hover': surfaces.dark.text,
+  'components-nav-item-text-active': palette.dark.selectionText,
 
   // ===== 下拉菜单组件 =====
-  'components-dropdown-bg': '#202025',
+  'components-dropdown-bg': surfaces.dark.elevated,
   'components-dropdown-border': 'rgba(255, 255, 255, 0.14)',
   'components-dropdown-shadow':
     '0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4)',
   'components-dropdown-item-bg-hover': 'rgba(255, 255, 255, 0.07)',
-  'components-dropdown-item-text': '#ffffff',
+  'components-dropdown-item-text': surfaces.dark.text,
 
   // ===== 模型选择器组件 =====
-  'components-model-selector-dropdown-bg': '#202025',
+  'components-model-selector-dropdown-bg': surfaces.dark.elevated,
   'components-model-selector-dropdown-border': 'rgba(255, 255, 255, 0.14)',
   'components-model-selector-dropdown-shadow':
     '0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 10px 10px -5px rgba(0, 0, 0, 0.4)',
@@ -1076,39 +1081,42 @@ export const darkTokens: DesignTokens = {
   'components-model-selector-provider-header-bg': 'rgba(255, 255, 255, 0.05)',
   'components-model-selector-provider-header-border':
     'rgba(255, 255, 255, 0.12)',
-  'components-model-selector-provider-header-text': '#ffffff',
+  'components-model-selector-provider-header-text': surfaces.dark.text,
   'components-model-selector-item-bg': '#202025',
   'components-model-selector-item-border': 'rgba(255, 255, 255, 0.12)',
-  'components-model-selector-item-text': '#ffffff',
+  'components-model-selector-item-text': surfaces.dark.text,
   'components-model-selector-item-bg-hover': 'rgba(255, 255, 255, 0.07)',
-  'components-model-selector-item-bg-selected': 'rgba(99, 102, 241, 0.15)',
-  'components-model-selector-item-text-selected': '#818cf8',
+  'components-model-selector-item-bg-selected': palette.dark.selectionTint,
+  'components-model-selector-item-text-selected': palette.dark.selectionText,
   'components-model-selector-overlay-bg': 'rgba(0, 0, 0, 0.6)',
 
   // ===== 模态框组件 =====
-  'components-modal-bg': '#202025',
+  'components-modal-bg': surfaces.dark.surface,
   'components-modal-overlay': 'rgba(0, 0, 0, 0.75)',
   'components-modal-border': 'rgba(255, 255, 255, 0.14)',
   'components-modal-shadow': '0 25px 50px -12px rgba(0, 0, 0, 0.6)',
 
   // ===== 表格组件 =====
-  'components-table-bg': '#1c1e22',
+  'components-table-bg': surfaces.dark.surface,
   'components-table-border': 'rgba(255, 255, 255, 0.12)',
-  'components-table-header-bg': '#17191d',
+  'components-table-header-bg': surfaces.dark.canvas,
   'components-table-row-bg-hover': 'rgba(255, 255, 255, 0.06)',
-  'components-table-row-bg-selected': 'rgba(99, 102, 241, 0.15)',
+  'components-table-row-bg-selected': palette.dark.selectionTint,
 
   // ===== 交互状态 =====
   'state-hover': 'rgba(255, 255, 255, 0.07)',
   'state-active': 'rgba(255, 255, 255, 0.14)',
-  'state-focus': '#818cf8',
+  'state-focus': palette.dark.focus,
+  'state-selected': palette.dark.selection,
+  'state-selected-text': palette.dark.selectionText,
+  'state-selected-bg': palette.dark.selectionTint,
   'state-disabled': 'rgba(255, 255, 255, 0.06)',
 
   // ===== 状态透明度变体 (10% opacity) =====
-  'state-focus-10': 'rgba(129, 140, 248, 0.15)',
+  'state-focus-10': palette.dark.selectionTint,
   'state-neutral-10': 'rgba(161, 161, 170, 0.12)',
   // 语义化别名（subtle = 10% opacity）
-  'state-focus-subtle': 'rgba(129, 140, 248, 0.15)',
+  'state-focus-subtle': palette.dark.selectionTint,
 
   // ===== 反馈状态 status-* (canonical feedback palette) =====
   'status-success': '#22c55e',
@@ -1178,35 +1186,35 @@ export const darkTokens: DesignTokens = {
   'shadow-xl':
     '0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3)',
 
-  // ===== 表单控件 =====
+  // ===== 表单控件：品牌选中态 =====
   'components-checkbox-bg': 'rgba(255, 255, 255, 0.06)',
-  'components-checkbox-bg-checked': '#3b82f6',
+  'components-checkbox-bg-checked': palette.dark.selection,
   'components-checkbox-border': '#4b5563',
-  'components-checkbox-border-checked': '#3b82f6',
+  'components-checkbox-border-checked': palette.dark.selection,
   'components-checkbox-icon': '#ffffff',
 
   'components-radio-bg': 'rgba(255, 255, 255, 0.06)',
   'components-radio-bg-checked': 'rgba(255, 255, 255, 0.06)',
   'components-radio-border': '#4b5563',
-  'components-radio-border-checked': '#3b82f6',
-  'components-radio-dot': '#3b82f6',
+  'components-radio-border-checked': palette.dark.selection,
+  'components-radio-dot': palette.dark.selection,
 
   'components-select-bg': 'rgba(255, 255, 255, 0.06)',
   'components-select-border': '#4b5563',
-  'components-select-border-focus': '#3b82f6',
-  'components-select-text': '#f9fafb',
-  'components-select-placeholder': '#9ca3af',
+  'components-select-border-focus': palette.dark.focus,
+  'components-select-text': surfaces.dark.text,
+  'components-select-placeholder': surfaces.dark.tertiary,
 
   'components-switch-bg': 'rgba(255, 255, 255, 0.1)',
-  'components-switch-bg-checked': '#3b82f6',
+  'components-switch-bg-checked': palette.dark.selection,
   'components-switch-thumb': '#ffffff',
   'components-switch-thumb-checked': '#ffffff',
 
   // ===== 滑块组件 =====
   'components-slider-track': 'rgba(255, 255, 255, 0.25)',
-  'components-slider-range': '#3b82f6',
+  'components-slider-range': palette.dark.selection,
   'components-slider-thumb': '#ffffff',
-  'components-slider-thumb-border': '#3b82f6',
+  'components-slider-thumb-border': palette.dark.selection,
 
   // ===== 滚动条系统 =====
   'components-scrollbar-track': 'rgba(255, 255, 255, 0.06)',
@@ -1214,30 +1222,30 @@ export const darkTokens: DesignTokens = {
   'components-scrollbar-thumb-hover': 'rgba(255, 255, 255, 0.34)',
 
   // ===== 对话框和覆盖层 =====
-  'components-dialog-bg': '#20252d',
+  'components-dialog-bg': surfaces.dark.surface,
   'components-dialog-border': 'rgba(255, 255, 255, 0.14)',
   'components-dialog-shadow': '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
   'components-dialog-overlay': 'rgba(0, 0, 0, 0.75)',
 
-  'components-popover-bg': '#20252d',
+  'components-popover-bg': surfaces.dark.elevated,
   'components-popover-border': 'rgba(255, 255, 255, 0.14)',
   'components-popover-shadow':
     '0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3)',
 
   'components-tooltip-bg': '#0f172a',
-  'components-tooltip-text': '#ffffff',
+  'components-tooltip-text': surfaces.dark.text,
   'components-tooltip-shadow':
     '0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2)',
 
   // ===== 导航和标签 =====
   'components-tabs-border': '#475569',
   'components-tabs-bg': 'rgba(255, 255, 255, 0.06)',
-  'components-tabs-active-bg': 'rgba(255, 255, 255, 0.11)',
-  'components-tabs-active-text': '#60a5fa',
-  'components-tabs-inactive-text': '#cbd5e1',
+  'components-tabs-active-bg': palette.dark.selectionTint,
+  'components-tabs-active-text': palette.dark.selectionText,
+  'components-tabs-inactive-text': surfaces.dark.secondary,
 
-  'components-breadcrumb-text': '#cbd5e1',
-  'components-breadcrumb-text-current': '#ffffff',
+  'components-breadcrumb-text': surfaces.dark.secondary,
+  'components-breadcrumb-text-current': surfaces.dark.text,
   'components-breadcrumb-separator': '#94a3b8',
 
   // ===== 状态和通知 =====
@@ -1260,8 +1268,8 @@ export const darkTokens: DesignTokens = {
   // ===== 加载和进度 =====
   'components-skeleton-bg': 'rgba(255, 255, 255, 0.1)',
   'components-progress-bg': 'rgba(255, 255, 255, 0.1)',
-  'components-progress-fill': '#3b82f6',
-  'components-spinner-color': '#3b82f6',
+  'components-progress-fill': palette.dark.selection,
+  'components-spinner-color': palette.dark.selection,
 
   // ===== 代码和预格式化文本 =====
   'components-code-bg': 'rgba(110, 118, 129, 0.15)',
@@ -1366,16 +1374,13 @@ export const darkTokens: DesignTokens = {
   'components-task-status-idle-text': '#a1a1aa',
   'components-task-status-idle-dot': '#71717a',
 
-  'components-task-status-running-bg':
-    'linear-gradient(to right, rgba(99, 102, 241, 0.12), rgba(139, 92, 246, 0.12))',
-  'components-task-status-running-border': 'rgba(99, 102, 241, 0.25)',
-  'components-task-status-running-text': '#a5b4fc',
-  'components-task-status-running-dot': '#818cf8',
+  'components-task-status-running-bg': palette.dark.selectionTint,
+  'components-task-status-running-border': palette.dark.selectionTint,
+  'components-task-status-running-text': palette.dark.selectionText,
+  'components-task-status-running-dot': palette.dark.selection,
   'components-task-status-running-progress-bg': 'rgba(161, 161, 170, 0.15)',
-  'components-task-status-running-progress-fill':
-    'linear-gradient(to right, #818cf8, #a78bfa)',
-  'components-task-status-running-progress-glow':
-    'linear-gradient(to right, rgba(99, 102, 241, 0.4), rgba(139, 92, 246, 0.4))',
+  'components-task-status-running-progress-fill': palette.dark.selection,
+  'components-task-status-running-progress-glow': palette.dark.selectionSoft,
 
   'components-task-status-cancelled-bg': 'rgba(245, 158, 11, 0.10)',
   'components-task-status-cancelled-border': 'rgba(245, 158, 11, 0.20)',
@@ -1400,12 +1405,12 @@ export const darkTokens: DesignTokens = {
 
   // 分页器
   'components-pagination-bg': '#1a1a1a',
-  'components-pagination-text': '#a1a1aa',
+  'components-pagination-text': surfaces.dark.tertiary,
   'components-pagination-border': 'rgba(255, 255, 255, 0.10)',
   'components-pagination-item-bg': 'rgba(255, 255, 255, 0.05)',
   'components-pagination-item-bg-hover': 'rgba(255, 255, 255, 0.08)',
-  'components-pagination-item-bg-active': '#818cf8',
-  'components-pagination-item-text': '#ffffff',
+  'components-pagination-item-bg-active': palette.dark.action,
+  'components-pagination-item-text': surfaces.dark.text,
   'components-pagination-item-text-active': '#ffffff',
   'components-pagination-disabled-bg': 'rgba(255, 255, 255, 0.03)',
   'components-pagination-disabled-text': '#52525b',
@@ -1414,41 +1419,41 @@ export const darkTokens: DesignTokens = {
   'components-steps-bg': '#1a1a1a',
   'components-steps-border': 'rgba(255, 255, 255, 0.10)',
   'components-steps-completed-bg': '#22c55e',
-  'components-steps-completed-text': '#ffffff',
-  'components-steps-active-bg': '#818cf8',
+  'components-steps-completed-text': surfaces.dark.text,
+  'components-steps-active-bg': palette.dark.action,
   'components-steps-active-text': '#ffffff',
   'components-steps-inactive-bg': 'rgba(255, 255, 255, 0.05)',
-  'components-steps-inactive-text': '#71717a',
+  'components-steps-inactive-text': surfaces.dark.tertiary,
   'components-steps-line': 'rgba(255, 255, 255, 0.10)',
   'components-steps-line-completed': '#22c55e',
 
   // 其余组件令牌暗色适配
-  'components-loader-primary': '#818cf8',
+  'components-loader-primary': palette.dark.selection,
   'components-loader-secondary': '#52525b',
   'components-skeleton-base': 'rgba(255, 255, 255, 0.08)',
   'components-skeleton-shimmer': 'rgba(255, 255, 255, 0.15)',
   'components-skeleton-text': 'rgba(255, 255, 255, 0.05)',
 
   'components-divider-bg': 'rgba(255, 255, 255, 0.10)',
-  'components-divider-text': '#71717a',
+  'components-divider-text': surfaces.dark.tertiary,
 
   'components-timeline-line': 'rgba(255, 255, 255, 0.10)',
   'components-timeline-dot': '#52525b',
-  'components-timeline-dot-active': '#818cf8',
+  'components-timeline-dot-active': palette.dark.selection,
   'components-timeline-content-bg': '#1e1e1e',
   'components-timeline-content-border': 'rgba(255, 255, 255, 0.10)',
 
   'components-calendar-bg': '#1a1a1a',
   'components-calendar-border': 'rgba(255, 255, 255, 0.10)',
   'components-calendar-header-bg': '#141414',
-  'components-calendar-header-text': '#ffffff',
+  'components-calendar-header-text': surfaces.dark.text,
   'components-calendar-cell-bg': 'rgba(255, 255, 255, 0.03)',
-  'components-calendar-cell-text': '#ffffff',
+  'components-calendar-cell-text': surfaces.dark.text,
   'components-calendar-cell-bg-hover': 'rgba(255, 255, 255, 0.06)',
-  'components-calendar-cell-bg-selected': '#818cf8',
+  'components-calendar-cell-bg-selected': palette.dark.selection,
   'components-calendar-cell-text-selected': '#ffffff',
-  'components-calendar-cell-bg-today': 'rgba(129, 140, 248, 0.15)',
-  'components-calendar-cell-text-today': '#a5b4fc',
+  'components-calendar-cell-bg-today': palette.dark.selectionTint,
+  'components-calendar-cell-text-today': palette.dark.selectionText,
   'components-calendar-cell-bg-disabled': 'rgba(255, 255, 255, 0.02)',
   'components-calendar-cell-text-disabled': '#52525b',
 
@@ -1463,7 +1468,7 @@ export const darkTokens: DesignTokens = {
   'components-collapse-border': 'rgba(255, 255, 255, 0.10)',
   'components-collapse-header-bg': 'rgba(255, 255, 255, 0.03)',
   'components-collapse-header-bg-hover': 'rgba(255, 255, 255, 0.06)',
-  'components-collapse-header-text': '#ffffff',
+  'components-collapse-header-text': surfaces.dark.text,
   'components-collapse-content-bg': '#1e1e1e',
   'components-collapse-content-border': 'rgba(255, 255, 255, 0.10)',
 
@@ -1471,45 +1476,45 @@ export const darkTokens: DesignTokens = {
   'components-tree-border': 'rgba(255, 255, 255, 0.10)',
   'components-tree-node-bg': 'transparent',
   'components-tree-node-bg-hover': 'rgba(255, 255, 255, 0.06)',
-  'components-tree-node-bg-selected': 'rgba(99, 102, 241, 0.15)',
-  'components-tree-node-text': '#ffffff',
-  'components-tree-node-text-selected': '#a5b4fc',
+  'components-tree-node-bg-selected': palette.dark.selectionTint,
+  'components-tree-node-text': surfaces.dark.text,
+  'components-tree-node-text-selected': palette.dark.selectionText,
   'components-tree-indent-line': 'rgba(255, 255, 255, 0.10)',
   'components-tree-expand-icon': '#71717a',
 
   'components-transfer-bg': '#1a1a1a',
   'components-transfer-border': 'rgba(255, 255, 255, 0.10)',
   'components-transfer-header-bg': '#141414',
-  'components-transfer-header-text': '#ffffff',
+  'components-transfer-header-text': surfaces.dark.text,
   'components-transfer-item-bg': 'rgba(255, 255, 255, 0.03)',
   'components-transfer-item-bg-hover': 'rgba(255, 255, 255, 0.06)',
-  'components-transfer-item-bg-selected': 'rgba(99, 102, 241, 0.15)',
-  'components-transfer-item-text': '#ffffff',
-  'components-transfer-item-text-selected': '#a5b4fc',
+  'components-transfer-item-bg-selected': palette.dark.selectionTint,
+  'components-transfer-item-text': surfaces.dark.text,
+  'components-transfer-item-text-selected': palette.dark.selectionText,
 
   'components-upload-bg': 'transparent',
-  'components-upload-bg-dragover': 'rgba(99, 102, 241, 0.08)',
+  'components-upload-bg-dragover': palette.dark.selectionTint,
   'components-upload-border': 'rgba(255, 255, 255, 0.15)',
   'components-upload-border-hover': 'rgba(255, 255, 255, 0.25)',
-  'components-upload-border-dragover': '#818cf8',
-  'components-upload-text': '#ffffff',
-  'components-upload-text-secondary': '#71717a',
+  'components-upload-border-dragover': palette.dark.focus,
+  'components-upload-text': surfaces.dark.text,
+  'components-upload-text-secondary': surfaces.dark.tertiary,
   'components-upload-icon': '#52525b',
   'components-upload-progress-bg': 'rgba(255, 255, 255, 0.08)',
-  'components-upload-progress-fill': '#818cf8',
+  'components-upload-progress-fill': palette.dark.selection,
 
-  'components-statistic-title': '#71717a',
+  'components-statistic-title': surfaces.dark.tertiary,
   'components-statistic-value': '#ffffff',
-  'components-statistic-suffix': '#a1a1aa',
-  'components-statistic-prefix': '#a1a1aa',
+  'components-statistic-suffix': surfaces.dark.tertiary,
+  'components-statistic-prefix': surfaces.dark.tertiary,
 
   'components-result-bg': '#1e1e1e',
   'components-result-icon-success': '#86efac',
   'components-result-icon-error': '#fca5a5',
   'components-result-icon-warning': '#fcd34d',
   'components-result-icon-info': '#a5b4fc',
-  'components-result-title': '#ffffff',
-  'components-result-subtitle': '#a1a1aa',
+  'components-result-title': surfaces.dark.text,
+  'components-result-subtitle': surfaces.dark.tertiary,
 
   'components-rate-star': '#52525b',
   'components-rate-star-active': '#fbbf24',
@@ -1518,24 +1523,24 @@ export const darkTokens: DesignTokens = {
   'components-anchor-bg': '#1a1a1a',
   'components-anchor-border': 'rgba(255, 255, 255, 0.10)',
   'components-anchor-link': '#a1a1aa',
-  'components-anchor-link-active': '#a5b4fc',
+  'components-anchor-link-active': palette.dark.selectionText,
   'components-anchor-link-hover': '#ffffff',
 
   'components-backtop-bg': '#1e1e1e',
-  'components-backtop-text': '#a1a1aa',
+  'components-backtop-text': surfaces.dark.tertiary,
   'components-backtop-border': 'rgba(255, 255, 255, 0.10)',
   'components-backtop-shadow': '0 4px 6px -1px rgba(0, 0, 0, 0.4)',
   'components-backtop-bg-hover': 'rgba(255, 255, 255, 0.06)',
 
   'components-image-placeholder-bg': 'rgba(255, 255, 255, 0.05)',
-  'components-image-placeholder-text': '#71717a',
+  'components-image-placeholder-text': surfaces.dark.tertiary,
   'components-image-preview-bg': '#000000',
   'components-image-preview-overlay': 'rgba(0, 0, 0, 0.9)',
   'components-image-preview-toolbar-bg': 'rgba(0, 0, 0, 0.85)',
-  'components-image-preview-toolbar-text': '#ffffff',
+  'components-image-preview-toolbar-text': surfaces.dark.text,
 
   'components-empty-bg': '#1e1e1e',
-  'components-empty-text': '#71717a',
+  'components-empty-text': surfaces.dark.tertiary,
   'components-empty-text-secondary': '#52525b',
   'components-empty-icon': '#52525b',
 
@@ -1551,9 +1556,9 @@ export const darkTokens: DesignTokens = {
   'components-segmented-border': 'rgba(255, 255, 255, 0.10)',
   'components-segmented-item-bg': 'transparent',
   'components-segmented-item-bg-hover': 'rgba(255, 255, 255, 0.06)',
-  'components-segmented-item-bg-active': 'rgba(255, 255, 255, 0.12)',
-  'components-segmented-item-text': '#a1a1aa',
-  'components-segmented-item-text-active': '#ffffff',
+  'components-segmented-item-bg-active': palette.dark.selectionTint,
+  'components-segmented-item-text': surfaces.dark.tertiary,
+  'components-segmented-item-text-active': palette.dark.selectionText,
 
   'components-mentions-bg': 'rgba(255, 255, 255, 0.05)',
   'components-mentions-border': 'rgba(255, 255, 255, 0.12)',
@@ -1561,7 +1566,7 @@ export const darkTokens: DesignTokens = {
   'components-mentions-dropdown-border': 'rgba(255, 255, 255, 0.12)',
   'components-mentions-dropdown-shadow': '0 20px 25px -5px rgba(0, 0, 0, 0.5)',
   'components-mentions-item-bg-hover': 'rgba(255, 255, 255, 0.06)',
-  'components-mentions-item-text': '#ffffff',
+  'components-mentions-item-text': surfaces.dark.text,
 
   'components-colorpicker-bg': '#1e1e1e',
   'components-colorpicker-border': 'rgba(255, 255, 255, 0.10)',
@@ -1583,8 +1588,8 @@ export const darkTokens: DesignTokens = {
 
   'components-grid-gutter': '#1a1a1a',
 
-  'components-card-meta-title': '#ffffff',
-  'components-card-meta-description': '#a1a1aa',
+  'components-card-meta-title': surfaces.dark.text,
+  'components-card-meta-description': surfaces.dark.tertiary,
   'components-card-actions-bg': '#141414',
   'components-card-actions-border': 'rgba(255, 255, 255, 0.10)',
   'components-card-cover-bg': 'rgba(255, 255, 255, 0.05)',
@@ -1594,32 +1599,32 @@ export const darkTokens: DesignTokens = {
   'components-list-item-bg': 'rgba(255, 255, 255, 0.03)',
   'components-list-item-bg-hover': 'rgba(255, 255, 255, 0.06)',
   'components-list-item-border': 'rgba(255, 255, 255, 0.10)',
-  'components-list-item-meta-title': '#ffffff',
-  'components-list-item-meta-description': '#a1a1aa',
+  'components-list-item-meta-title': surfaces.dark.text,
+  'components-list-item-meta-description': surfaces.dark.tertiary,
   'components-list-item-actions': '#71717a',
 
   'components-descriptions-bg': '#1a1a1a',
   'components-descriptions-border': 'rgba(255, 255, 255, 0.10)',
-  'components-descriptions-title': '#ffffff',
-  'components-descriptions-content': '#ffffff',
-  'components-descriptions-label': '#a1a1aa',
+  'components-descriptions-title': surfaces.dark.text,
+  'components-descriptions-content': surfaces.dark.text,
+  'components-descriptions-label': surfaces.dark.tertiary,
   'components-descriptions-item-border': 'rgba(255, 255, 255, 0.06)',
 
   // ===== 聊天页面专用布局 =====
-  'chat-header-bg': 'rgba(18, 18, 18, 0.95)',
-  'chat-header-border': 'rgba(255, 255, 255, 0.08)',
+  'chat-header-bg': surfaces.dark.surface,
+  'chat-header-border': surfaces.dark.borderSubtle,
   'chat-header-backdrop': 'blur(12px)',
-  'chat-main-bg': '#121212',
-  'chat-content-bg': '#1e1e1e',
-  'chat-content-border': 'rgba(255, 255, 255, 0.06)',
-  'chat-input-area-bg': 'rgba(18, 18, 18, 0.98)',
-  'chat-input-area-border': 'rgba(255, 255, 255, 0.08)',
+  'chat-main-bg': surfaces.dark.canvas,
+  'chat-content-bg': surfaces.dark.surface,
+  'chat-content-border': surfaces.dark.borderSubtle,
+  'chat-input-area-bg': surfaces.dark.surface,
+  'chat-input-area-border': surfaces.dark.borderSubtle,
   'chat-input-area-shadow': '0 -1px 3px rgba(0, 0, 0, 0.4)',
   'chat-gradient-primary':
     'linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(165, 180, 252, 0.12) 50%, rgba(79, 70, 229, 0.06) 100%)',
   'chat-gradient-secondary':
     'linear-gradient(135deg, rgba(34, 197, 94, 0.08) 0%, rgba(134, 239, 172, 0.12) 100%)',
-  'chat-welcome-border': 'rgba(99, 102, 241, 0.2)',
+  'chat-welcome-border': palette.dark.selectionTint,
   'chat-welcome-shadow': '0 4px 20px rgba(99, 102, 241, 0.15)',
   'chat-input-area-backdrop': 'blur(20px)',
 
@@ -1629,12 +1634,12 @@ export const darkTokens: DesignTokens = {
   // ===== 编辑器组件 =====
   'components-editor-bg': '#1e1e1e',
   'components-editor-toolbar-bg': '#141414',
-  'components-editor-text': '#ffffff',
+  'components-editor-text': surfaces.dark.text,
   'components-editor-border': 'rgba(255, 255, 255, 0.10)',
 
   // ===== 面板组件 =====
   'components-panel-header-bg': '#141414',
-  'components-panel-header-text': '#ffffff',
+  'components-panel-header-text': surfaces.dark.text,
   'components-panel-content-bg': '#1e1e1e',
 
   // ===== 图标按钮 =====
@@ -1643,14 +1648,14 @@ export const darkTokens: DesignTokens = {
   'components-icon-button-bg-hover': 'rgba(255, 255, 255, 0.06)',
 
   // ===== 聊天预览增强 =====
-  'chat-bubble-ai-bg': '#262626',
-  'chat-bubble-ai-text': '#ffffff',
-  'chat-input-container-bg': '#262626',
-  'chat-preview-debug-bg': '#141414',
-  'chat-preview-debug-text': '#ffffff',
-  'chat-think-bg': '#1a1a1a',
-  'chat-think-border': 'rgba(255, 255, 255, 0.15)',
-  'chat-think-text': '#a3a3a3',
+  'chat-bubble-ai-bg': surfaces.dark.subtle,
+  'chat-bubble-ai-text': surfaces.dark.text,
+  'chat-input-container-bg': surfaces.dark.surface,
+  'chat-preview-debug-bg': surfaces.dark.canvas,
+  'chat-preview-debug-text': surfaces.dark.secondary,
+  'chat-think-bg': surfaces.dark.subtle,
+  'chat-think-border': surfaces.dark.border,
+  'chat-think-text': surfaces.dark.secondary,
 
   // ===== 应用头像 =====
   'components-app-avatar-bg':
@@ -1662,8 +1667,8 @@ export const darkTokens: DesignTokens = {
   'chat-bubble-assistant-avatar-text': '#a5b4fc',
   'chat-bubble-user-avatar-bg': '#86efac',
   'chat-bubble-user-avatar-text': '#052e16',
-  'chat-bubble-user-bg': '#262626',
-  'chat-bubble-user-text': '#ffffff',
+  'chat-bubble-user-bg': surfaces.dark.subtle,
+  'chat-bubble-user-text': surfaces.dark.text,
 
   // ===== API 密钥管理 =====
   'components-api-key-card-bg': '#1e1e1e',
@@ -1718,7 +1723,7 @@ export const darkTokens: DesignTokens = {
   'components-api-docs-content-bg': '#1e1e1e',
   'components-api-docs-search-bg': 'rgba(255, 255, 255, 0.05)',
   'components-api-docs-search-border': 'rgba(255, 255, 255, 0.12)',
-  'components-api-docs-search-focus-border': '#818cf8',
+  'components-api-docs-search-focus-border': palette.dark.focus,
 
   // ===== 现代化增强组件 =====
   'components-glassmorphism-bg': 'rgba(26, 26, 26, 0.80)',
@@ -1736,13 +1741,13 @@ export const darkTokens: DesignTokens = {
     '0 8px 24px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.25)',
 
   // ===== 首页推荐卡片系统 =====
-  // 深色模式下使用带棕色调的半透明背景，与参考设计一致
-  'components-recommend-card-bg-1': 'rgba(120, 113, 98, 0.45)',
-  'components-recommend-card-bg-2': 'rgba(120, 113, 98, 0.50)',
-  'components-recommend-card-bg-3': 'rgba(120, 113, 98, 0.40)',
-  'components-recommend-card-bg-4': 'rgba(120, 113, 98, 0.55)',
-  'components-recommend-card-text': '#ffffff',
-  'components-recommend-card-tag': '#d4d4d8',
+  // 推荐卡片共享中性内容面板，选中和焦点由交互令牌表达
+  'components-recommend-card-bg-1': surfaces.dark.surface,
+  'components-recommend-card-bg-2': surfaces.dark.surface,
+  'components-recommend-card-bg-3': surfaces.dark.surface,
+  'components-recommend-card-bg-4': surfaces.dark.surface,
+  'components-recommend-card-text': surfaces.dark.text,
+  'components-recommend-card-tag': surfaces.dark.secondary,
 
   // ===== 画布系统 (Agent Canvas) - 暗色主题 =====
   // 画布背景
@@ -1754,7 +1759,7 @@ export const darkTokens: DesignTokens = {
   'components-canvas-node-bg': '#202025',
   'components-canvas-node-border': 'rgba(255, 255, 255, 0.1)',
   'components-canvas-node-border-hover': 'rgba(255, 255, 255, 0.15)',
-  'components-canvas-node-border-selected': '#818cf8',
+  'components-canvas-node-border-selected': palette.dark.selection,
   'components-canvas-node-shadow': '0 2px 8px rgba(0, 0, 0, 0.3)',
 
   // 节点运行态
@@ -1771,13 +1776,13 @@ export const darkTokens: DesignTokens = {
   // 边线
   'components-canvas-edge-stroke': 'rgb(113, 113, 122)',
   'components-canvas-edge-stroke-hover': 'rgb(161, 161, 170)',
-  'components-canvas-edge-stroke-selected': '#818cf8',
+  'components-canvas-edge-stroke-selected': palette.dark.selection,
   'components-canvas-edge-stroke-flowing': '#38bdf8', // sky-400
   'components-canvas-edge-marker': 'rgb(113, 113, 122)',
-  'components-canvas-edge-marker-selected': '#818cf8',
+  'components-canvas-edge-marker-selected': palette.dark.selection,
 
   // 连接点
-  'components-canvas-handle-bg': '#818cf8',
+  'components-canvas-handle-bg': palette.dark.selection,
   'components-canvas-handle-border': '#202025',
   'components-canvas-handle-icon': '#ffffff',
 
@@ -1814,73 +1819,73 @@ export const darkTokens: DesignTokens = {
   'components-canvas-note-text': '#fef08a', // yellow-200
 
   // ===== 骨架与页面模板 =====
-  'components-app-shell-bg': '#09090b',
-  'components-app-shell-surface': '#15181c',
-  'components-app-shell-border': 'rgba(255, 255, 255, 0.10)',
+  'components-app-shell-bg': surfaces.dark.canvas,
+  'components-app-shell-surface': surfaces.dark.surface,
+  'components-app-shell-border': surfaces.dark.border,
   'components-app-shell-shadow': '0 24px 48px -24px rgba(0, 0, 0, 0.6)',
-  'components-main-workbench-bg': '#111317',
-  'components-main-workbench-surface': '#181b20',
-  'components-main-workbench-border': 'rgba(255, 255, 255, 0.10)',
+  'components-main-workbench-bg': surfaces.dark.canvas,
+  'components-main-workbench-surface': surfaces.dark.surface,
+  'components-main-workbench-border': surfaces.dark.border,
   'components-main-workbench-shadow': '0 24px 48px -24px rgba(0, 0, 0, 0.65)',
-  'components-page-header-bg': 'rgba(22, 22, 24, 0.94)',
-  'components-page-header-border': 'rgba(255, 255, 255, 0.10)',
-  'components-page-header-title': '#ffffff',
-  'components-page-header-description': '#a1a1aa',
-  'components-page-toolbar-bg': 'rgba(22, 22, 24, 0.92)',
-  'components-page-toolbar-border': 'rgba(255, 255, 255, 0.10)',
-  'components-page-toolbar-text': '#a1a1aa',
-  'components-page-state-bg': '#202025',
-  'components-page-state-border': 'rgba(255, 255, 255, 0.10)',
+  'components-page-header-bg': surfaces.dark.surface,
+  'components-page-header-border': surfaces.dark.borderSubtle,
+  'components-page-header-title': surfaces.dark.text,
+  'components-page-header-description': surfaces.dark.secondary,
+  'components-page-toolbar-bg': surfaces.dark.surface,
+  'components-page-toolbar-border': surfaces.dark.borderSubtle,
+  'components-page-toolbar-text': surfaces.dark.secondary,
+  'components-page-state-bg': surfaces.dark.surface,
+  'components-page-state-border': surfaces.dark.borderSubtle,
   'components-page-state-icon-bg': 'rgba(255, 255, 255, 0.07)',
-  'components-page-state-icon': '#33D4CB',
-  'components-page-state-title': '#ffffff',
-  'components-page-state-description': '#a1a1aa',
-  'components-settings-rail-bg': '#161618',
-  'components-settings-rail-border': 'rgba(255, 255, 255, 0.10)',
-  'components-settings-rail-title': '#ffffff',
-  'components-settings-rail-description': '#a1a1aa',
-  'components-settings-rail-section-text': '#a1a1aa',
-  'components-console-bg': '#121417',
-  'components-console-surface': '#181b20',
-  'components-console-border': 'rgba(255, 255, 255, 0.10)',
-  'components-workspace-bg': '#121417',
-  'components-workspace-surface': '#181b20',
-  'components-workspace-border': 'rgba(255, 255, 255, 0.10)',
-  'components-studio-bg': '#101317',
-  'components-studio-surface': '#181c21',
-  'components-studio-border': 'rgba(255, 255, 255, 0.10)',
-  'components-split-pane-bg': '#111419',
-  'components-split-pane-surface': '#181b20',
-  'components-split-pane-border': 'rgba(255, 255, 255, 0.10)',
+  'components-page-state-icon': palette.dark.selection,
+  'components-page-state-title': surfaces.dark.text,
+  'components-page-state-description': surfaces.dark.secondary,
+  'components-settings-rail-bg': surfaces.dark.surface,
+  'components-settings-rail-border': surfaces.dark.borderSubtle,
+  'components-settings-rail-title': surfaces.dark.text,
+  'components-settings-rail-description': surfaces.dark.secondary,
+  'components-settings-rail-section-text': surfaces.dark.secondary,
+  'components-console-bg': surfaces.dark.canvas,
+  'components-console-surface': surfaces.dark.surface,
+  'components-console-border': surfaces.dark.border,
+  'components-workspace-bg': surfaces.dark.canvas,
+  'components-workspace-surface': surfaces.dark.surface,
+  'components-workspace-border': surfaces.dark.border,
+  'components-studio-bg': surfaces.dark.canvas,
+  'components-studio-surface': surfaces.dark.surface,
+  'components-studio-border': surfaces.dark.border,
+  'components-split-pane-bg': surfaces.dark.canvas,
+  'components-split-pane-surface': surfaces.dark.surface,
+  'components-split-pane-border': surfaces.dark.border,
 
   // ===== 设置页面专用 =====
-  'components-settings-sidebar-section-text': '#6b7280',
-  'components-settings-content-bg': '#121417',
-  'components-settings-section-bg': '#202025',
-  'components-settings-section-border': 'rgba(255, 255, 255, 0.10)',
-  'components-settings-section-title': '#ffffff',
-  'components-settings-section-description': '#a1a1aa',
-  'components-settings-user-role-bg': 'rgba(0, 190, 180, 0.15)',
+  'components-settings-sidebar-section-text': surfaces.dark.secondary,
+  'components-settings-content-bg': surfaces.dark.canvas,
+  'components-settings-section-bg': surfaces.dark.surface,
+  'components-settings-section-border': surfaces.dark.borderSubtle,
+  'components-settings-section-title': surfaces.dark.text,
+  'components-settings-section-description': surfaces.dark.secondary,
+  'components-settings-user-role-bg': palette.dark.selectionTint,
 
   // ===== 系统状态页面专用 =====
-  'components-system-accent-bg': 'rgba(129, 140, 248, 0.18)',
-  'components-system-accent-border': '#818cf8',
-  'components-system-accent-text': '#a5b4fc',
-  'components-system-accent-soft': 'rgba(129, 140, 248, 0.1)',
-  'components-system-page-bg': '#121212',
-  'components-system-panel-bg': '#1a1a1a',
+  'components-system-accent-bg': palette.dark.selectionTint,
+  'components-system-accent-border': palette.dark.selection,
+  'components-system-accent-text': palette.dark.selectionText,
+  'components-system-accent-soft': palette.dark.selectionSoft,
+  'components-system-page-bg': surfaces.dark.canvas,
+  'components-system-panel-bg': surfaces.dark.surface,
   'components-system-panel-border': 'rgba(255, 255, 255, 0.10)',
   'components-system-panel-shadow':
     '0 20px 25px -12px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.35)',
-  'components-system-header-title': '#ffffff',
-  'components-system-header-description': '#a1a1aa',
+  'components-system-header-title': surfaces.dark.text,
+  'components-system-header-description': surfaces.dark.secondary,
   'components-system-version-tag-bg': 'rgba(255, 255, 255, 0.05)',
   'components-system-version-tag-border': 'rgba(255, 255, 255, 0.10)',
-  'components-system-version-tag-label': '#a1a1aa',
-  'components-system-version-tag-value': '#e5e7eb',
-  'components-system-section-title': '#a1a1aa',
+  'components-system-version-tag-label': surfaces.dark.secondary,
+  'components-system-version-tag-value': surfaces.dark.text,
+  'components-system-section-title': surfaces.dark.secondary,
   'components-system-section-divider': 'rgba(255, 255, 255, 0.10)',
-  'components-system-empty-bg': '#1e1e1e',
+  'components-system-empty-bg': surfaces.dark.canvas,
   'components-system-empty-border': 'rgba(255, 255, 255, 0.10)',
 
   'components-system-health-ok-bg': 'rgba(34, 197, 94, 0.12)',
@@ -1893,7 +1898,7 @@ export const darkTokens: DesignTokens = {
   'components-system-health-error-border': '#ef4444',
   'components-system-health-error-text': '#f87171',
 
-  'components-system-status-card-bg': '#1e1e1e',
+  'components-system-status-card-bg': surfaces.dark.surface,
   'components-system-status-card-border': 'rgba(255, 255, 255, 0.10)',
   'components-system-status-card-border-hover': 'rgba(255, 255, 255, 0.2)',
   'components-system-status-card-shadow':
@@ -1909,10 +1914,10 @@ export const darkTokens: DesignTokens = {
   'components-system-status-error-text': '#f87171',
 
   'components-system-chart-grid': 'rgba(255, 255, 255, 0.10)',
-  'components-system-chart-axis': '#a1a1aa',
+  'components-system-chart-axis': surfaces.dark.secondary,
   'components-system-chart-tooltip-bg': '#1e1e1e',
   'components-system-chart-tooltip-border': 'rgba(255, 255, 255, 0.12)',
-  'components-system-chart-tooltip-text': '#ffffff',
+  'components-system-chart-tooltip-text': surfaces.dark.text,
   'components-system-chart-tooltip-muted': '#a1a1aa',
   'components-system-chart-done': '#4ade80',
   'components-system-chart-done-soft': 'rgba(74, 222, 128, 0.12)',
@@ -1922,165 +1927,7 @@ export const darkTokens: DesignTokens = {
   'components-system-chart-pending-soft': 'rgba(251, 191, 36, 0.12)',
   'components-system-chart-lag': '#94a3b8',
   'components-system-chart-info-pill-bg': 'rgba(255, 255, 255, 0.05)',
-  'components-system-chart-info-pill-text': '#a1a1aa',
-}
-
-/**
- * 生成主题 CSS 文件内容
- */
-export function generateThemeCSS(
-  tokens: DesignTokens,
-  themeName: 'light' | 'dark',
-): string {
-  // 同时输出 html 级与子树级选择器，便于分享页 / 嵌入场景在子树覆盖主题
-  const selector = `html[data-theme="${themeName}"], [data-theme="${themeName}"]`
-
-  let css = `/**\n * ${themeName === 'light' ? '亮色' : '暗色'}主题 CSS 变量定义\n * 基于 Dify 项目的设计令牌系统\n * \n * ⚠️ 注意: 此文件由代码自动生成，请勿手动修改!\n * 如需修改主题，请编辑 theme-generator.ts 文件\n */\n\n${selector} {\n  /* ===== Tailwind 通道变量 (用于 /alpha 透明度支持) ===== */\n  --twc-primary: ${themeName === 'light' ? '30 64 175' : '129 140 248'};\n  --twc-primary-foreground: 255 255 255;\n  --twc-foreground: ${themeName === 'light' ? '15 23 42' : '255 255 255'};\n  --twc-background: ${themeName === 'light' ? '255 255 255' : '18 18 18'};\n  --twc-ring: ${themeName === 'light' ? '59 130 246' : '129 140 248'};\n  --twc-border: ${themeName === 'light' ? '226 232 240' : '39 39 42'};\n\n`
-
-  // 按分类组织令牌
-  const categories = {
-    文本系统: Object.keys(tokens).filter((key) => key.startsWith('text-')),
-    背景系统: Object.keys(tokens).filter((key) =>
-      key.startsWith('background-'),
-    ),
-    边框系统: Object.keys(tokens).filter((key) => key.startsWith('border-')),
-    按钮组件: Object.keys(tokens).filter((key) =>
-      key.startsWith('components-button-'),
-    ),
-    输入框组件: Object.keys(tokens).filter((key) =>
-      key.startsWith('components-input-'),
-    ),
-    卡片组件: Object.keys(tokens).filter((key) =>
-      key.startsWith('components-card-'),
-    ),
-    侧边栏组件: Object.keys(tokens).filter((key) =>
-      key.startsWith('components-sidebar-'),
-    ),
-    导航组件: Object.keys(tokens).filter((key) =>
-      key.startsWith('components-nav-'),
-    ),
-    下拉菜单组件: Object.keys(tokens).filter((key) =>
-      key.startsWith('components-dropdown-'),
-    ),
-    模型选择器组件: Object.keys(tokens).filter((key) =>
-      key.startsWith('components-model-selector-'),
-    ),
-    编辑器组件: Object.keys(tokens).filter((key) =>
-      key.startsWith('components-editor-'),
-    ),
-    面板组件: Object.keys(tokens).filter((key) =>
-      key.startsWith('components-panel-'),
-    ),
-    聊天系统: Object.keys(tokens).filter((key) => key.startsWith('chat-')),
-    模态框组件: Object.keys(tokens).filter((key) =>
-      key.startsWith('components-modal-'),
-    ),
-    表格组件: Object.keys(tokens).filter((key) =>
-      key.startsWith('components-table-'),
-    ),
-    交互状态: Object.keys(tokens).filter((key) => key.startsWith('state-')),
-    阴影系统: Object.keys(tokens).filter((key) => key.startsWith('shadow-')),
-    表单控件: Object.keys(tokens).filter(
-      (key) =>
-        key.includes('-checkbox-') ||
-        key.includes('-radio-') ||
-        key.includes('-select-') ||
-        key.includes('-switch-'),
-    ),
-    滚动条系统: Object.keys(tokens).filter((key) =>
-      key.startsWith('components-scrollbar-'),
-    ),
-    对话框和覆盖层: Object.keys(tokens).filter(
-      (key) =>
-        key.includes('-dialog-') ||
-        key.includes('-popover-') ||
-        key.includes('-tooltip-'),
-    ),
-    导航和标签: Object.keys(tokens).filter(
-      (key) => key.includes('-tabs-') || key.includes('-breadcrumb-'),
-    ),
-    状态和通知: Object.keys(tokens).filter((key) => key.includes('-alert-')),
-    加载和进度: Object.keys(tokens).filter(
-      (key) =>
-        key.includes('-skeleton-') ||
-        key.includes('-progress-') ||
-        key.includes('-spinner-') ||
-        key.includes('-loader-'),
-    ),
-    代码和预格式化文本: Object.keys(tokens).filter(
-      (key) => key.includes('-code-') || key.includes('-pre-'),
-    ),
-    图标按钮: Object.keys(tokens).filter((key) =>
-      key.startsWith('components-icon-button-'),
-    ),
-    应用头像: Object.keys(tokens).filter((key) =>
-      key.startsWith('components-app-avatar-'),
-    ),
-    推荐卡片: Object.keys(tokens).filter((key) =>
-      key.startsWith('components-recommend-card-'),
-    ),
-    统计卡片: Object.keys(tokens).filter((key) =>
-      key.startsWith('components-stats-card-'),
-    ),
-    画布系统: Object.keys(tokens).filter((key) =>
-      key.startsWith('components-canvas-'),
-    ),
-    其他组件: Object.keys(tokens).filter(
-      (key) =>
-        !key.startsWith('text-') &&
-        !key.startsWith('background-') &&
-        !key.startsWith('border-') &&
-        !key.startsWith('state-') &&
-        !key.startsWith('shadow-') &&
-        !key.startsWith('chat-') &&
-        !key.includes('-button-') &&
-        !key.includes('-input-') &&
-        !key.includes('-card-') &&
-        !key.includes('-sidebar-') &&
-        !key.includes('-nav-') &&
-        !key.includes('-dropdown-') &&
-        !key.includes('-model-selector-') &&
-        !key.includes('-editor-') &&
-        !key.includes('-panel-') &&
-        !key.includes('-icon-button-') &&
-        !key.includes('-app-avatar-') &&
-        !key.includes('-modal-') &&
-        !key.includes('-table-') &&
-        !key.includes('-checkbox-') &&
-        !key.includes('-radio-') &&
-        !key.includes('-select-') &&
-        !key.includes('-switch-') &&
-        !key.includes('-scrollbar-') &&
-        !key.includes('-dialog-') &&
-        !key.includes('-popover-') &&
-        !key.includes('-tooltip-') &&
-        !key.includes('-tabs-') &&
-        !key.includes('-breadcrumb-') &&
-        !key.includes('-alert-') &&
-        !key.includes('-skeleton-') &&
-        !key.includes('-progress-') &&
-        !key.includes('-spinner-') &&
-        !key.includes('-loader-') &&
-        !key.includes('-code-') &&
-        !key.includes('-pre-') &&
-        !key.includes('-stats-card-') &&
-        !key.startsWith('components-canvas-'),
-    ),
-  }
-
-  Object.entries(categories).forEach(([categoryName, keys]) => {
-    if (keys.length > 0) {
-      css += `  /* ===== ${categoryName} ===== */\n`
-      keys.forEach((key) => {
-        css += `  --color-${key}: ${tokens[key as keyof DesignTokens]};\n`
-      })
-      css += '\n'
-    }
-  })
-
-  css += '}\n'
-
-  return css
+  'components-system-chart-info-pill-text': surfaces.dark.tertiary,
 }
 
 /**

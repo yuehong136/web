@@ -134,7 +134,7 @@ const SearchTurnItem: React.FC<SearchTurnItemProps> = ({
   }, [turn.phase])
 
   return (
-    <section className="bg-surface-primary overflow-hidden rounded-radius-xl border border-border-default">
+    <section className="overflow-hidden rounded-radius-xl border border-border-default bg-surface-primary">
       {isLatest ? (
         <div className="h-0.5 bg-linear-to-r from-text-accent via-status-info to-status-success" />
       ) : null}
@@ -145,8 +145,8 @@ const SearchTurnItem: React.FC<SearchTurnItemProps> = ({
               className={cn(
                 'inline-flex items-center rounded-radius-full border px-space-sm py-space-xs text-xs font-semibold',
                 isLatest
-                  ? 'bg-surface-accent-subtle border-border-accent text-text-accent'
-                  : 'bg-surface-secondary border-border-default text-text-secondary',
+                  ? 'border-border-accent bg-state-selected-bg text-state-selected-text'
+                  : 'border-border-default bg-surface-secondary text-text-secondary',
               )}
             >
               Round {index + 1}
@@ -201,14 +201,14 @@ const SearchTurnItem: React.FC<SearchTurnItemProps> = ({
           className={cn(
             'w-full rounded-radius-lg border text-left transition-colors',
             expanded
-              ? 'bg-surface-primary border-border-default px-space-md py-space-sm'
-              : 'bg-surface-secondary hover:bg-surface-primary border-border-default px-space-md py-space-sm',
+              ? 'border-border-default bg-surface-primary px-space-md py-space-sm'
+              : 'border-border-default bg-surface-secondary px-space-md py-space-sm hover:bg-surface-primary',
           )}
           aria-expanded={expanded}
         >
           <div className="flex items-start gap-space-sm">
             {expanded ? (
-              <span className="bg-surface-accent-subtle inline-flex h-7 min-w-7 items-center justify-center rounded-radius-full text-text-accent">
+              <span className="inline-flex h-7 min-w-7 items-center justify-center rounded-radius-full bg-state-selected-bg text-state-selected-text">
                 <User className="h-4 w-4" />
               </span>
             ) : (
@@ -231,7 +231,7 @@ const SearchTurnItem: React.FC<SearchTurnItemProps> = ({
         </button>
 
         {!expanded ? (
-          <div className="bg-surface-secondary rounded-radius-lg border border-border-default px-space-sm py-space-xs text-sm leading-relaxed text-text-secondary">
+          <div className="rounded-radius-lg border border-border-default bg-surface-secondary px-space-sm py-space-xs text-sm leading-relaxed text-text-secondary">
             {summaryPreview}
           </div>
         ) : null}
@@ -267,7 +267,7 @@ const SearchTurnItem: React.FC<SearchTurnItemProps> = ({
           <button
             type="button"
             onClick={() => setShowChunks((prev) => !prev)}
-            className="bg-surface-secondary w-full rounded-radius-lg border border-border-default px-space-sm py-space-xs text-left"
+            className="w-full rounded-radius-lg border border-border-default bg-surface-secondary px-space-sm py-space-xs text-left"
             aria-expanded={showChunks}
           >
             <div className="flex items-center justify-between gap-space-sm">

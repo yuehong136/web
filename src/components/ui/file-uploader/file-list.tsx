@@ -48,29 +48,20 @@ export const FileList = memo(function FileList({
           </h4>
           <div className="flex items-center gap-2 text-xs">
             {stats.uploadingCount > 0 && (
-              <span
-                className="flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 dark:bg-blue-900/30"
-                style={{ color: 'var(--color-text-accent)' }}
-              >
-                <Loader2 className="h-3 w-3 animate-spin" />
+              <span className="flex items-center gap-1 rounded-full bg-status-info-10 px-2 py-0.5 text-text-primary">
+                <Loader2 className="h-3 w-3 animate-spin text-components-badge-info-text" />
                 {stats.uploadingCount}
               </span>
             )}
             {stats.successCount > 0 && (
-              <span
-                className="flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 dark:bg-green-900/30"
-                style={{ color: 'var(--color-text-success)' }}
-              >
-                <CheckCircle2 className="h-3 w-3" />
+              <span className="flex items-center gap-1 rounded-full bg-status-success-10 px-2 py-0.5 text-text-primary">
+                <CheckCircle2 className="h-3 w-3 text-components-badge-success-text" />
                 {stats.successCount}
               </span>
             )}
             {stats.errorCount > 0 && (
-              <span
-                className="flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 dark:bg-red-900/30"
-                style={{ color: 'var(--color-text-error)' }}
-              >
-                <AlertCircle className="h-3 w-3" />
+              <span className="flex items-center gap-1 rounded-full bg-status-error-10 px-2 py-0.5 text-text-primary">
+                <AlertCircle className="h-3 w-3 text-components-badge-error-text" />
                 {stats.errorCount}
               </span>
             )}
@@ -81,8 +72,7 @@ export const FileList = memo(function FileList({
           variant="ghost"
           size="sm"
           onClick={onClearAll}
-          className="text-xs transition-colors hover:text-red-500"
-          style={{ color: 'var(--color-text-tertiary)' }}
+          className="text-xs text-text-tertiary transition-colors hover:text-text-primary"
         >
           <Trash2 className="mr-1 h-3.5 w-3.5" />
           {texts.clearAll}
@@ -91,7 +81,7 @@ export const FileList = memo(function FileList({
 
       <div
         className={cn(
-          'space-y-2 overflow-y-auto pr-1 scrollbar-thin',
+          'scrollbar-thin space-y-2 overflow-y-auto pr-1',
           listMaxHeight,
         )}
         style={{

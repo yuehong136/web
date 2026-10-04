@@ -104,7 +104,7 @@ export const ResourceListContainer: React.FC<ResourceListContainerProps> = ({
 }) => (
   <div
     className={cn(
-      'bg-surface-primary w-full rounded-xl border border-border-default',
+      'w-full rounded-xl border border-border-default bg-surface-primary',
       className,
     )}
   >
@@ -126,7 +126,7 @@ export const ResourceListHeader: React.FC<ResourceListHeaderProps> = memo(
     <div
       className={cn(
         'grid h-12 items-center gap-4 px-6',
-        'bg-surface-secondary/30 border-b border-border-default',
+        'border-b border-border-default bg-surface-secondary/30',
         gridCols,
       )}
     >
@@ -201,10 +201,10 @@ export const ResourceListRow: React.FC<ResourceListRowProps> = memo(
           'border border-transparent',
           'transition-all duration-200 ease-out',
           // 悬停效果：背景 + 主题色边框（浅色绿/深色紫）
-          'hover:bg-surface-secondary/60 hover:border-state-focus hover:shadow-xs',
+          'hover:border-state-focus hover:bg-surface-secondary/60 hover:shadow-xs',
           // 选中效果
           selected && [
-            'bg-surface-accent-subtle',
+            'bg-state-selected-bg',
             'border-state-focus',
             'shadow-xs',
           ],
@@ -302,17 +302,17 @@ export const ResourceListSkeletonRow: React.FC<
   >
     {/* 名称列骨架 */}
     <div className="flex items-center gap-4">
-      <div className="bg-surface-secondary h-12 w-12 animate-pulse rounded-xl" />
+      <div className="h-12 w-12 animate-pulse rounded-xl bg-surface-secondary" />
       <div className="flex flex-col gap-2">
-        <div className="bg-surface-secondary h-4 w-32 animate-pulse rounded" />
-        <div className="bg-surface-secondary h-3 w-48 animate-pulse rounded" />
+        <div className="h-4 w-32 animate-pulse rounded bg-surface-secondary" />
+        <div className="h-3 w-48 animate-pulse rounded bg-surface-secondary" />
       </div>
     </div>
     {/* 中间列骨架 */}
     {columnWidths.map((width, i) => (
       <div
         key={i}
-        className={cn('bg-surface-secondary h-4 animate-pulse rounded', width)}
+        className={cn('h-4 animate-pulse rounded bg-surface-secondary', width)}
       />
     ))}
     {/* 操作列留空 */}

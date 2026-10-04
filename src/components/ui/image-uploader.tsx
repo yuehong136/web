@@ -262,7 +262,7 @@ export function ImageUploader(props: ImageUploaderProps) {
                     variant="ghost"
                     size="sm"
                     onClick={() => onRemove(index)}
-                    className="text-text-error hover:bg-red-50 hover:text-text-error"
+                    className="text-status-error hover:bg-status-error-10 hover:text-status-error"
                   >
                     <Trash2 className="mr-1 h-4 w-4" />
                     移除
@@ -294,16 +294,16 @@ export function ImageUploader(props: ImageUploaderProps) {
               <div
                 {...getRootProps()}
                 className={cn(
-                  'group relative flex cursor-pointer items-center justify-center gap-3 rounded-lg border border-dashed px-4 py-3 transition',
+                  'group relative flex cursor-pointer items-center justify-center gap-3 rounded-lg border border-dashed px-4 py-3 transition focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:ring-offset-2 focus-visible:ring-offset-background-surface focus-visible:outline-hidden',
                   isDragActive
-                    ? 'border-text-accent bg-state-hover'
-                    : 'border-border-default hover:border-text-accent hover:bg-state-hover',
+                    ? 'border-state-selected bg-state-selected-bg'
+                    : 'border-border-default hover:border-state-focus hover:bg-state-hover',
                   isDisabled && 'pointer-events-none opacity-60',
                   className,
                 )}
                 style={{
                   backgroundColor: isDragActive
-                    ? 'var(--color-state-hover)'
+                    ? 'var(--color-state-selected-bg)'
                     : 'transparent',
                 }}
                 {...dropzoneProps}
@@ -313,14 +313,14 @@ export function ImageUploader(props: ImageUploaderProps) {
                   className="flex h-8 w-8 items-center justify-center rounded-full transition-colors"
                   style={{
                     backgroundColor: isDragActive
-                      ? 'var(--color-primary-subtle)'
+                      ? 'var(--color-state-selected-bg)'
                       : 'var(--color-background-subtle)',
                   }}
                 >
                   {isDragActive ? (
                     <Upload
                       className="h-4 w-4"
-                      style={{ color: 'var(--color-text-accent)' }}
+                      style={{ color: 'var(--color-state-selected-text)' }}
                     />
                   ) : (
                     <Replace
@@ -334,7 +334,7 @@ export function ImageUploader(props: ImageUploaderProps) {
                     className="text-sm font-medium"
                     style={{
                       color: isDragActive
-                        ? 'var(--color-text-accent)'
+                        ? 'var(--color-state-selected-text)'
                         : 'var(--color-text-secondary)',
                     }}
                   >
@@ -426,7 +426,7 @@ export function ImageUploader(props: ImageUploaderProps) {
                   variant="ghost"
                   size="sm"
                   onClick={() => onRemove(index)}
-                  className="text-text-error hover:bg-red-50 hover:text-text-error"
+                  className="text-status-error hover:bg-status-error-10 hover:text-status-error"
                 >
                   <Trash2 className="mr-1 h-4 w-4" />
                   移除
@@ -458,17 +458,17 @@ export function ImageUploader(props: ImageUploaderProps) {
             <div
               {...getRootProps()}
               className={cn(
-                'group relative grid w-full cursor-pointer place-items-center rounded-lg border-2 border-dashed px-5 py-6 text-center transition-all duration-200',
+                'group relative grid w-full cursor-pointer place-items-center rounded-lg border-2 border-dashed px-5 py-6 text-center transition-all duration-200 focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:ring-offset-2 focus-visible:ring-offset-background-surface focus-visible:outline-hidden',
                 dropzoneHeight,
                 isDragActive
-                  ? 'bg-primary-subtle scale-[1.01] border-text-accent'
-                  : 'border-border-default hover:border-text-accent hover:bg-state-hover',
+                  ? 'scale-[1.01] border-state-selected bg-state-selected-bg'
+                  : 'border-border-default hover:border-state-focus hover:bg-state-hover',
                 isDisabled && 'pointer-events-none opacity-60',
                 className,
               )}
               style={{
                 backgroundColor: isDragActive
-                  ? 'var(--color-primary-subtle)'
+                  ? 'var(--color-state-selected-bg)'
                   : 'var(--color-background-subtle)',
               }}
               {...dropzoneProps}
@@ -483,15 +483,15 @@ export function ImageUploader(props: ImageUploaderProps) {
                   )}
                   style={{
                     backgroundColor: isDragActive
-                      ? 'var(--color-text-accent)'
+                      ? 'var(--color-state-selected-bg)'
                       : 'var(--color-background-default)',
                     boxShadow: isDragActive
-                      ? '0 8px 24px rgba(var(--color-primary-rgb), 0.3)'
+                      ? '0 8px 24px var(--color-state-selected-bg)'
                       : '0 2px 8px rgba(0,0,0,0.06)',
                   }}
                 >
                   {isDragActive ? (
-                    <Upload className="h-6 w-6 text-white" />
+                    <Upload className="h-6 w-6 text-state-selected-text" />
                   ) : (
                     <ImageIcon
                       className="h-6 w-6"
@@ -506,7 +506,7 @@ export function ImageUploader(props: ImageUploaderProps) {
                     className="text-sm font-medium transition-colors"
                     style={{
                       color: isDragActive
-                        ? 'var(--color-text-accent)'
+                        ? 'var(--color-state-selected-text)'
                         : 'var(--color-text-primary)',
                     }}
                   >

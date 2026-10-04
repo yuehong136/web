@@ -2,7 +2,7 @@ import * as React from 'react'
 import { renderToString } from 'react-dom/server'
 import { createCache, extractStyle, StyleProvider } from '@ant-design/cssinjs'
 import { Bubble } from '@ant-design/x'
-import { Button, Input, Select } from 'antd'
+import { Button, Checkbox, Input, Radio, Select, Slider, Switch } from 'antd'
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { ApplicationStyleProvider } from '@/themes/application-style-provider'
@@ -19,6 +19,10 @@ for (const isDark of [false, true]) {
           <Button type="primary">Create</Button>
           <Input />
           <Select options={[{ value: 'all', label: 'All' }]} />
+          <Checkbox defaultChecked />
+          <Radio defaultChecked />
+          <Switch defaultChecked />
+          <Slider defaultValue={50} />
           <Bubble content="Answer" />
         </ApplicationStyleProvider>
       </StyleProvider>,
@@ -41,7 +45,39 @@ for (const mode of ['light', 'dark'] as const) {
     )
     assert.equal(
       theme.components?.Select?.optionSelectedBg,
-      getTokenValue('components-sidebar-item-bg-active', mode),
+      getTokenValue('state-selected-bg', mode),
+    )
+  })
+
+  test(`separates ${mode} vendor selection controls from primary actions`, () => {
+    const theme = buildAntdTheme(mode === 'dark')
+    const primaryAction = getTokenValue('components-button-primary-bg', mode)
+    assert.equal(theme.token?.colorPrimary, primaryAction)
+
+    const controls = [
+      [
+        theme.components?.Checkbox?.colorPrimary,
+        'components-checkbox-bg-checked',
+      ],
+      [theme.components?.Radio?.colorPrimary, 'components-radio-dot'],
+      [theme.components?.Switch?.colorPrimary, 'components-switch-bg-checked'],
+      [theme.components?.Slider?.trackBg, 'components-slider-range'],
+    ] as const
+    for (const [color, token] of controls) {
+      assert.equal(color, getTokenValue(token, mode))
+      assert.notEqual(
+        color,
+        primaryAction,
+        `${token} must remain a selection color`,
+      )
+    }
+    assert.equal(
+      theme.components?.Slider?.handleActiveColor,
+      getTokenValue('components-slider-thumb-border', mode),
+    )
+    assert.equal(
+      theme.components?.Tabs?.inkBarColor,
+      getTokenValue('state-selected', mode),
     )
   })
 }

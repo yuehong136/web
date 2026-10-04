@@ -5,18 +5,20 @@ import * as CheckboxPrimitive from '@radix-ui/react-checkbox'
 import { Check, Minus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-export interface CheckboxProps extends React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root> {
+export interface CheckboxProps extends React.ComponentPropsWithoutRef<
+  typeof CheckboxPrimitive.Root
+> {
   indeterminate?: boolean
 }
 
 /**
  * Checkbox 组件 - 基于 Radix UI Checkbox 原语
- * 
+ *
  * 使用 Radix UI 提供完整的无障碍支持：
  * - 正确的键盘导航 (Space 键切换)
  * - 正确的 ARIA 属性
  * - 点击整个组件区域都能触发选中
- * 
+ *
  * @example
  * <Checkbox checked={isChecked} onCheckedChange={setIsChecked} />
  * <Checkbox indeterminate /> // 半选状态
@@ -35,18 +37,18 @@ const Checkbox = React.forwardRef<
       // 未选中时的 hover 状态
       'data-[state=unchecked]:hover:border-[var(--color-border-accent)] data-[state=unchecked]:hover:bg-[var(--color-surface-secondary)]',
       // focus 状态
-      'focus-visible:ring-2 focus-visible:ring-[var(--color-border-accent)] focus-visible:ring-offset-2',
+      'focus-visible:ring-2 focus-visible:ring-[var(--color-state-focus)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-background-body)]',
       // disabled 状态
       'disabled:cursor-not-allowed disabled:opacity-50',
       // checked 状态 - 使用设计令牌
-      'data-[state=checked]:bg-[var(--color-components-checkbox-bg-checked)] data-[state=checked]:border-[var(--color-components-checkbox-border-checked)] data-[state=checked]:text-[var(--color-components-checkbox-icon)]',
+      'data-[state=checked]:border-[var(--color-components-checkbox-border-checked)] data-[state=checked]:bg-[var(--color-components-checkbox-bg-checked)] data-[state=checked]:text-[var(--color-components-checkbox-icon)]',
       // checked 状态的 hover - 保持选中样式，稍微变亮
       'data-[state=checked]:hover:opacity-90',
       // indeterminate 状态
-      'data-[state=indeterminate]:bg-[var(--color-components-checkbox-bg-checked)] data-[state=indeterminate]:border-[var(--color-components-checkbox-border-checked)] data-[state=indeterminate]:text-[var(--color-components-checkbox-icon)]',
+      'data-[state=indeterminate]:border-[var(--color-components-checkbox-border-checked)] data-[state=indeterminate]:bg-[var(--color-components-checkbox-bg-checked)] data-[state=indeterminate]:text-[var(--color-components-checkbox-icon)]',
       // indeterminate 状态的 hover
       'data-[state=indeterminate]:hover:opacity-90',
-      className
+      className,
     )}
     checked={indeterminate ? 'indeterminate' : checked}
     {...props}

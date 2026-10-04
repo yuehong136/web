@@ -33,7 +33,7 @@ const RadioGroupItem = React.forwardRef<
         'aspect-square h-4 w-4 rounded-full border',
         'border-components-radio-border bg-components-radio-bg',
         'ring-offset-background-surface',
-        'focus:outline-hidden focus-visible:ring-2 focus-visible:ring-components-radio-border-checked focus-visible:ring-offset-2',
+        'focus:outline-hidden focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:ring-offset-2',
         'disabled:cursor-not-allowed disabled:opacity-50',
         'data-[state=checked]:border-components-radio-border-checked data-[state=checked]:bg-components-radio-bg-checked',
         className,

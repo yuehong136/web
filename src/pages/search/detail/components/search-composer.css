@@ -57,7 +57,7 @@
 }
 
 .search-composer-area .ant-sender:focus-within .ant-sender-content {
-  border-color: var(--color-border-accent) !important;
+  border-color: var(--color-state-focus) !important;
   box-shadow: 0 0 0 2px var(--color-state-focus-10) !important;
 }
 
@@ -216,8 +216,14 @@
 }
 
 .scope-selector-option-active {
-  background: var(--color-state-focus-10);
-  color: var(--color-state-focus);
+  background: var(--color-state-selected-bg);
+  color: var(--color-state-selected-text);
+}
+
+.scope-selector-trigger:focus-visible,
+.scope-selector-option:focus-visible {
+  outline: 2px solid var(--color-state-focus);
+  outline-offset: 2px;
 }
 
 /* Sender.Switch 模式开关 - 统一风格，遵循语义令牌 */
@@ -229,12 +235,25 @@
   box-shadow: none !important;
 }
 
-.search-composer-area .ant-sender-switch .ant-btn:not(:disabled):hover,
-.search-composer-area .ant-sender-switch-checked .ant-btn:not(:disabled):hover {
-  background: var(--color-state-focus-10) !important;
-  border-color: var(--color-state-focus) !important;
-  color: var(--color-state-focus) !important;
+.search-composer-area .ant-sender-switch .ant-btn:not(:disabled):hover {
+  background: var(--color-state-hover) !important;
+  border-color: var(--color-border-default) !important;
+  color: var(--color-text-primary) !important;
   box-shadow: none !important;
+}
+
+.search-composer-area .ant-sender-switch-checked .ant-btn,
+.search-composer-area .ant-sender-switch-checked .ant-btn:not(:disabled):hover {
+  background: var(--color-state-selected-bg) !important;
+  border-color: var(--color-state-selected) !important;
+  color: var(--color-state-selected-text) !important;
+  box-shadow: none !important;
+}
+
+.search-composer-area .ant-sender-switch .ant-btn:focus-visible,
+.search-composer-area .ant-sender-switch-checked .ant-btn:focus-visible {
+  outline: 2px solid var(--color-state-focus) !important;
+  outline-offset: 2px;
 }
 
 /* Dropdown menu 下拉菜单 - 遵循语义令牌 */
@@ -254,6 +273,6 @@
 }
 
 .ant-dropdown .ant-dropdown-menu-item-selected {
-  background: var(--color-state-focus-10) !important;
-  color: var(--color-state-focus) !important;
+  background: var(--color-state-selected-bg) !important;
+  color: var(--color-state-selected-text) !important;
 }

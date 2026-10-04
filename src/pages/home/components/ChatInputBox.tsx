@@ -157,7 +157,7 @@ export const ChatInputBox: React.FC<ChatInputBoxProps> = ({
               onClick={onStop}
               aria-label={t('home.input.stop', '停止')}
               className={cn(
-                'hover:bg-status-error/90 flex items-center justify-center rounded-full bg-status-error text-text-inverted transition-colors',
+                'flex items-center justify-center rounded-full bg-status-error text-text-on-accent transition-colors hover:bg-status-error/90',
                 isWelcome ? 'h-10 w-10' : 'h-9 w-9',
               )}
             >
@@ -171,16 +171,16 @@ export const ChatInputBox: React.FC<ChatInputBoxProps> = ({
                 'flex items-center justify-center rounded-full transition-colors',
                 isWelcome ? 'h-10 w-10' : 'h-9 w-9',
                 inputValue.trim()
-                  ? 'bg-text-primary hover:bg-text-secondary'
-                  : 'bg-border-default',
+                  ? 'bg-components-button-primary-bg hover:bg-components-button-primary-bg-hover'
+                  : 'bg-components-button-primary-bg-disabled',
               )}
             >
               <ArrowUp
                 className={cn(
                   isWelcome ? 'h-5 w-5' : 'h-4 w-4',
                   inputValue.trim()
-                    ? 'text-text-inverted'
-                    : 'text-text-tertiary',
+                    ? 'text-components-button-primary-text'
+                    : 'text-components-button-primary-text-disabled',
                 )}
               />
             </button>

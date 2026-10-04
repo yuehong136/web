@@ -41,10 +41,10 @@ const SearchChunkCard: FC<{
   const longContent = rawContent.length > 400
 
   return (
-    <div className="rounded-radius-xl bg-surface-primary p-space-sm border border-border-default">
+    <div className="rounded-radius-xl border border-border-default bg-surface-primary p-space-sm">
       <div className="mb-space-xs flex items-center justify-between">
         <div className="flex min-w-0 items-center gap-2">
-          <span className="rounded-radius-md bg-surface-accent-subtle flex h-6 w-6 items-center justify-center text-xs font-medium text-text-accent">
+          <span className="flex h-6 w-6 items-center justify-center rounded-radius-md bg-state-selected-bg text-xs font-medium text-state-selected-text">
             {index + 1}
           </span>
           <FileText className="h-3.5 w-3.5 text-text-tertiary" />
@@ -62,7 +62,7 @@ const SearchChunkCard: FC<{
       </div>
 
       <div className="mb-space-xs flex items-center gap-2 text-xs text-text-tertiary">
-        <span className="rounded-radius-full inline-flex h-1.5 w-16 overflow-hidden bg-background-subtle">
+        <span className="inline-flex h-1.5 w-16 overflow-hidden rounded-radius-full bg-background-subtle">
           <span
             className="h-full bg-status-success"
             style={{ width: `${similarity}%` }}
@@ -111,12 +111,12 @@ const SearchChunkList: FC<SearchChunkListProps> = ({
         {Array.from({ length: 3 }).map((_, index) => (
           <div
             key={index}
-            className="rounded-radius-xl bg-surface-primary p-space-sm border border-border-default"
+            className="rounded-radius-xl border border-border-default bg-surface-primary p-space-sm"
           >
-            <div className="rounded-radius-md mb-3 h-4 w-1/3 animate-pulse bg-background-subtle" />
-            <div className="rounded-radius-md mb-2 h-3 w-full animate-pulse bg-background-subtle" />
-            <div className="rounded-radius-md mb-2 h-3 w-5/6 animate-pulse bg-background-subtle" />
-            <div className="rounded-radius-md h-3 w-3/4 animate-pulse bg-background-subtle" />
+            <div className="mb-3 h-4 w-1/3 animate-pulse rounded-radius-md bg-background-subtle" />
+            <div className="mb-2 h-3 w-full animate-pulse rounded-radius-md bg-background-subtle" />
+            <div className="mb-2 h-3 w-5/6 animate-pulse rounded-radius-md bg-background-subtle" />
+            <div className="h-3 w-3/4 animate-pulse rounded-radius-md bg-background-subtle" />
           </div>
         ))}
       </div>
@@ -125,7 +125,7 @@ const SearchChunkList: FC<SearchChunkListProps> = ({
 
   if (!chunks.length) {
     return (
-      <div className="rounded-radius-xl bg-surface-primary p-space-base border border-border-default text-sm text-text-tertiary">
+      <div className="rounded-radius-xl border border-border-default bg-surface-primary p-space-base text-sm text-text-tertiary">
         没有命中文档片段。可尝试放宽阈值、提高 Top K，或改写问题表述。
       </div>
     )

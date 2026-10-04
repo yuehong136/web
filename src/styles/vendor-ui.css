@@ -30,7 +30,7 @@
   --color-input: var(--color-components-input-border);
   --color-input-background: var(--color-components-input-bg);
 
-  --color-ring: var(--color-border-accent);
+  --color-ring: var(--color-state-focus);
 
   /* 图表颜色 */
   --color-chart-1: var(--color-text-accent);
@@ -42,14 +42,12 @@
   /* 侧边栏颜色 */
   --color-sidebar: var(--color-components-sidebar-bg);
   --color-sidebar-foreground: var(--color-text-primary);
-  --color-sidebar-primary: var(--color-components-button-primary-bg);
-  --color-sidebar-primary-foreground: var(
-    --color-components-button-primary-text
-  );
-  --color-sidebar-accent: var(--color-background-subtle);
-  --color-sidebar-accent-foreground: var(--color-text-primary);
+  --color-sidebar-primary: var(--color-state-selected);
+  --color-sidebar-primary-foreground: var(--color-text-on-accent);
+  --color-sidebar-accent: var(--color-state-selected-bg);
+  --color-sidebar-accent-foreground: var(--color-state-selected-text);
   --color-sidebar-border: var(--color-border-default);
-  --color-sidebar-ring: var(--color-border-accent);
+  --color-sidebar-ring: var(--color-state-focus);
 
   /* 开关背景 */
   --color-switch-background: var(--color-components-switch-bg);
@@ -87,11 +85,11 @@ html[data-theme='dark'] {
   --color-border: var(--color-border-default);
   --color-input: var(--color-components-input-border);
   --color-input-background: var(--color-components-input-bg);
-  --color-ring: var(--color-border-accent);
+  --color-ring: var(--color-state-focus);
   --color-sidebar: var(--color-components-sidebar-bg);
   --color-sidebar-foreground: var(--color-text-primary);
   --color-sidebar-border: var(--color-border-default);
-  --color-sidebar-ring: var(--color-border-accent);
+  --color-sidebar-ring: var(--color-state-focus);
 }
 
 /* 工具类映射 - 支持参考项目中使用的所有Tailwind类 */

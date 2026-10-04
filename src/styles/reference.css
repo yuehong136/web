@@ -34,7 +34,7 @@
 
 .ant-sources-item:hover {
   background-color: var(--color-state-hover) !important;
-  border-color: var(--color-border-accent) !important;
+  border-color: var(--color-state-focus) !important;
 }
 
 /* Sources 项标题 */
@@ -64,14 +64,14 @@
 }
 
 .ant-sources-inline .ant-sources-title {
-  color: var(--color-primary) !important;
+  color: var(--color-text-accent) !important;
   font-weight: 500 !important;
   cursor: pointer !important;
   transition: color 0.2s ease !important;
 }
 
 .ant-sources-inline .ant-sources-title:hover {
-  color: var(--color-primary-hover) !important;
+  color: var(--color-state-selected-text) !important;
   text-decoration: underline !important;
 }
 
@@ -93,24 +93,25 @@
   cursor: pointer;
   border-radius: 4px;
   transition: all 0.2s ease;
-  background-color: var(--color-reference-bg, #dbeafe);
-  color: var(--color-reference-text, #1d4ed8);
-  border: 1px solid var(--color-reference-border, #93c5fd);
+  background-color: var(--color-state-selected-bg);
+  color: var(--color-state-selected-text);
+  border: 1px solid var(--color-state-selected-bg);
 }
 
 .reference-marker:hover {
-  background-color: var(--color-reference-bg-hover, #bfdbfe);
-  border-color: var(--color-reference-border-hover, #60a5fa);
+  background-color: color-mix(
+    in oklab,
+    var(--color-state-selected) 16%,
+    transparent
+  );
+  border-color: var(--color-state-selected);
   transform: translateY(-1px);
 }
 
-/* 暗色模式引用标记 */
-html[data-theme="dark"] .reference-marker {
-  --color-reference-bg: rgba(59, 130, 246, 0.2);
-  --color-reference-text: #93c5fd;
-  --color-reference-border: rgba(59, 130, 246, 0.3);
-  --color-reference-bg-hover: rgba(59, 130, 246, 0.3);
-  --color-reference-border-hover: rgba(59, 130, 246, 0.5);
+.reference-marker:focus-visible,
+.markdown-content sup.reference-sup:focus-visible {
+  outline: 2px solid var(--color-state-focus);
+  outline-offset: 2px;
 }
 
 /* ==================== 参考文献列表卡片样式 ==================== */
@@ -129,12 +130,8 @@ html[data-theme="dark"] .reference-marker {
 }
 
 .reference-doc-card:hover {
-  border-color: var(--color-border-accent);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-html[data-theme="dark"] .reference-doc-card:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border-color: var(--color-state-focus);
+  box-shadow: var(--color-shadow-md);
 }
 
 /* 文档图标 */
@@ -180,11 +177,7 @@ html[data-theme="dark"] .reference-doc-card:hover {
   overflow: hidden;
   background-color: var(--color-components-card-bg);
   border: 1px solid var(--color-components-card-border);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-}
-
-html[data-theme="dark"] .reference-hover-card {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--color-shadow-lg);
 }
 
 /* 悬浮卡片头部 */
@@ -257,20 +250,25 @@ html[data-theme="dark"] .reference-hover-card {
   vertical-align: super;
   cursor: pointer;
   border-radius: 3px;
-  background-color: var(--color-reference-bg, #dbeafe);
-  color: var(--color-reference-text, #1d4ed8);
+  background-color: var(--color-state-selected-bg);
+  color: var(--color-state-selected-text);
   transition: all 0.15s ease;
 }
 
 .markdown-content sup.reference-sup:hover {
-  background-color: var(--color-reference-bg-hover, #bfdbfe);
+  background-color: color-mix(
+    in oklab,
+    var(--color-state-selected) 16%,
+    transparent
+  );
   transform: scale(1.1);
 }
 
 /* ==================== 动画效果 ==================== */
 
 @keyframes reference-pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -288,15 +286,15 @@ html[data-theme="dark"] .reference-hover-card {
   .reference-hover-card {
     width: 280px;
   }
-  
+
   .reference-hover-content {
     max-height: 150px;
   }
-  
+
   .reference-doc-card {
     padding: 6px 10px;
   }
-  
+
   .reference-doc-name {
     font-size: 12px;
   }

@@ -1,4 +1,4 @@
-import { memo, useState, type CSSProperties } from 'react'
+import { memo, useState } from 'react'
 import { X, CheckCircle2, AlertCircle, Loader2, RotateCcw } from 'lucide-react'
 import { cn, formatBytes } from '@/lib/utils'
 import { Button } from '../button'
@@ -40,11 +40,11 @@ export const FileCard = memo(function FileCard({
         'border border-transparent hover:shadow-md',
         compact ? 'p-2' : 'p-3',
         file.status === 'error' &&
-          'bg-red-50/30 ring-1 ring-red-200/50 dark:bg-red-950/10',
+          'bg-status-error-10 ring-1 ring-status-error/20',
         file.status === 'success' &&
-          'bg-green-50/30 ring-1 ring-green-200/50 dark:bg-green-950/10',
+          'bg-status-success-10 ring-1 ring-status-success/20',
         file.status === 'uploading' &&
-          'bg-blue-50/30 ring-1 ring-blue-200/50 dark:bg-blue-950/10',
+          'bg-status-info-10 ring-1 ring-status-info/20',
         !file.status || file.status === 'pending'
           ? 'hover:border-[var(--color-border-default)]'
           : '',
@@ -112,33 +112,24 @@ export const FileCard = memo(function FileCard({
             {formatBytes(file.size)}
           </span>
           {file.status === 'success' && (
-            <span
-              className="animate-in fade-in slide-in-from-left-1 flex items-center gap-1 text-xs duration-300"
-              style={{ color: 'var(--color-text-success)' }}
-            >
-              <CheckCircle2 className="h-3 w-3" />
+            <span className="animate-in fade-in slide-in-from-left-1 flex items-center gap-1 text-xs text-text-primary duration-300">
+              <CheckCircle2 className="h-3 w-3 text-components-badge-success-text" />
               <span className={compact ? 'hidden' : ''}>
                 {texts.uploadSuccess}
               </span>
             </span>
           )}
           {file.status === 'error' && (
-            <span
-              className="animate-in fade-in slide-in-from-left-1 flex items-center gap-1 text-xs duration-300"
-              style={{ color: 'var(--color-text-error)' }}
-            >
-              <AlertCircle className="h-3 w-3" />
+            <span className="animate-in fade-in slide-in-from-left-1 flex items-center gap-1 text-xs text-text-primary duration-300">
+              <AlertCircle className="h-3 w-3 text-components-badge-error-text" />
               <span className={compact ? 'hidden' : ''}>
                 {file.error || texts.uploadFailed}
               </span>
             </span>
           )}
           {file.status === 'uploading' && (
-            <span
-              className="animate-in fade-in slide-in-from-left-1 flex items-center gap-1 text-xs duration-300"
-              style={{ color: 'var(--color-text-accent)' }}
-            >
-              <Loader2 className="h-3 w-3 animate-spin" />
+            <span className="animate-in fade-in slide-in-from-left-1 flex items-center gap-1 text-xs text-text-primary duration-300">
+              <Loader2 className="h-3 w-3 animate-spin text-components-badge-info-text" />
               <span className={compact ? 'hidden' : ''}>
                 {typeof file.progress === 'number'
                   ? `${Math.round(file.progress)}%`
@@ -153,12 +144,7 @@ export const FileCard = memo(function FileCard({
             <div className="animate-in fade-in slide-in-from-bottom-1 pt-1 duration-300">
               <Progress
                 value={file.progress}
-                className="h-1.5"
-                style={
-                  {
-                    '--progress-foreground': 'var(--color-text-accent)',
-                  } as CSSProperties
-                }
+                className="h-1.5 [&>div]:bg-components-badge-info-text"
               />
             </div>
           )}
@@ -173,7 +159,6 @@ export const FileCard = memo(function FileCard({
               size="icon-sm"
               onClick={() => onRetry(index)}
               className="h-7 w-7"
-              style={{ color: 'var(--color-text-accent)' }}
             >
               <RotateCcw className="h-3.5 w-3.5" />
             </Button>

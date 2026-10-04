@@ -58,7 +58,7 @@ export const HomePage = () => {
   const showWelcome = messages.length === 0 && !isStreaming && !isLoadingHistory
 
   return (
-    <div className="flex h-full flex-col bg-background-subtle">
+    <div className="flex h-full flex-col bg-components-console-bg">
       {showWelcome ? (
         <WelcomeSection
           inputValue={inputValue}

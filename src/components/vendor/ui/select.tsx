@@ -30,9 +30,9 @@ export function SelectTrigger({
     <SelectPrimitive.Trigger
       data-slot="select-trigger"
       className={cn(
-        'bg-input-background flex w-full items-center justify-between gap-2 rounded-md border border-input px-3 py-2 text-sm outline-hidden data-[placeholder]:text-muted-foreground',
-        'focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50',
-        'transition-colors hover:bg-accent hover:text-accent-foreground',
+        'flex w-full items-center justify-between gap-2 rounded-md border border-components-select-border bg-components-select-bg px-3 py-2 text-sm text-components-select-text outline-hidden data-[placeholder]:text-components-select-placeholder',
+        'focus-visible:border-components-select-border-focus focus-visible:ring-[3px] focus-visible:ring-state-focus/20',
+        'transition-colors hover:border-components-input-border-hover',
         className,
       )}
       {...props}
@@ -102,7 +102,8 @@ export function SelectItem({
     <SelectPrimitive.Item
       data-slot="select-item"
       className={cn(
-        'relative flex w-full cursor-default items-center gap-2 rounded-sm py-1.5 pr-8 pl-2 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+        'relative flex w-full cursor-default items-center gap-2 rounded-sm py-1.5 pr-8 pl-2 text-sm text-components-dropdown-item-text outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+        'data-[highlighted]:bg-components-dropdown-item-bg-hover data-[state=checked]:bg-state-selected-bg data-[state=checked]:text-state-selected-text',
         className,
       )}
       {...props}

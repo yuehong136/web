@@ -11,8 +11,8 @@ export function Input({
       type={type}
       data-slot="input"
       className={cn(
-        'flex h-9 w-full min-w-0 rounded-md border border-input bg-input px-3 py-1 text-base outline-hidden transition-[color,box-shadow] selection:bg-primary selection:text-primary-foreground file:text-foreground hover:border-input/80 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50',
-        'placeholder:text-[rgb(var(--color-components-input-text-placeholder))]',
+        'flex h-9 w-full min-w-0 rounded-md border border-components-input-border bg-components-input-bg px-3 py-1 text-base text-components-input-text outline-hidden transition-[color,box-shadow] file:text-text-primary hover:border-components-input-border-hover focus-visible:border-components-input-border-focus focus-visible:ring-[3px] focus-visible:ring-state-focus/20',
+        'selection:bg-state-selected selection:text-text-on-accent placeholder:text-components-input-text-placeholder',
         className,
       )}
       {...props}

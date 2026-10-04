@@ -16,6 +16,9 @@
   --color-border-accent: var(--color-border-accent);
   --color-border-default: var(--color-border-default);
   --color-border-error: var(--color-border-error);
+  --color-border-focus: var(--color-border-focus);
+  --color-border-hover: var(--color-border-hover);
+  --color-border-primary: var(--color-border-primary);
   --color-border-strong: var(--color-border-strong);
   --color-border-subtle: var(--color-border-subtle);
   --color-border-success: var(--color-border-success);
@@ -517,7 +520,4 @@
     --color-components-checkbox-border-checked
   );
   --color-components-checkbox-icon: var(--color-components-checkbox-icon);
-  --color-components-code-bg: var(--color-components-code-bg);
-  --color-components-code-border: var(--color-components-code-border);
-  --color-components-code-text: var(--color-components-code-text);
 }

@@ -23,7 +23,7 @@ export function TabsList({
     <TabsPrimitive.List
       data-slot="tabs-list"
       className={cn(
-        'relative flex inline-flex h-10 w-fit items-center justify-center rounded-xl bg-muted/50 p-1 text-muted-foreground shadow-xs',
+        'relative flex inline-flex h-10 w-fit items-center justify-center rounded-xl border border-components-tabs-border bg-components-tabs-bg p-1 text-components-tabs-inactive-text shadow-xs',
         className,
       )}
       {...props}
@@ -40,9 +40,9 @@ export function TabsTrigger({
       data-slot="tabs-trigger"
       className={cn(
         'relative inline-flex h-8 flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-all duration-200',
-        'text-muted-foreground hover:bg-background/50 hover:text-foreground',
-        'data-[state=active]:border data-[state=active]:border-border data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-xs',
-        'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-hidden',
+        'text-components-tabs-inactive-text hover:bg-state-hover hover:text-text-primary',
+        'data-[state=active]:border data-[state=active]:border-components-tabs-border data-[state=active]:bg-components-tabs-active-bg data-[state=active]:text-components-tabs-active-text data-[state=active]:shadow-xs',
+        'focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:ring-offset-2 focus-visible:outline-hidden',
         'disabled:pointer-events-none disabled:opacity-50',
         "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className,

@@ -199,7 +199,7 @@ export function EnvironmentList({
           className={cn(
             'flex cursor-pointer items-center gap-3 rounded-lg p-3 transition-colors hover:bg-muted/50',
             selectedEnvironmentId === 'global'
-              ? 'border border-primary/20 bg-primary/10'
+              ? 'border border-state-selected/30 bg-state-selected-bg text-state-selected-text hover:bg-state-selected-bg'
               : 'bg-muted/20',
           )}
           onClick={() => onEnvironmentSelect('global')}
@@ -238,7 +238,7 @@ export function EnvironmentList({
                 className={cn(
                   'group relative flex cursor-pointer items-center gap-3 rounded-lg p-3 transition-colors hover:bg-muted/50',
                   selectedEnvironmentId === env.id
-                    ? 'border border-primary/20 bg-primary/10'
+                    ? 'border border-state-selected/30 bg-state-selected-bg text-state-selected-text hover:bg-state-selected-bg'
                     : 'bg-background',
                 )}
                 onClick={() => onEnvironmentSelect(env.id)}

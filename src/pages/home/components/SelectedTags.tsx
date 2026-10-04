@@ -39,13 +39,13 @@ export const SelectedTags: React.FC<SelectedTagsProps> = ({
       {selectedMCPServers.map((server) => (
         <div
           key={`skill-${server.id}`}
-          className="flex items-center gap-1.5 rounded-full bg-state-focus-subtle px-2.5 py-1 text-xs font-medium text-state-focus"
+          className="flex items-center gap-1.5 rounded-full bg-state-selected-bg px-2.5 py-1 text-xs font-medium text-state-selected-text"
         >
           {getServerIcon(server.server_type)}
           <span>{server.name}</span>
           <button
             onClick={() => onRemoveSkill(server.id)}
-            className="hover:bg-state-focus/20 rounded-full p-0.5"
+            className="rounded-full p-0.5 hover:bg-state-selected/20"
           >
             <X className="h-3 w-3" />
           </button>
@@ -55,13 +55,13 @@ export const SelectedTags: React.FC<SelectedTagsProps> = ({
       {selectedApps.map((app) => (
         <div
           key={`app-${app.id}`}
-          className="flex items-center gap-1.5 rounded-full bg-status-success-subtle px-2.5 py-1 text-xs font-medium text-status-success"
+          className="flex items-center gap-1.5 rounded-full bg-state-selected-bg px-2.5 py-1 text-xs font-medium text-state-selected-text"
         >
           <MessageSquare className="h-3.5 w-3.5" />
           <span>{app.name}</span>
           <button
             onClick={() => onRemoveApp(app.id)}
-            className="hover:bg-status-success/20 rounded-full p-0.5"
+            className="rounded-full p-0.5 hover:bg-state-selected/20"
           >
             <X className="h-3 w-3" />
           </button>

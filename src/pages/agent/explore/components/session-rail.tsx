@@ -88,7 +88,8 @@ export function SessionRail({
         variant="ghost"
         className={cn(
           'w-full justify-start gap-space-sm px-space-sm text-sm',
-          isNew && 'bg-background-subtle',
+          isNew &&
+            'bg-state-selected-bg text-state-selected-text hover:bg-state-selected-bg hover:text-state-selected-text',
         )}
         onClick={onCreateSession}
       >

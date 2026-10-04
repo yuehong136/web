@@ -4,7 +4,6 @@ import { cn } from '@/lib/utils'
 import { ManagedSecondaryNavigation } from '@/components/layout/workbench-navigation'
 import {
   CATEGORY_ORDER,
-  getToneClasses,
   type TemplateCategory,
 } from './template-category-config'
 
@@ -23,7 +22,6 @@ export const TemplateCategorySidebar: React.FC<
     const Icon = category.icon
     const isActive = value === category.key
     const count = counts[category.key] ?? 0
-    const tone = getToneClasses(category.tone)
 
     return (
       <button
@@ -35,18 +33,18 @@ export const TemplateCategorySidebar: React.FC<
           'transition-colors duration-150',
           'focus:outline-hidden focus-visible:ring-2 focus-visible:ring-state-focus',
           isActive
-            ? 'bg-transparent text-text-primary'
+            ? 'bg-state-selected-bg text-state-selected-text'
             : 'text-text-secondary hover:bg-background-subtle hover:text-text-primary',
         )}
       >
         {isActive ? (
-          <span className="absolute top-2 bottom-2 left-0 w-0.5 rounded-radius-full bg-state-focus" />
+          <span className="absolute top-2 bottom-2 left-0 w-0.5 rounded-radius-full bg-state-selected" />
         ) : null}
         <div
           className={cn(
             'flex h-8 w-8 items-center justify-center rounded-radius-md transition-colors',
             isActive
-              ? tone.text
+              ? 'text-state-selected-text'
               : 'text-text-tertiary group-hover:text-text-primary',
           )}
         >
@@ -56,7 +54,7 @@ export const TemplateCategorySidebar: React.FC<
         <span
           className={cn(
             'flex-1 truncate text-sm',
-            isActive ? 'font-semibold text-text-primary' : 'font-medium',
+            isActive ? 'font-semibold text-state-selected-text' : 'font-medium',
           )}
         >
           {category.label}
@@ -66,7 +64,7 @@ export const TemplateCategorySidebar: React.FC<
           <span
             className={cn(
               'min-w-6 text-right text-xs font-semibold tabular-nums',
-              isActive ? 'text-state-focus' : 'text-text-tertiary',
+              isActive ? 'text-state-selected-text' : 'text-text-tertiary',
             )}
           >
             {count}

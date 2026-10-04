@@ -30,8 +30,8 @@ const SearchRuntimeControls: React.FC<SearchRuntimeControlsProps> = ({
   onSourceChange,
 }) => {
   return (
-    <div className="flex items-center justify-between gap-space-sm px-space-xs py-space-xs text-xs text-text-tertiary flex-wrap">
-      <div className="flex items-center gap-space-xs flex-wrap">
+    <div className="flex flex-wrap items-center justify-between gap-space-sm px-space-xs py-space-xs text-xs text-text-tertiary">
+      <div className="flex flex-wrap items-center gap-space-xs">
         <span className="text-text-secondary">Mode:</span>
         {MODE_OPTIONS.map((item) => {
           const active = item.value === mode
@@ -43,8 +43,8 @@ const SearchRuntimeControls: React.FC<SearchRuntimeControlsProps> = ({
               className={cn(
                 'inline-flex items-center rounded-radius-full border px-space-sm py-1 transition-colors',
                 active
-                  ? 'border-border-accent bg-surface-accent-subtle text-text-accent'
-                  : 'border-border-default bg-surface-secondary text-text-secondary hover:text-text-primary'
+                  ? 'border-border-accent bg-state-selected-bg text-state-selected-text'
+                  : 'border-border-default bg-surface-secondary text-text-secondary hover:text-text-primary',
               )}
             >
               {item.label}
@@ -53,11 +53,12 @@ const SearchRuntimeControls: React.FC<SearchRuntimeControlsProps> = ({
         })}
       </div>
 
-      <div className="flex items-center gap-space-xs flex-wrap">
+      <div className="flex flex-wrap items-center gap-space-xs">
         <span className="text-text-secondary">Source:</span>
         {SOURCE_OPTIONS.map((item) => {
           const active = item.value === source
-          const disabled = !webSourceEnabled && item.value !== SearchSourceMode.KNOWLEDGE_BASE
+          const disabled =
+            !webSourceEnabled && item.value !== SearchSourceMode.KNOWLEDGE_BASE
           return (
             <button
               key={item.value}
@@ -70,8 +71,8 @@ const SearchRuntimeControls: React.FC<SearchRuntimeControlsProps> = ({
                 disabled
                   ? 'cursor-not-allowed border-border-default bg-surface-secondary text-text-tertiary opacity-60'
                   : active
-                    ? 'border-border-accent bg-surface-accent-subtle text-text-accent'
-                    : 'border-border-default bg-surface-secondary text-text-secondary hover:text-text-primary'
+                    ? 'border-border-accent bg-state-selected-bg text-state-selected-text'
+                    : 'border-border-default bg-surface-secondary text-text-secondary hover:text-text-primary',
               )}
             >
               {item.label}

@@ -8,15 +8,17 @@ const tagVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-accent text-accent-foreground border-border',
-        outline: 'bg-card text-foreground border-border',
+        default:
+          'border-components-badge-border bg-components-badge-bg text-components-badge-text',
+        outline:
+          'border-border-default bg-background-surface text-text-primary',
         success:
-          'border-transparent bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
+          'border-transparent bg-components-badge-success-bg text-components-badge-success-text',
         warning:
-          'border-transparent bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300',
+          'border-transparent bg-components-badge-warning-bg text-components-badge-warning-text',
         error:
-          'border-transparent bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
-        info: 'border-transparent bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
+          'border-transparent bg-components-badge-error-bg text-components-badge-error-text',
+        info: 'border-transparent bg-components-badge-info-bg text-components-badge-info-text',
       },
       size: {
         sm: 'h-6 px-2 text-[11px] rounded-full',
@@ -53,7 +55,7 @@ export function Tag({
         <button
           type="button"
           aria-label="移除标签"
-          className="ml-0.5 inline-flex items-center justify-center rounded-full outline-hidden hover:opacity-80 focus-visible:ring-[3px] focus-visible:ring-ring/50"
+          className="ml-0.5 inline-flex items-center justify-center rounded-full outline-hidden hover:opacity-80 focus-visible:ring-[3px] focus-visible:ring-state-focus/20"
           onClick={onClose}
         >
           <X className="h-3.5 w-3.5" />
