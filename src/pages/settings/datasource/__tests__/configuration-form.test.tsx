@@ -271,3 +271,21 @@ it('saves SeaFile account scope and the deletion switch', async () => {
     credentials: { seafile_token: 'synthetic' },
   })
 })
+
+it('submits Asana deletion sync with workspace and credentials intact', async () => {
+  await renderAdd(DataSourceKey.ASANA)
+  await change(input('name'), 'Asana scratch')
+  await change(input('config.asana_workspace_id'), 'workspace')
+  await change(input('config.credentials.asana_api_token_secret'), 'synthetic')
+  const deletion = Array.from(document.querySelectorAll('label')).find(
+    (label) => label.textContent === 'Sync source deletions',
+  )!
+  expect(deletion.control?.getAttribute('aria-checked')).toBe('false')
+  await click(deletion)
+  await click(button('Confirm'))
+  expect(submit.mock.calls[0][0].config).toMatchObject({
+    sync_deleted_files: true,
+    asana_workspace_id: 'workspace',
+    credentials: { asana_api_token_secret: 'synthetic' },
+  })
+})

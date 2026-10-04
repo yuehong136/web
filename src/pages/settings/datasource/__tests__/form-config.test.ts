@@ -54,6 +54,7 @@ describe('connector configuration contracts', () => {
     const fields = getDataSourceFormFields(t)
     expect([...deletionSyncSources].sort()).toEqual([
       'airtable',
+      'asana',
       'bitbucket',
       'box',
       'confluence',

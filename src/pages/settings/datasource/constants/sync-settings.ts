@@ -16,6 +16,7 @@ export const deletionSyncSources = new Set<DataSourceKey>([
   DataSourceKey.BOX,
   DataSourceKey.DROPBOX,
   DataSourceKey.SEAFILE,
+  DataSourceKey.ASANA,
   DataSourceKey.S3,
   DataSourceKey.R2,
   DataSourceKey.GOOGLE_CLOUD_STORAGE,
