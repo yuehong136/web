@@ -1,12 +1,14 @@
 import { useCallback, useState } from 'react'
 import type { ChunkListDocument, MetadataEntry } from '../types'
 
-export const useChunkMetaForm = () => {
+export const useChunkMetaForm = (ownerKey = '') => {
   const [metaModalOpen, setMetaModalOpen] = useState(false)
   const [editingMeta, setEditingMeta] = useState<MetadataEntry[]>([])
   const [nextMetaId, setNextMetaId] = useState(1)
+  const [session, setSession] = useState(0)
 
   const startAnnotation = useCallback((docInfo: ChunkListDocument | null) => {
+    setSession((value) => value + 1)
     const metaArray = Object.entries(docInfo?.meta_fields || {}).map(
       ([key, value], index) => ({
         id: `meta_${index + 1}`,
@@ -20,9 +22,16 @@ export const useChunkMetaForm = () => {
   }, [])
 
   const close = useCallback(() => {
+    setSession((value) => value + 1)
     setMetaModalOpen(false)
     setEditingMeta([])
   }, [])
+
+  const [previousOwner, setPreviousOwner] = useState(ownerKey)
+  if (previousOwner !== ownerKey) {
+    setPreviousOwner(ownerKey)
+    close()
+  }
 
   const addField = useCallback(() => {
     setEditingMeta((prev) => [
@@ -62,6 +71,7 @@ export const useChunkMetaForm = () => {
 
   return {
     metaModalOpen,
+    session,
     editingMeta,
     startAnnotation,
     close,

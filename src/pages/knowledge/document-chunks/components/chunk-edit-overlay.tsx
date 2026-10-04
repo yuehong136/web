@@ -21,6 +21,8 @@ interface ChunkEditOverlayProps {
   onCancel: () => void
   onSave: () => void
   onPreviewImage: (url: string) => void
+  isPending?: boolean
+  canSubmit?: boolean
 }
 
 export const ChunkEditOverlay = ({
@@ -38,27 +40,33 @@ export const ChunkEditOverlay = ({
   onCancel,
   onSave,
   onPreviewImage,
+  isPending = false,
+  canSubmit = true,
 }: ChunkEditOverlayProps) => {
   const { t } = useTranslation()
   const displayChunkId =
     selectedChunk.chunk_id.length > 16
       ? `${selectedChunk.chunk_id.slice(0, 8)}...${selectedChunk.chunk_id.slice(-8)}`
       : selectedChunk.chunk_id
+  const canSave = canSubmit && !!editingChunkContent.trim() && !isPending
 
   return (
-    <div className="absolute inset-0 z-30 flex flex-col bg-background-surface">
-      <div className="border-b border-border-default p-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <h3 className="text-lg font-medium text-text-primary">
+    <div
+      className="relative flex h-full min-h-0 flex-col bg-background-surface"
+      aria-busy={isPending}
+    >
+      <div className="shrink-0 border-b border-border-default px-space-lg py-space-base">
+        <div className="flex items-start justify-between gap-space-base">
+          <div className="min-w-0 space-y-space-xs">
+            <h2 className="text-base font-semibold text-text-primary">
               {t('knowledge.chunks.edit.title')}
-            </h3>
+            </h2>
             <Tooltip
               content={t('knowledge.chunks.edit.fullIdTooltip', {
                 id: selectedChunk.chunk_id,
               })}
             >
-              <span className="inline-flex cursor-help items-center rounded-full bg-components-badge-info-bg px-2.5 py-1 text-xs font-medium text-components-badge-info-text">
+              <span className="inline-block max-w-full cursor-help truncate font-mono text-xs text-text-tertiary">
                 {displayChunkId}
               </span>
             </Tooltip>
@@ -67,15 +75,20 @@ export const ChunkEditOverlay = ({
             variant="ghost"
             size="icon-sm"
             onClick={onCancel}
+            disabled={isPending}
             aria-label={t('knowledge.chunks.edit.close')}
           >
-            <X className="h-4 w-4" />
+            <X className="size-icon-sm" />
           </Button>
         </div>
       </div>
 
-      <div className="scrollbar-thin flex-1 overflow-y-auto p-6">
-        <div className="space-y-5">
+      <div className="scrollbar-thin min-h-0 flex-1 scrollbar-thumb-components-scrollbar-thumb scrollbar-track-transparent overflow-y-auto p-space-lg">
+        <fieldset
+          disabled={isPending}
+          inert={isPending}
+          className="min-w-0 space-y-space-lg border-0 p-0"
+        >
           <ChunkEditContentField
             editingChunkContent={editingChunkContent}
             onEditingChunkContentChange={onEditingChunkContentChange}
@@ -93,7 +106,7 @@ export const ChunkEditOverlay = ({
           )}
 
           <ChunkEditTagSection
-            icon={<Key className="h-4 w-4 text-text-accent" />}
+            icon={<Key className="size-icon-sm text-text-secondary" />}
             label={t('knowledge.chunks.edit.keywordLabel')}
             tooltip={t('knowledge.chunks.edit.keywordTooltip')}
             value={editingImportantKwd}
@@ -104,7 +117,7 @@ export const ChunkEditOverlay = ({
 
           <ChunkEditTagSection
             icon={
-              <MessageCircleQuestion className="h-4 w-4 text-text-warning" />
+              <MessageCircleQuestion className="size-icon-sm text-text-secondary" />
             }
             label={t('knowledge.chunks.edit.questionLabel')}
             tooltip={t('knowledge.chunks.edit.questionTooltip')}
@@ -113,16 +126,22 @@ export const ChunkEditOverlay = ({
             placeholder={t('knowledge.chunks.edit.questionPlaceholder')}
             variant="warning"
           />
-        </div>
+        </fieldset>
       </div>
 
-      <div className="border-t border-border-default bg-background-subtle p-6">
-        <div className="flex justify-end space-x-3">
-          <Button variant="outline" onClick={onCancel}>
+      <div className="shrink-0 border-t border-border-default bg-background-surface px-space-lg py-space-base">
+        <div className="flex justify-end gap-space-sm">
+          <Button variant="outline" onClick={onCancel} disabled={isPending}>
             {t('knowledge.chunks.edit.cancel')}
           </Button>
-          <Button onClick={onSave} disabled={!editingChunkContent.trim()}>
-            <Save className="mr-2 h-4 w-4" />
+          <Button
+            onClick={() => {
+              if (canSave) onSave()
+            }}
+            disabled={!canSave}
+            loading={isPending}
+            leftIcon={<Save className="size-icon-sm" />}
+          >
             {t('knowledge.chunks.edit.save')}
           </Button>
         </div>

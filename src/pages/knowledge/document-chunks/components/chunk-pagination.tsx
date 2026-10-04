@@ -1,5 +1,13 @@
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Button, PageSizeSelector } from '@/components/ui'
+import {
+  Button,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui'
 
 interface ChunkPaginationProps {
   total: number
@@ -17,74 +25,73 @@ export const ChunkPagination = ({
   onPageSizeChange,
 }: ChunkPaginationProps) => {
   const { t } = useTranslation()
-  const totalPages = Math.ceil(total / pageSize)
+  const totalPages = Math.max(1, Math.ceil(total / pageSize))
+  const rangeStart = total === 0 ? 0 : (page - 1) * pageSize + 1
+  const rangeEnd = Math.min(page * pageSize, total)
 
   return (
-    <div className="z-10 shrink-0 border-t border-components-pagination-border bg-components-pagination-bg shadow-lg backdrop-blur-xs">
-      <div className="flex items-center justify-between px-4 py-3">
-        <div className="text-sm text-components-pagination-text">
-          {t('knowledge.chunks.toolbar.totalChunks', { count: total })}
-        </div>
+    <nav
+      aria-label={t('knowledge.chunks.pagination.page', {
+        page,
+        total: totalPages,
+      })}
+      className="flex shrink-0 flex-wrap items-center justify-between gap-space-sm border-t border-border-subtle bg-background-surface px-space-md py-space-sm"
+    >
+      <span className="text-xs whitespace-nowrap text-text-tertiary tabular-nums">
+        {t('knowledge.chunks.pagination.range', {
+          start: rangeStart,
+          end: rangeEnd,
+          total,
+        })}
+      </span>
 
-        <div className="flex items-center space-x-4">
-          <PageSizeSelector
-            pageSize={pageSize}
-            onChange={(size) => {
-              onPageSizeChange(size)
-              onPageChange(1)
-            }}
-            options={[10, 20, 30, 50]}
-          />
+      <div className="flex flex-wrap items-center gap-space-sm">
+        <Select
+          value={String(pageSize)}
+          onValueChange={(value) => {
+            onPageSizeChange(Number(value))
+            onPageChange(1)
+          }}
+        >
+          <SelectTrigger
+            className="h-8! w-16! gap-space-sm rounded-radius-md! px-space-sm! py-space-xs! text-xs"
+            aria-label={t('knowledge.chunks.pagination.pageSize')}
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="-mt-space-2xl! -translate-y-full">
+            {[10, 20, 30, 50].map((size) => (
+              <SelectItem key={size} value={String(size)}>
+                {size}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onPageChange(page - 1)}
-              disabled={page <= 1}
-            >
-              {t('knowledge.chunks.list.previousPage')}
-            </Button>
-
-            <div className="flex items-center space-x-1">
-              {Array.from({ length: Math.min(5, totalPages) }, (_, index) => {
-                const pageNum = getVisiblePageNumber(page, totalPages, index)
-                return (
-                  <Button
-                    key={pageNum}
-                    variant={page === pageNum ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => onPageChange(pageNum)}
-                    className="min-w-[32px]"
-                  >
-                    {pageNum}
-                  </Button>
-                )
-              })}
-            </div>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onPageChange(page + 1)}
-              disabled={page >= totalPages}
-            >
-              {t('knowledge.chunks.list.nextPage')}
-            </Button>
-          </div>
+        <div className="flex items-center gap-space-xs">
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => onPageChange(page - 1)}
+            disabled={page <= 1}
+            aria-label={t('knowledge.chunks.list.previousPage')}
+          >
+            <ChevronLeft className="size-icon-sm" aria-hidden="true" />
+          </Button>
+          <span className="text-xs whitespace-nowrap text-text-secondary tabular-nums">
+            {t('knowledge.chunks.pagination.page', { page, total: totalPages })}
+          </span>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => onPageChange(page + 1)}
+            disabled={page >= totalPages}
+            aria-label={t('knowledge.chunks.list.nextPage')}
+          >
+            <ChevronRight className="size-icon-sm" aria-hidden="true" />
+          </Button>
         </div>
       </div>
-    </div>
+    </nav>
   )
-}
-
-const getVisiblePageNumber = (
-  currentPage: number,
-  totalPages: number,
-  index: number,
-) => {
-  if (totalPages <= 5) return index + 1
-  if (currentPage <= 3) return index + 1
-  if (currentPage >= totalPages - 2) return totalPages - 4 + index
-  return currentPage - 2 + index
 }

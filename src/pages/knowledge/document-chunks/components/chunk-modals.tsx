@@ -35,6 +35,11 @@ interface ChunkModalsProps {
   onSaveMeta: () => void
   previewImageId: string | null
   onPreviewImageClose: () => void
+  isCreatePending?: boolean
+  isDeletePending?: boolean
+  isSetMetaPending?: boolean
+  canSaveMeta?: boolean
+  canCreateChunk?: boolean
 }
 
 export const ChunkModals = ({
@@ -67,6 +72,11 @@ export const ChunkModals = ({
   onSaveMeta,
   previewImageId,
   onPreviewImageClose,
+  isCreatePending = false,
+  isDeletePending = false,
+  isSetMetaPending = false,
+  canSaveMeta = true,
+  canCreateChunk = true,
 }: ChunkModalsProps) => (
   <>
     <AddChunkModal
@@ -81,6 +91,8 @@ export const ChunkModals = ({
       image={newImage}
       onImageChange={onNewImageChange}
       onCreate={onCreateChunk}
+      isPending={isCreatePending}
+      canSubmit={canCreateChunk}
     />
 
     <ChunkDeleteConfirms
@@ -92,6 +104,7 @@ export const ChunkModals = ({
       onDeleteSelectedConfirmClose={onDeleteSelectedConfirmClose}
       onDeleteSelectedConfirm={onDeleteSelectedConfirm}
       selectedChunkCount={selectedChunkCount}
+      isPending={isDeletePending}
     />
 
     <ChunkMetadataModal
@@ -103,6 +116,8 @@ export const ChunkModals = ({
       onUpdateMetaKey={onUpdateMetaKey}
       onUpdateMetaValue={onUpdateMetaValue}
       onSaveMeta={onSaveMeta}
+      isPending={isSetMetaPending}
+      canSubmit={canSaveMeta}
     />
 
     <ChunkImagePreviewModal

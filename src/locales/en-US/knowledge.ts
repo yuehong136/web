@@ -1173,6 +1173,18 @@ export default {
       },
     },
     chunks: {
+      workspace: {
+        source: 'Source preview',
+        description:
+          'Review chunk content and retrieval status. Select the text to expand it.',
+        previewUnavailable:
+          'The source document is currently unavailable. Try again or close the preview to keep reviewing chunks.',
+      },
+      pagination: {
+        range: '{{start}}–{{end}} of {{total}} chunks',
+        page: 'Page {{page}} of {{total}}',
+        pageSize: 'Chunks per page',
+      },
       errors: {
         toggleStatus: 'Failed to update chunk status. Try again.',
         create: 'Failed to create chunk. Try again.',
@@ -1184,9 +1196,15 @@ export default {
         saveMeta: 'Failed to save metadata. Try again.',
       },
       toolbar: {
+        clearSearch: 'Clear search',
+        displayMode: 'Text display',
+        selectPage: 'Select page',
+        selected: '{{count}} selected',
+        clearSelection: 'Clear selection',
+        updating: 'Updating…',
         showPreview: 'Show document preview',
         fullText: 'Full text',
-        ellipsis: 'Collapsed',
+        ellipsis: 'Summary',
         search: 'Search',
         closeSearch: 'Close search',
         searchPlaceholder: 'Search chunk content...',
@@ -1204,6 +1222,8 @@ export default {
         filterSummary: '(Filter: {{status}})',
       },
       list: {
+        inspectChunk: 'Inspect chunk #{{no}}',
+        characters: '{{count}} characters',
         loading: 'Loading...',
         loadError: 'Failed to load chunks. Try again later.',
         retry: 'Retry',

@@ -10,18 +10,22 @@ export const useChunkEditForm = (ownerKey: string) => {
   const [editingQuestionKwd, setEditingQuestionKwd] = useState<string[]>([])
   const [editingImage, setEditingImage] = useState<File[]>([])
   const [isMarkdownPreview, setIsMarkdownPreview] = useState(false)
+  const [session, setSession] = useState(0)
 
   const populate = useCallback((chunk: ChunkData) => {
+    setSession((value) => value + 1)
     setSelectedChunk(chunk)
     setEditingChunkContent(chunk.content_with_weight)
     setEditingImportantKwd(chunk.important_kwd || [])
     setEditingQuestionKwd(chunk.question_kwd || [])
+    setEditingImage([])
     setIsMarkdownPreview(false)
   }, [])
 
   const selectChunk = useCallback(
     (chunk: ChunkData) => {
       populate(chunk)
+      setIsEditMode(false)
     },
     [populate],
   )
@@ -35,6 +39,7 @@ export const useChunkEditForm = (ownerKey: string) => {
   )
 
   const reset = useCallback(() => {
+    setSession((value) => value + 1)
     setIsEditMode(false)
     setSelectedChunk(null)
     setEditingChunkContent('')
@@ -50,12 +55,7 @@ export const useChunkEditForm = (ownerKey: string) => {
     reset()
   }
 
-  const clearSelected = useCallback(() => {
-    setSelectedChunk(null)
-    setEditingChunkContent('')
-    setEditingImportantKwd([])
-    setEditingQuestionKwd([])
-  }, [])
+  const clearSelected = reset
 
   const canSubmit = editingChunkContent.trim().length > 0 && !!selectedChunk
 
@@ -80,6 +80,7 @@ export const useChunkEditForm = (ownerKey: string) => {
 
   return {
     selectedChunk,
+    session,
     isEditMode,
     editingChunkContent,
     editingImportantKwd,

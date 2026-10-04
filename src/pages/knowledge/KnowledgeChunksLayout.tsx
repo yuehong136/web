@@ -1,6 +1,5 @@
-import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Outlet, useNavigate, useParams } from 'react-router-dom'
+import { Link, Outlet, useParams } from 'react-router-dom'
 import { House } from 'lucide-react'
 import { WorkspacePageTemplate } from '@/components/page-templates'
 import { PageHeader } from '@/components/patterns'
@@ -12,25 +11,13 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
-import { knowledgeAPI } from '@/api/knowledge'
-import { documentKeys } from '@/hooks/use-document-request'
 import { ROUTES } from '@/constants'
 import { useFetchKnowledgeDetail } from '@/hooks/use-knowledge-request'
 
 const KnowledgeChunksLayout = () => {
   const { t } = useTranslation()
-  const { id, docId } = useParams<{ id: string; docId: string }>()
-  const navigate = useNavigate()
+  const { id } = useParams<{ id: string }>()
   const { knowledgeBase: currentKnowledgeBase } = useFetchKnowledgeDetail(id)
-
-  const { data: currentDocument } = useQuery({
-    queryKey: documentKeys.standaloneDetail(docId),
-    enabled: Boolean(docId),
-    queryFn: async () => knowledgeAPI.document.get(docId!),
-  })
-
-  const documentName =
-    currentDocument?.name || docId || t('knowledge.nav.documentFallback')
 
   return (
     <WorkspacePageTemplate
@@ -40,35 +27,40 @@ const KnowledgeChunksLayout = () => {
           compact
           surface="elevated"
           titleSize="md"
-          title={t('knowledge.nav.chunks')}
+          title={null}
           breadcrumb={
             <Breadcrumb aria-label={t('knowledge.nav.breadcrumbLabel')}>
               <BreadcrumbList>
                 <BreadcrumbItem>
-                  <BreadcrumbLink onClick={() => navigate(ROUTES.HOME)}>
-                    <House className="h-4 w-4" />
+                  <BreadcrumbLink asChild>
+                    <Link to={ROUTES.HOME} aria-label={t('layout.nav.home')}>
+                      <House className="size-icon-sm" />
+                    </Link>
                   </BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
-                  <BreadcrumbLink onClick={() => navigate(ROUTES.KNOWLEDGE)}>
-                    {t('knowledge.nav.knowledge')}
+                  <BreadcrumbLink asChild>
+                    <Link to={ROUTES.KNOWLEDGE}>
+                      {t('knowledge.nav.knowledge')}
+                    </Link>
                   </BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
-                  <BreadcrumbLink
-                    onClick={() => navigate(`/knowledge/${id}/documents`)}
-                  >
-                    {currentKnowledgeBase?.name ||
-                      t('knowledge.nav.documentFallback')}
+                  <BreadcrumbLink asChild>
+                    <Link
+                      to={`/knowledge/${id}/documents`}
+                      className="max-w-48 truncate"
+                    >
+                      {currentKnowledgeBase?.name ||
+                        t('knowledge.nav.documentFallback')}
+                    </Link>
                   </BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
-                  <BreadcrumbPage className="max-w-[320px] truncate">
-                    {documentName}
-                  </BreadcrumbPage>
+                  <BreadcrumbPage>{t('knowledge.nav.chunks')}</BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>

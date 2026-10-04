@@ -1,7 +1,4 @@
-import type { CSSProperties } from 'react'
 import type { Document } from '@/types/api'
-
-export type CSSVarStyle = CSSProperties & Record<`--${string}`, string>
 
 export type TextMode = 'full' | 'ellipse'
 

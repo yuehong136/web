@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react'
 import type { ChunkData } from '../types'
 
-export const useChunkSelection = () => {
+export const useChunkSelection = (ownerKey = '') => {
   const [selectedChunkIds, setSelectedChunkIds] = useState<string[]>([])
 
   const selectAll = useCallback((checked: boolean, ids: string[]) => {
@@ -21,13 +21,19 @@ export const useChunkSelection = () => {
     setSelectedChunkIds((prev) => (prev.length === 0 ? prev : []))
   }, [])
 
+  const [previousOwner, setPreviousOwner] = useState(ownerKey)
+  if (previousOwner !== ownerKey) {
+    setPreviousOwner(ownerKey)
+    clear()
+  }
+
   const isAllSelected = (filteredChunks: ChunkData[]) =>
     filteredChunks.length > 0 &&
-    selectedChunkIds.length === filteredChunks.length
+    filteredChunks.every((chunk) => selectedChunkIds.includes(chunk.chunk_id))
 
   const isPartialSelected = (filteredChunks: ChunkData[]) =>
-    selectedChunkIds.length > 0 &&
-    selectedChunkIds.length < filteredChunks.length
+    filteredChunks.some((chunk) => selectedChunkIds.includes(chunk.chunk_id)) &&
+    !isAllSelected(filteredChunks)
 
   return {
     selectedChunkIds,

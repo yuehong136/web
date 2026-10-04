@@ -1,14 +1,7 @@
-import { useState, type ReactNode } from 'react'
-import {
-  ChevronDown,
-  ChevronRight,
-  FileText,
-  PanelRightClose,
-  Tag,
-  X,
-} from 'lucide-react'
+import { useId, useState, type ReactNode } from 'react'
+import { ChevronDown, FileText, Tag, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Button, Card, Tooltip } from '@/components/ui'
+import { Button } from '@/components/ui'
 import { cn, formatDate } from '@/lib/utils'
 import { formatChunkFileSize } from '../utils'
 import type { ChunkData, ChunkListDocument } from '../types'
@@ -20,6 +13,7 @@ interface DocumentInfoPanelProps {
   onCollapsePanel: () => void
   onClearSelectedChunk: () => void
   onStartMetaAnnotation: () => void
+  disabled?: boolean
 }
 
 export const DocumentInfoPanel = ({
@@ -28,125 +22,115 @@ export const DocumentInfoPanel = ({
   onCollapsePanel,
   onClearSelectedChunk,
   onStartMetaAnnotation,
+  disabled = false,
 }: DocumentInfoPanelProps) => {
   const { t } = useTranslation()
   const [showParserConfig, setShowParserConfig] = useState(false)
+  const parserConfigId = useId()
 
   return (
-    <>
-      <div className="flex items-center justify-between border-b border-border-default bg-background-surface px-4 py-2">
-        <span className="text-sm font-medium text-text-primary">
+    <div className="flex h-full min-h-0 flex-col bg-background-surface">
+      <div className="flex shrink-0 items-center justify-between gap-space-base border-b border-border-default px-space-lg py-space-base">
+        <h2 className="text-base font-semibold text-text-primary">
           {t('knowledge.chunks.info.title')}
-        </span>
-        <Tooltip content={t('knowledge.chunks.info.collapsePanel')}>
-          <Button variant="ghost" size="sm" onClick={onCollapsePanel}>
-            <PanelRightClose className="h-4 w-4" />
-          </Button>
-        </Tooltip>
+        </h2>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={onCollapsePanel}
+          aria-label={t('common.close')}
+        >
+          <X className="size-icon-sm" />
+        </Button>
       </div>
 
-      {selectedChunk && (
-        <div className="border-b border-border-default p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm text-text-secondary">
-              <FileText className="h-4 w-4 text-text-accent" />
-              <span>{t('knowledge.chunks.info.selectedChunk')}</span>
-              <span
-                className={cn(
-                  'rounded px-1.5 py-0.5 text-xs',
-                  selectedChunk.available_int === 1
-                    ? 'bg-components-badge-success-bg text-components-badge-success-text'
-                    : 'bg-components-badge-error-bg text-components-badge-error-text',
-                )}
-              >
-                {selectedChunk.available_int === 1
-                  ? t('knowledge.chunks.list.statusEnabled')
-                  : t('knowledge.chunks.list.statusDisabled')}
-              </span>
-            </div>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              onClick={onClearSelectedChunk}
-            >
-              <X className="h-3 w-3" />
-            </Button>
-          </div>
-          <p className="mt-2 text-xs text-text-tertiary">
-            {t('knowledge.chunks.info.editHint')}
-          </p>
-        </div>
-      )}
-
-      <div className="h-full space-y-6 overflow-y-auto p-6 scrollbar-thin">
-        <Card>
-          <div className="p-4">
-            <h3 className="mb-4 text-lg font-medium text-text-primary">
-              {t('knowledge.chunks.info.metadataTitle')}
-            </h3>
-            <div className="space-y-4">
-              <div className="text-sm leading-relaxed text-text-secondary">
-                <p>{t('knowledge.chunks.info.metadataDescription')}</p>
+      <div className="scrollbar-thin min-h-0 flex-1 scrollbar-thumb-components-scrollbar-thumb scrollbar-track-transparent space-y-space-lg overflow-y-auto p-space-lg">
+        {selectedChunk && (
+          <section className="rounded-radius-lg border border-border-subtle p-space-base">
+            <div className="flex items-center justify-between gap-space-sm">
+              <div className="flex min-w-0 items-center gap-space-sm text-sm text-text-secondary">
+                <FileText className="size-icon-sm shrink-0" />
+                <span>{t('knowledge.chunks.info.selectedChunk')}</span>
+                <span
+                  className={cn(
+                    'shrink-0 rounded-radius-full px-space-sm py-space-2xs text-xs',
+                    selectedChunk.available_int === 1
+                      ? 'bg-status-success/10 text-status-success'
+                      : 'bg-background-subtle text-text-secondary',
+                  )}
+                >
+                  {selectedChunk.available_int === 1
+                    ? t('knowledge.chunks.list.statusEnabled')
+                    : t('knowledge.chunks.list.statusDisabled')}
+                </span>
               </div>
               <Button
-                variant="outline"
-                className="w-full"
-                onClick={onStartMetaAnnotation}
+                variant="ghost"
+                size="icon-sm"
+                onClick={onClearSelectedChunk}
+                aria-label={t('common.clear')}
               >
-                <Tag className="mr-2 h-4 w-4" />
-                {t('knowledge.chunks.info.startAnnotation')}
+                <X className="size-icon-sm" />
               </Button>
             </div>
+            <p className="mt-space-sm font-mono text-xs break-all text-text-tertiary">
+              {selectedChunk.chunk_id}
+            </p>
+          </section>
+        )}
+
+        <section>
+          <div className="mb-space-sm flex items-center justify-between gap-space-base">
+            <SectionTitle>
+              {t('knowledge.chunks.info.metadataTitle')}
+            </SectionTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onStartMetaAnnotation}
+              disabled={disabled || !docInfo}
+            >
+              <Tag className="size-icon-sm" />
+              {t('common.edit')}
+            </Button>
           </div>
-        </Card>
+          <MetadataSummary docInfo={docInfo} />
+        </section>
 
         {docInfo && (
-          <Card>
-            <div className="p-4">
-              <h3 className="mb-4 text-lg font-medium text-text-primary">
-                {t('knowledge.chunks.info.documentInfo')}
-              </h3>
-              <div className="space-y-4">
-                <MetadataSummary docInfo={docInfo} />
-                <FileSummary docInfo={docInfo} />
-                <TechnicalSummary
-                  docInfo={docInfo}
-                  showParserConfig={showParserConfig}
-                  onShowParserConfigChange={setShowParserConfig}
-                />
-              </div>
-            </div>
-          </Card>
-        )}
-      </div>
-    </>
-  )
-}
-
-const MetadataSummary = ({ docInfo }: { docInfo: ChunkListDocument }) => {
-  const { t } = useTranslation()
-  const metaFields = docInfo.meta_fields || {}
-
-  return (
-    <div>
-      <SectionTitle>{t('knowledge.chunks.info.metadataInfo')}</SectionTitle>
-      <div className="rounded-lg bg-background-subtle p-3">
-        {Object.keys(metaFields).length > 0 ? (
-          <div className="space-y-1 text-xs">
-            {Object.entries(metaFields).map(([key, value]) => (
-              <div key={key} className="flex justify-between">
-                <span className="text-text-secondary">{key}:</span>
-                <span className="text-text-primary">{String(value)}</span>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <span className="text-xs text-text-muted">
-            {t('knowledge.chunks.info.noMetadata')}
-          </span>
+          <>
+            <FileSummary docInfo={docInfo} />
+            <TechnicalSummary
+              docInfo={docInfo}
+              showParserConfig={showParserConfig}
+              onShowParserConfigChange={setShowParserConfig}
+              parserConfigId={parserConfigId}
+            />
+          </>
         )}
       </div>
     </div>
+  )
+}
+
+const MetadataSummary = ({
+  docInfo,
+}: {
+  docInfo: ChunkListDocument | null
+}) => {
+  const { t } = useTranslation()
+  const metaFields = docInfo?.meta_fields || {}
+
+  return Object.keys(metaFields).length > 0 ? (
+    <dl className="divide-y divide-border-subtle">
+      {Object.entries(metaFields).map(([key, value]) => (
+        <InfoRow key={key} label={key} value={String(value)} />
+      ))}
+    </dl>
+  ) : (
+    <p className="py-space-sm text-sm text-text-tertiary">
+      {t('knowledge.chunks.info.noMetadata')}
+    </p>
   )
 }
 
@@ -154,9 +138,9 @@ const FileSummary = ({ docInfo }: { docInfo: ChunkListDocument }) => {
   const { t } = useTranslation()
 
   return (
-    <div>
+    <section className="border-t border-border-subtle pt-space-lg">
       <SectionTitle>{t('knowledge.chunks.info.fileInfo')}</SectionTitle>
-      <div className="space-y-2 text-xs">
+      <dl className="mt-space-sm divide-y divide-border-subtle">
         <InfoRow
           label={t('knowledge.chunks.info.fileName')}
           value={docInfo.name}
@@ -177,8 +161,8 @@ const FileSummary = ({ docInfo }: { docInfo: ChunkListDocument }) => {
           label={t('knowledge.chunks.info.source')}
           value={docInfo.source_type}
         />
-      </div>
-    </div>
+      </dl>
+    </section>
   )
 }
 
@@ -186,57 +170,53 @@ interface TechnicalSummaryProps {
   docInfo: ChunkListDocument
   showParserConfig: boolean
   onShowParserConfigChange: (show: boolean) => void
+  parserConfigId: string
 }
 
 const TechnicalSummary = ({
   docInfo,
   showParserConfig,
   onShowParserConfigChange,
+  parserConfigId,
 }: TechnicalSummaryProps) => {
   const { t } = useTranslation()
 
   return (
-    <div>
+    <section className="border-t border-border-subtle pt-space-lg">
       <SectionTitle>{t('knowledge.chunks.info.technicalParams')}</SectionTitle>
-      <div className="space-y-2 text-xs">
+      <dl className="mt-space-sm">
         <InfoRow
           label={t('knowledge.chunks.info.chunkMethod')}
           value={docInfo.parser_id}
         />
-        <div className="flex items-center justify-between">
-          <span className="text-text-secondary">
-            {t('knowledge.chunks.info.parserConfig')}
-          </span>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onShowParserConfigChange(!showParserConfig)}
-            className="flex h-6 items-center gap-1 px-2 text-xs text-text-accent"
-          >
-            {showParserConfig ? (
-              <>
-                <ChevronDown className="h-3 w-3" />
-                {t('knowledge.chunks.info.collapse')}
-              </>
-            ) : (
-              <>
-                <ChevronRight className="h-3 w-3" />
-                {t('knowledge.chunks.info.expand')}
-              </>
-            )}
-          </Button>
-        </div>
-
-        {showParserConfig && docInfo.parser_config && (
+      </dl>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => onShowParserConfigChange(!showParserConfig)}
+        className="mt-space-sm w-full justify-between px-space-sm text-text-secondary"
+        aria-expanded={showParserConfig}
+        aria-controls={parserConfigId}
+      >
+        {t('knowledge.chunks.info.parserConfig')}
+        <ChevronDown
+          className={cn(
+            'size-icon-sm transition-transform',
+            showParserConfig && 'rotate-180',
+          )}
+        />
+      </Button>
+      <div id={parserConfigId} hidden={!showParserConfig}>
+        {docInfo.parser_config && (
           <ParserConfigDetails parserConfig={docInfo.parser_config} />
         )}
       </div>
-    </div>
+    </section>
   )
 }
 
 const SectionTitle = ({ children }: { children: ReactNode }) => (
-  <h4 className="mb-2 text-sm font-medium text-text-primary">{children}</h4>
+  <h3 className="text-sm font-semibold text-text-primary">{children}</h3>
 )
 
 interface InfoRowProps {
@@ -245,10 +225,10 @@ interface InfoRowProps {
 }
 
 const InfoRow = ({ label, value }: InfoRowProps) => (
-  <div className="flex justify-between">
-    <span className="text-text-secondary">{label}</span>
-    <span className="ml-2 break-all text-right font-medium text-text-primary">
-      {value}
-    </span>
+  <div className="grid grid-cols-3 gap-space-base py-space-sm text-sm">
+    <dt className="break-words text-text-tertiary">{label}</dt>
+    <dd className="col-span-2 min-w-0 text-right break-words text-text-primary">
+      {value || '—'}
+    </dd>
   </div>
 )

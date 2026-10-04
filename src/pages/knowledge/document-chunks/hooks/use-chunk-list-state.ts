@@ -1,5 +1,5 @@
-import { useCallback, useMemo, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useParams } from 'react-router-dom'
 import { knowledgeAPI } from '@/api/knowledge'
 import { documentKeys } from '@/hooks/use-document-request'
@@ -13,15 +13,31 @@ import type {
 
 export const useChunkListState = () => {
   const { id: kbId, docId } = useParams<{ id: string; docId: string }>()
+  const ownerKey = `${kbId}:${docId}`
+  const queryClient = useQueryClient()
 
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(20)
   const [filterStatus, setFilterStatus] = useState<ChunkFilterStatus>('all')
   const [searchKeyword, setSearchKeyword] = useState('')
   const [textMode, setTextMode] = useState<TextMode>('ellipse')
-  const [isSearchOpen, setIsSearchOpen] = useState(false)
 
-  const debouncedSearchKeyword = useDebouncedValue(searchKeyword.trim(), 400)
+  const debouncedSearch = useDebouncedValue(
+    `${ownerKey}\0${searchKeyword.trim()}`,
+    400,
+  )
+  const searchPrefix = `${ownerKey}\0`
+  const debouncedSearchKeyword = debouncedSearch.startsWith(searchPrefix)
+    ? debouncedSearch.slice(searchPrefix.length)
+    : ''
+
+  const [previousOwner, setPreviousOwner] = useState(ownerKey)
+  if (previousOwner !== ownerKey) {
+    setPreviousOwner(ownerKey)
+    setPage(1)
+    setFilterStatus('all')
+    setSearchKeyword('')
+  }
 
   const [previousFilter, setPreviousFilter] = useState({
     filterStatus,
@@ -45,6 +61,7 @@ export const useChunkListState = () => {
     data: chunkListData,
     isFetching,
     isLoading,
+    isPlaceholderData,
     error,
     refetch: refetchChunkList,
   } = useQuery({
@@ -80,6 +97,15 @@ export const useChunkListState = () => {
     [chunkListData],
   )
   const total = chunkListData?.total ?? 0
+  if (
+    chunkListData &&
+    chunkListData.chunks.length === 0 &&
+    !isPlaceholderData &&
+    !isFetching
+  ) {
+    const lastPage = Math.max(1, Math.ceil(total / pageSize))
+    if (page > lastPage) setPage(lastPage)
+  }
   const docInfo = (chunkListData?.doc ?? null) as ChunkListDocument | null
   const loading = (isLoading || isFetching) && !chunkListData
 
@@ -92,9 +118,24 @@ export const useChunkListState = () => {
     )
   }, [chunks, filterStatus])
 
+  const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(
+    () => () => {
+      if (refreshTimer.current) clearTimeout(refreshTimer.current)
+    },
+    [ownerKey],
+  )
   const delayedRefetchChunkList = useCallback(() => {
-    setTimeout(() => refetchChunkList(), 500)
-  }, [refetchChunkList])
+    if (!kbId || !docId) return
+    if (refreshTimer.current) clearTimeout(refreshTimer.current)
+    refreshTimer.current = setTimeout(() => {
+      refreshTimer.current = null
+      void queryClient.invalidateQueries({
+        queryKey: documentKeys.documentChunkList(docId),
+        predicate: (query) => query.meta?.kbId === kbId,
+      })
+    }, 500)
+  }, [docId, kbId, queryClient])
 
   return {
     kbId,
@@ -105,18 +146,18 @@ export const useChunkListState = () => {
     searchKeyword,
     debouncedSearchKeyword,
     textMode,
-    isSearchOpen,
     setPage,
     setPageSize,
     setFilterStatus,
     setSearchKeyword,
     setTextMode,
-    setIsSearchOpen,
     chunks,
     filteredChunks,
     total,
     docInfo,
     loading,
+    isRefreshing: isFetching && Boolean(chunkListData),
+    isPlaceholderData,
     error,
     refetchChunkList,
     delayedRefetchChunkList,

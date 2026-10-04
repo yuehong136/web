@@ -1115,6 +1115,17 @@ export default {
       },
     },
     chunks: {
+      workspace: {
+        source: '原文对照',
+        description: '检查切片内容与检索状态，点击正文展开阅读。',
+        previewUnavailable:
+          '暂时无法读取原文。可以重试，或关闭预览继续审阅切片。',
+      },
+      pagination: {
+        range: '{{start}}–{{end}} / {{total}} 个切片',
+        page: '第 {{page}} / {{total}} 页',
+        pageSize: '每页切片数',
+      },
       errors: {
         toggleStatus: '切换分段状态失败，请重试',
         create: '创建分段失败，请重试',
@@ -1126,12 +1137,18 @@ export default {
         saveMeta: '保存元数据失败，请重试',
       },
       toolbar: {
+        clearSearch: '清空搜索',
+        displayMode: '正文显示方式',
+        selectPage: '选择本页',
+        selected: '已选 {{count}} 个',
+        clearSelection: '取消选择',
+        updating: '更新中…',
         showPreview: '显示文档预览',
         fullText: '全文',
-        ellipsis: '省略',
+        ellipsis: '摘要',
         search: '搜索',
         closeSearch: '关闭搜索',
-        searchPlaceholder: '搜索分段内容...',
+        searchPlaceholder: '搜索切片内容…',
         filter: '筛选',
         filterAll: '全部',
         filterEnabled: '已启用',
@@ -1146,6 +1163,8 @@ export default {
         filterSummary: '（筛选：{{status}}）',
       },
       list: {
+        inspectChunk: '查看切片 #{{no}}',
+        characters: '{{count}} 字符',
         loading: '加载中...',
         loadError: '加载分段失败，请稍后重试',
         retry: '重试',

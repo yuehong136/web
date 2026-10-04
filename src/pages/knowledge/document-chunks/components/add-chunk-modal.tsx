@@ -24,6 +24,8 @@ interface AddChunkModalProps {
   image: UploadFile[]
   onImageChange: (files: UploadFile[]) => void
   onCreate: () => void
+  isPending?: boolean
+  canSubmit?: boolean
 }
 
 export const AddChunkModal = ({
@@ -38,17 +40,26 @@ export const AddChunkModal = ({
   image,
   onImageChange,
   onCreate,
+  isPending = false,
+  canSubmit = true,
 }: AddChunkModalProps) => {
   const { t } = useTranslation()
 
   return (
     <Modal
       open={open}
-      onClose={onClose}
+      onClose={() => {
+        if (!isPending) onClose()
+      }}
       title={t('knowledge.chunks.modal.addTitle')}
       size="lg"
     >
-      <div className="space-y-5">
+      <fieldset
+        disabled={isPending}
+        inert={isPending}
+        className="space-y-5"
+        aria-busy={isPending}
+      >
         <div>
           <span
             id="new-chunk-content-label"
@@ -128,15 +139,19 @@ export const AddChunkModal = ({
         />
 
         <div className="flex justify-end space-x-3 pt-2">
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={onClose} disabled={isPending}>
             {t('knowledge.chunks.modal.cancel')}
           </Button>
-          <Button onClick={onCreate} disabled={!content.trim()}>
+          <Button
+            onClick={onCreate}
+            disabled={!canSubmit || !content.trim()}
+            loading={isPending}
+          >
             <Plus className="mr-2 h-4 w-4" />
             {t('knowledge.chunks.modal.addChunk')}
           </Button>
         </div>
-      </div>
+      </fieldset>
     </Modal>
   )
 }

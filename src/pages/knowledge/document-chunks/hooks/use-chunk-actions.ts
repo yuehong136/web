@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef, useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { knowledgeAPI } from '@/api/knowledge'
 import { MutationErrorFeedback } from '@/lib/mutation-error-feedback'
@@ -9,120 +10,169 @@ interface UseChunkActionsOptions {
   onBulkMutationSuccess?: () => void
 }
 
+interface ChunkOwner {
+  kb_id: string
+  doc_id: string
+}
+
+interface OwnedRequest<T> {
+  request: T & ChunkOwner
+  onSuccess: () => void
+}
+
+interface ChunkContent {
+  content_with_weight: string
+  important_kwd?: string[]
+  question_kwd?: string[]
+  image_base64?: string
+}
+
+const mutationMeta = { errorFeedback: MutationErrorFeedback.Local }
+const complete = (_data: unknown, variables: { onSuccess: () => void }) =>
+  variables.onSuccess()
+
 export const useChunkActions = ({
   kbId,
   docId,
   onMutationSuccess,
   onBulkMutationSuccess,
 }: UseChunkActionsOptions) => {
+  const ownerKey = `${kbId}:${docId}`
+  const [scope, setScope] = useState({ key: ownerKey, generation: 0 })
+  if (scope.key !== ownerKey) {
+    setScope({ key: ownerKey, generation: scope.generation + 1 })
+  }
+  const owner = useRef<typeof scope | null>(scope)
+  useLayoutEffect(() => {
+    owner.current = scope
+    return () => {
+      owner.current = null
+    }
+  }, [scope])
+  const ownerGeneration = scope.generation
+
+  // The request carries its owner, even if a later render updates mutation options.
+  const capture = <T>(params: T, bulk = false): OwnedRequest<T> => {
+    if (!kbId || !docId) throw new Error('Document owner is required')
+    return {
+      request: { ...params, kb_id: kbId, doc_id: docId },
+      onSuccess: () => {
+        if (owner.current?.generation !== ownerGeneration) return
+        onMutationSuccess()
+        if (bulk) {
+          onBulkMutationSuccess?.()
+        }
+      },
+    }
+  }
+
   const switchChunkMutation = useMutation({
-    meta: { errorFeedback: MutationErrorFeedback.Local },
-    mutationFn: async (params: { chunkId: string; availableInt: number }) => {
-      if (!kbId || !docId) return false
-      return knowledgeAPI.document.switchChunks({
-        kb_id: kbId,
-        doc_id: docId,
-        chunk_ids: [params.chunkId],
-        available_int: params.availableInt,
-      })
-    },
-    onSuccess: onMutationSuccess,
+    meta: mutationMeta,
+    mutationFn: ({
+      request,
+    }: OwnedRequest<{
+      chunk_ids: string[]
+      available_int: number
+    }>) => knowledgeAPI.document.switchChunks(request),
+    onSuccess: complete,
   })
-
   const bulkSwitchChunksMutation = useMutation({
-    meta: { errorFeedback: MutationErrorFeedback.Local },
-    mutationFn: async (params: {
-      chunkIds: string[]
-      availableInt: number
-    }) => {
-      if (!kbId || !docId) return false
-      return knowledgeAPI.document.switchChunks({
-        kb_id: kbId,
-        doc_id: docId,
-        chunk_ids: params.chunkIds,
-        available_int: params.availableInt,
-      })
+    meta: mutationMeta,
+    mutationFn: ({
+      request,
+    }: OwnedRequest<{
+      chunk_ids: string[]
+      available_int: number
+    }>) => knowledgeAPI.document.switchChunks(request),
+    onSuccess: complete,
+  })
+  const setChunkMutation = useMutation({
+    meta: mutationMeta,
+    mutationFn: ({
+      request,
+    }: OwnedRequest<ChunkContent & { chunk_id: string }>) =>
+      knowledgeAPI.document.setChunk(request),
+    onSuccess: complete,
+  })
+  const deleteChunksMutation = useMutation({
+    meta: mutationMeta,
+    mutationFn: ({ request }: OwnedRequest<{ chunk_ids: string[] }>) =>
+      knowledgeAPI.document.deleteChunks(request),
+    onSuccess: complete,
+  })
+  const createChunkMutation = useMutation({
+    meta: mutationMeta,
+    mutationFn: ({ request }: OwnedRequest<ChunkContent>) =>
+      knowledgeAPI.document.createChunk({ ...request, available_int: 1 }),
+    onSuccess: complete,
+  })
+  const setMetaMutation = useMutation({
+    meta: mutationMeta,
+    mutationFn: async ({
+      request,
+    }: OwnedRequest<{ meta: Record<string, unknown> }>) => {
+      await knowledgeAPI.metadata.updateDocumentMeta(
+        request.kb_id,
+        request.doc_id,
+        request.meta,
+      )
+      return true
     },
-    onSuccess: () => {
-      onBulkMutationSuccess?.()
-      onMutationSuccess()
-    },
+    onSuccess: complete,
   })
 
-  const setChunkMutation = useMutation({
-    meta: { errorFeedback: MutationErrorFeedback.Local },
-    mutationFn: async (params: {
+  return {
+    toggleChunkStatus: (params: { chunkId: string; availableInt: number }) =>
+      switchChunkMutation.mutateAsync(
+        capture({
+          chunk_ids: [params.chunkId],
+          available_int: params.availableInt,
+        }),
+      ),
+    bulkSwitchChunks: (params: { chunkIds: string[]; availableInt: number }) =>
+      bulkSwitchChunksMutation.mutateAsync(
+        capture(
+          {
+            chunk_ids: [...params.chunkIds],
+            available_int: params.availableInt,
+          },
+          true,
+        ),
+      ),
+    setChunk: (params: {
       chunkId: string
       content: string
       important_kwd?: string[]
       question_kwd?: string[]
       image_base64?: string
     }) => {
-      if (!kbId || !docId) return false
-      return knowledgeAPI.document.setChunk({
-        kb_id: kbId,
-        doc_id: docId,
-        chunk_id: params.chunkId,
-        content_with_weight: params.content,
-        important_kwd: params.important_kwd,
-        question_kwd: params.question_kwd,
-        image_base64: params.image_base64,
-      })
+      const { chunkId, content, ...fields } = params
+      return setChunkMutation.mutateAsync(
+        capture({
+          ...fields,
+          chunk_id: chunkId,
+          content_with_weight: content,
+        }),
+      )
     },
-  })
-
-  const deleteChunksMutation = useMutation({
-    meta: { errorFeedback: MutationErrorFeedback.Local },
-    mutationFn: async (chunkIds: string[]) => {
-      if (!kbId || !docId) return false
-      return knowledgeAPI.document.deleteChunks({
-        kb_id: kbId,
-        doc_id: docId,
-        chunk_ids: chunkIds,
-      })
-    },
-    onSuccess: onMutationSuccess,
-  })
-
-  const createChunkMutation = useMutation({
-    meta: { errorFeedback: MutationErrorFeedback.Local },
-    mutationFn: async (params: {
+    deleteChunks: (chunkIds: string[]) =>
+      deleteChunksMutation.mutateAsync(capture({ chunk_ids: [...chunkIds] })),
+    createChunk: (params: {
       content: string
       important_kwd?: string[]
       question_kwd?: string[]
       image_base64?: string
     }) => {
-      if (!kbId || !docId) return false
-      return knowledgeAPI.document.createChunk({
-        kb_id: kbId,
-        doc_id: docId,
-        content_with_weight: params.content,
-        important_kwd: params.important_kwd,
-        question_kwd: params.question_kwd,
-        image_base64: params.image_base64,
-        available_int: 1,
-      })
+      const { content, ...fields } = params
+      return createChunkMutation.mutateAsync(
+        capture({
+          ...fields,
+          content_with_weight: content,
+        }),
+      )
     },
-    onSuccess: onMutationSuccess,
-  })
-
-  const setMetaMutation = useMutation({
-    meta: { errorFeedback: MutationErrorFeedback.Local },
-    mutationFn: async (meta: Record<string, unknown>) => {
-      if (!docId || !kbId) return false
-      await knowledgeAPI.metadata.updateDocumentMeta(kbId, docId, meta)
-      return true
-    },
-    onSuccess: onMutationSuccess,
-  })
-
-  return {
-    toggleChunkStatus: switchChunkMutation.mutateAsync,
-    bulkSwitchChunks: bulkSwitchChunksMutation.mutateAsync,
-    setChunk: setChunkMutation.mutateAsync,
-    deleteChunks: deleteChunksMutation.mutateAsync,
-    createChunk: createChunkMutation.mutateAsync,
-    setMeta: setMetaMutation.mutateAsync,
+    setMeta: (meta: Record<string, unknown>) =>
+      setMetaMutation.mutateAsync(capture({ meta })),
     isToggleChunkPending: switchChunkMutation.isPending,
     isBulkSwitchPending: bulkSwitchChunksMutation.isPending,
     isSetChunkPending: setChunkMutation.isPending,

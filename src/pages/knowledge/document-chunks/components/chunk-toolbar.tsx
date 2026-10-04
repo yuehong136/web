@@ -1,15 +1,16 @@
 import {
-  CheckCircle,
   Ban,
+  Check,
+  CheckCircle,
+  ChevronDown,
   ListFilter,
-  PanelLeftOpen,
-  Plus,
   Search,
   Trash2,
   X,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Button, Checkbox, Input, Label, Tooltip } from '@/components/ui'
+import { Button, Checkbox, Input, Label } from '@/components/ui'
+import { PageToolbar } from '@/components/patterns'
 import {
   Popover,
   PopoverContent,
@@ -22,10 +23,6 @@ import type { ChunkFilterStatus, TextMode } from '../types'
 interface ChunkToolbarProps {
   textMode: TextMode
   onTextModeChange: (mode: TextMode) => void
-  isPreviewPanelOpen: boolean
-  onOpenPreviewPanel: () => void
-  isSearchOpen: boolean
-  onSearchOpenChange: (open: boolean) => void
   searchKeyword: string
   onSearchKeywordChange: (keyword: string) => void
   filterStatus: ChunkFilterStatus
@@ -41,16 +38,14 @@ interface ChunkToolbarProps {
   onBulkDeleteClick: () => void
   isBulkSwitchPending: boolean
   isDeletePending: boolean
-  onAddChunk: () => void
+  disabled?: boolean
+  isRefreshing?: boolean
+  onClearSelection?: () => void
 }
 
 export const ChunkToolbar = ({
   textMode,
   onTextModeChange,
-  isPreviewPanelOpen,
-  onOpenPreviewPanel,
-  isSearchOpen,
-  onSearchOpenChange,
   searchKeyword,
   onSearchKeywordChange,
   filterStatus,
@@ -66,251 +61,195 @@ export const ChunkToolbar = ({
   onBulkDeleteClick,
   isBulkSwitchPending,
   isDeletePending,
-  onAddChunk,
+  disabled = false,
+  isRefreshing = false,
+  onClearSelection,
 }: ChunkToolbarProps) => {
   const { t } = useTranslation()
-  const filterLabel =
-    filterStatus === 'enabled'
-      ? t('knowledge.chunks.toolbar.filterEnabled')
-      : t('knowledge.chunks.toolbar.filterDisabled')
+  const filterLabels = {
+    all: t('knowledge.chunks.toolbar.filterAll'),
+    enabled: t('knowledge.chunks.toolbar.filterEnabled'),
+    disabled: t('knowledge.chunks.toolbar.filterDisabled'),
+  }
+  const mutationPending = disabled || isBulkSwitchPending || isDeletePending
 
   return (
-    <div className="border-b border-border-default px-4 py-3">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          {!isPreviewPanelOpen && (
-            <Tooltip content={t('knowledge.chunks.toolbar.showPreview')}>
+    <div className="shrink-0 bg-background-surface">
+      <PageToolbar
+        wrap
+        className="gap-space-sm py-space-base"
+        left={
+          <div className="relative w-full max-w-sm min-w-0">
+            <Input
+              type="search"
+              aria-label={t('knowledge.chunks.toolbar.search')}
+              placeholder={t('knowledge.chunks.toolbar.searchPlaceholder')}
+              value={searchKeyword}
+              onChange={(event) => onSearchKeywordChange(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Escape') onSearchKeywordChange('')
+                if (event.key === 'Enter') event.preventDefault()
+              }}
+              leftIcon={<Search className="size-icon-sm" />}
+              className="h-9 rounded-radius-md pr-space-xl text-sm"
+              inputSize="sm"
+            />
+            {searchKeyword && (
               <Button
                 variant="ghost"
-                size="sm"
-                onClick={onOpenPreviewPanel}
-                className="hidden lg:flex"
-                aria-label={t('knowledge.chunks.toolbar.showPreview')}
+                size="icon-sm"
+                className="absolute top-0.5 right-0.5"
+                onClick={() => onSearchKeywordChange('')}
+                aria-label={t('knowledge.chunks.toolbar.clearSearch')}
               >
-                <PanelLeftOpen className="h-4 w-4" />
+                <X className="size-icon-sm" />
               </Button>
-            </Tooltip>
-          )}
-
-          <Segmented
-            value={textMode}
-            onValueChange={(value) => onTextModeChange(value as TextMode)}
-          >
-            <SegmentedItem value="full">
-              {t('knowledge.chunks.toolbar.fullText')}
-            </SegmentedItem>
-            <SegmentedItem value="ellipse">
-              {t('knowledge.chunks.toolbar.ellipsis')}
-            </SegmentedItem>
-          </Segmented>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {isSearchOpen ? (
-            <div className="flex items-center gap-2">
-              <Input
-                type="search"
-                placeholder={t('knowledge.chunks.toolbar.searchPlaceholder')}
-                value={searchKeyword}
-                onChange={(event) => onSearchKeywordChange(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter') {
-                    event.preventDefault()
-                  }
-                  if (event.key === 'Escape') {
-                    onSearchOpenChange(false)
-                    onSearchKeywordChange('')
-                  }
-                }}
-                leftIcon={<Search className="h-4 w-4" />}
-                className="w-48"
-                autoFocus
-              />
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  onSearchOpenChange(false)
-                  onSearchKeywordChange('')
-                }}
-                aria-label={t('knowledge.chunks.toolbar.closeSearch')}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          ) : (
-            <Tooltip content={t('knowledge.chunks.toolbar.search')}>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onSearchOpenChange(true)}
-                aria-label={t('knowledge.chunks.toolbar.search')}
-              >
-                <Search className="h-4 w-4" />
-              </Button>
-            </Tooltip>
-          )}
-
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className={cn(filterStatus !== 'all' && 'text-text-accent')}
-                aria-label={t('knowledge.chunks.toolbar.filter')}
-              >
-                <ListFilter className="h-4 w-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-48 p-2" align="end">
-              <div className="flex flex-col gap-1">
-                <FilterOption
-                  active={filterStatus === 'all'}
-                  onClick={() => onFilterStatusChange('all')}
-                  label={t('knowledge.chunks.toolbar.filterAll')}
-                  count={total}
-                />
-                <FilterOption
-                  active={filterStatus === 'enabled'}
-                  onClick={() => onFilterStatusChange('enabled')}
-                  label={t('knowledge.chunks.toolbar.filterEnabled')}
-                  tone="success"
-                />
-                <FilterOption
-                  active={filterStatus === 'disabled'}
-                  onClick={() => onFilterStatusChange('disabled')}
-                  label={t('knowledge.chunks.toolbar.filterDisabled')}
-                  tone="error"
-                />
-              </div>
-            </PopoverContent>
-          </Popover>
-
-          <Tooltip content={t('knowledge.chunks.toolbar.addChunk')}>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onAddChunk}
-              aria-label={t('knowledge.chunks.toolbar.addChunk')}
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
-          </Tooltip>
-        </div>
-      </div>
-
-      <div className="mt-3 flex items-center gap-8 border-t border-border-subtle py-2">
-        <div className="flex cursor-pointer items-center gap-2 text-text-secondary hover:text-text-primary">
-          <Checkbox
-            id="select-all-chunks"
-            checked={isAllSelected}
-            indeterminate={isPartialSelected}
-            onCheckedChange={onSelectAll}
-          />
-          <Label htmlFor="select-all-chunks" className="cursor-pointer text-sm">
-            {t('knowledge.chunks.toolbar.selectAll')}
-          </Label>
-          {hasSelected && (
-            <span className="ml-1 text-xs text-text-tertiary">
-              ({selectedCount})
-            </span>
-          )}
-        </div>
-
-        {hasSelected && (
+            )}
+          </div>
+        }
+        right={
           <>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onBulkEnable}
-              disabled={isBulkSwitchPending}
-              className="gap-1 text-text-secondary hover:text-text-primary"
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  aria-label={t('knowledge.chunks.toolbar.filter')}
+                  className={cn(
+                    filterStatus !== 'all' &&
+                      'border-state-focus-subtle bg-state-focus-10',
+                  )}
+                >
+                  <ListFilter className="size-icon-sm" />
+                  {filterStatus === 'all'
+                    ? t('knowledge.chunks.toolbar.filter')
+                    : filterLabels[filterStatus]}
+                  <ChevronDown className="size-icon-xs" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-48 p-space-xs" align="end">
+                <div className="flex flex-col gap-space-xs">
+                  {(['all', 'enabled', 'disabled'] as const).map((status) => (
+                    <button
+                      key={status}
+                      type="button"
+                      aria-pressed={filterStatus === status}
+                      onClick={() => onFilterStatusChange(status)}
+                      className={cn(
+                        'flex items-center gap-space-sm rounded-radius-md px-space-md py-space-sm text-left text-sm focus-visible:ring-1 focus-visible:ring-state-focus focus-visible:outline-none',
+                        filterStatus === status
+                          ? 'bg-state-selected-bg text-state-selected-text'
+                          : 'text-text-secondary hover:bg-state-hover',
+                      )}
+                    >
+                      <span className="flex-1">{filterLabels[status]}</span>
+                      {filterStatus === status && (
+                        <Check className="size-icon-sm" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+            <Segmented
+              value={textMode}
+              onValueChange={(value) => onTextModeChange(value as TextMode)}
+              aria-label={t('knowledge.chunks.toolbar.displayMode')}
             >
-              <CheckCircle className="h-4 w-4" />
-              <span>{t('knowledge.chunks.toolbar.enable')}</span>
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onBulkDisable}
-              disabled={isBulkSwitchPending}
-              className="gap-1 text-text-secondary hover:text-text-primary"
-            >
-              <Ban className="h-4 w-4" />
-              <span>{t('knowledge.chunks.toolbar.disable')}</span>
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onBulkDeleteClick}
-              disabled={isDeletePending}
-              className="gap-1 text-text-error hover:text-text-error/80"
-            >
-              <Trash2 className="h-4 w-4" />
-              <span>{t('knowledge.chunks.toolbar.delete')}</span>
-            </Button>
+              <SegmentedItem value="ellipse">
+                {t('knowledge.chunks.toolbar.ellipsis')}
+              </SegmentedItem>
+              <SegmentedItem value="full">
+                {t('knowledge.chunks.toolbar.fullText')}
+              </SegmentedItem>
+            </Segmented>
           </>
+        }
+      />
+      <PageToolbar
+        wrap
+        className={cn(
+          'min-h-12 gap-space-sm py-space-sm',
+          hasSelected && 'bg-state-focus-10',
         )}
-
-        <div className="ml-auto text-sm text-text-tertiary">
-          {t('knowledge.chunks.toolbar.totalChunks', { count: total })}
-          {searchKeyword.trim() && (
-            <span className="ml-2 text-text-accent">
-              {t('knowledge.chunks.toolbar.searchSummary', {
-                keyword: searchKeyword.trim(),
-              })}
+        left={
+          <div className="flex min-w-0 flex-wrap items-center gap-space-sm">
+            <Checkbox
+              id="select-all-chunks"
+              checked={isAllSelected}
+              indeterminate={isPartialSelected}
+              onCheckedChange={onSelectAll}
+              disabled={mutationPending || total === 0}
+            />
+            <Label
+              htmlFor="select-all-chunks"
+              className="cursor-pointer text-xs whitespace-nowrap text-text-secondary"
+            >
+              {t('knowledge.chunks.toolbar.selectPage')}
+            </Label>
+            <span
+              className="text-xs whitespace-nowrap text-text-caption"
+              aria-live="polite"
+            >
+              {hasSelected
+                ? t('knowledge.chunks.toolbar.selected', {
+                    count: selectedCount,
+                  })
+                : t('knowledge.chunks.toolbar.totalChunks', { count: total })}
             </span>
-          )}
-          {filterStatus !== 'all' && (
-            <span className="ml-2 text-text-accent">
-              {t('knowledge.chunks.toolbar.filterSummary', {
-                status: filterLabel,
-              })}
-            </span>
-          )}
-        </div>
-      </div>
+            {isRefreshing && (
+              <span role="status" className="text-xs text-text-caption">
+                {t('knowledge.chunks.toolbar.updating')}
+              </span>
+            )}
+          </div>
+        }
+        right={
+          hasSelected ? (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onBulkEnable}
+                disabled={mutationPending}
+              >
+                <CheckCircle className="size-icon-sm" />
+                {t('knowledge.chunks.toolbar.enable')}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onBulkDisable}
+                disabled={mutationPending}
+              >
+                <Ban className="size-icon-sm" />
+                {t('knowledge.chunks.toolbar.disable')}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onBulkDeleteClick}
+                disabled={mutationPending}
+                className="text-status-error"
+              >
+                <Trash2 className="size-icon-sm" />
+                {t('knowledge.chunks.toolbar.delete')}
+              </Button>
+              {onClearSelection && (
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={onClearSelection}
+                  disabled={mutationPending}
+                  aria-label={t('knowledge.chunks.toolbar.clearSelection')}
+                >
+                  <X className="size-icon-sm" />
+                </Button>
+              )}
+            </>
+          ) : undefined
+        }
+      />
     </div>
   )
 }
-
-interface FilterOptionProps {
-  active: boolean
-  onClick: () => void
-  label: string
-  count?: number
-  tone?: 'success' | 'error'
-}
-
-const FilterOption = ({
-  active,
-  onClick,
-  label,
-  count,
-  tone,
-}: FilterOptionProps) => (
-  <button
-    type="button"
-    aria-pressed={active}
-    onClick={onClick}
-    className={cn(
-      'flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm transition-colors',
-      active
-        ? 'bg-state-active text-text-primary'
-        : 'text-text-secondary hover:bg-state-hover',
-    )}
-  >
-    {tone && (
-      <span
-        className={cn(
-          'h-2 w-2 rounded-full',
-          tone === 'success' ? 'bg-status-success' : 'bg-status-error',
-        )}
-      />
-    )}
-    <span className="flex-1">{label}</span>
-    {count !== undefined && (
-      <span className="text-xs text-text-tertiary">{count}</span>
-    )}
-  </button>
-)

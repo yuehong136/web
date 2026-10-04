@@ -10,6 +10,7 @@ interface ChunkDeleteConfirmsProps {
   onDeleteSelectedConfirmClose: () => void
   onDeleteSelectedConfirm: () => void
   selectedChunkCount: number
+  isPending?: boolean
 }
 
 export const ChunkDeleteConfirms = ({
@@ -21,6 +22,7 @@ export const ChunkDeleteConfirms = ({
   onDeleteSelectedConfirmClose,
   onDeleteSelectedConfirm,
   selectedChunkCount,
+  isPending = false,
 }: ChunkDeleteConfirmsProps) => {
   const { t } = useTranslation()
 
@@ -28,8 +30,14 @@ export const ChunkDeleteConfirms = ({
     <>
       <ConfirmModal
         open={deleteConfirmOpen}
-        onClose={onDeleteConfirmClose}
+        onClose={() => {
+          if (!isPending) onDeleteConfirmClose()
+        }}
         onConfirm={onDeleteConfirm}
+        loading={isPending}
+        variant="destructive"
+        confirmText={t('common.delete')}
+        cancelText={t('common.cancel')}
         title={t('knowledge.chunks.modal.deleteTitle')}
         description={t('knowledge.chunks.modal.deleteDescription', {
           id: deletingChunkId,
@@ -38,8 +46,14 @@ export const ChunkDeleteConfirms = ({
 
       <ConfirmModal
         open={deleteSelectedConfirmOpen}
-        onClose={onDeleteSelectedConfirmClose}
+        onClose={() => {
+          if (!isPending) onDeleteSelectedConfirmClose()
+        }}
         onConfirm={onDeleteSelectedConfirm}
+        loading={isPending}
+        variant="destructive"
+        confirmText={t('common.delete')}
+        cancelText={t('common.cancel')}
         title={t('knowledge.chunks.modal.bulkDeleteTitle')}
         description={t('knowledge.chunks.modal.bulkDeleteDescription', {
           count: selectedChunkCount,

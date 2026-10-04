@@ -1,4 +1,4 @@
-import { act, useEffect } from 'react'
+import { act, useEffect, useState } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { MemoryRouter, Routes, Route, useNavigate } from 'react-router-dom'
 import { QueryClientProvider } from '@tanstack/react-query'
@@ -11,7 +11,15 @@ import type { UserInfo } from '@/types/api'
 import { DocumentImage } from '@/components/knowledge/document-image'
 import { ChunkEditOverlay } from '../components/chunk-edit-overlay'
 import { useDocumentChunksController } from '../hooks/use-document-chunks-controller'
+import * as utilities from '@/lib/utils'
+import type { UploadFile } from '@/components/ui/file-uploader'
 import type { ChunkData } from '../types'
+import { ChunkSideSheet } from '../components/document-chunks-shell'
+import { ChunkMetadataModal } from '../components/chunk-metadata-modal'
+
+vi.mock('@/components/knowledge/document-preview', () => ({
+  DocumentPreview: () => null,
+}))
 
 const KB = 'a'.repeat(32)
 const PNG = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 0])
@@ -241,4 +249,334 @@ it('aborts a pending old image when the route changes and ignores its late respo
   await settle()
   expect(URL.createObjectURL).toHaveBeenCalledTimes(created)
   expect(container.querySelector('img')?.getAttribute('alt')).toBe('doc-new')
+})
+
+it('resets document-owned selection, forms, delete dialogs, and pagination on navigation', async () => {
+  await act(async () => {
+    controller.selection.toggleSingle(controller.list.chunks[0].chunk_id, true)
+    controller.addForm.open()
+    controller.addForm.setContent('Draft for document A')
+    controller.handleStartMetaAnnotation()
+    controller.metaForm.addField()
+    controller.deleteState.openDeleteSingle(controller.list.chunks[0].chunk_id)
+    controller.deleteState.openBulkDelete()
+    controller.list.setPage(2)
+  })
+  await settle()
+  await act(async () => navigate(`/knowledge/${KB}/documents/doc-b/chunks`))
+  await settle()
+  expect(controller.list.page).toBe(1)
+  expect(controller.selection.selectedChunkIds).toEqual([])
+  expect(controller.addForm.addChunkModalOpen).toBe(false)
+  expect(controller.addForm.content).toBe('')
+  expect(controller.metaForm.metaModalOpen).toBe(false)
+  expect(controller.metaForm.editingMeta).toEqual([])
+  expect(controller.deleteState.deleteConfirmOpen).toBe(false)
+  expect(controller.deleteState.deleteSelectedConfirmOpen).toBe(false)
+  expect(controller.deleteState.deletingChunkId).toBe('')
+})
+
+it('clears an uploaded replacement when another chunk is selected or edited', async () => {
+  const document = list('doc-a')
+  document.chunks.push({ ...document.chunks[0], chunk_id: 'other-chunk' })
+  vi.mocked(knowledgeAPI.document.listChunks).mockResolvedValue(
+    document as never,
+  )
+  await act(async () => controller.list.refetchChunkList())
+  const file = new File(['replacement'], 'replacement.png', {
+    type: 'image/png',
+  })
+  await act(async () => controller.handleStartEdit(controller.list.chunks[0]))
+  await act(async () => controller.editForm.setEditingImage([file]))
+  await act(async () => controller.handleStartEdit(controller.list.chunks[1]))
+  expect(controller.editForm.editingImage).toEqual([])
+  expect(controller.editForm.selectedChunk?.chunk_id).toBe('other-chunk')
+  await act(async () => controller.editForm.setEditingImage([file]))
+  await act(async () => controller.handleSelectChunk(controller.list.chunks[0]))
+  expect(controller.editForm.isEditMode).toBe(false)
+  expect(controller.editForm.editingImage).toEqual([])
+})
+
+it('does not submit a superseded image conversion into another document', async () => {
+  let finishImage!: (image: string) => void
+  vi.spyOn(utilities, 'fileToBase64').mockImplementation(
+    () =>
+      new Promise((resolve) => {
+        finishImage = resolve
+      }),
+  )
+  const create = vi
+    .spyOn(knowledgeAPI.document, 'createChunk')
+    .mockResolvedValue(true)
+  await act(async () => {
+    controller.addForm.open()
+    controller.addForm.setContent('Document A draft')
+    controller.addForm.setImage([
+      new File(['image'], 'image.png', { type: 'image/png' }) as UploadFile,
+    ])
+  })
+  let first!: Promise<void>
+  await act(async () => {
+    first = controller.handleCreateChunk()
+  })
+  expect(controller.pending.create).toBe(true)
+  await act(async () => controller.handleCreateChunk())
+  expect(utilities.fileToBase64).toHaveBeenCalledTimes(1)
+  await act(async () => navigate(`/knowledge/${KB}/documents/doc-b/chunks`))
+  await settle()
+  await act(async () => {
+    controller.addForm.open()
+    controller.addForm.setContent('Document B draft')
+  })
+  await act(async () => {
+    finishImage('aW1hZ2U=')
+    await first
+  })
+  expect(create).not.toHaveBeenCalled()
+  expect(controller.addForm.addChunkModalOpen).toBe(true)
+  expect(controller.addForm.content).toBe('Document B draft')
+  expect(controller.pending.create).toBe(false)
+})
+
+it('keeps the submitted document owner and preserves a newer form after late success', async () => {
+  let finishCreate!: (result: boolean) => void
+  const create = vi
+    .spyOn(knowledgeAPI.document, 'createChunk')
+    .mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          finishCreate = resolve
+        }),
+    )
+  await act(async () => {
+    controller.addForm.open()
+    controller.addForm.setContent('Document A draft')
+  })
+  let first!: Promise<void>
+  await act(async () => {
+    first = controller.handleCreateChunk()
+  })
+  expect(create.mock.calls[0]?.[0]).toMatchObject({
+    kb_id: KB,
+    doc_id: 'doc-a',
+    content_with_weight: 'Document A draft',
+  })
+  await act(async () => navigate(`/knowledge/${KB}/documents/doc-b/chunks`))
+  await settle()
+  await act(async () => {
+    controller.addForm.open()
+    controller.addForm.setContent('Document B draft')
+  })
+  await act(async () => {
+    finishCreate(true)
+    await first
+  })
+  expect(controller.addForm.addChunkModalOpen).toBe(true)
+  expect(controller.addForm.content).toBe('Document B draft')
+  expect(controller.list.docId).toBe('doc-b')
+})
+
+it('suppresses duplicate create requests and preserves the draft after failure', async () => {
+  let rejectCreate!: (reason: Error) => void
+  const create = vi
+    .spyOn(knowledgeAPI.document, 'createChunk')
+    .mockImplementation(
+      () =>
+        new Promise((_resolve, reject) => {
+          rejectCreate = reject
+        }),
+    )
+  await act(async () => {
+    controller.addForm.open()
+    controller.addForm.setContent('Recoverable draft')
+    controller.addForm.setImportantKwd(['retained keyword'])
+  })
+  let first!: Promise<void>
+  await act(async () => {
+    first = controller.handleCreateChunk()
+  })
+  await act(async () => controller.handleCreateChunk())
+  expect(create).toHaveBeenCalledTimes(1)
+  expect(controller.pending.create).toBe(true)
+  await act(async () => {
+    rejectCreate(new Error('Private backend details'))
+    await first
+  })
+  expect(controller.pending.create).toBe(false)
+  expect(controller.addForm.addChunkModalOpen).toBe(true)
+  expect(controller.addForm.content).toBe('Recoverable draft')
+  expect(controller.addForm.importantKwd).toEqual(['retained keyword'])
+  expect(document.body.textContent).not.toContain('Private backend details')
+})
+
+it('preserves an editing draft after failure and suppresses duplicate saves', async () => {
+  let rejectSave!: (reason: Error) => void
+  const save = vi.spyOn(knowledgeAPI.document, 'setChunk').mockImplementation(
+    () =>
+      new Promise((_resolve, reject) => {
+        rejectSave = reject
+      }),
+  )
+  await act(async () => controller.handleStartEdit(controller.list.chunks[0]))
+  await act(async () => {
+    controller.editForm.setEditingChunkContent('Edited content')
+    controller.editForm.setEditingImportantKwd(['important'])
+  })
+  let first!: Promise<void>
+  await act(async () => {
+    first = controller.handleEditChunk()
+  })
+  await act(async () => controller.handleEditChunk())
+  expect(save).toHaveBeenCalledTimes(1)
+  expect(save.mock.calls[0]?.[0]).toMatchObject({
+    kb_id: KB,
+    doc_id: 'doc-a',
+    content_with_weight: 'Edited content',
+    image_base64: undefined,
+  })
+  await act(async () => {
+    rejectSave(new Error('Private error'))
+    await first
+  })
+  expect(controller.editForm.isEditMode).toBe(true)
+  expect(controller.editForm.editingChunkContent).toBe('Edited content')
+  expect(controller.editForm.editingImportantKwd).toEqual(['important'])
+  expect(controller.pending.save).toBe(false)
+})
+
+it('does not clear a new document selection when an old bulk mutation finishes', async () => {
+  let finishSwitch!: (result: boolean) => void
+  const toggle = vi
+    .spyOn(knowledgeAPI.document, 'switchChunks')
+    .mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          finishSwitch = resolve
+        }),
+    )
+  await act(async () => controller.handleSelectAll(true))
+  let first!: Promise<void>
+  await act(async () => {
+    first = controller.handleBulkDisable()
+  })
+  await act(async () => controller.handleBulkDisable())
+  expect(toggle).toHaveBeenCalledTimes(1)
+  expect(toggle.mock.calls[0]?.[0]).toMatchObject({
+    kb_id: KB,
+    doc_id: 'doc-a',
+    available_int: 0,
+  })
+  await act(async () => navigate(`/knowledge/${KB}/documents/doc-b/chunks`))
+  await settle()
+  await act(async () => controller.handleSelectAll(true))
+  const currentSelection = [...controller.selection.selectedChunkIds]
+  await act(async () => {
+    finishSwitch(true)
+    await first
+  })
+  expect(controller.selection.selectedChunkIds).toEqual(currentSelection)
+  expect(controller.pending.bulkSwitch).toBe(false)
+})
+
+it('returns to the last valid page after a refreshed page becomes empty', async () => {
+  vi.mocked(knowledgeAPI.document.listChunks).mockImplementation(
+    async ({ page }) =>
+      ({
+        ...list('doc-a'),
+        chunks: page === 2 ? [] : list('doc-a').chunks,
+      }) as never,
+  )
+  await act(async () => controller.list.setPage(2))
+  await settle()
+  expect(controller.list.page).toBe(1)
+  expect(controller.list.chunks).toHaveLength(1)
+})
+
+it('does not mistake unrelated selected IDs for all visible chunks', async () => {
+  await act(async () =>
+    controller.selection.toggleSingle('unrelated-chunk', true),
+  )
+  expect(
+    controller.selection.isAllSelected(controller.list.filteredChunks),
+  ).toBe(false)
+  expect(
+    controller.selection.isPartialSelected(controller.list.filteredChunks),
+  ).toBe(false)
+  await act(async () => controller.handleSelectAll(true))
+  expect(
+    controller.selection.isAllSelected(controller.list.filteredChunks),
+  ).toBe(true)
+})
+
+it('cannot open or save empty metadata before the document has been read', async () => {
+  let finishList!: (value: unknown) => void
+  vi.mocked(knowledgeAPI.document.listChunks).mockImplementation(
+    () =>
+      new Promise((resolve) => {
+        finishList = resolve as never
+      }),
+  )
+  const update = vi
+    .spyOn(knowledgeAPI.metadata, 'updateDocumentMeta')
+    .mockResolvedValue(undefined as never)
+  await act(async () =>
+    navigate(`/knowledge/${KB}/documents/doc-pending/chunks`),
+  )
+  expect(controller.list.loading).toBe(true)
+  expect(controller.list.docInfo).toBeNull()
+  await act(async () => controller.handleStartMetaAnnotation())
+  expect(controller.metaForm.metaModalOpen).toBe(false)
+  await act(async () => controller.handleSaveMeta())
+  expect(update).not.toHaveBeenCalled()
+  await act(async () => finishList(list('doc-pending')))
+  await settle()
+  await act(async () => controller.handleStartMetaAnnotation())
+  expect(controller.metaForm.metaModalOpen).toBe(true)
+})
+
+it('allows a metadata dialog inside a sheet to own focus and escape independently', async () => {
+  function NestedMetadata() {
+    const [open, setOpen] = useState(false)
+    const [sheetOpen, setSheetOpen] = useState(true)
+    return (
+      <ChunkSideSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        title="Document info"
+      >
+        <button onClick={() => setOpen(true)}>Edit metadata</button>
+        <ChunkMetadataModal
+          open={open}
+          onClose={() => setOpen(false)}
+          editingMeta={[{ id: 'field', key: 'owner', value: 'value' }]}
+          onAddMetaField={() => {}}
+          onRemoveMetaField={() => {}}
+          onUpdateMetaKey={() => {}}
+          onUpdateMetaValue={() => {}}
+          onSaveMeta={() => {}}
+        />
+      </ChunkSideSheet>
+    )
+  }
+  await act(async () => root.render(<NestedMetadata />))
+  const edit = [...document.querySelectorAll('button')].find(
+    (button) => button.textContent === 'Edit metadata',
+  )!
+  await act(async () => edit.click())
+  const input = document.querySelector<HTMLInputElement>(
+    '#chunk-meta-field-key',
+  )!
+  await act(async () => input.focus())
+  expect(document.activeElement).toBe(input)
+  expect(input.closest('[role="dialog"]')?.getAttribute('style')).toContain(
+    'pointer-events: auto',
+  )
+  await act(async () =>
+    input.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }),
+    ),
+  )
+  await settle()
+  expect(document.querySelector('#chunk-meta-field-key')).toBeNull()
+  expect(document.body.textContent).toContain('Edit metadata')
 })

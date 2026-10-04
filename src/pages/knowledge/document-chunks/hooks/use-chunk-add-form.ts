@@ -2,12 +2,13 @@ import { useCallback, useState } from 'react'
 import type { UploadFile } from '@/components/ui/file-uploader'
 import { fileToBase64 } from '@/lib/utils'
 
-export const useChunkAddForm = () => {
+export const useChunkAddForm = (ownerKey = '') => {
   const [addChunkModalOpen, setAddChunkModalOpen] = useState(false)
   const [content, setContent] = useState('')
   const [importantKwd, setImportantKwd] = useState<string[]>([])
   const [questionKwd, setQuestionKwd] = useState<string[]>([])
   const [image, setImage] = useState<UploadFile[]>([])
+  const [session, setSession] = useState(0)
 
   const reset = useCallback(() => {
     setContent('')
@@ -17,16 +18,24 @@ export const useChunkAddForm = () => {
   }, [])
 
   const open = useCallback(() => {
+    setSession((value) => value + 1)
     setAddChunkModalOpen(true)
   }, [])
 
   const close = useCallback(() => {
+    setSession((value) => value + 1)
     setAddChunkModalOpen(false)
     setContent('')
     setImportantKwd([])
     setQuestionKwd([])
     setImage([])
   }, [])
+
+  const [previousOwner, setPreviousOwner] = useState(ownerKey)
+  if (previousOwner !== ownerKey) {
+    setPreviousOwner(ownerKey)
+    close()
+  }
 
   const canSubmit = content.trim().length > 0
 
@@ -42,6 +51,7 @@ export const useChunkAddForm = () => {
 
   return {
     addChunkModalOpen,
+    session,
     content,
     importantKwd,
     questionKwd,

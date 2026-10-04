@@ -1,42 +1,21 @@
-import { useCallback, useMemo, useState } from 'react'
-import { useResizablePanels } from '../use-resizable-panels'
-import type { CSSVarStyle } from '../types'
+import { useCallback, useState } from 'react'
 
 export const useChunkPanelLayout = () => {
-  const [isPreviewPanelOpen, setIsPreviewPanelOpen] = useState(true)
-  const [previewPanelWidth, setPreviewPanelWidth] = useState(560)
-  const [isInfoPanelOpen, setIsInfoPanelOpen] = useState(true)
-  const [infoPanelWidth, setInfoPanelWidth] = useState(320)
+  const [isPreviewPanelOpen, setIsPreviewPanelOpen] = useState(false)
+  const [isInfoPanelOpen, setIsInfoPanelOpen] = useState(false)
 
-  const handleResizeStart = useResizablePanels({
-    setPreviewPanelWidth,
-    setInfoPanelWidth,
-  })
-
-  const previewPanelStyle = useMemo<CSSVarStyle>(
-    () => ({ '--preview-panel-width': `${previewPanelWidth}px` }),
-    [previewPanelWidth],
+  const togglePreview = useCallback(
+    () => setIsPreviewPanelOpen((open) => !open),
+    [],
   )
-
-  const infoPanelStyle = useMemo<CSSVarStyle>(
-    () => ({ '--info-panel-width': `${infoPanelWidth}px` }),
-    [infoPanelWidth],
-  )
-
-  const openPreview = useCallback(() => setIsPreviewPanelOpen(true), [])
   const closePreview = useCallback(() => setIsPreviewPanelOpen(false), [])
   const openInfo = useCallback(() => setIsInfoPanelOpen(true), [])
   const closeInfo = useCallback(() => setIsInfoPanelOpen(false), [])
 
   return {
     isPreviewPanelOpen,
-    previewPanelWidth,
     isInfoPanelOpen,
-    infoPanelWidth,
-    previewPanelStyle,
-    infoPanelStyle,
-    handleResizeStart,
-    openPreview,
+    togglePreview,
     closePreview,
     openInfo,
     closeInfo,

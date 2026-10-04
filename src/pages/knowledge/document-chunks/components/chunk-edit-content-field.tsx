@@ -1,6 +1,7 @@
+import { useId } from 'react'
 import { Code, Eye } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Button } from '@/components/ui'
+import { Button, Label } from '@/components/ui'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 
@@ -18,13 +19,17 @@ export const ChunkEditContentField = ({
   onMarkdownPreviewChange,
 }: ChunkEditContentFieldProps) => {
   const { t } = useTranslation()
+  const contentId = useId()
 
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <span className="block text-sm font-medium text-text-secondary">
+        <Label
+          htmlFor={contentId}
+          className="block text-sm font-medium text-text-secondary"
+        >
           {t('knowledge.chunks.edit.content')}
-        </span>
+        </Label>
         <Button
           variant="outline"
           size="sm"
@@ -51,13 +56,15 @@ export const ChunkEditContentField = ({
 
       <div className="min-h-[200px]">
         {isMarkdownPreview ? (
-          <div className="h-full min-h-[200px] w-full overflow-y-auto rounded-md border border-components-input-border bg-background-subtle px-4 py-3 scrollbar-thin">
-            <pre className="whitespace-pre-wrap break-words text-sm leading-relaxed text-text-secondary">
+          <div className="scrollbar-thin h-full min-h-[200px] w-full overflow-y-auto rounded-md border border-components-input-border bg-background-subtle px-4 py-3">
+            <pre className="text-sm leading-relaxed break-words whitespace-pre-wrap text-text-secondary">
               {editingChunkContent}
             </pre>
           </div>
         ) : (
           <Textarea
+            id={contentId}
+            aria-label={t('knowledge.chunks.edit.content')}
             value={editingChunkContent}
             onChange={(event) =>
               onEditingChunkContentChange(event.target.value)

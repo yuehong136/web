@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useState } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import type { ChunkData } from '../types'
@@ -14,16 +20,25 @@ interface UseDocumentChunksControllerOptions {
   onStartEdit?: () => void
 }
 
+type Operation =
+  | 'create'
+  | 'save'
+  | 'toggle'
+  | 'bulkSwitch'
+  | 'delete'
+  | 'metadata'
+
 export const useDocumentChunksController = (
   options: UseDocumentChunksControllerOptions = {},
 ) => {
   const { t } = useTranslation()
   const { onSelectChunk, onStartEdit } = options
   const list = useChunkListState()
-  const selection = useChunkSelection()
-  const addForm = useChunkAddForm()
-  const editForm = useChunkEditForm(`${list.kbId}:${list.docId}`)
-  const metaForm = useChunkMetaForm()
+  const ownerKey = `${list.kbId}:${list.docId}`
+  const selection = useChunkSelection(ownerKey)
+  const addForm = useChunkAddForm(ownerKey)
+  const editForm = useChunkEditForm(ownerKey)
+  const metaForm = useChunkMetaForm(ownerKey)
   const clearSelection = selection.clear
   const selectChunk = editForm.selectChunk
   const startEdit = editForm.startEdit
@@ -33,13 +48,37 @@ export const useDocumentChunksController = (
     kbId: list.kbId,
     docId: list.docId,
     onMutationSuccess: list.delayedRefetchChunkList,
-    onBulkMutationSuccess: clearSelection,
   })
+
+  const [currentScope, setCurrentScope] = useState({ ownerKey, generation: 0 })
+  if (currentScope.ownerKey !== ownerKey) {
+    setCurrentScope({ ownerKey, generation: currentScope.generation + 1 })
+  }
+  const scope = useRef<typeof currentScope | null>(currentScope)
+  useLayoutEffect(() => {
+    scope.current = currentScope
+    return () => {
+      scope.current = null
+    }
+  }, [currentScope])
+  const generation = currentScope.generation
+  const locks = useRef(new Map<Operation, number>())
+  const [pendingOperations, setPendingOperations] = useState<{
+    generation: number
+    operations: Operation[]
+  }>({ generation, operations: [] })
 
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [deletingChunkId, setDeletingChunkId] = useState('')
   const [deleteSelectedConfirmOpen, setDeleteSelectedConfirmOpen] =
     useState(false)
+  const [previousOwner, setPreviousOwner] = useState(ownerKey)
+  if (previousOwner !== ownerKey) {
+    setPreviousOwner(ownerKey)
+    setDeleteConfirmOpen(false)
+    setDeletingChunkId('')
+    setDeleteSelectedConfirmOpen(false)
+  }
   const [previewImage, setPreviewImage] = useState<{
     ownerKey: string
     imageId: string | null
@@ -55,6 +94,109 @@ export const useDocumentChunksController = (
     [list.kbId, list.docId],
   )
 
+  const interaction = useRef({
+    create: addForm.session,
+    save: editForm.session,
+    metadata: metaForm.session,
+    selectedIds: selection.selectedChunkIds.join('\0'),
+    deletingChunkId,
+  })
+  useLayoutEffect(() => {
+    interaction.current = {
+      create: addForm.session,
+      save: editForm.session,
+      metadata: metaForm.session,
+      selectedIds: selection.selectedChunkIds.join('\0'),
+      deletingChunkId,
+    }
+  }, [
+    addForm.session,
+    deletingChunkId,
+    editForm.session,
+    metaForm.session,
+    selection.selectedChunkIds,
+  ])
+  const pending = Object.fromEntries(
+    (
+      ['create', 'save', 'toggle', 'bulkSwitch', 'delete', 'metadata'] as const
+    ).map((operation) => [
+      operation,
+      pendingOperations.generation === generation &&
+        pendingOperations.operations.includes(operation),
+    ]),
+  ) as Record<Operation, boolean>
+
+  const runOperation = useCallback(
+    async (
+      operation: Operation,
+      errorKey: string,
+      work: (isCurrent: () => boolean) => Promise<void>,
+    ) => {
+      if (
+        !list.kbId ||
+        !list.docId ||
+        !list.docInfo ||
+        list.loading ||
+        list.error ||
+        list.isPlaceholderData
+      )
+        return
+      if (locks.current.get(operation) === generation) return
+      locks.current.set(operation, generation)
+      const operationSession = interaction.current
+      const isCurrent = () => {
+        if (scope.current?.generation !== generation) return false
+        if (
+          operation === 'create' ||
+          operation === 'save' ||
+          operation === 'metadata'
+        ) {
+          return interaction.current[operation] === operationSession[operation]
+        }
+        if (operation === 'delete') {
+          return (
+            interaction.current.deletingChunkId ===
+              operationSession.deletingChunkId &&
+            interaction.current.selectedIds === operationSession.selectedIds
+          )
+        }
+        if (operation === 'bulkSwitch') {
+          return (
+            interaction.current.selectedIds === operationSession.selectedIds
+          )
+        }
+        return true
+      }
+      const publishPending = () =>
+        setPendingOperations({
+          generation,
+          operations: [...locks.current]
+            .filter(([, value]) => value === generation)
+            .map(([key]) => key),
+        })
+      publishPending()
+      try {
+        await work(isCurrent)
+      } catch {
+        if (isCurrent()) toast.error(t(errorKey))
+      } finally {
+        if (locks.current.get(operation) === generation)
+          locks.current.delete(operation)
+        if (scope.current?.generation === generation) publishPending()
+      }
+    },
+    [
+      generation,
+      list.docId,
+      list.docInfo,
+      list.error,
+      list.isPlaceholderData,
+      list.kbId,
+      list.loading,
+      t,
+    ],
+  )
+
   useEffect(() => {
     clearSelection()
   }, [
@@ -62,6 +204,7 @@ export const useDocumentChunksController = (
     list.debouncedSearchKeyword,
     list.page,
     list.pageSize,
+    ownerKey,
     clearSelection,
   ])
 
@@ -93,41 +236,47 @@ export const useDocumentChunksController = (
 
   const handleToggleChunkStatus = useCallback(
     async (chunk: ChunkData) => {
-      if (!list.docId) return
-      try {
-        await actions.toggleChunkStatus({
-          chunkId: chunk.chunk_id,
-          availableInt: chunk.available_int === 1 ? 0 : 1,
-        })
-      } catch {
-        toast.error(t('knowledge.chunks.errors.toggleStatus'))
-      }
+      await runOperation(
+        'toggle',
+        'knowledge.chunks.errors.toggleStatus',
+        async () => {
+          await actions.toggleChunkStatus({
+            chunkId: chunk.chunk_id,
+            availableInt: chunk.available_int === 1 ? 0 : 1,
+          })
+        },
+      )
     },
-    [actions, list.docId, t],
+    [actions, runOperation],
   )
 
   const handleCreateChunk = useCallback(async () => {
     if (!addForm.canSubmit) return
-    try {
-      await actions.createChunk(await addForm.toPayloadAsync())
-      addForm.close()
-    } catch {
-      toast.error(t('knowledge.chunks.errors.create'))
-    }
-  }, [actions, addForm, t])
+    await runOperation(
+      'create',
+      'knowledge.chunks.errors.create',
+      async (isCurrent) => {
+        const payload = await addForm.toPayloadAsync()
+        if (!isCurrent()) return
+        await actions.createChunk(payload)
+        if (isCurrent()) addForm.close()
+      },
+    )
+  }, [actions, addForm, runOperation])
 
   const handleEditChunk = useCallback(async () => {
     if (!editForm.canSubmit || !list.docId) return
-    try {
-      const payload = await editForm.toPayloadAsync()
-      if (!payload) return
-      await actions.setChunk(payload)
-      editForm.reset()
-      list.delayedRefetchChunkList()
-    } catch {
-      toast.error(t('knowledge.chunks.errors.save'))
-    }
-  }, [actions, editForm, list, t])
+    await runOperation(
+      'save',
+      'knowledge.chunks.errors.save',
+      async (isCurrent) => {
+        const payload = await editForm.toPayloadAsync()
+        if (!payload || !isCurrent()) return
+        await actions.setChunk(payload)
+        if (isCurrent()) editForm.reset()
+      },
+    )
+  }, [actions, editForm, list.docId, runOperation])
 
   const openDeleteSingle = useCallback((chunkId: string) => {
     setDeletingChunkId(chunkId)
@@ -141,13 +290,15 @@ export const useDocumentChunksController = (
 
   const handleDeleteChunk = useCallback(async () => {
     if (!deletingChunkId || !list.docId) return
-    try {
-      await actions.deleteChunks([deletingChunkId])
-      closeDeleteSingle()
-    } catch {
-      toast.error(t('knowledge.chunks.errors.delete'))
-    }
-  }, [actions, closeDeleteSingle, deletingChunkId, list.docId, t])
+    await runOperation(
+      'delete',
+      'knowledge.chunks.errors.delete',
+      async (isCurrent) => {
+        await actions.deleteChunks([deletingChunkId])
+        if (isCurrent()) closeDeleteSingle()
+      },
+    )
+  }, [actions, closeDeleteSingle, deletingChunkId, list.docId, runOperation])
 
   const openBulkDelete = useCallback(() => {
     setDeleteSelectedConfirmOpen(true)
@@ -160,20 +311,19 @@ export const useDocumentChunksController = (
   const mutateSelectedChunksStatus = useCallback(
     async (availableInt: number, errorKey: 'bulkEnable' | 'bulkDisable') => {
       if (selection.selectedChunkIds.length === 0) return
-      try {
+      const errorMessageKey =
+        errorKey === 'bulkEnable'
+          ? 'knowledge.chunks.errors.bulkEnable'
+          : 'knowledge.chunks.errors.bulkDisable'
+      await runOperation('bulkSwitch', errorMessageKey, async (isCurrent) => {
         await actions.bulkSwitchChunks({
           chunkIds: selection.selectedChunkIds,
           availableInt,
         })
-      } catch {
-        const errorMessageKey =
-          errorKey === 'bulkEnable'
-            ? 'knowledge.chunks.errors.bulkEnable'
-            : 'knowledge.chunks.errors.bulkDisable'
-        toast.error(t(errorMessageKey))
-      }
+        if (isCurrent()) selection.clear()
+      })
     },
-    [actions, selection.selectedChunkIds, t],
+    [actions, runOperation, selection],
   )
 
   const handleBulkEnable = useCallback(
@@ -188,28 +338,36 @@ export const useDocumentChunksController = (
 
   const handleBulkDelete = useCallback(async () => {
     if (selection.selectedChunkIds.length === 0) return
-    try {
-      await actions.deleteChunks(selection.selectedChunkIds)
-      selection.clear()
-      closeBulkDelete()
-    } catch {
-      toast.error(t('knowledge.chunks.errors.bulkDelete'))
-    }
-  }, [actions, closeBulkDelete, selection, t])
+    await runOperation(
+      'delete',
+      'knowledge.chunks.errors.bulkDelete',
+      async (isCurrent) => {
+        await actions.deleteChunks(selection.selectedChunkIds)
+        if (isCurrent()) {
+          selection.clear()
+          closeBulkDelete()
+        }
+      },
+    )
+  }, [actions, closeBulkDelete, runOperation, selection])
 
   const handleStartMetaAnnotation = useCallback(() => {
+    if (!list.docInfo || list.loading || list.error || list.isPlaceholderData)
+      return
     metaForm.startAnnotation(list.docInfo)
-  }, [list.docInfo, metaForm])
+  }, [list.docInfo, list.error, list.isPlaceholderData, list.loading, metaForm])
 
   const handleSaveMeta = useCallback(async () => {
     if (!list.docId) return
-    try {
-      await actions.setMeta(metaForm.toPayload())
-      metaForm.close()
-    } catch {
-      toast.error(t('knowledge.chunks.errors.saveMeta'))
-    }
-  }, [actions, list.docId, metaForm, t])
+    await runOperation(
+      'metadata',
+      'knowledge.chunks.errors.saveMeta',
+      async (isCurrent) => {
+        await actions.setMeta(metaForm.toPayload())
+        if (isCurrent()) metaForm.close()
+      },
+    )
+  }, [actions, list.docId, metaForm, runOperation])
 
   const handleSelectAll = useCallback(
     (checked: boolean) => {
@@ -228,6 +386,7 @@ export const useDocumentChunksController = (
     editForm,
     metaForm,
     actions,
+    pending,
     deleteState: {
       deleteConfirmOpen,
       deletingChunkId,
