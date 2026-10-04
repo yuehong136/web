@@ -3,7 +3,7 @@ import { z } from 'zod'
 const numericField = () => z.coerce.number()
 
 // RAPTOR 配置 Schema
-export const raptorSchema = z.object({
+export const raptorSchema = z.looseObject({
   use_raptor: z.boolean().default(false),
   prompt: z.string().optional(),
   max_token: numericField().min(0).max(2048).default(256),
@@ -14,7 +14,7 @@ export const raptorSchema = z.object({
 })
 
 // GraphRAG 配置 Schema
-export const graphragSchema = z.object({
+export const graphragSchema = z.looseObject({
   use_graphrag: z.boolean().default(false),
   entity_types: z
     .array(z.string())
@@ -56,14 +56,14 @@ export const MineruLanguageOptions = [
 ] as const
 
 // Metadata 字段定义 Schema
-export const metadataFieldSchema = z.object({
+export const metadataFieldSchema = z.looseObject({
   key: z.string().optional(),
   description: z.string().optional(),
   enum: z.array(z.string()).optional(),
 })
 
 // 解析器配置 Schema
-export const parserConfigSchema = z.object({
+export const parserConfigSchema = z.looseObject({
   layout_recognize: z.string().default('DeepDOC'),
   chunk_token_num: numericField().min(1).max(8192).default(512),
   delimiter: z.string().default('\n'),

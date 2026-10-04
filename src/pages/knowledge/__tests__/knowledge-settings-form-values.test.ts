@@ -23,6 +23,84 @@ const createKnowledgeBase = (
   parser_config: parserConfig,
 })
 
+for (const scope of ['file', 'dataset'] as const) {
+  test(`RAPTOR ${scope} survives hydrate, validation, save payload and reload`, () => {
+    const config = {
+      raptor: {
+        use_raptor: false,
+        scope,
+        auto_disable_for_structured_data: false,
+        ext: { future: { enabled: false } },
+        future_option: 7,
+      },
+      graphrag: { use_graphrag: false, ext: { future_graph: true } },
+      metadata: [
+        { key: 'author', enum: ['Alice'], restrictDefinedValues: true },
+      ],
+      enable_metadata: true,
+      ext: { future_parser: 7 },
+      future_parser_option: false,
+    }
+    const values = buildKnowledgeSettingsFormValues(
+      createKnowledgeBase({
+        ...config,
+        raptor: {
+          ...config.raptor,
+          scope: scope === 'file' ? 'dataset' : 'file',
+        },
+      }),
+      (value) => value,
+    )
+    const validated = parserConfigSchema.parse({
+      ...values.parser_config,
+      raptor: { ...values.parser_config?.raptor, scope },
+    })
+    const payload = buildKnowledgeSettingsParserConfig(validated)
+    const reloaded = buildKnowledgeSettingsFormValues(
+      createKnowledgeBase(JSON.parse(JSON.stringify(payload))),
+      (value) => value,
+    )
+    assert.equal(reloaded.parser_config?.raptor?.scope, scope)
+    assert.equal(reloaded.parser_config?.raptor?.use_raptor, false)
+    assert.deepEqual(reloaded.parser_config?.raptor?.ext, config.raptor.ext)
+    assert.equal(reloaded.parser_config?.raptor?.future_option, 7)
+    assert.equal(
+      reloaded.parser_config?.raptor?.auto_disable_for_structured_data,
+      false,
+    )
+    assert.deepEqual(reloaded.parser_config?.graphrag?.ext, config.graphrag.ext)
+    assert.deepEqual(reloaded.parser_config?.metadata, config.metadata)
+    assert.equal(reloaded.parser_config?.enable_metadata, true)
+    assert.deepEqual(reloaded.parser_config?.ext, config.ext)
+    assert.equal(reloaded.parser_config?.future_parser_option, false)
+  })
+}
+
+test('RAPTOR scope defaults only when absent and rejects invalid values', () => {
+  assert.equal(parserConfigSchema.parse({ raptor: {} }).raptor?.scope, 'file')
+  for (const scope of ['all', 'Dataset', '', null, 0]) {
+    assert.equal(
+      parserConfigSchema.safeParse({ raptor: { scope } }).success,
+      false,
+    )
+  }
+})
+
+test('Pipeline hydration retains RAPTOR scope and configuration', () => {
+  const values = buildKnowledgeSettingsFormValues(
+    {
+      ...createKnowledgeBase({
+        raptor: { scope: 'dataset', use_raptor: false },
+      }),
+      pipeline_id: 'a'.repeat(32),
+    },
+    (value) => value,
+  )
+  assert.equal(values.parseType, 2)
+  assert.equal(values.pipeline_id, 'a'.repeat(32))
+  assert.equal(values.parser_config?.raptor?.scope, 'dataset')
+})
+
 test('parser config requires a positive suggested chunk size', () => {
   assert.equal(
     parserConfigSchema.safeParse({ chunk_token_num: 0 }).success,
