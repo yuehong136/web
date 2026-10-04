@@ -57,6 +57,7 @@ describe('connector configuration contracts', () => {
       'bitbucket',
       'box',
       'confluence',
+      'dropbox',
       'github',
       'gitlab',
       'gmail',

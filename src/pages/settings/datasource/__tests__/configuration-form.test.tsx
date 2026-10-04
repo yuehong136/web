@@ -232,3 +232,22 @@ it('requires Bitbucket account email and submits backend credential keys with de
     },
   })
 })
+
+it('defaults Dropbox deletion sync off and preserves credentials when saving the switch', async () => {
+  await renderAdd(DataSourceKey.DROPBOX)
+  await change(input('name'), 'Dropbox scratch')
+  await change(input('config.credentials.dropbox_access_token'), 'synthetic')
+  const deletion = Array.from(document.querySelectorAll('label')).find(
+    (label) => label.textContent === 'Sync source deletions',
+  )!
+  expect(deletion.control?.getAttribute('aria-checked')).toBe('false')
+  await click(button('Confirm'))
+  expect(submit.mock.calls[0][0].config.sync_deleted_files).toBe(false)
+  await click(deletion)
+  await click(button('Confirm'))
+  expect(submit.mock.calls[1][0].config).toMatchObject({
+    sync_deleted_files: true,
+    batch_size: 2,
+    credentials: { dropbox_access_token: 'synthetic' },
+  })
+})

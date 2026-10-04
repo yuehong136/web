@@ -14,6 +14,7 @@ export const deletionSyncSources = new Set<DataSourceKey>([
   DataSourceKey.GITLAB,
   DataSourceKey.CONFLUENCE,
   DataSourceKey.BOX,
+  DataSourceKey.DROPBOX,
   DataSourceKey.S3,
   DataSourceKey.R2,
   DataSourceKey.GOOGLE_CLOUD_STORAGE,
