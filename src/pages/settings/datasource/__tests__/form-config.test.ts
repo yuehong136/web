@@ -58,6 +58,7 @@ describe('connector configuration contracts', () => {
       'box',
       'confluence',
       'github',
+      'gitlab',
       'gmail',
       'google_cloud_storage',
       'google_drive',
@@ -223,21 +224,21 @@ describe('connector configuration contracts', () => {
 
   it('does not add deletion sync for unsupported sources and preserves existing ignored fields', () => {
     expect(
-      getDataSourceDefaultValues(DataSourceKey.GITLAB).config,
+      getDataSourceDefaultValues(DataSourceKey.DISCORD).config,
     ).not.toHaveProperty('sync_deleted_files')
     const stored = {
       config: {
         sync_deleted_files: true,
         custom: 'keep',
         credentials: {
-          gitlab_access_token: 'stored',
+          discord_bot_token: 'stored',
           custom_credential: 'keep',
         },
       },
     }
-    const values = getDataSourceDefaultValues(DataSourceKey.GITLAB, stored)
+    const values = getDataSourceDefaultValues(DataSourceKey.DISCORD, stored)
     expect(
-      prepareDataSourceValues(DataSourceKey.GITLAB, values).config,
+      prepareDataSourceValues(DataSourceKey.DISCORD, values).config,
     ).toMatchObject(stored.config)
   })
 

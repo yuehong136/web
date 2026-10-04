@@ -158,7 +158,7 @@ it('switches to token authentication without hidden password fields blocking sub
   expect(submit).toHaveBeenCalledTimes(1)
 })
 
-it('preserves an unsupported historical deletion setting when saving without displaying a control', async () => {
+it('preserves GitLab config and credentials when switching deletion sync off', async () => {
   const source = DataSourceKey.GITLAB
   const detail = {
     config: {
@@ -190,9 +190,16 @@ it('preserves an unsupported historical deletion setting when saving without dis
       </DynamicForm.Root>,
     ),
   )
-  expect(document.body.textContent).not.toContain('Sync source deletions')
+  const deletion = Array.from(document.querySelectorAll('label')).find(
+    (label) => label.textContent === 'Sync source deletions',
+  )!
+  expect(deletion.control?.getAttribute('aria-checked')).toBe('true')
+  await click(deletion)
   await click(button('Save'))
-  expect(submit.mock.calls[0][0].config).toMatchObject(detail.config)
+  expect(submit.mock.calls[0][0].config).toMatchObject({
+    ...detail.config,
+    sync_deleted_files: false,
+  })
 })
 
 it('requires Bitbucket account email and submits backend credential keys with deletion sync', async () => {

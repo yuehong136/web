@@ -11,6 +11,7 @@ export const deletionSyncSources = new Set<DataSourceKey>([
   DataSourceKey.GMAIL,
   DataSourceKey.BITBUCKET,
   DataSourceKey.GITHUB,
+  DataSourceKey.GITLAB,
   DataSourceKey.CONFLUENCE,
   DataSourceKey.BOX,
   DataSourceKey.S3,
