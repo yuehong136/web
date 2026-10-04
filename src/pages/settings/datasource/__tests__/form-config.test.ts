@@ -11,6 +11,27 @@ import { deletionSyncSources } from '@/pages/settings/datasource/constants/sync-
 const t = (key: string) => key
 
 describe('connector configuration contracts', () => {
+  it('round-trips Gmail deletion sync while preserving unknown configuration and credentials', () => {
+    const config = {
+      sync_deleted_files: true,
+      custom_option: 'keep',
+      credentials: {
+        google_primary_admin: 'user@example.test',
+        google_tokens: 'synthetic',
+        custom_credential: 'keep',
+      },
+    }
+    const values = getDataSourceDefaultValues(DataSourceKey.GMAIL, { config })
+    expect(
+      prepareDataSourceValues(DataSourceKey.GMAIL, values).config,
+    ).toMatchObject(config)
+    values.config!.sync_deleted_files = false
+    expect(
+      prepareDataSourceValues(DataSourceKey.GMAIL, values).config,
+    ).toMatchObject({ ...config, sync_deleted_files: false })
+    expect(config.sync_deleted_files).toBe(true)
+  })
+
   it('keeps Drive default personal scope usable without forcing explicit email or folder scopes', () => {
     const fields = getDataSourceFormFields(t)[DataSourceKey.GOOGLE_DRIVE]
     for (const name of [
@@ -37,6 +58,7 @@ describe('connector configuration contracts', () => {
       'box',
       'confluence',
       'github',
+      'gmail',
       'google_cloud_storage',
       'google_drive',
       'jira',

@@ -69,6 +69,41 @@ const renderAdd = async (source: DataSourceKey, loading = false) =>
     ),
   )
 
+it('defaults Gmail deletion sync off and preserves credentials when enabling and saving it', async () => {
+  await renderAdd(DataSourceKey.GMAIL)
+  await change(input('name'), 'Gmail scratch')
+  await change(
+    input('config.credentials.google_primary_admin'),
+    'user@example.test',
+  )
+  const token = document.querySelector<HTMLTextAreaElement>(
+    'textarea[name="config.credentials.google_tokens"]',
+  )!
+  await act(async () => {
+    Object.getOwnPropertyDescriptor(
+      HTMLTextAreaElement.prototype,
+      'value',
+    )!.set!.call(token, '{"token":"synthetic"}')
+    token.dispatchEvent(new Event('input', { bubbles: true }))
+  })
+  const deletion = Array.from(document.querySelectorAll('label')).find(
+    (label) => label.textContent === 'Sync source deletions',
+  )!
+  expect(deletion.control?.getAttribute('aria-checked')).toBe('false')
+  await click(button('Confirm'))
+  expect(submit.mock.calls[0][0].config.sync_deleted_files).toBe(false)
+  await click(deletion)
+  await click(button('Confirm'))
+  expect(submit.mock.calls[1][0].config).toMatchObject({
+    sync_deleted_files: true,
+    credentials: {
+      google_primary_admin: 'user@example.test',
+      google_tokens: '{"token":"synthetic"}',
+      authentication_method: 'uploaded',
+    },
+  })
+})
+
 it('blocks empty Jira credentials, validates only the selected mode and submits a boolean deletion setting', async () => {
   await renderAdd(DataSourceKey.JIRA)
   await click(button('Confirm'))

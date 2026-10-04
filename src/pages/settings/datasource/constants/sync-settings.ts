@@ -8,6 +8,7 @@ import {
 export const deletionSyncSources = new Set<DataSourceKey>([
   DataSourceKey.AIRTABLE,
   DataSourceKey.GOOGLE_DRIVE,
+  DataSourceKey.GMAIL,
   DataSourceKey.BITBUCKET,
   DataSourceKey.GITHUB,
   DataSourceKey.CONFLUENCE,
