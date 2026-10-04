@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { Eye, MonitorUp } from 'lucide-react'
+import { Eye, MonitorUp, Network } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { TableCell, TableRow } from '@/components/ui/table'
 import { Tooltip } from '@/components/ui/tooltip'
@@ -32,7 +32,7 @@ export function LogTableRow({
   return (
     <TableRow className="group transition-colors hover:bg-background-subtle">
       <TableCell>
-        <span className="whitespace-nowrap font-mono text-xs text-text-tertiary">
+        <span className="font-mono text-xs whitespace-nowrap text-text-tertiary">
           {item.id || '-'}
         </span>
       </TableCell>
@@ -57,7 +57,7 @@ export function LogTableRow({
                 <MonitorUp className="h-4 w-4 text-state-focus" />
               </div>
             ) : (
-              <span className="text-sm capitalize text-text-secondary">
+              <span className="text-sm text-text-secondary capitalize">
                 {item.source_from}
               </span>
             )}
@@ -76,12 +76,20 @@ export function LogTableRow({
       )}
 
       <TableCell>
-        <span className="whitespace-nowrap text-sm text-text-secondary">
+        <span className="text-sm whitespace-nowrap text-text-secondary">
           {formatDate(item.process_begin_at || null)}
         </span>
       </TableCell>
       <TableCell>
-        <span className="whitespace-nowrap text-sm text-text-primary">
+        <span className="inline-flex items-center gap-space-sm text-sm whitespace-nowrap text-text-primary">
+          {!isFileLogs &&
+            (item.task_type === ProcessingType.KNOWLEDGE_GRAPH ||
+              item.task_type === ProcessingType.LEGACY_KNOWLEDGE_GRAPH) && (
+              <Network
+                aria-hidden="true"
+                className="size-icon-sm shrink-0 text-text-secondary"
+              />
+            )}
           {isFileLogs
             ? item.task_type || '-'
             : formatDatasetTaskType(item.task_type, t)}

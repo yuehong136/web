@@ -30,10 +30,13 @@ export const LogTabOptions = [
 
 export enum ProcessingType {
   KNOWLEDGE_GRAPH = 'GraphRAG',
+  LEGACY_KNOWLEDGE_GRAPH = 'Graph',
   RAPTOR = 'RAPTOR',
 }
 
 export const ProcessingTypeI18nKey: Record<ProcessingType, string> = {
+  [ProcessingType.LEGACY_KNOWLEDGE_GRAPH]:
+    'knowledge.logs.processingType.knowledgeGraph',
   [ProcessingType.KNOWLEDGE_GRAPH]:
     'knowledge.logs.processingType.knowledgeGraph',
   [ProcessingType.RAPTOR]: 'knowledge.logs.processingType.raptor',
