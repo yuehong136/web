@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -100,7 +101,7 @@ function RuleCard({
 
   return (
     <Card padding="sm">
-      <CardHeader className="p-space-sm flex-row items-center justify-between">
+      <CardHeader className="flex-row items-center justify-between p-space-sm">
         <span className="text-sm font-medium text-text-primary">
           {t('flow.rule', 'Rule')} {ruleIndex + 1}
         </span>
@@ -116,7 +117,7 @@ function RuleCard({
       </CardHeader>
       <CardContent className="space-y-space-sm p-space-sm pt-0">
         {levelsFieldArray.fields.map((levelField, levelIndex) => (
-          <div key={levelField.id} className="gap-space-sm flex items-start">
+          <div key={levelField.id} className="flex items-start gap-space-sm">
             <FormField
               control={control}
               name={`${name}.${ruleIndex}.levels.${levelIndex}.expression`}
@@ -269,6 +270,13 @@ export function TitleChunkerForm({ node }: INextOperatorForm) {
                   </SegmentedItem>
                 </Segmented>
               </FormControl>
+              <FormDescription>
+                {t(
+                  method === TitleChunkerMethod.Group
+                    ? 'flow.groupTip'
+                    : 'flow.hierarchyTip',
+                )}
+              </FormDescription>
             </FormItem>
           )}
         />
@@ -310,10 +318,13 @@ export function TitleChunkerForm({ node }: INextOperatorForm) {
               control={form.control}
               name="include_heading_content"
               render={({ field }) => (
-                <FormItem className="rounded-radius-md px-space-sm py-space-sm flex items-center justify-between border border-border-default">
-                  <FormLabel>
-                    {t('flow.includeHeadingContent', 'Include heading content')}
-                  </FormLabel>
+                <FormItem className="flex items-center justify-between rounded-radius-md border border-border-default px-space-sm py-space-sm">
+                  <div className="min-w-0 space-y-1">
+                    <FormLabel>{t('flow.includeHeadingContent')}</FormLabel>
+                    <FormDescription>
+                      {t('flow.includeHeadingContentTip')}
+                    </FormDescription>
+                  </div>
                   <FormControl>
                     <Switch
                       checked={Boolean(field.value)}
@@ -327,10 +338,13 @@ export function TitleChunkerForm({ node }: INextOperatorForm) {
               control={form.control}
               name="root_chunk_as_heading"
               render={({ field }) => (
-                <FormItem className="rounded-radius-md px-space-sm py-space-sm flex items-center justify-between border border-border-default">
-                  <FormLabel>
-                    {t('flow.rootAsHeading', 'Use root as H0 heading')}
-                  </FormLabel>
+                <FormItem className="flex items-center justify-between rounded-radius-md border border-border-default px-space-sm py-space-sm">
+                  <div className="min-w-0 space-y-1">
+                    <FormLabel>{t('flow.rootAsHeading')}</FormLabel>
+                    <FormDescription>
+                      {t('flow.rootAsHeadingTip')}
+                    </FormDescription>
+                  </div>
                   <FormControl>
                     <Switch
                       checked={Boolean(field.value)}

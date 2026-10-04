@@ -957,6 +957,21 @@ export default {
     oneChunkTitle: 'One chunk',
     oneChunkDescription: 'Keep the upstream document content as one chunk.',
     titleChunker: 'Title Chunker',
+    group: 'Group',
+    rule: 'Rule',
+    addRule: 'Add rule',
+    addRegularExpressions: 'Add regular expressions',
+    regularExpressions: 'Regular expressions',
+    includeHeadingContent: 'Separate parent-heading content',
+    includeHeadingContentTip:
+      'Keep the body directly under a parent heading in a separate chunk. Child chunks retain the heading path and their own content, without repeating the parent body.',
+    rootAsHeading: 'Set first chunk as global context',
+    rootAsHeadingTip:
+      'For structured JSON or chunks input with multiple chunks, prepend the first chunk’s text to every later chunk and remove the standalone first chunk. Useful when the opening section identifies the subject, such as in a resume.',
+    hierarchyTip:
+      'Build a heading tree. Each chunk carries its ancestor heading path, making structured sections in regulations, contracts, and technical specifications identifiable.',
+    groupTip:
+      'Split at the selected heading level and merge adjacent short sections to preserve continuity. No ancestor heading path is added. Suitable for books, manuals, and reports.',
     titleChunkerDescription:
       'Split documents into sections by title hierarchy. Define heading levels with regex rules, then choose Hierarchy or Group mode to control how chunks are structured.',
     stringTransform: 'Text processing',

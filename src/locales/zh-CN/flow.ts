@@ -1039,6 +1039,20 @@ export default {
     oneChunkTitle: '单块模式',
     oneChunkDescription: '上游文档内容将按原始顺序合并为一个分块。',
     titleChunker: '按标题分块',
+    group: '分组',
+    rule: '规则',
+    addRule: '添加规则',
+    addRegularExpressions: '添加正则表达式',
+    includeHeadingContent: '分离上级标题正文',
+    includeHeadingContentTip:
+      '将上级标题下的直接正文单独成块。子块保留标题路径和自身内容，不再重复上级正文。',
+    rootAsHeading: '将首个分块设为全局上下文',
+    rootAsHeadingTip:
+      '结构化 JSON 或 chunks 输入产生多个分块时，将首块文本添加到其余每个分块前，并移除独立首块。适合开篇说明主体信息的文档，例如简历。',
+    hierarchyTip:
+      '构建标题树，每个分块携带上级标题路径，便于定位法规、合同和技术规范等结构化文档中的章节。',
+    groupTip:
+      '按所选标题层级切分，并合并相邻短章节以保持内容连贯，不额外添加上级标题路径。适合书籍、手册和报告。',
     titleChunkerDescription:
       '按标题层级将文档切分为章节，并可用正则规则选择层级或分组方式。',
     extractor: '提取器',
