@@ -59,7 +59,8 @@ export const MineruLanguageOptions = [
 export const metadataFieldSchema = z.looseObject({
   key: z.string().optional(),
   description: z.string().optional(),
-  enum: z.array(z.string()).optional(),
+  type: z.enum(['string', 'list', 'time', 'number']).optional(),
+  enum: z.array(z.union([z.string(), z.number()])).optional(),
 })
 
 // 解析器配置 Schema
@@ -88,7 +89,9 @@ export const parserConfigSchema = z.looseObject({
   mineru_table_enable: z.boolean().default(true),
   mineru_lang: z.string().default('English'),
   // Metadata 自动提取配置
-  metadata: z.array(metadataFieldSchema).optional(),
+  metadata: z
+    .union([z.array(metadataFieldSchema), z.record(z.string(), z.unknown())])
+    .optional(),
   enable_metadata: z.boolean().default(false),
   // 实体类型 (用于命名实体识别)
   entity_types: z.array(z.string()).optional(),

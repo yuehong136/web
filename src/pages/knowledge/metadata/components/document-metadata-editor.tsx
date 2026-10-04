@@ -101,7 +101,7 @@ export const DocumentMetadataEditor: FC<DocumentMetadataEditorProps> = ({
 
   const getFieldEnum = (fieldKey: string): string[] | undefined => {
     const def = fieldDefinitions.find((d) => d.key === fieldKey)
-    return def?.enum
+    return def?.enum?.map(String)
   }
 
   const getUnusedFields = (): MetadataFieldDefinition[] => {
@@ -111,14 +111,14 @@ export const DocumentMetadataEditor: FC<DocumentMetadataEditorProps> = ({
 
   if (readOnly) {
     return (
-      <div className={cn('gap-space-xs flex flex-col', className)}>
+      <div className={cn('flex flex-col gap-space-xs', className)}>
         {entries.length === 0 ? (
           <span className="text-body-sm text-text-tertiary">
             {t('knowledge.metadata.editor.noMetadata')}
           </span>
         ) : (
           entries.map(({ key, value: val }, index) => (
-            <div key={index} className="gap-space-sm flex items-center">
+            <div key={index} className="flex items-center gap-space-sm">
               <span className="text-body-sm min-w-[80px] text-text-secondary">
                 {key}:
               </span>
@@ -133,7 +133,7 @@ export const DocumentMetadataEditor: FC<DocumentMetadataEditorProps> = ({
   }
 
   return (
-    <div className={cn('gap-space-sm flex flex-col', className)}>
+    <div className={cn('flex flex-col gap-space-sm', className)}>
       {entries.map((entry, index) => {
         const enumValues = getFieldEnum(entry.key)
         const hasEnum = enumValues && enumValues.length > 0
@@ -142,7 +142,7 @@ export const DocumentMetadataEditor: FC<DocumentMetadataEditorProps> = ({
           <div
             key={index}
             className={cn(
-              'gap-space-xs flex items-center',
+              'flex items-center gap-space-xs',
               compact ? 'gap-space-xs' : 'gap-space-sm',
             )}
           >

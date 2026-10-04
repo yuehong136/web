@@ -1,4 +1,9 @@
 import { useCallback, useMemo, useState } from 'react'
+import {
+  metadataConfigToFields,
+  metadataFieldsToConfig,
+} from '@/lib/metadata-config'
+import type { MetadataDefinition } from '@/types/metadata'
 import { useTranslation } from 'react-i18next'
 import {
   useMetadataSummary,
@@ -29,8 +34,9 @@ interface UseMetadataEditorOptions {
   kbId: string
   mode: MetadataManageType
   initialSettings?: MetadataFieldDefinition[]
+  initialConfig?: MetadataDefinition
   documentId?: string
-  onSuccess?: (data?: MetadataFieldDefinition[]) => void
+  onSuccess?: (data?: MetadataDefinition) => void
 }
 
 export interface UseMetadataEditorReturn {
@@ -62,6 +68,7 @@ export function useMetadataEditor(
     kbId,
     mode,
     initialSettings = EMPTY_SETTINGS,
+    initialConfig,
     documentId,
     onSuccess,
   } = options
@@ -100,6 +107,7 @@ export function useMetadataEditor(
     isSettingMode,
     isValueManageMode,
     initialSettings,
+    initialConfig,
     summaryData,
   ]
   const [previousSource, setPreviousSource] = useState<unknown[] | null>(null)
@@ -109,7 +117,14 @@ export function useMetadataEditor(
   ) {
     setPreviousSource(source)
     if (open) {
-      if (isSettingMode) setTableData(settingsToTableData(initialSettings))
+      if (isSettingMode)
+        setTableData(
+          settingsToTableData(
+            initialConfig
+              ? metadataConfigToFields(initialConfig)
+              : initialSettings,
+          ),
+        )
       else if (isValueManageMode && summaryData?.summary)
         setTableData(summaryToTableData(summaryData.summary))
     }
@@ -247,7 +262,10 @@ export function useMetadataEditor(
         onSuccess?.()
         onClose()
       } else if (isSingleFileSettingMode && documentId) {
-        const settings = tableDataToSettings(tableData)
+        const settings = metadataFieldsToConfig(
+          tableDataToSettings(tableData),
+          initialConfig,
+        )
         await updateDocSettingsMutation.mutateAsync({
           kb_id: kbId,
           doc_id: documentId,
@@ -256,11 +274,13 @@ export function useMetadataEditor(
         onSuccess?.(settings)
         onClose()
       } else if (isSettingMode) {
-        const settings = tableDataToSettings(tableData)
+        const settings = metadataFieldsToConfig(
+          tableDataToSettings(tableData),
+          initialConfig,
+        )
         await updateKBSettingsMutation.mutateAsync({
           kb_id: kbId,
           metadata: settings,
-          enable_metadata: true,
         })
         onSuccess?.(settings)
         onClose()
@@ -271,6 +291,7 @@ export function useMetadataEditor(
   }, [
     batchUpdateMutation,
     documentId,
+    initialConfig,
     isSettingMode,
     isSingleFileSettingMode,
     isUpdateSingleMode,

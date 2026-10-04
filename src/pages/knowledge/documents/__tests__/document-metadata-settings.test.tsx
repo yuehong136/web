@@ -264,7 +264,11 @@ it('retains saved metadata when reopening, saving the outer draft and remounting
   await addAuthor()
   await saveTopDialog()
   expect(puts).toEqual([
-    { metadata: [{ key: 'author', description: '', enum: undefined }] },
+    {
+      metadata: [
+        { key: 'author', type: 'string', description: '', enum: undefined },
+      ],
+    },
   ])
   expect(refetch).toHaveBeenCalled()
   await click('Metadata settings (1)')

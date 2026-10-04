@@ -3,7 +3,11 @@ import { useTranslation } from 'react-i18next'
 import { Plus, Settings2, Database, Sparkles } from 'lucide-react'
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { MetadataManageType, type MetadataFieldDefinition } from '@/types/api'
+import {
+  MetadataManageType,
+  type MetadataDefinition,
+  type MetadataFieldDefinition,
+} from '@/types/api'
 import { DeleteMetadataConfirm } from './components/delete-metadata-confirm'
 import { MetadataFieldTable } from './components/metadata-field-table'
 import { MetadataModalHeader } from './components/metadata-modal-header'
@@ -18,8 +22,9 @@ interface ManageMetadataModalProps {
   kbId: string
   mode: MetadataManageType
   initialSettings?: MetadataFieldDefinition[]
+  initialConfig?: MetadataDefinition
   documentId?: string
-  onSuccess?: (data?: MetadataFieldDefinition[]) => void
+  onSuccess?: (data?: MetadataDefinition) => void
   onNavigateToSettings?: () => void
 }
 
@@ -29,6 +34,7 @@ export const ManageMetadataModal: React.FC<ManageMetadataModalProps> = ({
   kbId,
   mode,
   initialSettings,
+  initialConfig,
   documentId,
   onSuccess,
   onNavigateToSettings,
@@ -40,6 +46,7 @@ export const ManageMetadataModal: React.FC<ManageMetadataModalProps> = ({
     kbId,
     mode,
     initialSettings,
+    initialConfig,
     documentId,
     onSuccess,
   })
@@ -72,14 +79,14 @@ export const ManageMetadataModal: React.FC<ManageMetadataModalProps> = ({
             subtitle={subtitle}
           />
 
-          <div className="flex-1 overflow-y-auto px-6 pb-4 scrollbar-thin">
+          <div className="scrollbar-thin flex-1 overflow-y-auto px-6 pb-4">
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-text-primary">
                   {t('knowledge.metadata.modal.fieldList')}
                 </span>
                 {editor.tableData.length > 0 && (
-                  <span className="bg-surface-secondary inline-flex items-center justify-center rounded px-1.5 py-0.5 text-xs font-medium text-text-tertiary">
+                  <span className="inline-flex items-center justify-center rounded bg-surface-secondary px-1.5 py-0.5 text-xs font-medium text-text-tertiary">
                     {editor.tableData.length}
                   </span>
                 )}

@@ -94,7 +94,7 @@ test('metadata methods preserve their REST and legacy transport contracts', asyn
   assert.ok(getCalls[0]?.config?.baseURL?.endsWith('/api'))
   assert.deepEqual(postCalls, [])
   assert.equal(putCalls[0]?.endpoint, '/v1/datasets/kb-1/metadata/config')
-  assert.deepEqual(putCalls[0]?.data, { enabled: true, fields: settings })
+  assert.deepEqual(putCalls[0]?.data, { metadata: settings })
   assert.ok(putCalls[0]?.config?.baseURL?.endsWith('/api'))
   assert.equal(
     patchCalls[0]?.endpoint,

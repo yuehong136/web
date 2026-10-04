@@ -29,6 +29,7 @@ export function useFieldEditorState(active = true): UseFieldEditorStateReturn {
     setEditingIndex(nextIndex)
     setEditingData({
       field: '',
+      valueType: 'string',
       description: '',
       values: [],
       restrictDefinedValues: false,

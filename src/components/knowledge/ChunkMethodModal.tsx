@@ -5,7 +5,7 @@ import { FormProvider, useForm, useWatch } from 'react-hook-form'
 import { Settings2 } from 'lucide-react'
 import { Button, Modal } from '@/components/ui'
 import { ChunkMethodForm } from '@/pages/knowledge/settings/ChunkMethodForm'
-import type { Document, MetadataFieldDefinition } from '@/types/api'
+import type { Document, MetadataDefinition } from '@/types/api'
 import { metadataConfigToFields } from '@/api/knowledge-metadata'
 import type { DocumentParserSubmission } from '@/hooks/use-document-parser-modal'
 import { ParserFieldScope } from '@/components/forms/parser-field-scope'
@@ -32,7 +32,7 @@ interface ChunkMethodModalProps {
   errorKey?: string
   onSubmit: (data: DocumentParserSubmission) => Promise<void>
   onMetadataSettingsClick?: (document: Document) => void
-  savedMetadataSettings?: MetadataFieldDefinition[]
+  savedMetadataSettings?: MetadataDefinition
   isLoading?: boolean
 }
 

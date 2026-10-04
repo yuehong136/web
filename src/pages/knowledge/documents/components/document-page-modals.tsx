@@ -186,6 +186,7 @@ export function DocumentPageModals({
           mode={MetadataType.SINGLE_FILE_SETTING}
           documentId={pageModals.singleFileMetadataDoc.id}
           initialSettings={metadataSettings}
+          initialConfig={metadata}
           onSuccess={pageModals.handleSingleFileMetadataSaved}
         />
       )}

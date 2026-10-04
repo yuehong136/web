@@ -3,11 +3,7 @@ import type { ReparseOptions } from '@/api/knowledge-document-ingest'
 import { useTranslation } from 'react-i18next'
 import { DocumentCreationMode } from '@/api/knowledge-rest'
 import { useDocumentParserModal } from '@/hooks/use-document-parser-modal'
-import type {
-  Document,
-  KnowledgeBase,
-  MetadataFieldDefinition,
-} from '@/types/api'
+import type { Document, KnowledgeBase, MetadataDefinition } from '@/types/api'
 import type { DocumentListState } from '../types'
 import type { useDocumentActions } from './use-document-actions'
 
@@ -63,7 +59,7 @@ export function useDocumentPageModals({
   const [singleFileMetadataDoc, setSingleFileMetadataDoc] =
     useState<Document | null>(null)
   const [savedMetadataSettings, setSavedMetadataSettings] =
-    useState<MetadataFieldDefinition[]>()
+    useState<MetadataDefinition>()
 
   const needsParseConfirmation = useCallback(
     (docs: Document[]) => {
@@ -197,7 +193,7 @@ export function useDocumentPageModals({
   )
 
   const handleSingleFileMetadataSaved = useCallback(
-    (settings?: MetadataFieldDefinition[]) => {
+    (settings?: MetadataDefinition) => {
       if (settings !== undefined) setSavedMetadataSettings(settings)
       listState.refetch()
     },

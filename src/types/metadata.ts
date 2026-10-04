@@ -11,11 +11,20 @@ export interface MetadataCondition {
   conditions?: MetadataFilterCondition[]
 }
 
+export type MetadataValueType = 'string' | 'list' | 'time' | 'number'
+export type MetadataDefinition =
+  | MetadataFieldDefinition[]
+  | Record<string, unknown>
+
 /** 知识库 metadata 模板中的字段定义。 */
 export interface MetadataFieldDefinition {
   key: string
   description?: string
-  enum?: string[]
+  type?: MetadataValueType
+  enum?: Array<string | number>
+  examples?: Array<string | number>
+  restrict_values?: boolean
+  [key: string]: unknown
   restrictDefinedValues?: boolean
 }
 
@@ -56,14 +65,15 @@ export interface MetadataBatchRequest {
 
 export interface KBMetadataSettingsRequest {
   kb_id: string
-  metadata: MetadataFieldDefinition[]
+  metadata: MetadataDefinition
   enable_metadata?: boolean
+  built_in_metadata?: MetadataFieldDefinition[]
 }
 
 export interface DocumentMetadataSettingsRequest {
   kb_id: string
   doc_id: string
-  metadata: MetadataFieldDefinition[]
+  metadata: MetadataDefinition
 }
 
 export interface DocumentMetadataUpdateRequest {
@@ -72,6 +82,8 @@ export interface DocumentMetadataUpdateRequest {
 }
 
 export interface MetadataTableData {
+  valueType?: MetadataValueType
+  definition?: MetadataFieldDefinition
   field: string
   description: string
   restrictDefinedValues?: boolean

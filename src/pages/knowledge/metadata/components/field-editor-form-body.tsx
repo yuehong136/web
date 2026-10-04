@@ -7,6 +7,14 @@ import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import type { MetadataValueType } from '@/types/metadata'
+import {
   TooltipRoot as Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -35,7 +43,7 @@ export const FieldEditorFormBody: React.FC<FieldEditorFormBodyProps> = ({
   return (
     <div className="max-h-[50vh] space-y-5 overflow-y-auto px-6 py-4">
       {!isNew && !isSettingMode && (
-        <div className="bg-surface-secondary rounded-lg border border-border-default p-4">
+        <div className="rounded-lg border border-border-default bg-surface-secondary p-4">
           <span className="text-base font-medium text-text-primary">
             {formData.field}
           </span>
@@ -54,8 +62,37 @@ export const FieldEditorFormBody: React.FC<FieldEditorFormBodyProps> = ({
             disabled={loading}
           />
           {errors.field && (
-            <p className="text-status-error text-xs">{errors.field}</p>
+            <p className="text-xs text-status-error">{errors.field}</p>
           )}
+        </div>
+      )}
+
+      {isSettingMode && (
+        <div className="space-y-2">
+          <Label htmlFor="metadata-value-type">
+            {t('knowledge.metadata.editor.valueType')}
+          </Label>
+          <Select
+            value={formData.valueType ?? 'string'}
+            onValueChange={(value) =>
+              handlers.typeChange(value as MetadataValueType)
+            }
+            disabled={loading}
+          >
+            <SelectTrigger
+              id="metadata-value-type"
+              aria-label={t('knowledge.metadata.editor.valueType')}
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {(['string', 'list', 'time', 'number'] as const).map((type) => (
+                <SelectItem key={type} value={type}>
+                  {t(`knowledge.metadata.editor.types.${type}`)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       )}
 
@@ -160,7 +197,7 @@ export const FieldEditorFormBody: React.FC<FieldEditorFormBodyProps> = ({
           </div>
 
           {errors.values && (
-            <p className="text-status-error text-xs">{errors.values}</p>
+            <p className="text-xs text-status-error">{errors.values}</p>
           )}
         </div>
       )}

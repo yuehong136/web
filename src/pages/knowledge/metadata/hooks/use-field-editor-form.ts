@@ -1,17 +1,12 @@
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { MetadataTableData } from '@/types/api'
-
-interface FieldEditorInitialData {
-  field: string
-  description?: string
-  restrictDefinedValues?: boolean
-  values: string[]
-}
+import type { MetadataTableData, MetadataValueType } from '@/types/api'
 
 interface UseFieldEditorFormOptions {
   open: boolean
-  initialData?: FieldEditorInitialData
+  initialData?: Omit<MetadataTableData, 'description'> & {
+    description?: string
+  }
   existingKeys: string[]
   onSave: (data: MetadataTableData) => void
   onClose: () => void
@@ -29,6 +24,7 @@ export interface UseFieldEditorFormReturn {
   hasErrors: boolean
   handlers: {
     fieldChange: (value: string) => void
+    typeChange: (value: MetadataValueType) => void
     descriptionChange: (value: string) => void
     restrictChange: (checked: boolean) => void
     valueChange: (index: number, value: string) => void
@@ -42,6 +38,7 @@ export interface UseFieldEditorFormReturn {
 
 const EMPTY_FORM: MetadataTableData = {
   field: '',
+  valueType: 'string',
   description: '',
   values: [],
   restrictDefinedValues: false,
@@ -70,6 +67,8 @@ export function useFieldEditorForm(
     if (open) {
       if (initialData) {
         setFormData({
+          ...initialData,
+          valueType: initialData.valueType ?? 'string',
           field: initialData.field,
           description: initialData.description || '',
           values: initialData.values,
@@ -99,6 +98,11 @@ export function useFieldEditorForm(
     },
     [existingKeys, t],
   )
+
+  const typeChange = useCallback((value: MetadataValueType) => {
+    setFormData((prev) => ({ ...prev, valueType: value }))
+    setErrors((prev) => ({ ...prev, values: undefined }))
+  }, [])
 
   const descriptionChange = useCallback((value: string) => {
     setFormData((prev) => ({ ...prev, description: value }))
@@ -166,6 +170,16 @@ export function useFieldEditorForm(
     if (errors.field || errors.values) return
 
     const finalValues = [...new Set(tempValues.filter((v) => v.trim()))]
+    if (
+      formData.valueType === 'number' &&
+      finalValues.some((value) => !Number.isFinite(Number(value)))
+    ) {
+      setErrors((prev) => ({
+        ...prev,
+        values: t('knowledge.metadata.editor.invalidNumber'),
+      }))
+      return
+    }
     onSave({ ...formData, values: finalValues })
   }, [errors.field, errors.values, formData, onSave, t, tempValues])
 
@@ -183,6 +197,7 @@ export function useFieldEditorForm(
     hasErrors: Boolean(errors.field || errors.values),
     handlers: {
       fieldChange,
+      typeChange,
       descriptionChange,
       restrictChange,
       valueChange,

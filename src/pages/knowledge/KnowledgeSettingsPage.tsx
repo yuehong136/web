@@ -532,6 +532,7 @@ const KnowledgeSettingsPage: React.FC = () => {
             onClose={() => setMetadataModalOpen(false)}
             kbId={id}
             mode={MetadataManageType.SETTING}
+            initialConfig={currentKnowledgeBase?.parser_config?.metadata}
             initialSettings={currentKnowledgeBase?.metadata_settings || []}
             onSuccess={() => {
               // 依赖 useUpdateKBMetadataSettings 的缓存失效逻辑

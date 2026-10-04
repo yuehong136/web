@@ -8,7 +8,6 @@ import type {
   KBMetadataSettingsRequest,
   DocumentMetadataSettingsRequest,
   MetadataTableData,
-  MetadataFieldDefinition,
 } from '@/types/api'
 
 // metadata 域 query key 工厂（形状复刻原中央 queryKeys.metadata，逐元素不变）
@@ -73,33 +72,7 @@ export function tableDataToJSON(
   }, {})
 }
 
-/**
- * 将表格数据转换为 Metadata 设置格式 (用于 KB/文档模板)
- */
-export function tableDataToSettings(
-  data: MetadataTableData[],
-): MetadataFieldDefinition[] {
-  return data.map((item) => ({
-    key: item.field,
-    description: item.description,
-    enum: item.values.length > 0 ? item.values : undefined,
-  }))
-}
-
-/**
- * 将 Metadata 设置转换为表格数据格式
- */
-export function settingsToTableData(
-  settings: MetadataFieldDefinition[],
-): MetadataTableData[] {
-  if (!Array.isArray(settings)) return []
-  return settings.map((item) => ({
-    field: item.key,
-    description: item.description || '',
-    values: item.enum || [],
-    restrictDefinedValues: !!item.enum?.length || item.restrictDefinedValues,
-  }))
-}
+export { tableDataToSettings, settingsToTableData } from '@/lib/metadata-config'
 
 /**
  * 将 JSON 格式的 meta_fields 转换为表格数据

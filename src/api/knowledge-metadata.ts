@@ -3,48 +3,24 @@ import type {
   KBMetadataSettingsRequest,
   MetadataBatchRequest,
   MetadataFieldDefinition,
+  MetadataDefinition,
   MetadataSummaryResponse,
 } from '@/types/metadata'
 import { apiClient } from './client'
 import { knowledgeRestConfig } from './knowledge-config'
 import { withLegacyFallback } from './legacy-fallback'
 
-/** Document lists return JSON Schema; metadata saves accept field arrays. */
-export function metadataConfigToFields(
-  config: unknown,
-): MetadataFieldDefinition[] {
-  if (Array.isArray(config)) return config as MetadataFieldDefinition[]
-  if (!config || typeof config !== 'object' || !('properties' in config))
-    return []
-  const properties = config.properties
-  if (
-    !properties ||
-    typeof properties !== 'object' ||
-    Array.isArray(properties)
-  )
-    return []
-  return Object.entries(properties).map(([key, value]) => {
-    const field = value && typeof value === 'object' ? value : {}
-    return {
-      key,
-      description:
-        'description' in field && typeof field.description === 'string'
-          ? field.description
-          : '',
-      enum:
-        'enum' in field && Array.isArray(field.enum)
-          ? field.enum.filter(
-              (item: unknown): item is string => typeof item === 'string',
-            )
-          : undefined,
-    }
-  })
-}
+export { metadataConfigToFields } from '@/lib/metadata-config'
 
 export const knowledgeMetadataAPI = {
   getConfig: (
     datasetId: string,
-  ): Promise<{ enabled: boolean; fields: MetadataFieldDefinition[] }> =>
+  ): Promise<{
+    enabled: boolean
+    fields: MetadataFieldDefinition[]
+    metadata: MetadataDefinition
+    built_in_metadata: MetadataFieldDefinition[]
+  }> =>
     apiClient.get(
       `/v1/datasets/${encodeURIComponent(datasetId)}/metadata/config`,
       knowledgeRestConfig,
@@ -82,7 +58,15 @@ export const knowledgeMetadataAPI = {
   updateKBSettings: (data: KBMetadataSettingsRequest): Promise<void> =>
     apiClient.put(
       `/v1/datasets/${encodeURIComponent(data.kb_id)}/metadata/config`,
-      { enabled: data.enable_metadata ?? true, fields: data.metadata },
+      {
+        metadata: data.metadata,
+        ...(data.enable_metadata !== undefined
+          ? { enabled: data.enable_metadata }
+          : {}),
+        ...(data.built_in_metadata !== undefined
+          ? { built_in_metadata: data.built_in_metadata }
+          : {}),
+      },
       knowledgeRestConfig,
     ),
 
