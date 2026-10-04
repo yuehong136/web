@@ -95,7 +95,11 @@ export const ManagedSecondaryNavigation = ({
 export const getWorkbenchSection = (pathname: string): WorkbenchSection => {
   if (pathname === '/settings' || pathname.startsWith('/settings/'))
     return 'settings'
-  if (pathname.startsWith('/knowledge') || pathname.startsWith('/memory'))
+  if (
+    pathname.startsWith('/knowledge') ||
+    pathname.startsWith('/memory') ||
+    pathname.startsWith('/skills')
+  )
     return 'knowledge'
   if (
     pathname.startsWith('/agents') ||

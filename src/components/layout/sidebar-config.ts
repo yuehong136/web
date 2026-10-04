@@ -1,6 +1,7 @@
 import type React from 'react'
 import {
   BookOpen,
+  Library,
   Briefcase,
   Compass,
   HardDrive,
@@ -49,6 +50,12 @@ export const navItems: NavItem[] = [
     titleKey: 'layout.nav.knowledge',
     href: ROUTES.KNOWLEDGE,
     icon: BookOpen,
+  },
+  {
+    title: 'Skills',
+    titleKey: 'skills.title',
+    href: ROUTES.SKILLS,
+    icon: Library,
   },
   {
     title: '记忆库',

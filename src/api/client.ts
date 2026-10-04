@@ -410,7 +410,7 @@ class APIClient {
     fieldName: string,
     files: File[],
     additionalData?: Record<string, any>,
-    config?: Omit<RequestConfig, 'headers'>,
+    config?: RequestConfig,
   ): Promise<T> {
     const formData = new FormData()
 
@@ -425,7 +425,11 @@ class APIClient {
     }
 
     const token = config?.skipAuth ? null : this.getAuthToken()
-    const headers: HeadersInit = {}
+    const headers: Record<string, string> = Object.fromEntries(
+      new Headers(config?.headers),
+    )
+    delete headers.authorization
+    delete headers['content-type']
     if (token) {
       headers.Authorization = `Bearer ${token}`
     }

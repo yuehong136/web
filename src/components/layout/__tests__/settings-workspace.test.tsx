@@ -322,7 +322,7 @@ it('keeps secondary destinations in More and routes feature navigation into the 
     Array.from(document.querySelectorAll('[role="menuitem"]')).map(
       (item) => item.textContent,
     ),
-  ).toEqual(['Search', 'Memory', 'Studio', 'Tools', 'MCP'])
+  ).toEqual(['Search', 'Skill library', 'Memory', 'Studio', 'Tools', 'MCP'])
   await act(async () => {
     document.dispatchEvent(
       new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }),

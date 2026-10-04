@@ -13,6 +13,7 @@ import {
 } from '@/components/patterns'
 import { ROUTES } from '@/constants'
 import { ErrorFallback, NotFoundPage } from '@/pages/error'
+import { skillRoutes } from '@/pages/skills/skill-routes'
 
 // ---------------------------------------------------------------------------
 // Static imports — critical path for first paint
@@ -345,6 +346,7 @@ const topLevelRoutes: RouteObject[] = [
         path: ROUTES.KNOWLEDGE,
         element: withLoading(KnowledgeListPage),
       },
+      ...skillRoutes,
       {
         path: ROUTES.MEMORY,
         element: withLoading(MemoryListPage),

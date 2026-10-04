@@ -1,4 +1,5 @@
 import common from './common'
+import { skillsResource } from './skills'
 import datasource from './datasource'
 import flow from './flow'
 import layout from './layout'
@@ -20,6 +21,7 @@ import { authResource as auth } from './auth'
 import { desktopResource as desktop } from './desktop'
 
 export default {
+  ...skillsResource,
   ...common,
   ...datasource,
   ...flow,

@@ -9,6 +9,7 @@ export const ROUTES = {
   LOGIN: '/auth/login',
   REGISTER: '/auth/register',
   KNOWLEDGE: '/knowledge',
+  SKILLS: '/skills',
   MEMORY: '/memory',
   MEMORY_DETAIL: '/memory/:id',
   MEMORY_MESSAGES: '/memory/:id',
