@@ -37,6 +37,11 @@ const ICON_SIZE = 28
 export const generateDataSourceInfo = (
   t: (key: string) => string,
 ): IDataSourceInfoMap => ({
+  [DataSourceKey.SEAFILE]: {
+    name: 'SeaFile',
+    description: t('datasource.seafileDescription'),
+    icon: <Server size={ICON_SIZE} />,
+  },
   [DataSourceKey.S3]: {
     name: 'S3',
     description: t('datasource.s3Description'),
@@ -295,6 +300,7 @@ export const useDataSourceFormFields = () => {
  */
 export const DataSourceGroups = {
   storage: [
+    DataSourceKey.SEAFILE,
     DataSourceKey.S3,
     DataSourceKey.R2,
     DataSourceKey.GOOGLE_CLOUD_STORAGE,

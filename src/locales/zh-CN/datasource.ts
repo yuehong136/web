@@ -146,6 +146,21 @@ export default {
     confluencePageIdTip: '要索引的起始页面 ID',
     confluenceTokenTip: '从 Atlassian 账户设置中获取 API Token',
 
+    seafileDescription: '同步 SeaFile 账户、资料库或目录中的文件',
+    seafileUrl: '服务器地址',
+    seafileScope: '同步范围',
+    seafileScope_account: '账户',
+    seafileScope_library: '资料库',
+    seafileScope_directory: '目录',
+    seafileRepo: '资料库 ID',
+    seafilePath: '目录路径',
+    seafileShared: '包含共享资料库',
+    seafileToken: '账户令牌',
+    seafileRepoToken: '资料库令牌',
+    seafileScopeTip:
+      '资料库和目录范围必须填写资料库 ID；目录范围还需填写非根目录路径。',
+    seafileCredentialsTip:
+      '填写账户令牌，或在资料库和目录范围下填写资料库令牌。',
     syncDeletedFiles: '同步源端删除',
     syncDeletedFilesTip:
       '默认关闭，仅作用于后续同步，首次导入和重建不执行删除核对。成功获取源端完整清单时，会删除知识库中已不在清单内的文档；完整空清单会删除全部关联文档。清单以当前凭证和配置范围为准；缩小权限、路径或 JQL 范围也可能移除本地文档。权限或分页失败时不会根据部分结果删除。',

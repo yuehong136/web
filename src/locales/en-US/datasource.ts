@@ -161,6 +161,22 @@ export default {
     confluencePageIdTip: 'Starting page ID to index',
     confluenceTokenTip: 'Get API Token from Atlassian account settings',
 
+    seafileDescription:
+      'Sync files from SeaFile accounts, libraries or directories',
+    seafileUrl: 'Server URL',
+    seafileScope: 'Sync scope',
+    seafileScope_account: 'Account',
+    seafileScope_library: 'Library',
+    seafileScope_directory: 'Directory',
+    seafileRepo: 'Library ID',
+    seafilePath: 'Directory path',
+    seafileShared: 'Include shared libraries',
+    seafileToken: 'Account token',
+    seafileRepoToken: 'Library token',
+    seafileScopeTip:
+      'Library and directory scopes require a library ID. Directory scope also requires a non-root path.',
+    seafileCredentialsTip:
+      'Supply an account token, or a library token for library/directory scope.',
     syncDeletedFiles: 'Sync source deletions',
     syncDeletedFilesTip:
       'Off by default. Applies to subsequent syncs; initial imports and rebuilds do not check deletions. A successful complete source listing removes knowledge base documents missing from that listing. A complete empty listing removes all linked documents. The listing follows your current credentials and configuration; narrowing permissions, paths or JQL may also remove local documents. Permission or pagination failures never delete based on partial results.',

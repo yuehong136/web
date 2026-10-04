@@ -251,3 +251,23 @@ it('defaults Dropbox deletion sync off and preserves credentials when saving the
     credentials: { dropbox_access_token: 'synthetic' },
   })
 })
+
+it('saves SeaFile account scope and the deletion switch', async () => {
+  await renderAdd(DataSourceKey.SEAFILE)
+  await change(input('name'), 'SeaFile scratch')
+  await change(input('config.seafile_url'), 'https://seafile.test')
+  await change(input('config.credentials.seafile_token'), 'synthetic')
+  const deletion = Array.from(document.querySelectorAll('label')).find(
+    (label) => label.textContent === 'Sync source deletions',
+  )!
+  expect(deletion.control?.getAttribute('aria-checked')).toBe('false')
+  await click(deletion)
+  await click(button('Confirm'))
+  expect(submit.mock.calls[0][0].config).toMatchObject({
+    seafile_url: 'https://seafile.test',
+    sync_scope: 'account',
+    include_shared: true,
+    sync_deleted_files: true,
+    credentials: { seafile_token: 'synthetic' },
+  })
+})

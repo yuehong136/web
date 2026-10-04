@@ -68,6 +68,7 @@ describe('connector configuration contracts', () => {
       'oci_storage',
       'r2',
       's3',
+      'seafile',
     ])
     for (const source of Object.values(DataSourceKey)) {
       const deletionFields = fields[source].filter(

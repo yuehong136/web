@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 
 /**
- * 数据源类型枚举 - 支持 23 种数据源
+ * 数据源类型枚举
  */
 export enum DataSourceKey {
   // 云存储类
@@ -10,6 +10,7 @@ export enum DataSourceKey {
   GOOGLE_CLOUD_STORAGE = 'google_cloud_storage',
   OCI_STORAGE = 'oci_storage',
   DROPBOX = 'dropbox',
+  SEAFILE = 'seafile',
   BOX = 'box',
   WEBDAV = 'webdav',
 

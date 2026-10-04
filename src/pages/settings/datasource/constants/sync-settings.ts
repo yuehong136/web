@@ -15,6 +15,7 @@ export const deletionSyncSources = new Set<DataSourceKey>([
   DataSourceKey.CONFLUENCE,
   DataSourceKey.BOX,
   DataSourceKey.DROPBOX,
+  DataSourceKey.SEAFILE,
   DataSourceKey.S3,
   DataSourceKey.R2,
   DataSourceKey.GOOGLE_CLOUD_STORAGE,

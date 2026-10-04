@@ -41,6 +41,18 @@ export const DataSourceFormDefaultValues: Record<DataSourceKey, any> = {
       },
     },
   },
+  [DataSourceKey.SEAFILE]: {
+    name: '',
+    source: DataSourceKey.SEAFILE,
+    config: {
+      seafile_url: '',
+      sync_scope: 'account',
+      include_shared: true,
+      repo_id: '',
+      sync_path: '/',
+      credentials: { seafile_token: '', repo_token: '' },
+    },
+  },
   [DataSourceKey.DROPBOX]: {
     name: '',
     source: DataSourceKey.DROPBOX,
