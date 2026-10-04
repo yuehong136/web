@@ -33,7 +33,7 @@ export const ActionMenuContent = React.forwardRef<
 ActionMenuContent.displayName = 'ActionMenuContent'
 
 const itemClass =
-  'flex min-h-8 cursor-default items-center gap-space-sm rounded-radius-md px-space-sm py-space-xs outline-hidden data-[highlighted]:bg-state-hover data-[disabled]:pointer-events-none data-[disabled]:opacity-50'
+  'flex min-h-8 cursor-default items-center gap-space-sm rounded-radius-md px-space-sm py-space-xs text-text-primary outline-hidden data-[highlighted]:bg-state-hover data-[disabled]:pointer-events-none data-[disabled]:opacity-50'
 
 export const ActionMenuSubTrigger = React.forwardRef<
   React.ElementRef<typeof Menu.SubTrigger>,
