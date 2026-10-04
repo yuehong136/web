@@ -37,43 +37,40 @@ interface LogListParams {
   page?: number
   page_size?: number
   operation_status?: string[]
+  keywords?: string
+  orderby?: string
+  desc?: boolean
+  create_date_from?: string
+  create_date_to?: string
+  types?: string[]
+  suffix?: string[]
 }
 const ingestionPath = (id: string) =>
   `/v1/datasets/${encodeURIComponent(id)}/ingestions`
 
+function listLogs<T>(
+  { kb_id, page = 1, page_size = 10, ...filters }: LogListParams,
+  logType: 'file' | 'dataset',
+): Promise<{ logs: T[]; total: number }> {
+  const query = new URLSearchParams({
+    page: String(page),
+    page_size: String(page_size),
+    log_type: logType,
+  })
+  for (const [key, value] of Object.entries(filters)) {
+    if (value === undefined) continue
+    if (Array.isArray(value)) {
+      for (const item of value) query.append(key, item)
+    } else query.set(key, String(value))
+  }
+  return apiClient.get(`${ingestionPath(kb_id)}?${query}`, knowledgeRestConfig)
+}
+
 export const knowledgeIngestionAPI = {
-  // File download logs are not included by the current canonical ingestion list.
-  listFileLogs: ({
-    kb_id,
-    page = 1,
-    page_size = 10,
-    keywords = '',
-    operation_status = [],
-  }: LogListParams & { keywords?: string }): Promise<{
-    logs: IFileLogItem[]
-    total: number
-  }> =>
-    apiClient.post(
-      `/v1/kb/list_pipeline_logs?${new URLSearchParams({ kb_id, page: String(page), page_size: String(page_size), keywords })}`,
-      { operation_status },
-    ),
-  listDatasetLogs: ({
-    kb_id,
-    page = 1,
-    page_size = 10,
-    operation_status = [],
-  }: LogListParams): Promise<{ logs: IngestionLog[]; total: number }> => {
-    const query = new URLSearchParams({
-      page: String(page),
-      page_size: String(page_size),
-    })
-    for (const status of operation_status)
-      query.append('operation_status', status)
-    return apiClient.get(
-      `${ingestionPath(kb_id)}?${query}`,
-      knowledgeRestConfig,
-    )
-  },
+  listFileLogs: (params: LogListParams) =>
+    listLogs<IFileLogItem>(params, 'file'),
+  listDatasetLogs: (params: LogListParams) =>
+    listLogs<IngestionLog>(params, 'dataset'),
   get: (datasetId: string, logId: string): Promise<IngestionLog> =>
     apiClient.get(
       `${ingestionPath(datasetId)}/${encodeURIComponent(logId)}`,

@@ -90,15 +90,31 @@ test('ingestion list repeats status filters and summary preserves status counts'
       assert.equal(url.searchParams.get('page'), '2')
       assert.equal(url.searchParams.get('page_size'), '20')
       assert.equal(url.searchParams.has('kb_id'), false)
+      assert.equal(url.searchParams.get('keywords'), '报告')
+      assert.ok(['file', 'dataset'].includes(url.searchParams.get('log_type')!))
+      assert.deepEqual(url.searchParams.getAll('types'), ['txt', 'pdf'])
+      assert.deepEqual(url.searchParams.getAll('suffix'), ['txt'])
+      assert.equal(url.searchParams.get('desc'), 'false')
+      assert.equal(
+        url.searchParams.get('create_date_from'),
+        '2025-01-04T08:00:00+08:00',
+      )
       return { logs: [], total: 0 }
     },
   )
-  await knowledgeAPI.logs.listDatasetLogs({
+  const params = {
     kb_id: 'kb/1',
     page: 2,
     page_size: 20,
     operation_status: ['1', '4'],
-  })
+    keywords: '报告',
+    types: ['txt', 'pdf'],
+    suffix: ['txt'],
+    desc: false,
+    create_date_from: '2025-01-04T08:00:00+08:00',
+  }
+  await knowledgeAPI.logs.listDatasetLogs(params)
+  await knowledgeAPI.logs.listFileLogs(params)
   assert.deepEqual(await knowledgeAPI.logs.getSummary('kb/1'), summary)
 })
 
