@@ -308,6 +308,13 @@ export default {
     moodleDescription:
       'Connect to Moodle learning platform and sync courses and resources',
 
+    // RSS related
+    rssDescription: 'Connect to an RSS or Atom feed and sync articles',
+    rssFeedUrl: 'Feed URL',
+    rssBatchSize: 'Batch size',
+    rssSyncDeletedFilesTip:
+      'Mirror the current feed. Articles that leave its rolling window are also deleted locally, even if the original article still exists. Leave off to retain history.',
+
     // IMAP related
     imapDescription:
       'Connect to mailbox via IMAP protocol and sync email content',

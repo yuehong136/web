@@ -229,6 +229,11 @@ export const DataSourceFormDefaultValues: Record<DataSourceKey, any> = {
     source: DataSourceKey.MOODLE,
     config: { moodle_url: '', credentials: { moodle_token: '' } },
   },
+  [DataSourceKey.RSS]: {
+    name: '',
+    source: DataSourceKey.RSS,
+    config: { feed_url: '', batch_size: 2 },
+  },
   [DataSourceKey.IMAP]: {
     name: '',
     source: DataSourceKey.IMAP,

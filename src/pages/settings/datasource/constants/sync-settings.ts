@@ -4,7 +4,7 @@ import {
   type FormFieldConfig,
 } from '@/pages/settings/datasource/types'
 
-/** Only sources with a complete snapshot contract expose deletion sync. */
+/** Sources with an explicit deletion inventory contract (RSS mirrors its current feed). */
 export const deletionSyncSources = new Set<DataSourceKey>([
   DataSourceKey.AIRTABLE,
   DataSourceKey.GOOGLE_DRIVE,
@@ -17,6 +17,7 @@ export const deletionSyncSources = new Set<DataSourceKey>([
   DataSourceKey.DROPBOX,
   DataSourceKey.SEAFILE,
   DataSourceKey.WEBDAV,
+  DataSourceKey.RSS,
   DataSourceKey.ASANA,
   DataSourceKey.ZENDESK,
   DataSourceKey.S3,
@@ -49,7 +50,9 @@ export function getDeletionSyncFields(
           tooltip: t(
             source === DataSourceKey.NOTION
               ? 'datasource.notionSyncDeletedFilesTip'
-              : 'datasource.syncDeletedFilesTip',
+              : source === DataSourceKey.RSS
+                ? 'datasource.rssSyncDeletedFilesTip'
+                : 'datasource.syncDeletedFilesTip',
           ),
         },
       ]

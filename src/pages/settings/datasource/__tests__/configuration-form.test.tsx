@@ -337,3 +337,23 @@ it('submits WebDAV deletion sync with path, images and credentials intact', asyn
     credentials: { username: 'synthetic', password: 'synthetic' },
   })
 })
+
+it('defaults RSS deletion sync off and submits current-feed mirroring with its settings', async () => {
+  await renderAdd(DataSourceKey.RSS)
+  await change(input('name'), 'RSS scratch')
+  await change(input('config.feed_url'), 'https://example.test/feed.xml')
+  const deletion = Array.from(document.querySelectorAll('label')).find(
+    (label) => label.textContent === 'Sync source deletions',
+  )!
+  expect(deletion.control?.getAttribute('aria-checked')).toBe('false')
+  await click(deletion)
+  await click(button('Confirm'))
+  expect(submit.mock.calls[0][0]).toMatchObject({
+    source: 'rss',
+    config: {
+      feed_url: 'https://example.test/feed.xml',
+      batch_size: 2,
+      sync_deleted_files: true,
+    },
+  })
+})

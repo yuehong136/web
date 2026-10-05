@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Database, Github, Mail, Server } from 'lucide-react'
+import { Database, Github, Mail, Rss, Server } from 'lucide-react'
 import SvgIcon from '@/components/ui/svg-icon'
 import { DataSourceKey, type IDataSourceInfoMap } from '../types'
 import { getBaseFormFields, getDataSourceFormFields } from './form-fields'
@@ -265,6 +265,11 @@ export const generateDataSourceInfo = (
       />
     ),
   },
+  [DataSourceKey.RSS]: {
+    name: 'RSS',
+    description: t('datasource.rssDescription'),
+    icon: <Rss size={ICON_SIZE} className="text-text-primary" />,
+  },
   [DataSourceKey.IMAP]: {
     name: 'IMAP',
     description: t('datasource.imapDescription'),
@@ -329,6 +334,7 @@ export const DataSourceGroups = {
     DataSourceKey.DISCORD,
     DataSourceKey.MOODLE,
     DataSourceKey.IMAP,
+    DataSourceKey.RSS,
   ],
 }
 
