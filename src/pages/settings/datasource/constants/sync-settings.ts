@@ -16,6 +16,7 @@ export const deletionSyncSources = new Set<DataSourceKey>([
   DataSourceKey.BOX,
   DataSourceKey.DROPBOX,
   DataSourceKey.SEAFILE,
+  DataSourceKey.WEBDAV,
   DataSourceKey.ASANA,
   DataSourceKey.ZENDESK,
   DataSourceKey.S3,

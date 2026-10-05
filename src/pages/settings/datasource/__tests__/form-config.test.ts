@@ -70,6 +70,7 @@ describe('connector configuration contracts', () => {
       'r2',
       's3',
       'seafile',
+      'webdav',
       'zendesk',
     ])
     for (const source of Object.values(DataSourceKey)) {

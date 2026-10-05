@@ -316,3 +316,24 @@ it('only offers Zendesk source deletion sync for articles and clears it for tick
     credentials: { zendesk_token: 'synthetic' },
   })
 })
+
+it('submits WebDAV deletion sync with path, images and credentials intact', async () => {
+  await renderAdd(DataSourceKey.WEBDAV)
+  await change(input('name'), 'WebDAV scratch')
+  await change(input('config.base_url'), 'https://dav.test')
+  await change(input('config.remote_path'), '/docs')
+  await change(input('config.credentials.username'), 'synthetic')
+  await change(input('config.credentials.password'), 'synthetic')
+  const deletion = Array.from(document.querySelectorAll('label')).find(
+    (label) => label.textContent === 'Sync source deletions',
+  )!
+  expect(deletion.control?.getAttribute('aria-checked')).toBe('false')
+  await click(deletion)
+  await click(button('Confirm'))
+  expect(submit.mock.calls[0][0].config).toMatchObject({
+    base_url: 'https://dav.test',
+    remote_path: '/docs',
+    sync_deleted_files: true,
+    credentials: { username: 'synthetic', password: 'synthetic' },
+  })
+})
