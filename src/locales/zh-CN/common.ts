@@ -1,5 +1,14 @@
 export default {
   common: {
+    referenceMetadata: {
+      include: '包含文档元数据',
+      hint: '所选字段会用于引用展示和模型上下文。',
+      all: '全部字段',
+      none: '未选择字段',
+      empty: '没有可用元数据字段',
+      error: '元数据字段加载失败，已保留当前选择。',
+      sources: '显示来源',
+    },
     avatarUpload: {
       choose: '选择头像',
       hint: '支持图片文件，最大 4MB。',

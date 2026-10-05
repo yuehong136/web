@@ -34,6 +34,7 @@ const toReferenceChunk = (chunk: ChunkResult): ReferenceChunk => ({
   content: chunk.content_with_weight || chunk.highlight || chunk.text,
   document_id: chunk.doc_id,
   document_name: chunk.docnm_kwd,
+  document_metadata: chunk.document_metadata,
   dataset_id: chunk.kb_id,
   image_id: chunk.img_id,
   doc_type: chunk.doc_type_kwd,
@@ -286,7 +287,7 @@ export const SearchDetailPage: React.FC = () => {
   }
 
   return (
-    <div className="bg-surface-primary flex h-full flex-col">
+    <div className="flex h-full flex-col bg-surface-primary">
       <SearchDetailHeader
         appName={searchApp.name}
         kbCount={kbCount}
@@ -311,9 +312,9 @@ export const SearchDetailPage: React.FC = () => {
         onToggleSettings={handleToggleSettings}
       />
 
-      <div className="bg-surface-primary flex min-h-0 flex-1">
+      <div className="flex min-h-0 flex-1 bg-surface-primary">
         <div className="flex min-w-0 flex-1 flex-col">
-          <main className="bg-surface-primary relative min-h-0 flex-1 overflow-y-auto px-space-base py-space-lg">
+          <main className="relative min-h-0 flex-1 overflow-y-auto bg-surface-primary px-space-base py-space-lg">
             {!hasTurns ? (
               <SearchStarterView
                 onSearch={handleSearch}
@@ -325,7 +326,7 @@ export const SearchDetailPage: React.FC = () => {
               />
             ) : (
               <div className="mx-auto max-w-6xl space-y-space-base pb-space-base">
-                <div className="bg-surface-secondary flex items-center justify-between rounded-radius-lg border border-border-default px-space-base py-space-xs">
+                <div className="flex items-center justify-between rounded-radius-lg border border-border-default bg-surface-secondary px-space-base py-space-xs">
                   <p className="text-xs text-text-secondary">
                     共 {turns.length} 轮查询，可折叠查看历史轮次
                   </p>
@@ -377,7 +378,7 @@ export const SearchDetailPage: React.FC = () => {
           </main>
 
           {hasTurns ? (
-            <footer className="bg-surface-primary shrink-0 px-space-base py-space-sm">
+            <footer className="shrink-0 bg-surface-primary px-space-base py-space-sm">
               <div className="mx-auto max-w-5xl">
                 <SearchComposer
                   onSearch={handleSearch}

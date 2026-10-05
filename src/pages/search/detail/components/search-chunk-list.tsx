@@ -1,3 +1,4 @@
+import { ReferenceMetadataBadges } from '@/components/chat/reference-metadata-badges'
 import { memo, useState, type FC } from 'react'
 import type { Config } from 'dompurify'
 import { ChevronDown, ChevronUp, FileText, Layers } from 'lucide-react'
@@ -81,6 +82,7 @@ const SearchChunkCard: FC<{
         options={CHUNK_HIGHLIGHT_PURIFY_OPTIONS}
       />
 
+      <ReferenceMetadataBadges metadata={chunk.document_metadata} />
       {longContent ? (
         <button
           type="button"

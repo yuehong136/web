@@ -1,3 +1,4 @@
+import type { ReferenceMetadataConfig } from '@/types/reference-metadata'
 import { detectMatchingPresetSnake } from '@/constants/llm'
 import type { MyLLMModel, MyLLMProvider } from '@/stores/model'
 import { isLLMModelEnabled } from '@/stores/model'
@@ -6,6 +7,7 @@ import { DEFAULT_SYSTEM_PROMPT } from './constants'
 import type { AppConfig, AppSearchMode } from './types'
 
 interface DialogPromptConfigResponse {
+  reference_metadata?: ReferenceMetadataConfig
   system?: string
   prologue?: string
   empty_response?: string
@@ -170,6 +172,7 @@ export const normalizeDialogConfig = (data: DialogDetailResponse) => {
     rerank_id: data.rerank_id || null,
     do_refer: data.do_refer || '1',
     prompt_config: {
+      reference_metadata: promptConfig.reference_metadata,
       prologue: promptConfig.prologue || '您好，我是您的助手！',
       empty_response: promptConfig.empty_response || '',
       quote: promptConfig.quote ?? data.do_refer !== '0',

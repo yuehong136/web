@@ -13,6 +13,12 @@ import { withLegacyFallback } from './legacy-fallback'
 export { metadataConfigToFields } from '@/lib/metadata-config'
 
 export const knowledgeMetadataAPI = {
+  getKeys: (datasetIds: string[]): Promise<string[]> =>
+    apiClient.get('/v1/datasets/metadata/keys', {
+      ...knowledgeRestConfig,
+      params: { dataset_ids: datasetIds.join(',') },
+    }),
+
   getConfig: (
     datasetId: string,
   ): Promise<{

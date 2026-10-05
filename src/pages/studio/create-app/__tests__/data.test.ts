@@ -39,3 +39,15 @@ test('does not expose unknown response keys as select values', () => {
     type: 'dense',
   })
 })
+
+for (const fields of [undefined, null, [], ['author']]) {
+  test(`reloads reference metadata field selection: ${JSON.stringify(fields)}`, () => {
+    const reference =
+      fields === undefined ? { include: true } : { include: true, fields }
+    const saved = JSON.parse(
+      JSON.stringify({ prompt_config: { reference_metadata: reference } }),
+    )
+    const { config } = normalizeDialogConfig(saved)
+    assert.deepEqual(config.prompt_config.reference_metadata, reference)
+  })
+}

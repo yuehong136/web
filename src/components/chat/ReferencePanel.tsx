@@ -1,3 +1,4 @@
+import { ReferenceMetadataBadges } from '@/components/chat/reference-metadata-badges'
 /**
  * 引用面板组件
  * 用于在消息底部展示引用的文档来源，支持按文档分组、折叠展开
@@ -169,12 +170,13 @@ function groupChunksByDocument(chunks: ReferenceChunk[]): Map<
 
   chunks.forEach((chunk, index) => {
     const docId = chunk.document_id || 'unknown'
-    const existing = groups.get(docId)
+    const groupKey = JSON.stringify([chunk.dataset_id, docId])
+    const existing = groups.get(groupKey)
 
     if (existing) {
       existing.chunks.push({ chunk, index })
     } else {
-      groups.set(docId, {
+      groups.set(groupKey, {
         docName: chunk.document_name || '未知文档',
         docId,
         chunks: [{ chunk, index }],
@@ -240,6 +242,7 @@ const ChunkItem: FC<ChunkItemProps> = ({ chunk, index, onClick }) => {
             {similarityPercent}%
           </span>
         </div>
+        <ReferenceMetadataBadges metadata={chunk.document_metadata} />
         {/* 内容摘要 */}
         <p
           className="line-clamp-2 text-sm"
@@ -425,7 +428,7 @@ export const ReferencePanel: FC<ReferencePanelProps> = ({
         <div className="mt-2 space-y-2">
           {Array.from(documentGroups.entries()).map(([_docId, group]) => (
             <DocumentGroup
-              key={group.docId}
+              key={_docId}
               docName={group.docName}
               chunks={group.chunks}
               defaultVisible={defaultVisiblePerDoc}

@@ -1,3 +1,9 @@
+import {
+  getMetadataMode,
+  toMetadataCondition,
+  toMetadataSemiAutoFields,
+} from './search-metadata-config'
+import { ReferenceMetadataSettings } from '@/components/chat/reference-metadata-settings'
 import React, { memo, useCallback, useEffect, useMemo, useState } from 'react'
 import { Loader2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -127,43 +133,6 @@ interface RawModelItem {
 interface RawProviderPayload {
   tags?: string
   llm?: RawModelItem[]
-}
-
-const getMetadataMode = (
-  metaDataFilter?: SearchConfig['meta_data_filter'],
-): MetadataFilterMode => {
-  if (
-    metaDataFilter?.method === 'auto' ||
-    metaDataFilter?.method === 'semi_auto' ||
-    metaDataFilter?.method === 'manual'
-  ) {
-    return metaDataFilter.method
-  }
-  return 'disabled'
-}
-
-const toMetadataCondition = (
-  metaDataFilter?: SearchConfig['meta_data_filter'],
-): MetadataCondition => {
-  return {
-    logic: metaDataFilter?.logic || 'and',
-    conditions: (metaDataFilter?.manual || []).map((item) => ({
-      name: item.key || '',
-      comparison_operator: item.op || 'is',
-      value: item.value || '',
-    })),
-  }
-}
-
-const toMetadataSemiAutoFields = (
-  metaDataFilter?: SearchConfig['meta_data_filter'],
-): MetadataSemiAutoField[] => {
-  return (metaDataFilter?.semi_auto || [])
-    .map((item) => {
-      if (typeof item === 'string') return { key: item }
-      return { key: item.key, op: item.op }
-    })
-    .filter((item) => Boolean(item.key))
 }
 
 const isEnabledRawModel = (model: RawModelItem) =>
@@ -439,9 +408,9 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
   if (!open) return null
 
   return (
-    <aside className="px-space-base py-space-sm shadow-elevation-high relative z-20 w-[380px] shrink-0 border-l border-border-default bg-background-surface xl:w-[420px]">
-      <div className="px-space-sm py-space-base flex h-full min-h-0 flex-col bg-background-surface">
-        <div className="gap-space-sm flex shrink-0 items-center justify-between">
+    <aside className="relative z-20 w-[380px] shrink-0 border-l border-border-default bg-background-surface px-space-base py-space-sm shadow-elevation-high xl:w-[420px]">
+      <div className="flex h-full min-h-0 flex-col bg-background-surface px-space-sm py-space-base">
+        <div className="flex shrink-0 items-center justify-between gap-space-sm">
           <h3 className="text-base font-semibold text-text-primary">
             搜索设置
           </h3>
@@ -455,8 +424,8 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
           </Button>
         </div>
 
-        <div className="mt-space-lg pr-space-xs min-h-0 flex-1 overflow-y-auto">
-          <section className="pb-space-lg space-y-4">
+        <div className="mt-space-lg min-h-0 flex-1 overflow-y-auto pr-space-xs">
+          <section className="space-y-4 pb-space-lg">
             <div className="space-y-space-sm">
               <Label className="text-sm">头像</Label>
               <AvatarUpload
@@ -498,7 +467,7 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
 
           <Separator className="my-space-sm" />
 
-          <section className="py-space-lg space-y-4">
+          <section className="space-y-4 py-space-lg">
             <KnowledgeBaseSelector
               selectedIds={config.kb_ids}
               onChange={(kbIds) => onConfigChange({ kb_ids: kbIds })}
@@ -506,6 +475,13 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
               label="知识库"
             />
 
+            <ReferenceMetadataSettings
+              datasetIds={config.kb_ids}
+              value={config.reference_metadata}
+              onChange={(reference_metadata) =>
+                onConfigChange({ reference_metadata })
+              }
+            />
             <MetadataFilter
               mode={metadataMode}
               onModeChange={handleMetadataModeChange}
@@ -520,7 +496,7 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
 
           <Separator className="my-space-sm" />
 
-          <section className="py-space-lg space-y-4">
+          <section className="space-y-4 py-space-lg">
             <SliderWithInput
               label="相似度阈值"
               tooltip="只有相似度高于此阈值的内容才会被检索。"
@@ -549,7 +525,7 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
                 precision={2}
                 showSwitch={false}
               />
-              <div className="px-space-xs flex items-center justify-between text-xs text-text-secondary">
+              <div className="flex items-center justify-between px-space-xs text-xs text-text-secondary">
                 <span>vector {config.vector_similarity_weight.toFixed(2)}</span>
                 <span>
                   full-text {(1 - config.vector_similarity_weight).toFixed(2)}
@@ -572,7 +548,7 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
 
           <Separator className="my-space-sm" />
 
-          <section className="py-space-lg space-y-4">
+          <section className="space-y-4 py-space-lg">
             <ToggleRow
               label="AI 总结"
               checked={config.summary}
@@ -582,7 +558,7 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
             />
 
             {config.summary ? (
-              <div className="pl-space-xs space-y-4">
+              <div className="space-y-4 pl-space-xs">
                 <div className="space-y-space-sm">
                   <Label className="text-sm">模型</Label>
                   <ChatModelSelector
@@ -611,7 +587,7 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
                     value={summaryPreset}
                     onValueChange={handleSummaryPresetChange}
                   >
-                    <SelectTrigger className="rounded-radius-lg h-11 w-full">
+                    <SelectTrigger className="h-11 w-full rounded-radius-lg">
                       <SelectValue placeholder="请选择" />
                     </SelectTrigger>
                     <SelectContent>
@@ -735,7 +711,7 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
               <Label className="text-sm">
                 跨语言翻译
                 {(config.cross_languages?.length || 0) > 0 ? (
-                  <span className="ml-space-xs rounded-radius-full px-space-sm bg-background-subtle py-0.5 text-xs text-text-secondary">
+                  <span className="ml-space-xs rounded-radius-full bg-background-subtle px-space-sm py-0.5 text-xs text-text-secondary">
                     {config.cross_languages?.length}种语言
                   </span>
                 ) : null}
@@ -760,7 +736,7 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
 
           <Separator className="my-space-sm" />
 
-          <section className="py-space-lg space-y-4">
+          <section className="space-y-4 py-space-lg">
             <ToggleRow
               label="rerank 模型"
               checked={config.use_rerank}

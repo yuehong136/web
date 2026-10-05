@@ -29,6 +29,7 @@ const toReferenceChunk = (chunk: ChunkResult): ReferenceChunk => ({
   content: chunk.content_with_weight || chunk.highlight || chunk.text,
   document_id: chunk.doc_id,
   document_name: chunk.docnm_kwd,
+  document_metadata: chunk.document_metadata,
   dataset_id: chunk.kb_id,
   image_id: chunk.img_id,
   doc_type: chunk.doc_type_kwd,
@@ -99,7 +100,7 @@ const SearchSummaryCard = ({
   if (!displaySummary.trim() && !thinkContent && !isStreaming) return null
 
   return (
-    <div className="bg-surface-primary overflow-hidden rounded-radius-xl border border-border-default">
+    <div className="overflow-hidden rounded-radius-xl border border-border-default bg-surface-primary">
       <div className="h-1 bg-linear-to-r from-text-accent via-status-info to-status-success" />
       <div className="p-space-base">
         <div className="mb-space-sm flex items-center gap-space-xs">

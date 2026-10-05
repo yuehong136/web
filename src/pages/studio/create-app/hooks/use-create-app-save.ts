@@ -105,6 +105,7 @@ export const useCreateAppSave = ({
               '抱歉，我无法回答这个问题。'
             : config.prompt_config.empty_response || '',
           quote: config.prompt_config.quote,
+          reference_metadata: config.prompt_config.reference_metadata,
           keyword: config.prompt_config.keyword,
           tts: config.prompt_config.tts,
           toc_enhance: config.prompt_config.toc_enhance,

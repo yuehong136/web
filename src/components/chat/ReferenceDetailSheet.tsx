@@ -1,3 +1,4 @@
+import { ReferenceMetadataBadges } from '@/components/chat/reference-metadata-badges'
 /**
  * 引用详情侧边栏组件
  * 用于展示单个引用的完整详情，从右侧滑出
@@ -399,6 +400,7 @@ export const ReferenceDetailSheet: React.FC<ReferenceDetailSheetProps> = ({
             </Watermark>
           </div>
 
+          <ReferenceMetadataBadges metadata={chunk.document_metadata} />
           {/* 元数据 */}
           <div>
             <div

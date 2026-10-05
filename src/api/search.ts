@@ -1,3 +1,4 @@
+import type { ReferenceMetadataConfig } from '@/types/reference-metadata'
 import { apiClient } from './client'
 import { API_BASE_URL } from '@/constants'
 import type { SearchApp, SearchAppListItem } from '@/types/search'
@@ -49,6 +50,7 @@ export const searchAPI = {
 
   // 流式问答 (返回 fetch Response 用于 SSE 处理)
   askStream: (data: {
+    reference_metadata?: ReferenceMetadataConfig
     question: string
     kb_ids: string[]
     search_id?: string
@@ -67,6 +69,7 @@ export const searchAPI = {
         question: data.question,
         kb_ids: data.kb_ids,
         search_id: data.search_id,
+        reference_metadata: data.reference_metadata,
       }),
     })
   },
