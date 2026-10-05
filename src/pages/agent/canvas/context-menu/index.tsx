@@ -9,7 +9,6 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from '@/components/ui/context-menu'
-import { toast } from '@/lib/toast'
 import useGraphStore from '../../store'
 
 type CanvasContextMenuProps = {
@@ -50,40 +49,37 @@ export function CanvasContextMenu({
 
   const handleDebug = useCallback(() => {
     if (!nodeId) return
-    if (onDebug) {
-      onDebug(nodeId)
-      onOpenChange(false)
-      return
-    }
-    toast.info(t('flow.debugComingSoon', '单节点调试功能开发中'))
+    onDebug?.(nodeId)
     onOpenChange(false)
-  }, [nodeId, onDebug, onOpenChange, t])
+  }, [nodeId, onDebug, onOpenChange])
 
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
-        <div className="fixed inset-0 pointer-events-none" />
+        <div className="pointer-events-none fixed inset-0" />
       </ContextMenuTrigger>
       {open && (
         <ContextMenuContent
           style={{ position: 'fixed', top: position.y, left: position.x }}
           onEscapeKeyDown={() => onOpenChange(false)}
         >
-        {nodeName && <ContextMenuLabel>{nodeName}</ContextMenuLabel>}
-        {nodeName && <ContextMenuSeparator />}
-        <ContextMenuItem onSelect={handleCopy}>
-          <Copy className="size-3.5 text-text-secondary" />
-          {t('flow.copy', '复制')}
-        </ContextMenuItem>
-        <ContextMenuItem onSelect={handleDebug}>
-          <Play className="size-3.5 text-text-secondary" />
-          {t('flow.debug', '调试')}
-        </ContextMenuItem>
-        <ContextMenuSeparator />
-        <ContextMenuItem onSelect={handleDelete}>
-          <Trash2 className="size-3.5 text-status-error" />
-          {t('flow.delete', '删除')}
-        </ContextMenuItem>
+          {nodeName && <ContextMenuLabel>{nodeName}</ContextMenuLabel>}
+          {nodeName && <ContextMenuSeparator />}
+          <ContextMenuItem onSelect={handleCopy}>
+            <Copy className="size-3.5 text-text-secondary" />
+            {t('flow.copy', '复制')}
+          </ContextMenuItem>
+          {onDebug && (
+            <ContextMenuItem onSelect={handleDebug}>
+              <Play className="size-3.5 text-text-secondary" />
+              {t('flow.debug', '调试')}
+            </ContextMenuItem>
+          )}
+          <ContextMenuSeparator />
+          <ContextMenuItem onSelect={handleDelete}>
+            <Trash2 className="size-3.5 text-status-error" />
+            {t('flow.delete', '删除')}
+          </ContextMenuItem>
         </ContextMenuContent>
       )}
     </ContextMenu>
