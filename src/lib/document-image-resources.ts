@@ -1,22 +1,53 @@
 import { useAuthStore } from '@/stores/auth'
 import { queryClient } from '@/lib/query-client'
-import { documentImageKeys } from '@/api/document-images'
+import {
+  documentImageKeys,
+  resolveDocumentImageUrl,
+} from '@/api/document-images'
 
 let epoch = 0
 const listeners = new Set<() => void>()
 type Lease = { url: string; release: () => void }
-type Resource = { url: string; references: number; epoch: number }
+type Resource = {
+  url: string
+  references: number
+  epoch: number
+  sourceUrl: string
+}
 const resources = new Map<Blob, Resource>()
-const windows = new Set<() => void>()
+const windows = new Map<() => void, Blob>()
 
 function releaseOwnerResources() {
   epoch += 1
-  for (const dispose of [...windows]) dispose()
+  for (const dispose of [...windows.keys()]) dispose()
   for (const resource of resources.values()) URL.revokeObjectURL(resource.url)
   resources.clear()
   void queryClient.cancelQueries({ queryKey: documentImageKeys.all() })
   queryClient.removeQueries({ queryKey: documentImageKeys.all() })
   for (const listener of listeners) listener()
+}
+
+/** A successful in-place update must discard bytes even when its image ID is unchanged. */
+export function evictDocumentImage(imageId: string, ownerEpoch: number) {
+  if (ownerEpoch !== epoch) return
+  let url: string
+  try {
+    url = resolveDocumentImageUrl({ kind: 'dataset', imageId })
+  } catch {
+    // Historical malformed IDs never owned a protected cache entry.
+    return
+  }
+  const queryKey = documentImageKeys.image(epoch, url)
+  for (const [blob, resource] of [...resources]) {
+    if (resource.sourceUrl !== url) continue
+    for (const [dispose, windowBlob] of windows)
+      if (windowBlob === blob) dispose()
+    if (resources.has(blob)) URL.revokeObjectURL(resource.url)
+    resources.delete(blob)
+  }
+  // Reset cancels any older read, removes stale data, and refetches active consumers.
+  // Read failures belong to the image's retry UI; the acknowledged save stays successful.
+  void queryClient.resetQueries({ queryKey, exact: true })
 }
 
 let ownerSubscribed = false
@@ -48,12 +79,21 @@ function subscribeToOwner() {
   })
 }
 
-export function retainDocumentImage(blob: Blob, ownerEpoch: number): Lease {
+export function retainDocumentImage(
+  blob: Blob,
+  ownerEpoch: number,
+  sourceUrl: string,
+): Lease {
   subscribeToOwner()
   if (ownerEpoch !== epoch) throw new DOMException('Aborted', 'AbortError')
   let resource = resources.get(blob)
   if (!resource) {
-    resource = { url: URL.createObjectURL(blob), references: 0, epoch }
+    resource = {
+      url: URL.createObjectURL(blob),
+      references: 0,
+      epoch,
+      sourceUrl,
+    }
     resources.set(blob, resource)
   }
   resource.references += 1
@@ -77,6 +117,7 @@ export function retainDocumentImage(blob: Blob, ownerEpoch: number): Lease {
 export function createDocumentImageLeaseStore(
   blob: Blob | null,
   ownerEpoch: number,
+  sourceUrl: string,
 ) {
   let lease: Lease | null = null
   const subscribers = new Set<() => void>()
@@ -85,7 +126,7 @@ export function createDocumentImageLeaseStore(
     getServerSnapshot: () => null,
     subscribe: (listener: () => void) => {
       if (blob && ownerEpoch === epoch && !lease)
-        lease = retainDocumentImage(blob, ownerEpoch)
+        lease = retainDocumentImage(blob, ownerEpoch, sourceUrl)
       subscribers.add(listener)
       return () => {
         subscribers.delete(listener)
@@ -103,6 +144,7 @@ export function openDocumentImageWindow(
   blob: Blob,
   ownerEpoch: number,
   title: string,
+  sourceUrl: string,
 ): boolean {
   if (ownerEpoch !== epoch) return false
   // noopener window.open returns null even on success, preventing owner cleanup.
@@ -119,7 +161,7 @@ export function openDocumentImageWindow(
   }
   try {
     popup.opener = null
-    lease = retainDocumentImage(blob, ownerEpoch)
+    lease = retainDocumentImage(blob, ownerEpoch, sourceUrl)
     popup.document.title = title
     const policy = popup.document.createElement('meta')
     policy.name = 'referrer'
@@ -131,7 +173,7 @@ export function openDocumentImageWindow(
     image.style.maxWidth = '100%'
     popup.document.head.append(policy)
     popup.document.body.append(image)
-    windows.add(dispose)
+    windows.set(dispose, blob)
     timer = setInterval(() => {
       if (popup.closed) dispose()
     }, 500)

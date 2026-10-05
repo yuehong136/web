@@ -316,6 +316,7 @@ export const knowledgeDocumentAPI = {
     question_kwd?: string[]
     /** 图片 Base64 编码（纯 Base64，不含 Data URL 前缀）。 */
     image_base64?: string
+    image_update_mode?: 'append' | 'replace'
   }): Promise<boolean> =>
     apiClient
       .patch(
@@ -325,6 +326,7 @@ export const knowledgeDocumentAPI = {
           important_keywords: params.important_kwd ?? [],
           questions: params.question_kwd ?? [],
           image_base64: params.image_base64,
+          image_update_mode: params.image_update_mode,
         },
         sdkBase,
       )
