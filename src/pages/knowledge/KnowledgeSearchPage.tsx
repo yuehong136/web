@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
 
 import { SplitDetailPageTemplate } from '@/components/page-templates'
+import { useMetadataFieldKeys } from '@/hooks/use-metadata'
+import { metadataConfigToFields } from '@/lib/metadata-config'
 import { useFetchKnowledgeDetail } from '@/hooks/use-knowledge-request'
 
 import {
@@ -20,9 +22,9 @@ import {
   type SearchConfigState,
 } from './search-workbench'
 
-const KnowledgeSearchPage: React.FC = () => {
+const KnowledgeSearchWorkbench: React.FC<{ id?: string }> = ({ id }) => {
   const { t } = useTranslation()
-  const { id } = useParams<{ id: string }>()
+  const metadataKeysQuery = useMetadataFieldKeys(id)
   const { knowledgeBase: currentKnowledgeBase } = useFetchKnowledgeDetail(id)
 
   const params = useSearchParamsState()
@@ -38,11 +40,25 @@ const KnowledgeSearchPage: React.FC = () => {
   const rerankQuery = useFetchRerankLLMs()
   const searchModeOptions = useSearchModeOptions()
 
-  const metadataFields = React.useMemo(() => {
-    return (currentKnowledgeBase?.metadata_settings || [])
-      .map((field) => field.key)
-      .filter((key): key is string => Boolean(key))
-  }, [currentKnowledgeBase?.metadata_settings])
+  const metadataFields = React.useMemo(
+    () => [
+      ...new Set(
+        [
+          ...(metadataKeysQuery.data ?? []),
+          ...metadataConfigToFields(
+            currentKnowledgeBase?.parser_config?.metadata,
+          ).map((field) => field.key),
+          ...metadataConfigToFields(
+            currentKnowledgeBase?.parser_config?.built_in_metadata,
+          ).map((field) => field.key),
+          ...(currentKnowledgeBase?.metadata_settings ?? []).map(
+            (field) => field.key,
+          ),
+        ].filter((key): key is string => Boolean(key)),
+      ),
+    ],
+    [currentKnowledgeBase, metadataKeysQuery.data],
+  )
 
   const searchModeLabel =
     searchModeOptions.find((option) => option.value === params.searchMode.type)
@@ -136,7 +152,12 @@ const KnowledgeSearchPage: React.FC = () => {
       rightPane={
         <div className="relative h-full min-h-0 overflow-hidden bg-background-surface">
           <ResultPanel
-            query={execution.query}
+            hasSearched={execution.hasSearched}
+            searchError={execution.searchError}
+            requestScope={execution.requestScope}
+            docOptions={execution.docOptions}
+            onRetry={execution.retrySearch}
+            onOpenConfig={openConfigPanel}
             isSearching={execution.isSearching}
             results={execution.results}
             totalResults={execution.totalResults}
@@ -144,7 +165,6 @@ const KnowledgeSearchPage: React.FC = () => {
             selectedDocIds={execution.selectedDocIds}
             showDocFilter={execution.showDocFilter}
             highlight={params.searchParams.highlight}
-            similarityThreshold={params.searchParams.similarity_threshold}
             currentPage={execution.currentPage}
             pageSize={execution.pageSize}
             totalPages={execution.totalPages}
@@ -172,6 +192,11 @@ const KnowledgeSearchPage: React.FC = () => {
             rerankLoading={rerankQuery.isLoading}
             rerankError={rerankErrorText}
             metadataFields={metadataFields}
+            metadataFieldsLoading={metadataKeysQuery.isLoading}
+            metadataFieldsError={Boolean(metadataKeysQuery.error)}
+            onRetryMetadataFields={() => {
+              void metadataKeysQuery.refetch()
+            }}
           />
 
           <ResultPreviewModal
@@ -185,6 +210,11 @@ const KnowledgeSearchPage: React.FC = () => {
       }
     />
   )
+}
+
+const KnowledgeSearchPage: React.FC = () => {
+  const { id } = useParams<{ id: string }>()
+  return <KnowledgeSearchWorkbench key={id} id={id} />
 }
 
 export { KnowledgeSearchPage }

@@ -1,5 +1,6 @@
 import React from 'react'
 
+import { APIError } from '@/api/client'
 import { knowledgeAPI } from '@/api/knowledge'
 
 import { toRetrievalResultViewList } from '../adapters/retrieval-result'
@@ -7,11 +8,11 @@ import { DEFAULT_PAGE_SIZE, FUSION_DEFAULT_WEIGHTS } from '../constants'
 import type {
   RetrievalDocAgg,
   RetrievalMetaDataFilter,
-  RetrievalResult,
   RetrievalResultView,
   SearchConfigState,
   SearchMode,
   SearchParams,
+  SearchRequestScope,
 } from '../types'
 
 interface UseSearchExecutionInput {
@@ -37,6 +38,9 @@ interface SearchOverride {
   >
 }
 
+type SearchRequest = Parameters<typeof knowledgeAPI.retrievalTest.test>[0]
+export type SearchError = 'failed' | 'access' | 'network' | 'graphScope'
+
 export interface UseSearchExecutionResult {
   query: string
   setQuery: React.Dispatch<React.SetStateAction<string>>
@@ -44,14 +48,18 @@ export interface UseSearchExecutionResult {
   results: RetrievalResultView[]
   totalResults: number
   docAggs: RetrievalDocAgg[]
+  docOptions: RetrievalDocAgg[]
   selectedDocIds: string[]
   showDocFilter: boolean
   pageSize: number
   currentPage: number
   hasSearched: boolean
+  searchError: SearchError | undefined
+  requestScope: SearchRequestScope | undefined
   totalPages: number
   pageNumbers: number[]
   runSearch: (override?: SearchOverride) => Promise<void>
+  retrySearch: () => void
   handleSearchSubmit: () => void
   handlePageChange: (page: number) => void
   handlePageSizeChange: (size: number) => void
@@ -74,14 +82,16 @@ export const useSearchExecution = ({
   const [results, setResults] = React.useState<RetrievalResultView[]>([])
   const [totalResults, setTotalResults] = React.useState(0)
   const [docAggs, setDocAggs] = React.useState<RetrievalDocAgg[]>([])
+  const [docOptions, setDocOptions] = React.useState<RetrievalDocAgg[]>([])
   const [selectedDocIds, setSelectedDocIds] = React.useState<string[]>([])
-  const [showDocFilter, setShowDocFilter] = React.useState(false)
+  const [showDocFilter, setShowDocFilter] = React.useState(true)
   const [pageSize, setPageSize] = React.useState(DEFAULT_PAGE_SIZE)
   const [currentPage, setCurrentPage] = React.useState(1)
   const [hasSearched, setHasSearched] = React.useState(false)
-
+  const [searchError, setSearchError] = React.useState<SearchError>()
+  const [requestScope, setRequestScope] = React.useState<SearchRequestScope>()
   const requestIdRef = React.useRef(0)
-
+  const lastRequestRef = React.useRef<SearchRequest | undefined>(undefined)
   const latestArgsRef = React.useRef({
     query,
     searchParams,
@@ -115,79 +125,111 @@ export const useSearchExecution = ({
     currentPage,
   ])
 
+  React.useEffect(
+    () => () => {
+      requestIdRef.current += 1
+    },
+    [kbId],
+  )
+
+  const executeRequest = React.useCallback(async (data: SearchRequest) => {
+    const myRequestId = ++requestIdRef.current
+    lastRequestRef.current = data
+    setRequestScope({
+      question: data.question,
+      docIds: [...(data.doc_ids ?? [])],
+      metadata: data.meta_data_filter,
+      similarityThreshold: data.similarity_threshold ?? 0,
+    })
+    setIsSearching(true)
+    setHasSearched(true)
+    setSearchError(undefined)
+    // Graph retrieval currently receives dataset IDs only and may add sources
+    // outside doc_ids. Do not send a request that appears scoped but can broaden.
+    if (data.use_kg && (data.doc_ids?.length || data.meta_data_filter)) {
+      setSearchError('graphScope')
+      setResults([])
+      setTotalResults(0)
+      setDocAggs([])
+      setIsSearching(false)
+      return
+    }
+    try {
+      const response = await knowledgeAPI.retrievalTest.test(data)
+      if (myRequestId !== requestIdRef.current) return
+      setResults(toRetrievalResultViewList(response.chunks))
+      setTotalResults(response.total)
+      setDocAggs(response.doc_aggs)
+      // Keep choices from the broader result set so another source can still be
+      // selected, and zero matches never trap the user in a hidden restriction.
+      setDocOptions((previous) => {
+        if (!data.doc_ids?.length) return response.doc_aggs
+        const options = new Map(previous.map((doc) => [doc.doc_id, doc]))
+        for (const doc of response.doc_aggs) options.set(doc.doc_id, doc)
+        for (const id of data.doc_ids)
+          if (!options.has(id))
+            options.set(id, { doc_id: id, doc_name: id, count: 0 })
+        return [...options.values()]
+      })
+    } catch (error) {
+      if (myRequestId !== requestIdRef.current) return
+      setSearchError(
+        error instanceof APIError &&
+          ([401, 403].includes(error.status) ||
+            ['109', 'UNAUTHORIZED', 'FORBIDDEN'].includes(error.code))
+          ? 'access'
+          : error instanceof APIError && [0, 408].includes(error.status)
+            ? 'network'
+            : 'failed',
+      )
+      setResults([])
+      setTotalResults(0)
+      setDocAggs([])
+    } finally {
+      if (myRequestId === requestIdRef.current) setIsSearching(false)
+    }
+  }, [])
+
   const runSearch = React.useCallback(
     async (override?: SearchOverride) => {
       if (!kbId) return
       const latest = latestArgsRef.current
-      const trimmedQuery = latest.query.trim()
-      if (!trimmedQuery) return
-
-      const effectivePage = override?.page ?? latest.currentPage
-      const effectivePageSize = override?.pageSize ?? latest.pageSize
-      const effectiveDocIds = override?.selectedDocIds ?? latest.selectedDocIds
-      const effectiveSearchParams =
-        override?.config?.searchParams ?? latest.searchParams
-      const effectiveSearchMode =
-        override?.config?.searchMode ?? latest.searchMode
-      const effectiveSelectedLanguages =
-        override?.config?.selectedLanguages ?? latest.selectedLanguages
-      const effectiveMetaDataFilter =
-        override?.config?.activeMetaDataFilter ?? latest.activeMetaDataFilter
-
-      const myRequestId = ++requestIdRef.current
-      setIsSearching(true)
-
-      const searchData = {
+      const question = latest.query.trim()
+      if (!question) return
+      const config = override?.config
+      const params = config?.searchParams ?? latest.searchParams
+      const mode = config?.searchMode ?? latest.searchMode
+      const languages = config?.selectedLanguages ?? latest.selectedLanguages
+      // Explicit undefined clears filtering when Apply switches to Disabled.
+      const metadata =
+        config && Object.hasOwn(config, 'activeMetaDataFilter')
+          ? config.activeMetaDataFilter
+          : latest.activeMetaDataFilter
+      const docs = override?.selectedDocIds ?? latest.selectedDocIds
+      await executeRequest({
         kb_ids: [kbId],
-        question: trimmedQuery,
-        similarity_threshold: effectiveSearchParams.similarity_threshold,
-        vector_similarity_weight:
-          effectiveSearchParams.vector_similarity_weight,
-        use_kg: effectiveSearchParams.use_kg,
-        top_k: effectiveSearchParams.top_k,
-        rerank_id: effectiveSearchParams.rerank_id,
-        highlight: effectiveSearchParams.highlight,
-        keyword: effectiveSearchParams.keyword,
-        page: effectivePage,
-        size: effectivePageSize,
-        doc_ids: effectiveDocIds.length > 0 ? effectiveDocIds : null,
-        cross_languages:
-          effectiveSelectedLanguages.length > 0
-            ? effectiveSelectedLanguages
-            : null,
-        meta_data_filter: effectiveMetaDataFilter,
+        question,
+        ...params,
+        page: override?.page ?? latest.currentPage,
+        size: override?.pageSize ?? latest.pageSize,
+        doc_ids: docs.length ? [...docs] : null,
+        cross_languages: languages.length ? [...languages] : null,
+        meta_data_filter: metadata,
         search_mode:
-          effectiveSearchMode.type !== 'fusion'
-            ? effectiveSearchMode
-            : {
-                type: 'fusion' as const,
-                weights: effectiveSearchMode.weights || FUSION_DEFAULT_WEIGHTS,
-              },
-      }
-
-      try {
-        const response = await knowledgeAPI.retrievalTest.test(searchData)
-        if (myRequestId !== requestIdRef.current) return
-        setResults(
-          toRetrievalResultViewList(response.chunks as RetrievalResult[]),
-        )
-        setTotalResults(response.total)
-        setDocAggs(response.doc_aggs)
-        setHasSearched(true)
-      } catch (error) {
-        if (myRequestId !== requestIdRef.current) return
-        console.error('Knowledge search failed', error)
-        setResults([])
-        setTotalResults(0)
-        setDocAggs([])
-      } finally {
-        if (myRequestId === requestIdRef.current) {
-          setIsSearching(false)
-        }
-      }
+          mode.type === 'fusion'
+            ? {
+                type: 'fusion',
+                weights: mode.weights || FUSION_DEFAULT_WEIGHTS,
+              }
+            : { ...mode },
+      })
     },
-    [kbId],
+    [kbId, executeRequest],
   )
+
+  const retrySearch = React.useCallback(() => {
+    if (lastRequestRef.current) void executeRequest(lastRequestRef.current)
+  }, [executeRequest])
 
   const handleSearchSubmit = React.useCallback(() => {
     setCurrentPage(1)
@@ -196,72 +238,77 @@ export const useSearchExecution = ({
 
   const handlePageChange = React.useCallback(
     (page: number) => {
+      if (!lastRequestRef.current) return
       setCurrentPage(page)
-      void runSearch({ page })
+      void executeRequest({ ...lastRequestRef.current, page })
     },
-    [runSearch],
+    [executeRequest],
   )
 
   const handlePageSizeChange = React.useCallback(
     (size: number) => {
       setPageSize(size)
       setCurrentPage(1)
-      void runSearch({ page: 1, pageSize: size })
+      if (lastRequestRef.current)
+        void executeRequest({ ...lastRequestRef.current, page: 1, size })
     },
-    [runSearch],
+    [executeRequest],
+  )
+
+  const applyDocSelection = React.useCallback(
+    (next: string[]) => {
+      latestArgsRef.current.selectedDocIds = next
+      setSelectedDocIds(next)
+      setCurrentPage(1)
+      if (lastRequestRef.current)
+        void executeRequest({
+          ...lastRequestRef.current,
+          page: 1,
+          doc_ids: next.length ? next : null,
+        })
+    },
+    [executeRequest],
   )
 
   const handleDocFilter = React.useCallback(
     (docId: string, checked: boolean) => {
-      setSelectedDocIds((prev) => {
-        const next = checked
-          ? [...prev, docId]
-          : prev.filter((id) => id !== docId)
-        setCurrentPage(1)
-        void runSearch({ page: 1, selectedDocIds: next })
-        return next
-      })
+      const previous = latestArgsRef.current.selectedDocIds
+      applyDocSelection(
+        checked
+          ? [...new Set([...previous, docId])]
+          : previous.filter((id) => id !== docId),
+      )
     },
-    [runSearch],
+    [applyDocSelection],
   )
 
-  const handleClearDocFilter = React.useCallback(() => {
-    setSelectedDocIds([])
-    setCurrentPage(1)
-    void runSearch({ page: 1, selectedDocIds: [] })
-  }, [runSearch])
-
+  const handleClearDocFilter = React.useCallback(
+    () => applyDocSelection([]),
+    [applyDocSelection],
+  )
   const handleSelectAllDocs = React.useCallback(() => {
-    const next = latestArgsRef.current
-    const allIds = docAggs.map((doc) => doc.doc_id)
-    setSelectedDocIds(allIds)
-    setCurrentPage(1)
-    void runSearch({ page: 1, selectedDocIds: allIds })
-    // touch latest to keep closure honest for linting
-    void next
-  }, [docAggs, runSearch])
-
-  const toggleDocFilter = React.useCallback(() => {
-    setShowDocFilter((open) => !open)
-  }, [])
-
+    applyDocSelection(docOptions.map((doc) => doc.doc_id))
+  }, [applyDocSelection, docOptions])
+  const toggleDocFilter = React.useCallback(
+    () => setShowDocFilter((open) => !open),
+    [],
+  )
   const commitConfigPageSize = React.useCallback((size: number) => {
     setPageSize(size)
     setCurrentPage(1)
   }, [])
 
-  if (docAggs.length > 0 && !showDocFilter && hasSearched)
-    setShowDocFilter(true)
-
   const totalPages = Math.max(1, Math.ceil(totalResults / pageSize))
-  const pageNumbers = React.useMemo(() => {
-    return Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-      if (totalPages <= 5) return i + 1
-      if (currentPage <= 3) return i + 1
-      if (currentPage >= totalPages - 2) return totalPages - 4 + i
-      return currentPage - 2 + i
-    })
-  }, [currentPage, totalPages])
+  const pageNumbers = React.useMemo(
+    () =>
+      Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+        if (totalPages <= 5) return i + 1
+        if (currentPage <= 3) return i + 1
+        if (currentPage >= totalPages - 2) return totalPages - 4 + i
+        return currentPage - 2 + i
+      }),
+    [currentPage, totalPages],
+  )
 
   return {
     query,
@@ -270,14 +317,18 @@ export const useSearchExecution = ({
     results,
     totalResults,
     docAggs,
+    docOptions,
     selectedDocIds,
     showDocFilter,
     pageSize,
     currentPage,
     hasSearched,
+    searchError,
+    requestScope,
     totalPages,
     pageNumbers,
     runSearch,
+    retrySearch,
     handleSearchSubmit,
     handlePageChange,
     handlePageSizeChange,

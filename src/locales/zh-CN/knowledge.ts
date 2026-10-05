@@ -804,7 +804,7 @@ export default {
       resultsTitle: '检索结果',
       searching: '检索中...',
       foundResults: '找到 {{count}} 个相关片段',
-      filteredDocs: '已过滤 {{count}} 个文档',
+      filteredDocs: '限定 {{count}} 个文档',
       source: '来源',
       moreDocs: '+{{count}} 个文档',
       docFilter: '文档过滤',
@@ -815,7 +815,8 @@ export default {
         '在左侧输入问题，选择检索模式，开始测试知识库的检索效果',
       searchingDescription: '正在检索中，请稍候...',
       noResultsTitle: '未找到相关结果',
-      noResultsDescription: '请尝试调整搜索词或降低相似度阈值',
+      noResultsDescription:
+        '本次检索成功，但当前文档范围、元数据条件和相似度阈值下没有匹配。请调整过滤条件、搜索词或阈值。',
       querySummary: '搜索词：{{query}}',
       thresholdSummary: '相似度阈值：{{value}}',
       totalResults: '共 {{count}} 个结果',
@@ -838,6 +839,30 @@ export default {
       expand: '展开',
       fromDocument: '来自文档',
       details: '详情',
+      scope: {
+        title: '本次请求范围',
+        allDocuments: '文档：整个知识库',
+        documents: '文档（{{count}}）：{{names}}',
+        metadataDisabled: '元数据：未启用过滤',
+        metadataAuto: '元数据：由模型根据问题自动生成条件',
+        metadataSemiAuto: '元数据：由模型根据这些字段生成条件：{{fields}}',
+        metadataManual: '元数据条件（{{logic}}）：',
+        intersection: '文档范围与元数据条件取交集。',
+        clearDocuments: '清除文档限制',
+        selectListed: '选择列出的文档',
+        documentHelp:
+          '候选文档来自已返回的检索结果。未选择文档时检索整个知识库；清除文档限制会保留元数据过滤。',
+      },
+      errors: {
+        title: '检索失败',
+        graphScope:
+          '知识图谱检索暂不支持文档范围或元数据过滤。请在配置中关闭知识图谱，或清除范围和过滤后重试。',
+        reviewConfig: '修改检索配置',
+        failed: '检索请求未完成。请检查筛选配置及模型是否可用，然后重试。',
+        access: '无法访问所选知识库。请检查登录状态和访问权限。',
+        network: '连接失败或请求超时，请重试。',
+        retry: '重试',
+      },
       badges: {
         threshold: '阈值 {{value}}',
         vectorWeight: '向量权重 {{value}}',
@@ -909,6 +934,17 @@ export default {
         loadError: '加载重排序模型失败，请重试',
       },
       metadataFilter: {
+        loadingFields: '正在读取文档元数据字段…',
+        fieldsError: '读取文档字段失败，当前仅显示可用的模板字段。请重试。',
+        validation: {
+          manualRequired:
+            '请添加至少一条完整的元数据条件，或将过滤模式设为禁用。',
+          incompleteManual:
+            '请补齐每条条件的字段和值。“为空”和“不为空”无需填写值。',
+          semiAutoRequired:
+            '请选择至少一个半自动元数据字段，或将过滤模式设为禁用。',
+          unsupportedOperator: '存在不支持的操作符，请重新选择。',
+        },
         label: '元数据过滤',
         selectMode: '选择过滤模式',
         autoHelp:

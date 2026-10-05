@@ -59,6 +59,13 @@ export interface RetrievalMetaDataFilter {
   manual?: Array<{ key: string; op: string; value: string }>
 }
 
+export interface SearchRequestScope {
+  question: string
+  docIds: string[]
+  metadata?: RetrievalMetaDataFilter
+  similarityThreshold: number
+}
+
 export interface MetadataState {
   mode: MetadataFilterMode
   condition: MetadataCondition
