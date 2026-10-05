@@ -93,6 +93,7 @@ beforeEach(async () => {
   stored = {
     id: 'kb-1',
     name: 'Docs',
+    tenant_id: 'tenant-1',
     permission: 'team',
     document_count: 2,
     chunk_count: 8,
@@ -114,6 +115,7 @@ beforeEach(async () => {
   vi.spyOn(apiClient, 'get').mockImplementation(async (path) => {
     if (path === '/v1/datasets/kb-1') return structuredClone(stored) as never
     if (path === '/v1/llm/my_llms') return {} as never
+    if (path === '/agents') return { total: 0, canvas: [] } as never
     throw new Error(`Unexpected GET ${path}`)
   })
   vi.spyOn(apiClient, 'put').mockImplementation(async (path, body) => {
@@ -123,6 +125,7 @@ beforeEach(async () => {
     stored = {
       ...stored,
       ...update,
+      ...((update.ext as object) || {}),
       parser_config: {
         ...stored.parser_config,
         ...(update.parser_config as object),
@@ -232,4 +235,78 @@ it('keeps an edited draft available after a denied save', async () => {
   expect(stored.parser_config?.chunk_token_num).toBe(256)
   await save()
   expect(writes).toHaveLength(1)
+})
+
+it('preserves a hydrated pipeline, saves via ext, and clears it when switching back to builtin', async () => {
+  const pipelineId = 'a'.repeat(32)
+  const originalGet = vi.mocked(apiClient.get).getMockImplementation()!
+  vi.mocked(apiClient.get).mockImplementation(async (path, config) =>
+    path === '/agents'
+      ? ({
+          total: 2,
+          canvas: [
+            {
+              id: pipelineId,
+              title: 'Document pipeline',
+              tenant_id: 'tenant-1',
+              canvas_category: 'dataflow_canvas',
+            },
+            {
+              id: 'b'.repeat(32),
+              title: 'Foreign pipeline',
+              tenant_id: 'foreign',
+              canvas_category: 'dataflow_canvas',
+            },
+          ],
+        } as never)
+      : originalGet(path, config),
+  )
+  stored.pipeline_id = pipelineId
+  await reload()
+  await vi.waitFor(() =>
+    expect(document.body.textContent).toContain('Document pipeline'),
+  )
+  expect(document.body.textContent).not.toContain('Foreign pipeline')
+  await input('Knowledge base name', '中文知识库 2026')
+  await save()
+  expect(writes[0]).toMatchObject({
+    name: '中文知识库 2026',
+    ext: { pipeline_id: pipelineId },
+  })
+  expect(writes[0]).not.toHaveProperty('chunk_method')
+  expect(writes[0]).not.toHaveProperty('parser_config')
+  await reload()
+  expect(document.body.textContent).toContain('Document pipeline')
+  await act(async () =>
+    document
+      .querySelector<HTMLButtonElement>('[role=radio][value="1"]')!
+      .click(),
+  )
+  await save()
+  expect(writes[1]).toMatchObject({
+    chunk_method: 'naive',
+    ext: { pipeline_id: '' },
+  })
+  await reload()
+  expect(
+    document
+      .querySelector('[role=radio][value="1"]')
+      ?.getAttribute('aria-checked'),
+  ).toBe('true')
+})
+
+it('rejects over-budget names and an empty pipeline mode before making a request', async () => {
+  await input('Knowledge base name', '中'.repeat(43))
+  await save()
+  expect(writes).toHaveLength(0)
+  expect(document.body.textContent).toContain('128 UTF-8 bytes')
+  await input('Knowledge base name', '中文知识库')
+  await act(async () =>
+    document
+      .querySelector<HTMLButtonElement>('[role=radio][value="2"]')!
+      .click(),
+  )
+  await save()
+  expect(writes).toHaveLength(0)
+  expect(document.body.textContent).toContain('Select a valid data pipeline')
 })

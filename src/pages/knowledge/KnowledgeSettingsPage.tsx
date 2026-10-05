@@ -27,7 +27,7 @@ import {
   DOCUMENT_PARSER_TYPE_LABELS,
 } from '@/types/document-parser'
 import {
-  knowledgeSettingsFormSchema,
+  createKnowledgeSettingsFormSchema,
   getDefaultFormValues,
   ParseTypeOptions,
   type KnowledgeSettingsFormData,
@@ -45,7 +45,7 @@ import { GraphRagFormFields } from '@/components/forms/GraphRagFormFields'
 import { RaptorFormFields } from '@/components/forms/RaptorFormFields'
 import { GeneralForm } from './settings/GeneralForm'
 import { ChunkMethodForm } from './settings/ChunkMethodForm'
-import { PipelineSelect, type PipelineOption } from './settings/PipelineSelect'
+import { PipelineSelect } from './settings/PipelineSelect'
 import { LinkDataSource } from './settings/LinkDataSource'
 import {
   buildKnowledgeSettingsFormValues,
@@ -118,13 +118,6 @@ const KnowledgeSettingsPage: React.FC = () => {
 
   const [isLoading, setIsLoading] = React.useState(false)
 
-  // Pipeline 列表（后端暂不支持，前端先实现）
-  const [pipelineOptions] = React.useState<PipelineOption[]>([
-    // 模拟数据，实际应该从后端获取
-    // { id: '1', name: '默认文档处理流程' },
-    // { id: '2', name: '多语言文档处理' },
-  ])
-
   // Metadata 设置模态框状态
   const [metadataModalOpen, setMetadataModalOpen] = useConsumedSearchFlag(
     'openMetadata',
@@ -135,7 +128,7 @@ const KnowledgeSettingsPage: React.FC = () => {
 
   // 初始化表单
   const form = useForm({
-    resolver: zodResolver(knowledgeSettingsFormSchema),
+    resolver: zodResolver(createKnowledgeSettingsFormSchema(t)),
     defaultValues: getDefaultFormValues() as KnowledgeSettingsFormData,
   })
 
@@ -246,12 +239,6 @@ const KnowledgeSettingsPage: React.FC = () => {
     if (!id) return
 
     const trimmedName = data.name.trim()
-    if (!trimmedName) {
-      toast.error(t('knowledge.settings.validationTitle'), {
-        description: t('knowledge.settings.emptyName'),
-      })
-      return
-    }
 
     try {
       setIsLoading(true)
@@ -272,7 +259,7 @@ const KnowledgeSettingsPage: React.FC = () => {
         embd_id: data.embd_id?.trim() || null,
         pagerank: data.pagerank || 0,
         parser_config: parserConfig,
-        // pipeline_id: data.parseType === 2 ? data.pipeline_id : null, // 后端暂不支持
+        pipeline_id: data.parseType === 2 ? data.pipeline_id : '',
       }
 
       await updateKnowledge(updateData)
@@ -481,8 +468,9 @@ const KnowledgeSettingsPage: React.FC = () => {
 
                   {parseType === 2 && (
                     <PipelineSelect
-                      options={pipelineOptions}
-                      showNavigateLink
+                      datasetId={id || ''}
+                      tenantId={currentKnowledgeBase?.tenant_id || ''}
+                      disabled={isLoading}
                     />
                   )}
                 </div>

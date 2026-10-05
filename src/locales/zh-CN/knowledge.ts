@@ -4,6 +4,10 @@ import knowledgeLogs from './knowledge-logs'
 
 export default {
   knowledge: {
+    nameValidation: {
+      required: '知识库名称不能为空',
+      tooLong: '名称不能超过 {{count}} 个 UTF-8 字节；中文和表情会占多个字节。',
+    },
     common: {
       loading: '页面加载中',
       preparing: '正在准备当前内容。',
@@ -147,16 +151,14 @@ export default {
         fields: {
           name: '知识库名称',
           namePlaceholder: '例如：my_knowledge_base',
-          nameTooltip: '知识库名称必须以字母开头，只能包含字母、数字和下划线',
-          nameRule: '名称必须以字母开头，只能包含字母、数字和下划线',
+          nameTooltip: '支持中文、空格和标点，最多 128 个 UTF-8 字节。',
+          nameRule: '支持中文、空格和标点，最多 128 个 UTF-8 字节。',
           description: '描述',
           descriptionPlaceholder: '请输入知识库描述',
         },
         validation: {
           title: '验证失败',
           nameRequired: '知识库名称不能为空',
-          namePattern: '知识库名称必须以字母开头，只能包含字母、数字和下划线',
-          nameMaxLength: '知识库名称长度不能超过 {{count}} 个字符',
         },
         success: {
           title: '更新成功',
@@ -182,9 +184,9 @@ export default {
       },
       fields: {
         name: '知识库名称',
-        nameTooltip: '名称必须以字母开头，只能包含字母、数字和下划线',
+        nameTooltip: '支持中文、空格和标点，最多 128 个 UTF-8 字节。',
         namePlaceholder: '例如：my_knowledge_base',
-        nameRule: '以字母开头，只能包含字母、数字和下划线，最长 100 个字符',
+        nameRule: '支持中文、空格和标点，最多 128 个 UTF-8 字节。',
         description: '描述',
         descriptionTooltip: '简要描述知识库的用途和内容，便于后续管理',
         descriptionPlaceholder: '请输入知识库描述',
@@ -215,8 +217,6 @@ export default {
       validation: {
         title: '验证失败',
         nameRequired: '知识库名称不能为空',
-        namePattern: '名称必须以字母开头，只能包含字母、数字和下划线',
-        nameMaxLength: '名称长度不能超过 {{count}} 个字符',
         embeddingRequired: '请选择向量模型',
       },
       success: {
@@ -244,6 +244,10 @@ export default {
       noResults: '未找到匹配的嵌入模型',
     },
     settings: {
+      validation: {
+        parserRequired: '请选择内置解析器',
+        pipelineRequired: '请选择有效的数据管道',
+      },
       title: '知识库设置',
       description: '配置解析方式和参数选项',
       missingTitle: '知识库不存在',
@@ -525,8 +529,7 @@ export default {
         title: '数据管道',
         description:
           '使用数据管道可以自定义文档的处理流程，包括解析、清洗、分块等步骤。',
-        createTip:
-          '如果没有合适的数据管道，可以点击「从头创建」来创建新的数据管道。',
+        createTip: '如果没有合适的数据管道，请前往 Agent 工作区创建。',
       },
     },
     documents: {
@@ -777,12 +780,12 @@ export default {
           '暂时无法确认保存结果，已保留你的编辑。请先核对文档状态，再决定是否重新提交。',
         parseMethod: '解析方法',
         builtin: '内置',
-        selectPipeline: '选择pipeline',
+        selectPipeline: '选择数据管道',
         parserPlaceholder: '请选择解析器',
         parserEmpty: '暂无匹配的解析器',
-        pipelinePlaceholder: '请选择pipeline',
-        pipelineEmpty: '暂无可用的pipeline',
-        pipelineTip: '选择已配置的数据处理pipeline',
+        pipelinePlaceholder: '请选择数据管道',
+        pipelineEmpty: '暂无可用的数据管道',
+        pipelineTip: '选择已配置的数据处理管道',
         metadataTitle: '元数据生成设置',
         metadataDescription:
           '配置自动元数据提取的字段和规则。修改将影响新解析的文档。',

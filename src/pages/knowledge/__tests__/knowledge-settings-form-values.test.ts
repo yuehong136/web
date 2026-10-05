@@ -1,7 +1,11 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import type { KnowledgeBase } from '@/types/api'
-import { parserConfigSchema } from '@/types/knowledge-form'
+import { getKnowledgeNameError } from '@/lib/knowledge/name'
+import {
+  knowledgeSettingsFormSchema,
+  parserConfigSchema,
+} from '@/types/knowledge-form'
 import {
   buildKnowledgeSettingsFormValues,
   buildKnowledgeSettingsParserConfig,
@@ -189,5 +193,64 @@ test('flat legacy parent-child settings round trip and explicit disablement stay
   assert.equal(
     parserConfigSchema.safeParse({ overlapped_percent: 0.31 }).success,
     false,
+  )
+})
+
+test('knowledge names share trimmed UTF-8 byte limits without a legacy character pattern', () => {
+  for (const name of [
+    '中文知识库',
+    '2026 reports - Q1',
+    'name.with/punctuation',
+    'a'.repeat(128),
+    '中'.repeat(42) + 'ab',
+    '😀'.repeat(32),
+  ])
+    assert.equal(getKnowledgeNameError(name), null)
+  for (const name of ['a'.repeat(129), '中'.repeat(43), '😀'.repeat(33)])
+    assert.equal(getKnowledgeNameError(name), 'tooLong')
+  assert.equal(getKnowledgeNameError('  '), 'required')
+  assert.equal(getKnowledgeNameError('  ' + 'a'.repeat(128) + '  '), null)
+})
+
+test('settings validate only the parser required by the selected mode', () => {
+  const values = buildKnowledgeSettingsFormValues(
+    createKnowledgeBase({}),
+    (x) => x,
+  )
+  assert.equal(
+    knowledgeSettingsFormSchema.safeParse({ ...values, name: '中'.repeat(43) })
+      .success,
+    false,
+  )
+  assert.equal(
+    knowledgeSettingsFormSchema.safeParse({
+      ...values,
+      parseType: 2,
+      parser_id: '',
+      pipeline_id: 'a'.repeat(32),
+    }).success,
+    true,
+  )
+  for (const pipeline_id of ['', 'short', 'z'.repeat(32)])
+    assert.equal(
+      knowledgeSettingsFormSchema.safeParse({
+        ...values,
+        parseType: 2,
+        pipeline_id,
+      }).success,
+      false,
+    )
+  assert.equal(
+    knowledgeSettingsFormSchema.safeParse({
+      ...values,
+      parser_id: '',
+      pipeline_id: 'a'.repeat(32),
+    }).success,
+    false,
+  )
+  assert.equal(
+    knowledgeSettingsFormSchema.safeParse({ ...values, pipeline_id: '' })
+      .success,
+    true,
   )
 })

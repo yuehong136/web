@@ -4,6 +4,11 @@ import knowledgeLogs from './knowledge-logs'
 
 export default {
   knowledge: {
+    nameValidation: {
+      required: 'Knowledge base name is required',
+      tooLong:
+        'Name cannot exceed {{count}} UTF-8 bytes; Chinese characters and emoji use multiple bytes.',
+    },
     common: {
       loading: 'Loading page',
       preparing: 'Preparing content.',
@@ -152,18 +157,15 @@ export default {
           name: 'Knowledge base name',
           namePlaceholder: 'Example: my_knowledge_base',
           nameTooltip:
-            'The name must start with a letter and can contain only letters, numbers, and underscores.',
+            'Supports Chinese, spaces and punctuation. Maximum 128 UTF-8 bytes.',
           nameRule:
-            'Start with a letter and use only letters, numbers, and underscores.',
+            'Supports Chinese, spaces and punctuation. Maximum 128 UTF-8 bytes.',
           description: 'Description',
           descriptionPlaceholder: 'Enter a knowledge base description',
         },
         validation: {
           title: 'Validation failed',
           nameRequired: 'Knowledge base name is required',
-          namePattern:
-            'The name must start with a letter and can contain only letters, numbers, and underscores.',
-          nameMaxLength: 'Name cannot exceed {{count}} characters',
         },
         success: {
           title: 'Updated',
@@ -191,10 +193,10 @@ export default {
       fields: {
         name: 'Knowledge base name',
         nameTooltip:
-          'The name must start with a letter and can contain only letters, numbers, and underscores.',
+          'Supports Chinese, spaces and punctuation. Maximum 128 UTF-8 bytes.',
         namePlaceholder: 'Example: my_knowledge_base',
         nameRule:
-          'Start with a letter. Use only letters, numbers, and underscores. Max 100 characters.',
+          'Supports Chinese, spaces and punctuation. Maximum 128 UTF-8 bytes.',
         description: 'Description',
         descriptionTooltip:
           'Briefly describe the purpose and contents of this knowledge base.',
@@ -228,9 +230,6 @@ export default {
       validation: {
         title: 'Validation failed',
         nameRequired: 'Knowledge base name is required',
-        namePattern:
-          'The name must start with a letter and can contain only letters, numbers, and underscores.',
-        nameMaxLength: 'Name cannot exceed {{count}} characters',
         embeddingRequired: 'Select an embedding model',
       },
       success: {
@@ -260,6 +259,10 @@ export default {
       noResults: 'No matching embedding models',
     },
     settings: {
+      validation: {
+        parserRequired: 'Select a builtin parser',
+        pipelineRequired: 'Select a valid data pipeline',
+      },
       title: 'Knowledge settings',
       description: 'Configure parsing methods and options.',
       missingTitle: 'Knowledge base not found',
@@ -553,7 +556,7 @@ export default {
         description:
           'Data pipelines customize document processing, including parsing, cleaning, and chunking.',
         createTip:
-          'Create a new pipeline if none of the existing pipelines fits this knowledge base.',
+          'Open the Agents workspace to create a pipeline if none fits this knowledge base.',
       },
     },
     documents: {
