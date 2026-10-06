@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { createPortal } from 'react-dom'
+import { useTranslation } from 'react-i18next'
 import { X } from 'lucide-react'
 import { Slot } from '@radix-ui/react-slot'
 import { cn } from '@/lib/utils'
@@ -124,6 +125,7 @@ export const DialogContent: React.FC<DialogContentProps> = ({
   showCloseButton = true,
   closeOnOverlayClick = true,
 }) => {
+  const { t } = useTranslation()
   const context = React.useContext(DialogContext)
   if (!context) {
     throw new Error('DialogContent must be used within Dialog')
@@ -165,7 +167,7 @@ export const DialogContent: React.FC<DialogContentProps> = ({
       {closeOnOverlayClick ? (
         <button
           type="button"
-          aria-label="关闭弹窗"
+          aria-label={t('common.closeDialog')}
           className="animate-in fade-in-0 fixed inset-0 bg-black/50 backdrop-blur-xs duration-200"
           onClick={() => onOpenChange(false)}
         />
@@ -177,7 +179,8 @@ export const DialogContent: React.FC<DialogContentProps> = ({
       <div
         className={cn(
           'relative z-10 w-full rounded-xl shadow-2xl',
-          'bg-[var(--color-background-surface)]',
+          // Native <dialog> defaults to black text; inherit the theme instead.
+          'bg-[var(--color-background-surface)] text-text-primary',
           'animate-in fade-in-0 zoom-in-95 duration-200',
           'flex max-h-[calc(100vh-2rem)] flex-col',
           sizeClasses[size],
@@ -197,7 +200,7 @@ export const DialogContent: React.FC<DialogContentProps> = ({
             )}
           >
             <X className="h-4 w-4" />
-            <span className="sr-only">关闭</span>
+            <span className="sr-only">{t('common.close')}</span>
           </button>
         )}
 

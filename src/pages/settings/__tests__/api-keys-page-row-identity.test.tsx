@@ -156,6 +156,23 @@ const requestAction = async (item: string, label?: string) => {
   await openRowMenu(label)
   await click(menuItem(item))
 }
+const labelled = <T extends HTMLElement = HTMLButtonElement>(label: string) =>
+  document.querySelector<T>(`[aria-label="${label}"]`)!
+const typeInto = (field: HTMLInputElement, value: string) =>
+  act(async () => {
+    const { set } = Object.getOwnPropertyDescriptor(
+      HTMLInputElement.prototype,
+      'value',
+    )!
+    set!.call(field, value)
+    field.dispatchEvent(new Event('input', { bubbles: true }))
+  })
+const sleep = (ms: number) =>
+  act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, ms))
+  })
+const SEARCH_DEBOUNCE_MS = 350
+const toEnglish = () => act(async () => setProductLanguage('en-US'))
 
 it('gives each key its own row identity even when keys share a tenant_id', () => {
   const rows = Array.from(document.querySelectorAll('.divide-y > div'))
@@ -275,4 +292,87 @@ it('renders the row actions and confirmation in English', async () => {
   expect(textButton('Cancel')).toBeTruthy()
   await click(textButton('Delete key'))
   expect(mocks.success).toHaveBeenCalledWith('API key deleted')
+})
+
+it('renders the key manager in English without exposing full tokens', async () => {
+  await toEnglish()
+  const search = labelled<HTMLInputElement>('Search API keys')
+  expect(search.placeholder).toBe('Search API keys...')
+  const manager = search.closest('dialog')!
+  for (const text of [
+    'API key management',
+    'Create, regenerate, and delete the API keys used to call the API.',
+    'New API key',
+    'Name',
+    'Token',
+    'Description',
+    'Created',
+    'Updated',
+    'Actions',
+    '2 API keys',
+    'Items per page',
+    'Previous',
+    'Next',
+  ]) {
+    expect(manager.textContent).toContain(text)
+  }
+  expect(manager.textContent).not.toMatch(/[一-鿿]/)
+  expect(labelled('Copy token for Second key')).toBeTruthy()
+  expect(document.body.innerHTML).not.toMatch(/token-(first|second)/)
+})
+
+it('tells an empty search apart from having no keys, in English', async () => {
+  await toEnglish()
+  const search = labelled<HTMLInputElement>('Search API keys')
+  await typeInto(search, 'nothing matches')
+  await sleep(SEARCH_DEBOUNCE_MS)
+  const manager = search.closest('dialog')!
+  expect(manager.textContent).toContain('No API keys match your search.')
+  expect(manager.textContent).not.toContain('create your first key')
+
+  await typeInto(search, '')
+  await sleep(SEARCH_DEBOUNCE_MS)
+  await waitFor(() => document.querySelector('.divide-y > div'))
+  // Deleting refetches the list; the server now has no keys left.
+  mocks.getTokenList.mockResolvedValue([])
+  await requestAction('Delete', 'Actions for Second key')
+  await click(textButton('Delete key'))
+  const empty = await waitFor(() =>
+    document.body.textContent?.includes('No API keys yet') ? document : null,
+  )
+  expect(empty.body.textContent).toContain(
+    'Select "New API key" to create your first key.',
+  )
+  expect(empty.body.textContent).not.toContain('0 API keys')
+})
+
+it('shows a fixed English error when creating a key fails, never the raw API error', async () => {
+  await toEnglish()
+  mocks.createToken.mockRejectedValueOnce(
+    new APIError(500, 'SERVER_ERROR', 'raw backend detail'),
+  )
+  await click(textButton('New API key'))
+  const name = document.querySelector<HTMLInputElement>('#create-api-key-name')!
+  const form = name.closest('form')!
+  expect(form.closest('dialog')!.textContent).toContain('Create API key')
+  expect(name.placeholder).toBe('Enter a name for the API key')
+  expect(form.textContent).toContain('Description')
+
+  await typeInto(name, 'Third key')
+  await click(textButton('Create'))
+  expect(mocks.createToken).toHaveBeenCalledExactlyOnceWith({
+    name: 'Third key',
+    description: null,
+  })
+  const alert = await waitFor(() => form.querySelector('[role="alert"]'))
+  expect(alert.textContent).toBe(
+    'Could not create the API key. Try again later.',
+  )
+  expect(name.getAttribute('aria-describedby')).toBe(alert.id)
+  expect(document.body.textContent).not.toContain('raw backend detail')
+
+  await click(textButton('Create'))
+  expect(mocks.createToken).toHaveBeenCalledTimes(2)
+  expect(document.querySelector('#create-api-key-name')).toBeNull()
+  await waitFor(() => mocks.getTokenList.mock.calls.length === 2)
 })

@@ -41,6 +41,7 @@ export default {
     confirm: 'Confirm',
     back: 'Back',
     close: 'Close',
+    closeDialog: 'Close dialog',
     search: 'Search',
     reset: 'Reset',
     retry: 'Retry',

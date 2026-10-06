@@ -41,6 +41,7 @@ export default {
     confirm: '确认',
     back: '返回',
     close: '关闭',
+    closeDialog: '关闭弹窗',
     search: '搜索',
     reset: '重置',
     retry: '重试',
