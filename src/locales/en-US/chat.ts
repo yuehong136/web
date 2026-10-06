@@ -5,5 +5,10 @@ export default {
       interrupted:
         'Generation did not finish. The content generated so far has been kept.',
     },
+    scroll: {
+      region: 'Conversation messages',
+      latest: 'Jump to latest',
+      newContent: 'New content below',
+    },
   },
 }

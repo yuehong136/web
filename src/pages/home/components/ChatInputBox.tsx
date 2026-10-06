@@ -39,6 +39,8 @@ interface ChatInputBoxProps {
   onSend: () => void
   onStop?: () => void
   isStreaming?: boolean
+  /** 请求已接纳（会话准备或流式中）：锁定技能/应用、模型与发送，输入框仍可编辑 */
+  scopeLocked?: boolean
 
   // 变体
   variant?: 'welcome' | 'chat'
@@ -65,6 +67,7 @@ export const ChatInputBox: React.FC<ChatInputBoxProps> = ({
   onSend,
   onStop,
   isStreaming = false,
+  scopeLocked = isStreaming,
   variant = 'welcome',
 }) => {
   const { t } = useTranslation()
@@ -90,6 +93,7 @@ export const ChatInputBox: React.FC<ChatInputBoxProps> = ({
   const isWelcome = variant === 'welcome'
   const hasSelectedItems =
     selectedMCPServers.length > 0 || selectedApps.length > 0
+  const canSend = Boolean(inputValue.trim()) && !scopeLocked
 
   return (
     <div
@@ -104,9 +108,10 @@ export const ChatInputBox: React.FC<ChatInputBoxProps> = ({
         selectedApps={selectedApps}
         onRemoveSkill={onRemoveSkill}
         onRemoveApp={onRemoveApp}
+        disabled={scopeLocked}
       />
 
-      {/* 文本输入区 */}
+      {/* 文本输入区：生成中也可编写下一条草稿 */}
       <Textarea
         ref={textareaRef}
         variant="chat"
@@ -116,7 +121,6 @@ export const ChatInputBox: React.FC<ChatInputBoxProps> = ({
         placeholder={resolvedPlaceholder}
         className="w-full text-base placeholder:text-text-tertiary"
         rows={1}
-        disabled={isStreaming}
       />
 
       {/* 工具栏 */}
@@ -127,7 +131,7 @@ export const ChatInputBox: React.FC<ChatInputBoxProps> = ({
             <InputToolbar
               isSkillPanelOpen={isSkillPanelOpen}
               hasSelectedItems={hasSelectedItems}
-              disabled={isStreaming}
+              disabled={scopeLocked}
               onAtClick={onSkillPanelToggle}
               atButtonRef={skillPanelRef}
               size={isWelcome ? 'normal' : 'compact'}
@@ -148,12 +152,13 @@ export const ChatInputBox: React.FC<ChatInputBoxProps> = ({
             loading={modelsLoading}
             variant="minimal"
             dropdownDirection={isWelcome ? 'down' : 'up'}
-            disabled={isStreaming || isModelLocked}
+            disabled={scopeLocked || isModelLocked}
           />
 
           {/* 发送/停止按钮 */}
           {isStreaming && onStop ? (
             <button
+              type="button"
               onClick={onStop}
               aria-label={t('home.input.stop', '停止')}
               className={cn(
@@ -165,12 +170,14 @@ export const ChatInputBox: React.FC<ChatInputBoxProps> = ({
             </button>
           ) : (
             <button
+              type="button"
               onClick={onSend}
+              disabled={!canSend}
               aria-label={t('common.submit', '提交')}
               className={cn(
                 'flex items-center justify-center rounded-full transition-colors',
                 isWelcome ? 'h-10 w-10' : 'h-9 w-9',
-                inputValue.trim()
+                canSend
                   ? 'bg-components-button-primary-bg hover:bg-components-button-primary-bg-hover'
                   : 'bg-components-button-primary-bg-disabled',
               )}
@@ -178,7 +185,7 @@ export const ChatInputBox: React.FC<ChatInputBoxProps> = ({
               <ArrowUp
                 className={cn(
                   isWelcome ? 'h-5 w-5' : 'h-4 w-4',
-                  inputValue.trim()
+                  canSend
                     ? 'text-components-button-primary-text'
                     : 'text-components-button-primary-text-disabled',
                 )}

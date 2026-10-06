@@ -22,6 +22,5 @@
   "src/components/chat/ChatInput.tsx": 691,
   "src/pages/settings/MCPToolsPage.tsx": 660,
   "src/pages/settings/MCPBatchPage.tsx": 633,
-  "src/components/ui/file-icon.tsx": 630,
-  "src/pages/home/components/ChatSection.tsx": 630
+  "src/components/ui/file-icon.tsx": 630
 }

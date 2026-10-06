@@ -1,4 +1,5 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import { X, MessageSquare, Globe, Server, Wrench } from 'lucide-react'
 import type { DialogApp } from '@/types/api'
 import type { MCPServer } from '@/types/mcp'
@@ -8,7 +9,12 @@ interface SelectedTagsProps {
   selectedApps: DialogApp[]
   onRemoveSkill: (serverId: string) => void
   onRemoveApp: (appId: string) => void
+  /** 运行中的请求已按当前范围接纳，期间不允许移除 */
+  disabled?: boolean
 }
+
+const removeButtonClassName =
+  'rounded-full p-0.5 hover:bg-state-selected/20 disabled:cursor-not-allowed disabled:opacity-50'
 
 // 根据服务器类型获取图标
 const getServerIcon = (serverType: string) => {
@@ -28,7 +34,9 @@ export const SelectedTags: React.FC<SelectedTagsProps> = ({
   selectedApps,
   onRemoveSkill,
   onRemoveApp,
+  disabled = false,
 }) => {
+  const { t } = useTranslation()
   if (selectedMCPServers.length === 0 && selectedApps.length === 0) {
     return null
   }
@@ -44,8 +52,11 @@ export const SelectedTags: React.FC<SelectedTagsProps> = ({
           {getServerIcon(server.server_type)}
           <span>{server.name}</span>
           <button
+            type="button"
             onClick={() => onRemoveSkill(server.id)}
-            className="rounded-full p-0.5 hover:bg-state-selected/20"
+            disabled={disabled}
+            aria-label={t('home.input.removeSelection', { name: server.name })}
+            className={removeButtonClassName}
           >
             <X className="h-3 w-3" />
           </button>
@@ -60,8 +71,11 @@ export const SelectedTags: React.FC<SelectedTagsProps> = ({
           <MessageSquare className="h-3.5 w-3.5" />
           <span>{app.name}</span>
           <button
+            type="button"
             onClick={() => onRemoveApp(app.id)}
-            className="rounded-full p-0.5 hover:bg-state-selected/20"
+            disabled={disabled}
+            aria-label={t('home.input.removeSelection', { name: app.name })}
+            className={removeButtonClassName}
           >
             <X className="h-3 w-3" />
           </button>

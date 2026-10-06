@@ -10,6 +10,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from '@/lib/toast'
+import { useSubmitGate } from '@/hooks/use-submit-gate'
 import type { MCPChatServiceRequest } from '@/api/mcp-chat-service'
 import { conversationAPI } from '@/api/conversation'
 import type { DialogApp } from '@/types/api'
@@ -197,12 +198,6 @@ export const useHomeChat = ({
   const sendAppMessage = useCallback(
     async (inputValue: string) => {
       if (!inputValue.trim() || !selectedApp) return
-
-      // 如果正在加载历史，等待加载完成
-      if (isLoadingHistory) {
-        console.log('[sendAppMessage] Waiting for history to load...')
-        return
-      }
 
       // 标记正在发送
       isSendingRef.current = true
@@ -407,7 +402,6 @@ export const useHomeChat = ({
       selectedConversationId,
       onConversationIdChange,
       loadConversationHistory,
-      isLoadingHistory,
       updateMessages,
       updateCurrentConversationId,
       t,
@@ -417,13 +411,6 @@ export const useHomeChat = ({
   // 发送消息 - MCP 模式
   const sendMCPMessage = useCallback(
     async (inputValue: string) => {
-      if (!inputValue.trim()) return
-
-      if (!selectedModelId) {
-        toast.error('请先选择一个聊天模型')
-        return
-      }
-
       const userMessage: ChatMessage = {
         id: Date.now().toString(),
         role: 'user',
@@ -544,16 +531,21 @@ export const useHomeChat = ({
     [selectedModelId, selectedMCPIds, updateMessages],
   )
 
-  // 发送消息（根据模式选择）
+  // 发送消息（根据模式选择）。接纳在本次调用内同步判定：返回 false 表示拒绝，
+  // 调用方应保留草稿；会话创建、历史准备与流式期间的再次提交都会被拒绝
+  const { isPending: isSendPending, run: runSend } = useSubmitGate()
   const sendMessage = useCallback(
-    async (inputValue: string) => {
-      if (isAppMode) {
-        await sendAppMessage(inputValue)
-      } else {
-        await sendMCPMessage(inputValue)
+    (inputValue: string): Promise<void> | false => {
+      if (!inputValue.trim() || isLoadingHistoryRef.current) return false
+      if (!isAppMode && !selectedModelId) {
+        toast.error(t('home.input.selectModelFirst'))
+        return false
       }
+      return runSend(() =>
+        isAppMode ? sendAppMessage(inputValue) : sendMCPMessage(inputValue),
+      )
     },
-    [isAppMode, sendAppMessage, sendMCPMessage],
+    [isAppMode, selectedModelId, sendAppMessage, sendMCPMessage, runSend, t],
   )
 
   // 停止输出
@@ -588,6 +580,7 @@ export const useHomeChat = ({
     streamingThinking,
     isToolAnalyzing,
     isLoadingHistory,
+    isSendPending,
     isAppMode,
     currentConversationId,
     sendMessage,

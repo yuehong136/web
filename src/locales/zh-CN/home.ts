@@ -21,6 +21,8 @@ export default {
       inspiration: '获取灵感',
       configureModel: '配置模型',
       configureModelAction: '打开模型配置',
+      selectModelFirst: '请先选择一个聊天模型',
+      removeSelection: '移除 {{name}}',
     },
     agentTimeline: {
       arguments: '参数',

@@ -21,6 +21,8 @@ export default {
       inspiration: 'Get inspiration',
       configureModel: 'Configure model',
       configureModelAction: 'Open model settings',
+      selectModelFirst: 'Select a chat model first.',
+      removeSelection: 'Remove {{name}}',
     },
     agentTimeline: {
       arguments: 'Arguments',

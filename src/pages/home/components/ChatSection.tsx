@@ -21,7 +21,9 @@ import { ReferencePanel } from '@/components/chat/ReferencePanel'
 import { ReferenceImageList } from '@/components/chat/ReferenceImageList'
 import { ReferenceDetailSheet } from '@/components/chat/ReferenceDetailSheet'
 import { createReferenceMarkerComponent } from '@/components/chat/ReferenceMarker'
+import { ChatScrollViewport } from '@/components/patterns/chat/chat-scroll-viewport'
 import { ChatInputBox } from './ChatInputBox'
+import { HomeChatStyles } from './home-chat-styles'
 import { SkillPanel } from './SkillPanel'
 import { useAtTrigger } from '../hooks'
 import { shouldIgnoreEnterForIme } from '../utils'
@@ -46,6 +48,8 @@ interface ChatSectionProps {
   streamingThinking?: string
   isToolAnalyzing: boolean
   isLoadingHistory?: boolean
+  /** 发送已接纳但尚未进入流式（会话创建、历史准备） */
+  isSendPending?: boolean
 }
 
 export const ChatSection = ({
@@ -59,9 +63,9 @@ export const ChatSection = ({
   streamingThinking = '',
   isToolAnalyzing,
   isLoadingHistory = false,
+  isSendPending = false,
 }: ChatSectionProps) => {
   const { t } = useTranslation()
-  const chatContainerRef = useRef<HTMLDivElement>(null)
   const atButtonRef = useRef<HTMLButtonElement>(
     null!,
   ) as RefObject<HTMLButtonElement>
@@ -96,12 +100,6 @@ export const ChatSection = ({
     handleInputChange: handleAtInput,
     removeAtSymbol,
   } = useAtTrigger()
-
-  useEffect(() => {
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight
-    }
-  }, [messages, streamingContent])
 
   useEffect(() => {
     if (modelsLoading || !myLLMs || Object.keys(myLLMs).length === 0) return
@@ -496,83 +494,31 @@ export const ChatSection = ({
 
   return (
     <div className="home-chat-area flex min-h-0 flex-1 flex-col">
-      {/* 对话消息区域 */}
-      <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-6">
-        <div className="mx-auto max-w-4xl">
-          <style>{`
-            .home-chat-area .markdown-content {
-              color: var(--color-text-primary) !important;
-            }
-            .home-chat-area .markdown-content a {
-              color: var(--color-text-accent) !important;
-            }
-            .home-chat-area .markdown-content table:not(pre) {
-              border-collapse: collapse !important;
-              display: block !important;
-              width: max-content !important;
-              max-width: 100% !important;
-              overflow: auto !important;
-              margin: 8px 0 16px 0 !important;
-              border: 1px solid var(--color-border-default) !important;
-              border-radius: 8px !important;
-              background-color: var(--color-surface-primary) !important;
-            }
-            .home-chat-area .markdown-content th,
-            .home-chat-area .markdown-content td {
-              border: 1px solid var(--color-border-default) !important;
-              padding: 8px 12px !important;
-              text-align: left !important;
-              vertical-align: top !important;
-            }
-            .home-chat-area .markdown-content th {
-              background-color: var(--color-surface-secondary) !important;
-              color: var(--color-text-primary) !important;
-              font-weight: 600 !important;
-            }
-            .home-chat-area .markdown-content td {
-              background-color: var(--color-surface-primary) !important;
-              color: var(--color-text-primary) !important;
-            }
-            .home-chat-area .markdown-content code {
-              background-color: var(--color-background-subtle) !important;
-              color: var(--color-text-primary) !important;
-            }
-            .home-chat-area .markdown-content pre {
-              background-color: var(--color-components-pre-bg) !important;
-              border-color: var(--color-components-pre-border) !important;
-            }
-            .home-chat-area .markdown-content pre code {
-              color: var(--color-components-pre-text) !important;
-            }
-            .home-chat-area .markdown-content .ant-mermaid-graph {
-              height: auto !important;
-              min-height: 220px !important;
-              max-height: 70vh !important;
-            }
-            .home-chat-area .markdown-content .ant-mermaid-code {
-              height: auto !important;
-              min-height: 220px !important;
-              max-height: 70vh !important;
-            }
-          `}</style>
-          {isLoadingHistory ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="flex flex-col items-center gap-3">
-                <div className="h-8 w-8 animate-spin rounded-full border-3 border-text-tertiary border-t-text-accent" />
-                <span className="text-sm text-text-tertiary">
-                  {t('home.input.loadingHistory', '加载对话历史...')}
-                </span>
-              </div>
+      {/* 对话消息区域：唯一滚动所有者，上滚阅读时新内容不抢位置 */}
+      <ChatScrollViewport
+        followKey={messages.findLast((msg) => msg.role === 'user')?.id}
+        isStreaming={isStreaming}
+        className="p-6"
+        contentClassName="mx-auto max-w-4xl"
+      >
+        <HomeChatStyles />
+        {isLoadingHistory ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="flex flex-col items-center gap-3">
+              <div className="h-8 w-8 animate-spin rounded-full border-3 border-text-tertiary border-t-text-accent" />
+              <span className="text-sm text-text-tertiary">
+                {t('home.input.loadingHistory', '加载对话历史...')}
+              </span>
             </div>
-          ) : (
-            <Bubble.List
-              items={bubbleItems}
-              autoScroll={true}
-              style={{ minHeight: '100%', paddingBottom: '8px' }}
-            />
-          )}
-        </div>
-      </div>
+          </div>
+        ) : (
+          <Bubble.List
+            items={bubbleItems}
+            autoScroll={false}
+            style={{ minHeight: '100%', paddingBottom: '8px' }}
+          />
+        )}
+      </ChatScrollViewport>
 
       {/* 底部输入区域 */}
       <div className="shrink-0 px-6 pt-2 pb-6">
@@ -613,6 +559,7 @@ export const ChatSection = ({
             onSend={onSend}
             onStop={onStop}
             isStreaming={isStreaming}
+            scopeLocked={isStreaming || isSendPending}
             variant="chat"
           />
         </div>
