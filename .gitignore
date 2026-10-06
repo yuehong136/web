@@ -35,6 +35,7 @@ docs/*
 !docs/design-reviews/
 docs/design-reviews/*
 !docs/design-reviews/document-chunks-workspace.md
+!docs/design-reviews/ui-ux-modernization-audit-2026-10-05.md
 !docs/engineering-modernization-roadmap.md
 !docs/streaming-runtime-design.md
 !docs/channel-frontend-design.md
