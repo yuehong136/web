@@ -4,7 +4,10 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { APIError, apiClient } from '@/api/client'
+import { knowledgeAPI } from '@/api/knowledge'
+import { llmKeys } from '@/hooks/use-llm-request'
 import { setProductLanguage } from '@/locales/i18n'
+import type { LLMCatalog, MyLLMProvider } from '@/stores/model'
 import type { DatasetDTO } from '@/types/api'
 import { KnowledgeSettingsPage } from '../KnowledgeSettingsPage'
 
@@ -21,6 +24,7 @@ let client: QueryClient
 let stored: DatasetDTO
 let writes: Record<string, unknown>[]
 let commits: number
+const originalScrollIntoView = Element.prototype.scrollIntoView
 
 // act() flushes a render loop synchronously, so vitest timers never fire;
 // fail from inside React once a mount commits far more than a page load needs.
@@ -109,6 +113,23 @@ async function input(label: string, value: string) {
     el.dispatchEvent(new Event('input', { bubbles: true }))
   })
 }
+async function selectOption(label: string, value: string) {
+  await act(async () =>
+    field(label).querySelector<HTMLButtonElement>('[role=combobox]')!.click(),
+  )
+  await vi.waitFor(() =>
+    expect(
+      [...document.querySelectorAll('[role=option]')].some(
+        (element) => element.getAttribute('data-value') === value,
+      ),
+    ).toBe(true),
+  )
+  const option = [
+    ...document.querySelectorAll<HTMLElement>('[role=option]'),
+  ].find((element) => element.getAttribute('data-value') === value)
+  expect(option, value).toBeDefined()
+  await act(async () => option!.click())
+}
 async function save() {
   await act(async () => {
     document
@@ -148,6 +169,14 @@ async function reload() {
 }
 
 beforeEach(async () => {
+  Element.prototype.scrollIntoView = vi.fn()
+  // Embedding options render theme-aware provider icons.
+  vi.stubGlobal('matchMedia', (query: string) => ({
+    matches: false,
+    media: query,
+    addEventListener() {},
+    removeEventListener() {},
+  }))
   vi.stubGlobal(
     'ResizeObserver',
     class {
@@ -156,16 +185,6 @@ beforeEach(async () => {
       disconnect() {}
     },
   )
-  // Embedding options render theme-aware provider icons.
-  vi.stubGlobal('matchMedia', () => ({
-    matches: false,
-    addEventListener() {},
-    removeEventListener() {},
-  }))
-  Object.defineProperty(Element.prototype, 'scrollIntoView', {
-    configurable: true,
-    value: () => {},
-  })
   await setProductLanguage('en-US')
   stored = {
     id: 'kb-1',
@@ -192,6 +211,7 @@ beforeEach(async () => {
   vi.spyOn(apiClient, 'get').mockImplementation(async (path) => {
     if (path === '/v1/datasets/kb-1') return structuredClone(stored) as never
     if (path === '/v1/llm/my_llms') return {} as never
+    if (path === '/v1/llm/list') return {} as never
     if (path === '/agents') return { total: 0, canvas: [] } as never
     throw new Error(`Unexpected GET ${path}`)
   })
@@ -224,6 +244,228 @@ afterEach(async () => {
   container.remove()
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
+  Element.prototype.scrollIntoView = originalScrollIntoView
+})
+
+it('retains an edited parser draft when delayed model loading and refresh update the options', async () => {
+  stored.embedding_model = 'late-embedding'
+  const originalGet = vi.mocked(apiClient.get).getMockImplementation()!
+  let finishModelLoad!: (models: MyLLMProvider) => void
+  let modelLoad = new Promise<MyLLMProvider>((resolve) => {
+    finishModelLoad = resolve
+  })
+  vi.mocked(apiClient.get).mockImplementation(async (path, config) =>
+    path === '/v1/llm/my_llms'
+      ? ((await modelLoad) as never)
+      : originalGet(path, config),
+  )
+  await reload()
+  await selectOption('PDF parser', 'Plain Text')
+  await input('Recommended chunk size', '321')
+  const models: MyLLMProvider = {
+    Builtin: {
+      tags: 'EMBEDDING',
+      llm: [
+        {
+          type: 'embedding',
+          name: 'late-embedding',
+          used_token: 0,
+          status: '1',
+        },
+      ],
+    },
+  }
+  await act(async () => finishModelLoad(models))
+  await vi.waitFor(() =>
+    expect(client.getQueryData(llmKeys.myLLMs())).toEqual(models),
+  )
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 20))
+  })
+  expect(
+    field('PDF parser').querySelector('[role=combobox]')?.textContent,
+  ).toContain('Plain text')
+  expect(
+    field('Embedding model').querySelector('[role=combobox]')?.textContent,
+  ).toContain('late-embedding')
+  expect(
+    field('Recommended chunk size').querySelector<HTMLInputElement>(
+      'input[type=number]',
+    )?.value,
+  ).toBe('321')
+
+  modelLoad = Promise.resolve({
+    ...models,
+    Vision: {
+      tags: 'IMAGE2TEXT',
+      llm: [{ type: 'image2text', name: 'vision-model', used_token: 0 }],
+    },
+  })
+  await act(async () => {
+    await client.refetchQueries({ queryKey: llmKeys.myLLMs() })
+    await new Promise((resolve) => setTimeout(resolve, 20))
+  })
+  expect(
+    field('PDF parser').querySelector('[role=combobox]')?.textContent,
+  ).toContain('Plain text')
+  await save()
+  expect(writes[0]).toMatchObject({
+    embedding_model: 'late-embedding@Builtin',
+    parser_config: { layout_recognize: 'Plain Text', chunk_token_num: 321 },
+  })
+  await reload()
+  expect(
+    field('PDF parser').querySelector('[role=combobox]')?.textContent,
+  ).toContain('Plain text')
+})
+
+for (const layoutValue of ['retired-vision@Provider', 'PaddleOCR']) {
+  it(`preserves the exact unavailable parser value ${layoutValue} and unknown config during unrelated saves`, async () => {
+    stored.parser_config = {
+      ...stored.parser_config,
+      layout_recognize: layoutValue,
+      ext: { future_layout_option: { enabled: false } },
+      future_parser_option: 'preserve',
+    }
+    await reload()
+    expect(
+      field('PDF parser').querySelector('[role=combobox]')?.textContent,
+    ).toContain(layoutValue)
+    await input('Knowledge base name', 'Renamed docs')
+    await save()
+    expect(writes[0]).toMatchObject({
+      name: 'Renamed docs',
+      parser_config: {
+        layout_recognize: layoutValue,
+        ext: { future_layout_option: { enabled: false } },
+        future_parser_option: 'preserve',
+      },
+    })
+    await reload()
+    expect(
+      field('PDF parser').querySelector('[role=combobox]')?.textContent,
+    ).toContain(layoutValue)
+    expect(stored.parser_config?.layout_recognize).toBe(layoutValue)
+    expect(stored.parser_config?.ext).toEqual({
+      future_layout_option: { enabled: false },
+    })
+  })
+}
+
+it('saves distinct OCR models and a full vision deployment ID, reads them back, then preserves a removed model', async () => {
+  const originalGet = vi.mocked(apiClient.get).getMockImplementation()!
+  let models: MyLLMProvider = {
+    PaddleOCR: {
+      tags: 'OCR',
+      llm: ['PaddleOCR-VL', 'PP-OCRv5'].map((name) => ({
+        type: 'ocr',
+        name,
+        used_token: 0,
+        status: '1',
+      })),
+    },
+    LocalAI: {
+      tags: 'IMAGE2TEXT',
+      llm: [
+        {
+          type: 'image2text',
+          name: 'vision@deployment___LocalAI',
+          used_token: 0,
+          status: '1',
+        },
+      ],
+    },
+  }
+  const catalog: LLMCatalog = {
+    PaddleOCR: ['PaddleOCR-VL', 'PP-OCRv5'].map((llm_name) => ({
+      fid: 'PaddleOCR',
+      llm_name,
+      mdl_type: 'ocr',
+      available: true,
+    })),
+    LocalAI: [
+      {
+        fid: 'LocalAI',
+        llm_name: 'vision@deployment___LocalAI',
+        mdl_type: 'image2text',
+        available: true,
+      },
+    ],
+  }
+  vi.mocked(apiClient.get).mockImplementation(async (path, config) => {
+    if (path === '/v1/llm/my_llms') return structuredClone(models) as never
+    if (path === '/v1/llm/list') return structuredClone(catalog) as never
+    return originalGet(path, config)
+  })
+  await reload()
+  const selections = [
+    {
+      value: 'PaddleOCR-VL@PaddleOCR@PaddleOCR',
+      label: 'PaddleOCR / PaddleOCR-VL',
+    },
+    { value: 'PP-OCRv5@PaddleOCR@PaddleOCR', label: 'PaddleOCR / PP-OCRv5' },
+    {
+      value: 'vision@deployment___LocalAI@LocalAI',
+      label: 'LocalAI / vision@deployment___LocalAI',
+    },
+  ]
+  for (const selection of selections) {
+    await selectOption('PDF parser', selection.value)
+    await save()
+    expect(writes.at(-1)).toMatchObject({
+      parser_config: { layout_recognize: selection.value },
+    })
+    expect(
+      (await knowledgeAPI.knowledgeBase.get('kb-1')).parser_config
+        ?.layout_recognize,
+    ).toBe(selection.value)
+    await reload()
+    await vi.waitFor(() =>
+      expect(
+        field('PDF parser').querySelector('[role=combobox]')?.textContent,
+      ).toContain(selection.label),
+    )
+  }
+
+  models = {}
+  await act(async () => {
+    await client.refetchQueries({ queryKey: llmKeys.myLLMs() })
+  })
+  const savedValue = selections[2].value
+  await vi.waitFor(() =>
+    expect(document.body.textContent).toContain(
+      'The saved parser is unavailable',
+    ),
+  )
+  expect(
+    field('PDF parser').querySelector('[role=combobox]')?.textContent,
+  ).toContain(savedValue)
+  await input('Knowledge base name', 'Keep removed parser')
+  await save()
+  expect(writes.at(-1)).toMatchObject({
+    name: 'Keep removed parser',
+    parser_config: { layout_recognize: savedValue },
+  })
+  expect(
+    (await knowledgeAPI.knowledgeBase.get('kb-1')).parser_config
+      ?.layout_recognize,
+  ).toBe(savedValue)
+  await reload()
+  expect(
+    field('PDF parser').querySelector('[role=combobox]')?.textContent,
+  ).toContain(savedValue)
+})
+
+it('does not expose PDF layout models for the Picture chunk method', async () => {
+  await selectOption('Chunk method', 'picture')
+  expect(document.querySelector('[aria-label="PDF parser"]')).toBeNull()
+  expect(document.body.textContent).toContain(
+    'The PDF parser selection does not affect images.',
+  )
+  await save()
+  expect(writes[0]).toMatchObject({ chunk_method: 'picture' })
+  await reload()
+  expect(document.querySelector('[aria-label="PDF parser"]')).toBeNull()
 })
 
 it('reads canonical dataset fields and saves editable general options, then restores them after remount', async () => {

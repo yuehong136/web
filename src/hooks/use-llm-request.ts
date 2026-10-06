@@ -22,6 +22,7 @@ import {
 export const llmKeys = {
   all: ['llm'] as const,
   myLLMs: () => [...llmKeys.all, 'myLLMs'] as const,
+  catalog: () => [...llmKeys.all, 'catalog'] as const,
   factories: () => [...llmKeys.all, 'factories'] as const,
 }
 
@@ -46,23 +47,24 @@ const EMPTY_MY_LLMS: MyLLMProvider = {}
 const EMPTY_FACTORIES: LLMFactoryInterface[] = []
 
 // 获取我的 LLM 列表
-export const useFetchMyLLMs = () => {
-  const { data, isFetching, isError, error, refetch } = useQuery<MyLLMProvider>(
-    {
+export const useFetchMyLLMs = (options?: {
+  staleTime?: number
+  refetchOnWindowFocus?: boolean
+}) => {
+  const { data, isFetching, isPending, fetchStatus, isError, error, refetch } =
+    useQuery<MyLLMProvider>({
       queryKey: llmKeys.myLLMs(),
-      queryFn: async () => {
-        const response = await llmAPI.getMyLLMs()
-        return response as unknown as MyLLMProvider
-      },
-      staleTime: 5 * 60 * 1000,
+      queryFn: () => llmAPI.getMyLLMs(),
+      staleTime: options?.staleTime ?? 5 * 60 * 1000,
       gcTime: 10 * 60 * 1000,
-      refetchOnWindowFocus: false,
-    },
-  )
+      refetchOnWindowFocus: options?.refetchOnWindowFocus ?? false,
+    })
 
   return {
     myLLMs: data ?? EMPTY_MY_LLMS,
     isLoading: isFetching,
+    isPending,
+    isPaused: fetchStatus === 'paused',
     isError,
     error,
     refetch,

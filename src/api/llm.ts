@@ -1,5 +1,5 @@
 import { apiClient } from './client'
-import { LLMFactory } from '@/stores/model'
+import { LLMFactory, type LLMCatalog, type MyLLMProvider } from '@/stores/model'
 import type { LLMModel, LLMType } from '@/types/api'
 
 // set_api_key / add_llm 的后端响应（verify 模式下携带校验结果）
@@ -9,6 +9,9 @@ interface LLMVerifyResponse {
 }
 
 export const llmAPI = {
+  // Catalog availability must be intersected with configured tenant rows.
+  getModelCatalog: (): Promise<LLMCatalog> => apiClient.get('/v1/llm/list'),
+
   // 获取模型列表
   list: (params?: {
     mdl_type?: LLMType
@@ -16,11 +19,11 @@ export const llmAPI = {
   }): Promise<Record<string, LLMModel[]>> =>
     apiClient.get('/v1/llm/my_llms', { params }),
 
-  // 别名：getMyLLMs -> list
+  // The tenant endpoint returns provider objects with nested llm rows.
   getMyLLMs: (params?: {
     mdl_type?: LLMType
     available?: boolean
-  }): Promise<Record<string, LLMModel[]>> => llmAPI.list(params),
+  }): Promise<MyLLMProvider> => apiClient.get('/v1/llm/my_llms', { params }),
 
   // 获取模型工厂列表
   getFactories: (): Promise<any> => apiClient.get('/v1/llm/factories'),

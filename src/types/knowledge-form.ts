@@ -157,14 +157,11 @@ export const PermissionOptions = [
   { label: '团队可见', value: 'team' },
 ] as const
 
-// PDF 解析器选项
+// Core PDF parsers need no tenant model or optional server integration.
+// Configured OCR/vision candidates are built from the tenant model contract.
 export const LayoutRecognizeOptions = [
   { label: 'DeepDOC', value: 'DeepDOC' },
   { label: '纯文本', value: 'Plain Text' },
-  { label: 'MinerU', value: 'MinerU' },
-  { label: 'Docling', value: 'Docling' },
-  { label: 'OpenDataLoader', value: 'OpenDataLoader' },
-  { label: 'TCADP Parser', value: 'TCADP Parser' },
 ] as const
 
 // GraphRAG 方法选项

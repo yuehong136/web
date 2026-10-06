@@ -4,6 +4,15 @@ import { useIsDarkTheme } from '@/themes'
 import { cn } from '@/lib/utils'
 import { IconFontFill } from './icon-font'
 
+// Let Vite publish SVG URLs; source-directory paths do not exist in production.
+const providerLogoUrls = import.meta.glob<string>(
+  '/src/assets/svg/llm/{local-ai,gemini,stepfun,mineru-bright,mineru-dark,paddleocr,n1n,jiekouai,avian,ragcon,perplexity-bright,perplexity-dark}.svg',
+  { eager: true, query: '?url', import: 'default' },
+)
+
+const providerLogoUrl = (iconName: string) =>
+  providerLogoUrls[`/src/assets/svg/llm/${iconName}.svg`]
+
 /**
  * 需要根据主题切换图标的厂商（有 -dark/-bright 版本的图标）
  * 参考 ragflow 的实现
@@ -76,7 +85,7 @@ export const ProviderIcon: React.FC<ProviderIconProps> = ({
         style={{ width: size, height: size }}
       >
         <img
-          src={`/src/assets/svg/llm/${iconName}.svg`}
+          src={providerLogoUrl(iconName)}
           alt={provider}
           className="h-full w-full object-contain"
           onError={(e) => {
@@ -165,7 +174,7 @@ export const getProviderIconPath = (
 
   // 如果使用独立 SVG 文件
   if (usesSvgFile(provider)) {
-    return `/src/assets/svg/llm/${iconName}.svg`
+    return providerLogoUrl(iconName) ?? null
   }
 
   // 对于 iconfont 图标，返回 null（应该使用 ProviderIcon 组件）
@@ -206,7 +215,7 @@ export const getProviderIcon = (modelName: string | null): React.ReactNode => {
     if (usesSvgFile(modelName)) {
       return (
         <img
-          src={`/src/assets/svg/llm/${iconName}.svg`}
+          src={providerLogoUrl(iconName)}
           alt={modelName}
           style={{ width: '100%', height: '100%', objectFit: 'contain' }}
           onError={(e) => {

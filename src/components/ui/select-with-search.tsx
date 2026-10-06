@@ -54,6 +54,8 @@ export interface SelectWithSearchProps {
   disabled?: boolean
   placeholder?: string
   emptyText?: string
+  searchPlaceholder?: string
+  ariaLabel?: string
 }
 
 // 在选项列表中查找选中项的 label（无分组）
@@ -88,6 +90,8 @@ export const SelectWithSearch = forwardRef<
       disabled = false,
       placeholder = '请选择模型',
       emptyText = '暂无可用模型',
+      searchPlaceholder = '搜索...',
+      ariaLabel,
     },
     ref,
   ) => {
@@ -149,6 +153,7 @@ export const SelectWithSearch = forwardRef<
             id={id}
             variant="outline"
             role="combobox"
+            aria-label={ariaLabel}
             aria-expanded={open}
             ref={ref}
             disabled={disabled}
@@ -188,7 +193,7 @@ export const SelectWithSearch = forwardRef<
           <Command className="p-4">
             {options && options.length > 0 && (
               <CommandInput
-                placeholder="搜索..."
+                placeholder={searchPlaceholder}
                 className="placeholder:text-text-tertiary"
               />
             )}

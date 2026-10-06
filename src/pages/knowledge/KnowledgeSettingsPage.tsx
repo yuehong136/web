@@ -1,7 +1,7 @@
 import { toast } from '@/lib/toast'
 import { useConsumedSearchFlag } from '@/hooks/use-consumed-search-flag'
 
-import React from 'react'
+import React, { useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useForm, useWatch } from 'react-hook-form'
@@ -131,6 +131,7 @@ const KnowledgeSettingsPage: React.FC = () => {
     resolver: zodResolver(createKnowledgeSettingsFormSchema(t)),
     defaultValues: getDefaultFormValues() as KnowledgeSettingsFormData,
   })
+  const lastHydratedKnowledgeBase = useRef<typeof currentKnowledgeBase>(null)
 
   // 监听解析类型和解析器
   const parseType = useWatch({
@@ -195,31 +196,23 @@ const KnowledgeSettingsPage: React.FC = () => {
     [allEmbeddingModelValues],
   )
 
-  // 每个知识库快照只整表灌入一次；模型列表后到或刷新时不能覆盖用户编辑
-  const hydratedRef = React.useRef<{
-    knowledgeBase: NonNullable<typeof currentKnowledgeBase>
-    embdId: string
-  } | null>(null)
+  // 初始化表单数据
   React.useEffect(() => {
     if (!currentKnowledgeBase) return
-    const values = buildKnowledgeSettingsFormValues(
-      currentKnowledgeBase,
-      normalizeEmbdId,
+    if (lastHydratedKnowledgeBase.current === currentKnowledgeBase) {
+      if (!form.getFieldState('embd_id').isDirty) {
+        const value = form.getValues('embd_id')
+        const normalized = normalizeEmbdId(value)
+        if (normalized !== value)
+          form.setValue('embd_id', normalized, { shouldDirty: false })
+      }
+      return
+    }
+    // Model availability may refresh while a parser draft is being edited.
+    lastHydratedKnowledgeBase.current = currentKnowledgeBase
+    form.reset(
+      buildKnowledgeSettingsFormValues(currentKnowledgeBase, normalizeEmbdId),
     )
-    const hydrated = hydratedRef.current
-    if (hydrated?.knowledgeBase !== currentKnowledgeBase) {
-      form.reset(values)
-    } else if (
-      values.embd_id !== hydrated.embdId &&
-      form.getValues('embd_id') === hydrated.embdId
-    ) {
-      // 仅把未改动的嵌入模型规范化为模型列表中的 name@provider
-      form.resetField('embd_id', { defaultValue: values.embd_id })
-    }
-    hydratedRef.current = {
-      knowledgeBase: currentKnowledgeBase,
-      embdId: values.embd_id,
-    }
   }, [currentKnowledgeBase, form, normalizeEmbdId])
 
   // 嵌入模型选项（带厂商图标），复用与模型提供商页面相同的逻辑

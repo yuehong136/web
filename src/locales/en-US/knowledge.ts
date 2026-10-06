@@ -396,6 +396,33 @@ export default {
           file: 'Single file',
         },
       },
+      pdfParser: {
+        groups: {
+          builtin: 'Built-in',
+          ocr: 'Configured OCR models',
+          vision: 'Configured vision models',
+        },
+        experimental: 'Experimental',
+        search: 'Search PDF parsers…',
+        noMatches: 'No matching PDF parsers',
+        loading:
+          'Checking configured models… Built-in parsers remain available.',
+        loadError:
+          'Could not check model availability. Built-in parsers remain available.',
+        retry: 'Retry',
+        empty:
+          'No enabled OCR or vision models compatible with PDF parsing are configured.',
+        configure: 'Configure models',
+        scope:
+          'Applies to PDFs only. Image files use built-in OCR and the tenant’s default vision model.',
+        costHint:
+          'Model-based PDF parsing is experimental. Vision models can charge for each page/image and OCR services may charge per request.',
+        savedGroup: 'Saved selection',
+        savedUnavailable:
+          'The saved parser is unavailable or its availability cannot be verified. Its value is kept until you choose a replacement.',
+        savedUnverified:
+          'The saved parser could not be checked. Its value is kept until you choose a replacement.',
+      },
       parserDescription: {
         fallbackTitle: 'Select a parser type',
         fallbackDescription:
@@ -541,7 +568,7 @@ export default {
         oneEmpty:
           'The One parser treats the entire document as a single chunk. No additional configuration is required.',
         pictureEmpty:
-          'The Picture parser uses OCR and visual understanding. No additional configuration is required.',
+          'Image parsing uses built-in OCR and the tenant’s default vision model when text is insufficient. The PDF parser selection does not affect images.',
         qaEmpty:
           'The Q&A parser is specialized for question-answer documents. No additional configuration is required.',
         resumeEmpty:
