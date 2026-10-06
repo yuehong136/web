@@ -1150,7 +1150,7 @@ const ApiDocumentationPage: React.FC = () => {
       return
     }
 
-    setOperatingKeys((prev) => new Set(prev).add(apiKey.tenant_id))
+    setOperatingKeys((prev) => new Set(prev).add(apiKey.token))
     try {
       // 调用真实的删除API
       await systemAPI.deleteToken(apiKey.token)
@@ -1161,7 +1161,7 @@ const ApiDocumentationPage: React.FC = () => {
     } finally {
       setOperatingKeys((prev) => {
         const newSet = new Set(prev)
-        newSet.delete(apiKey.tenant_id)
+        newSet.delete(apiKey.token)
         return newSet
       })
     }
@@ -1177,7 +1177,7 @@ const ApiDocumentationPage: React.FC = () => {
       return
     }
 
-    setOperatingKeys((prev) => new Set(prev).add(apiKey.tenant_id))
+    setOperatingKeys((prev) => new Set(prev).add(apiKey.token))
     try {
       // 先删除原有token
       await systemAPI.deleteToken(apiKey.token)
@@ -1196,7 +1196,7 @@ const ApiDocumentationPage: React.FC = () => {
     } finally {
       setOperatingKeys((prev) => {
         const newSet = new Set(prev)
-        newSet.delete(apiKey.tenant_id)
+        newSet.delete(apiKey.token)
         return newSet
       })
     }
@@ -1749,7 +1749,7 @@ const ApiDocumentationPage: React.FC = () => {
                                     <div className="divide-y">
                                       {apiKeys.map((apiKey) => (
                                         <div
-                                          key={apiKey.tenant_id}
+                                          key={apiKey.token}
                                           className="grid grid-cols-12 gap-3 p-4 transition-colors hover:bg-muted/30"
                                         >
                                           {/* 名称 */}
@@ -1771,13 +1771,13 @@ const ApiDocumentationPage: React.FC = () => {
                                                 onClick={() =>
                                                   handleCopy(
                                                     apiKey.token,
-                                                    `token-${apiKey.tenant_id}`,
+                                                    `token-${apiKey.token}`,
                                                   )
                                                 }
                                                 className="shrink-0"
                                               >
                                                 {copiedStates[
-                                                  `token-${apiKey.tenant_id}`
+                                                  `token-${apiKey.token}`
                                                 ] ? (
                                                   <Check className="h-3 w-3 text-green-600" />
                                                 ) : (
@@ -1832,18 +1832,18 @@ const ApiDocumentationPage: React.FC = () => {
                                               variant="ghost"
                                               size="icon-sm"
                                               disabled={operatingKeys.has(
-                                                apiKey.tenant_id,
+                                                apiKey.token,
                                               )}
                                               onClick={(e) => {
                                                 e.stopPropagation()
                                                 toggleDropdown(
-                                                  apiKey.tenant_id,
+                                                  apiKey.token,
                                                   e.currentTarget,
                                                 )
                                               }}
                                             >
                                               {operatingKeys.has(
-                                                apiKey.tenant_id,
+                                                apiKey.token,
                                               ) ? (
                                                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-text-tertiary border-t-transparent" />
                                               ) : (
@@ -3681,7 +3681,7 @@ const ApiDocumentationPage: React.FC = () => {
             <>
               {Array.from(openDropdowns).map((apiKeyId) => {
                 const position = dropdownPositions[apiKeyId]
-                const apiKey = apiKeys.find((k) => k.tenant_id === apiKeyId)
+                const apiKey = apiKeys.find((k) => k.token === apiKeyId)
 
                 if (!position || !apiKey) return null
 
@@ -3700,7 +3700,7 @@ const ApiDocumentationPage: React.FC = () => {
                           regenerateApiKey(apiKey)
                           setOpenDropdowns(new Set())
                         }}
-                        disabled={operatingKeys.has(apiKey.tenant_id)}
+                        disabled={operatingKeys.has(apiKey.token)}
                         className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm transition-colors hover:bg-background-subtle disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         <RefreshCw className="h-4 w-4" />
@@ -3711,7 +3711,7 @@ const ApiDocumentationPage: React.FC = () => {
                           deleteApiKey(apiKey)
                           setOpenDropdowns(new Set())
                         }}
-                        disabled={operatingKeys.has(apiKey.tenant_id)}
+                        disabled={operatingKeys.has(apiKey.token)}
                         className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-red-600 transition-colors hover:bg-background-subtle hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         <Trash2 className="h-4 w-4" />
