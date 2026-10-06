@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { conversationAPI } from '@/api/conversation'
 import { knowledgeAPI } from '@/api/knowledge'
 import { llmAPI } from '@/api/llm'
@@ -8,6 +9,7 @@ import {
   consumeStreamingAnswerChunk,
   createInitialStreamingAnswerState,
   finalizeStreamingAnswerState,
+  getStreamingAnswerFailureNotice,
   readSSEStream,
   type SSEEnvelope,
 } from '@/lib/streaming'
@@ -48,39 +50,11 @@ interface RawProviderPayload {
   llm?: RawModelItem[]
 }
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null
-
-const getStreamErrorMessage = (data: unknown): string | null => {
-  if (!isRecord(data)) return null
-
-  const code =
-    typeof data.retcode === 'number'
-      ? data.retcode
-      : typeof data.code === 'number'
-        ? data.code
-        : 0
-
-  if (code === 0) return null
-
-  const payload = data.data
-  const payloadAnswer =
-    isRecord(payload) && typeof payload.answer === 'string'
-      ? payload.answer
-      : ''
-  const message =
-    (typeof data.retmsg === 'string' && data.retmsg) ||
-    (typeof data.message === 'string' && data.message) ||
-    payloadAnswer ||
-    `搜索摘要生成失败，错误码 ${code}`
-
-  return message.replace(/^\*\*ERROR\*\*:\s*/, '')
-}
-
 export const useSearchExecution = (
   searchApp: SearchApp | null,
   appliedConfig?: SearchConfig,
 ) => {
+  const { t } = useTranslation()
   const [turns, setTurns] = useState<SearchTurn[]>([])
   const [phase, setPhase] = useState<SearchExecutionPhase>(
     SearchExecutionPhase.IDLE,
@@ -327,9 +301,6 @@ export const useSearchExecution = (
               await readSSEStream<SSEEnvelope>(response, {
                 signal,
                 onEvent: (data) => {
-                  const streamError = getStreamErrorMessage(data)
-                  if (streamError) throw new Error(streamError)
-
                   const chunk = consumeStreamingAnswerChunk(streamState, data)
                   streamState = chunk.nextState
                   if (chunk.isDone || chunk.isFinal) {
@@ -351,6 +322,9 @@ export const useSearchExecution = (
                 streamState.thinking,
               )
               flushPendingStreamPatch()
+              // 已生成的摘要保留；失败只给固定文案，不展示后端错误原文
+              const failureNotice = getStreamingAnswerFailureNotice(streamState)
+              if (failureNotice) throw new Error(t(failureNotice))
             })()
           : Promise.resolve()
 
@@ -433,6 +407,7 @@ export const useSearchExecution = (
       resetPendingStreamPatch,
       scheduleStreamPatch,
       searchApp,
+      t,
       updateTurn,
     ],
   )

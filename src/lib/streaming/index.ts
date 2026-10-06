@@ -2,7 +2,12 @@ export {
   consumeStreamingAnswerChunk,
   createInitialStreamingAnswerState,
   finalizeStreamingAnswerState,
+  getStreamingAnswerFailureNotice,
+  type StreamingAnswerChunkOptions,
   type StreamingAnswerChunkResult,
+  type StreamingAnswerFailure,
+  type StreamingAnswerFailureNotice,
+  type StreamingAnswerPhase,
   type StreamingAnswerState,
 } from './answer-reducer'
 export {

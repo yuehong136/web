@@ -488,6 +488,7 @@ export const ExplorePage: FC = () => {
       // ref 置 null，catch 必须用这个局部引用判断 aborted，不能依赖 ref）
       const abortController = createController()
       let hasReceivedContent = false
+      let streamState = createInitialStreamingAnswerState()
 
       try {
         // 准备 AI 消息
@@ -537,8 +538,6 @@ export const ExplorePage: FC = () => {
           })
 
           await assertSSEResponse(response)
-
-          let streamState = createInitialStreamingAnswerState()
 
           await readSSEStream<SSEEnvelope>(response, {
             signal: abortController.signal,
@@ -614,8 +613,6 @@ export const ExplorePage: FC = () => {
 
           await assertSSEResponse(response)
 
-          let streamState = createInitialStreamingAnswerState()
-
           await readSSEStream<SSEEnvelope>(response, {
             signal: abortController.signal,
             onEvent: (data) => {
@@ -639,6 +636,7 @@ export const ExplorePage: FC = () => {
             },
           })
         }
+        if (streamState.phase === 'failed') throw new Error('Answer failed')
       } catch (error) {
         // 用户主动停止（fetch 发起阶段 abort 会抛 AbortError）：不报错、不回滚，
         // 保留已收内容，finally 仍复位 isStreaming
@@ -662,6 +660,8 @@ export const ExplorePage: FC = () => {
             )
             setHeaderOpen(true)
           }
+        } else if (streamState.content.trim()) {
+          toast.error(t('chat.stream.interrupted'))
         } else {
           setMessages((prev) => {
             const newMsgs = [...prev]

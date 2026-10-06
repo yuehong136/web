@@ -8,6 +8,7 @@
  */
 
 import { useState, useRef, useCallback, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { toast } from '@/lib/toast'
 import type { MCPChatServiceRequest } from '@/api/mcp-chat-service'
 import { conversationAPI } from '@/api/conversation'
@@ -17,6 +18,7 @@ import {
   assertSSEResponse,
   consumeStreamingAnswerChunk,
   createInitialStreamingAnswerState,
+  getStreamingAnswerFailureNotice,
   readSSEStream,
   type SSEEnvelope,
 } from '@/lib/streaming'
@@ -42,6 +44,7 @@ export const useHomeChat = ({
   selectedConversationId,
   onConversationIdChange,
 }: UseHomeChatOptions) => {
+  const { t } = useTranslation()
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [isStreaming, setIsStreaming] = useState(false)
   const [streamingContent, setStreamingContent] = useState('')
@@ -320,7 +323,12 @@ export const useHomeChat = ({
             const newReferences = chunkData
               ? extractReferencesFromSSEData(chunkData)
               : []
-            const cleanContent = streamState.content
+            // 失败且无正文时用固定文案占位，不展示后端错误原文
+            const failureNotice = getStreamingAnswerFailureNotice(streamState)
+            const cleanContent =
+              failureNotice === 'chat.stream.failed'
+                ? t(failureNotice)
+                : streamState.content
             const thinking = streamState.thinking
 
             // 直接更新 messages 中最后一条 AI 消息（参考探索页面）
@@ -366,6 +374,10 @@ export const useHomeChat = ({
             })
           },
         })
+        const streamFailure = getStreamingAnswerFailureNotice(streamState)
+        if (streamFailure === 'chat.stream.interrupted') {
+          toast.error(t(streamFailure))
+        }
       } catch (error) {
         console.error('Error sending app message:', error)
         if (!abortController.signal.aborted) {
@@ -398,6 +410,7 @@ export const useHomeChat = ({
       isLoadingHistory,
       updateMessages,
       updateCurrentConversationId,
+      t,
     ],
   )
 

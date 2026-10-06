@@ -8,6 +8,7 @@ import agents from './agents'
 import knowledge from './knowledge'
 import documentCreate from './document-create'
 import home from './home'
+import chat from './chat'
 import explore from './explore'
 import search from './search'
 import memory from './memory'
@@ -31,6 +32,7 @@ export default {
   ...knowledge,
   ...documentCreate,
   ...home,
+  ...chat,
   ...explore,
   ...search,
   ...memory,

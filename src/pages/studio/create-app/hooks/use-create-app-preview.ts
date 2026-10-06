@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { conversationAPI } from '@/api/conversation'
 import { toast } from '@/lib/toast'
 import {
   assertSSEResponse,
   consumeStreamingAnswerChunk,
   createInitialStreamingAnswerState,
+  getStreamingAnswerFailureNotice,
   readSSEStream,
   type SSEEnvelope,
 } from '@/lib/streaming'
@@ -22,6 +24,7 @@ export const useCreateAppPreview = ({
   quote,
   prologue,
 }: UseCreateAppPreviewOptions) => {
+  const { t } = useTranslation()
   const [previewMessages, setPreviewMessages] = useState<PreviewMessage[]>([])
   const [inputValue, setInputValue] = useState('')
   const [isStreaming, setIsStreaming] = useState(false)
@@ -170,6 +173,12 @@ export const useCreateAppPreview = ({
             if (chunk.isDone) {
               return
             }
+            // 失败且无正文时用固定文案占位，不展示后端错误原文
+            const failureNotice = getStreamingAnswerFailureNotice(streamState)
+            const content =
+              failureNotice === 'chat.stream.failed'
+                ? t(failureNotice)
+                : streamState.content
 
             setPreviewMessages((previousMessages) => {
               const nextMessages = [...previousMessages]
@@ -180,7 +189,7 @@ export const useCreateAppPreview = ({
               ) {
                 nextMessages[lastIndex] = {
                   ...nextMessages[lastIndex],
-                  content: streamState.content,
+                  content,
                   thinking: streamState.thinking,
                 }
               }
@@ -188,6 +197,10 @@ export const useCreateAppPreview = ({
             })
           },
         })
+        const streamFailure = getStreamingAnswerFailureNotice(streamState)
+        if (streamFailure === 'chat.stream.interrupted') {
+          toast.error(t(streamFailure))
+        }
       } catch (error) {
         if ((error as Error).name !== 'AbortError') {
           console.error('Failed to send preview message:', error)
@@ -211,7 +224,7 @@ export const useCreateAppPreview = ({
         abortControllerRef.current = null
       }
     },
-    [getOrCreatePreviewConversation, isStreaming, previewMessages, quote],
+    [getOrCreatePreviewConversation, isStreaming, previewMessages, quote, t],
   )
 
   const handleResetPreview = useCallback(() => {

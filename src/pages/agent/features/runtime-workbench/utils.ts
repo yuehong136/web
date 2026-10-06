@@ -361,22 +361,27 @@ export function consumeRuntimeMessageChunk(
   previousState: StreamingAnswerState | undefined,
   payload: unknown,
 ): StreamingAnswerChunkResult {
-  const mappedPayload =
-    isRecord(payload) && typeof payload.content === 'string'
-      ? {
-          answer: payload.content,
-          start_to_think: payload.start_to_think,
-          end_to_think: payload.end_to_think,
-          final: payload.final,
-        }
-      : payload
+  // Agent message events are their own dialect: content stays a delta even
+  // with `final`, and error text is kept as-is. Only the chat reducer's
+  // delta/think merging is reused until a shared Agent run reducer lands.
+  const isMessage = isRecord(payload) && typeof payload.content === 'string'
+  const mappedPayload = isMessage
+    ? {
+        answer: payload.content,
+        start_to_think: payload.start_to_think,
+        end_to_think: payload.end_to_think,
+      }
+    : payload
 
   const result = consumeStreamingAnswerChunk(
     previousState || createInitialStreamingAnswerState(),
     { retcode: 0, data: mappedPayload },
+    { detectErrorText: false },
   )
 
-  return result
+  return isMessage && payload.final === true
+    ? { ...result, isFinal: true }
+    : result
 }
 
 export function buildRuntimeSummary(params: {
