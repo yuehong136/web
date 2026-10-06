@@ -96,10 +96,34 @@ function Surface() {
     </>
   )
 }
-async function settle() {
+async function flush() {
   await act(async () => {
-    await new Promise((resolve) => setTimeout(resolve, 15))
+    await new Promise((resolve) => setTimeout(resolve, 0))
   })
+}
+// Query results, blob reads and decoding land on later macrotasks with no
+// bounded duration, so wait for the observable outcome instead of a fixed delay.
+// The bound only detects hangs; keep it well above a render under parallel load.
+async function waitForState(check: () => void) {
+  await vi.waitFor(
+    async () => {
+      await flush()
+      check()
+    },
+    { timeout: 4000 },
+  )
+}
+const imageSource = (alt: string) =>
+  container.querySelector(`img[alt="${alt}"]`)?.getAttribute('src')
+async function waitForDocument(doc: string) {
+  await waitForState(() => {
+    expect(controller.list.docInfo?.name).toBe(doc)
+    expect(imageSource(doc)).toMatch(/^blob:/)
+  })
+}
+async function openDocument(doc: string) {
+  await act(async () => navigate(`/knowledge/${KB}/documents/${doc}/chunks`))
+  await waitForDocument(doc)
 }
 beforeEach(async () => {
   calls = []
@@ -146,7 +170,7 @@ beforeEach(async () => {
       </QueryClientProvider>,
     ),
   )
-  await settle()
+  await waitForDocument('doc-a')
 })
 afterEach(async () => {
   await act(async () => root.unmount())
@@ -160,8 +184,9 @@ afterEach(async () => {
 it('shows the existing canonical image in the edit panel when the wire omits its type', async () => {
   const chunk = { ...controller.list.chunks[0], doc_type_kwd: undefined }
   await act(async () => controller.handleStartEdit(chunk))
-  await settle()
-  expect(container.querySelectorAll('img')).toHaveLength(2)
+  await waitForState(() =>
+    expect(container.querySelectorAll('img')).toHaveLength(2),
+  )
   expect(container.querySelectorAll('img')[1].getAttribute('src')).toBe(
     'blob:route-1',
   )
@@ -191,7 +216,7 @@ it('clears rows and existing edit images immediately while another document is p
   expect(controller.editForm.editingImage).toEqual([])
   expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:route-1')
   await act(async () => resolveB(list('doc-b')))
-  await settle()
+  await waitForDocument('doc-b')
   expect(container.querySelector('img')?.getAttribute('alt')).toBe('doc-b')
   expect(container.textContent).not.toContain('doc-a')
 })
@@ -214,13 +239,15 @@ it('retains the current document placeholder and exact native File while paging'
   expect(controller.editForm.editingImage[0]).toBe(nativeFile)
   expect(URL.revokeObjectURL).not.toHaveBeenCalled()
   await act(async () => finishPage(list('doc-a')))
-  await settle()
+  await waitForState(() =>
+    expect(controller.list.isPlaceholderData).toBe(false),
+  )
 })
 it('aborts a pending old image when the route changes and ignores its late response', async () => {
-  await act(async () => navigate(`/knowledge/${KB}/documents/doc-late/chunks`))
-  await settle()
+  await openDocument('doc-late')
   let late!: (response: Response) => void
-  let oldSignal!: AbortSignal
+  let oldSignal: AbortSignal | undefined
+  const read = vi.spyOn(apiClient, 'get')
   vi.stubGlobal(
     'fetch',
     vi.fn((url, config) => {
@@ -238,15 +265,18 @@ it('aborts a pending old image when the route changes and ignores its late respo
   await act(async () =>
     navigate(`/knowledge/${KB}/documents/doc-pending/chunks`),
   )
-  await settle()
-  await act(async () => navigate(`/knowledge/${KB}/documents/doc-new/chunks`))
-  await settle()
-  expect(oldSignal.aborted).toBe(true)
+  await waitForState(() => expect(oldSignal).toBeDefined())
+  const oldRead = read.mock.results[
+    read.mock.calls.findIndex(([url]) => url.includes('doc-pending'))
+  ].value as Promise<unknown>
+  await openDocument('doc-new')
+  expect(oldSignal?.aborted).toBe(true)
   const created = vi.mocked(URL.createObjectURL).mock.calls.length
   await act(async () =>
     late(new Response(PNG, { headers: { 'Content-Type': 'image/png' } })),
   )
-  await settle()
+  await expect(oldRead).rejects.toMatchObject({ name: 'AbortError' })
+  await flush()
   expect(URL.createObjectURL).toHaveBeenCalledTimes(created)
   expect(container.querySelector('img')?.getAttribute('alt')).toBe('doc-new')
 })
@@ -262,9 +292,10 @@ it('resets document-owned selection, forms, delete dialogs, and pagination on na
     controller.deleteState.openBulkDelete()
     controller.list.setPage(2)
   })
-  await settle()
-  await act(async () => navigate(`/knowledge/${KB}/documents/doc-b/chunks`))
-  await settle()
+  await waitForState(() =>
+    expect(controller.list.isPlaceholderData).toBe(false),
+  )
+  await openDocument('doc-b')
   expect(controller.list.page).toBe(1)
   expect(controller.selection.selectedChunkIds).toEqual([])
   expect(controller.addForm.addChunkModalOpen).toBe(false)
@@ -322,8 +353,7 @@ it('does not submit a superseded image conversion into another document', async 
   expect(controller.pending.create).toBe(true)
   await act(async () => controller.handleCreateChunk())
   expect(utilities.fileToBase64).toHaveBeenCalledTimes(1)
-  await act(async () => navigate(`/knowledge/${KB}/documents/doc-b/chunks`))
-  await settle()
+  await openDocument('doc-b')
   await act(async () => {
     controller.addForm.open()
     controller.addForm.setContent('Document B draft')
@@ -361,8 +391,7 @@ it('keeps the submitted document owner and preserves a newer form after late suc
     doc_id: 'doc-a',
     content_with_weight: 'Document A draft',
   })
-  await act(async () => navigate(`/knowledge/${KB}/documents/doc-b/chunks`))
-  await settle()
+  await openDocument('doc-b')
   await act(async () => {
     controller.addForm.open()
     controller.addForm.setContent('Document B draft')
@@ -466,8 +495,7 @@ it('does not clear a new document selection when an old bulk mutation finishes',
     doc_id: 'doc-a',
     available_int: 0,
   })
-  await act(async () => navigate(`/knowledge/${KB}/documents/doc-b/chunks`))
-  await settle()
+  await openDocument('doc-b')
   await act(async () => controller.handleSelectAll(true))
   const currentSelection = [...controller.selection.selectedChunkIds]
   await act(async () => {
@@ -487,9 +515,10 @@ it('returns to the last valid page after a refreshed page becomes empty', async 
       }) as never,
   )
   await act(async () => controller.list.setPage(2))
-  await settle()
-  expect(controller.list.page).toBe(1)
-  expect(controller.list.chunks).toHaveLength(1)
+  await waitForState(() => {
+    expect(controller.list.page).toBe(1)
+    expect(controller.list.chunks).toHaveLength(1)
+  })
 })
 
 it('does not mistake unrelated selected IDs for all visible chunks', async () => {
@@ -529,7 +558,7 @@ it('cannot open or save empty metadata before the document has been read', async
   await act(async () => controller.handleSaveMeta())
   expect(update).not.toHaveBeenCalled()
   await act(async () => finishList(list('doc-pending')))
-  await settle()
+  await waitForDocument('doc-pending')
   await act(async () => controller.handleStartMetaAnnotation())
   expect(controller.metaForm.metaModalOpen).toBe(true)
 })
@@ -576,7 +605,8 @@ it('allows a metadata dialog inside a sheet to own focus and escape independentl
       new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }),
     ),
   )
-  await settle()
-  expect(document.querySelector('#chunk-meta-field-key')).toBeNull()
+  await waitForState(() =>
+    expect(document.querySelector('#chunk-meta-field-key')).toBeNull(),
+  )
   expect(document.body.textContent).toContain('Edit metadata')
 })

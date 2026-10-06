@@ -65,10 +65,35 @@ function Surface() {
     </>
   )
 }
-async function settle() {
+async function flush() {
   await act(async () => {
-    await new Promise((resolve) => setTimeout(resolve, 25))
+    await new Promise((resolve) => setTimeout(resolve, 0))
   })
+}
+// Query results, blob reads and decoding land on later macrotasks with no
+// bounded duration, so wait for the observable outcome instead of a fixed delay.
+// The bound only detects hangs; keep it well above a render under parallel load.
+async function waitForState(check: () => void) {
+  await vi.waitFor(
+    async () => {
+      await flush()
+      check()
+    },
+    { timeout: 4000 },
+  )
+}
+const imageSource = () => container.querySelector('img')?.src
+async function waitForDocument(doc: string) {
+  await waitForState(() => {
+    expect(controller.list.docInfo?.name).toBe(doc)
+    expect(
+      container.querySelector<HTMLImageElement>(`img[alt="${doc}"]`)?.src,
+    ).toMatch(/^blob:/)
+  })
+}
+async function openDocument(doc: string) {
+  await act(async () => navigate(`/knowledge/${KB}/documents/${doc}/chunks`))
+  await waitForDocument(doc)
 }
 const replacement = () =>
   new File(['replacement'], 'replacement.png', { type: 'image/png' })
@@ -132,7 +157,7 @@ beforeEach(async () => {
       </QueryClientProvider>,
     ),
   )
-  await settle()
+  await waitForDocument('doc-a')
 })
 afterEach(async () => {
   await act(async () => root.unmount())
@@ -155,7 +180,7 @@ it('content-only edits omit mode and keep the existing image bytes', async () =>
 it('successful replacement sends replace, drops the old blob and rereads the unchanged ID', async () => {
   await editImage()
   await act(async () => controller.handleEditChunk())
-  await settle()
+  await waitForState(() => expect(imageSource()).toBe('blob:replace-2'))
   expect(bodies[0]).toMatchObject({
     image_update_mode: 'replace',
     image_base64: 'aW1hZ2U=',
@@ -164,7 +189,6 @@ it('successful replacement sends replace, drops the old blob and rereads the unc
   expect(reads).toHaveLength(2)
   expect(reads[0].url).toBe(reads[1].url)
   expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:replace-1')
-  expect(container.querySelector('img')?.src).toBe('blob:replace-2')
   expect(controller.editForm.selectedChunk).toBeNull()
   expect(toast.error).not.toHaveBeenCalled()
 })
@@ -214,7 +238,10 @@ it('acknowledged save remains successful when image readback fails and allows re
     ),
   )
   await act(async () => controller.handleEditChunk())
-  await settle()
+  // Only the failed-read feedback renders a (retry) button.
+  await waitForState(() =>
+    expect(container.querySelector('button')).not.toBeNull(),
+  )
   expect(controller.editForm.selectedChunk).toBeNull()
   expect(container.querySelector('img')).toBeNull()
   expect(toast.error).not.toHaveBeenCalled()
@@ -223,8 +250,7 @@ it('acknowledged save remains successful when image readback fails and allows re
   await act(async () =>
     container.querySelector<HTMLButtonElement>('button')!.click(),
   )
-  await settle()
-  expect(container.querySelector('img')?.src).toBe('blob:replace-2')
+  await waitForState(() => expect(imageSource()).toBe('blob:replace-2'))
 })
 
 it('an older edit conversion never writes into the new document', async () => {
@@ -240,8 +266,7 @@ it('an older edit conversion never writes into the new document', async () => {
   await act(async () => {
     pending = controller.handleEditChunk()
   })
-  await act(async () => navigate(`/knowledge/${KB}/documents/doc-b/chunks`))
-  await settle()
+  await openDocument('doc-b')
   await act(async () => {
     finish('aW1hZ2U=')
     await pending
@@ -263,15 +288,14 @@ it('late successful replacement evicts only its own document and leaves newer ed
   await act(async () => {
     pending = controller.handleEditChunk()
   })
-  await act(async () => navigate(`/knowledge/${KB}/documents/doc-b/chunks`))
-  await settle()
+  await openDocument('doc-b')
   await editImage()
   const oldRevocations = vi.mocked(URL.revokeObjectURL).mock.calls.length
   await act(async () => {
     finish(true)
     await pending
   })
-  await settle()
+  await flush()
   expect(save.mock.calls[0][0]).toMatchObject({
     doc_id: 'doc-a',
     image_update_mode: 'replace',
@@ -283,8 +307,9 @@ it('late successful replacement evicts only its own document and leaves newer ed
 })
 it('eviction cancels an older same-ID read; its late bytes cannot restore the stale blob', async () => {
   let oldRead!: (value: Response) => void
-  let oldSignal!: AbortSignal
+  let oldSignal: AbortSignal | undefined
   let readCount = 0
+  const read = vi.spyOn(apiClient, 'get')
   vi.stubGlobal(
     'fetch',
     vi.fn(async (_url, init) => {
@@ -300,17 +325,19 @@ it('eviction cancels an older same-ID read; its late bytes cannot restore the st
   await act(async () =>
     evictDocumentImage(list('doc-a').chunks[0].img_id, getDocumentImageEpoch()),
   )
-  await settle()
+  await waitForState(() => expect(oldSignal).toBeDefined())
+  const oldRequest = read.mock.results[0].value as Promise<unknown>
   await act(async () =>
     evictDocumentImage(list('doc-a').chunks[0].img_id, getDocumentImageEpoch()),
   )
-  await settle()
-  expect(oldSignal.aborted).toBe(true)
+  await waitForState(() => expect(imageSource()).toBe('blob:replace-2'))
+  expect(oldSignal?.aborted).toBe(true)
   const created = vi.mocked(URL.createObjectURL).mock.calls.length
   await act(async () =>
     oldRead(new Response(PNG, { headers: { 'Content-Type': 'image/png' } })),
   )
-  await settle()
+  await expect(oldRequest).rejects.toMatchObject({ name: 'AbortError' })
+  await flush()
   expect(URL.createObjectURL).toHaveBeenCalledTimes(created)
-  expect(container.querySelector('img')?.src).toBe('blob:replace-2')
+  expect(imageSource()).toBe('blob:replace-2')
 })
