@@ -195,12 +195,30 @@ const KnowledgeSettingsPage: React.FC = () => {
     [allEmbeddingModelValues],
   )
 
-  // 初始化表单数据
+  // 每个知识库快照只整表灌入一次；模型列表后到或刷新时不能覆盖用户编辑
+  const hydratedRef = React.useRef<{
+    knowledgeBase: NonNullable<typeof currentKnowledgeBase>
+    embdId: string
+  } | null>(null)
   React.useEffect(() => {
-    if (currentKnowledgeBase) {
-      form.reset(
-        buildKnowledgeSettingsFormValues(currentKnowledgeBase, normalizeEmbdId),
-      )
+    if (!currentKnowledgeBase) return
+    const values = buildKnowledgeSettingsFormValues(
+      currentKnowledgeBase,
+      normalizeEmbdId,
+    )
+    const hydrated = hydratedRef.current
+    if (hydrated?.knowledgeBase !== currentKnowledgeBase) {
+      form.reset(values)
+    } else if (
+      values.embd_id !== hydrated.embdId &&
+      form.getValues('embd_id') === hydrated.embdId
+    ) {
+      // 仅把未改动的嵌入模型规范化为模型列表中的 name@provider
+      form.resetField('embd_id', { defaultValue: values.embd_id })
+    }
+    hydratedRef.current = {
+      knowledgeBase: currentKnowledgeBase,
+      embdId: values.embd_id,
     }
   }, [currentKnowledgeBase, form, normalizeEmbdId])
 

@@ -1,4 +1,4 @@
-import { act } from 'react'
+import { act, Profiler } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
@@ -20,8 +20,50 @@ let container: HTMLDivElement
 let client: QueryClient
 let stored: DatasetDTO
 let writes: Record<string, unknown>[]
+let commits: number
 
+// act() flushes a render loop synchronously, so vitest timers never fire;
+// fail from inside React once a mount commits far more than a page load needs.
+const COMMIT_BUDGET = 200
+function countCommit() {
+  commits += 1
+  if (commits > COMMIT_BUDGET) {
+    throw new Error(`Settings page exceeded ${COMMIT_BUDGET} commits`)
+  }
+}
+// A settled page stops committing; an async loop never goes quiet.
+async function waitForQuiet() {
+  let previous = -1
+  await vi.waitFor(
+    async () => {
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 20))
+      })
+      const quiet = commits === previous
+      previous = commits
+      expect(quiet, `still committing (${commits})`).toBe(true)
+    },
+    { timeout: 4000, interval: 0 },
+  )
+}
+
+// Queries resolve on later macrotasks and dependent ones (the pipeline catalog)
+// only start after the form renders, so wait for outcomes, not a fixed delay.
+// The bound only detects hangs: one full-page render can exceed vitest's 1s
+// default under parallel load, so keep it just below the 5s test timeout.
+async function waitForPage(check: () => void) {
+  await vi.waitFor(
+    async () => {
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0))
+      })
+      check()
+    },
+    { timeout: 4000 },
+  )
+}
 async function render() {
+  commits = 0
   await act(async () =>
     root.render(
       <QueryClientProvider client={client}>
@@ -29,18 +71,22 @@ async function render() {
           <Routes>
             <Route
               path="/knowledge/:id/settings"
-              element={<KnowledgeSettingsPage />}
+              element={
+                <Profiler id="knowledge-settings" onRender={countCommit}>
+                  <KnowledgeSettingsPage />
+                </Profiler>
+              }
             />
           </Routes>
         </MemoryRouter>
       </QueryClientProvider>,
     ),
   )
-  await act(async () => {
-    await new Promise((resolve) => setTimeout(resolve, 20))
-  })
-  await vi.waitFor(() =>
-    expect(document.querySelector('input[type="number"]')).not.toBeNull(),
+  // The form first renders defaults, then resets to the stored dataset.
+  await waitForPage(() =>
+    expect(field('Knowledge base name').querySelector('input')?.value).toBe(
+      stored.name,
+    ),
   )
 }
 function field(label: string): HTMLElement {
@@ -70,6 +116,27 @@ async function save() {
       .dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
   })
 }
+function selectedParser() {
+  return field('Chunk method').querySelector('[role=combobox]')?.textContent
+}
+async function chooseParser(label: string) {
+  await act(async () =>
+    field('Chunk method')
+      .querySelector<HTMLButtonElement>('[role=combobox]')!
+      .click(),
+  )
+  const option = [
+    ...document.querySelectorAll<HTMLElement>('[role=option]'),
+  ].find((el) => el.textContent === label)
+  expect(option, label).toBeDefined()
+  await act(async () => option!.click())
+}
+function mockModels(load: () => Promise<unknown>) {
+  const originalGet = vi.mocked(apiClient.get).getMockImplementation()!
+  vi.mocked(apiClient.get).mockImplementation((path, config) =>
+    path === '/v1/llm/my_llms' ? (load() as never) : originalGet(path, config),
+  )
+}
 async function reload() {
   await act(async () => root.unmount())
   client.clear()
@@ -89,6 +156,16 @@ beforeEach(async () => {
       disconnect() {}
     },
   )
+  // Embedding options render theme-aware provider icons.
+  vi.stubGlobal('matchMedia', () => ({
+    matches: false,
+    addEventListener() {},
+    removeEventListener() {},
+  }))
+  Object.defineProperty(Element.prototype, 'scrollIntoView', {
+    configurable: true,
+    value: () => {},
+  })
   await setProductLanguage('en-US')
   stored = {
     id: 'kb-1',
@@ -263,7 +340,7 @@ it('preserves a hydrated pipeline, saves via ext, and clears it when switching b
   )
   stored.pipeline_id = pipelineId
   await reload()
-  await vi.waitFor(() =>
+  await waitForPage(() =>
     expect(document.body.textContent).toContain('Document pipeline'),
   )
   expect(document.body.textContent).not.toContain('Foreign pipeline')
@@ -276,7 +353,9 @@ it('preserves a hydrated pipeline, saves via ext, and clears it when switching b
   expect(writes[0]).not.toHaveProperty('chunk_method')
   expect(writes[0]).not.toHaveProperty('parser_config')
   await reload()
-  expect(document.body.textContent).toContain('Document pipeline')
+  await waitForPage(() =>
+    expect(document.body.textContent).toContain('Document pipeline'),
+  )
   await act(async () =>
     document
       .querySelector<HTMLButtonElement>('[role=radio][value="1"]')!
@@ -309,4 +388,73 @@ it('rejects over-budget names and an empty pipeline mode before making a request
   await save()
   expect(writes).toHaveLength(0)
   expect(document.body.textContent).toContain('Select a valid data pipeline')
+})
+
+it.each([
+  ['pending', () => new Promise<never>(() => {})],
+  [
+    'rejected',
+    () => Promise.reject(new APIError(500, '500', 'Models unavailable')),
+  ],
+])(
+  'settles and keeps parse edits while the models request is %s',
+  async (_state, loadModels) => {
+    mockModels(loadModels)
+    await reload()
+    await waitForQuiet()
+    await chooseParser('Q&A')
+    await waitForQuiet()
+    expect(selectedParser()).toBe('Q&A')
+    await act(async () =>
+      document
+        .querySelector<HTMLButtonElement>('[role=radio][value="2"]')!
+        .click(),
+    )
+    await waitForQuiet()
+    expect(
+      document
+        .querySelector('[role=radio][value="2"]')
+        ?.getAttribute('aria-checked'),
+    ).toBe('true')
+    await act(async () =>
+      document
+        .querySelector<HTMLButtonElement>('[role=radio][value="1"]')!
+        .click(),
+    )
+    await waitForQuiet()
+    expect(selectedParser()).toBe('Q&A')
+    await save()
+    expect(writes[0]).toMatchObject({
+      chunk_method: 'qa',
+      embedding_model: 'embedding@Builtin',
+    })
+  },
+)
+
+it('keeps edits made before the models arrive and canonicalizes an untouched embedding model', async () => {
+  let resolveModels!: (models: unknown) => void
+  mockModels(() => new Promise((resolve) => (resolveModels = resolve)))
+  stored.embedding_model = 'text-embedding-v3'
+  await reload()
+  await input('Knowledge base name', 'Draft name')
+  await chooseParser('Q&A')
+  await act(async () =>
+    resolveModels({
+      Tongyi: {
+        tags: 'TEXT EMBEDDING',
+        llm: [{ name: 'text-embedding-v3', type: 'embedding', used_token: 0 }],
+      },
+    }),
+  )
+  await waitForQuiet()
+  expect(field('Knowledge base name').querySelector('input')?.value).toBe(
+    'Draft name',
+  )
+  expect(selectedParser()).toBe('Q&A')
+  await save()
+  expect(writes[0]).toMatchObject({
+    name: 'Draft name',
+    chunk_method: 'qa',
+    embedding_model: 'text-embedding-v3@Tongyi',
+  })
 })

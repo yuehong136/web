@@ -40,6 +40,11 @@ export type LLMGroupedOptionGroup = {
   options: LLMGroupedSelectOption[]
 }
 
+// 加载中或失败时返回共享的稳定空值（只读）：每次渲染新建 {} / []
+// 会让依赖它的 memo/effect 每次渲染都重新执行
+const EMPTY_MY_LLMS: MyLLMProvider = {}
+const EMPTY_FACTORIES: LLMFactoryInterface[] = []
+
 // 获取我的 LLM 列表
 export const useFetchMyLLMs = () => {
   const { data, isFetching, isError, error, refetch } = useQuery<MyLLMProvider>(
@@ -56,7 +61,7 @@ export const useFetchMyLLMs = () => {
   )
 
   return {
-    myLLMs: (data ?? {}) as MyLLMProvider,
+    myLLMs: data ?? EMPTY_MY_LLMS,
     isLoading: isFetching,
     isError,
     error,
@@ -80,7 +85,7 @@ export const useFetchFactories = () => {
   })
 
   return {
-    factories: data ?? [],
+    factories: data ?? EMPTY_FACTORIES,
     isLoading: isFetching,
     isError,
     error,
