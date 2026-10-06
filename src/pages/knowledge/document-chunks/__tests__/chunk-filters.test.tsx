@@ -64,16 +64,39 @@ function Surface() {
         isBulkSwitchPending={false}
         isDeletePending={false}
       />
-      <output>
+      <output aria-busy={list.loading || list.isRefreshing}>
         {list.filteredChunks.map((row) => row.content_with_weight).join('|')}
       </output>
       <button onClick={() => list.setPage(2)}>Next page</button>
     </>
   )
 }
-async function settle(delay = 25) {
+async function flush() {
   await act(async () => {
-    await new Promise((resolve) => setTimeout(resolve, delay))
+    await new Promise((resolve) => setTimeout(resolve, 0))
+  })
+}
+// The search debounce, list reads and query notify batches land on later
+// macrotasks with no bounded duration, so wait for the observable outcome instead
+// of a fixed delay. The bound only detects hangs; keep it well above a render
+// under parallel load.
+async function waitForState(check: () => void) {
+  await vi.waitFor(
+    async () => {
+      await flush()
+      check()
+    },
+    { timeout: 4000 },
+  )
+}
+// A new list key renders as fetching before its request is sent, so a matching
+// latest request on an idle list means that request was answered and rendered.
+async function waitForList(check: () => void = () => {}) {
+  await waitForState(() => {
+    check()
+    expect(container.querySelector('output')?.getAttribute('aria-busy')).toBe(
+      'false',
+    )
   })
 }
 async function click(label: string) {
@@ -85,7 +108,6 @@ async function click(label: string) {
   )
   expect(button, label).toBeTruthy()
   await act(async () => button!.click())
-  await settle()
 }
 function activeFilter() {
   return document.querySelector('button[aria-pressed="true"]')?.textContent
@@ -139,7 +161,7 @@ beforeEach(async () => {
       </QueryClientProvider>,
     ),
   )
-  await settle()
+  await waitForList()
 })
 afterEach(async () => {
   await act(async () => root.unmount())
@@ -154,20 +176,28 @@ it('defaults to All, preserves false for disabled, and resets pagination when fi
     'Enabled chunk|Disabled chunk',
   )
   await click('Filter')
-  expect(activeFilter()).toContain('All')
+  await waitForState(() => expect(activeFilter()).toContain('All'))
   await click('Next page')
-  expect(calls.at(-1)?.searchParams.get('page')).toBe('2')
+  await waitForList(() =>
+    expect(calls.at(-1)?.searchParams.get('page')).toBe('2'),
+  )
   await click('Enabled')
-  expect(calls.at(-1)?.searchParams.get('available')).toBe('true')
-  expect(calls.at(-1)?.searchParams.get('page')).toBe('1')
+  await waitForList(() => {
+    expect(calls.at(-1)?.searchParams.get('available')).toBe('true')
+    expect(calls.at(-1)?.searchParams.get('page')).toBe('1')
+  })
   expect(container.querySelector('output')?.textContent).toBe('Enabled chunk')
   expect(activeFilter()).toBe('Enabled')
   await click('Disabled')
-  expect(calls.at(-1)?.searchParams.get('available')).toBe('false')
+  await waitForList(() =>
+    expect(calls.at(-1)?.searchParams.get('available')).toBe('false'),
+  )
   expect(container.querySelector('output')?.textContent).toBe('Disabled chunk')
   expect(activeFilter()).toBe('Disabled')
   await click('All')
-  expect(calls.at(-1)?.searchParams.has('available')).toBe(false)
+  await waitForList(() =>
+    expect(calls.at(-1)?.searchParams.has('available')).toBe(false),
+  )
   expect(container.querySelector('output')?.textContent).toBe(
     'Enabled chunk|Disabled chunk',
   )
@@ -185,7 +215,9 @@ it('keeps search immediately reachable and starts searched results on the first 
   search!.focus()
   expect(document.activeElement).toBe(search)
   await click('Next page')
-  expect(calls.at(-1)?.searchParams.get('page')).toBe('2')
+  await waitForList(() =>
+    expect(calls.at(-1)?.searchParams.get('page')).toBe('2'),
+  )
 
   await act(async () => {
     Object.getOwnPropertyDescriptor(
@@ -194,10 +226,10 @@ it('keeps search immediately reachable and starts searched results on the first 
     )?.set?.call(search, 'Disabled')
     search!.dispatchEvent(new Event('input', { bubbles: true }))
   })
-  await settle(450)
-  await settle()
+  await waitForList(() =>
+    expect(calls.at(-1)?.searchParams.get('keywords')).toBe('Disabled'),
+  )
 
-  expect(calls.at(-1)?.searchParams.get('keywords')).toBe('Disabled')
   expect(calls.at(-1)?.searchParams.get('page')).toBe('1')
   expect(container.querySelector('output')?.textContent).toBe('Disabled chunk')
   expect(container.querySelector('input[type="search"]')).toBe(search)

@@ -125,10 +125,34 @@ async function save() {
     ),
   )
 }
-async function settle() {
+async function flush() {
   await act(async () => {
-    await new Promise((resolve) => setTimeout(resolve, 15))
+    await new Promise((resolve) => setTimeout(resolve, 0))
   })
+}
+// Saves, readbacks, invalidations and catalog pages land on later macrotasks
+// with no bounded duration, so wait for the observable outcome instead of a
+// fixed delay. The bound only detects hangs; keep it well above a render under
+// parallel load.
+async function waitForState(check: () => void) {
+  await vi.waitFor(
+    async () => {
+      await flush()
+      check()
+    },
+    { timeout: 4000 },
+  )
+}
+// Cache state settles before observers are notified on a later macrotask, so
+// one more flush renders it. Reads start while the opening act flushes effects.
+async function waitForCatalog() {
+  await waitForState(() => expect(client.isFetching()).toBe(0))
+  await flush()
+}
+// A superseded save still settles; anchor "nothing else happens" checks on that.
+async function waitForSaveSettled() {
+  await waitForState(() => expect(client.isMutating()).toBe(0))
+  await flush()
 }
 const writes = () => calls.filter((call) => call.method === 'PATCH')
 
@@ -213,7 +237,7 @@ it('an explicit overlap edit submits only that field and preserves unrelated his
   await open()
   await input(numeric('Overlap percentage'), '20')
   await save()
-  await settle()
+  await waitForState(() => expect(modal.open).toBe(false))
   expect(writes()).toHaveLength(1)
   expect(writes()[0].body).toEqual({
     parser_config: { overlapped_percent: 0.2 },
@@ -222,7 +246,6 @@ it('an explicit overlap edit submits only that field and preserves unrelated his
   expect(wire.parser_config.table_context_size).toBe(900)
   expect(wire.parser_config.mineru_lang).toBe('Turkish')
   expect(wire.status).toBe('0')
-  expect(modal.open).toBe(false)
 })
 
 it.each([
@@ -257,12 +280,13 @@ it('a config failure independently reads the original document, invalidates ever
   await open()
   await input(numeric('Overlap percentage'), '20')
   await save()
-  await settle()
+  await waitForState(() =>
+    expect(document.body.textContent).toContain(
+      'Check the parser selection and configuration.',
+    ),
+  )
   expect(modal.open).toBe(true)
   expect(numeric('Overlap percentage').value).toBe('20')
-  expect(document.body.textContent).toContain(
-    'Check the parser selection and configuration.',
-  )
   expect(document.body.textContent).not.toContain('SECRET')
   expect(calls.map((call) => call.method)).toEqual(['PATCH', 'GET'])
   const keys = invalidate.mock.calls.map(([input]) => input?.queryKey)
@@ -300,9 +324,11 @@ it('unknown outcome and malformed acknowledgment remain errors even after a lega
     await open()
     await input(numeric('Overlap percentage'), '20')
     await save()
-    await settle()
+    // Reopening cleared the previous pass's feedback, so this is a new outcome.
+    await waitForState(() =>
+      expect(document.body.textContent).toContain('could not be confirmed'),
+    )
     expect(modal.open).toBe(true)
-    expect(document.body.textContent).toContain('could not be confirmed')
     expect(numeric('Overlap percentage').value).toBe('20')
   }
   expect(writes()).toHaveLength(2)
@@ -331,7 +357,7 @@ it('duplicate submits issue one request; Escape/reopen and same-dataset document
   await open({ id: 'doc-2', parser_config: { overlapped_percent: 0.3 } })
   await input(numeric('Overlap percentage'), '25')
   release(response({ code: 0, message: 'success', data: wire }))
-  await settle()
+  await waitForSaveSettled()
   expect(modal.open).toBe(true)
   expect(modal.document?.id).toBe('doc-2')
   expect(numeric('Overlap percentage').value).toBe('25')
@@ -362,7 +388,7 @@ it('credential and route changes close their old owner and suppress stale feedba
       400,
     ),
   )
-  await settle()
+  await waitForSaveSettled()
   expect(modal.open).toBe(false)
   expect(document.querySelector('[role="alert"]')).toBeNull()
   expect(
@@ -404,7 +430,7 @@ it('retains a selected pipeline outside the first page, uses real owner/category
     })
   }
   await open({ pipeline_id: pipelineId })
-  await settle()
+  await waitForCatalog()
   expect(document.body.textContent).toContain('Owned pipeline')
   expect(document.body.textContent).not.toContain('Visible foreign team')
   expect(calls.some((call) => call.url.searchParams.get('page') === '2')).toBe(
@@ -431,7 +457,8 @@ it('a missing or failed catalog preserves the retained pipeline ID and draft, wi
             data: { total: 0, canvas: [] },
           })
     await open({ pipeline_id: pipelineId })
-    await settle()
+    // The failure pass reuses the cached catalog and refetches it on mount.
+    await waitForCatalog()
     expect(document.body.textContent).toContain(pipelineId)
     expect(document.body.textContent).toContain('selection is retained')
     expect(document.body.textContent).not.toContain('SECRET')
@@ -442,14 +469,13 @@ it('a missing or failed catalog preserves the retained pipeline ID and draft, wi
 it('switching from a pipeline to its retained builtin sends an explicit mode change and keeps its stored configuration', async () => {
   wire = canonical({ pipeline_id: pipelineId })
   await open({ pipeline_id: pipelineId })
-  await settle()
+  await waitForCatalog()
   const builtin = document.querySelector<HTMLButtonElement>('[role="radio"]')!
   await act(async () => builtin.click())
   await save()
-  await settle()
+  await waitForState(() => expect(modal.open).toBe(false))
   expect(writes()[0].body).toEqual({ chunk_method: 'naive', pipeline_id: '' })
   expect(wire.parser_config.opaque).toEqual({ preserve: 1 })
-  expect(modal.open).toBe(false)
 })
 
 it('document MinerU fields retain both additional accepted languages and avoid submitting display defaults', async () => {
