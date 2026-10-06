@@ -378,6 +378,29 @@ export default {
           file: '单个文件',
         },
       },
+      pdfParser: {
+        groups: {
+          builtin: '内置解析器',
+          ocr: '已配置的 OCR 模型',
+          vision: '已配置的视觉模型',
+        },
+        experimental: '实验性',
+        search: '搜索 PDF 解析器…',
+        noMatches: '没有匹配的 PDF 解析器',
+        loading: '正在核对已配置模型… 内置解析器仍可使用。',
+        loadError: '无法核对模型可用性，内置解析器仍可使用。',
+        retry: '重试',
+        empty: '尚未配置已启用且适用于 PDF 解析的 OCR 或视觉模型。',
+        configure: '去配置模型',
+        scope: '仅用于 PDF。图片文件使用内置 OCR 和租户默认视觉模型。',
+        costHint:
+          '模型解析 PDF 属于实验性功能。视觉模型可能按每页/图片收取费用，OCR 服务也可能按请求计费。',
+        savedGroup: '已保存的选择',
+        savedUnavailable:
+          '已保存的解析器不可用或无法确认其可用性。在选择替代解析器前，将保留原值。',
+        savedUnverified:
+          '无法核对已保存的解析器。在选择替代解析器前，将保留原值。',
+      },
       parserDescription: {
         fallbackTitle: '选择解析器类型',
         fallbackDescription:
@@ -519,7 +542,8 @@ export default {
         enhancement: '智能增强',
         selectParser: '请先选择解析器类型',
         oneEmpty: '单页解析器将整个文档作为一个块处理，无需额外配置。',
-        pictureEmpty: '图片解析器使用 OCR 和视觉理解，无需额外配置。',
+        pictureEmpty:
+          '图片解析使用内置 OCR，文字不足时使用租户默认视觉模型。PDF 解析器选择不影响图片解析。',
         qaEmpty: 'Q&A 解析器专门用于解析问答格式的文档，无需额外配置。',
         resumeEmpty: '简历解析器使用专门的结构化解析，无需额外配置。',
         tableEmpty: '表格解析器使用专门的表格解析，无需额外配置。',

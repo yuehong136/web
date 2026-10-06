@@ -133,6 +133,12 @@ async function settle() {
 const writes = () => calls.filter((call) => call.method === 'PATCH')
 
 beforeEach(async () => {
+  vi.stubGlobal('matchMedia', (query: string) => ({
+    matches: false,
+    media: query,
+    addEventListener() {},
+    removeEventListener() {},
+  }))
   vi.stubGlobal(
     'ResizeObserver',
     class {
@@ -172,8 +178,17 @@ beforeEach(async () => {
   }
   vi.spyOn(globalThis, 'fetch').mockImplementation(async (url, init) => {
     const parsed = new URL(String(url))
+    const method = init?.method ?? 'GET'
+    if (
+      method === 'GET' &&
+      ['/v1/llm/my_llms', '/v1/llm/list'].some((path) =>
+        parsed.pathname.endsWith(path),
+      )
+    )
+      // The shared PDF selector inventory is separate from document request assertions.
+      return response({ code: 0, message: 'success', data: {} })
     calls.push({
-      method: init?.method ?? 'GET',
+      method,
       url: parsed,
       body: init?.body ? JSON.parse(String(init.body)) : undefined,
     })

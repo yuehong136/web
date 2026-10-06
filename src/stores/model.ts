@@ -37,6 +37,16 @@ export interface MyLLMProvider {
   }
 }
 
+/** Public /llm/list availability fields; never request credential details. */
+export interface LLMCatalogModel {
+  llm_name: string
+  fid: string
+  mdl_type: string
+  available: boolean
+}
+
+export type LLMCatalog = Record<string, LLMCatalogModel[]>
+
 export type LLMValueMode = 'name' | 'nameWithProvider'
 
 export interface ParsedLLMValue {

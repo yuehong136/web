@@ -1,7 +1,7 @@
 import { toast } from '@/lib/toast'
 import { useConsumedSearchFlag } from '@/hooks/use-consumed-search-flag'
 
-import React from 'react'
+import React, { useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useForm, useWatch } from 'react-hook-form'
@@ -131,6 +131,7 @@ const KnowledgeSettingsPage: React.FC = () => {
     resolver: zodResolver(createKnowledgeSettingsFormSchema(t)),
     defaultValues: getDefaultFormValues() as KnowledgeSettingsFormData,
   })
+  const lastHydratedKnowledgeBase = useRef<typeof currentKnowledgeBase>(null)
 
   // 监听解析类型和解析器
   const parseType = useWatch({
@@ -197,11 +198,21 @@ const KnowledgeSettingsPage: React.FC = () => {
 
   // 初始化表单数据
   React.useEffect(() => {
-    if (currentKnowledgeBase) {
-      form.reset(
-        buildKnowledgeSettingsFormValues(currentKnowledgeBase, normalizeEmbdId),
-      )
+    if (!currentKnowledgeBase) return
+    if (lastHydratedKnowledgeBase.current === currentKnowledgeBase) {
+      if (!form.getFieldState('embd_id').isDirty) {
+        const value = form.getValues('embd_id')
+        const normalized = normalizeEmbdId(value)
+        if (normalized !== value)
+          form.setValue('embd_id', normalized, { shouldDirty: false })
+      }
+      return
     }
+    // Model availability may refresh while a parser draft is being edited.
+    lastHydratedKnowledgeBase.current = currentKnowledgeBase
+    form.reset(
+      buildKnowledgeSettingsFormValues(currentKnowledgeBase, normalizeEmbdId),
+    )
   }, [currentKnowledgeBase, form, normalizeEmbdId])
 
   // 嵌入模型选项（带厂商图标），复用与模型提供商页面相同的逻辑

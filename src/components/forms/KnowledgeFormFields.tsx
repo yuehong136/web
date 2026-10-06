@@ -22,78 +22,11 @@ import {
   useDocumentParserFields,
 } from './parser-field-scope'
 import {
-  LayoutRecognizeOptions,
   PermissionOptions,
   MineruParseMethodOptions,
 } from '@/types/knowledge-form'
 
-// =====================================================
-// 布局识别/PDF解析器选择
-// =====================================================
-interface LayoutRecognizeFormFieldProps {
-  name?: string
-  horizontal?: boolean
-  className?: string
-  showMineruOptions?: boolean
-  showPaddleocrOptions?: boolean
-}
-
-export function LayoutRecognizeFormField({
-  name = 'parser_config.layout_recognize',
-  horizontal = true,
-  className,
-  showMineruOptions: _showMineruOptions = true,
-  showPaddleocrOptions: _showPaddleocrOptions = true,
-}: LayoutRecognizeFormFieldProps) {
-  const { t } = useTranslation()
-  const form = useFormContext()
-
-  const options: SelectOptionGroup[] = LayoutRecognizeOptions.map((opt) => ({
-    label:
-      opt.value === 'Plain Text'
-        ? t('knowledge.settings.options.layoutParser.plainText')
-        : opt.label,
-    value: opt.value,
-  }))
-
-  return (
-    <FormField
-      control={form.control}
-      name={name}
-      render={({ field }) => (
-        <FormItem
-          className={cn(
-            horizontal && 'flex items-center gap-1 space-y-0',
-            className,
-          )}
-        >
-          <FormLabel
-            tooltip={t('knowledge.settings.fields.layoutParserTooltip')}
-            className={cn(
-              'text-sm text-text-secondary',
-              horizontal && 'w-1/4 shrink-0',
-            )}
-          >
-            {t('knowledge.settings.fields.layoutParser')}
-          </FormLabel>
-          <div className={horizontal ? 'w-3/4' : 'w-full'}>
-            <FormControl>
-              <SelectWithSearch
-                value={field.value}
-                onChange={field.onChange}
-                options={options}
-                placeholder={t(
-                  'knowledge.settings.fields.layoutParserPlaceholder',
-                )}
-              />
-            </FormControl>
-          </div>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
-  )
-}
+export { LayoutRecognizeFormField } from './layout-recognize-form-field'
 
 // =====================================================
 // 最大Token数量
@@ -751,7 +684,7 @@ export function AutoMetadataFormField({
               <button
                 type="button"
                 onClick={onSettingsClick}
-                className="hover:bg-surface-secondary inline-flex h-8 items-center rounded-md px-3 text-sm text-text-secondary transition-colors hover:text-text-primary"
+                className="inline-flex h-8 items-center rounded-md px-3 text-sm text-text-secondary transition-colors hover:bg-surface-secondary hover:text-text-primary"
               >
                 <svg
                   className="mr-1.5 h-4 w-4"
