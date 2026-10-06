@@ -6,7 +6,6 @@ import {
 } from '@/pages/settings/api-documentation-data'
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { createPortal } from 'react-dom'
 import './api-keys-page.css'
 import {
   Search,
@@ -31,7 +30,6 @@ import {
   Save,
   Archive,
   Trash2,
-  MoreHorizontal,
   Settings2,
   AlertTriangle,
   Lightbulb,
@@ -78,19 +76,27 @@ import { PageSizeSelector } from '@/components/ui/page-size-selector'
 import { MarkdownRenderer } from '@/components/chat/MarkdownRenderer'
 import { CreateApiKeyDialog } from '@/pages/settings/components/create-api-key-dialog'
 import {
+  ApiKeyActionDialog,
+  type ApiKeyAction,
+} from '@/pages/settings/components/api-key-action-dialog'
+import { ApiKeyRowActions } from '@/pages/settings/components/api-key-row-actions'
+import {
   ModernEnvironmentSelector,
   NewEnvironmentManager,
 } from '@/components/environment'
 import { useEnvironmentResolver } from '@/hooks/use-environment-request'
 import { useCopyFeedback } from '@/hooks/use-copy-feedback'
 import { apiKeysCapabilities } from '@/pages/settings/api-keys-capabilities'
+import {
+  useApiTokens,
+  usePendingApiTokens,
+} from '@/hooks/use-api-token-request'
 
 import { systemAPI } from '@/api/system'
 import type { APITokenCreateRequest } from '@/types/api'
 import {
   isRecord,
   type APIEndpoint,
-  type ApiKey,
   type BodyType,
   type FormDataRow,
   type HeaderRow,
@@ -893,11 +899,8 @@ const ApiDocumentationPage: React.FC = () => {
   const [apiKeySearchQuery, setApiKeySearchQuery] = useState('')
   const [createApiKeyModalOpen, setCreateApiKeyModalOpen] = useState(false)
   const [createApiKeyLoading, setCreateApiKeyLoading] = useState(false)
-  const [operatingKeys, setOperatingKeys] = useState<Set<string>>(new Set())
-  const [openDropdowns, setOpenDropdowns] = useState<Set<string>>(new Set())
-  const [dropdownPositions, setDropdownPositions] = useState<
-    Record<string, { top: number; right: number }>
-  >({})
+  const [apiKeyAction, setApiKeyAction] = useState<ApiKeyAction | null>(null)
+  const pendingTokens = usePendingApiTokens()
 
   // 解析 $ref 引用的 schema，支持嵌套与数组
   const resolveSchemaRef = useCallback(
@@ -944,12 +947,7 @@ const ApiDocumentationPage: React.FC = () => {
     [resolveSchemaRef],
   )
 
-  const tokenQuery = useQuery({
-    queryKey: ['apiDocumentation', 'tokens'],
-    queryFn: () => systemAPI.getTokenList(),
-    enabled: apiKeyManagementOpen,
-    gcTime: 0,
-  })
+  const tokenQuery = useApiTokens({ enabled: apiKeyManagementOpen })
   const apiKeyLoading = tokenQuery.isFetching
   const loadApiKeys = () => tokenQuery.refetch()
   const debouncedKeySearch = useDebouncedValue(apiKeySearchQuery, 300)
@@ -1140,68 +1138,6 @@ const ApiDocumentationPage: React.FC = () => {
     return token.slice(0, 4) + '•'.repeat(20) + token.slice(-4)
   }
 
-  const deleteApiKey = async (apiKey: ApiKey) => {
-    // 显示确认对话框
-    if (
-      !window.confirm(
-        `确定要删除 API Key "${apiKey.name}" 吗？此操作不可撤销。`,
-      )
-    ) {
-      return
-    }
-
-    setOperatingKeys((prev) => new Set(prev).add(apiKey.tenant_id))
-    try {
-      // 调用真实的删除API
-      await systemAPI.deleteToken(apiKey.token)
-      loadApiKeys() // 刷新列表
-    } catch (error) {
-      console.error('Failed to delete API key:', error)
-      // 这里可以显示错误提示
-    } finally {
-      setOperatingKeys((prev) => {
-        const newSet = new Set(prev)
-        newSet.delete(apiKey.tenant_id)
-        return newSet
-      })
-    }
-  }
-
-  const regenerateApiKey = async (apiKey: ApiKey) => {
-    // 显示确认对话框
-    if (
-      !window.confirm(
-        `确定要重新生成 API Key "${apiKey.name}" 的令牌吗？旧令牌将立即失效。`,
-      )
-    ) {
-      return
-    }
-
-    setOperatingKeys((prev) => new Set(prev).add(apiKey.tenant_id))
-    try {
-      // 先删除原有token
-      await systemAPI.deleteToken(apiKey.token)
-
-      // 使用原有的名称和描述重新创建token
-      const tokenData: APITokenCreateRequest = {
-        name: apiKey.name,
-        description: apiKey.description || null,
-      }
-
-      await systemAPI.createToken(tokenData)
-      loadApiKeys() // 刷新列表显示新的token
-    } catch (error) {
-      console.error('Failed to regenerate API key:', error)
-      // 这里可以显示错误提示
-    } finally {
-      setOperatingKeys((prev) => {
-        const newSet = new Set(prev)
-        newSet.delete(apiKey.tenant_id)
-        return newSet
-      })
-    }
-  }
-
   const handleCreateApiKey = async ({
     name,
     description,
@@ -1222,47 +1158,6 @@ const ApiDocumentationPage: React.FC = () => {
       setCreateApiKeyLoading(false)
     }
   }
-
-  const toggleDropdown = (
-    apiKeyId: string,
-    buttonElement: HTMLButtonElement,
-  ) => {
-    setOpenDropdowns((prev) => {
-      const newSet = new Set(prev)
-      if (newSet.has(apiKeyId)) {
-        newSet.delete(apiKeyId)
-      } else {
-        newSet.clear() // 关闭其他的下拉菜单
-        newSet.add(apiKeyId)
-
-        // 计算按钮位置
-        const rect = buttonElement.getBoundingClientRect()
-        setDropdownPositions((prev) => ({
-          ...prev,
-          [apiKeyId]: {
-            top: rect.bottom + window.scrollY + 4,
-            right: window.innerWidth - rect.right + window.scrollX,
-          },
-        }))
-      }
-      return newSet
-    })
-  }
-
-  // 点击外部关闭下拉菜单
-  useEffect(() => {
-    const handleClickOutside = () => {
-      setOpenDropdowns(new Set())
-    }
-
-    if (openDropdowns.size > 0) {
-      document.addEventListener('click', handleClickOutside)
-    }
-
-    return () => {
-      document.removeEventListener('click', handleClickOutside)
-    }
-  }, [openDropdowns.size])
 
   // 处理参数表格更新
   const updateParamRow = <K extends keyof ParamRow>(
@@ -1749,7 +1644,7 @@ const ApiDocumentationPage: React.FC = () => {
                                     <div className="divide-y">
                                       {apiKeys.map((apiKey) => (
                                         <div
-                                          key={apiKey.tenant_id}
+                                          key={apiKey.token}
                                           className="grid grid-cols-12 gap-3 p-4 transition-colors hover:bg-muted/30"
                                         >
                                           {/* 名称 */}
@@ -1771,13 +1666,13 @@ const ApiDocumentationPage: React.FC = () => {
                                                 onClick={() =>
                                                   handleCopy(
                                                     apiKey.token,
-                                                    `token-${apiKey.tenant_id}`,
+                                                    `token-${apiKey.token}`,
                                                   )
                                                 }
                                                 className="shrink-0"
                                               >
                                                 {copiedStates[
-                                                  `token-${apiKey.tenant_id}`
+                                                  `token-${apiKey.token}`
                                                 ] ? (
                                                   <Check className="h-3 w-3 text-green-600" />
                                                 ) : (
@@ -1828,28 +1723,13 @@ const ApiDocumentationPage: React.FC = () => {
 
                                           {/* 操作 */}
                                           <div className="col-span-1 flex justify-center">
-                                            <Button
-                                              variant="ghost"
-                                              size="icon-sm"
-                                              disabled={operatingKeys.has(
-                                                apiKey.tenant_id,
+                                            <ApiKeyRowActions
+                                              apiKey={apiKey}
+                                              busy={pendingTokens.has(
+                                                apiKey.token,
                                               )}
-                                              onClick={(e) => {
-                                                e.stopPropagation()
-                                                toggleDropdown(
-                                                  apiKey.tenant_id,
-                                                  e.currentTarget,
-                                                )
-                                              }}
-                                            >
-                                              {operatingKeys.has(
-                                                apiKey.tenant_id,
-                                              ) ? (
-                                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-text-tertiary border-t-transparent" />
-                                              ) : (
-                                                <MoreHorizontal className="h-4 w-4" />
-                                              )}
-                                            </Button>
+                                              onAction={setApiKeyAction}
+                                            />
                                           </div>
                                         </div>
                                       ))}
@@ -3675,55 +3555,10 @@ const ApiDocumentationPage: React.FC = () => {
           onSubmit={handleCreateApiKey}
         />
 
-        {/* Portal 渲染的下拉菜单 */}
-        {openDropdowns.size > 0 &&
-          createPortal(
-            <>
-              {Array.from(openDropdowns).map((apiKeyId) => {
-                const position = dropdownPositions[apiKeyId]
-                const apiKey = apiKeys.find((k) => k.tenant_id === apiKeyId)
-
-                if (!position || !apiKey) return null
-
-                return (
-                  <div
-                    key={apiKeyId}
-                    className="fixed z-[9999] w-40 rounded-md border border-border-default bg-background-surface shadow-lg"
-                    style={{
-                      top: position.top,
-                      right: position.right,
-                    }}
-                  >
-                    <div className="py-1">
-                      <button
-                        onClick={() => {
-                          regenerateApiKey(apiKey)
-                          setOpenDropdowns(new Set())
-                        }}
-                        disabled={operatingKeys.has(apiKey.tenant_id)}
-                        className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm transition-colors hover:bg-background-subtle disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        <RefreshCw className="h-4 w-4" />
-                        重新生成
-                      </button>
-                      <button
-                        onClick={() => {
-                          deleteApiKey(apiKey)
-                          setOpenDropdowns(new Set())
-                        }}
-                        disabled={operatingKeys.has(apiKey.tenant_id)}
-                        className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-red-600 transition-colors hover:bg-background-subtle hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        删除
-                      </button>
-                    </div>
-                  </div>
-                )
-              })}
-            </>,
-            document.body,
-          )}
+        <ApiKeyActionDialog
+          action={apiKeyAction}
+          onClose={() => setApiKeyAction(null)}
+        />
       </div>
     </div>
   )

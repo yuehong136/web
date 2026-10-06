@@ -72,6 +72,33 @@ export default {
       documentation: '接口文档',
       refreshDocumentation: '刷新接口文档',
     },
+    apiKeys: {
+      actions: {
+        menu: '{{name}} 的操作',
+        regenerate: '重新生成',
+        delete: '删除',
+      },
+      delete: {
+        title: '删除 API Key',
+        description:
+          '确定要删除 API Key "{{name}}" 吗？使用该 Key 的请求将立即失效，此操作不可撤销。',
+        confirm: '确认删除',
+        success: 'API Key 已删除',
+      },
+      regenerate: {
+        title: '重新生成 API Key',
+        description:
+          '将为 "{{name}}" 生成新的令牌，成功后撤销旧令牌。使用旧令牌的请求将失效。',
+        confirm: '确认重新生成',
+        success: '已生成新的 API Key，旧令牌已撤销',
+        failed: '重新生成失败，原 API Key 未受影响',
+        partial: '已生成新的 API Key，但旧令牌未能撤销，仍然有效',
+        partialDescription:
+          '请重试撤销，或在列表中删除创建时间较早的同名 API Key。',
+        retryRevoke: '重试撤销',
+        revoked: '旧令牌已撤销',
+      },
+    },
     profileDescription: '管理您的头像、身份信息和账户安全设置。',
     profile: {
       accountInfo: '账户资料',

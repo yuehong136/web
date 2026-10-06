@@ -135,7 +135,8 @@ export const DialogContent: React.FC<DialogContentProps> = ({
   // Handle escape key
   React.useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
+      // Nested Radix layers (menus, alert dialogs) mark Escape they consumed.
+      if (event.key === 'Escape' && !event.defaultPrevented) {
         onOpenChange(false)
       }
     }

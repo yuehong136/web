@@ -76,6 +76,34 @@ export default {
       documentation: 'API documentation',
       refreshDocumentation: 'Refresh API documentation',
     },
+    apiKeys: {
+      actions: {
+        menu: 'Actions for {{name}}',
+        regenerate: 'Regenerate',
+        delete: 'Delete',
+      },
+      delete: {
+        title: 'Delete API key',
+        description:
+          'Delete the API key "{{name}}"? Requests that use this key will stop working immediately. This cannot be undone.',
+        confirm: 'Delete key',
+        success: 'API key deleted',
+      },
+      regenerate: {
+        title: 'Regenerate API key',
+        description:
+          'A new token will be created for "{{name}}", then the old token will be revoked. Requests that use the old token will stop working.',
+        confirm: 'Regenerate key',
+        success: 'New API key created and old token revoked',
+        failed: 'Could not regenerate. Your existing API key is unchanged.',
+        partial:
+          'A new API key was created, but the old token could not be revoked and is still active',
+        partialDescription:
+          'Retry revoking it, or delete the older key with the same name from the list.',
+        retryRevoke: 'Retry revoke',
+        revoked: 'Old token revoked',
+      },
+    },
     profileDescription:
       'Manage your avatar, identity information, and account security settings.',
     profile: {
