@@ -1,3 +1,4 @@
+import { ReferenceMetadataBadges } from '@/components/chat/reference-metadata-badges'
 /**
  * @deprecated 此组件已废弃，请使用 ReferenceMarker 组件代替
  * @see {@link ./ReferenceMarker.tsx} 新版内联引用标记组件
@@ -154,6 +155,7 @@ export function InlineSourceRef({
               )}
             </div>
 
+            <ReferenceMetadataBadges metadata={reference.document_metadata} />
             {/* 内容摘要 */}
             {reference.content && (
               <div

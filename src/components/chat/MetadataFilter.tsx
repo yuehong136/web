@@ -253,9 +253,9 @@ export const MetadataFilter: React.FC<MetadataFilterProps> = ({
                 return (
                   <div
                     key={field}
-                    className="gap-space-sm rounded-radius-md bg-surface-secondary px-space-sm py-space-xs flex items-center border border-border-default"
+                    className="flex items-center gap-space-sm rounded-radius-md border border-border-default bg-surface-secondary px-space-sm py-space-xs"
                   >
-                    <label className="gap-space-xs flex min-w-0 flex-1 cursor-pointer items-center">
+                    <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-space-xs">
                       <Checkbox
                         checked={Boolean(selected)}
                         onCheckedChange={(checked) =>
@@ -441,7 +441,7 @@ export const MetadataFilter: React.FC<MetadataFilterProps> = ({
                 {/* 值输入（某些操作符不需要值） */}
                 {!isValuelessOperator(condition.comparison_operator) && (
                   <Input
-                    value={String(condition.value || '')}
+                    value={String(condition.value ?? '')}
                     onChange={(e) =>
                       handleUpdateCondition(index, { value: e.target.value })
                     }

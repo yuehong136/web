@@ -1,3 +1,4 @@
+import { ChatReferenceSettings } from './chat-reference-settings'
 import React from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 import { StudioPanelShell } from '@/components/patterns'
@@ -221,7 +222,7 @@ export const ConfigPane: React.FC<ConfigPaneProps> = ({ controller }) => {
         }
       >
         <div className="space-y-space-base">
-          <div className="gap-space-base flex items-center justify-between">
+          <div className="flex items-center justify-between gap-space-base">
             <span className="block text-sm font-medium text-text-primary">
               已添加的知识库
             </span>
@@ -230,7 +231,7 @@ export const ConfigPane: React.FC<ConfigPaneProps> = ({ controller }) => {
             </Badge>
           </div>
           {knowledgeBases.length === 0 ? (
-            <div className="rounded-radius-lg bg-surface-secondary/40 px-space-base py-space-lg border border-dashed border-border-subtle text-center">
+            <div className="rounded-radius-lg border border-dashed border-border-subtle bg-surface-secondary/40 px-space-base py-space-lg text-center">
               <div className="text-sm font-medium text-text-secondary">
                 暂无添加的知识库
               </div>
@@ -243,9 +244,9 @@ export const ConfigPane: React.FC<ConfigPaneProps> = ({ controller }) => {
               {knowledgeBases.map((knowledgeBase) => (
                 <div
                   key={knowledgeBase.id}
-                  className="rounded-radius-lg p-space-base flex items-center justify-between border border-border-default"
+                  className="flex items-center justify-between rounded-radius-lg border border-border-default p-space-base"
                 >
-                  <div className="gap-space-base flex min-w-0 flex-1 items-center">
+                  <div className="flex min-w-0 flex-1 items-center gap-space-base">
                     <KnowledgeBaseAvatar
                       name={knowledgeBase.name}
                       avatar={knowledgeBase.avatar}
@@ -356,9 +357,9 @@ export const ConfigPane: React.FC<ConfigPaneProps> = ({ controller }) => {
                       {(config.search_mode.weight_sparse ?? 0.3).toFixed(2)}
                     </span>
                   </div>
-                  <div className="rounded-radius-full relative h-2 bg-components-progress-bg">
+                  <div className="relative h-2 rounded-radius-full bg-components-progress-bg">
                     <div
-                      className="rounded-radius-full h-full bg-components-progress-fill"
+                      className="h-full rounded-radius-full bg-components-progress-fill"
                       style={{
                         width: `${((config.search_mode.weight_sparse ?? 0.3) * 100).toFixed(0)}%`,
                       }}
@@ -367,7 +368,7 @@ export const ConfigPane: React.FC<ConfigPaneProps> = ({ controller }) => {
                 </div>
 
                 <div
-                  className="rounded-radius-md p-space-sm border text-xs text-text-tertiary"
+                  className="rounded-radius-md border p-space-sm text-xs text-text-tertiary"
                   style={{
                     backgroundColor: 'var(--color-components-alert-info-bg)',
                     borderColor: 'var(--color-components-alert-info-border)',
@@ -393,7 +394,7 @@ export const ConfigPane: React.FC<ConfigPaneProps> = ({ controller }) => {
                 <span className="text-sm font-medium text-text-primary">
                   相似度阈值
                 </span>
-                <span className="text-sm tabular-nums text-text-secondary">
+                <span className="text-sm text-text-secondary tabular-nums">
                   {Number(config.similarity_threshold ?? 0).toFixed(2)}
                 </span>
               </div>
@@ -413,7 +414,7 @@ export const ConfigPane: React.FC<ConfigPaneProps> = ({ controller }) => {
                 <span className="text-sm font-medium text-text-primary">
                   向量相似度权重
                 </span>
-                <div className="gap-space-xs flex items-center text-xs">
+                <div className="flex items-center gap-space-xs text-xs">
                   <span className="text-text-secondary">
                     vector:{' '}
                     {Number(config.vector_similarity_weight ?? 0).toFixed(2)}
@@ -495,26 +496,7 @@ export const ConfigPane: React.FC<ConfigPaneProps> = ({ controller }) => {
             style={{ backgroundColor: 'var(--color-border-subtle)' }}
           />
 
-          <div className="rounded-radius-md bg-surface-primary px-space-base py-space-sm flex items-center justify-between">
-            <div className="space-y-space-xs">
-              <div className="text-sm font-medium text-text-primary">
-                显示来源
-              </div>
-              <div className="text-xs text-text-tertiary">
-                在回答中显示引用的知识片段来源
-              </div>
-            </div>
-            <Switch
-              checked={config.do_refer === '1'}
-              onCheckedChange={(checked) => {
-                handleConfigChange('do_refer', checked ? '1' : '0')
-                handleConfigChange('prompt_config', {
-                  ...config.prompt_config,
-                  quote: checked,
-                })
-              }}
-            />
-          </div>
+          <ChatReferenceSettings controller={controller} />
         </div>
       </CenterConfigSection>
 
@@ -565,7 +547,7 @@ export const ConfigPane: React.FC<ConfigPaneProps> = ({ controller }) => {
           <span className="block text-sm font-medium text-text-primary">
             跨语言
           </span>
-          <div className="gap-space-sm flex flex-wrap">
+          <div className="flex flex-wrap gap-space-sm">
             {SUPPORTED_LANGUAGES.map((language) => {
               const selected = config.prompt_config.cross_languages.includes(
                 language.value,
@@ -644,9 +626,9 @@ export const ConfigPane: React.FC<ConfigPaneProps> = ({ controller }) => {
             {config.prompt_config.parameters.map((parameter) => (
               <div
                 key={parameter.key}
-                className="rounded-radius-lg p-space-base flex items-center justify-between border border-border-default"
+                className="flex items-center justify-between rounded-radius-lg border border-border-default p-space-base"
               >
-                <div className="gap-space-sm flex items-center">
+                <div className="flex items-center gap-space-sm">
                   <span className="font-medium text-text-primary">
                     {parameter.key}
                   </span>

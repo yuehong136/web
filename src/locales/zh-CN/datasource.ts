@@ -277,6 +277,13 @@ export default {
     // Moodle 相关
     moodleDescription: '连接 Moodle 学习平台，同步课程和资源',
 
+    // RSS 相关
+    rssDescription: '连接 RSS 或 Atom 订阅，同步文章',
+    rssFeedUrl: '订阅地址',
+    rssBatchSize: '批次大小',
+    rssSyncDeletedFilesTip:
+      '镜像当前订阅清单。条目因窗口滚动移出订阅时，也会删除本地历史文档，即使原文仍存在。如需保留历史，请保持关闭。',
+
     // IMAP 相关
     imapDescription: '通过 IMAP 协议连接邮箱，同步邮件内容',
   },

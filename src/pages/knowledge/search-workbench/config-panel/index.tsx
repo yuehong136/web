@@ -9,6 +9,7 @@ import type {
   MetadataSemiAutoField,
 } from '@/components/chat/MetadataFilter'
 
+import { getMetadataFilterIssue } from '../adapters/metadata-filter'
 import type { SearchConfigState } from '../types'
 
 import { AdvancedParamsSection } from './advanced-params-section'
@@ -29,6 +30,9 @@ interface ConfigPanelSheetProps {
   rerankLoading: boolean
   rerankError?: string
   metadataFields: string[]
+  metadataFieldsLoading: boolean
+  metadataFieldsError: boolean
+  onRetryMetadataFields: () => void
 }
 
 const cloneConfig = (config: SearchConfigState): SearchConfigState => ({
@@ -76,6 +80,8 @@ export const ConfigPanelSheet: React.FC<ConfigPanelSheetProps> = (props) => {
     options.find((option) => option.value === draft.searchMode.type)?.label ||
     t('knowledge.search.config.fallbackMode')
 
+  const metadataIssue = getMetadataFilterIssue(draft)
+
   if (!open) return null
 
   return (
@@ -88,9 +94,9 @@ export const ConfigPanelSheet: React.FC<ConfigPanelSheetProps> = (props) => {
       }}
     >
       <div className="flex h-full w-[440px] max-w-[calc(100vw-2rem)] flex-col border-l border-border-default bg-background-surface">
-        <div className="px-space-lg py-space-base border-b border-border-default">
-          <div className="gap-space-base flex items-start justify-between">
-            <div className="gap-space-sm flex items-start">
+        <div className="border-b border-border-default px-space-lg py-space-base">
+          <div className="flex items-start justify-between gap-space-base">
+            <div className="flex items-start gap-space-sm">
               <SettingsIcon className="mt-0.5 h-4 w-4 text-text-secondary" />
               <div>
                 <h3 className="text-base font-semibold text-text-primary">
@@ -115,7 +121,7 @@ export const ConfigPanelSheet: React.FC<ConfigPanelSheetProps> = (props) => {
           </div>
         </div>
 
-        <div className="space-y-space-xl px-space-lg py-space-lg min-h-0 flex-1 overflow-y-auto scrollbar-thin">
+        <div className="scrollbar-thin min-h-0 flex-1 space-y-space-xl overflow-y-auto px-space-lg py-space-lg">
           <SearchModeSection
             searchMode={draft.searchMode}
             onSearchModeChange={(searchMode) =>
@@ -178,17 +184,28 @@ export const ConfigPanelSheet: React.FC<ConfigPanelSheetProps> = (props) => {
                   }))
                 }
                 metadataFields={props.metadataFields}
+                loading={props.metadataFieldsLoading}
+                error={props.metadataFieldsError}
+                onRetry={props.onRetryMetadataFields}
               />
             </>
           )}
         </div>
 
-        <div className="px-space-lg py-space-base border-t border-border-default bg-background-surface">
-          <div className="gap-space-sm flex justify-end">
+        <div className="border-t border-border-default bg-background-surface px-space-lg py-space-base">
+          {metadataIssue && (
+            <p role="alert" className="mb-space-sm text-sm text-status-error">
+              {t(`knowledge.search.metadataFilter.validation.${metadataIssue}`)}
+            </p>
+          )}
+          <div className="flex justify-end gap-space-sm">
             <Button variant="outline" onClick={onClose}>
               {t('knowledge.common.cancel')}
             </Button>
-            <Button onClick={() => onApply(cloneConfig(draft))}>
+            <Button
+              disabled={Boolean(metadataIssue)}
+              onClick={() => onApply(cloneConfig(draft))}
+            >
               {t('knowledge.search.applyConfig')}
             </Button>
           </div>

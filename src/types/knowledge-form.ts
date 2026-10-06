@@ -1,4 +1,8 @@
 import { z } from 'zod'
+import {
+  getKnowledgeNameError,
+  KNOWLEDGE_NAME_MAX_BYTES,
+} from '@/lib/knowledge/name'
 
 const numericField = () => z.coerce.number()
 
@@ -98,18 +102,45 @@ export const parserConfigSchema = z.looseObject({
 })
 
 // 知识库设置表单 Schema
-export const knowledgeSettingsFormSchema = z.object({
-  name: z.string().min(1, { message: '知识库名称不能为空' }),
+export const knowledgeSettingsFormValuesSchema = z.object({
+  name: z.string(),
   avatar: z.any().nullish(),
   description: z.string().optional(),
   permission: z.enum(['me', 'team']).default('me'),
-  embd_id: z.string().min(1, { message: '请选择嵌入模型' }),
+  embd_id: z.string(),
   pagerank: numericField().min(0).max(100).default(0),
-  parseType: numericField().default(1), // 1=内置, 2=手动设置Pipeline
-  parser_id: z.string().min(1, { message: '请选择解析器类型' }),
+  parseType: numericField()
+    .pipe(z.union([z.literal(1), z.literal(2)]))
+    .default(1),
+  parser_id: z.string(),
   pipeline_id: z.string().optional(), // 当 parseType=2 时使用
   parser_config: parserConfigSchema.optional(),
 })
+
+/** Mode-specific validation belongs to submit; persisted values can always hydrate. */
+export function createKnowledgeSettingsFormSchema(
+  translate: (key: string, options?: { count: number }) => string = (key) =>
+    key,
+) {
+  return knowledgeSettingsFormValuesSchema.superRefine((data, ctx) => {
+    const addError = (path: string, key: string) =>
+      ctx.addIssue({
+        code: 'custom',
+        path: [path],
+        message: translate(key, { count: KNOWLEDGE_NAME_MAX_BYTES }),
+      })
+    const nameError = getKnowledgeNameError(data.name)
+    if (nameError) addError('name', `knowledge.nameValidation.${nameError}`)
+    if (!data.embd_id.trim())
+      addError('embd_id', 'knowledge.create.validation.embeddingRequired')
+    if (data.parseType === 1 && !data.parser_id.trim())
+      addError('parser_id', 'knowledge.settings.validation.parserRequired')
+    if (data.parseType === 2 && !/^[0-9a-f]{32}$/.test(data.pipeline_id || ''))
+      addError('pipeline_id', 'knowledge.settings.validation.pipelineRequired')
+  })
+}
+
+export const knowledgeSettingsFormSchema = createKnowledgeSettingsFormSchema()
 
 // 类型导出
 export type RaptorConfig = z.infer<typeof raptorSchema>

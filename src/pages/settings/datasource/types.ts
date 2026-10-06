@@ -37,6 +37,7 @@ export enum DataSourceKey {
   DISCORD = 'discord',
   MOODLE = 'moodle',
   IMAP = 'imap',
+  RSS = 'rss',
 }
 
 /**

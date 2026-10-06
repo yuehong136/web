@@ -7,6 +7,9 @@ import type {
   MetadataSemiAutoField,
 } from '@/components/chat/MetadataFilter'
 
+import { createActiveMetaDataFilter } from '../adapters/metadata-filter'
+export { createActiveMetaDataFilter } from '../adapters/metadata-filter'
+
 import { DEFAULT_SEARCH_MODE, DEFAULT_SEARCH_PARAMS } from '../constants'
 import type {
   RetrievalMetaDataFilter,
@@ -31,55 +34,6 @@ export interface UseSearchParamsResult {
   >
   activeMetaDataFilter: RetrievalMetaDataFilter | undefined
   activeConfigBadges: string[]
-}
-
-export function createActiveMetaDataFilter(options: {
-  metadataMode: MetadataFilterMode
-  metadataCondition: MetadataCondition
-  metadataSemiAutoFields: MetadataSemiAutoField[]
-}): RetrievalMetaDataFilter | undefined {
-  const { metadataMode, metadataCondition, metadataSemiAutoFields } = options
-
-  if (metadataMode === 'disabled') return undefined
-
-  if (metadataMode === 'auto') {
-    return { method: 'auto' }
-  }
-
-  if (metadataMode === 'semi_auto') {
-    const semiAuto = metadataSemiAutoFields
-      .filter((item) => item.key)
-      .map((item) => (item.op ? { key: item.key, op: item.op } : item.key))
-
-    if (semiAuto.length === 0) return undefined
-
-    return {
-      method: 'semi_auto',
-      semi_auto: semiAuto,
-    }
-  }
-
-  const manual = (metadataCondition.conditions || [])
-    .map((condition) => ({
-      key: condition.name?.trim() || '',
-      op: condition.comparison_operator || 'is',
-      value: String(condition.value ?? '').trim(),
-    }))
-    .filter(
-      (condition) =>
-        condition.key &&
-        (condition.op === 'empty' ||
-          condition.op === 'not empty' ||
-          condition.value),
-    )
-
-  if (manual.length === 0) return undefined
-
-  return {
-    method: 'manual',
-    logic: metadataCondition.logic || 'and',
-    manual,
-  }
 }
 
 export const useSearchParamsState = (): UseSearchParamsResult => {

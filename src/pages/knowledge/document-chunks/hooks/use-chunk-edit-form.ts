@@ -63,12 +63,16 @@ export const useChunkEditForm = (ownerKey: string) => {
     if (!selectedChunk) return null
     const imageBase64 =
       editingImage.length > 0 ? await fileToBase64(editingImage[0]) : undefined
+    if (editingImage.length > 0 && !imageBase64)
+      throw new Error('Image conversion produced no data')
     return {
       chunkId: selectedChunk.chunk_id,
       content: editingChunkContent.trim(),
       important_kwd: editingImportantKwd,
       question_kwd: editingQuestionKwd,
       image_base64: imageBase64,
+      ...(imageBase64 ? { image_update_mode: 'replace' as const } : {}),
+      imageId: selectedChunk.img_id,
     }
   }, [
     selectedChunk,

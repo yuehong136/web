@@ -1,3 +1,4 @@
+import { ReferenceMetadataBadges } from '@/components/chat/reference-metadata-badges'
 /**
  * 内联引用标记组件
  * 用于在消息内容中展示引用标记，支持悬浮显示详情
@@ -148,6 +149,7 @@ export const ReferenceMarker: React.FC<ReferenceMarkerProps> = ({
             </span>
           </div>
 
+          <ReferenceMetadataBadges metadata={chunk.document_metadata} />
           {/* 内容预览 */}
           <div className="px-3.5 py-3">
             {isTableContent ? (

@@ -394,6 +394,20 @@ const getSourceFormFields = (
       required: true,
     },
   ],
+  [DataSourceKey.RSS]: [
+    {
+      label: t('datasource.rssFeedUrl'),
+      name: 'config.feed_url',
+      type: FormFieldType.Text,
+      required: true,
+      placeholder: 'https://example.com/feed.xml',
+    },
+    {
+      label: t('datasource.rssBatchSize'),
+      name: 'config.batch_size',
+      type: FormFieldType.Number,
+    },
+  ],
   [DataSourceKey.IMAP]: [
     {
       label: 'Username',

@@ -40,6 +40,7 @@ type DatasetBodyInput = {
   avatar?: string | null
   permission?: string | null
   parser_id?: string | null
+  pipeline_id?: string
   embd_id?: string | null
   parser_config?: Record<string, any> | null
   language?: string | null
@@ -70,6 +71,9 @@ const toDatasetBody = (data: DatasetBodyInput): Record<string, unknown> => {
     body.parser_config = data.parser_config
 
   const ext: Record<string, unknown> = {}
+  // MultiRAG's dataset PUT accepts pipeline_id through ext, not a top-level field.
+  // Preserve explicit empty strings when switching back to a builtin parser.
+  if (data.pipeline_id !== undefined) ext.pipeline_id = data.pipeline_id
   if (data.language !== undefined) ext.language = data.language
   if (data.pagerank !== undefined && data.pagerank !== null)
     ext.pagerank = data.pagerank

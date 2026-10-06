@@ -140,6 +140,55 @@ test('chunk management uses canonical RESTful routes and preserves the UI model'
   assert.deepEqual(calls[4]?.config?.data, { chunk_ids: ['chunk-1'] })
 })
 
+test('chunk image replacement serializes only the PATCH mode and propagates business failure', async () => {
+  const originalFetch = globalThis.fetch
+  const bodies: Record<string, unknown>[] = []
+  let code = 0
+  globalThis.fetch = (async (_url, init) => {
+    bodies.push(JSON.parse(init?.body as string))
+    return new Response(
+      JSON.stringify({ code, message: 'Private failure', data: {} }),
+      {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      },
+    )
+  }) as typeof fetch
+  const params = {
+    kb_id: 'kb',
+    doc_id: 'doc',
+    chunk_id: 'chunk',
+    content_with_weight: 'text',
+  }
+  try {
+    await knowledgeDocumentAPI.setChunk(params)
+    assert.equal('image_update_mode' in bodies[0], false)
+    assert.equal('image_base64' in bodies[0], false)
+    await knowledgeDocumentAPI.setChunk({
+      ...params,
+      image_base64: 'aW1hZ2U=',
+      image_update_mode: 'replace',
+    })
+    assert.equal(bodies[1].image_update_mode, 'replace')
+    await knowledgeDocumentAPI.createChunk({
+      ...params,
+      image_base64: 'aW1hZ2U=',
+    })
+    assert.equal('image_update_mode' in bodies[2], false)
+    code = 102
+    await assert.rejects(
+      knowledgeDocumentAPI.setChunk({
+        ...params,
+        image_base64: 'aW1hZ2U=',
+        image_update_mode: 'replace',
+      }),
+      APIError,
+    )
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+})
+
 const dto: DatasetDocumentDTO = {
   id: 'doc-1',
   name: 'report.pdf',

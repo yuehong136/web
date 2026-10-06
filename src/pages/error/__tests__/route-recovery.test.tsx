@@ -86,6 +86,50 @@ describe('route recovery', () => {
     return router
   }
 
+  it('retained placeholder routes disclose unavailability and navigate to working destinations', async () => {
+    const find = (
+      routes: RouteObject[],
+      path: string,
+    ): RouteObject | undefined => {
+      for (const route of routes) {
+        if (route.path === path) return route
+        const nested = find(route.children || [], path)
+        if (nested) return nested
+      }
+      return undefined
+    }
+    for (const [path, feature, destination] of [
+      ['/knowledge/import', 'knowledgeImport', '/knowledge'],
+      ['/documents', 'documents', '/knowledge'],
+      ['/workflow', 'workflow', '/agents'],
+      ['appearance', 'appearance', '/home'],
+    ]) {
+      const route = find(appRoutes, path)
+      expect(route).toBeDefined()
+      const fixturePath = `/legacy-review-${feature}`
+      await act(async () => root.render(null))
+      await renderRoutes(
+        [
+          { path: fixturePath, element: route!.element },
+          { path: destination, element: <div>Recovered destination</div> },
+        ],
+        fixturePath,
+      )
+      await vi.waitFor(() =>
+        expect(container.querySelector('h2')).not.toBeNull(),
+      )
+      expect(container.querySelector('h2')?.textContent).toBe(
+        `routeErrors.unavailable.${feature}.title`,
+      )
+      const link = container.querySelector<HTMLAnchorElement>('a')!
+      expect(link.getAttribute('href')).toBe(destination)
+      link.focus()
+      expect(document.activeElement).toBe(link)
+      await act(async () => link.click())
+      expect(container.textContent).toContain('Recovered destination')
+    }
+  })
+
   it('uses the real appRoutes catch-all for an unknown address', async () => {
     const router = await renderRoutes(appRoutes, '/missing/product/page')
 

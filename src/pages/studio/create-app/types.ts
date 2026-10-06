@@ -1,3 +1,4 @@
+import type { ReferenceMetadataConfig } from '@/types/reference-metadata'
 export interface AppLLMSetting {
   temperature?: number
   top_p?: number
@@ -23,6 +24,7 @@ export interface AppParameter {
 }
 
 export interface AppPromptConfig {
+  reference_metadata?: ReferenceMetadataConfig
   prologue: string
   empty_response: string
   quote: boolean

@@ -1,6 +1,6 @@
 import type { KnowledgeBase } from '@/types/api'
 import {
-  knowledgeSettingsFormSchema,
+  knowledgeSettingsFormValuesSchema,
   getDefaultFormValues,
   type KnowledgeSettingsFormData,
 } from '@/types/knowledge-form'
@@ -60,7 +60,7 @@ export const buildKnowledgeSettingsFormValues = (
     },
   }
 
-  return knowledgeSettingsFormSchema.parse(rawValues)
+  return knowledgeSettingsFormValuesSchema.parse(rawValues)
 }
 
 /** Keep persisted and execution parent-child fields consistent, including disablement. */

@@ -1,27 +1,37 @@
 import React from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  ChevronDown,
-  ChevronUp,
-  FileText,
-  Loader2,
-  Search,
-  Star,
-} from 'lucide-react'
+import { FileText, Search, Star } from 'lucide-react'
 
 import { HighlightText } from '@/components/knowledge/HighlightText'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
 import { FileIcon } from '@/components/ui/file-icon'
 import { PageSizeSelector } from '@/components/ui/page-size-selector'
 import { Tooltip } from '@/components/ui/tooltip'
 
+import {
+  PageEmptyState,
+  PageErrorState,
+  PageLoadingState,
+} from '@/components/patterns/page-states'
+import { DocFilterPanel } from './doc-filter-panel'
+import { SearchScopeSummary } from './search-scope-summary'
+import type { SearchError } from './hooks/use-search-execution'
+
 import { PAGE_SIZE_OPTIONS } from './constants'
-import type { RetrievalDocAgg, RetrievalResultView } from './types'
+import type {
+  RetrievalDocAgg,
+  RetrievalResultView,
+  SearchRequestScope,
+} from './types'
 
 interface ResultPanelProps {
-  query: string
+  hasSearched: boolean
+  searchError?: SearchError
+  requestScope?: SearchRequestScope
+  docOptions: RetrievalDocAgg[]
+  onRetry: () => void
+  onOpenConfig: () => void
   isSearching: boolean
   results: RetrievalResultView[]
   totalResults: number
@@ -29,7 +39,6 @@ interface ResultPanelProps {
   selectedDocIds: string[]
   showDocFilter: boolean
   highlight: boolean
-  similarityThreshold: number
   currentPage: number
   pageSize: number
   totalPages: number
@@ -46,7 +55,12 @@ interface ResultPanelProps {
 const formatPercent = (value: number): string => `${(value * 100).toFixed(1)}%`
 
 export const ResultPanel: React.FC<ResultPanelProps> = ({
-  query,
+  hasSearched,
+  searchError,
+  requestScope,
+  docOptions,
+  onRetry,
+  onOpenConfig,
   isSearching,
   results,
   totalResults,
@@ -54,7 +68,6 @@ export const ResultPanel: React.FC<ResultPanelProps> = ({
   selectedDocIds,
   showDocFilter,
   highlight,
-  similarityThreshold,
   currentPage,
   pageSize,
   totalPages,
@@ -70,25 +83,29 @@ export const ResultPanel: React.FC<ResultPanelProps> = ({
   const { t } = useTranslation()
 
   return (
-    <section className="p-space-lg relative flex h-full min-w-0 flex-1 flex-col overflow-hidden">
-      <div className="pb-space-base">
-        <div className="gap-space-base flex flex-wrap items-start justify-between">
+    <section className="relative flex h-full min-w-0 flex-1 flex-col overflow-hidden p-space-lg">
+      <div className="scrollbar-thin max-h-1/2 shrink-0 overflow-y-auto pb-space-base">
+        <div className="flex flex-wrap items-start justify-between gap-space-base">
           <div className="min-w-0">
-            <div className="gap-space-sm flex items-center">
+            <div className="flex items-center gap-space-sm">
               <FileText className="h-5 w-5 text-text-secondary" />
               <h2 className="text-base font-semibold text-text-primary">
                 {t('knowledge.search.resultsTitle')}
               </h2>
             </div>
-            <div className="mt-space-xs gap-space-sm flex flex-wrap items-center text-sm text-text-secondary">
+            <div className="mt-space-xs flex flex-wrap items-center gap-space-sm text-sm text-text-secondary">
               <span>
                 {isSearching
                   ? t('knowledge.search.searching')
-                  : t('knowledge.search.foundResults', {
-                      count: totalResults,
-                    })}
+                  : searchError
+                    ? t('knowledge.search.errors.title')
+                    : !hasSearched
+                      ? t('knowledge.search.startTitle')
+                      : t('knowledge.search.foundResults', {
+                          count: totalResults,
+                        })}
               </span>
-              {selectedDocIds.length > 0 && (
+              {!searchError && selectedDocIds.length > 0 && (
                 <Badge variant="blue" className="text-xs">
                   {t('knowledge.search.filteredDocs', {
                     count: selectedDocIds.length,
@@ -126,121 +143,62 @@ export const ResultPanel: React.FC<ResultPanelProps> = ({
           </div>
         </div>
 
-        {docAggs.length > 0 && (
-          <div className="mt-space-base pt-space-base border-t border-border-default">
-            <div className="gap-space-sm flex flex-wrap items-center justify-between">
-              <button
-                onClick={onToggleDocFilter}
-                className="gap-space-xs flex items-center text-sm font-medium text-text-secondary hover:text-text-primary"
-              >
-                <FileText className="h-4 w-4" />
-                <span>{t('knowledge.search.docFilter')}</span>
-                {selectedDocIds.length > 0 && (
-                  <Badge variant="secondary" className="text-xs">
-                    {selectedDocIds.length}
-                  </Badge>
-                )}
-                {showDocFilter ? (
-                  <ChevronUp className="h-4 w-4" />
-                ) : (
-                  <ChevronDown className="h-4 w-4" />
-                )}
-              </button>
-
-              <div className="gap-space-sm flex items-center">
-                {selectedDocIds.length > 0 && (
-                  <>
-                    <span className="text-xs text-text-tertiary">
-                      {t('knowledge.search.selectedDocsCount', {
-                        count: selectedDocIds.length,
-                      })}
-                    </span>
-                    <button
-                      onClick={onClearDocFilter}
-                      className="text-xs text-text-secondary hover:text-text-primary"
-                    >
-                      {t('knowledge.search.clear')}
-                    </button>
-                  </>
-                )}
-                <button
-                  onClick={onSelectAllDocs}
-                  className="rounded-radius-full px-space-sm py-space-xs border border-border-accent text-xs text-text-accent transition-colors hover:bg-background-subtle"
-                >
-                  {t('knowledge.search.all')}
-                </button>
-              </div>
-            </div>
-
-            {showDocFilter && (
-              <div className="mt-space-sm gap-space-xs flex flex-wrap">
-                {docAggs.map((doc) => (
-                  <label
-                    key={doc.doc_id}
-                    className="gap-space-xs rounded-radius-full px-space-sm py-space-xs flex cursor-pointer items-center border border-border-default bg-background-subtle transition-colors hover:bg-components-card-bg-hover"
-                  >
-                    <Checkbox
-                      checked={selectedDocIds.includes(doc.doc_id)}
-                      onCheckedChange={(checked) =>
-                        onDocFilter(doc.doc_id, checked as boolean)
-                      }
-                    />
-                    <span className="max-w-[220px] truncate text-sm text-text-secondary">
-                      {doc.doc_name}
-                    </span>
-                    <Badge variant="outline" className="text-xs">
-                      {doc.count}
-                    </Badge>
-                  </label>
-                ))}
-              </div>
-            )}
-          </div>
+        {requestScope && (
+          <SearchScopeSummary scope={requestScope} docOptions={docOptions} />
         )}
+        <DocFilterPanel
+          options={docOptions}
+          selectedDocIds={selectedDocIds}
+          open={showDocFilter}
+          onToggle={onToggleDocFilter}
+          onDocFilter={onDocFilter}
+          onClear={onClearDocFilter}
+          onSelectAll={onSelectAllDocs}
+        />
       </div>
 
-      <div className="py-space-lg min-h-0 flex-1 overflow-y-auto scrollbar-thin">
-        {!query ? (
-          <div className="flex h-full items-center justify-center">
-            <div className="text-center">
-              <Search className="mb-space-base mx-auto h-12 w-12 text-text-muted" />
-              <h3 className="mb-space-xs text-lg font-medium text-text-primary">
-                {t('knowledge.search.startTitle')}
-              </h3>
-              <p className="text-text-tertiary">
-                {t('knowledge.search.startDescription')}
-              </p>
-            </div>
-          </div>
-        ) : isSearching ? (
-          <div className="flex h-full items-center justify-center">
-            <div className="text-center">
-              <Loader2 className="mb-space-base mx-auto h-8 w-8 animate-spin text-text-accent" />
-              <p className="text-text-secondary">
-                {t('knowledge.search.searchingDescription')}
-              </p>
-            </div>
-          </div>
+      <div className="scrollbar-thin min-h-0 flex-1 overflow-y-auto py-space-lg">
+        {isSearching ? (
+          <PageLoadingState
+            title={t('knowledge.search.searching')}
+            description={t('knowledge.search.searchingDescription')}
+            role="status"
+          />
+        ) : searchError ? (
+          <PageErrorState
+            title={t('knowledge.search.errors.title')}
+            description={t(`knowledge.search.errors.${searchError}`)}
+            onRetry={onRetry}
+            retryLabel={t('knowledge.search.errors.retry')}
+            action={
+              searchError === 'graphScope' ? (
+                <Button variant="outline" onClick={onOpenConfig}>
+                  {t('knowledge.search.errors.reviewConfig')}
+                </Button>
+              ) : undefined
+            }
+            role="alert"
+          />
+        ) : !hasSearched ? (
+          <PageEmptyState
+            title={t('knowledge.search.startTitle')}
+            description={t('knowledge.search.startDescription')}
+            icon={<Search className="size-icon-lg" />}
+          />
         ) : results.length === 0 ? (
-          <div className="flex h-full items-center justify-center">
-            <div className="text-center">
-              <Search className="mb-space-base mx-auto h-8 w-8 text-text-muted" />
-              <h3 className="mb-space-xs text-lg font-medium text-text-primary">
-                {t('knowledge.search.noResultsTitle')}
-              </h3>
-              <p className="mb-space-base text-text-tertiary">
-                {t('knowledge.search.noResultsDescription')}
-              </p>
-              <div className="text-sm text-text-tertiary">
-                <p>{t('knowledge.search.querySummary', { query })}</p>
-                <p>
-                  {t('knowledge.search.thresholdSummary', {
-                    value: similarityThreshold,
-                  })}
-                </p>
-              </div>
-            </div>
-          </div>
+          <PageEmptyState
+            title={t('knowledge.search.noResultsTitle')}
+            description={t('knowledge.search.noResultsDescription')}
+            icon={<Search className="size-icon-lg" />}
+            action={
+              <span className="text-sm text-text-secondary">
+                {t('knowledge.search.querySummary', {
+                  query: requestScope?.question,
+                })}
+              </span>
+            }
+            role="status"
+          />
         ) : (
           <div className="space-y-space-base">
             {results.map((result, index) => (
@@ -257,33 +215,34 @@ export const ResultPanel: React.FC<ResultPanelProps> = ({
       </div>
 
       {results.length > 0 && (
-        <div className="px-space-base py-space-sm border-t border-border-default bg-background-surface">
-          <div className="gap-space-base flex flex-wrap items-center justify-between">
+        <div className="border-t border-border-default bg-background-surface px-space-base py-space-sm">
+          <div className="flex flex-wrap items-center justify-between gap-space-base">
             <div className="text-sm text-text-secondary">
               {t('knowledge.search.totalResults', { count: totalResults })}
             </div>
 
-            <div className="gap-space-base flex flex-wrap items-center">
+            <div className="flex flex-wrap items-center gap-space-base">
               <PageSizeSelector
                 pageSize={pageSize}
                 onChange={onPageSizeChange}
                 options={[...PAGE_SIZE_OPTIONS]}
               />
 
-              <div className="gap-space-xs flex items-center">
+              <div className="flex items-center gap-space-xs">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => onPageChange(currentPage - 1)}
-                  disabled={currentPage <= 1}
+                  disabled={isSearching || currentPage <= 1}
                 >
                   {t('knowledge.search.previousPage')}
                 </Button>
 
-                <div className="gap-space-xs flex items-center">
+                <div className="flex items-center gap-space-xs">
                   {pageNumbers.map((pageNum) => (
                     <Button
                       key={pageNum}
+                      disabled={isSearching}
                       variant={currentPage === pageNum ? 'default' : 'outline'}
                       size="sm"
                       onClick={() => onPageChange(pageNum)}
@@ -298,7 +257,7 @@ export const ResultPanel: React.FC<ResultPanelProps> = ({
                   variant="outline"
                   size="sm"
                   onClick={() => onPageChange(currentPage + 1)}
-                  disabled={currentPage >= totalPages}
+                  disabled={isSearching || currentPage >= totalPages}
                 >
                   {t('knowledge.search.nextPage')}
                 </Button>
@@ -330,15 +289,15 @@ const RetrievalResultCard: React.FC<RetrievalResultCardProps> = ({
     Boolean(result.highlight && result.highlight.length > 200)
 
   return (
-    <article className="rounded-radius-lg p-space-base border border-border-default bg-background-surface transition-colors hover:bg-components-card-bg-hover">
-      <div className="mb-space-base gap-space-base flex flex-wrap items-start justify-between">
-        <div className="gap-space-sm flex min-w-0 items-center">
-          <div className="rounded-radius-full flex h-8 w-8 shrink-0 items-center justify-center bg-status-success-subtle text-sm font-semibold text-text-success">
+    <article className="rounded-radius-lg border border-border-default bg-background-surface p-space-base transition-colors hover:bg-components-card-bg-hover">
+      <div className="mb-space-base flex flex-wrap items-start justify-between gap-space-base">
+        <div className="flex min-w-0 items-center gap-space-sm">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-radius-full bg-status-success-subtle text-sm font-semibold text-text-success">
             {order}
           </div>
           <p className="truncate text-xs text-text-tertiary">ID: {result.id}</p>
         </div>
-        <div className="gap-space-xs flex flex-wrap items-center justify-end">
+        <div className="flex flex-wrap items-center justify-end gap-space-xs">
           <Tooltip
             content={`${t('knowledge.search.similarity')}: ${formatPercent(result.scores.combined)}`}
           >
@@ -359,7 +318,7 @@ const RetrievalResultCard: React.FC<RetrievalResultCardProps> = ({
 
       <button
         type="button"
-        className="mb-space-base rounded-radius-md p-space-xs block w-full text-left text-sm leading-relaxed text-text-secondary transition-colors hover:bg-background-subtle"
+        className="mb-space-base block w-full rounded-radius-md p-space-xs text-left text-sm leading-relaxed text-text-secondary transition-colors hover:bg-background-subtle"
         onClick={onOpen}
       >
         <HighlightText
@@ -376,9 +335,9 @@ const RetrievalResultCard: React.FC<RetrievalResultCardProps> = ({
         )}
       </button>
 
-      <div className="pt-space-sm border-t border-border-default">
-        <div className="gap-space-sm flex flex-wrap items-center justify-between">
-          <div className="gap-space-sm flex min-w-0 items-center">
+      <div className="border-t border-border-default pt-space-sm">
+        <div className="flex flex-wrap items-center justify-between gap-space-sm">
+          <div className="flex min-w-0 items-center gap-space-sm">
             <FileIcon
               fileName={result.doc.name}
               fileType={result.doc.extension}

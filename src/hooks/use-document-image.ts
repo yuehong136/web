@@ -49,8 +49,9 @@ export function useDocumentImage(source: DocumentImageSource | null) {
       createDocumentImageLeaseStore(
         authenticated ? (query.data ?? null) : null,
         epoch,
+        sourceUrl,
       ),
-    [query.data, authenticated, epoch],
+    [query.data, authenticated, epoch, sourceUrl],
   )
   const objectUrl = useSyncExternalStore(
     leaseStore.subscribe,
@@ -72,6 +73,6 @@ export function useDocumentImage(source: DocumentImageSource | null) {
     openInNewWindow: (title: string) =>
       !!objectUrl &&
       !!query.data &&
-      openDocumentImageWindow(query.data, epoch, title),
+      openDocumentImageWindow(query.data, epoch, title, sourceUrl),
   }
 }

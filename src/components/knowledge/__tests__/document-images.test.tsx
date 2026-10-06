@@ -7,6 +7,10 @@ import { queryClient } from '@/lib/query-client'
 import { useAuthStore } from '@/stores/auth'
 import type { UserInfo } from '@/types/api'
 import i18n from '@/locales/i18n'
+import {
+  evictDocumentImage,
+  getDocumentImageEpoch,
+} from '@/lib/document-image-resources'
 import { DocumentImage, DocumentImagePreviewProvider } from '../document-image'
 import { ReferenceImageList } from '@/components/chat/ReferenceImageList'
 import { ImageCarousel } from '@/components/chat/ImageCarousel'
@@ -432,6 +436,97 @@ describe('actual image consumers and authenticated resource ownership', () => {
       await new Promise((resolve) => setTimeout(resolve, 25))
     })
     expect(URL.createObjectURL).not.toHaveBeenCalled()
+  })
+  it('replacement retires matching popup leases while unrelated images remain cached', async () => {
+    const popup = {
+      opener: window,
+      document: document.implementation.createHTMLDocument(),
+      closed: false,
+      close: vi.fn(),
+    }
+    vi.spyOn(window, 'open').mockReturnValue(popup as unknown as Window)
+    await render(
+      <>
+        {image(`${KB}-unrelated.png`)}
+        <ChunkImagePreviewModal previewImageId={ID} onClose={() => {}} />
+      </>,
+    )
+    const unrelatedUrl = container.querySelector('img')!.src
+    const replacedUrl = document
+      .querySelector('[role="dialog"] img')!
+      .getAttribute('src')!
+    const button = [...document.querySelectorAll('button')].find((b) =>
+      b.textContent?.includes('new tab'),
+    )!
+    await act(async () => button.click())
+    await act(async () => evictDocumentImage(ID, getDocumentImageEpoch()))
+    await render(
+      <>
+        {image(`${KB}-unrelated.png`)}
+        <ChunkImagePreviewModal previewImageId={ID} onClose={() => {}} />
+      </>,
+    )
+    expect(popup.close).toHaveBeenCalledTimes(1)
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith(replacedUrl)
+    expect(URL.revokeObjectURL).not.toHaveBeenCalledWith(unrelatedUrl)
+    expect(requests).toHaveLength(3)
+    expect(container.querySelector('img')!.src).toBe(unrelatedUrl)
+    expect(
+      document.querySelector('[role="dialog"] img')!.getAttribute('src'),
+    ).not.toBe(replacedUrl)
+  })
+  it('same-ID replacement never leaves a fullscreen preview using the revoked blob', async () => {
+    const surface = (
+      <DocumentImagePreviewProvider resetKey={ID}>
+        <DocumentImage
+          source={{ kind: 'dataset', imageId: ID }}
+          alt="preview"
+          preview
+        />
+      </DocumentImagePreviewProvider>
+    )
+    await render(surface)
+    await act(async () =>
+      container.querySelector<HTMLButtonElement>('button')!.click(),
+    )
+    expect(document.querySelector('.PhotoView-Slider__Backdrop')).not.toBeNull()
+    await act(async () => evictDocumentImage(ID, getDocumentImageEpoch()))
+    await render(surface)
+    expect(document.querySelector('img[src="blob:owned-1"]')).toBeNull()
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:owned-1')
+  })
+  it('replacement closes a detached popup even after its query has been garbage collected', async () => {
+    const popup = {
+      opener: window,
+      document: document.implementation.createHTMLDocument(),
+      closed: false,
+      close: vi.fn(),
+    }
+    vi.spyOn(window, 'open').mockReturnValue(popup as unknown as Window)
+    await render(
+      <ChunkImagePreviewModal previewImageId={ID} onClose={() => {}} />,
+    )
+    const button = [...document.querySelectorAll('button')].find((b) =>
+      b.textContent?.includes('new tab'),
+    )!
+    await act(async () => button.click())
+    await render(null)
+    expect(queryClient.getQueryCache().getAll()).toHaveLength(0)
+    await act(async () => evictDocumentImage(ID, getDocumentImageEpoch()))
+    expect(popup.close).toHaveBeenCalledTimes(1)
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:owned-1')
+  })
+  it('late eviction from an older authenticated owner cannot retire the current owner image', async () => {
+    await render(image())
+    const oldEpoch = getDocumentImageEpoch()
+    await act(async () => session('owner-b', 'token-b'))
+    await render(image())
+    const currentUrl = container.querySelector('img')!.src
+    const count = requests.length
+    await act(async () => evictDocumentImage(ID, oldEpoch))
+    expect(container.querySelector('img')!.src).toBe(currentUrl)
+    expect(URL.revokeObjectURL).not.toHaveBeenCalledWith(currentUrl)
+    expect(requests).toHaveLength(count)
   })
   it('blocked image window has safe feedback and preserves the current lease', async () => {
     vi.spyOn(window, 'open').mockReturnValue(null)

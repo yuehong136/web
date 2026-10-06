@@ -14,6 +14,7 @@ export interface ReferenceInfo {
 }
 
 export interface ReferenceChunk {
+  document_metadata?: Record<string, unknown>
   id: string
   content: string
   document_id: string

@@ -7,10 +7,14 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { toast } from '@/lib/toast'
 import { useCreateKnowledge } from '@/pages/knowledge/create/use-create-knowledge'
 import i18n from '@/locales/i18n'
+import { useQuickEdit } from '@/pages/knowledge/list/use-quick-edit'
+import type { KnowledgeBase } from '@/types/api'
 
 const createKnowledge = vi.hoisted(() => vi.fn())
+const updateKnowledge = vi.hoisted(() => vi.fn())
 vi.mock('@/hooks/use-knowledge-request', () => ({
   useCreateKnowledge: () => ({ createKnowledge }),
+  useUpdateKnowledge: () => ({ updateKnowledge }),
 }))
 let root: Root
 let container: HTMLDivElement
@@ -97,4 +101,68 @@ it('keeps validation errors next to the draft and never submits invalid input', 
   expect(
     container.querySelector('[data-sonner-toast][data-type="error"]'),
   ).toBeTruthy()
+})
+
+it('submits Chinese and spaced names, and refuses names beyond the UTF-8 byte budget', async () => {
+  createKnowledge.mockResolvedValue({ kb_id: 'created-id' })
+  await act(async () => {
+    form.handleNameChange('  中文 knowledge 2026  ')
+    form.handleModelSelect('embedding-model')
+  })
+  await act(async () => {
+    await form.submit()
+  })
+  expect(createKnowledge).toHaveBeenLastCalledWith(
+    expect.objectContaining({ name: '中文 knowledge 2026' }),
+  )
+  createKnowledge.mockClear()
+  await act(async () => {
+    form.handleNameChange('中'.repeat(43))
+    form.handleModelSelect('embedding-model')
+  })
+  await act(async () => {
+    await form.submit()
+  })
+  expect(createKnowledge).not.toHaveBeenCalled()
+  expect(container.querySelector('p')?.textContent).toContain('128 UTF-8 bytes')
+})
+
+it('quick edit uses the same byte budget and preserves pipeline ownership', async () => {
+  let quick: ReturnType<typeof useQuickEdit>
+  const onUpdated = vi.fn()
+  const Probe = () => {
+    const current = useQuickEdit({
+      editingKnowledgeBase: {
+        id: 'kb',
+        pipeline_id: 'a'.repeat(32),
+      } as KnowledgeBase,
+      onUpdated,
+    })
+    React.useEffect(() => {
+      quick = current
+    }, [current])
+    return null
+  }
+  updateKnowledge.mockReset().mockResolvedValue({})
+  await act(async () => root.render(<Probe />))
+  await act(async () => {
+    await quick.handleQuickEditSubmit({
+      name: '  中文库 - 2026  ',
+      description: null,
+    })
+  })
+  expect(updateKnowledge).toHaveBeenLastCalledWith({
+    kb_id: 'kb',
+    name: '中文库 - 2026',
+    description: null,
+  })
+  expect(onUpdated).toHaveBeenCalledOnce()
+  updateKnowledge.mockClear()
+  await act(async () => {
+    await quick.handleQuickEditSubmit({
+      name: '中'.repeat(43),
+      description: null,
+    })
+  })
+  expect(updateKnowledge).not.toHaveBeenCalled()
 })

@@ -1,3 +1,4 @@
+import type { ReferenceMetadataConfig } from '@/types/reference-metadata'
 export enum SearchExecutionPhase {
   IDLE = 'idle',
   RETRIEVING = 'retrieving',
@@ -29,6 +30,7 @@ export interface LLMSetting {
 }
 
 export interface SearchConfig {
+  reference_metadata?: ReferenceMetadataConfig
   kb_ids: string[]
   similarity_threshold: number
   vector_similarity_weight: number
@@ -78,6 +80,7 @@ export interface SearchAppListItem {
 }
 
 export interface ChunkResult {
+  document_metadata?: Record<string, unknown>
   chunk_id: string
   text: string
   content_with_weight?: string

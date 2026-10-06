@@ -1,5 +1,14 @@
 export default {
   common: {
+    referenceMetadata: {
+      include: 'Include document metadata',
+      hint: 'Selected fields are included in references and model context.',
+      all: 'All fields',
+      none: 'No fields selected',
+      empty: 'No metadata keys found',
+      error: 'Could not load metadata keys. Your selection is preserved.',
+      sources: 'Show sources',
+    },
     avatarUpload: {
       choose: 'Choose an avatar',
       hint: 'Image files, up to 4 MB.',

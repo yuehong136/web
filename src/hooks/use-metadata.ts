@@ -15,6 +15,15 @@ export const metadataKeys = {
   all: ['metadata'] as const,
   summary: (kbId: string, docIds?: string[]) =>
     [...metadataKeys.all, 'summary', kbId, docIds?.join(',') ?? 'all'] as const,
+  fields: (kbId: string) => [...metadataKeys.all, 'fields', kbId] as const,
+}
+
+export function useMetadataFieldKeys(kbId: string | undefined) {
+  return useQuery({
+    queryKey: metadataKeys.fields(kbId ?? ''),
+    queryFn: () => knowledgeAPI.metadata.getKeys([kbId!]),
+    enabled: Boolean(kbId),
+  })
 }
 
 // ============================================================================

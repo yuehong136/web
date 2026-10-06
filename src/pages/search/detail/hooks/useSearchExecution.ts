@@ -289,6 +289,7 @@ export const useSearchExecution = (
               ? config.cross_languages
               : null,
             meta_data_filter: metaDataFilter,
+            reference_metadata: config.reference_metadata,
           })
           .then((result) => {
             if (signal.aborted) return
@@ -312,6 +313,7 @@ export const useSearchExecution = (
                 question: query.trim(),
                 kb_ids: config.kb_ids,
                 search_id: searchApp.id,
+                reference_metadata: config.reference_metadata,
                 signal,
               })
 

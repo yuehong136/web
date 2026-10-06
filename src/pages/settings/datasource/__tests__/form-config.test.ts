@@ -50,7 +50,7 @@ describe('connector configuration contracts', () => {
     })
   })
 
-  it('exposes deletion sync only for approved complete snapshot sources', () => {
+  it('exposes deletion sync only for sources with an approved deletion inventory contract', () => {
     const fields = getDataSourceFormFields(t)
     expect([...deletionSyncSources].sort()).toEqual([
       'airtable',
@@ -68,8 +68,10 @@ describe('connector configuration contracts', () => {
       'notion',
       'oci_storage',
       'r2',
+      'rss',
       's3',
       'seafile',
+      'webdav',
       'zendesk',
     ])
     for (const source of Object.values(DataSourceKey)) {

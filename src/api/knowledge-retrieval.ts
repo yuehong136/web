@@ -1,3 +1,4 @@
+import type { ReferenceMetadataConfig } from '@/types/reference-metadata'
 import { APIError, apiClient } from './client'
 import { knowledgeRestConfig } from './knowledge-config'
 import type { MetadataCondition } from '../types/api'
@@ -13,6 +14,7 @@ export interface DatasetGraphResponse {
 export const knowledgeRetrievalAPI = {
   // 执行检索测试
   test: async (data: {
+    reference_metadata?: ReferenceMetadataConfig
     kb_ids: string[]
     question: string
     page?: number
@@ -44,6 +46,7 @@ export const knowledgeRetrievalAPI = {
   }): Promise<{
     total: number
     chunks: Array<{
+      document_metadata?: Record<string, unknown>
       chunk_id: string
       text: string
       doc_id: string

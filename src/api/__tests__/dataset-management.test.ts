@@ -222,3 +222,44 @@ test('ingestion detail and metadata reads scope encoded dataset and log ids', as
     ['/v1/datasets/metadata/flattened', { dataset_ids: 'kb/1,kb2' }],
   ])
 })
+
+test('dataset updates send pipeline switches through ext and leave unedited associations omitted', async (t) => {
+  const bodies: Record<string, unknown>[] = []
+  t.mock.method(
+    apiClient,
+    'put',
+    async (_path: string, body: Record<string, unknown>) => {
+      bodies.push(body)
+      return {
+        id: 'kb',
+        name: body.name,
+        pipeline_id: (body.ext as { pipeline_id?: string } | undefined)
+          ?.pipeline_id,
+      }
+    },
+  )
+  const selected = await knowledgeAPI.knowledgeBase.update({
+    kb_id: 'kb',
+    name: '中文库',
+    pipeline_id: 'a'.repeat(32),
+    parser_id: null,
+  })
+  assert.equal(selected.pipeline_id, 'a'.repeat(32))
+  assert.deepEqual(bodies[0], {
+    name: '中文库',
+    ext: { pipeline_id: 'a'.repeat(32) },
+  })
+  await knowledgeAPI.knowledgeBase.update({
+    kb_id: 'kb',
+    name: '中文库',
+    pipeline_id: '',
+    parser_id: 'naive',
+  })
+  assert.deepEqual(bodies[1], {
+    name: '中文库',
+    chunk_method: 'naive',
+    ext: { pipeline_id: '' },
+  })
+  await knowledgeAPI.knowledgeBase.update({ kb_id: 'kb', name: 'New name' })
+  assert.deepEqual(bodies[2], { name: 'New name' })
+})

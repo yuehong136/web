@@ -639,12 +639,12 @@ export interface KnowledgeBase {
   token_num: number
   chunk_num: number
   parser_id: string
+  pipeline_id?: string | null
   embd_id: string
   nickname?: string
   tenant_avatar?: string | null
   update_time: number // 时间戳格式
 
-  // 可选字段（用于兼容不同版本的API）
   created_by?: string
   similarity_threshold?: number
   vector_similarity_weight?: number
@@ -715,12 +715,12 @@ export interface UpdateKBRequest {
   permission?: string | null
   avatar?: string | null
   parser_id?: string | null
+  pipeline_id?: string
   parser_config?: Record<string, any> | null
   embd_id?: string | null
   pagerank?: number | null
 }
 
-// 后端知识库列表请求
 export interface ListKbsRequest {
   owner_ids?: string[]
 }

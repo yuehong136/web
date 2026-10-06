@@ -26,14 +26,25 @@
   `enable_children=false`、`children_delimiter=""`，完整重载后仍保持关闭。
 - 配置默认值保留明确的 `false`，包括 RAPTOR、GraphRAG 和自动元数据开关。
 
+## 名称校验
+
+创建、快速编辑与设置保存复用 `src/lib/knowledge/name.ts`：去除首尾空白后非空，
+最多 128 个 UTF-8 字节。支持中文、空格、数字开头及标点，清除历史 100 字符与
+字母开头规则。字节预算与 MultiRAG 创建服务一致；重复名称与具体存储引擎约束
+仍由服务端决定，Web 不预设额外字符规则。
+
 ## 其他契约边界
 
 自动元数据字段仍为 `parser_config.metadata`；内置字段为 `built_in_metadata`。
 分块保存必须保留 metadata，省略的内置配置由后端合并保留。
 文档级配置继续使用文档自己的 PATCH 与草稿生命周期。
 
-Pipeline 类型和访问权限沿用现有页面与后端约束。知识库 Pipeline 选择器仍未接入
-实际 Pipeline 列表/保存接口；本契约不扩大该能力。
+Pipeline 选择复用文档级目录查询，按知识库 `tenant_id` 和 `dataflow_canvas` 筛选，
+支持搜索、分页、失败重试及已选项回查。不可用的已有选择保留并提示，不自动替换。
+Pipeline 模式只校验 `pipeline_id`，不要求填写内置解析器；保存通过 PUT 的
+`ext.pipeline_id` 传递（当前 MultiRAG 更新模型不接收顶层 `pipeline_id`）。
+切回内置时明确发送空 `ext.pipeline_id` 并提交 `chunk_method`，清除旧关联。
+只改名称/描述的快速编辑省略 Pipeline 字段，保留现有关联。
 
 当前详情页没有数据集总 `size` 的展示消费者。关联连接器通过
 `useDataSourceByKb` 的独立领域查询获取，不依赖详情 `connectors`；

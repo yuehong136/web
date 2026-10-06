@@ -1,5 +1,31 @@
 export default {
   routeErrors: {
+    unavailable: {
+      knowledgeImport: {
+        title: 'Knowledge base import is unavailable',
+        description:
+          'Whole knowledge base import is not supported. Open a knowledge base to upload files or connect a data source.',
+        action: 'Open knowledge bases',
+      },
+      documents: {
+        title: 'File center is unavailable',
+        description:
+          'Files are currently managed within each knowledge base. Open a knowledge base to upload and manage its documents.',
+        action: 'Open knowledge bases',
+      },
+      workflow: {
+        title: 'Workflow center is unavailable',
+        description:
+          'Use the Agents workspace to manage agents and data pipelines.',
+        action: 'Open Agents',
+      },
+      appearance: {
+        title: 'Appearance settings page is unavailable',
+        description:
+          'Use the theme and language controls in the sidebar to change your preferences.',
+        action: 'Go to home',
+      },
+    },
     notFound: {
       title: 'Page not found',
       description: 'The address you requested does not exist or has changed.',

@@ -6,13 +6,10 @@ import {
   useParams,
 } from 'react-router-dom'
 import { Layout } from '@/components/layout/Layout'
-import {
-  AppScene,
-  PageEmptyState,
-  PageLoadingState,
-} from '@/components/patterns'
+import { AppScene, PageLoadingState } from '@/components/patterns'
 import { ROUTES } from '@/constants'
 import { ErrorFallback, NotFoundPage } from '@/pages/error'
+import { UnavailableFeaturePage } from '@/pages/error/unavailable-feature-page'
 import { skillRoutes } from '@/pages/skills/skill-routes'
 
 // ---------------------------------------------------------------------------
@@ -94,10 +91,7 @@ const KnowledgeCreatePage = lazyNamed(
   () => import('@/pages/knowledge/KnowledgeCreatePage'),
   'KnowledgeCreatePage',
 )
-const KnowledgeImportPage = lazyNamed(
-  () => import('@/pages/knowledge/KnowledgeImportPage'),
-  'KnowledgeImportPage',
-)
+
 const DocumentChunksPage = lazyNamed(
   () => import('@/pages/knowledge/DocumentChunksPage'),
   'DocumentChunksPage',
@@ -235,41 +229,6 @@ const ThemeDemoPage = lazyNamed(
 )
 
 // ---------------------------------------------------------------------------
-// Placeholder pages
-// ---------------------------------------------------------------------------
-function placeholderElement(
-  scene: AppScene,
-  title: string,
-  description: string,
-) {
-  return (
-    <div className="flex h-full items-center justify-center p-space-lg">
-      <PageEmptyState
-        scene={scene}
-        title={title}
-        description={description}
-        compact
-      />
-    </div>
-  )
-}
-
-const documentsElement = placeholderElement(
-  AppScene.CONSOLE,
-  '文件中心即将推出',
-  '文件中心能力正在整理为统一控制台体验。',
-)
-const workflowElement = placeholderElement(
-  AppScene.STUDIO,
-  '工作流模块即将推出',
-  '工作流会在后续以统一 Studio 骨架接入。',
-)
-const appearanceElement = placeholderElement(
-  AppScene.CONSOLE,
-  '界面设置即将推出',
-  '界面设置会在新骨架和主题规则稳定后接入。',
-)
-
 function AgentLogRedirect() {
   const { id } = useParams<{ id: string }>()
   return (
@@ -391,7 +350,7 @@ const topLevelRoutes: RouteObject[] = [
       },
       {
         path: '/knowledge/import',
-        element: withLoading(KnowledgeImportPage),
+        element: <UnavailableFeaturePage feature="knowledgeImport" />,
       },
       {
         path: '/knowledge/:id',
@@ -435,7 +394,7 @@ const topLevelRoutes: RouteObject[] = [
       },
       {
         path: ROUTES.DOCUMENTS,
-        element: documentsElement,
+        element: <UnavailableFeaturePage feature="documents" />,
       },
       {
         path: ROUTES.AI_TOOLS,
@@ -451,7 +410,7 @@ const topLevelRoutes: RouteObject[] = [
       },
       {
         path: ROUTES.WORKFLOW,
-        element: workflowElement,
+        element: <UnavailableFeaturePage feature="workflow" />,
       },
       {
         path: ROUTES.AGENTS,
@@ -531,7 +490,7 @@ const topLevelRoutes: RouteObject[] = [
           },
           {
             path: 'appearance',
-            element: appearanceElement,
+            element: <UnavailableFeaturePage feature="appearance" />,
           },
           {
             path: 'model-providers',

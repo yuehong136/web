@@ -1,6 +1,10 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { knowledgeAPI } from '@/api/knowledge'
+import {
+  evictDocumentImage,
+  getDocumentImageEpoch,
+} from '@/lib/document-image-resources'
 import { MutationErrorFeedback } from '@/lib/mutation-error-feedback'
 
 interface UseChunkActionsOptions {
@@ -88,10 +92,27 @@ export const useChunkActions = ({
   })
   const setChunkMutation = useMutation({
     meta: mutationMeta,
-    mutationFn: ({
+    mutationFn: async ({
       request,
-    }: OwnedRequest<ChunkContent & { chunk_id: string }>) =>
-      knowledgeAPI.document.setChunk(request),
+    }: OwnedRequest<
+      ChunkContent & {
+        chunk_id: string
+        imageId?: string
+        image_update_mode?: 'append' | 'replace'
+      }
+    >) => {
+      const { imageId, ...payload } = request
+      const imageEpoch = getDocumentImageEpoch()
+      const result = await knowledgeAPI.document.setChunk(payload)
+      if (payload.image_base64) {
+        for (const id of new Set([
+          imageId,
+          `${payload.kb_id}-${payload.chunk_id}`,
+        ]))
+          if (id) evictDocumentImage(id, imageEpoch)
+      }
+      return result
+    },
     onSuccess: complete,
   })
   const deleteChunksMutation = useMutation({
@@ -145,6 +166,8 @@ export const useChunkActions = ({
       important_kwd?: string[]
       question_kwd?: string[]
       image_base64?: string
+      image_update_mode?: 'append' | 'replace'
+      imageId?: string
     }) => {
       const { chunkId, content, ...fields } = params
       return setChunkMutation.mutateAsync(
