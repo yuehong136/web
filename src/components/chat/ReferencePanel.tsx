@@ -1,22 +1,19 @@
-import { ReferenceMetadataBadges } from '@/components/chat/reference-metadata-badges'
 /**
  * 引用面板组件
  * 用于在消息底部展示引用的文档来源，支持按文档分组、折叠展开
  *
  * 展示组件原则：只接收 props，不包含业务逻辑
  */
-import { useMemo, useState, type FC } from 'react'
+import { useId, useMemo, useState, type FC } from 'react'
+import { ChevronDown, ChevronRight, BookOpen } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { useId } from 'react'
+import { ReferenceMetadataBadges } from '@/components/chat/reference-metadata-badges'
 import {
-  FileText,
-  Table2,
-  Image,
-  ChevronDown,
-  ChevronRight,
-  BookOpen,
-  FileType,
-} from 'lucide-react'
+  getDocTypeIcon,
+  getDocTypeLabelKey,
+  toPlainText,
+  truncateText,
+} from './reference-meta'
 import { cn } from '@/lib/utils'
 import type { ReferenceChunk } from '@/utils/reference-replacer'
 
@@ -43,98 +40,13 @@ export interface ReferencePanelProps {
   defaultExpanded?: boolean
 }
 
-/**
- * 获取文档类型图标
- */
-function getDocTypeIcon(
-  docType?: string,
-  docName?: string,
-  size: 'sm' | 'md' = 'sm',
-) {
-  const sizeClass = size === 'sm' ? 'h-3.5 w-3.5' : 'h-4 w-4'
+const FOCUS_RING_CLASS =
+  'focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden'
 
-  if (docType === 'table') {
-    return (
-      <Table2
-        className={sizeClass}
-        style={{ color: 'var(--color-text-accent)' }}
-      />
-    )
-  }
-  if (docType === 'image') {
-    return (
-      <Image
-        className={sizeClass}
-        style={{ color: 'var(--color-text-success)' }}
-      />
-    )
-  }
-
-  if (docName) {
-    const ext = docName.split('.').pop()?.toLowerCase()
-    switch (ext) {
-      case 'pdf':
-        return (
-          <FileText
-            className={sizeClass}
-            style={{ color: 'var(--color-text-error)' }}
-          />
-        )
-      case 'doc':
-      case 'docx':
-        return (
-          <FileText
-            className={sizeClass}
-            style={{ color: 'var(--color-text-accent)' }}
-          />
-        )
-      case 'xls':
-      case 'xlsx':
-        return (
-          <Table2
-            className={sizeClass}
-            style={{ color: 'var(--color-text-success)' }}
-          />
-        )
-      case 'md':
-      case 'mdx':
-        return (
-          <FileType
-            className={sizeClass}
-            style={{ color: 'var(--color-text-secondary)' }}
-          />
-        )
-    }
-  }
-
-  return (
-    <FileText
-      className={sizeClass}
-      style={{ color: 'var(--color-text-tertiary)' }}
-    />
-  )
-}
-
-/**
- * 获取相似度颜色
- */
-function getSimilarityColor(similarity: number): string {
-  if (similarity >= 0.8) return 'var(--color-text-success)'
-  if (similarity >= 0.6) return 'var(--color-text-accent)'
-  return 'var(--color-text-tertiary)'
-}
-
-/**
- * 截取内容摘要
- */
-function truncateContent(content: string, maxLength = 80): string {
-  if (!content) return ''
-  const textContent = content
-    .replace(/<[^>]*>/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-  if (textContent.length <= maxLength) return textContent
-  return textContent.slice(0, maxLength) + '...'
+interface DocumentGroupData {
+  /** 文档名；缺失时为空串，渲染时显示“未知文档” */
+  docName: string
+  chunks: Array<{ chunk: ReferenceChunk; index: number }>
 }
 
 /**
@@ -142,23 +54,8 @@ function truncateContent(content: string, maxLength = 80): string {
  */
 function groupChunksByDocument(
   chunks: ReferenceChunk[],
-  unknownDocument: string,
-): Map<
-  string,
-  {
-    docName: string
-    docId: string
-    chunks: Array<{ chunk: ReferenceChunk; index: number }>
-  }
-> {
-  const groups = new Map<
-    string,
-    {
-      docName: string
-      docId: string
-      chunks: Array<{ chunk: ReferenceChunk; index: number }>
-    }
-  >()
+): Map<string, DocumentGroupData> {
+  const groups = new Map<string, DocumentGroupData>()
 
   chunks.forEach((chunk, index) => {
     const docId = chunk.document_id || 'unknown'
@@ -169,8 +66,7 @@ function groupChunksByDocument(
       existing.chunks.push({ chunk, index })
     } else {
       groups.set(groupKey, {
-        docName: chunk.document_name || unknownDocument,
-        docId,
+        docName: chunk.document_name || '',
         chunks: [{ chunk, index }],
       })
     }
@@ -180,7 +76,8 @@ function groupChunksByDocument(
 }
 
 /**
- * 单个 Chunk 项组件
+ * 单个 Chunk 项组件。来源列表用于阅读与定位片段，不展示检索匹配评分：
+ * 评分只在详情侧栏的诊断区展示。
  */
 interface ChunkItemProps {
   chunk: ReferenceChunk
@@ -190,27 +87,20 @@ interface ChunkItemProps {
 
 const ChunkItem: FC<ChunkItemProps> = ({ chunk, index, onClick }) => {
   const { t } = useTranslation()
-  const similarity = chunk.similarity ?? 0
-  const similarityPercent = Math.round(similarity * 100)
-  const similarityColor = getSimilarityColor(similarity)
   const displayIndex = chunk.reference_index ?? index + 1
 
   return (
     <button
+      type="button"
       className={cn(
         'flex w-full items-start gap-2 rounded-md px-3 py-2 text-left transition-colors',
-        'hover:bg-[var(--color-state-hover)]',
+        'hover:bg-state-hover',
+        FOCUS_RING_CLASS,
       )}
       onClick={() => onClick?.(chunk)}
     >
       {/* 索引标记 */}
-      <span
-        className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-xs font-medium"
-        style={{
-          backgroundColor: 'var(--color-state-focus-10)',
-          color: 'var(--color-text-accent)',
-        }}
-      >
+      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-state-focus-10 text-xs font-medium text-text-accent">
         {displayIndex}
       </span>
 
@@ -218,40 +108,20 @@ const ChunkItem: FC<ChunkItemProps> = ({ chunk, index, onClick }) => {
       <div className="min-w-0 flex-1">
         <div className="mb-0.5 flex items-center gap-2">
           {/* 类型标签 */}
-          <span
-            className="rounded px-1.5 py-0.5 text-xs"
-            style={{
-              backgroundColor: 'var(--color-background-subtle)',
-              color: 'var(--color-text-tertiary)',
-            }}
-          >
-            {t(
-              `chat.references.${chunk.doc_type === 'table' ? 'table' : chunk.doc_type === 'image' ? 'image' : 'text'}`,
-            )}
+          <span className="rounded bg-background-subtle px-1.5 py-0.5 text-xs text-text-tertiary">
+            {t(getDocTypeLabelKey(chunk.doc_type))}
           </span>
-          {/* 相似度 */}
-          {chunk.similarity !== undefined && (
-            <span
-              className="text-xs font-medium"
-              style={{ color: similarityColor }}
-            >
-              {similarityPercent}%
-            </span>
-          )}
         </div>
         <ReferenceMetadataBadges metadata={chunk.document_metadata} />
         {/* 内容摘要 */}
-        <p
-          className="line-clamp-2 text-sm"
-          style={{ color: 'var(--color-text-secondary)' }}
-        >
-          {truncateContent(chunk.content || '', 100)}
+        <p className="line-clamp-2 text-sm text-text-secondary">
+          {truncateText(toPlainText(chunk.content), 100)}
         </p>
       </div>
 
       <ChevronRight
-        className="mt-0.5 h-4 w-4 shrink-0"
-        style={{ color: 'var(--color-text-tertiary)' }}
+        aria-hidden
+        className="mt-0.5 size-icon-sm shrink-0 text-text-tertiary"
       />
     </button>
   )
@@ -279,6 +149,7 @@ const DocumentGroup: FC<DocumentGroupProps> = ({
   const [expanded, setExpanded] = useState(false)
   const visibleChunks = expanded ? chunks : chunks.slice(0, defaultVisible)
   const hasMore = chunks.length > defaultVisible
+  const displayName = docName || t('reference.unknownDocument')
 
   // 获取文档的主要类型图标（取第一个 chunk 的类型）
   const primaryChunk = chunks[0]?.chunk
@@ -288,53 +159,30 @@ const DocumentGroup: FC<DocumentGroupProps> = ({
       className={
         inline
           ? 'overflow-hidden border-l border-border-subtle pl-space-xs'
-          : 'overflow-hidden rounded-lg'
-      }
-      style={
-        inline
-          ? undefined
-          : {
-              backgroundColor: 'var(--color-components-card-bg)',
-              border: '1px solid var(--color-components-card-border)',
-            }
+          : 'overflow-hidden rounded-lg border border-components-card-border bg-components-card-bg'
       }
     >
       {/* 文档头部 */}
       <div
-        className="flex items-center gap-2 px-3 py-2"
-        style={
-          inline
-            ? undefined
-            : {
-                backgroundColor: 'var(--color-background-subtle)',
-                borderBottom: '1px solid var(--color-border-subtle)',
-              }
-        }
+        className={cn(
+          'flex items-center gap-2 px-3 py-2',
+          !inline && 'border-b border-border-subtle bg-background-subtle',
+        )}
       >
-        {getDocTypeIcon(primaryChunk?.doc_type, docName, 'md')}
+        {getDocTypeIcon(primaryChunk?.doc_type, docName, 'size-icon-sm')}
         <span
-          className="flex-1 truncate text-sm font-medium"
-          style={{ color: 'var(--color-text-primary)' }}
-          title={docName}
+          className="flex-1 truncate text-sm font-medium text-text-primary"
+          title={displayName}
         >
-          {docName}
+          {displayName}
         </span>
-        <span
-          className="rounded-full px-1.5 py-0.5 text-xs"
-          style={{
-            backgroundColor: 'var(--color-background-default)',
-            color: 'var(--color-text-tertiary)',
-          }}
-        >
-          {t('chat.references.count', { count: chunks.length })}
+        <span className="rounded-full bg-background-default px-1.5 py-0.5 text-xs text-text-tertiary">
+          {t('reference.panel.chunkCount', { count: chunks.length })}
         </span>
       </div>
 
       {/* Chunk 列表 */}
-      <div
-        className="divide-y"
-        style={{ borderColor: 'var(--color-border-subtle)' }}
-      >
+      <div className="divide-y divide-border-subtle">
         {visibleChunks.map(({ chunk, index }) => (
           <ChunkItem
             key={`${chunk.id || chunk.document_id || 'chunk'}-${index}`}
@@ -348,24 +196,25 @@ const DocumentGroup: FC<DocumentGroupProps> = ({
       {/* 展开更多按钮 */}
       {hasMore && (
         <button
-          className="flex w-full items-center justify-center gap-1 px-3 py-2 text-xs font-medium transition-colors"
-          style={{
-            color: 'var(--color-text-accent)',
-            borderTop: '1px solid var(--color-border-subtle)',
-          }}
+          type="button"
+          aria-expanded={expanded}
+          className={cn(
+            'flex w-full items-center justify-center gap-1 border-t border-border-subtle px-3 py-2 text-xs font-medium text-text-accent transition-colors',
+            FOCUS_RING_CLASS,
+          )}
           onClick={() => setExpanded(!expanded)}
         >
           {expanded ? (
             <>
-              <ChevronDown className="h-3 w-3" />
-              {t('chat.references.collapse')}
+              <ChevronDown aria-hidden className="size-icon-xs" />
+              {t('reference.panel.showLess')}
             </>
           ) : (
             <>
-              {t('chat.references.more', {
+              {t('reference.panel.showMore', {
                 count: chunks.length - defaultVisible,
               })}
-              <ChevronRight className="h-3 w-3" />
+              <ChevronRight aria-hidden className="size-icon-xs" />
             </>
           )}
         </button>
@@ -391,84 +240,63 @@ export const ReferencePanel: FC<ReferencePanelProps> = ({
   const [isExpanded, setIsExpanded] = useState(defaultExpanded)
 
   // 按文档分组
-  const documentGroups = useMemo(
-    () => groupChunksByDocument(chunks, t('chat.references.unknownDocument')),
-    [chunks, t],
-  )
+  const documentGroups = useMemo(() => groupChunksByDocument(chunks), [chunks])
 
   const documentCount = documentGroups.size
   const totalChunks = chunks.length
 
   if (totalChunks === 0) return null
 
+  const ToggleIcon = isExpanded ? ChevronDown : ChevronRight
+
   return (
     <div className={cn('@container mt-4', className)}>
       {/* 面板头部；窄容器（如 Studio 预览气泡）只显示引用数，标题不折行 */}
       <button
+        type="button"
         aria-expanded={isExpanded}
         aria-controls={contentId}
         className={cn(
-          'flex items-center gap-2 rounded-md py-1 text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-2 focus-visible:outline-border-accent',
-          inline ? 'max-w-full' : 'w-full px-3 py-2',
-        )}
-        style={
+          'flex items-center gap-2 transition-colors',
           inline
-            ? undefined
-            : {
-                backgroundColor: 'var(--color-background-subtle)',
-                border: '1px solid var(--color-border-subtle)',
-              }
-        }
+            ? 'max-w-full rounded-md py-1 text-text-secondary hover:text-text-primary'
+            : 'w-full rounded-lg border border-border-subtle bg-background-subtle px-3 py-2',
+          FOCUS_RING_CLASS,
+        )}
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <BookOpen
-          className="h-4 w-4 shrink-0"
-          style={{ color: 'var(--color-text-accent)' }}
+          aria-hidden
+          className="size-icon-sm shrink-0 text-text-accent"
         />
-        <span
-          className="flex-1 text-left text-sm font-medium whitespace-nowrap"
-          style={{ color: 'var(--color-text-primary)' }}
-        >
-          {t('chat.references.sources')}
+        <span className="flex-1 text-left text-sm font-medium whitespace-nowrap text-text-primary">
+          {t('reference.panel.title')}
         </span>
         <span
           className={cn(
             'shrink-0 text-xs whitespace-nowrap',
-            !inline && 'rounded-full px-2 py-0.5',
+            !inline &&
+              'rounded-full bg-state-focus-10 px-2 py-0.5 text-text-accent',
           )}
-          style={
-            inline
-              ? undefined
-              : {
-                  backgroundColor: 'var(--color-state-focus-10)',
-                  color: 'var(--color-text-accent)',
-                }
-          }
         >
           <span className="hidden @2xs:inline">
-            {t('chat.references.documents', { count: documentCount })} ·{' '}
+            {t('reference.panel.documentCount', { count: documentCount })}
+            {' · '}
           </span>
-          {t('chat.references.count', { count: totalChunks })}
+          {t('reference.panel.chunkCount', { count: totalChunks })}
         </span>
-        {isExpanded ? (
-          <ChevronDown
-            className="h-4 w-4 shrink-0"
-            style={{ color: 'var(--color-text-tertiary)' }}
-          />
-        ) : (
-          <ChevronRight
-            className="h-4 w-4 shrink-0"
-            style={{ color: 'var(--color-text-tertiary)' }}
-          />
-        )}
+        <ToggleIcon
+          aria-hidden
+          className="size-icon-sm shrink-0 text-text-tertiary"
+        />
       </button>
 
       {/* 展开内容 */}
       {isExpanded && (
         <div id={contentId} className="mt-2 space-y-2">
-          {Array.from(documentGroups.entries()).map(([_docId, group]) => (
+          {Array.from(documentGroups.entries()).map(([groupKey, group]) => (
             <DocumentGroup
-              key={_docId}
+              key={groupKey}
               inline={inline}
               docName={group.docName}
               chunks={group.chunks}

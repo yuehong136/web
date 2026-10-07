@@ -1,112 +1,78 @@
 /**
- * 引用展示共享辅助：文档类型图标/标签、相似度颜色/等级、ID 截断。
- * ReferenceMarker 与 ReferenceDetailSheet 共用（原各自维护一份重复实现，
- * 随文件体积拆分合并到此处）。纯函数/纯展示，无业务状态。
+ * 引用展示共享辅助：文档类型图标与标签、纯文本摘要、ID 截断和打开原文。
+ * ReferenceMarker、ReferencePanel 与 ReferenceDetailSheet 共用（原先各自
+ * 维护一份重复实现）。纯函数/纯展示，无业务状态。
  */
 import { FileText, FileType, Image, Table2 } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import type { ReferenceChunk } from '@/utils/reference-replacer'
 
 /**
- * 获取文档类型图标
+ * 文档类型图标。仅作装饰：文档名和类型标签另以文字给出。
  */
 export function getDocTypeIcon(
   docType?: string,
   docName?: string,
-  className = 'h-5 w-5',
+  className = 'size-icon-md',
 ) {
-  // 根据 doc_type 判断
+  const iconClass = (color: string) => cn('shrink-0', color, className)
+
   if (docType === 'table') {
-    return (
-      <Table2
-        className={className}
-        style={{ color: 'var(--color-text-accent)' }}
-      />
-    )
+    return <Table2 aria-hidden className={iconClass('text-text-accent')} />
   }
   if (docType === 'image') {
-    return (
-      <Image
-        className={className}
-        style={{ color: 'var(--color-text-success)' }}
-      />
-    )
+    return <Image aria-hidden className={iconClass('text-text-success')} />
   }
 
-  // 根据文件扩展名判断
-  if (docName) {
-    const ext = docName.split('.').pop()?.toLowerCase()
-    switch (ext) {
-      case 'pdf':
-        return (
-          <FileText
-            className={className}
-            style={{ color: 'var(--color-text-error)' }}
-          />
-        )
-      case 'doc':
-      case 'docx':
-        return (
-          <FileText
-            className={className}
-            style={{ color: 'var(--color-text-accent)' }}
-          />
-        )
-      case 'xls':
-      case 'xlsx':
-        return (
-          <Table2
-            className={className}
-            style={{ color: 'var(--color-text-success)' }}
-          />
-        )
-      case 'md':
-      case 'mdx':
-        return (
-          <FileType
-            className={className}
-            style={{ color: 'var(--color-text-secondary)' }}
-          />
-        )
-    }
+  switch (docName?.split('.').pop()?.toLowerCase()) {
+    case 'pdf':
+      return <FileText aria-hidden className={iconClass('text-text-error')} />
+    case 'doc':
+    case 'docx':
+      return <FileText aria-hidden className={iconClass('text-text-accent')} />
+    case 'xls':
+    case 'xlsx':
+      return <Table2 aria-hidden className={iconClass('text-text-success')} />
+    case 'md':
+    case 'mdx':
+      return (
+        <FileType aria-hidden className={iconClass('text-text-secondary')} />
+      )
   }
 
-  return (
-    <FileText
-      className={className}
-      style={{ color: 'var(--color-text-tertiary)' }}
-    />
-  )
+  return <FileText aria-hidden className={iconClass('text-text-tertiary')} />
 }
 
 /**
- * 获取文档类型标签
+ * 文档类型标签的 i18n key
  */
-export function getDocTypeLabel(docType?: string): string {
+export function getDocTypeLabelKey(docType?: string): string {
   switch (docType) {
     case 'table':
-      return '表格'
+      return 'reference.docType.table'
     case 'image':
-      return '图片'
+      return 'reference.docType.image'
     default:
-      return '文本'
+      return 'reference.docType.text'
   }
 }
 
 /**
- * 获取相似度颜色
+ * 去掉 HTML 标签并合并空白，得到按纯文本展示或复制的内容
  */
-export function getSimilarityColor(similarity: number): string {
-  if (similarity >= 0.8) return 'var(--color-text-success)'
-  if (similarity >= 0.6) return 'var(--color-text-accent)'
-  return 'var(--color-text-tertiary)'
+export function toPlainText(content?: string | null): string {
+  if (!content) return ''
+  return content
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
 }
 
 /**
- * 获取相似度等级标签
+ * 截取摘要
  */
-export function getSimilarityLabel(similarity: number): string {
-  if (similarity >= 0.8) return '高度匹配'
-  if (similarity >= 0.6) return '较为相关'
-  return '可能相关'
+export function truncateText(text: string, maxLength: number): string {
+  return text.length <= maxLength ? text : `${text.slice(0, maxLength)}...`
 }
 
 /**
@@ -115,4 +81,19 @@ export function getSimilarityLabel(similarity: number): string {
 export function truncateId(id: string, maxLength = 12): string {
   if (!id || id.length <= maxLength) return id
   return id.slice(0, maxLength) + '...'
+}
+
+/**
+ * 在新标签页打开文档预览。预览页展示完整文档，不会定位到引用片段。
+ */
+export function openDocumentPreview(
+  chunk: Pick<ReferenceChunk, 'document_id' | 'document_name'>,
+) {
+  if (!chunk.document_id) return
+  const params = new URLSearchParams()
+  if (chunk.document_name) params.set('name', chunk.document_name)
+  window.open(
+    `/document/${encodeURIComponent(chunk.document_id)}/preview?${params.toString()}`,
+    '_blank',
+  )
 }

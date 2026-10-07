@@ -1,20 +1,26 @@
-import { ReferenceMetadataBadges } from '@/components/chat/reference-metadata-badges'
 /**
  * 内联引用标记组件
- * 用于在消息内容中展示引用标记，支持悬浮显示详情
+ * 用于在消息内容中展示引用标记，点击或用键盘打开浮层查看引用摘要
  *
  * 展示组件原则：只接收 props，不包含业务逻辑
  */
-import React from 'react'
+import type { FC, ReactNode } from 'react'
 import { Copy, ChevronRight, ExternalLink } from 'lucide-react'
 import type { Config } from 'dompurify'
+import { useTranslation } from 'react-i18next'
+import { ReferenceMetadataBadges } from '@/components/chat/reference-metadata-badges'
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { SafeHtml } from '@/components/ui/safe-html'
-import { getDocTypeIcon, getSimilarityColor } from './reference-meta'
+import {
+  getDocTypeIcon,
+  openDocumentPreview,
+  toPlainText,
+  truncateText,
+} from './reference-meta'
 import { cn } from '@/lib/utils'
 import type { ReferenceChunk } from '@/utils/reference-replacer'
 
@@ -28,21 +34,7 @@ export interface ReferenceMarkerProps {
   /** 复制内容回调 */
   onCopy?: (content: string) => void
   /** XMarkdown 组件传入的 children */
-  children?: React.ReactNode
-}
-
-/**
- * 截取内容摘要
- */
-function truncateContent(content: string, maxLength = 150): string {
-  if (!content) return ''
-  // 移除 HTML 标签
-  const textContent = content
-    .replace(/<[^>]*>/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-  if (textContent.length <= maxLength) return textContent
-  return textContent.slice(0, maxLength) + '...'
+  children?: ReactNode
 }
 
 // 表格预览白名单（chunk 内容来自文档解析，按不可信输入对待）
@@ -51,16 +43,23 @@ const TABLE_PREVIEW_PURIFY_OPTIONS: Config = {
   ALLOWED_ATTR: ['rowspan', 'colspan', 'class'],
 }
 
+const FOOTER_BUTTON_CLASS = cn(
+  'flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs transition-colors hover:opacity-80',
+  'focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden',
+)
+
 /**
- * 内联引用标记组件
+ * 内联引用标记组件。浮层只做阅读时的快速预览，不展示检索匹配评分：
+ * 评分只说明检索阶段的排序，放在详情侧栏的诊断区（ReferenceDiagnostics）。
  */
-export const ReferenceMarker: React.FC<ReferenceMarkerProps> = ({
+export const ReferenceMarker: FC<ReferenceMarkerProps> = ({
   index,
   chunk,
   onViewDetail,
   onCopy,
   children,
 }) => {
+  const { t } = useTranslation()
   const displayIndex =
     chunk?.reference_index !== undefined
       ? chunk.reference_index
@@ -68,24 +67,20 @@ export const ReferenceMarker: React.FC<ReferenceMarkerProps> = ({
         ? children + 1
         : index + 1
 
-  // 如果找不到对应引用，显示普通上标
+  // 找不到对应引用时保留普通上标文本，不做没有操作的按钮
   if (!chunk) {
     return (
-      <sup
-        className="mx-0.5 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded px-1 text-xs font-medium"
-        style={{
-          backgroundColor: 'var(--color-background-subtle)',
-          color: 'var(--color-text-tertiary)',
-        }}
-      >
+      <sup className="mx-0.5 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded bg-background-subtle px-1 text-xs font-medium text-text-tertiary">
         {displayIndex}
       </sup>
     )
   }
 
-  const similarity = chunk.similarity ?? 0
-  const similarityPercent = Math.round(similarity * 100)
-  const similarityColor = getSimilarityColor(similarity)
+  const documentName = chunk.document_name || t('reference.unknownDocument')
+  const label = t('reference.marker.label', {
+    index: displayIndex,
+    name: documentName,
+  })
   const isTableContent =
     chunk.doc_type === 'table' && chunk.content?.includes('<table')
 
@@ -96,60 +91,39 @@ export const ReferenceMarker: React.FC<ReferenceMarkerProps> = ({
         <PopoverTrigger asChild>
           <button
             type="button"
+            aria-label={label}
             className={cn(
               'inline-flex cursor-pointer items-center justify-center',
               'mx-0.5 -mt-1 h-[20px] min-w-[20px] px-1.5',
-              'rounded-md text-xs font-semibold',
+              'rounded-md bg-state-focus-10 text-xs font-semibold text-text-accent',
               'transition-all duration-200 ease-out',
               'hover:scale-110 hover:shadow-xs',
               'focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden',
             )}
-            style={{
-              backgroundColor: 'var(--color-state-focus-10)',
-              color: 'var(--color-text-accent)',
-              borderColor: 'var(--color-border-accent)',
-            }}
           >
             {displayIndex}
           </button>
         </PopoverTrigger>
       </sup>
       <PopoverContent
+        aria-label={label}
         className="w-80 overflow-hidden rounded-xl p-0"
         align="start"
         sideOffset={8}
       >
-        <div
-          className="flex flex-col"
-          style={{ backgroundColor: 'var(--color-components-card-bg)' }}
-        >
-          {/* 头部 - 文档信息 + 相似度 badge */}
-          <div
-            className="flex items-center gap-2.5 px-3.5 py-2.5"
-            style={{
-              borderBottom: '1px solid var(--color-border-subtle)',
-              backgroundColor: 'var(--color-background-subtle)',
-            }}
-          >
-            {getDocTypeIcon(chunk.doc_type, chunk.document_name, 'h-4 w-4')}
-            <div className="min-w-0 flex-1">
-              <span
-                className="block truncate text-sm font-medium"
-                style={{ color: 'var(--color-text-primary)' }}
-                title={chunk.document_name}
-              >
-                {chunk.document_name || '未知文档'}
-              </span>
-            </div>
+        <div className="flex flex-col bg-components-card-bg">
+          {/* 头部 - 文档信息 */}
+          <div className="flex items-center gap-2.5 border-b border-border-subtle bg-background-subtle px-3.5 py-2.5">
+            {getDocTypeIcon(
+              chunk.doc_type,
+              chunk.document_name,
+              'size-icon-sm',
+            )}
             <span
-              className="shrink-0 rounded-full px-2 py-0.5 text-xs font-medium"
-              style={{
-                backgroundColor: similarityColor,
-                // 反色文字随主题翻转（浅色白字、暗色深字），三档相似度底色上都可读
-                color: 'var(--color-text-inverted)',
-              }}
+              className="block min-w-0 flex-1 truncate text-sm font-medium text-text-primary"
+              title={documentName}
             >
-              {similarityPercent}%
+              {documentName}
             </span>
           </div>
 
@@ -158,90 +132,62 @@ export const ReferenceMarker: React.FC<ReferenceMarkerProps> = ({
           <div className="px-3.5 py-3">
             {isTableContent ? (
               <SafeHtml
-                className="max-h-32 overflow-auto rounded-md p-2 text-sm"
-                style={{
-                  backgroundColor: 'var(--color-background-subtle)',
-                  color: 'var(--color-text-primary)',
-                }}
+                className="max-h-32 overflow-auto rounded-md bg-background-subtle p-2 text-sm text-text-primary"
                 html={chunk.content || ''}
                 options={TABLE_PREVIEW_PURIFY_OPTIONS}
               />
             ) : (
-              <p
-                className="m-0 line-clamp-4 text-sm leading-[1.7]"
-                style={{ color: 'var(--color-text-secondary)' }}
-              >
-                {truncateContent(chunk.content || '', 200)}
+              <p className="m-0 line-clamp-4 text-sm leading-[1.7] text-text-secondary">
+                {truncateText(toPlainText(chunk.content), 200)}
               </p>
             )}
           </div>
 
           {/* 操作按钮 */}
-          <div
-            className="flex items-center gap-1 px-2.5 py-2"
-            style={{
-              borderTop: '1px solid var(--color-border-subtle)',
-            }}
-          >
+          <div className="flex items-center gap-1 border-t border-border-subtle px-2.5 py-2">
             <button
-              className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs transition-colors hover:opacity-80"
-              style={{
-                color: 'var(--color-text-secondary)',
-                backgroundColor: 'transparent',
-              }}
+              type="button"
+              className={cn(FOOTER_BUTTON_CLASS, 'text-text-secondary')}
               onClick={(e) => {
                 e.stopPropagation()
-                if (chunk.content) {
-                  const textContent = chunk.content
-                    .replace(/<[^>]*>/g, ' ')
-                    .replace(/\s+/g, ' ')
-                    .trim()
-                  onCopy?.(textContent)
-                }
+                const text = toPlainText(chunk.content)
+                if (text) onCopy?.(text)
               }}
             >
-              <Copy className="h-3 w-3" />
-              复制
+              <Copy aria-hidden className="size-icon-xs" />
+              {t('reference.marker.copy')}
             </button>
 
             {chunk.document_id && (
               <button
-                className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs transition-colors hover:opacity-80"
-                style={{
-                  color: 'var(--color-text-secondary)',
-                  backgroundColor: 'transparent',
-                }}
+                type="button"
+                className={cn(FOOTER_BUTTON_CLASS, 'text-text-secondary')}
+                title={t('reference.openOriginalHint')}
                 onClick={(e) => {
                   e.stopPropagation()
-                  const params = new URLSearchParams()
-                  if (chunk.document_name)
-                    params.set('name', chunk.document_name)
-                  window.open(
-                    `/document/${chunk.document_id}/preview?${params.toString()}`,
-                    '_blank',
-                  )
+                  openDocumentPreview(chunk)
                 }}
               >
-                <ExternalLink className="h-3 w-3" />
-                原文
+                <ExternalLink aria-hidden className="size-icon-xs" />
+                {t('reference.marker.openOriginal')}
               </button>
             )}
 
             <div className="flex-1" />
 
             <button
-              className="flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors hover:opacity-80"
-              style={{
-                color: 'var(--color-text-accent)',
-                backgroundColor: 'var(--color-state-focus-10)',
-              }}
+              type="button"
+              className={cn(
+                FOOTER_BUTTON_CLASS,
+                'gap-1 bg-state-focus-10 font-medium text-text-accent',
+              )}
               onClick={(e) => {
                 e.stopPropagation()
                 onViewDetail?.(chunk)
               }}
             >
-              详情
-              <ChevronRight className="h-3 w-3" />
+              {t('reference.marker.details')}
+              <ChevronRight aria-hidden className="size-icon-xs" />
             </button>
           </div>
         </div>
@@ -260,7 +206,7 @@ export function createReferenceMarkerComponent(
     onCopy?: (content: string) => void
   },
 ) {
-  return function SupComponent(props: { children?: React.ReactNode }) {
+  return function SupComponent(props: { children?: ReactNode }) {
     const refIndex = parseInt(`${props?.children}` || '0', 10)
     const chunk =
       references.find((item) => item.reference_index === refIndex) ||

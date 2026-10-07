@@ -1,6 +1,7 @@
 import { act, StrictMode, useState } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { setProductLanguage } from '@/locales/i18n'
 import type { ReferenceChunk } from '@/utils/reference-replacer'
 import { ReferenceDetailSheet } from '../ReferenceDetailSheet'
 import { ReferenceMarker } from '../ReferenceMarker'
@@ -59,7 +60,9 @@ function Citation() {
   )
 }
 
-beforeEach(() => {
+beforeEach(async () => {
+  // 浮层「详情」按钮文案走 i18n，按中文界面查找
+  await setProductLanguage('zh-CN')
   vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true)
   vi.stubGlobal(
     'ResizeObserver',
