@@ -24,7 +24,9 @@ import { ReferenceDiagnostics } from './reference-diagnostics'
 import {
   getDocTypeIcon,
   getDocTypeLabelKey,
-  openDocumentPreview,
+  getOriginalSource,
+  getOriginalSourceHintKey,
+  openOriginalSource,
   toPlainText,
   truncateText,
 } from './reference-meta'
@@ -124,6 +126,7 @@ export const ReferenceDetailSheet: FC<ReferenceDetailSheetProps> = ({
   if (!chunk) return null
 
   const documentName = chunk.document_name || t('reference.unknownDocument')
+  const originalSource = getOriginalSource(chunk)
   const isHtmlContent = chunk.content?.includes('<')
   const hasDocumentMetadata = Boolean(
     chunk.document_metadata && Object.keys(chunk.document_metadata).length,
@@ -155,15 +158,15 @@ export const ReferenceDetailSheet: FC<ReferenceDetailSheetProps> = ({
                 </span>
               </div>
             </div>
-            {chunk.document_id && (
+            {originalSource && (
               <button
                 type="button"
                 className={cn(
                   'flex shrink-0 items-center gap-1.5 rounded-md bg-state-focus-10 px-2.5 py-1.5 text-xs font-medium text-text-accent transition-colors',
                   'focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden',
                 )}
-                onClick={() => openDocumentPreview(chunk)}
-                title={t('reference.openOriginalHint')}
+                onClick={() => openOriginalSource(originalSource)}
+                title={t(getOriginalSourceHintKey(originalSource))}
               >
                 <ExternalLink aria-hidden className="size-3.5" />
                 {t('reference.sheet.openOriginal')}

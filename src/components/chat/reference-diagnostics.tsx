@@ -37,6 +37,14 @@ export function ReferenceDiagnostics({
   const headingId = useId()
   const locale = getCurrentLanguage()
   const score = readRetrievalScore(chunk.similarity)
+  // 有限数字却超出 0–1（如知识库设了 PageRank，排序加权叠加到综合分上）：
+  // 评分仍算不可用，另行写出原始值，排查时不丢信息
+  const rawScore =
+    score === null &&
+    typeof chunk.similarity === 'number' &&
+    Number.isFinite(chunk.similarity)
+      ? chunk.similarity
+      : null
   const subScores = [
     {
       key: 'vector',
@@ -106,6 +114,15 @@ export function ReferenceDiagnostics({
           {/* 数值已在上方以文字给出，进度条只作视觉辅助 */}
           {score !== null && (
             <Progress aria-hidden value={score * 100} className="mt-2 h-1.5" />
+          )}
+          {rawScore !== null && (
+            <p className="mt-1 text-xs text-text-secondary">
+              {t('reference.diagnostics.outOfRange', {
+                value: new Intl.NumberFormat(locale, {
+                  maximumFractionDigits: 3,
+                }).format(rawScore),
+              })}
+            </p>
           )}
           {subScores.length > 0 && (
             <dl className="mt-2 flex flex-wrap gap-x-space-md gap-y-space-xs text-xs">

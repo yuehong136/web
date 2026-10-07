@@ -2,6 +2,7 @@ export default {
   reference: {
     unknownDocument: 'Unknown document',
     openOriginalHint: 'Open the full document in a new tab',
+    openWebSourceHint: 'Open the source web page in a new tab',
     docType: {
       table: 'Table',
       image: 'Image',
@@ -40,6 +41,8 @@ export default {
       vectorScore: 'Vector match',
       termScore: 'Keyword match',
       unavailable: 'Unavailable',
+      outOfRange:
+        'Raw value {{value}} is outside 0–1 and is not shown as a percentage (ranking boosts such as PageRank can push it above 1)',
       scoreHint:
         "How closely this passage matched during retrieval, for troubleshooting retrieval. Its range depends on the app's retrieval settings; it does not tell whether the answer is correct.",
       positions: 'Position data',

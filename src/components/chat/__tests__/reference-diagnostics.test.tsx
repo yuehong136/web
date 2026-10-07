@@ -86,6 +86,22 @@ describe('ReferenceDetailSheet retrieval diagnostics', () => {
     expect(scoreBar()).toBeTruthy()
   })
 
+  // 知识库设了 PageRank 等排序加权时综合分会超过 1：仍不按百分比显示，但写出原始值
+  it('keeps an out-of-range number unavailable while writing out its raw value', async () => {
+    await renderSheet({ ...baseChunk, similarity: 10.60724 })
+    expect(scoreValue()).toBe('不可用')
+    expect(scoreBar()).toBeFalsy()
+    expect(diagnostics()?.textContent).toContain('原始值 10.607 超出 0–1')
+
+    for (const similarity of [Number.NaN, '0.8', undefined]) {
+      await renderSheet({
+        ...baseChunk,
+        similarity: similarity as number | undefined,
+      })
+      expect(diagnostics()?.textContent).not.toContain('原始值')
+    }
+  })
+
   it('lists only usable sub-scores, keeping a real zero', async () => {
     await renderSheet({
       ...baseChunk,

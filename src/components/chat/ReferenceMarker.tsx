@@ -17,7 +17,9 @@ import {
 import { SafeHtml } from '@/components/ui/safe-html'
 import {
   getDocTypeIcon,
-  openDocumentPreview,
+  getOriginalSource,
+  getOriginalSourceHintKey,
+  openOriginalSource,
   toPlainText,
   truncateText,
 } from './reference-meta'
@@ -81,6 +83,7 @@ export const ReferenceMarker: FC<ReferenceMarkerProps> = ({
     index: displayIndex,
     name: documentName,
   })
+  const originalSource = getOriginalSource(chunk)
   const isTableContent =
     chunk.doc_type === 'table' && chunk.content?.includes('<table')
 
@@ -158,14 +161,14 @@ export const ReferenceMarker: FC<ReferenceMarkerProps> = ({
               {t('reference.marker.copy')}
             </button>
 
-            {chunk.document_id && (
+            {originalSource && (
               <button
                 type="button"
                 className={cn(FOOTER_BUTTON_CLASS, 'text-text-secondary')}
-                title={t('reference.openOriginalHint')}
+                title={t(getOriginalSourceHintKey(originalSource))}
                 onClick={(e) => {
                   e.stopPropagation()
-                  openDocumentPreview(chunk)
+                  openOriginalSource(originalSource)
                 }}
               >
                 <ExternalLink aria-hidden className="size-icon-xs" />

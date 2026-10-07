@@ -2,6 +2,7 @@ export default {
   reference: {
     unknownDocument: '未知文档',
     openOriginalHint: '在新标签页中打开完整文档',
+    openWebSourceHint: '在新标签页中打开来源网页',
     docType: {
       table: '表格',
       image: '图片',
@@ -39,6 +40,8 @@ export default {
       vectorScore: '向量匹配',
       termScore: '词汇匹配',
       unavailable: '不可用',
+      outOfRange:
+        '原始值 {{value}} 超出 0–1，未按百分比显示（PageRank 等排序加权会使分值超过 1）',
       scoreHint:
         '检索阶段计算的匹配程度，用于排查检索效果；分值范围随应用的检索设置变化，不代表回答是否正确。',
       positions: '定位数据',

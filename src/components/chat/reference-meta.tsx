@@ -83,17 +83,70 @@ export function truncateId(id: string, maxLength = 12): string {
   return id.slice(0, maxLength) + '...'
 }
 
+export type OriginalSource =
+  | { kind: 'document'; documentId: string; documentName?: string }
+  | { kind: 'web'; url: string }
+
+const isNonEmptyString = (value: unknown): value is string =>
+  typeof value === 'string' && value !== ''
+
+/** 只放行 http(s) 链接；url 来自检索结果，按不可信输入对待 */
+function toWebUrl(value: unknown): string | null {
+  if (!isNonEmptyString(value)) return null
+  try {
+    const url = new URL(value)
+    return url.protocol === 'http:' || url.protocol === 'https:'
+      ? url.href
+      : null
+  } catch {
+    return null
+  }
+}
+
 /**
- * 在新标签页打开文档预览。预览页展示完整文档，不会定位到引用片段。
+ * 引用的原文入口。知识库切片打开文档预览（展示完整文档，不定位到片段）；
+ * 联网检索结果没有知识库文档（知识库 ID 为空、文档 ID 是临时值），打开它的
+ * 来源网页；两者都没有时返回 null，不提供原文入口。
  */
-export function openDocumentPreview(
-  chunk: Pick<ReferenceChunk, 'document_id' | 'document_name'>,
-) {
-  if (!chunk.document_id) return
+export function getOriginalSource(
+  chunk: Pick<
+    ReferenceChunk,
+    'dataset_id' | 'document_id' | 'document_name' | 'url'
+  >,
+): OriginalSource | null {
+  if (
+    isNonEmptyString(chunk.dataset_id) &&
+    isNonEmptyString(chunk.document_id)
+  ) {
+    return {
+      kind: 'document',
+      documentId: chunk.document_id,
+      documentName: chunk.document_name || undefined,
+    }
+  }
+  const url = toWebUrl(chunk.url)
+  return url ? { kind: 'web', url } : null
+}
+
+/**
+ * 在新标签页打开原文；外部网页不带 opener 与 referrer。
+ */
+export function openOriginalSource(source: OriginalSource) {
+  if (source.kind === 'web') {
+    window.open(source.url, '_blank', 'noopener,noreferrer')
+    return
+  }
   const params = new URLSearchParams()
-  if (chunk.document_name) params.set('name', chunk.document_name)
+  if (source.documentName) params.set('name', source.documentName)
   window.open(
-    `/document/${encodeURIComponent(chunk.document_id)}/preview?${params.toString()}`,
+    `/document/${encodeURIComponent(source.documentId)}/preview?${params.toString()}`,
     '_blank',
   )
+}
+
+/** 原文按钮的说明文案 key */
+export function getOriginalSourceHintKey(source: OriginalSource): string {
+  return source.kind === 'web'
+    ? 'reference.openWebSourceHint'
+    : 'reference.openOriginalHint'
 }
