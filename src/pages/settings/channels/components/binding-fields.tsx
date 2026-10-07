@@ -142,6 +142,18 @@ export const BindingFields = () => {
         render={({ field }) => (
           <FormItem>
             <FormLabel required>{t('channel.binding.targetId')}</FormLabel>
+            {targetType === 'multirag.canvas_agent' ? (
+              // Not inside the list: a listbox moves focus between its
+              // options as results change or the pointer moves, which would
+              // pull the caret, and any IME composition, out of the box.
+              <Input
+                type="search"
+                value={targetSearch}
+                onChange={(event) => setTargetSearch(event.target.value)}
+                placeholder={t('channel.binding.searchTargets')}
+                aria-label={t('channel.binding.searchTargets')}
+              />
+            ) : null}
             <Select value={field.value} onValueChange={handleTargetChange}>
               <FormControl>
                 <SelectTrigger disabled={targetLoading || targetError}>
@@ -155,18 +167,6 @@ export const BindingFields = () => {
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                {targetType === 'multirag.canvas_agent' ? (
-                  <div className="p-space-xs">
-                    <Input
-                      value={targetSearch}
-                      onChange={(event) => setTargetSearch(event.target.value)}
-                      placeholder={t('channel.binding.searchTargets')}
-                      // Radix Select treats printable keys as type-ahead; without
-                      // this the search box would never receive them.
-                      onKeyDown={(event) => event.stopPropagation()}
-                    />
-                  </div>
-                ) : null}
                 {targetType === 'multirag.canvas_agent'
                   ? releasedAgents.map((agent) => (
                       <SelectItem key={agent.id} value={agent.id}>
@@ -184,7 +184,7 @@ export const BindingFields = () => {
               </SelectContent>
             </Select>
             {targetLoading ? (
-              <FormDescription className="gap-space-xs flex items-center">
+              <FormDescription className="flex items-center gap-space-xs">
                 <Loader2
                   className="size-icon-sm animate-spin"
                   aria-hidden="true"
@@ -271,8 +271,8 @@ export const BindingFields = () => {
       <FormField<ChannelFormValues, 'privateChatOnly'>
         name="privateChatOnly"
         render={({ field }) => (
-          <FormItem className="rounded-radius-lg bg-surface-secondary p-space-base border border-border-subtle">
-            <div className="gap-space-md flex items-center justify-between">
+          <FormItem className="rounded-radius-lg border border-border-subtle bg-surface-secondary p-space-base">
+            <div className="flex items-center justify-between gap-space-md">
               <div className="space-y-space-xs">
                 <FormLabel>{t('channel.policy.privateChatOnly')}</FormLabel>
                 <FormDescription>
