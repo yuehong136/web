@@ -3,6 +3,10 @@ import { createRoot, type Root } from 'react-dom/client'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
+import {
+  chooseOption,
+  installRadixSelectDom,
+} from '@/components/ui/__tests__/helpers/radix-select'
 import { setProductLanguage } from '@/locales/i18n'
 import { ChunkToolbar } from '../components/chunk-toolbar'
 import { ChunkListRow } from '../components/chunk-list-row'
@@ -14,6 +18,7 @@ let root: Root
 let container: HTMLDivElement
 let client: QueryClient
 let calls: URL[]
+let restoreDom: () => void
 const rows = [
   {
     id: 'enabled',
@@ -113,6 +118,7 @@ function activeFilter() {
   return document.querySelector('button[aria-pressed="true"]')?.textContent
 }
 beforeEach(async () => {
+  restoreDom = installRadixSelectDom()
   vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true)
   await setProductLanguage('en-US')
   client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
@@ -168,6 +174,7 @@ afterEach(async () => {
   container.remove()
   client.clear()
   vi.unstubAllGlobals()
+  restoreDom()
 })
 it('defaults to All, preserves false for disabled, and resets pagination when filters change', async () => {
   expect(calls[0].pathname).toBe('/api/v1/datasets/kb-1/documents/doc-1/chunks')
@@ -361,8 +368,11 @@ it('respects pagination boundaries and returns to the first page after changing 
   await click('Previous')
   expect(container.querySelector('output')?.textContent).toBe('2/20')
 
-  await click('Chunks per page')
-  await click('50')
+  const pageSize = container.querySelector<HTMLButtonElement>(
+    'button[aria-label="Chunks per page"]',
+  )
+  expect(pageSize).toBeTruthy()
+  await chooseOption(pageSize!, '50')
   expect(container.querySelector('output')?.textContent).toBe('1/50')
   expect(previous().disabled).toBe(true)
   expect(next().disabled).toBe(true)

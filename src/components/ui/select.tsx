@@ -1,6 +1,8 @@
 import * as React from 'react'
-import { createPortal } from 'react-dom'
-import { ChevronDown, Check } from 'lucide-react'
+import * as SelectPrimitive from '@radix-ui/react-select'
+import { Check, ChevronDown, ChevronUp } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { cn } from '@/lib/utils'
 import { useNearestPortalTheme } from './portal-theme'
 
 export interface SelectProps {
@@ -20,59 +22,52 @@ export interface SelectContentProps {
   className?: string
 }
 
-export interface SelectItemProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface SelectItemProps extends Omit<
+  React.HTMLAttributes<HTMLDivElement>,
+  'children'
+> {
   value: string
   children?: React.ReactNode
+  disabled?: boolean
 }
 
 export interface SelectValueProps {
   placeholder?: string
 }
 
-function collectLabelsFromChildren(
-  nodes: React.ReactNode,
-  map: Map<string, React.ReactNode>,
-): void {
-  React.Children.forEach(nodes, (node) => {
-    if (!React.isValidElement(node)) return
-
-    const element = node as React.ReactElement<{
-      value?: unknown
-      children?: React.ReactNode
-    }>
-
-    if (
-      typeof element.props.value === 'string' &&
-      element.props.children !== undefined
-    ) {
-      map.set(element.props.value, element.props.children)
-    }
-
-    if (element.props.children) {
-      collectLabelsFromChildren(element.props.children, map)
-    }
-  })
+interface ItemRegistry {
+  /** How many items per value are mounted. */
+  mounted: ReadonlyMap<string, number>
+  /** The last text of items that unmounted, e.g. filtered out by a search. */
+  labels: ReadonlyMap<string, React.ReactNode>
 }
 
-// Simple Select implementation without Radix UI
-const SelectContext = React.createContext<{
-  value?: string
-  onValueChange?: (value: string) => void
-  isOpen: boolean
-  setIsOpen: (open: boolean) => void
+interface SelectContextValue {
+  value: string
   placeholder?: string
-  disabled?: boolean
-  selectRef?: React.RefObject<HTMLDivElement | null>
-  contentRef?: React.RefObject<HTMLDivElement | null>
-  labelMap: Map<string, React.ReactNode>
-  registerLabel: (value: string, label: React.ReactNode) => void
-}>({
-  isOpen: false,
-  setIsOpen: () => {},
-  labelMap: new Map(),
-  registerLabel: () => {},
-})
+  disabled: boolean
+  open: boolean
+  rootRef: React.RefObject<HTMLDivElement | null>
+  items: ItemRegistry
+  registerItem: (
+    value: string,
+    label: React.RefObject<React.ReactNode>,
+  ) => () => void
+}
 
+const SelectContext = React.createContext<SelectContextValue | null>(null)
+
+function useSelectContext(component: string) {
+  const context = React.useContext(SelectContext)
+  if (!context) throw new Error(`${component} must be used within Select`)
+  return context
+}
+
+/**
+ * Radix Select behind the long-standing controlled API: `value` is always
+ * controlled (`undefined` and `''` both show the placeholder) and
+ * `onValueChange` only reports a pick the user made.
+ */
 export const Select: React.FC<SelectProps> = ({
   value,
   onValueChange,
@@ -80,82 +75,78 @@ export const Select: React.FC<SelectProps> = ({
   children,
   disabled = false,
 }) => {
-  const [isOpen, setIsOpen] = React.useState(false)
+  const rootRef = React.useRef<HTMLDivElement>(null)
+  const [open, setOpen] = React.useState(false)
   // A list left open when the select becomes disabled would still accept a pick.
-  if (disabled && isOpen) setIsOpen(false)
-  const selectRef = React.useRef<HTMLDivElement>(null)
-  const contentRef = React.useRef<HTMLDivElement>(null)
-  const [runtimeLabelMap, setRuntimeLabelMap] = React.useState<
-    Map<string, React.ReactNode>
-  >(new Map())
+  if (disabled && open) setOpen(false)
 
-  // Pre-collect labels from SelectItem tree so the trigger can render correct
-  // labels on first paint (before the dropdown content is opened/mounted).
-  const staticLabelMap = React.useMemo(() => {
-    const map = new Map<string, React.ReactNode>()
-    collectLabelsFromChildren(children, map)
-    return map
-  }, [children])
-
-  const labelMap = React.useMemo(() => {
-    const merged = new Map(staticLabelMap)
-    runtimeLabelMap.forEach((label, key) => merged.set(key, label))
-    return merged
-  }, [staticLabelMap, runtimeLabelMap])
-
-  const registerLabel = React.useCallback(
-    (itemValue: string, label: React.ReactNode) => {
-      setRuntimeLabelMap((prev) => {
-        if (prev.get(itemValue) === label) return prev
-        const next = new Map(prev)
-        next.set(itemValue, label)
-        return next
-      })
+  // Radix renders closed items off-document, so this knows on first paint
+  // whether the value has an item to show, and what an item said last.
+  const [items, setItems] = React.useState<ItemRegistry>(() => ({
+    mounted: new Map(),
+    labels: new Map(),
+  }))
+  const registerItem = React.useCallback(
+    (itemValue: string, label: React.RefObject<React.ReactNode>) => {
+      setItems((prev) => ({
+        ...prev,
+        mounted: new Map(prev.mounted).set(
+          itemValue,
+          (prev.mounted.get(itemValue) ?? 0) + 1,
+        ),
+      }))
+      return () => {
+        const lastLabel = label.current
+        setItems((prev) => {
+          const mounted = new Map(prev.mounted)
+          const count = (prev.mounted.get(itemValue) ?? 1) - 1
+          if (count > 0) mounted.set(itemValue, count)
+          else mounted.delete(itemValue)
+          return {
+            mounted,
+            labels: new Map(prev.labels).set(itemValue, lastLabel),
+          }
+        })
+      }
     },
     [],
   )
 
-  React.useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Node
-      if (
-        selectRef.current &&
-        !selectRef.current.contains(target) &&
-        !contentRef.current?.contains(target)
-      ) {
-        setIsOpen(false)
-      }
-    }
+  const selected = value ?? ''
+  const handleValueChange = (next: string) => {
+    // Inside a <form>, Radix mirrors the value into a hidden native select
+    // that reports '' back whenever the value has no matching option yet
+    // (options still loading, a stale saved value). That is not a pick.
+    if (next === '' || disabled) return
+    onValueChange?.(next)
+  }
 
-    if (isOpen) {
-      // Use 'click' so option onClick runs before this handler. Using 'mousedown'
-      // closes the menu before the option's onClick executes (due to portal),
-      // causing selection to have no effect.
-      document.addEventListener('click', handleClickOutside)
-    }
-
-    return () => {
-      document.removeEventListener('click', handleClickOutside)
-    }
-  }, [isOpen])
+  const context = React.useMemo<SelectContextValue>(
+    () => ({
+      value: selected,
+      placeholder,
+      disabled,
+      open,
+      rootRef,
+      items,
+      registerItem,
+    }),
+    [selected, placeholder, disabled, open, items, registerItem],
+  )
 
   return (
-    <SelectContext.Provider
-      value={{
-        value,
-        onValueChange,
-        isOpen,
-        setIsOpen,
-        placeholder,
-        disabled,
-        selectRef,
-        contentRef,
-        labelMap,
-        registerLabel,
-      }}
-    >
-      <div ref={selectRef} className="relative">
-        {children}
+    <SelectContext.Provider value={context}>
+      {/* The wrapper keeps Radix's hidden native select out of the parent's layout. */}
+      <div ref={rootRef} className="relative">
+        <SelectPrimitive.Root
+          value={selected}
+          onValueChange={handleValueChange}
+          open={open}
+          onOpenChange={setOpen}
+          disabled={disabled}
+        >
+          {children}
+        </SelectPrimitive.Root>
       </div>
     </SelectContext.Provider>
   )
@@ -164,245 +155,162 @@ export const Select: React.FC<SelectProps> = ({
 export const SelectTrigger = React.forwardRef<
   HTMLButtonElement,
   SelectTriggerProps
->(({ className = '', children, disabled: triggerDisabled, ...props }, ref) => {
-  const {
-    isOpen,
-    setIsOpen,
-    disabled: selectDisabled,
-  } = React.useContext(SelectContext)
-  const disabled = Boolean(selectDisabled || triggerDisabled)
+>(({ className, children, onKeyDown, ...props }, ref) => {
+  const { disabled } = useSelectContext('SelectTrigger')
 
   return (
-    <button
+    <SelectPrimitive.Trigger
       ref={ref}
-      type="button"
-      disabled={disabled}
-      className={`flex h-12 w-full items-center justify-between rounded-xl border px-4 py-3 text-sm transition-colors focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
-      style={
-        {
-          backgroundColor: 'var(--color-components-select-bg)',
-          borderColor: 'var(--color-components-select-border)',
-          color: 'var(--color-components-select-text)',
-          '--tw-ring-color': 'var(--color-components-select-border-focus)',
-        } as React.CSSProperties
-      }
-      onFocus={(e) => {
-        e.currentTarget.style.borderColor =
-          'var(--color-components-select-border-focus)'
-      }}
-      onBlur={(e) => {
-        e.currentTarget.style.borderColor =
-          'var(--color-components-select-border)'
-      }}
-      onClick={() => {
-        if (!disabled) setIsOpen(!isOpen)
+      className={cn(
+        'group flex h-12 w-full items-center justify-between gap-space-sm rounded-radius-xl border border-components-select-border bg-components-select-bg px-space-md py-space-base text-left text-sm text-components-select-text outline-hidden transition-colors',
+        'focus:border-components-select-border-focus focus-visible:ring-2 focus-visible:ring-state-focus-10 data-[state=open]:border-components-select-border-focus',
+        'disabled:cursor-not-allowed disabled:opacity-50',
+        className,
+      )}
+      onKeyDown={(event) => {
+        onKeyDown?.(event)
+        // Radix still runs typeahead on a disabled trigger; keep the value put.
+        if (disabled || props.disabled) event.preventDefault()
       }}
       {...props}
     >
       {children}
-      <ChevronDown
-        className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
-      />
-    </button>
+      <SelectPrimitive.Icon asChild>
+        <ChevronDown className="size-icon-sm shrink-0 transition-transform group-data-[state=open]:rotate-180" />
+      </SelectPrimitive.Icon>
+    </SelectPrimitive.Trigger>
   )
 })
 SelectTrigger.displayName = 'SelectTrigger'
 
 export const SelectValue: React.FC<SelectValueProps> = ({ placeholder }) => {
+  const { t } = useTranslation()
   const {
     value,
-    placeholder: contextPlaceholder,
-    labelMap,
-  } = React.useContext(SelectContext)
-
-  if (value !== undefined && value !== null && value !== '') {
-    const displayLabel = labelMap.get(value) || value
-    return <span>{displayLabel}</span>
-  }
+    placeholder: selectPlaceholder,
+    items,
+  } = useSelectContext('SelectValue')
+  // Radix shows the text of the matching item. With none mounted (options
+  // still loading, or filtered out by a search) show what that item said
+  // last, or the value itself, rather than nothing.
+  const fallback =
+    value !== '' && !items.mounted.has(value)
+      ? (items.labels.get(value) ?? value)
+      : undefined
 
   return (
-    <span style={{ color: 'var(--color-components-select-placeholder)' }}>
-      {placeholder || contextPlaceholder || '请选择...'}
+    <span className="min-w-0 flex-1 truncate">
+      <SelectPrimitive.Value
+        placeholder={
+          <span className="text-components-select-placeholder">
+            {placeholder || selectPlaceholder || t('common.selectPlaceholder')}
+          </span>
+        }
+      >
+        {fallback}
+      </SelectPrimitive.Value>
     </span>
   )
 }
 
 export const SelectContent: React.FC<SelectContentProps> = ({
   children,
-  className = '',
+  className,
 }) => {
-  const { isOpen, selectRef, contentRef } = React.useContext(SelectContext)
-  const fallbackRef = React.useRef<HTMLDivElement>(null)
+  const { open, rootRef } = useSelectContext('SelectContent')
+  const theme = useNearestPortalTheme(rootRef, open)
 
-  const [position, setPosition] = React.useState<{
-    left: number
-    top: number
-    width: number
-  }>({ left: 0, top: 0, width: 0 })
-  const theme = useNearestPortalTheme(selectRef ?? fallbackRef, isOpen)
-
-  const updatePosition = React.useCallback(() => {
-    if (!selectRef?.current) return
-    const rect = selectRef.current.getBoundingClientRect()
-    const viewportWidth = window.innerWidth
-    const dropdownWidth = rect.width
-    let left = rect.left
-    if (left + dropdownWidth > viewportWidth - 8) {
-      left = Math.max(8, viewportWidth - dropdownWidth - 8)
-    }
-    const top = rect.bottom
-    setPosition({ left, top, width: dropdownWidth })
-  }, [selectRef])
-
-  React.useLayoutEffect(() => {
-    if (!isOpen) return
-    updatePosition()
-    const handler = () => updatePosition()
-    window.addEventListener('resize', handler)
-    window.addEventListener('scroll', handler, true)
-    return () => {
-      window.removeEventListener('resize', handler)
-      window.removeEventListener('scroll', handler, true)
-    }
-  }, [isOpen, updatePosition])
-
-  if (!isOpen) return null
-
-  const content = (
-    <div
-      ref={contentRef}
-      data-select-content=""
-      data-theme={theme}
-      className={`pointer-events-auto z-[1000] mt-1 scrollbar-thin max-h-60 overflow-auto rounded-xl border shadow-lg ${className}`}
-      style={{
-        position: 'fixed',
-        left: position.left,
-        top: position.top,
-        minWidth: position.width,
-        backgroundColor: 'var(--color-components-dropdown-bg)',
-        borderColor: 'var(--color-components-dropdown-border)',
-        boxShadow: 'var(--color-components-dropdown-shadow)',
-      }}
-    >
-      <div className="p-1">{children}</div>
-    </div>
+  return (
+    <SelectPrimitive.Portal>
+      <SelectPrimitive.Content
+        position="popper"
+        side="bottom"
+        align="start"
+        sideOffset={4}
+        data-theme={theme}
+        className={cn(
+          'relative z-[1000] max-h-[min(15rem,var(--radix-select-content-available-height))] max-w-[var(--radix-select-content-available-width)] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-radius-xl border border-components-dropdown-border bg-components-dropdown-bg text-sm text-components-dropdown-item-text shadow-elevation-medium',
+          className,
+        )}
+        // Escape closes this list only. Legacy layers listen on document
+        // without checking defaultPrevented, so the key stops here.
+        onEscapeKeyDown={(event) => event.stopPropagation()}
+      >
+        <SelectPrimitive.ScrollUpButton className="flex cursor-default items-center justify-center py-space-xs">
+          <ChevronUp className="size-icon-sm" />
+        </SelectPrimitive.ScrollUpButton>
+        <SelectPrimitive.Viewport className="p-space-xs">
+          {children}
+        </SelectPrimitive.Viewport>
+        <SelectPrimitive.ScrollDownButton className="flex cursor-default items-center justify-center py-space-xs">
+          <ChevronDown className="size-icon-sm" />
+        </SelectPrimitive.ScrollDownButton>
+      </SelectPrimitive.Content>
+    </SelectPrimitive.Portal>
   )
-
-  return createPortal(content, document.body)
 }
 
-export const SelectItem = React.forwardRef<HTMLButtonElement, SelectItemProps>(
-  (
-    {
-      value,
-      children,
-      className = '',
-      disabled,
-      onClick,
-      onPointerDown,
-      ...props
-    },
-    ref,
-  ) => {
-    const {
-      value: selectedValue,
-      onValueChange,
-      setIsOpen,
-      disabled: selectDisabled,
-      registerLabel,
-    } = React.useContext(SelectContext)
-    const isSelected = selectedValue === value
-
-    // Register label on mount and when children change
-    React.useEffect(() => {
-      registerLabel(value, children)
-    }, [value, children, registerLabel])
-
-    const selectValue = () => {
-      if (selectDisabled) return
-      onValueChange?.(value)
-      setIsOpen(false)
-    }
+export const SelectItem = React.forwardRef<HTMLDivElement, SelectItemProps>(
+  ({ value, children, className, ...props }, ref) => {
+    const { registerItem } = useSelectContext('SelectItem')
+    const label = React.useRef<React.ReactNode>(children)
+    React.useLayoutEffect(() => {
+      label.current = children
+    })
+    React.useLayoutEffect(
+      () => registerItem(value, label),
+      [registerItem, value],
+    )
 
     return (
-      <button
+      <SelectPrimitive.Item
         ref={ref}
-        type="button"
-        disabled={disabled}
-        className={`relative flex w-full cursor-pointer items-center rounded-lg py-2 pr-2 pl-8 text-sm outline-hidden transition-colors select-none ${className}`}
-        style={{
-          backgroundColor: isSelected
-            ? 'rgba(59, 130, 246, 0.1)'
-            : 'transparent',
-          color: isSelected
-            ? 'var(--color-text-accent)'
-            : 'var(--color-components-dropdown-item-text)',
-        }}
-        onMouseEnter={(e) => {
-          if (!isSelected) {
-            ;(e.currentTarget as HTMLButtonElement).style.backgroundColor =
-              'var(--color-components-dropdown-item-bg-hover)'
-          }
-        }}
-        onMouseLeave={(e) => {
-          if (!isSelected) {
-            ;(e.currentTarget as HTMLButtonElement).style.backgroundColor =
-              'transparent'
-          }
-        }}
-        onPointerDown={(event) => {
-          onPointerDown?.(event)
-          if (event.defaultPrevented || disabled) return
-          event.preventDefault()
-          selectValue()
-        }}
-        onClick={(event) => {
-          onClick?.(event)
-          if (event.defaultPrevented || disabled) return
-          selectValue()
-        }}
+        value={value}
+        className={cn(
+          'relative flex w-full cursor-pointer items-center rounded-radius-lg py-space-sm pr-space-sm pl-space-xl text-sm text-components-dropdown-item-text outline-hidden select-none',
+          'data-[state=checked]:bg-state-selected-bg data-[state=checked]:text-state-selected-text',
+          // The highlight is the focus indicator, so it wins over the selection fill.
+          'data-[highlighted]:bg-components-dropdown-item-bg-hover data-[highlighted]:data-[state=checked]:bg-components-dropdown-item-bg-hover',
+          'data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50',
+          className,
+        )}
         {...props}
       >
-        {isSelected && (
-          <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
-            <Check className="h-4 w-4" />
-          </span>
-        )}
-        {children}
-      </button>
+        <span className="absolute left-space-sm flex size-icon-sm items-center justify-center">
+          <SelectPrimitive.ItemIndicator>
+            <Check className="size-icon-sm" />
+          </SelectPrimitive.ItemIndicator>
+        </span>
+        <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+      </SelectPrimitive.Item>
     )
   },
 )
 SelectItem.displayName = 'SelectItem'
 
-// Placeholder exports for compatibility
 export const SelectGroup: React.FC<{ children: React.ReactNode }> = ({
   children,
-}) => {
-  return <div>{children}</div>
-}
+}) => <SelectPrimitive.Group>{children}</SelectPrimitive.Group>
 
+/** Must sit inside a SelectGroup, which it labels. */
 export const SelectLabel: React.FC<{
   children: React.ReactNode
   className?: string
-}> = ({ children, className = '' }) => {
-  return (
-    <div
-      className={`py-1.5 pr-2 pl-8 text-sm font-semibold ${className}`}
-      style={{ color: 'var(--color-text-primary)' }}
-    >
-      {children}
-    </div>
-  )
-}
+}> = ({ children, className }) => (
+  <SelectPrimitive.Label
+    className={cn(
+      'py-space-xs pr-space-sm pl-space-xl text-sm font-semibold text-text-primary',
+      className,
+    )}
+  >
+    {children}
+  </SelectPrimitive.Label>
+)
 
 export const SelectSeparator: React.FC<{ className?: string }> = ({
-  className = '',
-}) => {
-  return (
-    <hr
-      className={`-mx-1 my-1 h-px ${className}`}
-      style={{ backgroundColor: 'var(--color-border-default)' }}
-    />
-  )
-}
+  className,
+}) => (
+  <SelectPrimitive.Separator
+    className={cn('-mx-space-xs my-space-xs h-px bg-border-default', className)}
+  />
+)

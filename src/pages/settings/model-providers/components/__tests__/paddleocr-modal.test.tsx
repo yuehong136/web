@@ -3,7 +3,7 @@ import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { ApiKeyModal } from '../api-key-modal'
 import { PADDLEOCR_ALGORITHMS } from '../paddleocr-config'
-import i18n from '@/locales/i18n'
+import { setProductLanguage } from '@/locales/i18n'
 
 Reflect.set(globalThis, 'IS_REACT_ACT_ENVIRONMENT', true)
 let root: Root
@@ -48,11 +48,7 @@ const algorithmTrigger = () =>
 const select = async (algorithm: string) => {
   await act(async () => algorithmTrigger().click())
   const options = Array.from(
-    document.querySelectorAll<HTMLButtonElement>('button'),
-  ).filter(
-    (element) =>
-      element !== algorithmTrigger() &&
-      PADDLEOCR_ALGORITHMS.some((value) => value === element.textContent),
+    document.querySelectorAll<HTMLElement>('[role="option"]'),
   )
   expect(options.map((element) => element.textContent)).toEqual([
     ...PADDLEOCR_ALGORITHMS,
@@ -82,7 +78,7 @@ beforeEach(async () => {
   container = document.createElement('div')
   document.body.append(container)
   root = createRoot(container)
-  await i18n.changeLanguage('en-US')
+  await setProductLanguage('en-US')
 })
 afterEach(async () => {
   await act(async () => root.unmount())
@@ -174,7 +170,7 @@ it('shows configuration validation with its inference boundary and translates th
   expect(document.body.textContent).not.toContain(
     'Sensitive upstream token detail',
   )
-  await act(async () => i18n.changeLanguage('zh-CN'))
+  await act(async () => setProductLanguage('zh-CN'))
   expect(document.body.textContent).toContain('配置校验通过')
   expect(document.body.textContent).toContain('此选择不会改变服务端部署')
   expect(field('AI Studio 访问令牌（可选）').type).toBe('password')
@@ -208,7 +204,7 @@ it('explains both service protocols and keeps a cloud URL when switching algorit
   expect(document.body.textContent).toContain(
     'The cloud service requires an AI Studio access token.',
   )
-  await act(async () => i18n.changeLanguage('zh-CN'))
+  await act(async () => setProductLanguage('zh-CN'))
   expect(document.body.textContent).toContain('自托管同步服务使用 /ocr')
   expect(document.body.textContent).toContain('官方云 Job API 使用')
   expect(document.body.textContent).toContain(

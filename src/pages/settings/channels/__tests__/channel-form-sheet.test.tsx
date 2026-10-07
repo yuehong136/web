@@ -3,6 +3,11 @@ import { createRoot, type Root } from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import type { ChatChannel, RenderableProviderManifest } from '@/api/channel'
+import {
+  chooseOption,
+  findOption,
+  installRadixSelectDom,
+} from '@/components/ui/__tests__/helpers/radix-select'
 import { setProductLanguage } from '@/locales/i18n'
 import { ChannelFormSheet } from '../components/channel-form-sheet'
 
@@ -72,14 +77,17 @@ const savedChannel: ChatChannel = {
 }
 
 let root: Root | undefined
+let restoreDom: (() => void) | undefined
 
 beforeEach(async () => {
+  restoreDom = installRadixSelectDom()
   await setProductLanguage('en-US')
 })
 
 afterEach(async () => {
   await act(async () => root?.unmount())
   root = undefined
+  restoreDom?.()
   document.body.innerHTML = ''
 })
 
@@ -119,14 +127,6 @@ function providerTrigger() {
   return trigger
 }
 
-function option(text: string) {
-  return Array.from(
-    document.body.querySelectorAll<HTMLElement>(
-      '[role="option"], [data-select-content] button',
-    ),
-  ).find((element) => element.textContent?.trim() === text)
-}
-
 test('editing a channel keeps its provider and stored config', async () => {
   await mountSheet(savedChannel)
   const trigger = providerTrigger()
@@ -137,17 +137,18 @@ test('editing a channel keeps its provider and stored config', async () => {
   await act(async () => {
     trigger.dispatchEvent(new MouseEvent('click', { bubbles: true }))
   })
-  for (const key of ['ArrowDown', 'Enter', ' ', 'd']) {
+  // Typeahead first: once a space joins its buffer, 'd' no longer matches.
+  for (const key of ['d', 'ArrowDown', 'Enter', ' ']) {
     await act(async () => {
       trigger.dispatchEvent(
-        new KeyboardEvent('keydown', { key, bubbles: true }),
+        new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }),
       )
     })
   }
 
   // The update request carries no provider, so a switch here would save the
   // old provider with the new one's blank config and secrets.
-  expect(option('DingTalk')).toBeUndefined()
+  expect(findOption('DingTalk')).toBeUndefined()
   expect(trigger.textContent).toContain('Feishu / Lark')
   expect(labelled<HTMLInputElement>('App ID')?.value).toBe('cli_saved')
   expect(labelled('Client ID')).toBeNull()
@@ -158,10 +159,7 @@ test('a new channel can still switch provider', async () => {
   const trigger = providerTrigger()
 
   expect(trigger.disabled).toBe(false)
-  await act(async () => trigger.click())
-  const dingtalkOption = option('DingTalk')
-  expect(dingtalkOption).toBeDefined()
-  await act(async () => dingtalkOption?.click())
+  await chooseOption(trigger, 'DingTalk')
 
   expect(providerTrigger().textContent).toContain('DingTalk')
   expect(labelled('Client ID')).not.toBeNull()

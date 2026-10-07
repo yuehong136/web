@@ -52,12 +52,15 @@ export function CodeTemplateSelector({
   return (
     <FormItem>
       <FormLabel>{t('flow.codeTemplate', 'Template')}</FormLabel>
+      {/* Applying is an action, so the select holds no value and names the
+          last template as its placeholder: a select reports no change for its
+          current value, and picking that template again must re-apply it. */}
       <Select
-        value={value}
+        value=""
         onValueChange={(nextValue) => onApply(nextValue as CodeTemplateIdValue)}
       >
         <SelectTrigger>
-          <SelectValue />
+          <SelectValue placeholder={getCodeTemplateLabel(value, t)} />
         </SelectTrigger>
         <SelectContent>
           {codeTemplateIds.map((templateId) => (

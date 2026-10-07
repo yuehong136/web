@@ -533,6 +533,13 @@
 | 2026-10-06 | Home 对话区 a11y 切片 | 本次提交 | 消息区 `role="log"` + `aria-live="polite"`，流式期间 `aria-busy`；「回到底部」为可键盘聚焦的按钮，跳回后焦点交给消息区；技能/应用标签移除按钮补可访问名称与 `type="button"`。详见 ARCH-8 2026-10-06 记录；jsx-a11y 基线与其余表面未处理，状态不变 |
 | 2026-10-07 | Home 回答状态语义     | 本次提交 | 未正常完成的回答用文字说明结束原因（图标仅装饰），随消息进入 polite `log` 区域播报、不另设 alert；明暗对比度均 ≥ 4.5:1；无正文时不显示复制/朗读。详见 ARCH-8 同日记录；jsx-a11y 基线与其余表面未处理，状态不变                                    |
 | 2026-10-07 | 引用展示 a11y 与 i18n | 本次提交 | 解析到的角标有“引用 n：文档名”名称，Enter、Space、Escape 与焦点归还实测通过；面板折叠补 `aria-expanded`；四个引用组件文案移入 `reference` 资源，中英同步；缺失评分不再显示 0%。详见 ARCH-8 同日记录；jsx-a11y 基线未处理，状态不变                |
+| 2026-10-07 | Select disabled 生效  | 5098684  | 审计 interaction-02 / design-03 短期项：根级 `disabled` 进入 context，触发器禁用，已打开的列表随即关闭，选项不再响应；CustomSelect 同样修复。回归测试覆盖两个原语和渠道编辑锁定 provider（新建仍可切换）；状态不变                                |
+| 2026-10-07 | 渠道目标搜索移出列表  | 7d7067c  | Agent 服务端搜索框从 Select 列表内移到列表上方：Radix 列表会随结果和指针移动焦点，框内只能输入一个字符、输入法组合会被打断。`fix(channel)`，ARCH-6 / CHN-U7；状态不变                                                                             |
+| 2026-10-07 | Select 改为 Radix     | 本次提交 | 审计 interaction-01 / design-03：`ui/select` 内部改用 Radix Select，导出名和 props 不变；listbox 语义、方向键、typeahead，Esc 只关下拉并把焦点还给触发器，在 Sheet、Dialog、Modal 内只关最上层；选中和悬停用语义令牌，弹层带上 scoped 主题        |
+| 2026-10-07 | Select 迁移兼容       | 本次提交 | 值始终受控，空值显示 placeholder；无匹配项时显示该项上次的文字或原值；表单内隐藏 select 回报的空值不触发 onValueChange；重选当前值不再触发，代码模板改为动作式选择；移除 chunk 分页上弹 hack 和 html-report 滚轮补丁                              |
+| 2026-10-07 | Select 迁移验证       | 本次提交 | jsdom 覆盖键盘选择、disabled、三类外层 Esc、焦点归还、placeholder、表单空值、标签记忆、scoped 主题；vitest lane 107 文件、test:product-ui、build 通过，node lane 仅 2 项因他人未提交改动失败；改动文件 lint 0 告警                                |
+| 2026-10-07 | Select 实测           | 本次提交 | 渠道（编辑锁定 provider、键盘、Esc、搜索）、知识库元数据嵌套弹窗、Studio 检索方式、Agent Begin 表单实测通过；scoped 主题以给子树加 data-theme 模拟；浏览器面板未显示，没有截图，明暗色按计算样式核对                                              |
+| 2026-10-07 | Select 迁移遗留       | —        | Modal 的 Esc 仍不判断 defaultPrevented（Select 已在捕获阶段截停 Esc）；CustomSelect 薄封装、Combobox、DropdownMenu、Tabs、Dialog 按审计顺序后续做；AIToolsHomePage 仍用 vendor select；原生 showModal 的 Dialog 内放不了 Select                   |
 
 ### ENG-4 Bundle 体积预算门禁
 

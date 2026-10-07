@@ -1,5 +1,9 @@
 import { act } from 'react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
+import {
+  chooseOption,
+  installRadixSelectDom,
+} from '@/components/ui/__tests__/helpers/radix-select'
 import { setProductLanguage } from '@/locales/i18n'
 import {
   api,
@@ -13,7 +17,9 @@ import {
 import type { AgentSession } from '@/types/agent'
 
 let page: Awaited<ReturnType<typeof mountPage>>
+let restoreDom: () => void
 beforeEach(async () => {
+  restoreDom = installRadixSelectDom()
   resetAPI()
   await setProductLanguage('en-US')
   vi.stubGlobal(
@@ -28,6 +34,7 @@ beforeEach(async () => {
 afterEach(async () => {
   await page?.dispose()
   vi.unstubAllGlobals()
+  restoreDom()
 })
 function button(name: string, scope: ParentNode = page.container) {
   const element = Array.from(
@@ -73,16 +80,7 @@ function labeledInput(name: string) {
 }
 
 async function selectOption(label: string, value: string) {
-  await act(async () => button(label, document.body).click())
-  const option = Array.from(
-    document.body.querySelectorAll<HTMLButtonElement>(
-      '[data-select-content] button',
-    ),
-  ).find((element) => element.textContent === value)
-  if (!option) throw new Error(`Missing ${label} option ${value}`)
-  await act(async () =>
-    option.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true })),
-  )
+  await chooseOption(button(label, document.body), value)
 }
 
 async function openDeleteConfirmation(name: string) {

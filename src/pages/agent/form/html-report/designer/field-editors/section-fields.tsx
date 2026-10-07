@@ -53,8 +53,7 @@ export function SectionFields({ section, dispatch }: SectionFieldsProps) {
           <SelectTrigger className="h-9 text-xs">
             <SelectValue />
           </SelectTrigger>
-          {/* 同 StructureSelect:恢复指针事件,避免模态 Sheet 下点击穿透 */}
-          <SelectContent className="pointer-events-auto">
+          <SelectContent>
             {Object.entries(LAYOUT_LABEL).map(([value, label]) => (
               <SelectItem key={value} value={value} className="text-xs">
                 {t(label.labelKey, label.fallback)}
@@ -64,7 +63,7 @@ export function SectionFields({ section, dispatch }: SectionFieldsProps) {
         </Select>
       </InspectorField>
       <div className="space-y-space-xs">
-        <div className="gap-space-sm flex items-center justify-between">
+        <div className="flex items-center justify-between gap-space-sm">
           <Label className="text-xs text-text-secondary">
             {t('flow.htmlReportSectionTitle', 'Section title')}
           </Label>

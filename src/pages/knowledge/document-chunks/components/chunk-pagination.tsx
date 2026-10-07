@@ -59,7 +59,7 @@ export const ChunkPagination = ({
           >
             <SelectValue />
           </SelectTrigger>
-          <SelectContent className="-mt-space-2xl! -translate-y-full">
+          <SelectContent>
             {[10, 20, 30, 50].map((size) => (
               <SelectItem key={size} value={String(size)}>
                 {size}
