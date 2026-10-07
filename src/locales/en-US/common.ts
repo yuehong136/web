@@ -30,6 +30,10 @@ export default {
       zoomIn: 'Zoom in',
       zoomOut: 'Zoom out',
     },
+    carousel: {
+      previous: 'Previous slide',
+      next: 'Next slide',
+    },
     // Action buttons
     add: 'Add',
     create: 'Create',

@@ -542,6 +542,7 @@
 | 2026-10-07 | Select 实测           | 本次提交 | 渠道（编辑锁定 provider、键盘、Esc、搜索）、知识库元数据嵌套弹窗、Studio 检索方式、Agent Begin 表单实测通过；scoped 主题以给子树加 data-theme 模拟；浏览器面板未显示，没有截图，明暗色按计算样式核对                                              |
 | 2026-10-07 | Select 迁移遗留       | —        | Modal 的 Esc 仍不判断 defaultPrevented（Select 已在捕获阶段截停 Esc）；CustomSelect 薄封装、Combobox、DropdownMenu、Tabs、Dialog 按审计顺序后续做；AIToolsHomePage 仍用 vendor select；原生 showModal 的 Dialog 内放不了 Select                   |
 | 2026-10-07 | 文档预览失败分类      | 本次提交 | 引用“查看原文”页与切片原文对照不再显示后端原文：按状态码、业务码（101、108/109）和响应类型归为不存在、无权限、登录过期、空文件、网络或其他五类固定中英文案；下载失败同样按类提示，HTML 原文仍可下载；页面硬编码中文移入 i18n；状态不变            |
+| 2026-10-07 | 轮播按钮可访问名称    | 本次提交 | `carousel` 上一张 / 下一张的读屏名称改用 `common.carousel`，中文界面不再读出 “Previous slide”；调用方 aria-label 优先，children 替换默认内容，禁用与键盘行为不变。新增 Vitest `carousel`；Explore 引用图片列表中英、明暗、点击与键盘实测通过      |
 
 ### ENG-4 Bundle 体积预算门禁
 

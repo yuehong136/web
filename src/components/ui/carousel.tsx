@@ -3,6 +3,7 @@ import useEmblaCarousel, {
 } from 'embla-carousel-react'
 import { ArrowLeft, ArrowRight } from 'lucide-react'
 import * as React from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -58,7 +59,7 @@ function Carousel({
   )
   const [canScrollPrev, setCanScrollPrev] = React.useState(false)
   const [canScrollNext, setCanScrollNext] = React.useState(false)
-  
+
   // 用于跟踪组件是否已挂载
   const isMountedRef = React.useRef(true)
 
@@ -108,7 +109,7 @@ function Carousel({
 
   React.useEffect(() => {
     if (!api) return
-    
+
     onSelect(api)
     api.on('reInit', onSelect)
     api.on('select', onSelect)
@@ -140,6 +141,8 @@ function Carousel({
         canScrollNext,
       }}
     >
+      {/* WAI-ARIA 轮播模式：未命名的 <section> 不是 region，保留显式 role */}
+      {/* eslint-disable-next-line jsx-a11y/prefer-tag-over-role */}
       <div
         onKeyDownCapture={handleKeyDown}
         className={cn('relative', className)}
@@ -179,6 +182,8 @@ function CarouselItem({ className, ...props }: React.ComponentProps<'div'>) {
   const { orientation } = useCarousel()
 
   return (
+    // WAI-ARIA 轮播模式：幻灯片用 group；规则建议的 fieldset / details 语义不符
+    // eslint-disable-next-line jsx-a11y/prefer-tag-over-role
     <div
       role="group"
       aria-roledescription="slide"
@@ -197,8 +202,10 @@ function CarouselPrevious({
   className,
   variant = 'outline',
   size = 'icon',
+  children,
   ...props
 }: React.ComponentProps<typeof Button>) {
+  const { t } = useTranslation()
   const { orientation, scrollPrev, canScrollPrev } = useCarousel()
 
   return (
@@ -217,8 +224,12 @@ function CarouselPrevious({
       onClick={scrollPrev}
       {...props}
     >
-      <ArrowLeft className="size-4" />
-      <span className="sr-only">Previous slide</span>
+      {children ?? (
+        <>
+          <ArrowLeft className="size-4" />
+          <span className="sr-only">{t('common.carousel.previous')}</span>
+        </>
+      )}
     </Button>
   )
 }
@@ -227,8 +238,10 @@ function CarouselNext({
   className,
   variant = 'outline',
   size = 'icon',
+  children,
   ...props
 }: React.ComponentProps<typeof Button>) {
+  const { t } = useTranslation()
   const { orientation, scrollNext, canScrollNext } = useCarousel()
 
   return (
@@ -247,8 +260,12 @@ function CarouselNext({
       onClick={scrollNext}
       {...props}
     >
-      <ArrowRight className="size-4" />
-      <span className="sr-only">Next slide</span>
+      {children ?? (
+        <>
+          <ArrowRight className="size-4" />
+          <span className="sr-only">{t('common.carousel.next')}</span>
+        </>
+      )}
     </Button>
   )
 }

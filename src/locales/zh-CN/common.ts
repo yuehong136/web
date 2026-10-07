@@ -30,6 +30,10 @@ export default {
       zoomIn: '放大',
       zoomOut: '缩小',
     },
+    carousel: {
+      previous: '上一张',
+      next: '下一张',
+    },
     // 操作按钮
     add: '添加',
     create: '创建',
