@@ -349,14 +349,20 @@ npm run build:themes
 
 ### 3. 主题切换功能
 
-```tsx
-// 使用主题切换器组件
-import { ThemeSwitcher } from '@/components/ui/theme-switcher'
+主题偏好由 `@/themes` 统一读写，账户菜单（`src/components/layout/sidebar-utilities.tsx`）是唯一的切换入口：
 
-// 不同变体的使用
-<ThemeSwitcher variant="toggle" />     // 简单切换按钮
-<ThemeSwitcher variant="dropdown" />   // 下拉选择器
-<ThemeSwitcher variant="compact" />    // 紧凑模式
+```tsx
+import { getTheme, setTheme, subscribeTheme, Theme } from '@/themes'
+
+// 读取并订阅当前偏好（light / dark / system）
+const theme = React.useSyncExternalStore(
+  subscribeTheme,
+  getTheme,
+  () => Theme.SYSTEM,
+)
+
+// 切换偏好；system 跟随操作系统
+setTheme(Theme.DARK)
 ```
 
 ### 4. 输入框风格（现代浅色）建议

@@ -140,8 +140,6 @@ if (import.meta.hot) {
       './en-US/memory',
       './zh-CN/studio',
       './en-US/studio',
-      './zh-CN/tools',
-      './en-US/tools',
       './zh-CN/mcp',
       './en-US/mcp',
       './zh-CN/route-errors',

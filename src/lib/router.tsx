@@ -9,7 +9,6 @@ import { Layout } from '@/components/layout/Layout'
 import { AppScene, PageLoadingState } from '@/components/patterns'
 import { ROUTES } from '@/constants'
 import { ErrorFallback, NotFoundPage } from '@/pages/error'
-import { UnavailableFeaturePage } from '@/pages/error/unavailable-feature-page'
 import { skillRoutes } from '@/pages/skills/skill-routes'
 
 // ---------------------------------------------------------------------------
@@ -147,21 +146,7 @@ const CreateAppPage = lazyNamed(
   'CreateAppPage',
 )
 
-// Dialog
-const PromptEditorPage = lazyNamed(
-  () => import('@/pages/dialog/PromptEditorPage'),
-  'PromptEditorPage',
-)
-const DialogListPage = lazyNamed(
-  () => import('@/pages/dialog/DialogListPage'),
-  'DialogListPage',
-)
-
 // AI Tools
-const AIToolsHomePage = lazyNamed(
-  () => import('@/pages/ai-tools'),
-  'AIToolsHomePage',
-)
 const AutoFillWorkbenchPage = lazyNamed(
   () => import('@/pages/ai-tools'),
   'AutoFillWorkbenchPage',
@@ -222,13 +207,22 @@ const ChannelsPage = lazyNamed(
 // Document Preview
 const DocumentPreviewPage = lazy(() => import('@/pages/document-preview'))
 
-// Theme Demo
-const ThemeDemoPage = lazyNamed(
-  () => import('@/pages/theme-demo/ThemeDemoPage'),
-  'ThemeDemoPage',
-)
-
 // ---------------------------------------------------------------------------
+// The retired prompt editor edited the same dialog the Studio editor opens.
+function PromptEditorRedirect() {
+  const { id } = useParams<{ id: string }>()
+  return (
+    <Navigate
+      to={
+        id
+          ? `${ROUTES.STUDIO_CREATE_APP}?dialog_id=${encodeURIComponent(id)}`
+          : ROUTES.STUDIO
+      }
+      replace
+    />
+  )
+}
+
 function AgentLogRedirect() {
   const { id } = useParams<{ id: string }>()
   return (
@@ -337,10 +331,6 @@ const topLevelRoutes: RouteObject[] = [
         element: withLoading(SearchDetailPage),
       },
       {
-        path: '/theme-demo',
-        element: withLoading(ThemeDemoPage),
-      },
-      {
         path: '/document/:docId/preview',
         element: withLoading(DocumentPreviewPage),
       },
@@ -349,8 +339,9 @@ const topLevelRoutes: RouteObject[] = [
         element: withLoading(KnowledgeCreatePage),
       },
       {
+        // Keeps `import` from being read as a knowledge base id.
         path: '/knowledge/import',
-        element: <UnavailableFeaturePage feature="knowledgeImport" />,
+        element: <Navigate to={ROUTES.KNOWLEDGE} replace />,
       },
       {
         path: '/knowledge/:id',
@@ -392,25 +383,26 @@ const topLevelRoutes: RouteObject[] = [
           },
         ],
       },
+      // Retired entries keep old links working.
       {
-        path: ROUTES.DOCUMENTS,
-        element: <UnavailableFeaturePage feature="documents" />,
+        path: '/documents',
+        element: <Navigate to={ROUTES.KNOWLEDGE} replace />,
       },
       {
-        path: ROUTES.AI_TOOLS,
-        element: withLoading(AIToolsHomePage),
+        path: '/workflow',
+        element: <Navigate to={ROUTES.AGENTS} replace />,
       },
       {
-        path: '/tools',
-        element: withLoading(AIToolsHomePage),
+        path: '/ai-tools',
+        element: <Navigate to={ROUTES.AUTO_FILL} replace />,
       },
       {
-        path: '/tools/auto-fill',
+        path: ROUTES.TOOLS,
+        element: <Navigate to={ROUTES.AUTO_FILL} replace />,
+      },
+      {
+        path: ROUTES.AUTO_FILL,
         element: withLoading(AutoFillWorkbenchPage),
-      },
-      {
-        path: ROUTES.WORKFLOW,
-        element: <UnavailableFeaturePage feature="workflow" />,
       },
       {
         path: ROUTES.AGENTS,
@@ -458,11 +450,11 @@ const topLevelRoutes: RouteObject[] = [
       },
       {
         path: '/dialogs',
-        element: withLoading(DialogListPage),
+        element: <Navigate to={ROUTES.STUDIO} replace />,
       },
       {
         path: '/dialog/:id/prompt-editor',
-        element: withLoading(PromptEditorPage),
+        element: <PromptEditorRedirect />,
       },
       {
         path: '/settings',
@@ -489,8 +481,9 @@ const topLevelRoutes: RouteObject[] = [
             element: withLoading(TeamPage),
           },
           {
+            // Appearance and language live in the account menu.
             path: 'appearance',
-            element: <UnavailableFeaturePage feature="appearance" />,
+            element: <Navigate to={ROUTES.SETTINGS} replace />,
           },
           {
             path: 'model-providers',

@@ -86,7 +86,7 @@ describe('route recovery', () => {
     return router
   }
 
-  it('retained placeholder routes disclose unavailability and navigate to working destinations', async () => {
+  it('retired routes redirect to working destinations', async () => {
     const find = (
       routes: RouteObject[],
       path: string,
@@ -98,35 +98,39 @@ describe('route recovery', () => {
       }
       return undefined
     }
-    for (const [path, feature, destination] of [
-      ['/knowledge/import', 'knowledgeImport', '/knowledge'],
-      ['/documents', 'documents', '/knowledge'],
-      ['/workflow', 'workflow', '/agents'],
-      ['appearance', 'appearance', '/home'],
+    for (const [path, entry, destination, search] of [
+      ['/knowledge/import', '/knowledge/import', '/knowledge', ''],
+      ['/documents', '/documents', '/knowledge', ''],
+      ['/workflow', '/workflow', '/agents', ''],
+      ['/dialogs', '/dialogs', '/studio', ''],
+      ['/ai-tools', '/ai-tools', '/tools/auto-fill', ''],
+      ['/tools', '/tools', '/tools/auto-fill', ''],
+      ['appearance', '/appearance', '/settings', ''],
+      [
+        '/dialog/:id/prompt-editor',
+        '/dialog/app%201/prompt-editor',
+        '/studio/create-app',
+        '?dialog_id=app%201',
+      ],
     ]) {
       const route = find(appRoutes, path)
-      expect(route).toBeDefined()
-      const fixturePath = `/legacy-review-${feature}`
+      expect(route, path).toBeDefined()
       await act(async () => root.render(null))
-      await renderRoutes(
+      const router = await renderRoutes(
         [
-          { path: fixturePath, element: route!.element },
+          {
+            path: path.startsWith('/') ? path : `/${path}`,
+            element: route!.element,
+          },
           { path: destination, element: <div>Recovered destination</div> },
         ],
-        fixturePath,
+        entry,
       )
       await vi.waitFor(() =>
-        expect(container.querySelector('h2')).not.toBeNull(),
+        expect(container.textContent).toContain('Recovered destination'),
       )
-      expect(container.querySelector('h2')?.textContent).toBe(
-        `routeErrors.unavailable.${feature}.title`,
-      )
-      const link = container.querySelector<HTMLAnchorElement>('a')!
-      expect(link.getAttribute('href')).toBe(destination)
-      link.focus()
-      expect(document.activeElement).toBe(link)
-      await act(async () => link.click())
-      expect(container.textContent).toContain('Recovered destination')
+      expect(router.state.location.pathname).toBe(destination)
+      expect(router.state.location.search).toBe(search)
     }
   })
 

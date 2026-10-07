@@ -79,7 +79,7 @@ export const desktopNavigationItems: Record<
     {
       labelKey: 'layout.nav.tools',
       fallbackLabel: 'Tools',
-      href: ROUTES.AI_TOOLS,
+      href: ROUTES.AUTO_FILL,
       icon: Wrench,
     },
     {

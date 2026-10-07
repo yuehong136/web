@@ -51,12 +51,6 @@ const AutoFillWorkbenchPage: React.FC = () => {
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink onClick={() => navigate('/tools')}>
-                  工具箱
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
                 <BreadcrumbPage>自动填表</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
@@ -126,7 +120,7 @@ const AutoFillWorkbenchPage: React.FC = () => {
                   </div>
 
                   {/* 内容区 */}
-                  <div className="overflow-hidden rounded-2xl border border-border-default bg-components-card-bg shadow-shadow-sm">
+                  <div className="overflow-hidden rounded-2xl border border-border-default bg-components-card-bg shadow-elevation-low">
                     <div className="p-6">
                       {processedData && (
                         <DataInput
@@ -174,7 +168,7 @@ const AutoFillWorkbenchPage: React.FC = () => {
               </div>
 
               {/* 步骤内容 */}
-              <div className="overflow-hidden rounded-2xl border border-border-default bg-components-card-bg shadow-shadow-sm">
+              <div className="overflow-hidden rounded-2xl border border-border-default bg-components-card-bg shadow-elevation-low">
                 <div className="p-6 md:p-8">
                   {currentStep === 1 && (
                     <FileUpload

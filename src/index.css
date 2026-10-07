@@ -118,7 +118,7 @@
   }
 
   /* 全局选择器样式 - 确保主题覆盖，但排除MCP聊天页面 */
-  *:not(.mcp-chat-page *):not(.autofill-page *) {
+  *:not(.mcp-chat-page *) {
     border-color: var(--color-border-default);
   }
 

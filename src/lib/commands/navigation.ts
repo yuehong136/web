@@ -8,7 +8,7 @@ const activityRoutes: ReadonlyArray<
   [DesktopActivity.DISCOVER, [ROUTES.EXPLORE, ROUTES.SEARCH]],
   [DesktopActivity.KNOWLEDGE, [ROUTES.KNOWLEDGE, ROUTES.MEMORY]],
   [DesktopActivity.BUILD, [ROUTES.AGENTS, ROUTES.STUDIO]],
-  [DesktopActivity.TOOLS, [ROUTES.AI_TOOLS, ROUTES.MCP_SERVERS]],
+  [DesktopActivity.TOOLS, [ROUTES.TOOLS, ROUTES.MCP_SERVERS]],
 ]
 
 export function getDesktopActivityForPath(

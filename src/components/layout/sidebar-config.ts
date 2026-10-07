@@ -78,7 +78,7 @@ export const navItems: NavItem[] = [
   {
     title: '工具箱',
     titleKey: 'layout.nav.tools',
-    href: ROUTES.AI_TOOLS,
+    href: ROUTES.AUTO_FILL,
     icon: Wrench,
   },
   {

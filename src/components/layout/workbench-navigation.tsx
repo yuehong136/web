@@ -109,11 +109,7 @@ export const getWorkbenchSection = (pathname: string): WorkbenchSection => {
     return 'agents'
   if (pathname.startsWith('/explore') || pathname.startsWith('/search'))
     return 'explore'
-  if (
-    pathname.startsWith('/ai-tools') ||
-    pathname.startsWith('/tools') ||
-    pathname.startsWith('/mcp')
-  )
+  if (pathname.startsWith('/tools') || pathname.startsWith('/mcp'))
     return 'tools'
   return 'home'
 }

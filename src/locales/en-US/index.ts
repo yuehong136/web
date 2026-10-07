@@ -14,7 +14,6 @@ import explore from './explore'
 import search from './search'
 import memory from './memory'
 import studio from './studio'
-import tools from './tools'
 import mcp from './mcp'
 import settings from './settings'
 import channel from './channel'
@@ -39,7 +38,6 @@ export default {
   ...search,
   ...memory,
   ...studio,
-  ...tools,
   ...mcp,
   ...settings,
   ...channel,
