@@ -128,7 +128,7 @@ test('runAgent uses the RESTful agent completion endpoint', async () => {
   assert.equal(calls.length, 1)
   assert.equal(
     calls[0]?.url,
-    'http://localhost:8000/api/v1/agents/chat/completion',
+    'http://localhost:8000/api/v1/agents/chat/completions',
   )
   assert.equal(calls[0]?.body.agent_id, 'agent-1')
   assert.equal(calls[0]?.body.query, 'hello')
@@ -161,7 +161,7 @@ test('runAgentSession uses the consolidated RESTful completion endpoint', async 
 
   assert.equal(
     calls[0]?.url,
-    'http://localhost:8000/api/v1/agents/chat/completion',
+    'http://localhost:8000/api/v1/agents/chat/completions',
   )
   assert.equal(calls[0]?.body.agent_id, 'agent-1')
   assert.equal(calls[0]?.body.session_id, 'session-1')

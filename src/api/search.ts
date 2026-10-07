@@ -53,25 +53,28 @@ export const searchAPI = {
     reference_metadata?: ReferenceMetadataConfig
     question: string
     kb_ids: string[]
-    search_id?: string
+    search_id: string
     signal?: AbortSignal
   }): Promise<Response> => {
-    const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+    const baseURL =
+      import.meta.env?.VITE_API_BASE_URL || 'http://localhost:8000'
     const token = localStorage.getItem('auth_token')
-    return fetch(`${baseURL}/v1/conversation/ask`, {
-      method: 'POST',
-      signal: data.signal,
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { Authorization: `Bearer ${token}` }),
+    return fetch(
+      `${baseURL}/api/v1/searches/${encodeURIComponent(data.search_id)}/completions`,
+      {
+        method: 'POST',
+        signal: data.signal,
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        body: JSON.stringify({
+          question: data.question,
+          kb_ids: data.kb_ids,
+          reference_metadata: data.reference_metadata,
+        }),
       },
-      body: JSON.stringify({
-        question: data.question,
-        kb_ids: data.kb_ids,
-        search_id: data.search_id,
-        reference_metadata: data.reference_metadata,
-      }),
-    })
+    )
   },
 
   // 查询思维导图

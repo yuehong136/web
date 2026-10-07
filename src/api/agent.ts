@@ -44,7 +44,7 @@ async function requestAgentCompletion(
   options?: { signal?: AbortSignal },
 ) {
   const token = getAuthToken()
-  return fetch(`${getRuntimeApiBaseUrl()}/api/v1/agents/chat/completion`, {
+  return fetch(`${getRuntimeApiBaseUrl()}/api/v1/agents/chat/completions`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
