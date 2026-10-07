@@ -32,8 +32,8 @@ import {
 } from '@/lib/streaming'
 import { streamMCPAgentChat } from '../utils/mcp-agent-stream'
 import {
-  extractReferencesFromSSEData,
-  getReferenceDocId,
+  mergeFrameReferences,
+  readFrameReferences,
 } from '../utils/chat-reference-helpers'
 import {
   answerStatusMessageKey,
@@ -292,13 +292,14 @@ export const useHomeChat = ({
             owner.verdict = answerVerdict(streamState)
             if (chunk.isDone) return
 
-            const chunkData =
-              chunk.payload && typeof chunk.payload === 'object'
-                ? (chunk.payload as Record<string, unknown>)
-                : null
-            const newReferences = chunkData
-              ? extractReferencesFromSSEData(chunkData)
-              : []
+            // 错误帧（retcode 非 0）不是引用快照；未失败的终帧是本轮的权威引用，
+            // 可以清空，增量帧的空快照不清空已有引用
+            const frameReferences =
+              streamState.failure?.kind === 'error_frame'
+                ? null
+                : readFrameReferences(chunk.payload)
+            const authoritative =
+              chunk.isFinal && streamState.phase !== 'failed'
             // 失败时 reducer 已剥离错误原文，这里只保留已生成的正文
             const cleanContent = streamState.content
             const thinking = streamState.thinking
@@ -308,24 +309,13 @@ export const useHomeChat = ({
               const index = prev.findIndex((msg) => msg.id === aiMessageId)
               if (index < 0) return prev
               const target = prev[index]
-              // 只有当新的 references 有数据时才更新，否则保留之前的
+              // 引用没变时沿用原数组，下面的比较据此跳过无效刷新
               const existingReferences = target.references || []
-              const referencesChanged =
-                newReferences.length > 0 &&
-                (newReferences.length !== existingReferences.length ||
-                  newReferences.some((ref, refIdx: number) => {
-                    const previousRef = existingReferences[refIdx]
-                    if (!previousRef) return true
-                    return (
-                      previousRef.id !== ref.id ||
-                      getReferenceDocId(previousRef) !==
-                        getReferenceDocId(ref) ||
-                      previousRef.content !== ref.content
-                    )
-                  }))
-              const references = referencesChanged
-                ? newReferences
-                : existingReferences
+              const references = mergeFrameReferences(
+                existingReferences,
+                frameReferences,
+                authoritative,
+              )
 
               const sameContent = target.content === cleanContent
               const sameThinking = (target.thinking || '') === thinking

@@ -63,4 +63,14 @@ export const delta = (text: string) => ({
   data: { answer: text, reference: {} },
 })
 
+/**
+ * 带引用字段的回答帧。真实后端只在终帧（final）给出本轮引用，增量帧的引用是
+ * `{chunks: []}`；其他协议可能在增量帧里重发整份快照。
+ */
+export const answerFrame = (
+  answer: string,
+  reference: unknown,
+  { final = false }: { final?: boolean } = {},
+) => ({ retcode: 0, data: { answer, reference, final } })
+
 export const done = { retcode: 0, data: true }
