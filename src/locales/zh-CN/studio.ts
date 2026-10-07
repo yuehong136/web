@@ -1,5 +1,8 @@
+import { studioEditor } from './studio-editor'
+
 export default {
   studio: {
+    editor: studioEditor,
     page: {
       title: '工作室',
       description: '创建和管理您的 AI 应用和智能体',

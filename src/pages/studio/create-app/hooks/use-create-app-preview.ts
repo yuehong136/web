@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react'
 import { useTranslation } from 'react-i18next'
 import { conversationAPI } from '@/api/conversation'
 import { toast } from '@/lib/toast'
@@ -11,240 +17,276 @@ import {
   type SSEEnvelope,
 } from '@/lib/streaming'
 import { extractReferencesFromSSEData } from '@/utils/reference-replacer'
-import type { PreviewMessage } from '../types'
+import { configSignature, type PreviewStatus } from '../editor-state'
+import type { AppConfig, PreviewMessage } from '../types'
 import { buildPrologueMessages } from '../utils'
 
-interface UseCreateAppPreviewOptions {
+interface PreviewOptions {
   dialogId: string | null
-  quote: boolean
-  prologue: string
+  savedConfig: AppConfig | null
+  canSend: boolean
+}
+export interface PreviewRunDetails {
+  model: string
+  overrides: Record<string, number>
+  knowledgeCount: number
+  elapsedMs: number
+  status: PreviewStatus
 }
 
-export const useCreateAppPreview = ({
-  dialogId,
-  quote,
-  prologue,
-}: UseCreateAppPreviewOptions) => {
+export function useCreateAppPreview(options: PreviewOptions) {
   const { t } = useTranslation()
   const [previewMessages, setPreviewMessages] = useState<PreviewMessage[]>([])
   const [inputValue, setInputValue] = useState('')
-  const [isStreaming, setIsStreaming] = useState(false)
+  const [status, setStatus] = useState<PreviewStatus>('idle')
+  const [sessionSignature, setSessionSignature] = useState<string | null>(null)
+  const [sessionDialogId, setSessionDialogId] = useState<string | null>(null)
   const [previewConversationId, setPreviewConversationId] = useState<
     string | null
   >(null)
-  const abortControllerRef = useRef<AbortController | null>(null)
+  const [runDetails, setRunDetails] = useState<PreviewRunDetails | null>(null)
+  const owner = useRef(0)
+  const abortRef = useRef<AbortController | null>(null)
+  const busyRef = useRef(false)
+  const optionsRef = useRef(options)
+  const messagesRef = useRef(previewMessages)
+  const conversationRef = useRef<string | null>(null)
+  const initialized = useRef(false)
+  const startedAt = useRef(0)
+  const signatureRef = useRef<string | null>(null)
+  const sessionDialogRef = useRef<string | null>(null)
+  useLayoutEffect(() => {
+    optionsRef.current = options
+    messagesRef.current = previewMessages
+    signatureRef.current = sessionSignature
+    sessionDialogRef.current = sessionDialogId
+  }, [options, previewMessages, sessionSignature, sessionDialogId])
 
-  const resetInputs0 = [prologue]
-  const [previousInputs0, setPreviousInputs0] = useState<unknown[] | null>(null)
-  if (
-    previousInputs0 === null ||
-    resetInputs0.some(
-      (value, index) => !Object.is(value, previousInputs0[index]),
-    )
-  ) {
-    setPreviousInputs0(resetInputs0)
-
-    setPreviewMessages(buildPrologueMessages(prologue))
-  }
-
-  const resetInputs1 = [dialogId]
-  const [previousInputs1, setPreviousInputs1] = useState<unknown[] | null>(null)
-  if (
-    previousInputs1 === null ||
-    resetInputs1.some(
-      (value, index) => !Object.is(value, previousInputs1[index]),
-    )
-  ) {
-    setPreviousInputs1(resetInputs1)
-
-    setPreviewConversationId(null)
-  }
-
-  useEffect(
-    () => () => {
-      abortControllerRef.current?.abort()
-    },
-    [],
-  )
-
-  const getOrCreatePreviewConversation = useCallback(async () => {
-    if (previewConversationId) {
-      return previewConversationId
+  useEffect(() => {
+    if (!initialized.current && options.savedConfig) {
+      initialized.current = true
+      setSessionDialogId(options.dialogId)
+      setPreviewMessages(
+        buildPrologueMessages(options.savedConfig.prompt_config.prologue),
+      )
+      setSessionSignature(
+        configSignature(options.savedConfig, t('chat.knowledgePrompt.block')),
+      )
     }
-
-    if (!dialogId) {
-      toast.error('请先保存应用配置')
-      return null
-    }
-
-    try {
-      const newConversation = await conversationAPI.setConversation({
-        dialog_id: dialogId,
-        name: `预览会话 - ${new Date().toLocaleString()}`,
-        is_new: true,
-      })
-
-      if (newConversation?.id) {
-        setPreviewConversationId(newConversation.id)
-        return newConversation.id
-      }
-
-      return null
-    } catch (error) {
-      console.error('Failed to create preview conversation:', error)
-      toast.error('创建预览会话失败')
-      return null
-    }
-  }, [dialogId, previewConversationId])
-
+  }, [options.savedConfig, options.dialogId, t])
   const handleStopOutput = useCallback(() => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort()
-      abortControllerRef.current = null
+    owner.current++
+    abortRef.current?.abort()
+    abortRef.current = null
+    if (busyRef.current) {
+      setStatus('interrupted')
+      setRunDetails((previous) =>
+        previous
+          ? {
+              ...previous,
+              status: 'interrupted',
+              elapsedMs: performance.now() - startedAt.current,
+            }
+          : previous,
+      )
     }
-    setIsStreaming(false)
+    busyRef.current = false
   }, [])
 
-  const handleSendPreviewMessage = useCallback(
-    async (userContent: string) => {
-      if (!userContent.trim() || isStreaming) {
-        return
-      }
-
-      const conversationId = await getOrCreatePreviewConversation()
-      if (!conversationId) {
-        return
-      }
-
-      const userMessage: PreviewMessage = {
-        role: 'user',
-        content: userContent.trim(),
-        id: `user-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
-      }
-
-      const assistantMessage: PreviewMessage = {
-        role: 'assistant',
-        content: '',
-        id: `ai-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
-        thinking: '',
-      }
-
-      setPreviewMessages((previousMessages) => [
-        ...previousMessages,
-        userMessage,
-        assistantMessage,
-      ])
-      setIsStreaming(true)
-      setInputValue('')
-      const abortController = new AbortController()
-      abortControllerRef.current = abortController
-
-      try {
-        const historyMessages = previewMessages
-          .filter((message) => !message.id.startsWith('prologue-'))
-          .map((message) => ({
-            role: message.role,
-            content: message.content,
-          }))
-
-        historyMessages.push({
-          role: 'user',
-          content: userContent.trim(),
-        })
-
-        const response = await conversationAPI.completion(
-          {
-            conversation_id: conversationId,
-            messages: historyMessages,
-            quote,
-            stream: true,
-          },
-          { signal: abortController.signal },
-        )
-
-        await assertSSEResponse(response)
-
-        let streamState = createInitialStreamingAnswerState()
-
-        await readSSEStream<SSEEnvelope>(response, {
-          signal: abortController.signal,
-          onEvent: (data) => {
-            const chunk = consumeStreamingAnswerChunk(streamState, data)
-            streamState = chunk.nextState
-            if (chunk.isDone) {
-              return
-            }
-            // 失败且无正文时用固定文案占位，不展示后端错误原文
-            const failureNotice = getStreamingAnswerFailureNotice(streamState)
-            const content =
-              failureNotice === 'chat.stream.failed'
-                ? t(failureNotice)
-                : streamState.content
-            // Deltas carry empty chunks; the final frame brings the cited ones.
-            const references = extractReferencesFromSSEData(chunk.payload)
-
-            setPreviewMessages((previousMessages) => {
-              const nextMessages = [...previousMessages]
-              const lastIndex = nextMessages.length - 1
-              if (
-                lastIndex >= 0 &&
-                nextMessages[lastIndex].role === 'assistant'
-              ) {
-                nextMessages[lastIndex] = {
-                  ...nextMessages[lastIndex],
-                  content,
-                  thinking: streamState.thinking,
-                  ...(references.length > 0 ? { references } : {}),
-                }
-              }
-              return nextMessages
-            })
-          },
-        })
-        const streamFailure = getStreamingAnswerFailureNotice(streamState)
-        if (streamFailure === 'chat.stream.interrupted') {
-          toast.error(t(streamFailure))
-        }
-      } catch (error) {
-        if ((error as Error).name !== 'AbortError') {
-          console.error('Failed to send preview message:', error)
-          setPreviewMessages((previousMessages) => {
-            const nextMessages = [...previousMessages]
-            const lastIndex = nextMessages.length - 1
-            if (
-              lastIndex >= 0 &&
-              nextMessages[lastIndex].role === 'assistant'
-            ) {
-              nextMessages[lastIndex] = {
-                ...nextMessages[lastIndex],
-                content: '抱歉，发生了错误，请重试。',
-              }
-            }
-            return nextMessages
-          })
-        }
-      } finally {
-        setIsStreaming(false)
-        abortControllerRef.current = null
-      }
-    },
-    [getOrCreatePreviewConversation, isStreaming, previewMessages, quote, t],
+  useEffect(
+    () => () => handleStopOutput(),
+    [options.dialogId, handleStopOutput],
   )
 
-  const handleResetPreview = useCallback(() => {
-    handleStopOutput()
-    setPreviewConversationId(null)
-    setPreviewMessages(buildPrologueMessages(prologue))
-  }, [handleStopOutput, prologue])
+  const handleResetPreview = useCallback(
+    (snapshot?: AppConfig, applicationId?: string) => {
+      handleStopOutput()
+      const config = snapshot ?? optionsRef.current.savedConfig
+      conversationRef.current = null
+      setPreviewConversationId(null)
+      setSessionDialogId(applicationId ?? optionsRef.current.dialogId)
+      setPreviewMessages(
+        config ? buildPrologueMessages(config.prompt_config.prologue) : [],
+      )
+      setSessionSignature(
+        config
+          ? configSignature(config, t('chat.knowledgePrompt.block'))
+          : null,
+      )
+      setRunDetails(null)
+      setStatus('idle')
+      initialized.current = !!config
+    },
+    [handleStopOutput, t],
+  )
+
+  const handleSendPreviewMessage = useCallback(
+    async (content: string, historyOverride?: PreviewMessage[]) => {
+      const { dialogId, savedConfig, canSend } = optionsRef.current
+      if (
+        !content.trim() ||
+        busyRef.current ||
+        !canSend ||
+        !dialogId ||
+        !savedConfig
+      )
+        return
+      if (
+        sessionDialogRef.current !== dialogId ||
+        (signatureRef.current &&
+          signatureRef.current !==
+            configSignature(savedConfig, t('chat.knowledgePrompt.block')))
+      )
+        return
+      busyRef.current = true
+      const run = ++owner.current
+      const controller = new AbortController()
+      abortRef.current = controller
+      startedAt.current = performance.now()
+      const settings = savedConfig.llm_setting
+      const overrides: Record<string, number> = {}
+      for (const key of [
+        'temperature',
+        'top_p',
+        'presence_penalty',
+        'frequency_penalty',
+        'max_tokens',
+      ] as const) {
+        if (settings[`${key}_enabled`] && settings[key] !== undefined)
+          overrides[key] = settings[key]!
+      }
+      const baseDetails = {
+        model: savedConfig.llm_id,
+        overrides,
+        knowledgeCount: savedConfig.kb_ids.length,
+        elapsedMs: 0,
+      }
+      setRunDetails({ ...baseDetails, status: 'preparing' })
+      setStatus('preparing')
+      const history = historyOverride ?? messagesRef.current
+      const assistantId = `preview-${run}-${crypto.randomUUID()}`
+      let appended = false
+      const finish = (nextStatus: PreviewStatus) => {
+        if (owner.current !== run) return
+        setStatus(nextStatus)
+        setRunDetails({
+          ...baseDetails,
+          status: nextStatus,
+          elapsedMs: performance.now() - startedAt.current,
+        })
+      }
+      try {
+        let conversationId = conversationRef.current
+        if (!conversationId) {
+          const conversation = await conversationAPI.setConversation({
+            dialog_id: dialogId,
+            name: t('studio.editor.preview'),
+            is_new: true,
+          })
+          if (owner.current !== run) return
+          if (!conversation?.id) throw new Error('missing-conversation')
+          conversationId = conversation.id as string
+          conversationRef.current = conversationId
+          setPreviewConversationId(conversationId)
+        }
+        if (owner.current !== run) return
+        setPreviewMessages([
+          ...history,
+          {
+            id: `user-${crypto.randomUUID()}`,
+            role: 'user',
+            content: content.trim(),
+          },
+          { id: assistantId, role: 'assistant', content: '' },
+        ])
+        appended = true
+        setInputValue('')
+        setStatus('streaming')
+        setRunDetails({ ...baseDetails, status: 'streaming' })
+        const response = await conversationAPI.completion(
+          {
+            conversation_id: conversationId!,
+            messages: [
+              ...history
+                .filter((message) => !message.id.startsWith('prologue-'))
+                .map(({ role, content }) => ({ role, content })),
+              { role: 'user', content: content.trim() },
+            ],
+            quote: savedConfig.prompt_config.quote,
+            stream: true,
+          },
+          { signal: controller.signal },
+        )
+        if (owner.current !== run) return
+        await assertSSEResponse(response)
+        let streamState = createInitialStreamingAnswerState()
+        await readSSEStream<SSEEnvelope>(response, {
+          signal: controller.signal,
+          onEvent: (data) => {
+            if (owner.current !== run) return
+            const chunk = consumeStreamingAnswerChunk(streamState, data)
+            streamState = chunk.nextState
+            if (chunk.isDone) return
+            const references = extractReferencesFromSSEData(chunk.payload)
+            setPreviewMessages((previous) =>
+              previous.map((message) =>
+                message.id === assistantId
+                  ? {
+                      ...message,
+                      content: streamState.content,
+                      thinking: streamState.thinking,
+                      ...(references.length ? { references } : {}),
+                    }
+                  : message,
+              ),
+            )
+          },
+        })
+        const failure = getStreamingAnswerFailureNotice(streamState)
+        finish(
+          failure === 'chat.stream.interrupted'
+            ? 'interrupted'
+            : failure
+              ? 'failed'
+              : 'completed',
+        )
+      } catch {
+        if (owner.current !== run) return
+        finish(controller.signal.aborted ? 'interrupted' : 'failed')
+        if (!appended) toast.error(t('studio.editor.sessionFailed'))
+      } finally {
+        if (owner.current === run) {
+          abortRef.current = null
+          busyRef.current = false
+        }
+      }
+    },
+    [t],
+  )
+
+  const handleRetryPreview = useCallback(() => {
+    const messages = messagesRef.current
+    const index = messages.findLastIndex((message) => message.role === 'user')
+    if (index >= 0)
+      void handleSendPreviewMessage(
+        messages[index].content,
+        messages.slice(0, index),
+      )
+  }, [handleSendPreviewMessage])
 
   return {
     previewMessages,
     inputValue,
     setInputValue,
-    isStreaming,
+    status,
+    isStreaming: status === 'preparing' || status === 'streaming',
+    sessionSignature,
+    sessionDialogId,
     previewConversationId,
+    runDetails,
     handleSendPreviewMessage,
     handleStopOutput,
     handleResetPreview,
+    handleRetryPreview,
   }
 }

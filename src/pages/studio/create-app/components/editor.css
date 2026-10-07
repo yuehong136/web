@@ -1,0 +1,19 @@
+.studio-instruction-editor .w-md-editor {
+  background: var(--color-components-studio-surface);
+  color: var(--color-text-primary);
+  border-radius: 0;
+  box-shadow: none;
+}
+.studio-instruction-editor .w-md-editor-content {
+  height: 100%;
+}
+.studio-instruction-editor .w-md-editor-text {
+  padding: var(--space-lg);
+}
+.studio-instruction-editor .w-md-editor-text-pre,
+.studio-instruction-editor .w-md-editor-text-input {
+  font-size: var(--text-sm) !important;
+  line-height: var(--leading-relaxed) !important;
+  font-family: var(--font-sans) !important;
+  overflow-wrap: anywhere;
+}

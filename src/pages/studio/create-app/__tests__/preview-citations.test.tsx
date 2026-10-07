@@ -7,6 +7,7 @@ import { setProductLanguage } from '@/locales/i18n'
 import type { ReferenceChunk } from '@/utils/reference-replacer'
 import { PreviewAnswer } from '../components/preview-answer'
 import { useCreateAppPreview } from '../hooks/use-create-app-preview'
+import { createInitialConfig } from '../constants'
 
 // The code-block renderers pull syntax-highlighter styles Vitest cannot resolve;
 // citations only need the merge of custom components.
@@ -56,8 +57,14 @@ describe('Studio preview citations', () => {
     function Surface() {
       const current = useCreateAppPreview({
         dialogId: 'dialog-1',
-        quote: true,
-        prologue: '您好',
+        canSend: true,
+        savedConfig: {
+          ...createInitialConfig({}),
+          prompt_config: {
+            ...createInitialConfig({}).prompt_config,
+            prologue: '您好',
+          },
+        },
       })
       useEffect(() => {
         preview = current

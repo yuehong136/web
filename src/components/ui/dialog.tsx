@@ -23,6 +23,10 @@ export interface DialogContentProps {
   showCloseButton?: boolean
   /** 点击遮罩层关闭 */
   closeOnOverlayClick?: boolean
+  /** 使用原生模态焦点管理；旧调用保持原有行为。 */
+  modal?: boolean
+  /** 弹窗入口来自临时浮层时，指定关闭后的焦点目标。 */
+  returnFocusRef?: React.RefObject<HTMLElement | null>
 }
 
 export interface DialogHeaderProps extends React.HTMLAttributes<HTMLDivElement> {}
@@ -124,6 +128,8 @@ export const DialogContent: React.FC<DialogContentProps> = ({
   size = 'lg',
   showCloseButton = true,
   closeOnOverlayClick = true,
+  modal = false,
+  returnFocusRef,
 }) => {
   const { t } = useTranslation()
   const context = React.useContext(DialogContext)
@@ -133,6 +139,31 @@ export const DialogContent: React.FC<DialogContentProps> = ({
 
   const { open, onOpenChange } = context
   const scopedTheme = useActivePortalTheme(open, theme)
+  const dialogRef = React.useRef<HTMLDialogElement>(null)
+  const contentRef = React.useRef<HTMLDivElement>(null)
+
+  React.useLayoutEffect(() => {
+    const element = dialogRef.current
+    const returnFocus =
+      returnFocusRef?.current ??
+      (document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null)
+    if (!open || !modal || !element) return
+    element.showModal()
+    contentRef.current
+      ?.querySelector<HTMLElement>(
+        'button, input, textarea, select, [tabindex="0"]',
+      )
+      ?.focus()
+    return () => {
+      element.close()
+      if (returnFocus)
+        requestAnimationFrame(() => {
+          if (returnFocus.isConnected) returnFocus.focus()
+        })
+    }
+  }, [open, modal, returnFocusRef])
 
   // Handle escape key
   React.useEffect(() => {
@@ -158,7 +189,12 @@ export const DialogContent: React.FC<DialogContentProps> = ({
   if (!open) return null
   const content = (
     <dialog
-      open
+      ref={dialogRef}
+      open={modal ? undefined : true}
+      onCancel={(event) => {
+        event.preventDefault()
+        onOpenChange(false)
+      }}
       data-theme={scopedTheme}
       className="fixed inset-0 z-50 m-0 flex h-screen max-h-none w-screen max-w-none items-center justify-center border-0 bg-transparent p-4"
       aria-modal="true"
@@ -177,6 +213,7 @@ export const DialogContent: React.FC<DialogContentProps> = ({
 
       {/* Dialog Container */}
       <div
+        ref={contentRef}
         className={cn(
           'relative z-10 w-full rounded-xl shadow-2xl',
           // Native <dialog> defaults to black text; inherit the theme instead.

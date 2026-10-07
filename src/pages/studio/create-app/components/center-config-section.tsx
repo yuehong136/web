@@ -1,49 +1,52 @@
-import React from 'react'
-import { ChevronDown, ChevronRight } from 'lucide-react'
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { useId } from 'react'
+import { ChevronDown } from 'lucide-react'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible'
+import type { ReactNode } from 'react'
 
 interface CenterConfigSectionProps {
   title: string
   open: boolean
   onOpenChange: (open: boolean) => void
-  extra?: React.ReactNode
-  children: React.ReactNode
+  extra?: ReactNode
+  children: ReactNode
 }
-
-export const CenterConfigSection: React.FC<CenterConfigSectionProps> = ({
+export function CenterConfigSection({
   title,
   open,
   onOpenChange,
   extra,
   children,
-}) => (
-  <Collapsible open={open} onOpenChange={onOpenChange}>
-    {/* header 不使用单一 CollapsibleTrigger 包裹，避免 extra 传入 <Button> 时出现 <button> 嵌套 */}
-    <div
-      className="flex w-full items-center px-space-lg py-space-base transition-colors"
-      style={{ backgroundColor: 'transparent' }}
-      onMouseEnter={(event) => {
-        event.currentTarget.style.backgroundColor = 'var(--color-components-collapse-header-bg-hover)'
-      }}
-      onMouseLeave={(event) => {
-        event.currentTarget.style.backgroundColor = 'transparent'
-      }}
+}: CenterConfigSectionProps) {
+  const id = useId()
+  return (
+    <Collapsible
+      open={open}
+      onOpenChange={onOpenChange}
+      className="border-t border-border-subtle"
     >
-      <CollapsibleTrigger className="flex-1 text-left text-base font-semibold text-text-primary">
-        {title}
-      </CollapsibleTrigger>
-      <span className="flex items-center gap-space-xs text-text-tertiary">
-        {extra}
+      <div className="flex items-center gap-space-sm">
         <CollapsibleTrigger
-          className="flex items-center"
-          aria-label={open ? '收起' : '展开'}
+          id={id}
+          className="flex min-w-0 flex-1 items-center justify-between gap-space-sm py-space-base text-left text-sm font-semibold text-text-primary focus-visible:ring-2 focus-visible:ring-border-accent focus-visible:outline-hidden"
         >
-          {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+          {title}
+          <ChevronDown
+            aria-hidden
+            className={`size-icon-sm shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
+          />
         </CollapsibleTrigger>
-      </span>
-    </div>
-    <CollapsibleContent className="space-y-space-lg px-space-lg pb-space-lg">
-      {children}
-    </CollapsibleContent>
-  </Collapsible>
-)
+        {extra}
+      </div>
+      <CollapsibleContent
+        aria-labelledby={id}
+        className="space-y-space-lg pb-space-lg"
+      >
+        {children}
+      </CollapsibleContent>
+    </Collapsible>
+  )
+}

@@ -2,13 +2,14 @@ import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { EditorHeader } from '../editor-header'
-import type { CreateAppPageController } from '../../hooks/use-create-app-page'
+import { setProductLanguage } from '@/locales/i18n'
 
 describe('Studio editor capability actions', () => {
   let container: HTMLDivElement
   let root: Root
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    await setProductLanguage('zh-CN')
     container = document.createElement('div')
     document.body.append(container)
     root = createRoot(container)
@@ -30,10 +31,19 @@ describe('Studio editor capability actions', () => {
       saving: false,
       handleEditApp: vi.fn(),
       handleSave,
-    } as unknown as CreateAppPageController
+    }
 
     await act(async () => {
-      root.render(<EditorHeader controller={controller} onBack={vi.fn()} />)
+      root.render(
+        <EditorHeader
+          config={controller.config}
+          saving={false}
+          status="saved"
+          onSave={handleSave}
+          onEdit={controller.handleEditApp}
+          onBack={vi.fn()}
+        />,
+      )
     })
 
     expect(container.textContent).not.toContain('发布')

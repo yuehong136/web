@@ -18,7 +18,6 @@
   "src/pages/memory/MemorySettingsPage.tsx": 742,
   "src/pages/ai-tools/ref/DataInput.tsx": 736,
   "src/components/memory/MemoryMessageTable.tsx": 702,
-  "src/pages/studio/create-app/components/config-pane.tsx": 698,
   "src/pages/settings/MCPToolsPage.tsx": 660,
   "src/pages/settings/MCPBatchPage.tsx": 633,
   "src/components/ui/file-icon.tsx": 630

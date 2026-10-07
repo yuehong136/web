@@ -1,4 +1,4 @@
-import React from 'react'
+import type { ReactNode, CSSProperties } from 'react'
 import markdownit from 'markdown-it'
 import type { Config } from 'dompurify'
 import { SafeHtml } from '@/components/ui/safe-html'
@@ -13,7 +13,7 @@ const MARKDOWN_PURIFY_OPTIONS: Config = {
   ADD_ATTR: ['target', 'rel'],
 }
 
-export const renderMarkdown = (content: string | React.ReactNode) => {
+export const renderMarkdown = (content: string | ReactNode) => {
   if (!content || typeof content !== 'string') {
     return content
   }
@@ -34,7 +34,7 @@ export const renderMarkdown = (content: string | React.ReactNode) => {
           '--tw-prose-quote-borders': 'var(--color-border-default)',
           '--tw-prose-pre-bg': 'var(--color-components-pre-bg)',
           '--tw-prose-pre-code': 'var(--color-components-pre-text)',
-        } as React.CSSProperties
+        } as CSSProperties
       }
     />
   )

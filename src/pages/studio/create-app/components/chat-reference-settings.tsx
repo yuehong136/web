@@ -3,14 +3,9 @@ import { useTranslation } from 'react-i18next'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { ReferenceMetadataSettings } from '@/components/chat/reference-metadata-settings'
-import type { CreateAppPageController } from '../hooks/use-create-app-page'
+import type { ConfigBindings } from './config-fields'
 
-export function ChatReferenceSettings({
-  controller,
-}: {
-  controller: CreateAppPageController
-}) {
-  const { config, handleConfigChange } = controller
+export function ChatReferenceSettings({ config, onChange }: ConfigBindings) {
   const { t } = useTranslation()
   const id = useId()
   return (
@@ -21,8 +16,8 @@ export function ChatReferenceSettings({
           id={id}
           checked={config.do_refer === '1'}
           onCheckedChange={(checked) => {
-            handleConfigChange('do_refer', checked ? '1' : '0')
-            handleConfigChange('prompt_config', {
+            onChange('do_refer', checked ? '1' : '0')
+            onChange('prompt_config', {
               ...config.prompt_config,
               quote: checked,
             })
@@ -33,7 +28,7 @@ export function ChatReferenceSettings({
         datasetIds={config.kb_ids}
         value={config.prompt_config.reference_metadata}
         onChange={(reference_metadata) =>
-          handleConfigChange('prompt_config', {
+          onChange('prompt_config', {
             ...config.prompt_config,
             reference_metadata,
           })

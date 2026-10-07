@@ -39,6 +39,7 @@ interface SheetContentProps
     VariantProps<typeof sheetVariants> {
   showCloseButton?: boolean
   showOverlay?: boolean
+  closeLabel?: string
 }
 
 const SheetContent = React.forwardRef<
@@ -52,6 +53,7 @@ const SheetContent = React.forwardRef<
       children,
       showCloseButton = true,
       showOverlay = true,
+      closeLabel = 'Close',
       ...props
     },
     ref,
@@ -71,7 +73,7 @@ const SheetContent = React.forwardRef<
           {showCloseButton && (
             <SheetPrimitive.Close className="absolute top-4 right-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none data-[state=open]:bg-secondary">
               <X className="h-4 w-4" />
-              <span className="sr-only">Close</span>
+              <span className="sr-only">{closeLabel}</span>
             </SheetPrimitive.Close>
           )}
         </SheetPrimitive.Content>

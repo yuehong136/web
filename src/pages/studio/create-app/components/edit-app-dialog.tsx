@@ -1,5 +1,6 @@
-import React from 'react'
-import { LayoutGrid, Trash2, Upload } from 'lucide-react'
+import { useId } from 'react'
+import { useTranslation } from 'react-i18next'
+import { LayoutGrid, Upload } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
@@ -10,14 +11,22 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import type { CreateAppPageController } from '../hooks/use-create-app-page'
 
-interface EditAppDialogProps {
-  controller: CreateAppPageController
-}
-
-export const EditAppDialog: React.FC<EditAppDialogProps> = ({ controller }) => {
+type AppInfoBindings = Pick<
+  CreateAppPageController,
+  | 'showEditModal'
+  | 'tempConfig'
+  | 'setTempConfig'
+  | 'iconInputRef'
+  | 'handleOpenIconPicker'
+  | 'handleIconInputChange'
+  | 'handleCancelEdit'
+  | 'handleSaveEdit'
+>
+export function EditAppDialog({ controller }: { controller: AppInfoBindings }) {
   const {
     showEditModal,
     tempConfig,
@@ -28,7 +37,8 @@ export const EditAppDialog: React.FC<EditAppDialogProps> = ({ controller }) => {
     handleCancelEdit,
     handleSaveEdit,
   } = controller
-
+  const { t } = useTranslation()
+  const id = useId()
   return (
     <Dialog
       open={showEditModal}
@@ -36,129 +46,98 @@ export const EditAppDialog: React.FC<EditAppDialogProps> = ({ controller }) => {
         if (!open) handleCancelEdit()
       }}
     >
-      <DialogContent size="md">
+      <DialogContent size="md" modal>
         <DialogHeader>
-          <DialogTitle>编辑应用信息</DialogTitle>
+          <DialogTitle>{t('studio.editor.editInfo')}</DialogTitle>
         </DialogHeader>
-
-        <div className="space-y-space-base px-6 pb-6">
+        <div className="space-y-space-lg p-space-lg">
           <div className="space-y-space-sm">
-            <label className="text-sm font-medium text-text-primary">
-              应用图标
-            </label>
-            <input
+            <p className="text-sm font-medium">{t('studio.editor.icon')}</p>
+            <Input
               ref={iconInputRef}
               type="file"
               accept="image/jpeg,image/png,image/svg+xml"
               className="hidden"
               onChange={handleIconInputChange}
             />
-            <div className="flex items-center gap-space-base">
-              <button
-                type="button"
-                onClick={handleOpenIconPicker}
-                className="rounded-radius-full focus:outline-hidden focus-visible:ring-2 focus-visible:ring-border-accent"
-                title="点击上传图标"
-              >
-                <Avatar className="h-16 w-16">
-                  {tempConfig.icon ? (
-                    <AvatarImage src={tempConfig.icon} alt="App Icon" />
-                  ) : null}
-                  <AvatarFallback
-                    style={{
-                      background: 'var(--color-components-app-avatar-bg)',
-                      border:
-                        '2px solid var(--color-components-app-avatar-border)',
-                    }}
-                  >
-                    <LayoutGrid
-                      className="h-6 w-6"
-                      style={{ color: 'var(--color-text-tertiary)' }}
-                    />
-                  </AvatarFallback>
-                </Avatar>
-              </button>
-
-              <Button
-                variant="outline"
-                type="button"
-                onClick={handleOpenIconPicker}
-              >
-                <Upload className="mr-space-xs h-4 w-4" />
-                上传图标
+            <div className="flex flex-wrap items-center gap-space-sm">
+              <Avatar className="size-12">
+                {tempConfig.icon && (
+                  <AvatarImage
+                    src={tempConfig.icon}
+                    alt={t('studio.editor.icon')}
+                  />
+                )}
+                <AvatarFallback>
+                  <LayoutGrid className="size-icon-lg" />
+                </AvatarFallback>
+              </Avatar>
+              <Button variant="outline" onClick={handleOpenIconPicker}>
+                <Upload className="mr-space-xs size-icon-sm" />
+                {t('studio.editor.uploadIcon')}
               </Button>
-
-              {tempConfig.icon ? (
+              {tempConfig.icon && (
                 <Button
                   variant="ghost"
-                  type="button"
                   onClick={() =>
-                    setTempConfig((previousConfig) => ({
-                      ...previousConfig,
+                    setTempConfig((previous) => ({
+                      ...previous,
                       icon: undefined,
                     }))
                   }
                 >
-                  <Trash2
-                    className="mr-space-xs h-4 w-4"
-                    style={{ color: 'var(--color-status-error-text)' }}
-                  />
-                  移除
+                  {t('studio.editor.remove')}
                 </Button>
-              ) : null}
+              )}
             </div>
-            <span className="mt-space-xs block text-xs text-text-tertiary">
-              支持 JPG、PNG、SVG 格式，文件大小不超过 2MB
-            </span>
+            <p className="text-xs text-text-secondary">
+              {t('studio.editor.iconHint')}
+            </p>
           </div>
-
           <div className="space-y-space-sm">
-            <label className="text-sm font-medium text-text-primary">
-              应用名称
-            </label>
+            <Label htmlFor={`${id}-name`}>{t('studio.editor.name')}</Label>
             <Input
+              id={`${id}-name`}
               value={tempConfig.name}
               onChange={(event) =>
-                setTempConfig((previousConfig) => ({
-                  ...previousConfig,
+                setTempConfig((previous) => ({
+                  ...previous,
                   name: event.target.value,
                 }))
               }
-              placeholder="输入应用名称"
               maxLength={50}
             />
-            <span className="block text-right text-xs text-text-tertiary">
+            <p className="text-right text-xs text-text-secondary">
               {tempConfig.name.length}/50
-            </span>
+            </p>
           </div>
-
           <div className="space-y-space-sm">
-            <label className="text-sm font-medium text-text-primary">
-              应用描述
-            </label>
+            <Label htmlFor={`${id}-description`}>
+              {t('studio.editor.description')}
+            </Label>
             <Textarea
+              id={`${id}-description`}
               value={tempConfig.description}
               onChange={(event) =>
-                setTempConfig((previousConfig) => ({
-                  ...previousConfig,
+                setTempConfig((previous) => ({
+                  ...previous,
                   description: event.target.value,
                 }))
               }
-              placeholder="描述应用的功能和用途..."
+              placeholder={t('studio.editor.descriptionPlaceholder')}
               rows={4}
               maxLength={200}
             />
-            <span className="block text-right text-xs text-text-tertiary">
+            <p className="text-right text-xs text-text-secondary">
               {tempConfig.description.length}/200
-            </span>
+            </p>
           </div>
         </div>
-
         <DialogFooter>
           <Button variant="outline" onClick={handleCancelEdit}>
-            取消
+            {t('studio.editor.cancel')}
           </Button>
-          <Button onClick={handleSaveEdit}>保存</Button>
+          <Button onClick={handleSaveEdit}>{t('studio.editor.apply')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

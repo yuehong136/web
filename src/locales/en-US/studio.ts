@@ -1,5 +1,8 @@
+import { studioEditor } from './studio-editor'
+
 export default {
   studio: {
+    editor: studioEditor,
     page: {
       title: 'Studio',
       description: 'Create and manage your AI apps and agents.',
