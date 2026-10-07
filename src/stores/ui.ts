@@ -1,6 +1,5 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { Theme, getResolvedTheme } from '@/themes'
 import i18n, {
   getCurrentLanguage,
   normalizeLocale,
@@ -19,7 +18,8 @@ export enum DesktopActivity {
 const DEFAULT_DESKTOP_SIDEBAR_WIDTH = 22
 const MIN_DESKTOP_SIDEBAR_WIDTH = 16
 const MAX_DESKTOP_SIDEBAR_WIDTH = 30
-const UI_STORAGE_VERSION = 1
+// v2 dropped the unused theme, sidebarWidth, modal and loading fields.
+const UI_STORAGE_VERSION = 2
 
 const normalizeDesktopSidebarWidth = (width: number) => {
   if (!Number.isFinite(width)) return DEFAULT_DESKTOP_SIDEBAR_WIDTH
@@ -30,11 +30,9 @@ const normalizeDesktopSidebarWidth = (width: number) => {
 }
 
 interface PersistedUIState {
-  theme: Theme
   language: Language
   sidebarCollapsed: boolean
   contextSidebarCollapsed: boolean
-  sidebarWidth: number
   desktopActivity: DesktopActivity
   desktopSidebarCollapsed: boolean
   desktopSidebarWidth: number
@@ -72,12 +70,8 @@ export const normalizeDesktopPreferences = (
 
 const normalizePersistedUIState = (value: unknown): PersistedUIState => {
   const record = isRecord(value) ? value : {}
-  const theme = Object.values(Theme).includes(record.theme as Theme)
-    ? (record.theme as Theme)
-    : Theme.SYSTEM
 
   return {
-    theme,
     language: normalizeLocale(record.language) ?? getCurrentLanguage(),
     sidebarCollapsed:
       typeof record.sidebarCollapsed === 'boolean'
@@ -87,84 +81,43 @@ const normalizePersistedUIState = (value: unknown): PersistedUIState => {
       typeof record.contextSidebarCollapsed === 'boolean'
         ? record.contextSidebarCollapsed
         : false,
-    sidebarWidth:
-      typeof record.sidebarWidth === 'number' &&
-      Number.isFinite(record.sidebarWidth)
-        ? record.sidebarWidth
-        : 256,
     ...normalizeDesktopPreferences(record),
   }
 }
 
 interface UIState {
-  // 主题设置
-  theme: Theme
-
   // 语言设置
   language: Language
 
   // 布局设置
   sidebarCollapsed: boolean
   contextSidebarCollapsed: boolean
-  sidebarWidth: number
   desktopActivity: DesktopActivity
   desktopSidebarCollapsed: boolean
   /** Desktop context panel width as a react-resizable-panels percentage. */
   desktopSidebarWidth: number
 
-  // 模态框和弹窗状态
-  modals: Record<string, boolean>
-
-  // 加载状态
-  globalLoading: boolean
-  loadingMessage: string
-
   // 动作
-  setTheme: (theme: Theme) => void
   setLanguage: (language: Language) => void
   toggleSidebar: () => void
   setSidebarCollapsed: (collapsed: boolean) => void
   setContextSidebarCollapsed: (collapsed: boolean) => void
-  setSidebarWidth: (width: number) => void
   setDesktopActivity: (activity: DesktopActivity) => void
   toggleDesktopSidebar: () => void
   setDesktopSidebarCollapsed: (collapsed: boolean) => void
   setDesktopSidebarWidth: (width: number) => void
-
-  // 模态框管理
-  openModal: (modalId: string) => void
-  closeModal: (modalId: string) => void
-  toggleModal: (modalId: string) => void
-
-  // 加载状态管理
-  setGlobalLoading: (loading: boolean, message?: string) => void
-
-  // 工具方法
-  getEffectiveTheme: () => 'light' | 'dark'
-  isMobile: () => boolean
 }
 
 export const useUIStore = create<UIState>()(
   persist<UIState, [], [], PersistedUIState>(
     (set, get) => ({
       // 初始状态
-      theme: Theme.SYSTEM,
       language: getCurrentLanguage(),
       sidebarCollapsed: false,
       contextSidebarCollapsed: false,
-      sidebarWidth: 256,
       desktopActivity: DesktopActivity.WORK,
       desktopSidebarCollapsed: false,
       desktopSidebarWidth: DEFAULT_DESKTOP_SIDEBAR_WIDTH,
-      modals: {},
-      globalLoading: false,
-      loadingMessage: '',
-
-      // 设置主题
-      setTheme: (theme) => {
-        set({ theme })
-        // 新的主题系统会自动处理DOM更新
-      },
 
       // 设置语言
       setLanguage: (language) => {
@@ -186,9 +139,6 @@ export const useUIStore = create<UIState>()(
       setContextSidebarCollapsed: (contextSidebarCollapsed) =>
         set({ contextSidebarCollapsed }),
 
-      // 设置侧边栏宽度
-      setSidebarWidth: (width) => set({ sidebarWidth: width }),
-
       setDesktopActivity: (desktopActivity) => set({ desktopActivity }),
 
       toggleDesktopSidebar: () =>
@@ -204,41 +154,6 @@ export const useUIStore = create<UIState>()(
           desktopSidebarWidth:
             normalizeDesktopSidebarWidth(desktopSidebarWidth),
         }),
-
-      // 打开模态框
-      openModal: (modalId) =>
-        set((state) => ({
-          modals: { ...state.modals, [modalId]: true },
-        })),
-
-      // 关闭模态框
-      closeModal: (modalId) =>
-        set((state) => ({
-          modals: { ...state.modals, [modalId]: false },
-        })),
-
-      // 切换模态框
-      toggleModal: (modalId) =>
-        set((state) => ({
-          modals: { ...state.modals, [modalId]: !state.modals[modalId] },
-        })),
-
-      // 设置全局加载状态
-      setGlobalLoading: (loading, message = '') =>
-        set({
-          globalLoading: loading,
-          loadingMessage: message,
-        }),
-
-      // 获取有效主题
-      getEffectiveTheme: () => {
-        return getResolvedTheme()
-      },
-
-      // 检查是否为移动端
-      isMobile: () => {
-        return window.innerWidth < 768
-      },
     }),
     {
       name: 'ui-storage',
@@ -249,23 +164,18 @@ export const useUIStore = create<UIState>()(
         ...normalizePersistedUIState(persistedState),
       }),
       partialize: (state) => ({
-        theme: state.theme,
         language: state.language,
         sidebarCollapsed: state.sidebarCollapsed,
         contextSidebarCollapsed: state.contextSidebarCollapsed,
-        sidebarWidth: state.sidebarWidth,
         desktopActivity: state.desktopActivity,
         desktopSidebarCollapsed: state.desktopSidebarCollapsed,
         desktopSidebarWidth: state.desktopSidebarWidth,
       }),
       onRehydrateStorage: () => (state) => {
         if (state) {
-          // 应用主题
-          state.setTheme(state.theme)
           // 应用语言：优先使用统一 i18n 偏好，避免旧 ui-storage 覆盖产品语言。
+          // 主题由 @/themes 与 public/theme-init.js 管理，不在此持久化。
           state.setLanguage(getCurrentLanguage())
-
-          // 新的主题系统会自动处理系统主题变化
         }
       },
     },

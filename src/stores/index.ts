@@ -19,7 +19,6 @@ export {
 
 // 导入stores用于初始化
 import { useAuthStore } from './auth'
-import { useUIStore } from './ui'
 import { apiClient } from '@/api/client'
 import { authAPI } from '@/api/auth'
 import { toast } from '@/lib/toast'
@@ -45,7 +44,6 @@ export const resetAllStores = () => {
 export const initializeStores = async () => {
   // 可以在这里进行一些初始化操作
   const authStore = useAuthStore.getState()
-  const uiStore = useUIStore.getState()
 
   // 检查认证状态
   const token = localStorage.getItem('auth_token')
@@ -80,7 +78,4 @@ export const initializeStores = async () => {
       authStore.logout().catch(console.error)
     }
   }
-
-  // 应用主题设置
-  uiStore.setTheme(uiStore.theme)
 }

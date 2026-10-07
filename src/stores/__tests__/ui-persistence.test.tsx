@@ -4,7 +4,7 @@ import { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { afterEach, beforeEach, expect, it } from 'vitest'
 import { useShallow } from 'zustand/react/shallow'
-import { useUIStore } from '@/stores/ui'
+import { DesktopActivity, useUIStore } from '@/stores/ui'
 
 const initialState = useUIStore.getState()
 
@@ -19,27 +19,53 @@ afterEach(() => {
   localStorage.clear()
 })
 
-it('persists layout preferences without transient dialogs or loading', () => {
+const persistedKeys = [
+  'contextSidebarCollapsed',
+  'desktopActivity',
+  'desktopSidebarCollapsed',
+  'desktopSidebarWidth',
+  'language',
+  'sidebarCollapsed',
+]
+
+it('persists only the layout and language preferences', () => {
   const state = useUIStore.getState()
-  state.setSidebarWidth(280)
   state.setContextSidebarCollapsed(true)
-  state.openModal('transient-dialog')
-  state.setGlobalLoading(true, 'transient-message')
+  state.setDesktopSidebarWidth(25)
 
   const saved = JSON.parse(localStorage.getItem('ui-storage') ?? '{}')
-  expect(saved.state.sidebarWidth).toBe(280)
+  expect(saved.version).toBe(2)
   expect(saved.state.contextSidebarCollapsed).toBe(true)
-  expect(Object.keys(saved.state).sort()).toEqual([
-    'contextSidebarCollapsed',
-    'desktopActivity',
-    'desktopSidebarCollapsed',
-    'desktopSidebarWidth',
-    'language',
-    'sidebarCollapsed',
-    'sidebarWidth',
-    'theme',
-  ])
-  expect(JSON.stringify(saved)).not.toContain('transient')
+  expect(saved.state.desktopSidebarWidth).toBe(25)
+  expect(Object.keys(saved.state).sort()).toEqual(persistedKeys)
+})
+
+it('migrates version 1 storage and drops the retired fields', async () => {
+  localStorage.setItem(
+    'ui-storage',
+    JSON.stringify({
+      state: {
+        theme: 'dark',
+        sidebarWidth: 280,
+        sidebarCollapsed: true,
+        contextSidebarCollapsed: true,
+        modals: { stale: true },
+      },
+      version: 1,
+    }),
+  )
+  await useUIStore.persist.rehydrate()
+
+  const state = useUIStore.getState() as unknown as Record<string, unknown>
+  expect(state.sidebarCollapsed).toBe(true)
+  expect(state.contextSidebarCollapsed).toBe(true)
+  for (const retired of ['theme', 'sidebarWidth', 'modals', 'globalLoading'])
+    expect(state).not.toHaveProperty(retired)
+
+  useUIStore.getState().setDesktopActivity(DesktopActivity.TOOLS)
+  const saved = JSON.parse(localStorage.getItem('ui-storage') ?? '{}')
+  expect(saved.version).toBe(2)
+  expect(Object.keys(saved.state).sort()).toEqual(persistedKeys)
 })
 
 it('rehydrates the page navigation preference and defaults legacy or invalid values', async () => {
@@ -48,7 +74,7 @@ it('rehydrates the page navigation preference and defaults legacy or invalid val
       'ui-storage',
       JSON.stringify({
         state: { sidebarCollapsed: true, contextSidebarCollapsed: preference },
-        version: 1,
+        version: 2,
       }),
     )
     await useUIStore.persist.rehydrate()
@@ -63,7 +89,7 @@ it('keeps shallow selector snapshots stable across unrelated UI updates', async 
   let renders = 0
   const Probe = () => {
     const selected = useUIStore(
-      useShallow((state) => ({ width: state.sidebarWidth })),
+      useShallow((state) => ({ width: state.desktopSidebarWidth })),
     )
     renders += 1
     return <output>{selected.width}</output>
@@ -74,10 +100,12 @@ it('keeps shallow selector snapshots stable across unrelated UI updates', async 
   try {
     await act(async () => root.render(<Probe />))
     const initialRenders = renders
-    await act(async () => useUIStore.getState().setGlobalLoading(true))
+    await act(async () =>
+      useUIStore.getState().setDesktopActivity(DesktopActivity.TOOLS),
+    )
     expect(renders).toBe(initialRenders)
-    await act(async () => useUIStore.getState().setSidebarWidth(280))
-    expect(container.textContent).toBe('280')
+    await act(async () => useUIStore.getState().setDesktopSidebarWidth(25))
+    expect(container.textContent).toBe('25')
     expect(renders).toBeGreaterThan(initialRenders)
   } finally {
     await act(async () => root.unmount())
