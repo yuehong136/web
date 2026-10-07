@@ -84,3 +84,77 @@ test('selects a pointer-activated portal option before outside-click handling', 
     document.body.querySelector('[data-testid="select-option"]'),
   ).toBeNull()
 })
+
+const LockedSelect = ({
+  disabled,
+  onChange,
+}: {
+  disabled: boolean
+  onChange: (value: string) => void
+}) => (
+  <Select value="alpha" onValueChange={onChange} disabled={disabled}>
+    <SelectTrigger data-testid="select-trigger">
+      <SelectValue />
+    </SelectTrigger>
+    <SelectContent>
+      <SelectItem value="alpha">Alpha</SelectItem>
+      <SelectItem value="beta">Beta</SelectItem>
+    </SelectContent>
+  </Select>
+)
+
+async function mountLockedSelect(onChange: (value: string) => void) {
+  const container = document.createElement('div')
+  document.body.append(container)
+  const root = createRoot(container)
+  cleanup = () => root.unmount()
+  const render = (disabled: boolean) =>
+    act(async () => {
+      root.render(<LockedSelect disabled={disabled} onChange={onChange} />)
+    })
+  await render(true)
+  const trigger = container.querySelector<HTMLButtonElement>(
+    '[data-testid="select-trigger"]',
+  )
+  if (!trigger) throw new Error('Missing select trigger')
+  return { trigger, render }
+}
+
+test('a disabled select can be neither opened nor changed', async () => {
+  const onChange = vi.fn<(value: string) => void>()
+  const { trigger } = await mountLockedSelect(onChange)
+
+  expect(trigger.disabled).toBe(true)
+  expect(trigger.textContent).toContain('Alpha')
+
+  await act(async () => {
+    trigger.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+  })
+  // Opening keys and typeahead must not reach the value either.
+  for (const key of ['ArrowDown', 'Enter', ' ', 'b']) {
+    await act(async () => {
+      trigger.dispatchEvent(
+        new KeyboardEvent('keydown', { key, bubbles: true }),
+      )
+    })
+  }
+
+  expect(document.body.textContent).not.toContain('Beta')
+  expect(onChange).not.toHaveBeenCalled()
+  expect(trigger.textContent).toContain('Alpha')
+})
+
+test('disabling an open select closes its list', async () => {
+  const onChange = vi.fn<(value: string) => void>()
+  const { trigger, render } = await mountLockedSelect(onChange)
+  await render(false)
+
+  await act(async () => trigger.click())
+  expect(document.body.textContent).toContain('Beta')
+
+  await render(true)
+
+  expect(document.body.textContent).not.toContain('Beta')
+  expect(trigger.disabled).toBe(true)
+  expect(onChange).not.toHaveBeenCalled()
+})

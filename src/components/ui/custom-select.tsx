@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import { createPortal } from 'react-dom'
 import { Check, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -35,8 +35,11 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   placeholder = '请选择',
   className,
   size = 'md',
+  disabled = false,
 }) => {
   const [isOpen, setIsOpen] = React.useState(false)
+  // A menu left open when the select becomes disabled would still accept a pick.
+  if (disabled && isOpen) setIsOpen(false)
   const [zIndex, setZIndex] = React.useState(globalZIndex)
   const dropdownRef = React.useRef<HTMLDivElement>(null)
   const buttonRef = React.useRef<HTMLButtonElement>(null)
@@ -70,11 +73,13 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   }, [isOpen])
 
   const handleSelect = (optionValue: string) => {
+    if (disabled) return
     onChange(optionValue)
     setIsOpen(false)
   }
 
   const handleToggle = () => {
+    if (disabled) return
     if (!isOpen) {
       // 打开时分配新的z-index
       globalZIndex += 10
@@ -132,9 +137,11 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
         ref={buttonRef}
         type="button"
         onClick={handleToggle}
+        disabled={disabled}
         className={cn(
           'w-full rounded-lg border text-left transition-all duration-200',
           'focus:ring-2 focus:outline-hidden',
+          'disabled:cursor-not-allowed disabled:opacity-50',
           getSizeClasses(),
         )}
         style={{
@@ -179,6 +186,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
         <Portal>
           <>
             <div
+              aria-hidden="true"
               data-theme={theme}
               className="fixed inset-0 bg-transparent"
               style={{ zIndex: zIndex - 1 }}

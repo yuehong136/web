@@ -61,6 +61,7 @@ const SelectContext = React.createContext<{
   isOpen: boolean
   setIsOpen: (open: boolean) => void
   placeholder?: string
+  disabled?: boolean
   selectRef?: React.RefObject<HTMLDivElement | null>
   contentRef?: React.RefObject<HTMLDivElement | null>
   labelMap: Map<string, React.ReactNode>
@@ -77,8 +78,11 @@ export const Select: React.FC<SelectProps> = ({
   onValueChange,
   placeholder,
   children,
+  disabled = false,
 }) => {
   const [isOpen, setIsOpen] = React.useState(false)
+  // A list left open when the select becomes disabled would still accept a pick.
+  if (disabled && isOpen) setIsOpen(false)
   const selectRef = React.useRef<HTMLDivElement>(null)
   const contentRef = React.useRef<HTMLDivElement>(null)
   const [runtimeLabelMap, setRuntimeLabelMap] = React.useState<
@@ -143,6 +147,7 @@ export const Select: React.FC<SelectProps> = ({
         isOpen,
         setIsOpen,
         placeholder,
+        disabled,
         selectRef,
         contentRef,
         labelMap,
@@ -159,13 +164,19 @@ export const Select: React.FC<SelectProps> = ({
 export const SelectTrigger = React.forwardRef<
   HTMLButtonElement,
   SelectTriggerProps
->(({ className = '', children, ...props }, ref) => {
-  const { isOpen, setIsOpen } = React.useContext(SelectContext)
+>(({ className = '', children, disabled: triggerDisabled, ...props }, ref) => {
+  const {
+    isOpen,
+    setIsOpen,
+    disabled: selectDisabled,
+  } = React.useContext(SelectContext)
+  const disabled = Boolean(selectDisabled || triggerDisabled)
 
   return (
     <button
       ref={ref}
       type="button"
+      disabled={disabled}
       className={`flex h-12 w-full items-center justify-between rounded-xl border px-4 py-3 text-sm transition-colors focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
       style={
         {
@@ -183,7 +194,9 @@ export const SelectTrigger = React.forwardRef<
         e.currentTarget.style.borderColor =
           'var(--color-components-select-border)'
       }}
-      onClick={() => setIsOpen(!isOpen)}
+      onClick={() => {
+        if (!disabled) setIsOpen(!isOpen)
+      }}
       {...props}
     >
       {children}
@@ -295,6 +308,7 @@ export const SelectItem = React.forwardRef<HTMLButtonElement, SelectItemProps>(
       value: selectedValue,
       onValueChange,
       setIsOpen,
+      disabled: selectDisabled,
       registerLabel,
     } = React.useContext(SelectContext)
     const isSelected = selectedValue === value
@@ -305,6 +319,7 @@ export const SelectItem = React.forwardRef<HTMLButtonElement, SelectItemProps>(
     }, [value, children, registerLabel])
 
     const selectValue = () => {
+      if (selectDisabled) return
       onValueChange?.(value)
       setIsOpen(false)
     }
