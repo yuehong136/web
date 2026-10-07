@@ -15,11 +15,15 @@ import {
   Layers,
   Check,
   ExternalLink,
+  X,
 } from 'lucide-react'
 import { Watermark } from 'antd'
 import type { Config } from 'dompurify'
+import { useTranslation } from 'react-i18next'
+import { Button } from '@/components/ui/button'
 import {
   Sheet,
+  SheetClose,
   SheetContent,
   SheetHeader,
   SheetTitle,
@@ -160,6 +164,7 @@ export const ReferenceDetailSheet: React.FC<ReferenceDetailSheetProps> = ({
   allChunks,
   onCopySuccess,
 }) => {
+  const { t } = useTranslation()
   const [contentCopied, setContentCopied] = React.useState(false)
   const user = useAuthStore((s) => s.user)
 
@@ -206,6 +211,8 @@ export const ReferenceDetailSheet: React.FC<ReferenceDetailSheetProps> = ({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
+        // 默认关闭按钮绝对定位，会被吸顶头部盖住并随内容滚走，改放进头部
+        showCloseButton={false}
         className="w-full overflow-y-auto p-0 sm:max-w-md"
         style={{ backgroundColor: 'var(--color-background-body)' }}
       >
@@ -263,6 +270,15 @@ export const ReferenceDetailSheet: React.FC<ReferenceDetailSheetProps> = ({
                 查看原文
               </button>
             )}
+            <SheetClose asChild>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label={t('common.close')}
+              >
+                <X className="size-icon-sm" />
+              </Button>
+            </SheetClose>
           </div>
         </SheetHeader>
 
