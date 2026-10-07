@@ -24,6 +24,10 @@ export default {
       selectModelFirst: 'Select a chat model first.',
       removeSelection: 'Remove {{name}}',
     },
+    history: {
+      loadFailed: 'Couldn’t load the conversation history.',
+      createFailed: 'Couldn’t create the conversation.',
+    },
     agentTimeline: {
       arguments: 'Arguments',
       result: 'Result',

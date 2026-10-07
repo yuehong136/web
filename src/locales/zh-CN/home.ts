@@ -24,6 +24,10 @@ export default {
       selectModelFirst: '请先选择一个聊天模型',
       removeSelection: '移除 {{name}}',
     },
+    history: {
+      loadFailed: '加载对话历史失败',
+      createFailed: '创建对话失败',
+    },
     agentTimeline: {
       arguments: '参数',
       result: '结果',

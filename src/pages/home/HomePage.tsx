@@ -30,14 +30,15 @@ export const HomePage = () => {
   // 当前选中的应用（单选）
   const selectedApp = selectedApps.length > 0 ? selectedApps[0] : null
 
-  // 草稿按身份与会话隔离，只留在内存中
+  // 草稿与请求都按身份隔离；草稿另按会话区分，只留在内存中
+  const identity = `${user?.id ?? ''}:${user?.tenant_id ?? ''}`
   const draftKey = selectedConversationId ?? NEW_CONVERSATION_DRAFT
   const {
     draft: inputValue,
     setDraft: setInputValue,
     clearDraft,
     moveDraft,
-  } = useHomeDrafts(`${user?.id ?? ''}:${user?.tenant_id ?? ''}`, draftKey)
+  } = useHomeDrafts(identity, draftKey)
 
   // 新会话拿到服务端 id 时迁移草稿，生成期间写下的下一条不会丢失
   const handleConversationIdChange = useCallback(
@@ -64,6 +65,7 @@ export const HomePage = () => {
     selectedModelId,
     selectedApp,
     selectedConversationId,
+    identity,
     onConversationIdChange: handleConversationIdChange,
   })
 
