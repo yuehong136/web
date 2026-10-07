@@ -10,6 +10,7 @@ export const deletionSyncSources = new Set<DataSourceKey>([
   DataSourceKey.DINGTALK_AI_TABLE,
   DataSourceKey.GOOGLE_DRIVE,
   DataSourceKey.GMAIL,
+  DataSourceKey.IMAP,
   DataSourceKey.BITBUCKET,
   DataSourceKey.GITHUB,
   DataSourceKey.GITLAB,
