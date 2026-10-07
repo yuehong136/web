@@ -124,10 +124,11 @@ export function processReferences(
 /**
  * 从SSE响应数据中提取引用chunks
  */
-export function extractReferencesFromSSEData(data: any): ReferenceChunk[] {
-  if (!data || typeof data !== 'object') {
+export function extractReferencesFromSSEData(input: unknown): ReferenceChunk[] {
+  if (!input || typeof input !== 'object') {
     return []
   }
+  const data = input as { reference?: { chunks?: unknown }; chunks?: unknown }
 
   // 检查新格式：data.reference.chunks
   if (data.reference && Array.isArray(data.reference.chunks)) {
@@ -164,19 +165,4 @@ export function extractReferencesFromSSEData(data: any): ReferenceChunk[] {
   }
 
   return []
-}
-
-/**
- * 判断图片类型文档
- * 支持 'image' 和 'table' 类型（与 RAGFlow 保持一致）
- */
-const IMAGE_DOC_TYPES = ['image', 'table']
-
-/**
- * 判断一个 chunk 是否为图片类型
- * @param chunk 引用 chunk 数据
- * @returns 是否为图片类型
- */
-export function isImageChunk(chunk?: ReferenceChunk): boolean {
-  return IMAGE_DOC_TYPES.includes(chunk?.doc_type ?? chunk?.doc_type_kwd ?? '')
 }
