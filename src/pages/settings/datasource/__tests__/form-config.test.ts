@@ -58,6 +58,7 @@ describe('connector configuration contracts', () => {
       'bitbucket',
       'box',
       'confluence',
+      'dingtalk_ai_table',
       'dropbox',
       'github',
       'gitlab',

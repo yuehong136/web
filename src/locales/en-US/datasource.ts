@@ -1,5 +1,10 @@
 export default {
   datasource: {
+    dingtalkName: 'DingTalk AI Table',
+    dingtalkDescription: 'Sync records from every sheet in a DingTalk table.',
+    dingtalkTableId: 'Table ID',
+    dingtalkOperatorId: 'Operator Union ID',
+    dingtalkAccessToken: 'Access token',
     // Page titles
     title: 'Data Source Management',
     description:

@@ -234,6 +234,16 @@ export const DataSourceFormDefaultValues: Record<DataSourceKey, any> = {
     source: DataSourceKey.RSS,
     config: { feed_url: '', batch_size: 2 },
   },
+  [DataSourceKey.DINGTALK_AI_TABLE]: {
+    name: '',
+    source: DataSourceKey.DINGTALK_AI_TABLE,
+    config: {
+      table_id: '',
+      operator_id: '',
+      batch_size: 100,
+      credentials: { access_token: '' },
+    },
+  },
   [DataSourceKey.IMAP]: {
     name: '',
     source: DataSourceKey.IMAP,

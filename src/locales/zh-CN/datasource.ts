@@ -1,5 +1,10 @@
 export default {
   datasource: {
+    dingtalkName: '钉钉 AI 表格',
+    dingtalkDescription: '同步表格中所有工作表的记录。',
+    dingtalkTableId: '表格 ID',
+    dingtalkOperatorId: '操作者 Union ID',
+    dingtalkAccessToken: '访问令牌',
     // 页面标题
     title: '数据源管理',
     description: '管理和配置外部数据源，支持多种云存储、协作平台和代码仓库。',

@@ -1,5 +1,6 @@
 import { FormFieldType, type FormFieldConfig, DataSourceKey } from '../types'
 import { getSeafileFormFields } from './seafile'
+import { getDingTalkFormFields } from './dingtalk'
 import { getS3FormFields } from './s3'
 import { getConfluenceFormFields } from './confluence'
 import { getBitbucketFormFields } from './bitbucket'
@@ -50,6 +51,7 @@ export const getBaseFormFields = (
 const getSourceFormFields = (
   t: (key: string) => string,
 ): Record<DataSourceKey, FormFieldConfig[]> => ({
+  [DataSourceKey.DINGTALK_AI_TABLE]: getDingTalkFormFields(t),
   [DataSourceKey.SEAFILE]: getSeafileFormFields(t),
   [DataSourceKey.S3]: getS3FormFields(t),
   [DataSourceKey.R2]: getR2FormFields(),

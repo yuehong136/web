@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Database, Github, Mail, Rss, Server } from 'lucide-react'
+import { Database, Github, Mail, Rss, Server, Table } from 'lucide-react'
 import SvgIcon from '@/components/ui/svg-icon'
 import { DataSourceKey, type IDataSourceInfoMap } from '../types'
 import { getBaseFormFields, getDataSourceFormFields } from './form-fields'
@@ -270,6 +270,11 @@ export const generateDataSourceInfo = (
     description: t('datasource.rssDescription'),
     icon: <Rss size={ICON_SIZE} className="text-text-primary" />,
   },
+  [DataSourceKey.DINGTALK_AI_TABLE]: {
+    name: t('datasource.dingtalkName'),
+    description: t('datasource.dingtalkDescription'),
+    icon: <Table size={ICON_SIZE} className="text-text-primary" />,
+  },
   [DataSourceKey.IMAP]: {
     name: 'IMAP',
     description: t('datasource.imapDescription'),
@@ -320,6 +325,7 @@ export const DataSourceGroups = {
     DataSourceKey.JIRA,
     DataSourceKey.ASANA,
     DataSourceKey.AIRTABLE,
+    DataSourceKey.DINGTALK_AI_TABLE,
     DataSourceKey.ZENDESK,
   ],
   codeRepository: [

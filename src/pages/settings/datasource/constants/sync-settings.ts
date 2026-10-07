@@ -7,6 +7,7 @@ import {
 /** Sources with an explicit deletion inventory contract (RSS mirrors its current feed). */
 export const deletionSyncSources = new Set<DataSourceKey>([
   DataSourceKey.AIRTABLE,
+  DataSourceKey.DINGTALK_AI_TABLE,
   DataSourceKey.GOOGLE_DRIVE,
   DataSourceKey.GMAIL,
   DataSourceKey.BITBUCKET,

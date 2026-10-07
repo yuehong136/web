@@ -20,6 +20,7 @@ export enum DataSourceKey {
   JIRA = 'jira',
   ASANA = 'asana',
   AIRTABLE = 'airtable',
+  DINGTALK_AI_TABLE = 'dingtalk_ai_table',
   ZENDESK = 'zendesk',
 
   // 代码仓库类
