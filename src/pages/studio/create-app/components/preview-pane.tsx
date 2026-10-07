@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 import { Bubble, Sender } from '@ant-design/x'
 import {
   Bug,
@@ -16,8 +16,11 @@ import {
   CHAT_TEXT_TYPING,
   shouldUseBubbleTyping,
 } from '@/components/chat/antx-chat-config'
+import { ReferenceDetailSheet } from '@/components/chat/ReferenceDetailSheet'
+import type { ReferenceChunk } from '@/utils/reference-replacer'
 import type { CreateAppPageController } from '../hooks/use-create-app-page'
 import { renderMarkdown } from '../utils'
+import { PreviewAnswer } from './preview-answer'
 
 interface PreviewPaneProps {
   controller: CreateAppPageController
@@ -39,6 +42,19 @@ export const PreviewPane: React.FC<PreviewPaneProps> = ({ controller }) => {
     handleStopOutput,
     handleResetPreview,
   } = controller
+  const [referenceDetail, setReferenceDetail] = useState<{
+    chunk: ReferenceChunk
+    references: ReferenceChunk[]
+  } | null>(null)
+  const [referenceDetailOpen, setReferenceDetailOpen] = useState(false)
+
+  const handleViewReference = useCallback(
+    (chunk: ReferenceChunk, references: ReferenceChunk[]) => {
+      setReferenceDetail({ chunk, references })
+      setReferenceDetailOpen(true)
+    },
+    [],
+  )
 
   const bubbleItems = useMemo(
     () =>
@@ -69,13 +85,13 @@ export const PreviewPane: React.FC<PreviewPaneProps> = ({ controller }) => {
                   }}
                 >
                   <div
-                    className="mb-space-xs gap-space-xs flex items-center font-medium"
+                    className="mb-space-xs flex items-center gap-space-xs font-medium"
                     style={{ color: 'var(--color-chat-think-text)' }}
                   >
                     <span>{isCurrentStreaming ? '思考中...' : '思考过程'}</span>
                   </div>
                   <div
-                    className="whitespace-pre-wrap leading-relaxed"
+                    className="leading-relaxed whitespace-pre-wrap"
                     style={{ color: 'var(--color-chat-think-text)' }}
                   >
                     {message.thinking}
@@ -84,9 +100,18 @@ export const PreviewPane: React.FC<PreviewPaneProps> = ({ controller }) => {
               ) : null}
 
               {message.content && message.content.trim() ? (
-                renderMarkdown(message.content)
+                isUser ? (
+                  renderMarkdown(message.content)
+                ) : (
+                  <PreviewAnswer
+                    content={message.content}
+                    references={message.references}
+                    isStreaming={isCurrentStreaming}
+                    onViewReference={handleViewReference}
+                  />
+                )
               ) : isCurrentStreaming && !message.thinking ? (
-                <div className="italic text-text-tertiary">正在生成回复...</div>
+                <div className="text-text-tertiary italic">正在生成回复...</div>
               ) : null}
             </div>
           ),
@@ -95,7 +120,7 @@ export const PreviewPane: React.FC<PreviewPaneProps> = ({ controller }) => {
           loading: isCurrentStreaming && !message.content && !message.thinking,
           avatar: isUser ? (
             <div
-              className="rounded-radius-full flex h-8 min-h-[32px] w-8 min-w-[32px] shrink-0 items-center justify-center text-sm font-medium"
+              className="flex h-8 min-h-[32px] w-8 min-w-[32px] shrink-0 items-center justify-center rounded-radius-full text-sm font-medium"
               style={{
                 backgroundColor: 'var(--color-chat-bubble-user-avatar-bg)',
                 color: 'var(--color-chat-bubble-user-avatar-text)',
@@ -104,7 +129,7 @@ export const PreviewPane: React.FC<PreviewPaneProps> = ({ controller }) => {
               U
             </div>
           ) : config.icon && config.icon.trim() ? (
-            <div className="rounded-radius-full h-8 min-h-[32px] w-8 min-w-[32px] shrink-0 overflow-hidden">
+            <div className="h-8 min-h-[32px] w-8 min-w-[32px] shrink-0 overflow-hidden rounded-radius-full">
               <img
                 src={config.icon}
                 alt="AI"
@@ -113,7 +138,7 @@ export const PreviewPane: React.FC<PreviewPaneProps> = ({ controller }) => {
             </div>
           ) : (
             <div
-              className="rounded-radius-full flex h-8 min-h-[32px] w-8 min-w-[32px] shrink-0 items-center justify-center"
+              className="flex h-8 min-h-[32px] w-8 min-w-[32px] shrink-0 items-center justify-center rounded-radius-full"
               style={{
                 backgroundColor: 'var(--color-chat-bubble-assistant-avatar-bg)',
               }}
@@ -150,7 +175,7 @@ export const PreviewPane: React.FC<PreviewPaneProps> = ({ controller }) => {
           },
         }
       }),
-    [config.icon, isStreaming, previewMessages],
+    [config.icon, handleViewReference, isStreaming, previewMessages],
   )
 
   return (
@@ -158,7 +183,7 @@ export const PreviewPane: React.FC<PreviewPaneProps> = ({ controller }) => {
       title="预览与调试"
       collapsed={rightCollapsed}
       collapsedContent={
-        <div className="gap-space-sm py-space-sm flex h-full flex-col items-center">
+        <div className="flex h-full flex-col items-center gap-space-sm py-space-sm">
           <Button
             variant="ghost"
             size="icon"
@@ -216,7 +241,7 @@ export const PreviewPane: React.FC<PreviewPaneProps> = ({ controller }) => {
         {previewMessages.length === 0 ? (
           <div className="py-16 text-center">
             <div
-              className="mb-space-base rounded-radius-full mx-auto flex h-12 w-12 items-center justify-center"
+              className="mx-auto mb-space-base flex h-12 w-12 items-center justify-center rounded-radius-full"
               style={{ background: 'var(--color-components-app-avatar-bg)' }}
             >
               <span className="text-sm font-bold text-text-inverted">AI</span>
@@ -235,7 +260,7 @@ export const PreviewPane: React.FC<PreviewPaneProps> = ({ controller }) => {
         )}
       </ScrollArea>
 
-      <div className="p-space-base shrink-0 border-t border-border-default">
+      <div className="shrink-0 border-t border-border-default p-space-base">
         <div className="mb-space-base">
           <Sender
             value={inputValue}
@@ -335,7 +360,7 @@ export const PreviewPane: React.FC<PreviewPaneProps> = ({ controller }) => {
 
         {!dialogId ? (
           <div
-            className="mt-space-sm rounded-radius-md p-space-sm border text-xs"
+            className="mt-space-sm rounded-radius-md border p-space-sm text-xs"
             style={{
               backgroundColor: 'var(--color-components-alert-warning-bg)',
               borderColor: 'var(--color-components-alert-warning-border)',
@@ -346,6 +371,13 @@ export const PreviewPane: React.FC<PreviewPaneProps> = ({ controller }) => {
           </div>
         ) : null}
       </div>
+
+      <ReferenceDetailSheet
+        open={referenceDetailOpen}
+        onOpenChange={setReferenceDetailOpen}
+        chunk={referenceDetail?.chunk ?? null}
+        allChunks={referenceDetail?.references}
+      />
     </StudioPanelShell>
   )
 }

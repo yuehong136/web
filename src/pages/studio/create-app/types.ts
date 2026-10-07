@@ -1,4 +1,5 @@
 import type { ReferenceMetadataConfig } from '@/types/reference-metadata'
+import type { ReferenceChunk } from '@/utils/reference-replacer'
 export interface AppLLMSetting {
   temperature?: number
   top_p?: number
@@ -68,6 +69,7 @@ export interface PreviewMessage {
   content: string
   id: string
   thinking?: string
+  references?: ReferenceChunk[]
 }
 
 export interface VariableForm {

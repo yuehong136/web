@@ -381,8 +381,8 @@ export const ReferencePanel: FC<ReferencePanelProps> = ({
   if (totalChunks === 0) return null
 
   return (
-    <div className={cn('mt-4', className)}>
-      {/* 面板头部 */}
+    <div className={cn('@container mt-4', className)}>
+      {/* 面板头部；窄容器（如 Studio 预览气泡）只显示引用数，标题不折行 */}
       <button
         className="flex w-full items-center gap-2 rounded-lg px-3 py-2 transition-colors"
         style={{
@@ -392,32 +392,33 @@ export const ReferencePanel: FC<ReferencePanelProps> = ({
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <BookOpen
-          className="h-4 w-4"
+          className="h-4 w-4 shrink-0"
           style={{ color: 'var(--color-text-accent)' }}
         />
         <span
-          className="flex-1 text-left text-sm font-medium"
+          className="flex-1 text-left text-sm font-medium whitespace-nowrap"
           style={{ color: 'var(--color-text-primary)' }}
         >
           引用来源
         </span>
         <span
-          className="rounded-full px-2 py-0.5 text-xs"
+          className="shrink-0 rounded-full px-2 py-0.5 text-xs whitespace-nowrap"
           style={{
             backgroundColor: 'var(--color-state-focus-10)',
             color: 'var(--color-text-accent)',
           }}
         >
-          {documentCount} 个文档 · {totalChunks} 条引用
+          <span className="hidden @2xs:inline">{documentCount} 个文档 · </span>
+          {totalChunks} 条引用
         </span>
         {isExpanded ? (
           <ChevronDown
-            className="h-4 w-4"
+            className="h-4 w-4 shrink-0"
             style={{ color: 'var(--color-text-tertiary)' }}
           />
         ) : (
           <ChevronRight
-            className="h-4 w-4"
+            className="h-4 w-4 shrink-0"
             style={{ color: 'var(--color-text-tertiary)' }}
           />
         )}

@@ -10,6 +10,7 @@ import {
   readSSEStream,
   type SSEEnvelope,
 } from '@/lib/streaming'
+import { extractReferencesFromSSEData } from '@/utils/reference-replacer'
 import type { PreviewMessage } from '../types'
 import { buildPrologueMessages } from '../utils'
 
@@ -179,6 +180,8 @@ export const useCreateAppPreview = ({
               failureNotice === 'chat.stream.failed'
                 ? t(failureNotice)
                 : streamState.content
+            // Deltas carry empty chunks; the final frame brings the cited ones.
+            const references = extractReferencesFromSSEData(chunk.payload)
 
             setPreviewMessages((previousMessages) => {
               const nextMessages = [...previousMessages]
@@ -191,6 +194,7 @@ export const useCreateAppPreview = ({
                   ...nextMessages[lastIndex],
                   content,
                   thinking: streamState.thinking,
+                  ...(references.length > 0 ? { references } : {}),
                 }
               }
               return nextMessages
