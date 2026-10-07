@@ -119,7 +119,7 @@ test('readSSEStream stops delivering events after a mid-stream abort', async () 
     },
   })
 
-  await readSSEStream(new Response(stream), {
+  const end = await readSSEStream(new Response(stream), {
     signal: controller.signal,
     onEvent: (event) => {
       events.push(event)
@@ -128,18 +128,79 @@ test('readSSEStream stops delivering events after a mid-stream abort', async () 
   })
 
   assert.deepEqual(events, [{ n: 1 }])
+  assert.deepEqual(end, { reason: 'aborted' })
 })
 
 test('readSSEStream resolves immediately for an already-aborted signal', async () => {
   const controller = new AbortController()
   controller.abort()
 
-  await readSSEStream(sseResponse(['data: {"n":1}\n\n']), {
+  const end = await readSSEStream(sseResponse(['data: {"n":1}\n\n']), {
     signal: controller.signal,
     onEvent: () => {
       assert.fail('no event expected after abort')
     },
   })
+
+  assert.deepEqual(end, { reason: 'aborted' })
+})
+
+test('readSSEStream reports eof without judging whether the run completed', async () => {
+  const events: unknown[] = []
+
+  // No terminal frame: the transport only says the body ended.
+  const end = await readSSEStream(sseResponse(['data: {"answer":"半"}\n\n']), {
+    onEvent: (event) => {
+      events.push(event)
+    },
+  })
+
+  assert.deepEqual(events, [{ answer: '半' }])
+  assert.deepEqual(end, { reason: 'eof' })
+})
+
+test('readSSEStream keeps reading past [DONE] instead of treating it as the end', async () => {
+  const events: unknown[] = []
+  const parseErrors: string[] = []
+
+  const end = await readSSEStream(
+    sseResponse(['data: [DONE]\n\n', 'data: {"late":true}\n\n']),
+    {
+      onEvent: (event) => {
+        events.push(event)
+      },
+      onParseError: (rawData) => {
+        parseErrors.push(rawData)
+      },
+    },
+  )
+
+  assert.deepEqual(parseErrors, ['[DONE]'])
+  assert.deepEqual(events, [{ late: true }])
+  assert.deepEqual(end, { reason: 'eof' })
+})
+
+test('readSSEStream rejects when the connection breaks instead of reporting eof', async () => {
+  const events: unknown[] = []
+  const broken = new TypeError('network error')
+  const stream = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      controller.enqueue(encoder.encode('data: {"n":1}\n\n'))
+      // The connection drops after the first frame has been delivered.
+      await new Promise((resolve) => setTimeout(resolve, 10))
+      controller.error(broken)
+    },
+  })
+
+  await assert.rejects(
+    readSSEStream(new Response(stream), {
+      onEvent: (event) => {
+        events.push(event)
+      },
+    }),
+    (error) => error === broken,
+  )
+  assert.deepEqual(events, [{ n: 1 }])
 })
 
 test('assertSSEResponse extracts retmsg from JSON error bodies', async () => {

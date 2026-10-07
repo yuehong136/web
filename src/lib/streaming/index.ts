@@ -35,6 +35,8 @@ export {
   assertSSEResponse,
   readSSEStream,
   type ReadSSEStreamOptions,
+  type SSEStreamEnd,
+  type SSEStreamEndReason,
 } from './transport'
 export {
   StreamMessageTypes,

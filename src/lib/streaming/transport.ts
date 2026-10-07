@@ -37,10 +37,21 @@ export async function assertSSEResponse(response: Response): Promise<void> {
     throw new APIError(response.status, 'INVALID_STREAM', 'Missing stream body')
 }
 
+/**
+ * Why the stream stopped being read. Neither reason says the run succeeded:
+ * each caller judges completion from its own terminal frame, and an `eof`
+ * without one is an unconfirmed result. A broken connection rejects instead.
+ */
+export type SSEStreamEndReason = 'eof' | 'aborted'
+
+export interface SSEStreamEnd {
+  reason: SSEStreamEndReason
+}
+
 export interface ReadSSEStreamOptions<T> {
   /**
    * Abort signal owned by the caller. Aborting cancels the reader immediately,
-   * even while a read is pending, and resolves the returned promise normally.
+   * even while a read is pending, and resolves with `{ reason: 'aborted' }`.
    */
   signal?: AbortSignal
   onEvent: (event: T, rawData: string) => void
@@ -57,7 +68,7 @@ export interface ReadSSEStreamOptions<T> {
 export async function readSSEStream<T = unknown>(
   response: Response,
   options: ReadSSEStreamOptions<T>,
-): Promise<void> {
+): Promise<SSEStreamEnd> {
   const { signal, onEvent, parseErrorMode = 'ignore', onParseError } = options
 
   if (!response.body) {
@@ -66,7 +77,7 @@ export async function readSSEStream<T = unknown>(
 
   if (signal?.aborted) {
     await response.body.cancel().catch(() => undefined)
-    return
+    return { reason: 'aborted' }
   }
 
   const reader = response.body
@@ -84,8 +95,12 @@ export async function readSSEStream<T = unknown>(
   try {
     while (true) {
       const { done, value } = await reader.read()
-      if (done || signal?.aborted) {
-        break
+      // The caller's abort wins: cancel() is what ended the pending read.
+      if (signal?.aborted) {
+        return { reason: 'aborted' }
+      }
+      if (done) {
+        return { reason: 'eof' }
       }
 
       const rawData = value?.data
