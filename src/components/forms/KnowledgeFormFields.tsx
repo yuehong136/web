@@ -432,57 +432,6 @@ export function EmbeddingModelFormField({
 }
 
 // =====================================================
-// 解析器类型选择 (需要从外部传入选项列表)
-// =====================================================
-interface ParserTypeFormFieldProps {
-  name?: string
-  options: SelectOptionGroup[]
-  className?: string
-}
-
-export function ParserTypeFormField({
-  name = 'parser_id',
-  options,
-  className,
-}: ParserTypeFormFieldProps) {
-  const { t } = useTranslation()
-  const form = useFormContext()
-
-  return (
-    <FormField
-      control={form.control}
-      name={name}
-      render={({ field }) => (
-        <FormItem
-          className={cn('flex items-center gap-1 space-y-0', className)}
-        >
-          <FormLabel
-            required
-            tooltip={t('knowledge.settings.fields.chunkMethodTooltip')}
-            className="w-1/4 shrink-0 text-sm text-text-secondary"
-          >
-            {t('knowledge.settings.fields.parserType')}
-          </FormLabel>
-          <div className="w-3/4">
-            <FormControl>
-              <SelectWithSearch
-                value={field.value}
-                onChange={field.onChange}
-                options={options}
-                placeholder={t(
-                  'knowledge.settings.fields.parserTypePlaceholder',
-                )}
-              />
-            </FormControl>
-          </div>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
-  )
-}
-
-// =====================================================
 // MinerU 选项（条件渲染，当选择 MinerU 时显示）
 // =====================================================
 interface MinerUOptionsFormFieldProps {

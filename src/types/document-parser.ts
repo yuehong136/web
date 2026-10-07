@@ -1,6 +1,6 @@
 export enum DocumentParserType {
   Naive = 'naive',
-  Qa = 'qa', 
+  Qa = 'qa',
   Resume = 'resume',
   Manual = 'manual',
   Table = 'table',
@@ -19,7 +19,7 @@ export enum DocumentParserType {
 export const DOCUMENT_PARSER_TYPE_LABELS: Record<DocumentParserType, string> = {
   [DocumentParserType.Naive]: 'General',
   [DocumentParserType.Qa]: 'Q&A',
-  [DocumentParserType.Resume]: 'Resume', 
+  [DocumentParserType.Resume]: 'Resume',
   [DocumentParserType.Manual]: 'Manual',
   [DocumentParserType.Table]: 'Table',
   [DocumentParserType.Paper]: 'Paper',
@@ -32,22 +32,4 @@ export const DOCUMENT_PARSER_TYPE_LABELS: Record<DocumentParserType, string> = {
   [DocumentParserType.Email]: 'Email',
   [DocumentParserType.Tag]: 'Tag',
   [DocumentParserType.KnowledgeGraph]: 'Knowledge Graph',
-};
-
-export const DOCUMENT_PARSER_TYPE_DESCRIPTIONS: Record<DocumentParserType, string> = {
-  [DocumentParserType.Naive]: '通用智能解析，适用于大多数文档类型',
-  [DocumentParserType.Qa]: '专门用于问答格式的文档解析',
-  [DocumentParserType.Resume]: '针对简历格式优化的解析器',
-  [DocumentParserType.Manual]: '手动分割和标注文档内容',
-  [DocumentParserType.Table]: '专门处理表格数据的解析器',
-  [DocumentParserType.Paper]: '学术论文的结构化解析',
-  [DocumentParserType.Book]: '书籍章节结构的解析器',
-  [DocumentParserType.Laws]: '法律条文的专业解析器',
-  [DocumentParserType.Presentation]: 'PPT和演示文稿的解析器',
-  [DocumentParserType.Picture]: '图像内容的OCR和理解',
-  [DocumentParserType.One]: '单页文档的快速解析',
-  [DocumentParserType.Audio]: '音频内容的转录和解析',
-  [DocumentParserType.Email]: '邮件格式的专门解析器',
-  [DocumentParserType.Tag]: '基于标签的文档分类解析',
-  [DocumentParserType.KnowledgeGraph]: '知识图谱构建和解析',
-};
+}

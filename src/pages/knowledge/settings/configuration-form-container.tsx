@@ -68,15 +68,3 @@ export function ParserConfigurationEmptyState({
     </div>
   )
 }
-
-export function EmptyComponent() {
-  const { t } = useTranslation()
-
-  return (
-    <div className="flex items-center justify-center py-8">
-      <p className="text-text-tertiary">
-        {t('knowledge.settings.configuration.selectParser')}
-      </p>
-    </div>
-  )
-}

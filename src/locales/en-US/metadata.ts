@@ -73,12 +73,6 @@ export const metadata = {
     moreValues: '{{count}} more values',
     edit: 'Edit',
     delete: 'Delete',
-    noMetadata: 'No metadata',
-    selectField: 'Select field',
-    fieldPlaceholder: 'Field name',
-    selectValue: 'Select value',
-    valueInputPlaceholder: 'Value. Separate multiple values with commas.',
-    addMetadataButton: 'Add metadata',
     removeValueAria: 'Remove {{value}}',
   },
 }

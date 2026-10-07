@@ -196,33 +196,3 @@ export const useUpdateDocumentMetadataSettings = () => {
     },
   })
 }
-
-/**
- * 更新单文档 Metadata 值 (meta_fields)
- */
-export const useUpdateDocumentMeta = () => {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: ({
-      docId,
-      meta,
-      kbId,
-    }: {
-      docId: string
-      meta: Record<string, any>
-      kbId: string
-    }) => knowledgeAPI.metadata.updateDocumentMeta(kbId, docId, meta),
-    onSuccess: (_, variables) => {
-      // 使文档列表缓存失效
-      queryClient.invalidateQueries({ queryKey: documentKeys.all })
-      queryClient.invalidateQueries({
-        queryKey: metadataKeys.summary(variables.kbId),
-      })
-      toast.success('文档元数据已更新')
-    },
-    onError: () => {
-      toast.error('文档元数据更新失败')
-    },
-  })
-}

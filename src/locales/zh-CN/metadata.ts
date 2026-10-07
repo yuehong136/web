@@ -66,12 +66,6 @@ export const metadata = {
     moreValues: '还有 {{count}} 个值',
     edit: '编辑',
     delete: '删除',
-    noMetadata: '无元数据',
-    selectField: '选择字段',
-    fieldPlaceholder: '字段名',
-    selectValue: '选择值',
-    valueInputPlaceholder: '值（多个值用逗号分隔）',
-    addMetadataButton: '添加元数据',
     removeValueAria: '删除 {{value}}',
   },
 }
