@@ -710,15 +710,8 @@ export interface DesignTokens extends InteractionTokens, SurfaceTokens {
   'components-api-key-actions-border': string
 
   // ===== API 状态指示器 =====
-  'components-api-status-online-bg': string
-  'components-api-status-online-text': string
-  'components-api-status-online-dot': string
-  'components-api-status-offline-bg': string
-  'components-api-status-offline-text': string
-  'components-api-status-offline-dot': string
   'components-api-status-error-bg': string
   'components-api-status-error-text': string
-  'components-api-status-error-dot': string
 
   // ===== HTTP 方法颜色系统 =====
   'components-http-method-get-bg': string
@@ -1663,15 +1656,8 @@ export const defaultTokens: DesignTokens = {
   'components-api-key-actions-border': '',
 
   // API 状态指示器
-  'components-api-status-online-bg': '',
-  'components-api-status-online-text': '',
-  'components-api-status-online-dot': '',
-  'components-api-status-offline-bg': '',
-  'components-api-status-offline-text': '',
-  'components-api-status-offline-dot': '',
   'components-api-status-error-bg': '',
   'components-api-status-error-text': '',
-  'components-api-status-error-dot': '',
 
   // HTTP 方法颜色系统
   'components-http-method-get-bg': '',

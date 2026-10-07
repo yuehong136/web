@@ -153,29 +153,8 @@
   --color-components-api-status-error-bg: var(
     --color-components-api-status-error-bg
   );
-  --color-components-api-status-error-dot: var(
-    --color-components-api-status-error-dot
-  );
   --color-components-api-status-error-text: var(
     --color-components-api-status-error-text
-  );
-  --color-components-api-status-offline-bg: var(
-    --color-components-api-status-offline-bg
-  );
-  --color-components-api-status-offline-dot: var(
-    --color-components-api-status-offline-dot
-  );
-  --color-components-api-status-offline-text: var(
-    --color-components-api-status-offline-text
-  );
-  --color-components-api-status-online-bg: var(
-    --color-components-api-status-online-bg
-  );
-  --color-components-api-status-online-dot: var(
-    --color-components-api-status-online-dot
-  );
-  --color-components-api-status-online-text: var(
-    --color-components-api-status-online-text
   );
   --color-components-app-avatar-bg: var(--color-components-app-avatar-bg);
   --color-components-app-avatar-border: var(
@@ -520,4 +499,15 @@
     --color-components-checkbox-border-checked
   );
   --color-components-checkbox-icon: var(--color-components-checkbox-icon);
+  --color-components-code-bg: var(--color-components-code-bg);
+  --color-components-code-border: var(--color-components-code-border);
+  --color-components-code-text: var(--color-components-code-text);
+  --color-components-collapse-bg: var(--color-components-collapse-bg);
+  --color-components-collapse-border: var(--color-components-collapse-border);
+  --color-components-collapse-content-bg: var(
+    --color-components-collapse-content-bg
+  );
+  --color-components-collapse-content-border: var(
+    --color-components-collapse-content-border
+  );
 }

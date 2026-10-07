@@ -724,15 +724,8 @@ export const lightTokens: DesignTokens = {
   'components-api-key-actions-border': '#e2e8f0',
 
   // ===== API 状态指示器 =====
-  'components-api-status-online-bg': '#f0fdf4',
-  'components-api-status-online-text': '#15803d',
-  'components-api-status-online-dot': '#22c55e',
-  'components-api-status-offline-bg': '#f9fafb',
-  'components-api-status-offline-text': '#6b7280',
-  'components-api-status-offline-dot': '#9ca3af',
   'components-api-status-error-bg': '#fef2f2',
   'components-api-status-error-text': '#b91c1c',
-  'components-api-status-error-dot': '#ef4444',
 
   // ===== HTTP 方法颜色系统 =====
   'components-http-method-get-bg': '#f0fdf4',
@@ -1685,15 +1678,8 @@ export const darkTokens: DesignTokens = {
   'components-api-key-actions-border': 'rgba(255, 255, 255, 0.10)',
 
   // ===== API 状态指示器 =====
-  'components-api-status-online-bg': 'rgba(34, 197, 94, 0.12)',
-  'components-api-status-online-text': '#86efac',
-  'components-api-status-online-dot': '#22c55e',
-  'components-api-status-offline-bg': 'rgba(113, 113, 122, 0.12)',
-  'components-api-status-offline-text': '#a1a1aa',
-  'components-api-status-offline-dot': '#71717a',
   'components-api-status-error-bg': 'rgba(239, 68, 68, 0.12)',
   'components-api-status-error-text': '#fca5a5',
-  'components-api-status-error-dot': '#ef4444',
 
   // ===== HTTP 方法颜色系统 =====
   'components-http-method-get-bg': 'rgba(34, 197, 94, 0.12)',
