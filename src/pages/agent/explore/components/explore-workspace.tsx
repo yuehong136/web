@@ -2,7 +2,6 @@ import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
-  Bot,
   History,
   PanelLeftClose,
   PanelLeftOpen,
@@ -16,7 +15,6 @@ import {
 import { WorkspacePageTemplate } from '@/components/page-templates'
 import { PageToolbar } from '@/components/patterns'
 import { Button } from '@/components/ui/button'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import {
   Popover,
@@ -34,11 +32,14 @@ import {
 } from '@/components/ui/sheet'
 import { copyToClipboardWithFeedback } from '@/lib/clipboard'
 import { AgentRuntimeStatus } from '../../features/runtime-workbench/types'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 
 interface ExploreWorkspaceProps {
   agentName: string
   agentDescription?: string
   avatar?: string
+  /** Stable tone key for the monogram (the canvas id). */
+  avatarSeed?: string
   editorPath: string
   onCreateSession: () => void
   sessionId: string
@@ -56,6 +57,7 @@ interface ExploreWorkspaceProps {
 export function ExploreWorkspace({
   agentName,
   avatar,
+  avatarSeed,
   editorPath,
   onCreateSession,
   sessionId,
@@ -132,12 +134,7 @@ export function ExploreWorkspace({
                   <div className="min-h-0 flex-1">{history}</div>
                 </SheetContent>
               </Sheet>
-              <Avatar className="size-icon-xl rounded-radius-lg">
-                <AvatarImage src={avatar} alt="" />
-                <AvatarFallback className="rounded-radius-lg bg-background-subtle">
-                  <Bot className="size-icon-md" />
-                </AvatarFallback>
-              </Avatar>
+              <EntityAvatar name={agentName} src={avatar} seed={avatarSeed} />
               <div className="min-w-0">
                 <h1 className="truncate text-base font-semibold text-text-primary">
                   {agentName}

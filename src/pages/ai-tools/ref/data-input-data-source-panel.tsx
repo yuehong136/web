@@ -105,7 +105,7 @@ export const DataSourcePanel: React.FC<DataSourcePanelProps> = ({
 
       {/* 添加数据源表单 */}
       {showAddDataSource && (
-        <div className="bg-background-body-subtle space-y-3 rounded-lg border border-border-default p-4">
+        <div className="space-y-3 rounded-lg border border-border-default bg-background-subtle p-4">
           <div className="flex items-center justify-between">
             <h4 className="flex items-center gap-2 text-sm font-medium">
               {newDataSourceType === 'api' ? (
@@ -392,7 +392,7 @@ export const DataSourcePanel: React.FC<DataSourcePanelProps> = ({
             {dataSources.map((ds) => (
               <div
                 key={ds.id}
-                className="bg-background-body-subtle flex items-center justify-between rounded-lg border border-border-default p-3"
+                className="flex items-center justify-between rounded-lg border border-border-default bg-background-subtle p-3"
               >
                 <div className="flex min-w-0 items-center gap-3">
                   <div
@@ -426,7 +426,7 @@ export const DataSourcePanel: React.FC<DataSourcePanelProps> = ({
                       ds.status === 'disconnected' &&
                         'border-muted-foreground text-text-secondary',
                       ds.status === 'error' &&
-                        'border-destructive text-destructive',
+                        'border-status-error-border text-status-error',
                     )}
                   >
                     {ds.status === 'connected'
@@ -438,7 +438,7 @@ export const DataSourcePanel: React.FC<DataSourcePanelProps> = ({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-7 w-7 p-0 text-destructive hover:text-destructive"
+                    className="h-7 w-7 p-0 text-status-error"
                     onClick={() =>
                       setDataSources((prev) =>
                         prev.filter((d) => d.id !== ds.id),

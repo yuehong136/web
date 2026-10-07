@@ -23,13 +23,6 @@
     --border: 226 232 240;
     --ring: var(--twc-ring);
 
-    /* 语义化颜色变量 */
-    --color-primary: var(--twc-primary);
-    --color-gray: 107 114 128;
-    --color-success: 34 197 94;
-    --color-warning: 251 191 36;
-    --color-error: 239 68 68;
-
     /* 边框圆角 */
     --radius: 0.5rem;
     --radius-sm: calc(var(--radius) - 4px);
@@ -257,14 +250,6 @@
   .sidebar-item.active {
     background-color: var(--color-components-sidebar-item-bg-active);
     color: var(--color-components-sidebar-item-text-active);
-  }
-}
-
-/* 暗色主题 */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-background: 15 23 42;
-    --color-foreground: 248 250 252;
   }
 }
 

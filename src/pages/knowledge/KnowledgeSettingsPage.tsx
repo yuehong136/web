@@ -363,6 +363,7 @@ const KnowledgeSettingsPage: React.FC = () => {
                 <GeneralForm
                   embeddingModelOptions={embeddingModelOptions}
                   embeddingModelLoading={isLoadingModels}
+                  avatarSeed={id}
                 />
               </SectionCard>
 

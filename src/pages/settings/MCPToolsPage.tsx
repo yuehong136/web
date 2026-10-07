@@ -259,8 +259,8 @@ export const MCPToolsPage: React.FC<MCPToolsPageProps> = ({ serverId }) => {
             <Card className="border-components-card-border bg-components-card-bg transition-colors hover:bg-components-card-bg-hover">
               <CardContent className="p-6">
                 <div className="mb-4 flex items-center justify-between">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-status-success shadow-md">
-                    <CheckCircle className="h-6 w-6 text-components-button-primary-text" />
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-status-success-solid shadow-elevation-medium">
+                    <CheckCircle className="h-6 w-6 text-status-success-on-solid" />
                   </div>
                   <div className="h-2 w-2 animate-pulse rounded-full bg-status-success"></div>
                 </div>
@@ -297,8 +297,8 @@ export const MCPToolsPage: React.FC<MCPToolsPageProps> = ({ serverId }) => {
             <Card className="border-components-card-border bg-components-card-bg transition-colors hover:bg-components-card-bg-hover">
               <CardContent className="p-6">
                 <div className="mb-4 flex items-center justify-between">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-status-warning shadow-md">
-                    <Code className="h-6 w-6 text-components-button-primary-text" />
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-status-warning-solid shadow-elevation-medium">
+                    <Code className="h-6 w-6 text-status-warning-on-solid" />
                   </div>
                   <Settings className="h-5 w-5 text-text-accent opacity-60" />
                 </div>
@@ -595,21 +595,21 @@ export const MCPToolsPage: React.FC<MCPToolsPageProps> = ({ serverId }) => {
                 <div
                   className={`rounded-xl border p-4 ${
                     testResult.success
-                      ? 'border-[var(--color-status-success-border)] bg-[var(--color-status-success-bg)]'
-                      : 'border-[var(--color-status-error-border)] bg-[var(--color-status-error-bg)]'
+                      ? 'border-status-success-border bg-status-success-subtle'
+                      : 'border-status-error-border bg-status-error-subtle'
                   }`}
                 >
                   <div className="mb-3 flex items-center gap-2">
                     {testResult.success ? (
-                      <CheckCircle className="h-5 w-5 text-[var(--color-status-success)]" />
+                      <CheckCircle className="h-5 w-5 text-status-success" />
                     ) : (
-                      <AlertCircle className="h-5 w-5 text-[var(--color-status-error)]" />
+                      <AlertCircle className="h-5 w-5 text-status-error" />
                     )}
                     <span
                       className={`font-medium ${
                         testResult.success
-                          ? 'text-[var(--color-status-success)]'
-                          : 'text-[var(--color-status-error)]'
+                          ? 'text-status-success'
+                          : 'text-status-error'
                       }`}
                     >
                       {testResult.success ? '执行成功' : '执行失败'}
@@ -628,7 +628,7 @@ export const MCPToolsPage: React.FC<MCPToolsPageProps> = ({ serverId }) => {
                       </pre>
                     )}
                   {!testResult.success && testResult.error && (
-                    <p className="text-sm text-[var(--color-status-error)]">
+                    <p className="text-sm text-status-error">
                       {testResult.error}
                     </p>
                   )}

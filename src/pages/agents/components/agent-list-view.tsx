@@ -16,7 +16,6 @@ import {
   ResourceListHeader,
   ResourceListRow,
   ResourceListSkeletonRow,
-  getAvatarGradient,
 } from '@/components/ui/resource-list'
 import {
   cn,
@@ -32,6 +31,7 @@ import {
 } from '@/lib/agent'
 import type { AgentFlow } from '@/types/agent'
 import type { AgentTimeFormat } from './agent-card'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 
 export type { AgentTimeFormat }
 
@@ -62,42 +62,6 @@ const formatTime = (timestamp: number, format: AgentTimeFormat): string => {
   }
 }
 
-const AgentAvatar: FC<{ name: string; avatar?: string }> = ({
-  name,
-  avatar,
-}) => {
-  if (avatar) {
-    const src =
-      avatar.startsWith('data:') || avatar.startsWith('http')
-        ? avatar
-        : `data:image/png;base64,${avatar}`
-    return (
-      <img
-        src={src}
-        alt={name}
-        className="h-12 w-12 rounded-radius-lg object-cover"
-        onError={(e) => {
-          e.currentTarget.style.display = 'none'
-        }}
-      />
-    )
-  }
-  const gradient = getAvatarGradient(name || 'A')
-  return (
-    <div
-      className={cn(
-        'flex h-12 w-12 items-center justify-center rounded-radius-lg',
-        'bg-linear-to-br shadow-elevation-low',
-        gradient,
-      )}
-    >
-      <span className="text-xl font-semibold text-white">
-        {(name || 'A').charAt(0).toUpperCase()}
-      </span>
-    </div>
-  )
-}
-
 const AgentListRow: FC<{
   flow: AgentFlow
   timeFormat: AgentTimeFormat
@@ -118,7 +82,9 @@ const AgentListRow: FC<{
   return (
     <ResourceListRow
       onClick={onOpen}
-      avatar={<AgentAvatar name={title} avatar={flow.avatar} />}
+      avatar={
+        <EntityAvatar name={title} src={flow.avatar} seed={flow.id} size="xl" />
+      }
       name={title}
       description={description || undefined}
       actions={[

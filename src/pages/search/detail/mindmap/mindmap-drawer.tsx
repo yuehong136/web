@@ -163,7 +163,7 @@ const SearchMindmapDrawer: React.FC<SearchMindmapDrawerProps> = ({
           {!isLoading && treeData ? (
             <div className="h-full overflow-hidden rounded-radius-xl border border-border-default bg-surface-secondary p-space-sm">
               {error ? (
-                <div className="mb-space-xs rounded-radius-md border border-status-warning bg-status-warning-subtle px-space-sm py-space-xs text-xs text-text-secondary">
+                <div className="mb-space-xs rounded-radius-md border border-status-warning-border bg-status-warning-subtle px-space-sm py-space-xs text-xs text-text-secondary">
                   脑图接口暂不可用，当前展示基于检索结果的本地结构图。
                 </div>
               ) : null}

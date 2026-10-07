@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next'
 import { GitBranch, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { getAvatarGradient } from '@/components/ui/resource-list'
 import { cn } from '@/lib/utils'
 import { countFlowNodes, resolveLocalizedText } from '@/lib/agent'
 import type { AgentTemplate } from '@/types/agent'
@@ -12,48 +11,12 @@ import {
   getToneClasses,
   normalizeCategoryKey,
 } from './template-category-config'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 
 interface TemplateCardProps {
   template: AgentTemplate
   onSelect: (template: AgentTemplate) => void
   className?: string
-}
-
-const TemplateAvatar: React.FC<{ name: string; avatar?: string }> = ({
-  name,
-  avatar,
-}) => {
-  if (avatar) {
-    const src =
-      avatar.startsWith('data:') || avatar.startsWith('http')
-        ? avatar
-        : `data:image/png;base64,${avatar}`
-    return (
-      <img
-        src={src}
-        alt={name}
-        className="h-12 w-12 rounded-radius-lg object-cover"
-        onError={(event) => {
-          event.currentTarget.style.display = 'none'
-        }}
-      />
-    )
-  }
-
-  const gradient = getAvatarGradient(name || 'T')
-  return (
-    <div
-      className={cn(
-        'flex h-12 w-12 items-center justify-center rounded-radius-lg',
-        'bg-linear-to-br shadow-elevation-low',
-        gradient,
-      )}
-    >
-      <span className="text-lg font-semibold text-white">
-        {(name || 'T').charAt(0).toUpperCase()}
-      </span>
-    </div>
-  )
 }
 
 export const TemplateCard: React.FC<TemplateCardProps> = ({
@@ -101,7 +64,12 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({
     >
       <div className="flex flex-1 flex-col gap-space-md p-space-lg">
         <div className="flex items-start gap-space-base">
-          <TemplateAvatar name={title} avatar={template.avatar} />
+          <EntityAvatar
+            name={title}
+            src={template.avatar}
+            seed={template.id}
+            size="xl"
+          />
           <div className="min-w-0 flex-1">
             <p className="truncate text-base font-semibold text-text-primary">
               {title}

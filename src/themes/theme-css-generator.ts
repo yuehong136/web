@@ -1,4 +1,5 @@
 import type { DesignTokens } from './tokens'
+import { elevation } from './elevation'
 import { rgbChannels } from './interaction-palette'
 
 /**
@@ -12,6 +13,11 @@ export function generateThemeCSS(
   const selector = `html[data-theme="${themeName}"], [data-theme="${themeName}"]`
 
   let css = `/**\n * ${themeName === 'light' ? '亮色' : '暗色'}主题 CSS 变量定义\n * 基于 Dify 项目的设计令牌系统\n * \n * ⚠️ 注意: 此文件由代码自动生成，请勿手动修改!\n * 如需修改主题，请编辑 theme-generator.ts 文件\n */\n\n${selector} {\n  /* ===== Tailwind 通道变量 (用于 /alpha 透明度支持) ===== */\n  --twc-primary: ${rgbChannels(tokens['components-button-primary-bg'])};\n  --twc-primary-foreground: 255 255 255;\n  --twc-foreground: ${rgbChannels(tokens['text-primary'])};\n  --twc-background: ${rgbChannels(tokens['background-body'])};\n  --twc-ring: ${rgbChannels(tokens['state-focus'])};\n  --twc-border: ${themeName === 'light' ? '226 232 240' : '39 39 42'};\n\n`
+
+  css += `  /* ===== 阴影层级 (Tailwind shadow-elevation-*) ===== */\n`
+  for (const [level, shadow] of Object.entries(elevation[themeName]))
+    css += `  --elevation-${level}: ${shadow};\n`
+  css += '\n'
 
   // 按分类组织令牌
   const categories = {
@@ -38,24 +44,11 @@ export function generateThemeCSS(
     下拉菜单组件: Object.keys(tokens).filter((key) =>
       key.startsWith('components-dropdown-'),
     ),
-    模型选择器组件: Object.keys(tokens).filter((key) =>
-      key.startsWith('components-model-selector-'),
-    ),
-    编辑器组件: Object.keys(tokens).filter((key) =>
-      key.startsWith('components-editor-'),
-    ),
-    面板组件: Object.keys(tokens).filter((key) =>
-      key.startsWith('components-panel-'),
-    ),
     聊天系统: Object.keys(tokens).filter((key) => key.startsWith('chat-')),
-    模态框组件: Object.keys(tokens).filter((key) =>
-      key.startsWith('components-modal-'),
-    ),
     表格组件: Object.keys(tokens).filter((key) =>
       key.startsWith('components-table-'),
     ),
     交互状态: Object.keys(tokens).filter((key) => key.startsWith('state-')),
-    阴影系统: Object.keys(tokens).filter((key) => key.startsWith('shadow-')),
     表单控件: Object.keys(tokens).filter(
       (key) =>
         key.includes('-checkbox-') ||
@@ -88,15 +81,6 @@ export function generateThemeCSS(
     ),
     图标按钮: Object.keys(tokens).filter((key) =>
       key.startsWith('components-icon-button-'),
-    ),
-    应用头像: Object.keys(tokens).filter((key) =>
-      key.startsWith('components-app-avatar-'),
-    ),
-    推荐卡片: Object.keys(tokens).filter((key) =>
-      key.startsWith('components-recommend-card-'),
-    ),
-    统计卡片: Object.keys(tokens).filter((key) =>
-      key.startsWith('components-stats-card-'),
     ),
     画布系统: Object.keys(tokens).filter((key) =>
       key.startsWith('components-canvas-'),

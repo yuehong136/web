@@ -18,8 +18,8 @@ html[data-theme='dark'] {
   --muted-foreground: var(--color-text-secondary);
   --accent: var(--color-state-hover);
   --accent-foreground: var(--color-text-primary);
-  --destructive: var(--color-status-error);
-  --destructive-foreground: var(--color-components-button-danger-text);
+  --destructive: var(--color-status-error-solid);
+  --destructive-foreground: var(--color-status-error-on-solid);
   --border: var(--color-border-default);
   --input: var(--color-components-input-bg);
   --input-background: var(--color-components-input-bg);
@@ -112,22 +112,6 @@ html[data-theme='dark'] {
 
 .mcp-chat-page .text-card-foreground {
   color: var(--card-foreground) !important;
-}
-
-.mcp-chat-page .bg-accent {
-  background-color: var(--accent) !important;
-}
-
-.mcp-chat-page .text-accent-foreground {
-  color: var(--accent-foreground) !important;
-}
-
-.mcp-chat-page .hover\:bg-accent:hover {
-  background-color: var(--accent) !important;
-}
-
-.mcp-chat-page .hover\:text-accent-foreground:hover {
-  color: var(--accent-foreground) !important;
 }
 
 .mcp-chat-page .border-border {
@@ -271,15 +255,15 @@ html {
 }
 
 .mcp-chat-page .bg-green-100 {
-  background-color: var(--color-status-success-10) !important;
+  background-color: var(--color-status-success-subtle) !important;
 }
 
 .mcp-chat-page .bg-green-800 {
-  background-color: var(--color-status-success) !important;
+  background-color: var(--color-status-success-solid) !important;
 }
 
 .mcp-chat-page .bg-red-50 {
-  background-color: var(--color-status-error-10) !important;
+  background-color: var(--color-status-error-subtle) !important;
 }
 
 .mcp-chat-page .border-blue-200 {
@@ -287,7 +271,7 @@ html {
 }
 
 .mcp-chat-page .border-red-200 {
-  border-color: var(--color-status-error-subtle) !important;
+  border-color: var(--color-status-error-border) !important;
 }
 
 /* 确保头像圆形 */
@@ -512,8 +496,8 @@ html[data-theme='dark'] .mcp-chat-page .text-gray-400 {
 
 /* MCP 工具调用显示样式 */
 .mcp-chat-page .mcp-tool-call-display {
-  background-color: var(--color-status-info-10);
-  border: 1px solid var(--color-status-info-subtle);
+  background-color: var(--color-status-info-subtle);
+  border: 1px solid var(--color-status-info-border);
   border-radius: var(--radius);
   padding: 0.75rem;
   margin-top: 0.5rem;

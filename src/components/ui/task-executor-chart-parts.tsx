@@ -113,7 +113,7 @@ export const CustomTooltip = ({
 
   if (active && payload && payload.length) {
     return (
-      <div className="rounded-lg border border-components-system-chart-tooltip-border bg-components-system-chart-tooltip-bg px-3 py-2 shadow-shadow-md">
+      <div className="rounded-lg border border-components-system-chart-tooltip-border bg-components-system-chart-tooltip-bg px-3 py-2 shadow-elevation-medium">
         <p className="mb-1 text-xs font-semibold text-components-system-chart-tooltip-text">
           时间: {label ?? '-'}
         </p>
@@ -137,7 +137,7 @@ export const PinnedTooltip = ({
   const hasCurrentTask = data?.current && Object.keys(data.current).length > 0
 
   return (
-    <div className="absolute right-4 top-4 z-10 max-w-sm overflow-hidden rounded-xl border border-components-system-chart-tooltip-border bg-components-system-chart-tooltip-bg shadow-shadow-lg">
+    <div className="absolute top-4 right-4 z-10 max-w-sm overflow-hidden rounded-xl border border-components-system-chart-tooltip-border bg-components-system-chart-tooltip-bg shadow-elevation-high">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-components-system-section-divider bg-components-system-chart-info-pill-bg px-4 py-3">
         <div className="flex items-center gap-2">
@@ -259,7 +259,7 @@ export const PinnedTooltip = ({
             <p className="mb-2 text-xs font-medium text-components-system-chart-tooltip-muted">
               当前任务
             </p>
-            <div className="max-h-48 space-y-2 overflow-y-auto scrollbar-thin">
+            <div className="scrollbar-thin max-h-48 space-y-2 overflow-y-auto">
               {Object.entries(data.current).map(([key, value]) => {
                 const formatValue = (val: unknown): string => {
                   if (val === null || val === undefined) return '无'
@@ -278,7 +278,7 @@ export const PinnedTooltip = ({
                     <span className="text-xs font-medium text-components-system-chart-tooltip-muted">
                       {key}:
                     </span>
-                    <pre className="max-h-24 overflow-auto rounded-md border border-components-system-section-divider bg-components-system-chart-info-pill-bg p-2 text-xs text-components-system-chart-tooltip-text scrollbar-thin">
+                    <pre className="scrollbar-thin max-h-24 overflow-auto rounded-md border border-components-system-section-divider bg-components-system-chart-info-pill-bg p-2 text-xs text-components-system-chart-tooltip-text">
                       {formatValue(value)}
                     </pre>
                   </div>

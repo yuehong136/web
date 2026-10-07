@@ -3,7 +3,6 @@ import type { NodeProps } from '@xyflow/react'
 import { Position } from '@xyflow/react'
 import { Database } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { KnowledgeBaseAvatar } from '@/components/knowledge'
 import { useFetchKnowledgeList } from '@/hooks/use-knowledge-request'
 import { useMemoryList } from '@/hooks/use-memory'
 import { cn } from '@/lib/utils'
@@ -17,6 +16,7 @@ import { NodeWrapper } from './node-wrapper'
 import { SummaryList } from './summary-list'
 import { ToolBar } from './toolbar'
 import { needsSingleStepDebugging, showCopyIcon } from '../../utils'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 
 function InnerRetrievalNode({
   id,
@@ -98,14 +98,15 @@ function InnerRetrievalNode({
               <div
                 key={`${itemId}-${index}`}
                 className={cn(
-                  'gap-space-sm px-space-sm py-space-sm flex items-center',
+                  'flex items-center gap-space-sm px-space-sm py-space-sm',
                   withDivider && 'border-t border-border-subtle',
                 )}
               >
-                <KnowledgeBaseAvatar
+                <EntityAvatar
                   name={label}
-                  avatar={item?.avatar}
-                  size="lg"
+                  src={item?.avatar}
+                  seed={itemId}
+                  size="md"
                 />
                 <span className="min-w-0 flex-1 truncate text-sm text-text-primary">
                   {label}

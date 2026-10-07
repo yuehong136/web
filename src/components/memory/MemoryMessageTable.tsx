@@ -327,7 +327,7 @@ export function MemoryMessageTable({
             variant="ghost"
             size="icon-sm"
             onClick={() => handleOpenForgetDialog(row.original.message_id)}
-            className="hover:text-text-error/80 text-text-error hover:bg-status-error-subtle"
+            className="text-status-error hover:bg-status-error-subtle"
             title={t('memory.messages.forget')}
           >
             <Trash2 className="size-4" />
@@ -492,7 +492,7 @@ export function MemoryMessageTable({
             <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmForget}
-              className="hover:bg-status-error/90 bg-status-error"
+              variant="destructive"
             >
               {t('memory.messages.forget')}
             </AlertDialogAction>
@@ -503,7 +503,7 @@ export function MemoryMessageTable({
       {/* 内容查看抽屉 */}
       <Sheet open={contentSheetOpen} onOpenChange={setContentSheetOpen}>
         <SheetContent className="flex h-full w-full flex-col p-0 sm:max-w-2xl">
-          <SheetHeader className="px-space-lg py-space-md pr-space-3xl shrink-0 border-b border-border-default">
+          <SheetHeader className="pr-space-3xl shrink-0 border-b border-border-default px-space-lg py-space-md">
             <SheetTitle>{t('memory.messages.viewContent')}</SheetTitle>
           </SheetHeader>
           {selectedMessage && (
@@ -511,7 +511,7 @@ export function MemoryMessageTable({
               defaultValue="conversation"
               className="flex min-h-0 flex-1 flex-col"
             >
-              <div className="px-space-lg py-space-sm shrink-0 border-b border-border-subtle">
+              <div className="shrink-0 border-b border-border-subtle px-space-lg py-space-sm">
                 <TabsList className="h-9">
                   <TabsTrigger
                     value="conversation"
@@ -554,9 +554,9 @@ export function MemoryMessageTable({
                     ) : (
                       <div className="space-y-space-lg">
                         <section className="rounded-radius-lg border border-border-default bg-background-surface">
-                          <div className="px-space-md py-space-sm flex items-center justify-between border-b border-border-subtle">
-                            <div className="gap-space-sm flex items-center text-sm font-medium text-text-primary">
-                              <span className="rounded-radius-full flex size-8 items-center justify-center bg-background-subtle text-text-secondary">
+                          <div className="flex items-center justify-between border-b border-border-subtle px-space-md py-space-sm">
+                            <div className="flex items-center gap-space-sm text-sm font-medium text-text-primary">
+                              <span className="flex size-8 items-center justify-center rounded-radius-full bg-background-subtle text-text-secondary">
                                 <User className="size-4" />
                               </span>
                               {t('memory.messages.userInput')}
@@ -582,15 +582,15 @@ export function MemoryMessageTable({
                               )}
                             </Button>
                           </div>
-                          <p className="px-space-md py-space-sm whitespace-pre-wrap text-sm leading-6 text-text-primary">
+                          <p className="px-space-md py-space-sm text-sm leading-6 whitespace-pre-wrap text-text-primary">
                             {parsedContent.userInput || '-'}
                           </p>
                         </section>
 
                         <section className="rounded-radius-lg border border-border-default bg-background-surface">
-                          <div className="px-space-md py-space-sm flex items-center justify-between border-b border-border-subtle">
-                            <div className="gap-space-sm flex items-center text-sm font-medium text-text-primary">
-                              <span className="rounded-radius-full flex size-8 items-center justify-center bg-background-subtle text-text-secondary">
+                          <div className="flex items-center justify-between border-b border-border-subtle px-space-md py-space-sm">
+                            <div className="flex items-center gap-space-sm text-sm font-medium text-text-primary">
+                              <span className="flex size-8 items-center justify-center rounded-radius-full bg-background-subtle text-text-secondary">
                                 <Bot className="size-4" />
                               </span>
                               {t('memory.messages.agentResponse')}
@@ -641,7 +641,7 @@ export function MemoryMessageTable({
                     viewportClassName="px-space-lg py-space-md"
                   >
                     <div className="rounded-radius-lg border border-border-default bg-background-subtle">
-                      <div className="px-space-md py-space-sm flex items-center justify-between border-b border-border-subtle">
+                      <div className="flex items-center justify-between border-b border-border-subtle px-space-md py-space-sm">
                         <span className="text-sm font-medium text-text-secondary">
                           {t('memory.messages.rawContent')}
                         </span>
@@ -664,7 +664,7 @@ export function MemoryMessageTable({
                           )}
                         </Button>
                       </div>
-                      <pre className="px-space-md py-space-sm whitespace-pre-wrap break-words font-mono text-xs leading-5 text-text-primary">
+                      <pre className="px-space-md py-space-sm font-mono text-xs leading-5 break-words whitespace-pre-wrap text-text-primary">
                         {parsedContent.raw || '-'}
                       </pre>
                     </div>
@@ -677,7 +677,7 @@ export function MemoryMessageTable({
                     viewportClassName="px-space-lg py-space-md"
                   >
                     <div className="space-y-space-md">
-                      <div className="rounded-radius-lg px-space-md py-space-sm border border-border-default bg-background-surface">
+                      <div className="rounded-radius-lg border border-border-default bg-background-surface px-space-md py-space-sm">
                         <p className="text-xs text-text-secondary">
                           {t('memory.messages.vectorDimensions', {
                             count: vectorDimensions,
@@ -685,7 +685,7 @@ export function MemoryMessageTable({
                         </p>
                       </div>
                       <div className="rounded-radius-lg border border-border-default bg-background-subtle">
-                        <pre className="px-space-md py-space-sm whitespace-pre-wrap break-words font-mono text-xs leading-5 text-text-primary">
+                        <pre className="px-space-md py-space-sm font-mono text-xs leading-5 break-words whitespace-pre-wrap text-text-primary">
                           {vectorPreview || '-'}
                         </pre>
                       </div>

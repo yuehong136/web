@@ -6,7 +6,7 @@ import { ChatHeader } from '@/components/chat/ChatHeader'
 import { WelcomeMessage } from '@/components/chat/WelcomeMessage'
 import { Bubble, Think, Sender } from '@ant-design/x'
 import type { AttachmentsProps, BubbleListProps } from '@ant-design/x'
-import { User, Bot, Paperclip, Square, Upload } from 'lucide-react'
+import { Bot, Paperclip, Square, Upload } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ProviderIcon } from '@/components/ui/provider-icon'
 import XMarkdown, { type ComponentProps } from '@ant-design/x-markdown'
@@ -32,6 +32,8 @@ import { toast } from '@/lib/toast'
 import { cn, copyToClipboard } from '@/lib/utils'
 import { uploadConfig } from '@/config/chat'
 import type { ChatSession, MCPChatConfig } from '@/types/mcp'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
+import { useCurrentUserAvatar } from '@/hooks/use-current-user-avatar'
 
 // Think 组件 - 处理 <think> 标签
 const _ThinkComponent = React.memo((props: ComponentProps) => {
@@ -482,32 +484,13 @@ export default function MCPChatPage() {
       )
     }
     // 没有厂商信息时使用默认图标
-    return (
-      <div
-        className="flex h-8 min-h-[32px] w-8 min-w-[32px] shrink-0 items-center justify-center rounded-full"
-        style={{
-          background: 'var(--color-chat-bubble-assistant-avatar-bg)',
-          color: 'var(--color-chat-bubble-assistant-avatar-text)',
-        }}
-      >
-        <Bot className="h-4 w-4" />
-      </div>
-    )
+    return <EntityAvatar shape="circle" tone="neutral" icon={<Bot />} />
   }, [selectedProviderName])
 
+  const userAvatar = useCurrentUserAvatar()
   const getUserAvatar = useCallback(
-    () => (
-      <div
-        className="flex h-8 min-h-[32px] w-8 min-w-[32px] shrink-0 items-center justify-center rounded-full"
-        style={{
-          background: 'var(--color-chat-bubble-user-avatar-bg)',
-          color: 'var(--color-chat-bubble-user-avatar-text)',
-        }}
-      >
-        <User className="h-4 w-4" />
-      </div>
-    ),
-    [],
+    () => <EntityAvatar {...userAvatar} shape="circle" />,
+    [userAvatar],
   )
 
   const historyMessages = activeSession?.messages
@@ -944,8 +927,7 @@ export default function MCPChatPage() {
         <div
           className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center"
           style={{
-            backgroundColor:
-              'rgba(var(--color-surface-primary-rgb, 0, 0, 0), 0.6)',
+            backgroundColor: 'var(--color-background-overlay)',
             backdropFilter: 'blur(4px)',
           }}
         >
@@ -991,7 +973,6 @@ export default function MCPChatPage() {
         style={{
           backgroundColor: 'var(--color-components-sidebar-bg)',
           borderRight: '1px solid var(--color-components-sidebar-border)',
-          backdropFilter: 'var(--color-components-sidebar-backdrop)',
         }}
       >
         <ChatSidebar
@@ -1013,8 +994,6 @@ export default function MCPChatPage() {
           style={{
             backgroundColor: 'var(--color-chat-header-bg)',
             borderBottom: '1px solid var(--color-chat-header-border)',
-            backdropFilter: 'var(--color-chat-header-backdrop)',
-            WebkitBackdropFilter: 'var(--color-chat-header-backdrop)',
           }}
         >
           <ChatHeader

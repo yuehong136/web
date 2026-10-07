@@ -69,7 +69,7 @@ export const KnowledgeQuickEditDialog: FC<KnowledgeEditDialogProps> = ({
       title={t('knowledge.list.quickEdit.title')}
       size="md"
       footer={
-        <div className="gap-space-sm flex items-center justify-end">
+        <div className="flex items-center justify-end gap-space-sm">
           <Button
             variant="outline"
             onClick={handleCancel}
@@ -91,7 +91,7 @@ export const KnowledgeQuickEditDialog: FC<KnowledgeEditDialogProps> = ({
         <div>
           <div className="mb-2 block text-sm font-medium text-text-secondary">
             {t('knowledge.list.quickEdit.fields.name')}
-            <span className="ml-1 text-text-error">*</span>
+            <span className="ml-1 text-status-error">*</span>
           </div>
           <Input
             id="knowledge-quick-edit-name"

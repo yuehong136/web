@@ -10,7 +10,6 @@ import {
   type FC,
 } from 'react'
 import {
-  Sparkles,
   LayoutGrid,
   AlignCenter,
   Maximize2,
@@ -82,10 +81,10 @@ import {
   type SSEEnvelope,
 } from '@/lib/streaming'
 import { ExploreSidebar, type ExploreTab } from './components/explore-sidebar'
-import { getExploreAppIcon } from './components/explore-app-icon'
 import { AppChatComposer } from '@/components/chat/app-chat-composer'
 import { AppChatAnswer } from '@/components/chat/app-chat-answer'
 import { getAppChatBubbleProps } from '@/components/chat/app-chat-message'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 
 type ExploreAttachment = NonNullable<AttachmentsProps['items']>[number]
 
@@ -768,19 +767,7 @@ export const ExplorePage: FC = () => {
   const currentAppPrologue = currentApp?.prompt_config?.prologue?.trim() || ''
   const showCurrentAppPrologue = shouldUseBubbleTyping(currentAppPrologue)
 
-  // 获取应用图标 URL
-  const getAppIconUrl = useCallback((app: typeof currentApp) => {
-    if (!app?.icon) return null
-    return app.icon.startsWith('data:') || app.icon.startsWith('http')
-      ? app.icon
-      : `data:image/png;base64,${app.icon}`
-  }, [])
-
-  // 当前应用的图标 URL
-  const currentAppIconUrl = useMemo(
-    () => getAppIconUrl(currentApp),
-    [currentApp, getAppIconUrl],
-  )
+  const assistantName = currentApp?.name || t('explore.assistantFallback')
 
   // 处理引用点击事件 - 打开详情侧边栏
   const _handleReferenceClick = useCallback(
@@ -1001,8 +988,7 @@ export const ExplorePage: FC = () => {
         <div
           className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center"
           style={{
-            backgroundColor:
-              'rgba(var(--color-surface-primary-rgb, 0, 0, 0), 0.6)',
+            backgroundColor: 'var(--color-background-overlay)',
             backdropFilter: 'blur(4px)',
           }}
         >
@@ -1074,35 +1060,16 @@ export const ExplorePage: FC = () => {
             style={{
               backgroundColor: 'var(--color-chat-header-bg)',
               borderBottom: '1px solid var(--color-chat-header-border)',
-              backdropFilter: 'var(--color-chat-header-backdrop)',
             }}
           >
             <div className="flex items-center space-x-3">
               {/* 显示当前应用图标 */}
               {mode === 'chat' && currentApp && (
-                <div className="shrink-0">
-                  {currentApp.icon ? (
-                    <img
-                      src={
-                        currentApp.icon.startsWith('data:') ||
-                        currentApp.icon.startsWith('http')
-                          ? currentApp.icon
-                          : `data:image/png;base64,${currentApp.icon}`
-                      }
-                      alt={currentApp.name}
-                      className="h-8 w-8 rounded-lg object-cover"
-                    />
-                  ) : (
-                    <div
-                      className="flex h-8 w-8 items-center justify-center rounded-lg"
-                      style={{
-                        background: 'var(--color-components-gradient-primary)',
-                      }}
-                    >
-                      <Sparkles className="h-4 w-4 text-white" />
-                    </div>
-                  )}
-                </div>
+                <EntityAvatar
+                  name={currentApp.name}
+                  src={currentApp.icon}
+                  seed={currentApp.id}
+                />
               )}
               <h1
                 className="text-lg font-semibold"
@@ -1198,7 +1165,12 @@ export const ExplorePage: FC = () => {
                         }}
                       >
                         <div className="mb-3 flex items-center space-x-3">
-                          {getExploreAppIcon(app, 'md')}
+                          <EntityAvatar
+                            name={app.name}
+                            src={app.icon}
+                            seed={app.id}
+                            size="sm"
+                          />
                           <h3
                             className="font-medium"
                             style={{
@@ -1267,34 +1239,14 @@ export const ExplorePage: FC = () => {
                       <Welcome
                         variant="borderless"
                         icon={
-                          currentApp?.icon ? (
-                            <img
-                              src={
-                                currentApp.icon.startsWith('data:') ||
-                                currentApp.icon.startsWith('http')
-                                  ? currentApp.icon
-                                  : `data:image/png;base64,${currentApp.icon}`
-                              }
-                              alt={currentApp.name}
-                              className="h-16 w-16 rounded-2xl object-cover"
-                            />
-                          ) : (
-                            <div
-                              className="flex h-16 w-16 items-center justify-center rounded-2xl"
-                              style={{
-                                background:
-                                  'var(--color-components-gradient-primary)',
-                              }}
-                            >
-                              <span className="text-2xl font-bold text-white">
-                                AI
-                              </span>
-                            </div>
-                          )
+                          <EntityAvatar
+                            name={assistantName}
+                            src={currentApp?.icon}
+                            seed={currentApp?.id}
+                            size="2xl"
+                          />
                         }
-                        title={
-                          currentApp?.name || t('explore.assistantFallback')
-                        }
+                        title={assistantName}
                         description={
                           currentApp?.description ||
                           t('explore.welcomeDescription')
@@ -1304,8 +1256,9 @@ export const ExplorePage: FC = () => {
                         <div className="app-chat-area mt-6 w-full max-w-2xl">
                           <Bubble
                             {...getAppChatBubbleProps('assistant', {
+                              id: currentApp?.id,
                               name: currentApp?.name,
-                              icon: currentAppIconUrl || undefined,
+                              icon: currentApp?.icon,
                             })}
                             content={currentAppPrologue}
                             contentRender={() => (
@@ -1690,9 +1643,7 @@ export const ExplorePage: FC = () => {
                                 </div>
                               )}
                               {hasUploadError && (
-                                <span
-                                  style={{ color: 'var(--color-text-error)' }}
-                                >
+                                <span className="text-status-error">
                                   {t('explore.sender.uploadErrorHint')}
                                 </span>
                               )}

@@ -4,17 +4,17 @@
  */
 
 import React from 'react'
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
 } from '@/components/ui/popover'
-import { ChevronDown, Crown, Shield, Users } from 'lucide-react'
+import { ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { TenantRole, type TenantInfo, type JoinedTeam } from '@/types/team'
 import { RoleBadge } from './RoleBadge'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 
 interface TeamSelectorProps {
   ownTenant: TenantInfo | null
@@ -98,14 +98,11 @@ export const TeamSelector: React.FC<TeamSelectorProps> = ({
                   'bg-surface-secondary',
               )}
             >
-              <Avatar className="h-8 w-8 shrink-0">
-                <AvatarFallback className="bg-[var(--color-status-warning-bg)]">
-                  <Crown
-                    className="h-4 w-4"
-                    style={{ color: 'var(--color-status-warning-text)' }}
-                  />
-                </AvatarFallback>
-              </Avatar>
+              <EntityAvatar
+                name={ownTenant.name || '我的团队'}
+                seed={ownTenant.tenant_id}
+                shape="circle"
+              />
               <div className="min-w-0 flex-1">
                 <div className="truncate text-sm font-medium text-text-primary">
                   {ownTenant.name || '我的团队'}
@@ -132,19 +129,12 @@ export const TeamSelector: React.FC<TeamSelectorProps> = ({
                   selectedTenantId === team.tenant_id && 'bg-surface-secondary',
                 )}
               >
-                <Avatar className="h-8 w-8 shrink-0">
-                  <AvatarImage
-                    src={team.avatar || undefined}
-                    alt={team.nickname}
-                  />
-                  <AvatarFallback className="bg-status-success-subtle">
-                    {team.role === TenantRole.Admin ? (
-                      <Shield className="h-4 w-4 text-[var(--color-components-badge-purple-text)]" />
-                    ) : (
-                      <Users className="h-4 w-4 text-status-success" />
-                    )}
-                  </AvatarFallback>
-                </Avatar>
+                <EntityAvatar
+                  name={team.nickname}
+                  src={team.avatar}
+                  seed={team.tenant_id}
+                  shape="circle"
+                />
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-medium text-text-primary">
                     {team.nickname || '未命名团队'}

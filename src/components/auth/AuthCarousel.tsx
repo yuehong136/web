@@ -22,15 +22,7 @@ const carouselData = [
   },
 ]
 
-interface AuthCarouselProps {
-  gradientFrom?: string
-  gradientTo?: string
-}
-
-export function AuthCarousel({
-  gradientFrom = 'from-components-button-primary-bg',
-  gradientTo = 'to-state-focus',
-}: AuthCarouselProps) {
+export function AuthCarousel() {
   const [currentSlide, setCurrentSlide] = useState(0)
 
   useEffect(() => {
@@ -42,9 +34,7 @@ export function AuthCarousel({
   }, [])
 
   return (
-    <div
-      className={`relative hidden min-h-screen overflow-hidden bg-linear-to-br lg:flex lg:w-1/2 ${gradientFrom} ${gradientTo}`}
-    >
+    <div className="relative hidden min-h-screen overflow-hidden bg-linear-to-br from-components-button-primary-bg to-state-focus lg:flex lg:w-1/2">
       {/* Background Images */}
       {carouselData.map((slide, index) => (
         <div

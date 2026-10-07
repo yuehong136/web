@@ -139,8 +139,8 @@ export const Modal: React.FC<ModalProps> = ({
           <div className="shrink-0 px-6 pt-6 pb-2">
             <div className="flex items-center gap-3 pr-8">
               {icon && (
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--color-primary)]/10">
-                  <span className="text-[var(--color-primary)]">{icon}</span>
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-state-selected-bg text-state-selected-text">
+                  <span>{icon}</span>
                 </div>
               )}
               <div className="min-w-0">

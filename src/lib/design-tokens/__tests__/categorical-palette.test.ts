@@ -13,7 +13,8 @@ import {
   lightTokenValues,
   darkTokenValues,
 } from '@/themes/token-values.generated'
-import { interactionPalette, rgbChannels } from '@/themes/interaction-palette'
+import { interactionPalette } from '@/themes/interaction-palette'
+import { AVATAR_TONE_COUNT } from '@/themes/avatar-tokens'
 import {
   generateThemeCSS,
   lightTokens,
@@ -121,27 +122,17 @@ const selectedFillTokens = [
   'components-switch-bg-checked',
   'components-slider-range',
   'components-slider-thumb-border',
-  'components-calendar-cell-bg-selected',
   'components-system-accent-border',
 ] as const satisfies readonly (keyof DesignTokens)[]
 
 const selectedTextTokens = [
   'state-selected-text',
-  'components-model-selector-item-text-selected',
-  'components-tree-node-text-selected',
-  'components-transfer-item-text-selected',
-  'components-calendar-cell-text-today',
   'components-system-accent-text',
 ] as const satisfies readonly (keyof DesignTokens)[]
 
 const selectedBackgroundTokens = [
   'surface-accent-subtle',
   'state-selected-bg',
-  'components-model-selector-item-bg-selected',
-  'components-table-row-bg-selected',
-  'components-tree-node-bg-selected',
-  'components-transfer-item-bg-selected',
-  'components-calendar-cell-bg-today',
   'state-focus-10',
   'state-focus-subtle',
 ] as const satisfies readonly (keyof DesignTokens)[]
@@ -204,7 +195,141 @@ function compositeBackground(color: string, surface: string): string {
     .join('')}`
 }
 
+const statusIntents = ['success', 'warning', 'error', 'info'] as const
+type StatusIntent = (typeof statusIntents)[number]
+type StatusRoleValues = Record<
+  `status-${StatusIntent}${'' | '-solid' | '-solid-hover' | '-on-solid' | '-subtle' | '-subtle-hover'}`,
+  string
+>
+
+/**
+ * Status role contract: the foreground reads on every fill it meets in
+ * product UI, on its own tints, and on-solid labels read on both solid fills.
+ * Returns the failing pairs so the legacy palette can be checked too.
+ */
+function statusRoleViolations(
+  values: Record<string, string>,
+  roles: StatusRoleValues,
+): string[] {
+  const surface = values['background-surface']
+  const over = (fill: string, base = surface) => compositeBackground(fill, base)
+  const selectedRow = over(values['state-selected-bg'])
+  const failures: string[] = []
+  const check = (label: string, foreground: string, background: string) => {
+    const ratio = contrast(foreground, background)
+    if (ratio < 4.5) failures.push(`${label} is ${ratio.toFixed(2)}:1`)
+  }
+  for (const intent of statusIntents) {
+    const fg = roles[`status-${intent}`]
+    const fills = {
+      'background-body': values['background-body'],
+      'background-default': values['background-default'],
+      'background-surface': surface,
+      'background-subtle': over(values['background-subtle']),
+      'state-hover': over(values['state-hover']),
+      'components-button-secondary-bg': over(
+        values['components-button-secondary-bg'],
+      ),
+      'components-button-secondary-bg-hover': over(
+        values['components-button-secondary-bg-hover'],
+      ),
+    }
+    for (const [name, fill] of Object.entries(fills))
+      check(`status-${intent} on ${name}`, fg, fill)
+    const tintBases = {
+      'background-body': values['background-body'],
+      'background-default': values['background-default'],
+      'background-surface': surface,
+      'background-subtle': over(values['background-subtle']),
+      'selected row': selectedRow,
+    }
+    for (const [name, base] of Object.entries(tintBases))
+      check(
+        `status-${intent} on its subtle tint over ${name}`,
+        fg,
+        over(roles[`status-${intent}-subtle`], base),
+      )
+    for (const name of [
+      'background-body',
+      'background-default',
+      'background-surface',
+    ] as const)
+      check(
+        `status-${intent} on its subtle-hover tint over ${name}`,
+        fg,
+        over(roles[`status-${intent}-subtle-hover`], values[name]),
+      )
+    for (const solid of ['-solid', '-solid-hover'] as const)
+      check(
+        `status-${intent}-on-solid on status-${intent}${solid}`,
+        roles[`status-${intent}-on-solid`],
+        roles[`status-${intent}${solid}`],
+      )
+  }
+  return failures
+}
+
+// The 500-level palette the scale replaced: one color served text, fills and
+// borders, with white labels on top.
+const legacyStatus = {
+  light: {
+    success: ['#10b981', 'rgba(16, 185, 129, 0.1)'],
+    warning: ['#f59e0b', 'rgba(245, 158, 11, 0.1)'],
+    error: ['#ef4444', 'rgba(239, 68, 68, 0.1)'],
+    info: ['#0ea5e9', 'rgba(14, 165, 233, 0.1)'],
+  },
+  dark: {
+    success: ['#22c55e', 'rgba(34, 197, 94, 0.12)'],
+    warning: ['#f59e0b', 'rgba(245, 158, 11, 0.12)'],
+    error: ['#ef4444', 'rgba(239, 68, 68, 0.12)'],
+    info: ['#38bdf8', 'rgba(56, 189, 248, 0.12)'],
+  },
+} as const
+
 for (const mode of ['light', 'dark'] as const) {
+  test(`${mode} status roles keep text, tints and solid labels readable`, () => {
+    const values = mode === 'light' ? lightTokenValues : darkTokenValues
+    assert.deepEqual(statusRoleViolations(values, values), [])
+  })
+
+  test(`${mode} avatar monograms read on their tint`, () => {
+    const values = mode === 'light' ? lightTokenValues : darkTokenValues
+    for (let slot = 1; slot <= AVATAR_TONE_COUNT; slot += 1) {
+      const tone = `components-avatar-${slot}` as const
+      const ratio = contrast(
+        values[`${tone}-text` as keyof DesignTokens],
+        values[`${tone}-bg` as keyof DesignTokens],
+      )
+      assert.ok(
+        ratio >= 4.5,
+        `${mode} ${tone} monograms are ${ratio.toFixed(2)}:1; expected at least 4.5:1`,
+      )
+    }
+  })
+
+  test(`${mode} legacy 500-level status colors fail the status role contract`, () => {
+    const values = mode === 'light' ? lightTokenValues : darkTokenValues
+    const roles = Object.fromEntries(
+      statusIntents.flatMap((intent) => {
+        const [color, tint] = legacyStatus[mode][intent]
+        return [
+          [`status-${intent}`, color],
+          [`status-${intent}-solid`, color],
+          [`status-${intent}-solid-hover`, color],
+          [`status-${intent}-on-solid`, '#ffffff'],
+          [`status-${intent}-subtle`, tint],
+          [`status-${intent}-subtle-hover`, tint],
+        ]
+      }),
+    ) as StatusRoleValues
+    const failures = statusRoleViolations(values, roles)
+    for (const intent of statusIntents)
+      assert.ok(
+        failures.some((failure) => failure.startsWith(`status-${intent}`)),
+        `${mode} legacy ${intent} unexpectedly passes the contract`,
+      )
+  })
+
   test(`${mode} controls use the selection family while main actions retain their own family`, () => {
     const values = mode === 'light' ? lightTokenValues : darkTokenValues
     const contract = themeContracts[mode]
@@ -250,7 +375,6 @@ for (const mode of ['light', 'dark'] as const) {
     const values = mode === 'light' ? lightTokenValues : darkTokenValues
     const indicators = [
       ['components-checkbox-icon', 'components-checkbox-bg-checked'],
-      ['components-switch-thumb-checked', 'components-switch-bg-checked'],
       ['components-slider-thumb', 'components-slider-thumb-border'],
     ] as const
     for (const [foreground, background] of indicators) {
@@ -285,14 +409,6 @@ for (const mode of ['light', 'dark'] as const) {
         `${mode} primary button labels against ${background} must reach 4.5:1`,
       )
     }
-    assert.equal(values['components-calendar-cell-text-selected'], '#ffffff')
-    assert.ok(
-      contrast(
-        values['components-calendar-cell-text-selected'],
-        values['components-calendar-cell-bg-selected'],
-      ) >= 4.5,
-      `${mode} selected calendar labels must reach 4.5:1`,
-    )
     // Selected labels sit on the selection tint, which lies over product
     // surfaces and over the tab and segmented control tracks.
     for (const background of [
@@ -358,19 +474,17 @@ for (const mode of ['light', 'dark'] as const) {
         )
       }
     }
-    for (const background of [
-      'components-tag-bg',
-      'components-tag-bg-hover',
-    ] as const) {
-      const ratio = contrast(
-        values['components-tag-text'],
-        compositeBackground(values[background], values['background-surface']),
-      )
-      assert.ok(
-        ratio >= 4.5,
-        `${mode} tag labels against ${background} are ${ratio.toFixed(2)}:1; expected at least 4.5:1`,
-      )
-    }
+    const tagRatio = contrast(
+      values['components-tag-text'],
+      compositeBackground(
+        values['components-tag-bg'],
+        values['background-surface'],
+      ),
+    )
+    assert.ok(
+      tagRatio >= 4.5,
+      `${mode} tag labels are ${tagRatio.toFixed(2)}:1; expected at least 4.5:1`,
+    )
     for (const badge of [
       'components-badge',
       'components-badge-neutral',
@@ -378,6 +492,10 @@ for (const mode of ['light', 'dark'] as const) {
       'components-badge-warning',
       'components-badge-error',
       'components-badge-info',
+      'components-badge-blue',
+      'components-badge-orange',
+      'components-badge-purple',
+      'components-badge-green',
     ] as const) {
       const ratio = contrast(
         values[`${badge}-text`],
@@ -406,63 +524,32 @@ for (const mode of ['light', 'dark'] as const) {
         )
       }
     }
-    // Status text sits on subtle fills, outline buttons (at rest and on
-    // hover, as in the bulk enable and stop actions) and its own tint.
-    for (const status of ['success', 'warning', 'error'] as const) {
-      for (const background of [
-        ...surfaces,
-        'background-subtle',
-        'components-button-secondary-bg',
-        'components-button-secondary-bg-hover',
-        `status-${status}-subtle`,
-      ] as const) {
-        const ratio = contrast(
-          values[`text-${status}`],
-          compositeBackground(values[background], values['background-surface']),
-        )
-        assert.ok(
-          ratio >= 4.5,
-          `${mode} ${status} text over ${background} is ${ratio.toFixed(2)}:1; expected at least 4.5:1`,
-        )
-      }
-    }
-    // Search highlights tint text-error with itself, 10% at rest and 16% on
-    // hover, inside result cards that lighten on hover.
-    for (const percent of [10, 16]) {
-      const highlight = `rgba(${rgbChannels(values['text-error']).replaceAll(' ', ', ')}, ${percent / 100})`
+    // Search highlights mark matches with the warning tint, deeper on hover,
+    // inside result cards that lighten on hover.
+    for (const tint of [
+      'status-warning-subtle',
+      'status-warning-subtle-hover',
+    ] as const) {
       for (const background of [
         'background-surface',
         'components-card-bg-hover',
       ] as const) {
         const ratio = contrast(
-          values['text-error'],
-          compositeBackground(highlight, values[background]),
+          values['text-primary'],
+          compositeBackground(values[tint], values[background]),
         )
         assert.ok(
           ratio >= 4.5,
-          `${mode} search highlights with a ${percent}% tint over ${background} are ${ratio.toFixed(2)}:1; expected at least 4.5:1`,
+          `${mode} search highlights on ${tint} over ${background} are ${ratio.toFixed(2)}:1; expected at least 4.5:1`,
         )
       }
-    }
-    // Reference similarity badges label the success, accent and tertiary
-    // text colors with text-inverted.
-    for (const background of [
-      'text-success',
-      'text-accent',
-      'text-tertiary',
-    ] as const) {
-      const ratio = contrast(values['text-inverted'], values[background])
-      assert.ok(
-        ratio >= 4.5,
-        `${mode} similarity badges on ${background} are ${ratio.toFixed(2)}:1; expected at least 4.5:1`,
-      )
     }
     // Published apps keep their success chip in selected list rows, where
     // the selection tint lies under the success tint.
     const selectedChipRatio = contrast(
-      values['text-success'],
+      values['status-success'],
       compositeBackground(
-        values['status-success-10'],
+        values['status-success-subtle'],
         compositeBackground(
           values['state-selected-bg'],
           values['background-surface'],
@@ -480,11 +567,6 @@ for (const mode of ['light', 'dark'] as const) {
       'components-method-put',
       'components-method-delete',
       'components-method-patch',
-      'components-http-method-get',
-      'components-http-method-post',
-      'components-http-method-put',
-      'components-http-method-delete',
-      'components-http-method-patch',
       'components-api-status-error',
       'components-task-status-cancelled',
       'components-task-status-completed',
@@ -502,19 +584,6 @@ for (const mode of ['light', 'dark'] as const) {
         assert.ok(
           ratio >= 4.5,
           `${mode} ${label} text over ${background} is ${ratio.toFixed(2)}:1; expected at least 4.5:1`,
-        )
-      }
-    }
-    // Result icons are non-text content, so they need 3:1.
-    for (const status of ['success', 'warning', 'error', 'info'] as const) {
-      for (const background of ['components-result-bg', ...surfaces] as const) {
-        const ratio = contrast(
-          values[`components-result-icon-${status}`],
-          values[background],
-        )
-        assert.ok(
-          ratio >= 3,
-          `${mode} ${status} result icon over ${background} is ${ratio.toFixed(2)}:1; expected at least 3:1`,
         )
       }
     }
@@ -543,17 +612,12 @@ for (const mode of ['light', 'dark'] as const) {
         )
       }
     }
-    // Inline code, step pills, environment badges and the user avatar
-    // initial put their text on their own fill.
+    // Inline code and step pills put their text on their own fill.
     for (const label of [
       'components-code',
       'components-steps-completed',
       'components-steps-active',
       'components-steps-inactive',
-      'components-env-dev',
-      'components-env-staging',
-      'components-env-prod',
-      'chat-bubble-user-avatar',
     ] as const) {
       const ratio = contrast(
         values[`${label}-text`],
@@ -567,29 +631,23 @@ for (const mode of ['light', 'dark'] as const) {
         `${mode} ${label} labels are ${ratio.toFixed(2)}:1; expected at least 4.5:1`,
       )
     }
-    // The assistant avatar glyph and the running canvas node spinner are
-    // icons, so they need 3:1.
-    for (const [icon, background] of [
-      ['chat-bubble-assistant-avatar-text', 'chat-bubble-assistant-avatar-bg'],
-      [
-        'components-canvas-node-status-running-icon',
-        'components-canvas-node-bg',
-      ],
-    ] as const) {
-      const ratio = contrast(
-        values[icon],
-        compositeBackground(values[background], values['background-surface']),
-      )
-      assert.ok(
-        ratio >= 3,
-        `${mode} ${icon} over ${background} is ${ratio.toFixed(2)}:1; expected at least 3:1`,
-      )
-    }
+    // The running canvas node spinner is an icon, so it needs 3:1.
+    const spinnerRatio = contrast(
+      values['components-canvas-node-status-running-icon'],
+      compositeBackground(
+        values['components-canvas-node-bg'],
+        values['background-surface'],
+      ),
+    )
+    assert.ok(
+      spinnerRatio >= 3,
+      `${mode} running node spinner is ${spinnerRatio.toFixed(2)}:1; expected at least 3:1`,
+    )
     // Info chips put text-accent on the info tint.
     for (const background of surfaces) {
       const ratio = contrast(
         values['text-accent'],
-        compositeBackground(values['status-info-10'], values[background]),
+        compositeBackground(values['status-info-subtle'], values[background]),
       )
       assert.ok(
         ratio >= 4.5,

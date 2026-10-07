@@ -72,25 +72,6 @@ export interface ResourceListSkeletonRowProps {
 }
 
 // ============================================================================
-// 常量
-// ============================================================================
-
-/** 默认的头像渐变色 */
-export const AVATAR_GRADIENTS = [
-  'from-components-avatar-gradient-purple-from to-components-avatar-gradient-purple-to',
-  'from-components-avatar-gradient-blue-from to-components-avatar-gradient-blue-to',
-  'from-components-avatar-gradient-green-from to-components-avatar-gradient-green-to',
-  'from-components-avatar-gradient-orange-from to-components-avatar-gradient-orange-to',
-  'from-components-avatar-gradient-indigo-from to-components-avatar-gradient-indigo-to',
-]
-
-/** 根据名称获取头像渐变色 */
-export const getAvatarGradient = (name: string): string => {
-  const index = name.charCodeAt(0) % AVATAR_GRADIENTS.length
-  return AVATAR_GRADIENTS[index]
-}
-
-// ============================================================================
 // 子组件
 // ============================================================================
 

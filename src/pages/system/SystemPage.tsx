@@ -293,7 +293,7 @@ const SystemPage: React.FC = () => {
   if (error) {
     return (
       <div className="min-h-full bg-components-system-page-bg p-4 md:p-6">
-        <div className="space-y-4 rounded-2xl border border-components-system-panel-border bg-components-system-panel-bg p-4 shadow-components-system-panel-shadow backdrop-blur-md md:space-y-5 md:p-5">
+        <div className="space-y-4 rounded-2xl border border-components-system-panel-border bg-components-system-panel-bg p-4 shadow-elevation-low md:space-y-5 md:p-5">
           <PageToolbar
             surface="plain"
             right={
@@ -331,7 +331,7 @@ const SystemPage: React.FC = () => {
 
   return (
     <div className="min-h-full bg-components-system-page-bg p-4 md:p-6">
-      <div className="space-y-4 rounded-2xl border border-t-2 border-components-system-panel-border border-t-components-system-accent-border bg-components-system-panel-bg p-4 shadow-components-system-panel-shadow backdrop-blur-md md:space-y-5 md:p-5">
+      <div className="space-y-4 rounded-2xl border border-t-2 border-components-system-panel-border border-t-components-system-accent-border bg-components-system-panel-bg p-4 shadow-elevation-low md:space-y-5 md:p-5">
         <PageToolbar
           surface="plain"
           wrap

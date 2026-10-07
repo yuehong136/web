@@ -1,10 +1,10 @@
 /**
  * 团队统计卡片组件
- * 使用语义化设计令牌，带彩色阴影和渐变效果
+ * 扁平卡片：分类色图标底 + 悬停时的焦点边框与 elevation 阴影
  * 展示组件 - 无 hooks、无 API、无 store
  */
 
-import React, { useState } from 'react'
+import React from 'react'
 import type { LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -16,37 +16,12 @@ interface TeamStatsCardProps {
   className?: string
 }
 
-// 颜色映射到设计令牌 - 使用 components-stats-card-* 令牌
-const colorTokens = {
-  info: {
-    gradient: 'var(--color-components-stats-card-blue-bg)',
-    iconBg: 'var(--color-components-stats-card-blue-icon-bg)',
-    iconText: 'var(--color-components-stats-card-blue-icon-text)',
-    shadow: 'var(--color-components-stats-card-blue-shadow)',
-    borderHover: 'var(--color-components-stats-card-blue-border-hover)',
-  },
-  success: {
-    gradient: 'var(--color-components-stats-card-green-bg)',
-    iconBg: 'var(--color-components-stats-card-green-icon-bg)',
-    iconText: 'var(--color-components-stats-card-green-icon-text)',
-    shadow: 'var(--color-components-stats-card-green-shadow)',
-    borderHover: 'var(--color-components-stats-card-green-border-hover)',
-  },
-  warning: {
-    gradient: 'var(--color-components-stats-card-orange-bg)',
-    iconBg: 'var(--color-components-stats-card-orange-icon-bg)',
-    iconText: 'var(--color-components-stats-card-orange-icon-text)',
-    shadow: 'var(--color-components-stats-card-orange-shadow)',
-    borderHover: 'var(--color-components-stats-card-orange-border-hover)',
-  },
-  purple: {
-    gradient: 'var(--color-components-stats-card-purple-bg)',
-    iconBg: 'var(--color-components-stats-card-purple-icon-bg)',
-    iconText: 'var(--color-components-stats-card-purple-icon-text)',
-    shadow: 'var(--color-components-stats-card-purple-shadow)',
-    borderHover: 'var(--color-components-stats-card-purple-border-hover)',
-  },
-}
+const toneClasses = {
+  info: 'bg-components-badge-blue-bg text-components-badge-blue-text',
+  success: 'bg-components-badge-green-bg text-components-badge-green-text',
+  warning: 'bg-components-badge-orange-bg text-components-badge-orange-text',
+  purple: 'bg-components-badge-purple-bg text-components-badge-purple-text',
+} as const
 
 export const TeamStatsCard: React.FC<TeamStatsCardProps> = ({
   title,
@@ -55,58 +30,30 @@ export const TeamStatsCard: React.FC<TeamStatsCardProps> = ({
   color,
   className,
 }) => {
-  const tokens = colorTokens[color]
-  const [isHovered, setIsHovered] = useState(false)
-
   return (
     <div
       className={cn(
-        'relative overflow-hidden rounded-2xl p-5 transition-all duration-300',
-        'hover:-translate-y-1',
-        'border',
-        className
+        'rounded-2xl border border-components-card-border bg-components-card-bg p-5 transition-all duration-200',
+        'hover:-translate-y-0.5 hover:border-state-focus hover:shadow-elevation-medium',
+        className,
       )}
-      style={{
-        backgroundColor: 'var(--color-components-card-bg)',
-        borderColor: isHovered ? tokens.borderHover : 'var(--color-components-card-border)',
-        boxShadow: isHovered ? tokens.shadow : 'none',
-      }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
     >
-      {/* 背景渐变装饰 - 使用设计令牌中的渐变 */}
-      <div
-        className={cn(
-          'absolute -right-4 -top-4 w-28 h-28 rounded-full blur-2xl transition-all duration-300',
-          isHovered ? 'opacity-80 scale-110' : 'opacity-50'
-        )}
-        style={{ background: tokens.gradient }}
-      />
-      
-      <div className="relative flex items-center gap-4">
-        {/* 图标 - 使用渐变背景令牌 */}
+      <div className="flex items-center gap-4">
         <div
           className={cn(
-            'flex items-center justify-center w-12 h-12 rounded-xl transition-all duration-300',
-            isHovered && 'scale-110'
+            'flex h-12 w-12 shrink-0 items-center justify-center rounded-xl',
+            toneClasses[color],
           )}
-          style={{ background: tokens.iconBg }}
         >
-          <Icon className="h-6 w-6" style={{ color: tokens.iconText }} />
+          <Icon className="size-icon-lg" />
         </div>
 
         {/* 文本 */}
-        <div className="flex-1 min-w-0">
-          <p
-            className="text-sm font-medium mb-1"
-            style={{ color: 'var(--color-text-secondary)' }}
-          >
+        <div className="min-w-0 flex-1">
+          <p className="mb-1 text-sm font-medium text-text-secondary">
             {title}
           </p>
-          <p
-            className="text-3xl font-bold tracking-tight"
-            style={{ color: 'var(--color-text-primary)' }}
-          >
+          <p className="text-3xl font-bold tracking-tight text-text-primary">
             {typeof value === 'number' ? value.toLocaleString() : value}
           </p>
         </div>

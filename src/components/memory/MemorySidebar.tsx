@@ -1,11 +1,11 @@
 import { useTranslation } from 'react-i18next'
 import { Link, NavLink } from 'react-router-dom'
 import { ArrowLeft, Database, MessageSquare, Settings } from 'lucide-react'
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { cn, formatRelativeTime, formatBytes } from '@/lib/utils'
 import { ROUTES } from '@/constants'
 import type { Memory } from '@/types/memory'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 
 interface MemorySidebarProps {
   memory: Memory | null
@@ -49,12 +49,12 @@ export function MemorySidebar({
         </Button>
       </header>
       <div className="flex items-center gap-space-sm px-space-base py-space-base">
-        <Avatar className="h-8 w-8 shrink-0 rounded-radius-md">
-          <AvatarImage src={memory?.avatar || undefined} alt="" />
-          <AvatarFallback className="bg-background-subtle text-text-secondary">
-            <Database className="size-icon-sm" />
-          </AvatarFallback>
-        </Avatar>
+        <EntityAvatar
+          name={memory?.name}
+          src={memory?.avatar}
+          seed={memory?.id}
+          icon={memory ? undefined : <Database />}
+        />
         <div className="min-w-0">
           <p className="truncate text-sm font-medium" title={memory?.name}>
             {memory?.name || t('memory.common.loading')}

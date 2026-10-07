@@ -1,5 +1,4 @@
 export { ChunkMethodModal } from './ChunkMethodModal'
-export { KnowledgeBaseAvatar } from './KnowledgeBaseAvatar'
 export { KnowledgeListView } from './KnowledgeListView'
 export { ReparseConfirmModal } from './ReparseConfirmModal'
 export { RerankModelSelector } from './RerankModelSelector'

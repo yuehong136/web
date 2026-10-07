@@ -158,7 +158,7 @@ export const ChatSettingsPanel: React.FC<ChatSettingsPanelProps> = ({
       <div
         className="flex h-full w-[420px] flex-col"
         style={{
-          backgroundColor: 'var(--color-background-primary)',
+          backgroundColor: 'var(--color-background-surface)',
           borderLeft: '1px solid var(--color-border-default)',
         }}
       >
@@ -222,7 +222,7 @@ export const ChatSettingsPanel: React.FC<ChatSettingsPanelProps> = ({
     <div
       className="flex h-full w-[420px] flex-col"
       style={{
-        backgroundColor: 'var(--color-background-primary)',
+        backgroundColor: 'var(--color-background-surface)',
         borderLeft: '1px solid var(--color-border-default)',
       }}
     >

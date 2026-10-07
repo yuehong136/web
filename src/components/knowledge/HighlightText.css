@@ -1,9 +1,9 @@
 /**
  * 高亮文本样式
- * 用于显示检索结果中的高亮文本
- * 
- * 参考自 ragflow 项目的高亮实现
- * 使用项目主题系统的 CSS 变量和 data-theme 属性
+ * 用于显示检索结果中的高亮文本（后端以 <em> 标出命中词）
+ *
+ * 命中词按搜索产品的通行做法渲染为琥珀色标记：正文色文字叠在 warning 浅色底上，
+ * 明暗主题下都满足 WCAG AA（见 categorical-palette.test.ts 的 search highlights 断言）。
  */
 
 .highlight-text {
@@ -12,24 +12,24 @@
   line-height: 1.6;
 }
 
-/* 高亮标签样式 */
 .highlight-text em {
-  color: var(--color-text-error); /* 使用主题错误色作为高亮色 */
-  font-style: normal; /* 不使用斜体 */
-  font-weight: 600; /* 加粗 */
-  background-color: color-mix(in srgb, var(--color-text-error) 10%, transparent);
-  padding: 1px 3px;
+  color: var(--color-text-primary);
+  font-style: normal;
+  font-weight: 500;
+  background-color: var(--color-status-warning-subtle);
+  padding: 0 2px;
   border-radius: 3px;
-  transition: all 0.2s ease-in-out;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  transition: background-color 0.15s ease-in-out;
 }
 
-/* 鼠标悬停效果 */
 .highlight-text em:hover {
-  background-color: color-mix(in srgb, var(--color-text-error) 16%, transparent);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-text-error) 12%, transparent);
+  background-color: var(--color-status-warning-subtle-hover);
 }
 
-/* 嵌套的 em 标签提供更深的高亮 */
+/* 嵌套命中沿用外层标记，不再叠加加深 */
 .highlight-text em em {
-  background-color: color-mix(in srgb, var(--color-text-error) 22%, transparent);
+  background-color: transparent;
+  padding: 0;
 }

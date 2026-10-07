@@ -39,21 +39,21 @@ export const DeleteMetadataConfirm: React.FC<DeleteMetadataConfirmProps> = ({
       <AlertDialogContent className="max-w-[400px]">
         <AlertDialogHeader className="pb-2">
           <div className="flex items-center gap-3">
-            <div className="bg-status-error/10 flex h-10 w-10 items-center justify-center rounded-full">
-              <AlertTriangle className="text-status-error h-5 w-5" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-status-error-subtle">
+              <AlertTriangle className="h-5 w-5 text-status-error" />
             </div>
             <AlertDialogTitle className="text-base">{title}</AlertDialogTitle>
           </div>
         </AlertDialogHeader>
         <AlertDialogDescription>
           <div className="space-y-3 pl-[52px]">
-            <div className="bg-surface-secondary inline-flex items-center rounded-md border border-border-default px-3 py-1.5">
+            <div className="inline-flex items-center rounded-md border border-border-default bg-surface-secondary px-3 py-1.5">
               <span className="max-w-[260px] truncate text-sm font-medium text-text-primary">
                 {name}
               </span>
             </div>
-            <div className="bg-status-warning/5 border-status-warning/20 flex items-start gap-2 rounded-md border p-2.5">
-              <AlertCircle className="text-status-warning mt-0.5 h-4 w-4 shrink-0" />
+            <div className="flex items-start gap-2 rounded-md border border-status-warning-border bg-status-warning-subtle p-2.5">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-status-warning" />
               <p className="text-xs leading-relaxed text-text-secondary">
                 {warnText}
               </p>

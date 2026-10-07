@@ -44,11 +44,11 @@ export const ProcessingTypeI18nKey: Record<ProcessingType, string> = {
 
 export const StatusClassConfig = {
   [RunningStatus.DONE]: {
-    root: 'bg-status-success-10 text-status-success',
+    root: 'bg-status-success-subtle text-status-success',
     dot: 'bg-status-success',
   },
   [RunningStatus.FAIL]: {
-    root: 'bg-status-error-10 text-status-error',
+    root: 'bg-status-error-subtle text-status-error',
     dot: 'bg-status-error',
   },
   [RunningStatus.RUNNING]: {
@@ -56,7 +56,7 @@ export const StatusClassConfig = {
     dot: 'bg-state-focus',
   },
   [RunningStatus.UNSTART]: {
-    root: 'bg-status-warning-10 text-status-warning',
+    root: 'bg-status-warning-subtle text-status-warning',
     dot: 'bg-status-warning',
   },
   [RunningStatus.CANCEL]: {

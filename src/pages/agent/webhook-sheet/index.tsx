@@ -200,7 +200,7 @@ export function WebhookSheet({
         onInteractOutside={(event) => event.preventDefault()}
       >
         <SheetHeader>
-          <SheetTitle className="gap-space-sm flex items-center">
+          <SheetTitle className="flex items-center gap-space-sm">
             Webhook 测试
             <Badge
               variant={
@@ -218,14 +218,14 @@ export function WebhookSheet({
           </SheetTitle>
         </SheetHeader>
 
-        <div className="space-y-space-lg py-space-lg flex-1 overflow-auto">
+        <div className="flex-1 space-y-space-lg overflow-auto py-space-lg">
           <section className="space-y-space-sm">
             <p className="text-sm font-medium text-text-primary">Webhook URL</p>
-            <div className="gap-space-sm flex">
+            <div className="flex gap-space-sm">
               <Input
                 value={webhookUrl}
                 readOnly
-                className="bg-surface-secondary flex-1"
+                className="flex-1 bg-surface-secondary"
               />
               <Button
                 variant="outline"
@@ -241,14 +241,14 @@ export function WebhookSheet({
               </Button>
             </div>
             {testUrl ? (
-              <p className="break-all text-xs text-text-secondary">
+              <p className="text-xs break-all text-text-secondary">
                 Test endpoint: {testUrl}
               </p>
             ) : null}
           </section>
 
           {testBuild.warnings.length ? (
-            <div className="space-y-space-xs rounded-radius-md bg-surface-secondary p-space-sm border border-border-subtle text-sm text-text-secondary">
+            <div className="space-y-space-xs rounded-radius-md border border-border-subtle bg-surface-secondary p-space-sm text-sm text-text-secondary">
               {testBuild.warnings.map((warning) => (
                 <p key={warning}>{warning}</p>
               ))}
@@ -256,12 +256,12 @@ export function WebhookSheet({
           ) : null}
 
           {testError ? (
-            <div className="rounded-radius-md bg-surface-secondary p-space-sm border border-status-error text-sm text-status-error">
+            <div className="rounded-radius-md border border-status-error-border bg-status-error-subtle p-space-sm text-sm text-status-error">
               {testError}
             </div>
           ) : null}
 
-          <div className="gap-space-sm flex flex-wrap">
+          <div className="flex flex-wrap gap-space-sm">
             <Button
               onClick={() => void handleTest()}
               disabled={testing || !flowId}
@@ -297,7 +297,7 @@ export function WebhookSheet({
               value={WebhookTraceTab.Overview}
               className="space-y-space-md"
             >
-              <div className="gap-space-md grid md:grid-cols-2">
+              <div className="grid gap-space-md md:grid-cols-2">
                 <div className="space-y-space-sm">
                   <p className="text-sm font-medium text-text-primary">Input</p>
                   <JsonViewer data={trace?.firstInput || {}} />
@@ -329,7 +329,7 @@ export function WebhookSheet({
               </div>
               <div className="space-y-space-sm">
                 <p className="text-sm font-medium text-text-primary">curl</p>
-                <pre className="rounded-radius-md bg-surface-secondary p-space-sm max-h-60 overflow-auto text-xs text-text-primary">
+                <pre className="max-h-60 overflow-auto rounded-radius-md bg-surface-secondary p-space-sm text-xs text-text-primary">
                   {curlExample}
                 </pre>
               </div>

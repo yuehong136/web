@@ -22,7 +22,7 @@ import { toast } from '@/lib/toast'
 import { useSetDialogApp } from '@/hooks/use-dialog-apps'
 import { ROUTES } from '@/constants'
 import { STUDIO_TEXTS } from '@/constants/studio-texts'
-import { cn } from '@/lib/utils'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 
 interface CreateAppModalProps {
   isOpen: boolean
@@ -164,13 +164,8 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({
       <DialogContent size="md">
         <DialogHeader>
           <div className="flex items-center gap-3">
-            <div
-              className={cn(
-                'flex h-10 w-10 items-center justify-center rounded-xl',
-                'bg-linear-to-br from-components-avatar-gradient-purple-from to-components-avatar-gradient-blue-to',
-              )}
-            >
-              <Sparkles className="h-5 w-5 text-white" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-state-selected-bg text-state-selected-text">
+              <Sparkles className="size-icon-md" />
             </div>
             <div className="min-w-0 flex-1">
               <DialogTitle className="text-text-primary">
@@ -190,25 +185,12 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({
               {STUDIO_TEXTS.createAppModal.iconLabel}
             </Label>
             <div className="flex items-center gap-4">
-              <div
-                className={cn(
-                  'flex h-16 w-16 items-center justify-center overflow-hidden rounded-xl',
-                  'border-2 border-dashed border-border-default',
-                  formData.icon
-                    ? 'border-solid bg-transparent'
-                    : 'bg-linear-to-br from-components-avatar-gradient-purple-from to-components-avatar-gradient-blue-to',
-                )}
-              >
-                {formData.icon ? (
-                  <img
-                    src={formData.icon}
-                    alt="App icon"
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <Sparkles className="h-7 w-7 text-white" />
-                )}
-              </div>
+              <EntityAvatar
+                name={formData.name}
+                src={formData.icon}
+                size="2xl"
+                icon={formData.name.trim() ? undefined : <Sparkles />}
+              />
               <div className="flex flex-col gap-2">
                 <label className="cursor-pointer">
                   <input
@@ -237,7 +219,7 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({
                     onClick={() =>
                       setFormData((prev) => ({ ...prev, icon: '' }))
                     }
-                    className="gap-1.5 text-status-error hover:bg-status-error/10 hover:text-status-error"
+                    className="gap-1.5 text-status-error hover:bg-status-error-subtle hover:text-status-error"
                     disabled={isLoading}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -262,7 +244,8 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({
               onChange={(e) => handleNameChange(e.target.value)}
               placeholder={STUDIO_TEXTS.createAppModal.namePlaceholder}
               disabled={isLoading}
-              className={cn(nameError && 'border-status-error')}
+              variant={nameError ? 'destructive' : 'default'}
+              aria-invalid={!!nameError}
             />
             {nameError && (
               <p className="text-xs text-status-error">{nameError}</p>
@@ -298,17 +281,8 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({
           </div>
 
           {/* 提示信息 */}
-          <div
-            className="flex items-start gap-2.5 rounded-lg p-3"
-            style={{
-              backgroundColor: 'var(--color-status-info-subtle)',
-              border: '1px solid var(--color-status-info-subtle)',
-            }}
-          >
-            <Sparkles
-              className="mt-0.5 h-4 w-4 shrink-0"
-              style={{ color: 'var(--color-status-info)' }}
-            />
+          <div className="flex items-start gap-2.5 rounded-lg border border-status-info-border bg-status-info-subtle p-3">
+            <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-status-info" />
             <p className="text-xs leading-relaxed text-text-secondary">
               <strong className="text-text-primary">提示：</strong>
               创建应用后，您将进入应用配置页面，可以设置模型参数、提示词模板、对话记忆等高级功能。

@@ -72,7 +72,7 @@ export const MetadataValueTag: FC<MetadataValueTagProps> = ({
       <span className="max-w-[120px] truncate">{value}</span>
 
       {count !== undefined && count > 0 && (
-        <span className="shrink-0 font-medium tabular-nums text-text-tertiary">
+        <span className="shrink-0 font-medium text-text-tertiary tabular-nums">
           {count}
         </span>
       )}
@@ -90,7 +90,7 @@ export const MetadataValueTag: FC<MetadataValueTagProps> = ({
             '-mr-0.5 ml-1 h-4 w-4 shrink-0 rounded-sm p-0',
             'text-text-tertiary',
             'opacity-0 group-hover/tag:opacity-100',
-            'hover:bg-status-error/10 hover:text-status-error',
+            'hover:bg-status-error-subtle hover:text-status-error',
             'transition-all duration-150',
           )}
           aria-label={t('knowledge.metadata.editor.removeValueAria', {
@@ -110,7 +110,7 @@ export const MetadataValueTag: FC<MetadataValueTagProps> = ({
           <TooltipTrigger asChild>{tagContent}</TooltipTrigger>
           <TooltipContent
             side="top"
-            className="max-w-[280px] break-words text-xs"
+            className="max-w-[280px] text-xs break-words"
           >
             {value}
           </TooltipContent>

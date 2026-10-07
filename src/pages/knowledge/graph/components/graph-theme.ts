@@ -3,7 +3,6 @@ import { getTokenValue, type ThemeMode } from '@/lib/design-tokens'
 export interface GraphTheme {
   accentColor: string
   borderColor: string
-  cardShadow: string
   edgeActiveColor: string
   edgeColor: string
   focusColor: string
@@ -25,7 +24,6 @@ export function getGraphTheme(theme: ThemeMode): GraphTheme {
   return {
     accentColor: getTokenValue('text-accent', theme),
     borderColor: getTokenValue('components-card-border', theme),
-    cardShadow: getTokenValue('components-card-shadow', theme),
     edgeActiveColor: getTokenValue('text-secondary', theme),
     edgeColor: workspaceBorderColor,
     focusColor: getTokenValue('state-focus', theme),

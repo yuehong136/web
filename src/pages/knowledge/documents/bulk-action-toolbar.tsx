@@ -64,7 +64,7 @@ export const BulkActionToolbar: React.FC<BulkActionToolbarProps> = ({
             size="sm"
             onClick={onEnable}
             disabled={isLoading}
-            className="border-border-success text-text-success"
+            className="border-status-success-border text-status-success"
           >
             <CheckCircle className="mr-1 h-4 w-4" />
             {t('knowledge.documents.bulkActions.enable')}
@@ -94,7 +94,7 @@ export const BulkActionToolbar: React.FC<BulkActionToolbarProps> = ({
             size="sm"
             onClick={onStopParse}
             disabled={isLoading}
-            className="border-border-warning text-text-warning"
+            className="border-status-warning-border text-status-warning"
           >
             <Square className="mr-1 h-4 w-4" />
             {t('knowledge.documents.bulkActions.stopTask')}

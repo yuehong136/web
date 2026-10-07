@@ -11,15 +11,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  KnowledgeBaseAvatar,
-  RerankModelSelector,
-} from '@/components/knowledge'
+import { RerankModelSelector } from '@/components/knowledge'
 import type { KnowledgeBase, LLMModel } from '@/types/api'
 import { SUPPORTED_LANGUAGES } from '../constants'
 import { CenterConfigSection } from './center-config-section'
 import { ChatReferenceSettings } from './chat-reference-settings'
 import { NumericField, ToggleField, type ConfigBindings } from './config-fields'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 
 export interface KnowledgeConfigProps extends ConfigBindings {
   knowledgeBases: KnowledgeBase[]
@@ -64,10 +62,11 @@ export function KnowledgeConfig({
               key={kb.id}
               className="flex min-w-0 items-center gap-space-sm border-b border-border-subtle py-space-sm"
             >
-              <KnowledgeBaseAvatar
+              <EntityAvatar
                 name={kb.name}
-                avatar={kb.avatar}
-                size="md"
+                src={kb.avatar}
+                seed={kb.id}
+                size="xs"
               />
               <div className="min-w-0 flex-1">
                 <p

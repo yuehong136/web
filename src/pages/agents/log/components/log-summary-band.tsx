@@ -1,12 +1,11 @@
-import { Bot } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { isPipelineFlow, resolveLocalizedText } from '@/lib/agent'
 import { cn, formatTimestampDetailed } from '@/lib/utils'
 import type { AgentFlow, AgentSession } from '@/types/agent'
-import { getAvatarGradient } from '@/components/ui/resource-list'
 import { extractAgentLogStatus } from '../hooks/use-agent-log-list'
 import { AGENT_LOG_SOURCE_LABELS } from '../constants'
 import { AgentLogStatus } from '../types'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 
 interface LogSummaryBandProps {
   agent?: AgentFlow
@@ -62,14 +61,12 @@ export function LogSummaryBand({
   return (
     <div className="grid border-b border-components-page-toolbar-border bg-components-console-surface xl:grid-cols-[minmax(280px,1.5fr)_minmax(0,2.5fr)]">
       <div className="flex min-w-0 items-center gap-space-sm border-r border-border-subtle px-space-lg py-space-base">
-        <div
-          className={cn(
-            'flex h-12 w-12 shrink-0 items-center justify-center rounded-radius-lg bg-linear-to-br text-base font-semibold text-text-inverted',
-            getAvatarGradient(title),
-          )}
-        >
-          {title.charAt(0).toUpperCase() || <Bot className="size-5" />}
-        </div>
+        <EntityAvatar
+          name={title}
+          src={agent.avatar}
+          seed={agent.id}
+          size="xl"
+        />
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-space-xs">
             <h2 className="truncate text-sm font-semibold text-text-primary">

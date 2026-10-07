@@ -311,7 +311,7 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
                     className="text-sm font-medium text-[var(--color-text-primary)]"
                   >
                     {t('mcp.form.name')}{' '}
-                    <span className="text-[var(--color-status-error)]">*</span>
+                    <span className="text-status-error">*</span>
                   </label>
                   <Input
                     id={`${formId}-name`}
@@ -333,7 +333,7 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
                     className="text-sm font-medium text-[var(--color-text-primary)]"
                   >
                     {t('mcp.form.url')}{' '}
-                    <span className="text-[var(--color-status-error)]">*</span>
+                    <span className="text-status-error">*</span>
                   </label>
                   <Input
                     id={`${formId}-url`}
@@ -450,8 +450,8 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
                       className={cn(
                         'flex items-center gap-1.5 text-sm font-medium',
                         testResult.success
-                          ? 'text-[var(--color-status-success)]'
-                          : 'text-[var(--color-status-error)]',
+                          ? 'text-status-success'
+                          : 'text-status-error',
                       )}
                     >
                       {testResult.success ? (
@@ -468,11 +468,11 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
 
                 {/* 测试结果 - 失败 */}
                 {testResult && !testResult.success && (
-                  <div className="rounded-lg border border-[var(--color-border-error)] bg-[var(--color-status-error-subtle)] p-4">
+                  <div className="rounded-lg border border-status-error-border bg-status-error-subtle p-4">
                     <div className="flex items-start gap-3">
-                      <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-status-error)]" />
+                      <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-status-error" />
                       <div className="min-w-0 space-y-1">
-                        <p className="text-sm font-medium text-[var(--color-status-error)]">
+                        <p className="text-sm font-medium text-status-error">
                           {t('mcp.form.failed')}
                         </p>
                         <p className="text-sm break-all text-[var(--color-text-secondary)]">

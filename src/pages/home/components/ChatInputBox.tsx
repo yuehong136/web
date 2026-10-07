@@ -173,7 +173,7 @@ export const ChatInputBox: FC<ChatInputBoxProps> = ({
               onClick={onStop}
               aria-label={t('home.input.stop', '停止')}
               className={cn(
-                'flex items-center justify-center rounded-full bg-status-error text-text-on-accent transition-colors hover:bg-status-error/90',
+                'flex items-center justify-center rounded-full bg-status-error-solid text-status-error-on-solid transition-colors hover:bg-status-error-solid-hover',
                 isWelcome ? 'h-10 w-10' : 'h-9 w-9',
               )}
             >

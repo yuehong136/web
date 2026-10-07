@@ -4,27 +4,13 @@
  * 参考 MCP 服务器卡片的悬停效果实现
  */
 
-import {
-  useMemo,
-  useState,
-  type FC,
-  type KeyboardEvent,
-  type MouseEvent,
-} from 'react'
+import { useState, type FC, type KeyboardEvent, type MouseEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import {
-  MoreVertical,
-  Edit,
-  Trash2,
-  MessageSquare,
-  Clock,
-  Database,
-} from 'lucide-react'
+import { MoreVertical, Edit, Trash2, MessageSquare, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Dropdown, DropdownItem } from '@/components/ui/dropdown'
 import {
   cn,
@@ -33,6 +19,7 @@ import {
   formatTimestampCompact,
 } from '@/lib/utils'
 import type { Memory, MemoryType } from '@/types/memory'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 
 export type TimeFormatType = 'detailed' | 'compact' | 'relative'
 
@@ -107,19 +94,6 @@ export const MemoryCard: FC<MemoryCardProps> = ({
     onDelete?.(data)
   }
 
-  // 生成头像背景渐变 - 使用语义令牌
-  const avatarGradient = useMemo(() => {
-    const gradients = [
-      'from-components-avatar-gradient-purple-from to-components-avatar-gradient-purple-to',
-      'from-components-avatar-gradient-blue-from to-components-avatar-gradient-blue-to',
-      'from-components-avatar-gradient-green-from to-components-avatar-gradient-green-to',
-      'from-components-avatar-gradient-orange-from to-components-avatar-gradient-orange-to',
-      'from-components-avatar-gradient-indigo-from to-components-avatar-gradient-indigo-to',
-    ]
-    const index = data.name.charCodeAt(0) % gradients.length
-    return gradients[index]
-  }, [data.name])
-
   return (
     <div
       className={cn(
@@ -155,27 +129,12 @@ export const MemoryCard: FC<MemoryCardProps> = ({
               />
             )}
 
-            {/* 头像 */}
-            {data.avatar ? (
-              <Avatar className="h-10 w-10">
-                <AvatarImage src={data.avatar} alt={data.name} />
-                <AvatarFallback>
-                  <Database className="h-5 w-5" />
-                </AvatarFallback>
-              </Avatar>
-            ) : (
-              <div
-                className={cn(
-                  'flex h-12 w-12 items-center justify-center rounded-xl',
-                  'bg-linear-to-br shadow-xs',
-                  avatarGradient,
-                )}
-              >
-                <span className="text-xl font-semibold text-components-button-primary-text">
-                  {data.name.charAt(0).toUpperCase()}
-                </span>
-              </div>
-            )}
+            <EntityAvatar
+              name={data.name}
+              src={data.avatar}
+              seed={data.id}
+              size="xl"
+            />
 
             {/* 名称和描述 */}
             <div className="min-w-0 flex-1">

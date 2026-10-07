@@ -108,7 +108,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
             'scale-[1.01] border-components-upload-border-dragover bg-components-upload-bg-dragover',
           selectedFile &&
             !isLoading &&
-            'border-status-success bg-status-success-subtle',
+            'border-status-success-border bg-status-success-subtle',
           !dragActive &&
             !selectedFile &&
             'border-components-upload-border hover:border-components-upload-border-hover hover:bg-background-subtle',

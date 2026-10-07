@@ -36,7 +36,8 @@ export function LLMLabelCard({ llmId }: { llmId?: string }) {
     <LabelCard
       className={cn(
         'flex items-center gap-space-sm',
-        isInvalidLlm && 'border-status-error bg-status-error/10 text-status-error',
+        isInvalidLlm &&
+          'border-status-error-border bg-status-error-subtle text-status-error',
       )}
     >
       <ProviderIcon
@@ -44,9 +45,7 @@ export function LLMLabelCard({ llmId }: { llmId?: string }) {
         className="size-4 shrink-0"
         size={16}
       />
-      <span className="min-w-0 flex-1 truncate">
-        {displayName}
-      </span>
+      <span className="min-w-0 flex-1 truncate">{displayName}</span>
     </LabelCard>
   )
 }

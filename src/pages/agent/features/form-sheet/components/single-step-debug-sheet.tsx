@@ -104,9 +104,9 @@ function DebugMetric({
   return (
     <div
       className={cn(
-        'rounded-radius-md bg-surface-primary px-space-sm py-space-xs min-w-0 border',
-        tone === 'success' && 'border-status-success',
-        tone === 'error' && 'border-status-error',
+        'min-w-0 rounded-radius-md border bg-surface-primary px-space-sm py-space-xs',
+        tone === 'success' && 'border-status-success-border',
+        tone === 'error' && 'border-status-error-border',
         tone === 'default' && 'border-border-subtle',
       )}
     >
@@ -135,23 +135,23 @@ function CodeExecErrorPanel({
   }
 
   return (
-    <section className="rounded-radius-lg p-space-base border border-status-error bg-status-error-subtle">
-      <div className="gap-space-sm flex items-start">
+    <section className="rounded-radius-lg border border-status-error-border bg-status-error-subtle p-space-base">
+      <div className="flex items-start gap-space-sm">
         <AlertCircle className="mt-0.5 size-4 shrink-0 text-status-error" />
-        <div className="space-y-space-sm min-w-0 flex-1">
+        <div className="min-w-0 flex-1 space-y-space-sm">
           <div>
             <h5 className="text-sm font-semibold text-status-error">
               {grouped.status === CodeExecDebugStatus.ContractError
                 ? t('flow.codeContractError', 'Return type mismatch')
                 : t('flow.codeExecutionError', 'Execution error')}
             </h5>
-            <p className="break-words text-sm leading-6 text-status-error">
+            <p className="text-sm leading-6 break-words text-status-error">
               {grouped.errorMessage}
             </p>
           </div>
 
           {grouped.contractMismatch ? (
-            <div className="gap-space-sm grid sm:grid-cols-2">
+            <div className="grid gap-space-sm sm:grid-cols-2">
               <DebugMetric
                 label={t('flow.expectedType', 'Expected type')}
                 value={grouped.contractMismatch.expectedType}
@@ -239,15 +239,15 @@ function CodeExecDebugInspector({
     <div className="mt-space-md space-y-space-base">
       <section
         className={cn(
-          'rounded-radius-lg bg-surface-secondary p-space-base border',
-          hasError ? 'border-status-error' : 'border-border-subtle',
+          'rounded-radius-lg border bg-surface-secondary p-space-base',
+          hasError ? 'border-status-error-border' : 'border-border-subtle',
         )}
       >
-        <div className="mb-space-base gap-space-base flex items-start justify-between">
-          <div className="gap-space-sm flex min-w-0 items-start">
+        <div className="mb-space-base flex items-start justify-between gap-space-base">
+          <div className="flex min-w-0 items-start gap-space-sm">
             <span
               className={cn(
-                'rounded-radius-md mt-0.5 flex size-9 shrink-0 items-center justify-center',
+                'mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-radius-md',
                 hasError
                   ? 'bg-status-error-subtle text-status-error'
                   : 'bg-status-success-subtle text-status-success',
@@ -280,7 +280,7 @@ function CodeExecDebugInspector({
           </Badge>
         </div>
 
-        <div className="gap-space-sm grid sm:grid-cols-2">
+        <div className="grid gap-space-sm sm:grid-cols-2">
           <DebugMetric
             label={t('flow.businessOutput', 'Business output')}
             value={grouped.businessOutputName}
@@ -482,7 +482,7 @@ export function SingleStepDebugSheet({
           )}
         </SheetDescription>
 
-        <SheetHeader className="border-border-primary px-space-md py-space-sm border-b">
+        <SheetHeader className="border-b border-border-primary px-space-md py-space-sm">
           <div className="flex items-center justify-between">
             <span className="text-base font-medium text-text-primary">
               {t('flow.testRun', 'Test run')}
@@ -499,14 +499,14 @@ export function SingleStepDebugSheet({
           </div>
         </SheetHeader>
 
-        <section className="px-space-md py-space-sm overflow-y-auto">
+        <section className="overflow-y-auto px-space-md py-space-sm">
           <DebugContent
             canvasId={canvasId}
             parameters={parameters}
             ok={handleRunDebug}
             isNext={false}
             loading={isLoading}
-            className="pb-space-md min-h-0 flex-1 overflow-auto"
+            className="min-h-0 flex-1 overflow-auto pb-space-md"
             maxHeight="max-h-screen"
           />
 
@@ -517,11 +517,11 @@ export function SingleStepDebugSheet({
                 componentId={componentId}
               />
             ) : (
-              <div className="mt-space-md rounded-radius-md border-border-primary bg-surface-secondary border">
-                <div className="border-border-primary px-space-sm py-space-xs border-b text-sm text-text-secondary">
+              <div className="mt-space-md rounded-radius-md border border-border-primary bg-surface-secondary">
+                <div className="border-b border-border-primary px-space-sm py-space-xs text-sm text-text-secondary">
                   JSON
                 </div>
-                <pre className="p-space-sm max-h-screen overflow-auto text-xs text-text-primary">
+                <pre className="max-h-screen overflow-auto p-space-sm text-xs text-text-primary">
                   {serializedResult}
                 </pre>
               </div>

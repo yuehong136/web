@@ -1,13 +1,15 @@
 import { useTranslation } from 'react-i18next'
-import { ArrowLeft, LayoutGrid, Pencil, Save } from 'lucide-react'
+import { ArrowLeft, Pencil, Save } from 'lucide-react'
 import { PageHeader } from '@/components/patterns'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import type { AppConfig } from '../types'
 import type { SaveStatus } from '../editor-state'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 
 export interface EditorHeaderProps {
   config: Pick<AppConfig, 'name' | 'icon'>
+  /** App id, so the monogram keeps the tone it has in the Studio list. */
+  avatarSeed?: string
   saving: boolean
   status: SaveStatus
   disabled?: boolean
@@ -17,6 +19,7 @@ export interface EditorHeaderProps {
 }
 export function EditorHeader({
   config,
+  avatarSeed,
   saving,
   status,
   disabled,
@@ -45,12 +48,11 @@ export function EditorHeader({
       }
       title={
         <span className="flex min-w-0 items-center gap-space-sm">
-          <Avatar className="size-8 shrink-0">
-            {config.icon && <AvatarImage src={config.icon} alt={config.name} />}
-            <AvatarFallback className="bg-background-subtle">
-              <LayoutGrid className="size-icon-md text-text-secondary" />
-            </AvatarFallback>
-          </Avatar>
+          <EntityAvatar
+            name={config.name}
+            src={config.icon}
+            seed={avatarSeed}
+          />
           <span
             className="min-w-0 truncate text-base font-semibold text-text-primary"
             title={config.name}

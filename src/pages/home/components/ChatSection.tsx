@@ -1,7 +1,7 @@
 import { useRef, useCallback, useMemo, useEffect, useState } from 'react'
 import type { KeyboardEvent, RefObject } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Bot, User } from 'lucide-react'
+import { Bot } from 'lucide-react'
 import { Bubble } from '@ant-design/x'
 import type { BubbleListProps } from '@ant-design/x'
 import { ChatBubbleLoading } from '@/components/chat/ChatBubbleLoading'
@@ -38,6 +38,8 @@ import type { MCPServer } from '@/types/mcp'
 import type { ReferenceChunk } from '@/utils/reference-replacer'
 import { createTimelineNodesFromToolCalls } from '@/utils/agent-timeline-events'
 import { StableMarkdown, StreamingMarkdown } from './chat-markdown-renderers'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
+import { useCurrentUserAvatar } from '@/hooks/use-current-user-avatar'
 
 interface ChatSectionProps {
   messages: ChatMessage[]
@@ -128,20 +130,13 @@ export const ChatSection = ({
         />
       )
     }
-    return (
-      <div className="flex h-8 min-h-[32px] w-8 min-w-[32px] shrink-0 items-center justify-center rounded-full bg-components-avatar-gradient-purple-from">
-        <Bot className="h-4 w-4 text-text-inverted" />
-      </div>
-    )
+    return <EntityAvatar shape="circle" tone="neutral" icon={<Bot />} />
   }, [selectedProviderName])
 
+  const userAvatar = useCurrentUserAvatar()
   const getUserAvatar = useCallback(
-    () => (
-      <div className="flex h-8 min-h-[32px] w-8 min-w-[32px] shrink-0 items-center justify-center rounded-full bg-components-avatar-gradient-blue-from">
-        <User className="h-4 w-4 text-text-inverted" />
-      </div>
-    ),
-    [],
+    () => <EntityAvatar {...userAvatar} shape="circle" />,
+    [userAvatar],
   )
 
   const handleInputChangeInternal = useCallback(

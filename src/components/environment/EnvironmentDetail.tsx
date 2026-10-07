@@ -837,8 +837,8 @@ export function EnvironmentDetail({
                       复制
                     </Button>
                   </div>
-                  <div className="bg-muted/50 rounded-md p-3">
-                    <code className="break-all text-sm">
+                  <div className="rounded-md bg-muted/50 p-3">
+                    <code className="text-sm break-all">
                       {resolveResult.resolved_text}
                     </code>
                   </div>
@@ -865,7 +865,7 @@ export function EnvironmentDetail({
                 {/* 缺失的变量 */}
                 {resolveResult.missing_variables.length > 0 && (
                   <div className="space-y-2">
-                    <Label className="text-destructive">缺失的变量</Label>
+                    <Label className="text-status-error">缺失的变量</Label>
                     <div className="flex flex-wrap gap-1">
                       {resolveResult.missing_variables.map((variable) => (
                         <Badge
@@ -877,7 +877,7 @@ export function EnvironmentDetail({
                         </Badge>
                       ))}
                     </div>
-                    <p className="text-xs text-destructive">
+                    <p className="text-xs text-status-error">
                       这些变量在当前环境中不存在，解析时将保持原始格式
                     </p>
                   </div>

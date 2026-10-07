@@ -19,8 +19,7 @@ import { MultiSelectWithSearch } from '@/components/ui/multi-select-with-search'
 import { useCreateSearch } from '@/hooks/use-search-request'
 import { useFetchKnowledgeList } from '@/hooks/use-knowledge-request'
 import { ROUTES } from '@/constants'
-import { cn } from '@/lib/utils'
-import { getAvatarGradient } from '@/components/ui/resource-list'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 import { DEFAULT_SEARCH_CONFIG } from '../constants'
 
 interface CreateSearchDialogProps {
@@ -120,24 +119,16 @@ const CreateSearchDialog: React.FC<CreateSearchDialogProps> = ({
     onSuccess,
   ])
 
-  const gradient = name
-    ? getAvatarGradient(name)
-    : 'from-text-tertiary to-text-muted'
-
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent size="lg" className="max-h-[90vh] overflow-hidden">
         <DialogHeader className="pb-0">
           <div className="mb-2 flex items-center gap-3">
-            <div
-              className={cn(
-                'flex h-10 w-10 items-center justify-center rounded-xl',
-                'bg-linear-to-br shadow-xs',
-                gradient,
-              )}
-            >
-              <Search className="h-5 w-5 text-white" />
-            </div>
+            <EntityAvatar
+              name={name}
+              size="lg"
+              icon={name.trim() ? undefined : <Search />}
+            />
             <div>
               <DialogTitle>创建搜索应用</DialogTitle>
               <DialogDescription>
@@ -160,7 +151,8 @@ const CreateSearchDialog: React.FC<CreateSearchDialogProps> = ({
                 if (nameError) setNameError(null)
               }}
               placeholder="输入搜索应用名称"
-              className={cn(nameError && 'border-status-error')}
+              variant={nameError ? 'destructive' : 'default'}
+              aria-invalid={!!nameError}
             />
             {nameError && (
               <p className="text-xs text-status-error">{nameError}</p>

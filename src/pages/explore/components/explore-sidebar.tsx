@@ -19,7 +19,7 @@ import {
 } from '@/utils/conversation-utils'
 import type { DialogApp } from '@/types/api'
 import { translateConversationGroup } from './conversation-group-label'
-import { getExploreAppIcon } from './explore-app-icon'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 
 export type ExploreTab = 'workspace' | 'topics' | 'settings'
 export type ExploreMode = 'chat' | 'market'
@@ -185,7 +185,7 @@ export const ExploreSidebar: FC<ExploreSidebarProps> = ({
         <aside className="flex h-full w-full min-w-0 flex-col bg-components-sidebar-bg">
           <div className="border-b border-border-subtle p-space-sm">
             <div
-              className="bg-surface-secondary grid grid-cols-3 gap-space-2xs rounded-radius-lg p-space-2xs"
+              className="grid grid-cols-3 gap-space-2xs rounded-radius-lg bg-surface-secondary p-space-2xs"
               role="tablist"
               aria-label={t('explore.sidebar.navigation')}
             >
@@ -249,7 +249,7 @@ export const ExploreSidebar: FC<ExploreSidebarProps> = ({
                       {t('explore.sidebar.loadingApps')}
                     </div>
                   ) : dialogAppsError ? (
-                    <div className="py-space-xl text-center text-sm text-text-error">
+                    <div className="py-space-xl text-center text-sm text-status-error">
                       {t('explore.sidebar.loadFailed')}
                     </div>
                   ) : dialogApps.length === 0 ? (
@@ -275,9 +275,12 @@ export const ExploreSidebar: FC<ExploreSidebarProps> = ({
                                 'bg-components-sidebar-item-bg-active text-components-sidebar-item-text-active',
                             )}
                           >
-                            <span className="shrink-0">
-                              {getExploreAppIcon(app)}
-                            </span>
+                            <EntityAvatar
+                              name={app.name}
+                              src={app.icon}
+                              seed={app.id}
+                              size="xs"
+                            />
                             <span className="truncate">{app.name}</span>
                           </button>
                         )
@@ -296,8 +299,13 @@ export const ExploreSidebar: FC<ExploreSidebarProps> = ({
                 ) : (
                   <>
                     <div className="border-b border-border-subtle p-space-sm">
-                      <div className="bg-surface-secondary flex items-center rounded-radius-lg p-space-sm">
-                        {getExploreAppIcon(currentApp, 'md')}
+                      <div className="flex items-center rounded-radius-lg bg-surface-secondary p-space-sm">
+                        <EntityAvatar
+                          name={currentApp?.name}
+                          src={currentApp?.icon}
+                          seed={currentApp?.id}
+                          size="sm"
+                        />
                         <div className="ml-space-sm min-w-0 flex-1">
                           <p className="truncate text-sm font-medium text-text-primary">
                             {currentApp?.name}
@@ -321,7 +329,7 @@ export const ExploreSidebar: FC<ExploreSidebarProps> = ({
                               {t('explore.conversations.loading')}
                             </div>
                           ) : dialogConversationsError ? (
-                            <div className="explore-conversations-empty text-text-error">
+                            <div className="explore-conversations-empty text-status-error">
                               {t('explore.sidebar.loadFailed')}
                             </div>
                           ) : (

@@ -9,14 +9,26 @@
  * - state-{交互状态}
  */
 
+import { emptyAvatarTokens, type AvatarTokens } from './avatar-tokens'
 import {
   emptyInteractionTokens,
   type InteractionTokens,
 } from './interaction-tokens'
+import {
+  emptyStatusComponentTokens,
+  type StatusComponentTokens,
+} from './status-component-tokens'
+import { emptyStatusTokens, type StatusTokens } from './status-tokens'
 import { emptySurfaceTokens, type SurfaceTokens } from './surface-tokens'
 
 // 设计令牌类型定义
-export interface DesignTokens extends InteractionTokens, SurfaceTokens {
+export interface DesignTokens
+  extends
+    InteractionTokens,
+    SurfaceTokens,
+    StatusTokens,
+    StatusComponentTokens,
+    AvatarTokens {
   // ===== 文本系统 =====
   'text-primary': string
   'text-secondary': string
@@ -24,9 +36,6 @@ export interface DesignTokens extends InteractionTokens, SurfaceTokens {
   'text-muted': string
   'text-disabled': string
   'text-accent': string
-  'text-success': string
-  'text-warning': string
-  'text-error': string
   'text-inverted': string
 
   // ===== 背景系统 =====
@@ -42,9 +51,6 @@ export interface DesignTokens extends InteractionTokens, SurfaceTokens {
   'border-subtle': string
   'border-strong': string
   'border-accent': string
-  'border-success': string
-  'border-warning': string
-  'border-error': string
 
   // ===== 组件系统 - 按钮 =====
   'components-button-primary-bg': string
@@ -58,10 +64,7 @@ export interface DesignTokens extends InteractionTokens, SurfaceTokens {
 
   'components-button-secondary-bg': string
   'components-button-secondary-bg-hover': string
-  'components-button-secondary-bg-active': string
-  'components-button-secondary-bg-disabled': string
   'components-button-secondary-text': string
-  'components-button-secondary-text-disabled': string
   'components-button-secondary-border': string
   'components-button-secondary-border-hover': string
 
@@ -73,20 +76,16 @@ export interface DesignTokens extends InteractionTokens, SurfaceTokens {
   'components-input-bg': string
   'components-input-bg-hover': string
   'components-input-bg-focus': string
-  'components-input-bg-disabled': string
   'components-input-border': string
   'components-input-border-hover': string
   'components-input-border-focus': string
-  'components-input-border-error': string
   'components-input-text': string
   'components-input-text-placeholder': string
-  'components-input-text-disabled': string
 
   // ===== 组件系统 - 卡片 =====
   'components-card-bg': string
   'components-card-bg-hover': string
   'components-card-border': string
-  'components-card-shadow': string
 
   // ===== 组件系统 - 侧边栏 =====
   'components-sidebar-bg': string
@@ -99,65 +98,18 @@ export interface DesignTokens extends InteractionTokens, SurfaceTokens {
 
   // ===== 组件系统 - 导航 =====
   'components-nav-bg': string
-  'components-nav-border': string
   'components-nav-item-text': string
-  'components-nav-item-text-hover': string
-  'components-nav-item-text-active': string
 
   // ===== 组件系统 - 下拉菜单 =====
   'components-dropdown-bg': string
   'components-dropdown-border': string
-  'components-dropdown-shadow': string
   'components-dropdown-item-bg-hover': string
   'components-dropdown-item-text': string
-
-  // ===== 组件系统 - 模型选择器 =====
-  'components-model-selector-dropdown-bg': string
-  'components-model-selector-dropdown-border': string
-  'components-model-selector-dropdown-shadow': string
-  'components-model-selector-search-bg': string
-  'components-model-selector-search-border': string
-  'components-model-selector-search-text': string
-  'components-model-selector-provider-header-bg': string
-  'components-model-selector-provider-header-border': string
-  'components-model-selector-provider-header-text': string
-  'components-model-selector-item-bg': string
-  'components-model-selector-item-border': string
-  'components-model-selector-item-text': string
-  'components-model-selector-item-bg-hover': string
-  'components-model-selector-item-bg-selected': string
-  'components-model-selector-item-text-selected': string
-  'components-model-selector-overlay-bg': string
-
-  // ===== 组件系统 - 模态框 =====
-  'components-modal-bg': string
-  'components-modal-overlay': string
-  'components-modal-border': string
-  'components-modal-shadow': string
 
   // ===== 组件系统 - 表格 =====
   'components-table-bg': string
   'components-table-border': string
-  'components-table-header-bg': string
   'components-table-row-bg-hover': string
-  'components-table-row-bg-selected': string
-
-  // ===== 反馈状态 status-* (canonical feedback palette) =====
-  // status-* 是反馈态（success/warning/error/info）的 canonical token，含 -10/-subtle 变体。
-  // 历史 legacy alias state-success/warning/error/info 已物理删除，反馈态一律用 status-*。
-  // 交互态 state-hover/active/focus/disabled 不属于反馈态，不要迁移到 status-*。
-  'status-success': string
-  'status-warning': string
-  'status-error': string
-  'status-info': string
-  'status-success-10': string
-  'status-warning-10': string
-  'status-error-10': string
-  'status-info-10': string
-  'status-success-subtle': string
-  'status-warning-subtle': string
-  'status-error-subtle': string
-  'status-info-subtle': string
 
   // ===== 数据可视化分类调色板 (data-viz categorical) =====
   // 用于图表/思维导图/知识图谱等的「分类/层级」着色（非反馈、非交互语义）。
@@ -176,35 +128,12 @@ export interface DesignTokens extends InteractionTokens, SurfaceTokens {
   'data-viz-categorical-10': string
 
   // ===== HTTP方法颜色系统 =====
-  'components-method-get-bg': string
-  'components-method-get-text': string
-  'components-method-get-border': string
   'components-method-post-bg': string
   'components-method-post-text': string
   'components-method-post-border': string
-  'components-method-put-bg': string
-  'components-method-put-text': string
-  'components-method-put-border': string
-  'components-method-delete-bg': string
-  'components-method-delete-text': string
-  'components-method-delete-border': string
   'components-method-patch-bg': string
   'components-method-patch-text': string
   'components-method-patch-border': string
-
-  // ===== 环境状态指示器 =====
-  'components-env-prod-bg': string
-  'components-env-prod-text': string
-  'components-env-staging-bg': string
-  'components-env-staging-text': string
-  'components-env-dev-bg': string
-  'components-env-dev-text': string
-
-  // ===== 阴影系统 =====
-  'shadow-sm': string
-  'shadow-md': string
-  'shadow-lg': string
-  'shadow-xl': string
 
   // ===== 表单控件 =====
   'components-checkbox-bg': string
@@ -228,7 +157,6 @@ export interface DesignTokens extends InteractionTokens, SurfaceTokens {
   'components-switch-bg': string
   'components-switch-bg-checked': string
   'components-switch-thumb': string
-  'components-switch-thumb-checked': string
 
   // ===== 滑块组件 =====
   'components-slider-track': string
@@ -244,16 +172,12 @@ export interface DesignTokens extends InteractionTokens, SurfaceTokens {
   // ===== 对话框和覆盖层 =====
   'components-dialog-bg': string
   'components-dialog-border': string
-  'components-dialog-shadow': string
   'components-dialog-overlay': string
 
   'components-popover-bg': string
-  'components-popover-border': string
-  'components-popover-shadow': string
 
   'components-tooltip-bg': string
   'components-tooltip-text': string
-  'components-tooltip-shadow': string
 
   // ===== 导航和标签 =====
   'components-tabs-border': string
@@ -261,27 +185,6 @@ export interface DesignTokens extends InteractionTokens, SurfaceTokens {
   'components-tabs-active-bg': string
   'components-tabs-active-text': string
   'components-tabs-inactive-text': string
-
-  'components-breadcrumb-text': string
-  'components-breadcrumb-text-current': string
-  'components-breadcrumb-separator': string
-
-  // ===== 状态和通知 =====
-  'components-alert-info-bg': string
-  'components-alert-info-border': string
-  'components-alert-info-text': string
-
-  'components-alert-success-bg': string
-  'components-alert-success-border': string
-  'components-alert-success-text': string
-
-  'components-alert-warning-bg': string
-  'components-alert-warning-border': string
-  'components-alert-warning-text': string
-
-  'components-alert-error-bg': string
-  'components-alert-error-border': string
-  'components-alert-error-text': string
 
   // ===== 加载和进度 =====
   'components-skeleton-bg': string
@@ -302,21 +205,11 @@ export interface DesignTokens extends InteractionTokens, SurfaceTokens {
   'components-tool-call-bg': string
   'components-tool-call-border': string
   'components-tool-call-title': string
-  'components-tool-call-content-bg': string
-  'components-tool-call-content-text': string
 
   // ===== 徽章和标签 =====
   'components-badge-bg': string
   'components-badge-text': string
   'components-badge-border': string
-  'components-badge-success-bg': string
-  'components-badge-success-text': string
-  'components-badge-warning-bg': string
-  'components-badge-warning-text': string
-  'components-badge-error-bg': string
-  'components-badge-error-text': string
-  'components-badge-info-bg': string
-  'components-badge-info-text': string
   'components-badge-neutral-bg': string
   'components-badge-neutral-text': string
   'components-badge-blue-bg': string
@@ -327,50 +220,6 @@ export interface DesignTokens extends InteractionTokens, SurfaceTokens {
   'components-badge-purple-text': string
   'components-badge-green-bg': string
   'components-badge-green-text': string
-
-  // ===== 统计卡片组件 =====
-  // 蓝色卡片
-  'components-stats-card-blue-bg': string
-  'components-stats-card-blue-icon-bg': string
-  'components-stats-card-blue-icon-text': string
-  'components-stats-card-blue-shadow': string
-  'components-stats-card-blue-border-hover': string
-  // 绿色卡片
-  'components-stats-card-green-bg': string
-  'components-stats-card-green-icon-bg': string
-  'components-stats-card-green-icon-text': string
-  'components-stats-card-green-shadow': string
-  'components-stats-card-green-border-hover': string
-  // 紫色卡片
-  'components-stats-card-purple-bg': string
-  'components-stats-card-purple-icon-bg': string
-  'components-stats-card-purple-icon-text': string
-  'components-stats-card-purple-shadow': string
-  'components-stats-card-purple-border-hover': string
-  // 橙色卡片
-  'components-stats-card-orange-bg': string
-  'components-stats-card-orange-icon-bg': string
-  'components-stats-card-orange-icon-text': string
-  'components-stats-card-orange-shadow': string
-  'components-stats-card-orange-border-hover': string
-
-  // ===== 头像渐变系统 =====
-  'components-avatar-gradient-purple-from': string
-  'components-avatar-gradient-purple-to': string
-  'components-avatar-gradient-blue-from': string
-  'components-avatar-gradient-blue-to': string
-  'components-avatar-gradient-green-from': string
-  'components-avatar-gradient-green-to': string
-  'components-avatar-gradient-orange-from': string
-  'components-avatar-gradient-orange-to': string
-  'components-avatar-gradient-indigo-from': string
-  'components-avatar-gradient-indigo-to': string
-  'components-avatar-gradient-rose-from': string
-  'components-avatar-gradient-rose-to': string
-  'components-avatar-gradient-teal-from': string
-  'components-avatar-gradient-teal-to': string
-  'components-avatar-gradient-amber-from': string
-  'components-avatar-gradient-amber-to': string
 
   // ===== 任务状态指示器 =====
   'components-task-status-idle-bg': string
@@ -386,26 +235,9 @@ export interface DesignTokens extends InteractionTokens, SurfaceTokens {
   'components-task-status-running-progress-fill': string
   'components-task-status-running-progress-glow': string
 
-  'components-task-status-cancelled-bg': string
-  'components-task-status-cancelled-border': string
-  'components-task-status-cancelled-text': string
-  'components-task-status-cancelled-dot': string
-
-  'components-task-status-completed-bg': string
-  'components-task-status-completed-border': string
-  'components-task-status-completed-text': string
-  'components-task-status-completed-dot': string
-
-  'components-task-status-failed-bg': string
-  'components-task-status-failed-border': string
-  'components-task-status-failed-text': string
-  'components-task-status-failed-dot': string
-
   'components-tag-bg': string
   'components-tag-text': string
   'components-tag-border': string
-  'components-tag-bg-hover': string
-  'components-tag-close-hover': string
 
   // ===== 分页器 =====
   'components-pagination-bg': string
@@ -416,92 +248,20 @@ export interface DesignTokens extends InteractionTokens, SurfaceTokens {
   'components-pagination-item-bg-active': string
   'components-pagination-item-text': string
   'components-pagination-item-text-active': string
-  'components-pagination-disabled-bg': string
   'components-pagination-disabled-text': string
 
   // ===== 步骤器 =====
-  'components-steps-bg': string
-  'components-steps-border': string
-  'components-steps-completed-bg': string
-  'components-steps-completed-text': string
   'components-steps-active-bg': string
   'components-steps-active-text': string
   'components-steps-inactive-bg': string
   'components-steps-inactive-text': string
   'components-steps-line': string
-  'components-steps-line-completed': string
 
   // ===== 加载器和骨架屏 =====
   'components-loader-primary': string
-  'components-loader-secondary': string
-  'components-skeleton-base': string
-  'components-skeleton-shimmer': string
-  'components-skeleton-text': string
-
-  // ===== 分割线 =====
-  'components-divider-bg': string
-  'components-divider-text': string
-
-  // ===== 时间轴 =====
-  'components-timeline-line': string
-  'components-timeline-dot': string
-  'components-timeline-dot-active': string
-  'components-timeline-content-bg': string
-  'components-timeline-content-border': string
-
-  // ===== 日历和日期选择器 =====
-  'components-calendar-bg': string
-  'components-calendar-border': string
-  'components-calendar-header-bg': string
-  'components-calendar-header-text': string
-  'components-calendar-cell-bg': string
-  'components-calendar-cell-text': string
-  'components-calendar-cell-bg-hover': string
-  'components-calendar-cell-bg-selected': string
-  'components-calendar-cell-text-selected': string
-  'components-calendar-cell-bg-today': string
-  'components-calendar-cell-text-today': string
-  'components-calendar-cell-bg-disabled': string
-  'components-calendar-cell-text-disabled': string
-
-  // ===== 抽屉 =====
-  'components-drawer-bg': string
-  'components-drawer-overlay': string
-  'components-drawer-border': string
-  'components-drawer-shadow': string
-  'components-drawer-header-bg': string
-  'components-drawer-header-border': string
 
   // ===== 折叠面板 =====
-  'components-collapse-bg': string
-  'components-collapse-border': string
-  'components-collapse-header-bg': string
   'components-collapse-header-bg-hover': string
-  'components-collapse-header-text': string
-  'components-collapse-content-bg': string
-  'components-collapse-content-border': string
-
-  // ===== 树形控件 =====
-  'components-tree-bg': string
-  'components-tree-border': string
-  'components-tree-node-bg': string
-  'components-tree-node-bg-hover': string
-  'components-tree-node-bg-selected': string
-  'components-tree-node-text': string
-  'components-tree-node-text-selected': string
-  'components-tree-indent-line': string
-  'components-tree-expand-icon': string
-
-  // ===== 转移框 =====
-  'components-transfer-bg': string
-  'components-transfer-border': string
-  'components-transfer-header-bg': string
-  'components-transfer-header-text': string
-  'components-transfer-item-bg': string
-  'components-transfer-item-bg-hover': string
-  'components-transfer-item-bg-selected': string
-  'components-transfer-item-text': string
-  'components-transfer-item-text-selected': string
 
   // ===== 上传组件 =====
   'components-upload-bg': string
@@ -512,66 +272,6 @@ export interface DesignTokens extends InteractionTokens, SurfaceTokens {
   'components-upload-text': string
   'components-upload-text-secondary': string
   'components-upload-icon': string
-  'components-upload-progress-bg': string
-  'components-upload-progress-fill': string
-
-  // ===== 统计数值 =====
-  'components-statistic-title': string
-  'components-statistic-value': string
-  'components-statistic-suffix': string
-  'components-statistic-prefix': string
-
-  // ===== 结果页 =====
-  'components-result-bg': string
-  'components-result-icon-success': string
-  'components-result-icon-error': string
-  'components-result-icon-warning': string
-  'components-result-icon-info': string
-  'components-result-title': string
-  'components-result-subtitle': string
-
-  // ===== 评分组件 =====
-  'components-rate-star': string
-  'components-rate-star-active': string
-  'components-rate-star-hover': string
-
-  // ===== 锚点导航 =====
-  'components-anchor-bg': string
-  'components-anchor-border': string
-  'components-anchor-link': string
-  'components-anchor-link-active': string
-  'components-anchor-link-hover': string
-
-  // ===== 回到顶部 =====
-  'components-backtop-bg': string
-  'components-backtop-text': string
-  'components-backtop-border': string
-  'components-backtop-shadow': string
-  'components-backtop-bg-hover': string
-
-  // ===== 图片组件 =====
-  'components-image-placeholder-bg': string
-  'components-image-placeholder-text': string
-  'components-image-preview-bg': string
-  'components-image-preview-overlay': string
-  'components-image-preview-toolbar-bg': string
-  'components-image-preview-toolbar-text': string
-
-  // ===== 空状态 =====
-  'components-empty-bg': string
-  'components-empty-text': string
-  'components-empty-text-secondary': string
-  'components-empty-icon': string
-
-  // ===== 水印 =====
-  'components-watermark-text': string
-
-  // ===== 浮动按钮 =====
-  'components-float-button-bg': string
-  'components-float-button-text': string
-  'components-float-button-border': string
-  'components-float-button-shadow': string
-  'components-float-button-bg-hover': string
 
   // ===== 分段控制器 =====
   'components-segmented-bg': string
@@ -582,184 +282,26 @@ export interface DesignTokens extends InteractionTokens, SurfaceTokens {
   'components-segmented-item-text': string
   'components-segmented-item-text-active': string
 
-  // ===== 提及组件 =====
-  'components-mentions-bg': string
-  'components-mentions-border': string
-  'components-mentions-dropdown-bg': string
-  'components-mentions-dropdown-border': string
-  'components-mentions-dropdown-shadow': string
-  'components-mentions-item-bg-hover': string
-  'components-mentions-item-text': string
-
-  // ===== 色彩选择器 =====
-  'components-colorpicker-bg': string
-  'components-colorpicker-border': string
-  'components-colorpicker-panel-bg': string
-  'components-colorpicker-panel-border': string
-  'components-colorpicker-panel-shadow': string
-  'components-colorpicker-slider-bg': string
-  'components-colorpicker-handle': string
-  'components-colorpicker-input-bg': string
-  'components-colorpicker-input-border': string
-
-  // ===== 布局组件 =====
-  'components-layout-header-bg': string
-  'components-layout-header-border': string
-  'components-layout-sider-bg': string
-  'components-layout-sider-border': string
-  'components-layout-content-bg': string
-  'components-layout-footer-bg': string
-  'components-layout-footer-border': string
-
-  // ===== 栅格系统 =====
-  'components-grid-gutter': string
-
   // ===== 卡片高级变体 =====
   'components-card-meta-title': string
   'components-card-meta-description': string
-  'components-card-actions-bg': string
-  'components-card-actions-border': string
-  'components-card-cover-bg': string
-
-  // ===== 列表高级变体 =====
-  'components-list-bg': string
-  'components-list-border': string
-  'components-list-item-bg': string
-  'components-list-item-bg-hover': string
-  'components-list-item-border': string
-  'components-list-item-meta-title': string
-  'components-list-item-meta-description': string
-  'components-list-item-actions': string
-
-  // ===== 描述列表 =====
-  'components-descriptions-bg': string
-  'components-descriptions-border': string
-  'components-descriptions-title': string
-  'components-descriptions-content': string
-  'components-descriptions-label': string
-  'components-descriptions-item-border': string
 
   // ===== 聊天页面专用布局 =====
   'chat-header-bg': string
   'chat-header-border': string
-  'chat-header-backdrop': string
-  'chat-main-bg': string
   'chat-content-bg': string
-  'chat-content-border': string
-  'chat-input-area-bg': string
-  'chat-input-area-border': string
-  'chat-input-area-shadow': string
-  'chat-gradient-primary': string
-  'chat-gradient-secondary': string
   'chat-welcome-border': string
-  'chat-welcome-shadow': string
-  'chat-input-area-backdrop': string
 
   // ===== 聊天气泡和头像 =====
-  'chat-bubble-assistant-avatar-bg': string
-  'chat-bubble-assistant-avatar-text': string
-  'chat-bubble-user-avatar-bg': string
-  'chat-bubble-user-avatar-text': string
   'chat-bubble-user-bg': string
   'chat-bubble-user-text': string
 
-  // ===== 侧边栏现代化升级 =====
-  'components-sidebar-backdrop': string
-
-  // ===== 编辑器组件 =====
-  'components-editor-bg': string
-  'components-editor-toolbar-bg': string
-  'components-editor-text': string
-  'components-editor-border': string
-
-  // ===== 面板组件 =====
-  'components-panel-header-bg': string
-  'components-panel-header-text': string
-  'components-panel-content-bg': string
-
   // ===== 图标按钮 =====
-  'components-icon-button-text': string
-  'components-icon-button-text-hover': string
   'components-icon-button-bg-hover': string
-
-  // ===== 聊天预览增强 =====
-  'chat-bubble-ai-bg': string
-  'chat-bubble-ai-text': string
-  'chat-input-container-bg': string
-  'chat-preview-debug-bg': string
-  'chat-preview-debug-text': string
-  'chat-think-bg': string
-  'chat-think-border': string
-  'chat-think-text': string
-
-  // ===== 应用头像 =====
-  'components-app-avatar-bg': string
-  'components-app-avatar-border': string
-
-  // ===== API 密钥管理 =====
-  'components-api-key-card-bg': string
-  'components-api-key-card-bg-hover': string
-  'components-api-key-card-border': string
-  'components-api-key-card-shadow': string
-  'components-api-key-header-bg': string
-  'components-api-key-header-text': string
-  'components-api-key-value-bg': string
-  'components-api-key-value-text': string
-  'components-api-key-value-masked': string
-  'components-api-key-actions-bg': string
-  'components-api-key-actions-border': string
-
-  // ===== API 状态指示器 =====
-  'components-api-status-error-bg': string
-  'components-api-status-error-text': string
-
-  // ===== HTTP 方法颜色系统 =====
-  'components-http-method-get-bg': string
-  'components-http-method-get-text': string
-  'components-http-method-get-border': string
-  'components-http-method-post-bg': string
-  'components-http-method-post-text': string
-  'components-http-method-post-border': string
-  'components-http-method-put-bg': string
-  'components-http-method-put-text': string
-  'components-http-method-put-border': string
-  'components-http-method-delete-bg': string
-  'components-http-method-delete-text': string
-  'components-http-method-delete-border': string
-  'components-http-method-patch-bg': string
-  'components-http-method-patch-text': string
-  'components-http-method-patch-border': string
-
-  // ===== API 文档风格组件 =====
-  'components-api-docs-bg': string
-  'components-api-docs-border': string
-  'components-api-docs-header-bg': string
-  'components-api-docs-header-border': string
-  'components-api-docs-sidebar-bg': string
-  'components-api-docs-sidebar-border': string
-  'components-api-docs-content-bg': string
-  'components-api-docs-search-bg': string
-  'components-api-docs-search-border': string
-  'components-api-docs-search-focus-border': string
 
   // ===== 现代化增强组件 =====
   'components-glassmorphism-bg': string
   'components-glassmorphism-border': string
-  'components-glassmorphism-shadow': string
-  'components-gradient-primary': string
-  'components-gradient-secondary': string
-  'components-gradient-accent': string
-  'components-modern-card-bg': string
-  'components-modern-card-border': string
-  'components-modern-card-shadow': string
-
-  // ===== 首页推荐卡片系统 =====
-  'components-recommend-card-bg-1': string
-  'components-recommend-card-bg-2': string
-  'components-recommend-card-bg-3': string
-  'components-recommend-card-bg-4': string
-  'components-recommend-card-text': string
-  'components-recommend-card-tag': string
 
   // ===== 画布系统 (Agent Canvas) =====
   // 画布背景
@@ -770,55 +312,25 @@ export interface DesignTokens extends InteractionTokens, SurfaceTokens {
   // 节点通用
   'components-canvas-node-bg': string
   'components-canvas-node-border': string
-  'components-canvas-node-border-hover': string
   'components-canvas-node-border-selected': string
-  'components-canvas-node-shadow': string
-
-  // 节点运行态（运行时画布执行可视化）
-  'components-canvas-node-status-running-border': string
-  'components-canvas-node-status-running-halo': string
-  'components-canvas-node-status-running-icon': string
-  'components-canvas-node-status-success-border': string
-  'components-canvas-node-status-success-bg': string
-  'components-canvas-node-status-success-text': string
-  'components-canvas-node-status-error-border': string
-  'components-canvas-node-status-error-bg': string
-  'components-canvas-node-status-error-text': string
 
   // 边线
-  'components-canvas-edge-stroke': string
-  'components-canvas-edge-stroke-hover': string
   'components-canvas-edge-stroke-selected': string
-  'components-canvas-edge-stroke-flowing': string
   'components-canvas-edge-marker': string
   'components-canvas-edge-marker-selected': string
 
   // 连接点
   'components-canvas-handle-bg': string
-  'components-canvas-handle-border': string
   'components-canvas-handle-icon': string
-
-  // 工具栏
-  'components-canvas-toolbar-bg': string
-  'components-canvas-toolbar-border': string
-  'components-canvas-toolbar-shadow': string
 
   // 节点类型图标颜色（按功能分组）
   'components-canvas-icon-start': string // 开始节点（绿色）
   'components-canvas-icon-retrieval': string // 检索节点（蓝色）
-  'components-canvas-icon-generate': string // 生成节点（紫色）
   'components-canvas-icon-message': string // 消息节点（青绿色）
   'components-canvas-icon-tool': string // 工具节点（橙色）
   'components-canvas-icon-file': string // 文件节点（绿色）
-  'components-canvas-icon-parser': string // 解析节点（蓝色）
   'components-canvas-icon-splitter': string // 分割节点（橙色）
   'components-canvas-icon-tokenizer': string // 分词节点（紫色）
-  'components-canvas-icon-extractor': string // 提取节点（靛蓝色）
-  'components-canvas-icon-switch': string // 条件节点（黄色）
-  'components-canvas-icon-categorize': string // 分类节点（粉色）
-  'components-canvas-icon-agent': string // Agent节点（紫色）
-  'components-canvas-icon-code': string // 代码节点（灰色）
-  'components-canvas-icon-default': string // 默认图标色（灰色）
 
   // 占位符/骨架屏
   'components-canvas-skeleton-bg': string
@@ -832,13 +344,9 @@ export interface DesignTokens extends InteractionTokens, SurfaceTokens {
 
   // ===== 骨架与页面模板 =====
   'components-app-shell-bg': string
-  'components-app-shell-surface': string
-  'components-app-shell-border': string
-  'components-app-shell-shadow': string
   'components-main-workbench-bg': string
   'components-main-workbench-surface': string
   'components-main-workbench-border': string
-  'components-main-workbench-shadow': string
   'components-page-header-bg': string
   'components-page-header-border': string
   'components-page-header-title': string
@@ -846,8 +354,6 @@ export interface DesignTokens extends InteractionTokens, SurfaceTokens {
   'components-page-toolbar-bg': string
   'components-page-toolbar-border': string
   'components-page-toolbar-text': string
-  'components-page-state-bg': string
-  'components-page-state-border': string
   'components-page-state-icon-bg': string
   'components-page-state-icon': string
   'components-page-state-title': string
@@ -855,8 +361,6 @@ export interface DesignTokens extends InteractionTokens, SurfaceTokens {
   'components-settings-rail-bg': string
   'components-settings-rail-border': string
   'components-settings-rail-title': string
-  'components-settings-rail-description': string
-  'components-settings-rail-section-text': string
   'components-console-bg': string
   'components-console-surface': string
   'components-console-border': string
@@ -867,17 +371,14 @@ export interface DesignTokens extends InteractionTokens, SurfaceTokens {
   'components-studio-surface': string
   'components-studio-border': string
   'components-split-pane-bg': string
-  'components-split-pane-surface': string
   'components-split-pane-border': string
 
   // ===== 设置页面专用 =====
-  'components-settings-sidebar-section-text': string
   'components-settings-content-bg': string
   'components-settings-section-bg': string
   'components-settings-section-border': string
   'components-settings-section-title': string
   'components-settings-section-description': string
-  'components-settings-user-role-bg': string
 
   // ===== 系统状态页面专用 =====
   'components-system-accent-bg': string
@@ -887,7 +388,6 @@ export interface DesignTokens extends InteractionTokens, SurfaceTokens {
   'components-system-page-bg': string
   'components-system-panel-bg': string
   'components-system-panel-border': string
-  'components-system-panel-shadow': string
   'components-system-header-title': string
   'components-system-header-description': string
   'components-system-version-tag-bg': string
@@ -899,29 +399,9 @@ export interface DesignTokens extends InteractionTokens, SurfaceTokens {
   'components-system-empty-bg': string
   'components-system-empty-border': string
 
-  'components-system-health-ok-bg': string
-  'components-system-health-ok-border': string
-  'components-system-health-ok-text': string
-  'components-system-health-warning-bg': string
-  'components-system-health-warning-border': string
-  'components-system-health-warning-text': string
-  'components-system-health-error-bg': string
-  'components-system-health-error-border': string
-  'components-system-health-error-text': string
-
   'components-system-status-card-bg': string
   'components-system-status-card-border': string
   'components-system-status-card-border-hover': string
-  'components-system-status-card-shadow': string
-  'components-system-status-ok-bg': string
-  'components-system-status-ok-border': string
-  'components-system-status-ok-text': string
-  'components-system-status-warning-bg': string
-  'components-system-status-warning-border': string
-  'components-system-status-warning-text': string
-  'components-system-status-error-bg': string
-  'components-system-status-error-border': string
-  'components-system-status-error-text': string
 
   'components-system-chart-grid': string
   'components-system-chart-axis': string
@@ -929,12 +409,6 @@ export interface DesignTokens extends InteractionTokens, SurfaceTokens {
   'components-system-chart-tooltip-border': string
   'components-system-chart-tooltip-text': string
   'components-system-chart-tooltip-muted': string
-  'components-system-chart-done': string
-  'components-system-chart-done-soft': string
-  'components-system-chart-failed': string
-  'components-system-chart-failed-soft': string
-  'components-system-chart-pending': string
-  'components-system-chart-pending-soft': string
   'components-system-chart-lag': string
   'components-system-chart-info-pill-bg': string
   'components-system-chart-info-pill-text': string
@@ -956,6 +430,9 @@ const generateCSSVars = (
 // 默认令牌定义（用于类型检查）
 export const defaultTokens: DesignTokens = {
   ...emptySurfaceTokens,
+  ...emptyStatusTokens,
+  ...emptyStatusComponentTokens,
+  ...emptyAvatarTokens,
   // 文本系统
   'text-primary': '',
   'text-secondary': '',
@@ -963,9 +440,6 @@ export const defaultTokens: DesignTokens = {
   'text-muted': '',
   'text-disabled': '',
   'text-accent': '',
-  'text-success': '',
-  'text-warning': '',
-  'text-error': '',
   'text-inverted': '',
 
   // 背景系统
@@ -981,9 +455,6 @@ export const defaultTokens: DesignTokens = {
   'border-subtle': '',
   'border-strong': '',
   'border-accent': '',
-  'border-success': '',
-  'border-warning': '',
-  'border-error': '',
 
   // 按钮组件
   'components-button-primary-bg': '',
@@ -997,10 +468,7 @@ export const defaultTokens: DesignTokens = {
 
   'components-button-secondary-bg': '',
   'components-button-secondary-bg-hover': '',
-  'components-button-secondary-bg-active': '',
-  'components-button-secondary-bg-disabled': '',
   'components-button-secondary-text': '',
-  'components-button-secondary-text-disabled': '',
   'components-button-secondary-border': '',
   'components-button-secondary-border-hover': '',
 
@@ -1012,20 +480,16 @@ export const defaultTokens: DesignTokens = {
   'components-input-bg': '',
   'components-input-bg-hover': '',
   'components-input-bg-focus': '',
-  'components-input-bg-disabled': '',
   'components-input-border': '',
   'components-input-border-hover': '',
   'components-input-border-focus': '',
-  'components-input-border-error': '',
   'components-input-text': '',
   'components-input-text-placeholder': '',
-  'components-input-text-disabled': '',
 
   // 卡片组件
   'components-card-bg': '',
   'components-card-bg-hover': '',
   'components-card-border': '',
-  'components-card-shadow': '',
 
   // 侧边栏组件
   'components-sidebar-bg': '',
@@ -1038,64 +502,20 @@ export const defaultTokens: DesignTokens = {
 
   // 导航组件
   'components-nav-bg': '',
-  'components-nav-border': '',
   'components-nav-item-text': '',
-  'components-nav-item-text-hover': '',
-  'components-nav-item-text-active': '',
 
   // 下拉菜单组件
   'components-dropdown-bg': '',
   'components-dropdown-border': '',
-  'components-dropdown-shadow': '',
   'components-dropdown-item-bg-hover': '',
   'components-dropdown-item-text': '',
-
-  // 模型选择器组件
-  'components-model-selector-dropdown-bg': '',
-  'components-model-selector-dropdown-border': '',
-  'components-model-selector-dropdown-shadow': '',
-  'components-model-selector-search-bg': '',
-  'components-model-selector-search-border': '',
-  'components-model-selector-search-text': '',
-  'components-model-selector-provider-header-bg': '',
-  'components-model-selector-provider-header-border': '',
-  'components-model-selector-provider-header-text': '',
-  'components-model-selector-item-bg': '',
-  'components-model-selector-item-border': '',
-  'components-model-selector-item-text': '',
-  'components-model-selector-item-bg-hover': '',
-  'components-model-selector-item-bg-selected': '',
-  'components-model-selector-item-text-selected': '',
-  'components-model-selector-overlay-bg': '',
-
-  // 模态框组件
-  'components-modal-bg': '',
-  'components-modal-overlay': '',
-  'components-modal-border': '',
-  'components-modal-shadow': '',
 
   // 表格组件
   'components-table-bg': '',
   'components-table-border': '',
-  'components-table-header-bg': '',
   'components-table-row-bg-hover': '',
-  'components-table-row-bg-selected': '',
 
   ...emptyInteractionTokens,
-
-  // 反馈状态 status-* (canonical feedback palette)
-  'status-success': '',
-  'status-warning': '',
-  'status-error': '',
-  'status-info': '',
-  'status-success-10': '',
-  'status-warning-10': '',
-  'status-error-10': '',
-  'status-info-10': '',
-  'status-success-subtle': '',
-  'status-warning-subtle': '',
-  'status-error-subtle': '',
-  'status-info-subtle': '',
 
   // 数据可视化分类调色板 (data-viz categorical)
   'data-viz-categorical-1': '',
@@ -1110,47 +530,12 @@ export const defaultTokens: DesignTokens = {
   'data-viz-categorical-10': '',
 
   // HTTP方法颜色系统
-  'components-method-get-bg': '',
-  'components-method-get-text': '',
-  'components-method-get-border': '',
   'components-method-post-bg': '',
   'components-method-post-text': '',
   'components-method-post-border': '',
-  'components-method-put-bg': '',
-  'components-method-put-text': '',
-  'components-method-put-border': '',
-  'components-method-delete-bg': '',
-  'components-method-delete-text': '',
-  'components-method-delete-border': '',
   'components-method-patch-bg': '',
   'components-method-patch-text': '',
   'components-method-patch-border': '',
-
-  // 环境状态指示器
-  'components-env-prod-bg': '',
-  'components-env-prod-text': '',
-  'components-env-staging-bg': '',
-  'components-env-staging-text': '',
-  'components-env-dev-bg': '',
-  'components-env-dev-text': '',
-
-  // API 文档风格组件
-  'components-api-docs-bg': '',
-  'components-api-docs-border': '',
-  'components-api-docs-header-bg': '',
-  'components-api-docs-header-border': '',
-  'components-api-docs-sidebar-bg': '',
-  'components-api-docs-sidebar-border': '',
-  'components-api-docs-content-bg': '',
-  'components-api-docs-search-bg': '',
-  'components-api-docs-search-border': '',
-  'components-api-docs-search-focus-border': '',
-
-  // 阴影系统
-  'shadow-sm': '',
-  'shadow-md': '',
-  'shadow-lg': '',
-  'shadow-xl': '',
 
   // 表单控件
   'components-checkbox-bg': '',
@@ -1174,7 +559,6 @@ export const defaultTokens: DesignTokens = {
   'components-switch-bg': '',
   'components-switch-bg-checked': '',
   'components-switch-thumb': '',
-  'components-switch-thumb-checked': '',
 
   // 滑块组件
   'components-slider-track': '',
@@ -1190,16 +574,12 @@ export const defaultTokens: DesignTokens = {
   // 对话框和覆盖层
   'components-dialog-bg': '',
   'components-dialog-border': '',
-  'components-dialog-shadow': '',
   'components-dialog-overlay': '',
 
   'components-popover-bg': '',
-  'components-popover-border': '',
-  'components-popover-shadow': '',
 
   'components-tooltip-bg': '',
   'components-tooltip-text': '',
-  'components-tooltip-shadow': '',
 
   // 导航和标签
   'components-tabs-border': '',
@@ -1207,27 +587,6 @@ export const defaultTokens: DesignTokens = {
   'components-tabs-active-bg': '',
   'components-tabs-active-text': '',
   'components-tabs-inactive-text': '',
-
-  'components-breadcrumb-text': '',
-  'components-breadcrumb-text-current': '',
-  'components-breadcrumb-separator': '',
-
-  // 状态和通知
-  'components-alert-info-bg': '',
-  'components-alert-info-border': '',
-  'components-alert-info-text': '',
-
-  'components-alert-success-bg': '',
-  'components-alert-success-border': '',
-  'components-alert-success-text': '',
-
-  'components-alert-warning-bg': '',
-  'components-alert-warning-border': '',
-  'components-alert-warning-text': '',
-
-  'components-alert-error-bg': '',
-  'components-alert-error-border': '',
-  'components-alert-error-text': '',
 
   // 加载和进度
   'components-skeleton-bg': '',
@@ -1248,21 +607,11 @@ export const defaultTokens: DesignTokens = {
   'components-tool-call-bg': '',
   'components-tool-call-border': '',
   'components-tool-call-title': '',
-  'components-tool-call-content-bg': '',
-  'components-tool-call-content-text': '',
 
   // 徽章和标签
   'components-badge-bg': '',
   'components-badge-text': '',
   'components-badge-border': '',
-  'components-badge-success-bg': '',
-  'components-badge-success-text': '',
-  'components-badge-warning-bg': '',
-  'components-badge-warning-text': '',
-  'components-badge-error-bg': '',
-  'components-badge-error-text': '',
-  'components-badge-info-bg': '',
-  'components-badge-info-text': '',
   'components-badge-neutral-bg': '',
   'components-badge-neutral-text': '',
   'components-badge-blue-bg': '',
@@ -1276,48 +625,7 @@ export const defaultTokens: DesignTokens = {
 
   // 统计卡片组件
   // 蓝色卡片
-  'components-stats-card-blue-bg': '',
-  'components-stats-card-blue-icon-bg': '',
-  'components-stats-card-blue-icon-text': '',
-  'components-stats-card-blue-shadow': '',
-  'components-stats-card-blue-border-hover': '',
   // 绿色卡片
-  'components-stats-card-green-bg': '',
-  'components-stats-card-green-icon-bg': '',
-  'components-stats-card-green-icon-text': '',
-  'components-stats-card-green-shadow': '',
-  'components-stats-card-green-border-hover': '',
-  // 紫色卡片
-  'components-stats-card-purple-bg': '',
-  'components-stats-card-purple-icon-bg': '',
-  'components-stats-card-purple-icon-text': '',
-  'components-stats-card-purple-shadow': '',
-  'components-stats-card-purple-border-hover': '',
-  // 橙色卡片
-  'components-stats-card-orange-bg': '',
-  'components-stats-card-orange-icon-bg': '',
-  'components-stats-card-orange-icon-text': '',
-  'components-stats-card-orange-shadow': '',
-  'components-stats-card-orange-border-hover': '',
-
-  // 头像渐变系统
-  'components-avatar-gradient-purple-from': '',
-  'components-avatar-gradient-purple-to': '',
-  'components-avatar-gradient-blue-from': '',
-  'components-avatar-gradient-blue-to': '',
-  'components-avatar-gradient-green-from': '',
-  'components-avatar-gradient-green-to': '',
-  'components-avatar-gradient-orange-from': '',
-  'components-avatar-gradient-orange-to': '',
-  'components-avatar-gradient-indigo-from': '',
-  'components-avatar-gradient-indigo-to': '',
-  'components-avatar-gradient-rose-from': '',
-  'components-avatar-gradient-rose-to': '',
-  'components-avatar-gradient-teal-from': '',
-  'components-avatar-gradient-teal-to': '',
-  'components-avatar-gradient-amber-from': '',
-  'components-avatar-gradient-amber-to': '',
-
   // 任务状态指示器
   'components-task-status-idle-bg': '',
   'components-task-status-idle-border': '',
@@ -1332,26 +640,9 @@ export const defaultTokens: DesignTokens = {
   'components-task-status-running-progress-fill': '',
   'components-task-status-running-progress-glow': '',
 
-  'components-task-status-cancelled-bg': '',
-  'components-task-status-cancelled-border': '',
-  'components-task-status-cancelled-text': '',
-  'components-task-status-cancelled-dot': '',
-
-  'components-task-status-completed-bg': '',
-  'components-task-status-completed-border': '',
-  'components-task-status-completed-text': '',
-  'components-task-status-completed-dot': '',
-
-  'components-task-status-failed-bg': '',
-  'components-task-status-failed-border': '',
-  'components-task-status-failed-text': '',
-  'components-task-status-failed-dot': '',
-
   'components-tag-bg': '',
   'components-tag-text': '',
   'components-tag-border': '',
-  'components-tag-bg-hover': '',
-  'components-tag-close-hover': '',
 
   // 分页器
   'components-pagination-bg': '',
@@ -1362,92 +653,20 @@ export const defaultTokens: DesignTokens = {
   'components-pagination-item-bg-active': '',
   'components-pagination-item-text': '',
   'components-pagination-item-text-active': '',
-  'components-pagination-disabled-bg': '',
   'components-pagination-disabled-text': '',
 
   // 步骤器
-  'components-steps-bg': '',
-  'components-steps-border': '',
-  'components-steps-completed-bg': '',
-  'components-steps-completed-text': '',
   'components-steps-active-bg': '',
   'components-steps-active-text': '',
   'components-steps-inactive-bg': '',
   'components-steps-inactive-text': '',
   'components-steps-line': '',
-  'components-steps-line-completed': '',
 
   // 加载器和骨架屏
   'components-loader-primary': '',
-  'components-loader-secondary': '',
-  'components-skeleton-base': '',
-  'components-skeleton-shimmer': '',
-  'components-skeleton-text': '',
-
-  // 分割线
-  'components-divider-bg': '',
-  'components-divider-text': '',
-
-  // 时间轴
-  'components-timeline-line': '',
-  'components-timeline-dot': '',
-  'components-timeline-dot-active': '',
-  'components-timeline-content-bg': '',
-  'components-timeline-content-border': '',
-
-  // 日历和日期选择器
-  'components-calendar-bg': '',
-  'components-calendar-border': '',
-  'components-calendar-header-bg': '',
-  'components-calendar-header-text': '',
-  'components-calendar-cell-bg': '',
-  'components-calendar-cell-text': '',
-  'components-calendar-cell-bg-hover': '',
-  'components-calendar-cell-bg-selected': '',
-  'components-calendar-cell-text-selected': '',
-  'components-calendar-cell-bg-today': '',
-  'components-calendar-cell-text-today': '',
-  'components-calendar-cell-bg-disabled': '',
-  'components-calendar-cell-text-disabled': '',
-
-  // 抽屉
-  'components-drawer-bg': '',
-  'components-drawer-overlay': '',
-  'components-drawer-border': '',
-  'components-drawer-shadow': '',
-  'components-drawer-header-bg': '',
-  'components-drawer-header-border': '',
 
   // 折叠面板
-  'components-collapse-bg': '',
-  'components-collapse-border': '',
-  'components-collapse-header-bg': '',
   'components-collapse-header-bg-hover': '',
-  'components-collapse-header-text': '',
-  'components-collapse-content-bg': '',
-  'components-collapse-content-border': '',
-
-  // 树形控件
-  'components-tree-bg': '',
-  'components-tree-border': '',
-  'components-tree-node-bg': '',
-  'components-tree-node-bg-hover': '',
-  'components-tree-node-bg-selected': '',
-  'components-tree-node-text': '',
-  'components-tree-node-text-selected': '',
-  'components-tree-indent-line': '',
-  'components-tree-expand-icon': '',
-
-  // 转移框
-  'components-transfer-bg': '',
-  'components-transfer-border': '',
-  'components-transfer-header-bg': '',
-  'components-transfer-header-text': '',
-  'components-transfer-item-bg': '',
-  'components-transfer-item-bg-hover': '',
-  'components-transfer-item-bg-selected': '',
-  'components-transfer-item-text': '',
-  'components-transfer-item-text-selected': '',
 
   // 上传组件
   'components-upload-bg': '',
@@ -1458,66 +677,6 @@ export const defaultTokens: DesignTokens = {
   'components-upload-text': '',
   'components-upload-text-secondary': '',
   'components-upload-icon': '',
-  'components-upload-progress-bg': '',
-  'components-upload-progress-fill': '',
-
-  // 统计数值
-  'components-statistic-title': '',
-  'components-statistic-value': '',
-  'components-statistic-suffix': '',
-  'components-statistic-prefix': '',
-
-  // 结果页
-  'components-result-bg': '',
-  'components-result-icon-success': '',
-  'components-result-icon-error': '',
-  'components-result-icon-warning': '',
-  'components-result-icon-info': '',
-  'components-result-title': '',
-  'components-result-subtitle': '',
-
-  // 评分组件
-  'components-rate-star': '',
-  'components-rate-star-active': '',
-  'components-rate-star-hover': '',
-
-  // 锚点导航
-  'components-anchor-bg': '',
-  'components-anchor-border': '',
-  'components-anchor-link': '',
-  'components-anchor-link-active': '',
-  'components-anchor-link-hover': '',
-
-  // 回到顶部
-  'components-backtop-bg': '',
-  'components-backtop-text': '',
-  'components-backtop-border': '',
-  'components-backtop-shadow': '',
-  'components-backtop-bg-hover': '',
-
-  // 图片组件
-  'components-image-placeholder-bg': '',
-  'components-image-placeholder-text': '',
-  'components-image-preview-bg': '',
-  'components-image-preview-overlay': '',
-  'components-image-preview-toolbar-bg': '',
-  'components-image-preview-toolbar-text': '',
-
-  // 空状态
-  'components-empty-bg': '',
-  'components-empty-text': '',
-  'components-empty-text-secondary': '',
-  'components-empty-icon': '',
-
-  // 水印
-  'components-watermark-text': '',
-
-  // 浮动按钮
-  'components-float-button-bg': '',
-  'components-float-button-text': '',
-  'components-float-button-border': '',
-  'components-float-button-shadow': '',
-  'components-float-button-bg-hover': '',
 
   // 分段控制器
   'components-segmented-bg': '',
@@ -1528,172 +687,26 @@ export const defaultTokens: DesignTokens = {
   'components-segmented-item-text': '',
   'components-segmented-item-text-active': '',
 
-  // 提及组件
-  'components-mentions-bg': '',
-  'components-mentions-border': '',
-  'components-mentions-dropdown-bg': '',
-  'components-mentions-dropdown-border': '',
-  'components-mentions-dropdown-shadow': '',
-  'components-mentions-item-bg-hover': '',
-  'components-mentions-item-text': '',
-
-  // 色彩选择器
-  'components-colorpicker-bg': '',
-  'components-colorpicker-border': '',
-  'components-colorpicker-panel-bg': '',
-  'components-colorpicker-panel-border': '',
-  'components-colorpicker-panel-shadow': '',
-  'components-colorpicker-slider-bg': '',
-  'components-colorpicker-handle': '',
-  'components-colorpicker-input-bg': '',
-  'components-colorpicker-input-border': '',
-
-  // 布局组件
-  'components-layout-header-bg': '',
-  'components-layout-header-border': '',
-  'components-layout-sider-bg': '',
-  'components-layout-sider-border': '',
-  'components-layout-content-bg': '',
-  'components-layout-footer-bg': '',
-  'components-layout-footer-border': '',
-
-  // 栅格系统
-  'components-grid-gutter': '',
-
   // 卡片高级变体
   'components-card-meta-title': '',
   'components-card-meta-description': '',
-  'components-card-actions-bg': '',
-  'components-card-actions-border': '',
-  'components-card-cover-bg': '',
-
-  // 列表高级变体
-  'components-list-bg': '',
-  'components-list-border': '',
-  'components-list-item-bg': '',
-  'components-list-item-bg-hover': '',
-  'components-list-item-border': '',
-  'components-list-item-meta-title': '',
-  'components-list-item-meta-description': '',
-  'components-list-item-actions': '',
-
-  // 描述列表
-  'components-descriptions-bg': '',
-  'components-descriptions-border': '',
-  'components-descriptions-title': '',
-  'components-descriptions-content': '',
-  'components-descriptions-label': '',
-  'components-descriptions-item-border': '',
 
   // 聊天页面专用布局
   'chat-header-bg': '',
   'chat-header-border': '',
-  'chat-header-backdrop': '',
-  'chat-main-bg': '',
   'chat-content-bg': '',
-  'chat-content-border': '',
-  'chat-input-area-bg': '',
-  'chat-input-area-border': '',
-  'chat-input-area-shadow': '',
-  'chat-gradient-primary': '',
-  'chat-gradient-secondary': '',
   'chat-welcome-border': '',
-  'chat-welcome-shadow': '',
-  'chat-input-area-backdrop': '',
 
   // 聊天气泡和头像
-  'chat-bubble-assistant-avatar-bg': '',
-  'chat-bubble-assistant-avatar-text': '',
-  'chat-bubble-user-avatar-bg': '',
-  'chat-bubble-user-avatar-text': '',
   'chat-bubble-user-bg': '',
   'chat-bubble-user-text': '',
 
-  // 侧边栏现代化升级
-  'components-sidebar-backdrop': '',
-
-  // 编辑器组件
-  'components-editor-bg': '',
-  'components-editor-toolbar-bg': '',
-  'components-editor-text': '',
-  'components-editor-border': '',
-
-  // 面板组件
-  'components-panel-header-bg': '',
-  'components-panel-header-text': '',
-  'components-panel-content-bg': '',
-
   // 图标按钮
-  'components-icon-button-text': '',
-  'components-icon-button-text-hover': '',
   'components-icon-button-bg-hover': '',
-
-  // 聊天预览增强
-  'chat-bubble-ai-bg': '',
-  'chat-bubble-ai-text': '',
-  'chat-input-container-bg': '',
-  'chat-preview-debug-bg': '',
-  'chat-preview-debug-text': '',
-  'chat-think-bg': '',
-  'chat-think-border': '',
-  'chat-think-text': '',
-
-  // 应用头像
-  'components-app-avatar-bg': '',
-  'components-app-avatar-border': '',
-
-  // API 密钥管理
-  'components-api-key-card-bg': '',
-  'components-api-key-card-bg-hover': '',
-  'components-api-key-card-border': '',
-  'components-api-key-card-shadow': '',
-  'components-api-key-header-bg': '',
-  'components-api-key-header-text': '',
-  'components-api-key-value-bg': '',
-  'components-api-key-value-text': '',
-  'components-api-key-value-masked': '',
-  'components-api-key-actions-bg': '',
-  'components-api-key-actions-border': '',
-
-  // API 状态指示器
-  'components-api-status-error-bg': '',
-  'components-api-status-error-text': '',
-
-  // HTTP 方法颜色系统
-  'components-http-method-get-bg': '',
-  'components-http-method-get-text': '',
-  'components-http-method-get-border': '',
-  'components-http-method-post-bg': '',
-  'components-http-method-post-text': '',
-  'components-http-method-post-border': '',
-  'components-http-method-put-bg': '',
-  'components-http-method-put-text': '',
-  'components-http-method-put-border': '',
-  'components-http-method-delete-bg': '',
-  'components-http-method-delete-text': '',
-  'components-http-method-delete-border': '',
-  'components-http-method-patch-bg': '',
-  'components-http-method-patch-text': '',
-  'components-http-method-patch-border': '',
 
   // 现代化增强组件
   'components-glassmorphism-bg': '',
   'components-glassmorphism-border': '',
-  'components-glassmorphism-shadow': '',
-  'components-gradient-primary': '',
-  'components-gradient-secondary': '',
-  'components-gradient-accent': '',
-  'components-modern-card-bg': '',
-  'components-modern-card-border': '',
-  'components-modern-card-shadow': '',
-
-  // 首页推荐卡片系统
-  'components-recommend-card-bg-1': '',
-  'components-recommend-card-bg-2': '',
-  'components-recommend-card-bg-3': '',
-  'components-recommend-card-bg-4': '',
-  'components-recommend-card-text': '',
-  'components-recommend-card-tag': '',
 
   // 画布系统 (Agent Canvas)
   'components-canvas-bg': '',
@@ -1701,45 +714,19 @@ export const defaultTokens: DesignTokens = {
   'components-canvas-spotlight': '',
   'components-canvas-node-bg': '',
   'components-canvas-node-border': '',
-  'components-canvas-node-border-hover': '',
   'components-canvas-node-border-selected': '',
-  'components-canvas-node-shadow': '',
-  'components-canvas-node-status-running-border': '',
-  'components-canvas-node-status-running-halo': '',
-  'components-canvas-node-status-running-icon': '',
-  'components-canvas-node-status-success-border': '',
-  'components-canvas-node-status-success-bg': '',
-  'components-canvas-node-status-success-text': '',
-  'components-canvas-node-status-error-border': '',
-  'components-canvas-node-status-error-bg': '',
-  'components-canvas-node-status-error-text': '',
-  'components-canvas-edge-stroke': '',
-  'components-canvas-edge-stroke-hover': '',
   'components-canvas-edge-stroke-selected': '',
-  'components-canvas-edge-stroke-flowing': '',
   'components-canvas-edge-marker': '',
   'components-canvas-edge-marker-selected': '',
   'components-canvas-handle-bg': '',
-  'components-canvas-handle-border': '',
   'components-canvas-handle-icon': '',
-  'components-canvas-toolbar-bg': '',
-  'components-canvas-toolbar-border': '',
-  'components-canvas-toolbar-shadow': '',
   'components-canvas-icon-start': '',
   'components-canvas-icon-retrieval': '',
-  'components-canvas-icon-generate': '',
   'components-canvas-icon-message': '',
   'components-canvas-icon-tool': '',
   'components-canvas-icon-file': '',
-  'components-canvas-icon-parser': '',
   'components-canvas-icon-splitter': '',
   'components-canvas-icon-tokenizer': '',
-  'components-canvas-icon-extractor': '',
-  'components-canvas-icon-switch': '',
-  'components-canvas-icon-categorize': '',
-  'components-canvas-icon-agent': '',
-  'components-canvas-icon-code': '',
-  'components-canvas-icon-default': '',
   'components-canvas-skeleton-bg': '',
   'components-canvas-note-bg': '',
   'components-canvas-note-border': '',
@@ -1749,13 +736,9 @@ export const defaultTokens: DesignTokens = {
 
   // 骨架与页面模板
   'components-app-shell-bg': '',
-  'components-app-shell-surface': '',
-  'components-app-shell-border': '',
-  'components-app-shell-shadow': '',
   'components-main-workbench-bg': '',
   'components-main-workbench-surface': '',
   'components-main-workbench-border': '',
-  'components-main-workbench-shadow': '',
   'components-page-header-bg': '',
   'components-page-header-border': '',
   'components-page-header-title': '',
@@ -1763,8 +746,6 @@ export const defaultTokens: DesignTokens = {
   'components-page-toolbar-bg': '',
   'components-page-toolbar-border': '',
   'components-page-toolbar-text': '',
-  'components-page-state-bg': '',
-  'components-page-state-border': '',
   'components-page-state-icon-bg': '',
   'components-page-state-icon': '',
   'components-page-state-title': '',
@@ -1772,8 +753,6 @@ export const defaultTokens: DesignTokens = {
   'components-settings-rail-bg': '',
   'components-settings-rail-border': '',
   'components-settings-rail-title': '',
-  'components-settings-rail-description': '',
-  'components-settings-rail-section-text': '',
   'components-console-bg': '',
   'components-console-surface': '',
   'components-console-border': '',
@@ -1784,17 +763,14 @@ export const defaultTokens: DesignTokens = {
   'components-studio-surface': '',
   'components-studio-border': '',
   'components-split-pane-bg': '',
-  'components-split-pane-surface': '',
   'components-split-pane-border': '',
 
   // 设置页面专用
-  'components-settings-sidebar-section-text': '',
   'components-settings-content-bg': '',
   'components-settings-section-bg': '',
   'components-settings-section-border': '',
   'components-settings-section-title': '',
   'components-settings-section-description': '',
-  'components-settings-user-role-bg': '',
 
   // 系统状态页面专用
   'components-system-accent-bg': '',
@@ -1804,7 +780,6 @@ export const defaultTokens: DesignTokens = {
   'components-system-page-bg': '',
   'components-system-panel-bg': '',
   'components-system-panel-border': '',
-  'components-system-panel-shadow': '',
   'components-system-header-title': '',
   'components-system-header-description': '',
   'components-system-version-tag-bg': '',
@@ -1816,29 +791,9 @@ export const defaultTokens: DesignTokens = {
   'components-system-empty-bg': '',
   'components-system-empty-border': '',
 
-  'components-system-health-ok-bg': '',
-  'components-system-health-ok-border': '',
-  'components-system-health-ok-text': '',
-  'components-system-health-warning-bg': '',
-  'components-system-health-warning-border': '',
-  'components-system-health-warning-text': '',
-  'components-system-health-error-bg': '',
-  'components-system-health-error-border': '',
-  'components-system-health-error-text': '',
-
   'components-system-status-card-bg': '',
   'components-system-status-card-border': '',
   'components-system-status-card-border-hover': '',
-  'components-system-status-card-shadow': '',
-  'components-system-status-ok-bg': '',
-  'components-system-status-ok-border': '',
-  'components-system-status-ok-text': '',
-  'components-system-status-warning-bg': '',
-  'components-system-status-warning-border': '',
-  'components-system-status-warning-text': '',
-  'components-system-status-error-bg': '',
-  'components-system-status-error-border': '',
-  'components-system-status-error-text': '',
 
   'components-system-chart-grid': '',
   'components-system-chart-axis': '',
@@ -1846,12 +801,6 @@ export const defaultTokens: DesignTokens = {
   'components-system-chart-tooltip-border': '',
   'components-system-chart-tooltip-text': '',
   'components-system-chart-tooltip-muted': '',
-  'components-system-chart-done': '',
-  'components-system-chart-done-soft': '',
-  'components-system-chart-failed': '',
-  'components-system-chart-failed-soft': '',
-  'components-system-chart-pending': '',
-  'components-system-chart-pending-soft': '',
   'components-system-chart-lag': '',
   'components-system-chart-info-pill-bg': '',
   'components-system-chart-info-pill-text': '',

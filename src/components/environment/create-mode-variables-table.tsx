@@ -51,7 +51,7 @@ export function CreateModeVariablesTable({
       <div className="overflow-hidden rounded-lg border">
         <table className="w-full">
           <thead>
-            <tr className="bg-muted/30 border-b">
+            <tr className="border-b bg-muted/30">
               <th className="p-3 text-left text-sm font-medium">变量名</th>
               <th className="p-3 text-left text-sm font-medium">类型</th>
               <th className="p-3 text-left text-sm font-medium">值</th>
@@ -62,7 +62,7 @@ export function CreateModeVariablesTable({
           </thead>
           <tbody>
             {variables.map((variable) => (
-              <tr key={variable.id} className="hover:bg-muted/20 border-b">
+              <tr key={variable.id} className="border-b hover:bg-muted/20">
                 <td className="p-3">
                   <code className="font-mono text-sm">{variable.key_name}</code>
                 </td>
@@ -119,7 +119,7 @@ export function CreateModeVariablesTable({
                     variant="ghost"
                     size="sm"
                     onClick={() => deleteVariable(variable.id)}
-                    className="h-8 w-8 p-0 text-destructive"
+                    className="h-8 w-8 p-0 text-status-error"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>

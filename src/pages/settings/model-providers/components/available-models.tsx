@@ -118,8 +118,8 @@ export const AvailableModels: React.FC<AvailableModelsProps> = ({
             onChange={(e) => setSearchTerm(e.target.value)}
             className={cn(
               'h-9 w-full rounded-lg pr-4 pl-10 text-sm',
-              'bg-[var(--color-bg-input,var(--color-background-secondary))]',
-              'border border-[var(--color-border-button,var(--color-border))]',
+              'bg-components-input-bg',
+              'border border-components-input-border',
               'text-text-primary placeholder:text-text-tertiary',
               'focus:ring-1 focus:ring-primary focus:outline-hidden',
               'transition-colors',
@@ -137,7 +137,7 @@ export const AvailableModels: React.FC<AvailableModelsProps> = ({
             'h-6 rounded-sm px-2 text-xs transition-colors',
             selectedTag === null
               ? 'bg-text-primary text-background'
-              : 'bg-[var(--color-bg-card,var(--color-background-secondary))] text-text-secondary hover:bg-accent/80',
+              : 'bg-components-button-secondary-bg text-text-secondary hover:bg-components-button-secondary-bg-hover',
           )}
         >
           All
@@ -152,7 +152,7 @@ export const AvailableModels: React.FC<AvailableModelsProps> = ({
               'h-6 rounded-sm px-2 text-xs transition-colors',
               selectedTag === tag
                 ? 'bg-text-primary text-background'
-                : 'bg-[var(--color-bg-card,var(--color-background-secondary))] text-text-secondary hover:bg-accent/80',
+                : 'bg-components-button-secondary-bg text-text-secondary hover:bg-components-button-secondary-bg-hover',
             )}
           >
             {tag}
@@ -230,7 +230,7 @@ const AvailableModelCard: React.FC<AvailableModelCardProps> = ({
         {sortedTags.map((tag, index) => (
           <span
             key={index}
-            className="flex h-5 items-center rounded-md bg-accent px-1.5 py-0.5 text-xs text-text-secondary"
+            className="flex h-5 items-center rounded-md bg-components-tag-bg px-1.5 py-0.5 text-xs text-text-secondary"
           >
             {tag}
           </span>

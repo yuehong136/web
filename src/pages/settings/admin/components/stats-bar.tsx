@@ -25,7 +25,7 @@ const StatCard: React.FC<StatCardProps> = memo(
         )}
       >
         <span
-          className={highlight ? 'text-text-success' : 'text-text-secondary'}
+          className={highlight ? 'text-status-success' : 'text-text-secondary'}
         >
           {icon}
         </span>

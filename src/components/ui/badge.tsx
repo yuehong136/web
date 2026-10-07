@@ -1,19 +1,6 @@
-import React from 'react'
+import * as React from 'react'
+import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
-
-export interface BadgeProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?:
-    | 'default'
-    | 'secondary'
-    | 'destructive'
-    | 'success'
-    | 'warning'
-    | 'outline'
-    | 'blue'
-    | 'orange'
-    | 'purple'
-    | 'green'
-}
 
 /**
  * Badge 徽标组件
@@ -32,82 +19,47 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLDivElement> {
  * - purple: 紫色 (用于语义记忆等标签)
  * - green: 绿色 (用于情景记忆等标签)
  */
-const Badge: React.FC<BadgeProps> = ({
-  className,
-  variant = 'default',
-  ...props
-}) => {
+const badgeVariants = cva(
+  'inline-flex shrink-0 items-center rounded-full px-2 py-1 text-xs font-medium whitespace-nowrap transition-colors focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-hidden',
+  {
+    variants: {
+      variant: {
+        default: 'bg-components-badge-bg text-components-badge-text',
+        secondary: 'bg-background-subtle text-text-secondary',
+        destructive:
+          'bg-components-badge-error-bg text-components-badge-error-text',
+        success:
+          'bg-components-badge-success-bg text-components-badge-success-text',
+        warning:
+          'bg-components-badge-warning-bg text-components-badge-warning-text',
+        outline: 'border border-border-default text-text-primary',
+        blue: 'bg-components-badge-blue-bg text-components-badge-blue-text',
+        orange:
+          'bg-components-badge-orange-bg text-components-badge-orange-text',
+        purple:
+          'bg-components-badge-purple-bg text-components-badge-purple-text',
+        green: 'bg-components-badge-green-bg text-components-badge-green-text',
+      },
+    },
+    defaultVariants: {
+      variant: 'default',
+    },
+  },
+)
+
+export interface BadgeProps
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
+    VariantProps<typeof badgeVariants> {}
+
+function Badge({ className, variant, ...props }: BadgeProps) {
   return (
     <div
-      className={cn(
-        'inline-flex shrink-0 items-center rounded-full px-2 py-1 text-xs font-medium whitespace-nowrap transition-colors focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-hidden',
-        className,
-      )}
-      style={getVariantStyles(variant)}
+      data-slot="badge"
+      className={cn(badgeVariants({ variant }), className)}
       {...props}
     />
   )
 }
 
-function getVariantStyles(variant: BadgeProps['variant']): React.CSSProperties {
-  switch (variant) {
-    case 'default':
-      return {
-        backgroundColor: 'var(--color-components-badge-bg)',
-        color: 'var(--color-components-badge-text)',
-      }
-    case 'secondary':
-      return {
-        backgroundColor: 'var(--color-background-subtle)',
-        color: 'var(--color-text-secondary)',
-      }
-    case 'destructive':
-      return {
-        backgroundColor: 'var(--color-status-error-bg)',
-        color: 'var(--color-status-error-text)',
-      }
-    case 'success':
-      return {
-        backgroundColor: 'var(--color-status-success-bg)',
-        color: 'var(--color-status-success-text)',
-      }
-    case 'warning':
-      return {
-        backgroundColor: 'var(--color-status-warning-bg)',
-        color: 'var(--color-status-warning-text)',
-      }
-    case 'outline':
-      return {
-        backgroundColor: 'transparent',
-        color: 'var(--color-text-primary)',
-        border: '1px solid var(--color-border-default)',
-      }
-    case 'blue':
-      return {
-        backgroundColor: 'var(--color-components-badge-blue-bg)',
-        color: 'var(--color-components-badge-blue-text)',
-      }
-    case 'orange':
-      return {
-        backgroundColor: 'var(--color-components-badge-orange-bg)',
-        color: 'var(--color-components-badge-orange-text)',
-      }
-    case 'purple':
-      return {
-        backgroundColor: 'var(--color-components-badge-purple-bg)',
-        color: 'var(--color-components-badge-purple-text)',
-      }
-    case 'green':
-      return {
-        backgroundColor: 'var(--color-components-badge-green-bg)',
-        color: 'var(--color-components-badge-green-text)',
-      }
-    default:
-      return {
-        backgroundColor: 'var(--color-components-badge-bg)',
-        color: 'var(--color-components-badge-text)',
-      }
-  }
-}
-
-export { Badge }
+export { Badge, badgeVariants }

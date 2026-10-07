@@ -8,7 +8,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { cn } from '@/lib/utils'
 import { CreateKnowledgeForm } from '../create/create-knowledge-form'
 
 interface CreateKnowledgeModalProps {
@@ -47,13 +46,8 @@ export const CreateKnowledgeModal: FC<CreateKnowledgeModalProps> = ({
       <DialogContent className="max-h-[90vh] overflow-hidden" size="lg">
         <DialogHeader className="pb-0">
           <div className="flex items-center gap-space-sm">
-            <div
-              className={cn(
-                'flex h-10 w-10 items-center justify-center rounded-radius-xl',
-                'bg-linear-to-br from-components-avatar-gradient-indigo-from to-components-avatar-gradient-indigo-to',
-              )}
-            >
-              <Database className="h-5 w-5 text-text-inverted" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-radius-xl bg-state-selected-bg text-state-selected-text">
+              <Database className="size-icon-md" />
             </div>
             <div className="min-w-0 flex-1">
               <DialogTitle className="text-lg font-semibold text-text-primary">

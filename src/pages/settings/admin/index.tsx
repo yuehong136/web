@@ -47,7 +47,7 @@ const FilterSelect: React.FC<{
 }> = memo(({ value, onChange, options }) => {
   return (
     <Select value={value} onValueChange={onChange}>
-      <SelectTrigger className="bg-surface-secondary hover:bg-surface-tertiary h-10 w-36 rounded-radius-lg border-border-default px-space-base text-sm text-text-secondary">
+      <SelectTrigger className="h-10 w-36 rounded-radius-lg border-border-default bg-surface-secondary px-space-base text-sm text-text-secondary hover:bg-surface-tertiary">
         <SelectValue placeholder="请选择" />
       </SelectTrigger>
       <SelectContent>
@@ -65,20 +65,20 @@ FilterSelect.displayName = 'FilterSelect'
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 
 const TableSkeleton: React.FC = () => (
-  <div className="bg-surface-secondary animate-pulse overflow-hidden rounded-radius-lg border border-border-subtle">
-    <div className="bg-surface-tertiary h-11" />
+  <div className="animate-pulse overflow-hidden rounded-radius-lg border border-border-subtle bg-surface-secondary">
+    <div className="h-11 bg-surface-tertiary" />
     {Array.from({ length: 5 }).map((_, i) => (
       <div
         key={i}
         className="flex items-center gap-space-base border-t border-border-subtle px-space-md py-space-base"
       >
-        <div className="bg-surface-tertiary h-10 w-10 rounded-full" />
+        <div className="h-10 w-10 rounded-full bg-surface-tertiary" />
         <div className="flex-1 space-y-2">
-          <div className="bg-surface-tertiary h-3.5 w-32 rounded-radius-lg" />
-          <div className="bg-surface-tertiary h-3 w-48 rounded-radius-lg" />
+          <div className="h-3.5 w-32 rounded-radius-lg bg-surface-tertiary" />
+          <div className="h-3 w-48 rounded-radius-lg bg-surface-tertiary" />
         </div>
-        <div className="bg-surface-tertiary h-5 w-14 rounded-full" />
-        <div className="bg-surface-tertiary h-3.5 w-24 rounded-radius-lg" />
+        <div className="h-5 w-14 rounded-full bg-surface-tertiary" />
+        <div className="h-3.5 w-24 rounded-radius-lg bg-surface-tertiary" />
       </div>
     ))}
   </div>
@@ -124,7 +124,7 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ onSuccess }) => {
       <div className="w-full max-w-lg">
         <div className="rounded-radius-xl border border-border-subtle bg-background-surface p-space-2xl shadow-elevation-medium">
           <div className="mb-space-xl flex flex-col items-center gap-space-sm">
-            <div className="bg-surface-accent/10 flex h-14 w-14 items-center justify-center rounded-2xl">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-surface-accent/10">
               <Lock className="h-7 w-7 text-text-accent" />
             </div>
             <div className="text-center">
@@ -182,7 +182,7 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ onSuccess }) => {
               />
             </div>
             {error && (
-              <p className="rounded-radius-lg bg-status-error-subtle px-space-sm py-space-xs text-sm text-text-error">
+              <p className="rounded-radius-lg bg-status-error-subtle px-space-sm py-space-xs text-sm text-status-error">
                 {error}
               </p>
             )}
@@ -349,7 +349,7 @@ const UsersPanel: React.FC<{
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
                 leftIcon={<Search className="h-4 w-4 text-text-tertiary" />}
-                className="bg-surface-secondary h-10"
+                className="h-10 bg-surface-secondary"
               />
             </div>
             <FilterSelect

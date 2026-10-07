@@ -1,16 +1,7 @@
 import { useMemo, type FC } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
-import {
-  Settings,
-  Trash2,
-  Database,
-  FileText,
-  Clock,
-  Layers,
-  Target,
-} from 'lucide-react'
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import { Settings, Trash2, FileText, Clock, Layers, Target } from 'lucide-react'
 import {
   ResourceListContainer,
   ResourceListHeader,
@@ -18,7 +9,6 @@ import {
   ResourceListRow,
   ResourceListSkeletonRow,
   ResourceListEmpty,
-  getAvatarGradient,
 } from '@/components/ui/resource-list'
 import {
   cn,
@@ -28,6 +18,7 @@ import {
 } from '@/lib/utils'
 import { ROUTES } from '@/constants'
 import type { KnowledgeBase } from '@/types/api'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 
 export type TimeFormatType = 'detailed' | 'compact' | 'relative'
 
@@ -59,35 +50,6 @@ const formatTime = (timestamp: number, format: TimeFormatType): string => {
     default:
       return formatTimestampDetailed(timestamp)
   }
-}
-
-const KnowledgeAvatar: FC<{ kb: KnowledgeBase }> = ({ kb }) => {
-  const gradient = getAvatarGradient(kb.name)
-
-  if (kb.avatar) {
-    return (
-      <Avatar className="h-12 w-12">
-        <AvatarImage src={kb.avatar} alt={kb.name} />
-        <AvatarFallback>
-          <Database className="h-5 w-5" />
-        </AvatarFallback>
-      </Avatar>
-    )
-  }
-
-  return (
-    <div
-      className={cn(
-        'flex h-12 w-12 items-center justify-center rounded-xl',
-        'bg-linear-to-br shadow-xs',
-        gradient,
-      )}
-    >
-      <span className="text-xl font-semibold text-white">
-        {kb.name.charAt(0).toUpperCase()}
-      </span>
-    </div>
-  )
 }
 
 const KnowledgeListRow: FC<{
@@ -140,7 +102,9 @@ const KnowledgeListRow: FC<{
       onClick={handleClick}
       selected={selected}
       onSelect={onSelect}
-      avatar={<KnowledgeAvatar kb={kb} />}
+      avatar={
+        <EntityAvatar name={kb.name} src={kb.avatar} seed={kb.id} size="xl" />
+      }
       name={kb.name}
       description={kb.description || undefined}
       actions={actions}

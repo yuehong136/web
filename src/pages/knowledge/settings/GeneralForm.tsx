@@ -7,7 +7,6 @@ import { Upload, Database } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Textarea } from '@/components/ui/textarea'
 import type { SelectOptionGroup } from '@/components/ui/select-with-search'
 import {
@@ -23,11 +22,14 @@ import {
   PageRankFormField,
 } from '@/components/forms/KnowledgeFormFields'
 import { TagSetItem } from './tag-item'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 
 interface GeneralFormProps {
   embeddingModelOptions: SelectOptionGroup[]
   embeddingModelLoading?: boolean
   embeddingModelDisabled?: boolean
+  /** Knowledge base id, so the preview keeps the list's avatar tone. */
+  avatarSeed?: string
   className?: string
 }
 
@@ -35,6 +37,7 @@ export function GeneralForm({
   embeddingModelOptions,
   embeddingModelLoading = false,
   embeddingModelDisabled = false,
+  avatarSeed,
   className,
 }: GeneralFormProps) {
   const { t } = useTranslation()
@@ -69,12 +72,13 @@ export function GeneralForm({
               {t('knowledge.settings.fields.avatar')}
             </FormLabel>
             <div className="flex w-3/4 items-center gap-4">
-              <Avatar className="h-12 w-12 ring-2 ring-border">
-                <AvatarImage src={avatarValue || undefined} alt={nameValue} />
-                <AvatarFallback>
-                  <Database className="h-6 w-6 text-text-tertiary" />
-                </AvatarFallback>
-              </Avatar>
+              <EntityAvatar
+                name={nameValue}
+                src={avatarValue}
+                seed={avatarSeed}
+                size="xl"
+                icon={nameValue?.trim() ? undefined : <Database />}
+              />
               <div>
                 {/* eslint-disable-next-line no-restricted-syntax -- hidden file input: @/components/ui/input has no type="file" hidden + ref-click pattern */}
                 <input

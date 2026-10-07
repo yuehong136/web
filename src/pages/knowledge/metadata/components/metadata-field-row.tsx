@@ -46,7 +46,7 @@ export const MetadataFieldRow: FC<MetadataFieldRowProps> = ({
     <div
       className={cn(
         'group flex items-center',
-        'border-border-default/60 border-b last:border-b-0',
+        'border-b border-border-default/60 last:border-b-0',
         'bg-surface-primary hover:bg-surface-secondary/40',
         'transition-all duration-200 ease-out',
         disabled && 'opacity-60',
@@ -108,7 +108,7 @@ export const MetadataFieldRow: FC<MetadataFieldRowProps> = ({
                 <TooltipProvider delayDuration={300}>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <span className="bg-surface-secondary/60 inline-flex cursor-default items-center rounded px-1.5 py-0.5 text-xs text-text-tertiary">
+                      <span className="inline-flex cursor-default items-center rounded bg-surface-secondary/60 px-1.5 py-0.5 text-xs text-text-tertiary">
                         +{remainingCount}
                       </span>
                     </TooltipTrigger>
@@ -170,7 +170,7 @@ export const MetadataFieldRow: FC<MetadataFieldRowProps> = ({
                     disabled={disabled}
                     className={cn(
                       'h-7 w-7 p-0',
-                      'hover:bg-status-error/10 hover:text-status-error',
+                      'hover:bg-status-error-subtle hover:text-status-error',
                       'transition-colors duration-150',
                     )}
                   >

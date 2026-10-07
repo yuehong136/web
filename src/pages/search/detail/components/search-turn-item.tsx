@@ -49,10 +49,10 @@ const SearchTurnItem: React.FC<SearchTurnItemProps> = ({
 
   const statusClassName =
     turn.phase === SearchExecutionPhase.ERROR
-      ? 'bg-status-error/10 text-status-error'
+      ? 'bg-status-error-subtle text-status-error'
       : turn.phase === SearchExecutionPhase.COMPLETE
-        ? 'bg-status-success/10 text-status-success'
-        : 'bg-status-info/10 text-status-info'
+        ? 'bg-status-success-subtle text-status-success'
+        : 'bg-status-info-subtle text-status-info'
 
   const summaryPreview = useMemo(() => {
     const plainSummary = (turn.summary || turn.thinking || '')
@@ -105,31 +105,34 @@ const SearchTurnItem: React.FC<SearchTurnItemProps> = ({
       return {
         label: '执行失败',
         className:
-          'border-status-error/30 bg-status-error/10 text-status-error',
+          'border-status-error-border bg-status-error-subtle text-status-error',
       }
     }
     if (turn.phase === SearchExecutionPhase.RETRIEVING) {
       return {
         label: '检索中',
-        className: 'border-status-info/30 bg-status-info/10 text-status-info',
+        className:
+          'border-status-info-border bg-status-info-subtle text-status-info',
       }
     }
     if (turn.phase === SearchExecutionPhase.SUMMARIZING) {
       return {
         label: '生成摘要中',
-        className: 'border-status-info/30 bg-status-info/10 text-status-info',
+        className:
+          'border-status-info-border bg-status-info-subtle text-status-info',
       }
     }
     if (turn.phase === SearchExecutionPhase.RELATED) {
       return {
         label: '生成相关问题',
-        className: 'border-status-info/30 bg-status-info/10 text-status-info',
+        className:
+          'border-status-info-border bg-status-info-subtle text-status-info',
       }
     }
     return {
       label: '已完成',
       className:
-        'border-status-success/30 bg-status-success/10 text-status-success',
+        'border-status-success-border bg-status-success-subtle text-status-success',
     }
   }, [turn.phase])
 
@@ -317,7 +320,7 @@ const SearchTurnItem: React.FC<SearchTurnItemProps> = ({
             />
           ) : null}
           {turn.errorMessage ? (
-            <div className="rounded-radius-md border border-status-error/30 bg-status-error/10 px-space-sm py-space-xs text-sm text-status-error">
+            <div className="rounded-radius-md border border-status-error-border bg-status-error-subtle px-space-sm py-space-xs text-sm text-status-error">
               {turn.errorMessage}
             </div>
           ) : null}

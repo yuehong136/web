@@ -15,8 +15,8 @@ import {
   ResourceListRow,
   ResourceListSkeletonRow,
   ResourceListEmpty,
-  getAvatarGradient,
 } from '@/components/ui/resource-list'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 import {
   cn,
   formatRelativeTime,
@@ -47,7 +47,7 @@ const SKELETON_WIDTHS = ['w-14', 'w-8', 'w-28', 'w-28']
 // 状态颜色
 const getStatusColor = (status: string) =>
   status === '1'
-    ? 'text-text-success bg-[var(--color-status-success-10)]'
+    ? 'text-status-success bg-status-success-subtle'
     : 'text-text-secondary bg-background-subtle'
 
 // 时间格式化
@@ -63,43 +63,6 @@ const formatTime = (dateString: string, format: TimeFormatType): string => {
     default:
       return formatTimestampDetailed(timestamp)
   }
-}
-
-// 应用图标
-const AppAvatar: React.FC<{ app: DialogApp }> = ({ app }) => {
-  const gradient = getAvatarGradient(app.name)
-
-  if (app.icon) {
-    const iconSrc =
-      app.icon.startsWith('data:') || app.icon.startsWith('http')
-        ? app.icon
-        : `data:image/png;base64,${app.icon}`
-    return (
-      <img
-        src={iconSrc}
-        alt={app.name}
-        className="h-12 w-12 rounded-xl object-cover"
-        onError={(e) => {
-          // 图片加载失败时隐藏
-          e.currentTarget.style.display = 'none'
-        }}
-      />
-    )
-  }
-
-  return (
-    <div
-      className={cn(
-        'flex h-12 w-12 items-center justify-center rounded-xl',
-        'bg-linear-to-br shadow-xs',
-        gradient,
-      )}
-    >
-      <span className="text-xl font-semibold text-white">
-        {app.name.charAt(0).toUpperCase()}
-      </span>
-    </div>
-  )
 }
 
 // 列表行组件
@@ -129,7 +92,9 @@ const AppListRow: React.FC<{
       onClick={handleClick}
       selected={selected}
       onSelect={onSelect}
-      avatar={<AppAvatar app={app} />}
+      avatar={
+        <EntityAvatar name={app.name} src={app.icon} seed={app.id} size="xl" />
+      }
       name={app.name}
       description={app.description || undefined}
       actions={[

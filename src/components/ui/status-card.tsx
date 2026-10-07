@@ -43,92 +43,125 @@ const statusConfig = {
   },
 } as const
 
-const StatusCard: React.FC<StatusCardProps> = memo(({
-  title,
-  icon,
-  status,
-  metrics,
-  error,
-  className
-}) => {
-  const config = statusConfig[status]
-  const maxSecondaryMetrics = 4
+const StatusCard: React.FC<StatusCardProps> = memo(
+  ({ title, icon, status, metrics, error, className }) => {
+    const config = statusConfig[status]
+    const maxSecondaryMetrics = 4
 
-  // 提取响应时间作为主要指标
-  const responseTime = metrics['响应时间']
-  const otherMetrics = Object.entries(metrics).filter(([key]) => key !== '响应时间')
-  const displayedSecondaryMetrics = otherMetrics.slice(0, maxSecondaryMetrics)
-  const remainingSecondaryMetricsCount = Math.max(otherMetrics.length - displayedSecondaryMetrics.length, 0)
+    // 提取响应时间作为主要指标
+    const responseTime = metrics['响应时间']
+    const otherMetrics = Object.entries(metrics).filter(
+      ([key]) => key !== '响应时间',
+    )
+    const displayedSecondaryMetrics = otherMetrics.slice(0, maxSecondaryMetrics)
+    const remainingSecondaryMetricsCount = Math.max(
+      otherMetrics.length - displayedSecondaryMetrics.length,
+      0,
+    )
 
-  return (
-    <div
-      className={cn(
-        'relative rounded-xl border border-components-system-status-card-border bg-components-system-status-card-bg shadow-components-system-status-card-shadow',
-        'border-l-[3px] transition-all duration-200',
-        'hover:border-components-system-status-card-border-hover hover:bg-components-system-accent-soft',
-        config.border,
-        className
-      )}
-    >
-      <div className="p-5">
-        {/* Header: icon + title + status badge */}
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className={cn('w-9 h-9 rounded-lg flex items-center justify-center', config.iconBg)}>
-              <span className={config.iconText}>{icon}</span>
+    return (
+      <div
+        className={cn(
+          'relative rounded-xl border border-components-system-status-card-border bg-components-system-status-card-bg shadow-elevation-low',
+          'border-l-[3px] transition-all duration-200',
+          'hover:border-components-system-status-card-border-hover hover:bg-components-system-accent-soft',
+          config.border,
+          className,
+        )}
+      >
+        <div className="p-5">
+          {/* Header: icon + title + status badge */}
+          <div className="mb-4 flex items-start justify-between">
+            <div className="flex items-center gap-3">
+              <div
+                className={cn(
+                  'flex h-9 w-9 items-center justify-center rounded-lg',
+                  config.iconBg,
+                )}
+              >
+                <span className={config.iconText}>{icon}</span>
+              </div>
+              <h3 className="text-sm leading-tight font-semibold text-components-system-header-title">
+                {title}
+              </h3>
             </div>
-            <h3 className="text-sm font-semibold text-components-system-header-title leading-tight">{title}</h3>
+            <span
+              className={cn(
+                'inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs font-semibold',
+                status === 'green' &&
+                  'border-components-system-status-ok-border',
+                status === 'yellow' &&
+                  'border-components-system-status-warning-border',
+                status === 'red' &&
+                  'border-components-system-status-error-border',
+                config.badgeBg,
+                config.badgeText,
+              )}
+            >
+              <span className={cn('h-1.5 w-1.5 rounded-full', config.dotBg)} />
+              {config.label}
+            </span>
           </div>
-          <span className={cn(
-            'inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs font-semibold',
-            status === 'green' && 'border-components-system-status-ok-border',
-            status === 'yellow' && 'border-components-system-status-warning-border',
-            status === 'red' && 'border-components-system-status-error-border',
-            config.badgeBg, config.badgeText
-          )}>
-            <span className={cn('w-1.5 h-1.5 rounded-full', config.dotBg)} />
-            {config.label}
-          </span>
+
+          {/* Primary metric: response time */}
+          {responseTime && (
+            <div className="mb-3">
+              <p className="mb-0.5 text-xs text-components-system-header-description">
+                响应时间
+              </p>
+              <p
+                className={cn(
+                  'font-mono text-2xl font-semibold tracking-tight',
+                  config.metricText,
+                )}
+              >
+                {responseTime}
+              </p>
+            </div>
+          )}
+
+          {/* Secondary metrics */}
+          {otherMetrics.length > 0 && (
+            <div className="space-y-1.5 border-t border-components-system-section-divider pt-3">
+              {displayedSecondaryMetrics.map(([key, value]) => (
+                <div
+                  key={key}
+                  className="flex items-center justify-between text-xs"
+                >
+                  <span className="text-components-system-version-tag-label">
+                    {key}
+                  </span>
+                  <span className="font-mono font-medium text-components-system-version-tag-value">
+                    {value}
+                  </span>
+                </div>
+              ))}
+              {remainingSecondaryMetricsCount > 0 && (
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-components-system-version-tag-label">
+                    更多指标
+                  </span>
+                  <span className="font-medium text-components-system-accent-text">
+                    +{remainingSecondaryMetricsCount}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Error Message */}
+          {error && (
+            <div className="mt-3 rounded-lg border border-components-system-health-error-border bg-components-system-health-error-bg p-2.5">
+              <p className="text-xs leading-relaxed text-components-system-health-error-text">
+                {error}
+              </p>
+            </div>
+          )}
         </div>
-
-        {/* Primary metric: response time */}
-        {responseTime && (
-          <div className="mb-3">
-            <p className="mb-0.5 text-xs text-components-system-header-description">响应时间</p>
-            <p className={cn('font-mono text-2xl font-semibold tracking-tight', config.metricText)}>
-              {responseTime}
-            </p>
-          </div>
-        )}
-
-        {/* Secondary metrics */}
-        {otherMetrics.length > 0 && (
-          <div className="space-y-1.5 border-t border-components-system-section-divider pt-3">
-            {displayedSecondaryMetrics.map(([key, value]) => (
-              <div key={key} className="flex items-center justify-between text-xs">
-                <span className="text-components-system-version-tag-label">{key}</span>
-                <span className="font-mono font-medium text-components-system-version-tag-value">{value}</span>
-              </div>
-            ))}
-            {remainingSecondaryMetricsCount > 0 && (
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-components-system-version-tag-label">更多指标</span>
-                <span className="font-medium text-components-system-accent-text">+{remainingSecondaryMetricsCount}</span>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Error Message */}
-        {error && (
-          <div className="mt-3 rounded-lg border border-components-system-health-error-border bg-components-system-health-error-bg p-2.5">
-            <p className="text-xs leading-relaxed text-components-system-health-error-text">{error}</p>
-          </div>
-        )}
       </div>
-    </div>
-  )
-})
+    )
+  },
+)
 
 StatusCard.displayName = 'StatusCard'
 

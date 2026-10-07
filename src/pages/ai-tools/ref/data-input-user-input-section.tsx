@@ -98,7 +98,7 @@ export const UserInputSection: React.FC<UserInputSectionProps> = ({
       {userInputMode === 'file' && (
         <div className="space-y-3">
           {/* 上传区域 */}
-          <label className="hover:bg-background-body-subtle flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border-default p-6 transition-colors hover:border-primary/50">
+          <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border-default p-6 transition-colors hover:border-primary/50 hover:bg-background-subtle">
             <input
               type="file"
               className="hidden"
@@ -139,7 +139,7 @@ export const UserInputSection: React.FC<UserInputSectionProps> = ({
                 {uploadedFiles.map((file) => (
                   <div
                     key={file.id}
-                    className="bg-background-body-subtle flex items-center justify-between rounded-md p-2"
+                    className="flex items-center justify-between rounded-md bg-background-subtle p-2"
                   >
                     <div className="flex min-w-0 items-center gap-2">
                       <FileText className="h-4 w-4 shrink-0 text-text-secondary" />

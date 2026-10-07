@@ -13,7 +13,6 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Dropdown, DropdownItem } from '@/components/ui/dropdown'
-import { getAvatarGradient } from '@/components/ui/resource-list'
 import {
   cn,
   formatRelativeTime,
@@ -27,6 +26,7 @@ import {
   resolveLocalizedText,
 } from '@/lib/agent'
 import type { AgentFlow } from '@/types/agent'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 
 export type AgentTimeFormat = 'detailed' | 'compact' | 'relative'
 
@@ -68,7 +68,6 @@ export function AgentCard({
   const description = resolveLocalizedText(flow.description, '')
   const pipeline = isPipelineFlow(flow)
   const nodeCount = countFlowNodes(flow)
-  const avatarGradient = getAvatarGradient(title)
 
   const handleEdit = (event: MouseEvent) => {
     event.stopPropagation()
@@ -93,27 +92,6 @@ export function AgentCard({
   const handleViewLogs = (event: MouseEvent) => {
     event.stopPropagation()
     onViewLogs?.(flow)
-  }
-
-  const renderAvatar = () => {
-    if (flow.avatar) {
-      const src =
-        flow.avatar.startsWith('data:') || flow.avatar.startsWith('http')
-          ? flow.avatar
-          : `data:image/png;base64,${flow.avatar}`
-      return (
-        <img
-          src={src}
-          alt={title}
-          className="h-12 w-12 rounded-xl object-cover"
-          onError={(event) => {
-            event.currentTarget.style.display = 'none'
-            event.currentTarget.nextElementSibling?.classList.remove('hidden')
-          }}
-        />
-      )
-    }
-    return null
   }
 
   return (
@@ -178,21 +156,12 @@ export function AgentCard({
         <div className="relative p-4 pt-5">
           <div className="mb-3 flex items-start justify-between pr-space-xl">
             <div className="flex min-w-0 flex-1 items-center gap-3">
-              <div className="relative">
-                {renderAvatar()}
-                <div
-                  className={cn(
-                    'flex h-12 w-12 items-center justify-center rounded-xl',
-                    'bg-linear-to-br shadow-elevation-low',
-                    avatarGradient,
-                    flow.avatar && 'hidden',
-                  )}
-                >
-                  <span className="text-xl font-semibold text-white">
-                    {title.charAt(0).toUpperCase()}
-                  </span>
-                </div>
-              </div>
+              <EntityAvatar
+                name={title}
+                src={flow.avatar}
+                seed={flow.id}
+                size="xl"
+              />
 
               <div className="min-w-0 flex-1">
                 <h3 className="truncate font-semibold text-text-primary">

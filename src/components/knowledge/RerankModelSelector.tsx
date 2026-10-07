@@ -62,7 +62,7 @@ const ModelOptionLabel: React.FC<{
         <span className="block truncate">{modelName}</span>
       </div>
       <div className="flex shrink-0 items-center gap-1 text-xs text-text-tertiary">
-        <Zap className="h-3 w-3 text-success" />
+        <Zap className="h-3 w-3 text-status-success" />
         <span>{formatTokens(maxTokens)}</span>
       </div>
     </div>
@@ -146,7 +146,7 @@ export const RerankModelSelector: React.FC<RerankModelSelectorProps> = ({
         <label className="block text-xs font-medium text-text-primary">
           {t('knowledge.search.rerank.label')}
         </label>
-        <div className="bg-surface-secondary flex h-10 w-full items-center rounded-md border border-border px-3 py-2">
+        <div className="flex h-10 w-full items-center rounded-md border border-border bg-surface-secondary px-3 py-2">
           <div
             className="h-3 w-3 animate-spin rounded-full border-b-2"
             style={{
@@ -167,9 +167,9 @@ export const RerankModelSelector: React.FC<RerankModelSelectorProps> = ({
         <label className="block text-xs font-medium text-text-primary">
           {t('knowledge.search.rerank.label')}
         </label>
-        <div className="bg-error/10 flex h-10 w-full items-center rounded-md border border-error px-3 py-2">
-          <AlertCircle className="h-3 w-3 text-error" />
-          <span className="ml-2 text-xs text-error">{error}</span>
+        <div className="flex h-10 w-full items-center rounded-md border border-status-error-border bg-status-error-subtle px-3 py-2">
+          <AlertCircle className="h-3 w-3 text-status-error" />
+          <span className="ml-2 text-xs text-status-error">{error}</span>
         </div>
       </div>
     )

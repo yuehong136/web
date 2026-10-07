@@ -1,48 +1,36 @@
 import type { BubbleProps } from '@ant-design/x'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Bot } from 'lucide-react'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
+import { useCurrentUserAvatar } from '@/hooks/use-current-user-avatar'
 import { ChatBubbleLoading } from '@/components/chat/ChatBubbleLoading'
 import '@/components/chat/app-chat-message.css'
 
 export interface AppChatIdentity {
+  /** App id; keeps the monogram tone it has in the app lists. */
+  id?: string
   name?: string
   icon?: string
 }
+
+/** The assistant speaks as the app; the user is the signed-in account. */
 export function AppChatAvatar({
   role,
+  id,
   name,
   icon,
 }: AppChatIdentity & { role: 'user' | 'assistant' }) {
-  const source =
-    icon &&
-    (icon.startsWith('data:') || icon.startsWith('http')
-      ? icon
-      : `data:image/png;base64,${icon}`)
-  return (
-    <Avatar
-      className="size-8 shrink-0"
-      aria-label={role === 'assistant' ? name || 'AI' : undefined}
-    >
-      {role === 'assistant' && source && (
-        <AvatarImage src={source} alt={name || 'AI'} />
-      )}
-      <AvatarFallback
-        className={
-          role === 'user'
-            ? 'text-sm font-medium'
-            : 'text-sm font-bold text-text-inverted'
-        }
-        style={
-          role === 'user'
-            ? {
-                background: 'var(--color-chat-bubble-user-avatar-bg)',
-                color: 'var(--color-chat-bubble-user-avatar-text)',
-              }
-            : { background: 'var(--color-components-gradient-primary)' }
-        }
-      >
-        {role === 'user' ? 'U' : 'AI'}
-      </AvatarFallback>
-    </Avatar>
+  const user = useCurrentUserAvatar()
+  return role === 'user' ? (
+    <EntityAvatar {...user} shape="circle" />
+  ) : (
+    <EntityAvatar
+      name={name}
+      src={icon}
+      seed={id}
+      shape="circle"
+      icon={name ? undefined : <Bot />}
+      labelled
+    />
   )
 }
 

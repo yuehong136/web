@@ -27,9 +27,9 @@ function formatShortId(value?: string) {
 
 function DetailRow({ label, value }: { label: string; value: ReactNode }) {
   return (
-    <div className="gap-space-sm py-space-xs grid grid-cols-[96px_1fr] border-b border-border-subtle last:border-b-0">
+    <div className="grid grid-cols-[96px_1fr] gap-space-sm border-b border-border-subtle py-space-xs last:border-b-0">
       <div className="text-xs text-text-tertiary">{label}</div>
-      <div className="min-w-0 break-words text-xs text-text-primary">
+      <div className="min-w-0 text-xs break-words text-text-primary">
         {value}
       </div>
     </div>
@@ -48,9 +48,9 @@ export function TraceSpanDetail({ span }: { span?: TraceSpanViewModel }) {
   return (
     <section className="border-b border-components-split-pane-border bg-components-console-surface">
       <div className="px-space-lg py-space-base">
-        <div className="gap-space-base flex min-w-0 items-start justify-between">
+        <div className="flex min-w-0 items-start justify-between gap-space-base">
           <div className="min-w-0">
-            <div className="gap-space-sm flex min-w-0 items-center">
+            <div className="flex min-w-0 items-center gap-space-sm">
               <h4 className="truncate text-base font-semibold text-text-primary">
                 {span.name}
               </h4>
@@ -58,7 +58,7 @@ export function TraceSpanDetail({ span }: { span?: TraceSpanViewModel }) {
                 {TRACE_SPAN_STATUS_LABELS[span.status]}
               </Badge>
             </div>
-            <div className="mt-space-xs gap-x-space-base gap-y-space-xs flex flex-wrap items-center text-xs text-text-tertiary">
+            <div className="mt-space-xs flex flex-wrap items-center gap-x-space-base gap-y-space-xs text-xs text-text-tertiary">
               <span>类型 {TRACE_SPAN_KIND_LABELS[span.kind]}</span>
               <span>耗时 {formatTraceDuration(span.duration)}</span>
               <span className="inline-flex min-w-0 items-center">
@@ -72,19 +72,19 @@ export function TraceSpanDetail({ span }: { span?: TraceSpanViewModel }) {
         </div>
 
         {span.error ? (
-          <div className="mt-space-base rounded-radius-md border-status-error bg-status-error/10 p-space-sm text-status-error border">
-            <div className="mb-space-xs gap-space-xs flex items-center text-xs font-semibold">
+          <div className="mt-space-base rounded-radius-md border border-status-error-border bg-status-error-subtle p-space-sm text-status-error">
+            <div className="mb-space-xs flex items-center gap-space-xs text-xs font-semibold">
               <AlertTriangle className="size-3.5" />
               错误
             </div>
-            <pre className="whitespace-pre-wrap break-words text-xs">
+            <pre className="text-xs break-words whitespace-pre-wrap">
               {span.error}
             </pre>
           </div>
         ) : null}
       </div>
 
-      <div className="px-space-lg py-space-sm md:gap-x-space-xl grid border-t border-border-subtle md:grid-cols-2">
+      <div className="grid border-t border-border-subtle px-space-lg py-space-sm md:grid-cols-2 md:gap-x-space-xl">
         {span.componentId ? (
           <DetailRow label="组件" value={span.componentId} />
         ) : null}

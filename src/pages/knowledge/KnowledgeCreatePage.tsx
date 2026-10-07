@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { ROUTES } from '@/constants'
-import { cn } from '@/lib/utils'
 import { CreateKnowledgeForm } from './create/create-knowledge-form'
 
 export const KnowledgeCreatePage: FC = () => {
@@ -38,14 +37,8 @@ export const KnowledgeCreatePage: FC = () => {
           </Button>
 
           <div className="flex items-center gap-space-base">
-            <div
-              className={cn(
-                'flex h-12 w-12 items-center justify-center rounded-radius-xl',
-                'bg-linear-to-br from-components-avatar-gradient-indigo-from to-components-avatar-gradient-indigo-to',
-                'shadow-elevation-low',
-              )}
-            >
-              <Database className="h-6 w-6 text-text-inverted" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-radius-xl bg-state-selected-bg text-state-selected-text">
+              <Database className="size-icon-lg" />
             </div>
             <div>
               <h1 className="text-2xl font-semibold text-text-primary">

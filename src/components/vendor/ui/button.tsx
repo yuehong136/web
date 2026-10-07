@@ -11,7 +11,7 @@ const buttonVariants = cva(
         default:
           'bg-components-button-primary-bg text-components-button-primary-text shadow-sm hover:bg-components-button-primary-bg-hover active:bg-components-button-primary-bg-active',
         destructive:
-          'bg-status-error text-text-inverted shadow-xs hover:brightness-90',
+          'bg-status-error-solid text-status-error-on-solid shadow-xs hover:bg-status-error-solid-hover',
         outline:
           'border border-components-button-secondary-border bg-components-button-secondary-bg text-components-button-secondary-text shadow-xs hover:border-components-button-secondary-border-hover hover:bg-components-button-secondary-bg-hover',
         secondary:

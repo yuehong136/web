@@ -128,7 +128,7 @@ export function RuntimeThoughtPayload({
   }
 
   return (
-    <div className="space-y-space-xs rounded-radius-md bg-surface-secondary p-space-sm border border-border-subtle">
+    <div className="space-y-space-xs rounded-radius-md border border-border-subtle bg-surface-secondary p-space-sm">
       <div
         className={
           tone === 'error'
@@ -143,16 +143,16 @@ export function RuntimeThoughtPayload({
           data={value}
           className={
             tone === 'error'
-              ? 'bg-status-error/10 max-h-44 max-w-full whitespace-pre-wrap break-words text-status-error'
-              : 'bg-surface-primary max-h-44 max-w-full whitespace-pre-wrap break-words text-text-secondary'
+              ? 'max-h-44 max-w-full bg-status-error-subtle break-words whitespace-pre-wrap text-status-error'
+              : 'max-h-44 max-w-full bg-surface-primary break-words whitespace-pre-wrap text-text-secondary'
           }
         />
       ) : (
         <pre
           className={
             tone === 'error'
-              ? 'rounded-radius-sm bg-status-error/10 p-space-sm max-h-44 max-w-full overflow-auto whitespace-pre-wrap break-words text-xs text-status-error'
-              : 'rounded-radius-sm bg-surface-primary p-space-sm max-h-44 max-w-full overflow-auto whitespace-pre-wrap break-words text-xs text-text-secondary'
+              ? 'max-h-44 max-w-full overflow-auto rounded-radius-sm bg-status-error-subtle p-space-sm text-xs break-words whitespace-pre-wrap text-status-error'
+              : 'max-h-44 max-w-full overflow-auto rounded-radius-sm bg-surface-primary p-space-sm text-xs break-words whitespace-pre-wrap text-text-secondary'
           }
         >
           {content}

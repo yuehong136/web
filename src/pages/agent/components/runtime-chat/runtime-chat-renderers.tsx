@@ -16,6 +16,7 @@ import type {
   RuntimeAttachment,
   RuntimeMessage,
 } from '../../features/runtime-workbench/types'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 
 interface RuntimeChatMarkdownProps {
   content: string
@@ -31,20 +32,13 @@ export function getReferenceChunks(reference: unknown): ReferenceChunk[] {
   return extractReferencesFromSSEData({ reference })
 }
 
+// Share and widget visitors are anonymous, so both roles use neutral icons.
 export function AssistantAvatar() {
-  return (
-    <div className="flex size-8 shrink-0 items-center justify-center rounded-radius-full bg-chat-bubble-assistant-avatar-bg text-chat-bubble-assistant-avatar-text">
-      <Bot className="size-4" />
-    </div>
-  )
+  return <EntityAvatar shape="circle" tone="neutral" icon={<Bot />} />
 }
 
 export function UserAvatar() {
-  return (
-    <div className="flex size-8 shrink-0 items-center justify-center rounded-radius-full bg-chat-bubble-user-avatar-bg text-chat-bubble-user-avatar-text">
-      <User className="size-4" />
-    </div>
-  )
+  return <EntityAvatar shape="circle" tone="neutral" icon={<User />} />
 }
 
 export function RuntimeChatMarkdown({

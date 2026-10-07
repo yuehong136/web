@@ -203,7 +203,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                 zIndex: zIndex,
                 backgroundColor: 'var(--color-components-dropdown-bg)',
                 border: '1px solid var(--color-components-dropdown-border)',
-                boxShadow: 'var(--color-components-dropdown-shadow)',
+                boxShadow: 'var(--elevation-medium)',
               }}
             >
               <div className="scrollbar-thin max-h-64 overflow-y-auto">

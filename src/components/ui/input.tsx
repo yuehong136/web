@@ -3,14 +3,15 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 const inputVariants = cva(
-  'flex w-full rounded-xl border px-4 py-3 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus:ring-0 focus-visible:ring-0 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 transition-colors',
+  'flex w-full rounded-xl border bg-components-input-bg px-4 py-3 text-sm text-components-input-text file:border-0 file:bg-transparent file:text-sm file:font-medium focus:bg-components-input-bg-focus focus:ring-0 focus-visible:ring-0 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 transition-colors',
   {
     variants: {
       variant: {
-        default: '',
-        destructive: '',
-        success: '',
-        warning: '',
+        default:
+          'border-components-input-border focus:border-components-input-border-focus',
+        destructive: 'border-components-input-border-error',
+        success: 'border-status-success',
+        warning: 'border-status-warning',
       },
       inputSize: {
         default: 'h-12',
@@ -51,9 +52,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       label,
       required,
       id,
-      style,
-      onFocus,
-      onBlur,
+      'aria-invalid': ariaInvalid,
+      'aria-describedby': ariaDescribedBy,
       ...props
     },
     ref,
@@ -61,107 +61,56 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     const reactId = React.useId()
     const inputId = id || reactId
     const hasError = !!error
-    const effectiveVariant = hasError ? 'destructive' : variant
-    const [isFocused, setIsFocused] = React.useState(false)
-
-    const getBorderColor = () => {
-      if (isFocused) {
-        switch (effectiveVariant) {
-          case 'destructive':
-            return 'var(--color-components-input-border-error)'
-          case 'success':
-            return 'var(--color-status-success-border)'
-          case 'warning':
-            return 'var(--color-status-warning-border)'
-          default:
-            return 'var(--color-components-input-border-focus)'
-        }
-      }
-      switch (effectiveVariant) {
-        case 'destructive':
-          return 'var(--color-components-input-border-error)'
-        case 'success':
-          return 'var(--color-status-success-border)'
-        case 'warning':
-          return 'var(--color-status-warning-border)'
-        default:
-          return 'var(--color-components-input-border)'
-      }
-    }
-
-    const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-      setIsFocused(true)
-      onFocus?.(e)
-    }
-
-    const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-      setIsFocused(false)
-      onBlur?.(e)
-    }
+    const messageId = `${inputId}-message`
+    const describedBy =
+      [ariaDescribedBy, error || helpText ? messageId : undefined]
+        .filter(Boolean)
+        .join(' ') || undefined
 
     return (
       <div className="space-y-2">
         {label && (
           <label
             htmlFor={inputId}
-            className="text-sm font-medium"
-            style={{ color: 'var(--color-text-primary)' }}
+            className="text-sm font-medium text-text-primary"
           >
             {label}
-            {required && (
-              <span
-                style={{ color: 'var(--color-status-error-text)' }}
-                className="ml-1"
-              >
-                *
-              </span>
-            )}
+            {required && <span className="ml-1 text-status-error">*</span>}
           </label>
         )}
         <div className="relative">
           {leftIcon && (
-            <div
-              className="absolute top-1/2 left-4 -translate-y-1/2 transform"
-              style={{ color: 'var(--color-text-tertiary)' }}
-            >
+            <div className="absolute top-1/2 left-4 -translate-y-1/2 transform text-text-tertiary">
               {leftIcon}
             </div>
           )}
           <input
             type={type}
             className={cn(
-              inputVariants({ variant: effectiveVariant, inputSize }),
+              inputVariants({
+                variant: hasError ? 'destructive' : variant,
+                inputSize,
+              }),
               leftIcon && 'pl-11',
               rightIcon && 'pr-11',
               className,
             )}
-            style={{
-              backgroundColor: isFocused
-                ? 'var(--color-components-input-bg-focus)'
-                : 'var(--color-components-input-bg)',
-              borderColor: getBorderColor(),
-              color: 'var(--color-components-input-text)',
-              ...style,
-            }}
             ref={ref}
             id={inputId}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
+            aria-invalid={hasError || ariaInvalid}
+            aria-describedby={describedBy}
             {...props}
           />
           {rightIcon && (
-            <div
-              className="absolute top-1/2 right-4 -translate-y-1/2 transform"
-              style={{ color: 'var(--color-text-tertiary)' }}
-            >
+            <div className="absolute top-1/2 right-4 -translate-y-1/2 transform text-text-tertiary">
               {rightIcon}
             </div>
           )}
         </div>
         {error && (
           <p
-            className="flex items-center gap-1 text-sm"
-            style={{ color: 'var(--color-status-error-text)' }}
+            id={messageId}
+            className="flex items-center gap-1 text-sm text-status-error"
           >
             <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
               <path
@@ -174,10 +123,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           </p>
         )}
         {helpText && !error && (
-          <p
-            className="text-sm"
-            style={{ color: 'var(--color-text-tertiary)' }}
-          >
+          <p id={messageId} className="text-sm text-text-tertiary">
             {helpText}
           </p>
         )}

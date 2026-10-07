@@ -19,7 +19,7 @@ const STATUS_TEXT_CLASSES: Record<AgentLogStatus, string> = {
   [AgentLogStatus.ALL]: 'text-text-tertiary',
   [AgentLogStatus.OK]: 'text-text-tertiary',
   [AgentLogStatus.ERR]:
-    'border border-status-error bg-status-error-subtle px-space-xs py-[2px] text-status-error',
+    'border border-status-error-border bg-status-error-subtle px-space-xs py-[2px] text-status-error',
   [AgentLogStatus.RUN]: 'text-text-secondary',
   [AgentLogStatus.WARN]: 'text-status-warning',
 }
@@ -58,17 +58,17 @@ export function SessionListRow({
       )}
     >
       {active ? (
-        <div className="absolute bottom-0 left-0 top-0 w-[2px] bg-state-focus" />
+        <div className="absolute top-0 bottom-0 left-0 w-[2px] bg-state-focus" />
       ) : null}
       <button
         type="button"
-        className="gap-space-sm px-space-base py-space-base hover:bg-surface-secondary flex w-full flex-col text-left transition-colors"
+        className="flex w-full flex-col gap-space-sm px-space-base py-space-base text-left transition-colors hover:bg-surface-secondary"
         onClick={() => onSelect(session.id)}
       >
-        <div className="gap-space-sm flex min-w-0 items-start">
+        <div className="flex min-w-0 items-start gap-space-sm">
           <span
             className={cn(
-              'rounded-radius-full mt-[7px] h-1.5 w-1.5 shrink-0',
+              'mt-[7px] h-1.5 w-1.5 shrink-0 rounded-radius-full',
               STATUS_DOT_CLASSES[status],
             )}
           />
@@ -77,7 +77,7 @@ export function SessionListRow({
           </span>
           <span
             className={cn(
-              'gap-space-xs rounded-radius-full inline-flex shrink-0 items-center text-[11px] font-medium',
+              'inline-flex shrink-0 items-center gap-space-xs rounded-radius-full text-[11px] font-medium',
               STATUS_TEXT_CLASSES[status],
             )}
           >
@@ -85,11 +85,11 @@ export function SessionListRow({
           </span>
         </div>
 
-        <div className="gap-space-xs flex min-w-0 items-center text-xs text-text-tertiary">
+        <div className="flex min-w-0 items-center gap-space-xs text-xs text-text-tertiary">
           <span className="shrink-0 font-mono">{updateTime}</span>
-          <span className="rounded-radius-full bg-text-caption h-[3px] w-[3px] shrink-0" />
+          <span className="h-[3px] w-[3px] shrink-0 rounded-radius-full bg-text-caption" />
           <span>{session.round ?? session.message_count ?? 0} 轮</span>
-          <span className="rounded-radius-full bg-text-caption h-[3px] w-[3px] shrink-0" />
+          <span className="h-[3px] w-[3px] shrink-0 rounded-radius-full bg-text-caption" />
           <span>耗时 {formatDuration(session.duration)}</span>
         </div>
 
@@ -103,7 +103,7 @@ export function SessionListRow({
         ) : null}
 
         {errorSummary ? (
-          <div className="gap-space-xs rounded-radius-sm px-space-sm py-space-xs flex min-w-0 items-center border border-status-error bg-status-error-subtle text-xs text-status-error">
+          <div className="flex min-w-0 items-center gap-space-xs rounded-radius-sm border border-status-error-border bg-status-error-subtle px-space-sm py-space-xs text-xs text-status-error">
             <AlertTriangle className="size-3.5 shrink-0" />
             <span className="truncate">{errorSummary}</span>
           </div>

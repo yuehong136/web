@@ -17,22 +17,25 @@ const roleConfig = {
   [TenantRole.Owner]: {
     label: '所有者',
     icon: Crown,
-    className: 'bg-[var(--color-status-warning-bg)] text-[var(--color-status-warning-text)]',
+    className: 'bg-status-warning-subtle text-status-warning',
   },
   [TenantRole.Admin]: {
     label: '管理员',
     icon: Shield,
-    className: 'bg-[var(--color-components-badge-purple-bg)] text-[var(--color-components-badge-purple-text)]',
+    className:
+      'bg-components-badge-purple-bg text-components-badge-purple-text',
   },
   [TenantRole.Normal]: {
     label: '成员',
     icon: UserCheck,
-    className: 'bg-[var(--color-background-subtle)] text-[var(--color-text-secondary)]',
+    className:
+      'bg-[var(--color-background-subtle)] text-[var(--color-text-secondary)]',
   },
   [TenantRole.Invite]: {
     label: '待接受',
     icon: Clock,
-    className: 'bg-[var(--color-components-badge-blue-bg)] text-[var(--color-components-badge-blue-text)]',
+    className:
+      'bg-[var(--color-components-badge-blue-bg)] text-[var(--color-components-badge-blue-text)]',
   },
 }
 
@@ -43,9 +46,9 @@ export const RoleBadge: React.FC<RoleBadgeProps> = ({ role, className }) => {
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium',
+        'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium',
         config.className,
-        className
+        className,
       )}
     >
       <Icon className="h-3 w-3" />

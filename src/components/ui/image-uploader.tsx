@@ -262,7 +262,7 @@ export function ImageUploader(props: ImageUploaderProps) {
                     variant="ghost"
                     size="sm"
                     onClick={() => onRemove(index)}
-                    className="text-status-error hover:bg-status-error-10 hover:text-status-error"
+                    className="text-status-error hover:bg-status-error-subtle hover:text-status-error"
                   >
                     <Trash2 className="mr-1 h-4 w-4" />
                     移除
@@ -426,7 +426,7 @@ export function ImageUploader(props: ImageUploaderProps) {
                   variant="ghost"
                   size="sm"
                   onClick={() => onRemove(index)}
-                  className="text-status-error hover:bg-status-error-10 hover:text-status-error"
+                  className="text-status-error hover:bg-status-error-subtle hover:text-status-error"
                 >
                   <Trash2 className="mr-1 h-4 w-4" />
                   移除

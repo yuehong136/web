@@ -1591,10 +1591,8 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
 
           {/* 错误提示 */}
           {error && (
-            <div className="rounded-xl border border-[var(--color-status-error-border)] bg-[var(--color-status-error-bg)] p-3">
-              <p className="text-sm text-[var(--color-status-error)]">
-                {error}
-              </p>
+            <div className="rounded-xl border border-status-error-border bg-status-error-subtle p-3">
+              <p className="text-sm text-status-error">{error}</p>
             </div>
           )}
 
@@ -1604,8 +1602,8 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
               <p
                 className={
                   verifyResult.isValid
-                    ? 'text-sm text-[var(--color-status-success)]'
-                    : 'text-sm text-[var(--color-status-error)]'
+                    ? 'text-sm text-status-success'
+                    : 'text-sm text-status-error'
                 }
               >
                 {isPaddleOCR

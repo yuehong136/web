@@ -4,7 +4,7 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from './utils'
 
 const badgeVariants = cva(
-  'inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-state-focus focus-visible:ring-state-focus/20 focus-visible:ring-[3px] aria-invalid:ring-status-error/20 aria-invalid:border-status-error transition-[color,box-shadow] overflow-hidden',
+  'inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-state-focus focus-visible:ring-state-focus/20 focus-visible:ring-[3px] aria-invalid:ring-status-error-subtle-hover aria-invalid:border-status-error transition-[color,box-shadow] overflow-hidden',
   {
     variants: {
       variant: {
@@ -13,7 +13,7 @@ const badgeVariants = cva(
         secondary:
           'border-transparent bg-components-badge-neutral-bg text-components-badge-neutral-text [a&]:hover:bg-state-hover',
         destructive:
-          'border-transparent bg-components-badge-error-bg text-components-badge-error-text [a&]:hover:bg-status-error-10',
+          'border-transparent bg-components-badge-error-bg text-components-badge-error-text [a&]:hover:bg-status-error-subtle-hover',
         outline:
           'border-border-default text-text-primary [a&]:hover:bg-state-hover',
       },

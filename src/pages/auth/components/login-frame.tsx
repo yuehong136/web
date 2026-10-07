@@ -13,10 +13,10 @@ export const LoginFrame: React.FC<LoginFrameProps> = ({
   if (desktop) {
     return (
       <main
-        className="p-space-xl flex min-h-screen items-center justify-center bg-components-app-shell-bg"
+        className="flex min-h-screen items-center justify-center bg-components-app-shell-bg p-space-xl"
         data-auth-frame="desktop"
       >
-        <section className="rounded-radius-xl shadow-elevation-high p-space-xl w-full max-w-lg border border-components-main-workbench-border bg-components-main-workbench-surface">
+        <section className="w-full max-w-lg rounded-radius-xl border border-components-main-workbench-border bg-components-main-workbench-surface p-space-xl shadow-elevation-high">
           {children}
         </section>
       </main>
@@ -25,13 +25,10 @@ export const LoginFrame: React.FC<LoginFrameProps> = ({
 
   return (
     <main className="flex min-h-screen" data-auth-frame="web">
-      <AuthCarousel
-        gradientFrom="from-components-button-primary-bg"
-        gradientTo="to-state-focus"
-      />
+      <AuthCarousel />
       <section
         className={cn(
-          'px-space-xl py-space-2xl flex flex-1 flex-col justify-center bg-background-body',
+          'flex flex-1 flex-col justify-center bg-background-body px-space-xl py-space-2xl',
           'lg:px-space-2xl',
         )}
       >

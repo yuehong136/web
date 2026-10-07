@@ -141,7 +141,7 @@ function AgentToolStepContent({ node }: { node: AgentTimelineNode }) {
         value={args}
       />
       {error ? (
-        <div className="rounded-radius-sm border border-status-error-subtle bg-status-error-subtle px-space-sm py-space-xs text-sm text-status-error">
+        <div className="rounded-radius-sm border border-status-error-border bg-status-error-subtle px-space-sm py-space-xs text-sm text-status-error">
           {stringifyValue(error)}
         </div>
       ) : null}

@@ -127,8 +127,8 @@ export const ReparseConfirmModal: FC<ReparseConfirmModalProps> = ({
         {/* Header */}
         <div className="px-6 pt-6 pb-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--color-primary)]/10">
-              <Play className="h-4 w-4 text-[var(--color-primary)]" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-state-selected-bg text-state-selected-text">
+              <Play className="h-4 w-4" />
             </div>
             <SheetTitle
               id={titleId}
@@ -159,7 +159,7 @@ export const ReparseConfirmModal: FC<ReparseConfirmModalProps> = ({
                 }
                 disabled={isLoading}
                 icon={<Trash2 className="h-4 w-4" />}
-                iconColor="text-[var(--color-status-error)]"
+                iconColor="text-status-error"
                 title={t('knowledge.documents.reparse.clearChunksTitle', {
                   count: stats.totalChunks,
                 })}
@@ -181,7 +181,7 @@ export const ReparseConfirmModal: FC<ReparseConfirmModalProps> = ({
                 }
                 disabled={isLoading}
                 icon={<Tag className="h-4 w-4" />}
-                iconColor="text-[var(--color-primary)]"
+                iconColor="text-state-selected-text"
                 title={t('knowledge.documents.reparse.applyMetadataTitle')}
                 description={
                   metadataFieldCount > 0
@@ -261,7 +261,7 @@ const OptionCard: FC<OptionCardProps> = ({
         disabled
           ? 'border-[var(--color-border-subtle)] bg-[var(--color-surface-secondary)]/50 opacity-60'
           : checked
-            ? 'border-[var(--color-primary)]/30 bg-[var(--color-primary)]/5'
+            ? 'border-state-selected bg-state-selected-bg'
             : 'border-[var(--color-border-default)] bg-[var(--color-background-surface)] hover:border-[var(--color-border-accent)]',
       )}
     >
@@ -292,7 +292,7 @@ const OptionCard: FC<OptionCardProps> = ({
             </p>
           )}
           {warning && (
-            <p className="flex items-center gap-1.5 text-xs leading-relaxed text-[var(--color-status-warning)]">
+            <p className="flex items-center gap-1.5 text-xs leading-relaxed text-status-warning">
               <AlertCircle className="h-3 w-3 shrink-0" />
               <span>{warning}</span>
             </p>

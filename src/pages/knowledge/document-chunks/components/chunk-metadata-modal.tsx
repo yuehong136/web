@@ -141,7 +141,7 @@ export const ChunkMetadataModal = ({
                   variant="ghost"
                   size="icon-sm"
                   onClick={() => onRemoveMetaField(item.id)}
-                  className="text-text-error"
+                  className="text-status-error"
                   aria-label={t('knowledge.chunks.modal.removeMetadataField')}
                 >
                   <X className="h-4 w-4" />

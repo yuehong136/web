@@ -32,7 +32,9 @@ const STATUS_VARIANT_MAP: Record<
 }
 
 function getStatusVariant(status?: string) {
-  return STATUS_VARIANT_MAP[String(status || 'unknown').toLowerCase()] || 'outline'
+  return (
+    STATUS_VARIANT_MAP[String(status || 'unknown').toLowerCase()] || 'outline'
+  )
 }
 
 function renderTraceMessages(item: AgentTraceItem) {
@@ -43,7 +45,10 @@ function renderTraceMessages(item: AgentTraceItem) {
         ? entry.message
         : undefined,
     )
-    .filter((message): message is string => typeof message === 'string' && Boolean(message))
+    .filter(
+      (message): message is string =>
+        typeof message === 'string' && Boolean(message),
+    )
 
   if (!messages.length) {
     return null
@@ -59,7 +64,13 @@ function renderTraceMessages(item: AgentTraceItem) {
   )
 }
 
-function TraceItem({ item, depth = 0 }: { item: AgentTraceItem; depth?: number }) {
+function TraceItem({
+  item,
+  depth = 0,
+}: {
+  item: AgentTraceItem
+  depth?: number
+}) {
   const children = item.traces || []
   const status = String(item.status || 'unknown')
 
@@ -93,19 +104,23 @@ function TraceItem({ item, depth = 0 }: { item: AgentTraceItem; depth?: number }
             <div className="space-y-space-sm">
               {item.inputs ? (
                 <div>
-                  <p className="mb-space-xs text-xs text-text-tertiary">Inputs</p>
+                  <p className="mb-space-xs text-xs text-text-tertiary">
+                    Inputs
+                  </p>
                   <JsonViewer data={item.inputs} />
                 </div>
               ) : null}
               {item.outputs ? (
                 <div>
-                  <p className="mb-space-xs text-xs text-text-tertiary">Outputs</p>
+                  <p className="mb-space-xs text-xs text-text-tertiary">
+                    Outputs
+                  </p>
                   <JsonViewer data={item.outputs} />
                 </div>
               ) : null}
               {renderTraceMessages(item)}
               {item.message ? (
-                <pre className="max-h-[180px] overflow-auto rounded-radius-sm bg-status-error/10 p-space-sm text-xs text-status-error">
+                <pre className="max-h-[180px] overflow-auto rounded-radius-sm bg-status-error-subtle p-space-sm text-xs text-status-error">
                   {item.message}
                 </pre>
               ) : null}
@@ -128,7 +143,10 @@ function TraceItem({ item, depth = 0 }: { item: AgentTraceItem; depth?: number }
   )
 }
 
-export function TraceTimeline({ items, unavailableReason }: TraceTimelineProps) {
+export function TraceTimeline({
+  items,
+  unavailableReason,
+}: TraceTimelineProps) {
   if (!items.length) {
     const message =
       unavailableReason === 'fetching'

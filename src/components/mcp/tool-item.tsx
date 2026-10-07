@@ -47,7 +47,7 @@ export const ToolItem: React.FC<{ tool: MCPTool }> = ({ tool }) => {
               {tool.name}
             </span>
             {paramKeys.length > 0 && (
-              <span className="text-xs tabular-nums text-[var(--color-text-muted)]">
+              <span className="text-xs text-[var(--color-text-muted)] tabular-nums">
                 {paramKeys.length} 参数
               </span>
             )}
@@ -65,7 +65,7 @@ export const ToolItem: React.FC<{ tool: MCPTool }> = ({ tool }) => {
         <div className="space-y-3 px-4 pb-3 pl-11">
           {/* 完整描述 */}
           {tool.description && (
-            <p className="whitespace-pre-wrap text-xs leading-relaxed text-[var(--color-text-secondary)]">
+            <p className="text-xs leading-relaxed whitespace-pre-wrap text-[var(--color-text-secondary)]">
               {tool.description}
             </p>
           )}
@@ -96,17 +96,15 @@ export const ToolItem: React.FC<{ tool: MCPTool }> = ({ tool }) => {
                     const isRequired = requiredKeys.includes(key)
                     return (
                       <tr key={key}>
-                        <td className="whitespace-nowrap px-3 py-1.5 font-mono text-[var(--color-text-primary)]">
+                        <td className="px-3 py-1.5 font-mono whitespace-nowrap text-[var(--color-text-primary)]">
                           {key}
                         </td>
-                        <td className="whitespace-nowrap px-3 py-1.5 text-[var(--color-text-tertiary)]">
+                        <td className="px-3 py-1.5 whitespace-nowrap text-[var(--color-text-tertiary)]">
                           {param?.type || '-'}
                         </td>
                         <td className="px-3 py-1.5 text-center">
                           {isRequired ? (
-                            <span className="text-[var(--color-status-error)]">
-                              *
-                            </span>
+                            <span className="text-status-error">*</span>
                           ) : (
                             <span className="text-[var(--color-text-muted)]">
                               -

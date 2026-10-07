@@ -140,7 +140,7 @@ export const EmbeddingModelSelector: FC<EmbeddingModelSelectorProps> = ({
             {label}
           </div>
         )}
-        <div className="bg-surface-secondary/50 flex h-10 w-full items-center rounded-md border border-border-default px-3 py-2">
+        <div className="flex h-10 w-full items-center rounded-md border border-border-default bg-surface-secondary/50 px-3 py-2">
           <div className="h-3 w-3 animate-spin rounded-full border-b-2 border-text-accent"></div>
           <span className="ml-2 text-sm text-text-tertiary">
             {t('knowledge.embeddingSelector.loading')}
@@ -158,7 +158,7 @@ export const EmbeddingModelSelector: FC<EmbeddingModelSelectorProps> = ({
             {label}
           </div>
         )}
-        <div className="flex h-10 w-full items-center rounded-md border border-status-error bg-status-error-subtle px-3 py-2">
+        <div className="flex h-10 w-full items-center rounded-md border border-status-error-border bg-status-error-subtle px-3 py-2">
           <AlertCircle className="h-3 w-3 text-status-error" />
           <span className="ml-2 text-sm text-status-error">{error}</span>
         </div>
@@ -174,7 +174,7 @@ export const EmbeddingModelSelector: FC<EmbeddingModelSelectorProps> = ({
             {label}
           </div>
         )}
-        <div className="flex h-10 w-full items-center rounded-md border border-status-warning bg-status-warning-subtle px-3 py-2">
+        <div className="flex h-10 w-full items-center rounded-md border border-status-warning-border bg-status-warning-subtle px-3 py-2">
           <AlertCircle className="h-3 w-3 text-status-warning" />
           <span className="ml-2 text-sm text-status-warning">
             {t('knowledge.embeddingSelector.empty')}

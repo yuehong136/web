@@ -6,17 +6,13 @@ import {
   FileText,
   Search,
   Settings,
-  Database,
   ScrollText,
   Network,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Loading } from '@/components/ui/loading'
 import { useFetchKnowledgeDetail } from '@/hooks/use-knowledge-request'
 import { ROUTES } from '@/constants'
-import { getAvatarGradient } from '@/components/ui/resource-list'
-import { cn } from '@/lib/utils'
 import { ConsolePageTemplate } from '@/components/page-templates'
 import {
   PageHeader,
@@ -26,33 +22,7 @@ import {
 import type { KnowledgeBase } from '@/types/api'
 import { useUIStore } from '@/stores/ui'
 import { useRegisterSecondaryNavigation } from '@/components/layout/workbench-navigation'
-
-const KnowledgeAvatar: React.FC<{ kb: KnowledgeBase }> = ({ kb }) => {
-  if (kb.avatar) {
-    return (
-      <Avatar className="h-10 w-10">
-        <AvatarImage src={kb.avatar} alt={kb.name} />
-        <AvatarFallback>
-          <Database className="h-5 w-5" />
-        </AvatarFallback>
-      </Avatar>
-    )
-  }
-  return (
-    <div
-      aria-hidden
-      className={cn(
-        'flex h-10 w-10 items-center justify-center rounded-xl',
-        'bg-linear-to-br shadow-xs',
-        getAvatarGradient(kb.name),
-      )}
-    >
-      <span className="text-lg font-semibold text-text-inverted">
-        {kb.name.charAt(0).toUpperCase()}
-      </span>
-    </div>
-  )
-}
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 
 const KnowledgeStats: React.FC<{ kb: KnowledgeBase }> = ({ kb }) => {
   const { t } = useTranslation()
@@ -205,7 +175,12 @@ const KnowledgeDetailLayout: React.FC = () => {
               >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
-              <KnowledgeAvatar kb={currentKnowledgeBase} />
+              <EntityAvatar
+                name={currentKnowledgeBase.name}
+                src={currentKnowledgeBase.avatar}
+                seed={currentKnowledgeBase.id}
+                size="lg"
+              />
             </>
           }
           title={currentKnowledgeBase.name}

@@ -161,7 +161,7 @@ export const ModelProviderCard: React.FC<ModelProviderCardProps> = ({
               {sortedTags.map((tag, index) => (
                 <span
                   key={index}
-                  className="rounded-md bg-accent/50 px-2 py-1 text-xs text-text-secondary"
+                  className="rounded-md bg-components-tag-bg px-2 py-1 text-xs text-text-secondary"
                 >
                   {tag}
                 </span>
@@ -169,7 +169,7 @@ export const ModelProviderCard: React.FC<ModelProviderCardProps> = ({
             </div>
 
             {/* 模型列表 */}
-            <div className="m-4 max-h-96 overflow-auto rounded-lg bg-accent/30">
+            <div className="m-4 max-h-96 overflow-auto rounded-lg">
               {llm.length === 0 ? (
                 <div className="py-8 text-center text-sm text-text-tertiary">
                   暂无模型
@@ -179,7 +179,7 @@ export const ModelProviderCard: React.FC<ModelProviderCardProps> = ({
                   <div
                     key={model.name}
                     className={cn(
-                      'flex items-center justify-between p-3 transition-colors hover:bg-accent/50',
+                      'flex items-center justify-between p-3 transition-colors hover:bg-state-hover',
                       index !== llm.length - 1 && 'border-b border-border',
                     )}
                   >
@@ -244,7 +244,7 @@ export const ModelProviderCard: React.FC<ModelProviderCardProps> = ({
             <AlertDialogCancel>取消</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-status-error-solid text-status-error-on-solid hover:bg-status-error-solid-hover"
             >
               确认删除
             </AlertDialogAction>

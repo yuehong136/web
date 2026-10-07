@@ -11,7 +11,7 @@ const buttonVariants = cva(
         default:
           'bg-components-button-primary-bg text-components-button-primary-text shadow-xs hover:bg-components-button-primary-bg-hover active:bg-components-button-primary-bg-active border border-components-button-primary-border hover:border-components-button-primary-border-hover',
         destructive:
-          'bg-status-error text-text-inverted shadow-xs hover:brightness-90',
+          'bg-status-error-solid text-status-error-on-solid shadow-xs hover:bg-status-error-solid-hover',
         outline:
           'border bg-components-button-secondary-bg text-components-button-secondary-text shadow-xs hover:bg-components-button-secondary-bg-hover border-components-button-secondary-border hover:border-components-button-secondary-border-hover',
         secondary:
@@ -20,9 +20,9 @@ const buttonVariants = cva(
           'hover:bg-components-button-ghost-bg-hover text-components-button-ghost-text',
         link: 'text-text-accent underline-offset-4 hover:underline',
         success:
-          'bg-status-success text-text-inverted shadow-xs hover:brightness-90',
+          'bg-status-success-solid text-status-success-on-solid shadow-xs hover:bg-status-success-solid-hover',
         warning:
-          'bg-status-warning text-text-inverted shadow-xs hover:brightness-90',
+          'bg-status-warning-solid text-status-warning-on-solid shadow-xs hover:bg-status-warning-solid-hover',
       },
       size: {
         default: 'h-9 px-4 py-2 has-[>svg]:px-3',

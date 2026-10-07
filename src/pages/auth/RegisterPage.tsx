@@ -73,10 +73,7 @@ export const RegisterPage: React.FC = () => {
 
   return (
     <div className="flex min-h-screen">
-      <AuthCarousel
-        gradientFrom="from-status-success"
-        gradientTo="to-state-focus"
-      />
+      <AuthCarousel />
       <div className="flex flex-1 flex-col justify-center bg-background-body px-8 py-12 lg:px-12">
         <div className="mx-auto w-full max-w-md">
           {/* Header */}
@@ -233,7 +230,7 @@ export const RegisterPage: React.FC = () => {
             已有账户？{' '}
             <Link
               to={ROUTES.LOGIN}
-              className="hover:text-text-accent/80 font-medium text-text-accent"
+              className="font-medium text-text-accent hover:text-text-accent/80"
             >
               立即登录
             </Link>

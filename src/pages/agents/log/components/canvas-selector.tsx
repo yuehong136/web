@@ -9,9 +9,9 @@ import {
 } from '@/components/ui/popover'
 import { resolveLocalizedText } from '@/lib/agent'
 import { cn } from '@/lib/utils'
-import { getAvatarGradient } from '@/components/ui/resource-list'
 import type { AgentFlow } from '@/types/agent'
 import { useCanvasPicker } from '../hooks/use-canvas-picker'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 
 interface CanvasSelectorProps {
   selectedAgent?: AgentFlow
@@ -30,7 +30,6 @@ export function CanvasSelector({
     ? resolveLocalizedText(selectedAgent.title, '未命名 Agent')
     : selectedCanvasId || '选择 Agent'
   const subtitle = selectedAgent ? '已发布 · 最近更新' : '选择后查看记录'
-  const initial = title.charAt(0).toUpperCase()
 
   const handleSelect = (canvasId: string) => {
     onSelect(canvasId)
@@ -45,14 +44,13 @@ export function CanvasSelector({
           className="h-9 min-w-[260px] justify-between px-space-xs"
         >
           <span className="flex min-w-0 items-center gap-space-xs">
-            <span
-              className={cn(
-                'flex h-6 w-6 shrink-0 items-center justify-center rounded-radius-sm bg-linear-to-br text-xs font-semibold text-text-inverted',
-                getAvatarGradient(title),
-              )}
-            >
-              {selectedAgent ? initial : <Bot className="size-3.5" />}
-            </span>
+            <EntityAvatar
+              name={selectedAgent ? title : undefined}
+              src={selectedAgent?.avatar}
+              seed={selectedAgent?.id}
+              size="sm"
+              icon={selectedAgent ? undefined : <Bot />}
+            />
             <span className="min-w-0 text-left">
               <span className="block truncate text-xs font-medium text-text-primary">
                 {title}
@@ -93,7 +91,7 @@ export function CanvasSelector({
                     'flex w-full items-center justify-between rounded-radius-md px-space-sm py-space-sm text-left transition-colors',
                     active
                       ? 'bg-components-card-bg-hover text-text-primary'
-                      : 'hover:bg-surface-secondary text-text-secondary',
+                      : 'text-text-secondary hover:bg-surface-secondary',
                   )}
                   onClick={() => handleSelect(agent.id)}
                 >

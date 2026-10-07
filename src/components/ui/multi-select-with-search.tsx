@@ -139,7 +139,7 @@ export const MultiSelectWithSearch = forwardRef<
             ref={ref}
             disabled={disabled}
             className={cn(
-              'group h-auto min-h-10 w-full justify-between border border-border bg-transparent px-3 py-1.5 font-normal outline-hidden outline-offset-0 hover:bg-accent/30 focus-visible:border-components-select-border-focus focus-visible:ring-1 focus-visible:ring-state-focus/30 [&_svg]:pointer-events-auto',
+              'group h-auto min-h-10 w-full justify-between border border-border bg-transparent px-3 py-1.5 font-normal outline-hidden outline-offset-0 hover:bg-state-hover focus-visible:border-components-select-border-focus focus-visible:ring-1 focus-visible:ring-state-focus/30 [&_svg]:pointer-events-auto',
               triggerClassName,
             )}
           >
@@ -155,7 +155,7 @@ export const MultiSelectWithSearch = forwardRef<
                     >
                       {label}
                       <XIcon
-                        className="ml-1 h-3 w-3 cursor-pointer hover:text-destructive"
+                        className="ml-1 h-3 w-3 cursor-pointer hover:text-status-error"
                         onClick={(e) => handleRemove(value, e)}
                       />
                     </Badge>

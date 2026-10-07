@@ -137,7 +137,7 @@ interface ReadOnlyFieldProps {
 }
 
 const ReadOnlyField: FC<ReadOnlyFieldProps> = ({ value }) => (
-  <div className="bg-surface-secondary/50 flex h-10 items-center rounded-md border border-border-default px-3 text-sm text-text-secondary">
+  <div className="flex h-10 items-center rounded-md border border-border-default bg-surface-secondary/50 px-3 text-sm text-text-secondary">
     {value || '-'}
   </div>
 )
@@ -169,7 +169,7 @@ const ReadOnlyModelField: FC<ReadOnlyModelFieldProps> = ({ modelId }) => {
 
   if (!modelId) {
     return (
-      <div className="bg-surface-secondary/50 flex h-10 items-center rounded-md border border-border-default px-3 text-sm text-text-tertiary">
+      <div className="flex h-10 items-center rounded-md border border-border-default bg-surface-secondary/50 px-3 text-sm text-text-tertiary">
         -
       </div>
     )
@@ -182,7 +182,7 @@ const ReadOnlyModelField: FC<ReadOnlyModelFieldProps> = ({ modelId }) => {
   const iconName = provider ? getIconName(provider, isDark) : 'moxing-default'
 
   return (
-    <div className="bg-surface-secondary/50 flex h-10 items-center gap-2 rounded-md border border-border-default px-3 text-sm text-text-secondary">
+    <div className="flex h-10 items-center gap-2 rounded-md border border-border-default bg-surface-secondary/50 px-3 text-sm text-text-secondary">
       <IconFontFill name={iconName} className="h-5 w-5 shrink-0" />
       <span className="truncate">{modelName}</span>
       <Lock className="ml-auto h-3.5 w-3.5 shrink-0 text-text-tertiary" />
@@ -212,20 +212,6 @@ export const MemorySettingsPage: FC = () => {
     (type: string) => t(`memory.filters.${type}`, type),
     [t],
   )
-
-  // 生成头像渐变背景
-  const avatarGradient = useMemo(() => {
-    const name = config?.name || 'M'
-    const gradients = [
-      'from-purple-500 to-pink-500',
-      'from-blue-500 to-cyan-500',
-      'from-green-500 to-teal-500',
-      'from-orange-500 to-red-500',
-      'from-indigo-500 to-purple-500',
-    ]
-    const index = name.charCodeAt(0) % gradients.length
-    return gradients[index]
-  }, [config?.name])
 
   // 表单
   const form = useForm<MemorySettingsFormValues>({
@@ -337,8 +323,8 @@ export const MemorySettingsPage: FC = () => {
                       value={field.value}
                       onChange={field.onChange}
                       size="lg"
-                      fallbackLetter={form.watch('name')?.charAt(0) || 'M'}
-                      gradientClass={avatarGradient}
+                      name={form.watch('name')}
+                      seed={memoryId}
                       tips={t('memory.fields.avatarUploadTips')}
                     />
                     <FormMessage className="mt-1" />
@@ -406,7 +392,7 @@ export const MemorySettingsPage: FC = () => {
                         {field.value?.map((type) => (
                           <span
                             key={type}
-                            className="bg-surface-accent/10 rounded-md px-2.5 py-1 text-xs font-medium text-text-accent"
+                            className="rounded-md bg-surface-accent/10 px-2.5 py-1 text-xs font-medium text-text-accent"
                           >
                             {getMemoryTypeLabel(type)}
                           </span>

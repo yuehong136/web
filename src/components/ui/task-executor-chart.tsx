@@ -129,7 +129,7 @@ const TaskExecutorChart: React.FC<TaskExecutorChartProps> = ({
   return (
     <Card
       className={cn(
-        'relative border-t-2 border-components-system-status-card-border border-t-components-system-accent-border bg-components-system-status-card-bg shadow-components-system-status-card-shadow',
+        'relative border-t-2 border-components-system-status-card-border border-t-components-system-accent-border bg-components-system-status-card-bg shadow-elevation-low',
         className,
       )}
     >

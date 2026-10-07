@@ -179,7 +179,7 @@ export const DocumentMetadataCell: React.FC<DocumentMetadataCellProps> = ({
           aria-label={t('knowledge.metadata.editor.editMetadata')}
         >
           <div className="h-2 w-2 rounded-full bg-status-success" />
-          <span className="text-xs text-text-success">{metadataCount}</span>
+          <span className="text-xs text-status-success">{metadataCount}</span>
         </Button>
       </Tooltip>
     )

@@ -8,7 +8,6 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Edit, Trash2, Database, User, Users, Layers } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import {
   ResourceListContainer,
   ResourceListHeader,
@@ -16,15 +15,14 @@ import {
   ResourceListRow,
   ResourceListSkeletonRow,
   ResourceListEmpty,
-  getAvatarGradient,
 } from '@/components/ui/resource-list'
 import {
-  cn,
   formatRelativeTime,
   formatTimestampDetailed,
   formatTimestampCompact,
 } from '@/lib/utils'
 import type { Memory, MemoryType } from '@/types/memory'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 
 export type TimeFormatType = 'detailed' | 'compact' | 'relative'
 
@@ -70,36 +68,6 @@ const formatTime = (timestamp: number, format: TimeFormatType): string => {
   }
 }
 
-// 记忆库头像
-const MemoryAvatar: FC<{ memory: Memory }> = ({ memory }) => {
-  const gradient = getAvatarGradient(memory.name)
-
-  if (memory.avatar) {
-    return (
-      <Avatar className="h-12 w-12">
-        <AvatarImage src={memory.avatar} alt={memory.name} />
-        <AvatarFallback>
-          <Database className="h-5 w-5" />
-        </AvatarFallback>
-      </Avatar>
-    )
-  }
-
-  return (
-    <div
-      className={cn(
-        'flex h-12 w-12 items-center justify-center rounded-xl',
-        'bg-linear-to-br shadow-xs',
-        gradient,
-      )}
-    >
-      <span className="text-xl font-semibold text-components-button-primary-text">
-        {memory.name.charAt(0).toUpperCase()}
-      </span>
-    </div>
-  )
-}
-
 // 列表行组件
 const MemoryListRow: FC<{
   memory: Memory
@@ -140,7 +108,14 @@ const MemoryListRow: FC<{
       onClick={handleClick}
       selected={selected}
       onSelect={onSelect}
-      avatar={<MemoryAvatar memory={memory} />}
+      avatar={
+        <EntityAvatar
+          name={memory.name}
+          src={memory.avatar}
+          seed={memory.id}
+          size="xl"
+        />
+      }
       name={memory.name}
       description={memory.description || undefined}
       actions={actions}

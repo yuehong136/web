@@ -80,9 +80,9 @@ export const CreateKnowledgeForm: FC<CreateKnowledgeFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit}>
-      <div className={cn('p-space-lg space-y-5', bodyClassName)}>
+      <div className={cn('space-y-5 p-space-lg', bodyClassName)}>
         <div className="space-y-2">
-          <div className="gap-space-xs flex items-center">
+          <div className="flex items-center gap-space-xs">
             <Label className="text-sm font-medium text-text-primary">
               {t('knowledge.create.fields.name')}
               <span className="ml-1 text-status-error">*</span>
@@ -92,7 +92,8 @@ export const CreateKnowledgeForm: FC<CreateKnowledgeFormProps> = ({
             </Tooltip>
           </div>
           <Input
-            className={cn(nameError && 'border-status-error')}
+            variant={nameError ? 'destructive' : 'default'}
+            aria-invalid={!!nameError}
             disabled={isLoading}
             onChange={(event) => handleNameChange(event.target.value)}
             placeholder={t('knowledge.create.fields.namePlaceholder')}
@@ -107,7 +108,7 @@ export const CreateKnowledgeForm: FC<CreateKnowledgeFormProps> = ({
         </div>
 
         <div className="space-y-2">
-          <div className="gap-space-xs flex items-center">
+          <div className="flex items-center gap-space-xs">
             <Label className="text-sm font-medium text-text-primary">
               {t('knowledge.create.fields.description')}
             </Label>
@@ -125,7 +126,7 @@ export const CreateKnowledgeForm: FC<CreateKnowledgeFormProps> = ({
         </div>
 
         <div className="space-y-2">
-          <div className="gap-space-xs flex items-center">
+          <div className="flex items-center gap-space-xs">
             <Label className="text-sm font-medium text-text-primary">
               {t('knowledge.create.fields.language')}
             </Label>
@@ -150,7 +151,7 @@ export const CreateKnowledgeForm: FC<CreateKnowledgeFormProps> = ({
         />
 
         <div className="space-y-2">
-          <div className="gap-space-xs flex items-center">
+          <div className="flex items-center gap-space-xs">
             <Label className="text-sm font-medium text-text-primary">
               {t('knowledge.create.fields.permission')}
             </Label>
@@ -169,7 +170,7 @@ export const CreateKnowledgeForm: FC<CreateKnowledgeFormProps> = ({
           />
         </div>
 
-        <div className="gap-space-sm rounded-radius-xl p-space-base flex items-start bg-status-info-subtle">
+        <div className="flex items-start gap-space-sm rounded-radius-xl bg-status-info-subtle p-space-base">
           <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-status-info" />
           <div className="space-y-1">
             <p className="text-sm font-medium text-text-primary">
@@ -184,7 +185,7 @@ export const CreateKnowledgeForm: FC<CreateKnowledgeFormProps> = ({
 
       <div
         className={cn(
-          'gap-space-sm px-space-lg py-space-base flex items-center justify-end border-t border-border-default bg-background-subtle',
+          'flex items-center justify-end gap-space-sm border-t border-border-default bg-background-subtle px-space-lg py-space-base',
           footerClassName,
         )}
       >

@@ -28,16 +28,14 @@
   --spacing-space-lg: var(--space-lg);
   --spacing-space-xl: var(--space-xl);
   --spacing-space-2xl: var(--space-2xl);
+  /* Theme-aware levels from the generated light/dark CSS (elevation.ts). */
+  --shadow-elevation-low: var(--elevation-low);
+  --shadow-elevation-medium: var(--elevation-medium);
+  --shadow-elevation-high: var(--elevation-high);
 }
 
 @theme {
   --font-sans: 'Inter', system-ui, sans-serif;
-  --shadow-elevation-low:
-    0 1px 2px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.1);
-  --shadow-elevation-medium:
-    0 4px 8px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.06);
-  --shadow-elevation-high:
-    0 10px 20px rgba(0, 0, 0, 0.12), 0 6px 10px rgba(0, 0, 0, 0.08);
   --spacing-icon-xs: 0.75rem;
   --spacing-icon-sm: 1rem;
   --spacing-icon-md: 1.25rem;

@@ -10,6 +10,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import type { AdminUser } from '../types'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 
 interface ChangePasswordDialogProps {
   open: boolean
@@ -62,19 +63,19 @@ export const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-space-sm">
             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-status-warning-subtle">
-              <KeyRound className="h-4 w-4 text-text-warning" />
+              <KeyRound className="h-4 w-4 text-status-warning" />
             </span>
             修改密码
           </DialogTitle>
         </DialogHeader>
 
         {user && (
-          <div className="bg-surface-secondary mx-space-lg flex items-center gap-space-sm rounded-radius-xl px-space-md py-space-base">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/15">
-              <span className="text-sm font-semibold text-text-accent">
-                {(user.nickname || user.email)[0].toUpperCase()}
-              </span>
-            </div>
+          <div className="mx-space-lg flex items-center gap-space-sm rounded-radius-xl bg-surface-secondary px-space-md py-space-base">
+            <EntityAvatar
+              name={user.nickname || user.email}
+              seed={user.email}
+              shape="circle"
+            />
             <div className="min-w-0">
               <p className="truncate text-sm font-medium text-text-primary">
                 {user.nickname || user.email}
@@ -96,7 +97,7 @@ export const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
           >
             <div className="space-y-space-xs">
               <label className="text-sm font-medium text-text-secondary">
-                新密码 <span className="text-text-error">*</span>
+                新密码 <span className="text-status-error">*</span>
               </label>
               <Input
                 type={showPassword ? 'text' : 'password'}
@@ -125,7 +126,7 @@ export const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
             </div>
             <div className="space-y-space-xs">
               <label className="text-sm font-medium text-text-secondary">
-                确认密码 <span className="text-text-error">*</span>
+                确认密码 <span className="text-status-error">*</span>
               </label>
               <Input
                 type={showPassword ? 'text' : 'password'}

@@ -129,7 +129,7 @@ const ParamValue: React.FC<{ value: any }> = ({ value }) => {
     }
     return (
       <span
-        className="break-all font-mono text-sm"
+        className="font-mono text-sm break-all"
         style={{ color: 'var(--color-text-primary)' }}
       >
         {value}
@@ -375,7 +375,7 @@ const ToolCallCard: React.FC<{
 
   const borderColor =
     toolCall.status === 'error'
-      ? 'var(--color-status-error)'
+      ? 'var(--color-status-error-border)'
       : toolCall.status === 'running'
         ? 'var(--color-state-focus)'
         : 'var(--color-components-card-border)'

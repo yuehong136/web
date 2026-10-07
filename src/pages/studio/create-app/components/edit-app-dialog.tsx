@@ -1,7 +1,6 @@
 import { useId } from 'react'
 import { useTranslation } from 'react-i18next'
-import { LayoutGrid, Upload } from 'lucide-react'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Upload } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -14,9 +13,11 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import type { CreateAppPageController } from '../hooks/use-create-app-page'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 
 type AppInfoBindings = Pick<
   CreateAppPageController,
+  | 'dialogId'
   | 'showEditModal'
   | 'tempConfig'
   | 'setTempConfig'
@@ -28,6 +29,7 @@ type AppInfoBindings = Pick<
 >
 export function EditAppDialog({ controller }: { controller: AppInfoBindings }) {
   const {
+    dialogId,
     showEditModal,
     tempConfig,
     setTempConfig,
@@ -61,17 +63,12 @@ export function EditAppDialog({ controller }: { controller: AppInfoBindings }) {
               onChange={handleIconInputChange}
             />
             <div className="flex flex-wrap items-center gap-space-sm">
-              <Avatar className="size-12">
-                {tempConfig.icon && (
-                  <AvatarImage
-                    src={tempConfig.icon}
-                    alt={t('studio.editor.icon')}
-                  />
-                )}
-                <AvatarFallback>
-                  <LayoutGrid className="size-icon-lg" />
-                </AvatarFallback>
-              </Avatar>
+              <EntityAvatar
+                name={tempConfig.name}
+                src={tempConfig.icon}
+                seed={dialogId ?? undefined}
+                size="xl"
+              />
               <Button variant="outline" onClick={handleOpenIconPicker}>
                 <Upload className="mr-space-xs size-icon-sm" />
                 {t('studio.editor.uploadIcon')}

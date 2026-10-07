@@ -84,7 +84,7 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
             {/* Email */}
             <div className="space-y-space-xs">
               <label className="text-sm font-medium text-text-secondary">
-                邮箱 <span className="text-text-error">*</span>
+                邮箱 <span className="text-status-error">*</span>
               </label>
               <Input
                 type="email"
@@ -102,7 +102,7 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
             {/* Password */}
             <div className="space-y-space-xs">
               <label className="text-sm font-medium text-text-secondary">
-                密码 <span className="text-text-error">*</span>
+                密码 <span className="text-status-error">*</span>
               </label>
               <Input
                 type={showPassword ? 'text' : 'password'}
@@ -133,7 +133,7 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
             {/* Confirm Password */}
             <div className="space-y-space-xs">
               <label className="text-sm font-medium text-text-secondary">
-                确认密码 <span className="text-text-error">*</span>
+                确认密码 <span className="text-status-error">*</span>
               </label>
               <Input
                 type={showPassword ? 'text' : 'password'}
@@ -150,7 +150,7 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
 
             {/* Admin Toggle */}
             <label
-              className="bg-surface-secondary hover:bg-surface-tertiary flex cursor-pointer items-center gap-space-sm rounded-radius-xl border border-border-default px-space-md py-space-base transition-colors"
+              className="flex cursor-pointer items-center gap-space-sm rounded-radius-xl border border-border-default bg-surface-secondary px-space-md py-space-base transition-colors hover:bg-surface-tertiary"
               onClick={() => setIsAdmin((v) => !v)}
             >
               <div

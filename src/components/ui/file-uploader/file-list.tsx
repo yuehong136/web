@@ -48,19 +48,19 @@ export const FileList = memo(function FileList({
           </h4>
           <div className="flex items-center gap-2 text-xs">
             {stats.uploadingCount > 0 && (
-              <span className="flex items-center gap-1 rounded-full bg-status-info-10 px-2 py-0.5 text-text-primary">
+              <span className="flex items-center gap-1 rounded-full bg-status-info-subtle px-2 py-0.5 text-text-primary">
                 <Loader2 className="h-3 w-3 animate-spin text-components-badge-info-text" />
                 {stats.uploadingCount}
               </span>
             )}
             {stats.successCount > 0 && (
-              <span className="flex items-center gap-1 rounded-full bg-status-success-10 px-2 py-0.5 text-text-primary">
+              <span className="flex items-center gap-1 rounded-full bg-status-success-subtle px-2 py-0.5 text-text-primary">
                 <CheckCircle2 className="h-3 w-3 text-components-badge-success-text" />
                 {stats.successCount}
               </span>
             )}
             {stats.errorCount > 0 && (
-              <span className="flex items-center gap-1 rounded-full bg-status-error-10 px-2 py-0.5 text-text-primary">
+              <span className="flex items-center gap-1 rounded-full bg-status-error-subtle px-2 py-0.5 text-text-primary">
                 <AlertCircle className="h-3 w-3 text-components-badge-error-text" />
                 {stats.errorCount}
               </span>

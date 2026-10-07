@@ -143,19 +143,12 @@ export const BatchInviteDialog: React.FC<BatchInviteDialogProps> = ({
 
               {/* 无效邮箱预览 */}
               {invalidEmails.length > 0 && (
-                <div className="bg-status-warning-subtle/50 rounded-lg px-3 py-2 text-xs text-status-warning">
+                <div className="rounded-lg bg-status-warning-subtle px-3 py-2 text-xs text-status-warning">
                   格式无效：{invalidEmails.join(', ')}
                 </div>
               )}
 
-              {error && (
-                <p
-                  className="text-sm"
-                  style={{ color: 'var(--color-status-error-text)' }}
-                >
-                  {error}
-                </p>
-              )}
+              {error && <p className="text-sm text-status-error">{error}</p>}
             </div>
           )}
 

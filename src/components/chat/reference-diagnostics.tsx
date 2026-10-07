@@ -222,7 +222,7 @@ function DiagnosticItem({
               className={cn(
                 'shrink-0 rounded p-1 transition-colors',
                 'focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden',
-                copied ? 'text-text-success' : 'text-text-tertiary',
+                copied ? 'text-status-success' : 'text-text-tertiary',
               )}
               onClick={handleCopy}
               aria-label={t('reference.diagnostics.copyValue', { label })}

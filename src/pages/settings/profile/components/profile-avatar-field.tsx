@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next'
 import { AvatarUpload } from '@/components/ui/avatar-upload'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import type { ProfileData } from '@/pages/settings/profile/types'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
+import { useCurrentUserAvatar } from '@/hooks/use-current-user-avatar'
 
 export const ProfileAvatarField = ({
   profile,
@@ -15,6 +16,7 @@ export const ProfileAvatarField = ({
   onChange: (avatar: string) => void
 }) => {
   const { t } = useTranslation()
+  const { seed } = useCurrentUserAvatar()
   return (
     <div className="flex items-center gap-space-base">
       {isEditing ? (
@@ -26,15 +28,13 @@ export const ProfileAvatarField = ({
           tips=""
         />
       ) : (
-        <Avatar className="h-16 w-16 shrink-0 rounded-radius-lg">
-          <AvatarImage src={profile.avatar || undefined} alt="" />
-          <AvatarFallback className="rounded-radius-lg bg-background-subtle text-lg font-medium text-text-primary">
-            {(profile.userName || profile.email)
-              .trim()
-              .charAt(0)
-              .toUpperCase() || 'U'}
-          </AvatarFallback>
-        </Avatar>
+        <EntityAvatar
+          name={profile.userName || profile.email}
+          src={profile.avatar}
+          seed={seed}
+          size="2xl"
+          shape="circle"
+        />
       )}
       {isEditing && (
         <p className="text-xs text-text-secondary">

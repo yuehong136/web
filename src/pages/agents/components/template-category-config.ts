@@ -85,7 +85,7 @@ const TONE_CLASSES: Record<CategoryTone, { bg: string; text: string }> = {
   success: { bg: 'bg-status-success-subtle', text: 'text-status-success' },
   warning: { bg: 'bg-status-warning-subtle', text: 'text-status-warning' },
   purple: {
-    bg: 'bg-components-avatar-gradient-purple-from/15',
+    bg: 'bg-components-badge-purple-bg',
     text: 'text-components-badge-purple-text',
   },
   neutral: { bg: 'bg-background-subtle', text: 'text-text-secondary' },

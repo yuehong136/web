@@ -40,11 +40,11 @@ export const FileCard = memo(function FileCard({
         'border border-transparent hover:shadow-md',
         compact ? 'p-2' : 'p-3',
         file.status === 'error' &&
-          'bg-status-error-10 ring-1 ring-status-error/20',
+          'bg-status-error-subtle ring-1 ring-status-error-border',
         file.status === 'success' &&
-          'bg-status-success-10 ring-1 ring-status-success/20',
+          'bg-status-success-subtle ring-1 ring-status-success-border',
         file.status === 'uploading' &&
-          'bg-status-info-10 ring-1 ring-status-info/20',
+          'bg-status-info-subtle ring-1 ring-status-info-border',
         !file.status || file.status === 'pending'
           ? 'hover:border-[var(--color-border-default)]'
           : '',

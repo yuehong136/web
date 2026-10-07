@@ -354,14 +354,14 @@ const DataInput: React.FC<DataInputProps> = ({
 
       {/* 状态信息 */}
       <div className="flex flex-wrap items-center gap-3 text-sm">
-        <div className="bg-background-body-subtle flex items-center gap-1.5 rounded-md px-2.5 py-1">
+        <div className="flex items-center gap-1.5 rounded-md bg-background-subtle px-2.5 py-1">
           <span className="text-text-secondary">模型:</span>
           <span className="font-medium text-text-primary">
             {llmConfig.llm_name || '未选择'}
           </span>
         </div>
         {mcpConfig.mcp_ids.length > 0 && (
-          <div className="bg-background-body-subtle flex items-center gap-1.5 rounded-md px-2.5 py-1">
+          <div className="flex items-center gap-1.5 rounded-md bg-background-subtle px-2.5 py-1">
             <PlugZap className="h-3.5 w-3.5 text-text-secondary" />
             <span className="font-medium text-text-primary">
               {mcpConfig.mcp_ids.length} MCP
@@ -390,7 +390,7 @@ const DataInput: React.FC<DataInputProps> = ({
       {/* 主内容区 - Tabs */}
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
         <div className="mb-4 flex items-center justify-between gap-4">
-          <TabsList className="bg-background-body-subtle">
+          <TabsList className="bg-background-subtle">
             <TabsTrigger value="form" className="gap-1.5">
               <FormInput className="h-4 w-4" />
               表单
@@ -477,7 +477,7 @@ const DataInput: React.FC<DataInputProps> = ({
             <div className="overflow-hidden rounded-lg border border-border-default">
               <button
                 onClick={() => setShowAiRaw((v) => !v)}
-                className="bg-background-body-subtle flex w-full items-center justify-between px-4 py-2.5 transition-colors hover:bg-muted"
+                className="flex w-full items-center justify-between bg-background-subtle px-4 py-2.5 transition-colors hover:bg-muted"
               >
                 <span className="flex items-center gap-2 text-sm font-medium">
                   <Sparkles className="h-4 w-4 text-purple-500" />

@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next'
 import { PenLine, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 
 interface AvatarUploadProps {
   /** 当前头像 URL 或 base64 */
@@ -16,21 +17,21 @@ interface AvatarUploadProps {
   onChange: (base64: string) => void
   /** 头像大小 */
   size?: 'sm' | 'md' | 'lg'
-  /** 默认显示的首字母 */
-  fallbackLetter?: string
-  /** 渐变背景类 */
-  gradientClass?: string
+  /** 没有头像时用名称生成单字头像 */
+  name?: string
+  /** 头像色调的稳定种子（如记忆库 id），省略时使用名称 */
+  seed?: string
   /** 提示文本 */
   tips?: string
   /** 是否禁用 */
   disabled?: boolean
 }
 
-const sizeClasses = {
-  sm: 'w-12 h-12',
-  md: 'w-16 h-16',
-  lg: 'w-20 h-20',
-}
+const avatarSizes = {
+  sm: { size: 'xl', className: undefined },
+  md: { size: '2xl', className: undefined },
+  lg: { size: '2xl', className: 'size-20' },
+} as const
 
 const editIconSizeClasses = {
   sm: 'w-5 h-5',
@@ -48,8 +49,8 @@ export function AvatarUpload({
   value,
   onChange,
   size = 'md',
-  fallbackLetter = 'M',
-  gradientClass = 'from-purple-500 to-pink-500',
+  name,
+  seed,
   tips,
   disabled = false,
 }: AvatarUploadProps) {
@@ -113,25 +114,18 @@ export function AvatarUpload({
           disabled={disabled}
           onClick={handleClick}
           className={cn(
-            'flex items-center justify-center overflow-hidden rounded-full',
-            'cursor-pointer disabled:cursor-not-allowed',
-            'bg-linear-to-br shadow-md transition-transform',
-            'group-hover:scale-105',
-            sizeClasses[size],
-            gradientClass,
+            'flex cursor-pointer rounded-radius-xl transition-transform',
+            'group-hover:scale-105 disabled:cursor-not-allowed',
+            'focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden',
           )}
         >
-          {value ? (
-            <img
-              src={value}
-              alt={t('memory.fields.avatar')}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <span className="text-xl font-semibold text-components-button-primary-text">
-              {fallbackLetter.charAt(0).toUpperCase()}
-            </span>
-          )}
+          <EntityAvatar
+            name={name}
+            src={value}
+            seed={seed}
+            size={avatarSizes[size].size}
+            className={avatarSizes[size].className}
+          />
         </button>
 
         {/* 编辑图标 */}
@@ -140,9 +134,9 @@ export function AvatarUpload({
             type="button"
             aria-label={t('memory.upload.changeAvatar')}
             className={cn(
-              'bg-surface-primary absolute -right-0.5 -bottom-0.5 border border-border-default',
+              'absolute -right-0.5 -bottom-0.5 border border-border-default bg-surface-primary',
               'flex cursor-pointer items-center justify-center rounded-full',
-              'hover:bg-surface-secondary shadow-xs transition-colors',
+              'shadow-xs transition-colors hover:bg-surface-secondary',
               editIconSizeClasses[size],
             )}
             onClick={(e) => {
@@ -171,9 +165,9 @@ export function AvatarUpload({
             type="button"
             aria-label={t('memory.upload.removeAvatar')}
             className={cn(
-              'border-surface-primary absolute -top-0.5 -right-0.5 border bg-status-error',
+              'absolute -top-0.5 -right-0.5 border border-surface-primary bg-status-error-solid',
               'flex cursor-pointer items-center justify-center rounded-full',
-              'shadow-xs transition-colors hover:bg-status-error/80',
+              'shadow-xs transition-colors hover:bg-status-error-solid-hover',
               'opacity-0 group-hover:opacity-100',
               editIconSizeClasses[size],
             )}
@@ -181,7 +175,7 @@ export function AvatarUpload({
           >
             <Trash2
               className={cn(
-                'text-components-button-primary-text',
+                'text-status-error-on-solid',
                 editIconInnerClasses[size],
               )}
             />

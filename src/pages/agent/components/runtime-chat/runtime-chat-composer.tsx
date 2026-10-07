@@ -191,7 +191,7 @@ export function RuntimeChatComposer({
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="rounded-radius-full bg-status-error text-text-inverted hover:bg-status-error/90"
+                className="rounded-radius-full bg-status-error-solid text-status-error-on-solid hover:bg-status-error-solid-hover"
                 onClick={() => {
                   void onStop()
                 }}

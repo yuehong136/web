@@ -4,14 +4,14 @@
  */
 
 import React from 'react'
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { Users, Mail, Clock, Check, X, LogOut, Settings } from 'lucide-react'
+import { Mail, Clock, Check, X, LogOut, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { RoleBadge } from './RoleBadge'
 import { TenantRole, type JoinedTeam } from '@/types/team'
 import type { TimeFormat } from '@/stores/team'
 import { formatTeamTime } from '../utils'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 
 interface JoinedTeamCardProps {
   team: JoinedTeam
@@ -36,41 +36,27 @@ export const JoinedTeamCard: React.FC<JoinedTeamCardProps> = ({
   const isNormal = team.role === TenantRole.Normal
   const isManager =
     team.role === TenantRole.Owner || team.role === TenantRole.Admin
-  const [isHovered, setIsHovered] = React.useState(false)
-
   return (
     <div
       className={cn(
-        'group relative rounded-2xl border transition-all duration-200',
-        'hover:-translate-y-0.5 hover:shadow-shadow-md',
+        'group relative rounded-2xl border bg-components-card-bg transition-all duration-200',
+        'hover:-translate-y-0.5 hover:shadow-elevation-medium',
         isPending
-          ? 'ring-status-info/20 ring-2'
-          : isHovered && 'ring-state-focus/20 ring-2',
+          ? 'border-status-info-border ring-2 ring-status-info-subtle'
+          : 'border-components-card-border hover:border-state-focus hover:ring-2 hover:ring-state-focus/20',
       )}
-      style={{
-        backgroundColor: 'var(--color-components-card-bg)',
-        borderColor: isPending
-          ? 'var(--color-status-info)'
-          : isHovered
-            ? 'var(--color-state-focus)'
-            : 'var(--color-components-card-border)',
-      }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
     >
       <div className="p-5">
         {/* 头部：头像 + 团队名称 + 角色 */}
         <div className="mb-4 flex items-start justify-between">
           <div className="flex min-w-0 flex-1 items-center gap-3">
-            <Avatar className="h-12 w-12 shrink-0">
-              <AvatarImage src={team.avatar || undefined} alt={team.nickname} />
-              <AvatarFallback className="bg-[var(--color-status-success-subtle)]">
-                <Users
-                  className="h-5 w-5"
-                  style={{ color: 'var(--color-status-success)' }}
-                />
-              </AvatarFallback>
-            </Avatar>
+            <EntityAvatar
+              name={team.nickname || team.email}
+              src={team.avatar}
+              seed={team.tenant_id}
+              size="xl"
+              shape="circle"
+            />
             <div className="min-w-0 flex-1">
               <h3
                 className="truncate font-semibold"
@@ -134,7 +120,7 @@ export const JoinedTeamCard: React.FC<JoinedTeamCardProps> = ({
               size="sm"
               onClick={() => onLeave?.(team.tenant_id, team.nickname)}
               disabled={isLoading}
-              className="border-status-error/30 hover:border-status-error/50 w-full text-status-error hover:bg-status-error-subtle"
+              className="w-full border-status-error-border text-status-error hover:border-status-error hover:bg-status-error-subtle"
             >
               <LogOut className="mr-1 h-4 w-4" />
               退出团队

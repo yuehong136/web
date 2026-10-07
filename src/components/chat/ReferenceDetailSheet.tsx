@@ -196,7 +196,7 @@ export const ReferenceDetailSheet: FC<ReferenceDetailSheetProps> = ({
                 className={cn(
                   'flex items-center gap-1 rounded bg-background-subtle px-2 py-1 text-xs transition-colors',
                   'focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden',
-                  contentCopied ? 'text-text-success' : 'text-text-tertiary',
+                  contentCopied ? 'text-status-success' : 'text-text-tertiary',
                 )}
                 onClick={handleCopyContent}
               >

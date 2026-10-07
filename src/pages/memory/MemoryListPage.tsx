@@ -349,7 +349,7 @@ export const MemoryListPage: FC = () => {
                     [...Array(8)].map((_, i) => (
                       <div
                         key={i}
-                        className="bg-surface-secondary h-[180px] animate-pulse rounded-lg"
+                        className="h-[180px] animate-pulse rounded-lg bg-surface-secondary"
                       />
                     ))
                   : sortedMemories.map((memory) => (
@@ -492,7 +492,7 @@ export const MemoryListPage: FC = () => {
             <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDelete}
-              className="bg-status-error hover:bg-status-error/90"
+              variant="destructive"
             >
               {t('common.delete')}
             </AlertDialogAction>

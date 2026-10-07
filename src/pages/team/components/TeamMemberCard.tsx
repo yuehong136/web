@@ -4,7 +4,6 @@
  */
 
 import React from 'react'
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Dropdown, DropdownItem } from '@/components/ui/dropdown'
 import {
@@ -12,7 +11,6 @@ import {
   Trash2,
   Mail,
   Clock,
-  User,
   ShieldPlus,
   ShieldMinus,
 } from 'lucide-react'
@@ -21,6 +19,7 @@ import { RoleBadge } from './RoleBadge'
 import { TenantRole, type TeamMember, type TeamPermissions } from '@/types/team'
 import type { TimeFormat } from '@/stores/team'
 import { formatTeamTime } from '../utils'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 
 interface TeamMemberCardProps {
   member: TeamMember
@@ -59,8 +58,8 @@ export const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
     <div
       className={cn(
         'group relative rounded-2xl border transition-all duration-200',
-        'hover:-translate-y-0.5 hover:shadow-shadow-md',
-        isHovered && 'ring-state-focus/20 ring-2',
+        'hover:-translate-y-0.5 hover:shadow-elevation-medium',
+        isHovered && 'ring-2 ring-state-focus/20',
       )}
       style={{
         backgroundColor: 'var(--color-components-card-bg)',
@@ -75,18 +74,13 @@ export const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
         {/* 头部：头像 + 名称 + 角色 + 操作菜单 */}
         <div className="mb-4 flex items-start justify-between">
           <div className="flex min-w-0 flex-1 items-center gap-3">
-            <Avatar className="h-12 w-12 shrink-0">
-              <AvatarImage
-                src={member.avatar || undefined}
-                alt={member.nickname}
-              />
-              <AvatarFallback className="bg-[var(--color-status-info-subtle)]">
-                <User
-                  className="h-5 w-5"
-                  style={{ color: 'var(--color-status-info)' }}
-                />
-              </AvatarFallback>
-            </Avatar>
+            <EntityAvatar
+              name={member.nickname || member.email}
+              src={member.avatar}
+              seed={member.user_id}
+              size="xl"
+              shape="circle"
+            />
             <div className="min-w-0 flex-1">
               <h3
                 className="truncate font-semibold"

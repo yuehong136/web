@@ -130,7 +130,9 @@ export const AddChunkModal = ({
         />
 
         <TagModalSection
-          icon={<MessageCircleQuestion className="h-4 w-4 text-text-warning" />}
+          icon={
+            <MessageCircleQuestion className="h-4 w-4 text-status-warning" />
+          }
           label={t('knowledge.chunks.modal.questions')}
           value={questionKwd}
           onChange={onQuestionKwdChange}

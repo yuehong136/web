@@ -13,7 +13,11 @@ import {
 import { formatDate } from '../utils'
 import type { LogTableItem } from '../types'
 import { LogFileIcon } from './log-file-icon'
-import { LogInitialsAvatar } from './log-initials-avatar'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
+
+// The built-in parser ("naive") and untitled runs read as the general pipeline.
+const pipelineAvatarName = (title?: string) =>
+  !title || title.toLowerCase() === 'naive' ? 'General' : title
 
 interface LogTableRowProps {
   item: LogTableItem
@@ -64,7 +68,11 @@ export function LogTableRow({
           </TableCell>
           <TableCell>
             <div className="flex items-center gap-2 whitespace-nowrap">
-              <LogInitialsAvatar name={item.pipeline_title || 'general'} />
+              <EntityAvatar
+                name={pipelineAvatarName(item.pipeline_title)}
+                size="xs"
+                shape="circle"
+              />
               <span className="text-sm text-text-primary">
                 {item.pipeline_title === 'naive'
                   ? 'general'

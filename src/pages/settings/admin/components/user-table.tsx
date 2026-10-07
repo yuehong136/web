@@ -16,32 +16,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
 import type { AdminUser } from '../types'
-
-// ─── Avatar ──────────────────────────────────────────────────────────────────
-
-const AVATAR_COLORS = [
-  { from: '#8b5cf6', to: '#6366f1' },
-  { from: '#0ea5e9', to: '#06b6d4' },
-  { from: '#10b981', to: '#14b8a6' },
-  { from: '#f59e0b', to: '#f97316' },
-  { from: '#f43f5e', to: '#ec4899' },
-]
-
-const UserAvatar: React.FC<{ user: AdminUser }> = memo(({ user }) => {
-  const initial = (user.nickname || user.email)[0].toUpperCase()
-  const color = AVATAR_COLORS[initial.charCodeAt(0) % AVATAR_COLORS.length]
-  return (
-    <div
-      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
-      style={{
-        background: `linear-gradient(135deg, ${color.from}, ${color.to})`,
-      }}
-    >
-      <span className="text-sm font-semibold text-white">{initial}</span>
-    </div>
-  )
-})
-UserAvatar.displayName = 'UserAvatar'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 
 // ─── Status Pill ─────────────────────────────────────────────────────────────
 
@@ -50,14 +25,14 @@ const StatusPill: React.FC<{ active: boolean | null }> = memo(({ active }) => (
     className={cn(
       'inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium',
       active
-        ? 'bg-status-success-subtle text-text-success'
+        ? 'bg-status-success-subtle text-status-success'
         : 'bg-background-subtle text-text-tertiary',
     )}
   >
     <span
       className={cn(
         'h-1.5 w-1.5 rounded-full',
-        active ? 'bg-text-success' : 'bg-text-tertiary',
+        active ? 'bg-status-success' : 'bg-text-tertiary',
       )}
     />
     {active ? '活跃' : '停用'}
@@ -137,7 +112,7 @@ const RowActions: React.FC<RowActionsProps> = memo(
           <DropdownMenuItem
             onClick={() => onDelete(user)}
             disabled={isSelf}
-            className="text-text-error hover:!text-text-error focus:!text-text-error"
+            className="text-status-error hover:!text-status-error focus:!text-status-error"
           >
             <Trash2 className="mr-2 h-3.5 w-3.5" />
             删除用户
@@ -223,16 +198,21 @@ export const UserTable: React.FC<UserTableProps> = memo(
           {users.map((user) => (
             <div
               key={user.email}
-              className="hover:bg-surface-accent/[0.03] grid grid-cols-[1fr_100px_140px_44px] items-center gap-space-sm px-space-md py-3 transition-colors"
+              className="grid grid-cols-[1fr_100px_140px_44px] items-center gap-space-sm px-space-md py-3 transition-colors hover:bg-surface-accent/[0.03]"
             >
               {/* User info */}
               <div className="flex min-w-0 items-center gap-space-sm">
-                <UserAvatar user={user} />
+                <EntityAvatar
+                  name={user.nickname || user.email}
+                  seed={user.email}
+                  size="md"
+                  shape="circle"
+                />
                 <div className="min-w-0">
                   <p className="flex items-center gap-space-xs truncate text-sm font-medium text-text-primary">
                     {user.nickname || user.email}
                     {user.email === currentUserEmail && (
-                      <span className="bg-surface-accent/10 inline-flex items-center rounded-full px-1.5 text-xs text-text-accent">
+                      <span className="inline-flex items-center rounded-full bg-surface-accent/10 px-1.5 text-xs text-text-accent">
                         你
                       </span>
                     )}

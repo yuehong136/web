@@ -13,7 +13,6 @@ import {
   User,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { NavigationTooltip } from '@/components/ui/navigation-tooltip'
 import {
   ActionMenu,
@@ -34,6 +33,7 @@ import { supportedLocales, type ProductLocale } from '@/locales/i18n'
 import { cn } from '@/lib/utils'
 import { usePendingTeamInvitations } from '@/hooks/use-pending-team-invitations'
 import { useTeamStore } from '@/stores/team'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 
 /** Shared account and appearance controls for global and settings navigation. */
 export const SidebarUtilities = ({
@@ -93,12 +93,13 @@ export const SidebarUtilities = ({
               )}
             >
               <span className="relative shrink-0">
-                <Avatar className="h-6 w-6">
-                  <AvatarImage src={user?.avatar} alt="" />
-                  <AvatarFallback className="bg-background-subtle text-xs font-medium text-text-primary">
-                    {name.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
+                <EntityAvatar
+                  name={name}
+                  src={user?.avatar}
+                  seed={user?.id}
+                  size="sm"
+                  shape="circle"
+                />
                 {pendingCount > 0 && (
                   <>
                     <span
@@ -125,12 +126,13 @@ export const SidebarUtilities = ({
         </NavigationTooltip>
         <ActionMenuContent side="top" align="start" className="w-56">
           <ActionMenuLabel className="flex items-center gap-space-sm px-space-sm py-space-sm">
-            <Avatar className="h-9 w-9 shrink-0">
-              <AvatarImage src={user?.avatar} alt="" />
-              <AvatarFallback className="bg-background-subtle text-sm font-medium">
-                {name.charAt(0).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+            <EntityAvatar
+              name={name}
+              src={user?.avatar}
+              seed={user?.id}
+              size="lg"
+              shape="circle"
+            />
             <div className="min-w-0">
               <p className="truncate font-medium">{name}</p>
               {user?.email && (

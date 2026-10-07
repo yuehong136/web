@@ -1,7 +1,6 @@
 import React, { memo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Clock, Database, Settings, Sparkles, Trash2 } from 'lucide-react'
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import {
   ResourceListBody,
   ResourceListContainer,
@@ -9,9 +8,7 @@ import {
   ResourceListHeader,
   ResourceListRow,
   ResourceListSkeletonRow,
-  getAvatarGradient,
 } from '@/components/ui/resource-list'
-import { cn } from '@/lib/utils'
 import type { SearchAppListItem } from '@/types/search'
 import {
   formatSearchTime,
@@ -20,6 +17,7 @@ import {
   resolveSummaryEnabled,
   type SearchTimeFormat,
 } from './utils'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 
 const GRID_COLS = 'grid-cols-[2fr_100px_100px_120px_170px_60px]'
 
@@ -30,35 +28,6 @@ interface SearchListViewProps {
   onOpen: (id: string) => void
   onEdit: (id: string) => void
   onDelete: (app: SearchAppListItem) => void
-}
-
-const SearchAvatar: React.FC<{ app: SearchAppListItem }> = ({ app }) => {
-  const gradient = getAvatarGradient(app.name)
-
-  if (app.avatar) {
-    return (
-      <Avatar className="h-12 w-12">
-        <AvatarImage src={app.avatar} alt={app.name} />
-        <AvatarFallback>
-          <Database className="h-5 w-5" />
-        </AvatarFallback>
-      </Avatar>
-    )
-  }
-
-  return (
-    <div
-      className={cn(
-        'flex h-12 w-12 items-center justify-center rounded-xl',
-        'bg-linear-to-br shadow-xs',
-        gradient,
-      )}
-    >
-      <span className="text-xl font-semibold text-white">
-        {app.name.charAt(0).toUpperCase()}
-      </span>
-    </div>
-  )
 }
 
 const SearchListView: React.FC<SearchListViewProps> = ({
@@ -108,7 +77,14 @@ const SearchListView: React.FC<SearchListViewProps> = ({
               <ResourceListRow
                 key={app.id}
                 onClick={() => onOpen(app.id)}
-                avatar={<SearchAvatar app={app} />}
+                avatar={
+                  <EntityAvatar
+                    name={app.name}
+                    src={app.avatar}
+                    seed={app.id}
+                    size="xl"
+                  />
+                }
                 name={app.name}
                 description={app.description || undefined}
                 gridCols={GRID_COLS}

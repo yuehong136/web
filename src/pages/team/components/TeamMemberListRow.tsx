@@ -4,21 +4,15 @@
  */
 
 import React from 'react'
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Dropdown, DropdownItem } from '@/components/ui/dropdown'
-import {
-  MoreVertical,
-  Trash2,
-  User,
-  ShieldPlus,
-  ShieldMinus,
-} from 'lucide-react'
+import { MoreVertical, Trash2, ShieldPlus, ShieldMinus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { RoleBadge } from './RoleBadge'
 import { TenantRole, type TeamMember, type TeamPermissions } from '@/types/team'
 import type { TimeFormat } from '@/stores/team'
 import { formatTeamTime } from '../utils'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 
 interface TeamMemberListRowProps {
   member: TeamMember
@@ -58,17 +52,19 @@ export const TeamMemberListRow: React.FC<TeamMemberListRowProps> = ({
         'h-[68px] rounded-xl px-4',
         'border border-transparent',
         'transition-all duration-200 ease-out',
-        'hover:bg-surface-secondary/60 hover:border-state-focus hover:shadow-xs',
+        'hover:border-state-focus hover:bg-surface-secondary/60 hover:shadow-xs',
       )}
     >
       {/* 成员信息列 */}
       <div className="flex min-w-0 items-center gap-4">
-        <Avatar className="h-10 w-10 shrink-0 transition-transform duration-200 group-hover:scale-105">
-          <AvatarImage src={member.avatar || undefined} alt={member.nickname} />
-          <AvatarFallback className="bg-status-info-subtle">
-            <User className="h-5 w-5 text-status-info" />
-          </AvatarFallback>
-        </Avatar>
+        <EntityAvatar
+          name={member.nickname || member.email}
+          src={member.avatar}
+          seed={member.user_id}
+          size="lg"
+          shape="circle"
+          className="transition-transform duration-200 group-hover:scale-105"
+        />
 
         <div className="flex h-11 min-w-0 flex-1 flex-col justify-center">
           <h3

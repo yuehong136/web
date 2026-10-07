@@ -112,7 +112,7 @@ function EntityTypesFormField({
                     <button
                       type="button"
                       onClick={() => handleRemove(type)}
-                      className="transition-colors hover:text-destructive"
+                      className="transition-colors hover:text-status-error"
                     >
                       <X className="h-3 w-3" />
                     </button>

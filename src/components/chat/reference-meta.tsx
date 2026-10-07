@@ -21,18 +21,18 @@ export function getDocTypeIcon(
     return <Table2 aria-hidden className={iconClass('text-text-accent')} />
   }
   if (docType === 'image') {
-    return <Image aria-hidden className={iconClass('text-text-success')} />
+    return <Image aria-hidden className={iconClass('text-status-success')} />
   }
 
   switch (docName?.split('.').pop()?.toLowerCase()) {
     case 'pdf':
-      return <FileText aria-hidden className={iconClass('text-text-error')} />
+      return <FileText aria-hidden className={iconClass('text-status-error')} />
     case 'doc':
     case 'docx':
       return <FileText aria-hidden className={iconClass('text-text-accent')} />
     case 'xls':
     case 'xlsx':
-      return <Table2 aria-hidden className={iconClass('text-text-success')} />
+      return <Table2 aria-hidden className={iconClass('text-status-success')} />
     case 'md':
     case 'mdx':
       return (

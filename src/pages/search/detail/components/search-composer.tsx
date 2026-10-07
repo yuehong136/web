@@ -293,7 +293,7 @@ const SearchComposer: React.FC<SearchComposerProps> = ({
         semanticMode && 'search-composer-semantic',
         variant === 'hero'
           ? 'search-composer-hero'
-          : 'search-composer-dock rounded-radius-xl bg-surface-primary p-space-sm border border-border-default',
+          : 'search-composer-dock rounded-radius-xl border border-border-default bg-surface-primary p-space-sm',
       )}
     >
       <Sender
@@ -312,7 +312,7 @@ const SearchComposer: React.FC<SearchComposerProps> = ({
           onRecordingChange: handleRecordingChange,
         }}
         suffix={(_, { components }) => (
-          <div className="gap-space-xs ml-auto flex items-center">
+          <div className="ml-auto flex items-center gap-space-xs">
             <components.SpeechButton />
             {isSearching ? (
               <components.LoadingButton />
@@ -322,8 +322,8 @@ const SearchComposer: React.FC<SearchComposerProps> = ({
           </div>
         )}
         footer={
-          <div className="gap-space-sm mt-space-xs flex flex-wrap items-center justify-between text-xs text-text-tertiary">
-            <div className="gap-space-sm flex items-center">
+          <div className="mt-space-xs flex flex-wrap items-center justify-between gap-space-sm text-xs text-text-tertiary">
+            <div className="flex items-center gap-space-sm">
               {enableSemanticMode ? (
                 <Sender.Switch
                   value={semanticMode}
@@ -339,9 +339,9 @@ const SearchComposer: React.FC<SearchComposerProps> = ({
                   unCheckedChildren="普通输入"
                 />
               ) : null}
-              <span className="rounded-radius-full bg-surface-secondary px-space-xs inline-flex items-center gap-1 py-0.5 text-xs text-text-secondary">
+              <span className="inline-flex items-center gap-1 rounded-radius-full bg-surface-secondary px-space-xs py-0.5 text-xs text-text-secondary">
                 {recording ? (
-                  <AudioLines className="h-3.5 w-3.5 text-text-success" />
+                  <AudioLines className="h-3.5 w-3.5 text-status-success" />
                 ) : (
                   <MicOff className="h-3.5 w-3.5" />
                 )}

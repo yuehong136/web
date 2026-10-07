@@ -58,7 +58,7 @@ export const ManageMetadataModal: React.FC<ManageMetadataModalProps> = ({
     <Database className="h-5 w-5 text-text-secondary" />
   )
   const headerIconClass = editor.isSettingMode
-    ? 'bg-status-info/10'
+    ? 'bg-status-info-subtle'
     : 'bg-surface-secondary'
 
   const allowRemoveValue =

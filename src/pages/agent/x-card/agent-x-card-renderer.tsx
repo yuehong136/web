@@ -2,7 +2,10 @@ import { memo, useMemo } from 'react'
 import { XCard } from '@ant-design/x-card'
 import { AlertTriangle } from 'lucide-react'
 import { agentXCardComponents } from './components'
-import { enrichContextWithLabels, normalizeCommandsForXCardRenderer } from './normalize'
+import {
+  enrichContextWithLabels,
+  normalizeCommandsForXCardRenderer,
+} from './normalize'
 import type { AgentXCardActionPayload, AgentXCardCommand } from './types'
 
 interface AgentXCardRendererProps {
@@ -33,7 +36,7 @@ function AgentXCardRendererBase({
 
   if (status === 'error') {
     return (
-      <div className="mt-space-sm flex items-center gap-space-sm rounded-radius-md border border-status-error bg-surface-secondary p-space-sm text-sm text-status-error">
+      <div className="mt-space-sm flex items-center gap-space-sm rounded-radius-md border border-status-error-border bg-status-error-subtle p-space-sm text-sm text-status-error">
         <AlertTriangle className="size-4" />
         卡片渲染失败
       </div>
@@ -48,7 +51,10 @@ function AgentXCardRendererBase({
         onAction={(payload) => {
           void onAction?.({
             ...payload,
-            displayContext: enrichContextWithLabels(normalizedCommands, payload),
+            displayContext: enrichContextWithLabels(
+              normalizedCommands,
+              payload,
+            ),
           })
         }}
       >

@@ -81,14 +81,14 @@ export const DropzoneArea = memo(function DropzoneArea({
               'scale-[1.01] border-transparent',
             !isFolderMode &&
               isDragReject &&
-              'border-status-error bg-status-error-10',
+              'border-status-error bg-status-error-subtle',
             isDisabled && 'pointer-events-none cursor-not-allowed opacity-50',
             className,
           )}
           style={{
             backgroundColor:
               !isFolderMode && isDragReject
-                ? 'var(--color-status-error-10)'
+                ? 'var(--color-status-error-subtle)'
                 : !isFolderMode && isDragActive
                   ? 'var(--color-state-selected-bg)'
                   : 'var(--color-components-upload-bg)',
@@ -156,7 +156,7 @@ export const DropzoneArea = memo(function DropzoneArea({
               style={{
                 backgroundColor:
                   !isFolderMode && isDragReject
-                    ? 'var(--color-status-error-10)'
+                    ? 'var(--color-status-error-subtle)'
                     : !isFolderMode && isDragActive
                       ? 'var(--color-state-selected-bg)'
                       : 'var(--color-background-default)',

@@ -9,10 +9,8 @@ import {
   Trash2,
   Workflow,
 } from 'lucide-react'
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Dropdown, DropdownItem } from '@/components/ui/dropdown'
-import { getAvatarGradient } from '@/components/ui/resource-list'
 import { cn } from '@/lib/utils'
 import type { SearchAppListItem } from '@/types/search'
 import {
@@ -22,6 +20,7 @@ import {
   resolveSummaryEnabled,
   type SearchTimeFormat,
 } from './utils'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 
 interface SearchGridCardProps {
   app: SearchAppListItem
@@ -40,7 +39,6 @@ const SearchGridCard: React.FC<SearchGridCardProps> = ({
 }) => {
   const { t } = useTranslation()
   const [isHovered, setIsHovered] = useState(false)
-  const gradient = getAvatarGradient(app.name)
   const kbCount = resolveKbCount(app)
   const summaryEnabled = resolveSummaryEnabled(app)
   const relatedEnabled = resolveRelatedEnabled(app)
@@ -65,26 +63,12 @@ const SearchGridCard: React.FC<SearchGridCardProps> = ({
       <div className="p-5">
         <div className="mb-4 flex items-start justify-between">
           <div className="flex min-w-0 flex-1 items-center gap-3">
-            {app.avatar ? (
-              <Avatar className="h-10 w-10">
-                <AvatarImage src={app.avatar} alt={app.name} />
-                <AvatarFallback>
-                  <Database className="h-5 w-5" />
-                </AvatarFallback>
-              </Avatar>
-            ) : (
-              <div
-                className={cn(
-                  'flex h-10 w-10 items-center justify-center rounded-xl',
-                  'bg-linear-to-br shadow-xs',
-                  gradient,
-                )}
-              >
-                <span className="text-lg font-semibold text-white">
-                  {app.name.charAt(0).toUpperCase()}
-                </span>
-              </div>
-            )}
+            <EntityAvatar
+              name={app.name}
+              src={app.avatar}
+              seed={app.id}
+              size="lg"
+            />
 
             <div className="min-w-0 flex-1">
               <h3 className="truncate font-semibold text-text-primary">
@@ -95,7 +79,7 @@ const SearchGridCard: React.FC<SearchGridCardProps> = ({
                   className={cn(
                     'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
                     summaryEnabled
-                      ? 'bg-[var(--color-status-success-10)] text-text-success'
+                      ? 'bg-status-success-subtle text-status-success'
                       : 'bg-background-subtle text-text-secondary',
                   )}
                 >
@@ -107,7 +91,7 @@ const SearchGridCard: React.FC<SearchGridCardProps> = ({
                   className={cn(
                     'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
                     relatedEnabled
-                      ? 'bg-status-info-10 text-text-accent'
+                      ? 'bg-status-info-subtle text-text-accent'
                       : 'bg-background-subtle text-text-secondary',
                   )}
                 >

@@ -21,7 +21,7 @@ import {
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 import type { KnowledgeBase } from '@/types/api'
-import { KnowledgeBaseAvatar } from './KnowledgeBaseAvatar'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 
 interface KnowledgeBaseSelectorProps {
   selectedIds: string[]
@@ -65,7 +65,7 @@ const KnowledgeBaseOptionLabel: FC<{
       {isSelected && <CheckIcon className="h-3 w-3 text-white" />}
     </div>
 
-    <KnowledgeBaseAvatar name={kb.name} avatar={kb.avatar} size="md" />
+    <EntityAvatar name={kb.name} src={kb.avatar} seed={kb.id} size="xs" />
 
     <span
       className={cn(
@@ -111,7 +111,7 @@ const SelectedKnowledgeBaseBadge: FC<{
     variant="secondary"
     className="flex h-6 max-w-[240px] items-center gap-1 bg-components-badge-info-bg px-1.5 py-0.5 text-xs text-components-badge-info-text"
   >
-    <KnowledgeBaseAvatar name={kb.name} avatar={kb.avatar} size="sm" />
+    <EntityAvatar name={kb.name} src={kb.avatar} seed={kb.id} size="2xs" />
     <span className="min-w-0 truncate">{kb.name}</span>
     {kb.nickname && (
       <span
@@ -271,7 +271,7 @@ export const KnowledgeBaseSelector: FC<KnowledgeBaseSelectorProps> = ({
             aria-expanded={open}
             disabled={disabled}
             className={cn(
-              'group min-h-10 w-full justify-between border border-border bg-transparent px-3 font-normal outline-hidden outline-offset-0 hover:bg-accent/30 focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary/30',
+              'group min-h-10 w-full justify-between border border-border bg-transparent px-3 font-normal outline-hidden outline-offset-0 hover:bg-state-hover focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary/30',
               selectedIds.length > 0 ? 'h-auto py-1.5' : 'h-10',
             )}
           >
@@ -361,7 +361,7 @@ export const KnowledgeBaseSelector: FC<KnowledgeBaseSelectorProps> = ({
                         onSelect={() => handleSelect(kb)}
                         className={cn(
                           'cursor-pointer',
-                          isSelected && 'bg-accent/50',
+                          isSelected && 'bg-state-selected-bg',
                           isDisabled && 'cursor-not-allowed opacity-60',
                         )}
                         disabled={isDisabled}
@@ -379,7 +379,7 @@ export const KnowledgeBaseSelector: FC<KnowledgeBaseSelectorProps> = ({
             </CommandList>
 
             {displayKbs.length > 0 && (
-              <div className="bg-background-primary absolute right-0 bottom-0 left-0 mx-4 flex items-center justify-between border-t border-border-subtle">
+              <div className="absolute right-0 bottom-0 left-0 mx-4 flex items-center justify-between border-t border-border-subtle bg-background">
                 <CommandSeparator />
                 {selectedIds.length > 0 && (
                   <>

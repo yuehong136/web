@@ -41,9 +41,10 @@ const STATUS_VARIANT_MAP: Record<
 }
 
 const STATUS_CLASS_MAP: Record<LogDetailViewModel['status'], string> = {
-  running: 'bg-status-info-subtle text-status-info border-status-info',
-  success: 'bg-status-success-subtle text-status-success border-status-success',
-  error: 'bg-status-error-subtle text-status-error border-status-error',
+  running: 'bg-status-info-subtle text-status-info border-status-info-border',
+  success:
+    'bg-status-success-subtle text-status-success border-status-success-border',
+  error: 'bg-status-error-subtle text-status-error border-status-error-border',
   unknown: 'bg-background-subtle text-text-secondary border-border-subtle',
   idle: 'bg-background-subtle text-text-secondary border-border-subtle',
 }
@@ -86,7 +87,7 @@ function DetailTab({
   return (
     <div
       className={cn(
-        'gap-space-xs px-space-sm flex h-10 items-center border-b-2 text-sm font-medium',
+        'flex h-10 items-center gap-space-xs border-b-2 px-space-sm text-sm font-medium',
         active
           ? 'border-state-focus text-text-primary'
           : 'border-transparent text-text-tertiary',
@@ -95,7 +96,7 @@ function DetailTab({
       <Icon className="h-3.5 w-3.5" />
       <span>{label}</span>
       {typeof count === 'number' ? (
-        <span className="text-text-caption font-mono text-xs">{count}</span>
+        <span className="font-mono text-xs text-text-caption">{count}</span>
       ) : null}
     </div>
   )
@@ -109,8 +110,8 @@ function DetailSection({
   children: ReactNode
 }) {
   return (
-    <section className="px-space-xl py-space-base border-b border-border-subtle last:border-b-0">
-      <h4 className="mb-space-sm text-xs font-semibold uppercase tracking-wide text-text-tertiary">
+    <section className="border-b border-border-subtle px-space-xl py-space-base last:border-b-0">
+      <h4 className="mb-space-sm text-xs font-semibold tracking-wide text-text-tertiary uppercase">
         {title}
       </h4>
       {children}
@@ -122,7 +123,7 @@ function SummaryRow({ label, value }: { label: string; value: ReactNode }) {
   return (
     <>
       <div className="text-xs text-text-tertiary">{label}</div>
-      <div className="min-w-0 break-words text-xs text-text-primary">
+      <div className="min-w-0 text-xs break-words text-text-primary">
         {value}
       </div>
     </>
@@ -138,25 +139,25 @@ function RuntimeSummary({
 }) {
   return (
     <aside className="hidden w-[300px] shrink-0 border-l border-components-split-pane-border bg-components-console-surface xl:flex xl:flex-col">
-      <div className="px-space-lg py-space-base border-b border-border-subtle">
+      <div className="border-b border-border-subtle px-space-lg py-space-base">
         <h4 className="text-sm font-semibold text-text-primary">运行摘要</h4>
       </div>
       <div className="min-h-0 flex-1 overflow-auto">
-        <div className="px-space-lg py-space-base border-b border-border-subtle">
-          <h5 className="mb-space-sm text-xs font-semibold uppercase tracking-wide text-text-tertiary">
+        <div className="border-b border-border-subtle px-space-lg py-space-base">
+          <h5 className="mb-space-sm text-xs font-semibold tracking-wide text-text-tertiary uppercase">
             基本信息
           </h5>
-          <div className="gap-x-space-sm gap-y-space-xs grid grid-cols-[72px_1fr]">
+          <div className="grid grid-cols-[72px_1fr] gap-x-space-sm gap-y-space-xs">
             <SummaryRow
               label="状态"
               value={
                 <span
                   className={cn(
-                    'gap-space-xs rounded-radius-full px-space-xs inline-flex items-center border py-[2px] text-[11px] font-medium',
+                    'inline-flex items-center gap-space-xs rounded-radius-full border px-space-xs py-[2px] text-[11px] font-medium',
                     STATUS_CLASS_MAP[viewModel.status],
                   )}
                 >
-                  <span className="rounded-radius-full h-1.5 w-1.5 bg-current" />
+                  <span className="h-1.5 w-1.5 rounded-radius-full bg-current" />
                   {STATUS_LABEL_MAP[viewModel.status]}
                 </span>
               }
@@ -187,9 +188,9 @@ function RuntimeSummary({
         </div>
 
         {viewModel.errorMessage ? (
-          <div className="px-space-lg py-space-base border-b border-border-subtle">
-            <div className="rounded-radius-md p-space-sm border border-status-error bg-status-error-subtle text-xs text-status-error">
-              <div className="mb-space-xs gap-space-xs flex items-center font-semibold">
+          <div className="border-b border-border-subtle px-space-lg py-space-base">
+            <div className="rounded-radius-md border border-status-error-border bg-status-error-subtle p-space-sm text-xs text-status-error">
+              <div className="mb-space-xs flex items-center gap-space-xs font-semibold">
                 <AlertTriangle className="h-3.5 w-3.5" />
                 错误摘要
               </div>
@@ -200,10 +201,10 @@ function RuntimeSummary({
           </div>
         ) : null}
 
-        <div className="px-space-lg py-space-base border-b border-border-subtle">
-          <h5 className="mb-space-sm gap-space-xs flex items-center text-xs font-semibold uppercase tracking-wide text-text-tertiary">
+        <div className="border-b border-border-subtle px-space-lg py-space-base">
+          <h5 className="mb-space-sm flex items-center gap-space-xs text-xs font-semibold tracking-wide text-text-tertiary uppercase">
             Trace 时间线
-            <span className="text-text-caption ml-auto font-mono text-[11px]">
+            <span className="ml-auto font-mono text-[11px] text-text-caption">
               {viewModel.traceItems.length}
             </span>
           </h5>
@@ -214,10 +215,10 @@ function RuntimeSummary({
         </div>
 
         <div className="px-space-lg py-space-base">
-          <h5 className="mb-space-sm text-xs font-semibold uppercase tracking-wide text-text-tertiary">
+          <h5 className="mb-space-sm text-xs font-semibold tracking-wide text-text-tertiary uppercase">
             标识
           </h5>
-          <div className="gap-x-space-sm gap-y-space-xs grid grid-cols-[72px_1fr]">
+          <div className="grid grid-cols-[72px_1fr] gap-x-space-sm gap-y-space-xs">
             <SummaryRow
               label="Session"
               value={
@@ -273,9 +274,9 @@ export function LogDetail(props: LogDetailProps) {
   return (
     <div className="flex h-full min-h-0 bg-components-split-pane-bg">
       <div className="flex min-w-0 flex-1 flex-col">
-        <div className="gap-space-sm px-space-lg flex min-h-[56px] items-center justify-between border-b border-components-split-pane-border bg-components-console-surface">
+        <div className="flex min-h-[56px] items-center justify-between gap-space-sm border-b border-components-split-pane-border bg-components-console-surface px-space-lg">
           <div className="min-w-0">
-            <div className="gap-space-xs flex min-w-0 items-center">
+            <div className="flex min-w-0 items-center gap-space-xs">
               <Badge variant={STATUS_VARIANT_MAP[viewModel.status]}>
                 {STATUS_LABEL_MAP[viewModel.status]}
               </Badge>
@@ -283,7 +284,7 @@ export function LogDetail(props: LogDetailProps) {
                 {viewModel.sessionName || '运行日志'}
               </h3>
             </div>
-            <div className="mt-space-xs gap-space-xs flex min-w-0 items-center text-xs text-text-tertiary">
+            <div className="mt-space-xs flex min-w-0 items-center gap-space-xs text-xs text-text-tertiary">
               <span className="truncate font-mono">
                 {viewModel.sessionId || '-'}
               </span>
@@ -304,7 +305,7 @@ export function LogDetail(props: LogDetailProps) {
           />
         </div>
 
-        <div className="px-space-lg flex shrink-0 items-center border-b border-border-subtle bg-components-console-surface">
+        <div className="flex shrink-0 items-center border-b border-border-subtle bg-components-console-surface px-space-lg">
           <DetailTab
             active
             icon={MessageSquare}
@@ -321,7 +322,7 @@ export function LogDetail(props: LogDetailProps) {
         </div>
 
         <div className="min-h-0 flex-1 overflow-auto">
-          <div className="py-space-lg mx-auto max-w-[920px]">
+          <div className="mx-auto max-w-[920px] py-space-lg">
             <div className="px-space-xl">
               <ErrorBanner message={viewModel.errorMessage} />
             </div>

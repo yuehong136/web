@@ -7,8 +7,9 @@ import type {
 import { cn } from '@/lib/utils'
 
 const ISSUE_TONE_CLASSES: Record<TraceIssue['severity'], string> = {
-  error: 'border-status-error bg-status-error/10 text-status-error',
-  warning: 'border-status-warning bg-status-warning/10 text-status-warning',
+  error: 'border-status-error-border bg-status-error-subtle text-status-error',
+  warning:
+    'border-status-warning-border bg-status-warning-subtle text-status-warning',
   info: 'border-border-subtle bg-surface-primary text-text-secondary',
 }
 
@@ -30,8 +31,8 @@ export function TraceErrorPanel({ viewModel, span }: TraceErrorPanelProps) {
   if (!spanError && issues.length === 0) {
     return (
       <div className="p-space-lg">
-        <div className="rounded-radius-md bg-surface-primary px-space-lg py-space-xl flex flex-col items-center justify-center text-center">
-          <CheckCircle2 className="text-status-success size-8" />
+        <div className="flex flex-col items-center justify-center rounded-radius-md bg-surface-primary px-space-lg py-space-xl text-center">
+          <CheckCircle2 className="size-8 text-status-success" />
           <div className="mt-space-sm text-sm font-semibold text-text-primary">
             当前节点未记录错误
           </div>
@@ -44,14 +45,14 @@ export function TraceErrorPanel({ viewModel, span }: TraceErrorPanelProps) {
   }
 
   return (
-    <div className="gap-space-base p-space-lg flex flex-col">
+    <div className="flex flex-col gap-space-base p-space-lg">
       {spanError ? (
-        <div className="rounded-radius-md border-status-error bg-status-error/10 p-space-base text-status-error border">
-          <div className="gap-space-xs flex items-center text-sm font-semibold">
+        <div className="rounded-radius-md border border-status-error-border bg-status-error-subtle p-space-base text-status-error">
+          <div className="flex items-center gap-space-xs text-sm font-semibold">
             <AlertTriangle className="size-3.5" />
             节点错误
           </div>
-          <pre className="mt-space-sm whitespace-pre-wrap break-words text-xs">
+          <pre className="mt-space-sm text-xs break-words whitespace-pre-wrap">
             {spanError}
           </pre>
         </div>
@@ -60,11 +61,11 @@ export function TraceErrorPanel({ viewModel, span }: TraceErrorPanelProps) {
         <div
           key={issue.id}
           className={cn(
-            'rounded-radius-md p-space-base border',
+            'rounded-radius-md border p-space-base',
             ISSUE_TONE_CLASSES[issue.severity],
           )}
         >
-          <div className="gap-space-xs flex items-center text-sm font-semibold">
+          <div className="flex items-center gap-space-xs text-sm font-semibold">
             <AlertTriangle className="size-3.5" />
             {issue.severity}
           </div>

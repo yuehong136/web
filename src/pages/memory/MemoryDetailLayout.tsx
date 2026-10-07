@@ -41,13 +41,13 @@ export const MemoryDetailLayout: React.FC = () => {
 
   if (managed)
     return (
-      <div className="bg-background-page h-full overflow-auto">
+      <div className="h-full overflow-auto bg-background-default">
         <Outlet />
       </div>
     )
 
   return (
-    <div className="bg-background-page h-full">
+    <div className="h-full bg-background-default">
       <ResizablePanelGroup orientation="horizontal" className="h-full">
         {/* 侧边栏 */}
         <ResizablePanel

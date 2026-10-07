@@ -1,7 +1,6 @@
 import type { FC } from 'react'
 import {
   Clock,
-  Database,
   FileText,
   Layers,
   MoreVertical,
@@ -10,14 +9,13 @@ import {
   Trash2,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Dropdown, DropdownItem } from '@/components/ui/dropdown'
-import { getAvatarGradient } from '@/components/ui/resource-list'
 import { cn } from '@/lib/utils'
 import type { KnowledgeBase } from '@/types/api'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 
 interface KnowledgeCardProps {
   formatTime: (timestamp: number) => string
@@ -43,7 +41,6 @@ export const KnowledgeCard: FC<KnowledgeCardProps> = ({
   selected,
 }) => {
   const { t } = useTranslation()
-  const gradient = getAvatarGradient(knowledgeBase.name)
 
   return (
     <Card
@@ -63,29 +60,12 @@ export const KnowledgeCard: FC<KnowledgeCardProps> = ({
               onCheckedChange={onSelect}
               onClick={(event) => event.stopPropagation()}
             />
-            {knowledgeBase.avatar ? (
-              <Avatar className="h-10 w-10">
-                <AvatarImage
-                  alt={knowledgeBase.name}
-                  src={knowledgeBase.avatar}
-                />
-                <AvatarFallback>
-                  <Database className="h-5 w-5" />
-                </AvatarFallback>
-              </Avatar>
-            ) : (
-              <div
-                className={cn(
-                  'flex h-10 w-10 items-center justify-center rounded-radius-xl',
-                  'bg-linear-to-br shadow-elevation-low',
-                  gradient,
-                )}
-              >
-                <span className="text-lg font-semibold text-text-inverted">
-                  {knowledgeBase.name.charAt(0).toUpperCase()}
-                </span>
-              </div>
-            )}
+            <EntityAvatar
+              name={knowledgeBase.name}
+              src={knowledgeBase.avatar}
+              seed={knowledgeBase.id}
+              size="lg"
+            />
             <div className="min-w-0 flex-1">
               <h3 className="truncate font-semibold text-text-primary">
                 {knowledgeBase.name}

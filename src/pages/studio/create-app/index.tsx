@@ -50,6 +50,7 @@ export function CreateAppPage() {
         toolbar={
           <EditorHeader
             config={controller.config}
+            avatarSeed={controller.dialogId ?? undefined}
             saving={controller.saving}
             status={status}
             disabled={disabled}

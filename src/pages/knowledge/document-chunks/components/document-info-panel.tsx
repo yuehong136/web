@@ -55,7 +55,7 @@ export const DocumentInfoPanel = ({
                   className={cn(
                     'shrink-0 rounded-radius-full px-space-sm py-space-2xs text-xs',
                     selectedChunk.available_int === 1
-                      ? 'bg-status-success/10 text-status-success'
+                      ? 'bg-status-success-subtle text-status-success'
                       : 'bg-background-subtle text-text-secondary',
                   )}
                 >

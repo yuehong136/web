@@ -1,9 +1,8 @@
-import { useMemo, type CSSProperties } from 'react'
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { User } from 'lucide-react'
 import { FileIcon, Tooltip, type Column } from '@/components/ui'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Checkbox } from '@/components/ui/checkbox'
 import type { Document } from '@/types/api'
 import {
@@ -18,36 +17,7 @@ import {
   formatDocumentFileSize,
   formatDocumentRelativeTime,
 } from './utils/format'
-
-const AVATAR_GRADIENTS = [
-  'blue',
-  'green',
-  'orange',
-  'purple',
-  'indigo',
-  'rose',
-  'teal',
-  'amber',
-] as const
-
-const AVATAR_STYLES: CSSProperties[] = AVATAR_GRADIENTS.map((name) => ({
-  background: `linear-gradient(135deg, var(--color-components-avatar-gradient-${name}-from), var(--color-components-avatar-gradient-${name}-to))`,
-}))
-
-function getAvatarStyle(name: string): CSSProperties {
-  let hash = 0
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash)
-  }
-  return AVATAR_STYLES[Math.abs(hash) % AVATAR_STYLES.length]
-}
-
-function getInitial(name: string): string {
-  if (!name) return '?'
-  const trimmed = name.trim()
-  if (/^[\u4e00-\u9fff]/.test(trimmed)) return trimmed.slice(0, 1)
-  return trimmed.charAt(0).toUpperCase()
-}
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 
 interface UseDocumentTableColumnsProps {
   kbId: string
@@ -266,22 +236,17 @@ export function useDocumentTableColumns({
             record.nickname ||
             record.created_by ||
             t('knowledge.documents.unknown')
-          const avatarStyle = getAvatarStyle(displayName)
+          const known = Boolean(record.nickname || record.created_by)
           return (
             <Tooltip content={displayName}>
-              <div className="gap-space-xs flex min-w-0 items-center">
-                <Avatar className="h-6 w-6 shrink-0">
-                  <AvatarFallback
-                    className="text-[11px] font-medium text-white"
-                    style={avatarStyle}
-                  >
-                    {displayName === t('knowledge.documents.unknown') ? (
-                      <User className="h-3 w-3" />
-                    ) : (
-                      getInitial(displayName)
-                    )}
-                  </AvatarFallback>
-                </Avatar>
+              <div className="flex min-w-0 items-center gap-space-xs">
+                <EntityAvatar
+                  name={known ? displayName : undefined}
+                  seed={record.created_by}
+                  size="sm"
+                  shape="circle"
+                  icon={known ? undefined : <User />}
+                />
                 <span className="truncate text-sm text-text-secondary">
                   {displayName}
                 </span>

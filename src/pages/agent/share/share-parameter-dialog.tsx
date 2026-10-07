@@ -68,7 +68,7 @@ export function ShareParameterDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-space-md px-space-lg pb-space-lg max-h-[64vh] overflow-auto">
+        <div className="max-h-[64vh] space-y-space-md overflow-auto px-space-lg pb-space-lg">
           {entries.map(({ key, field }) => (
             <ShareInputField
               key={key}
@@ -84,12 +84,12 @@ export function ShareParameterDialog({
           ))}
 
           {error ? (
-            <div className="rounded-radius-md bg-surface-secondary p-space-sm border border-status-error text-sm text-status-error">
+            <div className="rounded-radius-md border border-status-error-border bg-status-error-subtle p-space-sm text-sm text-status-error">
               {error}
             </div>
           ) : null}
 
-          <div className="gap-space-sm flex justify-end">
+          <div className="flex justify-end gap-space-sm">
             <Button
               variant="outline"
               onClick={() => onOpenChange(false)}

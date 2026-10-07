@@ -38,7 +38,7 @@ export function DeleteConfirmModal({
         {/* 警示头部 */}
         <DialogHeader className="px-6 pt-6 pb-4">
           <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-status-error-10">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-status-error-subtle">
               <AlertTriangle className="h-6 w-6 text-status-error" />
             </div>
             <div className="min-w-0 flex-1 pt-1">

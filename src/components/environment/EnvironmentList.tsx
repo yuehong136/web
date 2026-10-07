@@ -363,11 +363,11 @@ export function EnvironmentList({
               </span>{' '}
               吗？
             </p>
-            <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-3">
-              <p className="mb-1 text-sm font-medium text-destructive">
+            <div className="rounded-lg border border-status-error-border bg-status-error-subtle p-3">
+              <p className="mb-1 text-sm font-medium text-status-error">
                 ⚠️ 此操作不可逆
               </p>
-              <p className="text-xs text-destructive/80">
+              <p className="text-xs text-status-error">
                 删除环境将同时删除环境下的所有变量，请谨慎操作。
               </p>
             </div>
@@ -418,7 +418,7 @@ export function EnvironmentList({
                     {!env.is_default && (
                       <button
                         onClick={() => handleDeleteClick(env)}
-                        className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-destructive transition-colors hover:bg-muted hover:text-destructive"
+                        className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-status-error transition-colors hover:bg-muted"
                       >
                         <Trash2 className="h-4 w-4" />
                         删除

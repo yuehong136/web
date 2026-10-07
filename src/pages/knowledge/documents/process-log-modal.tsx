@@ -105,7 +105,7 @@ const highlightErrors = (text: string): React.ReactNode => {
   return parts.map((part, index) => {
     if (part.match(/^\[ERROR\]/)) {
       return (
-        <span key={index} className="text-text-error">
+        <span key={index} className="text-status-error">
           {part}
         </span>
       )
@@ -184,7 +184,7 @@ export const ProcessLogModal: React.FC<ProcessLogModalProps> = ({
                     label={label}
                     fullWidth
                     value={
-                      <div className="bg-surface-secondary mt-1 h-fit max-h-[350px] w-full overflow-y-auto whitespace-pre-line text-wrap rounded-lg p-3 text-text-secondary scrollbar-thin">
+                      <div className="mt-1 scrollbar-thin h-fit max-h-[350px] w-full overflow-y-auto rounded-lg bg-surface-secondary p-3 text-wrap whitespace-pre-line text-text-secondary">
                         {highlightErrors(value as string)}
                       </div>
                     }

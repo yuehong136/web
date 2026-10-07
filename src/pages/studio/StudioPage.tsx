@@ -411,7 +411,7 @@ export const StudioPage: React.FC = () => {
                     [...Array(6)].map((_, i) => (
                       <div
                         key={i}
-                        className="bg-surface-secondary h-[180px] animate-pulse rounded-2xl"
+                        className="h-[180px] animate-pulse rounded-2xl bg-surface-secondary"
                       />
                     ))
                   : sortedApps.map((app) => (
@@ -570,7 +570,7 @@ export const StudioPage: React.FC = () => {
             <AlertDialogCancel>{t('common.cancel', '取消')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDelete}
-              className="bg-status-error hover:bg-status-error/90"
+              variant="destructive"
             >
               {t('common.delete', '删除')}
             </AlertDialogAction>

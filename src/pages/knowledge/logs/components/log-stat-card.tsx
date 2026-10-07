@@ -22,7 +22,7 @@ const VARIANT_CLASSES: Record<
   },
   warning: {
     decoration: 'bg-status-warning',
-    icon: 'bg-status-warning-10',
+    icon: 'bg-status-warning-subtle',
     iconText: 'text-status-warning',
   },
 }
@@ -47,10 +47,10 @@ export function LogStatCard({
   const classes = VARIANT_CLASSES[variant]
 
   return (
-    <div className="rounded-radius-xl hover:shadow-elevation-medium relative overflow-hidden border border-components-card-border bg-components-card-bg p-5 transition-all duration-300">
+    <div className="relative overflow-hidden rounded-radius-xl border border-components-card-border bg-components-card-bg p-5 transition-all duration-300 hover:shadow-elevation-medium">
       <div
         className={cn(
-          'absolute -right-4 -top-4 h-24 w-24 rounded-full opacity-20 blur-2xl',
+          'absolute -top-4 -right-4 h-24 w-24 rounded-full opacity-20 blur-2xl',
           classes.decoration,
         )}
       />
@@ -70,7 +70,7 @@ export function LogStatCard({
           </div>
         </div>
 
-        <div className="mb-3 text-3xl font-bold tabular-nums text-text-primary">
+        <div className="mb-3 text-3xl font-bold text-text-primary tabular-nums">
           {new Intl.NumberFormat(getCurrentLanguage()).format(value)}
         </div>
 
@@ -136,12 +136,12 @@ function LogStatProcessItem({ label, value, tone }: LogStatProcessItemProps) {
   const toneClasses =
     tone === 'success'
       ? {
-          root: 'bg-status-success-10',
+          root: 'bg-status-success-subtle',
           dot: 'bg-status-success',
           value: 'text-status-success',
         }
       : {
-          root: 'bg-status-error-10',
+          root: 'bg-status-error-subtle',
           dot: 'bg-status-error',
           value: 'text-status-error',
         }
@@ -149,7 +149,7 @@ function LogStatProcessItem({ label, value, tone }: LogStatProcessItemProps) {
   return (
     <div
       className={cn(
-        'rounded-radius-lg flex flex-1 cursor-default items-center justify-between p-2',
+        'flex flex-1 cursor-default items-center justify-between rounded-radius-lg p-2',
         toneClasses.root,
       )}
     >
@@ -170,7 +170,7 @@ export function LogStatsSkeleton() {
       {[1, 2, 3].map((index) => (
         <div
           key={index}
-          className="rounded-radius-xl h-40 animate-pulse border border-border-subtle bg-background-subtle"
+          className="h-40 animate-pulse rounded-radius-xl border border-border-subtle bg-background-subtle"
         />
       ))}
     </div>

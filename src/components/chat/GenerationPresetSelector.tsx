@@ -101,7 +101,7 @@ export const GenerationPresetSelector: React.FC<
                 color: isActive
                   ? 'var(--color-components-segmented-item-text-active)'
                   : 'var(--color-components-segmented-item-text)',
-                boxShadow: isActive ? 'var(--color-shadow-sm)' : 'none',
+                boxShadow: isActive ? 'var(--elevation-low)' : 'none',
               }}
               onMouseEnter={(e) => {
                 if (!isActive && !disabled) {

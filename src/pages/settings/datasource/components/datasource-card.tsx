@@ -85,7 +85,7 @@ export function DataSourceCard({ name, icon, list }: DataSourceCardProps) {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-7 w-7 rounded-md p-0 text-text-secondary hover:bg-status-error-10 hover:text-status-error"
+                    className="h-7 w-7 rounded-md p-0 text-text-secondary hover:bg-status-error-subtle hover:text-status-error"
                     onClick={() => setDeleteTarget(item)}
                   >
                     <Trash2 className="h-4 w-4" />

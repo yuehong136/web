@@ -76,6 +76,7 @@ export default function AgentExplorePage() {
       agentName={agentName}
       agentDescription={agentDescription}
       avatar={agentQuery.data?.avatar}
+      avatarSeed={canvasId}
       editorPath={buildAgentCanvasPath(canvasId, agentQuery.data)}
       onCreateSession={sessions.handleCreateTemporarySession}
       sessionId={savedSessionId}

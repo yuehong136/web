@@ -32,8 +32,8 @@ export const UsedModels: React.FC<UsedModelsProps> = ({
 
       {/* 供应商列表 */}
       {providerList.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-accent/10 py-12">
-          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-accent">
+        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-background-default py-12">
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-background-subtle">
             <svg
               className="h-8 w-8 text-text-tertiary"
               fill="none"

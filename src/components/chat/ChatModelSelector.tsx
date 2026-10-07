@@ -317,7 +317,7 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
           onClick={handleGoToModelProviders}
           className={cn(
             'flex h-10 items-center gap-space-sm rounded-radius-lg px-space-md transition-all',
-            'border border-status-warning',
+            'border border-status-warning-border',
             'text-base font-medium',
             'text-status-warning hover:bg-status-warning-subtle',
             triggerClassName,
@@ -434,7 +434,7 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
         <label className="block text-xs font-medium text-text-primary">
           {t('chat.modelSelector.label')}
         </label>
-        <div className="flex h-10 w-full items-center rounded-md border border-border bg-accent/20 px-3 py-2">
+        <div className="flex h-10 w-full items-center rounded-md border border-border bg-background-subtle px-3 py-2">
           <div className="h-3 w-3 animate-spin rounded-full border-b-2 border-primary"></div>
           <span className="ml-2 text-xs text-text-tertiary">
             {t('chat.modelSelector.loading')}
@@ -450,9 +450,9 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
         <label className="block text-xs font-medium text-text-primary">
           {t('chat.modelSelector.label')}
         </label>
-        <div className="flex h-10 w-full items-center rounded-md border border-error bg-error/10 px-3 py-2">
-          <AlertCircle className="h-3 w-3 text-error" />
-          <span className="ml-2 text-xs text-error">{error}</span>
+        <div className="flex h-10 w-full items-center rounded-md border border-status-error-border bg-status-error-subtle px-3 py-2">
+          <AlertCircle className="h-3 w-3 text-status-error" />
+          <span className="ml-2 text-xs text-status-error">{error}</span>
         </div>
       </div>
     )
@@ -466,7 +466,7 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
         </label>
         <button
           onClick={handleGoToModelProviders}
-          className="flex h-10 w-full cursor-pointer items-center rounded-md border border-status-warning bg-status-warning-subtle px-3 py-2 transition-colors hover:bg-status-warning/20"
+          className="flex h-10 w-full cursor-pointer items-center rounded-md border border-status-warning-border bg-status-warning-subtle px-3 py-2 transition-colors hover:bg-status-warning-subtle-hover"
         >
           <AlertCircle className="h-3 w-3 shrink-0 text-status-warning" />
           <span className="ml-2 text-xs text-status-warning">

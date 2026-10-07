@@ -33,13 +33,13 @@ import { MemoryTypeSelect } from './MemoryTypeSelect'
 import { ChatModelSelector } from './ChatModelSelector'
 import { AvatarUpload } from './AvatarUpload'
 import { EmbeddingModelSelector } from '@/components/knowledge/EmbeddingModelSelector'
-import { cn } from '@/lib/utils'
 import { useFetchMyLLMs } from '@/hooks/use-llm-request'
 import type {
   Memory,
   CreateMemoryParams,
   UpdateMemoryParams,
 } from '@/types/memory'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 
 // ============ Create form schema ============
 const getCreateMemorySchema = (t: ReturnType<typeof useTranslation>['t']) =>
@@ -89,19 +89,6 @@ export const CreateMemoryDialog: FC<CreateMemoryDialogProps> = ({
   const editMemorySchema = useMemo(() => getEditMemorySchema(t), [t])
   const { myLLMs: modelProviders, isLoading: isLoadingModels } =
     useFetchMyLLMs()
-
-  const avatarGradient = useMemo(() => {
-    const name = initialData?.name || 'M'
-    const gradients = [
-      'from-components-avatar-gradient-purple-from to-components-avatar-gradient-purple-to',
-      'from-components-avatar-gradient-blue-from to-components-avatar-gradient-blue-to',
-      'from-components-avatar-gradient-green-from to-components-avatar-gradient-green-to',
-      'from-components-avatar-gradient-orange-from to-components-avatar-gradient-orange-to',
-      'from-components-avatar-gradient-indigo-from to-components-avatar-gradient-indigo-to',
-    ]
-    const index = name.charCodeAt(0) % gradients.length
-    return gradients[index]
-  }, [initialData?.name])
 
   // ============ Create form ============
   const createForm = useForm<CreateMemoryFormValues>({
@@ -166,15 +153,12 @@ export const CreateMemoryDialog: FC<CreateMemoryDialogProps> = ({
         <DialogContent size="sm">
           <DialogHeader>
             <div className="flex items-center gap-3">
-              <div
-                className={cn(
-                  'flex h-10 w-10 items-center justify-center rounded-radius-lg',
-                  'bg-linear-to-br',
-                  avatarGradient,
-                )}
-              >
-                <Brain className="h-icon-md w-icon-md text-components-button-primary-text" />
-              </div>
+              <EntityAvatar
+                name={initialData?.name}
+                src={initialData?.avatar}
+                seed={initialData?.id}
+                size="lg"
+              />
               <div className="min-w-0 flex-1">
                 <DialogTitle>{t('memory.dialog.editTitle')}</DialogTitle>
                 <DialogDescription>
@@ -196,10 +180,8 @@ export const CreateMemoryDialog: FC<CreateMemoryDialogProps> = ({
                         value={field.value}
                         onChange={field.onChange}
                         size="lg"
-                        fallbackLetter={
-                          editForm.watch('name')?.charAt(0) || 'M'
-                        }
-                        gradientClass={avatarGradient}
+                        name={editForm.watch('name')}
+                        seed={initialData?.id}
                         tips={t('memory.fields.avatarUploadTips')}
                       />
                       <FormMessage />
@@ -260,13 +242,8 @@ export const CreateMemoryDialog: FC<CreateMemoryDialogProps> = ({
       <DialogContent size="md">
         <DialogHeader>
           <div className="flex items-center gap-3">
-            <div
-              className={cn(
-                'flex h-10 w-10 items-center justify-center rounded-radius-lg',
-                'bg-linear-to-br from-components-avatar-gradient-purple-from to-components-avatar-gradient-purple-to',
-              )}
-            >
-              <Brain className="h-icon-md w-icon-md text-components-button-primary-text" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-radius-lg bg-state-selected-bg text-state-selected-text">
+              <Brain className="size-icon-md" />
             </div>
             <div className="min-w-0 flex-1">
               <DialogTitle>{t('memory.dialog.createTitle')}</DialogTitle>

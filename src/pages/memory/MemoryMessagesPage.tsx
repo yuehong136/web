@@ -129,7 +129,7 @@ export function MemoryMessagesPage() {
         </div>
 
         {/* 提示信息 */}
-        <div className="flex items-start gap-2 rounded-radius-lg border border-status-info-subtle bg-status-info-10 p-space-sm text-status-info">
+        <div className="flex items-start gap-2 rounded-radius-lg border border-status-info-border bg-status-info-subtle p-space-sm text-status-info">
           <Info className="mt-0.5 h-4 w-4 shrink-0" />
           <p className="text-sm">{t('memory.messages.description')}</p>
         </div>

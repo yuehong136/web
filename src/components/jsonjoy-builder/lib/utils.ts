@@ -10,12 +10,12 @@ export function cn(...inputs: ClassValue[]) {
 export function getTypeColor(type: SchemaType): string {
   switch (type) {
     case 'string':
-      return 'bg-components-api-status-info-bg text-components-api-status-info-text'
+      return 'bg-components-badge-blue-bg text-components-badge-blue-text'
     case 'number':
     case 'integer':
-      return 'bg-components-api-status-warning-bg text-components-api-status-warning-text'
+      return 'bg-components-badge-orange-bg text-components-badge-orange-text'
     case 'boolean':
-      return 'bg-components-api-status-success-bg text-components-api-status-success-text'
+      return 'bg-components-badge-green-bg text-components-badge-green-text'
     case 'object':
       return 'bg-surface-secondary text-text-secondary'
     case 'array':

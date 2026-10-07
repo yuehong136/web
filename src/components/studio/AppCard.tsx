@@ -4,7 +4,7 @@
  * 参考 MemoryCard 的悬停效果实现
  */
 
-import React, { useState, useMemo } from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
@@ -19,7 +19,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Dropdown, DropdownItem } from '@/components/ui/dropdown'
-import { getAvatarGradient } from '@/components/ui/resource-list'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 import {
   cn,
   formatRelativeTime,
@@ -44,7 +44,7 @@ interface AppCardProps {
 // 状态颜色映射 - 使用语义令牌
 const statusColors: Record<string, string> = {
   '1': 'bg-components-badge-green-bg text-components-badge-green-text',
-  '0': 'bg-components-badge-gray-bg text-components-badge-gray-text',
+  '0': 'bg-components-badge-neutral-bg text-components-badge-neutral-text',
 }
 
 // 根据时间格式返回格式化后的时间
@@ -105,34 +105,6 @@ export const AppCard: React.FC<AppCardProps> = ({
     onExport?.(data)
   }
 
-  // 获取头像渐变色
-  const avatarGradient = useMemo(
-    () => getAvatarGradient(data.name),
-    [data.name],
-  )
-
-  // 获取应用图标
-  const getAppIcon = () => {
-    if (data.icon) {
-      const iconSrc =
-        data.icon.startsWith('data:') || data.icon.startsWith('http')
-          ? data.icon
-          : `data:image/png;base64,${data.icon}`
-      return (
-        <img
-          src={iconSrc}
-          alt={data.name}
-          className="h-12 w-12 rounded-xl object-cover"
-          onError={(e) => {
-            e.currentTarget.style.display = 'none'
-            e.currentTarget.nextElementSibling?.classList.remove('hidden')
-          }}
-        />
-      )
-    }
-    return null
-  }
-
   return (
     <div
       className={cn(
@@ -165,22 +137,12 @@ export const AppCard: React.FC<AppCardProps> = ({
               />
             )}
 
-            {/* 头像 */}
-            <div className="relative">
-              {getAppIcon()}
-              <div
-                className={cn(
-                  'flex h-12 w-12 items-center justify-center rounded-xl',
-                  'bg-linear-to-br shadow-xs',
-                  avatarGradient,
-                  data.icon && 'hidden',
-                )}
-              >
-                <span className="text-xl font-semibold text-white">
-                  {data.name.charAt(0).toUpperCase()}
-                </span>
-              </div>
-            </div>
+            <EntityAvatar
+              name={data.name}
+              src={data.icon}
+              seed={data.id}
+              size="xl"
+            />
 
             {/* 名称和类型 */}
             <div className="min-w-0 flex-1">
