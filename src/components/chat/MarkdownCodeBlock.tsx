@@ -2,7 +2,7 @@ import React, { memo } from 'react'
 import { Mermaid } from '@ant-design/x'
 import type { ComponentProps, XMarkdownProps } from '@ant-design/x-markdown'
 import type { MarkedExtension } from 'marked'
-import Latex from '@ant-design/x-markdown/plugins/Latex'
+import { createChatLatexExtensions } from './latex-extension'
 import {
   MemoizedMarkdownArtifactImage,
   MemoizedMarkdownArtifactLink,
@@ -308,5 +308,5 @@ export function getMarkdownStreamingOptions(
  * ```
  */
 export const markdownConfig: MarkedExtension = {
-  extensions: Latex(),
+  extensions: createChatLatexExtensions(),
 }
