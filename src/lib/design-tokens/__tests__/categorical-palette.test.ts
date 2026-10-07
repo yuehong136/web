@@ -397,6 +397,19 @@ for (const mode of ['light', 'dark'] as const) {
         )
       }
     }
+    // Reference similarity badges label the success, accent and tertiary
+    // text colors with text-inverted.
+    for (const background of [
+      'text-success',
+      'text-accent',
+      'text-tertiary',
+    ] as const) {
+      const ratio = contrast(values['text-inverted'], values[background])
+      assert.ok(
+        ratio >= 4.5,
+        `${mode} similarity badges on ${background} are ${ratio.toFixed(2)}:1; expected at least 4.5:1`,
+      )
+    }
     // Published apps keep their success chip in selected list rows, where
     // the selection tint lies under the success tint.
     const selectedChipRatio = contrast(

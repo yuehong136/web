@@ -141,8 +141,8 @@ export const ReferenceMarker: React.FC<ReferenceMarkerProps> = ({
               className="shrink-0 rounded-full px-2 py-0.5 text-xs font-medium"
               style={{
                 backgroundColor: similarityColor,
-                color: '#fff',
-                opacity: 0.9,
+                // 反色文字随主题翻转（浅色白字、暗色深字），三档相似度底色上都可读
+                color: 'var(--color-text-inverted)',
               }}
             >
               {similarityPercent}%
