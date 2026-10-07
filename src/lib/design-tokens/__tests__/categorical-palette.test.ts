@@ -371,17 +371,24 @@ for (const mode of ['light', 'dark'] as const) {
         `${mode} tag labels against ${background} are ${ratio.toFixed(2)}:1; expected at least 4.5:1`,
       )
     }
-    for (const status of ['success', 'warning', 'error', 'info'] as const) {
+    for (const badge of [
+      'components-badge',
+      'components-badge-neutral',
+      'components-badge-success',
+      'components-badge-warning',
+      'components-badge-error',
+      'components-badge-info',
+    ] as const) {
       const ratio = contrast(
-        values[`components-badge-${status}-text`],
+        values[`${badge}-text`],
         compositeBackground(
-          values[`components-badge-${status}-bg`],
+          values[`${badge}-bg`],
           values['background-surface'],
         ),
       )
       assert.ok(
         ratio >= 4.5,
-        `${mode} ${status} badge labels are ${ratio.toFixed(2)}:1; expected at least 4.5:1`,
+        `${mode} ${badge} labels are ${ratio.toFixed(2)}:1; expected at least 4.5:1`,
       )
     }
     for (const status of ['success', 'warning', 'error', 'info'] as const) {
@@ -468,12 +475,16 @@ for (const mode of ['light', 'dark'] as const) {
     )
     // Method, task, API and system status labels sit on their own tint.
     for (const label of [
+      'components-method-get',
       'components-method-post',
       'components-method-put',
       'components-method-delete',
+      'components-method-patch',
+      'components-http-method-get',
       'components-http-method-post',
       'components-http-method-put',
       'components-http-method-delete',
+      'components-http-method-patch',
       'components-api-status-error',
       'components-task-status-cancelled',
       'components-task-status-completed',
@@ -494,15 +505,95 @@ for (const mode of ['light', 'dark'] as const) {
         )
       }
     }
-    // The info result icon is non-text content, so it needs 3:1.
-    for (const background of ['components-result-bg', ...surfaces] as const) {
+    // Result icons are non-text content, so they need 3:1.
+    for (const status of ['success', 'warning', 'error', 'info'] as const) {
+      for (const background of ['components-result-bg', ...surfaces] as const) {
+        const ratio = contrast(
+          values[`components-result-icon-${status}`],
+          values[background],
+        )
+        assert.ok(
+          ratio >= 3,
+          `${mode} ${status} result icon over ${background} is ${ratio.toFixed(2)}:1; expected at least 3:1`,
+        )
+      }
+    }
+    // Inactive tab and segmented labels sit on their track, and on the hover
+    // fill laid over the track.
+    for (const [label, track, hover] of [
+      ['components-tabs-inactive-text', 'components-tabs-bg', 'state-hover'],
+      [
+        'components-segmented-item-text',
+        'components-segmented-bg',
+        'components-segmented-item-bg-hover',
+      ],
+    ] as const) {
+      const rest = compositeBackground(
+        values[track],
+        values['background-surface'],
+      )
+      for (const [state, background] of [
+        ['rest', rest],
+        ['hover', compositeBackground(values[hover], rest)],
+      ] as const) {
+        const ratio = contrast(values[label], background)
+        assert.ok(
+          ratio >= 4.5,
+          `${mode} ${label} on its ${state} track is ${ratio.toFixed(2)}:1; expected at least 4.5:1`,
+        )
+      }
+    }
+    // Inline code, step pills, environment badges and the user avatar
+    // initial put their text on their own fill.
+    for (const label of [
+      'components-code',
+      'components-steps-completed',
+      'components-steps-active',
+      'components-steps-inactive',
+      'components-env-dev',
+      'components-env-staging',
+      'components-env-prod',
+      'chat-bubble-user-avatar',
+    ] as const) {
       const ratio = contrast(
-        values['components-result-icon-info'],
-        values[background],
+        values[`${label}-text`],
+        compositeBackground(
+          values[`${label}-bg`],
+          values['background-surface'],
+        ),
+      )
+      assert.ok(
+        ratio >= 4.5,
+        `${mode} ${label} labels are ${ratio.toFixed(2)}:1; expected at least 4.5:1`,
+      )
+    }
+    // The assistant avatar glyph and the running canvas node spinner are
+    // icons, so they need 3:1.
+    for (const [icon, background] of [
+      ['chat-bubble-assistant-avatar-text', 'chat-bubble-assistant-avatar-bg'],
+      [
+        'components-canvas-node-status-running-icon',
+        'components-canvas-node-bg',
+      ],
+    ] as const) {
+      const ratio = contrast(
+        values[icon],
+        compositeBackground(values[background], values['background-surface']),
       )
       assert.ok(
         ratio >= 3,
-        `${mode} info result icon over ${background} is ${ratio.toFixed(2)}:1; expected at least 3:1`,
+        `${mode} ${icon} over ${background} is ${ratio.toFixed(2)}:1; expected at least 3:1`,
+      )
+    }
+    // Info chips put text-accent on the info tint.
+    for (const background of surfaces) {
+      const ratio = contrast(
+        values['text-accent'],
+        compositeBackground(values['status-info-10'], values[background]),
+      )
+      assert.ok(
+        ratio >= 4.5,
+        `${mode} info chips over ${background} are ${ratio.toFixed(2)}:1; expected at least 4.5:1`,
       )
     }
   })

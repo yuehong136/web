@@ -504,11 +504,11 @@ html[data-theme='dark'],
   --color-components-method-patch-bg: rgba(168, 85, 247, 0.2);
   --color-components-method-patch-text: #c084fc;
   --color-components-method-patch-border: #a855f7;
-  --color-components-env-prod-bg: #10b981;
+  --color-components-env-prod-bg: #047857;
   --color-components-env-prod-text: #ffffff;
-  --color-components-env-staging-bg: #f59e0b;
+  --color-components-env-staging-bg: #b45309;
   --color-components-env-staging-text: #ffffff;
-  --color-components-env-dev-bg: #3b82f6;
+  --color-components-env-dev-bg: #2563eb;
   --color-components-env-dev-text: #ffffff;
   --color-components-slider-track: rgba(255, 255, 255, 0.25);
   --color-components-slider-range: #8452f4;
@@ -593,7 +593,7 @@ html[data-theme='dark'],
   --color-components-pagination-disabled-text: #52525b;
   --color-components-steps-bg: #1a1a1a;
   --color-components-steps-border: rgba(255, 255, 255, 0.1);
-  --color-components-steps-completed-bg: #22c55e;
+  --color-components-steps-completed-bg: #047857;
   --color-components-steps-completed-text: #f4f4f5;
   --color-components-steps-active-bg: #2563eb;
   --color-components-steps-active-text: #ffffff;

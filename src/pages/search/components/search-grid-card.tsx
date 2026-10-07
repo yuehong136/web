@@ -107,7 +107,7 @@ const SearchGridCard: React.FC<SearchGridCardProps> = ({
                   className={cn(
                     'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
                     relatedEnabled
-                      ? 'bg-status-info-10 text-status-info'
+                      ? 'bg-status-info-10 text-text-accent'
                       : 'bg-background-subtle text-text-secondary',
                   )}
                 >

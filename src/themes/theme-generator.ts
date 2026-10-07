@@ -209,11 +209,11 @@ export const lightTokens: DesignTokens = {
   'components-method-patch-border': '#a855f7',
 
   // ===== 环境状态指示器 =====
-  'components-env-prod-bg': '#10b981',
+  'components-env-prod-bg': '#047857',
   'components-env-prod-text': '#ffffff',
-  'components-env-staging-bg': '#f59e0b',
+  'components-env-staging-bg': '#b45309',
   'components-env-staging-text': '#ffffff',
-  'components-env-dev-bg': '#33D4CB',
+  'components-env-dev-bg': '#007670',
   'components-env-dev-text': '#ffffff',
 
   // ===== 阴影系统 =====
@@ -281,7 +281,7 @@ export const lightTokens: DesignTokens = {
   'components-tabs-bg': '#f5f5f5',
   'components-tabs-active-bg': palette.light.selectionTint,
   'components-tabs-active-text': palette.light.selectionText,
-  'components-tabs-inactive-text': '#737373',
+  'components-tabs-inactive-text': surfaces.light.tertiary,
 
   'components-breadcrumb-text': surfaces.light.secondary,
   'components-breadcrumb-text-current': surfaces.light.text,
@@ -312,7 +312,7 @@ export const lightTokens: DesignTokens = {
 
   // ===== 代码和预格式化文本 =====
   'components-code-bg': '#f6f8fa',
-  'components-code-text': '#e1352b',
+  'components-code-text': '#d4251e',
   'components-code-border': '#d1d5db',
 
   'components-pre-bg': '#f6f8fa',
@@ -329,7 +329,7 @@ export const lightTokens: DesignTokens = {
   // ===== 新增组件令牌（使用基础颜色映射） =====
   // 徽章和标签
   'components-badge-bg': '#f5f5f5',
-  'components-badge-text': '#737373',
+  'components-badge-text': surfaces.light.tertiary,
   'components-badge-border': '#eaeaea',
   'components-badge-success-bg': '#dcfce7',
   'components-badge-success-text': '#166534',
@@ -340,7 +340,7 @@ export const lightTokens: DesignTokens = {
   'components-badge-info-bg': '#dbeafe',
   'components-badge-info-text': '#1e40af',
   'components-badge-neutral-bg': '#f3f4f6',
-  'components-badge-neutral-text': '#6b7280',
+  'components-badge-neutral-text': surfaces.light.tertiary,
   'components-badge-blue-bg': '#dbeafe',
   'components-badge-blue-text': '#1d4ed8',
   'components-badge-orange-bg': '#ffedd5',
@@ -457,7 +457,7 @@ export const lightTokens: DesignTokens = {
   // 步骤器
   'components-steps-bg': '#ffffff',
   'components-steps-border': '#e5e7eb',
-  'components-steps-completed-bg': '#10b981',
+  'components-steps-completed-bg': '#047857',
   'components-steps-completed-text': '#ffffff',
   'components-steps-active-bg': palette.light.action,
   'components-steps-active-text': '#ffffff',
@@ -548,9 +548,9 @@ export const lightTokens: DesignTokens = {
   'components-statistic-prefix': surfaces.light.secondary,
 
   'components-result-bg': '#ffffff',
-  'components-result-icon-success': '#10b981',
+  'components-result-icon-success': '#059669',
   'components-result-icon-error': '#ef4444',
-  'components-result-icon-warning': '#f59e0b',
+  'components-result-icon-warning': '#b45309',
   'components-result-icon-info': '#007670',
   'components-result-title': surfaces.light.text,
   'components-result-subtitle': surfaces.light.secondary,
@@ -596,7 +596,7 @@ export const lightTokens: DesignTokens = {
   'components-segmented-item-bg': 'transparent',
   'components-segmented-item-bg-hover': '#eaeaea',
   'components-segmented-item-bg-active': palette.light.selectionTint,
-  'components-segmented-item-text': '#737373',
+  'components-segmented-item-text': surfaces.light.secondary,
   'components-segmented-item-text-active': palette.light.selectionText,
 
   'components-mentions-bg': '#ffffff',
@@ -704,7 +704,7 @@ export const lightTokens: DesignTokens = {
   // ===== 聊天气泡和头像 =====
   'chat-bubble-assistant-avatar-bg': '#f0f8ff',
   'chat-bubble-assistant-avatar-text': '#1890ff',
-  'chat-bubble-user-avatar-bg': '#87d068',
+  'chat-bubble-user-avatar-bg': '#3a800e',
   'chat-bubble-user-avatar-text': '#ffffff',
   'chat-bubble-user-bg': surfaces.light.subtle,
   'chat-bubble-user-text': surfaces.light.text,
@@ -748,7 +748,7 @@ export const lightTokens: DesignTokens = {
   'components-http-method-delete-text': '#b91c1c',
   'components-http-method-delete-border': '#fecaca',
   'components-http-method-patch-bg': '#fdf4ff',
-  'components-http-method-patch-text': '#a855f7',
+  'components-http-method-patch-text': '#7c3aed',
   'components-http-method-patch-border': '#e9d5ff',
 
   // ===== API 文档风格组件 =====
@@ -803,7 +803,7 @@ export const lightTokens: DesignTokens = {
   // 节点运行态
   'components-canvas-node-status-running-border': '#0ea5e9', // sky-500
   'components-canvas-node-status-running-halo': 'rgba(14, 165, 233, 0.18)',
-  'components-canvas-node-status-running-icon': '#0ea5e9',
+  'components-canvas-node-status-running-icon': '#0284c7',
   'components-canvas-node-status-success-border': '#10b981', // emerald-500
   'components-canvas-node-status-success-bg': 'rgba(16, 185, 129, 0.12)',
   'components-canvas-node-status-success-text': '#047857', // emerald-700
@@ -1170,11 +1170,11 @@ export const darkTokens: DesignTokens = {
   'components-method-patch-border': '#a855f7',
 
   // ===== 环境状态指示器 =====
-  'components-env-prod-bg': '#10b981',
+  'components-env-prod-bg': '#047857',
   'components-env-prod-text': '#ffffff',
-  'components-env-staging-bg': '#f59e0b',
+  'components-env-staging-bg': '#b45309',
   'components-env-staging-text': '#ffffff',
-  'components-env-dev-bg': '#3b82f6',
+  'components-env-dev-bg': '#2563eb',
   'components-env-dev-text': '#ffffff',
 
   // ===== 阴影系统 =====
@@ -1418,7 +1418,7 @@ export const darkTokens: DesignTokens = {
   // 步骤器
   'components-steps-bg': '#1a1a1a',
   'components-steps-border': 'rgba(255, 255, 255, 0.10)',
-  'components-steps-completed-bg': '#22c55e',
+  'components-steps-completed-bg': '#047857',
   'components-steps-completed-text': surfaces.dark.text,
   'components-steps-active-bg': palette.dark.action,
   'components-steps-active-text': '#ffffff',
