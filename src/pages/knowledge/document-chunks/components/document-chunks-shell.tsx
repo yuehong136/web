@@ -11,6 +11,7 @@ import {
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import { DocumentPreview } from '@/components/knowledge/document-preview'
 import { usePreviewResource } from '@/hooks/use-preview-resource'
+import { previewErrorMessageKey } from '@/lib/knowledge/preview-error'
 import type { ChunkData, ChunkListDocument } from '../types'
 
 interface PreviewProps {
@@ -83,7 +84,11 @@ const PreviewContent = ({
         <div className="min-h-0 flex-1 overflow-auto">
           <PageErrorState
             title={t('knowledge.preview.loadFailed')}
-            description={t('knowledge.chunks.workspace.previewUnavailable')}
+            description={
+              resource.category === 'unavailable'
+                ? t('knowledge.chunks.workspace.previewUnavailable')
+                : t(previewErrorMessageKey(resource.category))
+            }
             retryLabel={t('knowledge.chunks.list.retry')}
             onRetry={onRetry}
             compact

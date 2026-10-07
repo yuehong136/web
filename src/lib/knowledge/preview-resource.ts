@@ -1,4 +1,8 @@
 import { API_BASE_URL, API_VERSION, STORAGE_KEYS } from '@/constants'
+import {
+  categorizePreviewFailure,
+  type PreviewErrorCategory,
+} from './preview-error'
 
 export type FileType =
   | 'pdf'
@@ -47,7 +51,8 @@ export interface PreviewResourceError {
   kind: 'error'
   fileType: FileType
   sourceUrl?: string
-  error: string
+  /** 只带固定分类，界面据此显示固定文案 */
+  category: PreviewErrorCategory
 }
 
 export type PreviewResource =
@@ -62,15 +67,17 @@ const VIDEO_EXTENSIONS = ['mp4', 'webm', 'ogg', 'mov', 'avi']
 
 export class PreviewResourceErrorResult extends Error {
   constructor(
-    message: string,
+    public readonly category: PreviewErrorCategory,
     public readonly reason:
       | 'http-error'
       | 'json-error'
       | 'html-response'
       | 'empty-resource',
     public readonly status?: number,
+    public readonly code?: number,
   ) {
-    super(message)
+    // 后端返回的 message/retmsg/detail 不进入错误对象
+    super(`Preview resource failed: ${reason} (${category})`)
     this.name = 'PreviewResourceErrorResult'
   }
 }
@@ -125,64 +132,57 @@ export const fetchPreviewResource = async (
   return fetch(url, { signal, headers, redirect })
 }
 
-const readJsonErrorMessage = async (
+/** 只读信封里的业务码（旧格式 retcode、新格式 code），不读任何文本字段 */
+const readResponseCode = async (
   response: Response,
-): Promise<string | null> => {
-  const data = await response
+): Promise<number | undefined> => {
+  const data: unknown = await response
     .clone()
     .json()
     .catch(() => null)
 
-  if (!data || typeof data !== 'object') return null
+  if (!data || typeof data !== 'object') return undefined
 
-  const record = data as Record<string, unknown>
-  const message = record.message || record.retmsg || record.detail
-  return typeof message === 'string' && message ? message : null
+  const { retcode, code } = data as { retcode?: unknown; code?: unknown }
+  const value = retcode ?? code
+  return typeof value === 'number' ? value : undefined
 }
 
-export const getPreviewResponseErrorMessage = async (
+const createResponseError = async (
   response: Response,
-): Promise<string> => {
+  reason: 'http-error' | 'json-error',
+): Promise<PreviewResourceErrorResult> => {
   const contentType = response.headers.get('content-type') || ''
+  const code = contentType.includes('application/json')
+    ? await readResponseCode(response)
+    : undefined
 
-  if (contentType.includes('application/json')) {
-    return (
-      (await readJsonErrorMessage(response)) ||
-      `Preview resource request failed: ${response.status}`
-    )
-  }
-
-  if (contentType.includes('text/html')) {
-    return 'Preview resource returned HTML; authentication may have expired'
-  }
-
-  return `Preview resource request failed: ${response.status}`
+  return new PreviewResourceErrorResult(
+    categorizePreviewFailure({ status: response.status, code }),
+    reason,
+    response.status,
+    code,
+  )
 }
 
 export const assertPreviewResponse = async (
   response: Response,
+  { allowHtml = false }: { allowHtml?: boolean } = {},
 ): Promise<void> => {
   const contentType = response.headers.get('content-type') || ''
 
   if (!response.ok) {
-    throw new PreviewResourceErrorResult(
-      await getPreviewResponseErrorMessage(response),
-      'http-error',
-      response.status,
-    )
+    throw await createResponseError(response, 'http-error')
   }
 
   if (contentType.includes('application/json')) {
-    throw new PreviewResourceErrorResult(
-      await getPreviewResponseErrorMessage(response),
-      'json-error',
-      response.status,
-    )
+    throw await createResponseError(response, 'json-error')
   }
 
-  if (contentType.includes('text/html')) {
+  // 可预览的文件都不是 HTML，拿到 HTML 说明登录页顶替了文件
+  if (!allowHtml && contentType.includes('text/html')) {
     throw new PreviewResourceErrorResult(
-      await getPreviewResponseErrorMessage(response),
+      'session-expired',
       'html-response',
       response.status,
     )
@@ -191,10 +191,23 @@ export const assertPreviewResponse = async (
 
 export const assertNonEmptyBlob = (blob: Blob): void => {
   if (blob.size > 0) return
-  throw new PreviewResourceErrorResult(
-    'Preview resource is empty',
-    'empty-resource',
-  )
+  throw new PreviewResourceErrorResult('unsupported', 'empty-resource')
+}
+
+/** 捕获到的失败落到固定分类；网络中断与其他异常都算暂时不可用 */
+export const getPreviewErrorCategory = (
+  error: unknown,
+): PreviewErrorCategory =>
+  error instanceof PreviewResourceErrorResult ? error.category : 'unavailable'
+
+/**
+ * 下载原文件，与预览共用鉴权和失败分类。
+ * 原文件本身可以是 HTML，所以下载时不把 HTML 响应当作登录页。
+ */
+export const fetchDocumentDownload = async (docId: string): Promise<Blob> => {
+  const response = await fetchPreviewResource(getDocumentUrl(docId, 'download'))
+  await assertPreviewResponse(response, { allowHtml: true })
+  return response.blob()
 }
 
 export const readBlobAsText = (blob: Blob): Promise<string> => blob.text()
@@ -223,7 +236,4 @@ export const isZipLikeBlob = async (blob: Blob): Promise<boolean> => {
 }
 
 export const isAbortError = (error: unknown): boolean =>
-  error instanceof Error &&
-  (error.name === 'AbortError' ||
-    (error.name === 'PreviewResourceErrorResult' &&
-      error.message.includes('aborted')))
+  error instanceof Error && error.name === 'AbortError'

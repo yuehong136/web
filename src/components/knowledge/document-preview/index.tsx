@@ -2,6 +2,7 @@ import { useMemo, type FC } from 'react'
 import { Download, ExternalLink, FileText, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button, Tooltip } from '@/components/ui'
+import { previewErrorMessageKey } from '@/lib/knowledge/preview-error'
 import { cn } from '@/lib/utils'
 import { CsvPreview } from './components/csv-preview'
 import { DocxPreview } from './components/docx-preview'
@@ -112,7 +113,7 @@ export const DocumentPreview: FC<DocumentPreviewProps> = ({
       return (
         <ErrorState
           title={t('knowledge.preview.loadFailed')}
-          message={resource.error}
+          message={t(previewErrorMessageKey(resource.category))}
           url={resource.sourceUrl}
         />
       )

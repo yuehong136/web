@@ -1168,6 +1168,28 @@ export default {
         csv: 'CSV spreadsheet',
         unknown: 'File',
       },
+      errors: {
+        notFound: 'This document does not exist or has been deleted.',
+        forbidden: 'You do not have permission to view this document.',
+        sessionExpired:
+          'Your session has expired. Sign in again to view this document.',
+        unsupported:
+          'This file is empty or in a format that cannot be previewed.',
+        unavailable:
+          'The preview could not be loaded. Check your connection or try again later.',
+      },
+      downloadErrors: {
+        notFound:
+          'This document does not exist or has been deleted, so it cannot be downloaded.',
+        forbidden:
+          'You do not have permission to download this document. Contact an administrator.',
+        sessionExpired:
+          'Your session has expired. Sign in again to download this document.',
+        failed:
+          'The download failed. Check your connection or try again later.',
+      },
+      missingDocumentId:
+        'The document ID is missing, so the document cannot be previewed.',
     },
     chunks: {
       workspace: {

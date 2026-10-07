@@ -1,51 +1,42 @@
 import { memo, useCallback, useMemo, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { ArrowLeft, Download, FileText, Loader2 } from 'lucide-react'
 import { Watermark } from 'antd'
 import { Button, Tooltip } from '@/components/ui'
 import { DocumentPreview } from '@/components/knowledge/document-preview'
+import { documentDownloadErrorMessageKey } from '@/lib/knowledge/preview-error'
 import {
-  buildAuthHeader,
-  getDocumentUrl,
+  fetchDocumentDownload,
+  getPreviewErrorCategory,
 } from '@/lib/knowledge/preview-resource'
 import { toast } from '@/lib/toast'
+import { getCurrentLanguage } from '@/locales/i18n'
 import { useAuthStore } from '@/stores'
 import { usePreviewResource } from '@/hooks/use-preview-resource'
 
 const DocumentPreviewPage: React.FC = () => {
+  const { t } = useTranslation()
   const { docId } = useParams<{ docId: string }>()
   const [searchParams] = useSearchParams()
   const [downloading, setDownloading] = useState(false)
   const user = useAuthStore((s) => s.user)
+  const language = getCurrentLanguage()
 
   const docName = searchParams.get('name') || undefined
   const resource = usePreviewResource({ docId, docName })
 
   const watermarkContent = useMemo(() => {
     const email = user?.email || user?.nickname || ''
-    const date = new Date().toLocaleDateString('zh-CN')
+    const date = new Date().toLocaleDateString(language)
     return [email, date]
-  }, [user?.email, user?.nickname])
+  }, [user?.email, user?.nickname, language])
 
   const handleDownload = useCallback(async () => {
     if (!docId) return
     setDownloading(true)
     try {
-      const url = getDocumentUrl(docId, 'download')
-      const auth = buildAuthHeader()
-      const headers: HeadersInit = {}
-      if (auth) headers.Authorization = auth
-
-      const response = await fetch(url, { headers })
-      if (!response.ok) throw new Error(`下载失败: ${response.status}`)
-
-      const contentType = response.headers.get('content-type') || ''
-      if (contentType.includes('application/json')) {
-        const data = await response.json()
-        throw new Error(data.retmsg || '下载失败')
-      }
-
-      const blob = await response.blob()
+      const blob = await fetchDocumentDownload(docId)
       const blobUrl = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = blobUrl
@@ -54,18 +45,22 @@ const DocumentPreviewPage: React.FC = () => {
       a.click()
       document.body.removeChild(a)
       URL.revokeObjectURL(blobUrl)
-    } catch (err) {
-      console.error('[Download] error:', err)
-      toast.error(err instanceof Error ? err.message : '下载失败')
+    } catch (error) {
+      // 只按失败分类提示固定文案，后端返回的原文不进入提示
+      toast.error(
+        t(documentDownloadErrorMessageKey(getPreviewErrorCategory(error))),
+      )
     } finally {
       setDownloading(false)
     }
-  }, [docId, docName])
+  }, [docId, docName, t])
 
   if (!docId) {
     return (
       <div className="flex h-full items-center justify-center">
-        <p style={{ color: 'var(--color-text-secondary)' }}>文档 ID 缺失</p>
+        <p style={{ color: 'var(--color-text-secondary)' }}>
+          {t('knowledge.preview.missingDocumentId')}
+        </p>
       </div>
     )
   }
@@ -79,10 +74,11 @@ const DocumentPreviewPage: React.FC = () => {
           borderBottom: '1px solid var(--color-border-default)',
         }}
       >
-        <Tooltip content="返回">
+        <Tooltip content={t('common.back')}>
           <Button
             variant="ghost"
             size="sm"
+            aria-label={t('common.back')}
             onClick={() => {
               if (window.history.length > 1) {
                 window.history.back()
@@ -104,13 +100,14 @@ const DocumentPreviewPage: React.FC = () => {
           style={{ color: 'var(--color-text-primary)' }}
           title={docName}
         >
-          {docName || '文档预览'}
+          {docName || t('knowledge.preview.documentPreview')}
         </span>
 
-        <Tooltip content="下载文件">
+        <Tooltip content={t('knowledge.preview.downloadFile')}>
           <Button
             variant="ghost"
             size="sm"
+            aria-label={t('knowledge.preview.downloadFile')}
             onClick={handleDownload}
             disabled={downloading}
           >

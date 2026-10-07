@@ -6,7 +6,6 @@ import {
   buildAuthHeader,
   getDocumentUrl,
   getFileType,
-  getPreviewResponseErrorMessage,
   isZipLikeBlob,
   PreviewResourceErrorResult,
   readBlobAsArrayBuffer,
@@ -106,13 +105,13 @@ test('preview response errors normalize JSON, HTML and HTTP failures', async () 
     status: 401,
     headers: { 'content-type': 'application/json' },
   })
-  assert.equal(await getPreviewResponseErrorMessage(jsonError), 'bad token')
   await assert.rejects(
     () => assertPreviewResponse(jsonError),
     (error) =>
       error instanceof PreviewResourceErrorResult &&
       error.reason === 'http-error' &&
-      error.message === 'bad token',
+      error.category === 'session-expired' &&
+      !error.message.includes('bad token'),
   )
 
   const htmlResponse = new Response('<html>login</html>', {
@@ -138,12 +137,16 @@ test('preview response errors normalize JSON, HTML and HTTP failures', async () 
     (error) =>
       error instanceof PreviewResourceErrorResult &&
       error.reason === 'json-error' &&
-      error.message === 'not a file',
+      error.category === 'unavailable' &&
+      !error.message.includes('not a file'),
   )
 
   const plainError = new Response('missing', { status: 404 })
-  assert.equal(
-    await getPreviewResponseErrorMessage(plainError),
-    'Preview resource request failed: 404',
+  await assert.rejects(
+    () => assertPreviewResponse(plainError),
+    (error) =>
+      error instanceof PreviewResourceErrorResult &&
+      error.reason === 'http-error' &&
+      error.category === 'not-found',
   )
 })

@@ -6,6 +6,7 @@ import {
   fetchPreviewResource,
   getDocumentUrl,
   getFileType,
+  getPreviewErrorCategory,
   isAbortError,
   isZipLikeBlob,
   readBlobAsArrayBuffer,
@@ -127,10 +128,7 @@ export const usePreviewResource = ({
             kind: 'error',
             fileType,
             sourceUrl,
-            error:
-              error instanceof Error
-                ? error.message
-                : 'Failed to load preview resource',
+            category: getPreviewErrorCategory(error),
           })
         }
       }

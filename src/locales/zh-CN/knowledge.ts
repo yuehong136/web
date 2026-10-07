@@ -1108,6 +1108,20 @@ export default {
         csv: 'CSV 表格',
         unknown: '文件',
       },
+      errors: {
+        notFound: '文档不存在或已被删除。',
+        forbidden: '没有查看此文档的权限。',
+        sessionExpired: '登录已过期，请重新登录后再查看。',
+        unsupported: '文件为空或格式不受支持，无法预览。',
+        unavailable: '暂时无法加载预览。请检查网络连接，或稍后重试。',
+      },
+      downloadErrors: {
+        notFound: '文档不存在或已被删除，无法下载。',
+        forbidden: '没有下载此文档的权限，请联系管理员。',
+        sessionExpired: '登录已过期，请重新登录后再下载。',
+        failed: '下载失败。请检查网络连接，或稍后重试。',
+      },
+      missingDocumentId: '缺少文档 ID，无法预览。',
     },
     chunks: {
       workspace: {

@@ -272,7 +272,7 @@ test('fetchArtifactBlob rejects JSON responses and empty files', async () => {
         (error) =>
           error instanceof PreviewResourceErrorResult &&
           error.reason === 'json-error' &&
-          error.message === 'login required',
+          !error.message.includes('login required'),
       )
     },
   )
