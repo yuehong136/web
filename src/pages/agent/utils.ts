@@ -135,11 +135,6 @@ export const getNodeDragHandle = (nodeType?: string) => {
 
 // ==================== Edge相关工具 ====================
 
-export const isEdgeEqual = (previous: Edge, current: Edge) =>
-  previous.source === current.source &&
-  previous.target === current.target &&
-  previous.sourceHandle === current.sourceHandle
-
 export function mapEdgeMouseEvent(
   edges: Edge[],
   edgeId: string,

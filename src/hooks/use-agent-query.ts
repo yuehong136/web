@@ -63,9 +63,6 @@ export const agentQueryKeys = {
   // 独立根，沿用原内联形状（无失效方配对；不并入 'agent' 根以保证零漂移迁移）
   pipelineTrace: (canvasId: string | undefined, messageId: string) =>
     ['pipeline-trace', canvasId, messageId] as const,
-  // 缓存的是未经 adaptAgentTemplate 的原始 IFlow[]，与 templates()
-  // （适配后 AgentTemplate[]）缓存形状不同，禁止合并到同一 key
-  templatesRaw: () => ['agentTemplates'] as const,
 }
 
 function useResolvedAgentId(id?: string) {

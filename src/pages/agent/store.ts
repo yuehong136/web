@@ -11,13 +11,7 @@ import type {
   OnSelectionChangeFunc,
   OnSelectionChangeParams,
 } from '@xyflow/react'
-import {
-  addEdge,
-  applyEdgeChanges,
-  applyNodeChanges,
-} from '@xyflow/react'
-import differenceWith from 'lodash/differenceWith.js'
-import intersectionWith from 'lodash/intersectionWith.js'
+import { addEdge, applyEdgeChanges, applyNodeChanges } from '@xyflow/react'
 import omit from 'lodash/omit.js'
 import lodashSet from 'lodash/set.js'
 import { create } from 'zustand'
@@ -41,7 +35,6 @@ import {
   generateDuplicateNode,
   generateNodeNamesWithIncreasingIndex,
   getOperatorIndex,
-  isEdgeEqual,
   mapEdgeMouseEvent,
 } from './utils'
 import { deleteAllDownstreamAgentsAndTool } from './utils/delete-node'
@@ -74,10 +67,7 @@ function resizeIterationContainers(
   nodes: RAGFlowNodeType[],
   parentIds: Iterable<string>,
 ) {
-  const updates = new Map<
-    string,
-    Pick<RAGFlowNodeType, 'width' | 'height'>
-  >()
+  const updates = new Map<string, Pick<RAGFlowNodeType, 'width' | 'height'>>()
 
   for (const parentId of parentIds) {
     const parent = nodes.find((node) => node.id === parentId)
@@ -188,7 +178,6 @@ export type RFState = {
   onConnect: OnConnect
   setNodes: (nodes: RAGFlowNodeType[]) => void
   setEdges: (edges: Edge[]) => void
-  setEdgesByNodeId: (nodeId: string, edges: Edge[]) => void
   updateNodeForm: (
     nodeId: string,
     values: unknown,
@@ -199,7 +188,6 @@ export type RFState = {
   getNode: (id?: string | null) => RAGFlowNodeType | undefined
   updateNode: (node: RAGFlowNodeType) => void
   addEdge: (connection: Connection) => void
-  getEdge: (id: string) => Edge | undefined
   updateFormDataOnConnect: (connection: Connection) => void
   updateSwitchFormData: (
     source: string,
@@ -209,28 +197,24 @@ export type RFState = {
   ) => void
   duplicateNode: (id: string, name: string) => void
   duplicateIterationNode: (id: string, name: string) => void
-  deleteEdge: () => void
   deleteEdgeById: (id: string) => void
   deleteNodeById: (id: string) => void
   deleteAgentDownstreamNodesById: (id: string) => void
   deleteAgentToolNodeById: (id: string) => void
   deleteIterationNodeById: (id: string) => void
   findNodeByName: (operatorName: Operator) => RAGFlowNodeType | undefined
-  updateMutableNodeFormItem: (id: string, field: string, value: unknown) => void
   getOperatorTypeFromId: (id?: string | null) => string | undefined
   getParentIdById: (id?: string | null) => string | undefined
   updateNodeName: (id: string, name: string) => void
   generateNodeName: (name: string) => string
   setClickedNodeId: (id?: string) => void
   setClickedToolId: (id?: string) => void
-  findUpstreamNodeById: (id?: string | null) => RAGFlowNodeType | undefined
   deleteEdgesBySourceAndSourceHandle: (
     source: string,
     sourceHandle: string,
   ) => void
   findAgentToolNodeById: (id: string | null) => string | undefined
   selectNodeIds: (nodeIds: string[]) => void
-  hasChildNode: (nodeId: string) => boolean
   hasDownstreamNode: (nodeId: string) => boolean
   hasUpstreamNode: (nodeId: string) => boolean
   resizeIterationContainer: (parentId: string) => void
@@ -305,50 +289,6 @@ const useGraphStore = create<RFState>()(
       set({ edges })
     },
 
-    setEdgesByNodeId: (nodeId: string, currentDownstreamEdges: Edge[]) => {
-      const { edges, setEdges } = get()
-      const previousDownstreamEdges = edges.filter(
-        (x) => x.source === nodeId,
-      )
-      const isDifferent =
-        previousDownstreamEdges.length !== currentDownstreamEdges.length ||
-        !previousDownstreamEdges.every((x) =>
-          currentDownstreamEdges.some(
-            (y) =>
-              y.source === x.source &&
-              y.target === x.target &&
-              y.sourceHandle === x.sourceHandle,
-          ),
-        ) ||
-        !currentDownstreamEdges.every((x) =>
-          previousDownstreamEdges.some(
-            (y) =>
-              y.source === x.source &&
-              y.target === x.target &&
-              y.sourceHandle === x.sourceHandle,
-          ),
-        )
-
-      const intersectionDownstreamEdges = intersectionWith(
-        previousDownstreamEdges,
-        currentDownstreamEdges,
-        isEdgeEqual,
-      )
-      if (isDifferent) {
-        const irrelevantEdges = edges.filter((x) => x.source !== nodeId)
-        const selfAddedDownstreamEdges = differenceWith(
-          currentDownstreamEdges,
-          intersectionDownstreamEdges,
-          isEdgeEqual,
-        )
-        setEdges([
-          ...irrelevantEdges,
-          ...intersectionDownstreamEdges,
-          ...selfAddedDownstreamEdges,
-        ])
-      }
-    },
-
     addNode: (node: RAGFlowNodeType) => {
       set({ nodes: normalizeIterationNodes(get().nodes.concat(node)) })
     },
@@ -381,10 +321,6 @@ const useGraphStore = create<RFState>()(
         edges: addEdge(connection, get().edges),
       })
       get().updateFormDataOnConnect(connection)
-    },
-
-    getEdge: (id: string) => {
-      return get().edges.find((x) => x.id === id)
     },
 
     updateFormDataOnConnect: (connection: Connection) => {
@@ -462,15 +398,8 @@ const useGraphStore = create<RFState>()(
         }))
 
       set({
-        nodes: normalizeIterationNodes(nodes.concat(iterationNode, ...children)),
-      })
-    },
-
-    deleteEdge: () => {
-      const { edges, selectedEdgeIds } = get()
-      set({
-        edges: edges.filter((edge) =>
-          selectedEdgeIds.every((x) => x !== edge.id),
+        nodes: normalizeIterationNodes(
+          nodes.concat(iterationNode, ...children),
         ),
       })
     },
@@ -649,14 +578,6 @@ const useGraphStore = create<RFState>()(
       }
     },
 
-    updateMutableNodeFormItem: (id: string, field: string, value: unknown) => {
-      const { nodes } = get()
-      const idx = nodes.findIndex((x) => x.id === id)
-      if (idx >= 0) {
-        lodashSet(nodes, [idx, 'data', 'form', field], value)
-      }
-    },
-
     updateNodeName: (id, name) => {
       if (id) {
         set({
@@ -683,12 +604,6 @@ const useGraphStore = create<RFState>()(
       set({ clickedToolId: id })
     },
 
-    findUpstreamNodeById: (id) => {
-      const { edges, getNode } = get()
-      const edge = edges.find((x) => x.target === id)
-      return getNode(edge?.source)
-    },
-
     deleteEdgesBySourceAndSourceHandle: (source, sourceHandle) => {
       const { edges, setEdges } = get()
       setEdges(
@@ -702,8 +617,7 @@ const useGraphStore = create<RFState>()(
     findAgentToolNodeById: (id) => {
       const { edges } = get()
       return edges.find(
-        (edge) =>
-          edge.source === id && edge.sourceHandle === NodeHandleId.Tool,
+        (edge) => edge.source === id && edge.sourceHandle === NodeHandleId.Tool,
       )?.target
     },
 
@@ -715,11 +629,6 @@ const useGraphStore = create<RFState>()(
           selected: nodeIds.includes(node.id),
         })),
       )
-    },
-
-    hasChildNode: (nodeId) => {
-      const { edges } = get()
-      return edges.some((edge) => edge.source === nodeId)
     },
 
     hasDownstreamNode: (nodeId) => {
