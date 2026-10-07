@@ -24,6 +24,7 @@ import { createReferenceMarkerComponent } from '@/components/chat/ReferenceMarke
 import { ChatScrollViewport } from '@/components/patterns/chat/chat-scroll-viewport'
 import { ChatInputBox } from './ChatInputBox'
 import { HomeChatStyles } from './home-chat-styles'
+import { AnswerStatusNotice } from './answer-status-notice'
 import { SkillPanel } from './SkillPanel'
 import { useAtTrigger } from '../hooks'
 import { shouldIgnoreEnterForIme } from '../utils'
@@ -391,6 +392,8 @@ export const ChatSection = ({
                     {/* Loading 状态（应用模式流式输出时，没有内容显示 loading） */}
                     {showLoading && <ChatBubbleLoading />}
 
+                    <AnswerStatusNotice status={msg.status} />
+
                     {/* 图片引用列表 */}
                     {hasReferences && !isCurrentStreamingMsg && (
                       <ReferenceImageList
@@ -412,8 +415,8 @@ export const ChatSection = ({
                       />
                     )}
 
-                    {/* 消息操作（流式输出时不显示） */}
-                    {!isCurrentStreamingMsg && (
+                    {/* 消息操作（流式输出时与没有正文时不显示） */}
+                    {!isCurrentStreamingMsg && Boolean(mainContent.trim()) && (
                       <MessageActionsFooter
                         content={mainContent}
                         onCopy={() => handleCopyReference(mainContent)}

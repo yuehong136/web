@@ -28,6 +28,20 @@ export default {
       loadFailed: 'Couldn’t load the conversation history.',
       createFailed: 'Couldn’t create the conversation.',
     },
+    answerStatus: {
+      stopped: 'Stopped receiving the reply.',
+      unconfirmed:
+        'No completion signal arrived, so the result is unconfirmed.',
+      network:
+        'The network connection was interrupted. Check your connection and try again.',
+      timeout: 'The request timed out. Try again later.',
+      unauthorized: 'Your session has expired. Sign in again and retry.',
+      rateLimited: 'Too many requests. Wait a moment and try again.',
+      serverError: 'The service is temporarily unavailable. Try again later.',
+      business: 'The reply couldn’t be completed.',
+      failed: 'The request failed. Try again later.',
+      partial: 'What was received is kept above and may be incomplete.',
+    },
     agentTimeline: {
       arguments: 'Arguments',
       result: 'Result',

@@ -10,6 +10,14 @@ import i18n, { setProductLanguage } from '@/locales/i18n'
 import type { DialogApp } from '@/types/api'
 import { streamMCPAgentChat } from '../../utils/mcp-agent-stream'
 import { useHomeChat } from '../useHomeChat'
+import {
+  deferred,
+  delta,
+  done,
+  flush,
+  openStream,
+  sse,
+} from './stream-fixtures'
 
 vi.mock('../../utils/mcp-agent-stream', () => ({
   streamMCPAgentChat: vi.fn(),
@@ -49,62 +57,6 @@ const select = (
   selectedConversationId: string | null,
   options: Partial<ChatOptions> = {},
 ) => renderSurface({ ...defaultOptions, ...options, selectedConversationId })
-
-const deferred = <T,>() => {
-  let resolve!: (value: T) => void
-  let reject!: (reason: unknown) => void
-  const promise = new Promise<T>((settle, fail) => {
-    resolve = settle
-    reject = fail
-  })
-  return { promise, resolve, reject }
-}
-
-// 让流管道与 promise 链都推进一轮
-const flush = () => new Promise((resolve) => setTimeout(resolve, 0))
-
-const sse = (...frames: unknown[]) =>
-  new Response(
-    frames.map((frame) => `data: ${JSON.stringify(frame)}\n\n`).join(''),
-    { headers: { 'content-type': 'text/event-stream' } },
-  )
-
-/** An SSE response whose frames the test pushes one by one. */
-const openStream = () => {
-  const encoder = new TextEncoder()
-  let controller!: ReadableStreamDefaultController<Uint8Array>
-  const body = new ReadableStream<Uint8Array>({
-    start: (streamController) => {
-      controller = streamController
-    },
-  })
-  return {
-    response: new Response(body, {
-      headers: { 'content-type': 'text/event-stream' },
-    }),
-    // 订阅被取消后再推送会抛错，正如服务端仍在输出但本地已不再读取
-    push: (frame: unknown) => {
-      try {
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify(frame)}\n\n`))
-      } catch {
-        // reader already cancelled
-      }
-    },
-    close: () => {
-      try {
-        controller.close()
-      } catch {
-        // reader already cancelled
-      }
-    },
-  }
-}
-
-const delta = (text: string) => ({
-  retcode: 0,
-  data: { answer: text, reference: {} },
-})
-const done = { retcode: 0, data: true }
 
 const historyOf = (...contents: string[]) => ({
   message: contents.map((content, index) => ({
@@ -170,45 +122,7 @@ it('shows the final answer with inserted citations once instead of appending it'
   expect(answer()?.role).toBe('assistant')
   expect(answer()?.content).toBe('根据文档，答案是 42 [ID:0]。')
   expect(answer()?.references).toEqual(chunks)
-  expect(toast.error).not.toHaveBeenCalled()
-})
-
-it('keeps the partial answer after an error frame and only shows a fixed notice', async () => {
-  await send(
-    sse(
-      { retcode: 0, data: { answer: '已生成的部分', reference: {} } },
-      {
-        retcode: 500,
-        retmsg: 'upstream secret',
-        data: { answer: '**ERROR**: upstream secret', reference: [] },
-      },
-      { retcode: 0, data: true },
-    ),
-  )
-
-  expect(answer()?.content).toBe('已生成的部分')
-  expect(toast.error).toHaveBeenCalledTimes(1)
-  expect(toast.error).toHaveBeenCalledWith(i18n.t('chat.stream.interrupted'))
-  expect(JSON.stringify(chat.messages)).not.toContain('upstream secret')
-})
-
-it('replaces an empty failed answer with the localized failure text', async () => {
-  await send(
-    sse(
-      {
-        retcode: 0,
-        data: {
-          answer: '**ERROR**: AUTH_ERROR - invalid key sk-1',
-          reference: {},
-        },
-      },
-      { retcode: 0, data: true },
-    ),
-  )
-
-  expect(answer()?.content).toBe(i18n.t('chat.stream.failed'))
-  expect(answer()?.content).toBe('生成失败，请重试。')
-  expect(JSON.stringify(chat.messages)).not.toContain('sk-1')
+  expect(answer()?.status).toBeUndefined()
   expect(toast.error).not.toHaveBeenCalled()
 })
 
@@ -637,12 +551,23 @@ it('updates MCP answers by message id and drops updates from a stopped run', asy
   const runs: Array<{ emit: (text: string) => void; finish: () => void }> = []
   vi.mocked(streamMCPAgentChat).mockImplementation(
     ({ onState, signal }) =>
-      new Promise<void>((resolve) => {
-        signal.addEventListener('abort', () => resolve())
+      new Promise((resolve) => {
+        let answer = ''
+        signal.addEventListener('abort', () => resolve({ reason: 'aborted' }))
         runs.push({
-          emit: (text) =>
-            onState({ ...createInitialAgentTimelineState(), answer: text }),
-          finish: resolve,
+          emit: (text) => {
+            answer = text
+            onState({ ...createInitialAgentTimelineState(), answer })
+          },
+          // 完成帧到达后连接结束
+          finish: () => {
+            onState({
+              ...createInitialAgentTimelineState(),
+              answer,
+              final: true,
+            })
+            resolve({ reason: 'eof' })
+          },
         })
       }),
   )

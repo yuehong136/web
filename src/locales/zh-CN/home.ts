@@ -28,6 +28,18 @@ export default {
       loadFailed: '加载对话历史失败',
       createFailed: '创建对话失败',
     },
+    answerStatus: {
+      stopped: '已停止接收回答',
+      unconfirmed: '未收到完成信号，结果未确认',
+      network: '网络连接中断，请检查网络后重试',
+      timeout: '请求超时，请稍后重试',
+      unauthorized: '登录已失效，请重新登录后再试',
+      rateLimited: '请求过于频繁，请稍后重试',
+      serverError: '服务暂时不可用，请稍后重试',
+      business: '回答未能完成',
+      failed: '请求失败，请稍后重试',
+      partial: '已收到的内容保留在上方，可能不完整。',
+    },
     agentTimeline: {
       arguments: '参数',
       result: '结果',

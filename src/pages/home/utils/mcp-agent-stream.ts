@@ -6,6 +6,7 @@ import {
   normalizeAgentSSEPayload,
   readSSEStream,
   type AgentTimelineState,
+  type SSEStreamEnd,
 } from '@/lib/streaming'
 
 interface StreamMCPAgentChatOptions {
@@ -18,12 +19,14 @@ interface StreamMCPAgentChatOptions {
  * MCP agent chat SSE, on the shared streaming runtime (ARCH-1 phase 2).
  * parseErrorMode is 'throw' to keep this surface's original behavior: a
  * malformed frame aborts the run and surfaces an error to the caller.
+ * Resolves with how the transport ended; whether the run completed is read
+ * from the timeline state, not from this result.
  */
 export const streamMCPAgentChat = async ({
   request,
   signal,
   onState,
-}: StreamMCPAgentChatOptions) => {
+}: StreamMCPAgentChatOptions): Promise<SSEStreamEnd> => {
   const authToken = localStorage.getItem('auth_token')
   const response = await fetch(
     `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/v1/llm/enhanced_chat_sse`,
@@ -43,7 +46,7 @@ export const streamMCPAgentChat = async ({
 
   let timelineState = createInitialAgentTimelineState()
 
-  await readSSEStream(response, {
+  return readSSEStream(response, {
     signal,
     parseErrorMode: 'throw',
     onEvent: (raw) => {

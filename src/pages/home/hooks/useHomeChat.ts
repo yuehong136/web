@@ -9,6 +9,10 @@
  * 请求归属：每次发送持有自己的请求对象，只有仍是当前所有者时才能写正文、报错或
  * 复位流式状态。停止、切换会话/应用/身份与卸载都会收回归属；收回只终止本地订阅，
  * 不代表服务端任务已取消。
+ *
+ * 终态：只有流里的完成帧算完成。其余结束方式（停止接收、无完成帧、断网、超时、
+ * 401/429/5xx、业务错误帧）作为消息状态显示，正文、引用与执行步骤保留，
+ * 只用固定文案提示，不展示后端错误原文，也不自动重发。
  */
 
 import { useState, useRef, useCallback, useEffect } from 'react'
@@ -18,12 +22,11 @@ import { useSubmitGate } from '@/hooks/use-submit-gate'
 import type { MCPChatServiceRequest } from '@/api/mcp-chat-service'
 import { conversationAPI } from '@/api/conversation'
 import type { DialogApp } from '@/types/api'
-import type { ChatMessage } from '../types'
+import type { AnswerStatusKind, ChatMessage } from '../types'
 import {
   assertSSEResponse,
   consumeStreamingAnswerChunk,
   createInitialStreamingAnswerState,
-  getStreamingAnswerFailureNotice,
   readSSEStream,
   type SSEEnvelope,
 } from '@/lib/streaming'
@@ -32,6 +35,17 @@ import {
   extractReferencesFromSSEData,
   getReferenceDocId,
 } from '../utils/chat-reference-helpers'
+import {
+  answerStatusMessageKey,
+  answerVerdict,
+  classifyAnswerError,
+  resolveAnswerKind,
+  settleAnswerMessage,
+  timelineVerdict,
+  unresolvedStreamEnd,
+  withoutErrorNodes,
+  type AnswerVerdict,
+} from '../utils/answer-status'
 import { useHomeConversation } from './use-home-conversation'
 
 interface UseHomeChatOptions {
@@ -49,6 +63,8 @@ interface HomeChatRequest {
   readonly controller: AbortController
   /** 占位助手消息创建后记录，之后只更新这条消息 */
   assistantMessageId: string | null
+  /** 流里已得出的结论（完成或业务失败），此后的帧、停止与断开都不改判 */
+  verdict: AnswerVerdict
 }
 
 export const useHomeChat = ({
@@ -116,10 +132,49 @@ export const useHomeChat = ({
     const request = {
       controller: new AbortController(),
       assistantMessageId: null,
+      verdict: null,
     }
     requestRef.current = request
     return request
   }, [detachRequest])
+
+  // 结束一次回答：消息上写入结束原因并保留已收到的内容；除停止外都用固定文案提示
+  const settleAnswer = useCallback(
+    (request: HomeChatRequest, kind: AnswerStatusKind | null) => {
+      const { assistantMessageId } = request
+      if (assistantMessageId) {
+        updateMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === assistantMessageId
+              ? settleAnswerMessage(msg, kind)
+              : msg,
+          ),
+        )
+      }
+      if (!kind || kind === 'stopped') return
+      if (kind === 'unconfirmed') {
+        toast.warning(t(answerStatusMessageKey(kind)))
+        return
+      }
+      // 还没有消息可挂（创建会话失败）时，笼统的失败按创建失败提示
+      toast.error(
+        t(
+          !assistantMessageId && kind === 'failed'
+            ? 'home.history.createFailed'
+            : answerStatusMessageKey(kind),
+        ),
+      )
+    },
+    [updateMessages, t],
+  )
+
+  // 停止：只终止本地接收并保留已收到的内容，不代表服务端已取消
+  const stopStreaming = useCallback(() => {
+    const request = requestRef.current
+    if (request)
+      settleAnswer(request, resolveAnswerKind(request.verdict, 'stopped'))
+    detachRequest()
+  }, [settleAnswer, detachRequest])
 
   // 选中会话、应用或身份变化时最后一次选择生效：收回旧请求、作废待定历史，
   // 清空后再加载目标，旧会话的消息不会出现在新的选中项下
@@ -227,13 +282,14 @@ export const useHomeChat = ({
 
         let streamState = createInitialStreamingAnswerState()
 
-        await readSSEStream<SSEEnvelope>(response, {
+        const end = await readSSEStream<SSEEnvelope>(response, {
           signal,
           onEvent: (data) => {
-            // 归属已被收回（停止、切换、卸载）后晚到的增量一律丢弃
-            if (!ownsRequest()) return
+            // 归属已被收回（停止、切换、卸载）或回答已有结论后，晚到的帧一律丢弃
+            if (!ownsRequest() || owner.verdict) return
             const chunk = consumeStreamingAnswerChunk(streamState, data)
             streamState = chunk.nextState
+            owner.verdict = answerVerdict(streamState)
             if (chunk.isDone) return
 
             const chunkData =
@@ -243,12 +299,8 @@ export const useHomeChat = ({
             const newReferences = chunkData
               ? extractReferencesFromSSEData(chunkData)
               : []
-            // 失败且无正文时用固定文案占位，不展示后端错误原文
-            const failureNotice = getStreamingAnswerFailureNotice(streamState)
-            const cleanContent =
-              failureNotice === 'chat.stream.failed'
-                ? t(failureNotice)
-                : streamState.content
+            // 失败时 reducer 已剥离错误原文，这里只保留已生成的正文
+            const cleanContent = streamState.content
             const thinking = streamState.thinking
 
             // 只更新本次请求的 AI 消息，不再按"最后一条 assistant"定位
@@ -294,26 +346,19 @@ export const useHomeChat = ({
           },
         })
         if (!ownsRequest()) return
-        const streamFailure = getStreamingAnswerFailureNotice(streamState)
-        if (streamFailure === 'chat.stream.interrupted') {
-          toast.error(t(streamFailure))
-        }
+        settleAnswer(
+          owner,
+          resolveAnswerKind(owner.verdict, unresolvedStreamEnd(end)),
+        )
       } catch (error) {
         // 已失去归属的请求不再报错，也不改写其他目标的消息
         if (!ownsRequest()) return
         console.error('Error sending app message:', error)
-        toast.error(error instanceof Error ? error.message : '发送消息失败')
-        // 更新本次请求的 AI 消息为错误消息
-        const { assistantMessageId } = owner
-        if (assistantMessageId) {
-          updateMessages((prev) =>
-            prev.map((msg) =>
-              msg.id === assistantMessageId
-                ? { ...msg, content: '抱歉，发生了错误，请重试。' }
-                : msg,
-            ),
-          )
-        }
+        // 正文与引用保留，错误只作为分类状态显示
+        settleAnswer(
+          owner,
+          resolveAnswerKind(owner.verdict, classifyAnswerError(error)),
+        )
       } finally {
         // 只有仍持有归属的请求才复位，不能清掉新请求的状态
         if (ownsRequest()) {
@@ -327,11 +372,11 @@ export const useHomeChat = ({
       scopeKey,
       onConversationIdChange,
       claimRequest,
+      settleAnswer,
       createConversation,
       conversationIdRef,
       messagesRef,
       updateMessages,
-      t,
     ],
   )
 
@@ -392,11 +437,13 @@ export const useHomeChat = ({
           delta_stream: true,
         }
 
-        await streamMCPAgentChat({
+        const end = await streamMCPAgentChat({
           request,
           signal: owner.controller.signal,
           onState: (timelineState) => {
-            if (!ownsRequest()) return
+            // 归属已收回或回答已有结论（完成、错误事件）后，晚到的状态一律丢弃
+            if (!ownsRequest() || owner.verdict) return
+            owner.verdict = timelineVerdict(timelineState)
             setStreamingContent(timelineState.answer)
             setIsToolAnalyzing(timelineState.isToolAnalyzing)
 
@@ -406,7 +453,7 @@ export const useHomeChat = ({
                   ? {
                       ...msg,
                       content: timelineState.answer,
-                      timelineNodes: timelineState.nodes,
+                      timelineNodes: withoutErrorNodes(timelineState.nodes),
                       isStreaming: !timelineState.final,
                     }
                   : msg,
@@ -414,33 +461,18 @@ export const useHomeChat = ({
             )
           },
         })
+        if (!ownsRequest()) return
+        settleAnswer(
+          owner,
+          resolveAnswerKind(owner.verdict, unresolvedStreamEnd(end)),
+        )
       } catch (error) {
         if (!ownsRequest()) return
         console.error('Error sending message:', error)
-        toast.error(error instanceof Error ? error.message : '发送消息失败')
-        const errorMessage =
-          error instanceof Error ? error.message : '发送消息失败'
-        updateMessages((prev) =>
-          prev.map((msg) =>
-            msg.id === assistantMessageId
-              ? {
-                  ...msg,
-                  content: errorMessage,
-                  timelineNodes: [
-                    ...(msg.timelineNodes || []),
-                    {
-                      id: `error-${Date.now()}`,
-                      kind: 'error',
-                      title: '运行错误',
-                      description: errorMessage,
-                      status: 'error',
-                      content: errorMessage,
-                    },
-                  ],
-                  isStreaming: false,
-                }
-              : msg,
-          ),
+        // 正文与已收到的执行步骤保留，错误只作为分类状态显示
+        settleAnswer(
+          owner,
+          resolveAnswerKind(owner.verdict, classifyAnswerError(error)),
         )
       } finally {
         if (ownsRequest()) {
@@ -448,13 +480,6 @@ export const useHomeChat = ({
           setIsStreaming(false)
           setStreamingContent('')
           setIsToolAnalyzing(false)
-          updateMessages((prev) =>
-            prev.map((msg) =>
-              msg.id === assistantMessageId
-                ? { ...msg, isStreaming: false }
-                : msg,
-            ),
-          )
         }
       }
     },
@@ -462,6 +487,7 @@ export const useHomeChat = ({
       selectedModelId,
       selectedMCPIds,
       claimRequest,
+      settleAnswer,
       messagesRef,
       updateMessages,
     ],
@@ -521,8 +547,7 @@ export const useHomeChat = ({
     isAppMode,
     currentConversationId,
     sendMessage,
-    // 停止输出：只终止本地连接并保留已生成内容
-    stopStreaming: detachRequest,
+    stopStreaming,
     clearMessages,
   }
 }

@@ -6,6 +6,7 @@ import {
   Brain,
   CheckCircle2,
   Circle,
+  CircleMinus,
   Loader2,
   Server,
   Wrench,
@@ -55,6 +56,11 @@ const getNodeIcon = (node: AgentTimelineNode) => {
 
   if (node.status === 'error') {
     return <AlertCircle className="size-icon-sm text-status-error" />
+  }
+
+  // 运行在这一步完成前就结束了：不画成成功，也不再转圈
+  if (node.status === 'abort') {
+    return <CircleMinus className="size-icon-sm text-text-tertiary" />
   }
 
   if (node.kind === 'reasoning') {
@@ -125,7 +131,7 @@ function AgentToolStepContent({ node }: { node: AgentTimelineNode }) {
           blink={node.status === 'loading'}
           defaultExpanded={node.status === 'loading'}
         >
-          <div className="whitespace-pre-wrap text-sm text-text-secondary">
+          <div className="text-sm whitespace-pre-wrap text-text-secondary">
             {reasoning}
           </div>
         </Think>
@@ -135,7 +141,7 @@ function AgentToolStepContent({ node }: { node: AgentTimelineNode }) {
         value={args}
       />
       {error ? (
-        <div className="rounded-radius-sm px-space-sm py-space-xs border border-status-error-subtle bg-status-error-subtle text-sm text-status-error">
+        <div className="rounded-radius-sm border border-status-error-subtle bg-status-error-subtle px-space-sm py-space-xs text-sm text-status-error">
           {stringifyValue(error)}
         </div>
       ) : null}
@@ -162,7 +168,7 @@ function AgentReasoningContent({ node }: { node: AgentTimelineNode }) {
   }
 
   return (
-    <div className="whitespace-pre-wrap text-sm text-text-secondary">
+    <div className="text-sm whitespace-pre-wrap text-text-secondary">
       {content}
     </div>
   )
@@ -172,7 +178,7 @@ function AgentGenericStepContent({ node }: { node: AgentTimelineNode }) {
   if (!hasMeaningfulValue(node.content)) return null
 
   return (
-    <div className="whitespace-pre-wrap text-sm text-text-secondary">
+    <div className="text-sm whitespace-pre-wrap text-text-secondary">
       {stringifyValue(node.content)}
     </div>
   )
