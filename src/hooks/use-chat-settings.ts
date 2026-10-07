@@ -8,17 +8,19 @@ import { knowledgeKeys } from '@/hooks/use-knowledge-request'
 import { dialogKeys } from '@/hooks/use-dialog-apps'
 import { toast } from '@/lib/toast'
 import type { DialogApp } from '@/types/api'
-import type { ChatSettings } from '@/components/chat/ChatSettingsPanel'
-import { defaultChatSettings } from '@/components/chat/ChatSettingsPanel'
+import type { ChatSettings } from '@/components/chat/chat-settings.types'
+import { defaultChatSettings } from '@/components/chat/chat-settings.constants'
 import type { MetadataFilterMode } from '@/components/chat/MetadataFilter'
 import { detectMatchingPreset } from '@/constants/llm'
 import { isLLMModelEnabled } from '@/stores/model'
 
 /**
  * 从 DialogApp 转换为 ChatSettings
+ * 应用没有开场白时填入 defaultPrologue（按界面语言），保存后写入应用
  */
 export function dialogToSettings(
   dialog: DialogApp | null | undefined,
+  defaultPrologue: string,
 ): ChatSettings {
   if (!dialog) return defaultChatSettings
 
@@ -53,7 +55,7 @@ export function dialogToSettings(
     name: dialog.name || '',
     description: dialog.description || '',
     emptyResponse: promptConfig.empty_response || '',
-    prologue: promptConfig.prologue || '您好，我是您的助手！有什么可以帮您的？',
+    prologue: promptConfig.prologue || defaultPrologue,
 
     // 开关选项
     quote: promptConfig.quote !== false, // 默认 true
@@ -141,7 +143,11 @@ export function useChatSettings(dialogId: string | undefined) {
   })
 
   // 转换为 ChatSettings
-  const settings = useMemo(() => dialogToSettings(dialog), [dialog])
+  const defaultPrologue = t('chat.settings.defaultPrologue')
+  const settings = useMemo(
+    () => dialogToSettings(dialog, defaultPrologue),
+    [dialog, defaultPrologue],
+  )
 
   // 保存设置
   const { mutateAsync: saveSettings, isPending: saving } = useMutation({
@@ -164,13 +170,13 @@ export function useChatSettings(dialogId: string | undefined) {
         queryKey: dialogKeys.detail(dialogId || ''),
       })
       queryClient.invalidateQueries({ queryKey: dialogKeys.all })
-      toast.success('设置保存成功')
+      toast.success(t('chat.settings.saveSuccess'))
       if (knowledgeBlockAppended) {
         toast.info(t('chat.knowledgePrompt.insertedOnSave'))
       }
     },
     onError: () => {
-      toast.error('保存设置失败')
+      toast.error(t('chat.settings.saveError'))
     },
   })
 

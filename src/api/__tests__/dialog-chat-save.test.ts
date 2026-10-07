@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test, { type TestContext } from 'node:test'
-import type { ChatSettings } from '@/components/chat/ChatSettingsPanel'
-import { GenerationPresetType } from '@/constants/llm'
+import { defaultChatSettings } from '@/components/chat/chat-settings.constants'
+import type { ChatSettings } from '@/components/chat/chat-settings.types'
 import { settingsToDialogUpdate } from '@/hooks/chat-settings-payload'
 import zhCN from '@/locales/zh-CN/chat'
 import { createInitialConfig } from '@/pages/studio/create-app/constants'
@@ -163,35 +163,9 @@ test('an app opened from the create dialog saves llm_setting as an object', asyn
 const exploreSettings = (
   overrides: Partial<ChatSettings> = {},
 ): ChatSettings => ({
+  ...defaultChatSettings,
   name: 'Support Bot',
-  quote: true,
-  keyword: false,
-  tts: false,
-  tocEnhance: false,
-  refineMultiturn: true,
-  useKnowledgeGraph: false,
-  reasoning: false,
-  kbIds: [],
-  metadataFilterMode: 'disabled',
-  metadataCondition: { logic: 'and', conditions: [] },
   systemPrompt: '你是一个智能助手，请提供有帮助的回答。',
-  similarityThreshold: 0.2,
-  vectorSimilarityWeight: 0.3,
-  topN: 8,
-  crossLanguages: [],
-  variables: [],
-  topK: 1024,
-  generationPreset: GenerationPresetType.Balance,
-  temperature: 0.5,
-  temperatureEnabled: true,
-  topP: 0.85,
-  topPEnabled: true,
-  presencePenalty: 0.2,
-  presencePenaltyEnabled: true,
-  frequencyPenalty: 0.3,
-  frequencyPenaltyEnabled: true,
-  maxTokens: 4096,
-  maxTokensEnabled: false,
   ...overrides,
 })
 

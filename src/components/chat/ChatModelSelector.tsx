@@ -235,7 +235,7 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
               />
             )}
             <span className="whitespace-nowrap">
-              {selectedModelName || '选择模型'}
+              {selectedModelName || t('chat.modelSelector.trigger')}
             </span>
             <ChevronDown
               className={cn(
@@ -253,13 +253,15 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
           <Command className="p-4">
             {groupedOptions.length > 0 && (
               <CommandInput
-                placeholder="搜索..."
+                placeholder={t('common.searchPlaceholder')}
                 className="placeholder:text-text-tertiary"
               />
             )}
             <CommandList className="mt-2 outline-hidden">
               <CommandEmpty>
-                <div className="text-text-tertiary">未找到匹配的模型</div>
+                <div className="text-text-tertiary">
+                  {t('chat.modelSelector.noMatch')}
+                </div>
               </CommandEmpty>
               {groupedOptions.map((group, idx) => {
                 if (group.options && group.options.length > 0) {
@@ -303,7 +305,7 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
   if (actualVariant === 'compact') {
     if (loading) {
       return (
-        <div className="bg-surface-secondary flex h-10 animate-pulse items-center rounded-lg px-3">
+        <div className="flex h-10 animate-pulse items-center rounded-lg bg-surface-secondary px-3">
           <div className="h-3 w-3 animate-spin rounded-full border-b-2 border-primary"></div>
         </div>
       )
@@ -359,7 +361,7 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
               />
             )}
             <span className="whitespace-nowrap">
-              {selectedModelName || '选择模型'}
+              {selectedModelName || t('chat.modelSelector.trigger')}
             </span>
             <ChevronDown
               className={cn(
@@ -377,13 +379,15 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
           <Command className="p-4">
             {groupedOptions.length > 0 && (
               <CommandInput
-                placeholder="搜索..."
+                placeholder={t('common.searchPlaceholder')}
                 className="placeholder:text-text-tertiary"
               />
             )}
             <CommandList className="mt-2 outline-hidden">
               <CommandEmpty>
-                <div className="text-text-tertiary">未找到匹配的模型</div>
+                <div className="text-text-tertiary">
+                  {t('chat.modelSelector.noMatch')}
+                </div>
               </CommandEmpty>
               {groupedOptions.map((group, idx) => {
                 if (group.options && group.options.length > 0) {
@@ -428,11 +432,13 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
     return (
       <div className="space-y-2">
         <label className="block text-xs font-medium text-text-primary">
-          聊天模型
+          {t('chat.modelSelector.label')}
         </label>
         <div className="flex h-10 w-full items-center rounded-md border border-border bg-accent/20 px-3 py-2">
           <div className="h-3 w-3 animate-spin rounded-full border-b-2 border-primary"></div>
-          <span className="ml-2 text-xs text-text-tertiary">加载模型中...</span>
+          <span className="ml-2 text-xs text-text-tertiary">
+            {t('chat.modelSelector.loading')}
+          </span>
         </div>
       </div>
     )
@@ -442,7 +448,7 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
     return (
       <div className="space-y-2">
         <label className="block text-xs font-medium text-text-primary">
-          聊天模型
+          {t('chat.modelSelector.label')}
         </label>
         <div className="flex h-10 w-full items-center rounded-md border border-error bg-error/10 px-3 py-2">
           <AlertCircle className="h-3 w-3 text-error" />
@@ -456,7 +462,7 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
     return (
       <div className="space-y-2">
         <label className="block text-xs font-medium text-text-primary">
-          聊天模型
+          {t('chat.modelSelector.label')}
         </label>
         <button
           onClick={handleGoToModelProviders}
@@ -464,7 +470,7 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
         >
           <AlertCircle className="h-3 w-3 shrink-0 text-status-warning" />
           <span className="ml-2 text-xs text-status-warning">
-            暂无可用模型，点击前往配置
+            {t('chat.modelSelector.empty')}
           </span>
           <Settings className="ml-auto h-3 w-3 shrink-0 text-status-warning" />
         </button>
@@ -476,17 +482,17 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
     <div className="space-y-2">
       <div className="mb-1 flex items-center">
         <label className="block text-xs font-medium text-text-primary">
-          聊天模型
+          {t('chat.modelSelector.label')}
         </label>
-        <FormTooltip tooltip="选择用于对话或图像识别的模型" />
+        <FormTooltip tooltip={t('chat.modelSelector.tooltip')} />
       </div>
 
       <SelectWithSearch
         value={selectedModelName || ''}
         options={groupedOptions}
         onChange={(value) => onSelect(value || null)}
-        placeholder="请选择聊天模型"
-        emptyText="未找到匹配的聊天模型"
+        placeholder={t('chat.modelSelector.placeholder')}
+        emptyText={t('chat.modelSelector.noMatch')}
         disabled={disabled}
         triggerClassName={triggerClassName || 'h-10'}
       />

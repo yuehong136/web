@@ -1,4 +1,4 @@
-import type { ChatSettings } from '@/components/chat/ChatSettingsPanel'
+import type { ChatSettings } from '@/components/chat/chat-settings.types'
 import { withKnowledgeRetrieval } from '@/lib/chat/knowledge-prompt'
 import type { DialogApp } from '@/types/api'
 

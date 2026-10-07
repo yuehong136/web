@@ -18,7 +18,8 @@ export const GenerationPresetType = {
   Custom: 'custom',
 } as const
 
-export type GenerationPresetType = typeof GenerationPresetType[keyof typeof GenerationPresetType]
+export type GenerationPresetType =
+  (typeof GenerationPresetType)[keyof typeof GenerationPresetType]
 
 /**
  * LLM 参数启用状态字段
@@ -32,12 +33,16 @@ export const LLMParameterEnabledField = {
   MaxTokensEnabled: 'maxTokensEnabled',
 } as const
 
-export type LLMParameterEnabledField = typeof LLMParameterEnabledField[keyof typeof LLMParameterEnabledField]
+export type LLMParameterEnabledField =
+  (typeof LLMParameterEnabledField)[keyof typeof LLMParameterEnabledField]
 
 /**
  * 启用字段与参数字段的映射
  */
-export const enabledFieldToParameterMap: Record<LLMParameterEnabledField, string> = {
+export const enabledFieldToParameterMap: Record<
+  LLMParameterEnabledField,
+  string
+> = {
   [LLMParameterEnabledField.TemperatureEnabled]: 'temperature',
   [LLMParameterEnabledField.TopPEnabled]: 'topP',
   [LLMParameterEnabledField.PresencePenaltyEnabled]: 'presencePenalty',
@@ -60,26 +65,29 @@ export type GenerationPresetConfig = {
  * 预设参数配置映射
  * 参考 ragflow settledModelVariableMap
  */
-export const generationPresetConfigMap: Record<Exclude<GenerationPresetType, 'custom'>, GenerationPresetConfig> = {
+export const generationPresetConfigMap: Record<
+  Exclude<GenerationPresetType, 'custom'>,
+  GenerationPresetConfig
+> = {
   [GenerationPresetType.Improvise]: {
-    temperature: 0.80,
-    topP: 0.90,
-    presencePenalty: 0.10,
-    frequencyPenalty: 0.10,
+    temperature: 0.8,
+    topP: 0.9,
+    presencePenalty: 0.1,
+    frequencyPenalty: 0.1,
     maxTokens: 4096,
   },
   [GenerationPresetType.Precise]: {
-    temperature: 0.20,
+    temperature: 0.2,
     topP: 0.75,
-    presencePenalty: 0.50,
-    frequencyPenalty: 0.50,
+    presencePenalty: 0.5,
+    frequencyPenalty: 0.5,
     maxTokens: 4096,
   },
   [GenerationPresetType.Balance]: {
-    temperature: 0.50,
+    temperature: 0.5,
     topP: 0.85,
-    presencePenalty: 0.20,
-    frequencyPenalty: 0.30,
+    presencePenalty: 0.2,
+    frequencyPenalty: 0.3,
     maxTokens: 4096,
   },
 }
@@ -89,25 +97,44 @@ export const generationPresetConfigMap: Record<Exclude<GenerationPresetType, 'cu
  */
 export type PresetOption = {
   value: GenerationPresetType
-  label: string
-  description: string
+  labelKey: string
+  descriptionKey: string
 }
 
 /**
  * 预设选项列表
  */
 export const generationPresetOptions: PresetOption[] = [
-  { value: GenerationPresetType.Improvise, label: '即兴创作', description: '高创意，适合头脑风暴' },
-  { value: GenerationPresetType.Precise, label: '精确', description: '高确定性，适合严谨任务' },
-  { value: GenerationPresetType.Balance, label: '平衡', description: '适中参数，通用场景' },
-  { value: GenerationPresetType.Custom, label: '自定义', description: '手动调整参数' },
+  {
+    value: GenerationPresetType.Improvise,
+    labelKey: 'chat.generationPreset.improvise',
+    descriptionKey: 'chat.generationPreset.improviseDescription',
+  },
+  {
+    value: GenerationPresetType.Precise,
+    labelKey: 'chat.generationPreset.precise',
+    descriptionKey: 'chat.generationPreset.preciseDescription',
+  },
+  {
+    value: GenerationPresetType.Balance,
+    labelKey: 'chat.generationPreset.balance',
+    descriptionKey: 'chat.generationPreset.balanceDescription',
+  },
+  {
+    value: GenerationPresetType.Custom,
+    labelKey: 'chat.generationPreset.custom',
+    descriptionKey: 'chat.generationPreset.customDescription',
+  },
 ]
 
 /**
  * 获取默认的参数启用状态
  * 预设模式下，除 maxTokens 外其他参数都应启用
  */
-export function getDefaultEnabledFields(): Record<LLMParameterEnabledField, boolean> {
+export function getDefaultEnabledFields(): Record<
+  LLMParameterEnabledField,
+  boolean
+> {
   return {
     [LLMParameterEnabledField.TemperatureEnabled]: true,
     [LLMParameterEnabledField.TopPEnabled]: true,
@@ -150,15 +177,21 @@ export const defaultLLMParameters: LLMParameters = {
  * 检测当前参数是否匹配某个预设
  * 参考 ragflow checkParameterIsEqual
  */
-export function detectMatchingPreset(params: Omit<LLMParameters, 'preset'>): GenerationPresetType {
+export function detectMatchingPreset(
+  params: Omit<LLMParameters, 'preset'>,
+): GenerationPresetType {
   const tolerance = 0.01
 
-  for (const [presetName, presetConfig] of Object.entries(generationPresetConfigMap)) {
+  for (const [presetName, presetConfig] of Object.entries(
+    generationPresetConfigMap,
+  )) {
     const isMatch =
       Math.abs(params.temperature - presetConfig.temperature) < tolerance &&
       Math.abs(params.topP - presetConfig.topP) < tolerance &&
-      Math.abs(params.presencePenalty - presetConfig.presencePenalty) < tolerance &&
-      Math.abs(params.frequencyPenalty - presetConfig.frequencyPenalty) < tolerance
+      Math.abs(params.presencePenalty - presetConfig.presencePenalty) <
+        tolerance &&
+      Math.abs(params.frequencyPenalty - presetConfig.frequencyPenalty) <
+        tolerance
 
     if (isMatch) {
       return presetName as GenerationPresetType
@@ -186,26 +219,29 @@ export type GenerationPresetConfigSnake = {
 /**
  * 预设参数配置映射 (snake_case 版本)
  */
-export const generationPresetConfigMapSnake: Record<Exclude<GenerationPresetType, 'custom'>, GenerationPresetConfigSnake> = {
+export const generationPresetConfigMapSnake: Record<
+  Exclude<GenerationPresetType, 'custom'>,
+  GenerationPresetConfigSnake
+> = {
   [GenerationPresetType.Improvise]: {
-    temperature: 0.80,
-    top_p: 0.90,
-    presence_penalty: 0.10,
-    frequency_penalty: 0.10,
+    temperature: 0.8,
+    top_p: 0.9,
+    presence_penalty: 0.1,
+    frequency_penalty: 0.1,
     max_tokens: 4096,
   },
   [GenerationPresetType.Precise]: {
-    temperature: 0.20,
+    temperature: 0.2,
     top_p: 0.75,
-    presence_penalty: 0.50,
-    frequency_penalty: 0.50,
+    presence_penalty: 0.5,
+    frequency_penalty: 0.5,
     max_tokens: 4096,
   },
   [GenerationPresetType.Balance]: {
-    temperature: 0.50,
+    temperature: 0.5,
     top_p: 0.85,
-    presence_penalty: 0.20,
-    frequency_penalty: 0.30,
+    presence_penalty: 0.2,
+    frequency_penalty: 0.3,
     max_tokens: 4096,
   },
 }
@@ -242,15 +278,21 @@ export type LLMParametersSnake = {
 /**
  * 检测当前参数是否匹配某个预设 (snake_case 版本)
  */
-export function detectMatchingPresetSnake(params: LLMParametersSnake): GenerationPresetType {
+export function detectMatchingPresetSnake(
+  params: LLMParametersSnake,
+): GenerationPresetType {
   const tolerance = 0.01
 
-  for (const [presetName, presetConfig] of Object.entries(generationPresetConfigMapSnake)) {
+  for (const [presetName, presetConfig] of Object.entries(
+    generationPresetConfigMapSnake,
+  )) {
     const isMatch =
       Math.abs(params.temperature - presetConfig.temperature) < tolerance &&
       Math.abs(params.top_p - presetConfig.top_p) < tolerance &&
-      Math.abs(params.presence_penalty - presetConfig.presence_penalty) < tolerance &&
-      Math.abs(params.frequency_penalty - presetConfig.frequency_penalty) < tolerance
+      Math.abs(params.presence_penalty - presetConfig.presence_penalty) <
+        tolerance &&
+      Math.abs(params.frequency_penalty - presetConfig.frequency_penalty) <
+        tolerance
 
     if (isMatch) {
       return presetName as GenerationPresetType

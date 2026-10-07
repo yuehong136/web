@@ -1,4 +1,5 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import type { GenerationPresetType } from '@/constants/llm'
 import { generationPresetOptions } from '@/constants/llm'
@@ -62,13 +63,15 @@ interface GenerationPresetSelectorProps {
 export const GenerationPresetSelector: React.FC<
   GenerationPresetSelectorProps
 > = ({ value, onChange, className, disabled = false }) => {
+  const { t } = useTranslation()
+
   return (
     <div className={cn('space-y-2', className)}>
       <label
         className="block text-sm font-medium"
         style={{ color: 'var(--color-text-primary)' }}
       >
-        生成多样性
+        {t('chat.generationPreset.label')}
       </label>
       <div
         className="flex rounded-lg p-1"
@@ -85,7 +88,7 @@ export const GenerationPresetSelector: React.FC<
               type="button"
               disabled={disabled}
               onClick={() => onChange(option.value)}
-              title={option.description}
+              title={t(option.descriptionKey)}
               className={cn(
                 'flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-all duration-200',
                 'focus:outline-hidden focus-visible:ring-2',
@@ -113,7 +116,7 @@ export const GenerationPresetSelector: React.FC<
                 }
               }}
             >
-              {option.label}
+              {t(option.labelKey)}
             </button>
           )
         })}
