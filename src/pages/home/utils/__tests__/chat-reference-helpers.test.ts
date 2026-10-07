@@ -2,6 +2,8 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import type { ReferenceChunk } from '@/utils/reference-replacer'
 import {
+  alignHistoryReferences,
+  hasCitationMarkers,
   mergeFrameReferences,
   readFrameReferences,
   reconcileReferences,
@@ -157,4 +159,85 @@ test('reconcileReferences follows length and order changes', () => {
     ['chunk-1', 'chunk-0', 'chunk-2'],
   )
   assert.equal(next[2], current[2])
+})
+
+const prologue = { role: 'assistant', content: '你好，我是助手' }
+const turn = (index: number) => [
+  { role: 'user', content: `问题 ${index}` },
+  { role: 'assistant', content: `回答 ${index} [ID:0]` },
+]
+const group = (...chunks: ReferenceChunk[]) => ({
+  chunks,
+  doc_aggs: [
+    { doc_id: 'doc-1', doc_name: 'harness.pdf', count: chunks.length },
+  ],
+  total: chunks.length,
+})
+
+test('alignHistoryReferences pairs answers with reference groups when the counts match', () => {
+  const messages = [prologue, ...turn(1), ...turn(2)]
+  const aligned = alignHistoryReferences(messages, [
+    group(chunk(0), chunk(1)),
+    { chunks: { '1': chunk(7), '0': chunk(6) } },
+  ])
+
+  assert.equal(aligned.length, messages.length)
+  // 开场白与用户消息不挂引用
+  assert.equal(aligned[0], undefined)
+  assert.equal(aligned[1], undefined)
+  assert.equal(aligned[3], undefined)
+  assert.deepEqual(aligned[2], [chunk(0), chunk(1)])
+  assert.deepEqual(
+    aligned[4]?.map((item) => [item.id, item.reference_index]),
+    [
+      ['chunk-6', 0],
+      ['chunk-7', 1],
+    ],
+  )
+})
+
+test('alignHistoryReferences does not skip a first answer when the prologue is missing', () => {
+  // 其他客户端写回的历史可能没有开场白
+  const aligned = alignHistoryReferences(
+    [...turn(1), ...turn(2)],
+    [group(chunk(0)), group(chunk(1))],
+  )
+  assert.deepEqual(aligned[1], [chunk(0)])
+  assert.deepEqual(aligned[3], [chunk(1)])
+})
+
+test('alignHistoryReferences does not guess when answers and groups disagree', () => {
+  const stoppedTurn = [prologue, ...turn(1), ...turn(2), ...turn(3)]
+  // 第二轮停止过：消息被下一次请求写回，引用组没有追加
+  assert.deepEqual(
+    alignHistoryReferences(stoppedTurn, [group(chunk(0)), group(chunk(1))]),
+    stoppedTurn.map(() => undefined),
+  )
+  // 重新生成：引用组只追加不截断
+  const regenerated = [prologue, ...turn(1)]
+  assert.deepEqual(
+    alignHistoryReferences(regenerated, [group(chunk(0)), group(chunk(1))]),
+    regenerated.map(() => undefined),
+  )
+  // 没有引用数组
+  assert.deepEqual(alignHistoryReferences(regenerated, undefined), [
+    undefined,
+    undefined,
+    undefined,
+  ])
+})
+
+test('alignHistoryReferences keeps the position of a group it cannot read', () => {
+  const messages = [prologue, ...turn(1), ...turn(2)]
+  const aligned = alignHistoryReferences(messages, [[], group(chunk(1))])
+  assert.deepEqual(aligned[2], [])
+  assert.deepEqual(aligned[4], [chunk(1)])
+  // 只有开场白的新会话
+  assert.deepEqual(alignHistoryReferences([prologue], []), [undefined])
+})
+
+test('hasCitationMarkers finds [ID:n] markers only', () => {
+  assert.equal(hasCitationMarkers('依据 [ID:0] 与 [ID:12]'), true)
+  assert.equal(hasCitationMarkers('没有引用'), false)
+  assert.equal(hasCitationMarkers('[ID:] 与 [12]'), false)
 })

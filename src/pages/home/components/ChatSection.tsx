@@ -28,6 +28,7 @@ import { AnswerStatusNotice } from './answer-status-notice'
 import { SkillPanel } from './SkillPanel'
 import { useAtTrigger } from '../hooks'
 import { shouldIgnoreEnterForIme } from '../utils'
+import { hasCitationMarkers } from '../utils/chat-reference-helpers'
 import { extractThinkContent, type ThinkingStatus } from '@/utils/think-utils'
 import { convertReferencesToSup } from '@/utils/message-utils'
 import { copyToClipboardWithFeedback } from '@/lib/clipboard'
@@ -239,9 +240,13 @@ export const ChatSection = ({
 
       const references = msg.references || []
       const hasReferences = references.length > 0
+      // 没有引用数据（终帧前停止、历史对不上）时 [ID:n] 也转成角标，解析不到的
+      // 渲染为不可交互的上标，不显示协议原文，也不做成按钮
+      const hasCitations =
+        hasReferences || hasCitationMarkers(msg.content || '')
       // 引用标记组件在 memo 内创建：若在 contentRender 里创建，每次渲染都是新组件类型，
       // 引用标记会被重新挂载（打开详情时焦点无法回到原标记）
-      const SupComponent = hasReferences
+      const SupComponent = hasCitations
         ? createReferenceMarkerComponent(references, {
             onViewDetail: (chunk) => handleViewDetail(chunk, references),
             onCopy: handleCopyReference,
@@ -347,8 +352,8 @@ export const ChatSection = ({
                   }
                 }
 
-                // 如果有引用，转换内容中的引用标记
-                const contentWithSup = hasReferences
+                // 正文带引用标记时转换为角标
+                const contentWithSup = hasCitations
                   ? convertReferencesToSup(mainContent)
                   : mainContent
 

@@ -4,7 +4,8 @@ import {
 } from '@/utils/reference-replacer'
 
 /**
- * Home 应用模式流式帧里的引用合并（MultiRAG 旧版 `/v1/conversation/completion`）。
+ * Home 应用模式的引用：流式帧的合并与历史回答的对齐（MultiRAG 旧版
+ * `/v1/conversation/completion` 与 `/v1/conversation/get`）。
  *
  * 帧协议：增量帧 `final: false` 的 `reference` 经 structure_answer 后是
  * `{chunks: []}`，空数组表示这一帧没带引用；终帧 `final: true` 携带本轮的权威引用，
@@ -16,9 +17,6 @@ export interface ConversationHistoryMessage {
   id?: string
   role?: string
   content?: string
-  reference?: {
-    chunks?: ReferenceChunk[]
-  }
 }
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -94,3 +92,41 @@ export const mergeFrameReferences = (
   if (incoming.length === 0 && !authoritative) return current
   return reconcileReferences(current, incoming)
 }
+
+/**
+ * 历史回答的引用，下标与 `messages` 一致；用户消息与对不上的回答为 undefined。
+ *
+ * 历史消息不带引用，引用在会话级平行数组 `reference[]` 里，每次成功完成的
+ * completion 追加一组；停止、失败的回合不追加，却会随下一次请求的历史写回
+ * `message`，重新生成又只追加不截断。所以只在"非开场白的助手消息数 = 引用组数"
+ * 时按顺序对应，对不上一律不挂（宁可不显示也不显示错）。开场白是位于首条的助手
+ * 消息；其他客户端写回的历史可能没有开场白，首条是用户消息时不跳过任何回答。
+ * 计数相等只是必要条件：重新生成多出的一组与失败回合多出的一条恰好抵消时仍会错位，
+ * 根治需要服务端把引用嵌进消息。
+ */
+export const alignHistoryReferences = (
+  messages: readonly ConversationHistoryMessage[],
+  groups: unknown,
+): Array<ReferenceChunk[] | undefined> => {
+  const aligned: Array<ReferenceChunk[] | undefined> = messages.map(
+    () => undefined,
+  )
+  if (!Array.isArray(groups)) return aligned
+  const answers = messages.flatMap((message, index) =>
+    index > 0 && message?.role === 'assistant' ? [index] : [],
+  )
+  if (answers.length !== groups.length) return aligned
+  answers.forEach((messageIndex, groupIndex) => {
+    const group: unknown = groups[groupIndex]
+    aligned[messageIndex] = isRecord(group)
+      ? extractReferencesFromSSEData({ reference: group })
+      : []
+  })
+  return aligned
+}
+
+const CITATION_MARKER = /\[ID:\d+\]/
+
+/** 正文是否带有 `[ID:n]` 引用标记（不论能否解析到引用） */
+export const hasCitationMarkers = (content: string): boolean =>
+  CITATION_MARKER.test(content)

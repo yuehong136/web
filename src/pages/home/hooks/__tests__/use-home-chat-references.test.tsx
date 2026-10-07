@@ -10,7 +10,7 @@ import type { ReferenceChunk } from '@/utils/reference-replacer'
 import { useHomeChat } from '../useHomeChat'
 import { answerFrame, delta, done, flush, openStream } from './stream-fixtures'
 
-// W4：引用按帧合并，增量帧的空数组不清空，终帧为准
+// W4：引用按帧合并，增量帧的空数组不清空，终帧为准；历史引用只在能对齐时挂上
 
 const app = { id: 'dialog-1', name: 'App' } as DialogApp
 type ChatOptions = Parameters<typeof useHomeChat>[0]
@@ -292,4 +292,55 @@ it('keeps received references when the connection breaks afterwards', async () =
 
   expect(references()).toEqual(base())
   expect(answer()?.status).toEqual({ kind: 'network', partial: true })
+})
+
+const prologue = { role: 'assistant', content: '你好，我是助手' }
+const turn = (index: number) => [
+  { id: `turn-${index}`, role: 'user', content: `问题 ${index}` },
+  { id: `turn-${index}`, role: 'assistant', content: `回答 ${index} [ID:0]` },
+]
+const shownReferences = () =>
+  chat.messages.map((msg) => msg.references?.map((item) => item.id) ?? [])
+
+it('shows history references when every answer has its reference group', async () => {
+  histories.set('conversation-2', {
+    message: [prologue, ...turn(1), ...turn(2)],
+    reference: [
+      { chunks: [chunk(0), chunk(1)], doc_aggs: [], total: 2 },
+      { chunks: { '0': chunk(5) }, doc_aggs: [], total: 1 },
+    ],
+  })
+  await renderSurface({
+    ...appOptions,
+    selectedConversationId: 'conversation-2',
+  })
+
+  expect(shownReferences()).toEqual([
+    [],
+    [],
+    ['chunk-0', 'chunk-1'],
+    [],
+    ['chunk-5'],
+  ])
+  expect(chat.messages[4].references?.[0].reference_index).toBe(0)
+})
+
+it('shows no history references when answers and reference groups disagree', async () => {
+  // 第二轮停止过：回答被下一次请求写回，引用组没有追加
+  histories.set('conversation-2', {
+    message: [prologue, ...turn(1), ...turn(2), ...turn(3)],
+    reference: [
+      { chunks: [chunk(0)], doc_aggs: [], total: 1 },
+      { chunks: [chunk(1)], doc_aggs: [], total: 1 },
+    ],
+  })
+  await renderSurface({
+    ...appOptions,
+    selectedConversationId: 'conversation-2',
+  })
+
+  expect(chat.messages).toHaveLength(7)
+  expect(shownReferences()).toEqual([[], [], [], [], [], [], []])
+  // 正文保持原样，不丢失 [ID:n]
+  expect(chat.messages[2].content).toBe('回答 1 [ID:0]')
 })

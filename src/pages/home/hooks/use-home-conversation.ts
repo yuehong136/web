@@ -5,7 +5,10 @@ import { conversationAPI } from '@/api/conversation'
 import { chatKeys } from '@/hooks/use-chat-request'
 import { toast } from '@/lib/toast'
 import type { ChatMessage } from '../types'
-import type { ConversationHistoryMessage } from '../utils/chat-reference-helpers'
+import {
+  alignHistoryReferences,
+  type ConversationHistoryMessage,
+} from '../utils/chat-reference-helpers'
 
 type MessagesUpdate = ChatMessage[] | ((prev: ChatMessage[]) => ChatMessage[])
 
@@ -15,11 +18,14 @@ export interface CreatedConversation {
 }
 
 const toChatMessages = (detail: unknown): ChatMessage[] => {
-  const history = (detail as { message?: unknown } | null)?.message
+  const { message: history, reference } =
+    (detail as { message?: unknown; reference?: unknown } | null) ?? {}
   if (!Array.isArray(history)) return []
+  // 消息本身不带引用；只有能与会话级引用组一一对应时才挂上，否则正文保留原样
+  const references = alignHistoryReferences(history, reference)
   // 服务端给同一轮的问和答相同 id；消息 id 是更新与渲染的身份，必须唯一
   const seen = new Set<string>()
-  return history.map((msg: ConversationHistoryMessage) => {
+  return history.map((msg: ConversationHistoryMessage, index) => {
     const id =
       msg.id && !seen.has(msg.id)
         ? msg.id
@@ -30,8 +36,7 @@ const toChatMessages = (detail: unknown): ChatMessage[] => {
       role: msg.role === 'assistant' ? 'assistant' : 'user',
       content: msg.content || '',
       timestamp: new Date().toLocaleTimeString(),
-      // 保留引用信息
-      references: msg.reference?.chunks || [],
+      references: references[index] ?? [],
     }
   })
 }
