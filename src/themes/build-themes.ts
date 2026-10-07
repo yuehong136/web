@@ -12,7 +12,7 @@
 
 import fs from 'fs'
 import path from 'path'
-import { fileURLToPath } from 'url'
+import { fileURLToPath, pathToFileURL } from 'url'
 import { generateThemeFiles } from './theme-generator'
 import { generateTailwindThemeFiles } from './tailwind-theme-generator'
 import { format, resolveConfig } from 'prettier'
@@ -119,8 +119,11 @@ async function main() {
   }
 }
 
-// 如果直接运行此文件
-if (import.meta.url === `file://${process.argv[1]}`) {
+// 如果直接运行此文件（pathToFileURL 兼容 Windows 盘符与反斜杠路径）
+if (
+  process.argv[1] &&
+  import.meta.url === pathToFileURL(process.argv[1]).href
+) {
   void main()
 }
 
