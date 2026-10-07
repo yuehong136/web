@@ -37,6 +37,7 @@ import {
   getSimilarityLabel,
   truncateId,
 } from './reference-meta'
+import { useReturnFocus } from './use-return-focus'
 import { copyToClipboard } from '@/lib/utils'
 import { toast } from '@/lib/toast'
 import { useAuthStore } from '@/stores'
@@ -167,6 +168,8 @@ export const ReferenceDetailSheet: React.FC<ReferenceDetailSheetProps> = ({
   const { t } = useTranslation()
   const [contentCopied, setContentCopied] = React.useState(false)
   const user = useAuthStore((s) => s.user)
+  // 调用方都以受控方式打开（无 Trigger），关闭时把焦点还给打开前的元素
+  const returnFocus = useReturnFocus()
 
   const watermarkContent = React.useMemo(() => {
     const email = user?.email || user?.nickname || ''
@@ -215,6 +218,7 @@ export const ReferenceDetailSheet: React.FC<ReferenceDetailSheetProps> = ({
         showCloseButton={false}
         className="w-full overflow-y-auto p-0 sm:max-w-md"
         style={{ backgroundColor: 'var(--color-background-body)' }}
+        {...returnFocus}
       >
         {/* 头部 */}
         <SheetHeader
