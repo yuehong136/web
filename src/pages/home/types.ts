@@ -46,15 +46,3 @@ export interface ChatMessage {
   references?: ReferenceChunk[]
   thinking?: string
 }
-
-// 推荐卡片项
-export interface RecommendCard {
-  id: number
-  title: string
-  titleKey?: string
-  tag: string
-  tagKey?: string
-  bgColor: string
-  hasImage?: boolean
-  imageUrl?: string
-}

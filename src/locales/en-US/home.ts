@@ -14,7 +14,6 @@ export default {
       welcomePlaceholder: 'Message me or assign a task',
       chatPlaceholder: 'Type a message, press Enter to send',
       loadingHistory: 'Loading conversation history...',
-      talk: 'Chat',
       stop: 'Stop generating',
       selectSkills: 'Select skills or apps',
       addAttachment: 'Add attachment',
@@ -60,20 +59,6 @@ export default {
       web: 'Web',
       podcast: 'Podcast',
       chart: 'Charts',
-    },
-    recommendations: {
-      silverEconomy:
-        'What new opportunities are emerging behind the rise of the silver economy?',
-      sideBusiness:
-        'If a side business earns more than your main job, should you go full time?',
-      animalEncyclopedia: 'Create an animal encyclopedia in one step',
-      shuibeiRisk:
-        'What is the latest status after the Shuibei risk incident drew official attention?',
-      methRiverImpact:
-        'How long would ecological recovery take after 4.7 million meth pills fell into a Thai river?',
-      guess: 'Suggested',
-      creativeDesign: 'Creative design',
-      hotTopic: 'Trending',
     },
     skillPanel: {
       loadFailed: 'Failed to load skills',

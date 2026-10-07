@@ -4,7 +4,6 @@ import { act, createRef, type RefObject } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { InputToolbar } from '../InputToolbar'
-import { RecommendCards } from '../RecommendCards'
 import { ChatInputBox } from '../ChatInputBox'
 
 const welcomeSectionSource = readFileSync(
@@ -123,36 +122,11 @@ describe('Home capability affordances', () => {
     expect(welcomeSectionSource).not.toMatch(/FunctionTabs|functionTabs/)
   })
 
-  it('makes the whole recommendation card a keyboard-focusable prefill action', async () => {
-    const onCardClick = vi.fn()
-
-    await act(async () => {
-      root.render(
-        <RecommendCards
-          cards={[
-            {
-              id: 1,
-              title: '推荐问题',
-              tag: '猜你想聊',
-              bgColor: 'bg-components-recommend-card-bg-1',
-            },
-          ]}
-          onCardClick={onCardClick}
-        />,
-      )
-    })
-
-    const card = container.querySelector<HTMLButtonElement>(
-      'button[aria-label="推荐问题"]',
+  it('keeps the welcome screen to a greeting and the composer', () => {
+    // Trending-topic cards with hot-linked photos were removed (audit
+    // shell-06); starters belong to the product, not to news headlines.
+    expect(welcomeSectionSource).not.toMatch(
+      /RecommendCards|recommendCards|WaveText/,
     )
-    expect(card).not.toBeNull()
-    expect(card?.querySelector('button')).toBeNull()
-
-    card?.focus()
-    expect(document.activeElement).toBe(card)
-
-    await act(async () => card?.click())
-    expect(onCardClick).toHaveBeenCalledOnce()
-    expect(onCardClick).toHaveBeenCalledWith('推荐问题')
   })
 })

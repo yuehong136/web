@@ -6,11 +6,8 @@ import {
 } from '@/stores/model'
 import { useFetchMyLLMs } from '@/hooks/use-llm-request'
 import { useHomeStore } from '@/stores/home'
-import { WaveText } from './WaveText'
-import { RecommendCards } from './RecommendCards'
 import { ChatInputBox } from './ChatInputBox'
 import { SkillPanel } from './SkillPanel'
-import { recommendCards } from '../constants'
 import { getGreetingKey, shouldIgnoreEnterForIme } from '../utils'
 import { useAtTrigger } from '../hooks'
 import type { DialogApp } from '@/types/api'
@@ -127,15 +124,6 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({
     setSkillPanelOpen(false)
   }, [startNewConversation, setSkillPanelOpen])
 
-  // 处理卡片点击
-  const handleCardClick = useCallback(
-    (title: string) => {
-      onInputChange(title)
-      textareaRef.current?.focus()
-    },
-    [onInputChange],
-  )
-
   // 问候语文本
   const greeting = t(getGreetingKey())
   const greetingText = t(
@@ -149,10 +137,10 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({
   return (
     <div className="flex flex-1 flex-col items-center justify-center overflow-y-auto px-6 py-8">
       <div className="flex w-full max-w-[1240px] flex-col items-center gap-8">
-        {/* Header - 问候语（波浪式渐隐浮起） */}
-        <div className="mb-20 flex w-full flex-col items-center">
-          <h1 className="text-center text-[36px] font-semibold text-text-primary">
-            <WaveText text={greetingText} charDelay={35} duration={500} />
+        {/* Header - 问候语 */}
+        <div className="mb-space-lg flex w-full flex-col items-center">
+          <h1 className="text-center text-[36px] font-semibold text-text-primary motion-safe:animate-fade-up">
+            {greetingText}
           </h1>
         </div>
 
@@ -195,9 +183,6 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({
             variant="welcome"
           />
         </div>
-
-        {/* CardsSection - 推荐卡片 */}
-        <RecommendCards cards={recommendCards} onCardClick={handleCardClick} />
       </div>
     </div>
   )
