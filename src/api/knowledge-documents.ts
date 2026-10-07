@@ -1,13 +1,6 @@
 import { ingestDatasetDocuments } from './knowledge-document-ingest'
 import { changeDatasetDocumentStatus } from './knowledge-document-status'
-import type {
-  Document,
-  DocumentChunk,
-  DocumentFilter,
-  IDocumentInfoFilter,
-  PaginatedData,
-  PaginationRequest,
-} from '@/types/api'
+import type { Document, DocumentFilter, IDocumentInfoFilter } from '@/types/api'
 import { apiClient } from './client'
 import {
   parseDatasetDocuments,
@@ -144,10 +137,6 @@ export const knowledgeDocumentAPI = {
     kbId: string,
   ): Promise<{ total: number; filter: IDocumentInfoFilter }> =>
     getDatasetDocumentFilter(kbId),
-
-  get: (docId: string): Promise<Document> =>
-    apiClient.get(`/v1/document/get/${docId}`),
-
   upload: uploadDatasetDocuments,
   createWeb: createWebDatasetDocument,
   createEmpty: createEmptyDatasetDocument,
@@ -162,76 +151,12 @@ export const knowledgeDocumentAPI = {
     datasetId
       ? deleteDatasetDocuments(datasetId, docIds)
       : deleteDocumentsLegacy(docIds),
-
-  reparse: (
-    docId: string,
-    options?: {
-      parser_id?: string
-      chunk_size?: number
-      chunk_overlap?: number
-      parser_config?: Record<string, unknown>
-    },
-  ): Promise<{ task_id: string }> =>
-    apiClient.post(`/v1/document/${docId}/reparse`, options),
-
   ingest: ingestDatasetDocuments,
   parse: parseDatasetDocuments,
   stop: stopDatasetDocuments,
-
-  getContent: (docId: string): Promise<{ content: string }> =>
-    apiClient.get(`/v1/document/${docId}/content`),
-
-  getChunks: (
-    docId: string,
-    params?: PaginationRequest,
-  ): Promise<PaginatedData<DocumentChunk>> =>
-    apiClient.get(`/v1/document/${docId}/chunks`, { params }),
-
-  updateChunk: (
-    chunkId: string,
-    data: {
-      content?: string
-      metadata?: Record<string, unknown>
-    },
-  ): Promise<DocumentChunk> =>
-    apiClient.post(`/v1/document/chunk/${chunkId}/update`, data),
-
-  deleteChunk: (chunkId: string): Promise<void> =>
-    apiClient.delete(`/v1/document/chunk/${chunkId}`),
-
-  preview: (docId: string): Promise<{ preview_url: string }> =>
-    apiClient.get(`/v1/document/${docId}/preview`),
-
   download: (docId: string, filename?: string): Promise<void> =>
     apiClient.download(`/v1/document/get/${docId}?action=download`, filename),
-
-  getParseStatus: (
-    docId: string,
-  ): Promise<{
-    status: 'pending' | 'processing' | 'completed' | 'failed'
-    progress: number
-    error?: string
-    chunks_created: number
-  }> => apiClient.get(`/v1/document/${docId}/parse-status`),
-
-  batch: (
-    operation: 'delete' | 'reparse' | 'move',
-    data: {
-      doc_ids: string[]
-      target_kb_id?: string
-      parser_config?: Record<string, unknown>
-    },
-  ): Promise<{
-    success_count: number
-    failed_count: number
-    errors?: unknown[]
-  }> => apiClient.post('/v1/document/batch', { operation, ...data }),
-
   changeStatus: changeDatasetDocumentStatus,
-
-  updateStatus: (docIds: string[], status: '0' | '1'): Promise<void> =>
-    apiClient.post('/v1/document/status', { doc_ids: docIds, status }),
-
   rename: (docId: string, name: string): Promise<Document> =>
     apiClient.post('/v1/document/rename', { doc_id: docId, name }),
 
@@ -283,30 +208,6 @@ export const knowledgeDocumentAPI = {
         sdkBase,
       )
       .then(() => true),
-
-  getChunk: (params: {
-    kb_id: string
-    doc_id: string
-    chunk_id: string
-  }): Promise<{
-    chunk_id: string
-    content_with_weight: string
-    doc_id: string
-    docnm_kwd: string
-    important_kwd: string[]
-    question_kwd: string[]
-    img_id: string
-    available_int: number
-    positions: number[][]
-    doc_type_kwd?: string
-  }> =>
-    apiClient
-      .get<CanonicalChunk>(
-        `/datasets/${params.kb_id}/documents/${params.doc_id}/chunks/${params.chunk_id}`,
-        sdkBase,
-      )
-      .then(normalizeChunk),
-
   setChunk: (params: {
     kb_id: string
     doc_id: string

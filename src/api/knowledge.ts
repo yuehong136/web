@@ -12,9 +12,6 @@ import type {
   DatasetDTO,
   CreateKBRequest,
   UpdateKBRequest,
-  DocumentChunk,
-  PaginatedData,
-  PaginationRequest,
 } from '../types/api'
 
 /**
@@ -153,115 +150,14 @@ export const knowledgeAPI = {
     delete: (kbId: string): Promise<void> =>
       apiClient.delete('/v1/datasets', { ...sdkBase, data: { ids: [kbId] } }),
 
-    // 复制知识库（无 RESTful 等价物，保留旧端点）
-    duplicate: (kbId: string, newName: string): Promise<{ kb_id: string }> =>
-      apiClient.post(`/v1/kb/${kbId}/duplicate`, { name: newName }),
-
     // 数据集聚合图；文档子图可经 knowledgeGraphAPI.get 的 docId 参数读取。
     getKnowledgeGraph: knowledgeGraphAPI.get,
-
-    // 搜索知识库
-    search: (data: {
-      query: string
-      kb_ids?: string[]
-      top_k?: number
-      score_threshold?: number
-      filters?: Record<string, any>
-    }): Promise<{
-      chunks: Array<DocumentChunk & { score: number }>
-      total: number
-    }> => apiClient.post('/v1/kb/search', data),
-
-    // 获取知识库统计
-    getStats: (
-      kbId: string,
-    ): Promise<{
-      document_count: number
-      chunk_count: number
-      total_tokens: number
-      storage_used: number
-      last_updated: string
-    }> => apiClient.get(`/v1/kb/${kbId}/stats`),
-
-    // 重新索引知识库
-    reindex: (kbId: string): Promise<{ task_id: string }> =>
-      apiClient.post(`/v1/kb/${kbId}/reindex`),
-
-    // 导出知识库
-    export: (kbId: string, format: 'json' | 'csv'): Promise<void> =>
-      apiClient.download(
-        `/v1/kb/${kbId}/export?format=${format}`,
-        `kb_${kbId}.${format}`,
-      ),
   },
 
   // 文档管理
   document: knowledgeDocumentAPI,
 
   tag: knowledgeTagAPI,
-
-  // 搜索和检索
-  search: {
-    // 全文搜索
-    fulltext: (data: {
-      query: string
-      kb_ids?: string[]
-      filters?: Record<string, any>
-      pagination?: PaginationRequest
-    }): Promise<
-      PaginatedData<DocumentChunk & { score: number; highlights: string[] }>
-    > => apiClient.post('/v1/kb/search/fulltext', data),
-
-    // 向量搜索
-    vector: (data: {
-      query: string
-      kb_ids?: string[]
-      top_k?: number
-      score_threshold?: number
-      filters?: Record<string, any>
-    }): Promise<Array<DocumentChunk & { score: number }>> =>
-      apiClient.post('/v1/kb/search/vector', data),
-
-    // 混合搜索 (全文 + 向量)
-    hybrid: (data: {
-      query: string
-      kb_ids?: string[]
-      top_k?: number
-      alpha?: number // 向量搜索权重
-      filters?: Record<string, any>
-    }): Promise<
-      Array<
-        DocumentChunk & {
-          score: number
-          search_type: 'vector' | 'fulltext' | 'hybrid'
-        }
-      >
-    > => apiClient.post('/v1/kb/search/hybrid', data),
-
-    // 搜索建议
-    suggestions: (query: string, limit?: number): Promise<string[]> =>
-      apiClient.get('/v1/kb/search/suggestions', {
-        params: { query, limit },
-      }),
-
-    // 搜索历史
-    history: (
-      params?: PaginationRequest,
-    ): Promise<
-      PaginatedData<{
-        id: string
-        query: string
-        kb_ids: string[]
-        result_count: number
-        created_at: string
-      }>
-    > => apiClient.get('/v1/kb/search/history', { params }),
-
-    // 清除搜索历史
-    clearHistory: (): Promise<void> =>
-      apiClient.delete('/v1/kb/search/history'),
-  },
-
   retrievalTest: knowledgeRetrievalAPI,
 
   logs: knowledgeIngestionAPI,

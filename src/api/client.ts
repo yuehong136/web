@@ -521,43 +521,6 @@ class APIClient {
     }
   }
 
-  // Server-Sent Events
-  createEventSource(
-    endpoint: string,
-    options?: {
-      onMessage?: (data: any) => void
-      onError?: (error: Event) => void
-      onOpen?: (event: Event) => void
-    },
-  ): EventSource {
-    const url = endpoint.startsWith('http')
-      ? endpoint
-      : `${this.baseURL}${endpoint}`
-    const eventSource = new EventSource(url)
-
-    if (options?.onMessage) {
-      eventSource.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data)
-          options.onMessage!(data)
-        } catch (error) {
-          console.error('Failed to parse SSE data:', error)
-          options.onMessage!(event.data)
-        }
-      }
-    }
-
-    if (options?.onError) {
-      eventSource.onerror = options.onError
-    }
-
-    if (options?.onOpen) {
-      eventSource.onopen = options.onOpen
-    }
-
-    return eventSource
-  }
-
   // 设置基础URL
   setBaseURL(baseURL: string): void {
     this.baseURL = baseURL

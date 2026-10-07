@@ -170,27 +170,9 @@ export const dialogAPI = {
     }
   },
 
-  // 兼容旧接口的简化调用（返回所有 dialogs）
-  listAll: async (): Promise<DialogApp[]> => {
-    const response = await dialogAPI.listChats({ page: 1, page_size: 9999 })
-    return response.chats
-  },
-
   // 获取对话应用详情
   getDetail: (dialogId: string): Promise<DialogApp> =>
     dialogAPI.getChat(dialogId),
-
-  // 更新系统提示词
-  updateSystemPrompt: async (
-    dialogId: string,
-    systemPrompt: string,
-  ): Promise<DialogApp> => {
-    return dialogAPI.patchChat(dialogId, {
-      prompt_config: {
-        system: systemPrompt,
-      },
-    })
-  },
 
   // 创建对话应用
   create: (data: Partial<DialogApp>): Promise<DialogApp> =>

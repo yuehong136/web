@@ -30,10 +30,9 @@ export const documentKeys = {
     [...documentKeys.lists(), knowledgeBaseId, params] as const,
   details: () => [...documentKeys.all, 'detail'] as const,
   detail: (id: string) => [...documentKeys.details(), id] as const,
-  chunks: (documentId: string, params: Record<string, any>) =>
-    [...documentKeys.all, 'chunks', documentId, params] as const,
   filter: (knowledgeBaseId: string) =>
     [...documentKeys.all, 'filter', knowledgeBaseId] as const,
+
   // 以下两个保留独立根（原页面内联形状，无失效方配对）：不并入 'documents'
   // 根，避免 metadata 等域对 ['documents'] 前缀的失效新增命中这两个查询
   standaloneDetail: (documentId: string | undefined) =>
@@ -58,7 +57,7 @@ export const documentKeys = {
 }
 
 // 获取当前知识库 ID
-export const useKnowledgeBaseIdFromRoute = (): string => {
+const useKnowledgeBaseIdFromRoute = (): string => {
   const { id, knowledgeBaseId } = useParams()
   return ((knowledgeBaseId || id) as string) || ''
 }
@@ -155,70 +154,6 @@ export const useFetchDocumentList = (
   }
 }
 
-// 获取文档详情
-export const useFetchDocumentDetail = (documentId?: string) => {
-  const { data, isFetching, isError, error, refetch } = useQuery({
-    queryKey: documentKeys.detail(documentId || ''),
-    queryFn: async () => {
-      const response = await knowledgeAPI.document.get(documentId!)
-      return response
-    },
-    enabled: !!documentId,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
-  })
-
-  return {
-    document: data ?? null,
-    isLoading: isFetching,
-    isError,
-    error,
-    refetch,
-  }
-}
-
-// 上传文档
-export const useUploadDocument = () => {
-  const queryClient = useQueryClient()
-  const knowledgeBaseId = useKnowledgeBaseIdFromRoute()
-
-  const { mutateAsync, isPending, isError, error, data } = useMutation({
-    mutationFn: async (params: {
-      knowledgeBaseId?: string
-      files: File[]
-      options?: {
-        parser_id?: string
-        parser_config?: Record<string, any>
-      }
-    }) => {
-      const kbId = params.knowledgeBaseId || knowledgeBaseId
-      const response = await knowledgeAPI.document.upload(
-        kbId,
-        params.files,
-        params.options,
-      )
-      return { knowledgeBaseId: kbId, documents: response }
-    },
-    onSuccess: ({ knowledgeBaseId: kbId }) => {
-      queryClient.invalidateQueries({
-        queryKey: documentKeys.lists(),
-        predicate: (query) => {
-          const key = query.queryKey as string[]
-          return key[0] === 'documents' && key[1] === 'list' && key[2] === kbId
-        },
-      })
-    },
-  })
-
-  return {
-    uploadDocument: mutateAsync,
-    uploadedDocuments: data?.documents ?? [],
-    isLoading: isPending,
-    isError,
-    error,
-  }
-}
-
 // 删除文档
 // TODO(2026-08-01): datasetId 可选是兼容期设计，随 knowledge-rest 的回退分支一起
 // 收紧为必填。
@@ -242,98 +177,6 @@ export const useDeleteDocument = (datasetId?: string) => {
     isLoading: isPending,
     isError,
     error,
-  }
-}
-
-// 重新解析文档
-export const useParseDocument = (datasetId: string) => {
-  const queryClient = useQueryClient()
-
-  const { mutateAsync, isPending, isError, error } = useMutation({
-    mutationFn: async (documentIds: string | string[]) => {
-      const ids = Array.isArray(documentIds) ? documentIds : [documentIds]
-      await knowledgeAPI.document.parse(datasetId, ids)
-      return ids
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: documentKeys.lists() })
-      queryClient.invalidateQueries({
-        queryKey: documentKeys.filter(datasetId),
-      })
-      queryClient.invalidateQueries({
-        queryKey: knowledgeKeys.detail(datasetId),
-      })
-    },
-  })
-
-  return {
-    parseDocument: mutateAsync,
-    isLoading: isPending,
-    isError,
-    error,
-  }
-}
-
-// 更新文档状态
-export const useUpdateDocumentStatus = () => {
-  const queryClient = useQueryClient()
-
-  const { mutateAsync, isPending, isError, error } = useMutation({
-    mutationFn: async (params: {
-      documentIds: string[]
-      status: '0' | '1'
-    }) => {
-      await knowledgeAPI.document.updateStatus(
-        params.documentIds,
-        params.status,
-      )
-      return params
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: documentKeys.lists() })
-    },
-  })
-
-  return {
-    updateDocumentStatus: mutateAsync,
-    isLoading: isPending,
-    isError,
-    error,
-  }
-}
-
-// 获取文档 Chunks
-export interface UseFetchChunksParams {
-  documentId: string
-  page?: number
-  page_size?: number
-  keywords?: string
-}
-
-export const useFetchChunks = (params: UseFetchChunksParams) => {
-  const { documentId, page = 1, page_size = 20, keywords } = params
-
-  const { data, isFetching, isError, error, refetch } = useQuery({
-    queryKey: documentKeys.chunks(documentId, { page, page_size, keywords }),
-    queryFn: async () => {
-      const response = await knowledgeAPI.document.getChunks(documentId, {
-        page,
-        page_size,
-      })
-      return response
-    },
-    enabled: !!documentId,
-    staleTime: 2 * 60 * 1000,
-    gcTime: 5 * 60 * 1000,
-  })
-
-  return {
-    chunks: data?.items ?? [],
-    total: data?.total ?? 0,
-    isLoading: isFetching,
-    isError,
-    error,
-    refetch,
   }
 }
 
