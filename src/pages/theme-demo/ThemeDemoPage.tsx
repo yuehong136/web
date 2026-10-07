@@ -230,33 +230,33 @@ export const ThemeDemoPage: React.FC = () => {
                   状态颜色
                 </h4>
                 <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-                  <div className="bg-status-success/10 rounded border border-border-success p-3">
+                  <div className="rounded border border-border-success bg-status-success/10 p-3">
                     <div className="flex items-center gap-2 font-medium text-text-success">
                       <Check className="h-4 w-4" />
                       Success
                     </div>
-                    <div className="text-text-success/70 text-xs">成功状态</div>
+                    <div className="text-xs text-text-success">成功状态</div>
                   </div>
-                  <div className="bg-status-warning/10 rounded border border-border-warning p-3">
+                  <div className="rounded border border-border-warning bg-status-warning/10 p-3">
                     <div className="flex items-center gap-2 font-medium text-text-warning">
                       <AlertTriangle className="h-4 w-4" />
                       Warning
                     </div>
-                    <div className="text-text-warning/70 text-xs">警告状态</div>
+                    <div className="text-xs text-text-warning">警告状态</div>
                   </div>
-                  <div className="bg-status-error/10 rounded border border-border-error p-3">
+                  <div className="rounded border border-border-error bg-status-error/10 p-3">
                     <div className="flex items-center gap-2 font-medium text-text-error">
                       <XCircle className="h-4 w-4" />
                       Error
                     </div>
-                    <div className="text-text-error/70 text-xs">错误状态</div>
+                    <div className="text-xs text-text-error">错误状态</div>
                   </div>
-                  <div className="bg-text-accent/10 rounded border border-border-accent p-3">
+                  <div className="rounded border border-border-accent bg-text-accent/10 p-3">
                     <div className="flex items-center gap-2 font-medium text-text-accent">
                       <Info className="h-4 w-4" />
                       Info
                     </div>
-                    <div className="text-text-accent/70 text-xs">信息状态</div>
+                    <div className="text-xs text-text-accent">信息状态</div>
                   </div>
                 </div>
               </div>

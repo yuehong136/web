@@ -359,22 +359,90 @@ for (const mode of ['light', 'dark'] as const) {
         )
       }
     }
-    // text-warning also labels outline buttons (rest and hover) and sits on
-    // the warning tint, so check those fills as well as the plain surfaces.
-    for (const background of [
-      ...surfaces,
-      'background-subtle',
-      'components-button-secondary-bg',
-      'components-button-secondary-bg-hover',
-      'status-warning-subtle',
+    // Status text sits on subtle fills, outline buttons and its own tint.
+    // Success and warning also label the bulk enable and stop outline
+    // buttons, so their hover fill is checked as well.
+    const statusTextFills = {
+      success: [
+        'components-button-secondary-bg-hover',
+        'status-success-subtle',
+      ],
+      warning: [
+        'components-button-secondary-bg-hover',
+        'status-warning-subtle',
+      ],
+      error: ['status-error-subtle'],
+    } as const
+    for (const status of ['success', 'warning', 'error'] as const) {
+      for (const background of [
+        ...surfaces,
+        'background-subtle',
+        'components-button-secondary-bg',
+        ...statusTextFills[status],
+      ] as const) {
+        const ratio = contrast(
+          values[`text-${status}`],
+          compositeBackground(values[background], values['background-surface']),
+        )
+        assert.ok(
+          ratio >= 4.5,
+          `${mode} ${status} text over ${background} is ${ratio.toFixed(2)}:1; expected at least 4.5:1`,
+        )
+      }
+    }
+    // Published apps keep their success chip in selected list rows, where
+    // the selection tint lies under the success tint.
+    const selectedChipRatio = contrast(
+      values['text-success'],
+      compositeBackground(
+        values['status-success-10'],
+        compositeBackground(
+          values['state-selected-bg'],
+          values['background-surface'],
+        ),
+      ),
+    )
+    assert.ok(
+      selectedChipRatio >= 4.5,
+      `${mode} success chips in selected rows are ${selectedChipRatio.toFixed(2)}:1; expected at least 4.5:1`,
+    )
+    // Method, task, API and system status labels sit on their own tint.
+    for (const label of [
+      'components-method-post',
+      'components-method-put',
+      'components-method-delete',
+      'components-http-method-post',
+      'components-http-method-put',
+      'components-http-method-delete',
+      'components-api-status-error',
+      'components-task-status-cancelled',
+      'components-task-status-completed',
+      'components-task-status-failed',
+      'components-system-health-warning',
+      'components-system-health-error',
+      'components-system-status-warning',
+      'components-system-status-error',
     ] as const) {
+      for (const background of surfaces) {
+        const ratio = contrast(
+          values[`${label}-text`],
+          compositeBackground(values[`${label}-bg`], values[background]),
+        )
+        assert.ok(
+          ratio >= 4.5,
+          `${mode} ${label} text over ${background} is ${ratio.toFixed(2)}:1; expected at least 4.5:1`,
+        )
+      }
+    }
+    // The info result icon is non-text content, so it needs 3:1.
+    for (const background of ['components-result-bg', ...surfaces] as const) {
       const ratio = contrast(
-        values['text-warning'],
-        compositeBackground(values[background], values['background-surface']),
+        values['components-result-icon-info'],
+        values[background],
       )
       assert.ok(
-        ratio >= 4.5,
-        `${mode} warning text over ${background} is ${ratio.toFixed(2)}:1; expected at least 4.5:1`,
+        ratio >= 3,
+        `${mode} info result icon over ${background} is ${ratio.toFixed(2)}:1; expected at least 3:1`,
       )
     }
   })
