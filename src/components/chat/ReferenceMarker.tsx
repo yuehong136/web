@@ -25,6 +25,7 @@ import {
 } from './reference-meta'
 import { cn } from '@/lib/utils'
 import type { ReferenceChunk } from '@/utils/reference-replacer'
+import { getChunkByRefId } from '@/utils/reference-utils'
 
 export interface ReferenceMarkerProps {
   /** 引用索引（从 0 开始） */
@@ -211,9 +212,9 @@ export function createReferenceMarkerComponent(
 ) {
   return function SupComponent(props: { children?: ReactNode }) {
     const refIndex = parseInt(`${props?.children}` || '0', 10)
-    const chunk =
-      references.find((item) => item.reference_index === refIndex) ||
-      references[refIndex]
+    // 与图片轮播同一规则：带 reference_index 的 keyed 引用只按编号精确匹配，
+    // 缺号时不按位置回退，否则会指向另一个片段
+    const chunk = getChunkByRefId(String(refIndex), references)
 
     return (
       <ReferenceMarker
