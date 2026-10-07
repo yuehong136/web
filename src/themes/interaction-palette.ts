@@ -2,7 +2,7 @@
 export const interactionPalette = {
   light: {
     selection: '#00857e',
-    selectionText: '#007e77',
+    selectionText: '#026f6a',
     focus: '#00857e',
     selectionTint: 'rgba(0, 133, 126, 0.1)',
     selectionSoft: 'rgba(0, 133, 126, 0.06)',

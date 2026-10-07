@@ -156,7 +156,7 @@ const focusTokens = [
 const themeContracts = {
   light: {
     selection: '#00857e',
-    selectionText: '#007e77',
+    selectionText: '#026f6a',
     focus: '#00857e',
     action: '#18181b',
   },
@@ -293,6 +293,28 @@ for (const mode of ['light', 'dark'] as const) {
       ) >= 4.5,
       `${mode} selected calendar labels must reach 4.5:1`,
     )
+    // Selected labels sit on the selection tint, which lies over product
+    // surfaces and over the tab and segmented control tracks.
+    for (const background of [
+      'background-body',
+      'background-default',
+      'background-surface',
+      'components-tabs-bg',
+      'components-segmented-bg',
+    ] as const) {
+      const track = compositeBackground(
+        values[background],
+        values['background-surface'],
+      )
+      const ratio = contrast(
+        values['state-selected-text'],
+        compositeBackground(values['state-selected-bg'], track),
+      )
+      assert.ok(
+        ratio >= 4.5,
+        `${mode} selected labels on the selection tint over ${background} are ${ratio.toFixed(2)}:1; expected at least 4.5:1`,
+      )
+    }
   })
 
   test(`${mode} primary, secondary and tertiary text stays readable on product surfaces`, () => {
