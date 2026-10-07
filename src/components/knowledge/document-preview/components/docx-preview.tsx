@@ -55,7 +55,7 @@ const DocxPreviewInner: FC<{
 }> = ({ arrayBuffer, sourceUrl }) => {
   const { t } = useTranslation()
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [failed, setFailed] = useState(false)
   const [htmlContent, setHtmlContent] = useState<string>('')
 
   useEffect(() => {
@@ -64,7 +64,7 @@ const DocxPreviewInner: FC<{
     const loadDocx = async () => {
       try {
         setLoading(true)
-        setError(null)
+        setFailed(false)
 
         if (!arrayBuffer) {
           throw new Error(t('knowledge.preview.documentPreviewFailed'))
@@ -83,11 +83,8 @@ const DocxPreviewInner: FC<{
       } catch (err) {
         if (mounted) {
           console.error('Docx preview error:', err)
-          setError(
-            err instanceof Error
-              ? err.message
-              : t('knowledge.preview.documentPreviewFailed'),
-          )
+          // 解析库的报错只进控制台，界面显示固定文案
+          setFailed(true)
           setLoading(false)
         }
       }
@@ -104,12 +101,12 @@ const DocxPreviewInner: FC<{
     return <LoadingState message={t('knowledge.preview.loadingDocument')} />
   }
 
-  if (error) {
+  if (failed) {
     return (
       <ErrorState
         icon={<FileText className="h-16 w-16" />}
         title={t('knowledge.preview.documentPreviewFailed')}
-        message={error}
+        message={t('knowledge.preview.errors.unreadable')}
         url={sourceUrl}
       />
     )

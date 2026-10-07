@@ -13,7 +13,7 @@ const PptPreviewInner: FC<{
   const measureRef = useRef<HTMLDivElement>(null)
   const wrapperRef = useRef<HTMLDivElement>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [failed, setFailed] = useState(false)
   const [slideCount, setSlideCount] = useState(0)
   const [zoom, setZoom] = useState(100)
 
@@ -25,7 +25,7 @@ const PptPreviewInner: FC<{
 
       try {
         setLoading(true)
-        setError(null)
+        setFailed(false)
         setSlideCount(0)
         wrapperRef.current.innerHTML = ''
 
@@ -55,11 +55,8 @@ const PptPreviewInner: FC<{
       } catch (err) {
         if (mounted) {
           console.error('PPT preview error:', err)
-          setError(
-            err instanceof Error
-              ? err.message
-              : t('knowledge.preview.pptPreviewFailed'),
-          )
+          // 解析库的报错只进控制台，界面显示固定文案
+          setFailed(true)
           setLoading(false)
         }
       }
@@ -71,12 +68,12 @@ const PptPreviewInner: FC<{
     }
   }, [arrayBuffer, t])
 
-  if (error) {
+  if (failed) {
     return (
       <ErrorState
         icon={<Presentation className="h-16 w-16" />}
         title={t('knowledge.preview.pptPreviewFailed')}
-        message={error}
+        message={t('knowledge.preview.errors.unreadable')}
         url={sourceUrl}
       />
     )
@@ -84,8 +81,8 @@ const PptPreviewInner: FC<{
 
   return (
     <div className="ppt-previewer flex h-full w-full flex-col" ref={measureRef}>
-      <div className="px-space-md py-space-sm bg-surface-primary flex shrink-0 items-center justify-between border-b border-border-default">
-        <div className="gap-space-xs flex items-center text-text-secondary">
+      <div className="flex shrink-0 items-center justify-between border-b border-border-default bg-surface-primary px-space-md py-space-sm">
+        <div className="flex items-center gap-space-xs text-text-secondary">
           <Presentation className="h-4 w-4 shrink-0" />
           {!loading && slideCount > 0 && (
             <span className="text-sm">
@@ -96,7 +93,7 @@ const PptPreviewInner: FC<{
             <span className="text-sm">{t('knowledge.preview.loading')}</span>
           )}
         </div>
-        <div className="gap-space-xs flex items-center">
+        <div className="flex items-center gap-space-xs">
           <Button
             variant="ghost"
             size="sm"
@@ -106,7 +103,7 @@ const PptPreviewInner: FC<{
           >
             <ZoomOut className="h-3.5 w-3.5" />
           </Button>
-          <span className="min-w-[3rem] text-center text-sm tabular-nums text-text-secondary">
+          <span className="min-w-[3rem] text-center text-sm text-text-secondary tabular-nums">
             {zoom}%
           </span>
           <Button

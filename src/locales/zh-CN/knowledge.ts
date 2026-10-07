@@ -1114,6 +1114,7 @@ export default {
         sessionExpired: '登录已过期，请重新登录后再查看。',
         unsupported: '文件为空或格式不受支持，无法预览。',
         unavailable: '暂时无法加载预览。请检查网络连接，或稍后重试。',
+        unreadable: '无法解析此文件，文件可能已损坏或格式不受支持。',
       },
       downloadErrors: {
         notFound: '文档不存在或已被删除，无法下载。',

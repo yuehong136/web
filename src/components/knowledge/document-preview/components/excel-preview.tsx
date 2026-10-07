@@ -10,7 +10,7 @@ const ExcelPreviewInner: FC<{
   const { t } = useTranslation()
   const containerRef = useRef<HTMLDivElement>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [failed, setFailed] = useState(false)
   const previewerRef = useRef<ReturnType<
     typeof import('@js-preview/excel').default.init
   > | null>(null)
@@ -23,7 +23,7 @@ const ExcelPreviewInner: FC<{
 
       try {
         setLoading(true)
-        setError(null)
+        setFailed(false)
 
         const jsPreviewExcel = await import('@js-preview/excel')
         await import('@js-preview/excel/lib/index.css')
@@ -49,11 +49,8 @@ const ExcelPreviewInner: FC<{
       } catch (err) {
         if (mounted) {
           console.error('Excel preview error:', err)
-          setError(
-            err instanceof Error
-              ? err.message
-              : t('knowledge.preview.excelPreviewFailed'),
-          )
+          // 解析库的报错只进控制台，界面显示固定文案
+          setFailed(true)
           setLoading(false)
         }
       }
@@ -70,12 +67,12 @@ const ExcelPreviewInner: FC<{
     }
   }, [arrayBuffer, t])
 
-  if (error) {
+  if (failed) {
     return (
       <ErrorState
         icon={<FileSpreadsheet className="h-16 w-16" />}
         title={t('knowledge.preview.excelPreviewFailed')}
-        message={error}
+        message={t('knowledge.preview.errors.unreadable')}
         url={sourceUrl}
       />
     )

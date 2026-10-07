@@ -1177,6 +1177,8 @@ export default {
           'This file is empty or in a format that cannot be previewed.',
         unavailable:
           'The preview could not be loaded. Check your connection or try again later.',
+        unreadable:
+          'This file could not be read. It may be damaged or in an unsupported format.',
       },
       downloadErrors: {
         notFound:
