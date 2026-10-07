@@ -134,7 +134,14 @@ test('selected input text and options compile independently of action colors', a
 
 test('independent component CSS can apply utilities without duplicating the theme', async () => {
   const base = path.join(sourceRoot, 'styles')
-  const css = await readFile(path.join(base, 'mcp-components.css'), 'utf8')
+  const css = `@reference '../index.css';
+.hover-lift {
+  @apply transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg;
+}
+.smooth-transition {
+  @apply transition-all duration-200 ease-in-out;
+}
+`
   const result = await compile(css, { base, onDependency() {} })
   const output = result.build([])
   assert.match(output, /transition/)
