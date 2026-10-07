@@ -20,7 +20,7 @@ export const lightTokens: DesignTokens = {
   'text-disabled': surfaces.light.disabled,
   'text-accent': '#1a1a1a',
   'text-success': '#059669',
-  'text-warning': '#d97706',
+  'text-warning': '#a64a00',
   'text-error': '#dc2626',
   'text-inverted': '#ffffff',
 
@@ -290,7 +290,7 @@ export const lightTokens: DesignTokens = {
   // ===== 状态和通知 =====
   'components-alert-info-bg': '#eff6ff',
   'components-alert-info-border': '#00BEB4',
-  'components-alert-info-text': '#00BEB4',
+  'components-alert-info-text': '#007670',
 
   'components-alert-success-bg': '#f0fdf4',
   'components-alert-success-border': '#22c55e',
@@ -302,7 +302,7 @@ export const lightTokens: DesignTokens = {
 
   'components-alert-error-bg': '#fef2f2',
   'components-alert-error-border': '#ef4444',
-  'components-alert-error-text': '#dc2626',
+  'components-alert-error-text': '#b91c1c',
 
   // ===== 加载和进度 =====
   'components-skeleton-bg': '#f3f4f6',

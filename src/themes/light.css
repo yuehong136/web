@@ -26,7 +26,7 @@ html[data-theme='light'],
   --color-text-disabled: #a1a1aa;
   --color-text-accent: #1a1a1a;
   --color-text-success: #059669;
-  --color-text-warning: #d97706;
+  --color-text-warning: #a64a00;
   --color-text-error: #dc2626;
   --color-text-inverted: #ffffff;
 
@@ -281,7 +281,7 @@ html[data-theme='light'],
   /* ===== 状态和通知 ===== */
   --color-components-alert-info-bg: #eff6ff;
   --color-components-alert-info-border: #00beb4;
-  --color-components-alert-info-text: #00beb4;
+  --color-components-alert-info-text: #007670;
   --color-components-alert-success-bg: #f0fdf4;
   --color-components-alert-success-border: #22c55e;
   --color-components-alert-success-text: #15803d;
@@ -290,7 +290,7 @@ html[data-theme='light'],
   --color-components-alert-warning-text: #b45309;
   --color-components-alert-error-bg: #fef2f2;
   --color-components-alert-error-border: #ef4444;
-  --color-components-alert-error-text: #dc2626;
+  --color-components-alert-error-text: #b91c1c;
 
   /* ===== 加载和进度 ===== */
   --color-components-skeleton-bg: #f3f4f6;

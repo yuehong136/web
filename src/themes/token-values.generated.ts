@@ -51,10 +51,10 @@ export const lightTokenValues: Readonly<DesignTokens> = Object.freeze({
   'chat-welcome-shadow': '0 4px 20px rgba(59, 130, 246, 0.08)',
   'components-alert-error-bg': '#fef2f2',
   'components-alert-error-border': '#ef4444',
-  'components-alert-error-text': '#dc2626',
+  'components-alert-error-text': '#b91c1c',
   'components-alert-info-bg': '#eff6ff',
   'components-alert-info-border': '#00BEB4',
-  'components-alert-info-text': '#00BEB4',
+  'components-alert-info-text': '#007670',
   'components-alert-success-bg': '#f0fdf4',
   'components-alert-success-border': '#22c55e',
   'components-alert-success-text': '#15803d',
@@ -783,7 +783,7 @@ export const lightTokenValues: Readonly<DesignTokens> = Object.freeze({
   'text-secondary': '#52525b',
   'text-success': '#059669',
   'text-tertiary': '#71717a',
-  'text-warning': '#d97706',
+  'text-warning': '#a64a00',
 })
 
 export const darkTokenValues: Readonly<DesignTokens> = Object.freeze({

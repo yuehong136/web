@@ -344,17 +344,37 @@ for (const mode of ['light', 'dark'] as const) {
         `${mode} ${status} badge labels are ${ratio.toFixed(2)}:1; expected at least 4.5:1`,
       )
     }
-    for (const background of surfaces) {
+    for (const status of ['success', 'warning', 'error', 'info'] as const) {
+      for (const background of surfaces) {
+        const ratio = contrast(
+          values[`components-alert-${status}-text`],
+          compositeBackground(
+            values[`components-alert-${status}-bg`],
+            values[background],
+          ),
+        )
+        assert.ok(
+          ratio >= 4.5,
+          `${mode} ${status} alert text over ${background} is ${ratio.toFixed(2)}:1; expected at least 4.5:1`,
+        )
+      }
+    }
+    // text-warning also labels outline buttons (rest and hover) and sits on
+    // the warning tint, so check those fills as well as the plain surfaces.
+    for (const background of [
+      ...surfaces,
+      'background-subtle',
+      'components-button-secondary-bg',
+      'components-button-secondary-bg-hover',
+      'status-warning-subtle',
+    ] as const) {
       const ratio = contrast(
-        values['components-alert-warning-text'],
-        compositeBackground(
-          values['components-alert-warning-bg'],
-          values[background],
-        ),
+        values['text-warning'],
+        compositeBackground(values[background], values['background-surface']),
       )
       assert.ok(
         ratio >= 4.5,
-        `${mode} warning alert text over ${background} is ${ratio.toFixed(2)}:1; expected at least 4.5:1`,
+        `${mode} warning text over ${background} is ${ratio.toFixed(2)}:1; expected at least 4.5:1`,
       )
     }
   })
