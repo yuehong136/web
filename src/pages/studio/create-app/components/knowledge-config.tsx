@@ -44,7 +44,7 @@ export function KnowledgeConfig({
   const [retrievalOpen, setRetrievalOpen] = useState(false)
   const [enhancementsOpen, setEnhancementsOpen] = useState(false)
   return (
-    <div className="mx-auto w-full max-w-3xl space-y-space-xl p-space-lg">
+    <div className="mx-auto w-full max-w-xl space-y-space-base p-space-base">
       <div className="flex flex-wrap items-center justify-between gap-space-sm">
         <h2 className="text-base font-semibold text-text-primary">
           {t('studio.editor.knowledge')}{' '}

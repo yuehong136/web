@@ -44,8 +44,9 @@ export function ModelConfig({
   const count = fields.filter(
     ([field]) => config.llm_setting[`${field}_enabled`],
   ).length
+  const modelDefault = 'model-default'
   return (
-    <div className="mx-auto w-full max-w-3xl space-y-space-xl p-space-lg">
+    <div className="@container mx-auto w-full max-w-xl space-y-space-base p-space-base">
       <div className="space-y-space-sm">
         <h2 className="text-base font-semibold text-text-primary">
           {t('studio.editor.modelChoice')}
@@ -66,14 +67,27 @@ export function ModelConfig({
           {t('studio.editor.generationStyle')}
         </legend>
         <RadioGroup
-          value={preset}
+          value={count ? preset : modelDefault}
           aria-label={t('studio.editor.generationStyle')}
           onValueChange={(value) => {
+            if (value === modelDefault) {
+              fields.forEach(([field]) =>
+                onSettingChange(`${field}_enabled`, false),
+              )
+              return
+            }
             onPresetChange(value as GenerationPresetType)
             if (value === GenerationPresetType.Custom) setOpen(true)
           }}
-          className="grid-cols-2 gap-space-sm"
+          className="grid-cols-2 gap-space-xs @lg:grid-cols-4"
         >
+          <Label
+            htmlFor={`${id}-default`}
+            className="col-span-2 flex cursor-pointer items-center gap-space-sm py-space-xs text-text-secondary @lg:col-span-4"
+          >
+            <RadioGroupItem id={`${id}-default`} value={modelDefault} />
+            {t('studio.editor.generationDefault')}
+          </Label>
           {[
             GenerationPresetType.Improvise,
             GenerationPresetType.Precise,
@@ -83,7 +97,7 @@ export function ModelConfig({
             <Label
               key={value}
               htmlFor={`${id}-${value}`}
-              className={`flex cursor-pointer items-center gap-space-sm rounded-radius-md border border-border-default px-space-base py-space-sm ${preset === value ? 'bg-state-selected-bg text-state-selected-text' : 'text-text-secondary'}`}
+              className={`flex cursor-pointer items-center gap-space-sm rounded-radius-md px-space-sm py-space-xs ${count && preset === value ? 'bg-state-selected-bg text-state-selected-text' : 'text-text-secondary'}`}
             >
               <RadioGroupItem id={`${id}-${value}`} value={value} />
               {t(`studio.editor.${value}`)}
@@ -94,11 +108,11 @@ export function ModelConfig({
           {t('studio.editor.generationHint')}
         </p>
       </fieldset>
-      <p className="text-sm text-text-secondary">
-        {count
-          ? t('studio.editor.overrides', { count })
-          : t('studio.editor.modelDefault')}
-      </p>
+      {!!count && (
+        <p className="text-xs text-text-secondary">
+          {t('studio.editor.overrides', { count })}
+        </p>
+      )}
       <CenterConfigSection
         title={t('studio.editor.parameters')}
         open={open}

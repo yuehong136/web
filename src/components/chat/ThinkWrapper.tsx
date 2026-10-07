@@ -4,8 +4,9 @@
  *
  * 展示组件原则：只接收 props，通过受控方式管理内部 UI 状态
  */
-import React from 'react'
-import { Think } from '@ant-design/x'
+import * as React from 'react'
+import { useTranslation } from 'react-i18next'
+import Think from '@ant-design/x/es/think'
 import type { ThinkingStatus } from '@/utils/think-utils'
 
 export interface ThinkWrapperProps {
@@ -39,16 +40,8 @@ export interface ThinkWrapperProps {
  * </ThinkWrapper>
  */
 export const ThinkWrapper: React.FC<ThinkWrapperProps> = React.memo(
-  ({
-    children,
-    status,
-    _messageId,
-    titles = {
-      thinking: '思考中...',
-      complete: '思考完成',
-    },
-    autoCollapseDelay = 800,
-  }) => {
+  ({ children, status, _messageId, titles, autoCollapseDelay = 800 }) => {
+    const { t } = useTranslation()
     const isThinking = status === 'thinking'
 
     // 简化逻辑：直接根据 status 控制展开状态
@@ -77,7 +70,9 @@ export const ThinkWrapper: React.FC<ThinkWrapperProps> = React.memo(
     }, [status, autoCollapseDelay])
 
     // 根据状态显示不同的标题
-    const title = isThinking ? titles.thinking : titles.complete
+    const title = isThinking
+      ? (titles?.thinking ?? t('chat.thinking.inProgress'))
+      : (titles?.complete ?? t('chat.thinking.complete'))
 
     return (
       <Think

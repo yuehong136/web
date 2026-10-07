@@ -1,5 +1,22 @@
 export default {
   chat: {
+    references: {
+      sources: '引用来源',
+      documents: '{{count}} 个文档',
+      count: '{{count}} 条引用',
+      unknownDocument: '未知文档',
+      table: '表格',
+      image: '图片',
+      text: '文本',
+      collapse: '收起',
+      more: '查看更多（{{count}} 条）',
+    },
+    thinking: {
+      inProgress: '思考中...',
+      complete: '思考过程',
+      details: '思考详情',
+    },
+    actions: { regenerate: '重新生成' },
     stream: {
       failed: '生成失败，请重试。',
       interrupted: '生成未完成，已保留已生成的内容。',

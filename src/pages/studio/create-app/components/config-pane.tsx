@@ -37,14 +37,14 @@ export function ConfigPane({
     >
       <SegmentedTabsList
         aria-label={t('studio.editor.edit')}
-        className="grid grid-cols-2 overflow-visible sm:grid-cols-4"
+        className="grid grid-cols-2 overflow-visible p-space-xs sm:grid-cols-4"
       >
         {(['prompt', 'knowledge', 'model', 'experience'] as const).map(
           (value) => (
             <SegmentedTabsTrigger
               key={value}
               value={value}
-              className="min-w-0 justify-center px-space-xs"
+              className="min-w-0 justify-center px-space-xs py-space-xs"
             >
               {t(`studio.editor.${value}`)}
             </SegmentedTabsTrigger>

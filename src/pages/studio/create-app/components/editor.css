@@ -8,7 +8,7 @@
   height: 100%;
 }
 .studio-instruction-editor .w-md-editor-text {
-  padding: var(--space-lg);
+  padding: var(--space-base);
 }
 .studio-instruction-editor .w-md-editor-text-pre,
 .studio-instruction-editor .w-md-editor-text-input {

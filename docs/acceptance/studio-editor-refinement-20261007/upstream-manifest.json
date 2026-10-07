@@ -1,0 +1,33 @@
+{
+  "verified_at": "2026-10-07 19:18 Asia/Shanghai",
+  "projects": {
+    "dify": {
+      "repo": "langgenius/dify",
+      "release": "1.17.1",
+      "published_at": "2026-09-10T10:04:06Z",
+      "default_branch": "main",
+      "head": "b369e875feabac591a9b74a7debca9bc56bbe982"
+    },
+    "FastGPT": {
+      "repo": "labring/FastGPT",
+      "release": "v4.17.1",
+      "published_at": "2026-09-30T09:41:44Z",
+      "default_branch": "main",
+      "head": "1870d7945d11b34af75fe30bdcc73ddcdd416803"
+    },
+    "langflow": {
+      "repo": "langflow-ai/langflow",
+      "release": "v1.12.5",
+      "published_at": "2026-10-06T20:09:17Z",
+      "default_branch": "main",
+      "head": "504c02fc47e76087b82b0e7cbe4186e9cdd916d4"
+    },
+    "langfuse": {
+      "repo": "langfuse/langfuse",
+      "release": "v4.54.0",
+      "published_at": "2026-10-07T08:55:56Z",
+      "default_branch": "main",
+      "head": "23518d407d4e9529473139817695f25ae0cd7f07"
+    }
+  }
+}

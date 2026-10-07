@@ -1,9 +1,9 @@
 {
   "src/pages/settings/ApiKeysPage.tsx": 3155,
-  "src/pages/explore/ExplorePage.tsx": 2180,
   "src/types/index.ts": 2075,
   "src/themes/theme-generator.ts": 2039,
   "src/themes/tokens.ts": 1863,
+  "src/pages/explore/ExplorePage.tsx": 1742,
   "src/pages/settings/model-providers/components/api-key-modal.tsx": 1685,
   "src/pages/agent/options/google.ts": 1589,
   "src/pages/MCPChatPage.tsx": 1554,

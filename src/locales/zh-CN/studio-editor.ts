@@ -10,6 +10,8 @@ export const studioEditor = {
   saveFailed: '保存失败，请重试。',
   newChanges: '仍有未保存修改，请保存后再开始试聊。',
   prompt: '应用指令',
+  parameterHelp: '了解{{name}}',
+  generationDefault: '模型默认',
   knowledge: '知识来源',
   model: '模型',
   experience: '对话体验',

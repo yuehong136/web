@@ -10,6 +10,8 @@ export const studioEditor = {
   saveFailed: 'Could not save. Try again.',
   newChanges: 'There are new unsaved changes. Save before starting a test.',
   prompt: 'Instructions',
+  parameterHelp: 'About {{name}}',
+  generationDefault: 'Model default',
   knowledge: 'Knowledge',
   model: 'Model',
   experience: 'Conversation',

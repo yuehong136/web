@@ -73,7 +73,7 @@ export default {
     sender: {
       placeholder: '输入消息，按 Enter 发送，也可直接发送附件',
       uploadFile: '上传文件',
-      stop: '停止输出',
+      stop: '停止接收',
       thinking: '深度思考',
       onlineSearch: '联网搜索',
       uploading: '上传中...',

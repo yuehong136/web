@@ -1,10 +1,12 @@
 import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { copyToClipboardWithFeedback } from '@/lib/clipboard'
 import { setProductLanguage } from '@/locales/i18n'
 import { createInitialConfig } from '../../constants'
 import { PreviewPane, type PreviewPaneProps } from '../preview-pane'
 
+vi.mock('@/lib/clipboard', () => ({ copyToClipboardWithFeedback: vi.fn() }))
 vi.mock('../preview-answer', () => ({
   PreviewAnswer: ({ content }: { content: string }) => <div>{content}</div>,
 }))
@@ -16,6 +18,14 @@ let root: Root
 let props: PreviewPaneProps
 beforeEach(async () => {
   vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true)
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    },
+  )
   await setProductLanguage('en-US')
   container = document.createElement('div')
   document.body.append(container)
@@ -44,6 +54,7 @@ beforeEach(async () => {
 afterEach(async () => {
   await act(async () => root.unmount())
   container.remove()
+  vi.clearAllMocks()
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
 })
@@ -62,6 +73,24 @@ const key = async (options: KeyboardEventInit = {}) => {
   )
 }
 describe('Studio test chat composer', () => {
+  it('uses shared reply actions and blocks regeneration when the draft changes', async () => {
+    props.previewMessages = [
+      { id: 'answer-1', role: 'assistant', content: 'Saved reply' },
+    ]
+    props.status = 'completed'
+    await render()
+    const regenerate = container.querySelector<HTMLButtonElement>(
+      'button[aria-label="Regenerate"]',
+    )
+    expect(regenerate).not.toBeNull()
+    await act(async () => regenerate!.click())
+    expect(props.handleRetryPreview).toHaveBeenCalledOnce()
+    props.isDirty = true
+    await render()
+    expect(
+      container.querySelector('button[aria-label="Regenerate"]'),
+    ).toBeNull()
+  })
   it.each(['isDirty', 'previewStale', 'requiredVariables', 'saving'] as const)(
     'blocks sends when %s is true',
     async (flag) => {
@@ -120,4 +149,21 @@ describe('Studio test chat composer', () => {
     expect(sheet.textContent).toContain('Use model default')
     expect(sheet.textContent).not.toContain('4096')
   })
+})
+
+it('copies a reply through the shared accessible action exactly once', async () => {
+  props.previewMessages = [
+    { id: 'reply-copy', role: 'assistant', content: 'Copy this answer' },
+  ]
+  await act(async () => root.render(<PreviewPane {...props} />))
+  const copy = container.querySelector<HTMLButtonElement>(
+    'button[aria-label="Copy"]',
+  )!
+  await act(async () => copy.click())
+  expect(copyToClipboardWithFeedback).toHaveBeenCalledOnce()
+  expect(copyToClipboardWithFeedback).toHaveBeenCalledWith(
+    'Copy this answer',
+    expect.any(String),
+    expect.any(String),
+  )
 })

@@ -1,0 +1,71 @@
+.app-chat-area .ant-think-status-wrapper,
+.app-chat-area .ant-think-title,
+.app-chat-area .ant-think-content {
+  color: var(--color-text-secondary);
+}
+.app-chat-area .ant-think {
+  background-color: var(--color-components-card-bg);
+  border-color: var(--color-components-card-border);
+}
+.app-chat-area .ant-actions-item {
+  color: var(--color-text-tertiary);
+}
+.app-chat-area .ant-actions-item:hover {
+  color: var(--color-text-primary);
+  background-color: var(--color-state-hover);
+}
+.app-chat-area .ant-bubble {
+  min-width: 0;
+  max-width: 100%;
+}
+.app-chat-area .ant-bubble-body {
+  min-width: 0;
+}
+.app-chat-area .markdown-content {
+  overflow-wrap: anywhere;
+  color: var(--color-text-primary);
+}
+.app-chat-area .markdown-content pre,
+.app-chat-area .markdown-content table {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.app-chat-area .markdown-content a {
+  color: var(--color-text-accent);
+}
+.app-chat-area .markdown-content code {
+  background: var(--color-background-subtle);
+  color: var(--color-text-primary);
+}
+.app-chat-area .markdown-content pre {
+  background: var(--color-components-pre-bg);
+  border-color: var(--color-components-pre-border);
+}
+.app-chat-area .markdown-content pre code {
+  color: var(--color-components-pre-text);
+}
+.app-chat-area .markdown-content table {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  overflow: auto;
+  border: 0;
+  border-radius: 0;
+  border-collapse: collapse;
+  margin: var(--space-sm) 0 var(--space-base);
+  background: transparent;
+}
+.app-chat-area .markdown-content th,
+.app-chat-area .markdown-content td {
+  border: 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+  padding: var(--space-sm) var(--space-base);
+  text-align: left;
+  vertical-align: top;
+  color: var(--color-text-primary);
+  background: transparent;
+}
+.app-chat-area .markdown-content th {
+  font-weight: 600;
+}

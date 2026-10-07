@@ -83,7 +83,8 @@ export function PromptPane({
     !hasKnowledgePlaceholder(config.systemPrompt)
   return (
     <StudioPanelShell
-      title={t('studio.editor.prompt')}
+      density="compact"
+      headerClassName="h-8 border-0"
       bodyClassName="flex min-h-0 flex-col"
       actions={
         <>

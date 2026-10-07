@@ -1,5 +1,22 @@
 export default {
   chat: {
+    references: {
+      sources: 'Sources',
+      documents: '{{count}} documents',
+      count: '{{count}} citations',
+      unknownDocument: 'Unknown document',
+      table: 'Table',
+      image: 'Image',
+      text: 'Text',
+      collapse: 'Show less',
+      more: 'Show {{count}} more',
+    },
+    thinking: {
+      inProgress: 'Thinking...',
+      complete: 'Thought process',
+      details: 'Reasoning details',
+    },
+    actions: { regenerate: 'Regenerate' },
     stream: {
       failed: 'Generation failed. Please try again.',
       interrupted:

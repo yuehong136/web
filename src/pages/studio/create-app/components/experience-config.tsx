@@ -10,7 +10,7 @@ export function ExperienceConfig({ config, onChange }: ConfigBindings) {
   const id = useId()
   const [open, setOpen] = useState(false)
   return (
-    <div className="mx-auto w-full max-w-3xl space-y-space-xl p-space-lg">
+    <div className="mx-auto w-full max-w-xl space-y-space-base p-space-base">
       {(['prologue', 'empty_response'] as const).map((field) => {
         const key = field === 'prologue' ? 'prologue' : 'emptyResponse'
         return (
@@ -27,7 +27,7 @@ export function ExperienceConfig({ config, onChange }: ConfigBindings) {
             <Textarea
               id={`${id}-${field}`}
               aria-describedby={`${id}-${field}-hint`}
-              rows={4}
+              rows={3}
               value={config.prompt_config[field]}
               onChange={(event) =>
                 onChange('prompt_config', {

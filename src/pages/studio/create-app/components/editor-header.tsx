@@ -31,7 +31,7 @@ export function EditorHeader({
       surface="plain"
       align="center"
       wrapActions
-      className="min-h-16 border-b border-components-studio-border bg-components-studio-surface px-space-base py-space-sm"
+      className="min-h-13 border-b border-components-studio-border bg-components-studio-surface px-space-sm py-space-xs"
       leading={
         <Button
           variant="ghost"

@@ -3,8 +3,6 @@ import { useTranslation } from 'react-i18next'
 import {
   ArrowDown,
   Bug,
-  ArrowUp,
-  Copy,
   Maximize2,
   Minimize2,
   RotateCcw,
@@ -13,7 +11,10 @@ import {
 import { StudioPanelShell } from '@/components/patterns'
 import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
+import Bubble from '@ant-design/x/es/bubble'
+import { AppChatComposer } from '@/components/chat/app-chat-composer'
+import { getAppChatBubbleProps } from '@/components/chat/app-chat-message'
+import { MessageActionsFooter } from '@/components/chat/MessageActionsFooter'
 import {
   Sheet,
   SheetContent,
@@ -25,7 +26,6 @@ import { ReferenceDetailSheet } from '@/components/chat/ReferenceDetailSheet'
 import { copyToClipboardWithFeedback } from '@/lib/clipboard'
 import type { ReferenceChunk } from '@/utils/reference-replacer'
 import type { CreateAppPageController } from '../hooks/use-create-app-page'
-import { renderMarkdown } from '../utils'
 import { PreviewAnswer } from './preview-answer'
 
 type PreviewBindings = Pick<
@@ -92,17 +92,25 @@ export function PreviewPane(props: PreviewPaneProps) {
     if (!blocked && !isStreaming && !composing.current)
       void handleSendPreviewMessage(inputValue)
   }
-  const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+  const onKeyDown = (event: KeyboardEvent) => {
+    if (
+      composing.current ||
+      event.nativeEvent.isComposing ||
+      event.keyCode === 229
+    )
+      return false
     if (
       event.key === 'Enter' &&
       !event.shiftKey &&
-      !event.nativeEvent.isComposing &&
-      !composing.current &&
-      event.keyCode !== 229
+      !event.ctrlKey &&
+      !event.altKey &&
+      !event.metaKey
     ) {
       event.preventDefault()
       send()
+      return false
     }
+    return undefined
   }
   const requestStatus = status === 'failed' ? 'runFailed' : status
   const lastAssistant = previewMessages.findLastIndex(
@@ -110,6 +118,7 @@ export function PreviewPane(props: PreviewPaneProps) {
   )
   return (
     <StudioPanelShell
+      density="compact"
       title={
         <span className="flex flex-wrap items-center gap-space-sm">
           <span>{t('studio.editor.preview')}</span>
@@ -162,7 +171,7 @@ export function PreviewPane(props: PreviewPaneProps) {
     >
       <div
         ref={scrollRef}
-        className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-space-base"
+        className="app-chat-area min-h-0 flex-1 overflow-y-auto overscroll-contain p-space-base"
         onScroll={() => {
           const element = scrollRef.current
           if (!element) return
@@ -172,74 +181,66 @@ export function PreviewPane(props: PreviewPaneProps) {
         }}
       >
         <div
-          className="mx-auto max-w-prose space-y-space-lg"
+          className="mx-auto max-w-prose space-y-space-base"
           aria-live="polite"
           aria-busy={isStreaming}
         >
           {previewMessages.map((message, index) => {
             const active = isStreaming && index === lastAssistant
             const user = message.role === 'user'
+            const canRegenerate =
+              !active &&
+              index === lastAssistant &&
+              !blocked &&
+              !message.id.startsWith('prologue-')
             return (
-              <div
+              <Bubble
                 key={message.id}
-                className={`flex flex-col gap-space-sm ${user ? 'items-end' : 'items-start'}`}
-              >
-                <div
-                  className={
-                    user
-                      ? 'max-w-full rounded-radius-lg bg-background-subtle px-space-base py-space-sm'
-                      : 'w-full min-w-0 text-sm leading-relaxed text-text-primary'
-                  }
-                >
-                  {message.thinking && (
-                    <details className="mb-space-sm text-xs text-text-secondary">
-                      <summary className="cursor-pointer py-space-xs">
-                        {t('studio.editor.thinking')}
-                      </summary>
-                      <p className="leading-relaxed whitespace-pre-wrap">
-                        {message.thinking}
-                      </p>
-                    </details>
-                  )}
-                  {user ? (
-                    renderMarkdown(message.content)
-                  ) : (
-                    <PreviewAnswer
-                      content={message.content}
-                      references={message.references}
-                      isStreaming={active}
-                      onViewReference={(chunk, references) =>
-                        setReference({ chunk, references })
-                      }
-                    />
-                  )}
-                  {active && !message.content && !message.thinking && (
-                    <p className="text-sm text-text-secondary">
-                      {t('studio.editor.streaming')}
-                    </p>
-                  )}
-                </div>
-                {!user &&
+                {...getAppChatBubbleProps(
+                  message.role,
+                  savedConfig ?? undefined,
+                )}
+                content={message.content}
+                streaming={active}
+                loading={active && !message.content && !message.thinking}
+                contentRender={
+                  user
+                    ? undefined
+                    : () => (
+                        <PreviewAnswer
+                          content={message.content}
+                          thinking={message.thinking}
+                          messageId={message.id}
+                          references={message.references}
+                          isStreaming={active}
+                          onViewReference={(chunk, references) =>
+                            setReference({ chunk, references })
+                          }
+                        />
+                      )
+                }
+                footer={
+                  !user &&
                   !active &&
                   message.content &&
-                  !message.id.startsWith('prologue-') && (
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      aria-label={t('studio.editor.copy')}
-                      title={t('studio.editor.copy')}
-                      onClick={() => {
+                  !message.id.startsWith('prologue-') ? (
+                    <MessageActionsFooter
+                      content={message.content}
+                      showTTS={false}
+                      showFeedback={false}
+                      showRegenerate={canRegenerate}
+                      onRegenerate={handleRetryPreview}
+                      onCopy={() =>
                         void copyToClipboardWithFeedback(
                           message.content,
                           t('common.copied'),
                           t('common.copyFailed'),
                         )
-                      }}
-                    >
-                      <Copy className="size-icon-sm" />
-                    </Button>
-                  )}
-              </div>
+                      }
+                    />
+                  ) : undefined
+                }
+              />
             )
           })}
           {(status === 'failed' || status === 'interrupted') && (
@@ -276,7 +277,7 @@ export function PreviewPane(props: PreviewPaneProps) {
           </Button>
         </div>
       )}
-      <div className="shrink-0 space-y-space-sm border-t border-border-subtle p-space-base">
+      <div className="shrink-0 space-y-space-sm p-space-sm">
         {requiredVariables ? (
           <output className="text-xs leading-relaxed text-status-warning">
             {t('studio.editor.requiredVariables')}
@@ -314,38 +315,44 @@ export function PreviewPane(props: PreviewPaneProps) {
             </Button>
           </div>
         ) : null}
-        <div className="relative">
-          <Textarea
+        <div
+          onCompositionStartCapture={() => {
+            composing.current = true
+          }}
+          onCompositionEndCapture={() => {
+            composing.current = false
+          }}
+        >
+          <AppChatComposer
             aria-label={t('studio.editor.messagePlaceholder')}
-            placeholder={t('studio.editor.messagePlaceholder')}
             value={inputValue}
-            onChange={(event) => setInputValue(event.target.value)}
+            placeholder={t('studio.editor.messagePlaceholder')}
+            onChange={(value) => setInputValue(value)}
+            loading={isStreaming}
             onKeyDown={onKeyDown}
-            onCompositionStart={() => {
-              composing.current = true
-            }}
-            onCompositionEnd={() => {
-              composing.current = false
-            }}
-            rows={3}
-            className="max-h-48 min-h-24 resize-none pr-space-2xl"
-          />
-          <div className="absolute right-space-sm bottom-space-sm">
-            <Button
-              size="icon-sm"
-              variant={isStreaming ? 'outline' : 'default'}
-              disabled={!isStreaming && (blocked || !inputValue.trim())}
-              aria-label={t(`studio.editor.${isStreaming ? 'stop' : 'send'}`)}
-              title={t(`studio.editor.${isStreaming ? 'stop' : 'send'}`)}
-              onClick={isStreaming ? handleStopOutput : send}
-            >
-              {isStreaming ? (
-                <Square className="size-icon-sm" />
+            onSubmit={() => send()}
+            onCancel={handleStopOutput}
+            autoSize={{ minRows: 2, maxRows: 6 }}
+            suffix={(_, { components }) =>
+              isStreaming ? (
+                <Button
+                  size="icon-sm"
+                  variant="destructive"
+                  aria-label={t('studio.editor.stop')}
+                  title={t('studio.editor.stop')}
+                  onClick={handleStopOutput}
+                >
+                  <Square className="size-icon-sm" />
+                </Button>
               ) : (
-                <ArrowUp className="size-icon-sm" />
-              )}
-            </Button>
-          </div>
+                <components.SendButton
+                  disabled={blocked || !inputValue.trim()}
+                  aria-label={t('studio.editor.send')}
+                  title={t('studio.editor.send')}
+                />
+              )
+            }
+          />
         </div>
         <div className="flex flex-wrap items-center justify-between gap-space-xs text-xs text-text-secondary">
           <span>

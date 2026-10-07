@@ -17,7 +17,7 @@ export const useStudioEditorPreferences = create<EditorPreferences>()(
     (set) => ({
       tab: 'prompt',
       narrowView: 'edit',
-      editSize: 60,
+      editSize: 55,
       setTab: (tab) => set({ tab }),
       setNarrowView: (narrowView) => set({ narrowView }),
       setEditSize: (editSize) =>

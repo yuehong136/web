@@ -54,3 +54,8 @@ docs/design-reviews/*
 .claude/settings.local.json
 
 *.html
+
+# Studio editor refinement evidence
+!docs/acceptance/studio-editor-refinement-20261007.md
+!docs/acceptance/studio-editor-refinement-20261007/
+!docs/acceptance/studio-editor-refinement-20261007/**

@@ -1,0 +1,34 @@
+{
+  "ci": {
+    "path": "/tmp/studio-editor-refinement-final-ci.log",
+    "sha256": "9f3b3f9d6ee5065fcbcde2ccf71fbabdef8f930142d400a72f179fb1a4e9f1b9"
+  },
+  "build": {
+    "path": "/tmp/studio-editor-refinement-final-build.log",
+    "sha256": "17e1a9eb2a3b1b69cbc5f68062c05edc192bc92d84baed18edd5bc02a4c2f0c0"
+  },
+  "bundle": {
+    "path": "/tmp/studio-editor-refinement-final-bundle.log",
+    "sha256": "ca82a8a7311be015b4201d821dcdfc653b80edac1b0f2214e7d24d9c697939d8"
+  },
+  "size": {
+    "path": "/tmp/studio-editor-refinement-final-size.log",
+    "sha256": "e4a1c1f37e7c89d8244f1b6e68fa1807641b4bf517a4d643925b11cb6c64f702"
+  },
+  "lint": {
+    "path": "/tmp/studio-editor-refinement-final-lint.log",
+    "sha256": "e253951906f5cea55c67ad7554d9b094e9b8c494143659e344e98711f10a588a"
+  },
+  "focused": {
+    "path": "/tmp/studio-editor-refinement-focused.log",
+    "sha256": "a758d8901ce825ca697e3cce8932d5ebf7441ebebea4c7db2a7b51cf12ce18c3"
+  },
+  "product-ui": {
+    "path": "/tmp/studio-editor-refinement-product.log",
+    "sha256": "af145d922ce137e7f99d23f03cb77dad635c45748fb88cd0d1c8a4ba865f232a"
+  },
+  "streaming": {
+    "path": "/tmp/studio-editor-refinement-streaming.log",
+    "sha256": "c5f80c380363cf4d06667e75d24b77c6b0ace6f413e0dcb2cfd72197b2afd4a7"
+  }
+}

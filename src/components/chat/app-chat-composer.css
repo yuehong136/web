@@ -1,0 +1,67 @@
+.app-chat-composer.ant-sender {
+  background: var(--color-components-input-bg);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-xl);
+  box-shadow: none;
+  color: var(--color-text-primary);
+}
+.app-chat-composer.ant-sender:hover {
+  border-color: var(--color-border-default);
+}
+.app-chat-composer.ant-sender:focus-within {
+  border-color: var(--color-border-accent);
+  box-shadow: none;
+  outline: none;
+}
+.app-chat-composer .ant-sender-content {
+  background: transparent;
+}
+.app-chat-composer .ant-sender-input,
+.app-chat-composer .ant-sender-input:focus,
+.app-chat-composer .ant-sender-input:focus-visible {
+  border: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent;
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+}
+.app-chat-composer .ant-sender-input::placeholder {
+  color: var(--color-text-tertiary);
+}
+.app-chat-composer .ant-sender-actions {
+  border: 0;
+}
+.app-chat-composer .ant-sender-actions-btn {
+  border: 0;
+  background: var(--color-components-button-primary-bg);
+  color: var(--color-components-button-primary-text);
+}
+.app-chat-composer .ant-sender-actions-btn:hover {
+  background: var(--color-components-button-primary-bg-hover);
+}
+.app-chat-composer .ant-sender-actions-btn:disabled {
+  background: var(--color-components-button-primary-bg-disabled);
+  color: var(--color-components-button-primary-text-disabled);
+}
+.app-chat-composer .ant-sender-header-title,
+.app-chat-composer .ant-attachments-list-item-name {
+  color: var(--color-text-primary);
+}
+.app-chat-composer .ant-sender-header-close {
+  color: var(--color-text-tertiary);
+}
+.app-chat-composer .ant-sender-header-close:hover {
+  color: var(--color-text-primary);
+  background: var(--color-state-hover);
+}
+.app-chat-composer .ant-attachment-placeholder,
+.app-chat-composer .ant-attachment-placeholder-inner {
+  border: 0;
+  background: transparent;
+}
+.app-chat-composer .ant-attachments-list-item {
+  background: var(--color-components-input-bg);
+  border-color: var(--color-border-subtle);
+}

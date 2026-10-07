@@ -43,7 +43,7 @@ export function CenterConfigSection({
       </div>
       <CollapsibleContent
         aria-labelledby={id}
-        className="space-y-space-lg pb-space-lg"
+        className="space-y-space-xs pb-space-base"
       >
         {children}
       </CollapsibleContent>

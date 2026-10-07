@@ -8,7 +8,6 @@ import {
   useRef,
   useState,
   type FC,
-  type ReactNode,
 } from 'react'
 import {
   Sparkles,
@@ -31,12 +30,6 @@ import {
   type BubbleListProps,
   type PromptsProps,
 } from '@ant-design/x'
-import { ChatBubbleLoading } from '@/components/chat/ChatBubbleLoading'
-import {
-  markdownConfig,
-  mergeMarkdownComponents,
-} from '@/components/chat/MarkdownCodeBlock'
-import { StreamingXMarkdown } from '@/components/chat/streaming-x-markdown'
 import { Button } from '@/components/ui/button'
 import { FileIcon } from '@/components/ui/file-icon'
 import { copyToClipboardWithFeedback } from '@/lib/clipboard'
@@ -75,23 +68,12 @@ import {
   defaultChatSettings,
   type ChatSettings,
 } from '@/components/chat/ChatSettingsPanel'
-import {
-  convertReferencesToSup,
-  processContentForCarousel,
-} from '@/utils/message-utils'
-import { extractThinkContent, type ThinkingStatus } from '@/utils/think-utils'
-import { ThinkWrapper } from '@/components/chat/ThinkWrapper'
 import { MessageActionsFooter } from '@/components/chat/MessageActionsFooter'
-import { CarouselWrapper } from '@/components/chat/CarouselWrapper'
 import {
   CHAT_BUBBLE_ROLES,
-  CHAT_TEXT_TYPING,
   shouldUseBubbleTyping,
 } from '@/components/chat/antx-chat-config'
-import { ReferencePanel } from '@/components/chat/ReferencePanel'
 import { ReferenceDetailSheet } from '@/components/chat/ReferenceDetailSheet'
-import { createReferenceMarkerComponent } from '@/components/chat/ReferenceMarker'
-import { ReferenceImageList } from '@/components/chat/ReferenceImageList'
 import {
   assertSSEResponse,
   consumeStreamingAnswerChunk,
@@ -101,6 +83,9 @@ import {
 } from '@/lib/streaming'
 import { ExploreSidebar, type ExploreTab } from './components/explore-sidebar'
 import { getExploreAppIcon } from './components/explore-app-icon'
+import { AppChatComposer } from '@/components/chat/app-chat-composer'
+import { AppChatAnswer } from '@/components/chat/app-chat-answer'
+import { getAppChatBubbleProps } from '@/components/chat/app-chat-message'
 
 type ExploreAttachment = NonNullable<AttachmentsProps['items']>[number]
 
@@ -846,17 +831,6 @@ export const ExplorePage: FC = () => {
   const bubbleItems = useMemo<BubbleListProps['items']>(
     () =>
       messages.map((msg, index) => {
-        const references = msg.references || []
-
-        // 使用新的 createReferenceMarkerComponent 创建内联引用组件
-        const SupComponent = createReferenceMarkerComponent(references, {
-          onViewDetail: (chunk) => handleViewDetail(chunk, references),
-          onCopy: handleCopyContent,
-        })
-        const markdownComponents = mergeMarkdownComponents({
-          sup: SupComponent,
-        })
-
         // 判断当前消息是否正在流式输出
         const lastAssistantMsgIndex = [...messages]
           .reverse()
@@ -878,173 +852,19 @@ export const ExplorePage: FC = () => {
           // 只在消息刚创建、还没有任何内容时显示三个点动画
           // 一旦有 content 或 thinking，就显示实际内容
           loading: isCurrentStreamingMessage && !msg.content && !msg.thinking,
-          placement: (msg.role === 'user' ? 'end' : 'start') as 'start' | 'end',
-          // 底部操作栏固定在助手消息行头，避免随内容宽度漂移
-          footerPlacement:
-            msg.role === 'assistant' ? ('outer-start' as const) : undefined,
-          avatar:
-            msg.role === 'user' ? (
-              <div
-                className="flex h-8 min-h-[32px] w-8 min-w-[32px] shrink-0 items-center justify-center rounded-full text-sm font-medium"
-                style={{
-                  background: 'var(--color-chat-bubble-user-avatar-bg)',
-                  color: 'var(--color-chat-bubble-user-avatar-text)',
-                }}
-              >
-                U
-              </div>
-            ) : currentAppIconUrl ? (
-              <div className="h-8 min-h-[32px] w-8 min-w-[32px] shrink-0 overflow-hidden rounded-full">
-                <img
-                  src={currentAppIconUrl}
-                  alt={currentApp?.name || 'AI'}
-                  className="h-full w-full object-cover"
-                />
-              </div>
-            ) : (
-              <div
-                className="flex h-8 min-h-[32px] w-8 min-w-[32px] shrink-0 items-center justify-center rounded-full"
-                style={{
-                  background: 'var(--color-components-gradient-primary)',
-                }}
-              >
-                <span className="text-sm font-bold text-white">AI</span>
-              </div>
-            ),
+          ...getAppChatBubbleProps(msg.role, currentApp ?? undefined),
           contentRender:
             msg.role === 'assistant'
               ? () => {
-                  // 优先使用流式输出时提取的 thinking 字段，回退到从 content 提取（针对历史消息）
-                  const fallback = extractThinkContent(msg.content || '')
-                  const thinkContent = msg.thinking || fallback.thinkContent
-                  const mainContent = msg.thinking
-                    ? msg.content || ''
-                    : fallback.mainContent
-
-                  // 确定思考状态：
-                  // - 服务端返回的是累积式流式数据，每个 chunk 都包含完整的 <think>...</think>
-                  // - 所以不能用闭合标签来判断，而是用 isStreaming 状态
-                  // - 如果正在流式输出且有思考内容，就是 thinking 状态
-                  // - 如果流式输出结束或者是历史消息，就是 complete 状态
-                  let status: ThinkingStatus = 'none'
-                  if (thinkContent) {
-                    // 检查是否是当前正在流式输出的消息（最后一条助手消息且 isStreaming 为 true）
-                    const lastAssistantMsg = [...messages]
-                      .reverse()
-                      .find((m) => m.role === 'assistant')
-                    const isLastAssistantMsg = lastAssistantMsg?.id === msg.id
-                    const isCurrentlyStreaming =
-                      isStreaming && isLastAssistantMsg
-                    status = isCurrentlyStreaming ? 'thinking' : 'complete'
-                  }
-
-                  // 处理连续图片引用，分析轮播组
-                  const { content: processedContent, carouselGroups } =
-                    processContentForCarousel(mainContent, references)
-
-                  // 对处理后的内容转换剩余引用格式
-                  const mainContentWithSup =
-                    convertReferencesToSup(processedContent)
-
-                  // 渲染内容片段（在轮播占位符处分割）
-                  const renderContentWithCarousels = () => {
-                    if (carouselGroups.length === 0) {
-                      // 没有轮播组，直接渲染
-                      return (
-                        <StreamingXMarkdown
-                          config={markdownConfig}
-                          components={markdownComponents}
-                          paragraphTag="div"
-                          content={mainContentWithSup}
-                          isStreaming={isCurrentStreamingMessage}
-                        />
-                      )
-                    }
-
-                    // 有轮播组，分割渲染
-                    const parts = mainContentWithSup.split(
-                      /<carousel-placeholder[^>]*><\/carousel-placeholder>/g,
-                    )
-                    const elements: ReactNode[] = []
-
-                    parts.forEach((part, idx) => {
-                      // 渲染文本部分
-                      if (part.trim()) {
-                        elements.push(
-                          <StreamingXMarkdown
-                            key={`text-${idx}`}
-                            config={markdownConfig}
-                            components={markdownComponents}
-                            paragraphTag="div"
-                            content={part}
-                            isStreaming={isCurrentStreamingMessage}
-                          />,
-                        )
-                      }
-
-                      // 在文本部分之间插入轮播（除了最后一个部分）
-                      if (idx < carouselGroups.length) {
-                        const group = carouselGroups[idx]
-                        elements.push(
-                          <CarouselWrapper
-                            key={`carousel-${idx}`}
-                            group={group}
-                            chunks={references}
-                          />,
-                        )
-                      }
-                    })
-
-                    return <>{elements}</>
-                  }
-
                   return (
-                    <div className="space-y-3">
-                      {/* Think 组件展示思考过程 - 使用外部定义的 ThinkWrapper 组件 */}
-                      {thinkContent && (
-                        <ThinkWrapper status={status} messageId={msg.id}>
-                          <div
-                            className="text-sm whitespace-pre-wrap"
-                            style={{ color: 'var(--color-text-secondary)' }}
-                          >
-                            {thinkContent}
-                          </div>
-                        </ThinkWrapper>
-                      )}
-
-                      {/* 使用 XMarkdown 渲染主内容，支持轮播组件 */}
-                      {mainContentWithSup && (
-                        <div className="markdown-content leading-relaxed">
-                          {renderContentWithCarousels()}
-                        </div>
-                      )}
-
-                      {/* 如果没有内容且没有思考内容，显示 Ant Design X 三点加载动画 */}
-                      {!thinkContent && !mainContent && <ChatBubbleLoading />}
-
-                      {/* 图片引用轮播列表 - 汇总展示消息中引用的所有图片 */}
-                      {references.length > 0 && (
-                        <ReferenceImageList
-                          referenceChunks={references}
-                          messageContent={mainContent}
-                          className="mt-4"
-                          onImageClick={(chunk) =>
-                            handleViewDetail(chunk, references)
-                          }
-                        />
-                      )}
-
-                      {/* 底部汇总显示所有引用来源 - 使用新的 ReferencePanel 组件 */}
-                      {references.length > 0 && (
-                        <ReferencePanel
-                          chunks={references}
-                          onChunkClick={(chunk) =>
-                            handleViewDetail(chunk, references)
-                          }
-                          defaultVisiblePerDoc={2}
-                        />
-                      )}
-                    </div>
+                    <AppChatAnswer
+                      content={msg.content || ''}
+                      thinking={msg.thinking}
+                      messageId={msg.id}
+                      references={msg.references}
+                      isStreaming={isCurrentStreamingMessage}
+                      onViewReference={handleViewDetail}
+                    />
                   )
                 }
               : msg.files?.length
@@ -1067,36 +887,10 @@ export const ExplorePage: FC = () => {
                 onDislike={() => toast.success(t('explore.toast.dislike'))}
               />
             ) : undefined,
-          variant: 'borderless' as const,
-          styles:
-            msg.role === 'user'
-              ? {
-                  // 用户消息：保持气泡框样式
-                  content: {
-                    backgroundColor: 'var(--color-chat-bubble-user-bg)',
-                    color: 'var(--color-chat-bubble-user-text)',
-                    borderRadius: '18px',
-                    padding: '12px 16px',
-                    boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
-                    maxWidth: 'min(640px, 100%)',
-                  },
-                }
-              : {
-                  // AI 消息：透明背景，融入页面
-                  content: {
-                    backgroundColor: 'transparent',
-                    color: 'var(--color-text-primary)',
-                    borderRadius: '0',
-                    padding: '0',
-                    border: 'none',
-                    boxShadow: 'none',
-                  },
-                },
         }
       }),
     [
-      currentApp?.name,
-      currentAppIconUrl,
+      currentApp,
       handleCopyContent,
       handleRegenerateMessage,
       handleViewDetail,
@@ -1507,49 +1301,20 @@ export const ExplorePage: FC = () => {
                         }
                       />
                       {showCurrentAppPrologue ? (
-                        <div className="mt-6 w-full max-w-2xl">
+                        <div className="app-chat-area mt-6 w-full max-w-2xl">
                           <Bubble
+                            {...getAppChatBubbleProps('assistant', {
+                              name: currentApp?.name,
+                              icon: currentAppIconUrl || undefined,
+                            })}
                             content={currentAppPrologue}
-                            placement="start"
-                            variant="borderless"
-                            shape="round"
-                            typing={CHAT_TEXT_TYPING}
-                            avatar={
-                              currentAppIconUrl ? (
-                                <div className="h-8 min-h-[32px] w-8 min-w-[32px] shrink-0 overflow-hidden rounded-full">
-                                  <img
-                                    src={currentAppIconUrl}
-                                    alt={currentApp?.name || 'AI'}
-                                    className="h-full w-full object-cover"
-                                  />
-                                </div>
-                              ) : (
-                                <div
-                                  className="flex h-8 min-h-[32px] w-8 min-w-[32px] shrink-0 items-center justify-center rounded-full"
-                                  style={{
-                                    background:
-                                      'var(--color-components-gradient-primary)',
-                                  }}
-                                >
-                                  <span className="text-sm font-bold text-white">
-                                    AI
-                                  </span>
-                                </div>
-                              )
-                            }
-                            styles={{
-                              content: {
-                                backgroundColor:
-                                  'var(--color-chat-bubble-ai-bg)',
-                                color: 'var(--color-chat-bubble-ai-text)',
-                                border: 'none',
-                                boxShadow: 'none',
-                                borderRadius: '16px',
-                                padding: '12px 16px',
-                                fontSize: '14px',
-                                lineHeight: 1.6,
-                              },
-                            }}
+                            contentRender={() => (
+                              <AppChatAnswer
+                                content={currentAppPrologue}
+                                isStreaming={false}
+                                onViewReference={handleViewDetail}
+                              />
+                            )}
                           />
                         </div>
                       ) : null}
@@ -1568,7 +1333,7 @@ export const ExplorePage: FC = () => {
                   ) : (
                     <div
                       className={cn(
-                        'explore-chat-area mx-auto',
+                        'explore-chat-area app-chat-area mx-auto',
                         chatLayout === 'full'
                           ? 'max-w-none px-4'
                           : chatLayout === 'center'
@@ -1577,77 +1342,6 @@ export const ExplorePage: FC = () => {
                       )}
                       style={{ height: '100%' }}
                     >
-                      <style>{`
-                      /* Think 组件主题适配 */
-                      .explore-chat-area .ant-think-status-wrapper,
-                      .explore-chat-area .ant-think-title {
-                        color: var(--color-text-secondary) !important;
-                      }
-                      .explore-chat-area .ant-think {
-                        background-color: var(--color-components-card-bg) !important;
-                        border-color: var(--color-components-card-border) !important;
-                      }
-                      .explore-chat-area .ant-think-content {
-                        color: var(--color-text-secondary) !important;
-                      }
-                      /* Bubble 组件主题适配 */
-                      .explore-chat-area .ant-bubble-content {
-                        color: var(--color-text-primary) !important;
-                      }
-                      /* Actions 组件主题适配 */
-                      .explore-chat-area .ant-actions-item {
-                        color: var(--color-text-tertiary) !important;
-                      }
-                      .explore-chat-area .ant-actions-item:hover {
-                        color: var(--color-text-primary) !important;
-                        background-color: var(--color-state-hover) !important;
-                      }
-                      /* XMarkdown 内容样式 */
-                      .explore-chat-area .markdown-content {
-                        color: var(--color-text-primary) !important;
-                      }
-                      .explore-chat-area .markdown-content a {
-                        color: var(--color-components-button-primary-bg) !important;
-                      }
-                      .explore-chat-area .markdown-content code {
-                        background-color: var(--color-background-subtle) !important;
-                        color: var(--color-text-primary) !important;
-                      }
-                      .explore-chat-area .markdown-content pre {
-                        background-color: var(--color-components-pre-bg) !important;
-                        border-color: var(--color-components-pre-border) !important;
-                      }
-                      .explore-chat-area .markdown-content pre code {
-                        color: var(--color-components-pre-text) !important;
-                      }
-                      .explore-chat-area .markdown-content table:not(pre) {
-                        border-collapse: collapse !important;
-                        display: block !important;
-                        width: max-content !important;
-                        max-width: 100% !important;
-                        overflow: auto !important;
-                        border: 1px solid var(--color-border-default) !important;
-                        border-radius: 8px !important;
-                        margin: 8px 0 16px 0 !important;
-                        background-color: var(--color-components-card-bg) !important;
-                      }
-                      .explore-chat-area .markdown-content th,
-                      .explore-chat-area .markdown-content td {
-                        border: 1px solid var(--color-border-default) !important;
-                        padding: 8px 12px !important;
-                        text-align: left !important;
-                        vertical-align: top !important;
-                      }
-                      .explore-chat-area .markdown-content th {
-                        color: var(--color-text-primary) !important;
-                        background-color: var(--color-surface-secondary) !important;
-                        font-weight: 600 !important;
-                      }
-                      .explore-chat-area .markdown-content td {
-                        color: var(--color-text-primary) !important;
-                        background-color: var(--color-surface-primary) !important;
-                      }
-                    `}</style>
                       <Bubble.List
                         items={bubbleItems}
                         autoScroll
@@ -1663,150 +1357,15 @@ export const ExplorePage: FC = () => {
                   <div className="px-6 pb-6">
                     <div
                       className={cn(
-                        'explore-sender-area mx-auto overflow-hidden rounded-2xl',
+                        'mx-auto',
                         chatLayout === 'full'
                           ? 'max-w-none px-4'
                           : chatLayout === 'center'
                             ? 'max-w-4xl'
                             : 'max-w-3xl',
                       )}
-                      style={{
-                        border:
-                          '1px solid var(--color-components-input-border)',
-                        backgroundColor: 'var(--color-components-input-bg)',
-                      }}
                     >
-                      {/* Sender 和 Attachments 样式覆盖 - 使用项目语义令牌 */}
-                      <style>{`
-                      /* Sender 输入框样式 - 现代化无高亮设计，边框在外层容器 */
-                      .explore-sender-area .ant-sender {
-                        background-color: transparent !important;
-                        border: none !important;
-                        box-shadow: none !important;
-                        outline: none !important;
-                        padding-bottom: 0 !important;
-                      }
-                      .explore-sender-area .ant-sender:hover {
-                        border: none !important;
-                      }
-                      .explore-sender-area .ant-sender:focus-within {
-                        border: none !important;
-                        box-shadow: none !important;
-                        outline: none !important;
-                      }
-                      .explore-sender-area .ant-sender-content {
-                        background-color: transparent !important;
-                        padding-bottom: 0 !important;
-                      }
-                      /* 移除 Sender 内部可能的分隔线和边距 */
-                      .explore-sender-area .ant-sender-actions {
-                        border-top: none !important;
-                        padding-top: 0 !important;
-                        margin-top: 0 !important;
-                      }
-                      .explore-sender-area .ant-sender textarea,
-                      .explore-sender-area .ant-sender input {
-                        color: var(--color-components-input-text) !important;
-                        background-color: transparent !important;
-                        outline: none !important;
-                        box-shadow: none !important;
-                        padding-left: 4px !important;
-                      }
-                      .explore-sender-area .ant-sender textarea:focus,
-                      .explore-sender-area .ant-sender input:focus {
-                        outline: none !important;
-                        box-shadow: none !important;
-                      }
-                      .explore-sender-area .ant-sender textarea::placeholder,
-                      .explore-sender-area .ant-sender input::placeholder {
-                        color: var(--color-components-input-text-placeholder) !important;
-                      }
-                      /* 发送按钮样式 */
-                      .explore-sender-area .ant-sender-actions-btn {
-                        background-color: var(--color-components-button-primary-bg) !important;
-                        color: var(--color-components-button-primary-text) !important;
-                        border: none !important;
-                      }
-                      .explore-sender-area .ant-sender-actions-btn:hover {
-                        background-color: var(--color-components-button-primary-bg-hover) !important;
-                      }
-                      .explore-sender-area .ant-sender-actions-btn:disabled {
-                        background-color: var(--color-components-button-primary-bg-disabled) !important;
-                        color: var(--color-components-button-primary-text-disabled) !important;
-                      }
-                      /* 当 Header 打开时，Sender 顶部不要圆角 */
-                      .explore-sender-area .ant-sender-header ~ .ant-sender,
-                      .explore-sender-area .ant-sender-header + .ant-sender {
-                        border-radius: 0 !important;
-                        border-top: none !important;
-                      }
-                      /* 关闭按钮 - 现代化圆形设计 */
-                      .explore-sender-area .ant-sender-header-close,
-                      .explore-sender-area [class*="sender-header"] button,
-                      .explore-sender-area [class*="header-close"] {
-                        color: var(--color-text-tertiary) !important;
-                        background-color: transparent !important;
-                        border-color: transparent !important;
-                        border-radius: 8px !important;
-                        width: 32px !important;
-                        height: 32px !important;
-                        display: flex !important;
-                        align-items: center !important;
-                        justify-content: center !important;
-                        transition: all 0.2s ease !important;
-                      }
-                      .explore-sender-area .ant-sender-header-close:hover,
-                      .explore-sender-area [class*="sender-header"] button:hover,
-                      .explore-sender-area [class*="header-close"]:hover {
-                        color: var(--color-text-primary) !important;
-                        background-color: var(--color-state-hover) !important;
-                      }
-                      /* 标题栏整体样式优化 */
-                      .explore-sender-area .ant-sender-header {
-                        padding: 12px 16px !important;
-                        border-bottom: 1px solid var(--color-border-default) !important;
-                      }
-                      .explore-sender-area .ant-sender-header-title {
-                        font-weight: 500 !important;
-                        font-size: 14px !important;
-                        color: var(--color-text-primary) !important;
-                        display: flex !important;
-                        align-items: center !important;
-                        gap: 8px !important;
-                      }
-                      /* Attachments 容器背景 - 简洁设计 */
-                      .explore-sender-area .ant-attachments {
-                        background-color: var(--color-components-card-bg) !important;
-                      }
-                      /* 移除内层多余边框 */
-                      .explore-sender-area .ant-attachment-placeholder,
-                      .explore-sender-area .ant-attachment-placeholder-inner {
-                        border: none !important;
-                        background: transparent !important;
-                        padding: 0 !important;
-                        margin: 0 !important;
-                      }
-                      /* 悬停效果 */
-                      .explore-sender-area .ant-attachments:hover {
-                        background-color: var(--color-state-hover) !important;
-                      }
-                      /* 已上传文件列表项 */
-                      .explore-sender-area .ant-attachments-list-item {
-                        background-color: var(--color-components-input-bg) !important;
-                        border: 1px solid var(--color-border-default) !important;
-                        border-radius: 8px !important;
-                        transition: all 0.2s ease !important;
-                      }
-                      .explore-sender-area .ant-attachments-list-item:hover {
-                        background-color: var(--color-components-input-bg-hover) !important;
-                        border-color: var(--color-border-accent) !important;
-                      }
-                      .explore-sender-area .ant-attachments-list-item-name {
-                        color: var(--color-text-primary) !important;
-                      }
-                    `}</style>
-
-                      <Sender
+                      <AppChatComposer
                         value={inputValue}
                         onChange={setInputValue}
                         placeholder={t('explore.sender.placeholder')}
@@ -1990,12 +1549,14 @@ export const ExplorePage: FC = () => {
                               className="h-8 w-8 p-0"
                               onClick={handleStopOutput}
                               title={t('explore.sender.stop')}
+                              aria-label={t('explore.sender.stop')}
                             >
                               <Square className="h-4 w-4" />
                             </Button>
                           ) : (
                             <components.SendButton
                               disabled={!canSubmitMessage}
+                              aria-label={t('studio.editor.send')}
                             />
                           )
                         }
@@ -2020,124 +1581,125 @@ export const ExplorePage: FC = () => {
                             }
                           }
                         }}
-                        style={{
-                          borderRadius: '0',
-                          border: 'none',
-                          backgroundColor: 'transparent',
-                        }}
-                        styles={{
-                          input: {
-                            color: 'var(--color-components-input-text)',
-                          },
-                        }}
-                      />
-
-                      {/* 输入框下方工具栏 - 与输入框无缝融合，参考 Claude 设计 */}
-                      <div
-                        className="flex items-center justify-between"
-                        style={{
-                          paddingLeft: '12px',
-                          paddingRight: '12px',
-                          paddingBottom: '10px',
-                          paddingTop: '4px',
-                        }}
-                      >
-                        <div className="flex items-center gap-1">
-                          {/* 附件按钮 */}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 gap-1.5 px-1.5"
-                            onClick={() => setHeaderOpen(!headerOpen)}
-                            title={t('explore.sender.uploadFile')}
+                        footer={
+                          <div
+                            className="flex items-center justify-between"
+                            style={{
+                              paddingLeft: '12px',
+                              paddingRight: '12px',
+                              paddingBottom: '10px',
+                              paddingTop: '4px',
+                            }}
                           >
-                            <Paperclip
-                              className="h-4 w-4"
-                              style={{
-                                color: headerOpen
-                                  ? 'var(--color-text-accent)'
-                                  : 'var(--color-text-tertiary)',
-                              }}
-                            />
-                            {uploadFiles.length > 0 && (
-                              <span
-                                className="text-xs"
-                                style={{ color: 'var(--color-text-secondary)' }}
+                            <div className="flex items-center gap-1">
+                              {/* 附件按钮 */}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 gap-1.5 px-1.5"
+                                onClick={() => setHeaderOpen(!headerOpen)}
+                                title={t('explore.sender.uploadFile')}
                               >
-                                {
-                                  uploadFiles.filter((f) => f.status === 'done')
-                                    .length
+                                <Paperclip
+                                  className="h-4 w-4"
+                                  style={{
+                                    color: headerOpen
+                                      ? 'var(--color-text-accent)'
+                                      : 'var(--color-text-tertiary)',
+                                  }}
+                                />
+                                {uploadFiles.length > 0 && (
+                                  <span
+                                    className="text-xs"
+                                    style={{
+                                      color: 'var(--color-text-secondary)',
+                                    }}
+                                  >
+                                    {
+                                      uploadFiles.filter(
+                                        (f) => f.status === 'done',
+                                      ).length
+                                    }
+                                  </span>
+                                )}
+                              </Button>
+
+                              {/* 深度思考按钮 */}
+                              <Button
+                                variant={enableReasoning ? 'default' : 'ghost'}
+                                size="sm"
+                                className={cn(
+                                  'h-7 gap-1.5 px-2 transition-colors',
+                                  enableReasoning
+                                    ? 'bg-[var(--color-components-button-primary-bg)] text-[var(--color-components-button-primary-text)] hover:bg-[var(--color-components-button-primary-bg-hover)]'
+                                    : 'text-[var(--color-text-tertiary)]',
+                                )}
+                                onClick={() =>
+                                  setEnableReasoning(!enableReasoning)
                                 }
-                              </span>
-                            )}
-                          </Button>
+                                title={t('explore.sender.thinking')}
+                              >
+                                <Atom className="h-4 w-4" />
+                                <span className="text-xs">
+                                  {t('explore.sender.thinking')}
+                                </span>
+                              </Button>
 
-                          {/* 深度思考按钮 */}
-                          <Button
-                            variant={enableReasoning ? 'default' : 'ghost'}
-                            size="sm"
-                            className={cn(
-                              'h-7 gap-1.5 px-2 transition-colors',
-                              enableReasoning
-                                ? 'bg-[var(--color-components-button-primary-bg)] text-[var(--color-components-button-primary-text)] hover:bg-[var(--color-components-button-primary-bg-hover)]'
-                                : 'text-[var(--color-text-tertiary)]',
-                            )}
-                            onClick={() => setEnableReasoning(!enableReasoning)}
-                            title={t('explore.sender.thinking')}
-                          >
-                            <Atom className="h-4 w-4" />
-                            <span className="text-xs">Thinking</span>
-                          </Button>
-
-                          {/* 联网搜索按钮 */}
-                          <Button
-                            variant={enableInternet ? 'default' : 'ghost'}
-                            size="sm"
-                            className={cn(
-                              'h-7 gap-1.5 px-2 transition-colors',
-                              enableInternet
-                                ? 'bg-[var(--color-components-button-primary-bg)] text-[var(--color-components-button-primary-text)] hover:bg-[var(--color-components-button-primary-bg-hover)]'
-                                : 'text-[var(--color-text-tertiary)]',
-                            )}
-                            onClick={() => setEnableInternet(!enableInternet)}
-                            title={t('explore.sender.onlineSearch')}
-                          >
-                            <Globe className="h-4 w-4" />
-                          </Button>
-                        </div>
-
-                        {/* 右侧状态提示 */}
-                        <div
-                          className="flex items-center gap-2 text-xs"
-                          style={{ color: 'var(--color-text-tertiary)' }}
-                        >
-                          {hasUploadingFiles && (
-                            <div className="flex items-center gap-1">
-                              <div className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                              <span>{t('explore.sender.uploading')}</span>
+                              {/* 联网搜索按钮 */}
+                              <Button
+                                variant={enableInternet ? 'default' : 'ghost'}
+                                size="sm"
+                                className={cn(
+                                  'h-7 gap-1.5 px-2 transition-colors',
+                                  enableInternet
+                                    ? 'bg-[var(--color-components-button-primary-bg)] text-[var(--color-components-button-primary-text)] hover:bg-[var(--color-components-button-primary-bg-hover)]'
+                                    : 'text-[var(--color-text-tertiary)]',
+                                )}
+                                onClick={() =>
+                                  setEnableInternet(!enableInternet)
+                                }
+                                title={t('explore.sender.onlineSearch')}
+                              >
+                                <Globe className="h-4 w-4" />
+                              </Button>
                             </div>
-                          )}
-                          {!hasUploadingFiles && hasReadyUploads && (
-                            <div className="flex items-center gap-1">
-                              <span>
-                                {t('explore.sender.attachmentsReady', {
-                                  count: uploadedAttachments.length,
-                                })}
-                              </span>
-                              {!inputValue.trim() && (
-                                <span>
-                                  {t('explore.sender.canSendDirectly')}
+
+                            {/* 右侧状态提示 */}
+                            <div
+                              className="flex items-center gap-2 text-xs"
+                              style={{ color: 'var(--color-text-tertiary)' }}
+                            >
+                              {hasUploadingFiles && (
+                                <div className="flex items-center gap-1">
+                                  <div className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                                  <span>{t('explore.sender.uploading')}</span>
+                                </div>
+                              )}
+                              {!hasUploadingFiles && hasReadyUploads && (
+                                <div className="flex items-center gap-1">
+                                  <span>
+                                    {t('explore.sender.attachmentsReady', {
+                                      count: uploadedAttachments.length,
+                                    })}
+                                  </span>
+                                  {!inputValue.trim() && (
+                                    <span>
+                                      {t('explore.sender.canSendDirectly')}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                              {hasUploadError && (
+                                <span
+                                  style={{ color: 'var(--color-text-error)' }}
+                                >
+                                  {t('explore.sender.uploadErrorHint')}
                                 </span>
                               )}
                             </div>
-                          )}
-                          {hasUploadError && (
-                            <span style={{ color: 'var(--color-text-error)' }}>
-                              {t('explore.sender.uploadErrorHint')}
-                            </span>
-                          )}
-                        </div>
-                      </div>
+                          </div>
+                        }
+                      />
                     </div>
                   </div>
                 )}

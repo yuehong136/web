@@ -75,7 +75,7 @@ export default {
       placeholder:
         'Type a message, press Enter to send, or send attachments directly',
       uploadFile: 'Upload file',
-      stop: 'Stop generating',
+      stop: 'Stop receiving',
       thinking: 'Deep thinking',
       onlineSearch: 'Web search',
       uploading: 'Uploading...',
