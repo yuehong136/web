@@ -7,8 +7,8 @@
 ### 1. 设计令牌驱动 (Design Token-Driven)
 
 - 所有颜色通过 CSS 自定义属性 (`--color-*`) 定义
-- 超过 500+ 设计令牌覆盖组件、文本、背景、状态等所有场景
-- 语义化命名：`components-button-primary-bg`、`text-secondary`、`state-destructive-hover`
+- 约 430 个颜色令牌覆盖组件、文本、背景、状态等场景；零引用令牌按 ARCH-5 删除，`token-closure.test.ts` 保证消费方只引用已定义的令牌
+- 语义化命名：`components-button-primary-bg`、`text-secondary`、`status-error-solid`
 
 ### 2. 自动化代码生成
 
@@ -65,9 +65,6 @@ Tailwind 的 `--twc-primary` 从主按钮背景生成，`--twc-ring` 从 `state-
 'text-muted' // 弱化文本
 'text-disabled' // 禁用文本
 'text-accent' // 强调文本
-'text-success' // 成功状态文本
-'text-warning' // 警告状态文本
-'text-error' // 错误状态文本
 'text-inverted' // 反色文本
 
 // 背景系统
@@ -83,9 +80,6 @@ Tailwind 的 `--twc-primary` 从主按钮背景生成，`--twc-ring` 从 `state-
 'border-subtle' // 微妙边框
 'border-strong' // 强调边框
 'border-accent' // 强调色边框
-'border-success' // 成功状态边框
-'border-warning' // 警告状态边框
-'border-error' // 错误状态边框
 ```
 
 ### 组件令牌 (Component Tokens)
@@ -105,24 +99,22 @@ Tailwind 的 `--twc-primary` 从主按钮背景生成，`--twc-ring` 从 `state-
 'components-input-bg'
 'components-input-bg-hover'
 'components-input-bg-focus'
-'components-input-bg-disabled'
 'components-input-border'
 'components-input-border-hover'
 'components-input-border-focus'
 'components-input-border-error'
 'components-input-text'
 'components-input-text-placeholder'
-'components-input-text-disabled'
 ```
 
 ### 状态令牌：两条语义轴 (State Tokens — Two Semantic Axes)
 
 主流现代化设计系统（Radix / shadcn、Ant Design、Material 3 等）都把「**交互状态**」与「**反馈/意图色**」当作两条独立语义轴。本项目同样拆成两个前缀，**禁止混用**：
 
-| 语义轴                          | 前缀           | 含义                          | 取值                                                                                |
-| ------------------------------- | -------------- | ----------------------------- | ----------------------------------------------------------------------------------- |
-| 交互状态 (Interaction state)    | **`state-*`**  | 元素与指针/键盘交互时的瞬时态 | `state-hover` / `state-active` / `state-focus` / `state-disabled` / `state-loading` |
-| 反馈/意图色 (Feedback / intent) | **`status-*`** | 表达操作结果或语义意图        | `status-success` / `status-warning` / `status-error` / `status-info`                |
+| 语义轴                          | 前缀           | 含义                          | 取值                                                                                 |
+| ------------------------------- | -------------- | ----------------------------- | ------------------------------------------------------------------------------------ |
+| 交互状态 (Interaction state)    | **`state-*`**  | 元素与指针/键盘交互时的瞬时态 | `state-hover` / `state-active` / `state-focus` / `state-disabled` / `state-selected` |
+| 反馈/意图色 (Feedback / intent) | **`status-*`** | 表达操作结果或语义意图        | `status-success` / `status-warning` / `status-error` / `status-info`                 |
 
 #### 1) 交互状态令牌 (Interaction Tokens) → `state-*`
 
@@ -131,45 +123,51 @@ Tailwind 的 `--twc-primary` 从主按钮背景生成，`--twc-ring` 从 `state-
 'state-active' // 激活状态 - 按钮按下、选中
 'state-focus' // 聚焦状态 - 键盘导航、表单聚焦（含 state-focus-10 / state-focus-subtle）
 'state-disabled' // 禁用状态 - 不可交互元素
-'state-loading' // 加载状态 - 数据加载中
+'state-selected' // 选中状态 - 选中控件填充（含 state-selected-text / state-selected-bg）
 ```
 
 #### 2) 反馈/意图色令牌 (Feedback Tokens) → `status-*`（canonical）
 
+每个意图（success / warning / error / info）在每套主题下有一条 12 阶 OKLCH 色阶（`status-palette.ts`，阶号沿用 Radix Colors：1–2 应用背景、3–5 组件背景、6–8 边框、9–10 实心填充、11–12 文字）。9–11 阶不是手挑的，而是按 WCAG AA 对产品表面求解出来的。消费方只用下面的角色：
+
 ```typescript
-// 实色（图标、文字、描边、实心点）
-'status-success' // 成功 - 操作成功反馈
-'status-warning' // 警告 - 需要注意的操作
-'status-error' // 错误 - 操作失败、校验错误
-'status-info' // 信息 - 中性提示、说明
-
-// 10% 透明度（弱底色、徽标底）
-'status-success-10' / 'status-warning-10' / 'status-error-10' / 'status-info-10'
-
-// 语义化别名（subtle = 10% 透明度，用于卡片/提示条底色）
-'status-success-subtle' /
-  'status-warning-subtle' /
-  'status-error-subtle' /
-  'status-info-subtle'
+'status-error' // 文字、图标、指示点、进度条、图表标记、控件错误边框
+'status-error-solid' // 实心按钮、徽标、计数胶囊的填充
+'status-error-solid-hover' // 实心填充的悬停态
+'status-error-on-solid' // 实心填充上的文字与图标（警告用深琥珀色，其余为白色）
+'status-error-subtle' // 浅色提示条、标签、行高亮的底色（半透明）
+'status-error-subtle-hover' // 浅色底的悬停态
+'status-error-border' // 浅色提示条、标签、卡片的描边（半透明）
 ```
 
 使用约定：
 
-- 文字/图标/描边用实色：`text-status-error`、`border-status-warning`；
-- 弱底色用 `-10` 或 `-subtle`：`bg-status-info-10`、`bg-status-success-subtle`；
-- 也可用 Tailwind 斜杠透明度叠加：`bg-status-success/10`、`hover:bg-status-error/10`。
+- 文字/图标用 `text-status-error`；浅色块用 `bg-status-error-subtle border-status-error-border text-status-error`；
+- 实心块三件套：`bg-status-error-solid text-status-error-on-solid hover:bg-status-error-solid-hover`，不要给 `status-error` 配白字（暗色主题下前景是浅色）；
+- 不再使用 `-10` 变体或斜杠透明度（`bg-status-error/10`），也不要给状态文字降透明度；
+- 契约：`categorical-palette.test.ts` 检查前景对表面、浅色填充、悬停底、描边按钮静止与悬停态，前景对自身浅色底（含选中行），以及实心标签对实心底与悬停底，均 ≥ 4.5:1；旧的 500 色阶会被这条测试判失败。
+
+组件状态族（alert、badge 的四个状态、task-status 的完成/失败/取消、system-health/status、`components-api-status-error`、HTTP 方法 GET/PUT/DELETE、`components-steps-completed`、画布节点状态、`components-system-chart-*` 的 done/failed/pending）由 `status-component-tokens.ts` 从同一色阶派生；POST 的青色与 PATCH 的紫色是分类色，保持原值。
 
 #### 3) 历史 alias `state-{success,warning,error,info}` —— 已移除（强制）
 
 历史上反馈色曾写作 `state-success/warning/error/info`（含 `-10`/`-subtle`），并在迁移过渡期作为 `status-*` 的等值 legacy alias 保留。该 alias（12 个 key）现已**物理删除**，反馈态统一用 canonical `status-*`：
 
-- ✅ 反馈态**只写 `status-*`**（`status-{success,warning,error,info}` 及 `-10`/`-subtle`）；
+- ✅ 反馈态**只写 `status-*`**（上面的角色后缀）；
 - ❌ **禁止以任何形式复活** `state-success/warning/error/info`：class（含 `from-/via-/to-` 渐变档位）、`var(--color-state-*)`、裸字符串 / `readCssVar()` / 拼接均被 ESLint 规则 `design-tokens/no-feedback-state-token`（`error` 级，覆盖 `src/**/*.{ts,tsx}`，排除 `src/themes/**`）拦截，新写会直接报错；
-- ✅ 交互态 `state-hover/active/focus/disabled/loading`（含 `state-focus-10`/`-subtle`）与中性 `state-neutral-10` 不受影响，继续使用。
+- ✅ 交互态 `state-hover/active/focus/disabled/selected`（含 `state-focus-10`/`-subtle`）与中性 `state-neutral-10` 不受影响，继续使用。
 
 **全仓状态**：反馈态 `state-*` → `status-*` 迁移与 alias 删除均已完成（迁移见 `docs/design-tokens/2026-05-20-design-token-feedback-migration-summary.md`，alias 删除见 `docs/design-tokens/2026-05-20-feedback-state-alias-deprecate-summary.md`）。原先各自硬编码分类调色板的 mindmap 与知识图谱，已统一收敛到 `data-viz-categorical-1..10`（见下节）。
 
-> 注：基础令牌里的 `text-success/warning/error`、`border-success/warning/error` 是「文本/边框」专用语义键，与反馈意图色独立，不在本次 `state-*`→`status-*` 迁移范围内。
+> 注：早期的 `text-success/warning/error`、`border-success/warning/error` 与 `status-*-10` 已在状态色阶上线时删除，消费方迁到了上面的角色。
+
+### 头像色调 `components-avatar-{1..8}-*`
+
+`EntityAvatar`（`components/patterns/entity-avatar.tsx`）的单字头像底色。8 个色相在 OKLCH 中均匀分布（`avatar-palette.ts`）：浅色主题是浅色不透明底 + 深色字，暗色主题是深色底 + 浅色字，字色按 AA 求解，`categorical-palette.test.ts` 覆盖。同一实体按 id 稳定取色，所以列表、详情、选择器和聊天里颜色一致。
+
+### 阴影层级 `elevation`
+
+阴影不属于颜色令牌。`elevation.ts` 为两套主题各定义 low / medium / high 三级，生成到 `light.css` / `dark.css` 的 `--elevation-*`，Tailwind 以 `shadow-elevation-*` 暴露（`@theme inline` 直接引用运行期变量，作用域主题的子树也会取到自己的阴影）。内联样式用 `var(--elevation-medium)` 等。
 
 ### 数据可视化分类调色板 `data-viz-categorical-*`（强制）
 

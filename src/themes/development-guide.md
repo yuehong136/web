@@ -30,9 +30,6 @@
 'text-muted' // 弱化文本 - 占位符、禁用状态提示
 'text-disabled' // 禁用文本 - 不可交互元素
 'text-accent' // 强调文本 - 链接、重要提示
-'text-success' // 成功状态文本
-'text-warning' // 警告状态文本
-'text-error' // 错误状态文本
 'text-inverted' // 反色文本 - 深色背景上的文字
 
 // 背景系统 - 用于所有背景颜色
@@ -61,14 +58,12 @@
 'components-input-bg' // 输入框背景
 'components-input-bg-hover' // 输入框悬停背景
 'components-input-bg-focus' // 输入框聚焦背景
-'components-input-bg-disabled' // 输入框禁用背景
 'components-input-border' // 输入框边框
 'components-input-border-hover' // 输入框悬停边框
 'components-input-border-focus' // 输入框聚焦边框
 'components-input-border-error' // 输入框错误边框
 'components-input-text' // 输入框文字
 'components-input-text-placeholder' // 输入框占位符
-'components-input-text-disabled' // 输入框禁用文字
 ```
 
 ### 状态令牌：交互态 vs 反馈态 (State Tokens)
@@ -81,17 +76,19 @@
 'state-active' // 激活状态 - 按钮按下、选中
 'state-focus' // 聚焦状态 - 键盘导航、表单聚焦（含 -10 / -subtle）
 'state-disabled' // 禁用状态 - 不可交互元素
-'state-loading' // 加载状态 - 数据加载中
+'state-selected' // 选中状态 - 选中控件（含 -text / -bg）
 
-// 反馈/意图色 (Feedback) → status-*（canonical）
-'status-success' // 成功 - 操作成功反馈
-'status-warning' // 警告 - 需要注意的操作
-'status-error' // 错误 - 操作失败、校验错误
-'status-info' // 信息 - 中性提示、说明
-// 变体：status-*-10（10% 弱底色）、status-*-subtle（卡片/提示条底色）
+// 反馈/意图色 (Feedback) → status-{success,warning,error,info} + 角色后缀
+'status-error' // 文字、图标、指示点、进度条、图表标记
+'status-error-solid' // 实心按钮/徽标填充（悬停 -solid-hover）
+'status-error-on-solid' // 实心填充上的文字和图标
+'status-error-subtle' // 浅色提示条、标签、行高亮（悬停 -subtle-hover）
+'status-error-border' // 浅色块的描边
 ```
 
-> **强制**：反馈态一律用 `status-*`。历史 alias `state-success/warning/error/info`（含 `-10`/`-subtle`）已**物理删除**（全仓迁移 + alias 删除均完成）。ESLint 规则 `design-tokens/no-feedback-state-token`（`error` 级）拦截 class（含 `from-/via-/to-` 渐变档位）、`var(--color-state-*)` 及裸字符串 / `readCssVar()` / 拼接等任何复活形式，新写直接报错。交互态 `state-hover/active/focus/disabled/loading` 与中性 `state-neutral-10` 照常使用；分类/层级着色用 `data-viz-categorical-1..10`。
+色阶在 `status-palette.ts` 中按 OKLCH 生成、按 WCAG AA 求解；改色只改意图的色相/彩度或曲线，然后跑 `npm run build:themes` 与 `npm run test:design-tokens`。组件状态族（alert、badge、task-status、system-\*、HTTP 方法、steps、画布节点、系统图表）由 `status-component-tokens.ts` 派生，不要在 `theme-generator.ts` 里给它们写 hex。
+
+> **强制**：反馈态一律用 `status-*`。历史 alias `state-success/warning/error/info`（含 `-10`/`-subtle`）已**物理删除**（全仓迁移 + alias 删除均完成）。ESLint 规则 `design-tokens/no-feedback-state-token`（`error` 级）拦截 class（含 `from-/via-/to-` 渐变档位）、`var(--color-state-*)` 及裸字符串 / `readCssVar()` / 拼接等任何复活形式，新写直接报错。交互态 `state-hover/active/focus/disabled/selected` 与中性 `state-neutral-10` 照常使用；分类/层级着色用 `data-viz-categorical-1..10`。
 
 ### 分类/序列着色 `data-viz-categorical-*`
 
@@ -225,11 +222,11 @@ const MyCard: React.FC = ({ children }) => {
     bg-components-input-bg
     hover:bg-components-input-bg-hover
     focus:bg-components-input-bg-focus
-    disabled:bg-components-input-bg-disabled
     border-components-input-border
     hover:border-components-input-border-hover
     focus:border-components-input-border-focus
-    disabled:border-components-input-border-disabled
+    aria-invalid:border-components-input-border-error
+    disabled:opacity-50
   "
 />
 
@@ -346,6 +343,14 @@ npm run build:themes
   我的新组件
 </div>
 ```
+
+**Step 5: 跑令牌测试**
+
+```bash
+npm run test:design-tokens
+```
+
+`token-closure.test.ts` 会拒绝三类问题：`--color-*` 里放了非颜色值（阴影用 `elevation.ts` 的 `shadow-elevation-*`，渐变和模糊直接写在组件里）、源码引用了未定义的令牌名（Tailwind 对未知类名静默生成空样式）、在主题生成器之外声明 `--color-*`。新令牌要在同一次改动里有消费方；先考虑能否复用语义令牌或状态角色，没有消费方的令牌按 ARCH-5 删除。
 
 ### 3. 主题切换功能
 
