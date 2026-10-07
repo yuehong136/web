@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import { useTranslation } from 'react-i18next'
 import { FileText, Search, Star } from 'lucide-react'
 
@@ -24,6 +24,7 @@ import type {
   RetrievalResultView,
   SearchRequestScope,
 } from './types'
+import { formatResultScore, hasUnavailableScore } from './utils'
 
 interface ResultPanelProps {
   hasSearched: boolean
@@ -51,8 +52,6 @@ interface ResultPanelProps {
   onPageChange: (page: number) => void
   onPageSizeChange: (size: number) => void
 }
-
-const formatPercent = (value: number): string => `${(value * 100).toFixed(1)}%`
 
 export const ResultPanel: React.FC<ResultPanelProps> = ({
   hasSearched,
@@ -162,7 +161,7 @@ export const ResultPanel: React.FC<ResultPanelProps> = ({
           <PageLoadingState
             title={t('knowledge.search.searching')}
             description={t('knowledge.search.searchingDescription')}
-            role="status"
+            aria-live="polite"
           />
         ) : searchError ? (
           <PageErrorState
@@ -197,10 +196,15 @@ export const ResultPanel: React.FC<ResultPanelProps> = ({
                 })}
               </span>
             }
-            role="status"
+            aria-live="polite"
           />
         ) : (
           <div className="space-y-space-base">
+            {results.some(hasUnavailableScore) && (
+              <p className="text-xs text-text-secondary">
+                {t('knowledge.search.scoreUnavailableNote')}
+              </p>
+            )}
             {results.map((result, index) => (
               <RetrievalResultCard
                 key={result.id}
@@ -284,6 +288,8 @@ const RetrievalResultCard: React.FC<RetrievalResultCardProps> = ({
   onOpen,
 }) => {
   const { t } = useTranslation()
+  const { scores } = result
+  const combined = formatResultScore(scores.combined, t)
   const hasMore =
     result.text.length > 200 ||
     Boolean(result.highlight && result.highlight.length > 200)
@@ -297,21 +303,28 @@ const RetrievalResultCard: React.FC<RetrievalResultCardProps> = ({
           </div>
           <p className="truncate text-xs text-text-tertiary">ID: {result.id}</p>
         </div>
+        {/* 不可用的评分改用中性描边徽标，文字写明“不可用”，颜色不是唯一信号 */}
         <div className="flex flex-wrap items-center justify-end gap-space-xs">
-          <Tooltip
-            content={`${t('knowledge.search.similarity')}: ${formatPercent(result.scores.combined)}`}
-          >
-            <Badge variant="blue" className="text-xs">
+          <Tooltip content={`${t('knowledge.search.similarity')}: ${combined}`}>
+            <Badge
+              variant={scores.combined === null ? 'outline' : 'blue'}
+              className="text-xs"
+            >
               <Star className="mr-1 h-3 w-3" />
-              {t('knowledge.search.similarityShort')}{' '}
-              {formatPercent(result.scores.combined)}
+              {t('knowledge.search.similarityShort')} {combined}
             </Badge>
           </Tooltip>
-          <Badge variant="green" className="text-xs">
-            {t('knowledge.search.vector')} {formatPercent(result.scores.vector)}
+          <Badge
+            variant={scores.vector === null ? 'outline' : 'green'}
+            className="text-xs"
+          >
+            {t('knowledge.search.vector')} {formatResultScore(scores.vector, t)}
           </Badge>
-          <Badge variant="purple" className="text-xs">
-            {t('knowledge.search.text')} {formatPercent(result.scores.term)}
+          <Badge
+            variant={scores.term === null ? 'outline' : 'purple'}
+            className="text-xs"
+          >
+            {t('knowledge.search.text')} {formatResultScore(scores.term, t)}
           </Badge>
         </div>
       </div>

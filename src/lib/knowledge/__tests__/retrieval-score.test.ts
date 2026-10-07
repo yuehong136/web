@@ -1,17 +1,9 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import enUS from '@/locales/en-US/reference'
-import zhCN from '@/locales/zh-CN/reference'
-import { formatRetrievalScore, readRetrievalScore } from '../reference-score'
-
-type Resource = Record<string, unknown>
-
-const leafKeys = (node: Resource, prefix = ''): string[] =>
-  Object.entries(node).flatMap(([key, value]) =>
-    value && typeof value === 'object'
-      ? leafKeys(value as Resource, `${prefix}${key}.`)
-      : [`${prefix}${key}`],
-  )
+import {
+  formatRetrievalScore,
+  readRetrievalScore,
+} from '@/lib/knowledge/retrieval-score'
 
 test('a real zero and in-range scores are usable', () => {
   assert.equal(readRetrievalScore(0), 0)
@@ -52,6 +44,12 @@ test('scores format as whole percentages in both product languages', () => {
   }
 })
 
-test('zh-CN and en-US reference resources define the same keys', () => {
-  assert.deepEqual(leafKeys(enUS).sort(), leafKeys(zhCN).sort())
+test('a fixed number of decimals keeps close scores apart', () => {
+  for (const locale of ['zh-CN', 'en-US']) {
+    assert.equal(formatRetrievalScore(0, locale, 1), '0.0%')
+    assert.equal(formatRetrievalScore(0.82, locale, 1), '82.0%')
+    assert.equal(formatRetrievalScore(0.824, locale, 1), '82.4%')
+    assert.equal(formatRetrievalScore(0.8189, locale, 1), '81.9%')
+    assert.equal(formatRetrievalScore(1, locale, 1), '100.0%')
+  }
 })

@@ -10,9 +10,10 @@ export interface RetrievalResult {
   doc_id: string
   docnm_kwd: string
   kb_id: string
-  similarity: number
-  vector_similarity: number
-  term_similarity: number
+  // 存储未计算的分项后端给 null；适配层统一用 readRetrievalScore 判定，不直接读数
+  similarity?: number | null
+  vector_similarity?: number | null
+  term_similarity?: number | null
   highlight?: string
   positions?: number[][]
 }
@@ -35,10 +36,11 @@ export interface RetrievalResultView {
   text: string
   highlight?: string
   doc: { id: string; name: string; extension: string }
+  /** 有效评分在 [0, 1] 内，0 是真实评分；null 是缺失或无效（含超出范围），显示“不可用”，不按 0 计 */
   scores: {
-    combined: number
-    vector: number
-    term: number
+    combined: number | null
+    vector: number | null
+    term: number | null
   }
 }
 

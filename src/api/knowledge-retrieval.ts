@@ -52,9 +52,10 @@ export const knowledgeRetrievalAPI = {
       doc_id: string
       docnm_kwd: string
       kb_id: string
-      similarity: number
-      vector_similarity: number
-      term_similarity: number
+      // 存储未计算的评分分项为 null
+      similarity: number | null
+      vector_similarity: number | null
+      term_similarity: number | null
       highlight?: string
       positions?: number[][]
     }>

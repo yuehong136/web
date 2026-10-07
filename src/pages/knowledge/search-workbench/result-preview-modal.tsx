@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import { useTranslation } from 'react-i18next'
 import { Code, Eye, Search, Star, Zap } from 'lucide-react'
 
@@ -15,6 +15,7 @@ import { FileIcon } from '@/components/ui/file-icon'
 import { HighlightText } from '@/components/knowledge/HighlightText'
 
 import type { RetrievalResultView } from './types'
+import { formatResultScore } from './utils'
 
 interface ResultPreviewModalProps {
   result: RetrievalResultView | null
@@ -23,8 +24,6 @@ interface ResultPreviewModalProps {
   onTogglePreview: () => void
   onClose: () => void
 }
-
-const formatPercent = (value: number): string => `${(value * 100).toFixed(1)}%`
 
 export const ResultPreviewModal: React.FC<ResultPreviewModalProps> = ({
   result,
@@ -92,16 +91,16 @@ export const ResultPreviewModal: React.FC<ResultPreviewModalProps> = ({
               </div>
             </DialogHeader>
 
-            <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4 scrollbar-thin">
+            <div className="scrollbar-thin min-h-0 flex-1 overflow-y-auto px-6 py-4">
               {isMarkdownPreview ? (
-                <div className="rounded-radius-md h-full w-full overflow-y-auto border border-border-default bg-background-subtle px-4 py-3 scrollbar-thin">
-                  <pre className="whitespace-pre-wrap break-words text-sm leading-relaxed text-text-secondary">
+                <div className="scrollbar-thin h-full w-full overflow-y-auto rounded-radius-md border border-border-default bg-background-subtle px-4 py-3">
+                  <pre className="text-sm leading-relaxed break-words whitespace-pre-wrap text-text-secondary">
                     {result.text}
                   </pre>
                 </div>
               ) : (
-                <div className="rounded-radius-md h-full w-full overflow-y-auto border border-border-default bg-background-subtle px-4 py-3 scrollbar-thin">
-                  <div className="whitespace-pre-wrap text-sm leading-relaxed text-text-secondary">
+                <div className="scrollbar-thin h-full w-full overflow-y-auto rounded-radius-md border border-border-default bg-background-subtle px-4 py-3">
+                  <div className="text-sm leading-relaxed whitespace-pre-wrap text-text-secondary">
                     <HighlightText
                       html={result.highlight}
                       text={result.text}
@@ -119,17 +118,17 @@ export const ResultPreviewModal: React.FC<ResultPreviewModalProps> = ({
                   <span className="flex items-center">
                     <Star className="mr-1 h-3 w-3" />
                     {t('knowledge.search.similarity')}:{' '}
-                    {formatPercent(result.scores.combined)}
+                    {formatResultScore(result.scores.combined, t)}
                   </span>
                   <span className="flex items-center">
                     <Zap className="mr-1 h-3 w-3" />
                     {t('knowledge.search.vector')}:{' '}
-                    {formatPercent(result.scores.vector)}
+                    {formatResultScore(result.scores.vector, t)}
                   </span>
                   <span className="flex items-center">
                     <Search className="mr-1 h-3 w-3" />
                     {t('knowledge.search.text')}:{' '}
-                    {formatPercent(result.scores.term)}
+                    {formatResultScore(result.scores.term, t)}
                   </span>
                 </div>
                 <div className="text-xs text-text-tertiary">

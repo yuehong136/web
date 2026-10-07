@@ -911,6 +911,9 @@ export default {
       expand: 'Expand',
       fromDocument: 'From document',
       details: 'Details',
+      scoreUnavailable: 'Unavailable',
+      scoreUnavailableNote:
+        '“Unavailable” means retrieval returned no valid score between 0% and 100%: the score is missing or invalid, or a ranking boost such as PageRank pushed it above 100%. It is not counted as 0, and results stay in the order returned by retrieval.',
       scope: {
         title: 'Scope of this request',
         allDocuments: 'Documents: entire knowledge base',

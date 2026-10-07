@@ -1,3 +1,4 @@
+import { readRetrievalScore } from '@/lib/knowledge/retrieval-score'
 import type { LLMModel } from '@/types/api'
 
 import type {
@@ -13,13 +14,6 @@ const getFileExtension = (fileName: string): string => {
   return fileName.slice(lastDot + 1).toLowerCase()
 }
 
-const clampScore = (value: number | undefined): number => {
-  if (typeof value !== 'number' || Number.isNaN(value)) return 0
-  if (value < 0) return 0
-  if (value > 1) return 1
-  return value
-}
-
 export const toRetrievalResultView = (
   raw: RetrievalResult,
 ): RetrievalResultView => ({
@@ -31,13 +25,18 @@ export const toRetrievalResultView = (
     name: raw.docnm_kwd,
     extension: getFileExtension(raw.docnm_kwd),
   },
+  // 缺失、null、NaN、非数字与超出 [0, 1] 的评分都记为 null（不可用），不再夹成 0 或 1
   scores: {
-    combined: clampScore(raw.similarity),
-    vector: clampScore(raw.vector_similarity),
-    term: clampScore(raw.term_similarity),
+    combined: readRetrievalScore(raw.similarity),
+    vector: readRetrievalScore(raw.vector_similarity),
+    term: readRetrievalScore(raw.term_similarity),
   },
 })
 
+/**
+ * 保持后端返回的顺序：排序和分页都在检索服务端完成，前端只拿到当前页，
+ * 不按评分重排，缺失或无效评分因此不会被当成 0 参与排序。
+ */
 export const toRetrievalResultViewList = (
   raws: RetrievalResult[],
 ): RetrievalResultView[] => raws.map(toRetrievalResultView)

@@ -866,6 +866,9 @@ export default {
       expand: '展开',
       fromDocument: '来自文档',
       details: '详情',
+      scoreUnavailable: '不可用',
+      scoreUnavailableNote:
+        '“不可用”表示检索没有返回 0–100% 之间的有效评分：评分缺失或无效，或被 PageRank 等排序加权推高到 100% 以上。它不按 0 分计，结果保持检索返回的顺序。',
       scope: {
         title: '本次请求范围',
         allDocuments: '文档：整个知识库',

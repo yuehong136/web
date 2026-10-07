@@ -21,7 +21,10 @@ import { cn, copyToClipboard } from '@/lib/utils'
 import { getCurrentLanguage } from '@/locales/i18n'
 import type { ReferenceChunk } from '@/utils/reference-replacer'
 import { truncateId } from './reference-meta'
-import { formatRetrievalScore, readRetrievalScore } from './reference-score'
+import {
+  formatRetrievalScore,
+  readRetrievalScore,
+} from '@/lib/knowledge/retrieval-score'
 
 interface ReferenceDiagnosticsProps {
   chunk: ReferenceChunk
