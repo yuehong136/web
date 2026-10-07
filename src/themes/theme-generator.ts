@@ -298,7 +298,7 @@ export const lightTokens: DesignTokens = {
 
   'components-alert-warning-bg': '#fffbeb',
   'components-alert-warning-border': '#f59e0b',
-  'components-alert-warning-text': '#d97706',
+  'components-alert-warning-text': '#b45309',
 
   'components-alert-error-bg': '#fef2f2',
   'components-alert-error-border': '#ef4444',

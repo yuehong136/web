@@ -60,7 +60,7 @@ export const lightTokenValues: Readonly<DesignTokens> = Object.freeze({
   'components-alert-success-text': '#15803d',
   'components-alert-warning-bg': '#fffbeb',
   'components-alert-warning-border': '#f59e0b',
-  'components-alert-warning-text': '#d97706',
+  'components-alert-warning-text': '#b45309',
   'components-anchor-bg': '#ffffff',
   'components-anchor-border': '#e5e7eb',
   'components-anchor-link': '#6b7280',

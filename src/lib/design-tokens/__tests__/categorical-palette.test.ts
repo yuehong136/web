@@ -344,6 +344,19 @@ for (const mode of ['light', 'dark'] as const) {
         `${mode} ${status} badge labels are ${ratio.toFixed(2)}:1; expected at least 4.5:1`,
       )
     }
+    for (const background of surfaces) {
+      const ratio = contrast(
+        values['components-alert-warning-text'],
+        compositeBackground(
+          values['components-alert-warning-bg'],
+          values[background],
+        ),
+      )
+      assert.ok(
+        ratio >= 4.5,
+        `${mode} warning alert text over ${background} is ${ratio.toFixed(2)}:1; expected at least 4.5:1`,
+      )
+    }
   })
 
   test(`${mode} generated JavaScript and committed CSS match the canonical theme tokens`, async () => {
