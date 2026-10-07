@@ -148,7 +148,14 @@ export function usePauseKnowledgeTask() {
       kbId: string
       type: GenerateTaskType
     }) => {
-      await agentAPI.cancelDataflow(params.taskId)
+      if (params.type === GenerateTaskType.GraphRAG) {
+        await knowledgeAPI.generate.delete(params.kbId, 'graph', {
+          wipe: false,
+          taskId: params.taskId,
+        })
+      } else {
+        await agentAPI.cancelDataflow(params.taskId)
+      }
     },
     onSettled: (_data, _error, variables) => {
       queryClient.invalidateQueries({

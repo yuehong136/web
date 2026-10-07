@@ -91,14 +91,22 @@ it.each([GenerateTaskType.GraphRAG, GenerateTaskType.Raptor])(
   'pause %s uses the trace Task ID, preserves products and reports request semantics',
   async (type) => {
     const cancel = vi.spyOn(agentAPI, 'cancelDataflow').mockResolvedValue(true)
-    const wipe = vi.spyOn(knowledgeAPI.generate, 'delete')
+    const wipe = vi.spyOn(knowledgeAPI.generate, 'delete').mockResolvedValue({})
     const hook = await mount()
     const id = (
       type === GenerateTaskType.GraphRAG ? hook.state.graph : hook.state.raptor
     ).traceData!.id
     await act(async () => hook.state.handlePause(id, type))
-    expect(cancel).toHaveBeenCalledExactlyOnceWith(id)
-    expect(wipe).not.toHaveBeenCalled()
+    if (type === GenerateTaskType.GraphRAG) {
+      expect(wipe).toHaveBeenCalledExactlyOnceWith('kb-A', 'graph', {
+        wipe: false,
+        taskId: id,
+      })
+      expect(cancel).not.toHaveBeenCalled()
+    } else {
+      expect(cancel).toHaveBeenCalledExactlyOnceWith(id)
+      expect(wipe).not.toHaveBeenCalled()
+    }
     expect(notifications.success).toHaveBeenCalledOnce()
     expect(notifications.success.mock.calls[0]?.[0]).toMatch(
       /Stop requested for .* Waiting for the task to respond/,
@@ -107,7 +115,7 @@ it.each([GenerateTaskType.GraphRAG, GenerateTaskType.Raptor])(
 )
 
 it('failure uses fixed copy, invalidates the original KB and does not claim success', async () => {
-  vi.spyOn(agentAPI, 'cancelDataflow').mockRejectedValue(
+  vi.spyOn(knowledgeAPI.generate, 'delete').mockRejectedValue(
     new APIError(200, '109', 'private raw denial'),
   )
   const hook = await mount()
@@ -131,9 +139,9 @@ it('failure uses fixed copy, invalidates the original KB and does not claim succ
 it.each(['KB-switch', 'new-run', 'trace-change'] as const)(
   'late pause feedback is ignored after %s; missing ID and repeated clicks do not cancel twice',
   async (change) => {
-    const ack = deferred<boolean>()
+    const ack = deferred<Record<string, never>>()
     const cancel = vi
-      .spyOn(agentAPI, 'cancelDataflow')
+      .spyOn(knowledgeAPI.generate, 'delete')
       .mockReturnValueOnce(ack.promise)
     vi.spyOn(knowledgeAPI.generate, 'run').mockResolvedValue({
       task_id: 'new-task',
@@ -145,7 +153,10 @@ it.each(['KB-switch', 'new-run', 'trace-change'] as const)(
       pending = hook.state.handlePause('graph-task', GenerateTaskType.GraphRAG)
       await hook.state.handlePause('graph-task', GenerateTaskType.GraphRAG)
     })
-    expect(cancel).toHaveBeenCalledExactlyOnceWith('graph-task')
+    expect(cancel).toHaveBeenCalledExactlyOnceWith('kb-A', 'graph', {
+      wipe: false,
+      taskId: 'graph-task',
+    })
     if (change === 'KB-switch') await hook.select('kb-B')
     if (change === 'new-run')
       await act(async () => hook.state.handleRun(GenerateTaskType.GraphRAG))

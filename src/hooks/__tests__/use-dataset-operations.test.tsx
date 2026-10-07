@@ -76,8 +76,11 @@ it('pause only cancels; explicit delete clears the selected index', async () => 
       type: GenerateTaskType.GraphRAG,
     })
   })
-  expect(cancel).toHaveBeenCalledWith('task')
-  expect(wipe).not.toHaveBeenCalled()
+  expect(cancel).not.toHaveBeenCalled()
+  expect(wipe).toHaveBeenCalledWith('kb', 'graph', {
+    wipe: false,
+    taskId: 'task',
+  })
   const remove = await mountHook(useUnbindKnowledgeTask)
   await act(async () => {
     await remove

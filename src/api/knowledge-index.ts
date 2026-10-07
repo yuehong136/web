@@ -29,6 +29,14 @@ export const knowledgeIndexAPI = {
   delete: (
     datasetId: string,
     type: DatasetIndexType,
+    options?: { wipe?: boolean; taskId?: string },
   ): Promise<Record<string, never>> =>
-    apiClient.delete(indexPath(datasetId, type), knowledgeRestConfig),
+    apiClient.delete(
+      indexPath(datasetId, type) +
+        (options?.wipe === false ? '&wipe=false' : '') +
+        (options?.taskId
+          ? `&task_id=${encodeURIComponent(options.taskId)}`
+          : ''),
+      knowledgeRestConfig,
+    ),
 }

@@ -263,3 +263,34 @@ test('dataset updates send pipeline switches through ext and leave unedited asso
   await knowledgeAPI.knowledgeBase.update({ kb_id: 'kb', name: 'New name' })
   assert.deepEqual(bodies[2], { name: 'New name' })
 })
+
+test('pause opts into preserved artifacts while explicit deletion keeps wipe default', async (t) => {
+  const calls: string[] = []
+  t.mock.method(apiClient, 'delete', async (path: string) => {
+    calls.push(path)
+    return {}
+  })
+  await knowledgeAPI.generate.delete('kb/1', 'graph', {
+    wipe: false,
+    taskId: 'task/1',
+  })
+  await knowledgeAPI.generate.delete('kb/1', 'graph')
+  assert.deepEqual(calls, [
+    '/v1/datasets/kb%2F1/index?type=graph&wipe=false&task_id=task%2F1',
+    '/v1/datasets/kb%2F1/index?type=graph',
+  ])
+})
+
+test('explicit zero dataset counters survive detail normalization', async (t) => {
+  t.mock.method(apiClient, 'get', async () => ({
+    id: 'empty',
+    document_count: 0,
+    chunk_count: 0,
+    chunk_method: 'naive',
+    embedding_model: 'emb',
+    parser_config: {},
+  }))
+  const result = await knowledgeAPI.knowledgeBase.get('empty')
+  assert.equal(result.doc_num, 0)
+  assert.equal(result.chunk_num, 0)
+})
