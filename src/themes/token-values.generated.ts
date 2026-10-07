@@ -1559,7 +1559,7 @@ export const darkTokenValues: Readonly<DesignTokens> = Object.freeze({
   'text-accent': '#60a5fa',
   'text-caption': '#a1a1aa',
   'text-disabled': '#71717a',
-  'text-error': '#f87171',
+  'text-error': '#fca5a5',
   'text-inverted': '#111827',
   'text-muted': '#a1a1aa',
   'text-on-accent': '#ffffff',

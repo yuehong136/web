@@ -981,7 +981,7 @@ export const darkTokens: DesignTokens = {
   'text-accent': '#60a5fa',
   'text-success': '#4ade80',
   'text-warning': '#fbbf24',
-  'text-error': '#f87171',
+  'text-error': '#fca5a5',
   'text-inverted': '#111827',
 
   // ===== 背景系统 =====

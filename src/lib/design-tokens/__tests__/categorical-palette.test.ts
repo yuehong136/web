@@ -13,7 +13,7 @@ import {
   lightTokenValues,
   darkTokenValues,
 } from '@/themes/token-values.generated'
-import { interactionPalette } from '@/themes/interaction-palette'
+import { interactionPalette, rgbChannels } from '@/themes/interaction-palette'
 import {
   generateThemeCSS,
   lightTokens,
@@ -359,26 +359,15 @@ for (const mode of ['light', 'dark'] as const) {
         )
       }
     }
-    // Status text sits on subtle fills, outline buttons and its own tint.
-    // Success and warning also label the bulk enable and stop outline
-    // buttons, so their hover fill is checked as well.
-    const statusTextFills = {
-      success: [
-        'components-button-secondary-bg-hover',
-        'status-success-subtle',
-      ],
-      warning: [
-        'components-button-secondary-bg-hover',
-        'status-warning-subtle',
-      ],
-      error: ['status-error-subtle'],
-    } as const
+    // Status text sits on subtle fills, outline buttons (at rest and on
+    // hover, as in the bulk enable and stop actions) and its own tint.
     for (const status of ['success', 'warning', 'error'] as const) {
       for (const background of [
         ...surfaces,
         'background-subtle',
         'components-button-secondary-bg',
-        ...statusTextFills[status],
+        'components-button-secondary-bg-hover',
+        `status-${status}-subtle`,
       ] as const) {
         const ratio = contrast(
           values[`text-${status}`],
@@ -387,6 +376,24 @@ for (const mode of ['light', 'dark'] as const) {
         assert.ok(
           ratio >= 4.5,
           `${mode} ${status} text over ${background} is ${ratio.toFixed(2)}:1; expected at least 4.5:1`,
+        )
+      }
+    }
+    // Search highlights tint text-error with itself, 10% at rest and 16% on
+    // hover, inside result cards that lighten on hover.
+    for (const percent of [10, 16]) {
+      const highlight = `rgba(${rgbChannels(values['text-error']).replaceAll(' ', ', ')}, ${percent / 100})`
+      for (const background of [
+        'background-surface',
+        'components-card-bg-hover',
+      ] as const) {
+        const ratio = contrast(
+          values['text-error'],
+          compositeBackground(highlight, values[background]),
+        )
+        assert.ok(
+          ratio >= 4.5,
+          `${mode} search highlights with a ${percent}% tint over ${background} are ${ratio.toFixed(2)}:1; expected at least 4.5:1`,
         )
       }
     }
