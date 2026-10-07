@@ -200,7 +200,9 @@ export function useCreateAppPreview(options: PreviewOptions) {
           { id: assistantId, role: 'assistant', content: '' },
         ])
         appended = true
-        setInputValue('')
+        setInputValue((current) =>
+          current.trim() === content.trim() ? '' : current,
+        )
         setStatus('streaming')
         setRunDetails({ ...baseDetails, status: 'streaming' })
         const response = await conversationAPI.completion(

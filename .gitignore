@@ -32,6 +32,11 @@ web-deploy.tar.gz
 docs/*
 !docs/agent-guidance/
 !docs/agent-guidance/**
+!docs/acceptance/
+docs/acceptance/*
+!docs/acceptance/studio-editor-20261007.md
+!docs/acceptance/studio-editor-20261007/
+!docs/acceptance/studio-editor-20261007/**
 !docs/design-reviews/
 docs/design-reviews/*
 !docs/design-reviews/document-chunks-workspace.md

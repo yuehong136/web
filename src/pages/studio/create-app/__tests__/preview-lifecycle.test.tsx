@@ -72,6 +72,7 @@ describe('Studio preview request ownership', () => {
       .spyOn(conversationAPI, 'completion')
       .mockResolvedValue(sse('answer'))
     await act(async () => root.render(<Harness />))
+    await act(async () => preview.setInputValue('first'))
     let task!: Promise<void>
     await act(async () => {
       task = preview.handleSendPreviewMessage('first')
@@ -79,12 +80,14 @@ describe('Studio preview request ownership', () => {
     })
     expect(preview.status).toBe('preparing')
     expect(create).toHaveBeenCalledOnce()
+    await act(async () => preview.setInputValue('next message draft'))
     await act(async () => {
       pending.resolve({ id: 'conversation-1' })
       await task
     })
     expect(complete).toHaveBeenCalledOnce()
     expect(preview.status).toBe('completed')
+    expect(preview.inputValue).toBe('next message draft')
   })
   it('ignores a late conversation after stop and reset', async () => {
     const pending = deferred<{ id: string }>()

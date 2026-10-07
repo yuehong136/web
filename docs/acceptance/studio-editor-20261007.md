@@ -10,7 +10,7 @@
 - 数据查询使用既有 TanStack Query key factory，草稿使用 React Hook Form；Zustand 的新布局存储只持久化比例、标签及视图偏好，不保存表单、消息或凭证。
 - 保存先验证，再写入，再详情读回及规范化比较；新建 ID 在读回前绑定路由，失败重试不会重复创建。保存期间新编辑保留；初次查询失败不进入空配置保存流程。
 - 未保存、保存中、旧配置会话、必填自定义变量均阻止发送。保存并试聊仅在读回确认且草稿仍匹配时开启新会话；普通保存保留历史对话，开场白编辑不清空消息。
-- 会话创建与发送共用同步忙碌锁；run ID、应用身份与 AbortController 阻止迟到响应污染新会话。提供本地停止接收、显式重试、复制、引用与停止滚动跟随。
+- 会话创建与发送共用同步忙碌锁；准备期间继续输入的下一条草稿保留，run ID、应用身份与 AbortController 阻止迟到响应污染新会话。提供本地停止接收、显式重试、复制、引用与停止滚动跟随。
 - 运行详情 Sheet 展示请求配置快照、客户端耗时、结果状态及引用；关闭的采样参数显示默认值，未推测 token、成本或服务端实际执行模型。
 - 本页三个弹窗选择启用共享 Dialog 的原生模态模式，检查焦点进入、Tab 与 Escape 恢复；共享默认行为不变。Sheet 增加兼容的关闭按钮文案 prop。
 - `config-pane.tsx` 从 698 行降至 88 行，页面 hook 从 582 行降至 475 行；移除配置面板的文件体积债务基线，新源文件均低于 600 行。
@@ -19,28 +19,28 @@
 
 沿用批准方案中 2026-10-07 经 GitHub API 核对的最新稳定版及当天源码；没有以旧版教程替代源码设计。
 
-| 项目 | 稳定版 | 当天主分支参考源码 |
-| --- | --- | --- |
-| Dify | [1.17.1](https://github.com/langgenius/dify/releases/tag/1.17.1)，`8387590` | [Agent 预览头部，f4a4e15](https://github.com/langgenius/dify/blob/f4a4e15a0be184ae9966a7e4245e50c41b2c3c35/web/features/agent-v2/agent-detail/configure/components/preview/header.tsx) |
+| 项目     | 稳定版                                                                            | 当天主分支参考源码                                                                                                                                                                                                             |
+| -------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Dify     | [1.17.1](https://github.com/langgenius/dify/releases/tag/1.17.1)，`8387590`       | [Agent 预览头部，f4a4e15](https://github.com/langgenius/dify/blob/f4a4e15a0be184ae9966a7e4245e50c41b2c3c35/web/features/agent-v2/agent-detail/configure/components/preview/header.tsx)                                         |
 | Langflow | [1.12.5](https://github.com/langflow-ai/langflow/releases/tag/v1.12.5)，`5262228` | [Playground，504c02f](https://github.com/langflow-ai/langflow/blob/504c02fc47e76087b82b0e7cbe4186e9cdd916d4/src/frontend/src/components/core/playgroundComponent/sliding-container/components/flow-page-sliding-container.tsx) |
-| Langfuse | [4.54.0](https://github.com/langfuse/langfuse/releases/tag/v4.54.0)，`21f9d2b` | [MultiWindowPlayground，be0b074](https://github.com/langfuse/langfuse/blob/be0b074e58c5426e1ba0e3322ab26322695b9c8f/web/src/features/playground/page/components/MultiWindowPlayground.tsx) |
-| FastGPT | [4.17.1](https://github.com/labring/FastGPT/releases/tag/v4.17.1)，`e3d7ed3` | [ChatTest，1870d79](https://github.com/labring/FastGPT/blob/1870d7945d11b34af75fe30bdcc73ddcdd416803/projects/app/src/pageComponents/app/detail/Edit/ChatAgent/ChatTest.tsx) |
+| Langfuse | [4.54.0](https://github.com/langfuse/langfuse/releases/tag/v4.54.0)，`21f9d2b`    | [MultiWindowPlayground，be0b074](https://github.com/langfuse/langfuse/blob/be0b074e58c5426e1ba0e3322ab26322695b9c8f/web/src/features/playground/page/components/MultiWindowPlayground.tsx)                                     |
+| FastGPT  | [4.17.1](https://github.com/labring/FastGPT/releases/tag/v4.17.1)，`e3d7ed3`      | [ChatTest，1870d79](https://github.com/labring/FastGPT/blob/1870d7945d11b34af75fe30bdcc73ddcdd416803/projects/app/src/pageComponents/app/detail/Edit/ChatAgent/ChatTest.tsx)                                                   |
 
 ## 自动化验证
 
 任务源码以 [SHA-256 manifest](studio-editor-20261007/source-manifest.json) 绑定，共 47 个文件（含相关未改动依赖和既有测试）。主工作区与隔离验证工作区的这些文件内容一致。
 
-| 检查 | 实际结果 |
-| --- | --- |
+| 检查                                                         | 实际结果                                                                                                                                                 |
+| ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 保存、试聊归属、composer、引用、顶部与模态焦点的 Vitest 回归 | 24 项编辑器回归及 3 项新增共享模态回归通过；涵盖双击、创建会话期间锁定、保存并发编辑、读回失败/不匹配、停止/重开/身份切换/卸载、重试、IME 与关闭参数诊断 |
-| 编辑器状态、配置规范化与知识占位符 Node 回归 | 3 文件、15 项通过；含关闭参数的序列化比较、零值保留与中英 key 一致性 |
-| `npm run test:product-ui` | Node 3 项、Vitest 7 文件 31 项通过 |
-| `npm run test:streaming` | Node 59 项、Vitest 1 文件 3 项通过 |
-| 相关 ESLint | 编辑器、布局 store、共享 Dialog/Sheet 与新增模态测试通过 |
-| `npm run lint:file-size` | 通过，22 个在册债务文件未增长 |
-| `npm run build` | 主工作区和隔离工作区均通过，包含完整类型检查 |
-| `npm run check:bundle-size` | 通过：JS raw 26.10 / 26.13 MB；入口 gzip 32 / 120 KB；最大 chunk gzip 725 / 739 KB |
-| 隔离工作区 `npm run test:ci` | 退出 0：Node 769 项、Vitest 97 文件 585 项、desktop Node 81 项、tooling Node 10 项全部通过；新增测试由 inventory 自动纳入正式 CI |
+| 编辑器状态、配置规范化与知识占位符 Node 回归                 | 3 文件、15 项通过；含关闭参数的序列化比较、零值保留与中英 key 一致性                                                                                     |
+| `npm run test:product-ui`                                    | Node 3 项、Vitest 7 文件 31 项通过                                                                                                                       |
+| `npm run test:streaming`                                     | Node 59 项、Vitest 1 文件 3 项通过                                                                                                                       |
+| 相关 ESLint                                                  | 编辑器、布局 store、共享 Dialog/Sheet 与新增模态测试通过                                                                                                 |
+| `npm run lint:file-size`                                     | 通过，22 个在册债务文件未增长                                                                                                                            |
+| `npm run build`                                              | 主工作区和隔离工作区均通过，包含完整类型检查                                                                                                             |
+| `npm run check:bundle-size`                                  | 通过：JS raw 26.10 / 26.13 MB；入口 gzip 32 / 120 KB；最大 chunk gzip 725 / 739 KB                                                                       |
+| 隔离工作区 `npm run test:ci`                                 | 退出 0：Node 769 项、Vitest 97 文件 585 项、desktop Node 81 项、tooling Node 10 项全部通过；新增测试由 inventory 自动纳入正式 CI                         |
 
 隔离验证基线为 `b45f3192fdd8fa7f74a0e98249f923f70887e332`，仅叠加本任务文件；主工作区检查时 HEAD 为 `01147a6c7c7ea308f8ec1a04a99c8dd575ff767f`，含其他任务未提交改动。主工作区完整 CI 曾通过（Node 771、Vitest 585、desktop 81、tooling 10）；最终两次重跑在未改动的 `mcp-query-ownership.test.tsx` 中出现“第二个服务器响应尚未通知视图”的时序失败，专项重跑通过。隔离最终完整 CI 通过；没有为此修改 MCP 模块。早期知识取消模块的并行开发失败也未混入本任务提交。
 
@@ -56,27 +56,29 @@
 4. 仅重新加载独立验收应用，读回最终指令与模型；最终代码在手机视图重新试聊，真实返回 `STUDIO_OK_2`，运行详情显示 Completed、请求模型 `qwen-flash`、前端耗时 0.53s。
 5. 检查指令/知识/模型/体验标签、Markdown 原文/预览、变量入口、知识库列表读取（9 行）、双栏鼠标与键盘调整、专注编辑、展开试聊、退出后的比例及焦点。
 6. 检查三个弹窗的模态焦点、Tab 到字段、Escape 关闭并恢复入口；没有在原应用添加知识库、变量或调用保存。
+7. 补充准备阶段输入保护后，重新加载独立应用并真实试聊，再次得到 `STUDIO_OK_2`；会话创建期间继续输入的情况由扩展后的并发回归确定性覆盖。
 
-| 视口/外观 | 实际检查 |
-| --- | --- |
-| 953×894 | 文档宽度等于视口宽度；小于 880px 工作区时使用单区切换，已有试聊消息保留 |
-| 1280×800 | 双栏拖动与键盘调整，文档宽度 1280，无页面横向溢出 |
-| 1440×900 | 双栏布局，无页面横向溢出 |
-| 375×812 | 两行配置标签、窄屏编辑/试聊、固定 composer 与模态弹窗可用；文档宽度 375 |
-| 中英、明暗主题、长指令 | 实际页面及模型预设渲染已检查，1107 字符原始指令可读 |
-| 720×450 等效重排 | 无页面横向溢出；这是 1440×900 在 200% 下的等效布局宽高，原生浏览器 200% 缩放未验证 |
+| 视口/外观              | 实际检查                                                                           |
+| ---------------------- | ---------------------------------------------------------------------------------- |
+| 953×894                | 文档宽度等于视口宽度；小于 880px 工作区时使用单区切换，已有试聊消息保留            |
+| 1280×800               | 双栏拖动与键盘调整，文档宽度 1280，无页面横向溢出                                  |
+| 1440×900               | 双栏布局，无页面横向溢出                                                           |
+| 375×812                | 两行配置标签、窄屏编辑/试聊、固定 composer 与模态弹窗可用；文档宽度 375            |
+| 中英、明暗主题、长指令 | 实际页面及模型预设渲染已检查，1107 字符原始指令可读                                |
+| 720×450 等效重排       | 无页面横向溢出；这是 1440×900 在 200% 下的等效布局宽高，原生浏览器 200% 缩放未验证 |
 
 ## 截图
 
-| 证据 | 内容 |
-| --- | --- |
-| [中文亮色](studio-editor-20261007/04-desktop-zh-light.jpg) / [中文暗色](studio-editor-20261007/05-desktop-zh-dark.jpg) | 原应用长指令的编辑工作区 |
-| [英文暗色模型](studio-editor-20261007/06-model-en-dark.jpg) | 完整预设单选与参数配置 |
-| [保存后的旧对话](studio-editor-20261007/02-saved-history.jpg) | 保存保留历史回复并要求新试聊 |
-| [953px 试聊](studio-editor-20261007/03-narrow-chat.jpg) | 窄屏切换后保留回复 |
-| [手机编辑](studio-editor-20261007/07-mobile-editor.jpg) / [变量弹窗键盘](studio-editor-20261007/08-variable-dialog-keyboard.jpg) | 375px 指令区及模态焦点 |
-| [手机真实回复](studio-editor-20261007/09-mobile-live-chat.jpg) / [桌面最终闭环](studio-editor-20261007/10-desktop-live-chat.jpg) | 最终代码的 `STUDIO_OK_2` 回复与保存状态 |
-| [早期运行详情](studio-editor-20261007/01-live-run-details.jpg) | 真实请求快照；随后将详情入口移到试聊标题栏 |
+| 证据                                                                                                                             | 内容                                       |
+| -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| [中文亮色](studio-editor-20261007/04-desktop-zh-light.jpg) / [中文暗色](studio-editor-20261007/05-desktop-zh-dark.jpg)           | 原应用长指令的编辑工作区                   |
+| [英文暗色模型](studio-editor-20261007/06-model-en-dark.jpg)                                                                      | 完整预设单选与参数配置                     |
+| [保存后的旧对话](studio-editor-20261007/02-saved-history.jpg)                                                                    | 保存保留历史回复并要求新试聊               |
+| [953px 试聊](studio-editor-20261007/03-narrow-chat.jpg)                                                                          | 窄屏切换后保留回复                         |
+| [手机编辑](studio-editor-20261007/07-mobile-editor.jpg) / [变量弹窗键盘](studio-editor-20261007/08-variable-dialog-keyboard.jpg) | 375px 指令区及模态焦点                     |
+| [手机真实回复](studio-editor-20261007/09-mobile-live-chat.jpg) / [桌面最终闭环](studio-editor-20261007/10-desktop-live-chat.jpg) | 最终代码的 `STUDIO_OK_2` 回复与保存状态    |
+| [早期运行详情](studio-editor-20261007/01-live-run-details.jpg)                                                                   | 真实请求快照；随后将详情入口移到试聊标题栏 |
+| [补充修复后重新加载](studio-editor-20261007/11-final-reload-live-chat.jpg)                                                       | 最终读回、真实回复及下一条输入草稿         |
 
 ## 限制与开发期间影响
 
