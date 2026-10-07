@@ -567,6 +567,7 @@ export const ChatSection = ({
             onStop={onStop}
             isStreaming={isStreaming}
             scopeLocked={isStreaming || isSendPending}
+            sendBlocked={isLoadingHistory}
             variant="chat"
           />
         </div>

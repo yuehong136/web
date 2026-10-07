@@ -24,6 +24,7 @@ const render = (props: {
   inputValue: string
   isStreaming?: boolean
   scopeLocked?: boolean
+  sendBlocked?: boolean
 }) =>
   act(async () =>
     root.render(
@@ -95,6 +96,24 @@ it('locks the request scope and send while a send is being prepared', async () =
       .querySelector('[data-testid="model-selector"]')
       ?.getAttribute('data-disabled'),
   ).toBe('true')
+})
+
+// 历史载入中发送会被拒绝：按钮要一并禁用，但切换应用、技能或模型仍是新的选择
+it('blocks only send while the selected history loads', async () => {
+  await render({ inputValue: '草稿', sendBlocked: true })
+
+  expect(host.querySelector('textarea')?.disabled).toBe(false)
+  expect(byLabel('提交')?.disabled).toBe(true)
+  expect(byLabel('选择技能或应用')?.disabled).toBe(false)
+  expect(byLabel('移除 流式引用验证')?.disabled).toBe(false)
+  expect(
+    host
+      .querySelector('[data-testid="model-selector"]')
+      ?.getAttribute('data-disabled'),
+  ).toBe('false')
+
+  await act(async () => byLabel('提交')!.click())
+  expect(onSend).not.toHaveBeenCalled()
 })
 
 it('enables send and scope changes again when idle with a draft', async () => {

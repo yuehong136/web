@@ -1,4 +1,11 @@
-import React, { useRef, useEffect, useCallback } from 'react'
+import { useRef, useEffect, useCallback } from 'react'
+import type {
+  ChangeEvent,
+  FC,
+  KeyboardEvent,
+  ReactNode,
+  RefObject,
+} from 'react'
 import { useTranslation } from 'react-i18next'
 import { ArrowUp, Square } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -8,12 +15,13 @@ import { SelectedTags } from './SelectedTags'
 import { InputToolbar } from './InputToolbar'
 import type { DialogApp } from '@/types/api'
 import type { MCPServer } from '@/types/mcp'
+import type { MyLLMProvider } from '@/stores/model'
 
 interface ChatInputBoxProps {
   // 输入值
   inputValue: string
   onInputChange: (value: string) => void
-  onKeyDown: (e: React.KeyboardEvent) => void
+  onKeyDown: (e: KeyboardEvent) => void
   placeholder?: string
 
   // 已选项
@@ -25,11 +33,11 @@ interface ChatInputBoxProps {
   // 技能面板
   isSkillPanelOpen: boolean
   onSkillPanelToggle: () => void
-  skillPanelRef: React.RefObject<HTMLButtonElement>
-  skillPanelContent: React.ReactNode
+  skillPanelRef: RefObject<HTMLButtonElement>
+  skillPanelContent: ReactNode
 
   // 模型选择
-  models: Record<string, any> | null
+  models: MyLLMProvider | null
   selectedModelId: string
   onModelSelect: (modelId: string | null) => void
   modelsLoading: boolean
@@ -41,12 +49,14 @@ interface ChatInputBoxProps {
   isStreaming?: boolean
   /** 请求已接纳（会话准备或流式中）：锁定技能/应用、模型与发送，输入框仍可编辑 */
   scopeLocked?: boolean
+  /** 暂时不接纳发送（如选中会话的历史载入中）：只禁用发送，输入与范围选择照常 */
+  sendBlocked?: boolean
 
   // 变体
   variant?: 'welcome' | 'chat'
 }
 
-export const ChatInputBox: React.FC<ChatInputBoxProps> = ({
+export const ChatInputBox: FC<ChatInputBoxProps> = ({
   inputValue,
   onInputChange,
   onKeyDown,
@@ -68,6 +78,7 @@ export const ChatInputBox: React.FC<ChatInputBoxProps> = ({
   onStop,
   isStreaming = false,
   scopeLocked = isStreaming,
+  sendBlocked = false,
   variant = 'welcome',
 }) => {
   const { t } = useTranslation()
@@ -84,7 +95,7 @@ export const ChatInputBox: React.FC<ChatInputBoxProps> = ({
   }, [inputValue])
 
   const handleInputChange = useCallback(
-    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    (e: ChangeEvent<HTMLTextAreaElement>) => {
       onInputChange(e.target.value)
     },
     [onInputChange],
@@ -93,7 +104,7 @@ export const ChatInputBox: React.FC<ChatInputBoxProps> = ({
   const isWelcome = variant === 'welcome'
   const hasSelectedItems =
     selectedMCPServers.length > 0 || selectedApps.length > 0
-  const canSend = Boolean(inputValue.trim()) && !scopeLocked
+  const canSend = Boolean(inputValue.trim()) && !scopeLocked && !sendBlocked
 
   return (
     <div
