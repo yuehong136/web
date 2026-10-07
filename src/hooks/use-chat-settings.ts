@@ -1,7 +1,9 @@
 import { useCallback, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { dialogAPI } from '@/api/dialog'
 import { knowledgeAPI } from '@/api/knowledge'
+import { settingsToDialogUpdate } from '@/hooks/chat-settings-payload'
 import { knowledgeKeys } from '@/hooks/use-knowledge-request'
 import { dialogKeys } from '@/hooks/use-dialog-apps'
 import { toast } from '@/lib/toast'
@@ -120,82 +122,11 @@ export function dialogToSettings(
 }
 
 /**
- * 从 ChatSettings 转换为 DialogApp 更新请求
- */
-export function settingsToDialogUpdate(
-  settings: ChatSettings,
-): Partial<DialogApp> & { dataset_ids: string[] } {
-  // 构建 meta_data_filter
-  let metaDataFilter: any = { method: 'disabled' }
-  if (
-    settings.metadataFilterMode === 'manual' &&
-    settings.metadataCondition.conditions?.length
-  ) {
-    metaDataFilter = {
-      method: 'manual',
-      logic: settings.metadataCondition.logic || 'and',
-      manual: settings.metadataCondition.conditions.map((c) => ({
-        key: c.name,
-        op: c.comparison_operator,
-        value: c.value,
-      })),
-    }
-  }
-
-  return {
-    icon: settings.icon || undefined,
-    name: settings.name || undefined,
-    description: settings.description || undefined,
-    dataset_ids: settings.kbIds,
-    similarity_threshold: settings.similarityThreshold,
-    vector_similarity_weight: settings.vectorSimilarityWeight,
-    top_n: settings.topN,
-    top_k: settings.topK,
-    rerank_id: settings.rerankId || null,
-    llm_id: settings.llmId || undefined,
-    llm_setting: {
-      // 只发送启用的参数，参考 ragflow 的 removeUselessFieldsFromValues 逻辑
-      ...(settings.temperatureEnabled
-        ? { temperature: settings.temperature }
-        : {}),
-      ...(settings.topPEnabled ? { top_p: settings.topP } : {}),
-      ...(settings.presencePenaltyEnabled
-        ? { presence_penalty: settings.presencePenalty }
-        : {}),
-      ...(settings.frequencyPenaltyEnabled
-        ? { frequency_penalty: settings.frequencyPenalty }
-        : {}),
-      ...(settings.maxTokensEnabled ? { max_tokens: settings.maxTokens } : {}),
-    },
-    prompt_config: {
-      system: settings.systemPrompt,
-      prologue: settings.prologue,
-      empty_response: settings.emptyResponse,
-      quote: settings.quote,
-      keyword: settings.keyword,
-      tts: settings.tts,
-      toc_enhance: settings.tocEnhance,
-      refine_multiturn: settings.refineMultiturn,
-      use_kg: settings.useKnowledgeGraph,
-      reasoning: settings.reasoning,
-      tavily_api_key: settings.tavilyApiKey,
-      cross_languages: settings.crossLanguages,
-      parameters: settings.variables
-        .filter((v) => v.key)
-        .map((v) => ({
-          key: v.key,
-          optional: v.optional,
-        })),
-    },
-    meta_data_filter: metaDataFilter,
-  } as any
-}
-
-/**
  * 聊天设置 Hook
  * 用于获取和保存对话应用的设置
  */
 export function useChatSettings(dialogId: string | undefined) {
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
 
   // 获取 dialog 详情
@@ -216,16 +147,27 @@ export function useChatSettings(dialogId: string | undefined) {
   const { mutateAsync: saveSettings, isPending: saving } = useMutation({
     mutationFn: async (newSettings: ChatSettings) => {
       if (!dialogId) throw new Error('Dialog ID is required')
-      const updateData = settingsToDialogUpdate(newSettings)
-      return dialogAPI.updateChat(dialogId, updateData)
+      const updateData = settingsToDialogUpdate(
+        newSettings,
+        t('chat.knowledgePrompt.block'),
+      )
+      await dialogAPI.updateChat(dialogId, updateData)
+      // 只有保存时追加了知识库块，提交的 system 才会与编辑内容不同
+      return {
+        knowledgeBlockAppended:
+          updateData.prompt_config?.system !== newSettings.systemPrompt,
+      }
     },
-    onSuccess: () => {
+    onSuccess: ({ knowledgeBlockAppended }) => {
       // 使缓存失效
       queryClient.invalidateQueries({
         queryKey: dialogKeys.detail(dialogId || ''),
       })
       queryClient.invalidateQueries({ queryKey: dialogKeys.all })
       toast.success('设置保存成功')
+      if (knowledgeBlockAppended) {
+        toast.info(t('chat.knowledgePrompt.insertedOnSave'))
+      }
     },
     onError: () => {
       toast.error('保存设置失败')

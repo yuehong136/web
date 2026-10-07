@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'react-router-dom'
 import { dialogAPI } from '@/api/dialog'
 import { knowledgeAPI } from '@/api/knowledge'
@@ -9,6 +10,7 @@ import {
   generationPresetConfigMapSnake,
   getDefaultEnabledFieldsSnake,
 } from '@/constants/llm'
+import { hasKnowledgePlaceholder } from '@/lib/chat/knowledge-prompt'
 import { toast } from '@/lib/toast'
 import type { MyLLMProvider } from '@/stores/model'
 import type { KnowledgeBase, LLMModel } from '@/types/api'
@@ -20,6 +22,7 @@ import {
   createTempConfig,
 } from '../constants'
 import type { AppConfig, TempAppConfig, VariableForm } from '../types'
+import { withAppKnowledgeRetrieval } from '../knowledge-prompt'
 import {
   buildKnowledgeFallback,
   mapLLMProviders,
@@ -32,6 +35,7 @@ import { useCreateAppSave } from './use-create-app-save'
 import { useCurrentTheme } from './use-current-theme'
 
 export const useCreateAppPage = () => {
+  const { t } = useTranslation()
   const [searchParams] = useSearchParams()
   const initialDialogId =
     searchParams.get('dialog_id') || searchParams.get('id')
@@ -96,6 +100,7 @@ export const useCreateAppPage = () => {
 
   const { saving, handleSave } = useCreateAppSave({
     config,
+    setConfig,
     currentDialogId,
     setCurrentDialogId,
   })
@@ -343,19 +348,38 @@ export const useCreateAppPage = () => {
     [knowledgeSearch, loadKnowledgeBases],
   )
 
-  const handleAddKnowledgeBase = useCallback((knowledgeBase: KnowledgeBase) => {
-    setConfig((previousConfig) => ({
-      ...previousConfig,
-      kb_ids: [...previousConfig.kb_ids, knowledgeBase.id],
-    }))
-    setKnowledgeBases((previousKnowledgeBases) => [
-      ...previousKnowledgeBases,
-      knowledgeBase,
-    ])
-    setAddedKnowledgeBases((previousAddedBases) =>
-      new Set(previousAddedBases).add(knowledgeBase.id),
+  const handleAddKnowledgeBase = useCallback(
+    (knowledgeBase: KnowledgeBase) => {
+      const knowledgeBlock = t('chat.knowledgePrompt.block')
+      setConfig((previousConfig) =>
+        withAppKnowledgeRetrieval(
+          {
+            ...previousConfig,
+            kb_ids: [...previousConfig.kb_ids, knowledgeBase.id],
+          },
+          knowledgeBlock,
+        ),
+      )
+      setKnowledgeBases((previousKnowledgeBases) => [
+        ...previousKnowledgeBases,
+        knowledgeBase,
+      ])
+      setAddedKnowledgeBases((previousAddedBases) =>
+        new Set(previousAddedBases).add(knowledgeBase.id),
+      )
+      if (!hasKnowledgePlaceholder(config.systemPrompt)) {
+        toast.info(t('chat.knowledgePrompt.inserted'))
+      }
+    },
+    [config.systemPrompt, t],
+  )
+
+  const handleInsertKnowledgePlaceholder = useCallback(() => {
+    const knowledgeBlock = t('chat.knowledgePrompt.block')
+    setConfig((previousConfig) =>
+      withAppKnowledgeRetrieval(previousConfig, knowledgeBlock),
     )
-  }, [])
+  }, [t])
 
   const handleRemoveKnowledgeBase = useCallback((knowledgeBaseId: string) => {
     setConfig((previousConfig) => ({
@@ -540,6 +564,7 @@ export const useCreateAppPage = () => {
     handleKnowledgePageChange,
     handleAddKnowledgeBase,
     handleRemoveKnowledgeBase,
+    handleInsertKnowledgePlaceholder,
     handleAddVariable,
     handleRemoveVariable,
     handleEditApp,

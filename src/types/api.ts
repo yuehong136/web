@@ -473,12 +473,12 @@ export interface DialogApp {
   rerank_id: string | null
   kb_ids: string[]
   dataset_ids?: string[]
+  // `/api/v1/chats` reads and writes the documented `{ type, ... }` shape.
   search_mode: {
-    dense?: Record<string, any>
-    hybrid?: {
-      weight_dense: number
-      weight_sparse: number
-    }
+    type: 'dense' | 'sparse' | 'hybrid' | 'fusion'
+    weight_dense?: number
+    weight_sparse?: number
+    weights?: string
   } | null
   status: string
   create_date: string
