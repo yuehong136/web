@@ -301,6 +301,7 @@ for (const mode of ['light', 'dark'] as const) {
       'text-primary',
       'text-secondary',
       'text-tertiary',
+      'text-muted',
     ] as const
     const surfaces = [
       'background-body',
@@ -315,6 +316,23 @@ for (const mode of ['light', 'dark'] as const) {
         assert.ok(
           ratio >= 4.5,
           `${mode} ${foreground} against ${background} is ${ratio.toFixed(2)}:1; expected at least 4.5:1`,
+        )
+      }
+      // Lists, menus and chips also put body text on the subtle, hover, tag
+      // and outline button fills.
+      for (const background of [
+        'background-subtle',
+        'state-hover',
+        'components-tag-bg',
+        'components-button-secondary-bg',
+      ] as const) {
+        const ratio = contrast(
+          values[foreground],
+          compositeBackground(values[background], values['background-surface']),
+        )
+        assert.ok(
+          ratio >= 4.5,
+          `${mode} ${foreground} over ${background} is ${ratio.toFixed(2)}:1; expected at least 4.5:1`,
         )
       }
     }
