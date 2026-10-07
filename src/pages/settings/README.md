@@ -152,14 +152,9 @@ import { MCPServerForm } from '@/components/mcp'
 <MCPBatchPage />
 ```
 
-### 3. 集成到路由
+### 3. 路由
 
-```typescript
-import { MCPDashboard } from '@/pages/MCPDashboard'
-
-// 在路由配置中使用
-<Route path="/mcp" component={MCPDashboard} />
-```
+这些页面已在 `src/lib/router.tsx` 注册（`/settings/mcp-servers` 等），不需要额外的入口组件。
 
 ## 项目结构
 
@@ -173,7 +168,6 @@ src/
 │   │   ├── MCPBatchPage.tsx        # 批量操作
 │   │   ├── index.ts                # 导出索引
 │   │   └── README.md               # 文档说明
-│   └── MCPDashboard.tsx            # 主控制面板
 ├── components/
 │   ├── mcp/
 │   │   ├── MCPServerForm.tsx       # 服务器表单
@@ -184,10 +178,8 @@ src/
 │       └── tabs.tsx                # 新增UI组件
 ├── api/
 │   └── mcp.ts                      # MCP API接口
-├── types/
-│   └── mcp.ts                      # 类型定义
-└── styles/
-    └── mcp-components.css          # 专用样式
+└── types/
+    └── mcp.ts                      # 类型定义
 ```
 
 ## 开发说明
@@ -209,15 +201,6 @@ src/
 - 完整的类型注解
 
 ## 功能演示
-
-### 主控制面板
-
-`MCPDashboard.tsx` 提供了完整的功能演示，包括：
-
-- 统计数据面板
-- 快速操作入口
-- 最近活动展示
-- 所有功能页面的标签页集成
 
 ### 响应式适配
 
