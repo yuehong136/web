@@ -3,11 +3,12 @@ import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { apiClient } from '@/api/client'
 import { conversationAPI } from '@/api/conversation'
-import { mcpChatAPI } from '@/api/mcp-chat-service'
+import type { MCPChatServiceRequest } from '@/api/mcp-chat-service'
 import {
   attachmentMetadata,
   UploadXHR,
 } from '@/api/__tests__/helpers/upload-xhr'
+import { streamStructuredChat } from '@/components/chat/structured-chat-stream'
 import { useChatUpload } from '../use-chat-upload'
 import { useMcpUpload } from '../use-mcp-upload'
 
@@ -99,13 +100,22 @@ describe.each([
     const fetchRequest = vi.fn().mockResolvedValue(new Response())
     vi.stubGlobal('fetch', fetchRequest)
     if (hook.getFileIds) {
-      await mcpChatAPI.sendMessage({
+      // The MCP page sends the uploaded IDs through streamStructuredChat.
+      fetchRequest.mockResolvedValueOnce(
+        new Response('', { headers: { 'Content-Type': 'text/event-stream' } }),
+      )
+      const request: MCPChatServiceRequest = {
         prompt: '',
         messages: [{ role: 'user', content: 'fixture' }],
         llm_name: 'fixture-model',
         stream: true,
         gen_conf: {},
         files: hook.getFileIds(),
+      }
+      await streamStructuredChat({
+        url: `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/v1/llm/enhanced_chat_sse`,
+        requestBody: request,
+        onMessage: () => {},
       })
       expect(fetchRequest.mock.calls[0][0]).toMatch(
         /\/v1\/llm\/enhanced_chat_sse$/,
