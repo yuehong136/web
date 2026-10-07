@@ -236,6 +236,20 @@ export const ChatSection = ({
         msg.role === 'assistant' &&
         Boolean(msg.isStreaming || isStreaming)
 
+      const references = msg.references || []
+      const hasReferences = references.length > 0
+      // 引用标记组件在 memo 内创建：若在 contentRender 里创建，每次渲染都是新组件类型，
+      // 引用标记会被重新挂载（打开详情时焦点无法回到原标记）
+      const SupComponent = hasReferences
+        ? createReferenceMarkerComponent(references, {
+            onViewDetail: (chunk) => handleViewDetail(chunk, references),
+            onCopy: handleCopyReference,
+          })
+        : undefined
+      const markdownComponents = SupComponent
+        ? mergeMarkdownComponents({ sup: SupComponent })
+        : undefined
+
       return {
         key: msg.id,
         role: msg.role,
@@ -332,25 +346,10 @@ export const ChatSection = ({
                   }
                 }
 
-                const references = msg.references || []
-                const hasReferences = references.length > 0
-
                 // 如果有引用，转换内容中的引用标记
                 const contentWithSup = hasReferences
                   ? convertReferencesToSup(mainContent)
                   : mainContent
-
-                // 创建引用标记组件
-                const SupComponent = hasReferences
-                  ? createReferenceMarkerComponent(references, {
-                      onViewDetail: (chunk) =>
-                        handleViewDetail(chunk, references),
-                      onCopy: handleCopyReference,
-                    })
-                  : undefined
-                const markdownComponents = SupComponent
-                  ? mergeMarkdownComponents({ sup: SupComponent })
-                  : undefined
 
                 // 判断是否显示 loading（没有任何内容时）
                 const showLoading =

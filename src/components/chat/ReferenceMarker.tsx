@@ -91,25 +91,29 @@ export const ReferenceMarker: React.FC<ReferenceMarkerProps> = ({
 
   return (
     <Popover>
-      <PopoverTrigger asChild>
-        <sup
-          className={cn(
-            'inline-flex cursor-pointer items-center justify-center',
-            'mx-0.5 -mt-1 h-[20px] min-w-[20px] px-1.5',
-            'rounded-md text-xs font-semibold',
-            'transition-all duration-200 ease-out',
-            'hover:scale-110 hover:shadow-xs',
-            'focus:ring-2 focus:ring-offset-1 focus:outline-hidden',
-          )}
-          style={{
-            backgroundColor: 'var(--color-state-focus-10)',
-            color: 'var(--color-text-accent)',
-            borderColor: 'var(--color-border-accent)',
-          }}
-        >
-          {displayIndex}
-        </sup>
-      </PopoverTrigger>
+      {/* 原生按钮作触发器：键盘可达，引用详情关闭后焦点也能回到这里 */}
+      <sup>
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            className={cn(
+              'inline-flex cursor-pointer items-center justify-center',
+              'mx-0.5 -mt-1 h-[20px] min-w-[20px] px-1.5',
+              'rounded-md text-xs font-semibold',
+              'transition-all duration-200 ease-out',
+              'hover:scale-110 hover:shadow-xs',
+              'focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden',
+            )}
+            style={{
+              backgroundColor: 'var(--color-state-focus-10)',
+              color: 'var(--color-text-accent)',
+              borderColor: 'var(--color-border-accent)',
+            }}
+          >
+            {displayIndex}
+          </button>
+        </PopoverTrigger>
+      </sup>
       <PopoverContent
         className="w-80 overflow-hidden rounded-xl p-0"
         align="start"
