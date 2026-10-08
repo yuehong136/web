@@ -2,6 +2,7 @@
  * 首页相关类型定义
  */
 
+import type { AnswerStatus } from '@/lib/chat/answer-status'
 import type { StreamToolCallInfo as ToolCallInfo } from '@/lib/streaming'
 import type { AgentTimelineNode } from '@/utils/agent-timeline'
 import type { ReferenceChunk } from '@/utils/reference-replacer'
@@ -9,27 +10,8 @@ import type { ReferenceChunk } from '@/utils/reference-replacer'
 // Re-export think types from common utils
 export type { ThinkExtractResult, ThinkingStatus } from '@/utils/think-utils'
 
-/**
- * 回答没有以完成帧结束的原因。stopped 只表示本地停止接收，不代表服务端已取消；
- * unconfirmed 是连接结束却没有完成帧；business 是流里的错误帧或错误哨兵。
- */
-export type AnswerStatusKind =
-  | 'stopped'
-  | 'unconfirmed'
-  | 'network'
-  | 'timeout'
-  | 'unauthorized'
-  | 'rate_limited'
-  | 'server_error'
-  | 'business'
-  | 'failed'
-
-/** 只存分类，不存后端错误原文 */
-export interface AnswerStatus {
-  kind: AnswerStatusKind
-  /** 结束前已收到正文、思考或执行步骤，它们保留在消息里 */
-  partial: boolean
-}
+// 回答的结束原因由共享终态合同定义，首页只决定完成帧与文案
+export type { AnswerStatus, AnswerStatusKind } from '@/lib/chat/answer-status'
 
 // 消息类型
 export interface ChatMessage {

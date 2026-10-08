@@ -125,8 +125,5 @@ export const alignHistoryReferences = (
   return aligned
 }
 
-const CITATION_MARKER = /\[ID:\d+\]/
-
-/** 正文是否带有 `[ID:n]` 引用标记（不论能否解析到引用） */
-export const hasCitationMarkers = (content: string): boolean =>
-  CITATION_MARKER.test(content)
+// 标记检测与其他对话入口共用
+export { hasCitationMarkers } from '@/utils/reference-utils'

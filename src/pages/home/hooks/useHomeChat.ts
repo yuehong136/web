@@ -19,6 +19,7 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from '@/lib/toast'
 import { useSubmitGate } from '@/hooks/use-submit-gate'
+import { answerStatusTone } from '@/lib/chat/answer-status'
 import type { MCPChatServiceRequest } from '@/api/mcp-chat-service'
 import { conversationAPI } from '@/api/conversation'
 import type { DialogApp } from '@/types/api'
@@ -151,8 +152,11 @@ export const useHomeChat = ({
           ),
         )
       }
-      if (!kind || kind === 'stopped') return
-      if (kind === 'unconfirmed') {
+      if (!kind) return
+      // 提示级别按共享终态合同：停止不弹提示，结果未确认为警告，其余为错误
+      const tone = answerStatusTone(kind)
+      if (tone === 'neutral') return
+      if (tone === 'warning') {
         toast.warning(t(answerStatusMessageKey(kind)))
         return
       }

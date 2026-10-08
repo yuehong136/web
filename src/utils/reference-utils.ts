@@ -30,6 +30,10 @@ export type ReferenceGroup = ReferenceMatch[]
  */
 export const REFERENCE_PATTERN = /\[ID:(\d+)\]/g
 
+/** 正文是否带有 `[ID:n]` 引用标记（不论能否解析到引用） */
+export const hasCitationMarkers = (text: string): boolean =>
+  new RegExp(REFERENCE_PATTERN.source).test(text)
+
 /**
  * 查找文本中所有的引用匹配
  * @param text 要搜索的文本
