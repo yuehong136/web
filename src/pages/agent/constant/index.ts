@@ -1006,12 +1006,12 @@ export const initialDocGeneratorValues = {
   watermark_text: '',
   add_page_numbers: true,
   add_timestamp: true,
+  include_download_info_in_content: false,
   font_size: 12,
   outputs: {
     download: { type: 'string', value: '' },
   },
 }
-
 // Pipeline节点初始值
 export const initialFileValues = {
   outputs: {

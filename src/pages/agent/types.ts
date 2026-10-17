@@ -403,6 +403,7 @@ export interface IDocGeneratorForm {
   watermark_text?: string
   add_page_numbers?: boolean
   add_timestamp?: boolean
+  include_download_info_in_content?: boolean
   font_size?: number
   outputs?: Record<string, any>
 }

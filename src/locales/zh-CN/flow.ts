@@ -546,6 +546,7 @@ export default {
     outputDirectory: '输出目录',
     addPageNumbers: '添加页码',
     addTimestamp: '添加时间戳',
+    includeDownloadInfoInContent: '在消息内容中包含下载信息',
     watermarkText: '水印文本',
     channel: '频道',
     channelTip: '针对该组件的输入进行文本搜索或新闻搜索',

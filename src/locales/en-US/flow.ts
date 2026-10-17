@@ -261,6 +261,7 @@ export default {
     outputDirectory: 'Output directory',
     addPageNumbers: 'Add page numbers',
     addTimestamp: 'Add timestamp',
+    includeDownloadInfoInContent: 'Include download info in message content',
     watermarkText: 'Watermark text',
     selectVariable: 'Select variable',
     variablePickerEmptyTitle: 'No variables found',

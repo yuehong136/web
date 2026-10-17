@@ -29,6 +29,7 @@ const docGeneratorSchema = z.object({
   watermark_text: z.string().optional(),
   add_page_numbers: z.boolean(),
   add_timestamp: z.boolean(),
+  include_download_info_in_content: z.boolean(),
   font_size: z.coerce.number().min(12, 'Font size must be at least 12'),
   outputs: z.object({
     download: z.object({
@@ -106,6 +107,22 @@ export function DocGeneratorForm({ node }: INextOperatorForm) {
                 />
               </FormControl>
               <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="include_download_info_in_content"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between gap-space-base">
+              <FormLabel>{t('flow.includeDownloadInfoInContent')}</FormLabel>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
             </FormItem>
           )}
         />
