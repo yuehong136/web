@@ -11,6 +11,8 @@ export const deletionSyncSources = new Set<DataSourceKey>([
   DataSourceKey.GOOGLE_DRIVE,
   DataSourceKey.GMAIL,
   DataSourceKey.IMAP,
+  DataSourceKey.MYSQL,
+  DataSourceKey.POSTGRESQL,
   DataSourceKey.BITBUCKET,
   DataSourceKey.GITHUB,
   DataSourceKey.GITLAB,
