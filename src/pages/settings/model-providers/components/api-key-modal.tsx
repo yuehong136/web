@@ -24,12 +24,15 @@ import { Segmented, SegmentedItem } from '@/components/vendor/ui/segmented'
 import type { ModelVerifyResult } from '@/stores/model'
 import {
   buildOpenDataLoaderParams,
+  buildLocalModelParams,
+  getEditableModelName,
   getDefaultModelType,
   normalizeVerifyResult,
   type ApiKeyModalProps,
 } from './api-key-modal-utils'
 import { OpenDataLoaderFields } from './opendataloader-fields'
 import { PaddleOCRFields } from './paddleocr-fields'
+import { LocalModelFields } from './local-model-fields'
 import {
   buildPaddleOCRParams,
   DEFAULT_PADDLEOCR_ALGORITHM,
@@ -50,13 +53,19 @@ import {
 import type { BedrockAuthMode } from '../constants'
 
 export const ApiKeyModal: React.FC<ApiKeyModalProps> = (props) =>
-  props.isOpen ? <ApiKeyModalForm key={props.providerName} {...props} /> : null
+  props.isOpen ? (
+    <ApiKeyModalForm
+      key={`${props.providerName}:${props.initialValues?.name ?? ''}`}
+      {...props}
+    />
+  ) : null
 
 const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
   isOpen,
   onClose,
   providerName,
   isLocal: isLocalProp,
+  initialValues,
   onSave,
   onVerify,
 }) => {
@@ -71,15 +80,27 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
 
   // 通用表单状态
   const [apiKey, setApiKey] = useState('')
-  const [baseUrl, setBaseUrl] = useState(DEFAULT_BASE_URLS[providerName] || '')
+  const [baseUrl, setBaseUrl] = useState(
+    initialValues?.api_base ?? DEFAULT_BASE_URLS[providerName] ?? '',
+  )
   const [modelType, setModelType] = useState(() =>
-    getDefaultModelType(providerName),
+    initialValues?.type === 'image2text'
+      ? 'chat'
+      : (initialValues?.type ?? getDefaultModelType(providerName)),
   )
   const [modelName, setModelName] = useState(
-    providerName === 'Azure-OpenAI' ? 'gpt-3.5-turbo' : '',
+    initialValues
+      ? getEditableModelName(initialValues.name, providerName)
+      : providerName === 'Azure-OpenAI'
+        ? 'gpt-3.5-turbo'
+        : '',
   )
-  const [maxTokens, setMaxTokens] = useState<number>(8192)
-  const [vision, setVision] = useState(false)
+  const [maxTokens, setMaxTokens] = useState<number>(
+    initialValues?.max_tokens ?? 8192,
+  )
+  const [vision, setVision] = useState(initialValues?.type === 'image2text')
+  const [isTools, setIsTools] = useState(initialValues?.is_tools ?? false)
+  const [toolsChanged, setToolsChanged] = useState(false)
   const [groupId, setGroupId] = useState('') // MiniMax 专用
 
   // TencentCloud (腾讯云语音) 字段
@@ -149,7 +170,6 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
   )
   const [error, setError] = useState('')
 
-  const defaultBaseUrl = DEFAULT_BASE_URLS[providerName] || ''
   const docLink = FACTORY_DOC_LINKS[providerName]
   const modelTypes =
     FACTORY_MODEL_TYPES[providerName] || FACTORY_MODEL_TYPES['Default']
@@ -458,15 +478,20 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
           setIsLoading(false)
           return
         }
-        additionalParams.llm_name = modelName
-        additionalParams.mdl_type =
-          vision && modelType === 'chat' ? 'image2text' : modelType
-        additionalParams.max_tokens = maxTokens
-        additionalParams.llm_factory = providerName
-        additionalParams.api_base = baseUrl
-        if (apiKey.trim()) {
-          additionalParams.api_key = apiKey
-        }
+        Object.assign(
+          additionalParams,
+          buildLocalModelParams({
+            providerName,
+            modelName,
+            modelType,
+            vision,
+            apiKey,
+            baseUrl,
+            maxTokens,
+            isTools,
+            includeTools: !initialValues || toolsChanged,
+          }),
+        )
       }
 
       // ========== 普通 API Key 厂商 ==========
@@ -572,7 +597,11 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
   // 获取模态框标题
   const getModalTitle = () => {
     if (isPaddleOCR) return t(`${paddleKey}.title`)
-    if (isLocal) return `添加 ${providerName} 模型`
+    if (isLocal)
+      return t(
+        `settings.models.localModel.${initialValues ? 'editTitle' : 'addTitle'}`,
+        { provider: providerName },
+      )
     if (isSpecialForm) return `添加 ${providerName} LLM`
     return `设置 ${providerName}`
   }
@@ -580,7 +609,7 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
   // 获取模态框描述
   const getModalDescription = () => {
     if (isPaddleOCR) return t(`${paddleKey}.description`)
-    if (isLocal) return '配置本地模型服务'
+    if (isLocal) return t('settings.models.localModel.description')
     if (isSpecialForm) return '配置模型参数'
     return '设置 API 密钥'
   }
@@ -1342,117 +1371,31 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
             />
           )}
 
-          {/* ========== 本地模型厂商表单 ========== */}
           {isLocal && (
-            <>
-              <div>
-                <label className="mb-2 block text-sm font-medium text-text-primary">
-                  模型类型 <span className="text-red-500">*</span>
-                </label>
-                <Select value={modelType} onValueChange={setModelType}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {modelTypes.map((type) => (
-                      <SelectItem key={type.value} value={type.value}>
-                        {type.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="mb-2 block text-sm font-medium text-text-primary">
-                  {providerName === 'Xinference' ? '模型 UID' : '模型名称'}{' '}
-                  <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  value={modelName}
-                  onChange={(e) => setModelName(e.target.value)}
-                  placeholder={
-                    providerName === 'Xinference'
-                      ? '请输入模型 UID'
-                      : '请输入模型名称'
-                  }
-                />
-              </div>
-              <div>
-                <label className="mb-2 block text-sm font-medium text-text-primary">
-                  Base URL <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  value={baseUrl}
-                  onChange={(e) => setBaseUrl(e.target.value)}
-                  placeholder={
-                    BASE_URL_CONFIG[providerName]?.placeholder ||
-                    defaultBaseUrl ||
-                    'http://localhost:11434'
-                  }
-                />
-                {BASE_URL_CONFIG[providerName]?.tooltip ? (
-                  <p className="mt-1.5 text-xs text-text-tertiary">
-                    {BASE_URL_CONFIG[providerName].tooltip}
-                  </p>
-                ) : (
-                  defaultBaseUrl && (
-                    <p className="mt-1.5 text-xs text-text-tertiary">
-                      默认地址：{defaultBaseUrl}
-                    </p>
-                  )
-                )}
-              </div>
-              <div>
-                <label className="mb-2 block text-sm font-medium text-text-primary">
-                  API Key{' '}
-                  <span className="ml-1 font-normal text-text-tertiary">
-                    (可选)
-                  </span>
-                </label>
-                <div className="relative">
-                  <Input
-                    type={showApiKey ? 'text' : 'password'}
-                    value={apiKey}
-                    onChange={(e) => setApiKey(e.target.value)}
-                    placeholder="如需认证请填写"
-                    className="pr-10"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowApiKey(!showApiKey)}
-                    className="absolute top-1/2 right-3 -translate-y-1/2 text-text-tertiary hover:text-text-secondary"
-                  >
-                    {showApiKey ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </button>
-                </div>
-              </div>
-              <div>
-                <label className="mb-2 block text-sm font-medium text-text-primary">
-                  Max Tokens <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  type="number"
-                  value={maxTokens}
-                  onChange={(e) =>
-                    setMaxTokens(parseInt(e.target.value) || 8192)
-                  }
-                  placeholder="8192"
-                  min={1}
-                />
-              </div>
-              {modelType === 'chat' && (
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-text-primary">
-                    支持视觉 (Vision)
-                  </label>
-                  <Switch checked={vision} onCheckedChange={setVision} />
-                </div>
-              )}
-            </>
+            <LocalModelFields
+              providerName={providerName}
+              modelTypes={modelTypes}
+              modelType={modelType}
+              onModelTypeChange={setModelType}
+              modelName={modelName}
+              onModelNameChange={setModelName}
+              baseUrl={baseUrl}
+              onBaseUrlChange={setBaseUrl}
+              apiKey={apiKey}
+              onApiKeyChange={setApiKey}
+              showApiKey={showApiKey}
+              onShowApiKeyChange={setShowApiKey}
+              maxTokens={maxTokens}
+              onMaxTokensChange={setMaxTokens}
+              vision={vision}
+              onVisionChange={setVision}
+              isTools={isTools}
+              onToolsChange={(checked) => {
+                setIsTools(checked)
+                setToolsChanged(true)
+              }}
+              editing={Boolean(initialValues)}
+            />
           )}
 
           {/* ========== 普通 API Key 厂商表单 ========== */}
@@ -1635,7 +1578,9 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
                 rel="noopener noreferrer"
                 className="flex items-center gap-1 text-sm text-[var(--color-text-accent)] hover:underline"
               >
-                {isPaddleOCR ? t(`${paddleKey}.documentation`) : '如何获取？'}
+                {isPaddleOCR || isLocal
+                  ? t(`${paddleKey}.documentation`)
+                  : '如何获取？'}
                 <ExternalLink className="h-3 w-3" />
               </a>
             )}
@@ -1653,7 +1598,7 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
                     isVerifying ? 'h-3.5 w-3.5 animate-spin' : 'h-3.5 w-3.5'
                   }
                 />
-                {isPaddleOCR ? t(`${paddleKey}.validate`) : '验证'}
+                {isPaddleOCR || isLocal ? t(`${paddleKey}.validate`) : '验证'}
               </Button>
             )}
           </div>
@@ -1665,13 +1610,13 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
               onClick={handleClose}
               disabled={isLoading || isVerifying}
             >
-              {isPaddleOCR ? t('common.cancel') : '取消'}
+              {isPaddleOCR || isLocal ? t('common.cancel') : '取消'}
             </Button>
             <Button
               onClick={() => handleSave(false)}
               disabled={isLoading || isVerifying}
             >
-              {isPaddleOCR
+              {isPaddleOCR || isLocal
                 ? t(isLoading ? `${paddleKey}.saving` : 'common.save')
                 : isLoading
                   ? '保存中...'

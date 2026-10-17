@@ -199,6 +199,7 @@ export const ModelProviderCard: React.FC<ModelProviderCardProps> = ({
                           variant="ghost"
                           size="sm"
                           onClick={() => onEditModel(model, name)}
+                          aria-label={`${t('common.edit')}: ${model.name}`}
                           className="h-7 w-7 p-0"
                         >
                           <Edit className="h-3.5 w-3.5" />

@@ -1,9 +1,11 @@
 import React from 'react'
 import { useTranslation } from 'react-i18next'
-import { useFetchMyLLMs } from '@/hooks/use-llm-request'
+import type { MyLLMModel, MyLLMProvider } from '@/stores/model'
 import { ModelProviderCard } from './model-provider-card'
 
 interface UsedModelsProps {
+  myLLMs: MyLLMProvider
+  handleEditModel: (model: MyLLMModel, providerName: string) => void
   handleAddModel: (factoryName: string) => void
   handleDeleteFactory: (factoryName: string) => void
   handleEnableModel: (
@@ -14,12 +16,13 @@ interface UsedModelsProps {
 }
 
 export const UsedModels: React.FC<UsedModelsProps> = ({
+  myLLMs,
+  handleEditModel,
   handleAddModel,
   handleDeleteFactory,
   handleEnableModel,
 }) => {
   const { t } = useTranslation()
-  const { myLLMs } = useFetchMyLLMs()
 
   const providerList = Object.entries(myLLMs)
 
@@ -64,6 +67,7 @@ export const UsedModels: React.FC<UsedModelsProps> = ({
               tags={providerData.tags}
               llm={providerData.llm}
               onApiKeyClick={handleAddModel}
+              onEditModel={handleEditModel}
               onDeleteClick={handleDeleteFactory}
               onEnableModel={handleEnableModel}
             />

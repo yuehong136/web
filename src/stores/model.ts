@@ -15,6 +15,9 @@ export interface MyLLMModel {
   used_token: number
   status?: '0' | '1'
   available?: boolean
+  api_base?: string
+  max_tokens?: number
+  is_tools?: boolean
 }
 
 export interface LLMModelAvailability {
@@ -197,6 +200,7 @@ export interface AddLlmParams {
   api_base?: string
   api_key?: string | Record<string, any> // 支持字符串或对象（MinerU 等厂商需要传递配置对象）
   max_tokens?: number
+  is_tools?: boolean
   // VolcEngine 特殊字段
   endpoint_id?: string
   ark_api_key?: string

@@ -3,6 +3,18 @@ export default {
     title: '设置',
     description: '统一管理工作空间配置、团队能力和开发者接入能力。',
     models: {
+      localModel: {
+        addTitle: '添加 {{provider}} 模型',
+        editTitle: '编辑 {{provider}} 模型',
+        description: '配置模型服务地址与能力。',
+        type: '模型类型',
+        name: '模型名称',
+        keyHint: '可选；模型服务需要认证时填写。',
+        editKeyHint: '编辑时留空保留已保存的密钥。',
+        vision: '启用视觉能力',
+        tools: '启用工具调用',
+        toolsHint: '模型支持工具调用时，发送原生工具调用请求。',
+      },
       available: '可选模型提供商',
       configured: '已配置的模型提供商',
       defaults: '默认模型',

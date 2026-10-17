@@ -50,11 +50,17 @@ const EMPTY_FACTORIES: LLMFactoryInterface[] = []
 export const useFetchMyLLMs = (options?: {
   staleTime?: number
   refetchOnWindowFocus?: boolean
+  includeDetails?: boolean
 }) => {
   const { data, isFetching, isPending, fetchStatus, isError, error, refetch } =
     useQuery<MyLLMProvider>({
-      queryKey: llmKeys.myLLMs(),
-      queryFn: () => llmAPI.getMyLLMs(),
+      queryKey: options?.includeDetails
+        ? [...llmKeys.myLLMs(), 'details']
+        : llmKeys.myLLMs(),
+      queryFn: () =>
+        llmAPI.getMyLLMs(
+          options?.includeDetails ? { include_details: true } : undefined,
+        ),
       staleTime: options?.staleTime ?? 5 * 60 * 1000,
       gcTime: 10 * 60 * 1000,
       refetchOnWindowFocus: options?.refetchOnWindowFocus ?? false,

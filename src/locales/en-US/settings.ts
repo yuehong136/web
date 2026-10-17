@@ -4,6 +4,19 @@ export default {
     description:
       'Manage workspace configuration, team capabilities, and developer access.',
     models: {
+      localModel: {
+        addTitle: 'Add {{provider}} model',
+        editTitle: 'Edit {{provider}} model',
+        description: 'Configure the model endpoint and capabilities.',
+        type: 'Model type',
+        name: 'Model name',
+        keyHint:
+          'Optional. Enter a key if the model service requires authentication.',
+        editKeyHint: 'Leave blank to keep the saved key when editing.',
+        vision: 'Enable vision',
+        tools: 'Enable tool calls',
+        toolsHint: 'Send native tool calls when this model supports them.',
+      },
       available: 'Available providers',
       configured: 'Configured providers',
       defaults: 'Default models',
