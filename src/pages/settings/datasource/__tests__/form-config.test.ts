@@ -67,6 +67,7 @@ describe('connector configuration contracts', () => {
       'google_drive',
       'imap',
       'jira',
+      'moodle',
       'mysql',
       'notion',
       'oci_storage',
