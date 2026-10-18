@@ -1,6 +1,17 @@
 import { API_BASE_URL, API_VERSION } from '@/constants'
 import { apiClient } from './client'
 import { knowledgeRestConfig } from './knowledge-config'
+import { readResponseError } from './response-error'
+
+const downloadConfig = {
+  ...knowledgeRestConfig,
+  // File bytes may be JSON, including an envelope-shaped source document.
+  // Canonical binary endpoints use non-200 HTTP statuses for errors.
+  readResponse: async (response: Response): Promise<Response> => {
+    if (response.status !== 200) throw await readResponseError(response)
+    return response
+  },
+}
 
 export const getDocumentFileUrl = (
   docId: string,
@@ -15,7 +26,7 @@ export const downloadDocumentFile = (
   apiClient.download(
     `/documents/${encodeURIComponent(docId)}/download`,
     filename,
-    knowledgeRestConfig,
+    downloadConfig,
   )
 
 export const downloadGeneratedAttachment = (
@@ -26,5 +37,5 @@ export const downloadGeneratedAttachment = (
   apiClient.download(
     `/documents/runtime/${encodeURIComponent(attachmentId)}/download`,
     filename,
-    { ...knowledgeRestConfig, params: { ext } },
+    { ...downloadConfig, params: { ext } },
   )

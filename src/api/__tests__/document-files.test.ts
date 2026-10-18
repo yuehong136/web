@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { apiClient, type RequestConfig } from '../client'
+import { APIError, apiClient, type RequestConfig } from '../client'
 import {
   downloadDocumentFile,
   downloadGeneratedAttachment,
@@ -32,4 +32,82 @@ test('document and generated attachment downloads keep separate REST resources',
     ],
   )
   assert.deepEqual(calls[1].config?.params, { ext: 'pdf' })
+})
+
+test('canonical document downloads preserve JSON bytes and reject HTTP errors', async () => {
+  const originalFetch = globalThis.fetch
+  const originalWindow = Object.getOwnPropertyDescriptor(globalThis, 'window')
+  const originalDocument = Object.getOwnPropertyDescriptor(
+    globalThis,
+    'document',
+  )
+  const downloaded: Blob[] = []
+  let clicks = 0
+  Object.defineProperty(globalThis, 'window', {
+    configurable: true,
+    value: {
+      URL: {
+        createObjectURL: (blob: Blob) => {
+          downloaded.push(blob)
+          return 'blob:owned-document'
+        },
+        revokeObjectURL: () => {},
+      },
+    },
+  })
+  Object.defineProperty(globalThis, 'document', {
+    configurable: true,
+    value: {
+      createElement: () => ({ click: () => clicks++ }),
+      body: { appendChild: () => {}, removeChild: () => {} },
+    },
+  })
+  apiClient.setAuthToken(null)
+  try {
+    // An authorized source may itself look exactly like an API envelope.
+    // These binary endpoints report errors through HTTP status, not file data.
+    for (const source of ['{"code":109,"message":"原始文件"}\n', '[1,2]', '']) {
+      globalThis.fetch = async () =>
+        new Response(source, {
+          headers: { 'content-type': 'application/json' },
+        })
+      for (const download of [
+        () => downloadDocumentFile('document', 'source.json'),
+        () => downloadGeneratedAttachment('generated', 'source.json', 'json'),
+      ]) {
+        const before = downloaded.length
+        await download()
+        assert.equal(downloaded.length, before + 1)
+        assert.equal(await downloaded.at(-1)!.text(), source)
+      }
+    }
+    assert.equal(clicks, 6)
+    for (const status of [403, 404, 500]) {
+      globalThis.fetch = async () =>
+        new Response('{"code":109,"message":"No authorization."}', {
+          status,
+          headers: { 'content-type': 'application/json' },
+        })
+      await assert.rejects(
+        downloadDocumentFile('document'),
+        (error: unknown) =>
+          error instanceof APIError && error.status === status,
+      )
+      await assert.rejects(
+        downloadGeneratedAttachment('generated', 'source.json', 'json'),
+        (error: unknown) =>
+          error instanceof APIError && error.status === status,
+      )
+    }
+    assert.equal(clicks, 6)
+    assert.equal(downloaded.length, 6)
+  } finally {
+    globalThis.fetch = originalFetch
+    if (originalWindow)
+      Object.defineProperty(globalThis, 'window', originalWindow)
+    else Reflect.deleteProperty(globalThis, 'window')
+    if (originalDocument)
+      Object.defineProperty(globalThis, 'document', originalDocument)
+    else Reflect.deleteProperty(globalThis, 'document')
+  }
 })
