@@ -700,3 +700,49 @@ it('keeps edits made before the models arrive and canonicalizes an untouched emb
     embedding_model: 'text-embedding-v3@Tongyi',
   })
 })
+
+it.each([true, false])(
+  'checks embedding compatibility before saving a changed model (compatible=%s)',
+  async (compatible) => {
+    mockModels(async () => ({
+      Builtin: {
+        llm: [
+          { name: 'embedding', type: 'embedding', used_token: 0 },
+          { name: 'candidate', type: 'embedding', used_token: 0 },
+        ],
+      },
+    }))
+    const check = vi
+      .spyOn(apiClient, 'post')
+      .mockImplementation(async (path, body) => {
+        expect(path).toBe('/v1/datasets/kb-1/embedding/check')
+        expect(body).toEqual({ embd_id: 'candidate@Builtin' })
+        expect(writes).toHaveLength(0)
+        if (!compatible)
+          throw new APIError(200, '10', 'unsafe provider message')
+        return { summary: { avg_cos_sim: 1 } } as never
+      })
+    await reload()
+    await waitForPage(() =>
+      expect(client.getQueryData(llmKeys.myLLMs())).toMatchObject({
+        Builtin: {
+          llm: expect.arrayContaining([
+            expect.objectContaining({ name: 'candidate' }),
+          ]),
+        },
+      }),
+    )
+    await waitForPage(() =>
+      expect(
+        field('Embedding model').querySelector<HTMLButtonElement>(
+          '[role=combobox]',
+        )!.disabled,
+      ).toBe(false),
+    )
+    await selectOption('Embedding model', 'candidate@Builtin')
+    await save()
+    expect(check).toHaveBeenCalledOnce()
+    expect(writes).toHaveLength(compatible ? 1 : 0)
+    expect(field('Embedding model').textContent).toContain('candidate')
+  },
+)

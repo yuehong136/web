@@ -259,6 +259,8 @@ export default {
       successMessage: '知识库设置已成功更新',
       errorTitle: '更新失败',
       errorMessage: '更新知识库设置时发生错误',
+      embeddingIncompatible:
+        '所选模型与已有分块不兼容，请选择其他模型或重新解析文档。',
       formLabel: '设置表单',
       previewLabel: '解析预览',
       sections: {
@@ -280,7 +282,7 @@ export default {
         descriptionPlaceholder: '请输入知识库描述',
         embeddingModel: '嵌入模型',
         embeddingModelTooltip:
-          '知识库采用的默认嵌入模型。一旦知识库内已经产生了文本块后，你将无法更改默认的嵌入模型，除非删除知识库内的所有文本块。',
+          '知识库采用的默认嵌入模型。更换前会检查与已有分块向量的兼容性，保存不会重建已有向量。',
         embeddingModelPlaceholder: '请选择嵌入模型',
         loading: '加载中...',
         pageRank: 'PageRank权重',

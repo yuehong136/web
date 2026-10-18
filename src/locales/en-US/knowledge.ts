@@ -275,6 +275,8 @@ export default {
       successMessage: 'Knowledge settings were updated.',
       errorTitle: 'Update failed',
       errorMessage: 'An error occurred while updating knowledge settings.',
+      embeddingIncompatible:
+        'The selected model is incompatible with existing chunks. Choose another model or reparse the documents.',
       formLabel: 'Settings form',
       previewLabel: 'Parser preview',
       sections: {
@@ -296,7 +298,7 @@ export default {
         descriptionPlaceholder: 'Enter a knowledge base description',
         embeddingModel: 'Embedding model',
         embeddingModelTooltip:
-          'The default embedding model used by this knowledge base. After chunks have been created, the default embedding model cannot be changed unless all chunks in the knowledge base are deleted.',
+          'The default embedding model used by this knowledge base. Changing the model checks compatibility with existing chunk vectors before saving. Existing vectors are not rebuilt.',
         embeddingModelPlaceholder: 'Select an embedding model',
         loading: 'Loading...',
         pageRank: 'PageRank weight',
