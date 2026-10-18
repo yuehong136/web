@@ -97,7 +97,10 @@ const extractThinkContentStrict = (
 ): { content: string; thinking: string } => {
   const parsed = extractThinkContent(raw)
   return {
-    content: parsed.contentWithoutThinking,
+    content:
+      parsed.status === 'none'
+        ? parsed.contentWithoutThinking
+        : parsed.contentWithoutThinking.trim(),
     thinking: parsed.thinkContent,
   }
 }
