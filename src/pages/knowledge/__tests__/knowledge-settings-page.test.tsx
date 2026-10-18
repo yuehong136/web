@@ -215,6 +215,10 @@ beforeEach(async () => {
     if (path === '/agents') return { total: 0, canvas: [] } as never
     throw new Error(`Unexpected GET ${path}`)
   })
+  vi.spyOn(apiClient, 'post').mockImplementation(async (path) => {
+    expect(path).toBe('/v1/datasets/kb-1/embedding/check')
+    return { summary: { avg_cos_sim: 1 } } as never
+  })
   vi.spyOn(apiClient, 'put').mockImplementation(async (path, body) => {
     expect(path).toBe('/v1/datasets/kb-1')
     const update = body as Record<string, unknown>
@@ -744,5 +748,42 @@ it.each([true, false])(
     expect(check).toHaveBeenCalledOnce()
     expect(writes).toHaveLength(compatible ? 1 : 0)
     expect(field('Embedding model').textContent).toContain('candidate')
+  },
+)
+
+it.each([true, false])(
+  'checks a same-name model in another provider when the original is unavailable (compatible=%s)',
+  async (compatible) => {
+    stored.embedding_model = 'embedding@ProviderA'
+    mockModels(async () => ({
+      ProviderB: {
+        llm: [{ name: 'embedding', type: 'embedding', used_token: 0 }],
+      },
+    }))
+    const check = vi
+      .mocked(apiClient.post)
+      .mockImplementation(async (path, body) => {
+        expect(path).toBe('/v1/datasets/kb-1/embedding/check')
+        expect(body).toEqual({ embd_id: 'embedding@ProviderB' })
+        expect(writes).toHaveLength(0)
+        if (!compatible)
+          throw new APIError(200, '10', 'unsafe provider message')
+        return { summary: { avg_cos_sim: 1 } } as never
+      })
+    await reload()
+    await waitForPage(() =>
+      expect(client.getQueryData(llmKeys.myLLMs())).toHaveProperty('ProviderB'),
+    )
+    await waitForPage(() =>
+      expect(
+        field('Embedding model').querySelector<HTMLButtonElement>(
+          '[role=combobox]',
+        )!.disabled,
+      ).toBe(false),
+    )
+    await selectOption('Embedding model', 'embedding@ProviderB')
+    await save()
+    expect(check).toHaveBeenCalledOnce()
+    expect(writes).toHaveLength(compatible ? 1 : 0)
   },
 )

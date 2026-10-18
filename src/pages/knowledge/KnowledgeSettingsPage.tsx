@@ -168,7 +168,9 @@ const KnowledgeSettingsPage: React.FC = () => {
           const fullValue = `${model.name}@${providerName}`
           // 存储多种可能的匹配格式
           values.set(fullValue.toLowerCase(), fullValue)
-          values.set(model.name.toLowerCase(), fullValue)
+          const name = model.name.toLowerCase()
+          if (!values.has(name)) values.set(name, fullValue)
+          else if (values.get(name) !== fullValue) values.set(name, '')
         })
     })
     return values
@@ -179,21 +181,9 @@ const KnowledgeSettingsPage: React.FC = () => {
     (value: string): string => {
       if (!value) return ''
       const lowerValue = value.toLowerCase()
-      // 直接匹配
-      if (allEmbeddingModelValues.has(lowerValue)) {
-        return allEmbeddingModelValues.get(lowerValue)!
-      }
-      // 尝试匹配（忽略大小写和连字符变化）
-      for (const [key, fullValue] of allEmbeddingModelValues) {
-        if (
-          key
-            .replace(/-/g, '')
-            .includes(lowerValue.replace(/-/g, '').replace(/@.*$/, ''))
-        ) {
-          return fullValue
-        }
-      }
-      return value
+      // Keep explicit provider/instance identities intact. A bare model name
+      // can only resolve when the configured exact-name match is unambiguous.
+      return allEmbeddingModelValues.get(lowerValue) || value
     },
     [allEmbeddingModelValues],
   )
@@ -258,8 +248,7 @@ const KnowledgeSettingsPage: React.FC = () => {
 
       if (
         (currentKnowledgeBase?.chunk_num ?? 0) > 0 &&
-        data.embd_id?.trim() !==
-          normalizeEmbdId(currentKnowledgeBase?.embd_id || '')
+        data.embd_id?.trim() !== currentKnowledgeBase?.embd_id?.trim()
       )
         await checkDatasetEmbedding(id, data.embd_id.trim())
 
