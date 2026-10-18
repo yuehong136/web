@@ -5,6 +5,7 @@ import {
   useMarkdownComponents,
 } from '@/components/chat/MarkdownCodeBlock'
 import { ChatBubbleLoading } from '@/components/chat/ChatBubbleLoading'
+import { RetrievalProgress } from '@/components/chat/retrieval-progress'
 import { ThinkWrapper } from '@/components/chat/ThinkWrapper'
 import { CarouselWrapper } from '@/components/chat/CarouselWrapper'
 import { ReferenceImageList } from '@/components/chat/ReferenceImageList'
@@ -41,7 +42,7 @@ export const AppChatAnswer = memo(function AppChatAnswer({
   const { t } = useTranslation()
   const fallback = extractThinkContent(content)
   const thinkContent = thinking || fallback.thinkContent
-  const mainContent = thinking ? content : fallback.mainContent
+  const mainContent = fallback.mainContent
   const citationComponents = useMemo(
     () => ({
       sup: createReferenceMarkerComponent(references, {
@@ -92,9 +93,14 @@ export const AppChatAnswer = memo(function AppChatAnswer({
   }
   return (
     <div className="space-y-space-sm">
+      <RetrievalProgress result={fallback} isStreaming={isStreaming} />
       {thinkContent && (
         <ThinkWrapper
-          status={isStreaming ? 'thinking' : 'complete'}
+          status={
+            isStreaming && (thinking || fallback.status === 'thinking')
+              ? 'thinking'
+              : 'complete'
+          }
           messageId={messageId}
         >
           <section
@@ -113,7 +119,10 @@ export const AppChatAnswer = memo(function AppChatAnswer({
           {carouselGroups.length ? parts : renderPart(markdown)}
         </div>
       )}
-      {isStreaming && !mainContent && !thinkContent && <ChatBubbleLoading />}
+      {isStreaming &&
+        !mainContent &&
+        !thinkContent &&
+        fallback.retrievalStatus === 'none' && <ChatBubbleLoading />}
       {!!references.length && !isStreaming && (
         <>
           <ReferenceImageList

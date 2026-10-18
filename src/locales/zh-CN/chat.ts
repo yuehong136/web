@@ -16,6 +16,11 @@ export default {
       complete: '思考过程',
       details: '思考详情',
     },
+    retrieving: {
+      inProgress: '检索中...',
+      complete: '检索过程',
+      interrupted: '检索已中断',
+    },
     actions: { regenerate: '重新生成' },
     stream: {
       failed: '生成失败，请重试。',

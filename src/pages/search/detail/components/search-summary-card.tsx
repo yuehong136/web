@@ -8,6 +8,7 @@ import { Sparkles } from 'lucide-react'
 import { ReferenceImageList } from '@/components/chat/ReferenceImageList'
 import { createReferenceMarkerComponent } from '@/components/chat/ReferenceMarker'
 import { ReferencePanel } from '@/components/chat/ReferencePanel'
+import { RetrievalProgress } from '@/components/chat/retrieval-progress'
 import { ThinkWrapper } from '@/components/chat/ThinkWrapper'
 import { copyToClipboard } from '@/lib/utils'
 import { toast } from '@/lib/toast'
@@ -52,9 +53,9 @@ const SearchSummaryCard = ({
   )
   const parsedSummary = useMemo(() => extractThinkContent(summary), [summary])
   const thinkContent = thinking || parsedSummary.thinkContent
-  const displaySummary = thinking ? summary : parsedSummary.mainContent
+  const displaySummary = parsedSummary.mainContent
   const thinkingStatus: ThinkingStatus = thinkContent
-    ? isStreaming || parsedSummary.status === 'thinking'
+    ? isStreaming && (thinking || parsedSummary.status === 'thinking')
       ? 'thinking'
       : 'complete'
     : 'none'
@@ -97,7 +98,13 @@ const SearchSummaryCard = ({
     [referenceChunks.length, SupComponent],
   )
 
-  if (!displaySummary.trim() && !thinkContent && !isStreaming) return null
+  if (
+    !displaySummary.trim() &&
+    !thinkContent &&
+    parsedSummary.retrievalStatus === 'none' &&
+    !isStreaming
+  )
+    return null
 
   return (
     <div className="overflow-hidden rounded-radius-xl border border-border-default bg-surface-primary">
@@ -111,12 +118,9 @@ const SearchSummaryCard = ({
         </div>
 
         <div className="space-y-space-sm text-text-primary">
+          <RetrievalProgress result={parsedSummary} isStreaming={isStreaming} />
           {thinkContent ? (
-            <ThinkWrapper
-              status={thinkingStatus}
-              messageId="search-summary"
-              autoCollapseDelay={isStreaming ? 0 : 800}
-            >
+            <ThinkWrapper status={thinkingStatus} messageId="search-summary">
               <div className="text-sm leading-relaxed whitespace-pre-wrap text-text-secondary">
                 {thinkContent}
               </div>
@@ -210,7 +214,9 @@ const SearchSummaryCard = ({
                 <span className="mt-1 inline-block h-4 w-1.5 animate-pulse rounded-radius-sm bg-text-accent" />
               ) : null}
             </>
-          ) : !thinkContent && isStreaming ? (
+          ) : !thinkContent &&
+            parsedSummary.retrievalStatus === 'none' &&
+            isStreaming ? (
             <div className="space-y-space-xs">
               <div className="h-4 w-full animate-pulse rounded-radius-md bg-background-subtle" />
               <div className="h-4 w-4/5 animate-pulse rounded-radius-md bg-background-subtle" />

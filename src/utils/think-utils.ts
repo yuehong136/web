@@ -1,105 +1,177 @@
-/**
- * Think 内容处理工具函数
- * 用于从 AI 响应中提取和处理思考内容
- */
-
-/**
- * 思考状态类型
- * - 'none': 无思考内容
- * - 'thinking': 正在思考中（有开标签但无闭标签）
- * - 'complete': 思考完成（有完整的开闭标签）
- */
+/** Shared protocol splitting for live answers and persisted history. */
 export type ThinkingStatus = 'none' | 'thinking' | 'complete'
+type ProcessKind = 'think' | 'thinking' | 'retrieving'
 
-/**
- * 思考内容提取结果
- */
 export interface ThinkExtractResult {
-  /** 思考内容（think 标签内的文本） */
   thinkContent: string
-  /** 主要内容（think 标签外的文本） */
   mainContent: string
-  /** 
-   * 是否正在思考中
-   * @deprecated 使用 status 代替
-   */
+  /** Preserve retrieval envelopes through reducers/stores without new message fields. */
+  contentWithoutThinking: string
+  retrievalContent: string
+  retrievalMarkup: string
+  retrievalStatus: ThinkingStatus
+  /** @deprecated Use status. */
   isThinking: boolean
-  /** 思考状态 */
   status: ThinkingStatus
+  openThinkingTag: 'think' | 'thinking' | null
+}
+
+const markers = ['think', 'thinking', 'retrieving'].flatMap((name) => [
+  `<${name}>`,
+  `</${name}>`,
+])
+
+/** Skip literal Markdown/code/math/HTML before looking for protocol markers. */
+function literalLength(source: string, index: number): number {
+  const rest = source.slice(index)
+  const lineStart = index === 0 || source[index - 1] === '\n'
+  if (lineStart) {
+    const fence = /^ {0,3}(`{3,}|~{3,})[^\n]*(?:\n|$)/.exec(rest)
+    if (fence) {
+      const closer = new RegExp(
+        `^ {0,3}${fence[1][0]}{${fence[1].length},}[^\\S\\r\\n]*(?:\\r?\\n|$)`,
+        'm',
+      ).exec(rest.slice(fence[0].length))
+      return closer
+        ? fence[0].length + closer.index + closer[0].length
+        : rest.length
+    }
+    if (/^(?: {4}|\t)/.test(rest)) {
+      return rest.indexOf('\n') < 0 ? rest.length : rest.indexOf('\n') + 1
+    }
+  }
+  const ticks = /^`+/.exec(rest)
+  if (ticks) {
+    const closer = new RegExp(
+      `(?<!\u0060)\u0060{${ticks[0].length}}(?!\u0060)`,
+    ).exec(rest.slice(ticks[0].length))
+    return closer
+      ? ticks[0].length + closer.index + closer[0].length
+      : rest.length
+  }
+  const math = /^(\${1,2}|\\{1,2}\(|\\{1,2}\[)/.exec(rest)
+  if (math) {
+    const opener = math[0]
+    const closer = opener.endsWith('(')
+      ? opener.slice(0, -1) + ')'
+      : opener.endsWith('[')
+        ? opener.slice(0, -1) + ']'
+        : opener
+    let end = source.indexOf(closer, index + opener.length)
+    while (end >= 0 && source[end - 1] === '\\' && closer.startsWith('$')) {
+      end = source.indexOf(closer, end + closer.length)
+    }
+    return end < 0 ? 0 : end + closer.length - index
+  }
+  if (rest.startsWith('\\')) return Math.min(2, rest.length)
+  if (rest.startsWith('<!--')) {
+    const end = rest.indexOf('-->')
+    return end < 0 ? rest.length : end + 3
+  }
+  // Exact bare process tags are handled by the caller. Other HTML remains raw
+  // for XMarkdown's sanitizer; tags inside attributes/HTML are never controls.
+  const html = /^<([a-z][\w-]*)(?=[\s/>])(?:[^>"']|"[^"]*"|'[^']*')*>/i.exec(
+    rest,
+  )
+  if (html) {
+    if (markers.includes(html[0].toLowerCase())) return 0
+    if (
+      /\/\s*>$/.test(html[0]) ||
+      /^(?:br|hr|img|input|meta|link|wbr)$/i.test(html[1])
+    ) {
+      return html[0].length
+    }
+    const end = new RegExp(`</${html[1]}\\s*>`, 'i').exec(
+      rest.slice(html[0].length),
+    )
+    return end ? html[0].length + end.index + end[0].length : rest.length
+  }
+  return 0
 }
 
 /**
- * 提取 think 内容
- * 从 AI 响应中提取思考内容和主要内容
- * 
- * 支持两种格式的 think 标签：
- * - `<think>...</think>`
- * - `<thinking>...</thinking>`
- * 
- * @param content AI 响应的原始内容
- * @returns 提取结果，包含思考内容、主要内容和状态
- * 
- * @example
- * // 完整的思考标签
- * extractThinkContent('<think>思考中...</think>回答内容')
- * // { thinkContent: '思考中...', mainContent: '回答内容', isThinking: false, status: 'complete' }
- * 
- * @example
- * // 未闭合的思考标签（流式输出中）
- * extractThinkContent('<think>正在思考')
- * // { thinkContent: '正在思考', mainContent: '', isThinking: true, status: 'thinking' }
- * 
- * @example
- * // 无思考标签
- * extractThinkContent('普通回答')
- * // { thinkContent: '', mainContent: '普通回答', isThinking: false, status: 'none' }
+ * Only explicit matching closing tags end a process. Paragraphs and stream
+ * termination do not promote unfinished retrieval/reasoning into the answer.
+ * No entity/backslash decoding or HTML generation happens here.
  */
-export const extractThinkContent = (content: string): ThinkExtractResult => {
-  if (!content) {
-    return { thinkContent: '', mainContent: '', isThinking: false, status: 'none' }
-  }
-
-  // 尝试匹配完整的 think/thinking 标签（思考已完成）
-  // 支持 <think> 和 <thinking> 两种格式
-  const completeMatch = content.match(/<think(?:ing)?>([\s\S]*?)<\/think(?:ing)?>([\s\S]*)/)
-  if (completeMatch) {
-    return {
-      thinkContent: completeMatch[1].trim(),
-      mainContent: completeMatch[2].trim(),
-      isThinking: false,
-      status: 'complete'
+export function extractThinkContent(content: string): ThinkExtractResult {
+  let active: ProcessKind | null = null
+  let mainContent = ''
+  let contentWithoutThinking = ''
+  let thinkContent = ''
+  let retrievalContent = ''
+  let retrievalMarkup = ''
+  let status: ThinkingStatus = 'none'
+  let retrievalStatus: ThinkingStatus = 'none'
+  const append = (text: string) => {
+    if (active === 'retrieving') {
+      retrievalContent += text
+      retrievalMarkup += text
+    } else if (active) {
+      thinkContent += text
+    } else {
+      mainContent += text
     }
+    if (!active || active === 'retrieving') contentWithoutThinking += text
   }
-
-  // 检查是否有开标签但没有闭标签（正在思考中）
-  const hasOpenTag = content.includes('<think>') || content.includes('<thinking>')
-  const hasCloseTag = content.includes('</think>') || content.includes('</thinking>')
-
-  if (hasOpenTag && !hasCloseTag) {
-    const openMatch = content.match(/<think(?:ing)?>([\s\S]*)/)
-    const afterTag = openMatch ? openMatch[1] : ''
-    
-    // 检查是否通过双换行分隔思考内容和主要内容
-    // 某些模型可能不使用闭标签，而是用双换行分隔
-    const doubleNewlineMatch = afterTag.match(/^([\s\S]*?)\n\n+(\S[\s\S]*)$/)
-
-    if (doubleNewlineMatch) {
-      return {
-        thinkContent: doubleNewlineMatch[1].trim(),
-        mainContent: doubleNewlineMatch[2].trim(),
-        isThinking: false,
-        status: 'complete'
+  for (let index = 0; index < content.length; ) {
+    const length = literalLength(content, index)
+    if (length) {
+      append(content.slice(index, index + length))
+      index += length
+      continue
+    }
+    const rest = content.slice(index)
+    const marker = /^<(\/)?(think|thinking|retrieving)>/i.exec(rest)
+    if (marker) {
+      const kind = marker[2].toLowerCase() as ProcessKind
+      if (!active && !marker[1]) {
+        active = kind
+        if (kind === 'retrieving') {
+          if (retrievalStatus !== 'none') retrievalContent += '\n'
+          retrievalStatus = 'thinking'
+          retrievalMarkup += marker[0]
+          contentWithoutThinking += marker[0]
+        } else {
+          if (status !== 'none') thinkContent += '\n'
+          status = 'thinking'
+        }
+      } else if (active === kind && marker[1]) {
+        if (kind === 'retrieving') {
+          retrievalStatus = 'complete'
+          retrievalMarkup += marker[0]
+          contentWithoutThinking += marker[0]
+        } else {
+          status = 'complete'
+        }
+        active = null
+      } else {
+        append(marker[0])
       }
+      index += marker[0].length
+      continue
     }
-
-    return {
-      thinkContent: afterTag.trim(),
-      mainContent: '',
-      isThinking: true,
-      status: 'thinking'
+    // Buffer partial markers split across SSE frames, including closing tags.
+    if (
+      rest.startsWith('<') &&
+      markers.some((tag) => tag.startsWith(rest.toLowerCase()))
+    ) {
+      if (!active || active === 'retrieving') contentWithoutThinking += rest
+      break
     }
+    append(content[index])
+    index += 1
   }
-
-  // 没有 think 标签
-  return { thinkContent: '', mainContent: content, isThinking: false, status: 'none' }
+  return {
+    mainContent: mainContent.replace(/^\n+|\n+$/g, ''),
+    contentWithoutThinking: contentWithoutThinking.replace(/^\n+|\n+$/g, ''),
+    thinkContent: thinkContent.trim(),
+    retrievalContent: retrievalContent.trim(),
+    retrievalMarkup,
+    status,
+    retrievalStatus,
+    isThinking: status === 'thinking',
+    openThinkingTag:
+      active === 'think' || active === 'thinking' ? active : null,
+  }
 }

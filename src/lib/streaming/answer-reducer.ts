@@ -1,6 +1,7 @@
+import { extractThinkContent } from '@/utils/think-utils'
+
 const THINK_OPEN_TAG = '<think>'
 const THINK_CLOSE_TAG = '</think>'
-const THINK_OPEN_PATTERN = /<think(?:ing)?>/i
 const ERROR_TEXT_MARKER = '**ERROR**:'
 // Codes the backend LLM layer writes after its in-band error sentinel
 // (`**ERROR**: <code> - <upstream message>`, MultiRAG `LLMErrorCode`).
@@ -70,18 +71,8 @@ const mergeAnswerText = (previous: string, incoming: string): string => {
   return previous + incoming
 }
 
-const normalizeMainContent = (value: string): string => {
-  return value.replace(/^\n+/, '')
-}
-
 const hasUnclosedThinkTag = (value: string): boolean => {
-  const openCount =
-    (value.match(/<think>/g) || []).length +
-    (value.match(/<thinking>/g) || []).length
-  const closeCount =
-    (value.match(/<\/think>/g) || []).length +
-    (value.match(/<\/thinking>/g) || []).length
-  return openCount > closeCount
+  return extractThinkContent(value).status === 'thinking'
 }
 
 const startsWithThinkOpenTag = (value: string): boolean => {
@@ -96,48 +87,18 @@ const applyThinkStartMarker = (value: string, incoming = ''): string => {
 }
 
 const applyThinkEndMarker = (value: string): string => {
-  if (!hasUnclosedThinkTag(value)) return value
-  return value + THINK_CLOSE_TAG
+  const parsed = extractThinkContent(value)
+  if (!parsed.openThinkingTag) return value
+  return value + `</${parsed.openThinkingTag}>`
 }
 
 const extractThinkContentStrict = (
   raw: string,
 ): { content: string; thinking: string } => {
-  if (!raw) {
-    return { content: '', thinking: '' }
-  }
-
-  const openMatch = raw.match(/<think(?:ing)?>/i)
-  if (!openMatch || openMatch.index === undefined) {
-    return { content: normalizeMainContent(raw), thinking: '' }
-  }
-
-  const openStart = openMatch.index
-  const openEnd = openStart + openMatch[0].length
-  const closeMatch = raw.slice(openEnd).match(/<\/think(?:ing)?>/i)
-
-  // Strict mode: once think starts, all following text stays in thinking
-  // until an explicit closing marker is received.
-  if (!closeMatch || closeMatch.index === undefined) {
-    const contentBeforeThink = raw.slice(0, openStart)
-    const thinking = raw.slice(openEnd)
-    return {
-      content: normalizeMainContent(contentBeforeThink).trim(),
-      thinking: thinking.trim(),
-    }
-  }
-
-  const closeStart = openEnd + closeMatch.index
-  const closeEnd = closeStart + closeMatch[0].length
-  const contentBeforeThink = raw.slice(0, openStart)
-  const thinking = raw.slice(openEnd, closeStart)
-  const contentAfterThink = raw.slice(closeEnd)
-
+  const parsed = extractThinkContent(raw)
   return {
-    content: normalizeMainContent(
-      `${contentBeforeThink}${contentAfterThink}`,
-    ).trim(),
-    thinking: thinking.trim(),
+    content: parsed.contentWithoutThinking,
+    thinking: parsed.thinkContent,
   }
 }
 
@@ -148,17 +109,17 @@ const replaceWithFinalAnswer = (
   accumulated: string,
   finalAnswer: string,
 ): string => {
-  if (
-    THINK_OPEN_PATTERN.test(finalAnswer) ||
-    hasUnclosedThinkTag(accumulated)
-  ) {
-    return finalAnswer
-  }
-
-  const { thinking } = extractThinkContentStrict(accumulated)
-  return thinking
-    ? `${THINK_OPEN_TAG}${thinking}${THINK_CLOSE_TAG}${finalAnswer}`
-    : finalAnswer
+  const previous = extractThinkContent(accumulated)
+  const final = extractThinkContent(finalAnswer)
+  const retrieval =
+    previous.retrievalStatus === 'complete' && final.retrievalStatus === 'none'
+      ? previous.retrievalMarkup
+      : ''
+  const thinking =
+    final.status === 'none' && previous.status === 'complete'
+      ? `${THINK_OPEN_TAG}${previous.thinkContent}${THINK_CLOSE_TAG}`
+      : ''
+  return retrieval + thinking + finalAnswer
 }
 
 // Returns where the backend error sentinel starts. Without a known code only
@@ -230,18 +191,9 @@ export const getStreamingAnswerFailureNotice = (
 export const finalizeStreamingAnswerState = (
   state: StreamingAnswerState,
 ): StreamingAnswerState => {
-  // A failed answer keeps its split; reasoning is not promoted to an answer.
-  if (state.phase === 'failed') return state
-  if (state.content.trim() || !state.thinking.trim()) return state
-
-  const splitThinking = state.thinking.match(/^([\s\S]*?)\n\n+(\S[\s\S]*)$/)
-  if (!splitThinking) return state
-
-  return {
-    ...state,
-    content: splitThinking[2].trim(),
-    thinking: splitThinking[1].trim(),
-  }
+  // Completion, EOF and cancellation do not supply a missing closing marker.
+  // Keep the same explicit boundaries used when replaying persisted history.
+  return state
 }
 
 export const consumeStreamingAnswerChunk = (

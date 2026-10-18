@@ -8,6 +8,7 @@ import { ReferenceDetailSheet } from '@/components/chat/ReferenceDetailSheet'
 import { ReferenceImageList } from '@/components/chat/ReferenceImageList'
 import { createReferenceMarkerComponent } from '@/components/chat/ReferenceMarker'
 import { ReferencePanel } from '@/components/chat/ReferencePanel'
+import { RetrievalProgress } from '@/components/chat/retrieval-progress'
 import { ThinkWrapper } from '@/components/chat/ThinkWrapper'
 import { mergeMarkdownComponents } from '@/components/chat/MarkdownCodeBlock'
 import {
@@ -106,8 +107,7 @@ export function RuntimeChatMessageList({
       const references = getReferenceChunks(message.reference)
       const fallback = extractThinkContent(message.content || '')
       const thinkContent = message.thinking || fallback.thinkContent
-      const mainContent =
-        message.thinking !== undefined ? message.content : fallback.mainContent
+      const mainContent = fallback.mainContent
       const hasXCard = Boolean(
         message.xCardCommands?.length && message.xCardSurfaceIds?.length,
       )
@@ -129,6 +129,7 @@ export function RuntimeChatMessageList({
         message,
         mainContent,
         thinkContent,
+        hasRetrieval: fallback.retrievalStatus !== 'none',
         referencesLength: references.length,
         hasXCard,
       }
@@ -148,6 +149,7 @@ export function RuntimeChatMessageList({
         message.id.startsWith('prologue-') &&
         !isStreaming &&
         !thinkContent &&
+        fallback.retrievalStatus === 'none' &&
         !message.error &&
         !message.awaitingInputs?.length &&
         !message.files?.length &&
@@ -267,6 +269,10 @@ export function RuntimeChatMessageList({
                       />
                     ) : null}
 
+                    <RetrievalProgress
+                      result={fallback}
+                      isStreaming={isStreaming}
+                    />
                     {thinkContent ? (
                       <ThinkWrapper
                         status={thinkingStatus}
@@ -314,7 +320,7 @@ export function RuntimeChatMessageList({
                     ) : null}
 
                     {message.awaitingInputs?.length && isLatest ? (
-                      <div className="border-border-primary bg-surface-primary mt-space-md rounded-radius-md border p-space-sm">
+                      <div className="mt-space-md rounded-radius-md border border-border-primary bg-surface-primary p-space-sm">
                         <DebugContent
                           canvasId={canvasId}
                           parameters={message.awaitingInputs}

@@ -16,6 +16,11 @@ export default {
       complete: 'Thought process',
       details: 'Reasoning details',
     },
+    retrieving: {
+      inProgress: 'Retrieving...',
+      complete: 'Retrieval process',
+      interrupted: 'Retrieval interrupted',
+    },
     actions: { regenerate: 'Regenerate' },
     stream: {
       failed: 'Generation failed. Please try again.',

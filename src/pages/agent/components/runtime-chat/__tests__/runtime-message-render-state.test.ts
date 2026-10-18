@@ -7,7 +7,9 @@ import {
   shouldShowRuntimeBubbleLoading,
 } from '../runtime-message-render-state'
 
-const createMessage = (patch: Partial<RuntimeMessage> = {}): RuntimeMessage => ({
+const createMessage = (
+  patch: Partial<RuntimeMessage> = {},
+): RuntimeMessage => ({
   id: 'assistant-1',
   role: 'assistant',
   content: '',
@@ -19,7 +21,9 @@ const createState = (patch: Partial<RuntimeMessage> = {}) => ({
   mainContent: patch.content || '',
   thinkContent: patch.thinking,
   referencesLength: patch.reference ? 1 : 0,
-  hasXCard: Boolean(patch.xCardCommands?.length && patch.xCardSurfaceIds?.length),
+  hasXCard: Boolean(
+    patch.xCardCommands?.length && patch.xCardSurfaceIds?.length,
+  ),
 })
 
 test('runtime bubble loading is only used before anything renderable arrives', () => {
@@ -73,4 +77,10 @@ test('assistant streaming artifacts make messages renderable', () => {
     assert.equal(hasRuntimeMessageRenderableContent(state), true)
     assert.equal(shouldShowRuntimeBubbleLoading(state, true), false)
   })
+})
+
+test('retrieval progress suppresses a second bubble spinner before text arrives', () => {
+  const state = { ...createState(), hasRetrieval: true }
+  assert.equal(hasRuntimeMessageRenderableContent(state), true)
+  assert.equal(shouldShowRuntimeBubbleLoading(state, true), false)
 })

@@ -28,6 +28,7 @@ import { AnswerStatusNotice } from './answer-status-notice'
 import { SkillPanel } from './SkillPanel'
 import { useAtTrigger } from '../hooks'
 import { shouldIgnoreEnterForIme } from '../utils'
+import { RetrievalProgress } from '@/components/chat/retrieval-progress'
 import { extractThinkContent, type ThinkingStatus } from '@/utils/think-utils'
 import { convertReferencesToSup } from '@/utils/message-utils'
 import { copyToClipboardWithFeedback } from '@/lib/clipboard'
@@ -326,12 +327,7 @@ export const ChatSection = ({
                   (timelineNodes.length > 0
                     ? ''
                     : msg.thinking || fallback.thinkContent)
-                const mainContent =
-                  timelineNodes.length > 0
-                    ? msg.content || ''
-                    : msg.thinking !== undefined
-                      ? msg.content || ''
-                      : fallback.mainContent
+                const mainContent = fallback.mainContent
 
                 // 确定思考状态
                 let status: ThinkingStatus = fallback.status
@@ -354,7 +350,10 @@ export const ChatSection = ({
 
                 // 判断是否显示 loading（没有任何内容时）
                 const showLoading =
-                  isCurrentStreamingMsg && !thinkContent && !mainContent
+                  isCurrentStreamingMsg &&
+                  !thinkContent &&
+                  !mainContent &&
+                  fallback.retrievalStatus === 'none'
 
                 return (
                   <div className="space-y-4">
@@ -365,6 +364,10 @@ export const ChatSection = ({
                       />
                     )}
 
+                    <RetrievalProgress
+                      result={fallback}
+                      isStreaming={isCurrentStreamingMsg}
+                    />
                     {/* Think 组件 */}
                     {thinkContent && (
                       <ThinkWrapper status={status} messageId={msg.id}>
@@ -436,9 +439,7 @@ export const ChatSection = ({
     if (isStreaming && !isAppModeStreaming) {
       const fallback = extractThinkContent(streamingContent || '')
       const thinkContent = streamingThinking || fallback.thinkContent
-      const mainContent = streamingThinking
-        ? streamingContent || ''
-        : fallback.mainContent
+      const mainContent = fallback.mainContent
 
       const status: ThinkingStatus = thinkContent ? 'thinking' : 'none'
 
@@ -461,6 +462,7 @@ export const ChatSection = ({
         },
         contentRender: () => (
           <div className="space-y-4">
+            <RetrievalProgress result={fallback} isStreaming />
             {thinkContent && (
               <ThinkWrapper status={status} messageId="streaming">
                 <div className="text-sm whitespace-pre-wrap text-text-secondary">
@@ -472,9 +474,10 @@ export const ChatSection = ({
               <StreamingMarkdown content={mainContent} isStreaming={true} />
             )}
             {/* 如果没有任何内容，显示 Ant Design X 三点加载动画 */}
-            {!thinkContent && !mainContent && !isToolAnalyzing && (
-              <ChatBubbleLoading />
-            )}
+            {!thinkContent &&
+              !mainContent &&
+              fallback.retrievalStatus === 'none' &&
+              !isToolAnalyzing && <ChatBubbleLoading />}
           </div>
         ),
       })
