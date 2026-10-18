@@ -1,4 +1,4 @@
-import { apiClient } from '@/api'
+import { downloadGeneratedAttachment } from '@/api/document-files'
 import type { RuntimeAttachment } from '../../features/runtime-workbench/types'
 
 const getAttachmentDocId = (file: RuntimeAttachment) => {
@@ -18,9 +18,5 @@ export async function downloadRuntimeAttachment(file: RuntimeAttachment) {
     throw new Error('附件缺少 doc_id，无法下载')
   }
 
-  await apiClient.download(`/document/download/${encodeURIComponent(docId)}`, file.name, {
-    params: {
-      ext: getAttachmentExt(file),
-    },
-  })
+  await downloadGeneratedAttachment(docId, file.name, getAttachmentExt(file))
 }

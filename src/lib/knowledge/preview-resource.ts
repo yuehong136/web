@@ -1,4 +1,5 @@
-import { API_BASE_URL, API_VERSION, STORAGE_KEYS } from '@/constants'
+import { STORAGE_KEYS } from '@/constants'
+import { getDocumentFileUrl } from '@/api/document-files'
 
 export type FileType =
   | 'pdf'
@@ -94,14 +95,7 @@ export const getFileType = (filename?: string, docType?: string): FileType => {
   return 'unknown'
 }
 
-export const getDocumentUrl = (
-  docId: string,
-  action?: PreviewResourceAction,
-): string => {
-  const baseUrl = `${API_BASE_URL}/${API_VERSION}/document/get/${encodeURIComponent(docId)}`
-  if (!action) return baseUrl
-  return `${baseUrl}?action=${encodeURIComponent(action)}`
-}
+export const getDocumentUrl = getDocumentFileUrl
 
 export const buildAuthHeader = (): string | null => {
   try {

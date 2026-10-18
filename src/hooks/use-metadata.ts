@@ -120,7 +120,8 @@ export const useMetadataSummary = (
 ) => {
   return useQuery({
     queryKey: metadataKeys.summary(kbId, docIds),
-    queryFn: () => knowledgeAPI.metadata.getSummary(kbId, docIds),
+    queryFn: () =>
+      kbId ? knowledgeAPI.metadata.getSummary(kbId, docIds) : { summary: {} },
     enabled: !!kbId && enabled,
   })
 }

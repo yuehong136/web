@@ -155,28 +155,6 @@ export const useFetchDocumentList = (
   }
 }
 
-// 获取文档详情
-export const useFetchDocumentDetail = (documentId?: string) => {
-  const { data, isFetching, isError, error, refetch } = useQuery({
-    queryKey: documentKeys.detail(documentId || ''),
-    queryFn: async () => {
-      const response = await knowledgeAPI.document.get(documentId!)
-      return response
-    },
-    enabled: !!documentId,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
-  })
-
-  return {
-    document: data ?? null,
-    isLoading: isFetching,
-    isError,
-    error,
-    refetch,
-  }
-}
-
 // 上传文档
 export const useUploadDocument = () => {
   const queryClient = useQueryClient()
@@ -345,6 +323,7 @@ export const useFetchDocumentFilter = (knowledgeBaseId?: string) => {
   const { data, isFetching, isError, error, refetch } = useQuery({
     queryKey: documentKeys.filter(kbId),
     queryFn: async () => {
+      if (!kbId) return null
       const response = await knowledgeAPI.document.getFilter(kbId)
       return response.filter
     },

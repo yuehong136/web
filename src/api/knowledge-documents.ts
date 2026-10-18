@@ -9,6 +9,7 @@ import type {
   PaginationRequest,
 } from '@/types/api'
 import { apiClient } from './client'
+import { downloadDocumentFile } from './document-files'
 import {
   parseDatasetDocuments,
   stopDatasetDocuments,
@@ -145,9 +146,6 @@ export const knowledgeDocumentAPI = {
   ): Promise<{ total: number; filter: IDocumentInfoFilter }> =>
     getDatasetDocumentFilter(kbId),
 
-  get: (docId: string): Promise<Document> =>
-    apiClient.get(`/v1/document/get/${docId}`),
-
   upload: uploadDatasetDocuments,
   createWeb: createWebDatasetDocument,
   createEmpty: createEmptyDatasetDocument,
@@ -202,8 +200,7 @@ export const knowledgeDocumentAPI = {
   preview: (docId: string): Promise<{ preview_url: string }> =>
     apiClient.get(`/v1/document/${docId}/preview`),
 
-  download: (docId: string, filename?: string): Promise<void> =>
-    apiClient.download(`/v1/document/get/${docId}?action=download`, filename),
+  download: downloadDocumentFile,
 
   getParseStatus: (
     docId: string,

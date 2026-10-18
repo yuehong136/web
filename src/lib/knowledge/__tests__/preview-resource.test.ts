@@ -43,11 +43,11 @@ const withLocalStorageToken = async (
 test('getDocumentUrl encodes document ids and optional download action', () => {
   assert.equal(
     getDocumentUrl('doc id/中文'),
-    'http://localhost:8000/v1/document/get/doc%20id%2F%E4%B8%AD%E6%96%87',
+    'http://localhost:8000/api/v1/documents/doc%20id%2F%E4%B8%AD%E6%96%87/preview',
   )
   assert.equal(
     getDocumentUrl('doc id/中文', 'download'),
-    'http://localhost:8000/v1/document/get/doc%20id%2F%E4%B8%AD%E6%96%87?action=download',
+    'http://localhost:8000/api/v1/documents/doc%20id%2F%E4%B8%AD%E6%96%87/download',
   )
 })
 

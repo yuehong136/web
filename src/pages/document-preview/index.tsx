@@ -4,10 +4,8 @@ import { ArrowLeft, Download, FileText, Loader2 } from 'lucide-react'
 import { Watermark } from 'antd'
 import { Button, Tooltip } from '@/components/ui'
 import { DocumentPreview } from '@/components/knowledge/document-preview'
-import {
-  buildAuthHeader,
-  getDocumentUrl,
-} from '@/lib/knowledge/preview-resource'
+import { knowledgeAPI } from '@/api/knowledge'
+import { useTranslation } from 'react-i18next'
 import { toast } from '@/lib/toast'
 import { useAuthStore } from '@/stores'
 import { usePreviewResource } from '@/hooks/use-preview-resource'
@@ -17,6 +15,7 @@ const DocumentPreviewPage: React.FC = () => {
   const [searchParams] = useSearchParams()
   const [downloading, setDownloading] = useState(false)
   const user = useAuthStore((s) => s.user)
+  const { t } = useTranslation()
 
   const docName = searchParams.get('name') || undefined
   const resource = usePreviewResource({ docId, docName })
@@ -31,36 +30,13 @@ const DocumentPreviewPage: React.FC = () => {
     if (!docId) return
     setDownloading(true)
     try {
-      const url = getDocumentUrl(docId, 'download')
-      const auth = buildAuthHeader()
-      const headers: HeadersInit = {}
-      if (auth) headers.Authorization = auth
-
-      const response = await fetch(url, { headers })
-      if (!response.ok) throw new Error(`下载失败: ${response.status}`)
-
-      const contentType = response.headers.get('content-type') || ''
-      if (contentType.includes('application/json')) {
-        const data = await response.json()
-        throw new Error(data.retmsg || '下载失败')
-      }
-
-      const blob = await response.blob()
-      const blobUrl = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = blobUrl
-      a.download = docName || 'document'
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(blobUrl)
-    } catch (err) {
-      console.error('[Download] error:', err)
-      toast.error(err instanceof Error ? err.message : '下载失败')
+      await knowledgeAPI.document.download(docId, docName || 'document')
+    } catch {
+      toast.error(t('knowledge.documents.toasts.downloadError'))
     } finally {
       setDownloading(false)
     }
-  }, [docId, docName])
+  }, [docId, docName, t])
 
   if (!docId) {
     return (
