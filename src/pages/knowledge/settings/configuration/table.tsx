@@ -60,7 +60,10 @@ export function TableConfiguration() {
                   searchPlaceholder={t('common.search')}
                   emptyText={t('common.noResults')}
                   value={mode}
-                  onChange={field.onChange}
+                  onChange={(value) => {
+                    setScrollTop(0)
+                    field.onChange(value)
+                  }}
                   ariaLabel={label('mode')}
                   options={['auto', 'manual'].map((value) => ({
                     value,

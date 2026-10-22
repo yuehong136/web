@@ -834,3 +834,29 @@ it('saves table column roles and restores them after reload', async () => {
     table_column_roles: { country: 'both' },
   })
 })
+
+it('resets a virtual table column window when returning to manual mode', async () => {
+  stored.chunk_method = 'table'
+  stored.parser_config = {
+    table_column_mode: 'manual',
+    table_column_names: Array.from(
+      { length: 300 },
+      (_, index) => `column_${index}`,
+    ),
+    table_column_roles: {},
+  }
+  await reload()
+  expect(document.querySelector('[aria-label="column_0"]')).not.toBeNull()
+  const list = document.querySelector('fieldset[aria-label="Column roles"]')!
+  expect(list.querySelectorAll('[role=combobox]').length).toBeLessThanOrEqual(
+    13,
+  )
+  await act(async () => {
+    list.scrollTop = 12000
+    list.dispatchEvent(new Event('scroll'))
+  })
+  expect(document.querySelector('[aria-label="column_0"]')).toBeNull()
+  await selectOption('Column mode', 'auto')
+  await selectOption('Column mode', 'manual')
+  expect(document.querySelector('[aria-label="column_0"]')).not.toBeNull()
+})
