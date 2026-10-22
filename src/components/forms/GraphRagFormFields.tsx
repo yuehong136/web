@@ -193,6 +193,10 @@ export function GraphRagFormFields({ className }: GraphRagFormFieldsProps) {
                         <strong>General</strong>:{' '}
                         {t('knowledge.settings.graphrag.methodTooltipGeneral')}
                       </p>
+                      <p>
+                        <strong>NER</strong>:{' '}
+                        {t('knowledge.settings.graphrag.methodTooltipNer')}
+                      </p>
                     </div>
                   }
                   className="w-1/4 shrink-0 text-sm text-text-secondary"

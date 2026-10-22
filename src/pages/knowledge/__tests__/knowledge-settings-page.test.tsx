@@ -860,3 +860,24 @@ it('resets a virtual table column window when returning to manual mode', async (
   await selectOption('Column mode', 'manual')
   expect(document.querySelector('[aria-label="column_0"]')).not.toBeNull()
 })
+
+it('saves and reloads the spaCy NER GraphRAG method', async () => {
+  stored.parser_config = {
+    ...stored.parser_config,
+    graphrag: { use_graphrag: true, method: 'light' },
+  }
+  await reload()
+  await waitForPage(() => expect(field('Method')).toBeDefined())
+  await selectOption('Method', 'ner')
+  await save()
+  await waitForPage(() =>
+    expect(writes.at(-1)).toMatchObject({
+      parser_config: { graphrag: { use_graphrag: true, method: 'ner' } },
+    }),
+  )
+  await act(async () => root.unmount())
+  root = createRoot(container)
+  client.clear()
+  await render()
+  expect(field('Method').textContent).toContain('NER')
+})

@@ -533,6 +533,8 @@ export default {
           'Entity and relation extraction prompts come from LightRAG, a simple and fast retrieval-augmented generation method.',
         methodTooltipGeneral:
           'Entity and relation extraction prompts come from Microsoft GraphRAG, a graph-based modular retrieval-augmented generation system.',
+        methodTooltipNer:
+          'Use local English or Chinese spaCy models for entities and sentence co-occurrence relations. Extraction needs no LLM; description summaries, entity resolution and community reports may still use one.',
         resolution: 'Entity resolution',
         resolutionTooltip:
           'During parsing, entities with the same meaning are merged to make the knowledge graph cleaner and more accurate.',

@@ -26,6 +26,13 @@
   `enable_children=false`、`children_delimiter=""`，完整重载后仍保持关闭。
 - 配置默认值保留明确的 `false`，包括 RAPTOR、GraphRAG 和自动元数据开关。
 
+## GraphRAG NER
+
+方法选择支持 Light（默认）、General 和 NER。NER 使用后端本地中英文 spaCy 模型，
+按句子共现建立关系；内容语言来自知识库 `language`，产品界面语言不改变 NLP 模型。
+保存通过 `parser_config.graphrag.method=ner`，重载和文档配置详情须保留 NER 标识。
+提取本身不调用 LLM，描述汇总、实体归一化和社区报告仍可能调用租户模型。
+
 ## 名称校验
 
 创建、快速编辑与设置保存复用 `src/lib/knowledge/name.ts`：去除首尾空白后非空，

@@ -23,7 +23,7 @@ export const graphragSchema = z.looseObject({
   entity_types: z
     .array(z.string())
     .default(['organization', 'person', 'geo', 'event', 'category']),
-  method: z.enum(['light', 'general']).default('light'),
+  method: z.enum(['light', 'general', 'ner']).default('light'),
   resolution: z.boolean().default(false),
   community: z.boolean().default(false),
 })
@@ -183,6 +183,7 @@ export const LayoutRecognizeOptions = [
 export const GraphRagMethodOptions = [
   { label: 'Light', value: 'light' },
   { label: 'General', value: 'general' },
+  { label: 'NER', value: 'ner' },
 ] as const
 
 // RAPTOR 范围选项

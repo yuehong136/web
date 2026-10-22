@@ -510,6 +510,8 @@ export default {
           '实体和关系提取提示来自 LightRAG，简单快速的检索增强生成。',
         methodTooltipGeneral:
           '实体和关系提取提示来自 Microsoft GraphRAG，基于图的模块化检索增强生成系统。',
+        methodTooltipNer:
+          '使用 spaCy 中英文模型提取实体，按句子共现建立关系。提取无需 LLM；描述汇总、实体归一化和社区报告仍可能调用 LLM。',
         resolution: '实体归一化',
         resolutionTooltip:
           '解析过程会将具有相同含义的实体合并在一起，从而使知识图谱更简洁、更准确。',

@@ -116,7 +116,7 @@ export const ParserConfigDetails = ({
           {parserConfig.raptor.prompt && (
             <div className="flex flex-col gap-1">
               <NestedLabel>{t('knowledge.chunks.info.prompt')}</NestedLabel>
-              <div className="max-h-20 overflow-y-auto whitespace-pre-wrap break-words rounded bg-background-subtle p-2 text-xs text-text-secondary scrollbar-thin">
+              <div className="scrollbar-thin max-h-20 overflow-y-auto rounded bg-background-subtle p-2 text-xs break-words whitespace-pre-wrap text-text-secondary">
                 {parserConfig.raptor.prompt}
               </div>
             </div>
@@ -133,9 +133,11 @@ export const ParserConfigDetails = ({
             <NestedConfigRow
               label={t('knowledge.chunks.info.method')}
               value={
-                parserConfig.graphrag.method === 'light'
-                  ? t('knowledge.chunks.info.light')
-                  : t('knowledge.chunks.info.standard')
+                parserConfig.graphrag.method === 'ner'
+                  ? 'NER'
+                  : parserConfig.graphrag.method === 'light'
+                    ? t('knowledge.chunks.info.light')
+                    : t('knowledge.chunks.info.standard')
               }
             />
           )}
