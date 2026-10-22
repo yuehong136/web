@@ -1,191 +1,213 @@
-# Multi-RAG Frontend
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./.github/assets/readme/hero-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="./.github/assets/readme/hero-light.svg">
+  <img alt="Multi-RAG — 从知识到行动，连接知识、智能体与应用。" src="./.github/assets/readme/hero-light.svg" width="1280">
+</picture>
 
-Multi-RAG 平台的企业级 React 前端，并已加入早期 Electron 安全壳构建基线：智能对话、知识库管理、Agent / Pipeline 编排、可外嵌的 Agent Share Widget、MCP 服务器集成、系统管理。
+<h1 align="center">Multi-RAG Frontend</h1>
 
-> English: [`README.md`](./README.md)
+<p align="center">
+  面向知识、对话与智能体工作流的 AI 工作空间。<br>
+  导入文档，验证检索，编排智能体，将应用分享给更多人。
+</p>
 
-## 文档地图
+<p align="center">
+  <a href="https://github.com/yuehong136/web/actions/workflows/ci.yml"><img src="https://github.com/yuehong136/web/actions/workflows/ci.yml/badge.svg?branch=master" alt="master 分支 CI 状态"></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/License-Apache_2.0-2563eb?style=flat-square" alt="Apache 2.0 许可证"></a>
+  <a href="./package.json"><img src="https://img.shields.io/badge/React-19-149eca?style=flat-square" alt="React 19"></a>
+  <a href="./package.json"><img src="https://img.shields.io/badge/TypeScript-7-3178c6?style=flat-square" alt="TypeScript 7"></a>
+  <a href="./package.json"><img src="https://img.shields.io/badge/Vite-8-646cff?style=flat-square" alt="Vite 8"></a>
+</p>
 
-本 README 是项目门面，刻意保持精简。规范与细节在以下文档：
+<p align="center">
+  <a href="./README.md">English</a> · <strong>简体中文</strong>
+</p>
 
-- **[`CLAUDE.md`](./CLAUDE.md)** — AI 编码工具的强约束规范（英文）
-- **[`AGENTS.md`](./AGENTS.md)** — 同上的中文版，给 Cursor / 其他 Agent 工具
-- **[`AI前端技术栈开发规范.md`](./AI前端技术栈开发规范.md)** — 团队详尽手册（中文，每条规则**为什么**这么定）
-- **`src/themes/{design-system,development-guide,migration-guide}.md`** — 设计令牌系统细节
-- **`docs/agent-frontend-rewrite-plan.md`** 与 **`docs/agent-capability-completion-roadmap.md`** — Agent 计划与能力路线
-- **`docs/agent-t1` … `agent-t10` summaries** — 各阶段落地纪要
-- **`docs/agent-share-*-guide.md`** — Agent Share widget 集成
-- **[`docs/client-platform/README.md`](./docs/client-platform/README.md)** — Web/Desktop 客户端平台的架构、契约、路线与安全基线
-
-## 最新进展（2026 Q2）
-
-- **Agent Share Widget** — 可外嵌的 Agent 表面，含作用域主题、多文件上传、运行时附件下载、类型化 `postMessage` envelope
-- **Runtime / Pipeline / Log 工作台** — 运行、调试、观测的一等公民工作台（T4 / T6 / T8）
-- **结构化输出与高级变量** — 变量作用域形式化与结构化输出 builder（T10）
-- **Explore 正式化** — Agent explore 从原型升级为正式产品表面（T9）
-- **页面骨架系统** — 6 个页面模板（Console / Workspace / Studio / Studio Tri-Pane / Split Detail / List）与共享 `patterns/` 块库取代散写的整页壳层
-- **设计令牌系统** — 约 1452 个语义化 token，明暗 CSS 自动生成，外嵌表面支持作用域主题
-- **国际化** — 全量 `react-i18next`，按 feature 分 namespace（`en-US`、`zh-CN`）
-- **@ant-design/x 2.7** — 现代化聊天 UI 原语（`x`、`x-card`、`x-markdown`、`x-sdk`）
-- **MCP 集成** — 服务器管理、工具发现、批量操作，以及 MCP 感知的聊天
-
-## 核心能力
-
-- **智能对话** — 流式聊天 + Tool calling + 结构化输出 + MCP 工具 + 内联源引用
-- **知识库** — 多格式入库（PDF / DOCX / XLSX / PPTX / 法律 / 音频 / 图像）、专业解析器、向量检索 + 文档块可视化、批量操作
-- **Agent Studio** — 可视化画布（xyflow + AntV G6）、节点式 pipeline 构建、运行时工作台、日志/观测工作台、share/publish/webhook
-- **Agent Share Widget** — 任意 Agent 通过 iframe 外嵌到第三方站点，作用域主题 + 类型化消息
-- **MCP 服务器** — 配置、测试、监控 MCP 服务器；工具批量操作
-- **AI 工具** — 自动填充工作台与文档集成
-- **系统与管理** — 环境变量管理（含 `{{var}}` 模板替换）、API 密钥管理 + OpenAPI 文档、监控仪表板、团队管理
-
-## 技术栈
-
-| 层            | 选型                                                                          | 版本         |
-| ------------- | ----------------------------------------------------------------------------- | ------------ |
-| 框架          | React                                                                         | 19.3         |
-| 语言          | TypeScript（strict）                                                          | 7.0          |
-| 构建          | Vite                                                                          | 8.3          |
-| 路由          | react-router-dom                                                              | 7.18         |
-| 服务器状态    | TanStack Query                                                                | 5.104        |
-| 客户端状态    | Zustand                                                                       | 5.0          |
-| 样式          | Tailwind CSS + 语义化 token                                                   | 4.3          |
-| 原子组件      | Radix UI（16 个包）                                                           | 1.1 – 2.2    |
-| 聊天 UI       | @ant-design/x 套件                                                            | 2.9          |
-| 表单          | react-hook-form + zod                                                         | 7.60 / 4.0   |
-| 图标          | lucide-react（**唯一**）                                                      | 0.525        |
-| 画布          | @xyflow/react / @antv/g6                                                      | 12.9 / 5.0   |
-| 编辑器        | @monaco-editor/react、@lexical/react                                          | 4.7 / 0.52   |
-| Markdown      | react-markdown + markdown-it + remark-gfm + mathjax3                          | —            |
-| 流式          | eventsource-parser                                                            | 3.0          |
-| 拖拽          | @dnd-kit/core + sortable + utilities                                          | —            |
-| 文档预览      | docx-preview、pptx-preview、mammoth、@js-preview/excel、react-pdf-highlighter | —            |
-| 图表 / 流程图 | recharts / mermaid                                                            | 3.1 / 11.12  |
-| 净化          | DOMPurify                                                                     | 3.3          |
-| 国际化        | react-i18next + i18next + browser-languagedetector                            | 16.6 / 25.10 |
-| 桌面安全壳    | Electron + Rolldown 独立构建 main/preload                                     | 43.4 / 1.2   |
-
-完整依赖见 `package.json`。
-
-## 目录结构
-
-```
-src/
-├── api/              # 按领域拆分的 API 客户端
-├── components/
-│   ├── ui/           # 65+ 原子组件（Radix 封装，含 vendor 适配）
-│   ├── patterns/     # 页面结构块（PageHeader、page-states、SettingsRail、StatCard …）
-│   ├── page-templates/ # 6 个页面骨架
-│   ├── layout/       # Web AppShell + DX1 Desktop Workbench
-│   └── auth, canvas, chat, dynamic-form, environment, feature, forms,
-│       jsonjoy-builder, knowledge, mcp, memory, prompt-editor, studio
-├── entrypoints/       # Web/Desktop composition root + 共享挂载层
-├── platform/          # 浏览器安全的 PlatformPort 合同与 adapter
-├── pages/            # 路由模块（约 20 个顶层 feature，含 agent、knowledge、studio、mcp-servers …）
-├── hooks/            # TanStack Query hooks（use-*-request.ts）+ 跨页面 hooks
-├── stores/           # 13 个 Zustand stores（auth、ui、chat、conversation、knowledge、model、
-│                     #   environmentStore、home、search、studio、team、memory）
-├── themes/           # tokens.ts（约 1452 个）、生成器、scoped-theme.tsx + 设计文档
-├── types/            # 全局类型
-├── lib/              # 领域工具、运行时工具、adapters、产品命令
-├── locales/          # i18n：en-US/、zh-CN/
-└── assets/
-desktop/
-├── electron/         # 安全 main/preload + 白名单原生命令菜单
-├── protocol/         # 类型化 Renderer Bridge v2；无通用 IPC
-├── build/            # Rolldown、allowlist staging、electron-builder、产物验证
-├── tests/            # main/preload/协议/打包合同测试
-└── .out/             # 构建、staging 与 artifact 产物（gitignored）
-```
-
-为什么这样分层（四层骨架、展示/容器分离、文件大小红线），见 `AI前端技术栈开发规范.md` 与 `AGENTS.md`。
-
-Web 应用仍是唯一生产产品，且保持独立构建与发布。在 `CLP-DESK0` 安全壳基线之上，已完成的非发布态 `CLP-DX1` 基础提供 Web/Desktop 独立 composition root、浏览器安全的 `PlatformPort`、任务导向 Desktop Workbench、共享命令注册表和 Renderer Bridge v2 原生菜单事件。它尚不提供桌面原生 OIDC/凭据加固、Shared `RunClient`、durable Run 恢复、自动更新、本地 Host 或 Windows 打包/签名实测。详见 [`docs/client-platform/README.md`](./docs/client-platform/README.md)。
-
-## 快速开始
-
-### 环境要求
-
-- Node.js 24+（构建基线由 `.nvmrc` 选择）
-- 使用 `package.json` 的 `packageManager` 声明的 npm 版本
-
-### 安装
-
-```bash
-git clone <repository-url>
-cd web
-npm install
-cp .env.example .env.local        # 然后编辑
-npm run dev                        # http://localhost:5173
-npm run dev:host                   # 可选：绑定 0.0.0.0 用于局域网联调
-```
-
-### 脚本
-
-```bash
-npm run dev             # Vite 开发服务器，默认仅本机访问（5173）
-npm run dev:host        # 绑定 0.0.0.0，用于局域网联调
-npm run build           # tsc -b && vite build
-npm run build:analyze   # 生成 dist/stats.html bundle treemap（不部署）
-npm run preview         # 预览生产构建
-npm run lint            # eslint src
-npm run lint:all        # eslint .
-npm run lint:typed      # type-aware lint，先覆盖 Agent 关键目录
-npm run typecheck:agent-strict # Agent 关键目录严格类型检查
-npm run build:themes    # 修改 tokens.ts 后重新生成 themes/{light,dark}.css
-npm run test:agent-t1   # 通过 tsx --test 运行 agent T1 测试
-npm run test:client-platform # 测试 Web/Desktop composition、PlatformPort、Workbench 与命令
-npm run lint:desktop    # 检查桌面壳/构建源码
-npm run desktop:typecheck # 类型检查 Electron main 与 preload project
-npm run test:desktop    # 运行桌面壳合同与打包测试
-npm run desktop:build   # 使用 Rolldown 生成 main ESM 与 sandbox preload CJS
-npm run desktop:stage   # 组装显式 allowlist 的桌面 staging app
-npm run desktop:verify:stage # 验证 staging allowlist 与 build manifest
-npm run desktop:package:dir # 构建并验证当前平台的 unpacked 包
-npm run desktop:verify:package # 重新验证当前原生产物
-```
-
-目前**没有**通用 `test`、`format`、`typecheck` 脚本。类型检查由 `npm run build` 完成，Agent 关键目录可补充跑 `npm run typecheck:agent-strict`。格式化通过 Prettier + lint-staged 作用于 staged 文件，不做全仓格式化。正式测试分别使用 `tsx --test`、Node test 和 Vitest；`test:client-platform` 是 DX1 Renderer 门禁，`test:desktop` 覆盖 main/preload/协议/打包合同。
-
-### 环境变量
-
-```env
-VITE_API_BASE_URL=http://localhost:8000
-VITE_ADMIN_API_BASE_URL=http://localhost:8130
-VITE_WS_BASE_URL=ws://localhost:8000
-```
-
-浏览器侧环境变量必须 `VITE_*` 前缀。**不得**内联密钥。
-
-本地 macOS 客户端预览：先在 `.env.local` 配置上述 origin 并启动后端，再运行 `npm run build:desktop`、`npm run desktop:verify:stage`、`npm run desktop:package:dir`。Apple Silicon 打开 `desktop/.out/artifacts/mac-arm64/MultiRAG.app`（x64 为 `mac/MultiRAG.app`）。地址变化后必须重新构建；客户端运行时不会读取 `.env.local`。限制与原生平台说明见 [`desktop/README.md`](./desktop/README.md)。
-
-## 架构亮点
-
-- **四层页面骨架** — `ui/` → `patterns/` → `page-templates/` → `pages/`。新页面必须选模板，**不得**自造整页壳层。
-- **服务器 / 客户端状态分离** — TanStack Query 管服务器状态，Zustand 管 UI 状态；流式 chunk 写在临时字段，**不进** Query cache。
-- **仅用语义化 token** — 禁用 `bg-white`、`text-gray-*`、任意值。深色模式自动适配，禁用 `dark:` 前缀。
-- **流式优先** — SSE 走 `eventsource-parser`，每条流自持 AbortController，流式文本加 `aria-live`，`aria-busy` 时不抢焦点。
-- **生成式 UI** — 结构化输出与 tool-call 走 `pages/agent/operators/`、`adapters/` 注册表渲染，**不**写在页面 switch 里。
-- **可外嵌 widget** — Agent Share 表面支持 iframe 外嵌，作用域主题 + 类型化 `postMessage`。
-- **MCP 一等公民** — MCP 服务器、工具、批量操作均为产品级能力；有副作用的工具调用必须 UI 二次确认。
-- **i18n 默认开** — 所有用户可见字符串走 `react-i18next` namespace。
-
-## 贡献
-
-1. Fork 与分支：`feature/*`、`fix/*`、`refactor/*`、`docs/*`、`perf/*`、`chore/*`
-2. 读 `AGENTS.md`（规范）和 `AI前端技术栈开发规范.md`（为什么）
-3. push 前：`npm run lint && npm run build`；接触 Agent serializer/adapter/operator 时补充 `npm run lint:typed && npm run typecheck:agent-strict && npm run test:agent-t1`；接触客户端平台时补充 `npm run test:client-platform && npm run lint:desktop && npm run desktop:typecheck && npm run test:desktop`
-4. UI 改动 PR 必须附明暗双主题截图
-5. 用 [Conventional Commits](https://www.conventionalcommits.org/)：`feat`、`fix`、`docs`、`refactor`、`chore`、`perf`、`test`、`style`（可选 scope）
-
-## 浏览器支持
-
-Chrome/Edge 111+、Firefox 128+、Safari 16.4+。
-
-## 许可证
-
-基于 [Apache License 2.0](./LICENSE) 开源。
+<p align="center">
+  <a href="#capabilities">能力</a> ·
+  <a href="#quick-start">快速开始</a> ·
+  <a href="#development">开发</a> ·
+  <a href="#documentation">文档</a> ·
+  <a href="#contributing">贡献</a>
+</p>
 
 ---
 
-**版本**：0.9.8 — 基于 React 19 · TypeScript 7 · Vite 8 · Tailwind CSS 4。精确依赖版本以 `package.json` 和 `package-lock.json` 为准。
+Multi-RAG 将文档知识、检索、对话和可视化智能体编排整合在同一个界面中。本仓库是 [MultiRAG 后端](https://github.com/yuehong136/MultiRAG) 的 **React 前端**，提供统一的明暗主题与中英文界面。
+
+> **从 Web 开始。** 浏览器应用是当前主产品。Electron 桌面基础仍为内部预览，发布边界见[桌面预览](#desktop-preview)。
+
+<a id="capabilities"></a>
+
+## 核心能力
+
+| 知识与检索                                                                                         | 智能体与工作流                                                                                |
+| -------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| 导入文档，配置解析与分块，审阅切片，结合文档范围和元数据筛选验证检索效果。                         | 在可视化画布上编排 Agent 与 Pipeline，配置变量和结构化输出，查看执行过程与日志。              |
+| **对话与 Studio**                                                                                  | **Skills 与 MCP**                                                                             |
+| 在试聊旁配置提示词、模型和知识来源；流式展示回答、引用与工具输出，区分检索进度和可折叠的思考过程。 | 浏览技能空间、技能包与文件；配置 MCP 服务器，发现和测试工具，管理批量操作。                   |
+| **分享与嵌入**                                                                                     | **工作空间管理**                                                                              |
+| 通过独立页面或 iframe widget 分享智能体，支持作用域主题、语言选择、文件上传与运行时附件。          | 管理模型供应商、数据源、记忆库、团队、环境变量与 API 密钥，以及由服务端定义的渠道连接与绑定。 |
+
+知识工作台还提供父子分块、元数据模板、嵌入模型兼容性检查、表格列索引/元数据角色，以及包含本地 NER 抽取方式的 GraphRAG 配置。解析、索引、模型执行与具体集成能力取决于所连接的后端及其供应商配置。
+
+<details>
+<summary><strong>查看 Studio 的明暗主题</strong></summary>
+
+<br>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./docs/acceptance/studio-editor-refinement-20261007/06-preview-zh-dark.jpg">
+  <source media="(prefers-color-scheme: light)" srcset="./docs/acceptance/studio-editor-refinement-20261007/03-preview-light.jpg">
+  <img alt="Studio 左侧编辑应用指令，右侧通过试聊验证配置" src="./docs/acceptance/studio-editor-refinement-20261007/03-preview-light.jpg" width="1004" loading="lazy">
+</picture>
+
+复用 2026-10-07 的验收截图，内容为示例数据分析对话。背景与验证范围见 [Studio 验收记录](./docs/acceptance/studio-editor-refinement-20261007.md)。
+
+</details>
+
+<a id="quick-start"></a>
+
+## 快速开始
+
+### 1. 准备环境
+
+- **Node.js 24**，由 [`.nvmrc`](./.nvmrc) 选择；npm 使用 [`package.json`](./package.json) 中 `packageManager` 声明的版本。
+- 已运行且版本兼容的 **MultiRAG 后端**，以及该后端的登录账号。本仓库启动前端；模型、存储和执行服务由后端提供。
+
+```bash
+git clone https://github.com/yuehong136/web.git
+cd web
+npm ci
+cp .env.example .env.local
+```
+
+### 2. 连接后端
+
+编辑 `.env.local`，将地址改为实际服务地址。以下为 [`.env.example`](./.env.example) 的默认配置：
+
+```dotenv
+VITE_API_BASE_URL=http://localhost:8000
+VITE_ADMIN_API_BASE_URL=http://localhost:8130
+VITE_WS_BASE_URL=ws://localhost:8000
+VITE_SKILLS_API_PROTOCOL=multirag-assets-v1
+```
+
+`VITE_SKILLS_API_PROTOCOL` 显式选择后端技能合同，可选 `multirag-assets-v1` 或 `ragflow-skills-v1`。请与后端暴露的协议保持一致，不会自动回退。其他配置见 [`.env.example`](./.env.example)。
+
+所有 `VITE_*` 值都会暴露在浏览器构建产物中。供应商密钥应配置在后端。修改环境变量后重启开发服务；生产环境变更接口地址需要重新构建。
+
+### 3. 打开工作空间
+
+```bash
+npm run dev
+```
+
+访问 [localhost:5173](http://localhost:5173)，登录后可创建知识库、配置模型，或进入 Studio 构建应用。局域网联调使用 `npm run dev:host`。
+
+<details>
+<summary><strong>构建与预览 Web 应用</strong></summary>
+
+```bash
+npm run build
+npm run preview
+```
+
+`build` 执行完整 Web TypeScript 检查并生成 `dist/`。API 地址在构建时确定；部署前需准备兼容后端，并在托管环境配置 API 路由与 SPA 回退。
+
+</details>
+
+<a id="development"></a>
+
+## 开发指南
+
+### 技术栈
+
+| 领域       | 主要组件                                                                |
+| ---------- | ----------------------------------------------------------------------- |
+| 应用       | React 19 · TypeScript 7（strict）· Vite 8 · React Router                |
+| 状态与传输 | TanStack Query · Zustand · 共享 API 客户端 · SSE / `eventsource-parser` |
+| 界面       | Tailwind CSS 4 · Radix UI · 语义化设计令牌 · Lucide                     |
+| AI 交互    | Ant Design X / XMarkdown · XYFlow · AntV G6 · Monaco · Lexical          |
+| 内容       | 文档预览 · KaTeX · Mermaid · Recharts · DOMPurify                       |
+| 语言与验证 | i18next · Node test / tsx · Vitest · ESLint                             |
+| 桌面预览   | Electron · Rolldown · 类型化 preload bridge                             |
+
+精确版本与完整依赖以 [`package.json`](./package.json) 和 [`package-lock.json`](./package-lock.json) 为准。
+
+### 常用命令
+
+| 命令                        | 用途                                            |
+| --------------------------- | ----------------------------------------------- |
+| `npm run dev`               | 启动本机 Vite 开发服务器                        |
+| `npm run build`             | 完整 Web 类型检查与生产构建                     |
+| `npm run lint`              | 检查应用源码                                    |
+| `npm run test:unit`         | 运行全部源码与工具单元测试                      |
+| `npm run test:ci`           | 校验测试清单，运行源码、工具及桌面完整测试      |
+| `npm run build:themes`      | 重新生成主题 CSS 与 token 产物                  |
+| `npm run build:analyze`     | 构建并生成体积分析图；`stats.html` 不进入部署包 |
+| `npm run check:bundle-size` | 构建后检查 bundle 预算                          |
+
+API、流式运行时、Agent、安全与桌面等专项检查见[验证矩阵](./docs/agent-guidance/verification.md#scope)。完整 Web 类型检查包含在 `build` 中；没有裸 `test`、`typecheck` 或 `format` 脚本。
+
+### 目录导览
+
+```text
+src/
+├── api/              领域 API 客户端与合同归一化
+├── components/       UI 原语 → 结构块 → 页面模板
+├── entrypoints/      Web/Desktop 组合入口与共享挂载层
+├── hooks/            查询、变更与共享行为
+├── lib/              流式运行时、命令系统与领域工具
+├── locales/          英文与简体中文资源
+├── pages/            知识库、智能体、Studio、Skills、设置等
+├── platform/         浏览器安全的平台合同与适配器
+├── stores/           客户端状态与 UI 偏好
+└── themes/           语义令牌、生成器与作用域主题
+desktop/              Electron 壳、bridge、构建与合同测试
+docs/                 架构、规范、路线图与验收记录
+scripts/              测试清单、文件大小与 bundle 检查
+```
+
+业务流程留在页面与 feature 容器中，共享 UI 遵循 `ui → patterns → page-templates`。TanStack Query 管服务器状态，Zustand 管 UI 状态，流式 chunk 不写入 Query cache。HTML 和嵌入内容通过净化或沙箱边界处理。实现规则见 [`AGENTS.md`](./AGENTS.md) 与[专题指南](./docs/agent-guidance/frontend.md)。
+
+<a id="desktop-preview"></a>
+
+## 桌面预览
+
+Electron 基础复用 Web renderer，提供任务导向的 Workbench、命令面板、原生菜单与类型化沙箱 preload bridge，目前仍为**内部非发布预览**。桌面原生认证加固、durable Run 恢复、自动更新、本地 Host，以及 Windows 打包/签名实测，仍不属于已交付基础。
+
+本地构建与平台限制见 [`desktop/README.md`](./desktop/README.md)，架构和分阶段路线见 [Client Platform 文档](./docs/client-platform/README.md)。
+
+<a id="documentation"></a>
+
+## 文档导航
+
+| 入口                                                                                                        | 内容                                       |
+| ----------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| [工程路线图](./docs/engineering-modernization-roadmap.md)                                                   | 当前工程工作与交付状态                     |
+| [Agent 编码规则](./AGENTS.md)                                                                               | 仓库规则唯一入口；`CLAUDE.md` 仅导入此文件 |
+| [前端专题](./docs/agent-guidance/frontend.md)                                                               | 目录组织、UI 与国际化                      |
+| [运行时专题](./docs/agent-guidance/runtime.md)                                                              | 数据、流式交互、嵌入、安全与客户端边界     |
+| [验证与构建](./docs/agent-guidance/verification.md)                                                         | 按改动范围选择检查及 CI 命令               |
+| [主题开发](./src/themes/development-guide.md)                                                               | 设计令牌、样式生成与组件主题               |
+| [知识库设置](./src/pages/knowledge/settings/README.md) · [元数据](./src/pages/knowledge/metadata/README.md) | 解析、GraphRAG 与元数据配置合同            |
+| [Client Platform](./docs/client-platform/README.md)                                                         | Web/Desktop 架构、合同与发布边界           |
+| [团队手册](./AI前端技术栈开发规范.md)                                                                       | 规则背后的理由与示例                       |
+
+<a id="contributing"></a>
+
+## 参与贡献
+
+欢迎通过 [Issues](https://github.com/yuehong136/web/issues) 和 [Pull Requests](https://github.com/yuehong136/web/pulls) 提交可复现的问题、聚焦的修复、文档与翻译。
+
+1. 阅读 [`AGENTS.md`](./AGENTS.md) 及本次修改对应的专题指南。
+2. 保持改动聚焦，复用共享组件和设计令牌，产品文案同步中英文。
+3. 按[验证矩阵](./docs/agent-guidance/verification.md#scope)执行相关检查，在 PR 中记录实际结果与未验证边界；UI 变更附明暗主题截图。
+4. 使用 Conventional Commits，例如 `feat(knowledge): ...` 或 `docs: ...`。
+
+浏览器目标以 [`package.json`](./package.json) 为准：Chrome/Edge 111+、Firefox 128+、Safari 16.4+。
+
+## 许可证
+
+[Apache License 2.0](./LICENSE) · Multi-RAG Frontend contributors。

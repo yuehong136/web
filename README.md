@@ -1,191 +1,201 @@
-# Multi-RAG Frontend
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./.github/assets/readme/hero-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="./.github/assets/readme/hero-light.svg">
+  <img alt="Multi-RAG — From knowledge to action. Connect knowledge, agents and applications." src="./.github/assets/readme/hero-light.svg" width="1280">
+</picture>
 
-Enterprise-grade React frontend for the Multi-RAG platform, with an early secure Electron shell build baseline: intelligent conversation, knowledge bases, agent / pipeline orchestration, embeddable agent share widget, MCP server integration, and system administration.
+<h1 align="center">Multi-RAG Frontend</h1>
 
-> 中文文档：[`README_zh.md`](./README_zh.md)
+<p align="center">
+  An AI workspace for knowledge, conversations and agent workflows.<br>
+  Ingest documents. Inspect retrieval. Build agents. Share applications.
+</p>
 
-## Documentation Map
+<p align="center">
+  <a href="https://github.com/yuehong136/web/actions/workflows/ci.yml"><img src="https://github.com/yuehong136/web/actions/workflows/ci.yml/badge.svg?branch=master" alt="CI on master"></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/License-Apache_2.0-2563eb?style=flat-square" alt="Apache 2.0 license"></a>
+  <a href="./package.json"><img src="https://img.shields.io/badge/React-19-149eca?style=flat-square" alt="React 19"></a>
+  <a href="./package.json"><img src="https://img.shields.io/badge/TypeScript-7-3178c6?style=flat-square" alt="TypeScript 7"></a>
+  <a href="./package.json"><img src="https://img.shields.io/badge/Vite-8-646cff?style=flat-square" alt="Vite 8"></a>
+</p>
 
-This README is the project front door — it intentionally stays short. The authoritative documentation lives elsewhere:
+<p align="center">
+  <strong>English</strong> · <a href="./README_zh.md">简体中文</a>
+</p>
 
-- **[`CLAUDE.md`](./CLAUDE.md)** — mandatory rules for AI coding agents (English)
-- **[`AGENTS.md`](./AGENTS.md)** — same rules in Chinese, for Cursor / other agent tools
-- **[`AI前端技术栈开发规范.md`](./AI前端技术栈开发规范.md)** — full team handbook (Chinese, the _why_ behind every rule)
-- **`src/themes/{design-system,development-guide,migration-guide}.md`** — design token system specifics
-- **`docs/agent-frontend-rewrite-plan.md`** & **`docs/agent-capability-completion-roadmap.md`** — agent program roadmap
-- **`docs/agent-t1` … `agent-t10` summaries** — landed capabilities per phase
-- **`docs/agent-share-*-guide.md`** — agent share widget integration
-- **[`docs/client-platform/README.md`](./docs/client-platform/README.md)** — Web/Desktop client-platform architecture, contracts, roadmap, and security baseline
-
-## What's New (2026-Q2)
-
-- **Agent Share Widget** — embeddable agent surface with scoped theming, multi-file uploads, downloadable runtime attachments, and typed `postMessage` envelope
-- **Runtime / Pipeline / Log Workbench** — first-class workbenches for running, debugging, and observing agents and pipelines (T4 / T6 / T8)
-- **Structured Output & Advanced Variables** — formalized variable scopes and structured output builder (T10)
-- **Explore Formalization** — agent explore mode promoted from prototype to product surface (T9)
-- **Page Skeleton System** — 6 page templates (Console / Workspace / Studio / Studio Tri-Pane / Split Detail / List) and a shared `patterns/` block library replace ad-hoc page shells
-- **Design Token System** — ~1,452 semantic tokens with light/dark generated CSS, plus scoped theming for embedded surfaces
-- **i18n** — full `react-i18next` integration with per-feature namespaces (`en-US`, `zh-CN`)
-- **@ant-design/x 2.7** — modern chat UI primitives (`x`, `x-card`, `x-markdown`, `x-sdk`)
-- **MCP Integration** — server management, tool discovery, batch operations, and MCP-aware chat
-
-## Core Features
-
-- **Intelligent Conversation** — streaming chat with tool calling, structured output, MCP tools, and inline source references
-- **Knowledge Base** — multi-format ingest (PDF / DOCX / XLSX / PPTX / legal / audio / image), specialized parsers, vector search with chunk visualization, batch operations
-- **Agent Studio** — visual canvas (xyflow + AntV G6), node-based pipeline builder, runtime workbench, log/observability workbench, share/publish/webhook
-- **Agent Share Widget** — embed any agent into a third-party site via iframe with scoped theming and typed messaging
-- **MCP Servers** — configure, test, and monitor Model Context Protocol servers; batch tool operations
-- **AI Tools** — auto-fill workbench with document integration
-- **System & Admin** — environment management with `{{var}}` template substitution, API key management with OpenAPI docs, monitoring dashboards, team management
-
-## Tech Stack
-
-| Layer             | Choice                                                                        | Version      |
-| ----------------- | ----------------------------------------------------------------------------- | ------------ |
-| Framework         | React                                                                         | 19.3         |
-| Language          | TypeScript (strict)                                                           | 7.0          |
-| Build             | Vite                                                                          | 8.3          |
-| Routing           | react-router-dom                                                              | 7.18         |
-| Server state      | TanStack Query                                                                | 5.104        |
-| Client state      | Zustand                                                                       | 5.0          |
-| Styling           | Tailwind CSS + semantic tokens                                                | 4.3          |
-| UI primitives     | Radix UI (16 packages)                                                        | 1.1 – 2.2    |
-| Chat UI           | @ant-design/x suite                                                           | 2.9          |
-| Forms             | react-hook-form + zod                                                         | 7.60 / 4.0   |
-| Icons             | lucide-react (only allowed)                                                   | 0.525        |
-| Canvas            | @xyflow/react / @antv/g6                                                      | 12.9 / 5.0   |
-| Editors           | @monaco-editor/react, @lexical/react                                          | 4.7 / 0.52   |
-| Markdown          | react-markdown + markdown-it + remark-gfm + mathjax3                          | —            |
-| Streaming         | eventsource-parser                                                            | 3.0          |
-| Drag & drop       | @dnd-kit/core + sortable + utilities                                          | —            |
-| Doc preview       | docx-preview, pptx-preview, mammoth, @js-preview/excel, react-pdf-highlighter | —            |
-| Charts / Diagrams | recharts / mermaid                                                            | 3.1 / 11.12  |
-| Sanitization      | DOMPurify                                                                     | 3.3          |
-| i18n              | react-i18next + i18next + browser-languagedetector                            | 16.6 / 25.10 |
-| Desktop shell     | Electron + direct Rolldown main/preload build                                 | 43.4 / 1.2   |
-
-Full list lives in `package.json`.
-
-## Project Layout
-
-```
-src/
-├── api/              # Domain-split API clients
-├── components/
-│   ├── ui/           # 65+ Radix-based primitives (+ vendor adapters)
-│   ├── patterns/     # Page structure blocks (PageHeader, page-states, SettingsRail, StatCard, ...)
-│   ├── page-templates/ # 6 page skeletons
-│   ├── layout/       # Web AppShell + DX1 Desktop Workbench
-│   └── auth, canvas, chat, dynamic-form, environment, feature, forms,
-│       jsonjoy-builder, knowledge, mcp, memory, prompt-editor, studio
-├── entrypoints/       # Web/Desktop composition roots + shared mount
-├── platform/          # Browser-safe PlatformPort contracts and adapters
-├── pages/            # Route modules (~20 top-level features incl. agent, knowledge, studio, mcp-servers, ...)
-├── hooks/            # TanStack Query hooks (use-*-request.ts) and cross-page hooks
-├── stores/           # 13 Zustand stores (auth, ui, chat, conversation, knowledge, model,
-│                     #   environmentStore, home, search, studio, team, memory)
-├── themes/           # tokens.ts (~1,452 tokens), generators, scoped-theme.tsx + design docs
-├── types/            # Global TypeScript types
-├── lib/              # Domain helpers, runtime utilities, adapters, product commands
-├── locales/          # i18n: en-US/, zh-CN/
-└── assets/
-desktop/
-├── electron/         # Secure main/preload + allowlisted native command menu
-├── protocol/         # Typed Renderer Bridge v2; no generic IPC
-├── build/            # Rolldown, allowlist staging, electron-builder, package verification
-├── tests/            # Main/preload/protocol/packaging contracts
-└── .out/             # Generated build, stage, and artifact output (gitignored)
-```
-
-For the _why_ behind this layout (page-skeleton four-layer rule, presentational/container split, file-size limits), see `AI前端技术栈开发规范.md` and `AGENTS.md`.
-
-The Web application remains the only production product and can still build and ship independently. On top of the `CLP-DESK0` secure-shell baseline, the completed non-release `CLP-DX1` foundation provides separate Web/Desktop composition roots, a browser-safe `PlatformPort`, a task-oriented Desktop Workbench, a shared command registry, and Renderer Bridge v2 native-menu events. It does **not** provide desktop-native OIDC/credential hardening, Shared `RunClient`, durable Run recovery, auto-update, a local Host, or verified Windows packaging/signing. See [`docs/client-platform/README.md`](./docs/client-platform/README.md).
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js 24+ (`.nvmrc` selects the build baseline)
-- Use the npm version declared in `package.json` (`packageManager`)
-
-### Setup
-
-```bash
-git clone <repository-url>
-cd web
-npm install
-cp .env.example .env.local        # then edit
-npm run dev                        # http://localhost:5173
-npm run dev:host                   # optional: expose as 0.0.0.0 for LAN testing
-```
-
-### Scripts
-
-```bash
-npm run dev             # Vite dev server, localhost-only by default (5173)
-npm run dev:host        # Bind 0.0.0.0 for LAN testing
-npm run build           # tsc -b && vite build
-npm run build:analyze   # Generate dist/stats.html bundle treemap (do not deploy)
-npm run preview         # Preview production build
-npm run lint            # eslint src
-npm run lint:all        # eslint .
-npm run lint:typed      # Type-aware lint for Agent critical directories
-npm run typecheck:agent-strict # Strict type check for Agent critical directories
-npm run build:themes    # Regenerate themes/{light,dark}.css after tokens.ts changes
-npm run test:agent-t1   # Run agent T1 tests via tsx --test
-npm run test:client-platform # Test Web/Desktop composition, PlatformPort, Workbench, and commands
-npm run lint:desktop    # Lint desktop shell/build sources
-npm run desktop:typecheck # Type-check Electron main and preload projects
-npm run test:desktop    # Run desktop shell contract and packaging tests
-npm run desktop:build   # Build main ESM + sandbox preload CJS with Rolldown
-npm run desktop:stage   # Assemble the explicit desktop staging app
-npm run desktop:verify:stage # Verify staging allowlist and build manifest
-npm run desktop:package:dir # Build and verify the native unpacked package
-npm run desktop:verify:package # Re-verify the current native artifact
-```
-
-There is no generic `test`, `format`, or `typecheck` script today. Type checking happens inside `npm run build`, with stricter Agent-slice checks available via `npm run typecheck:agent-strict`. Formatting is handled by Prettier + lint-staged for staged files only; do not run a whole-repo format pass. Formal tests use `tsx --test`, Node test, and Vitest; `test:client-platform` is the DX1 Renderer gate, while `test:desktop` covers main/preload/protocol/packaging contracts.
-
-### Environment
-
-```env
-VITE_API_BASE_URL=http://localhost:8000
-VITE_ADMIN_API_BASE_URL=http://localhost:8130
-VITE_WS_BASE_URL=ws://localhost:8000
-```
-
-Browser-exposed env vars must use the `VITE_*` prefix. Never inline secrets.
-
-For a local macOS desktop preview, set those origins in `.env.local`, start the backend, then run `npm run build:desktop`, `npm run desktop:verify:stage`, and `npm run desktop:package:dir`. Open `desktop/.out/artifacts/mac-arm64/MultiRAG.app` on Apple Silicon (`mac/MultiRAG.app` on x64). Endpoint changes require a rebuild; the app never reads `.env.local` at runtime. See [`desktop/README.md`](./desktop/README.md) for limitations and native-platform notes.
-
-## Architecture Highlights
-
-- **Four-layer page skeleton** — `ui/` → `patterns/` → `page-templates/` → `pages/`. New pages must pick a template; never invent a new full-page shell.
-- **Server / client state separation** — TanStack Query owns server state, Zustand owns UI state; streaming chunks live in transient store fields, not in Query cache.
-- **Semantic design tokens only** — no `bg-white`, `text-gray-*`, no arbitrary values. Dark mode is automatic; never use `dark:` prefixes.
-- **Streaming-first** — SSE via `eventsource-parser`, AbortController per stream, `aria-live` on streamed text, no focus-stealing while `aria-busy`.
-- **Generative UI** — structured output and tool-call payloads render through registries in `pages/agent/operators/` and `adapters/`, not via per-page `switch`.
-- **Embeddable widget** — agent share surface supports iframe embedding with scoped theming and typed `postMessage`.
-- **MCP-aware** — MCP servers, tools, and batch operations are first-class; side-effecting tool calls require UI confirmation.
-- **i18n by default** — every user-visible string goes through `react-i18next` namespaces.
-
-## Contributing
-
-1. Fork & branch: `feature/*`, `fix/*`, `refactor/*`, `docs/*`, `perf/*`, `chore/*`
-2. Read `AGENTS.md` (the rules) and `AI前端技术栈开发规范.md` (the why)
-3. Before pushing: `npm run lint && npm run build`; for Agent serializers/adapters/operators also run `npm run lint:typed && npm run typecheck:agent-strict && npm run test:agent-t1`; for Client Platform changes also run `npm run test:client-platform && npm run lint:desktop && npm run desktop:typecheck && npm run test:desktop`
-4. PR description must include both light/dark theme screenshots for any UI change
-5. Use [Conventional Commits](https://www.conventionalcommits.org/): `feat`, `fix`, `docs`, `refactor`, `chore`, `perf`, `test`, `style` (with optional scope)
-
-## Browser Support
-
-Chrome/Edge 111+, Firefox 128+, and Safari 16.4+.
-
-## License
-
-Licensed under the [Apache License 2.0](./LICENSE).
+<p align="center">
+  <a href="#capabilities">Features</a> ·
+  <a href="#quick-start">Quick&nbsp;start</a> ·
+  <a href="#development">Develop</a> ·
+  <a href="#documentation">Docs</a> ·
+  <a href="#contributing">Contribute</a>
+</p>
 
 ---
 
-**Version**: 0.9.8 — built with React 19 · TypeScript 7 · Vite 8 · Tailwind CSS 4. Exact dependency versions are recorded in `package.json` and `package-lock.json`.
+Multi-RAG brings document knowledge, retrieval, chat and visual agent orchestration into one interface. This repository contains the **React frontend** for the [MultiRAG backend](https://github.com/yuehong136/MultiRAG), with shared light/dark themes and English/Chinese interfaces.
+
+> **Start with Web.** The browser application is the primary product. The Electron desktop foundation is an internal preview; its release boundaries are documented [below](#desktop-preview).
+
+## Capabilities
+
+| Knowledge & retrieval                                                                                                                                          | Agents & workflows                                                                                                                    |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Import documents, configure parsing and chunking, inspect chunks, and test retrieval with document and metadata filters.                                       | Build agents and pipelines on a visual canvas, configure variables and structured output, and inspect execution and logs.             |
+| **Conversations & Studio**                                                                                                                                     | **Skills & MCP**                                                                                                                      |
+| Configure prompts, models and knowledge sources alongside test chat. Stream answers with citations, tool output, retrieval progress and collapsible reasoning. | Browse skill spaces, packages and files. Configure MCP servers, discover and test tools, and manage batch operations.                 |
+| **Share & embed**                                                                                                                                              | **Workspace administration**                                                                                                          |
+| Share agents as standalone pages or iframe widgets, with scoped themes, language selection, uploads and runtime attachments.                                   | Manage model providers, data sources, memory, teams, environments and API keys, plus server-defined channel connections and bindings. |
+
+The knowledge workbench also exposes parent/child chunking, metadata templates, embedding compatibility checks, table column indexing/metadata roles, and GraphRAG configuration including local NER extraction. Parsing, indexing, model execution and available integrations depend on the connected backend and its configured providers.
+
+<details>
+<summary><strong>See Studio in light and dark themes</strong></summary>
+
+<br>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./docs/acceptance/studio-editor-refinement-20261007/06-preview-zh-dark.jpg">
+  <source media="(prefers-color-scheme: light)" srcset="./docs/acceptance/studio-editor-refinement-20261007/03-preview-light.jpg">
+  <img alt="Studio with instructions on the left and a test conversation on the right" src="./docs/acceptance/studio-editor-refinement-20261007/03-preview-light.jpg" width="1004" loading="lazy">
+</picture>
+
+Existing acceptance screenshots from 2026-10-07, using a sample data-analysis conversation. See the [Studio acceptance record](./docs/acceptance/studio-editor-refinement-20261007.md) for context.
+
+</details>
+
+## Quick start
+
+### 1. Prepare the environment
+
+- **Node.js 24**, selected by [`.nvmrc`](./.nvmrc); use the npm version declared in [`package.json`](./package.json) (`packageManager`).
+- A running, compatible **MultiRAG backend** and an account on that backend. This repository starts the frontend; models, storage and execution services run on the backend.
+
+```bash
+git clone https://github.com/yuehong136/web.git
+cd web
+npm ci
+cp .env.example .env.local
+```
+
+### 2. Connect your backend
+
+Edit `.env.local` to match your services. These are the defaults from [`.env.example`](./.env.example):
+
+```dotenv
+VITE_API_BASE_URL=http://localhost:8000
+VITE_ADMIN_API_BASE_URL=http://localhost:8130
+VITE_WS_BASE_URL=ws://localhost:8000
+VITE_SKILLS_API_PROTOCOL=multirag-assets-v1
+```
+
+`VITE_SKILLS_API_PROTOCOL` selects the backend contract: `multirag-assets-v1` or `ragflow-skills-v1`. Set it to the contract your backend exposes; selection is explicit, with no automatic fallback. Other options are listed in [`.env.example`](./.env.example).
+
+All `VITE_*` values are visible in the browser bundle. Configure provider secrets on the backend. Restart the dev server after changing environment values; production endpoint changes require rebuilding.
+
+### 3. Open the workspace
+
+```bash
+npm run dev
+```
+
+Open [localhost:5173](http://localhost:5173), sign in, then create a knowledge base, configure a model, or open Studio to build an application. Use `npm run dev:host` for LAN testing.
+
+<details>
+<summary><strong>Build and preview the Web application</strong></summary>
+
+```bash
+npm run build
+npm run preview
+```
+
+`build` runs the full Web TypeScript check and creates `dist/`. API endpoints are selected at build time. Use a compatible backend and configure the hosting environment's API routing and SPA fallback before deploying.
+
+</details>
+
+## Development
+
+### Stack
+
+| Area                    | Building blocks                                                           |
+| ----------------------- | ------------------------------------------------------------------------- |
+| Application             | React 19 · TypeScript 7 (strict) · Vite 8 · React Router                  |
+| State & transport       | TanStack Query · Zustand · shared API client · SSE / `eventsource-parser` |
+| Interface               | Tailwind CSS 4 · Radix UI · semantic design tokens · Lucide               |
+| AI surfaces             | Ant Design X / XMarkdown · XYFlow · AntV G6 · Monaco · Lexical            |
+| Content                 | Document previews · KaTeX · Mermaid · Recharts · DOMPurify                |
+| Language & verification | i18next · Node test / tsx · Vitest · ESLint                               |
+| Desktop preview         | Electron · Rolldown · typed preload bridge                                |
+
+Exact versions and the complete dependency list live in [`package.json`](./package.json) and [`package-lock.json`](./package-lock.json).
+
+### Everyday commands
+
+| Command                     | Purpose                                                                   |
+| --------------------------- | ------------------------------------------------------------------------- |
+| `npm run dev`               | Start the local Vite server                                               |
+| `npm run build`             | Full Web type check and production build                                  |
+| `npm run lint`              | Lint application source                                                   |
+| `npm run test:unit`         | Run all source and tooling unit tests                                     |
+| `npm run test:ci`           | Validate the test inventory and run all source, tooling and desktop tests |
+| `npm run build:themes`      | Regenerate theme CSS and token outputs                                    |
+| `npm run build:analyze`     | Build with a bundle treemap; keep `stats.html` out of deployments         |
+| `npm run check:bundle-size` | Check bundle budgets after a build                                        |
+
+For focused API, streaming, Agent, security and desktop checks, use the [verification matrix](./docs/agent-guidance/verification.md#scope). Full Web type checking is part of `build`; there are no bare `test`, `typecheck` or `format` scripts.
+
+### Repository map
+
+```text
+src/
+├── api/              Domain API clients and contract normalization
+├── components/       UI primitives → patterns → page templates
+├── entrypoints/      Web/Desktop composition and shared mount
+├── hooks/            Queries, mutations and shared behavior
+├── lib/              Streaming runtime, commands and domain helpers
+├── locales/          English and Simplified Chinese resources
+├── pages/            Knowledge, agents, Studio, Skills, settings…
+├── platform/         Browser-safe platform contracts and adapters
+├── stores/           Client state and UI preferences
+└── themes/           Semantic tokens, generators and scoped themes
+desktop/              Electron shell, bridge, build and contract tests
+docs/                 Architecture, guidance, roadmap and acceptance
+scripts/              Test inventory, file-size and bundle checks
+```
+
+Business flows live in pages and feature containers; shared UI follows `ui → patterns → page-templates`. TanStack Query owns server state, Zustand owns UI state, and stream chunks stay outside the Query cache. HTML and embedded content pass through sanitization or sandbox boundaries. Implementation rules live in [`AGENTS.md`](./AGENTS.md) and the [topic guides](./docs/agent-guidance/frontend.md).
+
+## Desktop preview
+
+The Electron foundation shares the Web renderer and adds a task-oriented Workbench, a command palette, native menus and a typed sandboxed preload bridge. It remains **an internal, non-release preview**. Desktop-native authentication hardening, durable Run recovery, auto-update, a local Host and verified Windows packaging/signing are still outside the delivered foundation.
+
+For local builds and platform limitations, follow [`desktop/README.md`](./desktop/README.md). Architecture and the staged roadmap live in the [Client Platform documentation](./docs/client-platform/README.md).
+
+## Documentation
+
+| Start here                                                                                                            | What you will find                                                  |
+| --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| [Engineering roadmap](./docs/engineering-modernization-roadmap.md)                                                    | Current engineering work and its delivery status                    |
+| [Agent instructions](./AGENTS.md)                                                                                     | The single entry point for repository rules; `CLAUDE.md` imports it |
+| [Frontend guidance](./docs/agent-guidance/frontend.md)                                                                | Organization, UI and internationalization                           |
+| [Runtime guidance](./docs/agent-guidance/runtime.md)                                                                  | Data, streaming, embedding, security and client boundaries          |
+| [Verification & builds](./docs/agent-guidance/verification.md)                                                        | Checks selected by change scope and CI commands                     |
+| [Theme development](./src/themes/development-guide.md)                                                                | Design tokens, generated styles and component theming               |
+| [Knowledge settings](./src/pages/knowledge/settings/README.md) · [Metadata](./src/pages/knowledge/metadata/README.md) | Parsing, GraphRAG and metadata configuration contracts              |
+| [Client Platform](./docs/client-platform/README.md)                                                                   | Web/Desktop architecture, contracts and release boundaries          |
+| [Team handbook](./AI前端技术栈开发规范.md)                                                                            | Rationale and examples behind the rules                             |
+
+## Contributing
+
+Bug reports, focused fixes, documentation and translations are welcome via [Issues](https://github.com/yuehong136/web/issues) and [pull requests](https://github.com/yuehong136/web/pulls).
+
+1. Read [`AGENTS.md`](./AGENTS.md) and the topic guide for your change.
+2. Keep the patch focused, reuse shared UI and tokens, and update both English and Chinese product copy.
+3. Run the checks required by the [verification matrix](./docs/agent-guidance/verification.md#scope). Include actual results and any unverified boundaries in the PR; include light/dark screenshots for UI changes.
+4. Use Conventional Commits, such as `feat(knowledge): ...` or `docs: ...`.
+
+Browser targets are defined in [`package.json`](./package.json): Chrome/Edge 111+, Firefox 128+, Safari 16.4+.
+
+## License
+
+[Apache License 2.0](./LICENSE) · Multi-RAG Frontend contributors.
