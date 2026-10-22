@@ -548,7 +548,20 @@ export default {
           '图片解析使用内置 OCR，文字不足时使用租户默认视觉模型。PDF 解析器选择不影响图片解析。',
         qaEmpty: 'Q&A 解析器专门用于解析问答格式的文档，无需额外配置。',
         resumeEmpty: '简历解析器使用专门的结构化解析，无需额外配置。',
-        tableEmpty: '表格解析器使用专门的表格解析，无需额外配置。',
+        table: {
+          mode: '列配置模式',
+          auto: '自动',
+          manual: '手动',
+          autoDescription: '所有列都加入索引文本，并保存为元数据。',
+          roles: '列角色',
+          indexing: '索引',
+          metadata: '元数据',
+          both: '两者',
+          description:
+            '索引将列加入向量和全文检索；元数据将列保存为可筛选属性；两者同时生效。',
+          empty: '上传并解析 CSV 或 Excel 文件后，即可配置列角色。',
+          reparse: '重新解析已有文档后，新的列配置才会生效。',
+        },
         tagEmpty: '标签解析器用于创建标签知识库，无需额外配置。',
       },
       pipelinePreview: {

@@ -575,8 +575,22 @@ export default {
           'The Q&A parser is specialized for question-answer documents. No additional configuration is required.',
         resumeEmpty:
           'The Resume parser uses dedicated structured parsing. No additional configuration is required.',
-        tableEmpty:
-          'The Table parser uses dedicated table parsing. No additional configuration is required.',
+        table: {
+          mode: 'Column mode',
+          auto: 'Auto',
+          manual: 'Manual',
+          autoDescription:
+            'All columns are included in indexed text and stored as metadata.',
+          roles: 'Column roles',
+          indexing: 'Indexing',
+          metadata: 'Metadata',
+          both: 'Both',
+          description:
+            'Indexing includes the column in vector and full-text search. Metadata stores it as a filterable attribute. Both does both.',
+          empty:
+            'Upload and parse a CSV or Excel file to configure column roles.',
+          reparse: 'Re-parse existing documents for changes to take effect.',
+        },
         tagEmpty:
           'The Tag parser is used to create tag knowledge bases. No additional configuration is required.',
       },

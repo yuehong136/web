@@ -787,3 +787,50 @@ it.each([true, false])(
     expect(writes).toHaveLength(compatible ? 1 : 0)
   },
 )
+
+it('saves table column roles and restores them after reload', async () => {
+  stored.chunk_method = 'table'
+  stored.parser_config = {
+    table_column_mode: 'manual',
+    table_column_names: ['title.with.dot', 'country', 'score'],
+    table_column_roles: { 'title.with.dot': 'vectorize', country: 'metadata' },
+  }
+  await reload()
+  expect(
+    document.querySelector('[role=combobox][aria-label="title.with.dot"]')
+      ?.textContent,
+  ).toBe('Indexing')
+  await act(async () =>
+    (
+      document.querySelector(
+        '[role=combobox][aria-label="country"]',
+      ) as HTMLButtonElement
+    ).click(),
+  )
+  await act(async () =>
+    (
+      document.querySelector(
+        '[role=option][data-value="both"]',
+      ) as HTMLButtonElement
+    ).click(),
+  )
+  await save()
+  await waitForPage(() => expect(writes).toHaveLength(1))
+  expect(writes[0].parser_config).toMatchObject({
+    table_column_mode: 'manual',
+    table_column_roles: { 'title.with.dot': 'indexing', country: 'both' },
+  })
+  await reload()
+  expect(
+    document.querySelector('[role=combobox][aria-label="country"]')
+      ?.textContent,
+  ).toBe('Both')
+  await selectOption('Column mode', 'auto')
+  expect(document.querySelector('[aria-label="Column roles"]')).toBeNull()
+  await save()
+  await waitForPage(() => expect(writes).toHaveLength(2))
+  expect(writes[1].parser_config).toMatchObject({
+    table_column_mode: 'auto',
+    table_column_roles: { country: 'both' },
+  })
+})
