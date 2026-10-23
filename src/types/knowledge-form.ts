@@ -15,6 +15,9 @@ export const raptorSchema = z.looseObject({
   max_cluster: numericField().min(1).max(1024).default(64),
   random_seed: numericField().default(0),
   scope: z.enum(['dataset', 'file']).default('file'),
+  clustering_method: z.enum(['gmm', 'ahc']).optional(),
+  tree_builder: z.enum(['raptor', 'psi']).optional(),
+  ext: z.record(z.string(), z.unknown()).optional(),
 })
 
 // GraphRAG 配置 Schema

@@ -1,3 +1,4 @@
+import { normalizeRaptorConfig } from '@/lib/knowledge/raptor-config'
 import type { KnowledgeBase } from '@/types/api'
 import {
   knowledgeSettingsFormValuesSchema,
@@ -40,6 +41,9 @@ export const buildKnowledgeSettingsFormValues = (
     parser_config: {
       ...defaultValues.parser_config,
       ...currentKnowledgeBase.parser_config,
+      raptor: normalizeRaptorConfig(
+        config?.raptor ?? defaultValues.parser_config?.raptor,
+      ),
       // REST stores a nested parent_child object; the existing controls edit leaves.
       ...(parentChild && typeof parentChild === 'object'
         ? {
@@ -69,6 +73,7 @@ export function buildKnowledgeSettingsParserConfig(
 ): Record<string, unknown> {
   return {
     ...config,
+    raptor: normalizeRaptorConfig(config.raptor),
     parent_child: {
       use_parent_child: config.enable_children,
       children_delimiter: config.children_delimiter,

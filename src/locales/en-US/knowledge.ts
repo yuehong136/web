@@ -543,6 +543,9 @@ export default {
           'Chunks are clustered into hierarchical communities. The system then uses an LLM to generate a summary for each community.',
       },
       raptor: {
+        clusteringMethod: 'Clustering method',
+        clusteringMethodTooltip:
+          'GMM uses Gaussian mixture clustering; AHC uses hierarchical clustering. Changes apply on the next RAPTOR run.',
         enable: 'Use RAPTOR retrieval enhancement',
         enableTooltip:
           'RAPTOR is commonly used for complex multi-hop QA. To enable it, go to the knowledge base document page and run Generate > RAPTOR.',

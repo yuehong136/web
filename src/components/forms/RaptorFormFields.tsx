@@ -168,6 +168,44 @@ export function RaptorFormFields({ className }: RaptorFormFieldsProps) {
             layout="horizontal"
           />
 
+          <FormField
+            control={form.control}
+            name="parser_config.raptor.ext.clustering_method"
+            render={({ field }) => (
+              <FormItem className="flex items-center gap-1 space-y-0">
+                <FormLabel
+                  className="w-1/4 shrink-0 text-sm text-text-secondary"
+                  tooltip={t(
+                    'knowledge.settings.raptor.clusteringMethodTooltip',
+                  )}
+                >
+                  {t('knowledge.settings.raptor.clusteringMethod')}
+                </FormLabel>
+                <FormControl>
+                  <RadioGroup
+                    value={field.value ?? 'gmm'}
+                    onValueChange={field.onChange}
+                    className="flex gap-4"
+                  >
+                    {['gmm', 'ahc'].map((method) => (
+                      <label
+                        key={method}
+                        htmlFor={`raptor-clustering-${method}`}
+                        className="flex cursor-pointer items-center gap-2 text-sm text-text-secondary"
+                      >
+                        <RadioGroupItem
+                          id={`raptor-clustering-${method}`}
+                          value={method}
+                        />
+                        {method.toUpperCase()}
+                      </label>
+                    ))}
+                  </RadioGroup>
+                </FormControl>
+              </FormItem>
+            )}
+          />
+
           {/* 最大聚类数 */}
           <SliderInputFormField
             name="parser_config.raptor.max_cluster"

@@ -520,6 +520,9 @@ export default {
           '区块被聚集成层次化的社区，实体和关系通过更高抽象层次将每个部分连接起来。然后，系统使用 LLM 生成每个社区的摘要。',
       },
       raptor: {
+        clusteringMethod: '聚类方法',
+        clusteringMethodTooltip:
+          'GMM 使用高斯混合聚类，AHC 使用层次聚类。修改将在下次 RAPTOR 任务中生效。',
         enable: '使用召回增强 RAPTOR 策略',
         enableTooltip:
           'RAPTOR 常应用于复杂的多跳问答任务。如需打开，请跳转至知识库的文件页面，点击生成 > RAPTOR 开启。',
