@@ -11,6 +11,7 @@ import type {
   AgentInputFormSchema,
   AgentListParams,
   AgentListResponse,
+  AgentTagCount,
   AgentSessionListParams,
   AgentSession,
   AgentSessionListResponse,
@@ -95,11 +96,27 @@ export const agentAPI = {
       query.canvas_category = resolveCanvasCategory(params.canvas_type)
     }
 
+    if (params.owner_ids?.length) query.owner_ids = params.owner_ids.join(',')
+    if (params.tags?.length) query.tags = params.tags.join(',')
+
     return apiClient.get<AgentListResponse>('/agents', {
       ...restBase,
       params: query,
     })
   },
+
+  listAgentTags: async (canvasCategory?: string) =>
+    apiClient.get<AgentTagCount[]>('/agents/tags', {
+      ...restBase,
+      params: canvasCategory ? { canvas_category: canvasCategory } : {},
+    }),
+
+  updateAgentTags: async (agentId: string, tags: string[]) =>
+    apiClient.put<boolean>(
+      `/agents/${encodeURIComponent(agentId)}/tags`,
+      { tags },
+      restBase,
+    ),
 
   fetchAgent: async (id: string) =>
     apiClient.get<AgentFlow>(`/agents/${encodeURIComponent(id)}`, restBase),

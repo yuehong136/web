@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next'
+import { APIError } from '@/api/client-types'
 import type { CreateAgentSessionInput } from '@/types/agent'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { agentAPI } from '@/api/agent'
@@ -37,6 +39,9 @@ export const useSetAgent = (options?: UseSetAgentOptions) => {
       adaptAgentFlow(await agentAPI.setAgent(payload)),
     onSuccess: (data, variables) => {
       void queryClient.invalidateQueries({ queryKey: agentQueryKeys.lists() })
+      void queryClient.invalidateQueries({
+        queryKey: agentQueryKeys.tagCounts(),
+      })
       if (variables.id || data.id) {
         void queryClient.invalidateQueries({
           queryKey: agentQueryKeys.detail(variables.id || data.id),
@@ -70,6 +75,9 @@ export const useDeleteAgent = () => {
     mutationFn: async (id: string) => agentAPI.deleteAgent(id),
     onSuccess: (_, id) => {
       void queryClient.invalidateQueries({ queryKey: agentQueryKeys.lists() })
+      void queryClient.invalidateQueries({
+        queryKey: agentQueryKeys.tagCounts(),
+      })
       queryClient.removeQueries({ queryKey: agentQueryKeys.detail(id) })
       toast.success('已删除智能体')
     },
@@ -83,6 +91,41 @@ export const useDeleteAgent = () => {
     isLoading: mutation.isPending,
     isError: mutation.isError,
     error: mutation.error,
+  }
+}
+
+export const useUpdateAgentTags = () => {
+  const { t } = useTranslation()
+  const queryClient = useQueryClient()
+  const mutation = useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
+    mutationFn: async ({
+      agentId,
+      tags,
+    }: {
+      agentId: string
+      tags: string[]
+    }) => {
+      const saved = await agentAPI.updateAgentTags(agentId, tags)
+      if (saved !== true)
+        throw new APIError(500, 'INVALID_RESPONSE', 'Tag update failed')
+      return saved
+    },
+    onSuccess: async (_, { agentId }) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: agentQueryKeys.lists() }),
+        queryClient.invalidateQueries({ queryKey: agentQueryKeys.tagCounts() }),
+        queryClient.invalidateQueries({
+          queryKey: agentQueryKeys.detail(agentId),
+        }),
+      ])
+      toast.success(t('agents.tagsSaved'))
+    },
+    onError: () => toast.error(t('agents.tagsSaveFailed')),
+  })
+  return {
+    updateAgentTags: mutation.mutateAsync,
+    isLoading: mutation.isPending,
   }
 }
 
@@ -130,6 +173,9 @@ export const useUpdateAgentSetting = () => {
             : current,
       )
       void queryClient.invalidateQueries({ queryKey: agentQueryKeys.lists() })
+      void queryClient.invalidateQueries({
+        queryKey: agentQueryKeys.tagCounts(),
+      })
       void queryClient.invalidateQueries({
         queryKey: agentQueryKeys.detail(variables.id),
       })

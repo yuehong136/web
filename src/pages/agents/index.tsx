@@ -1,3 +1,5 @@
+import { useAuthStore } from '@/stores/auth'
+import { AgentTagEditor } from './components/agent-tag-editor'
 import { useConsumedSearchFlag } from '@/hooks/use-consumed-search-flag'
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -38,6 +40,7 @@ import {
 import {
   useDeleteAgent,
   useFetchAgentList,
+  useFetchAgentTags,
   useSetAgent,
 } from '@/hooks/use-agent-request'
 import {
@@ -75,6 +78,9 @@ const DEFAULT_PAGE_SIZE = 12
 export default function AgentsPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const currentUserId = useAuthStore((state) => state.user?.id)
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
+  const [flowToEditTags, setFlowToEditTags] = useState<AgentFlow | null>(null)
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
   const [keyword, setKeyword] = useState('')
@@ -91,8 +97,10 @@ export default function AgentsPage() {
     page,
     page_size: pageSize,
     keywords: keyword,
+    tags: selectedTags,
     canvas_type: kind === 'all' ? undefined : kind,
   })
+  const { data: tagCounts } = useFetchAgentTags()
   const setAgent = useSetAgent()
   const renameAgent = useRenameAgent()
   const deleteAgent = useDeleteAgent()
@@ -174,12 +182,14 @@ export default function AgentsPage() {
 
   const filterValue: FilterValue = {
     kind: kind === 'all' ? [] : [kind],
+    tags: selectedTags,
   }
 
   const handleFilterChange = (value: FilterValue) => {
     const next = value.kind?.[0] as AgentCanvasType | undefined
     setPage(1)
     setKind(next || 'all')
+    setSelectedTags(value.tags || [])
   }
 
   const handleOpen = (flow: AgentFlow) => {
@@ -201,7 +211,7 @@ export default function AgentsPage() {
 
   const showEmptyState = !listQuery.isLoading && sortedAgents.length === 0
   const emptyStateType: 'list' | 'search' =
-    keyword || kind !== 'all' ? 'search' : 'list'
+    keyword || kind !== 'all' || selectedTags.length ? 'search' : 'list'
 
   const pageState: 'content' | 'loading' | 'empty' | 'error' = (() => {
     if (listQuery.isLoading && page === 1) return 'loading'
@@ -292,6 +302,19 @@ export default function AgentsPage() {
                     { value: AgentCanvasType.AGENT, label: 'Agent' },
                     { value: AgentCanvasType.PIPELINE, label: 'Pipeline' },
                   ],
+                },
+                {
+                  key: 'tags',
+                  label: t('agents.tags'),
+                  options: [
+                    ...new Set([
+                      ...tagCounts.map(({ tag }) => tag),
+                      ...selectedTags,
+                    ]),
+                  ].map((tag) => ({
+                    value: tag,
+                    label: `${tag} (${tagCounts.find((entry) => entry.tag === tag)?.count || 0})`,
+                  })),
                 },
               ]}
               value={filterValue}
@@ -395,12 +418,12 @@ export default function AgentsPage() {
         }
       >
         {viewMode === 'grid' ? (
-          <div className="gap-space-lg grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-space-lg md:grid-cols-2 xl:grid-cols-3">
             {listQuery.isLoading
               ? [...Array(6)].map((_, i) => (
                   <div
                     key={i}
-                    className="rounded-radius-lg bg-surface-secondary h-[180px] animate-pulse"
+                    className="h-[180px] animate-pulse rounded-radius-lg bg-surface-secondary"
                   />
                 ))
               : sortedAgents.map((flow) => (
@@ -410,6 +433,12 @@ export default function AgentsPage() {
                     onOpen={handleOpen}
                     onDelete={setFlowToDelete}
                     onRename={setFlowToRename}
+                    onEditTags={
+                      currentUserId &&
+                      (flow.user_id || flow.tenant_id) === currentUserId
+                        ? setFlowToEditTags
+                        : undefined
+                    }
                     onViewLogs={handleViewLogs}
                     timeFormat={timeFormat}
                   />
@@ -423,10 +452,20 @@ export default function AgentsPage() {
             onOpen={handleOpen}
             onDelete={setFlowToDelete}
             onRename={setFlowToRename}
+            onEditTags={setFlowToEditTags}
+            currentUserId={currentUserId}
             onViewLogs={handleViewLogs}
           />
         )}
       </ListPageTemplate>
+
+      {flowToEditTags && (
+        <AgentTagEditor
+          key={flowToEditTags.id}
+          agent={flowToEditTags}
+          onClose={() => setFlowToEditTags(null)}
+        />
+      )}
 
       <CreateAgentDialog
         open={createOpen}

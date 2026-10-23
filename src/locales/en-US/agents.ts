@@ -1,5 +1,17 @@
 export default {
   agents: {
+    tags: 'Tags',
+    editTags: 'Edit tags',
+    editTagsDescription:
+      'Add tags to organize and filter your agents. Press Enter or comma to add.',
+    tagsPlaceholder: 'Add a tag and press Enter',
+    tagSuggestions: 'Existing tags',
+    removeTag: 'Remove {{tag}}',
+    tagsSaved: 'Tags saved',
+    tagsSaveFailed: 'Could not save tags. Please try again.',
+    tagLimit: 'Each tag is limited to 64 characters; all tags together to 512.',
+    actionsFor: 'Actions for {{name}}',
+
     center: 'Agent Center',
     centerDescription:
       'The information architecture, routing, types, and runtime entry are ready; node forms and runtime details can be replaced incrementally.',

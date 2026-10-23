@@ -229,3 +229,55 @@ test('agent webhooks use the consolidated RESTful endpoints', async () => {
   assert.deepEqual(fetchCalls, ['/api/v1/agents/agent-1/webhook/test'])
   assert.deepEqual(getCalls, ['/agents/agent-1/webhook/logs'])
 })
+
+test('agent tag APIs preserve tokens and REST envelopes through the domain client', async () => {
+  const originalGet = apiClient.get
+  const originalPut = apiClient.put
+  const calls: unknown[] = []
+  apiClient.get = (async (endpoint: string, config: unknown) => {
+    calls.push({ endpoint, config })
+    return []
+  }) as typeof apiClient.get
+  apiClient.put = (async (endpoint: string, body: unknown) => {
+    calls.push({ endpoint, body })
+    return true
+  }) as typeof apiClient.put
+  try {
+    await agentAPI.listAgents({
+      tags: ['ml', '100%'],
+      owner_ids: ['owner'],
+      page: 2,
+      page_size: 12,
+      keywords: 'search',
+      canvas_category: 'agent_canvas',
+      orderby: 'title',
+      desc: false,
+    })
+    await agentAPI.listAgentTags('dataflow_canvas')
+    await agentAPI.updateAgentTags('agent / id', ['one,two', ' ML '])
+  } finally {
+    apiClient.get = originalGet
+    apiClient.put = originalPut
+  }
+  const list = calls[0] as { endpoint: string; config: { params: unknown } }
+  assert.equal(list.endpoint, '/agents')
+  assert.deepEqual(list.config.params, {
+    tags: 'ml,100%',
+    owner_ids: 'owner',
+    page: 2,
+    page_size: 12,
+    keywords: 'search',
+    canvas_category: 'agent_canvas',
+    orderby: 'title',
+    desc: false,
+  })
+  assert.equal((calls[1] as { endpoint: string }).endpoint, '/agents/tags')
+  assert.deepEqual(
+    (calls[1] as { config: { params: unknown } }).config.params,
+    { canvas_category: 'dataflow_canvas' },
+  )
+  assert.deepEqual(calls[2], {
+    endpoint: '/agents/agent%20%2F%20id/tags',
+    body: { tags: ['one,two', ' ML '] },
+  })
+})

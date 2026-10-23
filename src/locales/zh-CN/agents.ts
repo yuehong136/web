@@ -1,5 +1,16 @@
 export default {
   agents: {
+    tags: '标签',
+    editTags: '编辑标签',
+    editTagsDescription: '添加标签以整理和筛选智能体。按回车或逗号添加。',
+    tagsPlaceholder: '输入标签后按回车',
+    tagSuggestions: '现有标签',
+    removeTag: '删除 {{tag}}',
+    tagsSaved: '标签已保存',
+    tagsSaveFailed: '标签保存失败，请重试。',
+    tagLimit: '每个标签最多 64 个字符，标签合计最多 512 个字符。',
+    actionsFor: '{{name}}的操作',
+
     center: '智能体中心',
     centerDescription:
       '先把信息架构、路由、类型与运行入口搭好，再逐步增量替换每个节点表单和运行细节。',

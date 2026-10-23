@@ -1,3 +1,4 @@
+import { AgentTags } from './agent-tags'
 import type { FC } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
@@ -8,6 +9,7 @@ import {
   GitBranch,
   History,
   Trash2,
+  Tag,
 } from 'lucide-react'
 import {
   ResourceListBody,
@@ -43,6 +45,8 @@ interface AgentListViewProps {
   onDelete: (flow: AgentFlow) => void
   onRename?: (flow: AgentFlow) => void
   onViewLogs?: (flow: AgentFlow) => void
+  onEditTags?: (flow: AgentFlow) => void
+  currentUserId?: string
 }
 
 const GRID_COLS = 'grid-cols-[2fr_100px_100px_180px_60px]'
@@ -105,7 +109,16 @@ const AgentListRow: FC<{
   onDelete: () => void
   onRename?: () => void
   onViewLogs?: () => void
-}> = ({ flow, timeFormat, onOpen, onDelete, onRename, onViewLogs }) => {
+  onEditTags?: () => void
+}> = ({
+  flow,
+  timeFormat,
+  onOpen,
+  onDelete,
+  onRename,
+  onViewLogs,
+  onEditTags,
+}) => {
   const { t } = useTranslation()
   const title = resolveLocalizedText(
     flow.title,
@@ -134,6 +147,16 @@ const AgentListRow: FC<{
           icon: <FilePenLine className="h-4 w-4" />,
           onClick: onRename || (() => undefined),
         },
+        ...(onEditTags
+          ? [
+              {
+                key: 'tags',
+                label: t('agents.editTags'),
+                icon: <Tag className="size-icon-sm" />,
+                onClick: onEditTags,
+              },
+            ]
+          : []),
         {
           key: 'export-json',
           label: t('agent.center.exportJson', '导出 JSON'),
@@ -156,7 +179,7 @@ const AgentListRow: FC<{
       ]}
       gridCols={GRID_COLS}
     >
-      <div className="flex items-center">
+      <div className="flex flex-col items-start gap-space-xs">
         <span
           className={cn(
             'inline-flex items-center truncate rounded-full px-2 py-0.5 text-xs font-medium',
@@ -169,6 +192,7 @@ const AgentListRow: FC<{
             ? t('agent.pipeline', 'Pipeline')
             : t('agent.agent', 'Agent')}
         </span>
+        <AgentTags tags={flow.tags} />
       </div>
 
       <div className="flex items-center gap-1.5 text-sm text-text-secondary">
@@ -192,6 +216,8 @@ export const AgentListView: FC<AgentListViewProps> = ({
   onDelete,
   onRename,
   onViewLogs,
+  onEditTags,
+  currentUserId,
 }) => {
   const { t } = useTranslation()
   const headerColumns = [
@@ -227,6 +253,12 @@ export const AgentListView: FC<AgentListViewProps> = ({
               onDelete={() => onDelete(flow)}
               onRename={() => onRename?.(flow)}
               onViewLogs={() => onViewLogs?.(flow)}
+              onEditTags={
+                currentUserId &&
+                (flow.user_id || flow.tenant_id) === currentUserId
+                  ? () => onEditTags?.(flow)
+                  : undefined
+              }
             />
           ))
         )}

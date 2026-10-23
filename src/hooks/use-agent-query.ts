@@ -31,6 +31,9 @@ export const agentQueryKeys = {
   lists: () => [...agentQueryKeys.all, 'list'] as const,
   list: (params: Record<string, unknown>) =>
     [...agentQueryKeys.lists(), params] as const,
+  tagCounts: () => [...agentQueryKeys.all, 'tags'] as const,
+  tags: (canvasCategory?: string) =>
+    [...agentQueryKeys.tagCounts(), canvasCategory] as const,
   detail: (id: string) => [...agentQueryKeys.all, 'detail', id] as const,
   templates: () => [...agentQueryKeys.all, 'templates'] as const,
   prompts: () => [...agentQueryKeys.all, 'prompts'] as const,
@@ -104,6 +107,8 @@ export const useFetchAgentList = (params: AgentListParams = {}) => {
     keywords: params.keywords || params.name || '',
     canvas_type: params.canvas_type,
     canvas_category: params.canvas_category,
+    owner_ids: params.owner_ids,
+    tags: params.tags,
   }
 
   const query = useQuery({
@@ -123,6 +128,14 @@ export const useFetchAgentList = (params: AgentListParams = {}) => {
     error: query.error,
     refetch: query.refetch,
   }
+}
+
+export const useFetchAgentTags = (canvasCategory?: string) => {
+  const query = useQuery({
+    queryKey: agentQueryKeys.tags(canvasCategory),
+    queryFn: () => agentAPI.listAgentTags(canvasCategory),
+  })
+  return { ...query, data: query.data || [] }
 }
 
 export const useFetchAgentListByPage = useFetchAgentList

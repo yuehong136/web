@@ -1,3 +1,4 @@
+import { AgentTags } from './agent-tags'
 import type { MouseEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
@@ -9,6 +10,7 @@ import {
   History,
   MoreVertical,
   Trash2,
+  Tag,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -36,6 +38,7 @@ interface AgentCardProps {
   onDelete: (flow: AgentFlow) => void
   onRename?: (flow: AgentFlow) => void
   onViewLogs?: (flow: AgentFlow) => void
+  onEditTags?: (flow: AgentFlow) => void
   timeFormat?: AgentTimeFormat
 }
 
@@ -58,6 +61,7 @@ export function AgentCard({
   onDelete,
   onRename,
   onViewLogs,
+  onEditTags,
   timeFormat = 'detailed',
 }: AgentCardProps) {
   const { t } = useTranslation()
@@ -128,6 +132,7 @@ export function AgentCard({
           trigger={
             <Button
               variant="ghost"
+              aria-label={t('agents.actionsFor', { name: title })}
               size="icon-sm"
               className="opacity-0 transition-opacity group-hover:opacity-100"
               onClick={(event) => event.stopPropagation()}
@@ -148,6 +153,17 @@ export function AgentCard({
           >
             {t('agent.center.rename', '重命名')}
           </DropdownItem>
+          {onEditTags && (
+            <DropdownItem
+              icon={<Tag className="size-icon-sm" />}
+              onClick={(event) => {
+                event.stopPropagation()
+                onEditTags(flow)
+              }}
+            >
+              {t('agents.editTags')}
+            </DropdownItem>
+          )}
           <DropdownItem
             icon={<Download className="h-4 w-4" />}
             onClick={handleExport}
@@ -225,6 +241,10 @@ export function AgentCard({
               <GitBranch className="mr-1 h-3 w-3" />
               {t('agents.nodeCount', '{{count}} 节点', { count: nodeCount })}
             </Badge>
+          </div>
+
+          <div className="mb-space-sm">
+            <AgentTags tags={flow.tags} />
           </div>
 
           <div className="flex items-center justify-between text-sm text-text-tertiary">
