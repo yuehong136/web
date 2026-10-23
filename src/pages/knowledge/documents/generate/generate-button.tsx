@@ -6,7 +6,7 @@
  * - 下拉面板中展示所有任务状态详情
  */
 
-import React, { memo, useMemo } from 'react'
+import React, { memo, useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { WandSparkles } from 'lucide-react'
 import { Button } from '@/components/ui'
@@ -47,6 +47,14 @@ const GenerateButtonComponent: React.FC<GenerateButtonProps> = ({
   onDelete,
 }) => {
   const { t } = useTranslation()
+  const [open, setOpen] = useState(false)
+  const handleDelete = useCallback(
+    (type: GenerateTaskType) => {
+      setOpen(false)
+      onDelete(type)
+    },
+    [onDelete],
+  )
   const hasRunning =
     graphStatus === GenerateTaskStatus.Running ||
     raptorStatus === GenerateTaskStatus.Running
@@ -67,7 +75,7 @@ const GenerateButtonComponent: React.FC<GenerateButtonProps> = ({
   }, [hasRunning, hasFailed, hasCompleted])
 
   return (
-    <DropdownMenu>
+    <DropdownMenu open={open} onOpenChange={setOpen}>
       <Tooltip
         content={
           disabled
@@ -86,7 +94,7 @@ const GenerateButtonComponent: React.FC<GenerateButtonProps> = ({
             {/* 状态指示圆点 */}
             {dotColor && !disabled && (
               <span
-                className={`absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full border-2 ${hasRunning ? 'animate-pulse' : ''}`}
+                className={`absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full border-2 ${hasRunning ? 'animate-pulse' : ''}`}
                 style={{
                   backgroundColor: dotColor,
                   borderColor: 'var(--color-background-surface)',
@@ -106,7 +114,7 @@ const GenerateButtonComponent: React.FC<GenerateButtonProps> = ({
             isActionPending={isActionPending}
             onRun={onRun}
             onPause={onPause}
-            onDelete={onDelete}
+            onDelete={handleDelete}
           />
           <TaskItem
             type={GenerateTaskType.Raptor}
@@ -116,7 +124,7 @@ const GenerateButtonComponent: React.FC<GenerateButtonProps> = ({
             isActionPending={isActionPending}
             onRun={onRun}
             onPause={onPause}
-            onDelete={onDelete}
+            onDelete={handleDelete}
           />
         </div>
       </DropdownMenuContent>

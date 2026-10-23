@@ -5,6 +5,8 @@ import { useNearestPortalTheme } from './portal-theme'
 
 export interface DropdownMenuProps {
   children: React.ReactNode
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
 export interface DropdownMenuTriggerProps {
@@ -37,11 +39,23 @@ const DropdownMenuContext = React.createContext<
 const DROPDOWN_MENU_OFFSET = 8
 const DROPDOWN_VIEWPORT_MARGIN = 8
 
-export const DropdownMenu: React.FC<DropdownMenuProps> = ({ children }) => {
-  const [isOpen, setIsOpen] = React.useState(false)
+export const DropdownMenu: React.FC<DropdownMenuProps> = ({
+  children,
+  open,
+  onOpenChange,
+}) => {
+  const [internalOpen, setInternalOpen] = React.useState(false)
+  const isOpen = open ?? internalOpen
+  const setIsOpen = React.useCallback(
+    (next: boolean) => {
+      if (open === undefined) setInternalOpen(next)
+      onOpenChange?.(next)
+    },
+    [open, onOpenChange],
+  )
   const triggerRef = React.useRef<HTMLDivElement>(null)
 
-  const closeDropdown = React.useCallback(() => setIsOpen(false), [])
+  const closeDropdown = React.useCallback(() => setIsOpen(false), [setIsOpen])
 
   return (
     <DropdownMenuContext.Provider
@@ -175,7 +189,7 @@ export const DropdownMenuContent: React.FC<DropdownMenuContentProps> = ({
         data-theme={theme}
         ref={dropdownRef}
         className={cn(
-          'rounded-radius-md p-space-xs shadow-elevation-medium fixed z-[9999] min-w-[180px] border border-border-default bg-background-surface',
+          'fixed z-[9999] min-w-[180px] rounded-radius-md border border-border-default bg-background-surface p-space-xs shadow-elevation-medium',
           className,
         )}
         style={{
@@ -210,7 +224,7 @@ export const DropdownMenuItem: React.FC<DropdownMenuItemProps> = ({
     <button
       type="button"
       className={cn(
-        'gap-space-sm rounded-radius-sm px-space-sm flex h-8 w-full items-center text-left text-sm font-medium text-text-primary transition-colors hover:bg-background-subtle disabled:pointer-events-none disabled:opacity-50 [&_svg]:h-icon-sm [&_svg]:w-icon-sm [&_svg]:shrink-0 [&_svg]:stroke-[1.75] [&_svg]:text-text-secondary',
+        'flex h-8 w-full items-center gap-space-sm rounded-radius-sm px-space-sm text-left text-sm font-medium text-text-primary transition-colors hover:bg-background-subtle disabled:pointer-events-none disabled:opacity-50 [&_svg]:h-icon-sm [&_svg]:w-icon-sm [&_svg]:shrink-0 [&_svg]:stroke-[1.75] [&_svg]:text-text-secondary',
         className,
       )}
       onClick={handleClick}

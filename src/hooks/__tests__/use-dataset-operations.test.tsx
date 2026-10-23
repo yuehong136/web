@@ -8,10 +8,12 @@ import { agentAPI } from '@/api/agent'
 import { useRunDocument, documentKeys } from '../use-document-request'
 import {
   GenerateTaskType,
+  GenerateTaskStatus,
   usePauseKnowledgeTask,
   useUnbindKnowledgeTask,
 } from '../use-generate-task'
 import { LogStatsCards } from '@/pages/knowledge/logs/LogStatsCards'
+import { GenerateButton } from '@/pages/knowledge/documents/generate/generate-button'
 
 Reflect.set(globalThis, 'IS_REACT_ACT_ENVIRONMENT', true)
 vi.mock('react-i18next', async (importOriginal) => ({
@@ -49,6 +51,43 @@ async function mountHook<T>(hook: () => T) {
   )
   return { current: () => value!, client }
 }
+
+it('closes the generation menu before opening the destructive confirmation', async () => {
+  const container = document.createElement('div')
+  document.body.append(container)
+  const root = createRoot(container)
+  roots.push(root)
+  const onDelete = vi.fn()
+  await act(async () =>
+    root.render(
+      <GenerateButton
+        graphStatus={GenerateTaskStatus.Completed}
+        raptorStatus={GenerateTaskStatus.Start}
+        graphTrace={null}
+        raptorTrace={null}
+        onRun={vi.fn()}
+        onPause={vi.fn()}
+        onDelete={onDelete}
+      />,
+    ),
+  )
+  const trigger = [...document.querySelectorAll('button')].find((button) =>
+    button.textContent?.includes('knowledge.documents.generate.button'),
+  )
+  expect(trigger).toBeDefined()
+  await act(async () => trigger!.click())
+  const remove = document.querySelector<HTMLButtonElement>(
+    '[aria-label="knowledge.documents.generate.deleteResult"]',
+  )
+  expect(remove).not.toBeNull()
+  await act(async () => remove!.click())
+  expect(onDelete).toHaveBeenCalledWith(GenerateTaskType.GraphRAG)
+  expect(
+    document.querySelector(
+      '[aria-label="knowledge.documents.generate.deleteResult"]',
+    ),
+  ).toBeNull()
+})
 
 it('refreshes document lists after a partially executed batch rejects', async () => {
   const failure = new APIError(200, '102', 'partial', { success_count: 1 })
