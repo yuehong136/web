@@ -18,6 +18,8 @@ import type {
 import { useDataSourceInfo } from '@/pages/settings/datasource/constants'
 import { message } from 'antd'
 import { useTranslation } from 'react-i18next'
+import { toast } from '@/lib/toast'
+import { MutationErrorFeedback } from '@/lib/mutation-error-feedback'
 
 // Query Keys 统一管理
 export const datasourceKeys = {
@@ -29,6 +31,18 @@ export const datasourceKeys = {
   logs: (id: string, page?: number) =>
     [...datasourceKeys.all, 'logs', id, page] as const,
   byKb: (kbId: string) => [...datasourceKeys.all, 'by-kb', kbId] as const,
+}
+
+/** Explicitly tests the saved configuration; does not mutate or refresh it. */
+export const useTestDataSource = (id: string) => {
+  const { t } = useTranslation()
+  const mutation = useMutation({
+    mutationFn: () => datasourceAPI.connector.test(id),
+    meta: { errorFeedback: MutationErrorFeedback.Local },
+    onSuccess: () => toast.success(t('datasource.restApi.testSuccess')),
+    onError: () => toast.error(t('datasource.restApi.testFailed')),
+  })
+  return { handleTest: () => mutation.mutate(), isTesting: mutation.isPending }
 }
 
 /**

@@ -39,6 +39,7 @@ export enum DataSourceKey {
   MOODLE = 'moodle',
   IMAP = 'imap',
   RSS = 'rss',
+  REST_API = 'rest_api',
 }
 
 /**
@@ -177,7 +178,9 @@ export interface FormFieldConfig {
   tooltip?: string
   defaultValue?: any
   options?: Array<{ label: string; value: string }>
-  showWhen?: FormFieldShowWhen
+  showWhen?: FormFieldShowWhen | FormFieldShowWhen[]
+  validate?: (value: unknown) => true | string
+  step?: number
   render?: (fieldProps: any) => ReactNode
 }
 

@@ -133,6 +133,74 @@ test('set creates with POST and updates with PATCH', async () => {
   assert.deepEqual(patches[0]?.data, { config: { token: 'y' } })
 })
 
+test('REST connection testing is an explicit saved-config POST with no payload or legacy fallback', async () => {
+  const calls: Call[] = []
+  const restore = stub(
+    'post',
+    async (endpoint: string, data?: unknown, config?: RequestConfig) => {
+      calls.push({ endpoint, data, config })
+      return { message: 'Connection successful.' }
+    },
+  )
+  try {
+    assert.deepEqual(await datasourceAPI.connector.test('conn/1'), {
+      message: 'Connection successful.',
+    })
+  } finally {
+    restore()
+  }
+  assert.equal(calls[0]?.endpoint, '/v1/connectors/conn%2F1/test')
+  assert.equal(calls[0]?.data, undefined)
+  assert.ok(calls[0]?.config?.baseURL?.endsWith('/api'))
+  const restoreError = stub('post', async () => {
+    throw new APIError(404, 'NOT_FOUND', 'missing')
+  })
+  try {
+    await assert.rejects(() => datasourceAPI.connector.test('conn-1'), APIError)
+  } finally {
+    restoreError()
+  }
+})
+
+test('connection test checks business retcode even when HTTP succeeds', async () => {
+  const originalFetch = globalThis.fetch
+  const calls: { url: string; method?: string; body: unknown }[] = []
+  let retcode = 0
+  globalThis.fetch = async (url, init) => {
+    calls.push({ url: String(url), method: init?.method, body: init?.body })
+    return new Response(
+      JSON.stringify({
+        retcode,
+        retmsg: retcode ? 'unsafe backend detail' : 'success',
+        data: retcode ? false : { message: 'Connection successful.' },
+      }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
+  }
+  try {
+    assert.deepEqual(await datasourceAPI.connector.test('saved'), {
+      message: 'Connection successful.',
+    })
+    retcode = 102
+    await assert.rejects(
+      () => datasourceAPI.connector.test('saved'),
+      (error: unknown) => error instanceof APIError && error.code === '102',
+    )
+    retcode = 109
+    await assert.rejects(
+      () => datasourceAPI.connector.test('foreign'),
+      (error: unknown) => error instanceof APIError && error.code === '109',
+    )
+    assert.equal(calls.length, 3)
+    assert.ok(
+      calls.every((call) => call.method === 'POST' && call.body === undefined),
+    )
+    assert.ok(calls[0]?.url.endsWith('/api/v1/connectors/saved/test'))
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+})
+
 test('delete uses DELETE and resume/rebuild use POST', async () => {
   const deletes: Call[] = []
   const posts: Call[] = []

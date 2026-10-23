@@ -174,6 +174,14 @@ export const datasourceAPI = {
           apiClient.post<{ id: string }>('/v1/connector/set', { id, ...data }),
       ),
 
+    // 仅测试已保存配置；不会保存或调度同步。
+    test: (id: string): Promise<{ message: string }> =>
+      apiClient.post<{ message: string }>(
+        `${connectorPath(id)}/test`,
+        undefined,
+        connectorRestConfig,
+      ),
+
     // 删除数据源
     delete: (id: string): Promise<void> =>
       withLegacyFallback(

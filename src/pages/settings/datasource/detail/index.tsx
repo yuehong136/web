@@ -20,6 +20,7 @@ import {
   useDataSourceLogs,
   useDataSourceResume,
   useFetchDataSourceDetail,
+  useTestDataSource,
 } from '@/hooks/use-datasource-request'
 import { useDataSourceFormFields, useDataSourceInfo } from '../constants'
 import { DataSourceKey, type FormFieldConfig } from '../types'
@@ -45,6 +46,7 @@ export default function DataSourceDetailPage() {
   const { dataSourceInfo } = useDataSourceInfo()
   const { formFields, baseFields } = useDataSourceFormFields()
   const [saveLoading, setSaveLoading] = useState(false)
+  const { handleTest, isTesting } = useTestDataSource(id)
 
   const isActive = isDataSourceActive(detail?.status)
   const logsState = useDataSourceLogs(id, isActive)
@@ -67,13 +69,13 @@ export default function DataSourceDetailPage() {
       toast.error(t(errorKey))
       return
     }
-    const preparedValues = prepareDataSourceValues(
-      detail.source,
-      values,
-      detail.config,
-    )
     try {
       setSaveLoading(true)
+      const preparedValues = prepareDataSourceValues(
+        detail.source,
+        values,
+        detail.config,
+      )
       const data: DataSourceSetRequest = {
         ...preparedValues,
         id: detail.id,
@@ -179,9 +181,29 @@ export default function DataSourceDetailPage() {
               defaultValues={getDataSourceDefaultValues(detail.source, detail)}
               labelClassName="font-normal"
             >
-              <div className="mt-space-lg flex justify-end border-t border-border-subtle pt-space-base">
+              <div className="mt-space-lg flex flex-wrap items-center justify-end gap-space-sm border-t border-border-subtle pt-space-base">
+                {source === DataSourceKey.REST_API && (
+                  <>
+                    <p className="text-sm text-text-secondary">
+                      {t('datasource.restApi.testSavedConfig')}
+                    </p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleTest}
+                      disabled={saveLoading || isTesting}
+                      aria-busy={isTesting}
+                    >
+                      {t(
+                        isTesting
+                          ? 'datasource.restApi.testing'
+                          : 'datasource.restApi.testConnection',
+                      )}
+                    </Button>
+                  </>
+                )}
                 <DynamicForm.SavingButton
-                  submitLoading={saveLoading}
+                  submitLoading={saveLoading || isTesting}
                   buttonText={t('common.save')}
                   submitFunc={handleSave}
                 />

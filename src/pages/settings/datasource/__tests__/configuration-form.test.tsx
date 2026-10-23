@@ -3,7 +3,7 @@ import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { AddDataSourceModal } from '@/pages/settings/datasource/components/add-datasource-modal'
-import { DynamicForm } from '@/components/dynamic-form'
+import { DynamicForm, useFormInstance } from '@/components/dynamic-form'
 import { getDataSourceFormFields } from '@/pages/settings/datasource/constants/form-fields'
 import {
   getDataSourceDefaultValues,
@@ -102,6 +102,89 @@ it('defaults Gmail deletion sync off and preserves credentials when enabling and
       authentication_method: 'uploaded',
     },
   })
+})
+
+it('submits a REST default form without probing and serializes the empty request body as an object', async () => {
+  await renderAdd(DataSourceKey.REST_API)
+  await change(input('name'), 'REST scratch')
+  await change(input('config.url'), 'https://api.example.test/items')
+  await change(input('config.content_fields'), 'title,body')
+  await click(button('Confirm'))
+  expect(submit).toHaveBeenCalledTimes(1)
+  expect(submit.mock.calls[0][0]).toMatchObject({
+    source: 'rest_api',
+    config: {
+      request_body: {},
+      content_fields: ['title', 'body'],
+      credentials: { token: '' },
+    },
+  })
+  expect(submit.mock.calls[0][0]).not.toHaveProperty('restApiSettings')
+  expect(document.body.textContent).not.toContain('Test connection')
+})
+
+it('validates only active REST auth fields and blocks malformed POST JSON before submission', async () => {
+  let form: ReturnType<typeof useFormInstance>
+  function Controls() {
+    form = useFormInstance()
+    return (
+      <DynamicForm.SavingButton submitLoading={false} submitFunc={submit} />
+    )
+  }
+  await act(async () =>
+    root.render(
+      <DynamicForm.Root
+        fields={
+          getDataSourceFormFields((key) => i18n.t(key))[DataSourceKey.REST_API]
+        }
+        onSubmit={submit}
+        defaultValues={getDataSourceDefaultValues(DataSourceKey.REST_API, {
+          config: {
+            url: 'https://api.example.test/items',
+            content_fields: ['body'],
+          },
+        })}
+      >
+        <Controls />
+      </DynamicForm.Root>,
+    ),
+  )
+  const set = async (key: string, value: unknown) =>
+    act(async () => form.setValue(key, value))
+  for (const [mode, required] of [
+    ['api_key_header', ['config.credentials.api_key']],
+    ['bearer', ['config.credentials.token']],
+    ['basic', ['config.credentials.username', 'config.credentials.password']],
+  ] as const) {
+    await set('config.auth_type', mode)
+    await click(button('Confirm'))
+    expect(submit).not.toHaveBeenCalled()
+    for (const name of required) {
+      expect(input(name).getAttribute('aria-invalid')).toBe('true')
+      await change(input(name), 'synthetic')
+    }
+    await click(button('Confirm'))
+    expect(submit).toHaveBeenCalledTimes(1)
+    submit.mockClear()
+  }
+  await set('config.auth_type', 'none')
+  await set('config.method', 'POST')
+  await set('config.request_body', '[]')
+  await click(button('Confirm'))
+  expect(submit).not.toHaveBeenCalled()
+  expect(document.body.textContent).toContain('Enter a valid JSON object.')
+  await set('config.request_body', '{"active":true}')
+  await set('restApiSettings', 'advanced')
+  await set('config.pagination_type', 'offset')
+  expect(input('config.pagination_config.limit')).toBeTruthy()
+  expect(input('config.pagination_config.page_param')).toBeNull()
+  await set('config.pagination_type', 'page')
+  expect(input('config.pagination_config.limit')).toBeNull()
+  expect(input('config.pagination_config.page_param')).toBeTruthy()
+  await set('config.pagination_type', 'cursor')
+  expect(input('config.pagination_config.next_cursor_path')).toBeTruthy()
+  await click(button('Confirm'))
+  expect(submit).toHaveBeenCalledTimes(1)
 })
 
 it('blocks empty Jira credentials, validates only the selected mode and submits a boolean deletion setting', async () => {
