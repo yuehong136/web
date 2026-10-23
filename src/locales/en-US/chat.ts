@@ -1,5 +1,36 @@
 export default {
   chat: {
+    runTimeline: {
+      title: 'Run activity',
+      count: '{{count}} steps',
+      analysis: 'Tool analysis',
+      error: 'Tool error',
+      status: {
+        loading: 'Running',
+        success: 'Completed',
+        error: 'Failed',
+        unconfirmed: 'Unconfirmed',
+      },
+      arguments: 'Arguments',
+      result: 'Result',
+      toolRunning: 'Tool is running...',
+      noToolDetail: 'No tool details yet',
+      reasoningTitle: 'Reasoning',
+      step: 'Execution step',
+    },
+    markdownArtifact: {
+      imageLoading: 'Loading artifact image...',
+      imageLoadFailed: 'Failed to load artifact image',
+      downloading: 'Downloading...',
+      downloadFailed: 'Failed to download artifact',
+      opening: 'Opening artifact...',
+      openFailed: 'Failed to open artifact',
+    },
+    composer: {
+      keyboardHint: 'Enter to send · Shift + Enter for a new line',
+      preparing: 'Preparing the conversation…',
+    },
+    transcript: { user: 'You', assistant: 'Assistant' },
     references: {
       sources: 'Sources',
       documents: '{{count}} documents',
@@ -26,6 +57,16 @@ export default {
       failed: 'Generation failed. Please try again.',
       interrupted:
         'Generation did not finish. The content generated so far has been kept.',
+      locallyStopped:
+        'Reception stopped. Content has been kept; server cancellation is unconfirmed.',
+      cancelRequested:
+        'Cancellation requested. Waiting for the task to respond.',
+      serverCancelled: 'The server confirmed that the task was cancelled.',
+      toolUnconfirmed: 'Result unconfirmed',
+      aiFillInvalid:
+        'The completed response is not valid form JSON. Adjust the prompt and try again.',
+      aiFillComplete: 'AI fill completed',
+      stop: 'Stop receiving',
     },
     scroll: {
       region: 'Conversation messages',

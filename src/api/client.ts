@@ -10,6 +10,7 @@ import { responseError } from './response-error'
 import type { RequestConfig } from './client-types'
 import { assertRest200Contract } from './response-contract'
 import { uploadWithProgress } from './upload-transport'
+import { createRequestAbort, isAbortError } from './request-abort'
 
 // 错误契约与请求配置类型见 ./client-types，这里重新导出以保持既有导入路径不变
 export { APIError } from './client-types'
@@ -162,32 +163,19 @@ class APIClient {
       headers: requestHeaders,
     }
 
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), timeout)
-    const onCallerAbort = () => controller.abort(callerSignal?.reason)
-    if (readResponse && callerSignal) {
-      if (callerSignal.aborted) onCallerAbort()
-      else callerSignal.addEventListener('abort', onCallerAbort, { once: true })
-    }
-    requestOptions.signal = controller.signal
+    const abort = createRequestAbort(timeout, callerSignal)
+    requestOptions.signal = abort.signal
 
     try {
-      const response = await fetch(url, requestOptions)
+      const response = await abort.run(() => fetch(url, requestOptions))
       if (readResponse) {
-        return (await readBinaryResponse(
-          response,
-          controller.signal,
-          readResponse,
-          {
-            sentAuthorization: requestHeaders.Authorization,
-            currentToken: this.getAuthToken(),
-            skipAuth,
-            onUnauthorized: () => this.handleUnauthorized(skipAuth),
-          },
-        )) as T
+        return (await readBinaryResponse(response, abort.signal, readResponse, {
+          sentAuthorization: requestHeaders.Authorization,
+          currentToken: this.getAuthToken(),
+          skipAuth,
+          onUnauthorized: () => this.handleUnauthorized(skipAuth),
+        })) as T
       }
-      clearTimeout(timeoutId)
-
       const contentType = response.headers.get('content-type')
       if (!contentType?.includes('application/json')) {
         if (!response.ok) {
@@ -206,7 +194,8 @@ class APIClient {
       }
 
       // 解析JSON响应
-      const rawData = await response.json()
+      const rawData = await abort.run(() => response.json())
+      abort.signal.throwIfAborted()
       assertRest200Contract(responseContract, response.status, rawData)
 
       // 兼容不同的响应格式
@@ -288,21 +277,17 @@ class APIClient {
 
       return data.data as T
     } catch (error) {
-      clearTimeout(timeoutId)
+      if (abort.signal.aborted) {
+        if (!abort.timedOut()) throw abort.signal.reason
+        throw new APIError(408, 'TIMEOUT', te('timeout'))
+      }
 
       if (error instanceof APIError) {
         throw error
       }
 
       const err = error as Error
-      if (err.name === 'AbortError') {
-        if (
-          readResponse &&
-          (callerSignal?.aborted || isSupersededBinaryResponse(error))
-        )
-          throw error
-        throw new APIError(408, 'TIMEOUT', te('timeout'))
-      }
+      if (isAbortError(error) || isSupersededBinaryResponse(error)) throw error
 
       if (!navigator.onLine) {
         throw new APIError(0, 'NETWORK_ERROR', te('network'))
@@ -310,8 +295,7 @@ class APIClient {
 
       throw new APIError(500, 'UNKNOWN_ERROR', err.message || te('serverError'))
     } finally {
-      clearTimeout(timeoutId)
-      callerSignal?.removeEventListener('abort', onCallerAbort)
+      abort.cleanup()
     }
   }
 

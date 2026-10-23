@@ -4,7 +4,12 @@
  * 使用 TanStack Query 管理 LLM 模型相关的服务器状态
  */
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  type QueryClient,
+} from '@tanstack/react-query'
 import { llmAPI } from '@/api/llm'
 import { MutationErrorFeedback } from '@/lib/mutation-error-feedback'
 import {
@@ -24,7 +29,14 @@ export const llmKeys = {
   myLLMs: () => [...llmKeys.all, 'myLLMs'] as const,
   catalog: () => [...llmKeys.all, 'catalog'] as const,
   factories: () => [...llmKeys.all, 'factories'] as const,
+  available: () => [...llmKeys.all, 'available'] as const,
 }
+
+const invalidateConfiguredModels = (queryClient: QueryClient) =>
+  Promise.all([
+    queryClient.invalidateQueries({ queryKey: llmKeys.myLLMs() }),
+    queryClient.invalidateQueries({ queryKey: llmKeys.available() }),
+  ])
 
 type SupportedLLMType = MyLLMModel['type']
 
@@ -123,8 +135,9 @@ export const useSetApiKey = () => {
       ),
     onSuccess: (_response, params) => {
       if (!params.verify) {
-        queryClient.invalidateQueries({ queryKey: llmKeys.myLLMs() })
+        return invalidateConfiguredModels(queryClient)
       }
+      return undefined
     },
   })
 
@@ -175,8 +188,9 @@ export const useAddLLM = () => {
     }) => llmAPI.addLLM(params, verify),
     onSuccess: (_response, { verify }) => {
       if (!verify) {
-        queryClient.invalidateQueries({ queryKey: llmKeys.myLLMs() })
+        return invalidateConfiguredModels(queryClient)
       }
+      return undefined
     },
   })
 
@@ -217,7 +231,7 @@ export const useEnableLLM = () => {
       enabled: boolean
     }) => llmAPI.enableLlm(llmFactory, llmName, enabled),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: llmKeys.myLLMs() })
+      return invalidateConfiguredModels(queryClient)
     },
   })
 
@@ -242,7 +256,7 @@ export const useDeleteFactory = () => {
       return llmFactory
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: llmKeys.myLLMs() })
+      return invalidateConfiguredModels(queryClient)
     },
   })
 

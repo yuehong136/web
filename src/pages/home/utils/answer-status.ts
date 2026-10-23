@@ -4,6 +4,7 @@ import type {
   AgentTimelineState,
   SSEStreamEnd,
   StreamingAnswerState,
+  RunPhase,
 } from '@/lib/streaming'
 import type { AnswerStatusKind, ChatMessage } from '../types'
 
@@ -30,6 +31,22 @@ const ANSWER_STATUS_MESSAGE_KEYS: Record<AnswerStatusKind, string> = {
 
 export const answerStatusMessageKey = (kind: AnswerStatusKind) =>
   ANSWER_STATUS_MESSAGE_KEYS[kind]
+
+/** Presentation projection; it never changes request ownership or server state. */
+export const getHomeMessagePhase = (
+  message: ChatMessage,
+  active: boolean,
+): RunPhase => {
+  if (message.status?.kind === 'stopped') return 'locallyStopped'
+  if (
+    message.status?.kind === 'unconfirmed' ||
+    message.status?.kind === 'network'
+  )
+    return 'interrupted'
+  if (message.status) return 'failed'
+  if (active) return 'running'
+  return message.isStreaming ? 'interrupted' : 'completed'
+}
 
 const hasErrorName = (error: unknown, name: string) =>
   typeof error === 'object' &&

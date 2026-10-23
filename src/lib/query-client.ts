@@ -1,4 +1,9 @@
-import { MutationCache, QueryClient } from '@tanstack/react-query'
+import {
+  isCancelledError,
+  MutationCache,
+  QueryClient,
+} from '@tanstack/react-query'
+import { isAbortError } from '@/api/request-abort'
 import i18n from '@/locales/i18n'
 import { toast } from '@/lib/toast'
 import {
@@ -10,6 +15,7 @@ import {
 const queryConfig = {
   queries: {
     retry: (failureCount: number, error: unknown) => {
+      if (isCancelledError(error) || isAbortError(error)) return false
       // 不重试认证错误
       if (
         typeof error === 'object' &&

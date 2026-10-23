@@ -1,3 +1,5 @@
+import { sourcesResource } from './sources'
+import { appearanceResource } from './appearance'
 import common from './common'
 import { skillsResource } from './skills'
 import datasource from './datasource'
@@ -22,6 +24,8 @@ import { authResource as auth } from './auth'
 import { desktopResource as desktop } from './desktop'
 
 export default {
+  ...sourcesResource,
+  ...appearanceResource,
   ...skillsResource,
   ...common,
   ...datasource,

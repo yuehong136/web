@@ -17,8 +17,8 @@ import {
   useMarkdownComponents,
 } from '@/components/chat/MarkdownCodeBlock'
 import type { MCPChatServiceRequest } from '@/api/mcp-chat-service'
-import { type StreamToolCallInfo as ToolCallInfo } from '@/lib/streaming'
-import { streamStructuredChat } from '@/components/chat/structured-chat-stream'
+import { getRunPhaseNotice } from '@/lib/streaming'
+import { useMcpChatRun } from '@/pages/mcp-chat/use-mcp-chat-run'
 import { ToolCallRenderer } from '@/components/chat/ToolCallRenderer'
 import {
   findFirstEnabledModelByType,
@@ -27,7 +27,6 @@ import {
 } from '@/stores/model'
 import { useFetchMyLLMs } from '@/hooks/use-llm-request'
 import { useMcpUpload } from '@/hooks/use-mcp-upload'
-import { useStreamBatcher } from '@/hooks/useStreamBatcher'
 import { toast } from '@/lib/toast'
 import { cn, copyToClipboard } from '@/lib/utils'
 import { uploadConfig } from '@/config/chat'
@@ -366,52 +365,7 @@ export default function MCPChatPage() {
 
   const activeSession = sessions.find((s) => s.id === activeSessionId)
 
-  // 流式响应状态管理
-  const [_isLoading, setIsLoading] = useState(false)
-  const [streamingContent, setStreamingContent] = useState('')
-  const [streamingToolCalls, setStreamingToolCalls] = useState<ToolCallInfo[]>(
-    [],
-  )
-  const [isStreaming, setIsStreaming] = useState(false)
-  const [isToolAnalyzing, setIsToolAnalyzing] = useState(false)
-
-  // 流式连接的 AbortController（原 EnhancedSSEParser 实例内部的同款生命周期）
-  const abortControllerRef = useRef<AbortController | null>(null)
   const scrollFrameRef = useRef<number | null>(null)
-
-  type StreamUIPatch = {
-    streamingContent: string
-    streamingToolCalls: ToolCallInfo[]
-    isToolAnalyzing: boolean
-  }
-
-  const {
-    schedulePatch: scheduleStreamPatch,
-    flush: flushStreamPatch,
-    reset: resetStreamPatch,
-  } = useStreamBatcher<StreamUIPatch>(
-    (patch) => {
-      if (
-        'streamingContent' in patch &&
-        typeof patch.streamingContent === 'string'
-      ) {
-        setStreamingContent(patch.streamingContent)
-      }
-      if (
-        'streamingToolCalls' in patch &&
-        Array.isArray(patch.streamingToolCalls)
-      ) {
-        setStreamingToolCalls(patch.streamingToolCalls)
-      }
-      if (
-        'isToolAnalyzing' in patch &&
-        typeof patch.isToolAnalyzing === 'boolean'
-      ) {
-        setIsToolAnalyzing(patch.isToolAnalyzing)
-      }
-    },
-    { maxDelayMs: 50 },
-  )
 
   const scrollToBottom = useCallback((behavior: ScrollBehavior = 'auto') => {
     const scrollContainer = document.getElementById('chat-scroll-container')
@@ -431,6 +385,22 @@ export default function MCPChatPage() {
       scrollToBottom('auto')
     })
   }, [scrollToBottom])
+
+  const {
+    state: streamState,
+    isStreaming,
+    run: runChat,
+    stop: stopRun,
+  } = useMcpChatRun({
+    sessionId: activeSessionId,
+    setSessions,
+    onProgress: scheduleAutoScroll,
+  })
+  const {
+    accumulatedText: streamingContent,
+    toolCalls: streamingToolCalls,
+    isToolAnalyzing,
+  } = streamState
 
   // 复制消息内容
   const _handleCopy = async (content?: string, ev?: React.MouseEvent) => {
@@ -547,8 +517,9 @@ export default function MCPChatPage() {
       contentRender:
         msg.role === 'assistant'
           ? () => {
-              const { thinkContent, mainContent, isThinking } =
-                extractThinkContent(msg.content || '')
+              const { thinkContent, mainContent } = extractThinkContent(
+                msg.content || '',
+              )
               return (
                 <div className="space-y-4">
                   {msg.parsedToolCalls && msg.parsedToolCalls.length > 0 && (
@@ -558,19 +529,20 @@ export default function MCPChatPage() {
                         name: call.name,
                         arguments: call.args || call.arguments || {},
                         result: call.result,
-                        status: call.status || 'success',
+                        status: call.status || 'pending',
                         timestamp:
                           call.timestamp || new Date().toLocaleTimeString(),
                       }))}
                       showTimestamp={true}
                       collapsible={true}
+                      runPhase={msg.runPhase ?? 'completed'}
                     />
                   )}
                   {/* Think 组件展示思考过程 */}
                   {thinkContent && (
                     <Think
-                      title={isThinking ? '正在思考...' : '思考完成'}
-                      loading={isThinking}
+                      title={t('chat.thinking.details')}
+                      loading={false}
                       defaultExpanded={false}
                     >
                       <div
@@ -583,12 +555,17 @@ export default function MCPChatPage() {
                   )}
                   {/* 使用稳定的 Markdown 组件渲染主内容 */}
                   {mainContent && <StableMarkdown content={mainContent} />}
+                  {msg.runPhase && getRunPhaseNotice(msg.runPhase) && (
+                    <output className="block text-sm text-text-secondary">
+                      {t(getRunPhaseNotice(msg.runPhase)!)}
+                    </output>
+                  )}
                 </div>
               )
             }
           : undefined,
     }))
-  }, [historyMessages, getUserAvatar, getAssistantAvatar])
+  }, [historyMessages, getUserAvatar, getAssistantAvatar, t])
 
   // 转换消息数据为 Bubble.List 需要的格式
   const bubbleItems = React.useMemo<BubbleListProps['items']>(() => {
@@ -623,7 +600,7 @@ export default function MCPChatPage() {
           },
         },
         contentRender: () => (
-          <div className="space-y-4">
+          <div className="space-y-4" aria-live="polite" aria-busy={isStreaming}>
             {(isToolAnalyzing || streamingToolCalls.length > 0) && (
               <div
                 className="rounded-lg p-3"
@@ -737,176 +714,38 @@ export default function MCPChatPage() {
     setMcpConfig({ ...config, mcp_ids: selectedIds })
   }
 
-  // 发送消息函数 - 使用自定义流式处理
   const handleSendMessage = useCallback(
     async (content: string) => {
       if (!activeSessionId) {
         handleNewChat()
         return
       }
-
-      // 检查是否选择了模型
       if (!selectedModelId) {
-        toast.error('请先选择一个聊天模型')
+        toast.error(t('chat.modelSelector.placeholder'))
         return
       }
-
-      // 发送新消息时，重置滚动状态，确保能看到新消息
       setIsUserScrolling(false)
       isUserScrollingRef.current = false
-
-      setIsLoading(true)
-      setIsStreaming(true)
-      setStreamingContent('')
-      setStreamingToolCalls([])
-      setIsToolAnalyzing(false)
-
-      try {
-        // 添加用户消息到会话
-        const userMessage = {
-          id: Date.now().toString(),
-          role: 'user' as const,
-          content: content,
-          timestamp: new Date().toLocaleTimeString(),
-        }
-
-        setSessions((prev) =>
-          prev.map((session) =>
-            session.id === activeSessionId
-              ? { ...session, messages: [...session.messages, userMessage] }
-              : session,
-          ),
-        )
-
-        // 获取当前会话的历史消息
-        const currentSession = sessions.find((s) => s.id === activeSessionId)
-        const historyMessages =
-          currentSession?.messages.map((msg) => ({
-            role: msg.role,
-            content: msg.content,
-          })) || []
-
-        // 添加当前用户消息
-        const allMessages = [
-          ...historyMessages,
-          {
-            role: 'user' as const,
-            content: content,
-          },
-        ]
-
-        // 获取已上传文件的 ID 列表
-        const fileIds = getFileIds()
-
-        // 构建请求参数
-        const request: MCPChatServiceRequest = {
-          prompt: '',
-          messages: allMessages,
-          llm_name: selectedModelId,
-          stream: true,
-          gen_conf: {},
-          mcp_ids: selectedMCPIds,
-          mcp_timeout: mcpConfig.mcp_timeout,
-          verbose_tool_use: mcpConfig.verbose_tool_use,
-          files: fileIds, // 传递已上传文件的 ID 列表
-          structured_output: selectedMCPIds.length > 0, // 根据是否有MCP工具自动设置结构化输出
-          delta_stream: true,
-        }
-
-        // 流式连接（局部捕获 controller：停止按钮/卸载会把 ref 置 null）
-        const abortController = new AbortController()
-        abortControllerRef.current = abortController
-
-        // 复刻原 connect() 错误边界：AbortError 静默，其余打日志 + toast（不进外层 catch）
-        try {
-          await streamStructuredChat({
-            url: `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/v1/llm/enhanced_chat_sse`,
-            requestBody: request,
-            signal: abortController.signal,
-            onMessage: (message, parserState) => {
-              switch (message.type) {
-                case 'text':
-                  scheduleStreamPatch({
-                    streamingContent: parserState.accumulatedText,
-                  })
-                  break
-
-                case 'tool_call':
-                case 'tool_result':
-                  scheduleStreamPatch({
-                    streamingToolCalls: [...parserState.toolCalls],
-                  })
-                  break
-
-                case 'tool_start':
-                  scheduleStreamPatch({ isToolAnalyzing: true })
-                  break
-
-                case 'tool_end':
-                  scheduleStreamPatch({ isToolAnalyzing: false })
-                  break
-
-                case 'complete': {
-                  flushStreamPatch()
-                  const assistantMessage = {
-                    id: Date.now().toString(),
-                    role: 'assistant' as const,
-                    content: parserState.accumulatedText,
-                    timestamp: new Date().toLocaleTimeString(),
-                    parsedToolCalls: parserState.toolCalls.map((call) => ({
-                      id: call.id,
-                      name: call.name,
-                      args: call.arguments || {},
-                      result: (call.result || '') as string,
-                      status: call.status,
-                      timestamp: call.timestamp,
-                    })),
-                  }
-
-                  setSessions((prev) =>
-                    prev.map((session) =>
-                      session.id === activeSessionId
-                        ? {
-                            ...session,
-                            messages: [...session.messages, assistantMessage],
-                          }
-                        : session,
-                    ),
-                  )
-                  break
-                }
-
-                case 'error': {
-                  const errorMsg = message.content as any
-                  throw new Error(errorMsg.error || 'Unknown error')
-                }
-              }
-
-              scheduleAutoScroll()
-            },
-          })
-        } catch (error) {
-          if (error instanceof Error && error.name !== 'AbortError') {
-            console.error('Enhanced SSE Parser error:', error)
-            toast.error(error.message || '连接出错')
-          }
-        }
-      } catch (error) {
-        console.error('Error sending message:', error)
-        toast.error(error instanceof Error ? error.message : '发送消息失败')
-      } finally {
-        // 清理状态和连接
-        if (abortControllerRef.current) {
-          abortControllerRef.current.abort()
-          abortControllerRef.current = null
-        }
-        resetStreamPatch()
-        setIsLoading(false)
-        setIsStreaming(false)
-        setStreamingContent('')
-        setStreamingToolCalls([])
-        setIsToolAnalyzing(false)
+      const history =
+        sessions.find((session) => session.id === activeSessionId)?.messages ??
+        []
+      const request: MCPChatServiceRequest = {
+        prompt: '',
+        messages: [
+          ...history.map(({ role, content }) => ({ role, content })),
+          { role: 'user', content },
+        ],
+        llm_name: selectedModelId,
+        stream: true,
+        gen_conf: {},
+        mcp_ids: selectedMCPIds,
+        mcp_timeout: mcpConfig.mcp_timeout,
+        verbose_tool_use: mcpConfig.verbose_tool_use,
+        files: getFileIds(),
+        structured_output: selectedMCPIds.length > 0,
+        delta_stream: true,
       }
+      await runChat(activeSessionId, request)
     },
     [
       activeSessionId,
@@ -916,22 +755,10 @@ export default function MCPChatPage() {
       sessions,
       handleNewChat,
       getFileIds,
-      scheduleAutoScroll,
-      scheduleStreamPatch,
-      flushStreamPatch,
-      resetStreamPatch,
+      runChat,
+      t,
     ],
   )
-
-  // 组件卸载时清理SSE连接
-  useEffect(() => {
-    return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort()
-        abortControllerRef.current = null
-      }
-    }
-  }, [])
 
   return (
     <div
@@ -1424,19 +1251,8 @@ export default function MCPChatPage() {
                       variant="destructive"
                       size="sm"
                       className="h-8 w-8 p-0"
-                      onClick={() => {
-                        // 停止输出（断开 SSE 连接）
-                        if (abortControllerRef.current) {
-                          abortControllerRef.current.abort()
-                          abortControllerRef.current = null
-                        }
-                        setIsLoading(false)
-                        setIsStreaming(false)
-                        setStreamingContent('')
-                        setStreamingToolCalls([])
-                        setIsToolAnalyzing(false)
-                      }}
-                      title="停止输出"
+                      onClick={stopRun}
+                      title={t('chat.stream.stop')}
                     >
                       <Square className="h-4 w-4" />
                     </Button>
@@ -1452,18 +1268,7 @@ export default function MCPChatPage() {
                     setHeaderOpen(false)
                   }
                 }}
-                onCancel={() => {
-                  // 停止输出
-                  if (abortControllerRef.current) {
-                    abortControllerRef.current.abort()
-                    abortControllerRef.current = null
-                  }
-                  setIsLoading(false)
-                  setIsStreaming(false)
-                  setStreamingContent('')
-                  setStreamingToolCalls([])
-                  setIsToolAnalyzing(false)
-                }}
+                onCancel={stopRun}
                 onPasteFile={(files) => {
                   // 粘贴文件时触发上传
                   for (let i = 0; i < files.length; i++) {

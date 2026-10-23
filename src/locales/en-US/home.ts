@@ -1,5 +1,21 @@
 export default {
   home: {
+    workspace: {
+      title: 'Turn your sources into a next step',
+      description:
+        'Start with a question. Choose an app or tool when you need more context.',
+    },
+    starters: {
+      summarize: 'Understand the sources',
+      summarizePrompt:
+        'Summarize the main conclusions from my sources and cite the evidence for each one.',
+      compare: 'Compare the options',
+      comparePrompt:
+        'Compare these options, their supporting evidence, and the questions still to resolve.',
+      draft: 'Plan the next step',
+      draftPrompt:
+        'Draft a concise action plan from the background material and list the next steps.',
+    },
     greeting: {
       lateNight: 'It is late',
       beforeDawn: 'Good early morning',
@@ -15,7 +31,7 @@ export default {
       chatPlaceholder: 'Type a message, press Enter to send',
       loadingHistory: 'Loading conversation history...',
       talk: 'Chat',
-      stop: 'Stop generating',
+      stop: 'Stop receiving',
       selectSkills: 'Select skills or apps',
       addAttachment: 'Add attachment',
       inspiration: 'Get inspiration',
@@ -41,15 +57,6 @@ export default {
       business: 'The reply couldn’t be completed.',
       failed: 'The request failed. Try again later.',
       partial: 'What was received is kept above and may be incomplete.',
-    },
-    agentTimeline: {
-      arguments: 'Arguments',
-      result: 'Result',
-      toolRunning: 'Tool is running...',
-      noToolDetail: 'No tool details yet',
-      reasoningPending: 'Preparing reasoning...',
-      reasoningTitle: 'Reasoning',
-      step: 'Execution step',
     },
     tabs: {
       writing: 'Writing',

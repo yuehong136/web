@@ -92,7 +92,7 @@ const normalizeStructuredData = (
       ]
     }
     case 'complete':
-      return [{ kind: 'complete' }]
+      return content === true ? [{ kind: 'complete' }] : []
     default:
       return []
   }
@@ -161,7 +161,7 @@ export const createTimelineNodesFromToolCalls = (
     const status =
       call.status === 'pending' || call.status === 'running'
         ? 'loading'
-        : call.status || 'success'
+        : call.status || (call.result === undefined ? 'abort' : 'success')
     const id = call.id || `legacy-tool-${index}`
     return {
       id,

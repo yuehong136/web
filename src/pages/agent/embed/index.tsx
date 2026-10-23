@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ScopedTheme } from '@/themes'
-import { applyRouteLocale } from '@/locales/i18n'
+import { useRouteLocale } from '@/locales/use-route-locale'
 import { useEmbedAccess } from './use-embed-access'
 import { useEmbedBridge } from './use-embed-bridge'
 import {
@@ -31,6 +31,15 @@ export default function AgentEmbedPage() {
 }
 
 function EmbedRoot({ access }: { access: EmbedAccess }) {
+  const [hostLocale, setHostLocale] = useState<{
+    source: unknown
+    value: unknown
+  }>()
+  useRouteLocale(
+    hostLocale && hostLocale.source === access.locale
+      ? hostLocale.value
+      : access.locale,
+  )
   const [authState, setAuthState] = useState<AuthState>('pending')
   const [theme, setTheme] = useState<EmbedThemeValue | undefined>(access.theme)
   const [resizeTarget, setResizeTarget] = useState<HTMLDivElement | null>(null)
@@ -52,10 +61,11 @@ function EmbedRoot({ access }: { access: EmbedAccess }) {
     (msg: Extract<EmbedInbound, { type: 'embed-init' }>) => {
       setEmbedJwt(msg.jwt)
       if (msg.theme) setTheme(msg.theme)
-      if (msg.locale) applyRouteLocale(msg.locale)
+      if (msg.locale)
+        setHostLocale({ source: access.locale, value: msg.locale })
       setAuthState('authorised')
     },
-    [],
+    [access.locale],
   )
 
   const handleAuthRefreshed = useCallback(
@@ -75,9 +85,9 @@ function EmbedRoot({ access }: { access: EmbedAccess }) {
 
   const handleSetLocale = useCallback(
     (msg: Extract<EmbedInbound, { type: 'set-locale' }>) => {
-      applyRouteLocale(msg.locale)
+      setHostLocale({ source: access.locale, value: msg.locale })
     },
-    [],
+    [access.locale],
   )
 
   // Trigger-save is wired below once we have the save callback in scope.
@@ -104,11 +114,6 @@ function EmbedRoot({ access }: { access: EmbedAccess }) {
       bridge.postToParent({ type: 'auth-expired' })
     }
   }, [bridge])
-
-  // Apply locale on initial mount if URL carried one.
-  useEffect(() => {
-    if (access.locale) applyRouteLocale(access.locale)
-  }, [access.locale])
 
   if (authState === 'pending') {
     return (

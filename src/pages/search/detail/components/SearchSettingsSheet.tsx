@@ -4,8 +4,7 @@ import {
   toMetadataSemiAutoFields,
 } from './search-metadata-config'
 import { ReferenceMetadataSettings } from '@/components/chat/reference-metadata-settings'
-import React, { memo, useCallback, useEffect, useMemo, useState } from 'react'
-import { Loader2, X } from 'lucide-react'
+import { memo, useCallback, useMemo, type FC } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -33,11 +32,26 @@ import {
   type MetadataSemiAutoField,
 } from '@/components/chat/MetadataFilter'
 import { useFetchKnowledgeList } from '@/hooks/use-knowledge-request'
-import { llmAPI } from '@/api/llm'
-import type { LLMModel, MetadataCondition } from '@/types/api'
+import type { MetadataCondition } from '@/types/api'
 import type { SearchApp, SearchConfig } from '@/types/search'
-import type { MyLLMProvider } from '@/stores/model'
 import ToggleRow from './toggle-row'
+import { useTranslation } from 'react-i18next'
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+  SheetDescription,
+} from '@/components/ui/sheet'
+import { ContextPanel } from '@/components/patterns/context-panel'
+import { useReturnFocus } from '@/components/chat/use-return-focus'
+import { useSearchModels } from '../hooks/use-search-models'
+import {
+  SummaryPreset,
+  DEFAULT_LLM_SETTING,
+  SUMMARY_PRESET_MAP,
+  matchSummaryPreset,
+  type LLMSettingField,
+} from './search-summary-presets'
 
 interface SearchSettingsSheetProps {
   open: boolean
@@ -55,57 +69,6 @@ interface SearchSettingsSheetProps {
   isDirty: boolean
 }
 
-enum SummaryPreset {
-  PRECISE = 'precise',
-  BALANCED = 'balanced',
-  CREATIVE = 'creative',
-  CUSTOM = 'custom',
-}
-
-type LLMSettingValue = {
-  temperature: number
-  top_p: number
-  presence_penalty: number
-  frequency_penalty: number
-}
-
-const DEFAULT_LLM_SETTING: LLMSettingValue = {
-  temperature: 0.5,
-  top_p: 0.85,
-  presence_penalty: 0.2,
-  frequency_penalty: 0.3,
-}
-
-const SUMMARY_PRESET_MAP: Record<
-  Exclude<SummaryPreset, SummaryPreset.CUSTOM>,
-  LLMSettingValue
-> = {
-  [SummaryPreset.PRECISE]: {
-    temperature: 0.2,
-    top_p: 0.7,
-    presence_penalty: 0.1,
-    frequency_penalty: 0.1,
-  },
-  [SummaryPreset.BALANCED]: {
-    temperature: 0.5,
-    top_p: 0.85,
-    presence_penalty: 0.2,
-    frequency_penalty: 0.3,
-  },
-  [SummaryPreset.CREATIVE]: {
-    temperature: 0.9,
-    top_p: 0.95,
-    presence_penalty: 0.4,
-    frequency_penalty: 0.4,
-  },
-}
-
-type LLMSettingField =
-  | 'temperature'
-  | 'top_p'
-  | 'presence_penalty'
-  | 'frequency_penalty'
-
 const CROSS_LANGUAGE_OPTIONS: SelectOptionGroup[] = [
   'English',
   'Chinese',
@@ -119,51 +82,7 @@ const CROSS_LANGUAGE_OPTIONS: SelectOptionGroup[] = [
   'Turkish',
 ].map((language) => ({ label: language, value: language }))
 
-interface RawModelItem {
-  id?: string
-  name?: string
-  llm_name?: string
-  type?: string
-  mdl_type?: string
-  available?: boolean
-  status?: string
-  used_token?: number
-}
-
-interface RawProviderPayload {
-  tags?: string
-  llm?: RawModelItem[]
-}
-
-const isEnabledRawModel = (model: RawModelItem) =>
-  model.available !== false && model.status !== '0'
-
-const matchSummaryPreset = (llmSetting?: SearchConfig['llm_setting']) => {
-  if (!llmSetting) return SummaryPreset.BALANCED
-
-  const keys: LLMSettingField[] = [
-    'temperature',
-    'top_p',
-    'presence_penalty',
-    'frequency_penalty',
-  ]
-  const allEnabled = keys.every((key) => llmSetting[key] !== undefined)
-  if (!allEnabled) return SummaryPreset.CUSTOM
-
-  const isMatched = (preset: Exclude<SummaryPreset, SummaryPreset.CUSTOM>) => {
-    const target = SUMMARY_PRESET_MAP[preset]
-    return keys.every(
-      (key) => Math.abs((llmSetting[key] as number) - target[key]) < 0.0001,
-    )
-  }
-
-  if (isMatched(SummaryPreset.PRECISE)) return SummaryPreset.PRECISE
-  if (isMatched(SummaryPreset.BALANCED)) return SummaryPreset.BALANCED
-  if (isMatched(SummaryPreset.CREATIVE)) return SummaryPreset.CREATIVE
-  return SummaryPreset.CUSTOM
-}
-
-const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
+const SearchSettingsSheet: FC<SearchSettingsSheetProps> = ({
   open,
   onOpenChange,
   name,
@@ -177,15 +96,19 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
   isDirty,
 }) => {
   const { knowledgeBases } = useFetchKnowledgeList({ page_size: 1000 })
-  const [chatModelProviders, setChatModelProviders] = useState<MyLLMProvider>(
-    {},
-  )
-  const [chatModelNameById, setChatModelNameById] = useState<
-    Record<string, string>
-  >({})
-  const [rerankModels, setRerankModels] = useState<LLMModel[]>([])
-  const [modelLoading, setModelLoading] = useState(false)
-  const [modelError, setModelError] = useState<string | undefined>()
+  const { t } = useTranslation()
+  const returnFocus = useReturnFocus()
+  const {
+    chatModelProviders,
+    chatModelNameById,
+    rerankModels,
+    isPending: modelLoading,
+    isError: modelsFailed,
+    refetch: retryModels,
+  } = useSearchModels(open)
+  const modelError = modelsFailed
+    ? t('searchPage.settings.modelsFailed')
+    : undefined
 
   const metadataMode = useMemo(
     () => getMetadataMode(config.meta_data_filter),
@@ -316,122 +239,62 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
     [config.llm_setting, onConfigChange],
   )
 
-  useEffect(() => {
-    const loadModels = async () => {
-      try {
-        setModelLoading(true)
-        setModelError(undefined)
-
-        const response = await llmAPI.list({ available: true })
-        const providers = Object.entries(
-          response as Record<string, unknown>,
-        ).reduce<MyLLMProvider>((acc, [providerName, providerValue]) => {
-          const payload = providerValue as RawProviderPayload | RawModelItem[]
-          const llmList = Array.isArray(payload) ? payload : payload?.llm || []
-          const llm = llmList
-            .filter((model) => {
-              const modelType = model.mdl_type || model.type
-              return (
-                isEnabledRawModel(model) &&
-                (modelType === 'chat' || modelType === 'image2text') &&
-                !!(model.llm_name || model.name || model.id)
-              )
-            })
-            .map((model) => ({
-              type: (model.mdl_type || model.type) as 'chat' | 'image2text',
-              name: model.llm_name || model.name || model.id || '',
-              used_token: model.used_token || 0,
-              status: model.status as '0' | '1' | undefined,
-              available: model.available,
-            }))
-
-          if (llm.length) {
-            acc[providerName] = {
-              tags: Array.isArray(payload) ? '' : payload.tags || '',
-              llm,
-            }
-          }
-
-          return acc
-        }, {})
-
-        const allModels = Object.entries(
-          response as Record<string, unknown>,
-        ).flatMap(([providerName, providerValue]) => {
-          const payload = providerValue as RawProviderPayload | RawModelItem[]
-          const llmList = Array.isArray(payload) ? payload : payload?.llm || []
-          return llmList
-            .filter((model) => isEnabledRawModel(model))
-            .map(
-              (model): LLMModel => ({
-                id:
-                  model.id ||
-                  `${model.llm_name || model.name || 'model'}@${providerName}`,
-                llm_name: model.llm_name || model.name || model.id || '',
-                fid: providerName,
-                mdl_type: (model.mdl_type ||
-                  model.type ||
-                  'chat') as LLMModel['mdl_type'],
-                available: model.available !== false,
-                status: model.status,
-                name: model.name,
-              }),
-            )
-        })
-
-        const idToNameMap: Record<string, string> = {}
-        allModels.forEach((model) => {
-          if (model.mdl_type !== 'chat' && model.mdl_type !== 'image2text')
-            return
-          const modelName = model.llm_name || model.name || model.id
-          if (!modelName) return
-          idToNameMap[model.id || modelName] = modelName
-        })
-
-        setRerankModels(
-          allModels.filter((model) => model.mdl_type === 'rerank'),
-        )
-        setChatModelProviders(providers)
-        setChatModelNameById(idToNameMap)
-      } catch {
-        setModelError('模型列表加载失败')
-      } finally {
-        setModelLoading(false)
-      }
-    }
-
-    if (open) {
-      loadModels()
-    }
-  }, [open])
-
   if (!open) return null
 
   return (
-    <aside className="relative z-20 w-[380px] shrink-0 border-l border-border-default bg-background-surface px-space-base py-space-sm shadow-elevation-high xl:w-[420px]">
-      <div className="flex h-full min-h-0 flex-col bg-background-surface px-space-sm py-space-base">
-        <div className="flex shrink-0 items-center justify-between gap-space-sm">
-          <h3 className="text-base font-semibold text-text-primary">
-            搜索设置
-          </h3>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={() => onOpenChange(false)}
-            title="收起配置"
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-
-        <div className="mt-space-lg min-h-0 flex-1 overflow-y-auto pr-space-xs">
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent
+        side="right"
+        showCloseButton={false}
+        className="h-full w-full overflow-hidden bg-background-surface p-0 sm:max-w-lg"
+        {...returnFocus}
+      >
+        <ContextPanel
+          width="full"
+          title={
+            <SheetTitle asChild>
+              <span>{t('searchPage.settings.title')}</span>
+            </SheetTitle>
+          }
+          description={
+            <SheetDescription>
+              {t('searchPage.settings.description')}
+            </SheetDescription>
+          }
+          onClose={() => onOpenChange(false)}
+          closeLabel={t('searchPage.workspace.closeSettings')}
+          footer={
+            <Button
+              className="w-full"
+              loading={isSaving}
+              onClick={onSave}
+              disabled={isSaving || !isDirty}
+            >
+              {t('searchPage.settings.save')}
+            </Button>
+          }
+        >
+          {modelsFailed && (
+            <div className="mb-space-base text-sm text-text-secondary">
+              {t('searchPage.settings.modelsFailed')}{' '}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => void retryModels()}
+              >
+                {t('common.retry')}
+              </Button>
+            </div>
+          )}
           <section className="space-y-4 pb-space-lg">
             <div className="space-y-space-sm">
-              <Label className="text-sm">头像</Label>
+              <Label className="text-sm">
+                {t('searchPage.settings.avatar')}
+              </Label>
               <AvatarUpload
                 value={avatar}
                 onChange={(value) => onBasicInfoChange({ avatar: value })}
-                tips="你可以上传4MB的文件"
+                tips={t('searchPage.settings.uploadHint')}
                 size={64}
               />
             </div>
@@ -439,26 +302,28 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
             <div className="space-y-space-sm">
               <Label className="text-sm">
                 <span className="mr-1 text-status-error">*</span>
-                姓名
+                {t('searchPage.settings.name')}
               </Label>
               <Input
                 value={name}
                 onChange={(event) =>
                   onBasicInfoChange({ name: event.target.value })
                 }
-                placeholder="请输入名称"
+                placeholder={t('searchPage.settings.namePlaceholder')}
                 className="h-11"
               />
             </div>
 
             <div className="space-y-space-sm">
-              <Label className="text-sm">描述</Label>
+              <Label className="text-sm">
+                {t('searchPage.settings.descriptionLabel')}
+              </Label>
               <Textarea
                 value={description || ''}
                 onChange={(event) =>
                   onBasicInfoChange({ description: event.target.value })
                 }
-                placeholder="请输入描述"
+                placeholder={t('searchPage.settings.descriptionPlaceholder')}
                 rows={3}
                 className="resize-none"
               />
@@ -472,7 +337,7 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
               selectedIds={config.kb_ids}
               onChange={(kbIds) => onConfigChange({ kb_ids: kbIds })}
               knowledgeBases={knowledgeBases}
-              label="知识库"
+              label={t('searchPage.settings.knowledgeBases')}
             />
 
             <ReferenceMetadataSettings
@@ -498,8 +363,8 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
 
           <section className="space-y-4 py-space-lg">
             <SliderWithInput
-              label="相似度阈值"
-              tooltip="只有相似度高于此阈值的内容才会被检索。"
+              label={t('searchPage.settings.similarity')}
+              tooltip={t('searchPage.settings.similarityTip')}
               value={config.similarity_threshold}
               onChange={(value) =>
                 onConfigChange({ similarity_threshold: value })
@@ -513,8 +378,8 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
 
             <div className="space-y-space-sm">
               <SliderWithInput
-                label="向量相似度权重"
-                tooltip="向量召回与全文召回的融合权重。"
+                label={t('searchPage.settings.vectorWeight')}
+                tooltip={t('searchPage.settings.vectorWeightTip')}
                 value={config.vector_similarity_weight}
                 onChange={(value) =>
                   onConfigChange({ vector_similarity_weight: value })
@@ -535,7 +400,7 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
 
             <SliderWithInput
               label="Top K"
-              tooltip="单轮检索返回的最大片段数。"
+              tooltip={t('searchPage.settings.topKTip')}
               value={config.top_k}
               onChange={(value) => onConfigChange({ top_k: value })}
               min={1}
@@ -550,7 +415,7 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
 
           <section className="space-y-4 py-space-lg">
             <ToggleRow
-              label="AI 总结"
+              label={t('searchPage.settings.summary')}
               checked={config.summary}
               onCheckedChange={(checked) =>
                 onConfigChange({ summary: checked })
@@ -560,7 +425,9 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
             {config.summary ? (
               <div className="space-y-4 pl-space-xs">
                 <div className="space-y-space-sm">
-                  <Label className="text-sm">模型</Label>
+                  <Label className="text-sm">
+                    {t('searchPage.settings.model')}
+                  </Label>
                   <ChatModelSelector
                     models={chatModelProviders}
                     selectedModelName={selectedSummaryModelName}
@@ -582,34 +449,38 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
                 </div>
 
                 <div className="space-y-space-sm">
-                  <Label className="text-sm">自由度</Label>
+                  <Label className="text-sm">
+                    {t('searchPage.settings.preset')}
+                  </Label>
                   <Select
                     value={summaryPreset}
                     onValueChange={handleSummaryPresetChange}
                   >
                     <SelectTrigger className="h-11 w-full rounded-radius-lg">
-                      <SelectValue placeholder="请选择" />
+                      <SelectValue
+                        placeholder={t('searchPage.settings.select')}
+                      />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value={SummaryPreset.PRECISE}>
-                        精准（低随机）
+                        {t('searchPage.settings.precise')}
                       </SelectItem>
                       <SelectItem value={SummaryPreset.BALANCED}>
-                        平衡（推荐）
+                        {t('searchPage.settings.balanced')}
                       </SelectItem>
                       <SelectItem value={SummaryPreset.CREATIVE}>
-                        创意（高发散）
+                        {t('searchPage.settings.creative')}
                       </SelectItem>
                       <SelectItem value={SummaryPreset.CUSTOM}>
-                        自定义
+                        {t('searchPage.settings.custom')}
                       </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <SliderWithInput
-                  label="温度"
-                  tooltip="控制输出随机性，值越高越有创造性。"
+                  label={t('searchPage.settings.temperature')}
+                  tooltip={t('searchPage.settings.temperatureTip')}
                   value={getLLMValue('temperature')}
                   onChange={(value) =>
                     updateLLMField('temperature', true, value)
@@ -630,7 +501,7 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
 
                 <SliderWithInput
                   label="Top P"
-                  tooltip="控制输出词汇的采样范围。"
+                  tooltip={t('searchPage.settings.topPTip')}
                   value={getLLMValue('top_p')}
                   onChange={(value) => updateLLMField('top_p', true, value)}
                   enabled={config.llm_setting?.top_p !== undefined}
@@ -644,8 +515,8 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
                 />
 
                 <SliderWithInput
-                  label="存在处罚"
-                  tooltip="降低模型重复提及同一主题的概率。"
+                  label={t('searchPage.settings.presencePenalty')}
+                  tooltip={t('searchPage.settings.presenceTip')}
                   value={getLLMValue('presence_penalty')}
                   onChange={(value) =>
                     updateLLMField('presence_penalty', true, value)
@@ -665,8 +536,8 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
                 />
 
                 <SliderWithInput
-                  label="频率惩罚"
-                  tooltip="降低模型重复使用相同词语的概率。"
+                  label={t('searchPage.settings.frequencyPenalty')}
+                  tooltip={t('searchPage.settings.frequencyTip')}
                   value={getLLMValue('frequency_penalty')}
                   onChange={(value) =>
                     updateLLMField('frequency_penalty', true, value)
@@ -688,31 +559,33 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
             ) : null}
 
             <ToggleRow
-              label="相关问题推荐"
+              label={t('searchPage.settings.relatedQuestions')}
               checked={config.related_search}
               onCheckedChange={(checked) =>
                 onConfigChange({ related_search: checked })
               }
             />
             <ToggleRow
-              label="查询思维导图"
+              label={t('searchPage.settings.mindmap')}
               checked={!!config.query_mindmap}
               onCheckedChange={(checked) =>
                 onConfigChange({ query_mindmap: checked })
               }
             />
             <ToggleRow
-              label="知识图谱增强"
+              label={t('searchPage.settings.knowledgeGraph')}
               checked={config.use_kg}
               onCheckedChange={(checked) => onConfigChange({ use_kg: checked })}
             />
 
             <div className="space-y-space-sm">
               <Label className="text-sm">
-                跨语言翻译
+                {t('searchPage.settings.crossLanguage')}
                 {(config.cross_languages?.length || 0) > 0 ? (
                   <span className="ml-space-xs rounded-radius-full bg-background-subtle px-space-sm py-0.5 text-xs text-text-secondary">
-                    {config.cross_languages?.length}种语言
+                    {t('searchPage.settings.languageCount', {
+                      count: config.cross_languages?.length ?? 0,
+                    })}
                   </span>
                 ) : null}
               </Label>
@@ -722,14 +595,14 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
                 onChange={(languages) =>
                   onConfigChange({ cross_languages: languages })
                 }
-                placeholder="选择翻译语言..."
-                emptyText="暂无语言"
+                placeholder={t('searchPage.settings.languagePlaceholder')}
+                emptyText={t('searchPage.settings.noLanguages')}
                 allowClear
                 maxDisplayItems={100}
                 triggerClassName="min-h-10 bg-components-input-bg hover:bg-components-input-bg-hover focus-visible:border-components-input-border-focus focus-visible:bg-components-input-bg-focus focus-visible:ring-state-focus-subtle"
               />
               <p className="text-xs text-text-tertiary">
-                将问题翻译成选中的语言进行检索，提高多语言内容匹配率
+                {t('searchPage.settings.languageTip')}
               </p>
             </div>
           </section>
@@ -738,7 +611,7 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
 
           <section className="space-y-4 py-space-lg">
             <ToggleRow
-              label="rerank 模型"
+              label={t('searchPage.settings.rerank')}
               checked={config.use_rerank}
               onCheckedChange={(checked) =>
                 onConfigChange({
@@ -760,22 +633,9 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
               />
             ) : null}
           </section>
-        </div>
-
-        <div className="mt-space-base pt-space-sm">
-          <Button
-            className="w-full"
-            onClick={onSave}
-            disabled={isSaving || !isDirty}
-          >
-            {isSaving ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : null}
-            保存配置
-          </Button>
-        </div>
-      </div>
-    </aside>
+        </ContextPanel>
+      </SheetContent>
+    </Sheet>
   )
 }
 

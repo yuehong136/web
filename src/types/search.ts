@@ -124,4 +124,5 @@ export interface SearchTurn {
   phase: SearchExecutionPhase
   latencyMs?: number
   errorMessage?: string
+  errorMessageKey?: string
 }

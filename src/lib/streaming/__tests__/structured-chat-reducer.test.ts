@@ -3,7 +3,7 @@ import test from 'node:test'
 import {
   consumeStructuredChatChunk,
   createInitialStructuredChatState,
-  createSyntheticCompleteMessage,
+  finalizeStructuredChatState,
 } from '../structured-chat-reducer'
 
 test('structured text merges accumulated and delta payloads', () => {
@@ -96,8 +96,7 @@ test('legacy tool_call tags are parsed, stripped, and deduplicated', () => {
   assert.equal(second.nextState.toolCalls[0].id, firstId)
 
   // An explicit 'Begin to call...' result marks the call as still running;
-  // a missing result falls back to the same text but reads as success
-  // (original parser quirk, preserved).
+  // Missing results remain unconfirmed rather than becoming a successful tool.
   const running = consumeStructuredChatChunk(
     createInitialStructuredChatState(),
     {
@@ -115,8 +114,8 @@ test('legacy tool_call tags are parsed, stripped, and deduplicated', () => {
       data: '<tool_call>{"name":"fetch","args":{}}</tool_call>',
     },
   )
-  assert.equal(noResult.nextState.toolCalls[0].status, 'success')
-  assert.equal(noResult.nextState.toolCalls[0].result, 'Begin to call...')
+  assert.equal(noResult.nextState.toolCalls[0].status, 'running')
+  assert.equal(noResult.nextState.toolCalls[0].result, undefined)
 })
 
 test('wrapped answer object goes through the legacy text path', () => {
@@ -237,20 +236,25 @@ test('metadata frames merge into state and reach the complete frame', () => {
   assert.equal(complete.nextState.completeSeen, true)
 })
 
-test('synthetic complete fires only when the server never completed', () => {
+test('EOF keeps partial content and does not fabricate a complete message', () => {
   const streamed = consumeStructuredChatChunk(
     createInitialStructuredChatState(),
     { retcode: 0, data: 'partial' },
   )
-  const synthetic = createSyntheticCompleteMessage(streamed.nextState)
-  assert.equal(synthetic?.type, 'complete')
-  assert.equal(synthetic?.content, true)
+  const interrupted = finalizeStructuredChatState(streamed.nextState, 'eof')
+  assert.equal(interrupted.phase, 'interrupted')
+  assert.equal(interrupted.completeSeen, false)
+  assert.equal(interrupted.accumulatedText, 'partial')
 
   const completed = consumeStructuredChatChunk(streamed.nextState, {
     retcode: 0,
     data: true,
   })
-  assert.equal(createSyntheticCompleteMessage(completed.nextState), null)
+  assert.equal(
+    finalizeStructuredChatState(completed.nextState, 'eof'),
+    completed.nextState,
+  )
+  assert.equal(completed.nextState.phase, 'completed')
 })
 
 test('reducer never mutates the previous state', () => {

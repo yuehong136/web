@@ -173,3 +173,106 @@ test('normalizes wrapped structured SSE payloads', () => {
     },
   ])
 })
+
+test('terminal events are idempotent and late frames cannot turn failure into success', () => {
+  const completed = consume([
+    { kind: 'text', content: 'answer' },
+    { kind: 'complete' },
+  ])
+  assert.equal(
+    consumeAgentTimelineEvent(completed, { kind: 'complete' }),
+    completed,
+  )
+  assert.equal(
+    consumeAgentTimelineEvent(completed, {
+      kind: 'error',
+      message: 'late error',
+    }),
+    completed,
+  )
+  const failed = consume([
+    { kind: 'text', content: 'partial' },
+    { kind: 'error', message: 'failed' },
+  ])
+  assert.equal(consumeAgentTimelineEvent(failed, { kind: 'complete' }), failed)
+  assert.equal(
+    consumeAgentTimelineEvent(failed, { kind: 'text', content: 'late' }),
+    failed,
+  )
+})
+
+test('run completion does not invent a missing tool analysis or tool result event', () => {
+  const state = consume([
+    { kind: 'tool_start' },
+    { kind: 'tool_call', toolName: 'lookup', arguments: {}, callId: 'call-1' },
+    {
+      kind: 'tool_result',
+      toolName: 'lookup',
+      result: undefined,
+      callId: 'call-1',
+    },
+    { kind: 'complete' },
+  ])
+  assert.equal(
+    state.nodes.find((node) => node.id === 'tool-analysis')?.status,
+    'loading',
+  )
+  assert.equal(
+    state.nodes.find((node) => node.id === 'call-1')?.status,
+    'loading',
+  )
+  assert.deepEqual(
+    normalizeAgentSSEPayload({ type: 'complete', content: false }),
+    [],
+  )
+})
+
+test('replayed tool calls/results do not duplicate or reverse a confirmed zero result', () => {
+  const called = consume([
+    { kind: 'tool_call', toolName: 'lookup', arguments: {}, callId: 'call-1' },
+  ])
+  const done = consumeAgentTimelineEvent(called, {
+    kind: 'tool_result',
+    toolName: 'lookup',
+    callId: 'call-1',
+    result: 0,
+    success: true,
+  })
+  assert.equal(
+    consumeAgentTimelineEvent(done, {
+      kind: 'tool_call',
+      toolName: 'lookup',
+      callId: 'call-1',
+      arguments: {},
+    }),
+    done,
+  )
+  assert.equal(
+    consumeAgentTimelineEvent(done, {
+      kind: 'tool_result',
+      toolName: 'lookup',
+      callId: 'call-1',
+      result: 'error',
+      success: false,
+    }),
+    done,
+  )
+  assert.equal((done.nodes[0].content as Record<string, unknown>).result, 0)
+})
+
+test('an explicit unknown call id cannot complete a different pending tool with the same name', () => {
+  const pending = consume([
+    { kind: 'tool_call', toolName: 'lookup', callId: 'known', arguments: {} },
+  ])
+  const observed = consumeAgentTimelineEvent(pending, {
+    kind: 'tool_result',
+    toolName: 'lookup',
+    callId: 'other',
+    result: undefined,
+    error: 'tool failed',
+  })
+  assert.equal(observed.nodes[0].metadata?.callId, 'known')
+  assert.equal(observed.nodes[0].status, 'loading')
+  assert.equal(observed.nodes[1].metadata?.callId, 'other')
+  assert.equal(observed.nodes[1].status, 'error')
+})

@@ -2,7 +2,10 @@ import * as React from 'react'
 import * as Menu from '@radix-ui/react-dropdown-menu'
 import { Check, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useActivePortalTheme } from '@/components/ui/portal-theme'
+import {
+  useActivePortalTheme,
+  usePortalContainer,
+} from '@/components/ui/portal-theme'
 
 export const ActionMenu = Menu.Root
 export const ActionMenuTrigger = Menu.Trigger
@@ -17,9 +20,10 @@ export const ActionMenuContent = React.forwardRef<
   React.ElementRef<typeof Menu.Content>,
   React.ComponentPropsWithoutRef<typeof Menu.Content>
 >(({ className, sideOffset = 6, ...props }, ref) => {
+  const portalContainer = usePortalContainer()
   const theme = useActivePortalTheme(true)
   return (
-    <Menu.Portal>
+    <Menu.Portal container={portalContainer}>
       <Menu.Content
         ref={ref}
         data-theme={theme}
@@ -50,9 +54,10 @@ export const ActionMenuSubContent = React.forwardRef<
   React.ElementRef<typeof Menu.SubContent>,
   React.ComponentPropsWithoutRef<typeof Menu.SubContent>
 >(({ className, ...props }, ref) => {
+  const portalContainer = usePortalContainer()
   const theme = useActivePortalTheme(true)
   return (
-    <Menu.Portal>
+    <Menu.Portal container={portalContainer}>
       <Menu.SubContent
         ref={ref}
         data-theme={theme}

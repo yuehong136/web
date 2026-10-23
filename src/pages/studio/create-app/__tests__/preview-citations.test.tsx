@@ -9,6 +9,12 @@ import { PreviewAnswer } from '../components/preview-answer'
 import { useCreateAppPreview } from '../hooks/use-create-app-preview'
 import { createInitialConfig } from '../constants'
 
+// Tool steps share CodeBlock; keep citations real without importing its browser CSS.
+vi.mock('react-shiki', () => ({
+  useShikiHighlighter: () => undefined,
+  createJavaScriptRegexEngine: () => ({}),
+}))
+
 // The code-block renderers pull syntax-highlighter styles Vitest cannot resolve;
 // citations only need the merge of custom components.
 vi.mock('@/components/chat/MarkdownCodeBlock', () => ({

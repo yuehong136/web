@@ -1,187 +1,110 @@
-/**
- * 创建项目类型选择弹窗
- * 现代化 AI 产品风格设计
- */
-
-import React, { useState } from 'react'
-import { Sparkles, Bot, ArrowRight, Check } from 'lucide-react'
+import { useId, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { AppWindow, Bot } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { cn } from '@/lib/utils'
-import { STUDIO_TEXTS } from '@/constants/studio-texts'
 
 interface CreateProjectModalProps {
   isOpen: boolean
   onClose: () => void
   onCreateProject: (type: 'app' | 'agent') => void
 }
-
-export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
+export function CreateProjectModal({
   isOpen,
   onClose,
   onCreateProject,
-}) => {
-  const [selectedType, setSelectedType] = useState<'app' | 'agent' | null>(null)
-
-  const projectTypes = [
-    {
-      type: 'app' as const,
-      title: STUDIO_TEXTS.projectType.appTitle,
-      description: STUDIO_TEXTS.projectType.appDescription,
-      icon: Sparkles,
-      features: STUDIO_TEXTS.projectType.appFeatures,
-      gradientFrom: 'from-violet-500',
-      gradientTo: 'to-purple-600',
-      iconBg: 'bg-violet-500/10',
-      iconColor: 'text-violet-500',
-      ringColor: 'ring-violet-500',
-      checkBg: 'bg-violet-500',
-    },
-    {
-      type: 'agent' as const,
-      title: STUDIO_TEXTS.projectType.agentTitle,
-      description: STUDIO_TEXTS.projectType.agentDescription,
-      icon: Bot,
-      features: STUDIO_TEXTS.projectType.agentFeatures,
-      gradientFrom: 'from-blue-500',
-      gradientTo: 'to-cyan-500',
-      iconBg: 'bg-blue-500/10',
-      iconColor: 'text-blue-500',
-      ringColor: 'ring-blue-500',
-      checkBg: 'bg-blue-500',
-    },
-  ]
-
-  const handleConfirm = () => {
-    if (selectedType) {
-      onCreateProject(selectedType)
-      setSelectedType(null)
-    }
-  }
-
-  const handleClose = () => {
-    setSelectedType(null)
+}: CreateProjectModalProps) {
+  const { t } = useTranslation()
+  const [selected, setSelected] = useState<'app' | 'agent' | ''>('')
+  const id = useId()
+  const close = () => {
+    setSelected('')
     onClose()
   }
-
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent size="lg" className="overflow-hidden">
-        <DialogHeader className="pb-0">
-          <DialogTitle className="text-xl font-semibold text-text-primary">
-            {STUDIO_TEXTS.projectType.title}
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) close()
+      }}
+    >
+      <DialogContent size="lg" modal>
+        <DialogHeader>
+          <DialogTitle id={`${id}-title`}>
+            {t('studio.projectType.title')}
           </DialogTitle>
-          <DialogDescription className="text-text-secondary">
-            {STUDIO_TEXTS.projectType.description}
+          <DialogDescription>
+            {t('studio.projectType.description')}
           </DialogDescription>
         </DialogHeader>
-
-        {/* 内容区域 */}
-        <div className="px-6 py-6">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {projectTypes.map((projectType) => {
-              const Icon = projectType.icon
-              const isSelected = selectedType === projectType.type
-
-              return (
-                <div
-                  key={projectType.type}
-                  onClick={() => setSelectedType(projectType.type)}
-                  className={cn(
-                    'group relative cursor-pointer rounded-2xl p-5 transition-all duration-200',
-                    'border-2',
-                    isSelected
-                      ? `border-transparent ring-2 ${projectType.ringColor} bg-[var(--color-surface-secondary)]`
-                      : 'hover:border-border-hover border-border-default hover:bg-[var(--color-surface-secondary)]/50',
-                  )}
-                >
-                  {/* 选中标记 */}
-                  {isSelected && (
-                    <div
-                      className={cn(
-                        'absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full',
-                        projectType.checkBg,
-                      )}
-                    >
-                      <Check className="h-3 w-3 text-white" strokeWidth={3} />
-                    </div>
-                  )}
-
-                  {/* 图标 */}
-                  <div
-                    className={cn(
-                      'mb-4 flex h-12 w-12 items-center justify-center rounded-xl',
-                      'bg-linear-to-br',
-                      projectType.gradientFrom,
-                      projectType.gradientTo,
-                      'shadow-lg',
-                      isSelected ? 'scale-110' : 'group-hover:scale-105',
-                      'transition-transform duration-200',
-                    )}
-                  >
-                    <Icon className="h-6 w-6 text-white" />
-                  </div>
-
-                  {/* 标题 */}
-                  <h3
-                    className={cn(
-                      'mb-2 text-base font-semibold transition-colors',
-                      isSelected
-                        ? 'text-text-primary'
-                        : 'text-text-primary group-hover:text-text-primary',
-                    )}
-                  >
-                    {projectType.title}
-                  </h3>
-
-                  {/* 描述 */}
-                  <p className="mb-4 text-sm leading-relaxed text-text-secondary">
-                    {projectType.description}
-                  </p>
-
-                  {/* 特性标签 */}
-                  <div className="flex flex-wrap gap-1.5">
-                    {projectType.features.map((feature, index) => (
-                      <span
-                        key={index}
-                        className={cn(
-                          'inline-flex items-center rounded-md px-2 py-0.5 text-xs',
-                          'bg-[var(--color-surface-tertiary)] text-text-secondary',
-                        )}
-                      >
-                        {feature}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-
-          {/* 提示文字 */}
-          <p className="mt-5 text-center text-xs text-text-tertiary">
-            {STUDIO_TEXTS.projectType.tip}
-          </p>
-        </div>
-
+        <RadioGroup
+          aria-labelledby={`${id}-title`}
+          value={selected}
+          onValueChange={(value) => setSelected(value as 'app' | 'agent')}
+          className="grid grid-cols-1 gap-space-md p-space-lg sm:grid-cols-2"
+        >
+          {(['app', 'agent'] as const).map((type) => (
+            <Label
+              key={type}
+              htmlFor={`${id}-${type}`}
+              className={cn(
+                'flex cursor-pointer flex-col gap-space-base rounded-radius-lg border p-space-lg',
+                selected === type
+                  ? 'border-state-focus bg-state-selected-bg'
+                  : 'border-border-default bg-background-surface hover:border-border-strong',
+              )}
+            >
+              <div className="flex items-center justify-between gap-space-sm">
+                {type === 'app' ? (
+                  <AppWindow
+                    className="size-icon-lg text-text-secondary"
+                    aria-hidden="true"
+                  />
+                ) : (
+                  <Bot
+                    className="size-icon-lg text-text-secondary"
+                    aria-hidden="true"
+                  />
+                )}
+                <RadioGroupItem
+                  id={`${id}-${type}`}
+                  value={type}
+                  aria-label={t(`studio.projectType.${type}Title`)}
+                />
+              </div>
+              <span className="text-base font-semibold text-text-primary">
+                {t(`studio.projectType.${type}Title`)}
+              </span>
+              <span className="text-sm leading-relaxed text-text-secondary">
+                {t(`studio.projectType.${type}Description`)}
+              </span>
+            </Label>
+          ))}
+        </RadioGroup>
         <DialogFooter>
-          <Button variant="outline" onClick={handleClose}>
-            取消
+          <Button variant="outline" onClick={close}>
+            {t('common.cancel')}
           </Button>
           <Button
-            onClick={handleConfirm}
-            disabled={!selectedType}
-            className="gap-1.5"
+            disabled={!selected}
+            onClick={() => {
+              if (selected) {
+                onCreateProject(selected)
+                setSelected('')
+              }
+            }}
           >
-            继续
-            <ArrowRight className="h-4 w-4" />
+            {t('studio.projectType.continue')}
           </Button>
         </DialogFooter>
       </DialogContent>

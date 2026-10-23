@@ -1,4 +1,5 @@
 import { memo, useCallback, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   markdownConfig,
   mergeMarkdownComponents,
@@ -21,6 +22,7 @@ interface SearchSummaryCardProps {
   summary: string
   thinking?: string
   isStreaming: boolean
+  completed?: boolean
   references: ChunkResult[]
   onViewDetail: (chunk: ChunkResult, allChunks: ChunkResult[]) => void
 }
@@ -43,10 +45,12 @@ const toReferenceChunk = (chunk: ChunkResult): ReferenceChunk => ({
 const SearchSummaryCard = ({
   summary,
   thinking = '',
+  completed = false,
   isStreaming,
   references,
   onViewDetail,
 }: SearchSummaryCardProps) => {
+  const { t } = useTranslation()
   const referenceChunks = useMemo(
     () => references.map(toReferenceChunk),
     [references],
@@ -57,7 +61,9 @@ const SearchSummaryCard = ({
   const thinkingStatus: ThinkingStatus = thinkContent
     ? isStreaming && (thinking || parsedSummary.status === 'thinking')
       ? 'thinking'
-      : 'complete'
+      : completed
+        ? 'complete'
+        : 'none'
     : 'none'
   const summaryWithSup = useMemo(
     () => convertReferencesToSup(displaySummary),
@@ -82,13 +88,13 @@ const SearchSummaryCard = ({
         onCopy: async (content) => {
           try {
             await copyToClipboard(content)
-            toast.success('已复制到剪贴板')
+            toast.success(t('sources.copied'))
           } catch {
-            toast.error('复制失败')
+            toast.error(t('sources.copyFailed'))
           }
         },
       }),
-    [handleViewReferenceDetail, referenceChunks],
+    [handleViewReferenceDetail, referenceChunks, t],
   )
   const markdownComponents = useMemo(
     () =>
@@ -107,13 +113,16 @@ const SearchSummaryCard = ({
     return null
 
   return (
-    <div className="overflow-hidden rounded-radius-xl border border-border-default bg-surface-primary">
-      <div className="h-1 bg-linear-to-r from-text-accent via-status-info to-status-success" />
+    <div
+      className="min-w-0 bg-background-surface"
+      aria-live="polite"
+      aria-busy={isStreaming}
+    >
       <div className="p-space-base">
         <div className="mb-space-sm flex items-center gap-space-xs">
           <Sparkles className="h-4 w-4 text-text-accent" />
           <span className="text-sm font-semibold text-text-accent">
-            AI 摘要
+            {t('searchPage.workspace.summary')}
           </span>
         </div>
 

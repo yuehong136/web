@@ -15,6 +15,7 @@ import {
   timelineVerdict,
   unresolvedStreamEnd,
   withoutErrorNodes,
+  getHomeMessagePhase,
 } from '../answer-status'
 
 const node = (
@@ -29,6 +30,36 @@ const answer = (overrides: Partial<ChatMessage> = {}): ChatMessage => ({
   content: '',
   timestamp: '',
   ...overrides,
+})
+
+test('Home message outcomes project to shared run phases without claiming server cancellation', () => {
+  assert.equal(getHomeMessagePhase(answer(), true), 'running')
+  assert.equal(getHomeMessagePhase(answer(), false), 'completed')
+  assert.equal(
+    getHomeMessagePhase(answer({ isStreaming: true }), false),
+    'interrupted',
+  )
+  assert.equal(
+    getHomeMessagePhase(
+      answer({ status: { kind: 'stopped', partial: true } }),
+      false,
+    ),
+    'locallyStopped',
+  )
+  assert.equal(
+    getHomeMessagePhase(
+      answer({ status: { kind: 'unconfirmed', partial: true } }),
+      false,
+    ),
+    'interrupted',
+  )
+  assert.equal(
+    getHomeMessagePhase(
+      answer({ status: { kind: 'business', partial: true } }),
+      false,
+    ),
+    'failed',
+  )
 })
 
 test('classifyAnswerError reads only the HTTP status, stable code and error type', () => {

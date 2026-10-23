@@ -1,38 +1,112 @@
-import { useMemo, type ReactNode } from 'react'
+import {
+  createContext,
+  useContext,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react'
 import { ConfigProvider } from 'antd'
 import { buildAntdTheme } from '@/lib/antd-theme'
+import {
+  normalizeAppearance,
+  resolveAppearance,
+  type Appearance,
+  type ResolvedAppearance,
+} from './appearance'
+import { useResolvedAppearance } from './use-appearance'
+import { useSystemPreference } from './use-system-preference'
 
 export type ScopedThemeValue = 'light' | 'dark'
-
-export function resolveScopedTheme(value?: string | null): ScopedThemeValue | undefined {
+export function resolveScopedTheme(
+  value?: string | null,
+): ScopedThemeValue | undefined {
   return value === 'light' || value === 'dark' ? value : undefined
 }
+export interface ThemeScope {
+  container: HTMLElement | null
+  appearance: Readonly<ResolvedAppearance>
+}
+const ThemeScopeContext = createContext<ThemeScope | null>(null)
+/** Portal wrappers use this container to retain all scoped CSS variables. */
+export const useThemeScope = () => useContext(ThemeScopeContext)
 
-interface ScopedThemeProps {
+interface ScopedThemeProps extends Partial<Omit<Appearance, 'mode'>> {
   theme?: string | null
   children: ReactNode
   className?: string
 }
-
-export function ScopedTheme({ theme, children, className }: ScopedThemeProps) {
-  const scoped = resolveScopedTheme(theme)
+export function ScopedTheme({
+  theme,
+  preset,
+  density,
+  textScale,
+  motion,
+  children,
+  className,
+}: ScopedThemeProps) {
+  const global = useResolvedAppearance()
+  const systemDark = useSystemPreference('(prefers-color-scheme: dark)')
+  const systemReducedMotion = useSystemPreference(
+    '(prefers-reduced-motion: reduce)',
+  )
+  const parent = useThemeScope()
+  const inherited = parent?.appearance ?? global
+  const [container, setContainer] = useState<HTMLDivElement | null>(null)
+  const appearance = useMemo(
+    () =>
+      resolveAppearance(
+        normalizeAppearance({
+          ...inherited,
+          mode: resolveScopedTheme(theme) ?? inherited.mode,
+          preset: preset ?? inherited.preset,
+          density: density ?? inherited.density,
+          textScale: textScale ?? inherited.textScale,
+          motion: motion ?? inherited.motion,
+        }),
+        systemDark,
+        systemReducedMotion,
+      ),
+    [
+      inherited,
+      theme,
+      preset,
+      density,
+      textScale,
+      motion,
+      systemDark,
+      systemReducedMotion,
+    ],
+  )
+  const scope = useMemo(
+    () => ({ container, appearance }),
+    [container, appearance],
+  )
   const antdTheme = useMemo(
-    () => (scoped ? buildAntdTheme(scoped === 'dark') : undefined),
-    [scoped],
+    () =>
+      buildAntdTheme(appearance.resolvedMode === 'dark', appearance.preset, {
+        ...appearance,
+        motion: appearance.reducedMotion ? 'reduced' : 'system',
+      }),
+    [appearance],
   )
-
-  const subtree = (
-    <div data-theme={scoped} className={className ?? 'contents'}>
-      {children}
-    </div>
+  return (
+    <ConfigProvider
+      theme={antdTheme}
+      getPopupContainer={() => container ?? document.body}
+    >
+      <div
+        ref={setContainer}
+        data-theme={appearance.resolvedMode}
+        data-preset={appearance.preset}
+        data-density={appearance.density}
+        data-text-scale={appearance.textScale}
+        data-motion={appearance.reducedMotion ? 'reduced' : 'system'}
+        className={className ?? 'contents'}
+      >
+        <ThemeScopeContext.Provider value={scope}>
+          {children}
+        </ThemeScopeContext.Provider>
+      </div>
+    </ConfigProvider>
   )
-
-  if (!antdTheme) {
-    return subtree
-  }
-
-  // antd / antd-x 的颜色由根 XProvider 决定，与 host <html data-theme> 绑死。
-  // 这里嵌套 ConfigProvider，让分享 / 嵌入子树切到 URL 指定主题的 algorithm，
-  // 否则会出现 host=dark + share=light 时浅底面板上画白图标的视觉错位。
-  return <ConfigProvider theme={antdTheme}>{subtree}</ConfigProvider>
 }

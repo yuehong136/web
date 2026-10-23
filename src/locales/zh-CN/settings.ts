@@ -48,6 +48,42 @@ export default {
         validate: '校验配置',
         saving: '保存中…',
       },
+
+      defaultsLoadFailed: '暂时无法加载默认模型，请重试。',
+      defaultsUnavailable: '已配置模型（当前不可用）',
+      defaultsSaved: '默认模型已保存。',
+      defaultsSaveFailed: '默认模型保存失败，已保留你的选择，请重试。',
+      defaultsSelect: '选择模型',
+      defaultsEmpty: '暂无可用模型，请先添加模型供应商。',
+      defaultsModelsFailed: '暂时无法加载可用模型，当前设置已保留。',
+      defaultsUnsaved: '有尚未保存的选择',
+      defaultsSavedHint: '保存后应用你的更改。',
+      defaultFields: {
+        chat: {
+          label: '聊天模型',
+          hint: '新建知识库使用的默认聊天模型。',
+        },
+        embedding: {
+          label: '嵌入模型',
+          hint: '新建知识库使用的默认嵌入模型。如果没有可选项，请添加提供嵌入模型的供应商。',
+        },
+        vision: {
+          label: '视觉模型',
+          hint: '新建知识库中描述图片或视频的默认模型，请选择支持图像转文本的供应商。',
+        },
+        speech: {
+          label: '语音识别',
+          hint: '新建知识库中将语音转为文本的默认模型，请选择支持语音识别的供应商。',
+        },
+        rerank: {
+          label: '重排序模型',
+          hint: '为检索结果排序的默认模型，请选择支持重排序的供应商。',
+        },
+        tts: {
+          label: '语音生成',
+          hint: '生成语音回复时使用的默认模型，请选择支持文本转语音的供应商。',
+        },
+      },
     },
     groups: {
       workspace: '工作空间',

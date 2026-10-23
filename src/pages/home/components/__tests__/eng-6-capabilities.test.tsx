@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { InputToolbar } from '../InputToolbar'
 import { RecommendCards } from '../RecommendCards'
 import { ChatInputBox } from '../ChatInputBox'
+import { stubChatDOM } from '@/components/chat/__tests__/chat-dom'
 
 const welcomeSectionSource = readFileSync(
   resolve(process.cwd(), 'src/pages/home/components/WelcomeSection.tsx'),
@@ -28,6 +29,7 @@ describe('Home capability affordances', () => {
   let root: Root
 
   beforeEach(() => {
+    stubChatDOM()
     container = document.createElement('div')
     document.body.append(container)
     root = createRoot(container)
@@ -36,6 +38,7 @@ describe('Home capability affordances', () => {
   afterEach(async () => {
     await act(async () => root.unmount())
     container.remove()
+    vi.unstubAllGlobals()
   })
 
   it('hides attachment and inspiration actions until handlers exist', async () => {
@@ -97,7 +100,6 @@ describe('Home capability affordances', () => {
         <ChatInputBox
           inputValue=""
           onInputChange={() => undefined}
-          onKeyDown={() => undefined}
           selectedMCPServers={[]}
           selectedApps={[]}
           onRemoveSkill={() => undefined}

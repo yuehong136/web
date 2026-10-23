@@ -1,14 +1,19 @@
-import React, { memo, useEffect, useMemo, useRef } from 'react'
-import {
-  BrainCircuit,
-  Maximize2,
-  Minimize,
-  Minimize2,
-  RefreshCw,
-  X,
-} from 'lucide-react'
+import { memo, useEffect, useMemo, useRef } from 'react'
+import { Maximize2, Minimize, Minimize2, RefreshCw } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
-import { Progress } from '@/components/ui/progress'
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+  SheetDescription,
+} from '@/components/ui/sheet'
+import { ContextPanel } from '@/components/patterns/context-panel'
+import {
+  PageLoadingState,
+  PageEmptyState,
+} from '@/components/patterns/page-states'
+import { useReturnFocus } from '@/components/chat/use-return-focus'
 import IndentedTree, { type IndentedTreeRef } from './indented-tree'
 import { useSearchMindmap } from './use-search-mindmap'
 import { buildFallbackMindmapTree, type MindmapFallbackChunk } from './utils'
@@ -23,7 +28,7 @@ interface SearchMindmapDrawerProps {
   fallbackChunks?: MindmapFallbackChunk[]
 }
 
-const SearchMindmapDrawer: React.FC<SearchMindmapDrawerProps> = ({
+function SearchMindmapDrawer({
   open,
   onOpenChange,
   question,
@@ -31,150 +36,114 @@ const SearchMindmapDrawer: React.FC<SearchMindmapDrawerProps> = ({
   searchId,
   isShareMode = false,
   fallbackChunks = [],
-}) => {
-  const treeRef = useRef<IndentedTreeRef | null>(null)
-  const { mindmap, error, progress, isLoading, request, refresh } =
+}: SearchMindmapDrawerProps) {
+  const { t } = useTranslation()
+  const tree = useRef<IndentedTreeRef>(null)
+  const { mindmap, error, isLoading, request, refresh, cancel } =
     useSearchMindmap()
-
-  const shouldRequest = useMemo(
-    () => open && question.trim() && kbIds.length > 0,
-    [kbIds.length, open, question],
-  )
-
+  const returnFocus = useReturnFocus()
   useEffect(() => {
-    if (!shouldRequest) return
-    request({
-      question: question.trim(),
-      kbIds,
-      searchId,
-      isShareMode,
-    })
-  }, [isShareMode, kbIds, question, request, searchId, shouldRequest])
-
-  useEffect(() => {
-    if (!open) return
-    const handleEsc = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onOpenChange(false)
-    }
-    window.addEventListener('keydown', handleEsc)
-    return () => window.removeEventListener('keydown', handleEsc)
-  }, [onOpenChange, open])
-
+    if (open && question.trim() && kbIds.length)
+      void request({ question, kbIds, searchId, isShareMode })
+    if (!open) cancel()
+  }, [open, question, kbIds, searchId, isShareMode, request, cancel])
   const fallbackTree = useMemo(
     () => buildFallbackMindmapTree(question, fallbackChunks),
     [fallbackChunks, question],
   )
-  const treeData = mindmap || fallbackTree
-
-  if (!open) return null
-
+  const data = mindmap ?? fallbackTree
   return (
-    <aside className="h-full w-[480px] shrink-0 border-l border-border-default bg-surface-primary lg:w-[520px] xl:w-[580px]">
-      <div className="flex h-full min-h-0 flex-col">
-        <header className="shrink-0 border-b border-border-default bg-surface-primary px-space-base py-space-sm">
-          <div className="flex items-start justify-between gap-space-sm">
-            <div className="min-w-0">
-              <h3 className="flex items-center gap-space-sm text-base font-semibold text-text-primary">
-                <span className="inline-flex h-8 w-8 items-center justify-center rounded-radius-md bg-state-selected-bg text-state-selected-text">
-                  <BrainCircuit className="h-4 w-4" />
-                </span>
-                问题思维导图
-              </h3>
-              <p className="mt-space-xs line-clamp-2 text-xs text-text-tertiary">
-                {question || '当前轮次暂无问题内容'}
-              </p>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent
+        side="right"
+        showCloseButton={false}
+        className="h-full w-full overflow-hidden bg-background-surface p-0 sm:max-w-2xl"
+        {...returnFocus}
+      >
+        <ContextPanel
+          width="full"
+          scroll="none"
+          onClose={() => onOpenChange(false)}
+          closeLabel={t('searchPage.workspace.closeMindmap')}
+          title={
+            <SheetTitle asChild>
+              <span>{t('searchPage.workspace.mapTitle')}</span>
+            </SheetTitle>
+          }
+          description={
+            <SheetDescription className="line-clamp-2">
+              {question}
+            </SheetDescription>
+          }
+          footer={
+            <div className="flex flex-wrap gap-space-xs">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => tree.current?.fitView()}
+                disabled={!data || isLoading}
+              >
+                <Minimize className="size-icon-sm" />
+                {t('searchPage.workspace.fitView')}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => tree.current?.expandAll()}
+                disabled={!data || isLoading}
+              >
+                <Maximize2 className="size-icon-sm" />
+                {t('searchPage.workspace.expandAll')}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => tree.current?.collapseAll()}
+                disabled={!data || isLoading}
+              >
+                <Minimize2 className="size-icon-sm" />
+                {t('searchPage.workspace.collapseAll')}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => void refresh()}
+                disabled={isLoading}
+              >
+                <RefreshCw className="size-icon-sm" />
+                {t('searchPage.workspace.regenerate')}
+              </Button>
             </div>
-            <button
-              type="button"
-              onClick={() => onOpenChange(false)}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-radius-md text-text-tertiary transition-colors hover:bg-surface-secondary hover:text-text-primary"
-              aria-label="关闭思维导图"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-
-          <div className="mt-space-sm flex flex-wrap items-center gap-space-xs">
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 px-space-sm"
-              onClick={() => treeRef.current?.fitView()}
-            >
-              <Minimize className="mr-1 h-3.5 w-3.5" />
-              适配视图
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 px-space-sm"
-              onClick={() => treeRef.current?.expandAll()}
-            >
-              <Maximize2 className="mr-1 h-3.5 w-3.5" />
-              全部展开
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 px-space-sm"
-              onClick={() => treeRef.current?.collapseAll()}
-            >
-              <Minimize2 className="mr-1 h-3.5 w-3.5" />
-              全部折叠
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 px-space-sm"
-              onClick={refresh}
-              disabled={isLoading}
-            >
-              <RefreshCw
-                className={`mr-1 h-3.5 w-3.5 ${isLoading ? 'animate-spin' : ''}`}
-              />
-              重新生成
-            </Button>
-          </div>
-        </header>
-
-        <div className="min-h-0 flex-1 p-space-base">
+          }
+        >
           {isLoading ? (
-            <div className="h-full rounded-radius-xl border border-border-default bg-surface-secondary p-space-base">
-              <p className="mb-space-sm text-xs text-text-tertiary">
-                正在分析问题结构并生成脑图...
-              </p>
-              <Progress value={progress || 20} className="h-1.5" />
-              <div className="mt-space-base space-y-space-sm">
-                <div className="h-6 animate-pulse rounded-radius-md bg-surface-primary" />
-                <div className="h-6 w-4/5 animate-pulse rounded-radius-md bg-surface-primary" />
-                <div className="h-6 w-3/5 animate-pulse rounded-radius-md bg-surface-primary" />
+            <PageLoadingState
+              title={t('searchPage.workspace.mapLoading')}
+              description={null}
+            />
+          ) : data ? (
+            <div className="flex h-full min-h-0 flex-col gap-space-base">
+              {!mindmap && (
+                <p
+                  role="status"
+                  className="rounded-radius-md bg-background-subtle p-space-base text-sm text-text-secondary"
+                >
+                  {t(error ?? 'searchPage.workspace.mapFallback')}{' '}
+                  {error ? t('searchPage.workspace.mapFallback') : ''}
+                </p>
+              )}
+              <div className="min-h-0 flex-1 overflow-hidden">
+                <IndentedTree ref={tree} data={data} visible={open} />
               </div>
             </div>
-          ) : null}
-
-          {!isLoading && !treeData ? (
-            <div className="flex h-full items-center justify-center rounded-radius-xl border border-border-default bg-surface-secondary p-space-lg">
-              <p className="text-sm text-text-tertiary">
-                当前暂无可展示的思维导图数据。
-              </p>
-            </div>
-          ) : null}
-
-          {!isLoading && treeData ? (
-            <div className="h-full overflow-hidden rounded-radius-xl border border-border-default bg-surface-secondary p-space-sm">
-              {error ? (
-                <div className="mb-space-xs rounded-radius-md border border-status-warning bg-status-warning-subtle px-space-sm py-space-xs text-xs text-text-secondary">
-                  脑图接口暂不可用，当前展示基于检索结果的本地结构图。
-                </div>
-              ) : null}
-              <div className={error ? 'h-[calc(100%-32px)]' : 'h-full'}>
-                <IndentedTree ref={treeRef} data={treeData} visible={open} />
-              </div>
-            </div>
-          ) : null}
-        </div>
-      </div>
-    </aside>
+          ) : (
+            <PageEmptyState
+              title={t(error ?? 'searchPage.workspace.mapEmpty')}
+            />
+          )}
+        </ContextPanel>
+      </SheetContent>
+    </Sheet>
   )
 }
 

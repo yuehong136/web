@@ -1,7 +1,27 @@
 /**
  * MCP 聊天请求体（/v1/llm/enhanced_chat_sse）。
- * 发送由 streamStructuredChat（MCP 页）与 streamMCPAgentChat（首页）负责。
+ * 结构化消费者的传输在本领域，事件读取与状态归共享 streaming runtime。
  */
+
+export const openMCPChatStream = (
+  requestBody: unknown,
+  { url, signal }: { url: string; signal?: AbortSignal },
+): Promise<Response> => {
+  const token =
+    typeof localStorage === 'undefined'
+      ? null
+      : localStorage.getItem('auth_token')
+  return fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'text/event-stream',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(requestBody),
+    signal,
+  })
+}
 
 /**
  * MCP聊天服务请求参数

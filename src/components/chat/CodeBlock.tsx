@@ -1,4 +1,4 @@
-import { memo, useCallback, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useShikiHighlighter } from 'react-shiki'
 import { Check, Copy } from 'lucide-react'
@@ -6,6 +6,7 @@ import { toast } from '@/lib/toast'
 import { cn, copyToClipboard } from '@/lib/utils'
 import { CODE_THEMES, shikiEngine } from './shiki-engine'
 import './code-block.css'
+import { useResolvedAppearance, useThemeScope } from '@/themes'
 
 export interface CodeBlockProps {
   /** 代码文本 */
@@ -37,8 +38,17 @@ export const CodeBlock = memo(function CodeBlock({
   className,
 }: CodeBlockProps) {
   const { t } = useTranslation()
+  const rootAppearance = useResolvedAppearance()
+  const scope = useThemeScope()
+  const appearance = scope?.appearance ?? rootAppearance
   const [copied, setCopied] = useState(false)
   const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(
+    () => () => {
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current)
+    },
+    [],
+  )
   const normalizedLanguage = (language || FALLBACK_LANGUAGE).toLowerCase()
 
   const highlighted = useShikiHighlighter(
@@ -66,20 +76,22 @@ export const CodeBlock = memo(function CodeBlock({
 
   return (
     <div
+      data-code-mode={appearance.resolvedMode}
+      data-code-preset={appearance.preset}
       className={cn(
-        'code-block bg-surface-primary group relative my-2 overflow-hidden rounded-lg border border-border-default',
+        'code-block group relative my-2 overflow-hidden rounded-lg border border-border-default bg-surface-primary',
         className,
       )}
     >
       {showHeader && (
-        <div className="bg-surface-secondary flex items-center justify-between border-b border-border-default px-3 py-1.5">
-          <span className="font-mono text-xs lowercase text-text-tertiary">
+        <div className="flex items-center justify-between border-b border-border-default bg-surface-secondary px-3 py-1.5">
+          <span className="font-mono text-xs text-text-tertiary lowercase">
             {normalizedLanguage}
           </span>
           <button
             type="button"
             onClick={handleCopy}
-            className="hover:bg-surface-primary flex items-center gap-1 rounded px-1.5 py-0.5 text-xs text-text-tertiary transition-colors hover:text-text-secondary"
+            className="flex items-center gap-1 rounded px-1.5 py-0.5 text-xs text-text-tertiary transition-colors hover:bg-surface-primary hover:text-text-secondary"
             aria-label={t('common.copy', '复制')}
           >
             {copied ? (
@@ -96,7 +108,7 @@ export const CodeBlock = memo(function CodeBlock({
       )}
       <div className="code-block-body">
         {highlighted ?? (
-          <pre className="m-0 overflow-x-auto px-3.5 py-3 text-[13px] leading-relaxed">
+          <pre className="m-0 overflow-x-auto px-space-md py-space-base text-sm leading-relaxed">
             <code className="font-mono text-text-primary">{code}</code>
           </pre>
         )}

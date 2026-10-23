@@ -1,5 +1,6 @@
 export default {
   common: {
+    languageChangeFailed: '暂时无法切换语言，请重试。',
     referenceMetadata: {
       include: '包含文档元数据',
       hint: '所选字段会用于引用展示和模型上下文。',

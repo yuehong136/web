@@ -1,5 +1,6 @@
 export default {
   common: {
+    languageChangeFailed: 'Could not change language. Try again.',
     referenceMetadata: {
       include: 'Include document metadata',
       hint: 'Selected fields are included in references and model context.',

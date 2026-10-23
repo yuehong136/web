@@ -1,12 +1,5 @@
 import { useShareStartup } from './use-share-startup'
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type WheelEvent,
-} from 'react'
+import { useCallback, useMemo, useRef, useState, type WheelEvent } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Badge } from '@/components/ui/badge'
@@ -16,7 +9,8 @@ import {
   useUploadPublicCanvasFile,
 } from '@/hooks/use-agent-request'
 import { toast } from '@/lib/toast'
-import { applyRouteLocale } from '@/locales/i18n'
+import { IsolatedLocaleBoundary } from '@/locales/locale-boundary'
+import { BOOTSTRAP_NAMESPACES } from '@/locales/locale-registry'
 import { WidgetTheme } from './widget-theme'
 import { useWidgetResponseSound } from './widget-sound'
 import type { AgentCanvasUploadResult } from '@/types/agent'
@@ -63,22 +57,30 @@ export default function AgentWidgetPage() {
 
   useTransparentDocument()
 
-  useEffect(() => {
-    applyRouteLocale(access.locale)
-  }, [access.locale])
-
   return (
-    <WidgetTheme theme={access.theme} settings={access.widgetSettings}>
-      {access.mode === 'master' && isStandalone ? (
-        <WidgetStandalonePreview muted={access.widgetSettings.muteWidget}>
-          <WidgetChatWindow access={access} shellVariant="panel" />
-        </WidgetStandalonePreview>
-      ) : access.mode === 'master' ? (
-        <WidgetLauncher muted={access.widgetSettings.muteWidget} />
-      ) : (
-        <WidgetChatWindow access={access} />
-      )}
-    </WidgetTheme>
+    <IsolatedLocaleBoundary
+      locale={access.locale}
+      namespaces={[
+        ...BOOTSTRAP_NAMESPACES,
+        'agent',
+        'chat',
+        'flow',
+        'knowledge',
+        'sources',
+      ]}
+    >
+      <WidgetTheme theme={access.theme} settings={access.widgetSettings}>
+        {access.mode === 'master' && isStandalone ? (
+          <WidgetStandalonePreview muted={access.widgetSettings.muteWidget}>
+            <WidgetChatWindow access={access} shellVariant="panel" />
+          </WidgetStandalonePreview>
+        ) : access.mode === 'master' ? (
+          <WidgetLauncher muted={access.widgetSettings.muteWidget} />
+        ) : (
+          <WidgetChatWindow access={access} />
+        )}
+      </WidgetTheme>
+    </IsolatedLocaleBoundary>
   )
 }
 

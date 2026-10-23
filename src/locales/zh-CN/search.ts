@@ -1,5 +1,10 @@
+import { searchSettingsResource } from './search-settings'
+import { searchWorkspaceResource } from './search-workspace'
+
 export default {
   searchPage: {
+    ...searchWorkspaceResource,
+    ...searchSettingsResource,
     feedback: {
       knowledgeRequired: '请至少选择一个知识库。',
       nameRequired: '请输入搜索应用名称。',

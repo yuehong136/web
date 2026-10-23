@@ -2,6 +2,7 @@ import React from 'react'
 import { AlertTriangle, Inbox, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { useTranslation } from 'react-i18next'
 import { AppScene } from './types'
 
 interface BasePageStateProps extends Omit<
@@ -52,7 +53,7 @@ const PageStateShell: React.FC<
       )}
       {...props}
     >
-      <div className="gap-space-md p-space-xl flex w-full max-w-xl flex-col items-center text-center">
+      <div className="flex w-full max-w-xl flex-col items-center gap-space-md p-space-xl text-center">
         {children}
       </div>
     </div>
@@ -60,18 +61,19 @@ const PageStateShell: React.FC<
 }
 
 export const PageLoadingState: React.FC<PageLoadingStateProps> = ({
-  title = '页面加载中',
-  description = '正在准备当前内容，请稍候。',
+  title,
+  description = null,
   ...props
 }) => {
+  const { t } = useTranslation()
   return (
     <PageStateShell {...props}>
-      <div className="rounded-radius-full flex h-12 w-12 items-center justify-center bg-components-page-state-icon-bg text-components-page-state-icon">
+      <div className="flex h-12 w-12 items-center justify-center rounded-radius-full bg-components-page-state-icon-bg text-components-page-state-icon">
         <Loader2 className="h-6 w-6 animate-spin" />
       </div>
-      <div className="gap-space-xs flex flex-col">
+      <div className="flex flex-col gap-space-xs">
         <h2 className="text-lg font-semibold text-components-page-state-title">
-          {title}
+          {title ?? t('common.loading')}
         </h2>
         {description ? (
           <p className="text-sm text-components-page-state-description">
@@ -92,10 +94,10 @@ export const PageEmptyState: React.FC<PageEmptyStateProps> = ({
 }) => {
   return (
     <PageStateShell {...props}>
-      <div className="rounded-radius-full flex h-12 w-12 items-center justify-center bg-components-page-state-icon-bg text-components-page-state-icon">
+      <div className="flex h-12 w-12 items-center justify-center rounded-radius-full bg-components-page-state-icon-bg text-components-page-state-icon">
         {icon ?? <Inbox className="h-6 w-6" />}
       </div>
-      <div className="gap-space-xs flex flex-col">
+      <div className="flex flex-col gap-space-xs">
         <h2 className="text-lg font-semibold text-components-page-state-title">
           {title}
         </h2>
@@ -106,30 +108,31 @@ export const PageEmptyState: React.FC<PageEmptyStateProps> = ({
         ) : null}
       </div>
       {action ? (
-        <div className="gap-space-sm flex items-center">{action}</div>
+        <div className="flex items-center gap-space-sm">{action}</div>
       ) : null}
     </PageStateShell>
   )
 }
 
 export const PageErrorState: React.FC<PageErrorStateProps> = ({
-  title = '页面加载失败',
-  description = '当前内容暂时不可用，请稍后重试。',
-  retryLabel = '重试',
+  title,
+  description = null,
+  retryLabel,
   onRetry,
   titleAs: Title = 'h2',
   icon,
   action,
   ...props
 }) => {
+  const { t } = useTranslation()
   return (
     <PageStateShell {...props}>
-      <div className="rounded-radius-full flex h-12 w-12 items-center justify-center bg-status-error-subtle text-status-error">
+      <div className="flex h-12 w-12 items-center justify-center rounded-radius-full bg-status-error-subtle text-status-error">
         {icon ?? <AlertTriangle className="h-6 w-6" aria-hidden="true" />}
       </div>
-      <div className="gap-space-xs flex flex-col">
+      <div className="flex flex-col gap-space-xs">
         <Title className="text-lg font-semibold text-components-page-state-title">
-          {title}
+          {title ?? t('common.operationFailed')}
         </Title>
         {description ? (
           <p className="text-sm text-components-page-state-description">
@@ -138,12 +141,12 @@ export const PageErrorState: React.FC<PageErrorStateProps> = ({
         ) : null}
       </div>
       {action ? (
-        <div className="gap-space-sm flex flex-wrap items-center justify-center">
+        <div className="flex flex-wrap items-center justify-center gap-space-sm">
           {action}
         </div>
       ) : onRetry ? (
         <Button variant="outline" onClick={onRetry}>
-          {retryLabel}
+          {retryLabel ?? t('common.retry')}
         </Button>
       ) : null}
     </PageStateShell>

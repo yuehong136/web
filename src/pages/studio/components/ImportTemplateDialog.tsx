@@ -1,299 +1,252 @@
-import React, { useState, useCallback, useRef } from 'react'
-import {
-  Upload,
-  FileJson,
-  AlertCircle,
-  CheckCircle2,
-  XCircle,
-  Loader2,
-} from 'lucide-react'
+import { useId, useRef, useState, type DragEvent } from 'react'
+import { useTranslation } from 'react-i18next'
+import { CheckCircle2, FileJson, Upload, XCircle } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
+import { Input } from '@/components/ui/input'
 import { useImportDialogApps } from '@/hooks/use-dialog-apps'
 import type { DialogImportResult } from '@/types/api'
 
-interface ImportTemplateDialogProps {
-  isOpen: boolean
-  onClose: () => void
-}
-
-type Stage = 'select' | 'uploading' | 'result'
-
-export const ImportTemplateDialog: React.FC<ImportTemplateDialogProps> = ({
+type FileIssue = 'fileType' | 'format' | 'app' | 'json' | 'result'
+export function ImportTemplateDialog({
   isOpen,
   onClose,
-}) => {
-  const [stage, setStage] = useState<Stage>('select')
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [validationError, setValidationError] = useState<string | null>(null)
+}: {
+  isOpen: boolean
+  onClose: () => void
+}) {
+  const { t } = useTranslation()
+  const id = useId()
+  const [file, setFile] = useState<File | null>(null)
+  const [issue, setIssue] = useState<FileIssue | null>(null)
   const [result, setResult] = useState<DialogImportResult | null>(null)
-  const [isDragOver, setIsDragOver] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const importMutation = useImportDialogApps()
-
-  const reset = useCallback(() => {
-    setStage('select')
-    setSelectedFile(null)
-    setValidationError(null)
+  const input = useRef<HTMLInputElement>(null)
+  const validation = useRef(0)
+  const mutation = useImportDialogApps()
+  const close = () => {
+    if (mutation.isPending) return
+    validation.current += 1
+    setFile(null)
+    setIssue(null)
     setResult(null)
-    setIsDragOver(false)
-  }, [])
-
-  const handleClose = useCallback(() => {
-    reset()
+    mutation.reset()
     onClose()
-  }, [reset, onClose])
-
-  const validateFile = useCallback(async (file: File): Promise<boolean> => {
-    setValidationError(null)
-    const name = file.name.toLowerCase()
-
-    if (!name.endsWith('.json') && !name.endsWith('.zip')) {
-      setValidationError('仅支持 .json 或 .zip 文件')
-      return false
-    }
-
-    if (name.endsWith('.json')) {
+  }
+  const choose = async (next?: File) => {
+    if (!next || mutation.isPending) return
+    const sequence = ++validation.current
+    setFile(null)
+    setIssue(null)
+    const name = next.name.toLowerCase()
+    let error: FileIssue | null = null
+    if (!name.endsWith('.json') && !name.endsWith('.zip')) error = 'fileType'
+    else if (name.endsWith('.json')) {
       try {
-        const text = await file.text()
-        const data = JSON.parse(text)
-        if (data.format !== 'multirag_dialog_template') {
-          setValidationError('文件格式不正确，缺少有效的 format 标识')
-          return false
+        const parsed = JSON.parse(await next.text()) as {
+          format?: unknown
+          app?: unknown
         }
-        if (!data.app || typeof data.app !== 'object') {
-          setValidationError('文件格式不正确，缺少 app 数据')
-          return false
-        }
+        if (parsed?.format !== 'multirag_dialog_template') error = 'format'
+        else if (
+          !parsed.app ||
+          typeof parsed.app !== 'object' ||
+          Array.isArray(parsed.app)
+        )
+          error = 'app'
       } catch {
-        setValidationError('JSON 解析失败，请检查文件内容')
-        return false
+        error = 'json'
       }
     }
-
-    return true
-  }, [])
-
-  const handleFileSelect = useCallback(
-    async (file: File) => {
-      const valid = await validateFile(file)
-      if (valid) {
-        setSelectedFile(file)
-        setValidationError(null)
-      }
-    },
-    [validateFile],
-  )
-
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault()
-      setIsDragOver(false)
-      const file = e.dataTransfer.files[0]
-      if (file) handleFileSelect(file)
-    },
-    [handleFileSelect],
-  )
-
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragOver(true)
-  }, [])
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragOver(false)
-  }, [])
-
-  const handleInputChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0]
-      if (file) handleFileSelect(file)
-      if (fileInputRef.current) fileInputRef.current.value = ''
-    },
-    [handleFileSelect],
-  )
-
-  const handleImport = useCallback(() => {
-    if (!selectedFile) return
-    setStage('uploading')
-    importMutation.mutate(selectedFile, {
-      onSuccess: (data) => {
-        setResult(data)
-        setStage('result')
-      },
-      onError: () => {
-        setStage('select')
+    if (sequence !== validation.current) return
+    setIssue(error)
+    if (!error) {
+      setFile(next)
+      setResult(null)
+      mutation.reset()
+    }
+  }
+  const runImport = () => {
+    if (!file || issue || mutation.isPending) return
+    mutation.mutate(file, {
+      onSuccess: (next) => {
+        if (
+          !next ||
+          !Number.isFinite(next.total) ||
+          next.total < 0 ||
+          !Array.isArray(next.imported) ||
+          !Array.isArray(next.failed) ||
+          next.total !== next.imported.length + next.failed.length
+        ) {
+          setIssue('result')
+          return
+        }
+        setResult(next)
       },
     })
-  }, [selectedFile, importMutation])
-
+  }
+  const drop = (event: DragEvent) => {
+    event.preventDefault()
+    void choose(event.dataTransfer.files[0])
+  }
   return (
     <Dialog
       open={isOpen}
       onOpenChange={(open) => {
-        if (!open) handleClose()
+        if (!open) close()
       }}
     >
-      <DialogContent size="md">
+      <DialogContent size="md" modal>
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Upload className="h-5 w-5" />
-            导入应用模版
-          </DialogTitle>
+          <DialogTitle>{t('studio.importDialog.title')}</DialogTitle>
           <DialogDescription>
-            上传 .json 或 .zip 模版文件来创建应用
+            {t('studio.importDialog.description')}
           </DialogDescription>
         </DialogHeader>
-
-        <div className="space-y-4 px-6 py-4">
-          {stage === 'select' && (
-            <>
-              <div
-                className={cn(
-                  'cursor-pointer rounded-xl border-2 border-dashed p-8 text-center transition-colors',
-                  isDragOver
-                    ? 'bg-surface-accent/5 border-text-accent'
-                    : 'border-border-default hover:border-text-accent/50',
-                )}
-                onDrop={handleDrop}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".json,.zip"
-                  className="hidden"
-                  onChange={handleInputChange}
-                />
-                <FileJson className="mx-auto mb-3 h-10 w-10 text-text-tertiary" />
-                <p className="mb-1 text-sm text-text-secondary">
-                  拖拽文件到此处，或点击选择文件
-                </p>
-                <p className="text-xs text-text-tertiary">
-                  支持 .json（单个模版）或 .zip（批量模版）
-                </p>
-              </div>
-
-              {validationError && (
-                <div className="flex items-center gap-2 text-sm text-status-error">
-                  <AlertCircle className="h-4 w-4 shrink-0" />
-                  {validationError}
-                </div>
-              )}
-
-              {selectedFile && !validationError && (
-                <div className="bg-surface-secondary flex items-center justify-between rounded-lg p-3">
-                  <div className="flex min-w-0 items-center gap-2">
-                    <FileJson className="h-5 w-5 shrink-0 text-text-accent" />
-                    <span className="truncate text-sm text-text-primary">
-                      {selectedFile.name}
-                    </span>
-                    <span className="shrink-0 text-xs text-text-tertiary">
-                      ({(selectedFile.size / 1024).toFixed(1)} KB)
-                    </span>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSelectedFile(null)}
-                  >
-                    更换
-                  </Button>
-                </div>
-              )}
-            </>
+        <div
+          className="space-y-space-md overflow-y-auto p-space-lg"
+          aria-busy={mutation.isPending}
+        >
+          <div
+            onDrop={drop}
+            onDragOver={(event) => event.preventDefault()}
+            className="flex flex-col items-center gap-space-sm rounded-radius-lg border border-dashed border-border-default bg-background-subtle p-space-lg text-center"
+          >
+            <FileJson
+              className="size-icon-xl text-text-tertiary"
+              aria-hidden="true"
+            />
+            <p className="text-sm text-text-secondary">
+              {t('studio.importDialog.dropHint')}
+            </p>
+            <Input
+              ref={input}
+              id={id}
+              type="file"
+              accept=".json,.zip"
+              aria-label={t('studio.importDialog.chooseFile')}
+              className="sr-only"
+              tabIndex={-1}
+              disabled={mutation.isPending}
+              onChange={(event) => {
+                void choose(event.target.files?.[0])
+                event.target.value = ''
+              }}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={mutation.isPending}
+              onClick={() => input.current?.click()}
+            >
+              {t('studio.importDialog.chooseFile')}
+            </Button>
+            {file && (
+              <p className="max-w-full truncate text-sm font-medium text-text-primary">
+                {file.name}
+              </p>
+            )}
+          </div>
+          {issue && (
+            <p role="alert" className="text-sm text-text-error">
+              {t(`studio.importDialog.validation.${issue}`)}
+            </p>
           )}
-
-          {stage === 'uploading' && (
-            <div className="flex flex-col items-center py-8">
-              <Loader2 className="mb-3 h-10 w-10 animate-spin text-text-accent" />
-              <p className="text-sm text-text-secondary">正在导入模版...</p>
-            </div>
+          {mutation.isError && !result && (
+            <p aria-live="polite" className="text-sm text-text-error">
+              {t('studio.importDialog.retryHint')}
+            </p>
           )}
-
-          {stage === 'result' && result && (
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 text-sm font-medium text-text-primary">
-                共处理 {result.total} 个模版
-              </div>
-
+          {result && (
+            <div className="space-y-space-md" aria-live="polite">
+              <p className="text-sm font-medium">
+                {t('studio.importDialog.processed', { count: result.total })}
+              </p>
+              <p className="text-sm text-text-secondary">
+                {t('studio.importDialog.summary', {
+                  imported: result.imported.length,
+                  failed: result.failed.length,
+                })}
+              </p>
               {result.imported.length > 0 && (
-                <div className="space-y-2">
+                <ul className="space-y-space-sm">
                   {result.imported.map((item) => (
-                    <div
+                    <li
                       key={item.id}
-                      className="bg-surface-secondary flex items-start gap-2 rounded-lg p-2"
+                      className="flex items-start gap-space-sm rounded-radius-md border border-border-subtle p-space-sm"
                     >
-                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-status-success" />
+                      <CheckCircle2
+                        className="size-icon-sm shrink-0 text-text-success"
+                        aria-hidden="true"
+                      />
                       <div className="min-w-0">
-                        <p className="truncate text-sm text-text-primary">
-                          {item.name}
-                        </p>
-                        {item.warnings.length > 0 && (
-                          <div className="mt-1 space-y-0.5">
-                            {item.warnings.map((w, i) => (
-                              <p
-                                key={i}
-                                className="text-xs text-status-warning"
-                              >
-                                {w}
-                              </p>
-                            ))}
-                          </div>
+                        <p className="text-sm break-words">{item.name}</p>
+                        {item.warnings?.length > 0 && (
+                          <p className="text-xs text-text-secondary">
+                            {t('studio.importDialog.warnings', {
+                              count: item.warnings.length,
+                            })}
+                          </p>
                         )}
                       </div>
-                    </div>
+                    </li>
                   ))}
-                </div>
+                </ul>
               )}
-
               {result.failed.length > 0 && (
-                <div className="space-y-2">
-                  {result.failed.map((item, i) => (
-                    <div
-                      key={i}
-                      className="bg-surface-secondary flex items-start gap-2 rounded-lg p-2"
-                    >
-                      <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-status-error" />
-                      <div className="min-w-0">
-                        <p className="truncate text-sm text-text-primary">
-                          {item.name}
-                        </p>
-                        <p className="text-xs text-status-error">
-                          {item.error}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <>
+                  <ul className="space-y-space-sm">
+                    {result.failed.map((item, index) => (
+                      <li
+                        key={`${item.name}-${index}`}
+                        className="flex items-start gap-space-sm rounded-radius-md border border-status-error-subtle p-space-sm"
+                      >
+                        <XCircle
+                          className="size-icon-sm shrink-0 text-text-error"
+                          aria-hidden="true"
+                        />
+                        <div className="min-w-0">
+                          <p className="text-sm break-words">{item.name}</p>
+                          <p className="text-xs text-text-error">
+                            {t('studio.importDialog.failedItem')}
+                          </p>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="text-sm text-text-secondary">
+                    {t('studio.importDialog.partialHint')}
+                  </p>
+                </>
               )}
             </div>
           )}
         </div>
-
         <DialogFooter>
-          {stage === 'select' && (
-            <>
-              <Button variant="outline" onClick={handleClose}>
-                取消
-              </Button>
-              <Button onClick={handleImport} disabled={!selectedFile}>
-                开始导入
-              </Button>
-            </>
+          <Button
+            variant="outline"
+            onClick={close}
+            disabled={mutation.isPending}
+          >
+            {t(result ? 'common.close' : 'common.cancel')}
+          </Button>
+          {(!result || result.imported.length === 0) && (
+            <Button
+              onClick={runImport}
+              disabled={!file || Boolean(issue)}
+              loading={mutation.isPending}
+            >
+              <Upload className="size-icon-sm" aria-hidden="true" />
+              {t('studio.importDialog.submit')}
+            </Button>
           )}
-          {stage === 'result' && <Button onClick={handleClose}>完成</Button>}
         </DialogFooter>
       </DialogContent>
     </Dialog>

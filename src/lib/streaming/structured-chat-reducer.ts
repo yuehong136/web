@@ -9,17 +9,17 @@ import type {
   ToolResultStreamMessage,
   ToolStartStreamMessage,
 } from './types'
+import {
+  getServerRunPhase,
+  isRunTerminal,
+  type RunPhase,
+} from './run-lifecycle'
 
 /**
  * Structured-chat message reducer (ARCH-1 phase 3).
  *
- * Line-for-line port of the message state machine that lived inside
- * `src/components/chat/EnhancedSSEParser.ts` (handleMessage /
- * processStructuredMessage / processLegacyMessage / think markers /
- * tool-call dedup), reshaped as a pure reducer in the answer-reducer style so
- * the hand-rolled parser class can be deleted. Behavior is intentionally
- * identical, including the legacy `<tool_call>` regex parsing, the
- * accumulated-vs-delta text merge, and the `name:args:result` dedup key.
+ * Preserves legacy text/think/tool payloads while requiring explicit server
+ * terminal events. Connection closure never completes a run or its tools.
  */
 
 export interface StructuredChatState {
@@ -31,6 +31,7 @@ export interface StructuredChatState {
   toolCallById: ReadonlyMap<string, StreamToolCallInfo>
   /** True once a server-emitted complete frame passed through the reducer. */
   completeSeen: boolean
+  phase: RunPhase
 }
 
 export interface StructuredChatChunkResult {
@@ -45,6 +46,7 @@ interface StructuredChatDraft {
   metadata: Record<string, unknown>
   toolCallById: Map<string, StreamToolCallInfo>
   completeSeen: boolean
+  phase: RunPhase
 }
 
 const isRecord = (value: unknown): value is Record<string, unknown> => {
@@ -69,6 +71,8 @@ const processToolCall = (
   draft: StructuredChatDraft,
   content: Record<string, unknown>,
 ): void => {
+  const callId = content.call_id as string | undefined
+  if (callId && draft.toolCallById.has(callId)) return
   const newToolCall: StreamToolCallInfo = {
     id: (content.call_id as string) || `call_${Date.now()}_${Math.random()}`,
     name: content.tool_name as string,
@@ -88,10 +92,15 @@ const processToolResult = (
   const callId = content.call_id as string | undefined
   if (callId && draft.toolCallById.has(callId)) {
     const toolCall = draft.toolCallById.get(callId)!
+    if (toolCall.status === 'success' || toolCall.status === 'error') return
+    if (typeof content.success !== 'boolean') return
     const updated: StreamToolCallInfo = {
       ...toolCall,
-      result: content.error ? content.error : content.result,
-      status: content.success ? 'success' : 'error',
+      result:
+        content.success === false && content.error
+          ? content.error
+          : content.result,
+      status: content.success === true ? 'success' : 'error',
     }
     draft.toolCallById.set(callId, updated)
     updateToolCallsList(draft)
@@ -102,6 +111,15 @@ const processStructuredMessage = (
   draft: StructuredChatDraft,
   message: Record<string, unknown>,
 ): StructuredStreamMessage | null => {
+  const serverPhase = getServerRunPhase(String(message.type))
+  if (serverPhase) {
+    draft.phase = serverPhase
+    if (isRunTerminal(serverPhase)) draft.isToolAnalyzing = false
+    return {
+      type: message.type,
+      content: message.payload ?? message.content,
+    } as StructuredStreamMessage
+  }
   switch (message.type) {
     case 'text': {
       const incoming =
@@ -151,7 +169,14 @@ const processStructuredMessage = (
       } as ToolEndStreamMessage
 
     case 'error':
+      draft.phase = 'failed'
+      draft.isToolAnalyzing = false
+      return message as unknown as StructuredStreamMessage
     case 'complete':
+      if (message.content !== true) return null
+      draft.phase = 'completed'
+      draft.isToolAnalyzing = false
+      return message as unknown as StructuredStreamMessage
     case 'metadata':
       if (message.type === 'metadata' && isRecord(message.content)) {
         draft.metadata = { ...draft.metadata, ...message.content }
@@ -182,14 +207,17 @@ const processLegacyMessage = (
         id: `legacy_${Date.now()}_${Math.random()}`,
         name: toolCallData.name as string,
         arguments: (toolCallData.args as Record<string, unknown>) || {},
-        result: toolCallData.result || 'Begin to call...',
+        result: toolCallData.result,
         status:
-          toolCallData.result === 'Begin to call...' ? 'running' : 'success',
+          toolCallData.result === undefined ||
+          toolCallData.result === 'Begin to call...'
+            ? 'running'
+            : 'success',
         timestamp: new Date().toLocaleTimeString(),
       }
       toolCalls.push(toolCall)
-    } catch (error) {
-      console.error('Failed to parse legacy tool call:', error)
+    } catch {
+      // Malformed model output is skipped without logging its contents.
     }
   }
 
@@ -240,20 +268,24 @@ const handleMessage = (
   message: Record<string, unknown>,
 ): StructuredStreamMessage | null => {
   // Check for wrapped format (retcode/retmsg/data)
-  if ('retcode' in message && 'data' in message) {
+  if (('retcode' in message || 'code' in message) && 'data' in message) {
     // Handle error cases
-    if (message.retcode !== 0) {
+    if ((message.retcode ?? message.code) !== 0) {
+      draft.phase = 'failed'
+      draft.isToolAnalyzing = false
       return {
         type: 'error',
         content: {
           error: (message.retmsg as string) || 'Unknown error',
-          code: message.retcode as number,
+          code: (message.retcode ?? message.code) as number,
         },
       } as ErrorStreamMessage
     }
 
     // Handle completion marker
     if (message.data === true) {
+      draft.phase = 'completed'
+      draft.isToolAnalyzing = false
       return {
         type: 'complete',
         content: true,
@@ -327,13 +359,14 @@ export const createInitialStructuredChatState = (): StructuredChatState => ({
   metadata: {},
   toolCallById: new Map(),
   completeSeen: false,
+  phase: 'running',
 })
 
 export const consumeStructuredChatChunk = (
   previousState: StructuredChatState,
   rawEvent: unknown,
 ): StructuredChatChunkResult => {
-  if (!isRecord(rawEvent)) {
+  if (!isRecord(rawEvent) || isRunTerminal(previousState.phase)) {
     return { nextState: previousState, message: null }
   }
 
@@ -344,35 +377,27 @@ export const consumeStructuredChatChunk = (
     metadata: previousState.metadata,
     toolCallById: new Map(previousState.toolCallById),
     completeSeen: previousState.completeSeen,
+    phase: previousState.phase,
   }
 
   const message = handleMessage(draft, rawEvent)
 
-  // Mirrors the parser's connect() loop: any emitted complete frame marks
-  // that the server already completed, suppressing the synthetic one.
-  if (message && message.type === 'complete') {
+  if (message && draft.phase === 'completed') {
     draft.completeSeen = true
   }
 
   return { nextState: draft, message }
 }
 
-/**
- * Mirrors the parser's end-of-stream behavior: when the stream closes without
- * a server-emitted complete frame, callers feed this synthetic complete
- * through the same message handling path. Returns null when the server
- * already completed (avoid double COMPLETE).
- */
-export const createSyntheticCompleteMessage = (
+/** A closed connection never supplies a missing server completion frame. */
+export const finalizeStructuredChatState = (
   state: StructuredChatState,
-): CompleteStreamMessage | null => {
-  if (state.completeSeen) {
-    return null
-  }
-
+  reason: 'eof' | 'aborted' | 'error',
+): StructuredChatState => {
+  if (isRunTerminal(state.phase)) return state
   return {
-    type: 'complete',
-    content: true,
-    metadata: state.metadata,
-  } as CompleteStreamMessage
+    ...state,
+    phase: reason === 'aborted' ? 'locallyStopped' : 'interrupted',
+    isToolAnalyzing: false,
+  }
 }

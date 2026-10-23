@@ -1,4 +1,4 @@
-import React from 'react'
+import { useEffect } from 'react'
 import { RouterProvider } from 'react-router-dom'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
@@ -14,23 +14,22 @@ import i18n, {
   normalizeLocale,
 } from './locales/i18n'
 import { PlatformProvider, type ApplicationComposition } from './platform'
+import { useResolvedAppearance } from '@/themes'
 
 export interface ApplicationProps {
   readonly composition: ApplicationComposition
 }
 
 export function Application({ composition }: ApplicationProps) {
-  // 检测暗色模式 - 使用 data-theme 属性
-  const [isDark, setIsDark] = React.useState(
-    () => document.documentElement.getAttribute('data-theme') === 'dark',
-  )
+  const appearance = useResolvedAppearance()
+  const isDark = appearance.resolvedMode === 'dark'
 
   // 初始化stores
-  React.useEffect(() => {
+  useEffect(() => {
     initializeStores()
   }, [])
 
-  React.useEffect(() => {
+  useEffect(() => {
     applyDocumentLocale(getCurrentLanguage())
 
     const handleLanguageChanged = (language: string) => {
@@ -43,34 +42,10 @@ export function Application({ composition }: ApplicationProps) {
     }
   }, [])
 
-  // 监听暗色模式变化
-  React.useEffect(() => {
-    const checkDarkMode = () => {
-      setIsDark(document.documentElement.getAttribute('data-theme') === 'dark')
-    }
-
-    // 初始检查
-    checkDarkMode()
-
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (
-          mutation.attributeName === 'data-theme' ||
-          mutation.attributeName === 'class'
-        ) {
-          checkDarkMode()
-        }
-      })
-    })
-
-    observer.observe(document.documentElement, { attributes: true })
-    return () => observer.disconnect()
-  }, [])
-
   return (
     <PlatformProvider composition={composition}>
       <QueryClientProvider client={queryClient}>
-        <ApplicationStyleProvider isDark={isDark}>
+        <ApplicationStyleProvider appearance={appearance}>
           <RouterProvider
             router={router}
             onError={handleCaughtApplicationError}

@@ -638,14 +638,16 @@ export default {
         allUploaded: '所有文件已上传完成',
         success: '成功上传 {{count}} 个文档',
         autoParseError: '文档上传成功，但自动解析失败，请手动触发解析',
-        serverResponseError: '服务器响应异常',
-        serverResponseErrorToast: '上传失败：服务器响应异常',
+        serverResponseError:
+          '无法将上传结果与此文件对应，请先检查文档列表再重试。',
+        serverResponseErrorToast:
+          '上传结果未确认，已保留你的文件，请先检查文档列表再重试。',
         unknownError: '未知错误',
         failedWithMessage: '文档上传失败: {{message}}',
         fileUploadSuccess: '文件 "{{name}}" 上传成功',
         failed: '上传失败',
         description:
-          '支持 PDF、Word、Excel、PPT、Markdown、代码文件、图片、音视频等多种格式。单次上传文件总大小上限为 <strong>1GB</strong>，单次批量上传文件数不超过 <strong>32</strong> 个',
+          '支持 PDF、Word、Excel、PPT、Markdown、代码文件、图片、音频、视频等。单个文件最大 <strong>1GB</strong>，每批最多 <strong>32</strong> 个文件。',
         fileTab: '文件上传',
         folderTab: '文件夹上传',
         dropActiveTitle: '释放文件立即上传',
@@ -666,6 +668,12 @@ export default {
         uploading: '上传中...',
         uploadRemaining: '上传剩余 {{count}} 个文件',
         uploadCount: '上传 {{count}} 个文件',
+
+        fileRejected: '无法选择文件“{{name}}”，请重新选择。',
+        notConfirmed: '上传未确认，已保留此文件，可重新上传。',
+        partial:
+          '已确认 {{successCount}} 个，仍有 {{errorCount}} 个需要处理，请重试剩余文件。',
+        retryHint: '上传失败，已保留你的文件，请检查连接后重试。',
       },
       previousPage: '上一页',
       nextPage: '下一页',

@@ -2,14 +2,17 @@ import React, { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
-import { Loading } from '@/components/ui/loading'
+import {
+  PageLoadingState,
+  PageEmptyState,
+  PageErrorState,
+} from '@/components/patterns/page-states'
 import { ReferenceDetailSheet } from '@/components/chat/ReferenceDetailSheet'
 import { useFetchSearchAppDetail } from '@/hooks/use-search-request'
 import { useSearchStore } from '@/stores/search'
 import { ROUTES } from '@/constants'
 import {
   SearchExecutionMode,
-  SearchExecutionPhase,
   SearchSourceMode,
   type ChunkResult,
 } from '@/types/search'
@@ -44,22 +47,12 @@ const toReferenceChunk = (chunk: ChunkResult): ReferenceChunk => ({
   term_similarity: chunk.term_similarity,
 })
 
-const phaseLabelMap: Record<SearchExecutionPhase, string> = {
-  [SearchExecutionPhase.IDLE]: '空闲',
-  [SearchExecutionPhase.RETRIEVING]: '检索中',
-  [SearchExecutionPhase.SUMMARIZING]: '总结中',
-  [SearchExecutionPhase.RELATED]: '生成相关问题',
-  [SearchExecutionPhase.COMPLETE]: '完成',
-  [SearchExecutionPhase.STOPPED]: '已停止',
-  [SearchExecutionPhase.ERROR]: '错误',
-}
-
 export const SearchDetailPage: React.FC = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
   const { settingsOpen, setSettingsOpen } = useSearchStore()
-  const { searchApp, isLoading } = useFetchSearchAppDetail()
+  const { searchApp, isLoading, isError, refetch } = useFetchSearchAppDetail()
   const {
     basicInfo,
     config,
@@ -76,7 +69,7 @@ export const SearchDetailPage: React.FC = () => {
   )
 
   const [docFilterByTurnId, setDocFilterByTurnId] = useState<
-    Record<string, string[]>
+    Record<string, string[] | null>
   >({})
   const [detailOpen, setDetailOpen] = useState(false)
   const [selectedChunk, setSelectedChunk] = useState<ReferenceChunk | null>(
@@ -85,6 +78,7 @@ export const SearchDetailPage: React.FC = () => {
   const [selectedChunkList, setSelectedChunkList] = useState<ReferenceChunk[]>(
     [],
   )
+  const [queryDraft, setQueryDraft] = useState('')
   const [prefillText, setPrefillText] = useState('')
   const [prefillVersion, setPrefillVersion] = useState(0)
   const [expandedByTurnId, setExpandedByTurnId] = useState<
@@ -99,12 +93,17 @@ export const SearchDetailPage: React.FC = () => {
 
   const handleSearch = useCallback(
     (query: string) => {
-      search(query, {
+      if (!searchApp || !kbCount) {
+        toast.error(t('searchPage.feedback.knowledgeRequired'))
+        return false
+      }
+      void search(query, {
         executionMode,
         sourceMode,
       })
+      return true
     },
-    [executionMode, search, sourceMode],
+    [executionMode, search, sourceMode, searchApp, kbCount, t],
   )
 
   const handleClear = useCallback(() => {
@@ -124,6 +123,7 @@ export const SearchDetailPage: React.FC = () => {
   )
 
   const handlePrefillFromCard = useCallback((query: string) => {
+    setQueryDraft(query)
     setPrefillText(query)
     setPrefillVersion((prev) => prev + 1)
   }, [])
@@ -138,11 +138,11 @@ export const SearchDetailPage: React.FC = () => {
   const handleShare = useCallback(async () => {
     try {
       await copyToClipboard(window.location.href)
-      toast.success('链接已复制')
+      toast.success(t('searchPage.workspace.shared'))
     } catch {
-      toast.error('复制失败')
+      toast.error(t('searchPage.workspace.copyFailed'))
     }
-  }, [])
+  }, [t])
 
   const canExport = canExportSearchSession(turns)
   const exportAppName = searchApp?.name || basicInfo.name
@@ -256,44 +256,41 @@ export const SearchDetailPage: React.FC = () => {
 
   const handleToggleMindmap = useCallback(() => {
     if (!canOpenMindmap && !mindmapOpen) return
-    setMindmapOpen((prev) => {
-      const next = !prev
-      if (next) {
-        setSettingsOpen(false)
-      }
-      return next
-    })
+    const next = !mindmapOpen
+    if (next) setSettingsOpen(false)
+    setMindmapOpen(next)
   }, [canOpenMindmap, mindmapOpen, setSettingsOpen])
 
   if (!canOpenMindmap && mindmapOpen) setMindmapOpen(false)
 
-  if (isLoading) {
+  if (isLoading)
+    return <PageLoadingState title={t('common.loading')} description={null} />
+  if (isError)
     return (
-      <div className="flex h-full items-center justify-center">
-        <Loading />
-      </div>
+      <PageErrorState
+        title={t('searchPage.workspace.failed')}
+        description={null}
+        onRetry={() => void refetch()}
+      />
     )
-  }
-
-  if (!searchApp) {
+  if (!searchApp)
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-space-sm">
-        <p className="text-text-secondary">搜索应用不存在或已被删除</p>
-        <Button variant="outline" onClick={() => navigate(ROUTES.SEARCH)}>
-          返回列表
-        </Button>
-      </div>
+      <PageEmptyState
+        title={t('searchPage.workspace.missing')}
+        action={
+          <Button variant="outline" onClick={() => navigate(ROUTES.SEARCH)}>
+            {t('searchPage.workspace.back')}
+          </Button>
+        }
+      />
     )
-  }
 
   return (
     <div className="flex h-full flex-col bg-surface-primary">
       <SearchDetailHeader
         appName={searchApp.name}
         kbCount={kbCount}
-        phaseLabel={
-          phaseLabelMap[phase] || phaseLabelMap[SearchExecutionPhase.IDLE]
-        }
+        phaseLabel={t(`searchPage.workspace.phases.${phase}`)}
         hasTurns={hasTurns}
         canOpenMindmap={canOpenMindmap}
         mindmapOpen={mindmapOpen}
@@ -320,6 +317,8 @@ export const SearchDetailPage: React.FC = () => {
                 onSearch={handleSearch}
                 onStop={stop}
                 isSearching={isSearching}
+                draft={queryDraft}
+                onDraftChange={setQueryDraft}
                 prefillText={prefillText}
                 prefillVersion={prefillVersion}
                 onPrefill={handlePrefillFromCard}
@@ -328,7 +327,9 @@ export const SearchDetailPage: React.FC = () => {
               <div className="mx-auto max-w-6xl space-y-space-base pb-space-base">
                 <div className="flex items-center justify-between rounded-radius-lg border border-border-default bg-surface-secondary px-space-base py-space-xs">
                   <p className="text-xs text-text-secondary">
-                    共 {turns.length} 轮查询，可折叠查看历史轮次
+                    {t('searchPage.workspace.turnCount', {
+                      count: turns.length,
+                    })}
                   </p>
                   <div className="flex items-center gap-space-xs">
                     <Button
@@ -338,7 +339,7 @@ export const SearchDetailPage: React.FC = () => {
                       disabled={allExpanded}
                       className="h-7 px-space-sm text-xs"
                     >
-                      全部展开
+                      {t('searchPage.workspace.expandAll')}
                     </Button>
                     <Button
                       variant="ghost"
@@ -347,7 +348,7 @@ export const SearchDetailPage: React.FC = () => {
                       disabled={allCollapsed}
                       className="h-7 px-space-sm text-xs"
                     >
-                      全部折叠
+                      {t('searchPage.workspace.collapseAll')}
                     </Button>
                   </div>
                 </div>
@@ -361,7 +362,7 @@ export const SearchDetailPage: React.FC = () => {
                       expandedByTurnId[turn.id] ?? index === turns.length - 1
                     }
                     turn={turn}
-                    selectedDocIds={docFilterByTurnId[turn.id] || []}
+                    selectedDocIds={docFilterByTurnId[turn.id] ?? null}
                     onToggleExpand={() => handleToggleTurnExpand(turn.id)}
                     onDocFilterChange={(turnId, docIds) =>
                       setDocFilterByTurnId((prev) => ({
@@ -384,7 +385,8 @@ export const SearchDetailPage: React.FC = () => {
                   onSearch={handleSearch}
                   onStop={stop}
                   isSearching={isSearching}
-                  enableSemanticMode={false}
+                  value={queryDraft}
+                  onValueChange={setQueryDraft}
                 />
               </div>
             </footer>

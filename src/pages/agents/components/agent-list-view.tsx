@@ -1,270 +1,96 @@
-import { AgentTags } from './agent-tags'
-import type { FC } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
-  ArrowRight,
-  Clock,
-  Download,
-  FilePenLine,
-  GitBranch,
-  History,
-  Trash2,
-  Tag,
-} from 'lucide-react'
-import {
-  ResourceListBody,
-  ResourceListContainer,
-  ResourceListEmpty,
-  ResourceListHeader,
-  ResourceListRow,
-  ResourceListSkeletonRow,
-  getAvatarGradient,
-} from '@/components/ui/resource-list'
-import {
-  cn,
-  formatRelativeTime,
-  formatTimestampCompact,
-  formatTimestampDetailed,
-} from '@/lib/utils'
-import {
-  countFlowNodes,
-  downloadFlowJson,
-  isPipelineFlow,
-  resolveLocalizedText,
-} from '@/lib/agent'
+  PageEmptyState,
+  PageLoadingState,
+} from '@/components/patterns/page-states'
+import { isPipelineFlow, resolveLocalizedText } from '@/lib/agent'
 import type { AgentFlow } from '@/types/agent'
+import { AgentTags } from './agent-tags'
+import { AgentAvatar } from './agent-avatar'
+import { AgentActions, type AgentActionProps } from './agent-actions'
+import { AgentKind, AgentMetadata } from './agent-metadata'
 import type { AgentTimeFormat } from './agent-card'
-
 export type { AgentTimeFormat }
-
-interface AgentListViewProps {
+interface AgentListViewProps extends Omit<AgentActionProps, 'flow'> {
   data: AgentFlow[]
   isLoading?: boolean
   timeFormat?: AgentTimeFormat
-  onOpen: (flow: AgentFlow) => void
-  onDelete: (flow: AgentFlow) => void
-  onRename?: (flow: AgentFlow) => void
-  onViewLogs?: (flow: AgentFlow) => void
-  onEditTags?: (flow: AgentFlow) => void
   currentUserId?: string
 }
-
-const GRID_COLS = 'grid-cols-[2fr_100px_100px_180px_60px]'
-
-const SKELETON_WIDTHS = ['w-14', 'w-10', 'w-28']
-
-const formatTime = (timestamp: number, format: AgentTimeFormat): string => {
-  switch (format) {
-    case 'detailed':
-      return formatTimestampDetailed(timestamp)
-    case 'compact':
-      return formatTimestampCompact(timestamp)
-    case 'relative':
-      return formatRelativeTime(timestamp)
-    default:
-      return formatTimestampDetailed(timestamp)
-  }
-}
-
-const AgentAvatar: FC<{ name: string; avatar?: string }> = ({
-  name,
-  avatar,
-}) => {
-  if (avatar) {
-    const src =
-      avatar.startsWith('data:') || avatar.startsWith('http')
-        ? avatar
-        : `data:image/png;base64,${avatar}`
-    return (
-      <img
-        src={src}
-        alt={name}
-        className="h-12 w-12 rounded-radius-lg object-cover"
-        onError={(e) => {
-          e.currentTarget.style.display = 'none'
-        }}
-      />
-    )
-  }
-  const gradient = getAvatarGradient(name || 'A')
-  return (
-    <div
-      className={cn(
-        'flex h-12 w-12 items-center justify-center rounded-radius-lg',
-        'bg-linear-to-br shadow-elevation-low',
-        gradient,
-      )}
-    >
-      <span className="text-xl font-semibold text-white">
-        {(name || 'A').charAt(0).toUpperCase()}
-      </span>
-    </div>
-  )
-}
-
-const AgentListRow: FC<{
-  flow: AgentFlow
-  timeFormat: AgentTimeFormat
-  onOpen: () => void
-  onDelete: () => void
-  onRename?: () => void
-  onViewLogs?: () => void
-  onEditTags?: () => void
-}> = ({
-  flow,
-  timeFormat,
-  onOpen,
-  onDelete,
-  onRename,
-  onViewLogs,
-  onEditTags,
-}) => {
-  const { t } = useTranslation()
-  const title = resolveLocalizedText(
-    flow.title,
-    t('agent.unnamedAgent', '未命名 Agent'),
-  )
-  const description = resolveLocalizedText(flow.description, '')
-  const pipeline = isPipelineFlow(flow)
-  const nodeCount = countFlowNodes(flow)
-
-  return (
-    <ResourceListRow
-      onClick={onOpen}
-      avatar={<AgentAvatar name={title} avatar={flow.avatar} />}
-      name={title}
-      description={description || undefined}
-      actions={[
-        {
-          key: 'open',
-          label: t('agent.center.openEditor', '打开编辑器'),
-          icon: <ArrowRight className="h-4 w-4" />,
-          onClick: onOpen,
-        },
-        {
-          key: 'rename',
-          label: t('agent.center.rename', '重命名'),
-          icon: <FilePenLine className="h-4 w-4" />,
-          onClick: onRename || (() => undefined),
-        },
-        ...(onEditTags
-          ? [
-              {
-                key: 'tags',
-                label: t('agents.editTags'),
-                icon: <Tag className="size-icon-sm" />,
-                onClick: onEditTags,
-              },
-            ]
-          : []),
-        {
-          key: 'export-json',
-          label: t('agent.center.exportJson', '导出 JSON'),
-          icon: <Download className="h-4 w-4" />,
-          onClick: () => downloadFlowJson(flow),
-        },
-        {
-          key: 'view-logs',
-          label: t('agent.center.viewLogs', '查看运行记录'),
-          icon: <History className="h-4 w-4" />,
-          onClick: onViewLogs || (() => undefined),
-        },
-        {
-          key: 'delete',
-          label: t('agent.center.delete', '删除'),
-          icon: <Trash2 className="h-4 w-4" />,
-          onClick: onDelete,
-          danger: true,
-        },
-      ]}
-      gridCols={GRID_COLS}
-    >
-      <div className="flex flex-col items-start gap-space-xs">
-        <span
-          className={cn(
-            'inline-flex items-center truncate rounded-full px-2 py-0.5 text-xs font-medium',
-            pipeline
-              ? 'bg-background-subtle text-text-secondary'
-              : 'bg-status-success-subtle text-status-success',
-          )}
-        >
-          {pipeline
-            ? t('agent.pipeline', 'Pipeline')
-            : t('agent.agent', 'Agent')}
-        </span>
-        <AgentTags tags={flow.tags} />
-      </div>
-
-      <div className="flex items-center gap-1.5 text-sm text-text-secondary">
-        <GitBranch className="h-3.5 w-3.5 shrink-0" />
-        <span>{nodeCount}</span>
-      </div>
-
-      <div className="flex items-center gap-1.5 text-sm text-text-tertiary">
-        <Clock className="h-3.5 w-3.5 shrink-0" />
-        {formatTime(flow.update_time, timeFormat)}
-      </div>
-    </ResourceListRow>
-  )
-}
-
-export const AgentListView: FC<AgentListViewProps> = ({
+export function AgentListView({
   data,
   isLoading = false,
   timeFormat = 'detailed',
-  onOpen,
-  onDelete,
-  onRename,
-  onViewLogs,
-  onEditTags,
   currentUserId,
-}) => {
+  onEditTags,
+  ...actions
+}: AgentListViewProps) {
   const { t } = useTranslation()
-  const headerColumns = [
-    { key: 'name', label: t('agent.center.name', '名称') },
-    { key: 'type', label: t('agent.center.type', '类型') },
-    { key: 'nodes', label: t('agent.center.nodes', '节点数') },
-    { key: 'update_time', label: t('agent.center.updateTime', '更新时间') },
-    { key: 'actions', label: t('agent.center.actions', '操作') },
-  ]
-
+  if (isLoading)
+    return (
+      <PageLoadingState
+        title={t('agents.loadingTitle')}
+        description={t('agents.loadingDescription')}
+      />
+    )
+  if (!data.length)
+    return (
+      <PageEmptyState
+        title={t('agents.emptyTitle')}
+        description={t('agents.emptyDescription')}
+      />
+    )
   return (
-    <ResourceListContainer>
-      <ResourceListHeader columns={headerColumns} gridCols={GRID_COLS} />
-
-      <ResourceListBody>
-        {isLoading ? (
-          [...Array(5)].map((_, i) => (
-            <ResourceListSkeletonRow
-              key={i}
-              columnWidths={SKELETON_WIDTHS}
-              gridCols={GRID_COLS}
-            />
-          ))
-        ) : data.length === 0 ? (
-          <ResourceListEmpty />
-        ) : (
-          data.map((flow) => (
-            <AgentListRow
-              key={flow.id}
-              flow={flow}
-              timeFormat={timeFormat}
-              onOpen={() => onOpen(flow)}
-              onDelete={() => onDelete(flow)}
-              onRename={() => onRename?.(flow)}
-              onViewLogs={() => onViewLogs?.(flow)}
-              onEditTags={
-                currentUserId &&
-                (flow.user_id || flow.tenant_id) === currentUserId
-                  ? () => onEditTags?.(flow)
-                  : undefined
-              }
-            />
-          ))
-        )}
-      </ResourceListBody>
-    </ResourceListContainer>
+    <ul className="divide-y divide-border-subtle rounded-radius-lg border border-border-default bg-background-surface">
+      {data.map((flow) => {
+        const title = resolveLocalizedText(flow.title, t('agents.unnamedAgent'))
+        const description = resolveLocalizedText(flow.description, '')
+        return (
+          <li
+            key={flow.id}
+            className="relative flex flex-col gap-space-sm p-space-md md:flex-row md:items-center md:gap-space-lg"
+          >
+            <div className="flex min-w-0 flex-1 items-center gap-space-sm pr-[var(--control-height-sm)] md:pr-0">
+              <AgentAvatar
+                avatar={flow.avatar}
+                pipeline={isPipelineFlow(flow)}
+              />
+              <div className="min-w-0 flex-1">
+                <h2 className="truncate text-sm font-semibold">
+                  <button
+                    type="button"
+                    onClick={() => actions.onOpen(flow)}
+                    className="max-w-full truncate rounded-radius-sm text-left outline-hidden hover:underline focus-visible:ring-2 focus-visible:ring-state-focus"
+                  >
+                    {title}
+                  </button>
+                </h2>
+                <p className="truncate text-sm text-text-secondary">
+                  {description || t('agents.noDescription')}
+                </p>
+                <AgentTags tags={flow.tags} />
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-space-sm md:max-w-80 md:justify-end">
+              <AgentKind flow={flow} />
+              <AgentMetadata flow={flow} timeFormat={timeFormat} />
+            </div>
+            <div className="absolute top-space-md right-space-md md:static md:shrink-0">
+              <AgentActions
+                flow={flow}
+                title={title}
+                onEditTags={
+                  currentUserId &&
+                  (flow.user_id || flow.tenant_id) === currentUserId
+                    ? onEditTags
+                    : undefined
+                }
+                {...actions}
+              />
+            </div>
+          </li>
+        )
+      })}
+    </ul>
   )
 }
-
-AgentListView.displayName = 'AgentListView'

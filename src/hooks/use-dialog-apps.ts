@@ -2,6 +2,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState, useCallback } from 'react'
 import { dialogAPI, type DialogListResponse } from '@/api/dialog'
 import { toast } from '@/lib/toast'
+import i18n from '@/locales/i18n'
+import { MutationErrorFeedback } from '@/lib/mutation-error-feedback'
 import type { DialogApp } from '../types/api'
 import { useDebouncedValue } from './useDebouncedValue'
 
@@ -104,6 +106,7 @@ export const useSetDialogApp = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: (data: {
       dialog_id?: string
       name: string
@@ -142,11 +145,17 @@ export const useSetDialogApp = () => {
       // 使对话应用列表查询失效
       queryClient.invalidateQueries({ queryKey: dialogKeys.all })
 
-      toast.success(variables.dialog_id ? '应用更新成功' : '应用创建成功')
+      toast.success(
+        i18n.t(
+          variables.dialog_id
+            ? 'studio.feedback.updated'
+            : 'studio.feedback.created',
+        ),
+      )
       return dialogApp
     },
     onError: () => {
-      toast.error('操作失败')
+      toast.error(i18n.t('studio.feedback.saveFailed'))
     },
   })
 }
@@ -161,6 +170,7 @@ export const useUpdateDialogApp = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: ({
       dialogId,
       data,
@@ -178,10 +188,10 @@ export const useUpdateDialogApp = () => {
       // 使对话应用列表查询失效
       queryClient.invalidateQueries({ queryKey: dialogKeys.all })
 
-      toast.success('应用更新成功')
+      toast.success(i18n.t('studio.feedback.updated'))
     },
     onError: () => {
-      toast.error('更新应用失败')
+      toast.error(i18n.t('studio.feedback.saveFailed'))
     },
   })
 }
@@ -191,6 +201,7 @@ export const useDeleteDialogApps = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: (dialogIds: string[]) => dialogAPI.bulkDeleteChats(dialogIds),
     onSuccess: (_, dialogIds) => {
       // 从缓存中移除
@@ -203,10 +214,10 @@ export const useDeleteDialogApps = () => {
       // 使对话应用列表查询失效
       queryClient.invalidateQueries({ queryKey: dialogKeys.all })
 
-      toast.success('应用删除成功')
+      toast.success(i18n.t('studio.feedback.deleted'))
     },
     onError: () => {
-      toast.error('删除应用失败')
+      toast.error(i18n.t('studio.feedback.deleteFailed'))
     },
   })
 }
@@ -214,12 +225,13 @@ export const useDeleteDialogApps = () => {
 // 导出对话应用模版
 export const useExportDialogApps = () => {
   return useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: (dialogIds: string[]) => dialogAPI.exportTemplates(dialogIds),
     onSuccess: () => {
-      toast.success('模版导出成功')
+      toast.success(i18n.t('studio.feedback.exported'))
     },
     onError: () => {
-      toast.error('模版导出失败')
+      toast.error(i18n.t('studio.feedback.exportFailed'))
     },
   })
 }
@@ -229,6 +241,7 @@ export const useImportDialogApps = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: (file: File) => dialogAPI.importTemplates(file),
     onSuccess: (result) => {
       const { imported, failed } = result
@@ -236,13 +249,22 @@ export const useImportDialogApps = () => {
         queryClient.invalidateQueries({ queryKey: dialogKeys.all })
       }
       if (failed.length > 0) {
-        toast.error(`${failed.length} 个模版导入失败`)
+        toast.error(
+          i18n.t('studio.feedback.importPartial', {
+            imported: imported.length,
+            failed: failed.length,
+          }),
+        )
+      } else if (imported.length > 0) {
+        toast.success(
+          i18n.t('studio.feedback.imported', { count: imported.length }),
+        )
       } else {
-        toast.success(`成功导入 ${imported.length} 个应用`)
+        toast.info(i18n.t('studio.feedback.importEmpty'))
       }
     },
     onError: () => {
-      toast.error('模版导入失败')
+      toast.error(i18n.t('studio.feedback.importFailed'))
     },
   })
 }

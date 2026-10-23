@@ -66,13 +66,13 @@ export const Sidebar = ({
       aria-label={t('layout.sidebar.primaryNavigation')}
       data-primary-navigation
       className={cn(
-        'flex h-full w-[56px] shrink-0 flex-col border-r border-border-subtle bg-components-sidebar-bg py-space-sm',
+        'flex h-full min-h-0 w-[calc(var(--control-height)+var(--space-md))] shrink-0 flex-col border-r border-border-subtle bg-components-sidebar-bg py-space-sm',
         className,
       )}
     >
       <nav
         aria-label={t('layout.sidebar.primaryNavigation')}
-        className="flex flex-col gap-space-xs px-space-sm"
+        className="flex min-h-0 flex-col gap-space-xs overflow-y-auto overscroll-contain px-space-sm"
       >
         {primaryNavItems.map((item) => {
           const itemSection = getWorkbenchSection(item.href)
@@ -82,16 +82,40 @@ export const Sidebar = ({
           const link = (
             <Link
               to={item.href}
+              onKeyDown={(event) => {
+                if (
+                  !['ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)
+                )
+                  return
+                const links = Array.from(
+                  event.currentTarget
+                    .closest('nav')
+                    ?.querySelectorAll<HTMLElement>('a[href]') ?? [],
+                )
+                const current = links.indexOf(event.target as HTMLElement)
+                if (current < 0) return
+                event.preventDefault()
+                const next =
+                  event.key === 'Home'
+                    ? 0
+                    : event.key === 'End'
+                      ? links.length - 1
+                      : (current +
+                          (event.key === 'ArrowDown' ? 1 : -1) +
+                          links.length) %
+                        links.length
+                links[next]?.focus()
+              }}
               aria-label={title}
               aria-current={section === itemSection ? 'page' : undefined}
               className={cn(
-                'flex h-10 w-full items-center justify-center rounded-radius-lg focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden focus-visible:ring-inset',
+                'flex min-h-[var(--control-height)] w-full items-center justify-center rounded-radius-lg focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden focus-visible:ring-inset',
                 section === itemSection
                   ? 'bg-components-sidebar-item-bg-active text-components-sidebar-item-text-active'
                   : 'text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover hover:text-text-primary',
               )}
             >
-              <Icon className="size-icon-md" />
+              <Icon className="size-icon-md" aria-hidden="true" />
             </Link>
           )
           return secondaryCollapsed ? (
@@ -135,7 +159,7 @@ export const Sidebar = ({
                 )}
                 aria-label={t('layout.sidebar.more')}
               >
-                <MoreHorizontal className="size-icon-md" />
+                <MoreHorizontal className="size-icon-md" aria-hidden="true" />
               </Button>
             </ActionMenuTrigger>
           </NavigationTooltip>
@@ -154,7 +178,7 @@ export const Sidebar = ({
           </ActionMenuContent>
         </ActionMenu>
       </nav>
-      <div className="flex-1" />
+      <div className="min-h-space-sm flex-1" />
       <div className="border-t border-border-subtle px-space-xs pt-space-sm">
         <SidebarUtilities collapsed />
       </div>

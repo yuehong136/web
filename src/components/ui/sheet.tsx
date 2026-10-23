@@ -4,7 +4,7 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { X } from 'lucide-react'
 
 import { cn } from './utils'
-import { useActivePortalTheme } from './portal-theme'
+import { useActivePortalTheme, usePortalContainer } from './portal-theme'
 
 const Sheet = SheetPrimitive.Root
 
@@ -58,10 +58,11 @@ const SheetContent = React.forwardRef<
     },
     ref,
   ) => {
+    const portalContainer = usePortalContainer()
     const theme = useActivePortalTheme(true)
 
     return (
-      <SheetPortal>
+      <SheetPortal container={portalContainer}>
         {showOverlay ? <SheetOverlay data-theme={theme} /> : null}
         <SheetPrimitive.Content
           ref={ref}
