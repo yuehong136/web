@@ -68,6 +68,7 @@ export default {
     systemOutputs: 'System outputs',
     systemOutputsTip:
       'Runtime metadata for logs, type checks, raw result, and attachments.',
+    codeSandboxQuickstart: 'Sandbox setup guide',
     codeMainReturnTip:
       'Return a JSON-serializable value from main(). It will be exposed as the single business output below.',
     codeEditorTitle: 'Code editor',

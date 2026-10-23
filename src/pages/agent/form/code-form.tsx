@@ -15,13 +15,14 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Loader2 } from 'lucide-react'
+import { ArrowUpRight, Loader2 } from 'lucide-react'
 import { lazy, Suspense, useCallback, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
 import {
   CodeTemplateStrMap,
+  Operator,
   ProgrammingLanguage,
   initialCodeValues,
 } from '../constant'
@@ -65,7 +66,7 @@ function CodeEditorFallback() {
 
   return (
     <output
-      className="rounded-radius-lg gap-space-sm bg-surface-secondary flex h-80 items-center justify-center border border-border-default text-sm text-text-secondary"
+      className="flex h-80 items-center justify-center gap-space-sm rounded-radius-lg border border-border-default bg-surface-secondary text-sm text-text-secondary"
       aria-live="polite"
     >
       <Loader2 className="size-icon-md animate-spin" />
@@ -142,7 +143,18 @@ export function CodeForm({ node }: INextOperatorForm) {
   return (
     <Form {...form}>
       <FormWrapper>
-        <div className="gap-space-base grid sm:grid-cols-2">
+        {node?.data.label === Operator.Code && (
+          <a
+            href="https://github.com/yuehong136/MultiRAG/blob/main/agent/sandbox/README.md"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-space-xs text-sm text-text-secondary underline underline-offset-4 hover:text-text-primary"
+          >
+            {t('flow.codeSandboxQuickstart')}
+            <ArrowUpRight className="size-4" aria-hidden="true" />
+          </a>
+        )}
+        <div className="grid gap-space-base sm:grid-cols-2">
           <FormField
             control={form.control}
             name="lang"

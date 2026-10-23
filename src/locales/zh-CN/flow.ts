@@ -58,6 +58,7 @@ export default {
       '下游节点使用业务值；系统输出用于渲染、类型检查、原始结果和附件排查。',
     systemOutputs: '系统输出',
     systemOutputsTip: '运行时元数据，包括日志、类型检查、原始结果和附件。',
+    codeSandboxQuickstart: '沙箱配置指南',
     codeMainReturnTip:
       '从 main() 返回可 JSON 序列化的值，它会作为下面唯一的业务输出暴露。',
     codeEditorTitle: '代码编辑器',
