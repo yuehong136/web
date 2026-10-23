@@ -1,6 +1,9 @@
 import { ExploreMessageAttachments } from './components/message-attachments'
 import { ControlledAttachments } from '@/components/chat/controlled-attachments'
-import { useChatAbortController } from '@/hooks/use-chat-abort-controller'
+import {
+  useExploreConversation,
+  type ExploreMessage as ChatMessageItem,
+} from './hooks/use-explore-conversation'
 import {
   useCallback,
   useEffect,
@@ -111,43 +114,6 @@ const getAttachmentStatusLabel = (file: UploadFile, t: TFunction) => {
   return formatBytes(file.size || 0)
 }
 
-// 消息类型
-interface ChatMessageItem {
-  role: 'user' | 'assistant'
-  content: string
-  id?: string
-  references?: ReferenceChunk[]
-  thinking?: string
-  thinkingComplete?: boolean
-  files?: UploadedFileInfo[]
-}
-
-interface ConversationDetailMessage {
-  role?: string
-  content?: string
-  id?: string
-  reference?: {
-    chunks?: ReferenceChunk[]
-  }
-  files?: UploadedFileInfo[]
-}
-
-interface ConversationDetail {
-  id?: string
-  name?: string
-  message?: ConversationDetailMessage[]
-}
-
-const toChatMessageItem = (
-  message: ConversationDetailMessage,
-): ChatMessageItem => ({
-  role: message.role === 'user' ? 'user' : 'assistant',
-  content: message.content ?? '',
-  id: message.id,
-  references: message.reference?.chunks || [],
-  files: Array.isArray(message.files) ? message.files : [],
-})
-
 export const ExplorePage: FC = () => {
   const { t } = useTranslation()
   const { myLLMs, isLoading: modelsLoading } = useFetchMyLLMs()
@@ -163,14 +129,22 @@ export const ExplorePage: FC = () => {
   const [activeTab, setActiveTab] = useState<ExploreTab>('workspace')
   const [selectedApp, setSelectedApp] = useState<string>('')
   const [mode, setMode] = useState<'chat' | 'market'>('chat')
-  const [selectedConversationDetail, setSelectedConversationDetail] =
-    useState<ConversationDetail | null>(null)
-  const [activeConversationKey, setActiveConversationKey] = useState<
-    string | undefined
-  >(undefined)
-  const [, setLoadingConversationDetail] = useState(false)
-  const [messages, setMessages] = useState<ChatMessageItem[]>([])
-  const [isStreaming, setIsStreaming] = useState(false)
+  const {
+    messages,
+    setMessages,
+    selectedConversationDetail,
+    setSelectedConversationDetail,
+    activeConversationKey,
+    setActiveConversationKey,
+    isStreaming,
+    setIsStreaming,
+    isLoadingConversation,
+    captureSession,
+    resetConversation,
+    fetchConversationDetail,
+    createController,
+    abortChat,
+  } = useExploreConversation()
   const [inputValue, setInputValue] = useState('')
   const [selectedModel, setSelectedModel] = useState<string | null>(null)
   const [renamingConversationId, setRenamingConversationId] = useState<
@@ -204,9 +178,6 @@ export const ExplorePage: FC = () => {
   // 功能开关状态（参考 ragflow）
   const [enableReasoning, setEnableReasoning] = useState(false)
   const [enableInternet, setEnableInternet] = useState(false)
-
-  // 流式输出控制器（用于停止输出）
-  const { createController, abort: abortChat } = useChatAbortController()
 
   // 全局拖拽事件处理
   useEffect(() => {
@@ -323,6 +294,7 @@ export const ExplorePage: FC = () => {
   )
   const canSubmitMessage =
     !isStreaming &&
+    !isLoadingConversation &&
     !hasUploadingFiles &&
     (inputValue.trim().length > 0 || hasReadyUploads)
   const attachmentItems = useMemo<ExploreAttachment[]>(() => {
@@ -346,38 +318,8 @@ export const ExplorePage: FC = () => {
     if (activeApp) setSelectedApp(activeApp.id)
   }
 
-  // 获取对话详情
-  const fetchConversationDetail = async (conversationId: string) => {
-    if (!conversationId) return
-
-    try {
-      setLoadingConversationDetail(true)
-      // 先清空消息，避免新旧消息混合
-      setMessages([])
-
-      const response = (await conversationAPI.getConversationDetail(
-        conversationId,
-      )) as ConversationDetail
-      setSelectedConversationDetail(response)
-
-      // 设置消息列表，如果对话没有消息则清空
-      if (response?.message && Array.isArray(response.message)) {
-        setMessages(response.message.map(toChatMessageItem))
-      }
-    } catch (error) {
-      console.error('Failed to fetch conversation detail:', error)
-      setSelectedConversationDetail(null)
-      setMessages([])
-    } finally {
-      setLoadingConversationDetail(false)
-    }
-  }
-
   // 停止输出
-  const handleStopOutput = useCallback(() => {
-    abortChat()
-    setIsStreaming(false)
-  }, [abortChat])
+  const handleStopOutput = abortChat
 
   // 重新生成消息（参考 ragflow 的 useRegenerateMessage 实现）
   // 当点击助手消息的重新生成按钮时，找到对应的用户消息并重新发送
@@ -389,7 +331,8 @@ export const ExplorePage: FC = () => {
       baseMessages?: ChatMessageItem[],
       overrideFiles?: UploadedFileInfo[],
     ) => {
-      if (isStreaming) return
+      if (isStreaming || isLoadingConversation) return
+      const isCurrent = captureSession()
 
       const pendingFiles = overrideFiles ?? uploadedAttachments
       const normalizedMessage = message.trim()
@@ -436,6 +379,7 @@ export const ExplorePage: FC = () => {
             name: conversationName,
             is_new: true,
           })
+          if (!isCurrent()) return
           if (newConversation?.id) {
             conversationId = newConversation.id
             setActiveConversationKey(newConversation.id)
@@ -460,6 +404,7 @@ export const ExplorePage: FC = () => {
             name: conversationName,
             is_new: false,
           })
+          if (!isCurrent()) return
           setSelectedConversationDetail((prev) =>
             prev ? { ...prev, name: conversationName } : prev,
           )
@@ -471,6 +416,7 @@ export const ExplorePage: FC = () => {
 
       // 创建新的 AbortController 用于停止输出（局部捕获：handleStopOutput 会把
       // ref 置 null，catch 必须用这个局部引用判断 aborted，不能依赖 ref）
+      if (!isCurrent()) return
       const abortController = createController()
       let hasReceivedContent = false
       let streamState = createInitialStreamingAnswerState()
@@ -527,6 +473,7 @@ export const ExplorePage: FC = () => {
           await readSSEStream<SSEEnvelope>(response, {
             signal: abortController.signal,
             onEvent: (data) => {
+              if (!isCurrent()) return
               const chunk = consumeStreamingAnswerChunk(streamState, data)
               streamState = chunk.nextState
               if (chunk.isDone) return
@@ -601,6 +548,7 @@ export const ExplorePage: FC = () => {
           await readSSEStream<SSEEnvelope>(response, {
             signal: abortController.signal,
             onEvent: (data) => {
+              if (!isCurrent()) return
               const chunk = consumeStreamingAnswerChunk(streamState, data)
               streamState = chunk.nextState
               if (chunk.isDone) return
@@ -625,7 +573,7 @@ export const ExplorePage: FC = () => {
       } catch (error) {
         // 用户主动停止（fetch 发起阶段 abort 会抛 AbortError）：不报错、不回滚，
         // 保留已收内容，finally 仍复位 isStreaming
-        if (abortController.signal.aborted) return
+        if (!isCurrent() || abortController.signal.aborted) return
         console.error('Failed to send message:', error)
         if (!hasReceivedContent) {
           setMessages(previousMessages)
@@ -661,11 +609,12 @@ export const ExplorePage: FC = () => {
           })
         }
       } finally {
-        setIsStreaming(false)
+        if (isCurrent()) setIsStreaming(false)
       }
     },
     [
       activeConversationKey,
+      captureSession,
       chatSettings.metadataCondition,
       chatSettings.metadataFilterMode,
       chatSettings.quote,
@@ -674,11 +623,16 @@ export const ExplorePage: FC = () => {
       enableInternet,
       enableReasoning,
       isStreaming,
+      isLoadingConversation,
       messages,
       refetchConversations,
       selectedApp,
       selectedConversationDetail?.id,
       selectedModel,
+      setActiveConversationKey,
+      setIsStreaming,
+      setMessages,
+      setSelectedConversationDetail,
       setUploadFiles,
       t,
       uploadedAttachments,
@@ -706,12 +660,13 @@ export const ExplorePage: FC = () => {
 
       void handleSendMessage(userContent, baseMessages, userFiles)
     },
-    [handleSendMessage, isStreaming, messages, t],
+    [handleSendMessage, isStreaming, messages, setMessages, t],
   )
 
   // 新建对话
   const handleCreateConversation = async () => {
     if (!selectedApp) return
+    const isCurrent = captureSession()
 
     try {
       const newConversation = await conversationAPI.setConversation({
@@ -720,15 +675,11 @@ export const ExplorePage: FC = () => {
         is_new: true,
       })
 
+      if (!isCurrent()) return
       refetchConversations()
-
       if (newConversation?.id) {
-        // 立即更新选中状态
-        setActiveConversationKey(newConversation.id)
-        // 清空消息，准备新对话
-        setMessages([])
-        // 异步加载对话详情
-        setTimeout(() => fetchConversationDetail(newConversation.id), 500)
+        clearUploadFiles()
+        void fetchConversationDetail(newConversation.id)
       }
     } catch (error) {
       console.error('Failed to create conversation:', error)
@@ -927,6 +878,8 @@ export const ExplorePage: FC = () => {
 
   // 处理事件
   const handleDiscoverClick = () => {
+    resetConversation()
+    clearUploadFiles()
     setMode('market')
     setSelectedApp('')
   }
@@ -935,18 +888,15 @@ export const ExplorePage: FC = () => {
     setMode('chat')
     setSelectedApp(appId)
     setActiveTab('workspace')
-    setMessages([])
-    // 切换应用时清理对话状态，避免状态不一致
-    setSelectedConversationDetail(null)
-    setActiveConversationKey(undefined)
+    resetConversation()
+    clearUploadFiles()
   }
 
   const handleTopicsClick = () => {
     setActiveTab('topics')
     setMode('chat')
-    setSelectedConversationDetail(null)
-    setActiveConversationKey(undefined)
-    setMessages([])
+    resetConversation()
+    clearUploadFiles()
   }
 
   const handleTabChange = (tab: ExploreTab) => {
@@ -954,14 +904,9 @@ export const ExplorePage: FC = () => {
   }
 
   const handleConversationSelect = (key?: string) => {
-    setActiveConversationKey(key)
-    setMessages([])
-
-    if (key) {
-      void fetchConversationDetail(key)
-    } else {
-      setSelectedConversationDetail(null)
-    }
+    clearUploadFiles()
+    if (key) void fetchConversationDetail(key)
+    else resetConversation()
   }
 
   const handleRenameConversation = (conversationId: string, name: string) => {
@@ -979,9 +924,8 @@ export const ExplorePage: FC = () => {
       await conversationAPI.removeConversation([conversationId])
       refetchConversations()
       if (activeConversationKey === conversationId) {
-        setActiveConversationKey(undefined)
-        setSelectedConversationDetail(null)
-        setMessages([])
+        resetConversation()
+        clearUploadFiles()
       }
       toast.success(t('explore.conversations.deleted'))
     } catch (error) {
@@ -1370,6 +1314,7 @@ export const ExplorePage: FC = () => {
                         onChange={setInputValue}
                         placeholder={t('explore.sender.placeholder')}
                         loading={isStreaming}
+                        disabled={isLoadingConversation}
                         // 文件上传面板（参考 ragflow）
                         header={
                           <Sender.Header
