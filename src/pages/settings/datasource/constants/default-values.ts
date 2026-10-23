@@ -138,8 +138,8 @@ export const DataSourceFormDefaultValues: Record<DataSourceKey, any> = {
     config: {
       repository_owner: '',
       repository_name: '',
-      include_pull_requests: false,
-      include_issues: false,
+      include_pull_requests: true,
+      include_issues: true,
       credentials: { github_access_token: '' },
     },
   },

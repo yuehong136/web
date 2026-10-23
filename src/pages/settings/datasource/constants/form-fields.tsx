@@ -236,14 +236,14 @@ const getSourceFormFields = (
       name: 'config.include_pull_requests',
       type: FormFieldType.Checkbox,
       required: false,
-      defaultValue: false,
+      defaultValue: true,
     },
     {
       label: 'Include Issues',
       name: 'config.include_issues',
       type: FormFieldType.Checkbox,
       required: false,
-      defaultValue: false,
+      defaultValue: true,
     },
   ],
   [DataSourceKey.GITLAB]: [
