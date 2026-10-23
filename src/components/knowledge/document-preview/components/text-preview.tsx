@@ -3,7 +3,11 @@ import { FileCode } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import { useTranslation } from 'react-i18next'
 import remarkGfm from 'remark-gfm'
+import remarkBreaks from 'remark-breaks'
 import { ErrorState } from './preview-state'
+
+// Document previews keep TeX literal; chat math belongs to the shared XMarkdown pipeline.
+const MARKDOWN_PREVIEW_PLUGINS = [remarkGfm, remarkBreaks]
 
 const TextContent: FC<{
   content?: string
@@ -31,7 +35,9 @@ const TextContent: FC<{
     return (
       <div className="h-full w-full overflow-auto bg-background-surface p-6">
         <div className="prose prose-sm max-w-none">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+          <ReactMarkdown remarkPlugins={MARKDOWN_PREVIEW_PLUGINS}>
+            {content}
+          </ReactMarkdown>
         </div>
       </div>
     )
@@ -39,7 +45,7 @@ const TextContent: FC<{
 
   return (
     <div className="h-full w-full overflow-auto bg-background-surface p-4">
-      <pre className="whitespace-pre-wrap break-words font-mono text-sm leading-relaxed text-text-secondary">
+      <pre className="font-mono text-sm leading-relaxed break-words whitespace-pre-wrap text-text-secondary">
         {content}
       </pre>
     </div>

@@ -308,5 +308,6 @@ export function getMarkdownStreamingOptions(
  * ```
  */
 export const markdownConfig: MarkedExtension = {
+  breaks: true,
   extensions: createChatLatexExtensions(),
 }
