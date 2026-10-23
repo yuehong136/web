@@ -690,6 +690,7 @@ export const ExplorePage: FC = () => {
   const confirmRenameConversation = async () => {
     if (!renamingConversationId || !newConversationName.trim() || !selectedApp)
       return
+    const isCurrent = captureSession()
 
     try {
       await conversationAPI.setConversation({
@@ -701,6 +702,7 @@ export const ExplorePage: FC = () => {
 
       refetchConversations()
 
+      if (!isCurrent()) return
       if (selectedConversationDetail?.id === renamingConversationId) {
         setSelectedConversationDetail((prev) =>
           prev ? { ...prev, name: newConversationName.trim() } : prev,
@@ -920,10 +922,11 @@ export const ExplorePage: FC = () => {
   }
 
   const handleDeleteConversation = async (conversationId: string) => {
+    const isCurrent = captureSession()
     try {
       await conversationAPI.removeConversation([conversationId])
       refetchConversations()
-      if (activeConversationKey === conversationId) {
+      if (isCurrent() && activeConversationKey === conversationId) {
         resetConversation()
         clearUploadFiles()
       }
