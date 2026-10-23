@@ -341,7 +341,7 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
           return
         }
         if (!endpointId.trim()) {
-          setError('请输入 Endpoint ID')
+          setError(t('settings.models.volcEngine.modelIdRequired'))
           setIsLoading(false)
           return
         }
@@ -357,7 +357,6 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
         additionalParams.max_tokens = maxTokens
         additionalParams.llm_factory = providerName
       }
-
       // Bedrock
       else if (providerName === 'Bedrock') {
         if (!modelName.trim()) {
@@ -370,7 +369,6 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
           setIsLoading(false)
           return
         }
-
         // 根据认证模式验证
         if (bedrockAuthMode === 'access_key_secret') {
           if (!bedrockAk.trim()) {
@@ -394,7 +392,6 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
           additionalParams.aws_role_arn = awsRoleArn
         }
         // assume_role 模式不需要额外凭证
-
         additionalParams.auth_mode = bedrockAuthMode
         additionalParams.bedrock_region = bedrockRegion
         additionalParams.llm_name = modelName
@@ -402,7 +399,6 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
         additionalParams.max_tokens = maxTokens
         additionalParams.llm_factory = providerName
       }
-
       // MinerU
       else if (providerName === 'MinerU') {
         if (!modelName.trim()) {
@@ -427,7 +423,6 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
         if (mineruServerUrl.trim()) {
           mineruConfig.mineru_server_url = mineruServerUrl
         }
-
         additionalParams.llm_name = modelName
         additionalParams.mdl_type = 'ocr'
         additionalParams.max_tokens = 0
@@ -1043,13 +1038,18 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
                 />
               </div>
               <div>
-                <label className="mb-2 block text-sm font-medium text-text-primary">
-                  Endpoint ID <span className="text-red-500">*</span>
+                <label
+                  htmlFor="volc-model-id"
+                  className="mb-2 block text-sm font-medium text-text-primary"
+                >
+                  {t('settings.models.volcEngine.modelId')}{' '}
+                  <span className="text-red-500">*</span>
                 </label>
                 <Input
+                  id="volc-model-id"
                   value={endpointId}
                   onChange={(e) => setEndpointId(e.target.value)}
-                  placeholder="请输入 Endpoint ID"
+                  placeholder={t('settings.models.volcEngine.modelIdRequired')}
                 />
               </div>
               <div>

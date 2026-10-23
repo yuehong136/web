@@ -221,3 +221,58 @@ it('opens the configured model through the page and saves the changed capability
   })
   expect(JSON.parse(JSON.stringify(payload))).not.toHaveProperty('api_key')
 })
+
+it.each([
+  ['en-US', 'Model ID', 'Enter a Model ID.'],
+  ['zh-CN', '模型 ID', '请输入模型 ID。'],
+])(
+  'uses the localized VolcEngine Model ID and preserves endpoint_id payload in %s',
+  async (language, label, required) => {
+    await i18n.changeLanguage(language)
+    await act(async () =>
+      root.render(
+        <ApiKeyModal
+          isOpen
+          providerName="VolcEngine"
+          onSave={save}
+          onClose={close}
+        />,
+      ),
+    )
+    const modelId = field('volc-model-id')
+    expect(
+      document.querySelector('label[for="volc-model-id"]')?.textContent,
+    ).toContain(label)
+    expect(modelId.placeholder).toBe(required)
+    await change(
+      document.querySelector('input[placeholder="请输入模型名称"]')!,
+      'owned-display-name',
+    )
+    await act(async () => {
+      const button = Array.from(
+        document.querySelectorAll<HTMLButtonElement>('button'),
+      ).find((element) => element.textContent === '确定')!
+      button.click()
+    })
+    expect(save).not.toHaveBeenCalled()
+    expect(document.body.textContent).toContain(required)
+    await change(modelId, 'provider-model-id')
+    await change(
+      document.querySelector('input[placeholder="请输入 ARK API Key"]')!,
+      'owned-ark-key',
+    )
+    await act(async () => {
+      const button = Array.from(
+        document.querySelectorAll<HTMLButtonElement>('button'),
+      ).find((element) => element.textContent === '确定')!
+      button.click()
+    })
+    expect(save.mock.calls[0][2]).toMatchObject({
+      llm_factory: 'VolcEngine',
+      llm_name: 'owned-display-name',
+      endpoint_id: 'provider-model-id',
+      ark_api_key: 'owned-ark-key',
+    })
+    expect(save.mock.calls[0][2]).not.toHaveProperty('model_id')
+  },
+)

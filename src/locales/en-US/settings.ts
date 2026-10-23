@@ -4,6 +4,7 @@ export default {
     description:
       'Manage workspace configuration, team capabilities, and developer access.',
     models: {
+      volcEngine: { modelId: 'Model ID', modelIdRequired: 'Enter a Model ID.' },
       localModel: {
         addTitle: 'Add {{provider}} model',
         editTitle: 'Edit {{provider}} model',

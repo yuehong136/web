@@ -3,6 +3,7 @@ export default {
     title: '设置',
     description: '统一管理工作空间配置、团队能力和开发者接入能力。',
     models: {
+      volcEngine: { modelId: '模型 ID', modelIdRequired: '请输入模型 ID。' },
       localModel: {
         addTitle: '添加 {{provider}} 模型',
         editTitle: '编辑 {{provider}} 模型',
