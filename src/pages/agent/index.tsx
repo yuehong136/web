@@ -26,6 +26,8 @@ import { useWatchAgentChange } from './hooks/use-watch-agent-change'
 import { useBuildWebhookUrl } from './hooks/use-build-webhook-url'
 import { useSaveGraph } from './hooks/use-save-graph'
 import { buildAgentShareUrl } from './share/access'
+import { useWidgetSettings } from './share/use-widget-settings'
+import { widgetSettingsGlobalKey } from './share/widget-settings'
 import { ShareEmbedDialog } from './share/share-embed-dialog'
 import { GlobalVariableSheet } from './global-variable-sheet'
 import AgentCanvas from './canvas'
@@ -63,6 +65,10 @@ export default function AgentEditorPage() {
 
   const [title, setTitle] = useState('')
   const [titleDirty, setTitleDirty] = useState(false)
+  const { saveWidgetSettings, savingWidgetSettings } = useWidgetSettings(
+    id,
+    title,
+  )
   const [versionsOpen, setVersionsOpen] = useState(false)
   const [webhookOpen, setWebhookOpen] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
@@ -281,9 +287,9 @@ export default function AgentEditorPage() {
               compact
               align="center"
               surface="elevated"
-              className="shadow-elevation-medium border-b-0"
+              className="border-b-0 shadow-elevation-medium"
               title={
-                <div className="gap-space-sm flex min-w-[280px] max-w-xl items-center">
+                <div className="flex max-w-xl min-w-[280px] items-center gap-space-sm">
                   <Input
                     value={title}
                     onChange={(event) => {
@@ -402,6 +408,11 @@ export default function AgentEditorPage() {
           }
           betaToken={deliveryToken.token}
           releaseDefault={Boolean(flowDetail.release)}
+          initialWidgetSettings={
+            flowDetail.dsl?.globals?.[widgetSettingsGlobalKey]
+          }
+          onSaveWidgetSettings={saveWidgetSettings}
+          savingWidgetSettings={savingWidgetSettings}
           tokenLoading={deliveryToken.isLoading}
           tokenError={deliveryToken.isError}
           onRefreshToken={() => {

@@ -1,3 +1,5 @@
+import { playWidgetSound } from './widget-sound'
+import type { WidgetSettings } from './widget-settings'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
@@ -12,7 +14,7 @@ function postWidgetHostMessage(message: WidgetHostMessage) {
   window.parent.postMessage(message, '*')
 }
 
-export function WidgetLauncher() {
+export function WidgetLauncher({ muted = false }: { muted?: boolean }) {
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
@@ -23,6 +25,7 @@ export function WidgetLauncher() {
 
   const toggle = () => {
     const nextOpen = !open
+    if (nextOpen) playWidgetSound(muted)
     setOpen(nextOpen)
     postWidgetHostMessage({ type: 'TOGGLE_CHAT', isOpen: nextOpen })
   }
@@ -45,7 +48,7 @@ function WidgetToggleButton({
   return (
     <Button
       size="icon-lg"
-      className="rounded-radius-full shadow-elevation-high"
+      className="widget-launcher rounded-radius-full shadow-elevation-high"
       onClick={onToggle}
       aria-expanded={open}
       aria-label={
@@ -63,12 +66,19 @@ function WidgetToggleButton({
   )
 }
 
-export function WidgetStandalonePreview({ children }: { children: ReactNode }) {
+export function WidgetStandalonePreview({
+  children,
+  muted = false,
+}: {
+  children: ReactNode
+  muted?: boolean
+}) {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const [hasOpened, setHasOpened] = useState(false)
 
   const toggle = () => {
+    if (!open) playWidgetSound(muted)
     setHasOpened(true)
     setOpen((previous) => !previous)
   }
@@ -83,7 +93,7 @@ export function WidgetStandalonePreview({ children }: { children: ReactNode }) {
           <Button
             variant="ghost"
             size="icon-sm"
-            className="absolute top-space-sm right-space-sm z-10"
+            className="widget-close absolute top-space-sm right-space-sm z-10"
             onClick={() => setOpen(false)}
             aria-label={t('agent.share.closeWidget', '关闭聊天浮窗')}
           >
@@ -103,10 +113,12 @@ export function WidgetShell({
   title,
   children,
   variant = 'iframe',
+  settings,
 }: {
   title: string
   children: ReactNode
   variant?: 'iframe' | 'panel'
+  settings?: WidgetSettings
 }) {
   const { t } = useTranslation()
   return (
@@ -116,17 +128,34 @@ export function WidgetShell({
         variant === 'iframe' ? 'h-screen w-screen' : 'h-full w-full',
       )}
     >
-      <header className="flex items-center justify-between border-b border-border-subtle px-space-base py-space-sm">
+      <header className="widget-header flex items-center justify-between border-b border-border-subtle px-space-base py-space-sm">
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold text-text-primary">
-            {title}
+            {settings?.widgetTitle.trim() || title}
           </p>
           <p className="text-xs text-text-secondary">
-            {t('agent.share.agentWidget', 'Agent Widget')}
+            {settings?.widgetSubtitle ||
+              t('agent.share.agentWidget', 'Agent Widget')}
           </p>
         </div>
       </header>
       {children}
+      {settings?.widgetFooterText && (
+        <footer className="widget-footer shrink-0 px-space-base py-space-sm text-center text-xs">
+          {settings.widgetFooterLink ? (
+            <a
+              href={settings.widgetFooterLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-2"
+            >
+              {settings.widgetFooterText}
+            </a>
+          ) : (
+            settings.widgetFooterText
+          )}
+        </footer>
+      )}
     </div>
   )
 }

@@ -248,6 +248,27 @@ export default {
       openFailed: 'Failed to open artifact',
     },
     shareEmbed: {
+      muteWidgetDescription:
+        'Silence sounds when opening the widget or receiving a reply.',
+      customization: 'Widget customization',
+      muteWidget: 'Mute widget sounds',
+      widgetTitle: 'Widget title',
+      widgetSubtitle: 'Subtitle',
+      widgetFooterText: 'Footer text',
+      widgetFooterLink: 'Footer link (HTTP/HTTPS)',
+      widgetAccentColor: 'Accent color',
+      widgetBackgroundColor: 'Background color',
+      widgetTextColor: 'Text color',
+      widgetHeaderTextColor: 'Header text color',
+      widgetFooterTextColor: 'Footer text color',
+      saveSettings: 'Save embed settings',
+      settingsSaved: 'Embed settings saved',
+      settingsSaveFailed: 'Could not save embed settings. Try again.',
+      tokenReady: 'Token ready',
+      tokenMissing: 'Missing token',
+      light: 'Light',
+      dark: 'Dark',
+
       title: 'Share and Embed',
       description: 'Configure and generate public access links or embed code.',
       betaTokenTip:
