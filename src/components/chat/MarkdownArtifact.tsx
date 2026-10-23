@@ -108,8 +108,8 @@ export const shouldForceArtifactDownload = (
   blob: Blob,
   filename: string,
 ): boolean =>
-  /^(?:text\/html|image\/svg\+xml)(?:;|$)/i.test(blob.type) ||
-  /\.(?:html|svg)$/i.test(filename)
+  /^(?:text\/(?:html|csv)|image\/svg\+xml)(?:;|$)/i.test(blob.type) ||
+  /\.(?:html|svg|csv)$/i.test(filename)
 
 const getDomAttribute = (
   domNode: ComponentProps['domNode'],
@@ -121,6 +121,39 @@ const scheduleObjectUrlRevoke = (objectUrl: string): void => {
   window.setTimeout(() => {
     revokePreviewObjectUrl(objectUrl)
   }, OBJECT_URL_REVOKE_DELAY_MS)
+}
+
+export const openArtifactResource = async (href: string): Promise<void> => {
+  resolveArtifactUrl(href)
+  // Acquire the window during the click, before the authenticated fetch. A
+  // noopener window.open returns null even when it opens successfully.
+  const previewWindow = window.open('about:blank', '_blank')
+  try {
+    if (previewWindow) previewWindow.opener = null
+    const blob = await fetchArtifactBlob(href)
+    const filename = getArtifactName(href)
+    if (
+      shouldForceArtifactDownload(blob, filename) ||
+      !previewWindow ||
+      previewWindow.closed
+    ) {
+      previewWindow?.close()
+      downloadArtifactBlob(blob, filename)
+      return
+    }
+
+    const objectUrl = createPreviewObjectUrl(blob)
+    try {
+      previewWindow.location.replace(objectUrl)
+    } catch (error) {
+      revokePreviewObjectUrl(objectUrl)
+      throw error
+    }
+    scheduleObjectUrlRevoke(objectUrl)
+  } catch (error) {
+    previewWindow?.close()
+    throw error
+  }
 }
 
 const ArtifactImage: FC<{
@@ -202,7 +235,7 @@ const ArtifactImageResource: FC<{
           src={objectUrl}
           alt={alt || ''}
           className={joinClassNames(
-            'rounded-radius-lg bg-surface-primary block max-w-full border border-border-subtle',
+            'block max-w-full rounded-radius-lg border border-border-subtle bg-surface-primary',
             className,
           )}
         />
@@ -210,7 +243,7 @@ const ArtifactImageResource: FC<{
         <span
           role={hasError ? 'alert' : 'status'}
           className={joinClassNames(
-            'rounded-radius-lg bg-surface-secondary p-space-lg block border border-border-subtle text-sm text-text-secondary',
+            'block rounded-radius-lg border border-border-subtle bg-surface-secondary p-space-lg text-sm text-text-secondary',
             className,
           )}
         >
@@ -229,7 +262,7 @@ const ArtifactImageResource: FC<{
       )}
       <button
         type="button"
-        className="mt-space-xs gap-space-xs rounded-radius-sm hover:text-text-accent/80 inline-flex items-center text-sm font-medium text-text-accent disabled:cursor-not-allowed disabled:text-text-tertiary"
+        className="mt-space-xs inline-flex items-center gap-space-xs rounded-radius-sm text-sm font-medium text-text-accent hover:text-text-accent/80 disabled:cursor-not-allowed disabled:text-text-tertiary"
         disabled={isDownloading}
         onClick={handleDownload}
       >
@@ -257,25 +290,7 @@ export const ArtifactLink: FC<{
 
       setIsOpening(true)
       try {
-        const blob = await fetchArtifactBlob(href)
-        const filename = getArtifactName(href)
-        if (shouldForceArtifactDownload(blob, filename)) {
-          downloadArtifactBlob(blob, filename)
-          return
-        }
-        const objectUrl = createPreviewObjectUrl(blob)
-        const openedWindow = window.open(
-          objectUrl,
-          '_blank',
-          'noopener,noreferrer',
-        )
-
-        if (openedWindow) {
-          scheduleObjectUrlRevoke(objectUrl)
-        } else {
-          downloadArtifactBlob(blob, filename)
-          revokePreviewObjectUrl(objectUrl)
-        }
+        await openArtifactResource(href)
       } catch (error) {
         if (!isAbortError(error)) {
           toast.error(
@@ -293,7 +308,7 @@ export const ArtifactLink: FC<{
     <a
       href={resolveArtifactUrl(href)}
       className={joinClassNames(
-        'gap-space-xs hover:text-text-accent/80 inline-flex items-center text-text-accent',
+        'inline-flex items-center gap-space-xs text-text-accent hover:text-text-accent/80',
         className,
       )}
       onClick={handleClick}

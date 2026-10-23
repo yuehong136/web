@@ -9,6 +9,7 @@ import {
   fetchArtifactBlob,
   getArtifactName,
   isArtifactUrl,
+  openArtifactResource,
   resolveArtifactUrl,
   shouldForceArtifactDownload,
 } from '../MarkdownArtifact'
@@ -311,4 +312,136 @@ test('fetchArtifactBlob rejects JSON responses and empty files', async () => {
       )
     },
   )
+})
+
+test('artifact links open or download once and clean up preview resources', async (t) => {
+  for (const mode of [
+    'preview',
+    'blocked',
+    'closed',
+    'csv',
+    'html',
+    'svg',
+    'failed',
+    'navigation-failed',
+  ] as const) {
+    await t.test(mode, async () => {
+      const extension = ['csv', 'html', 'svg'].includes(mode) ? mode : 'png'
+      const href = `/api/v1/documents/artifact/report.${extension}`
+      const types: Record<string, string> = {
+        csv: 'text/csv',
+        html: 'text/html',
+        svg: 'image/svg+xml',
+      }
+      const type = types[mode] ?? 'image/png'
+      const navigation: string[] = []
+      const downloads: string[] = []
+      const revoked: string[] = []
+      const timers: (() => void)[] = []
+      let opened = false
+      let fetches = 0
+      const popup = {
+        opener: {} as unknown,
+        closed: false,
+        close: () => {
+          popup.closed = true
+        },
+        location: {
+          replace: (url: string) => {
+            if (mode === 'navigation-failed')
+              throw new Error('closed while fetching')
+            navigation.push(url)
+          },
+        },
+      }
+      const descriptors = Object.fromEntries(
+        ['window', 'document'].map((name) => [
+          name,
+          Object.getOwnPropertyDescriptor(globalThis, name),
+        ]),
+      )
+      const originalCreate = URL.createObjectURL
+      const originalRevoke = URL.revokeObjectURL
+      Object.defineProperty(globalThis, 'window', {
+        configurable: true,
+        value: {
+          open: () => {
+            opened = true
+            return mode === 'blocked' ? null : popup
+          },
+          setTimeout: (callback: () => void) => {
+            timers.push(callback)
+            return 1
+          },
+        },
+      })
+      Object.defineProperty(globalThis, 'document', {
+        configurable: true,
+        value: {
+          createElement: () => {
+            const anchor = {
+              href: '',
+              download: '',
+              click: () => downloads.push(anchor.download),
+            }
+            return anchor
+          },
+          body: { appendChild: () => {}, removeChild: () => {} },
+        },
+      })
+      URL.createObjectURL = () => 'blob:controlled'
+      URL.revokeObjectURL = (url) => {
+        revoked.push(url)
+      }
+      try {
+        await withLocalStorageToken('controlled-token', async () => {
+          await withFetch(
+            (async (_url, init) => {
+              fetches += 1
+              assert.equal(opened, true)
+              if (mode !== 'blocked') assert.equal(popup.opener, null)
+              assert.equal(
+                (init?.headers as Headers).get('Authorization'),
+                'Bearer controlled-token',
+              )
+              if (mode === 'closed') popup.closed = true
+              return new Response('controlled bytes', {
+                status: mode === 'failed' ? 401 : 200,
+                headers: {
+                  'content-type': type,
+                  'content-disposition': `inline; filename="report.${extension}"`,
+                },
+              })
+            }) as typeof fetch,
+            async () => {
+              if (mode === 'failed' || mode === 'navigation-failed')
+                await assert.rejects(() => openArtifactResource(href))
+              else await openArtifactResource(href)
+            },
+          )
+        })
+        assert.equal(fetches, 1)
+        assert.equal(navigation.length, mode === 'preview' ? 1 : 0)
+        assert.equal(
+          downloads.length,
+          ['blocked', 'closed', 'csv', 'html', 'svg'].includes(mode) ? 1 : 0,
+        )
+        if (downloads.length) assert.equal(downloads[0], `report.${extension}`)
+        assert.equal(popup.closed, mode !== 'preview' && mode !== 'blocked')
+        if (mode === 'preview') {
+          assert.deepEqual(revoked, [])
+          assert.equal(timers.length, 1)
+          timers[0]?.()
+        }
+        assert.equal(revoked.length, mode === 'failed' ? 0 : 1)
+      } finally {
+        URL.createObjectURL = originalCreate
+        URL.revokeObjectURL = originalRevoke
+        for (const [name, descriptor] of Object.entries(descriptors)) {
+          if (descriptor) Object.defineProperty(globalThis, name, descriptor)
+          else Reflect.deleteProperty(globalThis, name)
+        }
+      }
+    })
+  }
 })
