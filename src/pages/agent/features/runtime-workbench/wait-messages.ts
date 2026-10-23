@@ -71,6 +71,7 @@ export function mergeRuntimeAttachments(
     if (
       !result.some(
         (item) =>
+          (file.id !== undefined || file.url !== undefined) &&
           item.id === file.id &&
           item.name === file.name &&
           item.url === file.url,

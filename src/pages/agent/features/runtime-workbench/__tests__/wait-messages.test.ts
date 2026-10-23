@@ -127,3 +127,16 @@ test('history restores only the final pause form and preserves earlier prompt se
   assert.equal(rows[4]?.awaitingInputs?.[0]?.value, 0)
   assert.equal(rows[4]?.messageId, 'latest-wait')
 })
+
+test('same-name download records without stable identity are retained separately', () => {
+  const answer = completeRuntimeMessage(base, {
+    downloads: [
+      { name: 'report.txt', file_id: 'first' },
+      { name: 'report.txt', file_id: 'second' },
+    ],
+  })
+  assert.deepEqual(
+    answer.files?.map((file) => file.file_id),
+    ['first', 'second'],
+  )
+})
