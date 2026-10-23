@@ -1,6 +1,7 @@
 import { RuntimeChatMessageList } from '@/pages/agent/components/runtime-chat'
 import { AgentRuntimeStatus } from '@/pages/agent/features/runtime-workbench/types'
 import { mapSessionMessageToRuntimeMessage } from '@/pages/agent/explore/utils'
+import { splitRuntimeMessages } from '../../runtime-workbench/wait-messages'
 import type { AgentSessionMessage } from '@/types/agent'
 
 interface TranscriptProps {
@@ -19,8 +20,11 @@ export function Transcript({ messages }: TranscriptProps) {
   return (
     <RuntimeChatMessageList
       canvasId=""
-      messages={messages.map((message, index) =>
-        mapSessionMessageToRuntimeMessage(message, index),
+      messages={splitRuntimeMessages(
+        messages.map((message, index) => ({
+          ...mapSessionMessageToRuntimeMessage(message, index),
+          awaitingInputs: undefined,
+        })),
       )}
       status={AgentRuntimeStatus.IDLE}
       density="compact"

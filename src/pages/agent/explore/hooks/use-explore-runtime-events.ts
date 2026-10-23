@@ -1,3 +1,8 @@
+import {
+  applyRuntimeUserInputs,
+  completeRuntimeMessage,
+  mergeRuntimeAttachments,
+} from '../../features/runtime-workbench/wait-messages'
 import { useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
@@ -6,8 +11,6 @@ import {
 } from '../../features/runtime-workbench/types'
 import {
   consumeRuntimeMessageChunk,
-  normalizeRuntimeAttachments,
-  normalizeRuntimeAwaitingInputs,
   normalizeRuntimeEvent,
 } from '../../features/runtime-workbench/utils'
 import { shouldStoreRuntimeThoughtEvent } from '../../features/runtime-workbench/thought-chain-utils'
@@ -157,15 +160,8 @@ export function useExploreRuntimeEvents({
       }
 
       if (normalizedEvent.event === 'message_end') {
-        const reference =
-          isRecord(normalizedEvent.data) && 'reference' in normalizedEvent.data
-            ? normalizedEvent.data.reference
-            : undefined
-
         updateMessageById(assistantId, (message) => ({
-          ...message,
-          reference: reference ?? message.reference,
-          isStreaming: false,
+          ...completeRuntimeMessage(message, normalizedEvent.data),
           messageId: normalizedEvent.messageId || message.messageId,
           taskId: normalizedEvent.taskId || message.taskId,
         }))
@@ -191,7 +187,11 @@ export function useExploreRuntimeEvents({
 
         updateMessageById(assistantId, (message) => ({
           ...message,
-          files: normalizeRuntimeAttachments(outputs?.attachment),
+          files: mergeRuntimeAttachments(
+            message.files,
+            outputs?.attachment,
+            outputs?.downloads,
+          ),
           content: message.content || runtimeError || outputContent || '',
           error: runtimeError ?? message.error,
           isStreaming: false,
@@ -207,10 +207,7 @@ export function useExploreRuntimeEvents({
           : {}
 
         updateMessageById(assistantId, (message) => ({
-          ...message,
-          tips: typeof payload.tips === 'string' ? payload.tips : message.tips,
-          awaitingInputs: normalizeRuntimeAwaitingInputs(payload.inputs),
-          isStreaming: false,
+          ...applyRuntimeUserInputs(message, payload),
           messageId: normalizedEvent.messageId || message.messageId,
           taskId: normalizedEvent.taskId || message.taskId,
         }))

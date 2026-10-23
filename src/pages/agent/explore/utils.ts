@@ -13,6 +13,7 @@ import type {
   RuntimeMessage,
 } from '../features/runtime-workbench/types'
 import { normalizeRuntimeAttachments } from '../features/runtime-workbench/utils'
+import { applyRuntimeUserInputs } from '../features/runtime-workbench/wait-messages'
 import { XCardStatus, type AgentXCardCommand } from '../x-card'
 import type { ExploreSession, ExploreSessionListParams } from './types'
 import { extractSessionStatus, extractSessionTitle } from '../adapters/session'
@@ -261,7 +262,7 @@ export function mapSessionMessageToRuntimeMessage(
       )
     : undefined
 
-  return {
+  const result: RuntimeMessage = {
     id: message.id || `session-message-${index}`,
     role: normalizeRole(message.role),
     content: stringifyContent(
@@ -275,15 +276,27 @@ export function mapSessionMessageToRuntimeMessage(
     xCardStatus: xCardCommands?.length ? XCardStatus.READY : undefined,
     messageId: message.id,
   }
+  const pause = isRecord(record.runtime_pause)
+    ? record.runtime_pause
+    : undefined
+  return pause && result.role === 'assistant'
+    ? applyRuntimeUserInputs(
+        { ...result, answerCompleted: pause.answer_completed === true },
+        pause,
+      )
+    : result
 }
 
 export function mapSessionMessagesToRuntimeMessages(
   session?: AgentSession,
   failureMessage?: string,
 ): RuntimeMessage[] {
-  const messages = (session?.messages || []).map(
-    mapSessionMessageToRuntimeMessage,
-  )
+  const messages = (session?.messages || []).map((message, index, rows) => {
+    const result = mapSessionMessageToRuntimeMessage(message, index)
+    return index === rows.length - 1
+      ? result
+      : { ...result, awaitingInputs: undefined }
+  })
   if (!failureMessage || extractSessionStatus(session) !== 'error')
     return messages
   const last = messages.at(-1)

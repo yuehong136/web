@@ -103,3 +103,39 @@ test('session errors produce error status and banner message', () => {
   assert.equal(viewModel.status, 'error')
   assert.equal(viewModel.errorMessage, 'backend failed')
 })
+
+test('live split pause keeps latest answer output, unique transcript IDs and its static prompt', () => {
+  const viewModel = buildLiveLogDetailViewModel({
+    controllerStatus: AgentRuntimeStatus.SUCCESS,
+    beginInputs: [],
+    messages: [
+      {
+        id: 'local-answer',
+        messageId: 'original-wait',
+        role: 'assistant',
+        content: 'Completed answer',
+      },
+      {
+        id: 'prompt-display',
+        sourceMessageId: 'local-answer',
+        messageId: 'original-wait',
+        role: 'assistant',
+        content: '',
+        tips: 'Continue?',
+      },
+    ],
+    traceItems: [],
+  })
+  assert.deepEqual(viewModel.latestOutput, {
+    kind: 'text',
+    value: 'Completed answer',
+  })
+  assert.deepEqual(
+    viewModel.transcript.map((message) => message.id),
+    ['original-wait', 'prompt-display'],
+  )
+  assert.deepEqual(viewModel.transcript[1]?.runtime_pause, {
+    tips: 'Continue?',
+    answer_completed: false,
+  })
+})

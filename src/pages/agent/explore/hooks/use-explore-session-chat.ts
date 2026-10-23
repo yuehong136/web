@@ -1,3 +1,7 @@
+import {
+  clearRuntimeAwaitingInputs,
+  splitRuntimeMessages,
+} from '../../features/runtime-workbench/wait-messages'
 import { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
@@ -321,11 +325,7 @@ export function useExploreSessionChat({
       if (!canSend || owner.active.current) return
       updateSelection((previous) => ({
         ...previous,
-        messages: previous.messages.map((message) =>
-          message.id === messageId
-            ? { ...message, awaitingInputs: undefined }
-            : message,
-        ),
+        messages: clearRuntimeAwaitingInputs(previous.messages, messageId),
       }))
       await runRequest({
         content: '',
@@ -399,7 +399,7 @@ export function useExploreSessionChat({
     sessionQuery,
     beginInputs,
     isTaskMode,
-    messages,
+    messages: splitRuntimeMessages(messages),
     status:
       !visible.hasLocalMessages && historyFailure
         ? AgentRuntimeStatus.ERROR

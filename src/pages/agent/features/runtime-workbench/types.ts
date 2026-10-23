@@ -38,6 +38,9 @@ export interface RuntimeMessage {
   thinking?: string
   logEvents?: INodeEvent[]
   tips?: string
+  answerCompleted?: boolean
+  separateInputPrompt?: boolean
+  sourceMessageId?: string
   awaitingInputs?: BeginQuery[]
   files?: RuntimeAttachment[]
   reference?: unknown

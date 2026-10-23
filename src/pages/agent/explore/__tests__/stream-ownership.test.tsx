@@ -450,3 +450,65 @@ describe('Explore request owns setup, frames and completion', () => {
     ).toBe(true)
   })
 })
+
+it('Explore splits completed answers from pauses and keeps zero/false on session resume', async () => {
+  harness = await mountChat({ id: 'B' })
+  const body = stream()
+  api.runAgentSession.mockResolvedValueOnce(body.response)
+  const request = await harness.start()
+  await act(async () => {
+    body.emit({
+      event: 'message',
+      session_id: 'B',
+      message_id: 'message-wait',
+      data: { content: 'Completed' },
+    })
+    body.emit({
+      event: 'message_end',
+      session_id: 'B',
+      message_id: 'message-wait',
+      data: {},
+    })
+    body.emit({
+      event: 'user_inputs',
+      session_id: 'B',
+      message_id: 'message-wait',
+      data: {
+        tips: 'Next',
+        inputs: {
+          count: { type: 'number', value: 0 },
+          approved: { type: 'boolean', value: false },
+        },
+      },
+    })
+    body.done()
+    await request.pending
+  })
+  const prompt = harness.chat.messages.at(-1)!
+  expect(harness.chat.messages.at(-2)?.content).toBe('Completed')
+  expect(prompt.content).toBe('')
+  expect(prompt.messageId).toBe('message-wait')
+  const resume = stream()
+  api.runAgentSession.mockResolvedValueOnce(resume.response)
+  let pending!: Promise<void>
+  await act(async () => {
+    pending = harness.chat.handleSubmitAwaitingInputs(
+      prompt.id,
+      prompt.awaitingInputs!,
+    )
+    await Promise.resolve()
+  })
+  await act(async () => {
+    resume.emit({ event: 'message_end', data: {} })
+    resume.done()
+    await pending
+  })
+  expect(api.runAgentSession.mock.calls[1]?.[0]).toMatchObject({
+    id: 'canvas',
+    session_id: 'B',
+    inputs: { count: { value: 0 }, approved: { value: false } },
+  })
+  expect(
+    harness.chat.messages.some((message) => message.awaitingInputs?.length),
+  ).toBe(false)
+})

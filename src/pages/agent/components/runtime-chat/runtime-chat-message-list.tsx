@@ -319,6 +319,12 @@ export function RuntimeChatMessageList({
                       />
                     ) : null}
 
+                    {message.tips ? (
+                      <RuntimeChatMarkdown
+                        content={message.tips}
+                        streaming={false}
+                      />
+                    ) : null}
                     {message.awaitingInputs?.length && isLatest ? (
                       <div className="mt-space-md rounded-radius-md border border-border-primary bg-surface-primary p-space-sm">
                         <DebugContent

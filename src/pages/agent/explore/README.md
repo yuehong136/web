@@ -89,3 +89,18 @@ Stop now uses the current SSE `task_id` with `POST /api/v1/tasks/{id}/cancel` th
 ## Current execution source and authorization feedback
 
 New sessions select draft debug or published execution. Resumes retain the original server snapshot, and Begin inputs prefer the session DSL. Authorization failures share typed errors and fixed bilingual feedback. See the [Agent runtime contract](../runtime-contract.md) for requests, share boundaries and browser acceptance.
+
+### Answers followed by a Wait prompt
+
+Studio, Explore, shared chat and Widget project a completed answer and its following
+`user_inputs` event as two display rows. Splitting requires nonempty answer content
+and a preceding `message_end`; stopping a stream alone does not imply completion.
+The prompt retains the real SSE `message_id` and an explicit local source ID, so
+trace lookup and form clearing never infer identity by trimming an ID suffix.
+References, reasoning and downloads remain on the answer. A pending form disables
+the normal composer; submitting it preserves the trusted agent/session/run mode.
+
+History assistant rows may carry `runtime_pause: { inputs, tips, answer_completed }`.
+Explore restores the form only on the final row; earlier prompts and the Studio
+history transcript remain readable without presenting an active historical form.
+The backend emits the committed pause terminals in their original Canvas order.

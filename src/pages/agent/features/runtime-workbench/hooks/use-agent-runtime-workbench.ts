@@ -1,3 +1,10 @@
+import {
+  completeRuntimeMessage,
+  mergeRuntimeAttachments,
+  applyRuntimeUserInputs,
+  clearRuntimeAwaitingInputs,
+  splitRuntimeMessages,
+} from '../wait-messages'
 import { agentRunErrorKey } from '../../../runtime-errors'
 import { useRuntimeSummary } from './use-runtime-summary'
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
@@ -35,8 +42,6 @@ import {
   buildRuntimeSummary,
   consumeRuntimeMessageChunk,
   formatRuntimeInputSummary,
-  normalizeRuntimeAttachments,
-  normalizeRuntimeAwaitingInputs,
   normalizeRuntimeEvent,
 } from '../utils'
 import { shouldStoreRuntimeThoughtEvent } from '../thought-chain-utils'
@@ -285,15 +290,8 @@ export function useAgentRuntimeWorkbench({
       }
 
       if (normalizedEvent.event === 'message_end') {
-        const reference =
-          isRecord(normalizedEvent.data) && 'reference' in normalizedEvent.data
-            ? normalizedEvent.data.reference
-            : undefined
-
         updateMessageById(assistantId, (message) => ({
-          ...message,
-          reference: reference ?? message.reference,
-          isStreaming: false,
+          ...completeRuntimeMessage(message, normalizedEvent.data),
           messageId: normalizedEvent.messageId || message.messageId,
           taskId: normalizedEvent.taskId || message.taskId,
         }))
@@ -318,7 +316,11 @@ export function useAgentRuntimeWorkbench({
 
         updateMessageById(assistantId, (message) => ({
           ...message,
-          files: normalizeRuntimeAttachments(outputs?.attachment),
+          files: mergeRuntimeAttachments(
+            message.files,
+            outputs?.attachment,
+            outputs?.downloads,
+          ),
           content: message.content || runtimeError || outputContent || '',
           error: runtimeError ?? message.error,
           isStreaming: false,
@@ -334,10 +336,7 @@ export function useAgentRuntimeWorkbench({
           : {}
 
         updateMessageById(assistantId, (message) => ({
-          ...message,
-          tips: typeof payload.tips === 'string' ? payload.tips : message.tips,
-          awaitingInputs: normalizeRuntimeAwaitingInputs(payload.inputs),
-          isStreaming: false,
+          ...applyRuntimeUserInputs(message, payload),
           messageId: normalizedEvent.messageId || message.messageId,
           taskId: normalizedEvent.taskId || message.taskId,
         }))
@@ -429,10 +428,7 @@ export function useAgentRuntimeWorkbench({
 
   const handleSubmitAwaitingInputs = useCallback(
     async (messageId: string, values: BeginQuery[]) => {
-      updateMessageById(messageId, (message) => ({
-        ...message,
-        awaitingInputs: undefined,
-      }))
+      setMessages((previous) => clearRuntimeAwaitingInputs(previous, messageId))
 
       await runRequest({
         content: '',
@@ -441,7 +437,7 @@ export function useAgentRuntimeWorkbench({
         userMessageContent: formatRuntimeInputSummary(values),
       })
     },
-    [runRequest, updateMessageById],
+    [runRequest],
   )
 
   const handleXCardAction = useCallback(
@@ -563,7 +559,7 @@ export function useAgentRuntimeWorkbench({
     isTaskMode,
     sessionId: sessionId || undefined,
     viewingSessionId,
-    messages,
+    messages: splitRuntimeMessages(messages),
     logEvents,
     summary,
     currentMessageId,

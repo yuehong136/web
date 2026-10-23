@@ -410,6 +410,7 @@ function WidgetChatWindow({
           value={messageValue}
           files={messageFiles}
           isRunning={runner.isRunning}
+          disabled={Boolean(runner.messages.at(-1)?.awaitingInputs?.length)}
           uploading={uploading}
           hasParameters={inputEntries.length > 0}
           attachmentInputRef={attachmentInputRef}

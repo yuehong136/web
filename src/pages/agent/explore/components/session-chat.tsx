@@ -168,6 +168,7 @@ export function SessionChat({
           <RuntimeChatComposer
             canvasId={canvasId}
             status={status}
+            disabled={Boolean(messages.at(-1)?.awaitingInputs?.length)}
             isTaskMode={isTaskMode}
             className="border-t-0 px-space-md md:px-space-lg"
             contentClassName="max-w-3xl"

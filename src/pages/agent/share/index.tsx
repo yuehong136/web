@@ -435,10 +435,10 @@ export default function AgentSharePage() {
           />
         }
       >
-        <div className="px-space-md sm:px-space-lg flex h-full min-h-0 bg-components-workspace-bg">
+        <div className="flex h-full min-h-0 bg-components-workspace-bg px-space-md sm:px-space-lg">
           <div className="mx-auto flex min-h-0 w-full max-w-4xl flex-col">
             {runner.lastError ? (
-              <div className="mt-space-base rounded-radius-md bg-surface-secondary p-space-sm w-full border border-status-error text-sm text-status-error">
+              <div className="mt-space-base w-full rounded-radius-md border border-status-error bg-surface-secondary p-space-sm text-sm text-status-error">
                 {runner.lastError}
               </div>
             ) : null}
@@ -450,7 +450,7 @@ export default function AgentSharePage() {
                 status={status}
                 title={shareQuery.data.title}
                 prologue={shareQuery.data.prologue}
-                className="py-space-xl px-0"
+                className="px-0 py-space-xl"
                 onSubmitAwaitingInputs={handleSubmitAwaitingInputs}
                 onXCardAction={runner.submitXCardAction}
                 onDownloadAttachment={handleDownloadAttachment}
@@ -458,9 +458,9 @@ export default function AgentSharePage() {
             </div>
 
             {isTaskMode ? (
-              <div className="py-space-base shrink-0 border-t border-border-subtle bg-components-workspace-bg">
-                <div className="gap-space-sm rounded-radius-xl bg-surface-secondary p-space-sm shadow-elevation-low flex w-full flex-wrap items-center justify-between border border-border-default">
-                  <div className="gap-space-sm flex items-center text-sm text-text-secondary">
+              <div className="shrink-0 border-t border-border-subtle bg-components-workspace-bg py-space-base">
+                <div className="flex w-full flex-wrap items-center justify-between gap-space-sm rounded-radius-xl border border-border-default bg-surface-secondary p-space-sm shadow-elevation-low">
+                  <div className="flex items-center gap-space-sm text-sm text-text-secondary">
                     <Badge variant="purple">Task</Badge>
                     {runner.isRunning
                       ? t('agent.share.taskRunning', '任务运行中')
@@ -469,7 +469,7 @@ export default function AgentSharePage() {
                           '任务模式通过 Begin inputs 启动运行',
                         )}
                   </div>
-                  <div className="gap-space-sm flex flex-wrap">
+                  <div className="flex flex-wrap gap-space-sm">
                     {inputEntries.length > 0 ? (
                       <Button
                         variant="outline"
@@ -487,11 +487,14 @@ export default function AgentSharePage() {
                 value={messageValue}
                 files={messageFiles}
                 isRunning={runner.isRunning}
+                disabled={Boolean(
+                  runner.messages.at(-1)?.awaitingInputs?.length,
+                )}
                 uploading={uploading}
                 hasParameters={inputEntries.length > 0}
                 attachmentInputRef={attachmentInputRef}
                 layout="inline"
-                className="py-space-base shrink-0 border-t border-border-subtle bg-components-workspace-bg"
+                className="shrink-0 border-t border-border-subtle bg-components-workspace-bg py-space-base"
                 onChange={setMessageValue}
                 onSubmit={(value) => {
                   void handleSendMessage(value)
