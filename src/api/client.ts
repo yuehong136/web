@@ -380,29 +380,15 @@ class APIClient {
     endpoint: string,
     file: File,
     additionalData?: Record<string, any>,
-    config?: Omit<RequestConfig, 'headers'>,
+    config?: RequestConfig,
   ): Promise<T> {
-    const formData = new FormData()
-    formData.append('file', file, file.name)
-
-    if (additionalData) {
-      Object.entries(additionalData).forEach(([key, value]) => {
-        formData.append(key, value)
-      })
-    }
-
-    const token = config?.skipAuth ? null : this.getAuthToken()
-    const headers: HeadersInit = {}
-    if (token) {
-      headers.Authorization = `Bearer ${token}`
-    }
-
-    return this.request<T>(endpoint, {
-      ...config,
-      method: 'POST',
-      body: formData,
-      headers,
-    })
+    return this.uploadRepeated<T>(
+      endpoint,
+      'file',
+      [file],
+      additionalData,
+      config,
+    )
   }
 
   async uploadRepeated<T = any>(
@@ -428,7 +414,7 @@ class APIClient {
     const headers: Record<string, string> = Object.fromEntries(
       new Headers(config?.headers),
     )
-    delete headers.authorization
+    if (!config?.skipAuth) delete headers.authorization
     delete headers['content-type']
     if (token) {
       headers.Authorization = `Bearer ${token}`

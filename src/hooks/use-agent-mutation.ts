@@ -230,7 +230,7 @@ export const useUploadCanvasFile = () => {
   }
 }
 
-export const useUploadPublicCanvasFile = () => {
+export const useUploadPublicCanvasFile = (betaToken: string) => {
   const mutation = useMutation({
     mutationFn: async ({
       canvasId,
@@ -246,12 +246,13 @@ export const useUploadPublicCanvasFile = () => {
         return agentAPI.uploadPublicCanvasFileWithProgress(
           canvasId,
           file,
+          betaToken,
           onProgress,
           signal,
         )
       }
 
-      return agentAPI.uploadPublicFile(canvasId, file)
+      return agentAPI.uploadPublicFile(canvasId, file, betaToken)
     },
     onError: () => {
       toast.error('上传失败')

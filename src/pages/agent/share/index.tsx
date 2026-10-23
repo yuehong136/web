@@ -69,7 +69,9 @@ export default function AgentSharePage() {
     access.agentId,
     access.betaToken,
   )
-  const { uploadCanvasFile, isLoading: uploading } = useUploadPublicCanvasFile()
+  const { uploadCanvasFile, isLoading: uploading } = useUploadPublicCanvasFile(
+    access.betaToken,
+  )
   const attachmentInputRef = useRef<HTMLInputElement | null>(null)
 
   const [messageValue, setMessageValue] = useState('')

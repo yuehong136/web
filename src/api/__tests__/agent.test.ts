@@ -167,7 +167,7 @@ test('runAgentSession uses the consolidated RESTful completion endpoint', async 
   assert.equal(calls[0]?.body.session_id, 'session-1')
 })
 
-test('downloadFile maps the RESTful file ownership query', async () => {
+test('downloadFile sends only the file ID with authenticated ownership', async () => {
   const originalGet = apiClient.get
   const calls: Array<{
     endpoint: string
@@ -183,7 +183,7 @@ test('downloadFile maps the RESTful file ownership query', async () => {
   }) as typeof apiClient.get
 
   try {
-    await agentAPI.downloadFile('file-1', 'tenant-1')
+    await agentAPI.downloadFile('file-1')
   } finally {
     apiClient.get = originalGet
   }
@@ -191,7 +191,7 @@ test('downloadFile maps the RESTful file ownership query', async () => {
   assert.deepEqual(calls, [
     {
       endpoint: '/agents/download',
-      params: { id: 'file-1', created_by: 'tenant-1' },
+      params: { id: 'file-1' },
     },
   ])
 })
@@ -280,4 +280,139 @@ test('agent tag APIs preserve tokens and REST envelopes through the domain clien
     endpoint: '/agents/agent%20%2F%20id/tags',
     body: { tags: ['one,two', ' ML '] },
   })
+})
+
+test('public single and multi upload use the beta header with local auth disabled', async () => {
+  const originalUpload = apiClient.upload
+  const originalRepeated = apiClient.uploadRepeated
+  const calls: unknown[] = []
+  apiClient.upload = (async (...args: unknown[]) => {
+    calls.push(args)
+    return { id: 'one' }
+  }) as typeof apiClient.upload
+  apiClient.uploadRepeated = (async (...args: unknown[]) => {
+    calls.push(args)
+    return [{ id: 'one' }, { id: 'two' }]
+  }) as typeof apiClient.uploadRepeated
+  const file = new File(['bytes'], 'test.txt')
+  try {
+    await agentAPI.uploadPublicFile('agent/1', file, 'public-beta')
+    await agentAPI.uploadPublicFile('agent/1', [file, file], 'public-beta')
+  } finally {
+    apiClient.upload = originalUpload
+    apiClient.uploadRepeated = originalRepeated
+  }
+  assert.deepEqual(calls, [
+    [
+      '/agents/agent%2F1/upload',
+      file,
+      undefined,
+      {
+        skipAuth: true,
+        baseURL: '/api',
+        headers: { Authorization: 'Bearer public-beta' },
+      },
+    ],
+    [
+      '/agents/agent%2F1/upload',
+      'file',
+      [file, file],
+      undefined,
+      {
+        skipAuth: true,
+        baseURL: '/api',
+        headers: { Authorization: 'Bearer public-beta' },
+      },
+    ],
+  ])
+})
+
+test('public progress upload supplies beta while debug upload uses the login token', async () => {
+  const originalXHR = globalThis.XMLHttpRequest
+  const originalStorage = globalThis.localStorage
+  const requests: Array<{ url: string; headers: Record<string, string> }> = []
+  class UploadRequest {
+    status = 200
+    responseText = '{"retcode":0,"data":{"id":"uploaded"}}'
+    upload = { onprogress: undefined }
+    onload?: () => void
+    onerror?: () => void
+    headers: Record<string, string> = {}
+    open(_method: string, url: string) {
+      requests.push({ url, headers: this.headers })
+    }
+    setRequestHeader(name: string, value: string) {
+      this.headers[name] = value
+    }
+    send() {
+      this.onload?.()
+    }
+  }
+  Reflect.set(globalThis, 'XMLHttpRequest', UploadRequest)
+  Reflect.set(globalThis, 'localStorage', { getItem: () => 'login-token' })
+  try {
+    assert.deepEqual(
+      await agentAPI.uploadPublicCanvasFileWithProgress(
+        'agent-1',
+        new File(['x'], 'x'),
+        'public-beta',
+      ),
+      { id: 'uploaded' },
+    )
+    await agentAPI.uploadCanvasFileWithProgress('agent-1', new File(['x'], 'x'))
+  } finally {
+    Reflect.set(globalThis, 'XMLHttpRequest', originalXHR)
+    Reflect.set(globalThis, 'localStorage', originalStorage)
+  }
+  assert.equal(requests[0]?.url, '/api/v1/agents/agent-1/upload')
+  assert.deepEqual(requests[0]?.headers, {
+    Authorization: 'Bearer public-beta',
+  })
+  assert.deepEqual(requests[1]?.headers, {
+    Authorization: 'Bearer login-token',
+  })
+})
+
+test('public upload carries beta through the real multipart client', async () => {
+  const originalFetch = globalThis.fetch
+  const calls: Array<{ url: string; headers: Headers; body: FormData }> = []
+  apiClient.setAuthToken('stored-login-must-not-win')
+  globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    calls.push({
+      url: String(input),
+      headers: new Headers(init?.headers),
+      body: init?.body as FormData,
+    })
+    return new Response('{"retcode":0,"data":{"id":"uploaded"}}', {
+      headers: { 'Content-Type': 'application/json' },
+    })
+  }) as typeof fetch
+  try {
+    await agentAPI.uploadPublicFile(
+      'agent-1',
+      new File(['one'], 'one.txt'),
+      'beta-upload',
+    )
+    await agentAPI.uploadPublicFile(
+      'agent-1',
+      [new File(['a'], 'a.txt'), new File(['b'], 'b.txt')],
+      'beta-upload',
+    )
+    assert.deepEqual(
+      calls.map((call) => call.headers.get('authorization')),
+      ['Bearer beta-upload', 'Bearer beta-upload'],
+    )
+    assert.deepEqual(
+      calls.map((call) => call.url),
+      ['/api/v1/agents/agent-1/upload', '/api/v1/agents/agent-1/upload'],
+    )
+    assert.deepEqual(
+      calls.map((call) => call.body.getAll('file').length),
+      [1, 2],
+    )
+    assert(calls.every((call) => !call.headers.has('content-type')))
+  } finally {
+    globalThis.fetch = originalFetch
+    apiClient.setAuthToken(null)
+  }
 })
