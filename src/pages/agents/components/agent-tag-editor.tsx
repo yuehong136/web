@@ -78,55 +78,57 @@ export function AgentTagEditor({
             {t('agents.editTagsDescription')}
           </DialogDescription>
         </DialogHeader>
-        <div className="flex flex-wrap gap-space-xs">
-          {tags.map((tag) => (
-            <Badge
-              key={tag}
-              variant="secondary"
-              className="gap-space-xs font-normal"
-            >
-              {tag}
-              <button
-                type="button"
-                aria-label={t('agents.removeTag', { tag })}
-                disabled={isLoading}
-                onClick={() => setTags(tags.filter((value) => value !== tag))}
+        <div className="space-y-space-md px-space-xl pb-space-lg">
+          <div className="flex flex-wrap gap-space-xs">
+            {tags.map((tag) => (
+              <Badge
+                key={tag}
+                variant="secondary"
+                className="gap-space-xs font-normal"
               >
-                <X className="size-icon-xs" />
-              </button>
-            </Badge>
-          ))}
-        </div>
-        <Input
-          aria-label={t('agents.tags')}
-          placeholder={t('agents.tagsPlaceholder')}
-          value={draft}
-          disabled={isLoading}
-          onChange={(event) => setDraft(event.target.value)}
-          onKeyDown={handleKeyDown}
-        />
-        <p className="text-xs text-text-secondary">{t('agents.tagLimit')}</p>
-        {suggestions.length > 0 && (
-          <div className="space-y-space-xs">
-            <p className="text-xs text-text-secondary">
-              {t('agents.tagSuggestions')}
-            </p>
-            <div className="flex flex-wrap gap-space-xs">
-              {suggestions.map(({ tag }) => (
-                <Button
-                  key={tag}
+                {tag}
+                <button
                   type="button"
-                  size="sm"
-                  variant="outline"
+                  aria-label={t('agents.removeTag', { tag })}
                   disabled={isLoading}
-                  onClick={() => addTag(tag)}
+                  onClick={() => setTags(tags.filter((value) => value !== tag))}
                 >
-                  + {tag}
-                </Button>
-              ))}
-            </div>
+                  <X className="size-icon-xs" />
+                </button>
+              </Badge>
+            ))}
           </div>
-        )}
+          <Input
+            aria-label={t('agents.tags')}
+            placeholder={t('agents.tagsPlaceholder')}
+            value={draft}
+            disabled={isLoading}
+            onChange={(event) => setDraft(event.target.value)}
+            onKeyDown={handleKeyDown}
+          />
+          <p className="text-xs text-text-secondary">{t('agents.tagLimit')}</p>
+          {suggestions.length > 0 && (
+            <div className="space-y-space-xs">
+              <p className="text-xs text-text-secondary">
+                {t('agents.tagSuggestions')}
+              </p>
+              <div className="flex flex-wrap gap-space-xs">
+                {suggestions.map(({ tag }) => (
+                  <Button
+                    key={tag}
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={isLoading}
+                    onClick={() => addTag(tag)}
+                  >
+                    + {tag}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
         <DialogFooter>
           <Button variant="outline" disabled={isLoading} onClick={onClose}>
             {t('common.cancel')}
