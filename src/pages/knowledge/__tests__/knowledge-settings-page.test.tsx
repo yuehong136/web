@@ -881,3 +881,59 @@ it('saves and reloads the spaCy NER GraphRAG method', async () => {
   await render()
   expect(field('Method').textContent).toContain('NER')
 })
+
+it('saves and reloads GraphRAG batch tokens and preserves the value in NER mode', async () => {
+  stored.parser_config = {
+    ...stored.parser_config,
+    graphrag: {
+      use_graphrag: true,
+      method: 'light',
+      batch_chunk_token_size: 4096,
+    },
+  }
+  await reload()
+  await waitForPage(() =>
+    expect(field('Extraction batch tokens')).toBeDefined(),
+  )
+  await input('Extraction batch tokens', '2048')
+  await save()
+  await waitForPage(() =>
+    expect(writes.at(-1)).toMatchObject({
+      parser_config: { graphrag: { batch_chunk_token_size: 2048 } },
+    }),
+  )
+  await act(async () => root.unmount())
+  root = createRoot(container)
+  client.clear()
+  await render()
+  expect(
+    field('Extraction batch tokens').querySelector<HTMLInputElement>(
+      'input[type=number]',
+    )?.value,
+  ).toBe('2048')
+  await selectOption('Method', 'ner')
+  expect(
+    field('Extraction batch tokens').querySelector<HTMLInputElement>(
+      'input[type=number]',
+    )?.disabled,
+  ).toBe(true)
+  await save()
+  await waitForPage(() =>
+    expect(writes.at(-1)).toMatchObject({
+      parser_config: {
+        graphrag: { method: 'ner', batch_chunk_token_size: 2048 },
+      },
+    }),
+  )
+  await selectOption('Method', 'general')
+  expect(
+    field('Extraction batch tokens').querySelector<HTMLInputElement>(
+      'input[type=number]',
+    )?.value,
+  ).toBe('2048')
+  expect(
+    field('Extraction batch tokens').querySelector<HTMLInputElement>(
+      'input[type=number]',
+    )?.disabled,
+  ).toBe(false)
+})

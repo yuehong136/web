@@ -535,6 +535,9 @@ export default {
           'Entity and relation extraction prompts come from Microsoft GraphRAG, a graph-based modular retrieval-augmented generation system.',
         methodTooltipNer:
           'Use local English or Chinese spaCy models for entities and sentence co-occurrence relations. Extraction needs no LLM; description summaries, entity resolution and community reports may still use one.',
+        batchChunkTokenSize: 'Extraction batch tokens',
+        batchChunkTokenSizeTooltip:
+          'Target tokens per LLM extraction batch. Source chunks remain whole when they exceed this target. NER processes each source chunk separately.',
         resolution: 'Entity resolution',
         resolutionTooltip:
           'During parsing, entities with the same meaning are merged to make the knowledge graph cleaner and more accurate.',

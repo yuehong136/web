@@ -5,6 +5,7 @@ import { getKnowledgeNameError } from '@/lib/knowledge/name'
 import {
   knowledgeSettingsFormSchema,
   parserConfigSchema,
+  graphragSchema,
 } from '@/types/knowledge-form'
 import {
   buildKnowledgeSettingsFormValues,
@@ -283,4 +284,54 @@ test('RAPTOR methods migrate into ext and retain Psi bucket settings on save/rel
     psi_bucket_size: 64,
     future: false,
   })
+})
+
+for (const budget of [512, 2048, 4096, 8196]) {
+  test(`GraphRAG batch tokens ${budget} survive hydrate, validate, save and reload`, () => {
+    const values = buildKnowledgeSettingsFormValues(
+      createKnowledgeBase({
+        graphrag: {
+          use_graphrag: true,
+          method: 'ner',
+          batch_chunk_token_size: budget,
+          future_option: { preserved: false },
+        },
+      }),
+      (value) => value,
+    )
+    const validated = parserConfigSchema.parse(values.parser_config)
+    const payload = buildKnowledgeSettingsParserConfig(validated)
+    const reloaded = buildKnowledgeSettingsFormValues(
+      createKnowledgeBase(JSON.parse(JSON.stringify(payload))),
+      (value) => value,
+    )
+    assert.equal(
+      reloaded.parser_config?.graphrag?.batch_chunk_token_size,
+      budget,
+    )
+    assert.deepEqual(reloaded.parser_config?.graphrag?.future_option, {
+      preserved: false,
+    })
+  })
+}
+
+test('GraphRAG batch tokens default only when absent and reject malformed values', () => {
+  assert.equal(graphragSchema.parse({}).batch_chunk_token_size, 4096)
+  for (const budget of [
+    null,
+    false,
+    true,
+    0,
+    511,
+    8197,
+    512.5,
+    '512',
+    Number.NaN,
+    Number.POSITIVE_INFINITY,
+  ]) {
+    assert.equal(
+      graphragSchema.safeParse({ batch_chunk_token_size: budget }).success,
+      false,
+    )
+  }
 })

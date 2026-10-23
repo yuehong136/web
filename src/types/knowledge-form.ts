@@ -27,6 +27,7 @@ export const graphragSchema = z.looseObject({
     .array(z.string())
     .default(['organization', 'person', 'geo', 'event', 'category']),
   method: z.enum(['light', 'general', 'ner']).default('light'),
+  batch_chunk_token_size: z.number().int().min(512).max(8196).default(4096),
   resolution: z.boolean().default(false),
   community: z.boolean().default(false),
 })
@@ -267,6 +268,7 @@ export const getDefaultFormValues = (): Partial<KnowledgeSettingsFormData> => ({
       use_graphrag: false,
       entity_types: DefaultEntityTypes,
       method: 'light',
+      batch_chunk_token_size: 4096,
       resolution: false,
       community: false,
     },
