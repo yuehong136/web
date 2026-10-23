@@ -1,6 +1,7 @@
 import { toast } from '@/lib/toast'
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useFetchTenantInfo } from '@/hooks/use-team-request'
 import { useCreateKnowledge as useCreateKnowledgeRequest } from '@/hooks/use-knowledge-request'
 import type { CreateKBRequest } from '@/types/api'
 import { DEFAULT_CREATE_FORM_VALUES } from './constants'
@@ -17,14 +18,34 @@ export const useCreateKnowledge = ({
   const { t } = useTranslation()
   const { createKnowledge } = useCreateKnowledgeRequest()
 
-  const [formData, setFormData] = useState<CreateKnowledgeFormValues>(
+  const { tenantInfo } = useFetchTenantInfo()
+  const [modelTouched, setModelTouched] = useState(false)
+  const [tenantId, setTenantId] = useState(tenantInfo?.tenant_id)
+  const [draft, setFormData] = useState<CreateKnowledgeFormValues>(
     DEFAULT_CREATE_FORM_VALUES,
   )
-  const [isLoading, setIsLoading] = useState(false)
   const [nameError, setNameError] = useState<string | null>(null)
+  if (tenantInfo?.tenant_id && tenantInfo.tenant_id !== tenantId) {
+    setTenantId(tenantInfo.tenant_id)
+    if (tenantId) {
+      setFormData(DEFAULT_CREATE_FORM_VALUES)
+      setModelTouched(false)
+      setNameError(null)
+    }
+  }
+  const formData = useMemo(
+    () => ({
+      ...draft,
+      embd_id:
+        draft.embd_id || (!modelTouched ? (tenantInfo?.embd_id ?? '') : ''),
+    }),
+    [draft, modelTouched, tenantInfo?.embd_id],
+  )
+  const [isLoading, setIsLoading] = useState(false)
 
   const resetForm = useCallback(() => {
     setFormData(DEFAULT_CREATE_FORM_VALUES)
+    setModelTouched(false)
     setNameError(null)
   }, [])
 
@@ -41,6 +62,7 @@ export const useCreateKnowledge = ({
       key: Key,
       value: CreateKnowledgeFormValues[Key],
     ) => {
+      if (key === 'embd_id') setModelTouched(true)
       setFormData((prev) => ({ ...prev, [key]: value }))
     },
     [],

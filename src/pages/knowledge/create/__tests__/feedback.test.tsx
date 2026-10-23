@@ -11,6 +11,12 @@ import { useQuickEdit } from '@/pages/knowledge/list/use-quick-edit'
 import type { KnowledgeBase } from '@/types/api'
 
 const createKnowledge = vi.hoisted(() => vi.fn())
+const defaults = vi.hoisted(() => ({
+  tenantInfo: null as { tenant_id: string; embd_id: string } | null,
+}))
+vi.mock('@/hooks/use-team-request', () => ({
+  useFetchTenantInfo: () => defaults,
+}))
 const updateKnowledge = vi.hoisted(() => vi.fn())
 vi.mock('@/hooks/use-knowledge-request', () => ({
   useCreateKnowledge: () => ({ createKnowledge }),
@@ -37,6 +43,7 @@ const flush = () => new Promise((resolve) => setTimeout(resolve, 0))
 
 beforeEach(async () => {
   Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true })
+  defaults.tenantInfo = null
   createKnowledge.mockReset()
   created.mockReset()
   await i18n.changeLanguage('en-US')
@@ -165,4 +172,47 @@ it('quick edit uses the same byte budget and preserves pipeline ownership', asyn
     })
   })
   expect(updateKnowledge).not.toHaveBeenCalled()
+})
+
+it('backfills a late tenant embedding ID and submits that exact ID', async () => {
+  await act(async () => form.handleNameChange('late default'))
+  defaults.tenantInfo = { tenant_id: 'owner', embd_id: 'default@Provider' }
+  await act(async () => root.render(<Probe />))
+  expect(form.formData.embd_id).toBe('default@Provider')
+  createKnowledge.mockResolvedValue({ kb_id: 'created-id' })
+  await act(async () => form.submit())
+  expect(createKnowledge).toHaveBeenCalledWith(
+    expect.objectContaining({ embd_id: 'default@Provider' }),
+  )
+  expect(form.formData.name).toBe('')
+  expect(form.formData.embd_id).toBe('default@Provider')
+})
+
+it('never overwrites a chosen or explicitly cleared model when defaults arrive', async () => {
+  await act(async () => form.handleModelSelect('chosen@Provider'))
+  defaults.tenantInfo = { tenant_id: 'owner', embd_id: 'default@Provider' }
+  await act(async () => root.render(<Probe />))
+  expect(form.formData.embd_id).toBe('chosen@Provider')
+  await act(async () => form.handleModelSelect(null))
+  defaults.tenantInfo = { ...defaults.tenantInfo, embd_id: 'new@Provider' }
+  await act(async () => root.render(<Probe />))
+  expect(form.formData.embd_id).toBe('')
+})
+
+it('clears a previous tenant draft and resets the model on reset or reopening', async () => {
+  defaults.tenantInfo = { tenant_id: 'first', embd_id: 'first@Provider' }
+  await act(async () => root.render(<Probe />))
+  await fill()
+  defaults.tenantInfo = { tenant_id: 'second', embd_id: 'second@Provider' }
+  await act(async () => root.render(<Probe />))
+  expect(form.formData.name).toBe('')
+  expect(form.formData.embd_id).toBe('second@Provider')
+  await fill()
+  await act(async () => form.resetForm())
+  expect(form.formData.embd_id).toBe('second@Provider')
+  await fill()
+  await act(async () => root.render(null))
+  await act(async () => root.render(<Probe />))
+  expect(form.formData.name).toBe('')
+  expect(form.formData.embd_id).toBe('second@Provider')
 })
