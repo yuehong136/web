@@ -8,6 +8,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useSearchParams, useParams } from 'react-router-dom'
 import { useMemo, useCallback, useState } from 'react'
 import { datasourceAPI, type DataSourceSetRequest } from '@/api/datasource'
+import { DataSourceStatus } from '@/pages/settings/datasource/types'
 import type {
   IDataSource,
   IDataSourceBase,
@@ -191,6 +192,11 @@ export const useFetchDataSourceDetail = (id?: string) => {
 
   const { data, isFetching, refetch } = useQuery<IDataSource>({
     queryKey: datasourceKeys.detail(targetId),
+    refetchInterval: (query) =>
+      query.state.data?.status === DataSourceStatus.RUNNING ||
+      query.state.data?.status === DataSourceStatus.SCHEDULED
+        ? 5_000
+        : false,
     queryFn: async () => {
       const response = await datasourceAPI.connector.get(targetId)
       return response
@@ -239,19 +245,18 @@ export const useDataSourceLogs = (id: string, autoRefresh = false) => {
 /**
  * 暂停/恢复数据源
  */
-export const useDataSourceResume = (id?: string) => {
+export const useUpdateDataSourceStatus = (id?: string) => {
   const { t } = useTranslation()
   const [searchParams] = useSearchParams()
   const targetId = id || searchParams.get('id') || ''
   const queryClient = useQueryClient()
 
   const mutation = useMutation({
-    mutationFn: (resume: boolean) =>
-      datasourceAPI.connector.resume(targetId, resume),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: datasourceKeys.detail(targetId),
-      })
+    mutationFn: (status: '2' | '5') =>
+      datasourceAPI.connector.update(targetId, { status }),
+    onSuccess: (detail) => {
+      queryClient.setQueryData(datasourceKeys.detail(targetId), detail)
+      queryClient.invalidateQueries({ queryKey: datasourceKeys.all })
       message.success(t('common.operationSuccess'))
     },
     onError: () => {
@@ -260,7 +265,7 @@ export const useDataSourceResume = (id?: string) => {
   })
 
   return {
-    handleResume: mutation.mutate,
+    updateStatus: mutation.mutate,
     isLoading: mutation.isPending,
   }
 }

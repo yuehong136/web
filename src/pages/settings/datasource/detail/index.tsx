@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeft, Pause, Play } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { datasourceAPI, type DataSourceSetRequest } from '@/api/datasource'
@@ -18,7 +18,7 @@ import { Button } from '@/components/ui/button'
 import {
   datasourceKeys,
   useDataSourceLogs,
-  useDataSourceResume,
+  useUpdateDataSourceStatus,
   useFetchDataSourceDetail,
   useTestDataSource,
 } from '@/hooks/use-datasource-request'
@@ -27,6 +27,7 @@ import { DataSourceKey, type FormFieldConfig } from '../types'
 import { DataSourceLogsTable } from './logs-table'
 import { DataSourceStatusBadge, isDataSourceActive } from './status-display'
 import { SyncOverview } from './sync-overview'
+import { DataSourceActions, getScheduleFields } from './schedule-controls'
 import {
   getDataSourceDefaultValues,
   prepareDataSourceValues,
@@ -42,10 +43,15 @@ export default function DataSourceDetailPage() {
   const queryClient = useQueryClient()
 
   const { data: detail, isFetching } = useFetchDataSourceDetail(id)
-  const { handleResume, isLoading: resumeLoading } = useDataSourceResume(id)
+  const { updateStatus, isLoading: statusLoading } =
+    useUpdateDataSourceStatus(id)
   const { dataSourceInfo } = useDataSourceInfo()
   const { formFields, baseFields } = useDataSourceFormFields()
   const [saveLoading, setSaveLoading] = useState(false)
+  const [savedForm, setSavedForm] = useState<{
+    id: string
+    values: Record<string, unknown>
+  }>()
   const { handleTest, isTesting } = useTestDataSource(id)
 
   const isActive = isDataSourceActive(detail?.status)
@@ -58,16 +64,20 @@ export default function DataSourceDetailPage() {
     const readOnlyBaseFields = baseFields.map((field) =>
       field.name === 'name' ? { ...field, disabled: true } : field,
     )
-    return [...readOnlyBaseFields, ...sourceFields]
-  }, [baseFields, source, formFields])
+    return [
+      ...readOnlyBaseFields,
+      ...sourceFields,
+      ...getScheduleFields(source, t),
+    ].map((field) => ({ ...field, disabled: field.disabled || saveLoading }))
+  }, [baseFields, source, formFields, t, saveLoading])
 
   const handleSave = async (values: Record<string, unknown>) => {
-    if (!detail || saveLoading) return
+    if (!detail || saveLoading) return false
 
     const errorKey = validateJiraCredentials(detail.source, values)
     if (errorKey) {
       toast.error(t(errorKey))
-      return
+      return false
     }
     try {
       setSaveLoading(true)
@@ -81,16 +91,22 @@ export default function DataSourceDetailPage() {
         id: detail.id,
         name: detail.name,
         source: detail.source,
+        refresh_freq: Number(values.refresh_freq),
+        prune_freq: Number(values.prune_freq),
+        timeout_secs: Number(values.timeout_secs),
+        reschedule: true,
         config:
           (preparedValues.config as Record<string, unknown>) || detail.config,
       }
-      await datasourceAPI.connector.set(data)
-      await queryClient.invalidateQueries({
-        queryKey: datasourceKeys.detail(id),
-      })
+      const saved = await datasourceAPI.connector.set(data)
+      queryClient.setQueryData(datasourceKeys.detail(id), saved)
+      await queryClient.invalidateQueries({ queryKey: datasourceKeys.all })
+      setSavedForm({ id: detail.id, values })
       toast.success(t('common.saved'))
+      return true
     } catch {
       toast.error(t('common.saveFailed'))
+      return false
     } finally {
       setSaveLoading(false)
     }
@@ -150,20 +166,6 @@ export default function DataSourceDetailPage() {
         actions={
           <>
             <DataSourceStatusBadge status={detail.status} />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleResume(!isActive)}
-              disabled={resumeLoading}
-              className="gap-space-xs"
-            >
-              {isActive ? (
-                <Pause className="size-icon-sm" aria-hidden="true" />
-              ) : (
-                <Play className="size-icon-sm" aria-hidden="true" />
-              )}
-              {isActive ? t('datasource.pause') : t('datasource.resume')}
-            </Button>
           </>
         }
       />
@@ -178,7 +180,12 @@ export default function DataSourceDetailPage() {
               key={detail.id}
               fields={fields}
               onSubmit={handleSave}
-              defaultValues={getDataSourceDefaultValues(detail.source, detail)}
+              defaultValues={{
+                refresh_freq: 5,
+                prune_freq: 5,
+                timeout_secs: 1740,
+                ...getDataSourceDefaultValues(detail.source, detail),
+              }}
               labelClassName="font-normal"
             >
               <div className="mt-space-lg flex flex-wrap items-center justify-end gap-space-sm border-t border-border-subtle pt-space-base">
@@ -202,10 +209,14 @@ export default function DataSourceDetailPage() {
                     </Button>
                   </>
                 )}
-                <DynamicForm.SavingButton
-                  submitLoading={saveLoading || isTesting}
-                  buttonText={t('common.save')}
-                  submitFunc={handleSave}
+                <DataSourceActions
+                  status={detail.status}
+                  savedValues={
+                    savedForm?.id === detail.id ? savedForm.values : undefined
+                  }
+                  busy={saveLoading || isTesting || statusLoading}
+                  onSave={handleSave}
+                  onStatus={updateStatus}
                 />
               </div>
             </DynamicForm.Root>

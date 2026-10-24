@@ -14,6 +14,19 @@ export interface DataSourceSetRequest {
   name: string
   source: DataSourceKey
   config: Record<string, unknown>
+  refresh_freq?: number
+  prune_freq?: number
+  timeout_secs?: number
+  reschedule?: boolean
+}
+
+export interface DataSourceUpdateRequest {
+  config?: Record<string, unknown>
+  refresh_freq?: number
+  prune_freq?: number
+  timeout_secs?: number
+  status?: '2' | '5'
+  reschedule?: boolean
 }
 
 export interface DataSourceLogsParams {
@@ -155,24 +168,38 @@ export const datasourceAPI = {
       return normalizeDataSource(source)
     },
 
-    // 创建/更新数据源（RESTful 面拆成了建 POST /connectors 与改 PATCH /connectors/{id}）
-    set: ({ id, ...data }: DataSourceSetRequest): Promise<{ id: string }> =>
-      withLegacyFallback(
-        () =>
-          id
-            ? apiClient.patch<{ id: string }>(
-                connectorPath(id),
-                { config: data.config },
-                connectorRestConfig,
-              )
-            : apiClient.post<{ id: string }>(
-                '/v1/connectors',
-                data,
-                connectorRestConfig,
-              ),
-        () =>
-          apiClient.post<{ id: string }>('/v1/connector/set', { id, ...data }),
-      ),
+    // Saved changes may restart the independent sync/prune schedules.
+    set: ({
+      id,
+      name,
+      source,
+      ...data
+    }: DataSourceSetRequest): Promise<IDataSource> =>
+      id
+        ? datasourceAPI.connector.update(
+            id,
+            Object.fromEntries(
+              Object.entries({
+                config: data.config,
+                refresh_freq: data.refresh_freq,
+                prune_freq: data.prune_freq,
+                timeout_secs: data.timeout_secs,
+                reschedule: data.reschedule,
+              }).filter(([, value]) => value !== undefined),
+            ),
+          )
+        : apiClient
+            .post<RawDataSource>(
+              '/v1/connectors',
+              { name, source, ...data },
+              connectorRestConfig,
+            )
+            .then(normalizeDataSource),
+
+    update: (id: string, data: DataSourceUpdateRequest): Promise<IDataSource> =>
+      apiClient
+        .patch<RawDataSource>(connectorPath(id), data, connectorRestConfig)
+        .then(normalizeDataSource),
 
     // 仅测试已保存配置；不会保存或调度同步。
     test: (id: string): Promise<{ message: string }> =>
@@ -187,18 +214,6 @@ export const datasourceAPI = {
       withLegacyFallback(
         () => apiClient.delete<void>(connectorPath(id), connectorRestConfig),
         () => apiClient.post<void>(`/v1/connector/${id}/rm`),
-      ),
-
-    // 暂停/恢复数据源
-    resume: (id: string, resume: boolean): Promise<void> =>
-      withLegacyFallback(
-        () =>
-          apiClient.post<void>(
-            `${connectorPath(id)}/resume`,
-            { resume },
-            connectorRestConfig,
-          ),
-        () => apiClient.put<void>(`/v1/connector/${id}/resume`, { resume }),
       ),
 
     // 重建数据源

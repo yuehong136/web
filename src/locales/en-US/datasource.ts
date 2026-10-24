@@ -1,5 +1,19 @@
 export default {
   datasource: {
+    stop: 'Stop',
+    refreshMinutes: 'Sync interval (minutes)',
+    pruneMinutes: 'Prune interval (minutes; 0 disables pruning)',
+    timeoutSeconds: 'Task timeout (seconds)',
+    scheduleInteger: 'Enter a whole number of at least {{minimum}}.',
+    logTask: 'Task',
+    logStartedAt: 'Started at',
+    taskSync: 'Sync',
+    taskPrune: 'Prune',
+    pruneInProgress: 'Pruning source deletions',
+    pruneCompleted: 'Removed {{removed}} documents · {{errors}} errors',
+    startsInSeconds: 'Starts in {{seconds}}s',
+    readyToRun: 'Ready to run',
+
     restApi: {
       nextCursorField: 'Next cursor field',
       nextCursorFieldTip:

@@ -201,7 +201,7 @@ test('connection test checks business retcode even when HTTP succeeds', async ()
   }
 })
 
-test('delete uses DELETE and resume/rebuild use POST', async () => {
+test('delete uses DELETE, status uses PATCH and rebuild uses POST', async () => {
   const deletes: Call[] = []
   const posts: Call[] = []
   const restoreDelete = stub('delete', async (endpoint: string) => {
@@ -211,21 +211,32 @@ test('delete uses DELETE and resume/rebuild use POST', async () => {
     posts.push({ endpoint, data })
   })
 
+  const patches: Call[] = []
+  const restorePatch = stub(
+    'patch',
+    async (endpoint: string, data?: unknown) => {
+      patches.push({ endpoint, data })
+      return { id: 'conn-1', status: '2' }
+    },
+  )
   try {
     await datasourceAPI.connector.delete('conn-1')
-    await datasourceAPI.connector.resume('conn-1', false)
+    await datasourceAPI.connector.update('conn-1', { status: '2' })
     await datasourceAPI.connector.rebuild('conn-1', 'kb-1')
   } finally {
     restoreDelete()
     restorePost()
+    restorePatch()
   }
 
   assert.deepEqual(
     deletes.map((call) => call.endpoint),
     ['/v1/connectors/conn-1'],
   )
+  assert.deepEqual(patches, [
+    { endpoint: '/v1/connectors/conn-1', data: { status: '2' } },
+  ])
   assert.deepEqual(posts, [
-    { endpoint: '/v1/connectors/conn-1/resume', data: { resume: false } },
     { endpoint: '/v1/connectors/conn-1/rebuild', data: { kb_id: 'kb-1' } },
   ])
 })
@@ -443,5 +454,45 @@ test('deletion sync and Jira credentials survive create/PATCH configuration payl
   } finally {
     restorePost()
     restorePatch()
+  }
+})
+
+test('save forwards independent intervals and reschedule without a legacy resume request', async () => {
+  const calls: Call[] = []
+  const restore = stub('patch', async (endpoint: string, data?: unknown) => {
+    calls.push({ endpoint, data })
+    return { id: 'owned', status: '5' }
+  })
+  try {
+    const saved = await datasourceAPI.connector.set({
+      id: 'owned',
+      name: 'source',
+      source: 's3' as never,
+      config: { sync_deleted_files: true },
+      refresh_freq: 7,
+      prune_freq: 19,
+      timeout_secs: 30,
+      reschedule: true,
+      ...({
+        status: 'pending',
+        tenant_id: 'must-not-send',
+        create_time: 100,
+      } as Record<string, unknown>),
+    })
+    assert.equal(saved.status, DataSourceStatus.SCHEDULED)
+    assert.deepEqual(calls, [
+      {
+        endpoint: '/v1/connectors/owned',
+        data: {
+          config: { sync_deleted_files: true },
+          refresh_freq: 7,
+          prune_freq: 19,
+          timeout_secs: 30,
+          reschedule: true,
+        },
+      },
+    ])
+  } finally {
+    restore()
   }
 })

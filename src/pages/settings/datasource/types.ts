@@ -82,6 +82,7 @@ export interface IDataSource extends IDataSourceBase {
   input_type: string
   prune_freq: number
   refresh_freq: number
+  timeout_secs?: number
   status: DataSourceStatus
   tenant_id: string
   update_date: string
@@ -161,7 +162,7 @@ export const enum FormFieldType {
  */
 export interface FormFieldShowWhen {
   field: string
-  value: string | string[]
+  value: string | string[] | boolean
 }
 
 /**

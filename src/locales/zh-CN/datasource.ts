@@ -1,5 +1,19 @@
 export default {
   datasource: {
+    stop: '停止',
+    refreshMinutes: '同步间隔（分钟）',
+    pruneMinutes: '清理间隔（分钟，0 表示关闭清理）',
+    timeoutSeconds: '任务超时（秒）',
+    scheduleInteger: '请输入不小于 {{minimum}} 的整数。',
+    logTask: '任务',
+    logStartedAt: '开始时间',
+    taskSync: '同步',
+    taskPrune: '清理',
+    pruneInProgress: '正在清理源端已删除文档',
+    pruneCompleted: '已删除 {{removed}} 篇文档 · {{errors}} 个错误',
+    startsInSeconds: '{{seconds}} 秒后开始',
+    readyToRun: '等待执行',
+
     restApi: {
       nextCursorField: '下一游标字段',
       nextCursorFieldTip: '下一游标 JSONPath 留空时使用的顶层字段。',
