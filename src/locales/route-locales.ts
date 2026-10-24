@@ -23,6 +23,7 @@ export const namespacesForPath = (pathname: string): LocaleNamespace[] => {
   } else if (/^\/settings(\/|$)/.test(pathname)) {
     domains.push(
       'settings',
+      'sandbox',
       'appearance',
       'datasource',
       'channel',

@@ -232,6 +232,7 @@ it('defaults Settings to Profile, preserves its return location, and orders acco
     'Channels',
     'API',
     'User management',
+    'Sandbox execution',
     'System status',
   ])
 })
