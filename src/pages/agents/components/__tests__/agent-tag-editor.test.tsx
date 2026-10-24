@@ -35,9 +35,9 @@ let root: Root
 let container: HTMLDivElement
 let client: QueryClient
 const click = async (label: string) => {
-  const button = [...document.querySelectorAll('button')].find(
-    (node) => node.textContent === label,
-  )
+  const button = [
+    ...document.querySelectorAll<HTMLElement>('button,[role="menuitem"]'),
+  ].find((node) => node.textContent === label)
   expect(button, label).toBeTruthy()
   await act(async () => button!.click())
 }
@@ -153,8 +153,14 @@ it('retains the editor when the card dropdown unmounts', async () => {
       </QueryClientProvider>,
     ),
   )
-  const menu = container.querySelector<HTMLButtonElement>('button')!
-  await act(async () => menu.click())
+  const menu = container.querySelector<HTMLButtonElement>(
+    'button[aria-label="agents.actionsFor"]',
+  )!
+  await act(async () =>
+    menu.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }),
+    ),
+  )
   await click('agents.editTags')
   expect(document.querySelector('input')).toBeTruthy()
   await type('AfterMenu')

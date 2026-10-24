@@ -1,10 +1,21 @@
 import { theme as antdTheme, type ThemeConfig } from 'antd'
 import { getTokenValue } from '@/lib/design-tokens'
+import {
+  getAppearance,
+  type Appearance,
+  type AppearancePreset,
+} from '@/themes/appearance'
 
-export function buildAntdTheme(isDark: boolean): ThemeConfig {
+export function buildAntdTheme(
+  isDark: boolean,
+  preset: AppearancePreset = getAppearance().preset,
+  appearance: Readonly<Appearance> & {
+    readonly reducedMotion?: boolean
+  } = getAppearance(),
+): ThemeConfig {
   const mode = isDark ? 'dark' : 'light'
   const token = (name: Parameters<typeof getTokenValue>[0]) =>
-    getTokenValue(name, mode)
+    getTokenValue(name, mode, preset)
   const input = {
     colorBgContainer: token('components-input-bg'),
     colorText: token('components-input-text'),
@@ -29,7 +40,22 @@ export function buildAntdTheme(isDark: boolean): ThemeConfig {
       colorBgContainer: token('background-surface'),
       colorBgElevated: token('components-dropdown-bg'),
       colorBorder: token('border-default'),
-      borderRadius: 8,
+      borderRadius:
+        preset === 'graphite'
+          ? 6
+          : preset === 'ocean'
+            ? 12
+            : preset === 'paper'
+              ? 8
+              : 10,
+      fontSize: 14 * appearance.textScale,
+      controlHeight:
+        (appearance.density === 'compact' ? 32 : 40) * appearance.textScale,
+      controlHeightSM:
+        (appearance.density === 'compact' ? 28 : 32) * appearance.textScale,
+      controlHeightLG:
+        (appearance.density === 'compact' ? 40 : 48) * appearance.textScale,
+      motion: appearance.motion !== 'reduced' && !appearance.reducedMotion,
     },
     components: {
       Checkbox: {

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { createPortal } from 'react-dom'
 import { cn } from '@/lib/utils'
-import { useNearestPortalTheme } from './portal-theme'
+import { useNearestPortalTheme, usePortalContainer } from './portal-theme'
 
 export interface DropdownMenuProps {
   children: React.ReactNode
@@ -107,6 +107,7 @@ export const DropdownMenuContent: React.FC<DropdownMenuContentProps> = ({
   const dropdownRef = React.useRef<HTMLDivElement>(null)
   const fallbackRef = React.useRef<HTMLDivElement>(null)
   const [position, setPosition] = React.useState({ top: 0, left: 0 })
+  const portalContainer = usePortalContainer()
   const theme = useNearestPortalTheme(
     context?.triggerRef ?? fallbackRef,
     Boolean(context?.isOpen),
@@ -200,7 +201,7 @@ export const DropdownMenuContent: React.FC<DropdownMenuContentProps> = ({
         {children}
       </div>
     </>,
-    document.body,
+    portalContainer ?? document.body,
   )
 }
 

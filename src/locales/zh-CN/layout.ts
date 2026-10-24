@@ -1,6 +1,10 @@
 export default {
   layout: {
     brandName: 'AI平台',
+    workspace: {
+      skipToTask: '跳至主任务区',
+      mainTask: '主任务区',
+    },
     sidebar: {
       expand: '展开侧边栏',
       collapse: '收起侧边栏',

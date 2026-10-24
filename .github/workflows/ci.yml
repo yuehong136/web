@@ -19,6 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -34,6 +36,11 @@ jobs:
 
       - name: File size ratchet
         run: npm run lint:file-size
+
+      - name: Internationalization ratchet (committed changes)
+        env:
+          I18N_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: node scripts/check-agent-i18n-hardcoded.mjs --base "$I18N_BASE" --head HEAD
 
       - name: ESLint (type-aware, Agent critical dirs)
         run: npm run lint:typed

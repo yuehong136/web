@@ -1,5 +1,6 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { getMutationErrorNotice } from '@/lib/mutation-error-feedback'
 import { conversationAPI } from '@/api/conversation'
 import { knowledgeAPI } from '@/api/knowledge'
 import { llmAPI } from '@/api/llm'
@@ -60,6 +61,14 @@ export const useSearchExecution = (
     SearchExecutionPhase.IDLE,
   )
   const abortControllerRef = useRef<AbortController | null>(null)
+  const requestRevision = useRef(0)
+  const scopeKey = `${searchApp?.tenant_id ?? ''}:${searchApp?.id ?? ''}`
+  const [previousScope, setPreviousScope] = useState(scopeKey)
+  if (previousScope !== scopeKey) {
+    setPreviousScope(scopeKey)
+    setTurns([])
+    setPhase(SearchExecutionPhase.IDLE)
+  }
   const streamFrameRef = useRef<number | null>(null)
   const pendingStreamPatchRef = useRef<{
     turnId: string
@@ -123,6 +132,16 @@ export const useSearchExecution = (
     [updateTurn],
   )
 
+  useEffect(
+    () => () => {
+      requestRevision.current++
+      abortControllerRef.current?.abort()
+      abortControllerRef.current = null
+      resetPendingStreamPatch()
+    },
+    [scopeKey, resetPendingStreamPatch],
+  )
+
   const ensureRerankModelMap = useCallback(async () => {
     if (rerankModelMapLoadedRef.current) return
     const response = await llmAPI.list({ available: true })
@@ -156,6 +175,7 @@ export const useSearchExecution = (
       if (!searchApp || !query.trim()) return
       if (!effectiveConfig?.kb_ids?.length) return
 
+      const ownRevision = ++requestRevision.current
       if (abortControllerRef.current) {
         abortControllerRef.current.abort()
         resetPendingStreamPatch()
@@ -175,6 +195,9 @@ export const useSearchExecution = (
       const abortController = new AbortController()
       abortControllerRef.current = abortController
       const { signal } = abortController
+      const ownsRequest = () =>
+        requestRevision.current === ownRevision &&
+        abortControllerRef.current === abortController
       const startedAt = Date.now()
       const executionMode =
         options?.executionMode || SearchExecutionMode.DEEP_RESEARCH
@@ -198,6 +221,7 @@ export const useSearchExecution = (
         }
       }
 
+      if (!ownsRequest()) return
       const newTurn: SearchTurn = {
         id: turnId,
         query: query.trim(),
@@ -222,6 +246,7 @@ export const useSearchExecution = (
       setTurns((prev) => [...prev, newTurn])
       setPhase(SearchExecutionPhase.RETRIEVING)
 
+      let failureNoticeKey: string | undefined
       try {
         const rawMetaDataFilter = config.meta_data_filter
         const metaDataFilter =
@@ -266,7 +291,7 @@ export const useSearchExecution = (
             reference_metadata: config.reference_metadata,
           })
           .then((result) => {
-            if (signal.aborted) return
+            if (!ownsRequest() || signal.aborted) return
             updateTurn(turnId, {
               chunks: result.chunks as ChunkResult[],
               docAggs: result.doc_aggs as DocAgg[],
@@ -301,6 +326,7 @@ export const useSearchExecution = (
               await readSSEStream<SSEEnvelope>(response, {
                 signal,
                 onEvent: (data) => {
+                  if (!ownsRequest() || signal.aborted) return
                   const chunk = consumeStreamingAnswerChunk(streamState, data)
                   streamState = chunk.nextState
                   if (chunk.isDone || chunk.isFinal) {
@@ -315,6 +341,7 @@ export const useSearchExecution = (
                 },
               })
 
+              if (!ownsRequest()) return
               streamState = finalizeStreamingAnswerState(streamState)
               scheduleStreamPatch(
                 turnId,
@@ -324,7 +351,10 @@ export const useSearchExecution = (
               flushPendingStreamPatch()
               // 已生成的摘要保留；失败只给固定文案，不展示后端错误原文
               const failureNotice = getStreamingAnswerFailureNotice(streamState)
-              if (failureNotice) throw new Error(t(failureNotice))
+              if (failureNotice) {
+                failureNoticeKey = failureNotice
+                throw new Error('Summary stream did not complete')
+              }
             })()
           : Promise.resolve()
 
@@ -332,6 +362,7 @@ export const useSearchExecution = (
           retrievalPromise,
           summaryPromise,
         ])
+        if (!ownsRequest()) return
         const rejectedResult = settledResults.find(
           (result): result is PromiseRejectedResult =>
             result.status === 'rejected',
@@ -359,7 +390,7 @@ export const useSearchExecution = (
               search_id: searchApp.id,
             })
 
-            if (!signal.aborted) {
+            if (ownsRequest() && !signal.aborted) {
               updateTurn(turnId, {
                 relatedQuestions: related?.slice(0, 5) ?? [],
               })
@@ -369,6 +400,7 @@ export const useSearchExecution = (
           }
         }
 
+        if (!ownsRequest() || signal.aborted) return
         updateTurn(turnId, {
           isStreaming: false,
           phase: SearchExecutionPhase.COMPLETE,
@@ -376,6 +408,7 @@ export const useSearchExecution = (
         })
         setPhase(SearchExecutionPhase.COMPLETE)
       } catch (error: unknown) {
+        if (!ownsRequest()) return
         const aborted =
           signal.aborted || (error as { name?: string })?.name === 'AbortError'
         if (aborted) {
@@ -392,10 +425,15 @@ export const useSearchExecution = (
           isStreaming: false,
           phase: SearchExecutionPhase.ERROR,
           latencyMs: Date.now() - startedAt,
-          errorMessage:
-            error instanceof Error && error.message
-              ? error.message
-              : '搜索执行失败，请稍后重试。',
+          errorMessageKey:
+            failureNoticeKey ??
+            getMutationErrorNotice(error)?.messageKey ??
+            'searchPage.workspace.failed',
+          errorMessage: t(
+            failureNoticeKey ??
+              getMutationErrorNotice(error)?.messageKey ??
+              'searchPage.workspace.failed',
+          ),
         })
         setPhase(SearchExecutionPhase.ERROR)
       }
@@ -413,6 +451,8 @@ export const useSearchExecution = (
   )
 
   const stop = useCallback(() => {
+    flushPendingStreamPatch()
+    requestRevision.current++
     abortControllerRef.current?.abort()
     abortControllerRef.current = null
     resetPendingStreamPatch()
@@ -425,9 +465,10 @@ export const useSearchExecution = (
       ),
     )
     setPhase(SearchExecutionPhase.STOPPED)
-  }, [resetPendingStreamPatch])
+  }, [resetPendingStreamPatch, flushPendingStreamPatch])
 
   const clear = useCallback(() => {
+    requestRevision.current++
     abortControllerRef.current?.abort()
     abortControllerRef.current = null
     resetPendingStreamPatch()

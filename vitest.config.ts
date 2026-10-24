@@ -12,6 +12,7 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: false,
+    setupFiles: ['src/locales/test-bootstrap.ts'],
     include: ['src/**/*.{test,spec}.{ts,tsx}'],
   },
 })

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { X } from 'lucide-react'
 import { Slot } from '@radix-ui/react-slot'
 import { cn } from '@/lib/utils'
-import { useActivePortalTheme } from './portal-theme'
+import { useActivePortalTheme, usePortalContainer } from './portal-theme'
 
 export interface DialogProps {
   open: boolean
@@ -54,6 +54,34 @@ const DialogContext = React.createContext<
     }
   | undefined
 >(undefined)
+
+type DialogLabels = {
+  title: HTMLHeadingElement | null
+  description: HTMLParagraphElement | null
+}
+const DialogAccessibilityContext = React.createContext<
+  | {
+      titleId: string
+      descriptionId: string
+      registerTitle: (node: HTMLHeadingElement | null) => void
+      registerDescription: (node: HTMLParagraphElement | null) => void
+    }
+  | undefined
+>(undefined)
+const syncDialogLabels = (
+  dialog: HTMLDialogElement | null,
+  labels: DialogLabels,
+) => {
+  if (!dialog) return
+  for (const [kind, attribute] of [
+    ['title', 'aria-labelledby'],
+    ['description', 'aria-describedby'],
+  ] as const) {
+    const id = labels[kind]?.id
+    if (id) dialog.setAttribute(attribute, id)
+    else dialog.removeAttribute(attribute)
+  }
+}
 
 export const Dialog: React.FC<DialogProps> = ({
   open,
@@ -138,9 +166,39 @@ export const DialogContent: React.FC<DialogContentProps> = ({
   }
 
   const { open, onOpenChange } = context
+  const portalContainer = usePortalContainer()
   const scopedTheme = useActivePortalTheme(open, theme)
   const dialogRef = React.useRef<HTMLDialogElement>(null)
   const contentRef = React.useRef<HTMLDivElement>(null)
+  const labels = React.useRef<DialogLabels>({ title: null, description: null })
+  const id = React.useId()
+  const registerLabel = React.useCallback(
+    (
+      kind: keyof DialogLabels,
+      node: HTMLHeadingElement | HTMLParagraphElement | null,
+    ) => {
+      labels.current[kind] = node
+      syncDialogLabels(dialogRef.current, labels.current)
+    },
+    [],
+  )
+  const accessibility = React.useMemo(
+    () => ({
+      titleId: `${id}-title`,
+      descriptionId: `${id}-description`,
+      registerTitle: (node: HTMLHeadingElement | null) =>
+        registerLabel('title', node),
+      registerDescription: (node: HTMLParagraphElement | null) =>
+        registerLabel('description', node),
+    }),
+    [id, registerLabel],
+  )
+
+  // Child refs register before this layout effect, so the native modal is named
+  // before it opens, including when a caller supplies a custom title id.
+  React.useLayoutEffect(() => {
+    syncDialogLabels(dialogRef.current, labels.current)
+  })
 
   React.useLayoutEffect(() => {
     const element = dialogRef.current
@@ -151,11 +209,24 @@ export const DialogContent: React.FC<DialogContentProps> = ({
         : null)
     if (!open || !modal || !element) return
     element.showModal()
-    contentRef.current
-      ?.querySelector<HTMLElement>(
-        'button, input, textarea, select, [tabindex="0"]',
+    // showModal owns initial focus and Tab isolation in browsers. Only fill a
+    // missing initial target; do not replace an autofocus target chosen by it.
+    if (!element.contains(document.activeElement)) {
+      const candidates = [
+        ...(contentRef.current?.querySelectorAll<HTMLElement>(
+          'button, input, textarea, select, a[href], summary, [tabindex]',
+        ) ?? []),
+      ].filter(
+        (node) =>
+          node.tabIndex >= 0 &&
+          !node.matches(':disabled, [type="hidden"]') &&
+          !node.closest('[hidden], [inert], [aria-hidden="true"]'),
       )
-      ?.focus()
+      const target =
+        candidates.find((node) => node.hasAttribute('autofocus')) ??
+        candidates[0]
+      ;(target ?? contentRef.current)?.focus()
+    }
     return () => {
       element.close()
       if (returnFocus)
@@ -170,6 +241,8 @@ export const DialogContent: React.FC<DialogContentProps> = ({
     const handleEscape = (event: KeyboardEvent) => {
       // Nested Radix layers (menus, alert dialogs) mark Escape they consumed.
       if (event.key === 'Escape' && !event.defaultPrevented) {
+        // Avoid a second native cancel after closing this controlled modal.
+        if (modal) event.preventDefault()
         onOpenChange(false)
       }
     }
@@ -183,7 +256,7 @@ export const DialogContent: React.FC<DialogContentProps> = ({
       document.removeEventListener('keydown', handleEscape)
       document.body.style.overflow = 'unset'
     }
-  }, [open, onOpenChange])
+  }, [open, modal, onOpenChange])
 
   // Handle overlay click
   if (!open) return null
@@ -203,6 +276,7 @@ export const DialogContent: React.FC<DialogContentProps> = ({
       {closeOnOverlayClick ? (
         <button
           type="button"
+          tabIndex={modal ? -1 : undefined}
           aria-label={t('common.closeDialog')}
           className="animate-in fade-in-0 fixed inset-0 bg-black/50 backdrop-blur-xs duration-200"
           onClick={() => onOpenChange(false)}
@@ -214,6 +288,7 @@ export const DialogContent: React.FC<DialogContentProps> = ({
       {/* Dialog Container */}
       <div
         ref={contentRef}
+        tabIndex={modal ? -1 : undefined}
         className={cn(
           'relative z-10 w-full rounded-xl shadow-2xl',
           // Native <dialog> defaults to black text; inherit the theme instead.
@@ -227,6 +302,7 @@ export const DialogContent: React.FC<DialogContentProps> = ({
         {/* Close Button */}
         {showCloseButton && (
           <button
+            type="button"
             onClick={() => onOpenChange(false)}
             className={cn(
               'absolute top-4 right-4 z-10',
@@ -236,17 +312,19 @@ export const DialogContent: React.FC<DialogContentProps> = ({
               'transition-colors duration-150',
             )}
           >
-            <X className="h-4 w-4" />
+            <X className="h-4 w-4" aria-hidden="true" />
             <span className="sr-only">{t('common.close')}</span>
           </button>
         )}
 
-        {children}
+        <DialogAccessibilityContext.Provider value={accessibility}>
+          {children}
+        </DialogAccessibilityContext.Provider>
       </div>
     </dialog>
   )
 
-  return createPortal(content, document.body)
+  return createPortal(content, portalContainer ?? document.body)
 }
 
 /**
@@ -263,31 +341,46 @@ export const DialogHeader: React.FC<DialogHeaderProps> = ({
 export const DialogTitle: React.FC<DialogTitleProps> = ({
   className,
   children,
+  id,
   ...props
-}) => (
-  <h2
-    className={cn(
-      'pr-8 text-lg font-semibold text-[var(--color-text-primary)]',
-      className,
-    )}
-    {...props}
-  >
-    {children}
-  </h2>
-)
+}) => {
+  const accessibility = React.useContext(DialogAccessibilityContext)
+  return (
+    <h2
+      ref={(node) => accessibility?.registerTitle(node)}
+      id={id ?? accessibility?.titleId}
+      className={cn(
+        'pr-8 text-lg font-semibold text-[var(--color-text-primary)]',
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </h2>
+  )
+}
 
 /**
  * Dialog 描述文本
  */
 export const DialogDescription: React.FC<DialogDescriptionProps> = ({
   className,
+  id,
   ...props
-}) => (
-  <p
-    className={cn('mt-1 text-sm text-[var(--color-text-secondary)]', className)}
-    {...props}
-  />
-)
+}) => {
+  const accessibility = React.useContext(DialogAccessibilityContext)
+  return (
+    <p
+      ref={(node) => accessibility?.registerDescription(node)}
+      id={id ?? accessibility?.descriptionId}
+      className={cn(
+        'mt-1 text-sm text-[var(--color-text-secondary)]',
+        className,
+      )}
+      {...props}
+    />
+  )
+}
 
 /**
  * Dialog 底部

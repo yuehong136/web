@@ -1,106 +1,12 @@
-/**
- * 主题系统入口文件
- * 导出所有主题相关的模块
- */
-
+/** Public theme and appearance API. */
 export { cssVariables, defaultTokens } from './tokens'
 export { tailwindColors } from './tailwind-vars'
 export type { DesignTokens } from './tokens'
-export { ScopedTheme, resolveScopedTheme } from './scoped-theme'
-export type { ScopedThemeValue } from './scoped-theme'
-
-// 主题枚举
-export const Theme = {
-  LIGHT: 'light' as const,
-  DARK: 'dark' as const,
-  SYSTEM: 'system' as const,
-}
-
-export type Theme = (typeof Theme)[keyof typeof Theme]
-
-// 主题工具函数
-export const setTheme = (theme: Theme) => {
-  // 添加过渡控制标记，临时禁用过渡动画防止闪烁（借鉴 Dify）
-  document.documentElement.setAttribute('data-changing-theme', '')
-
-  if (theme === Theme.SYSTEM) {
-    // 系统模式：检测系统偏好并设置对应主题
-    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    document.documentElement.setAttribute(
-      'data-theme',
-      isDark ? 'dark' : 'light',
-    )
-    localStorage.removeItem('theme')
-  } else {
-    document.documentElement.setAttribute('data-theme', theme)
-    localStorage.setItem('theme', theme)
-  }
-
-  // 下一帧移除标记，恢复过渡动画
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      document.documentElement.removeAttribute('data-changing-theme')
-    })
-  })
-}
-
-export const getTheme = (): Theme => {
-  const stored = localStorage.getItem('theme') as Theme
-  if (stored && Object.values(Theme).includes(stored)) {
-    return stored
-  }
-  return Theme.SYSTEM
-}
-
-export const getResolvedTheme = (): 'light' | 'dark' => {
-  const theme = getTheme()
-  if (theme === Theme.SYSTEM) {
-    return window.matchMedia('(prefers-color-scheme: dark)').matches
-      ? 'dark'
-      : 'light'
-  }
-  return theme as 'light' | 'dark'
-}
-
-// 初始化主题
-export const initTheme = () => {
-  const theme = getTheme()
-  if (theme === Theme.SYSTEM) {
-    // 监听系统主题变化
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    const updateTheme = () => {
-      const resolvedTheme = mediaQuery.matches ? 'dark' : 'light'
-      document.documentElement.setAttribute('data-theme', resolvedTheme)
-    }
-
-    updateTheme()
-    mediaQuery.addEventListener('change', updateTheme)
-
-    return () => mediaQuery.removeEventListener('change', updateTheme)
-  } else {
-    document.documentElement.setAttribute('data-theme', theme)
-  }
-  return undefined
-}
-
-import { useSyncExternalStore } from 'react'
-
-export function subscribeTheme(listener: () => void) {
-  const observer = new MutationObserver(listener)
-  observer.observe(document.documentElement, {
-    attributes: true,
-    attributeFilter: ['data-theme'],
-  })
-  const media = window.matchMedia('(prefers-color-scheme: dark)')
-  media.addEventListener('change', listener)
-  window.addEventListener('storage', listener)
-  return () => {
-    observer.disconnect()
-    media.removeEventListener('change', listener)
-    window.removeEventListener('storage', listener)
-  }
-}
-
-const readDarkTheme = () => getResolvedTheme() === 'dark'
-export const useIsDarkTheme = (): boolean =>
-  useSyncExternalStore(subscribeTheme, readDarkTheme, () => false)
+export { ScopedTheme, resolveScopedTheme, useThemeScope } from './scoped-theme'
+export type { ScopedThemeValue, ThemeScope } from './scoped-theme'
+export * from './appearance'
+export {
+  useAppearance,
+  useResolvedAppearance,
+  useIsDarkTheme,
+} from './use-appearance'

@@ -1,4 +1,5 @@
 import React, { memo, useId } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   ArrowLeft,
   BrainCircuit,
@@ -46,18 +47,19 @@ const SearchDetailHeader: React.FC<SearchDetailHeaderProps> = ({
   onExport,
   onToggleSettings,
 }) => {
+  const { t } = useTranslation()
   const exportDisabledReasonId = useId()
 
   return (
-    <header className="bg-surface-primary px-space-base py-space-sm shrink-0 border-b border-border-default">
-      <div className="gap-space-sm flex items-center justify-between">
-        <div className="gap-space-sm flex min-w-0 items-center">
+    <header className="shrink-0 border-b border-border-default bg-surface-primary px-space-base py-space-sm">
+      <div className="flex flex-wrap items-center justify-between gap-space-sm">
+        <div className="flex min-w-0 items-center gap-space-sm">
           <Button
             variant="ghost"
             size="icon-sm"
             onClick={onBack}
-            title="返回搜索列表"
-            aria-label="返回搜索列表"
+            title={t('searchPage.workspace.back')}
+            aria-label={t('searchPage.workspace.back')}
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -66,19 +68,22 @@ const SearchDetailHeader: React.FC<SearchDetailHeaderProps> = ({
               {appName}
             </h2>
             <p className="text-xs text-text-tertiary">
-              {kbCount} 个知识库 · 当前状态 {phaseLabel}
+              {t('searchPage.workspace.status', {
+                count: kbCount,
+                phase: phaseLabel,
+              })}
             </p>
           </div>
         </div>
 
-        <div className="gap-space-xs flex items-center">
+        <div className="flex items-center gap-space-xs">
           {hasTurns ? (
             <Button
               variant="ghost"
               size="icon-sm"
               onClick={onClear}
-              title="清空当前会话"
-              aria-label="清空当前会话"
+              title={t('searchPage.workspace.clear')}
+              aria-label={t('searchPage.workspace.clear')}
             >
               <RotateCcw className="h-4 w-4" />
             </Button>
@@ -92,16 +97,16 @@ const SearchDetailHeader: React.FC<SearchDetailHeaderProps> = ({
               title={
                 canOpenMindmap
                   ? mindmapOpen
-                    ? '收起思维导图'
-                    : '打开思维导图'
-                  : '当前轮次暂无思维导图数据'
+                    ? t('searchPage.workspace.closeMindmap')
+                    : t('searchPage.workspace.openMindmap')
+                  : t('searchPage.workspace.noMindmap')
               }
               aria-label={
                 canOpenMindmap
                   ? mindmapOpen
-                    ? '收起思维导图'
-                    : '打开思维导图'
-                  : '当前轮次暂无思维导图数据'
+                    ? t('searchPage.workspace.closeMindmap')
+                    : t('searchPage.workspace.openMindmap')
+                  : t('searchPage.workspace.noMindmap')
               }
             >
               <BrainCircuit className="h-4 w-4" />
@@ -111,8 +116,8 @@ const SearchDetailHeader: React.FC<SearchDetailHeaderProps> = ({
             variant="ghost"
             size="icon-sm"
             onClick={onShare}
-            title="复制分享链接"
-            aria-label="复制分享链接"
+            title={t('searchPage.workspace.share')}
+            aria-label={t('searchPage.workspace.share')}
           >
             <Share2 className="h-4 w-4" />
           </Button>
@@ -138,8 +143,16 @@ const SearchDetailHeader: React.FC<SearchDetailHeaderProps> = ({
             variant={settingsOpen ? 'outline' : 'ghost'}
             size="icon-sm"
             onClick={onToggleSettings}
-            title={settingsOpen ? '收起配置' : '配置'}
-            aria-label={settingsOpen ? '收起配置' : '配置'}
+            title={
+              settingsOpen
+                ? t('searchPage.workspace.closeSettings')
+                : t('searchPage.workspace.openSettings')
+            }
+            aria-label={
+              settingsOpen
+                ? t('searchPage.workspace.closeSettings')
+                : t('searchPage.workspace.openSettings')
+            }
           >
             <Settings className="h-4 w-4" />
           </Button>

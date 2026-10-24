@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useId, useState, type FormEvent } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Dialog,
   DialogContent,
@@ -9,97 +10,126 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { FileUploader, type UploadFile } from '@/components/ui/file-uploader'
-import { FileJson } from 'lucide-react'
-
+import { Label } from '@/components/ui/label'
 interface ImportAgentDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onImport: (payload: { title: string; file: File }) => Promise<void> | void
 }
-
 export function ImportAgentDialog({
   open,
   onOpenChange,
   onImport,
 }: ImportAgentDialogProps) {
+  const { t } = useTranslation()
+  const id = useId()
   const [title, setTitle] = useState('')
-  const [files, setFiles] = useState<UploadFile[]>([])
+  const [file, setFile] = useState<File | null>(null)
   const [submitting, setSubmitting] = useState(false)
-
-  const selectedFile = useMemo(() => files[0], [files])
-
-  const handleSubmit = async () => {
-    if (!selectedFile) {
-      return
+  const [error, setError] = useState<'type' | 'failed' | null>(null)
+  const close = () => {
+    if (!submitting) {
+      setTitle('')
+      setFile(null)
+      setError(null)
+      onOpenChange(false)
     }
-
-    const fallbackTitle = selectedFile.name.replace(/\.json$/i, '')
+  }
+  const submit = async (event: FormEvent) => {
+    event.preventDefault()
+    if (!file || submitting) return
     setSubmitting(true)
+    setError(null)
     try {
       await onImport({
-        title: title.trim() || fallbackTitle,
-        file: selectedFile,
+        title: title.trim() || file.name.replace(/\.json$/i, ''),
+        file,
       })
-      setFiles([])
+      setFile(null)
       setTitle('')
       onOpenChange(false)
+    } catch {
+      setError('failed')
     } finally {
       setSubmitting(false)
     }
   }
-
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="lg">
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) close()
+      }}
+    >
+      <DialogContent size="md" modal>
         <DialogHeader>
-          <div className="mb-space-sm rounded-radius-xl flex h-11 w-11 items-center justify-center bg-status-warning-subtle text-status-warning">
-            <FileJson className="h-5 w-5" />
-          </div>
-          <DialogTitle>导入 JSON</DialogTitle>
+          <DialogTitle>{t('agents.importJson')}</DialogTitle>
           <DialogDescription>
-            支持导入历史 Agent / Pipeline
-            DSL，第一阶段会自动归类并落到新的管理骨架里。
+            {t('agents.importDialog.description')}
           </DialogDescription>
         </DialogHeader>
-
-        <div className="gap-space-lg px-space-lg pb-space-lg flex flex-col">
+        <form
+          id={id}
+          onSubmit={(event) => {
+            void submit(event)
+          }}
+          className="space-y-space-lg p-space-lg"
+        >
           <div className="space-y-space-sm">
-            <label
-              htmlFor="import-title"
-              className="text-sm font-medium text-text-primary"
-            >
-              导入名称
-            </label>
+            <Label htmlFor={`${id}-name`}>
+              {t('agents.importDialog.name')}
+            </Label>
             <Input
-              id="import-title"
+              id={`${id}-name`}
               value={title}
+              disabled={submitting}
               onChange={(event) => setTitle(event.target.value)}
-              placeholder="留空时默认使用文件名"
+              placeholder={t('agents.importDialog.namePlaceholder')}
             />
           </div>
-
-          <FileUploader
-            value={files}
-            onValueChange={setFiles}
-            multiple={false}
-            maxFileCount={1}
-            enableFolderUpload={false}
-            title="拖拽 JSON 文件到这里"
-            description="仅接受一个 .json 文件。"
-            accept={{
-              'application/json': ['.json'],
-            }}
-            compact
-          />
-        </div>
-
+          <div className="space-y-space-sm">
+            <Label htmlFor={`${id}-file`}>
+              {t('agents.importDialog.file')}
+            </Label>
+            <Input
+              id={`${id}-file`}
+              type="file"
+              accept="application/json,.json"
+              disabled={submitting}
+              onChange={(event) => {
+                const next = event.target.files?.[0]
+                if (!next) return
+                if (!next.name.toLowerCase().endsWith('.json')) {
+                  setFile(null)
+                  setError('type')
+                } else {
+                  setFile(next)
+                  setError(null)
+                }
+              }}
+            />
+            {file && (
+              <p className="text-sm break-words text-text-secondary">
+                {file.name}
+              </p>
+            )}
+          </div>
+          {error && (
+            <p role="alert" className="text-sm text-text-error">
+              {t(
+                error === 'type'
+                  ? 'agents.importDialog.fileType'
+                  : 'agents.importDialog.failed',
+              )}
+            </p>
+          )}
+        </form>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            取消
+          <Button variant="outline" onClick={close} disabled={submitting}>
+            {t('common.cancel')}
           </Button>
-          <Button onClick={handleSubmit} disabled={!selectedFile || submitting}>
-            {submitting ? '导入中...' : '开始导入'}
+          <Button type="submit" form={id} loading={submitting} disabled={!file}>
+            {t('agents.importDialog.submit')}
           </Button>
         </DialogFooter>
       </DialogContent>

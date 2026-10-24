@@ -675,14 +675,16 @@ export default {
         success: 'Uploaded {{count}} documents.',
         autoParseError:
           'Documents were uploaded, but auto parsing failed. Start parsing manually.',
-        serverResponseError: 'Unexpected server response',
-        serverResponseErrorToast: 'Upload failed: unexpected server response.',
+        serverResponseError:
+          'Upload result could not be matched to this file. Check the document list before retrying.',
+        serverResponseErrorToast:
+          'The upload result could not be confirmed. Your files are kept. Check the document list before retrying.',
         unknownError: 'Unknown error',
         failedWithMessage: 'Document upload failed: {{message}}',
         fileUploadSuccess: 'File "{{name}}" uploaded.',
         failed: 'Upload failed',
         description:
-          'Supports PDF, Word, Excel, PPT, Markdown, code files, images, audio, video, and more. Total upload size is limited to <strong>1GB</strong>; batch upload is limited to <strong>32</strong> files.',
+          'Supports PDF, Word, Excel, PPT, Markdown, code files, images, audio, video, and more. Each file can be up to <strong>1GB</strong>; select up to <strong>32</strong> files per batch.',
         fileTab: 'File upload',
         folderTab: 'Folder upload',
         dropActiveTitle: 'Release files to upload',
@@ -704,6 +706,13 @@ export default {
         uploading: 'Uploading...',
         uploadRemaining: 'Upload remaining {{count}} files',
         uploadCount: 'Upload {{count}} files',
+
+        fileRejected: 'File "{{name}}" could not be selected. Choose it again.',
+        notConfirmed: 'Upload was not confirmed. This file is kept for retry.',
+        partial:
+          '{{successCount}} confirmed; {{errorCount}} still need attention. Retry the remaining files.',
+        retryHint:
+          'Upload failed. Your files are kept. Check your connection and retry.',
       },
       previousPage: 'Previous',
       nextPage: 'Next',

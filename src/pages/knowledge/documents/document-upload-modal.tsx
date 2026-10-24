@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import {
   Modal,
@@ -11,13 +11,16 @@ import {
 } from '@/components/ui'
 import { knowledgeAPI } from '@/api/knowledge'
 import { toast } from '@/lib/toast'
+import { getMutationErrorNotice } from '@/lib/mutation-error-feedback'
+import { reconcileDocumentUploads } from './upload-feedback'
 
 const DOCUMENT_UPLOAD_MAX_SIZE = 1024 * 1024 * 1024
 const DOCUMENT_UPLOAD_MAX_FILE_COUNT = 32
 
 // Keep the native File intact; spreading it loses its prototype-backed fields.
-type DocumentUploadEntry = Pick<UploadFile, 'status' | 'progress' | 'error'> & {
+type DocumentUploadEntry = Pick<UploadFile, 'status' | 'progress'> & {
   file: UploadFile
+  errorKey?: string
 }
 
 interface DocumentUploadModalProps {
@@ -27,7 +30,13 @@ interface DocumentUploadModalProps {
   onSuccess: () => void
 }
 
-export function DocumentUploadModal({
+export function DocumentUploadModal(props: DocumentUploadModalProps) {
+  return props.open ? (
+    <DocumentUploadSession key={props.kbId} {...props} />
+  ) : null
+}
+
+function DocumentUploadSession({
   open,
   onClose,
   kbId,
@@ -37,6 +46,23 @@ export function DocumentUploadModal({
   const [uploadFiles, setUploadFiles] = useState<DocumentUploadEntry[]>([])
   const [uploading, setUploading] = useState(false)
   const [parseOnUpload, setParseOnUpload] = useState(true)
+  const [notice, setNotice] = useState<{
+    key: string
+    values?: Record<string, number>
+  }>()
+  const active = useRef(false)
+  const busy = useRef(false)
+  const attempt = useRef(0)
+  useEffect(() => {
+    active.current = true
+    return () => {
+      active.current = false
+      attempt.current += 1
+    }
+  }, [])
+  const allSucceeded =
+    uploadFiles.length > 0 &&
+    uploadFiles.every((entry) => entry.status === 'success')
   const uploadTexts: Partial<FileUploaderTexts> = {
     fileTab: t('knowledge.documents.upload.fileTab'),
     folderTab: t('knowledge.documents.upload.folderTab'),
@@ -76,13 +102,15 @@ export function DocumentUploadModal({
   }
 
   const handleUploadFilesChange = useCallback((files: UploadFile[]) => {
-    setUploadFiles(
-      files.map((file) => ({
-        file,
-        status: file.status,
-        progress: file.progress,
-        error: file.error,
-      })),
+    setUploadFiles((previous) =>
+      files.map(
+        (file) =>
+          previous.find((entry) => entry.file === file) ?? {
+            file,
+            status: file.status,
+            progress: file.progress,
+          },
+      ),
     )
   }, [])
 
@@ -105,7 +133,9 @@ export function DocumentUploadModal({
               count: DOCUMENT_UPLOAD_MAX_FILE_COUNT,
             })
           }
-          return e.message
+          return t('knowledge.documents.upload.fileRejected', {
+            name: file.name,
+          })
         })
         toast.error(errorMessages.join('; '))
       })
@@ -113,166 +143,120 @@ export function DocumentUploadModal({
     [t],
   )
 
-  const handleUpload = async () => {
-    if (!kbId || uploadFiles.length === 0) return
-
-    const filesToUpload = uploadFiles.filter((f) => f.status !== 'success')
-    if (filesToUpload.length === 0) {
-      toast.info(t('knowledge.documents.upload.allUploaded'))
-      handleClose()
-      return
-    }
-
+  const performUpload = async (files: UploadFile[]) => {
+    if (!kbId || !files.length || busy.current) return
+    busy.current = true
+    const currentAttempt = ++attempt.current
+    const isCurrent = () => active.current && attempt.current === currentAttempt
+    setUploading(true)
+    setNotice(undefined)
+    const requested = new Set(files)
+    setUploadFiles((previous) =>
+      previous.map((entry) =>
+        requested.has(entry.file)
+          ? { ...entry, status: 'uploading', progress: 0, errorKey: undefined }
+          : entry,
+      ),
+    )
     try {
-      setUploading(true)
-
-      setUploadFiles((prev) =>
-        prev.map((f) =>
-          f.status !== 'success'
-            ? { ...f, status: 'uploading' as const, progress: 0 }
-            : f,
+      const response = await knowledgeAPI.document.upload(kbId, files)
+      if (!isCurrent()) return
+      const result = reconcileDocumentUploads(files, response)
+      const confirmedFiles = new Set(result.confirmed.map(({ file }) => file))
+      const errorKey = result.valid
+        ? 'knowledge.documents.upload.notConfirmed'
+        : 'knowledge.documents.upload.serverResponseError'
+      setUploadFiles((previous) =>
+        previous.map((entry) =>
+          !requested.has(entry.file)
+            ? entry
+            : confirmedFiles.has(entry.file)
+              ? {
+                  ...entry,
+                  status: 'success',
+                  progress: 100,
+                  errorKey: undefined,
+                }
+              : { ...entry, status: 'error', progress: 0, errorKey },
         ),
       )
-
-      const uploadedDocs = await knowledgeAPI.document.upload(
-        kbId,
-        filesToUpload.map(({ file }) => file),
-      )
-
-      if (uploadedDocs && uploadedDocs.length > 0) {
-        setUploadFiles((prev) =>
-          prev.map((f) => ({
-            ...f,
-            status: 'success' as const,
-            progress: 100,
-          })),
-        )
-
+      if (result.confirmed.length) {
         toast.success(
           t('knowledge.documents.upload.success', {
-            count: uploadedDocs.length,
+            count: result.confirmed.length,
           }),
         )
-
-        if (parseOnUpload) {
-          try {
-            const docIds = uploadedDocs.map((doc) => doc.id)
-            await knowledgeAPI.document.parse(kbId, docIds)
-            toast.success(
-              t('knowledge.documents.toasts.parseStarted', {
-                count: docIds.length,
-              }),
-            )
-          } catch {
-            toast.error(t('knowledge.documents.upload.autoParseError'))
-          }
-        }
-
-        setTimeout(() => {
-          handleClose()
-          onSuccess()
-        }, 800)
-      } else {
-        setUploadFiles((prev) =>
-          prev.map((f) =>
-            f.status === 'uploading'
-              ? {
-                  ...f,
-                  status: 'error' as const,
-                  error: t('knowledge.documents.upload.serverResponseError'),
-                }
-              : f,
-          ),
-        )
-        toast.error(t('knowledge.documents.upload.serverResponseErrorToast'))
       }
+      if (result.unconfirmed.length) {
+        const message = t(
+          result.valid
+            ? 'knowledge.documents.upload.partial'
+            : 'knowledge.documents.upload.serverResponseErrorToast',
+          {
+            successCount: result.confirmed.length,
+            errorCount: result.unconfirmed.length,
+          },
+        )
+        setNotice({
+          key: result.valid
+            ? 'knowledge.documents.upload.partial'
+            : 'knowledge.documents.upload.serverResponseErrorToast',
+          values: {
+            successCount: result.confirmed.length,
+            errorCount: result.unconfirmed.length,
+          },
+        })
+        toast.error(message)
+      }
+      if (parseOnUpload && result.confirmed.length) {
+        const ids = result.confirmed.map(({ document }) => document.id)
+        try {
+          await knowledgeAPI.document.parse(kbId, ids)
+          if (!isCurrent()) return
+          toast.success(
+            t('knowledge.documents.toasts.parseStarted', { count: ids.length }),
+          )
+        } catch {
+          if (!isCurrent()) return
+          const message = t('knowledge.documents.upload.autoParseError')
+          setNotice({ key: 'knowledge.documents.upload.autoParseError' })
+          toast.error(message)
+        }
+      }
+      if (isCurrent() && result.confirmed.length) onSuccess()
     } catch (error) {
-      console.error('Document upload failed:', error)
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : t('knowledge.documents.upload.unknownError')
-
-      setUploadFiles((prev) =>
-        prev.map((f) =>
-          f.status === 'uploading'
-            ? { ...f, status: 'error' as const, error: errorMessage }
-            : f,
+      if (!isCurrent()) return
+      const errorKey =
+        getMutationErrorNotice(error)?.messageKey ??
+        'knowledge.documents.upload.failed'
+      setUploadFiles((previous) =>
+        previous.map((entry) =>
+          requested.has(entry.file)
+            ? { ...entry, status: 'error', progress: 0, errorKey }
+            : entry,
         ),
       )
-
-      toast.error(
-        t('knowledge.documents.upload.failedWithMessage', {
-          message: errorMessage,
-        }),
-      )
+      const recovery = t('knowledge.documents.upload.retryHint')
+      setNotice({ key: 'knowledge.documents.upload.retryHint' })
+      toast.error(recovery)
     } finally {
-      setUploading(false)
+      if (isCurrent()) {
+        busy.current = false
+        setUploading(false)
+      }
     }
   }
 
-  const handleRetryUpload = useCallback(
-    async (file: UploadFile, index: number) => {
-      if (!kbId) return
-
-      setUploadFiles((prev) =>
-        prev.map((f, i) =>
-          i === index
-            ? {
-                ...f,
-                status: 'uploading' as const,
-                progress: 0,
-                error: undefined,
-              }
-            : f,
-        ),
-      )
-
-      try {
-        const uploadedDocs = await knowledgeAPI.document.upload(kbId, [file])
-
-        if (uploadedDocs && uploadedDocs.length > 0) {
-          setUploadFiles((prev) =>
-            prev.map((f, i) =>
-              i === index
-                ? { ...f, status: 'success' as const, progress: 100 }
-                : f,
-            ),
-          )
-          toast.success(
-            t('knowledge.documents.upload.fileUploadSuccess', {
-              name: file.name,
-            }),
-          )
-        } else {
-          setUploadFiles((prev) =>
-            prev.map((f, i) =>
-              i === index
-                ? {
-                    ...f,
-                    status: 'error' as const,
-                    error: t('knowledge.documents.upload.failed'),
-                  }
-                : f,
-            ),
-          )
-        }
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : t('knowledge.documents.upload.failed')
-        setUploadFiles((prev) =>
-          prev.map((f, i) =>
-            i === index
-              ? { ...f, status: 'error' as const, error: errorMessage }
-              : f,
-          ),
-        )
-      }
-    },
-    [kbId, t],
-  )
+  const handleUpload = () =>
+    performUpload(
+      uploadFiles
+        .filter((entry) => entry.status !== 'success')
+        .map(({ file }) => file),
+    )
+  const handleRetryUpload = (_file: UploadFile, index: number) => {
+    const entry = uploadFiles[index]
+    if (entry && entry.status !== 'success') void performUpload([entry.file])
+  }
 
   const handleClose = () => {
     if (!uploading) {
@@ -288,10 +272,12 @@ export function DocumentUploadModal({
       title={t('knowledge.documents.upload.title')}
       size="lg"
     >
-      <div className="space-y-6">
+      <div className="flex flex-col gap-space-lg">
         <FileUploader
-          value={uploadFiles.map(({ file, ...feedback }) =>
-            Object.assign(file, feedback),
+          value={uploadFiles.map(({ file, errorKey, ...feedback }) =>
+            Object.assign(file, feedback, {
+              error: errorKey ? t(errorKey) : undefined,
+            }),
           )}
           onValueChange={handleUploadFilesChange}
           onFilesRejected={handleFilesRejected}
@@ -306,7 +292,15 @@ export function DocumentUploadModal({
           texts={uploadTexts}
         />
 
-        <div className="bg-surface-secondary flex items-center justify-between rounded-radius-lg px-4 py-3">
+        {notice && (
+          <div
+            role="alert"
+            className="rounded-radius-md border border-status-warning/30 bg-status-warning-subtle p-space-md text-sm text-text-primary"
+          >
+            {t(notice.key, notice.values)}
+          </div>
+        )}
+        <div className="flex items-center justify-between gap-space-md rounded-radius-lg bg-background-subtle p-space-md">
           <div className="flex flex-col">
             <span className="text-sm font-medium text-text-primary">
               {t('knowledge.documents.upload.parseOnUpload')}
@@ -316,35 +310,42 @@ export function DocumentUploadModal({
             </span>
           </div>
           <Switch
+            aria-label={t('knowledge.documents.upload.parseOnUpload')}
             checked={parseOnUpload}
             onCheckedChange={setParseOnUpload}
             disabled={uploading}
           />
         </div>
 
-        <div className="flex justify-end space-x-3 border-t border-border-subtle pt-4">
-          <Button variant="outline" onClick={handleClose} disabled={uploading}>
-            {t('knowledge.common.cancel')}
-          </Button>
+        <div className="flex justify-end gap-space-sm border-t border-border-subtle pt-space-md">
           <Button
-            onClick={handleUpload}
-            loading={uploading}
-            disabled={
-              uploadFiles.length === 0 ||
-              uploadFiles.every((f) => f.status === 'success')
-            }
+            variant={allSucceeded ? 'default' : 'outline'}
+            onClick={handleClose}
+            disabled={uploading}
           >
-            {uploading
-              ? t('knowledge.documents.upload.uploading')
-              : uploadFiles.some((f) => f.status === 'success')
-                ? t('knowledge.documents.upload.uploadRemaining', {
-                    count: uploadFiles.filter((f) => f.status !== 'success')
-                      .length,
-                  })
-                : t('knowledge.documents.upload.uploadCount', {
-                    count: uploadFiles.length,
-                  })}
+            {allSucceeded ? t('common.close') : t('knowledge.common.cancel')}
           </Button>
+          {!allSucceeded && (
+            <Button
+              onClick={() => {
+                void handleUpload()
+              }}
+              loading={uploading}
+              disabled={uploadFiles.length === 0}
+            >
+              {uploading
+                ? t('knowledge.documents.upload.uploading')
+                : uploadFiles.some((entry) => entry.status === 'success')
+                  ? t('knowledge.documents.upload.uploadRemaining', {
+                      count: uploadFiles.filter(
+                        (entry) => entry.status !== 'success',
+                      ).length,
+                    })
+                  : t('knowledge.documents.upload.uploadCount', {
+                      count: uploadFiles.length,
+                    })}
+            </Button>
+          )}
         </div>
       </div>
     </Modal>

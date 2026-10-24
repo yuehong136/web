@@ -1,4 +1,5 @@
 import { APIError } from '@/api/client-types'
+import { isAbortError } from '@/api/request-abort'
 
 export enum MutationErrorFeedback {
   Global = 'global',
@@ -35,6 +36,7 @@ const notice = (messageKey: MutationErrorMessageKey): MutationErrorNotice => ({
 export function getMutationErrorNotice(
   error: unknown,
 ): MutationErrorNotice | null {
+  if (isAbortError(error)) return null
   if (!(error instanceof APIError)) {
     return notice('common.errors.unknown')
   }

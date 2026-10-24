@@ -11,6 +11,7 @@ import {
   UserCog,
   MessageCircleMore,
   Plug,
+  Palette,
 } from 'lucide-react'
 import { useUIStore } from '@/stores'
 import { SidebarUtilities } from '@/components/layout/sidebar-utilities'
@@ -62,6 +63,11 @@ export const SettingsLayout: React.FC = () => {
             title: t('settings.nav.profile'),
             href: '/settings/profile',
             icon: User,
+          },
+          {
+            title: t('appearance.title'),
+            href: '/settings/appearance',
+            icon: Palette,
           },
         ],
       },
@@ -154,7 +160,8 @@ export const SettingsLayout: React.FC = () => {
       ? currentItem?.href
       : undefined
   const parentTitle = currentItem?.title
-  const CurrentTitle = isDatasourceDetail ? 'span' : 'h1'
+  const CurrentTitle =
+    isDatasourceDetail || pathname === '/settings/appearance' ? 'span' : 'h1'
   const breadcrumb = React.useMemo(
     () => (
       <Breadcrumb>

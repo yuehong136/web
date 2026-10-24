@@ -1,4 +1,5 @@
 import { getTokenValue, type ThemeMode } from './token-values'
+import type { AppearancePreset } from '@/themes/appearance'
 
 /**
  * 分类/序列调色板 `data-viz-categorical-*` 的单一消费入口。
@@ -54,10 +55,11 @@ export const CATEGORICAL_FALLBACKS = [
 export function getCategoricalPalette(
   theme: ThemeMode,
   count: number = CATEGORICAL_PALETTE_SIZE,
+  preset?: AppearancePreset,
 ): string[] {
   const size = Math.min(count, CATEGORICAL_PALETTE_SIZE)
   return Array.from({ length: size }, (_, i) =>
-    getTokenValue(DATA_VIZ_CATEGORICAL_TOKENS[i], theme),
+    getTokenValue(DATA_VIZ_CATEGORICAL_TOKENS[i], theme, preset),
   )
 }
 

@@ -1,10 +1,12 @@
-import React, { memo, useMemo, useState } from 'react'
-import { ChevronDown, ChevronRight, User } from 'lucide-react'
+import { memo, useId, useMemo, useState } from 'react'
+import { ChevronDown, ChevronRight } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import {
   SearchExecutionPhase,
   type ChunkResult,
   type SearchTurn,
 } from '@/types/search'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import SearchChunkList from './search-chunk-list'
 import SearchDocFilterRail from './search-doc-filter-rail'
@@ -16,14 +18,14 @@ interface SearchTurnItemProps {
   isLatest: boolean
   expanded: boolean
   turn: SearchTurn
-  selectedDocIds: string[]
+  selectedDocIds: string[] | null
   onToggleExpand: () => void
-  onDocFilterChange: (turnId: string, docIds: string[]) => void
+  onDocFilterChange: (turnId: string, docIds: string[] | null) => void
   onAskRelated: (question: string) => void
   onViewChunkDetail: (chunk: ChunkResult, allChunks: ChunkResult[]) => void
 }
 
-const SearchTurnItem: React.FC<SearchTurnItemProps> = ({
+function SearchTurnItem({
   index,
   isLatest,
   expanded,
@@ -33,296 +35,176 @@ const SearchTurnItem: React.FC<SearchTurnItemProps> = ({
   onDocFilterChange,
   onAskRelated,
   onViewChunkDetail,
-}) => {
+}: SearchTurnItemProps) {
+  const { t } = useTranslation()
+  const bodyId = useId()
   const [showChunks, setShowChunks] = useState(() => !turn.summaryEnabled)
-  const filteredChunks = useMemo(() => {
-    if (!selectedDocIds.length) return turn.chunks
-    return turn.chunks.filter((chunk) => selectedDocIds.includes(chunk.doc_id))
-  }, [selectedDocIds, turn.chunks])
-
-  const statusLabel =
-    turn.phase === SearchExecutionPhase.ERROR
-      ? '失败'
-      : turn.phase === SearchExecutionPhase.COMPLETE
-        ? '完成'
-        : '进行中'
-
-  const statusClassName =
-    turn.phase === SearchExecutionPhase.ERROR
-      ? 'bg-status-error/10 text-status-error'
-      : turn.phase === SearchExecutionPhase.COMPLETE
-        ? 'bg-status-success/10 text-status-success'
-        : 'bg-status-info/10 text-status-info'
-
-  const summaryPreview = useMemo(() => {
-    const plainSummary = (turn.summary || turn.thinking || '')
-      .replace(/\s+/g, ' ')
-      .trim()
-    if (!plainSummary) return '已收起本轮查询，点击上方问题可展开查看完整内容。'
-    return plainSummary.length > 180
-      ? `${plainSummary.slice(0, 180)}...`
-      : plainSummary
-  }, [turn.summary, turn.thinking])
-
-  const executionSnapshot = useMemo(
-    () => [
-      { key: 'summary', label: 'AI总结', enabled: turn.summaryEnabled },
-      { key: 'related', label: '相关问题', enabled: turn.relatedEnabled },
-      { key: 'mindmap', label: '思维导图', enabled: turn.mindmapEnabled },
-      {
-        key: 'rerank',
-        label: turn.rerankModelName
-          ? `Rerank(${turn.rerankModelName})`
-          : 'Rerank',
-        enabled: turn.rerankEnabled,
-      },
-    ],
-    [
-      turn.mindmapEnabled,
-      turn.relatedEnabled,
-      turn.rerankEnabled,
-      turn.rerankModelName,
-      turn.summaryEnabled,
-    ],
-  )
-  const enabledExecutionLabels = useMemo(
+  const filteredChunks = useMemo(
     () =>
-      executionSnapshot
-        .filter((item) => item.enabled)
-        .map((item) => item.label),
-    [executionSnapshot],
+      selectedDocIds !== null
+        ? turn.chunks.filter((chunk) => selectedDocIds.includes(chunk.doc_id))
+        : turn.chunks,
+    [selectedDocIds, turn.chunks],
   )
-
-  const progressSummary = useMemo(() => {
-    const retrievedText = `检索 ${turn.total} 条`
-    const rerankText = turn.rerankEnabled ? '已重排' : '未重排'
-    const generatedText = turn.summaryEnabled ? '已生成摘要' : '未生成摘要'
-    return `${retrievedText} · ${rerankText} · ${generatedText}`
-  }, [turn.rerankEnabled, turn.summaryEnabled, turn.total])
-
-  const phasePill = useMemo(() => {
-    if (turn.phase === SearchExecutionPhase.ERROR) {
-      return {
-        label: '执行失败',
-        className:
-          'border-status-error/30 bg-status-error/10 text-status-error',
-      }
-    }
-    if (turn.phase === SearchExecutionPhase.RETRIEVING) {
-      return {
-        label: '检索中',
-        className: 'border-status-info/30 bg-status-info/10 text-status-info',
-      }
-    }
-    if (turn.phase === SearchExecutionPhase.SUMMARIZING) {
-      return {
-        label: '生成摘要中',
-        className: 'border-status-info/30 bg-status-info/10 text-status-info',
-      }
-    }
-    if (turn.phase === SearchExecutionPhase.RELATED) {
-      return {
-        label: '生成相关问题',
-        className: 'border-status-info/30 bg-status-info/10 text-status-info',
-      }
-    }
-    return {
-      label: '已完成',
-      className:
-        'border-status-success/30 bg-status-success/10 text-status-success',
-    }
-  }, [turn.phase])
-
+  const interrupted = turn.errorMessageKey === 'chat.stream.interrupted'
+  const phaseKey = interrupted ? 'interrupted' : turn.phase
+  const statusClass =
+    turn.phase === SearchExecutionPhase.COMPLETE
+      ? 'text-status-success'
+      : turn.phase === SearchExecutionPhase.ERROR
+        ? 'text-status-error'
+        : turn.phase === SearchExecutionPhase.STOPPED
+          ? 'text-text-secondary'
+          : 'text-status-info'
   return (
-    <section className="overflow-hidden rounded-radius-xl border border-border-default bg-surface-primary">
-      {isLatest ? (
-        <div className="h-0.5 bg-linear-to-r from-text-accent via-status-info to-status-success" />
-      ) : null}
-      <div className="space-y-space-sm p-space-base">
-        <div className="flex items-center justify-between gap-space-sm">
-          <div className="flex min-w-0 items-center gap-space-sm">
-            <span
-              className={cn(
-                'inline-flex items-center rounded-radius-full border px-space-sm py-space-xs text-xs font-semibold',
-                isLatest
-                  ? 'border-border-accent bg-state-selected-bg text-state-selected-text'
-                  : 'border-border-default bg-surface-secondary text-text-secondary',
-              )}
-            >
-              Round {index + 1}
-              {isLatest ? ' · Current' : ''}
+    <section
+      className="min-w-0 border-b border-border-subtle pb-space-lg"
+      aria-busy={turn.isStreaming}
+    >
+      <div className="mb-space-base flex flex-wrap items-center justify-between gap-space-sm">
+        <div className="flex min-w-0 flex-wrap items-center gap-space-sm text-xs text-text-secondary">
+          <span className={cn('font-medium', isLatest && 'text-text-primary')}>
+            {t('searchPage.workspace.round', { index: index + 1 })}
+          </span>
+          {isLatest && (
+            <span className="rounded-radius-full bg-state-selected-bg px-space-sm py-space-xs text-state-selected-text">
+              {t('searchPage.workspace.current')}
             </span>
-            <span className="hidden truncate text-xs text-text-tertiary md:inline">
-              命中 {turn.total} 条 · 来源 {turn.docAggs.length} 篇
-            </span>
-          </div>
-
-          <div className="flex shrink-0 items-center gap-space-sm">
-            {expanded && enabledExecutionLabels.length ? (
-              <div className="hidden items-center gap-space-sm xl:flex">
-                {enabledExecutionLabels.map((label) => (
-                  <span
-                    key={label}
-                    className="text-xs font-medium text-text-secondary"
-                  >
-                    {label}
-                  </span>
-                ))}
-              </div>
-            ) : null}
-            <span
-              className={cn(
-                'inline-flex items-center gap-space-xs rounded-radius-full px-space-sm py-space-xs text-xs font-medium',
-                statusClassName,
-              )}
-            >
-              <span className="h-1.5 w-1.5 rounded-radius-full bg-current" />
-              {statusLabel}
-            </span>
-            <button
-              type="button"
-              onClick={onToggleExpand}
-              className="inline-flex items-center justify-center rounded-radius-sm text-text-tertiary hover:text-text-primary"
-              aria-expanded={expanded}
-              title={expanded ? '收起本轮' : '展开本轮'}
-            >
-              {expanded ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronRight className="h-4 w-4" />
-              )}
-            </button>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          onClick={onToggleExpand}
-          className={cn(
-            'w-full rounded-radius-lg border text-left transition-colors',
-            expanded
-              ? 'border-border-default bg-surface-primary px-space-md py-space-sm'
-              : 'border-border-default bg-surface-secondary px-space-md py-space-sm hover:bg-surface-primary',
           )}
-          aria-expanded={expanded}
-        >
-          <div className="flex items-start gap-space-sm">
-            {expanded ? (
-              <span className="inline-flex h-7 min-w-7 items-center justify-center rounded-radius-full bg-state-selected-bg text-state-selected-text">
-                <User className="h-4 w-4" />
-              </span>
-            ) : (
-              <User className="mt-0.5 h-4 w-4 shrink-0 text-text-tertiary" />
+          <span>
+            {t('searchPage.workspace.matches', {
+              count: turn.total,
+              documents: turn.docAggs.length,
+            })}
+          </span>
+        </div>
+        <div className="flex items-center gap-space-sm">
+          <span role="status" className={cn('text-xs', statusClass)}>
+            {t(`searchPage.workspace.phases.${phaseKey}`)}
+          </span>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={onToggleExpand}
+            aria-expanded={expanded}
+            aria-controls={bodyId}
+            aria-label={t(
+              expanded
+                ? 'searchPage.workspace.collapseRound'
+                : 'searchPage.workspace.expandRound',
             )}
-            <div className="min-w-0">
-              <p className="text-xs text-text-tertiary">用户提问</p>
-              <h3
-                className={cn(
-                  'mt-space-xs break-words text-text-primary',
-                  expanded
-                    ? 'text-xl leading-snug font-semibold'
-                    : 'text-lg leading-snug font-medium',
-                )}
-              >
-                {turn.query}
-              </h3>
-            </div>
-          </div>
-        </button>
-
-        {!expanded ? (
-          <div className="rounded-radius-lg border border-border-default bg-surface-secondary px-space-sm py-space-xs text-sm leading-relaxed text-text-secondary">
-            {summaryPreview}
-          </div>
-        ) : null}
+          >
+            {expanded ? (
+              <ChevronDown className="size-icon-sm" />
+            ) : (
+              <ChevronRight className="size-icon-sm" />
+            )}
+          </Button>
+        </div>
       </div>
-
-      {expanded ? (
-        <div className="min-w-0 space-y-space-sm px-space-base pb-space-base">
-          {turn.summaryEnabled ? (
-            <div className="grid grid-cols-1 items-start gap-space-sm xl:grid-cols-[1fr_280px]">
-              <SearchSummaryCard
-                summary={turn.summary}
-                thinking={turn.thinking}
-                isStreaming={turn.isStreaming}
-                references={turn.chunks}
-                onViewDetail={onViewChunkDetail}
-              />
+      <button
+        type="button"
+        onClick={onToggleExpand}
+        aria-expanded={expanded}
+        aria-controls={bodyId}
+        className="w-full rounded-radius-md py-space-sm text-left outline-hidden focus-visible:ring-2 focus-visible:ring-state-focus"
+      >
+        <span className="block text-xs text-text-secondary">
+          {t('searchPage.workspace.question')}
+        </span>
+        <h3 className="mt-space-xs text-xl leading-snug font-semibold break-words text-text-primary">
+          {turn.query}
+        </h3>
+      </button>
+      {!expanded && (
+        <p className="mt-space-sm line-clamp-2 text-sm leading-relaxed text-text-secondary">
+          {turn.summary || t('searchPage.workspace.collapsed')}
+        </p>
+      )}
+      <div
+        id={bodyId}
+        hidden={!expanded}
+        className="mt-space-md min-w-0 space-y-space-lg"
+      >
+        {expanded && (
+          <>
+            {turn.summaryEnabled ? (
+              <div className="grid min-w-0 grid-cols-1 items-start gap-space-lg xl:grid-cols-[minmax(0,1fr)_16rem]">
+                <SearchSummaryCard
+                  summary={turn.summary}
+                  thinking={turn.thinking}
+                  isStreaming={turn.isStreaming}
+                  completed={turn.phase === SearchExecutionPhase.COMPLETE}
+                  references={turn.chunks}
+                  onViewDetail={onViewChunkDetail}
+                />
+                <SearchDocFilterRail
+                  docAggs={turn.docAggs}
+                  selectedDocIds={selectedDocIds}
+                  onSelectionChange={(ids) => onDocFilterChange(turn.id, ids)}
+                />
+              </div>
+            ) : (
               <SearchDocFilterRail
                 docAggs={turn.docAggs}
                 selectedDocIds={selectedDocIds}
-                onSelectionChange={(docIds) =>
-                  onDocFilterChange(turn.id, docIds)
-                }
+                onSelectionChange={(ids) => onDocFilterChange(turn.id, ids)}
               />
-            </div>
-          ) : (
-            <SearchDocFilterRail
-              docAggs={turn.docAggs}
-              selectedDocIds={selectedDocIds}
-              onSelectionChange={(docIds) => onDocFilterChange(turn.id, docIds)}
-            />
-          )}
-
-          <button
-            type="button"
-            onClick={() => setShowChunks((prev) => !prev)}
-            className="w-full rounded-radius-lg border border-border-default bg-surface-secondary px-space-sm py-space-xs text-left"
-            aria-expanded={showChunks}
-          >
-            <div className="flex items-center justify-between gap-space-sm">
-              <div className="flex min-w-0 items-center gap-space-xs">
-                {showChunks ? (
-                  <ChevronDown className="h-3.5 w-3.5 shrink-0 text-text-tertiary" />
-                ) : (
-                  <ChevronRight className="h-3.5 w-3.5 shrink-0 text-text-tertiary" />
-                )}
-                <span className="text-xs font-medium text-text-secondary">
-                  {showChunks ? '收起检索片段' : '查看检索片段'}
-                </span>
-                <span className="text-xs text-text-tertiary">
-                  ({filteredChunks.length} 条)
-                </span>
-              </div>
-              <span
-                className={cn(
-                  'inline-flex items-center rounded-radius-full border px-space-sm py-space-xs text-xs font-medium',
-                  phasePill.className,
-                )}
+            )}
+            <div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowChunks((value) => !value)}
+                aria-expanded={showChunks}
               >
-                {phasePill.label}
-              </span>
+                {showChunks ? (
+                  <ChevronDown className="size-icon-sm" />
+                ) : (
+                  <ChevronRight className="size-icon-sm" />
+                )}
+                {t(
+                  showChunks
+                    ? 'searchPage.workspace.hideChunks'
+                    : 'searchPage.workspace.showChunks',
+                )}
+                <span className="text-text-secondary">
+                  {t('searchPage.workspace.count', {
+                    count: filteredChunks.length,
+                  })}
+                </span>
+              </Button>
+              {showChunks && (
+                <SearchChunkList
+                  chunks={filteredChunks}
+                  total={turn.total}
+                  isLoading={
+                    turn.phase === SearchExecutionPhase.RETRIEVING &&
+                    filteredChunks.length === 0
+                  }
+                  onViewDetail={onViewChunkDetail}
+                />
+              )}
             </div>
-            <p className="mt-space-xs truncate text-xs text-text-tertiary">
-              {progressSummary}
-            </p>
-          </button>
-
-          {showChunks ? (
-            <SearchChunkList
-              chunks={filteredChunks}
-              total={turn.total}
-              isLoading={
-                turn.phase === SearchExecutionPhase.RETRIEVING &&
-                filteredChunks.length === 0
-              }
-              onViewDetail={onViewChunkDetail}
-            />
-          ) : null}
-
-          {turn.relatedEnabled && !turn.isStreaming ? (
-            <SearchRelatedQuestions
-              questions={turn.relatedQuestions}
-              onSelect={onAskRelated}
-            />
-          ) : null}
-          {turn.errorMessage ? (
-            <div className="rounded-radius-md border border-status-error/30 bg-status-error/10 px-space-sm py-space-xs text-sm text-status-error">
-              {turn.errorMessage}
-            </div>
-          ) : null}
-        </div>
-      ) : null}
+            {turn.relatedEnabled && !turn.isStreaming && (
+              <SearchRelatedQuestions
+                questions={turn.relatedQuestions}
+                onSelect={onAskRelated}
+              />
+            )}
+            {(turn.errorMessageKey || turn.errorMessage) && (
+              <p
+                role="status"
+                className="rounded-radius-md border border-status-warning-subtle bg-status-warning-subtle p-space-base text-sm text-text-primary"
+              >
+                {turn.errorMessageKey
+                  ? t(turn.errorMessageKey)
+                  : t('searchPage.workspace.failed')}
+              </p>
+            )}
+          </>
+        )}
+      </div>
     </section>
   )
 }

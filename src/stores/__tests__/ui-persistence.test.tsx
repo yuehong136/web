@@ -34,11 +34,10 @@ it('persists layout preferences without transient dialogs or loading', () => {
     'desktopActivity',
     'desktopSidebarCollapsed',
     'desktopSidebarWidth',
-    'language',
     'sidebarCollapsed',
     'sidebarWidth',
-    'theme',
   ])
+  expect(saved.version).toBe(2)
   expect(JSON.stringify(saved)).not.toContain('transient')
 })
 

@@ -1,5 +1,10 @@
+import { searchSettingsResource } from './search-settings'
+import { searchWorkspaceResource } from './search-workspace'
+
 export default {
   searchPage: {
+    ...searchWorkspaceResource,
+    ...searchSettingsResource,
     feedback: {
       knowledgeRequired: 'Select at least one knowledge base.',
       nameRequired: 'Enter a search app name.',

@@ -84,6 +84,7 @@ export const HomePage = () => {
           inputValue={inputValue}
           onInputChange={setInputValue}
           onSend={handleSend}
+          isSendPending={isSendPending}
         />
       ) : (
         <ChatSection

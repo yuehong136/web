@@ -53,6 +53,44 @@ export default {
         validate: 'Validate configuration',
         saving: 'Saving…',
       },
+
+      defaultsLoadFailed: 'Could not load default models. Retry to continue.',
+      defaultsUnavailable: 'Configured model (currently unavailable)',
+      defaultsSaved: 'Default models saved.',
+      defaultsSaveFailed:
+        'Could not save default models. Your selections are kept. Try again.',
+      defaultsSelect: 'Select a model',
+      defaultsEmpty: 'No available models. Add a model provider first.',
+      defaultsModelsFailed:
+        'Could not load available models. Your current settings are kept.',
+      defaultsUnsaved: 'Unsaved selections',
+      defaultsSavedHint: 'Changes apply after you save.',
+      defaultFields: {
+        chat: {
+          label: 'Chat model',
+          hint: 'The default chat model for new knowledge bases.',
+        },
+        embedding: {
+          label: 'Embedding model',
+          hint: 'The default embedding model for new knowledge bases. Add a provider with an embedding model if no options appear.',
+        },
+        vision: {
+          label: 'Vision model',
+          hint: 'The default model for describing images or video in new knowledge bases. Select a provider that supports image-to-text.',
+        },
+        speech: {
+          label: 'Speech recognition',
+          hint: 'The default model for transcribing speech in new knowledge bases. Select a provider that supports speech-to-text.',
+        },
+        rerank: {
+          label: 'Reranking model',
+          hint: 'The default model for ranking retrieval results. Select a provider that supports reranking.',
+        },
+        tts: {
+          label: 'Speech generation',
+          hint: 'The default model for generating spoken replies. Select a provider that supports text-to-speech.',
+        },
+      },
     },
     groups: {
       workspace: 'Workspace',

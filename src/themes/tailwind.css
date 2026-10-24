@@ -1,3 +1,4 @@
+@import './appearance.css';
 @import './tailwind-tokens-1.generated.css' reference;
 @import './tailwind-tokens-2.generated.css' reference;
 @import './tailwind-tokens-3.generated.css' reference;
@@ -12,6 +13,19 @@
 @custom-variant dark (&:where(.dark, .dark *, [data-theme='dark'], [data-theme='dark'] *));
 
 @theme inline {
+  --text-xs: calc(0.75rem * var(--text-scale, 1));
+  --text-sm: calc(0.875rem * var(--text-scale, 1));
+  --text-base: calc(1rem * var(--text-scale, 1));
+  --text-lg: calc(1.125rem * var(--text-scale, 1));
+  --text-xl: calc(1.25rem * var(--text-scale, 1));
+  --text-2xl: calc(1.5rem * var(--text-scale, 1));
+  --text-3xl: calc(1.875rem * var(--text-scale, 1));
+  --text-4xl: calc(2.25rem * var(--text-scale, 1));
+  --text-5xl: calc(3rem * var(--text-scale, 1));
+  --text-6xl: calc(3.75rem * var(--text-scale, 1));
+  --text-7xl: calc(4.5rem * var(--text-scale, 1));
+  --text-8xl: calc(6rem * var(--text-scale, 1));
+  --text-9xl: calc(8rem * var(--text-scale, 1));
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);

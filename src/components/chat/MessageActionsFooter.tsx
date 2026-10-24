@@ -70,12 +70,6 @@ export const MessageActionsFooter: React.FC<MessageActionsFooterProps> =
       const [feedbackValue, setFeedbackValue] = React.useState<
         'like' | 'dislike' | 'default'
       >('default')
-      const [visible, setVisible] = React.useState(false)
-
-      React.useEffect(() => {
-        const frame = requestAnimationFrame(() => setVisible(true))
-        return () => cancelAnimationFrame(frame)
-      }, [])
 
       const handleFeedbackChange = React.useCallback(
         (value: 'like' | 'dislike' | 'default') => {
@@ -172,14 +166,7 @@ export const MessageActionsFooter: React.FC<MessageActionsFooterProps> =
       ])
 
       return (
-        <div
-          className={className || 'mt-2 flex justify-start'}
-          style={{
-            opacity: visible ? 1 : 0,
-            transform: visible ? 'translateY(0)' : 'translateY(4px)',
-            transition: 'opacity 180ms ease, transform 180ms ease',
-          }}
-        >
+        <div className={className || 'mt-2 flex justify-start'}>
           <Actions items={actionItems} variant="borderless" />
           {/* Hidden audio element for TTS playback */}
           {showTTS && <audio ref={audioRef} style={{ display: 'none' }} />}

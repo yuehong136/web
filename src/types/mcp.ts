@@ -156,7 +156,7 @@ export interface ParsedChatToolCall {
   name: string
   args: Record<string, any>
   arguments?: Record<string, any>
-  result: string
+  result: unknown
   status?: 'pending' | 'running' | 'success' | 'error'
   timestamp?: string
 }
@@ -166,6 +166,7 @@ export interface ChatMessage {
   role: 'user' | 'assistant'
   content: string
   timestamp: string
+  runPhase?: import('@/lib/streaming/run-lifecycle').RunPhase
   toolCalls?: ChatToolCall[]
   parsedToolCalls?: ParsedChatToolCall[]
 }

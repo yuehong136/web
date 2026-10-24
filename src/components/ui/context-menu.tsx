@@ -3,7 +3,7 @@
 import * as React from 'react'
 import * as ContextMenuPrimitive from '@radix-ui/react-context-menu'
 import { cn } from '@/lib/utils'
-import { useActivePortalTheme } from './portal-theme'
+import { useActivePortalTheme, usePortalContainer } from './portal-theme'
 
 const ContextMenu = ContextMenuPrimitive.Root
 const ContextMenuTrigger = ContextMenuPrimitive.Trigger
@@ -16,15 +16,16 @@ const ContextMenuContent = React.forwardRef<
   React.ComponentRef<typeof ContextMenuPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Content>
 >(({ className, ...props }, ref) => {
+  const portalContainer = usePortalContainer()
   const theme = useActivePortalTheme(true)
 
   return (
-    <ContextMenuPortal>
+    <ContextMenuPortal container={portalContainer}>
       <ContextMenuPrimitive.Content
         ref={ref}
         data-theme={theme}
         className={cn(
-          'border-border-primary bg-surface-primary z-50 min-w-[180px] rounded-radius-md border p-space-xs text-text-primary shadow-elevation-medium',
+          'z-50 min-w-[180px] rounded-radius-md border border-border-primary bg-surface-primary p-space-xs text-text-primary shadow-elevation-medium',
           className,
         )}
         {...props}
@@ -41,7 +42,7 @@ const ContextMenuItem = React.forwardRef<
   <ContextMenuPrimitive.Item
     ref={ref}
     className={cn(
-      'focus:bg-surface-secondary flex cursor-default items-center gap-space-sm rounded-radius-sm px-space-sm py-space-xs text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:text-text-disabled',
+      'flex cursor-default items-center gap-space-sm rounded-radius-sm px-space-sm py-space-xs text-sm outline-hidden select-none focus:bg-surface-secondary data-[disabled]:pointer-events-none data-[disabled]:text-text-disabled',
       className,
     )}
     {...props}
@@ -55,7 +56,7 @@ const ContextMenuSeparator = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <ContextMenuPrimitive.Separator
     ref={ref}
-    className={cn('bg-border-primary my-space-xs h-px', className)}
+    className={cn('my-space-xs h-px bg-border-primary', className)}
     {...props}
   />
 ))

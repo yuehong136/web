@@ -10,20 +10,29 @@ interface AppTopBarProps {
   secondaryCollapsed?: boolean
   onToggleSecondary?: () => void
   secondaryPanelId?: string
+  secondaryAsDialog?: boolean
+  secondaryToggleRef?: Ref<HTMLButtonElement>
   showSidebarToggle?: boolean
   mobileOnly?: boolean
   mobileToggleRef?: Ref<HTMLButtonElement>
+  mobilePanelId?: string
+  navigationOpen?: boolean
+  sectionLabel?: string
   children?: ReactNode
 }
-
 export const AppTopBar = ({
   onOpenSidebar,
   secondaryCollapsed = false,
   onToggleSecondary = onOpenSidebar,
   secondaryPanelId,
+  secondaryAsDialog,
+  secondaryToggleRef,
   showSidebarToggle = true,
   mobileOnly = false,
   mobileToggleRef,
+  mobilePanelId,
+  navigationOpen,
+  sectionLabel,
   children,
 }: AppTopBarProps) => {
   const { t } = useTranslation()
@@ -35,8 +44,7 @@ export const AppTopBar = ({
   return (
     <header
       className={cn(
-        'flex shrink-0 items-center gap-space-sm border-b border-border-subtle bg-components-nav-bg px-space-sm',
-        children ? 'h-12' : 'h-10',
+        'flex min-h-[calc(var(--control-height)+var(--space-sm))] shrink-0 items-center gap-space-sm border-b border-border-subtle bg-components-nav-bg px-space-sm py-space-xs',
         mobileOnly && 'md:hidden',
       )}
     >
@@ -45,34 +53,46 @@ export const AppTopBar = ({
           <Button
             ref={mobileToggleRef}
             variant="ghost"
-            size="icon-sm"
+            size="icon"
             onClick={onOpenSidebar}
             aria-label={t('layout.sidebar.openNavigation')}
-            className="md:hidden"
+            aria-expanded={navigationOpen}
+            aria-controls={mobilePanelId}
+            aria-haspopup="dialog"
+            className="min-h-11 min-w-11 md:hidden"
           >
-            <Menu className="size-icon-sm" />
+            <Menu className="size-icon-md" aria-hidden="true" />
           </Button>
           <div className="hidden md:block">
             <NavigationTooltip content={label}>
               <Button
+                ref={secondaryToggleRef}
                 variant="ghost"
                 size="icon-sm"
                 onClick={onToggleSecondary}
                 aria-label={label}
                 aria-expanded={!secondaryCollapsed}
                 aria-controls={secondaryPanelId}
+                aria-haspopup={secondaryAsDialog ? 'dialog' : undefined}
               >
                 {secondaryCollapsed ? (
-                  <PanelLeftOpen className="size-icon-sm" />
+                  <PanelLeftOpen className="size-icon-sm" aria-hidden="true" />
                 ) : (
-                  <PanelLeftClose className="size-icon-sm" />
+                  <PanelLeftClose className="size-icon-sm" aria-hidden="true" />
                 )}
               </Button>
             </NavigationTooltip>
           </div>
         </>
       )}
-      {children && <div className="min-w-0 flex-1">{children}</div>}
+      <div className="min-w-0 flex-1">
+        {children ??
+          (sectionLabel && (
+            <p className="truncate text-sm font-medium text-text-primary">
+              {sectionLabel}
+            </p>
+          ))}
+      </div>
     </header>
   )
 }

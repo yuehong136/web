@@ -16,6 +16,7 @@ import {
 import { interactionPalette, rgbChannels } from '@/themes/interaction-palette'
 import {
   generateThemeCSS,
+  generateThemeFiles,
   lightTokens,
   darkTokens,
 } from '@/themes/theme-generator'
@@ -607,7 +608,7 @@ for (const mode of ['light', 'dark'] as const) {
     )
     const css = await readFile(filepath, 'utf8')
     const options = await resolveConfig(filepath)
-    const expectedCSS = await format(generateThemeCSS(canonical, mode), {
+    const expectedCSS = await format(generateThemeFiles()[mode], {
       ...options,
       plugins: [],
       filepath,
@@ -617,7 +618,10 @@ for (const mode of ['light', 'dark'] as const) {
       expectedCSS,
       `${mode} committed CSS drifts from canonical tokens`,
     )
-    const declarations = [...css.matchAll(/--color-([\w-]+):\s*([^;]+);/g)]
+    const studioCSS = css.split(/\/\*\*/)[1]
+    const declarations = [
+      ...studioCSS.matchAll(/--color-([\w-]+):\s*([^;]+);/g),
+    ]
     const emitted = new Map(
       declarations.map((match) => [
         match[1],

@@ -1,12 +1,20 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { Theme, getResolvedTheme } from '@/themes'
+import {
+  Theme,
+  getTheme,
+  getResolvedTheme,
+  setTheme as setAppearanceMode,
+  subscribeAppearance,
+} from '@/themes'
 import i18n, {
-  getCurrentLanguage,
+  getProductLanguage,
+  subscribeProductLanguage,
   normalizeLocale,
   setProductLanguage,
 } from '@/locales/i18n'
 import type { Language } from '@/types'
+import { toast } from '@/lib/toast'
 
 export enum DesktopActivity {
   WORK = 'work',
@@ -19,7 +27,7 @@ export enum DesktopActivity {
 const DEFAULT_DESKTOP_SIDEBAR_WIDTH = 22
 const MIN_DESKTOP_SIDEBAR_WIDTH = 16
 const MAX_DESKTOP_SIDEBAR_WIDTH = 30
-const UI_STORAGE_VERSION = 1
+const UI_STORAGE_VERSION = 2
 
 const normalizeDesktopSidebarWidth = (width: number) => {
   if (!Number.isFinite(width)) return DEFAULT_DESKTOP_SIDEBAR_WIDTH
@@ -30,8 +38,6 @@ const normalizeDesktopSidebarWidth = (width: number) => {
 }
 
 interface PersistedUIState {
-  theme: Theme
-  language: Language
   sidebarCollapsed: boolean
   contextSidebarCollapsed: boolean
   sidebarWidth: number
@@ -72,13 +78,7 @@ export const normalizeDesktopPreferences = (
 
 const normalizePersistedUIState = (value: unknown): PersistedUIState => {
   const record = isRecord(value) ? value : {}
-  const theme = Object.values(Theme).includes(record.theme as Theme)
-    ? (record.theme as Theme)
-    : Theme.SYSTEM
-
   return {
-    theme,
-    language: normalizeLocale(record.language) ?? getCurrentLanguage(),
     sidebarCollapsed:
       typeof record.sidebarCollapsed === 'boolean'
         ? record.sidebarCollapsed
@@ -148,8 +148,8 @@ export const useUIStore = create<UIState>()(
   persist<UIState, [], [], PersistedUIState>(
     (set, get) => ({
       // 初始状态
-      theme: Theme.SYSTEM,
-      language: getCurrentLanguage(),
+      theme: getTheme(),
+      language: getProductLanguage(),
       sidebarCollapsed: false,
       contextSidebarCollapsed: false,
       sidebarWidth: 256,
@@ -162,16 +162,15 @@ export const useUIStore = create<UIState>()(
 
       // 设置主题
       setTheme: (theme) => {
-        set({ theme })
-        // 新的主题系统会自动处理DOM更新
+        setAppearanceMode(theme)
+        set({ theme: getTheme() })
       },
 
       // 设置语言
       setLanguage: (language) => {
-        const nextLanguage = normalizeLocale(language) ?? getCurrentLanguage()
-        set({ language: nextLanguage })
-        void setProductLanguage(nextLanguage).then((resolvedLanguage) => {
-          set({ language: resolvedLanguage })
+        const nextLanguage = normalizeLocale(language) ?? getProductLanguage()
+        void setProductLanguage(nextLanguage).catch(() => {
+          toast.error(i18n.t('common.languageChangeFailed'))
         })
       },
 
@@ -249,8 +248,6 @@ export const useUIStore = create<UIState>()(
         ...normalizePersistedUIState(persistedState),
       }),
       partialize: (state) => ({
-        theme: state.theme,
-        language: state.language,
         sidebarCollapsed: state.sidebarCollapsed,
         contextSidebarCollapsed: state.contextSidebarCollapsed,
         sidebarWidth: state.sidebarWidth,
@@ -258,26 +255,16 @@ export const useUIStore = create<UIState>()(
         desktopSidebarCollapsed: state.desktopSidebarCollapsed,
         desktopSidebarWidth: state.desktopSidebarWidth,
       }),
-      onRehydrateStorage: () => (state) => {
-        if (state) {
-          // 应用主题
-          state.setTheme(state.theme)
-          // 应用语言：优先使用统一 i18n 偏好，避免旧 ui-storage 覆盖产品语言。
-          state.setLanguage(getCurrentLanguage())
-
-          // 新的主题系统会自动处理系统主题变化
-        }
-      },
     },
   ),
 )
 
-i18n.on('languageChanged', (language) => {
-  const nextLanguage = normalizeLocale(language)
-  if (!nextLanguage) return
-
-  const state = useUIStore.getState()
-  if (state.language !== nextLanguage) {
-    useUIStore.setState({ language: nextLanguage })
-  }
+// Mirrors are updated only from the owners of each persisted preference.
+subscribeAppearance(() => {
+  const theme = getTheme()
+  if (useUIStore.getState().theme !== theme) useUIStore.setState({ theme })
+})
+subscribeProductLanguage((language) => {
+  if (useUIStore.getState().language !== language)
+    useUIStore.setState({ language })
 })

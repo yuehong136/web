@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useLayoutEffect, useRef, useState } from 'react'
 import { toast } from '@/lib/toast'
 import { useUpdateSearch } from '@/hooks/use-search-request'
 import { DEFAULT_SEARCH_CONFIG } from '../../constants'
@@ -49,73 +49,158 @@ const normalizeModelConfig = (
   }
 }
 
+type BasicInfo = Pick<SearchApp, 'name' | 'description' | 'avatar'>
+interface SettingsSnapshot {
+  config: SearchConfig
+  basicInfo: BasicInfo
+}
+interface SettingsState {
+  source: SearchApp | null
+  scope: string
+  epoch: number
+  revision: number
+  saveId: number | null
+  draft: SettingsSnapshot
+  saved: SettingsSnapshot
+  confirmedAt: number | null
+}
+
+const getScope = (app: SearchApp | null) =>
+  JSON.stringify([app?.tenant_id, app?.id])
+const getUpdateTime = (app: SearchApp | null) =>
+  app && Number.isFinite(app.update_time) ? app.update_time : null
+const getSnapshot = (app: SearchApp | null): SettingsSnapshot => ({
+  config: normalizeModelConfig(app?.search_config || {}),
+  basicInfo: {
+    name: app?.name || '',
+    description: app?.description || '',
+    avatar: app?.avatar || '',
+  },
+})
+const hasDraftChanges = (state: SettingsState) =>
+  JSON.stringify(state.draft) !== JSON.stringify(state.saved)
+const createSettingsState = (
+  source: SearchApp | null,
+  epoch = 0,
+): SettingsState => {
+  const snapshot = getSnapshot(source)
+  return {
+    source,
+    scope: getScope(source),
+    epoch,
+    revision: 0,
+    saveId: null,
+    draft: snapshot,
+    saved: snapshot,
+    confirmedAt: getUpdateTime(source),
+  }
+}
+const isSaveAcknowledgement = (response: SearchApp, app: SearchApp) =>
+  response !== null &&
+  typeof response === 'object' &&
+  response.id === app.id &&
+  response.tenant_id === app.tenant_id &&
+  typeof response.name === 'string' &&
+  response.search_config !== null &&
+  typeof response.search_config === 'object' &&
+  !Array.isArray(response.search_config) &&
+  Array.isArray(response.search_config.kb_ids) &&
+  response.search_config.kb_ids.every((id) => typeof id === 'string')
+
 export const useSearchSettings = (searchApp: SearchApp | null) => {
   const { t } = useTranslation()
-  const { updateSearch, isLoading } = useUpdateSearch()
-  const [config, setConfig] = useState<SearchConfig>(buildDefaultConfig)
-  const [savedConfig, setSavedConfig] =
-    useState<SearchConfig>(buildDefaultConfig)
-  const [basicInfo, setBasicInfo] = useState<
-    Pick<SearchApp, 'name' | 'description' | 'avatar'>
-  >({
-    name: '',
-    description: '',
-    avatar: '',
-  })
-  const [savedBasicInfo, setSavedBasicInfo] = useState<
-    Pick<SearchApp, 'name' | 'description' | 'avatar'>
-  >({
-    name: '',
-    description: '',
-    avatar: '',
-  })
+  const { updateSearch } = useUpdateSearch()
+  const [state, setState] = useState(() => createSettingsState(searchApp))
+  const owner = useRef<{ epoch: number } | null>(null)
+  const activeSave = useRef<object | null>(null)
+  const requestRevision = useRef(0)
 
-  const resetInputs0 = [searchApp]
-  const [previousInputs0, setPreviousInputs0] = useState<unknown[] | null>(null)
-  if (
-    previousInputs0 === null ||
-    resetInputs0.some(
-      (value, index) => !Object.is(value, previousInputs0[index]),
-    )
-  ) {
-    setPreviousInputs0(resetInputs0)
-
-    if (searchApp) {
-      const rawSearchConfig = (searchApp.search_config ||
-        {}) as Partial<SearchConfig>
-      const mergedConfig = normalizeModelConfig(rawSearchConfig)
-      setConfig(mergedConfig)
-      setSavedConfig(mergedConfig)
-      const nextBasicInfo = {
-        name: searchApp.name || '',
-        description: searchApp.description || '',
-        avatar: searchApp.avatar || '',
-      }
-      setBasicInfo(nextBasicInfo)
-      setSavedBasicInfo(nextBasicInfo)
+  if (state.source !== searchApp) {
+    if (state.scope !== getScope(searchApp)) {
+      setState(createSettingsState(searchApp, state.epoch + 1))
+    } else {
+      const updateTime = getUpdateTime(searchApp)
+      const isOlder =
+        updateTime !== null &&
+        state.confirmedAt !== null &&
+        updateTime < state.confirmedAt
+      const saved = getSnapshot(searchApp)
+      setState({
+        ...state,
+        source: searchApp,
+        // A refetch can confirm server data, but cannot replace an edited draft
+        // or race the acknowledgement of a save already in flight.
+        ...(!state.saveId && !isOlder
+          ? {
+              saved,
+              draft: hasDraftChanges(state) ? state.draft : saved,
+              confirmedAt: updateTime,
+            }
+          : {}),
+      })
     }
   }
 
-  const isDirty = useMemo(
-    () =>
-      JSON.stringify(config) !== JSON.stringify(savedConfig) ||
-      JSON.stringify(basicInfo) !== JSON.stringify(savedBasicInfo),
-    [basicInfo, config, savedBasicInfo, savedConfig],
+  useLayoutEffect(() => {
+    const currentOwner = { epoch: state.epoch }
+    owner.current = currentOwner
+    return () => {
+      if (owner.current === currentOwner) {
+        owner.current = null
+        activeSave.current = null
+      }
+    }
+  }, [state.epoch])
+
+  const updateConfig = useCallback(
+    (partial: Partial<SearchConfig>) => {
+      setState((prev) =>
+        prev.epoch === state.epoch
+          ? {
+              ...prev,
+              revision: prev.revision + 1,
+              draft: {
+                ...prev.draft,
+                config: normalizeModelConfig({
+                  ...prev.draft.config,
+                  ...partial,
+                }),
+              },
+            }
+          : prev,
+      )
+    },
+    [state.epoch],
   )
 
-  const updateConfig = useCallback((partial: Partial<SearchConfig>) => {
-    setConfig((prev) => normalizeModelConfig({ ...prev, ...partial }))
-  }, [])
-
   const updateBasicInfo = useCallback(
-    (partial: Partial<Pick<SearchApp, 'name' | 'description' | 'avatar'>>) => {
-      setBasicInfo((prev) => ({ ...prev, ...partial }))
+    (partial: Partial<BasicInfo>) => {
+      setState((prev) =>
+        prev.epoch === state.epoch
+          ? {
+              ...prev,
+              revision: prev.revision + 1,
+              draft: {
+                ...prev.draft,
+                basicInfo: { ...prev.draft.basicInfo, ...partial },
+              },
+            }
+          : prev,
+      )
     },
-    [],
+    [state.epoch],
   )
 
   const saveConfig = useCallback(async () => {
-    if (!searchApp) return
+    const currentOwner = owner.current
+    if (
+      !searchApp ||
+      !currentOwner ||
+      currentOwner.epoch !== state.epoch ||
+      activeSave.current
+    )
+      return
+    const { config, basicInfo } = state.draft
     if (!config.kb_ids?.length) {
       toast.error(t('searchPage.feedback.knowledgeRequired'))
       return
@@ -128,9 +213,15 @@ export const useSearchSettings = (searchApp: SearchApp | null) => {
       return
     }
 
+    const ownSave = {}
+    const saveId = ++requestRevision.current
+    activeSave.current = ownSave
+    const ownsSave = () =>
+      owner.current === currentOwner && activeSave.current === ownSave
+    setState((prev) => ({ ...prev, saveId }))
     try {
       const normalizedConfig = normalizeModelConfig(config)
-      await updateSearch({
+      const response = await updateSearch({
         search_id: searchApp.id,
         name: trimmedName,
         description: (basicInfo.description || '').trim() || undefined,
@@ -138,39 +229,47 @@ export const useSearchSettings = (searchApp: SearchApp | null) => {
         tenant_id: searchApp.tenant_id,
         search_config: normalizedConfig as unknown as Record<string, unknown>,
       })
-      setConfig(normalizedConfig)
-      setSavedConfig(normalizedConfig)
-      setSavedBasicInfo({
-        name: trimmedName,
-        description: (basicInfo.description || '').trim(),
-        avatar: basicInfo.avatar || '',
-      })
+      if (!ownsSave()) return
+      if (!isSaveAcknowledgement(response, searchApp))
+        throw new Error('INVALID_SEARCH_SAVE_ACKNOWLEDGEMENT')
+      const saved = getSnapshot(response)
+      setState((prev) =>
+        prev.epoch === state.epoch && prev.saveId === saveId
+          ? {
+              ...prev,
+              saveId: null,
+              saved,
+              draft: prev.revision === state.revision ? saved : prev.draft,
+              confirmedAt: getUpdateTime(response),
+            }
+          : prev,
+      )
       toast.success(t('searchPage.feedback.saveTitle'), {
         description: t('searchPage.feedback.saveSuccess'),
       })
     } catch {
+      if (!ownsSave()) return
+      setState((prev) =>
+        prev.epoch === state.epoch && prev.saveId === saveId
+          ? { ...prev, saveId: null }
+          : prev,
+      )
       toast.error(t('searchPage.feedback.saveFailedTitle'), {
         description: t('searchPage.feedback.saveFailed'),
       })
+    } finally {
+      if (ownsSave()) activeSave.current = null
     }
-  }, [
-    t,
-    basicInfo.avatar,
-    basicInfo.description,
-    basicInfo.name,
-    config,
-    searchApp,
-    updateSearch,
-  ])
+  }, [t, state, searchApp, updateSearch])
 
   return {
-    basicInfo,
-    config,
-    appliedConfig: config,
+    basicInfo: state.draft.basicInfo,
+    config: state.draft.config,
+    appliedConfig: state.saved.config,
     updateBasicInfo,
     updateConfig,
     saveConfig,
-    isSaving: isLoading,
-    isDirty,
+    isSaving: state.saveId !== null,
+    isDirty: hasDraftChanges(state),
   }
 }

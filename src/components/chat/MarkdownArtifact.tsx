@@ -195,7 +195,7 @@ const ArtifactImageResource: FC<{
           setIsLoading(false)
           toast.error(
             t(
-              'agent.markdownArtifact.imageLoadFailed',
+              'chat.markdownArtifact.imageLoadFailed',
               'Failed to load artifact image',
             ),
           )
@@ -218,7 +218,7 @@ const ArtifactImageResource: FC<{
       if (!isAbortError(error)) {
         toast.error(
           t(
-            'agent.markdownArtifact.downloadFailed',
+            'chat.markdownArtifact.downloadFailed',
             'Failed to download artifact',
           ),
         )
@@ -249,12 +249,12 @@ const ArtifactImageResource: FC<{
         >
           {hasError
             ? t(
-                'agent.markdownArtifact.imageLoadFailed',
+                'chat.markdownArtifact.imageLoadFailed',
                 'Failed to load artifact image',
               )
             : isLoading
               ? t(
-                  'agent.markdownArtifact.imageLoading',
+                  'chat.markdownArtifact.imageLoading',
                   'Loading artifact image...',
                 )
               : null}
@@ -268,7 +268,7 @@ const ArtifactImageResource: FC<{
       >
         <Download className="size-icon-sm" aria-hidden="true" />
         {isDownloading
-          ? t('agent.markdownArtifact.downloading', 'Downloading...')
+          ? t('chat.markdownArtifact.downloading', 'Downloading...')
           : t('common.download', 'Download')}
       </button>
     </span>
@@ -294,7 +294,7 @@ export const ArtifactLink: FC<{
       } catch (error) {
         if (!isAbortError(error)) {
           toast.error(
-            t('agent.markdownArtifact.openFailed', 'Failed to open artifact'),
+            t('chat.markdownArtifact.openFailed', 'Failed to open artifact'),
           )
         }
       } finally {
@@ -317,7 +317,7 @@ export const ArtifactLink: FC<{
       <ExternalLink className="size-icon-sm" aria-hidden="true" />
       {isOpening ? (
         <span className="sr-only">
-          {t('agent.markdownArtifact.opening', 'Opening artifact...')}
+          {t('chat.markdownArtifact.opening', 'Opening artifact...')}
         </span>
       ) : null}
     </a>

@@ -83,13 +83,18 @@ export const searchAPI = {
     kb_ids: string[]
     search_id?: string
     doc_ids?: string[]
+    signal?: AbortSignal
   }): Promise<unknown> =>
-    apiClient.post('/v1/conversation/mindmap', {
-      question: data.question,
-      kb_ids: data.kb_ids,
-      search_id: data.search_id,
-      doc_ids: data.doc_ids,
-    }),
+    apiClient.post(
+      '/v1/conversation/mindmap',
+      {
+        question: data.question,
+        kb_ids: data.kb_ids,
+        search_id: data.search_id,
+        doc_ids: data.doc_ids,
+      },
+      { signal: data.signal },
+    ),
 
   // 分享态查询思维导图（对齐 ragflow /searchbots/mindmap）
   mindmapShare: async (data: {
@@ -98,37 +103,29 @@ export const searchAPI = {
     search_id?: string
     signal?: AbortSignal
   }): Promise<unknown> => {
-    const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
     const searchAuth =
       typeof window !== 'undefined'
         ? new URLSearchParams(window.location.search).get('auth')
         : null
-    const storedToken = localStorage.getItem('auth_token')
-    const authorization = searchAuth
-      ? `Bearer ${searchAuth}`
-      : storedToken
-        ? `Bearer ${storedToken}`
-        : undefined
-
-    const response = await fetch(`${baseURL}/api/v1/searchbots/mindmap`, {
-      method: 'POST',
-      signal: data.signal,
-      headers: {
-        'Content-Type': 'application/json',
-        ...(authorization && { Authorization: authorization }),
-      },
-      body: JSON.stringify({
+    const token =
+      searchAuth ||
+      (typeof localStorage !== 'undefined'
+        ? localStorage.getItem('auth_token')
+        : null)
+    return apiClient.post(
+      '/v1/searchbots/mindmap',
+      {
         question: data.question,
         kb_ids: data.kb_ids,
         search_id: data.search_id,
-      }),
-    })
-
-    const raw = await response.json()
-    const code = raw?.retcode ?? raw?.code ?? 0
-    if (!response.ok || code !== 0) {
-      throw new Error(raw?.retmsg || raw?.message || `HTTP ${response.status}`)
-    }
-    return raw?.data ?? null
+      },
+      {
+        ...sdkBase,
+        signal: data.signal,
+        // Entry failures must never clear or redirect the product session.
+        skipAuth: true,
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      },
+    )
   },
 }

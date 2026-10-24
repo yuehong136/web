@@ -1,5 +1,36 @@
 export default {
   chat: {
+    runTimeline: {
+      title: '运行动态',
+      count: '{{count}} 个步骤',
+      analysis: '工具分析',
+      error: '工具错误',
+      status: {
+        loading: '运行中',
+        success: '已完成',
+        error: '失败',
+        unconfirmed: '未确认',
+      },
+      arguments: '参数',
+      result: '结果',
+      toolRunning: '工具运行中...',
+      noToolDetail: '暂无工具详情',
+      reasoningTitle: '推理',
+      step: '执行步骤',
+    },
+    markdownArtifact: {
+      imageLoading: '正在加载产物图片...',
+      imageLoadFailed: '产物图片加载失败',
+      downloading: '下载中...',
+      downloadFailed: '产物下载失败',
+      opening: '正在打开产物...',
+      openFailed: '产物打开失败',
+    },
+    composer: {
+      keyboardHint: 'Enter 发送 · Shift + Enter 换行',
+      preparing: '正在准备对话…',
+    },
+    transcript: { user: '你', assistant: '助手' },
     references: {
       sources: '引用来源',
       documents: '{{count}} 个文档',
@@ -25,6 +56,13 @@ export default {
     stream: {
       failed: '生成失败，请重试。',
       interrupted: '生成未完成，已保留已生成的内容。',
+      locallyStopped: '已停止接收并保留内容，尚未确认服务端任务取消。',
+      cancelRequested: '已请求取消，正在等待任务响应。',
+      serverCancelled: '服务端已确认任务取消。',
+      toolUnconfirmed: '结果未确认',
+      aiFillInvalid: '完整回复未能解析为表单 JSON，请调整提示词后重试。',
+      aiFillComplete: 'AI 填写完成',
+      stop: '停止接收',
     },
     scroll: {
       region: '对话消息',

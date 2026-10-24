@@ -2,7 +2,7 @@ import * as React from 'react'
 import { createPortal } from 'react-dom'
 import { cn } from '@/lib/utils'
 import { Button, type ButtonProps } from './button'
-import { useActivePortalTheme } from './portal-theme'
+import { useActivePortalTheme, usePortalContainer } from './portal-theme'
 
 export interface AlertDialogProps {
   open: boolean
@@ -80,6 +80,7 @@ export const AlertDialogContent: React.FC<
   }
 
   const { open } = context
+  const portalContainer = usePortalContainer()
   const scopedTheme = useActivePortalTheme(open, theme)
 
   // Handle escape key - AlertDialog 不响应 ESC 关闭
@@ -120,7 +121,7 @@ export const AlertDialogContent: React.FC<
     </div>
   )
 
-  return createPortal(content, document.body)
+  return createPortal(content, portalContainer ?? document.body)
 }
 
 /**

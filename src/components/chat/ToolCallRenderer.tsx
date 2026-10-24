@@ -4,6 +4,7 @@
  */
 
 import React, { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   PlayCircle,
   CheckCircle,
@@ -24,7 +25,11 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
-import type { StreamToolCallInfo as ToolCallInfo } from '@/lib/streaming'
+import {
+  isRunTerminal,
+  type RunPhase,
+  type StreamToolCallInfo as ToolCallInfo,
+} from '@/lib/streaming'
 
 interface ToolCallRendererProps {
   toolCalls: ToolCallInfo[]
@@ -32,9 +37,16 @@ interface ToolCallRendererProps {
   className?: string
   showTimestamp?: boolean
   collapsible?: boolean
+  runPhase?: RunPhase
 }
 
 const STATUS_CONFIG = {
+  unconfirmed: {
+    color: 'secondary' as const,
+    bgColor: 'var(--color-text-secondary)',
+    icon: Clock,
+    text: '',
+  },
   pending: {
     color: 'warning' as const,
     bgColor: 'var(--color-status-warning)',
@@ -129,7 +141,7 @@ const ParamValue: React.FC<{ value: any }> = ({ value }) => {
     }
     return (
       <span
-        className="break-all font-mono text-sm"
+        className="font-mono text-sm break-all"
         style={{ color: 'var(--color-text-primary)' }}
       >
         {value}
@@ -176,7 +188,7 @@ const ResultContent: React.FC<{ result: any; status: string }> = ({
   result,
   status,
 }) => {
-  if (!result) {
+  if (result === undefined) {
     if (status === 'running') {
       return (
         <div className="flex items-center gap-2">
@@ -251,15 +263,21 @@ const ToolCallCard: React.FC<{
   toolCall: ToolCallInfo
   showTimestamp: boolean
   collapsible: boolean
-}> = ({ toolCall, showTimestamp, collapsible }) => {
+  runPhase: RunPhase
+}> = ({ toolCall, showTimestamp, collapsible, runPhase }) => {
+  const { t } = useTranslation()
+  const displayStatus =
+    isRunTerminal(runPhase) && ['pending', 'running'].includes(toolCall.status)
+      ? 'unconfirmed'
+      : toolCall.status
   const [isOpen, setIsOpen] = useState(
     ['running', 'error'].includes(toolCall.status),
   )
-  const statusConfig = STATUS_CONFIG[toolCall.status]
+  const statusConfig = STATUS_CONFIG[displayStatus]
   const StatusIcon = statusConfig.icon
   const hasParams = Object.keys(toolCall.arguments).length > 0
-  const hasResult = !!toolCall.result
-  const hasBody = hasParams || hasResult || toolCall.status === 'running'
+  const hasResult = toolCall.result !== undefined
+  const hasBody = hasParams || hasResult || displayStatus === 'running'
 
   const headerContent = (
     <div className="flex w-full items-center justify-between">
@@ -293,7 +311,7 @@ const ToolCallCard: React.FC<{
           }
           className="text-xs"
         >
-          {statusConfig.text}
+          {statusConfig.text || t('chat.stream.toolUnconfirmed')}
         </Badge>
       </div>
       {showTimestamp && (
@@ -335,7 +353,7 @@ const ToolCallCard: React.FC<{
         </div>
       )}
 
-      {(hasResult || toolCall.status === 'running') && (
+      {(hasResult || displayStatus === 'running') && (
         <div className="space-y-1.5">
           <div className="flex items-center gap-1.5">
             <StatusIcon
@@ -357,15 +375,12 @@ const ToolCallCard: React.FC<{
                 <AlertDescription>
                   <ResultContent
                     result={toolCall.result}
-                    status={toolCall.status}
+                    status={displayStatus}
                   />
                 </AlertDescription>
               </Alert>
             ) : (
-              <ResultContent
-                result={toolCall.result}
-                status={toolCall.status}
-              />
+              <ResultContent result={toolCall.result} status={displayStatus} />
             )}
           </div>
         </div>
@@ -376,7 +391,7 @@ const ToolCallCard: React.FC<{
   const borderColor =
     toolCall.status === 'error'
       ? 'var(--color-status-error)'
-      : toolCall.status === 'running'
+      : displayStatus === 'running'
         ? 'var(--color-state-focus)'
         : 'var(--color-components-card-border)'
 
@@ -429,6 +444,7 @@ export const ToolCallRenderer: React.FC<ToolCallRendererProps> = ({
   className = '',
   showTimestamp = true,
   collapsible = false,
+  runPhase = 'running',
 }) => {
   if (!toolCalls || toolCalls.length === 0) {
     if (isAnalyzing) {
@@ -513,6 +529,7 @@ export const ToolCallRenderer: React.FC<ToolCallRendererProps> = ({
             toolCall={toolCall}
             showTimestamp={showTimestamp}
             collapsible={collapsible}
+            runPhase={runPhase}
           />
         ))}
       </div>

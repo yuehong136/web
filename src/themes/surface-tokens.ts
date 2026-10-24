@@ -1,5 +1,4 @@
-import type { surfacePalette } from './surface-palette'
-import type { interactionPalette } from './interaction-palette'
+import type { SurfacePalette, InteractionPalette } from './preset-palettes'
 
 export interface SurfaceTokens {
   'surface-primary': string
@@ -29,8 +28,8 @@ export const emptySurfaceTokens: SurfaceTokens = {
 
 /** Compact surface names used by shared UI resolve to the same product palette. */
 export function buildSurfaceTokens(
-  surfaces: (typeof surfacePalette)['light' | 'dark'],
-  interaction: (typeof interactionPalette)['light' | 'dark'],
+  surfaces: SurfacePalette,
+  interaction: InteractionPalette,
 ): SurfaceTokens {
   return {
     'surface-primary': surfaces.surface,

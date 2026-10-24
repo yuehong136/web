@@ -1,5 +1,6 @@
 import type { DesignTokens } from './tokens'
 import { rgbChannels } from './interaction-palette'
+import type { AppearancePreset } from './appearance'
 
 /**
  * 生成主题 CSS 文件内容
@@ -7,11 +8,14 @@ import { rgbChannels } from './interaction-palette'
 export function generateThemeCSS(
   tokens: DesignTokens,
   themeName: 'light' | 'dark',
+  preset?: AppearancePreset,
 ): string {
   // 同时输出 html 级与子树级选择器，便于分享页 / 嵌入场景在子树覆盖主题
-  const selector = `html[data-theme="${themeName}"], [data-theme="${themeName}"]`
+  const selector = preset
+    ? `[data-preset="${preset}"][data-theme="${themeName}"]`
+    : `html[data-theme="${themeName}"], [data-theme="${themeName}"]`
 
-  let css = `/**\n * ${themeName === 'light' ? '亮色' : '暗色'}主题 CSS 变量定义\n * 基于 Dify 项目的设计令牌系统\n * \n * ⚠️ 注意: 此文件由代码自动生成，请勿手动修改!\n * 如需修改主题，请编辑 theme-generator.ts 文件\n */\n\n${selector} {\n  /* ===== Tailwind 通道变量 (用于 /alpha 透明度支持) ===== */\n  --twc-primary: ${rgbChannels(tokens['components-button-primary-bg'])};\n  --twc-primary-foreground: 255 255 255;\n  --twc-foreground: ${rgbChannels(tokens['text-primary'])};\n  --twc-background: ${rgbChannels(tokens['background-body'])};\n  --twc-ring: ${rgbChannels(tokens['state-focus'])};\n  --twc-border: ${themeName === 'light' ? '226 232 240' : '39 39 42'};\n\n`
+  let css = `/**\n * ${themeName === 'light' ? '亮色' : '暗色'}主题 CSS 变量定义\n * 基于 Dify 项目的设计令牌系统\n *\n * ⚠️ 注意: 此文件由代码自动生成，请勿手动修改!\n * 如需修改主题，请编辑 theme-generator.ts 文件\n */\n\n${selector} {\n  /* ===== Tailwind 通道变量 (用于 /alpha 透明度支持) ===== */\n  --twc-primary: ${rgbChannels(tokens['components-button-primary-bg'])};\n  --twc-primary-foreground: 255 255 255;\n  --twc-foreground: ${rgbChannels(tokens['text-primary'])};\n  --twc-background: ${rgbChannels(tokens['background-body'])};\n  --twc-ring: ${rgbChannels(tokens['state-focus'])};\n  --twc-border: ${rgbChannels(tokens['components-input-border'])};\n\n`
 
   // 按分类组织令牌
   const categories = {

@@ -11,7 +11,8 @@
 .app-chat-composer.ant-sender:focus-within {
   border-color: var(--color-border-accent);
   box-shadow: none;
-  outline: none;
+  outline: 2px solid var(--color-state-focus);
+  outline-offset: 3px;
 }
 .app-chat-composer .ant-sender-content {
   background: transparent;
@@ -25,7 +26,8 @@
   background: transparent;
   color: var(--color-text-primary);
   font-family: var(--font-sans);
-  font-size: var(--text-sm);
+  font-size: var(--text-base);
+  line-height: var(--reading-line-height, 1.65);
 }
 .app-chat-composer .ant-sender-input::placeholder {
   color: var(--color-text-tertiary);
@@ -64,4 +66,28 @@
 .app-chat-composer .ant-attachments-list-item {
   background: var(--color-components-input-bg);
   border-color: var(--color-border-subtle);
+}
+
+.chat-composer .ant-sender-content {
+  padding: var(--space-md) var(--space-md) var(--space-sm);
+}
+.chat-composer .ant-sender-footer {
+  padding: 0 var(--space-base) var(--space-base);
+}
+.chat-composer-context {
+  padding: var(--space-base) var(--space-md) 0;
+}
+.chat-composer-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--control-gap);
+  min-width: 0;
+}
+.chat-composer-hint {
+  margin-top: var(--space-sm);
+  min-height: 1.5em;
+  color: var(--color-text-tertiary);
+  font-size: var(--text-xs);
+  text-align: center;
 }

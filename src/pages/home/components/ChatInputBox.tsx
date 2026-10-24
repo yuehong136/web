@@ -1,56 +1,45 @@
-import React, { useRef, useEffect, useCallback } from 'react'
+import type { Ref, RefObject, ReactNode } from 'react'
+import type { SenderRef } from '@ant-design/x/es/sender/interface'
 import { useTranslation } from 'react-i18next'
-import { ArrowUp, Square } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { Textarea } from '@/components/ui/textarea'
+import { ChatComposer } from '@/components/chat/chat-composer'
 import { ChatModelSelector } from '@/components/chat/ChatModelSelector'
 import { SelectedTags } from './SelectedTags'
 import { InputToolbar } from './InputToolbar'
 import type { DialogApp } from '@/types/api'
 import type { MCPServer } from '@/types/mcp'
+import type { MyLLMProvider } from '@/stores/model'
 
 interface ChatInputBoxProps {
-  // 输入值
   inputValue: string
   onInputChange: (value: string) => void
-  onKeyDown: (e: React.KeyboardEvent) => void
   placeholder?: string
-
-  // 已选项
+  inputRef?: Ref<SenderRef>
   selectedMCPServers: MCPServer[]
   selectedApps: DialogApp[]
-  onRemoveSkill: (serverId: string) => void
-  onRemoveApp: (appId: string) => void
-
-  // 技能面板
+  onRemoveSkill: (id: string) => void
+  onRemoveApp: (id: string) => void
   isSkillPanelOpen: boolean
   onSkillPanelToggle: () => void
-  skillPanelRef: React.RefObject<HTMLButtonElement>
-  skillPanelContent: React.ReactNode
-
-  // 模型选择
-  models: Record<string, any> | null
+  skillPanelRef: RefObject<HTMLButtonElement>
+  skillPanelContent: ReactNode
+  models: MyLLMProvider | null
   selectedModelId: string
-  onModelSelect: (modelId: string | null) => void
+  onModelSelect: (id: string | null) => void
   modelsLoading: boolean
   isModelLocked: boolean
-
-  // 发送
   onSend: () => void
   onStop?: () => void
   isStreaming?: boolean
-  /** 请求已接纳（会话准备或流式中）：锁定技能/应用、模型与发送，输入框仍可编辑 */
   scopeLocked?: boolean
-
-  // 变体
   variant?: 'welcome' | 'chat'
 }
 
-export const ChatInputBox: React.FC<ChatInputBoxProps> = ({
+/** Domain controls are slots; the shared composer owns keyboard/submission UI. */
+export function ChatInputBox({
   inputValue,
   onInputChange,
-  onKeyDown,
   placeholder,
+  inputRef,
   selectedMCPServers,
   selectedApps,
   onRemoveSkill,
@@ -69,131 +58,61 @@ export const ChatInputBox: React.FC<ChatInputBoxProps> = ({
   isStreaming = false,
   scopeLocked = isStreaming,
   variant = 'welcome',
-}) => {
+}: ChatInputBoxProps) {
   const { t } = useTranslation()
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const resolvedPlaceholder =
-    placeholder ?? t('home.input.welcomePlaceholder', '给我发消息或布置任务')
-
-  // 自动调整输入框高度
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto'
-      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`
-    }
-  }, [inputValue])
-
-  const handleInputChange = useCallback(
-    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      onInputChange(e.target.value)
-    },
-    [onInputChange],
-  )
-
-  const isWelcome = variant === 'welcome'
-  const hasSelectedItems =
-    selectedMCPServers.length > 0 || selectedApps.length > 0
-  const canSend = Boolean(inputValue.trim()) && !scopeLocked
-
   return (
-    <div
-      className={cn(
-        'relative rounded-2xl bg-components-card-bg',
-        isWelcome ? 'min-h-[110px] p-5' : 'p-4',
-      )}
-    >
-      {/* 已选技能和应用标签 */}
-      <SelectedTags
-        selectedMCPServers={selectedMCPServers}
-        selectedApps={selectedApps}
-        onRemoveSkill={onRemoveSkill}
-        onRemoveApp={onRemoveApp}
-        disabled={scopeLocked}
-      />
-
-      {/* 文本输入区：生成中也可编写下一条草稿 */}
-      <Textarea
-        ref={textareaRef}
-        variant="chat"
-        value={inputValue}
-        onChange={handleInputChange}
-        onKeyDown={onKeyDown}
-        placeholder={resolvedPlaceholder}
-        className="w-full text-base placeholder:text-text-tertiary"
-        rows={1}
-      />
-
-      {/* 工具栏 */}
-      <div className="mt-3 flex items-center justify-between">
-        {/* 左侧工具按钮 */}
-        <div className="relative flex items-center gap-2">
-          <div>
+    <ChatComposer
+      ref={inputRef}
+      value={inputValue}
+      onChange={onInputChange}
+      onSubmit={onSend}
+      placeholder={placeholder ?? t('home.input.welcomePlaceholder')}
+      state={
+        isStreaming && onStop
+          ? { kind: 'running', stop: onStop }
+          : scopeLocked
+            ? { kind: 'blocked', reason: t('chat.composer.preparing') }
+            : { kind: 'ready' }
+      }
+      labels={{ stop: t('home.input.stop') }}
+      slots={{
+        context:
+          selectedMCPServers.length || selectedApps.length ? (
+            <SelectedTags
+              selectedMCPServers={selectedMCPServers}
+              selectedApps={selectedApps}
+              onRemoveSkill={onRemoveSkill}
+              onRemoveApp={onRemoveApp}
+              disabled={scopeLocked}
+            />
+          ) : undefined,
+        leading: (
+          <>
             <InputToolbar
               isSkillPanelOpen={isSkillPanelOpen}
-              hasSelectedItems={hasSelectedItems}
+              hasSelectedItems={
+                selectedMCPServers.length > 0 || selectedApps.length > 0
+              }
               disabled={scopeLocked}
               onAtClick={onSkillPanelToggle}
               atButtonRef={skillPanelRef}
-              size={isWelcome ? 'normal' : 'compact'}
+              size="compact"
             />
-          </div>
-
-          {/* 技能面板插槽 */}
-          {skillPanelContent}
-        </div>
-
-        {/* 右侧：模型选择器 + 发送/停止按钮 */}
-        <div className="flex items-center gap-3">
-          {/* 模型选择器 */}
+            {skillPanelContent}
+          </>
+        ),
+        configuration: (
           <ChatModelSelector
             models={models || {}}
             selectedModelName={selectedModelId}
-            onSelect={(modelName) => onModelSelect(modelName || '')}
+            onSelect={(name) => onModelSelect(name || '')}
             loading={modelsLoading}
             variant="minimal"
-            dropdownDirection={isWelcome ? 'down' : 'up'}
+            dropdownDirection={variant === 'welcome' ? 'down' : 'up'}
             disabled={scopeLocked || isModelLocked}
           />
-
-          {/* 发送/停止按钮 */}
-          {isStreaming && onStop ? (
-            <button
-              type="button"
-              onClick={onStop}
-              aria-label={t('home.input.stop', '停止')}
-              className={cn(
-                'flex items-center justify-center rounded-full bg-status-error text-text-on-accent transition-colors hover:bg-status-error/90',
-                isWelcome ? 'h-10 w-10' : 'h-9 w-9',
-              )}
-            >
-              <Square className={isWelcome ? 'h-5 w-5' : 'h-4 w-4'} />
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={onSend}
-              disabled={!canSend}
-              aria-label={t('common.submit', '提交')}
-              className={cn(
-                'flex items-center justify-center rounded-full transition-colors',
-                isWelcome ? 'h-10 w-10' : 'h-9 w-9',
-                canSend
-                  ? 'bg-components-button-primary-bg hover:bg-components-button-primary-bg-hover'
-                  : 'bg-components-button-primary-bg-disabled',
-              )}
-            >
-              <ArrowUp
-                className={cn(
-                  isWelcome ? 'h-5 w-5' : 'h-4 w-4',
-                  canSend
-                    ? 'text-components-button-primary-text'
-                    : 'text-components-button-primary-text-disabled',
-                )}
-              />
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
+        ),
+      }}
+    />
   )
 }

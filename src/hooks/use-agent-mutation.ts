@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
+import i18n from '@/locales/i18n'
 import { APIError } from '@/api/client-types'
-import type { CreateAgentSessionInput } from '@/types/agent'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { agentAPI } from '@/api/agent'
 import { toast } from '@/lib/toast'
@@ -8,6 +8,7 @@ import { MutationErrorFeedback } from '@/lib/mutation-error-feedback'
 import { adaptAgentFlow, adaptAgentSession } from '@/pages/agent/adapters'
 import { agentQueryKeys } from './use-agent-query'
 import type {
+  CreateAgentSessionInput,
   DebugAgentNodePayload,
   AgentWebhookTestRequest,
   AgentFlow,
@@ -79,10 +80,10 @@ export const useDeleteAgent = () => {
         queryKey: agentQueryKeys.tagCounts(),
       })
       queryClient.removeQueries({ queryKey: agentQueryKeys.detail(id) })
-      toast.success('已删除智能体')
+      toast.success(i18n.t('agents.feedback.deleted'))
     },
     onError: () => {
-      toast.error('删除失败')
+      toast.error(i18n.t('agents.feedback.deleteFailed'))
     },
   })
 

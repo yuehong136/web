@@ -18,7 +18,7 @@ import {
 } from '@/hooks/use-agent-request'
 import { toast } from '@/lib/toast'
 import { copyToClipboard } from '@/lib/utils'
-import { applyRouteLocale } from '@/locales/i18n'
+import { useRouteLocale } from '@/locales/use-route-locale'
 import { ScopedTheme } from '@/themes'
 import { Copy, RotateCcw } from 'lucide-react'
 import {
@@ -117,9 +117,7 @@ export default function AgentSharePage() {
     startTaskMessage: t('agent.share.startTask', '启动任务'),
   })
 
-  useEffect(() => {
-    applyRouteLocale(access.locale)
-  }, [access.locale])
+  useRouteLocale(access.locale)
 
   useEffect(() => {
     if (!isTaskMode && shareQuery.data.prologue) {

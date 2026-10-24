@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { createPortal } from 'react-dom'
 import { ChevronDown, Check } from 'lucide-react'
-import { useNearestPortalTheme } from './portal-theme'
+import { useNearestPortalTheme, usePortalContainer } from './portal-theme'
 
 export interface SelectProps {
   value?: string
@@ -226,6 +226,7 @@ export const SelectContent: React.FC<SelectContentProps> = ({
     top: number
     width: number
   }>({ left: 0, top: 0, width: 0 })
+  const portalContainer = usePortalContainer()
   const theme = useNearestPortalTheme(selectRef ?? fallbackRef, isOpen)
 
   const updatePosition = React.useCallback(() => {
@@ -275,7 +276,7 @@ export const SelectContent: React.FC<SelectContentProps> = ({
     </div>
   )
 
-  return createPortal(content, document.body)
+  return createPortal(content, portalContainer ?? document.body)
 }
 
 export const SelectItem = React.forwardRef<HTMLButtonElement, SelectItemProps>(

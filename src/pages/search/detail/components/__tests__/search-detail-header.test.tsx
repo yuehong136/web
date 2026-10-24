@@ -2,12 +2,15 @@ import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import SearchDetailHeader from '../search-detail-header'
+import { setProductLanguage } from '@/locales/i18n'
 
 describe('Search detail capability actions', () => {
   let container: HTMLDivElement
   let root: Root
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true)
+    await setProductLanguage('zh-CN')
     container = document.createElement('div')
     document.body.append(container)
     root = createRoot(container)
@@ -16,6 +19,7 @@ describe('Search detail capability actions', () => {
   afterEach(async () => {
     await act(async () => root.unmount())
     container.remove()
+    vi.unstubAllGlobals()
   })
 
   it('exposes accessible share and session export actions', async () => {
@@ -49,7 +53,7 @@ describe('Search detail capability actions', () => {
       container.querySelector('[aria-label="返回搜索列表"]'),
     ).not.toBeNull()
     const shareButton =
-      container.querySelector<HTMLButtonElement>('[title="复制分享链接"]')
+      container.querySelector<HTMLButtonElement>('[title="复制会话链接"]')
     expect(shareButton).not.toBeNull()
 
     await act(async () => shareButton?.click())

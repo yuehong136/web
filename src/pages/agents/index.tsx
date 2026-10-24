@@ -10,17 +10,13 @@ import {
   ListPagination,
   PageErrorState,
   PageLoadingState,
-  StatGrid,
 } from '@/components/patterns'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { FilterPopover, type FilterValue } from '@/components/ui/filter-popover'
-import { CustomSelect } from '@/components/ui/custom-select'
-import { ViewToggle } from '@/components/ui/view-toggle'
-import { MemoryStatsCard } from '@/components/memory'
+import { AssetListControls } from '@/components/patterns/asset-list-controls'
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -32,10 +28,10 @@ import { toast } from '@/lib/toast'
 import {
   buildAgentCanvasPath,
   buildInitialDsl,
-  countFlowNodes,
+  downloadFlowJson,
   inferCanvasTypeFromGraph,
-  isPipelineFlow,
   resolveCanvasCategory,
+  resolveLocalizedText,
 } from '@/lib/agent'
 import {
   useDeleteAgent,
@@ -50,17 +46,11 @@ import {
   type AgentGraph,
 } from '@/types/agent'
 import {
-  ArrowUpDown,
-  Bot,
   ClipboardList,
-  Database,
   FileInput,
-  Grid,
   LayoutTemplate,
-  List as ListIcon,
   Plus,
   Search,
-  Sparkles,
 } from 'lucide-react'
 import { AgentCard } from './components/agent-card'
 import { AgentEmptyState } from './components/agent-empty-state'
@@ -101,19 +91,9 @@ export default function AgentsPage() {
     canvas_type: kind === 'all' ? undefined : kind,
   })
   const { data: tagCounts } = useFetchAgentTags()
-  const setAgent = useSetAgent()
+  const setAgent = useSetAgent({ showToast: false })
   const renameAgent = useRenameAgent()
   const deleteAgent = useDeleteAgent()
-
-  const stats = useMemo(() => {
-    const agents = listQuery.agents || []
-    return {
-      total: listQuery.total,
-      agentCount: agents.filter((flow) => !isPipelineFlow(flow)).length,
-      pipelineCount: agents.filter((flow) => isPipelineFlow(flow)).length,
-      readyForBuild: agents.filter((flow) => countFlowNodes(flow) > 1).length,
-    }
-  }, [listQuery.agents, listQuery.total])
 
   const sortedAgents = useMemo(() => {
     const list = listQuery.agents || []
@@ -148,6 +128,14 @@ export default function AgentsPage() {
       variables?: Record<string, unknown>
     }
     const graph = parsed.graph || parsed.dsl?.graph
+    const hasGraph =
+      graph && Array.isArray(graph.nodes) && Array.isArray(graph.edges)
+    const hasComponents =
+      parsed.dsl?.components &&
+      typeof parsed.dsl.components === 'object' &&
+      !Array.isArray(parsed.dsl.components)
+    if ((!hasGraph && !hasComponents) || (graph !== undefined && !hasGraph))
+      throw new Error('Unsupported workflow JSON')
     const kind = inferCanvasTypeFromGraph(graph)
     const dsl: AgentDsl = parsed.dsl || {
       components: {},
@@ -171,13 +159,17 @@ export default function AgentsPage() {
     navigate(buildAgentCanvasPath(flow.id, kind))
   }
 
-  const handleDelete = async () => {
-    if (!flowToDelete) {
-      return
-    }
-
-    await deleteAgent.deleteAgent(flowToDelete.id)
-    setFlowToDelete(null)
+  const handleDelete = () => {
+    if (!flowToDelete || deleteAgent.isLoading) return
+    const id = flowToDelete.id
+    void deleteAgent
+      .deleteAgent(id)
+      .then(() =>
+        setFlowToDelete((current) => (current?.id === id ? null : current)),
+      )
+      .catch(() => {
+        // The mutation owner reports the failure; keep the selected asset for retry.
+      })
   }
 
   const filterValue: FilterValue = {
@@ -223,72 +215,43 @@ export default function AgentsPage() {
   return (
     <>
       <ListPageTemplate
-        title={t('agents.center', 'Agent Center')}
-        description={t(
-          'agents.centerDescription',
-          '先把信息架构、路由、类型与运行入口搭好，再逐步增量替换每个节点表单和运行细节。',
-        )}
+        title={t('agents.center')}
+        className="p-space-base md:p-space-lg"
+        description={t('agents.centerDescription')}
         headerActions={
           <>
             <Button
               variant="outline"
               onClick={() => navigate('/agent-templates')}
             >
-              <LayoutTemplate className="mr-2 h-4 w-4" />
+              <LayoutTemplate className="size-icon-sm" aria-hidden="true" />
               {t('agents.templatesButton', '模板')}
             </Button>
             <Button variant="outline" onClick={() => navigate('/agents/log')}>
-              <ClipboardList className="mr-2 h-4 w-4" />
+              <ClipboardList className="size-icon-sm" aria-hidden="true" />
               {t('agents.opsLogs', '运维日志')}
             </Button>
             <Button variant="outline" onClick={() => setImportOpen(true)}>
-              <FileInput className="mr-2 h-4 w-4" />
+              <FileInput className="size-icon-sm" aria-hidden="true" />
               {t('agents.importJson', '导入 JSON')}
             </Button>
             <Button onClick={() => setCreateOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
+              <Plus className="size-icon-sm" aria-hidden="true" />
               {t('agents.createAsset', '新建资产')}
             </Button>
           </>
         }
-        stats={
-          <StatGrid>
-            <MemoryStatsCard
-              title={t('agents.totalAssets', '总资产')}
-              value={stats.total}
-              icon={Sparkles}
-              color="info"
-            />
-            <MemoryStatsCard
-              title={t('agents.agents', 'Agents')}
-              value={stats.agentCount}
-              icon={Bot}
-              color="success"
-            />
-            <MemoryStatsCard
-              title={t('agents.pipelines', 'Pipelines')}
-              value={stats.pipelineCount}
-              icon={Database}
-              color="warning"
-            />
-            <MemoryStatsCard
-              title={t('agents.expandedNodes', '已扩展节点')}
-              value={stats.readyForBuild}
-              icon={LayoutTemplate}
-              color="purple"
-            />
-          </StatGrid>
-        }
         toolbarLeft={
           <Input
             type="search"
+            aria-label={t('agents.searchPlaceholder')}
             placeholder={t('agents.searchPlaceholder', '搜索标题或资产意图')}
             value={keyword}
             onChange={(event) => {
               setPage(1)
               setKeyword(event.target.value)
             }}
-            leftIcon={<Search className="h-4 w-4" />}
+            leftIcon={<Search className="size-icon-sm" aria-hidden="true" />}
           />
         }
         toolbarRight={
@@ -299,8 +262,11 @@ export default function AgentsPage() {
                   key: 'kind',
                   label: t('agents.type', '类型'),
                   options: [
-                    { value: AgentCanvasType.AGENT, label: 'Agent' },
-                    { value: AgentCanvasType.PIPELINE, label: 'Pipeline' },
+                    { value: AgentCanvasType.AGENT, label: t('agents.agents') },
+                    {
+                      value: AgentCanvasType.PIPELINE,
+                      label: t('agents.pipelines'),
+                    },
                   ],
                 },
                 {
@@ -317,58 +283,28 @@ export default function AgentsPage() {
                   })),
                 },
               ]}
+              className="h-auto min-h-[var(--control-height-sm)]"
               value={filterValue}
               onChange={handleFilterChange}
             />
-            <CustomSelect
-              options={[
-                {
-                  value: 'detailed',
-                  label: t('agents.detailedTime', '详细时间'),
-                },
-                {
-                  value: 'compact',
-                  label: t('agents.compactTime', '简洁时间'),
-                },
-                {
-                  value: 'relative',
-                  label: t('agents.relativeTime', '相对时间'),
-                },
-              ]}
-              value={timeFormat}
-              onChange={(value) => setTimeFormat(value as AgentTimeFormat)}
-              size="sm"
-              className="min-w-[100px]"
-            />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setSortDesc((prev) => !prev)}
-              className="flex h-9 items-center gap-1 px-2 text-xs"
-            >
-              <ArrowUpDown className="h-3.5 w-3.5" />
-              <span>
-                {sortDesc
-                  ? t('agents.descending', '倒序')
-                  : t('agents.ascending', '正序')}
-              </span>
-            </Button>
-            <ViewToggle
-              value={viewMode}
-              onChange={setViewMode}
-              size="md"
-              options={[
-                {
-                  value: 'grid',
-                  icon: <Grid />,
-                  label: t('agents.gridView', '网格视图'),
-                },
-                {
-                  value: 'list',
-                  icon: <ListIcon />,
-                  label: t('agents.listView', '列表视图'),
-                },
-              ]}
+            <AssetListControls
+              view={viewMode}
+              onViewChange={setViewMode}
+              timeFormat={timeFormat}
+              onTimeFormatChange={setTimeFormat}
+              sortDescending={sortDesc}
+              onToggleSort={() => setSortDesc((value) => !value)}
+              labels={{
+                view: t('common.viewToggle'),
+                grid: t('agents.gridView'),
+                list: t('agents.listView'),
+                timeFormat: t('agents.timeFormat'),
+                detailed: t('agents.detailedTime'),
+                compact: t('agents.compactTime'),
+                relative: t('agents.relativeTime'),
+                newest: t('agents.descending'),
+                oldest: t('agents.ascending'),
+              }}
             />
           </>
         }
@@ -389,20 +325,15 @@ export default function AgentsPage() {
           <PageLoadingState
             scene={AppScene.CONSOLE}
             title={t('agents.loadingTitle', '正在加载 Agent 资产')}
-            description={t(
-              'agents.loadingDescription',
-              '新的管理骨架正在整理列表、模板与导入入口。',
-            )}
+            description={t('agents.loadingDescription')}
           />
         }
         errorState={
           <PageErrorState
             scene={AppScene.CONSOLE}
             title={t('agents.loadFailedTitle', 'Agent 列表加载失败')}
-            description={t(
-              'agents.loadFailedDescription',
-              '请检查后端 canvas 接口或稍后重试。',
-            )}
+            description={t('agents.loadFailedDescription')}
+            retryLabel={t('common.retry')}
             onRetry={() => {
               void listQuery.refetch()
             }}
@@ -414,9 +345,19 @@ export default function AgentsPage() {
             onCreate={() => setCreateOpen(true)}
             onTemplate={() => navigate('/agent-templates')}
             onImport={() => setImportOpen(true)}
+            onReset={() => {
+              setKeyword('')
+              setKind('all')
+              setSelectedTags([])
+              setPage(1)
+            }}
           />
         }
       >
+        <div className="mb-space-base flex flex-wrap justify-between gap-space-sm text-sm text-text-secondary">
+          <p>{t('agents.resultCount', { count: listQuery.total })}</p>
+          <p className="text-xs">{t('agents.sortPageScope')}</p>
+        </div>
         {viewMode === 'grid' ? (
           <div className="grid grid-cols-1 gap-space-lg md:grid-cols-2 xl:grid-cols-3">
             {listQuery.isLoading
@@ -432,6 +373,7 @@ export default function AgentsPage() {
                     flow={flow}
                     onOpen={handleOpen}
                     onDelete={setFlowToDelete}
+                    onExport={downloadFlowJson}
                     onRename={setFlowToRename}
                     onEditTags={
                       currentUserId &&
@@ -451,6 +393,7 @@ export default function AgentsPage() {
             timeFormat={timeFormat}
             onOpen={handleOpen}
             onDelete={setFlowToDelete}
+            onExport={downloadFlowJson}
             onRename={setFlowToRename}
             onEditTags={setFlowToEditTags}
             currentUserId={currentUserId}
@@ -489,7 +432,9 @@ export default function AgentsPage() {
 
       <AlertDialog
         open={Boolean(flowToDelete)}
-        onOpenChange={(open) => !open && setFlowToDelete(null)}
+        onOpenChange={(open) => {
+          if (!open && !deleteAgent.isLoading) setFlowToDelete(null)
+        }}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -501,25 +446,30 @@ export default function AgentsPage() {
                 ? t(
                     'agents.deleteDescription',
                     '将删除「{{name}}」。当前阶段不保留回收站。',
-                    { name: resolveLabel(flowToDelete) },
+                    {
+                      name: resolveLocalizedText(
+                        flowToDelete.title,
+                        t('agents.unnamedAgent'),
+                      ),
+                    },
                   )
                 : t('agents.deleteFallback', '删除后无法恢复。')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t('common.cancel', '取消')}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>
+            <AlertDialogCancel disabled={deleteAgent.isLoading}>
+              {t('common.cancel')}
+            </AlertDialogCancel>
+            <Button
+              variant="destructive"
+              loading={deleteAgent.isLoading}
+              onClick={handleDelete}
+            >
               {t('agents.confirmDelete', '确认删除')}
-            </AlertDialogAction>
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </>
   )
-}
-
-function resolveLabel(flow: AgentFlow) {
-  return typeof flow.title === 'string'
-    ? flow.title
-    : flow.title?.zh || flow.title?.en || '未命名资产'
 }
