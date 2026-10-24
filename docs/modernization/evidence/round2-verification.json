@@ -1,0 +1,451 @@
+{
+  "candidate": "091d1f4418fac283080d93a0f76dca9aca1f90ed",
+  "baseline": "2da13553338fd8862b4b197ea16ff8192e882f27",
+  "inputFiles": 2376,
+  "inputSha256": "ddcd8b60b99968699d10855153657a6a43fe4f20e3f7f8291293e34624acf5ad",
+  "runtime": {
+    "node": "v24.4.1",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "browser": "155.0.8059.85",
+  "measuredAt": "2026-10-24T07:05:19.776Z",
+  "manifestSha256": "da0eb97cab6beec7126660a2b0450243d7477681eaab6577f640fed0e03dd42d",
+  "formalTests": {
+    "files": 277,
+    "sourceNode": 907,
+    "sourceVitest": 862,
+    "desktopNode": 93,
+    "toolingNode": 21,
+    "total": 1883,
+    "failed": 0,
+    "skipped": 0
+  },
+  "quality": {
+    "pipelineExit": 0,
+    "allLintErrors": 0,
+    "allLintWarnings": 1319,
+    "typedLintWarnings": 84,
+    "i18nNewIssues": 0,
+    "catalogBaselineIssues": 0,
+    "fileSizeRatchet": "passed",
+    "typedCatalogs": "matched",
+    "themeGeneration": "unchanged"
+  },
+  "bundle": {
+    "files": 671,
+    "rawBytes": 25499339,
+    "entry": {
+      "file": "dist/js/index-CHnzrH4v.js",
+      "raw": 104719,
+      "gzip": 31666
+    },
+    "maxGzip": {
+      "file": "dist/js/chunks/agent-Dwt5778A.js",
+      "raw": 1381680,
+      "gzip": 743519
+    },
+    "budget": {
+      "_doc": "Bundle 体积预算（check-bundle-size.mjs 消费）。预算=2026-06-10 实测+5%，只许下调不许上调；调整须在 docs/engineering-modernization-roadmap.md ENG-4 记录。实测基线：total 26,059,624 B / entry gzip 116,721 B / max chunk gzip 720,700 B (editor-runtime-rail)。",
+      "totalJsBytes": 27400000,
+      "entryGzipBytes": 123000,
+      "maxChunkGzipBytes": 757000
+    }
+  },
+  "browserChecks": {
+    "production": true,
+    "coreChecks": [
+      "Home locale/theme retain the same draft input",
+      "Simulated composition Enter does not submit; compositionend then Enter submits once (physical IME not tested)",
+      "Home app submission freezes a real scope without changing its API payload",
+      "Home HTML artifact uses a scriptless CSP sandbox, stable message card, local download and no locale/theme re-fetch",
+      "Real TypeScript/Python CodeBlock token spans and clipboard contents survive theme and language changes",
+      "Evidence and artifact tabs preserve their selected resource and mounted preview while the draft stays editable",
+      "Closing a raster preview revokes its blob URL and restores card focus; changing the conversation scope also releases it",
+      "Artifact HTTP 403/404/500 display fixed notices and preserve the generated assistant answer",
+      "Wide evidence dock keeps the answer and composer interactive and preserves zero relevance",
+      "Inline citation marker opens its Details dock and receives focus after the dock closes",
+      "Narrow evidence Sheet traps/restores focus without remounting the draft",
+      "Half-width CSS viewport (960px) plus 1.25 reading-scale pressure keeps the Sheet usable; actual browser zoom not measured",
+      "Explore EOF preserves content and is never presented as completed",
+      "Explore explicit completion and error frames produce completed/failed outcomes while retaining the answer"
+    ],
+    "pageErrors": []
+  },
+  "routes": {
+    "Home": {
+      "freshContext": true,
+      "ready": true,
+      "readyEvidence": null,
+      "runtimeErrors": [],
+      "failedRequests": [],
+      "staticClosure": {
+        "entryBound": true,
+        "files": 87,
+        "rawBytes": 4625967,
+        "gzipBytes": 1332578
+      },
+      "phases": {
+        "coldRoute": {
+          "totalResourceEntries": 103,
+          "groups": {
+            "js": {
+              "requests": 94,
+              "uniquePaths": 94,
+              "encodedBodyBytes": 1349618,
+              "decodedBodyBytes": 4294130,
+              "transferBytes": 1377818
+            },
+            "css": {
+              "requests": 5,
+              "uniquePaths": 5,
+              "encodedBodyBytes": 98427,
+              "decodedBodyBytes": 641953,
+              "transferBytes": 99927
+            },
+            "font": {
+              "requests": 0,
+              "uniquePaths": 0,
+              "encodedBodyBytes": 0,
+              "decodedBodyBytes": 0,
+              "transferBytes": 0
+            }
+          }
+        },
+        "plainAnswer": {
+          "totalResourceEntries": 110,
+          "groups": {
+            "js": {
+              "requests": 0,
+              "uniquePaths": 0,
+              "encodedBodyBytes": 0,
+              "decodedBodyBytes": 0,
+              "transferBytes": 0
+            },
+            "css": {
+              "requests": 0,
+              "uniquePaths": 0,
+              "encodedBodyBytes": 0,
+              "decodedBodyBytes": 0,
+              "transferBytes": 0
+            },
+            "font": {
+              "requests": 0,
+              "uniquePaths": 0,
+              "encodedBodyBytes": 0,
+              "decodedBodyBytes": 0,
+              "transferBytes": 0
+            }
+          }
+        },
+        "firstEvidence": {
+          "totalResourceEntries": 110,
+          "groups": {
+            "js": {
+              "requests": 0,
+              "uniquePaths": 0,
+              "encodedBodyBytes": 0,
+              "decodedBodyBytes": 0,
+              "transferBytes": 0
+            },
+            "css": {
+              "requests": 0,
+              "uniquePaths": 0,
+              "encodedBodyBytes": 0,
+              "decodedBodyBytes": 0,
+              "transferBytes": 0
+            },
+            "font": {
+              "requests": 0,
+              "uniquePaths": 0,
+              "encodedBodyBytes": 0,
+              "decodedBodyBytes": 0,
+              "transferBytes": 0
+            }
+          }
+        },
+        "firstArtifact": {
+          "totalResourceEntries": 112,
+          "groups": {
+            "js": {
+              "requests": 1,
+              "uniquePaths": 1,
+              "encodedBodyBytes": 2031,
+              "decodedBodyBytes": 4607,
+              "transferBytes": 2331
+            },
+            "css": {
+              "requests": 0,
+              "uniquePaths": 0,
+              "encodedBodyBytes": 0,
+              "decodedBodyBytes": 0,
+              "transferBytes": 0
+            },
+            "font": {
+              "requests": 0,
+              "uniquePaths": 0,
+              "encodedBodyBytes": 0,
+              "decodedBodyBytes": 0,
+              "transferBytes": 0
+            }
+          }
+        },
+        "firstTypeScript": {
+          "totalResourceEntries": 116,
+          "groups": {
+            "js": {
+              "requests": 3,
+              "uniquePaths": 3,
+              "encodedBodyBytes": 21143,
+              "decodedBodyBytes": 203729,
+              "transferBytes": 22043
+            },
+            "css": {
+              "requests": 0,
+              "uniquePaths": 0,
+              "encodedBodyBytes": 0,
+              "decodedBodyBytes": 0,
+              "transferBytes": 0
+            },
+            "font": {
+              "requests": 0,
+              "uniquePaths": 0,
+              "encodedBodyBytes": 0,
+              "decodedBodyBytes": 0,
+              "transferBytes": 0
+            }
+          }
+        },
+        "firstPython": {
+          "totalResourceEntries": 118,
+          "groups": {
+            "js": {
+              "requests": 1,
+              "uniquePaths": 1,
+              "encodedBodyBytes": 9124,
+              "decodedBodyBytes": 69945,
+              "transferBytes": 9424
+            },
+            "css": {
+              "requests": 0,
+              "uniquePaths": 0,
+              "encodedBodyBytes": 0,
+              "decodedBodyBytes": 0,
+              "transferBytes": 0
+            },
+            "font": {
+              "requests": 0,
+              "uniquePaths": 0,
+              "encodedBodyBytes": 0,
+              "decodedBodyBytes": 0,
+              "transferBytes": 0
+            }
+          }
+        }
+      }
+    },
+    "Search": {
+      "freshContext": true,
+      "ready": true,
+      "readyEvidence": null,
+      "runtimeErrors": [],
+      "failedRequests": [],
+      "staticClosure": {
+        "entryBound": false,
+        "files": 108,
+        "rawBytes": 6162535,
+        "gzipBytes": 1776492
+      },
+      "phases": {
+        "coldRoute": {
+          "totalResourceEntries": 124,
+          "groups": {
+            "js": {
+              "requests": 113,
+              "uniquePaths": 113,
+              "encodedBodyBytes": 1791708,
+              "decodedBodyBytes": 5826179,
+              "transferBytes": 1825608
+            },
+            "css": {
+              "requests": 6,
+              "uniquePaths": 6,
+              "encodedBodyBytes": 99112,
+              "decodedBodyBytes": 642638,
+              "transferBytes": 100912
+            },
+            "font": {
+              "requests": 0,
+              "uniquePaths": 0,
+              "encodedBodyBytes": 0,
+              "decodedBodyBytes": 0,
+              "transferBytes": 0
+            }
+          }
+        },
+        "plainAnswer": {
+          "totalResourceEntries": 126,
+          "groups": {
+            "js": {
+              "requests": 0,
+              "uniquePaths": 0,
+              "encodedBodyBytes": 0,
+              "decodedBodyBytes": 0,
+              "transferBytes": 0
+            },
+            "css": {
+              "requests": 0,
+              "uniquePaths": 0,
+              "encodedBodyBytes": 0,
+              "decodedBodyBytes": 0,
+              "transferBytes": 0
+            },
+            "font": {
+              "requests": 0,
+              "uniquePaths": 0,
+              "encodedBodyBytes": 0,
+              "decodedBodyBytes": 0,
+              "transferBytes": 0
+            }
+          }
+        },
+        "firstEvidence": {
+          "totalResourceEntries": 126,
+          "groups": {
+            "js": {
+              "requests": 0,
+              "uniquePaths": 0,
+              "encodedBodyBytes": 0,
+              "decodedBodyBytes": 0,
+              "transferBytes": 0
+            },
+            "css": {
+              "requests": 0,
+              "uniquePaths": 0,
+              "encodedBodyBytes": 0,
+              "decodedBodyBytes": 0,
+              "transferBytes": 0
+            },
+            "font": {
+              "requests": 0,
+              "uniquePaths": 0,
+              "encodedBodyBytes": 0,
+              "decodedBodyBytes": 0,
+              "transferBytes": 0
+            }
+          }
+        },
+        "firstTypeScript": {
+          "totalResourceEntries": 131,
+          "groups": {
+            "js": {
+              "requests": 3,
+              "uniquePaths": 3,
+              "encodedBodyBytes": 21143,
+              "decodedBodyBytes": 203729,
+              "transferBytes": 22043
+            },
+            "css": {
+              "requests": 0,
+              "uniquePaths": 0,
+              "encodedBodyBytes": 0,
+              "decodedBodyBytes": 0,
+              "transferBytes": 0
+            },
+            "font": {
+              "requests": 0,
+              "uniquePaths": 0,
+              "encodedBodyBytes": 0,
+              "decodedBodyBytes": 0,
+              "transferBytes": 0
+            }
+          }
+        },
+        "firstPython": {
+          "totalResourceEntries": 134,
+          "groups": {
+            "js": {
+              "requests": 1,
+              "uniquePaths": 1,
+              "encodedBodyBytes": 9124,
+              "decodedBodyBytes": 69945,
+              "transferBytes": 9424
+            },
+            "css": {
+              "requests": 0,
+              "uniquePaths": 0,
+              "encodedBodyBytes": 0,
+              "decodedBodyBytes": 0,
+              "transferBytes": 0
+            },
+            "font": {
+              "requests": 0,
+              "uniquePaths": 0,
+              "encodedBodyBytes": 0,
+              "decodedBodyBytes": 0,
+              "transferBytes": 0
+            }
+          }
+        }
+      }
+    },
+    "Agent": {
+      "freshContext": true,
+      "ready": true,
+      "readyEvidence": {
+        "kind": "persisted-agent-canvas",
+        "nodeIds": ["begin"],
+        "title": "Controlled profile agent",
+        "railLabels": [
+          "Current asset",
+          "Runtime Workbench",
+          "Delivery and debug",
+          "Recent activity"
+        ]
+      },
+      "runtimeErrors": [],
+      "failedRequests": [],
+      "staticClosure": {
+        "entryBound": false,
+        "files": 160,
+        "rawBytes": 8668715,
+        "gzipBytes": 2875917
+      },
+      "phases": {
+        "coldRoute": {
+          "totalResourceEntries": 183,
+          "groups": {
+            "js": {
+              "requests": 167,
+              "uniquePaths": 167,
+              "encodedBodyBytes": 2911718,
+              "decodedBodyBytes": 8376817,
+              "transferBytes": 2961818
+            },
+            "css": {
+              "requests": 8,
+              "uniquePaths": 8,
+              "encodedBodyBytes": 101900,
+              "decodedBodyBytes": 659648,
+              "transferBytes": 104300
+            },
+            "font": {
+              "requests": 0,
+              "uniquePaths": 0,
+              "encodedBodyBytes": 0,
+              "decodedBodyBytes": 0,
+              "transferBytes": 0
+            }
+          }
+        }
+      }
+    }
+  },
+  "desktopStage": {
+    "files": 1108,
+    "contentSha256": "23907a843aa820b197eda89fb30e95622cb8d2612bc4a14e6702f1a62d89aae5",
+    "sourceRevision": "091d1f4418fac283080d93a0f76dca9aca1f90ed",
+    "viteMetadataShipped": false
+  },
+  "scope": "Local controlled HTTP/SSE fixtures, not real provider/backend or remote CI; no push/deploy."
+}
