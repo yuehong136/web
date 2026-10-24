@@ -122,6 +122,20 @@ export default {
       publishSuccessWithNote: '发布成功：{{note}}',
       publishFailed: '发布失败',
     },
+    editorRuntimeRail: {
+      currentAsset: '当前资产',
+      autosave: '自动保存',
+      recentlyUpdatedAt: '最近更新时间：{{time}}',
+      pipelineIdleDescription:
+        '上传文档触发数据流处理，并在日志和输出中查看结果。',
+      recentActivity: '最近活动',
+      recentRun: '最近运行',
+      waitingFirstRun: '等待首次运行',
+      pipelineActivityDescription: '上传文档后会生成运行日志和输出。',
+      agentActivityDescription: '运行后会生成会话消息和节点日志。',
+      saveStatus: '保存状态',
+      share: '分享',
+    },
     embedRail: {
       assetSummary: '资产摘要',
       agentDescription: '编排对话、工具调用和交付入口。',

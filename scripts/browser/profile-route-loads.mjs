@@ -370,12 +370,21 @@ export async function profileRouteLoads(browser, { baseURL, output }) {
               .locator('input[value="Controlled profile agent"]')
               .count()),
         )
+        const railLabels = [
+          'Current asset',
+          'Runtime Workbench',
+          'Delivery and debug',
+          'Recent activity',
+        ]
+        for (const label of railLabels)
+          await page.getByText(label, { exact: true }).waitFor()
         readyEvidence = {
           kind: 'persisted-agent-canvas',
           nodeIds: await page
             .locator('.react-flow__node')
             .evaluateAll((nodes) => nodes.map((node) => node.dataset.id)),
           title: 'Controlled profile agent',
+          railLabels,
         }
       } else await page.locator('textarea').first().waitFor({ timeout: 30000 })
       await settleResources(page)

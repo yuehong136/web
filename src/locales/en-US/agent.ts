@@ -136,6 +136,22 @@ export default {
       publishSuccessWithNote: 'Published: {{note}}',
       publishFailed: 'Publish failed',
     },
+    editorRuntimeRail: {
+      currentAsset: 'Current asset',
+      autosave: 'Autosave',
+      recentlyUpdatedAt: 'Last updated: {{time}}',
+      pipelineIdleDescription:
+        'Upload documents to trigger the dataflow, then inspect the logs and outputs.',
+      recentActivity: 'Recent activity',
+      recentRun: 'Latest run',
+      waitingFirstRun: 'Waiting for the first run',
+      pipelineActivityDescription:
+        'Run logs and outputs appear after you upload documents.',
+      agentActivityDescription:
+        'Conversation messages and node logs appear after a run.',
+      saveStatus: 'Save status',
+      share: 'Share',
+    },
     embedRail: {
       assetSummary: 'Asset summary',
       agentDescription:
