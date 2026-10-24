@@ -8,6 +8,7 @@ import { test } from 'node:test'
 import { ApplicationStyleProvider } from '@/themes/application-style-provider'
 import { buildAntdTheme } from '@/lib/antd-theme'
 import { getTokenValue } from '@/lib/design-tokens'
+import { APPEARANCE_PRESETS, DEFAULT_APPEARANCE } from '../appearance'
 
 for (const isDark of [false, true]) {
   test(`keeps vendor CSS in layers in dark mode ${isDark}`, () => {
@@ -80,4 +81,49 @@ for (const mode of ['light', 'dark'] as const) {
       getTokenValue('state-selected', mode),
     )
   })
+}
+
+for (const preset of APPEARANCE_PRESETS) {
+  for (const mode of ['light', 'dark'] as const) {
+    test(`adapts ${preset}/${mode} fonts and interactive states for vendor controls`, () => {
+      const theme = buildAntdTheme(mode === 'dark', preset, {
+        ...DEFAULT_APPEARANCE,
+        preset,
+        mode,
+        density: 'compact',
+        textScale: 1.25,
+      })
+      const token = (name: Parameters<typeof getTokenValue>[0]) =>
+        getTokenValue(name, mode, preset)
+      assert.equal(theme.token?.fontFamily, 'var(--font-interface)')
+      assert.equal(theme.token?.fontFamilyCode, 'var(--font-code)')
+      assert.equal(theme.token?.controlHeight, 40)
+      assert.equal(theme.token?.fontSize, 17.5)
+      assert.equal(theme.token?.colorError, token('status-error'))
+      assert.equal(theme.token?.colorWarning, token('status-warning'))
+      assert.equal(theme.token?.colorSuccess, token('status-success'))
+      assert.equal(theme.token?.colorInfo, token('status-info'))
+      assert.equal(theme.token?.colorTextDisabled, token('text-disabled'))
+      assert.equal(
+        theme.token?.colorBgContainerDisabled,
+        token('components-input-bg-disabled'),
+      )
+      assert.equal(
+        theme.components?.Input?.colorTextPlaceholder,
+        token('components-input-text-placeholder'),
+      )
+      assert.equal(
+        theme.components?.Input?.activeBorderColor,
+        token('components-input-border-focus'),
+      )
+      assert.equal(
+        theme.components?.Input?.hoverBorderColor,
+        token('components-input-border-hover'),
+      )
+      assert.equal(
+        theme.components?.Select?.optionSelectedBg,
+        token('state-selected-bg'),
+      )
+    })
+  }
 }

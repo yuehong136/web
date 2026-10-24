@@ -13,6 +13,32 @@ const compiler = readFile(path.join(sourceRoot, 'index.css'), 'utf8').then(
   (css) => compile(css, { base: sourceRoot, onDependency() {} }),
 )
 
+test('interface and Paper reading fonts work offline with explicit Chinese fallbacks', async () => {
+  const [entry, appearance] = await Promise.all([
+    readFile(path.join(sourceRoot, 'index.css'), 'utf8'),
+    readFile(path.join(themeRoot, 'appearance.css'), 'utf8'),
+  ])
+  assert.doesNotMatch(entry, /@import\s+url\(['"]?https?:/u)
+  assert.doesNotMatch(appearance, /@font-face|https?:\/\//u)
+  assert.match(entry, /font-family: var\(--font-interface,/u)
+  assert.match(
+    appearance,
+    /--font-interface:[^;]*system-ui[^;]*PingFang SC[^;]*Microsoft YaHei[^;]*Noto Sans CJK SC/su,
+  )
+  assert.match(
+    appearance,
+    /\[data-preset='paper'\][^}]*--font-reading:[^;]*Georgia[^;]*Noto Serif CJK SC[^;]*Songti SC[^;]*SimSun/su,
+  )
+  assert.match(
+    appearance,
+    /\[data-preset='paper'\][^}]*--reading-line-height: 1\.8/u,
+  )
+  assert.match(appearance, /--font-code:[^;]*ui-monospace[^;]*Consolas/su)
+  const css = (await compiler).build(['font-sans', 'font-mono'])
+  assert.match(css, /\.font-sans\s*\{\s*font-family: var\(--font-interface\)/u)
+  assert.match(css, /\.font-mono\s*\{\s*font-family: var\(--font-code\)/u)
+})
+
 test('committed CSS token mappings reproduce from the canonical registry', async () => {
   const options = await resolveConfig(path.join(themeRoot, 'light.css'))
   for (const [filename, content] of Object.entries(
