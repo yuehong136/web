@@ -158,6 +158,18 @@ async function assertRuntimeBundleDirectory(
   }
 }
 
+async function assertGeneratedViteMetadata(directoryPath) {
+  await assertDirectory(directoryPath, 'renderer .vite directory')
+  const entries = await fs.readdir(directoryPath)
+  if (entries.length !== 1 || entries[0] !== 'manifest.json') {
+    throw new Error('renderer .vite must contain only a regular manifest.json')
+  }
+  await assertRegularFile(
+    path.join(directoryPath, 'manifest.json'),
+    'renderer .vite/manifest.json',
+  )
+}
+
 async function collectRendererFiles(rendererDirectory) {
   await assertDirectory(rendererDirectory, 'renderer build directory')
 
@@ -203,6 +215,13 @@ async function collectRendererFiles(rendererDirectory) {
   for (const entry of rootEntries) {
     if (entry.isSymbolicLink()) {
       throw new Error(`renderer contains a symbolic link: ${entry.name}`)
+    }
+
+    if (entry.name === '.vite' && entry.isDirectory()) {
+      await assertGeneratedViteMetadata(
+        path.join(rendererDirectory, entry.name),
+      )
+      continue
     }
 
     validateRendererRootEntry(entry.name, entry.isDirectory())
