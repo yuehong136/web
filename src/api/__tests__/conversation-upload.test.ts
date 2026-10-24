@@ -127,6 +127,21 @@ test('HTTP, network, timeout and auth errors retain typed status/code', async ()
   await afterAuth
 })
 
+for (const originalToken of [null, 'previous-login']) {
+  test(`a delayed upload 401 cannot expire a replacement login; original token=${originalToken !== null}`, async () => {
+    apiClient.setAuthToken(originalToken)
+    const upload = conversationAPI.uploadInfo(file)
+    const oldRequest = latest()
+    apiClient.setAuthToken('current-login')
+    oldRequest.respond({ detail: 'expired' }, 401)
+    await assert.rejects(upload, { status: 401, code: 'UNAUTHORIZED' })
+    const current = conversationAPI.uploadInfo(file)
+    assert.equal(latest().headers.Authorization, 'Bearer current-login')
+    latest().respond({ code: 0, data: attachmentMetadata() })
+    await current
+  })
+}
+
 test('pre-abort sends nothing; cancellation rejects once and cleans listeners despite a late completion', async () => {
   const cancelled = new AbortController()
   cancelled.abort()

@@ -1,8 +1,5 @@
 import { isAuthEnvelopeEndpoint } from './client-auth-contract'
-import {
-  readBinaryResponse,
-  isSupersededBinaryResponse,
-} from './binary-response'
+import { readBinaryResponse } from './binary-response'
 import type { APIResponse } from '@/types/api'
 import { STORAGE_KEYS, API_BASE_URL, API_VERSION } from '@/constants'
 import { APIError, extractErrorMessage, te } from './client-types'
@@ -20,6 +17,7 @@ class APIClient {
   private baseURL: string
   private defaultTimeout: number = 30000
   private authToken: string | null = null
+  private authEpoch = 0
 
   constructor(baseURL?: string) {
     this.baseURL = baseURL || API_BASE_URL
@@ -40,6 +38,16 @@ class APIClient {
 
   private hasAuthToken(): boolean {
     return Boolean(this.getAuthToken())
+  }
+
+  private captureIdentity() {
+    const token = this.getAuthToken()
+    const epoch = this.authEpoch
+    return {
+      token,
+      isCurrent: () =>
+        epoch === this.authEpoch && token === this.getAuthToken(),
+    }
   }
 
   private clearAuthState(): void {
@@ -69,8 +77,8 @@ class APIClient {
     )
   }
 
-  private handleUnauthorized(skipAuth = false): void {
-    if (skipAuth || !this.hasAuthToken()) {
+  private handleUnauthorized(isCurrent: () => boolean, skipAuth = false): void {
+    if (skipAuth || !isCurrent() || !this.hasAuthToken()) {
       return
     }
 
@@ -79,6 +87,7 @@ class APIClient {
   }
 
   setAuthToken(token: string | null): void {
+    if (token !== this.getAuthToken()) this.authEpoch += 1
     this.authToken = token
     if (typeof localStorage === 'undefined') {
       return
@@ -113,6 +122,11 @@ class APIClient {
       endpoint,
       requestConfig.method,
     )
+    const identity = this.captureIdentity()
+    const assertCurrentIdentity = () => {
+      if ((!skipAuth || isAuthEnvelope) && !identity.isCurrent())
+        throw new DOMException('Aborted', 'AbortError')
+    }
 
     let url: string
     if (endpoint.startsWith('http')) {
@@ -152,9 +166,8 @@ class APIClient {
     })
 
     if (!skipAuth) {
-      const token = this.getAuthToken()
-      if (token) {
-        requestHeaders['Authorization'] = `Bearer ${token}`
+      if (identity.token) {
+        requestHeaders['Authorization'] = `Bearer ${identity.token}`
       }
     }
 
@@ -168,12 +181,15 @@ class APIClient {
 
     try {
       const response = await abort.run(() => fetch(url, requestOptions))
+      abort.signal.throwIfAborted()
+      assertCurrentIdentity()
       if (readResponse) {
         return (await readBinaryResponse(response, abort.signal, readResponse, {
           sentAuthorization: requestHeaders.Authorization,
           currentToken: this.getAuthToken(),
           skipAuth,
-          onUnauthorized: () => this.handleUnauthorized(skipAuth),
+          onUnauthorized: () =>
+            this.handleUnauthorized(identity.isCurrent, skipAuth),
         })) as T
       }
       const contentType = response.headers.get('content-type')
@@ -181,7 +197,7 @@ class APIClient {
         if (!response.ok) {
           // 特殊处理401错误，即使是非JSON响应也要执行认证逻辑
           if (response.status === 401) {
-            this.handleUnauthorized(config.skipAuth)
+            this.handleUnauthorized(identity.isCurrent, skipAuth)
           }
 
           throw new APIError(
@@ -196,6 +212,7 @@ class APIClient {
       // 解析JSON响应
       const rawData = await abort.run(() => response.json())
       abort.signal.throwIfAborted()
+      assertCurrentIdentity()
       assertRest200Contract(responseContract, response.status, rawData)
 
       // 兼容不同的响应格式
@@ -213,7 +230,7 @@ class APIClient {
       } else {
         // 直接返回数据的格式，但先检查是否是401错误
         if (response.status === 401) {
-          this.handleUnauthorized(config.skipAuth)
+          this.handleUnauthorized(identity.isCurrent, skipAuth)
 
           // 抛出错误
           throw new APIError(
@@ -251,7 +268,7 @@ class APIClient {
       if (!response.ok || data.retcode !== 0) {
         // 处理认证错误
         if (response.status === 401) {
-          this.handleUnauthorized(config.skipAuth)
+          this.handleUnauthorized(identity.isCurrent, skipAuth)
 
           // 抛出错误让上层处理
           throw new APIError(401, 'UNAUTHORIZED', te('unauthorized'))
@@ -287,7 +304,7 @@ class APIClient {
       }
 
       const err = error as Error
-      if (isAbortError(error) || isSupersededBinaryResponse(error)) throw error
+      if (isAbortError(error)) throw error
 
       if (!navigator.onLine) {
         throw new APIError(0, 'NETWORK_ERROR', te('network'))
@@ -545,15 +562,16 @@ class APIClient {
     onProgress?: (percent: number) => void,
     signal?: AbortSignal,
   ): Promise<unknown> {
+    const identity = this.captureIdentity()
     return uploadWithProgress({
       endpoint,
       file,
       onProgress,
       signal,
       baseURL: this.baseURL,
-      token: this.getAuthToken(),
+      token: identity.token,
       timeout: this.defaultTimeout,
-      onUnauthorized: () => this.handleUnauthorized(),
+      onUnauthorized: () => this.handleUnauthorized(identity.isCurrent),
     })
   }
 }
