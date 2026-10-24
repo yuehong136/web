@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "@a2ui/react": "0.14.0",
+    "@a2ui/web_core": "0.14.0",
+    "jsdom": "29.1.1",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "zod": "3.25.76"
+  }
+}
