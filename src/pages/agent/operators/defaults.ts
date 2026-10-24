@@ -187,6 +187,7 @@ export function buildDefaultDslGlobals(): Record<string, unknown> {
     [AgentGlobals.SysUserId]: '',
     [AgentGlobals.SysConversationTurns]: 0,
     [AgentGlobals.SysFiles]: [],
+    [AgentGlobals.SysFileRefs]: [],
     [AgentGlobals.SysHistory]: [],
     [AgentGlobals.SysDate]: '',
   }

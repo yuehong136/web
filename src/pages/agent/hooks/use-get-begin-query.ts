@@ -151,6 +151,7 @@ const DefaultSystemGlobals: Record<string, string | number | unknown[]> = {
   [AgentGlobals.SysUserId]: '',
   [AgentGlobals.SysConversationTurns]: 0,
   [AgentGlobals.SysFiles]: [],
+  [AgentGlobals.SysFileRefs]: [],
   [AgentGlobals.SysHistory]: [],
   [AgentGlobals.SysDate]: '',
 }
@@ -206,7 +207,9 @@ export function useBuildGlobalWithBeginVariableOptions(): VariableOptionGroup[] 
         icon: createElement(OperatorIcon, { name: Operator.Begin }),
         type: Array.isArray(value)
           ? `${VariableType.Array}${
-              key === AgentGlobals.SysFiles ? `<${VariableType.File}>` : ''
+              key === AgentGlobals.SysFiles || key === AgentGlobals.SysFileRefs
+                ? `<${VariableType.File}>`
+                : ''
             }`
           : typeof value,
       }))

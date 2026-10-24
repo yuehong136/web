@@ -17,7 +17,7 @@ export const browserMessages = {
   persistSessionTip: '复用当前用户、Agent 和浏览器节点的会话，避免重复登录。',
   uploadSources: '上传来源',
   uploadSourcesTip:
-    '添加文件 ID、HTTP(S) 网址或引用已上传文件的变量，每行一个来源。',
+    '添加文件 ID、HTTP(S) 网址或引用已上传文件的变量。本次运行的附件使用 {sys.file_refs}；{sys.files} 是解析后的内容。每行一个来源。',
   addUploadSource: '添加上传来源',
   removeUploadSource: '移除上传来源 {{index}}',
   uploadSourceLabel: '上传来源 {{index}}',

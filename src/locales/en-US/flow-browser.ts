@@ -18,7 +18,7 @@ export const browserMessages = {
     'Reuse the session for this user, agent and Browser node to avoid repeated logins.',
   uploadSources: 'Upload sources',
   uploadSourcesTip:
-    'Add file IDs, HTTP(S) URLs, or variables referring to uploaded files. Each row is one source.',
+    'Add file IDs, HTTP(S) URLs, or variables referring to uploaded files. Use {sys.file_refs} for files attached to this run; {sys.files} contains parsed content. Each row is one source.',
   addUploadSource: 'Add upload source',
   removeUploadSource: 'Remove upload source {{index}}',
   uploadSourceLabel: 'Upload source {{index}}',

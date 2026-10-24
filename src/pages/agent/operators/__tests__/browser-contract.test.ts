@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { Operator, NodeHandleId } from '../../constant'
+import { Operator, NodeHandleId, AgentGlobals } from '../../constant'
 import { browserFormSchema } from '../../form/browser-use/schema'
 import { initialBrowserValues } from '../../form/browser-use/constants'
 import { agentOperatorRegistry } from '../registry'
@@ -40,7 +40,7 @@ test('Browser graph and component-only DSL preserve exact zero, booleans, inputs
     chromium_sandbox: true,
     persist_session: false,
     upload_sources: [
-      '{sys.files}',
+      '{sys.file_refs}',
       '{Begin:begin@files}',
       'scoped-file',
       'https://example.test/file.pdf',
@@ -68,6 +68,7 @@ test('Browser graph and component-only DSL preserve exact zero, booleans, inputs
       ],
     },
   })
+  assert.deepEqual(dsl.globals?.[AgentGlobals.SysFileRefs], [])
   assert.deepEqual(dsl.components[browser.id]!.obj.params, form)
   for (const input of [dsl, { ...dsl, graph: undefined }]) {
     const restored = deserializeDslToGraph(input)
@@ -123,7 +124,7 @@ test('Browser schema rejects coercion, fractional steps and nonfinite numbers wh
   assert.equal(
     browserFormSchema.safeParse({
       ...valid,
-      upload_sources: '{sys.files}',
+      upload_sources: '{sys.file_refs}',
     }).success,
     false,
   )

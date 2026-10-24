@@ -129,7 +129,7 @@ it('preserves zero, booleans and file references through editing, DSL reload and
     id: 'Browser:one',
     form: {
       llm_id: 'controlled@OpenAI',
-      upload_sources: ['{sys.files}', { id: 'runtime-file' }],
+      upload_sources: ['{sys.file_refs}', { id: 'runtime-file' }],
     },
   }) as RAGFlowNodeType
   useGraphStore.setState({ nodes: [node], edges: [] })
@@ -146,7 +146,7 @@ it('preserves zero, booleans and file references through editing, DSL reload and
   expect(currentForm().persist_session).toBe(false)
   expect(currentForm().max_steps).toBe(12)
   expect(currentForm().upload_sources).toEqual([
-    '{sys.files}',
+    '{sys.file_refs}',
     { id: 'runtime-file' },
   ])
   const { graph } = deserializeDslToGraph(
@@ -173,15 +173,18 @@ it('adds, edits and removes upload source rows without converting the array to t
     (button) => button.textContent === 'Add upload source',
   )!
   await act(async () => add.click())
-  await input(container.querySelector('textarea[placeholder]')!, '{sys.files}')
-  expect(currentForm().upload_sources).toEqual(['{sys.files}'])
+  await input(
+    container.querySelector('textarea[placeholder]')!,
+    '{sys.file_refs}',
+  )
+  expect(currentForm().upload_sources).toEqual(['{sys.file_refs}'])
   await act(async () => add.click())
   await input(
     container.querySelectorAll<HTMLTextAreaElement>('textarea[placeholder]')[1],
     'https://example.test/file.pdf',
   )
   expect(currentForm().upload_sources).toEqual([
-    '{sys.files}',
+    '{sys.file_refs}',
     'https://example.test/file.pdf',
   ])
   await act(async () =>

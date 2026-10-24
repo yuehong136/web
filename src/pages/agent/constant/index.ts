@@ -1,4 +1,7 @@
 import { initialParserFormValues } from '../form/parser/utils'
+import { AgentGlobals } from './agent-globals'
+
+export { AgentGlobals } from './agent-globals'
 
 // ==================== 节点类型枚举 ====================
 // 使用常量对象替代enum以符合erasableSyntaxOnly要求
@@ -166,18 +169,6 @@ export type AgentDialogueMode =
   (typeof AgentDialogueMode)[keyof typeof AgentDialogueMode]
 
 // ==================== 初始值配置 ====================
-
-// Agent全局变量
-export const AgentGlobals = {
-  SysQuery: 'sys.query',
-  SysUserId: 'sys.user_id',
-  SysConversationTurns: 'sys.conversation_turns',
-  SysFiles: 'sys.files',
-  SysHistory: 'sys.history',
-  SysDate: 'sys.date',
-} as const
-
-export type AgentGlobals = (typeof AgentGlobals)[keyof typeof AgentGlobals]
 
 export const AgentGlobalsSysQueryWithBrace = `{${AgentGlobals.SysQuery}}`
 
