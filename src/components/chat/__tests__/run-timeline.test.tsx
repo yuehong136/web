@@ -12,7 +12,7 @@ import { I18nextProvider } from 'react-i18next'
 import en from '@/locales/en-US/chat'
 import zh from '@/locales/zh-CN/chat'
 
-vi.mock('react-shiki', () => ({
+vi.mock('react-shiki/core', () => ({
   useShikiHighlighter: () => undefined,
   createJavaScriptRegexEngine: () => ({}),
 }))

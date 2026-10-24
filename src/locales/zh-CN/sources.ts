@@ -1,6 +1,8 @@
 export const sourcesResource = {
   sources: {
     title: '来源详情',
+    details: '详情',
+    citationLabel: '查看引用 {{index}}',
     description: '查看引用原文、相关度与来源元数据。',
     unknownDocument: '未知文档',
     viewDocument: '查看原文',

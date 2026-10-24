@@ -5,6 +5,7 @@
 import type { StreamToolCallInfo as ToolCallInfo } from '@/lib/streaming'
 import type { AgentTimelineNode } from '@/utils/agent-timeline'
 import type { ReferenceChunk } from '@/utils/reference-replacer'
+import type { ContextManifest } from '@/lib/ai-workspace/contracts'
 
 // Re-export think types from common utils
 export type { ThinkExtractResult, ThinkingStatus } from '@/utils/think-utils'
@@ -42,9 +43,13 @@ export interface ChatMessage {
   isStreaming?: boolean
   /** 未正常完成的回答的结束原因；缺省表示已完成、仍在生成或来自历史 */
   status?: AnswerStatus
+  /** 只有本机收到完成帧并收口后为 true；历史缺省不代表成功。 */
+  completionConfirmed?: boolean
   // 应用对话模式的附加字段
   references?: ReferenceChunk[]
   thinking?: string
+  /** 本机本轮发送范围；不持久化，不推断历史消息或服务端实际使用。 */
+  contextManifest?: ContextManifest
 }
 
 // 推荐卡片项

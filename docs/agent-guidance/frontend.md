@@ -180,7 +180,7 @@
 ### 性能
 
 - 重型依赖（Lexical、Monaco、mermaid、react-pdf-highlighter、docx/pptx-preview）**必须**在路由或 feature 边界懒加载。
-- 当前中英资源静态加载；按语言分包是后续优化，届时通过 `ensureLocaleLoaded()` 统一实现，不在页面另起加载机制。
+- 中英资源通过 `ensureLocaleLoaded(locale, namespaces)` 按语言与业务域动态加载；新增入口同步 `route-locales.ts`，不在页面另起加载机制。
 - 分栏布局用 `react-resizable-panels`，**不要**自己算像素。
 - 列表 > 200 行用虚拟滚动（TanStack Table 虚拟化或手写虚拟列表），**不得**全量渲染 DOM。
 
@@ -211,3 +211,5 @@
 - 接触 `src/components/layout`、`src/pages/agent`、`src/pages/agents` 的用户可见文案后，至少跑 `npm run lint:i18n-agent`；触碰 locale 服务再补 `npm run build`。
 
 新增文案使用稳定语义 key，复用同义 key，中英资源同 PR 更新；fallback 不替代资源。组件使用 `useTranslation()` / `t()`，不按语言分支拼接文案。新增语言先补齐 namespace 再注册。文案改动验证所改表面的中英切换、无 missingKey；语言服务或 share/widget 改动另验证刷新持久化、路由语言隔离及无 unsupported-language 警告。
+
+`chat.aiWorkspace` 等已登记的窄范围类型合同使用 `useTypedTranslation(scope)`，复用同一个 i18n 实例。调整这些 catalog 后运行 `npm run i18n:types` 并提交生成物；`check:i18n-types` 检查漂移，`i18n:review` 提供双语审核清单。不要把试点扩成全仓泛型重写或第二套资源加载器。

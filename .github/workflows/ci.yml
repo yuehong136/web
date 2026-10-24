@@ -42,6 +42,9 @@ jobs:
           I18N_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: node scripts/check-agent-i18n-hardcoded.mjs --base "$I18N_BASE" --head HEAD
 
+      - name: Translation type contracts
+        run: npm run check:i18n-types
+
       - name: ESLint (type-aware, Agent critical dirs)
         run: npm run lint:typed
 
@@ -77,6 +80,22 @@ jobs:
 
       - name: Bundle size budget
         run: npm run check:bundle-size
+
+      - name: Install browser for controlled workspace regression
+        run: npx playwright install --with-deps chromium
+
+      - name: Workspace browser regression (controlled HTTP/SSE fixtures)
+        run: npm run test:browser:production
+
+      - name: Route static dependency closures
+        run: npm run profile:routes
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: workspace-browser-evidence
+          path: output/playwright/round2/
+          if-no-files-found: ignore
 
       - name: Build Electron main and preload
         run: npm run desktop:build

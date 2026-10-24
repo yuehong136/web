@@ -164,7 +164,7 @@ export default defineConfig(({ mode }) => {
   const appCommitSha = env.VITE_COMMIT_SHA || readGitCommitSha()
   const appBuildTime = new Date().toISOString()
 
-  let adminTarget = 'http://localhost:8130'
+  let adminTarget: string
   try {
     const apiUrl = new URL(fallbackApiBase)
     apiUrl.port = '8130'
@@ -227,6 +227,8 @@ export default defineConfig(({ mode }) => {
     // Dev: pre-bundle heavy deps for faster cold start
     // ---------------------------------------------------------------------------
     optimizeDeps: {
+      // Experimental HTML and captured evidence have their own dependency roots.
+      entries: ['index.html'],
       include: [
         'react',
         'react-dom',
@@ -271,6 +273,7 @@ export default defineConfig(({ mode }) => {
     // Production build
     // ---------------------------------------------------------------------------
     build: {
+      manifest: true,
       // Match tsconfig target — modern syntax = smaller output
       target: 'es2023',
 

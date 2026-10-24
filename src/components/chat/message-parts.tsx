@@ -1,4 +1,4 @@
-import { memo, useMemo, type ReactNode } from 'react'
+import { memo, useId, useMemo, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { markdownConfig, useMarkdownComponents } from './MarkdownCodeBlock'
 import { ChatBubbleLoading } from './ChatBubbleLoading'
@@ -10,11 +10,10 @@ import { createReferenceMarkerComponent } from './ReferenceMarker'
 import { ReferencePanel } from './ReferencePanel'
 import { StreamingXMarkdown } from './streaming-x-markdown'
 import { RunTimeline } from './run-timeline'
-import {
-  isRunTerminal,
-  type AgentTimelineNode,
-  type RunPhase,
-} from '@/lib/streaming'
+import { ArtifactMessageContext } from '@/components/chat/artifact-message-context'
+import { ContextManifestSummary } from '@/components/chat/context-manifest-summary'
+import type { ContextManifest } from '@/lib/ai-workspace/contracts'
+import type { AgentTimelineNode, RunPhase } from '@/lib/streaming'
 import { copyToClipboardWithFeedback } from '@/lib/clipboard'
 import {
   convertReferencesToSup,
@@ -29,8 +28,9 @@ export interface MessagePartsProps {
   content: string
   thinking?: string
   messageId?: string
+  contextManifest?: ContextManifest
   references?: ReferenceChunk[]
-  run: { phase: RunPhase; steps?: AgentTimelineNode[] }
+  run: { phase?: RunPhase; steps?: AgentTimelineNode[] }
   notice?: ReactNode
   onViewReference: (chunk: ReferenceChunk, references: ReferenceChunk[]) => void
 }
@@ -40,13 +40,15 @@ export const MessageParts = memo(function MessageParts({
   content,
   thinking,
   messageId,
+  contextManifest,
   references = NO_REFERENCES,
   run,
   notice,
   onViewReference,
 }: MessagePartsProps) {
   const { t } = useTranslation()
-  const isStreaming = !isRunTerminal(run.phase)
+  const generatedMessageId = useId()
+  const isStreaming = run.phase === 'running' || run.phase === 'cancelRequested'
   const fallback = extractThinkContent(content)
   const nodes = run.steps ?? []
   const lastNode = nodes.at(-1)
@@ -110,63 +112,73 @@ export const MessageParts = memo(function MessageParts({
       })
   }
   return (
-    <div className="message-parts space-y-space-md" data-run-phase={run.phase}>
-      {hasToolFlow && <RunTimeline nodes={chainNodes} phase={run.phase} />}
-      <RetrievalProgress result={fallback} isStreaming={isStreaming} />
-      {thinkContent && (
-        <ThinkWrapper
-          status={
-            isStreaming &&
-            (trailingReasoning
-              ? lastNode?.status === 'loading'
-              : Boolean(thinking) || fallback.status === 'thinking')
-              ? 'thinking'
-              : 'complete'
-          }
-          messageId={messageId}
-          titles={
-            run.phase === 'completed'
-              ? undefined
-              : { complete: t('chat.thinking.details') }
-          }
-        >
-          <section
-            aria-label={t('chat.thinking.details')}
-            // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- long reasoning is keyboard scrollable
-            tabIndex={0}
-            className="max-h-64 overflow-y-auto overscroll-contain whitespace-pre-wrap text-text-secondary"
+    <ArtifactMessageContext value={messageId ?? generatedMessageId}>
+      <div
+        className="message-parts space-y-space-md"
+        data-run-phase={run.phase}
+      >
+        {contextManifest && (
+          <ContextManifestSummary manifest={contextManifest} />
+        )}
+        {hasToolFlow && run.phase && (
+          <RunTimeline nodes={chainNodes} phase={run.phase} />
+        )}
+        <RetrievalProgress result={fallback} isStreaming={isStreaming} />
+        {thinkContent && (
+          <ThinkWrapper
+            status={
+              isStreaming &&
+              (trailingReasoning
+                ? lastNode?.status === 'loading'
+                : Boolean(thinking) || fallback.status === 'thinking')
+                ? 'thinking'
+                : 'complete'
+            }
+            messageId={messageId}
+            titles={
+              run.phase === 'completed'
+                ? undefined
+                : { complete: t('chat.thinking.details') }
+            }
           >
-            {thinkContent}
-          </section>
-        </ThinkWrapper>
-      )}
-      {mainContent && (
-        <div className="bubble-copy-text markdown-content prose max-w-none">
-          {carouselGroups.length ? parts : renderPart(markdown)}
-        </div>
-      )}
-      {isStreaming &&
-        !mainContent &&
-        !thinkContent &&
-        !nodes.length &&
-        fallback.retrievalStatus === 'none' && <ChatBubbleLoading />}
-      {notice}
-      {!!references.length && !isStreaming && (
-        <>
-          <ReferenceImageList
-            referenceChunks={references}
-            messageContent={mainContent}
-            onImageClick={(chunk) => onViewReference(chunk, references)}
-          />
-          <ReferencePanel
-            chunks={references}
-            variant="inline"
-            onChunkClick={(chunk) => onViewReference(chunk, references)}
-            defaultVisiblePerDoc={2}
-            className="mt-space-xs"
-          />
-        </>
-      )}
-    </div>
+            <section
+              aria-label={t('chat.thinking.details')}
+              // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- long reasoning is keyboard scrollable
+              tabIndex={0}
+              className="max-h-64 overflow-y-auto overscroll-contain whitespace-pre-wrap text-text-secondary"
+            >
+              {thinkContent}
+            </section>
+          </ThinkWrapper>
+        )}
+        {mainContent && (
+          <div className="bubble-copy-text markdown-content prose max-w-none">
+            {carouselGroups.length ? parts : renderPart(markdown)}
+          </div>
+        )}
+        {isStreaming &&
+          !mainContent &&
+          !thinkContent &&
+          !nodes.length &&
+          fallback.retrievalStatus === 'none' && <ChatBubbleLoading />}
+        {notice}
+        {!!references.length && !isStreaming && (
+          <>
+            <ReferenceImageList
+              referenceChunks={references}
+              messageContent={mainContent}
+              onImageClick={(chunk) => onViewReference(chunk, references)}
+            />
+            <ReferencePanel
+              chunks={references}
+              variant="inline"
+              onChunkClick={(chunk) => onViewReference(chunk, references)}
+              defaultVisiblePerDoc={2}
+              className="mt-space-xs"
+            />
+          </>
+        )}
+      </div>
+    </ArtifactMessageContext>
   )
 })

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Bot, User } from 'lucide-react'
 import {
@@ -6,8 +6,11 @@ import {
   type TranscriptItem,
 } from '@/components/chat/chat-transcript'
 import { MessageParts } from '@/components/chat/message-parts'
+import { ContextManifestSummary } from '@/components/chat/context-manifest-summary'
 import { MessageActionsFooter } from '@/components/chat/MessageActionsFooter'
-import { ReferenceDetailSheet } from '@/components/chat/ReferenceDetailSheet'
+import { ChatWorkspace } from '@/components/chat/chat-workspace'
+import { useChatWorkspace } from '@/components/chat/chat-workspace-context'
+import { useAuthStore } from '@/stores/auth'
 import { ChatScrollViewport } from '@/components/patterns/chat/chat-scroll-viewport'
 import { ProviderIcon } from '@/components/ui/provider-icon'
 import { PageLoadingState } from '@/components/patterns/page-states'
@@ -17,7 +20,6 @@ import { useHomeStore } from '@/stores/home'
 import { createTimelineNodesFromToolCalls } from '@/lib/streaming'
 import { copyToClipboardWithFeedback } from '@/lib/clipboard'
 import { extractThinkContent } from '@/utils/think-utils'
-import type { ReferenceChunk } from '@/utils/reference-replacer'
 import { AnswerStatusNotice } from './answer-status-notice'
 import { HomeComposer } from './home-composer'
 import { getHomeMessagePhase } from '../utils/answer-status'
@@ -37,7 +39,20 @@ interface ChatSectionProps {
   isSendPending?: boolean
 }
 
-export function ChatSection({
+export function ChatSection(props: ChatSectionProps) {
+  const user = useAuthStore((state) => state.user)
+  const appId = useHomeStore((state) => state.selectedApps[0]?.id)
+  const conversationId = useHomeStore((state) => state.selectedConversationId)
+  return (
+    <ChatWorkspace
+      scopeKey={`${user?.id ?? ''}:${user?.tenant_id ?? ''}:${appId ?? ''}:${conversationId ?? ''}`}
+    >
+      <ChatSectionContent {...props} />
+    </ChatWorkspace>
+  )
+}
+
+function ChatSectionContent({
   messages,
   inputValue,
   onInputChange,
@@ -50,19 +65,12 @@ export function ChatSection({
   isSendPending = false,
 }: ChatSectionProps) {
   const { t } = useTranslation()
-  const [reference, setReference] = useState<{
-    chunk: ReferenceChunk
-    references: ReferenceChunk[]
-  } | null>(null)
+  const workspace = useChatWorkspace()!
   const { myLLMs } = useFetchMyLLMs()
   const selectedModelId = useHomeStore((state) => state.selectedModelId)
   const selectedApp = useHomeStore((state) => state.selectedApps[0])
   const provider = findProviderNameByModelName(myLLMs, selectedModelId, true)
-  const viewReference = useCallback(
-    (chunk: ReferenceChunk, references: ReferenceChunk[]) =>
-      setReference({ chunk, references }),
-    [],
-  )
+  const viewReference = workspace.viewReference
   const copy = useCallback(
     (text: string) =>
       void copyToClipboardWithFeedback(
@@ -88,13 +96,19 @@ export function ChatSection({
         : message.parsedToolCalls?.length
           ? createTimelineNodesFromToolCalls(message.parsedToolCalls)
           : undefined
+      const submittedLabel = message.contextManifest?.resources.find(
+        (resource) => resource.kind === 'app' || resource.kind === 'model',
+      )?.label
       return {
         id: message.id,
         role: message.role,
         timestamp: message.timestamp,
         label: user
           ? t('chat.transcript.user')
-          : selectedApp?.name || provider || t('chat.transcript.assistant'),
+          : submittedLabel ||
+            selectedApp?.name ||
+            provider ||
+            t('chat.transcript.assistant'),
         identity: user ? (
           <User className="size-icon-md text-text-secondary" />
         ) : provider && !selectedApp ? (
@@ -104,13 +118,19 @@ export function ChatSection({
         ),
         phase: user ? undefined : phase,
         body: user ? (
-          message.content
+          <div className="space-y-space-sm">
+            {message.content}
+            {message.contextManifest && (
+              <ContextManifestSummary manifest={message.contextManifest} />
+            )}
+          </div>
         ) : (
           <MessageParts
             content={message.content}
             thinking={message.thinking}
             messageId={message.id}
             references={message.references}
+            contextManifest={message.contextManifest}
             run={{ phase, steps }}
             notice={<AnswerStatusNotice status={message.status} />}
             onViewReference={viewReference}
@@ -187,14 +207,6 @@ export function ChatSection({
           />
         </div>
       </div>
-      <ReferenceDetailSheet
-        open={!!reference}
-        onOpenChange={(open) => {
-          if (!open) setReference(null)
-        }}
-        chunk={reference?.chunk ?? null}
-        allChunks={reference?.references ?? []}
-      />
     </div>
   )
 }

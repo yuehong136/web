@@ -1,0 +1,21 @@
+.explore-welcome-area .ant-welcome-title {
+  color: var(--color-text-primary) !important;
+}
+.explore-welcome-area .ant-welcome-description {
+  color: var(--color-text-secondary) !important;
+}
+.explore-welcome-area .ant-prompts-item {
+  background-color: var(--color-components-card-bg) !important;
+  border-color: var(--color-components-card-border) !important;
+  transition: all 0.2s ease !important;
+}
+.explore-welcome-area .ant-prompts-item:hover {
+  border-color: var(--color-components-button-primary-bg) !important;
+  background-color: var(--color-components-card-bg-hover) !important;
+}
+.explore-welcome-area .ant-prompts-label {
+  color: var(--color-text-primary) !important;
+}
+.explore-welcome-area .ant-prompts-description {
+  color: var(--color-text-secondary) !important;
+}

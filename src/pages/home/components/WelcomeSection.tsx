@@ -3,6 +3,7 @@ import type { SenderRef } from '@ant-design/x/es/sender/interface'
 import { useTranslation } from 'react-i18next'
 import { RecommendCards } from './RecommendCards'
 import { HomeComposer } from './home-composer'
+import { RecentAppConversations } from '@/pages/home/components/recent-app-conversations'
 import { recommendCards } from '../constants'
 import { getGreetingKey } from '../utils'
 
@@ -47,6 +48,7 @@ export function WelcomeSection({
             composer.current?.focus()
           }}
         />
+        <RecentAppConversations />
       </div>
     </div>
   )

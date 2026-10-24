@@ -34,7 +34,11 @@ const answer = (overrides: Partial<ChatMessage> = {}): ChatMessage => ({
 
 test('Home message outcomes project to shared run phases without claiming server cancellation', () => {
   assert.equal(getHomeMessagePhase(answer(), true), 'running')
-  assert.equal(getHomeMessagePhase(answer(), false), 'completed')
+  assert.equal(getHomeMessagePhase(answer(), false), undefined)
+  assert.equal(
+    getHomeMessagePhase(answer({ completionConfirmed: true }), false),
+    'completed',
+  )
   assert.equal(
     getHomeMessagePhase(answer({ isStreaming: true }), false),
     'interrupted',
@@ -194,6 +198,18 @@ test('a completed answer gets no status and keeps its steps as they are', () => 
   assert.equal(settled.status, undefined)
   assert.equal(settled.isStreaming, false)
   assert.equal(settled.timelineNodes, steps)
+  assert.equal(settled.completionConfirmed, true)
+  assert.equal(getHomeMessagePhase(settled, false), 'completed')
+})
+
+test('history text and an explicit non-streaming flag provide no completion receipt', () => {
+  assert.equal(
+    getHomeMessagePhase(
+      answer({ content: '历史正文', isStreaming: false }),
+      false,
+    ),
+    undefined,
+  )
 })
 
 test('error nodes, which carry backend text, are not shown', () => {

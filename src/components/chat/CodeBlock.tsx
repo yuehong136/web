@@ -1,10 +1,9 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useShikiHighlighter } from 'react-shiki'
 import { Check, Copy } from 'lucide-react'
 import { toast } from '@/lib/toast'
 import { cn, copyToClipboard } from '@/lib/utils'
-import { CODE_THEMES, shikiEngine } from './shiki-engine'
+import { CodeHighlight } from '@/components/chat/code-highlight'
 import './code-block.css'
 import { useResolvedAppearance, useThemeScope } from '@/themes'
 
@@ -51,17 +50,6 @@ export const CodeBlock = memo(function CodeBlock({
   )
   const normalizedLanguage = (language || FALLBACK_LANGUAGE).toLowerCase()
 
-  const highlighted = useShikiHighlighter(
-    code,
-    normalizedLanguage,
-    CODE_THEMES,
-    {
-      engine: shikiEngine,
-      defaultColor: 'light',
-      delay: streaming ? 120 : 0,
-    },
-  )
-
   const handleCopy = useCallback(async () => {
     try {
       await copyToClipboard(code)
@@ -107,11 +95,11 @@ export const CodeBlock = memo(function CodeBlock({
         </div>
       )}
       <div className="code-block-body">
-        {highlighted ?? (
-          <pre className="m-0 overflow-x-auto px-space-md py-space-base text-sm leading-relaxed">
-            <code className="font-mono text-text-primary">{code}</code>
-          </pre>
-        )}
+        <CodeHighlight
+          code={code}
+          language={normalizedLanguage}
+          streaming={streaming}
+        />
       </div>
     </div>
   )

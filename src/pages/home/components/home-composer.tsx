@@ -12,6 +12,9 @@ import { SkillPanel } from './SkillPanel'
 import { useAtTrigger } from '../hooks/useAtTrigger'
 import type { DialogApp } from '@/types/api'
 import type { MCPServer } from '@/types/mcp'
+import { useAuthStore } from '@/stores/auth'
+import { createContextManifest } from '@/lib/ai-workspace/contracts'
+import { getHomeContextResources } from '@/pages/home/utils/home-context'
 
 export type HomeComposerRequest =
   | { phase: 'idle' | 'preparing' }
@@ -35,6 +38,7 @@ export function HomeComposer({
   inputRef,
 }: HomeComposerProps) {
   const { t } = useTranslation()
+  const user = useAuthStore((state) => state.user)
   const ownInput = useRef<SenderRef>(null)
   const sender = inputRef ?? ownInput
   const atButtonRef = useRef<HTMLButtonElement>(null!)
@@ -45,6 +49,7 @@ export function HomeComposer({
     selectedAppIds,
     selectedApps,
     selectedModelId,
+    selectedConversationId,
     selectApp,
     removeApp,
     selectSkill,
@@ -59,6 +64,20 @@ export function HomeComposer({
     removeAtSymbol,
   } = useAtTrigger()
   const locked = request.phase !== 'idle'
+  const contextManifest = createContextManifest({
+    scope: {
+      identity: `${user?.id ?? ''}:${user?.tenant_id ?? ''}`,
+      threadId: selectedConversationId ?? 'home:draft',
+    },
+    messageId: 'draft',
+    stage: 'selected',
+    resources: getHomeContextResources({
+      selectedApp: selectedApps[0],
+      selectedModelId,
+      selectedMCPIds,
+      selectedMCPServers,
+    }),
+  })
   useEffect(() => {
     if (selectedApps.length) return
     if (
@@ -143,11 +162,14 @@ export function HomeComposer({
         />
       }
       models={myLLMs}
-      selectedModelId={selectedModelId}
+      selectedModelId={
+        selectedApps[0] ? selectedApps[0].llm_id || '' : selectedModelId
+      }
       onModelSelect={(id) => setSelectedModelId(id || '')}
       modelsLoading={modelsLoading}
       isModelLocked={selectedAppIds.length > 0}
       variant={placement === 'welcome' ? 'welcome' : 'chat'}
+      contextManifest={contextManifest}
     />
   )
 }

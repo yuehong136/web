@@ -6,7 +6,7 @@ import { ScopedTheme } from '@/themes'
 import { stubChatDOM } from './chat-dom'
 import type { ComponentProps } from '@ant-design/x-markdown'
 
-vi.mock('react-shiki', () => ({
+vi.mock('react-shiki/core', () => ({
   useShikiHighlighter: () => undefined,
   createJavaScriptRegexEngine: () => ({}),
 }))

@@ -21,8 +21,7 @@ import { toast } from '@/lib/toast'
 import { useSubmitGate } from '@/hooks/use-submit-gate'
 import type { MCPChatServiceRequest } from '@/api/mcp-chat-service'
 import { conversationAPI } from '@/api/conversation'
-import type { DialogApp } from '@/types/api'
-import type { AnswerStatusKind, ChatMessage } from '../types'
+import type { AnswerStatusKind } from '@/pages/home/types'
 import {
   assertSSEResponse,
   consumeStreamingAnswerChunk,
@@ -47,11 +46,17 @@ import {
   type AnswerVerdict,
 } from '../utils/answer-status'
 import { useHomeConversation } from './use-home-conversation'
+import {
+  useHomeScope,
+  type HomeScopeSync,
+} from '@/pages/home/hooks/use-home-scope'
+import {
+  createHomeTurn,
+  getHomeContextResources,
+  type HomeContextSelection,
+} from '@/pages/home/utils/home-context'
 
-interface UseHomeChatOptions {
-  selectedMCPIds: string[]
-  selectedModelId: string
-  selectedApp?: DialogApp | null
+interface UseHomeChatOptions extends HomeContextSelection {
   selectedConversationId?: string | null
   /** 当前用户与租户；变化后旧身份的请求和历史响应都不再落地 */
   identity?: string
@@ -69,6 +74,7 @@ interface HomeChatRequest {
 
 export const useHomeChat = ({
   selectedMCPIds,
+  selectedMCPServers,
   selectedModelId,
   selectedApp,
   selectedConversationId,
@@ -95,15 +101,13 @@ export const useHomeChat = ({
 
   // 当前持有流式状态的请求；为 null 时没有任何请求可以写入
   const requestRef = useRef<HomeChatRequest | null>(null)
+  const localThreadId = useRef(crypto.randomUUID())
 
   // 是否是应用对话模式
   const isAppMode = !!selectedApp
 
   // 会话所属范围（身份 + 应用）与已同步的选中会话
-  const scopeKey = `${identity}|${selectedApp?.id ?? ''}`
-  const syncedRef = useRef<{ scope: string; target: string | null } | null>(
-    null,
-  )
+  const syncedRef = useRef<HomeScopeSync | null>(null)
 
   // 收回当前请求的归属：只终止本地订阅，保留已生成内容，不代表服务端已取消
   const detachRequest = useCallback(() => {
@@ -125,6 +129,16 @@ export const useHomeChat = ({
       )
     }
   }, [updateMessages])
+  const scopeKey = useHomeScope({
+    identity,
+    appId: selectedApp?.id,
+    selectedConversationId,
+    syncedRef,
+    localThreadIdRef: localThreadId,
+    detachRequest,
+    resetConversation,
+    loadHistory,
+  })
 
   // 接纳闸门保证同一时间只有一次发送；新请求接管前先收回残留的旧归属
   const claimRequest = useCallback((): HomeChatRequest => {
@@ -176,24 +190,6 @@ export const useHomeChat = ({
     detachRequest()
   }, [settleAnswer, detachRequest])
 
-  // 选中会话、应用或身份变化时最后一次选择生效：收回旧请求、作废待定历史，
-  // 清空后再加载目标，旧会话的消息不会出现在新的选中项下
-  useEffect(() => {
-    const target = selectedConversationId ?? null
-    const synced = syncedRef.current
-    if (synced?.scope === scopeKey && synced.target === target) return
-    syncedRef.current = { scope: scopeKey, target }
-    detachRequest()
-    resetConversation()
-    if (target) void loadHistory(target)
-  }, [
-    scopeKey,
-    selectedConversationId,
-    detachRequest,
-    resetConversation,
-    loadHistory,
-  ])
-
   // 卸载时同样收回归属并作废待定历史；StrictMode 重新挂载时会重新同步
   useEffect(
     () => () => {
@@ -215,6 +211,12 @@ export const useHomeChat = ({
       const ownsRequest = () => requestRef.current === owner
       const { signal } = owner.controller
       const userMessageContent = inputValue.trim()
+      const resources = getHomeContextResources({
+        selectedApp,
+        selectedModelId,
+        selectedMCPIds,
+        selectedMCPServers,
+      })
 
       try {
         // 发送时捕获目标会话；选中会话未载入时 sendMessage 已拒绝
@@ -236,24 +238,12 @@ export const useHomeChat = ({
           onConversationIdChange?.(created.id)
         }
 
-        // 创建用户消息
-        const userMessage: ChatMessage = {
-          id: `msg-${Date.now()}-user-${Math.random().toString(36).substr(2, 9)}`,
-          role: 'user',
+        const { userMessage, assistantMessage: aiMessage } = createHomeTurn({
           content: userMessageContent,
-          timestamp: new Date().toLocaleTimeString(),
-        }
-
-        // 创建空的 AI 消息（流式过程中只按这个 id 更新）
-        const aiMessageId = `msg-${Date.now()}-ai-${Math.random().toString(36).substr(2, 9)}`
-        const aiMessage: ChatMessage = {
-          id: aiMessageId,
-          role: 'assistant',
-          content: '',
-          timestamp: new Date().toLocaleTimeString(),
-          references: [],
-          thinking: '',
-        }
+          scope: { identity, threadId: conversationId },
+          resources,
+        })
+        const aiMessageId = aiMessage.id
         owner.assistantMessageId = aiMessageId
 
         // 添加用户消息和空的 AI 消息
@@ -369,6 +359,10 @@ export const useHomeChat = ({
     },
     [
       selectedApp,
+      selectedModelId,
+      selectedMCPIds,
+      selectedMCPServers,
+      identity,
       scopeKey,
       onConversationIdChange,
       claimRequest,
@@ -386,22 +380,16 @@ export const useHomeChat = ({
       const owner = claimRequest()
       const ownsRequest = () => requestRef.current === owner
 
-      const userMessage: ChatMessage = {
-        id: Date.now().toString(),
-        role: 'user',
-        content: inputValue.trim(),
-        timestamp: new Date().toLocaleTimeString(),
-      }
-
-      const assistantMessageId = `msg-${Date.now()}-mcp-ai-${Math.random().toString(36).substr(2, 9)}`
-      const assistantMessage: ChatMessage = {
-        id: assistantMessageId,
-        role: 'assistant',
-        content: '',
-        timestamp: new Date().toLocaleTimeString(),
-        timelineNodes: [],
-        isStreaming: true,
-      }
+      const { userMessage, assistantMessage } = createHomeTurn({
+        content: inputValue,
+        scope: { identity, threadId: localThreadId.current },
+        resources: getHomeContextResources({
+          selectedModelId,
+          selectedMCPIds,
+          selectedMCPServers,
+        }),
+      })
+      const assistantMessageId = assistantMessage.id
       owner.assistantMessageId = assistantMessageId
 
       const historyMessages = messagesRef.current.map((msg) => ({
@@ -429,7 +417,7 @@ export const useHomeChat = ({
           llm_name: selectedModelId,
           stream: true,
           gen_conf: {},
-          mcp_ids: selectedMCPIds,
+          mcp_ids: [...selectedMCPIds],
           mcp_timeout: 30000,
           verbose_tool_use: true,
           files: [],
@@ -486,6 +474,8 @@ export const useHomeChat = ({
     [
       selectedModelId,
       selectedMCPIds,
+      selectedMCPServers,
+      identity,
       claimRequest,
       settleAnswer,
       messagesRef,
@@ -534,6 +524,7 @@ export const useHomeChat = ({
   const clearMessages = useCallback(() => {
     detachRequest()
     resetConversation()
+    localThreadId.current = crypto.randomUUID()
   }, [detachRequest, resetConversation])
 
   return {

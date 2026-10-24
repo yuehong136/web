@@ -55,6 +55,9 @@ npm run preview      # 预览生产构建
 npm run verify:test-inventory # 校验所有 test/spec 文件都有唯一正式测试 lane
 npm run test:unit    # 运行 src 与 tooling 的全部 Node/Vitest 单元测试
 npm run test:ci      # CI 正式测试入口：inventory + src/tooling/desktop 全量测试
+npm run test:browser # 独立启动 Vite 与 Chromium，执行受控 HTTP/SSE 工作区检查
+npm run test:browser:production # 先 build，再对生产产物执行相同浏览器检查
+npm run profile:routes # build 后统计入口 + Home/Search/Agent 静态 JS/CSS 闭包
 npm run test:agent-t1 # tsx 跑 node --test：agent serializer + adapter
 npm run test:design-tokens # tsx 跑 node --test：设计令牌工具（调色板、token 取值）
 npm run test:streaming # tsx 跑 node --test：共享流式运行时（SSE transport + chunk 合并 reducer）
@@ -74,5 +77,7 @@ npm run check:bundle-size # Bundle 预算门禁，build 后运行（预算：scr
 ```
 
 **注意**：没有裸 `test`、`format` 或 `typecheck` 脚本。正式测试门禁是 `npm run test:ci`；它先校验 inventory，再按 runner 自动执行全部 `src/`、`scripts/`、`eslint-rules/` 与 `desktop/` 测试。`test:unit` 运行不含 Desktop 的单元测试，原有 `test:agent-t1`、`test:api` 等脚本继续作为局部快速反馈入口。全量类型检查由 `npm run build` 完成；Agent 关键目录补充跑 `npm run typecheck:agent-strict`，桌面壳使用 `npm run desktop:typecheck`。格式化通过 Prettier + lint-staged 作用于 staged 文件，**不要做全仓格式化**。测试运行时为 `tsx --test` / Node test / Vitest，**不要引入 Jest**。
+
+工作区浏览器检查独立于上述单元测试 lane：用 `npx playwright install chromium` 准备浏览器；本机 macOS 默认使用已安装 Chrome，也可通过 Node 工具环境 `BROWSER_CHANNEL` 选择。检查器拥有临时端口、浏览器和合成会话，结束后清理进程，证据写到忽略目录 `output/playwright/round2/browser/`。CI 在 Web build 后对生产产物执行并上传 trace/截图；这是 fixture 证据，不证明真实登录、provider、worker 或服务端取消。路由闭包把 JS/CSS 与仅被引用的图片/字体分开，实际传输另看冷启动网络记录，不把总 raw 或单入口 gzip 当首页成本。
 
 **CI**：`.github/workflows/ci.yml` 在每次 push/PR 到 `master` 时通过 `test:ci` 执行完整测试 inventory，并运行现有 lint、Web/Agent/Desktop typecheck、Web build、Bundle budget、Desktop build/stage/verify 门禁。这些桌面门禁只验证跨平台源码/合同/构建/staging，不代表 Windows 打包、签名或安装包 E2E 已通过。CI 使用完整 Git 历史和显式 base/head 检查已提交的新增文案与 catalog 质量；本地 `lint:i18n-agent` 检查 HEAD 到工作区（包含未跟踪文件），干净工作区不能替代提交范围检查。pre-commit hook 只跑 lint-staged；推送前仍需本地跑相关门禁 —— **没有实际运行就不得声称通过**。

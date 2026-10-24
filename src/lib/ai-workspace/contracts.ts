@@ -59,7 +59,13 @@ export interface ArtifactRef {
   readonly runId?: string
   readonly name: string
   readonly mediaType?: string
-  readonly state: 'ready' | 'preparing' | 'failed' | 'unavailable' | 'forbidden'
+  readonly state:
+    | 'unknown'
+    | 'ready'
+    | 'preparing'
+    | 'failed'
+    | 'unavailable'
+    | 'forbidden'
   /** Only validated, existing artifact endpoints may be used for a resource. */
   readonly url: string
   readonly capabilities: {

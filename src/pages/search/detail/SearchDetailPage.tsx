@@ -7,7 +7,9 @@ import {
   PageEmptyState,
   PageErrorState,
 } from '@/components/patterns/page-states'
-import { ReferenceDetailSheet } from '@/components/chat/ReferenceDetailSheet'
+import { ChatWorkspace } from '@/components/chat/chat-workspace'
+import { useChatWorkspace } from '@/components/chat/chat-workspace-context'
+import { useAuthStore } from '@/stores/auth'
 import { useFetchSearchAppDetail } from '@/hooks/use-search-request'
 import { useSearchStore } from '@/stores/search'
 import { ROUTES } from '@/constants'
@@ -48,6 +50,18 @@ const toReferenceChunk = (chunk: ChunkResult): ReferenceChunk => ({
 })
 
 export const SearchDetailPage: React.FC = () => {
+  const user = useAuthStore((state) => state.user)
+  const location = useLocation()
+  return (
+    <ChatWorkspace
+      scopeKey={`${user?.id ?? ''}:${user?.tenant_id ?? ''}:${location.pathname}`}
+    >
+      <SearchDetailContent />
+    </ChatWorkspace>
+  )
+}
+
+const SearchDetailContent: React.FC = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
@@ -71,13 +85,7 @@ export const SearchDetailPage: React.FC = () => {
   const [docFilterByTurnId, setDocFilterByTurnId] = useState<
     Record<string, string[] | null>
   >({})
-  const [detailOpen, setDetailOpen] = useState(false)
-  const [selectedChunk, setSelectedChunk] = useState<ReferenceChunk | null>(
-    null,
-  )
-  const [selectedChunkList, setSelectedChunkList] = useState<ReferenceChunk[]>(
-    [],
-  )
+  const workspace = useChatWorkspace()!
   const [queryDraft, setQueryDraft] = useState('')
   const [prefillText, setPrefillText] = useState('')
   const [prefillVersion, setPrefillVersion] = useState(0)
@@ -115,11 +123,9 @@ export const SearchDetailPage: React.FC = () => {
     (chunk: ChunkResult, chunks: ChunkResult[]) => {
       const mappedChunk = toReferenceChunk(chunk)
       const mappedChunks = chunks.map(toReferenceChunk)
-      setSelectedChunk(mappedChunk)
-      setSelectedChunkList(mappedChunks)
-      setDetailOpen(true)
+      workspace.viewReference(mappedChunk, mappedChunks)
     },
-    [],
+    [workspace],
   )
 
   const handlePrefillFromCard = useCallback((query: string) => {
@@ -417,13 +423,6 @@ export const SearchDetailPage: React.FC = () => {
           isDirty={isDirty}
         />
       </div>
-
-      <ReferenceDetailSheet
-        open={detailOpen}
-        onOpenChange={setDetailOpen}
-        chunk={selectedChunk}
-        allChunks={selectedChunkList}
-      />
     </div>
   )
 }

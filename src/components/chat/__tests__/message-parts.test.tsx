@@ -11,7 +11,7 @@ import type { ReferenceChunk } from '@/utils/reference-replacer'
 // Markdown, citations, tool steps and React escaping remain the real components.
 vi.mock('@ant-design/x', () => ({ Mermaid: () => null }))
 
-vi.mock('react-shiki', () => ({
+vi.mock('react-shiki/core', () => ({
   useShikiHighlighter: () => undefined,
   createJavaScriptRegexEngine: () => ({}),
 }))

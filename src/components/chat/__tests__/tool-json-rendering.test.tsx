@@ -6,7 +6,7 @@ import { parseToolJsonObject } from '@/components/chat/tool-json'
 
 // Exercise the real CodeBlock's plain-text fallback; highlighting is checked
 // in the browser because react-shiki's external CSS cannot load in Node.
-vi.mock('react-shiki', () => ({
+vi.mock('react-shiki/core', () => ({
   useShikiHighlighter: () => undefined,
   createJavaScriptRegexEngine: () => ({}),
 }))

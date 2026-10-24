@@ -15,7 +15,11 @@ import type {
   PaginatedData,
   MetadataCondition,
 } from '../types/api'
-import type { UploadedFileInfo } from '../config/chat'
+import {
+  chatConfig,
+  type ChatServiceRequest,
+  type UploadedFileInfo,
+} from '@/config/chat'
 
 type CompletionMessage = {
   role: string
@@ -68,6 +72,17 @@ export const conversationAPI = {
   // 获取对话详情（用于话题页面）
   getConversationDetail: (conversationId: string): Promise<any> =>
     apiClient.get(`/v1/conversation/get?conversation_id=${conversationId}`),
+
+  // Keep authenticated transport in the domain; callers own the SSE reader.
+  chatServiceStream: (
+    data: ChatServiceRequest,
+    options: { signal: AbortSignal },
+  ): Promise<Response> =>
+    apiClient.post<Response>(`/v1${chatConfig.apiEndpoint}`, data, {
+      signal: options.signal,
+      headers: { Accept: 'text/event-stream' },
+      readResponse: async (response) => response,
+    }),
 
   // 对话完成接口（用于话题页面发送消息）
   completion: (

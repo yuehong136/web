@@ -13,6 +13,7 @@ interface AppTopBarProps {
   secondaryAsDialog?: boolean
   secondaryToggleRef?: Ref<HTMLButtonElement>
   showSidebarToggle?: boolean
+  showSecondaryToggle?: boolean
   mobileOnly?: boolean
   mobileToggleRef?: Ref<HTMLButtonElement>
   mobilePanelId?: string
@@ -28,6 +29,7 @@ export const AppTopBar = ({
   secondaryAsDialog,
   secondaryToggleRef,
   showSidebarToggle = true,
+  showSecondaryToggle = true,
   mobileOnly = false,
   mobileToggleRef,
   mobilePanelId,
@@ -63,26 +65,34 @@ export const AppTopBar = ({
           >
             <Menu className="size-icon-md" aria-hidden="true" />
           </Button>
-          <div className="hidden md:block">
-            <NavigationTooltip content={label}>
-              <Button
-                ref={secondaryToggleRef}
-                variant="ghost"
-                size="icon-sm"
-                onClick={onToggleSecondary}
-                aria-label={label}
-                aria-expanded={!secondaryCollapsed}
-                aria-controls={secondaryPanelId}
-                aria-haspopup={secondaryAsDialog ? 'dialog' : undefined}
-              >
-                {secondaryCollapsed ? (
-                  <PanelLeftOpen className="size-icon-sm" aria-hidden="true" />
-                ) : (
-                  <PanelLeftClose className="size-icon-sm" aria-hidden="true" />
-                )}
-              </Button>
-            </NavigationTooltip>
-          </div>
+          {showSecondaryToggle && (
+            <div className="hidden md:block">
+              <NavigationTooltip content={label}>
+                <Button
+                  ref={secondaryToggleRef}
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={onToggleSecondary}
+                  aria-label={label}
+                  aria-expanded={!secondaryCollapsed}
+                  aria-controls={secondaryPanelId}
+                  aria-haspopup={secondaryAsDialog ? 'dialog' : undefined}
+                >
+                  {secondaryCollapsed ? (
+                    <PanelLeftOpen
+                      className="size-icon-sm"
+                      aria-hidden="true"
+                    />
+                  ) : (
+                    <PanelLeftClose
+                      className="size-icon-sm"
+                      aria-hidden="true"
+                    />
+                  )}
+                </Button>
+              </NavigationTooltip>
+            </div>
+          )}
         </>
       )}
       <div className="min-w-0 flex-1">

@@ -1,6 +1,8 @@
 export const sourcesResource = {
   sources: {
     title: 'Source details',
+    details: 'Details',
+    citationLabel: 'View citation {{index}}',
     description:
       'Inspect the cited passage, relevance scores and source metadata.',
     unknownDocument: 'Unknown document',

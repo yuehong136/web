@@ -8,6 +8,8 @@ import { InputToolbar } from './InputToolbar'
 import type { DialogApp } from '@/types/api'
 import type { MCPServer } from '@/types/mcp'
 import type { MyLLMProvider } from '@/stores/model'
+import type { ContextManifest } from '@/lib/ai-workspace/contracts'
+import { ContextManifestSummary } from '@/components/chat/context-manifest-summary'
 
 interface ChatInputBoxProps {
   inputValue: string
@@ -32,6 +34,7 @@ interface ChatInputBoxProps {
   isStreaming?: boolean
   scopeLocked?: boolean
   variant?: 'welcome' | 'chat'
+  contextManifest?: ContextManifest
 }
 
 /** Domain controls are slots; the shared composer owns keyboard/submission UI. */
@@ -58,6 +61,7 @@ export function ChatInputBox({
   isStreaming = false,
   scopeLocked = isStreaming,
   variant = 'welcome',
+  contextManifest,
 }: ChatInputBoxProps) {
   const { t } = useTranslation()
   return (
@@ -77,14 +81,21 @@ export function ChatInputBox({
       labels={{ stop: t('home.input.stop') }}
       slots={{
         context:
-          selectedMCPServers.length || selectedApps.length ? (
-            <SelectedTags
-              selectedMCPServers={selectedMCPServers}
-              selectedApps={selectedApps}
-              onRemoveSkill={onRemoveSkill}
-              onRemoveApp={onRemoveApp}
-              disabled={scopeLocked}
-            />
+          selectedMCPServers.length ||
+          selectedApps.length ||
+          contextManifest ? (
+            <>
+              <SelectedTags
+                selectedMCPServers={selectedMCPServers}
+                selectedApps={selectedApps}
+                onRemoveSkill={onRemoveSkill}
+                onRemoveApp={onRemoveApp}
+                disabled={scopeLocked}
+              />
+              {contextManifest && (
+                <ContextManifestSummary manifest={contextManifest} />
+              )}
+            </>
           ) : undefined,
         leading: (
           <>

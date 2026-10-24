@@ -21,6 +21,7 @@ export const HomePage = () => {
   // 从 store 获取状态
   const {
     selectedMCPIds,
+    selectedMCPServers,
     selectedModelId,
     selectedApps,
     selectedConversationId,
@@ -62,6 +63,7 @@ export const HomePage = () => {
     stopStreaming,
   } = useHomeChat({
     selectedMCPIds,
+    selectedMCPServers,
     selectedModelId,
     selectedApp,
     selectedConversationId,

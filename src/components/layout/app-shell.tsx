@@ -51,7 +51,9 @@ const WorkbenchFrame = ({ children }: React.PropsWithChildren) => {
   const secondaryToggle = React.useRef<HTMLButtonElement>(null)
   const navigationReturnFocus = React.useRef<HTMLElement | null>(null)
   const overlayNavigation = !viewport.wide
-  const effectiveCollapsed = collapsed || overlayNavigation
+  const hasSecondaryContent = definition.hasSecondaryContent !== false
+  const effectiveCollapsed =
+    collapsed || overlayNavigation || !hasSecondaryContent
   return (
     <div
       data-workbench-shell
@@ -97,6 +99,7 @@ const WorkbenchFrame = ({ children }: React.PropsWithChildren) => {
           contentLabel={t('layout.workspace.mainTask')}
           header={
             <AppTopBar
+              showSecondaryToggle={hasSecondaryContent}
               mobileToggleRef={mobileToggle}
               secondaryToggleRef={secondaryToggle}
               onOpenSidebar={() => {

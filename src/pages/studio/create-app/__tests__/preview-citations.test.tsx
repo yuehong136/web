@@ -10,7 +10,7 @@ import { useCreateAppPreview } from '../hooks/use-create-app-preview'
 import { createInitialConfig } from '../constants'
 
 // Tool steps share CodeBlock; keep citations real without importing its browser CSS.
-vi.mock('react-shiki', () => ({
+vi.mock('react-shiki/core', () => ({
   useShikiHighlighter: () => undefined,
   createJavaScriptRegexEngine: () => ({}),
 }))
@@ -97,7 +97,8 @@ describe('Studio preview citations', () => {
         />,
       ),
     )
-    expect(container.textContent).toContain('思考过程')
+    expect(container.textContent).toContain('思考详情')
+    expect(container.querySelector('[data-run-phase="completed"]')).toBeNull()
     expect(trigger.getAttribute('aria-expanded')).toBe('true')
     expect(container.textContent).toContain('先核对数据来源')
     expect(container.querySelector('.markdown-content')?.textContent).toContain(
@@ -115,7 +116,8 @@ describe('Studio preview citations', () => {
         />,
       ),
     )
-    expect(container.textContent).toContain('思考过程')
+    expect(container.textContent).toContain('思考详情')
+    expect(container.querySelector('[data-run-phase="completed"]')).toBeNull()
     expect(
       container.querySelector('.markdown-content')?.textContent?.trim(),
     ).toBe('结果一致')

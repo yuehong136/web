@@ -5,7 +5,8 @@ import { ReferenceMetadataBadges } from '@/components/chat/reference-metadata-ba
  *
  * 展示组件原则：只接收 props，不包含业务逻辑
  */
-import React from 'react'
+import React, { useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Copy, ChevronRight, ExternalLink } from 'lucide-react'
 import type { Config } from 'dompurify'
 import {
@@ -61,6 +62,9 @@ export const ReferenceMarker: React.FC<ReferenceMarkerProps> = ({
   onCopy,
   children,
 }) => {
+  const { t, i18n } = useTranslation()
+  const [open, setOpen] = useState(false)
+  const trigger = useRef<HTMLButtonElement>(null)
   const displayIndex =
     chunk?.reference_index !== undefined
       ? chunk.reference_index
@@ -83,19 +87,33 @@ export const ReferenceMarker: React.FC<ReferenceMarkerProps> = ({
     )
   }
 
-  const similarity = chunk.similarity ?? 0
-  const similarityPercent = Math.round(similarity * 100)
-  const similarityColor = getSimilarityColor(similarity)
+  const similarity =
+    typeof chunk.similarity === 'number' &&
+    Number.isFinite(chunk.similarity) &&
+    chunk.similarity >= 0 &&
+    chunk.similarity <= 1
+      ? chunk.similarity
+      : undefined
+  const similarityLabel =
+    similarity === undefined
+      ? t('sources.unavailable')
+      : new Intl.NumberFormat(i18n.resolvedLanguage || i18n.language, {
+          style: 'percent',
+          maximumFractionDigits: 0,
+        }).format(similarity)
+  const similarityColor = getSimilarityColor(similarity ?? 0)
   const isTableContent =
     chunk.doc_type === 'table' && chunk.content?.includes('<table')
 
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       {/* 原生按钮作触发器：键盘可达，引用详情关闭后焦点也能回到这里 */}
       <sup>
         <PopoverTrigger asChild>
           <button
+            ref={trigger}
             type="button"
+            aria-label={t('sources.citationLabel', { index: displayIndex })}
             className={cn(
               'inline-flex cursor-pointer items-center justify-center',
               'mx-0.5 -mt-1 h-[20px] min-w-[20px] px-1.5',
@@ -138,7 +156,7 @@ export const ReferenceMarker: React.FC<ReferenceMarkerProps> = ({
                 style={{ color: 'var(--color-text-primary)' }}
                 title={chunk.document_name}
               >
-                {chunk.document_name || '未知文档'}
+                {chunk.document_name || t('sources.unknownDocument')}
               </span>
             </div>
             <span
@@ -149,7 +167,7 @@ export const ReferenceMarker: React.FC<ReferenceMarkerProps> = ({
                 color: 'var(--color-text-inverted)',
               }}
             >
-              {similarityPercent}%
+              {similarityLabel}
             </span>
           </div>
 
@@ -201,35 +219,26 @@ export const ReferenceMarker: React.FC<ReferenceMarkerProps> = ({
               }}
             >
               <Copy className="h-3 w-3" />
-              复制
+              {t('sources.copy')}
             </button>
 
             {chunk.document_id && (
-              <button
-                className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs transition-colors hover:opacity-80"
-                style={{
-                  color: 'var(--color-text-secondary)',
-                  backgroundColor: 'transparent',
-                }}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  const params = new URLSearchParams()
-                  if (chunk.document_name)
-                    params.set('name', chunk.document_name)
-                  window.open(
-                    `/document/${chunk.document_id}/preview?${params.toString()}`,
-                    '_blank',
-                  )
-                }}
+              <a
+                className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs text-text-secondary transition-colors hover:opacity-80"
+                href={`/document/${encodeURIComponent(chunk.document_id)}/preview?${new URLSearchParams({ name: chunk.document_name || '' })}`}
+                target="_blank"
+                rel="noopener noreferrer"
               >
                 <ExternalLink className="h-3 w-3" />
-                原文
-              </button>
+                {t('sources.viewDocument')}
+              </a>
             )}
 
             <div className="flex-1" />
 
             <button
+              type="button"
+              data-reference-details
               className="flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors hover:opacity-80"
               style={{
                 color: 'var(--color-text-accent)',
@@ -237,10 +246,12 @@ export const ReferenceMarker: React.FC<ReferenceMarkerProps> = ({
               }}
               onClick={(e) => {
                 e.stopPropagation()
+                setOpen(false)
+                trigger.current?.focus({ preventScroll: true })
                 onViewDetail?.(chunk)
               }}
             >
-              详情
+              {t('sources.details')}
               <ChevronRight className="h-3 w-3" />
             </button>
           </div>

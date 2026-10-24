@@ -36,7 +36,7 @@ export const answerStatusMessageKey = (kind: AnswerStatusKind) =>
 export const getHomeMessagePhase = (
   message: ChatMessage,
   active: boolean,
-): RunPhase => {
+): RunPhase | undefined => {
   if (message.status?.kind === 'stopped') return 'locallyStopped'
   if (
     message.status?.kind === 'unconfirmed' ||
@@ -45,7 +45,8 @@ export const getHomeMessagePhase = (
     return 'interrupted'
   if (message.status) return 'failed'
   if (active) return 'running'
-  return message.isStreaming ? 'interrupted' : 'completed'
+  if (message.isStreaming) return 'interrupted'
+  return message.completionConfirmed ? 'completed' : undefined
 }
 
 const hasErrorName = (error: unknown, name: string) =>
@@ -116,7 +117,7 @@ export const settleAnswerMessage = (
   kind: AnswerStatusKind | null,
 ): ChatMessage => {
   if (!kind) {
-    return message.isStreaming ? { ...message, isStreaming: false } : message
+    return { ...message, isStreaming: false, completionConfirmed: true }
   }
   const partial = Boolean(
     message.content.trim() ||

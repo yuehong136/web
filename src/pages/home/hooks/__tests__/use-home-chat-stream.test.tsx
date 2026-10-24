@@ -6,6 +6,7 @@ import { conversationAPI } from '@/api/conversation'
 import { chatKeys } from '@/hooks/use-chat-request'
 import { createInitialAgentTimelineState } from '@/lib/streaming'
 import { toast } from '@/lib/toast'
+import { useAuthStore } from '@/stores/auth'
 import i18n, { setProductLanguage } from '@/locales/i18n'
 import type { DialogApp } from '@/types/api'
 import { streamMCPAgentChat } from '../../utils/mcp-agent-stream'
@@ -123,6 +124,7 @@ it('shows the final answer with inserted citations once instead of appending it'
   expect(answer()?.content).toBe('根据文档，答案是 42 [ID:0]。')
   expect(answer()?.references).toEqual(chunks)
   expect(answer()?.status).toBeUndefined()
+  expect(answer()?.completionConfirmed).toBe(true)
   expect(toast.error).not.toHaveBeenCalled()
 })
 
@@ -641,3 +643,158 @@ it('releases the stream on unmount without reporting it as an error', async () =
   expect(toast.error).not.toHaveBeenCalled()
   root = createRoot(container)
 })
+
+it('freezes submitted MCP names/model on both messages without sending display metadata', async () => {
+  vi.mocked(streamMCPAgentChat).mockImplementation(async ({ onState }) => {
+    onState({ ...createInitialAgentTimelineState(), final: true })
+    return { reason: 'eof' }
+  })
+  await select(null, {
+    selectedApp: null,
+    identity: 'user-a:tenant-a',
+    selectedModelId: 'model-a',
+    selectedMCPIds: ['server-a'],
+    selectedMCPServers: [
+      {
+        id: 'server-a',
+        name: 'Research server',
+        server_type: 'sse',
+        url: 'https://fixture.invalid',
+      },
+    ],
+  })
+  await act(async () => chat.sendMessage('question'))
+  const snapshot = chat.messages[0].contextManifest!
+  expect(snapshot).toBe(chat.messages[1].contextManifest)
+  expect(snapshot.stage).toBe('submitted')
+  expect(snapshot.resources.map((resource) => resource.label)).toEqual([
+    'model-a',
+    'Research server',
+  ])
+  const payload = vi.mocked(streamMCPAgentChat).mock.calls[0][0].request
+  expect(payload.llm_name).toBe('model-a')
+  expect(payload.mcp_ids).toEqual(['server-a'])
+  expect(JSON.stringify(payload)).not.toContain('contextManifest')
+  await select(null, {
+    selectedApp: null,
+    selectedModelId: 'model-b',
+    selectedMCPIds: [],
+    identity: 'user-a:tenant-a',
+  })
+  await act(async () => setProductLanguage('en-US'))
+  expect(chat.messages[0].contextManifest).toBe(snapshot)
+  expect(snapshot.resources.map((resource) => resource.label)).toEqual([
+    'model-a',
+    'Research server',
+  ])
+  await select(null, {
+    selectedApp: null,
+    selectedModelId: 'model-b',
+    selectedMCPIds: [],
+    identity: 'user-b:tenant-b',
+  })
+  expect(chat.messages).toEqual([])
+})
+
+it('captures app bindings before conversation creation and never submits unrelated free selections', async () => {
+  const boundApp = {
+    ...app,
+    llm_id: 'bound-model',
+    dataset_ids: ['kb-a'],
+    kb_names: ['Bound knowledge'],
+  }
+  await select(null, {
+    selectedApp: boundApp,
+    identity: 'user-a',
+    selectedModelId: 'unsent-model',
+    selectedMCPIds: ['unsent-mcp'],
+  })
+  const created = deferred<{ id: string }>()
+  vi.spyOn(conversationAPI, 'setConversation').mockReturnValue(created.promise)
+  const completion = vi
+    .spyOn(conversationAPI, 'completion')
+    .mockResolvedValue(sse(done))
+  let pending: ReturnType<typeof chat.sendMessage> = false
+  await act(async () => {
+    pending = chat.sendMessage('question')
+  })
+  boundApp.llm_id = 'changed-after-send'
+  boundApp.kb_names[0] = 'Changed after send'
+  await act(async () => {
+    created.resolve({ id: 'actual-thread' })
+    await pending
+  })
+  const snapshot = chat.messages[0].contextManifest!
+  expect(snapshot.scope).toEqual({
+    identity: 'user-a',
+    threadId: 'actual-thread',
+  })
+  expect(snapshot).toBe(chat.messages[1].contextManifest)
+  expect(
+    snapshot.resources.map((resource) => [resource.label, resource.origin]),
+  ).toEqual([
+    ['App', 'turn'],
+    ['bound-model', 'inherited'],
+    ['Bound knowledge', 'inherited'],
+  ])
+  expect(completion.mock.calls[0][0]).toEqual({
+    conversation_id: 'actual-thread',
+    messages: [{ role: 'user', content: 'question' }],
+    quote: true,
+  })
+  expect(JSON.stringify(completion.mock.calls[0][0])).not.toMatch(
+    /unsent|contextManifest/,
+  )
+})
+
+it.each(['app', 'mcp'] as const)(
+  'synchronously revokes %s stream ownership on token A to B to A',
+  async (mode) => {
+    const original = useAuthStore.getState()
+    await act(async () => useAuthStore.setState({ token: 'fixture-a' }))
+    const stream = openStream()
+    const completion = vi
+      .spyOn(conversationAPI, 'completion')
+      .mockResolvedValue(stream.response)
+    vi.mocked(streamMCPAgentChat).mockImplementation(
+      ({ signal }) =>
+        new Promise((resolve) => {
+          signal.addEventListener(
+            'abort',
+            () => resolve({ reason: 'aborted' }),
+            { once: true },
+          )
+        }),
+    )
+    if (mode === 'mcp')
+      await select(null, { selectedApp: null, selectedModelId: 'model-a' })
+    let pending: ReturnType<typeof chat.sendMessage> = false
+    try {
+      await act(async () => {
+        pending = chat.sendMessage('private old turn')
+        await flush()
+      })
+      const signal =
+        mode === 'app'
+          ? completion.mock.calls[0][1]?.signal
+          : vi.mocked(streamMCPAgentChat).mock.calls[0][0].signal
+      await act(async () => useAuthStore.setState({ token: 'fixture-a' }))
+      expect(signal?.aborted).toBe(false)
+      await act(async () => {
+        useAuthStore.setState({ token: 'fixture-b' })
+        // The signal is revoked synchronously, without waiting for a React effect.
+        expect(signal?.aborted).toBe(true)
+        useAuthStore.setState({ token: 'fixture-a' })
+        await pending
+      })
+      expect(
+        chat.messages.some((message) =>
+          message.content.includes('private old turn'),
+        ),
+      ).toBe(false)
+      expect(chat.isStreaming).toBe(false)
+    } finally {
+      await act(async () => useAuthStore.setState(original))
+    }
+  },
+)

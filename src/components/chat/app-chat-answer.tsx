@@ -14,7 +14,7 @@ export function AppChatAnswer({
   return (
     <MessageParts
       {...props}
-      run={{ phase: runPhase ?? (isStreaming ? 'running' : 'completed') }}
+      run={{ phase: runPhase ?? (isStreaming ? 'running' : undefined) }}
     />
   )
 }
