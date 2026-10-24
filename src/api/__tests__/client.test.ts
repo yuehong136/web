@@ -391,3 +391,22 @@ test('reapplying the current token does not supersede concurrent successful read
     ])
   })
 })
+
+test('an identity replaced during a domain response reader cannot receive its private body', async () => {
+  await withSession(async (client) => {
+    client.setAuthToken('identity-a')
+    const reading = deferred<void>()
+    const body = deferred<string>()
+    globalThis.fetch = async () => new Response('domain-owned body')
+    const request = client.get('/private-binary', {
+      readResponse: async () => {
+        reading.resolve()
+        return body.promise
+      },
+    })
+    await reading.promise
+    client.setAuthToken('identity-b')
+    body.resolve('old private body')
+    await assert.rejects(request, isCancelled)
+  })
+})

@@ -184,13 +184,21 @@ class APIClient {
       abort.signal.throwIfAborted()
       assertCurrentIdentity()
       if (readResponse) {
-        return (await readBinaryResponse(response, abort.signal, readResponse, {
-          sentAuthorization: requestHeaders.Authorization,
-          currentToken: this.getAuthToken(),
-          skipAuth,
-          onUnauthorized: () =>
-            this.handleUnauthorized(identity.isCurrent, skipAuth),
-        })) as T
+        const result = await readBinaryResponse(
+          response,
+          abort.signal,
+          readResponse,
+          {
+            sentAuthorization: requestHeaders.Authorization,
+            currentToken: this.getAuthToken(),
+            skipAuth,
+            onUnauthorized: () =>
+              this.handleUnauthorized(identity.isCurrent, skipAuth),
+          },
+        )
+        abort.signal.throwIfAborted()
+        assertCurrentIdentity()
+        return result as T
       }
       const contentType = response.headers.get('content-type')
       if (!contentType?.includes('application/json')) {
