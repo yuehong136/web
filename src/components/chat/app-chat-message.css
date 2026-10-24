@@ -103,10 +103,20 @@
   min-width: 0;
   overflow-wrap: anywhere;
 }
+[data-message-role='user'] .chat-transcript-message {
+  display: flex;
+  flex-direction: row-reverse;
+}
 [data-message-role='user'] .chat-message-main {
-  justify-self: end;
   width: fit-content;
   max-width: 100%;
+}
+[data-message-role='user'] .chat-message-heading {
+  justify-content: flex-end;
+}
+[data-message-role='user'] .chat-message-footer {
+  display: flex;
+  justify-content: flex-end;
 }
 [data-message-role='user'] .chat-message-body {
   padding: var(--space-base) var(--space-md);

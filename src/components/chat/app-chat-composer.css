@@ -9,10 +9,15 @@
   border-color: var(--color-border-default);
 }
 .app-chat-composer.ant-sender:focus-within {
-  border-color: var(--color-border-accent);
-  box-shadow: none;
-  outline: 2px solid var(--color-state-focus);
-  outline-offset: 3px;
+  border-color: var(--color-state-focus);
+  box-shadow: 0 0 0 1px var(--color-state-focus);
+  outline: none;
+}
+@media (forced-colors: active) {
+  .app-chat-composer.ant-sender:focus-within {
+    outline: 2px solid var(--color-state-focus);
+    outline-offset: 0;
+  }
 }
 .app-chat-composer .ant-sender-content {
   background: transparent;
