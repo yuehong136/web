@@ -10,6 +10,7 @@ import {
   runCheck,
 } from '../check-agent-i18n-hardcoded.mjs'
 import { checkCatalogPair, readCatalog } from '../i18n-catalog-quality.mjs'
+import { createTranslationContract } from '../generate-i18n-types.mjs'
 
 const scan = (source, file = 'src/pages/example.tsx') =>
   hardcodedFindings(
@@ -125,6 +126,54 @@ test('catalog quality validates key parity, placeholders, plural categories and 
     issues.some(
       (item) => item.rule === 'missing-plural' && item.detail === 'en-US:other',
     ),
+  )
+})
+
+test('typed scopes reuse catalog ASTs, collapse plural forms and record dynamic key families for review', () => {
+  const catalogs = new Map([
+    [
+      'src/locales/en-US/index.ts',
+      `export default {sample: {
+      title: 'Hello {{name}}', total_one: '{{count}} item', total_other: '{{count}} items',
+      modes: {light: 'Light', dark: 'Dark'}
+    }}`,
+    ],
+    [
+      'src/locales/zh-CN/index.ts',
+      `export default {sample: {
+      title: '你好 {{name}}', total_other: '{{count}} 项',
+      modes: {light: '浅色', dark: '深色'}
+    }}`,
+    ],
+  ])
+  const result = createTranslationContract((file) => catalogs.get(file), {
+    sample: { dynamicFamilies: ['modes'] },
+  })
+  assert.match(result.source, /"total": \{ "count": number \}/u)
+  assert.match(result.source, /"title": \{ "name": string \| number \}/u)
+  assert.doesNotMatch(result.source, /total_(one|other)/u)
+  assert.deepEqual(
+    result.review.filter((row) => row.dynamic).map((row) => row.key),
+    ['modes.light', 'modes.dark'],
+  )
+  assert.equal(
+    result.review.find((row) => row.key === 'total_one').chinese,
+    '{{count}} 项',
+  )
+  catalogs.set(
+    'src/locales/zh-CN/index.ts',
+    `export default {sample: {title: '你好 {{other}}'}}`,
+  )
+  assert.throws(
+    () =>
+      createTranslationContract((file) => catalogs.get(file), {
+        sample: { dynamicFamilies: [] },
+      }),
+    /interpolation:title/u,
+  )
+  assert.throws(
+    () => createTranslationContract(() => undefined),
+    /Missing typed translation scope/u,
   )
 })
 

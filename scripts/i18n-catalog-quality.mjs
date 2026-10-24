@@ -93,16 +93,16 @@ export function readCatalog(readSource, entry) {
   return readModule(entry).default ?? {}
 }
 
-function flatten(value, prefix = '', result = new Map()) {
+export function flattenCatalog(value, prefix = '', result = new Map()) {
   if (value && typeof value === 'object') {
     for (const [key, child] of Object.entries(value))
-      flatten(child, prefix ? `${prefix}.${key}` : key, result)
+      flattenCatalog(child, prefix ? `${prefix}.${key}` : key, result)
   } else result.set(prefix, value)
   return result
 }
 
-const pluralSuffix = /_(zero|one|two|few|many|other)$/u
-const placeholders = (text) =>
+export const pluralSuffix = /_(zero|one|two|few|many|other)$/u
+export const interpolationNames = (text) =>
   [
     ...new Set(
       [...String(text).matchAll(/\{\{\s*-?\s*([^},]+)(?:,[^}]*)?\}\}/gu)].map(
@@ -112,7 +112,10 @@ const placeholders = (text) =>
   ].sort()
 
 export function checkCatalogPair(english, chinese) {
-  const catalogs = { 'en-US': flatten(english), 'zh-CN': flatten(chinese) }
+  const catalogs = {
+    'en-US': flattenCatalog(english),
+    'zh-CN': flattenCatalog(chinese),
+  }
   const findings = []
   const add = (rule, key, detail) =>
     findings.push({
@@ -161,13 +164,15 @@ export function checkCatalogPair(english, chinese) {
         }
       }
       interpolation[locale] = [
-        ...new Set(forms.flatMap((form) => placeholders(catalog.get(form)))),
+        ...new Set(
+          forms.flatMap((form) => interpolationNames(catalog.get(form))),
+        ),
       ]
         .sort()
         .join(',')
       if (isPlural) {
         const tokens = forms.map((form) =>
-          placeholders(catalog.get(form))
+          interpolationNames(catalog.get(form))
             .filter((token) => token !== 'count')
             .join(','),
         )

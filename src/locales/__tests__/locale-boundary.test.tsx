@@ -14,6 +14,7 @@ import {
 import { createInstance } from 'i18next'
 import { createLocaleRuntime } from '../locale-runtime'
 import { useRouteLocale } from '../use-route-locale'
+import { useTypedTranslation } from '../use-typed-translation'
 
 Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true })
 const roots: ReturnType<typeof createRoot>[] = []
@@ -36,8 +37,32 @@ const ScopedRoute = ({ locale }: { locale?: string }) => {
   useRouteLocale(locale)
   return <Label />
 }
+const TypedWorkspaceLabel = () => {
+  const { t } = useTypedTranslation('chat.aiWorkspace')
+  return <span>{t('context')}</span>
+}
 
 describe('locale provider boundaries', () => {
+  it('updates typed workspace labels through an isolated provider without remounting drafts', async () => {
+    await setProductLanguage('zh-CN')
+    const { root, container } = mount()
+    const render = (locale: string) => (
+      <IsolatedLocaleBoundary locale={locale} namespaces={['chat']}>
+        <TypedWorkspaceLabel />
+        <input defaultValue="kept draft" />
+      </IsolatedLocaleBoundary>
+    )
+    await act(async () => root.render(render('en-US')))
+    expect(container.textContent).toBe('Turn context')
+    const input = container.querySelector('input')!
+    input.value = 'edited draft'
+    await act(async () => root.render(render('zh-CN')))
+    expect(container.textContent).toBe('本轮上下文')
+    expect(container.querySelector('input')).toBe(input)
+    expect(input.value).toBe('edited draft')
+    expect(getProductLanguage()).toBe('zh-CN')
+  })
+
   it('keeps simultaneous host/widgets independent and retains an edited draft across widget language changes', async () => {
     await setProductLanguage('zh-CN')
     const { root, container } = mount()
