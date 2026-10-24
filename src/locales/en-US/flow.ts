@@ -1,7 +1,9 @@
+import { browserMessages } from './flow-browser'
 import { listOperationsMessages } from './flow-list-operations'
 
 export default {
   flow: {
+    ...browserMessages,
     ...listOperationsMessages,
     switchPrompt: 'Switch prompt preset',
     model: 'Model',

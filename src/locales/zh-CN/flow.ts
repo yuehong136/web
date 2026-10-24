@@ -1,7 +1,9 @@
+import { browserMessages } from './flow-browser'
 import { listOperationsMessages } from './flow-list-operations'
 
 export default {
   flow: {
+    ...browserMessages,
     copy: '复制',
     copyAgentPrompt: '复制智能体提示词',
     debug: '调试',

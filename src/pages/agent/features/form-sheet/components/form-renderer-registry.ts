@@ -1,3 +1,4 @@
+import { BrowserForm } from '../../../form/browser-use'
 import type { ComponentType } from 'react'
 import { Operator } from '../../../constant'
 import { AgentForm } from '../../../form/agent'
@@ -78,6 +79,7 @@ export const migratedFormRenderers: Record<
   [Operator.Extractor]: ExtractorForm,
   [Operator.TitleChunker]: TitleChunkerForm,
   [Operator.DocGenerator]: DocGeneratorForm,
+  [Operator.Browser]: BrowserForm,
   [Operator.HTMLReport]: HTMLReportForm,
   [Operator.ExeSQL]: ExeSQLForm,
   [Operator.Crawler]: CrawlerForm,

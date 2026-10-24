@@ -54,6 +54,7 @@ export const Operator = {
   UserFillUp: 'UserFillUp',
   StringTransform: 'StringTransform',
   DocGenerator: 'DocGenerator',
+  Browser: 'Browser',
   HTMLReport: 'HTMLReport',
   ExcelProcessor: 'ExcelProcessor',
 
@@ -136,6 +137,7 @@ export const NodeMap: Record<string, string> = {
   [Operator.UserFillUp]: 'ragNode',
   [Operator.StringTransform]: 'ragNode',
   [Operator.DocGenerator]: 'ragNode',
+  [Operator.Browser]: 'ragNode',
   [Operator.HTMLReport]: 'ragNode',
   [Operator.ExcelProcessor]: 'ragNode',
   [Operator.DataOperations]: 'dataOperationsNode',
@@ -285,7 +287,6 @@ export const initialRetrievalValues = {
   },
 }
 
-// 通用LLM基础配置
 export const initialLlmBaseValues = {
   llm_id: '',
   temperature: 0.1,
@@ -295,7 +296,6 @@ export const initialLlmBaseValues = {
   max_tokens: 512,
 }
 
-// Message节点初始值
 export const initialMessageValues = {
   content: [''],
   output_format: '',
@@ -344,7 +344,6 @@ export const initialA2UIValues = {
   ],
 }
 
-// Categorize节点初始值
 export const initialCategorizeValues = {
   ...initialLlmBaseValues,
   query: AgentGlobals.SysQuery,
@@ -1095,6 +1094,7 @@ export const RestrictedUpstreamMap: Record<string, Operator[]> = {
   [Operator.UserFillUp]: [Operator.Begin],
   [Operator.StringTransform]: [Operator.Begin],
   [Operator.DocGenerator]: [Operator.Begin],
+  [Operator.Browser]: [Operator.Begin],
   [Operator.HTMLReport]: [Operator.Begin],
   [Operator.ExcelProcessor]: [Operator.Begin],
   [Operator.DataOperations]: [Operator.Begin],

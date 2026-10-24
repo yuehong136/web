@@ -1,3 +1,5 @@
+import enFlow from '@/locales/en-US/flow'
+import zhFlow from '@/locales/zh-CN/flow'
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { createElement } from 'react'
@@ -381,4 +383,24 @@ test('unknown operators fall back safely when no renderer or registry metadata e
     }),
     'UnknownOperator',
   )
+})
+
+test('Browser description metadata follows the active locale without changing protocol IDs', async () => {
+  const i18n = createInstance()
+  await i18n.init({
+    lng: 'en-US',
+    resources: {
+      'en-US': { translation: enFlow },
+      'zh-CN': { translation: zhFlow },
+    },
+  })
+  const options = {
+    operatorType: Operator.Browser,
+    operatorDefinition: getOperatorDefinition(Operator.Browser),
+    t: i18n.t.bind(i18n),
+  }
+  assert.match(resolveFormSheetDescription(options), /OpenAI-compatible/)
+  await i18n.changeLanguage('zh-CN')
+  assert.match(resolveFormSheetDescription(options), /兼容 OpenAI/)
+  assert.equal(resolveLegacyRendererKey(Operator.Browser), 'Browser')
 })

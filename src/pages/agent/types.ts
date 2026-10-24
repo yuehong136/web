@@ -1,3 +1,4 @@
+import type { BrowserFormValues } from './form/browser-use/constants'
 import type { Edge, Node } from '@xyflow/react'
 import type { AgentGlobalVariable } from '@/types/agent'
 import type { ITitleChunkerForm, ITokenChunkerForm } from './chunker-types'
@@ -303,6 +304,7 @@ export type RAGFlowNodeType =
   | IExeSQLNode
   | IUserFillUpNode
   | IStringTransformNode
+  | BaseNode<BrowserFormValues>
   | IDocGeneratorNode
   | IHTMLReportNode
   | IFileNode
