@@ -2,6 +2,147 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { APIError, apiClient, type RequestConfig } from '../client'
 import { knowledgeAPI } from '../knowledge'
+import { dialogAPI } from '../dialog'
+import { searchAPI } from '../search'
+import { agentAPI } from '../agent'
+import { mcpAPI } from '../mcp'
+import { memoryAPI } from '../memory'
+import { collectListWindow, isLargeListWindow } from '../list-pagination'
+
+test('large selector windows aggregate REST pages without dropping filters or later options', async (t) => {
+  const calls: URL[] = []
+  t.mock.method(
+    apiClient,
+    'get',
+    async (path: string, config?: RequestConfig) => {
+      const url = new URL(path, 'http://fixture.test')
+      for (const [key, value] of Object.entries(config?.params ?? {}))
+        if (value !== undefined) url.searchParams.set(key, String(value))
+      calls.push(url)
+      const page = Number(url.searchParams.get('page'))
+      assert.equal(url.searchParams.get('page_size'), '100')
+      assert.equal(url.searchParams.get('keywords'), 'filtered')
+      const items = Array.from(
+        { length: Math.min(100, 250 - (page - 1) * 100) },
+        (_, index) => ({ id: String((page - 1) * 100 + index) }),
+      )
+      if (url.pathname === '/v1/datasets') return { data: items, total: 250 }
+      if (url.pathname === '/memories')
+        return { memory_list: items, total_count: 250 }
+      const key = (
+        {
+          '/chats': 'chats',
+          '/searches': 'search_apps',
+          '/agents': 'canvas',
+          '/mcp/servers': 'mcp_servers',
+          '/agents/demo/sessions': 'sessions',
+        } as Record<string, string>
+      )[url.pathname]
+      assert.ok(key)
+      return { [key]: items, total: 250 }
+    },
+  )
+  const params = { page: 2, page_size: 150, keywords: 'filtered' }
+  const results: Array<Array<{ id: string }>> = [
+    (await knowledgeAPI.knowledgeBase.list(params)).kbs,
+    (await dialogAPI.listChats(params)).chats,
+    (await searchAPI.list(params)).search_apps,
+    (await agentAPI.listAgents(params)).canvas,
+    (await mcpAPI.listServers({}, params)).mcp_servers,
+    (await memoryAPI.memory.list(params)).memory_list,
+  ]
+  const sessions = await agentAPI.fetchSessions('demo', params)
+  assert.ok(!Array.isArray(sessions))
+  results.push(sessions.sessions)
+  for (const items of results) {
+    assert.equal(items.length, 100)
+    assert.equal(items[0].id, '150')
+    assert.equal(items.at(-1)?.id, '249')
+  }
+  assert.equal(calls.length, 14)
+  assert.deepEqual(
+    calls.map((url) => url.searchParams.get('page')),
+    Array.from({ length: 7 }, () => ['2', '3']).flat(),
+  )
+})
+
+test('pagination preserves legal zero and rejects partial pages or subsequent failures', async () => {
+  assert.equal(isLargeListWindow({ page: 0, page_size: 0 }), false)
+  assert.equal(isLargeListWindow({ page: 1, page_size: 0 }), false)
+  assert.equal(isLargeListWindow({ page_size: 100.5 }), false)
+  await assert.rejects(
+    () =>
+      collectListWindow(
+        { page_size: 200 },
+        async () => ({ total: 0, items: [{ id: 'one' }] }),
+        'items',
+      ),
+    (error: unknown) =>
+      error instanceof APIError && error.code === 'INVALID_LIST_RESPONSE',
+  )
+  await assert.rejects(
+    () =>
+      collectListWindow(
+        { page_size: 200 },
+        async () => ({ total: 250, items: [{ id: 'one' }] }),
+        'items',
+      ),
+    (error: unknown) =>
+      error instanceof APIError && error.code === 'INCOMPLETE_LIST_RESPONSE',
+  )
+  let requests = 0
+  await assert.rejects(
+    () =>
+      collectListWindow(
+        { page_size: 200 },
+        async () => {
+          if (++requests === 2) throw new APIError(403, '109', 'denied')
+          return {
+            total: 250,
+            items: Array.from({ length: 100 }, (_, id) => ({ id })),
+          }
+        },
+        'items',
+      ),
+    (error: unknown) => error instanceof APIError && error.code === '109',
+  )
+})
+
+test('dataset selector follows total_datasets through the shared HTTP client beyond page two', async () => {
+  const originalFetch = globalThis.fetch
+  const requests: URL[] = []
+  globalThis.fetch = (async (input) => {
+    const url = new URL(String(input))
+    requests.push(url)
+    const offset = (Number(url.searchParams.get('page')) - 1) * 100
+    return Response.json({
+      retcode: 0,
+      total_datasets: 205,
+      data: Array.from({ length: Math.min(100, 205 - offset) }, (_, index) => ({
+        id: String(offset + index),
+        name: `Dataset ${offset + index}`,
+      })),
+    })
+  }) as typeof fetch
+  try {
+    const result = await knowledgeAPI.knowledgeBase.list({
+      page_size: 1000,
+      owner_ids: ['one', 'two'],
+      keywords: 'filtered',
+    })
+    assert.equal(result.total, 205)
+    assert.equal(result.kbs.length, 205)
+    assert.equal(result.kbs.at(-1)?.id, '204')
+    assert.equal(requests.length, 3)
+    for (const url of requests) {
+      assert.equal(url.searchParams.get('page_size'), '100')
+      assert.equal(url.searchParams.get('keywords'), 'filtered')
+      assert.deepEqual(url.searchParams.getAll('owner_ids'), ['one', 'two'])
+    }
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+})
 
 test('index operations share the canonical path and task envelope', async (t) => {
   const calls: unknown[] = []

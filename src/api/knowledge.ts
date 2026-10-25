@@ -1,5 +1,6 @@
 import { apiClient, type ApiEnvelope } from './client'
 import { knowledgeRestConfig as sdkBase } from './knowledge-config'
+import { collectListWindow, isLargeListWindow } from './list-pagination'
 import { knowledgeDocumentAPI } from './knowledge-documents'
 import { knowledgeMetadataAPI } from './knowledge-metadata'
 import { knowledgeIndexAPI } from './knowledge-index'
@@ -100,6 +101,12 @@ export const knowledgeAPI = {
       owner_ids?: string[]
       parser_id?: string
     }): Promise<{ kbs: KnowledgeBase[]; total: number }> => {
+      if (isLargeListWindow(params))
+        return collectListWindow(
+          params!,
+          (page) => knowledgeAPI.knowledgeBase.list({ ...params, ...page }),
+          'kbs',
+        )
       const query = new URLSearchParams()
       query.set('page', String(params?.page ?? 1))
       query.set('page_size', String(params?.page_size ?? 12))

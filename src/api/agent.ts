@@ -2,6 +2,7 @@ import { API_BASE_URL, STORAGE_KEYS } from '@/constants'
 import { resolveCanvasCategory } from '@/lib/agent'
 import { AgentCanvasType } from '@/types/agent'
 import { apiClient } from './client'
+import { collectListWindow, isLargeListWindow } from './list-pagination'
 import { requestTaskCancellation } from './agent-cancellation'
 import { buildAgentRunBody } from './agent-execution'
 import type {
@@ -82,7 +83,15 @@ export const agentAPI = {
     baseURL: EXTERNAL_API_BASE_URL,
   },
 
-  listAgents: async (params: AgentListParams = {}) => {
+  listAgents: async (
+    params: AgentListParams = {},
+  ): Promise<AgentListResponse> => {
+    if (isLargeListWindow(params))
+      return collectListWindow(
+        params,
+        (page) => agentAPI.listAgents({ ...params, ...page }),
+        'canvas',
+      )
     const query: Record<string, string | number | boolean> = {}
 
     if (params.page !== undefined) query.page = params.page
@@ -302,14 +311,28 @@ export const agentAPI = {
   fetchSessions: async (
     canvasId: string,
     params: AgentSessionListParams = {},
-  ) =>
-    apiClient.get<AgentSessionListResponse | AgentSession[]>(
+  ): Promise<AgentSessionListResponse | AgentSession[]> => {
+    if (isLargeListWindow(params))
+      return collectListWindow(
+        params,
+        (page) =>
+          apiClient.get<AgentSessionListResponse>(
+            `/agents/${encodeURIComponent(canvasId)}/sessions`,
+            {
+              ...restBase,
+              params: buildAgentSessionListQuery({ ...params, ...page }),
+            },
+          ),
+        'sessions',
+      )
+    return apiClient.get<AgentSessionListResponse | AgentSession[]>(
       `/agents/${encodeURIComponent(canvasId)}/sessions`,
       {
         ...restBase,
         params: buildAgentSessionListQuery(params),
       },
-    ),
+    )
+  },
 
   fetchSession: async (canvasId: string, sessionId: string) =>
     apiClient.get<AgentSession>(
