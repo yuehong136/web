@@ -131,7 +131,12 @@ const PdfBody: FC<{
             onMouseOut={hideTip}
             key={index}
           >
-            {component}
+            <div
+              data-pdf-highlight-focus={isScrolledTo}
+              data-pdf-highlight-kind={isTextHighlight ? 'text' : 'area'}
+            >
+              {component}
+            </div>
           </Popup>
         )
       }}
