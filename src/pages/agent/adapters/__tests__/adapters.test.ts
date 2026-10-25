@@ -860,3 +860,15 @@ test('extractSessionTitle falls back to first user message content', () => {
   assert.equal(extractSessionTitle({ id: 's2', name: '命名会话' }), '命名会话')
   assert.equal(extractSessionTitle({ id: 's3' }), '未命名会话')
 })
+
+test('adaptAgentFlow retains arbitrary classification labels separately from execution category', () => {
+  const flow = adaptAgentFlow({
+    id: 'classified',
+    title: 'Support',
+    canvas_type: 'Support',
+    canvas_category: AgentCanvasCategory.INGESTION,
+    dsl: {},
+  })
+  assert.equal(flow.canvas_type, 'Support')
+  assert.equal(flow.canvas_category, AgentCanvasCategory.INGESTION)
+})

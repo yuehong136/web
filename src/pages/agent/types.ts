@@ -45,7 +45,7 @@ export interface IGraph {
 
 export interface IFlow {
   avatar?: string
-  canvas_type: 'agent' | 'pipeline' | 'Recommended' | null
+  canvas_type: string | null
   canvas_category?: string
   create_date?: string
   create_time: number
@@ -572,7 +572,7 @@ export interface ISetAgentRequest {
   title: string
   description?: string
   dsl?: DSL
-  canvas_type?: 'agent' | 'pipeline'
+  canvas_type?: string
   avatar?: string
   permission?: string
 }

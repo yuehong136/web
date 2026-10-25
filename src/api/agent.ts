@@ -1,5 +1,6 @@
 import { API_BASE_URL, STORAGE_KEYS } from '@/constants'
 import { resolveCanvasCategory } from '@/lib/agent'
+import { AgentCanvasType } from '@/types/agent'
 import { apiClient } from './client'
 import { requestTaskCancellation } from './agent-cancellation'
 import { buildAgentRunBody } from './agent-execution'
@@ -124,7 +125,8 @@ export const agentAPI = {
   setAgent: async (payload: SetAgentPayload) => {
     const canvasCategory =
       payload.canvas_category ??
-      (payload.canvas_type
+      (payload.canvas_type === AgentCanvasType.AGENT ||
+      payload.canvas_type === AgentCanvasType.PIPELINE
         ? resolveCanvasCategory(payload.canvas_type)
         : undefined)
 
@@ -138,6 +140,10 @@ export const agentAPI = {
           : JSON.stringify(payload.dsl),
       avatar: payload.avatar,
       permission: payload.permission,
+    }
+
+    if (payload.canvas_type !== undefined) {
+      nextPayload.canvas_type = payload.canvas_type
     }
 
     if (canvasCategory) {
