@@ -2,7 +2,6 @@
 
 import { Database, Plus } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Button } from '@/components/ui/button'
 import {
   useListDataSource,
   useAddDataSource,
@@ -29,19 +28,17 @@ function AvailableSourceCard({
   const { t } = useTranslation()
 
   return (
-    <div
-      className="group relative cursor-pointer rounded-lg border border-components-card-border bg-components-card-bg p-4 transition-all duration-200 hover:bg-components-card-bg-hover hover:shadow-elevation-low"
+    <button
+      type="button"
+      className="group relative cursor-pointer rounded-lg border border-components-card-border bg-components-card-bg p-4 text-left transition-all duration-200 hover:bg-components-card-bg-hover hover:shadow-elevation-low focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-components-input-border-focus"
       onClick={() => onAdd({ id, name, description, icon })}
     >
       {/* 添加按钮 - 悬浮显示 */}
       <div className="absolute top-3 right-3 translate-y-1 transform opacity-0 transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100">
-        <Button
-          size="sm"
-          className="h-7 gap-1.5 rounded-md px-3 text-xs font-medium"
-        >
+        <span className="inline-flex h-7 items-center gap-1.5 rounded-md px-3 text-xs font-medium">
           <Plus className="h-3.5 w-3.5" />
           {t('common.add')}
-        </Button>
+        </span>
       </div>
 
       {/* 内容区域 */}
@@ -61,7 +58,7 @@ function AvailableSourceCard({
           </p>
         </div>
       </div>
-    </div>
+    </button>
   )
 }
 

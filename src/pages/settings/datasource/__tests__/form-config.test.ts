@@ -12,6 +12,71 @@ import { parseRestApiObject } from '@/pages/settings/datasource/constants/rest-a
 const t = (key: string) => key
 
 describe('connector configuration contracts', () => {
+  it('preserves Slack all, none and selected channel scopes without broadening explicit empty lists', () => {
+    for (const [channels, scope] of [
+      [null, 'all'],
+      [[], 'none'],
+      [['#general'], 'selected'],
+    ] as const) {
+      const config = {
+        channels,
+        credentials: { slack_bot_token: 'stored-token', unknown: false },
+        future: { limit: 0 },
+      }
+      const values = getDataSourceDefaultValues(DataSourceKey.SLACK, { config })
+      expect(values.slackChannelScope).toBe(scope)
+      const prepared = prepareDataSourceValues(
+        DataSourceKey.SLACK,
+        values,
+        config,
+      )
+      expect(prepared.config).toMatchObject(config)
+      expect(prepared).not.toHaveProperty('slackChannelScope')
+      expect(deletionSyncSources.has(DataSourceKey.SLACK)).toBe(false)
+    }
+    const values = getDataSourceDefaultValues(DataSourceKey.SLACK, {
+      config: { channels: [] },
+    })
+    values.slackChannelScope = 'all'
+    expect(
+      prepareDataSourceValues(DataSourceKey.SLACK, values).config?.channels,
+    ).toBeNull()
+    const legacy = getDataSourceDefaultValues(DataSourceKey.SLACK, {
+      config: { channels: 'general, #engineering' },
+    })
+    expect(legacy.config?.channels).toEqual(['general', '#engineering'])
+  })
+
+  it('defines complete SharePoint credentials and retains stored secrets and extensions on edit', () => {
+    const config = {
+      batch_size: 64,
+      credentials: {
+        site_url: 'https://example.sharepoint.com/sites/Docs',
+        tenant_id: 'tenant',
+        client_id: 'client',
+        client_secret: 'stored-secret',
+        extra: false,
+      },
+      future: 0,
+    }
+    const values = getDataSourceDefaultValues(DataSourceKey.SHAREPOINT, {
+      config,
+    })
+    expect(
+      prepareDataSourceValues(DataSourceKey.SHAREPOINT, values, config).config,
+    ).toEqual(config)
+    const fields = getDataSourceFormFields(t)[DataSourceKey.SHAREPOINT]
+    expect(
+      fields.filter((field) => field.required).map((field) => field.name),
+    ).toEqual([
+      'config.credentials.site_url',
+      'config.credentials.tenant_id',
+      'config.credentials.client_id',
+      'config.credentials.client_secret',
+    ])
+    expect(deletionSyncSources.has(DataSourceKey.SHAREPOINT)).toBe(false)
+  })
+
   it('serializes REST form text as objects/lists and keeps unexposed settings and credentials', () => {
     const config = {
       url: 'https://api.example.test/resources',

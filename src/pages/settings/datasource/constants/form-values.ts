@@ -31,6 +31,22 @@ export function getDataSourceDefaultValues(
     },
   }
   const values: FormValues = { ...defaults, ...detail, config }
+  if (source === DataSourceKey.SLACK) {
+    const channels = config.channels
+    values.slackChannelScope =
+      channels == null
+        ? 'all'
+        : Array.isArray(channels) && channels.length === 0
+          ? 'none'
+          : 'selected'
+    config.channels =
+      typeof channels === 'string'
+        ? channels
+            .split(',')
+            .map((name) => name.trim())
+            .filter(Boolean)
+        : (channels ?? [])
+  }
   if (source === DataSourceKey.REST_API) {
     values.config = getRestApiFormConfig({
       ...config,
@@ -79,8 +95,23 @@ export function prepareDataSourceValues(
   const {
     jiraAuthMode,
     restApiSettings: _restApiSettings,
+    slackChannelScope,
     ...prepared
   } = values
+  if (source === DataSourceKey.SLACK) {
+    return {
+      ...prepared,
+      config: {
+        ...values.config,
+        channels:
+          slackChannelScope === 'all'
+            ? null
+            : slackChannelScope === 'none'
+              ? []
+              : (values.config?.channels ?? []),
+      },
+    }
+  }
   if (source === DataSourceKey.REST_API) {
     return {
       ...prepared,

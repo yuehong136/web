@@ -25,6 +25,8 @@ import googleDriveIcon from '@/assets/svg/data-source/google-drive.svg'
 import gmailIcon from '@/assets/svg/data-source/gmail.svg'
 import discordIcon from '@/assets/svg/data-source/discord.svg'
 import moodleIcon from '@/assets/svg/data-source/moodle.svg'
+import sharepointIcon from '@/assets/svg/data-source/sharepoint.svg'
+import slackIcon from '@/assets/svg/data-source/slack.svg'
 
 export { DataSourceFormDefaultValues } from './default-values'
 export { getBaseFormFields, getDataSourceFormFields } from './form-fields'
@@ -37,6 +39,30 @@ const ICON_SIZE = 28
 export const generateDataSourceInfo = (
   t: (key: string) => string,
 ): IDataSourceInfoMap => ({
+  [DataSourceKey.SHAREPOINT]: {
+    name: 'SharePoint',
+    description: t('datasource.sharepoint.description'),
+    icon: (
+      <SvgIcon
+        src={sharepointIcon}
+        width={ICON_SIZE}
+        height={ICON_SIZE}
+        alt="SharePoint"
+      />
+    ),
+  },
+  [DataSourceKey.SLACK]: {
+    name: 'Slack',
+    description: t('datasource.slack.description'),
+    icon: (
+      <SvgIcon
+        src={slackIcon}
+        width={ICON_SIZE}
+        height={ICON_SIZE}
+        alt="Slack"
+      />
+    ),
+  },
   [DataSourceKey.REST_API]: {
     name: t('datasource.restApi.name'),
     description: t('datasource.restApi.description'),
@@ -325,6 +351,8 @@ export const DataSourceGroups = {
     DataSourceKey.WEBDAV,
   ],
   collaboration: [
+    DataSourceKey.SHAREPOINT,
+    DataSourceKey.SLACK,
     DataSourceKey.NOTION,
     DataSourceKey.CONFLUENCE,
     DataSourceKey.JIRA,

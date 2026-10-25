@@ -8,6 +8,29 @@ import { restApiDefaultValues } from './rest-api'
  * 所有数据源的默认值配置
  */
 export const DataSourceFormDefaultValues: Record<DataSourceKey, any> = {
+  [DataSourceKey.SHAREPOINT]: {
+    name: '',
+    source: DataSourceKey.SHAREPOINT,
+    config: {
+      batch_size: 32,
+      credentials: {
+        site_url: '',
+        tenant_id: '',
+        client_id: '',
+        client_secret: '',
+      },
+    },
+  },
+  [DataSourceKey.SLACK]: {
+    name: '',
+    source: DataSourceKey.SLACK,
+    config: {
+      batch_size: 32,
+      channels: null,
+      channel_regex_enabled: false,
+      credentials: { slack_bot_token: '' },
+    },
+  },
   [DataSourceKey.REST_API]: restApiDefaultValues,
   [DataSourceKey.S3]: s3DefaultValues,
   [DataSourceKey.R2]: {

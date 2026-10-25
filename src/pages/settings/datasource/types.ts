@@ -22,6 +22,8 @@ export enum DataSourceKey {
   AIRTABLE = 'airtable',
   DINGTALK_AI_TABLE = 'dingtalk_ai_table',
   ZENDESK = 'zendesk',
+  SHAREPOINT = 'sharepoint',
+  SLACK = 'slack',
 
   // 代码仓库类
   GITHUB = 'github',
