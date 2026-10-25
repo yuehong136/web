@@ -1,7 +1,6 @@
 import { metadata } from './metadata'
-
 import knowledgeLogs from './knowledge-logs'
-
+import { chunkTags } from './chunk-tags'
 export default {
   knowledge: {
     nameValidation: {
@@ -1206,6 +1205,7 @@ export default {
       },
     },
     chunks: {
+      tags: chunkTags,
       workspace: {
         source: 'Source preview',
         description:

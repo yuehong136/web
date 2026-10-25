@@ -1,9 +1,12 @@
-import { act, useState } from 'react'
+import { act, useLayoutEffect, useState } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { setProductLanguage } from '@/locales/i18n'
+import { knowledgeAPI } from '@/api/knowledge'
+import { knowledgeKeys } from '@/hooks/use-knowledge-request'
+import { ChunkTagsPopover } from '../components/chunk-tags-popover'
 import { ChunkToolbar } from '../components/chunk-toolbar'
 import { ChunkListRow } from '../components/chunk-list-row'
 import { ChunkPagination } from '../components/chunk-pagination'
@@ -370,4 +373,57 @@ it('respects pagination boundaries and returns to the first page after changing 
     container.querySelector('button[aria-label="Chunks per page"]')
       ?.textContent,
   ).toBe('50')
+})
+
+it('isolates the actual tag popover and cache from late responses after knowledge-base changes', async () => {
+  let release!: (tags: Array<{ value: string; count: number }>) => void
+  const pending = new Promise<Array<{ value: string; count: number }>>(
+    (resolve) => {
+      release = resolve
+    },
+  )
+  const aggregate = vi
+    .spyOn(knowledgeAPI.tag, 'aggregate')
+    .mockImplementation(async (ids) =>
+      ids[0] === 'kb-a' ? pending : [{ value: 'B-only', count: 0 }],
+    )
+  let setIds!: (ids: string[]) => void
+  function TagsSurface() {
+    const [ids, update] = useState(['kb-a'])
+    useLayoutEffect(() => {
+      setIds = update
+    }, [])
+    return <ChunkTagsPopover knowledgeIds={ids} />
+  }
+  await act(async () =>
+    root.render(
+      <QueryClientProvider client={client}>
+        <TagsSurface />
+      </QueryClientProvider>,
+    ),
+  )
+  expect(aggregate).not.toHaveBeenCalled()
+  await click('Dataset tags')
+  await waitForState(() => expect(aggregate).toHaveBeenCalledWith(['kb-a']))
+  await act(async () => setIds(['kb-b']))
+  await waitForState(() =>
+    expect(document.body.textContent).toContain('B-only'),
+  )
+  expect(document.querySelector('li')?.textContent).toBe('B-only0')
+  await act(async () => release([{ value: 'A-secret', count: 3 }]))
+  await waitForState(() =>
+    expect(client.getQueryData(knowledgeKeys.tags(['kb-a']))).toEqual([
+      { value: 'A-secret', count: 3 },
+    ]),
+  )
+  expect(document.body.textContent).not.toContain('A-secret')
+  expect(client.getQueryData(knowledgeKeys.tags(['kb-b']))).toEqual([
+    { value: 'B-only', count: 0 },
+  ])
+  expect(knowledgeKeys.tags(['b', 'a', 'a'])).toEqual(
+    knowledgeKeys.tags(['a', 'b']),
+  )
+  await act(async () => setIds([]))
+  expect(document.body.textContent).not.toContain('B-only')
+  aggregate.mockRestore()
 })

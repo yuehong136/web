@@ -294,3 +294,36 @@ test('explicit zero dataset counters survive detail normalization', async (t) =>
   assert.equal(result.doc_num, 0)
   assert.equal(result.chunk_num, 0)
 })
+
+for (const wire of [
+  [
+    ['zero', 0],
+    ['two', 2],
+    ['', 4],
+  ],
+  [{ value: 'zero', count: 0 }, { value: 'two', count: 2 }, { count: 4 }],
+]) {
+  test(`both tag endpoints normalize ${JSON.stringify(wire)} without losing zero`, async (t) => {
+    t.mock.method(apiClient, 'get', async () => wire)
+    assert.deepEqual(await knowledgeAPI.tag.list('kb'), [
+      { name: 'zero', count: 0 },
+      { name: 'two', count: 2 },
+    ])
+    assert.deepEqual(await knowledgeAPI.tag.aggregate(['kb']), [
+      { value: 'zero', count: 0 },
+      { value: 'two', count: 2 },
+    ])
+  })
+}
+
+test('tags default missing counts to zero and reject malformed counts', async (t) => {
+  let wire: unknown = [{ value: 'missing' }]
+  t.mock.method(apiClient, 'get', async () => wire)
+  assert.deepEqual(await knowledgeAPI.tag.aggregate(['kb']), [
+    { value: 'missing', count: 0 },
+  ])
+  for (const count of [-1, NaN, Infinity, '2']) {
+    wire = [{ value: 'bad', count }]
+    await assert.rejects(knowledgeAPI.tag.aggregate(['kb']))
+  }
+})

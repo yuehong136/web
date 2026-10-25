@@ -28,6 +28,8 @@ export const knowledgeKeys = {
     [...knowledgeKeys.lists(), params] as const,
   details: () => [...knowledgeKeys.all, 'detail'] as const,
   detail: (id: string) => [...knowledgeKeys.details(), id] as const,
+  tags: (ids: string[]) =>
+    [...knowledgeKeys.all, 'tags', [...new Set(ids)].sort()] as const,
   graph: (id: string) => [...knowledgeKeys.detail(id), 'graph'] as const,
   // chat-settings 的简单知识库列表，沿用原内联 ['knowledgeBases'] 形状
   // （缓存为 kbs 数组，与 list() 的分页响应形态不同，刻意不共 key）

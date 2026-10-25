@@ -1,7 +1,6 @@
 import { metadata } from './metadata'
-
 import knowledgeLogs from './knowledge-logs'
-
+import { chunkTags } from './chunk-tags'
 export default {
   knowledge: {
     nameValidation: {
@@ -1142,6 +1141,7 @@ export default {
       },
     },
     chunks: {
+      tags: chunkTags,
       workspace: {
         source: '原文对照',
         description: '检查切片内容与检索状态，点击正文展开阅读。',
