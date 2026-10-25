@@ -633,6 +633,10 @@ export default {
         deleteError: '删除失败，请重试',
       },
       upload: {
+        inheritTableConfig: '使用知识库列设置',
+        tableHeadersFailed: '无法读取唯一列名。请使用知识库设置或自动模式。',
+        readingTableHeaders: '正在读取列名…',
+        tableHeadersScope: '列角色仅应用于此文件。Excel 列名取自第一个工作表。',
         title: '上传文档',
         fileTooLarge: '文件 "{{name}}" 超过大小限制',
         fileInvalidType: '文件 "{{name}}" 类型不支持',

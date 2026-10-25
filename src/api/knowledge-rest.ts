@@ -195,6 +195,9 @@ export function uploadDatasetDocuments(
   options?: DocumentUploadOptions,
 ): Promise<UploadedDatasetDocument[]> {
   const uploadData: Record<string, unknown> = { ...options }
+  if (options?.parser_config !== undefined) {
+    uploadData.parser_config = JSON.stringify(options.parser_config)
+  }
 
   return apiClient.uploadMultiple(
     documentCreationPath(datasetId, DocumentCreationMode.LOCAL),

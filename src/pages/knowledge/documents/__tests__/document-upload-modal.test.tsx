@@ -221,4 +221,107 @@ describe('dataset upload and parsing', () => {
     expect(mocks.success).not.toHaveBeenCalled()
     expect(document.body.textContent).not.toContain('old.txt')
   })
+  it('isolates table roles per file, retains failed configs on retry and parses only confirmed documents', async () => {
+    Element.prototype.scrollIntoView = vi.fn()
+    const onSuccess = vi.fn()
+    const first = new File(['shared,a.b\n1,2'], 'first.csv', {
+      type: 'text/csv',
+    })
+    const second = new File(['shared,region\n3,4'], 'second.csv', {
+      type: 'text/csv',
+    })
+    await act(async () =>
+      root.render(
+        <DocumentUploadModal
+          open
+          kbId="kb"
+          isTableParser
+          onClose={vi.fn()}
+          onSuccess={onSuccess}
+        />,
+      ),
+    )
+    const input =
+      document.body.querySelector<HTMLInputElement>('input[type="file"]')!
+    Object.defineProperty(input, 'files', {
+      configurable: true,
+      value: [first, second],
+    })
+    await act(async () => {
+      input.dispatchEvent(new Event('change', { bubbles: true }))
+      await new Promise((resolve) => setTimeout(resolve, 20))
+    })
+    await vi.waitFor(() =>
+      expect(
+        document.body.querySelectorAll('output')[0]?.textContent,
+      ).toContain(i18n.t('knowledge.documents.upload.tableHeadersScope')),
+    )
+    async function choose(label: string, value: string) {
+      await act(async () =>
+        document.body
+          .querySelector<HTMLButtonElement>(`button[aria-label="${label}"]`)!
+          .click(),
+      )
+      await vi.waitFor(() =>
+        expect(
+          [
+            ...document.body.querySelectorAll<HTMLElement>('[role="option"]'),
+          ].map((item) => item.textContent?.trim()),
+        ).toContain(value),
+      )
+      await act(async () =>
+        [...document.body.querySelectorAll<HTMLElement>('[role="option"]')]
+          .find((item) => item.textContent?.trim() === value)!
+          .click(),
+      )
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 50))
+      })
+    }
+    await choose(
+      'first.csv: ' + i18n.t('knowledge.settings.configuration.table.mode'),
+      i18n.t('knowledge.settings.configuration.table.manual'),
+    )
+    await choose(
+      'first.csv: shared',
+      i18n.t('knowledge.settings.configuration.table.indexing'),
+    )
+    await choose(
+      'second.csv: ' + i18n.t('knowledge.settings.configuration.table.mode'),
+      i18n.t('knowledge.settings.configuration.table.manual'),
+    )
+    await choose(
+      'second.csv: shared',
+      i18n.t('knowledge.settings.configuration.table.metadata'),
+    )
+    mocks.upload
+      .mockResolvedValueOnce([{ id: 'first-doc', name: 'first.csv' }])
+      .mockRejectedValueOnce(new Error('private upload error'))
+    mocks.parse.mockResolvedValue(undefined)
+    await act(async () =>
+      button('knowledge.documents.upload.uploadCount', 2).click(),
+    )
+    expect(mocks.upload).toHaveBeenNthCalledWith(1, 'kb', [first], {
+      parser_config: {
+        table_column_mode: 'manual',
+        table_column_roles: { shared: 'indexing', 'a.b': 'both' },
+      },
+    })
+    expect(mocks.upload).toHaveBeenNthCalledWith(2, 'kb', [second], {
+      parser_config: {
+        table_column_mode: 'manual',
+        table_column_roles: { shared: 'metadata', region: 'both' },
+      },
+    })
+    expect(mocks.parse).toHaveBeenCalledWith('kb', ['first-doc'])
+    expect(document.body.textContent).not.toContain('private upload error')
+    mocks.upload.mockResolvedValueOnce([
+      { id: 'second-doc', name: 'second.csv' },
+    ])
+    await act(async () =>
+      button('knowledge.documents.upload.uploadRemaining').click(),
+    )
+    expect(mocks.upload.mock.calls[2]).toEqual(mocks.upload.mock.calls[1])
+    expect(mocks.parse).toHaveBeenLastCalledWith('kb', ['second-doc'])
+  })
 })

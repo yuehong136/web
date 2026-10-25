@@ -95,6 +95,7 @@ export function DocumentPageModals({
           open={pageModals.uploadModalOpen}
           onClose={() => pageModals.setUploadModalOpen(false)}
           kbId={kbId}
+          isTableParser={currentKnowledgeBase?.parser_id === 'table'}
           onSuccess={listState.refetch}
         />
       )}

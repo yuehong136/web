@@ -536,3 +536,35 @@ test('document creation rejects an incomplete success payload', async () => {
     globalThis.fetch = originalFetch
   }
 })
+
+test('table upload serializes each parser override as JSON in multipart', async () => {
+  const originalFetch = globalThis.fetch
+  const configs: unknown[] = []
+  globalThis.fetch = (async (_input, init) => {
+    const form = init?.body as FormData
+    configs.push(JSON.parse(String(form.get('parser_config'))))
+    assert.equal(form.getAll('files').length, 1)
+    return new Response(JSON.stringify({ code: 0, data: [] }), {
+      headers: { 'content-type': 'application/json' },
+    })
+  }) as typeof fetch
+  try {
+    for (const role of ['indexing', 'metadata']) {
+      await uploadDatasetDocuments('kb', [new File(['a\n1'], `${role}.csv`)], {
+        parser_config: {
+          table_column_mode: 'manual',
+          table_column_roles: { a: role },
+        },
+      })
+    }
+    assert.deepEqual(
+      configs,
+      ['indexing', 'metadata'].map((role) => ({
+        table_column_mode: 'manual',
+        table_column_roles: { a: role },
+      })),
+    )
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+})
