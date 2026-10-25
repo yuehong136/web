@@ -44,6 +44,8 @@
 
 自动元数据字段仍为 `parser_config.metadata`；内置字段为 `built_in_metadata`。
 分块保存必须保留 metadata，省略的内置配置由后端合并保留。
+新表单的 `built_in_metadata` 展示默认是 `[]`，已有服务器值优先；
+文档草稿仍只提交 dirty 字段，省略表示保留，显式 `[]` 才表示清空。
 文档级配置继续使用文档自己的 PATCH 与草稿生命周期。
 
 Pipeline 选择复用文档级目录查询，按知识库 `tenant_id` 和 `dataflow_canvas` 筛选，

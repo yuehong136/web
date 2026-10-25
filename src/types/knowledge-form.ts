@@ -253,6 +253,7 @@ export const getDefaultFormValues = (): Partial<KnowledgeSettingsFormData> => ({
     mineru_lang: 'English',
     // Metadata 默认配置
     metadata: [],
+    built_in_metadata: [],
     enable_metadata: false,
     entity_types: [],
     raptor: {
