@@ -515,6 +515,44 @@ test('document creation surfaces business errors without reporting success', asy
   }
 })
 
+test('TSV upload preserves multipart bytes and rejects HTTP 200 business failures', async () => {
+  const originalFetch = globalThis.fetch
+  const file = new File(['name\tvalue\nalpha\t0'], 'records.tsv', {
+    type: 'text/tab-separated-values',
+  })
+  let calls = 0
+  globalThis.fetch = (async (input, init) => {
+    calls += 1
+    assert.equal(
+      new URL(String(input)).pathname + new URL(String(input)).search,
+      '/api/v1/datasets/kb%2Fone/documents?type=local',
+    )
+    assert.ok(init?.body instanceof FormData)
+    const uploaded = init.body.get('files') as File
+    assert.equal(uploaded.name, file.name)
+    assert.equal(await uploaded.text(), await file.text())
+    assert.equal(new Headers(init.headers).has('Content-Type'), false)
+    return Response.json({
+      retcode: 102,
+      retmsg: 'private parser detail',
+      data: [],
+    })
+  }) as typeof fetch
+  try {
+    await assert.rejects(
+      () => uploadDatasetDocuments('kb/one', [file]),
+      (error: unknown) => {
+        assert.ok(error instanceof APIError)
+        assert.equal(error.code, '102')
+        return true
+      },
+    )
+    assert.equal(calls, 1)
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+})
+
 test('document creation rejects an incomplete success payload', async () => {
   const originalFetch = globalThis.fetch
   globalThis.fetch = (async () =>

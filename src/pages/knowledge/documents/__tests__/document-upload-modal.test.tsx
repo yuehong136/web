@@ -3,6 +3,7 @@ import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { DocumentUploadModal } from '../document-upload-modal'
 import i18n, { setProductLanguage } from '@/locales/i18n'
+import { APIError } from '@/api/client'
 
 const mocks = vi.hoisted(() => ({
   upload: vi.fn(),
@@ -121,7 +122,9 @@ describe('dataset upload and parsing', () => {
     const onSuccess = vi.fn()
     const onClose = vi.fn()
     const first = new File(['one'], 'first.txt', { type: 'text/plain' })
-    const second = new File(['two'], 'second.txt', { type: 'text/plain' })
+    const second = new File(['name\tvalue\ntwo\t0'], 'second.tsv', {
+      type: 'text/tab-separated-values',
+    })
     mocks.upload.mockResolvedValueOnce([
       { id: 'first-created', name: 'first.txt' },
     ])
@@ -151,12 +154,14 @@ describe('dataset upload and parsing', () => {
     )
     expect(mocks.parse).toHaveBeenCalledWith('kb', ['first-created'])
     expect(onClose).not.toHaveBeenCalled()
-    expect(document.body.textContent).toContain('second.txt')
+    expect(document.body.textContent).toContain('second.tsv')
     expect(document.body.textContent).toContain(
       i18n.t('knowledge.documents.upload.notConfirmed'),
     )
     expect(onSuccess).toHaveBeenCalledOnce()
-    mocks.upload.mockRejectedValueOnce(new Error('secret-token=do-not-show'))
+    mocks.upload.mockRejectedValueOnce(
+      new APIError(200, '102', 'secret-token=do-not-show'),
+    )
     await act(async () =>
       button('knowledge.documents.upload.uploadRemaining').click(),
     )
@@ -172,9 +177,9 @@ describe('dataset upload and parsing', () => {
     expect(document.body.textContent).toContain(
       i18n.t('knowledge.documents.upload.retryHint'),
     )
-    expect(document.body.textContent).toContain('second.txt')
+    expect(document.body.textContent).toContain('second.tsv')
     mocks.upload.mockResolvedValueOnce([
-      { id: 'second-created', name: 'second.txt' },
+      { id: 'second-created', name: 'second.tsv' },
     ])
     await act(async () =>
       button('knowledge.documents.upload.uploadRemaining').click(),
