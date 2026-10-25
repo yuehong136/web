@@ -32,6 +32,22 @@ const docGeneratorSchema = z.object({
   include_download_info_in_content: z.boolean(),
   font_size: z.coerce.number().min(12, 'Font size must be at least 12'),
   outputs: z.object({
+    doc_id: z.object({
+      type: z.string(),
+      value: z.unknown().optional(),
+    }),
+    filename: z.object({
+      type: z.string(),
+      value: z.unknown().optional(),
+    }),
+    mime_type: z.object({
+      type: z.string(),
+      value: z.unknown().optional(),
+    }),
+    size: z.object({
+      type: z.string(),
+      value: z.unknown().optional(),
+    }),
     download: z.object({
       type: z.string(),
       value: z.unknown().optional(),

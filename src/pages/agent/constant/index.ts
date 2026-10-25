@@ -986,22 +986,7 @@ export const initialExcelProcessorValues = {
   },
 }
 
-// DocGenerator节点初始值
-export const initialDocGeneratorValues = {
-  output_format: 'pdf',
-  content: '',
-  filename: '',
-  header_text: '',
-  footer_text: '',
-  watermark_text: '',
-  add_page_numbers: true,
-  add_timestamp: true,
-  include_download_info_in_content: false,
-  font_size: 12,
-  outputs: {
-    download: { type: 'string', value: '' },
-  },
-}
+export { initialDocGeneratorValues } from '../form/doc-generator/constants'
 // Pipeline节点初始值
 export const initialFileValues = {
   outputs: {
