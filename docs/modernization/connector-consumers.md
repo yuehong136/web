@@ -23,7 +23,9 @@ Large selector windows and Agent session exports use domain API pagination. Each
 HTTP request asks for at most 100 records, retaining filters and the caller's
 requested offset and window. Total count controls pagination; incomplete pages
 before that count and later request failures reject the complete operation.
-Normal page requests and legal zero pagination contracts remain with their domain
+Repeated or missing entity IDs, changing totals and account changes reject the
+whole aggregation before another page can mix inventories. Normal page requests
+and legal zero pagination contracts remain with their domain
 endpoint. A pagination response is not a snapshot of concurrently changing rows.
 
 Browser fixtures prove UI rendering, payloads, feedback and local save/reload.

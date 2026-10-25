@@ -99,7 +99,7 @@ test('pagination preserves legal zero and rejects partial pages or subsequent fa
           if (++requests === 2) throw new APIError(403, '109', 'denied')
           return {
             total: 250,
-            items: Array.from({ length: 100 }, (_, id) => ({ id })),
+            items: Array.from({ length: 100 }, (_, id) => ({ id: String(id) })),
           }
         },
         'items',
@@ -141,6 +141,84 @@ test('dataset selector follows total_datasets through the shared HTTP client bey
     }
   } finally {
     globalThis.fetch = originalFetch
+  }
+})
+
+test('aggregate list ownership rejects identity rotation before requesting another page', async () => {
+  for (const restorePreviousToken of [false, true]) {
+    apiClient.setAuthToken('initial-owner')
+    let calls = 0
+    try {
+      await assert.rejects(
+        () =>
+          collectListWindow(
+            { page_size: 200 },
+            async () => {
+              calls += 1
+              apiClient.setAuthToken('next-owner')
+              if (restorePreviousToken) apiClient.setAuthToken('initial-owner')
+              return {
+                total: 200,
+                items: Array.from({ length: 100 }, (_, id) => ({ id })),
+              }
+            },
+            'items',
+          ),
+        (error: unknown) =>
+          error instanceof DOMException && error.name === 'AbortError',
+      )
+      assert.equal(calls, 1)
+    } finally {
+      apiClient.setAuthToken(null)
+    }
+  }
+})
+
+test('aggregate lists reject repeated pages, overlaps, changed totals and missing identities', async () => {
+  const page = (start: number): unknown[] =>
+    Array.from({ length: 100 }, (_, id) => ({ id: String(start + id) }))
+  for (const [name, second, total] of [
+    ['repeated page', page(0), 205],
+    ['partial overlap', page(50), 205],
+    ['total drift', page(100), 204],
+    ['null entity', [null, ...page(101).slice(1)], 205],
+    ['missing ID', [{ name: 'invalid' }, ...page(101).slice(1)], 205],
+    ['empty ID', [{ id: '' }, ...page(101).slice(1)], 205],
+    ['numeric ID', [{ id: 100 }, ...page(101).slice(1)], 205],
+  ] as const) {
+    let calls = 0
+    await assert.rejects(
+      () =>
+        collectListWindow(
+          { page_size: 1000 },
+          async () => ({
+            total: ++calls === 1 ? 205 : total,
+            items: calls === 1 ? page(0) : second,
+          }),
+          'items',
+        ),
+      (error: unknown) =>
+        error instanceof APIError && error.code === 'INVALID_LIST_RESPONSE',
+      name,
+    )
+    assert.equal(calls, 2, name)
+  }
+  for (const items of [
+    [null],
+    [{}],
+    [{ id: ' ' }],
+    [{ id: 'same' }, { id: 'same' }],
+  ]) {
+    await assert.rejects(
+      () =>
+        collectListWindow(
+          { page_size: 200 },
+          async () => ({ total: items.length, items }),
+          'items',
+        ),
+      (error: unknown) =>
+        error instanceof APIError && error.code === 'INVALID_LIST_RESPONSE',
+    )
   }
 })
 
