@@ -25,6 +25,7 @@ const toSearchModeRequest = (searchMode: AppSearchMode) =>
     : { type: searchMode.type }
 
 const pickEnabledLlmSettings = ({ llm_setting: setting }: AppConfig) => ({
+  ...(setting.parameter !== undefined ? { parameter: setting.parameter } : {}),
   ...(setting.temperature_enabled && {
     temperature: Number(setting.temperature),
   }),

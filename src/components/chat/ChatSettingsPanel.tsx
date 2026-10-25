@@ -128,6 +128,7 @@ export const ChatSettingsPanel: React.FC<ChatSettingsPanelProps> = ({
       onSettingsChange({
         ...settings,
         generationPreset: params.preset,
+        generationParameter: params.preset,
         temperature: params.temperature,
         topP: params.topP,
         presencePenalty: params.presencePenalty,
@@ -142,7 +143,6 @@ export const ChatSettingsPanel: React.FC<ChatSettingsPanelProps> = ({
     },
     [settings, onSettingsChange],
   )
-
   // 使用 useGenerationPreset hook 管理预设和参数
   const { preset, setPreset, updateParameter } = useGenerationPreset({
     parameters: llmParameters,

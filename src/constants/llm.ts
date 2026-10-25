@@ -180,6 +180,16 @@ export const defaultLLMParameters: LLMParameters = {
 export function detectMatchingPreset(
   params: Omit<LLMParameters, 'preset'>,
 ): GenerationPresetType {
+  // A named style applies all four sampling overrides. A masked override or
+  // an additional max-token override represents a custom configuration.
+  if (
+    !params.temperatureEnabled ||
+    !params.topPEnabled ||
+    !params.presencePenaltyEnabled ||
+    !params.frequencyPenaltyEnabled ||
+    params.maxTokensEnabled
+  )
+    return GenerationPresetType.Custom
   const tolerance = 0.01
 
   for (const [presetName, presetConfig] of Object.entries(
@@ -281,6 +291,14 @@ export type LLMParametersSnake = {
 export function detectMatchingPresetSnake(
   params: LLMParametersSnake,
 ): GenerationPresetType {
+  if (
+    !params.temperature_enabled ||
+    !params.top_p_enabled ||
+    !params.presence_penalty_enabled ||
+    !params.frequency_penalty_enabled ||
+    params.max_tokens_enabled
+  )
+    return GenerationPresetType.Custom
   const tolerance = 0.01
 
   for (const [presetName, presetConfig] of Object.entries(
@@ -300,4 +318,13 @@ export function detectMatchingPresetSnake(
   }
 
   return GenerationPresetType.Custom
+}
+
+/** Metadata never replaces numeric overrides; unknown styles remain opaque. */
+export function resolveGenerationPreset(
+  parameter: string | undefined,
+  detected: GenerationPresetType,
+): GenerationPresetType {
+  if (parameter === undefined) return detected
+  return parameter === detected ? detected : GenerationPresetType.Custom
 }

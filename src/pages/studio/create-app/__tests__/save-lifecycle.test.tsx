@@ -16,6 +16,7 @@ import { setProductLanguage } from '@/locales/i18n'
 import { dialogKeys } from '@/hooks/use-dialog-apps'
 import { dialogToSettings, useChatSettings } from '@/hooks/use-chat-settings'
 import { llmKeys } from '@/hooks/use-llm-request'
+import { settingsToDialogUpdate } from '@/hooks/chat-settings-payload'
 import { createInitialConfig } from '../constants'
 import { buildChatSaveRequest } from '../save-payload'
 import { useCreateAppSave } from '../hooks/use-create-app-save'
@@ -133,10 +134,17 @@ describe('Studio save and readback', () => {
     const config = fixture()
     config.llm_setting = {
       temperature: 0,
+      parameter: 'future-style',
       temperature_enabled: true,
       top_p_enabled: false,
     }
     const settings = dialogToSettings(response(config), '')
+    expect(settings.generationPreset).toBe('custom')
+    expect(settings.generationParameter).toBe('future-style')
+    expect(settingsToDialogUpdate(settings, '').llm_setting).toEqual({
+      temperature: 0,
+      parameter: 'future-style',
+    })
     expect(settings.temperature).toBe(0)
     expect(settings.temperatureEnabled).toBe(true)
     expect(settings.topPEnabled).toBe(false)

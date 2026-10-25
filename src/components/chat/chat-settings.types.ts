@@ -79,6 +79,8 @@ export interface ChatSettings {
   llmId?: string
   /** 生成多样性预设 */
   generationPreset: GenerationPresetType
+  /** Style metadata, including unknown imported values retained across unrelated edits. */
+  generationParameter?: string
   /** Temperature */
   temperature: number
   /** Temperature 是否启用 */

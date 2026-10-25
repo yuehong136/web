@@ -11,7 +11,7 @@ import type { DialogApp } from '@/types/api'
 import type { ChatSettings } from '@/components/chat/chat-settings.types'
 import { defaultChatSettings } from '@/components/chat/chat-settings.constants'
 import type { MetadataFilterMode } from '@/components/chat/MetadataFilter'
-import { detectMatchingPreset } from '@/constants/llm'
+import { detectMatchingPreset, resolveGenerationPreset } from '@/constants/llm'
 import { isLLMModelEnabled } from '@/stores/model'
 import { useFetchMyLLMs } from '@/hooks/use-llm-request'
 
@@ -108,20 +108,27 @@ export function dialogToSettings(
       dialog.llm_setting?.frequency_penalty !== undefined,
     maxTokensEnabled: dialog.llm_setting?.max_tokens !== undefined,
     // 生成多样性预设 - 根据参数值自动检测
-    generationPreset: detectMatchingPreset({
-      temperature: dialog.llm_setting?.temperature ?? 0.5,
-      topP: dialog.llm_setting?.top_p ?? 0.85,
-      presencePenalty: dialog.llm_setting?.presence_penalty ?? 0.2,
-      frequencyPenalty: dialog.llm_setting?.frequency_penalty ?? 0.3,
-      maxTokens: dialog.llm_setting?.max_tokens ?? 4096,
-      temperatureEnabled: dialog.llm_setting?.temperature !== undefined,
-      topPEnabled: dialog.llm_setting?.top_p !== undefined,
-      presencePenaltyEnabled:
-        dialog.llm_setting?.presence_penalty !== undefined,
-      frequencyPenaltyEnabled:
-        dialog.llm_setting?.frequency_penalty !== undefined,
-      maxTokensEnabled: dialog.llm_setting?.max_tokens !== undefined,
-    }),
+    generationParameter:
+      typeof dialog.llm_setting?.parameter === 'string'
+        ? dialog.llm_setting.parameter
+        : undefined,
+    generationPreset: resolveGenerationPreset(
+      dialog.llm_setting?.parameter,
+      detectMatchingPreset({
+        temperature: dialog.llm_setting?.temperature ?? 0.5,
+        topP: dialog.llm_setting?.top_p ?? 0.85,
+        presencePenalty: dialog.llm_setting?.presence_penalty ?? 0.2,
+        frequencyPenalty: dialog.llm_setting?.frequency_penalty ?? 0.3,
+        maxTokens: dialog.llm_setting?.max_tokens ?? 4096,
+        temperatureEnabled: dialog.llm_setting?.temperature !== undefined,
+        topPEnabled: dialog.llm_setting?.top_p !== undefined,
+        presencePenaltyEnabled:
+          dialog.llm_setting?.presence_penalty !== undefined,
+        frequencyPenaltyEnabled:
+          dialog.llm_setting?.frequency_penalty !== undefined,
+        maxTokensEnabled: dialog.llm_setting?.max_tokens !== undefined,
+      }),
+    ),
   }
 }
 

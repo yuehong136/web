@@ -1,5 +1,8 @@
 import type { ReferenceMetadataConfig } from '@/types/reference-metadata'
-import { detectMatchingPresetSnake } from '@/constants/llm'
+import {
+  detectMatchingPresetSnake,
+  resolveGenerationPreset,
+} from '@/constants/llm'
 import type { MyLLMModel, MyLLMProvider } from '@/stores/model'
 import { isLLMModelEnabled } from '@/stores/model'
 import type { KnowledgeBase, LLMModel } from '@/types/api'
@@ -24,6 +27,7 @@ interface DialogPromptConfigResponse {
 }
 
 interface DialogLLMSettingResponse {
+  parameter?: string
   temperature?: number
   top_p?: number
   presence_penalty?: number
@@ -136,6 +140,9 @@ export const normalizeDialogConfig = (data: DialogDetailResponse) => {
     systemPrompt: promptConfig.system || DEFAULT_SYSTEM_PROMPT,
     llm_id: data.llm_id || '',
     llm_setting: {
+      ...(typeof llmSetting?.parameter === 'string'
+        ? { parameter: llmSetting.parameter }
+        : {}),
       temperature: isLlmSettingNull
         ? 0.5
         : Number(llmSetting?.temperature ?? 0.5),
@@ -203,7 +210,13 @@ export const normalizeDialogConfig = (data: DialogDetailResponse) => {
     max_tokens_enabled: config.llm_setting.max_tokens_enabled ?? false,
   })
 
-  return { config, matchedPreset }
+  return {
+    config,
+    matchedPreset: resolveGenerationPreset(
+      llmSetting?.parameter,
+      matchedPreset,
+    ),
+  }
 }
 
 export const buildKnowledgeFallback = (

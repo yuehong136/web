@@ -57,6 +57,9 @@ export function settingsToDialogUpdate(
     rerank_id: settings.rerankId || null,
     llm_id: settings.llmId || undefined,
     llm_setting: {
+      ...(settings.generationParameter !== undefined
+        ? { parameter: settings.generationParameter }
+        : {}),
       ...(models && settings.llmId
         ? chatModelSetting(models, settings.llmId)
         : {}),

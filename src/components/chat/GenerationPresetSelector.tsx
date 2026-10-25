@@ -87,6 +87,7 @@ export const GenerationPresetSelector: React.FC<
               key={option.value}
               type="button"
               disabled={disabled}
+              aria-pressed={isActive}
               onClick={() => onChange(option.value)}
               title={t(option.descriptionKey)}
               className={cn(

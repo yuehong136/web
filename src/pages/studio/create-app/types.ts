@@ -1,6 +1,8 @@
 import type { ReferenceMetadataConfig } from '@/types/reference-metadata'
 import type { ReferenceChunk } from '@/utils/reference-replacer'
 export interface AppLLMSetting {
+  /** Style metadata; numeric values and enabled fields remain authoritative. */
+  parameter?: string
   temperature?: number
   top_p?: number
   presence_penalty?: number

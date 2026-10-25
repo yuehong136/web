@@ -1,17 +1,18 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback } from 'react'
 import type { GenerationPresetType, LLMParameters } from '@/constants/llm'
 import {
   GenerationPresetType as GenerationPresetTypeValues,
   generationPresetConfigMap,
   getDefaultEnabledFields,
   detectMatchingPreset,
+  resolveGenerationPreset,
   defaultLLMParameters,
 } from '@/constants/llm'
 
 /**
  * 生成多样性预设管理 Hook
  * 参考 ragflow useHandleFreedomChange
- * 
+ *
  * 功能：
  * 1. 切换预设时自动应用对应的参数配置
  * 2. 手动修改参数时自动检测是否匹配预设，不匹配则切换到自定义模式
@@ -33,7 +34,7 @@ interface UseGenerationPresetReturn {
   /** 更新单个参数（会自动检测预设匹配） */
   updateParameter: <K extends keyof Omit<LLMParameters, 'preset'>>(
     key: K,
-    value: LLMParameters[K]
+    value: LLMParameters[K],
   ) => void
   /** 批量更新参数（会自动检测预设匹配） */
   updateParameters: (updates: Partial<Omit<LLMParameters, 'preset'>>) => void
@@ -46,17 +47,11 @@ export function useGenerationPreset({
   parameters,
   onChange,
 }: UseGenerationPresetOptions): UseGenerationPresetReturn {
-  // 始终根据当前参数检测匹配的预设，而不是简单地使用 parameters.preset
-  // 这样可以确保初始化时就能正确显示预设标记
-  const preset = useMemo(() => {
-    return detectMatchingPreset(parameters)
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- 显式拆分到 4 个标量字段是为了避免 parameters 对象每次渲染重新创建导致误判
-  }, [
-    parameters.temperature,
-    parameters.topP,
-    parameters.presencePenalty,
-    parameters.frequencyPenalty,
-  ])
+  // Values and enabled fields together determine the effective style.
+  const preset = resolveGenerationPreset(
+    parameters.preset,
+    detectMatchingPreset(parameters),
+  )
 
   /**
    * 切换预设
@@ -72,7 +67,10 @@ export function useGenerationPreset({
         })
       } else {
         // 切换到预设模式，应用预设参数配置
-        const presetConfig = generationPresetConfigMap[newPreset as Exclude<GenerationPresetType, 'custom'>]
+        const presetConfig =
+          generationPresetConfigMap[
+            newPreset as Exclude<GenerationPresetType, 'custom'>
+          ]
         const enabledFields = getDefaultEnabledFields()
 
         onChange({
@@ -90,7 +88,7 @@ export function useGenerationPreset({
         })
       }
     },
-    [parameters, onChange]
+    [parameters, onChange],
   )
 
   /**
@@ -100,7 +98,7 @@ export function useGenerationPreset({
   const updateParameter = useCallback(
     <K extends keyof Omit<LLMParameters, 'preset'>>(
       key: K,
-      value: LLMParameters[K]
+      value: LLMParameters[K],
     ) => {
       const newParameters = {
         ...parameters,
@@ -113,7 +111,7 @@ export function useGenerationPreset({
 
       onChange(newParameters)
     },
-    [parameters, onChange]
+    [parameters, onChange],
   )
 
   /**
@@ -133,7 +131,7 @@ export function useGenerationPreset({
 
       onChange(newParameters)
     },
-    [parameters, onChange]
+    [parameters, onChange],
   )
 
   return {
@@ -148,13 +146,14 @@ export function useGenerationPreset({
  * 创建默认的 LLM 参数配置
  */
 export function createDefaultLLMParameters(
-  preset: GenerationPresetType = GenerationPresetTypeValues.Balance
+  preset: GenerationPresetType = GenerationPresetTypeValues.Balance,
 ): LLMParameters {
   if (preset === GenerationPresetTypeValues.Custom) {
     return { ...defaultLLMParameters, preset }
   }
 
-  const presetConfig = generationPresetConfigMap[preset as Exclude<GenerationPresetType, 'custom'>]
+  const presetConfig =
+    generationPresetConfigMap[preset as Exclude<GenerationPresetType, 'custom'>]
   const enabledFields = getDefaultEnabledFields()
 
   return {
