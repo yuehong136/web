@@ -14,6 +14,8 @@ import { dialogAPI } from '@/api/dialog'
 import { toast } from '@/lib/toast'
 import { setProductLanguage } from '@/locales/i18n'
 import { dialogKeys } from '@/hooks/use-dialog-apps'
+import { dialogToSettings, useChatSettings } from '@/hooks/use-chat-settings'
+import { llmKeys } from '@/hooks/use-llm-request'
 import { createInitialConfig } from '../constants'
 import { buildChatSaveRequest } from '../save-payload'
 import { useCreateAppSave } from '../hooks/use-create-app-save'
@@ -54,6 +56,15 @@ beforeEach(async () => {
   client = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   })
+  client.setQueryData(llmKeys.myLLMs(), {
+    Fixture: {
+      tags: 'LLM',
+      llm: [
+        { name: 'model-1', type: 'chat', used_token: 0 },
+        { name: 'another-model', type: 'image2text', used_token: 0 },
+      ],
+    },
+  })
   container = document.createElement('div')
   document.body.append(container)
   root = createRoot(container)
@@ -92,6 +103,79 @@ async function mount(id: string | null = 'app-1') {
 }
 
 describe('Studio save and readback', () => {
+  it('Explore reports an unavailable model without a rejected UI callback or HTTP write', async () => {
+    const detail = response(draft)
+    client.setQueryData(dialogKeys.detail('app-1'), detail)
+    vi.spyOn(dialogAPI, 'getDetail').mockResolvedValue(detail)
+    const update = vi.spyOn(dialogAPI, 'updateChat')
+    let explore!: ReturnType<typeof useChatSettings>
+    function ExploreHarness() {
+      explore = useChatSettings('app-1')
+      return null
+    }
+    await act(async () =>
+      root.render(
+        <QueryClientProvider client={client}>
+          <ExploreHarness />
+        </QueryClientProvider>,
+      ),
+    )
+    await act(async () => {
+      expect(
+        explore.saveSettings({ ...explore.settings, llmId: 'removed-model' }),
+      ).toBeUndefined()
+    })
+    expect(update).not.toHaveBeenCalled()
+    expect(toast.error).toHaveBeenCalled()
+  })
+
+  it('restores persisted parameter switches without treating zero as disabled', () => {
+    const config = fixture()
+    config.llm_setting = {
+      temperature: 0,
+      temperature_enabled: true,
+      top_p_enabled: false,
+    }
+    const settings = dialogToSettings(response(config), '')
+    expect(settings.temperature).toBe(0)
+    expect(settings.temperatureEnabled).toBe(true)
+    expect(settings.topPEnabled).toBe(false)
+    expect(settings.presencePenaltyEnabled).toBe(false)
+    expect(settings.frequencyPenaltyEnabled).toBe(false)
+    expect(settings.maxTokensEnabled).toBe(false)
+  })
+
+  it('sends image2text from authorized metadata and rejects removed models before HTTP', async () => {
+    draft.llm_id = 'another-model'
+    draft.llm_setting = {
+      temperature: 0,
+      temperature_enabled: true,
+      top_p_enabled: false,
+    }
+    const update = vi
+      .spyOn(dialogAPI, 'updateChat')
+      .mockResolvedValue(response(draft))
+    vi.spyOn(dialogAPI, 'getDetail').mockImplementation(async () =>
+      response(draft),
+    )
+    await mount()
+    await act(async () => {
+      await save.handleSave()
+    })
+    expect(update.mock.calls[0][1]).toMatchObject({
+      llm_setting: { temperature: 0, model_type: 'image2text' },
+    })
+    expect(
+      (update.mock.calls[0][1] as { llm_setting: object }).llm_setting,
+    ).not.toHaveProperty('top_p')
+    draft.llm_id = 'removed-model'
+    await act(async () => {
+      await save.handleSave()
+    })
+    expect(update).toHaveBeenCalledTimes(1)
+    expect(toast.error).toHaveBeenCalled()
+  })
+
   it('confirms readback before exposing a saved snapshot and updates domain cache', async () => {
     vi.spyOn(dialogAPI, 'updateChat').mockResolvedValue(response(draft))
     vi.spyOn(dialogAPI, 'getDetail').mockResolvedValue(response(draft))

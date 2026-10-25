@@ -8,7 +8,13 @@ import {
 } from '@/components/ui/select-with-search'
 import { FormTooltip } from '@/components/ui/tooltip'
 import { IconFontFill } from '@/components/ui/icon-font'
-import { IconMap, LLMFactory, isLLMModelEnabled } from '@/stores/model'
+import {
+  IconMap,
+  LLMFactory,
+  isLLMModelEnabled,
+  buildLLMValue,
+  resolveLLMValue,
+} from '@/stores/model'
 import { useIsDarkTheme } from '@/themes'
 import { cn } from '@/lib/utils'
 import {
@@ -35,6 +41,7 @@ interface ChatModelSelectorProps {
   loading?: boolean
   error?: string
   modelTypes?: ('chat' | 'image2text')[]
+  valueMode?: 'name' | 'nameWithProvider'
   /**
    * 显示变体：
    * - default: 带 label 的表单样式
@@ -92,6 +99,7 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
   loading = false,
   error,
   modelTypes = ['chat', 'image2text'],
+  valueMode = 'name',
   variant,
   compact = false,
   disabled = false,
@@ -164,18 +172,25 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
         label: (
           <ModelOptionLabel provider={provider} modelName={item.model.name} />
         ),
-        value: item.model.name,
+        value: buildLLMValue(item.model.name, provider, valueMode),
       })),
     }))
-  }, [allAvailableModels])
+  }, [allAvailableModels, valueMode])
+
+  const selectedValue =
+    valueMode === 'nameWithProvider'
+      ? resolveLLMValue(models, selectedModelName, true).value
+      : selectedModelName
 
   // 找到当前选中模型的信息
   const selectedModelInfo = useMemo(() => {
     if (!selectedModelName) return null
     return allAvailableModels.find(
-      (item) => item.model.name === selectedModelName,
+      (item) =>
+        buildLLMValue(item.model.name, item.provider, valueMode) ===
+        selectedValue,
     )
-  }, [selectedModelName, allAvailableModels])
+  }, [selectedModelName, selectedValue, valueMode, allAvailableModels])
 
   // minimal 模式：无边框触发按钮，下拉内容与 SelectWithSearch 完全一致
   if (actualVariant === 'minimal') {
@@ -235,7 +250,9 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
               />
             )}
             <span className="whitespace-nowrap">
-              {selectedModelName || t('chat.modelSelector.trigger')}
+              {selectedModelInfo?.model.name ||
+                selectedModelName ||
+                t('chat.modelSelector.trigger')}
             </span>
             <ChevronDown
               className={cn(
@@ -275,7 +292,7 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
                             onSelect={handleSelect}
                             className={cn(
                               'min-h-9',
-                              selectedModelName === option.value
+                              selectedValue === option.value
                                 ? 'bg-background-subtle'
                                 : '',
                             )}
@@ -283,7 +300,7 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
                             <span className="flex-1 leading-none">
                               {option.label}
                             </span>
-                            {selectedModelName === option.value && (
+                            {selectedValue === option.value && (
                               <Check className="ml-auto h-4 w-4 text-primary" />
                             )}
                           </CommandItem>
@@ -488,7 +505,7 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
       </div>
 
       <SelectWithSearch
-        value={selectedModelName || ''}
+        value={selectedValue || ''}
         options={groupedOptions}
         onChange={(value) => onSelect(value || null)}
         placeholder={t('chat.modelSelector.placeholder')}

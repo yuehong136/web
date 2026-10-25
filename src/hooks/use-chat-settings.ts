@@ -13,6 +13,7 @@ import { defaultChatSettings } from '@/components/chat/chat-settings.constants'
 import type { MetadataFilterMode } from '@/components/chat/MetadataFilter'
 import { detectMatchingPreset } from '@/constants/llm'
 import { isLLMModelEnabled } from '@/stores/model'
+import { useFetchMyLLMs } from '@/hooks/use-llm-request'
 
 /**
  * 从 DialogApp 转换为 ChatSettings
@@ -99,13 +100,12 @@ export function dialogToSettings(
     presencePenalty: dialog.llm_setting?.presence_penalty ?? 0.2,
     frequencyPenalty: dialog.llm_setting?.frequency_penalty ?? 0.3,
     maxTokens: dialog.llm_setting?.max_tokens ?? 4096,
-    // 参数启用状态 - 参考 ragflow，默认启用常用参数
-    // Temperature, Top P, Presence Penalty, Frequency Penalty 默认启用
-    // Max Tokens 默认禁用（除非服务端有值）
-    temperatureEnabled: true,
-    topPEnabled: true,
-    presencePenaltyEnabled: true,
-    frequencyPenaltyEnabled: true,
+    // 参数是否启用由持久化字段是否存在决定，合法 0 仍然启用。
+    temperatureEnabled: dialog.llm_setting?.temperature !== undefined,
+    topPEnabled: dialog.llm_setting?.top_p !== undefined,
+    presencePenaltyEnabled: dialog.llm_setting?.presence_penalty !== undefined,
+    frequencyPenaltyEnabled:
+      dialog.llm_setting?.frequency_penalty !== undefined,
     maxTokensEnabled: dialog.llm_setting?.max_tokens !== undefined,
     // 生成多样性预设 - 根据参数值自动检测
     generationPreset: detectMatchingPreset({
@@ -114,10 +114,12 @@ export function dialogToSettings(
       presencePenalty: dialog.llm_setting?.presence_penalty ?? 0.2,
       frequencyPenalty: dialog.llm_setting?.frequency_penalty ?? 0.3,
       maxTokens: dialog.llm_setting?.max_tokens ?? 4096,
-      temperatureEnabled: true,
-      topPEnabled: true,
-      presencePenaltyEnabled: true,
-      frequencyPenaltyEnabled: true,
+      temperatureEnabled: dialog.llm_setting?.temperature !== undefined,
+      topPEnabled: dialog.llm_setting?.top_p !== undefined,
+      presencePenaltyEnabled:
+        dialog.llm_setting?.presence_penalty !== undefined,
+      frequencyPenaltyEnabled:
+        dialog.llm_setting?.frequency_penalty !== undefined,
       maxTokensEnabled: dialog.llm_setting?.max_tokens !== undefined,
     }),
   }
@@ -130,6 +132,7 @@ export function dialogToSettings(
 export function useChatSettings(dialogId: string | undefined) {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
+  const { myLLMs } = useFetchMyLLMs()
 
   // 获取 dialog 详情
   const {
@@ -150,12 +153,13 @@ export function useChatSettings(dialogId: string | undefined) {
   )
 
   // 保存设置
-  const { mutateAsync: saveSettings, isPending: saving } = useMutation({
+  const { mutate: saveSettings, isPending: saving } = useMutation({
     mutationFn: async (newSettings: ChatSettings) => {
       if (!dialogId) throw new Error('Dialog ID is required')
       const updateData = settingsToDialogUpdate(
         newSettings,
         t('chat.knowledgePrompt.block'),
+        myLLMs,
       )
       await dialogAPI.updateChat(dialogId, updateData)
       // 只有保存时追加了知识库块，提交的 system 才会与编辑内容不同

@@ -1,6 +1,8 @@
 import type { ChatSettings } from '@/components/chat/chat-settings.types'
 import { withKnowledgeRetrieval } from '@/lib/chat/knowledge-prompt'
 import type { DialogApp } from '@/types/api'
+import type { MyLLMProvider } from '@/stores/model'
+import { chatModelSetting } from '@/lib/chat/model-setting'
 
 /**
  * 从 ChatSettings 转换为 DialogApp 更新请求
@@ -10,6 +12,7 @@ import type { DialogApp } from '@/types/api'
 export function settingsToDialogUpdate(
   settings: ChatSettings,
   knowledgeBlock: string,
+  models?: MyLLMProvider,
 ): Partial<DialogApp> & { dataset_ids: string[] } {
   // 构建 meta_data_filter
   let metaDataFilter: any = { method: 'disabled' }
@@ -54,6 +57,9 @@ export function settingsToDialogUpdate(
     rerank_id: settings.rerankId || null,
     llm_id: settings.llmId || undefined,
     llm_setting: {
+      ...(models && settings.llmId
+        ? chatModelSetting(models, settings.llmId)
+        : {}),
       // 只发送启用的参数，参考 ragflow 的 removeUselessFieldsFromValues 逻辑
       ...(settings.temperatureEnabled
         ? { temperature: settings.temperature }

@@ -324,8 +324,8 @@ export const ChatSettingsPanel: React.FC<ChatSettingsPanelProps> = ({
           open={modelExpanded}
           onOpenChange={setModelExpanded}
         >
-          {/* LLM 模型选择 - 使用 ChatModelSelector */}
           <ChatModelSelector
+            valueMode="nameWithProvider"
             models={llmModels}
             selectedModelName={settings.llmId || null}
             onSelect={(modelName) => updateSetting('llmId', modelName || '')}
