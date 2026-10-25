@@ -125,9 +125,13 @@ describe('dataset upload and parsing', () => {
     const second = new File(['name\tvalue\ntwo\t0'], 'second.tsv', {
       type: 'text/tab-separated-values',
     })
-    mocks.upload.mockResolvedValueOnce([
-      { id: 'first-created', name: 'first.txt' },
-    ])
+    mocks.upload.mockRejectedValueOnce(
+      new APIError(200, '500', 'private upload detail', {
+        uploaded: [
+          { id: 'first-created', name: 'first.txt', dataset_id: 'kb' },
+        ],
+      }),
+    )
     mocks.parse.mockResolvedValue(undefined)
     await act(async () =>
       root.render(
@@ -191,6 +195,64 @@ describe('dataset upload and parsing', () => {
     await act(async () => button('common.close').click())
     expect(onClose).toHaveBeenCalledOnce()
   })
+
+  it.each([
+    ['malformed', { uploaded: {} }],
+    [
+      'unknown file',
+      { uploaded: [{ id: 'other', name: 'other.txt', dataset_id: 'kb' }] },
+    ],
+    ['missing ID', { uploaded: [{ name: 'first.txt', dataset_id: 'kb' }] }],
+    [
+      'duplicate ID',
+      {
+        uploaded: [
+          { id: 'same', name: 'first.txt', dataset_id: 'kb' },
+          { id: 'same', name: 'second.txt', dataset_id: 'kb' },
+        ],
+      },
+    ],
+  ])(
+    'does not confirm %s acknowledgements inside failed upload envelopes',
+    async (_label, details) => {
+      mocks.upload.mockRejectedValue(
+        new APIError(200, '100', 'private detail', details),
+      )
+      const onSuccess = vi.fn()
+      await act(async () =>
+        root.render(
+          <DocumentUploadModal
+            open
+            kbId="kb"
+            onClose={() => {}}
+            onSuccess={onSuccess}
+          />,
+        ),
+      )
+      const input =
+        document.body.querySelector<HTMLInputElement>('input[type="file"]')!
+      Object.defineProperty(input, 'files', {
+        configurable: true,
+        value: [
+          new File(['a'], 'first.txt'),
+          new File(['b'], 'second.txt'),
+          new File(['c'], 'third.txt'),
+        ],
+      })
+      await act(async () => {
+        input.dispatchEvent(new Event('change', { bubbles: true }))
+        await new Promise((resolve) => setTimeout(resolve, 0))
+      })
+      await act(async () =>
+        button('knowledge.documents.upload.uploadCount', 3).click(),
+      )
+      expect(mocks.parse).not.toHaveBeenCalled()
+      expect(mocks.success).not.toHaveBeenCalled()
+      expect(onSuccess).not.toHaveBeenCalled()
+      expect(mocks.error).toHaveBeenCalled()
+      expect(document.body.textContent).not.toContain('private detail')
+    },
+  )
 
   it('ignores a late response after its upload session closes', async () => {
     let resolveUpload!: (value: unknown) => void

@@ -10,6 +10,7 @@ import {
   listDatasetDocuments,
   normalizeDatasetDocument,
   uploadDatasetDocuments,
+  getPartialDatasetUpload,
   type DatasetDocumentDTO,
 } from '../knowledge-rest'
 
@@ -548,6 +549,47 @@ test('TSV upload preserves multipart bytes and rejects HTTP 200 business failure
       },
     )
     assert.equal(calls, 1)
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+})
+
+test('failed upload envelopes retain acknowledged subsets without becoming API success', async () => {
+  const originalFetch = globalThis.fetch
+  const uploaded = [{ id: 'persisted', name: 'valid.txt', dataset_id: 'kb' }]
+  globalThis.fetch = (async () =>
+    Response.json({
+      code: 500,
+      message: 'private upload detail',
+      data: { uploaded },
+    })) as typeof fetch
+  try {
+    await assert.rejects(
+      () =>
+        uploadDatasetDocuments('kb', [
+          new File(['valid'], 'valid.txt'),
+          new File(['unsupported'], 'bad.tsv'),
+        ]),
+      (error: unknown) => {
+        assert.ok(error instanceof APIError)
+        assert.equal(error.code, '500')
+        assert.deepEqual(getPartialDatasetUpload(error, 2, 'kb'), uploaded)
+        assert.equal(getPartialDatasetUpload(error, 1, 'kb'), undefined)
+        return true
+      },
+    )
+    for (const error of [
+      new Error('private'),
+      new APIError(500, '100', 'private', { uploaded }),
+      new APIError(200, '0', 'private', { uploaded }),
+      new APIError(200, '100', 'private', { uploaded: {} }),
+      new APIError(200, '100', 'private', { uploaded: null }),
+      new APIError(200, '100', 'private', { uploaded: [] }),
+      new APIError(200, '500', 'private', {
+        uploaded: [{ id: 'other', name: 'valid.txt', dataset_id: 'other-kb' }],
+      }),
+    ])
+      assert.equal(getPartialDatasetUpload(error, 2, 'kb'), undefined)
   } finally {
     globalThis.fetch = originalFetch
   }

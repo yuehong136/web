@@ -1,4 +1,11 @@
-# Connector configuration consumers
+# Data source and document consumers
+
+Mixed document upload failures keep their nonzero business code. When the server
+provides `data.uploaded`, the document uploader validates that strict subset by
+distinct document ID and matching input filename, keeps confirmed files complete,
+and retries only the remainder. Missing or malformed acknowledgements confirm
+nothing. The shared API still throws `APIError`; the UI uses fixed translated
+feedback and starts parsing only confirmed documents.
 
 Settings → Data sources uses `datasourceAPI.connector` for create, read, edit,
 status, schedule, rebuild and logs. SharePoint and Slack use the same consumers.

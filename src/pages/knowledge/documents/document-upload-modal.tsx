@@ -10,6 +10,7 @@ import {
   type FileUploaderTexts,
 } from '@/components/ui'
 import { knowledgeAPI } from '@/api/knowledge'
+import { getPartialDatasetUpload } from '@/api/knowledge-rest'
 import { toast } from '@/lib/toast'
 import { getMutationErrorNotice } from '@/lib/mutation-error-feedback'
 import { reconcileDocumentUploads } from './upload-feedback'
@@ -186,9 +187,15 @@ function DocumentUploadSession({
       const ordinary = files.filter((file) => !configured.includes(file))
       const response: unknown[] = []
       if (ordinary.length) {
-        const result = await knowledgeAPI.document.upload(kbId, ordinary)
-        if (!Array.isArray(result)) throw new Error('Invalid upload response')
-        response.push(...result)
+        try {
+          const result = await knowledgeAPI.document.upload(kbId, ordinary)
+          if (!Array.isArray(result)) throw new Error('Invalid upload response')
+          response.push(...result)
+        } catch (error) {
+          const partial = getPartialDatasetUpload(error, ordinary.length, kbId)
+          if (partial === undefined) throw error
+          response.push(...partial)
+        }
       }
       for (const file of configured) {
         if (!isCurrent()) return
