@@ -63,14 +63,17 @@ export function getMicrosoftFormFields(
           if (value == null || value === '') return true
           if (typeof value !== 'string')
             return 'datasource.microsoft.folderPathInvalid'
-          try {
-            return (
-              !decodeURIComponent(value).split(/[\\/]/).includes('..') ||
-              'datasource.microsoft.folderPathInvalid'
-            )
-          } catch {
-            return 'datasource.microsoft.folderPathInvalid'
-          }
+          return (
+            !value
+              .trim()
+              .split('/')
+              .some(
+                (part) =>
+                  part === '.' ||
+                  part === '..' ||
+                  [...part].some((character) => character.charCodeAt(0) < 32),
+              ) || 'datasource.microsoft.folderPathInvalid'
+          )
         },
       },
     )

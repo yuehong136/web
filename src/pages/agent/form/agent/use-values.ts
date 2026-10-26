@@ -1,3 +1,4 @@
+import { useDefaultModelReference } from '@/hooks/use-model-provider-request'
 import get from 'lodash/get.js'
 import isEmpty from 'lodash/isEmpty.js'
 import omit from 'lodash/omit.js'
@@ -18,6 +19,7 @@ function omitNonFormFields(values: Record<string, unknown>) {
 export function useValues(node?: RAGFlowNodeType) {
   const { t } = useTranslation()
   const { myLLMs } = useFetchMyLLMs()
+  const defaultModel = useDefaultModelReference('chat').reference
 
   return useMemo(() => {
     const formData = (node?.data?.form || {}) as Record<string, unknown>
@@ -26,6 +28,7 @@ export function useValues(node?: RAGFlowNodeType) {
         initialAgentValues as unknown as Record<string, unknown>,
       ),
       llm_id:
+        defaultModel ||
         findFirstEnabledModelByType(myLLMs, 'chat', {
           valueMode: 'nameWithProvider',
         }) ||
@@ -58,5 +61,5 @@ export function useValues(node?: RAGFlowNodeType) {
         get(formData, `outputs.${AgentStructuredOutputField}`),
       ),
     }
-  }, [myLLMs, node?.data?.form, t])
+  }, [defaultModel, myLLMs, node?.data?.form, t])
 }

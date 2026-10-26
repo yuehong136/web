@@ -205,12 +205,14 @@ beforeEach(async () => {
     const method = init?.method ?? 'GET'
     if (
       method === 'GET' &&
-      ['/v1/llm/my_llms', '/v1/llm/list'].some((path) =>
-        parsed.pathname.endsWith(path),
-      )
+      ['/api/v1/models'].some((path) => parsed.pathname.endsWith(path))
     )
       // The shared PDF selector inventory is separate from document request assertions.
-      return response({ code: 0, message: 'success', data: {} })
+      return response({
+        code: 0,
+        message: 'success',
+        data: { items: [], total: 0, page: 1, page_size: 100 },
+      })
     calls.push({
       method,
       url: parsed,

@@ -19,7 +19,6 @@ let client: QueryClient
 let code: number
 let hold: Promise<void> | undefined
 let models: Record<string, unknown>
-let catalog: Record<string, unknown>
 
 function Harness({ value }: { value: string }) {
   const form = useForm({
@@ -94,18 +93,39 @@ beforeEach(async () => {
   code = 0
   hold = undefined
   models = {}
-  catalog = {}
   vi.stubGlobal(
     'fetch',
     vi.fn(async (input: string | URL | Request) => {
       await hold
       const path = new URL(String(input)).pathname
-      expect(['/v1/llm/my_llms', '/v1/llm/list']).toContain(path)
+      expect(path).toBe('/api/v1/models')
+      const rows = Object.entries(models)
+        .flatMap(([provider, payload]) =>
+          (
+            payload as {
+              llm: { name: string; type: string; status?: string }[]
+            }
+          ).llm.map((model) => ({ provider, model })),
+        )
+        .map(({ provider, model }, index) => ({
+          id: index + 1,
+          reference: String(index + 1),
+          name: model.name,
+          provider_id: provider,
+          provider_name: provider,
+          instance_id: provider,
+          instance_name: 'default',
+          model_types: [model.type],
+          status: model.status === '0' ? 'inactive' : 'active',
+          effective_status: model.status === '0' ? 'inactive' : 'active',
+          max_tokens: 0,
+          is_tools: false,
+        }))
       return new Response(
         JSON.stringify({
           code,
           message: 'Private provider failure',
-          data: path.endsWith('my_llms') ? models : catalog,
+          data: { items: rows, total: rows.length, page: 1, page_size: 100 },
         }),
         {
           status: 200,
@@ -151,16 +171,7 @@ it('withholds stale model choices after a failed refresh and retains the selecte
       llm: [{ name: 'vision___LocalAI', type: 'image2text', status: '1' }],
     },
   }
-  catalog = {
-    LocalAI: [
-      {
-        llm_name: 'vision___LocalAI',
-        fid: 'LocalAI',
-        mdl_type: 'image2text',
-        available: true,
-      },
-    ],
-  }
+
   await render('vision___LocalAI@LocalAI')
   await ready()
   expect(document.body.textContent).toContain('LocalAI / vision___LocalAI')
@@ -195,22 +206,7 @@ it('groups configured models and changes only the selected exact value, with tra
       llm: [{ name: 'vision___LocalAI', type: 'image2text', status: '1' }],
     },
   }
-  catalog = {
-    PaddleOCR: ['scan@east', 'scan@west'].map((llm_name) => ({
-      llm_name,
-      fid: 'PaddleOCR',
-      mdl_type: 'ocr',
-      available: true,
-    })),
-    LocalAI: [
-      {
-        llm_name: 'vision___LocalAI',
-        fid: 'LocalAI',
-        mdl_type: 'image2text',
-        available: true,
-      },
-    ],
-  }
+
   await render()
   await ready()
   await open()
@@ -219,18 +215,14 @@ it('groups configured models and changes only the selected exact value, with tra
   expect(
     document.querySelector('[placeholder="Search PDF parsers…"]'),
   ).not.toBeNull()
-  await choose('scan@west@PaddleOCR@PaddleOCR')
-  expect(document.querySelector('output')?.textContent).toBe(
-    'scan@west@PaddleOCR@PaddleOCR',
-  )
+  await choose('2')
+  expect(document.querySelector('output')?.textContent).toBe('2')
   expect(
     document.querySelector('[aria-label="PDF parser"] img[alt="PaddleOCR"]'),
   ).not.toBeNull()
   await open()
-  await choose('vision___LocalAI@LocalAI')
-  expect(document.querySelector('output')?.textContent).toBe(
-    'vision___LocalAI@LocalAI',
-  )
+  await choose('3')
+  expect(document.querySelector('output')?.textContent).toBe('3')
   expect(
     document.querySelector('[aria-label="PDF parser"] img[alt="LocalAI"]'),
   ).not.toBeNull()
@@ -249,9 +241,7 @@ it('groups configured models and changes only the selected exact value, with tra
   expect(
     document.querySelector('[placeholder="搜索 PDF 解析器…"]'),
   ).not.toBeNull()
-  expect(document.querySelector('output')?.textContent).toBe(
-    'vision___LocalAI@LocalAI',
-  )
+  expect(document.querySelector('output')?.textContent).toBe('3')
 })
 
 it('shows loading and then the empty state while core parsers remain usable', async () => {

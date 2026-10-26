@@ -528,8 +528,15 @@ it('round-trips Microsoft source scopes, extensions and masked credentials witho
   const folder = fields.find(
     (field) => field.name === 'config.folder_path',
   )!.validate!
-  for (const value of ['', '/Documents/Reports', 'Reports'])
+  for (const value of [
+    '',
+    '/Documents/Reports',
+    'Reports',
+    '文档/a#b?c%',
+    '/%2e%2e/',
+    '%ZZ',
+  ])
     expect(folder(value)).toBe(true)
-  for (const value of ['../Reports', '/a/../b', '/%2e%2e/', '%ZZ', 1])
+  for (const value of ['../Reports', '/a/../b', '.', '/a/./b', 'a\u0001b', 1])
     expect(folder(value)).not.toBe(true)
 })

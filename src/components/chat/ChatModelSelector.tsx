@@ -12,8 +12,9 @@ import {
   IconMap,
   LLMFactory,
   isLLMModelEnabled,
-  buildLLMValue,
-  resolveLLMValue,
+  getLLMModelValue,
+  getLLMModelLabel,
+  resolveLLMDisplayValue,
 } from '@/stores/model'
 import { useIsDarkTheme } from '@/themes'
 import { cn } from '@/lib/utils'
@@ -152,7 +153,14 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
       return []
     }
 
-    return filtered
+    return [
+      ...new Map(
+        filtered.map((item) => [
+          getLLMModelValue(item.model, item.provider),
+          item,
+        ]),
+      ).values(),
+    ]
   }, [models, modelTypes])
 
   // 构建分组选项
@@ -170,24 +178,28 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
       label: provider,
       options: items.map((item) => ({
         label: (
-          <ModelOptionLabel provider={provider} modelName={item.model.name} />
+          <ModelOptionLabel
+            provider={provider}
+            modelName={getLLMModelLabel(item.model)}
+          />
         ),
-        value: buildLLMValue(item.model.name, provider, valueMode),
+        value: getLLMModelValue(item.model, provider, valueMode),
       })),
     }))
   }, [allAvailableModels, valueMode])
 
-  const selectedValue =
-    valueMode === 'nameWithProvider'
-      ? resolveLLMValue(models, selectedModelName, true).value
-      : selectedModelName
+  const selectedValue = resolveLLMDisplayValue(
+    models,
+    selectedModelName,
+    valueMode,
+  )
 
   // 找到当前选中模型的信息
   const selectedModelInfo = useMemo(() => {
     if (!selectedModelName) return null
     return allAvailableModels.find(
       (item) =>
-        buildLLMValue(item.model.name, item.provider, valueMode) ===
+        getLLMModelValue(item.model, item.provider, valueMode) ===
         selectedValue,
     )
   }, [selectedModelName, selectedValue, valueMode, allAvailableModels])

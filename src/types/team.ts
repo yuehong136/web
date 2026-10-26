@@ -61,6 +61,7 @@ export interface TenantInfo {
   embd_id: string // 默认 Embedding 模型 ID
   asr_id: string // 默认 ASR 模型 ID
   img2txt_id: string // 默认图像转文本模型 ID
+  ocr_id?: string // 默认 OCR 模型 ID
   tts_id?: string // 默认 TTS 模型 ID
   rerank_id: string // 默认 Rerank 模型 ID
   parser_ids: string // 解析器 ID 列表（逗号分隔）

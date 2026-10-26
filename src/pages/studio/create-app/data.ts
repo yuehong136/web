@@ -1,3 +1,4 @@
+import { getLLMModelValue } from '@/stores/model'
 import type { ReferenceMetadataConfig } from '@/types/reference-metadata'
 import {
   detectMatchingPresetSnake,
@@ -259,6 +260,7 @@ export const mapLLMProviders = (
           isLLMModelEnabled(model),
       )
       .map((model) => ({
+        ...model,
         name: model.name,
         type: model.type as 'chat' | 'image2text',
         used_token: model.used_token || 0,
@@ -276,7 +278,7 @@ export const mapLLMProviders = (
     const availableRerankModels = providerModels
       .filter((model) => model.type === 'rerank' && isLLMModelEnabled(model))
       .map((model) => ({
-        id: `${model.name}@${providerName}`,
+        id: getLLMModelValue(model, providerName),
         llm_name: model.name,
         fid: providerName,
         mdl_type: 'rerank' as const,

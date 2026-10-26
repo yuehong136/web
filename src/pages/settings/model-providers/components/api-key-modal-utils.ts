@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import type {
   AddLlmParams,
   ModelVerifyResult,
@@ -5,6 +6,7 @@ import type {
 } from '@/stores/model'
 
 export interface ApiKeyModalProps {
+  children?: ReactNode
   isOpen: boolean
   onClose: () => void
   providerName: string

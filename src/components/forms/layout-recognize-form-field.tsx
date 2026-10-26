@@ -5,7 +5,10 @@ import { cn } from '@/lib/utils'
 import { ROUTES } from '@/constants'
 import { IconMap, parseLLMValue } from '@/stores/model'
 import { usePDFParserOptions } from '@/hooks/use-pdf-parser-options'
-import type { PDFParserOption } from '@/lib/knowledge/pdf-parser-options'
+import {
+  resolvePDFParserSelection,
+  type PDFParserOption,
+} from '@/lib/knowledge/pdf-parser-options'
 import { Button } from '@/components/ui/button'
 import { ProviderIcon } from '@/components/ui/provider-icon'
 import {
@@ -36,7 +39,7 @@ export function LayoutRecognizeFormField({
 }: LayoutRecognizeFormFieldProps) {
   const { t } = useTranslation()
   const form = useFormContext()
-  const { options, isLoading, isError, refetch } = usePDFParserOptions()
+  const { options, models, isLoading, isError, refetch } = usePDFParserOptions()
   const modelCount = options.filter(
     (option) => option.kind !== 'builtin',
   ).length
@@ -78,9 +81,10 @@ export function LayoutRecognizeFormField({
       control={form.control}
       name={name}
       render={({ field }) => {
+        const selectedValue = resolvePDFParserSelection(field.value, models)
         const savedOnly =
           !!field.value &&
-          !options.some((option) => option.value === field.value)
+          !options.some((option) => option.value === selectedValue)
         const savedProvider = savedOnly
           ? (parseLLMValue(field.value).providerName ??
             (Object.hasOwn(IconMap, field.value) ? field.value : null))
@@ -135,7 +139,7 @@ export function LayoutRecognizeFormField({
               >
                 <FormControl>
                   <SelectWithSearch
-                    value={field.value}
+                    value={selectedValue}
                     onChange={field.onChange}
                     options={choices}
                     ariaLabel={t('knowledge.settings.fields.layoutParser')}

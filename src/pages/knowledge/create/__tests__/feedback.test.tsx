@@ -14,8 +14,8 @@ const createKnowledge = vi.hoisted(() => vi.fn())
 const defaults = vi.hoisted(() => ({
   tenantInfo: null as { tenant_id: string; embd_id: string } | null,
 }))
-vi.mock('@/hooks/use-team-request', () => ({
-  useFetchTenantInfo: () => defaults,
+vi.mock('@/hooks/use-default-model-request', () => ({
+  useDefaultModelRequest: () => defaults,
 }))
 const updateKnowledge = vi.hoisted(() => vi.fn())
 vi.mock('@/hooks/use-knowledge-request', () => ({

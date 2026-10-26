@@ -10,7 +10,7 @@ export function usePDFParserOptions() {
   })
   const catalog = useQuery({
     queryKey: llmKeys.catalog(),
-    queryFn: llmAPI.getModelCatalog,
+    queryFn: ({ signal }) => llmAPI.getModelCatalog(signal),
     staleTime: 0,
     refetchOnWindowFocus: true,
   })
@@ -29,6 +29,7 @@ export function usePDFParserOptions() {
   )
   return {
     options,
+    models: !isLoading && !isError ? tenantModels.myLLMs : {},
     isLoading,
     isError,
     refetch: () => Promise.all([tenantModels.refetch(), catalog.refetch()]),

@@ -3,6 +3,11 @@
 
 // 根据您提供的数据结构定义类型
 export interface MyLLMModel {
+  id?: string | number
+  reference?: string
+  instance_name?: string
+  model_types?: MyLLMModel['type'][]
+  label?: string
   type:
     | 'chat'
     | 'embedding'
@@ -87,6 +92,20 @@ export const parseLLMValue = (
   }
 }
 
+/** Numeric tenant IDs identify new selections independently of names and instances. */
+export const getLLMModelValue = (
+  model: MyLLMModel,
+  provider: string,
+  mode: LLMValueMode = 'nameWithProvider',
+) =>
+  model.reference ??
+  (model.id !== undefined
+    ? String(model.id)
+    : buildLLMValue(model.name, provider, mode))
+export const getLLMModelLabel = (model: MyLLMModel) =>
+  model.label ??
+  (model.instance_name ? `${model.name} · ${model.instance_name}` : model.name)
+
 export const buildLLMValue = (
   modelName: string,
   providerName: string,
@@ -112,30 +131,37 @@ export const resolveLLMValue = (
     }
   }
 
-  const matchesProvider = (currentProviderName: string, model: MyLLMModel) => {
-    if (providerName && currentProviderName !== providerName) {
-      return false
-    }
-    if (model.name !== modelName) {
-      return false
-    }
-    if (enabledOnly && !isLLMModelEnabled(model)) {
-      return false
-    }
-    return true
-  }
-
-  for (const [currentProviderName, provider] of Object.entries(providers)) {
-    const matchedModel = provider.llm.find((model) =>
-      matchesProvider(currentProviderName, model),
-    )
-    if (matchedModel) {
-      return {
-        modelName: matchedModel.name,
-        providerName: currentProviderName,
-        matched: true,
-        value: buildLLMValue(matchedModel.name, currentProviderName),
-      }
+  const matches = Object.entries(providers).flatMap(
+    ([currentProviderName, provider]) =>
+      provider.llm
+        .filter((model) => {
+          if (enabledOnly && !isLLMModelEnabled(model)) return false
+          if (model.reference === value || model.id === value) return true
+          return (
+            (!providerName || currentProviderName === providerName) &&
+            model.name === modelName
+          )
+        })
+        .map((model) => ({ model, currentProviderName })),
+  )
+  const unique = [
+    ...new Map(
+      matches.map((match) => [
+        getLLMModelValue(match.model, match.currentProviderName),
+        match,
+      ]),
+    ).values(),
+  ]
+  if (unique.length === 1) {
+    const { model, currentProviderName } = unique[0]
+    return {
+      modelName: model.name,
+      providerName: currentProviderName,
+      matched: true,
+      value:
+        model.reference && model.reference !== value
+          ? value?.trim() || ''
+          : getLLMModelValue(model, currentProviderName),
     }
   }
 
@@ -178,7 +204,7 @@ export const findFirstEnabledModelByType = (
     const model = provider.llm.find(
       (item) => item.type === type && !!item.name && isLLMModelEnabled(item),
     )
-    if (model) return buildLLMValue(model.name, providerName, valueMode)
+    if (model) return getLLMModelValue(model, providerName, valueMode)
   }
 
   return null
@@ -369,11 +395,51 @@ export interface LLMFactoryInterface {
   name: string
   logo: string
   tags: string
-  status: string
+  status?: string
   id: string
-  create_date: string
-  update_date: string
-  create_time: number
-  update_time: number
-  model_types: string[]
+  create_date?: string
+  update_date?: string
+  create_time?: number
+  update_time?: number
+  model_types?: string[]
+}
+
+/** Map a stored legacy reference for display only; onChange remains the sole new-value writer. */
+export function resolveLLMDisplayValue(
+  providers: MyLLMProvider,
+  value: string | null | undefined,
+  mode: LLMValueMode = 'nameWithProvider',
+): string {
+  const resolved = resolveLLMValue(providers, value, true)
+  if (!resolved.matched) return value?.trim() ?? ''
+  const matches = Object.entries(providers).flatMap(([provider, data]) =>
+    data.llm
+      .filter(
+        (model) =>
+          isLLMModelEnabled(model) &&
+          provider === resolved.providerName &&
+          model.name === resolved.modelName,
+      )
+      .map((model) => getLLMModelValue(model, provider, mode)),
+  )
+  const unique = [...new Set(matches)]
+  return unique.length === 1 ? unique[0] : (value?.trim() ?? '')
+}
+
+export function hasSelectedModelCapability(
+  providers: MyLLMProvider,
+  value: string | null | undefined,
+  capability: MyLLMModel['type'],
+): boolean {
+  const resolved = resolveLLMValue(providers, value, true)
+  if (!resolved.matched) return false
+  const selected = resolveLLMDisplayValue(providers, value)
+  return Object.entries(providers).some(([provider, data]) =>
+    data.llm.some(
+      (model) =>
+        isLLMModelEnabled(model) &&
+        getLLMModelValue(model, provider) === selected &&
+        (model.model_types?.includes(capability) ?? model.type === capability),
+    ),
+  )
 }

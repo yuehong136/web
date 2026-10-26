@@ -1,16 +1,10 @@
+import { ModelConfigurationHeader } from './model-configuration-header'
 import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Eye, EyeOff, ExternalLink, RefreshCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import {
   Select,
   SelectContent,
@@ -19,7 +13,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { ProviderIcon } from '@/components/ui/provider-icon'
 import { Segmented, SegmentedItem } from '@/components/vendor/ui/segmented'
 import type { ModelVerifyResult } from '@/stores/model'
 import {
@@ -68,6 +61,7 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
   initialValues,
   onSave,
   onVerify,
+  children,
 }) => {
   const { t } = useTranslation()
   const paddleKey = 'settings.models.paddleOCR'
@@ -612,23 +606,14 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent size="md">
-        <DialogHeader>
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-surface-secondary)]">
-              <ProviderIcon
-                provider={providerName}
-                className="h-7 w-7"
-                size={28}
-              />
-            </div>
-            <div className="flex-1">
-              <DialogTitle>{getModalTitle()}</DialogTitle>
-              <DialogDescription>{getModalDescription()}</DialogDescription>
-            </div>
-          </div>
-        </DialogHeader>
+        <ModelConfigurationHeader
+          provider={providerName}
+          title={getModalTitle()}
+          description={getModalDescription()}
+        />
 
         <div className="max-h-[calc(90vh-200px)] space-y-4 overflow-y-auto px-6 py-4">
+          {children}
           {/* ========== TencentCloud (腾讯云语音) 专用表单 ========== */}
           {providerName === 'Tencent Cloud' && (
             <>

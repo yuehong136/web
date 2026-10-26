@@ -1,3 +1,8 @@
+import {
+  getLLMModelValue,
+  getLLMModelLabel,
+  resolveLLMValue,
+} from '@/stores/model'
 import { APIError } from '@/api/client'
 import { checkDatasetEmbedding } from '@/api/knowledge-embedding'
 import { toast } from '@/lib/toast'
@@ -157,35 +162,9 @@ const KnowledgeSettingsPage: React.FC = () => {
   // 加载模型列表（复用 modelStore）
 
   // 构建所有嵌入模型的 value 映射（用于查找匹配）
-  const allEmbeddingModelValues = React.useMemo(() => {
-    const values: Map<string, string> = new Map()
-    Object.entries(myLLMs).forEach(([providerName, providerData]) => {
-      providerData.llm
-        .filter(
-          (model) => model.type === 'embedding' && isLLMModelEnabled(model),
-        )
-        .forEach((model) => {
-          const fullValue = `${model.name}@${providerName}`
-          // 存储多种可能的匹配格式
-          values.set(fullValue.toLowerCase(), fullValue)
-          const name = model.name.toLowerCase()
-          if (!values.has(name)) values.set(name, fullValue)
-          else if (values.get(name) !== fullValue) values.set(name, '')
-        })
-    })
-    return values
-  }, [myLLMs])
-
-  // 规范化嵌入模型 ID（匹配 API 返回格式与选择器 value 格式）
   const normalizeEmbdId = React.useCallback(
-    (value: string): string => {
-      if (!value) return ''
-      const lowerValue = value.toLowerCase()
-      // Keep explicit provider/instance identities intact. A bare model name
-      // can only resolve when the configured exact-name match is unambiguous.
-      return allEmbeddingModelValues.get(lowerValue) || value
-    },
-    [allEmbeddingModelValues],
+    (value: string): string => value,
+    [],
   )
 
   // 初始化表单数据
@@ -208,7 +187,7 @@ const KnowledgeSettingsPage: React.FC = () => {
   }, [currentKnowledgeBase, form, normalizeEmbdId])
 
   // 嵌入模型选项（带厂商图标），复用与模型提供商页面相同的逻辑
-  const embeddingModelOptions: SelectOptionGroup[] = React.useMemo(() => {
+  const fetchedEmbeddingOptions: SelectOptionGroup[] = React.useMemo(() => {
     const groups: SelectOptionGroup[] = []
 
     Object.entries(myLLMs).forEach(([providerName, providerData]) => {
@@ -224,11 +203,11 @@ const KnowledgeSettingsPage: React.FC = () => {
             label: (
               <ModelOptionLabel
                 provider={providerName}
-                modelName={model.name}
+                modelName={getLLMModelLabel(model)}
               />
             ),
             // 使用 name@provider 格式作为 value，与系统设置页面保持一致
-            value: `${model.name}@${providerName}`,
+            value: getLLMModelValue(model, providerName),
           })),
         })
       }
@@ -236,6 +215,32 @@ const KnowledgeSettingsPage: React.FC = () => {
 
     return groups
   }, [myLLMs])
+
+  const embeddingModelOptions = [...fetchedEmbeddingOptions]
+  const selectedEmbedding = useWatch({ control: form.control, name: 'embd_id' })
+  if (
+    selectedEmbedding &&
+    !embeddingModelOptions.some((group) =>
+      group.options?.some((option) => option.value === selectedEmbedding),
+    )
+  ) {
+    const resolved = resolveLLMValue(myLLMs, selectedEmbedding, true)
+    const model = resolved.matched
+      ? myLLMs[resolved.providerName ?? '']?.llm.find(
+          (row) => row.name === resolved.modelName,
+        )
+      : undefined
+    embeddingModelOptions.push({
+      label: resolved.providerName ?? '',
+      options: [
+        {
+          value: selectedEmbedding,
+          label: model ? getLLMModelLabel(model) : selectedEmbedding,
+          disabled: !resolved.matched,
+        },
+      ],
+    })
+  }
 
   // 提交表单
   const handleSubmit = async (data: KnowledgeSettingsFormData) => {

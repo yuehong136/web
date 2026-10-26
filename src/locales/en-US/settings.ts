@@ -4,6 +4,26 @@ export default {
     description:
       'Manage workspace configuration, team capabilities, and developer access.',
     models: {
+      instances: {
+        name: 'Instance name',
+        add: 'Add instance',
+        addModel: 'Add model',
+        region: 'Region (optional)',
+        baseUrl: 'Base URL',
+        credential: 'API key or complete credential JSON',
+        clearKey: 'Explicitly clear the saved credential',
+        maxTokens: 'Maximum tokens (0 is allowed)',
+        keySaved: 'Credential saved',
+        noKey: 'No credential saved',
+        defaultEndpoint: 'Default endpoint',
+        enabled: 'Enable {{name}}',
+        failed:
+          'Could not save this change. Check the configuration or existing model references and try again. Your entries are kept.',
+        deleteConfirm:
+          'Delete {{name}}? Models used by applications, datasets or defaults must be unlinked first.',
+        partial:
+          'The instance has been created. If adding its model fails, retry here to finish the model configuration.',
+      },
       volcEngine: { modelId: 'Model ID', modelIdRequired: 'Enter a Model ID.' },
       localModel: {
         addTitle: 'Add {{provider}} model',
@@ -66,6 +86,10 @@ export default {
       defaultsUnsaved: 'Unsaved selections',
       defaultsSavedHint: 'Changes apply after you save.',
       defaultFields: {
+        ocr: {
+          label: 'OCR model',
+          hint: 'The default OCR model for new parsing tasks.',
+        },
         chat: {
           label: 'Chat model',
           hint: 'The default chat model for new knowledge bases.',

@@ -14,7 +14,12 @@ import {
   PageErrorState,
   PageLoadingState,
 } from '@/components/patterns'
-import { isLLMModelEnabled, type MyLLMProvider } from '@/stores/model'
+import {
+  getLLMModelValue,
+  getLLMModelLabel,
+  isLLMModelEnabled,
+  type MyLLMProvider,
+} from '@/stores/model'
 import { useFetchMyLLMs } from '@/hooks/use-llm-request'
 import { useDefaultModelRequest } from '@/hooks/use-default-model-request'
 import { toast } from '@/lib/toast'
@@ -25,24 +30,26 @@ const MODEL_FIELDS = [
   {
     field: 'llm_id',
     name: 'chat',
-    types: ['chat', 'image2text'],
-    required: true,
+    types: ['chat'],
+    required: false,
   },
   { field: 'embd_id', name: 'embedding', types: ['embedding'] },
   { field: 'img2txt_id', name: 'vision', types: ['image2text'] },
   { field: 'asr_id', name: 'speech', types: ['speech2text'] },
   { field: 'rerank_id', name: 'rerank', types: ['rerank'] },
   { field: 'tts_id', name: 'tts', types: ['tts'] },
+  { field: 'ocr_id', name: 'ocr', types: ['ocr'] },
 ] as const
 
 type ModelField = (typeof MODEL_FIELDS)[number]['field']
 const defaultModelsSchema = z.object({
-  llm_id: z.string().min(1),
+  llm_id: z.string(),
   embd_id: z.string(),
   img2txt_id: z.string(),
   asr_id: z.string(),
   rerank_id: z.string(),
   tts_id: z.string(),
+  ocr_id: z.string(),
 })
 type ModelValues = z.infer<typeof defaultModelsSchema>
 
@@ -62,10 +69,13 @@ function getModelOptions(
     const options = data.llm
       .filter((model) => types.includes(model.type) && isLLMModelEnabled(model))
       .map((model) => ({
-        label: model.name,
-        value: `${model.name}@${provider}`,
+        label: getLLMModelLabel(model),
+        value: getLLMModelValue(model, provider),
       }))
-    return options.length ? [{ label: provider, options }] : []
+    const unique = [
+      ...new Map(options.map((option) => [option.value, option])).values(),
+    ]
+    return unique.length ? [{ label: provider, options: unique }] : []
   })
   if (
     selected &&
@@ -75,7 +85,20 @@ function getModelOptions(
   ) {
     groups.unshift({
       label: unavailableLabel,
-      options: [{ label: selected, value: selected }],
+      options: [
+        {
+          label: Object.values(models)
+            .flatMap((provider) => provider.llm)
+            .find((model) => getLLMModelValue(model, '') === selected)
+            ? getLLMModelLabel(
+                Object.values(models)
+                  .flatMap((provider) => provider.llm)
+                  .find((model) => getLLMModelValue(model, '') === selected)!,
+              )
+            : selected,
+          value: selected,
+        },
+      ],
     })
   }
   return groups
@@ -168,7 +191,7 @@ function DefaultModelsForm({
   ) as Record<ModelField, SelectOptionGroup[]>
 
   const save = async (submitted: ModelValues) => {
-    if (!dirty || pending || submitting.current || !values.llm_id) return
+    if (!dirty || pending || submitting.current) return
     submitting.current = true
     setLocalPending(true)
     setSaveFailed(false)
@@ -243,7 +266,7 @@ function DefaultModelsForm({
                 placeholder={t('settings.models.defaultsSelect')}
                 emptyText={t('settings.models.defaultsEmpty')}
                 searchPlaceholder={t('common.search')}
-                allowClear={config.field !== 'llm_id'}
+                allowClear
               />
             </div>
           ))}
@@ -297,7 +320,7 @@ function DefaultModelsForm({
               type="submit"
               size="sm"
               loading={pending}
-              disabled={!dirty || pending || !values.llm_id}
+              disabled={!dirty || pending}
             >
               {t('common.save')}
             </Button>

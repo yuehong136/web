@@ -1,3 +1,8 @@
+import {
+  getLLMModelValue,
+  getLLMModelLabel,
+  resolveLLMDisplayValue,
+} from '@/stores/model'
 /**
  * 对话模型选择器
  * 复用 EmbeddingModelSelector 的模式，从 modelStore 获取 chat 和 image2text 类型模型
@@ -105,15 +110,22 @@ export function ChatModelSelector({
       if (supportedModels.length > 0) {
         groups.push({
           label: providerName,
-          options: supportedModels.map((model) => ({
+          options: [
+            ...new Map(
+              supportedModels.map((model) => [
+                getLLMModelValue(model, providerName),
+                model,
+              ]),
+            ).values(),
+          ].map((model) => ({
             label: (
               <ModelOptionLabel
                 provider={providerName}
-                modelName={model.name}
+                modelName={getLLMModelLabel(model)}
               />
             ) as ReactNode,
             // 使用 name@provider 格式作为 value，与系统设置页面保持一致
-            value: `${model.name}@${providerName}`,
+            value: getLLMModelValue(model, providerName),
           })),
         })
       }
@@ -124,46 +136,7 @@ export function ChatModelSelector({
   }, [myLLMs])
 
   // 构建所有支持的模型的 value 映射（用于查找匹配）
-  const allModelValues = useMemo(() => {
-    const values: Map<string, string> = new Map()
-    Object.entries(myLLMs).forEach(([providerName, providerData]) => {
-      providerData.llm
-        .filter(
-          (model) =>
-            SUPPORTED_MODEL_TYPES.includes(model.type) &&
-            isLLMModelEnabled(model),
-        )
-        .forEach((model) => {
-          const fullValue = `${model.name}@${providerName}`
-          // 存储多种可能的匹配格式
-          values.set(fullValue.toLowerCase(), fullValue)
-          values.set(model.name.toLowerCase(), fullValue)
-        })
-    })
-    return values
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- SUPPORTED_MODEL_TYPES 为模块级常量，引用稳定
-  }, [myLLMs])
-
-  // 规范化选中的模型 ID（匹配 API 返回格式与选择器 value 格式）
-  const normalizedValue = useMemo(() => {
-    if (!selectedModelId) return ''
-    const lowerValue = selectedModelId.toLowerCase()
-    // 直接匹配
-    if (allModelValues.has(lowerValue)) {
-      return allModelValues.get(lowerValue)!
-    }
-    // 尝试匹配（忽略大小写和连字符变化）
-    for (const [key, fullValue] of allModelValues) {
-      if (
-        key
-          .replace(/-/g, '')
-          .includes(lowerValue.replace(/-/g, '').replace(/@.*$/, ''))
-      ) {
-        return fullValue
-      }
-    }
-    return selectedModelId
-  }, [selectedModelId, allModelValues])
+  const normalizedValue = resolveLLMDisplayValue(myLLMs, selectedModelId)
 
   // 计算是否有可用模型
   const hasModels = groupedOptions.length > 0
@@ -176,7 +149,7 @@ export function ChatModelSelector({
             {resolvedLabelText}
           </div>
         )}
-        <div className="bg-surface-secondary/50 flex h-10 w-full items-center rounded-md border border-border-default px-3 py-2">
+        <div className="flex h-10 w-full items-center rounded-md border border-border-default bg-surface-secondary/50 px-3 py-2">
           <div className="h-3 w-3 animate-spin rounded-full border-b-2 border-text-accent"></div>
           <span className="ml-2 text-sm text-text-tertiary">
             {t('memory.model.loading')}
@@ -194,7 +167,7 @@ export function ChatModelSelector({
             {resolvedLabelText}
           </div>
         )}
-        <div className="bg-status-error/10 flex h-10 w-full items-center rounded-md border border-status-error px-3 py-2">
+        <div className="flex h-10 w-full items-center rounded-md border border-status-error bg-status-error/10 px-3 py-2">
           <AlertCircle className="h-3 w-3 text-status-error" />
           <span className="ml-2 text-sm text-status-error">{error}</span>
         </div>
@@ -210,7 +183,7 @@ export function ChatModelSelector({
             {resolvedLabelText}
           </div>
         )}
-        <div className="bg-status-warning/10 flex h-10 w-full items-center rounded-md border border-status-warning px-3 py-2">
+        <div className="flex h-10 w-full items-center rounded-md border border-status-warning bg-status-warning/10 px-3 py-2">
           <AlertCircle className="h-3 w-3 text-status-warning" />
           <span className="ml-2 text-sm text-status-warning">
             {t('memory.model.noChatModels')}

@@ -1,3 +1,4 @@
+import { getLLMModelValue } from '@/stores/model'
 import { useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -267,7 +268,7 @@ export function useRerankModels(myLLMs: any) {
               isLLMModelEnabled(model)
             ) {
               models.push({
-                id: `${model.name}@${providerName}`,
+                id: getLLMModelValue(model, providerName),
                 llm_name: model.name,
                 fid: providerName,
                 mdl_type: 'rerank',
@@ -303,7 +304,7 @@ export function useLLMModels(myLLMs: any) {
               isLLMModelEnabled(model)
             ) {
               models.push({
-                id: model.name,
+                id: getLLMModelValue(model, providerName),
                 name: model.name,
                 provider: providerName,
               })

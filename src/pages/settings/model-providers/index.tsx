@@ -1,206 +1,111 @@
-import React, { useCallback } from 'react'
+import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
-  type AddLlmParams,
-  type ModelVerifyResult,
-  type MyLLMModel,
-} from '@/stores/model'
-import {
-  useFetchMyLLMs,
-  useSetApiKey,
-  useAddLLM,
-  useEnableLLM,
-  useDeleteFactory,
-} from '@/hooks/use-llm-request'
-import { PageLoadingState } from '@/components/patterns'
+  useModelProviders,
+  useModelProviderMutation,
+} from '@/hooks/use-model-provider-request'
 import { SystemSetting } from './components/system-setting'
 import { UsedModels } from './components/used-models'
 import { AvailableModels } from './components/available-models'
 import { ApiKeyModal } from './components/api-key-modal'
+import {
+  buildInstancePayload,
+  saveProviderInstance,
+} from './components/instance-payload'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
-// 本地模型厂商列表
-const LOCAL_MODEL_FACTORIES = [
-  'Ollama',
-  'Xinference',
-  'LocalAI',
-  'LM-Studio',
-  'OpenAI-API-Compatible',
-  'TogetherAI',
-  'Replicate',
-  'OpenRouter',
-  'HuggingFace',
-  'GPUStack',
-  'VLLM',
-  'ModelScope',
-]
-
-// 特殊配置厂商（需要使用 add_llm 接口）
-const SPECIAL_CONFIG_FACTORIES = [
-  'VolcEngine',
-  'Bedrock',
-  'Azure-OpenAI',
-  'Tencent Cloud',
-  'XunFei Spark',
-  'BaiduYiyan',
-  'Fish Audio',
-  'Google Cloud',
-  'MinerU',
-  'PaddleOCR',
-  'OpenDataLoader',
-]
-
-export const ModelProvidersPage: React.FC = () => {
+export function ModelProvidersPage() {
   const { t } = useTranslation()
-  const { myLLMs, isLoading } = useFetchMyLLMs({ includeDetails: true })
-  const { setApiKey } = useSetApiKey()
-  const { addLLM } = useAddLLM()
-  const { enableLlm } = useEnableLLM()
-  const { deleteFactory } = useDeleteFactory()
-
-  const [apiKeyModal, setApiKeyModal] = React.useState<{
-    isOpen: boolean
-    providerName: string
-    isLocal?: boolean
-    initialValues?: MyLLMModel
-  }>({
-    isOpen: false,
-    providerName: '',
-    isLocal: false,
-  })
-
-  // 处理添加模型
-  const handleAddModel = useCallback((factoryName: string) => {
-    const isLocal = LOCAL_MODEL_FACTORIES.includes(factoryName)
-
-    setApiKeyModal({
-      isOpen: true,
-      providerName: factoryName,
-      isLocal,
-    })
-  }, [])
-
-  const handleEditModel = useCallback(
-    (model: MyLLMModel, providerName: string) => {
-      setApiKeyModal({
-        isOpen: true,
-        providerName,
-        isLocal: true,
-        initialValues: model,
-      })
-    },
-    [],
-  )
-
-  // 处理保存 - 根据厂商类型调用不同的 API
-  const handleSaveApiKey = async (
-    apiKey: string,
-    baseUrl?: string,
-    additionalParams?: Record<string, any>,
-    verify = false,
-  ): Promise<void | ModelVerifyResult> => {
-    const isLocal = LOCAL_MODEL_FACTORIES.includes(apiKeyModal.providerName)
-    const isSpecialConfig = SPECIAL_CONFIG_FACTORIES.includes(
-      apiKeyModal.providerName,
-    )
-
-    // 特殊配置厂商和本地模型使用 add_llm 接口；
-    // 普通 API Key 厂商一旦自填了模型名（如 Anthropic 接第三方兼容端点）也走 add_llm，
-    // 否则 set_api_key 只会按官方目录注册，填的模型名会被丢掉
-    const needsAddLlm =
-      isLocal || isSpecialConfig || Boolean(additionalParams?.llm_name)
-    const hasRequiredParams = additionalParams?.llm_name
-
-    if (needsAddLlm && hasRequiredParams) {
-      // 本地模型和特殊配置厂商使用 add_llm 接口
-      const params: AddLlmParams = {
-        llm_factory: additionalParams?.llm_factory || apiKeyModal.providerName,
-        llm_name: additionalParams.llm_name || apiKeyModal.providerName,
-        mdl_type: additionalParams.mdl_type || 'chat',
-        api_base: baseUrl || additionalParams?.api_base,
-        api_key: apiKey || additionalParams?.api_key || undefined,
-        max_tokens: additionalParams.max_tokens,
-        // 传递所有特殊参数
-        ...additionalParams,
-      }
-      return addLLM(params, verify)
-    } else {
-      // 普通云服务厂商使用 set_api_key 接口
-      return setApiKey(
-        apiKeyModal.providerName,
-        apiKey,
-        baseUrl,
-        additionalParams,
-        verify,
-      )
-    }
+  const providers = useModelProviders(),
+    mutation = useModelProviderMutation()
+  const [provider, setProvider] = useState(''),
+    [name, setName] = useState(''),
+    [region, setRegion] = useState('')
+  const [partial, setPartial] = useState(false)
+  const created = useRef<string | null>(null)
+  const close = () => {
+    setProvider('')
+    setName('')
+    setRegion('')
+    created.current = null
+    setPartial(false)
   }
-
-  // 处理验证连接
-  const handleVerifyApiKey = async (
-    apiKey: string,
-    baseUrl?: string,
-    additionalParams?: Record<string, any>,
-  ): Promise<void | ModelVerifyResult> => {
-    return handleSaveApiKey(apiKey, baseUrl, additionalParams, true)
+  const open = (value: string) => {
+    close()
+    setProvider(value)
   }
-
-  // 处理模型启用/禁用
-  const handleEnableModel = useCallback(
-    async (modelName: string, providerName: string, enabled: boolean) => {
-      await enableLlm(providerName, modelName, enabled)
-    },
-    [enableLlm],
-  )
-
-  // 处理删除供应商
-  const handleDeleteFactory = useCallback(
-    async (factoryName: string) => {
-      await deleteFactory(factoryName)
-    },
-    [deleteFactory],
-  )
-
-  if (isLoading && Object.keys(myLLMs).length === 0) {
-    return <PageLoadingState title={t('common.loading')} description={null} />
-  }
-
   return (
     <div className="@container flex h-full min-h-0 flex-col gap-space-lg p-space-lg">
       <div className="relative flex min-h-0 flex-1 flex-col overflow-auto rounded-radius-lg border border-border-default bg-background-surface @4xl:flex-row @4xl:overflow-hidden">
-        {/* 左侧区域 - 系统设置 + 已添加模型 */}
         <section className="flex shrink-0 flex-col gap-space-base p-space-base @4xl:w-3/5 @4xl:overflow-auto @4xl:border-r @4xl:border-border-subtle">
-          {/* 系统默认模型设置 */}
           <SystemSetting />
-
-          {/* 已添加的模型 */}
-          <UsedModels
-            myLLMs={myLLMs}
-            handleEditModel={handleEditModel}
-            handleAddModel={handleAddModel}
-            handleDeleteFactory={handleDeleteFactory}
-            handleEnableModel={handleEnableModel}
-          />
+          <UsedModels handleAddModel={open} />
         </section>
-
-        {/* 右侧区域 - 可选模型 */}
         <section className="flex shrink-0 flex-col @4xl:w-2/5 @4xl:overflow-auto">
-          <AvailableModels handleAddModel={handleAddModel} />
+          <AvailableModels handleAddModel={open} />
         </section>
       </div>
-      {/* API Key 设置弹窗 */}
       <ApiKeyModal
-        isOpen={apiKeyModal.isOpen}
-        onClose={() =>
-          setApiKeyModal({ isOpen: false, providerName: '', isLocal: false })
-        }
-        providerName={apiKeyModal.providerName}
-        isLocal={apiKeyModal.isLocal}
-        initialValues={apiKeyModal.initialValues}
-        onSave={handleSaveApiKey}
-        onVerify={handleVerifyApiKey}
-      />
+        isOpen={!!provider}
+        providerName={provider}
+        onClose={close}
+        onSave={async (key, baseUrl, fields = {}) => {
+          if (!providers.data || providers.isError)
+            throw Error('provider-inventory-unavailable')
+          const payload = buildInstancePayload(
+            provider,
+            name,
+            key,
+            baseUrl,
+            fields,
+            region,
+          )
+          await mutation.mutateAsync(async (isCurrent) =>
+            saveProviderInstance({
+              provider,
+              providerExists: providers.data.some(
+                (item) => item.name === provider,
+              ),
+              payload,
+              createdIdentity: created.current,
+              isCurrent,
+              onCreated: (identity) => {
+                created.current = identity
+                setPartial(!!payload.model)
+              },
+            }),
+          )
+        }}
+      >
+        <div className="flex flex-col gap-space-sm">
+          <Label htmlFor="model-instance-name">
+            {t('settings.models.instances.name')}
+          </Label>
+          <Input
+            id="model-instance-name"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            required
+            disabled={mutation.isPending}
+          />
+          <Label htmlFor="model-instance-region">
+            {t('settings.models.instances.region')}
+          </Label>
+          <Input
+            id="model-instance-region"
+            value={region}
+            onChange={(event) => setRegion(event.target.value)}
+            disabled={mutation.isPending}
+          />
+          {partial && (
+            <p role="status" className="text-text-secondary">
+              {t('settings.models.instances.partial')}
+            </p>
+          )}
+        </div>
+      </ApiKeyModal>
     </div>
   )
 }
-
 export default ModelProvidersPage

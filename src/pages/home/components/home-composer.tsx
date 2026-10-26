@@ -1,3 +1,4 @@
+import { useDefaultModelReference } from '@/hooks/use-model-provider-request'
 import { useEffect, useRef, type RefObject } from 'react'
 import type { SenderRef } from '@ant-design/x/es/sender/interface'
 import { useTranslation } from 'react-i18next'
@@ -43,6 +44,7 @@ export function HomeComposer({
   const sender = inputRef ?? ownInput
   const atButtonRef = useRef<HTMLButtonElement>(null!)
   const { myLLMs, isLoading: modelsLoading } = useFetchMyLLMs()
+  const defaultModel = useDefaultModelReference('chat')
   const {
     selectedMCPIds,
     selectedMCPServers,
@@ -82,13 +84,23 @@ export function HomeComposer({
     if (selectedApps.length) return
     if (
       !modelsLoading &&
+      !defaultModel.isPending &&
       myLLMs &&
       !hasEnabledModelName(myLLMs, selectedModelId)
     ) {
-      const first = findFirstEnabledModelByType(myLLMs, 'chat')
+      const first =
+        defaultModel.reference || findFirstEnabledModelByType(myLLMs, 'chat')
       if (first) setSelectedModelId(first)
     }
-  }, [modelsLoading, myLLMs, selectedModelId, setSelectedModelId, selectedApps])
+  }, [
+    defaultModel.isPending,
+    defaultModel.reference,
+    modelsLoading,
+    myLLMs,
+    selectedModelId,
+    setSelectedModelId,
+    selectedApps,
+  ])
   const change = (next: string) => {
     const element = sender.current?.inputElement
     const cursor =

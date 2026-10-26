@@ -15,7 +15,6 @@ import { MemoryDetailLayout } from '@/pages/memory/MemoryDetailLayout'
 import { ExploreSidebar } from '@/pages/explore/components/explore-sidebar'
 import { MemoryRouter } from 'react-router-dom'
 import i18n from '@/locales/i18n'
-import { ModelProviderCard } from '@/pages/settings/model-providers/components/model-provider-card'
 import { AvailableModels } from '@/pages/settings/model-providers/components/available-models'
 
 vi.mock('@/hooks/use-llm-request', () => ({
@@ -389,34 +388,6 @@ it('keeps the Explore rename dialog alive when only its secondary navigation is 
   ).find((element) => element.textContent === 'Cancel')!
   await click(cancel)
   expect(close).toHaveBeenCalledOnce()
-})
-
-it('makes provider expansion a named native button and keeps configuration actions independent', async () => {
-  const configure = vi.fn()
-  await act(async () =>
-    root.render(
-      <ModelProviderCard
-        name="Example provider"
-        tags="LLM"
-        llm={[{ name: 'example-model', type: 'chat', used_token: 0 }]}
-        onApiKeyClick={configure}
-        onDeleteClick={vi.fn()}
-      />,
-    ),
-  )
-  const toggle = container.querySelector<HTMLButtonElement>('h3 button')!
-  expect(toggle.textContent).toContain('Example provider')
-  expect(toggle.getAttribute('aria-expanded')).toBe('false')
-  expect(toggle.tabIndex).toBe(0)
-  await click(toggle)
-  expect(toggle.getAttribute('aria-expanded')).toBe('true')
-  expect(container.textContent).toContain('example-model')
-  const apiButton = Array.from(
-    container.querySelectorAll<HTMLButtonElement>('button'),
-  ).find((element) => element.textContent === 'API-Key')!
-  await click(apiButton)
-  expect(configure).toHaveBeenCalledExactlyOnceWith('Example provider')
-  expect(toggle.getAttribute('aria-expanded')).toBe('true')
 })
 
 it('adds a model provider through an explicit accessible action', async () => {

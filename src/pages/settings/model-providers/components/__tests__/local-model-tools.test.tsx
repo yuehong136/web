@@ -2,30 +2,13 @@ import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { ApiKeyModal } from '../api-key-modal'
-import { ModelProvidersPage } from '../../index'
+import { buildInstancePayload } from '../instance-payload'
 import {
   buildLocalModelParams,
   getEditableModelName,
 } from '../api-key-modal-utils'
 import type { MyLLMModel } from '@/stores/model'
 import i18n from '@/locales/i18n'
-
-const modelHooks = vi.hoisted(() => ({
-  fetch: vi.fn(),
-  add: vi.fn(),
-  setKey: vi.fn(),
-  enable: vi.fn(),
-  deleteFactory: vi.fn(),
-}))
-vi.mock('@/hooks/use-llm-request', () => ({
-  useFetchMyLLMs: modelHooks.fetch,
-  useAddLLM: () => ({ addLLM: modelHooks.add }),
-  useSetApiKey: () => ({ setApiKey: modelHooks.setKey }),
-  useEnableLLM: () => ({ enableLlm: modelHooks.enable }),
-  useDeleteFactory: () => ({ deleteFactory: modelHooks.deleteFactory }),
-}))
-vi.mock('../system-setting', () => ({ SystemSetting: () => null }))
-vi.mock('../available-models', () => ({ AvailableModels: () => null }))
 
 Reflect.set(globalThis, 'IS_REACT_ACT_ENVIRONMENT', true)
 let root: Root
@@ -190,36 +173,54 @@ it('keeps the changed capability when save fails', async () => {
   expect(close).not.toHaveBeenCalled()
 })
 
-it('opens the configured model through the page and saves the changed capability', async () => {
-  modelHooks.fetch.mockReturnValue({
-    myLLMs: { Ollama: { tags: 'LLM', llm: [existing] } },
-    isLoading: false,
+it('keeps credential envelopes, explicit empty catalogs and legal zero when creating an instance', () => {
+  const result = buildInstancePayload(
+    'VolcEngine',
+    ' primary ',
+    '',
+    'https://fixture.invalid',
+    {
+      llm_name: 'custom',
+      mdl_type: 'chat',
+      max_tokens: 0,
+      is_tools: false,
+      endpoint_id: 'ep-fixture',
+      ark_api_key: 'synthetic',
+      custom_extension: [],
+    },
+    '',
+  )
+  expect(result.instance).toMatchObject({
+    instance_name: 'primary',
+    region: '',
+    model_ids: [],
   })
-  modelHooks.add.mockResolvedValue(undefined)
-  await act(async () => root.render(<ModelProvidersPage />))
-  expect(modelHooks.fetch).toHaveBeenCalledWith({ includeDetails: true })
-  const provider = Array.from(
-    document.querySelectorAll<HTMLButtonElement>('button'),
-  ).find((button) => button.textContent === 'Ollama')!
-  await act(async () => provider.click())
-  const edit = document.querySelector<HTMLButtonElement>(
-    'button[aria-label="Edit: fixture"]',
-  )!
-  expect(edit).not.toBeNull()
-  await act(async () => edit.click())
-  expect(tools().getAttribute('aria-checked')).toBe('true')
-  expect(field('local-model-url').value).toBe(existing.api_base)
-  await act(async () => tools().click())
-  await submit()
-  expect(modelHooks.add).toHaveBeenCalledOnce()
-  const [payload, verify] = modelHooks.add.mock.calls[0]
-  expect(verify).toBe(false)
-  expect(payload).toMatchObject({
-    llm_factory: 'Ollama',
-    llm_name: 'fixture',
+  expect(JSON.parse(result.instance.api_key)).toMatchObject({
+    endpoint_id: 'ep-fixture',
+    ark_api_key: 'synthetic',
+    custom_extension: [],
+  })
+  expect(result.model).toEqual({
+    model_name: 'custom',
+    model_types: ['chat'],
+    max_tokens: 0,
     is_tools: false,
   })
-  expect(JSON.parse(JSON.stringify(payload))).not.toHaveProperty('api_key')
+  expect(
+    buildInstancePayload('OpenAI', 'other', 'synthetic', undefined, {}, '')
+      .instance,
+  ).not.toHaveProperty('model_ids')
+  for (const max_tokens of [-1, NaN, Infinity, '0'])
+    expect(() =>
+      buildInstancePayload(
+        'Ollama',
+        'a',
+        '',
+        undefined,
+        { llm_name: 'x', max_tokens },
+        '',
+      ),
+    ).toThrow()
 })
 
 it.each([

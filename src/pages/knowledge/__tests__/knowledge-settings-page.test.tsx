@@ -1,3 +1,4 @@
+import { llmAPI } from '@/api/llm'
 import { act, Profiler } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -153,9 +154,8 @@ async function chooseParser(label: string) {
   await act(async () => option!.click())
 }
 function mockModels(load: () => Promise<unknown>) {
-  const originalGet = vi.mocked(apiClient.get).getMockImplementation()!
-  vi.mocked(apiClient.get).mockImplementation((path, config) =>
-    path === '/v1/llm/my_llms' ? (load() as never) : originalGet(path, config),
+  vi.mocked(llmAPI.getMyLLMs).mockImplementation(
+    load as typeof llmAPI.getMyLLMs,
   )
 }
 async function reload() {
@@ -208,10 +208,10 @@ beforeEach(async () => {
     },
   }
   writes = []
+  vi.spyOn(llmAPI, 'getMyLLMs').mockResolvedValue({})
+  vi.spyOn(llmAPI, 'getModelCatalog').mockResolvedValue({})
   vi.spyOn(apiClient, 'get').mockImplementation(async (path) => {
     if (path === '/v1/datasets/kb-1') return structuredClone(stored) as never
-    if (path === '/v1/llm/my_llms') return {} as never
-    if (path === '/v1/llm/list') return {} as never
     if (path === '/agents') return { total: 0, canvas: [] } as never
     throw new Error(`Unexpected GET ${path}`)
   })
@@ -253,16 +253,11 @@ afterEach(async () => {
 
 it('retains an edited parser draft when delayed model loading and refresh update the options', async () => {
   stored.embedding_model = 'late-embedding'
-  const originalGet = vi.mocked(apiClient.get).getMockImplementation()!
   let finishModelLoad!: (models: MyLLMProvider) => void
   let modelLoad = new Promise<MyLLMProvider>((resolve) => {
     finishModelLoad = resolve
   })
-  vi.mocked(apiClient.get).mockImplementation(async (path, config) =>
-    path === '/v1/llm/my_llms'
-      ? ((await modelLoad) as never)
-      : originalGet(path, config),
-  )
+  vi.mocked(llmAPI.getMyLLMs).mockImplementation(async () => await modelLoad)
   await reload()
   await selectOption('PDF parser', 'Plain Text')
   await input('Recommended chunk size', '321')
@@ -314,7 +309,7 @@ it('retains an edited parser draft when delayed model loading and refresh update
   ).toContain('Plain text')
   await save()
   expect(writes[0]).toMatchObject({
-    embedding_model: 'late-embedding@Builtin',
+    embedding_model: 'late-embedding',
     parser_config: { layout_recognize: 'Plain Text', chunk_token_num: 321 },
   })
   await reload()
@@ -357,7 +352,6 @@ for (const layoutValue of ['retired-vision@Provider', 'PaddleOCR']) {
 }
 
 it('saves distinct OCR models and a full vision deployment ID, reads them back, then preserves a removed model', async () => {
-  const originalGet = vi.mocked(apiClient.get).getMockImplementation()!
   let models: MyLLMProvider = {
     PaddleOCR: {
       tags: 'OCR',
@@ -396,11 +390,10 @@ it('saves distinct OCR models and a full vision deployment ID, reads them back, 
       },
     ],
   }
-  vi.mocked(apiClient.get).mockImplementation(async (path, config) => {
-    if (path === '/v1/llm/my_llms') return structuredClone(models) as never
-    if (path === '/v1/llm/list') return structuredClone(catalog) as never
-    return originalGet(path, config)
-  })
+  vi.mocked(llmAPI.getMyLLMs).mockImplementation(async () =>
+    structuredClone(models),
+  )
+  vi.mocked(llmAPI.getModelCatalog).mockResolvedValue(catalog)
   await reload()
   const selections = [
     {
@@ -677,7 +670,7 @@ it.each([
   },
 )
 
-it('keeps edits made before the models arrive and canonicalizes an untouched embedding model', async () => {
+it('keeps edits made before the models arrive and preserves an untouched legacy embedding value', async () => {
   let resolveModels!: (models: unknown) => void
   mockModels(() => new Promise((resolve) => (resolveModels = resolve)))
   stored.embedding_model = 'text-embedding-v3'
@@ -701,7 +694,7 @@ it('keeps edits made before the models arrive and canonicalizes an untouched emb
   expect(writes[0]).toMatchObject({
     name: 'Draft name',
     chunk_method: 'qa',
-    embedding_model: 'text-embedding-v3@Tongyi',
+    embedding_model: 'text-embedding-v3',
   })
 })
 

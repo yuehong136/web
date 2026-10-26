@@ -4,23 +4,16 @@
  * 使用 TanStack Query 管理 LLM 模型相关的服务器状态
  */
 
-import {
-  useQuery,
-  useMutation,
-  useQueryClient,
-  type QueryClient,
-} from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { llmAPI } from '@/api/llm'
-import { MutationErrorFeedback } from '@/lib/mutation-error-feedback'
 import {
-  buildLLMValue,
+  getLLMModelValue,
+  getLLMModelLabel,
   isLLMModelEnabled,
   type LLMValueMode,
   type MyLLMModel,
   type MyLLMProvider,
   type LLMFactoryInterface,
-  type AddLlmParams,
-  type ModelVerifyResult,
 } from '@/stores/model'
 
 // Query Keys 统一管理
@@ -30,13 +23,8 @@ export const llmKeys = {
   catalog: () => [...llmKeys.all, 'catalog'] as const,
   factories: () => [...llmKeys.all, 'factories'] as const,
   available: () => [...llmKeys.all, 'available'] as const,
+  rerank: () => [...llmKeys.all, 'knowledge-rerank'] as const,
 }
-
-const invalidateConfiguredModels = (queryClient: QueryClient) =>
-  Promise.all([
-    queryClient.invalidateQueries({ queryKey: llmKeys.myLLMs() }),
-    queryClient.invalidateQueries({ queryKey: llmKeys.available() }),
-  ])
 
 type SupportedLLMType = MyLLMModel['type']
 
@@ -69,9 +57,10 @@ export const useFetchMyLLMs = (options?: {
       queryKey: options?.includeDetails
         ? [...llmKeys.myLLMs(), 'details']
         : llmKeys.myLLMs(),
-      queryFn: () =>
+      queryFn: ({ signal }) =>
         llmAPI.getMyLLMs(
           options?.includeDetails ? { include_details: true } : undefined,
+          signal,
         ),
       staleTime: options?.staleTime ?? 5 * 60 * 1000,
       gcTime: 10 * 60 * 1000,
@@ -79,7 +68,7 @@ export const useFetchMyLLMs = (options?: {
     })
 
   return {
-    myLLMs: data ?? EMPTY_MY_LLMS,
+    myLLMs: isError ? EMPTY_MY_LLMS : (data ?? EMPTY_MY_LLMS),
     isLoading: isFetching,
     isPending,
     isPaused: fetchStatus === 'paused',
@@ -95,8 +84,8 @@ export const useFetchFactories = () => {
     LLMFactoryInterface[]
   >({
     queryKey: llmKeys.factories(),
-    queryFn: async () => {
-      const response = await llmAPI.getFactories()
+    queryFn: async ({ signal }) => {
+      const response = await llmAPI.getFactories(signal)
       return response
     },
     staleTime: 10 * 60 * 1000, // 工厂列表变化不频繁
@@ -105,166 +94,11 @@ export const useFetchFactories = () => {
   })
 
   return {
-    factories: data ?? EMPTY_FACTORIES,
+    factories: isError ? EMPTY_FACTORIES : (data ?? EMPTY_FACTORIES),
     isLoading: isFetching,
     isError,
     error,
     refetch,
-  }
-}
-
-// 设置 API Key（云服务厂商）；verify 模式返回校验结果且不刷新列表，否则失效 myLLMs
-export const useSetApiKey = () => {
-  const queryClient = useQueryClient()
-
-  const mutation = useMutation({
-    meta: { errorFeedback: MutationErrorFeedback.Local },
-    mutationFn: (params: {
-      llmFactory: string
-      apiKey: string
-      baseUrl?: string
-      additionalParams?: Record<string, unknown>
-      verify?: boolean
-    }) =>
-      llmAPI.setApiKey(
-        params.llmFactory,
-        params.apiKey,
-        params.baseUrl,
-        params.additionalParams,
-        params.verify,
-      ),
-    onSuccess: (_response, params) => {
-      if (!params.verify) {
-        return invalidateConfiguredModels(queryClient)
-      }
-      return undefined
-    },
-  })
-
-  // 位置参数包装，保持与原 store.setApiKey 一致的调用签名与返回形态
-  const setApiKey = async (
-    llmFactory: string,
-    apiKey: string,
-    baseUrl?: string,
-    additionalParams?: Record<string, unknown>,
-    verify = false,
-  ): Promise<ModelVerifyResult | undefined> => {
-    const response = await mutation.mutateAsync({
-      llmFactory,
-      apiKey,
-      baseUrl,
-      additionalParams,
-      verify,
-    })
-    if (verify) {
-      return {
-        isValid: Boolean(response?.success),
-        logs: response?.success ? '验证成功' : '验证失败',
-      }
-    }
-    return undefined
-  }
-
-  return {
-    setApiKey,
-    isLoading: mutation.isPending,
-    isError: mutation.isError,
-    error: mutation.error,
-  }
-}
-
-// 添加本地模型；verify 模式返回校验结果且不刷新列表，否则失效 myLLMs
-export const useAddLLM = () => {
-  const queryClient = useQueryClient()
-
-  const mutation = useMutation({
-    meta: { errorFeedback: MutationErrorFeedback.Local },
-    mutationFn: ({
-      params,
-      verify,
-    }: {
-      params: AddLlmParams
-      verify?: boolean
-    }) => llmAPI.addLLM(params, verify),
-    onSuccess: (_response, { verify }) => {
-      if (!verify) {
-        return invalidateConfiguredModels(queryClient)
-      }
-      return undefined
-    },
-  })
-
-  const addLLM = async (
-    params: AddLlmParams,
-    verify = false,
-  ): Promise<ModelVerifyResult | undefined> => {
-    const response = await mutation.mutateAsync({ params, verify })
-    if (verify) {
-      return {
-        isValid: Boolean(response?.success),
-        logs: response?.success ? '验证成功' : '验证失败',
-      }
-    }
-    return undefined
-  }
-
-  return {
-    addLLM,
-    isLoading: mutation.isPending,
-    isError: mutation.isError,
-    error: mutation.error,
-  }
-}
-
-// 启用/禁用指定模型，成功后失效 myLLMs
-export const useEnableLLM = () => {
-  const queryClient = useQueryClient()
-
-  const mutation = useMutation({
-    mutationFn: ({
-      llmFactory,
-      llmName,
-      enabled,
-    }: {
-      llmFactory: string
-      llmName: string
-      enabled: boolean
-    }) => llmAPI.enableLlm(llmFactory, llmName, enabled),
-    onSuccess: () => {
-      return invalidateConfiguredModels(queryClient)
-    },
-  })
-
-  const enableLlm = (llmFactory: string, llmName: string, enabled: boolean) =>
-    mutation.mutateAsync({ llmFactory, llmName, enabled })
-
-  return {
-    enableLlm,
-    isLoading: mutation.isPending,
-    isError: mutation.isError,
-    error: mutation.error,
-  }
-}
-
-// 删除 LLM 工厂
-export const useDeleteFactory = () => {
-  const queryClient = useQueryClient()
-
-  const { mutateAsync, isPending, isError, error } = useMutation({
-    mutationFn: async (llmFactory: string) => {
-      await llmAPI.deleteFactory(llmFactory)
-      return llmFactory
-    },
-    onSuccess: () => {
-      return invalidateConfiguredModels(queryClient)
-    },
-  })
-
-  return {
-    deleteFactory: mutateAsync,
-    isLoading: isPending,
-    isError,
-    error,
   }
 }
 
@@ -278,8 +112,8 @@ export const useLLMOptions = (type?: 'chat' | 'embedding' | 'rerank') => {
         (model) => (!type || model.type === type) && isLLMModelEnabled(model),
       )
       .map((model) => ({
-        label: `${providerName} / ${model.name}`,
-        value: model.name,
+        label: `${providerName} / ${getLLMModelLabel(model)}`,
+        value: getLLMModelValue(model, providerName),
         provider: providerName,
         type: model.type,
       }))
@@ -305,7 +139,7 @@ export const useLLMGroupedOptionsByTypes = (
   },
 ) => {
   const { myLLMs, isLoading } = useFetchMyLLMs()
-  const allowedTypes = types?.length ? new Set(types) : null
+  const allowedTypes = types ? new Set(types) : null
   const valueMode = options?.valueMode || 'name'
 
   const groupedOptions = Object.entries(myLLMs)
@@ -317,8 +151,8 @@ export const useLLMGroupedOptionsByTypes = (
             isLLMModelEnabled(model),
         )
         .map((model: MyLLMModel) => ({
-          label: model.name,
-          value: buildLLMValue(model.name, providerName, valueMode),
+          label: getLLMModelLabel(model),
+          value: getLLMModelValue(model, providerName, valueMode),
           providerName,
           type: model.type,
         }))
@@ -329,6 +163,14 @@ export const useLLMGroupedOptionsByTypes = (
         options: models,
       } satisfies LLMGroupedOptionGroup
     })
+    .map((group) => ({
+      ...group,
+      options: [
+        ...new Map(
+          group.options.map((option) => [option.value, option]),
+        ).values(),
+      ],
+    }))
     .filter((group) => group.options.length > 0)
 
   return { options: groupedOptions, isLoading }

@@ -99,10 +99,15 @@ export function prepareDataSourceValues(
     ...prepared
   } = values
   if (source === DataSourceKey.TEAMS || source === DataSourceKey.ONEDRIVE) {
-    return {
-      ...prepared,
-      config: { ...values.config, sync_deleted_files: false },
+    const config: Record<string, unknown> = {
+      ...values.config,
+      sync_deleted_files: false,
     }
+    if (config.batch_size == null || config.batch_size === '')
+      delete config.batch_size
+    if (config.sync_batch_size == null || config.sync_batch_size === '')
+      delete config.sync_batch_size
+    return { ...prepared, config }
   }
   if (source === DataSourceKey.SLACK) {
     return {

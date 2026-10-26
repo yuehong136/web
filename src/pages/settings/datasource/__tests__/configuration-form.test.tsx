@@ -471,5 +471,8 @@ it.each([DataSourceKey.TEAMS, DataSourceKey.ONEDRIVE])(
     expect(input('config.credentials.client_id').value).toBe(
       'synthetic-client_id',
     )
+    await change(input('config.batch_size'), '')
+    await click(button('Confirm'))
+    expect(submit.mock.lastCall![0].config).not.toHaveProperty('batch_size')
   },
 )

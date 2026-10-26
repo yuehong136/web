@@ -1,6 +1,7 @@
 import {
   isLLMModelEnabled,
-  parseLLMValue,
+  resolveLLMValue,
+  getLLMModelValue,
   type MyLLMProvider,
 } from '@/stores/model'
 
@@ -9,17 +10,23 @@ export function chatModelSetting(
   providers: MyLLMProvider,
   value: string,
 ): { model_type: 'chat' | 'image2text' } {
-  const { modelName, providerName } = parseLLMValue(value)
-  const matches = Object.entries(providers).flatMap(([name, provider]) =>
-    providerName && providerName !== name
-      ? []
-      : provider.llm.filter(
-          (model) =>
-            model.name === modelName &&
-            (model.type === 'chat' || model.type === 'image2text') &&
-            isLLMModelEnabled(model),
-        ),
+  const resolved = resolveLLMValue(providers, value, true)
+  if (!resolved.matched) throw new Error('chat-model-unavailable')
+  const matches = Object.entries(providers).flatMap(([provider, data]) =>
+    data.llm.filter(
+      (model) =>
+        (model.type === 'chat' || model.type === 'image2text') &&
+        isLLMModelEnabled(model) &&
+        (getLLMModelValue(model, provider) === value ||
+          (!/^[1-9]\d*$/.test(value) &&
+            provider === resolved.providerName &&
+            model.name === resolved.modelName)),
+    ),
   )
-  if (matches.length !== 1) throw new Error('chat-model-unavailable')
-  return { model_type: matches[0].type as 'chat' | 'image2text' }
+  if (!matches.length) throw new Error('chat-model-unavailable')
+  return {
+    model_type: matches.some((model) => model.type === 'image2text')
+      ? 'image2text'
+      : 'chat',
+  }
 }

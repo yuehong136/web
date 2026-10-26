@@ -19,6 +19,13 @@ const models = {
     ],
   },
 }
+vi.mock('@/hooks/use-model-provider-request', () => ({
+  useDefaultModelReference: () => ({
+    reference: '',
+    isPending: false,
+    isError: false,
+  }),
+}))
 vi.mock('@/hooks/use-llm-request', () => ({
   useFetchMyLLMs: () => ({ myLLMs: models, isLoading: false }),
 }))

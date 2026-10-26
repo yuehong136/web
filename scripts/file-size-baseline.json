@@ -3,7 +3,7 @@
   "src/types/index.ts": 2075,
   "src/themes/theme-generator.ts": 1998,
   "src/themes/tokens.ts": 1863,
-  "src/pages/settings/model-providers/components/api-key-modal.tsx": 1630,
+  "src/pages/settings/model-providers/components/api-key-modal.tsx": 1615,
   "src/pages/agent/options/google.ts": 1589,
   "src/types/api.ts": 1486,
   "src/pages/agent/constant/index.ts": 1373,

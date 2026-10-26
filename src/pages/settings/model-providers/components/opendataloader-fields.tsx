@@ -33,7 +33,7 @@ export const OpenDataLoaderFields = ({
         id="opendataloader-model-type"
         value="OCR"
         disabled
-        className="bg-surface-secondary cursor-not-allowed"
+        className="cursor-not-allowed bg-surface-secondary"
       />
     </div>
     <div>
