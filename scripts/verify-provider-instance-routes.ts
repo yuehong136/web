@@ -6,6 +6,8 @@ import {
   writeSync,
   fsyncSync,
   closeSync,
+  constants,
+  fstatSync,
 } from 'node:fs'
 import { apiClient, APIError } from '../src/api/client'
 import { createModelProvidersAPI } from '../src/api/llm-providers'
@@ -52,7 +54,14 @@ assert.ok(owners.ownerId && owners.foreignId && descriptor.scratchDatabase)
 const origin = new URL(descriptor.origin)
 assert.ok(['127.0.0.1', 'localhost', '[::1]'].includes(origin.hostname))
 const api = createModelProvidersAPI(descriptor.origin)
-const fd = openSync(process.env.MULTIRAG_RUN_JOURNAL!, 'a')
+const fd = openSync(
+  process.env.MULTIRAG_RUN_JOURNAL!,
+  constants.O_WRONLY | constants.O_APPEND | (constants.O_NOFOLLOW ?? 0),
+)
+assert.ok(
+  fstatSync(fd).isFile(),
+  'The canonical journal must be an existing regular file',
+)
 const record = (kind: string, data: object) => {
   writeSync(fd, JSON.stringify({ kind, ...data }) + '\n')
   fsyncSync(fd)
