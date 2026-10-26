@@ -4,6 +4,7 @@ export default {
     description:
       'Manage workspace configuration, team capabilities, and developer access.',
     models: {
+      allProviders: 'All',
       instances: {
         name: 'Instance name',
         add: 'Add instance',
@@ -22,7 +23,7 @@ export default {
         deleteConfirm:
           'Delete {{name}}? Models used by applications, datasets or defaults must be unlinked first.',
         partial:
-          'The instance has been created. If adding its model fails, retry here to finish the model configuration.',
+          'The instance has been created. Keep a custom model name to retry, or close this form and manage models in the created instance. Clearing the name here cannot register the provider catalog.',
       },
       volcEngine: { modelId: 'Model ID', modelIdRequired: 'Enter a Model ID.' },
       localModel: {

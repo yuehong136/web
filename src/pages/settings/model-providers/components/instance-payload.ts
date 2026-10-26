@@ -120,9 +120,11 @@ export async function saveProviderInstance({
     if (!isCurrent()) throw new DOMException('Request superseded', 'AbortError')
   }
   current()
+  const identity = `${provider}\u0000${payload.instance.instance_name}`
+  if (createdIdentity === identity && !payload.model)
+    throw new Error('partial-instance-model-required')
   if (!providerExists) await api.createProvider(provider)
   current()
-  const identity = `${provider}\u0000${payload.instance.instance_name}`
   if (createdIdentity !== identity) {
     await api.createInstance(provider, payload.instance)
     current()

@@ -120,3 +120,47 @@ test('a partial model failure retries the current credential and endpoint before
     region: '',
   })
 })
+
+test('clearing a custom model after partial instance creation rejects before writes', async () => {
+  const calls: string[] = []
+  let created: string | null = null
+  const api = {
+    createProvider: async () => {
+      calls.push('provider')
+    },
+    createInstance: async () => {
+      calls.push('instance')
+    },
+    updateInstance: async () => {
+      calls.push('update')
+    },
+    addModel: async () => {
+      calls.push('model')
+      throw Error('controlled model failure')
+    },
+  }
+  const save = (model: string) =>
+    saveProviderInstance({
+      provider: 'Anthropic',
+      providerExists: true,
+      payload: buildInstancePayload(
+        'Anthropic',
+        'partial',
+        'synthetic-key',
+        '',
+        model ? { llm_name: model, mdl_type: 'chat', max_tokens: 0 } : {},
+        '',
+      ),
+      createdIdentity: created,
+      isCurrent: () => true,
+      onCreated: (identity) => {
+        created = identity
+      },
+      api,
+    })
+  await assert.rejects(save('custom-model'), /controlled model failure/)
+  assert.deepEqual(calls, ['instance', 'model'])
+  await assert.rejects(save(''), /partial-instance-model-required/)
+  assert.deepEqual(calls, ['instance', 'model'])
+  assert.equal(created, 'Anthropic\u0000partial')
+})

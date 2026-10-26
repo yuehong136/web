@@ -43,7 +43,12 @@ export function HomeComposer({
   const ownInput = useRef<SenderRef>(null)
   const sender = inputRef ?? ownInput
   const atButtonRef = useRef<HTMLButtonElement>(null!)
-  const { myLLMs, isLoading: modelsLoading } = useFetchMyLLMs()
+  const {
+    myLLMs,
+    isLoading: modelsLoading,
+    isPending: modelsPending,
+    isError: modelsError,
+  } = useFetchMyLLMs()
   const defaultModel = useDefaultModelReference('chat')
   const {
     selectedMCPIds,
@@ -84,7 +89,10 @@ export function HomeComposer({
     if (selectedApps.length) return
     if (
       !modelsLoading &&
+      !modelsPending &&
+      !modelsError &&
       !defaultModel.isPending &&
+      !defaultModel.isError &&
       myLLMs &&
       !hasEnabledModelName(myLLMs, selectedModelId)
     ) {
@@ -94,8 +102,11 @@ export function HomeComposer({
     }
   }, [
     defaultModel.isPending,
+    defaultModel.isError,
     defaultModel.reference,
     modelsLoading,
+    modelsPending,
+    modelsError,
     myLLMs,
     selectedModelId,
     setSelectedModelId,

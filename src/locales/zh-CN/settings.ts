@@ -3,6 +3,7 @@ export default {
     title: '设置',
     description: '统一管理工作空间配置、团队能力和开发者接入能力。',
     models: {
+      allProviders: '全部',
       instances: {
         name: '实例名称',
         add: '添加实例',
@@ -20,7 +21,8 @@ export default {
           '未能保存更改。请检查配置或已有模型引用后重试，已填写的内容会保留。',
         deleteConfirm:
           '删除 {{name}}？应用、知识库或默认设置正在使用的模型需要先解除关联。',
-        partial: '实例已创建。如果添加模型失败，请在此重试以完成模型配置。',
+        partial:
+          '实例已创建。请保留自定义模型名称后重试，或关闭表单后在已建实例中管理模型。在此清空名称无法注册厂商目录。',
       },
       volcEngine: { modelId: '模型 ID', modelIdRequired: '请输入模型 ID。' },
       localModel: {
