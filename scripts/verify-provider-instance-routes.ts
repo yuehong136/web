@@ -58,11 +58,14 @@ const record = (kind: string, data: object) => {
   fsyncSync(fd)
 }
 const token = (path: string) => readFileSync(path, 'utf8').trim()
-const denied = async (action: () => Promise<unknown>): Promise<number> => {
+const denied = async (
+  action: () => Promise<unknown>,
+  expectedStatus: number,
+): Promise<number> => {
   let status = 0
   await assert.rejects(action(), (error: unknown) => {
     assert.ok(error instanceof APIError)
-    assert.ok([400, 403, 404, 409].includes(error.status))
+    assert.equal(error.status, expectedStatus)
     status = error.status
     return true
   })
@@ -155,14 +158,17 @@ async function owner(): Promise<object> {
     (await api.defaults()).find((row) => row.model_type === 'ocr')?.reference,
     second.reference,
   )
-  const dependencyStatus = await denied(() => api.deleteProvider(providerName))
+  const dependencyStatus = await denied(
+    () => api.deleteProvider(providerName),
+    409,
+  )
   assert.equal(dependencyStatus, 409)
   await api.setModelStatus(providerName, instanceNames[0], first.id, false)
   assert.equal(
     (await api.models()).find((row) => row.id === first.id)?.effective_status,
     'inactive',
   )
-  await denied(() => api.setDefault('chat', first.id))
+  await denied(() => api.setDefault('chat', first.id), 400)
   await api.setModelStatus(providerName, instanceNames[0], first.id, true)
   await api.setDefault('ocr', null)
   await api.deleteInstance(providerName, instanceNames[1])
@@ -215,23 +221,28 @@ async function foreign(): Promise<object> {
     modelId: state.modelIds.surviving,
   })
   const statuses = {
-    instances: await denied(() => api.instances(providerName)),
-    patch: await denied(() =>
-      api.updateInstance(providerName, state.survivingInstanceName, {
-        base_url: 'https://forbidden.invalid',
-      }),
+    instances: await denied(() => api.instances(providerName), 404),
+    patch: await denied(
+      () =>
+        api.updateInstance(providerName, state.survivingInstanceName, {
+          base_url: 'https://forbidden.invalid',
+        }),
+      404,
     ),
-    default: await denied(() =>
-      api.setDefault('chat', state.modelIds.surviving),
+    default: await denied(
+      () => api.setDefault('chat', state.modelIds.surviving),
+      404,
     ),
-    modelDelete: await denied(() =>
-      api.deleteModel(
-        providerName,
-        state.survivingInstanceName,
-        state.modelIds.surviving,
-      ),
+    modelDelete: await denied(
+      () =>
+        api.deleteModel(
+          providerName,
+          state.survivingInstanceName,
+          state.modelIds.surviving,
+        ),
+      404,
     ),
-    providerDelete: await denied(() => api.deleteProvider(providerName)),
+    providerDelete: await denied(() => api.deleteProvider(providerName), 404),
   }
   assert.equal(
     (await api.models()).some((row) => row.id === state.modelIds.surviving),
