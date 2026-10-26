@@ -1,5 +1,29 @@
 export default {
   datasource: {
+    microsoft: {
+      teamsDescription:
+        '通过 Microsoft Graph 同步 Microsoft Teams 频道帖子及回复。',
+      onedriveDescription:
+        '通过 Microsoft Graph 同步明确指定的 OneDrive 云盘文件。',
+      tenant_id: '租户 ID',
+      client_id: '客户端 ID',
+      client_secret: '客户端密钥',
+      teamsPermissions:
+        '需要 Team.ReadBasic.All 和 ChannelMessage.Read.All 应用权限，并获得管理员同意。',
+      onedrivePermissions: '需要 Files.Read.All 应用权限，并获得管理员同意。',
+      driveIds: '云盘 ID',
+      driveIdsPlaceholder: '输入云盘 ID 后按回车',
+      driveIdsTip:
+        '只同步列表中的云盘；空列表不会同步任何云盘。请从 Microsoft Graph 的用户、组或站点查询云盘 ID。',
+      driveIdsInvalid: '请输入不重复且非空的云盘 ID。',
+      folderPath: '文件夹路径（可选）',
+      folderPathTip:
+        '限制为各指定云盘中的子文件夹；留空则同步指定云盘全部文件。',
+      folderPathInvalid: '文件夹路径不能包含父目录片段（..）。',
+      batchSize: '文档批次大小',
+      batchSizeInvalid: '请输入正整数。',
+    },
+
     sharepoint: {
       description: '通过 Microsoft Graph 同步 SharePoint 文档库。',
       siteUrl: '站点 URL',

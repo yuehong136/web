@@ -1,6 +1,16 @@
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Database, Github, Globe, Mail, Rss, Server, Table } from 'lucide-react'
+import {
+  Cloud,
+  Database,
+  Github,
+  Globe,
+  Mail,
+  Rss,
+  Server,
+  Table,
+  UsersRound,
+} from 'lucide-react'
 import SvgIcon from '@/components/ui/svg-icon'
 import { DataSourceKey, type IDataSourceInfoMap } from '../types'
 import { getBaseFormFields, getDataSourceFormFields } from './form-fields'
@@ -39,6 +49,16 @@ const ICON_SIZE = 28
 export const generateDataSourceInfo = (
   t: (key: string) => string,
 ): IDataSourceInfoMap => ({
+  [DataSourceKey.TEAMS]: {
+    name: 'Microsoft Teams',
+    description: t('datasource.microsoft.teamsDescription'),
+    icon: <UsersRound size={ICON_SIZE} className="text-text-primary" />,
+  },
+  [DataSourceKey.ONEDRIVE]: {
+    name: 'OneDrive',
+    description: t('datasource.microsoft.onedriveDescription'),
+    icon: <Cloud size={ICON_SIZE} className="text-text-primary" />,
+  },
   [DataSourceKey.SHAREPOINT]: {
     name: 'SharePoint',
     description: t('datasource.sharepoint.description'),
@@ -341,6 +361,7 @@ export const useDataSourceFormFields = () => {
  */
 export const DataSourceGroups = {
   storage: [
+    DataSourceKey.ONEDRIVE,
     DataSourceKey.SEAFILE,
     DataSourceKey.S3,
     DataSourceKey.R2,
@@ -351,6 +372,7 @@ export const DataSourceGroups = {
     DataSourceKey.WEBDAV,
   ],
   collaboration: [
+    DataSourceKey.TEAMS,
     DataSourceKey.SHAREPOINT,
     DataSourceKey.SLACK,
     DataSourceKey.NOTION,

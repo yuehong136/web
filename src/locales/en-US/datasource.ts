@@ -1,5 +1,31 @@
 export default {
   datasource: {
+    microsoft: {
+      teamsDescription:
+        'Sync Microsoft Teams channel posts and replies through Microsoft Graph.',
+      onedriveDescription:
+        'Sync files from explicitly selected OneDrive drives through Microsoft Graph.',
+      tenant_id: 'Tenant ID',
+      client_id: 'Client ID',
+      client_secret: 'Client secret',
+      teamsPermissions:
+        'Requires Team.ReadBasic.All and ChannelMessage.Read.All application permissions with administrator consent.',
+      onedrivePermissions:
+        'Requires Files.Read.All application permission with administrator consent.',
+      driveIds: 'Drive IDs',
+      driveIdsPlaceholder: 'Enter a drive ID, then press Enter',
+      driveIdsTip:
+        'Only these drives are synced. An empty list syncs no drives. Obtain drive IDs from a user, group or site in Microsoft Graph.',
+      driveIdsInvalid: 'Enter unique, non-empty drive IDs.',
+      folderPath: 'Folder path (optional)',
+      folderPathTip:
+        'Limit sync to a subfolder in each selected drive. Leave blank to sync the full selected drives.',
+      folderPathInvalid:
+        'Enter a folder path without parent directory segments (..).',
+      batchSize: 'Document batch size',
+      batchSizeInvalid: 'Enter a positive whole number.',
+    },
+
     sharepoint: {
       description:
         'Sync SharePoint document libraries through Microsoft Graph.',

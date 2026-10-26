@@ -13,6 +13,7 @@ import { getMySQLFormFields, getPostgreSQLFormFields } from './rdbms'
 import { getJiraFormFields } from '@/pages/settings/datasource/constants/jira'
 import { getDeletionSyncFields } from '@/pages/settings/datasource/constants/sync-settings'
 import { getRestApiFormFields } from './rest-api'
+import { getMicrosoftFormFields } from './microsoft'
 import { getSharePointFormFields, getSlackFormFields } from './collaboration'
 
 /**
@@ -53,6 +54,8 @@ export const getBaseFormFields = (
 const getSourceFormFields = (
   t: (key: string) => string,
 ): Record<DataSourceKey, FormFieldConfig[]> => ({
+  [DataSourceKey.TEAMS]: getMicrosoftFormFields(DataSourceKey.TEAMS, t),
+  [DataSourceKey.ONEDRIVE]: getMicrosoftFormFields(DataSourceKey.ONEDRIVE, t),
   [DataSourceKey.REST_API]: getRestApiFormFields(t),
   [DataSourceKey.SHAREPOINT]: getSharePointFormFields(t),
   [DataSourceKey.SLACK]: getSlackFormFields(t),

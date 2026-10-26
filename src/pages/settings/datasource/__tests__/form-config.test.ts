@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DataSourceKey } from '@/pages/settings/datasource/types'
+import { DataSourceKey, FormFieldType } from '@/pages/settings/datasource/types'
 import { getDataSourceFormFields } from '@/pages/settings/datasource/constants/form-fields'
 import {
   getDataSourceDefaultValues,
@@ -479,4 +479,57 @@ describe('connector configuration contracts', () => {
       ),
     ).toBe('datasource.jiraCloudCredentialsRequired')
   })
+})
+
+it('round-trips Microsoft source scopes, extensions and masked credentials without enabling deletion sync', () => {
+  for (const source of [DataSourceKey.TEAMS, DataSourceKey.ONEDRIVE]) {
+    const config = {
+      drive_ids: [],
+      batch_size: 1,
+      sync_deleted_files: true,
+      custom: 0,
+      credentials: {
+        tenant_id: 'tenant',
+        client_id: 'client',
+        client_secret: '********',
+        custom: [],
+      },
+    }
+    const values = getDataSourceDefaultValues(source, { config })
+    expect(prepareDataSourceValues(source, values).config).toMatchObject({
+      ...config,
+      sync_deleted_files: false,
+    })
+    expect(config.sync_deleted_files).toBe(true)
+    const fields = getDataSourceFormFields(t)[source]
+    expect(
+      fields.find((field) => field.name === 'config.sync_deleted_files'),
+    ).toBeUndefined()
+    expect(
+      fields.find((field) => field.name === 'config.credentials.client_secret')
+        ?.type,
+    ).toBe(FormFieldType.Password)
+    const validate = fields.find(
+      (field) => field.name === 'config.batch_size',
+    )!.validate!
+    for (const value of [1, 32, undefined, ''])
+      expect(validate(value)).toBe(true)
+    for (const value of [0, -1, 1.5, NaN, Infinity, '32'])
+      expect(validate(value)).not.toBe(true)
+  }
+  const fields = getDataSourceFormFields(t)[DataSourceKey.ONEDRIVE]
+  const drives = fields.find(
+    (field) => field.name === 'config.drive_ids',
+  )!.validate!
+  for (const value of [[], ['drive-a', 'drive-b']])
+    expect(drives(value)).toBe(true)
+  for (const value of [undefined, null, '', [''], [' a'], ['a', 'a'], [1]])
+    expect(drives(value)).not.toBe(true)
+  const folder = fields.find(
+    (field) => field.name === 'config.folder_path',
+  )!.validate!
+  for (const value of ['', '/Documents/Reports', 'Reports'])
+    expect(folder(value)).toBe(true)
+  for (const value of ['../Reports', '/a/../b', '/%2e%2e/', '%ZZ', 1])
+    expect(folder(value)).not.toBe(true)
 })

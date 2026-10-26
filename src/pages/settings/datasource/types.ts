@@ -5,6 +5,7 @@ import type { ReactNode } from 'react'
  */
 export enum DataSourceKey {
   // 云存储类
+  ONEDRIVE = 'onedrive',
   S3 = 's3',
   R2 = 'r2',
   GOOGLE_CLOUD_STORAGE = 'google_cloud_storage',
@@ -24,6 +25,7 @@ export enum DataSourceKey {
   ZENDESK = 'zendesk',
   SHAREPOINT = 'sharepoint',
   SLACK = 'slack',
+  TEAMS = 'teams',
 
   // 代码仓库类
   GITHUB = 'github',
