@@ -36,6 +36,7 @@ import { toast } from '@/lib/toast'
 import { cn, copyToClipboard } from '@/lib/utils'
 import type { Environment } from '@/types/api'
 import { CreateModeVariablesTable } from './create-mode-variables-table'
+import { ResolvedVariablesSummary } from './resolved-variables-summary'
 
 interface EnvironmentDetailProps {
   environmentId: string | 'global' | 'create-new'
@@ -844,44 +845,10 @@ export function EnvironmentDetail({
                   </div>
                 </div>
 
-                {/* 使用的变量 */}
-                {resolveResult.variables_used.length > 0 && (
-                  <div className="space-y-2">
-                    <Label>使用的变量</Label>
-                    <div className="flex flex-wrap gap-1">
-                      {resolveResult.variables_used.map((variable) => (
-                        <Badge
-                          key={variable}
-                          variant="secondary"
-                          className="text-xs"
-                        >
-                          {variable}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* 缺失的变量 */}
-                {resolveResult.missing_variables.length > 0 && (
-                  <div className="space-y-2">
-                    <Label className="text-status-error">缺失的变量</Label>
-                    <div className="flex flex-wrap gap-1">
-                      {resolveResult.missing_variables.map((variable) => (
-                        <Badge
-                          key={variable}
-                          variant="destructive"
-                          className="text-xs"
-                        >
-                          {variable}
-                        </Badge>
-                      ))}
-                    </div>
-                    <p className="text-xs text-status-error">
-                      这些变量在当前环境中不存在，解析时将保持原始格式
-                    </p>
-                  </div>
-                )}
+                <ResolvedVariablesSummary
+                  variablesUsed={resolveResult.variables_used}
+                  missingVariables={resolveResult.missing_variables}
+                />
               </div>
             )}
           </div>

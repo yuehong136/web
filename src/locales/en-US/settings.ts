@@ -119,10 +119,44 @@ export default {
         createUser: 'New user',
         exitAdministration: 'Exit administration',
       },
+      form: {
+        email: 'Email',
+        password: 'Password',
+        newPassword: 'New password',
+        confirmPassword: 'Confirm password',
+        passwordPlaceholder: 'At least 8 characters',
+        confirmPasswordPlaceholder: 'Enter the password again',
+        confirmNewPasswordPlaceholder: 'Enter the new password again',
+      },
+      validation: {
+        emailRequired: 'Enter an email address',
+        emailInvalid: 'Enter a valid email address',
+        passwordRequired: 'Enter a password',
+        newPasswordRequired: 'Enter a new password',
+        passwordLength: 'Use at least 8 characters',
+        confirmPasswordRequired: 'Confirm the password',
+        passwordMismatch: 'The passwords do not match',
+      },
+      createUser: {
+        makeAdmin: 'Make administrator',
+        makeAdminHint: 'Administrators have full access to the system',
+        submit: 'Create user',
+        submitting: 'Creating...',
+      },
+      changePassword: {
+        title: 'Change password',
+        submit: 'Save password',
+      },
     },
     system: {
       live: 'Live monitoring',
       updating: 'Updating',
+    },
+    environment: {
+      variablesUsed: 'Variables used',
+      missingVariables: 'Missing variables',
+      missingVariablesHint:
+        'These variables do not exist in this environment and are kept as written during resolution.',
     },
     api: {
       documentation: 'API documentation',

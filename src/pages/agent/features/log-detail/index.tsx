@@ -6,6 +6,7 @@ import {
   MessageSquare,
 } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Badge } from '@/components/ui/badge'
 import { cn, formatTimestampDetailed } from '@/lib/utils'
 import type { AgentSession } from '@/types/agent'
@@ -21,12 +22,12 @@ import { useLogDetail } from './hooks/use-log-detail'
 
 type LogDetailProps = LogDetailSource
 
-const STATUS_LABEL_MAP: Record<LogDetailViewModel['status'], string> = {
-  running: '运行中',
-  success: '成功',
-  error: '失败',
-  unknown: '未知',
-  idle: '待运行',
+const STATUS_LABEL_KEYS: Record<LogDetailViewModel['status'], string> = {
+  running: 'agent.logDetail.status.running',
+  success: 'agent.logDetail.status.success',
+  error: 'agent.logDetail.status.error',
+  unknown: 'agent.logDetail.status.unknown',
+  idle: 'agent.logDetail.status.idle',
 }
 
 const STATUS_VARIANT_MAP: Record<
@@ -137,19 +138,22 @@ function RuntimeSummary({
   viewModel: LogDetailViewModel
   session?: AgentSession
 }) {
+  const { t } = useTranslation()
   return (
     <aside className="hidden w-[300px] shrink-0 border-l border-components-split-pane-border bg-components-console-surface xl:flex xl:flex-col">
       <div className="border-b border-border-subtle px-space-lg py-space-base">
-        <h4 className="text-sm font-semibold text-text-primary">运行摘要</h4>
+        <h4 className="text-sm font-semibold text-text-primary">
+          {t('agent.logDetail.runSummary')}
+        </h4>
       </div>
       <div className="min-h-0 flex-1 overflow-auto">
         <div className="border-b border-border-subtle px-space-lg py-space-base">
           <h5 className="mb-space-sm text-xs font-semibold tracking-wide text-text-tertiary uppercase">
-            基本信息
+            {t('agent.logDetail.basicInfo')}
           </h5>
           <div className="grid grid-cols-[72px_1fr] gap-x-space-sm gap-y-space-xs">
             <SummaryRow
-              label="状态"
+              label={t('agent.logDetail.fields.status')}
               value={
                 <span
                   className={cn(
@@ -158,30 +162,36 @@ function RuntimeSummary({
                   )}
                 >
                   <span className="h-1.5 w-1.5 rounded-radius-full bg-current" />
-                  {STATUS_LABEL_MAP[viewModel.status]}
+                  {t(STATUS_LABEL_KEYS[viewModel.status])}
                 </span>
               }
             />
-            <SummaryRow label="来源" value={viewModel.source || '-'} />
             <SummaryRow
-              label="用户"
+              label={t('agent.logDetail.fields.source')}
+              value={viewModel.source || '-'}
+            />
+            <SummaryRow
+              label={t('agent.logDetail.fields.user')}
               value={String(session?.user_id || session?.exp_user_id || '-')}
             />
             <SummaryRow
-              label="开始"
+              label={t('agent.logDetail.fields.start')}
               value={formatTime(session?.create_time || session?.create_date)}
             />
             <SummaryRow
-              label="结束"
+              label={t('agent.logDetail.fields.end')}
               value={formatTime(session?.update_time || session?.update_date)}
             />
             <SummaryRow
-              label="耗时"
+              label={t('agent.logDetail.fields.duration')}
               value={formatDuration(session?.duration)}
             />
-            <SummaryRow label="Token" value={session?.tokens ?? '-'} />
             <SummaryRow
-              label="轮次"
+              label={t('agent.logDetail.fields.tokens')}
+              value={session?.tokens ?? '-'}
+            />
+            <SummaryRow
+              label={t('agent.logDetail.fields.rounds')}
               value={session?.round ?? session?.message_count ?? '-'}
             />
           </div>
@@ -192,7 +202,7 @@ function RuntimeSummary({
             <div className="rounded-radius-md border border-status-error-border bg-status-error-subtle p-space-sm text-xs text-status-error">
               <div className="mb-space-xs flex items-center gap-space-xs font-semibold">
                 <AlertTriangle className="h-3.5 w-3.5" />
-                错误摘要
+                {t('agent.logDetail.errorSummary')}
               </div>
               <p className="font-mono leading-relaxed">
                 {viewModel.errorMessage}
@@ -203,7 +213,7 @@ function RuntimeSummary({
 
         <div className="border-b border-border-subtle px-space-lg py-space-base">
           <h5 className="mb-space-sm flex items-center gap-space-xs text-xs font-semibold tracking-wide text-text-tertiary uppercase">
-            Trace 时间线
+            {t('agent.logDetail.traceTimeline')}
             <span className="ml-auto font-mono text-[11px] text-text-caption">
               {viewModel.traceItems.length}
             </span>
@@ -216,17 +226,17 @@ function RuntimeSummary({
 
         <div className="px-space-lg py-space-base">
           <h5 className="mb-space-sm text-xs font-semibold tracking-wide text-text-tertiary uppercase">
-            标识
+            {t('agent.logDetail.identifiers')}
           </h5>
           <div className="grid grid-cols-[72px_1fr] gap-x-space-sm gap-y-space-xs">
             <SummaryRow
-              label="Session"
+              label={t('agent.trace.session')}
               value={
                 <span className="font-mono">{viewModel.sessionId || '-'}</span>
               }
             />
             <SummaryRow
-              label="Canvas"
+              label={t('agent.logDetail.fields.canvas')}
               value={
                 <span className="font-mono">{session?.canvas_id || '-'}</span>
               }
@@ -239,6 +249,7 @@ function RuntimeSummary({
 }
 
 export function LogDetail(props: LogDetailProps) {
+  const { t } = useTranslation()
   const { viewModel, isLoading, isError, error, isTraceLoading, refetchTrace } =
     useLogDetail(props)
   const session = asSession(viewModel.rawSession)
@@ -246,7 +257,7 @@ export function LogDetail(props: LogDetailProps) {
   if (isLoading && props.mode === 'session' && !viewModel.sessionId) {
     return (
       <div className="p-space-md text-sm text-text-secondary">
-        正在加载会话详情...
+        {t('agent.logDetail.loading')}
       </div>
     )
   }
@@ -254,7 +265,9 @@ export function LogDetail(props: LogDetailProps) {
   if (isError) {
     return (
       <div className="p-space-md text-sm text-status-error">
-        {error instanceof Error ? error.message : '会话详情加载失败'}
+        {error instanceof Error
+          ? error.message
+          : t('agent.logDetail.loadFailed')}
       </div>
     )
   }
@@ -278,10 +291,10 @@ export function LogDetail(props: LogDetailProps) {
           <div className="min-w-0">
             <div className="flex min-w-0 items-center gap-space-xs">
               <Badge variant={STATUS_VARIANT_MAP[viewModel.status]}>
-                {STATUS_LABEL_MAP[viewModel.status]}
+                {t(STATUS_LABEL_KEYS[viewModel.status])}
               </Badge>
               <h3 className="truncate text-sm font-semibold text-text-primary">
-                {viewModel.sessionName || '运行日志'}
+                {viewModel.sessionName || t('agent.logDetail.defaultTitle')}
               </h3>
             </div>
             <div className="mt-space-xs flex min-w-0 items-center gap-space-xs text-xs text-text-tertiary">
@@ -309,16 +322,19 @@ export function LogDetail(props: LogDetailProps) {
           <DetailTab
             active
             icon={MessageSquare}
-            label="消息回放"
+            label={t('agent.logDetail.sections.transcript')}
             count={viewModel.transcript.length}
           />
           <DetailTab
             icon={GitBranch}
-            label="Trace"
+            label={t('agent.trace.trace')}
             count={viewModel.traceItems.length}
           />
-          <DetailTab icon={FileText} label="输入输出" />
-          <DetailTab icon={Hash} label="Raw" />
+          <DetailTab
+            icon={FileText}
+            label={t('agent.logDetail.sections.inputsOutputs')}
+          />
+          <DetailTab icon={Hash} label={t('agent.trace.raw')} />
         </div>
 
         <div className="min-h-0 flex-1 overflow-auto">
@@ -326,19 +342,19 @@ export function LogDetail(props: LogDetailProps) {
             <div className="px-space-xl">
               <ErrorBanner message={viewModel.errorMessage} />
             </div>
-            <DetailSection title="消息回放">
+            <DetailSection title={t('agent.logDetail.sections.transcript')}>
               <Transcript messages={viewModel.transcript} />
             </DetailSection>
-            <DetailSection title="输入">
+            <DetailSection title={t('agent.logDetail.sections.inputs')}>
               <InputsSummary
                 inputs={viewModel.inputs}
                 files={viewModel.files}
               />
             </DetailSection>
-            <DetailSection title="最新输出">
+            <DetailSection title={t('agent.logDetail.sections.latestOutput')}>
               <LatestOutput output={viewModel.latestOutput} />
             </DetailSection>
-            <DetailSection title="Trace">
+            <DetailSection title={t('agent.trace.trace')}>
               <TraceTimeline
                 items={viewModel.traceItems}
                 unavailableReason={viewModel.traceUnavailableReason}

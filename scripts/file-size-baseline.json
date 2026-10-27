@@ -7,7 +7,7 @@
   "src/pages/agent/constant/index.ts": 1397,
   "src/pages/MCPChatPage.tsx": 1338,
   "src/pages/explore/ExplorePage.tsx": 1276,
-  "src/components/environment/EnvironmentDetail.tsx": 982,
+  "src/components/environment/EnvironmentDetail.tsx": 949,
   "src/themes/theme-generator.ts": 920,
   "src/components/chat/ChatSettingsPanel.tsx": 872,
   "src/pages/agent/operators/serializers.ts": 860,

@@ -1,4 +1,5 @@
 import React, { memo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 
 interface StatusCardProps {
@@ -12,7 +13,7 @@ interface StatusCardProps {
 
 const statusConfig = {
   green: {
-    label: '正常',
+    labelKey: 'common.statusCard.healthy',
     border: 'border-l-components-system-status-ok-border',
     badgeBg: 'bg-components-system-status-ok-bg',
     badgeText: 'text-components-system-status-ok-text',
@@ -22,7 +23,7 @@ const statusConfig = {
     metricText: 'text-components-system-status-ok-text',
   },
   red: {
-    label: '异常',
+    labelKey: 'common.statusCard.unhealthy',
     border: 'border-l-components-system-status-error-border',
     badgeBg: 'bg-components-system-status-error-bg',
     badgeText: 'text-components-system-status-error-text',
@@ -32,7 +33,7 @@ const statusConfig = {
     metricText: 'text-components-system-status-error-text',
   },
   yellow: {
-    label: '警告',
+    labelKey: 'common.statusCard.warning',
     border: 'border-l-components-system-status-warning-border',
     badgeBg: 'bg-components-system-status-warning-bg',
     badgeText: 'text-components-system-status-warning-text',
@@ -45,10 +46,11 @@ const statusConfig = {
 
 const StatusCard: React.FC<StatusCardProps> = memo(
   ({ title, icon, status, metrics, error, className }) => {
+    const { t } = useTranslation()
     const config = statusConfig[status]
     const maxSecondaryMetrics = 4
 
-    // 提取响应时间作为主要指标
+    // 提取响应时间作为主要指标；'响应时间' 是调用方传入的指标 key，不是展示文案
     const responseTime = metrics['响应时间']
     const otherMetrics = Object.entries(metrics).filter(
       ([key]) => key !== '响应时间',
@@ -99,7 +101,7 @@ const StatusCard: React.FC<StatusCardProps> = memo(
               )}
             >
               <span className={cn('h-1.5 w-1.5 rounded-full', config.dotBg)} />
-              {config.label}
+              {t(config.labelKey)}
             </span>
           </div>
 
@@ -107,7 +109,7 @@ const StatusCard: React.FC<StatusCardProps> = memo(
           {responseTime && (
             <div className="mb-3">
               <p className="mb-0.5 text-xs text-components-system-header-description">
-                响应时间
+                {t('common.statusCard.responseTime')}
               </p>
               <p
                 className={cn(
@@ -139,7 +141,7 @@ const StatusCard: React.FC<StatusCardProps> = memo(
               {remainingSecondaryMetricsCount > 0 && (
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-components-system-version-tag-label">
-                    更多指标
+                    {t('common.statusCard.moreMetrics')}
                   </span>
                   <span className="font-medium text-components-system-accent-text">
                     +{remainingSecondaryMetricsCount}

@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { UserPlus, Eye, EyeOff } from 'lucide-react'
 import {
   Dialog,
@@ -25,23 +26,29 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
   onSubmit,
   isLoading,
 }) => {
+  const { t } = useTranslation()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [isAdmin, setIsAdmin] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  // 存 i18n key 而非文案，切换语言后错误提示随之更新
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const errorText = (field: string) =>
+    errors[field] ? t(errors[field]) : undefined
 
   const validate = useCallback(() => {
     const errs: Record<string, string> = {}
-    if (!email) errs.email = '请输入邮箱'
+    if (!email) errs.email = 'settings.admin.validation.emailRequired'
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
-      errs.email = '邮箱格式不正确'
-    if (!password) errs.password = '请输入密码'
-    else if (password.length < 8) errs.password = '密码至少 8 位'
-    if (!confirmPassword) errs.confirmPassword = '请确认密码'
+      errs.email = 'settings.admin.validation.emailInvalid'
+    if (!password) errs.password = 'settings.admin.validation.passwordRequired'
+    else if (password.length < 8)
+      errs.password = 'settings.admin.validation.passwordLength'
+    if (!confirmPassword)
+      errs.confirmPassword = 'settings.admin.validation.confirmPasswordRequired'
     else if (password !== confirmPassword)
-      errs.confirmPassword = '两次密码不一致'
+      errs.confirmPassword = 'settings.admin.validation.passwordMismatch'
     return errs
   }, [email, password, confirmPassword])
 
@@ -75,7 +82,7 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/12">
               <UserPlus className="h-4 w-4 text-text-accent" />
             </span>
-            新建用户
+            {t('settings.admin.actions.createUser')}
           </DialogTitle>
         </DialogHeader>
 
@@ -84,7 +91,8 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
             {/* Email */}
             <div className="space-y-space-xs">
               <label className="text-sm font-medium text-text-secondary">
-                邮箱 <span className="text-status-error">*</span>
+                {t('settings.admin.form.email')}{' '}
+                <span className="text-status-error">*</span>
               </label>
               <Input
                 type="email"
@@ -95,25 +103,26 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
                   setEmail(e.target.value)
                   setErrors((prev) => ({ ...prev, email: '' }))
                 }}
-                error={errors.email}
+                error={errorText('email')}
               />
             </div>
 
             {/* Password */}
             <div className="space-y-space-xs">
               <label className="text-sm font-medium text-text-secondary">
-                密码 <span className="text-status-error">*</span>
+                {t('settings.admin.form.password')}{' '}
+                <span className="text-status-error">*</span>
               </label>
               <Input
                 type={showPassword ? 'text' : 'password'}
                 inputSize="sm"
-                placeholder="至少 8 位"
+                placeholder={t('settings.admin.form.passwordPlaceholder')}
                 value={password}
                 onChange={(e) => {
                   setPassword(e.target.value)
                   setErrors((prev) => ({ ...prev, password: '' }))
                 }}
-                error={errors.password}
+                error={errorText('password')}
                 rightIcon={
                   <button
                     type="button"
@@ -133,18 +142,21 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
             {/* Confirm Password */}
             <div className="space-y-space-xs">
               <label className="text-sm font-medium text-text-secondary">
-                确认密码 <span className="text-status-error">*</span>
+                {t('settings.admin.form.confirmPassword')}{' '}
+                <span className="text-status-error">*</span>
               </label>
               <Input
                 type={showPassword ? 'text' : 'password'}
                 inputSize="sm"
-                placeholder="再次输入密码"
+                placeholder={t(
+                  'settings.admin.form.confirmPasswordPlaceholder',
+                )}
                 value={confirmPassword}
                 onChange={(e) => {
                   setConfirmPassword(e.target.value)
                   setErrors((prev) => ({ ...prev, confirmPassword: '' }))
                 }}
-                error={errors.confirmPassword}
+                error={errorText('confirmPassword')}
               />
             </div>
 
@@ -170,10 +182,10 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-text-primary">
-                  设为管理员
+                  {t('settings.admin.createUser.makeAdmin')}
                 </p>
                 <p className="text-xs text-text-tertiary">
-                  管理员拥有系统全部权限
+                  {t('settings.admin.createUser.makeAdminHint')}
                 </p>
               </div>
             </label>
@@ -187,7 +199,7 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
             onClick={handleClose}
             disabled={isLoading}
           >
-            取消
+            {t('common.cancel')}
           </Button>
           <Button
             size="sm"
@@ -195,7 +207,9 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
             form="create-user-form"
             disabled={isLoading}
           >
-            {isLoading ? '创建中...' : '创建用户'}
+            {isLoading
+              ? t('settings.admin.createUser.submitting')
+              : t('settings.admin.createUser.submit')}
           </Button>
         </DialogFooter>
       </DialogContent>

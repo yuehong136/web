@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Plus, MessageSquare, MoreHorizontal } from 'lucide-react'
@@ -18,6 +19,7 @@ export function ChatSidebar({
   onNewChat,
   temporaryChatEnabled = false,
 }: ChatSidebarProps) {
+  const { t } = useTranslation()
   return (
     <div className="flex h-full w-full flex-col">
       {/* Header */}
@@ -29,12 +31,15 @@ export function ChatSidebar({
       >
         <div className="mb-4 flex items-center gap-2">
           <div className="flex h-6 w-6 items-center justify-center rounded bg-blue-500">
+            {/* i18n-ignore: MCP 品牌字母标识，不随语言变化 */}
             <span className="text-xs text-white">M</span>
           </div>
           <div>
-            <div className="font-medium">MCP实验场</div>
+            <div className="font-medium">
+              {t('mcp.servers.playgroundTitle')}
+            </div>
             <div className="text-xs text-muted-foreground">
-              Powered by mc-agent
+              {t('mcp.playground.poweredBy')}
             </div>
           </div>
         </div>
@@ -45,21 +50,21 @@ export function ChatSidebar({
           variant="outline"
         >
           <Plus className="h-4 w-4" />
-          开启新对话
+          {t('mcp.playground.newChat')}
         </Button>
       </div>
 
       {/* Session List */}
       <div className="flex-1 overflow-y-auto p-2">
         <div className="mb-2 px-2 text-xs text-muted-foreground">
-          聊天一个大概意思实训问题的基本原理...
+          {t('mcp.playground.sessionsHint')}
         </div>
 
         {/* 临时聊天模式提示 */}
         {temporaryChatEnabled && (
           <div className="mb-3 px-2">
             <div className="rounded border border-orange-200 bg-orange-50 px-2 py-1.5 text-xs text-orange-600 dark:border-orange-800 dark:bg-orange-900/20 dark:text-orange-400">
-              📝 临时聊天模式已启用
+              {t('mcp.playground.temporaryChatEnabled')}
             </div>
           </div>
         )}
@@ -129,7 +134,9 @@ export function ChatSidebar({
           borderTop: '1px solid var(--color-components-sidebar-border)',
         }}
       >
-        <div className="text-xs text-muted-foreground">会话设置</div>
+        <div className="text-xs text-muted-foreground">
+          {t('mcp.playground.sessionSettings')}
+        </div>
       </div>
     </div>
   )

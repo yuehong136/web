@@ -112,10 +112,43 @@ export default {
         createUser: '新建用户',
         exitAdministration: '退出管理',
       },
+      form: {
+        email: '邮箱',
+        password: '密码',
+        newPassword: '新密码',
+        confirmPassword: '确认密码',
+        passwordPlaceholder: '至少 8 位',
+        confirmPasswordPlaceholder: '再次输入密码',
+        confirmNewPasswordPlaceholder: '再次输入新密码',
+      },
+      validation: {
+        emailRequired: '请输入邮箱',
+        emailInvalid: '邮箱格式不正确',
+        passwordRequired: '请输入密码',
+        newPasswordRequired: '请输入新密码',
+        passwordLength: '密码至少 8 位',
+        confirmPasswordRequired: '请确认密码',
+        passwordMismatch: '两次密码不一致',
+      },
+      createUser: {
+        makeAdmin: '设为管理员',
+        makeAdminHint: '管理员拥有系统全部权限',
+        submit: '创建用户',
+        submitting: '创建中...',
+      },
+      changePassword: {
+        title: '修改密码',
+        submit: '保存密码',
+      },
     },
     system: {
       live: '实时监控',
       updating: '正在更新',
+    },
+    environment: {
+      variablesUsed: '使用的变量',
+      missingVariables: '缺失的变量',
+      missingVariablesHint: '这些变量在当前环境中不存在，解析时将保持原始格式',
     },
     api: {
       documentation: '接口文档',

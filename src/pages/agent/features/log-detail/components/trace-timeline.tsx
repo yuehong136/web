@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import {
   Accordion,
   AccordionContent,
@@ -31,13 +32,24 @@ const STATUS_VARIANT_MAP: Record<
   unknown: 'outline',
 }
 
+const UNAVAILABLE_MESSAGE_KEYS: Record<
+  NonNullable<TraceTimelineProps['unavailableReason']> | 'empty',
+  string
+> = {
+  fetching: 'agent.logDetail.timeline.fetching',
+  'no-message-id': 'agent.logDetail.timeline.noMessageId',
+  'redis-evicted': 'agent.logDetail.timeline.redisEvicted',
+  empty: 'agent.logDetail.timeline.empty',
+}
+
 function getStatusVariant(status?: string) {
   return (
     STATUS_VARIANT_MAP[String(status || 'unknown').toLowerCase()] || 'outline'
   )
 }
 
-function renderTraceMessages(item: AgentTraceItem) {
+function TraceMessages({ item }: { item: AgentTraceItem }) {
+  const { t } = useTranslation()
   const trace = Array.isArray(item.trace) ? item.trace : []
   const messages = trace
     .map((entry) =>
@@ -56,7 +68,9 @@ function renderTraceMessages(item: AgentTraceItem) {
 
   return (
     <div>
-      <p className="mb-space-xs text-xs text-text-tertiary">Trace Message</p>
+      <p className="mb-space-xs text-xs text-text-tertiary">
+        {t('agent.logDetail.timeline.traceMessage')}
+      </p>
       <pre className="max-h-[180px] overflow-auto rounded-radius-sm bg-surface-secondary p-space-sm text-xs text-text-secondary">
         {messages.join('\n')}
       </pre>
@@ -71,6 +85,7 @@ function TraceItem({
   item: AgentTraceItem
   depth?: number
 }) {
+  const { t } = useTranslation()
   const children = item.traces || []
   const status = String(item.status || 'unknown')
 
@@ -90,7 +105,9 @@ function TraceItem({
                 />
               </span>
               <span className="truncate text-sm font-medium text-text-primary">
-                {item.component_name || item.component_id || 'Unknown'}
+                {item.component_name ||
+                  item.component_id ||
+                  t('agent.logDetail.timeline.unknownNode')}
               </span>
               <Badge variant={getStatusVariant(status)}>{status}</Badge>
               {typeof item.elapsed_time === 'number' ? (
@@ -105,7 +122,7 @@ function TraceItem({
               {item.inputs ? (
                 <div>
                   <p className="mb-space-xs text-xs text-text-tertiary">
-                    Inputs
+                    {t('agent.logDetail.timeline.inputs')}
                   </p>
                   <JsonViewer data={item.inputs} />
                 </div>
@@ -113,12 +130,12 @@ function TraceItem({
               {item.outputs ? (
                 <div>
                   <p className="mb-space-xs text-xs text-text-tertiary">
-                    Outputs
+                    {t('agent.logDetail.timeline.outputs')}
                   </p>
                   <JsonViewer data={item.outputs} />
                 </div>
               ) : null}
-              {renderTraceMessages(item)}
+              <TraceMessages item={item} />
               {item.message ? (
                 <pre className="max-h-[180px] overflow-auto rounded-radius-sm bg-status-error-subtle p-space-sm text-xs text-status-error">
                   {item.message}
@@ -147,17 +164,13 @@ export function TraceTimeline({
   items,
   unavailableReason,
 }: TraceTimelineProps) {
+  const { t } = useTranslation()
   if (!items.length) {
-    const message =
-      unavailableReason === 'fetching'
-        ? '正在拉取终态 Trace...'
-        : unavailableReason === 'no-message-id'
-          ? '当前会话缺少可回查的真实 message_id，无法读取 Redis Trace。'
-          : unavailableReason === 'redis-evicted'
-            ? 'Redis 中没有返回 Trace，可能已过期或后端未写入。'
-            : '暂无 Trace。'
-
-    return <p className="text-sm text-text-secondary">{message}</p>
+    return (
+      <p className="text-sm text-text-secondary">
+        {t(UNAVAILABLE_MESSAGE_KEYS[unavailableReason ?? 'empty'])}
+      </p>
+    )
   }
 
   return (

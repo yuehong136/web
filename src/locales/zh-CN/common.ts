@@ -126,6 +126,13 @@ export default {
     viewToggle: '视图切换',
     previousPage: '上一页',
     nextPage: '下一页',
+    statusCard: {
+      healthy: '正常',
+      unhealthy: '异常',
+      warning: '警告',
+      responseTime: '响应时间',
+      moreMetrics: '更多指标',
+    },
     pagination: {
       pageSizePrefix: '每页显示',
       pageSizeSuffix: '项',

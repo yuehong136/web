@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { KeyRound, Eye, EyeOff } from 'lucide-react'
 import {
   Dialog,
@@ -27,10 +28,14 @@ export const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
   onSubmit,
   isLoading,
 }) => {
+  const { t } = useTranslation()
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  // 存 i18n key 而非文案，切换语言后错误提示随之更新
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const errorText = (field: string) =>
+    errors[field] ? t(errors[field]) : undefined
 
   const handleClose = useCallback(() => {
     setNewPassword('')
@@ -43,11 +48,15 @@ export const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
     (e: React.FormEvent) => {
       e.preventDefault()
       const errs: Record<string, string> = {}
-      if (!newPassword) errs.newPassword = '请输入新密码'
-      else if (newPassword.length < 8) errs.newPassword = '密码至少 8 位'
-      if (!confirmPassword) errs.confirmPassword = '请确认密码'
+      if (!newPassword)
+        errs.newPassword = 'settings.admin.validation.newPasswordRequired'
+      else if (newPassword.length < 8)
+        errs.newPassword = 'settings.admin.validation.passwordLength'
+      if (!confirmPassword)
+        errs.confirmPassword =
+          'settings.admin.validation.confirmPasswordRequired'
       else if (newPassword !== confirmPassword)
-        errs.confirmPassword = '两次密码不一致'
+        errs.confirmPassword = 'settings.admin.validation.passwordMismatch'
       if (Object.keys(errs).length > 0) {
         setErrors(errs)
         return
@@ -65,7 +74,7 @@ export const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-status-warning-subtle">
               <KeyRound className="h-4 w-4 text-status-warning" />
             </span>
-            修改密码
+            {t('settings.admin.changePassword.title')}
           </DialogTitle>
         </DialogHeader>
 
@@ -97,18 +106,19 @@ export const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
           >
             <div className="space-y-space-xs">
               <label className="text-sm font-medium text-text-secondary">
-                新密码 <span className="text-status-error">*</span>
+                {t('settings.admin.form.newPassword')}{' '}
+                <span className="text-status-error">*</span>
               </label>
               <Input
                 type={showPassword ? 'text' : 'password'}
                 inputSize="sm"
-                placeholder="至少 8 位"
+                placeholder={t('settings.admin.form.passwordPlaceholder')}
                 value={newPassword}
                 onChange={(e) => {
                   setNewPassword(e.target.value)
                   setErrors((prev) => ({ ...prev, newPassword: '' }))
                 }}
-                error={errors.newPassword}
+                error={errorText('newPassword')}
                 rightIcon={
                   <button
                     type="button"
@@ -126,18 +136,21 @@ export const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
             </div>
             <div className="space-y-space-xs">
               <label className="text-sm font-medium text-text-secondary">
-                确认密码 <span className="text-status-error">*</span>
+                {t('settings.admin.form.confirmPassword')}{' '}
+                <span className="text-status-error">*</span>
               </label>
               <Input
                 type={showPassword ? 'text' : 'password'}
                 inputSize="sm"
-                placeholder="再次输入新密码"
+                placeholder={t(
+                  'settings.admin.form.confirmNewPasswordPlaceholder',
+                )}
                 value={confirmPassword}
                 onChange={(e) => {
                   setConfirmPassword(e.target.value)
                   setErrors((prev) => ({ ...prev, confirmPassword: '' }))
                 }}
-                error={errors.confirmPassword}
+                error={errorText('confirmPassword')}
               />
             </div>
           </form>
@@ -150,7 +163,7 @@ export const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
             onClick={handleClose}
             disabled={isLoading}
           >
-            取消
+            {t('common.cancel')}
           </Button>
           <Button
             size="sm"
@@ -158,7 +171,9 @@ export const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
             form="change-password-form"
             disabled={isLoading}
           >
-            {isLoading ? '保存中...' : '保存密码'}
+            {isLoading
+              ? t('common.saving')
+              : t('settings.admin.changePassword.submit')}
           </Button>
         </DialogFooter>
       </DialogContent>

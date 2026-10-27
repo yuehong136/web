@@ -127,6 +127,13 @@ export default {
     viewToggle: 'View switcher',
     previousPage: 'Previous',
     nextPage: 'Next',
+    statusCard: {
+      healthy: 'Healthy',
+      unhealthy: 'Unhealthy',
+      warning: 'Warning',
+      responseTime: 'Response time',
+      moreMetrics: 'More metrics',
+    },
     pagination: {
       pageSizePrefix: 'Items per page',
       pageSizeSuffix: 'items',

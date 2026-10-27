@@ -140,5 +140,30 @@ export default {
         confirmDelete: 'Confirm delete',
       },
     },
+    playground: {
+      poweredBy: 'Powered by mc-agent',
+      newChat: 'New chat',
+      sessionsHint: 'Chat through the basics of a practice problem...',
+      temporaryChatEnabled: '📝 Temporary chat is on',
+      sessionSettings: 'Session settings',
+      welcome: {
+        title: '👋 Welcome to the MCP playground',
+        description:
+          'I can answer your questions and use MCP tools to get live information.',
+        integrationTitle: 'MCP tool integration',
+        newBadge: 'New',
+        integrationDescription:
+          'Use the "MCP tools" button at the top to choose and configure tool servers for a more capable assistant. Supports web search, document lookup, image processing, and more.',
+        webSearch: 'Web search',
+        webSearchDescription: 'Search the web for live information and news',
+        docs: 'Document lookup',
+        docsDescription: 'Look up technical docs and API references',
+        images: 'Image processing',
+        imagesDescription: 'Search images and capture web pages',
+        academic: 'Academic search',
+        academicDescription: 'Search arXiv papers',
+        tip: '💡 Tip: Ask me for "the latest introduction to Docker" to try out MCP tools.',
+      },
+    },
   },
 }
