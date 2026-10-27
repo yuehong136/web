@@ -1,3 +1,4 @@
+import { buildInstancePayload, saveProviderInstance } from './instance-payload'
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
@@ -64,4 +65,102 @@ test('verification result normalization accepts both supported envelopes', () =>
     normalizeVerifyResult({ success: false, message: 'unreachable' }),
     { isValid: false, logs: 'unreachable' },
   )
+})
+
+test('a partial model failure retries the current credential and endpoint before adding the model', async () => {
+  const calls: { kind: string; data?: unknown }[] = []
+  let first = true,
+    created: string | null = null
+  const api = {
+    createProvider: async () => {
+      calls.push({ kind: 'provider' })
+    },
+    createInstance: async (_provider: string, data: unknown) => {
+      calls.push({ kind: 'instance', data })
+    },
+    updateInstance: async (_provider: string, _name: string, data: unknown) => {
+      calls.push({ kind: 'update', data })
+    },
+    addModel: async () => {
+      calls.push({ kind: 'model' })
+      if (first) {
+        first = false
+        throw Error('controlled model failure')
+      }
+    },
+  }
+  const save = (key: string, url: string) =>
+    saveProviderInstance({
+      provider: 'Ollama',
+      providerExists: true,
+      payload: buildInstancePayload(
+        'Ollama',
+        'same',
+        key,
+        url,
+        { llm_name: 'model', mdl_type: 'chat', max_tokens: 0 },
+        '',
+      ),
+      createdIdentity: created,
+      isCurrent: () => true,
+      onCreated: (identity) => {
+        created = identity
+      },
+      api,
+    })
+  await assert.rejects(save('synthetic-a', 'https://a.invalid'))
+  await save('synthetic-b', 'https://b.invalid')
+  assert.deepEqual(
+    calls.map((call) => call.kind),
+    ['instance', 'model', 'update', 'model'],
+  )
+  assert.deepEqual(calls[2].data, {
+    api_key: 'synthetic-b',
+    base_url: 'https://b.invalid',
+    region: '',
+  })
+})
+
+test('clearing a custom model after partial instance creation rejects before writes', async () => {
+  const calls: string[] = []
+  let created: string | null = null
+  const api = {
+    createProvider: async () => {
+      calls.push('provider')
+    },
+    createInstance: async () => {
+      calls.push('instance')
+    },
+    updateInstance: async () => {
+      calls.push('update')
+    },
+    addModel: async () => {
+      calls.push('model')
+      throw Error('controlled model failure')
+    },
+  }
+  const save = (model: string) =>
+    saveProviderInstance({
+      provider: 'Anthropic',
+      providerExists: true,
+      payload: buildInstancePayload(
+        'Anthropic',
+        'partial',
+        'synthetic-key',
+        '',
+        model ? { llm_name: model, mdl_type: 'chat', max_tokens: 0 } : {},
+        '',
+      ),
+      createdIdentity: created,
+      isCurrent: () => true,
+      onCreated: (identity) => {
+        created = identity
+      },
+      api,
+    })
+  await assert.rejects(save('custom-model'), /controlled model failure/)
+  assert.deepEqual(calls, ['instance', 'model'])
+  await assert.rejects(save(''), /partial-instance-model-required/)
+  assert.deepEqual(calls, ['instance', 'model'])
+  assert.equal(created, 'Anthropic\u0000partial')
 })

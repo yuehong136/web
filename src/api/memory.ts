@@ -8,6 +8,7 @@
  */
 
 import { apiClient } from './client'
+import { collectListWindow, isLargeListWindow } from './list-pagination'
 import { API_BASE_URL } from '@/constants'
 import type {
   Memory,
@@ -50,6 +51,18 @@ export const memoryAPI = {
      * GET /api/v1/memories
      */
     list: (params?: MemoryListParams): Promise<MemoryListResponse> => {
+      if (isLargeListWindow(params))
+        return collectListWindow<
+          MemoryListResponse & { total: number },
+          'memory_list'
+        >(
+          params!,
+          async (page) => {
+            const result = await memoryAPI.memory.list({ ...params, ...page })
+            return { ...result, total: result.total_count }
+          },
+          'memory_list',
+        )
       const queryParams = new URLSearchParams()
 
       if (params?.page) queryParams.set('page', params.page.toString())

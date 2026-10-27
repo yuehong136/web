@@ -13,6 +13,8 @@ import { getMySQLFormFields, getPostgreSQLFormFields } from './rdbms'
 import { getJiraFormFields } from '@/pages/settings/datasource/constants/jira'
 import { getDeletionSyncFields } from '@/pages/settings/datasource/constants/sync-settings'
 import { getRestApiFormFields } from './rest-api'
+import { getMicrosoftFormFields } from './microsoft'
+import { getSharePointFormFields, getSlackFormFields } from './collaboration'
 
 /**
  * 基础表单字段（所有数据源共用）
@@ -52,7 +54,11 @@ export const getBaseFormFields = (
 const getSourceFormFields = (
   t: (key: string) => string,
 ): Record<DataSourceKey, FormFieldConfig[]> => ({
+  [DataSourceKey.TEAMS]: getMicrosoftFormFields(DataSourceKey.TEAMS, t),
+  [DataSourceKey.ONEDRIVE]: getMicrosoftFormFields(DataSourceKey.ONEDRIVE, t),
   [DataSourceKey.REST_API]: getRestApiFormFields(t),
+  [DataSourceKey.SHAREPOINT]: getSharePointFormFields(t),
+  [DataSourceKey.SLACK]: getSlackFormFields(t),
   [DataSourceKey.DINGTALK_AI_TABLE]: getDingTalkFormFields(t),
   [DataSourceKey.SEAFILE]: getSeafileFormFields(t),
   [DataSourceKey.S3]: getS3FormFields(t),

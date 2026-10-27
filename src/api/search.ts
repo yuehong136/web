@@ -1,5 +1,6 @@
 import type { ReferenceMetadataConfig } from '@/types/reference-metadata'
 import { apiClient } from './client'
+import { collectListWindow, isLargeListWindow } from './list-pagination'
 import { API_BASE_URL } from '@/constants'
 import type { SearchApp, SearchAppListItem } from '@/types/search'
 import type {
@@ -16,6 +17,12 @@ export const searchAPI = {
   list: (
     params?: ListSearchRequest,
   ): Promise<{ search_apps: SearchAppListItem[]; total: number }> => {
+    if (isLargeListWindow(params))
+      return collectListWindow(
+        params!,
+        (page) => searchAPI.list({ ...params, ...page }),
+        'search_apps',
+      )
     const queryParams = new URLSearchParams()
     queryParams.set('page', (params?.page ?? 1).toString())
     queryParams.set('page_size', (params?.page_size ?? 12).toString())

@@ -1,3 +1,4 @@
+import type { BrowserFormValues } from './form/browser-use/constants'
 import type { Edge, Node } from '@xyflow/react'
 import type { AgentGlobalVariable } from '@/types/agent'
 import type { ITitleChunkerForm, ITokenChunkerForm } from './chunker-types'
@@ -44,7 +45,7 @@ export interface IGraph {
 
 export interface IFlow {
   avatar?: string
-  canvas_type: 'agent' | 'pipeline' | 'Recommended' | null
+  canvas_type: string | null
   canvas_category?: string
   create_date?: string
   create_time: number
@@ -303,6 +304,7 @@ export type RAGFlowNodeType =
   | IExeSQLNode
   | IUserFillUpNode
   | IStringTransformNode
+  | BaseNode<BrowserFormValues>
   | IDocGeneratorNode
   | IHTMLReportNode
   | IFileNode
@@ -570,7 +572,7 @@ export interface ISetAgentRequest {
   title: string
   description?: string
   dsl?: DSL
-  canvas_type?: 'agent' | 'pipeline'
+  canvas_type?: string
   avatar?: string
   permission?: string
 }

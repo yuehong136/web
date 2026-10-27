@@ -189,26 +189,31 @@ export default function DataSourceDetailPage() {
               labelClassName="font-normal"
             >
               <div className="mt-space-lg flex flex-wrap items-center justify-end gap-space-sm border-t border-border-subtle pt-space-base">
-                {source === DataSourceKey.REST_API && (
-                  <>
-                    <p className="text-sm text-text-secondary">
-                      {t('datasource.restApi.testSavedConfig')}
-                    </p>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={handleTest}
-                      disabled={saveLoading || isTesting}
-                      aria-busy={isTesting}
-                    >
-                      {t(
-                        isTesting
-                          ? 'datasource.restApi.testing'
-                          : 'datasource.restApi.testConnection',
-                      )}
-                    </Button>
-                  </>
-                )}
+                {source &&
+                  [
+                    DataSourceKey.REST_API,
+                    DataSourceKey.TEAMS,
+                    DataSourceKey.ONEDRIVE,
+                  ].includes(source) && (
+                    <>
+                      <p className="text-sm text-text-secondary">
+                        {t('datasource.restApi.testSavedConfig')}
+                      </p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleTest}
+                        disabled={saveLoading || isTesting}
+                        aria-busy={isTesting}
+                      >
+                        {t(
+                          isTesting
+                            ? 'datasource.restApi.testing'
+                            : 'datasource.restApi.testConnection',
+                        )}
+                      </Button>
+                    </>
+                  )}
                 <DataSourceActions
                   status={detail.status}
                   savedValues={

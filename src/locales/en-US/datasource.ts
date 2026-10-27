@@ -1,5 +1,56 @@
 export default {
   datasource: {
+    microsoft: {
+      teamsDescription:
+        'Sync Microsoft Teams channel posts and replies through Microsoft Graph.',
+      onedriveDescription:
+        'Sync files from explicitly selected OneDrive drives through Microsoft Graph.',
+      tenant_id: 'Tenant ID',
+      client_id: 'Client ID',
+      client_secret: 'Client secret',
+      teamsPermissions:
+        'Requires Team.ReadBasic.All and ChannelMessage.Read.All application permissions with administrator consent.',
+      onedrivePermissions:
+        'Requires Files.Read.All application permission with administrator consent.',
+      driveIds: 'Drive IDs',
+      driveIdsPlaceholder: 'Enter a drive ID, then press Enter',
+      driveIdsTip:
+        'Only these drives are synced. An empty list syncs no drives. Obtain drive IDs from a user, group or site in Microsoft Graph.',
+      driveIdsInvalid: 'Enter unique, non-empty drive IDs.',
+      folderPath: 'Folder path (optional)',
+      folderPathTip:
+        'Limit sync to a subfolder in each selected drive. Leave blank to sync the full selected drives.',
+      folderPathInvalid:
+        'Enter a folder path without parent directory segments (..).',
+      batchSize: 'Document batch size',
+      batchSizeInvalid: 'Enter a positive whole number.',
+    },
+
+    sharepoint: {
+      description:
+        'Sync SharePoint document libraries through Microsoft Graph.',
+      siteUrl: 'Site URL',
+      siteUrlTip:
+        'Full site URL, for example https://contoso.sharepoint.com/sites/MySite. Requires Sites.Read.All and Files.Read.All application permissions with admin consent.',
+      tenantId: 'Tenant ID',
+      clientId: 'Client ID',
+      clientSecret: 'Client secret',
+    },
+    slack: {
+      description: 'Sync Slack channel messages and threads.',
+      botToken: 'Bot token',
+      botTokenTip:
+        'Slack token with access to the selected channels. Requires channels:read, channels:history, users:read and groups:read/groups:history for private channels. Thread replies require a token permitted to read replies for that channel type.',
+      channelScope: 'Channel scope',
+      allChannels: 'All accessible channels',
+      selectedChannels: 'Selected channels',
+      noChannels: 'No channels',
+      channels: 'Channels',
+      channelsPlaceholder: 'Channel name, then Enter',
+      channelsTip:
+        'Exact channel names, optionally prefixed with #. Select All accessible channels to sync all; an empty selection syncs none.',
+      useRegex: 'Match channel names with regular expressions',
+    },
     stop: 'Stop',
     refreshMinutes: 'Sync interval (minutes)',
     pruneMinutes: 'Prune interval (minutes; 0 disables pruning)',

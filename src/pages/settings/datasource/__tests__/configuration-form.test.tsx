@@ -440,3 +440,39 @@ it('defaults RSS deletion sync off and submits current-feed mirroring with its s
     },
   })
 })
+
+it.each([DataSourceKey.TEAMS, DataSourceKey.ONEDRIVE])(
+  'submits %s application credentials with explicit scope and retains the draft until the parent closes it',
+  async (source) => {
+    await renderAdd(source)
+    await change(input('name'), 'Microsoft scratch')
+    for (const key of ['tenant_id', 'client_id', 'client_secret'])
+      await change(input(`config.credentials.${key}`), `synthetic-${key}`)
+    expect(input('config.credentials.client_secret').type).toBe('password')
+    await click(button('Confirm'))
+    expect(submit.mock.calls[0][0]).toMatchObject({
+      source,
+      config: {
+        sync_deleted_files: false,
+        credentials: {
+          tenant_id: 'synthetic-tenant_id',
+          client_id: 'synthetic-client_id',
+          client_secret: 'synthetic-client_secret',
+        },
+      },
+    })
+    if (source === DataSourceKey.ONEDRIVE)
+      expect(submit.mock.calls[0][0].config.drive_ids).toEqual([])
+    expect(document.body.textContent).not.toContain('Sync source deletions')
+    expect(document.body.textContent).not.toContain('Test connection')
+    // Draft lifetime belongs to the modal owner.
+    submit.mockRejectedValueOnce(new Error('controlled save failure'))
+    await click(button('Confirm'))
+    expect(input('config.credentials.client_id').value).toBe(
+      'synthetic-client_id',
+    )
+    await change(input('config.batch_size'), '')
+    await click(button('Confirm'))
+    expect(submit.mock.lastCall![0].config).not.toHaveProperty('batch_size')
+  },
+)

@@ -8,6 +8,8 @@ import {
   withAppKnowledgeRetrieval,
 } from './knowledge-prompt'
 import type { AppConfig, AppSearchMode } from './types'
+import type { MyLLMProvider } from '@/stores/model'
+import { chatModelSetting } from '@/lib/chat/model-setting'
 
 const RETRIEVAL_EMPTY_RESPONSE = '抱歉，我无法回答这个问题。'
 
@@ -23,6 +25,7 @@ const toSearchModeRequest = (searchMode: AppSearchMode) =>
     : { type: searchMode.type }
 
 const pickEnabledLlmSettings = ({ llm_setting: setting }: AppConfig) => ({
+  ...(setting.parameter !== undefined ? { parameter: setting.parameter } : {}),
   ...(setting.temperature_enabled && {
     temperature: Number(setting.temperature),
   }),
@@ -42,6 +45,7 @@ const pickEnabledLlmSettings = ({ llm_setting: setting }: AppConfig) => ({
 export const buildChatSaveRequest = (
   editorConfig: AppConfig,
   knowledgeBlock: string,
+  models?: MyLLMProvider,
 ): Record<string, unknown> => {
   const config = withAppKnowledgeRetrieval(editorConfig, knowledgeBlock)
   const isRetrievalApp = hasAppRetrievalSource(config)
@@ -53,7 +57,10 @@ export const buildChatSaveRequest = (
     icon: config.icon || '',
     llm_id: config.llm_id,
     // Always an object: `{}` means no overrides, and chat generation reads a dict.
-    llm_setting: pickEnabledLlmSettings(config),
+    llm_setting: {
+      ...pickEnabledLlmSettings(config),
+      ...(models ? chatModelSetting(models, config.llm_id) : {}),
+    },
     prompt_config: {
       system: isRetrievalApp
         ? config.systemPrompt

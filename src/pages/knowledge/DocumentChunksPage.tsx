@@ -98,6 +98,7 @@ const DocumentChunksContent = () => {
         selectedChunk={editForm.selectedChunk}
       >
         <ChunkToolbar
+          knowledgeIds={list.kbId ? [list.kbId] : []}
           textMode={list.textMode}
           onTextModeChange={list.setTextMode}
           searchKeyword={list.searchKeyword}

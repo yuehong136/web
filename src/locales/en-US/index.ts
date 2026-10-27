@@ -1,3 +1,4 @@
+import { sandboxResource } from './sandbox'
 import { sourcesResource } from './sources'
 import { appearanceResource } from './appearance'
 import common from './common'
@@ -24,6 +25,7 @@ import { authResource as auth } from './auth'
 import { desktopResource as desktop } from './desktop'
 
 export default {
+  ...sandboxResource,
   ...sourcesResource,
   ...appearanceResource,
   ...skillsResource,

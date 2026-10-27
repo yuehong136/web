@@ -37,6 +37,7 @@ export const operatorDescriptions: Partial<Record<Operator, string>> = {
   Email: '发送邮件。',
   UserFillUp: '等待用户补充表单参数。',
   StringTransform: '进行字符串拼接、拆分与转换。',
+  Browser: '使用模型和提示词执行浏览器任务，上传来源文件并保存下载结果。',
   DocGenerator: '从 Markdown 内容生成文件。',
   HTMLReport: '可视化编排报告骨架，渲染为自包含 HTML 报告页面。',
   ExcelProcessor: '处理 Excel 内容。',

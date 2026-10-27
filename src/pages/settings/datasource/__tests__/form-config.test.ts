@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DataSourceKey } from '@/pages/settings/datasource/types'
+import { DataSourceKey, FormFieldType } from '@/pages/settings/datasource/types'
 import { getDataSourceFormFields } from '@/pages/settings/datasource/constants/form-fields'
 import {
   getDataSourceDefaultValues,
@@ -12,6 +12,71 @@ import { parseRestApiObject } from '@/pages/settings/datasource/constants/rest-a
 const t = (key: string) => key
 
 describe('connector configuration contracts', () => {
+  it('preserves Slack all, none and selected channel scopes without broadening explicit empty lists', () => {
+    for (const [channels, scope] of [
+      [null, 'all'],
+      [[], 'none'],
+      [['#general'], 'selected'],
+    ] as const) {
+      const config = {
+        channels,
+        credentials: { slack_bot_token: 'stored-token', unknown: false },
+        future: { limit: 0 },
+      }
+      const values = getDataSourceDefaultValues(DataSourceKey.SLACK, { config })
+      expect(values.slackChannelScope).toBe(scope)
+      const prepared = prepareDataSourceValues(
+        DataSourceKey.SLACK,
+        values,
+        config,
+      )
+      expect(prepared.config).toMatchObject(config)
+      expect(prepared).not.toHaveProperty('slackChannelScope')
+      expect(deletionSyncSources.has(DataSourceKey.SLACK)).toBe(false)
+    }
+    const values = getDataSourceDefaultValues(DataSourceKey.SLACK, {
+      config: { channels: [] },
+    })
+    values.slackChannelScope = 'all'
+    expect(
+      prepareDataSourceValues(DataSourceKey.SLACK, values).config?.channels,
+    ).toBeNull()
+    const legacy = getDataSourceDefaultValues(DataSourceKey.SLACK, {
+      config: { channels: 'general, #engineering' },
+    })
+    expect(legacy.config?.channels).toEqual(['general', '#engineering'])
+  })
+
+  it('defines complete SharePoint credentials and retains stored secrets and extensions on edit', () => {
+    const config = {
+      batch_size: 64,
+      credentials: {
+        site_url: 'https://example.sharepoint.com/sites/Docs',
+        tenant_id: 'tenant',
+        client_id: 'client',
+        client_secret: 'stored-secret',
+        extra: false,
+      },
+      future: 0,
+    }
+    const values = getDataSourceDefaultValues(DataSourceKey.SHAREPOINT, {
+      config,
+    })
+    expect(
+      prepareDataSourceValues(DataSourceKey.SHAREPOINT, values, config).config,
+    ).toEqual(config)
+    const fields = getDataSourceFormFields(t)[DataSourceKey.SHAREPOINT]
+    expect(
+      fields.filter((field) => field.required).map((field) => field.name),
+    ).toEqual([
+      'config.credentials.site_url',
+      'config.credentials.tenant_id',
+      'config.credentials.client_id',
+      'config.credentials.client_secret',
+    ])
+    expect(deletionSyncSources.has(DataSourceKey.SHAREPOINT)).toBe(false)
+  })
+
   it('serializes REST form text as objects/lists and keeps unexposed settings and credentials', () => {
     const config = {
       url: 'https://api.example.test/resources',
@@ -414,4 +479,64 @@ describe('connector configuration contracts', () => {
       ),
     ).toBe('datasource.jiraCloudCredentialsRequired')
   })
+})
+
+it('round-trips Microsoft source scopes, extensions and masked credentials without enabling deletion sync', () => {
+  for (const source of [DataSourceKey.TEAMS, DataSourceKey.ONEDRIVE]) {
+    const config = {
+      drive_ids: [],
+      batch_size: 1,
+      sync_deleted_files: true,
+      custom: 0,
+      credentials: {
+        tenant_id: 'tenant',
+        client_id: 'client',
+        client_secret: '********',
+        custom: [],
+      },
+    }
+    const values = getDataSourceDefaultValues(source, { config })
+    expect(prepareDataSourceValues(source, values).config).toMatchObject({
+      ...config,
+      sync_deleted_files: false,
+    })
+    expect(config.sync_deleted_files).toBe(true)
+    const fields = getDataSourceFormFields(t)[source]
+    expect(
+      fields.find((field) => field.name === 'config.sync_deleted_files'),
+    ).toBeUndefined()
+    expect(
+      fields.find((field) => field.name === 'config.credentials.client_secret')
+        ?.type,
+    ).toBe(FormFieldType.Password)
+    const validate = fields.find(
+      (field) => field.name === 'config.batch_size',
+    )!.validate!
+    for (const value of [1, 32, undefined, ''])
+      expect(validate(value)).toBe(true)
+    for (const value of [0, -1, 1.5, NaN, Infinity, '32'])
+      expect(validate(value)).not.toBe(true)
+  }
+  const fields = getDataSourceFormFields(t)[DataSourceKey.ONEDRIVE]
+  const drives = fields.find(
+    (field) => field.name === 'config.drive_ids',
+  )!.validate!
+  for (const value of [[], ['drive-a', 'drive-b']])
+    expect(drives(value)).toBe(true)
+  for (const value of [undefined, null, '', [''], [' a'], ['a', 'a'], [1]])
+    expect(drives(value)).not.toBe(true)
+  const folder = fields.find(
+    (field) => field.name === 'config.folder_path',
+  )!.validate!
+  for (const value of [
+    '',
+    '/Documents/Reports',
+    'Reports',
+    '文档/a#b?c%',
+    '/%2e%2e/',
+    '%ZZ',
+  ])
+    expect(folder(value)).toBe(true)
+  for (const value of ['../Reports', '/a/../b', '.', '/a/./b', 'a\u0001b', 1])
+    expect(folder(value)).not.toBe(true)
 })

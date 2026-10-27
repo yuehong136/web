@@ -1,7 +1,7 @@
 import { toast } from '@/lib/toast'
 import { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useFetchTenantInfo } from '@/hooks/use-team-request'
+import { useDefaultModelRequest } from '@/hooks/use-default-model-request'
 import { useCreateKnowledge as useCreateKnowledgeRequest } from '@/hooks/use-knowledge-request'
 import type { CreateKBRequest } from '@/types/api'
 import { DEFAULT_CREATE_FORM_VALUES } from './constants'
@@ -18,7 +18,7 @@ export const useCreateKnowledge = ({
   const { t } = useTranslation()
   const { createKnowledge } = useCreateKnowledgeRequest()
 
-  const { tenantInfo } = useFetchTenantInfo()
+  const { tenantInfo } = useDefaultModelRequest()
   const [modelTouched, setModelTouched] = useState(false)
   const [tenantId, setTenantId] = useState(tenantInfo?.tenant_id)
   const [draft, setFormData] = useState<CreateKnowledgeFormValues>(

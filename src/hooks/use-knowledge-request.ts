@@ -28,6 +28,8 @@ export const knowledgeKeys = {
     [...knowledgeKeys.lists(), params] as const,
   details: () => [...knowledgeKeys.all, 'detail'] as const,
   detail: (id: string) => [...knowledgeKeys.details(), id] as const,
+  tags: (ids: string[]) =>
+    [...knowledgeKeys.all, 'tags', [...new Set(ids)].sort()] as const,
   graph: (id: string) => [...knowledgeKeys.detail(id), 'graph'] as const,
   // chat-settings 的简单知识库列表，沿用原内联 ['knowledgeBases'] 形状
   // （缓存为 kbs 数组，与 list() 的分页响应形态不同，刻意不共 key）
@@ -80,18 +82,6 @@ export const useFetchKnowledgeList = (
         keywords,
         owner_ids,
       })
-      // 后端在 page_size 很大时可能返回空列表但 total>0，兜底重试一次第一页全量
-      // （沿用原 store loadKnowledgeBases 的行为，迁移零漂移）
-      if (response.kbs.length === 0 && response.total > 0) {
-        return knowledgeAPI.knowledgeBase.list({
-          page: 1,
-          page_size: Math.max(response.total, page_size),
-          orderby,
-          desc,
-          keywords,
-          owner_ids,
-        })
-      }
       return response
     },
     // 5 分钟内认为数据新鲜，不重复请求

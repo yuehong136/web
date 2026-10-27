@@ -12,6 +12,7 @@ import {
   MessageCircleMore,
   Plug,
   Palette,
+  Terminal,
 } from 'lucide-react'
 import { useUIStore } from '@/stores'
 import { SidebarUtilities } from '@/components/layout/sidebar-utilities'
@@ -121,6 +122,11 @@ export const SettingsLayout: React.FC = () => {
             title: t('settings.nav.userManagement'),
             href: '/settings/admin',
             icon: UserCog,
+          },
+          {
+            title: t('sandbox.title'),
+            href: '/settings/sandbox',
+            icon: Terminal,
           },
           {
             title: t('settings.nav.systemStatus'),

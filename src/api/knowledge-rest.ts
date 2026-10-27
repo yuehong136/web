@@ -57,6 +57,36 @@ export type UploadedDatasetDocument = {
   run?: string
 }
 
+/** A failed batch can still acknowledge a strict subset of committed documents. */
+export function getPartialDatasetUpload(
+  error: unknown,
+  requestedCount: number,
+  datasetId: string,
+): unknown[] | undefined {
+  if (
+    !(error instanceof APIError) ||
+    error.status !== 200 ||
+    error.code === '0' ||
+    !error.details ||
+    typeof error.details !== 'object' ||
+    Array.isArray(error.details)
+  )
+    return undefined
+  const uploaded: unknown = error.details.uploaded
+  return Array.isArray(uploaded) &&
+    uploaded.length > 0 &&
+    uploaded.length < requestedCount &&
+    uploaded.every(
+      (doc: unknown) =>
+        doc !== null &&
+        typeof doc === 'object' &&
+        'dataset_id' in doc &&
+        doc.dataset_id === datasetId,
+    )
+    ? uploaded
+    : undefined
+}
+
 export type DatasetDocumentDTO = Omit<
   Document,
   'kb_id' | 'chunk_num' | 'token_num' | 'parser_id' | 'run'
@@ -195,6 +225,9 @@ export function uploadDatasetDocuments(
   options?: DocumentUploadOptions,
 ): Promise<UploadedDatasetDocument[]> {
   const uploadData: Record<string, unknown> = { ...options }
+  if (options?.parser_config !== undefined) {
+    uploadData.parser_config = JSON.stringify(options.parser_config)
+  }
 
   return apiClient.uploadMultiple(
     documentCreationPath(datasetId, DocumentCreationMode.LOCAL),

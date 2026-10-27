@@ -31,6 +31,7 @@ export interface AgentOperatorDefinition {
   nodeType: string
   defaultName: string
   description: string
+  descriptionKey?: string
   iconKey: string
   allowSingleStepDebug?: boolean
   consumesBeginInputs?: boolean

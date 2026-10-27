@@ -286,6 +286,39 @@ test('RAPTOR methods migrate into ext and retain Psi bucket settings on save/rel
   })
 })
 
+test('canonical RAPTOR clustering wins over stale flat values and survives save and reload', () => {
+  const initial = createKnowledgeBase({
+    raptor: {
+      use_raptor: true,
+      clustering_method: 'gmm',
+      ext: {
+        clustering_method: 'ahc',
+        tree_builder: 'psi',
+        future: { enabled: false },
+      },
+    },
+  })
+  const values = buildKnowledgeSettingsFormValues(initial, (value) => value)
+  const payload = buildKnowledgeSettingsParserConfig(
+    parserConfigSchema.parse(values.parser_config),
+  )
+  const reloaded = buildKnowledgeSettingsFormValues(
+    createKnowledgeBase(payload),
+    (value) => value,
+  )
+  assert.equal(reloaded.parser_config?.raptor?.ext?.clustering_method, 'ahc')
+  assert.deepEqual(reloaded.parser_config?.raptor?.ext?.future, {
+    enabled: false,
+  })
+  assert.equal(reloaded.parser_config?.raptor?.clustering_method, undefined)
+  const defaults = buildKnowledgeSettingsFormValues(
+    createKnowledgeBase({}),
+    (value) => value,
+  )
+  assert.equal(defaults.parser_config?.raptor?.ext?.clustering_method, 'gmm')
+  assert.equal(defaults.parser_config?.raptor?.ext?.tree_builder, 'raptor')
+})
+
 for (const budget of [512, 2048, 4096, 8196]) {
   test(`GraphRAG batch tokens ${budget} survive hydrate, validate, save and reload`, () => {
     const values = buildKnowledgeSettingsFormValues(

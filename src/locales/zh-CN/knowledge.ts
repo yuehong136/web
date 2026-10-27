@@ -1,7 +1,6 @@
 import { metadata } from './metadata'
-
 import knowledgeLogs from './knowledge-logs'
-
+import { chunkTags } from './chunk-tags'
 export default {
   knowledge: {
     nameValidation: {
@@ -633,6 +632,10 @@ export default {
         deleteError: '删除失败，请重试',
       },
       upload: {
+        inheritTableConfig: '使用知识库列设置',
+        tableHeadersFailed: '无法读取唯一列名。请使用知识库设置或自动模式。',
+        readingTableHeaders: '正在读取列名…',
+        tableHeadersScope: '列角色仅应用于此文件。Excel 列名取自第一个工作表。',
         title: '上传文档',
         fileTooLarge: '文件 "{{name}}" 超过大小限制',
         fileInvalidType: '文件 "{{name}}" 类型不支持',
@@ -1156,6 +1159,7 @@ export default {
       missingDocumentId: '缺少文档 ID，无法预览。',
     },
     chunks: {
+      tags: chunkTags,
       workspace: {
         source: '原文对照',
         description: '检查切片内容与检索状态，点击正文展开阅读。',

@@ -69,6 +69,7 @@ export interface TenantModelSettings {
   img2txt_id?: string
   rerank_id?: string
   tts_id?: string
+  ocr_id?: string
 }
 
 /** 忘记密码：验证图片验证码并发送邮箱 OTP */

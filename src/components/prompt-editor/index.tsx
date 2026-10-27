@@ -19,7 +19,7 @@ import { cn } from '@/lib/utils'
 import { useBuildPromptVariableOptions } from '@/pages/agent/hooks/use-get-begin-query'
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
 import { Variable } from 'lucide-react'
-import type { ReactNode } from 'react'
+import type { ComponentProps, ReactNode } from 'react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { EnterKeyPlugin } from './enter-key-plugin'
@@ -70,7 +70,13 @@ function useIsEditorEmpty(editor: LexicalEditor) {
   return isEmpty
 }
 
+type EditorAccessibilityProps = Pick<
+  ComponentProps<typeof ContentEditable>,
+  'id' | 'aria-label' | 'aria-describedby' | 'aria-invalid'
+>
+
 type PromptContentProps = {
+  accessibilityProps?: EditorAccessibilityProps
   showToolbar?: boolean
   multiLine?: boolean
   onBlur?: () => void
@@ -88,7 +94,8 @@ type IProps = {
   extraOptions?: VariableOptionGroup[]
   nodeId?: string
   enablePathQueryAutoMerge?: boolean
-} & Omit<PromptContentProps, 'onBlur'>
+} & Omit<PromptContentProps, 'onBlur' | 'accessibilityProps'> &
+  EditorAccessibilityProps
 
 function PromptContent({
   showToolbar = true,
@@ -97,6 +104,7 @@ function PromptContent({
   placeholder,
   pathAutoMergeEnabled = true,
   onPathAutoMergeChange,
+  accessibilityProps,
 }: PromptContentProps) {
   const [editor] = useLexicalComposerContext()
   const [isFocused, setIsFocused] = useState(false)
@@ -182,6 +190,7 @@ function PromptContent({
       )}
       <div className="relative">
         <ContentEditable
+          {...accessibilityProps}
           className={cn(
             'prompt-editor-content relative w-full px-space-sm text-base text-text-primary focus-visible:outline-hidden',
             {
@@ -223,6 +232,10 @@ export function PromptEditor({
   extraOptions = [],
   nodeId,
   enablePathQueryAutoMerge = true,
+  id,
+  'aria-label': ariaLabel,
+  'aria-describedby': ariaDescribedBy,
+  'aria-invalid': ariaInvalid,
 }: IProps) {
   const [pathAutoMergeEnabled, setPathAutoMergeEnabled] = useState(
     enablePathQueryAutoMerge,
@@ -281,6 +294,12 @@ export function PromptEditor({
         <RichTextPlugin
           contentEditable={
             <PromptContent
+              accessibilityProps={{
+                id,
+                'aria-label': ariaLabel,
+                'aria-describedby': ariaDescribedBy,
+                'aria-invalid': ariaInvalid,
+              }}
               showToolbar={showToolbar}
               multiLine={multiLine}
               onBlur={onBlur}

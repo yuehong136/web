@@ -1,5 +1,6 @@
 import {
   buildLLMValue,
+  getLLMModelLabel,
   isLLMModelEnabled,
   type LLMCatalog,
   type MyLLMProvider,
@@ -27,6 +28,22 @@ export function buildPDFParserOptions(
   const seen = new Set(options.map((option) => option.value))
   for (const [provider, data] of Object.entries(configured)) {
     for (const model of data.llm ?? []) {
+      if (model.reference) {
+        if (
+          isLLMModelEnabled(model) &&
+          ['ocr', 'image2text'].includes(model.type) &&
+          !seen.has(model.reference)
+        ) {
+          seen.add(model.reference)
+          options.push({
+            value: model.reference,
+            label: getLLMModelLabel(model),
+            provider,
+            kind: model.type === 'ocr' ? 'ocr' : 'vision',
+          })
+        }
+        continue
+      }
       // /list can reintroduce disabled rows; tenant status is authoritative.
       if (model.status !== '1' || !model.name || !isLLMModelEnabled(model))
         continue
@@ -60,4 +77,30 @@ export function buildPDFParserOptions(
     }
   }
   return options
+}
+
+/** Resolve the displayed choice while leaving the persisted parser value untouched. */
+export function resolvePDFParserSelection(
+  value: string,
+  models: MyLLMProvider,
+): string {
+  const matches: string[] = []
+  for (const [provider, data] of Object.entries(models))
+    for (const model of data.llm) {
+      if (
+        !model.reference ||
+        !isLLMModelEnabled(model) ||
+        !['ocr', 'image2text'].includes(model.type)
+      )
+        continue
+      const qualified = `${model.name}@${provider}`
+      if (
+        value === model.reference ||
+        value === qualified ||
+        (model.type === 'ocr' && value === `${qualified}@${provider}`)
+      )
+        matches.push(model.reference)
+    }
+  const unique = [...new Set(matches)]
+  return unique.length === 1 ? unique[0] : value
 }

@@ -53,9 +53,7 @@
   "paths": {
     "/api/v1/agentbots/{agent_id}/completions": {
       "post": {
-        "tags": [
-          "session"
-        ],
+        "tags": ["session"],
         "summary": "代理机器人补全",
         "operationId": "agent_bot_completions_api_v1_agentbots__agent_id__completions_post",
         "parameters": [
@@ -103,9 +101,7 @@
     },
     "/api/v1/agentbots/{agent_id}/inputs": {
       "get": {
-        "tags": [
-          "session"
-        ],
+        "tags": ["session"],
         "summary": "获取代理机器人输入表单",
         "operationId": "get_agent_inputs_api_v1_agentbots__agent_id__inputs_get",
         "parameters": [
@@ -143,9 +139,7 @@
     },
     "/api/v1/agents": {
       "get": {
-        "tags": [
-          "agent"
-        ],
+        "tags": ["agent"],
         "summary": "获取代理列表",
         "description": "获取代理列表\n\nArgs:\n    id: 代理ID过滤\n    title: 代理标题过滤\n    page: 页码\n    page_size: 每页数量\n    orderby: 排序字段\n    desc: 是否降序\n    db: 数据库会话\n    tenant_id: 租户ID\n\nReturns:\n    代理列表",
         "operationId": "list_agents_api_v1_agents_get",
@@ -245,9 +239,7 @@
         }
       },
       "post": {
-        "tags": [
-          "agent"
-        ],
+        "tags": ["agent"],
         "summary": "创建代理",
         "description": "创建新的代理\n\nArgs:\n    request: 代理创建参数\n    db: 数据库会话\n    tenant_id: 租户ID\n\nReturns:\n    创建结果",
         "operationId": "create_agent_api_v1_agents_post",
@@ -285,9 +277,7 @@
     },
     "/api/v1/agents/{agent_id}": {
       "put": {
-        "tags": [
-          "agent"
-        ],
+        "tags": ["agent"],
         "summary": "更新代理",
         "description": "更新代理\n\nArgs:\n    agent_id: 代理ID\n    request: 更新请求参数\n    db: 数据库会话\n    tenant_id: 租户ID\n\nReturns:\n    更新结果",
         "operationId": "update_agent_api_v1_agents__agent_id__put",
@@ -334,9 +324,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "agent"
-        ],
+        "tags": ["agent"],
         "summary": "删除代理",
         "description": "删除代理\n\nArgs:\n    agent_id: 代理ID\n    db: 数据库会话\n    tenant_id: 租户ID\n\nReturns:\n    删除结果",
         "operationId": "delete_agent_api_v1_agents__agent_id__delete",
@@ -375,9 +363,7 @@
     },
     "/api/v1/agents/{agent_id}/completions": {
       "post": {
-        "tags": [
-          "session"
-        ],
+        "tags": ["session"],
         "summary": "代理补全",
         "operationId": "agent_completions_api_v1_agents__agent_id__completions_post",
         "parameters": [
@@ -425,9 +411,7 @@
     },
     "/api/v1/agents/{agent_id}/sessions": {
       "post": {
-        "tags": [
-          "session"
-        ],
+        "tags": ["session"],
         "summary": "创建代理会话",
         "operationId": "create_agent_session_api_v1_agents__agent_id__sessions_post",
         "parameters": [
@@ -472,9 +456,7 @@
         }
       },
       "get": {
-        "tags": [
-          "session"
-        ],
+        "tags": ["session"],
         "summary": "获取代理会话列表",
         "operationId": "list_agent_sessions_api_v1_agents__agent_id__sessions_get",
         "parameters": [
@@ -592,9 +574,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "session"
-        ],
+        "tags": ["session"],
         "summary": "批量删除代理会话",
         "operationId": "delete_agent_sessions_api_v1_agents__agent_id__sessions_delete",
         "parameters": [
@@ -642,9 +622,7 @@
     },
     "/api/v1/agents_openai/{agent_id}/chat/completions": {
       "post": {
-        "tags": [
-          "session"
-        ],
+        "tags": ["session"],
         "summary": "代理OpenAI兼容补全",
         "operationId": "agents_completion_openai_compatibility_api_v1_agents_openai__agent_id__chat_completions_post",
         "parameters": [
@@ -692,9 +670,7 @@
     },
     "/api/v1/chatbots/{dialog_id}/completions": {
       "post": {
-        "tags": [
-          "session"
-        ],
+        "tags": ["session"],
         "summary": "聊天机器人补全",
         "operationId": "chatbot_completions_api_v1_chatbots__dialog_id__completions_post",
         "parameters": [
@@ -742,9 +718,7 @@
     },
     "/api/v1/chatbots/{dialog_id}/info": {
       "get": {
-        "tags": [
-          "session"
-        ],
+        "tags": ["session"],
         "summary": "获取聊天机器人信息",
         "operationId": "get_chatbot_info_api_v1_chatbots__dialog_id__info_get",
         "parameters": [
@@ -782,9 +756,7 @@
     },
     "/api/v1/chats": {
       "post": {
-        "tags": [
-          "chat"
-        ],
+        "tags": ["chat"],
         "summary": "创建聊天",
         "operationId": "create_api_v1_chats_post",
         "requestBody": {
@@ -819,9 +791,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "chat"
-        ],
+        "tags": ["chat"],
         "summary": "删除聊天",
         "operationId": "delete_api_v1_chats_delete",
         "requestBody": {
@@ -856,9 +826,7 @@
         }
       },
       "get": {
-        "tags": [
-          "chat"
-        ],
+        "tags": ["chat"],
         "summary": "获取聊天列表",
         "operationId": "list_chat_api_v1_chats_get",
         "parameters": [
@@ -959,9 +927,7 @@
     },
     "/api/v1/chats/{chat_id}": {
       "put": {
-        "tags": [
-          "chat"
-        ],
+        "tags": ["chat"],
         "summary": "更新聊天",
         "operationId": "update_api_v1_chats__chat_id__put",
         "parameters": [
@@ -1009,9 +975,7 @@
     },
     "/api/v1/chats/{chat_id}/completions": {
       "post": {
-        "tags": [
-          "session"
-        ],
+        "tags": ["session"],
         "summary": "聊天补全",
         "operationId": "chat_completion_api_v1_chats__chat_id__completions_post",
         "parameters": [
@@ -1059,9 +1023,7 @@
     },
     "/api/v1/chats/{chat_id}/sessions": {
       "post": {
-        "tags": [
-          "session"
-        ],
+        "tags": ["session"],
         "summary": "创建聊天会话",
         "operationId": "create_session_api_v1_chats__chat_id__sessions_post",
         "parameters": [
@@ -1107,9 +1069,7 @@
         }
       },
       "get": {
-        "tags": [
-          "session"
-        ],
+        "tags": ["session"],
         "summary": "获取聊天会话列表",
         "operationId": "list_sessions_api_v1_chats__chat_id__sessions_get",
         "parameters": [
@@ -1233,9 +1193,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "session"
-        ],
+        "tags": ["session"],
         "summary": "批量删除聊天会话",
         "operationId": "delete_sessions_api_v1_chats__chat_id__sessions_delete",
         "parameters": [
@@ -1283,9 +1241,7 @@
     },
     "/api/v1/chats/{chat_id}/sessions/{session_id}": {
       "put": {
-        "tags": [
-          "session"
-        ],
+        "tags": ["session"],
         "summary": "更新聊天会话",
         "operationId": "update_session_api_v1_chats__chat_id__sessions__session_id__put",
         "parameters": [
@@ -1340,62 +1296,9 @@
         }
       }
     },
-    "/api/v1/chats_openai/{chat_id}/chat/completions": {
-      "post": {
-        "tags": [
-          "session"
-        ],
-        "summary": "OpenAI兼容的聊天补全",
-        "description": "OpenAI-like chat completion API that simulates the behavior of OpenAI's completions endpoint.\n\n    This function allows users to interact with a model and receive responses based on a series of historical messages.\n    If `stream` is set to True (by default), the response will be streamed in chunks, mimicking the OpenAI-style API.\n    Set `stream` to False explicitly, the response will be returned in a single complete answer.\n\n    Reference:\n\n    - If `stream` is True, the final answer and reference information will appear in the **last chunk** of the stream.\n    - If `stream` is False, the reference will be included in `choices[0].message.reference`.\n\n    Example usage:\n\n    curl -X POST https://ragflow_address.com/api/v1/chats_openai/<chat_id>/chat/completions         -H \"Content-Type: application/json\"         -H \"Authorization: Bearer $RAGFLOW_API_KEY\"         -d '{\n            \"model\": \"model\",\n            \"messages\": [{\"role\": \"user\", \"content\": \"Say this is a test!\"}],\n            \"stream\": true\n        }'\n\n    Alternatively, you can use Python's `OpenAI` client:\n\n    from openai import OpenAI\n\n    model = \"model\"\n    client = OpenAI(api_key=\"ragflow-api-key\", base_url=f\"http://ragflow_address/api/v1/chats_openai/<chat_id>\")\n\n    stream = True\n    reference = True\n\n    completion = client.chat.completions.create(\n        model=model,\n        messages=[\n            {\"role\": \"system\", \"content\": \"You are a helpful assistant.\"},\n            {\"role\": \"user\", \"content\": \"Who are you?\"},\n            {\"role\": \"assistant\", \"content\": \"I am an AI assistant named...\"},\n            {\"role\": \"user\", \"content\": \"Can you tell me how to install neovim\"},\n        ],\n        stream=stream,\n        extra_body={\"reference\": reference}\n    )\n\n    if stream:\n    for chunk in completion:\n        print(chunk)\n        if reference and chunk.choices[0].finish_reason == \"stop\":\n            print(f\"Reference:\n{chunk.choices[0].delta.reference}\")\n            print(f\"Final content:\n{chunk.choices[0].delta.final_content}\")\n    else:\n        print(completion.choices[0].message.content)\n        if reference:\n            print(completion.choices[0].message.reference)",
-        "operationId": "chat_completion_openai_like_api_v1_chats_openai__chat_id__chat_completions_post",
-        "parameters": [
-          {
-            "name": "chat_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Chat Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ChatCompletionOpenAIRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/datasets": {
       "post": {
-        "tags": [
-          "dataset"
-        ],
+        "tags": ["dataset"],
         "summary": "创建数据集",
         "description": "创建新的数据集\n\nArgs:\n    request: 数据集创建参数\n    db: 数据库会话\n    tenant_id: 租户ID\n\nReturns:\n    创建的数据集信息",
         "operationId": "create_dataset_api_v1_datasets_post",
@@ -1431,9 +1334,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "dataset"
-        ],
+        "tags": ["dataset"],
         "summary": "删除数据集",
         "description": "删除数据集\n\nArgs:\n    request: 删除请求参数，包含要删除的数据集ID列表\n    db: 数据库会话\n    tenant_id: 租户ID\n\nReturns:\n    删除结果",
         "operationId": "delete_datasets_api_v1_datasets_delete",
@@ -1469,9 +1370,7 @@
         }
       },
       "get": {
-        "tags": [
-          "dataset"
-        ],
+        "tags": ["dataset"],
         "summary": "获取数据集列表",
         "description": "获取数据集列表\n\nArgs:\n    id: 数据集ID过滤（可选）\n    name: 数据集名称过滤（可选）\n    page: 页码\n    page_size: 每页数量\n    orderby: 排序字段\n    desc: 是否降序\n    db: 数据库会话\n    tenant_id: 租户ID\n\nReturns:\n    数据集列表",
         "operationId": "list_datasets_api_v1_datasets_get",
@@ -1585,9 +1484,7 @@
     },
     "/api/v1/datasets/{dataset_id}": {
       "put": {
-        "tags": [
-          "dataset"
-        ],
+        "tags": ["dataset"],
         "summary": "更新数据集",
         "description": "更新数据集\n\nArgs:\n    dataset_id: 数据集ID\n    request: 更新请求参数\n    db: 数据库会话\n    tenant_id: 租户ID\n\nReturns:\n    更新后的数据集信息",
         "operationId": "update_dataset_api_v1_datasets__dataset_id__put",
@@ -1636,9 +1533,7 @@
     },
     "/api/v1/datasets/{dataset_id}/chunks": {
       "post": {
-        "tags": [
-          "doc"
-        ],
+        "tags": ["doc"],
         "summary": "解析文档",
         "description": "解析数据集中的文档为chunks\n\nArgs:\n    dataset_id: 数据集ID\n    request: 解析请求参数\n    db: 数据库会话\n    tenant_id: 租户ID\n\nReturns:\n    解析任务结果",
         "operationId": "parse_documents_api_v1_datasets__dataset_id__chunks_post",
@@ -1685,9 +1580,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "doc"
-        ],
+        "tags": ["doc"],
         "summary": "停止解析",
         "description": "停止解析数据集中的文档\n\nArgs:\n    dataset_id: 数据集ID\n    request: 停止解析请求参数\n    db: 数据库会话\n    tenant_id: 租户ID\n\nReturns:\n    停止解析结果",
         "operationId": "stop_parsing_documents_api_v1_datasets__dataset_id__chunks_delete",
@@ -1736,9 +1629,7 @@
     },
     "/api/v1/datasets/{dataset_id}/documents": {
       "post": {
-        "tags": [
-          "doc"
-        ],
+        "tags": ["doc"],
         "summary": "上传文档",
         "description": "上传文档到数据集\n\nArgs:\n    dataset_id: 数据集ID\n    files: 上传的文件列表\n    db: 数据库会话\n    tenant_id: 租户ID\n\nReturns:\n    上传的文档信息列表",
         "operationId": "upload_documents_api_v1_datasets__dataset_id__documents_post",
@@ -1785,9 +1676,7 @@
         }
       },
       "get": {
-        "tags": [
-          "doc"
-        ],
+        "tags": ["doc"],
         "summary": "获取文档列表",
         "description": "获取数据集中的文档列表\n\nArgs:\n    dataset_id: 数据集ID\n    page: 页码\n    page_size: 每页数量\n    orderby: 排序字段\n    desc: 是否降序\n    keywords: 关键词搜索\n    id: 文档ID过滤\n    db: 数据库会话\n    tenant_id: 租户ID\n\nReturns:\n    文档列表",
         "operationId": "list_documents_api_v1_datasets__dataset_id__documents_get",
@@ -1899,9 +1788,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "doc"
-        ],
+        "tags": ["doc"],
         "summary": "批量删除文档",
         "description": "批量删除数据集中的文档\n\nArgs:\n    dataset_id: 数据集ID\n    request: 删除请求参数\n    db: 数据库会话\n    tenant_id: 租户ID\n\nReturns:\n    删除结果",
         "operationId": "delete_documents_api_v1_datasets__dataset_id__documents_delete",
@@ -1950,9 +1837,7 @@
     },
     "/api/v1/datasets/{dataset_id}/documents/{document_id}": {
       "put": {
-        "tags": [
-          "doc"
-        ],
+        "tags": ["doc"],
         "summary": "更新文档",
         "description": "更新数据集中的文档\n\nArgs:\n    dataset_id: 数据集ID\n    document_id: 文档ID\n    request: 更新请求参数\n    db: 数据库会话\n    tenant_id: 租户ID\n\nReturns:\n    更新后的文档信息",
         "operationId": "update_document_api_v1_datasets__dataset_id__documents__document_id__put",
@@ -2008,9 +1893,7 @@
         }
       },
       "get": {
-        "tags": [
-          "doc"
-        ],
+        "tags": ["doc"],
         "summary": "下载文档",
         "description": "从数据集下载文档\n\nArgs:\n    dataset_id: 数据集ID\n    document_id: 文档ID\n    db: 数据库会话\n    tenant_id: 租户ID\n\nReturns:\n    文档文件流",
         "operationId": "download_document_api_v1_datasets__dataset_id__documents__document_id__get",
@@ -2058,9 +1941,7 @@
     },
     "/api/v1/datasets/{dataset_id}/documents/{document_id}/chunks": {
       "get": {
-        "tags": [
-          "doc"
-        ],
+        "tags": ["doc"],
         "summary": "获取文档分块列表",
         "description": "获取文档的分块列表\n\nArgs:\n    dataset_id: 数据集ID\n    document_id: 文档ID\n    page: 页码\n    page_size: 每页数量\n    keywords: 关键词搜索\n    db: 数据库会话\n    tenant_id: 租户ID\n\nReturns:\n    文档分块列表",
         "operationId": "list_document_chunks_api_v1_datasets__dataset_id__documents__document_id__chunks_get",
@@ -2145,9 +2026,7 @@
         }
       },
       "post": {
-        "tags": [
-          "doc"
-        ],
+        "tags": ["doc"],
         "summary": "添加文档分块",
         "description": "为文档添加新的分块\n\nArgs:\n    dataset_id: 数据集ID\n    document_id: 文档ID\n    request: 添加分块请求参数\n    db: 数据库会话\n    tenant_id: 租户ID\n\nReturns:\n    添加的分块信息",
         "operationId": "add_document_chunk_api_v1_datasets__dataset_id__documents__document_id__chunks_post",
@@ -2203,9 +2082,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "doc"
-        ],
+        "tags": ["doc"],
         "summary": "批量删除文档分块",
         "description": "批量删除文档分块",
         "operationId": "delete_document_chunks_api_v1_datasets__dataset_id__documents__document_id__chunks_delete",
@@ -2263,9 +2140,7 @@
     },
     "/api/v1/datasets/{dataset_id}/documents/{document_id}/chunks/{chunk_id}": {
       "put": {
-        "tags": [
-          "doc"
-        ],
+        "tags": ["doc"],
         "summary": "更新文档分块",
         "description": "更新文档分块",
         "operationId": "update_document_chunk_api_v1_datasets__dataset_id__documents__document_id__chunks__chunk_id__put",
@@ -2332,9 +2207,7 @@
     },
     "/api/v1/datasets/{dataset_id}/knowledge_graph": {
       "get": {
-        "tags": [
-          "dataset"
-        ],
+        "tags": ["dataset"],
         "summary": "获取数据集知识图谱",
         "description": "获取数据集的知识图谱\n\nArgs:\n    dataset_id: 数据集ID\n    db: 数据库会话\n    tenant_id: 租户ID\n\nReturns:\n    知识图谱数据",
         "operationId": "get_knowledge_graph_api_v1_datasets__dataset_id__knowledge_graph_get",
@@ -2371,9 +2244,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "dataset"
-        ],
+        "tags": ["dataset"],
         "summary": "删除数据集知识图谱",
         "description": "删除数据集的知识图谱\n\nArgs:\n    dataset_id: 数据集ID\n    db: 数据库会话\n    tenant_id: 租户ID\n\nReturns:\n    删除结果",
         "operationId": "delete_knowledge_graph_api_v1_datasets__dataset_id__knowledge_graph_delete",
@@ -2412,9 +2283,7 @@
     },
     "/api/v1/files": {
       "post": {
-        "tags": [
-          "files"
-        ],
+        "tags": ["files"],
         "summary": "创建文件或文件夹",
         "description": "创建新的文件或文件夹\n\nArgs:\n    request: 文件创建参数\n    db: 数据库会话\n    tenant_id: 租户ID\n\nReturns:\n    创建的文件信息",
         "operationId": "create_file_api_v1_files_post",
@@ -2450,9 +2319,7 @@
         }
       },
       "get": {
-        "tags": [
-          "files"
-        ],
+        "tags": ["files"],
         "summary": "获取文件列表",
         "description": "列出指定文件夹下的文件\n\nArgs:\n    parent_id: 父文件夹ID\n    keywords: 搜索关键词\n    page: 页码\n    page_size: 每页数量\n    orderby: 排序字段\n    desc: 是否降序\n    db: 数据库会话\n    tenant_id: 租户ID\n\nReturns:\n    文件列表",
         "operationId": "list_files_api_v1_files_get",
@@ -2555,9 +2422,7 @@
     },
     "/api/v1/files/delete": {
       "delete": {
-        "tags": [
-          "files"
-        ],
+        "tags": ["files"],
         "summary": "删除文件或文件夹",
         "description": "删除一个或多个文件/文件夹\n\nArgs:\n    request: 删除请求参数\n    db: 数据库会话\n    tenant_id: 租户ID\n\nReturns:\n    删除结果",
         "operationId": "delete_files_api_v1_files_delete_delete",
@@ -2595,9 +2460,7 @@
     },
     "/api/v1/files/move": {
       "put": {
-        "tags": [
-          "files"
-        ],
+        "tags": ["files"],
         "summary": "移动文件",
         "description": "移动一个或多个文件到另一个文件夹\n\nArgs:\n    request: 移动请求参数\n    db: 数据库会话\n    tenant_id: 租户ID\n\nReturns:\n    移动结果",
         "operationId": "move_files_api_v1_files_move_put",
@@ -2635,9 +2498,7 @@
     },
     "/api/v1/files/root": {
       "get": {
-        "tags": [
-          "files"
-        ],
+        "tags": ["files"],
         "summary": "获取根文件夹",
         "description": "获取用户的根文件夹\n\nArgs:\n    db: 数据库会话\n    tenant_id: 租户ID\n\nReturns:\n    根文件夹信息",
         "operationId": "get_root_folder_api_v1_files_root_get",
@@ -2655,9 +2516,7 @@
     },
     "/api/v1/files/upload": {
       "post": {
-        "tags": [
-          "files"
-        ],
+        "tags": ["files"],
         "summary": "上传文件",
         "description": "上传文件到系统\n\nArgs:\n    files: 要上传的文件列表\n    parent_id: 父文件夹ID，可选\n    db: 数据库会话\n    tenant_id: 租户ID\n\nReturns:\n    上传成功的文件列表",
         "operationId": "upload_files_api_v1_files_upload_post",
@@ -2695,9 +2554,7 @@
     },
     "/api/v1/files/{file_id}/download": {
       "get": {
-        "tags": [
-          "files"
-        ],
+        "tags": ["files"],
         "summary": "下载文件",
         "description": "下载文件\n\nArgs:\n    file_id: 文件ID\n    db: 数据库会话\n    tenant_id: 租户ID\n\nReturns:\n    文件流",
         "operationId": "download_file_api_v1_files__file_id__download_get",
@@ -2736,9 +2593,7 @@
     },
     "/api/v1/files/{file_id}/name": {
       "put": {
-        "tags": [
-          "files"
-        ],
+        "tags": ["files"],
         "summary": "重命名文件",
         "description": "重命名文件\n\nArgs:\n    file_id: 文件ID\n    request: 重命名请求参数\n    db: 数据库会话\n    tenant_id: 租户ID\n\nReturns:\n    重命名结果",
         "operationId": "rename_file_api_v1_files__file_id__name_put",
@@ -2787,9 +2642,7 @@
     },
     "/api/v1/files/{file_id}/parent": {
       "get": {
-        "tags": [
-          "files"
-        ],
+        "tags": ["files"],
         "summary": "获取文件的父文件夹",
         "description": "获取文件的父文件夹信息\n\nArgs:\n    file_id: 文件ID\n    db: 数据库会话\n    tenant_id: 租户ID\n\nReturns:\n    父文件夹信息",
         "operationId": "get_parent_folder_api_v1_files__file_id__parent_get",
@@ -2828,9 +2681,7 @@
     },
     "/api/v1/files/{file_id}/parents": {
       "get": {
-        "tags": [
-          "files"
-        ],
+        "tags": ["files"],
         "summary": "获取文件的所有父文件夹",
         "description": "获取文件的所有父文件夹\n\nArgs:\n    file_id: 文件ID\n    db: 数据库会话\n    tenant_id: 租户ID\n\nReturns:\n    所有父文件夹列表",
         "operationId": "get_all_parent_folders_api_v1_files__file_id__parents_get",
@@ -2869,9 +2720,7 @@
     },
     "/api/v1/retrieval": {
       "post": {
-        "tags": [
-          "doc"
-        ],
+        "tags": ["doc"],
         "summary": "检索测试",
         "description": "测试检索功能\n\nArgs:\n    request: 检索测试请求参数\n    db: 数据库会话\n    tenant_id: 租户ID\n\nReturns:\n    检索结果",
         "operationId": "retrieval_test_api_v1_retrieval_post",
@@ -2909,9 +2758,7 @@
     },
     "/api/v1/searchbots/ask": {
       "post": {
-        "tags": [
-          "session"
-        ],
+        "tags": ["session"],
         "summary": "搜索机器人询问",
         "operationId": "ask_searchbot_api_v1_searchbots_ask_post",
         "requestBody": {
@@ -2948,9 +2795,7 @@
     },
     "/api/v1/searchbots/detail": {
       "get": {
-        "tags": [
-          "session"
-        ],
+        "tags": ["session"],
         "summary": "获取搜索机器人详情",
         "operationId": "get_searchbot_detail_api_v1_searchbots_detail_get",
         "parameters": [
@@ -2988,9 +2833,7 @@
     },
     "/api/v1/searchbots/mindmap": {
       "post": {
-        "tags": [
-          "session"
-        ],
+        "tags": ["session"],
         "summary": "生成搜索机器人思维导图",
         "operationId": "generate_searchbot_mindmap_api_v1_searchbots_mindmap_post",
         "requestBody": {
@@ -3027,9 +2870,7 @@
     },
     "/api/v1/searchbots/related_questions": {
       "post": {
-        "tags": [
-          "session"
-        ],
+        "tags": ["session"],
         "summary": "搜索机器人相关问题",
         "operationId": "get_searchbot_related_questions_api_v1_searchbots_related_questions_post",
         "requestBody": {
@@ -3066,9 +2907,7 @@
     },
     "/api/v1/searchbots/retrieval_test": {
       "post": {
-        "tags": [
-          "session"
-        ],
+        "tags": ["session"],
         "summary": "搜索机器人检索测试",
         "operationId": "retrieval_test_searchbot_api_v1_searchbots_retrieval_test_post",
         "requestBody": {
@@ -3105,9 +2944,7 @@
     },
     "/api/v1/sessions/ask": {
       "post": {
-        "tags": [
-          "session"
-        ],
+        "tags": ["session"],
         "summary": "询问知识库",
         "operationId": "ask_knowledge_base_api_v1_sessions_ask_post",
         "requestBody": {
@@ -3144,9 +2981,7 @@
     },
     "/api/v1/sessions/related_questions": {
       "post": {
-        "tags": [
-          "session"
-        ],
+        "tags": ["session"],
         "summary": "获取相关问题",
         "operationId": "get_related_questions_api_v1_sessions_related_questions_post",
         "requestBody": {
@@ -3199,9 +3034,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "content"
-        ],
+        "required": ["content"],
         "title": "AddChunkRequest"
       },
       "AgentCompletionRequest": {
@@ -3249,10 +3082,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "question",
-          "dataset_ids"
-        ],
+        "required": ["question", "dataset_ids"],
         "title": "AskRequest"
       },
       "Body_upload_documents_api_v1_datasets__dataset_id__documents_post": {
@@ -3267,9 +3097,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "files"
-        ],
+        "required": ["files"],
         "title": "Body_upload_documents_api_v1_datasets__dataset_id__documents_post"
       },
       "Body_upload_files_api_v1_files_upload_post": {
@@ -3295,9 +3123,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "files"
-        ],
+        "required": ["files"],
         "title": "Body_upload_files_api_v1_files_upload_post"
       },
       "ChatCompletionOpenAIRequest": {
@@ -3339,10 +3165,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "model",
-          "messages"
-        ],
+        "required": ["model", "messages"],
         "title": "ChatCompletionOpenAIRequest"
       },
       "ChatCompletionRequest": {
@@ -3447,10 +3270,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "title",
-          "dsl"
-        ],
+        "required": ["title", "dsl"],
         "title": "CreateAgentRequest"
       },
       "CreateChatRequest": {
@@ -3558,9 +3378,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "name"
-        ],
+        "required": ["name"],
         "title": "CreateChatRequest"
       },
       "CreateDatasetRequest": {
@@ -3641,9 +3459,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "name"
-        ],
+        "required": ["name"],
         "title": "CreateDatasetRequest"
       },
       "CreateFileRequest": {
@@ -3670,9 +3486,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "name"
-        ],
+        "required": ["name"],
         "title": "CreateFileRequest"
       },
       "CreateSessionRequest": {
@@ -3736,9 +3550,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "chunk_ids"
-        ],
+        "required": ["chunk_ids"],
         "title": "DeleteChunksRequest"
       },
       "DeleteDatasetRequest": {
@@ -3792,9 +3604,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "file_ids"
-        ],
+        "required": ["file_ids"],
         "title": "DeleteFilesRequest"
       },
       "DeleteSessionsRequest": {
@@ -3845,10 +3655,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "src_file_ids",
-          "dest_file_id"
-        ],
+        "required": ["src_file_ids", "dest_file_id"],
         "title": "MoveFilesRequest"
       },
       "ParseDocumentRequest": {
@@ -3862,9 +3669,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "document_ids"
-        ],
+        "required": ["document_ids"],
         "title": "ParseDocumentRequest"
       },
       "RenameFileRequest": {
@@ -3879,10 +3684,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "file_id",
-          "name"
-        ],
+        "required": ["file_id", "name"],
         "title": "RenameFileRequest"
       },
       "SearchBotAskRequest": {
@@ -3912,10 +3714,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "question",
-          "kb_ids"
-        ],
+        "required": ["question", "kb_ids"],
         "title": "SearchBotAskRequest"
       },
       "SearchBotMindmapRequest": {
@@ -3945,10 +3744,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "question",
-          "kb_ids"
-        ],
+        "required": ["question", "kb_ids"],
         "title": "SearchBotMindmapRequest"
       },
       "SearchBotRelatedQuestionsRequest": {
@@ -3971,9 +3767,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "question"
-        ],
+        "required": ["question"],
         "title": "SearchBotRelatedQuestionsRequest"
       },
       "SearchBotRetrievalTestRequest": {
@@ -4147,10 +3941,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "kb_id",
-          "question"
-        ],
+        "required": ["kb_id", "question"],
         "title": "SearchBotRetrievalTestRequest"
       },
       "StopParsingRequest": {
@@ -4164,9 +3955,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "document_ids"
-        ],
+        "required": ["document_ids"],
         "title": "StopParsingRequest"
       },
       "UpdateAgentRequest": {
@@ -4559,11 +4348,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "loc",
-          "msg",
-          "type"
-        ],
+        "required": ["loc", "msg", "type"],
         "title": "ValidationError"
       },
       "api__apps__sdk__doc__RetrievalTestRequest": {
@@ -4642,10 +4427,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "question",
-          "datasets"
-        ],
+        "required": ["question", "datasets"],
         "title": "RetrievalTestRequest"
       },
       "api__apps__sdk__session__RelatedQuestionsRequest": {
@@ -4668,9 +4450,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "question"
-        ],
+        "required": ["question"],
         "title": "RelatedQuestionsRequest"
       }
     }
@@ -4678,18 +4458,9 @@
   "x-filter-warnings": [],
   "x-filter-meta": {
     "rules": {
-      "paths": [
-        "/api/v1/*"
-      ],
+      "paths": ["/api/v1/*"],
       "match": "glob",
-      "include_tags": [
-        "chat",
-        "session",
-        "dataset",
-        "doc",
-        "files",
-        "agent"
-      ],
+      "include_tags": ["chat", "session", "dataset", "doc", "files", "agent"],
       "exclude_paths": [],
       "exclude_tags": [],
       "strict": true,

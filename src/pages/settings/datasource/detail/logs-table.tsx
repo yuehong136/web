@@ -126,7 +126,7 @@ export function DataSourceLogsTable({ state }: DataSourceLogsTableProps) {
             <TableHead>{t('datasource.logUpdatedAt')}</TableHead>
             <TableHead>{t('datasource.logKnowledgeBase')}</TableHead>
             <TableHead>{t('datasource.logStatus')}</TableHead>
-            <TableHead className="w-2/5">
+            <TableHead className="w-2/5 min-w-80">
               {t('datasource.logSummary')}
             </TableHead>
             <TableHead>{t('datasource.logCursor')}</TableHead>

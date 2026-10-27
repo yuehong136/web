@@ -11,6 +11,7 @@ import type { ComponentProps } from '@ant-design/x-markdown'
 import { Download, ExternalLink } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
+import { isSafeMarkdownImageSource } from '@/components/chat/markdown-image-source'
 import { isArtifactUrl, resolveArtifactUrl } from '@/lib/agent/artifact-url'
 import {
   createPreviewObjectUrl,
@@ -272,6 +273,8 @@ export const MarkdownArtifactImage: FC<MarkdownImageProps> = ({
   const messageId = useArtifactMessageId()
   const resolvedSrc = src || getDomAttribute(domNode, 'src') || ''
   const resolvedAlt = alt || getDomAttribute(domNode, 'alt') || ''
+
+  if (!isSafeMarkdownImageSource(resolvedSrc)) return null
 
   if (isArtifactUrl(resolvedSrc)) {
     if (workspace && messageId)

@@ -10,6 +10,10 @@ const groups: VariableOptionGroup[] = [
     title: 'Document',
     options: [
       { label: 'download', value: 'DocGenerator:One@download' },
+      ...['doc_id', 'filename', 'mime_type', 'size'].map((name) => ({
+        label: name,
+        value: `DocGenerator:One@${name}`,
+      })),
       { label: 'content', value: 'Other:One@content' },
     ],
   },
@@ -38,6 +42,12 @@ test('DocGenerator download output is hidden from non-Message nodes', () => {
 
   assert.deepEqual(
     filtered[0]?.options.map((option) => option.value),
-    ['Other:One@content'],
+    [
+      'DocGenerator:One@doc_id',
+      'DocGenerator:One@filename',
+      'DocGenerator:One@mime_type',
+      'DocGenerator:One@size',
+      'Other:One@content',
+    ],
   )
 })

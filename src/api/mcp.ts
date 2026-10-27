@@ -16,6 +16,7 @@ import type {
   UpdateMCPServerRequest,
 } from '@/types/mcp'
 import { apiClient } from './client'
+import { collectListWindow, isLargeListWindow } from './list-pagination'
 
 const restBase = { baseURL: `${API_BASE_URL}/api` }
 const mcpServersPath = '/mcp/servers'
@@ -34,14 +35,21 @@ export const mcpAPI = {
       orderby?: string
       desc?: boolean
     } = {},
-  ): Promise<PaginatedResponse<MCPServer>> =>
-    apiClient.get<PaginatedResponse<MCPServer>>(mcpServersPath, {
+  ): Promise<PaginatedResponse<MCPServer>> => {
+    if (isLargeListWindow(params))
+      return collectListWindow(
+        params,
+        (page) => mcpAPI.listServers(request, { ...params, ...page }),
+        'mcp_servers',
+      )
+    return apiClient.get<PaginatedResponse<MCPServer>>(mcpServersPath, {
       ...restBase,
       params: {
         ...params,
         mcp_ids: request.mcp_ids?.join(','),
       },
-    }),
+    })
+  },
 
   getServerDetail: async (mcpId: string): Promise<MCPServer> =>
     apiClient.get<MCPServer>(mcpServerPath(mcpId), {

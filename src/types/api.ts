@@ -1065,7 +1065,7 @@ export type LLMType =
   | 'image2text'
   | 'rerank'
   | 'tts'
-
+  | 'ocr'
 export interface LLMModel {
   id: string
   llm_name: string // 实际的模型名称

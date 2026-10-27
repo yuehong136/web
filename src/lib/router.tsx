@@ -203,6 +203,10 @@ const DataSourcePage = lazy(() => import('@/pages/settings/datasource'))
 const DataSourceDetailPage = lazy(
   () => import('@/pages/settings/datasource/detail'),
 )
+const SandboxPage = lazyNamed(
+  () => import('@/pages/settings/admin/sandbox/sandbox-page'),
+  'SandboxPage',
+)
 const AdminUsersPage = lazyNamed(
   () => import('@/pages/settings/admin'),
   'AdminUsersPage',
@@ -527,6 +531,10 @@ const topLevelRoutes: RouteObject[] = [
           {
             path: 'admin',
             element: withLoading(AdminUsersPage),
+          },
+          {
+            path: 'sandbox',
+            element: withLoading(SandboxPage),
           },
         ],
       },

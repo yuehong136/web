@@ -6,18 +6,29 @@
  * 密码传输：RSA(PKCS1_v1_5(base64(password)))，与 admin_client.py 保持一致
  */
 
+import type {
+  SandboxConfig,
+  SandboxProvider,
+  SandboxSchema,
+  SandboxTestResult,
+  SandboxValue,
+} from '@/pages/settings/admin/sandbox/types'
 import { API_BASE_URL, API_VERSION } from '@/constants'
 import { encryptPassword } from '@/utils/crypt'
-import type { AdminUser, CreateUserParams, AdminLoginResponse } from '@/pages/settings/admin/types'
+import type {
+  AdminUser,
+  CreateUserParams,
+  AdminLoginResponse,
+} from '@/pages/settings/admin/types'
 
 // ─── Admin API Base URL ───────────────────────────────────────────────────────
 // 从主 API URL 派生 admin URL（替换端口为 8130），可通过 VITE_ADMIN_API_BASE_URL 覆盖
 
 const ADMIN_API_BASE_URL = (() => {
   // 开发环境优先走 Vite 代理，避免跨域导致 Authorization 响应头不可读
-  if (import.meta.env.DEV) return '/admin-api'
+  if (import.meta.env?.DEV) return '/admin-api'
 
-  const override = import.meta.env.VITE_ADMIN_API_BASE_URL
+  const override = import.meta.env?.VITE_ADMIN_API_BASE_URL
   if (override) return `${override.replace(/\/$/, '')}/api/${API_VERSION}/admin`
   // 从主 API URL 替换端口
   try {
@@ -54,7 +65,10 @@ interface AdminRequestConfig {
   skipAuth?: boolean
 }
 
-async function adminRequest<T>(endpoint: string, config: AdminRequestConfig = {}): Promise<T> {
+async function adminRequest<T>(
+  endpoint: string,
+  config: AdminRequestConfig = {},
+): Promise<T> {
   const url = `${ADMIN_API_BASE_URL}${endpoint}`
   const headers: Record<string, string> = { 'Content-Type': 'application/json' }
 
@@ -71,7 +85,9 @@ async function adminRequest<T>(endpoint: string, config: AdminRequestConfig = {}
       body: config.body,
     })
   } catch {
-    throw new Error('无法连接管理员服务，请确认 admin_server (端口 8130) 已启动')
+    throw new Error(
+      '无法连接管理员服务，请确认 admin_server (端口 8130) 已启动',
+    )
   }
 
   let data: any
@@ -109,7 +125,10 @@ export function setAdminToken(token: string | null): void {
 
 export const adminAPI = {
   /** 管理员登录，获取 JWT token */
-  login: async (email: string, password: string): Promise<AdminLoginResponse> => {
+  login: async (
+    email: string,
+    password: string,
+  ): Promise<AdminLoginResponse> => {
     const encryptedPassword = encryptPassword(password)
     let res: Response
     try {
@@ -119,17 +138,23 @@ export const adminAPI = {
         body: JSON.stringify({ email, password: encryptedPassword }),
       })
     } catch {
-      throw new Error('无法连接管理员服务，请确认 admin_server (端口 8130) 已启动')
+      throw new Error(
+        '无法连接管理员服务，请确认 admin_server (端口 8130) 已启动',
+      )
     }
     let data: any
     try {
       data = await res.json()
     } catch {
-      throw new Error(`管理员服务响应异常 (HTTP ${res.status})，请确认 admin_server 已启动`)
+      throw new Error(
+        `管理员服务响应异常 (HTTP ${res.status})，请确认 admin_server 已启动`,
+      )
     }
     const code = data.retcode ?? data.code ?? 0
     if (code !== 0 || !res.ok) {
-      throw new Error(data.retmsg || data.message || '登录失败，请检查管理员凭据')
+      throw new Error(
+        data.retmsg || data.message || '登录失败，请检查管理员凭据',
+      )
     }
     // 兼容后端返回:
     // 1) 响应头 Authorization
@@ -140,19 +165,23 @@ export const adminAPI = {
     )
 
     const bodyToken = normalizeAdminToken(
-      data?.data?.token ||
-      data?.data?.auth ||
-      data?.token ||
-      data?.auth,
+      data?.data?.token || data?.data?.auth || data?.token || data?.auth,
     )
 
-    const maybeAccessToken = normalizeAdminToken(data?.data?.access_token || data?.access_token)
+    const maybeAccessToken = normalizeAdminToken(
+      data?.data?.access_token || data?.access_token,
+    )
 
-    const tokenCandidates = [headerToken, bodyToken, maybeAccessToken].filter(Boolean) as string[]
-    const token = tokenCandidates.find(candidate => isJwtToken(candidate)) || null
+    const tokenCandidates = [headerToken, bodyToken, maybeAccessToken].filter(
+      Boolean,
+    ) as string[]
+    const token =
+      tokenCandidates.find((candidate) => isJwtToken(candidate)) || null
 
     if (!token) {
-      throw new Error('登录失败：未收到有效 JWT（请后端返回 auth/token，或暴露 Authorization 响应头）')
+      throw new Error(
+        '登录失败：未收到有效 JWT（请后端返回 auth/token，或暴露 Authorization 响应头）',
+      )
     }
     return { token }
   },
@@ -164,12 +193,10 @@ export const adminAPI = {
   },
 
   /** 验证当前 admin token 是否有效 */
-  verify: (): Promise<null> =>
-    adminRequest<null>('/verify'),
+  verify: (): Promise<null> => adminRequest<null>('/verify'),
 
   /** 获取所有用户列表 */
-  listUsers: (): Promise<AdminUser[]> =>
-    adminRequest<AdminUser[]>('/users'),
+  listUsers: (): Promise<AdminUser[]> => adminRequest<AdminUser[]>('/users'),
 
   /** 创建新用户 */
   createUser: (data: CreateUserParams): Promise<Record<string, unknown>> =>
@@ -180,7 +207,9 @@ export const adminAPI = {
 
   /** 删除用户 (by username/email) */
   deleteUser: (username: string): Promise<null> =>
-    adminRequest<null>(`/users/${encodeURIComponent(username)}`, { method: 'DELETE' }),
+    adminRequest<null>(`/users/${encodeURIComponent(username)}`, {
+      method: 'DELETE',
+    }),
 
   /** 修改用户密码 */
   updateUserPassword: (username: string, newPassword: string): Promise<null> =>
@@ -198,9 +227,42 @@ export const adminAPI = {
 
   /** 授予管理员权限 */
   grantAdmin: (username: string): Promise<null> =>
-    adminRequest<null>(`/users/${encodeURIComponent(username)}/admin`, { method: 'PUT' }),
+    adminRequest<null>(`/users/${encodeURIComponent(username)}/admin`, {
+      method: 'PUT',
+    }),
 
   /** 撤销管理员权限 */
   revokeAdmin: (username: string): Promise<null> =>
-    adminRequest<null>(`/users/${encodeURIComponent(username)}/admin`, { method: 'DELETE' }),
+    adminRequest<null>(`/users/${encodeURIComponent(username)}/admin`, {
+      method: 'DELETE',
+    }),
+  listSandboxProviders: (): Promise<SandboxProvider[]> =>
+    adminRequest('/sandbox/providers'),
+  getSandboxSchema: (provider: string): Promise<SandboxSchema> =>
+    adminRequest(`/sandbox/providers/${encodeURIComponent(provider)}/schema`),
+  getSandboxConfig: (provider?: string): Promise<SandboxConfig> =>
+    adminRequest(
+      `/sandbox/config${provider ? `?provider_type=${encodeURIComponent(provider)}` : ''}`,
+    ),
+  saveSandboxConfig: (
+    provider: string,
+    config: Record<string, SandboxValue>,
+    setActive: boolean,
+  ): Promise<SandboxConfig> =>
+    adminRequest('/sandbox/config', {
+      method: 'POST',
+      body: JSON.stringify({
+        provider_type: provider,
+        config,
+        set_active: setActive,
+      }),
+    }),
+  testSandboxConnection: (
+    provider: string,
+    config: Record<string, SandboxValue>,
+  ): Promise<SandboxTestResult> =>
+    adminRequest('/sandbox/test', {
+      method: 'POST',
+      body: JSON.stringify({ provider_type: provider, config }),
+    }),
 }

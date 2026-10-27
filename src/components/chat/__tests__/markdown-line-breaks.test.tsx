@@ -18,10 +18,6 @@ vi.mock('@ant-design/x', () => ({
     <pre data-mermaid>{children}</pre>
   ),
 }))
-vi.mock('../MarkdownArtifact', () => ({
-  MemoizedMarkdownArtifactImage: () => null,
-  MemoizedMarkdownArtifactLink: () => null,
-}))
 
 describe('Markdown newline contracts', () => {
   let container: HTMLDivElement
@@ -52,6 +48,27 @@ describe('Markdown newline contracts', () => {
       await new Promise(requestAnimationFrame)
     })
   }
+
+  it('renders raster data images in streaming and history without allowing unsafe sources or links', async () => {
+    const image =
+      'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII='
+    const content = `![plot](${image})\n\n![web](https://example.com/image.png)\n\n![svg](data:image/svg+xml;base64,PHN2Zy8+)\n\n![html](data:text/html;base64,PHNjcmlwdD4=)\n\n![malformed](data:image/png;base64,!!!!)\n\n[blocked](data:text/html;base64,PHNjcmlwdD4=)\n\n[web link](https://example.com)\n\n<img src="data:image/svg+xml;base64,PHN2Zy8+" onerror="alert(1)"><script>alert(1)</script>`
+    for (const streaming of [true, false]) {
+      await chat(content, streaming)
+      expect(
+        container.querySelector('img[alt="plot"]')?.getAttribute('src'),
+      ).toBe(image)
+      expect(
+        container.querySelector('img[alt="web"]')?.getAttribute('src'),
+      ).toBe('https://example.com/image.png')
+      expect(container.querySelectorAll('img[src^="data:"]')).toHaveLength(1)
+      expect(container.querySelector('a[href^="data:"]')).toBeNull()
+      expect(container.querySelector('script, [onerror], svg')).toBeNull()
+      expect(
+        container.querySelector('a[href="https://example.com"]'),
+      ).not.toBeNull()
+    }
+  })
 
   it('renders a single newline as a break during streaming and after finalization', async () => {
     await chat('first\nsecond\n', true)

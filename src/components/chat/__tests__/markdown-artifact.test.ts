@@ -1,3 +1,4 @@
+import { isSafeMarkdownImageSource } from '@/components/chat/markdown-image-source'
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { createElement } from 'react'
@@ -444,4 +445,30 @@ test('artifact links open or download once and clean up preview resources', asyn
       }
     })
   }
+})
+
+test('raster data source guard handles large images and rejects malformed or active data MIME', () => {
+  for (const mime of ['png', 'jpeg', 'jpg', 'gif', 'webp'])
+    assert.equal(
+      isSafeMarkdownImageSource(`data:image/${mime};base64,YWJjZA==`),
+      true,
+    )
+  assert.equal(isSafeMarkdownImageSource('data:image/png;base64,YWJjZA'), true)
+  assert.equal(
+    isSafeMarkdownImageSource(
+      'data:image/png;base64,' + 'AAAA'.repeat(500_000),
+    ),
+    true,
+  )
+  for (const source of [
+    'data:image/svg+xml;base64,PHN2Zy8+',
+    'data:text/html;base64,YWJjZA==',
+    'data:image/png;base64,',
+    'data:image/png;base64,YWJjZ',
+    'data:image/png;base64,!!!!',
+    'data:image/png;base64,YW=Jj',
+    'data:image/png;utf8,text',
+    ' data:image/png;base64,YWJjZA==',
+  ])
+    assert.equal(isSafeMarkdownImageSource(source), false, source)
 })

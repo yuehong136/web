@@ -108,7 +108,7 @@ export interface AgentFlow {
   title: LocalizedText
   description: LocalizedText
   avatar?: string
-  canvas_type: AgentCanvasType | 'agent' | 'pipeline' | 'Recommended' | null
+  canvas_type: string | null
   canvas_category?: string
   create_time: number
   update_time: number
@@ -131,7 +131,7 @@ export interface AgentFlow {
 }
 
 export interface AgentTemplate extends AgentFlow {
-  canvas_type: AgentCanvasType | 'agent' | 'pipeline' | 'Recommended' | null
+  canvas_type: string | null
 }
 
 export interface AgentTagCount {
@@ -173,7 +173,7 @@ export interface SetAgentPayload {
   title: string
   description?: string
   dsl?: unknown
-  canvas_type?: AgentCanvasType | 'agent' | 'pipeline'
+  canvas_type?: string
   canvas_category?: string
   avatar?: string
   permission?: string

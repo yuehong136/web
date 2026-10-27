@@ -1,7 +1,6 @@
 import { metadata } from './metadata'
-
 import knowledgeLogs from './knowledge-logs'
-
+import { chunkTags } from './chunk-tags'
 export default {
   knowledge: {
     nameValidation: {
@@ -666,6 +665,12 @@ export default {
         deleteError: 'Delete failed. Try again.',
       },
       upload: {
+        inheritTableConfig: 'Use knowledge base column settings',
+        tableHeadersFailed:
+          'Could not read unique column names. Use knowledge base settings or automatic mode.',
+        readingTableHeaders: 'Reading column names…',
+        tableHeadersScope:
+          'Column roles apply to this file. Excel column names come from the first worksheet.',
         title: 'Upload documents',
         fileTooLarge: 'File "{{name}}" exceeds the size limit.',
         fileInvalidType: 'File "{{name}}" type is not supported.',
@@ -1227,6 +1232,7 @@ export default {
         'The document ID is missing, so the document cannot be previewed.',
     },
     chunks: {
+      tags: chunkTags,
       workspace: {
         source: 'Source preview',
         description:

@@ -86,6 +86,7 @@ export const LucideIconMap: Record<string, typeof Bot> = {
   [Operator.UserFillUp]: MessageSquare,
   [Operator.StringTransform]: Type,
   [Operator.DocGenerator]: FileText,
+  [Operator.Browser]: Globe,
   [Operator.HTMLReport]: FileChartColumn,
   [Operator.DataOperations]: FileCode,
   [Operator.ListOperations]: List,

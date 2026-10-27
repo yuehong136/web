@@ -133,3 +133,39 @@ it('retains Chinese composition and multiline paste with the prompt input plugin
     else Reflect.deleteProperty(Range.prototype, 'getBoundingClientRect')
   }
 })
+
+vi.mock('@/pages/agent/hooks/use-get-begin-query', () => ({
+  useBuildPromptVariableOptions: () => [],
+}))
+it('forwards form IDs and accessibility state to the editable textbox', async () => {
+  const { PromptEditor } = await import('..')
+  vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true)
+  const container = document.createElement('div')
+  document.body.append(container)
+  const root = createRoot(container)
+  try {
+    await act(async () =>
+      root.render(
+        <PromptEditor
+          value="Task"
+          showToolbar={false}
+          id="browser-task"
+          aria-label="Browser task"
+          aria-describedby="browser-task-error"
+          aria-invalid={true}
+        />,
+      ),
+    )
+    const editable = container.querySelector<HTMLElement>('[contenteditable]')!
+    expect(editable.id).toBe('browser-task')
+    expect(editable.getAttribute('aria-label')).toBe('Browser task')
+    expect(editable.getAttribute('aria-describedby')).toBe('browser-task-error')
+    expect(editable.getAttribute('aria-invalid')).toBe('true')
+    editable.focus()
+    expect(document.activeElement).toBe(editable)
+  } finally {
+    await act(async () => root.unmount())
+    container.remove()
+    vi.unstubAllGlobals()
+  }
+})

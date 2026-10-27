@@ -1,10 +1,10 @@
 {
   "src/pages/settings/ApiKeysPage.tsx": 3155,
   "src/types/index.ts": 2075,
-  "src/pages/settings/model-providers/components/api-key-modal.tsx": 1628,
+  "src/pages/settings/model-providers/components/api-key-modal.tsx": 1613,
   "src/pages/agent/options/google.ts": 1589,
   "src/types/api.ts": 1486,
-  "src/pages/agent/constant/index.ts": 1397,
+  "src/pages/agent/constant/index.ts": 1373,
   "src/pages/MCPChatPage.tsx": 1338,
   "src/pages/explore/ExplorePage.tsx": 1276,
   "src/components/environment/EnvironmentDetail.tsx": 949,

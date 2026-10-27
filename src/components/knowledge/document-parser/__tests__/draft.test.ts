@@ -234,3 +234,24 @@ test('catalog filters actual tenant_id and category, rather than user_id or visi
     APIError,
   )
 })
+
+test('built-in metadata default display never becomes clear intent; explicit empty remains a patch', () => {
+  const initial = hydrateParserDraft(
+    document({
+      parser_config: {
+        built_in_metadata: ['filename'],
+        metadata: [{ key: 'author' }],
+      },
+    }),
+  )
+  const current = structuredClone(initial)
+  current.parser_config.built_in_metadata = []
+  assert.deepEqual(serializeParserDraft(initial, current, {}), {})
+  assert.deepEqual(
+    serializeParserDraft(initial, current, {
+      parser_config: { built_in_metadata: true },
+    }),
+    { parser_config: { built_in_metadata: [] } },
+  )
+  assert.deepEqual(initial.parser_config.built_in_metadata, ['filename'])
+})

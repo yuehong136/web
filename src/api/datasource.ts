@@ -145,15 +145,18 @@ async function pollOAuthResult(
   }
 }
 
-export const datasourceAPI = {
-  // 数据源 CRUD
-  connector: {
+/** The same domain client can target a registered application origin. */
+export function createDatasourceConnectorAPI(origin?: string) {
+  const connectorRestConfig = { baseURL: `${origin ?? API_BASE_URL}/api` }
+  const legacyConfig = origin === undefined ? undefined : { baseURL: origin }
+  const connector = {
     // 获取数据源列表
     list: async (): Promise<IDataSource[]> => {
       const sources = await withLegacyFallback(
         () =>
           apiClient.get<RawDataSource[]>('/v1/connectors', connectorRestConfig),
-        () => apiClient.get<RawDataSource[]>('/v1/connector/list'),
+        () =>
+          apiClient.get<RawDataSource[]>('/v1/connector/list', legacyConfig),
       )
       return sources.map(normalizeDataSource)
     },
@@ -163,7 +166,7 @@ export const datasourceAPI = {
       const source = await withLegacyFallback(
         () =>
           apiClient.get<RawDataSource>(connectorPath(id), connectorRestConfig),
-        () => apiClient.get<RawDataSource>(`/v1/connector/${id}`),
+        () => apiClient.get<RawDataSource>(`/v1/connector/${id}`, legacyConfig),
       )
       return normalizeDataSource(source)
     },
@@ -176,7 +179,7 @@ export const datasourceAPI = {
       ...data
     }: DataSourceSetRequest): Promise<IDataSource> =>
       id
-        ? datasourceAPI.connector.update(
+        ? connector.update(
             id,
             Object.fromEntries(
               Object.entries({
@@ -213,7 +216,12 @@ export const datasourceAPI = {
     delete: (id: string): Promise<void> =>
       withLegacyFallback(
         () => apiClient.delete<void>(connectorPath(id), connectorRestConfig),
-        () => apiClient.post<void>(`/v1/connector/${id}/rm`),
+        () =>
+          apiClient.post<void>(
+            `/v1/connector/${id}/rm`,
+            undefined,
+            legacyConfig,
+          ),
       ),
 
     // 重建数据源
@@ -226,7 +234,11 @@ export const datasourceAPI = {
             connectorRestConfig,
           ),
         () =>
-          apiClient.put<void>(`/v1/connector/${id}/rebuild`, { kb_id: kbId }),
+          apiClient.put<void>(
+            `/v1/connector/${id}/rebuild`,
+            { kb_id: kbId },
+            legacyConfig,
+          ),
       ),
 
     // 获取数据源日志
@@ -246,7 +258,7 @@ export const datasourceAPI = {
         () =>
           apiClient.get<{ logs: RawDataSourceLog[]; total: number }>(
             `/v1/connector/${id}/logs`,
-            { params },
+            { ...legacyConfig, params },
           ),
       ).then((response) => ({
         ...response,
@@ -290,7 +302,12 @@ export const datasourceAPI = {
         `/v1/datasets/${encodeURIComponent(kbId)}/connectors`,
         connectorRestConfig,
       ),
-  },
+  }
+  return connector
+}
+
+export const datasourceAPI = {
+  connector: createDatasourceConnectorAPI(),
 
   // OAuth 认证（浏览器弹窗授权，替代手工粘贴 token JSON）
   oauth: {

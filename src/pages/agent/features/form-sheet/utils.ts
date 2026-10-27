@@ -1,6 +1,6 @@
 import type { Edge } from '@xyflow/react'
 import type { TFunction } from 'i18next'
-import type { AgentOperatorDefinition } from '@/types/agent'
+import type { AgentOperatorDefinition } from '../../operators/types'
 import type { MCPServer } from '@/types/mcp'
 import { Operator, type Operator as OperatorType } from '../../constant'
 import { getOperatorDefinition } from '../../operators'
@@ -392,7 +392,12 @@ export function resolveFormSheetDescription({
     return toolContext.description
   }
 
-  return operatorDefinition?.description || unknownDescription
+  return operatorDefinition?.descriptionKey
+    ? translate(
+        operatorDefinition.descriptionKey,
+        operatorDefinition.description,
+      )
+    : operatorDefinition?.description || unknownDescription
 }
 
 export function resolveLegacyRendererKey(operatorType?: OperatorType) {

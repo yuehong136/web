@@ -257,6 +257,15 @@ export const agentOperatorRegistry: OperatorRegistry = {
       defaultName: 'String Transform',
     },
   ),
+  [LegacyOperator.Browser]: defineOperator(LegacyOperator.Browser, {
+    category: AgentOperatorCategory.TOOL,
+    mode: AgentOperatorMode.AGENT,
+    defaultName: 'Browser',
+    descriptionKey: 'flow.browserDescription',
+    allowSingleStepDebug: true,
+    consumesBeginInputs: true,
+    supportsGlobalVariables: true,
+  }),
   [LegacyOperator.DocGenerator]: defineOperator(LegacyOperator.DocGenerator, {
     category: AgentOperatorCategory.DATA,
     mode: AgentOperatorMode.SHARED,

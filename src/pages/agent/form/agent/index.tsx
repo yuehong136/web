@@ -5,14 +5,13 @@ import { useForm, useWatch } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
 import { useFetchMyLLMs } from '@/hooks/use-llm-request'
-import { resolveLLMValue } from '@/stores/model'
+import { hasSelectedModelCapability } from '@/stores/model'
 import {
   AgentStructuredOutputField,
   AgentExceptionMethod,
   NodeHandleId,
   VariableType,
 } from '../../constant'
-import { useSaveOnBlur } from '../../hooks/use-save-on-blur'
 import { useBuildPromptVariableOptions } from '../../hooks/use-get-begin-query'
 import useGraphStore from '../../store'
 import type { INextOperatorForm } from '../../types'
@@ -73,7 +72,6 @@ type AgentFormValues = z.input<typeof schema>
 export function AgentForm({ node }: INextOperatorForm) {
   const { t } = useTranslation()
   const { myLLMs } = useFetchMyLLMs()
-  const { handleSaveOnBlur } = useSaveOnBlur()
   const edges = useGraphStore((state) => state.edges)
   const deleteEdgesBySourceAndSourceHandle = useGraphStore(
     (state) => state.deleteEdgesBySourceAndSourceHandle,
@@ -113,34 +111,20 @@ export function AgentForm({ node }: INextOperatorForm) {
     () => hasSubAgentOrTool(edges, node?.id),
     [edges, node?.id],
   )
-  const supportsImageInput = useMemo(() => {
-    if (!llmId) {
-      return false
-    }
-
-    const resolvedLlm = resolveLLMValue(myLLMs, llmId, true)
-    if (!resolvedLlm.providerName || !resolvedLlm.matched) {
-      return false
-    }
-
-    return myLLMs[resolvedLlm.providerName]?.tags?.includes('IMAGE2TEXT') ?? false
-  }, [llmId, myLLMs])
+  const supportsImageInput = hasSelectedModelCapability(
+    myLLMs,
+    llmId,
+    'image2text',
+  )
   const promptOptions = useBuildPromptVariableOptions(node?.id)
   const { extraOptions } = useBuildPromptExtraPromptOptions(edges, node?.id)
   const structuredOutputDialog = useStructuredOutputDialog(node?.id)
 
   useEffect(() => {
-    if (
-      node?.id &&
-      exceptionMethod !== AgentExceptionMethod.Goto
-    ) {
+    if (node?.id && exceptionMethod !== AgentExceptionMethod.Goto) {
       deleteEdgesBySourceAndSourceHandle(node.id, NodeHandleId.AgentException)
     }
-  }, [
-    deleteEdgesBySourceAndSourceHandle,
-    exceptionMethod,
-    node?.id,
-  ])
+  }, [deleteEdgesBySourceAndSourceHandle, exceptionMethod, node?.id])
 
   return (
     <>
@@ -176,7 +160,6 @@ export function AgentForm({ node }: INextOperatorForm) {
                       'flow.messagePlaceholder',
                       'Write the prompt...',
                     )}
-                    onBlur={handleSaveOnBlur}
                   />
                 </FormControl>
                 <FormMessage />
@@ -197,7 +180,6 @@ export function AgentForm({ node }: INextOperatorForm) {
                       onChange={field.onChange}
                       options={promptOptions}
                       nodeId={node?.id}
-                      onBlur={handleSaveOnBlur}
                     />
                   </FormControl>
                   <FormMessage />
@@ -237,10 +219,7 @@ export function AgentForm({ node }: INextOperatorForm) {
                   size="sm"
                   onClick={structuredOutputDialog.show}
                 >
-                  {t(
-                    'flow.structuredOutput.configuration',
-                    'Configuration',
-                  )}
+                  {t('flow.structuredOutput.configuration', 'Configuration')}
                 </Button>
               )}
             </div>

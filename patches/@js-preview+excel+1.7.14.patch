@@ -1,0 +1,17 @@
+diff --git a/node_modules/@js-preview/excel/lib/index.js b/node_modules/@js-preview/excel/lib/index.js
+--- a/node_modules/@js-preview/excel/lib/index.js
++++ b/node_modules/@js-preview/excel/lib/index.js
+@@ -0,0 +1,4 @@
++/** Pure first-row workbook reader. Reuses the bundled SheetJS parser without creating preview UI. */
++export function readTableHeaderWorkbook(data) {
++  return pg(data, { type: 'array', sheetRows: 1 });
++}
+diff --git a/node_modules/@js-preview/excel/lib/index.d.ts b/node_modules/@js-preview/excel/lib/index.d.ts
+--- a/node_modules/@js-preview/excel/lib/index.d.ts
++++ b/node_modules/@js-preview/excel/lib/index.d.ts
+@@ -0,0 +1,5 @@
++export interface TableHeaderWorkbook {
++    SheetNames: string[];
++    Sheets: Record<string, Record<string, { v?: unknown } | unknown>>;
++}
++export declare function readTableHeaderWorkbook(data: ArrayBuffer): TableHeaderWorkbook;

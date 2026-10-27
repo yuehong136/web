@@ -1,79 +1,125 @@
-import React from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { MyLLMModel, MyLLMProvider } from '@/stores/model'
-import { ModelProviderCard } from './model-provider-card'
+import {
+  useModelProviders,
+  useProviderInstances,
+  useModelProviderMutation,
+} from '@/hooks/use-model-provider-request'
+import { modelProvidersAPI } from '@/api/llm-providers'
+import { Button } from '@/components/ui/button'
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
+import {
+  PageErrorState,
+  PageLoadingState,
+  PageEmptyState,
+} from '@/components/patterns'
+import { ProviderInstance } from './provider-instance'
 
-interface UsedModelsProps {
-  myLLMs: MyLLMProvider
-  handleEditModel: (model: MyLLMModel, providerName: string) => void
-  handleAddModel: (factoryName: string) => void
-  handleDeleteFactory: (factoryName: string) => void
-  handleEnableModel: (
-    modelName: string,
-    providerName: string,
-    enabled: boolean,
-  ) => void
-}
-
-export const UsedModels: React.FC<UsedModelsProps> = ({
-  myLLMs,
-  handleEditModel,
+export function UsedModels({
   handleAddModel,
-  handleDeleteFactory,
-  handleEnableModel,
-}) => {
+}: {
+  handleAddModel: (provider: string) => void
+}) {
   const { t } = useTranslation()
-
-  const providerList = Object.entries(myLLMs)
-
+  const providers = useModelProviders()
+  if (providers.isPending)
+    return (
+      <PageLoadingState
+        title={t('common.loading')}
+        description={null}
+        compact
+      />
+    )
+  if (providers.isError)
+    return (
+      <PageErrorState
+        title={t('settings.models.defaultsModelsFailed')}
+        description={null}
+        onRetry={() => void providers.refetch()}
+        compact
+      />
+    )
   return (
-    <div className="mb-4 flex w-full flex-col gap-4">
-      {/* 标题 */}
-      <h2 className="mt-space-base text-base font-semibold text-text-primary">
+    <section className="flex flex-col gap-space-base">
+      <h2 className="text-base font-semibold">
         {t('settings.models.configured')}
       </h2>
-
-      {/* 供应商列表 */}
-      {providerList.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-background-default py-12">
-          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-background-subtle">
-            <svg
-              className="h-8 w-8 text-text-tertiary"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"
-              />
-            </svg>
-          </div>
-          <h3 className="mb-2 text-lg font-medium text-text-primary">
-            还没有添加模型
-          </h3>
-          <p className="max-w-sm text-center text-sm text-text-secondary">
-            {t('settings.models.chooseProvider')}
-          </p>
-        </div>
+      {providers.data.length ? (
+        providers.data.map((provider) => (
+          <ConfiguredProvider
+            key={provider.name}
+            name={provider.name}
+            add={() => handleAddModel(provider.name)}
+          />
+        ))
       ) : (
-        <div className="flex flex-col gap-4">
-          {providerList.map(([providerName, providerData]) => (
-            <ModelProviderCard
-              key={providerName}
-              name={providerName}
-              tags={providerData.tags}
-              llm={providerData.llm}
-              onApiKeyClick={handleAddModel}
-              onEditModel={handleEditModel}
-              onDeleteClick={handleDeleteFactory}
-              onEnableModel={handleEnableModel}
-            />
-          ))}
-        </div>
+        <PageEmptyState
+          title={t('settings.models.chooseProvider')}
+          description={null}
+          compact
+        />
       )}
-    </div>
+    </section>
+  )
+}
+function ConfiguredProvider({ name, add }: { name: string; add: () => void }) {
+  const { t } = useTranslation(),
+    instances = useProviderInstances(name),
+    mutation = useModelProviderMutation()
+  const [removing, setRemoving] = useState(false),
+    [failed, setFailed] = useState(false)
+  return (
+    <article className="flex flex-col gap-space-base rounded-radius-lg border border-border-default p-space-base">
+      <header className="flex items-center justify-between gap-space-base">
+        <h3 className="font-semibold">{name}</h3>
+        <div className="flex gap-space-xs">
+          <Button variant="outline" size="sm" onClick={add}>
+            {t('settings.models.instances.add')}
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => setRemoving(true)}>
+            {t('common.delete')}
+          </Button>
+        </div>
+      </header>
+      {instances.isPending ? (
+        <PageLoadingState
+          title={t('common.loading')}
+          description={null}
+          compact
+        />
+      ) : instances.isError ? (
+        <PageErrorState
+          title={t('settings.models.defaultsModelsFailed')}
+          description={null}
+          onRetry={() => void instances.refetch()}
+          compact
+        />
+      ) : (
+        instances.data.map((instance) => (
+          <ProviderInstance key={instance.id} instance={instance} />
+        ))
+      )}
+      {failed && (
+        <p role="alert" className="text-status-error">
+          {t('settings.models.instances.failed')}
+        </p>
+      )}
+      <ConfirmationDialog
+        open={removing}
+        onOpenChange={(open) => !mutation.isPending && setRemoving(open)}
+        title={t('common.delete')}
+        description={t('settings.models.instances.deleteConfirm', { name })}
+        confirmLabel={t('common.delete')}
+        cancelLabel={t('common.cancel')}
+        pending={mutation.isPending}
+        onConfirm={() => {
+          setFailed(false)
+          mutation.mutate(() => modelProvidersAPI.deleteProvider(name), {
+            onSuccess: () => setRemoving(false),
+            onError: () => setFailed(true),
+          })
+        }}
+      />
+    </article>
   )
 }

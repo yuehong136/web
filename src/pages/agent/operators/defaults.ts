@@ -1,3 +1,4 @@
+import { initialBrowserValues } from '../form/browser-use/constants'
 import merge from 'lodash/merge'
 import { prepareListOperationsForm } from '../form/list-operations/utils'
 import type { AgentOperator } from '@/types/agent'
@@ -101,6 +102,7 @@ const operatorDefaultValues: Record<OperatorType, Record<string, unknown>> = {
   [Operator.UserFillUp]: initialUserFillUpValues,
   [Operator.StringTransform]: initialStringTransformValues,
   [Operator.DocGenerator]: initialDocGeneratorValues,
+  [Operator.Browser]: initialBrowserValues,
   [Operator.HTMLReport]: initialHTMLReportValues,
   [Operator.ExcelProcessor]: initialExcelProcessorValues,
   [Operator.DataOperations]: initialDataOperationsValues,
@@ -185,6 +187,7 @@ export function buildDefaultDslGlobals(): Record<string, unknown> {
     [AgentGlobals.SysUserId]: '',
     [AgentGlobals.SysConversationTurns]: 0,
     [AgentGlobals.SysFiles]: [],
+    [AgentGlobals.SysFileRefs]: [],
     [AgentGlobals.SysHistory]: [],
     [AgentGlobals.SysDate]: '',
   }

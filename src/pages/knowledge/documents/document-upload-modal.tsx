@@ -10,9 +10,16 @@ import {
   type FileUploaderTexts,
 } from '@/components/ui'
 import { knowledgeAPI } from '@/api/knowledge'
+import { getPartialDatasetUpload } from '@/api/knowledge-rest'
 import { toast } from '@/lib/toast'
 import { getMutationErrorNotice } from '@/lib/mutation-error-feedback'
 import { reconcileDocumentUploads } from './upload-feedback'
+import { TableFileColumnConfig } from './table-file-column-config'
+import {
+  isTableFile,
+  tableUploadOptions,
+  type TableUploadConfig,
+} from './table-upload-config'
 
 const DOCUMENT_UPLOAD_MAX_SIZE = 1024 * 1024 * 1024
 const DOCUMENT_UPLOAD_MAX_FILE_COUNT = 32
@@ -28,6 +35,7 @@ interface DocumentUploadModalProps {
   onClose: () => void
   kbId: string
   onSuccess: () => void
+  isTableParser?: boolean
 }
 
 export function DocumentUploadModal(props: DocumentUploadModalProps) {
@@ -41,6 +49,7 @@ function DocumentUploadSession({
   onClose,
   kbId,
   onSuccess,
+  isTableParser = false,
 }: DocumentUploadModalProps) {
   const { t } = useTranslation()
   const [uploadFiles, setUploadFiles] = useState<DocumentUploadEntry[]>([])
@@ -50,6 +59,14 @@ function DocumentUploadSession({
     key: string
     values?: Record<string, number>
   }>()
+  const tableConfigs = useRef(new Map<File, TableUploadConfig>())
+  const updateTableConfig = useCallback(
+    (file: File, config?: TableUploadConfig) => {
+      if (config) tableConfigs.current.set(file, config)
+      else tableConfigs.current.delete(file)
+    },
+    [],
+  )
   const active = useRef(false)
   const busy = useRef(false)
   const attempt = useRef(0)
@@ -102,6 +119,9 @@ function DocumentUploadSession({
   }
 
   const handleUploadFilesChange = useCallback((files: UploadFile[]) => {
+    for (const file of tableConfigs.current.keys()) {
+      if (!files.includes(file as UploadFile)) tableConfigs.current.delete(file)
+    }
     setUploadFiles((previous) =>
       files.map(
         (file) =>
@@ -159,7 +179,37 @@ function DocumentUploadSession({
       ),
     )
     try {
-      const response = await knowledgeAPI.document.upload(kbId, files)
+      // Keep ordinary batches intact. Configured tables get one request each,
+      // so two same-named columns can never leak roles into another file.
+      const configured = files.filter(
+        (file) => isTableParser && tableConfigs.current.has(file),
+      )
+      const ordinary = files.filter((file) => !configured.includes(file))
+      const response: unknown[] = []
+      if (ordinary.length) {
+        try {
+          const result = await knowledgeAPI.document.upload(kbId, ordinary)
+          if (!Array.isArray(result)) throw new Error('Invalid upload response')
+          response.push(...result)
+        } catch (error) {
+          const partial = getPartialDatasetUpload(error, ordinary.length, kbId)
+          if (partial === undefined) throw error
+          response.push(...partial)
+        }
+      }
+      for (const file of configured) {
+        if (!isCurrent()) return
+        try {
+          const result = await knowledgeAPI.document.upload(
+            kbId,
+            [file],
+            tableUploadOptions(tableConfigs.current.get(file)),
+          )
+          if (Array.isArray(result)) response.push(...result)
+        } catch {
+          // Reconcile other successful requests; this file stays retryable.
+        }
+      }
       if (!isCurrent()) return
       const result = reconcileDocumentUploads(files, response)
       const confirmedFiles = new Set(result.confirmed.map(({ file }) => file))
@@ -291,6 +341,18 @@ function DocumentUploadSession({
           listMaxHeight="max-h-[240px]"
           texts={uploadTexts}
         />
+
+        {isTableParser &&
+          uploadFiles
+            .filter(({ file }) => isTableFile(file))
+            .map(({ file, status }) => (
+              <TableFileColumnConfig
+                key={file.uid}
+                file={file}
+                disabled={uploading || status === 'success'}
+                onChange={updateTableConfig}
+              />
+            ))}
 
         {notice && (
           <div

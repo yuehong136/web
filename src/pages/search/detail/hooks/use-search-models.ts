@@ -39,6 +39,10 @@ export function normalizeSearchModels(response: Record<string, unknown>) {
         )
       })
       .map((model) => ({
+        id: model.id,
+        reference:
+          model.id && /^[1-9]\d*$/.test(model.id) ? model.id : undefined,
+        label: model.llm_name,
         type: (model.mdl_type || model.type) as 'chat' | 'image2text',
         name: model.llm_name || model.name || model.id || '',
         used_token: model.used_token || 0,
@@ -99,9 +103,12 @@ export function useSearchModels(enabled: boolean) {
   const query = useQuery({
     queryKey: llmKeys.available(),
     enabled,
-    queryFn: async () =>
+    queryFn: async ({ signal }) =>
       normalizeSearchModels(
-        (await llmAPI.list({ available: true })) as Record<string, unknown>,
+        (await llmAPI.list({ available: true }, signal)) as Record<
+          string,
+          unknown
+        >,
       ),
     staleTime: 5 * 60 * 1000,
   })

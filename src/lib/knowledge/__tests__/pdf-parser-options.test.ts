@@ -12,7 +12,7 @@ const configuredModel = (
   name: string,
   type: MyLLMModel['type'],
   extra: Partial<MyLLMModel> = {},
-): MyLLMModel & { id: number } => ({
+): MyLLMModel => ({
   id: 42,
   name,
   type,
@@ -259,4 +259,46 @@ test('duplicate rows collapse only the same qualified identity without modifying
     'other@PaddleOCR@PaddleOCR',
   ])
   assert.deepEqual({ configured, catalog }, snapshot)
+})
+
+test('numeric OCR identities do not acquire provider suffixes and retain instance labels', () => {
+  const rows: MyLLMProvider = {
+    PaddleOCR: {
+      tags: 'ocr',
+      llm: [
+        {
+          id: '71',
+          reference: '71',
+          name: 'same',
+          instance_name: 'one',
+          type: 'ocr',
+          status: '1',
+          used_token: 0,
+        },
+        {
+          id: '72',
+          reference: '72',
+          name: 'same',
+          instance_name: 'two',
+          type: 'ocr',
+          status: '1',
+          used_token: 0,
+        },
+        {
+          id: '73',
+          reference: '73',
+          name: 'disabled',
+          type: 'ocr',
+          status: '0',
+          used_token: 0,
+        },
+      ],
+    },
+  }
+  const options = buildPDFParserOptions(rows, {})
+  assert.deepEqual(
+    options.filter((item) => item.kind === 'ocr').map((item) => item.value),
+    ['71', '72'],
+  )
+  assert.equal(options.find((item) => item.value === '72')?.label, 'same · two')
 })

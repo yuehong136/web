@@ -1,4 +1,5 @@
 import { apiClient } from './client'
+import { collectListWindow, isLargeListWindow } from './list-pagination'
 import { API_BASE_URL, STORAGE_KEYS } from '@/constants'
 import type { DialogApp, DialogImportResult } from '@/types/api'
 
@@ -107,6 +108,12 @@ export const dialogAPI = {
   listChats: async (
     params?: DialogListParams,
   ): Promise<{ chats: DialogApp[]; total: number }> => {
+    if (isLargeListWindow(params))
+      return collectListWindow(
+        params!,
+        (page) => dialogAPI.listChats({ ...params, ...page }),
+        'chats',
+      )
     const response = await apiClient.get<ChatListResponse>(
       buildChatListPath(params),
       sdkBase,

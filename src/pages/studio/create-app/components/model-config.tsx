@@ -52,6 +52,7 @@ export function ModelConfig({
           {t('studio.editor.modelChoice')}
         </h2>
         <ChatModelSelector
+          valueMode="nameWithProvider"
           variant="compact"
           models={models}
           selectedModelName={config.llm_id}

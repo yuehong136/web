@@ -113,7 +113,7 @@ export const AvailableModels: React.FC<AvailableModelsProps> = ({
           <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-text-tertiary" />
           <input
             type="text"
-            placeholder="搜索"
+            placeholder={t('common.search')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className={cn(
@@ -140,7 +140,7 @@ export const AvailableModels: React.FC<AvailableModelsProps> = ({
               : 'bg-components-button-secondary-bg text-text-secondary hover:bg-components-button-secondary-bg-hover',
           )}
         >
-          All
+          {t('settings.models.allProviders')}
         </button>
 
         {/* 各标签按钮 */}
@@ -165,7 +165,7 @@ export const AvailableModels: React.FC<AvailableModelsProps> = ({
         {filteredModels.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-text-tertiary">
             <Search className="mb-4 h-12 w-12 opacity-30" />
-            <p className="text-sm">未找到匹配的模型供应商</p>
+            <p className="text-sm">{t('common.noResults')}</p>
           </div>
         ) : (
           filteredModels.map((factory) => (

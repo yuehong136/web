@@ -1,3 +1,5 @@
+import { useDefaultModelReference } from '@/hooks/use-model-provider-request'
+import { getOperatorDefaultForm } from '../operators/defaults'
 import { useCallback, useMemo } from 'react'
 import type { Edge, ReactFlowInstance } from '@xyflow/react'
 import { Position } from '@xyflow/react'
@@ -79,12 +81,15 @@ import {
 
 export const useInitializeOperatorParams = () => {
   const { myLLMs } = useFetchMyLLMs()
+  const defaultModel = useDefaultModelReference('chat').reference
   const defaultChatModel = useMemo(
     () =>
+      defaultModel ||
       findFirstEnabledModelByType(myLLMs, 'chat', {
         valueMode: 'nameWithProvider',
-      }) || '',
-    [myLLMs],
+      }) ||
+      '',
+    [defaultModel, myLLMs],
   )
 
   const initialFormValuesMap = useMemo(() => {
@@ -137,6 +142,10 @@ export const useInitializeOperatorParams = () => {
       [Operator.UserFillUp]: initialUserFillUpValues,
       [Operator.StringTransform]: initialStringTransformValues,
       [Operator.DocGenerator]: initialDocGeneratorValues,
+      [Operator.Browser]: {
+        ...getOperatorDefaultForm(Operator.Browser),
+        llm_id: defaultChatModel,
+      },
       [Operator.HTMLReport]: initialHTMLReportValues,
       [Operator.ExcelProcessor]: initialExcelProcessorValues,
       [Operator.DataOperations]: initialDataOperationsValues,

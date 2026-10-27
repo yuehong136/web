@@ -1,6 +1,16 @@
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Database, Github, Globe, Mail, Rss, Server, Table } from 'lucide-react'
+import {
+  Cloud,
+  Database,
+  Github,
+  Globe,
+  Mail,
+  Rss,
+  Server,
+  Table,
+  UsersRound,
+} from 'lucide-react'
 import SvgIcon from '@/components/ui/svg-icon'
 import { DataSourceKey, type IDataSourceInfoMap } from '../types'
 import { getBaseFormFields, getDataSourceFormFields } from './form-fields'
@@ -25,6 +35,8 @@ import googleDriveIcon from '@/assets/svg/data-source/google-drive.svg'
 import gmailIcon from '@/assets/svg/data-source/gmail.svg'
 import discordIcon from '@/assets/svg/data-source/discord.svg'
 import moodleIcon from '@/assets/svg/data-source/moodle.svg'
+import sharepointIcon from '@/assets/svg/data-source/sharepoint.svg'
+import slackIcon from '@/assets/svg/data-source/slack.svg'
 
 export { DataSourceFormDefaultValues } from './default-values'
 export { getBaseFormFields, getDataSourceFormFields } from './form-fields'
@@ -37,6 +49,40 @@ const ICON_SIZE = 28
 export const generateDataSourceInfo = (
   t: (key: string) => string,
 ): IDataSourceInfoMap => ({
+  [DataSourceKey.TEAMS]: {
+    name: 'Microsoft Teams',
+    description: t('datasource.microsoft.teamsDescription'),
+    icon: <UsersRound size={ICON_SIZE} className="text-text-primary" />,
+  },
+  [DataSourceKey.ONEDRIVE]: {
+    name: 'OneDrive',
+    description: t('datasource.microsoft.onedriveDescription'),
+    icon: <Cloud size={ICON_SIZE} className="text-text-primary" />,
+  },
+  [DataSourceKey.SHAREPOINT]: {
+    name: 'SharePoint',
+    description: t('datasource.sharepoint.description'),
+    icon: (
+      <SvgIcon
+        src={sharepointIcon}
+        width={ICON_SIZE}
+        height={ICON_SIZE}
+        alt="SharePoint"
+      />
+    ),
+  },
+  [DataSourceKey.SLACK]: {
+    name: 'Slack',
+    description: t('datasource.slack.description'),
+    icon: (
+      <SvgIcon
+        src={slackIcon}
+        width={ICON_SIZE}
+        height={ICON_SIZE}
+        alt="Slack"
+      />
+    ),
+  },
   [DataSourceKey.REST_API]: {
     name: t('datasource.restApi.name'),
     description: t('datasource.restApi.description'),
@@ -315,6 +361,7 @@ export const useDataSourceFormFields = () => {
  */
 export const DataSourceGroups = {
   storage: [
+    DataSourceKey.ONEDRIVE,
     DataSourceKey.SEAFILE,
     DataSourceKey.S3,
     DataSourceKey.R2,
@@ -325,6 +372,9 @@ export const DataSourceGroups = {
     DataSourceKey.WEBDAV,
   ],
   collaboration: [
+    DataSourceKey.TEAMS,
+    DataSourceKey.SHAREPOINT,
+    DataSourceKey.SLACK,
     DataSourceKey.NOTION,
     DataSourceKey.CONFLUENCE,
     DataSourceKey.JIRA,

@@ -10,6 +10,7 @@ import {
   listDatasetDocuments,
   normalizeDatasetDocument,
   uploadDatasetDocuments,
+  getPartialDatasetUpload,
   type DatasetDocumentDTO,
 } from '../knowledge-rest'
 
@@ -515,6 +516,85 @@ test('document creation surfaces business errors without reporting success', asy
   }
 })
 
+test('TSV upload preserves multipart bytes and rejects HTTP 200 business failures', async () => {
+  const originalFetch = globalThis.fetch
+  const file = new File(['name\tvalue\nalpha\t0'], 'records.tsv', {
+    type: 'text/tab-separated-values',
+  })
+  let calls = 0
+  globalThis.fetch = (async (input, init) => {
+    calls += 1
+    assert.equal(
+      new URL(String(input)).pathname + new URL(String(input)).search,
+      '/api/v1/datasets/kb%2Fone/documents?type=local',
+    )
+    assert.ok(init?.body instanceof FormData)
+    const uploaded = init.body.get('files') as File
+    assert.equal(uploaded.name, file.name)
+    assert.equal(await uploaded.text(), await file.text())
+    assert.equal(new Headers(init.headers).has('Content-Type'), false)
+    return Response.json({
+      retcode: 102,
+      retmsg: 'private parser detail',
+      data: [],
+    })
+  }) as typeof fetch
+  try {
+    await assert.rejects(
+      () => uploadDatasetDocuments('kb/one', [file]),
+      (error: unknown) => {
+        assert.ok(error instanceof APIError)
+        assert.equal(error.code, '102')
+        return true
+      },
+    )
+    assert.equal(calls, 1)
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+})
+
+test('failed upload envelopes retain acknowledged subsets without becoming API success', async () => {
+  const originalFetch = globalThis.fetch
+  const uploaded = [{ id: 'persisted', name: 'valid.txt', dataset_id: 'kb' }]
+  globalThis.fetch = (async () =>
+    Response.json({
+      code: 500,
+      message: 'private upload detail',
+      data: { uploaded },
+    })) as typeof fetch
+  try {
+    await assert.rejects(
+      () =>
+        uploadDatasetDocuments('kb', [
+          new File(['valid'], 'valid.txt'),
+          new File(['unsupported'], 'bad.tsv'),
+        ]),
+      (error: unknown) => {
+        assert.ok(error instanceof APIError)
+        assert.equal(error.code, '500')
+        assert.deepEqual(getPartialDatasetUpload(error, 2, 'kb'), uploaded)
+        assert.equal(getPartialDatasetUpload(error, 1, 'kb'), undefined)
+        return true
+      },
+    )
+    for (const error of [
+      new Error('private'),
+      new APIError(500, '100', 'private', { uploaded }),
+      new APIError(200, '0', 'private', { uploaded }),
+      new APIError(200, '100', 'private', { uploaded: {} }),
+      new APIError(200, '100', 'private', { uploaded: null }),
+      new APIError(200, '100', 'private', { uploaded: [] }),
+      new APIError(200, '500', 'private', {
+        uploaded: [{ id: 'other', name: 'valid.txt', dataset_id: 'other-kb' }],
+      }),
+    ])
+      assert.equal(getPartialDatasetUpload(error, 2, 'kb'), undefined)
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+})
+
 test('document creation rejects an incomplete success payload', async () => {
   const originalFetch = globalThis.fetch
   globalThis.fetch = (async () =>
@@ -531,6 +611,38 @@ test('document creation rejects an incomplete success payload', async () => {
         assert.equal(error.code, 'INVALID_DOCUMENT_RESPONSE')
         return true
       },
+    )
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+})
+
+test('table upload serializes each parser override as JSON in multipart', async () => {
+  const originalFetch = globalThis.fetch
+  const configs: unknown[] = []
+  globalThis.fetch = (async (_input, init) => {
+    const form = init?.body as FormData
+    configs.push(JSON.parse(String(form.get('parser_config'))))
+    assert.equal(form.getAll('files').length, 1)
+    return new Response(JSON.stringify({ code: 0, data: [] }), {
+      headers: { 'content-type': 'application/json' },
+    })
+  }) as typeof fetch
+  try {
+    for (const role of ['indexing', 'metadata']) {
+      await uploadDatasetDocuments('kb', [new File(['a\n1'], `${role}.csv`)], {
+        parser_config: {
+          table_column_mode: 'manual',
+          table_column_roles: { a: role },
+        },
+      })
+    }
+    assert.deepEqual(
+      configs,
+      ['indexing', 'metadata'].map((role) => ({
+        table_column_mode: 'manual',
+        table_column_roles: { a: role },
+      })),
     )
   } finally {
     globalThis.fetch = originalFetch

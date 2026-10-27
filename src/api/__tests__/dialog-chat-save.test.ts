@@ -256,3 +256,113 @@ test('Explore settings without retrieval sources PUT the prompt and variables as
     { key: 'user', optional: true },
   ])
 })
+
+const authorizedModels = {
+  Fixture: {
+    tags: 'LLM',
+    llm: [
+      { name: 'vision', type: 'image2text' as const, used_token: 0 },
+      { name: 'text', type: 'chat' as const, used_token: 0 },
+      {
+        name: 'disabled',
+        type: 'chat' as const,
+        used_token: 0,
+        status: '0' as const,
+      },
+      {
+        name: 'unavailable',
+        type: 'image2text' as const,
+        used_token: 0,
+        available: false,
+      },
+    ],
+  },
+  Other: {
+    tags: 'LLM',
+    llm: [{ name: 'vision', type: 'chat' as const, used_token: 0 }],
+  },
+}
+
+test('both save serializers resolve authorized model types and preserve zero/false and parameter switches', async (t) => {
+  const calls = mockChatsEndpoint(t)
+  for (const [name, model_type] of [
+    ['vision', 'image2text'],
+    ['text', 'chat'],
+  ]) {
+    const config = studioConfig({ llm_id: `${name}@Fixture` })
+    config.llm_setting = {
+      temperature: 0,
+      temperature_enabled: true,
+      top_p: 0.9,
+      top_p_enabled: false,
+    }
+    config.prompt_config.quote = false
+    const studio = buildChatSaveRequest(
+      config,
+      knowledgeBlock,
+      authorizedModels,
+    )
+    const explore = settingsToDialogUpdate(
+      exploreSettings({
+        llmId: `${name}@Fixture`,
+        temperature: 0,
+        temperatureEnabled: true,
+        topPEnabled: false,
+        presencePenaltyEnabled: false,
+        frequencyPenaltyEnabled: false,
+        maxTokensEnabled: false,
+        quote: false,
+      }),
+      knowledgeBlock,
+      authorizedModels,
+    )
+    await dialogAPI.createChat(studio)
+    await dialogAPI.updateChat('chat-1', explore)
+    for (const call of calls.slice(-2)) {
+      assert.deepEqual(call.body.llm_setting, { temperature: 0, model_type })
+      assert.equal(
+        (call.body.prompt_config as { quote?: boolean }).quote,
+        false,
+      )
+    }
+  }
+})
+
+test('unknown, disabled, unavailable, wrong provider and ambiguous models cannot be serialized as chat', () => {
+  for (const id of [
+    'missing',
+    'disabled@Fixture',
+    'unavailable@Fixture',
+    'vision@Missing',
+    'vision',
+  ]) {
+    assert.throws(
+      () =>
+        buildChatSaveRequest(
+          studioConfig({ llm_id: id }),
+          knowledgeBlock,
+          authorizedModels,
+        ),
+      /chat-model-unavailable/,
+    )
+    assert.throws(
+      () =>
+        settingsToDialogUpdate(
+          exploreSettings({ llmId: id }),
+          knowledgeBlock,
+          authorizedModels,
+        ),
+      /chat-model-unavailable/,
+    )
+  }
+  assert.equal(
+    (
+      buildChatSaveRequest(
+        studioConfig({ llm_id: 'text' }),
+        knowledgeBlock,
+        authorizedModels,
+      ).llm_setting as { model_type: string }
+    ).model_type,
+    'chat',
+  )
+})

@@ -196,6 +196,7 @@ export const useCreateAppPage = () => {
           ...previousConfig,
           llm_setting: {
             ...previousConfig.llm_setting,
+            parameter: presetType,
             temperature: presetConfig.temperature,
             top_p: presetConfig.top_p,
             presence_penalty: presetConfig.presence_penalty,
@@ -208,6 +209,13 @@ export const useCreateAppPage = () => {
         return
       }
 
+      setConfig((previousConfig) => ({
+        ...previousConfig,
+        llm_setting: {
+          ...previousConfig.llm_setting,
+          parameter: GenerationPresetType.Custom,
+        },
+      }))
       setCurrentPreset(GenerationPresetType.Custom)
     },
     [setConfig],
@@ -238,6 +246,7 @@ export const useCreateAppPage = () => {
             nextSetting.frequency_penalty_enabled ?? false,
           max_tokens_enabled: nextSetting.max_tokens_enabled ?? false,
         })
+        nextSetting.parameter = matchedPreset
         setCurrentPreset(matchedPreset)
 
         return {

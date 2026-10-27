@@ -1,4 +1,7 @@
 import { act } from 'react'
+import { MemoryRouter } from 'react-router-dom'
+import { useFetchDataOnMount } from '@/pages/agent/hooks/use-fetch-data'
+import useGraphStore from '@/pages/agent/store'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -207,5 +210,97 @@ describe('useUpdateAgentSetting cache contract', () => {
     expect(caught).toEqual(new Error('backend unavailable'))
     expect(queryClient.getQueryData(detailKey)).toEqual(cached)
     expect(invalidateQueries).not.toHaveBeenCalled()
+  })
+})
+
+describe('editor draft ownership during save readback', () => {
+  it('keeps newer local prompt edits when an older detail response arrives', async () => {
+    const id = 'draft-owner'
+    const client = new QueryClient({
+      defaultOptions: { queries: { staleTime: Infinity } },
+    })
+    const flow = {
+      id,
+      title: 'Draft',
+      canvas_type: 'Support',
+      dsl: {
+        graph: {
+          nodes: [
+            {
+              id: 'Agent:test',
+              type: 'agentNode',
+              position: { x: 0, y: 0 },
+              data: { label: 'Agent', form: { sys_prompt: 'Original' } },
+            },
+          ],
+          edges: [],
+        },
+      },
+    }
+    client.setQueryData(agentQueryKeys.detail(id), flow)
+    const container = document.createElement('div')
+    const root = createRoot(container)
+    function Harness() {
+      useFetchDataOnMount()
+      return null
+    }
+    // The real query hook resolves its id from the route.
+    const { Routes, Route } = await import('react-router-dom')
+    try {
+      await act(async () =>
+        root.render(
+          <QueryClientProvider client={client}>
+            <MemoryRouter initialEntries={['/agent/' + id]}>
+              <Routes>
+                <Route path="/agent/:id" element={<Harness />} />
+              </Routes>
+            </MemoryRouter>
+          </QueryClientProvider>,
+        ),
+      )
+      expect(useGraphStore.getState().nodes[0].data.form.sys_prompt).toBe(
+        'Original',
+      )
+      await act(async () => {
+        client.setQueryData(agentQueryKeys.detail(id), {
+          ...flow,
+          dsl: {
+            graph: {
+              ...flow.dsl.graph,
+              nodes: flow.dsl.graph.nodes.map((node) => ({
+                ...node,
+                data: { ...node.data, form: { sys_prompt: 'Server refresh' } },
+              })),
+            },
+          },
+        })
+      })
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 10))
+      })
+      expect(useGraphStore.getState().nodes[0].data.form.sys_prompt).toBe(
+        'Server refresh',
+      )
+      await act(async () => {
+        useGraphStore
+          .getState()
+          .updateNodeForm('Agent:test', { sys_prompt: 'Newer local draft' })
+        client.setQueryData(agentQueryKeys.detail(id), {
+          ...flow,
+          update_time: 2,
+        })
+      })
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 10))
+      })
+      expect(useGraphStore.getState().nodes[0].data.form.sys_prompt).toBe(
+        'Newer local draft',
+      )
+    } finally {
+      await act(async () => root.unmount())
+      client.clear()
+      useGraphStore.setState({ nodes: [], edges: [] })
+      container.remove()
+    }
   })
 })

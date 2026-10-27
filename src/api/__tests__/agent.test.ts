@@ -416,3 +416,35 @@ test('public upload carries beta through the real multipart client', async () =>
     apiClient.setAuthToken(null)
   }
 })
+
+test('setAgent forwards classification labels without changing execution category', async () => {
+  const originalPut = apiClient.put
+  const calls: Record<string, unknown>[] = []
+  apiClient.put = (async (_endpoint: string, data: Record<string, unknown>) => {
+    calls.push(data)
+    return { id: 'agent' }
+  }) as typeof apiClient.put
+  try {
+    await agentAPI.setAgent({
+      id: 'agent',
+      title: 'Tagged',
+      canvas_type: 'Support',
+    })
+    await agentAPI.setAgent({ id: 'agent', title: 'Clear', canvas_type: '' })
+    await agentAPI.setAgent({ id: 'agent', title: 'Preserve' })
+    await agentAPI.setAgent({
+      id: 'agent',
+      title: 'Pipeline',
+      canvas_type: 'Support',
+      canvas_category: AgentCanvasCategory.INGESTION,
+    })
+    assert.equal(calls[0].canvas_type, 'Support')
+    assert.equal('canvas_category' in calls[0], false)
+    assert.equal(calls[1].canvas_type, '')
+    assert.equal('canvas_category' in calls[1], false)
+    assert.equal('canvas_type' in calls[2], false)
+    assert.equal(calls[3].canvas_category, AgentCanvasCategory.INGESTION)
+  } finally {
+    apiClient.put = originalPut
+  }
+})

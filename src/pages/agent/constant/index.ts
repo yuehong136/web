@@ -1,4 +1,7 @@
 import { initialParserFormValues } from '../form/parser/utils'
+import { AgentGlobals } from './agent-globals'
+
+export { AgentGlobals } from './agent-globals'
 
 // ==================== 节点类型枚举 ====================
 // 使用常量对象替代enum以符合erasableSyntaxOnly要求
@@ -54,6 +57,7 @@ export const Operator = {
   UserFillUp: 'UserFillUp',
   StringTransform: 'StringTransform',
   DocGenerator: 'DocGenerator',
+  Browser: 'Browser',
   HTMLReport: 'HTMLReport',
   ExcelProcessor: 'ExcelProcessor',
 
@@ -136,6 +140,7 @@ export const NodeMap: Record<string, string> = {
   [Operator.UserFillUp]: 'ragNode',
   [Operator.StringTransform]: 'ragNode',
   [Operator.DocGenerator]: 'ragNode',
+  [Operator.Browser]: 'ragNode',
   [Operator.HTMLReport]: 'ragNode',
   [Operator.ExcelProcessor]: 'ragNode',
   [Operator.DataOperations]: 'dataOperationsNode',
@@ -164,18 +169,6 @@ export type AgentDialogueMode =
   (typeof AgentDialogueMode)[keyof typeof AgentDialogueMode]
 
 // ==================== 初始值配置 ====================
-
-// Agent全局变量
-export const AgentGlobals = {
-  SysQuery: 'sys.query',
-  SysUserId: 'sys.user_id',
-  SysConversationTurns: 'sys.conversation_turns',
-  SysFiles: 'sys.files',
-  SysHistory: 'sys.history',
-  SysDate: 'sys.date',
-} as const
-
-export type AgentGlobals = (typeof AgentGlobals)[keyof typeof AgentGlobals]
 
 export const AgentGlobalsSysQueryWithBrace = `{${AgentGlobals.SysQuery}}`
 
@@ -285,7 +278,6 @@ export const initialRetrievalValues = {
   },
 }
 
-// 通用LLM基础配置
 export const initialLlmBaseValues = {
   llm_id: '',
   temperature: 0.1,
@@ -295,7 +287,6 @@ export const initialLlmBaseValues = {
   max_tokens: 512,
 }
 
-// Message节点初始值
 export const initialMessageValues = {
   content: [''],
   output_format: '',
@@ -344,7 +335,6 @@ export const initialA2UIValues = {
   ],
 }
 
-// Categorize节点初始值
 export const initialCategorizeValues = {
   ...initialLlmBaseValues,
   query: AgentGlobals.SysQuery,
@@ -996,22 +986,7 @@ export const initialExcelProcessorValues = {
   },
 }
 
-// DocGenerator节点初始值
-export const initialDocGeneratorValues = {
-  output_format: 'pdf',
-  content: '',
-  filename: '',
-  header_text: '',
-  footer_text: '',
-  watermark_text: '',
-  add_page_numbers: true,
-  add_timestamp: true,
-  include_download_info_in_content: false,
-  font_size: 12,
-  outputs: {
-    download: { type: 'string', value: '' },
-  },
-}
+export { initialDocGeneratorValues } from '../form/doc-generator/constants'
 // Pipeline节点初始值
 export const initialFileValues = {
   outputs: {
@@ -1095,6 +1070,7 @@ export const RestrictedUpstreamMap: Record<string, Operator[]> = {
   [Operator.UserFillUp]: [Operator.Begin],
   [Operator.StringTransform]: [Operator.Begin],
   [Operator.DocGenerator]: [Operator.Begin],
+  [Operator.Browser]: [Operator.Begin],
   [Operator.HTMLReport]: [Operator.Begin],
   [Operator.ExcelProcessor]: [Operator.Begin],
   [Operator.DataOperations]: [Operator.Begin],

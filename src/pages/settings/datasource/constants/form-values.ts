@@ -31,6 +31,22 @@ export function getDataSourceDefaultValues(
     },
   }
   const values: FormValues = { ...defaults, ...detail, config }
+  if (source === DataSourceKey.SLACK) {
+    const channels = config.channels
+    values.slackChannelScope =
+      channels == null
+        ? 'all'
+        : Array.isArray(channels) && channels.length === 0
+          ? 'none'
+          : 'selected'
+    config.channels =
+      typeof channels === 'string'
+        ? channels
+            .split(',')
+            .map((name) => name.trim())
+            .filter(Boolean)
+        : (channels ?? [])
+  }
   if (source === DataSourceKey.REST_API) {
     values.config = getRestApiFormConfig({
       ...config,
@@ -79,8 +95,34 @@ export function prepareDataSourceValues(
   const {
     jiraAuthMode,
     restApiSettings: _restApiSettings,
+    slackChannelScope,
     ...prepared
   } = values
+  if (source === DataSourceKey.TEAMS || source === DataSourceKey.ONEDRIVE) {
+    const config: Record<string, unknown> = {
+      ...values.config,
+      sync_deleted_files: false,
+    }
+    if (config.batch_size == null || config.batch_size === '')
+      delete config.batch_size
+    if (config.sync_batch_size == null || config.sync_batch_size === '')
+      delete config.sync_batch_size
+    return { ...prepared, config }
+  }
+  if (source === DataSourceKey.SLACK) {
+    return {
+      ...prepared,
+      config: {
+        ...values.config,
+        channels:
+          slackChannelScope === 'all'
+            ? null
+            : slackChannelScope === 'none'
+              ? []
+              : (values.config?.channels ?? []),
+      },
+    }
+  }
   if (source === DataSourceKey.REST_API) {
     return {
       ...prepared,

@@ -62,7 +62,11 @@ export function AddDataSourceModal({
       config: preparedValues.config ?? {},
       source: sourceData.id,
     }
-    await onOk(data)
+    try {
+      await onOk(data)
+    } catch {
+      // The mutation owner displays the canonical error; keep the draft open.
+    }
   }
 
   const defaultValues = getDataSourceDefaultValues(sourceData.id)

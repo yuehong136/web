@@ -18,9 +18,11 @@ import {
 } from '@/components/ui/popover'
 import { Segmented, SegmentedItem } from '@/components/vendor/ui/segmented'
 import { cn } from '@/lib/utils'
+import { ChunkTagsPopover } from './chunk-tags-popover'
 import type { ChunkFilterStatus, TextMode } from '../types'
 
 interface ChunkToolbarProps {
+  knowledgeIds?: string[]
   textMode: TextMode
   onTextModeChange: (mode: TextMode) => void
   searchKeyword: string
@@ -44,6 +46,7 @@ interface ChunkToolbarProps {
 }
 
 export const ChunkToolbar = ({
+  knowledgeIds,
   textMode,
   onTextModeChange,
   searchKeyword,
@@ -109,6 +112,7 @@ export const ChunkToolbar = ({
         }
         right={
           <>
+            {knowledgeIds && <ChunkTagsPopover knowledgeIds={knowledgeIds} />}
             <Popover>
               <PopoverTrigger asChild>
                 <Button

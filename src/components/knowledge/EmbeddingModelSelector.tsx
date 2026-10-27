@@ -1,3 +1,8 @@
+import {
+  getLLMModelValue,
+  getLLMModelLabel,
+  resolveLLMDisplayValue,
+} from '@/stores/model'
 import { useMemo, type FC } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AlertCircle } from 'lucide-react'
@@ -81,10 +86,10 @@ export const EmbeddingModelSelector: FC<EmbeddingModelSelectorProps> = ({
             label: (
               <ModelOptionLabel
                 provider={providerName}
-                modelName={model.name}
+                modelName={getLLMModelLabel(model)}
               />
             ),
-            value: `${model.name}@${providerName}`,
+            value: getLLMModelValue(model, providerName),
           })),
         })
       }
@@ -93,41 +98,10 @@ export const EmbeddingModelSelector: FC<EmbeddingModelSelectorProps> = ({
     return groups
   }, [modelProviders])
 
-  const allModelValues = useMemo(() => {
-    const values: Map<string, string> = new Map()
-    Object.entries(modelProviders).forEach(([providerName, providerData]) => {
-      providerData.llm
-        .filter(
-          (model) => model.type === 'embedding' && isLLMModelEnabled(model),
-        )
-        .forEach((model) => {
-          const fullValue = `${model.name}@${providerName}`
-          values.set(fullValue.toLowerCase(), fullValue)
-          values.set(model.name.toLowerCase(), fullValue)
-        })
-    })
-    return values
-  }, [modelProviders])
-
-  const normalizedValue = useMemo(() => {
-    if (!selectedModelId) return ''
-    const lowerValue = selectedModelId.toLowerCase()
-
-    if (allModelValues.has(lowerValue)) {
-      return allModelValues.get(lowerValue)!
-    }
-
-    for (const [key, fullValue] of allModelValues) {
-      if (
-        key
-          .replace(/-/g, '')
-          .includes(lowerValue.replace(/-/g, '').replace(/@.*$/, ''))
-      ) {
-        return fullValue
-      }
-    }
-    return selectedModelId
-  }, [selectedModelId, allModelValues])
+  const normalizedValue = resolveLLMDisplayValue(
+    modelProviders,
+    selectedModelId,
+  )
 
   const hasModels = groupedOptions.length > 0
   const label = t('knowledge.embeddingSelector.label')

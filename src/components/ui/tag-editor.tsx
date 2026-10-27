@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import React, { useState, useRef, useEffect } from 'react'
 import type { KeyboardEvent } from 'react'
 import { X, Plus } from 'lucide-react'
@@ -41,16 +42,20 @@ const variantStyles = {
 }
 
 const TagEditor = React.forwardRef<HTMLDivElement, TagEditorProps>(
-  ({ 
-    value = [], 
-    onChange, 
-    disabled = false, 
-    placeholder = '输入后按回车添加...', 
-    className,
-    tagClassName,
-    maxTags,
-    variant = 'default'
-  }, ref) => {
+  (
+    {
+      value = [],
+      onChange,
+      disabled = false,
+      placeholder = '输入后按回车添加...',
+      className,
+      tagClassName,
+      maxTags,
+      variant = 'default',
+    },
+    ref,
+  ) => {
+    const { t } = useTranslation()
     const [inputVisible, setInputVisible] = useState(false)
     const [inputValue, setInputValue] = useState('')
     const inputRef = useRef<HTMLInputElement>(null)
@@ -85,12 +90,12 @@ const TagEditor = React.forwardRef<HTMLDivElement, TagEditorProps>(
           .split(/[;；]/)
           .map((tag) => tag.trim())
           .filter((tag) => tag && !value.includes(tag))
-        
+
         if (maxTags) {
           const remaining = maxTags - value.length
           newTags.splice(remaining)
         }
-        
+
         if (newTags.length > 0) {
           onChange?.([...value, ...newTags])
         }
@@ -117,8 +122,8 @@ const TagEditor = React.forwardRef<HTMLDivElement, TagEditorProps>(
           <Tooltip key={`${tag}-${index}`} content={tag}>
             <div
               className={cn(
-                'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border border-dashed transition-colors',
-                tagClassName
+                'inline-flex items-center gap-1.5 rounded-md border border-dashed px-2.5 py-1 text-xs font-medium transition-colors',
+                tagClassName,
               )}
               style={{
                 backgroundColor: styles.bg,
@@ -129,7 +134,7 @@ const TagEditor = React.forwardRef<HTMLDivElement, TagEditorProps>(
               <span className="max-w-32 truncate">{tag}</span>
               {!disabled && (
                 <X
-                  className="h-3 w-3 cursor-pointer opacity-60 hover:opacity-100 transition-opacity"
+                  className="h-3 w-3 cursor-pointer opacity-60 transition-opacity hover:opacity-100"
                   onClick={(e) => {
                     e.stopPropagation()
                     handleClose(tag)
@@ -139,7 +144,7 @@ const TagEditor = React.forwardRef<HTMLDivElement, TagEditorProps>(
             </div>
           </Tooltip>
         ))}
-        
+
         {inputVisible ? (
           <Input
             ref={inputRef}
@@ -153,30 +158,30 @@ const TagEditor = React.forwardRef<HTMLDivElement, TagEditorProps>(
             disabled={disabled}
           />
         ) : (
-          canAddMore && !disabled && (
+          canAddMore &&
+          !disabled && (
             <Button
               type="button"
               variant="ghost"
               size="sm"
               onClick={showInput}
-              className="h-7 px-2 border border-dashed"
+              className="h-7 border border-dashed px-2"
               style={{
                 borderColor: 'var(--color-border-default)',
                 color: 'var(--color-text-secondary)',
               }}
             >
-              <Plus className="h-3 w-3 mr-1" />
-              <span className="text-xs">添加</span>
+              <Plus className="mr-1 h-3 w-3" />
+              <span className="text-xs">{t('common.add')}</span>
             </Button>
           )
         )}
       </div>
     )
-  }
+  },
 )
 
 TagEditor.displayName = 'TagEditor'
 
 export { TagEditor }
 export type { TagEditorProps }
-

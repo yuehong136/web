@@ -10,6 +10,11 @@ import { stubChatDOM } from '@/components/chat/__tests__/chat-dom'
 import { useFetchConversationsByDialog } from '@/hooks/use-chat-request'
 import type { DialogApp, UserInfo } from '@/types/api'
 
+const queryState = vi.hoisted(() => ({
+  modelError: false,
+  defaultError: false,
+  defaultReference: '',
+}))
 const models = {
   provider: {
     tags: '',
@@ -19,8 +24,20 @@ const models = {
     ],
   },
 }
+vi.mock('@/hooks/use-model-provider-request', () => ({
+  useDefaultModelReference: () => ({
+    reference: queryState.defaultReference,
+    isPending: false,
+    isError: queryState.defaultError,
+  }),
+}))
 vi.mock('@/hooks/use-llm-request', () => ({
-  useFetchMyLLMs: () => ({ myLLMs: models, isLoading: false }),
+  useFetchMyLLMs: () => ({
+    myLLMs: queryState.modelError ? {} : models,
+    isLoading: false,
+    isPending: false,
+    isError: queryState.modelError,
+  }),
 }))
 vi.mock('@/hooks/use-chat-request', () => ({
   useFetchConversationsByDialog: vi.fn(),
@@ -45,6 +62,11 @@ function Surface() {
   )
 }
 beforeEach(async () => {
+  Object.assign(queryState, {
+    modelError: false,
+    defaultError: false,
+    defaultReference: '',
+  })
   stubChatDOM()
   await setProductLanguage('en-US')
   useHomeStore.getState().reset()
@@ -157,3 +179,25 @@ it('continues only real app conversations from the available history response', 
   await act(async () => root.render(<RecentAppConversations />))
   expect(container.querySelector('section')).toBeNull()
 })
+
+for (const failedQuery of ['models', 'defaults'] as const) {
+  it(`retains the cached user model selection when ${failedQuery} refresh fails`, async () => {
+    queryState.defaultReference = 'model-a'
+    useHomeStore.getState().setSelectedModelId('model-b')
+    await act(async () => root.render(<Surface />))
+    expect(useHomeStore.getState().selectedModelId).toBe('model-b')
+    const setSelected = vi.spyOn(useHomeStore.getState(), 'setSelectedModelId')
+    queryState.modelError = failedQuery === 'models'
+    queryState.defaultError = failedQuery === 'defaults'
+    if (failedQuery === 'defaults') {
+      // A successful complete inventory can lack an old saved selection; a failed default read still cannot authorize a replacement.
+      useHomeStore.setState({ selectedModelId: 'unavailable-user-choice' })
+    }
+    const selected = useHomeStore.getState().selectedModelId
+    await act(async () => root.render(<Surface />))
+    expect(useHomeStore.getState().selectedModelId).toBe(selected)
+    expect(setSelected).not.toHaveBeenCalled()
+    expect(container.querySelector('textarea')!.value).toBe('草稿 draft')
+    setSelected.mockRestore()
+  })
+}

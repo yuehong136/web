@@ -1,39 +1,70 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { authAPI, type TenantModelSettings } from '@/api/auth'
-import { APIError } from '@/api/client-types'
-import { MutationErrorFeedback } from '@/lib/mutation-error-feedback'
-import { teamKeys, useFetchTenantInfo } from '@/hooks/use-team-request'
-import type { TenantInfo } from '@/types/team'
+import { useMemo } from 'react'
+import { APIError } from '@/api/client'
+import { modelProvidersAPI } from '@/api/llm-providers'
+import type { ModelType } from '@/api/llm-provider-types'
+import type { TenantModelSettings } from '@/api/auth'
+import { useFetchTenantInfo } from '@/hooks/use-team-request'
+import {
+  useModelDefaults,
+  useModelProviderMutation,
+} from '@/hooks/use-model-provider-request'
 
-/** Shares the tenant query with team settings; only a confirmed save updates the cache. */
+export const modelDefaultFields = {
+  llm_id: 'chat',
+  embd_id: 'embedding',
+  img2txt_id: 'image2text',
+  asr_id: 'speech2text',
+  rerank_id: 'rerank',
+  tts_id: 'tts',
+  ocr_id: 'ocr',
+} as const satisfies Record<string, ModelType>
 export function useDefaultModelRequest() {
-  const settings = useFetchTenantInfo()
-  const queryClient = useQueryClient()
-  const update = useMutation({
-    meta: { errorFeedback: MutationErrorFeedback.Local },
-    mutationFn: async (values: TenantModelSettings) => {
-      const confirmed = await authAPI.updateTenantInfo(values)
-      if (confirmed !== true)
-        throw new APIError(
-          502,
-          'MODEL_SETTINGS_UNCONFIRMED',
-          'Model settings update was not confirmed',
+  const tenant = useFetchTenantInfo()
+  const defaults = useModelDefaults()
+  const mutation = useModelProviderMutation()
+  const dictionary = useMemo(
+    () =>
+      Object.fromEntries(
+        Object.entries(modelDefaultFields).map(([field, type]) => [
+          field,
+          defaults.data?.find((row) => row.model_type === type)?.reference ??
+            '',
+        ]),
+      ),
+    [defaults.data],
+  )
+  const tenantInfo = useMemo(
+    () =>
+      tenant.tenantInfo && defaults.data
+        ? { ...tenant.tenantInfo, ...dictionary }
+        : null,
+    [tenant.tenantInfo, defaults.data, dictionary],
+  )
+  const mutateAsync = async (values: TenantModelSettings) =>
+    mutation.mutateAsync(async (isCurrent) => {
+      for (const [field, type] of Object.entries(modelDefaultFields)) {
+        const value = values[field as keyof TenantModelSettings]
+        if (value === undefined || value === dictionary[field]) continue
+        if (
+          typeof value !== 'string' ||
+          (value &&
+            (!/^[1-9]\d*$/.test(value) || !Number.isSafeInteger(Number(value))))
         )
-      return values
-    },
-    onSuccess: (values) => {
-      queryClient.setQueryData<TenantInfo>(teamKeys.tenantInfo(), (previous) =>
-        previous?.tenant_id === values.tenant_id
-          ? { ...previous, ...values }
-          : previous,
-      )
-      if (
-        queryClient.getQueryData<TenantInfo>(teamKeys.tenantInfo())
-          ?.tenant_id === values.tenant_id
-      ) {
-        void queryClient.invalidateQueries({ queryKey: teamKeys.tenantInfo() })
+          throw new APIError(
+            422,
+            'INVALID_MODEL_ID',
+            'Select a configured model',
+          )
+        if (!isCurrent())
+          throw new DOMException('Request superseded', 'AbortError')
+        await modelProvidersAPI.setDefault(type, value ? Number(value) : null)
       }
-    },
-  })
-  return { ...settings, update }
+    })
+  return {
+    tenantInfo,
+    isError: tenant.isError || defaults.isError,
+    isLoading: tenant.isLoading || defaults.isPending,
+    refetch: () => Promise.all([tenant.refetch(), defaults.refetch()]),
+    update: { isPending: mutation.isPending, mutateAsync },
+  }
 }

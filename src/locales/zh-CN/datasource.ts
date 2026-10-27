@@ -1,5 +1,53 @@
 export default {
   datasource: {
+    microsoft: {
+      teamsDescription:
+        '通过 Microsoft Graph 同步 Microsoft Teams 频道帖子及回复。',
+      onedriveDescription:
+        '通过 Microsoft Graph 同步明确指定的 OneDrive 云盘文件。',
+      tenant_id: '租户 ID',
+      client_id: '客户端 ID',
+      client_secret: '客户端密钥',
+      teamsPermissions:
+        '需要 Team.ReadBasic.All 和 ChannelMessage.Read.All 应用权限，并获得管理员同意。',
+      onedrivePermissions: '需要 Files.Read.All 应用权限，并获得管理员同意。',
+      driveIds: '云盘 ID',
+      driveIdsPlaceholder: '输入云盘 ID 后按回车',
+      driveIdsTip:
+        '只同步列表中的云盘；空列表不会同步任何云盘。请从 Microsoft Graph 的用户、组或站点查询云盘 ID。',
+      driveIdsInvalid: '请输入不重复且非空的云盘 ID。',
+      folderPath: '文件夹路径（可选）',
+      folderPathTip:
+        '限制为各指定云盘中的子文件夹；留空则同步指定云盘全部文件。',
+      folderPathInvalid: '文件夹路径不能包含父目录片段（..）。',
+      batchSize: '文档批次大小',
+      batchSizeInvalid: '请输入正整数。',
+    },
+
+    sharepoint: {
+      description: '通过 Microsoft Graph 同步 SharePoint 文档库。',
+      siteUrl: '站点 URL',
+      siteUrlTip:
+        '完整站点 URL，例如 https://contoso.sharepoint.com/sites/MySite。需要管理员同意的 Sites.Read.All 和 Files.Read.All 应用权限。',
+      tenantId: '租户 ID',
+      clientId: '客户端 ID',
+      clientSecret: '客户端密钥',
+    },
+    slack: {
+      description: '同步 Slack 频道消息和讨论串。',
+      botToken: '机器人令牌',
+      botTokenTip:
+        '令牌需有选定频道的访问权限，以及 channels:read、channels:history、users:read 权限；私有频道还需 groups:read 和 groups:history。读取讨论串回复需要支持该频道类型回复读取的令牌。',
+      channelScope: '频道范围',
+      allChannels: '所有可访问频道',
+      selectedChannels: '选定频道',
+      noChannels: '不选择频道',
+      channels: '频道',
+      channelsPlaceholder: '输入频道名称后按回车',
+      channelsTip:
+        '精确频道名称，可带 # 前缀。同步全部请选“所有可访问频道”；空选定列表不会同步任何频道。',
+      useRegex: '使用正则表达式匹配频道名称',
+    },
     stop: '停止',
     refreshMinutes: '同步间隔（分钟）',
     pruneMinutes: '清理间隔（分钟，0 表示关闭清理）',

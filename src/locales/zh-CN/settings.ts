@@ -3,6 +3,27 @@ export default {
     title: '设置',
     description: '统一管理工作空间配置、团队能力和开发者接入能力。',
     models: {
+      allProviders: '全部',
+      instances: {
+        name: '实例名称',
+        add: '添加实例',
+        addModel: '添加模型',
+        region: '区域（可选）',
+        baseUrl: '服务地址',
+        credential: 'API 密钥或完整凭据 JSON',
+        clearKey: '明确清除已保存的凭据',
+        maxTokens: '最大 Token 数（允许为 0）',
+        keySaved: '凭据已保存',
+        noKey: '未保存凭据',
+        defaultEndpoint: '默认服务地址',
+        enabled: '启用 {{name}}',
+        failed:
+          '未能保存更改。请检查配置或已有模型引用后重试，已填写的内容会保留。',
+        deleteConfirm:
+          '删除 {{name}}？应用、知识库或默认设置正在使用的模型需要先解除关联。',
+        partial:
+          '实例已创建。请保留自定义模型名称后重试，或关闭表单后在已建实例中管理模型。在此清空名称无法注册厂商目录。',
+      },
       volcEngine: { modelId: '模型 ID', modelIdRequired: '请输入模型 ID。' },
       localModel: {
         addTitle: '添加 {{provider}} 模型',
@@ -59,6 +80,7 @@ export default {
       defaultsUnsaved: '有尚未保存的选择',
       defaultsSavedHint: '保存后应用你的更改。',
       defaultFields: {
+        ocr: { label: 'OCR 模型', hint: '新解析任务默认使用的 OCR 模型。' },
         chat: {
           label: '聊天模型',
           hint: '新建知识库使用的默认聊天模型。',

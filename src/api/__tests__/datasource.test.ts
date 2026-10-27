@@ -1,8 +1,15 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { APIError, apiClient, type RequestConfig } from '../client'
-import { DataSourceStatus } from '@/pages/settings/datasource/types'
-import { datasourceAPI, normalizeDataSourceStatus } from '../datasource'
+import {
+  DataSourceStatus,
+  DataSourceKey,
+} from '@/pages/settings/datasource/types'
+import {
+  datasourceAPI,
+  createDatasourceConnectorAPI,
+  normalizeDataSourceStatus,
+} from '../datasource'
 
 type Call = { endpoint: string; data?: unknown; config?: RequestConfig }
 
@@ -494,5 +501,64 @@ test('save forwards independent intervals and reschedule without a legacy resume
     ])
   } finally {
     restore()
+  }
+})
+
+test('scoped connector clients keep create, set-update, probe and legacy readback on their own origin', async () => {
+  const calls: Call[] = []
+  const capture = async (
+    endpoint: string,
+    data?: unknown,
+    config?: RequestConfig,
+  ) => {
+    calls.push({ endpoint, data, config })
+    return { id: 'scoped', status: '0' }
+  }
+  const restorePost = stub('post', capture)
+  const restorePatch = stub('patch', capture)
+  const restoreGet = stub(
+    'get',
+    async (endpoint: string, config?: RequestConfig) => {
+      calls.push({ endpoint, config })
+      if (endpoint.startsWith('/v1/connectors'))
+        throw new APIError(404, 'NOT_FOUND', 'missing route')
+      return { id: 'scoped', status: '0' }
+    },
+  )
+  try {
+    const scoped = createDatasourceConnectorAPI('http://127.0.0.1:43210')
+    await scoped.set({
+      name: 'one',
+      source: DataSourceKey.ONEDRIVE,
+      config: { drive_ids: [] },
+    })
+    await scoped.set({
+      id: 'scoped',
+      name: 'one',
+      source: DataSourceKey.ONEDRIVE,
+      config: { drive_ids: ['A'] },
+    })
+    await scoped.test('scoped')
+    await scoped.get('scoped')
+    assert.deepEqual(
+      calls.map((row) => row.endpoint),
+      [
+        '/v1/connectors',
+        '/v1/connectors/scoped',
+        '/v1/connectors/scoped/test',
+        '/v1/connectors/scoped',
+        '/v1/connector/scoped',
+      ],
+    )
+    assert.ok(
+      calls
+        .slice(0, 4)
+        .every((row) => row.config?.baseURL === 'http://127.0.0.1:43210/api'),
+    )
+    assert.equal(calls[4].config?.baseURL, 'http://127.0.0.1:43210')
+  } finally {
+    restoreGet()
+    restorePost()
+    restorePatch()
   }
 })

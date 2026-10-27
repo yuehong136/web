@@ -11,6 +11,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { dialogAPI } from '@/api/dialog'
 import { dialogKeys } from '@/hooks/use-dialog-apps'
+import { useFetchMyLLMs } from '@/hooks/use-llm-request'
 import { MutationErrorFeedback } from '@/lib/mutation-error-feedback'
 import { toast } from '@/lib/toast'
 import { normalizeDialogConfig } from '../data'
@@ -39,6 +40,7 @@ export function useCreateAppSave({
 }: SaveOptions) {
   const { t } = useTranslation()
   const client = useQueryClient()
+  const { myLLMs } = useFetchMyLLMs()
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('unsaved')
   const pending = useRef<Promise<ConfirmedSave | null> | null>(null)
   const mounted = useRef(true)
@@ -57,7 +59,7 @@ export function useCreateAppSave({
     mutationFn: async (submitted: AppConfig): Promise<ConfirmedSave> => {
       const submittedId = idRef.current
       const block = t('chat.knowledgePrompt.block')
-      const request = buildChatSaveRequest(submitted, block)
+      const request = buildChatSaveRequest(submitted, block, myLLMs)
       const result = idRef.current
         ? await dialogAPI.updateChat(idRef.current, request)
         : await dialogAPI.createChat(request)

@@ -3,6 +3,7 @@ import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { DocumentUploadModal } from '../document-upload-modal'
 import i18n, { setProductLanguage } from '@/locales/i18n'
+import { APIError } from '@/api/client'
 
 const mocks = vi.hoisted(() => ({
   upload: vi.fn(),
@@ -121,10 +122,16 @@ describe('dataset upload and parsing', () => {
     const onSuccess = vi.fn()
     const onClose = vi.fn()
     const first = new File(['one'], 'first.txt', { type: 'text/plain' })
-    const second = new File(['two'], 'second.txt', { type: 'text/plain' })
-    mocks.upload.mockResolvedValueOnce([
-      { id: 'first-created', name: 'first.txt' },
-    ])
+    const second = new File(['name\tvalue\ntwo\t0'], 'second.tsv', {
+      type: 'text/tab-separated-values',
+    })
+    mocks.upload.mockRejectedValueOnce(
+      new APIError(200, '500', 'private upload detail', {
+        uploaded: [
+          { id: 'first-created', name: 'first.txt', dataset_id: 'kb' },
+        ],
+      }),
+    )
     mocks.parse.mockResolvedValue(undefined)
     await act(async () =>
       root.render(
@@ -151,12 +158,14 @@ describe('dataset upload and parsing', () => {
     )
     expect(mocks.parse).toHaveBeenCalledWith('kb', ['first-created'])
     expect(onClose).not.toHaveBeenCalled()
-    expect(document.body.textContent).toContain('second.txt')
+    expect(document.body.textContent).toContain('second.tsv')
     expect(document.body.textContent).toContain(
       i18n.t('knowledge.documents.upload.notConfirmed'),
     )
     expect(onSuccess).toHaveBeenCalledOnce()
-    mocks.upload.mockRejectedValueOnce(new Error('secret-token=do-not-show'))
+    mocks.upload.mockRejectedValueOnce(
+      new APIError(200, '102', 'secret-token=do-not-show'),
+    )
     await act(async () =>
       button('knowledge.documents.upload.uploadRemaining').click(),
     )
@@ -172,9 +181,9 @@ describe('dataset upload and parsing', () => {
     expect(document.body.textContent).toContain(
       i18n.t('knowledge.documents.upload.retryHint'),
     )
-    expect(document.body.textContent).toContain('second.txt')
+    expect(document.body.textContent).toContain('second.tsv')
     mocks.upload.mockResolvedValueOnce([
-      { id: 'second-created', name: 'second.txt' },
+      { id: 'second-created', name: 'second.tsv' },
     ])
     await act(async () =>
       button('knowledge.documents.upload.uploadRemaining').click(),
@@ -186,6 +195,64 @@ describe('dataset upload and parsing', () => {
     await act(async () => button('common.close').click())
     expect(onClose).toHaveBeenCalledOnce()
   })
+
+  it.each([
+    ['malformed', { uploaded: {} }],
+    [
+      'unknown file',
+      { uploaded: [{ id: 'other', name: 'other.txt', dataset_id: 'kb' }] },
+    ],
+    ['missing ID', { uploaded: [{ name: 'first.txt', dataset_id: 'kb' }] }],
+    [
+      'duplicate ID',
+      {
+        uploaded: [
+          { id: 'same', name: 'first.txt', dataset_id: 'kb' },
+          { id: 'same', name: 'second.txt', dataset_id: 'kb' },
+        ],
+      },
+    ],
+  ])(
+    'does not confirm %s acknowledgements inside failed upload envelopes',
+    async (_label, details) => {
+      mocks.upload.mockRejectedValue(
+        new APIError(200, '100', 'private detail', details),
+      )
+      const onSuccess = vi.fn()
+      await act(async () =>
+        root.render(
+          <DocumentUploadModal
+            open
+            kbId="kb"
+            onClose={() => {}}
+            onSuccess={onSuccess}
+          />,
+        ),
+      )
+      const input =
+        document.body.querySelector<HTMLInputElement>('input[type="file"]')!
+      Object.defineProperty(input, 'files', {
+        configurable: true,
+        value: [
+          new File(['a'], 'first.txt'),
+          new File(['b'], 'second.txt'),
+          new File(['c'], 'third.txt'),
+        ],
+      })
+      await act(async () => {
+        input.dispatchEvent(new Event('change', { bubbles: true }))
+        await new Promise((resolve) => setTimeout(resolve, 0))
+      })
+      await act(async () =>
+        button('knowledge.documents.upload.uploadCount', 3).click(),
+      )
+      expect(mocks.parse).not.toHaveBeenCalled()
+      expect(mocks.success).not.toHaveBeenCalled()
+      expect(onSuccess).not.toHaveBeenCalled()
+      expect(mocks.error).toHaveBeenCalled()
+      expect(document.body.textContent).not.toContain('private detail')
+    },
+  )
 
   it('ignores a late response after its upload session closes', async () => {
     let resolveUpload!: (value: unknown) => void
@@ -220,5 +287,108 @@ describe('dataset upload and parsing', () => {
     expect(mocks.parse).not.toHaveBeenCalled()
     expect(mocks.success).not.toHaveBeenCalled()
     expect(document.body.textContent).not.toContain('old.txt')
+  })
+  it('isolates table roles per file, retains failed configs on retry and parses only confirmed documents', async () => {
+    Element.prototype.scrollIntoView = vi.fn()
+    const onSuccess = vi.fn()
+    const first = new File(['shared,a.b\n1,2'], 'first.csv', {
+      type: 'text/csv',
+    })
+    const second = new File(['shared,region\n3,4'], 'second.csv', {
+      type: 'text/csv',
+    })
+    await act(async () =>
+      root.render(
+        <DocumentUploadModal
+          open
+          kbId="kb"
+          isTableParser
+          onClose={vi.fn()}
+          onSuccess={onSuccess}
+        />,
+      ),
+    )
+    const input =
+      document.body.querySelector<HTMLInputElement>('input[type="file"]')!
+    Object.defineProperty(input, 'files', {
+      configurable: true,
+      value: [first, second],
+    })
+    await act(async () => {
+      input.dispatchEvent(new Event('change', { bubbles: true }))
+      await new Promise((resolve) => setTimeout(resolve, 20))
+    })
+    await vi.waitFor(() =>
+      expect(
+        document.body.querySelectorAll('output')[0]?.textContent,
+      ).toContain(i18n.t('knowledge.documents.upload.tableHeadersScope')),
+    )
+    async function choose(label: string, value: string) {
+      await act(async () =>
+        document.body
+          .querySelector<HTMLButtonElement>(`button[aria-label="${label}"]`)!
+          .click(),
+      )
+      await vi.waitFor(() =>
+        expect(
+          [
+            ...document.body.querySelectorAll<HTMLElement>('[role="option"]'),
+          ].map((item) => item.textContent?.trim()),
+        ).toContain(value),
+      )
+      await act(async () =>
+        [...document.body.querySelectorAll<HTMLElement>('[role="option"]')]
+          .find((item) => item.textContent?.trim() === value)!
+          .click(),
+      )
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 50))
+      })
+    }
+    await choose(
+      'first.csv: ' + i18n.t('knowledge.settings.configuration.table.mode'),
+      i18n.t('knowledge.settings.configuration.table.manual'),
+    )
+    await choose(
+      'first.csv: shared',
+      i18n.t('knowledge.settings.configuration.table.indexing'),
+    )
+    await choose(
+      'second.csv: ' + i18n.t('knowledge.settings.configuration.table.mode'),
+      i18n.t('knowledge.settings.configuration.table.manual'),
+    )
+    await choose(
+      'second.csv: shared',
+      i18n.t('knowledge.settings.configuration.table.metadata'),
+    )
+    mocks.upload
+      .mockResolvedValueOnce([{ id: 'first-doc', name: 'first.csv' }])
+      .mockRejectedValueOnce(new Error('private upload error'))
+    mocks.parse.mockResolvedValue(undefined)
+    await act(async () =>
+      button('knowledge.documents.upload.uploadCount', 2).click(),
+    )
+    expect(mocks.upload).toHaveBeenNthCalledWith(1, 'kb', [first], {
+      parser_config: {
+        table_column_mode: 'manual',
+        table_column_roles: { shared: 'indexing', 'a.b': 'both' },
+      },
+    })
+    expect(mocks.upload).toHaveBeenNthCalledWith(2, 'kb', [second], {
+      parser_config: {
+        table_column_mode: 'manual',
+        table_column_roles: { shared: 'metadata', region: 'both' },
+      },
+    })
+    expect(mocks.parse).toHaveBeenCalledWith('kb', ['first-doc'])
+    expect(document.body.textContent).not.toContain('private upload error')
+    mocks.upload.mockResolvedValueOnce([
+      { id: 'second-doc', name: 'second.csv' },
+    ])
+    await act(async () =>
+      button('knowledge.documents.upload.uploadRemaining').click(),
+    )
+    expect(mocks.upload.mock.calls[2]).toEqual(mocks.upload.mock.calls[1])
+    expect(mocks.parse).toHaveBeenLastCalledWith('kb', ['second-doc'])
   })
 })

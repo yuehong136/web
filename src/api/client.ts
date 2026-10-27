@@ -50,6 +50,10 @@ class APIClient {
     }
   }
 
+  captureOwner(): () => boolean {
+    return this.captureIdentity().isCurrent
+  }
+
   private clearAuthState(): void {
     this.setAuthToken(null)
     if (typeof localStorage !== 'undefined') {
