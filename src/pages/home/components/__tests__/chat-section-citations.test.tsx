@@ -52,6 +52,13 @@ vi.mock('@/components/chat/MarkdownCodeBlock', () => ({
 vi.mock('@/hooks/use-llm-request', () => ({
   useFetchMyLLMs: () => ({ myLLMs: {}, isLoading: false }),
 }))
+vi.mock('@/hooks/use-model-provider-request', () => ({
+  useDefaultModelReference: () => ({
+    reference: '',
+    isPending: false,
+    isError: false,
+  }),
+}))
 vi.mock('../ChatInputBox', () => ({ ChatInputBox: () => null }))
 vi.mock('../SkillPanel', () => ({ SkillPanel: () => null }))
 vi.mock('@/components/patterns/chat/chat-scroll-viewport', () => ({
