@@ -64,6 +64,7 @@ export function useExploreSessionChat({
   selectionRevision = 0,
   newSessionMode = 'draft',
   onSessionReady,
+  onSendAccepted,
 }: {
   canvasId: string
   sessionId: string
@@ -71,6 +72,8 @@ export function useExploreSessionChat({
   selectionRevision?: number
   newSessionMode?: AgentRunMode
   onSessionReady: (sessionId: string) => void
+  /** A composer draft was accepted for a run (directly or after Begin inputs). */
+  onSendAccepted?: (draft: ExploreSendRequest) => void
 }) {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
@@ -244,6 +247,7 @@ export function useExploreSessionChat({
     handleNormalizedEvent,
     resetRuntimeEventState,
     refetchSession,
+    onAccepted: onSendAccepted,
   })
 
   const updateSelection = useCallback(
@@ -275,6 +279,7 @@ export function useExploreSessionChat({
         files,
         runtimeInputs: buildRuntimeInputObject(values || beginInputs),
         appendUserMessage: Boolean(content || files.length),
+        draft: request,
       })
     },
     [beginInputs, isTaskMode, runRequest],

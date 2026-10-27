@@ -12,6 +12,7 @@ import {
 import type {
   ExploreRequestOwner,
   ExploreRunRequest,
+  ExploreSendRequest,
   ExploreSessionView,
 } from '../types'
 import { buildExploreSessionName } from '../utils'
@@ -26,11 +27,14 @@ export function useExploreRunRequest({
   handleNormalizedEvent,
   resetRuntimeEventState,
   refetchSession,
+  onAccepted,
 }: {
   owner: ReturnType<typeof useExploreRequestOwner>
   canSend: boolean
   createAgentSession: (input: CreateAgentSessionInput) => Promise<AgentSession>
   onSessionReady: (sessionId: string) => void
+  /** The composer draft of a run that took ownership; its owner clears it. */
+  onAccepted?: (draft: ExploreSendRequest) => void
   updateRequest: (
     request: ExploreRequestOwner,
     updater: (view: ExploreSessionView) => ExploreSessionView,
@@ -49,6 +53,8 @@ export function useExploreRunRequest({
       if (!canSend) return
       const request = owner.begin()
       if (!request) return
+      // 占有成功即接纳：提交的草稿交回所有者清除，之后的失败也不再回填
+      if (input.draft) onAccepted?.(input.draft)
       const { content = '', files = [] } = input
       updateRequest(request, (view) => ({
         ...view,
@@ -193,6 +199,7 @@ export function useExploreRunRequest({
       canSend,
       createAgentSession,
       handleNormalizedEvent,
+      onAccepted,
       onSessionReady,
       owner,
       refetchSession,

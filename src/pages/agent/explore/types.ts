@@ -75,4 +75,6 @@ export interface ExploreRunRequest extends ExploreSendRequest {
   metadata?: Record<string, unknown>
   appendUserMessage: boolean
   userMessageContent?: string
+  /** The composer draft this run was sent from; reported once it is accepted. */
+  draft?: ExploreSendRequest
 }

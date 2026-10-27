@@ -140,7 +140,7 @@ The backend emits the committed pause terminals in their original Canvas order.
 
 ### 草稿、附件、Begin inputs、A2UI、人工输入与执行来源
 
-- 草稿在 `RuntimeChatComposer` 内部，随 SessionChat 的 key 重挂载，换会话即丢弃；RUNNING 时输入框禁用；`onSend` 结束后无条件清空，不看是否被接纳（被锁拒绝或转去 Begin inputs 弹窗时同样清空）；IME 只判断 `isComposing`。
+- 草稿归页面（W5b）：`useExploreDrafts` 包装共享 `useChatDrafts`，按身份、租户、Agent 与会话存在内存，换会话互不污染，新会话拿到 id 时随之迁移；SessionChat 重挂载不丢草稿。运行中可继续编写，只在空闲时发送；最后一条消息等待人工输入时 Composer 由 `disabled` 锁定。`useExploreRunRequest` 占有请求成功即视为接纳，只清掉提交的那份草稿：被锁拒绝或转去 Begin inputs 弹窗时原样保留，接纳后写下的新内容不受影响，之后的运行失败也不回填。IME 拦 `isComposing`、keyCode 229 与 `Process`。
 - 附件用 `FileUploadDirectUpload` 上传；Explore 没传 `onDownloadAttachment`，助手附件不能下载（运行面板与分享页可以）。
 - Begin inputs：本选择未提交参数时先暂存请求并打开参数弹窗，确认后带值发送；来源优先取会话 DSL。
 - A2UI：`a2ui_command` 写入 xCard，动作经 `handleXCardAction` 以 `a2ui` / `metadata` 发起新一轮。
@@ -156,9 +156,9 @@ The backend emits the committed pause terminals in their original Canvas order.
   2. `share/share-message-list.tsx`：`density="flush"`，传下载；`/agent/share` 与 `/chats/widget` 使用。
   3. `features/log-detail/components/transcript.tsx`：`canvasId=""`、`status=IDLE`、`density="compact"`、空的 `onSubmitAwaitingInputs`；只在编辑器运行台 live 模式的终态渲染。
   4. `runtime-chat-panel.tsx`：编辑器 `/agent/:id` 与 `/agent/:id/embed` 的运行面板，传下载。
-- `RuntimeChatComposer`：`status`、`onSend`、`onStop` 必填；`canvasId`、`isTaskMode`、`density`、`placeholder`、`className`、`contentClassName` 可选。消费方是 Explore `session-chat.tsx` 与 `runtime-chat-panel.tsx`（placeholder 为硬编码中文）；分享页用自己的 `ShareComposer`。
+- `RuntimeChatComposer`：`status`、`onSend`、`onStop` 必填；`canvasId`、`disabled`、`isTaskMode`、`density`、`placeholder`、`className`、`contentClassName`、`draft` / `onDraftChange` 可选。`onSend` 收到草稿本身，返回 `false` 表示未接纳。传 `draft` 为受控模式，由所有者在接纳后清除；不传时 Composer 自存草稿，`onSend` 未返回 `false` 即清掉提交的那份。消费方是 Explore `session-chat.tsx`（受控）与 `runtime-chat-panel.tsx`（非受控，placeholder 为硬编码中文）；分享页用自己的 `ShareComposer`。
 - 改共享 props 或容器合同时以上消费方都要回归；目前没有真实渲染 MessageList 的测试，Explore 页面测试真实渲染 Composer。
 
 ### W5 开工前的差距
 
-相对 Home 的 W1–W4：运行中输入禁用、草稿不按接纳清空、滚动不分跟随与阅读；无终态 EOF 判成功；消息内错误无状态语义；历史引用为空且正文显示 `[ID:n]`；keyed 显示号未定。其中依赖后端的项（session 路径下发 `user_inputs` / `workflow_finished`、历史引用嵌入、帧 id 与落库 id 对齐）不由前端猜测补齐。
+相对 Home 的 W1–W4：运行中输入与按接纳清空草稿已由 W5b 对齐；仍差滚动不分跟随与阅读；无终态 EOF 判成功；消息内错误无状态语义；历史引用为空且正文显示 `[ID:n]`；keyed 显示号未定。其中依赖后端的项（session 路径下发 `user_inputs` / `workflow_finished`、历史引用嵌入、帧 id 与落库 id 对齐）不由前端猜测补齐。

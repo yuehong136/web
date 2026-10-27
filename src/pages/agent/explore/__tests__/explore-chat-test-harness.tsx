@@ -33,7 +33,25 @@ export const api = mockAPI
 export const notifications = mockNotifications
 vi.mock('@/api/agent', () => ({ agentAPI: mockAPI }))
 vi.mock('@/lib/toast', () => ({ toast: mockNotifications }))
-vi.mock('../../debug-content', () => ({ default: () => null }))
+// Begin inputs 表单的替身：只保留“带值确认”这一个动作，弹窗关闭时不渲染
+vi.mock('../../debug-content', () => ({
+  default: ({
+    parameters,
+    ok,
+  }: {
+    parameters: Array<Record<string, unknown>>
+    ok: (values: Array<Record<string, unknown>>) => void
+  }) => (
+    <button
+      type="button"
+      onClick={() =>
+        ok(parameters.map((input) => ({ ...input, value: 'begin value' })))
+      }
+    >
+      Confirm Begin inputs
+    </button>
+  ),
+}))
 vi.mock('../../components/runtime-chat/runtime-chat-message-list', () => ({
   RuntimeChatMessageList: ({
     messages,
@@ -208,6 +226,7 @@ export type ChatHarness = Awaited<ReturnType<typeof mountChat>>
 export async function mountPage(
   cached = ['A', 'B'],
   entry = '/agent/canvas/explore?sessionId=A',
+  dsl: unknown = { graph: { nodes: [], edges: [] } },
 ) {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -218,7 +237,7 @@ export async function mountPage(
   queryClient.setQueryData(agentQueryKeys.detail('canvas'), {
     id: 'canvas',
     title: 'Test agent',
-    dsl: { graph: { nodes: [], edges: [] } },
+    dsl,
   })
   for (const id of cached)
     queryClient.setQueryData(agentQueryKeys.session('canvas', id), session(id))

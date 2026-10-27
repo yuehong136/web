@@ -36,14 +36,33 @@ export function useChatDrafts<T>(identity: string, draftKey: string, empty: T) {
     [identity],
   )
 
+  /**
+   * Replaces the current conversation's draft. Pass an updater when the new
+   * value is built later than the edit began (e.g. an attachment finishing its
+   * upload), so edits made in between are not lost. T itself must not be a
+   * function.
+   */
   const setDraft = useCallback(
-    (value: T) => update((current) => ({ ...current, [draftKey]: value })),
-    [draftKey, update],
+    (value: T | ((draft: T) => T)) =>
+      update((current) => {
+        const previous = Object.hasOwn(current, draftKey)
+          ? current[draftKey]
+          : empty
+        const next =
+          typeof value === 'function'
+            ? (value as (draft: T) => T)(previous)
+            : value
+        return { ...current, [draftKey]: next }
+      }),
+    [draftKey, empty, update],
   )
 
-  /** Clears a draft only while it still holds the value that was submitted. */
+  /**
+   * Clears a draft only while it still holds the very value that was
+   * submitted (compared by identity, so callers may pass it as a wider type).
+   */
   const clearDraft = useCallback(
-    (key: string, submitted: T) =>
+    (key: string, submitted: unknown) =>
       update((current) =>
         Object.hasOwn(current, key) && Object.is(current[key], submitted)
           ? withoutKey(current, key)

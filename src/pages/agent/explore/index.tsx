@@ -6,6 +6,7 @@ import { ExploreWorkspace } from './components/explore-workspace'
 import { SessionRail } from './components/session-rail'
 import { SessionChat } from './components/session-chat'
 import { SessionDebugPanel } from './components/session-debug-panel'
+import { useExploreDrafts } from './hooks/use-explore-drafts'
 import { useExploreSessions } from './hooks/use-explore-sessions'
 import { useExploreSessionChat } from './hooks/use-explore-session-chat'
 import { useExploreUrlParams } from './hooks/use-explore-url-params'
@@ -47,6 +48,7 @@ export default function AgentExplorePage() {
     onSelectSession: handleSelectSession,
   })
 
+  const drafts = useExploreDrafts(canvasId, sessionId, isNew)
   const chat = useExploreSessionChat({
     canvasId,
     sessionId,
@@ -54,10 +56,13 @@ export default function AgentExplorePage() {
     selectionRevision,
     newSessionMode,
     onSessionReady: (nextSessionId) => {
+      // 生成期间写下的下一条随新会话的 id 一起迁移
+      drafts.moveNewDraft(nextSessionId)
       sessions.clearTemporarySession()
       setSessionId(nextSessionId, false, true)
       void sessions.refetch()
     },
+    onSendAccepted: drafts.clearAccepted,
   })
 
   const agentName = resolveLocalizedText(
@@ -158,6 +163,8 @@ export default function AgentExplorePage() {
         onParametersOk={chat.handleParametersOk}
         onSubmitAwaitingInputs={chat.handleSubmitAwaitingInputs}
         onXCardAction={chat.handleXCardAction}
+        draft={drafts.draft}
+        onDraftChange={drafts.setDraft}
         onSend={chat.handleSendMessage}
         onStop={chat.handleStop}
       />

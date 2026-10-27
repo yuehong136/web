@@ -11,7 +11,13 @@ import {
   AgentRuntimeStatus,
   type RuntimeAttachment,
 } from '../../features/runtime-workbench/types'
-import type { RuntimeChatSendRequest } from './types'
+import {
+  EMPTY_RUNTIME_CHAT_DRAFT,
+  type RuntimeChatDraft,
+  type RuntimeChatSendResult,
+} from './types'
+
+type DraftUpdate = (draft: RuntimeChatDraft) => RuntimeChatDraft
 
 interface RuntimeChatComposerProps {
   canvasId?: string
@@ -22,7 +28,15 @@ interface RuntimeChatComposerProps {
   placeholder?: string
   className?: string
   contentClassName?: string
-  onSend: (request: RuntimeChatSendRequest) => Promise<void>
+  /**
+   * Controlled draft. Its owner keeps it per conversation and clears the
+   * submitted draft once the send is accepted. Without it the composer keeps
+   * its own draft and clears it when `onSend` does not return `false`.
+   */
+  draft?: RuntimeChatDraft
+  onDraftChange?: (update: DraftUpdate) => void
+  /** Receives the draft itself; returns `false` when the send was not accepted. */
+  onSend: (draft: RuntimeChatDraft) => RuntimeChatSendResult
   onStop: () => Promise<void>
 }
 
@@ -35,12 +49,16 @@ export function RuntimeChatComposer({
   placeholder,
   className,
   contentClassName,
+  draft: controlledDraft,
+  onDraftChange,
   onSend,
   onStop,
 }: RuntimeChatComposerProps) {
   const { t } = useTranslation()
-  const [value, setValue] = useState('')
-  const [files, setFiles] = useState<RuntimeAttachment[]>([])
+  const [localDraft, setLocalDraft] = useState(EMPTY_RUNTIME_CHAT_DRAFT)
+  const controlled = controlledDraft !== undefined
+  const draft = controlledDraft ?? localDraft
+  const { content: value, files } = draft
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const loading = status === AgentRuntimeStatus.RUNNING
   const sendDisabled =
@@ -58,39 +76,59 @@ export function RuntimeChatComposer({
     )}px`
   }, [density, value])
 
-  const handleSend = useCallback(async () => {
+  // 附件在上传完成后才回写，必须基于当时的草稿更新，不能覆盖上传期间输入的文字
+  const updateDraft = useCallback(
+    (update: DraftUpdate) => {
+      if (controlled) onDraftChange?.(update)
+      else setLocalDraft(update)
+    },
+    [controlled, onDraftChange],
+  )
+
+  // 运行中可以照常写下一条，但只在空闲时发送；被拒绝时草稿原样保留，
+  // 被接纳时只清掉提交的那一份
+  const handleSend = useCallback(() => {
     if (loading || sendDisabled) {
       return
     }
 
-    const requestFiles = [...files]
-    await onSend({
-      content: value,
-      files: requestFiles,
-    })
-    setValue('')
-    setFiles([])
-  }, [files, loading, onSend, sendDisabled, value])
+    const submitted = draft
+    if (onSend(submitted) === false || controlled) {
+      return
+    }
+    setLocalDraft((current) =>
+      current === submitted ? EMPTY_RUNTIME_CHAT_DRAFT : current,
+    )
+  }, [controlled, draft, loading, onSend, sendDisabled])
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent<HTMLTextAreaElement>) => {
-      if (event.nativeEvent.isComposing) {
+      // 输入法组字时的 Enter 只确认组字；浏览器上报方式不一，三种都拦住
+      if (
+        event.nativeEvent.isComposing ||
+        event.keyCode === 229 ||
+        event.key === 'Process'
+      ) {
         return
       }
 
       if (event.key === 'Enter' && !event.shiftKey) {
         event.preventDefault()
-        void handleSend()
+        handleSend()
       }
     },
     [handleSend],
   )
 
-  const handleRemoveFile = useCallback((index: number) => {
-    setFiles((previous) =>
-      previous.filter((_, itemIndex) => itemIndex !== index),
-    )
-  }, [])
+  const handleRemoveFile = useCallback(
+    (index: number) => {
+      updateDraft((current) => ({
+        ...current,
+        files: current.files.filter((_, itemIndex) => itemIndex !== index),
+      }))
+    },
+    [updateDraft],
+  )
 
   return (
     <div
@@ -131,7 +169,7 @@ export function RuntimeChatComposer({
                     size="icon-sm"
                     className="size-5 text-text-tertiary hover:text-text-primary"
                     onClick={() => handleRemoveFile(index)}
-                    disabled={loading || disabled}
+                    disabled={disabled}
                     aria-label={t('agent.explore.removeAttachment', {
                       name: file.name,
                     })}
@@ -143,12 +181,16 @@ export function RuntimeChatComposer({
             </div>
           ) : null}
 
+          {/* 生成中也可编写下一条草稿；等待补填输入时由 disabled 锁定 */}
           <Textarea
             ref={textareaRef}
             variant="chat"
             aria-label={placeholder || t('agent.explore.messagePlaceholder')}
             value={value}
-            onChange={(event) => setValue(event.target.value)}
+            onChange={(event) => {
+              const content = event.target.value
+              updateDraft((current) => ({ ...current, content }))
+            }}
             onKeyDown={handleKeyDown}
             placeholder={
               placeholder ||
@@ -165,7 +207,7 @@ export function RuntimeChatComposer({
                 : 'min-h-[60px] text-base',
             )}
             rows={1}
-            disabled={loading || disabled}
+            disabled={disabled}
           />
 
           <div className="mt-space-sm flex items-center justify-between">
@@ -173,9 +215,10 @@ export function RuntimeChatComposer({
               <FileUploadDirectUpload
                 canvasId={canvasId}
                 value={files}
-                onChange={(nextValue) =>
-                  setFiles(nextValue as RuntimeAttachment[])
-                }
+                onChange={(nextValue) => {
+                  const nextFiles = nextValue as RuntimeAttachment[]
+                  updateDraft((current) => ({ ...current, files: nextFiles }))
+                }}
                 multiple
                 compact
                 iconOnly
@@ -184,7 +227,7 @@ export function RuntimeChatComposer({
                 buttonVariant="ghost"
                 buttonSize="icon"
                 buttonClassName="size-10 rounded-radius-full text-text-tertiary hover:bg-components-button-ghost-bg-hover hover:text-text-primary"
-                disabled={loading || disabled}
+                disabled={disabled}
                 triggerIcon={<Paperclip className="size-4" />}
               />
             </div>
@@ -214,9 +257,7 @@ export function RuntimeChatComposer({
                     : 'bg-text-primary text-text-inverted hover:bg-text-secondary',
                 )}
                 disabled={sendDisabled}
-                onClick={() => {
-                  void handleSend()
-                }}
+                onClick={handleSend}
                 aria-label={t('agent.share.send')}
               >
                 <ArrowUp className="size-4" />

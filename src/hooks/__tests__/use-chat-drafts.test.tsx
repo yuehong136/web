@@ -67,3 +67,30 @@ it('carries an object draft over to the created conversation', async () => {
 
   expect(drafts.draft).toBe(next)
 })
+
+it('applies a late updater to the draft as it is now, keeping text typed meanwhile', async () => {
+  // 附件上传开始时拿到的是旧草稿；上传期间继续输入，完成回写不能覆盖这些文字
+  const finishUpload = (draft: Draft) => ({
+    ...draft,
+    files: [...draft.files, 'report.pdf'],
+  })
+  await act(async () => drafts.setDraft({ content: 'draft', files: [] }))
+  await act(async () =>
+    drafts.setDraft((draft) => ({ ...draft, content: 'draft, typed later' })),
+  )
+  await act(async () => drafts.setDraft(finishUpload))
+
+  expect(drafts.draft).toEqual({
+    content: 'draft, typed later',
+    files: ['report.pdf'],
+  })
+})
+
+it('starts an updater from the empty draft in a conversation without one', async () => {
+  await render('fresh')
+  await act(async () =>
+    drafts.setDraft((draft) => ({ ...draft, content: 'first words' })),
+  )
+
+  expect(drafts.draft).toEqual({ content: 'first words', files: [] })
+})

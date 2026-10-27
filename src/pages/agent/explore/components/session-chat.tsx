@@ -27,6 +27,7 @@ import {
   RuntimeChatComposer,
   RuntimeChatMessageList,
 } from '../../components/runtime-chat'
+import type { RuntimeChatDraft } from '../../components/runtime-chat/types'
 
 interface SessionChatProps {
   canvasId: string
@@ -51,6 +52,9 @@ interface SessionChatProps {
     values: BeginQuery[],
   ) => void | Promise<void>
   onXCardAction?: (payload: AgentXCardActionPayload) => void | Promise<void>
+  /** The composer draft, owned by the page so it survives remounts. */
+  draft: RuntimeChatDraft
+  onDraftChange: (update: (draft: RuntimeChatDraft) => RuntimeChatDraft) => void
   onSend: (request: ExploreSendRequest) => Promise<void>
   onStop: () => Promise<void>
 }
@@ -75,6 +79,8 @@ export function SessionChat({
   onParametersOk,
   onSubmitAwaitingInputs,
   onXCardAction,
+  draft,
+  onDraftChange,
   onSend,
   onStop,
 }: SessionChatProps) {
@@ -177,6 +183,8 @@ export function SessionChat({
                 ? 'agent.explore.taskPlaceholder'
                 : 'agent.explore.messagePlaceholder',
             )}
+            draft={draft}
+            onDraftChange={onDraftChange}
             onSend={onSend}
             onStop={onStop}
           />
