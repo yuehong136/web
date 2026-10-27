@@ -215,6 +215,10 @@ beforeEach(async () => {
     if (path === '/agents') return { total: 0, canvas: [] } as never
     throw new Error(`Unexpected GET ${path}`)
   })
+  vi.spyOn(apiClient, 'post').mockImplementation(async (path) => {
+    expect(path).toBe('/v1/datasets/kb-1/embedding/check')
+    return { summary: { avg_cos_sim: 1 } } as never
+  })
   vi.spyOn(apiClient, 'put').mockImplementation(async (path, body) => {
     expect(path).toBe('/v1/datasets/kb-1')
     const update = body as Record<string, unknown>
@@ -699,4 +703,237 @@ it('keeps edits made before the models arrive and canonicalizes an untouched emb
     chunk_method: 'qa',
     embedding_model: 'text-embedding-v3@Tongyi',
   })
+})
+
+it.each([true, false])(
+  'checks embedding compatibility before saving a changed model (compatible=%s)',
+  async (compatible) => {
+    mockModels(async () => ({
+      Builtin: {
+        llm: [
+          { name: 'embedding', type: 'embedding', used_token: 0 },
+          { name: 'candidate', type: 'embedding', used_token: 0 },
+        ],
+      },
+    }))
+    const check = vi
+      .spyOn(apiClient, 'post')
+      .mockImplementation(async (path, body) => {
+        expect(path).toBe('/v1/datasets/kb-1/embedding/check')
+        expect(body).toEqual({ embd_id: 'candidate@Builtin' })
+        expect(writes).toHaveLength(0)
+        if (!compatible)
+          throw new APIError(200, '10', 'unsafe provider message')
+        return { summary: { avg_cos_sim: 1 } } as never
+      })
+    await reload()
+    await waitForPage(() =>
+      expect(client.getQueryData(llmKeys.myLLMs())).toMatchObject({
+        Builtin: {
+          llm: expect.arrayContaining([
+            expect.objectContaining({ name: 'candidate' }),
+          ]),
+        },
+      }),
+    )
+    await waitForPage(() =>
+      expect(
+        field('Embedding model').querySelector<HTMLButtonElement>(
+          '[role=combobox]',
+        )!.disabled,
+      ).toBe(false),
+    )
+    await selectOption('Embedding model', 'candidate@Builtin')
+    await save()
+    expect(check).toHaveBeenCalledOnce()
+    expect(writes).toHaveLength(compatible ? 1 : 0)
+    expect(field('Embedding model').textContent).toContain('candidate')
+  },
+)
+
+it.each([true, false])(
+  'checks a same-name model in another provider when the original is unavailable (compatible=%s)',
+  async (compatible) => {
+    stored.embedding_model = 'embedding@ProviderA'
+    mockModels(async () => ({
+      ProviderB: {
+        llm: [{ name: 'embedding', type: 'embedding', used_token: 0 }],
+      },
+    }))
+    const check = vi
+      .mocked(apiClient.post)
+      .mockImplementation(async (path, body) => {
+        expect(path).toBe('/v1/datasets/kb-1/embedding/check')
+        expect(body).toEqual({ embd_id: 'embedding@ProviderB' })
+        expect(writes).toHaveLength(0)
+        if (!compatible)
+          throw new APIError(200, '10', 'unsafe provider message')
+        return { summary: { avg_cos_sim: 1 } } as never
+      })
+    await reload()
+    await waitForPage(() =>
+      expect(client.getQueryData(llmKeys.myLLMs())).toHaveProperty('ProviderB'),
+    )
+    await waitForPage(() =>
+      expect(
+        field('Embedding model').querySelector<HTMLButtonElement>(
+          '[role=combobox]',
+        )!.disabled,
+      ).toBe(false),
+    )
+    await selectOption('Embedding model', 'embedding@ProviderB')
+    await save()
+    expect(check).toHaveBeenCalledOnce()
+    expect(writes).toHaveLength(compatible ? 1 : 0)
+  },
+)
+
+it('saves table column roles and restores them after reload', async () => {
+  stored.chunk_method = 'table'
+  stored.parser_config = {
+    table_column_mode: 'manual',
+    table_column_names: ['title.with.dot', 'country', 'score'],
+    table_column_roles: { 'title.with.dot': 'vectorize', country: 'metadata' },
+  }
+  await reload()
+  expect(
+    document.querySelector('[role=combobox][aria-label="title.with.dot"]')
+      ?.textContent,
+  ).toBe('Indexing')
+  await act(async () =>
+    (
+      document.querySelector(
+        '[role=combobox][aria-label="country"]',
+      ) as HTMLButtonElement
+    ).click(),
+  )
+  await act(async () =>
+    (
+      document.querySelector(
+        '[role=option][data-value="both"]',
+      ) as HTMLButtonElement
+    ).click(),
+  )
+  await save()
+  await waitForPage(() => expect(writes).toHaveLength(1))
+  expect(writes[0].parser_config).toMatchObject({
+    table_column_mode: 'manual',
+    table_column_roles: { 'title.with.dot': 'indexing', country: 'both' },
+  })
+  await reload()
+  expect(
+    document.querySelector('[role=combobox][aria-label="country"]')
+      ?.textContent,
+  ).toBe('Both')
+  await selectOption('Column mode', 'auto')
+  expect(document.querySelector('[aria-label="Column roles"]')).toBeNull()
+  await save()
+  await waitForPage(() => expect(writes).toHaveLength(2))
+  expect(writes[1].parser_config).toMatchObject({
+    table_column_mode: 'auto',
+    table_column_roles: { country: 'both' },
+  })
+})
+
+it('resets a virtual table column window when returning to manual mode', async () => {
+  stored.chunk_method = 'table'
+  stored.parser_config = {
+    table_column_mode: 'manual',
+    table_column_names: Array.from(
+      { length: 300 },
+      (_, index) => `column_${index}`,
+    ),
+    table_column_roles: {},
+  }
+  await reload()
+  expect(document.querySelector('[aria-label="column_0"]')).not.toBeNull()
+  const list = document.querySelector('fieldset[aria-label="Column roles"]')!
+  expect(list.querySelectorAll('[role=combobox]').length).toBeLessThanOrEqual(
+    13,
+  )
+  await act(async () => {
+    list.scrollTop = 12000
+    list.dispatchEvent(new Event('scroll'))
+  })
+  expect(document.querySelector('[aria-label="column_0"]')).toBeNull()
+  await selectOption('Column mode', 'auto')
+  await selectOption('Column mode', 'manual')
+  expect(document.querySelector('[aria-label="column_0"]')).not.toBeNull()
+})
+
+it('saves and reloads the spaCy NER GraphRAG method', async () => {
+  stored.parser_config = {
+    ...stored.parser_config,
+    graphrag: { use_graphrag: true, method: 'light' },
+  }
+  await reload()
+  await waitForPage(() => expect(field('Method')).toBeDefined())
+  await selectOption('Method', 'ner')
+  await save()
+  await waitForPage(() =>
+    expect(writes.at(-1)).toMatchObject({
+      parser_config: { graphrag: { use_graphrag: true, method: 'ner' } },
+    }),
+  )
+  await act(async () => root.unmount())
+  root = createRoot(container)
+  client.clear()
+  await render()
+  expect(field('Method').textContent).toContain('NER')
+})
+
+it('saves and reloads GraphRAG batch tokens and preserves the value in NER mode', async () => {
+  stored.parser_config = {
+    ...stored.parser_config,
+    graphrag: {
+      use_graphrag: true,
+      method: 'light',
+      batch_chunk_token_size: 4096,
+    },
+  }
+  await reload()
+  await waitForPage(() =>
+    expect(field('Extraction batch tokens')).toBeDefined(),
+  )
+  await input('Extraction batch tokens', '2048')
+  await save()
+  await waitForPage(() =>
+    expect(writes.at(-1)).toMatchObject({
+      parser_config: { graphrag: { batch_chunk_token_size: 2048 } },
+    }),
+  )
+  await act(async () => root.unmount())
+  root = createRoot(container)
+  client.clear()
+  await render()
+  expect(
+    field('Extraction batch tokens').querySelector<HTMLInputElement>(
+      'input[type=number]',
+    )?.value,
+  ).toBe('2048')
+  await selectOption('Method', 'ner')
+  expect(
+    field('Extraction batch tokens').querySelector<HTMLInputElement>(
+      'input[type=number]',
+    )?.disabled,
+  ).toBe(true)
+  await save()
+  await waitForPage(() =>
+    expect(writes.at(-1)).toMatchObject({
+      parser_config: {
+        graphrag: { method: 'ner', batch_chunk_token_size: 2048 },
+      },
+    }),
+  )
+  await selectOption('Method', 'general')
+  expect(
+    field('Extraction batch tokens').querySelector<HTMLInputElement>(
+      'input[type=number]',
+    )?.value,
+  ).toBe('2048')
+  expect(
+    field('Extraction batch tokens').querySelector<HTMLInputElement>(
+      'input[type=number]',
+    )?.disabled,
+  ).toBe(false)
 })

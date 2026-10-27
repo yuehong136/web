@@ -9,6 +9,12 @@ import { PreviewAnswer } from '../components/preview-answer'
 import { useCreateAppPreview } from '../hooks/use-create-app-preview'
 import { createInitialConfig } from '../constants'
 
+// Tool steps share CodeBlock; keep citations real without importing its browser CSS.
+vi.mock('react-shiki/core', () => ({
+  useShikiHighlighter: () => undefined,
+  createJavaScriptRegexEngine: () => ({}),
+}))
+
 // The code-block renderers pull syntax-highlighter styles Vitest cannot resolve;
 // citations only need the merge of custom components.
 vi.mock('@/components/chat/MarkdownCodeBlock', () => ({
@@ -72,6 +78,13 @@ describe('Studio preview citations', () => {
       ),
     )
     expect(container.textContent).toContain('思考中...')
+    const trigger = container.querySelector<HTMLButtonElement>(
+      '[data-process-kind="thinking"] button',
+    )!
+    expect(trigger.getAttribute('aria-expanded')).toBe('false')
+    expect(container.textContent).not.toContain('先核对数据来源')
+    await act(async () => trigger.click())
+    expect(trigger.getAttribute('aria-expanded')).toBe('true')
     expect(container.textContent).toContain('先核对数据来源')
     expect(container.querySelector('output[aria-label="加载中..."]')).toBeNull()
     await act(async () =>
@@ -84,7 +97,10 @@ describe('Studio preview citations', () => {
         />,
       ),
     )
-    expect(container.textContent).toContain('思考过程')
+    expect(container.textContent).toContain('思考详情')
+    expect(container.querySelector('[data-run-phase="completed"]')).toBeNull()
+    expect(trigger.getAttribute('aria-expanded')).toBe('true')
+    expect(container.textContent).toContain('先核对数据来源')
     expect(container.querySelector('.markdown-content')?.textContent).toContain(
       '完成分析',
     )
@@ -100,7 +116,8 @@ describe('Studio preview citations', () => {
         />,
       ),
     )
-    expect(container.textContent).toContain('思考过程')
+    expect(container.textContent).toContain('思考详情')
+    expect(container.querySelector('[data-run-phase="completed"]')).toBeNull()
     expect(
       container.querySelector('.markdown-content')?.textContent?.trim(),
     ).toBe('结果一致')

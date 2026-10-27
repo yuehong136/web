@@ -15,14 +15,14 @@ import {
   type EdgeData,
   type ComboData,
 } from '@antv/g6'
-import { useIsDarkTheme } from '@/themes'
+import { useResolvedAppearance } from '@/themes'
 import type { KnowledgeGraph } from '@/types/api'
 import {
   COMBO_LAYOUT_CONFIG,
   FORCE_LAYOUT_CONFIG,
   DEFAULT_COMBO_LABEL,
 } from '../constants'
-import { getCategoricalPalette, type ThemeMode } from '@/lib/design-tokens'
+import { getCategoricalPalette } from '@/lib/design-tokens'
 import { LayoutMode } from '../types'
 import { detectLayoutMode } from '../utils'
 import { buildGraphRenderData } from '../graph-data'
@@ -57,8 +57,11 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
     const selectedNodeIdRef = useRef(selectedNodeId)
     const prevSelectedNodeIdRef = useRef<string | undefined>(undefined)
     const [tooltip, setTooltip] = useState<GraphTooltipData | null>(null)
-    const isDark = useIsDarkTheme()
-    const theme: ThemeMode = isDark ? 'dark' : 'light'
+    const {
+      resolvedMode: theme,
+      preset,
+      reducedMotion,
+    } = useResolvedAppearance()
     selectedNodeIdRef.current = selectedNodeId
 
     const nodeTypes = useMemo(
@@ -67,8 +70,8 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
     )
     // theme 作为依赖触发重算：data-viz-categorical-* 的值按主题切换。
     const colorMap = useMemo(
-      () => buildTypeColorMap(nodeTypes, theme),
-      [nodeTypes, theme],
+      () => buildTypeColorMap(nodeTypes, theme, preset),
+      [nodeTypes, theme, preset],
     )
 
     const layoutMode = useMemo(() => detectLayoutMode(data), [data])
@@ -129,22 +132,26 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
       ref,
       () => ({
         zoomIn: () =>
-          runGraphAction((graph) => graph.zoomBy(1.3, { duration: 300 })),
+          runGraphAction((graph) =>
+            graph.zoomBy(1.3, { duration: reducedMotion ? 0 : 300 }),
+          ),
         zoomOut: () =>
-          runGraphAction((graph) => graph.zoomBy(0.7, { duration: 300 })),
+          runGraphAction((graph) =>
+            graph.zoomBy(0.7, { duration: reducedMotion ? 0 : 300 }),
+          ),
         fitView: () =>
           runGraphAction((graph) =>
-            graph.fitView(undefined, { duration: 400 }),
+            graph.fitView(undefined, { duration: reducedMotion ? 0 : 400 }),
           ),
       }),
-      [runGraphAction],
+      [runGraphAction, reducedMotion],
     )
 
     const render = useCallback(() => {
       const container = containerRef.current
       if (!container) return
 
-      const palette = getCategoricalPalette(theme)
+      const palette = getCategoricalPalette(theme, undefined, preset)
       const graphTheme = getGraphTheme(theme)
 
       const graph = new Graph({
@@ -274,7 +281,7 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
       graph.once(GraphEvent.AFTER_LAYOUT, () => {
         if (graph.destroyed || graphRef.current !== graph) return
         void graph
-          .fitView(undefined, { duration: 500 })
+          .fitView(undefined, { duration: reducedMotion ? 0 : 500 })
           .catch((error) => handleGraphError(graph, error))
       })
 
@@ -333,6 +340,8 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
       graphData,
       colorMap,
       theme,
+      preset,
+      reducedMotion,
       onNodeClick,
       onEdgeClick,
       onCanvasClick,

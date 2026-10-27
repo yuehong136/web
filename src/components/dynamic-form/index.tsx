@@ -54,10 +54,13 @@ export const useFormInstance = () => {
  * 检查字段是否应该显示
  */
 const shouldShowField = (
-  showWhen: FormFieldShowWhen | undefined,
+  showWhen: FormFieldShowWhen | FormFieldShowWhen[] | undefined,
   formValues: Record<string, any>,
 ): boolean => {
   if (!showWhen) return true
+  if (Array.isArray(showWhen)) {
+    return showWhen.every((condition) => shouldShowField(condition, formValues))
+  }
 
   const fieldValue = getNestedValue(formValues, showWhen.field)
   if (Array.isArray(showWhen.value)) {
@@ -80,6 +83,7 @@ const PasswordInput = React.forwardRef<
   HTMLInputElement,
   React.ComponentPropsWithoutRef<typeof Input>
 >((props, ref) => {
+  const { t } = useTranslation()
   const [showPassword, setShowPassword] = React.useState(false)
 
   return (
@@ -91,6 +95,11 @@ const PasswordInput = React.forwardRef<
         rightIcon={
           <button
             type="button"
+            aria-label={t(
+              showPassword
+                ? 'auth.login.hidePassword'
+                : 'auth.login.showPassword',
+            )}
             onClick={() => setShowPassword(!showPassword)}
             className="focus:outline-hidden"
           >
@@ -123,15 +132,18 @@ const renderField = (
   const id = `${idPrefix}-${field.name}`
   const labelId = `${id}-label`
   const rules = {
-    validate: (value: unknown) =>
-      !field.required ||
-      field.disabled ||
-      (typeof value === 'string'
-        ? value.trim().length > 0
-        : Array.isArray(value)
-          ? value.length > 0
-          : value != null) ||
-      requiredMessage,
+    validate: (value: unknown) => {
+      if (field.disabled || !shouldShowField(field.showWhen, formValues))
+        return true
+      const present =
+        typeof value === 'string'
+          ? value.trim().length > 0
+          : Array.isArray(value)
+            ? value.length > 0
+            : value != null
+      if (field.required && !present) return requiredMessage
+      return field.validate?.(value) ?? true
+    },
   }
 
   // 如果有自定义渲染函数
@@ -232,6 +244,7 @@ const renderField = (
               id={id}
               aria-invalid={!!fieldState.error}
               type="number"
+              step={field.step}
               placeholder={field.placeholder}
               disabled={field.disabled}
               error={fieldState.error?.message}
@@ -298,7 +311,7 @@ const renderField = (
             <div
               role="group"
               aria-labelledby={labelId}
-              className="bg-surface-secondary flex gap-1 rounded-lg p-1"
+              className="flex gap-1 rounded-lg bg-surface-secondary p-1"
             >
               {field.options?.map((option) => (
                 <button

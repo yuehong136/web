@@ -39,6 +39,7 @@ export enum DataSourceKey {
   MOODLE = 'moodle',
   IMAP = 'imap',
   RSS = 'rss',
+  REST_API = 'rest_api',
 }
 
 /**
@@ -81,6 +82,7 @@ export interface IDataSource extends IDataSourceBase {
   input_type: string
   prune_freq: number
   refresh_freq: number
+  timeout_secs?: number
   status: DataSourceStatus
   tenant_id: string
   update_date: string
@@ -160,7 +162,7 @@ export const enum FormFieldType {
  */
 export interface FormFieldShowWhen {
   field: string
-  value: string | string[]
+  value: string | string[] | boolean
 }
 
 /**
@@ -177,7 +179,9 @@ export interface FormFieldConfig {
   tooltip?: string
   defaultValue?: any
   options?: Array<{ label: string; value: string }>
-  showWhen?: FormFieldShowWhen
+  showWhen?: FormFieldShowWhen | FormFieldShowWhen[]
+  validate?: (value: unknown) => true | string
+  step?: number
   render?: (fieldProps: any) => ReactNode
 }
 

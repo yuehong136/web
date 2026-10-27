@@ -1,14 +1,28 @@
 import { theme as antdTheme, type ThemeConfig } from 'antd'
 import { getTokenValue } from '@/lib/design-tokens'
+import {
+  getAppearance,
+  type Appearance,
+  type AppearancePreset,
+} from '@/themes/appearance'
 
-export function buildAntdTheme(isDark: boolean): ThemeConfig {
+export function buildAntdTheme(
+  isDark: boolean,
+  preset: AppearancePreset = getAppearance().preset,
+  appearance: Readonly<Appearance> & {
+    readonly reducedMotion?: boolean
+  } = getAppearance(),
+): ThemeConfig {
   const mode = isDark ? 'dark' : 'light'
   const token = (name: Parameters<typeof getTokenValue>[0]) =>
-    getTokenValue(name, mode)
+    getTokenValue(name, mode, preset)
   const input = {
     colorBgContainer: token('components-input-bg'),
     colorText: token('components-input-text'),
+    colorTextDisabled: token('components-input-text-disabled'),
+    colorBgContainerDisabled: token('components-input-bg-disabled'),
     colorTextPlaceholder: token('components-input-text-placeholder'),
+    colorError: token('components-input-border-error'),
     colorBorder: token('components-input-border'),
     activeBorderColor: token('components-input-border-focus'),
     hoverBorderColor: token('components-input-border-hover'),
@@ -17,19 +31,42 @@ export function buildAntdTheme(isDark: boolean): ThemeConfig {
   return {
     algorithm: isDark ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm,
     token: {
+      fontFamily: 'var(--font-interface)',
+      fontFamilyCode: 'var(--font-code)',
       colorPrimary: token('components-button-primary-bg'),
       colorPrimaryHover: token('components-button-primary-bg-hover'),
       colorPrimaryActive: token('components-button-primary-bg-active'),
       controlOutline: token('state-focus-10'),
       colorText: token('text-primary'),
       colorTextSecondary: token('text-secondary'),
+      colorTextDisabled: token('text-disabled'),
+      colorError: token('status-error'),
+      colorWarning: token('status-warning'),
+      colorSuccess: token('status-success'),
+      colorInfo: token('status-info'),
       colorLink: token('text-accent'),
       colorLinkHover: token('text-primary'),
       colorLinkActive: token('text-primary'),
       colorBgContainer: token('background-surface'),
+      colorBgContainerDisabled: token('components-input-bg-disabled'),
       colorBgElevated: token('components-dropdown-bg'),
       colorBorder: token('border-default'),
-      borderRadius: 8,
+      borderRadius:
+        preset === 'graphite'
+          ? 6
+          : preset === 'ocean'
+            ? 12
+            : preset === 'paper'
+              ? 8
+              : 10,
+      fontSize: 14 * appearance.textScale,
+      controlHeight:
+        (appearance.density === 'compact' ? 32 : 40) * appearance.textScale,
+      controlHeightSM:
+        (appearance.density === 'compact' ? 28 : 32) * appearance.textScale,
+      controlHeightLG:
+        (appearance.density === 'compact' ? 40 : 48) * appearance.textScale,
+      motion: appearance.motion !== 'reduced' && !appearance.reducedMotion,
     },
     components: {
       Checkbox: {

@@ -1,6 +1,10 @@
 export default {
   layout: {
     brandName: 'AI Platform',
+    workspace: {
+      skipToTask: 'Skip to main workspace',
+      mainTask: 'Main workspace',
+    },
     sidebar: {
       expand: 'Expand sidebar',
       collapse: 'Collapse sidebar',

@@ -1,213 +1,100 @@
-/**
- * i18n 国际化配置
- *
- * 安装依赖：
- * npm install i18next react-i18next i18next-browser-languagedetector
- */
-
-import i18n from 'i18next'
+import i18next, { use as installPlugin, dir } from 'i18next'
 import { initReactI18next } from 'react-i18next'
 import LanguageDetector from 'i18next-browser-languagedetector'
 import {
-  createI18nResources,
   DEFAULT_PRODUCT_LANGUAGE,
-  loadLocaleResource,
   normalizeLocale,
+  type LocaleNamespace,
   type ProductLocale,
 } from './locale-registry'
+import { createLocaleRuntime } from './locale-runtime'
+import { namespacesForPath } from './route-locales'
 
 export {
   DEFAULT_PRODUCT_LANGUAGE,
   localeCodes,
+  namespaceCodes,
   normalizeLocale,
   supportedLocales,
+  type LocaleNamespace,
   type ProductLocale,
   type SupportedLocale,
 } from './locale-registry'
-
+export { namespacesForPath } from './route-locales'
 export const PRODUCT_LANGUAGE_STORAGE_KEY = 'i18n_language'
 
-let routeLocaleOverride: ProductLocale | undefined
-
 const getStoredProductLanguage = (): ProductLocale | undefined => {
-  if (typeof window === 'undefined') return undefined
-
-  const stored = normalizeLocale(
-    window.localStorage.getItem(PRODUCT_LANGUAGE_STORAGE_KEY),
-  )
-  if (stored) return stored
-
   try {
-    const uiStorage = JSON.parse(
-      window.localStorage.getItem('ui-storage') || '{}',
+    if (typeof window === 'undefined') return undefined
+    const stored = normalizeLocale(
+      window.localStorage.getItem(PRODUCT_LANGUAGE_STORAGE_KEY),
     )
-    return normalizeLocale(uiStorage?.state?.language)
+    if (stored) return stored
+    const legacy = JSON.parse(window.localStorage.getItem('ui-storage') || '{}')
+    return normalizeLocale(legacy?.state?.language)
   } catch {
     return undefined
   }
 }
 
-export const applyDocumentLocale = (lang: ProductLocale) => {
-  if (typeof document === 'undefined') return
-
-  document.documentElement.lang = lang
-  document.documentElement.dir = i18n.dir(lang)
-}
-
-const syncI18nResources = (resources = createI18nResources()) => {
-  Object.entries(resources).forEach(([locale, resource]) => {
-    i18n.addResourceBundle(
-      locale,
-      'translation',
-      resource.translation,
-      true,
-      true,
-    )
-  })
-}
-
-const syncRuntimeLanguage = () => {
-  void i18n.changeLanguage(i18n.resolvedLanguage ?? i18n.language)
-}
-
-i18n
-  .use(LanguageDetector) // 自动检测用户语言
-  .use(initReactI18next) // 传递 i18n 实例给 react-i18next
+void installPlugin(LanguageDetector)
+  .use(initReactI18next)
   .init({
-    resources: createI18nResources(),
-    fallbackLng: DEFAULT_PRODUCT_LANGUAGE, // 默认语言
-    debug: Boolean(import.meta.env?.DEV), // 开发环境开启调试
-
-    interpolation: {
-      escapeValue: false, // React 已经处理 XSS
-    },
-
+    resources: {},
+    lng: getStoredProductLanguage(),
+    fallbackLng: DEFAULT_PRODUCT_LANGUAGE,
+    defaultNS: 'translation',
+    ns: ['translation'],
+    initImmediate: false,
+    interpolation: { escapeValue: false },
+    react: { useSuspense: false },
     detection: {
-      // 语言检测配置
       order: ['localStorage', 'navigator'],
-      caches: ['localStorage'],
+      caches: [],
       lookupLocalStorage: PRODUCT_LANGUAGE_STORAGE_KEY,
       convertDetectedLanguage: (language) =>
         normalizeLocale(language) ?? DEFAULT_PRODUCT_LANGUAGE,
     },
   })
 
-i18n.on('languageChanged', (lang) => {
-  applyDocumentLocale(normalizeLocale(lang) ?? DEFAULT_PRODUCT_LANGUAGE)
+export const applyDocumentLocale = (locale: ProductLocale) => {
+  if (typeof document === 'undefined') return
+  document.documentElement.lang = locale
+  document.documentElement.dir = dir(locale)
+}
+
+export const productLocaleRuntime = createLocaleRuntime({
+  instance: i18next,
+  initialLocale: normalizeLocale(i18next.language) ?? DEFAULT_PRODUCT_LANGUAGE,
+  applyDocument: applyDocumentLocale,
+  persist: (locale) => {
+    if (typeof window !== 'undefined')
+      window.localStorage.setItem(PRODUCT_LANGUAGE_STORAGE_KEY, locale)
+  },
 })
 
-if (import.meta.hot) {
-  const reloadLocaleResources = async () => {
-    const nextRegistry = await import('./locale-registry')
-    syncI18nResources(nextRegistry.createI18nResources())
-    syncRuntimeLanguage()
-  }
-
-  import.meta.hot.accept('./locale-registry', (nextRegistry) => {
-    if (!nextRegistry) return
-
-    syncI18nResources(nextRegistry.createI18nResources())
-    syncRuntimeLanguage()
-  })
-
-  import.meta.hot.accept(
-    [
-      './zh-CN',
-      './en-US',
-      './zh-CN/knowledge',
-      './en-US/knowledge',
-      './zh-CN/common',
-      './en-US/common',
-      './zh-CN/layout',
-      './en-US/layout',
-      './zh-CN/settings',
-      './en-US/settings',
-      './zh-CN/agent',
-      './en-US/agent',
-      './zh-CN/agents',
-      './en-US/agents',
-      './zh-CN/flow',
-      './en-US/flow',
-      './zh-CN/datasource',
-      './en-US/datasource',
-      './zh-CN/search',
-      './en-US/search',
-      './zh-CN/explore',
-      './en-US/explore',
-      './zh-CN/home',
-      './en-US/home',
-      './zh-CN/memory',
-      './en-US/memory',
-      './zh-CN/studio',
-      './en-US/studio',
-      './zh-CN/mcp',
-      './en-US/mcp',
-      './zh-CN/route-errors',
-      './en-US/route-errors',
-    ],
-    reloadLocaleResources,
-  )
-}
-
-export default i18n
-
-/**
- * 确保目标语言资源已加载。当前中英资源仍随主包加载；这个入口为后续
- * 切换到动态 import / i18next backend 时保留调用面。
- */
-export const ensureLocaleLoaded = async (lang: ProductLocale) => {
-  if (!i18n.hasResourceBundle(lang, 'translation')) {
-    const resource = await loadLocaleResource(lang)
-    i18n.addResourceBundle(lang, 'translation', resource, true, true)
-  }
-  return lang
-}
-
-const applyLanguage = async (lang: ProductLocale) => {
-  await ensureLocaleLoaded(lang)
-  await i18n.changeLanguage(lang)
-  applyDocumentLocale(lang)
-  return lang
-}
-
-/**
- * 切换产品语言，并持久化为本机偏好。
- */
-export const setProductLanguage = async (lang: ProductLocale) => {
-  const nextLanguage = normalizeLocale(lang) ?? DEFAULT_PRODUCT_LANGUAGE
-  routeLocaleOverride = undefined
-  if (typeof window !== 'undefined') {
-    window.localStorage.setItem(PRODUCT_LANGUAGE_STORAGE_KEY, nextLanguage)
-  }
-  return applyLanguage(nextLanguage)
-}
-
-/**
- * 临时应用路由级语言，例如 share/widget/embed，不覆盖本机产品语言偏好。
- */
-export const applyRouteLocale = (lang: unknown) => {
-  const nextLanguage = normalizeLocale(lang)
-  if (!nextLanguage) return undefined
-
-  routeLocaleOverride = nextLanguage
-  void applyLanguage(nextLanguage)
-  return nextLanguage
-}
-
-/**
- * 获取当前语言
- */
-export const getCurrentLanguage = (): ProductLocale => {
-  return (
-    routeLocaleOverride ??
-    getStoredProductLanguage() ??
-    normalizeLocale(i18n.resolvedLanguage) ??
-    normalizeLocale(i18n.language) ??
-    DEFAULT_PRODUCT_LANGUAGE
-  )
-}
-
-/**
- * 保持旧调用面，语义等同于产品语言切换。
- */
+export const getProductLanguage = () =>
+  productLocaleRuntime.getSnapshot().productLocale
+export const getCurrentLanguage = () =>
+  productLocaleRuntime.getSnapshot().effectiveLocale
+export const subscribeProductLanguage =
+  productLocaleRuntime.subscribeProductLanguage
+export const setProductLanguage = productLocaleRuntime.setProductLanguage
 export const changeLanguage = setProductLanguage
+export const applyRouteLocale = productLocaleRuntime.applyRouteLocale
+export const clearRouteLocale = productLocaleRuntime.clearRouteLocale
+export const createRouteLocaleScope = productLocaleRuntime.createRouteScope
+export const ensureLocaleLoaded = (
+  locale: ProductLocale,
+  namespaces?: readonly LocaleNamespace[],
+) => productLocaleRuntime.ensureNamespaces(locale, namespaces)
+export const ensureRouteNamespaces = (pathname: string) =>
+  ensureLocaleLoaded(getCurrentLanguage(), namespacesForPath(pathname))
+export const i18nReady = ensureLocaleLoaded(getCurrentLanguage()).then(
+  (locale) => {
+    applyDocumentLocale(getCurrentLanguage())
+    return locale
+  },
+)
+
+export default i18next

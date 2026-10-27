@@ -67,11 +67,10 @@ export const knowledgeRetrievalAPI = {
     labels: Record<string, unknown> | null
   }> => {
     const { kb_ids, ...body } = data
-    const datasetId = kb_ids[0]
-    if (!datasetId || kb_ids.some((id) => !id.trim()))
+    if (!kb_ids.length || kb_ids.some((id) => !id.trim()))
       throw new APIError(400, 'INVALID_DATASET_SELECTION', 'Select a dataset')
     return apiClient.post(
-      `/v1/datasets/${encodeURIComponent(datasetId)}/search`,
+      '/v1/datasets/search',
       { ...body, dataset_ids: kb_ids },
       { ...knowledgeRestConfig, responseContract: 'rest200' },
     )

@@ -1,5 +1,5 @@
-import type { FC } from 'react'
-import { useCallback, useMemo, useState } from 'react'
+import type { ComponentPropsWithoutRef, FC } from 'react'
+import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { CheckIcon, ChevronDownIcon, XCircleIcon, XIcon } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
@@ -20,10 +20,14 @@ import {
 } from '@/components/ui/popover'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
+import { useKnowledgeSelector } from '@/hooks/use-knowledge-selector'
 import type { KnowledgeBase } from '@/types/api'
 import { EntityAvatar } from '@/components/patterns/entity-avatar'
 
-interface KnowledgeBaseSelectorProps {
+interface KnowledgeBaseSelectorProps extends Pick<
+  ComponentPropsWithoutRef<typeof Button>,
+  'id' | 'aria-describedby' | 'aria-invalid'
+> {
   selectedIds: string[]
   onChange: (ids: string[]) => void
   knowledgeBases: KnowledgeBase[]
@@ -133,6 +137,9 @@ const SelectedKnowledgeBaseBadge: FC<{
 
 export const KnowledgeBaseSelector: FC<KnowledgeBaseSelectorProps> = ({
   selectedIds,
+  id,
+  'aria-describedby': ariaDescribedby,
+  'aria-invalid': ariaInvalid,
   onChange,
   knowledgeBases,
   extraKnowledgeBases = EMPTY_KNOWLEDGE_BASES,
@@ -146,82 +153,35 @@ export const KnowledgeBaseSelector: FC<KnowledgeBaseSelectorProps> = ({
 }) => {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
-  const [searchValue, setSearchValue] = useState('')
-  const [searchResults, setSearchResults] = useState<KnowledgeBase[]>([])
-  const [isSearching, setIsSearching] = useState(false)
-
-  const allKnowledgeBases = useMemo(() => {
-    const kbMap = new Map<string, KnowledgeBase>()
-    knowledgeBases.forEach((kb) => kbMap.set(kb.id, kb))
-    extraKnowledgeBases.forEach((kb) => kbMap.set(kb.id, kb))
-    searchResults.forEach((kb) => kbMap.set(kb.id, kb))
-    return Array.from(kbMap.values())
-  }, [extraKnowledgeBases, knowledgeBases, searchResults])
-
-  const selectedKbs = useMemo(() => {
-    return selectedIds.map((id) => {
-      const kb = allKnowledgeBases.find((item) => item.id === id)
-      return (kb || { id, name: id, embd_id: '' }) as KnowledgeBase
-    })
-  }, [allKnowledgeBases, selectedIds])
-
-  const selectedEmbdId = useMemo(() => {
-    if (selectedIds.length === 0) return ''
-    const firstSelected = allKnowledgeBases.find(
-      (kb) => kb.id === selectedIds[0],
-    )
-    return firstSelected?.embd_id || ''
-  }, [allKnowledgeBases, selectedIds])
-
-  const handleSearch = useCallback(
-    async (value: string) => {
-      setSearchValue(value)
-
-      if (onLoadMore && value.trim()) {
-        setIsSearching(true)
-        try {
-          const result = await onLoadMore(value, 1)
-          setSearchResults(result.kbs)
-        } catch (error) {
-          console.error('Search knowledge bases failed:', error)
-        } finally {
-          setIsSearching(false)
-        }
-      } else if (!value.trim()) {
-        setSearchResults([])
-      }
-    },
-    [onLoadMore],
+  const {
+    searchValue,
+    setSearchValue,
+    selectedKbs,
+    displayKbs,
+    isDisabled,
+    isSearching,
+    isError,
+    retry,
+    hasNextPage,
+    loadMore,
+  } = useKnowledgeSelector(
+    selectedIds,
+    knowledgeBases,
+    extraKnowledgeBases,
+    open,
+    onLoadMore,
   )
-
-  const resetInputs0 = [open]
-  const [previousInputs0, setPreviousInputs0] = useState<unknown[] | null>(null)
-  if (
-    previousInputs0 === null ||
-    resetInputs0.some(
-      (value, index) => !Object.is(value, previousInputs0[index]),
-    )
-  ) {
-    setPreviousInputs0(resetInputs0)
-
-    if (open) {
-      setSearchValue('')
-      setSearchResults([])
-    }
-  }
 
   const handleSelect = useCallback(
     (kb: KnowledgeBase) => {
-      const isDisabled = selectedEmbdId !== '' && kb.embd_id !== selectedEmbdId
-      if (isDisabled) return
-
-      if (selectedIds.includes(kb.id)) {
-        onChange(selectedIds.filter((id) => id !== kb.id))
-      } else {
-        onChange([...selectedIds, kb.id])
-      }
+      if (isDisabled(kb)) return
+      onChange(
+        selectedIds.includes(kb.id)
+          ? selectedIds.filter((id) => id !== kb.id)
+          : [...selectedIds, kb.id],
+      )
     },
-    [onChange, selectedEmbdId, selectedIds],
+    [onChange, selectedIds, isDisabled],
   )
 
   const handleRemove = useCallback(
@@ -234,17 +194,6 @@ export const KnowledgeBaseSelector: FC<KnowledgeBaseSelectorProps> = ({
   const handleClear = useCallback(() => {
     onChange([])
   }, [onChange])
-
-  const displayKbs = useMemo(() => {
-    const keyword = searchValue.trim().toLowerCase()
-    if (!keyword) return knowledgeBases
-    if (onLoadMore) return searchResults
-    return knowledgeBases.filter((kb) => {
-      const text =
-        `${kb.name ?? ''} ${kb.description ?? ''} ${kb.embd_id ?? ''}`.toLowerCase()
-      return text.includes(keyword)
-    })
-  }, [knowledgeBases, onLoadMore, searchResults, searchValue])
 
   const placeholderText =
     placeholder ?? t('knowledge.shared.knowledgeBaseSelector.placeholder')
@@ -263,10 +212,19 @@ export const KnowledgeBaseSelector: FC<KnowledgeBaseSelectorProps> = ({
         </div>
       )}
 
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover
+        open={open}
+        onOpenChange={(nextOpen) => {
+          setOpen(nextOpen)
+          if (nextOpen) setSearchValue('')
+        }}
+      >
         <PopoverTrigger asChild>
           <Button
             variant="outline"
+            id={id}
+            aria-describedby={ariaDescribedby}
+            aria-invalid={ariaInvalid}
             aria-haspopup="listbox"
             aria-expanded={open}
             disabled={disabled}
@@ -278,13 +236,21 @@ export const KnowledgeBaseSelector: FC<KnowledgeBaseSelectorProps> = ({
             {selectedIds.length > 0 ? (
               <div className="flex w-full items-center justify-between">
                 <div className="flex min-w-0 flex-1 flex-wrap gap-1">
-                  {selectedKbs.map((kb) => (
-                    <SelectedKnowledgeBaseBadge
-                      key={kb.id}
-                      kb={kb}
-                      onRemove={() => handleRemove(kb.id)}
-                    />
-                  ))}
+                  {selectedKbs.map((selected, index) => {
+                    const kb =
+                      selected ??
+                      ({
+                        id: selectedIds[index],
+                        name: selectedIds[index],
+                      } as KnowledgeBase)
+                    return (
+                      <SelectedKnowledgeBaseBadge
+                        key={kb.id}
+                        kb={kb}
+                        onRemove={() => handleRemove(kb.id)}
+                      />
+                    )
+                  })}
                 </div>
                 <div className="ml-2 flex shrink-0 items-center">
                   <XIcon
@@ -332,11 +298,15 @@ export const KnowledgeBaseSelector: FC<KnowledgeBaseSelectorProps> = ({
                 'knowledge.shared.knowledgeBaseSelector.searchPlaceholder',
               )}
               value={searchValue}
-              onValueChange={handleSearch}
+              onValueChange={setSearchValue}
               className="placeholder:text-text-tertiary"
             />
             <CommandList className="mt-2 max-h-64 outline-hidden">
-              {isSearching ? (
+              {isError ? (
+                <Button variant="ghost" onClick={retry}>
+                  {t('common.retry')}
+                </Button>
+              ) : isSearching ? (
                 <div className="py-6 text-center text-sm text-text-tertiary">
                   {t('knowledge.shared.knowledgeBaseSelector.searching')}
                 </div>
@@ -352,8 +322,7 @@ export const KnowledgeBaseSelector: FC<KnowledgeBaseSelectorProps> = ({
                 <CommandGroup>
                   {displayKbs.map((kb) => {
                     const isSelected = selectedIds.includes(kb.id)
-                    const isDisabled =
-                      selectedEmbdId !== '' && kb.embd_id !== selectedEmbdId
+                    const disabledOption = isDisabled(kb)
                     return (
                       <CommandItem
                         key={kb.id}
@@ -362,19 +331,24 @@ export const KnowledgeBaseSelector: FC<KnowledgeBaseSelectorProps> = ({
                         className={cn(
                           'cursor-pointer',
                           isSelected && 'bg-state-selected-bg',
-                          isDisabled && 'cursor-not-allowed opacity-60',
+                          disabledOption && 'cursor-not-allowed opacity-60',
                         )}
-                        disabled={isDisabled}
+                        disabled={disabledOption}
                       >
                         <KnowledgeBaseOptionLabel
                           kb={kb}
                           isSelected={isSelected}
-                          isDisabled={isDisabled}
+                          isDisabled={disabledOption}
                         />
                       </CommandItem>
                     )
                   })}
                 </CommandGroup>
+              )}
+              {hasNextPage && !isSearching && (
+                <Button variant="ghost" onClick={loadMore} className="w-full">
+                  {t('common.more')}
+                </Button>
               )}
             </CommandList>
 

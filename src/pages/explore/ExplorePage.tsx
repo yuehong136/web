@@ -1,6 +1,9 @@
+import './components/explore-welcome.css'
 import { ExploreMessageAttachments } from './components/message-attachments'
 import { ControlledAttachments } from '@/components/chat/controlled-attachments'
-import { useChatAbortController } from '@/hooks/use-chat-abort-controller'
+import { useExploreConversation } from '@/pages/explore/hooks/use-explore-conversation'
+import { useExploreSend } from '@/pages/explore/hooks/use-explore-send'
+import { ExploreRunNotice } from '@/pages/explore/components/explore-run-notice'
 import {
   useCallback,
   useEffect,
@@ -51,17 +54,10 @@ import { conversationAPI } from '@/api/conversation'
 import type { TFunction } from 'i18next'
 import { useTranslation } from 'react-i18next'
 import {
-  chatConfig,
-  type ChatMessage,
-  type ChatServiceRequest,
   uploadConfig,
   type UploadFile,
   type UploadedFileInfo,
 } from '@/config/chat'
-import {
-  extractReferencesFromSSEData,
-  type ReferenceChunk,
-} from '@/utils/reference-replacer'
 import {
   ChatSettingsPanel,
   defaultChatSettings,
@@ -72,19 +68,12 @@ import {
   CHAT_BUBBLE_ROLES,
   shouldUseBubbleTyping,
 } from '@/components/chat/antx-chat-config'
-import { ReferenceDetailSheet } from '@/components/chat/ReferenceDetailSheet'
-import {
-  assertSSEResponse,
-  consumeStreamingAnswerChunk,
-  createInitialStreamingAnswerState,
-  readSSEStream,
-  type SSEEnvelope,
-} from '@/lib/streaming'
 import { ExploreSidebar, type ExploreTab } from './components/explore-sidebar'
-import { AppChatComposer } from '@/components/chat/app-chat-composer'
-import { AppChatAnswer } from '@/components/chat/app-chat-answer'
-import { getAppChatBubbleProps } from '@/components/chat/app-chat-message'
 import { EntityAvatar } from '@/components/patterns/entity-avatar'
+import { AppChatComposer } from '@/components/chat/app-chat-composer'
+import { ExploreChatAnswer } from '@/pages/explore/components/explore-chat-answer'
+import { ChatWorkspace } from '@/components/chat/chat-workspace'
+import { getAppChatBubbleProps } from '@/components/chat/app-chat-message'
 
 type ExploreAttachment = NonNullable<AttachmentsProps['items']>[number]
 
@@ -110,43 +99,6 @@ const getAttachmentStatusLabel = (file: UploadFile, t: TFunction) => {
   return formatBytes(file.size || 0)
 }
 
-// 消息类型
-interface ChatMessageItem {
-  role: 'user' | 'assistant'
-  content: string
-  id?: string
-  references?: ReferenceChunk[]
-  thinking?: string
-  thinkingComplete?: boolean
-  files?: UploadedFileInfo[]
-}
-
-interface ConversationDetailMessage {
-  role?: string
-  content?: string
-  id?: string
-  reference?: {
-    chunks?: ReferenceChunk[]
-  }
-  files?: UploadedFileInfo[]
-}
-
-interface ConversationDetail {
-  id?: string
-  name?: string
-  message?: ConversationDetailMessage[]
-}
-
-const toChatMessageItem = (
-  message: ConversationDetailMessage,
-): ChatMessageItem => ({
-  role: message.role === 'user' ? 'user' : 'assistant',
-  content: message.content ?? '',
-  id: message.id,
-  references: message.reference?.chunks || [],
-  files: Array.isArray(message.files) ? message.files : [],
-})
-
 export const ExplorePage: FC = () => {
   const { t } = useTranslation()
   const { myLLMs, isLoading: modelsLoading } = useFetchMyLLMs()
@@ -162,14 +114,20 @@ export const ExplorePage: FC = () => {
   const [activeTab, setActiveTab] = useState<ExploreTab>('workspace')
   const [selectedApp, setSelectedApp] = useState<string>('')
   const [mode, setMode] = useState<'chat' | 'market'>('chat')
-  const [selectedConversationDetail, setSelectedConversationDetail] =
-    useState<ConversationDetail | null>(null)
-  const [activeConversationKey, setActiveConversationKey] = useState<
-    string | undefined
-  >(undefined)
-  const [, setLoadingConversationDetail] = useState(false)
-  const [messages, setMessages] = useState<ChatMessageItem[]>([])
-  const [isStreaming, setIsStreaming] = useState(false)
+  const conversation = useExploreConversation()
+  const {
+    messages,
+    setMessages,
+    selectedConversationDetail,
+    setSelectedConversationDetail,
+    activeConversationKey,
+    isStreaming,
+    isLoadingConversation,
+    captureSession,
+    resetConversation,
+    fetchConversationDetail,
+    abortChat,
+  } = conversation
   const [inputValue, setInputValue] = useState('')
   const [selectedModel, setSelectedModel] = useState<string | null>(null)
   const [renamingConversationId, setRenamingConversationId] = useState<
@@ -183,15 +141,6 @@ export const ExplorePage: FC = () => {
   const [chatSettings, setChatSettings] =
     useState<ChatSettings>(defaultChatSettings)
 
-  // 引用详情侧边栏状态
-  const [detailSheetOpen, setDetailSheetOpen] = useState(false)
-  const [selectedChunk, setSelectedChunk] = useState<ReferenceChunk | null>(
-    null,
-  )
-  const [currentMessageReferences, setCurrentMessageReferences] = useState<
-    ReferenceChunk[]
-  >([])
-
   // 文件上传面板状态（参考 ragflow）
   const [headerOpen, setHeaderOpen] = useState(false)
 
@@ -203,9 +152,6 @@ export const ExplorePage: FC = () => {
   // 功能开关状态（参考 ragflow）
   const [enableReasoning, setEnableReasoning] = useState(false)
   const [enableInternet, setEnableInternet] = useState(false)
-
-  // 流式输出控制器（用于停止输出）
-  const { createController, abort: abortChat } = useChatAbortController()
 
   // 全局拖拽事件处理
   useEffect(() => {
@@ -277,7 +223,6 @@ export const ExplorePage: FC = () => {
     getUploadedFiles,
     hasError: hasUploadError,
     retry: retryUploadFile,
-    setFiles: setUploadFiles,
   } = useChatUpload()
 
   // 获取知识库列表
@@ -322,6 +267,7 @@ export const ExplorePage: FC = () => {
   )
   const canSubmitMessage =
     !isStreaming &&
+    !isLoadingConversation &&
     !hasUploadingFiles &&
     (inputValue.trim().length > 0 || hasReadyUploads)
   const attachmentItems = useMemo<ExploreAttachment[]>(() => {
@@ -345,344 +291,21 @@ export const ExplorePage: FC = () => {
     if (activeApp) setSelectedApp(activeApp.id)
   }
 
-  // 获取对话详情
-  const fetchConversationDetail = async (conversationId: string) => {
-    if (!conversationId) return
-
-    try {
-      setLoadingConversationDetail(true)
-      // 先清空消息，避免新旧消息混合
-      setMessages([])
-
-      const response = (await conversationAPI.getConversationDetail(
-        conversationId,
-      )) as ConversationDetail
-      setSelectedConversationDetail(response)
-
-      // 设置消息列表，如果对话没有消息则清空
-      if (response?.message && Array.isArray(response.message)) {
-        setMessages(response.message.map(toChatMessageItem))
-      }
-    } catch (error) {
-      console.error('Failed to fetch conversation detail:', error)
-      setSelectedConversationDetail(null)
-      setMessages([])
-    } finally {
-      setLoadingConversationDetail(false)
-    }
-  }
-
   // 停止输出
-  const handleStopOutput = useCallback(() => {
-    abortChat()
-    setIsStreaming(false)
-  }, [abortChat])
+  const handleStopOutput = abortChat
 
-  // 重新生成消息（参考 ragflow 的 useRegenerateMessage 实现）
-  // 当点击助手消息的重新生成按钮时，找到对应的用户消息并重新发送
-  // 发送消息（支持附件与失败恢复）
-  // baseMessages 参数用于重新生成场景，传入截断后的消息列表
-  const handleSendMessage = useCallback(
-    async (
-      message: string,
-      baseMessages?: ChatMessageItem[],
-      overrideFiles?: UploadedFileInfo[],
-    ) => {
-      if (isStreaming) return
-
-      const pendingFiles = overrideFiles ?? uploadedAttachments
-      const normalizedMessage = message.trim()
-      const messageContent =
-        normalizedMessage ||
-        (pendingFiles.length > 0 ? t('explore.attachmentOnlyPrompt') : '')
-      const conversationSeed =
-        normalizedMessage || pendingFiles[0]?.name || messageContent
-
-      if (!messageContent) return
-
-      const userMessage: ChatMessageItem = {
-        role: 'user',
-        content: messageContent,
-        id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        files: pendingFiles,
-      }
-
-      const previousMessages = baseMessages ?? messages
-      const updatedMessages = [...previousMessages, userMessage]
-      setMessages(updatedMessages)
-      setInputValue('')
-      if (!overrideFiles?.length) {
-        clearUploadFiles()
-      }
-      setIsStreaming(true)
-
-      // 解析会话 ID：如果没有会话但有选中的应用，自动创建新会话
-      // 参考首页 sendAppMessage 的实现方式
-      let conversationId = selectedConversationDetail?.id
-      const existingUserMessages = previousMessages.filter(
-        (m) => m.role === 'user',
-      )
-      const isFirstUserMessage = existingUserMessages.length === 0
-
-      if (!conversationId && selectedApp) {
-        // 自动创建新会话，使用消息内容作为名称（参考 RAGFlow 命名逻辑）
-        const conversationName =
-          conversationSeed.slice(0, 50) +
-          (conversationSeed.length > 50 ? '...' : '')
-        try {
-          const newConversation = await conversationAPI.setConversation({
-            dialog_id: selectedApp,
-            name: conversationName,
-            is_new: true,
-          })
-          if (newConversation?.id) {
-            conversationId = newConversation.id
-            setActiveConversationKey(newConversation.id)
-            setSelectedConversationDetail({
-              id: newConversation.id,
-              name: conversationName,
-            })
-            refetchConversations()
-          }
-        } catch (error) {
-          console.error('Failed to auto-create conversation:', error)
-        }
-      } else if (isFirstUserMessage && activeConversationKey && selectedApp) {
-        // 对于已存在的会话，如果是第一条用户消息，用消息内容更新会话名称
-        const conversationName =
-          conversationSeed.slice(0, 50) +
-          (conversationSeed.length > 50 ? '...' : '')
-        try {
-          await conversationAPI.setConversation({
-            dialog_id: selectedApp,
-            conversation_id: activeConversationKey,
-            name: conversationName,
-            is_new: false,
-          })
-          setSelectedConversationDetail((prev) =>
-            prev ? { ...prev, name: conversationName } : prev,
-          )
-          refetchConversations()
-        } catch (error) {
-          console.error('Failed to update conversation name:', error)
-        }
-      }
-
-      // 创建新的 AbortController 用于停止输出（局部捕获：handleStopOutput 会把
-      // ref 置 null，catch 必须用这个局部引用判断 aborted，不能依赖 ref）
-      const abortController = createController()
-      let hasReceivedContent = false
-      let streamState = createInitialStreamingAnswerState()
-
-      try {
-        // 准备 AI 消息
-        const aiMessage: ChatMessageItem = {
-          role: 'assistant',
-          content: '',
-          id: `msg-${Date.now()}-ai-${Math.random().toString(36).substr(2, 9)}`,
-          references: [],
-          thinking: '',
-          thinkingComplete: false,
-        }
-
-        setMessages((prev) => [...prev, aiMessage])
-
-        // 根据模式选择 API：有会话 ID 时使用 completion，否则回退到 chat_service_sse
-        if (conversationId) {
-          const completionMessages = updatedMessages.map((msg) => ({
-            role: msg.role,
-            content: msg.content,
-            id: msg.id,
-            ...(msg.files?.length ? { files: msg.files } : {}),
-          }))
-
-          // 会话模式 - 使用 completion API（支持话题模式和工作区自动创建的会话）
-          const completionParams: Parameters<
-            typeof conversationAPI.completion
-          >[0] = {
-            conversation_id: conversationId,
-            messages: completionMessages,
-            quote: chatSettings.quote,
-            // 功能开关参数（参考 ragflow）
-            reasoning: enableReasoning,
-            internet: enableInternet,
-          }
-
-          // 如果启用了元数据过滤且有条件，添加到请求中
-          if (
-            chatSettings.metadataFilterMode === 'manual' &&
-            chatSettings.metadataCondition.conditions &&
-            chatSettings.metadataCondition.conditions.length > 0
-          ) {
-            completionParams.metadata_condition = chatSettings.metadataCondition
-          }
-
-          const response = await conversationAPI.completion(completionParams, {
-            signal: abortController.signal,
-          })
-
-          await assertSSEResponse(response)
-
-          await readSSEStream<SSEEnvelope>(response, {
-            signal: abortController.signal,
-            onEvent: (data) => {
-              const chunk = consumeStreamingAnswerChunk(streamState, data)
-              streamState = chunk.nextState
-              if (chunk.isDone) return
-
-              const chunkData =
-                chunk.payload && typeof chunk.payload === 'object'
-                  ? (chunk.payload as Record<string, unknown>)
-                  : null
-              hasReceivedContent = true
-              // 只有当 SSE 返回了 references 数据时才更新，避免空数组覆盖之前的有效数据
-              const newReferences = chunkData
-                ? extractReferencesFromSSEData(chunkData)
-                : []
-              const cleanContent = streamState.content
-              const thinking = streamState.thinking
-
-              setMessages((prev) => {
-                const newMsgs = [...prev]
-                const lastIdx = newMsgs.length - 1
-                if (lastIdx >= 0 && newMsgs[lastIdx].role === 'assistant') {
-                  // 只有当新的 references 有数据时才更新，否则保留之前的
-                  const existingReferences = newMsgs[lastIdx].references || []
-                  const references =
-                    newReferences.length > 0
-                      ? newReferences
-                      : existingReferences
-
-                  newMsgs[lastIdx] = {
-                    ...newMsgs[lastIdx],
-                    content: cleanContent,
-                    references,
-                    thinking,
-                  }
-                }
-                return newMsgs
-              })
-            },
-          })
-        } else {
-          // 回退：无应用或创建会话失败时，使用 chat_service_sse 直接聊天
-          const historyMessages: ChatMessage[] = updatedMessages.map((msg) => ({
-            role: msg.role,
-            content: msg.content,
-          }))
-
-          const requestBody: ChatServiceRequest = {
-            prompt: '',
-            messages: historyMessages,
-            llm_name: selectedModel || 'gpt-4o-mini',
-            stream: true,
-            gen_conf: {},
-            tavily_api_key: '',
-          }
-
-          const baseURL =
-            import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
-          const fullUrl = `${baseURL}/v1${chatConfig.apiEndpoint}`
-          const token = localStorage.getItem('auth_token')
-
-          const response = await fetch(fullUrl, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              ...(token && { Authorization: `Bearer ${token}` }),
-            },
-            body: JSON.stringify(requestBody),
-            signal: abortController.signal,
-          })
-
-          await assertSSEResponse(response)
-
-          await readSSEStream<SSEEnvelope>(response, {
-            signal: abortController.signal,
-            onEvent: (data) => {
-              const chunk = consumeStreamingAnswerChunk(streamState, data)
-              streamState = chunk.nextState
-              if (chunk.isDone) return
-
-              setMessages((prev) => {
-                const newMsgs = [...prev]
-                const lastIdx = newMsgs.length - 1
-                if (lastIdx >= 0 && newMsgs[lastIdx].role === 'assistant') {
-                  hasReceivedContent = true
-                  newMsgs[lastIdx] = {
-                    ...newMsgs[lastIdx],
-                    content: streamState.content,
-                    thinking: streamState.thinking,
-                  }
-                }
-                return newMsgs
-              })
-            },
-          })
-        }
-        if (streamState.phase === 'failed') throw new Error('Answer failed')
-      } catch (error) {
-        // 用户主动停止（fetch 发起阶段 abort 会抛 AbortError）：不报错、不回滚，
-        // 保留已收内容，finally 仍复位 isStreaming
-        if (abortController.signal.aborted) return
-        console.error('Failed to send message:', error)
-        if (!hasReceivedContent) {
-          setMessages(previousMessages)
-          setInputValue(messageContent)
-          if (pendingFiles.length > 0 && !overrideFiles?.length) {
-            setUploadFiles(
-              pendingFiles.map((file, index) => ({
-                uid: `${file.id}-${index}`,
-                name: file.name,
-                size: file.size,
-                type: file.mime_type,
-                status: 'done' as const,
-                percent: 100,
-                response: file,
-                thumbUrl: file.preview_url ?? undefined,
-              })),
-            )
-            setHeaderOpen(true)
-          }
-        } else if (streamState.content.trim()) {
-          toast.error(t('chat.stream.interrupted'))
-        } else {
-          setMessages((prev) => {
-            const newMsgs = [...prev]
-            const lastIdx = newMsgs.length - 1
-            if (lastIdx >= 0 && newMsgs[lastIdx].role === 'assistant') {
-              newMsgs[lastIdx] = {
-                ...newMsgs[lastIdx],
-                content: t('explore.toast.assistantError'),
-              }
-            }
-            return newMsgs
-          })
-        }
-      } finally {
-        setIsStreaming(false)
-      }
-    },
-    [
-      activeConversationKey,
-      chatSettings.metadataCondition,
-      chatSettings.metadataFilterMode,
-      chatSettings.quote,
-      clearUploadFiles,
-      createController,
-      enableInternet,
-      enableReasoning,
-      isStreaming,
-      messages,
-      refetchConversations,
-      selectedApp,
-      selectedConversationDetail?.id,
-      selectedModel,
-      setUploadFiles,
-      t,
-      uploadedAttachments,
-    ],
-  )
+  const handleSendMessage = useExploreSend({
+    conversation,
+    selectedApp,
+    selectedModel,
+    settings: chatSettings,
+    enableReasoning,
+    enableInternet,
+    uploadedAttachments,
+    clearUploadFiles,
+    setInputValue,
+    refetchConversations,
+  })
 
   const handleRegenerateMessage = useCallback(
     (assistantMessageIndex: number) => {
@@ -705,12 +328,13 @@ export const ExplorePage: FC = () => {
 
       void handleSendMessage(userContent, baseMessages, userFiles)
     },
-    [handleSendMessage, isStreaming, messages, t],
+    [handleSendMessage, isStreaming, messages, setMessages, t],
   )
 
   // 新建对话
   const handleCreateConversation = async () => {
     if (!selectedApp) return
+    const isCurrent = captureSession()
 
     try {
       const newConversation = await conversationAPI.setConversation({
@@ -719,15 +343,11 @@ export const ExplorePage: FC = () => {
         is_new: true,
       })
 
+      if (!isCurrent()) return
       refetchConversations()
-
       if (newConversation?.id) {
-        // 立即更新选中状态
-        setActiveConversationKey(newConversation.id)
-        // 清空消息，准备新对话
-        setMessages([])
-        // 异步加载对话详情
-        setTimeout(() => fetchConversationDetail(newConversation.id), 500)
+        clearUploadFiles()
+        void fetchConversationDetail(newConversation.id)
       }
     } catch (error) {
       console.error('Failed to create conversation:', error)
@@ -738,6 +358,7 @@ export const ExplorePage: FC = () => {
   const confirmRenameConversation = async () => {
     if (!renamingConversationId || !newConversationName.trim() || !selectedApp)
       return
+    const isCurrent = captureSession()
 
     try {
       await conversationAPI.setConversation({
@@ -749,6 +370,7 @@ export const ExplorePage: FC = () => {
 
       refetchConversations()
 
+      if (!isCurrent()) return
       if (selectedConversationDetail?.id === renamingConversationId) {
         setSelectedConversationDetail((prev) =>
           prev ? { ...prev, name: newConversationName.trim() } : prev,
@@ -767,35 +389,18 @@ export const ExplorePage: FC = () => {
   const currentAppPrologue = currentApp?.prompt_config?.prologue?.trim() || ''
   const showCurrentAppPrologue = shouldUseBubbleTyping(currentAppPrologue)
 
-  const assistantName = currentApp?.name || t('explore.assistantFallback')
+  // 获取应用图标 URL
+  const getAppIconUrl = useCallback((app: typeof currentApp) => {
+    if (!app?.icon) return null
+    return app.icon.startsWith('data:') || app.icon.startsWith('http')
+      ? app.icon
+      : `data:image/png;base64,${app.icon}`
+  }, [])
 
-  // 处理引用点击事件 - 打开详情侧边栏
-  const _handleReferenceClick = useCallback(
-    (
-      reference: ReferenceChunk,
-      _index: number,
-      allReferences?: ReferenceChunk[],
-    ) => {
-      console.log('Reference clicked:', reference)
-      setSelectedChunk(reference)
-      if (allReferences) {
-        setCurrentMessageReferences(allReferences)
-      }
-      setDetailSheetOpen(true)
-    },
-    [],
-  )
-
-  // 处理查看详情
-  const handleViewDetail = useCallback(
-    (chunk: ReferenceChunk, allReferences?: ReferenceChunk[]) => {
-      setSelectedChunk(chunk)
-      if (allReferences) {
-        setCurrentMessageReferences(allReferences)
-      }
-      setDetailSheetOpen(true)
-    },
-    [],
+  // 当前应用的图标 URL
+  const currentAppIconUrl = useMemo(
+    () => getAppIconUrl(currentApp),
+    [currentApp, getAppIconUrl],
   )
 
   // 处理复制
@@ -827,7 +432,10 @@ export const ExplorePage: FC = () => {
             ? messages.length - 1 - lastAssistantMsgIndex
             : -1
         const isCurrentStreamingMessage =
-          isStreaming && msg.role === 'assistant' && index === actualLastIndex
+          isStreaming &&
+          msg.role === 'assistant' &&
+          index === actualLastIndex &&
+          (msg.runPhase === 'running' || msg.runPhase === 'cancelRequested')
 
         return {
           // 参考 ragflow buildMessageUuidWithRole：使用 role_id 格式确保唯一性
@@ -844,13 +452,14 @@ export const ExplorePage: FC = () => {
             msg.role === 'assistant'
               ? () => {
                   return (
-                    <AppChatAnswer
+                    <ExploreChatAnswer
                       content={msg.content || ''}
                       thinking={msg.thinking}
                       messageId={msg.id}
                       references={msg.references}
                       isStreaming={isCurrentStreamingMessage}
-                      onViewReference={handleViewDetail}
+                      runPhase={msg.runPhase}
+                      notice={<ExploreRunNotice phase={msg.runPhase} />}
                     />
                   )
                 }
@@ -880,7 +489,6 @@ export const ExplorePage: FC = () => {
       currentApp,
       handleCopyContent,
       handleRegenerateMessage,
-      handleViewDetail,
       isStreaming,
       messages,
       renderMessageAttachments,
@@ -914,6 +522,8 @@ export const ExplorePage: FC = () => {
 
   // 处理事件
   const handleDiscoverClick = () => {
+    resetConversation()
+    clearUploadFiles()
     setMode('market')
     setSelectedApp('')
   }
@@ -922,18 +532,15 @@ export const ExplorePage: FC = () => {
     setMode('chat')
     setSelectedApp(appId)
     setActiveTab('workspace')
-    setMessages([])
-    // 切换应用时清理对话状态，避免状态不一致
-    setSelectedConversationDetail(null)
-    setActiveConversationKey(undefined)
+    resetConversation()
+    clearUploadFiles()
   }
 
   const handleTopicsClick = () => {
     setActiveTab('topics')
     setMode('chat')
-    setSelectedConversationDetail(null)
-    setActiveConversationKey(undefined)
-    setMessages([])
+    resetConversation()
+    clearUploadFiles()
   }
 
   const handleTabChange = (tab: ExploreTab) => {
@@ -941,14 +548,9 @@ export const ExplorePage: FC = () => {
   }
 
   const handleConversationSelect = (key?: string) => {
-    setActiveConversationKey(key)
-    setMessages([])
-
-    if (key) {
-      void fetchConversationDetail(key)
-    } else {
-      setSelectedConversationDetail(null)
-    }
+    clearUploadFiles()
+    if (key) void fetchConversationDetail(key)
+    else resetConversation()
   }
 
   const handleRenameConversation = (conversationId: string, name: string) => {
@@ -962,13 +564,13 @@ export const ExplorePage: FC = () => {
   }
 
   const handleDeleteConversation = async (conversationId: string) => {
+    const isCurrent = captureSession()
     try {
       await conversationAPI.removeConversation([conversationId])
       refetchConversations()
-      if (activeConversationKey === conversationId) {
-        setActiveConversationKey(undefined)
-        setSelectedConversationDetail(null)
-        setMessages([])
+      if (isCurrent() && activeConversationKey === conversationId) {
+        resetConversation()
+        clearUploadFiles()
       }
       toast.success(t('explore.conversations.deleted'))
     } catch (error) {
@@ -978,716 +580,697 @@ export const ExplorePage: FC = () => {
   }
 
   return (
-    <div
-      ref={dropContainerRef}
-      className="flex h-full"
-      style={{ backgroundColor: 'var(--color-chat-content-bg)' }}
+    <ChatWorkspace
+      scopeKey={`${selectedApp}:${activeConversationKey ?? 'draft'}`}
     >
-      {/* 全屏拖拽指示器 */}
-      {isDragging && (
-        <div
-          className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center"
-          style={{
-            backgroundColor: 'var(--color-background-overlay)',
-            backdropFilter: 'blur(4px)',
-          }}
-        >
-          <div
-            className="flex flex-col items-center gap-4 rounded-2xl p-8"
-            style={{
-              backgroundColor: 'var(--color-components-card-bg)',
-              border: '3px dashed var(--color-border-accent)',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
-            }}
-          >
-            <Upload
-              className="h-16 w-16"
-              style={{ color: 'var(--color-text-accent)' }}
-            />
-            <div
-              className="text-lg font-medium"
-              style={{ color: 'var(--color-text-primary)' }}
-            >
-              {t('explore.dragUpload.title')}
-            </div>
-            <div
-              className="text-sm"
-              style={{ color: 'var(--color-text-secondary)' }}
-            >
-              {t('explore.dragUpload.description')}
-            </div>
-          </div>
-        </div>
-      )}
-
-      <ExploreSidebar
-        activeTab={activeTab}
-        mode={mode}
-        selectedApp={selectedApp}
-        dialogApps={dialogApps}
-        dialogAppsLoading={dialogAppsLoading}
-        dialogAppsError={dialogAppsError}
-        dialogConversations={dialogConversations}
-        dialogConversationsLoading={dialogConversationsLoading}
-        dialogConversationsError={dialogConversationsError}
-        activeConversationKey={activeConversationKey}
-        renamingConversationId={renamingConversationId}
-        newConversationName={newConversationName}
-        t={t}
-        onTabChange={handleTabChange}
-        onTopicsClick={handleTopicsClick}
-        onDiscoverClick={handleDiscoverClick}
-        onAppSelect={handleAppSelect}
-        onCreateConversation={handleCreateConversation}
-        onConversationSelect={handleConversationSelect}
-        onRenameConversation={handleRenameConversation}
-        onDeleteConversation={handleDeleteConversation}
-        onConfirmRenameConversation={confirmRenameConversation}
-        onNewConversationNameChange={setNewConversationName}
-        onCloseRenameConversation={handleCloseRenameConversation}
-      />
-
-      {/* 右侧主内容区 */}
       <div
-        className="flex flex-1"
+        ref={dropContainerRef}
+        className="flex h-full"
         style={{ backgroundColor: 'var(--color-chat-content-bg)' }}
       >
-        {/* 聊天内容区 */}
-        <div className="flex min-w-0 flex-1 flex-col">
-          {/* 顶部工具栏 */}
+        {/* 全屏拖拽指示器 */}
+        {isDragging && (
           <div
-            className="flex items-center justify-between px-6 py-3"
+            className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center"
             style={{
-              backgroundColor: 'var(--color-chat-header-bg)',
-              borderBottom: '1px solid var(--color-chat-header-border)',
+              backgroundColor: 'var(--color-background-overlay)',
+              backdropFilter: 'blur(4px)',
             }}
           >
-            <div className="flex items-center space-x-3">
-              {/* 显示当前应用图标 */}
-              {mode === 'chat' && currentApp && (
-                <EntityAvatar
-                  name={currentApp.name}
-                  src={currentApp.icon}
-                  seed={currentApp.id}
-                />
-              )}
-              <h1
-                className="text-lg font-semibold"
+            <div
+              className="flex flex-col items-center gap-4 rounded-2xl p-8"
+              style={{
+                backgroundColor: 'var(--color-components-card-bg)',
+                border: '3px dashed var(--color-border-accent)',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
+              }}
+            >
+              <Upload
+                className="h-16 w-16"
+                style={{ color: 'var(--color-text-accent)' }}
+              />
+              <div
+                className="text-lg font-medium"
                 style={{ color: 'var(--color-text-primary)' }}
               >
-                {mode === 'market'
-                  ? t('explore.header.market')
-                  : activeTab === 'topics'
-                    ? selectedConversationDetail?.name ||
-                      currentApp?.name ||
-                      t('explore.tabs.topics')
-                    : currentApp?.name || t('explore.assistantFallback')}
-              </h1>
+                {t('explore.dragUpload.title')}
+              </div>
+              <div
+                className="text-sm"
+                style={{ color: 'var(--color-text-secondary)' }}
+              >
+                {t('explore.dragUpload.description')}
+              </div>
             </div>
+          </div>
+        )}
 
-            {mode === 'chat' && (
-              <div className="flex items-center gap-3">
-                {/* 布局切换按钮组 */}
-                <div
-                  className="hidden items-center gap-1 rounded-lg p-1 md:flex"
-                  style={{ border: '1px solid var(--color-border-default)' }}
+        <ExploreSidebar
+          activeTab={activeTab}
+          mode={mode}
+          selectedApp={selectedApp}
+          dialogApps={dialogApps}
+          dialogAppsLoading={dialogAppsLoading}
+          dialogAppsError={dialogAppsError}
+          dialogConversations={dialogConversations}
+          dialogConversationsLoading={dialogConversationsLoading}
+          dialogConversationsError={dialogConversationsError}
+          activeConversationKey={activeConversationKey}
+          renamingConversationId={renamingConversationId}
+          newConversationName={newConversationName}
+          t={t}
+          onTabChange={handleTabChange}
+          onTopicsClick={handleTopicsClick}
+          onDiscoverClick={handleDiscoverClick}
+          onAppSelect={handleAppSelect}
+          onCreateConversation={handleCreateConversation}
+          onConversationSelect={handleConversationSelect}
+          onRenameConversation={handleRenameConversation}
+          onDeleteConversation={handleDeleteConversation}
+          onConfirmRenameConversation={confirmRenameConversation}
+          onNewConversationNameChange={setNewConversationName}
+          onCloseRenameConversation={handleCloseRenameConversation}
+        />
+
+        {/* 右侧主内容区 */}
+        <div
+          className="flex flex-1"
+          style={{ backgroundColor: 'var(--color-chat-content-bg)' }}
+        >
+          {/* 聊天内容区 */}
+          <div className="flex min-w-0 flex-1 flex-col">
+            {/* 顶部工具栏 */}
+            <div
+              className="flex items-center justify-between px-6 py-3"
+              style={{
+                backgroundColor: 'var(--color-chat-header-bg)',
+                borderBottom: '1px solid var(--color-chat-header-border)',
+              }}
+            >
+              <div className="flex items-center space-x-3">
+                {/* 显示当前应用图标 */}
+                {mode === 'chat' && currentApp && (
+                  <EntityAvatar
+                    name={currentApp.name}
+                    src={currentApp.icon}
+                    seed={currentApp.id}
+                  />
+                )}
+                <h1
+                  className="text-lg font-semibold"
+                  style={{ color: 'var(--color-text-primary)' }}
                 >
-                  <Button
-                    variant={chatLayout === 'default' ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => setChatLayout('default')}
-                    className="h-7 px-3 py-1"
-                    title={t('explore.header.defaultLayout')}
+                  {mode === 'market'
+                    ? t('explore.header.market')
+                    : activeTab === 'topics'
+                      ? selectedConversationDetail?.name ||
+                        currentApp?.name ||
+                        t('explore.tabs.topics')
+                      : currentApp?.name || t('explore.assistantFallback')}
+                </h1>
+              </div>
+
+              {mode === 'chat' && (
+                <div className="flex items-center gap-3">
+                  {/* 布局切换按钮组 */}
+                  <div
+                    className="hidden items-center gap-1 rounded-lg p-1 md:flex"
+                    style={{ border: '1px solid var(--color-border-default)' }}
                   >
-                    <LayoutGrid className="h-3 w-3" />
-                  </Button>
+                    <Button
+                      variant={chatLayout === 'default' ? 'default' : 'ghost'}
+                      size="sm"
+                      onClick={() => setChatLayout('default')}
+                      className="h-7 px-3 py-1"
+                      title={t('explore.header.defaultLayout')}
+                    >
+                      <LayoutGrid className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      variant={chatLayout === 'center' ? 'default' : 'ghost'}
+                      size="sm"
+                      onClick={() => setChatLayout('center')}
+                      className="h-7 px-3 py-1"
+                      title={t('explore.header.centerLayout')}
+                    >
+                      <AlignCenter className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      variant={chatLayout === 'full' ? 'default' : 'ghost'}
+                      size="sm"
+                      onClick={() => setChatLayout('full')}
+                      className="h-7 px-3 py-1"
+                      title={t('explore.header.fullLayout')}
+                    >
+                      <Maximize2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+
                   <Button
-                    variant={chatLayout === 'center' ? 'default' : 'ghost'}
+                    variant={settingsPanelOpen ? 'default' : 'ghost'}
                     size="sm"
-                    onClick={() => setChatLayout('center')}
-                    className="h-7 px-3 py-1"
-                    title={t('explore.header.centerLayout')}
+                    onClick={() => setSettingsPanelOpen(!settingsPanelOpen)}
+                    title={t('explore.header.chatSettings')}
                   >
-                    <AlignCenter className="h-3 w-3" />
-                  </Button>
-                  <Button
-                    variant={chatLayout === 'full' ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => setChatLayout('full')}
-                    className="h-7 px-3 py-1"
-                    title={t('explore.header.fullLayout')}
-                  >
-                    <Maximize2 className="h-3 w-3" />
+                    <SlidersHorizontal className="h-4 w-4" />
                   </Button>
                 </div>
+              )}
+            </div>
 
-                <Button
-                  variant={settingsPanelOpen ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setSettingsPanelOpen(!settingsPanelOpen)}
-                  title={t('explore.header.chatSettings')}
-                >
-                  <SlidersHorizontal className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
-          </div>
-
-          {/* 主内容区 */}
-          <div className="flex flex-1 flex-col overflow-hidden">
-            {mode === 'market' ? (
-              // 应用市场
-              <div className="flex-1 overflow-y-auto p-6">
-                {dialogAppsLoading ? (
-                  <div
-                    className="py-16 text-center"
-                    style={{ color: 'var(--color-text-tertiary)' }}
-                  >
-                    {t('explore.sidebar.loadingApps')}
-                  </div>
-                ) : dialogApps.length === 0 ? (
-                  <div
-                    className="py-16 text-center"
-                    style={{ color: 'var(--color-text-tertiary)' }}
-                  >
-                    {t('explore.sidebar.noApps')}
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-                    {dialogApps.map((app) => (
-                      <div
-                        key={app.id}
-                        className="rounded-lg p-6 transition-shadow hover:shadow-md"
-                        style={{
-                          backgroundColor: 'var(--color-components-card-bg)',
-                          border:
-                            '1px solid var(--color-components-card-border)',
-                        }}
-                      >
-                        <div className="mb-3 flex items-center space-x-3">
-                          <EntityAvatar
-                            name={app.name}
-                            src={app.icon}
-                            seed={app.id}
-                            size="sm"
-                          />
-                          <h3
-                            className="font-medium"
-                            style={{
-                              color: 'var(--color-components-card-meta-title)',
-                            }}
-                          >
-                            {app.name}
-                          </h3>
-                        </div>
-                        <p
-                          className="mb-4 text-sm"
-                          style={{
-                            color:
-                              'var(--color-components-card-meta-description)',
-                          }}
-                        >
-                          {app.description}
-                        </p>
-                        <Button
-                          size="sm"
-                          className="w-full"
-                          variant={app.status === '1' ? 'outline' : 'default'}
-                          disabled={app.status === '1'}
-                        >
-                          {app.status === '1'
-                            ? t('explore.market.added')
-                            : t('explore.market.addToWorkspace')}
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ) : (
-              // 聊天模式
-              <>
-                {/* 消息区域 */}
-                <div className="flex-1 overflow-y-auto px-6 py-8">
-                  {messages.length === 0 ? (
-                    <div className="explore-welcome-area flex h-full flex-col items-center justify-center">
-                      <style>{`
-                      /* Welcome 组件样式 */
-                      .explore-welcome-area .ant-welcome-title {
-                        color: var(--color-text-primary) !important;
-                      }
-                      .explore-welcome-area .ant-welcome-description {
-                        color: var(--color-text-secondary) !important;
-                      }
-                      /* Prompts 组件样式 */
-                      .explore-welcome-area .ant-prompts-item {
-                        background-color: var(--color-components-card-bg) !important;
-                        border-color: var(--color-components-card-border) !important;
-                        transition: all 0.2s ease !important;
-                      }
-                      .explore-welcome-area .ant-prompts-item:hover {
-                        border-color: var(--color-components-button-primary-bg) !important;
-                        background-color: var(--color-components-card-bg-hover) !important;
-                      }
-                      .explore-welcome-area .ant-prompts-label {
-                        color: var(--color-text-primary) !important;
-                      }
-                      .explore-welcome-area .ant-prompts-description {
-                        color: var(--color-text-secondary) !important;
-                      }
-                    `}</style>
-                      <Welcome
-                        variant="borderless"
-                        icon={
-                          <EntityAvatar
-                            name={assistantName}
-                            src={currentApp?.icon}
-                            seed={currentApp?.id}
-                            size="2xl"
-                          />
-                        }
-                        title={assistantName}
-                        description={
-                          currentApp?.description ||
-                          t('explore.welcomeDescription')
-                        }
-                      />
-                      {showCurrentAppPrologue ? (
-                        <div className="app-chat-area mt-6 w-full max-w-2xl">
-                          <Bubble
-                            {...getAppChatBubbleProps('assistant', {
-                              id: currentApp?.id,
-                              name: currentApp?.name,
-                              icon: currentApp?.icon,
-                            })}
-                            content={currentAppPrologue}
-                            contentRender={() => (
-                              <AppChatAnswer
-                                content={currentAppPrologue}
-                                isStreaming={false}
-                                onViewReference={handleViewDetail}
-                              />
-                            )}
-                          />
-                        </div>
-                      ) : null}
-                      <div className="mt-8">
-                        <Prompts
-                          items={promptItems}
-                          onItemClick={(info) => {
-                            if (typeof info.data.label === 'string') {
-                              setInputValue(info.data.label)
-                            }
-                          }}
-                          wrap
-                        />
-                      </div>
+            {/* 主内容区 */}
+            <div className="flex flex-1 flex-col overflow-hidden">
+              {mode === 'market' ? (
+                // 应用市场
+                <div className="flex-1 overflow-y-auto p-6">
+                  {dialogAppsLoading ? (
+                    <div
+                      className="py-16 text-center"
+                      style={{ color: 'var(--color-text-tertiary)' }}
+                    >
+                      {t('explore.sidebar.loadingApps')}
+                    </div>
+                  ) : dialogApps.length === 0 ? (
+                    <div
+                      className="py-16 text-center"
+                      style={{ color: 'var(--color-text-tertiary)' }}
+                    >
+                      {t('explore.sidebar.noApps')}
                     </div>
                   ) : (
-                    <div
-                      className={cn(
-                        'explore-chat-area app-chat-area mx-auto',
-                        chatLayout === 'full'
-                          ? 'max-w-none px-4'
-                          : chatLayout === 'center'
-                            ? 'max-w-4xl'
-                            : 'max-w-3xl',
-                      )}
-                      style={{ height: '100%' }}
-                    >
-                      <Bubble.List
-                        items={bubbleItems}
-                        autoScroll
-                        style={{ height: '100%' }}
-                        role={CHAT_BUBBLE_ROLES}
-                      />
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                      {dialogApps.map((app) => (
+                        <div
+                          key={app.id}
+                          className="rounded-lg p-6 transition-shadow hover:shadow-md"
+                          style={{
+                            backgroundColor: 'var(--color-components-card-bg)',
+                            border:
+                              '1px solid var(--color-components-card-border)',
+                          }}
+                        >
+                          <div className="mb-3 flex items-center space-x-3">
+                            <EntityAvatar
+                              name={app.name}
+                              src={app.icon}
+                              seed={app.id}
+                              size="sm"
+                            />
+                            <h3
+                              className="font-medium"
+                              style={{
+                                color:
+                                  'var(--color-components-card-meta-title)',
+                              }}
+                            >
+                              {app.name}
+                            </h3>
+                          </div>
+                          <p
+                            className="mb-4 text-sm"
+                            style={{
+                              color:
+                                'var(--color-components-card-meta-description)',
+                            }}
+                          >
+                            {app.description}
+                          </p>
+                          <Button
+                            size="sm"
+                            className="w-full"
+                            variant={app.status === '1' ? 'outline' : 'default'}
+                            disabled={app.status === '1'}
+                          >
+                            {app.status === '1'
+                              ? t('explore.market.added')
+                              : t('explore.market.addToWorkspace')}
+                          </Button>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>
-
-                {/* 输入区域（参考 ragflow 重构） */}
-                {(activeTab !== 'topics' || selectedConversationDetail) && (
-                  <div className="px-6 pb-6">
-                    <div
-                      className={cn(
-                        'mx-auto',
-                        chatLayout === 'full'
-                          ? 'max-w-none px-4'
-                          : chatLayout === 'center'
-                            ? 'max-w-4xl'
-                            : 'max-w-3xl',
-                      )}
-                    >
-                      <AppChatComposer
-                        value={inputValue}
-                        onChange={setInputValue}
-                        placeholder={t('explore.sender.placeholder')}
-                        loading={isStreaming}
-                        // 文件上传面板（参考 ragflow）
-                        header={
-                          <Sender.Header
-                            title={
-                              <span
-                                style={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '8px',
-                                  color: 'var(--color-text-primary)',
-                                  fontWeight: 500,
-                                  fontSize: '14px',
-                                }}
-                              >
-                                <Upload
-                                  className="h-4 w-4"
-                                  style={{ color: 'var(--color-state-focus)' }}
-                                />
-                                {t('explore.sender.uploadFile')}
-                              </span>
-                            }
-                            open={headerOpen}
-                            onOpenChange={setHeaderOpen}
-                            styles={{
-                              header: {
-                                backgroundColor:
-                                  'var(--color-components-card-bg)',
-                                borderRadius: '16px 16px 0 0',
-                                border: 'none',
-                                borderBottom:
-                                  '1px solid var(--color-border-default)',
-                                padding: '12px 16px',
-                              },
-                              content: {
-                                padding: 0,
-                                backgroundColor:
-                                  'var(--color-components-card-bg)',
-                                border: 'none',
-                              },
-                            }}
-                          >
-                            <ControlledAttachments
-                              items={attachmentItems}
-                              uploadLabel={t('explore.sender.uploadFile')}
-                              removeLabel={(name) =>
-                                t('explore.attachmentStatus.remove', { name })
+              ) : (
+                // 聊天模式
+                <>
+                  {/* 消息区域 */}
+                  <div className="flex-1 overflow-y-auto px-6 py-8">
+                    {messages.length === 0 ? (
+                      <div className="explore-welcome-area flex h-full flex-col items-center justify-center">
+                        <Welcome
+                          variant="borderless"
+                          icon={
+                            <EntityAvatar
+                              name={
+                                currentApp?.name ||
+                                t('explore.assistantFallback')
                               }
-                              failureLabel={t(
-                                'explore.attachmentStatus.failed',
-                              )}
-                              maxCount={uploadConfig.maxCount}
-                              getDropContainer={() => dropContainerRef.current}
-                              onRemove={removeUploadFile}
-                              onRetry={(uid) => {
-                                void retryUploadFile(uid)
-                              }}
-                              retryLabel={(name) =>
-                                t('explore.attachmentStatus.retry', { name })
-                              }
-                              overflow="scrollX"
-                              placeholder={(type) => ({
-                                icon: (
-                                  <div
-                                    style={{
-                                      width: '44px',
-                                      height: '44px',
-                                      borderRadius: '12px',
-                                      backgroundColor:
-                                        type === 'drop'
-                                          ? 'var(--color-state-focus-10)'
-                                          : 'var(--color-surface-secondary)',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'center',
-                                      marginBottom: '12px',
-                                      transition: 'all 0.2s ease',
-                                    }}
-                                  >
-                                    <Upload
-                                      className="h-5 w-5"
-                                      style={{
-                                        color:
-                                          type === 'drop'
-                                            ? 'var(--color-state-focus)'
-                                            : 'var(--color-text-tertiary)',
-                                        transition: 'color 0.2s ease',
-                                      }}
-                                    />
-                                  </div>
-                                ),
-                                title: (
-                                  <span
-                                    style={{
-                                      color: 'var(--color-text-primary)',
-                                      fontWeight: 500,
-                                      fontSize: '14px',
-                                    }}
-                                  >
-                                    {type === 'drop'
-                                      ? t('explore.dragUpload.titleShort')
-                                      : t('explore.dragUpload.action')}
-                                  </span>
-                                ),
-                                description: (
-                                  <span
-                                    style={{
-                                      color: 'var(--color-text-tertiary)',
-                                      fontSize: '12px',
-                                      marginTop: '4px',
-                                      display: 'block',
-                                    }}
-                                  >
-                                    {t('explore.dragUpload.limits', {
-                                      count: uploadConfig.maxCount,
-                                      size: Math.round(
-                                        uploadConfig.maxSize / 1024 / 1024,
-                                      ),
-                                    })}
-                                  </span>
-                                ),
+                              src={currentApp?.icon}
+                              seed={currentApp?.id}
+                              size="2xl"
+                            />
+                          }
+                          title={
+                            currentApp?.name || t('explore.assistantFallback')
+                          }
+                          description={
+                            currentApp?.description ||
+                            t('explore.welcomeDescription')
+                          }
+                        />
+                        {showCurrentAppPrologue ? (
+                          <div className="app-chat-area mt-6 w-full max-w-2xl">
+                            <Bubble
+                              {...getAppChatBubbleProps('assistant', {
+                                name: currentApp?.name,
+                                icon: currentAppIconUrl || undefined,
                               })}
+                              content={currentAppPrologue}
+                              contentRender={() => (
+                                <ExploreChatAnswer
+                                  content={currentAppPrologue}
+                                  isStreaming={false}
+                                />
+                              )}
+                            />
+                          </div>
+                        ) : null}
+                        <div className="mt-8">
+                          <Prompts
+                            items={promptItems}
+                            onItemClick={(info) => {
+                              if (typeof info.data.label === 'string') {
+                                setInputValue(info.data.label)
+                              }
+                            }}
+                            wrap
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <div
+                        className={cn(
+                          'explore-chat-area app-chat-area mx-auto',
+                          chatLayout === 'full'
+                            ? 'max-w-none px-4'
+                            : chatLayout === 'center'
+                              ? 'max-w-4xl'
+                              : 'max-w-3xl',
+                        )}
+                        style={{ height: '100%' }}
+                      >
+                        <Bubble.List
+                          items={bubbleItems}
+                          autoScroll
+                          style={{ height: '100%' }}
+                          role={CHAT_BUBBLE_ROLES}
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 输入区域（参考 ragflow 重构） */}
+                  {(activeTab !== 'topics' || selectedConversationDetail) && (
+                    <div className="px-6 pb-6">
+                      <div
+                        className={cn(
+                          'mx-auto',
+                          chatLayout === 'full'
+                            ? 'max-w-none px-4'
+                            : chatLayout === 'center'
+                              ? 'max-w-4xl'
+                              : 'max-w-3xl',
+                        )}
+                      >
+                        <AppChatComposer
+                          value={inputValue}
+                          onChange={setInputValue}
+                          placeholder={t('explore.sender.placeholder')}
+                          loading={isStreaming}
+                          disabled={isLoadingConversation}
+                          // 文件上传面板（参考 ragflow）
+                          header={
+                            <Sender.Header
+                              title={
+                                <span
+                                  style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    color: 'var(--color-text-primary)',
+                                    fontWeight: 500,
+                                    fontSize: '14px',
+                                  }}
+                                >
+                                  <Upload
+                                    className="h-4 w-4"
+                                    style={{
+                                      color: 'var(--color-state-focus)',
+                                    }}
+                                  />
+                                  {t('explore.sender.uploadFile')}
+                                </span>
+                              }
+                              open={headerOpen}
+                              onOpenChange={setHeaderOpen}
                               styles={{
-                                root: {
+                                header: {
                                   backgroundColor:
                                     'var(--color-components-card-bg)',
-                                  padding: '20px 16px',
-                                  transition: 'background-color 0.2s ease',
-                                },
-                                placeholder: {
-                                  padding: 0,
-                                  margin: 0,
+                                  borderRadius: '16px 16px 0 0',
                                   border: 'none',
-                                  background: 'transparent',
-                                },
-                                list: {
-                                  padding: '0 0 8px 0',
-                                  gap: '8px',
-                                },
-                                card: {
-                                  backgroundColor:
-                                    'var(--color-components-input-bg)',
-                                  border:
+                                  borderBottom:
                                     '1px solid var(--color-border-default)',
-                                  borderRadius: '10px',
-                                  padding: '8px 12px',
-                                  transition: 'all 0.2s ease',
+                                  padding: '12px 16px',
                                 },
-                                name: {
-                                  color: 'var(--color-text-primary)',
-                                  fontWeight: 500,
-                                  fontSize: '13px',
-                                },
-                                description: {
-                                  color: 'var(--color-text-tertiary)',
-                                  fontSize: '12px',
+                                content: {
+                                  padding: 0,
+                                  backgroundColor:
+                                    'var(--color-components-card-bg)',
+                                  border: 'none',
                                 },
                               }}
-                              onUpload={async (file) => {
-                                const result = await uploadFile(file)
-                                if (result) {
-                                  toast.success(
-                                    t('explore.toast.uploadSuccess', {
-                                      name: file.name,
-                                    }),
-                                  )
-                                }
-                              }}
-                            />
-                          </Sender.Header>
-                        }
-                        // 右侧操作区：停止按钮或发送按钮
-                        suffix={(_, { components }) =>
-                          isStreaming ? (
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              className="h-8 w-8 p-0"
-                              onClick={handleStopOutput}
-                              title={t('explore.sender.stop')}
-                              aria-label={t('explore.sender.stop')}
                             >
-                              <Square className="h-4 w-4" />
-                            </Button>
-                          ) : (
-                            <components.SendButton
-                              disabled={!canSubmitMessage}
-                              aria-label={t('studio.editor.send')}
-                            />
-                          )
-                        }
-                        onSubmit={(message) => {
-                          if (!canSubmitMessage) return
-                          void handleSendMessage(message)
-                          setHeaderOpen(false)
-                        }}
-                        onCancel={handleStopOutput}
-                        onPasteFile={(files) => {
-                          if (files.length > 0) setHeaderOpen(true)
-                          for (let i = 0; i < files.length; i++) {
-                            const file = files[i]
-                            if (file.size <= uploadConfig.maxSize) {
-                              void uploadFile(file)
-                            } else {
-                              toast.error(
-                                t('explore.toast.fileTooLarge', {
-                                  name: file.name,
-                                }),
-                              )
-                            }
+                              <ControlledAttachments
+                                items={attachmentItems}
+                                uploadLabel={t('explore.sender.uploadFile')}
+                                removeLabel={(name) =>
+                                  t('explore.attachmentStatus.remove', { name })
+                                }
+                                failureLabel={t(
+                                  'explore.attachmentStatus.failed',
+                                )}
+                                maxCount={uploadConfig.maxCount}
+                                getDropContainer={() =>
+                                  dropContainerRef.current
+                                }
+                                onRemove={removeUploadFile}
+                                onRetry={(uid) => {
+                                  void retryUploadFile(uid)
+                                }}
+                                retryLabel={(name) =>
+                                  t('explore.attachmentStatus.retry', { name })
+                                }
+                                overflow="scrollX"
+                                placeholder={(type) => ({
+                                  icon: (
+                                    <div
+                                      style={{
+                                        width: '44px',
+                                        height: '44px',
+                                        borderRadius: '12px',
+                                        backgroundColor:
+                                          type === 'drop'
+                                            ? 'var(--color-state-focus-10)'
+                                            : 'var(--color-surface-secondary)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        marginBottom: '12px',
+                                        transition: 'all 0.2s ease',
+                                      }}
+                                    >
+                                      <Upload
+                                        className="h-5 w-5"
+                                        style={{
+                                          color:
+                                            type === 'drop'
+                                              ? 'var(--color-state-focus)'
+                                              : 'var(--color-text-tertiary)',
+                                          transition: 'color 0.2s ease',
+                                        }}
+                                      />
+                                    </div>
+                                  ),
+                                  title: (
+                                    <span
+                                      style={{
+                                        color: 'var(--color-text-primary)',
+                                        fontWeight: 500,
+                                        fontSize: '14px',
+                                      }}
+                                    >
+                                      {type === 'drop'
+                                        ? t('explore.dragUpload.titleShort')
+                                        : t('explore.dragUpload.action')}
+                                    </span>
+                                  ),
+                                  description: (
+                                    <span
+                                      style={{
+                                        color: 'var(--color-text-tertiary)',
+                                        fontSize: '12px',
+                                        marginTop: '4px',
+                                        display: 'block',
+                                      }}
+                                    >
+                                      {t('explore.dragUpload.limits', {
+                                        count: uploadConfig.maxCount,
+                                        size: Math.round(
+                                          uploadConfig.maxSize / 1024 / 1024,
+                                        ),
+                                      })}
+                                    </span>
+                                  ),
+                                })}
+                                styles={{
+                                  root: {
+                                    backgroundColor:
+                                      'var(--color-components-card-bg)',
+                                    padding: '20px 16px',
+                                    transition: 'background-color 0.2s ease',
+                                  },
+                                  placeholder: {
+                                    padding: 0,
+                                    margin: 0,
+                                    border: 'none',
+                                    background: 'transparent',
+                                  },
+                                  list: {
+                                    padding: '0 0 8px 0',
+                                    gap: '8px',
+                                  },
+                                  card: {
+                                    backgroundColor:
+                                      'var(--color-components-input-bg)',
+                                    border:
+                                      '1px solid var(--color-border-default)',
+                                    borderRadius: '10px',
+                                    padding: '8px 12px',
+                                    transition: 'all 0.2s ease',
+                                  },
+                                  name: {
+                                    color: 'var(--color-text-primary)',
+                                    fontWeight: 500,
+                                    fontSize: '13px',
+                                  },
+                                  description: {
+                                    color: 'var(--color-text-tertiary)',
+                                    fontSize: '12px',
+                                  },
+                                }}
+                                onUpload={async (file) => {
+                                  const result = await uploadFile(file)
+                                  if (result) {
+                                    toast.success(
+                                      t('explore.toast.uploadSuccess', {
+                                        name: file.name,
+                                      }),
+                                    )
+                                  }
+                                }}
+                              />
+                            </Sender.Header>
                           }
-                        }}
-                        footer={
-                          <div
-                            className="flex items-center justify-between"
-                            style={{
-                              paddingLeft: '12px',
-                              paddingRight: '12px',
-                              paddingBottom: '10px',
-                              paddingTop: '4px',
-                            }}
-                          >
-                            <div className="flex items-center gap-1">
-                              {/* 附件按钮 */}
+                          // 右侧操作区：停止按钮或发送按钮
+                          suffix={(_, { components }) =>
+                            isStreaming ? (
                               <Button
-                                variant="ghost"
+                                variant="destructive"
                                 size="sm"
-                                className="h-7 gap-1.5 px-1.5"
-                                onClick={() => setHeaderOpen(!headerOpen)}
-                                title={t('explore.sender.uploadFile')}
+                                className="h-8 w-8 p-0"
+                                onClick={handleStopOutput}
+                                title={t('explore.sender.stop')}
+                                aria-label={t('explore.sender.stop')}
                               >
-                                <Paperclip
-                                  className="h-4 w-4"
-                                  style={{
-                                    color: headerOpen
-                                      ? 'var(--color-text-accent)'
-                                      : 'var(--color-text-tertiary)',
-                                  }}
-                                />
-                                {uploadFiles.length > 0 && (
-                                  <span
-                                    className="text-xs"
-                                    style={{
-                                      color: 'var(--color-text-secondary)',
-                                    }}
-                                  >
-                                    {
-                                      uploadFiles.filter(
-                                        (f) => f.status === 'done',
-                                      ).length
-                                    }
-                                  </span>
-                                )}
+                                <Square className="h-4 w-4" />
                               </Button>
-
-                              {/* 深度思考按钮 */}
-                              <Button
-                                variant={enableReasoning ? 'default' : 'ghost'}
-                                size="sm"
-                                className={cn(
-                                  'h-7 gap-1.5 px-2 transition-colors',
-                                  enableReasoning
-                                    ? 'bg-[var(--color-components-button-primary-bg)] text-[var(--color-components-button-primary-text)] hover:bg-[var(--color-components-button-primary-bg-hover)]'
-                                    : 'text-[var(--color-text-tertiary)]',
-                                )}
-                                onClick={() =>
-                                  setEnableReasoning(!enableReasoning)
-                                }
-                                title={t('explore.sender.thinking')}
-                              >
-                                <Atom className="h-4 w-4" />
-                                <span className="text-xs">
-                                  {t('explore.sender.thinking')}
-                                </span>
-                              </Button>
-
-                              {/* 联网搜索按钮 */}
-                              <Button
-                                variant={enableInternet ? 'default' : 'ghost'}
-                                size="sm"
-                                className={cn(
-                                  'h-7 gap-1.5 px-2 transition-colors',
-                                  enableInternet
-                                    ? 'bg-[var(--color-components-button-primary-bg)] text-[var(--color-components-button-primary-text)] hover:bg-[var(--color-components-button-primary-bg-hover)]'
-                                    : 'text-[var(--color-text-tertiary)]',
-                                )}
-                                onClick={() =>
-                                  setEnableInternet(!enableInternet)
-                                }
-                                title={t('explore.sender.onlineSearch')}
-                              >
-                                <Globe className="h-4 w-4" />
-                              </Button>
-                            </div>
-
-                            {/* 右侧状态提示 */}
+                            ) : (
+                              <components.SendButton
+                                disabled={!canSubmitMessage}
+                                aria-label={t('studio.editor.send')}
+                              />
+                            )
+                          }
+                          onSubmit={(message) => {
+                            if (!canSubmitMessage) return
+                            void handleSendMessage(message)
+                            setHeaderOpen(false)
+                          }}
+                          onCancel={handleStopOutput}
+                          onPasteFile={(files) => {
+                            if (files.length > 0) setHeaderOpen(true)
+                            for (let i = 0; i < files.length; i++) {
+                              const file = files[i]
+                              if (file.size <= uploadConfig.maxSize) {
+                                void uploadFile(file)
+                              } else {
+                                toast.error(
+                                  t('explore.toast.fileTooLarge', {
+                                    name: file.name,
+                                  }),
+                                )
+                              }
+                            }
+                          }}
+                          footer={
                             <div
-                              className="flex items-center gap-2 text-xs"
-                              style={{ color: 'var(--color-text-tertiary)' }}
+                              className="flex items-center justify-between"
+                              style={{
+                                paddingLeft: '12px',
+                                paddingRight: '12px',
+                                paddingBottom: '10px',
+                                paddingTop: '4px',
+                              }}
                             >
-                              {hasUploadingFiles && (
-                                <div className="flex items-center gap-1">
-                                  <div className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                                  <span>{t('explore.sender.uploading')}</span>
-                                </div>
-                              )}
-                              {!hasUploadingFiles && hasReadyUploads && (
-                                <div className="flex items-center gap-1">
-                                  <span>
-                                    {t('explore.sender.attachmentsReady', {
-                                      count: uploadedAttachments.length,
-                                    })}
-                                  </span>
-                                  {!inputValue.trim() && (
-                                    <span>
-                                      {t('explore.sender.canSendDirectly')}
+                              <div className="flex items-center gap-1">
+                                {/* 附件按钮 */}
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-7 gap-1.5 px-1.5"
+                                  onClick={() => setHeaderOpen(!headerOpen)}
+                                  title={t('explore.sender.uploadFile')}
+                                >
+                                  <Paperclip
+                                    className="h-4 w-4"
+                                    style={{
+                                      color: headerOpen
+                                        ? 'var(--color-text-accent)'
+                                        : 'var(--color-text-tertiary)',
+                                    }}
+                                  />
+                                  {uploadFiles.length > 0 && (
+                                    <span
+                                      className="text-xs"
+                                      style={{
+                                        color: 'var(--color-text-secondary)',
+                                      }}
+                                    >
+                                      {
+                                        uploadFiles.filter(
+                                          (f) => f.status === 'done',
+                                        ).length
+                                      }
                                     </span>
                                   )}
-                                </div>
-                              )}
-                              {hasUploadError && (
-                                <span className="text-status-error">
-                                  {t('explore.sender.uploadErrorHint')}
-                                </span>
-                              )}
+                                </Button>
+
+                                {/* 深度思考按钮 */}
+                                <Button
+                                  variant={
+                                    enableReasoning ? 'default' : 'ghost'
+                                  }
+                                  size="sm"
+                                  className={cn(
+                                    'h-7 gap-1.5 px-2 transition-colors',
+                                    enableReasoning
+                                      ? 'bg-[var(--color-components-button-primary-bg)] text-[var(--color-components-button-primary-text)] hover:bg-[var(--color-components-button-primary-bg-hover)]'
+                                      : 'text-[var(--color-text-tertiary)]',
+                                  )}
+                                  onClick={() =>
+                                    setEnableReasoning(!enableReasoning)
+                                  }
+                                  title={t('explore.sender.thinking')}
+                                >
+                                  <Atom className="h-4 w-4" />
+                                  <span className="text-xs">
+                                    {t('explore.sender.thinking')}
+                                  </span>
+                                </Button>
+
+                                {/* 联网搜索按钮 */}
+                                <Button
+                                  variant={enableInternet ? 'default' : 'ghost'}
+                                  size="sm"
+                                  className={cn(
+                                    'h-7 gap-1.5 px-2 transition-colors',
+                                    enableInternet
+                                      ? 'bg-[var(--color-components-button-primary-bg)] text-[var(--color-components-button-primary-text)] hover:bg-[var(--color-components-button-primary-bg-hover)]'
+                                      : 'text-[var(--color-text-tertiary)]',
+                                  )}
+                                  onClick={() =>
+                                    setEnableInternet(!enableInternet)
+                                  }
+                                  title={t('explore.sender.onlineSearch')}
+                                >
+                                  <Globe className="h-4 w-4" />
+                                </Button>
+                              </div>
+
+                              {/* 右侧状态提示 */}
+                              <div
+                                className="flex items-center gap-2 text-xs"
+                                style={{ color: 'var(--color-text-tertiary)' }}
+                              >
+                                {hasUploadingFiles && (
+                                  <div className="flex items-center gap-1">
+                                    <div className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                                    <span>{t('explore.sender.uploading')}</span>
+                                  </div>
+                                )}
+                                {!hasUploadingFiles && hasReadyUploads && (
+                                  <div className="flex items-center gap-1">
+                                    <span>
+                                      {t('explore.sender.attachmentsReady', {
+                                        count: uploadedAttachments.length,
+                                      })}
+                                    </span>
+                                    {!inputValue.trim() && (
+                                      <span>
+                                        {t('explore.sender.canSendDirectly')}
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                                {hasUploadError && (
+                                  <span className="text-status-error">
+                                    {t('explore.sender.uploadErrorHint')}
+                                  </span>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        }
-                      />
+                          }
+                        />
+                      </div>
                     </div>
-                  </div>
-                )}
-              </>
-            )}
+                  )}
+                </>
+              )}
+            </div>
           </div>
+
+          {/* 聊天设置面板 */}
+          {mode === 'chat' && (
+            <ChatSettingsPanel
+              open={settingsPanelOpen}
+              onClose={() => setSettingsPanelOpen(false)}
+              settings={chatSettings}
+              onSettingsChange={setChatSettings}
+              onSave={
+                selectedApp ? () => saveSettings(chatSettings) : undefined
+              }
+              saving={savingSettings}
+              loading={settingsLoading}
+              knowledgeBases={knowledgeBases}
+              rerankModels={rerankModels}
+              llmModels={myLLMs}
+              modelsLoading={modelsLoading}
+              onLoadKnowledgeBases={loadKnowledgeBases}
+            />
+          )}
         </div>
-
-        {/* 聊天设置面板 */}
-        {mode === 'chat' && (
-          <ChatSettingsPanel
-            open={settingsPanelOpen}
-            onClose={() => setSettingsPanelOpen(false)}
-            settings={chatSettings}
-            onSettingsChange={setChatSettings}
-            onSave={selectedApp ? () => saveSettings(chatSettings) : undefined}
-            saving={savingSettings}
-            loading={settingsLoading}
-            knowledgeBases={knowledgeBases}
-            rerankModels={rerankModels}
-            llmModels={myLLMs}
-            modelsLoading={modelsLoading}
-            onLoadKnowledgeBases={loadKnowledgeBases}
-          />
-        )}
-
-        {/* 引用详情侧边栏 */}
-        <ReferenceDetailSheet
-          open={detailSheetOpen}
-          onOpenChange={setDetailSheetOpen}
-          chunk={selectedChunk}
-          allChunks={currentMessageReferences}
-          onCopySuccess={() => {
-            /* 组件内部已处理 toast */
-          }}
-        />
       </div>
-    </div>
+    </ChatWorkspace>
   )
 }

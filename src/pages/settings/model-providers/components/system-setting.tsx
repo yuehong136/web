@@ -1,298 +1,309 @@
-import React, { useEffect, useMemo, useState, useCallback } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useForm, useWatch } from 'react-hook-form'
+import { z } from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { FormTooltip } from '@/components/ui/tooltip'
+import { Button } from '@/components/ui/button'
 import {
   SelectWithSearch,
   type SelectOptionGroup,
 } from '@/components/ui/select-with-search'
-import { IconMap, LLMFactory, isLLMModelEnabled } from '@/stores/model'
+import {
+  AppScene,
+  PageErrorState,
+  PageLoadingState,
+} from '@/components/patterns'
+import { isLLMModelEnabled, type MyLLMProvider } from '@/stores/model'
 import { useFetchMyLLMs } from '@/hooks/use-llm-request'
-import { authAPI } from '@/api/auth'
+import { useDefaultModelRequest } from '@/hooks/use-default-model-request'
 import { toast } from '@/lib/toast'
-import { IconFontFill } from '@/components/ui/icon-font'
-import { useIsDarkTheme } from '@/themes'
+import type { TenantInfo } from '@/types/team'
+import type { TenantModelSettings } from '@/api/auth'
 
-interface TenantInfo {
-  tenant_id: string
-  name: string
-  llm_id: string
-  embd_id: string
-  img2txt_id: string
-  asr_id: string
-  rerank_id: string
-  tts_id: string
-}
-
-const MODEL_TYPES = {
-  llm_id: {
-    label: 'LLM',
-    types: ['chat'],
-    tooltip: '所有新创建的知识库都会使用默认的聊天模型。',
+const MODEL_FIELDS = [
+  {
+    field: 'llm_id',
+    name: 'chat',
+    types: ['chat', 'image2text'],
     required: true,
   },
-  embd_id: {
-    label: 'Embedding',
-    types: ['embedding'],
-    tooltip:
-      '所有新创建的知识库使用的默认嵌入模型。如未显示可选模型，请检查你是否在使用 MultiRAG slim 版(不含嵌入模型)；或确认你的模型供应商是否提供该模型。',
-  },
-  img2txt_id: {
-    label: 'VLM',
-    types: ['image2text'],
-    tooltip:
-      '所有新创建的知识库都将使用默认的 VLM 模型。它可以描述图片或视频。如未显示可选模型，请确认你的模型供应商是否提供该模型。',
-  },
-  asr_id: {
-    label: 'ASR',
-    types: ['speech2text'],
-    tooltip:
-      '所有新创建的知识库都将使用默认的 ASR 模型。使用此模型将语音翻译为相应的文本。如未显示可选模型，请确认你的模型供应商是否提供该模型。',
-  },
-  rerank_id: {
-    label: 'Rerank',
-    types: ['rerank'],
-    tooltip:
-      '默认的 reranking 模型。如未显示可选模型，请确认你的模型供应商是否提供该模型。',
-  },
-  tts_id: {
-    label: 'TTS',
-    types: ['tts'],
-    tooltip:
-      '默认的 TTS 模型会被用于在对话过程中请求语音生成时使用。如未显示可选模型，请确认你的模型供应商是否提供该模型。',
-  },
-} as const
+  { field: 'embd_id', name: 'embedding', types: ['embedding'] },
+  { field: 'img2txt_id', name: 'vision', types: ['image2text'] },
+  { field: 'asr_id', name: 'speech', types: ['speech2text'] },
+  { field: 'rerank_id', name: 'rerank', types: ['rerank'] },
+  { field: 'tts_id', name: 'tts', types: ['tts'] },
+] as const
 
-// 需要主题切换的厂商
-const THEME_AWARE_FACTORIES = [
-  LLMFactory.FishAudio,
-  LLMFactory.TogetherAI,
-  LLMFactory.Meituan,
-  LLMFactory.Longcat,
-]
+type ModelField = (typeof MODEL_FIELDS)[number]['field']
+const defaultModelsSchema = z.object({
+  llm_id: z.string().min(1),
+  embd_id: z.string(),
+  img2txt_id: z.string(),
+  asr_id: z.string(),
+  rerank_id: z.string(),
+  tts_id: z.string(),
+})
+type ModelValues = z.infer<typeof defaultModelsSchema>
 
-// 获取图标名称
-const getIconName = (provider: string, isDark: boolean): string => {
-  const baseIcon = IconMap[provider as keyof typeof IconMap] || 'moxing-default'
-  if (THEME_AWARE_FACTORIES.includes(provider as any)) {
-    return isDark ? `${baseIcon}-dark` : `${baseIcon}-bright`
-  }
-  return baseIcon
+function getModelValues(tenant: TenantInfo): ModelValues {
+  return Object.fromEntries(
+    MODEL_FIELDS.map(({ field }) => [field, tenant[field] ?? '']),
+  ) as ModelValues
 }
 
-// 构建带图标的选项 Label
-const ModelOptionLabel: React.FC<{ provider: string; modelName: string }> = ({
-  provider,
-  modelName,
-}) => {
-  const isDark = useIsDarkTheme()
-  const iconName = getIconName(provider, isDark)
-
-  return (
-    <div className="flex w-full min-w-0 items-center gap-2">
-      <IconFontFill name={iconName} className="h-5 w-5 shrink-0" />
-      <span className="truncate">{modelName}</span>
-    </div>
-  )
-}
-
-export const SystemSetting: React.FC = () => {
-  const { t } = useTranslation()
-  const { myLLMs } = useFetchMyLLMs()
-  const _isDark = useIsDarkTheme()
-  const [tenantInfo, setTenantInfo] = useState<TenantInfo>({
-    tenant_id: '',
-    name: '',
-    llm_id: '',
-    embd_id: '',
-    img2txt_id: '',
-    asr_id: '',
-    rerank_id: '',
-    tts_id: '',
+function getModelOptions(
+  models: MyLLMProvider,
+  types: readonly string[],
+  selected: string,
+  unavailableLabel: string,
+): SelectOptionGroup[] {
+  const groups = Object.entries(models).flatMap(([provider, data]) => {
+    const options = data.llm
+      .filter((model) => types.includes(model.type) && isLLMModelEnabled(model))
+      .map((model) => ({
+        label: model.name,
+        value: `${model.name}@${provider}`,
+      }))
+    return options.length ? [{ label: provider, options }] : []
   })
-
-  // 从后端获取系统设置
-  useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const response = await authAPI.getTenantInfo()
-        if (response) {
-          setTenantInfo({
-            tenant_id: response.tenant_id || '',
-            name: response.name || '',
-            llm_id: response.llm_id || '',
-            embd_id: response.embd_id || '',
-            img2txt_id: response.img2txt_id || '',
-            asr_id: response.asr_id || '',
-            rerank_id: response.rerank_id || '',
-            tts_id: response.tts_id || '',
-          })
-        }
-      } catch (error) {
-        console.error('Failed to fetch tenant info:', error)
-      }
-    }
-    fetchSettings()
-  }, [])
-
-  // 构建所有模型的 value 映射（用于查找匹配）
-  const allModelValues = useMemo(() => {
-    const values: Map<string, string> = new Map()
-    Object.entries(myLLMs).forEach(([providerName, providerData]) => {
-      providerData.llm.forEach((model) => {
-        if (!isLLMModelEnabled(model)) return
-        const fullValue = `${model.name}@${providerName}`
-        // 存储多种可能的匹配格式
-        values.set(fullValue.toLowerCase(), fullValue)
-        values.set(model.name.toLowerCase(), fullValue)
-      })
+  if (
+    selected &&
+    !groups.some((group) =>
+      group.options.some((option) => option.value === selected),
+    )
+  ) {
+    groups.unshift({
+      label: unavailableLabel,
+      options: [{ label: selected, value: selected }],
     })
-    return values
-  }, [myLLMs])
+  }
+  return groups
+}
 
-  // 规范化已选择的值（匹配 API 返回格式）
-  const normalizeValue = useCallback(
-    (value: string): string => {
-      if (!value) return ''
-      // 直接匹配
-      const lowerValue = value.toLowerCase()
-      if (allModelValues.has(lowerValue)) {
-        return allModelValues.get(lowerValue)!
-      }
-      // 尝试匹配（忽略大小写和连字符变化）
-      for (const [key, fullValue] of allModelValues) {
-        if (
-          key
-            .replace(/-/g, '')
-            .includes(lowerValue.replace(/-/g, '').replace(/@.*$/, ''))
-        ) {
-          return fullValue
-        }
-      }
-      return value
-    },
-    [allModelValues],
+export function SystemSetting() {
+  const { t } = useTranslation()
+  const request = useDefaultModelRequest()
+  const models = useFetchMyLLMs()
+  if (!request.tenantInfo) {
+    if (request.isError)
+      return (
+        <PageErrorState
+          scene={AppScene.CONSOLE}
+          compact
+          title={t('settings.models.defaultsLoadFailed')}
+          description={null}
+          retryLabel={t('common.retry')}
+          onRetry={() => {
+            void request.refetch()
+          }}
+        />
+      )
+    return (
+      <PageLoadingState
+        scene={AppScene.CONSOLE}
+        compact
+        title={t('common.loading')}
+        description={null}
+      />
+    )
+  }
+  return (
+    <DefaultModelsForm
+      key={request.tenantInfo.tenant_id}
+      tenant={request.tenantInfo}
+      models={models.myLLMs}
+      saving={request.update.isPending}
+      modelsFailed={models.isError}
+      retryModels={() => {
+        void models.refetch()
+      }}
+      onSave={(values) => request.update.mutateAsync(values)}
+    />
   )
+}
 
-  // 根据模型类型构建分组选项列表（按厂商分组，带图标）
-  const getGroupedOptionsForType = useCallback(
-    (types: string[]): SelectOptionGroup[] => {
-      const groups: SelectOptionGroup[] = []
-
-      Object.entries(myLLMs).forEach(([providerName, providerData]) => {
-        const matchingModels = providerData.llm.filter(
-          (model) => types.includes(model.type) && isLLMModelEnabled(model),
-        )
-
-        if (matchingModels.length > 0) {
-          groups.push({
-            // 分组标题：纯文字厂商名称（与 ragflow 一致）
-            label: providerName,
-            options: matchingModels.map((model) => ({
-              // 选项：模型名称（带图标）
-              label: (
-                <ModelOptionLabel
-                  provider={providerName}
-                  modelName={model.name}
-                />
-              ),
-              value: `${model.name}@${providerName}`, // 与 ragflow 格式一致
-              disabled: false,
-            })),
-          })
-        }
-      })
-
-      return groups
-    },
-    [myLLMs],
-  )
-
-  // 为每种模型类型生成分组选项
-  const modelOptions = useMemo(() => {
-    return {
-      llm_id: getGroupedOptionsForType(['chat', 'image2text']),
-      embd_id: getGroupedOptionsForType(['embedding']),
-      img2txt_id: getGroupedOptionsForType(['image2text']),
-      asr_id: getGroupedOptionsForType(['speech2text']),
-      rerank_id: getGroupedOptionsForType(['rerank']),
-      tts_id: getGroupedOptionsForType(['tts']),
+function DefaultModelsForm({
+  tenant,
+  models,
+  saving,
+  modelsFailed,
+  retryModels,
+  onSave,
+}: {
+  tenant: TenantInfo
+  models: MyLLMProvider
+  saving: boolean
+  modelsFailed: boolean
+  retryModels: () => void
+  onSave: (values: TenantModelSettings) => Promise<unknown>
+}) {
+  const { t } = useTranslation()
+  const current = useMemo(() => getModelValues(tenant), [tenant])
+  const form = useForm<ModelValues>({
+    resolver: zodResolver(defaultModelsSchema),
+    defaultValues: current,
+    values: current,
+    resetOptions: { keepDirtyValues: true },
+  })
+  const values = { ...current, ...useWatch({ control: form.control }) }
+  const dirty = form.formState.isDirty
+  const [saveFailed, setSaveFailed] = useState(false)
+  const [localPending, setLocalPending] = useState(false)
+  const pending = saving || localPending
+  const active = useRef(false)
+  const submitting = useRef(false)
+  useEffect(() => {
+    active.current = true
+    return () => {
+      active.current = false
     }
-  }, [getGroupedOptionsForType])
+  }, [])
+  const unavailableLabel = t('settings.models.defaultsUnavailable')
+  const options = Object.fromEntries(
+    MODEL_FIELDS.map(({ field, types }) => [
+      field,
+      getModelOptions(models, types, values[field], unavailableLabel),
+    ]),
+  ) as Record<ModelField, SelectOptionGroup[]>
 
-  // 处理字段变更并保存（传递完整的设置对象）
-  const handleFieldChange = useCallback(
-    async (field: keyof TenantInfo, value: string) => {
-      const updatedInfo = { ...tenantInfo, [field]: value || '' }
-      setTenantInfo(updatedInfo)
-
-      try {
-        // 传递完整的设置对象，与 ragflow 一致
-        await authAPI.updateTenantInfo({
-          tenant_id: updatedInfo.tenant_id,
-          name: updatedInfo.name,
-          llm_id: updatedInfo.llm_id,
-          embd_id: updatedInfo.embd_id,
-          img2txt_id: updatedInfo.img2txt_id,
-          asr_id: updatedInfo.asr_id,
-          rerank_id: updatedInfo.rerank_id,
-          tts_id: updatedInfo.tts_id,
-        })
-        toast.success('已更新')
-      } catch (error) {
-        console.error('Failed to save settings:', error)
-        toast.error('保存设置失败')
-      }
-    },
-    [tenantInfo],
-  )
+  const save = async (submitted: ModelValues) => {
+    if (!dirty || pending || submitting.current || !values.llm_id) return
+    submitting.current = true
+    setLocalPending(true)
+    setSaveFailed(false)
+    try {
+      await onSave({
+        tenant_id: tenant.tenant_id,
+        name: tenant.name,
+        ...submitted,
+      })
+      if (!active.current) return
+      form.reset(submitted)
+      toast.success(t('settings.models.defaultsSaved'))
+    } catch {
+      if (!active.current) return
+      setSaveFailed(true)
+      toast.error(t('settings.models.defaultsSaveFailed'))
+    } finally {
+      submitting.current = false
+      if (active.current) setLocalPending(false)
+    }
+  }
 
   return (
-    <div className="w-full rounded-lg">
-      {/* 标题 */}
-      <div className="flex flex-col py-4">
+    <section className="flex flex-col gap-space-lg">
+      <header className="flex flex-col gap-space-xs">
         <h2 className="text-base font-semibold text-text-primary">
           {t('settings.models.defaults')}
         </h2>
-        <p className="mt-1 text-sm text-text-secondary">
+        <p className="text-sm text-text-secondary">
           {t('settings.models.defaultDescription')}
         </p>
-      </div>
-
-      {/* 设置表单 */}
-      <div className="max-h-[70vh] space-y-6 overflow-y-auto rounded-lg border border-border-subtle px-7 py-6">
-        {(Object.keys(MODEL_TYPES) as Array<keyof typeof MODEL_TYPES>).map(
-          (field) => {
-            const config = MODEL_TYPES[field]
-            const options = modelOptions[field]
-            // 使用规范化的值进行匹配
-            const currentValue = normalizeValue(tenantInfo[field])
-
-            return (
-              <div key={field} className="flex gap-3">
-                {/* 标签 */}
-                <label className="flex w-1/4 shrink-0 items-center text-sm font-normal text-text-secondary">
+      </header>
+      <form
+        onSubmit={(event) => {
+          void form.handleSubmit(save)(event)
+        }}
+        className="overflow-hidden rounded-radius-lg border border-border-subtle"
+      >
+        <div className="flex flex-col divide-y divide-border-subtle">
+          {MODEL_FIELDS.map((config) => (
+            <div
+              key={config.field}
+              className="grid gap-space-md p-space-lg sm:grid-cols-2"
+            >
+              <div className="flex flex-col gap-space-xs">
+                <span className="flex items-center gap-space-xs text-sm font-medium text-text-primary">
+                  {t(`settings.models.defaultFields.${config.name}.label`)}
                   {'required' in config && config.required && (
-                    <span className="text-red-500">*</span>
+                    <span aria-hidden className="text-status-error">
+                      *
+                    </span>
                   )}
-                  {config.label}
-                  <FormTooltip tooltip={config.tooltip} />
-                </label>
-
-                {/* 选择器 */}
-                <SelectWithSearch
-                  triggerClassName="w-3/4 flex items-center"
-                  value={currentValue}
-                  options={options}
-                  onChange={(value) => handleFieldChange(field, value)}
-                  placeholder="请选择模型"
-                  emptyText="暂无可用模型，请先添加模型供应商"
-                  allowClear={field !== 'llm_id'}
-                />
+                  <FormTooltip
+                    tooltip={t(
+                      `settings.models.defaultFields.${config.name}.hint`,
+                    )}
+                  />
+                </span>
               </div>
-            )
-          },
+              <SelectWithSearch
+                ariaLabel={t(
+                  `settings.models.defaultFields.${config.name}.label`,
+                )}
+                triggerClassName="w-full"
+                value={values[config.field]}
+                options={options[config.field]}
+                onChange={(value) => {
+                  form.setValue(config.field, value, { shouldDirty: true })
+                  setSaveFailed(false)
+                }}
+                disabled={pending}
+                placeholder={t('settings.models.defaultsSelect')}
+                emptyText={t('settings.models.defaultsEmpty')}
+                searchPlaceholder={t('common.search')}
+                allowClear={config.field !== 'llm_id'}
+              />
+            </div>
+          ))}
+        </div>
+        {modelsFailed && (
+          <div className="flex items-center justify-between gap-space-sm border-t border-border-subtle p-space-md text-sm text-text-secondary">
+            <span>{t('settings.models.defaultsModelsFailed')}</span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={retryModels}
+            >
+              {t('common.retry')}
+            </Button>
+          </div>
         )}
-      </div>
-    </div>
+        {saveFailed && (
+          <p
+            role="alert"
+            className="px-space-lg py-space-md text-sm text-status-error"
+          >
+            {t('settings.models.defaultsSaveFailed')}
+          </p>
+        )}
+        <footer className="flex flex-wrap items-center justify-between gap-space-md border-t border-border-subtle bg-background-subtle p-space-md">
+          <output className="text-sm text-text-secondary">
+            {t(
+              pending
+                ? 'common.saving'
+                : dirty
+                  ? 'settings.models.defaultsUnsaved'
+                  : 'settings.models.defaultsSavedHint',
+            )}
+          </output>
+          <div className="flex gap-space-sm">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={!dirty || pending}
+              onClick={() => {
+                if (submitting.current) return
+                form.reset(current)
+                setSaveFailed(false)
+              }}
+            >
+              {t('common.reset')}
+            </Button>
+            <Button
+              type="submit"
+              size="sm"
+              loading={pending}
+              disabled={!dirty || pending || !values.llm_id}
+            >
+              {t('common.save')}
+            </Button>
+          </div>
+        </footer>
+      </form>
+    </section>
   )
 }

@@ -29,7 +29,7 @@ export function useReturnFocus() {
   }
 }
 
-function getReturnFocusTargets(): HTMLElement[] {
+export function getReturnFocusTargets(): HTMLElement[] {
   const opener = document.activeElement
   if (!(opener instanceof HTMLElement) || opener === document.body) return []
   const popup = opener.closest<HTMLElement>('[role="dialog"][id]')

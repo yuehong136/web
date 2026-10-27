@@ -26,10 +26,17 @@ export {
 export {
   consumeStructuredChatChunk,
   createInitialStructuredChatState,
-  createSyntheticCompleteMessage,
+  finalizeStructuredChatState,
   type StructuredChatChunkResult,
   type StructuredChatState,
 } from './structured-chat-reducer'
+export {
+  getRunPhaseNotice,
+  getServerRunPhase,
+  isRunTerminal,
+  transitionRunPhase,
+  type RunPhase,
+} from './run-lifecycle'
 export {
   assertResponse,
   assertSSEResponse,
@@ -43,6 +50,7 @@ export {
   type CompleteStreamMessage,
   type ErrorStreamMessage,
   type MetadataStreamMessage,
+  type RunLifecycleStreamMessage,
   type SSEEnvelope,
   type StreamMessageBase,
   type StreamMessageType,

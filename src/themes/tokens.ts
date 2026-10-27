@@ -81,6 +81,8 @@ export interface DesignTokens
   'components-input-border-focus': string
   'components-input-text': string
   'components-input-text-placeholder': string
+  'components-input-text-disabled': string
+  'components-input-bg-disabled': string
 
   // ===== 组件系统 - 卡片 =====
   'components-card-bg': string
@@ -485,6 +487,8 @@ export const defaultTokens: DesignTokens = {
   'components-input-border-focus': '',
   'components-input-text': '',
   'components-input-text-placeholder': '',
+  'components-input-text-disabled': '',
+  'components-input-bg-disabled': '',
 
   // 卡片组件
   'components-card-bg': '',

@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Database, Github, Mail, Rss, Server, Table } from 'lucide-react'
+import { Database, Github, Globe, Mail, Rss, Server, Table } from 'lucide-react'
 import SvgIcon from '@/components/ui/svg-icon'
 import { DataSourceKey, type IDataSourceInfoMap } from '../types'
 import { getBaseFormFields, getDataSourceFormFields } from './form-fields'
@@ -37,6 +37,11 @@ const ICON_SIZE = 28
 export const generateDataSourceInfo = (
   t: (key: string) => string,
 ): IDataSourceInfoMap => ({
+  [DataSourceKey.REST_API]: {
+    name: t('datasource.restApi.name'),
+    description: t('datasource.restApi.description'),
+    icon: <Globe size={ICON_SIZE} className="text-text-primary" />,
+  },
   [DataSourceKey.SEAFILE]: {
     name: 'SeaFile',
     description: t('datasource.seafileDescription'),
@@ -335,6 +340,7 @@ export const DataSourceGroups = {
   ],
   database: [DataSourceKey.MYSQL, DataSourceKey.POSTGRESQL],
   communication: [
+    DataSourceKey.REST_API,
     DataSourceKey.GOOGLE_DRIVE,
     DataSourceKey.GMAIL,
     DataSourceKey.DISCORD,

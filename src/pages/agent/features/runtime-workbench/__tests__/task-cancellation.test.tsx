@@ -372,3 +372,57 @@ it.each(['en-US', 'zh-CN'] as const)(
     expect(hook.runtime.status).toBe(AgentRuntimeStatus.ERROR)
   },
 )
+
+it('studio splits an answer and pause prompt and resumes under the trusted draft session', async () => {
+  const hook = await mountWorkbench()
+  const body = stream()
+  mocks.runAgent.mockResolvedValueOnce(body.response)
+  const first = await hook.start()
+  await act(async () => {
+    body.emit({
+      event: 'message',
+      session_id: 'paused-session',
+      message_id: 'message-wait',
+      data: { content: 'Completed answer' },
+    })
+    body.emit({ event: 'message_end', message_id: 'message-wait', data: {} })
+    body.emit({
+      event: 'user_inputs',
+      message_id: 'message-wait',
+      data: {
+        tips: 'Continue?',
+        inputs: {
+          count: { type: 'number', value: 0 },
+          approved: { type: 'boolean', value: false },
+        },
+      },
+    })
+    body.end()
+    await first.pending
+  })
+  expect(hook.runtime.messages.at(-2)?.content).toBe('Completed answer')
+  const prompt = hook.runtime.messages.at(-1)!
+  expect(prompt.sourceMessageId).toBeTruthy()
+  expect(prompt.messageId).toBe('message-wait')
+  expect(prompt.awaitingInputs?.[1]?.value).toBe(false)
+  expect(
+    hook.runtime.logEvents.some((event) => event.event === 'user_inputs'),
+  ).toBe(true)
+  mocks.runAgent.mockResolvedValueOnce(
+    new Response('data:{"event":"message_end","data":{}}\n\n', {
+      headers: { 'Content-Type': 'text/event-stream' },
+    }),
+  )
+  await act(async () =>
+    hook.runtime.handleSubmitAwaitingInputs(prompt.id, prompt.awaitingInputs!),
+  )
+  expect(mocks.runAgent.mock.calls[1]?.[0]).toMatchObject({
+    id: 'canvas-A',
+    mode: 'draft',
+    session_id: 'paused-session',
+    inputs: { count: { value: 0 }, approved: { value: false } },
+  })
+  expect(
+    hook.runtime.messages.some((message) => message.awaitingInputs?.length),
+  ).toBe(false)
+})

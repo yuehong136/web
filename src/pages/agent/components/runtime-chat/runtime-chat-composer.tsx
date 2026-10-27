@@ -16,6 +16,7 @@ import type { RuntimeChatSendRequest } from './types'
 interface RuntimeChatComposerProps {
   canvasId?: string
   status: AgentRuntimeStatus
+  disabled?: boolean
   isTaskMode?: boolean
   density?: 'comfortable' | 'compact'
   placeholder?: string
@@ -29,6 +30,7 @@ export function RuntimeChatComposer({
   canvasId,
   status,
   isTaskMode = false,
+  disabled = false,
   density = 'comfortable',
   placeholder,
   className,
@@ -41,7 +43,8 @@ export function RuntimeChatComposer({
   const [files, setFiles] = useState<RuntimeAttachment[]>([])
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const loading = status === AgentRuntimeStatus.RUNNING
-  const sendDisabled = !isTaskMode && !value.trim() && files.length === 0
+  const sendDisabled =
+    disabled || (!isTaskMode && !value.trim() && files.length === 0)
 
   useEffect(() => {
     if (!textareaRef.current) {
@@ -128,7 +131,7 @@ export function RuntimeChatComposer({
                     size="icon-sm"
                     className="size-5 text-text-tertiary hover:text-text-primary"
                     onClick={() => handleRemoveFile(index)}
-                    disabled={loading}
+                    disabled={loading || disabled}
                     aria-label={t('agent.explore.removeAttachment', {
                       name: file.name,
                     })}
@@ -162,7 +165,7 @@ export function RuntimeChatComposer({
                 : 'min-h-[60px] text-base',
             )}
             rows={1}
-            disabled={loading}
+            disabled={loading || disabled}
           />
 
           <div className="mt-space-sm flex items-center justify-between">
@@ -181,7 +184,7 @@ export function RuntimeChatComposer({
                 buttonVariant="ghost"
                 buttonSize="icon"
                 buttonClassName="size-10 rounded-radius-full text-text-tertiary hover:bg-components-button-ghost-bg-hover hover:text-text-primary"
-                disabled={loading}
+                disabled={loading || disabled}
                 triggerIcon={<Paperclip className="size-4" />}
               />
             </div>

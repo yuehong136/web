@@ -277,6 +277,9 @@
     --color-components-icon-button-bg-hover
   );
   --color-components-input-bg: var(--color-components-input-bg);
+  --color-components-input-bg-disabled: var(
+    --color-components-input-bg-disabled
+  );
   --color-components-input-bg-focus: var(--color-components-input-bg-focus);
   --color-components-input-bg-hover: var(--color-components-input-bg-hover);
   --color-components-input-border: var(--color-components-input-border);
@@ -290,6 +293,9 @@
     --color-components-input-border-hover
   );
   --color-components-input-text: var(--color-components-input-text);
+  --color-components-input-text-disabled: var(
+    --color-components-input-text-disabled
+  );
   --color-components-input-text-placeholder: var(
     --color-components-input-text-placeholder
   );
@@ -470,6 +476,4 @@
     --color-components-slider-thumb-border
   );
   --color-components-slider-track: var(--color-components-slider-track);
-  --color-components-spinner-color: var(--color-components-spinner-color);
-  --color-components-split-pane-bg: var(--color-components-split-pane-bg);
 }

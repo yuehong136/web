@@ -4,6 +4,7 @@ interface RuntimeMessageRenderableState {
   message: RuntimeMessage
   mainContent: string
   thinkContent?: string
+  hasRetrieval?: boolean
   referencesLength: number
   hasXCard: boolean
 }
@@ -12,19 +13,21 @@ export function hasRuntimeMessageRenderableContent({
   message,
   mainContent,
   thinkContent,
+  hasRetrieval,
   referencesLength,
   hasXCard,
 }: RuntimeMessageRenderableState) {
   return Boolean(
     mainContent.trim() ||
-      thinkContent?.trim() ||
-      message.logEvents?.length ||
-      hasXCard ||
-      message.files?.length ||
-      message.awaitingInputs?.length ||
-      message.error ||
-      message.tips ||
-      referencesLength > 0,
+    thinkContent?.trim() ||
+    hasRetrieval ||
+    message.logEvents?.length ||
+    hasXCard ||
+    message.files?.length ||
+    message.awaitingInputs?.length ||
+    message.error ||
+    message.tips ||
+    referencesLength > 0,
   )
 }
 

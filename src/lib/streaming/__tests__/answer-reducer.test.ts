@@ -137,7 +137,7 @@ test('consumeStreamingAnswerChunk treats answer on end_to_think frame as main co
   assert.equal(answerChunk.isFinal, true)
 })
 
-test('finalizeStreamingAnswerState splits unclosed thinking with double-newline answer', () => {
+test('finalizeStreamingAnswerState keeps paragraphs inside explicitly unclosed thinking', () => {
   const thinkingChunk = consumeStreamingAnswerChunk(
     createInitialStreamingAnswerState(),
     {
@@ -154,8 +154,8 @@ test('finalizeStreamingAnswerState splits unclosed thinking with double-newline 
   })
   const finalized = finalizeStreamingAnswerState(doneChunk.nextState)
 
-  assert.equal(finalized.content, '你好，可以这样回复。')
-  assert.equal(finalized.thinking, '先判断用户意图。')
+  assert.equal(finalized.content, '')
+  assert.equal(finalized.thinking, '先判断用户意图。\n\n你好，可以这样回复。')
 })
 
 test('finalizeStreamingAnswerState preserves unclosed thinking when no answer boundary exists', () => {

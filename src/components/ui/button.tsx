@@ -2,36 +2,38 @@ import * as React from 'react'
 import { Slot } from '@radix-ui/react-slot'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from './utils'
+import { LoaderCircle } from 'lucide-react'
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-icon-sm shrink-0 [&_svg]:shrink-0 outline-hidden focus-visible:ring-1 focus-visible:ring-state-focus",
+  "inline-flex shrink-0 items-center justify-center gap-[var(--control-gap)] whitespace-nowrap rounded-radius-md text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-icon-sm [&_svg]:shrink-0 outline-hidden focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:ring-offset-2 focus-visible:ring-offset-background-surface",
   {
     variants: {
       variant: {
         default:
-          'bg-components-button-primary-bg text-components-button-primary-text shadow-xs hover:bg-components-button-primary-bg-hover active:bg-components-button-primary-bg-active border border-components-button-primary-border hover:border-components-button-primary-border-hover',
+          'border border-components-button-primary-border bg-components-button-primary-bg text-components-button-primary-text hover:border-components-button-primary-border-hover hover:bg-components-button-primary-bg-hover active:bg-components-button-primary-bg-active',
         destructive:
-          'bg-status-error-solid text-status-error-on-solid shadow-xs hover:bg-status-error-solid-hover',
+          'bg-status-error-solid text-status-error-on-solid hover:bg-status-error-solid-hover',
         outline:
-          'border bg-components-button-secondary-bg text-components-button-secondary-text shadow-xs hover:bg-components-button-secondary-bg-hover border-components-button-secondary-border hover:border-components-button-secondary-border-hover',
+          'border border-components-button-secondary-border bg-components-button-secondary-bg text-components-button-secondary-text hover:border-components-button-secondary-border-hover hover:bg-components-button-secondary-bg-hover',
         secondary:
-          'bg-components-button-secondary-bg text-components-button-secondary-text shadow-xs hover:bg-components-button-secondary-bg-hover',
+          'bg-components-button-secondary-bg text-components-button-secondary-text hover:bg-components-button-secondary-bg-hover',
         ghost:
           'hover:bg-components-button-ghost-bg-hover text-components-button-ghost-text',
         link: 'text-text-accent underline-offset-4 hover:underline',
         success:
-          'bg-status-success-solid text-status-success-on-solid shadow-xs hover:bg-status-success-solid-hover',
+          'bg-status-success-solid text-status-success-on-solid hover:bg-status-success-solid-hover',
         warning:
-          'bg-status-warning-solid text-status-warning-on-solid shadow-xs hover:bg-status-warning-solid-hover',
+          'bg-status-warning-solid text-status-warning-on-solid hover:bg-status-warning-solid-hover',
       },
       size: {
-        default: 'h-9 px-4 py-2 has-[>svg]:px-3',
-        sm: 'h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5',
-        lg: 'h-10 rounded-md px-6 has-[>svg]:px-4',
-        xl: 'h-12 rounded-lg px-10 text-base',
-        icon: 'size-9 rounded-md',
-        'icon-sm': 'h-8 w-8',
-        'icon-lg': 'h-12 w-12',
+        default:
+          'min-h-[var(--control-height)] px-[var(--control-padding-x)] py-space-xs',
+        sm: 'min-h-[var(--control-height-sm)] px-[var(--control-padding-x-sm)] py-space-xs',
+        lg: 'min-h-[var(--control-height-lg)] px-[var(--control-padding-x-lg)] py-space-sm',
+        xl: 'min-h-[var(--control-height-lg)] rounded-radius-lg px-space-xl py-space-base text-base',
+        icon: 'size-[var(--control-height)]',
+        'icon-sm': 'size-[var(--control-height-sm)]',
+        'icon-lg': 'size-[var(--control-height-lg)]',
       },
     },
     defaultVariants: {
@@ -79,29 +81,18 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const renderContent = (content: React.ReactNode) => (
       <>
         {loading && (
-          <svg
-            className="mr-2 h-4 w-4 animate-spin"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            />
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            />
-          </svg>
+          <LoaderCircle
+            className="size-icon-sm animate-spin"
+            aria-hidden="true"
+          />
         )}
-        {!loading && leftIcon && <span className="mr-2">{leftIcon}</span>}
+        {!loading && leftIcon && (
+          <span className="inline-flex">{leftIcon}</span>
+        )}
         {content}
-        {!loading && rightIcon && <span className="ml-2">{rightIcon}</span>}
+        {!loading && rightIcon && (
+          <span className="inline-flex">{rightIcon}</span>
+        )}
       </>
     )
 
@@ -122,6 +113,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           className={cn(buttonVariants({ variant, size, className }))}
           ref={ref}
           aria-disabled={isDisabled || undefined}
+          aria-busy={loading || undefined}
           data-disabled={isDisabled ? '' : undefined}
           {...props}
         >
@@ -140,6 +132,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         disabled={isDisabled}
         aria-disabled={isDisabled || undefined}
+        aria-busy={loading || undefined}
         data-disabled={isDisabled ? '' : undefined}
         {...props}
       >

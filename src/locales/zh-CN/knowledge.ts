@@ -259,6 +259,8 @@ export default {
       successMessage: '知识库设置已成功更新',
       errorTitle: '更新失败',
       errorMessage: '更新知识库设置时发生错误',
+      embeddingIncompatible:
+        '所选模型与已有分块不兼容，请选择其他模型或重新解析文档。',
       formLabel: '设置表单',
       previewLabel: '解析预览',
       sections: {
@@ -280,7 +282,7 @@ export default {
         descriptionPlaceholder: '请输入知识库描述',
         embeddingModel: '嵌入模型',
         embeddingModelTooltip:
-          '知识库采用的默认嵌入模型。一旦知识库内已经产生了文本块后，你将无法更改默认的嵌入模型，除非删除知识库内的所有文本块。',
+          '知识库采用的默认嵌入模型。更换前会检查与已有分块向量的兼容性，保存不会重建已有向量。',
         embeddingModelPlaceholder: '请选择嵌入模型',
         loading: '加载中...',
         pageRank: 'PageRank权重',
@@ -508,6 +510,11 @@ export default {
           '实体和关系提取提示来自 LightRAG，简单快速的检索增强生成。',
         methodTooltipGeneral:
           '实体和关系提取提示来自 Microsoft GraphRAG，基于图的模块化检索增强生成系统。',
+        methodTooltipNer:
+          '使用 spaCy 中英文模型提取实体，按句子共现建立关系。提取无需 LLM；描述汇总、实体归一化和社区报告仍可能调用 LLM。',
+        batchChunkTokenSize: '抽取批次 Token 数',
+        batchChunkTokenSizeTooltip:
+          '每批 LLM 抽取的目标 Token 数。超过目标的源文本块仍保持完整；NER 始终逐个处理源文本块。',
         resolution: '实体归一化',
         resolutionTooltip:
           '解析过程会将具有相同含义的实体合并在一起，从而使知识图谱更简洁、更准确。',
@@ -516,6 +523,9 @@ export default {
           '区块被聚集成层次化的社区，实体和关系通过更高抽象层次将每个部分连接起来。然后，系统使用 LLM 生成每个社区的摘要。',
       },
       raptor: {
+        clusteringMethod: '聚类方法',
+        clusteringMethodTooltip:
+          'GMM 使用高斯混合聚类，AHC 使用层次聚类。修改将在下次 RAPTOR 任务中生效。',
         enable: '使用召回增强 RAPTOR 策略',
         enableTooltip:
           'RAPTOR 常应用于复杂的多跳问答任务。如需打开，请跳转至知识库的文件页面，点击生成 > RAPTOR 开启。',
@@ -546,7 +556,20 @@ export default {
           '图片解析使用内置 OCR，文字不足时使用租户默认视觉模型。PDF 解析器选择不影响图片解析。',
         qaEmpty: 'Q&A 解析器专门用于解析问答格式的文档，无需额外配置。',
         resumeEmpty: '简历解析器使用专门的结构化解析，无需额外配置。',
-        tableEmpty: '表格解析器使用专门的表格解析，无需额外配置。',
+        table: {
+          mode: '列配置模式',
+          auto: '自动',
+          manual: '手动',
+          autoDescription: '所有列都加入索引文本，并保存为元数据。',
+          roles: '列角色',
+          indexing: '索引',
+          metadata: '元数据',
+          both: '两者',
+          description:
+            '索引将列加入向量和全文检索；元数据将列保存为可筛选属性；两者同时生效。',
+          empty: '上传并解析 CSV 或 Excel 文件后，即可配置列角色。',
+          reparse: '重新解析已有文档后，新的列配置才会生效。',
+        },
         tagEmpty: '标签解析器用于创建标签知识库，无需额外配置。',
       },
       pipelinePreview: {
@@ -618,14 +641,16 @@ export default {
         allUploaded: '所有文件已上传完成',
         success: '成功上传 {{count}} 个文档',
         autoParseError: '文档上传成功，但自动解析失败，请手动触发解析',
-        serverResponseError: '服务器响应异常',
-        serverResponseErrorToast: '上传失败：服务器响应异常',
+        serverResponseError:
+          '无法将上传结果与此文件对应，请先检查文档列表再重试。',
+        serverResponseErrorToast:
+          '上传结果未确认，已保留你的文件，请先检查文档列表再重试。',
         unknownError: '未知错误',
         failedWithMessage: '文档上传失败: {{message}}',
         fileUploadSuccess: '文件 "{{name}}" 上传成功',
         failed: '上传失败',
         description:
-          '支持 PDF、Word、Excel、PPT、Markdown、代码文件、图片、音视频等多种格式。单次上传文件总大小上限为 <strong>1GB</strong>，单次批量上传文件数不超过 <strong>32</strong> 个',
+          '支持 PDF、Word、Excel、PPT、Markdown、代码文件、图片、音频、视频等。单个文件最大 <strong>1GB</strong>，每批最多 <strong>32</strong> 个文件。',
         fileTab: '文件上传',
         folderTab: '文件夹上传',
         dropActiveTitle: '释放文件立即上传',
@@ -646,6 +671,12 @@ export default {
         uploading: '上传中...',
         uploadRemaining: '上传剩余 {{count}} 个文件',
         uploadCount: '上传 {{count}} 个文件',
+
+        fileRejected: '无法选择文件“{{name}}”，请重新选择。',
+        notConfirmed: '上传未确认，已保留此文件，可重新上传。',
+        partial:
+          '已确认 {{successCount}} 个，仍有 {{errorCount}} 个需要处理，请重试剩余文件。',
+        retryHint: '上传失败，已保留你的文件，请检查连接后重试。',
       },
       previousPage: '上一页',
       nextPage: '下一页',

@@ -1,8 +1,9 @@
 export default {
   reference: {
     unknownDocument: '未知文档',
-    openOriginalHint: '在新标签页中打开完整文档',
+    openWebSource: '查看网页',
     openWebSourceHint: '在新标签页中打开来源网页',
+    documentMetadata: '文档元数据',
     docType: {
       table: '表格',
       image: '图片',
@@ -10,9 +11,6 @@ export default {
     },
     marker: {
       label: '引用 {{index}}：{{name}}',
-      copy: '复制',
-      openOriginal: '原文',
-      details: '详情',
     },
     panel: {
       title: '引用来源',
@@ -22,17 +20,6 @@ export default {
       chunkCount_other: '{{count}} 条引用',
       showMore: '查看更多（{{count}} 条）',
       showLess: '收起',
-    },
-    sheet: {
-      description: '引用片段的内容、文档元数据与检索诊断',
-      openOriginal: '查看原文',
-      content: '内容',
-      noContent: '无内容',
-      copy: '复制',
-      copied: '已复制',
-      contentCopied: '已复制内容',
-      documentMetadata: '文档元数据',
-      related: '同文档其他引用（{{count}}）',
     },
     diagnostics: {
       title: '检索诊断',
@@ -44,12 +31,7 @@ export default {
         '原始值 {{value}} 超出 0–1，未按百分比显示（PageRank 等排序加权会使分值超过 1）',
       scoreHint:
         '检索阶段计算的匹配程度，用于排查检索效果；分值范围随应用的检索设置变化，不代表回答是否正确。',
-      positions: '定位数据',
       noPositions: '无定位数据',
-      chunkId: '切片 ID',
-      documentId: '文档 ID',
-      datasetId: '知识库 ID',
-      imageId: '图片 ID',
       copyValue: '复制{{label}}',
       valueCopied: '已复制{{label}}',
     },

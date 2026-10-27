@@ -62,7 +62,7 @@ function toBeginInputs(value: unknown): BeginQuery[] {
 function latestAssistantMessage(messages: RuntimeMessage[]) {
   for (let index = messages.length - 1; index >= 0; index -= 1) {
     const message = messages[index]
-    if (message?.role === 'assistant') {
+    if (message?.role === 'assistant' && !message.sourceMessageId) {
       return message
     }
   }
@@ -72,7 +72,10 @@ function latestAssistantMessage(messages: RuntimeMessage[]) {
 
 function mapRuntimeMessage(message: RuntimeMessage): AgentSessionMessage {
   return {
-    id: message.messageId || message.id,
+    id: message.sourceMessageId ? message.id : message.messageId || message.id,
+    ...(message.tips
+      ? { runtime_pause: { tips: message.tips, answer_completed: false } }
+      : {}),
     role: message.role,
     content: message.content,
     files: message.files,

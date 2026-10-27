@@ -14,6 +14,7 @@ export const SecondaryNavigationContent = ({
   onNavigate,
   contentOnly = false,
   touchTargets = false,
+  scroll = 'self',
 }: {
   title: string
   groups: ContextRailGroup[]
@@ -23,78 +24,117 @@ export const SecondaryNavigationContent = ({
   onNavigate?: () => void
   contentOnly?: boolean
   touchTargets?: boolean
+  /** Mobile navigation delegates scrolling to the sheet viewport. */
+  scroll?: 'self' | 'parent'
 }) => (
   <>
     {!contentOnly && (
       <>
-        <header className="flex min-h-12 shrink-0 items-center border-b border-border-subtle px-space-base">
-          <p className="truncate text-sm font-medium">{title}</p>
+        <header className="flex min-h-[calc(var(--control-height)+var(--space-sm))] shrink-0 items-center border-b border-border-subtle px-space-base py-space-sm">
+          <p className="truncate text-sm font-semibold text-text-primary">
+            {title}
+          </p>
         </header>
         {backLink && (
           <Button
             asChild
             variant="ghost"
             size="sm"
-            className="mx-space-sm mt-space-sm justify-start text-text-secondary"
+            className="mx-space-sm mt-space-sm shrink-0 justify-start text-text-secondary"
           >
             <Link to={backLink.href} onClick={onNavigate}>
-              <ArrowLeft className="size-icon-sm" />
+              <ArrowLeft className="size-icon-sm" aria-hidden="true" />
               {backLink.label}
             </Link>
           </Button>
         )}
-        <nav aria-label={title} className="min-h-0 overflow-y-auto p-space-sm">
-          {groups.map((group, index) => (
-            <ul
-              key={group.label ?? index}
-              aria-label={group.label}
-              className={cn(
-                'flex flex-col gap-space-xs',
-                index > 0 &&
-                  'mt-space-sm border-t border-border-subtle pt-space-sm',
-              )}
-            >
-              {group.items.map((item) => {
-                const Icon = item.icon
-                const active = item.matcher
-                  ? item.matcher(currentPath)
-                  : currentPath === item.href
-                return (
-                  <li key={item.href}>
-                    <Link
-                      to={item.href}
-                      aria-current={active ? 'page' : undefined}
-                      onClick={() => {
-                        item.onSelect?.()
-                        onNavigate?.()
-                      }}
-                      className={cn(
-                        'flex min-h-9 items-center gap-space-sm rounded-radius-md px-space-sm py-space-xs text-sm focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden',
-                        touchTargets && 'min-h-[44px]',
-                        active
-                          ? 'bg-components-sidebar-item-bg-active font-medium text-text-primary'
-                          : 'text-text-secondary hover:bg-state-hover hover:text-text-primary',
-                      )}
-                    >
-                      {Icon && <Icon className="size-icon-sm shrink-0" />}
-                      <span className="flex-1 truncate">{item.title}</span>
-                      {Boolean(item.badge) && (
-                        <span
-                          aria-label={item.badgeLabel}
-                          className="rounded-radius-sm bg-background-subtle px-space-xs text-xs text-text-secondary tabular-nums"
+        {groups.length > 0 && (
+          <nav
+            aria-label={title}
+            className={cn(
+              'p-space-sm',
+              scroll === 'self' && 'min-h-0 overflow-y-auto overscroll-contain',
+              !children && 'flex-1',
+            )}
+          >
+            {groups.map((group, index) => (
+              <section
+                key={group.label ?? index}
+                aria-label={group.label}
+                className={cn(
+                  index > 0 &&
+                    'mt-space-base border-t border-border-subtle pt-space-sm',
+                )}
+              >
+                {group.label && (
+                  <p
+                    aria-hidden="true"
+                    className="px-space-sm py-space-xs text-xs font-medium text-text-tertiary"
+                  >
+                    {group.label}
+                  </p>
+                )}
+                <ul className="flex flex-col gap-space-2xs">
+                  {group.items.map((item) => {
+                    const Icon = item.icon
+                    const active = item.matcher
+                      ? item.matcher(currentPath)
+                      : currentPath === item.href
+                    return (
+                      <li key={item.href}>
+                        <Link
+                          to={item.href}
+                          aria-current={active ? 'page' : undefined}
+                          onClick={() => {
+                            item.onSelect?.()
+                            onNavigate?.()
+                          }}
+                          className={cn(
+                            'flex min-h-[var(--control-height-sm)] items-center gap-space-sm rounded-radius-md px-space-sm py-space-xs text-sm outline-hidden focus-visible:ring-2 focus-visible:ring-state-focus',
+                            touchTargets && 'min-h-11',
+                            active
+                              ? 'bg-state-selected-bg font-medium text-state-selected-text'
+                              : 'text-text-secondary hover:bg-state-hover hover:text-text-primary',
+                          )}
                         >
-                          {(item.badge ?? 0) > 99 ? '99+' : item.badge}
-                        </span>
-                      )}
-                    </Link>
-                  </li>
-                )
-              })}
-            </ul>
-          ))}
-        </nav>
+                          {Icon && (
+                            <Icon
+                              className="size-icon-sm shrink-0"
+                              aria-hidden="true"
+                            />
+                          )}
+                          <span className="min-w-0 flex-1 truncate">
+                            {item.title}
+                          </span>
+                          {Boolean(item.badge) && (
+                            <span
+                              aria-label={item.badgeLabel}
+                              className="rounded-radius-sm bg-background-subtle px-space-xs text-xs text-text-secondary tabular-nums"
+                            >
+                              {(item.badge ?? 0) > 99 ? '99+' : item.badge}
+                            </span>
+                          )}
+                        </Link>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </section>
+            ))}
+          </nav>
+        )}
       </>
     )}
-    {children}
+    {children && (
+      <div
+        data-secondary-content
+        className={cn(
+          'flex min-w-0 flex-1 flex-col',
+          scroll === 'self' && 'min-h-0 overflow-hidden',
+        )}
+      >
+        {children}
+      </div>
+    )}
   </>
 )

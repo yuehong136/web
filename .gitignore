@@ -48,6 +48,10 @@ docs/design-reviews/*
 !docs/deepseek-harness-learning-tracker.md
 !docs/client-platform/
 !docs/client-platform/**
+!docs/modernization/
+!docs/modernization/**
+.playwright-cli/
+output/playwright/
 .env.production
 
 .codex

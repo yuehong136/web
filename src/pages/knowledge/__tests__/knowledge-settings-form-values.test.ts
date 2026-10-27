@@ -5,6 +5,7 @@ import { getKnowledgeNameError } from '@/lib/knowledge/name'
 import {
   knowledgeSettingsFormSchema,
   parserConfigSchema,
+  graphragSchema,
 } from '@/types/knowledge-form'
 import {
   buildKnowledgeSettingsFormValues,
@@ -66,7 +67,11 @@ for (const scope of ['file', 'dataset'] as const) {
     )
     assert.equal(reloaded.parser_config?.raptor?.scope, scope)
     assert.equal(reloaded.parser_config?.raptor?.use_raptor, false)
-    assert.deepEqual(reloaded.parser_config?.raptor?.ext, config.raptor.ext)
+    assert.deepEqual(reloaded.parser_config?.raptor?.ext, {
+      ...config.raptor.ext,
+      clustering_method: 'gmm',
+      tree_builder: 'raptor',
+    })
     assert.equal(reloaded.parser_config?.raptor?.future_option, 7)
     assert.equal(
       reloaded.parser_config?.raptor?.auto_disable_for_structured_data,
@@ -253,4 +258,80 @@ test('settings validate only the parser required by the selected mode', () => {
       .success,
     true,
   )
+})
+
+test('RAPTOR methods migrate into ext and retain Psi bucket settings on save/reload', () => {
+  const initial = createKnowledgeBase({
+    raptor: {
+      use_raptor: true,
+      clustering_method: 'ahc',
+      tree_builder: 'psi',
+      ext: { psi_bucket_size: 64, future: false },
+    },
+  })
+  const values = buildKnowledgeSettingsFormValues(initial, (value) => value)
+  assert.equal(values.parser_config?.raptor?.ext?.clustering_method, 'ahc')
+  assert.equal(values.parser_config?.raptor?.ext?.tree_builder, 'psi')
+  const payload = buildKnowledgeSettingsParserConfig(
+    parserConfigSchema.parse(values.parser_config),
+  )
+  const raptor = payload.raptor as Record<string, unknown>
+  assert.equal(raptor.clustering_method, undefined)
+  assert.equal(raptor.tree_builder, undefined)
+  assert.deepEqual(raptor.ext, {
+    clustering_method: 'ahc',
+    tree_builder: 'psi',
+    psi_bucket_size: 64,
+    future: false,
+  })
+})
+
+for (const budget of [512, 2048, 4096, 8196]) {
+  test(`GraphRAG batch tokens ${budget} survive hydrate, validate, save and reload`, () => {
+    const values = buildKnowledgeSettingsFormValues(
+      createKnowledgeBase({
+        graphrag: {
+          use_graphrag: true,
+          method: 'ner',
+          batch_chunk_token_size: budget,
+          future_option: { preserved: false },
+        },
+      }),
+      (value) => value,
+    )
+    const validated = parserConfigSchema.parse(values.parser_config)
+    const payload = buildKnowledgeSettingsParserConfig(validated)
+    const reloaded = buildKnowledgeSettingsFormValues(
+      createKnowledgeBase(JSON.parse(JSON.stringify(payload))),
+      (value) => value,
+    )
+    assert.equal(
+      reloaded.parser_config?.graphrag?.batch_chunk_token_size,
+      budget,
+    )
+    assert.deepEqual(reloaded.parser_config?.graphrag?.future_option, {
+      preserved: false,
+    })
+  })
+}
+
+test('GraphRAG batch tokens default only when absent and reject malformed values', () => {
+  assert.equal(graphragSchema.parse({}).batch_chunk_token_size, 4096)
+  for (const budget of [
+    null,
+    false,
+    true,
+    0,
+    511,
+    8197,
+    512.5,
+    '512',
+    Number.NaN,
+    Number.POSITIVE_INFINITY,
+  ]) {
+    assert.equal(
+      graphragSchema.safeParse({ batch_chunk_token_size: budget }).success,
+      false,
+    )
+  }
 })

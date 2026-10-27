@@ -8,6 +8,8 @@ import {
   MemoizedMarkdownArtifactLink,
 } from './MarkdownArtifact'
 import { CodeBlock } from './CodeBlock'
+import { useResolvedAppearance, useThemeScope } from '@/themes'
+import { getTokenValue } from '@/lib/design-tokens'
 
 export type MarkdownComponents = Record<
   string,
@@ -110,6 +112,42 @@ const SafeMermaid: React.FC<{
   code: string
   streamStatus: ComponentProps['streamStatus']
 }> = ({ code, streamStatus }) => {
+  const rootAppearance = useResolvedAppearance()
+  const scope = useThemeScope()
+  const appearance = scope?.appearance ?? rootAppearance
+  const diagramConfig = React.useMemo(
+    () => ({
+      startOnLoad: false,
+      securityLevel: 'strict' as const,
+      theme: 'base' as const,
+      themeVariables: {
+        darkMode: appearance.resolvedMode === 'dark',
+        primaryColor: getTokenValue(
+          'components-card-bg',
+          appearance.resolvedMode,
+          appearance.preset,
+        ),
+        primaryTextColor: getTokenValue(
+          'text-primary',
+          appearance.resolvedMode,
+          appearance.preset,
+        ),
+        primaryBorderColor: getTokenValue(
+          'border-default',
+          appearance.resolvedMode,
+          appearance.preset,
+        ),
+        lineColor: getTokenValue(
+          'text-secondary',
+          appearance.resolvedMode,
+          appearance.preset,
+        ),
+        fontFamily: 'var(--font-reading)',
+        fontSize: `${14 * appearance.textScale}px`,
+      },
+    }),
+    [appearance.resolvedMode, appearance.preset, appearance.textScale],
+  )
   const normalizedCode = React.useMemo(
     () => normalizeMermaidSource(code),
     [code],
@@ -141,7 +179,7 @@ const SafeMermaid: React.FC<{
     return <CodeBlock code={normalizedCode} language="mermaid" />
   }
 
-  return <Mermaid>{normalizedCode}</Mermaid>
+  return <Mermaid config={diagramConfig}>{normalizedCode}</Mermaid>
 }
 
 /**
@@ -308,5 +346,6 @@ export function getMarkdownStreamingOptions(
  * ```
  */
 export const markdownConfig: MarkedExtension = {
+  breaks: true,
   extensions: createChatLatexExtensions(),
 }

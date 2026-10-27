@@ -5,6 +5,8 @@ import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { InputToolbar } from '../InputToolbar'
 import { ChatInputBox } from '../ChatInputBox'
+import { recommendCards } from '../../constants'
+import { stubChatDOM } from '@/components/chat/__tests__/chat-dom'
 
 const welcomeSectionSource = readFileSync(
   resolve(process.cwd(), 'src/pages/home/components/WelcomeSection.tsx'),
@@ -27,6 +29,7 @@ describe('Home capability affordances', () => {
   let root: Root
 
   beforeEach(() => {
+    stubChatDOM()
     container = document.createElement('div')
     document.body.append(container)
     root = createRoot(container)
@@ -35,6 +38,7 @@ describe('Home capability affordances', () => {
   afterEach(async () => {
     await act(async () => root.unmount())
     container.remove()
+    vi.unstubAllGlobals()
   })
 
   it('hides attachment and inspiration actions until handlers exist', async () => {
@@ -96,7 +100,6 @@ describe('Home capability affordances', () => {
         <ChatInputBox
           inputValue=""
           onInputChange={() => undefined}
-          onKeyDown={() => undefined}
           selectedMCPServers={[]}
           selectedApps={[]}
           onRemoveSkill={() => undefined}
@@ -122,11 +125,14 @@ describe('Home capability affordances', () => {
     expect(welcomeSectionSource).not.toMatch(/FunctionTabs|functionTabs/)
   })
 
-  it('keeps the welcome screen to a greeting and the composer', () => {
+  it('offers product starters instead of trending-topic cards', () => {
     // Trending-topic cards with hot-linked photos were removed (audit
     // shell-06); starters belong to the product, not to news headlines.
-    expect(welcomeSectionSource).not.toMatch(
-      /RecommendCards|recommendCards|WaveText/,
-    )
+    expect(welcomeSectionSource).not.toMatch(/WaveText/)
+    for (const card of recommendCards) {
+      expect(card.titleKey).toMatch(/^home\.starters\./)
+      expect(card.hasImage ?? false).toBe(false)
+      expect(card.imageUrl).toBeUndefined()
+    }
   })
 })

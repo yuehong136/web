@@ -6,10 +6,10 @@ import {
 import {
   assertNonEmptyBlob,
   assertPreviewResponse,
-  fetchDocumentDownload,
   getPreviewErrorCategory,
   PreviewResourceErrorResult,
 } from '../preview-resource'
+import { APIError } from '@/api/client-types'
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -149,35 +149,17 @@ describe('preview failure categories', () => {
 })
 
 describe('document download', () => {
-  it('downloads an HTML original with the session token', async () => {
-    localStorage.setItem('auth_token', 'token-1')
-    const fetchMock = vi.fn(async () => html('<h1>HarnessX</h1>'))
-    vi.stubGlobal('fetch', fetchMock)
-
-    const blob = await fetchDocumentDownload('doc 1')
-
-    expect(await blob.text()).toBe('<h1>HarnessX</h1>')
-    const [url, init] = fetchMock.mock.calls[0] as unknown as [
-      string,
-      RequestInit,
-    ]
-    expect(url).toMatch(/\/v1\/document\/get\/doc%201\?action=download$/)
-    expect(new Headers(init.headers).get('Authorization')).toBe(
-      'Bearer token-1',
-    )
-  })
-
-  it('classifies a refused download without its backend text', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(async () =>
-        json({ retcode: 108, retmsg: 'No download permission.', data: false }),
-      ),
-    )
-
-    const error = await caught(() => fetchDocumentDownload('doc-1'))
-
-    expect(getPreviewErrorCategory(error)).toBe('forbidden')
-    expect((error as Error).message).not.toContain('No download permission')
-  })
+  // 下载走 REST 文件端点（knowledgeAPI.document.download），失败以 HTTP 状态表达
+  it.each<[number, PreviewErrorCategory]>([
+    [401, 'session-expired'],
+    [403, 'forbidden'],
+    [404, 'not-found'],
+    [500, 'unavailable'],
+  ])(
+    'classifies a %i download failure without its backend text',
+    (status, category) => {
+      const error = new APIError(status, 'ERR', 'No download permission.')
+      expect(getPreviewErrorCategory(error)).toBe(category)
+    },
+  )
 })

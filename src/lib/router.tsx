@@ -10,6 +10,8 @@ import { AppScene, PageLoadingState } from '@/components/patterns'
 import { ROUTES } from '@/constants'
 import { ErrorFallback, NotFoundPage } from '@/pages/error'
 import { skillRoutes } from '@/pages/skills/skill-routes'
+import { RouteLocaleBoundary } from '@/locales/locale-boundary'
+import { useTranslation } from 'react-i18next'
 
 // ---------------------------------------------------------------------------
 // Static imports — critical path for first paint
@@ -20,19 +22,21 @@ import { HomePage } from '@/pages/home'
 // ---------------------------------------------------------------------------
 // Suspense loading fallback
 // ---------------------------------------------------------------------------
-const pageLoadingFallback = (
-  <PageLoadingState
-    scene={AppScene.CONSOLE}
-    compact
-    title="页面加载中"
-    description="正在准备当前内容。"
-  />
-)
+function RouteLoadingFallback() {
+  const { t } = useTranslation()
+  return (
+    <PageLoadingState
+      scene={AppScene.CONSOLE}
+      compact
+      title={t('common.loading')}
+    />
+  )
+}
 
 /** Wrap a lazy component with Suspense */
 function withLoading(LazyComponent: React.LazyExoticComponent<ComponentType>) {
   return (
-    <Suspense fallback={pageLoadingFallback}>
+    <Suspense fallback={<RouteLoadingFallback />}>
       <LazyComponent />
     </Suspense>
   )
@@ -163,6 +167,10 @@ const SettingsLayout = lazyNamed(
 const ProfilePage = lazyNamed(
   () => import('@/pages/settings/profile'),
   'ProfilePage',
+)
+const AppearancePage = lazyNamed(
+  () => import('@/pages/settings/appearance/appearance-page'),
+  'AppearancePage',
 )
 const SettingsIndexRedirect = lazyNamed(
   () => import('@/pages/settings/SettingsLayout'),
@@ -481,9 +489,8 @@ const topLevelRoutes: RouteObject[] = [
             element: withLoading(TeamPage),
           },
           {
-            // Appearance and language live in the account menu.
             path: 'appearance',
-            element: <Navigate to={ROUTES.SETTINGS} replace />,
+            element: withLoading(AppearancePage),
           },
           {
             path: 'model-providers',
@@ -530,6 +537,7 @@ const topLevelRoutes: RouteObject[] = [
 export const appRoutes: RouteObject[] = [
   {
     errorElement: <ErrorFallback />,
+    element: <RouteLocaleBoundary />,
     children: [...topLevelRoutes, { path: '*', element: <NotFoundPage /> }],
   },
 ]

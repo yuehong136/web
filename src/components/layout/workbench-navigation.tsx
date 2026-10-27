@@ -23,6 +23,8 @@ export interface SecondaryNavigation {
   backLink?: { href: string; label: string }
   content?: React.ReactNode
   contentOnly?: boolean
+  /** An empty domain rail can yield its space without rewriting a preference. */
+  hasSecondaryContent?: boolean
   /** Route context displayed alongside the navigation toggle in the top bar. */
   header?: React.ReactNode
 }
@@ -154,6 +156,7 @@ const HomeConversations = () => {
 
 export const useDefaultSecondaryNavigation = () => {
   const { t } = useTranslation()
+  const homeAppId = useHomeStore((state) => state.selectedApps[0]?.id)
   return React.useMemo(() => {
     const sections: Record<WorkbenchSection, SecondaryNavigation> = {
       home: {
@@ -161,6 +164,7 @@ export const useDefaultSecondaryNavigation = () => {
         title: t('layout.nav.home'),
         groups: [],
         content: <HomeConversations />,
+        hasSecondaryContent: Boolean(homeAppId),
       },
       explore: {
         section: 'explore',
@@ -206,5 +210,5 @@ export const useDefaultSecondaryNavigation = () => {
       icon: Rocket,
     })
     return sections
-  }, [t])
+  }, [t, homeAppId])
 }

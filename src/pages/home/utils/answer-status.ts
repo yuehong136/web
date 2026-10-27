@@ -2,6 +2,7 @@ import type {
   AgentTimelineNode,
   AgentTimelineState,
   StreamingAnswerState,
+  RunPhase,
 } from '@/lib/streaming'
 import type { AnswerStatusKind, AnswerVerdict } from '@/lib/chat/answer-status'
 import type { ChatMessage } from '../types'
@@ -33,6 +34,23 @@ const ANSWER_STATUS_MESSAGE_KEYS: Record<AnswerStatusKind, string> = {
 export const answerStatusMessageKey = (kind: AnswerStatusKind) =>
   ANSWER_STATUS_MESSAGE_KEYS[kind]
 
+/** Presentation projection; it never changes request ownership or server state. */
+export const getHomeMessagePhase = (
+  message: ChatMessage,
+  active: boolean,
+): RunPhase | undefined => {
+  if (message.status?.kind === 'stopped') return 'locallyStopped'
+  if (
+    message.status?.kind === 'unconfirmed' ||
+    message.status?.kind === 'network'
+  )
+    return 'interrupted'
+  if (message.status) return 'failed'
+  if (active) return 'running'
+  if (message.isStreaming) return 'interrupted'
+  return message.completionConfirmed ? 'completed' : undefined
+}
+
 /** 应用模式：只有 `data: true` 完成帧算完成，错误帧与错误哨兵为业务失败 */
 export const answerVerdict = (state: StreamingAnswerState): AnswerVerdict =>
   state.phase === 'completed'
@@ -62,7 +80,7 @@ export const settleAnswerMessage = (
   kind: AnswerStatusKind | null,
 ): ChatMessage => {
   if (!kind) {
-    return message.isStreaming ? { ...message, isStreaming: false } : message
+    return { ...message, isStreaming: false, completionConfirmed: true }
   }
   const partial = Boolean(
     message.content.trim() ||

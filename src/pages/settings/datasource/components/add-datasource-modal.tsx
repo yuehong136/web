@@ -49,7 +49,13 @@ export function AddDataSourceModal({
       toast.error(t(errorKey))
       return
     }
-    const preparedValues = prepareDataSourceValues(sourceData.id, values)
+    let preparedValues: ReturnType<typeof prepareDataSourceValues>
+    try {
+      preparedValues = prepareDataSourceValues(sourceData.id, values)
+    } catch {
+      toast.error(t('datasource.restApi.invalidConfig'))
+      return
+    }
     const data: DataSourceSetRequest = {
       ...preparedValues,
       name: String(values.name ?? ''),
@@ -96,7 +102,7 @@ export function AddDataSourceModal({
               labelClassName="text-sm font-medium text-text-secondary"
             >
               {/* 底部操作按钮 */}
-              <div className="bg-surface-primary sticky bottom-0 mt-6 flex items-center justify-end gap-3 border-t border-border-default pt-5">
+              <div className="sticky bottom-0 mt-6 flex items-center justify-end gap-3 border-t border-border-default bg-surface-primary pt-5">
                 <DynamicForm.CancelButton
                   handleCancel={hideModal}
                   className="h-10 px-5 text-sm font-medium"

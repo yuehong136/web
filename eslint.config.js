@@ -66,6 +66,7 @@ export default tseslint.config([
     'coverage',
     'node_modules',
     'desktop/.out',
+    'output/playwright',
     '**/*.generated.ts',
   ]),
   {

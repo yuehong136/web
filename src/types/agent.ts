@@ -115,7 +115,9 @@ export interface AgentFlow {
   create_date?: string
   update_date?: string
   user_id: string
+  tenant_id?: string
   permission: string
+  tags?: string
   nickname?: string
   release?: boolean
   release_time?: number
@@ -132,6 +134,11 @@ export interface AgentTemplate extends AgentFlow {
   canvas_type: AgentCanvasType | 'agent' | 'pipeline' | 'Recommended' | null
 }
 
+export interface AgentTagCount {
+  tag: string
+  count: number
+}
+
 export interface AgentListParams {
   page?: number
   page_size?: number
@@ -141,6 +148,8 @@ export interface AgentListParams {
   name?: string
   canvas_type?: AgentCanvasType | string
   canvas_category?: string
+  owner_ids?: string[]
+  tags?: string[]
 }
 
 export interface AgentSessionListParams {

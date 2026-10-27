@@ -4,6 +4,7 @@ import {
 } from '@/pages/settings/datasource/types'
 import { DataSourceFormDefaultValues } from '@/pages/settings/datasource/constants/default-values'
 import { deletionSyncSources } from '@/pages/settings/datasource/constants/sync-settings'
+import { getRestApiFormConfig, prepareRestApiConfig } from './rest-api-values'
 
 type FormValues = Record<string, unknown> & {
   config?: Record<string, unknown>
@@ -30,6 +31,16 @@ export function getDataSourceDefaultValues(
     },
   }
   const values: FormValues = { ...defaults, ...detail, config }
+  if (source === DataSourceKey.REST_API) {
+    values.config = getRestApiFormConfig({
+      ...config,
+      auth_config: { ...defaults.config.auth_config, ...config.auth_config },
+      pagination_config: {
+        ...defaults.config.pagination_config,
+        ...config.pagination_config,
+      },
+    })
+  }
   if (source === DataSourceKey.JIRA) {
     const credentials = config.credentials
     const hasToken =
@@ -65,7 +76,17 @@ export function prepareDataSourceValues(
   values: FormValues,
   previousConfig?: Record<string, unknown>,
 ): FormValues {
-  const { jiraAuthMode, ...prepared } = values
+  const {
+    jiraAuthMode,
+    restApiSettings: _restApiSettings,
+    ...prepared
+  } = values
+  if (source === DataSourceKey.REST_API) {
+    return {
+      ...prepared,
+      config: prepareRestApiConfig(values.config ?? {}, previousConfig),
+    }
+  }
   if (
     source === DataSourceKey.ZENDESK &&
     values.config?.zendesk_content_type === 'tickets'

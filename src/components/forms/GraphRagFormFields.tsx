@@ -23,6 +23,7 @@ import {
   GraphRagMethodOptions,
   DefaultEntityTypes,
 } from '@/types/knowledge-form'
+import { SliderInputFormField } from './SliderInputFormField'
 
 interface GraphRagFormFieldsProps {
   className?: string
@@ -137,6 +138,11 @@ export function GraphRagFormFields({ className }: GraphRagFormFieldsProps) {
     name: 'parser_config.graphrag.use_graphrag',
     defaultValue: false,
   })
+  const method = useWatch({
+    control: form.control,
+    name: 'parser_config.graphrag.method',
+    defaultValue: 'light',
+  })
 
   const methodOptions: SelectOptionGroup[] = GraphRagMethodOptions.map(
     (opt) => ({
@@ -193,6 +199,10 @@ export function GraphRagFormFields({ className }: GraphRagFormFieldsProps) {
                         <strong>General</strong>:{' '}
                         {t('knowledge.settings.graphrag.methodTooltipGeneral')}
                       </p>
+                      <p>
+                        <strong>NER</strong>:{' '}
+                        {t('knowledge.settings.graphrag.methodTooltipNer')}
+                      </p>
                     </div>
                   }
                   className="w-1/4 shrink-0 text-sm text-text-secondary"
@@ -213,6 +223,19 @@ export function GraphRagFormFields({ className }: GraphRagFormFieldsProps) {
                 </div>
               </FormItem>
             )}
+          />
+
+          <SliderInputFormField
+            name="parser_config.graphrag.batch_chunk_token_size"
+            label={t('knowledge.settings.graphrag.batchChunkTokenSize')}
+            tooltip={t(
+              'knowledge.settings.graphrag.batchChunkTokenSizeTooltip',
+            )}
+            min={512}
+            max={8196}
+            step={1}
+            defaultValue={4096}
+            disabled={method === 'ner'}
           />
 
           {/* 实体归一化 */}

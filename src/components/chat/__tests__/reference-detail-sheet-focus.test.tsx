@@ -121,7 +121,7 @@ describe('ReferenceDetailSheet focus return', () => {
 
     const detail = Array.from(
       document.querySelectorAll<HTMLButtonElement>('[role="dialog"] button'),
-    ).find((button) => button.textContent?.includes('详情'))!
+    ).find((button) => button.hasAttribute('data-reference-details'))!
     detail.focus()
     await act(async () => detail.click())
     await settle()

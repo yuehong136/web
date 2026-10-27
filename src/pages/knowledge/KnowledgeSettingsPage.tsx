@@ -1,3 +1,5 @@
+import { APIError } from '@/api/client'
+import { checkDatasetEmbedding } from '@/api/knowledge-embedding'
 import { toast } from '@/lib/toast'
 import { useConsumedSearchFlag } from '@/hooks/use-consumed-search-flag'
 
@@ -166,7 +168,9 @@ const KnowledgeSettingsPage: React.FC = () => {
           const fullValue = `${model.name}@${providerName}`
           // 存储多种可能的匹配格式
           values.set(fullValue.toLowerCase(), fullValue)
-          values.set(model.name.toLowerCase(), fullValue)
+          const name = model.name.toLowerCase()
+          if (!values.has(name)) values.set(name, fullValue)
+          else if (values.get(name) !== fullValue) values.set(name, '')
         })
     })
     return values
@@ -177,21 +181,9 @@ const KnowledgeSettingsPage: React.FC = () => {
     (value: string): string => {
       if (!value) return ''
       const lowerValue = value.toLowerCase()
-      // 直接匹配
-      if (allEmbeddingModelValues.has(lowerValue)) {
-        return allEmbeddingModelValues.get(lowerValue)!
-      }
-      // 尝试匹配（忽略大小写和连字符变化）
-      for (const [key, fullValue] of allEmbeddingModelValues) {
-        if (
-          key
-            .replace(/-/g, '')
-            .includes(lowerValue.replace(/-/g, '').replace(/@.*$/, ''))
-        ) {
-          return fullValue
-        }
-      }
-      return value
+      // Keep explicit provider/instance identities intact. A bare model name
+      // can only resolve when the configured exact-name match is unambiguous.
+      return allEmbeddingModelValues.get(lowerValue) || value
     },
     [allEmbeddingModelValues],
   )
@@ -254,6 +246,12 @@ const KnowledgeSettingsPage: React.FC = () => {
     try {
       setIsLoading(true)
 
+      if (
+        (currentKnowledgeBase?.chunk_num ?? 0) > 0 &&
+        data.embd_id?.trim() !== currentKnowledgeBase?.embd_id?.trim()
+      )
+        await checkDatasetEmbedding(id, data.embd_id.trim())
+
       // 处理 parser_config，添加字段映射
       const parserConfig =
         data.parseType === 1 && data.parser_config
@@ -278,9 +276,13 @@ const KnowledgeSettingsPage: React.FC = () => {
       toast.success(t('knowledge.settings.successTitle'), {
         description: t('knowledge.settings.successMessage'),
       })
-    } catch {
+    } catch (error) {
       toast.error(t('knowledge.settings.errorTitle'), {
-        description: t('knowledge.settings.errorMessage'),
+        description: t(
+          error instanceof APIError && error.code === '10'
+            ? 'knowledge.settings.embeddingIncompatible'
+            : 'knowledge.settings.errorMessage',
+        ),
       })
     } finally {
       setIsLoading(false)

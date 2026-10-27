@@ -4,6 +4,7 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { setProductLanguage } from '@/locales/i18n'
 import type { DialogApp } from '@/types/api'
 import { ChatInputBox } from '../ChatInputBox'
+import { stubChatDOM } from '@/components/chat/__tests__/chat-dom'
 
 vi.mock('@/components/chat/ChatModelSelector', () => ({
   ChatModelSelector: ({ disabled }: { disabled?: boolean }) => (
@@ -30,7 +31,6 @@ const render = (props: {
     root.render(
       <ChatInputBox
         onInputChange={() => undefined}
-        onKeyDown={() => undefined}
         selectedMCPServers={[]}
         selectedApps={[app]}
         onRemoveSkill={() => undefined}
@@ -58,6 +58,7 @@ const byLabel = (label: string) =>
   host.querySelector<HTMLButtonElement>(`button[aria-label="${label}"]`)
 
 beforeEach(async () => {
+  stubChatDOM()
   vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true)
   await setProductLanguage('zh-CN')
   onSend.mockReset()
@@ -79,7 +80,7 @@ it('keeps the draft editable while an answer streams and only offers stop', asyn
   expect(host.querySelector('textarea')?.disabled).toBe(false)
   expect(byLabel('提交')).toBeNull()
 
-  await act(async () => byLabel('停止输出')!.click())
+  await act(async () => byLabel('停止接收')!.click())
   expect(onStop).toHaveBeenCalledOnce()
   expect(onSend).not.toHaveBeenCalled()
 })

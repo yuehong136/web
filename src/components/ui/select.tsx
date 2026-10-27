@@ -3,7 +3,7 @@ import * as SelectPrimitive from '@radix-ui/react-select'
 import { Check, ChevronDown, ChevronUp } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
-import { useNearestPortalTheme } from './portal-theme'
+import { useNearestPortalTheme, usePortalContainer } from './portal-theme'
 
 export interface SelectProps {
   value?: string
@@ -218,10 +218,11 @@ export const SelectContent: React.FC<SelectContentProps> = ({
   className,
 }) => {
   const { open, rootRef } = useSelectContext('SelectContent')
+  const portalContainer = usePortalContainer()
   const theme = useNearestPortalTheme(rootRef, open)
 
   return (
-    <SelectPrimitive.Portal>
+    <SelectPrimitive.Portal container={portalContainer}>
       <SelectPrimitive.Content
         position="popper"
         side="bottom"

@@ -22,6 +22,8 @@ export function useDocGeneratorValues(node?: RAGFlowNodeType) {
       watermark_text: String(values.watermark_text || ''),
       add_page_numbers: Boolean(values.add_page_numbers),
       add_timestamp: Boolean(values.add_timestamp),
+      include_download_info_in_content:
+        values.include_download_info_in_content === true,
       font_size: Math.max(12, Number(values.font_size) || 12),
       outputs: initialDocGeneratorValues.outputs,
     }

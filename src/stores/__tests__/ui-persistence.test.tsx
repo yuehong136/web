@@ -24,11 +24,10 @@ const persistedKeys = [
   'desktopActivity',
   'desktopSidebarCollapsed',
   'desktopSidebarWidth',
-  'language',
   'sidebarCollapsed',
 ]
 
-it('persists only the layout and language preferences', () => {
+it('persists only the layout preferences', () => {
   const state = useUIStore.getState()
   state.setContextSidebarCollapsed(true)
   state.setDesktopSidebarWidth(25)
@@ -59,7 +58,7 @@ it('migrates version 1 storage and drops the retired fields', async () => {
   const state = useUIStore.getState() as unknown as Record<string, unknown>
   expect(state.sidebarCollapsed).toBe(true)
   expect(state.contextSidebarCollapsed).toBe(true)
-  for (const retired of ['theme', 'sidebarWidth', 'modals', 'globalLoading'])
+  for (const retired of ['sidebarWidth', 'modals', 'globalLoading'])
     expect(state).not.toHaveProperty(retired)
 
   useUIStore.getState().setDesktopActivity(DesktopActivity.TOOLS)

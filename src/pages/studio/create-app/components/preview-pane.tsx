@@ -1,18 +1,11 @@
-import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  ArrowDown,
-  Bug,
-  Maximize2,
-  Minimize2,
-  RotateCcw,
-  Square,
-} from 'lucide-react'
+import { ArrowDown, Bug, Maximize2, Minimize2, RotateCcw } from 'lucide-react'
 import { StudioPanelShell } from '@/components/patterns'
 import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import Bubble from '@ant-design/x/es/bubble'
-import { AppChatComposer } from '@/components/chat/app-chat-composer'
+import { ChatComposer } from '@/components/chat/chat-composer'
 import { getAppChatBubbleProps } from '@/components/chat/app-chat-message'
 import { MessageActionsFooter } from '@/components/chat/MessageActionsFooter'
 import {
@@ -76,41 +69,25 @@ export function PreviewPane(props: PreviewPaneProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const following = useRef(true)
   const [showBottom, setShowBottom] = useState(false)
-  const composing = useRef(false)
+  const [stoppedMessageId, setStoppedMessageId] = useState<string | null>(null)
   const [detailsOpen, setDetailsOpen] = useState(false)
   const [reference, setReference] = useState<{
     chunk: ReferenceChunk
     references: ReferenceChunk[]
   } | null>(null)
+  const viewReference = useCallback(
+    (chunk: ReferenceChunk, references: ReferenceChunk[]) =>
+      setReference({ chunk, references }),
+    [],
+  )
   const blocked =
     isDirty || !savedConfig || previewStale || requiredVariables || saving
   useEffect(() => {
     const element = scrollRef.current
     if (element && following.current) element.scrollTop = element.scrollHeight
   }, [previewMessages, status])
-  const send = () => {
-    if (!blocked && !isStreaming && !composing.current)
-      void handleSendPreviewMessage(inputValue)
-  }
-  const onKeyDown = (event: KeyboardEvent) => {
-    if (
-      composing.current ||
-      event.nativeEvent.isComposing ||
-      event.keyCode === 229
-    )
-      return false
-    if (
-      event.key === 'Enter' &&
-      !event.shiftKey &&
-      !event.ctrlKey &&
-      !event.altKey &&
-      !event.metaKey
-    ) {
-      event.preventDefault()
-      send()
-      return false
-    }
-    return undefined
+  const send = (value: string) => {
+    if (!blocked && !isStreaming) void handleSendPreviewMessage(value)
   }
   const requestStatus = status === 'failed' ? 'runFailed' : status
   const lastAssistant = previewMessages.findLastIndex(
@@ -213,9 +190,20 @@ export function PreviewPane(props: PreviewPaneProps) {
                           messageId={message.id}
                           references={message.references}
                           isStreaming={active}
-                          onViewReference={(chunk, references) =>
-                            setReference({ chunk, references })
+                          runPhase={
+                            active
+                              ? 'running'
+                              : index !== lastAssistant
+                                ? 'completed'
+                                : status === 'failed'
+                                  ? 'failed'
+                                  : status === 'interrupted'
+                                    ? stoppedMessageId === message.id
+                                      ? 'locallyStopped'
+                                      : 'interrupted'
+                                    : 'completed'
                           }
+                          onViewReference={viewReference}
                         />
                       )
                 }
@@ -315,52 +303,37 @@ export function PreviewPane(props: PreviewPaneProps) {
             </Button>
           </div>
         ) : null}
-        <div
-          onCompositionStartCapture={() => {
-            composing.current = true
+        <ChatComposer
+          value={inputValue}
+          onChange={(value) => setInputValue(value)}
+          placeholder={t('studio.editor.messagePlaceholder')}
+          onSubmit={send}
+          state={
+            isStreaming
+              ? {
+                  kind: 'running',
+                  stop: () => {
+                    setStoppedMessageId(
+                      previewMessages[lastAssistant]?.id ?? null,
+                    )
+                    handleStopOutput()
+                  },
+                }
+              : blocked
+                ? { kind: 'blocked' }
+                : { kind: 'ready' }
+          }
+          labels={{
+            submit: t('studio.editor.send'),
+            stop: t('studio.editor.stop'),
           }}
-          onCompositionEndCapture={() => {
-            composing.current = false
-          }}
-        >
-          <AppChatComposer
-            aria-label={t('studio.editor.messagePlaceholder')}
-            value={inputValue}
-            placeholder={t('studio.editor.messagePlaceholder')}
-            onChange={(value) => setInputValue(value)}
-            loading={isStreaming}
-            onKeyDown={onKeyDown}
-            onSubmit={() => send()}
-            onCancel={handleStopOutput}
-            autoSize={{ minRows: 2, maxRows: 6 }}
-            suffix={(_, { components }) =>
-              isStreaming ? (
-                <Button
-                  size="icon-sm"
-                  variant="destructive"
-                  aria-label={t('studio.editor.stop')}
-                  title={t('studio.editor.stop')}
-                  onClick={handleStopOutput}
-                >
-                  <Square className="size-icon-sm" />
-                </Button>
-              ) : (
-                <components.SendButton
-                  disabled={blocked || !inputValue.trim()}
-                  aria-label={t('studio.editor.send')}
-                  title={t('studio.editor.send')}
-                />
-              )
-            }
-          />
-        </div>
-        <div className="flex flex-wrap items-center justify-between gap-space-xs text-xs text-text-secondary">
-          <span>
-            {isStreaming
+          slots={{
+            hint: isStreaming
               ? t(`studio.editor.${status}`)
-              : t('studio.editor.keyboardHint')}
-          </span>
-        </div>
+              : t('studio.editor.keyboardHint'),
+          }}
+          autoSize={{ minRows: 2, maxRows: 6 }}
+        />
       </div>
       <Sheet open={detailsOpen} onOpenChange={setDetailsOpen}>
         <SheetContent

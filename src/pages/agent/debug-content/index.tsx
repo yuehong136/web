@@ -8,13 +8,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { SelectWithSearch } from '@/components/ui/select-with-search'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
@@ -183,21 +177,17 @@ const DebugContent = ({
               <FormItem className="flex-1">
                 <FormLabel>{props.label}</FormLabel>
                 <FormControl>
-                  <Select
+                  <SelectWithSearch
+                    allowClear
                     value={typeof field.value === 'string' ? field.value : ''}
-                    onValueChange={field.onChange}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={t('common.select', '请选择')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {(q.options || []).map((option) => (
-                        <SelectItem key={String(option)} value={String(option)}>
-                          {String(option)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    onChange={field.onChange}
+                    ariaLabel={props.label}
+                    placeholder={t('common.select', '请选择')}
+                    options={(q.options || []).map((option) => ({
+                      label: String(option),
+                      value: String(option),
+                    }))}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -317,7 +307,7 @@ const DebugContent = ({
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <section
             className={cn(
-              'px-space-sm space-y-space-base pb-space-base overflow-auto',
+              'space-y-space-base overflow-auto px-space-sm pb-space-base',
               maxHeight,
             )}
           >

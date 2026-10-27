@@ -1,9 +1,10 @@
 import * as React from 'react'
 import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { Button } from './button'
-import { useActivePortalTheme } from './portal-theme'
+import { useActivePortalTheme, usePortalContainer } from './portal-theme'
 
 export interface ModalProps {
   open: boolean
@@ -59,7 +60,11 @@ export const Modal: React.FC<ModalProps> = ({
   theme,
   contentClassName,
 }) => {
+  const { t } = useTranslation()
+  const titleId = React.useId()
+  const descriptionId = React.useId()
   const modalRef = React.useRef<HTMLDivElement>(null)
+  const portalContainer = usePortalContainer()
   const scopedTheme = useActivePortalTheme(open, theme)
 
   // Handle escape key
@@ -96,8 +101,8 @@ export const Modal: React.FC<ModalProps> = ({
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       role="dialog"
       aria-modal="true"
-      aria-labelledby={title ? 'modal-title' : undefined}
-      aria-describedby={description ? 'modal-description' : undefined}
+      aria-labelledby={title ? titleId : undefined}
+      aria-describedby={description ? descriptionId : undefined}
     >
       {/* Overlay - 毛玻璃效果 */}
       <div
@@ -120,6 +125,7 @@ export const Modal: React.FC<ModalProps> = ({
         {/* Close Button - 始终在右上角 */}
         {showCloseButton && (
           <button
+            type="button"
             onClick={onClose}
             className={cn(
               'absolute top-4 right-4 z-10',
@@ -130,7 +136,7 @@ export const Modal: React.FC<ModalProps> = ({
             )}
           >
             <X className="h-4 w-4" />
-            <span className="sr-only">关闭</span>
+            <span className="sr-only">{t('common.close')}</span>
           </button>
         )}
 
@@ -146,7 +152,7 @@ export const Modal: React.FC<ModalProps> = ({
               <div className="min-w-0">
                 {title && (
                   <h2
-                    id="modal-title"
+                    id={titleId}
                     className="truncate text-lg font-semibold text-[var(--color-text-primary)]"
                   >
                     {title}
@@ -154,7 +160,7 @@ export const Modal: React.FC<ModalProps> = ({
                 )}
                 {description && (
                   <p
-                    id="modal-description"
+                    id={descriptionId}
                     className="mt-0.5 line-clamp-2 text-sm text-[var(--color-text-secondary)]"
                   >
                     {description}
@@ -186,7 +192,7 @@ export const Modal: React.FC<ModalProps> = ({
     </div>
   )
 
-  return createPortal(modalContent, document.body)
+  return createPortal(modalContent, portalContainer ?? document.body)
 }
 
 /**
@@ -211,12 +217,13 @@ export const ConfirmModal: React.FC<{
   onConfirm,
   title,
   description,
-  confirmText = '确认',
-  cancelText = '取消',
+  confirmText,
+  cancelText,
   variant = 'default',
   loading = false,
   icon,
 }) => {
+  const { t } = useTranslation()
   return (
     <Modal
       open={open}
@@ -227,14 +234,14 @@ export const ConfirmModal: React.FC<{
       footer={
         <div className="flex w-full justify-end gap-3">
           <Button variant="outline" onClick={onClose} disabled={loading}>
-            {cancelText}
+            {cancelText ?? t('common.cancel')}
           </Button>
           <Button
             variant={variant === 'destructive' ? 'destructive' : 'default'}
             onClick={onConfirm}
             loading={loading}
           >
-            {confirmText}
+            {confirmText ?? t('common.confirm')}
           </Button>
         </div>
       }

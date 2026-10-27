@@ -23,6 +23,7 @@ export const llmAPI = {
   getMyLLMs: (params?: {
     mdl_type?: LLMType
     available?: boolean
+    include_details?: boolean
   }): Promise<MyLLMProvider> => apiClient.get('/v1/llm/my_llms', { params }),
 
   // 获取模型工厂列表

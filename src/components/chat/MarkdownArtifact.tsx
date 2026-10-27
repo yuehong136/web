@@ -13,17 +13,29 @@ import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { isArtifactUrl, resolveArtifactUrl } from '@/lib/agent/artifact-url'
 import {
-  assertNonEmptyBlob,
-  assertPreviewResponse,
   createPreviewObjectUrl,
-  fetchPreviewResource,
   isAbortError,
   revokePreviewObjectUrl,
 } from '@/lib/knowledge/preview-resource'
+import {
+  downloadArtifactBlob,
+  fetchArtifactBlob,
+  getArtifactName,
+  openArtifactResource,
+} from '@/components/chat/artifact-resource'
+import { ArtifactCard } from '@/components/chat/artifact-card'
+import { useChatWorkspace } from '@/components/chat/chat-workspace-context'
+import { useArtifactMessageId } from '@/components/chat/artifact-message-context'
 
-const OBJECT_URL_REVOKE_DELAY_MS = 60 * 1000
-
-export { isArtifactUrl, resolveArtifactUrl } from '@/lib/agent/artifact-url'
+export {
+  downloadArtifactBlob,
+  fetchArtifactBlob,
+  getArtifactName,
+  isArtifactUrl,
+  openArtifactResource,
+  resolveArtifactUrl,
+  shouldForceArtifactDownload,
+} from '@/components/chat/artifact-resource'
 
 type DomNodeWithAttributes = {
   attribs?: Record<string, string | undefined>
@@ -40,88 +52,15 @@ type MarkdownImageProps = ComponentProps<{
   alt?: string
 }>
 
-const decodeFilename = (filename: string): string => {
-  try {
-    return decodeURIComponent(filename)
-  } catch {
-    return filename
-  }
-}
-
-const joinClassNames = (
-  ...classNames: Array<string | false | null | undefined>
-): string => classNames.filter(Boolean).join(' ')
-
-export const getArtifactName = (url?: string, fallback?: string): string => {
-  const trimmedFallback = fallback?.trim()
-  if (trimmedFallback) return trimmedFallback
-
-  if (!url) return 'artifact'
-
-  try {
-    const parsed = new URL(resolveArtifactUrl(url))
-    const filename = parsed.pathname.split('/').filter(Boolean).pop()
-    return filename ? decodeFilename(filename) : 'artifact'
-  } catch {
-    const filename = url.split('?')[0]?.split('#')[0]?.split('/').pop()
-    return filename ? decodeFilename(filename) : 'artifact'
-  }
-}
-
-export const fetchArtifactBlob = async (
-  url: string,
-  signal?: AbortSignal,
-): Promise<Blob> => {
-  const resolvedUrl = resolveArtifactUrl(url)
-  const response = await fetchPreviewResource(resolvedUrl, signal, 'error')
-  const contentType = response.headers.get('content-type') || ''
-  const disposition = response.headers.get('content-disposition') || ''
-  const dispositionFilename =
-    /^(?:inline|attachment);\s*filename="([^"]+)"(?:;|$)/i.exec(
-      disposition,
-    )?.[1]
-  const requestedFilename = new URL(resolvedUrl).pathname.split('/').pop()
-  const isArtifactDocument =
-    response.ok &&
-    (contentType.includes('application/json') ||
-      contentType.includes('text/html')) &&
-    dispositionFilename === requestedFilename
-  if (!isArtifactDocument) await assertPreviewResponse(response)
-  const blob = await response.blob()
-  assertNonEmptyBlob(blob)
-  return blob
-}
-
-export const downloadArtifactBlob = (blob: Blob, filename: string): void => {
-  const objectUrl = createPreviewObjectUrl(blob)
-  const link = document.createElement('a')
-
-  link.href = objectUrl
-  link.download = filename
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  revokePreviewObjectUrl(objectUrl)
-}
-
-export const shouldForceArtifactDownload = (
-  blob: Blob,
-  filename: string,
-): boolean =>
-  /^(?:text\/html|image\/svg\+xml)(?:;|$)/i.test(blob.type) ||
-  /\.(?:html|svg)$/i.test(filename)
-
 const getDomAttribute = (
   domNode: ComponentProps['domNode'],
   attributeName: string,
 ): string | undefined =>
   (domNode as DomNodeWithAttributes | undefined)?.attribs?.[attributeName]
 
-const scheduleObjectUrlRevoke = (objectUrl: string): void => {
-  window.setTimeout(() => {
-    revokePreviewObjectUrl(objectUrl)
-  }, OBJECT_URL_REVOKE_DELAY_MS)
-}
+const joinClassNames = (
+  ...classNames: Array<string | false | null | undefined>
+): string => classNames.filter(Boolean).join(' ')
 
 const ArtifactImage: FC<{
   src: string
@@ -162,7 +101,7 @@ const ArtifactImageResource: FC<{
           setIsLoading(false)
           toast.error(
             t(
-              'agent.markdownArtifact.imageLoadFailed',
+              'chat.markdownArtifact.imageLoadFailed',
               'Failed to load artifact image',
             ),
           )
@@ -185,7 +124,7 @@ const ArtifactImageResource: FC<{
       if (!isAbortError(error)) {
         toast.error(
           t(
-            'agent.markdownArtifact.downloadFailed',
+            'chat.markdownArtifact.downloadFailed',
             'Failed to download artifact',
           ),
         )
@@ -202,7 +141,7 @@ const ArtifactImageResource: FC<{
           src={objectUrl}
           alt={alt || ''}
           className={joinClassNames(
-            'rounded-radius-lg bg-surface-primary block max-w-full border border-border-subtle',
+            'block max-w-full rounded-radius-lg border border-border-subtle bg-surface-primary',
             className,
           )}
         />
@@ -210,18 +149,18 @@ const ArtifactImageResource: FC<{
         <span
           role={hasError ? 'alert' : 'status'}
           className={joinClassNames(
-            'rounded-radius-lg bg-surface-secondary p-space-lg block border border-border-subtle text-sm text-text-secondary',
+            'block rounded-radius-lg border border-border-subtle bg-surface-secondary p-space-lg text-sm text-text-secondary',
             className,
           )}
         >
           {hasError
             ? t(
-                'agent.markdownArtifact.imageLoadFailed',
+                'chat.markdownArtifact.imageLoadFailed',
                 'Failed to load artifact image',
               )
             : isLoading
               ? t(
-                  'agent.markdownArtifact.imageLoading',
+                  'chat.markdownArtifact.imageLoading',
                   'Loading artifact image...',
                 )
               : null}
@@ -229,13 +168,13 @@ const ArtifactImageResource: FC<{
       )}
       <button
         type="button"
-        className="mt-space-xs gap-space-xs rounded-radius-sm hover:text-text-accent/80 inline-flex items-center text-sm font-medium text-text-accent disabled:cursor-not-allowed disabled:text-text-tertiary"
+        className="mt-space-xs inline-flex items-center gap-space-xs rounded-radius-sm text-sm font-medium text-text-accent hover:text-text-accent/80 disabled:cursor-not-allowed disabled:text-text-tertiary"
         disabled={isDownloading}
         onClick={handleDownload}
       >
         <Download className="size-icon-sm" aria-hidden="true" />
         {isDownloading
-          ? t('agent.markdownArtifact.downloading', 'Downloading...')
+          ? t('chat.markdownArtifact.downloading', 'Downloading...')
           : t('common.download', 'Download')}
       </button>
     </span>
@@ -257,29 +196,11 @@ export const ArtifactLink: FC<{
 
       setIsOpening(true)
       try {
-        const blob = await fetchArtifactBlob(href)
-        const filename = getArtifactName(href)
-        if (shouldForceArtifactDownload(blob, filename)) {
-          downloadArtifactBlob(blob, filename)
-          return
-        }
-        const objectUrl = createPreviewObjectUrl(blob)
-        const openedWindow = window.open(
-          objectUrl,
-          '_blank',
-          'noopener,noreferrer',
-        )
-
-        if (openedWindow) {
-          scheduleObjectUrlRevoke(objectUrl)
-        } else {
-          downloadArtifactBlob(blob, filename)
-          revokePreviewObjectUrl(objectUrl)
-        }
+        await openArtifactResource(href)
       } catch (error) {
         if (!isAbortError(error)) {
           toast.error(
-            t('agent.markdownArtifact.openFailed', 'Failed to open artifact'),
+            t('chat.markdownArtifact.openFailed', 'Failed to open artifact'),
           )
         }
       } finally {
@@ -293,7 +214,7 @@ export const ArtifactLink: FC<{
     <a
       href={resolveArtifactUrl(href)}
       className={joinClassNames(
-        'gap-space-xs hover:text-text-accent/80 inline-flex items-center text-text-accent',
+        'inline-flex items-center gap-space-xs text-text-accent hover:text-text-accent/80',
         className,
       )}
       onClick={handleClick}
@@ -302,7 +223,7 @@ export const ArtifactLink: FC<{
       <ExternalLink className="size-icon-sm" aria-hidden="true" />
       {isOpening ? (
         <span className="sr-only">
-          {t('agent.markdownArtifact.opening', 'Opening artifact...')}
+          {t('chat.markdownArtifact.opening', 'Opening artifact...')}
         </span>
       ) : null}
     </a>
@@ -317,9 +238,13 @@ export const MarkdownArtifactLink: FC<MarkdownAnchorProps> = ({
   streamStatus: _streamStatus,
   ...rest
 }) => {
+  const workspace = useChatWorkspace()
+  const messageId = useArtifactMessageId()
   const resolvedHref = href || getDomAttribute(domNode, 'href') || ''
 
   if (isArtifactUrl(resolvedHref)) {
+    if (workspace && messageId)
+      return <ArtifactCard url={resolvedHref} messageId={messageId} />
     return (
       <ArtifactLink href={resolvedHref} className={className}>
         {children}
@@ -343,10 +268,14 @@ export const MarkdownArtifactImage: FC<MarkdownImageProps> = ({
   streamStatus: _streamStatus,
   ...rest
 }) => {
+  const workspace = useChatWorkspace()
+  const messageId = useArtifactMessageId()
   const resolvedSrc = src || getDomAttribute(domNode, 'src') || ''
   const resolvedAlt = alt || getDomAttribute(domNode, 'alt') || ''
 
   if (isArtifactUrl(resolvedSrc)) {
+    if (workspace && messageId)
+      return <ArtifactCard url={resolvedSrc} messageId={messageId} />
     return (
       <ArtifactImage
         src={resolvedSrc}

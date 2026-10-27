@@ -224,6 +224,7 @@ it('defaults Settings to Profile, preserves its return location, and orders acco
   ).map((a) => a.textContent)
   expect(links).toEqual([
     'Profile',
+    'Appearance',
     'Team',
     'Model providers',
     'Data sources',

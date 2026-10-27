@@ -1,7 +1,7 @@
 /**
- * 引用详情侧栏的检索诊断区：检索匹配评分（含向量 / 词汇分项）、定位数据与
- * 各类 ID。评分是检索阶段的排序分，量纲随应用的检索设置（混合权重、重排模型）
- * 变化，不代表可信度，所以只在这里展示；角标浮层和来源面板不展示评分。
+ * 引用详情面板（技术详情）的检索诊断区：检索匹配评分（含向量 / 词汇分项）、
+ * 定位数据与各类 ID。评分是检索阶段的排序分，量纲随应用的检索设置（混合权重、
+ * 重排模型）变化，不代表可信度，所以只在这里展示；角标浮层和来源面板不展示评分。
  * 评分没有颜色分档，状态全部用文字表达（缺失或无效显示“不可用”）。
  */
 import { useId, useState, type ReactNode } from 'react'
@@ -18,7 +18,6 @@ import { useTranslation } from 'react-i18next'
 import { Progress } from '@/components/ui/progress'
 import { toast } from '@/lib/toast'
 import { cn, copyToClipboard } from '@/lib/utils'
-import { getCurrentLanguage } from '@/locales/i18n'
 import type { ReferenceChunk } from '@/utils/reference-replacer'
 import { truncateId } from './reference-meta'
 import {
@@ -36,9 +35,10 @@ export function ReferenceDiagnostics({
   chunk,
   onCopySuccess,
 }: ReferenceDiagnosticsProps) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const headingId = useId()
-  const locale = getCurrentLanguage()
+  // 跟随所在 i18n 实例（分享页等独立语言作用域）的语言，而不是全局语言
+  const locale = i18n.resolvedLanguage ?? i18n.language
   const score = readRetrievalScore(chunk.similarity)
   // 有限数字却超出 0–1（如知识库设了 PageRank，排序加权叠加到综合分上）：
   // 评分仍算不可用，另行写出原始值，排查时不丢信息
@@ -72,25 +72,25 @@ export function ReferenceDiagnostics({
     {
       key: 'chunk',
       icon: <Hash aria-hidden className="size-icon-xs" />,
-      label: t('reference.diagnostics.chunkId'),
+      label: t('sources.chunkId'),
       value: chunk.id,
     },
     {
       key: 'document',
       icon: <FileText aria-hidden className="size-icon-xs" />,
-      label: t('reference.diagnostics.documentId'),
+      label: t('sources.documentId'),
       value: chunk.document_id,
     },
     {
       key: 'dataset',
       icon: <Database aria-hidden className="size-icon-xs" />,
-      label: t('reference.diagnostics.datasetId'),
+      label: t('sources.datasetId'),
       value: chunk.dataset_id,
     },
     {
       key: 'image',
       icon: <Image aria-hidden className="size-icon-xs" />,
-      label: t('reference.diagnostics.imageId'),
+      label: t('sources.imageId'),
       value: chunk.image_id,
     },
   ]
@@ -147,7 +147,7 @@ export function ReferenceDiagnostics({
         <dl className="divide-y divide-border-subtle border-t border-border-subtle px-3">
           <DiagnosticItem
             icon={<MapPin aria-hidden className="size-icon-xs" />}
-            label={t('reference.diagnostics.positions')}
+            label={t('sources.positions')}
             value={positions ?? t('reference.diagnostics.noPositions')}
             copyable={positions !== null}
             onCopy={onCopySuccess}

@@ -1,4 +1,9 @@
 import * as React from 'react'
+import { useThemeScope } from '@/themes/scoped-theme'
+
+export function usePortalContainer() {
+  return useThemeScope()?.container ?? undefined
+}
 
 export type PortalTheme = 'light' | 'dark'
 

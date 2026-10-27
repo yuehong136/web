@@ -77,6 +77,15 @@ const render = (props: {
 
 beforeEach(async () => {
   vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true)
+  // 工作区分栏（react-resizable-panels）挂载时需要 ResizeObserver
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    },
+  )
   await setProductLanguage('zh-CN')
   inputBox = undefined
   container = document.createElement('div')

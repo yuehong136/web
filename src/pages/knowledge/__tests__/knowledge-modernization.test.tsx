@@ -19,8 +19,8 @@ test('knowledge locale namespace keeps zh-CN and en-US keys in sync', () => {
   assert.deepEqual(flattenKeys(zhCN).sort(), flattenKeys(enUS).sort())
 })
 
-test('knowledge graph KR-7 locale keys are present in runtime resources', () => {
-  const resources = createI18nResources()
+test('knowledge graph KR-7 locale keys are present in runtime resources', async () => {
+  const resources = await createI18nResources()
   const enUSKnowledge = resources['en-US'].translation.knowledge
   const zhCNKnowledge = resources['zh-CN'].translation.knowledge
 

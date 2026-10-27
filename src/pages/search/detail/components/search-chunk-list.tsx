@@ -1,4 +1,5 @@
 import { ReferenceMetadataBadges } from '@/components/chat/reference-metadata-badges'
+import { useTranslation } from 'react-i18next'
 import { memo, useState, type FC } from 'react'
 import type { Config } from 'dompurify'
 import { ChevronDown, ChevronUp, FileText, Layers } from 'lucide-react'
@@ -35,8 +36,14 @@ const SearchChunkCard: FC<{
   allChunks: ChunkResult[]
   onViewDetail: (chunk: ChunkResult, allChunks: ChunkResult[]) => void
 }> = ({ chunk, index, allChunks, onViewDetail }) => {
+  const { t } = useTranslation()
   const [expanded, setExpanded] = useState(false)
-  const similarity = Math.round((chunk.similarity || 0) * 100)
+  const similarity =
+    Number.isFinite(chunk.similarity) &&
+    chunk.similarity >= 0 &&
+    chunk.similarity <= 1
+      ? Math.round(chunk.similarity * 100)
+      : undefined
   const rawContent =
     chunk.highlight || chunk.content_with_weight || chunk.text || ''
   const longContent = rawContent.length > 400
@@ -58,7 +65,7 @@ const SearchChunkCard: FC<{
           onClick={() => onViewDetail(chunk, allChunks)}
           className="text-xs text-text-accent hover:underline"
         >
-          查看详情
+          {t('searchPage.workspace.details')}
         </button>
       </div>
 
@@ -66,10 +73,16 @@ const SearchChunkCard: FC<{
         <span className="inline-flex h-1.5 w-16 overflow-hidden rounded-radius-full bg-background-subtle">
           <span
             className="h-full bg-status-success"
-            style={{ width: `${similarity}%` }}
+            style={{
+              width: similarity === undefined ? undefined : `${similarity}%`,
+            }}
           />
         </span>
-        <span>{similarity}%</span>
+        <span>
+          {similarity === undefined
+            ? t('sources.unavailable')
+            : `${similarity}%`}
+        </span>
       </div>
 
       <SafeHtml
@@ -89,7 +102,11 @@ const SearchChunkCard: FC<{
           onClick={() => setExpanded((prev) => !prev)}
           className="mt-space-xs inline-flex items-center gap-1 text-xs text-text-accent hover:underline"
         >
-          {expanded ? '收起' : '展开'}
+          {t(
+            expanded
+              ? 'searchPage.workspace.collapse'
+              : 'searchPage.workspace.expand',
+          )}
           {expanded ? (
             <ChevronUp className="h-3 w-3" />
           ) : (
@@ -107,6 +124,7 @@ const SearchChunkList: FC<SearchChunkListProps> = ({
   isLoading,
   onViewDetail,
 }) => {
+  const { t } = useTranslation()
   if (isLoading) {
     return (
       <div className="space-y-3">
@@ -128,7 +146,7 @@ const SearchChunkList: FC<SearchChunkListProps> = ({
   if (!chunks.length) {
     return (
       <div className="rounded-radius-xl border border-border-default bg-surface-primary p-space-base text-sm text-text-tertiary">
-        没有命中文档片段。可尝试放宽阈值、提高 Top K，或改写问题表述。
+        {t('searchPage.workspace.noResults')}
       </div>
     )
   }
@@ -137,8 +155,12 @@ const SearchChunkList: FC<SearchChunkListProps> = ({
     <div>
       <div className="mb-space-xs flex items-center gap-2">
         <Layers className="h-4 w-4 text-text-tertiary" />
-        <span className="text-sm font-medium text-text-primary">检索结果</span>
-        <span className="text-xs text-text-tertiary">共 {total} 条</span>
+        <span className="text-sm font-medium text-text-primary">
+          {t('searchPage.workspace.results')}
+        </span>
+        <span className="text-xs text-text-tertiary">
+          {t('searchPage.workspace.count', { count: total })}
+        </span>
       </div>
 
       <div className="space-y-3">

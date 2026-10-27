@@ -5,11 +5,9 @@ import { ArrowLeft, Download, FileText, Loader2 } from 'lucide-react'
 import { Watermark } from 'antd'
 import { Button, Tooltip } from '@/components/ui'
 import { DocumentPreview } from '@/components/knowledge/document-preview'
+import { knowledgeAPI } from '@/api/knowledge'
 import { documentDownloadErrorMessageKey } from '@/lib/knowledge/preview-error'
-import {
-  fetchDocumentDownload,
-  getPreviewErrorCategory,
-} from '@/lib/knowledge/preview-resource'
+import { getPreviewErrorCategory } from '@/lib/knowledge/preview-resource'
 import { toast } from '@/lib/toast'
 import { getCurrentLanguage } from '@/locales/i18n'
 import { useAuthStore } from '@/stores'
@@ -36,15 +34,7 @@ const DocumentPreviewPage: React.FC = () => {
     if (!docId) return
     setDownloading(true)
     try {
-      const blob = await fetchDocumentDownload(docId)
-      const blobUrl = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = blobUrl
-      a.download = docName || 'document'
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(blobUrl)
+      await knowledgeAPI.document.download(docId, docName || 'document')
     } catch (error) {
       // 只按失败分类提示固定文案，后端返回的原文不进入提示
       toast.error(

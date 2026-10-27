@@ -5,8 +5,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import { MultiSelectWithSearch } from '@/components/ui/multi-select-with-search'
-import { useKnowledgeOptions } from '@/hooks/use-knowledge-request'
+import { KnowledgeBaseSelector } from '@/components/knowledge/KnowledgeBaseSelector'
 import { useFormContext, useWatch } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
@@ -23,17 +22,10 @@ export function KnowledgeBaseSelectField({
 }: KnowledgeBaseSelectFieldProps) {
   const { t } = useTranslation()
   const form = useFormContext()
-  const { options, isLoading } = useKnowledgeOptions()
   const legacyKbIds = useWatch({
     control: form.control,
     name: 'kb_ids',
   }) as string[] | undefined
-
-  // Transform to SelectOptionGroup format (flat list without groups)
-  const selectOptions = options.map((opt) => ({
-    label: opt.label,
-    value: opt.value,
-  }))
 
   return (
     <FormField
@@ -45,9 +37,10 @@ export function KnowledgeBaseSelectField({
             {label || t('flow.knowledgeBases', 'Knowledge Bases')}
           </FormLabel>
           <FormControl>
-            <MultiSelectWithSearch
-              options={selectOptions}
-              value={
+            <KnowledgeBaseSelector
+              knowledgeBases={[]}
+              showLabel={false}
+              selectedIds={
                 field.value ??
                 (name === 'dataset_ids' ? legacyKbIds : undefined) ??
                 []
@@ -62,12 +55,6 @@ export function KnowledgeBaseSelectField({
                 placeholder ||
                 t('flow.selectKnowledgeBases', 'Select knowledge bases')
               }
-              emptyText={
-                isLoading
-                  ? t('common.loading', 'Loading...')
-                  : t('flow.noKnowledgeBases', 'No knowledge bases available')
-              }
-              allowClear
             />
           </FormControl>
           <FormMessage />

@@ -188,6 +188,7 @@ export const useFetchDocumentFilter = (knowledgeBaseId?: string) => {
   const { data, isFetching, isError, error, refetch } = useQuery({
     queryKey: documentKeys.filter(kbId),
     queryFn: async () => {
+      if (!kbId) return null
       const response = await knowledgeAPI.document.getFilter(kbId)
       return response.filter
     },

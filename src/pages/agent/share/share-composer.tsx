@@ -16,6 +16,7 @@ import type { AgentCanvasUploadResult } from '@/types/agent'
 interface ShareComposerProps {
   value: string
   files: AgentCanvasUploadResult[]
+  disabled?: boolean
   isRunning?: boolean
   uploading?: boolean
   hasParameters?: boolean
@@ -33,6 +34,7 @@ export function ShareComposer({
   value,
   files,
   isRunning,
+  disabled,
   uploading,
   hasParameters,
   className,
@@ -53,12 +55,12 @@ export function ShareComposer({
       className={cn(
         isInlineLayout
           ? undefined
-          : 'bg-surface-primary px-space-lg py-space-base shrink-0',
+          : 'shrink-0 bg-surface-primary px-space-lg py-space-base',
         className,
       )}
     >
       <div className={isInlineLayout ? 'w-full' : 'mx-auto w-full max-w-4xl'}>
-        <div className="agent-share-composer rounded-radius-xl shadow-elevation-low overflow-hidden border border-components-input-border bg-components-input-bg transition-colors focus-within:border-components-input-border-focus">
+        <div className="agent-share-composer overflow-hidden rounded-radius-xl border border-components-input-border bg-components-input-bg shadow-elevation-low transition-colors focus-within:border-components-input-border-focus">
           <style>{`
             .agent-share-composer .ant-sender {
               background: transparent !important;
@@ -94,7 +96,7 @@ export function ShareComposer({
           `}</style>
 
           {files.length ? (
-            <div className="gap-space-xs px-space-base py-space-sm flex flex-wrap border-b border-border-subtle">
+            <div className="flex flex-wrap gap-space-xs border-b border-border-subtle px-space-base py-space-sm">
               {files.map((file) => (
                 <Badge key={file.id || file.name} variant="outline">
                   {file.name || file.filename || file.id}
@@ -103,7 +105,7 @@ export function ShareComposer({
             </div>
           ) : null}
 
-          <div className="px-space-base pb-space-xs pt-space-base">
+          <div className="px-space-base pt-space-base pb-space-xs">
             <Sender
               value={value}
               onChange={onChange}
@@ -112,14 +114,16 @@ export function ShareComposer({
                 '输入消息，按 Enter 发送',
               )}
               loading={isRunning}
-              disabled={uploading}
-              onSubmit={onSubmit}
+              disabled={disabled || uploading}
+              onSubmit={(content) => {
+                if (!disabled) onSubmit(content)
+              }}
               onCancel={onStop}
             />
           </div>
 
-          <div className="gap-space-sm px-space-base pb-space-sm pt-space-xs flex items-center justify-between">
-            <div className="gap-space-xs flex items-center">
+          <div className="flex items-center justify-between gap-space-sm px-space-base pt-space-xs pb-space-sm">
+            <div className="flex items-center gap-space-xs">
               {/* eslint-disable-next-line no-restricted-syntax -- Native file picker is hidden; the shared Input wrapper renders visible chrome here. */}
               <input
                 ref={attachmentInputRef}
@@ -137,7 +141,7 @@ export function ShareComposer({
                 variant="ghost"
                 size="icon-sm"
                 onClick={() => attachmentInputRef.current?.click()}
-                disabled={isRunning || uploading}
+                disabled={disabled || isRunning || uploading}
                 title={
                   uploading
                     ? t('agent.share.uploading', '上传中')
@@ -156,7 +160,7 @@ export function ShareComposer({
                   variant="ghost"
                   size="icon-sm"
                   onClick={onOpenParameters}
-                  disabled={isRunning || uploading}
+                  disabled={disabled || isRunning || uploading}
                   title={t('agent.share.parameters', '运行参数')}
                   aria-label={t('agent.share.parameters', '运行参数')}
                 >
@@ -179,7 +183,7 @@ export function ShareComposer({
               <Button
                 size="icon-sm"
                 onClick={() => onSubmit(value)}
-                disabled={uploading || !canSend}
+                disabled={disabled || uploading || !canSend}
                 title={t('agent.share.send', '发送')}
                 aria-label={t('agent.share.send', '发送')}
               >

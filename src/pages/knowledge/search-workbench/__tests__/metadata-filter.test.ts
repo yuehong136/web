@@ -165,7 +165,7 @@ test('real domain requests combine document scope and normalized manual/semi-aut
       page: 2,
       size: 10,
     })
-    assert.equal(calls.at(-1)?.url.pathname, '/api/v1/datasets/kb%2F1/search')
+    assert.equal(calls.at(-1)?.url.pathname, '/api/v1/datasets/search')
   }
   assert.deepEqual(calls[1].body.meta_data_filter, {
     method: 'semi_auto',

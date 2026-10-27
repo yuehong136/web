@@ -275,6 +275,8 @@ export default {
       successMessage: 'Knowledge settings were updated.',
       errorTitle: 'Update failed',
       errorMessage: 'An error occurred while updating knowledge settings.',
+      embeddingIncompatible:
+        'The selected model is incompatible with existing chunks. Choose another model or reparse the documents.',
       formLabel: 'Settings form',
       previewLabel: 'Parser preview',
       sections: {
@@ -296,7 +298,7 @@ export default {
         descriptionPlaceholder: 'Enter a knowledge base description',
         embeddingModel: 'Embedding model',
         embeddingModelTooltip:
-          'The default embedding model used by this knowledge base. After chunks have been created, the default embedding model cannot be changed unless all chunks in the knowledge base are deleted.',
+          'The default embedding model used by this knowledge base. Changing the model checks compatibility with existing chunk vectors before saving. Existing vectors are not rebuilt.',
         embeddingModelPlaceholder: 'Select an embedding model',
         loading: 'Loading...',
         pageRank: 'PageRank weight',
@@ -531,6 +533,11 @@ export default {
           'Entity and relation extraction prompts come from LightRAG, a simple and fast retrieval-augmented generation method.',
         methodTooltipGeneral:
           'Entity and relation extraction prompts come from Microsoft GraphRAG, a graph-based modular retrieval-augmented generation system.',
+        methodTooltipNer:
+          'Use local English or Chinese spaCy models for entities and sentence co-occurrence relations. Extraction needs no LLM; description summaries, entity resolution and community reports may still use one.',
+        batchChunkTokenSize: 'Extraction batch tokens',
+        batchChunkTokenSizeTooltip:
+          'Target tokens per LLM extraction batch. Source chunks remain whole when they exceed this target. NER processes each source chunk separately.',
         resolution: 'Entity resolution',
         resolutionTooltip:
           'During parsing, entities with the same meaning are merged to make the knowledge graph cleaner and more accurate.',
@@ -539,6 +546,9 @@ export default {
           'Chunks are clustered into hierarchical communities. The system then uses an LLM to generate a summary for each community.',
       },
       raptor: {
+        clusteringMethod: 'Clustering method',
+        clusteringMethodTooltip:
+          'GMM uses Gaussian mixture clustering; AHC uses hierarchical clustering. Changes apply on the next RAPTOR run.',
         enable: 'Use RAPTOR retrieval enhancement',
         enableTooltip:
           'RAPTOR is commonly used for complex multi-hop QA. To enable it, go to the knowledge base document page and run Generate > RAPTOR.',
@@ -573,8 +583,22 @@ export default {
           'The Q&A parser is specialized for question-answer documents. No additional configuration is required.',
         resumeEmpty:
           'The Resume parser uses dedicated structured parsing. No additional configuration is required.',
-        tableEmpty:
-          'The Table parser uses dedicated table parsing. No additional configuration is required.',
+        table: {
+          mode: 'Column mode',
+          auto: 'Auto',
+          manual: 'Manual',
+          autoDescription:
+            'All columns are included in indexed text and stored as metadata.',
+          roles: 'Column roles',
+          indexing: 'Indexing',
+          metadata: 'Metadata',
+          both: 'Both',
+          description:
+            'Indexing includes the column in vector and full-text search. Metadata stores it as a filterable attribute. Both does both.',
+          empty:
+            'Upload and parse a CSV or Excel file to configure column roles.',
+          reparse: 'Re-parse existing documents for changes to take effect.',
+        },
         tagEmpty:
           'The Tag parser is used to create tag knowledge bases. No additional configuration is required.',
       },
@@ -651,14 +675,16 @@ export default {
         success: 'Uploaded {{count}} documents.',
         autoParseError:
           'Documents were uploaded, but auto parsing failed. Start parsing manually.',
-        serverResponseError: 'Unexpected server response',
-        serverResponseErrorToast: 'Upload failed: unexpected server response.',
+        serverResponseError:
+          'Upload result could not be matched to this file. Check the document list before retrying.',
+        serverResponseErrorToast:
+          'The upload result could not be confirmed. Your files are kept. Check the document list before retrying.',
         unknownError: 'Unknown error',
         failedWithMessage: 'Document upload failed: {{message}}',
         fileUploadSuccess: 'File "{{name}}" uploaded.',
         failed: 'Upload failed',
         description:
-          'Supports PDF, Word, Excel, PPT, Markdown, code files, images, audio, video, and more. Total upload size is limited to <strong>1GB</strong>; batch upload is limited to <strong>32</strong> files.',
+          'Supports PDF, Word, Excel, PPT, Markdown, code files, images, audio, video, and more. Each file can be up to <strong>1GB</strong>; select up to <strong>32</strong> files per batch.',
         fileTab: 'File upload',
         folderTab: 'Folder upload',
         dropActiveTitle: 'Release files to upload',
@@ -680,6 +706,13 @@ export default {
         uploading: 'Uploading...',
         uploadRemaining: 'Upload remaining {{count}} files',
         uploadCount: 'Upload {{count}} files',
+
+        fileRejected: 'File "{{name}}" could not be selected. Choose it again.',
+        notConfirmed: 'Upload was not confirmed. This file is kept for retry.',
+        partial:
+          '{{successCount}} confirmed; {{errorCount}} still need attention. Retry the remaining files.',
+        retryHint:
+          'Upload failed. Your files are kept. Check your connection and retry.',
       },
       previousPage: 'Previous',
       nextPage: 'Next',

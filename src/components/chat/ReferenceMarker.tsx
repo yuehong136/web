@@ -4,7 +4,7 @@
  *
  * 展示组件原则：只接收 props，不包含业务逻辑
  */
-import type { FC, ReactNode } from 'react'
+import { useRef, useState, type FC, type ReactNode } from 'react'
 import { Copy, ChevronRight, ExternalLink } from 'lucide-react'
 import type { Config } from 'dompurify'
 import { useTranslation } from 'react-i18next'
@@ -18,8 +18,7 @@ import { SafeHtml } from '@/components/ui/safe-html'
 import {
   getDocTypeIcon,
   getOriginalSource,
-  getOriginalSourceHintKey,
-  openOriginalSource,
+  getOriginalSourceLink,
   toPlainText,
   truncateText,
 } from './reference-meta'
@@ -53,7 +52,7 @@ const FOOTER_BUTTON_CLASS = cn(
 
 /**
  * 内联引用标记组件。浮层只做阅读时的快速预览，不展示检索匹配评分：
- * 评分只说明检索阶段的排序，放在详情侧栏的诊断区（ReferenceDiagnostics）。
+ * 评分只说明检索阶段的排序，放在详情面板的诊断区（ReferenceDiagnostics）。
  */
 export const ReferenceMarker: FC<ReferenceMarkerProps> = ({
   index,
@@ -63,6 +62,8 @@ export const ReferenceMarker: FC<ReferenceMarkerProps> = ({
   children,
 }) => {
   const { t } = useTranslation()
+  const [open, setOpen] = useState(false)
+  const trigger = useRef<HTMLButtonElement>(null)
   const displayIndex =
     chunk?.reference_index !== undefined
       ? chunk.reference_index
@@ -79,21 +80,23 @@ export const ReferenceMarker: FC<ReferenceMarkerProps> = ({
     )
   }
 
-  const documentName = chunk.document_name || t('reference.unknownDocument')
+  const documentName = chunk.document_name || t('sources.unknownDocument')
   const label = t('reference.marker.label', {
     index: displayIndex,
     name: documentName,
   })
   const originalSource = getOriginalSource(chunk)
+  const originalLink = originalSource && getOriginalSourceLink(originalSource)
   const isTableContent =
     chunk.doc_type === 'table' && chunk.content?.includes('<table')
 
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       {/* 原生按钮作触发器：键盘可达，引用详情关闭后焦点也能回到这里 */}
       <sup>
         <PopoverTrigger asChild>
           <button
+            ref={trigger}
             type="button"
             aria-label={label}
             className={cn(
@@ -159,38 +162,40 @@ export const ReferenceMarker: FC<ReferenceMarkerProps> = ({
               }}
             >
               <Copy aria-hidden className="size-icon-xs" />
-              {t('reference.marker.copy')}
+              {t('sources.copy')}
             </button>
 
-            {originalSource && (
-              <button
-                type="button"
+            {originalLink && (
+              <a
                 className={cn(FOOTER_BUTTON_CLASS, 'text-text-secondary')}
-                title={t(getOriginalSourceHintKey(originalSource))}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  openOriginalSource(originalSource)
-                }}
+                href={originalLink.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                title={t(originalLink.hintKey)}
+                onClick={(e) => e.stopPropagation()}
               >
                 <ExternalLink aria-hidden className="size-icon-xs" />
-                {t('reference.marker.openOriginal')}
-              </button>
+                {t(originalLink.labelKey)}
+              </a>
             )}
 
             <div className="flex-1" />
 
             <button
               type="button"
+              data-reference-details
               className={cn(
                 FOOTER_BUTTON_CLASS,
                 'gap-1 bg-state-focus-10 font-medium text-text-accent',
               )}
               onClick={(e) => {
                 e.stopPropagation()
+                setOpen(false)
+                trigger.current?.focus({ preventScroll: true })
                 onViewDetail?.(chunk)
               }}
             >
-              {t('reference.marker.details')}
+              {t('sources.details')}
               <ChevronRight aria-hidden className="size-icon-xs" />
             </button>
           </div>

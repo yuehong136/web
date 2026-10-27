@@ -50,11 +50,11 @@ const STATUS_LABEL_MAP: Record<
   Exclude<AgentRuntimeStatus, AgentRuntimeStatus.STOPPED>,
   string
 > = {
-  [AgentRuntimeStatus.IDLE]: '待运行',
-  [AgentRuntimeStatus.PREPARING]: '准备中',
-  [AgentRuntimeStatus.RUNNING]: '运行中',
-  [AgentRuntimeStatus.SUCCESS]: '已完成',
-  [AgentRuntimeStatus.ERROR]: '失败',
+  [AgentRuntimeStatus.IDLE]: 'agent.runtime.idle',
+  [AgentRuntimeStatus.PREPARING]: 'agent.runtime.preparing',
+  [AgentRuntimeStatus.RUNNING]: 'agent.runtime.running',
+  [AgentRuntimeStatus.SUCCESS]: 'agent.runtime.success',
+  [AgentRuntimeStatus.ERROR]: 'agent.runtime.error',
 }
 
 const STATUS_VARIANT_MAP: Record<
@@ -87,12 +87,12 @@ export function EditorRuntimeRail({
   onOpenVariables,
 }: EditorRuntimeRailProps) {
   const { t } = useTranslation()
-  const title = resolveLocalizedText(flow?.title, '未命名资产')
+  const title = resolveLocalizedText(flow?.title, t('agent.unnamedAsset'))
   const description = resolveLocalizedText(
     flow?.description,
     editorMode === 'pipeline'
-      ? '上传文档、处理数据流，并查看节点输出。'
-      : '编排对话、工具调用和交付入口。',
+      ? t('agent.embedRail.pipelineDescription')
+      : t('agent.embedRail.agentDescription'),
   )
   const nodeCount = countFlowNodes(flow)
   const edgeCount = flow?.dsl.graph?.edges.length || 0
@@ -102,8 +102,12 @@ export function EditorRuntimeRail({
   const isPipeline = editorMode === 'pipeline'
 
   return (
-    <div className="gap-space-lg p-space-lg pb-space-2xl grid h-full min-h-0 auto-rows-max overflow-y-auto overscroll-contain">
-      <SectionCard title="当前资产" padding="default" className="min-h-0">
+    <div className="grid h-full min-h-0 auto-rows-max gap-space-lg overflow-y-auto overscroll-contain p-space-lg pb-space-2xl">
+      <SectionCard
+        title={t('agent.editorRuntimeRail.currentAsset')}
+        padding="default"
+        className="min-h-0"
+      >
         <div className="space-y-space-md">
           <div>
             <p className="text-base font-semibold text-text-primary">{title}</p>
@@ -111,27 +115,29 @@ export function EditorRuntimeRail({
               {description}
             </p>
           </div>
-          <div className="gap-space-sm grid grid-cols-2 text-sm">
+          <div className="grid grid-cols-2 gap-space-sm text-sm">
             <div className="rounded-radius-lg bg-surface-secondary p-space-sm">
-              <p className="text-text-tertiary">类型</p>
+              <p className="text-text-tertiary">{t('agent.embedRail.type')}</p>
               <p className="mt-space-xs font-medium text-text-primary">
-                {isPipelineFlow(flow) ? 'Pipeline' : 'Agent'}
+                {isPipelineFlow(flow) ? t('agent.pipeline') : t('agent.agent')}
               </p>
             </div>
             <div className="rounded-radius-lg bg-surface-secondary p-space-sm">
-              <p className="text-text-tertiary">自动保存</p>
+              <p className="text-text-tertiary">
+                {t('agent.editorRuntimeRail.autosave')}
+              </p>
               <p className="mt-space-xs font-medium text-text-primary">
-                {autosaveLabel || '待首次保存'}
+                {autosaveLabel || t('agent.editor.autosavePending')}
               </p>
             </div>
             <div className="rounded-radius-lg bg-surface-secondary p-space-sm">
-              <p className="text-text-tertiary">节点</p>
+              <p className="text-text-tertiary">{t('agent.embedRail.nodes')}</p>
               <p className="mt-space-xs font-medium text-text-primary">
                 {nodeCount}
               </p>
             </div>
             <div className="rounded-radius-lg bg-surface-secondary p-space-sm">
-              <p className="text-text-tertiary">连线</p>
+              <p className="text-text-tertiary">{t('agent.embedRail.edges')}</p>
               <p className="mt-space-xs font-medium text-text-primary">
                 {edgeCount}
               </p>
@@ -139,31 +145,41 @@ export function EditorRuntimeRail({
           </div>
           {flow?.update_time ? (
             <p className="text-xs text-text-tertiary">
-              最近更新时间：{formatTimestampDetailed(flow.update_time)}
+              {t('agent.editorRuntimeRail.recentlyUpdatedAt', {
+                time: formatTimestampDetailed(flow.update_time),
+              })}
             </p>
           ) : null}
         </div>
       </SectionCard>
 
       <SectionCard
-        title={isPipeline ? 'Pipeline 工作台' : '运行工作台'}
+        title={t(
+          isPipeline ? 'agent.pipelineWorkbench' : 'agent.runtimeWorkbench',
+        )}
         padding="default"
         className="min-h-0"
       >
         <div className="space-y-space-md">
-          <div className="gap-space-sm flex items-center justify-between">
+          <div className="flex items-center justify-between gap-space-sm">
             <div className="min-w-0">
               <p className="text-sm font-medium text-text-primary">
-                {isPipeline ? 'Pipeline 运行' : 'Agent 运行'}
+                {t(
+                  isPipeline
+                    ? 'agent.embedRail.pipelineRun'
+                    : 'agent.embedRail.agentRun',
+                )}
               </p>
               <p className="mt-space-xs text-sm text-text-secondary">
                 {runtimeSummary.status === AgentRuntimeStatus.RUNNING
-                  ? '正在运行，可打开工作台查看实时进度。'
+                  ? t('agent.embedRail.runningDescription')
                   : runtimeSummary.lastRunAt
-                    ? `最近一次运行：${formatTimestampDetailed(runtimeSummary.lastRunAt)}`
+                    ? t('agent.embedRail.lastRunAt', {
+                        time: formatTimestampDetailed(runtimeSummary.lastRunAt),
+                      })
                     : isPipeline
-                      ? '上传文档触发数据流处理，并在日志和输出中查看结果。'
-                      : '从这里进入运行、会话和日志工作台。'}
+                      ? t('agent.editorRuntimeRail.pipelineIdleDescription')
+                      : t('agent.embedRail.agentIdleDescription')}
               </p>
             </div>
             <Badge
@@ -172,20 +188,24 @@ export function EditorRuntimeRail({
             >
               {runtimeSummary.status === AgentRuntimeStatus.STOPPED
                 ? t('agent.runtime.outputDetached')
-                : STATUS_LABEL_MAP[runtimeSummary.status]}
+                : t(STATUS_LABEL_MAP[runtimeSummary.status])}
             </Badge>
           </div>
 
           {runtimeSummary.lastError ? (
-            <div className="rounded-radius-md border-border-primary bg-surface-secondary px-space-sm py-space-xs border text-xs text-status-error">
+            <div className="rounded-radius-md border border-border-primary bg-surface-secondary px-space-sm py-space-xs text-xs text-status-error">
               {runtimeSummary.lastError}
             </div>
           ) : null}
 
-          <div className="gap-space-sm grid grid-cols-2 text-sm">
+          <div className="grid grid-cols-2 gap-space-sm text-sm">
             <div className="rounded-radius-lg bg-surface-secondary p-space-sm">
               <p className="text-text-tertiary">
-                {isPipeline ? '节点事件' : '消息'}
+                {t(
+                  isPipeline
+                    ? 'agent.embedRail.nodeEvents'
+                    : 'agent.runtime.messages',
+                )}
               </p>
               <p className="mt-space-xs font-medium text-text-primary">
                 {runtimeSummary.messageCount}
@@ -193,37 +213,37 @@ export function EditorRuntimeRail({
             </div>
             <div className="rounded-radius-lg bg-surface-secondary p-space-sm">
               <p className="text-text-tertiary">
-                {isPipeline ? '输出' : '日志'}
+                {t(isPipeline ? 'agent.runtime.output' : 'agent.runtime.logs')}
               </p>
               <p className="mt-space-xs font-medium text-text-primary">
                 {isPipeline
                   ? pipelineSummary?.outputAvailable
                     ? pipelineSummary.resultPath
-                      ? '可跳转'
-                      : '可下载'
-                    : '暂无'
+                      ? t('agent.embedRail.canOpen')
+                      : t('agent.embedRail.canDownload')
+                    : t('agent.embedRail.none')
                   : runtimeSummary.hasLogs
-                    ? '可查看'
-                    : '暂无'}
+                    ? t('agent.embedRail.available')
+                    : t('agent.embedRail.none')}
               </p>
             </div>
           </div>
 
-          <div className="gap-space-sm grid">
+          <div className="grid gap-space-sm">
             {isPipeline ? (
               <>
                 <Button
                   onClick={() => onOpenRuntime(PipelineWorkbenchView.RUN)}
                 >
                   <Play className="mr-space-xs h-4 w-4" />
-                  上传并启动 Pipeline
+                  {t('agent.embedRail.uploadAndRunPipeline')}
                 </Button>
                 <Button
                   variant="outline"
                   onClick={() => onOpenRuntime(PipelineWorkbenchView.LOG)}
                   disabled={!runtimeSummary.hasLogs}
                 >
-                  查看数据流时间线
+                  {t('agent.embedRail.viewDataflowTimeline')}
                 </Button>
                 <Button
                   variant="outline"
@@ -231,14 +251,14 @@ export function EditorRuntimeRail({
                   disabled={!pipelineSummary?.outputAvailable}
                 >
                   <Database className="mr-space-xs h-4 w-4" />
-                  查看结果 / END 输出
+                  {t('agent.embedRail.viewResultOutput')}
                 </Button>
               </>
             ) : (
               <>
                 <Button onClick={() => onOpenRuntime(RuntimeWorkbenchView.RUN)}>
                   <Play className="mr-space-xs h-4 w-4" />
-                  打开工作台
+                  {t('agent.embedRail.openWorkbench')}
                 </Button>
                 <Button
                   variant="outline"
@@ -246,14 +266,14 @@ export function EditorRuntimeRail({
                     onOpenRuntime(RuntimeWorkbenchView.CONVERSATION)
                   }
                 >
-                  继续会话
+                  {t('agent.embedRail.continueConversation')}
                 </Button>
                 <Button
                   variant="outline"
                   onClick={() => onOpenRuntime(RuntimeWorkbenchView.LOG)}
                   disabled={!runtimeSummary.hasLogs}
                 >
-                  查看节点日志
+                  {t('agent.embedRail.viewNodeLogs')}
                 </Button>
               </>
             )}
@@ -262,32 +282,36 @@ export function EditorRuntimeRail({
       </SectionCard>
 
       <SectionCard
-        title={isPipeline ? '配置' : '交付与调试'}
+        title={t(
+          isPipeline
+            ? 'agent.embedRail.configTitle'
+            : 'agent.embedRail.deliveryTitle',
+        )}
         padding="default"
         className="min-h-0"
       >
-        <div className="gap-space-sm grid">
+        <div className="grid gap-space-sm">
           {!isPipeline ? (
             <>
               <Button variant="outline" onClick={onOpenExplore}>
                 <Compass className="mr-space-xs h-4 w-4" />
-                Explore 会话
+                {t('agent.embedRail.explore')}
               </Button>
               <Button variant="outline" onClick={onOpenVersions}>
                 <History className="mr-space-xs h-4 w-4" />
-                发布
+                {t('agent.embedRail.publish')}
               </Button>
               <Button variant="outline" onClick={onOpenWebhook}>
                 <Link2 className="mr-space-xs h-4 w-4" />
-                Webhook
+                {t('agent.embedRail.webhook')}
               </Button>
               <Button variant="outline" onClick={onOpenShare}>
                 <Copy className="mr-space-xs h-4 w-4" />
-                Share
+                {t('agent.editorRuntimeRail.share')}
               </Button>
               <Button variant="outline" onClick={onOpenVariables}>
                 <MessageSquareCode className="mr-space-xs h-4 w-4" />
-                会话变量
+                {t('agent.embedRail.variables')}
               </Button>
             </>
           ) : null}
@@ -297,37 +321,49 @@ export function EditorRuntimeRail({
             onClick={onOpenSettings}
           >
             <Settings2 className="mr-space-xs h-4 w-4" />
-            编辑基础设置
+            {t('agent.embedRail.settings')}
           </Button>
         </div>
       </SectionCard>
 
-      <SectionCard title="最近活动" padding="default" className="min-h-0">
+      <SectionCard
+        title={t('agent.editorRuntimeRail.recentActivity')}
+        padding="default"
+        className="min-h-0"
+      >
         <div className="space-y-space-sm text-sm">
-          <div className="gap-space-sm rounded-radius-lg bg-surface-secondary p-space-sm flex items-start">
+          <div className="flex items-start gap-space-sm rounded-radius-lg bg-surface-secondary p-space-sm">
             <Activity className="mt-[2px] h-icon-sm w-icon-sm shrink-0 text-text-accent" />
             <div className="min-w-0">
               <p className="font-medium text-text-primary">
-                {runtimeSummary.lastRunAt ? '最近运行' : '等待首次运行'}
+                {t(
+                  runtimeSummary.lastRunAt
+                    ? 'agent.editorRuntimeRail.recentRun'
+                    : 'agent.editorRuntimeRail.waitingFirstRun',
+                )}
               </p>
               <p className="mt-space-2xs text-text-secondary">
                 {runtimeSummary.lastRunAt
                   ? formatTimestampDetailed(runtimeSummary.lastRunAt)
                   : isPipeline
-                    ? '上传文档后会生成运行日志和输出。'
-                    : '运行后会生成会话消息和节点日志。'}
+                    ? t('agent.editorRuntimeRail.pipelineActivityDescription')
+                    : t('agent.editorRuntimeRail.agentActivityDescription')}
               </p>
             </div>
           </div>
           <div className="rounded-radius-lg bg-surface-secondary p-space-sm">
-            <p className="text-text-tertiary">保存状态</p>
+            <p className="text-text-tertiary">
+              {t('agent.editorRuntimeRail.saveStatus')}
+            </p>
             <p className="mt-space-xs font-medium text-text-primary">
-              {autosaveLabel || '待首次保存'}
+              {autosaveLabel || t('agent.editor.autosavePending')}
             </p>
           </div>
           {flow?.update_time ? (
             <div className="rounded-radius-lg bg-surface-secondary p-space-sm">
-              <p className="text-text-tertiary">更新时间</p>
+              <p className="text-text-tertiary">
+                {t('agent.center.updateTime')}
+              </p>
               <p className="mt-space-xs font-medium text-text-primary">
                 {formatTimestampDetailed(flow.update_time)}
               </p>

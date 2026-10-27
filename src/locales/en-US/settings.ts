@@ -4,6 +4,20 @@ export default {
     description:
       'Manage workspace configuration, team capabilities, and developer access.',
     models: {
+      volcEngine: { modelId: 'Model ID', modelIdRequired: 'Enter a Model ID.' },
+      localModel: {
+        addTitle: 'Add {{provider}} model',
+        editTitle: 'Edit {{provider}} model',
+        description: 'Configure the model endpoint and capabilities.',
+        type: 'Model type',
+        name: 'Model name',
+        keyHint:
+          'Optional. Enter a key if the model service requires authentication.',
+        editKeyHint: 'Leave blank to keep the saved key when editing.',
+        vision: 'Enable vision',
+        tools: 'Enable tool calls',
+        toolsHint: 'Send native tool calls when this model supports them.',
+      },
       available: 'Available providers',
       configured: 'Configured providers',
       defaults: 'Default models',
@@ -38,6 +52,44 @@ export default {
         documentation: 'Service documentation',
         validate: 'Validate configuration',
         saving: 'Saving…',
+      },
+
+      defaultsLoadFailed: 'Could not load default models. Retry to continue.',
+      defaultsUnavailable: 'Configured model (currently unavailable)',
+      defaultsSaved: 'Default models saved.',
+      defaultsSaveFailed:
+        'Could not save default models. Your selections are kept. Try again.',
+      defaultsSelect: 'Select a model',
+      defaultsEmpty: 'No available models. Add a model provider first.',
+      defaultsModelsFailed:
+        'Could not load available models. Your current settings are kept.',
+      defaultsUnsaved: 'Unsaved selections',
+      defaultsSavedHint: 'Changes apply after you save.',
+      defaultFields: {
+        chat: {
+          label: 'Chat model',
+          hint: 'The default chat model for new knowledge bases.',
+        },
+        embedding: {
+          label: 'Embedding model',
+          hint: 'The default embedding model for new knowledge bases. Add a provider with an embedding model if no options appear.',
+        },
+        vision: {
+          label: 'Vision model',
+          hint: 'The default model for describing images or video in new knowledge bases. Select a provider that supports image-to-text.',
+        },
+        speech: {
+          label: 'Speech recognition',
+          hint: 'The default model for transcribing speech in new knowledge bases. Select a provider that supports speech-to-text.',
+        },
+        rerank: {
+          label: 'Reranking model',
+          hint: 'The default model for ranking retrieval results. Select a provider that supports reranking.',
+        },
+        tts: {
+          label: 'Speech generation',
+          hint: 'The default model for generating spoken replies. Select a provider that supports text-to-speech.',
+        },
       },
     },
     groups: {

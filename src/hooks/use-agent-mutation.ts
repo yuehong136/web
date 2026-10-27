@@ -1,4 +1,6 @@
-import type { CreateAgentSessionInput } from '@/types/agent'
+import { useTranslation } from 'react-i18next'
+import i18n from '@/locales/i18n'
+import { APIError } from '@/api/client-types'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { agentAPI } from '@/api/agent'
 import { toast } from '@/lib/toast'
@@ -6,6 +8,7 @@ import { MutationErrorFeedback } from '@/lib/mutation-error-feedback'
 import { adaptAgentFlow, adaptAgentSession } from '@/pages/agent/adapters'
 import { agentQueryKeys } from './use-agent-query'
 import type {
+  CreateAgentSessionInput,
   DebugAgentNodePayload,
   AgentWebhookTestRequest,
   AgentFlow,
@@ -37,6 +40,9 @@ export const useSetAgent = (options?: UseSetAgentOptions) => {
       adaptAgentFlow(await agentAPI.setAgent(payload)),
     onSuccess: (data, variables) => {
       void queryClient.invalidateQueries({ queryKey: agentQueryKeys.lists() })
+      void queryClient.invalidateQueries({
+        queryKey: agentQueryKeys.tagCounts(),
+      })
       if (variables.id || data.id) {
         void queryClient.invalidateQueries({
           queryKey: agentQueryKeys.detail(variables.id || data.id),
@@ -70,11 +76,14 @@ export const useDeleteAgent = () => {
     mutationFn: async (id: string) => agentAPI.deleteAgent(id),
     onSuccess: (_, id) => {
       void queryClient.invalidateQueries({ queryKey: agentQueryKeys.lists() })
+      void queryClient.invalidateQueries({
+        queryKey: agentQueryKeys.tagCounts(),
+      })
       queryClient.removeQueries({ queryKey: agentQueryKeys.detail(id) })
-      toast.success('已删除智能体')
+      toast.success(i18n.t('agents.feedback.deleted'))
     },
     onError: () => {
-      toast.error('删除失败')
+      toast.error(i18n.t('agents.feedback.deleteFailed'))
     },
   })
 
@@ -83,6 +92,41 @@ export const useDeleteAgent = () => {
     isLoading: mutation.isPending,
     isError: mutation.isError,
     error: mutation.error,
+  }
+}
+
+export const useUpdateAgentTags = () => {
+  const { t } = useTranslation()
+  const queryClient = useQueryClient()
+  const mutation = useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
+    mutationFn: async ({
+      agentId,
+      tags,
+    }: {
+      agentId: string
+      tags: string[]
+    }) => {
+      const saved = await agentAPI.updateAgentTags(agentId, tags)
+      if (saved !== true)
+        throw new APIError(500, 'INVALID_RESPONSE', 'Tag update failed')
+      return saved
+    },
+    onSuccess: async (_, { agentId }) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: agentQueryKeys.lists() }),
+        queryClient.invalidateQueries({ queryKey: agentQueryKeys.tagCounts() }),
+        queryClient.invalidateQueries({
+          queryKey: agentQueryKeys.detail(agentId),
+        }),
+      ])
+      toast.success(t('agents.tagsSaved'))
+    },
+    onError: () => toast.error(t('agents.tagsSaveFailed')),
+  })
+  return {
+    updateAgentTags: mutation.mutateAsync,
+    isLoading: mutation.isPending,
   }
 }
 
@@ -130,6 +174,9 @@ export const useUpdateAgentSetting = () => {
             : current,
       )
       void queryClient.invalidateQueries({ queryKey: agentQueryKeys.lists() })
+      void queryClient.invalidateQueries({
+        queryKey: agentQueryKeys.tagCounts(),
+      })
       void queryClient.invalidateQueries({
         queryKey: agentQueryKeys.detail(variables.id),
       })
@@ -184,7 +231,7 @@ export const useUploadCanvasFile = () => {
   }
 }
 
-export const useUploadPublicCanvasFile = () => {
+export const useUploadPublicCanvasFile = (betaToken: string) => {
   const mutation = useMutation({
     mutationFn: async ({
       canvasId,
@@ -200,12 +247,13 @@ export const useUploadPublicCanvasFile = () => {
         return agentAPI.uploadPublicCanvasFileWithProgress(
           canvasId,
           file,
+          betaToken,
           onProgress,
           signal,
         )
       }
 
-      return agentAPI.uploadPublicFile(canvasId, file)
+      return agentAPI.uploadPublicFile(canvasId, file, betaToken)
     },
     onError: () => {
       toast.error('上传失败')

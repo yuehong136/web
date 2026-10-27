@@ -1,6 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { searchAPI } from '@/api/search'
+import { isAbortError } from '@/api/request-abort'
+import { MutationErrorFeedback } from '@/lib/mutation-error-feedback'
 import { normalizeMindmapTree, type MindmapTreeNode } from './utils'
 
 export interface SearchMindmapParams {
@@ -11,116 +13,106 @@ export interface SearchMindmapParams {
   isShareMode?: boolean
 }
 
-const clamp = (value: number, min: number, max: number) =>
-  Math.min(Math.max(value, min), max)
-
-export const useSearchMindmap = () => {
+/** A request has loading state, not an invented percentage or timer. */
+export function useSearchMindmap() {
   const [mindmap, setMindmap] = useState<MindmapTreeNode | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [progress, setProgress] = useState(0)
+  const [isLoading, setLoading] = useState(false)
   const [lastParams, setLastParams] = useState<SearchMindmapParams | null>(null)
-  const latestRequestKeyRef = useRef<string>('')
-
-  const mutation = useMutation({
-    mutationFn: async (params: SearchMindmapParams) => {
-      const payload = params.isShareMode
-        ? await searchAPI.mindmapShare({
-            question: params.question,
-            kb_ids: params.kbIds,
-            search_id: params.searchId,
-          })
-        : await searchAPI.mindmap({
-            question: params.question,
-            kb_ids: params.kbIds,
-            search_id: params.searchId,
-            doc_ids: params.docIds,
-          })
-      return normalizeMindmapTree(payload)
-    },
-    onSuccess: (data, params) => {
-      setMindmap(data)
-      setError(data ? null : '当前问题暂无可视化思维导图数据。')
-      setLastParams(params)
-      setProgress(100)
-      setTimeout(() => setProgress(0), 300)
-    },
-    onError: () => {
-      setError('思维导图生成失败，请重试。')
-      setProgress(0)
+  const controller = useRef<AbortController | null>(null)
+  const revision = useRef(0)
+  const previousKey = useRef<string | null>(null)
+  const { mutateAsync } = useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
+    mutationFn: async ({
+      params,
+      signal,
+    }: {
+      params: SearchMindmapParams
+      signal: AbortSignal
+    }) => {
+      const payload = {
+        question: params.question,
+        kb_ids: params.kbIds,
+        search_id: params.searchId,
+        doc_ids: params.docIds,
+        signal,
+      }
+      return normalizeMindmapTree(
+        params.isShareMode
+          ? await searchAPI.mindmapShare(payload)
+          : await searchAPI.mindmap(payload),
+      )
     },
   })
-
-  useEffect(() => {
-    if (!mutation.isPending) return
-    const timer = setInterval(() => {
-      setProgress((current) => {
-        if (current >= 92) return current
-        return clamp(current + 8, 12, 92)
-      })
-    }, 220)
-    return () => clearInterval(timer)
-  }, [mutation.isPending])
-
+  useEffect(
+    () => () => {
+      revision.current++
+      controller.current?.abort()
+    },
+    [],
+  )
   const request = useCallback(
     async (params: SearchMindmapParams, options?: { force?: boolean }) => {
-      const normalizedQuestion = params.question.trim()
-      if (!normalizedQuestion || !params.kbIds.length) {
-        setError('缺少问题或知识库，无法生成思维导图。')
-        setMindmap(null)
+      const normalized = { ...params, question: params.question.trim() }
+      if (!normalized.question || !params.kbIds.length) {
+        setError('searchPage.workspace.mapMissing')
         return
       }
-
-      const nextParams: SearchMindmapParams = {
-        ...params,
-        question: normalizedQuestion,
-      }
-      const requestKey = JSON.stringify(nextParams)
-      const shouldSkip =
-        !options?.force && latestRequestKeyRef.current === requestKey
-      if (shouldSkip) return
-
-      latestRequestKeyRef.current = requestKey
+      const key = JSON.stringify(normalized)
+      if (!options?.force && previousKey.current === key) return
+      controller.current?.abort()
+      const ownController = new AbortController()
+      controller.current = ownController
+      const ownRevision = ++revision.current
+      previousKey.current = key
+      setLastParams(normalized)
       setError(null)
-      setProgress(12)
-      await mutation.mutateAsync(nextParams)
+      setMindmap(null)
+      setLoading(true)
+      try {
+        const result = await mutateAsync({
+          params: normalized,
+          signal: ownController.signal,
+        })
+        if (ownRevision !== revision.current) return
+        setMindmap(result)
+        setError(result ? null : 'searchPage.workspace.mapEmpty')
+        if (!result) previousKey.current = null
+      } catch (failure) {
+        if (ownRevision !== revision.current || isAbortError(failure)) return
+        setError('searchPage.workspace.mapFailed')
+        previousKey.current = null
+      } finally {
+        if (ownRevision === revision.current) setLoading(false)
+      }
     },
-    [mutation],
+    [mutateAsync],
   )
-
   const refresh = useCallback(async () => {
-    if (!lastParams) return
-    await request(lastParams, { force: true })
+    if (lastParams) await request(lastParams, { force: true })
   }, [lastParams, request])
-
+  const cancel = useCallback(() => {
+    revision.current++
+    controller.current?.abort()
+    previousKey.current = null
+    setLoading(false)
+  }, [])
   const reset = useCallback(() => {
+    cancel()
     setMindmap(null)
     setError(null)
-    setProgress(0)
-    latestRequestKeyRef.current = ''
     setLastParams(null)
-  }, [])
-
-  return useMemo(
-    () => ({
-      mindmap,
-      error,
-      progress,
-      isLoading: mutation.isPending,
-      hasData: !!mindmap,
-      request,
-      refresh,
-      reset,
-      lastParams,
-    }),
-    [
-      error,
-      lastParams,
-      mindmap,
-      mutation.isPending,
-      progress,
-      refresh,
-      request,
-      reset,
-    ],
-  )
+  }, [cancel])
+  return {
+    mindmap,
+    error,
+    isLoading,
+    hasData: !!mindmap,
+    request,
+    refresh,
+    reset,
+    cancel,
+    lastParams,
+  }
 }

@@ -15,7 +15,8 @@ import { toast } from '@/lib/toast'
 import { Modal } from '@/components/ui/modal'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Switch } from '@/components/ui/switch'
-import { streamStructuredChat } from '@/components/chat/structured-chat-stream'
+import { useTranslation } from 'react-i18next'
+import { useStructuredAIFill } from './use-structured-ai-fill'
 import {
   createEmptyDataSourceForm,
   type DataSourceItem,
@@ -63,7 +64,7 @@ interface DataInputProps {
 }
 
 const DEFAULT_SYSTEM_PROMPT =
-  '你是一名严谨的表单填充助手。请只输出 JSON，不要包含多余说明。输入给你占位符的 JSON 模板和用户补充信息，请根据语义补全缺失字段，保持键名不变，值为字符串或数组，必须返回有效 JSON。'
+  '你是一名严谨的表单填充助手。请只输出 JSON，不要包含多余说明。输入给你占位符的 JSON 模板和用户补充信息，请根据语义补全缺失字段，保持键名不变，值为字符串，必须返回有效 JSON。'
 
 const DataInput: React.FC<DataInputProps> = ({
   placeholders,
@@ -85,7 +86,8 @@ const DataInput: React.FC<DataInputProps> = ({
     enabled: settingsOpen,
   })
   const mcpServers = serverData?.mcp_servers ?? []
-  const [aiFilling, setAiFilling] = useState(false)
+  const { t } = useTranslation()
+  const { aiFilling, aiRawOutput, fill } = useStructuredAIFill(setIsLoading)
   const { myLLMs } = useFetchMyLLMs()
   const [llmConfig, setLlmConfig] = useState({
     llm_name: '',
@@ -106,7 +108,6 @@ const DataInput: React.FC<DataInputProps> = ({
   )
   const [searchKey, setSearchKey] = useState('')
   const [showOnlyEmpty, setShowOnlyEmpty] = useState(false)
-  const [aiRawOutput, setAiRawOutput] = useState('')
   const [showAiRaw, setShowAiRaw] = useState(false)
 
   // 用户输入模式相关（状态留在本组件：设置弹窗关闭卸载子树时不丢数据）
@@ -162,23 +163,6 @@ const DataInput: React.FC<DataInputProps> = ({
     ].join('\n')
   }
 
-  const extractJsonFromText = (text: string) => {
-    if (!text) return null
-    const candidates: string[] = []
-    const cleaned = text.replace(/```json|```/gi, '').trim()
-    const braceMatch = text.match(/\{[\s\S]*\}/)
-    if (braceMatch) candidates.push(braceMatch[0])
-    candidates.push(cleaned, text.trim())
-    for (const candidate of candidates) {
-      try {
-        return JSON.parse(candidate)
-      } catch {
-        continue
-      }
-    }
-    return null
-  }
-
   const handleAIFill = async () => {
     if (placeholderKeys.length === 0) {
       toast.error('暂无占位符可填充')
@@ -220,37 +204,11 @@ const DataInput: React.FC<DataInputProps> = ({
       delta_stream: true,
     }
 
-    let latestText = ''
-    setAiFilling(true)
-    setIsLoading(true)
-    setAiRawOutput('')
-    try {
-      const apiBase =
-        import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
-      // 错误（含 HTTP 失败）直接传播到下面的 catch——等价于原 onError 的 throw
-      await streamStructuredChat({
-        url: `${apiBase}/v1/llm/enhanced_chat_sse`,
-        requestBody,
-        onMessage: (_message, state) => {
-          latestText = state.accumulatedText
-        },
-      })
-      setAiRawOutput(latestText)
-      const parsed = extractJsonFromText(latestText)
-      if (!parsed) {
-        toast.error('AI 返回内容未能解析为 JSON，请调整提示词或输入')
-        return
-      }
-      setFormData(parsed)
-      setJsonInput(JSON.stringify(parsed, null, 2))
-      toast.success('AI 填写完成')
-    } catch (error) {
-      console.error(error)
-      toast.error('AI 填写失败，请重试')
-    } finally {
-      setAiFilling(false)
-      setIsLoading(false)
-    }
+    const parsed = await fill(requestBody)
+    if (!parsed) return
+    setFormData(parsed)
+    setJsonInput(JSON.stringify(parsed, null, 2))
+    toast.success(t('chat.stream.aiFillComplete'))
   }
 
   const copyJson = () =>

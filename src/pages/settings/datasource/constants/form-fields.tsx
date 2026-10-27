@@ -12,6 +12,7 @@ import {
 import { getMySQLFormFields, getPostgreSQLFormFields } from './rdbms'
 import { getJiraFormFields } from '@/pages/settings/datasource/constants/jira'
 import { getDeletionSyncFields } from '@/pages/settings/datasource/constants/sync-settings'
+import { getRestApiFormFields } from './rest-api'
 
 /**
  * 基础表单字段（所有数据源共用）
@@ -51,6 +52,7 @@ export const getBaseFormFields = (
 const getSourceFormFields = (
   t: (key: string) => string,
 ): Record<DataSourceKey, FormFieldConfig[]> => ({
+  [DataSourceKey.REST_API]: getRestApiFormFields(t),
   [DataSourceKey.DINGTALK_AI_TABLE]: getDingTalkFormFields(t),
   [DataSourceKey.SEAFILE]: getSeafileFormFields(t),
   [DataSourceKey.S3]: getS3FormFields(t),
@@ -234,14 +236,14 @@ const getSourceFormFields = (
       name: 'config.include_pull_requests',
       type: FormFieldType.Checkbox,
       required: false,
-      defaultValue: false,
+      defaultValue: true,
     },
     {
       label: 'Include Issues',
       name: 'config.include_issues',
       type: FormFieldType.Checkbox,
       required: false,
-      defaultValue: false,
+      defaultValue: true,
     },
   ],
   [DataSourceKey.GITLAB]: [

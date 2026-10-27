@@ -16,7 +16,6 @@ import { z } from 'zod'
 import {
   ComparisonOperator,
   DataOperationsOperatorOptions,
-  JsonSchemaDataType,
   Operations,
   initialDataOperationsValues,
 } from '../../constant'
@@ -92,7 +91,7 @@ function SimpleNameList({
             control={form.control}
             name={`${name}.${index}.name`}
             render={({ field: nameField }) => (
-              <FormItem className="flex-1 min-w-0">
+              <FormItem className="min-w-0 flex-1">
                 <FormControl>
                   <Input
                     {...nameField}
@@ -139,7 +138,7 @@ function KeyValueList({
             control={form.control}
             name={`${name}.${index}.${keyFieldName}`}
             render={({ field: keyField }) => (
-              <FormItem className="flex-1 min-w-0">
+              <FormItem className="min-w-0 flex-1">
                 <FormControl>
                   <Input
                     {...keyField}
@@ -154,7 +153,7 @@ function KeyValueList({
             control={form.control}
             name={`${name}.${index}.${valueFieldName}`}
             render={({ field: valueField }) => (
-              <FormItem className="flex-1 min-w-0">
+              <FormItem className="min-w-0 flex-1">
                 <FormControl>
                   <Input
                     {...valueField}
@@ -197,7 +196,7 @@ function FilterValuesList() {
             control={form.control}
             name={`filter_values.${index}.key`}
             render={({ field: keyField }) => (
-              <FormItem className="flex-1 min-w-0">
+              <FormItem className="min-w-0 flex-1">
                 <FormControl>
                   <Input
                     {...keyField}
@@ -212,7 +211,7 @@ function FilterValuesList() {
             control={form.control}
             name={`filter_values.${index}.operator`}
             render={({ field: operatorField }) => (
-              <FormItem className="flex-[0.8_1_0] min-w-0">
+              <FormItem className="min-w-0 flex-[0.8_1_0]">
                 <FormControl>
                   <SelectWithSearch
                     value={operatorField.value || ComparisonOperator.Equal}
@@ -227,7 +226,7 @@ function FilterValuesList() {
             control={form.control}
             name={`filter_values.${index}.value`}
             render={({ field: valueField }) => (
-              <FormItem className="flex-1 min-w-0">
+              <FormItem className="min-w-0 flex-1">
                 <FormControl>
                   <Input
                     {...valueField}
@@ -269,7 +268,6 @@ export const DataOperationsForm = memo(function DataOperationsForm({
           name="query"
           label={t('flow.query', 'Query')}
           tooltip={t('flow.queryTip', 'Select one or more object arrays')}
-          types={[JsonSchemaDataType.Array]}
         />
 
         <Separator />
@@ -310,7 +308,10 @@ export const DataOperationsForm = memo(function DataOperationsForm({
         {operation === Operations.AppendOrUpdate && (
           <KeyValueList
             name="updates"
-            label={t('flow.operationsOptions.appendOrUpdate', 'Append or update')}
+            label={t(
+              'flow.operationsOptions.appendOrUpdate',
+              'Append or update',
+            )}
             keyLabel={t('flow.key', 'Key')}
             valueLabel={t('flow.value', 'Value')}
           />

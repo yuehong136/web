@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import type { AppearancePreset } from '@/themes'
 import {
   getCategoricalIndex,
   getCategoricalPalette,
@@ -13,8 +14,9 @@ import {
 export function buildTypeColorMap(
   types: string[],
   theme: ThemeMode,
+  preset?: AppearancePreset,
 ): Record<string, string> {
-  const palette = getCategoricalPalette(theme)
+  const palette = getCategoricalPalette(theme, undefined, preset)
   const map: Record<string, string> = {}
   types.forEach((type) => {
     map[type] = palette[getCategoricalIndex(type)]

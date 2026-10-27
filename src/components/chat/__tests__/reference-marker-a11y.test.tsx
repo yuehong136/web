@@ -79,10 +79,16 @@ describe('ReferenceMarker accessibility', () => {
       'Citation 3: Unknown document',
     )
     await act(async () => trigger()!.click())
-    const actions = [...popover()!.querySelectorAll('button')].map((button) =>
-      button.textContent?.trim(),
+    // 原文入口是链接，复制与详情是按钮
+    const actions = [...popover()!.querySelectorAll('button, a')].map(
+      (element) =>
+        `${element.tagName.toLowerCase()}:${element.textContent?.trim()}`,
     )
-    expect(actions).toEqual(['Copy', 'Source', 'Details'])
+    expect(actions).toEqual([
+      'button:Copy',
+      'a:Open document',
+      'button:Details',
+    ])
   })
 
   it('opens a named popover and returns focus to the marker on Escape', async () => {

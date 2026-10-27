@@ -3,7 +3,11 @@ import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
-import { useFetchMCPServers, useFetchMCPTools } from '../use-mcp-request'
+import {
+  mcpQueryKeys,
+  useFetchMCPServers,
+  useFetchMCPTools,
+} from '../use-mcp-request'
 import { mcpAPI } from '@/api/mcp'
 vi.mock('@/api/mcp', () => ({
   mcpAPI: { listServers: vi.fn(), listTools: vi.fn() },
@@ -34,9 +38,12 @@ async function render(id = 'first', enabled = true) {
   )
 }
 async function deliver(update: () => void) {
-  await act(async () => {
-    update()
-    await new Promise((resolve) => setTimeout(resolve, 0))
+  await act(async () => update())
+}
+async function waitForView(assertion: () => void) {
+  await vi.waitFor(async () => {
+    await act(async () => undefined)
+    assertion()
   })
 }
 beforeEach(() => {
@@ -58,6 +65,7 @@ it('does not load a closed panel and shares cached server reads when opened', as
   vi.mocked(mcpAPI.listTools).mockResolvedValue({})
   await render('first', false)
   expect(mcpAPI.listServers).not.toHaveBeenCalled()
+  expect(mcpAPI.listTools).not.toHaveBeenCalled()
   await render()
   await render('second')
   expect(mcpAPI.listServers).toHaveBeenCalledTimes(1)
@@ -78,9 +86,24 @@ it('keeps a late response from an old server out of the current tool view', asyn
   )
   await render()
   await render('second')
+  await vi.waitFor(() => {
+    expect(mcpAPI.listTools).toHaveBeenCalledWith({
+      mcp_ids: ['second'],
+      timeout: 30000,
+    })
+  })
   await deliver(() => second({ second: [] }))
-  expect(container.textContent).toContain('"second"')
+  await waitForView(() => expect(container.textContent).toContain('"second"'))
   await deliver(() => first({ first: [] }))
-  expect(container.textContent).not.toContain('"first"')
-  expect(container.textContent).toContain('"second"')
+  await vi.waitFor(() => {
+    expect(
+      client.getQueriesData({
+        queryKey: mcpQueryKeys.toolsByServers(['first']),
+      })[0]?.[1],
+    ).toEqual({ first: [] })
+  })
+  await waitForView(() => {
+    expect(container.textContent).not.toContain('"first"')
+    expect(container.textContent).toContain('"second"')
+  })
 })

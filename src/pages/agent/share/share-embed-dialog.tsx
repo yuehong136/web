@@ -1,4 +1,7 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
+import { useForm, useWatch } from 'react-hook-form'
+import { WidgetCustomization } from './widget-customization'
+import { normalizeWidgetSettings, type WidgetSettings } from './widget-settings'
 import { useTranslation } from 'react-i18next'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -49,6 +52,9 @@ interface ShareEmbedDialogProps {
   releaseDefault?: boolean
   tokenLoading?: boolean
   tokenError?: boolean
+  initialWidgetSettings?: unknown
+  onSaveWidgetSettings?: (settings: WidgetSettings) => Promise<void>
+  savingWidgetSettings?: boolean
   onRefreshToken: () => void
 }
 
@@ -62,15 +68,50 @@ export function ShareEmbedDialog({
   tokenLoading,
   tokenError,
   onRefreshToken,
+  initialWidgetSettings,
+  onSaveWidgetSettings,
+  savingWidgetSettings,
 }: ShareEmbedDialogProps) {
   const { t } = useTranslation()
-  const [release, setRelease] = useState(Boolean(releaseDefault))
-  const [visibleAvatar, setVisibleAvatar] = useState(true)
-  const [locale, setLocale] = useState(getCurrentLanguage())
-  const [theme, setTheme] = useState('light')
-  const [userId, setUserId] = useState('')
-  const [embedType, setEmbedType] = useState<AgentEmbedType>('fullscreen')
-  const [streaming, setStreaming] = useState(false)
+  const form = useForm<WidgetSettings>({
+    defaultValues: normalizeWidgetSettings({
+      published: Boolean(releaseDefault),
+      locale: getCurrentLanguage(),
+      ...(initialWidgetSettings && typeof initialWidgetSettings === 'object'
+        ? initialWidgetSettings
+        : {}),
+    }),
+  })
+  const settings = useWatch({ control: form.control }) as WidgetSettings
+  const {
+    published: release,
+    visibleAvatar,
+    locale,
+    theme,
+    userId,
+    embedType,
+    enableStreaming: streaming,
+  } = settings
+  const setRelease = (value: boolean) => form.setValue('published', value)
+  const setVisibleAvatar = (value: boolean) =>
+    form.setValue('visibleAvatar', value)
+  const setLocale = (value: string) => form.setValue('locale', value)
+  const setTheme = (value: string) =>
+    form.setValue('theme', value as WidgetSettings['theme'])
+  const setUserId = (value: string) => form.setValue('userId', value)
+  const setEmbedType = (value: AgentEmbedType) =>
+    form.setValue('embedType', value)
+  const setStreaming = (value: boolean) =>
+    form.setValue('enableStreaming', value)
+  const saveSettings = async () => {
+    if (!onSaveWidgetSettings) return
+    try {
+      await onSaveWidgetSettings(normalizeWidgetSettings(form.getValues()))
+      toast.success(t('agent.shareEmbed.settingsSaved'))
+    } catch {
+      toast.error(t('agent.shareEmbed.settingsSaveFailed'))
+    }
+  }
 
   const shareOptions = useMemo(
     () => ({
@@ -82,6 +123,7 @@ export function ShareEmbedDialog({
       theme,
       userId: userId.trim() || undefined,
       streaming,
+      widgetSettings: settings,
     }),
     [
       agentId,
@@ -92,6 +134,7 @@ export function ShareEmbedDialog({
       theme,
       userId,
       visibleAvatar,
+      settings,
     ],
   )
 
@@ -187,7 +230,11 @@ export function ShareEmbedDialog({
                       </h3>
                     </div>
                     <Badge variant={betaToken ? 'secondary' : 'warning'}>
-                      {betaToken ? 'Beta Token' : '缺少 Beta'}
+                      {t(
+                        betaToken
+                          ? 'agent.shareEmbed.tokenReady'
+                          : 'agent.shareEmbed.tokenMissing',
+                      )}
                     </Badge>
                   </div>
 
@@ -208,7 +255,7 @@ export function ShareEmbedDialog({
                 </div>
 
                 {!betaToken ? (
-                  <div className="rounded-radius-md border border-status-warning-border bg-status-warning-subtle p-space-sm text-sm text-text-secondary">
+                  <div className="rounded-radius-md border border-status-warning bg-surface-secondary p-space-sm text-sm text-text-secondary">
                     {tokenError
                       ? t(
                           'agent.shareEmbed.tokenReadFailed',
@@ -291,6 +338,25 @@ export function ShareEmbedDialog({
                   ) : null}
                 </div>
 
+                {embedType === 'widget' && (
+                  <WidgetCustomization
+                    settings={settings}
+                    onChange={form.setValue}
+                  />
+                )}
+                {onSaveWidgetSettings && (
+                  <Button
+                    onClick={() => void saveSettings()}
+                    disabled={savingWidgetSettings}
+                  >
+                    {t(
+                      savingWidgetSettings
+                        ? 'common.loading'
+                        : 'agent.shareEmbed.saveSettings',
+                    )}
+                  </Button>
+                )}
+
                 <div className="space-y-space-md border-t border-border-subtle pt-space-lg">
                   <p className="text-sm font-medium text-text-secondary">
                     {t('agent.shareEmbed.displayConfig', '展示配置')}
@@ -319,12 +385,16 @@ export function ShareEmbedDialog({
                     <div className="space-y-space-sm">
                       <Label>{t('layout.sidebar.theme', '主题')}</Label>
                       <Select value={theme} onValueChange={setTheme}>
-                        <SelectTrigger disabled={embedType === 'widget'}>
+                        <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="light">Light</SelectItem>
-                          <SelectItem value="dark">Dark</SelectItem>
+                          <SelectItem value="light">
+                            {t('agent.shareEmbed.light')}
+                          </SelectItem>
+                          <SelectItem value="dark">
+                            {t('agent.shareEmbed.dark')}
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -381,7 +451,7 @@ export function ShareEmbedDialog({
                 <div className="flex items-center justify-between gap-space-md">
                   <div>
                     <p className="text-sm font-medium text-text-secondary">
-                      Output
+                      {t('agent.shareEmbed.outputTitle')}
                     </p>
                     <h3 className="mt-space-xs text-lg font-semibold text-text-primary">
                       {t('agent.shareEmbed.outputTitle', '生成结果')}

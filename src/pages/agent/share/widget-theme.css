@@ -1,0 +1,54 @@
+.agent-widget-theme {
+  --color-background-body: var(--widget-background);
+  --color-background-surface: var(--widget-background);
+  --color-background-subtle: var(--widget-background);
+  --color-surface-primary: var(--widget-background);
+  --color-surface-secondary: var(--widget-background);
+  --color-components-input-bg: var(--widget-background);
+  --color-components-input-text: var(--widget-text);
+  --color-components-input-text-placeholder: color-mix(
+    in srgb,
+    var(--widget-text),
+    transparent 25%
+  );
+  --color-text-primary: var(--widget-text);
+  --color-text-secondary: var(--widget-text);
+  --color-text-tertiary: var(--widget-text);
+  --color-components-button-ghost-text: var(--widget-text);
+  --color-components-button-secondary-text: var(--widget-text);
+  --color-text-accent: var(--widget-accent);
+  --color-components-button-primary-bg: var(--widget-accent);
+  --color-components-button-primary-bg-hover: color-mix(
+    in srgb,
+    var(--widget-accent),
+    black 12%
+  );
+}
+
+.agent-widget-theme .widget-launcher,
+.agent-widget-theme .widget-footer {
+  background: var(--widget-accent);
+}
+
+.agent-widget-theme .widget-launcher,
+.agent-widget-theme .widget-close,
+.agent-widget-theme .widget-header,
+.agent-widget-theme .widget-header p {
+  color: var(--widget-header-text);
+}
+
+.agent-widget-theme .widget-header {
+  background: linear-gradient(
+    to right,
+    var(--widget-accent),
+    color-mix(in srgb, var(--widget-accent), black 12%)
+  );
+}
+
+.agent-widget-theme .widget-footer {
+  color: var(--widget-footer-text);
+}
+
+.agent-widget-theme .widget-footer a {
+  color: inherit;
+}

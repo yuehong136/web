@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { Activity, CalendarClock, FileCheck2, Info } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { SectionCard } from '@/components/patterns'
@@ -17,23 +18,31 @@ interface SyncOverviewProps {
 function getEstimatedNextSync(
   logs: IDataSourceLog[],
   refreshFreq?: number,
-): string | null {
-  if (!refreshFreq) return null
+): number | null {
+  if (refreshFreq == null) return null
 
   const scheduled = logs.find(
-    (log) => log.status === DataSourceStatus.SCHEDULED,
+    (log) =>
+      log.task_type !== 'prune' && log.status === DataSourceStatus.SCHEDULED,
   )
   if (!scheduled?.update_date) return null
 
   const scheduledAt = new Date(scheduled.update_date).getTime()
   if (Number.isNaN(scheduledAt)) return null
-  return formatDate(scheduledAt + refreshFreq * 60_000)
+  const next = scheduledAt + refreshFreq * 60_000
+  return next
 }
 
 export function SyncOverview({ status, logs, refreshFreq }: SyncOverviewProps) {
   const { t } = useTranslation()
+  const [now, setNow] = useState(Date.now)
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 5_000)
+    return () => window.clearInterval(timer)
+  }, [])
   const latestCompleted = logs.find(
-    (log) => log.status === DataSourceStatus.COMPLETED,
+    (log) =>
+      log.task_type !== 'prune' && log.status === DataSourceStatus.COMPLETED,
   )
   const estimatedNextSync = getEstimatedNextSync(logs, refreshFreq)
 
@@ -43,8 +52,8 @@ export function SyncOverview({ status, logs, refreshFreq }: SyncOverviewProps) {
       actions={<DataSourceStatusBadge status={status} />}
       className="h-fit"
     >
-      <div className="gap-space-lg flex flex-col">
-        <div className="gap-space-base grid sm:grid-cols-2 xl:grid-cols-1">
+      <div className="flex flex-col gap-space-lg">
+        <div className="grid gap-space-base sm:grid-cols-2 xl:grid-cols-1">
           <OverviewItem
             icon={<Activity className="size-icon-md" aria-hidden="true" />}
             label={t('datasource.currentState')}
@@ -70,7 +79,13 @@ export function SyncOverview({ status, logs, refreshFreq }: SyncOverviewProps) {
           <OverviewItem
             icon={<CalendarClock className="size-icon-md" aria-hidden="true" />}
             label={t('datasource.nextEstimatedSync')}
-            value={estimatedNextSync || t('datasource.waitingForSchedule')}
+            value={
+              estimatedNextSync == null
+                ? t('datasource.waitingForSchedule')
+                : estimatedNextSync <= now
+                  ? t('datasource.readyToRun')
+                  : formatDate(estimatedNextSync)
+            }
             detail={
               refreshFreq
                 ? t('datasource.syncEveryMinutes', { count: refreshFreq })
@@ -79,7 +94,7 @@ export function SyncOverview({ status, logs, refreshFreq }: SyncOverviewProps) {
           />
         </div>
 
-        <div className="gap-space-sm rounded-radius-lg p-space-base flex items-start bg-status-info-subtle text-status-info">
+        <div className="flex items-start gap-space-sm rounded-radius-lg bg-status-info-subtle p-space-base text-status-info">
           <Info
             className="mt-space-xs size-icon-sm shrink-0"
             aria-hidden="true"
@@ -105,13 +120,13 @@ function OverviewItem({
   detail?: string
 }) {
   return (
-    <div className="gap-space-base flex items-start">
-      <div className="rounded-radius-lg flex h-10 w-10 shrink-0 items-center justify-center bg-background-subtle text-text-secondary">
+    <div className="flex items-start gap-space-base">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-radius-lg bg-background-subtle text-text-secondary">
         {icon}
       </div>
       <div className="min-w-0">
         <p className="text-sm text-text-secondary">{label}</p>
-        <p className="mt-space-xs break-words text-sm font-medium text-text-primary">
+        <p className="mt-space-xs text-sm font-medium break-words text-text-primary">
           {value}
         </p>
         {detail ? (

@@ -3,6 +3,19 @@ export default {
     title: '设置',
     description: '统一管理工作空间配置、团队能力和开发者接入能力。',
     models: {
+      volcEngine: { modelId: '模型 ID', modelIdRequired: '请输入模型 ID。' },
+      localModel: {
+        addTitle: '添加 {{provider}} 模型',
+        editTitle: '编辑 {{provider}} 模型',
+        description: '配置模型服务地址与能力。',
+        type: '模型类型',
+        name: '模型名称',
+        keyHint: '可选；模型服务需要认证时填写。',
+        editKeyHint: '编辑时留空保留已保存的密钥。',
+        vision: '启用视觉能力',
+        tools: '启用工具调用',
+        toolsHint: '模型支持工具调用时，发送原生工具调用请求。',
+      },
       available: '可选模型提供商',
       configured: '已配置的模型提供商',
       defaults: '默认模型',
@@ -34,6 +47,42 @@ export default {
         documentation: '服务文档',
         validate: '校验配置',
         saving: '保存中…',
+      },
+
+      defaultsLoadFailed: '暂时无法加载默认模型，请重试。',
+      defaultsUnavailable: '已配置模型（当前不可用）',
+      defaultsSaved: '默认模型已保存。',
+      defaultsSaveFailed: '默认模型保存失败，已保留你的选择，请重试。',
+      defaultsSelect: '选择模型',
+      defaultsEmpty: '暂无可用模型，请先添加模型供应商。',
+      defaultsModelsFailed: '暂时无法加载可用模型，当前设置已保留。',
+      defaultsUnsaved: '有尚未保存的选择',
+      defaultsSavedHint: '保存后应用你的更改。',
+      defaultFields: {
+        chat: {
+          label: '聊天模型',
+          hint: '新建知识库使用的默认聊天模型。',
+        },
+        embedding: {
+          label: '嵌入模型',
+          hint: '新建知识库使用的默认嵌入模型。如果没有可选项，请添加提供嵌入模型的供应商。',
+        },
+        vision: {
+          label: '视觉模型',
+          hint: '新建知识库中描述图片或视频的默认模型，请选择支持图像转文本的供应商。',
+        },
+        speech: {
+          label: '语音识别',
+          hint: '新建知识库中将语音转为文本的默认模型，请选择支持语音识别的供应商。',
+        },
+        rerank: {
+          label: '重排序模型',
+          hint: '为检索结果排序的默认模型，请选择支持重排序的供应商。',
+        },
+        tts: {
+          label: '语音生成',
+          hint: '生成语音回复时使用的默认模型，请选择支持文本转语音的供应商。',
+        },
       },
     },
     groups: {

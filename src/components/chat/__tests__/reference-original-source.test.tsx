@@ -28,8 +28,8 @@ const webChunk: ReferenceChunk = {
 let root: Root
 let container: HTMLDivElement
 
-const button = (scope: ParentNode, text: string) =>
-  [...scope.querySelectorAll<HTMLButtonElement>('button')].find(
+const link = (scope: ParentNode, text: string) =>
+  [...scope.querySelectorAll<HTMLAnchorElement>('a')].find(
     (element) => element.textContent?.trim() === text,
   )
 
@@ -108,54 +108,63 @@ describe('getOriginalSource', () => {
   })
 })
 
-describe('original source actions', () => {
-  it('opens knowledge base documents in the preview from the popover and the sheet', async () => {
-    const open = vi.spyOn(window, 'open').mockReturnValue(null)
+describe('original source links', () => {
+  // 原文入口是新标签页链接（不带 opener 与 referrer），不再用 window.open
+  it('links knowledge base documents to the preview from the popover and the sheet', async () => {
     const preview = '/document/doc%201%2F2/preview?name=harness.pdf'
 
     const popover = await openPopover(documentChunk)
-    const source = button(popover, '原文')!
-    expect(source.title).toBe('在新标签页中打开完整文档')
-    await act(async () => source.click())
-    expect(open).toHaveBeenLastCalledWith(preview, '_blank')
+    const source = link(popover, '查看原文')!
+    expect(source.getAttribute('href')).toBe(preview)
+    expect(source.title).toBe('在新标签页中查看完整文档')
+    expect(source.target).toBe('_blank')
+    expect(source.rel).toBe('noopener noreferrer')
 
     const sheet = await openSheet(documentChunk)
-    await act(async () => button(sheet, '查看原文')!.click())
-    expect(open).toHaveBeenLastCalledWith(preview, '_blank')
+    const view = link(sheet, '查看原文')!
+    expect(view.getAttribute('href')).toBe(preview)
+    expect(view.target).toBe('_blank')
+    expect(view.rel).toBe('noopener noreferrer')
+    expect(sheet.textContent).not.toContain('暂无可查看的原始来源')
   })
 
-  it('opens web results at their page without opener or referrer', async () => {
-    const open = vi.spyOn(window, 'open').mockReturnValue(null)
+  it('links web results to their page without opener or referrer', async () => {
     const page = 'https://arxiv.org/abs/2606.14249'
 
     const popover = await openPopover(webChunk)
-    const source = button(popover, '原文')!
+    const source = link(popover, '查看网页')!
+    expect(source.getAttribute('href')).toBe(page)
     expect(source.title).toBe('在新标签页中打开来源网页')
-    await act(async () => source.click())
-    expect(open).toHaveBeenLastCalledWith(page, '_blank', 'noopener,noreferrer')
+    expect(source.target).toBe('_blank')
+    expect(source.rel).toBe('noopener noreferrer')
 
     const sheet = await openSheet(webChunk)
-    const view = button(sheet, '查看原文')!
+    const view = link(sheet, '查看网页')!
+    expect(view.getAttribute('href')).toBe(page)
     expect(view.title).toBe('在新标签页中打开来源网页')
-    await act(async () => view.click())
-    expect(open).toHaveBeenLastCalledWith(page, '_blank', 'noopener,noreferrer')
-    expect(open).not.toHaveBeenCalledWith(
-      expect.stringContaining('/document/'),
-      expect.anything(),
-    )
+    expect(view.getAttribute('aria-label')).toBe('在新标签页中打开来源网页')
+    expect(view.rel).toBe('noopener noreferrer')
+    for (const scope of [popover, sheet]) {
+      expect(
+        [...scope.querySelectorAll('a')].some((element) =>
+          element.getAttribute('href')?.includes('/document/'),
+        ),
+      ).toBe(false)
+    }
   })
 
-  it('shows no source action when there is nowhere safe to go', async () => {
+  it('shows no source link when there is nowhere safe to go', async () => {
     const unsafe = { ...webChunk, url: 'javascript:alert(1)' }
 
     const popover = await openPopover(unsafe)
     expect(
-      [...popover.querySelectorAll('button')].map((element) =>
+      [...popover.querySelectorAll('button, a')].map((element) =>
         element.textContent?.trim(),
       ),
     ).toEqual(['复制', '详情'])
 
     const sheet = await openSheet(unsafe)
-    expect(button(sheet, '查看原文')).toBeUndefined()
+    expect(sheet.querySelector('a')).toBeNull()
+    expect(sheet.textContent).toContain('暂无可查看的原始来源')
   })
 })

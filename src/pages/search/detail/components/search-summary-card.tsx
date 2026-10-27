@@ -1,4 +1,5 @@
 import { memo, useCallback, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   markdownConfig,
   mergeMarkdownComponents,
@@ -8,6 +9,7 @@ import { Sparkles } from 'lucide-react'
 import { ReferenceImageList } from '@/components/chat/ReferenceImageList'
 import { createReferenceMarkerComponent } from '@/components/chat/ReferenceMarker'
 import { ReferencePanel } from '@/components/chat/ReferencePanel'
+import { RetrievalProgress } from '@/components/chat/retrieval-progress'
 import { ThinkWrapper } from '@/components/chat/ThinkWrapper'
 import { copyToClipboard } from '@/lib/utils'
 import { toast } from '@/lib/toast'
@@ -20,6 +22,7 @@ interface SearchSummaryCardProps {
   summary: string
   thinking?: string
   isStreaming: boolean
+  completed?: boolean
   references: ChunkResult[]
   onViewDetail: (chunk: ChunkResult, allChunks: ChunkResult[]) => void
 }
@@ -42,21 +45,25 @@ const toReferenceChunk = (chunk: ChunkResult): ReferenceChunk => ({
 const SearchSummaryCard = ({
   summary,
   thinking = '',
+  completed = false,
   isStreaming,
   references,
   onViewDetail,
 }: SearchSummaryCardProps) => {
+  const { t } = useTranslation()
   const referenceChunks = useMemo(
     () => references.map(toReferenceChunk),
     [references],
   )
   const parsedSummary = useMemo(() => extractThinkContent(summary), [summary])
   const thinkContent = thinking || parsedSummary.thinkContent
-  const displaySummary = thinking ? summary : parsedSummary.mainContent
+  const displaySummary = parsedSummary.mainContent
   const thinkingStatus: ThinkingStatus = thinkContent
-    ? isStreaming || parsedSummary.status === 'thinking'
+    ? isStreaming && (thinking || parsedSummary.status === 'thinking')
       ? 'thinking'
-      : 'complete'
+      : completed
+        ? 'complete'
+        : 'none'
     : 'none'
   const summaryWithSup = useMemo(
     () => convertReferencesToSup(displaySummary),
@@ -81,13 +88,13 @@ const SearchSummaryCard = ({
         onCopy: async (content) => {
           try {
             await copyToClipboard(content)
-            toast.success('已复制到剪贴板')
+            toast.success(t('sources.copied'))
           } catch {
-            toast.error('复制失败')
+            toast.error(t('sources.copyFailed'))
           }
         },
       }),
-    [handleViewReferenceDetail, referenceChunks],
+    [handleViewReferenceDetail, referenceChunks, t],
   )
   const markdownComponents = useMemo(
     () =>
@@ -97,26 +104,32 @@ const SearchSummaryCard = ({
     [referenceChunks.length, SupComponent],
   )
 
-  if (!displaySummary.trim() && !thinkContent && !isStreaming) return null
+  if (
+    !displaySummary.trim() &&
+    !thinkContent &&
+    parsedSummary.retrievalStatus === 'none' &&
+    !isStreaming
+  )
+    return null
 
   return (
-    <div className="overflow-hidden rounded-radius-xl border border-border-default bg-surface-primary">
-      <div className="h-1 bg-linear-to-r from-text-accent via-status-info to-status-success" />
+    <div
+      className="min-w-0 bg-background-surface"
+      aria-live="polite"
+      aria-busy={isStreaming}
+    >
       <div className="p-space-base">
         <div className="mb-space-sm flex items-center gap-space-xs">
           <Sparkles className="h-4 w-4 text-text-accent" />
           <span className="text-sm font-semibold text-text-accent">
-            AI 摘要
+            {t('searchPage.workspace.summary')}
           </span>
         </div>
 
         <div className="space-y-space-sm text-text-primary">
+          <RetrievalProgress result={parsedSummary} isStreaming={isStreaming} />
           {thinkContent ? (
-            <ThinkWrapper
-              status={thinkingStatus}
-              messageId="search-summary"
-              autoCollapseDelay={isStreaming ? 0 : 800}
-            >
+            <ThinkWrapper status={thinkingStatus} messageId="search-summary">
               <div className="text-sm leading-relaxed whitespace-pre-wrap text-text-secondary">
                 {thinkContent}
               </div>
@@ -210,7 +223,9 @@ const SearchSummaryCard = ({
                 <span className="mt-1 inline-block h-4 w-1.5 animate-pulse rounded-radius-sm bg-text-accent" />
               ) : null}
             </>
-          ) : !thinkContent && isStreaming ? (
+          ) : !thinkContent &&
+            parsedSummary.retrievalStatus === 'none' &&
+            isStreaming ? (
             <div className="space-y-space-xs">
               <div className="h-4 w-full animate-pulse rounded-radius-md bg-background-subtle" />
               <div className="h-4 w-4/5 animate-pulse rounded-radius-md bg-background-subtle" />

@@ -73,7 +73,7 @@ export const AddChunkModal = ({
             value={content}
             onChange={(event) => onContentChange(event.target.value)}
             placeholder={t('knowledge.chunks.modal.contentPlaceholder')}
-            className="h-40 rounded-md px-3 py-2"
+            className="h-40 max-h-[60vh] resize-y rounded-md px-3 py-2"
           />
         </div>
 

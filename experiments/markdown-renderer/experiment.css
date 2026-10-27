@@ -1,0 +1,27 @@
+@source '../../output/playwright/round2/renderer-scratch/node_modules/streamdown/dist/*.js';
+@source '../../output/playwright/round2/renderer-scratch/node_modules/@streamdown/*/dist/*.js';
+
+.renderer-experiment {
+  max-width: 60rem;
+  margin: 2rem auto;
+  padding: 1rem;
+}
+.renderer-experiment article {
+  min-height: 10rem;
+  padding: 1rem;
+  border: 1px solid var(--color-border-default);
+}
+.renderer-experiment table {
+  border-collapse: collapse;
+  width: 100%;
+}
+.renderer-experiment td,
+.renderer-experiment th {
+  padding: 0.25rem;
+  border: 1px solid var(--color-border-default);
+}
+.renderer-experiment > header {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 0;
+}

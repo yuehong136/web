@@ -7,10 +7,130 @@ import {
   validateJiraCredentials,
 } from '@/pages/settings/datasource/constants/form-values'
 import { deletionSyncSources } from '@/pages/settings/datasource/constants/sync-settings'
+import { parseRestApiObject } from '@/pages/settings/datasource/constants/rest-api-values'
 
 const t = (key: string) => key
 
 describe('connector configuration contracts', () => {
+  it('serializes REST form text as objects/lists and keeps unexposed settings and credentials', () => {
+    const config = {
+      url: 'https://api.example.test/resources',
+      method: 'POST',
+      auth_type: 'bearer',
+      auth_config: { token: 'stored-token', custom: 'keep' },
+      credentials: { custom_credential: 'keep' },
+      content_fields: ['title', 'body'],
+      metadata_fields: ['author.name'],
+      headers: { Accept: 'application/json' },
+      query_params: { status: 'published' },
+      request_body: { filter: { active: true }, limit: 10 },
+      pagination_config: { next_cursor_path: '$.next', custom: 'keep' },
+      field_default_values: { category: 'general' },
+      custom_option: 'keep',
+    }
+    const before = structuredClone(config)
+    const values = getDataSourceDefaultValues(DataSourceKey.REST_API, {
+      config,
+    })
+    expect(values.config?.content_fields).toBe('title,body')
+    expect(values.config?.request_body).toBe(
+      JSON.stringify(config.request_body, null, 2),
+    )
+    expect(values.config?.credentials).toMatchObject({
+      token: 'stored-token',
+      custom_credential: 'keep',
+    })
+    values.restApiSettings = 'advanced'
+    const prepared = prepareDataSourceValues(
+      DataSourceKey.REST_API,
+      values,
+      config,
+    )
+    expect(prepared).not.toHaveProperty('restApiSettings')
+    expect(prepared.config).toMatchObject(config)
+    expect(prepared.config?.credentials).toMatchObject({
+      token: 'stored-token',
+    })
+    expect(config).toEqual(before)
+  })
+
+  it('emits valid empty REST JSON defaults, key/value maps and zero/decimal values', () => {
+    const values = getDataSourceDefaultValues(DataSourceKey.REST_API)
+    Object.assign(values.config!, {
+      query_params: 'active=true\nkey=a=b\n# comment',
+      headers: '{"X-Example":"value"}',
+      content_fields: ' title, ,body ',
+      metadata_fields: '',
+      request_delay: 0,
+      pagination_config: {
+        start_page: 0,
+        start_offset: 0,
+        page_size: '',
+        limit: '',
+      },
+    })
+    const config = prepareDataSourceValues(
+      DataSourceKey.REST_API,
+      values,
+    ).config!
+    expect(config).toMatchObject({
+      request_body: {},
+      headers: { 'X-Example': 'value' },
+      query_params: { active: 'true', key: 'a=b' },
+      content_fields: ['title', 'body'],
+      metadata_fields: [],
+      request_delay: 0,
+      pagination_config: { start_page: 0, start_offset: 0 },
+    })
+    expect(config.pagination_config).not.toHaveProperty('page_size')
+    expect(config).not.toHaveProperty('sync_deleted_files')
+    for (const invalid of [
+      '[]',
+      'null',
+      '42',
+      '{"bad":',
+      'not a pair',
+      '"a=b"',
+    ]) {
+      expect(() => parseRestApiObject(invalid)).toThrow()
+      expect(() => parseRestApiObject(invalid, true)).toThrow()
+    }
+  })
+
+  it('registers REST authentication, pagination, JSONPath and advanced fields with strict local validation', () => {
+    const fields = getDataSourceFormFields(t)[DataSourceKey.REST_API]
+    const field = (name: string) =>
+      fields.find((item) => item.name === `config.${name}`)!
+    expect(field('auth_type').options?.map((item) => item.value)).toEqual([
+      'none',
+      'api_key_header',
+      'bearer',
+      'basic',
+    ])
+    expect(field('pagination_type').options?.map((item) => item.value)).toEqual(
+      ['none', 'page', 'offset', 'cursor'],
+    )
+    expect(field('credentials.token').showWhen).toEqual({
+      field: 'config.auth_type',
+      value: 'bearer',
+    })
+    expect(field('pagination_config.page_param').showWhen).toEqual([
+      { field: 'restApiSettings', value: 'advanced' },
+      { field: 'config.pagination_type', value: 'page' },
+    ])
+    expect(field('pagination_config.next_cursor_path')).toBeDefined()
+    expect(field('request_body').validate?.('[]')).toBe(
+      'datasource.restApi.objectRequired',
+    )
+    expect(field('request_body').validate?.('{"ok":true}')).toBe(true)
+    expect(field('request_delay').step).toBe(0.1)
+    for (const value of [0, 0.5, 60])
+      expect(field('request_delay').validate?.(value)).toBe(true)
+    for (const value of [-1, 61, Infinity, NaN])
+      expect(field('request_delay').validate?.(value)).not.toBe(true)
+    for (const value of [0, 1.5, 10001])
+      expect(field('max_pages').validate?.(value)).not.toBe(true)
+  })
   it('round-trips Gmail deletion sync while preserving unknown configuration and credentials', () => {
     const config = {
       sync_deleted_files: true,
@@ -67,8 +187,11 @@ describe('connector configuration contracts', () => {
       'google_drive',
       'imap',
       'jira',
+      'moodle',
+      'mysql',
       'notion',
       'oci_storage',
+      'postgresql',
       'r2',
       'rss',
       's3',

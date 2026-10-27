@@ -57,7 +57,7 @@ test('both retrieval consumers use one REST query with the complete dataset sele
     const data = await knowledgeAPI.retrievalTest.test({ kb_ids, ...controls })
     assert.deepEqual(data, result)
     assert.deepEqual(calls.at(-1)?.body, { ...controls, dataset_ids: kb_ids })
-    assert.equal(calls.at(-1)?.url.pathname, '/api/v1/datasets/a%2Fb/search')
+    assert.equal(calls.at(-1)?.url.pathname, '/api/v1/datasets/search')
   }
   assert.equal(calls.length, 2)
 })

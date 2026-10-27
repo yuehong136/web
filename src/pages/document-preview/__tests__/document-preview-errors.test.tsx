@@ -101,7 +101,7 @@ beforeEach(async () => {
   vi.stubGlobal(
     'fetch',
     vi.fn(async (input: RequestInfo | URL) =>
-      String(input).includes('action=download') ? download() : preview(),
+      /\/download(\?|$)/.test(String(input)) ? download() : preview(),
     ),
   )
   container = document.createElement('div')
@@ -159,6 +159,7 @@ describe('document preview failures', () => {
   })
 })
 
+// 下载走 REST 文件端点：失败用 HTTP 状态表达，200 的响应体一律是文件本身
 describe('document download failures', () => {
   const clickDownload = async () => {
     const button = container.querySelector<HTMLButtonElement>(
@@ -172,15 +173,19 @@ describe('document download failures', () => {
     [
       'a refused download',
       () =>
-        json({
-          retcode: 108,
-          retmsg: 'No download permission. Please contact your administrator.',
-        }),
+        json(
+          {
+            code: 403,
+            message:
+              'No download permission. Please contact your administrator.',
+          },
+          403,
+        ),
       '没有下载此文档的权限，请联系管理员。',
     ],
     [
       'a missing document',
-      failures.notFound,
+      () => json({ code: 404, message: 'Document not found!' }, 404),
       '文档不存在或已被删除，无法下载。',
     ],
     [

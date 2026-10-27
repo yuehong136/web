@@ -122,6 +122,9 @@ test('aborted and unknown failures follow their safe fallback contracts', async 
     error: new APIError(0, 'ABORTED', 'user cancelled'),
   })
   await executeFailure(notify, {
+    error: new DOMException('private cancellation reason', 'AbortError'),
+  })
+  await executeFailure(notify, {
     error: new Error('raw runtime failure'),
   })
 

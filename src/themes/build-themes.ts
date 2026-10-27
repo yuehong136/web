@@ -13,7 +13,8 @@
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath, pathToFileURL } from 'url'
-import { generateThemeFiles } from './theme-generator'
+import { generateThemeFiles, lightTokens, darkTokens } from './theme-generator'
+import { APPEARANCE_PRESETS } from './appearance'
 import { generateTailwindThemeFiles } from './tailwind-theme-generator'
 import { format, resolveConfig } from 'prettier'
 
@@ -33,9 +34,9 @@ async function main() {
 
     // 显示验证错误（如果有）
     if (errors.length > 0) {
-      console.warn('⚠️  设计令牌验证警告:')
+      console.error('❌ 设计令牌验证失败:')
       errors.forEach((error) => console.warn(`   - ${error}`))
-      console.warn('')
+      throw new Error('Appearance token generation failed validation')
     }
 
     // 写入文件
@@ -67,17 +68,10 @@ async function main() {
     // 统计信息
     const lightTokenCount = (light.match(/--color-/g) || []).length
     const darkTokenCount = (dark.match(/--color-/g) || []).length
-    // JS 产物每套令牌一行 `'key': '...'`，按 key 数统计应与 CSS 一致
-    const jsLightCount = (tokenValues.match(
-      /lightTokenValues[\s\S]*?darkTokenValues/,
-    ) ?? [''])[0]
-      .split('\n')
-      .filter((line) => /^\s+"/.test(line)).length
+    const jsLightCount =
+      Object.keys(lightTokens).length * APPEARANCE_PRESETS.length
     const jsDarkCount =
-      tokenValues
-        .split('darkTokenValues')[1]
-        ?.split('\n')
-        .filter((line) => /^\s+"/.test(line)).length ?? 0
+      Object.keys(darkTokens).length * APPEARANCE_PRESETS.length
 
     console.log('')
     console.log('📊 统计信息:')

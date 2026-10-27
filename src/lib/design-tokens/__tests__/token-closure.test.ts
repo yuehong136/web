@@ -102,10 +102,15 @@ test('Tailwind aliases only point at runtime tokens and channels', () => {
   assert.equal(problems.length, 0, report(problems))
 })
 
+// Embedded widgets apply the host's colors by re-pointing existing tokens inside
+// their own scope; they may not invent new token names.
+const SCOPED_OVERRIDES = /pages[\\/]agent[\\/]share[\\/]widget-theme\.css:/
+
 test('only the theme generator declares --color-* variables', () => {
-  const problems = scan(
-    /^\s*--color-([\w-]+)\s*:/gm,
-    (match, where) => `${where} declares --color-${match[1]}`,
+  const problems = scan(/^\s*--color-([\w-]+)\s*:/gm, (match, where) =>
+    SCOPED_OVERRIDES.test(where) && tokens.has(match[1])
+      ? undefined
+      : `${where} declares --color-${match[1]}`,
   )
   assert.equal(problems.length, 0, report(problems))
 })

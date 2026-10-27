@@ -2,23 +2,22 @@
  * Shiki 代码块样式。
  *
  * react-shiki 多主题输出：默认色（light）以内联样式写在 `.shiki` 上，
- * dark 主题的颜色写入 `--shiki-dark*` CSS 变量。这里通过项目的暗色选择器
- * （.dark / [data-theme="dark"]，与主题 CSS 的 dark variant 对齐）切换到 dark 变量，
- * 纯 CSS 实现、切换主题时无需重新高亮。
+ * dark 主题的颜色写入 `--shiki-dark*` CSS 变量。组件使用最近 appearance scope
+ * 的 data-code-mode 切换，避免根 dark 覆盖嵌套 light scope。
  */
 
 .code-block .shiki {
   margin: 0;
-  padding: 12px 14px;
+  padding: var(--space-base) var(--space-md);
   overflow-x: auto;
-  font-size: 13px;
-  line-height: 1.6;
+  font-size: var(--text-sm);
+  line-height: var(--reading-line-height, 1.65);
   background-color: transparent !important;
 }
 
 .code-block .shiki code {
   font-family: var(
-    --font-mono,
+    --font-code,
     ui-monospace,
     SFMono-Regular,
     Menlo,
@@ -28,10 +27,8 @@
   );
 }
 
-.dark .code-block .shiki,
-.dark .code-block .shiki span,
-[data-theme='dark'] .code-block .shiki,
-[data-theme='dark'] .code-block .shiki span {
+.code-block[data-code-mode='dark'] .shiki,
+.code-block[data-code-mode='dark'] .shiki span {
   color: var(--shiki-dark) !important;
   background-color: transparent !important;
   font-style: var(--shiki-dark-font-style) !important;

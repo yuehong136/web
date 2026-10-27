@@ -2,6 +2,7 @@ import { ingestDatasetDocuments } from './knowledge-document-ingest'
 import { changeDatasetDocumentStatus } from './knowledge-document-status'
 import type { Document, DocumentFilter, IDocumentInfoFilter } from '@/types/api'
 import { apiClient } from './client'
+import { downloadDocumentFile } from './document-files'
 import {
   parseDatasetDocuments,
   stopDatasetDocuments,
@@ -154,8 +155,7 @@ export const knowledgeDocumentAPI = {
   ingest: ingestDatasetDocuments,
   parse: parseDatasetDocuments,
   stop: stopDatasetDocuments,
-  download: (docId: string, filename?: string): Promise<void> =>
-    apiClient.download(`/v1/document/get/${docId}?action=download`, filename),
+  download: downloadDocumentFile,
   changeStatus: changeDatasetDocumentStatus,
   rename: (docId: string, name: string): Promise<Document> =>
     apiClient.post('/v1/document/rename', { doc_id: docId, name }),

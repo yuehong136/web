@@ -54,10 +54,10 @@ export function RuntimeChatPanel({
   const isCompact = density === 'compact'
 
   return (
-    <section className="bg-surface-primary flex h-full min-h-0 flex-1 flex-col">
+    <section className="flex h-full min-h-0 flex-1 flex-col bg-surface-primary">
       <div className="min-h-0 flex-1">
         {messages.length === 0 ? (
-          <div className="p-space-lg flex h-full min-h-[240px] items-center justify-center">
+          <div className="flex h-full min-h-[240px] items-center justify-center p-space-lg">
             <PageEmptyState
               scene={AppScene.WORKSPACE}
               compact={isCompact}
@@ -86,6 +86,7 @@ export function RuntimeChatPanel({
         <RuntimeChatComposer
           canvasId={canvasId}
           status={status}
+          disabled={Boolean(messages.at(-1)?.awaitingInputs?.length)}
           isTaskMode={isTaskMode}
           density={composerMode === 'compact' ? 'compact' : density}
           placeholder="输入测试消息..."

@@ -11,6 +11,7 @@ import type {
   AgentInputFormSchema,
   AgentListParams,
   AgentListResponse,
+  AgentTagCount,
   AgentSessionListParams,
   AgentSession,
   AgentSessionListResponse,
@@ -95,11 +96,27 @@ export const agentAPI = {
       query.canvas_category = resolveCanvasCategory(params.canvas_type)
     }
 
+    if (params.owner_ids?.length) query.owner_ids = params.owner_ids.join(',')
+    if (params.tags?.length) query.tags = params.tags.join(',')
+
     return apiClient.get<AgentListResponse>('/agents', {
       ...restBase,
       params: query,
     })
   },
+
+  listAgentTags: async (canvasCategory?: string) =>
+    apiClient.get<AgentTagCount[]>('/agents/tags', {
+      ...restBase,
+      params: canvasCategory ? { canvas_category: canvasCategory } : {},
+    }),
+
+  updateAgentTags: async (agentId: string, tags: string[]) =>
+    apiClient.put<boolean>(
+      `/agents/${encodeURIComponent(agentId)}/tags`,
+      { tags },
+      restBase,
+    ),
 
   fetchAgent: async (id: string) =>
     apiClient.get<AgentFlow>(`/agents/${encodeURIComponent(id)}`, restBase),
@@ -229,7 +246,11 @@ export const agentAPI = {
           restBase,
         ),
 
-  uploadPublicFile: async (canvasId: string, file: File | File[]) =>
+  uploadPublicFile: async (
+    canvasId: string,
+    file: File | File[],
+    betaToken: string,
+  ) =>
     Array.isArray(file)
       ? apiClient.uploadRepeated(
           `/agents/${encodeURIComponent(canvasId)}/upload`,
@@ -238,7 +259,8 @@ export const agentAPI = {
           undefined,
           {
             skipAuth: true,
-            baseURL: '/api',
+            baseURL: EXTERNAL_API_BASE_URL,
+            headers: { Authorization: `Bearer ${betaToken}` },
           },
         )
       : apiClient.upload(
@@ -247,7 +269,8 @@ export const agentAPI = {
           undefined,
           {
             skipAuth: true,
-            baseURL: '/api',
+            baseURL: EXTERNAL_API_BASE_URL,
+            headers: { Authorization: `Bearer ${betaToken}` },
           },
         ),
 
@@ -366,13 +389,14 @@ export const agentAPI = {
     options?: {
       skipAuth?: boolean
       baseURL?: string
+      authorization?: string
     },
   ) => {
     return new Promise<AgentCanvasUploadResult>((resolve, reject) => {
       const xhr = new XMLHttpRequest()
       const baseURL =
         options?.baseURL ??
-        import.meta.env.VITE_API_BASE_URL ??
+        import.meta.env?.VITE_API_BASE_URL ??
         'http://localhost:8000'
 
       xhr.open(
@@ -383,8 +407,10 @@ export const agentAPI = {
       const token = options?.skipAuth
         ? null
         : localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)
-      if (token) {
-        xhr.setRequestHeader('Authorization', `Bearer ${token}`)
+      const authorization =
+        options?.authorization ?? (token ? `Bearer ${token}` : null)
+      if (authorization) {
+        xhr.setRequestHeader('Authorization', authorization)
       }
 
       xhr.upload.onprogress = (event) => {
@@ -432,12 +458,14 @@ export const agentAPI = {
   uploadPublicCanvasFileWithProgress: async (
     canvasId: string,
     file: File,
+    betaToken: string,
     onProgress?: (progress: number) => void,
     signal?: AbortSignal,
   ) =>
     agentAPI.uploadCanvasFileWithProgress(canvasId, file, onProgress, signal, {
       skipAuth: true,
       baseURL: '',
+      authorization: `Bearer ${betaToken}`,
     }),
 
   testWebhook: async ({
@@ -516,12 +544,11 @@ export const agentAPI = {
       },
     ),
 
-  downloadFile: async (fileId: string, createdBy: string) =>
+  downloadFile: async (fileId: string) =>
     apiClient.get(`/agents/download`, {
       ...restBase,
       params: {
         id: fileId,
-        created_by: createdBy,
       },
     }),
 }

@@ -298,6 +298,105 @@ test('staging omits generated source maps', async (context) => {
   )
 })
 
+test('staging omits only the generated Vite manifest without changing staged content', async (context) => {
+  const fixture = await createFixture(context)
+  const options = { ...fixture, sourceRevision: null }
+  const baseline = await stageDesktopApp(options)
+  const metadataDirectory = path.join(fixture.rendererDirectory, '.vite')
+  await fs.mkdir(metadataDirectory)
+  await fs.writeFile(
+    path.join(metadataDirectory, 'manifest.json'),
+    '{"index.html":{"file":"js/app.js","isEntry":true}}\n',
+  )
+
+  const manifest = await stageDesktopApp(options)
+  assert.deepEqual(manifest, baseline)
+  await assert.rejects(
+    fs.stat(path.join(fixture.outputDirectory, 'renderer', '.vite')),
+    { code: 'ENOENT' },
+  )
+  assert.deepEqual(
+    await verifyStagedApplication(fixture.outputDirectory),
+    baseline,
+  )
+})
+
+test('staging rejects unexpected Vite metadata shapes and other hidden roots', async (context) => {
+  const cases = [
+    ['empty .vite', [], []],
+    ['extra file', ['manifest.json', 'private.json'], []],
+    ['extra hidden file', ['manifest.json', '.env'], []],
+    ['nested directory', ['manifest.json'], ['cache']],
+    ['manifest directory', [], ['manifest.json']],
+  ]
+  for (const [name, files, directories] of cases) {
+    await context.test(name, async (nestedContext) => {
+      const fixture = await createFixture(nestedContext)
+      const metadataDirectory = path.join(fixture.rendererDirectory, '.vite')
+      await fs.mkdir(metadataDirectory)
+      for (const file of files)
+        await fs.writeFile(path.join(metadataDirectory, file), '{}\n')
+      for (const directory of directories)
+        await fs.mkdir(path.join(metadataDirectory, directory))
+      await assert.rejects(
+        stageDesktopApp(fixture),
+        /renderer \.vite.*(?:only a regular manifest\.json|must be a regular file)/,
+      )
+    })
+  }
+  await context.test('.vite file', async (nestedContext) => {
+    const fixture = await createFixture(nestedContext)
+    await fs.writeFile(path.join(fixture.rendererDirectory, '.vite'), '{}\n')
+    await assert.rejects(
+      stageDesktopApp(fixture),
+      /unknown top-level file: \.vite/,
+    )
+  })
+  await context.test('other hidden directory', async (nestedContext) => {
+    const fixture = await createFixture(nestedContext)
+    await fs.mkdir(path.join(fixture.rendererDirectory, '.cache'))
+    await assert.rejects(
+      stageDesktopApp(fixture),
+      /unknown top-level directory: \.cache/,
+    )
+  })
+})
+
+test('staging rejects symlinked Vite metadata directories and manifests', async (context) => {
+  for (const target of ['directory', 'manifest']) {
+    await context.test(target, async (nestedContext) => {
+      const fixture = await createFixture(nestedContext)
+      const metadataDirectory = path.join(fixture.rendererDirectory, '.vite')
+      let linkTarget = path.join(fixture.rendererDirectory, 'assets')
+      let linkPath = metadataDirectory
+      if (target === 'manifest') {
+        await fs.mkdir(metadataDirectory)
+        linkTarget = path.join(fixture.rendererDirectory, 'openapi.json')
+        linkPath = path.join(metadataDirectory, 'manifest.json')
+      }
+      try {
+        await fs.symlink(
+          linkTarget,
+          linkPath,
+          target === 'directory' ? 'dir' : 'file',
+        )
+      } catch (error) {
+        if (error?.code === 'EPERM' || error?.code === 'EACCES') {
+          nestedContext.skip(
+            'symlink creation is not available in this environment',
+          )
+          return
+        }
+        throw error
+      }
+      await assert.rejects(
+        stageDesktopApp(fixture),
+        /contains a symbolic link|must be a regular file/,
+      )
+    })
+  }
+})
+
 test('staging rejects source files, env files, and credential files', async (context) => {
   const cases = [
     ['assets/widget.ts', 'export {}\n', /source or source-map content/],

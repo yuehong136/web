@@ -1,12 +1,5 @@
 import { useShareStartup } from './use-share-startup'
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type WheelEvent,
-} from 'react'
+import { useCallback, useMemo, useRef, useState, type WheelEvent } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Badge } from '@/components/ui/badge'
@@ -16,8 +9,10 @@ import {
   useUploadPublicCanvasFile,
 } from '@/hooks/use-agent-request'
 import { toast } from '@/lib/toast'
-import { applyRouteLocale } from '@/locales/i18n'
-import { ScopedTheme } from '@/themes'
+import { IsolatedLocaleBoundary } from '@/locales/locale-boundary'
+import { BOOTSTRAP_NAMESPACES } from '@/locales/locale-registry'
+import { WidgetTheme } from './widget-theme'
+import { useWidgetResponseSound } from './widget-sound'
 import type { AgentCanvasUploadResult } from '@/types/agent'
 import { AgentDialogueMode } from '../constant'
 import {
@@ -62,22 +57,31 @@ export default function AgentWidgetPage() {
 
   useTransparentDocument()
 
-  useEffect(() => {
-    applyRouteLocale(access.locale)
-  }, [access.locale])
-
   return (
-    <ScopedTheme theme={access.theme}>
-      {access.mode === 'master' && isStandalone ? (
-        <WidgetStandalonePreview>
-          <WidgetChatWindow access={access} shellVariant="panel" />
-        </WidgetStandalonePreview>
-      ) : access.mode === 'master' ? (
-        <WidgetLauncher />
-      ) : (
-        <WidgetChatWindow access={access} />
-      )}
-    </ScopedTheme>
+    <IsolatedLocaleBoundary
+      locale={access.locale}
+      namespaces={[
+        ...BOOTSTRAP_NAMESPACES,
+        'agent',
+        'chat',
+        'flow',
+        'knowledge',
+        'sources',
+        'reference',
+      ]}
+    >
+      <WidgetTheme theme={access.theme} settings={access.widgetSettings}>
+        {access.mode === 'master' && isStandalone ? (
+          <WidgetStandalonePreview muted={access.widgetSettings.muteWidget}>
+            <WidgetChatWindow access={access} shellVariant="panel" />
+          </WidgetStandalonePreview>
+        ) : access.mode === 'master' ? (
+          <WidgetLauncher muted={access.widgetSettings.muteWidget} />
+        ) : (
+          <WidgetChatWindow access={access} />
+        )}
+      </WidgetTheme>
+    </IsolatedLocaleBoundary>
   )
 }
 
@@ -101,7 +105,9 @@ function WidgetChatWindow({
     access.agentId,
     access.betaToken,
   )
-  const { uploadCanvasFile, isLoading: uploading } = useUploadPublicCanvasFile()
+  const { uploadCanvasFile, isLoading: uploading } = useUploadPublicCanvasFile(
+    access.betaToken,
+  )
   const attachmentInputRef = useRef<HTMLInputElement | null>(null)
 
   const [messageValue, setMessageValue] = useState('')
@@ -124,6 +130,11 @@ function WidgetChatWindow({
       buildShareInputsPayload(shareQuery.data.inputs || {}, values),
   })
   const status = runnerStatusFromState(runner.isRunning, runner.lastError)
+  useWidgetResponseSound(
+    runner.isRunning,
+    access.widgetSettings.muteWidget,
+    runner.messages.at(-1)?.role === 'assistant' && !runner.lastError,
+  )
   const {
     formValues,
     setFormValues,
@@ -335,6 +346,7 @@ function WidgetChatWindow({
       <WidgetShell
         title={t('agent.share.agentWidget', 'Agent Widget')}
         variant={shellVariant}
+        settings={access.widgetSettings}
       >
         <div className="p-space-lg text-sm text-status-error">
           {t(
@@ -352,6 +364,7 @@ function WidgetChatWindow({
         shareQuery.data.title || t('agent.share.agentWidget', 'Agent Widget')
       }
       variant={shellVariant}
+      settings={access.widgetSettings}
     >
       <div
         className="min-h-0 flex-1 overflow-auto"
@@ -410,6 +423,7 @@ function WidgetChatWindow({
           value={messageValue}
           files={messageFiles}
           isRunning={runner.isRunning}
+          disabled={Boolean(runner.messages.at(-1)?.awaitingInputs?.length)}
           uploading={uploading}
           hasParameters={inputEntries.length > 0}
           attachmentInputRef={attachmentInputRef}

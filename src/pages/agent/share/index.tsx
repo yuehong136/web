@@ -18,7 +18,7 @@ import {
 } from '@/hooks/use-agent-request'
 import { toast } from '@/lib/toast'
 import { copyToClipboard } from '@/lib/utils'
-import { applyRouteLocale } from '@/locales/i18n'
+import { useRouteLocale } from '@/locales/use-route-locale'
 import { ScopedTheme } from '@/themes'
 import { Copy, RotateCcw } from 'lucide-react'
 import {
@@ -69,7 +69,9 @@ export default function AgentSharePage() {
     access.agentId,
     access.betaToken,
   )
-  const { uploadCanvasFile, isLoading: uploading } = useUploadPublicCanvasFile()
+  const { uploadCanvasFile, isLoading: uploading } = useUploadPublicCanvasFile(
+    access.betaToken,
+  )
   const attachmentInputRef = useRef<HTMLInputElement | null>(null)
 
   const [messageValue, setMessageValue] = useState('')
@@ -115,9 +117,7 @@ export default function AgentSharePage() {
     startTaskMessage: t('agent.share.startTask', '启动任务'),
   })
 
-  useEffect(() => {
-    applyRouteLocale(access.locale)
-  }, [access.locale])
+  useRouteLocale(access.locale)
 
   useEffect(() => {
     if (!isTaskMode && shareQuery.data.prologue) {
@@ -438,7 +438,7 @@ export default function AgentSharePage() {
         <div className="flex h-full min-h-0 bg-components-workspace-bg px-space-md sm:px-space-lg">
           <div className="mx-auto flex min-h-0 w-full max-w-4xl flex-col">
             {runner.lastError ? (
-              <div className="mt-space-base w-full rounded-radius-md border border-status-error-border bg-status-error-subtle p-space-sm text-sm text-status-error">
+              <div className="mt-space-base w-full rounded-radius-md border border-status-error bg-surface-secondary p-space-sm text-sm text-status-error">
                 {runner.lastError}
               </div>
             ) : null}
@@ -487,6 +487,9 @@ export default function AgentSharePage() {
                 value={messageValue}
                 files={messageFiles}
                 isRunning={runner.isRunning}
+                disabled={Boolean(
+                  runner.messages.at(-1)?.awaitingInputs?.length,
+                )}
                 uploading={uploading}
                 hasParameters={inputEntries.length > 0}
                 attachmentInputRef={attachmentInputRef}

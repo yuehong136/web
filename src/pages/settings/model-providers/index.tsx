@@ -1,6 +1,10 @@
 import React, { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { type AddLlmParams, type ModelVerifyResult } from '@/stores/model'
+import {
+  type AddLlmParams,
+  type ModelVerifyResult,
+  type MyLLMModel,
+} from '@/stores/model'
 import {
   useFetchMyLLMs,
   useSetApiKey,
@@ -47,7 +51,7 @@ const SPECIAL_CONFIG_FACTORIES = [
 
 export const ModelProvidersPage: React.FC = () => {
   const { t } = useTranslation()
-  const { myLLMs, isLoading } = useFetchMyLLMs()
+  const { myLLMs, isLoading } = useFetchMyLLMs({ includeDetails: true })
   const { setApiKey } = useSetApiKey()
   const { addLLM } = useAddLLM()
   const { enableLlm } = useEnableLLM()
@@ -57,6 +61,7 @@ export const ModelProvidersPage: React.FC = () => {
     isOpen: boolean
     providerName: string
     isLocal?: boolean
+    initialValues?: MyLLMModel
   }>({
     isOpen: false,
     providerName: '',
@@ -73,6 +78,18 @@ export const ModelProvidersPage: React.FC = () => {
       isLocal,
     })
   }, [])
+
+  const handleEditModel = useCallback(
+    (model: MyLLMModel, providerName: string) => {
+      setApiKeyModal({
+        isOpen: true,
+        providerName,
+        isLocal: true,
+        initialValues: model,
+      })
+    },
+    [],
+  )
 
   // 处理保存 - 根据厂商类型调用不同的 API
   const handleSaveApiKey = async (
@@ -157,6 +174,8 @@ export const ModelProvidersPage: React.FC = () => {
 
           {/* 已添加的模型 */}
           <UsedModels
+            myLLMs={myLLMs}
+            handleEditModel={handleEditModel}
             handleAddModel={handleAddModel}
             handleDeleteFactory={handleDeleteFactory}
             handleEnableModel={handleEnableModel}
@@ -176,6 +195,7 @@ export const ModelProvidersPage: React.FC = () => {
         }
         providerName={apiKeyModal.providerName}
         isLocal={apiKeyModal.isLocal}
+        initialValues={apiKeyModal.initialValues}
         onSave={handleSaveApiKey}
         onVerify={handleVerifyApiKey}
       />

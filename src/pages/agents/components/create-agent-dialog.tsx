@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   Dialog,
@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { AgentCanvasType } from '@/types/agent'
 import { cn } from '@/lib/utils'
@@ -64,6 +65,8 @@ export function CreateAgentDialog({
   const [name, setName] = useState(defaultTitle)
   const [kind, setKind] = useState(initialKind)
   const [submitting, setSubmitting] = useState(false)
+  const [failed, setFailed] = useState(false)
+  const id = useId()
 
   const resetInputs = [defaultTitle, initialKind, open]
   const [previousInputs, setPreviousInputs] = useState<unknown[] | null>(null)
@@ -76,6 +79,7 @@ export function CreateAgentDialog({
     if (open) {
       setName(defaultTitle)
       setKind(initialKind)
+      setFailed(false)
     }
   }
 
@@ -86,17 +90,25 @@ export function CreateAgentDialog({
     }
 
     setSubmitting(true)
+    setFailed(false)
     try {
       await onConfirm({ title: nextName, kind })
       onOpenChange(false)
+    } catch {
+      setFailed(true)
     } finally {
       setSubmitting(false)
     }
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="lg">
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        if (!submitting) onOpenChange(next)
+      }}
+    >
+      <DialogContent size="lg" modal>
         <DialogHeader>
           <div className="mb-space-sm flex h-11 w-11 items-center justify-center rounded-radius-xl bg-components-studio-surface">
             <Sparkles className="h-5 w-5 text-text-accent" />
@@ -130,13 +142,14 @@ export function CreateAgentDialog({
                   const active = kind === item.value
 
                   return (
-                    <label
+                    <Label
                       key={item.value}
+                      htmlFor={`${id}-${item.value}`}
                       className={cn(
                         'flex cursor-pointer items-center gap-space-base rounded-radius-lg border bg-transparent p-space-md transition-colors focus-within:ring-1 focus-within:ring-state-focus focus-within:outline-hidden',
                         active
                           ? 'border-state-focus bg-state-focus-subtle text-text-primary shadow-elevation-low'
-                          : 'hover:bg-surface-secondary border-border-default text-text-secondary hover:border-border-strong',
+                          : 'border-border-default text-text-secondary hover:border-border-strong hover:bg-surface-secondary',
                       )}
                     >
                       <div
@@ -155,8 +168,12 @@ export function CreateAgentDialog({
                           {t(item.descriptionKey, item.description)}
                         </p>
                       </div>
-                      <RadioGroupItem value={item.value} className="shrink-0" />
-                    </label>
+                      <RadioGroupItem
+                        id={`${id}-${item.value}`}
+                        value={item.value}
+                        className="shrink-0"
+                      />
+                    </Label>
                   )
                 })}
               </RadioGroup>
@@ -164,15 +181,16 @@ export function CreateAgentDialog({
           ) : null}
 
           <div className="space-y-space-sm">
-            <label
-              htmlFor="agent-title"
+            <Label
+              htmlFor={`${id}-name`}
               className="text-sm font-medium text-text-primary"
             >
               {t('common.name', '名称')}
-            </label>
+            </Label>
             <Input
-              id="agent-title"
+              id={`${id}-name`}
               value={name}
+              disabled={submitting}
               onChange={(event) => setName(event.target.value)}
               placeholder={t(
                 'agent.center.namePlaceholder',
@@ -182,11 +200,26 @@ export function CreateAgentDialog({
           </div>
         </div>
 
+        {failed && (
+          <p role="alert" className="px-space-lg text-sm text-status-error">
+            {t('agents.createFailed')}
+          </p>
+        )}
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={submitting}
+          >
             {t('common.cancel', '取消')}
           </Button>
-          <Button onClick={handleConfirm} disabled={!name.trim() || submitting}>
+          <Button
+            onClick={() => {
+              void handleConfirm()
+            }}
+            disabled={!name.trim()}
+            loading={submitting}
+          >
             {submitting
               ? t('agent.center.creating', '创建中...')
               : t('agent.center.continue', '继续')}

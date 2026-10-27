@@ -1,3 +1,4 @@
+import { normalizeRaptorConfig } from '@/lib/knowledge/raptor-config'
 import { APIError } from '@/api/client'
 import type { DocumentParserPatch } from '@/api/knowledge-document-parser'
 import type { Document } from '@/types/api'
@@ -36,6 +37,8 @@ export function hydrateParserDraft(document: Document): ParserFormValues {
   const config = isRecord(document.parser_config)
     ? structuredClone(document.parser_config)
     : {}
+  if (isRecord(config.raptor))
+    config.raptor = normalizeRaptorConfig(config.raptor)
   const children = config.parent_child
   if (isRecord(children)) {
     if (Object.hasOwn(children, 'use_parent_child'))

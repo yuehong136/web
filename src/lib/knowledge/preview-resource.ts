@@ -1,4 +1,6 @@
-import { API_BASE_URL, API_VERSION, STORAGE_KEYS } from '@/constants'
+import { STORAGE_KEYS } from '@/constants'
+import { APIError } from '@/api/client-types'
+import { getDocumentFileUrl } from '@/api/document-files'
 import {
   categorizePreviewFailure,
   type PreviewErrorCategory,
@@ -101,14 +103,7 @@ export const getFileType = (filename?: string, docType?: string): FileType => {
   return 'unknown'
 }
 
-export const getDocumentUrl = (
-  docId: string,
-  action?: PreviewResourceAction,
-): string => {
-  const baseUrl = `${API_BASE_URL}/${API_VERSION}/document/get/${encodeURIComponent(docId)}`
-  if (!action) return baseUrl
-  return `${baseUrl}?action=${encodeURIComponent(action)}`
-}
+export const getDocumentUrl = getDocumentFileUrl
 
 export const buildAuthHeader = (): string | null => {
   try {
@@ -167,7 +162,6 @@ const createResponseError = async (
 
 export const assertPreviewResponse = async (
   response: Response,
-  { allowHtml = false }: { allowHtml?: boolean } = {},
 ): Promise<void> => {
   const contentType = response.headers.get('content-type') || ''
 
@@ -180,7 +174,7 @@ export const assertPreviewResponse = async (
   }
 
   // 可预览的文件都不是 HTML，拿到 HTML 说明登录页顶替了文件
-  if (!allowHtml && contentType.includes('text/html')) {
+  if (contentType.includes('text/html')) {
     throw new PreviewResourceErrorResult(
       'session-expired',
       'html-response',
@@ -194,20 +188,17 @@ export const assertNonEmptyBlob = (blob: Blob): void => {
   throw new PreviewResourceErrorResult('unsupported', 'empty-resource')
 }
 
-/** 捕获到的失败落到固定分类；网络中断与其他异常都算暂时不可用 */
+/**
+ * 捕获到的失败落到固定分类；网络中断与其他异常都算暂时不可用。
+ * 下载走 REST 文件端点，失败以 HTTP 状态表达，只按状态分类。
+ */
 export const getPreviewErrorCategory = (
   error: unknown,
-): PreviewErrorCategory =>
-  error instanceof PreviewResourceErrorResult ? error.category : 'unavailable'
-
-/**
- * 下载原文件，与预览共用鉴权和失败分类。
- * 原文件本身可以是 HTML，所以下载时不把 HTML 响应当作登录页。
- */
-export const fetchDocumentDownload = async (docId: string): Promise<Blob> => {
-  const response = await fetchPreviewResource(getDocumentUrl(docId, 'download'))
-  await assertPreviewResponse(response, { allowHtml: true })
-  return response.blob()
+): PreviewErrorCategory => {
+  if (error instanceof PreviewResourceErrorResult) return error.category
+  if (error instanceof APIError)
+    return categorizePreviewFailure({ status: error.status })
+  return 'unavailable'
 }
 
 export const readBlobAsText = (blob: Blob): Promise<string> => blob.text()

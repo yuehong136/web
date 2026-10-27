@@ -18,6 +18,27 @@
 
 交互色遵循浅绿／深紫的选中与焦点、浅黑／深蓝的主要操作两组配对，统一入口和语义边界见 [设计系统的交互色配对](./design-system.md#明暗主题的交互色配对)。
 
+## 外观维度与局部预览
+
+外观偏好由 `@/themes` 的 `setAppearance`、`getAppearance`、`useAppearance` 管理：
+`preset`（studio / paper / graphite / ocean）、`mode`（system / light / dark）、
+`density`（comfortable / compact）、`textScale`（1 / 1.125 / 1.25）、`motion`（system / reduced）独立更新。
+核心以 `appearance` 作为完整偏好的持久化来源；`theme` 保留模式镜像以兼容旧入口，旧 `ui-storage.state.theme` 仅用于首次迁移。
+`useResolvedAppearance` 额外给出 `resolvedMode` 与 `reducedMotion`，快照引用在值未变化时保持稳定。
+主题和字号切换不得给应用根节点加 `key` 或重挂 Provider。
+
+`preset-palettes.ts` 定义角色调色板，`preset-tokens.ts` 将历史 token key 映射到角色，
+`npm run build:themes` 同步生成四套明暗 CSS 与 typed JavaScript token。
+CSS 间距读 `--space-*`；控件读 `--control-height-sm` / `--control-height` / `--control-height-lg`
+和 `--control-padding-x-sm` / `--control-padding-x` / `--control-padding-x-lg`；
+文字缩放由 `--text-scale` 与 Tailwind typography token 消费，组件不要重复乘缩放系数。
+
+`ScopedTheme` 可覆盖 `theme`、`preset`、`density`、`textScale`、`motion`，未覆盖项继承父 scope。
+`useThemeScope()` 提供实际 `container` 与解析后的 `appearance`；Portal 挂到该容器保留局部变量。
+静态图表取色支持显式 preset：`getTokenValue(name, resolvedMode, preset)`、
+`getCategoricalPalette(resolvedMode, count, preset)`；省略 preset 读取全局当前偏好。
+图表若缓存取色结果，须把 preset 和 resolvedMode 都列为依赖。
+
 ## 📚 设计令牌分类
 
 ### 基础令牌 (Foundation Tokens)
@@ -100,12 +121,12 @@ import {
   getCategoricalIndex, // 分类 key → 确定性槽位（多处着色一致）
   getTokenValue, // 按主题取任意 token 值（name 受 keyof DesignTokens 约束）
 } from '@/lib/design-tokens'
-import { useIsDarkTheme } from '@/themes'
+import { useResolvedAppearance } from '@/themes'
 
-const theme = useIsDarkTheme() ? 'dark' : 'light' // 非 hook 场景用 getResolvedTheme()
-const palette = getCategoricalPalette(theme) // 默认 10 档；mindmap 取前 6
+const { preset, resolvedMode } = useResolvedAppearance()
+const palette = getCategoricalPalette(resolvedMode, 10, preset) // mindmap 取前 6
 const color = palette[getCategoricalIndex(entityType)]
-const cardBg = getTokenValue('components-card-bg', theme)
+const cardBg = getTokenValue('components-card-bg', resolvedMode, preset)
 ```
 
 颜色值来自单一来源的 typed JS 产物 `src/themes/token-values.generated.ts`（由 `npm run build:themes` 与 `light.css`/`dark.css` 一起生成，是构建产物，勿手改；改 token 后重跑 `build:themes`）。运行期 `readCssVar` / `getCategoricalColorVar` 仅保留给 scoped-theme / embed 子树。

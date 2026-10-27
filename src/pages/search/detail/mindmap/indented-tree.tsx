@@ -1,4 +1,4 @@
-import React, {
+import {
   forwardRef,
   memo,
   useCallback,
@@ -6,6 +6,7 @@ import React, {
   useImperativeHandle,
   useMemo,
   useRef,
+  useState,
 } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Rect } from '@antv/g'
@@ -22,9 +23,8 @@ import {
   subStyleProps,
   treeToGraphData,
 } from '@antv/g6'
-import { useIsDarkTheme } from '@/themes'
-import { ErrorBoundary } from '@/components/ui/error-boundary'
-import { getCategoricalPalette } from '@/lib/design-tokens'
+import { useResolvedAppearance } from '@/themes'
+import { getCategoricalPalette, getTokenValue } from '@/lib/design-tokens'
 import {
   buildMindmapNodeSizeMap,
   getMindmapNodeSize,
@@ -35,6 +35,26 @@ import type { MindmapTreeNode } from './utils'
 const ROOT_ID = 'root'
 const TREE_EVENT = {
   COLLAPSE_EXPAND: 'search-mindmap-collapse-expand',
+}
+interface GraphOwner {
+  graph: Graph
+  active: boolean
+  ready: boolean
+  pending: Promise<void>
+  fail: () => void
+}
+const graphOwners = new WeakMap<Graph, GraphOwner>()
+const runGraphCommand = (
+  owner: GraphOwner | null | undefined,
+  command: (graph: Graph) => void | Promise<void>,
+): Promise<void> => {
+  if (!owner?.active || !owner.ready) return Promise.resolve()
+  owner.pending = owner.pending
+    .then(async () => {
+      if (owner.active && owner.ready) await command(owner.graph)
+    })
+    .catch(owner.fail)
+  return owner.pending
 }
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -247,22 +267,24 @@ class CollapseExpandBehavior extends BaseBehavior {
     const id = event?.target?.id
     if (!id) return
     const { graph, element } = this.context
-    graph.updateNodeData([{ id, style: { showIcon: visible } }])
-    element?.draw({ animation: false, silence: true })
+    void runGraphCommand(graphOwners.get(graph), async () => {
+      graph.updateNodeData([{ id, style: { showIcon: visible } }])
+      await element?.draw({ animation: false, silence: true })?.finished
+    })
   }
 
-  onCollapseExpand = async (event: any) => {
-    this.status = 'busy'
+  onCollapseExpand = (event: any) => {
+    if (this.status !== 'idle') return
     const { graph } = this.context
     const id = event?.id
-    const collapsed = event?.collapsed
-    if (!id) {
+    if (!id) return
+    this.status = 'busy'
+    void runGraphCommand(graphOwners.get(graph), async () => {
+      if (event?.collapsed) await graph.collapseElement(id)
+      else await graph.expandElement(id)
+    }).then(() => {
       this.status = 'idle'
-      return
-    }
-    if (collapsed) await graph.collapseElement(id)
-    else await graph.expandElement(id)
-    this.status = 'idle'
+    })
   }
 }
 
@@ -301,7 +323,8 @@ interface IndentedTreeProps {
   visible: boolean
 }
 
-const applyAllExpandState = async (graph: Graph, collapsed: boolean) => {
+const applyAllExpandState = async (owner: GraphOwner, collapsed: boolean) => {
+  const { graph } = owner
   const nodeData = (graph.getNodeData?.() || []) as Array<{ id?: string }>
   const ids = nodeData
     .map((node) => node.id)
@@ -310,11 +333,8 @@ const applyAllExpandState = async (graph: Graph, collapsed: boolean) => {
     ? graph.collapseElement.bind(graph)
     : graph.expandElement.bind(graph)
   for (const id of ids) {
-    try {
-      await method(id)
-    } catch {
-      // ignore and continue
-    }
+    if (!owner.active) return
+    await method(id)
   }
 }
 
@@ -322,34 +342,45 @@ const IndentedTree = forwardRef<IndentedTreeRef, IndentedTreeProps>(
   ({ data, visible }, ref) => {
     const { t } = useTranslation()
     const containerRef = useRef<HTMLDivElement>(null)
-    const graphRef = useRef<Graph | null>(null)
-    const isDark = useIsDarkTheme()
+    const ownerRef = useRef<GraphOwner | null>(null)
+    const lifecycle = useRef(Promise.resolve())
+    const [attempt, retry] = useState(0)
+    const [failure, setFailure] = useState<object | null>(null)
+    const { resolvedMode: mode, preset } = useResolvedAppearance()
     const theme = useMemo(() => {
       // 缩进树按节点层级循环取色，用分类调色板前 6 档（按当前主题取色）。
-      const palette = getCategoricalPalette(isDark ? 'dark' : 'light', 6)
+      const palette = getCategoricalPalette(mode, 6, preset)
 
       return {
         palette,
-        rootBackground: '#576286',
-        rootText: '#fff',
-        nodeBackground: isDark ? '#1E293B' : '#F1F5F9',
-        nodeText: isDark ? '#E2E8F0' : '#1E293B',
-        selectedBackground: isDark ? '#082F49' : '#e8f7ff',
-        selectedText: '#40A8FF',
+        rootBackground: getTokenValue(
+          'components-button-primary-bg',
+          mode,
+          preset,
+        ),
+        rootText: getTokenValue('components-button-primary-text', mode, preset),
+        nodeBackground: getTokenValue('background-subtle', mode, preset),
+        nodeText: getTokenValue('text-primary', mode, preset),
+        selectedBackground: getTokenValue('state-selected-bg', mode, preset),
+        selectedText: getTokenValue('text-accent', mode, preset),
       }
-    }, [isDark])
+    }, [mode, preset])
+    const renderKey = useMemo(
+      () => ({ data, visible, theme, attempt }),
+      [data, visible, theme, attempt],
+    )
+    const failed = failure === renderKey
     const getNodeDepthById = useCallback((nodeId: string) => {
       if (!nodeId || nodeId === ROOT_ID) return 0
       return Math.max(nodeId.split('-').length - 1, 0)
     }, [])
 
-    const renderGraph = useCallback(
-      async (treeData: MindmapTreeNode) => {
+    const createGraph = useCallback(
+      (treeData: MindmapTreeNode) => {
         const container = containerRef.current
         if (!container) return
 
         ensureRegisterExtensions()
-        graphRef.current?.destroy()
         const nodeSizeMap = buildMindmapNodeSizeMap(treeData)
         const getLayoutNodeSize = (datum: unknown): MindmapNodeSize => {
           const nodeId = getNodeId(datum)
@@ -432,10 +463,8 @@ const IndentedTree = forwardRef<IndentedTreeRef, IndentedTreeProps>(
           ],
         })
 
-        graphRef.current = graph
         graph.setData(treeToGraphData(treeData as any))
-        await graph.render()
-        graph.fitView()
+        return graph
       },
       [getNodeDepthById, theme],
     )
@@ -444,15 +473,15 @@ const IndentedTree = forwardRef<IndentedTreeRef, IndentedTreeProps>(
       ref,
       () => ({
         fitView: () => {
-          graphRef.current?.fitView()
+          void runGraphCommand(ownerRef.current, (graph) => graph.fitView())
         },
         collapseAll: async () => {
-          if (!graphRef.current) return
-          await applyAllExpandState(graphRef.current, true)
+          const owner = ownerRef.current
+          await runGraphCommand(owner, () => applyAllExpandState(owner!, true))
         },
         expandAll: async () => {
-          if (!graphRef.current) return
-          await applyAllExpandState(graphRef.current, false)
+          const owner = ownerRef.current
+          await runGraphCommand(owner, () => applyAllExpandState(owner!, false))
         },
       }),
       [],
@@ -460,49 +489,90 @@ const IndentedTree = forwardRef<IndentedTreeRef, IndentedTreeProps>(
 
     useEffect(() => {
       if (!data || !visible) return
-      renderGraph(data)
-      return () => {
-        graphRef.current?.destroy()
-        graphRef.current = null
+      let active = true
+      let owner: GraphOwner | undefined
+      const fail = () => {
+        if (!active) return
+        if (owner) owner.ready = false
+        setFailure(renderKey)
       }
-    }, [data, renderGraph, visible])
+      // G6 render awaits prepare/layout; destroy clears its context synchronously.
+      // Retire immediately, then drain all async work before destroying/rebuilding.
+      lifecycle.current = lifecycle.current
+        .then(async () => {
+          if (!active) return
+          const graph = createGraph(data)
+          if (!graph) return
+          const current: GraphOwner = {
+            graph,
+            active: true,
+            ready: false,
+            pending: Promise.resolve(),
+            fail,
+          }
+          owner = current
+          ownerRef.current = current
+          graphOwners.set(graph, current)
+          current.pending = (async () => {
+            await graph.render()
+            if (!current.active) return
+            current.ready = true
+            await graph.fitView()
+          })().catch(fail)
+          await current.pending
+        })
+        .catch(fail)
+      return () => {
+        active = false
+        if (owner) owner.active = false
+        if (ownerRef.current === owner) ownerRef.current = null
+        lifecycle.current = lifecycle.current
+          .then(async () => {
+            if (!owner) return
+            await owner.pending
+            graphOwners.delete(owner.graph)
+            owner.graph.destroy()
+          })
+          .catch(() => undefined)
+      }
+    }, [data, createGraph, visible, renderKey])
 
     useEffect(() => {
       if (!visible) return
       const container = containerRef.current
-      const graph = graphRef.current
-      if (!container || !graph) return
+      if (!container) return
 
       const observer = new ResizeObserver(() => {
-        graph.resize?.()
-        graph.fitView()
+        void runGraphCommand(ownerRef.current, async (graph) => {
+          graph.resize()
+          await graph.fitView()
+        })
       })
       observer.observe(container)
       return () => observer.disconnect()
     }, [visible])
 
     return (
-      <ErrorBoundary
-        fallback={(retry) => (
-          <div className="gap-space-sm flex h-full flex-col items-center justify-center">
-            <p className="text-sm text-status-error">
+      <div className="h-full w-full">
+        <div ref={containerRef} className="h-full w-full" hidden={failed} />
+        {failed && (
+          <div className="flex h-full flex-col items-center justify-center gap-space-sm">
+            <output className="text-sm text-status-error">
               {t(
                 'routeErrors.unexpected.description',
                 '页面遇到了意外问题，请重新加载。',
               )}
-            </p>
+            </output>
             <button
               type="button"
-              onClick={retry}
-              className="rounded-radius-md px-space-sm py-space-xs border border-border-default text-sm text-text-secondary hover:text-text-primary"
+              onClick={() => retry((value) => value + 1)}
+              className="rounded-radius-md border border-border-default px-space-sm py-space-xs text-sm text-text-secondary hover:text-text-primary"
             >
               {t('routeErrors.actions.retry', '重新加载')}
             </button>
           </div>
         )}
-      >
-        <div ref={containerRef} className="h-full w-full" />
-      </ErrorBoundary>
+      </div>
     )
   },
 )

@@ -1,10 +1,15 @@
-import type { ModelVerifyResult } from '@/stores/model'
+import type {
+  AddLlmParams,
+  ModelVerifyResult,
+  MyLLMModel,
+} from '@/stores/model'
 
 export interface ApiKeyModalProps {
   isOpen: boolean
   onClose: () => void
   providerName: string
   isLocal?: boolean
+  initialValues?: MyLLMModel
   onSave: (
     apiKey: string,
     baseUrl?: string,
@@ -15,6 +20,53 @@ export interface ApiKeyModalProps {
     baseUrl?: string,
     additionalParams?: Record<string, any>,
   ) => Promise<void | ModelVerifyResult>
+}
+
+interface LocalModelParams {
+  providerName: string
+  modelName: string
+  modelType: string
+  vision: boolean
+  apiKey: string
+  baseUrl: string
+  maxTokens: number
+  isTools: boolean
+  includeTools: boolean
+}
+
+export const getEditableModelName = (
+  name: string,
+  providerName: string,
+): string => {
+  const suffix = (
+    {
+      LocalAI: '___LocalAI',
+      HuggingFace: '___HuggingFace',
+      'OpenAI-API-Compatible': '___OpenAI-API',
+      VLLM: '___VLLM',
+    } as Record<string, string>
+  )[providerName]
+  return suffix && name.endsWith(suffix) ? name.slice(0, -suffix.length) : name
+}
+
+export const buildLocalModelParams = (
+  values: LocalModelParams,
+): AddLlmParams => {
+  const mdlType =
+    values.modelType === 'chat' && values.vision
+      ? 'image2text'
+      : values.modelType
+  return {
+    llm_factory: values.providerName,
+    llm_name: values.modelName.trim(),
+    mdl_type: mdlType,
+    api_base: values.baseUrl.trim(),
+    max_tokens: values.maxTokens,
+    ...(values.apiKey.trim() ? { api_key: values.apiKey } : {}),
+    ...((mdlType === 'chat' || mdlType === 'image2text') && values.includeTools
+      ? { is_tools: values.isTools }
+      : {}),
+  }
 }
 
 interface OpenDataLoaderParamsInput {

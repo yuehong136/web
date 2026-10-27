@@ -6,7 +6,7 @@ import { parseToolJsonObject } from '@/components/chat/tool-json'
 
 // Exercise the real CodeBlock's plain-text fallback; highlighting is checked
 // in the browser because react-shiki's external CSS cannot load in Node.
-vi.mock('react-shiki', () => ({
+vi.mock('react-shiki/core', () => ({
   useShikiHighlighter: () => undefined,
   createJavaScriptRegexEngine: () => ({}),
 }))
@@ -70,4 +70,48 @@ it('keeps structured, malformed and hostile content as visible tool data', async
       expect(container.textContent).toContain(result)
     expect(container.querySelector('img,script')).toBeNull()
   }
+})
+
+it('unfinished tools show an unconfirmed result after local stop without becoming successful', async () => {
+  await act(async () =>
+    root.render(
+      <ToolCallRenderer
+        runPhase="locallyStopped"
+        toolCalls={[
+          {
+            id: 'pending',
+            name: 'lookup',
+            arguments: {},
+            status: 'running',
+            timestamp: '',
+          },
+        ]}
+      />,
+    ),
+  )
+  expect(container.textContent).toMatch(/结果未确认|Result unconfirmed/)
+  expect(container.textContent).not.toContain('执行中')
+  expect(container.textContent).not.toContain('成功')
+})
+
+it.each([0, false])('keeps a valid %s tool result visible', async (result) => {
+  await act(async () =>
+    root.render(
+      <ToolCallRenderer
+        runPhase="completed"
+        toolCalls={[
+          {
+            id: 'complete',
+            name: 'lookup',
+            arguments: {},
+            result,
+            status: 'success',
+            timestamp: '',
+          },
+        ]}
+      />,
+    ),
+  )
+  expect(container.textContent).toContain(String(result))
+  expect(container.textContent).not.toContain('暂无结果')
 })

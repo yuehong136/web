@@ -1,3 +1,4 @@
+export { RecommendCards } from './RecommendCards'
 export { SelectedTags } from './SelectedTags'
 export { InputToolbar } from './InputToolbar'
 export { ChatInputBox } from './ChatInputBox'

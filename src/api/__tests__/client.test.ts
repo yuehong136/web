@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { APIError, apiClient } from '../client'
+import { APIClient, APIError, apiClient } from '../client'
+import { STORAGE_KEYS } from '@/constants'
 
 const jsonResponse = (status: number, body: unknown, statusText = '') =>
   new Response(JSON.stringify(body), {
@@ -174,4 +175,238 @@ test('401 preserves the deep link before notifying the reload listener', async (
       Reflect.deleteProperty(globalThis, 'window')
     }
   }
+})
+
+function deferred<T>() {
+  let resolve!: (value: T) => void
+  const promise = new Promise<T>((yes) => {
+    resolve = yes
+  })
+  return { promise, resolve }
+}
+
+const isCancelled = (error: unknown) =>
+  error instanceof DOMException && error.name === 'AbortError'
+
+async function withSession(
+  run: (
+    client: APIClient,
+    storage: Map<string, string>,
+    events: Event[],
+  ) => Promise<void>,
+) {
+  const originalWindow = Object.getOwnPropertyDescriptor(globalThis, 'window')
+  const originalStorage = Object.getOwnPropertyDescriptor(
+    globalThis,
+    'localStorage',
+  )
+  const originalFetch = globalThis.fetch
+  const storage = new Map<string, string>()
+  const events: Event[] = []
+  Object.defineProperty(globalThis, 'localStorage', {
+    configurable: true,
+    value: {
+      getItem: (key: string) => storage.get(key) ?? null,
+      setItem: (key: string, value: string) => storage.set(key, value),
+      removeItem: (key: string) => storage.delete(key),
+    },
+  })
+  Object.defineProperty(globalThis, 'window', {
+    configurable: true,
+    value: {
+      location: { href: 'https://app.example/agent/session' },
+      history: { replaceState() {} },
+      dispatchEvent: (event: Event) => {
+        events.push(event)
+        return true
+      },
+    },
+  })
+  try {
+    await run(new APIClient('https://api.example'), storage, events)
+  } finally {
+    globalThis.fetch = originalFetch
+    for (const [key, descriptor] of [
+      ['window', originalWindow],
+      ['localStorage', originalStorage],
+    ] as const) {
+      if (descriptor) Object.defineProperty(globalThis, key, descriptor)
+      else Reflect.deleteProperty(globalThis, key)
+    }
+  }
+}
+
+const unauthorizedResponses = {
+  legacy: () => jsonResponse(401, { retcode: 401, retmsg: 'expired' }),
+  rest: () => jsonResponse(401, { code: 401, message: 'expired' }),
+  plain: () => jsonResponse(401, { detail: 'expired' }),
+  text: () => new Response('expired', { status: 401 }),
+}
+
+for (const [format, response] of Object.entries(unauthorizedResponses)) {
+  test(`late ${format} 401 cannot clear a replacement login or its stored data`, async () => {
+    await withSession(async (client, storage, events) => {
+      client.setAuthToken('identity-a')
+      const headers = deferred<Response>()
+      globalThis.fetch = () => headers.promise
+      const request = client.get('/protected')
+      client.setAuthToken('identity-b')
+      storage.set(STORAGE_KEYS.REFRESH_TOKEN, 'refresh-b')
+      storage.set(STORAGE_KEYS.USER_INFO, 'user-b')
+      headers.resolve(response())
+      await assert.rejects(request, isCancelled)
+      assert.equal(storage.get(STORAGE_KEYS.AUTH_TOKEN), 'identity-b')
+      assert.equal(storage.get(STORAGE_KEYS.REFRESH_TOKEN), 'refresh-b')
+      assert.equal(storage.get(STORAGE_KEYS.USER_INFO), 'user-b')
+      assert.deepEqual(events, [])
+      globalThis.fetch = async (_url, options) => {
+        assert.equal(
+          new Headers(options?.headers).get('Authorization'),
+          'Bearer identity-b',
+        )
+        return jsonResponse(200, { retcode: 0, data: 'current owner' })
+      }
+      assert.equal(await client.get('/protected'), 'current owner')
+    })
+  })
+
+  test(`current identity ${format} 401 still expires exactly that session`, async () => {
+    await withSession(async (client, storage, events) => {
+      client.setAuthToken('identity-a')
+      storage.set(STORAGE_KEYS.REFRESH_TOKEN, 'refresh-a')
+      storage.set(STORAGE_KEYS.USER_INFO, 'user-a')
+      globalThis.fetch = async () => response()
+      await assert.rejects(client.get('/protected'), APIError)
+      assert.equal(storage.get(STORAGE_KEYS.AUTH_TOKEN), undefined)
+      assert.equal(storage.get(STORAGE_KEYS.REFRESH_TOKEN), undefined)
+      assert.equal(storage.get(STORAGE_KEYS.USER_INFO), undefined)
+      assert.equal(events.length, 1)
+      assert.equal(events[0]?.type, 'auth:logout')
+    })
+  })
+}
+
+for (const status of [200, 401]) {
+  test(`identity replacement during JSON ${status} body consumption discards its result`, async () => {
+    await withSession(async (client, storage, events) => {
+      client.setAuthToken('identity-a')
+      const decoding = deferred<void>()
+      const body = deferred<unknown>()
+      const response = jsonResponse(status, {})
+      response.json = () => {
+        decoding.resolve()
+        return body.promise
+      }
+      globalThis.fetch = async () => response
+      const request = client.get('/protected')
+      await decoding.promise
+      client.setAuthToken('identity-b')
+      body.resolve({ retcode: status === 200 ? 0 : 401, data: 'old owner' })
+      await assert.rejects(request, isCancelled)
+      assert.equal(storage.get(STORAGE_KEYS.AUTH_TOKEN), 'identity-b')
+      assert.deepEqual(events, [])
+    })
+  })
+}
+
+test('an anonymous request cannot expire a login established while it was in flight', async () => {
+  await withSession(async (client, storage, events) => {
+    const headers = deferred<Response>()
+    globalThis.fetch = () => headers.promise
+    const request = client.get('/protected')
+    client.setAuthToken('identity-b')
+    headers.resolve(jsonResponse(401, { detail: 'anonymous' }))
+    await assert.rejects(request, isCancelled)
+    assert.equal(storage.get(STORAGE_KEYS.AUTH_TOKEN), 'identity-b')
+    assert.deepEqual(events, [])
+  })
+})
+
+test('skipAuth requests retain their own 401 without affecting a new product login', async () => {
+  await withSession(async (client, storage, events) => {
+    const headers = deferred<Response>()
+    globalThis.fetch = () => headers.promise
+    const request = client.get('/shared', { skipAuth: true })
+    client.setAuthToken('identity-b')
+    headers.resolve(jsonResponse(401, { detail: 'share expired' }))
+    await assert.rejects(request, { status: 401, code: 'UNAUTHORIZED' })
+    assert.equal(storage.get(STORAGE_KEYS.AUTH_TOKEN), 'identity-b')
+    assert.deepEqual(events, [])
+  })
+})
+
+for (const endpoint of ['/auth/login', '/users']) {
+  test(`late ${endpoint} auth headers cannot replace a new login`, async () => {
+    await withSession(async (client, storage, events) => {
+      const decoding = deferred<void>()
+      const body = deferred<unknown>()
+      const response = jsonResponse(200, {})
+      response.headers.set('Authorization', 'late-login-token')
+      response.json = () => {
+        decoding.resolve()
+        return body.promise
+      }
+      globalThis.fetch = async () => response
+      const request = client.post(endpoint, {}, { skipAuth: true })
+      await decoding.promise
+      client.setAuthToken('identity-b')
+      body.resolve({ retcode: 0, data: { id: 'late-login' } })
+      await assert.rejects(request, isCancelled)
+      assert.equal(storage.get(STORAGE_KEYS.AUTH_TOKEN), 'identity-b')
+      assert.deepEqual(events, [])
+    })
+  })
+}
+
+test('logout and re-login with an identical token still supersedes the old request', async () => {
+  await withSession(async (client, storage, events) => {
+    client.setAuthToken('same-token')
+    const headers = deferred<Response>()
+    globalThis.fetch = () => headers.promise
+    const request = client.get('/protected')
+    client.setAuthToken(null)
+    client.setAuthToken('same-token')
+    headers.resolve(jsonResponse(401, { detail: 'old login' }))
+    await assert.rejects(request, isCancelled)
+    assert.equal(storage.get(STORAGE_KEYS.AUTH_TOKEN), 'same-token')
+    assert.deepEqual(events, [])
+  })
+})
+
+test('reapplying the current token does not supersede concurrent successful reads', async () => {
+  await withSession(async (client) => {
+    client.setAuthToken('same-token')
+    const headers = deferred<Response>()
+    globalThis.fetch = () => headers.promise
+    const requests = [client.get('/first'), client.get('/second')]
+    client.setAuthToken('same-token')
+    // Each consumer owns a response body, as with two independent HTTP reads.
+    const success = { retcode: 0, data: 'current owner' }
+    const response = jsonResponse(200, success)
+    response.json = async () => success
+    headers.resolve(response)
+    assert.deepEqual(await Promise.all(requests), [
+      'current owner',
+      'current owner',
+    ])
+  })
+})
+
+test('an identity replaced during a domain response reader cannot receive its private body', async () => {
+  await withSession(async (client) => {
+    client.setAuthToken('identity-a')
+    const reading = deferred<void>()
+    const body = deferred<string>()
+    globalThis.fetch = async () => new Response('domain-owned body')
+    const request = client.get('/private-binary', {
+      readResponse: async () => {
+        reading.resolve()
+        return body.promise
+      },
+    })
+    await reading.promise
+    client.setAuthToken('identity-b')
+    body.resolve('old private body')
+    await assert.rejects(request, isCancelled)
+  })
 })

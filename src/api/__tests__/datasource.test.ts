@@ -133,7 +133,75 @@ test('set creates with POST and updates with PATCH', async () => {
   assert.deepEqual(patches[0]?.data, { config: { token: 'y' } })
 })
 
-test('delete uses DELETE and resume/rebuild use POST', async () => {
+test('REST connection testing is an explicit saved-config POST with no payload or legacy fallback', async () => {
+  const calls: Call[] = []
+  const restore = stub(
+    'post',
+    async (endpoint: string, data?: unknown, config?: RequestConfig) => {
+      calls.push({ endpoint, data, config })
+      return { message: 'Connection successful.' }
+    },
+  )
+  try {
+    assert.deepEqual(await datasourceAPI.connector.test('conn/1'), {
+      message: 'Connection successful.',
+    })
+  } finally {
+    restore()
+  }
+  assert.equal(calls[0]?.endpoint, '/v1/connectors/conn%2F1/test')
+  assert.equal(calls[0]?.data, undefined)
+  assert.ok(calls[0]?.config?.baseURL?.endsWith('/api'))
+  const restoreError = stub('post', async () => {
+    throw new APIError(404, 'NOT_FOUND', 'missing')
+  })
+  try {
+    await assert.rejects(() => datasourceAPI.connector.test('conn-1'), APIError)
+  } finally {
+    restoreError()
+  }
+})
+
+test('connection test checks business retcode even when HTTP succeeds', async () => {
+  const originalFetch = globalThis.fetch
+  const calls: { url: string; method?: string; body: unknown }[] = []
+  let retcode = 0
+  globalThis.fetch = async (url, init) => {
+    calls.push({ url: String(url), method: init?.method, body: init?.body })
+    return new Response(
+      JSON.stringify({
+        retcode,
+        retmsg: retcode ? 'unsafe backend detail' : 'success',
+        data: retcode ? false : { message: 'Connection successful.' },
+      }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
+  }
+  try {
+    assert.deepEqual(await datasourceAPI.connector.test('saved'), {
+      message: 'Connection successful.',
+    })
+    retcode = 102
+    await assert.rejects(
+      () => datasourceAPI.connector.test('saved'),
+      (error: unknown) => error instanceof APIError && error.code === '102',
+    )
+    retcode = 109
+    await assert.rejects(
+      () => datasourceAPI.connector.test('foreign'),
+      (error: unknown) => error instanceof APIError && error.code === '109',
+    )
+    assert.equal(calls.length, 3)
+    assert.ok(
+      calls.every((call) => call.method === 'POST' && call.body === undefined),
+    )
+    assert.ok(calls[0]?.url.endsWith('/api/v1/connectors/saved/test'))
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+})
+
+test('delete uses DELETE, status uses PATCH and rebuild uses POST', async () => {
   const deletes: Call[] = []
   const posts: Call[] = []
   const restoreDelete = stub('delete', async (endpoint: string) => {
@@ -143,21 +211,32 @@ test('delete uses DELETE and resume/rebuild use POST', async () => {
     posts.push({ endpoint, data })
   })
 
+  const patches: Call[] = []
+  const restorePatch = stub(
+    'patch',
+    async (endpoint: string, data?: unknown) => {
+      patches.push({ endpoint, data })
+      return { id: 'conn-1', status: '2' }
+    },
+  )
   try {
     await datasourceAPI.connector.delete('conn-1')
-    await datasourceAPI.connector.resume('conn-1', false)
+    await datasourceAPI.connector.update('conn-1', { status: '2' })
     await datasourceAPI.connector.rebuild('conn-1', 'kb-1')
   } finally {
     restoreDelete()
     restorePost()
+    restorePatch()
   }
 
   assert.deepEqual(
     deletes.map((call) => call.endpoint),
     ['/v1/connectors/conn-1'],
   )
+  assert.deepEqual(patches, [
+    { endpoint: '/v1/connectors/conn-1', data: { status: '2' } },
+  ])
   assert.deepEqual(posts, [
-    { endpoint: '/v1/connectors/conn-1/resume', data: { resume: false } },
     { endpoint: '/v1/connectors/conn-1/rebuild', data: { kb_id: 'kb-1' } },
   ])
 })
@@ -375,5 +454,45 @@ test('deletion sync and Jira credentials survive create/PATCH configuration payl
   } finally {
     restorePost()
     restorePatch()
+  }
+})
+
+test('save forwards independent intervals and reschedule without a legacy resume request', async () => {
+  const calls: Call[] = []
+  const restore = stub('patch', async (endpoint: string, data?: unknown) => {
+    calls.push({ endpoint, data })
+    return { id: 'owned', status: '5' }
+  })
+  try {
+    const saved = await datasourceAPI.connector.set({
+      id: 'owned',
+      name: 'source',
+      source: 's3' as never,
+      config: { sync_deleted_files: true },
+      refresh_freq: 7,
+      prune_freq: 19,
+      timeout_secs: 30,
+      reschedule: true,
+      ...({
+        status: 'pending',
+        tenant_id: 'must-not-send',
+        create_time: 100,
+      } as Record<string, unknown>),
+    })
+    assert.equal(saved.status, DataSourceStatus.SCHEDULED)
+    assert.deepEqual(calls, [
+      {
+        endpoint: '/v1/connectors/owned',
+        data: {
+          config: { sync_deleted_files: true },
+          refresh_freq: 7,
+          prune_freq: 19,
+          timeout_secs: 30,
+          reschedule: true,
+        },
+      },
+    ])
+  } finally {
+    restore()
   }
 })

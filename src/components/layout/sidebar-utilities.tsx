@@ -205,6 +205,12 @@ export const SidebarUtilities = ({
                 </ActionMenuRadioItem>
               </ActionMenuRadioGroup>
               <ActionMenuSeparator />
+              <ActionMenuItem asChild>
+                <NavLink to="/settings/appearance" state={{ returnTo: origin }}>
+                  <Palette className="size-icon-sm" />
+                  {t('layout.sidebar.preferences')}
+                </NavLink>
+              </ActionMenuItem>
               <ActionMenuLabel className="px-space-sm py-space-xs text-xs text-text-secondary">
                 {t('layout.sidebar.language')}
               </ActionMenuLabel>

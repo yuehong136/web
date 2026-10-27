@@ -1,6 +1,6 @@
 /**
- * 引用展示共享辅助：文档类型图标与标签、纯文本摘要、ID 截断和打开原文。
- * ReferenceMarker、ReferencePanel 与 ReferenceDetailSheet 共用（原先各自
+ * 引用展示共享辅助：文档类型图标与标签、纯文本摘要、ID 截断和原文链接。
+ * ReferenceMarker、ReferencePanel 与 ReferenceDetailPanel 共用（原先各自
  * 维护一份重复实现）。纯函数/纯展示，无业务状态。
  */
 import { FileText, FileType, Image, Table2 } from 'lucide-react'
@@ -128,25 +128,34 @@ export function getOriginalSource(
   return url ? { kind: 'web', url } : null
 }
 
+export interface OriginalSourceLink {
+  href: string
+  /** 链接文字的 i18n key */
+  labelKey: string
+  /** 说明（新标签页打开什么）的 i18n key */
+  hintKey: string
+}
+
 /**
- * 在新标签页打开原文；外部网页不带 opener 与 referrer。
+ * 原文链接：调用方渲染成 `target="_blank" rel="noopener noreferrer"` 的
+ * `<a>`，外部网页不带 opener 与 referrer。
  */
-export function openOriginalSource(source: OriginalSource) {
+export function getOriginalSourceLink(
+  source: OriginalSource,
+): OriginalSourceLink {
   if (source.kind === 'web') {
-    window.open(source.url, '_blank', 'noopener,noreferrer')
-    return
+    return {
+      href: source.url,
+      labelKey: 'reference.openWebSource',
+      hintKey: 'reference.openWebSourceHint',
+    }
   }
   const params = new URLSearchParams()
   if (source.documentName) params.set('name', source.documentName)
-  window.open(
-    `/document/${encodeURIComponent(source.documentId)}/preview?${params.toString()}`,
-    '_blank',
-  )
-}
-
-/** 原文按钮的说明文案 key */
-export function getOriginalSourceHintKey(source: OriginalSource): string {
-  return source.kind === 'web'
-    ? 'reference.openWebSourceHint'
-    : 'reference.openOriginalHint'
+  const query = params.toString()
+  return {
+    href: `/document/${encodeURIComponent(source.documentId)}/preview${query ? `?${query}` : ''}`,
+    labelKey: 'sources.viewDocument',
+    hintKey: 'sources.viewDocumentLabel',
+  }
 }

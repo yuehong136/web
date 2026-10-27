@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import 'tailwindcss' source(none);
 @import './themes/tailwind.css';
 @source './';
@@ -55,13 +54,7 @@
   body {
     background-color: var(--color-background-body);
     color: var(--color-text-primary);
-    font-family:
-      'Inter',
-      -apple-system,
-      BlinkMacSystemFont,
-      'Segoe UI',
-      'Roboto',
-      sans-serif;
+    font-family: var(--font-interface, system-ui, sans-serif);
     font-feature-settings:
       'rlig' 1,
       'calt' 1;
@@ -446,9 +439,7 @@
   padding: 0.125rem 0.25rem;
   border-radius: 0.25rem;
   font-size: 0.875rem;
-  font-family:
-    ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas,
-    'DejaVu Sans Mono', monospace;
+  font-family: var(--font-code, ui-monospace, monospace);
 }
 
 .prose pre {

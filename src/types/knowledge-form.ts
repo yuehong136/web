@@ -15,6 +15,9 @@ export const raptorSchema = z.looseObject({
   max_cluster: numericField().min(1).max(1024).default(64),
   random_seed: numericField().default(0),
   scope: z.enum(['dataset', 'file']).default('file'),
+  clustering_method: z.enum(['gmm', 'ahc']).optional(),
+  tree_builder: z.enum(['raptor', 'psi']).optional(),
+  ext: z.record(z.string(), z.unknown()).optional(),
 })
 
 // GraphRAG 配置 Schema
@@ -23,7 +26,8 @@ export const graphragSchema = z.looseObject({
   entity_types: z
     .array(z.string())
     .default(['organization', 'person', 'geo', 'event', 'category']),
-  method: z.enum(['light', 'general']).default('light'),
+  method: z.enum(['light', 'general', 'ner']).default('light'),
+  batch_chunk_token_size: z.number().int().min(512).max(8196).default(4096),
   resolution: z.boolean().default(false),
   community: z.boolean().default(false),
 })
@@ -78,6 +82,21 @@ export const parserConfigSchema = z.looseObject({
   auto_keywords: numericField().min(0).max(30).default(0),
   auto_questions: numericField().min(0).max(10).default(0),
   html4excel: z.boolean().default(false),
+  table_column_mode: z.preprocess(
+    (value) => value ?? 'auto',
+    z.enum(['auto', 'manual']),
+  ),
+  table_column_names: z.preprocess((value) => value ?? [], z.array(z.string())),
+  table_column_roles: z.preprocess(
+    (value) => value ?? {},
+    z.record(
+      z.string(),
+      z.preprocess(
+        (value) => (value === 'vectorize' ? 'indexing' : value),
+        z.enum(['indexing', 'metadata', 'both']),
+      ),
+    ),
+  ),
   toc_extraction: z.boolean().default(false),
   image_table_context_window: numericField().min(0).max(256).default(0),
   // 后端实际使用的字段（提交时会映射）
@@ -168,6 +187,7 @@ export const LayoutRecognizeOptions = [
 export const GraphRagMethodOptions = [
   { label: 'Light', value: 'light' },
   { label: 'General', value: 'general' },
+  { label: 'NER', value: 'ner' },
 ] as const
 
 // RAPTOR 范围选项
@@ -218,6 +238,9 @@ export const getDefaultFormValues = (): Partial<KnowledgeSettingsFormData> => ({
     auto_keywords: 0,
     auto_questions: 0,
     html4excel: false,
+    table_column_mode: 'auto',
+    table_column_names: [],
+    table_column_roles: {},
     toc_extraction: false,
     image_table_context_window: 0,
     image_context_size: 0,
@@ -245,6 +268,7 @@ export const getDefaultFormValues = (): Partial<KnowledgeSettingsFormData> => ({
       use_graphrag: false,
       entity_types: DefaultEntityTypes,
       method: 'light',
+      batch_chunk_token_size: 4096,
       resolution: false,
       community: false,
     },

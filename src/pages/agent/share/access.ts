@@ -1,3 +1,11 @@
+import {
+  parseWidgetSettings,
+  normalizeWidgetSettings,
+  widgetColorParams,
+  widgetTextParams,
+  type WidgetSettings,
+} from './widget-settings'
+
 const DATA_PREFIX = 'data_'
 
 export type AgentEmbedType = 'fullscreen' | 'widget'
@@ -15,6 +23,7 @@ export interface AgentShareAccess {
   embedType: AgentEmbedType
   mode?: AgentWidgetMode
   streaming: boolean
+  widgetSettings: WidgetSettings
   data: Record<string, string>
 }
 
@@ -29,6 +38,7 @@ export interface BuildAgentShareUrlOptions {
   visibleAvatar?: boolean
   mode?: AgentWidgetMode
   streaming?: boolean
+  widgetSettings?: Partial<WidgetSettings>
 }
 
 export interface BuildAgentEmbedCodeOptions extends BuildAgentShareUrlOptions {
@@ -61,6 +71,7 @@ export function parseAgentShareAccess(
     embedType: mode ? 'widget' : 'fullscreen',
     mode: mode === 'master' || mode === 'window' ? mode : undefined,
     streaming: searchParams.get('streaming') === 'true',
+    widgetSettings: parseWidgetSettings(searchParams),
     data,
   }
 }
@@ -113,11 +124,28 @@ export function buildAgentWidgetSharePath(options: BuildAgentShareUrlOptions) {
   appendCommonShareParams(params, options)
   params.set('mode', options.mode || 'master')
   params.set('streaming', options.streaming ? 'true' : 'false')
+  if (options.theme) params.set('theme', options.theme)
+  if (options.widgetSettings) {
+    const settings = normalizeWidgetSettings(options.widgetSettings)
+    params.set('muted', String(settings.muteWidget))
+    for (const [key, param] of Object.entries({
+      ...widgetTextParams,
+      ...widgetColorParams,
+    })) {
+      const value =
+        settings[
+          key as keyof typeof widgetTextParams | keyof typeof widgetColorParams
+        ]
+      if (value) params.set(param, value)
+    }
+  }
 
   return `/chats/widget?${params.toString()}`
 }
 
-export function buildAgentFullscreenShareUrl(options: BuildAgentShareUrlOptions) {
+export function buildAgentFullscreenShareUrl(
+  options: BuildAgentShareUrlOptions,
+) {
   const origin =
     options.origin ||
     (typeof window === 'undefined' ? '' : window.location.origin)

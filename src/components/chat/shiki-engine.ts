@@ -1,4 +1,4 @@
-import { createJavaScriptRegexEngine } from 'react-shiki'
+import { createJavaScriptRegexEngine } from 'shiki/engine/javascript'
 
 /**
  * 共享的 Shiki JavaScript RegExp 引擎（单例）。

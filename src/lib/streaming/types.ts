@@ -35,6 +35,11 @@ export type StreamMessageType =
   | 'error'
   | 'complete'
   | 'metadata'
+  | 'run.cancel_requested'
+  | 'run.cancelled'
+  | 'run.completed'
+  | 'run.failed'
+  | 'run.interrupted'
 
 export const StreamMessageTypes = {
   TEXT: 'text',
@@ -121,6 +126,16 @@ export interface MetadataStreamMessage extends StreamMessageBase {
   }
 }
 
+/** Confirmed lifecycle events, separate from a cancel HTTP acknowledgement. */
+export interface RunLifecycleStreamMessage extends StreamMessageBase {
+  type:
+    | 'run.cancel_requested'
+    | 'run.cancelled'
+    | 'run.completed'
+    | 'run.failed'
+    | 'run.interrupted'
+}
+
 export type StructuredStreamMessage =
   | TextStreamMessage
   | ToolCallStreamMessage
@@ -130,6 +145,7 @@ export type StructuredStreamMessage =
   | ErrorStreamMessage
   | CompleteStreamMessage
   | MetadataStreamMessage
+  | RunLifecycleStreamMessage
 
 /** Tool-call lifecycle row rendered by chat tool-call UIs. */
 export interface StreamToolCallInfo {

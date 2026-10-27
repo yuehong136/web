@@ -105,7 +105,6 @@ describe('route recovery', () => {
       ['/dialogs', '/dialogs', '/studio', ''],
       ['/ai-tools', '/ai-tools', '/tools/auto-fill', ''],
       ['/tools', '/tools', '/tools/auto-fill', ''],
-      ['appearance', '/appearance', '/settings', ''],
       [
         '/dialog/:id/prompt-editor',
         '/dialog/app%201/prompt-editor',
@@ -131,6 +130,45 @@ describe('route recovery', () => {
       )
       expect(router.state.location.pathname).toBe(destination)
       expect(router.state.location.search).toBe(search)
+    }
+  })
+
+  it('renders the working appearance route and applies its native preference controls', async () => {
+    const find = (routes: RouteObject[]): RouteObject | undefined => {
+      for (const route of routes) {
+        if (route.path === 'appearance') return route
+        const nested = find(route.children ?? [])
+        if (nested) return nested
+      }
+      return undefined
+    }
+    const route = find(appRoutes)
+    expect(route).toBeDefined()
+    const { setAppearance, DEFAULT_APPEARANCE } = await import('@/themes')
+    const router = await renderRoutes(
+      [{ path: '/settings/appearance', element: route!.element }],
+      '/settings/appearance',
+    )
+    try {
+      await vi.waitFor(() =>
+        expect(container.querySelector('h1')?.textContent).toBe(
+          'appearance.title',
+        ),
+      )
+      expect(container.textContent).not.toContain(
+        'routeErrors.unavailable.appearance',
+      )
+      const preset = container.querySelector<HTMLInputElement>(
+        'input[value="ocean"]',
+      )!
+      await act(async () => preset.closest('label')!.click())
+      expect(document.documentElement.dataset.preset).toBe('ocean')
+      expect(JSON.parse(localStorage.getItem('appearance')!).preset).toBe(
+        'ocean',
+      )
+    } finally {
+      await act(async () => setAppearance(DEFAULT_APPEARANCE))
+      router.dispose()
     }
   })
 

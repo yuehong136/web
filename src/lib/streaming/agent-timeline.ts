@@ -106,10 +106,9 @@ const findToolNodeIndex = (
   toolName?: string,
 ) => {
   if (callId) {
-    const callIndex = nodes.findIndex(
+    return nodes.findIndex(
       (node) => node.kind === 'tool' && node.metadata?.callId === callId,
     )
-    if (callIndex >= 0) return callIndex
   }
 
   if (toolName) {
@@ -300,6 +299,11 @@ const applyToolCall = (
   state: AgentTimelineState,
   event: Extract<AgentStreamEvent, { kind: 'tool_call' }>,
 ): AgentTimelineState => {
+  if (
+    event.callId &&
+    state.nodes.some((node) => node.metadata?.callId === event.callId)
+  )
+    return state
   const closedState = state.inReasoning ? endReasoning(state) : state
   const { state: baseState, reasoning } = detachTrailingReasoning(closedState)
   const sequence = nextSequence(baseState)
@@ -335,9 +339,12 @@ const applyToolResult = (
   state: AgentTimelineState,
   event: Extract<AgentStreamEvent, { kind: 'tool_result' }>,
 ): AgentTimelineState => {
+  if (event.success === undefined && event.result === undefined && !event.error)
+    return state
   const status: AgentTimelineStatus =
-    event.success === false ? 'error' : 'success'
+    event.success === false || event.error ? 'error' : 'success'
   const index = findToolNodeIndex(state.nodes, event.callId, event.toolName)
+  if (index >= 0 && state.nodes[index].status !== 'loading') return state
 
   if (index < 0) {
     const sequence = nextSequence(state)
@@ -414,11 +421,6 @@ const applyComplete = (state: AgentTimelineState): AgentTimelineState => {
     ...answerRecoveredState,
     isToolAnalyzing: false,
     final: true,
-    nodes: answerRecoveredState.nodes.map((node) =>
-      node.kind === 'system' && node.status === 'loading'
-        ? { ...node, status: 'success' }
-        : node,
-    ),
   }
 }
 
@@ -458,6 +460,8 @@ export const consumeAgentTimelineEvent = (
   state: AgentTimelineState,
   event: AgentStreamEvent,
 ): AgentTimelineState => {
+  if (state.final || state.nodes.some((node) => node.kind === 'error'))
+    return state
   switch (event.kind) {
     case 'text':
       return applyTextWithThinkTags(state, event.content)

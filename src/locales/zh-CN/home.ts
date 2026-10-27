@@ -1,5 +1,17 @@
 export default {
   home: {
+    workspace: {
+      title: '把资料变成下一步行动',
+      description: '围绕一个问题展开对话；需要更多资料时，选择你的应用或工具。',
+    },
+    starters: {
+      summarize: '总结资料',
+      summarizePrompt: '请根据我的资料提炼核心结论，并逐条列出引用来源。',
+      compare: '对比方案',
+      comparePrompt: '请比较这些方案的差异、依据和待确认的问题。',
+      draft: '形成下一步',
+      draftPrompt: '请根据背景资料起草一份简明的行动方案，列出下一步。',
+    },
     greeting: {
       lateNight: '夜深了',
       beforeDawn: '凌晨好',
@@ -14,7 +26,7 @@ export default {
       welcomePlaceholder: '给我发消息或布置任务',
       chatPlaceholder: '输入消息，按 Enter 发送',
       loadingHistory: '加载对话历史...',
-      stop: '停止输出',
+      stop: '停止接收',
       selectSkills: '选择技能或应用',
       addAttachment: '添加附件',
       inspiration: '获取灵感',
@@ -38,15 +50,6 @@ export default {
       business: '回答未能完成',
       failed: '请求失败，请稍后重试',
       partial: '已收到的内容保留在上方，可能不完整。',
-    },
-    agentTimeline: {
-      arguments: '参数',
-      result: '结果',
-      toolRunning: '工具正在执行...',
-      noToolDetail: '暂无工具详情',
-      reasoningPending: '正在整理思考过程...',
-      reasoningTitle: '思考过程',
-      step: '执行步骤',
     },
     tabs: {
       writing: '写作',

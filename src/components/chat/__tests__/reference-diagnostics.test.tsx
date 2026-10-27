@@ -131,7 +131,7 @@ describe('ReferenceDetailSheet retrieval diagnostics', () => {
     const dialog = document.querySelector('[role="dialog"]')!
     expect(
       [...dialog.querySelectorAll('h3')].map((h) => h.textContent),
-    ).toEqual(['内容', '文档元数据', '检索诊断'])
+    ).toEqual(['引用原文', '文档元数据', '检索诊断'])
     expect(dialog.textContent).toContain('author: 张三')
     expect(dialog.textContent).toContain('year: 2026')
     expect(scoreValue()).toBe('不可用')
@@ -143,13 +143,13 @@ describe('ReferenceDetailSheet retrieval diagnostics', () => {
     const headings = [...document.querySelectorAll('[role="dialog"] h3')].map(
       (heading) => heading.textContent,
     )
-    expect(headings).toEqual(['内容', '检索诊断'])
+    expect(headings).toEqual(['引用原文', '检索诊断'])
     expect(scoreValue()).toBe('70%')
   })
 
   it('shows raw position data or says there is none, never a page number', async () => {
     await renderSheet({ ...baseChunk, positions: [[2, 1, 1, 1, 1]] })
-    expect(diagnostics()?.textContent).toContain('定位数据[[2,1,1,1,1]]')
+    expect(diagnostics()?.textContent).toContain('位置信息[[2,1,1,1,1]]')
     expect(diagnostics()?.textContent).not.toContain('页')
 
     await renderSheet({ ...baseChunk, positions: [] })
@@ -163,11 +163,11 @@ describe('ReferenceDetailSheet retrieval diagnostics', () => {
       image_id: '',
     })
 
-    expect(diagnostics()?.textContent).toContain('切片 ID')
+    expect(diagnostics()?.textContent).toContain('片段 ID')
     expect(diagnostics()?.textContent).not.toContain('知识库 ID')
     expect(diagnostics()?.textContent).not.toContain('图片 ID')
     expect(
-      diagnostics()?.querySelector('button[aria-label="复制切片 ID"]'),
+      diagnostics()?.querySelector('button[aria-label="复制片段 ID"]'),
     ).toBeTruthy()
   })
 
@@ -196,7 +196,7 @@ describe('ReferenceDetailSheet retrieval diagnostics', () => {
 
     const dialog = document.querySelector('[role="dialog"]')!
     expect(dialog.querySelector('h2')?.textContent).toBe('Unknown document')
-    expect(dialog.textContent).toContain('View source')
+    expect(dialog.textContent).toContain('Open document')
     expect(dialog.textContent).toContain('Document metadata')
     expect(diagnostics()?.querySelector('h3')?.textContent).toBe(
       'Retrieval diagnostics',

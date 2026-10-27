@@ -114,8 +114,9 @@ const markerButtons = () =>
   [...container.querySelectorAll<HTMLButtonElement>('sup button')].map(
     (button) => button.textContent,
   )
-const sheetTitle = () =>
-  document.querySelector('[role="dialog"] h2')?.textContent ?? null
+// 详情在工作区证据面板打开（窄屏为 Sheet），标题是面板名，文档名在面板内
+const evidenceText = () =>
+  document.querySelector('[role="dialog"]:has(h2)')?.textContent ?? ''
 const buttonWithText = (scope: ParentNode, text: string) =>
   [...scope.querySelectorAll<HTMLButtonElement>('button')].find((button) =>
     button.textContent?.includes(text),
@@ -173,7 +174,7 @@ it('numbers repeated, out-of-order and unknown citations by reference position',
   const unknown = markers().find((sup) => !sup.querySelector('button'))
   expect(unknown?.textContent).toBe('10')
 
-  // 角标 3 指向 report.pdf：打开浮层，再从"详情"打开侧栏
+  // 角标 3 指向 report.pdf：打开浮层，再从"详情"打开证据面板
   const marker = container.querySelector<HTMLButtonElement>('sup button')!
   await act(async () => marker.click())
   await settle()
@@ -182,7 +183,8 @@ it('numbers repeated, out-of-order and unknown citations by reference position',
   expect(popover.textContent).toContain('片段 2 的内容')
   await act(async () => buttonWithText(popover, '详情')!.click())
   await settle()
-  expect(sheetTitle()).toBe('report.pdf')
+  expect(evidenceText()).toContain('report.pdf')
+  expect(evidenceText()).toContain('片段 2 的内容')
 })
 
 it('gives same-document chunks in the source panel the numbers their citations show', async () => {
@@ -207,8 +209,6 @@ it('gives same-document chunks in the source panel the numbers their citations s
 
   await act(async () => buttonWithText(container, '片段 2 的内容')!.click())
   await settle()
-  expect(sheetTitle()).toBe('harness.pdf')
-  expect(document.querySelector('[role="dialog"]')?.textContent).toContain(
-    '片段 2 的内容',
-  )
+  expect(evidenceText()).toContain('harness.pdf')
+  expect(evidenceText()).toContain('片段 2 的内容')
 })

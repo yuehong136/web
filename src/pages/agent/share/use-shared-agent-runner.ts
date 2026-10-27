@@ -1,12 +1,17 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  completeRuntimeMessage,
+  mergeRuntimeAttachments,
+  applyRuntimeUserInputs,
+  clearRuntimeAwaitingInputs,
+  splitRuntimeMessages,
+} from '../features/runtime-workbench/wait-messages'
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { agentAPI } from '@/api/agent'
 import { agentRunErrorKey } from '../runtime-errors'
 import { assertSSEResponse, readSSEStream } from '@/lib/streaming'
 import {
   consumeRuntimeMessageChunk,
-  normalizeRuntimeAttachments,
-  normalizeRuntimeAwaitingInputs,
   normalizeRuntimeEvent,
 } from '../features/runtime-workbench/utils'
 import { shouldStoreRuntimeThoughtEvent } from '../features/runtime-workbench/thought-chain-utils'
@@ -52,10 +57,20 @@ export function useSharedAgentRunner({
 
   const hasMessages = messages.length > 0
 
-  useEffect(() => {
+  const scope = JSON.stringify([agentId, betaToken, release, userId])
+  const [previousScope, setPreviousScope] = useState(scope)
+  if (previousScope !== scope) {
+    setPreviousScope(scope)
+    setMessages([])
+    setSessionId(null)
+    setIsRunning(false)
+    setLastError(undefined)
+  }
+  useLayoutEffect(() => {
     return () => {
       abortControllerRef.current?.abort()
       abortControllerRef.current = null
+      messageStateRef.current = {}
     }
   }, [agentId, betaToken, release, userId])
 
@@ -186,15 +201,8 @@ export function useSharedAgentRunner({
       }
 
       if (normalizedEvent.event === 'message_end') {
-        const reference =
-          isRecord(normalizedEvent.data) && 'reference' in normalizedEvent.data
-            ? normalizedEvent.data.reference
-            : undefined
-
         updateMessageById(assistantId, (message) => ({
-          ...message,
-          reference: reference ?? message.reference,
-          isStreaming: false,
+          ...completeRuntimeMessage(message, normalizedEvent.data),
           messageId: normalizedEvent.messageId || message.messageId,
           taskId: normalizedEvent.taskId || message.taskId,
         }))
@@ -220,7 +228,11 @@ export function useSharedAgentRunner({
 
         updateMessageById(assistantId, (message) => ({
           ...message,
-          files: normalizeRuntimeAttachments(outputs?.attachment),
+          files: mergeRuntimeAttachments(
+            message.files,
+            outputs?.attachment,
+            outputs?.downloads,
+          ),
           content: message.content || runtimeError || outputContent || '',
           error: runtimeError ?? message.error,
           isStreaming: false,
@@ -236,10 +248,7 @@ export function useSharedAgentRunner({
           : {}
 
         updateMessageById(assistantId, (message) => ({
-          ...message,
-          tips: typeof payload.tips === 'string' ? payload.tips : message.tips,
-          awaitingInputs: normalizeRuntimeAwaitingInputs(payload.inputs),
-          isStreaming: false,
+          ...applyRuntimeUserInputs(message, payload),
           messageId: normalizedEvent.messageId || message.messageId,
           taskId: normalizedEvent.taskId || message.taskId,
         }))
@@ -266,7 +275,7 @@ export function useSharedAgentRunner({
       a2ui?: Array<Record<string, unknown>>
       metadata?: Record<string, unknown>
     }) => {
-      if (!agentId || !betaToken || isRunning) {
+      if (!agentId || !betaToken || isRunning || abortControllerRef.current) {
         return
       }
 
@@ -288,6 +297,9 @@ export function useSharedAgentRunner({
       abortControllerRef.current = abortController
       setIsRunning(true)
       setLastError(undefined)
+      const isActive = () =>
+        abortControllerRef.current === abortController &&
+        !abortController.signal.aborted
 
       try {
         const response = await agentAPI.runExternalAgent(
@@ -306,21 +318,27 @@ export function useSharedAgentRunner({
           { signal: abortController.signal },
         )
 
+        if (!isActive()) {
+          await response.body?.cancel()
+          return
+        }
         await assertSSEResponse(response)
 
         // No signal here on purpose: the catch below relies on the AbortError
         // thrown by the fetch body stream to render the stopped state.
         await readSSEStream(response, {
           onEvent: (event) => {
-            handleNormalizedEvent(assistantId, event)
+            if (isActive()) handleNormalizedEvent(assistantId, event)
           },
         })
 
+        if (!isActive()) return
         updateMessageById(assistantId, (message) => ({
           ...message,
           isStreaming: false,
         }))
       } catch (error) {
+        if (abortControllerRef.current !== abortController) return
         const isAbortError =
           error instanceof DOMException && error.name === 'AbortError'
         const errorMessage = isAbortError
@@ -335,8 +353,8 @@ export function useSharedAgentRunner({
           isStreaming: false,
         }))
       } finally {
-        setIsRunning(false)
         if (abortControllerRef.current === abortController) {
+          setIsRunning(false)
           abortControllerRef.current = null
         }
       }
@@ -376,15 +394,9 @@ export function useSharedAgentRunner({
     [submit],
   )
 
-  const clearAwaitingInputs = useCallback(
-    (messageId: string) => {
-      updateMessageById(messageId, (message) => ({
-        ...message,
-        awaitingInputs: undefined,
-      }))
-    },
-    [updateMessageById],
-  )
+  const clearAwaitingInputs = useCallback((messageId: string) => {
+    setMessages((previous) => clearRuntimeAwaitingInputs(previous, messageId))
+  }, [])
 
   const reset = useCallback(() => {
     abortControllerRef.current?.abort()
@@ -424,7 +436,7 @@ export function useSharedAgentRunner({
 
   return useMemo(
     () => ({
-      messages,
+      messages: splitRuntimeMessages(messages),
       hasMessages,
       isRunning,
       lastError,

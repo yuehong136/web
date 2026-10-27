@@ -89,7 +89,9 @@ export function ParameterDialog({
           .refine(
             (value) =>
               !otherThanCurrentQuery.some((item) => item.key.trim() === value),
-            { message: t('flow.keyCannotRepeat', 'The key cannot be repeated.') },
+            {
+              message: t('flow.keyCannotRepeat', 'The key cannot be repeated.'),
+            },
           ),
       }),
     [otherThanCurrentQuery, t],
@@ -139,7 +141,7 @@ export function ParameterDialog({
         <Form {...form}>
           <form
             id={formId}
-            className="space-y-space-md px-space-lg pb-space-lg"
+            className="min-h-0 space-y-space-md overflow-y-auto px-space-lg pb-space-lg"
             onSubmit={handleSubmit}
           >
             <FormField

@@ -2,11 +2,13 @@ import { DataSourceKey } from '../types'
 import { s3DefaultValues } from './s3'
 import { confluenceDefaultValues } from './confluence'
 import { bitbucketDefaultValues } from './bitbucket'
+import { restApiDefaultValues } from './rest-api'
 
 /**
  * 所有数据源的默认值配置
  */
 export const DataSourceFormDefaultValues: Record<DataSourceKey, any> = {
+  [DataSourceKey.REST_API]: restApiDefaultValues,
   [DataSourceKey.S3]: s3DefaultValues,
   [DataSourceKey.R2]: {
     name: '',
@@ -136,8 +138,8 @@ export const DataSourceFormDefaultValues: Record<DataSourceKey, any> = {
     config: {
       repository_owner: '',
       repository_name: '',
-      include_pull_requests: false,
-      include_issues: false,
+      include_pull_requests: true,
+      include_issues: true,
       credentials: { github_access_token: '' },
     },
   },
