@@ -13,6 +13,7 @@ import {
   ProviderIcon,
   getProviderIconName,
   getProviderIconPath,
+  getProviderIcon,
 } from '@/components/ui/provider-icon'
 import { IconMap } from '@/stores/model'
 import { readFileSync, existsSync } from 'node:fs'
@@ -66,7 +67,7 @@ it('renders bundled provider logos when their symbols are absent from iconfont',
   expect(logo?.getAttribute('src')).toContain('baai.svg')
   expect(container.querySelector('use')).toBeNull()
 })
-it('resolves every mapped provider to an existing SVG or sprite symbol in both themes', () => {
+it('resolves every mapped provider to an existing image or sprite symbol in both themes', () => {
   const sprite = readFileSync(path.resolve('public/iconfont.js'), 'utf8')
   const symbols = new Set(
     [...sprite.matchAll(/<symbol\b[^>]*\bid=["']([^"']+)["']/g)].map(
@@ -77,6 +78,12 @@ it('resolves every mapped provider to an existing SVG or sprite symbol in both t
     for (const dark of [false, true]) {
       const url = getProviderIconPath(provider, dark)
       if (url) {
+        if (provider === 'OpenDataLoader') {
+          const file = readFileSync('src/assets/images/opendataloader.webp')
+          expect(file.subarray(0, 4).toString()).toBe('RIFF')
+          expect(file.subarray(8, 12).toString()).toBe('WEBP')
+          continue
+        }
         const filename = `src/assets/svg/llm/${getProviderIconName(provider, dark)}.svg`
         expect(existsSync(path.resolve(filename)), `${provider} SVG`).toBe(true)
         const separator = url.indexOf(',')
@@ -99,7 +106,7 @@ it('resolves every mapped provider to an existing SVG or sprite symbol in both t
     }
   }
 })
-it.each(['Astraflow', 'Astraflow-CN', 'FuturMix', 'Grok'])(
+it.each(['Astraflow', 'Astraflow-CN', 'FuturMix', 'Grok', 'Jiekou.AI'])(
   'renders the upstream logo for %s',
   async (provider) => {
     await act(async () => root.render(<ProviderIcon provider={provider} />))
@@ -107,7 +114,25 @@ it.each(['Astraflow', 'Astraflow-CN', 'FuturMix', 'Grok'])(
     expect(container.querySelector('svg.lucide-boxes')).toBeNull()
   },
 )
+it('uses the official OpenDataLoader image in both component entry points', async () => {
+  const url = getProviderIconPath('OpenDataLoader')
+  expect(url).toBeTruthy()
+  expect(getProviderIconPath('OpenDataLoader', true)).toBe(url)
+  for (const icon of [
+    <ProviderIcon provider="OpenDataLoader" key="component" />,
+    getProviderIcon('OpenDataLoader'),
+  ]) {
+    await act(async () => root.render(icon))
+    expect(container.querySelector('img')?.getAttribute('src')).toBe(url)
+    expect(container.querySelector('svg.lucide-boxes, use')).toBeNull()
+  }
+})
 it('uses the correct assets for provider aliases and theme variants', () => {
+  expect(getProviderIconName('Jiekou.AI', false)).toBe('jiekouai-bright')
+  expect(getProviderIconName('Jiekou.AI', true)).toBe('jiekouai-dark')
+  expect(getProviderIconPath('Jiekou.AI', false)).not.toBe(
+    getProviderIconPath('Jiekou.AI', true),
+  )
   expect(getProviderIconPath('Astraflow-CN')).toBe(
     getProviderIconPath('Astraflow'),
   )

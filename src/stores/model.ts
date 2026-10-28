@@ -425,6 +425,7 @@ export const IconMap: Record<string, string> = {
   [LLMFactory.FunASR]: 'funasr',
   [LLMFactory.AIMLAPI]: 'aimlapi',
   [LLMFactory.GreenPT]: 'greenpt',
+  [LLMFactory.OpenDataLoader]: 'opendataloader',
 }
 
 export interface LLMFactoryInterface {

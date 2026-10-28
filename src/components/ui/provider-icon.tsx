@@ -4,15 +4,18 @@ import { LLMFactory, IconMap } from '@/stores/model'
 import { useIsDarkTheme } from '@/themes'
 import { cn } from '@/lib/utils'
 import { IconFontFill } from './icon-font'
+import openDataLoaderLogoUrl from '@/assets/images/opendataloader.webp?url'
 
 // Let Vite publish SVG URLs; source-directory paths do not exist in production.
 const providerLogoUrls = import.meta.glob<string>(
-  '/src/assets/svg/llm/{local-ai,gemini,stepfun,wenxin,yi,youdao,baai,nomic-ai,sentence-transformers,aimlapi,astraflow,fastembed,funasr,futurmix,greenpt,grok,huaweicloud,mws,new-api,orcarouter,qiniu,somark,tokenhub,xiaomi,mineru-bright,mineru-dark,paddleocr,n1n,jiekouai,avian,ragcon,perplexity-bright,perplexity-dark}.svg',
+  '/src/assets/svg/llm/{local-ai,gemini,stepfun,wenxin,yi,youdao,baai,nomic-ai,sentence-transformers,aimlapi,astraflow,fastembed,funasr,futurmix,greenpt,grok,huaweicloud,mws,new-api,orcarouter,qiniu,somark,tokenhub,xiaomi,mineru-bright,mineru-dark,paddleocr,n1n,jiekouai-bright,jiekouai-dark,avian,ragcon,perplexity-bright,perplexity-dark}.svg',
   { eager: true, query: '?url', import: 'default' },
 )
 
 const providerLogoUrl = (iconName: string) =>
-  providerLogoUrls[`/src/assets/svg/llm/${iconName}.svg`]
+  iconName === 'opendataloader'
+    ? openDataLoaderLogoUrl
+    : providerLogoUrls[`/src/assets/svg/llm/${iconName}.svg`]
 
 /**
  * 需要根据主题切换图标的厂商（有 -dark/-bright 版本的图标）
@@ -26,6 +29,7 @@ const THEME_AWARE_FACTORIES = [
   LLMFactory.MinerU,
   LLMFactory.MinerUNet,
   LLMFactory.Perplexity,
+  LLMFactory.JiekouAI,
 ]
 
 interface ProviderIconProps {
@@ -159,12 +163,12 @@ export const getProviderIconName = (
 export const usesSvgFile = (provider: string): boolean => {
   return [false, true].some((dark) => {
     const name = getProviderIconName(provider, dark)
-    return name ? !!providerLogoUrl(name) : false
+    return name ? !!providerLogoUrls[`/src/assets/svg/llm/${name}.svg`] : false
   })
 }
 
 /**
- * 获取 SVG 文件路径（仅用于使用独立 SVG 的厂商）
+ * 获取已发布的厂商图片 URL（包括 SVG 和官方位图）
  * @deprecated 建议使用 ProviderIcon 组件代替
  */
 export const getProviderIconPath = (
@@ -174,13 +178,7 @@ export const getProviderIconPath = (
   const iconName = getProviderIconName(provider, isDark)
   if (!iconName) return null
 
-  // 如果使用独立 SVG 文件
-  if (usesSvgFile(provider)) {
-    return providerLogoUrl(iconName) ?? null
-  }
-
-  // 对于 iconfont 图标，返回 null（应该使用 ProviderIcon 组件）
-  return null
+  return providerLogoUrl(iconName) ?? null
 }
 
 /**
@@ -213,20 +211,16 @@ export const getProviderIcon = (modelName: string | null): React.ReactNode => {
   const iconName = getProviderIconName(modelName, false)
 
   if (iconName) {
-    // 检查是否使用独立 SVG 文件
-    if (usesSvgFile(modelName)) {
-      const url = providerLogoUrl(iconName)
-      if (url)
-        return (
-          <ProviderLogoImage
-            key={url}
-            url={url}
-            provider={modelName}
-            className="h-full w-full"
-          />
-        )
-    }
-
+    const url = providerLogoUrl(iconName)
+    if (url)
+      return (
+        <ProviderLogoImage
+          key={url}
+          url={url}
+          provider={modelName}
+          className="h-full w-full"
+        />
+      )
     // 使用 iconfont
     return (
       <IconFontFill
