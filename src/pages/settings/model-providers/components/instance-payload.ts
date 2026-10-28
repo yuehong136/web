@@ -1,21 +1,58 @@
 import { modelProvidersAPI } from '@/api/llm-providers'
 import type {
-  InstanceModelInput,
   InstanceInput,
+  ConnectionCandidate,
 } from '@/api/llm-provider-types'
 import { modelTypeSchema } from '@/api/llm-provider-types'
 
-/** Keep complete provider credential envelopes isolated to the selected instance. */
-export function buildInstancePayload(
+/** Only exact official hosts imply a region; custom endpoints require an explicit choice. */
+export function resolveInstanceRegion(
   provider: string,
-  name: string,
+  baseUrl: string,
+  region: string,
+): string {
+  if (provider !== 'SILICONFLOW') return region
+  if (!['', 'default', 'cn', 'intl'].includes(region))
+    throw Error('invalid-region')
+  let official: 'cn' | 'intl' | undefined
+  if (baseUrl) {
+    let url: URL
+    try {
+      url = new URL(baseUrl)
+    } catch {
+      throw Error('invalid-base-url')
+    }
+    if (
+      !['http:', 'https:'].includes(url.protocol) ||
+      url.username ||
+      url.password
+    )
+      throw Error('invalid-base-url')
+    if (url.hostname === 'api.siliconflow.com') official = 'intl'
+    if (url.hostname === 'api.siliconflow.cn') official = 'cn'
+  }
+  const explicit = region ? (region === 'intl' ? 'intl' : 'cn') : undefined
+  if (official && explicit && official !== explicit)
+    throw Error('region-url-conflict')
+  return explicit ?? official ?? 'cn'
+}
+
+/** Keep complete provider credential envelopes isolated to the selected instance. */
+export function buildConnectionCandidate(
+  provider: string,
   key: string,
   baseUrl: string | undefined,
   fields: Record<string, unknown>,
   region: string,
-): { instance: InstanceInput; model?: InstanceModelInput } {
-  if (!name.trim()) throw new Error('instance-name-required')
+): ConnectionCandidate {
   const credential = fields.api_key ?? key
+  if (
+    provider === 'SILICONFLOW' &&
+    (typeof credential !== 'string' || credential.trim().startsWith('{'))
+  )
+    throw Error('raw-credential-required')
+  const endpoint = (baseUrl ?? String(fields.api_base ?? '')).trim()
+  const resolvedRegion = resolveInstanceRegion(provider, endpoint, region)
   let envelope: Record<string, unknown> = {}
   if (
     typeof credential === 'object' &&
@@ -44,15 +81,12 @@ export function buildInstancePayload(
     'api_base',
     'base_url',
     'api_key',
+    'region',
+    'source_fid',
+    'verify',
   ])
   for (const [field, value] of Object.entries(fields))
     if (!reserved.has(field) && value !== undefined) envelope[field] = value
-  if (provider === 'SILICONFLOW')
-    envelope.source_fid = (baseUrl ?? '')
-      .toLowerCase()
-      .includes('api.siliconflow.com')
-      ? 'siliconflow_intl'
-      : provider
   const modelName = fields.llm_name ?? fields.model_name
   const modelTypes = modelTypeSchema
     .array()
@@ -70,22 +104,18 @@ export function buildInstancePayload(
   )
     throw new Error('invalid-max-tokens')
   return {
-    instance: {
-      instance_name: name.trim(),
-      api_key:
-        Object.keys(envelope).length === 1 &&
-        typeof envelope.api_key === 'string'
-          ? envelope.api_key
-          : Object.keys(envelope).length
-            ? JSON.stringify(envelope)
-            : '',
-      base_url: baseUrl ?? String(fields.api_base ?? ''),
-      region,
-      ...(modelName ? { model_ids: [] } : {}),
-    },
+    api_key:
+      Object.keys(envelope).length === 1 && typeof envelope.api_key === 'string'
+        ? envelope.api_key
+        : Object.keys(envelope).length
+          ? JSON.stringify(envelope)
+          : '',
+    base_url: endpoint,
+    region: resolvedRegion,
     ...(typeof modelName === 'string' && modelName.trim()
       ? {
-          model: {
+          model_ids: [],
+          custom_model: {
             model_name: modelName.trim(),
             model_types: [...new Set(modelTypes)],
             max_tokens: maxTokens,
@@ -96,50 +126,38 @@ export function buildInstancePayload(
   }
 }
 
+export function buildInstancePayload(
+  provider: string,
+  name: string,
+  key: string,
+  baseUrl: string | undefined,
+  fields: Record<string, unknown>,
+  region: string,
+): { instance: InstanceInput } {
+  if (!name.trim()) throw new Error('instance-name-required')
+  return {
+    instance: {
+      instance_name: name.trim(),
+      ...buildConnectionCandidate(provider, key, baseUrl, fields, region),
+    },
+  }
+}
+
 export async function saveProviderInstance({
   provider,
-  providerExists,
   payload,
-  createdIdentity,
   isCurrent,
-  onCreated,
   api = modelProvidersAPI,
 }: {
   provider: string
-  providerExists: boolean
   payload: ReturnType<typeof buildInstancePayload>
-  createdIdentity: string | null
   isCurrent: () => boolean
-  onCreated: (identity: string) => void
-  api?: Pick<
-    typeof modelProvidersAPI,
-    'createProvider' | 'createInstance' | 'updateInstance' | 'addModel'
-  >
+  api?: Pick<typeof modelProvidersAPI, 'createInstance'>
 }) {
   const current = () => {
     if (!isCurrent()) throw new DOMException('Request superseded', 'AbortError')
   }
   current()
-  const identity = `${provider}\u0000${payload.instance.instance_name}`
-  if (createdIdentity === identity && !payload.model)
-    throw new Error('partial-instance-model-required')
-  if (!providerExists) await api.createProvider(provider)
-  current()
-  if (createdIdentity !== identity) {
-    await api.createInstance(provider, payload.instance)
-    current()
-    onCreated(identity)
-  } else {
-    // A prior model write failed. Persist the currently submitted instance edits before retrying it.
-    const { api_key, base_url, region } = payload.instance
-    await api.updateInstance(provider, payload.instance.instance_name, {
-      api_key,
-      base_url,
-      region,
-    })
-  }
-  current()
-  if (payload.model)
-    await api.addModel(provider, payload.instance.instance_name, payload.model)
+  await api.createInstance(provider, payload.instance)
   current()
 }

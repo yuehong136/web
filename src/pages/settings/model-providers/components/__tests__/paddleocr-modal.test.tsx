@@ -152,26 +152,24 @@ it('validates fields, keeps a failed draft, and resets on reopening', async () =
   expect(algorithmTrigger().textContent).toBe('PaddleOCR-VL')
 })
 
-it('shows configuration validation with its inference boundary and translates the dialog', async () => {
+it('shows connection validation with its inference boundary and translates the dialog', async () => {
   await render()
   await change(field('Model name (required)'), 'model')
   await change(
     field('Inference URL (required)'),
     'https://service.example/layout-parsing',
   )
-  await act(async () => button('Validate configuration').click())
+  await act(async () => button('Test connection').click())
   expect(verify).toHaveBeenCalledOnce()
   expect(save).not.toHaveBeenCalled()
   expect(close).not.toHaveBeenCalled()
-  expect(document.body.textContent).toContain('Configuration is valid')
-  expect(document.body.textContent).toContain(
-    'It does not verify service connectivity',
-  )
+  expect(document.body.textContent).toContain('Connection verified')
+  expect(document.body.textContent).toContain('sample inference')
   expect(document.body.textContent).not.toContain(
     'Sensitive upstream token detail',
   )
   await act(async () => setProductLanguage('zh-CN'))
-  expect(document.body.textContent).toContain('配置校验通过')
+  expect(document.body.textContent).toContain('连接验证通过')
   expect(document.body.textContent).toContain('此选择不会改变服务端部署')
   expect(field('AI Studio 访问令牌（可选）').type).toBe('password')
   expect(button('保存')).toBeTruthy()
@@ -208,7 +206,7 @@ it('explains both service protocols and keeps a cloud URL when switching algorit
   expect(document.body.textContent).toContain('自托管同步服务使用 /ocr')
   expect(document.body.textContent).toContain('官方云 Job API 使用')
   expect(document.body.textContent).toContain(
-    '校验仅检查配置，不验证服务连通性、访问令牌或推理结果。',
+    '连接测试会对所选模型执行一次样例推理，保存时会再次测试。',
   )
   await act(async () => button('保存').click())
   expect(save).toHaveBeenCalledExactlyOnceWith('', undefined, {

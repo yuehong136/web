@@ -1,35 +1,30 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  useModelProviders,
-  useModelProviderMutation,
-} from '@/hooks/use-model-provider-request'
+import { useModelProviderMutation } from '@/hooks/use-model-provider-request'
 import { SystemSetting } from './components/system-setting'
 import { UsedModels } from './components/used-models'
 import { AvailableModels } from './components/available-models'
 import { ApiKeyModal } from './components/api-key-modal'
 import {
   buildInstancePayload,
+  buildConnectionCandidate,
   saveProviderInstance,
 } from './components/instance-payload'
+import { apiClient } from '@/api/client'
+import { modelProvidersAPI } from '@/api/llm-providers'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
 export function ModelProvidersPage() {
   const { t } = useTranslation()
-  const providers = useModelProviders(),
-    mutation = useModelProviderMutation()
+  const mutation = useModelProviderMutation()
   const [provider, setProvider] = useState(''),
     [name, setName] = useState(''),
     [region, setRegion] = useState('')
-  const [partial, setPartial] = useState(false)
-  const created = useRef<string | null>(null)
   const close = () => {
     setProvider('')
     setName('')
     setRegion('')
-    created.current = null
-    setPartial(false)
   }
   const open = (value: string) => {
     close()
@@ -50,9 +45,21 @@ export function ModelProvidersPage() {
         isOpen={!!provider}
         providerName={provider}
         onClose={close}
+        onVerify={async (key, baseUrl, fields = {}) => {
+          const isCurrent = apiClient.captureOwner()
+          const candidate = buildConnectionCandidate(
+            provider,
+            key,
+            baseUrl,
+            fields,
+            region,
+          )
+          await modelProvidersAPI.verifyConnection(provider, candidate)
+          if (!isCurrent())
+            throw new DOMException('Request superseded', 'AbortError')
+          return { isValid: true, logs: '' }
+        }}
         onSave={async (key, baseUrl, fields = {}) => {
-          if (!providers.data || providers.isError)
-            throw Error('provider-inventory-unavailable')
           const payload = buildInstancePayload(
             provider,
             name,
@@ -64,16 +71,8 @@ export function ModelProvidersPage() {
           await mutation.mutateAsync(async (isCurrent) =>
             saveProviderInstance({
               provider,
-              providerExists: providers.data.some(
-                (item) => item.name === provider,
-              ),
               payload,
-              createdIdentity: created.current,
               isCurrent,
-              onCreated: (identity) => {
-                created.current = identity
-                setPartial(!!payload.model)
-              },
             }),
           )
         }}
@@ -98,11 +97,6 @@ export function ModelProvidersPage() {
             onChange={(event) => setRegion(event.target.value)}
             disabled={mutation.isPending}
           />
-          {partial && (
-            <p role="status" className="text-text-secondary">
-              {t('settings.models.instances.partial')}
-            </p>
-          )}
         </div>
       </ApiKeyModal>
     </div>

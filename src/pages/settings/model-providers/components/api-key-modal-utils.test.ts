@@ -1,4 +1,9 @@
-import { buildInstancePayload, saveProviderInstance } from './instance-payload'
+import {
+  buildInstancePayload,
+  buildConnectionCandidate,
+  saveProviderInstance,
+  resolveInstanceRegion,
+} from './instance-payload'
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
@@ -67,100 +72,107 @@ test('verification result normalization accepts both supported envelopes', () =>
   )
 })
 
-test('a partial model failure retries the current credential and endpoint before adding the model', async () => {
-  const calls: { kind: string; data?: unknown }[] = []
-  let first = true,
-    created: string | null = null
+test('custom model and instance share one atomic request, including retry after rejection', async () => {
+  const calls: unknown[] = []
+  let fail = true
   const api = {
-    createProvider: async () => {
-      calls.push({ kind: 'provider' })
-    },
-    createInstance: async (_provider: string, data: unknown) => {
-      calls.push({ kind: 'instance', data })
-    },
-    updateInstance: async (_provider: string, _name: string, data: unknown) => {
-      calls.push({ kind: 'update', data })
-    },
-    addModel: async () => {
-      calls.push({ kind: 'model' })
-      if (first) {
-        first = false
-        throw Error('controlled model failure')
+    createInstance: async (_provider: string, input: unknown) => {
+      calls.push(input)
+      if (fail) {
+        fail = false
+        throw Error('controlled rejection')
       }
     },
   }
-  const save = (key: string, url: string) =>
+  const save = (key: string) =>
     saveProviderInstance({
       provider: 'Ollama',
-      providerExists: true,
       payload: buildInstancePayload(
         'Ollama',
         'same',
         key,
-        url,
-        { llm_name: 'model', mdl_type: 'chat', max_tokens: 0 },
+        '',
+        { llm_name: 'custom', mdl_type: 'chat', max_tokens: 0 },
         '',
       ),
-      createdIdentity: created,
       isCurrent: () => true,
-      onCreated: (identity) => {
-        created = identity
-      },
       api,
     })
-  await assert.rejects(save('synthetic-a', 'https://a.invalid'))
-  await save('synthetic-b', 'https://b.invalid')
-  assert.deepEqual(
-    calls.map((call) => call.kind),
-    ['instance', 'model', 'update', 'model'],
-  )
-  assert.deepEqual(calls[2].data, {
+  await assert.rejects(save('synthetic-a'), /controlled rejection/)
+  await save('synthetic-b')
+  assert.equal(calls.length, 2)
+  assert.deepEqual(calls[1], {
+    instance_name: 'same',
     api_key: 'synthetic-b',
-    base_url: 'https://b.invalid',
+    base_url: '',
     region: '',
+    model_ids: [],
+    custom_model: {
+      model_name: 'custom',
+      model_types: ['chat'],
+      max_tokens: 0,
+      is_tools: false,
+    },
   })
+  await assert.rejects(
+    saveProviderInstance({
+      provider: 'Ollama',
+      payload: buildInstancePayload('Ollama', 'same', '', '', {}, ''),
+      isCurrent: () => false,
+      api,
+    }),
+    { name: 'AbortError' },
+  )
+  assert.equal(calls.length, 2)
 })
 
-test('clearing a custom model after partial instance creation rejects before writes', async () => {
-  const calls: string[] = []
-  let created: string | null = null
-  const api = {
-    createProvider: async () => {
-      calls.push('provider')
-    },
-    createInstance: async () => {
-      calls.push('instance')
-    },
-    updateInstance: async () => {
-      calls.push('update')
-    },
-    addModel: async () => {
-      calls.push('model')
-      throw Error('controlled model failure')
-    },
-  }
-  const save = (model: string) =>
-    saveProviderInstance({
-      provider: 'Anthropic',
-      providerExists: true,
-      payload: buildInstancePayload(
-        'Anthropic',
-        'partial',
-        'synthetic-key',
-        '',
-        model ? { llm_name: model, mdl_type: 'chat', max_tokens: 0 } : {},
-        '',
-      ),
-      createdIdentity: created,
-      isCurrent: () => true,
-      onCreated: (identity) => {
-        created = identity
-      },
-      api,
-    })
-  await assert.rejects(save('custom-model'), /controlled model failure/)
-  assert.deepEqual(calls, ['instance', 'model'])
-  await assert.rejects(save(''), /partial-instance-model-required/)
-  assert.deepEqual(calls, ['instance', 'model'])
-  assert.equal(created, 'Anthropic\u0000partial')
+test('SiliconFlow uses raw keys and exact official hosts with explicit supported regions', () => {
+  const build = (url: string, region = '', key = 'synthetic') =>
+    buildInstancePayload('SILICONFLOW', 'cn', key, url, {}, region).instance
+  assert.equal(build('https://api.siliconflow.com/v1').region, 'intl')
+  assert.equal(build('https://api.siliconflow.cn/v1').region, 'cn')
+  assert.equal(
+    build('https://api.siliconflow.com.evil.invalid/v1').region,
+    'cn',
+  )
+  assert.equal(build('https://evil.invalid/api.siliconflow.com').region, 'cn')
+  assert.equal(build('https://proxy.invalid', 'intl').region, 'intl')
+  assert.equal(build('').api_key, 'synthetic')
+  assert.equal(resolveInstanceRegion('OpenAI', 'bad url', 'custom'), 'custom')
+  for (const url of [
+    'invalid',
+    'javascript:alert(1)',
+    'https://user:pass@api.siliconflow.com',
+  ])
+    assert.throws(() => build(url))
+  for (const region of ['us', 'INTL']) assert.throws(() => build('', region))
+  assert.throws(() => build('https://api.siliconflow.com', 'cn'))
+  assert.throws(() => build('https://api.siliconflow.cn', 'intl'))
+  assert.throws(() =>
+    build('', '', '{"api_key":"synthetic","source_fid":"siliconflow_intl"}'),
+  )
+})
+
+test('verification candidate omits identity and exactly matches the saved fields', () => {
+  const candidate = buildConnectionCandidate(
+    'SILICONFLOW',
+    'synthetic',
+    'https://api.siliconflow.com/v1',
+    {},
+    '',
+  )
+  const { instance_name, ...saved } = buildInstancePayload(
+    'SILICONFLOW',
+    'owned',
+    'synthetic',
+    'https://api.siliconflow.com/v1',
+    {},
+    '',
+  ).instance
+  assert.equal(instance_name, 'owned')
+  assert.deepEqual(candidate, saved)
+  assert.ok(!('instance_name' in candidate))
+  assert.throws(() =>
+    buildInstancePayload('SILICONFLOW', '', 'synthetic', '', {}, ''),
+  )
 })

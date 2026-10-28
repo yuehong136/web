@@ -200,7 +200,7 @@ it('keeps credential envelopes, explicit empty catalogs and legal zero when crea
     ark_api_key: 'synthetic',
     custom_extension: [],
   })
-  expect(result.model).toEqual({
+  expect(result.instance.custom_model).toEqual({
     model_name: 'custom',
     model_types: ['chat'],
     max_tokens: 0,
@@ -292,7 +292,10 @@ it('keeps both chat and vision when creating a local model and clears vision aft
     fields,
     '',
   )
-  expect(payload.model?.model_types).toEqual(['chat', 'image2text'])
+  expect(payload.instance.custom_model?.model_types).toEqual([
+    'chat',
+    'image2text',
+  ])
   const values = {
     providerName: 'Ollama',
     modelName: 'fixture',
@@ -307,8 +310,8 @@ it('keeps both chat and vision when creating a local model and clears vision aft
   for (const modelType of ['chat', ['chat'], ['chat', 'image2text', 'chat']]) {
     const result = buildLocalModelParams({ ...values, modelType })
     expect(
-      buildInstancePayload('Ollama', 'vision', '', undefined, result, '').model
-        ?.model_types,
+      buildInstancePayload('Ollama', 'vision', '', undefined, result, '')
+        .instance.custom_model?.model_types,
     ).toEqual(['chat', 'image2text'])
   }
   expect(
@@ -317,4 +320,34 @@ it('keeps both chat and vision when creating a local model and clears vision aft
   expect(buildLocalModelParams({ ...values, vision: false }).mdl_type).toBe(
     'chat',
   )
+})
+
+it('keeps legal zero in the custom cloud-model form', async () => {
+  await act(async () =>
+    root.render(
+      <ApiKeyModal
+        isOpen
+        providerName="Anthropic"
+        onSave={save}
+        onClose={close}
+      />,
+    ),
+  )
+  await change(
+    document.querySelector('input[placeholder="请输入 API Key"]')!,
+    'synthetic',
+  )
+  await change(
+    document.querySelector(
+      'input[placeholder="留空则注册该厂商目录里的全部模型"]',
+    )!,
+    'custom',
+  )
+  await change(document.querySelector('input[type="number"]')!, '0')
+  await act(async () =>
+    Array.from(document.querySelectorAll('button'))
+      .find((button) => button.textContent === '确定')!
+      .click(),
+  )
+  expect(save.mock.calls[0][2].max_tokens).toBe(0)
 })

@@ -3,11 +3,13 @@ import { API_BASE_URL } from '@/constants'
 import { apiClient, APIError } from './client'
 import {
   providerSchema,
+  modelTypeSchema,
   instanceSchema,
   tenantModelSchema,
   modelDefaultSchema,
   type ModelType,
   type InstanceInput,
+  type ConnectionCandidate,
   type InstanceUpdate,
   type InstanceModelInput,
 } from './llm-provider-types'
@@ -97,6 +99,25 @@ export function createModelProvidersAPI(origin = API_BASE_URL) {
         {},
         signal,
       ),
+    verifyConnection: async (
+      provider: string,
+      candidate: ConnectionCandidate,
+    ) => {
+      const response: unknown = await apiClient.post(
+        `${providerPath(provider)}/connection`,
+        candidate,
+        rest,
+      )
+      const decoded = z
+        .object({
+          verified: z.literal(true),
+          model_name: z.string().min(1),
+          model_type: modelTypeSchema,
+        })
+        .safeParse(response)
+      if (!decoded.success) invalid()
+      return decoded.data
+    },
     createInstance: (provider: string, input: InstanceInput) =>
       apiClient.post(`${providerPath(provider)}/instances`, input, rest),
     updateInstance: (

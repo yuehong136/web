@@ -9,6 +9,15 @@ export default {
       filterCapabilitiesHint:
         'Select multiple capabilities to show providers that support all of them.',
 
+      connection: {
+        validate: 'Test connection',
+        valid: 'Connection verified',
+        invalid:
+          'Connection test failed. Check the configuration and try again.',
+        scope:
+          'Tests one selected model and capability. Saving tests the connection again.',
+        saveFailed: 'Could not save. Check the configuration and try again.',
+      },
       allProviders: 'All',
       instances: {
         name: 'Instance name',
@@ -27,8 +36,6 @@ export default {
           'Could not save this change. Check the configuration or existing model references and try again. Your entries are kept.',
         deleteConfirm:
           'Delete {{name}}? Models used by applications, datasets or defaults must be unlinked first.',
-        partial:
-          'The instance has been created. Keep a custom model name to retry, or close this form and manage models in the created instance. Clearing the name here cannot register the provider catalog.',
       },
       volcEngine: { modelId: 'Model ID', modelIdRequired: 'Enter a Model ID.' },
       localModel: {
@@ -65,7 +72,7 @@ export default {
         jobTokenRequired: 'Enter an access token for the cloud Job API.',
         tokenPlaceholder: 'Enter your access token',
         validationHint:
-          'Validation checks configuration only. It does not verify service connectivity, the access token, or inference results.',
+          'The connection test runs a sample inference for the selected model. Saving tests it again.',
         modelNameRequired: 'Enter a model name.',
         apiUrlRequired: 'Enter the complete PaddleOCR inference URL.',
         apiUrlInvalid: 'Enter a complete HTTP or HTTPS inference URL.',

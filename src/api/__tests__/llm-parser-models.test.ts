@@ -250,3 +250,50 @@ test('Agent image input follows the selected model rather than provider tags', (
     false,
   )
 })
+
+test('connection sends a read-only typed candidate and rejects malformed verification receipts', async (t) => {
+  let wire: unknown = {
+    verified: true,
+    model_name: 'custom',
+    model_type: 'chat',
+  }
+  const calls: { url: string; body: unknown }[] = []
+  t.mock.method(
+    globalThis,
+    'fetch',
+    async (input: string | URL | Request, init?: RequestInit) => {
+      calls.push({ url: String(input), body: JSON.parse(String(init?.body)) })
+      return response(wire)
+    },
+  )
+  const candidate = {
+    api_key: 'synthetic',
+    base_url: 'https://api.siliconflow.com/v1',
+    region: 'intl',
+    model_ids: [],
+    custom_model: {
+      model_name: 'custom',
+      model_types: ['chat'] as ['chat'],
+      max_tokens: 0,
+      is_tools: false,
+    },
+  }
+  assert.deepEqual(
+    await modelProvidersAPI.verifyConnection('a/b', candidate),
+    wire,
+  )
+  assert.equal(
+    new URL(calls[0].url).pathname,
+    '/api/v1/providers/a%2Fb/connection',
+  )
+  assert.deepEqual(calls[0].body, candidate)
+  for (wire of [
+    null,
+    true,
+    {},
+    { verified: false, model_name: 'custom', model_type: 'chat' },
+    { verified: true, model_name: '', model_type: 'chat' },
+    { verified: true, model_name: 'custom', model_type: 'invalid' },
+  ])
+    await assert.rejects(modelProvidersAPI.verifyConnection('a/b', candidate))
+})

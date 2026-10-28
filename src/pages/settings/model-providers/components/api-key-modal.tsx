@@ -535,16 +535,7 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
           additionalParams,
         )
         const result = normalizeVerifyResult(verifyResponse)
-        setVerifyResult(
-          isPaddleOCR
-            ? {
-                isValid: result.isValid,
-                logs: t(
-                  `${paddleKey}.${result.isValid ? 'configurationValid' : 'configurationInvalid'}`,
-                ),
-              }
-            : result,
-        )
+        setVerifyResult({ isValid: result.isValid, logs: '' })
       } else {
         await onSave(finalApiKey, finalBaseUrl, additionalParams)
         handleClose()
@@ -555,11 +546,13 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
           isValid: false,
           logs: isPaddleOCR
             ? t(`${paddleKey}.configurationInvalid`)
-            : '验证失败，请重试',
+            : t('settings.models.connection.invalid'),
         })
       } else {
         setError(
-          isPaddleOCR ? t(`${paddleKey}.saveFailed`) : '保存失败，请重试',
+          isPaddleOCR
+            ? t(`${paddleKey}.saveFailed`)
+            : t('settings.models.connection.saveFailed'),
         )
       }
     } finally {
@@ -612,7 +605,11 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
           description={getModalDescription()}
         />
 
-        <div className="max-h-[calc(90vh-200px)] space-y-4 overflow-y-auto px-6 py-4">
+        <fieldset
+          disabled={isLoading || isVerifying}
+          onChangeCapture={() => setVerifyResult(null)}
+          className="max-h-[calc(90vh-200px)] space-y-4 overflow-y-auto px-6 py-4"
+        >
           {children}
           {/* ========== TencentCloud (腾讯云语音) 专用表单 ========== */}
           {providerName === 'Tencent Cloud' && (
@@ -1485,12 +1482,16 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
                         </label>
                         <Input
                           type="number"
-                          value={maxTokens}
+                          value={Number.isFinite(maxTokens) ? maxTokens : ''}
                           onChange={(e) =>
-                            setMaxTokens(parseInt(e.target.value) || 8192)
+                            setMaxTokens(
+                              e.target.value === ''
+                                ? NaN
+                                : Number(e.target.value),
+                            )
                           }
                           placeholder="8192"
-                          min={1}
+                          min={0}
                         />
                       </div>
                     </>
@@ -1524,7 +1525,7 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
             </div>
           )}
 
-          {/* 验证结果 */}
+          {/* Connection result */}
           {verifyResult && verifyResult.isValid !== null && (
             <div className="rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-surface-secondary)] p-3">
               <p
@@ -1534,22 +1535,16 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
                     : 'text-sm text-status-error'
                 }
               >
-                {isPaddleOCR
-                  ? t(
-                      `${paddleKey}.${verifyResult.isValid ? 'configurationValid' : 'configurationInvalid'}`,
-                    )
-                  : verifyResult.isValid
-                    ? '验证通过'
-                    : '验证失败'}
+                {t(
+                  `settings.models.connection.${verifyResult.isValid ? 'valid' : 'invalid'}`,
+                )}
               </p>
-              {verifyResult.logs && !isPaddleOCR && (
-                <pre className="mt-2 max-h-40 overflow-auto text-xs whitespace-pre-wrap text-text-secondary">
-                  {verifyResult.logs}
-                </pre>
-              )}
+              <p className="mt-space-xs text-xs text-text-secondary">
+                {t('settings.models.connection.scope')}
+              </p>
             </div>
           )}
-        </div>
+        </fieldset>
 
         <DialogFooter className="flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
@@ -1581,7 +1576,7 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
                     isVerifying ? 'h-3.5 w-3.5 animate-spin' : 'h-3.5 w-3.5'
                   }
                 />
-                {isPaddleOCR || isLocal ? t(`${paddleKey}.validate`) : '验证'}
+                {t('settings.models.connection.validate')}
               </Button>
             )}
           </div>

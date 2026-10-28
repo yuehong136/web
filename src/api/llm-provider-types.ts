@@ -67,12 +67,15 @@ export type ModelProvider = z.infer<typeof providerSchema>
 export type ModelInstance = z.infer<typeof instanceSchema>
 export type TenantModel = z.infer<typeof tenantModelSchema>
 export type ModelDefault = z.infer<typeof modelDefaultSchema>
-export interface InstanceInput {
-  instance_name: string
+export interface ConnectionCandidate {
   api_key: string
   base_url: string
   region: string
   model_ids?: string[]
+  custom_model?: InstanceModelInput
+}
+export interface InstanceInput extends ConnectionCandidate {
+  instance_name: string
 }
 export interface InstanceUpdate {
   api_key?: string

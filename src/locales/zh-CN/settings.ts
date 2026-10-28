@@ -7,6 +7,13 @@ export default {
       filterCapabilities: '按模型能力筛选',
       filterCapabilitiesHint: '可多选，仅显示同时支持所有已选能力的提供商。',
 
+      connection: {
+        validate: '测试连接',
+        valid: '连接验证通过',
+        invalid: '连接测试失败，请检查配置后重试。',
+        scope: '仅测试一个所选模型及其能力；保存时会再次测试连接。',
+        saveFailed: '保存失败，请检查配置后重试。',
+      },
       allProviders: '全部',
       instances: {
         name: '实例名称',
@@ -25,8 +32,6 @@ export default {
           '未能保存更改。请检查配置或已有模型引用后重试，已填写的内容会保留。',
         deleteConfirm:
           '删除 {{name}}？应用、知识库或默认设置正在使用的模型需要先解除关联。',
-        partial:
-          '实例已创建。请保留自定义模型名称后重试，或关闭表单后在已建实例中管理模型。在此清空名称无法注册厂商目录。',
       },
       volcEngine: { modelId: '模型 ID', modelIdRequired: '请输入模型 ID。' },
       localModel: {
@@ -61,7 +66,7 @@ export default {
         jobTokenRequired: '使用云 Job API 时请输入访问令牌。',
         tokenPlaceholder: '请输入访问令牌',
         validationHint:
-          '校验仅检查配置，不验证服务连通性、访问令牌或推理结果。',
+          '连接测试会对所选模型执行一次样例推理，保存时会再次测试。',
         modelNameRequired: '请输入模型名称。',
         apiUrlRequired: '请输入完整的 PaddleOCR 推理地址。',
         apiUrlInvalid: '请输入完整的 HTTP 或 HTTPS 推理地址。',
