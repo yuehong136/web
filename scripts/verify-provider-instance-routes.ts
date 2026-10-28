@@ -11,6 +11,10 @@ import {
 } from 'node:fs'
 import { apiClient, APIError } from '../src/api/client'
 import { createModelProvidersAPI } from '../src/api/llm-providers'
+import {
+  buildConnectionCandidate,
+  buildInstancePayload,
+} from '../src/pages/settings/model-providers/components/instance-payload'
 import { projectTenantModels } from '../src/api/llm'
 import { chatModelSetting } from '../src/lib/chat/model-setting'
 import { buildPDFParserOptions } from '../src/lib/knowledge/pdf-parser-options'
@@ -20,6 +24,7 @@ interface Descriptor {
   ownerTokenFile: string
   foreignTokenFile: string
   providerKeyFile: string
+  providerBaseURLs: string[]
   owners: { ownerId: string; foreignId: string }
   providerName: string
   instanceNames: [string, string]
@@ -50,6 +55,12 @@ const descriptor: Descriptor = JSON.parse(readFileSync(descriptorPath, 'utf8'))
 const { providerName, instanceNames, modelName, owners } = descriptor
 assert.equal(instanceNames.length, 2)
 assert.equal(new Set(instanceNames).size, 2)
+assert.equal(descriptor.providerBaseURLs.length, 2)
+for (const value of descriptor.providerBaseURLs) {
+  const endpoint = new URL(value)
+  assert.equal(endpoint.protocol, 'http:')
+  assert.ok(['127.0.0.1', 'localhost', '[::1]'].includes(endpoint.hostname))
+}
 assert.ok(owners.ownerId && owners.foreignId && descriptor.scratchDatabase)
 const origin = new URL(descriptor.origin)
 assert.ok(['127.0.0.1', 'localhost', '[::1]'].includes(origin.hostname))
@@ -98,6 +109,7 @@ async function owner(): Promise<object> {
     providerName,
     instanceNames,
     modelName,
+    providerBaseURLs: descriptor.providerBaseURLs,
     defaults: ['chat', 'ocr'],
   })
   const keys: unknown = JSON.parse(
@@ -109,21 +121,55 @@ async function owner(): Promise<object> {
       keys.every((key) => typeof key === 'string' && key.length > 0) &&
       keys[0] !== keys[1],
   )
-  await api.createProvider(providerName)
   for (const [index, name] of instanceNames.entries()) {
-    await api.createInstance(providerName, {
-      instance_name: name,
-      api_key: keys[index],
-      base_url: `https://w-${index}.invalid`,
-      region: '',
-      model_ids: [],
-    })
-    await api.addModel(providerName, name, {
-      model_name: modelName,
-      model_types: index === 0 ? ['chat', 'image2text'] : ['chat', 'ocr'],
+    const fields = {
+      llm_name: modelName,
+      model_type: index === 0 ? ['chat', 'image2text'] : ['chat', 'ocr'],
       max_tokens: 0,
       is_tools: false,
+    }
+    const candidate = buildConnectionCandidate(
+      providerName,
+      keys[index],
+      descriptor.providerBaseURLs[index],
+      fields,
+      '',
+    )
+    const inventory = async () => {
+      const providers = await api.providers()
+      return {
+        providers,
+        instances: providers.some((row) => row.name === providerName)
+          ? await api.instances(providerName)
+          : [],
+        models: await api.models(),
+        defaults: await api.defaults(),
+      }
+    }
+    const beforeVerification = await inventory()
+    const verified = await api.verifyConnection(providerName, candidate)
+    assert.equal(verified.verified, true)
+    assert.equal(verified.model_name, modelName)
+    assert.ok(fields.model_type.includes(verified.model_type))
+    assert.deepEqual(await inventory(), beforeVerification)
+    record('web-connection-inventory-unchanged', {
+      ownerId: owners.ownerId,
+      providerName,
+      instanceName: name,
+      representativeModel: verified.model_name,
+      capability: verified.model_type,
     })
+    const { instance } = buildInstancePayload(
+      providerName,
+      name,
+      keys[index],
+      descriptor.providerBaseURLs[index],
+      fields,
+      '',
+    )
+    const { instance_name: _identity, ...savedCandidate } = instance
+    assert.deepEqual(savedCandidate, candidate)
+    await api.createInstance(providerName, instance)
   }
   const models = (await api.models()).filter(
     (row) => row.provider_name === providerName && row.name === modelName,
@@ -205,6 +251,8 @@ async function owner(): Promise<object> {
     },
     dependencyStatus,
     checks: [
+      'read-only connection verification inventory',
+      'atomic instance and custom model creation',
       'same-name numeric instance isolation',
       'numeric chat and OCR consumers',
       'legal zero',
