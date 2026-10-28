@@ -26,7 +26,7 @@ import {
 } from '@/components/ui/dialog'
 import { PageLoadingState } from '@/components/patterns'
 import { SkillError } from './skill-shared'
-import { SkillSelect } from './skill-select'
+import { SkillModelSelect } from './skill-model-select'
 import { SkillConfigAdvanced, SkillConfigField } from './skill-config-advanced'
 
 const schema = skillConfigSchema.refine(
@@ -65,40 +65,21 @@ function ConfigForm({
         }),
       )}
     >
-      <SkillError error={models.error} />
       {(['embedding', 'rerank'] as const).map((type) => (
         <Controller
           key={type}
           control={form.control}
           name={type === 'embedding' ? 'embedding_model_id' : 'rerank_model_id'}
           render={({ field }) => (
-            <SkillSelect
+            <SkillModelSelect
               label={t(`skills.${type}`)}
               value={field.value || 'none'}
-              disabled={models.isLoading || action.isPending}
+              type={type}
+              query={models}
+              disabled={action.isPending}
               onChange={(value) =>
                 field.onChange(value === 'none' ? null : value)
               }
-              options={[
-                { value: 'none', label: t('skills.none') },
-                ...(models.data?.models
-                  .filter((model) => model.type === type)
-                  .map((model) => ({
-                    value: model.id,
-                    label: `${model.name} · ${model.provider} · #${model.id}${model.available ? '' : ` · ${t('skills.unavailable')}`}`,
-                    disabled: !model.available,
-                  })) || []),
-                ...(field.value &&
-                !models.data?.models.some((model) => model.id === field.value)
-                  ? [
-                      {
-                        value: field.value,
-                        label: `#${field.value} · ${t('skills.unavailable')}`,
-                        disabled: true,
-                      },
-                    ]
-                  : []),
-              ]}
             />
           )}
         />

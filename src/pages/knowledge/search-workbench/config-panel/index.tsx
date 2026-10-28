@@ -29,6 +29,7 @@ interface ConfigPanelSheetProps {
   rerankModels: LLMModel[]
   rerankLoading: boolean
   rerankError?: string
+  onRetryModels?: () => unknown
   metadataFields: string[]
   metadataFieldsLoading: boolean
   metadataFieldsError: boolean
@@ -143,6 +144,7 @@ export const ConfigPanelSheet: React.FC<ConfigPanelSheetProps> = (props) => {
             rerankModels={props.rerankModels}
             rerankLoading={props.rerankLoading}
             rerankError={props.rerankError}
+            onRetryModels={props.onRetryModels}
             onSelectRerank={(modelId) =>
               updateDraft((current) => ({
                 ...current,

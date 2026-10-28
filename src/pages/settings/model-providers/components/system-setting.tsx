@@ -6,23 +6,15 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { FormTooltip } from '@/components/ui/tooltip'
 import { Button } from '@/components/ui/button'
 import {
-  SelectWithSearch,
-  type SelectOptionGroup,
-} from '@/components/ui/select-with-search'
-import {
   AppScene,
   PageErrorState,
   PageLoadingState,
 } from '@/components/patterns'
-import {
-  getLLMModelValue,
-  getLLMModelLabel,
-  isLLMModelEnabled,
-  type MyLLMProvider,
-} from '@/stores/model'
+import { type MyLLMProvider } from '@/stores/model'
 import { useFetchMyLLMs } from '@/hooks/use-llm-request'
 import { useDefaultModelRequest } from '@/hooks/use-default-model-request'
-import { modelSelectOption } from '@/components/models/model-select-options'
+import { modelOptions } from '@/components/models/model-select-options'
+import { ModelSelect } from '@/components/models/model-select'
 import { toast } from '@/lib/toast'
 import type { TenantInfo } from '@/types/team'
 import type { TenantModelSettings } from '@/api/auth'
@@ -60,48 +52,6 @@ function getModelValues(tenant: TenantInfo): ModelValues {
   ) as ModelValues
 }
 
-function getModelOptions(
-  models: MyLLMProvider,
-  types: readonly string[],
-  selected: string,
-  unavailableLabel: string,
-): SelectOptionGroup[] {
-  const groups = Object.entries(models).flatMap(([provider, data]) => {
-    const options = data.llm
-      .filter((model) => types.includes(model.type) && isLLMModelEnabled(model))
-      .map((model) => modelSelectOption(model, provider))
-    const unique = [
-      ...new Map(options.map((option) => [option.value, option])).values(),
-    ]
-    return unique.length ? [{ label: provider, options: unique }] : []
-  })
-  if (
-    selected &&
-    !groups.some((group) =>
-      group.options.some((option) => option.value === selected),
-    )
-  ) {
-    groups.unshift({
-      label: unavailableLabel,
-      options: [
-        {
-          label: Object.values(models)
-            .flatMap((provider) => provider.llm)
-            .find((model) => getLLMModelValue(model, '') === selected)
-            ? getLLMModelLabel(
-                Object.values(models)
-                  .flatMap((provider) => provider.llm)
-                  .find((model) => getLLMModelValue(model, '') === selected)!,
-              )
-            : selected,
-          value: selected,
-        },
-      ],
-    })
-  }
-  return groups
-}
-
 export function SystemSetting() {
   const { t } = useTranslation()
   const request = useDefaultModelRequest()
@@ -136,6 +86,7 @@ export function SystemSetting() {
       models={models.myLLMs}
       saving={request.update.isPending}
       modelsFailed={models.isError}
+      modelsLoading={models.isLoading || models.isPending || models.isPaused}
       retryModels={() => {
         void models.refetch()
       }}
@@ -149,6 +100,7 @@ function DefaultModelsForm({
   models,
   saving,
   modelsFailed,
+  modelsLoading,
   retryModels,
   onSave,
 }: {
@@ -156,6 +108,7 @@ function DefaultModelsForm({
   models: MyLLMProvider
   saving: boolean
   modelsFailed: boolean
+  modelsLoading: boolean
   retryModels: () => void
   onSave: (values: TenantModelSettings) => Promise<unknown>
 }) {
@@ -180,13 +133,12 @@ function DefaultModelsForm({
       active.current = false
     }
   }, [])
-  const unavailableLabel = t('settings.models.defaultsUnavailable')
   const options = Object.fromEntries(
     MODEL_FIELDS.map(({ field, types }) => [
       field,
-      getModelOptions(models, types, values[field], unavailableLabel),
+      modelOptions(models, types),
     ]),
-  ) as Record<ModelField, SelectOptionGroup[]>
+  ) as Record<ModelField, ReturnType<typeof modelOptions>>
 
   const save = async (submitted: ModelValues) => {
     if (!dirty || pending || submitting.current) return
@@ -249,13 +201,16 @@ function DefaultModelsForm({
                   />
                 </span>
               </div>
-              <SelectWithSearch
+              <ModelSelect
                 ariaLabel={t(
                   `settings.models.defaultFields.${config.name}.label`,
                 )}
                 triggerClassName="w-full"
                 value={values[config.field]}
-                options={options[config.field]}
+                {...options[config.field]}
+                loading={modelsLoading}
+                error={modelsFailed}
+                showStatus={false}
                 onChange={(value) => {
                   form.setValue(config.field, value, { shouldDirty: true })
                   setSaveFailed(false)
@@ -269,6 +224,11 @@ function DefaultModelsForm({
             </div>
           ))}
         </div>
+        {modelsLoading && (
+          <output className="block p-space-md text-sm text-text-secondary">
+            {t('common.modelPicker.loading')}
+          </output>
+        )}
         {modelsFailed && (
           <div className="flex items-center justify-between gap-space-sm border-t border-border-subtle p-space-md text-sm text-text-secondary">
             <span>{t('settings.models.defaultsModelsFailed')}</span>

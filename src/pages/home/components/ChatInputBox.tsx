@@ -27,6 +27,8 @@ interface ChatInputBoxProps {
   models: MyLLMProvider | null
   selectedModelId: string
   onModelSelect: (id: string | null) => void
+  modelsError?: string
+  onRetryModels?: () => unknown
   modelsLoading: boolean
   isModelLocked: boolean
   onSend: () => void
@@ -57,6 +59,8 @@ export function ChatInputBox({
   selectedModelId,
   onModelSelect,
   modelsLoading,
+  modelsError,
+  onRetryModels,
   isModelLocked,
   onSend,
   onStop,
@@ -123,6 +127,8 @@ export function ChatInputBox({
             selectedModelName={selectedModelId}
             onSelect={(name) => onModelSelect(name || '')}
             loading={modelsLoading}
+            error={modelsError}
+            onRetry={onRetryModels}
             variant="minimal"
             dropdownDirection={variant === 'welcome' ? 'down' : 'up'}
             disabled={scopeLocked || isModelLocked}

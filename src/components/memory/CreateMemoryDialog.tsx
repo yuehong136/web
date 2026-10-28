@@ -87,8 +87,12 @@ export const CreateMemoryDialog: FC<CreateMemoryDialogProps> = ({
   const isEditMode = !!initialData
   const createMemorySchema = useMemo(() => getCreateMemorySchema(t), [t])
   const editMemorySchema = useMemo(() => getEditMemorySchema(t), [t])
-  const { myLLMs: modelProviders, isLoading: isLoadingModels } =
-    useFetchMyLLMs()
+  const {
+    myLLMs: modelProviders,
+    isLoading: isLoadingModels,
+    isError: modelsFailed,
+    refetch: retryModels,
+  } = useFetchMyLLMs()
 
   // ============ Create form ============
   const createForm = useForm<CreateMemoryFormValues>({
@@ -314,6 +318,12 @@ export const CreateMemoryDialog: FC<CreateMemoryDialogProps> = ({
                     <FormControl>
                       <EmbeddingModelSelector
                         isLoadingModels={isLoadingModels}
+                        error={
+                          modelsFailed
+                            ? t('common.modelPicker.loadFailed')
+                            : undefined
+                        }
+                        onRetry={retryModels}
                         modelProviders={modelProviders}
                         selectedModelId={field.value}
                         onSelect={(id) => field.onChange(id || '')}

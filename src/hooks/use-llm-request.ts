@@ -5,11 +5,12 @@
  */
 
 import { useQuery } from '@tanstack/react-query'
-import { modelSelectOption } from '@/components/models/model-select-options'
+import {
+  modelOptions,
+  modelSelectOption,
+} from '@/components/models/model-select-options'
 import { llmAPI } from '@/api/llm'
 import {
-  getLLMModelValue,
-  getLLMModelLabel,
   isLLMModelEnabled,
   type LLMValueMode,
   type MyLLMModel,
@@ -69,7 +70,7 @@ export const useFetchMyLLMs = (options?: {
     })
 
   return {
-    myLLMs: isError ? EMPTY_MY_LLMS : (data ?? EMPTY_MY_LLMS),
+    myLLMs: data ?? EMPTY_MY_LLMS,
     isLoading: isFetching,
     isPending,
     isPaused: fetchStatus === 'paused',
@@ -105,7 +106,7 @@ export const useFetchFactories = () => {
 
 // 获取模型选项（用于下拉选择）
 export const useLLMOptions = (type?: 'chat' | 'embedding' | 'rerank') => {
-  const { myLLMs, isLoading } = useFetchMyLLMs()
+  const { myLLMs, isLoading, isError, refetch, isPending } = useFetchMyLLMs()
 
   const options = Object.entries(myLLMs).flatMap(([providerName, provider]) => {
     return (provider.llm || [])
@@ -113,14 +114,20 @@ export const useLLMOptions = (type?: 'chat' | 'embedding' | 'rerank') => {
         (model) => (!type || model.type === type) && isLLMModelEnabled(model),
       )
       .map((model) => ({
-        label: `${providerName} / ${getLLMModelLabel(model)}`,
-        value: getLLMModelValue(model, providerName),
+        ...modelSelectOption(model, providerName),
         provider: providerName,
         type: model.type,
       }))
   })
 
-  return { options, isLoading }
+  return {
+    options,
+    knownOptions: modelOptions(myLLMs, type ? [type] : undefined).knownOptions,
+    isLoading,
+    isError,
+    refetch,
+    isPending,
+  }
 }
 
 // 获取模型选项（按 provider 分组，用于 SelectWithSearch）
@@ -139,7 +146,7 @@ export const useLLMGroupedOptionsByTypes = (
     valueMode?: LLMValueMode
   },
 ) => {
-  const { myLLMs, isLoading } = useFetchMyLLMs()
+  const { myLLMs, isLoading, isError, refetch, isPending } = useFetchMyLLMs()
   const allowedTypes = types ? new Set(types) : null
   const valueMode = options?.valueMode || 'name'
 
@@ -173,7 +180,18 @@ export const useLLMGroupedOptionsByTypes = (
     }))
     .filter((group) => group.options.length > 0)
 
-  return { options: groupedOptions, isLoading }
+  return {
+    options: groupedOptions,
+    knownOptions: Object.entries(myLLMs).flatMap(([provider, data]) =>
+      data.llm
+        .filter((model) => !allowedTypes || allowedTypes.has(model.type))
+        .map((model) => modelSelectOption(model, provider, valueMode)),
+    ),
+    isLoading,
+    isError,
+    refetch,
+    isPending,
+  }
 }
 
 // 获取聊天模型选项

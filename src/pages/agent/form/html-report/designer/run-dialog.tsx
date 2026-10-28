@@ -14,7 +14,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { useChatModelOptions } from '@/hooks/use-llm-request'
-import { parseLLMValue } from '@/stores/model'
 import type { SkeletonSchema } from '../types'
 import { ModelSelect } from './ai-skeleton/model-select'
 import { RunResult } from './run-result'
@@ -38,7 +37,8 @@ export function RunDialog({
   onClose,
 }: RunDialogProps) {
   const { t } = useTranslation()
-  const { options, isLoading } = useChatModelOptions()
+  const { options, knownOptions, isLoading, isError, refetch } =
+    useChatModelOptions()
   const [model, setModel] = useState('')
   const [text, setText] = useState('')
   const [samples, setSamples] = useState<Record<string, string>>({})
@@ -69,15 +69,10 @@ export function RunDialog({
     return [...refs]
   }, [skeleton])
 
-  // 模型清单到达后默认选节点配置的模型(选项 value 是裸模型名,故拆掉 provider 后缀
-  // 再匹配);未配置或匹配不到再回落首个。
+  // 保留节点的原始模型引用；仅未配置时选择第一个可用模型。
   {
-    if (!model && options.length > 0) {
-      const preferred = parseLLMValue(llmId).modelName
-      const matched = preferred
-        ? options.find((option) => option.value === preferred)
-        : undefined
-      setModel(matched?.value ?? options[0].value)
+    if (!isError && !isLoading && !model && options.length > 0) {
+      setModel(llmId || options[0].value)
     }
   }
 
@@ -187,6 +182,10 @@ export function RunDialog({
             <ModelSelect
               value={model}
               options={options}
+              knownOptions={knownOptions}
+              loading={isLoading}
+              error={isError}
+              onRetry={refetch}
               disabled={busy || isLoading || options.length === 0}
               placeholder={t(
                 'flow.htmlReportAiModelEmpty',

@@ -6,12 +6,13 @@ import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
+import { modelOptions } from '@/components/models/model-select-options'
 import { llmAPI } from '@/api/llm'
 import { apiClient } from '@/api/client'
 import { useChatModelGroupedOptions } from '@/hooks/use-llm-request'
 import { useModelProviderMutation } from '@/hooks/use-model-provider-request'
 import { modelProvidersAPI } from '@/api/llm-providers'
-import { useSearchModels } from '../use-search-models'
+import { normalizeSearchModels, useSearchModels } from '../use-search-models'
 
 let root: Root
 let container: HTMLDivElement
@@ -78,7 +79,10 @@ it('refreshes cached search model choices after disabling a model while settings
   })
   await render(true)
   expect(list).toHaveBeenCalledTimes(2)
-  expect(models.chatModelProviders.Fixture).toBeUndefined()
+  expect(models.chatModelProviders.Fixture.llm[0]).toMatchObject({
+    available: false,
+  })
+  expect(modelOptions(models.chatModelProviders, ['chat']).options).toEqual([])
 })
 
 it('invalidates the knowledge retrieval reranker inventory after a model mutation', async () => {
@@ -195,4 +199,43 @@ it('refreshes warm chat choices after adding and removing a connection and isola
   })
   expect(invalidate).not.toHaveBeenCalled()
   apiClient.setAuthToken(null)
+})
+
+it('keeps exact references and connection labels separate in Search model adapters', () => {
+  const result = normalizeSearchModels({
+    Fixture: [
+      {
+        id: '56',
+        name: 'same-model',
+        llm_name: 'same-model · production',
+        mdl_type: 'chat',
+        available: true,
+      },
+      {
+        id: '57',
+        name: 'same-model',
+        llm_name: 'same-model · testing',
+        mdl_type: 'chat',
+        available: true,
+      },
+      {
+        id: '58',
+        name: 'rerank-v3',
+        llm_name: 'rerank-v3 · production',
+        mdl_type: 'rerank',
+        available: true,
+      },
+    ],
+  })
+  expect(
+    modelOptions(result.chatModelProviders, ['chat']).options[0].options,
+  ).toMatchObject([
+    { value: '56', label: 'same-model · production' },
+    { value: '57', label: 'same-model · testing' },
+  ])
+  expect(result.rerankModels[0]).toMatchObject({
+    id: '58',
+    llm_name: 'rerank-v3',
+    display_name: 'rerank-v3 · production',
+  })
 })

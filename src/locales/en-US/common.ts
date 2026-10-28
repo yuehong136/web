@@ -1,6 +1,12 @@
 export default {
   common: {
     modelPicker: {
+      assistant: 'AI assistant',
+      savedModel: 'Saved model',
+      unavailableShort: 'Unavailable',
+      loading: 'Loading models…',
+      loadFailed:
+        'Could not load models. Availability could not be confirmed. Retry to refresh the list.',
       search: 'Search models, providers or connections…',
       clear: 'Clear {{name}}',
       unavailable: 'Current selection · unavailable',

@@ -29,7 +29,7 @@ import {
 import { ChatModelSelector } from '@/components/chat/ChatModelSelector'
 import { documentAPI } from '@/api/document'
 import { useFetchMCPServers } from '@/hooks/use-mcp-request'
-import { useFetchMyLLMs } from '@/hooks/use-llm-request'
+import { useModelSelectorRequest } from '@/hooks/use-model-selector-request'
 import { copyToClipboardWithFeedback } from '@/lib/clipboard'
 import { cn } from '@/lib/utils'
 import {
@@ -88,7 +88,7 @@ const DataInput: React.FC<DataInputProps> = ({
   const mcpServers = serverData?.mcp_servers ?? []
   const { t } = useTranslation()
   const { aiFilling, aiRawOutput, fill } = useStructuredAIFill(setIsLoading)
-  const { myLLMs } = useFetchMyLLMs()
+  const { myLLMs, modelRequest } = useModelSelectorRequest()
   const [llmConfig, setLlmConfig] = useState({
     llm_name: '',
     temperature: 0.3,
@@ -501,11 +501,9 @@ const DataInput: React.FC<DataInputProps> = ({
 
             <TabsContent value="llm" className="space-y-4">
               <div>
-                <label className="mb-2 block text-sm font-medium text-text-primary">
-                  选择模型
-                </label>
                 <ChatModelSelector
                   models={myLLMs}
+                  {...modelRequest}
                   selectedModelName={llmConfig.llm_name}
                   onSelect={(name) =>
                     setLlmConfig((prev) => ({ ...prev, llm_name: name || '' }))

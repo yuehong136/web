@@ -8,6 +8,8 @@ interface RawModelItem {
   id?: string
   name?: string
   llm_name?: string
+  label?: string
+  display_name?: string
   type?: string
   mdl_type?: string
   available?: boolean
@@ -33,7 +35,6 @@ export function normalizeSearchModels(response: Record<string, unknown>) {
       .filter((model) => {
         const modelType = model.mdl_type || model.type
         return (
-          isEnabledRawModel(model) &&
           (modelType === 'chat' || modelType === 'image2text') &&
           !!(model.llm_name || model.name || model.id)
         )
@@ -42,9 +43,9 @@ export function normalizeSearchModels(response: Record<string, unknown>) {
         id: model.id,
         reference:
           model.id && /^[1-9]\d*$/.test(model.id) ? model.id : undefined,
-        label: model.llm_name,
+        label: model.label ?? model.display_name ?? model.llm_name,
         type: (model.mdl_type || model.type) as 'chat' | 'image2text',
-        name: model.llm_name || model.name || model.id || '',
+        name: model.name || model.llm_name || '',
         used_token: model.used_token || 0,
         status: model.status as '0' | '1' | undefined,
         available: model.available,
@@ -64,23 +65,22 @@ export function normalizeSearchModels(response: Record<string, unknown>) {
     ([providerName, providerValue]) => {
       const payload = providerValue as RawProviderPayload | RawModelItem[]
       const llmList = Array.isArray(payload) ? payload : payload?.llm || []
-      return llmList
-        .filter((model) => isEnabledRawModel(model))
-        .map(
-          (model): LLMModel => ({
-            id:
-              model.id ||
-              `${model.llm_name || model.name || 'model'}@${providerName}`,
-            llm_name: model.llm_name || model.name || model.id || '',
-            fid: providerName,
-            mdl_type: (model.mdl_type ||
-              model.type ||
-              'chat') as LLMModel['mdl_type'],
-            available: model.available !== false,
-            status: model.status,
-            name: model.name,
-          }),
-        )
+      return llmList.map(
+        (model): LLMModel => ({
+          id:
+            model.id ||
+            `${model.llm_name || model.name || 'model'}@${providerName}`,
+          llm_name: model.name || model.llm_name || '',
+          display_name: model.label ?? model.display_name ?? model.llm_name,
+          fid: providerName,
+          mdl_type: (model.mdl_type ||
+            model.type ||
+            'chat') as LLMModel['mdl_type'],
+          available: isEnabledRawModel(model),
+          status: model.status,
+          name: model.name,
+        }),
+      )
     },
   )
 
@@ -105,10 +105,7 @@ export function useSearchModels(enabled: boolean) {
     enabled,
     queryFn: async ({ signal }) =>
       normalizeSearchModels(
-        (await llmAPI.list({ available: true }, signal)) as Record<
-          string,
-          unknown
-        >,
+        (await llmAPI.list(undefined, signal)) as Record<string, unknown>,
       ),
     staleTime: 5 * 60 * 1000,
   })

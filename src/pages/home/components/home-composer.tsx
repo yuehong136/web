@@ -3,10 +3,7 @@ import { useEffect, useRef, type RefObject } from 'react'
 import type { SenderRef } from '@ant-design/x/es/sender/interface'
 import { useTranslation } from 'react-i18next'
 import { useHomeStore } from '@/stores/home'
-import {
-  findFirstEnabledModelByType,
-  hasEnabledModelName,
-} from '@/stores/model'
+import { findFirstEnabledModelByType } from '@/stores/model'
 import { useFetchMyLLMs } from '@/hooks/use-llm-request'
 import { ChatInputBox } from './ChatInputBox'
 import { SkillPanel } from './SkillPanel'
@@ -51,6 +48,7 @@ export function HomeComposer({
     isLoading: modelsLoading,
     isPending: modelsPending,
     isError: modelsError,
+    refetch: retryModels,
   } = useFetchMyLLMs()
   const defaultModel = useDefaultModelReference('chat')
   const {
@@ -97,7 +95,7 @@ export function HomeComposer({
       !defaultModel.isPending &&
       !defaultModel.isError &&
       myLLMs &&
-      !hasEnabledModelName(myLLMs, selectedModelId)
+      !selectedModelId
     ) {
       const first =
         defaultModel.reference || findFirstEnabledModelByType(myLLMs, 'chat')
@@ -194,6 +192,8 @@ export function HomeComposer({
       }
       onModelSelect={(id) => setSelectedModelId(id || '')}
       modelsLoading={modelsLoading}
+      modelsError={modelsError ? t('common.modelPicker.loadFailed') : undefined}
+      onRetryModels={retryModels}
       isModelLocked={selectedAppIds.length > 0}
       variant={placement === 'welcome' ? 'welcome' : 'chat'}
       contextManifest={contextManifest}

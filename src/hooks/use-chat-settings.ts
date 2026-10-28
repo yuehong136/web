@@ -250,6 +250,7 @@ export function useRerankModels(myLLMs: any) {
     const models: Array<{
       id: string
       llm_name: string
+      display_name?: string
       fid: string
       mdl_type: 'rerank'
       available: boolean
@@ -270,6 +271,7 @@ export function useRerankModels(myLLMs: any) {
               models.push({
                 id: getLLMModelValue(model, providerName),
                 llm_name: model.name,
+                display_name: model.label,
                 fid: providerName,
                 mdl_type: 'rerank',
                 available: true,

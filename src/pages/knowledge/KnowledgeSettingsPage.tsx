@@ -1,8 +1,3 @@
-import {
-  getLLMModelValue,
-  getLLMModelLabel,
-  resolveLLMValue,
-} from '@/stores/model'
 import { APIError } from '@/api/client'
 import { checkDatasetEmbedding } from '@/api/knowledge-embedding'
 import { toast } from '@/lib/toast'
@@ -19,14 +14,12 @@ import {
   SelectWithSearch,
   type SelectOptionGroup,
 } from '@/components/ui/select-with-search'
-import { IconFontFill } from '@/components/ui/icon-font'
+import { modelOptions } from '@/components/models/model-select-options'
 import {
   useFetchKnowledgeDetail,
   useUpdateKnowledge,
 } from '@/hooks/use-knowledge-request'
-import { IconMap, LLMFactory, isLLMModelEnabled } from '@/stores/model'
 import { useFetchMyLLMs } from '@/hooks/use-llm-request'
-import { useIsDarkTheme } from '@/themes'
 import { ROUTES } from '@/constants'
 import type { UpdateKBRequest } from '@/types/api'
 import {
@@ -74,39 +67,6 @@ const ManageMetadataModal = React.lazy(() =>
 
 const KB_SETTINGS_FORM_ID = 'kb-settings-form'
 
-// 需要主题切换的厂商
-const THEME_AWARE_FACTORIES: readonly string[] = [
-  LLMFactory.FishAudio,
-  LLMFactory.TogetherAI,
-  LLMFactory.Meituan,
-  LLMFactory.Longcat,
-]
-
-// 获取图标名称
-const getIconName = (provider: string, isDark: boolean): string => {
-  const baseIcon = IconMap[provider as keyof typeof IconMap] || 'moxing-default'
-  if (THEME_AWARE_FACTORIES.includes(provider)) {
-    return isDark ? `${baseIcon}-dark` : `${baseIcon}-bright`
-  }
-  return baseIcon
-}
-
-// 构建带图标的选项 Label（与模型提供商页面保持一致）
-const ModelOptionLabel: React.FC<{ provider: string; modelName: string }> = ({
-  provider,
-  modelName,
-}) => {
-  const isDark = useIsDarkTheme()
-  const iconName = getIconName(provider, isDark)
-
-  return (
-    <div className="flex w-full min-w-0 items-center gap-2">
-      <IconFontFill name={iconName} className="h-5 w-5 shrink-0" />
-      <span className="truncate">{modelName}</span>
-    </div>
-  )
-}
-
 // 解析器类型选项
 const parserTypeOptions: SelectOptionGroup[] = Object.values(
   DocumentParserType,
@@ -121,7 +81,12 @@ const KnowledgeSettingsPage: React.FC = () => {
   const navigate = useNavigate()
   const { knowledgeBase: currentKnowledgeBase } = useFetchKnowledgeDetail(id)
   const { updateKnowledge } = useUpdateKnowledge()
-  const { myLLMs, isLoading: isLoadingModels } = useFetchMyLLMs()
+  const {
+    myLLMs,
+    isLoading: isLoadingModels,
+    isError: modelsError,
+    refetch: retryModels,
+  } = useFetchMyLLMs()
 
   const [isLoading, setIsLoading] = React.useState(false)
 
@@ -186,61 +151,7 @@ const KnowledgeSettingsPage: React.FC = () => {
     )
   }, [currentKnowledgeBase, form, normalizeEmbdId])
 
-  // 嵌入模型选项（带厂商图标），复用与模型提供商页面相同的逻辑
-  const fetchedEmbeddingOptions: SelectOptionGroup[] = React.useMemo(() => {
-    const groups: SelectOptionGroup[] = []
-
-    Object.entries(myLLMs).forEach(([providerName, providerData]) => {
-      // 过滤出 embedding 类型的模型
-      const embeddingModels = providerData.llm.filter(
-        (model) => model.type === 'embedding' && isLLMModelEnabled(model),
-      )
-
-      if (embeddingModels.length > 0) {
-        groups.push({
-          label: providerName,
-          options: embeddingModels.map((model) => ({
-            label: (
-              <ModelOptionLabel
-                provider={providerName}
-                modelName={getLLMModelLabel(model)}
-              />
-            ),
-            // 使用 name@provider 格式作为 value，与系统设置页面保持一致
-            value: getLLMModelValue(model, providerName),
-          })),
-        })
-      }
-    })
-
-    return groups
-  }, [myLLMs])
-
-  const embeddingModelOptions = [...fetchedEmbeddingOptions]
-  const selectedEmbedding = useWatch({ control: form.control, name: 'embd_id' })
-  if (
-    selectedEmbedding &&
-    !embeddingModelOptions.some((group) =>
-      group.options?.some((option) => option.value === selectedEmbedding),
-    )
-  ) {
-    const resolved = resolveLLMValue(myLLMs, selectedEmbedding, true)
-    const model = resolved.matched
-      ? myLLMs[resolved.providerName ?? '']?.llm.find(
-          (row) => row.name === resolved.modelName,
-        )
-      : undefined
-    embeddingModelOptions.push({
-      label: resolved.providerName ?? '',
-      options: [
-        {
-          value: selectedEmbedding,
-          label: model ? getLLMModelLabel(model) : selectedEmbedding,
-          disabled: !resolved.matched,
-        },
-      ],
-    })
-  }
+  const embeddingModels = modelOptions(myLLMs, ['embedding'])
 
   // 提交表单
   const handleSubmit = async (data: KnowledgeSettingsFormData) => {
@@ -368,7 +279,10 @@ const KnowledgeSettingsPage: React.FC = () => {
             >
               <SectionCard title={t('knowledge.settings.sections.basic')}>
                 <GeneralForm
-                  embeddingModelOptions={embeddingModelOptions}
+                  embeddingModelOptions={embeddingModels.options}
+                  embeddingKnownOptions={embeddingModels.knownOptions}
+                  embeddingModelError={modelsError}
+                  onRetryModels={retryModels}
                   embeddingModelLoading={isLoadingModels}
                   avatarSeed={id}
                 />

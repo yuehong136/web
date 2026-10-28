@@ -8,13 +8,18 @@ import type { TenantModel } from '@/api/llm-provider-types'
 import { ChatModelSelector } from '@/components/chat/ChatModelSelector'
 import { InstanceModelRow } from '@/pages/settings/model-providers/components/instance-model-row'
 import { SelectWithSearch } from '@/components/ui/select-with-search'
-import { modelSelectOption } from '../model-select-options'
+import { modelOptions, modelSelectOption } from '../model-select-options'
 import {
   ProviderIcon,
   getProviderIconName,
   getProviderIconPath,
   getProviderIcon,
 } from '@/components/ui/provider-icon'
+import { ModelSelect } from '../model-select'
+import { RerankModelSelector } from '@/components/knowledge/RerankModelSelector'
+import { SkillModelSelect } from '@/pages/skills/skill-model-select'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { llmKeys } from '@/hooks/use-llm-request'
 import { IconMap } from '@/stores/model'
 import { readFileSync, existsSync } from 'node:fs'
 import path from 'node:path'
@@ -231,7 +236,7 @@ it('searches model names, providers and connection names without submitting pres
 })
 it('keeps unavailable references visible and disabled without choosing a fallback', async () => {
   const { onSelect } = await renderPicker('missing@DeepSeek')
-  expect(container.textContent).toContain('missing@DeepSeek')
+  expect(container.textContent).toContain('missing · Unavailable')
   await open()
   const missing = document.querySelector('[data-value="missing@DeepSeek"]')!
   expect(missing.getAttribute('data-disabled')).toBe('true')
@@ -299,4 +304,167 @@ it('localizes capabilities, moves IDs into details and preserves toggle/removal 
   ).find((el) => el.textContent === '删除')!
   await act(async () => remove.click())
   expect(onRemove).toHaveBeenCalledOnce()
+})
+
+it('distinguishes loading, failed inventory and a confirmed missing numeric reference', async () => {
+  const onChange = vi.fn(),
+    retry = vi.fn()
+  const props = { value: '56', options: [], onChange, onRetry: retry }
+  await act(async () => root.render(<ModelSelect {...props} loading />))
+  expect(
+    container.querySelector('output[aria-live=polite]')?.textContent,
+  ).toContain('Loading models')
+  expect(container.textContent).not.toContain('56')
+  expect(container.textContent).not.toContain('Unavailable')
+  await act(async () => root.render(<ModelSelect {...props} error />))
+  expect(container.querySelector('[role=alert]')?.textContent).toContain(
+    'Availability could not be confirmed',
+  )
+  expect(container.textContent).not.toContain('Unavailable')
+  expect(
+    container.querySelector<HTMLButtonElement>('[role=combobox]')?.disabled,
+  ).toBe(true)
+  await act(async () =>
+    [...container.querySelectorAll('button')]
+      .find((button) => button.textContent === 'Retry')!
+      .click(),
+  )
+  expect(retry).toHaveBeenCalledOnce()
+  await act(async () => root.render(<ModelSelect {...props} />))
+  expect(container.textContent).toContain('Saved model · Unavailable')
+  expect(container.textContent).not.toContain('56')
+  expect(onChange).not.toHaveBeenCalled()
+})
+it('keeps identity and the provider logo through failure, retry and successful recovery', async () => {
+  const data = projectTenantModels([tenantModel(56, 'default')])
+  const props = {
+    ...modelOptions(data, ['chat']),
+    value: '56',
+    onChange: vi.fn(),
+  }
+  await act(async () => root.render(<ModelSelect {...props} error />))
+  expect(container.querySelector('[role=combobox]')?.textContent).toBe(
+    'same-model',
+  )
+  expect(container.querySelector('[role=combobox] use')).not.toBeNull()
+  expect(container.textContent).not.toContain('Unavailable')
+  await act(async () => root.render(<ModelSelect {...props} loading />))
+  expect(container.querySelector('[role=combobox]')?.textContent).toBe(
+    'same-model',
+  )
+  await act(async () => root.render(<ModelSelect {...props} />))
+  expect(
+    container.querySelector<HTMLButtonElement>('[role=combobox]')?.disabled,
+  ).toBe(false)
+  expect(props.onChange).not.toHaveBeenCalled()
+})
+it('shows disabled saved models by name and logo without enabling them', async () => {
+  const data = projectTenantModels([
+    { ...tenantModel(56, 'default'), effective_status: 'inactive' },
+  ])
+  const onChange = vi.fn()
+  await act(async () =>
+    root.render(
+      <ModelSelect
+        {...modelOptions(data, ['chat'])}
+        value="56"
+        onChange={onChange}
+      />,
+    ),
+  )
+  expect(container.textContent).toContain('same-model · Unavailable')
+  expect(container.textContent).not.toContain('56')
+  expect(container.querySelector('[role=combobox] use')).not.toBeNull()
+  await open()
+  expect(
+    document.querySelector('[data-value="56"]')?.getAttribute('data-disabled'),
+  ).toBe('true')
+  expect(onChange).not.toHaveBeenCalled()
+})
+it('uses tenant IDs as rerank values while showing names and provider logos', async () => {
+  const onSelect = vi.fn()
+  await act(async () =>
+    root.render(
+      <RerankModelSelector
+        models={[
+          {
+            id: '56',
+            llm_name: 'rerank-v3',
+            fid: 'DeepSeek',
+            mdl_type: 'rerank',
+            available: true,
+          },
+        ]}
+        selectedModelId="56"
+        onSelect={onSelect}
+      />,
+    ),
+  )
+  expect(container.querySelector('[role=combobox]')?.textContent).toBe(
+    'rerank-v3',
+  )
+  expect(container.querySelector('[role=combobox] use')).not.toBeNull()
+  expect(onSelect).not.toHaveBeenCalled()
+})
+it('does not mislabel failed Skill model inventory as unavailable and preserves its reference', async () => {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  })
+  client.setQueryData(
+    llmKeys.myLLMs(),
+    projectTenantModels([
+      {
+        ...tenantModel(56, 'default'),
+        name: 'embedding-3',
+        model_types: ['embedding'],
+      },
+    ]),
+  )
+  const retry = vi.fn(),
+    onChange = vi.fn()
+  const render = async (failed: boolean) =>
+    act(async () =>
+      root.render(
+        <QueryClientProvider client={client}>
+          <SkillModelSelect
+            label="Embedding"
+            value="56"
+            type="embedding"
+            query={{
+              isError: failed,
+              isPending: false,
+              refetch: retry,
+              data: failed
+                ? undefined
+                : {
+                    models: [
+                      {
+                        id: '56',
+                        name: 'embedding-3',
+                        provider: 'DeepSeek',
+                        type: 'embedding',
+                        max_tokens: 0,
+                        available: false,
+                        reason: 'disabled',
+                      },
+                    ],
+                  },
+            }}
+            onChange={onChange}
+          />
+        </QueryClientProvider>,
+      ),
+    )
+  await render(true)
+  expect(container.querySelector('[role=combobox]')?.textContent).toBe(
+    'embedding-3',
+  )
+  expect(container.querySelector('[role=combobox] use')).not.toBeNull()
+  expect(container.textContent).not.toContain('Unavailable')
+  expect(container.textContent).not.toContain('#56')
+  await render(false)
+  expect(container.textContent).toContain('embedding-3 · Unavailable')
+  expect(onChange).not.toHaveBeenCalled()
+  await act(async () => root.render(null))
+  client.clear()
 })

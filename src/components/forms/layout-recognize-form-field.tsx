@@ -1,9 +1,8 @@
 import { useTranslation } from 'react-i18next'
 import { useFormContext } from 'react-hook-form'
-import { AlertTriangle, ExternalLink, LoaderCircle } from 'lucide-react'
+import { AlertTriangle, ExternalLink } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ROUTES } from '@/constants'
-import { IconMap, parseLLMValue } from '@/stores/model'
 import { usePDFParserOptions } from '@/hooks/use-pdf-parser-options'
 import {
   resolvePDFParserSelection,
@@ -11,10 +10,9 @@ import {
 } from '@/lib/knowledge/pdf-parser-options'
 import { Button } from '@/components/ui/button'
 import { ProviderIcon } from '@/components/ui/provider-icon'
-import {
-  SelectWithSearch,
-  type SelectOptionGroup,
-} from '@/components/ui/select-with-search'
+import { ModelSelect } from '@/components/models/model-select'
+import { modelOptions } from '@/components/models/model-select-options'
+import { type SelectOptionGroup } from '@/components/ui/select-with-search'
 import {
   FormControl,
   FormField,
@@ -85,35 +83,6 @@ export function LayoutRecognizeFormField({
         const savedOnly =
           !!field.value &&
           !options.some((option) => option.value === selectedValue)
-        const savedProvider = savedOnly
-          ? (parseLLMValue(field.value).providerName ??
-            (Object.hasOwn(IconMap, field.value) ? field.value : null))
-          : null
-        const savedLabel = (
-          <span className="flex min-w-0 items-center gap-space-sm">
-            {savedProvider && (
-              <span aria-hidden="true" className="shrink-0">
-                <ProviderIcon
-                  provider={savedProvider}
-                  className="size-icon-md"
-                  size={20}
-                />
-              </span>
-            )}
-            <span className="truncate">{field.value}</span>
-          </span>
-        )
-        const choices = savedOnly
-          ? [
-              ...groups,
-              {
-                label: t('knowledge.settings.pdfParser.savedGroup'),
-                options: [
-                  { value: field.value, label: savedLabel, disabled: true },
-                ],
-              },
-            ]
-          : groups
         return (
           <FormItem className={cn('space-y-space-sm', className)}>
             <div
@@ -138,10 +107,17 @@ export function LayoutRecognizeFormField({
                 )}
               >
                 <FormControl>
-                  <SelectWithSearch
+                  <ModelSelect
                     value={selectedValue}
                     onChange={field.onChange}
-                    options={choices}
+                    options={groups}
+                    allowPartialOptions
+                    knownOptions={
+                      modelOptions(models, ['ocr', 'image2text']).knownOptions
+                    }
+                    loading={isLoading}
+                    error={isError}
+                    onRetry={refetch}
                     ariaLabel={t('knowledge.settings.fields.layoutParser')}
                     placeholder={t(
                       'knowledge.settings.fields.layoutParserPlaceholder',
@@ -155,31 +131,7 @@ export function LayoutRecognizeFormField({
                   aria-busy={isLoading}
                   className="space-y-space-xs text-xs text-text-secondary"
                 >
-                  {isLoading ? (
-                    <p className="flex items-center gap-space-xs">
-                      <LoaderCircle
-                        aria-hidden="true"
-                        className="size-icon-sm animate-spin"
-                      />
-                      {t('knowledge.settings.pdfParser.loading')}
-                    </p>
-                  ) : isError ? (
-                    <div className="flex items-center gap-space-sm text-status-warning">
-                      <AlertTriangle
-                        aria-hidden="true"
-                        className="size-icon-sm shrink-0"
-                      />
-                      <span>{t('knowledge.settings.pdfParser.loadError')}</span>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => void refetch()}
-                      >
-                        {t('knowledge.settings.pdfParser.retry')}
-                      </Button>
-                    </div>
-                  ) : modelCount === 0 ? (
+                  {!isLoading && !isError && modelCount === 0 ? (
                     <p>{t('knowledge.settings.pdfParser.empty')}</p>
                   ) : null}
                   {savedOnly && !isLoading && (

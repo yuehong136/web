@@ -329,7 +329,7 @@ for (const layoutValue of ['retired-vision@Provider', 'PaddleOCR']) {
     await reload()
     expect(
       field('PDF parser').querySelector('[role=combobox]')?.textContent,
-    ).toContain(layoutValue)
+    ).toContain(layoutValue.split('@')[0])
     await input('Knowledge base name', 'Renamed docs')
     await save()
     expect(writes[0]).toMatchObject({
@@ -343,7 +343,7 @@ for (const layoutValue of ['retired-vision@Provider', 'PaddleOCR']) {
     await reload()
     expect(
       field('PDF parser').querySelector('[role=combobox]')?.textContent,
-    ).toContain(layoutValue)
+    ).toContain(layoutValue.split('@')[0])
     expect(stored.parser_config?.layout_recognize).toBe(layoutValue)
     expect(stored.parser_config?.ext).toEqual({
       future_layout_option: { enabled: false },
@@ -436,7 +436,7 @@ it('saves distinct OCR models and a full vision deployment ID, reads them back, 
   )
   expect(
     field('PDF parser').querySelector('[role=combobox]')?.textContent,
-  ).toContain(savedValue)
+  ).toContain(savedValue.slice(0, savedValue.lastIndexOf('@')))
   await input('Knowledge base name', 'Keep removed parser')
   await save()
   expect(writes.at(-1)).toMatchObject({
@@ -450,7 +450,7 @@ it('saves distinct OCR models and a full vision deployment ID, reads them back, 
   await reload()
   expect(
     field('PDF parser').querySelector('[role=combobox]')?.textContent,
-  ).toContain(savedValue)
+  ).toContain(savedValue.slice(0, savedValue.lastIndexOf('@')))
 })
 
 it('does not expose PDF layout models for the Picture chunk method', async () => {

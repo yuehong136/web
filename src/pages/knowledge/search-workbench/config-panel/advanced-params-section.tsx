@@ -20,6 +20,7 @@ interface AdvancedParamsSectionProps {
   rerankModels: LLMModel[]
   rerankLoading: boolean
   rerankError?: string
+  onRetryModels?: () => unknown
   onSelectRerank: (id: string | null) => void
 }
 
@@ -33,6 +34,7 @@ export const AdvancedParamsSection: React.FC<AdvancedParamsSectionProps> = ({
   rerankModels,
   rerankLoading,
   rerankError,
+  onRetryModels,
   onSelectRerank,
 }) => {
   const { t } = useTranslation()
@@ -45,12 +47,12 @@ export const AdvancedParamsSection: React.FC<AdvancedParamsSectionProps> = ({
   }
 
   return (
-    <section className="pt-space-lg border-t border-border-default">
+    <section className="border-t border-border-default pt-space-lg">
       <button
         onClick={onToggle}
         className="mb-space-base flex w-full items-center justify-between text-sm font-semibold text-text-primary"
       >
-        <span className="gap-space-xs flex items-center">
+        <span className="flex items-center gap-space-xs">
           <SettingsIcon className="h-4 w-4 text-text-secondary" />
           {t('knowledge.search.config.advanced')}
         </span>
@@ -63,7 +65,7 @@ export const AdvancedParamsSection: React.FC<AdvancedParamsSectionProps> = ({
 
       {open && (
         <div className="space-y-space-lg">
-          <div className="gap-space-base grid grid-cols-2">
+          <div className="grid grid-cols-2 gap-space-base">
             <div>
               <label className="mb-1 block text-xs font-medium text-text-secondary">
                 {t('knowledge.search.config.pageSize')}
@@ -142,11 +144,12 @@ export const AdvancedParamsSection: React.FC<AdvancedParamsSectionProps> = ({
               onSelect={onSelectRerank}
               loading={rerankLoading}
               error={rerankError}
+              onRetry={onRetryModels}
             />
           </div>
 
-          <div className="gap-space-sm grid grid-cols-1">
-            <label className="gap-space-xs flex cursor-pointer items-center">
+          <div className="grid grid-cols-1 gap-space-sm">
+            <label className="flex cursor-pointer items-center gap-space-xs">
               <Checkbox
                 checked={searchParams.use_kg}
                 onCheckedChange={(checked) =>
@@ -158,7 +161,7 @@ export const AdvancedParamsSection: React.FC<AdvancedParamsSectionProps> = ({
               </span>
             </label>
 
-            <label className="gap-space-xs flex cursor-pointer items-center">
+            <label className="flex cursor-pointer items-center gap-space-xs">
               <Checkbox
                 checked={searchParams.highlight}
                 onCheckedChange={(checked) =>
@@ -170,7 +173,7 @@ export const AdvancedParamsSection: React.FC<AdvancedParamsSectionProps> = ({
               </span>
             </label>
 
-            <label className="gap-space-xs flex cursor-pointer items-center">
+            <label className="flex cursor-pointer items-center gap-space-xs">
               <Checkbox
                 checked={searchParams.keyword}
                 onCheckedChange={(checked) =>

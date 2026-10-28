@@ -100,7 +100,6 @@ const SearchSettingsSheet: FC<SearchSettingsSheetProps> = ({
   const returnFocus = useReturnFocus()
   const {
     chatModelProviders,
-    chatModelNameById,
     rerankModels,
     isPending: modelLoading,
     isError: modelsFailed,
@@ -139,12 +138,6 @@ const SearchSettingsSheet: FC<SearchSettingsSheetProps> = ({
     () => matchSummaryPreset(config.llm_setting),
     [config.llm_setting],
   )
-
-  const selectedSummaryModelName = useMemo(() => {
-    const selectedModel = config.chat_id || config.llm_id
-    if (!selectedModel) return null
-    return chatModelNameById[selectedModel] || selectedModel
-  }, [chatModelNameById, config.chat_id, config.llm_id])
 
   const getLLMValue = useCallback(
     (field: LLMSettingField) =>
@@ -430,7 +423,7 @@ const SearchSettingsSheet: FC<SearchSettingsSheetProps> = ({
                   </Label>
                   <ChatModelSelector
                     models={chatModelProviders}
-                    selectedModelName={selectedSummaryModelName}
+                    selectedModelName={config.chat_id || config.llm_id || null}
                     onSelect={(modelName) => {
                       if (!modelName) {
                         onConfigChange({

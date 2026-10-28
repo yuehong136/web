@@ -38,8 +38,12 @@ export const CreateKnowledgeForm: FC<CreateKnowledgeFormProps> = ({
   submitLabel,
 }) => {
   const { t } = useTranslation()
-  const { myLLMs: modelProviders, isLoading: isLoadingModels } =
-    useFetchMyLLMs()
+  const {
+    myLLMs: modelProviders,
+    isLoading: isLoadingModels,
+    isError: modelsFailed,
+    refetch: retryModels,
+  } = useFetchMyLLMs()
   const {
     canSubmit,
     formData,
@@ -145,6 +149,8 @@ export const CreateKnowledgeForm: FC<CreateKnowledgeFormProps> = ({
 
         <EmbeddingModelSelector
           isLoadingModels={isLoadingModels}
+          error={modelsFailed ? t('common.modelPicker.loadFailed') : undefined}
+          onRetry={retryModels}
           modelProviders={modelProviders}
           onSelect={handleModelSelect}
           selectedModelId={formData.embd_id || null}

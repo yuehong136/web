@@ -3,7 +3,7 @@ import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
-import { useFetchFactories, useFetchMyLLMs } from '../use-llm-request'
+import { llmKeys, useFetchFactories, useFetchMyLLMs } from '../use-llm-request'
 import { llmAPI } from '@/api/llm'
 
 vi.mock('@/api/llm', () => ({
@@ -61,3 +61,22 @@ it.each([
     expect(last.factories).toBe(first.factories)
   },
 )
+
+it('retains last successful model identity when a refresh fails', async () => {
+  const models = {
+    DeepSeek: {
+      tags: 'chat',
+      llm: [
+        { id: '56', name: 'deepseek-v4', type: 'chat' as const, used_token: 0 },
+      ],
+    },
+  }
+  vi.mocked(llmAPI.getMyLLMs).mockResolvedValue(models)
+  vi.mocked(llmAPI.getFactories).mockResolvedValue([])
+  await render()
+  vi.mocked(llmAPI.getMyLLMs).mockRejectedValue(new Error('offline'))
+  await act(async () => client.refetchQueries({ queryKey: llmKeys.myLLMs() }))
+  await render()
+  expect(client.getQueryState(llmKeys.myLLMs())?.status).toBe('error')
+  expect(snapshots.at(-1)?.myLLMs).toEqual(models)
+})

@@ -1,19 +1,10 @@
-import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
-import { AlertCircle, LoaderCircle, Settings } from 'lucide-react'
-import {
-  SelectWithSearch,
-  type SelectOptionGroup,
-} from '@/components/ui/select-with-search'
+import { Settings } from 'lucide-react'
 import { FormTooltip } from '@/components/ui/tooltip'
-import { modelSelectOption } from '@/components/models/model-select-options'
-import {
-  getLLMModelValue,
-  isLLMModelEnabled,
-  resolveLLMDisplayValue,
-  type MyLLMProvider,
-} from '@/stores/model'
+import { ModelSelect } from '@/components/models/model-select'
+import { modelOptions } from '@/components/models/model-select-options'
+import type { MyLLMProvider } from '@/stores/model'
 import { cn } from '@/lib/utils'
 
 type ChatModelSelectorVariant = 'default' | 'compact' | 'minimal'
@@ -23,6 +14,7 @@ interface ChatModelSelectorProps {
   onSelect: (modelName: string | null) => void
   loading?: boolean
   error?: string
+  onRetry?: () => unknown
   modelTypes?: ('chat' | 'image2text')[]
   valueMode?: 'name' | 'nameWithProvider'
   variant?: ChatModelSelectorVariant
@@ -38,6 +30,7 @@ export function ChatModelSelector({
   onSelect,
   loading = false,
   error,
+  onRetry,
   modelTypes = ['chat', 'image2text'],
   valueMode = 'name',
   variant,
@@ -49,49 +42,7 @@ export function ChatModelSelector({
   const { t } = useTranslation()
   const navigate = useNavigate()
   const actualVariant = variant ?? (compact ? 'compact' : 'default')
-  const options = useMemo(
-    (): SelectOptionGroup[] =>
-      Object.entries(models ?? {}).flatMap(([provider, data]) => {
-        const available = (data.llm ?? []).filter(
-          (model) =>
-            modelTypes.includes(model.type as 'chat' | 'image2text') &&
-            isLLMModelEnabled(model),
-        )
-        const unique = [
-          ...new Map(
-            available.map((model) => [
-              getLLMModelValue(model, provider, valueMode),
-              model,
-            ]),
-          ).values(),
-        ]
-        return unique.length
-          ? [
-              {
-                label: provider,
-                options: unique.map((model) =>
-                  modelSelectOption(model, provider, valueMode),
-                ),
-              },
-            ]
-          : []
-      }),
-    [models, modelTypes, valueMode],
-  )
-  const value = resolveLLMDisplayValue(models, selectedModelName, valueMode)
-  const choices =
-    value &&
-    !options.some((group) =>
-      group.options?.some((option) => option.value === value),
-    )
-      ? [
-          {
-            label: t('common.modelPicker.unavailable'),
-            options: [{ label: selectedModelName, value, disabled: true }],
-          },
-          ...options,
-        ]
-      : options
+  const choices = modelOptions(models ?? {}, modelTypes, valueMode)
   return (
     <div
       className={cn(
@@ -105,23 +56,7 @@ export function ChatModelSelector({
           <FormTooltip tooltip={t('chat.modelSelector.tooltip')} />
         </div>
       )}
-      {loading ? (
-        <div
-          role="status"
-          className="flex h-10 items-center gap-2 text-sm text-text-secondary"
-        >
-          <LoaderCircle aria-hidden className="size-4 animate-spin" />
-          {t('chat.modelSelector.loading')}
-        </div>
-      ) : error ? (
-        <div
-          role="alert"
-          className="flex items-center gap-2 text-sm text-status-error"
-        >
-          <AlertCircle aria-hidden className="size-4" />
-          {error}
-        </div>
-      ) : !options.length ? (
+      {!selectedModelName && !loading && !error && !choices.options.length ? (
         <button
           type="button"
           disabled={disabled}
@@ -133,10 +68,13 @@ export function ChatModelSelector({
           {t('home.input.configureModel')}
         </button>
       ) : (
-        <SelectWithSearch
-          value={value}
-          options={choices}
+        <ModelSelect
+          {...choices}
+          value={selectedModelName ?? ''}
           onChange={(next) => onSelect(next || null)}
+          loading={loading}
+          error={error}
+          onRetry={onRetry}
           variant={actualVariant}
           side={
             actualVariant === 'default' || dropdownDirection === 'down'
@@ -146,7 +84,6 @@ export function ChatModelSelector({
           disabled={disabled}
           ariaLabel={t('chat.modelSelector.label')}
           placeholder={t('chat.modelSelector.placeholder')}
-          searchPlaceholder={t('common.modelPicker.search')}
           emptyText={t('chat.modelSelector.noMatch')}
           triggerClassName={triggerClassName}
         />

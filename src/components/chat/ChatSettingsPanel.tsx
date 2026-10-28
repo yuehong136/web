@@ -1,3 +1,4 @@
+import type { ModelRequestState } from '@/hooks/use-model-selector-request'
 import React, { useMemo, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Plus, ExternalLink, Trash2 } from 'lucide-react'
@@ -54,10 +55,7 @@ interface ChatSettingsPanelProps {
   rerankModels?: LLMModel[]
   /** LLM 模型数据 (MyLLMProvider 格式，用于 ChatModelSelector) */
   llmModels?: MyLLMProvider
-  /** 模型加载状态 */
-  modelsLoading?: boolean
-  /** 模型加载错误 */
-  modelsError?: string
+  modelRequest?: ModelRequestState
   /** 知识库加载回调 */
   onLoadKnowledgeBases?: (
     search?: string,
@@ -81,8 +79,7 @@ export const ChatSettingsPanel: React.FC<ChatSettingsPanelProps> = ({
   knowledgeBases = [],
   rerankModels = [],
   llmModels = {},
-  modelsLoading = false,
-  modelsError,
+  modelRequest,
   onLoadKnowledgeBases,
 }) => {
   // ========== 所有 Hooks 必须在条件返回之前 ==========
@@ -329,8 +326,7 @@ export const ChatSettingsPanel: React.FC<ChatSettingsPanelProps> = ({
             models={llmModels}
             selectedModelName={settings.llmId || null}
             onSelect={(modelName) => updateSetting('llmId', modelName || '')}
-            loading={modelsLoading}
-            error={modelsError}
+            {...modelRequest}
             modelTypes={['chat', 'image2text']}
           />
 
@@ -675,13 +671,11 @@ export const ChatSettingsPanel: React.FC<ChatSettingsPanelProps> = ({
             style={{ backgroundColor: 'var(--color-border-subtle)' }}
           />
 
-          {/* 重排序模型 - 使用 RerankModelSelector */}
           <RerankModelSelector
             models={rerankModels}
             selectedModelId={settings.rerankId || null}
             onSelect={(modelId) => updateSetting('rerankId', modelId || '')}
-            loading={modelsLoading}
-            error={modelsError}
+            {...modelRequest}
           />
 
           {/* Top K (当选择了重排序模型时显示) */}

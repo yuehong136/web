@@ -35,7 +35,8 @@ export function AiSkeletonDialog({
   onClose,
 }: AiSkeletonDialogProps) {
   const { t } = useTranslation()
-  const { options, isLoading } = useChatModelOptions()
+  const { options, knownOptions, isLoading, isError, refetch } =
+    useChatModelOptions()
   const [text, setText] = useState('')
   const [model, setModel] = useState('')
   const [mode, setMode] = useState<'detailed' | 'layout'>('detailed')
@@ -51,7 +52,8 @@ export function AiSkeletonDialog({
 
   // 模型清单到达后默认选首个
   {
-    if (!model && options.length > 0) setModel(options[0].value)
+    if (!isError && !isLoading && !model && options.length > 0)
+      setModel(options[0].value)
   }
 
   // 失败时 toast(内联文案同时保留)
@@ -137,6 +139,10 @@ export function AiSkeletonDialog({
             <ModelSelect
               value={model}
               options={options}
+              knownOptions={knownOptions}
+              loading={isLoading}
+              error={isError}
+              onRetry={refetch}
               disabled={busy || isLoading || options.length === 0}
               placeholder={t(
                 'flow.htmlReportAiModelEmpty',

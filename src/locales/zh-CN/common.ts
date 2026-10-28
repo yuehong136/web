@@ -1,6 +1,11 @@
 export default {
   common: {
     modelPicker: {
+      assistant: 'AI助手',
+      savedModel: '已保存的模型',
+      unavailableShort: '不可用',
+      loading: '正在加载模型…',
+      loadFailed: '模型列表加载失败，暂无法确认可用状态。请重试刷新列表。',
       search: '搜索模型、厂商或连接…',
       clear: '清除{{name}}',
       unavailable: '当前选择 · 暂不可用',

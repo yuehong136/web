@@ -37,11 +37,8 @@ import { FileIcon } from '@/components/ui/file-icon'
 import { copyToClipboardWithFeedback } from '@/lib/clipboard'
 import { cn, formatBytes } from '@/lib/utils'
 import { toast } from '@/lib/toast'
-import {
-  findFirstEnabledModelByType,
-  hasEnabledModelName,
-} from '@/stores/model'
-import { useFetchMyLLMs } from '@/hooks/use-llm-request'
+import { findFirstEnabledModelByType } from '@/stores/model'
+import { useModelSelectorRequest } from '@/hooks/use-model-selector-request'
 import { useDialogApps } from '@/hooks/use-dialog-apps'
 import {
   useChatSettings,
@@ -101,9 +98,8 @@ const getAttachmentStatusLabel = (file: UploadFile, t: TFunction) => {
 
 export const ExplorePage: FC = () => {
   const { t } = useTranslation()
-  const { myLLMs, isLoading: modelsLoading } = useFetchMyLLMs()
+  const { myLLMs, modelRequest } = useModelSelectorRequest()
 
-  // 获取对话应用列表
   const {
     data: dialogApps = [],
     isLoading: dialogAppsLoading,
@@ -282,7 +278,12 @@ export const ExplorePage: FC = () => {
     }))
   }, [t, uploadFiles])
 
-  if (!modelsLoading && myLLMs && !hasEnabledModelName(myLLMs, selectedModel)) {
+  if (
+    !modelRequest.error &&
+    !modelRequest.loading &&
+    myLLMs &&
+    !selectedModel
+  ) {
     const firstModel = findFirstEnabledModelByType(myLLMs, 'chat')
     if (firstModel) setSelectedModel(firstModel)
   }
@@ -291,7 +292,6 @@ export const ExplorePage: FC = () => {
     if (activeApp) setSelectedApp(activeApp.id)
   }
 
-  // 停止输出
   const handleStopOutput = abortChat
 
   const handleSendMessage = useExploreSend({
@@ -1265,7 +1265,7 @@ export const ExplorePage: FC = () => {
               knowledgeBases={knowledgeBases}
               rerankModels={rerankModels}
               llmModels={myLLMs}
-              modelsLoading={modelsLoading}
+              modelRequest={modelRequest}
               onLoadKnowledgeBases={loadKnowledgeBases}
             />
           )}

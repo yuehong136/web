@@ -10,6 +10,10 @@ import {
   SelectWithSearch,
   type SelectOptionGroup,
 } from '@/components/ui/select-with-search'
+import {
+  ModelSelect,
+  type ModelSelectProps,
+} from '@/components/models/model-select'
 import { Switch } from '@/components/ui/switch'
 import type { ReactNode } from 'react'
 import type { FieldPath, useFormContext } from 'react-hook-form'
@@ -35,7 +39,12 @@ export function ParserSelectField({
   placeholder,
   emptyText,
   triggerClassName,
+  modelState,
 }: {
+  modelState?: Pick<
+    ModelSelectProps,
+    'loading' | 'error' | 'onRetry' | 'knownOptions'
+  >
   control: ReturnType<typeof useFormContext<ParserFormValues>>['control']
   name: ParserSetupPath
   label: string
@@ -46,6 +55,7 @@ export function ParserSelectField({
   emptyText?: string
   triggerClassName: string
 }) {
+  const Selector = modelState ? ModelSelect : SelectWithSearch
   return (
     <FormField
       control={control}
@@ -54,7 +64,8 @@ export function ParserSelectField({
         <FormItem className="space-y-space-md">
           <ParserFieldLabel>{label}</ParserFieldLabel>
           <FormControl>
-            <SelectWithSearch
+            <Selector
+              {...modelState}
               options={options}
               value={
                 value ?? (typeof field.value === 'string' ? field.value : '')
@@ -91,8 +102,8 @@ export function ParserSwitchField({
       control={control}
       name={name}
       render={({ field }) => (
-        <FormItem className="gap-space-base rounded-radius-xl bg-surface-primary px-space-base py-space-sm flex min-h-12 items-center justify-between border border-border-default">
-          <div className="space-y-space-xs min-w-0">
+        <FormItem className="flex min-h-12 items-center justify-between gap-space-base rounded-radius-xl border border-border-default bg-surface-primary px-space-base py-space-sm">
+          <div className="min-w-0 space-y-space-xs">
             <ParserFieldLabel>{label}</ParserFieldLabel>
             {description ? (
               <FormDescription>{description}</FormDescription>

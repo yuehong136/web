@@ -136,7 +136,11 @@ export const resolveLLMValue = (
       provider.llm
         .filter((model) => {
           if (enabledOnly && !isLLMModelEnabled(model)) return false
-          if (model.reference === value || model.id === value) return true
+          if (
+            model.reference === value ||
+            (model.id !== undefined && String(model.id) === value)
+          )
+            return true
           return (
             (!providerName || currentProviderName === providerName) &&
             model.name === modelName

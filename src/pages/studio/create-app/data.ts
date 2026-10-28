@@ -254,11 +254,7 @@ export const mapLLMProviders = (
     }
 
     const availableChatModels = providerModels
-      .filter(
-        (model) =>
-          (model.type === 'chat' || model.type === 'image2text') &&
-          isLLMModelEnabled(model),
-      )
+      .filter((model) => model.type === 'chat' || model.type === 'image2text')
       .map((model) => ({
         ...model,
         name: model.name,
@@ -280,6 +276,7 @@ export const mapLLMProviders = (
       .map((model) => ({
         id: getLLMModelValue(model, providerName),
         llm_name: model.name,
+        display_name: model.label,
         fid: providerName,
         mdl_type: 'rerank' as const,
         available: true,

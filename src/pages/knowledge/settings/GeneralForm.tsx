@@ -24,7 +24,12 @@ import {
 import { TagSetItem } from './tag-item'
 import { EntityAvatar } from '@/components/patterns/entity-avatar'
 
+import type { ModelOption } from '@/components/models/model-select-options'
+
 interface GeneralFormProps {
+  embeddingKnownOptions?: ModelOption[]
+  embeddingModelError?: unknown
+  onRetryModels?: () => unknown
   embeddingModelOptions: SelectOptionGroup[]
   embeddingModelLoading?: boolean
   embeddingModelDisabled?: boolean
@@ -35,6 +40,9 @@ interface GeneralFormProps {
 
 export function GeneralForm({
   embeddingModelOptions,
+  embeddingKnownOptions,
+  embeddingModelError,
+  onRetryModels,
   embeddingModelLoading = false,
   embeddingModelDisabled = false,
   avatarSeed,
@@ -165,6 +173,9 @@ export function GeneralForm({
       {/* 嵌入模型 */}
       <EmbeddingModelFormField
         options={embeddingModelOptions}
+        knownOptions={embeddingKnownOptions}
+        error={embeddingModelError}
+        onRetry={onRetryModels}
         loading={embeddingModelLoading}
         disabled={embeddingModelDisabled}
       />

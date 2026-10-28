@@ -21,7 +21,6 @@ import {
   Users,
   RotateCcw,
   AlertCircle,
-  Lock,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -48,15 +47,13 @@ import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { ChatModelSelector } from '@/components/memory/ChatModelSelector'
 import { MemoryTypeSelect } from '@/components/memory/MemoryTypeSelect'
 import { AvatarUpload } from '@/components/memory/AvatarUpload'
-import { IconFontFill } from '@/components/ui/icon-font'
+import { ReadOnlyModelField } from '@/components/memory/read-only-model-field'
 import { formatBytes, cn } from '@/lib/utils'
 import {
   useMemoryConfig,
   useUpdateMemory,
   useMessageList,
 } from '@/hooks/use-memory'
-import { IconMap, LLMFactory } from '@/stores/model'
-import { useIsDarkTheme } from '@/themes'
 
 // 表单验证 Schema
 // 注意：后端不允许修改 storage_type, embd_id
@@ -141,54 +138,6 @@ const ReadOnlyField: FC<ReadOnlyFieldProps> = ({ value }) => (
     {value || '-'}
   </div>
 )
-
-// 需要主题切换的厂商
-const THEME_AWARE_FACTORIES: string[] = [
-  LLMFactory.FishAudio,
-  LLMFactory.TogetherAI,
-  LLMFactory.Meituan,
-  LLMFactory.Longcat,
-]
-
-// 获取图标名称
-const getIconName = (provider: string, isDark: boolean): string => {
-  const baseIcon = IconMap[provider as keyof typeof IconMap] || 'moxing-default'
-  if (THEME_AWARE_FACTORIES.includes(provider)) {
-    return isDark ? `${baseIcon}-dark` : `${baseIcon}-bright`
-  }
-  return baseIcon
-}
-
-// 带厂商图标的只读模型字段组件
-interface ReadOnlyModelFieldProps {
-  modelId: string | undefined
-}
-
-const ReadOnlyModelField: FC<ReadOnlyModelFieldProps> = ({ modelId }) => {
-  const isDark = useIsDarkTheme()
-
-  if (!modelId) {
-    return (
-      <div className="flex h-10 items-center rounded-md border border-border-default bg-surface-secondary/50 px-3 text-sm text-text-tertiary">
-        -
-      </div>
-    )
-  }
-
-  // 解析模型 ID，格式：modelName@providerName
-  const atIndex = modelId.lastIndexOf('@')
-  const modelName = atIndex > 0 ? modelId.substring(0, atIndex) : modelId
-  const provider = atIndex > 0 ? modelId.substring(atIndex + 1) : ''
-  const iconName = provider ? getIconName(provider, isDark) : 'moxing-default'
-
-  return (
-    <div className="flex h-10 items-center gap-2 rounded-md border border-border-default bg-surface-secondary/50 px-3 text-sm text-text-secondary">
-      <IconFontFill name={iconName} className="h-5 w-5 shrink-0" />
-      <span className="truncate">{modelName}</span>
-      <Lock className="ml-auto h-3.5 w-3.5 shrink-0 text-text-tertiary" />
-    </div>
-  )
-}
 
 export const MemorySettingsPage: FC = () => {
   const { t } = useTranslation()

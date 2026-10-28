@@ -32,12 +32,11 @@ export function buildFlatOptions(
   }))
 }
 
-export function buildModelOptions(groups: { label: string; options: { label: string; value: string }[] }[]) {
+export function buildModelOptions<
+  T extends { label: string; options: { label: string; value: string }[] },
+>(groups: T[]) {
   return groups.map((group) => ({
-    label: group.label,
-    options: group.options.map((option) => ({
-      label: option.label,
-      value: option.value,
-    })),
+    ...group,
+    options: group.options.map((option) => ({ ...option })),
   }))
 }

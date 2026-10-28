@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/dialog'
 import { PageLoadingState } from '@/components/patterns'
 import { SkillError } from '../skill-shared'
-import { SkillSelect } from '../skill-select'
+import { SkillModelSelect } from '../skill-model-select'
 import { SkillConfigAdvanced, SkillConfigField } from '../skill-config-advanced'
 
 function CoreConfigForm({
@@ -57,46 +57,24 @@ function CoreConfigForm({
         }),
       )}
     >
-      <SkillError error={models.error || protocols.error} />
+      <SkillError error={protocols.error} />
       {(['embd_id', 'rerank_id'] as const).map((name) => (
         <Controller
           key={name}
           name={name}
           control={form.control}
           render={({ field }) => (
-            <SkillSelect
+            <SkillModelSelect
               label={t(
                 name === 'embd_id' ? 'skills.embedding' : 'skills.rerank',
               )}
               value={field.value || 'none'}
-              disabled={models.isLoading || action.isPending}
+              type={name === 'embd_id' ? 'embedding' : 'rerank'}
+              query={models}
+              disabled={action.isPending}
               onChange={(value) =>
                 field.onChange(value === 'none' ? '' : value)
               }
-              options={[
-                { value: 'none', label: t('skills.none') },
-                ...(models.data?.models
-                  .filter(
-                    (model) =>
-                      model.type ===
-                      (name === 'embd_id' ? 'embedding' : 'rerank'),
-                  )
-                  .map((model) => ({
-                    value: model.id,
-                    label: `${model.name} · ${model.provider} · #${model.id}`,
-                    disabled: !model.available,
-                  })) || []),
-                ...(field.value &&
-                !models.data?.models.some((model) => model.id === field.value)
-                  ? [
-                      {
-                        value: field.value,
-                        label: `${field.value} · ${t('skills.unavailable')}`,
-                        disabled: true,
-                      },
-                    ]
-                  : []),
-              ]}
             />
           )}
         />

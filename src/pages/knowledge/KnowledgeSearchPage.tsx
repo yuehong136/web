@@ -191,6 +191,7 @@ const KnowledgeSearchWorkbench: React.FC<{ id?: string }> = ({ id }) => {
             rerankModels={rerankQuery.data ?? []}
             rerankLoading={rerankQuery.isLoading}
             rerankError={rerankErrorText}
+            onRetryModels={rerankQuery.refetch}
             metadataFields={metadataFields}
             metadataFieldsLoading={metadataKeysQuery.isLoading}
             metadataFieldsError={Boolean(metadataKeysQuery.error)}

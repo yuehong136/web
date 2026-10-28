@@ -376,60 +376,7 @@ export function PermissionFormField({
 // =====================================================
 // 嵌入模型选择 (需要从外部传入模型列表)
 // =====================================================
-interface EmbeddingModelFormFieldProps {
-  name?: string
-  options: SelectOptionGroup[]
-  loading?: boolean
-  disabled?: boolean
-  className?: string
-}
-
-export function EmbeddingModelFormField({
-  name = 'embd_id',
-  options,
-  loading = false,
-  disabled = false,
-  className,
-}: EmbeddingModelFormFieldProps) {
-  const { t } = useTranslation()
-  const form = useFormContext()
-
-  return (
-    <FormField
-      control={form.control}
-      name={name}
-      render={({ field }) => (
-        <FormItem
-          className={cn('flex items-center gap-1 space-y-0', className)}
-        >
-          <FormLabel
-            required
-            tooltip={t('knowledge.settings.fields.embeddingModelTooltip')}
-            className="w-1/4 shrink-0 text-sm text-text-secondary"
-          >
-            {t('knowledge.settings.fields.embeddingModel')}
-          </FormLabel>
-          <div className="w-3/4">
-            <FormControl>
-              <SelectWithSearch
-                value={field.value}
-                onChange={field.onChange}
-                options={options}
-                placeholder={
-                  loading
-                    ? t('knowledge.settings.fields.loading')
-                    : t('knowledge.settings.fields.embeddingModelPlaceholder')
-                }
-                disabled={disabled || loading}
-              />
-            </FormControl>
-          </div>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
-  )
-}
+export { EmbeddingModelFormField } from './embedding-model-form-field'
 
 // =====================================================
 // MinerU 选项（条件渲染，当选择 MinerU 时显示）

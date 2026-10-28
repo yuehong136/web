@@ -152,14 +152,14 @@ afterEach(async () => {
 it('keeps paused offline inventory pending without calling it empty or marking a saved value unavailable', async () => {
   onlineManager.setOnline(false)
   await render('offline-model@Provider')
-  expect(document.body.textContent).toContain('Checking configured models')
+  expect(document.body.textContent).toContain('Loading models…')
   expect(document.body.textContent).not.toContain(
     'No enabled OCR or vision models',
   )
   expect(document.body.textContent).not.toContain('saved parser is unavailable')
-  expect(document.querySelector('output')?.textContent).toBe(
-    'offline-model@Provider',
-  )
+  expect(
+    document.querySelector('output:not([aria-live=polite])')?.textContent,
+  ).toBe('offline-model@Provider')
   await act(async () => onlineManager.setOnline(true))
   await ready()
   expect(document.body.textContent).toContain('saved parser is unavailable')
@@ -179,18 +179,16 @@ it('withholds stale model choices after a failed refresh and retains the selecte
   await act(async () => client.invalidateQueries({ queryKey: llmKeys.all }))
   await ready()
   expect(document.body.textContent).toContain(
-    'Could not check model availability',
+    'Availability could not be confirmed',
   )
   await open()
   expect(
-    document
-      .querySelector('[data-value="vision___LocalAI@LocalAI"]')
-      ?.getAttribute('aria-disabled'),
+    document.querySelector('[data-value="1"]')?.getAttribute('aria-disabled'),
   ).toBe('true')
   expect(document.body.textContent).not.toContain('Configured vision models')
-  expect(document.querySelector('output')?.textContent).toBe(
-    'vision___LocalAI@LocalAI',
-  )
+  expect(
+    document.querySelector('output:not([aria-live=polite])')?.textContent,
+  ).toBe('vision___LocalAI@LocalAI')
 })
 
 it('groups configured models and changes only the selected exact value, with translated search and configuration link', async () => {
@@ -216,13 +214,17 @@ it('groups configured models and changes only the selected exact value, with tra
     document.querySelector('[placeholder="Search PDF parsers…"]'),
   ).not.toBeNull()
   await choose('2')
-  expect(document.querySelector('output')?.textContent).toBe('2')
+  expect(
+    document.querySelector('output:not([aria-live=polite])')?.textContent,
+  ).toBe('2')
   expect(
     document.querySelector('[aria-label="PDF parser"] img[alt="PaddleOCR"]'),
   ).not.toBeNull()
   await open()
   await choose('3')
-  expect(document.querySelector('output')?.textContent).toBe('3')
+  expect(
+    document.querySelector('output:not([aria-live=polite])')?.textContent,
+  ).toBe('3')
   expect(
     document.querySelector('[aria-label="PDF parser"] img[alt="LocalAI"]'),
   ).not.toBeNull()
@@ -241,7 +243,9 @@ it('groups configured models and changes only the selected exact value, with tra
   expect(
     document.querySelector('[placeholder="搜索 PDF 解析器…"]'),
   ).not.toBeNull()
-  expect(document.querySelector('output')?.textContent).toBe('3')
+  expect(
+    document.querySelector('output:not([aria-live=polite])')?.textContent,
+  ).toBe('3')
 })
 
 it('shows loading and then the empty state while core parsers remain usable', async () => {
@@ -250,14 +254,18 @@ it('shows loading and then the empty state while core parsers remain usable', as
     release = resolve
   })
   await render()
-  expect(document.body.textContent).toContain('Checking configured models')
+  expect(document.body.textContent).toContain('Loading models…')
   await open()
   await choose('Plain Text')
-  expect(document.querySelector('output')?.textContent).toBe('Plain Text')
+  expect(
+    document.querySelector('output:not([aria-live=polite])')?.textContent,
+  ).toBe('Plain Text')
   await act(async () => release())
   await ready()
   expect(document.body.textContent).toContain('No enabled OCR or vision models')
-  expect(document.querySelector('output')?.textContent).toBe('Plain Text')
+  expect(
+    document.querySelector('output:not([aria-live=polite])')?.textContent,
+  ).toBe('Plain Text')
 })
 
 it('fails closed on HTTP 200 business errors, keeps a disabled saved value, and recovers by retry', async () => {
@@ -265,13 +273,15 @@ it('fails closed on HTTP 200 business errors, keeps a disabled saved value, and 
   await render('gone@PaddleOCR')
   await ready()
   expect(document.body.textContent).toContain(
-    'Could not check model availability',
+    'Availability could not be confirmed',
   )
   expect(document.body.textContent).toContain(
     'saved parser could not be checked',
   )
   expect(document.body.textContent).not.toContain('Private provider failure')
-  expect(document.querySelector('output')?.textContent).toBe('gone@PaddleOCR')
+  expect(
+    document.querySelector('output:not([aria-live=polite])')?.textContent,
+  ).toBe('gone@PaddleOCR')
   expect(
     document.querySelector('[aria-label="PDF parser"] img[alt="PaddleOCR"]'),
   ).not.toBeNull()
@@ -295,9 +305,13 @@ it('fails closed on HTTP 200 business errors, keeps a disabled saved value, and 
   await ready()
   expect(document.body.textContent).toContain('No enabled OCR or vision models')
   expect(document.body.textContent).toContain('saved parser is unavailable')
-  expect(document.querySelector('output')?.textContent).toBe('gone@PaddleOCR')
+  expect(
+    document.querySelector('output:not([aria-live=polite])')?.textContent,
+  ).toBe('gone@PaddleOCR')
   await open()
   await choose('DeepDOC')
-  expect(document.querySelector('output')?.textContent).toBe('DeepDOC')
+  expect(
+    document.querySelector('output:not([aria-live=polite])')?.textContent,
+  ).toBe('DeepDOC')
   expect(document.body.textContent).not.toContain('saved parser is unavailable')
 })

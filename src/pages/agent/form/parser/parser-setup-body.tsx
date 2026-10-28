@@ -1,5 +1,6 @@
 import { FormControl, FormField, FormItem } from '@/components/ui/form'
 import { MultiSelectWithSearch } from '@/components/ui/multi-select-with-search'
+import { ProviderIcon } from '@/components/ui/provider-icon'
 import { useLLMGroupedOptionsByTypes } from '@/hooks/use-llm-request'
 import { cn } from '@/lib/utils'
 import { useMemo } from 'react'
@@ -54,7 +55,7 @@ function ParserBodySection({
     <section
       className={cn(
         'space-y-space-xl',
-        subtle && 'rounded-radius-xl p-space-xl bg-background-subtle',
+        subtle && 'rounded-radius-xl bg-background-subtle p-space-xl',
       )}
     >
       <div className="text-base font-semibold text-text-secondary">{title}</div>
@@ -73,18 +74,32 @@ export function ParserSetupBody({
     control: form.control,
     name: `setups.${index}`,
   })
-  const { options: imageModelOptions, isLoading: isImageModelLoading } =
-    useLLMGroupedOptionsByTypes(['image2text'], {
-      valueMode: 'nameWithProvider',
-    })
-  const { options: speechModelOptions, isLoading: isSpeechModelLoading } =
-    useLLMGroupedOptionsByTypes(['speech2text'], {
-      valueMode: 'nameWithProvider',
-    })
-  const { options: ocrModelOptions, isLoading: isOCRModelLoading } =
-    useLLMGroupedOptionsByTypes(['ocr'], {
-      valueMode: 'nameWithProvider',
-    })
+  const imageModels = useLLMGroupedOptionsByTypes(['image2text'], {
+    valueMode: 'nameWithProvider',
+  })
+  const speechModels = useLLMGroupedOptionsByTypes(['speech2text'], {
+    valueMode: 'nameWithProvider',
+  })
+  const ocrModels = useLLMGroupedOptionsByTypes(['ocr'], {
+    valueMode: 'nameWithProvider',
+  })
+
+  const imageModelOptions = imageModels.options,
+    speechModelOptions = speechModels.options,
+    ocrModelOptions = ocrModels.options
+  const isImageModelLoading = imageModels.isLoading,
+    isSpeechModelLoading = speechModels.isLoading,
+    isOCRModelLoading = ocrModels.isLoading
+  const modelState = {
+    loading: isImageModelLoading || isSpeechModelLoading || isOCRModelLoading,
+    error: imageModels.isError || speechModels.isError || ocrModels.isError,
+    onRetry: imageModels.refetch,
+    knownOptions: [
+      ...imageModels.knownOptions,
+      ...speechModels.knownOptions,
+      ...ocrModels.knownOptions,
+    ],
+  }
 
   const fileFormat = setup?.fileFormat
   const parseMethod = setup?.parse_method
@@ -159,29 +174,33 @@ export function ParserSetupBody({
     }
 
     if (fileFormat === ParserFileType.PDF) {
-      return ensureCurrentOption(
-        [
-          ...parserPdfBuiltInParseMethodOptions,
-          { label: 'MinerU', value: 'mineru' },
-          { label: 'PaddleOCR', value: 'paddleocr' },
-          { label: 'OpenDataLoader', value: 'opendataloader' },
-          ...pdfOCRModelOptions,
-          ...buildModelOptions(imageModelOptions),
-        ],
-        parseMethod,
-        getParserParseMethodLabel(parseMethod),
-      )
+      return [
+        ...parserPdfBuiltInParseMethodOptions,
+        {
+          label: 'MinerU',
+          value: 'mineru',
+          icon: <ProviderIcon provider="MinerU" size={20} />,
+        },
+        {
+          label: 'PaddleOCR',
+          value: 'paddleocr',
+          icon: <ProviderIcon provider="PaddleOCR" size={20} />,
+        },
+        {
+          label: 'OpenDataLoader',
+          value: 'opendataloader',
+          icon: <ProviderIcon provider="OpenDataLoader" size={20} />,
+        },
+        ...pdfOCRModelOptions,
+        ...buildModelOptions(imageModelOptions),
+      ]
     }
 
     if (fileFormat === ParserFileType.Image) {
-      return ensureCurrentOption(
-        [
-          { label: 'OCR', value: ParserParseMethod.OCR },
-          ...buildModelOptions(imageModelOptions),
-        ],
-        parseMethod,
-        getParserParseMethodLabel(parseMethod),
-      )
+      return [
+        { label: 'OCR', value: ParserParseMethod.OCR },
+        ...buildModelOptions(imageModelOptions),
+      ]
     }
 
     return ensureCurrentOption(
@@ -198,21 +217,15 @@ export function ParserSetupBody({
 
   const mediaModelOptions = useMemo(() => {
     if (fileFormat === ParserFileType.Audio) {
-      return ensureCurrentOption(
-        buildModelOptions(speechModelOptions),
-        currentLLMId,
-      )
+      return buildModelOptions(speechModelOptions)
     }
 
     if (fileFormat === ParserFileType.Video) {
-      return ensureCurrentOption(
-        buildModelOptions(imageModelOptions),
-        currentLLMId,
-      )
+      return buildModelOptions(imageModelOptions)
     }
 
     return []
-  }, [currentLLMId, fileFormat, imageModelOptions, speechModelOptions])
+  }, [fileFormat, imageModelOptions, speechModelOptions])
 
   const showParseMethodField = parseMethodOptions.length > 0
   const showPreprocessField = preprocessOptions.length > 0
@@ -280,7 +293,7 @@ export function ParserSetupBody({
           triggerClassName={controlTriggerClassName}
         />
 
-        <div className="gap-space-xl grid md:grid-cols-2">
+        <div className="grid gap-space-xl md:grid-cols-2">
           <ParserSelectField
             control={form.control}
             name={`setups.${index}.output_format`}
@@ -296,6 +309,12 @@ export function ParserSetupBody({
               name={`setups.${index}.parse_method`}
               label={t('flow.parserMethod', 'Parse method')}
               options={parseMethodOptions}
+              modelState={
+                fileFormat === ParserFileType.PDF ||
+                fileFormat === ParserFileType.Image
+                  ? modelState
+                  : undefined
+              }
               value={parseMethod}
               onValueChange={(value) => {
                 if (
@@ -414,12 +433,16 @@ export function ParserSetupBody({
 
         {(fileFormat === ParserFileType.Audio ||
           fileFormat === ParserFileType.Video) &&
-        mediaModelOptions.length > 0 ? (
+        (mediaModelOptions.length > 0 ||
+          !!currentLLMId ||
+          modelState.loading ||
+          modelState.error) ? (
           <ParserSelectField
             control={form.control}
             name={`setups.${index}.llm_id`}
             label={t('flow.model', 'Model')}
             options={mediaModelOptions}
+            modelState={modelState}
             value={currentLLMId}
             placeholder={t('flow.selectModel', 'Select model')}
             emptyText={modelEmptyText}

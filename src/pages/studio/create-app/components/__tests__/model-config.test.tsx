@@ -142,7 +142,7 @@ describe('selected model presentation', () => {
     await render()
     expect(
       container.querySelector('[aria-haspopup="dialog"]')?.textContent,
-    ).toBe('removed-model@OpenAI')
+    ).toBe('removed-model · Unavailable')
     expect(props.onChange).not.toHaveBeenCalled()
   })
 })

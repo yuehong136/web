@@ -29,7 +29,7 @@ export function usePDFParserOptions() {
   )
   return {
     options,
-    models: !isLoading && !isError ? tenantModels.myLLMs : {},
+    models: tenantModels.myLLMs,
     isLoading,
     isError,
     refetch: () => Promise.all([tenantModels.refetch(), catalog.refetch()]),

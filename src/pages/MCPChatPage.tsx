@@ -23,9 +23,8 @@ import { ToolCallRenderer } from '@/components/chat/ToolCallRenderer'
 import {
   findFirstEnabledModelByType,
   findProviderNameByModelName,
-  hasEnabledModelName,
 } from '@/stores/model'
-import { useFetchMyLLMs } from '@/hooks/use-llm-request'
+import { useModelSelectorRequest } from '@/hooks/use-model-selector-request'
 import { useMcpUpload } from '@/hooks/use-mcp-upload'
 import { toast } from '@/lib/toast'
 import { cn, copyToClipboard } from '@/lib/utils'
@@ -361,8 +360,7 @@ export default function MCPChatPage() {
     return undefined
   }, [])
 
-  // 模型选择相关状态 - 使用真实的模型数据
-  const { myLLMs, isLoading: modelsLoading } = useFetchMyLLMs()
+  const { myLLMs, modelRequest } = useModelSelectorRequest()
   const [selectedModelId, setSelectedModelId] = useState<string>('')
 
   const activeSession = sessions.find((s) => s.id === activeSessionId)
@@ -669,9 +667,10 @@ export default function MCPChatPage() {
   }, [])
 
   if (
-    !modelsLoading &&
+    !modelRequest.error &&
+    !modelRequest.loading &&
     myLLMs &&
-    !hasEnabledModelName(myLLMs, selectedModelId)
+    !selectedModelId
   ) {
     const firstModel = findFirstEnabledModelByType(myLLMs, 'chat')
     if (firstModel) setSelectedModelId(firstModel)
@@ -831,7 +830,7 @@ export default function MCPChatPage() {
             selectedModelId={selectedModelId}
             onModelChange={setSelectedModelId}
             models={myLLMs}
-            modelsLoading={modelsLoading}
+            modelRequest={modelRequest}
             chatLayout={chatLayout}
             onLayoutChange={setChatLayout}
           />

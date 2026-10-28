@@ -55,17 +55,18 @@ export const mapRerankModelsResponse = (
     return providerModels
       .filter((model) => {
         const modelType = model.mdl_type || model.type
-        return modelType === 'rerank' && isEnabledRawLLMModel(model)
+        return modelType === 'rerank'
       })
       .map((model) => {
-        const modelName = model.llm_name || model.name || model.id || ''
+        const modelName = model.name || model.llm_name || ''
         return {
           id: model.id || `${modelName}@${providerName}`,
           llm_name: modelName,
           name: model.name,
+          display_name: model.llm_name,
           fid: providerName,
           mdl_type: 'rerank',
-          available: model.available !== false,
+          available: isEnabledRawLLMModel(model),
           status: model.status,
           max_tokens: model.max_tokens,
         } satisfies LLMModel

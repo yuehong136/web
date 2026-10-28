@@ -14,7 +14,6 @@ export const useFetchRerankLLMs = () => {
       const response = await llmAPI.list(
         {
           mdl_type: 'rerank',
-          available: true,
         },
         signal,
       )
