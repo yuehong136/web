@@ -25,7 +25,7 @@ const response = (data: unknown) =>
     status: 200,
     headers: { 'content-type': 'application/json' },
   })
-test('projects the exact tenant numeric identities and instance labels without querying legacy credentials', async (t) => {
+test('projects exact numeric identities and a single connection name without querying legacy credentials', async (t) => {
   const calls: { url: URL; init?: RequestInit }[] = []
   t.mock.method(
     globalThis,
@@ -37,9 +37,11 @@ test('projects the exact tenant numeric identities and instance labels without q
   )
   const configured = await llmAPI.getMyLLMs()
   assert.equal(configured.Provider.llm[0].id, '17')
-  assert.equal(configured.Provider.llm[0].label, 'same · instance-17')
+  assert.equal(configured.Provider.llm[0].label, 'same')
   assert.equal(configured.Provider.llm[0].max_tokens, 0)
-  assert.equal((await llmAPI.list({ available: true })).Provider[0].id, '17')
+  const listed = (await llmAPI.list({ available: true })).Provider[0]
+  assert.equal(listed.id, '17')
+  assert.equal(listed.llm_name, 'same')
   assert.equal((await llmAPI.getModelCatalog()).Provider[0].available, true)
   for (const { url, init } of calls) {
     assert.equal(url.pathname, '/api/v1/models')
@@ -48,6 +50,53 @@ test('projects the exact tenant numeric identities and instance labels without q
     assert.equal(url.searchParams.has('include_details'), false)
     assert.equal(init?.method, 'GET')
   }
+})
+test('adds instance names only for same-name models on distinct usable connections within a provider', async (t) => {
+  const rows = [
+    model(1),
+    model(2),
+    { ...model(3), name: 'unique', instance_name: 'default' },
+    { ...model(4), name: 'unique', effective_status: 'inactive' },
+    { ...model(5), provider_name: 'Other' },
+  ]
+  t.mock.method(globalThis, 'fetch', async () =>
+    response({ items: rows, total: rows.length, page: 1, page_size: 100 }),
+  )
+  const configured = await llmAPI.getMyLLMs()
+  const listed = await llmAPI.list({ available: true })
+  assert.deepEqual(
+    configured.Provider.llm.map((row) => [row.id, row.label]),
+    [
+      ['1', 'same · instance-1'],
+      ['1', 'same · instance-1'],
+      ['2', 'same · instance-2'],
+      ['2', 'same · instance-2'],
+      ['3', 'unique'],
+      ['3', 'unique'],
+      ['4', 'unique'],
+      ['4', 'unique'],
+    ],
+  )
+  assert.equal(configured.Other.llm[0].label, 'same')
+  assert.equal(listed.Other[0].llm_name, 'same')
+  for (const row of listed.Provider) {
+    assert.equal(
+      row.llm_name,
+      configured.Provider.llm.find((item) => item.id === row.id)?.label,
+    )
+  }
+})
+
+test('counts connections rather than capabilities or model rows', () => {
+  const rows = projectTenantModels([
+    model(1),
+    { ...model(2), instance_id: 'i1', instance_name: 'instance-1' },
+  ] as Parameters<typeof projectTenantModels>[0])
+  assert.ok(rows.Provider.llm.every((row) => row.label === 'same'))
+  assert.deepEqual(
+    rows.Provider.llm.map((row) => row.reference),
+    ['1', '1', '2', '2'],
+  )
 })
 test('requires complete stable pagination and rejects duplicates, missing totals, malformed IDs and partial inventories', async (t) => {
   let wire: unknown

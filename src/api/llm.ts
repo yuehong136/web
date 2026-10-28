@@ -3,6 +3,27 @@ import type { TenantModel } from './llm-provider-types'
 import { type LLMCatalog, type MyLLMProvider } from '@/stores/model'
 import type { LLMModel, LLMType } from '@/types/api'
 
+/** Only distinguish connections when the same provider/model has multiple usable instances. */
+function tenantModelLabels(rows: TenantModel[]): Map<string, string> {
+  const instances = new Map<string, Set<string>>()
+  const key = (row: TenantModel) =>
+    JSON.stringify([row.provider_name, row.name])
+  for (const row of rows) {
+    if (row.effective_status !== 'active') continue
+    const connections = instances.get(key(row)) ?? new Set<string>()
+    connections.add(row.instance_id)
+    instances.set(key(row), connections)
+  }
+  return new Map(
+    rows.map((row) => [
+      row.reference,
+      (instances.get(key(row))?.size ?? 0) > 1
+        ? `${row.name} · ${row.instance_name}`
+        : row.name,
+    ]),
+  )
+}
+
 export const llmAPI = {
   // Catalog availability must be intersected with configured tenant rows.
   getModelCatalog: async (signal?: AbortSignal): Promise<LLMCatalog> => {
@@ -27,6 +48,7 @@ export const llmAPI = {
     signal?: AbortSignal,
   ): Promise<Record<string, LLMModel[]>> => {
     const rows = await modelProvidersAPI.models(signal)
+    const labels = tenantModelLabels(rows)
     const providers: Record<string, LLMModel[]> = {}
     for (const row of rows)
       for (const type of row.model_types) {
@@ -34,7 +56,7 @@ export const llmAPI = {
         if (params?.available && row.effective_status !== 'active') continue
         ;(providers[row.provider_name] ??= []).push({
           id: row.reference,
-          llm_name: `${row.name} · ${row.instance_name}`,
+          llm_name: labels.get(row.reference)!,
           name: row.name,
           fid: row.provider_name,
           mdl_type: type,
@@ -74,6 +96,7 @@ export const llmAPI = {
 }
 
 export function projectTenantModels(rows: TenantModel[]): MyLLMProvider {
+  const labels = tenantModelLabels(rows)
   const providers: MyLLMProvider = {}
   for (const row of rows) {
     const provider = (providers[row.provider_name] ??= { tags: '', llm: [] })
@@ -83,7 +106,7 @@ export function projectTenantModels(rows: TenantModel[]): MyLLMProvider {
         reference: row.reference,
         instance_name: row.instance_name,
         model_types: row.model_types,
-        label: `${row.name} · ${row.instance_name}`,
+        label: labels.get(row.reference)!,
         name: row.name,
         type,
         status: row.effective_status === 'active' ? '1' : '0',

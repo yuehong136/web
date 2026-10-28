@@ -1,6 +1,8 @@
 import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { MemoryRouter } from 'react-router-dom'
+import { projectTenantModels } from '@/api/llm'
+import type { TenantModel } from '@/api/llm-provider-types'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { setProductLanguage } from '@/locales/i18n'
 import { GenerationPresetType } from '@/constants/llm'
@@ -65,28 +67,23 @@ const render = () =>
     ),
   )
 describe('selected model presentation', () => {
+  let models: TenantModel[]
   beforeEach(() => {
-    props.models = {
-      OpenAI: {
-        tags: '',
-        llm: [
-          {
-            id: 102,
-            name: 'gpt-test',
-            instance_name: 'primary',
-            type: 'chat',
-            used_token: 0,
-          },
-          {
-            id: 103,
-            name: 'gpt-test',
-            label: 'gpt-test · backup',
-            type: 'chat',
-            used_token: 0,
-          },
-        ],
-      },
-    }
+    models = [102, 103].map((id) => ({
+      id,
+      reference: String(id),
+      name: 'gpt-test',
+      provider_id: 'openai',
+      provider_name: 'OpenAI',
+      instance_id: `instance-${id}`,
+      instance_name: id === 102 ? 'primary' : 'backup',
+      model_types: ['chat'],
+      status: 'active',
+      effective_status: 'active',
+      max_tokens: 8192,
+      is_tools: false,
+    }))
+    props.models = projectTenantModels(models)
   })
 
   it('displays the model and instance label for a numeric ID and keeps IDs on selection', async () => {
@@ -108,18 +105,36 @@ describe('selected model presentation', () => {
   })
 
   it('resolves legacy names and marks their canonical option as selected', async () => {
-    props.models.OpenAI.llm = [props.models.OpenAI.llm[0]]
+    props.models = projectTenantModels([models[0]])
     props.config.llm_id = 'gpt-test@OpenAI'
     await render()
     const trigger = container.querySelector<HTMLButtonElement>(
       '[aria-haspopup="dialog"]',
     )!
-    expect(trigger.textContent).toBe('gpt-test · primary')
+    expect(trigger.textContent).toBe('gpt-test')
     await act(async () => trigger.click())
     const option = document.querySelector<HTMLElement>(
       '[cmdk-item][data-value="102"]',
     )!
     expect(option.querySelector('svg.lucide-check')).not.toBeNull()
+  })
+
+  it('hides the default instance in both the trigger and menu when no usable alternative exists', async () => {
+    models[0].instance_name = 'default'
+    models[1].effective_status = 'inactive'
+    props.models = projectTenantModels(models)
+    props.config.llm_id = '102'
+    await render()
+    const trigger = container.querySelector<HTMLButtonElement>(
+      '[aria-haspopup="dialog"]',
+    )!
+    expect(trigger.textContent).toBe('gpt-test')
+    await act(async () => trigger.click())
+    expect(
+      document.querySelector('[cmdk-item][data-value="102"]')?.textContent,
+    ).toBe('gpt-test')
+    expect(document.querySelector('[cmdk-item][data-value="103"]')).toBeNull()
+    expect(props.onChange).not.toHaveBeenCalled()
   })
 
   it('retains an unavailable model reference without choosing a different model', async () => {
