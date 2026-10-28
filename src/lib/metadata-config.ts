@@ -108,7 +108,9 @@ export function metadataFieldsToConfig(
           field.type === 'list'
             ? 'array'
             : field.type === 'time'
-              ? 'string'
+              ? property.type === 'time'
+                ? 'time'
+                : 'string'
               : field.type
         // An untouched integer schema retains its stricter original constraint.
         property.type =
@@ -121,7 +123,10 @@ export function metadataFieldsToConfig(
           ? { ...property.items }
           : { type: 'string' }
         delete items.enum
-        if (field.enum?.length) items.enum = field.enum
+        if (field.enum?.length)
+          items.enum = ['number', 'integer'].includes(String(items.type))
+            ? field.enum.map(Number)
+            : field.enum
         property.items = items
       } else if (field.enum?.length) {
         property.enum =

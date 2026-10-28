@@ -89,3 +89,46 @@ test('editing schema fields clears removed definitions without losing unrelated 
   })
   assert.deepEqual(schema.properties.x, { type: 'number', minimum: 0 })
 })
+
+test('numeric list constraints and time types survive edit, save and reload', () => {
+  const schema = {
+    type: 'object',
+    additionalProperties: false,
+    required: ['scores'],
+    properties: {
+      count: { type: 'integer', minimum: 0, maximum: 10, enum: [0, 2] },
+      scores: {
+        type: 'array',
+        minItems: 1,
+        items: { type: 'number', minimum: 0, enum: [0, 1.5] },
+      },
+      timestamp: { type: 'time', description: 'When', enum: ['2026-10-28'] },
+    },
+  }
+  const rows = settingsToTableData(metadataConfigToFields(schema))
+  assert.deepEqual(
+    rows.map((row) => row.valueType),
+    ['number', 'list', 'time'],
+  )
+  rows[0].description = 'Edited count'
+  rows[1].values = ['0', '2.5']
+  const saved = metadataFieldsToConfig(tableDataToSettings(rows), schema)
+  assert.deepEqual(saved, {
+    ...schema,
+    properties: {
+      count: { ...schema.properties.count, description: 'Edited count' },
+      scores: {
+        ...schema.properties.scores,
+        description: '',
+        items: { type: 'number', minimum: 0, enum: [0, 2.5] },
+      },
+      timestamp: schema.properties.timestamp,
+    },
+  })
+  assert.deepEqual(
+    settingsToTableData(metadataConfigToFields(saved)).map(
+      (row) => row.valueType,
+    ),
+    ['number', 'list', 'time'],
+  )
+})
