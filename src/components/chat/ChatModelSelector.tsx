@@ -262,9 +262,9 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
               />
             )}
             <span className="whitespace-nowrap">
-              {selectedModelInfo?.model.name ||
-                selectedModelName ||
-                t('chat.modelSelector.trigger')}
+              {selectedModelInfo
+                ? getLLMModelLabel(selectedModelInfo.model)
+                : selectedModelName || t('chat.modelSelector.trigger')}
             </span>
             <ChevronDown
               className={cn(
@@ -390,7 +390,9 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
               />
             )}
             <span className="whitespace-nowrap">
-              {selectedModelName || t('chat.modelSelector.trigger')}
+              {selectedModelInfo
+                ? getLLMModelLabel(selectedModelInfo.model)
+                : selectedModelName || t('chat.modelSelector.trigger')}
             </span>
             <ChevronDown
               className={cn(
@@ -430,7 +432,7 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
                             onSelect={handleSelect}
                             className={cn(
                               'min-h-9',
-                              selectedModelName === option.value
+                              selectedValue === option.value
                                 ? 'bg-background-subtle'
                                 : '',
                             )}
@@ -438,7 +440,7 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
                             <span className="flex-1 leading-none">
                               {option.label}
                             </span>
-                            {selectedModelName === option.value && (
+                            {selectedValue === option.value && (
                               <Check className="ml-auto h-4 w-4 text-primary" />
                             )}
                           </CommandItem>

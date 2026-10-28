@@ -1,5 +1,6 @@
 import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
+import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { setProductLanguage } from '@/locales/i18n'
 import { GenerationPresetType } from '@/constants/llm'
@@ -9,9 +10,6 @@ import {
   type ModelConfigProps,
 } from '@/pages/studio/create-app/components/model-config'
 
-vi.mock('@/components/chat/ChatModelSelector', () => ({
-  ChatModelSelector: () => <span>Model picker</span>,
-}))
 let root: Root
 let container: HTMLDivElement
 let props: ModelConfigProps
@@ -24,6 +22,20 @@ const fields = [
 ] as const
 beforeEach(async () => {
   vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true)
+  vi.stubGlobal('matchMedia', () => ({
+    matches: false,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+  }))
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    },
+  )
+  Element.prototype.scrollIntoView = vi.fn()
   await setProductLanguage('en-US')
   container = document.createElement('div')
   document.body.append(container)
@@ -44,7 +56,81 @@ afterEach(async () => {
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
 })
-const render = () => act(async () => root.render(<ModelConfig {...props} />))
+const render = () =>
+  act(async () =>
+    root.render(
+      <MemoryRouter>
+        <ModelConfig {...props} />
+      </MemoryRouter>,
+    ),
+  )
+describe('selected model presentation', () => {
+  beforeEach(() => {
+    props.models = {
+      OpenAI: {
+        tags: '',
+        llm: [
+          {
+            id: 102,
+            name: 'gpt-test',
+            instance_name: 'primary',
+            type: 'chat',
+            used_token: 0,
+          },
+          {
+            id: 103,
+            name: 'gpt-test',
+            label: 'gpt-test · backup',
+            type: 'chat',
+            used_token: 0,
+          },
+        ],
+      },
+    }
+  })
+
+  it('displays the model and instance label for a numeric ID and keeps IDs on selection', async () => {
+    props.config.llm_id = '102'
+    await render()
+    const trigger = container.querySelector<HTMLButtonElement>(
+      '[aria-haspopup="dialog"]',
+    )!
+    expect(trigger.textContent).toBe('gpt-test · primary')
+    await act(async () => trigger.click())
+    const option = Array.from(
+      document.querySelectorAll<HTMLElement>('[cmdk-item]'),
+    ).find((item) => item.textContent === 'gpt-test · backup')!
+    await act(async () => option.click())
+    expect(props.onChange).toHaveBeenCalledWith('llm_id', '103')
+    props.config.llm_id = '103'
+    await render()
+    expect(trigger.textContent).toBe('gpt-test · backup')
+  })
+
+  it('resolves legacy names and marks their canonical option as selected', async () => {
+    props.models.OpenAI.llm = [props.models.OpenAI.llm[0]]
+    props.config.llm_id = 'gpt-test@OpenAI'
+    await render()
+    const trigger = container.querySelector<HTMLButtonElement>(
+      '[aria-haspopup="dialog"]',
+    )!
+    expect(trigger.textContent).toBe('gpt-test · primary')
+    await act(async () => trigger.click())
+    const option = document.querySelector<HTMLElement>(
+      '[cmdk-item][data-value="102"]',
+    )!
+    expect(option.querySelector('svg.lucide-check')).not.toBeNull()
+  })
+
+  it('retains an unavailable model reference without choosing a different model', async () => {
+    props.config.llm_id = 'removed-model@OpenAI'
+    await render()
+    expect(
+      container.querySelector('[aria-haspopup="dialog"]')?.textContent,
+    ).toBe('removed-model@OpenAI')
+    expect(props.onChange).not.toHaveBeenCalled()
+  })
+})
 describe('generation defaults', () => {
   it('shows model defaults instead of claiming a preset is active without overrides', async () => {
     fields.forEach((field) => {
