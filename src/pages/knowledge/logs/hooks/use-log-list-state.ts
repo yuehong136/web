@@ -2,7 +2,12 @@ import { useCallback, useState, type ChangeEvent } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useParams } from 'react-router-dom'
 import { knowledgeAPI } from '@/api/knowledge'
-import { DEFAULT_PAGE_SIZE, LogTabType, knowledgeLogKeys } from '../constants'
+import {
+  DEFAULT_PAGE_SIZE,
+  LogTabType,
+  PAGE_SIZE_OPTIONS,
+  knowledgeLogKeys,
+} from '../constants'
 import type { LogFilterValue, LogListState, PaginationState } from '../types'
 
 const EMPTY_LOG_LIST = { logs: [], total: 0 }
@@ -47,10 +52,16 @@ export function useLogListState(
 
   const handlePaginationChange = useCallback(
     (newPage: number, newPageSize?: number) => {
+      if (!Number.isSafeInteger(newPage) || newPage < 1) return
+      if (newPageSize !== undefined && !PAGE_SIZE_OPTIONS.includes(newPageSize))
+        return
       setPagination((prev) => ({
         ...prev,
-        page: newPage,
-        pageSize: newPageSize || prev.pageSize,
+        page:
+          newPageSize !== undefined && newPageSize !== prev.pageSize
+            ? 1
+            : newPage,
+        pageSize: newPageSize ?? prev.pageSize,
       }))
     },
     [],

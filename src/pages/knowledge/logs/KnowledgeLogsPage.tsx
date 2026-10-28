@@ -1,3 +1,4 @@
+import { useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -10,6 +11,11 @@ import { LogDetailModal } from './LogDetailModal'
 import { useKnowledgeLogsController } from './hooks'
 
 export function KnowledgeLogsPage() {
+  const { id } = useParams<{ id: string }>()
+  return <KnowledgeLogsContent key={id} />
+}
+
+function KnowledgeLogsContent() {
   const { t } = useTranslation()
   const {
     activeTab,
@@ -45,7 +51,7 @@ export function KnowledgeLogsPage() {
       ) : (
         <LogStatsCards summary={stats.data} isLoading={stats.isLoading} />
       )}
-      <div className="rounded-radius-xl p-space-lg border border-components-console-border bg-components-console-surface">
+      <div className="rounded-radius-xl border border-components-console-border bg-components-console-surface p-space-lg">
         <LogTabFilter
           activeTab={activeTab}
           onTabChange={setActiveTab}
