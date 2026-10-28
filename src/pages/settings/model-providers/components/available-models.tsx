@@ -1,11 +1,16 @@
 import React, { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Search, Plus } from 'lucide-react'
+import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { type LLMFactoryInterface } from '@/stores/model'
 import { useFetchFactories, useFetchMyLLMs } from '@/hooks/use-llm-request'
 import { ProviderIcon } from '@/components/ui/provider-icon'
 import { cn } from '@/lib/utils'
+import {
+  ModelCapabilities,
+  ModelCapability,
+} from '@/components/models/model-capabilities'
 
 // 模型类型标签
 type TagType =
@@ -111,7 +116,7 @@ export const AvailableModels: React.FC<AvailableModelsProps> = ({
       <div className="mb-5">
         <div className="relative">
           <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-text-tertiary" />
-          <input
+          <Input
             type="text"
             placeholder={t('common.search')}
             value={searchTerm}
@@ -155,7 +160,7 @@ export const AvailableModels: React.FC<AvailableModelsProps> = ({
                 : 'bg-components-button-secondary-bg text-text-secondary hover:bg-components-button-secondary-bg-hover',
             )}
           >
-            {tag}
+            <ModelCapability type={tag} />
           </button>
         ))}
       </div>
@@ -226,16 +231,7 @@ const AvailableModelCard: React.FC<AvailableModelCardProps> = ({
       </div>
 
       {/* 标签列表 */}
-      <div className="flex flex-wrap gap-1.5">
-        {sortedTags.map((tag, index) => (
-          <span
-            key={index}
-            className="flex h-5 items-center rounded-md bg-components-tag-bg px-1.5 py-0.5 text-xs text-text-secondary"
-          >
-            {tag}
-          </span>
-        ))}
-      </div>
+      <ModelCapabilities types={sortedTags} />
     </div>
   )
 }

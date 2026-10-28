@@ -1,14 +1,13 @@
 import React, { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Zap, AlertCircle, X } from 'lucide-react'
+import { AlertCircle, X } from 'lucide-react'
 import {
   SelectWithSearch,
   type SelectOptionGroup,
 } from '@/components/ui/select-with-search'
 import { FormTooltip } from '@/components/ui/tooltip'
-import { IconFontFill } from '@/components/ui/icon-font'
-import { IconMap, LLMFactory } from '@/stores/model'
-import { useIsDarkTheme } from '@/themes'
+import { ProviderIcon } from '@/components/ui/provider-icon'
+import { ModelCapabilities } from '@/components/models/model-capabilities'
 import type { LLMModel } from '@/types/api'
 
 interface RerankModelSelectorProps {
@@ -19,55 +18,7 @@ interface RerankModelSelectorProps {
   error?: string
 }
 
-// 需要主题切换的厂商
-const THEME_AWARE_FACTORIES = [
-  LLMFactory.FishAudio,
-  LLMFactory.TogetherAI,
-  LLMFactory.Meituan,
-  LLMFactory.Longcat,
-]
-
-// 特殊值：不使用重排序
 const NO_RERANK_VALUE = '__NO_RERANK__'
-
-// 获取图标名称
-const getIconName = (provider: string, isDark: boolean): string => {
-  const baseIcon = IconMap[provider as keyof typeof IconMap] || 'moxing-default'
-  if (THEME_AWARE_FACTORIES.includes(provider as any)) {
-    return isDark ? `${baseIcon}-dark` : `${baseIcon}-bright`
-  }
-  return baseIcon
-}
-
-// 格式化 token 数量
-const formatTokens = (tokens: number | undefined) => {
-  if (!tokens || isNaN(tokens)) return 'N/A'
-  if (tokens >= 1000) return `${(tokens / 1000).toFixed(0)}K`
-  return tokens.toString()
-}
-
-// 带图标的模型选项 Label
-const ModelOptionLabel: React.FC<{
-  provider: string
-  modelName: string
-  maxTokens?: number
-}> = ({ provider, modelName, maxTokens }) => {
-  const isDark = useIsDarkTheme()
-  const iconName = getIconName(provider, isDark)
-
-  return (
-    <div className="flex w-full min-w-0 items-center gap-2">
-      <IconFontFill name={iconName} className="h-4 w-4 shrink-0" />
-      <div className="min-w-0 flex-1">
-        <span className="block truncate">{modelName}</span>
-      </div>
-      <div className="flex shrink-0 items-center gap-1 text-xs text-text-tertiary">
-        <Zap className="h-3 w-3 text-status-success" />
-        <span>{formatTokens(maxTokens)}</span>
-      </div>
-    </div>
-  )
-}
 
 // 不使用重排序选项 Label
 const NoRerankLabel: React.FC = () => {
@@ -112,13 +63,12 @@ export const RerankModelSelector: React.FC<RerankModelSelectorProps> = ({
       result.push({
         label: provider,
         options: providerModels.map((model) => ({
-          label: (
-            <ModelOptionLabel
-              provider={provider}
-              modelName={model.llm_name}
-              maxTokens={model.max_tokens}
-            />
+          label: model.llm_name,
+          icon: (
+            <ProviderIcon provider={provider} className="size-5" size={20} />
           ),
+          description: <ModelCapabilities types={['rerank']} />,
+          keywords: [model.llm_name, provider],
           value: model.llm_name,
         })),
       })

@@ -96,7 +96,7 @@ describe('selected model presentation', () => {
     await act(async () => trigger.click())
     const option = Array.from(
       document.querySelectorAll<HTMLElement>('[cmdk-item]'),
-    ).find((item) => item.textContent === 'gpt-test · backup')!
+    ).find((item) => item.getAttribute('data-value') === '103')!
     await act(async () => option.click())
     expect(props.onChange).toHaveBeenCalledWith('llm_id', '103')
     props.config.llm_id = '103'
@@ -132,7 +132,7 @@ describe('selected model presentation', () => {
     await act(async () => trigger.click())
     expect(
       document.querySelector('[cmdk-item][data-value="102"]')?.textContent,
-    ).toBe('gpt-test')
+    ).toBe('gpt-testChat')
     expect(document.querySelector('[cmdk-item][data-value="103"]')).toBeNull()
     expect(props.onChange).not.toHaveBeenCalled()
   })

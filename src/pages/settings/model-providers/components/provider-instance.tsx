@@ -13,6 +13,8 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Switch } from '@/components/ui/switch'
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
 import { InstanceModelForm } from './instance-model-form'
+import { InstanceModelRow } from './instance-model-row'
+import { KeyRound, MapPin, Plug } from 'lucide-react'
 
 type Removal = { label: string; operation: () => Promise<unknown> }
 export function ProviderInstance({ instance }: { instance: ModelInstance }) {
@@ -38,22 +40,38 @@ export function ProviderInstance({ instance }: { instance: ModelInstance }) {
     (model) => model.instance_id === instance.id,
   )
   return (
-    <section className="flex flex-col gap-space-sm rounded-radius-md border border-border-subtle p-space-base">
+    <section className="flex min-w-0 flex-col gap-space-sm rounded-radius-md bg-background-subtle p-space-base">
       <div className="flex flex-wrap items-center justify-between gap-space-sm">
-        <div>
-          <h3 className="font-medium text-text-primary">
-            {instance.instance_name}
+        <div className="min-w-0 space-y-2">
+          <h3 className="flex items-center gap-2 text-sm font-medium text-text-primary">
+            <Plug aria-hidden className="size-4 text-text-tertiary" />
+            {instance.instance_name === 'default'
+              ? t('common.modelPicker.defaultConnection')
+              : instance.instance_name}
           </h3>
-          <p className="text-sm text-text-secondary">
+          <p
+            className="truncate text-xs text-text-secondary"
+            title={instance.base_url}
+          >
             {instance.base_url ||
-              t('settings.models.instances.defaultEndpoint')}{' '}
-            · {instance.region} ·{' '}
-            {t(
-              instance.has_api_key
-                ? 'settings.models.instances.keySaved'
-                : 'settings.models.instances.noKey',
-            )}
+              t('settings.models.instances.defaultEndpoint')}
           </p>
+          <div className="flex flex-wrap items-center gap-3 text-xs text-text-secondary">
+            {instance.region && (
+              <span className="inline-flex items-center gap-1">
+                <MapPin aria-hidden className="size-3" />
+                {instance.region}
+              </span>
+            )}
+            <span className="inline-flex items-center gap-1">
+              <KeyRound aria-hidden className="size-3" />
+              {t(
+                instance.has_api_key
+                  ? 'settings.models.instances.keySaved'
+                  : 'settings.models.instances.noKey',
+              )}
+            </span>
+          </div>
         </div>
         <div className="flex flex-wrap gap-space-xs">
           <Switch
@@ -176,55 +194,34 @@ export function ProviderInstance({ instance }: { instance: ModelInstance }) {
       {models.isError ? (
         <p role="alert">{t('settings.models.defaultsModelsFailed')}</p>
       ) : (
-        <ul className="divide-y divide-border-subtle">
+        <ul className="divide-y divide-border-subtle border-t border-border-subtle">
           {owned.map((model) => (
-            <li
+            <InstanceModelRow
               key={model.id}
-              className="flex items-center justify-between gap-space-base py-space-sm"
-            >
-              <div>
-                <span>{model.name}</span>
-                <p className="text-xs text-text-secondary">
-                  {model.model_types.join(' · ')} · #{model.id}
-                </p>
-              </div>
-              <div className="flex items-center gap-space-sm">
-                <Switch
-                  aria-label={t('settings.models.instances.enabled', {
-                    name: model.name,
-                  })}
-                  checked={model.status === 'active'}
-                  disabled={mutation.isPending}
-                  onCheckedChange={(active) =>
-                    perform(() =>
-                      modelProvidersAPI.setModelStatus(
-                        instance.provider_name,
-                        instance.instance_name,
-                        model.id,
-                        active,
-                      ),
-                    )
-                  }
-                />
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() =>
-                    setRemoval({
-                      label: model.name,
-                      operation: () =>
-                        modelProvidersAPI.deleteModel(
-                          instance.provider_name,
-                          instance.instance_name,
-                          model.id,
-                        ),
-                    })
-                  }
-                >
-                  {t('common.delete')}
-                </Button>
-              </div>
-            </li>
+              model={model}
+              pending={mutation.isPending}
+              onToggle={(active) =>
+                perform(() =>
+                  modelProvidersAPI.setModelStatus(
+                    instance.provider_name,
+                    instance.instance_name,
+                    model.id,
+                    active,
+                  ),
+                )
+              }
+              onRemove={() =>
+                setRemoval({
+                  label: model.name,
+                  operation: () =>
+                    modelProvidersAPI.deleteModel(
+                      instance.provider_name,
+                      instance.instance_name,
+                      model.id,
+                    ),
+                })
+              }
+            />
           ))}
         </ul>
       )}

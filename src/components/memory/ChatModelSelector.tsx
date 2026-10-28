@@ -3,7 +3,7 @@
  * 复用 EmbeddingModelSelector 的模式，从 modelStore 获取 chat 和 image2text 类型模型
  */
 
-import { useMemo, type ReactNode } from 'react'
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AlertCircle } from 'lucide-react'
 import {
@@ -11,10 +11,9 @@ import {
   type SelectOptionGroup,
 } from '@/components/ui/select-with-search'
 import { FormTooltip } from '@/components/ui/tooltip'
-import { IconFontFill } from '@/components/ui/icon-font'
-import { IconMap, LLMFactory, isLLMModelEnabled } from '@/stores/model'
+import { modelSelectOption } from '@/components/models/model-select-options'
+import { isLLMModelEnabled } from '@/stores/model'
 import { useFetchMyLLMs } from '@/hooks/use-llm-request'
-import { useIsDarkTheme } from '@/themes'
 
 interface ChatModelSelectorProps {
   /** 当前选中的模型 ID（格式：modelName@providerName） */
@@ -33,46 +32,6 @@ interface ChatModelSelectorProps {
   tooltipText?: string
 }
 
-// 需要主题切换的厂商
-const THEME_AWARE_FACTORIES: string[] = [
-  LLMFactory.FishAudio,
-  LLMFactory.TogetherAI,
-  LLMFactory.Meituan,
-  LLMFactory.Longcat,
-]
-
-// 获取图标名称
-const getIconName = (provider: string, isDark: boolean): string => {
-  const baseIcon = IconMap[provider as keyof typeof IconMap] || 'moxing-default'
-  if (THEME_AWARE_FACTORIES.includes(provider)) {
-    return isDark ? `${baseIcon}-dark` : `${baseIcon}-bright`
-  }
-  return baseIcon
-}
-
-// 带图标的模型选项 Label（与系统设置页面保持一致）
-function ModelOptionLabel({
-  provider,
-  modelName,
-}: {
-  provider: string
-  modelName: string
-}) {
-  const isDark = useIsDarkTheme()
-  const iconName = getIconName(provider, isDark)
-
-  return (
-    <div className="flex w-full min-w-0 items-center gap-2">
-      <IconFontFill name={iconName} className="h-5 w-5 shrink-0" />
-      <span className="truncate">{modelName}</span>
-    </div>
-  )
-}
-
-/**
- * 对话模型选择器
- * 直接从 modelStore 获取数据，与模型提供商页面的设置保持一致
- */
 export function ChatModelSelector({
   selectedModelId,
   onSelect,
@@ -106,13 +65,7 @@ export function ChatModelSelector({
         groups.push({
           label: providerName,
           options: supportedModels.map((model) => ({
-            label: (
-              <ModelOptionLabel
-                provider={providerName}
-                modelName={model.name}
-              />
-            ) as ReactNode,
-            // 使用 name@provider 格式作为 value，与系统设置页面保持一致
+            ...modelSelectOption(model, providerName),
             value: `${model.name}@${providerName}`,
           })),
         })

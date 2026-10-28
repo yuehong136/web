@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react'
+import { Boxes } from 'lucide-react'
 import { LLMFactory, IconMap } from '@/stores/model'
 import { useIsDarkTheme } from '@/themes'
 import { cn } from '@/lib/utils'
@@ -6,7 +7,7 @@ import { IconFontFill } from './icon-font'
 
 // Let Vite publish SVG URLs; source-directory paths do not exist in production.
 const providerLogoUrls = import.meta.glob<string>(
-  '/src/assets/svg/llm/{local-ai,gemini,stepfun,mineru-bright,mineru-dark,paddleocr,n1n,jiekouai,avian,ragcon,perplexity-bright,perplexity-dark}.svg',
+  '/src/assets/svg/llm/{local-ai,gemini,stepfun,wenxin,yi,youdao,baai,nomic-ai,sentence-transformers,mineru-bright,mineru-dark,paddleocr,n1n,jiekouai,avian,ragcon,perplexity-bright,perplexity-dark}.svg',
   { eager: true, query: '?url', import: 'default' },
 )
 
@@ -31,6 +32,12 @@ const THEME_AWARE_FACTORIES = [
  * 参考 ragflow 的 svgIcons 列表
  */
 const SVG_FILE_FACTORIES = [
+  LLMFactory.WenXinYiYan,
+  LLMFactory.ZeroOneAI,
+  LLMFactory.YouDao,
+  LLMFactory.BAAI,
+  LLMFactory.NomicAI,
+  LLMFactory.SentenceTransformers,
   LLMFactory.LocalAI,
   LLMFactory.Gemini,
   LLMFactory.StepFun,
@@ -109,9 +116,9 @@ export const ProviderIcon: React.FC<ProviderIconProps> = ({
 
   // 默认图标（未找到匹配的厂商）
   return (
-    <IconFontFill
-      name="moxing-default"
-      className={cn('flex items-center justify-center', className)}
+    <Boxes
+      aria-hidden
+      className={cn('shrink-0 text-text-secondary', className)}
     />
   )
 }

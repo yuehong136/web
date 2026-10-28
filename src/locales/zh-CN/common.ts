@@ -1,5 +1,23 @@
 export default {
   common: {
+    modelPicker: {
+      search: '搜索模型、厂商或连接…',
+      clear: '清除{{name}}',
+      unavailable: '当前选择 · 暂不可用',
+      defaultConnection: '默认连接',
+      actions: '{{name}} 的操作',
+      identity: '模型 ID：{{id}}',
+      capabilities: {
+        chat: '对话',
+        embedding: '向量嵌入',
+        image2text: '视觉理解',
+        speech2text: '语音识别',
+        tts: '语音合成',
+        rerank: '结果重排',
+        ocr: '文字识别',
+        tools: '工具调用',
+      },
+    },
     languageChangeFailed: '暂时无法切换语言，请重试。',
     referenceMetadata: {
       include: '包含文档元数据',

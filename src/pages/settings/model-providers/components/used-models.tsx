@@ -14,6 +14,7 @@ import {
   PageEmptyState,
 } from '@/components/patterns'
 import { ProviderInstance } from './provider-instance'
+import { ProviderIcon } from '@/components/ui/provider-icon'
 
 export function UsedModels({
   handleAddModel,
@@ -71,7 +72,12 @@ function ConfiguredProvider({ name, add }: { name: string; add: () => void }) {
   return (
     <article className="flex flex-col gap-space-base rounded-radius-lg border border-border-default p-space-base">
       <header className="flex items-center justify-between gap-space-base">
-        <h3 className="font-semibold">{name}</h3>
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-radius-md bg-background-subtle">
+            <ProviderIcon provider={name} className="size-6" size={24} />
+          </span>
+          <h3 className="truncate text-sm font-semibold">{name}</h3>
+        </div>
         <div className="flex gap-space-xs">
           <Button variant="outline" size="sm" onClick={add}>
             {t('settings.models.instances.add')}

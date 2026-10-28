@@ -1,5 +1,23 @@
 export default {
   common: {
+    modelPicker: {
+      search: 'Search models, providers or connections…',
+      clear: 'Clear {{name}}',
+      unavailable: 'Current selection · unavailable',
+      defaultConnection: 'Default connection',
+      actions: 'Actions for {{name}}',
+      identity: 'Model ID: {{id}}',
+      capabilities: {
+        chat: 'Chat',
+        embedding: 'Embedding',
+        image2text: 'Vision',
+        speech2text: 'Transcription',
+        tts: 'Speech',
+        rerank: 'Reranking',
+        ocr: 'OCR',
+        tools: 'Tool calling',
+      },
+    },
     languageChangeFailed: 'Could not change language. Try again.',
     referenceMetadata: {
       include: 'Include document metadata',

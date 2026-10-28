@@ -5,6 +5,7 @@
  */
 
 import { useQuery } from '@tanstack/react-query'
+import { modelSelectOption } from '@/components/models/model-select-options'
 import { llmAPI } from '@/api/llm'
 import {
   getLLMModelValue,
@@ -151,8 +152,7 @@ export const useLLMGroupedOptionsByTypes = (
             isLLMModelEnabled(model),
         )
         .map((model: MyLLMModel) => ({
-          label: getLLMModelLabel(model),
-          value: getLLMModelValue(model, providerName, valueMode),
+          ...modelSelectOption(model, providerName, valueMode),
           providerName,
           type: model.type,
         }))

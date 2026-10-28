@@ -22,6 +22,7 @@ import {
 } from '@/stores/model'
 import { useFetchMyLLMs } from '@/hooks/use-llm-request'
 import { useDefaultModelRequest } from '@/hooks/use-default-model-request'
+import { modelSelectOption } from '@/components/models/model-select-options'
 import { toast } from '@/lib/toast'
 import type { TenantInfo } from '@/types/team'
 import type { TenantModelSettings } from '@/api/auth'
@@ -68,10 +69,7 @@ function getModelOptions(
   const groups = Object.entries(models).flatMap(([provider, data]) => {
     const options = data.llm
       .filter((model) => types.includes(model.type) && isLLMModelEnabled(model))
-      .map((model) => ({
-        label: getLLMModelLabel(model),
-        value: getLLMModelValue(model, provider),
-      }))
+      .map((model) => modelSelectOption(model, provider))
     const unique = [
       ...new Map(options.map((option) => [option.value, option])).values(),
     ]
@@ -234,7 +232,7 @@ function DefaultModelsForm({
           {MODEL_FIELDS.map((config) => (
             <div
               key={config.field}
-              className="grid gap-space-md p-space-lg sm:grid-cols-2"
+              className="grid items-center gap-space-md p-space-base sm:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)]"
             >
               <div className="flex flex-col gap-space-xs">
                 <span className="flex items-center gap-space-xs text-sm font-medium text-text-primary">

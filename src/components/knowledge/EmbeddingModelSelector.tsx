@@ -1,8 +1,4 @@
-import {
-  getLLMModelValue,
-  getLLMModelLabel,
-  resolveLLMDisplayValue,
-} from '@/stores/model'
+import { resolveLLMDisplayValue } from '@/stores/model'
 import { useMemo, type FC } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AlertCircle } from 'lucide-react'
@@ -11,14 +7,8 @@ import {
   type SelectOptionGroup,
 } from '@/components/ui/select-with-search'
 import { FormTooltip } from '@/components/ui/tooltip'
-import { IconFontFill } from '@/components/ui/icon-font'
-import {
-  IconMap,
-  LLMFactory,
-  isLLMModelEnabled,
-  type MyLLMProvider,
-} from '@/stores/model'
-import { useIsDarkTheme } from '@/themes'
+import { modelSelectOption } from '@/components/models/model-select-options'
+import { isLLMModelEnabled, type MyLLMProvider } from '@/stores/model'
 
 export interface EmbeddingModelSelectorProps {
   selectedModelId: string | null
@@ -28,36 +18,6 @@ export interface EmbeddingModelSelectorProps {
   disabled?: boolean
   error?: string
   showLabel?: boolean
-}
-
-const THEME_AWARE_FACTORIES: string[] = [
-  LLMFactory.FishAudio,
-  LLMFactory.TogetherAI,
-  LLMFactory.Meituan,
-  LLMFactory.Longcat,
-]
-
-const getIconName = (provider: string, isDark: boolean): string => {
-  const baseIcon = IconMap[provider as keyof typeof IconMap] || 'moxing-default'
-  if (THEME_AWARE_FACTORIES.includes(provider)) {
-    return isDark ? `${baseIcon}-dark` : `${baseIcon}-bright`
-  }
-  return baseIcon
-}
-
-const ModelOptionLabel: FC<{
-  provider: string
-  modelName: string
-}> = ({ provider, modelName }) => {
-  const isDark = useIsDarkTheme()
-  const iconName = getIconName(provider, isDark)
-
-  return (
-    <div className="flex w-full min-w-0 items-center gap-2">
-      <IconFontFill name={iconName} className="h-5 w-5 shrink-0" />
-      <span className="truncate">{modelName}</span>
-    </div>
-  )
 }
 
 export const EmbeddingModelSelector: FC<EmbeddingModelSelectorProps> = ({
@@ -82,15 +42,9 @@ export const EmbeddingModelSelector: FC<EmbeddingModelSelectorProps> = ({
       if (embeddingModels.length > 0) {
         groups.push({
           label: providerName,
-          options: embeddingModels.map((model) => ({
-            label: (
-              <ModelOptionLabel
-                provider={providerName}
-                modelName={getLLMModelLabel(model)}
-              />
-            ),
-            value: getLLMModelValue(model, providerName),
-          })),
+          options: embeddingModels.map((model) =>
+            modelSelectOption(model, providerName),
+          ),
         })
       }
     })
