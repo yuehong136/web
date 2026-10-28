@@ -49,6 +49,11 @@ const ICON_SIZE = 28
 export const generateDataSourceInfo = (
   t: (key: string) => string,
 ): IDataSourceInfoMap => ({
+  [DataSourceKey.AZURE_BLOB]: {
+    name: t('datasource.azureBlob.name'),
+    description: t('datasource.azureBlob.description'),
+    icon: <Database size={ICON_SIZE} className="text-text-primary" />,
+  },
   [DataSourceKey.OUTLOOK]: {
     name: 'Outlook',
     description: t('datasource.microsoft.outlookDescription'),
@@ -366,6 +371,7 @@ export const useDataSourceFormFields = () => {
  */
 export const DataSourceGroups = {
   storage: [
+    DataSourceKey.AZURE_BLOB,
     DataSourceKey.ONEDRIVE,
     DataSourceKey.SEAFILE,
     DataSourceKey.S3,

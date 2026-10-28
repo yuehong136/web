@@ -1,5 +1,45 @@
 export default {
   datasource: {
+    azureBlob: {
+      name: 'Azure Blob Storage',
+      description: 'Sync an Azure Blob container with ETag change detection.',
+      authMode: 'Authentication',
+      authModeTip:
+        'Choose one credential method. Saving checks configuration without connecting to Azure.',
+      account_keyMode: 'Account key',
+      connection_stringMode: 'Connection string',
+      sas_tokenMode: 'SAS token',
+      account_name: 'Storage account name',
+      account_nameTip:
+        'The Azure storage account for account key authentication.',
+      account_key: 'Account key',
+      account_keyTip:
+        'Storage account access key. Only sent for account key authentication.',
+      connection_string: 'Connection string',
+      connection_stringTip:
+        'An HTTPS Azure Storage connection string for the selected account.',
+      container_name: 'Container name',
+      container_nameTip:
+        'The container to sync for account key or connection string authentication.',
+      container_url: 'Container URL',
+      container_urlTip:
+        'HTTPS Azure public, China or Government Blob container URL. Enter the SAS token separately. Custom endpoints are unsupported.',
+      sas_token: 'SAS token',
+      sas_tokenTip:
+        'The SAS query string for this container, with or without the leading question mark.',
+      prefix: 'Blob name prefix (optional)',
+      prefixTip:
+        'Exact, case-sensitive prefix. Use docs/ for a folder; docs also matches docs2. Leave blank for the entire container.',
+      batchSize: 'Document batch size',
+      batchSizeTip: 'A whole number from 1 to 1000. Leave blank to use 2.',
+      allowImages: 'Include image files',
+      batchSizeInvalid: 'Enter a whole number from 1 to 1000.',
+      containerUrlInvalid:
+        'Enter an HTTPS Azure Blob container URL without credentials, port, query or fragment.',
+      authModeInvalid: 'Choose an authentication method.',
+      invalidConfig:
+        'Check the Azure Blob configuration and active credentials.',
+    },
     microsoft: {
       outlookTestFailed:
         'Connection test failed. Check the saved mailbox list, folder and Mail.Read application permission.',

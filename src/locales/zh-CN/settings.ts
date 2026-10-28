@@ -81,6 +81,7 @@ export default {
 
       defaultsLoadFailed: '暂时无法加载默认模型，请重试。',
       defaultsUnavailable: '已配置模型（当前不可用）',
+      defaultsBuiltin: '内置默认模型：{{model}} · {{instance}}（只读）',
       defaultsSaved: '默认模型已保存。',
       defaultsSaveFailed: '默认模型保存失败，已保留你的选择，请重试。',
       defaultsSelect: '选择模型',

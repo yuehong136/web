@@ -70,6 +70,14 @@ vi.mock('@/hooks/use-llm-request', () => ({
             used_token: 0,
             status: '1',
           },
+          {
+            id: '6',
+            reference: '6',
+            name: 'configured-embedding',
+            type: 'embedding',
+            used_token: 0,
+            status: '1',
+          },
         ],
       },
     },
@@ -285,4 +293,41 @@ it('clears the chat default explicitly without a prerequisite model', async () =
     await settle()
   })
   expect(mocks.update).toHaveBeenCalledExactlyOnceWith('chat', null)
+})
+
+it('shows an unregistered built-in embedding default without creating a selectable identity or writing it back', async () => {
+  defaults = defaults.map((row) =>
+    row.model_type === 'embedding'
+      ? {
+          ...row,
+          model_id: null,
+          reference: 'tei-model@Builtin',
+          model_name: 'tei-model',
+          model_provider: 'Builtin',
+          model_instance: 'default',
+        }
+      : row,
+  )
+  await render()
+  expect(container.textContent).toContain(
+    i18n.t('settings.models.defaultsBuiltin', {
+      model: 'tei-model',
+      instance: 'default',
+    }),
+  )
+  expect(select('embedding').value).toBe('')
+  expect(select('embedding').textContent).not.toContain('tei-model')
+  await choose('chat', '2')
+  await act(async () => {
+    save().click()
+    await settle()
+  })
+  expect(mocks.update.mock.calls).toEqual([['chat', 2]])
+  await choose('embedding', '6')
+  expect(container.textContent).not.toContain('tei-model')
+  await act(async () => {
+    save().click()
+    await settle()
+  })
+  expect(mocks.update).toHaveBeenLastCalledWith('embedding', 6)
 })

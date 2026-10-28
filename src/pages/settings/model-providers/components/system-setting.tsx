@@ -18,6 +18,7 @@ import { ModelSelect } from '@/components/models/model-select'
 import { toast } from '@/lib/toast'
 import type { TenantInfo } from '@/types/team'
 import type { TenantModelSettings } from '@/api/auth'
+import type { ModelDefault } from '@/api/llm-provider-types'
 
 const MODEL_FIELDS = [
   {
@@ -83,6 +84,7 @@ export function SystemSetting() {
     <DefaultModelsForm
       key={request.tenantInfo.tenant_id}
       tenant={request.tenantInfo}
+      defaultModels={request.defaultModels}
       models={models.myLLMs}
       saving={request.update.isPending}
       modelsFailed={models.isError}
@@ -97,6 +99,7 @@ export function SystemSetting() {
 
 function DefaultModelsForm({
   tenant,
+  defaultModels,
   models,
   saving,
   modelsFailed,
@@ -105,6 +108,7 @@ function DefaultModelsForm({
   onSave,
 }: {
   tenant: TenantInfo
+  defaultModels: ModelDefault[]
   models: MyLLMProvider
   saving: boolean
   modelsFailed: boolean
@@ -121,6 +125,16 @@ function DefaultModelsForm({
     resetOptions: { keepDirtyValues: true },
   })
   const values = { ...current, ...useWatch({ control: form.control }) }
+  const builtinEmbedding = defaultModels.find(
+    (model) =>
+      model.model_type === 'embedding' &&
+      model.model_id === null &&
+      model.model_provider === 'Builtin' &&
+      model.model_instance === 'default' &&
+      model.model_name !== '' &&
+      model.reference !== '' &&
+      model.reference === values.embd_id,
+  )
   const dirty = form.formState.isDirty
   const [saveFailed, setSaveFailed] = useState(false)
   const [localPending, setLocalPending] = useState(false)
@@ -201,26 +215,40 @@ function DefaultModelsForm({
                   />
                 </span>
               </div>
-              <ModelSelect
-                ariaLabel={t(
-                  `settings.models.defaultFields.${config.name}.label`,
+              <div className="flex flex-col gap-space-sm">
+                {config.field === 'embd_id' && builtinEmbedding && (
+                  <output className="text-sm text-text-secondary">
+                    {t('settings.models.defaultsBuiltin', {
+                      model: builtinEmbedding.model_name,
+                      instance: builtinEmbedding.model_instance,
+                    })}
+                  </output>
                 )}
-                triggerClassName="w-full"
-                value={values[config.field]}
-                {...options[config.field]}
-                loading={modelsLoading}
-                error={modelsFailed}
-                showStatus={false}
-                onChange={(value) => {
-                  form.setValue(config.field, value, { shouldDirty: true })
-                  setSaveFailed(false)
-                }}
-                disabled={pending}
-                placeholder={t('settings.models.defaultsSelect')}
-                emptyText={t('settings.models.defaultsEmpty')}
-                searchPlaceholder={t('common.search')}
-                allowClear
-              />
+                <ModelSelect
+                  ariaLabel={t(
+                    `settings.models.defaultFields.${config.name}.label`,
+                  )}
+                  triggerClassName="w-full"
+                  value={
+                    config.field === 'embd_id' && builtinEmbedding
+                      ? ''
+                      : values[config.field]
+                  }
+                  {...options[config.field]}
+                  loading={modelsLoading}
+                  error={modelsFailed}
+                  showStatus={false}
+                  onChange={(value) => {
+                    form.setValue(config.field, value, { shouldDirty: true })
+                    setSaveFailed(false)
+                  }}
+                  disabled={pending}
+                  placeholder={t('settings.models.defaultsSelect')}
+                  emptyText={t('settings.models.defaultsEmpty')}
+                  searchPlaceholder={t('common.search')}
+                  allowClear
+                />
+              </div>
             </div>
           ))}
         </div>

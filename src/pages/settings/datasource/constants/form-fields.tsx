@@ -14,6 +14,7 @@ import { getJiraFormFields } from '@/pages/settings/datasource/constants/jira'
 import { getDeletionSyncFields } from '@/pages/settings/datasource/constants/sync-settings'
 import { getRestApiFormFields } from './rest-api'
 import { getMicrosoftFormFields } from './microsoft'
+import { getAzureBlobFormFields } from './azure-blob'
 import { getSharePointFormFields, getSlackFormFields } from './collaboration'
 
 /**
@@ -54,6 +55,7 @@ export const getBaseFormFields = (
 const getSourceFormFields = (
   t: (key: string) => string,
 ): Record<DataSourceKey, FormFieldConfig[]> => ({
+  [DataSourceKey.AZURE_BLOB]: getAzureBlobFormFields(t),
   [DataSourceKey.OUTLOOK]: getMicrosoftFormFields(DataSourceKey.OUTLOOK, t),
   [DataSourceKey.TEAMS]: getMicrosoftFormFields(DataSourceKey.TEAMS, t),
   [DataSourceKey.ONEDRIVE]: getMicrosoftFormFields(DataSourceKey.ONEDRIVE, t),

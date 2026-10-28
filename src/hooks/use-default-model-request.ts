@@ -62,6 +62,7 @@ export function useDefaultModelRequest() {
     })
   return {
     tenantInfo,
+    defaultModels: defaults.data ?? [],
     isError: tenant.isError || defaults.isError,
     isLoading: tenant.isLoading || defaults.isPending,
     refetch: () => Promise.all([tenant.refetch(), defaults.refetch()]),

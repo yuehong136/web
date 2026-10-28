@@ -89,6 +89,7 @@ export default {
 
       defaultsLoadFailed: 'Could not load default models. Retry to continue.',
       defaultsUnavailable: 'Configured model (currently unavailable)',
+      defaultsBuiltin: 'Built-in default: {{model}} · {{instance}} (read-only)',
       defaultsSaved: 'Default models saved.',
       defaultsSaveFailed:
         'Could not save default models. Your selections are kept. Try again.',

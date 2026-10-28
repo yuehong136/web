@@ -4,12 +4,14 @@ import { s3DefaultValues } from './s3'
 import { confluenceDefaultValues } from './confluence'
 import { bitbucketDefaultValues } from './bitbucket'
 import { restApiDefaultValues } from './rest-api'
+import { azureBlobDefaultValues } from './azure-blob'
 
 /**
  * 所有数据源的默认值配置
  */
 export const DataSourceFormDefaultValues: Record<DataSourceKey, any> = {
   ...microsoftDefaultValues,
+  [DataSourceKey.AZURE_BLOB]: azureBlobDefaultValues,
   [DataSourceKey.SHAREPOINT]: {
     name: '',
     source: DataSourceKey.SHAREPOINT,

@@ -1,5 +1,38 @@
 export default {
   datasource: {
+    azureBlob: {
+      name: 'Azure Blob 存储',
+      description: '同步 Azure Blob 容器，通过 ETag 识别文件变更。',
+      authMode: '认证方式',
+      authModeTip: '选择一种凭据方式。保存仅校验配置，不连接 Azure。',
+      account_keyMode: '账户密钥',
+      connection_stringMode: '连接字符串',
+      sas_tokenMode: 'SAS 令牌',
+      account_name: '存储账户名称',
+      account_nameTip: '账户密钥认证所使用的 Azure 存储账户。',
+      account_key: '账户密钥',
+      account_keyTip: '存储账户访问密钥，仅在账户密钥认证时发送。',
+      connection_string: '连接字符串',
+      connection_stringTip: '所选账户的 HTTPS Azure 存储连接字符串。',
+      container_name: '容器名称',
+      container_nameTip: '账户密钥或连接字符串认证时要同步的容器。',
+      container_url: '容器 URL',
+      container_urlTip:
+        'Azure 公有云、中国区或政府云的 HTTPS Blob 容器地址。SAS 令牌请单独填写，不支持自定义端点。',
+      sas_token: 'SAS 令牌',
+      sas_tokenTip: '该容器的 SAS 查询字符串，可带或不带开头的问号。',
+      prefix: 'Blob 名称前缀（可选）',
+      prefixTip:
+        '区分大小写，按原样匹配。目录请填写 docs/；docs 也会匹配 docs2。留空同步整个容器。',
+      batchSize: '文档批次大小',
+      batchSizeTip: '1 到 1000 的整数，留空使用默认值 2。',
+      allowImages: '包含图片文件',
+      batchSizeInvalid: '请输入 1 到 1000 的整数。',
+      containerUrlInvalid:
+        '请输入 HTTPS Azure Blob 容器地址，不含凭据、端口、查询参数或片段。',
+      authModeInvalid: '请选择认证方式。',
+      invalidConfig: '请检查 Azure Blob 配置和当前认证凭据。',
+    },
     microsoft: {
       outlookTestFailed:
         '连接测试失败，请检查已保存的邮箱列表、文件夹和 Mail.Read 应用权限。',

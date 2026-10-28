@@ -6,6 +6,7 @@ import type { ReactNode } from 'react'
 export enum DataSourceKey {
   // 云存储类
   ONEDRIVE = 'onedrive',
+  AZURE_BLOB = 'azure_blob',
   S3 = 's3',
   R2 = 'r2',
   GOOGLE_CLOUD_STORAGE = 'google_cloud_storage',

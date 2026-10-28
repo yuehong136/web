@@ -53,7 +53,13 @@ export function AddDataSourceModal({
     try {
       preparedValues = prepareDataSourceValues(sourceData.id, values)
     } catch {
-      toast.error(t('datasource.restApi.invalidConfig'))
+      toast.error(
+        t(
+          sourceData.id === DataSourceKey.AZURE_BLOB
+            ? 'datasource.azureBlob.invalidConfig'
+            : 'datasource.restApi.invalidConfig',
+        ),
+      )
       return
     }
     const data: DataSourceSetRequest = {

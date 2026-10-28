@@ -5,6 +5,7 @@ import {
 import { DataSourceFormDefaultValues } from '@/pages/settings/datasource/constants/default-values'
 import { deletionSyncSources } from '@/pages/settings/datasource/constants/sync-settings'
 import { getRestApiFormConfig, prepareRestApiConfig } from './rest-api-values'
+import { prepareAzureBlobConfig } from './azure-blob'
 
 type FormValues = Record<string, unknown> & {
   config?: Record<string, unknown>
@@ -98,6 +99,9 @@ export function prepareDataSourceValues(
     slackChannelScope,
     ...prepared
   } = values
+  if (source === DataSourceKey.AZURE_BLOB) {
+    return { ...prepared, config: prepareAzureBlobConfig(values.config ?? {}) }
+  }
   if (
     source === DataSourceKey.TEAMS ||
     source === DataSourceKey.ONEDRIVE ||
