@@ -3,6 +3,10 @@ export default {
     title: '设置',
     description: '统一管理工作空间配置、团队能力和开发者接入能力。',
     models: {
+      searchProviders: '搜索模型提供商',
+      filterCapabilities: '按模型能力筛选',
+      filterCapabilitiesHint: '可多选，仅显示同时支持所有已选能力的提供商。',
+
       allProviders: '全部',
       instances: {
         name: '实例名称',

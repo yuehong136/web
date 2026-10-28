@@ -19,6 +19,7 @@ import { ModelSelect } from '../model-select'
 import { RerankModelSelector } from '@/components/knowledge/RerankModelSelector'
 import { SkillModelSelect } from '@/pages/skills/skill-model-select'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { AvailableModels } from '@/pages/settings/model-providers/components/available-models'
 import { llmKeys } from '@/hooks/use-llm-request'
 import { IconMap } from '@/stores/model'
 import { readFileSync, existsSync } from 'node:fs'
@@ -465,6 +466,64 @@ it('does not mislabel failed Skill model inventory as unavailable and preserves 
   await render(false)
   expect(container.textContent).toContain('embedding-3 · Unavailable')
   expect(onChange).not.toHaveBeenCalled()
+  await act(async () => root.render(null))
+  client.clear()
+})
+
+it('combines provider capabilities, toggles each filter, and preserves search when clearing tags', async () => {
+  const client = new QueryClient({
+    defaultOptions: { queries: { staleTime: Infinity, retry: false } },
+  })
+  const providers = [
+    { id: 'a', name: 'OpenAI', tags: 'chat,image2text', logo: '' },
+    { id: 'b', name: 'DeepSeek', tags: 'chat', logo: '' },
+    { id: 'c', name: 'Vision provider', tags: 'image2text', logo: '' },
+    { id: 'd', name: 'Embedding provider', tags: 'embedding', logo: '' },
+  ]
+  client.setQueryData(llmKeys.factories(), providers)
+  client.setQueryData(llmKeys.myLLMs(), {})
+  const onAdd = vi.fn()
+  await act(async () =>
+    root.render(
+      <QueryClientProvider client={client}>
+        <AvailableModels handleAddModel={onAdd} />
+      </QueryClientProvider>,
+    ),
+  )
+  const names = () =>
+    [...container.querySelectorAll('h4')].map((el) => el.textContent)
+  const filter = (name: string) =>
+    [
+      ...container.querySelectorAll<HTMLButtonElement>('[role=group] button'),
+    ].find((el) => el.textContent?.trim() === name)!
+  expect(names()).toEqual(providers.map((provider) => provider.name))
+  await act(async () => filter('Chat').click())
+  await act(async () => filter('Vision').click())
+  expect(filter('Chat').getAttribute('aria-pressed')).toBe('true')
+  expect(filter('Vision').getAttribute('aria-pressed')).toBe('true')
+  expect(names()).toEqual(['OpenAI'])
+  await act(async () => filter('Chat').click())
+  expect(names()).toEqual(['OpenAI', 'Vision provider'])
+  await act(async () => filter('Vision').click())
+  expect(filter('All').getAttribute('aria-pressed')).toBe('true')
+  expect(names()).toHaveLength(4)
+  const search = container.querySelector<HTMLInputElement>(
+    'input[aria-label="Search model providers"]',
+  )!
+  await act(async () => {
+    Object.getOwnPropertyDescriptor(
+      HTMLInputElement.prototype,
+      'value',
+    )!.set!.call(search, 'deep')
+    search.dispatchEvent(new Event('input', { bubbles: true }))
+  })
+  expect(names()).toEqual(['DeepSeek'])
+  await act(async () => filter('Vision').click())
+  expect(names()).toEqual([])
+  await act(async () => filter('All').click())
+  expect(names()).toEqual(['DeepSeek'])
+  expect(search.value).toBe('deep')
+  expect(onAdd).not.toHaveBeenCalled()
   await act(async () => root.render(null))
   client.clear()
 })

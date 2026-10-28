@@ -55,7 +55,7 @@ export const AvailableModels: React.FC<AvailableModelsProps> = ({
   const { factories } = useFetchFactories()
   const { myLLMs } = useFetchMyLLMs()
   const [searchTerm, setSearchTerm] = useState('')
-  const [selectedTag, setSelectedTag] = useState<string | null>(null)
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
 
   // 获取已添加的厂商名称列表
   const addedProviderNames = useMemo(() => {
@@ -78,13 +78,12 @@ export const AvailableModels: React.FC<AvailableModelsProps> = ({
         .includes(searchTerm.toLowerCase())
 
       // 标签匹配
-      const matchesTag =
-        selectedTag === null ||
-        factory.tags.split(',').some((tag) => tag.trim() === selectedTag)
+      const tags = factory.tags.split(',').map((tag) => tag.trim())
+      const matchesTag = selectedTags.every((tag) => tags.includes(tag))
 
       return matchesSearch && matchesTag
     })
-  }, [availableFactories, searchTerm, selectedTag])
+  }, [availableFactories, searchTerm, selectedTags])
 
   // 获取所有可用标签（只从未添加的厂商中收集）
   const allTags = useMemo(() => {
@@ -102,7 +101,11 @@ export const AvailableModels: React.FC<AvailableModelsProps> = ({
   }, [availableFactories])
 
   const handleTagClick = (tag: string) => {
-    setSelectedTag(selectedTag === tag ? null : tag)
+    setSelectedTags((current) =>
+      current.includes(tag)
+        ? current.filter((item) => item !== tag)
+        : [...current, tag],
+    )
   }
 
   return (
@@ -112,35 +115,33 @@ export const AvailableModels: React.FC<AvailableModelsProps> = ({
         {t('settings.models.available')}
       </h2>
 
-      {/* 搜索框 - 使用主题感知样式 */}
-      <div className="mb-5">
-        <div className="relative">
-          <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-text-tertiary" />
-          <Input
-            type="text"
-            placeholder={t('common.search')}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className={cn(
-              'h-9 w-full rounded-lg pr-4 pl-10 text-sm',
-              'bg-components-input-bg',
-              'border border-components-input-border',
-              'text-text-primary placeholder:text-text-tertiary',
-              'focus:ring-1 focus:ring-primary focus:outline-hidden',
-              'transition-colors',
-            )}
-          />
-        </div>
+      <div className="mb-space-base">
+        <Input
+          type="search"
+          aria-label={t('settings.models.searchProviders')}
+          placeholder={t('common.search')}
+          value={searchTerm}
+          onChange={(event) => setSearchTerm(event.target.value)}
+          leftIcon={
+            <Search aria-hidden className="size-4 text-text-secondary" />
+          }
+        />
       </div>
 
       {/* 标签过滤 - 使用主题感知样式 */}
-      <div className="mb-5 flex flex-wrap gap-2">
+      <div
+        role="group"
+        aria-label={t('settings.models.filterCapabilities')}
+        className="mb-space-sm flex flex-wrap gap-2"
+      >
         {/* All 按钮 */}
         <button
-          onClick={() => setSelectedTag(null)}
+          type="button"
+          aria-pressed={selectedTags.length === 0}
+          onClick={() => setSelectedTags([])}
           className={cn(
-            'h-6 rounded-sm px-2 text-xs transition-colors',
-            selectedTag === null
+            'min-h-7 rounded-radius-sm px-2 text-xs transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-focus',
+            selectedTags.length === 0
               ? 'bg-text-primary text-background'
               : 'bg-components-button-secondary-bg text-text-secondary hover:bg-components-button-secondary-bg-hover',
           )}
@@ -152,10 +153,12 @@ export const AvailableModels: React.FC<AvailableModelsProps> = ({
         {allTags.map((tag) => (
           <button
             key={tag}
+            type="button"
+            aria-pressed={selectedTags.includes(tag)}
             onClick={() => handleTagClick(tag)}
             className={cn(
-              'h-6 rounded-sm px-2 text-xs transition-colors',
-              selectedTag === tag
+              'min-h-7 rounded-radius-sm px-2 text-xs transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-focus',
+              selectedTags.includes(tag)
                 ? 'bg-text-primary text-background'
                 : 'bg-components-button-secondary-bg text-text-secondary hover:bg-components-button-secondary-bg-hover',
             )}
@@ -164,6 +167,10 @@ export const AvailableModels: React.FC<AvailableModelsProps> = ({
           </button>
         ))}
       </div>
+
+      <p className="mb-space-base text-xs text-text-secondary">
+        {t('settings.models.filterCapabilitiesHint')}
+      </p>
 
       {/* 模型列表 */}
       <div className="flex flex-col gap-space-base">

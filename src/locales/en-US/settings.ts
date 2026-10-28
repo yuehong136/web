@@ -4,6 +4,11 @@ export default {
     description:
       'Manage workspace configuration, team capabilities, and developer access.',
     models: {
+      searchProviders: 'Search model providers',
+      filterCapabilities: 'Filter by model capabilities',
+      filterCapabilitiesHint:
+        'Select multiple capabilities to show providers that support all of them.',
+
       allProviders: 'All',
       instances: {
         name: 'Instance name',
