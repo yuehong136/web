@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 import { Boxes } from 'lucide-react'
 import { LLMFactory, IconMap } from '@/stores/model'
 import { useIsDarkTheme } from '@/themes'
@@ -7,7 +7,7 @@ import { IconFontFill } from './icon-font'
 
 // Let Vite publish SVG URLs; source-directory paths do not exist in production.
 const providerLogoUrls = import.meta.glob<string>(
-  '/src/assets/svg/llm/{local-ai,gemini,stepfun,wenxin,yi,youdao,baai,nomic-ai,sentence-transformers,mineru-bright,mineru-dark,paddleocr,n1n,jiekouai,avian,ragcon,perplexity-bright,perplexity-dark}.svg',
+  '/src/assets/svg/llm/{local-ai,gemini,stepfun,wenxin,yi,youdao,baai,nomic-ai,sentence-transformers,aimlapi,astraflow,fastembed,funasr,futurmix,greenpt,grok,huaweicloud,mws,new-api,orcarouter,qiniu,somark,tokenhub,xiaomi,mineru-bright,mineru-dark,paddleocr,n1n,jiekouai,avian,ragcon,perplexity-bright,perplexity-dark}.svg',
   { eager: true, query: '?url', import: 'default' },
 )
 
@@ -24,29 +24,7 @@ const THEME_AWARE_FACTORIES = [
   LLMFactory.Meituan,
   LLMFactory.Longcat,
   LLMFactory.MinerU,
-  LLMFactory.Perplexity,
-]
-
-/**
- * 使用独立 SVG 文件的厂商（不在 iconfont 中）
- * 参考 ragflow 的 svgIcons 列表
- */
-const SVG_FILE_FACTORIES = [
-  LLMFactory.WenXinYiYan,
-  LLMFactory.ZeroOneAI,
-  LLMFactory.YouDao,
-  LLMFactory.BAAI,
-  LLMFactory.NomicAI,
-  LLMFactory.SentenceTransformers,
-  LLMFactory.LocalAI,
-  LLMFactory.Gemini,
-  LLMFactory.StepFun,
-  LLMFactory.MinerU,
-  LLMFactory.PaddleOCR,
-  LLMFactory.N1n,
-  LLMFactory.JiekouAI,
-  LLMFactory.Avian,
-  LLMFactory.RAGcon,
+  LLMFactory.MinerUNet,
   LLMFactory.Perplexity,
 ]
 
@@ -56,10 +34,44 @@ interface ProviderIconProps {
   size?: number
 }
 
+function ProviderLogoImage({
+  url,
+  provider,
+  className,
+  size,
+}: {
+  url: string
+  provider: string
+  className: string
+  size?: number
+}) {
+  const [failed, setFailed] = useState(false)
+  return (
+    <span
+      className={cn(
+        className,
+        'inline-flex shrink-0 items-center justify-center',
+      )}
+      style={size === undefined ? undefined : { width: size, height: size }}
+    >
+      {failed ? (
+        <Boxes aria-hidden className="size-full text-text-secondary" />
+      ) : (
+        <img
+          src={url}
+          alt={provider}
+          className="h-full w-full object-contain"
+          onError={() => setFailed(true)}
+        />
+      )}
+    </span>
+  )
+}
+
 /**
  * LLM 供应商图标组件
  * 参考 ragflow 的 LlmIcon 组件实现
- * 使用 iconfont 方式渲染图标
+ * 优先使用已注册的 SVG 资源，其他已知厂商使用 iconfont。
  */
 export const ProviderIcon: React.FC<ProviderIconProps> = ({
   provider,
@@ -68,41 +80,21 @@ export const ProviderIcon: React.FC<ProviderIconProps> = ({
 }) => {
   const isDark = useIsDarkTheme()
 
-  // 获取图标名称，支持主题切换
-  const iconName = useMemo(() => {
-    const baseIcon = IconMap[provider as keyof typeof IconMap]
-    if (!baseIcon) return null
-
-    // 检查是否需要根据主题切换图标
-    if (THEME_AWARE_FACTORIES.includes(provider as any)) {
-      return isDark ? `${baseIcon}-dark` : `${baseIcon}-bright`
-    }
-
-    return baseIcon
-  }, [provider, isDark])
-
-  // 检查是否是使用独立 SVG 文件的厂商
-  const useSvgFile = SVG_FILE_FACTORIES.includes(provider as any)
-
-  // 如果使用独立 SVG 文件
-  if (useSvgFile && iconName) {
+  const iconName = useMemo(
+    () => getProviderIconName(provider, isDark),
+    [provider, isDark],
+  )
+  const url = iconName ? providerLogoUrl(iconName) : undefined
+  if (url)
     return (
-      <div
-        className={cn(className, 'flex items-center justify-center')}
-        style={{ width: size, height: size }}
-      >
-        <img
-          src={providerLogoUrl(iconName)}
-          alt={provider}
-          className="h-full w-full object-contain"
-          onError={(e) => {
-            const target = e.target as HTMLImageElement
-            target.style.display = 'none'
-          }}
-        />
-      </div>
+      <ProviderLogoImage
+        key={url}
+        url={url}
+        provider={provider}
+        className={className}
+        size={size}
+      />
     )
-  }
 
   // 使用 iconfont
   if (iconName) {
@@ -165,7 +157,10 @@ export const getProviderIconName = (
  * 判断是否使用独立 SVG 文件
  */
 export const usesSvgFile = (provider: string): boolean => {
-  return SVG_FILE_FACTORIES.includes(provider as any)
+  return [false, true].some((dark) => {
+    const name = getProviderIconName(provider, dark)
+    return name ? !!providerLogoUrl(name) : false
+  })
 }
 
 /**
@@ -220,17 +215,16 @@ export const getProviderIcon = (modelName: string | null): React.ReactNode => {
   if (iconName) {
     // 检查是否使用独立 SVG 文件
     if (usesSvgFile(modelName)) {
-      return (
-        <img
-          src={providerLogoUrl(iconName)}
-          alt={modelName}
-          style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-          onError={(e) => {
-            const target = e.target as HTMLImageElement
-            target.style.display = 'none'
-          }}
-        />
-      )
+      const url = providerLogoUrl(iconName)
+      if (url)
+        return (
+          <ProviderLogoImage
+            key={url}
+            url={url}
+            provider={modelName}
+            className="h-full w-full"
+          />
+        )
     }
 
     // 使用 iconfont

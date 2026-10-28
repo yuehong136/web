@@ -9,7 +9,14 @@ import { ChatModelSelector } from '@/components/chat/ChatModelSelector'
 import { InstanceModelRow } from '@/pages/settings/model-providers/components/instance-model-row'
 import { SelectWithSearch } from '@/components/ui/select-with-search'
 import { modelSelectOption } from '../model-select-options'
-import { ProviderIcon } from '@/components/ui/provider-icon'
+import {
+  ProviderIcon,
+  getProviderIconName,
+  getProviderIconPath,
+} from '@/components/ui/provider-icon'
+import { IconMap } from '@/stores/model'
+import { readFileSync, existsSync } from 'node:fs'
+import path from 'node:path'
 
 const tenantModel = (id: number, instance: string): TenantModel => ({
   id,
@@ -58,6 +65,71 @@ it('renders bundled provider logos when their symbols are absent from iconfont',
   const logo = container.querySelector<HTMLImageElement>('img[alt="BAAI"]')
   expect(logo?.getAttribute('src')).toContain('baai.svg')
   expect(container.querySelector('use')).toBeNull()
+})
+it('resolves every mapped provider to an existing SVG or sprite symbol in both themes', () => {
+  const sprite = readFileSync(path.resolve('public/iconfont.js'), 'utf8')
+  const symbols = new Set(
+    [...sprite.matchAll(/<symbol\b[^>]*\bid=["']([^"']+)["']/g)].map(
+      (match) => match[1],
+    ),
+  )
+  for (const provider of Object.keys(IconMap)) {
+    for (const dark of [false, true]) {
+      const url = getProviderIconPath(provider, dark)
+      if (url) {
+        const filename = `src/assets/svg/llm/${getProviderIconName(provider, dark)}.svg`
+        expect(existsSync(path.resolve(filename)), `${provider} SVG`).toBe(true)
+        const separator = url.indexOf(',')
+        const source = url.startsWith('data:')
+          ? url.slice(0, separator).endsWith(';base64')
+            ? Buffer.from(url.slice(separator + 1), 'base64').toString('utf8')
+            : decodeURIComponent(url.slice(separator + 1))
+          : readFileSync(path.resolve(filename), 'utf8')
+        const xml = new DOMParser().parseFromString(source, 'image/svg+xml')
+        expect(
+          xml.querySelector('parsererror'),
+          `${provider} SVG syntax`,
+        ).toBeNull()
+      } else {
+        expect(
+          symbols.has(`icon-${getProviderIconName(provider, dark)}`),
+          `${provider} sprite, dark=${dark}`,
+        ).toBe(true)
+      }
+    }
+  }
+})
+it.each(['Astraflow', 'Astraflow-CN', 'FuturMix', 'Grok'])(
+  'renders the upstream logo for %s',
+  async (provider) => {
+    await act(async () => root.render(<ProviderIcon provider={provider} />))
+    expect(container.querySelector('img')?.getAttribute('alt')).toBe(provider)
+    expect(container.querySelector('svg.lucide-boxes')).toBeNull()
+  },
+)
+it('uses the correct assets for provider aliases and theme variants', () => {
+  expect(getProviderIconPath('Astraflow-CN')).toBe(
+    getProviderIconPath('Astraflow'),
+  )
+  expect(getProviderIconName('siliconflow_intl')).toBe('siliconflow')
+  expect(getProviderIconName('MinerU.Net', false)).toBe('mineru-bright')
+  expect(getProviderIconName('MinerU.Net', true)).toBe('mineru-dark')
+  expect(getProviderIconPath('MinerU.Net', false)).toBe(
+    getProviderIconPath('MinerU', false),
+  )
+  expect(getProviderIconPath('MinerU.Net', true)).not.toBe(
+    getProviderIconPath('MinerU.Net', false),
+  )
+})
+it('keeps an explicit fallback on image failure and recovers when the resource changes', async () => {
+  await act(async () => root.render(<ProviderIcon provider="Astraflow" />))
+  await act(async () =>
+    container.querySelector('img')!.dispatchEvent(new Event('error')),
+  )
+  expect(container.querySelector('img')).toBeNull()
+  expect(container.querySelector('svg.lucide-boxes')).not.toBeNull()
+  await act(async () => root.render(<ProviderIcon provider="FuturMix" />))
+  expect(container.querySelector('img')?.getAttribute('alt')).toBe('FuturMix')
 })
 async function renderPicker(
   value = '102',
