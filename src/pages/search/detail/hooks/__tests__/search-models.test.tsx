@@ -7,6 +7,8 @@ import { createRoot, type Root } from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { llmAPI } from '@/api/llm'
+import { apiClient } from '@/api/client'
+import { useChatModelGroupedOptions } from '@/hooks/use-llm-request'
 import { useModelProviderMutation } from '@/hooks/use-model-provider-request'
 import { modelProvidersAPI } from '@/api/llm-providers'
 import { useSearchModels } from '../use-search-models'
@@ -123,4 +125,74 @@ it('invalidates the knowledge retrieval reranker inventory after a model mutatio
   await act(async () => new Promise((resolve) => setTimeout(resolve, 10)))
   expect(list).toHaveBeenCalledTimes(2)
   expect(query.data).toEqual([])
+})
+
+it('refreshes warm chat choices after adding and removing a connection and isolates account changes', async () => {
+  let rows: Awaited<ReturnType<typeof modelProvidersAPI.models>> = []
+  vi.spyOn(modelProvidersAPI, 'models').mockImplementation(async () => rows)
+  const model = {
+    id: 27,
+    reference: '27',
+    provider_name: 'Ollama',
+    provider_id: 'provider-owned',
+    instance_id: 'owned',
+    instance_name: 'local',
+    name: 'vision-fixture',
+    model_types: ['chat', 'image2text'] as const,
+    status: 'active' as const,
+    effective_status: 'active' as const,
+    max_tokens: 0,
+    is_tools: false,
+  }
+  let choices!: ReturnType<typeof useChatModelGroupedOptions>
+  let mutation!: ReturnType<typeof useModelProviderMutation>
+  function Harness() {
+    choices = useChatModelGroupedOptions()
+    mutation = useModelProviderMutation()
+    return null
+  }
+  const flush = async () =>
+    act(async () => new Promise((resolve) => setTimeout(resolve, 10)))
+  await act(async () =>
+    root.render(
+      <QueryClientProvider client={client}>
+        <Harness />
+      </QueryClientProvider>,
+    ),
+  )
+  await flush()
+  expect(choices.options).toEqual([])
+  await act(async () => {
+    await mutation.mutateAsync(async () => {
+      rows = [{ ...model, model_types: [...model.model_types] }]
+    })
+  })
+  await flush()
+  expect(choices.options[0]?.options).toMatchObject([
+    { value: '27', label: 'vision-fixture' },
+  ])
+  await act(async () => {
+    await mutation.mutateAsync(async () => {
+      rows = []
+    })
+  })
+  await flush()
+  expect(choices.options).toEqual([])
+  const invalidate = vi.spyOn(client, 'invalidateQueries')
+  let release!: () => void
+  const pending = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  let result!: Promise<unknown>
+  await act(async () => {
+    result = mutation.mutateAsync(async () => pending)
+    result.catch(() => {})
+  })
+  apiClient.setAuthToken('controlled-different-account')
+  await act(async () => {
+    release()
+    await expect(result).rejects.toMatchObject({ name: 'AbortError' })
+  })
+  expect(invalidate).not.toHaveBeenCalled()
+  apiClient.setAuthToken(null)
 })

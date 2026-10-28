@@ -27,7 +27,7 @@ export interface ApiKeyModalProps {
 interface LocalModelParams {
   providerName: string
   modelName: string
-  modelType: string
+  modelType: string | string[]
   vision: boolean
   apiKey: string
   baseUrl: string
@@ -51,21 +51,36 @@ export const getEditableModelName = (
   return suffix && name.endsWith(suffix) ? name.slice(0, -suffix.length) : name
 }
 
+/** Vision augments chat; repeated capabilities remain one registration. */
+export function buildModelTypesWithVision(
+  modelType: string | string[],
+  vision = false,
+): string[] {
+  const types = [
+    ...new Set(
+      (Array.isArray(modelType) ? modelType : modelType.split(','))
+        .map((type) => type.trim())
+        .filter(Boolean),
+    ),
+  ]
+  if (vision && types.includes('chat') && !types.includes('image2text'))
+    types.push('image2text')
+  return types
+}
+
 export const buildLocalModelParams = (
   values: LocalModelParams,
 ): AddLlmParams => {
-  const mdlType =
-    values.modelType === 'chat' && values.vision
-      ? 'image2text'
-      : values.modelType
+  const modelTypes = buildModelTypesWithVision(values.modelType, values.vision)
   return {
     llm_factory: values.providerName,
     llm_name: values.modelName.trim(),
-    mdl_type: mdlType,
+    mdl_type: modelTypes.join(','),
     api_base: values.baseUrl.trim(),
     max_tokens: values.maxTokens,
     ...(values.apiKey.trim() ? { api_key: values.apiKey } : {}),
-    ...((mdlType === 'chat' || mdlType === 'image2text') && values.includeTools
+    ...((modelTypes.includes('chat') || modelTypes.includes('image2text')) &&
+    values.includeTools
       ? { is_tools: values.isTools }
       : {}),
   }

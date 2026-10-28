@@ -277,3 +277,44 @@ it.each([
     expect(save.mock.calls[0][2]).not.toHaveProperty('model_id')
   },
 )
+
+it('keeps both chat and vision when creating a local model and clears vision after switching type', async () => {
+  await render()
+  await change(field('local-model-name'), ' vision-fixture ')
+  await act(async () => document.getElementById('local-model-vision')!.click())
+  await submit()
+  const fields = save.mock.calls[0][2]
+  const payload = buildInstancePayload(
+    'Ollama',
+    'vision',
+    '',
+    undefined,
+    fields,
+    '',
+  )
+  expect(payload.model?.model_types).toEqual(['chat', 'image2text'])
+  const values = {
+    providerName: 'Ollama',
+    modelName: 'fixture',
+    modelType: 'chat',
+    vision: true,
+    apiKey: '',
+    baseUrl: 'http://fixture.invalid',
+    maxTokens: 0,
+    isTools: false,
+    includeTools: true,
+  }
+  for (const modelType of ['chat', ['chat'], ['chat', 'image2text', 'chat']]) {
+    const result = buildLocalModelParams({ ...values, modelType })
+    expect(
+      buildInstancePayload('Ollama', 'vision', '', undefined, result, '').model
+        ?.model_types,
+    ).toEqual(['chat', 'image2text'])
+  }
+  expect(
+    buildLocalModelParams({ ...values, modelType: 'embedding' }).mdl_type,
+  ).toBe('embedding')
+  expect(buildLocalModelParams({ ...values, vision: false }).mdl_type).toBe(
+    'chat',
+  )
+})
