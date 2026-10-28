@@ -513,3 +513,38 @@ it('exposes mailbox removal as a native button and disables scope editing with t
   )
   expect(scope.querySelector('button[aria-label="Remove"]')).toBeNull()
 })
+
+it.each(['en-US', 'zh-CN'])(
+  'localizes Outlook invalid scope feedback without submitting (%s)',
+  async (locale) => {
+    await i18n.changeLanguage(locale)
+    await renderAdd(DataSourceKey.OUTLOOK)
+    await change(input('name'), 'Outlook validation')
+    for (const key of ['tenant_id', 'client_id', 'client_secret'])
+      await change(input(`config.credentials.${key}`), `synthetic-${key}`)
+    await change(input('config.folder'), ' inbox')
+    const scope = document.querySelector('[role="group"]')!
+    await click(scope.querySelector<HTMLButtonElement>('button')!)
+    const mailbox = scope.querySelector<HTMLInputElement>('input')!
+    await change(mailbox, '.')
+    await act(async () =>
+      mailbox.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }),
+      ),
+    )
+    await click(button(i18n.t('common.confirm')))
+    expect(submit).not.toHaveBeenCalled()
+    expect(document.body.textContent).toContain(
+      i18n.t('datasource.microsoft.mailFolderInvalid'),
+    )
+    expect(document.body.textContent).toContain(
+      i18n.t('datasource.microsoft.userIdsInvalid'),
+    )
+    expect(document.body.textContent).not.toContain(
+      'datasource.microsoft.mailFolderInvalid',
+    )
+    expect(document.body.textContent).not.toContain(
+      'datasource.microsoft.userIdsInvalid',
+    )
+  },
+)

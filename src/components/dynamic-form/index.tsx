@@ -125,6 +125,7 @@ const renderField = (
   formValues: Record<string, any>,
   idPrefix: string,
   requiredMessage: string,
+  translateError: (key: string) => string,
   labelClassName?: string,
 ) => {
   if (field.hidden) return null
@@ -142,7 +143,8 @@ const renderField = (
             ? value.length > 0
             : value != null
       if (field.required && !present) return requiredMessage
-      return field.validate?.(value) ?? true
+      const result = field.validate?.(value) ?? true
+      return typeof result === 'string' ? translateError(result) : result
     },
   }
 
@@ -380,6 +382,7 @@ function DynamicFormRoot<T extends FieldValues>({
             formValues,
             idPrefix,
             t('common.required'),
+            t,
             labelClassName,
           ),
         )}
