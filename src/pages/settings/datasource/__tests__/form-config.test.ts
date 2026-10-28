@@ -563,13 +563,37 @@ it('keeps explicit Outlook mailbox scope and validates the folder without broade
   const users = fields.find(
     (field) => field.name === 'config.user_ids',
   )!.validate!
-  for (const value of [[], ['mailbox']]) expect(users(value)).toBe(true)
-  for (const value of [undefined, null, '', [''], [' a'], ['a', 'a'], [1]])
-    expect(users(value)).not.toBe(true)
   const folder = fields.find((field) => field.name === 'config.folder')!
   expect(folder.required).toBe(true)
-  for (const value of ['inbox', 'folder-id', '含 / 的 ID'])
+  expect(users([])).toBe(true)
+  for (const value of [undefined, null, '', ['a', 'a']])
+    expect(users(value)).not.toBe(true)
+  for (const value of [
+    'inbox',
+    '含 / 的 ID',
+    'a'.repeat(1024),
+    '😀'.repeat(1024),
+  ]) {
+    expect(users([value])).toBe(true)
     expect(folder.validate!(value)).toBe(true)
-  for (const value of [undefined, null, '', '  ', 1])
+  }
+  const invalid = [
+    undefined,
+    null,
+    '',
+    '  ',
+    1,
+    ' inbox',
+    'inbox ',
+    '.',
+    '..',
+    'a\u0000b',
+    'a\u001fb',
+    'a\u007fb',
+    'a'.repeat(1025),
+  ]
+  for (const value of invalid) {
+    expect(users([value])).not.toBe(true)
     expect(folder.validate!(value)).not.toBe(true)
+  }
 })

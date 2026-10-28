@@ -25,6 +25,21 @@ export const microsoftDefaultValues = {
   [DataSourceKey.ONEDRIVE]: defaults(DataSourceKey.ONEDRIVE),
 }
 
+function isOutlookIdentity(value: unknown): value is string {
+  return (
+    typeof value === 'string' &&
+    value.length > 0 &&
+    value === value.trim() &&
+    value !== '.' &&
+    value !== '..' &&
+    [...value].length <= 1024 &&
+    [...value].every((character) => {
+      const code = character.charCodeAt(0)
+      return code >= 32 && code !== 127
+    })
+  )
+}
+
 export function getMicrosoftFormFields(
   source: MicrosoftSource,
   t: (key: string) => string,
@@ -51,12 +66,7 @@ export function getMicrosoftFormFields(
         tooltip: t('datasource.microsoft.userIdsTip'),
         validate: (value) =>
           (Array.isArray(value) &&
-            value.every(
-              (id) =>
-                typeof id === 'string' &&
-                id.trim().length > 0 &&
-                id === id.trim(),
-            ) &&
+            value.every(isOutlookIdentity) &&
             new Set(value).size === value.length) ||
           'datasource.microsoft.userIdsInvalid',
       },
@@ -67,8 +77,7 @@ export function getMicrosoftFormFields(
         required: true,
         tooltip: t('datasource.microsoft.mailFolderTip'),
         validate: (value) =>
-          (typeof value === 'string' && value.trim().length > 0) ||
-          'datasource.microsoft.mailFolderInvalid',
+          isOutlookIdentity(value) || 'datasource.microsoft.mailFolderInvalid',
       },
     )
   }
