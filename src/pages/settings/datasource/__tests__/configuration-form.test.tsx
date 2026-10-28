@@ -441,7 +441,7 @@ it('defaults RSS deletion sync off and submits current-feed mirroring with its s
   })
 })
 
-it.each([DataSourceKey.TEAMS, DataSourceKey.ONEDRIVE])(
+it.each([DataSourceKey.TEAMS, DataSourceKey.ONEDRIVE, DataSourceKey.OUTLOOK])(
   'submits %s application credentials with explicit scope and retains the draft until the parent closes it',
   async (source) => {
     await renderAdd(source)
@@ -461,6 +461,14 @@ it.each([DataSourceKey.TEAMS, DataSourceKey.ONEDRIVE])(
         },
       },
     })
+    if (source === DataSourceKey.OUTLOOK) {
+      expect(submit.mock.calls[0][0].config.user_ids).toEqual([])
+      expect(submit.mock.calls[0][0].config.folder).toBe('inbox')
+      await change(input('config.folder'), '')
+      await click(button('Confirm'))
+      expect(submit).toHaveBeenCalledTimes(1)
+      await change(input('config.folder'), 'sentitems')
+    }
     if (source === DataSourceKey.ONEDRIVE)
       expect(submit.mock.calls[0][0].config.drive_ids).toEqual([])
     expect(document.body.textContent).not.toContain('Sync source deletions')
@@ -476,3 +484,32 @@ it.each([DataSourceKey.TEAMS, DataSourceKey.ONEDRIVE])(
     expect(submit.mock.lastCall![0].config).not.toHaveProperty('batch_size')
   },
 )
+
+it('exposes mailbox removal as a native button and disables scope editing with the form', async () => {
+  const render = async (disabled: boolean) =>
+    act(async () =>
+      root.render(
+        <DynamicForm.Root
+          fields={getDataSourceFormFields((key) => i18n.t(key))[
+            DataSourceKey.OUTLOOK
+          ].map((field) => ({ ...field, disabled }))}
+          defaultValues={{ config: { user_ids: ['A'], folder: 'inbox' } }}
+          onSubmit={submit}
+        />,
+      ),
+    )
+  await render(false)
+  const scope = document.querySelector('[role="group"]')!
+  const removeButton = scope.querySelector<HTMLButtonElement>(
+    'button[aria-label="Remove"]',
+  )!
+  expect(removeButton.tagName).toBe('BUTTON')
+  expect(removeButton.type).toBe('button')
+  await render(true)
+  expect(scope.querySelector('button')).toBeNull()
+  await render(false)
+  await click(
+    scope.querySelector<HTMLButtonElement>('button[aria-label="Remove"]')!,
+  )
+  expect(scope.querySelector('button[aria-label="Remove"]')).toBeNull()
+})

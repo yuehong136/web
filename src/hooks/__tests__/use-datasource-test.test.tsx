@@ -27,63 +27,73 @@ vi.mock('@/lib/toast', () => ({
 }))
 afterEach(() => vi.clearAllMocks())
 
-it('tests only on demand, disables the action while pending, and gives safe localized success/failure feedback', async () => {
-  Reflect.set(globalThis, 'IS_REACT_ACT_ENVIRONMENT', true)
-  await changeLanguage('en-US')
-  const notifyMutationError = vi.fn()
-  const client = createQueryClient({ notifyMutationError })
-  const container = document.createElement('div')
-  document.body.append(container)
-  const root = createRoot(container)
-  function Harness() {
-    const { handleTest, isTesting } = useTestDataSource('saved-connector')
-    return (
-      <button onClick={handleTest} disabled={isTesting}>
-        {isTesting ? 'pending' : 'test'}
-      </button>
+it.each([undefined, 'datasource.microsoft.outlookTestFailed'])(
+  'tests only on demand and gives safe localized feedback (%s)',
+  async (failureKey) => {
+    Reflect.set(globalThis, 'IS_REACT_ACT_ENVIRONMENT', true)
+    await changeLanguage('en-US')
+    const notifyMutationError = vi.fn()
+    const client = createQueryClient({ notifyMutationError })
+    const container = document.createElement('div')
+    document.body.append(container)
+    const root = createRoot(container)
+    function Harness() {
+      const { handleTest, isTesting } = useTestDataSource(
+        'saved-connector',
+        failureKey,
+      )
+      return (
+        <button onClick={handleTest} disabled={isTesting}>
+          {isTesting ? 'pending' : 'test'}
+        </button>
+      )
+    }
+    let finish!: (value: { message: string }) => void
+    mocks.test.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          finish = resolve
+        }),
     )
-  }
-  let finish!: (value: { message: string }) => void
-  mocks.test.mockImplementationOnce(
-    () =>
-      new Promise((resolve) => {
-        finish = resolve
-      }),
-  )
-  try {
-    await act(async () =>
-      root.render(
-        <QueryClientProvider client={client}>
-          <Harness />
-        </QueryClientProvider>,
-      ),
-    )
-    expect(mocks.test).not.toHaveBeenCalled()
-    const button = container.querySelector('button')!
-    await act(async () => button.click())
-    expect(mocks.test).toHaveBeenCalledExactlyOnceWith('saved-connector')
-    await act(async () => new Promise((resolve) => setTimeout(resolve, 5)))
-    expect(button.disabled).toBe(true)
-    await act(async () =>
-      finish({ message: 'do not render arbitrary backend text' }),
-    )
-    await act(async () => new Promise((resolve) => setTimeout(resolve, 5)))
-    expect(button.disabled).toBe(false)
-    expect(mocks.success).toHaveBeenCalledWith('Connection successful.')
-    mocks.test.mockRejectedValueOnce(
-      new APIError(200, '102', 'secret-token-must-not-render'),
-    )
-    await act(async () => button.click())
-    await act(async () => new Promise((resolve) => setTimeout(resolve, 5)))
-    expect(mocks.error).toHaveBeenCalledWith(
-      'Connection test failed. Check the saved URL, authentication and response mapping.',
-    )
-    expect(JSON.stringify(mocks.error.mock.calls)).not.toContain('secret-token')
-    expect(notifyMutationError).not.toHaveBeenCalled()
-    expect(client.getQueryCache().getAll()).toHaveLength(0)
-  } finally {
-    await act(async () => root.unmount())
-    client.clear()
-    container.remove()
-  }
-})
+    try {
+      await act(async () =>
+        root.render(
+          <QueryClientProvider client={client}>
+            <Harness />
+          </QueryClientProvider>,
+        ),
+      )
+      expect(mocks.test).not.toHaveBeenCalled()
+      const button = container.querySelector('button')!
+      await act(async () => button.click())
+      expect(mocks.test).toHaveBeenCalledExactlyOnceWith('saved-connector')
+      await act(async () => new Promise((resolve) => setTimeout(resolve, 5)))
+      expect(button.disabled).toBe(true)
+      await act(async () =>
+        finish({ message: 'do not render arbitrary backend text' }),
+      )
+      await act(async () => new Promise((resolve) => setTimeout(resolve, 5)))
+      expect(button.disabled).toBe(false)
+      expect(mocks.success).toHaveBeenCalledWith('Connection successful.')
+      mocks.test.mockRejectedValueOnce(
+        new APIError(200, '102', 'secret-token-must-not-render'),
+      )
+      await act(async () => button.click())
+      await act(async () => new Promise((resolve) => setTimeout(resolve, 5)))
+      expect(mocks.error).toHaveBeenCalledWith(
+        failureKey
+          ? 'Connection test failed. Check the saved mailbox list, folder and Mail.Read application permission.'
+          : 'Connection test failed. Check the saved URL, authentication and response mapping.',
+      )
+      expect(JSON.stringify(mocks.error.mock.calls)).not.toContain(
+        'secret-token',
+      )
+      expect(notifyMutationError).not.toHaveBeenCalled()
+      expect(client.getQueryCache().getAll()).toHaveLength(0)
+    } finally {
+      await act(async () => root.unmount())
+      client.clear()
+      container.remove()
+    }
+  },
+)

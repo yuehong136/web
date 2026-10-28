@@ -1,6 +1,22 @@
 export default {
   datasource: {
     microsoft: {
+      outlookTestFailed:
+        '连接测试失败，请检查已保存的邮箱列表、文件夹和 Mail.Read 应用权限。',
+      outlookDescription:
+        '通过 Microsoft Graph 同步显式选择的 Outlook 邮箱邮件。',
+      outlookPermissions:
+        '需要 Mail.Read 应用权限，并获得管理员同意。读取邮件正文，不下载附件文件。',
+      userIds: '邮箱用户 ID',
+      userIdsPlaceholder: '输入用户 ID 或邮箱后按回车',
+      userIdsTip:
+        '仅同步这些邮箱。空列表不执行同步，也无法通过连接测试。不自动发现整个租户的邮箱。',
+      userIdsInvalid: '请输入唯一、非空且无首尾空格的邮箱用户 ID 或邮箱。',
+      mailFolder: '邮件文件夹',
+      mailFolderTip:
+        '一个文件夹 ID 或通用名称（如 inbox），应用于所有选定邮箱。',
+      mailFolderInvalid: '请输入文件夹 ID 或通用名称。',
+
       teamsDescription:
         '通过 Microsoft Graph 同步 Microsoft Teams 频道帖子及回复。',
       onedriveDescription:

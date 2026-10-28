@@ -98,7 +98,11 @@ export function prepareDataSourceValues(
     slackChannelScope,
     ...prepared
   } = values
-  if (source === DataSourceKey.TEAMS || source === DataSourceKey.ONEDRIVE) {
+  if (
+    source === DataSourceKey.TEAMS ||
+    source === DataSourceKey.ONEDRIVE ||
+    source === DataSourceKey.OUTLOOK
+  ) {
     const config: Record<string, unknown> = {
       ...values.config,
       sync_deleted_files: false,

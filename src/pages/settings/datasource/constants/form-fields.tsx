@@ -54,6 +54,7 @@ export const getBaseFormFields = (
 const getSourceFormFields = (
   t: (key: string) => string,
 ): Record<DataSourceKey, FormFieldConfig[]> => ({
+  [DataSourceKey.OUTLOOK]: getMicrosoftFormFields(DataSourceKey.OUTLOOK, t),
   [DataSourceKey.TEAMS]: getMicrosoftFormFields(DataSourceKey.TEAMS, t),
   [DataSourceKey.ONEDRIVE]: getMicrosoftFormFields(DataSourceKey.ONEDRIVE, t),
   [DataSourceKey.REST_API]: getRestApiFormFields(t),

@@ -35,13 +35,16 @@ export const datasourceKeys = {
 }
 
 /** Explicitly tests the saved configuration; does not mutate or refresh it. */
-export const useTestDataSource = (id: string) => {
+export const useTestDataSource = (
+  id: string,
+  failureKey = 'datasource.restApi.testFailed',
+) => {
   const { t } = useTranslation()
   const mutation = useMutation({
     mutationFn: () => datasourceAPI.connector.test(id),
     meta: { errorFeedback: MutationErrorFeedback.Local },
     onSuccess: () => toast.success(t('datasource.restApi.testSuccess')),
-    onError: () => toast.error(t('datasource.restApi.testFailed')),
+    onError: () => toast.error(t(failureKey)),
   })
   return { handleTest: () => mutation.mutate(), isTesting: mutation.isPending }
 }

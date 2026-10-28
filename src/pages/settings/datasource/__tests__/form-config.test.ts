@@ -482,7 +482,11 @@ describe('connector configuration contracts', () => {
 })
 
 it('round-trips Microsoft source scopes, extensions and masked credentials without enabling deletion sync', () => {
-  for (const source of [DataSourceKey.TEAMS, DataSourceKey.ONEDRIVE]) {
+  for (const source of [
+    DataSourceKey.TEAMS,
+    DataSourceKey.ONEDRIVE,
+    DataSourceKey.OUTLOOK,
+  ]) {
     const config = {
       drive_ids: [],
       batch_size: 1,
@@ -539,4 +543,33 @@ it('round-trips Microsoft source scopes, extensions and masked credentials witho
     expect(folder(value)).toBe(true)
   for (const value of ['../Reports', '/a/../b', '.', '/a/./b', 'a\u0001b', 1])
     expect(folder(value)).not.toBe(true)
+})
+
+it('keeps explicit Outlook mailbox scope and validates the folder without broadening empty lists', () => {
+  const source = DataSourceKey.OUTLOOK
+  const defaults = getDataSourceDefaultValues(source)
+  expect(defaults.config).toMatchObject({ user_ids: [], folder: 'inbox' })
+  for (const user_ids of [[], ['user@example.test', 'user-id']]) {
+    const values = getDataSourceDefaultValues(source, {
+      config: { user_ids, folder: 'sentitems', sync_deleted_files: true },
+    })
+    expect(prepareDataSourceValues(source, values).config).toMatchObject({
+      user_ids,
+      folder: 'sentitems',
+      sync_deleted_files: false,
+    })
+  }
+  const fields = getDataSourceFormFields(t)[source]
+  const users = fields.find(
+    (field) => field.name === 'config.user_ids',
+  )!.validate!
+  for (const value of [[], ['mailbox']]) expect(users(value)).toBe(true)
+  for (const value of [undefined, null, '', [''], [' a'], ['a', 'a'], [1]])
+    expect(users(value)).not.toBe(true)
+  const folder = fields.find((field) => field.name === 'config.folder')!
+  expect(folder.required).toBe(true)
+  for (const value of ['inbox', 'folder-id', '含 / 的 ID'])
+    expect(folder.validate!(value)).toBe(true)
+  for (const value of [undefined, null, '', '  ', 1])
+    expect(folder.validate!(value)).not.toBe(true)
 })

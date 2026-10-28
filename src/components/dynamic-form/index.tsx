@@ -301,6 +301,7 @@ const renderField = (
             <div role="group" aria-labelledby={labelId}>
               <TagEditor
                 value={fieldProps.value || []}
+                disabled={field.disabled}
                 onChange={fieldProps.onChange}
                 placeholder={field.placeholder}
               />

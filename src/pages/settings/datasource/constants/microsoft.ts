@@ -1,6 +1,9 @@
 import { DataSourceKey, FormFieldType, type FormFieldConfig } from '../types'
 
-type MicrosoftSource = DataSourceKey.TEAMS | DataSourceKey.ONEDRIVE
+type MicrosoftSource =
+  | DataSourceKey.TEAMS
+  | DataSourceKey.ONEDRIVE
+  | DataSourceKey.OUTLOOK
 const defaults = (source: MicrosoftSource) => ({
   name: '',
   source,
@@ -10,10 +13,14 @@ const defaults = (source: MicrosoftSource) => ({
     ...(source === DataSourceKey.ONEDRIVE
       ? { drive_ids: [], folder_path: '' }
       : {}),
+    ...(source === DataSourceKey.OUTLOOK
+      ? { user_ids: [], folder: 'inbox' }
+      : {}),
     credentials: { tenant_id: '', client_id: '', client_secret: '' },
   },
 })
 export const microsoftDefaultValues = {
+  [DataSourceKey.OUTLOOK]: defaults(DataSourceKey.OUTLOOK),
   [DataSourceKey.TEAMS]: defaults(DataSourceKey.TEAMS),
   [DataSourceKey.ONEDRIVE]: defaults(DataSourceKey.ONEDRIVE),
 }
@@ -34,6 +41,37 @@ export function getMicrosoftFormFields(
       }),
     ),
   ]
+  if (source === DataSourceKey.OUTLOOK) {
+    fields.push(
+      {
+        label: t('datasource.microsoft.userIds'),
+        name: 'config.user_ids',
+        type: FormFieldType.Tag,
+        placeholder: t('datasource.microsoft.userIdsPlaceholder'),
+        tooltip: t('datasource.microsoft.userIdsTip'),
+        validate: (value) =>
+          (Array.isArray(value) &&
+            value.every(
+              (id) =>
+                typeof id === 'string' &&
+                id.trim().length > 0 &&
+                id === id.trim(),
+            ) &&
+            new Set(value).size === value.length) ||
+          'datasource.microsoft.userIdsInvalid',
+      },
+      {
+        label: t('datasource.microsoft.mailFolder'),
+        name: 'config.folder',
+        type: FormFieldType.Text,
+        required: true,
+        tooltip: t('datasource.microsoft.mailFolderTip'),
+        validate: (value) =>
+          (typeof value === 'string' && value.trim().length > 0) ||
+          'datasource.microsoft.mailFolderInvalid',
+      },
+    )
+  }
   if (source === DataSourceKey.ONEDRIVE) {
     fields.push(
       {

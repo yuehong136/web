@@ -84,6 +84,7 @@ const TagEditor = React.forwardRef<HTMLDivElement, TagEditorProps>(
     }
 
     const handleInputConfirm = () => {
+      if (disabled) return
       if (inputValue.trim()) {
         // 支持分号分隔多个标签
         const newTags = inputValue
@@ -133,13 +134,18 @@ const TagEditor = React.forwardRef<HTMLDivElement, TagEditorProps>(
             >
               <span className="max-w-32 truncate">{tag}</span>
               {!disabled && (
-                <X
-                  className="h-3 w-3 cursor-pointer opacity-60 transition-opacity hover:opacity-100"
+                <button
+                  type="button"
+                  aria-label={t('common.remove')}
+                  title={tag}
+                  className="rounded-radius-sm opacity-60 transition-opacity hover:opacity-100 focus-visible:outline-2 focus-visible:outline-state-focus"
                   onClick={(e) => {
                     e.stopPropagation()
                     handleClose(tag)
                   }}
-                />
+                >
+                  <X className="size-icon-sm" />
+                </button>
               )}
             </div>
           </Tooltip>

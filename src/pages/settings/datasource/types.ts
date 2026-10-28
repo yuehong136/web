@@ -39,6 +39,7 @@ export enum DataSourceKey {
   // 其他
   GOOGLE_DRIVE = 'google_drive',
   GMAIL = 'gmail',
+  OUTLOOK = 'outlook',
   DISCORD = 'discord',
   MOODLE = 'moodle',
   IMAP = 'imap',

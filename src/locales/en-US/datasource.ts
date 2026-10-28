@@ -1,6 +1,23 @@
 export default {
   datasource: {
     microsoft: {
+      outlookTestFailed:
+        'Connection test failed. Check the saved mailbox list, folder and Mail.Read application permission.',
+      outlookDescription:
+        'Sync mail from explicitly selected Outlook mailboxes through Microsoft Graph.',
+      outlookPermissions:
+        'Requires Mail.Read application permission with administrator consent. Reads mail bodies, not attachment files.',
+      userIds: 'Mailbox user IDs',
+      userIdsPlaceholder: 'Enter a user ID or email, then press Enter',
+      userIdsTip:
+        'Only these mailboxes are synced. An empty list syncs nothing and cannot pass a connection test. No tenant-wide discovery.',
+      userIdsInvalid:
+        'Enter unique, nonempty mailbox IDs or emails without surrounding spaces.',
+      mailFolder: 'Mail folder',
+      mailFolderTip:
+        'One folder ID or well-known name, such as inbox. Applies to every selected mailbox.',
+      mailFolderInvalid: 'Enter a folder ID or well-known name.',
+
       teamsDescription:
         'Sync Microsoft Teams channel posts and replies through Microsoft Graph.',
       onedriveDescription:

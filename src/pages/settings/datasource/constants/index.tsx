@@ -49,6 +49,11 @@ const ICON_SIZE = 28
 export const generateDataSourceInfo = (
   t: (key: string) => string,
 ): IDataSourceInfoMap => ({
+  [DataSourceKey.OUTLOOK]: {
+    name: 'Outlook',
+    description: t('datasource.microsoft.outlookDescription'),
+    icon: <Mail size={ICON_SIZE} className="text-text-primary" />,
+  },
   [DataSourceKey.TEAMS]: {
     name: 'Microsoft Teams',
     description: t('datasource.microsoft.teamsDescription'),
@@ -393,6 +398,7 @@ export const DataSourceGroups = {
     DataSourceKey.REST_API,
     DataSourceKey.GOOGLE_DRIVE,
     DataSourceKey.GMAIL,
+    DataSourceKey.OUTLOOK,
     DataSourceKey.DISCORD,
     DataSourceKey.MOODLE,
     DataSourceKey.IMAP,

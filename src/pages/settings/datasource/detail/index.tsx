@@ -52,7 +52,12 @@ export default function DataSourceDetailPage() {
     id: string
     values: Record<string, unknown>
   }>()
-  const { handleTest, isTesting } = useTestDataSource(id)
+  const { handleTest, isTesting } = useTestDataSource(
+    id,
+    detail?.source === DataSourceKey.OUTLOOK
+      ? 'datasource.microsoft.outlookTestFailed'
+      : undefined,
+  )
 
   const isActive = isDataSourceActive(detail?.status)
   const logsState = useDataSourceLogs(id, isActive)
@@ -194,6 +199,7 @@ export default function DataSourceDetailPage() {
                     DataSourceKey.REST_API,
                     DataSourceKey.TEAMS,
                     DataSourceKey.ONEDRIVE,
+                    DataSourceKey.OUTLOOK,
                   ].includes(source) && (
                     <>
                       <p className="text-sm text-text-secondary">
