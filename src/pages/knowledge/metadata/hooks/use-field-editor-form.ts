@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { metadataNumbers, metadataNumericType } from '@/lib/metadata-config'
 import type { MetadataTableData, MetadataValueType } from '@/types/api'
 
 interface UseFieldEditorFormOptions {
@@ -134,11 +135,17 @@ export function useFieldEditorForm(
 
   const valueBlur = useCallback(() => {
     setTempValues((prev) => {
-      const uniqueValues = [...new Set(prev.filter((v) => v.trim()))]
+      const uniqueValues = [
+        ...new Set(
+          metadataNumericType(formData.valueType, formData.definition)
+            ? prev
+            : prev.filter((v) => v.trim()),
+        ),
+      ]
       setFormData((prevForm) => ({ ...prevForm, values: uniqueValues }))
       return uniqueValues
     })
-  }, [])
+  }, [formData.valueType, formData.definition])
 
   const addValue = useCallback(() => {
     setTempValues((prev) => [...prev, ''])
@@ -169,17 +176,20 @@ export function useFieldEditorForm(
     }
     if (errors.field || errors.values) return
 
-    const finalValues = [...new Set(tempValues.filter((v) => v.trim()))]
-    if (
-      formData.valueType === 'number' &&
-      finalValues.some((value) => !Number.isFinite(Number(value)))
-    ) {
+    const numericType = metadataNumericType(
+      formData.valueType,
+      formData.definition,
+    )
+    try {
+      if (numericType) metadataNumbers(tempValues, numericType === 'integer')
+    } catch {
       setErrors((prev) => ({
         ...prev,
         values: t('knowledge.metadata.editor.invalidNumber'),
       }))
       return
     }
+    const finalValues = [...new Set(tempValues.filter((v) => v.trim()))]
     onSave({ ...formData, values: finalValues })
   }, [errors.field, errors.values, formData, onSave, t, tempValues])
 

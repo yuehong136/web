@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
+  InvalidMetadataNumberError,
+  metadataNumbers,
   metadataConfigToFields,
   metadataFieldsToConfig,
   settingsToTableData,
@@ -130,5 +132,87 @@ test('numeric list constraints and time types survive edit, save and reload', ()
       (row) => row.valueType,
     ),
     ['number', 'list', 'time'],
+  )
+})
+
+test('numeric schema saves reject malformed, empty, non-finite and fractional integer values before JSON serialization', () => {
+  for (const value of [
+    'abc',
+    '',
+    '   ',
+    'Infinity',
+    '-Infinity',
+    'NaN',
+    '1e309',
+    '0x10',
+    NaN,
+    Infinity,
+  ]) {
+    assert.throws(() => metadataNumbers([value]), InvalidMetadataNumberError)
+    const schema = {
+      type: 'object',
+      properties: { scores: { type: 'array', items: { type: 'number' } } },
+    }
+    assert.throws(
+      () =>
+        metadataFieldsToConfig(
+          [{ key: 'scores', type: 'list', enum: [value] }],
+          schema,
+        ),
+      InvalidMetadataNumberError,
+    )
+    assert.throws(
+      () =>
+        tableDataToSettings([
+          {
+            field: 'scores',
+            description: '',
+            valueType: 'list',
+            definition: {
+              key: 'scores',
+              type: 'list',
+              items: { type: 'number' },
+            },
+            values: [String(value)],
+          },
+        ]),
+      InvalidMetadataNumberError,
+    )
+  }
+  assert.deepEqual(
+    metadataNumbers(['0', 0, '-0', ' 1.5 ', '1e2']),
+    [0, 0, -0, 1.5, 100],
+  )
+  assert.throws(
+    () => metadataNumbers(['1.5'], true),
+    InvalidMetadataNumberError,
+  )
+  const schema = {
+    type: 'object',
+    properties: { scores: { type: 'array', items: { type: 'integer' } } },
+  }
+  assert.throws(
+    () =>
+      metadataFieldsToConfig(
+        [{ key: 'scores', type: 'list', enum: ['1.5'] }],
+        schema,
+      ),
+    InvalidMetadataNumberError,
+  )
+  assert.deepEqual(
+    metadataFieldsToConfig(
+      [{ key: 'scores', type: 'list', enum: ['0', '2'] }],
+      schema,
+    ),
+    {
+      ...schema,
+      properties: {
+        scores: {
+          description: '',
+          type: 'array',
+          items: { type: 'integer', enum: [0, 2] },
+        },
+      },
+    },
   )
 })

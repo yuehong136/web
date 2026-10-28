@@ -1,10 +1,12 @@
 import { useCallback, useMemo, useState } from 'react'
 import {
+  InvalidMetadataNumberError,
   metadataConfigToFields,
   metadataFieldsToConfig,
 } from '@/lib/metadata-config'
 import type { MetadataDefinition } from '@/types/metadata'
 import { useTranslation } from 'react-i18next'
+import { toast } from '@/lib/toast'
 import {
   useMetadataSummary,
   useBatchUpdateMetadata,
@@ -285,8 +287,10 @@ export function useMetadataEditor(
         onSuccess?.(settings)
         onClose()
       }
-    } catch {
-      // mutations surface errors via toast; swallow here to keep modal open
+    } catch (error) {
+      if (error instanceof InvalidMetadataNumberError)
+        toast.error(t('knowledge.metadata.editor.invalidNumber'))
+      // Mutation failures already surface feedback; keep the draft open.
     }
   }, [
     batchUpdateMutation,
@@ -302,6 +306,7 @@ export function useMetadataEditor(
     pendingDeletes,
     pendingUpdates,
     tableData,
+    t,
     updateDocSettingsMutation,
     updateKBSettingsMutation,
   ])

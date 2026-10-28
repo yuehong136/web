@@ -5,6 +5,9 @@ import { MemoryRouter } from 'react-router-dom'
 import { useFormContext } from 'react-hook-form'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { apiClient, APIError } from '@/api/client'
+import { toast } from '@/lib/toast'
+import { ManageMetadataModal } from '@/pages/knowledge/metadata/ManageMetadataModal'
+import { MetadataManageType } from '@/types/metadata'
 import { setProductLanguage } from '@/locales/i18n'
 import type { Document } from '@/types/api'
 import { useDocumentPageModals } from '../hooks/use-document-page-modals'
@@ -335,4 +338,78 @@ it('keeps the metadata draft open on a business failure and does not update the 
   await click('Cancel')
   await click('Metadata settings (0)')
   expect(document.body.textContent).not.toContain('author')
+})
+
+const numericSchema = (value: string | number) => ({
+  type: 'object',
+  properties: {
+    scores: { type: 'array', items: { type: 'number', enum: [value, 2] } },
+  },
+})
+async function numericDialog(value: string | number) {
+  await act(async () =>
+    root.render(
+      <QueryClientProvider client={client}>
+        <ManageMetadataModal
+          open
+          onClose={vi.fn()}
+          kbId="kb-1"
+          documentId="doc-1"
+          mode={MetadataManageType.SINGLE_FILE_SETTING}
+          initialConfig={numericSchema(value)}
+        />
+      </QueryClientProvider>,
+    ),
+  )
+}
+
+it('rejects invalid numeric list values at the actual save boundary without HTTP or closing the draft', async () => {
+  for (const value of ['abc', '', ' ', 'Infinity', NaN]) {
+    vi.mocked(toast.error).mockClear()
+    await numericDialog(value)
+    await saveTopDialog()
+    expect(puts).toEqual([])
+    expect(toast.error).toHaveBeenCalledWith('Enter finite numeric values.')
+    expect(document.body.textContent).toContain('scores')
+  }
+})
+
+it('shows numeric list editor errors, retains the draft, and accepts zero after recovery', async () => {
+  await numericDialog(1)
+  const row = [...document.querySelectorAll('div.group')].find((el) =>
+    el.textContent?.includes('scores'),
+  )!
+  await act(async () => row.querySelector('button')!.click())
+  const input = document.querySelector<HTMLInputElement>(
+    'input[placeholder="Enter value..."]',
+  )!
+  const change = async (value: string) =>
+    act(async () => {
+      Object.getOwnPropertyDescriptor(
+        HTMLInputElement.prototype,
+        'value',
+      )!.set!.call(input, value)
+      input.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+  for (const value of ['abc', ' ', 'Infinity', '1e309']) {
+    await change(value)
+    await click('Confirm')
+    expect(document.body.textContent).toContain('Enter finite numeric values.')
+    expect(puts).toEqual([])
+  }
+  await change('0')
+  await click('Confirm')
+  await saveTopDialog()
+  expect(puts[0]).toEqual({
+    metadata: {
+      type: 'object',
+      properties: {
+        scores: {
+          type: 'array',
+          description: '',
+          items: { type: 'number', enum: [0, 2] },
+        },
+      },
+    },
+  })
 })

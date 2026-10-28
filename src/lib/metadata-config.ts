@@ -8,6 +8,40 @@ import type {
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   !!value && typeof value === 'object' && !Array.isArray(value)
 
+export class InvalidMetadataNumberError extends Error {}
+
+/** Reject values that JSON would turn into null or silently coerce to zero. */
+export function metadataNumbers(
+  values: Array<string | number>,
+  integer = false,
+): number[] {
+  return values.map((value) => {
+    if (
+      typeof value !== 'number' &&
+      (typeof value !== 'string' ||
+        !/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(value.trim()))
+    )
+      throw new InvalidMetadataNumberError('invalid-metadata-number')
+    const number = Number(value)
+    if (!Number.isFinite(number) || (integer && !Number.isInteger(number)))
+      throw new InvalidMetadataNumberError('invalid-metadata-number')
+    return number
+  })
+}
+
+export function metadataNumericType(
+  valueType: MetadataValueType | undefined,
+  definition?: MetadataFieldDefinition,
+): 'number' | 'integer' | undefined {
+  if (valueType === 'number') return 'number'
+  const items = definition?.items
+  return valueType === 'list' &&
+    isRecord(items) &&
+    (items.type === 'number' || items.type === 'integer')
+    ? items.type
+    : undefined
+}
+
 export function metadataValueType(
   value: unknown,
 ): MetadataValueType | undefined {
@@ -33,6 +67,9 @@ export function metadataConfigToFields(
     return {
       key,
       ...(type ? { type } : {}),
+      ...(type === 'list' && isRecord(property.items)
+        ? { items: property.items }
+        : {}),
       description:
         typeof property.description === 'string' ? property.description : '',
       enum: Array.isArray(values)
@@ -61,6 +98,8 @@ export function tableDataToSettings(
       ...original
     } = item.definition ?? { key: item.field }
     const restricted = item.restrictDefinedValues ?? item.values.length > 0
+    const numericType = metadataNumericType(item.valueType, item.definition)
+    if (numericType) metadataNumbers(item.values, numericType === 'integer')
     return {
       ...original,
       key: item.field,
@@ -125,19 +164,27 @@ export function metadataFieldsToConfig(
         delete items.enum
         if (field.enum?.length)
           items.enum = ['number', 'integer'].includes(String(items.type))
-            ? field.enum.map(Number)
+            ? metadataNumbers(field.enum, items.type === 'integer')
             : field.enum
         property.items = items
       } else if (field.enum?.length) {
         property.enum =
-          field.type === 'number' ? field.enum.map(Number) : field.enum
+          field.type === 'number'
+            ? metadataNumbers(field.enum, property.type === 'integer')
+            : field.enum
       }
       if (field.examples?.length)
         property.examples =
           field.type === 'number'
-            ? field.examples.map(Number)
+            ? metadataNumbers(field.examples, property.type === 'integer')
             : field.type === 'list'
-              ? field.examples.map((value) => [value])
+              ? field.examples.map((value) => {
+                  const items = property.items
+                  return isRecord(items) &&
+                    (items.type === 'number' || items.type === 'integer')
+                    ? metadataNumbers([value], items.type === 'integer')
+                    : [value]
+                })
               : field.examples
       return [field.key, property]
     }),
