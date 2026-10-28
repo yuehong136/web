@@ -1,26 +1,26 @@
 import {
-  BrainCircuit,
-  ScanEye,
+  MessageSquare,
+  Image,
   AudioLines,
   Mic,
-  ListFilter,
+  ArrowDownWideNarrow,
   ScanText,
-  Wrench,
-  Network,
+  Braces,
+  Layers,
   type LucideIcon,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 
 const icons: Partial<Record<string, LucideIcon>> = {
-  chat: BrainCircuit,
-  embedding: Network,
-  rerank: ListFilter,
-  image2text: ScanEye,
+  chat: MessageSquare,
+  embedding: Layers,
+  rerank: ArrowDownWideNarrow,
+  image2text: Image,
   speech2text: Mic,
   tts: AudioLines,
   ocr: ScanText,
-  tools: Wrench,
+  tools: Braces,
 }
 const aliases: Record<string, string> = {
   LLM: 'chat',
@@ -36,7 +36,9 @@ export function ModelCapability({ type }: { type: string }) {
   const Icon = icons[kind]
   return (
     <span className="inline-flex items-center gap-1 whitespace-nowrap">
-      {Icon && <Icon aria-hidden className="size-3 shrink-0" />}
+      {Icon && (
+        <Icon aria-hidden strokeWidth={1.65} className="size-3.5! shrink-0" />
+      )}
       {Icon ? t(`common.modelPicker.capabilities.${kind}`) : type}
     </span>
   )
