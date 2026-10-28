@@ -86,7 +86,6 @@ export function ModelProvidersPage() {
             value={name}
             onChange={(event) => setName(event.target.value)}
             required
-            disabled={mutation.isPending}
           />
           <Label htmlFor="model-instance-region">
             {t('settings.models.instances.region')}
@@ -95,7 +94,6 @@ export function ModelProvidersPage() {
             id="model-instance-region"
             value={region}
             onChange={(event) => setRegion(event.target.value)}
-            disabled={mutation.isPending}
           />
         </div>
       </ApiKeyModal>

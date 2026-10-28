@@ -1,9 +1,24 @@
-import { act } from 'react'
+import { act, StrictMode } from 'react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { ModelProvidersPage } from '../../index'
+import { modelProvidersAPI } from '@/api/llm-providers'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { ApiKeyModal } from '../api-key-modal'
 import { PADDLEOCR_ALGORITHMS } from '../paddleocr-config'
 import { setProductLanguage } from '@/locales/i18n'
+
+vi.mock('../system-setting', () => ({ SystemSetting: () => null }))
+vi.mock('../used-models', () => ({ UsedModels: () => null }))
+vi.mock('../available-models', () => ({
+  AvailableModels: ({
+    handleAddModel,
+  }: {
+    handleAddModel: (provider: string) => void
+  }) => (
+    <button onClick={() => handleAddModel('PaddleOCR')}>Add fixture</button>
+  ),
+}))
 
 Reflect.set(globalThis, 'IS_REACT_ACT_ENVIRONMENT', true)
 let root: Root
@@ -11,16 +26,18 @@ let container: HTMLDivElement
 const save = vi.fn()
 const verify = vi.fn()
 const close = vi.fn()
-const render = async (isOpen = true) => {
+const render = async (isOpen = true, providerName = 'PaddleOCR') => {
   await act(async () =>
     root.render(
-      <ApiKeyModal
-        isOpen={isOpen}
-        providerName="PaddleOCR"
-        onSave={save}
-        onVerify={verify}
-        onClose={close}
-      />,
+      <StrictMode>
+        <ApiKeyModal
+          isOpen={isOpen}
+          providerName={providerName}
+          onSave={save}
+          onVerify={verify}
+          onClose={close}
+        />
+      </StrictMode>,
     ),
   )
 }
@@ -222,3 +239,158 @@ it('explains both service protocols and keeps a cloud URL when switching algorit
     },
   })
 })
+
+const deferred = () => {
+  let resolve!: (value: any) => void
+  let reject!: (reason: unknown) => void
+  const promise = new Promise<any>((yes, no) => {
+    resolve = yes
+    reject = no
+  })
+  return { promise, resolve, reject }
+}
+const readyDraft = async () => {
+  await render()
+  await change(field('Model name (required)'), 'draft')
+  await change(
+    field('Inference URL (required)'),
+    'https://service.example/layout-parsing',
+  )
+}
+
+for (const outcome of ['resolve', 'reject'] as const) {
+  it(`ignores an old save ${outcome} after closing and reopening`, async () => {
+    const pending = deferred()
+    save.mockReturnValueOnce(pending.promise)
+    await readyDraft()
+    await act(async () => button('Save').click())
+    await render(false)
+    await readyDraft()
+    await change(field('Model name (required)'), 'new-draft')
+    await act(async () =>
+      pending[outcome](
+        outcome === 'resolve' ? undefined : new Error('private failure'),
+      ),
+    )
+    expect(close).not.toHaveBeenCalled()
+    expect(field('Model name (required)').value).toBe('new-draft')
+    expect(document.body.textContent).not.toContain('Could not save the model.')
+    expect(button('Save').disabled).toBe(false)
+  })
+}
+
+it('invalidates verified configuration when the real algorithm Select changes', async () => {
+  await readyDraft()
+  await act(async () => button('Test connection').click())
+  expect(document.body.textContent).toContain('Connection verified')
+  expect(save).not.toHaveBeenCalled()
+  await select('PP-OCRv5')
+  expect(document.body.textContent).not.toContain('Connection verified')
+})
+
+it('ignores a late verification after replacing the provider form', async () => {
+  const pending = deferred()
+  verify.mockReturnValueOnce(pending.promise)
+  await readyDraft()
+  await act(async () => button('Test connection').click())
+  await act(async () =>
+    root.render(
+      <ApiKeyModal
+        isOpen
+        providerName="Ollama"
+        onSave={save}
+        onVerify={verify}
+        onClose={close}
+      />,
+    ),
+  )
+  await change(
+    document.getElementById('local-model-name') as HTMLInputElement,
+    'new-provider',
+  )
+  await act(async () => pending.resolve({ isValid: true, logs: 'private' }))
+  expect(document.body.textContent).not.toContain('Connection verified')
+  expect(
+    (document.getElementById('local-model-name') as HTMLInputElement).value,
+  ).toBe('new-provider')
+  expect(save).not.toHaveBeenCalled()
+  expect(close).not.toHaveBeenCalled()
+})
+
+it('lets the real page edit a new draft while an old save is pending', async () => {
+  const pending = deferred()
+  vi.spyOn(modelProvidersAPI, 'createInstance').mockReturnValueOnce(
+    pending.promise,
+  )
+  const client = new QueryClient()
+  await act(async () =>
+    root.render(
+      <QueryClientProvider client={client}>
+        <ModelProvidersPage />
+      </QueryClientProvider>,
+    ),
+  )
+  await act(async () => button('Add fixture').click())
+  await change(
+    document.getElementById('model-instance-name') as HTMLInputElement,
+    'old-instance',
+  )
+  await change(field('Model name (required)'), 'old-model')
+  await change(
+    field('Inference URL (required)'),
+    'https://service.example/layout-parsing',
+  )
+  await act(async () => button('Save').click())
+  await act(async () => button('Close').click())
+  await act(async () => button('Add fixture').click())
+  const name = document.getElementById(
+    'model-instance-name',
+  ) as HTMLInputElement
+  expect(name.disabled).toBe(false)
+  await change(name, 'new-instance')
+  await change(field('Model name (required)'), 'new-model')
+  await act(async () => pending.resolve({ id: 'created' }))
+  expect(document.getElementById('model-instance-name')).toBe(name)
+  expect(name.value).toBe('new-instance')
+  expect(field('Model name (required)').value).toBe('new-model')
+  client.clear()
+})
+
+for (const provider of [
+  'OpenAI',
+  'Azure-OpenAI',
+  'Bedrock',
+  'Fish Audio',
+  'Google Cloud',
+  'MinerU',
+  'Tencent Cloud',
+  'OpenDataLoader',
+  'PaddleOCR',
+  'XunFei Spark',
+  'VolcEngine',
+]) {
+  it(`resets all ${provider} input defaults through the unified unmount boundary`, async () => {
+    await render(true, provider)
+    const inputs = () =>
+      Array.from(document.querySelectorAll<HTMLInputElement>('dialog input'))
+    expect(inputs().length).toBeGreaterThan(0)
+    const initial = inputs().map((input) => ({
+      type: input.type,
+      value: input.value,
+    }))
+    for (const input of inputs()) {
+      if (
+        !input.disabled &&
+        ['text', 'password', 'number', 'url'].includes(input.type)
+      )
+        await change(input, input.type === 'number' ? '1234' : 'draft-field')
+    }
+    await render(false, provider)
+    await render(true, provider)
+    expect(
+      inputs().map((input) => ({ type: input.type, value: input.value })),
+    ).toEqual(initial)
+    expect(save).not.toHaveBeenCalled()
+    expect(verify).not.toHaveBeenCalled()
+  })
+}

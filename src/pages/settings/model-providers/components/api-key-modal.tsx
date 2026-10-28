@@ -1,5 +1,5 @@
 import { ModelConfigurationHeader } from './model-configuration-header'
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Eye, EyeOff, ExternalLink, RefreshCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -64,6 +64,13 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
   children,
 }) => {
   const { t } = useTranslation()
+  const mounted = useRef(false)
+  useEffect(() => {
+    mounted.current = true
+    return () => {
+      mounted.current = false
+    }
+  }, [])
   const paddleKey = 'settings.models.paddleOCR'
   const isPaddleOCR = providerName === 'PaddleOCR'
   // 判断厂商类型
@@ -163,6 +170,12 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
     null,
   )
   const [error, setError] = useState('')
+  const updateDraft =
+    <T,>(setter: (value: T) => void) =>
+    (value: T) => {
+      setVerifyResult(null)
+      setter(value)
+    }
 
   const docLink = FACTORY_DOC_LINKS[providerName]
   const modelTypes =
@@ -188,17 +201,14 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
       if (providerName === 'Tencent Cloud') {
         if (!tencentCloudSid.trim()) {
           setError('请输入腾讯云 SecretId')
-          setIsLoading(false)
           return
         }
         if (!tencentCloudSk.trim()) {
           setError('请输入腾讯云 SecretKey')
-          setIsLoading(false)
           return
         }
         if (!modelName.trim()) {
           setError('请选择模型')
-          setIsLoading(false)
           return
         }
         additionalParams.TencentCloud_sid = tencentCloudSid
@@ -213,29 +223,24 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
       else if (providerName === 'XunFei Spark') {
         if (!modelName.trim()) {
           setError('请输入模型名称')
-          setIsLoading(false)
           return
         }
         if (!sparkApiPassword.trim()) {
           setError('请输入 API Password')
-          setIsLoading(false)
           return
         }
         // TTS 模式需要额外字段
         if (modelType === 'tts') {
           if (!sparkAppId.trim()) {
             setError('请输入 APP ID')
-            setIsLoading(false)
             return
           }
           if (!sparkApiSecret.trim()) {
             setError('请输入 API Secret')
-            setIsLoading(false)
             return
           }
           if (!sparkApiKey.trim()) {
             setError('请输入 API Key')
-            setIsLoading(false)
             return
           }
           additionalParams.spark_app_id = sparkAppId
@@ -253,17 +258,14 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
       else if (providerName === 'Fish Audio') {
         if (!modelName.trim()) {
           setError('请输入模型名称')
-          setIsLoading(false)
           return
         }
         if (!fishAudioAk.trim()) {
           setError('请输入 API Key')
-          setIsLoading(false)
           return
         }
         if (!fishAudioRefId.trim()) {
           setError('请输入 Reference ID')
-          setIsLoading(false)
           return
         }
         additionalParams.fish_audio_ak = fishAudioAk
@@ -278,22 +280,18 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
       else if (providerName === 'Google Cloud') {
         if (!modelName.trim()) {
           setError('请输入模型 ID')
-          setIsLoading(false)
           return
         }
         if (!googleProjectId.trim()) {
           setError('请输入 Project ID')
-          setIsLoading(false)
           return
         }
         if (!googleRegion.trim()) {
           setError('请输入 Region')
-          setIsLoading(false)
           return
         }
         if (!googleServiceAccountKey.trim()) {
           setError('请输入 Service Account Key')
-          setIsLoading(false)
           return
         }
         additionalParams.google_project_id = googleProjectId
@@ -309,12 +307,10 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
       else if (providerName === 'Azure-OpenAI') {
         if (!baseUrl.trim()) {
           setError('请输入 Base URL')
-          setIsLoading(false)
           return
         }
         if (!modelName.trim()) {
           setError('请输入模型名称')
-          setIsLoading(false)
           return
         }
         additionalParams.api_base = baseUrl
@@ -331,17 +327,14 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
       else if (providerName === 'VolcEngine') {
         if (!modelName.trim()) {
           setError('请输入模型名称')
-          setIsLoading(false)
           return
         }
         if (!endpointId.trim()) {
           setError(t('settings.models.volcEngine.modelIdRequired'))
-          setIsLoading(false)
           return
         }
         if (!arkApiKey.trim()) {
           setError('请输入 ARK API Key')
-          setIsLoading(false)
           return
         }
         additionalParams.endpoint_id = endpointId
@@ -355,24 +348,20 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
       else if (providerName === 'Bedrock') {
         if (!modelName.trim()) {
           setError('请输入模型名称')
-          setIsLoading(false)
           return
         }
         if (!bedrockRegion) {
           setError('请选择区域')
-          setIsLoading(false)
           return
         }
         // 根据认证模式验证
         if (bedrockAuthMode === 'access_key_secret') {
           if (!bedrockAk.trim()) {
             setError('请输入 Access Key')
-            setIsLoading(false)
             return
           }
           if (!bedrockSk.trim()) {
             setError('请输入 Secret Key')
-            setIsLoading(false)
             return
           }
           additionalParams.bedrock_ak = bedrockAk
@@ -380,7 +369,6 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
         } else if (bedrockAuthMode === 'iam_role') {
           if (!awsRoleArn.trim()) {
             setError('请输入 AWS Role ARN')
-            setIsLoading(false)
             return
           }
           additionalParams.aws_role_arn = awsRoleArn
@@ -397,12 +385,10 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
       else if (providerName === 'MinerU') {
         if (!modelName.trim()) {
           setError('请输入模型名称')
-          setIsLoading(false)
           return
         }
         if (!mineruApiServer.trim()) {
           setError('请输入 API Server 地址')
-          setIsLoading(false)
           return
         }
         // 构建 api_key 配置对象
@@ -459,12 +445,10 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
       else if (isLocal) {
         if (!modelName.trim()) {
           setError('请输入模型名称')
-          setIsLoading(false)
           return
         }
         if (!baseUrl.trim()) {
           setError('请输入 Base URL')
-          setIsLoading(false)
           return
         }
         Object.assign(
@@ -487,7 +471,6 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
       else if (isSimpleApiKey) {
         if (!apiKey.trim()) {
           setError('请输入 API Key')
-          setIsLoading(false)
           return
         }
         // 传递可选的 Base URL
@@ -516,7 +499,6 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
       else {
         if (!apiKey.trim()) {
           setError('请输入 API Key')
-          setIsLoading(false)
           return
         }
       }
@@ -534,13 +516,15 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
           finalBaseUrl,
           additionalParams,
         )
+        if (!mounted.current) return
         const result = normalizeVerifyResult(verifyResponse)
         setVerifyResult({ isValid: result.isValid, logs: '' })
       } else {
         await onSave(finalApiKey, finalBaseUrl, additionalParams)
-        handleClose()
+        if (mounted.current) onClose()
       }
     } catch {
+      if (!mounted.current) return
       if (isVerify) {
         setVerifyResult({
           isValid: false,
@@ -556,25 +540,9 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
         )
       }
     } finally {
-      if (isVerify) {
-        setIsVerifying(false)
-      } else {
-        setIsLoading(false)
-      }
+      if (mounted.current) (isVerify ? setIsVerifying : setIsLoading)(false)
     }
   }
-
-  const handleClose = () => {
-    setApiKey('')
-    setBaseUrl('')
-    setModelName('')
-    setError('')
-    setVerifyResult(null)
-    setShowApiKey(false)
-    onClose()
-  }
-
-  if (!isOpen) return null
 
   // 获取模态框标题
   const getModalTitle = () => {
@@ -597,7 +565,7 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent size="md">
         <ModelConfigurationHeader
           provider={providerName}
@@ -628,7 +596,10 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
                 <label className="mb-2 block text-sm font-medium text-text-primary">
                   模型 <span className="text-red-500">*</span>
                 </label>
-                <Select value={modelName} onValueChange={setModelName}>
+                <Select
+                  value={modelName}
+                  onValueChange={updateDraft(setModelName)}
+                >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="选择模型" />
                   </SelectTrigger>
@@ -672,7 +643,10 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
                 <label className="mb-2 block text-sm font-medium text-text-primary">
                   模型类型 <span className="text-red-500">*</span>
                 </label>
-                <Select value={modelType} onValueChange={setModelType}>
+                <Select
+                  value={modelType}
+                  onValueChange={updateDraft(setModelType)}
+                >
                   <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
@@ -826,7 +800,10 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
                 <label className="mb-2 block text-sm font-medium text-text-primary">
                   模型类型 <span className="text-red-500">*</span>
                 </label>
-                <Select value={modelType} onValueChange={setModelType}>
+                <Select
+                  value={modelType}
+                  onValueChange={updateDraft(setModelType)}
+                >
                   <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
@@ -904,7 +881,10 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
                 <label className="mb-2 block text-sm font-medium text-text-primary">
                   模型类型 <span className="text-red-500">*</span>
                 </label>
-                <Select value={modelType} onValueChange={setModelType}>
+                <Select
+                  value={modelType}
+                  onValueChange={updateDraft(setModelType)}
+                >
                   <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
@@ -983,7 +963,10 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
                   <label className="text-sm font-medium text-text-primary">
                     支持视觉 (Vision)
                   </label>
-                  <Switch checked={vision} onCheckedChange={setVision} />
+                  <Switch
+                    checked={vision}
+                    onCheckedChange={updateDraft(setVision)}
+                  />
                 </div>
               )}
             </>
@@ -996,7 +979,10 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
                 <label className="mb-2 block text-sm font-medium text-text-primary">
                   模型类型 <span className="text-red-500">*</span>
                 </label>
-                <Select value={modelType} onValueChange={setModelType}>
+                <Select
+                  value={modelType}
+                  onValueChange={updateDraft(setModelType)}
+                >
                   <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
@@ -1069,7 +1055,10 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
                 <label className="mb-2 block text-sm font-medium text-text-primary">
                   模型类型 <span className="text-red-500">*</span>
                 </label>
-                <Select value={modelType} onValueChange={setModelType}>
+                <Select
+                  value={modelType}
+                  onValueChange={updateDraft(setModelType)}
+                >
                   <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
@@ -1101,6 +1090,7 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
                 <Segmented
                   value={bedrockAuthMode}
                   onValueChange={(v) => {
+                    setVerifyResult(null)
                     const next = v as BedrockAuthMode
                     setBedrockAuthMode(next)
                     // 切换模式时清除非活动字段
@@ -1178,7 +1168,10 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
                 <label className="mb-2 block text-sm font-medium text-text-primary">
                   区域 <span className="text-red-500">*</span>
                 </label>
-                <Select value={bedrockRegion} onValueChange={setBedrockRegion}>
+                <Select
+                  value={bedrockRegion}
+                  onValueChange={updateDraft(setBedrockRegion)}
+                >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="选择 AWS 区域" />
                   </SelectTrigger>
@@ -1261,6 +1254,7 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
                 <Select
                   value={mineruBackend}
                   onValueChange={(value) => {
+                    setVerifyResult(null)
                     setMineruBackend(value as typeof mineruBackend)
                     if (value !== 'vlm-http-client') {
                       setMineruServerUrl('')
@@ -1319,7 +1313,7 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
                 </div>
                 <Switch
                   checked={mineruDeleteOutput}
-                  onCheckedChange={setMineruDeleteOutput}
+                  onCheckedChange={updateDraft(setMineruDeleteOutput)}
                 />
               </div>
             </>
@@ -1332,10 +1326,10 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
               apiUrl={paddleocrApiUrl}
               accessToken={paddleocrAccessToken}
               algorithm={paddleocrAlgorithm}
-              onModelNameChange={setModelName}
-              onApiUrlChange={setPaddleocrApiUrl}
-              onAccessTokenChange={setPaddleocrAccessToken}
-              onAlgorithmChange={setPaddleocrAlgorithm}
+              onModelNameChange={updateDraft(setModelName)}
+              onApiUrlChange={updateDraft(setPaddleocrApiUrl)}
+              onAccessTokenChange={updateDraft(setPaddleocrAccessToken)}
+              onAlgorithmChange={updateDraft(setPaddleocrAlgorithm)}
             />
           )}
 
@@ -1346,10 +1340,10 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
               apiServer={opendataloaderApiServer}
               apiKey={opendataloaderApiKey}
               timeout={opendataloaderTimeout}
-              onModelNameChange={setModelName}
-              onApiServerChange={setOpendataloaderApiServer}
-              onApiKeyChange={setOpendataloaderApiKey}
-              onTimeoutChange={setOpendataloaderTimeout}
+              onModelNameChange={updateDraft(setModelName)}
+              onApiServerChange={updateDraft(setOpendataloaderApiServer)}
+              onApiKeyChange={updateDraft(setOpendataloaderApiKey)}
+              onTimeoutChange={updateDraft(setOpendataloaderTimeout)}
             />
           )}
 
@@ -1358,21 +1352,22 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
               providerName={providerName}
               modelTypes={modelTypes}
               modelType={modelType}
-              onModelTypeChange={setModelType}
+              onModelTypeChange={updateDraft(setModelType)}
               modelName={modelName}
-              onModelNameChange={setModelName}
+              onModelNameChange={updateDraft(setModelName)}
               baseUrl={baseUrl}
-              onBaseUrlChange={setBaseUrl}
+              onBaseUrlChange={updateDraft(setBaseUrl)}
               apiKey={apiKey}
-              onApiKeyChange={setApiKey}
+              onApiKeyChange={updateDraft(setApiKey)}
               showApiKey={showApiKey}
               onShowApiKeyChange={setShowApiKey}
               maxTokens={maxTokens}
-              onMaxTokensChange={setMaxTokens}
+              onMaxTokensChange={updateDraft(setMaxTokens)}
               vision={vision}
-              onVisionChange={setVision}
+              onVisionChange={updateDraft(setVision)}
               isTools={isTools}
               onToolsChange={(checked) => {
+                setVerifyResult(null)
                 setIsTools(checked)
                 setToolsChanged(true)
               }}
@@ -1463,7 +1458,10 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
                         <label className="mb-2 block text-sm font-medium text-text-primary">
                           模型类型 <span className="text-red-500">*</span>
                         </label>
-                        <Select value={modelType} onValueChange={setModelType}>
+                        <Select
+                          value={modelType}
+                          onValueChange={updateDraft(setModelType)}
+                        >
                           <SelectTrigger className="w-full">
                             <SelectValue />
                           </SelectTrigger>
@@ -1585,7 +1583,7 @@ const ApiKeyModalForm: React.FC<ApiKeyModalProps> = ({
           <div className="flex gap-3">
             <Button
               variant="outline"
-              onClick={handleClose}
+              onClick={onClose}
               disabled={isLoading || isVerifying}
             >
               {isPaddleOCR || isLocal ? t('common.cancel') : '取消'}
