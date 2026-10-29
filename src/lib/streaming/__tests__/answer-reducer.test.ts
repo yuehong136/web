@@ -440,3 +440,12 @@ test('consumeStreamingAnswerChunk does not double-open think blocks', () => {
   assert.equal(second.nextState.thinking, '想继续想')
   assert.equal(second.nextState.content, '')
 })
+
+test('a final-only empty retrieval response is visible and an empty final preserves it', () => {
+  const final = consumeAll([
+    { data: { answer: 'No matching knowledge found.', final: true } },
+  ])
+  assert.equal(final.content, 'No matching knowledge found.')
+  const emptyFinal = consumeAll([{ data: { answer: '', final: true } }], final)
+  assert.equal(emptyFinal.content, final.content)
+})

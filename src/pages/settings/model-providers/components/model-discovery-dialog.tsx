@@ -43,6 +43,7 @@ export const supportsModelDiscovery = (provider: string) =>
     'Xinference',
     'LocalAI',
     'BaiduYiyan',
+    'VolcEngine',
   ].includes(provider)
 
 /** Presentation metadata must never leak into model registration payloads. */

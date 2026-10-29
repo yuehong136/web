@@ -150,3 +150,52 @@ it('renders unresolved citation markers as plain superscripts instead of protoco
   expect(marker).not.toBeNull()
   expect(marker?.querySelector('button')).toBeNull()
 })
+
+it.each(['en-US', 'zh-CN'] as const)(
+  'shows localized waiting only while an empty answer is active in %s',
+  async (locale) => {
+    await setProductLanguage(locale)
+    const render = (
+      content: string,
+      phase:
+        | 'running'
+        | 'cancelRequested'
+        | 'failed'
+        | 'locallyStopped'
+        | 'completed'
+        | 'interrupted',
+      thinking = '',
+    ) =>
+      act(async () =>
+        root.render(
+          <MessageParts
+            content={content}
+            thinking={thinking}
+            run={{ phase }}
+            onViewReference={() => {}}
+          />,
+        ),
+      )
+    for (const phase of ['running', 'cancelRequested'] as const) {
+      await render('', phase)
+      expect(host.querySelector('output')?.getAttribute('aria-label')).toBe(
+        locale === 'en-US' ? 'Loading...' : '加载中...',
+      )
+      await render('First answer', phase)
+      expect(host.querySelector('output')).toBeNull()
+      expect(host.textContent).toContain('First answer')
+      await render('', phase, 'Observed reasoning')
+      expect(host.querySelector('output')).toBeNull()
+      expect(host.querySelector('button[aria-expanded]')).not.toBeNull()
+    }
+    for (const phase of [
+      'failed',
+      'locallyStopped',
+      'completed',
+      'interrupted',
+    ] as const) {
+      await render('', phase)
+      expect(host.querySelector('output')).toBeNull()
+    }
+  },
+)

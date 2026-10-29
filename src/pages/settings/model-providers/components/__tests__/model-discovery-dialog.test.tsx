@@ -380,6 +380,7 @@ it('enables only providers with an implemented discovery contract', () => {
     'Xinference',
     'LocalAI',
     'BaiduYiyan',
+    'VolcEngine',
   ])
     expect(supportsModelDiscovery(provider)).toBe(true)
   for (const provider of [
@@ -422,4 +423,51 @@ it('keeps the 100-model bound across pages and restores selection after an expli
   expect(button('Select page results').disabled).toBe(false)
   await click(button('Select page results'))
   expect(document.body.textContent).toContain('1 model selected')
+})
+
+it('discovers VolcEngine without an endpoint and verifies and saves the exact selected official IDs', async () => {
+  await act(async () =>
+    root.render(
+      <QueryClientProvider client={client}>
+        <ModelDiscoveryDialog provider="VolcEngine" close={close} />
+      </QueryClientProvider>,
+    ),
+  )
+  await change('discovery-key', 'synthetic-ark-key')
+  await change('discovery-instance-name', 'Ark connection')
+  await click(button('Find models'))
+  expect(mocks.discover).toHaveBeenCalledWith(
+    'VolcEngine',
+    {
+      api_key: 'synthetic-ark-key',
+      base_url: 'https://ark.cn-beijing.volces.com/api/v3',
+      region: '',
+    },
+    1,
+    expect.any(AbortSignal),
+  )
+  expect(mocks.create).not.toHaveBeenCalled()
+  await choose('First model')
+  await click(button('Test connection'))
+  const candidate = mocks.verify.mock.calls[0][1]
+  expect(candidate).toEqual({
+    api_key: 'synthetic-ark-key',
+    base_url: 'https://ark.cn-beijing.volces.com/api/v3',
+    region: '',
+    model_ids: [],
+    custom_models: [
+      {
+        model_name: 'stable-a',
+        model_types: ['chat', 'image2text'],
+        max_tokens: 0,
+        is_tools: true,
+      },
+    ],
+  })
+  await click(button('Save'))
+  expect(mocks.create).toHaveBeenCalledWith(
+    'VolcEngine',
+    { instance_name: 'Ark connection', ...candidate },
+    expect.any(AbortSignal),
+  )
 })
