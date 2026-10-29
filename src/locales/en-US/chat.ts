@@ -80,7 +80,13 @@ export default {
       complete: 'Retrieval process',
       interrupted: 'Retrieval interrupted',
     },
-    actions: { regenerate: 'Regenerate' },
+    actions: {
+      regenerate: 'Regenerate',
+      readAloud: 'Read aloud',
+      resumeSpeech: 'Resume reading',
+      pauseSpeech: 'Pause reading',
+      speechFailed: 'Could not play audio. Try again.',
+    },
     stream: {
       failed: 'Generation failed. Please try again.',
       interrupted:

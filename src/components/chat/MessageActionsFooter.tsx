@@ -6,7 +6,7 @@
  */
 import * as React from 'react'
 import { useTranslation } from 'react-i18next'
-import { Copy, RotateCcw } from 'lucide-react'
+import { Copy, RotateCcw, Volume2, Pause, LoaderCircle } from 'lucide-react'
 import Actions from '@ant-design/x/es/actions'
 import type { ActionsProps } from '@ant-design/x'
 import { useSpeech } from '@/hooks/use-speech'
@@ -65,7 +65,7 @@ export const MessageActionsFooter: React.FC<MessageActionsFooterProps> =
       className,
     }) => {
       const { t } = useTranslation()
-      const { isPlaying, isLoading, handleTogglePlay, audioRef } =
+      const { isPlaying, isPaused, isLoading, handleTogglePlay, audioRef } =
         useSpeech(content)
       const [feedbackValue, setFeedbackValue] = React.useState<
         'like' | 'dislike' | 'default'
@@ -108,12 +108,35 @@ export const MessageActionsFooter: React.FC<MessageActionsFooterProps> =
           items.push({
             key: 'tts',
             actionRender: () => (
-              <Actions.Audio
-                status={
-                  isLoading ? 'loading' : isPlaying ? 'running' : 'default'
-                }
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="ant-actions-button-item"
+                aria-label={t(
+                  isPlaying || isLoading
+                    ? 'chat.actions.pauseSpeech'
+                    : isPaused
+                      ? 'chat.actions.resumeSpeech'
+                      : 'chat.actions.readAloud',
+                )}
+                title={t(
+                  isPlaying || isLoading
+                    ? 'chat.actions.pauseSpeech'
+                    : isPaused
+                      ? 'chat.actions.resumeSpeech'
+                      : 'chat.actions.readAloud',
+                )}
+                aria-pressed={isPlaying || isLoading}
                 onClick={handleTogglePlay}
-              />
+              >
+                {isLoading ? (
+                  <LoaderCircle className="size-icon-sm animate-spin" />
+                ) : isPlaying ? (
+                  <Pause className="size-icon-sm" />
+                ) : (
+                  <Volume2 className="size-icon-sm" />
+                )}
+              </Button>
             ),
           })
         }
@@ -155,6 +178,7 @@ export const MessageActionsFooter: React.FC<MessageActionsFooterProps> =
         handleTogglePlay,
         isLoading,
         isPlaying,
+        isPaused,
         onCopy,
         onRegenerate,
         onLike,

@@ -77,7 +77,13 @@ export default {
       complete: '检索过程',
       interrupted: '检索已中断',
     },
-    actions: { regenerate: '重新生成' },
+    actions: {
+      regenerate: '重新生成',
+      readAloud: '朗读',
+      resumeSpeech: '继续朗读',
+      pauseSpeech: '暂停朗读',
+      speechFailed: '语音播放失败，请重试。',
+    },
     stream: {
       failed: '生成失败，请重试。',
       interrupted: '生成未完成，已保留已生成的内容。',

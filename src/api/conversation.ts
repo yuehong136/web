@@ -66,30 +66,27 @@ export const conversationAPI = {
       reasoning?: boolean // 深度思考开关（参考 ragflow）
       internet?: boolean // 联网搜索开关（参考 ragflow）
       stream_output?: 'delta' | 'full' // 流式输出格式：delta 增量，full 累计全文
+      audio_output?: 'configured' | 'none'
     },
     options?: { signal?: AbortSignal },
-  ) => {
-    const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
-    const fullUrl = `${baseURL}/v1/conversation/completion`
-    const token = localStorage.getItem('auth_token')
-
-    return fetch(fullUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { Authorization: `Bearer ${token}` }),
-      },
-      body: JSON.stringify({
+  ): Promise<Response> =>
+    apiClient.post<Response>(
+      '/v1/conversation/completion',
+      {
         quote: false,
         stream: true,
         filter_condition: '',
         stream_output: 'delta',
+        // These surfaces render text; read-aloud uses its own audio stream.
+        audio_output: 'none',
         ...data,
-      }),
-      // 流式取消需贯穿 fetch 发起阶段（ARCH-1），调用方传入自管的 AbortController.signal
-      signal: options?.signal,
-    })
-  },
+      },
+      {
+        signal: options?.signal,
+        headers: { Accept: 'text/event-stream' },
+        readResponse: async (response) => response,
+      },
+    ),
 
   // 设置对话（创建或更新）
   setConversation: (data: {
@@ -106,20 +103,19 @@ export const conversationAPI = {
     }),
 
   // 文本转语音 - 流式版本（用于实时播放）
-  // 返回原始 Response 对象，供 SpeechPlayer 流式处理
-  textToSpeechStream: (text: string): Promise<Response> => {
-    const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
-    const token = localStorage.getItem('auth_token')
-
-    return fetch(`${baseURL}/v1/conversation/tts`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { Authorization: `Bearer ${token}` }),
+  textToSpeechStream: (
+    text: string,
+    options?: { signal?: AbortSignal },
+  ): Promise<Response> =>
+    apiClient.post<Response>(
+      '/v1/conversation/tts',
+      { text },
+      {
+        signal: options?.signal,
+        headers: { Accept: 'audio/mpeg' },
+        readResponse: async (response) => response,
       },
-      body: JSON.stringify({ text }),
-    })
-  },
+    ),
 
   // 生成相关问题
   generateRelatedQuestions: async (data: {

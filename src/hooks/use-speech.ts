@@ -1,179 +1,135 @@
-/**
- * TTS (Text-to-Speech) Hook
- *
- * Provides text-to-speech functionality using streaming audio playback.
- * Based on ragflow's implementation using openai-speech-stream-player.
- *
- * @example
- * ```tsx
- * const { isPlaying, handleTogglePlay, audioRef } = useSpeech(text);
- *
- * return (
- *   <>
- *     <button onClick={handleTogglePlay}>
- *       {isPlaying ? 'Pause' : 'Play'}
- *     </button>
- *     <audio ref={audioRef} />
- *   </>
- * );
- * ```
- */
 import { useRef, useState, useCallback, useEffect } from 'react'
-import { SpeechPlayer } from 'openai-speech-stream-player'
+import { useTranslation } from 'react-i18next'
 import { conversationAPI } from '@/api/conversation'
+import { assertResponse } from '@/lib/streaming'
+import { SpeechPlayback } from '@/lib/speech-playback'
 import { toast } from '@/lib/toast'
 
 export interface UseSpeechOptions {
-  /** Called when playback starts */
   onPlay?: () => void
-  /** Called when playback is paused */
   onPause?: () => void
-  /** Called when playback ends */
   onEnd?: () => void
-  /** Called on error */
   onError?: (error: Error) => void
 }
 
 export interface UseSpeechReturn {
-  /** Reference to the audio element */
   audioRef: React.RefObject<HTMLAudioElement | null>
-  /** Whether audio is currently playing */
   isPlaying: boolean
-  /** Whether audio is currently loading */
+  isPaused: boolean
   isLoading: boolean
-  /** Toggle play/pause */
   handleTogglePlay: () => void
-  /** Stop playback and reset */
   handleStop: () => void
 }
 
-/**
- * Hook for text-to-speech functionality with streaming audio playback.
- *
- * @param content - Text content to convert to speech
- * @param options - Optional callbacks for playback events
- * @returns Speech control functions and state
- */
+interface SpeechSession {
+  controller: AbortController
+  playback: SpeechPlayback
+}
+
+type SpeechStatus = 'idle' | 'loading' | 'playing' | 'paused'
+
+/** Pause/resume/replay share one response; replacement owns cancellation. */
 export function useSpeech(
   content: string,
-  options: UseSpeechOptions = {}
+  options: UseSpeechOptions = {},
 ): UseSpeechReturn {
-  const { onPlay, onPause, onEnd, onError } = options
-
+  const { t } = useTranslation()
   const audioRef = useRef<HTMLAudioElement>(null)
-  const playerRef = useRef<SpeechPlayer | null>(null)
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [isInitialized, setIsInitialized] = useState(false)
+  const sessionRef = useRef<SpeechSession | null>(null)
+  const callbacksRef = useRef(options)
+  const [state, setState] = useState<{ content: string; status: SpeechStatus }>(
+    { content, status: 'idle' },
+  )
+  const status = state.content === content ? state.status : 'idle'
+  const setStatus = useCallback(
+    (next: SpeechStatus) => setState({ content, status: next }),
+    [content],
+  )
 
-  // Initialize the speech player
-  const initPlayer = useCallback(async () => {
-    if (isInitialized || !audioRef.current) return
+  useEffect(() => {
+    callbacksRef.current = options
+  }, [options])
 
-    try {
-      const player = new SpeechPlayer({
-        audio: audioRef.current,
-        // Auto-detect MIME type based on browser support
-        mimeType: MediaSource.isTypeSupported('audio/mpeg')
-          ? 'audio/mpeg'
-          : 'audio/mp4; codecs="mp4a.40.2"', // Firefox fallback
-        onPlaying: () => {
-          setIsPlaying(true)
-          setIsLoading(false)
-          onPlay?.()
-        },
-        onPause: () => {
-          setIsPlaying(false)
-          onPause?.()
-        },
-      } as any)
+  const release = useCallback(() => {
+    const session = sessionRef.current
+    sessionRef.current = null
+    session?.controller.abort()
+    session?.playback.dispose()
+  }, [])
 
-      await player.init()
-      playerRef.current = player
-      setIsInitialized(true)
-    } catch (error) {
-      console.error('Failed to initialize speech player:', error)
-      onError?.(error as Error)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- onEnd 仅通过闭包传入 player init，此处依赖是为了初次绑定，重复初始化会重置播放状态
-  }, [isInitialized, onPlay, onPause, onEnd, onError])
+  useEffect(() => release, [content, release])
 
-  // Start speech playback
-  const startSpeech = useCallback(async () => {
-    if (!content.trim()) {
-      toast.error('No text content to read')
+  const handleStop = useCallback(() => {
+    release()
+    setStatus('idle')
+  }, [release, setStatus])
+
+  const handleTogglePlay = useCallback(() => {
+    const existing = sessionRef.current
+    if (existing) {
+      if (existing.playback.paused) {
+        setStatus('loading')
+        existing.playback.resume()
+      } else existing.playback.pause()
       return
     }
+    if (!content.trim() || !audioRef.current) return
 
-    try {
-      setIsLoading(true)
-
-      // Initialize player if needed
-      if (!playerRef.current) {
-        await initPlayer()
+    const controller = new AbortController()
+    const ownsSession = () => sessionRef.current?.controller === controller
+    const fail = (error: unknown) => {
+      if (!ownsSession() || controller.signal.aborted) return
+      release()
+      setStatus('idle')
+      toast.error(t('chat.actions.speechFailed'))
+      callbacksRef.current.onError?.(
+        error instanceof Error ? error : new Error('Audio playback failed'),
+      )
+    }
+    const playback = new SpeechPlayback(audioRef.current, {
+      onPlaying: () => {
+        if (!ownsSession()) return
+        setStatus('playing')
+        callbacksRef.current.onPlay?.()
+      },
+      onPause: () => {
+        if (!ownsSession()) return
+        setStatus('paused')
+        callbacksRef.current.onPause?.()
+      },
+      onEnd: () => {
+        if (!ownsSession()) return
+        setStatus('idle')
+        callbacksRef.current.onEnd?.()
+      },
+      onError: fail,
+    })
+    // Claim before init/fetch so rapid clicks cannot start duplicate requests.
+    sessionRef.current = { controller, playback }
+    setStatus('loading')
+    playback.resume()
+    void (async () => {
+      const response = await conversationAPI.textToSpeechStream(content, {
+        signal: controller.signal,
+      })
+      if (!ownsSession()) {
+        await response.body?.cancel()
+        return
       }
-
-      if (!playerRef.current) {
-        throw new Error('Failed to initialize player')
+      await assertResponse(response)
+      if (!ownsSession()) {
+        await response.body?.cancel()
+        return
       }
-
-      // Fetch and stream the audio
-      const response = await conversationAPI.textToSpeechStream(content)
-
-      if (!response.ok) {
-        throw new Error(`TTS request failed: ${response.status}`)
-      }
-
-      // Feed the response to the player for streaming playback
-      await playerRef.current.feedWithResponse(response)
-    } catch (error) {
-      console.error('TTS error:', error)
-      setIsLoading(false)
-      setIsPlaying(false)
-      toast.error('Failed to play audio')
-      onError?.(error as Error)
-    }
-  }, [content, initPlayer, onError])
-
-  // Pause playback
-  const pauseSpeech = useCallback(() => {
-    if (playerRef.current) {
-      playerRef.current.pause()
-      setIsPlaying(false)
-    }
-  }, [])
-
-  // Toggle play/pause
-  const handleTogglePlay = useCallback(() => {
-    if (isPlaying) {
-      pauseSpeech()
-    } else {
-      startSpeech()
-    }
-  }, [isPlaying, pauseSpeech, startSpeech])
-
-  // Stop and reset
-  const handleStop = useCallback(() => {
-    if (playerRef.current) {
-      playerRef.current.pause()
-      setIsPlaying(false)
-      setIsLoading(false)
-    }
-  }, [])
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (playerRef.current) {
-        playerRef.current.pause()
-      }
-    }
-  }, [])
+      await playback.load(response, controller.signal)
+    })().catch(fail)
+  }, [content, release, setStatus, t])
 
   return {
     audioRef,
-    isPlaying,
-    isLoading,
+    isPlaying: status === 'playing',
+    isPaused: status === 'paused',
+    isLoading: status === 'loading',
     handleTogglePlay,
     handleStop,
   }
