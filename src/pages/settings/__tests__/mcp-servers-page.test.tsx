@@ -6,12 +6,16 @@ import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import i18n from '@/locales/i18n'
 import { MCPServersPage } from '@/pages/settings/MCPServersPage'
+import { MCPTestPage } from '@/pages/settings/MCPTestPage'
+import { MCPToolsPage } from '@/pages/settings/MCPToolsPage'
 import type { MCPServer } from '@/types/mcp'
 
 const mocks = vi.hoisted(() => ({
   servers: [] as MCPServer[],
   remove: vi.fn(),
   testConnection: vi.fn(),
+  testTool: vi.fn(),
+  fetchTools: vi.fn(),
   refetch: vi.fn(),
   copy: vi.fn(),
   success: vi.fn(),
@@ -19,6 +23,7 @@ const mocks = vi.hoisted(() => ({
   isError: false,
 }))
 vi.mock('@/hooks/use-mcp-request', () => ({
+  useFetchMCPTools: mocks.fetchTools,
   useFetchMCPServers: () => ({
     data: { mcp_servers: mocks.servers },
     isLoading: false,
@@ -37,6 +42,12 @@ vi.mock('@/hooks/use-mcp-request', () => ({
   }),
   getServerTools: () => [{ name: 'weather' }],
   hasServerTools: () => true,
+}))
+vi.mock('@/api/mcp', () => ({
+  mcpAPI: {
+    testConnection: mocks.testConnection,
+    testTool: mocks.testTool,
+  },
 }))
 vi.mock('@/lib/toast', () => ({
   toast: { success: mocks.success, error: mocks.error },
@@ -82,6 +93,14 @@ beforeEach(async () => {
   mocks.remove.mockResolvedValue(undefined)
   mocks.copy.mockResolvedValue(undefined)
   mocks.testConnection.mockResolvedValue([{ name: 'weather' }])
+  mocks.testTool.mockResolvedValue({ content: [], isError: false })
+  mocks.fetchTools.mockReturnValue({
+    data: {
+      'old-server': [{ name: 'weather', description: 'Current weather' }],
+    },
+    refetch: mocks.refetch,
+    isFetching: false,
+  })
   await i18n.changeLanguage('en-US')
   container = document.createElement('div')
   document.body.append(container)
@@ -209,4 +228,50 @@ it('distinguishes query failure from an empty resource list and offers retry', a
   expect(container.textContent).not.toContain('No MCP servers yet')
   await click(textButton('Retry'))
   expect(mocks.refetch).toHaveBeenCalledOnce()
+})
+
+it('converts the connection playground millisecond control to API seconds', async () => {
+  await act(async () => root.render(<MCPTestPage />))
+  const url = container.querySelector<HTMLInputElement>(
+    'input[placeholder="输入服务器URL，如: http://localhost:3000"]',
+  )!
+  const timeout = container.querySelector<HTMLInputElement>(
+    'input[type="number"]',
+  )!
+  expect(timeout.value).toBe('10000')
+  await act(async () => {
+    const setValue = Object.getOwnPropertyDescriptor(
+      HTMLInputElement.prototype,
+      'value',
+    )!.set!
+    setValue.call(url, 'https://example.com/mcp')
+    url.dispatchEvent(new Event('input', { bubbles: true }))
+    setValue.call(timeout, '2500')
+    timeout.dispatchEvent(new Event('input', { bubbles: true }))
+  })
+  await click(textButton('开始测试'))
+  expect(mocks.testConnection).toHaveBeenCalledExactlyOnceWith({
+    url: 'https://example.com/mcp',
+    server_type: 'streamable-http',
+    headers: {},
+    variables: {},
+    timeout: 2.5,
+  })
+})
+
+it('bounds tool listing and execution with seconds through the active tool page', async () => {
+  await act(async () => root.render(<MCPToolsPage />))
+  expect(mocks.fetchTools).toHaveBeenCalledWith(
+    ['old-server', 'new-server'],
+    true,
+    30,
+  )
+  await click(textButton('测试'))
+  await click(textButton('执行测试'))
+  expect(mocks.testTool).toHaveBeenCalledExactlyOnceWith({
+    mcp_id: 'old-server',
+    tool_name: 'weather',
+    arguments: {},
+    timeout: 30,
+  })
 })

@@ -50,7 +50,7 @@ export const MCPTestPage: React.FC = () => {
   // 测试表单数据
   const [testForm, setTestForm] = useState({
     url: '',
-    server_type: 'http' as string,
+    server_type: 'streamable-http' as string,
     headers: {} as Record<string, string>,
     variables: {} as Record<string, any>,
     timeout: 10000,
@@ -177,7 +177,7 @@ export const MCPTestPage: React.FC = () => {
         server_type: testForm.server_type,
         headers: testForm.headers,
         variables: testForm.variables,
-        timeout: testForm.timeout,
+        timeout: testForm.timeout / 1000,
       })
       const endTime = Date.now()
 

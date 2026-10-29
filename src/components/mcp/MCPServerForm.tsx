@@ -191,7 +191,7 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
         server_type: formData.server_type,
         headers: formData.headers,
         variables: formData.variables,
-        timeout: 10000,
+        timeout: 10,
       })
 
       setTestResult({
@@ -199,10 +199,10 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
         tools,
       })
       toast.success(t('mcp.servers.testSuccess', { count: tools.length }))
-    } catch (error: any) {
+    } catch {
       setTestResult({
         success: false,
-        error: error.message || t('mcp.form.testFailed'),
+        error: t('mcp.form.testFailed'),
       })
       toast.error(t('mcp.form.testFailed'))
     } finally {
@@ -235,10 +235,9 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
       }
 
       onSuccess()
-    } catch (error: any) {
+    } catch {
       toast.error(
-        error.message ||
-          (isEditing ? t('mcp.form.updateFailed') : t('mcp.form.createFailed')),
+        isEditing ? t('mcp.form.updateFailed') : t('mcp.form.createFailed'),
       )
     } finally {
       setLoading(false)

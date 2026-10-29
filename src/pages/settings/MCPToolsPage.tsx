@@ -72,7 +72,7 @@ export const MCPToolsPage: React.FC<MCPToolsPageProps> = ({ serverId }) => {
     isFetching: loadingTools,
     refetch: refreshTools,
     error: toolsError,
-  } = useFetchMCPTools(serverIds, servers.length > 0, 30000)
+  } = useFetchMCPTools(serverIds, servers.length > 0, 30)
   useEffect(() => {
     if (toolsError) toast.error('加载工具列表失败: ' + toolsError.message)
   }, [toolsError])
@@ -136,7 +136,7 @@ export const MCPToolsPage: React.FC<MCPToolsPageProps> = ({ serverId }) => {
         mcp_id: selectedTool.serverId,
         tool_name: selectedTool.name,
         arguments: args,
-        timeout: 30000,
+        timeout: 30,
       })
       const endTime = Date.now()
 

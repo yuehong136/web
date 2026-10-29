@@ -9,11 +9,6 @@ const options = [
     descriptionKey: 'mcp.form.httpDescription',
   },
   { value: 'sse', label: 'SSE', descriptionKey: 'mcp.form.sseDescription' },
-  {
-    value: 'stdio',
-    label: 'STDIO',
-    descriptionKey: 'mcp.form.stdioDescription',
-  },
 ]
 
 export const MCPProtocolSelect = ({

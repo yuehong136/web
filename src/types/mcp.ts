@@ -94,6 +94,7 @@ export interface ExportMCPServersResponse {
 
 export interface ListToolsRequest {
   mcp_ids: string[]
+  /** Server timeout in seconds. */
   timeout?: number
 }
 
@@ -101,6 +102,7 @@ export interface TestToolRequest {
   mcp_id: string
   tool_name: string
   arguments: Record<string, any>
+  /** Server timeout in seconds. */
   timeout?: number
 }
 
@@ -112,6 +114,7 @@ export interface CacheToolsRequest {
 export interface TestMCPRequest {
   url: string
   server_type: string
+  /** Server timeout in seconds; convert millisecond UI controls before calling. */
   timeout?: number
   headers?: Record<string, string>
   variables?: Record<string, any>
@@ -129,13 +132,7 @@ export interface PaginatedResponse<T> {
 }
 
 // MCP服务器类型常量 - 基于后端VALID_MCP_SERVER_TYPES
-export const MCP_SERVER_TYPES = [
-  'stdio',
-  'sse',
-  'streamable-http',
-  'http',
-  'websocket',
-] as const
+export const MCP_SERVER_TYPES = ['sse', 'streamable-http'] as const
 export type MCPServerType = (typeof MCP_SERVER_TYPES)[number]
 
 // MCP实验场聊天相关类型定义

@@ -21,7 +21,7 @@ function Probe({
   enabled?: boolean
 }) {
   const servers = useFetchMCPServers({ page_size: 100, enabled })
-  const tools = useFetchMCPTools([id], enabled, 30000)
+  const tools = useFetchMCPTools([id], enabled, 30)
   return (
     <output>
       {JSON.stringify({ servers: servers.data, tools: tools.data })}
@@ -71,7 +71,7 @@ it('does not load a closed panel and shares cached server reads when opened', as
   expect(mcpAPI.listServers).toHaveBeenCalledTimes(1)
   expect(mcpAPI.listTools).toHaveBeenCalledWith({
     mcp_ids: ['first'],
-    timeout: 30000,
+    timeout: 30,
   })
 })
 it('keeps a late response from an old server out of the current tool view', async () => {
@@ -89,7 +89,7 @@ it('keeps a late response from an old server out of the current tool view', asyn
   await vi.waitFor(() => {
     expect(mcpAPI.listTools).toHaveBeenCalledWith({
       mcp_ids: ['second'],
-      timeout: 30000,
+      timeout: 30,
     })
   })
   await deliver(() => second({ second: [] }))

@@ -5,7 +5,8 @@ import { createRoot, type Root } from 'react-dom/client'
 import { beforeEach, afterEach, expect, it, vi } from 'vitest'
 import { MCPServerForm } from '@/components/mcp/MCPServerForm'
 import i18n from '@/locales/i18n'
-import type { MCPServer } from '@/types/mcp'
+import { MCP_SERVER_TYPES, type MCPServer } from '@/types/mcp'
+import { toast } from '@/lib/toast'
 
 const api = vi.hoisted(() => ({
   createServer: vi.fn(),
@@ -31,6 +32,7 @@ beforeEach(async () => {
   vi.clearAllMocks()
   api.createServer.mockResolvedValue(undefined)
   api.updateServer.mockResolvedValue(undefined)
+  api.testConnection.mockResolvedValue([])
   await i18n.changeLanguage('en-US')
   container = document.createElement('div')
   document.body.append(container)
@@ -121,4 +123,115 @@ it('localizes the complete configuration flow and exposes a named close action',
   await click(close)
   expect(onCancel).toHaveBeenCalledOnce()
   expect(api.updateServer).not.toHaveBeenCalled()
+})
+
+it('offers the two protocols supported by the production API', () => {
+  expect(MCP_SERVER_TYPES).toEqual(['sse', 'streamable-http'])
+  expect(
+    Array.from(container.querySelectorAll('button[aria-pressed]')).map(
+      (element) => element.textContent,
+    ),
+  ).toEqual([
+    'Streamable HTTPStreamable HTTP transport',
+    'SSEServer-sent events',
+  ])
+})
+
+it.each(['en-US', 'zh-CN'])(
+  'sends seconds for a preview test and keeps a safe failure with the draft in %s',
+  async (language) => {
+    await act(async () => i18n.changeLanguage(language))
+    api.testConnection.mockRejectedValueOnce(new Error('private-credential'))
+    await click(tab(i18n.t('mcp.form.test')))
+    await click(
+      Array.from(container.querySelectorAll<HTMLButtonElement>('button')).find(
+        (element) => element.textContent === i18n.t('mcp.form.startTest'),
+      )!,
+    )
+    expect(api.testConnection).toHaveBeenCalledExactlyOnceWith({
+      url: existing.url,
+      server_type: 'streamable-http',
+      headers: existing.headers,
+      variables: existing.variables,
+      timeout: 10,
+    })
+    expect(container.textContent).toContain(i18n.t('mcp.form.testFailed'))
+    expect(container.textContent).not.toContain('private-credential')
+    expect(toast.error).toHaveBeenCalledExactlyOnceWith(
+      i18n.t('mcp.form.testFailed'),
+    )
+    expect(onSuccess).not.toHaveBeenCalled()
+    await click(tab(i18n.t('mcp.form.basic')))
+    expect(container.querySelector<HTMLInputElement>('input')?.value).toBe(
+      existing.name,
+    )
+    await click(tab(i18n.t('mcp.form.headers')))
+    expect(
+      container.querySelector<HTMLTextAreaElement>('textarea')?.value,
+    ).toBe('fixture')
+  },
+)
+
+it.each(['en-US', 'zh-CN'])(
+  'keeps the edit open and reports a localized save failure in %s',
+  async (language) => {
+    await act(async () => i18n.changeLanguage(language))
+    api.updateServer.mockRejectedValueOnce(new Error('private-sql-secret'))
+    await act(async () =>
+      container
+        .querySelector('form')!
+        .dispatchEvent(
+          new Event('submit', { bubbles: true, cancelable: true }),
+        ),
+    )
+    expect(onSuccess).not.toHaveBeenCalled()
+    expect(toast.error).toHaveBeenCalledExactlyOnceWith(
+      i18n.t('mcp.form.updateFailed'),
+    )
+    expect(container.textContent).not.toContain('private-sql-secret')
+    expect(container.querySelector<HTMLInputElement>('input')?.value).toBe(
+      existing.name,
+    )
+  },
+)
+
+it('keeps the new server draft when creation fails without displaying the response', async () => {
+  await act(async () =>
+    root.render(<MCPServerForm onSuccess={onSuccess} onCancel={onCancel} />),
+  )
+  api.createServer.mockRejectedValueOnce(new Error('private-provider-response'))
+  await act(async () => {
+    const setValue = Object.getOwnPropertyDescriptor(
+      HTMLInputElement.prototype,
+      'value',
+    )!.set!
+    for (const [input, value] of [
+      [container.querySelector<HTMLInputElement>('input')!, 'New server'],
+      [
+        container.querySelector<HTMLInputElement>(
+          'input[placeholder="http://localhost:3000/mcp"]',
+        )!,
+        existing.url,
+      ],
+    ] as const) {
+      setValue.call(input, value)
+      input.dispatchEvent(new Event('input', { bubbles: true }))
+    }
+  })
+  await act(async () =>
+    container
+      .querySelector('form')!
+      .dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })),
+  )
+  expect(api.createServer).toHaveBeenCalledExactlyOnceWith(
+    expect.objectContaining({ name: 'New server', url: existing.url }),
+  )
+  expect(toast.error).toHaveBeenCalledExactlyOnceWith(
+    i18n.t('mcp.form.createFailed'),
+  )
+  expect(onSuccess).not.toHaveBeenCalled()
+  expect(container.textContent).not.toContain('private-provider-response')
+  expect(container.querySelector<HTMLInputElement>('input')?.value).toBe(
+    'New server',
+  )
 })
