@@ -230,6 +230,7 @@ async function deny(
   operation: string,
   action: () => Promise<unknown>,
 ): Promise<void> {
+  const receiptCount = receipts.length
   record('before-mssql-denial', {
     connectorId,
     connectorName: descriptor.connectorName,
@@ -247,8 +248,18 @@ async function deny(
     assert.ok(
       identity === 'peer'
         ? error.status === 200 && error.code === '109'
-        : error.status === 401 && error.code === '401',
+        : error.status === 401 && error.code === 'UNAUTHORIZED',
       'Unexpected authorization response',
+    )
+    const receipt = receipts.at(-1)
+    assert.ok(
+      receipts.length === receiptCount + 1 &&
+        receipt?.method.toUpperCase() === operation.toUpperCase() &&
+        receipt.path ===
+          `/api/v1/connectors/${encodeURIComponent(connectorId!)}` &&
+        receipt.status === (identity === 'peer' ? 200 : 401) &&
+        String(receipt.code) === (identity === 'peer' ? '109' : '401'),
+      'Authorization denial must match the actual HTTP receipt',
     )
     denied = true
   }
