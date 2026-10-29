@@ -64,7 +64,17 @@ export type PreviewResource =
   | PreviewResourceUnsupported
   | PreviewResourceError
 
-const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg']
+// Keep TIFF unsupported until a cross-browser decoder is provided.
+const IMAGE_EXTENSIONS = [
+  'jpg',
+  'jpeg',
+  'png',
+  'gif',
+  'bmp',
+  'webp',
+  'svg',
+  'ico',
+]
 const VIDEO_EXTENSIONS = ['mp4', 'webm', 'ogg', 'mov', 'avi']
 
 export class PreviewResourceErrorResult extends Error {
@@ -85,8 +95,11 @@ export class PreviewResourceErrorResult extends Error {
 }
 
 export const getFileType = (filename?: string, docType?: string): FileType => {
+  const filenameExtension = filename?.includes('.')
+    ? filename.split('.').pop()?.trim().toLowerCase()
+    : undefined
   const ext =
-    filename?.split('.').pop()?.toLowerCase() || docType?.toLowerCase()
+    filenameExtension || docType?.trim().toLowerCase().replace(/^\./, '')
 
   if (!ext) return 'unknown'
 

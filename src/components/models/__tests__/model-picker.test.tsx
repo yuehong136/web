@@ -494,9 +494,12 @@ it('combines provider capabilities, toggles each filter, and preserves search wh
     [...container.querySelectorAll('h4')].map((el) => el.textContent)
   const filter = (name: string) =>
     [
-      ...container.querySelectorAll<HTMLButtonElement>('[role=group] button'),
-    ].find((el) => el.textContent?.trim() === name)!
+      ...container.querySelectorAll<HTMLButtonElement>(
+        'fieldset[aria-label="Filter by model capabilities"] button',
+      ),
+    ].find((el) => el.textContent?.trim().replace(/\s+\d+$/, '') === name)!
   expect(names()).toEqual(providers.map((provider) => provider.name))
+  expect(filter('Chat').textContent?.trim()).toMatch(/Chat\s+2$/)
   await act(async () => filter('Chat').click())
   await act(async () => filter('Vision').click())
   expect(filter('Chat').getAttribute('aria-pressed')).toBe('true')

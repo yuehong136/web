@@ -146,8 +146,17 @@ export function getChunkByRefId(
   refId: string,
   chunks: ReferenceChunk[],
 ): ReferenceChunk | undefined {
-  const index = parseInt(refId, 10)
-  return chunks.some((chunk) => chunk.reference_index !== undefined)
-    ? chunks.find((chunk) => chunk.reference_index === index)
+  if (!/^\d+$/.test(refId)) return undefined
+  const index = Number(refId)
+  const hasExplicitKeys = chunks.some(
+    (chunk) =>
+      chunk.reference_key !== undefined || chunk.reference_index !== undefined,
+  )
+  return hasExplicitKeys
+    ? chunks.find((chunk) =>
+        chunk.reference_key !== undefined
+          ? chunk.reference_key === refId
+          : chunk.reference_index === index,
+      )
     : chunks[index]
 }

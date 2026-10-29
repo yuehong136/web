@@ -4,7 +4,7 @@
  */
 
 export interface ReferenceInfo {
-  id: string
+  id: string | number
   content: string
   document_name?: string
   document_id?: string
@@ -15,11 +15,11 @@ export interface ReferenceInfo {
 
 export interface ReferenceChunk {
   document_metadata?: Record<string, unknown>
-  id: string
+  id: string | number
   content: string
-  document_id: string
-  document_name: string
-  dataset_id: string
+  document_id?: string
+  document_name?: string
+  dataset_id?: string
   image_id?: string
   positions?: number[][]
   url?: string | null
@@ -28,6 +28,7 @@ export interface ReferenceChunk {
   term_similarity?: number
   doc_type?: string
   doc_type_kwd?: string
+  citation_id?: string
   reference_index?: number
   reference_key?: string
 }
@@ -40,8 +41,14 @@ export function parseReferences(
 ): Map<string, ReferenceInfo> {
   const referenceMap = new Map<string, ReferenceInfo>()
 
+  const hasExplicitKeys = chunks.some(
+    (chunk) =>
+      chunk.reference_key !== undefined || chunk.reference_index !== undefined,
+  )
   chunks.forEach((chunk, index) => {
-    referenceMap.set(index.toString(), {
+    const key = chunk.reference_key ?? chunk.reference_index?.toString()
+    if (hasExplicitKeys && key === undefined) return
+    referenceMap.set(key ?? index.toString(), {
       id: chunk.id,
       content: chunk.content,
       document_name: chunk.document_name,
@@ -121,48 +128,60 @@ export function processReferences(
   return processedText
 }
 
-/**
- * 从SSE响应数据中提取引用chunks
- */
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value)
+
+const readString = (value: unknown): string =>
+  typeof value === 'string' ? value : ''
+
+/** Preserve explicit citation identity after the server removes invalid rows. */
+const normalizeReferenceChunk = (
+  value: unknown,
+  mapKey?: string,
+): ReferenceChunk | undefined => {
+  if (!isRecord(value)) return undefined
+  const citationKey =
+    typeof value.citation_id === 'string' ? value.citation_id : mapKey
+  const chunk: ReferenceChunk = {
+    ...value,
+    id:
+      typeof value.id === 'string' || typeof value.id === 'number'
+        ? value.id
+        : '',
+    content: readString(value.content),
+  }
+  for (const field of ['document_id', 'document_name', 'dataset_id'] as const) {
+    if (Object.hasOwn(value, field)) chunk[field] = readString(value[field])
+  }
+  if (citationKey !== undefined) {
+    const index = /^\d+$/.test(citationKey) ? Number(citationKey) : NaN
+    chunk.reference_key = citationKey
+    chunk.reference_index = Number.isSafeInteger(index) ? index : undefined
+  }
+  return chunk
+}
+
+/** Extract canonical reference arrays/maps from stream frames or history. */
 export function extractReferencesFromSSEData(input: unknown): ReferenceChunk[] {
-  if (!input || typeof input !== 'object') {
-    return []
+  if (!isRecord(input)) return []
+  const chunks = isRecord(input.reference)
+    ? input.reference.chunks
+    : input.chunks
+  if (Array.isArray(chunks)) {
+    const hasInvalidRows = chunks.some((chunk) => !isRecord(chunk))
+    return chunks.flatMap((chunk, index) => {
+      const normalized = normalizeReferenceChunk(
+        chunk,
+        hasInvalidRows ? String(index) : undefined,
+      )
+      return normalized ? [normalized] : []
+    })
   }
-  const data = input as { reference?: { chunks?: unknown }; chunks?: unknown }
-
-  // 检查新格式：data.reference.chunks
-  if (data.reference && Array.isArray(data.reference.chunks)) {
-    return data.reference.chunks
-  }
-
-  if (
-    data.reference &&
-    data.reference.chunks &&
-    typeof data.reference.chunks === 'object'
-  ) {
-    return Object.entries(data.reference.chunks)
-      .sort(([left], [right]) => Number(left) - Number(right))
-      .map(([key, chunk]) => ({
-        ...(chunk as ReferenceChunk),
-        reference_index: Number.isFinite(Number(key)) ? Number(key) : undefined,
-        reference_key: key,
-      }))
-  }
-
-  // 检查旧格式：data.chunks
-  if (Array.isArray(data.chunks)) {
-    return data.chunks
-  }
-
-  if (data.chunks && typeof data.chunks === 'object') {
-    return Object.entries(data.chunks)
-      .sort(([left], [right]) => Number(left) - Number(right))
-      .map(([key, chunk]) => ({
-        ...(chunk as ReferenceChunk),
-        reference_index: Number.isFinite(Number(key)) ? Number(key) : undefined,
-        reference_key: key,
-      }))
-  }
-
-  return []
+  if (!isRecord(chunks)) return []
+  return Object.entries(chunks)
+    .sort(([left], [right]) => Number(left) - Number(right))
+    .flatMap(([key, chunk]) => {
+      const normalized = normalizeReferenceChunk(chunk, key)
+      return normalized ? [normalized] : []
+    })
 }

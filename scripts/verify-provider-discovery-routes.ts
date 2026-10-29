@@ -31,6 +31,9 @@ interface Descriptor {
   scratchDatabase: string
   invalidBaseURL?: string
   modelName?: string
+  controlledTransport?: boolean
+  expectedInventoryTotal?: number
+  expectedPageLengths?: number[]
 }
 const path = process.env.I_WEB_ACCEPTANCE_DESCRIPTOR
 assert.ok(
@@ -40,8 +43,18 @@ assert.ok(
 const fixture: Descriptor = JSON.parse(readFileSync(path, 'utf8'))
 const mode = process.env.I_WEB_ACCEPTANCE_MODE
 assert.ok(mode === 'owner' || mode === 'cleanup')
-for (const endpoint of [fixture.origin, fixture.discovery.base_url]) {
+for (const endpoint of [fixture.origin]) {
   const url = new URL(endpoint)
+  assert.equal(url.protocol, 'http:')
+  assert.ok(['127.0.0.1', 'localhost', '[::1]'].includes(url.hostname))
+}
+if (
+  fixture.providerName === 'OpenRouter' &&
+  fixture.controlledTransport === true
+) {
+  assert.equal(fixture.discovery.base_url, 'https://openrouter.ai/api/v1')
+} else {
+  const url = new URL(fixture.discovery.base_url)
   assert.equal(url.protocol, 'http:')
   assert.ok(['127.0.0.1', 'localhost', '[::1]'].includes(url.hostname))
 }
@@ -109,6 +122,30 @@ try {
     assert.ok(
       page.items.every((item) => !('id' in item) && !('status' in item)),
     )
+    const discovered = [...page.items]
+    if (fixture.expectedInventoryTotal !== undefined)
+      assert.equal(page.total, fixture.expectedInventoryTotal)
+    if (fixture.expectedPageLengths) {
+      assert.equal(fixture.expectedPageLengths[0], page.items.length)
+      for (let index = 1; index < fixture.expectedPageLengths.length; index++) {
+        const next = await api.discoverModels(
+          fixture.providerName,
+          input,
+          index + 1,
+        )
+        assert.equal(next.total, page.total)
+        assert.equal(next.items.length, fixture.expectedPageLengths[index])
+        assert.ok(
+          next.items.every((item) => !('id' in item) && !('status' in item)),
+        )
+        discovered.push(...next.items)
+      }
+      assert.equal(discovered.length, page.total)
+      assert.equal(
+        new Set(discovered.map((item) => item.model_name)).size,
+        page.total,
+      )
+    }
     assert.deepEqual(await inventory(), before)
     if (fixture.invalidBaseURL) {
       await assert.rejects(
@@ -122,8 +159,8 @@ try {
       assert.deepEqual(await inventory(), before)
     }
     const selected = fixture.modelName
-      ? page.items.filter((item) => item.model_name === fixture.modelName)
-      : page.items.slice(0, 2)
+      ? discovered.filter((item) => item.model_name === fixture.modelName)
+      : discovered.slice(0, 2)
     assert.ok(selected.length)
     const candidate: ConnectionCandidate = {
       ...input,

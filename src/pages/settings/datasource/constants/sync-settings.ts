@@ -14,6 +14,7 @@ export const deletionSyncSources = new Set<DataSourceKey>([
   DataSourceKey.MOODLE,
   DataSourceKey.MYSQL,
   DataSourceKey.POSTGRESQL,
+  DataSourceKey.MSSQL,
   DataSourceKey.BITBUCKET,
   DataSourceKey.GITHUB,
   DataSourceKey.GITLAB,

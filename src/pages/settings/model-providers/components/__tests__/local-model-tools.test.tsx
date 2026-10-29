@@ -1,3 +1,4 @@
+import { stubNativeDialog } from '@/components/ui/__tests__/native-dialog'
 import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
@@ -9,8 +10,10 @@ import {
 } from '../api-key-modal-utils'
 import type { MyLLMModel } from '@/stores/model'
 import i18n from '@/locales/i18n'
+import { useAuthStore } from '@/stores/auth'
 
 Reflect.set(globalThis, 'IS_REACT_ACT_ENVIRONMENT', true)
+let native: ReturnType<typeof stubNativeDialog>
 let root: Root
 let container: HTMLDivElement
 const save = vi.fn()
@@ -56,6 +59,7 @@ const existing: MyLLMModel = {
 }
 
 beforeEach(async () => {
+  native = stubNativeDialog()
   vi.clearAllMocks()
   save.mockResolvedValue(undefined)
   vi.stubGlobal('matchMedia', () => ({
@@ -77,6 +81,7 @@ beforeEach(async () => {
 afterEach(async () => {
   await act(async () => root.unmount())
   container.remove()
+  native.restore()
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
 })
@@ -246,26 +251,26 @@ it.each([
     ).toContain(label)
     expect(modelId.placeholder).toBe(required)
     await change(
-      document.querySelector('input[placeholder="请输入模型名称"]')!,
+      document.querySelector<HTMLInputElement>('input[id$="-modelName"]')!,
       'owned-display-name',
     )
     await act(async () => {
       const button = Array.from(
         document.querySelectorAll<HTMLButtonElement>('button'),
-      ).find((element) => element.textContent === '确定')!
+      ).find((element) => element.textContent === i18n.t('common.save'))!
       button.click()
     })
     expect(save).not.toHaveBeenCalled()
     expect(document.body.textContent).toContain(required)
     await change(modelId, 'provider-model-id')
     await change(
-      document.querySelector('input[placeholder="请输入 ARK API Key"]')!,
+      document.querySelector<HTMLInputElement>('input[id$="-arkApiKey"]')!,
       'owned-ark-key',
     )
     await act(async () => {
       const button = Array.from(
         document.querySelectorAll<HTMLButtonElement>('button'),
-      ).find((element) => element.textContent === '确定')!
+      ).find((element) => element.textContent === i18n.t('common.save'))!
       button.click()
     })
     expect(save.mock.calls[0][2]).toMatchObject({
@@ -334,20 +339,60 @@ it('keeps legal zero in the custom cloud-model form', async () => {
     ),
   )
   await change(
-    document.querySelector('input[placeholder="请输入 API Key"]')!,
+    document.querySelector<HTMLInputElement>('input[id$="-apiKey"]')!,
     'synthetic',
   )
-  await change(
-    document.querySelector(
-      'input[placeholder="留空则注册该厂商目录里的全部模型"]',
-    )!,
-    'custom',
-  )
+  await change(document.querySelector('input[id$="-modelName"]')!, 'custom')
   await change(document.querySelector('input[type="number"]')!, '0')
   await act(async () =>
     Array.from(document.querySelectorAll('button'))
-      .find((button) => button.textContent === '确定')!
+      .find((button) => button.textContent === i18n.t('common.save'))!
       .click(),
   )
   expect(save.mock.calls[0][2].max_tokens).toBe(0)
+})
+
+it('clears manual credentials when the authentication owner changes', async () => {
+  const originalUser = useAuthStore.getState().user
+  try {
+    await render()
+    await change(field('local-model-name'), 'private-model')
+    await change(field('local-model-key'), 'private-key')
+    await act(async () =>
+      useAuthStore.setState({
+        user: {
+          id: 'new-owner',
+          tenant_id: 'new-tenant',
+          email: 'fixture@example.test',
+          nickname: 'Fixture',
+          username: 'fixture',
+          is_active: true,
+          created_at: '',
+          updated_at: '',
+          roles: [],
+          permissions: [],
+        },
+      }),
+    )
+    expect(field('local-model-name').value).toBe('')
+    expect(field('local-model-key').value).toBe('')
+    expect(save).not.toHaveBeenCalled()
+  } finally {
+    await act(async () => useAuthStore.setState({ user: originalUser }))
+  }
+})
+
+it('allows multiple manual capabilities and retains zero through the rendered form', async () => {
+  await render()
+  await change(field('local-model-name'), 'multi')
+  const embedding = [
+    ...document.querySelectorAll<HTMLButtonElement>('#local-model-type button'),
+  ].find((button) => button.parentElement?.textContent === 'Embedding')!
+  await act(async () => embedding.click())
+  await change(field('local-model-tokens'), '0')
+  await submit()
+  expect(save.mock.calls[0][2]).toMatchObject({
+    mdl_type: 'chat,embedding',
+    max_tokens: 0,
+  })
 })

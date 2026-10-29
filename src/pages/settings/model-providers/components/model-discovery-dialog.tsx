@@ -11,11 +11,11 @@ import type {
 } from '@/api/llm-provider-types'
 import { useModelProviderMutation } from '@/hooks/use-model-provider-request'
 import { useAuthStore } from '@/stores/auth'
-import { ModelCapabilities } from '@/components/models/model-capabilities'
+import { DEFAULT_BASE_URLS } from '../constants'
+import { DiscoveredModelPicker } from './discovered-model-picker'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Checkbox } from '@/components/ui/checkbox'
 import {
   Dialog,
   DialogContent,
@@ -32,7 +32,18 @@ import {
 
 // Only provider protocols supported by the discovery endpoint use this form.
 export const supportsModelDiscovery = (provider: string) =>
-  ['Ollama', 'Fish Audio', 'MinerU'].includes(provider)
+  [
+    'Ollama',
+    'Fish Audio',
+    'MinerU',
+    'OpenRouter',
+    'OpenAI-API-Compatible',
+    'VLLM',
+    'LM-Studio',
+    'Xinference',
+    'LocalAI',
+    'BaiduYiyan',
+  ].includes(provider)
 
 /** Presentation metadata must never leak into model registration payloads. */
 export function discoveredModelRegistration(
@@ -63,7 +74,9 @@ function ModelDiscoveryForm({ provider, close, configureManually }: Props) {
   const [name, setName] = useState('')
   const [key, setKey] = useState('')
   const [url, setUrl] = useState(
-    provider === 'Ollama' ? 'http://127.0.0.1:11434' : '',
+    provider === 'Ollama'
+      ? 'http://127.0.0.1:11434'
+      : (DEFAULT_BASE_URLS[provider] ?? ''),
   )
   const [region, setRegion] = useState('')
   const [page, setPage] = useState<ModelDiscoveryPage>()
@@ -196,7 +209,7 @@ function ModelDiscoveryForm({ provider, close, configureManually }: Props) {
   }
   return (
     <Dialog open onOpenChange={(open) => !open && !pending && close()}>
-      <DialogContent size="lg" modal>
+      <DialogContent size="lg" modal closeOnOverlayClick={false}>
         <DialogHeader>
           <DialogTitle>
             {t('settings.models.discovery.title', { provider })}
@@ -258,12 +271,12 @@ function ModelDiscoveryForm({ provider, close, configureManually }: Props) {
               {t('settings.models.discovery.find')}
             </Button>
           </fieldset>
-          {selected.size > 0 && (
-            <p role="status" className="text-sm text-text-secondary">
+          {(page || selected.size > 0) && (
+            <output className="text-sm text-text-secondary">
               {t('settings.models.discovery.selected', {
                 count: selected.size,
               })}
-            </p>
+            </output>
           )}
           {phase === 'discovering' ? (
             <PageLoadingState
@@ -285,85 +298,16 @@ function ModelDiscoveryForm({ provider, close, configureManually }: Props) {
               title={t('settings.models.discovery.empty')}
             />
           ) : page ? (
-            <fieldset disabled={pending} className="flex flex-col gap-space-sm">
-              <legend className="sr-only">
-                {t('settings.models.discovery.find')}
-              </legend>
-              <ul className="max-h-64 overflow-auto rounded-radius-md border border-border-default">
-                {page.items.map((model) => (
-                  <li
-                    key={model.model_name}
-                    className="border-b border-border-subtle p-space-sm last:border-0"
-                  >
-                    <label className="flex cursor-pointer items-start gap-space-sm">
-                      <Checkbox
-                        aria-label={model.display_name}
-                        checked={selected.has(model.model_name)}
-                        disabled={
-                          !selected.has(model.model_name) &&
-                          selected.size >= 100
-                        }
-                        onCheckedChange={(checked) => {
-                          setSelected((current) => {
-                            const next = new Map(current)
-                            if (checked === true)
-                              next.set(model.model_name, model)
-                            else next.delete(model.model_name)
-                            return next
-                          })
-                          invalidate()
-                        }}
-                      />
-                      <span className="min-w-0 text-sm break-words">
-                        <span className="block font-medium">
-                          {model.display_name}
-                        </span>
-                        <span className="block text-xs text-text-secondary">
-                          {model.model_name}
-                        </span>
-                        <ModelCapabilities
-                          types={model.model_types}
-                          tools={model.is_tools}
-                        />
-                        {model.features.includes('thinking') && (
-                          <span className="block text-xs text-text-secondary">
-                            {t('settings.models.discovery.thinking')}
-                          </span>
-                        )}
-                      </span>
-                    </label>
-                  </li>
-                ))}
-              </ul>
-              {page.total > page.page_size && (
-                <nav
-                  aria-label={t('settings.models.discovery.pagination')}
-                  className="flex items-center justify-between gap-space-sm"
-                >
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={pending || page.page <= 1}
-                    onClick={() => void discover(page.page - 1)}
-                  >
-                    {t('settings.models.discovery.previous')}
-                  </Button>
-                  <span className="text-sm text-text-secondary">
-                    {page.page} / {Math.ceil(page.total / page.page_size)}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={
-                      pending || page.page * page.page_size >= page.total
-                    }
-                    onClick={() => void discover(page.page + 1)}
-                  >
-                    {t('common.next')}
-                  </Button>
-                </nav>
-              )}
-            </fieldset>
+            <DiscoveredModelPicker
+              page={page}
+              selected={selected}
+              pending={pending}
+              changeSelection={(selection) => {
+                setSelected(selection)
+                invalidate()
+              }}
+              changePage={(number) => void discover(number)}
+            />
           ) : null}
           {verified && (
             <div role="status" className="text-sm">

@@ -37,6 +37,7 @@ export enum DataSourceKey {
   // 数据库类
   MYSQL = 'mysql',
   POSTGRESQL = 'postgresql',
+  MSSQL = 'mssql',
 
   // 其他
   GOOGLE_DRIVE = 'google_drive',

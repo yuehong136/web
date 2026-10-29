@@ -67,6 +67,7 @@ test('buildAuthHeader normalizes missing, raw and bearer tokens', async () => {
 test('getFileType covers supported preview formats', () => {
   assert.equal(getFileType('file.pdf'), 'pdf')
   assert.equal(getFileType('file.PNG'), 'image')
+  assert.equal(getFileType('file.ICO'), 'image')
   assert.equal(getFileType('file.webm'), 'video')
   assert.equal(getFileType('file.docx'), 'docx')
   assert.equal(getFileType('file.xlsx'), 'xlsx')
@@ -75,6 +76,13 @@ test('getFileType covers supported preview formats', () => {
   assert.equal(getFileType('file.markdown'), 'md')
   assert.equal(getFileType('file.csv'), 'csv')
   assert.equal(getFileType(undefined, 'pdf'), 'pdf')
+  assert.equal(getFileType(undefined, '.PNG'), 'image')
+  assert.equal(getFileType('untitled', 'JPG'), 'image')
+  assert.equal(getFileType('untitled.', 'webp'), 'image')
+  assert.equal(getFileType('document.svg'), 'image')
+  assert.equal(getFileType('document.tif'), 'unknown')
+  assert.equal(getFileType(undefined, 'tiff'), 'unknown')
+  assert.equal(getFileType(), 'unknown')
   assert.equal(getFileType('file.unknown'), 'unknown')
 })
 

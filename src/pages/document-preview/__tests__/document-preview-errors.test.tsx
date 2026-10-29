@@ -75,12 +75,10 @@ const settle = async (done: () => boolean) => {
   }
 }
 
-async function renderPage() {
+async function renderPage(path = '/document/doc-1/preview?name=report.pdf') {
   await act(async () =>
     root.render(
-      <MemoryRouter
-        initialEntries={['/document/doc-1/preview?name=report.pdf']}
-      >
+      <MemoryRouter initialEntries={[path]}>
         <Routes>
           <Route
             path="/document/:docId/preview"
@@ -249,4 +247,63 @@ describe('document preview chrome', () => {
       container.querySelector('button[aria-label="Download file"]'),
     ).not.toBeNull()
   })
+})
+
+describe('document preview image metadata', () => {
+  const stubObjectUrls = (value: string) => {
+    const revoke = vi.fn()
+    vi.stubGlobal(
+      'URL',
+      Object.assign(class extends URL {}, {
+        createObjectURL: vi.fn(() => value),
+        revokeObjectURL: revoke,
+      }),
+    )
+    return revoke
+  }
+  it.each(['PNG', 'ico'])(
+    'loads a nameless %s through the protected preview resource',
+    async (extension) => {
+      preview = () =>
+        new Response('image bytes', {
+          headers: {
+            'content-type': extension === 'ico' ? 'image/x-icon' : 'image/png',
+          },
+        })
+      const revoke = stubObjectUrls('blob:nameless-image')
+      await renderPage(`/document/doc-1/preview?extension=${extension}`)
+      await settle(() => Boolean(container.querySelector('img')))
+      const image = container.querySelector('img')!
+      expect(image.getAttribute('src')).toBe('blob:nameless-image')
+      expect(image.getAttribute('alt')).toBe('图片预览')
+      expect(container.textContent).not.toContain('undefined')
+      await act(async () => root.render(null))
+      expect(revoke).toHaveBeenCalledWith('blob:nameless-image')
+    },
+  )
+
+  it('uses extension metadata when the display name has no suffix and reports decoding failure', async () => {
+    preview = () =>
+      new Response('invalid image bytes', {
+        headers: { 'content-type': 'image/png' },
+      })
+    stubObjectUrls('blob:bad-image')
+    await renderPage('/document/doc-1/preview?name=untitled&extension=PNG')
+    await settle(() => Boolean(container.querySelector('img')))
+    await act(async () =>
+      container.querySelector('img')!.dispatchEvent(new Event('error')),
+    )
+    expect(container.querySelector('img')).toBeNull()
+    expect(pageText()).toContain('图片加载失败')
+  })
+
+  it.each(['tif', 'tiff'])(
+    'shows the unsupported state for %s without claiming native decoding',
+    async (extension) => {
+      await renderPage(`/document/doc-1/preview?extension=${extension}`)
+      expect(pageText()).toContain('不支持')
+      expect(container.querySelector('img')).toBeNull()
+      expect(fetch).not.toHaveBeenCalled()
+    },
+  )
 })

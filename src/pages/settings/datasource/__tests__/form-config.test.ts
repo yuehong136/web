@@ -253,6 +253,7 @@ describe('connector configuration contracts', () => {
       'imap',
       'jira',
       'moodle',
+      'mssql',
       'mysql',
       'notion',
       'oci_storage',

@@ -22,7 +22,8 @@ const DocumentPreviewPage: React.FC = () => {
   const language = getCurrentLanguage()
 
   const docName = searchParams.get('name') || undefined
-  const resource = usePreviewResource({ docId, docName })
+  const docType = searchParams.get('extension') || undefined
+  const resource = usePreviewResource({ docId, docName, docType })
 
   const watermarkContent = useMemo(() => {
     const email = user?.email || user?.nickname || ''

@@ -216,6 +216,21 @@ export const DataSourceFormDefaultValues: Record<DataSourceKey, any> = {
       credentials: { username: '', password: '' },
     },
   },
+  [DataSourceKey.MSSQL]: {
+    name: '',
+    source: DataSourceKey.MSSQL,
+    config: {
+      host: 'localhost',
+      port: 1433,
+      database: '',
+      query: '',
+      content_columns: '',
+      metadata_columns: '',
+      id_column: '',
+      timestamp_column: '',
+      credentials: { username: '', password: '' },
+    },
+  },
   [DataSourceKey.GOOGLE_DRIVE]: {
     name: '',
     source: DataSourceKey.GOOGLE_DRIVE,

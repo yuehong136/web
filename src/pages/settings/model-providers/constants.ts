@@ -231,6 +231,7 @@ export const FACTORY_MODEL_TYPES: Record<
 
 // 默认 Base URL
 export const DEFAULT_BASE_URLS: Record<string, string> = {
+  OpenRouter: 'https://openrouter.ai/api/v1',
   Ollama: 'http://localhost:11434',
   Xinference: 'http://localhost:9997',
   LocalAI: 'http://localhost:8080',

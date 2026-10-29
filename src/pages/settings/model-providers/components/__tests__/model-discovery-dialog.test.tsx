@@ -2,7 +2,10 @@ import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
-import { ModelDiscoveryDialog } from '../model-discovery-dialog'
+import {
+  ModelDiscoveryDialog,
+  supportsModelDiscovery,
+} from '../model-discovery-dialog'
 import { useAuthStore } from '@/stores/auth'
 import { apiClient } from '@/api/client'
 import { stubNativeDialog } from '@/components/ui/__tests__/native-dialog'
@@ -78,7 +81,7 @@ beforeEach(async () => {
     addEventListener() {},
     removeEventListener() {},
   }))
-  vi.clearAllMocks()
+  vi.resetAllMocks()
   native = stubNativeDialog()
   useAuthStore.setState({ user: { id: 'discovery-owner' } as never })
   apiClient.setAuthToken('discovery-owner')
@@ -213,21 +216,24 @@ it('invalidates verification after a selection change and discards candidates af
 it('retains selection across explicit pages and clears private form state on owner changes', async () => {
   mocks.discover.mockResolvedValueOnce({
     items: [rows[0]],
-    total: 101,
+    total: 2000,
     page: 1,
     page_size: 100,
   })
   mocks.discover.mockResolvedValueOnce({
     items: [rows[1]],
-    total: 101,
+    total: 2000,
     page: 2,
     page_size: 100,
   })
   await render()
   await change('discovery-key', 'synthetic-owner-private-key')
   await click(button('Find models'))
+  expect(document.body.textContent).toContain('1 / 20')
+  expect(document.body.textContent).toContain('0 models selected')
   await choose('First model')
   await click(button('Next'))
+  expect(document.body.textContent).toContain('2 / 20')
   await choose('Second model')
   expect(document.body.textContent).toContain('2 models selected')
   await act(async () =>
@@ -275,4 +281,145 @@ it('offers manual configuration without discovering, verifying or registering mo
   expect(mocks.discover).not.toHaveBeenCalled()
   expect(mocks.verify).not.toHaveBeenCalled()
   expect(mocks.create).not.toHaveBeenCalled()
+})
+
+it('searches only the current page and clears the explicit cross-page selection', async () => {
+  const many = Array.from({ length: 12 }, (_, index) =>
+    model(`model-${index}`, `Model ${index}`),
+  )
+  mocks.discover.mockResolvedValueOnce({
+    items: many,
+    total: 101,
+    page: 1,
+    page_size: 100,
+  })
+  mocks.discover.mockResolvedValueOnce({
+    items: [rows[1]],
+    total: 101,
+    page: 2,
+    page_size: 100,
+  })
+  await render()
+  await change('discovery-instance-name', 'Selected connection')
+  await click(button('Find models'))
+  const search = document.querySelector<HTMLInputElement>('input[type=search]')!
+  expect(search.getAttribute('aria-label')).toBe('Search models on this page')
+  await act(async () => {
+    Object.getOwnPropertyDescriptor(
+      HTMLInputElement.prototype,
+      'value',
+    )!.set!.call(search, 'model-11')
+    search.dispatchEvent(new Event('input', { bubbles: true }))
+  })
+  expect(document.querySelectorAll('[role=checkbox]')).toHaveLength(1)
+  await click(button('Select page results'))
+  expect(document.body.textContent).toContain('1 model selected')
+  await click(button('Next'))
+  // Changing pages preserves selected descriptors; current-page search never
+  // silently queries the provider or selects unseen rows.
+  expect(mocks.discover).toHaveBeenCalledTimes(2)
+  expect(document.body.textContent).toContain('1 model selected')
+  await click(button('Clear selection'))
+  expect(document.body.textContent).not.toContain('1 model selected')
+  expect(button('Test connection').disabled).toBe(true)
+  expect(button('Save').disabled).toBe(true)
+  expect(mocks.verify).not.toHaveBeenCalled()
+  expect(mocks.create).not.toHaveBeenCalled()
+})
+
+it('keeps the picker open when its background is clicked and toggles a row once', async () => {
+  await render()
+  await click(button('Find models'))
+  const text = [...document.querySelectorAll('span')].find(
+    (element) => element.textContent === 'First model',
+  )!
+  await click(text)
+  expect(document.body.textContent).toContain('1 model selected')
+  expect(
+    document
+      .querySelector('[aria-label="First model"]')
+      ?.getAttribute('aria-checked'),
+  ).toBe('true')
+  await click(document.querySelector('dialog')!)
+  expect(close).not.toHaveBeenCalled()
+  expect(document.body.textContent).toContain('1 model selected')
+  await choose('First model')
+  expect(button('Test connection').disabled).toBe(true)
+})
+
+it('uses the registered LocalAI endpoint default without sharing credentials across providers', async () => {
+  await act(async () =>
+    root.render(
+      <QueryClientProvider client={client}>
+        <ModelDiscoveryDialog provider="LocalAI" close={close} />
+      </QueryClientProvider>,
+    ),
+  )
+  expect(
+    (document.getElementById('discovery-url') as HTMLInputElement).value,
+  ).toBe('http://localhost:8080')
+  await change('discovery-key', 'synthetic-localai-key')
+  await render()
+  expect(
+    (document.getElementById('discovery-url') as HTMLInputElement).value,
+  ).toBe('http://127.0.0.1:11434')
+  expect(
+    (document.getElementById('discovery-key') as HTMLInputElement).value,
+  ).toBe('')
+})
+
+it('enables only providers with an implemented discovery contract', () => {
+  for (const provider of [
+    'Ollama',
+    'Fish Audio',
+    'MinerU',
+    'OpenRouter',
+    'OpenAI-API-Compatible',
+    'VLLM',
+    'LM-Studio',
+    'Xinference',
+    'LocalAI',
+    'BaiduYiyan',
+  ])
+    expect(supportsModelDiscovery(provider)).toBe(true)
+  for (const provider of [
+    'Tencent Cloud',
+    'HuggingFace',
+    'Google Cloud',
+    'GPUStack',
+    'PaddleOCR',
+    'XunFei Spark',
+  ]) {
+    expect(supportsModelDiscovery(provider)).toBe(false)
+  }
+})
+
+it('keeps the 100-model bound across pages and restores selection after an explicit clear', async () => {
+  mocks.discover.mockResolvedValueOnce({
+    items: Array.from({ length: 100 }, (_, index) =>
+      model(`bounded-${index}`, `Bounded ${index}`),
+    ),
+    total: 101,
+    page: 1,
+    page_size: 100,
+  })
+  mocks.discover.mockResolvedValueOnce({
+    items: [rows[0]],
+    total: 101,
+    page: 2,
+    page_size: 100,
+  })
+  await render()
+  await click(button('Find models'))
+  await click(button('Select page results'))
+  expect(document.body.textContent).toContain('100 models selected')
+  await click(button('Next'))
+  expect(button('Select page results').disabled).toBe(true)
+  expect(
+    document.querySelector<HTMLButtonElement>('[role=checkbox]')!.disabled,
+  ).toBe(true)
+  await click(button('Clear selection'))
+  expect(button('Select page results').disabled).toBe(false)
+  await click(button('Select page results'))
+  expect(document.body.textContent).toContain('1 model selected')
 })
