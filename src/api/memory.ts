@@ -50,7 +50,10 @@ export const memoryAPI = {
      * 获取记忆库列表
      * GET /api/v1/memories
      */
-    list: (params?: MemoryListParams): Promise<MemoryListResponse> => {
+    list: (
+      params?: MemoryListParams,
+      signal?: AbortSignal,
+    ): Promise<MemoryListResponse> => {
       if (isLargeListWindow(params))
         return collectListWindow<
           MemoryListResponse & { total: number },
@@ -58,10 +61,14 @@ export const memoryAPI = {
         >(
           params!,
           async (page) => {
-            const result = await memoryAPI.memory.list({ ...params, ...page })
+            const result = await memoryAPI.memory.list(
+              { ...params, ...page },
+              signal,
+            )
             return { ...result, total: result.total_count }
           },
           'memory_list',
+          signal,
         )
       const queryParams = new URLSearchParams()
 
@@ -82,7 +89,10 @@ export const memoryAPI = {
       }
 
       const qs = queryParams.toString()
-      return apiClient.get(`/memories${qs ? `?${qs}` : ''}`, sdkBase)
+      return apiClient.get(`/memories${qs ? `?${qs}` : ''}`, {
+        ...sdkBase,
+        signal,
+      })
     },
 
     /**

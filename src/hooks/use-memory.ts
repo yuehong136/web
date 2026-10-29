@@ -43,7 +43,7 @@ export const memoryKeys = {
 export function useMemoryList(params?: MemoryListParams) {
   return useQuery({
     queryKey: memoryKeys.list(params || {}),
-    queryFn: () => memoryAPI.memory.list(params),
+    queryFn: ({ signal }) => memoryAPI.memory.list(params, signal),
     staleTime: 30 * 1000, // 30 秒内不重新请求
     placeholderData: (previousData) => previousData, // 保持之前的数据，避免闪烁
   })

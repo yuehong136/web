@@ -20,10 +20,12 @@ export async function collectListWindow<
   params: ListWindow,
   load: (page: { page: number; page_size: number }) => Promise<T>,
   key: K,
+  signal?: AbortSignal,
 ): Promise<T> {
   const isCurrentOwner = apiClient.captureOwner()
-  const assertOwner = () => {
-    if (!isCurrentOwner()) throw new DOMException('Aborted', 'AbortError')
+  const assertActive = () => {
+    if (signal?.aborted || !isCurrentOwner())
+      throw new DOMException('Aborted', 'AbortError')
   }
   const size = params.page_size!
   const start = ((params.page ?? 1) - 1) * size
@@ -33,9 +35,9 @@ export async function collectListWindow<
   const items: unknown[] = []
   const seen = new Set<string>()
   do {
-    assertOwner()
+    assertActive()
     const result = await load({ page, page_size: 100 })
-    assertOwner()
+    assertActive()
     const batch = result[key]
     if (
       !Array.isArray(batch) ||

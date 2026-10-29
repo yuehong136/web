@@ -18,15 +18,88 @@ import { ToolBar } from './toolbar'
 import { needsSingleStepDebugging, showCopyIcon } from '../../utils'
 import { EntityAvatar } from '@/components/patterns/entity-avatar'
 
+type RetrievalItem = { id: string; name: string; avatar?: string | null }
+
+function RetrievalSummary({
+  itemIds,
+  items,
+  isMemoryMode,
+}: {
+  itemIds: string[]
+  items: RetrievalItem[]
+  isMemoryMode: boolean
+}) {
+  const { t } = useTranslation()
+  const itemMap = useMemo(
+    () => new Map(items.map((item) => [item.id, item])),
+    [items],
+  )
+  return (
+    <SummaryList
+      items={itemIds}
+      empty={
+        <LabelCard>
+          {isMemoryMode
+            ? t('flow.selectMemories', 'Select memories')
+            : t('flow.selectKnowledgeBases', 'Select datasets')}
+        </LabelCard>
+      }
+      renderItem={(itemId, index, { withDivider }) => {
+        const item = itemMap.get(itemId)
+        const label = item?.name || itemId
+
+        return (
+          <div
+            key={`${itemId}-${index}`}
+            className={cn(
+              'flex items-center gap-space-sm px-space-sm py-space-sm',
+              withDivider && 'border-t border-border-subtle',
+            )}
+          >
+            <EntityAvatar
+              name={label}
+              src={item?.avatar ?? undefined}
+              seed={itemId}
+              size="md"
+            />
+            <span className="min-w-0 flex-1 truncate text-sm text-text-primary">
+              {label}
+            </span>
+          </div>
+        )
+      }}
+    />
+  )
+}
+
+function MemoryRetrievalSummary({ itemIds }: { itemIds: string[] }) {
+  const query = useAllMemoryList()
+  return (
+    <RetrievalSummary
+      itemIds={itemIds}
+      items={query.data?.memory_list ?? []}
+      isMemoryMode
+    />
+  )
+}
+
+function DatasetRetrievalSummary({ itemIds }: { itemIds: string[] }) {
+  const { knowledgeBases } = useFetchKnowledgeList({ page_size: 1000 })
+  return (
+    <RetrievalSummary
+      itemIds={itemIds}
+      items={knowledgeBases}
+      isMemoryMode={false}
+    />
+  )
+}
+
 function InnerRetrievalNode({
   id,
   data,
   isConnectable,
   selected,
 }: NodeProps<IRetrievalNode>) {
-  const { t } = useTranslation()
-  const { knowledgeBases } = useFetchKnowledgeList({ page_size: 1000 })
-  const memoryQuery = useAllMemoryList()
   const form = (data.form ?? {}) as {
     retrieval_from?: string
     memory_ids?: string[]
@@ -37,17 +110,6 @@ function InnerRetrievalNode({
   const itemIds = isMemoryMode
     ? (form.memory_ids ?? [])
     : (form.dataset_ids ?? form.kb_ids ?? [])
-  const knowledgeMap = useMemo(
-    () => new Map(knowledgeBases.map((item) => [item.id, item])),
-    [knowledgeBases],
-  )
-  const memoryMap = useMemo(
-    () =>
-      new Map(
-        (memoryQuery.data?.memory_list ?? []).map((item) => [item.id, item]),
-      ),
-    [memoryQuery.data?.memory_list],
-  )
 
   return (
     <ToolBar
@@ -79,42 +141,11 @@ function InnerRetrievalNode({
             />
           }
         />
-        <SummaryList
-          items={itemIds}
-          empty={
-            <LabelCard>
-              {isMemoryMode
-                ? t('flow.selectMemories', 'Select memories')
-                : t('flow.selectKnowledgeBases', 'Select datasets')}
-            </LabelCard>
-          }
-          renderItem={(itemId, index, { withDivider }) => {
-            const item = isMemoryMode
-              ? memoryMap.get(itemId)
-              : knowledgeMap.get(itemId)
-            const label = item?.name || itemId
-
-            return (
-              <div
-                key={`${itemId}-${index}`}
-                className={cn(
-                  'flex items-center gap-space-sm px-space-sm py-space-sm',
-                  withDivider && 'border-t border-border-subtle',
-                )}
-              >
-                <EntityAvatar
-                  name={label}
-                  src={item?.avatar}
-                  seed={itemId}
-                  size="md"
-                />
-                <span className="min-w-0 flex-1 truncate text-sm text-text-primary">
-                  {label}
-                </span>
-              </div>
-            )
-          }}
-        />
+        {isMemoryMode ? (
+          <MemoryRetrievalSummary itemIds={itemIds} />
+        ) : (
+          <DatasetRetrievalSummary itemIds={itemIds} />
+        )}
       </NodeWrapper>
     </ToolBar>
   )

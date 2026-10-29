@@ -9,10 +9,15 @@ import {
   closeSync,
   constants,
   fstatSync,
+  existsSync,
 } from 'node:fs'
 import { apiClient, APIError } from '../src/api/client'
 import { createModelProvidersAPI } from '../src/api/llm-providers'
 import type { ConnectionCandidate } from '../src/api/llm-provider-types'
+import {
+  assertDiscoveryProviderAbsent,
+  cleanupDiscoveryFixture,
+} from './provider-discovery-cleanup'
 
 interface Descriptor {
   origin: string
@@ -41,6 +46,12 @@ for (const endpoint of [fixture.origin, fixture.discovery.base_url]) {
   assert.ok(['127.0.0.1', 'localhost', '[::1]'].includes(url.hostname))
 }
 assert.ok(fixture.scratchDatabase && fixture.instanceName)
+if (mode === 'owner')
+  assert.equal(
+    existsSync(fixture.readbackFile),
+    false,
+    'Discovery readback must not already exist',
+  )
 const fd = openSync(
   process.env.MULTIRAG_RUN_JOURNAL!,
   constants.O_WRONLY | constants.O_APPEND | (constants.O_NOFOLLOW ?? 0),
@@ -72,6 +83,7 @@ const inventory = async () => {
 }
 try {
   record('reserve-web-discovery-consumer', {
+    ownerId: fixture.ownerId,
     origin: fixture.origin,
     provider: fixture.providerName,
     instanceName: fixture.instanceName,
@@ -80,27 +92,19 @@ try {
   })
   if (mode === 'cleanup') {
     const prior = JSON.parse(readFileSync(fixture.readbackFile, 'utf8'))
-    await api.deleteProvider(fixture.providerName)
-    const remaining = await inventory()
-    assert.equal(
-      remaining.providers.some((item) => item.name === fixture.providerName),
-      false,
-    )
-    assert.equal(
-      remaining.models.some(
-        (item) => item.provider_name === fixture.providerName,
-      ),
-      false,
-    )
+    const cleaned = await cleanupDiscoveryFixture(fixture, prior, {
+      inventory,
+      deleteInstance: api.deleteInstance,
+      deleteProvider: api.deleteProvider,
+    })
     record('web-discovery-consumer-cleaned', {
       providerName: fixture.providerName,
-      modelIds: prior.modelIds,
+      ...cleaned,
     })
-    console.log(
-      JSON.stringify({ mode, status: 'passed', modelIds: prior.modelIds }),
-    )
+    console.log(JSON.stringify({ mode, status: 'passed', ...cleaned }))
   } else {
     const before = await inventory()
+    assertDiscoveryProviderAbsent(fixture, before.providers)
     const page = await api.discoverModels(fixture.providerName, input)
     assert.ok(page.items.length && page.total >= page.items.length)
     assert.ok(
@@ -162,7 +166,17 @@ try {
       (item) => item.instance_name === fixture.instanceName,
     )
     assert.ok(instance && !('api_key' in instance))
+    const provider = after.providers.find(
+      (item) => item.name === fixture.providerName,
+    )
+    assert.ok(provider?.id)
     const readback = {
+      ownerId: fixture.ownerId,
+      origin: fixture.origin,
+      scratchDatabase: fixture.scratchDatabase,
+      providerCreated: true,
+      providerAbsentBefore: true,
+      providerId: provider.id,
       providerName: fixture.providerName,
       instanceName: fixture.instanceName,
       instanceId: instance.id,
