@@ -1,3 +1,4 @@
+import { modelIdentityPayload } from '@/lib/model-identity'
 import { useModelIdentity } from '@/components/models/model-identity'
 import { useCallback, type Dispatch, type SetStateAction } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -139,10 +140,19 @@ export function useExploreSend({
           })
           const params: Parameters<typeof conversationAPI.completion>[0] = {
             conversation_id: conversationId,
-            messages: updated.map((item) => ({
+            messages: updated.map((item, index) => ({
               role: item.role,
               content: item.content,
               id: item.id,
+              ...modelIdentityPayload(
+                index === updated.length - 1
+                  ? {
+                      reference: appModelReference,
+                      label: appLabel,
+                      provider: appProvider,
+                    }
+                  : item.modelIdentity,
+              ),
               ...(item.files?.length ? { files: item.files } : {}),
             })),
             quote: settings.quote,

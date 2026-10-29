@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { historyModelIdentities } from '@/lib/model-identity'
 import { useQueryClient } from '@tanstack/react-query'
 import { conversationAPI } from '@/api/conversation'
 import type { UploadedFileInfo } from '@/config/chat'
@@ -37,6 +38,7 @@ interface ConversationDetail {
   name?: string
   message?: {
     role?: string
+    model_identity?: unknown
     content?: string
     id?: string
     reference?: { chunks?: ReferenceChunk[] }
@@ -180,8 +182,10 @@ export function useExploreConversation() {
         })
         if (!isCurrent() || (detail.id && detail.id !== id)) return
         setSelectedConversationDetail({ ...detail, id })
+        const identities = historyModelIdentities(detail.message ?? [])
         setMessages(
-          (detail.message ?? []).map((message) => ({
+          (detail.message ?? []).map((message, index) => ({
+            modelIdentity: identities[index],
             role: message.role === 'user' ? 'user' : 'assistant',
             content: message.content ?? '',
             id: message.id,

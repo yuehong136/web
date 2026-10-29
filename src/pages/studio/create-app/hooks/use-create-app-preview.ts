@@ -1,3 +1,4 @@
+import { modelIdentityPayload } from '@/lib/model-identity'
 import {
   useCallback,
   useEffect,
@@ -223,8 +224,16 @@ export function useCreateAppPreview(options: PreviewOptions) {
             messages: [
               ...history
                 .filter((message) => !message.id.startsWith('prologue-'))
-                .map(({ role, content }) => ({ role, content })),
-              { role: 'user', content: content.trim() },
+                .map(({ role, content, modelIdentity }) => ({
+                  role,
+                  content,
+                  ...modelIdentityPayload(modelIdentity),
+                })),
+              {
+                role: 'user',
+                content: content.trim(),
+                ...modelIdentityPayload(baseDetails.modelIdentity),
+              },
             ],
             quote: savedConfig.prompt_config.quote,
             stream: true,

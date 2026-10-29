@@ -739,7 +739,13 @@ it('captures app bindings before conversation creation and never submits unrelat
   ])
   expect(completion.mock.calls[0][0]).toEqual({
     conversation_id: 'actual-thread',
-    messages: [{ role: 'user', content: 'question' }],
+    messages: [
+      {
+        role: 'user',
+        content: 'question',
+        model_identity: { reference: 'bound-model', label: 'bound-model' },
+      },
+    ],
     quote: true,
   })
   expect(JSON.stringify(completion.mock.calls[0][0])).not.toMatch(

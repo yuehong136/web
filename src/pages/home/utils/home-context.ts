@@ -68,7 +68,7 @@ export function getHomeContextResources({
   return resources
 }
 
-/** A turn owns one immutable display snapshot; only role/content go to the API. */
+/** A turn owns its context snapshot; API serializers explicitly persist model attribution only. */
 export function createHomeTurn({
   content,
   scope,
@@ -85,6 +85,10 @@ export function createHomeTurn({
     stage: 'submitted',
     resources,
   })
+  const model = resources.find((resource) => resource.kind === 'model')
+  const modelIdentity = model
+    ? { reference: model.id, label: model.label, provider: model.provider }
+    : undefined
   const timestamp = new Date().toLocaleTimeString(getCurrentLanguage())
   return {
     userMessage: {
@@ -93,6 +97,7 @@ export function createHomeTurn({
       content: content.trim(),
       timestamp,
       contextManifest,
+      modelIdentity,
     },
     assistantMessage: {
       id: assistantId,
@@ -104,6 +109,7 @@ export function createHomeTurn({
       timelineNodes: [],
       isStreaming: true,
       contextManifest,
+      modelIdentity,
     },
   }
 }

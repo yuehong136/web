@@ -170,6 +170,59 @@ describe('Explore send lifecycle and ownership', () => {
     expect(conversationAPI.completion).not.toHaveBeenCalled()
   })
 
+  it('restores persisted turn identity after history navigation and keeps it on later saves', async () => {
+    selectedApp = 'app-A'
+    vi.spyOn(conversationAPI, 'setConversation').mockResolvedValue({
+      id: 'saved-conversation',
+    })
+    await act(async () =>
+      root.render(
+        <QueryClientProvider client={client}>
+          <Probe />
+        </QueryClientProvider>,
+      ),
+    )
+    await act(async () => {
+      await send('First question')
+    })
+    const sent = vi.mocked(conversationAPI.completion).mock.calls.at(-1)![0]
+      .messages
+    const lastUser = sent.at(-1)!
+    expect(lastUser.model_identity).toEqual({
+      reference: 'app-model@OpenAI',
+      label: 'app-model',
+      provider: 'OpenAI',
+    })
+    vi.spyOn(conversationAPI, 'getConversationDetail').mockResolvedValue({
+      id: 'saved-conversation',
+      message: [
+        ...sent,
+        { role: 'assistant', id: lastUser.id, content: 'Saved answer' },
+      ],
+    })
+    await act(async () => session.resetConversation('another'))
+    await act(async () => {
+      await session.fetchConversationDetail('saved-conversation')
+    })
+    expect(session.messages.at(-1)?.modelIdentity).toEqual(
+      lastUser.model_identity,
+    )
+    await act(async () => {
+      await send('Next question')
+    })
+    const next = vi.mocked(conversationAPI.completion).mock.calls.at(-1)![0]
+      .messages
+    expect(
+      next.find((message) => message.content === 'Saved answer')
+        ?.model_identity,
+    ).toEqual(lastUser.model_identity)
+    expect(next).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ contextManifest: expect.anything() }),
+      ]),
+    )
+  })
+
   it.each(['fallback', 'completion'] as const)(
     'projects EOF as interrupted for %s mode without losing the answer',
     async (mode) => {

@@ -344,3 +344,33 @@ it('shows no history references when answers and reference groups disagree', asy
   // 正文保持原样，不丢失 [ID:n]
   expect(chat.messages[2].content).toBe('回答 1 [ID:0]')
 })
+
+it('restores model attribution paired to the saved turn without borrowing another turn or current app', async () => {
+  histories.set('identity-history', {
+    message: [
+      {
+        role: 'user',
+        id: 'saved-turn',
+        content: 'Question',
+        model_identity: {
+          reference: '117',
+          label: 'Historical model',
+          provider: 'OpenAI',
+        },
+      },
+      { role: 'assistant', id: 'saved-turn', content: 'Answer' },
+      { role: 'assistant', id: 'other-turn', content: 'Unattributed answer' },
+    ],
+  })
+  await renderSurface({
+    ...appOptions,
+    selectedConversationId: 'identity-history',
+  })
+  await flush()
+  expect(chat.messages[1].modelIdentity).toEqual({
+    reference: '117',
+    label: 'Historical model',
+    provider: 'OpenAI',
+  })
+  expect(chat.messages[2].modelIdentity).toBeUndefined()
+})

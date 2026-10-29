@@ -16,6 +16,7 @@ export type { AnswerStatus, AnswerStatusKind } from '@/lib/chat/answer-status'
 
 // 消息类型
 export interface ChatMessage {
+  modelIdentity?: import('@/lib/model-identity').ModelIdentitySnapshot
   id: string
   role: 'user' | 'assistant'
   content: string

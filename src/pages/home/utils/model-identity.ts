@@ -1,4 +1,7 @@
-import { resolveMessageModelIdentity } from '@/lib/model-identity'
+import {
+  resolveMessageModelIdentity,
+  type ModelIdentitySnapshot,
+} from '@/lib/model-identity'
 import type { MyLLMProvider } from '@/stores/model'
 import type { ContextManifest } from '@/lib/ai-workspace/contracts'
 export { resolveModelIdentity as resolveHomeModelIdentity } from '@/lib/model-identity'
@@ -7,6 +10,7 @@ export { resolveModelIdentity as resolveHomeModelIdentity } from '@/lib/model-id
 export function homeMessageIdentity(
   manifest: ContextManifest | undefined,
   providers: MyLLMProvider,
+  snapshot?: ModelIdentitySnapshot,
 ) {
   const model = manifest?.resources.find(
     (resource) => resource.kind === 'model',
@@ -16,6 +20,7 @@ export function homeMessageIdentity(
       { reference: model.id, label: model.label, provider: model.provider },
       providers,
     )
+  if (snapshot) return resolveMessageModelIdentity(snapshot, providers)
   const app = manifest?.resources.find((resource) => resource.kind === 'app')
   return { label: app?.label, provider: undefined }
 }

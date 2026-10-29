@@ -1,3 +1,4 @@
+import type { ModelIdentitySnapshot } from '@/lib/model-identity'
 import { APIError, apiClient } from './client'
 import { API_BASE_URL } from '@/constants'
 import { uploadConversationAttachment } from './conversation-upload'
@@ -9,6 +10,8 @@ import {
 } from '@/config/chat'
 
 type CompletionMessage = {
+  /** Persisted display attribution, excluded from provider prompts by the API. */
+  model_identity?: ModelIdentitySnapshot
   role: string
   content: string
   id?: string

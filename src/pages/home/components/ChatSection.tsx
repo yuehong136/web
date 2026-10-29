@@ -93,7 +93,11 @@ function ChatSectionContent({
         : message.parsedToolCalls?.length
           ? createTimelineNodesFromToolCalls(message.parsedToolCalls)
           : undefined
-      const identity = homeMessageIdentity(message.contextManifest, myLLMs)
+      const identity = homeMessageIdentity(
+        message.contextManifest,
+        myLLMs,
+        message.modelIdentity,
+      )
       return {
         id: message.id,
         role: message.role,

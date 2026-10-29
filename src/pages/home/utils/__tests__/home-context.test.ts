@@ -1,4 +1,8 @@
 import {
+  historyModelIdentities,
+  modelIdentityPayload,
+} from '@/lib/model-identity'
+import {
   homeMessageIdentity,
   resolveHomeModelIdentity,
 } from '../model-identity'
@@ -117,7 +121,7 @@ test('one immutable submission snapshot belongs to both messages and survives la
   )
   assert.ok(Object.isFrozen(userMessage.contextManifest))
   assert.ok(Object.isFrozen(userMessage.contextManifest?.resources[0]))
-  // The server receives no display metadata.
+  // The provider prompt projection excludes display metadata.
   assert.deepEqual(
     [userMessage].map(({ role, content }) => ({ role, content })),
     [{ role: 'user', content: 'Question' }],
@@ -188,4 +192,34 @@ test('old numeric snapshots resolve by message reference rather than the current
     label: 'gpt-test',
     provider: 'OpenAI',
   })
+})
+
+test('durable attribution follows exact turn ids, rejects malformed metadata and never uses another turn', () => {
+  const identity = { reference: '117', label: 'gpt-test', provider: 'OpenAI' }
+  const rows = [
+    { role: 'assistant', content: 'Prologue' },
+    { role: 'user', id: 'turn-1', ...modelIdentityPayload(identity) },
+    { role: 'assistant', id: 'turn-1' },
+    { role: 'assistant', id: 'different-turn' },
+    { role: 'user', id: 'turn-2', model_identity: { reference: 118 } },
+    { role: 'assistant', id: 'turn-2' },
+    { role: 'assistant', ...modelIdentityPayload(identity) },
+  ]
+  assert.deepEqual(historyModelIdentities(rows), [
+    undefined,
+    identity,
+    identity,
+    undefined,
+    undefined,
+    undefined,
+    identity,
+  ])
+  assert.deepEqual(modelIdentityPayload({ label: 'Unattributed' }), {})
+  assert.deepEqual(
+    modelIdentityPayload({
+      ...identity,
+      privateData: 'drop',
+    } as typeof identity),
+    { model_identity: identity },
+  )
 })

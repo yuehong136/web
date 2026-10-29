@@ -62,3 +62,46 @@ export function resolveMessageModelIdentity(
     provider: snapshot.provider ?? resolved.provider,
   }
 }
+
+/** Display metadata is stored with the turn, never used to choose a provider. */
+export function modelIdentityPayload(snapshot?: ModelIdentitySnapshot) {
+  return snapshot?.reference
+    ? {
+        model_identity: {
+          reference: snapshot.reference,
+          ...(snapshot.label ? { label: snapshot.label } : {}),
+          ...(snapshot.provider ? { provider: snapshot.provider } : {}),
+        },
+      }
+    : {}
+}
+
+function readModelIdentity(value: unknown): ModelIdentitySnapshot | undefined {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return
+  const record = value as Record<string, unknown>
+  if (typeof record.reference !== 'string' || !record.reference.trim()) return
+  return {
+    reference: record.reference,
+    ...(typeof record.label === 'string' ? { label: record.label } : {}),
+    ...(typeof record.provider === 'string'
+      ? { provider: record.provider }
+      : {}),
+  }
+}
+
+/** The completion API stores the submitted user's metadata; its reply shares the turn id. */
+export function historyModelIdentities(
+  messages: readonly { role?: string; id?: string; model_identity?: unknown }[],
+): (ModelIdentitySnapshot | undefined)[] {
+  let user: { id?: string; identity?: ModelIdentitySnapshot } | undefined
+  return messages.map((message) => {
+    const identity = readModelIdentity(message.model_identity)
+    if (message.role === 'user') user = { id: message.id, identity }
+    return (
+      identity ??
+      (message.role === 'assistant' && message.id && message.id === user?.id
+        ? user.identity
+        : undefined)
+    )
+  })
+}

@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
+import { historyModelIdentities } from '@/lib/model-identity'
 import { conversationAPI } from '@/api/conversation'
 import { chatKeys } from '@/hooks/use-chat-request'
 import { toast } from '@/lib/toast'
@@ -23,6 +24,7 @@ const toChatMessages = (detail: unknown): ChatMessage[] => {
   if (!Array.isArray(history)) return []
   // 消息本身不带引用；只有能与会话级引用组一一对应时才挂上，否则正文保留原样
   const references = alignHistoryReferences(history, reference)
+  const identities = historyModelIdentities(history)
   // 服务端给同一轮的问和答相同 id；消息 id 是更新与渲染的身份，必须唯一
   const seen = new Set<string>()
   return history.map((msg: ConversationHistoryMessage, index) => {
@@ -33,6 +35,7 @@ const toChatMessages = (detail: unknown): ChatMessage[] => {
     seen.add(id)
     return {
       id,
+      modelIdentity: identities[index],
       role: msg.role === 'assistant' ? 'assistant' : 'user',
       content: msg.content || '',
       timestamp: new Date().toLocaleTimeString(),

@@ -215,7 +215,11 @@ describe('Studio preview request ownership', () => {
     ).toHaveLength(1)
     expect(preview.previewMessages.at(-1)?.content).toBe('retry answer')
     expect(complete.mock.calls[1][0].messages).toEqual([
-      { role: 'user', content: 'question' },
+      {
+        role: 'user',
+        content: 'question',
+        model_identity: { reference: 'model-1', label: 'model-1' },
+      },
     ])
   })
 })

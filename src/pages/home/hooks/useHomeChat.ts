@@ -1,3 +1,4 @@
+import { modelIdentityPayload } from '@/lib/model-identity'
 import { useQueryClient } from '@tanstack/react-query'
 import { llmKeys } from '@/hooks/use-llm-request'
 /**
@@ -263,6 +264,7 @@ export const useHomeChat = ({
           (msg) => ({
             role: msg.role,
             content: msg.content,
+            ...modelIdentityPayload(msg.modelIdentity),
           }),
         )
 
