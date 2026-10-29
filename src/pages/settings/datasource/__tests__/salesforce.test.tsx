@@ -192,6 +192,13 @@ it('accepts only canonical HTTPS Salesforce org origins and bounded integer batc
   for (const value of [1, 1000, '', undefined]) expect(batch(value)).toBe(true)
   for (const value of [0, 1001, 1.5, Infinity, '2', true])
     expect(batch(value)).toBe('datasource.salesforce.batchSizeInvalid')
+  const version = fields.find(
+    (field) => field.name === 'config.api_version',
+  )!.validate!
+  for (const value of ['v59.0', 'v1.0', '', undefined])
+    expect(version(value)).toBe(true)
+  for (const value of ['v0.0', 'v059.0', '59.0', 'v59', 'latest'])
+    expect(version(value)).toBe('datasource.salesforce.apiVersionInvalid')
 })
 
 it('creates through the real modal without a connection test or deletion toggle and keeps a failed draft open', async () => {

@@ -125,7 +125,7 @@ export function getSalesforceFormFields(
       validate: (value) =>
         value == null ||
         value === '' ||
-        (typeof value === 'string' && /^v\d+\.\d+$/.test(value)) ||
+        (typeof value === 'string' && /^v[1-9]\d*\.\d+$/.test(value)) ||
         'datasource.salesforce.apiVersionInvalid',
     },
     {
