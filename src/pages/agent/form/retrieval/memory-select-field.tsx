@@ -6,7 +6,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { MultiSelectWithSearch } from '@/components/ui/multi-select-with-search'
-import { useMemoryList } from '@/hooks/use-memory'
+import { useAllMemoryList } from '@/hooks/use-memory'
 import { useFormContext } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
@@ -21,7 +21,7 @@ export function MemorySelectField({
 }: MemorySelectFieldProps) {
   const { t } = useTranslation()
   const form = useFormContext()
-  const memoryQuery = useMemoryList({ page_size: 1000 })
+  const memoryQuery = useAllMemoryList()
 
   const options = (memoryQuery.data?.memory_list || []).map((item) => ({
     label: item.name,

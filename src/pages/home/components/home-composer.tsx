@@ -191,7 +191,7 @@ export function HomeComposer({
         selectedApps[0] ? selectedApps[0].llm_id || '' : selectedModelId
       }
       onModelSelect={(id) => setSelectedModelId(id || '')}
-      modelsLoading={modelsLoading}
+      modelsLoading={modelsLoading || modelsPending}
       modelsError={modelsError ? t('common.modelPicker.loadFailed') : undefined}
       onRetryModels={retryModels}
       isModelLocked={selectedAppIds.length > 0}

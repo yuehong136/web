@@ -8,6 +8,22 @@ export default {
       filterCapabilities: 'Filter by model capabilities',
       filterCapabilitiesHint:
         'Select multiple capabilities to show providers that support all of them.',
+      discovery: {
+        title: 'Add {{provider}} connection',
+        description:
+          'Find models, select up to 100 candidates, then test and save this connection. Found models are available for use after saving succeeds.',
+        find: 'Find models',
+        loading: 'Finding models…',
+        failed:
+          'Could not find models. Check the connection details and try again.',
+        empty: 'No models found.',
+        selected_one: '{{count}} model selected',
+        selected_other: '{{count}} models selected',
+        pagination: 'Model discovery pages',
+        previous: 'Previous',
+        thinking: 'Reasoning',
+        manual: 'Configure manually',
+      },
 
       connection: {
         validate: 'Test connection',

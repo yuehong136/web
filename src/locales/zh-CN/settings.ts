@@ -7,6 +7,21 @@ export default {
       filterCapabilities: '按模型能力筛选',
       filterCapabilitiesHint: '可多选，仅显示同时支持所有已选能力的提供商。',
 
+      discovery: {
+        title: '添加 {{provider}} 连接',
+        description:
+          '发现模型后，最多选择 100 个候选，测试并保存此连接。保存成功后，发现的模型才可使用。',
+        find: '发现模型',
+        loading: '正在发现模型…',
+        failed: '无法发现模型，请检查连接信息后重试。',
+        empty: '未发现模型。',
+        selected_one: '已选择 {{count}} 个模型',
+        selected_other: '已选择 {{count}} 个模型',
+        pagination: '模型发现分页',
+        previous: '上一页',
+        thinking: '推理',
+        manual: '手动配置',
+      },
       connection: {
         validate: '测试连接',
         valid: '连接验证通过',

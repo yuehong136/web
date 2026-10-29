@@ -7,11 +7,14 @@ import {
   instanceSchema,
   tenantModelSchema,
   modelDefaultSchema,
+  discoveredModelSchema,
   type ModelType,
   type InstanceInput,
   type ConnectionCandidate,
   type InstanceUpdate,
   type InstanceModelInput,
+  type ModelDiscoveryInput,
+  type ModelDiscoveryPage,
 } from './llm-provider-types'
 
 const providerPath = (name: string) =>
@@ -79,6 +82,41 @@ export function createModelProvidersAPI(origin = API_BASE_URL) {
   const rest = { baseURL: `${origin}/api` }
   const inventory = createInventory(rest)
   return {
+    discoverModels: async (
+      provider: string,
+      input: ModelDiscoveryInput,
+      page = 1,
+      signal?: AbortSignal,
+    ): Promise<ModelDiscoveryPage> => {
+      const isOwner = apiClient.captureOwner()
+      if (!Number.isSafeInteger(page) || page < 1) invalid()
+      const response: unknown = await apiClient.post(
+        `${providerPath(provider)}/models/discovery`,
+        input,
+        { ...rest, signal, params: { page, page_size: 100 } },
+      )
+      if (!isOwner() || signal?.aborted)
+        throw new DOMException('Request superseded', 'AbortError')
+      const parsed = z
+        .object({
+          items: z.array(discoveredModelSchema).max(100),
+          total: z.number().int().nonnegative().safe(),
+          page: z.literal(page),
+          page_size: z.literal(100),
+        })
+        .safeParse(response)
+      if (!parsed.success) invalid()
+      const data = parsed.data
+      const names = data.items.map((item) => item.model_name)
+      if (
+        new Set(names).size !== names.length ||
+        data.items.length > Math.max(0, data.total - (page - 1) * 100) ||
+        data.items.length !==
+          Math.min(100, Math.max(0, data.total - (page - 1) * 100))
+      )
+        invalid()
+      return data
+    },
     providers: (available = false, signal?: AbortSignal) =>
       inventory(
         '/v1/providers',
@@ -102,11 +140,12 @@ export function createModelProvidersAPI(origin = API_BASE_URL) {
     verifyConnection: async (
       provider: string,
       candidate: ConnectionCandidate,
+      signal?: AbortSignal,
     ) => {
       const response: unknown = await apiClient.post(
         `${providerPath(provider)}/connection`,
         candidate,
-        rest,
+        { ...rest, signal },
       )
       const decoded = z
         .object({
@@ -118,8 +157,15 @@ export function createModelProvidersAPI(origin = API_BASE_URL) {
       if (!decoded.success) invalid()
       return decoded.data
     },
-    createInstance: (provider: string, input: InstanceInput) =>
-      apiClient.post(`${providerPath(provider)}/instances`, input, rest),
+    createInstance: (
+      provider: string,
+      input: InstanceInput,
+      signal?: AbortSignal,
+    ) =>
+      apiClient.post(`${providerPath(provider)}/instances`, input, {
+        ...rest,
+        signal,
+      }),
     updateInstance: (
       provider: string,
       instance: string,

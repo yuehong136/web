@@ -297,3 +297,98 @@ test('connection sends a read-only typed candidate and rejects malformed verific
   ])
     await assert.rejects(modelProvidersAPI.verifyConnection('a/b', candidate))
 })
+
+test('discovers paginated candidates using body-only credentials, stable names and strict metadata', async (t) => {
+  const calls: { url: URL; init?: RequestInit }[] = []
+  const item = {
+    model_name: 'stable-voice-id',
+    display_name: 'Readable voice',
+    model_types: ['tts'],
+    max_tokens: 0,
+    is_tools: false,
+    features: [],
+    source: 'remote',
+    id: 99,
+    status: 'active',
+  }
+  let wire: unknown = { items: [item], total: 101, page: 2, page_size: 100 }
+  t.mock.method(
+    globalThis,
+    'fetch',
+    async (input: string | URL | Request, init?: RequestInit) => {
+      calls.push({ url: new URL(String(input)), init })
+      return response(wire)
+    },
+  )
+  const input = { api_key: 'synthetic-private-token', base_url: '', region: '' }
+  const data = await modelProvidersAPI.discoverModels('Fish Audio', input, 2)
+  assert.equal(data.items[0].model_name, 'stable-voice-id')
+  assert.equal(data.items[0].display_name, 'Readable voice')
+  assert.equal(data.items[0].max_tokens, 0)
+  assert.equal('id' in data.items[0], false)
+  assert.equal('status' in data.items[0], false)
+  assert.equal(
+    calls[0].url.pathname,
+    '/api/v1/providers/Fish%20Audio/models/discovery',
+  )
+  assert.deepEqual(
+    [...calls[0].url.searchParams],
+    [
+      ['page', '2'],
+      ['page_size', '100'],
+    ],
+  )
+  assert.equal(calls[0].init?.method, 'POST')
+  assert.deepEqual(JSON.parse(String(calls[0].init?.body)), input)
+  for (wire of [
+    { items: [item], total: 1, page: 1, page_size: 100 },
+    { items: [item], total: 102, page: 2, page_size: 100 },
+    {
+      items: [{ ...item, max_tokens: -1 }],
+      total: 101,
+      page: 2,
+      page_size: 100,
+    },
+    {
+      items: [{ ...item, model_types: [] }],
+      total: 101,
+      page: 2,
+      page_size: 100,
+    },
+    {
+      items: [{ ...item, source: 'registered' }],
+      total: 101,
+      page: 2,
+      page_size: 100,
+    },
+    {
+      items: [{ ...item, model_name: ' stable-id ' }],
+      total: 101,
+      page: 2,
+      page_size: 100,
+    },
+    { items: [item, item], total: 102, page: 2, page_size: 100 },
+  ])
+    await assert.rejects(
+      modelProvidersAPI.discoverModels('Fish Audio', input, 2),
+    )
+})
+
+test('does not deliver discovery from a previous owner or cancelled request', async (t) => {
+  apiClient.setAuthToken('discovery-owner-a')
+  const controller = new AbortController()
+  t.after(() => apiClient.setAuthToken(null))
+  t.mock.method(globalThis, 'fetch', async () => {
+    apiClient.setAuthToken('discovery-owner-b')
+    controller.abort()
+    return response({ items: [], total: 0, page: 1, page_size: 100 })
+  })
+  await assert.rejects(
+    modelProvidersAPI.discoverModels(
+      'Ollama',
+      { api_key: '', base_url: '', region: '' },
+      1,
+      controller.signal,
+    ),
+  )
+})

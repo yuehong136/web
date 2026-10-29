@@ -11,10 +11,9 @@ export const profileSchema = z.object({
     .string()
     .trim()
     .min(1, { message: 'settings.profile.validation.nameRequired' }),
-  timeZone: z
-    .string()
-    .trim()
-    .min(1, { message: 'settings.profile.validation.timeZoneRequired' }),
+  timeZone: z.string().refine((value) => value.trim().length > 0, {
+    message: 'settings.profile.validation.timeZoneRequired',
+  }),
   avatar: z.string().optional().default(''),
 })
 

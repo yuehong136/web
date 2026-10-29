@@ -4,7 +4,7 @@ import { Position } from '@xyflow/react'
 import { Database } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useFetchKnowledgeList } from '@/hooks/use-knowledge-request'
-import { useMemoryList } from '@/hooks/use-memory'
+import { useAllMemoryList } from '@/hooks/use-memory'
 import { cn } from '@/lib/utils'
 import { NodeHandleId, RetrievalFrom } from '../../constant'
 import type { IRetrievalNode } from '../../types'
@@ -26,7 +26,7 @@ function InnerRetrievalNode({
 }: NodeProps<IRetrievalNode>) {
   const { t } = useTranslation()
   const { knowledgeBases } = useFetchKnowledgeList({ page_size: 1000 })
-  const memoryQuery = useMemoryList({ page_size: 1000 })
+  const memoryQuery = useAllMemoryList()
   const form = (data.form ?? {}) as {
     retrieval_from?: string
     memory_ids?: string[]

@@ -546,3 +546,31 @@ test('tags default missing counts to zero and reject malformed counts', async (t
     await assert.rejects(knowledgeAPI.tag.aggregate(['kb']))
   }
 })
+
+test('memory selectors collect the entire inventory beyond 1000 with bounded requests', async (t) => {
+  const pages: number[] = []
+  t.mock.method(apiClient, 'get', async (path: string) => {
+    const url = new URL(path, 'http://fixture.test')
+    assert.equal(url.pathname, '/memories')
+    assert.equal(url.searchParams.get('page_size'), '100')
+    const page = Number(url.searchParams.get('page'))
+    pages.push(page)
+    return {
+      total_count: 1051,
+      memory_list: Array.from(
+        { length: Math.min(100, 1051 - (page - 1) * 100) },
+        (_, i) => ({ id: String((page - 1) * 100 + i) }),
+      ),
+    }
+  })
+  const result = await memoryAPI.memory.list({
+    page: 1,
+    page_size: Number.MAX_SAFE_INTEGER,
+  })
+  assert.equal(result.memory_list.length, 1051)
+  assert.equal(result.memory_list.at(-1)?.id, '1050')
+  assert.deepEqual(
+    pages,
+    Array.from({ length: 11 }, (_, i) => i + 1),
+  )
+})

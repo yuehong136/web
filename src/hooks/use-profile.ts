@@ -74,6 +74,12 @@ export const TimezoneList = [
   'UTC+12\tPacific/Fiji',
 ]
 
+/** Display known IANA forms consistently without changing the stored value. */
+export function formatProfileTimezone(timezone: string): string {
+  const iana = timezone.trim().split(/\s+/).at(-1)
+  return TimezoneList.find((item) => item.split('\t')[1] === iana) ?? timezone
+}
+
 const getProfileFromResponse = (userInfo: {
   nickname?: string
   timezone?: string

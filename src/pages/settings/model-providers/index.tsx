@@ -6,6 +6,10 @@ import { UsedModels } from './components/used-models'
 import { AvailableModels } from './components/available-models'
 import { ApiKeyModal } from './components/api-key-modal'
 import {
+  ModelDiscoveryDialog,
+  supportsModelDiscovery,
+} from './components/model-discovery-dialog'
+import {
   buildInstancePayload,
   buildConnectionCandidate,
   saveProviderInstance,
@@ -18,6 +22,7 @@ import { Label } from '@/components/ui/label'
 export function ModelProvidersPage() {
   const { t } = useTranslation()
   const mutation = useModelProviderMutation()
+  const [manualMode, setManualMode] = useState(false)
   const [provider, setProvider] = useState(''),
     [name, setName] = useState(''),
     [region, setRegion] = useState('')
@@ -25,6 +30,7 @@ export function ModelProvidersPage() {
     setProvider('')
     setName('')
     setRegion('')
+    setManualMode(false)
   }
   const open = (value: string) => {
     close()
@@ -41,8 +47,15 @@ export function ModelProvidersPage() {
           <AvailableModels handleAddModel={open} />
         </section>
       </div>
+      {provider && supportsModelDiscovery(provider) && !manualMode && (
+        <ModelDiscoveryDialog
+          provider={provider}
+          close={close}
+          configureManually={() => setManualMode(true)}
+        />
+      )}
       <ApiKeyModal
-        isOpen={!!provider}
+        isOpen={!!provider && (!supportsModelDiscovery(provider) || manualMode)}
         providerName={provider}
         onClose={close}
         onVerify={async (key, baseUrl, fields = {}) => {

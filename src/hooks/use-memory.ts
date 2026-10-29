@@ -49,6 +49,11 @@ export function useMemoryList(params?: MemoryListParams) {
   })
 }
 
+/** Selectors need the full inventory; the API splits this window into 100-row requests. */
+export function useAllMemoryList() {
+  return useMemoryList({ page: 1, page_size: Number.MAX_SAFE_INTEGER })
+}
+
 // ============ 记忆库详情 ============
 
 /**

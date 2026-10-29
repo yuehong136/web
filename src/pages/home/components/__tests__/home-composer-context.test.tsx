@@ -11,6 +11,7 @@ import { useFetchConversationsByDialog } from '@/hooks/use-chat-request'
 import type { DialogApp, UserInfo } from '@/types/api'
 
 const queryState = vi.hoisted(() => ({
+  modelPending: false,
   modelError: false,
   defaultError: false,
   defaultReference: '',
@@ -35,7 +36,7 @@ vi.mock('@/hooks/use-llm-request', () => ({
   useFetchMyLLMs: () => ({
     myLLMs: queryState.modelError ? {} : models,
     isLoading: false,
-    isPending: false,
+    isPending: queryState.modelPending,
     isError: queryState.modelError,
   }),
 }))
@@ -44,7 +45,9 @@ vi.mock('@/hooks/use-chat-request', () => ({
 }))
 vi.mock('../SkillPanel', () => ({ SkillPanel: () => null }))
 vi.mock('@/components/chat/ChatModelSelector', () => ({
-  ChatModelSelector: () => null,
+  ChatModelSelector: (props: { loading?: boolean }) => (
+    <output data-model-loading={props.loading} />
+  ),
 }))
 
 let root: Root
@@ -63,6 +66,7 @@ function Surface() {
 }
 beforeEach(async () => {
   Object.assign(queryState, {
+    modelPending: false,
     modelError: false,
     defaultError: false,
     defaultReference: '',
@@ -201,3 +205,33 @@ for (const failedQuery of ['models', 'defaults'] as const) {
     setSelected.mockRestore()
   })
 }
+
+it('keeps pending or paused model inventory unresolved through owner changes and retry', async () => {
+  queryState.modelPending = true
+  useHomeStore.setState({ selectedModelId: '' })
+  await act(async () => root.render(<Surface />))
+  expect(
+    container
+      .querySelector('[data-model-loading]')
+      ?.getAttribute('data-model-loading'),
+  ).toBe('true')
+  expect(useHomeStore.getState().selectedModelId).toBe('')
+  await act(async () => {
+    useAuthStore.setState({
+      user: { id: 'user-b', tenant_id: 'tenant-b' } as UserInfo,
+    })
+    root.render(<Surface />)
+  })
+  expect(
+    container
+      .querySelector('[data-model-loading]')
+      ?.getAttribute('data-model-loading'),
+  ).toBe('true')
+  queryState.modelPending = false
+  queryState.modelError = true
+  await act(async () => root.render(<Surface />))
+  expect(useHomeStore.getState().selectedModelId).toBe('')
+  queryState.modelError = false
+  await act(async () => root.render(<Surface />))
+  expect(useHomeStore.getState().selectedModelId).toBe('model-a')
+})

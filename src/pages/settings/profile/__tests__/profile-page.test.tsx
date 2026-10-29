@@ -9,6 +9,10 @@ import { ProfilePage } from '@/pages/settings/profile'
 import { useAuthStore } from '@/stores/auth'
 import i18n from '@/locales/i18n'
 import type { UserProfile } from '@/types/api'
+import {
+  installRadixSelectDom,
+  chooseOption,
+} from '@/components/ui/__tests__/helpers/radix-select'
 
 const mocks = vi.hoisted(() => ({
   get: vi.fn(),
@@ -220,4 +224,57 @@ it('shows a retry state instead of an editable empty profile when loading fails'
   await click(button('Retry'))
   expect(button('Edit profile')).toBeTruthy()
   expect(container.textContent).toContain('admin@example.com')
+})
+
+it.each([
+  ['Asia/Shanghai', 'UTC+8\tAsia/Shanghai'],
+  [' UTC+8\tAsia/Shanghai', 'UTC+8\tAsia/Shanghai'],
+  ['GMT+08:00 Asia/Shanghai', 'UTC+8\tAsia/Shanghai'],
+  ['GMT+08:00', 'GMT+08:00'],
+  ['Pacific/Chatham', 'Pacific/Chatham'],
+  ['custom timezone', 'custom timezone'],
+])(
+  'displays %s and preserves its raw value through an unrelated profile save',
+  async (raw, label) => {
+    profile = { ...profile, timezone: raw }
+    await render()
+    await click(button('Edit profile'))
+    expect(container.querySelector('[role="combobox"]')?.textContent).toBe(
+      label,
+    )
+    await change(
+      container.querySelector<HTMLInputElement>(
+        'input[aria-label="Display name"]',
+      )!,
+      'New name',
+    )
+    await click(button('Save changes'))
+    expect(mocks.update).toHaveBeenLastCalledWith({
+      nickname: 'New name',
+      timezone: raw,
+      avatar: '',
+    })
+    expect(mocks.get).toHaveBeenCalledTimes(2)
+  },
+)
+
+it('saves a different timezone only after the user chooses it', async () => {
+  const restore = installRadixSelectDom()
+  try {
+    profile = { ...profile, timezone: 'Asia/Shanghai' }
+    await render()
+    await click(button('Edit profile'))
+    await chooseOption(
+      container.querySelector<HTMLElement>('[role="combobox"]')!,
+      'UTC+9\tAsia/Tokyo',
+    )
+    await click(button('Save changes'))
+    expect(mocks.update).toHaveBeenLastCalledWith({
+      nickname: 'Admin',
+      timezone: 'UTC+9\tAsia/Tokyo',
+      avatar: '',
+    })
+  } finally {
+    restore()
+  }
 })

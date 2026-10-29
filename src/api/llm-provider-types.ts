@@ -67,12 +67,38 @@ export type ModelProvider = z.infer<typeof providerSchema>
 export type ModelInstance = z.infer<typeof instanceSchema>
 export type TenantModel = z.infer<typeof tenantModelSchema>
 export type ModelDefault = z.infer<typeof modelDefaultSchema>
+/** Discovery describes unregistered candidates, never callable tenant model IDs. */
+export const discoveredModelSchema = z.object({
+  model_name: z
+    .string()
+    .min(1)
+    .refine((name) => name.trim() === name && !!name.trim()),
+  display_name: z.string().min(1),
+  model_types: capabilities,
+  max_tokens: z.number().int().nonnegative().safe(),
+  is_tools: z.boolean(),
+  features: z.array(z.string()),
+  source: z.enum(['static', 'remote']),
+})
+export type DiscoveredModel = z.infer<typeof discoveredModelSchema>
+export interface ModelDiscoveryInput {
+  api_key: string
+  base_url: string
+  region: string
+}
+export interface ModelDiscoveryPage {
+  items: DiscoveredModel[]
+  total: number
+  page: number
+  page_size: number
+}
 export interface ConnectionCandidate {
   api_key: string
   base_url: string
   region: string
   model_ids?: string[]
   custom_model?: InstanceModelInput
+  custom_models?: InstanceModelInput[]
 }
 export interface InstanceInput extends ConnectionCandidate {
   instance_name: string

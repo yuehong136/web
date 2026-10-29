@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { TimezoneList } from '@/hooks/use-profile'
+import { formatProfileTimezone, TimezoneList } from '@/hooks/use-profile'
 import { ProfileAvatarField } from '@/pages/settings/profile/components/profile-avatar-field'
 import { ProfileFieldRow } from '@/pages/settings/profile/components/profile-field-row'
 import type {
@@ -103,6 +103,12 @@ export const BasicInfoSection = ({
                       />
                     </SelectTrigger>
                     <SelectContent className="max-h-72">
+                      {!TimezoneList.includes(draft.timeZone) &&
+                        draft.timeZone && (
+                          <SelectItem value={draft.timeZone}>
+                            {formatProfileTimezone(draft.timeZone)}
+                          </SelectItem>
+                        )}
                       {TimezoneList.map((timezone) => (
                         <SelectItem key={timezone} value={timezone}>
                           {timezone}
@@ -117,7 +123,7 @@ export const BasicInfoSection = ({
                   )}
                 </div>
               ) : (
-                profile.timeZone
+                formatProfileTimezone(profile.timeZone)
               )
             }
           />
