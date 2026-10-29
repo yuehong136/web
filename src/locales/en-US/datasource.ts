@@ -1,5 +1,39 @@
 export default {
   datasource: {
+    salesforce: {
+      name: 'Salesforce',
+      description:
+        'Sync CRM records from a Salesforce org through SOQL. Saving validates configuration without connecting to Salesforce.',
+      instance_url: 'Organization URL',
+      instance_urlTip:
+        'Canonical HTTPS Salesforce org origin, without a trailing slash, credentials, port, path, query or fragment.',
+      client_id: 'Client ID',
+      client_idTip:
+        'Consumer Key of a Connected App with Client Credentials Flow enabled and the api scope.',
+      client_secret: 'Client secret',
+      client_secretTip:
+        'Consumer Secret of the Connected App used for client credentials authentication.',
+      objectScope: 'Object scope',
+      objectScopeTip:
+        'Default objects: Account, Contact, Opportunity, Case and Knowledge__kav. Knowledge is optional only for the default scope. No objects syncs nothing.',
+      defaultScope: 'Default objects',
+      noneScope: 'No objects',
+      selectedScope: 'Selected objects',
+      objects: 'Object API names',
+      objectsTip:
+        'Comma-separated SObject API names. Every explicitly selected object must be available in the org.',
+      apiVersion: 'API version',
+      apiVersionTip:
+        'Use a REST API version supported by your org. Leave blank to use v59.0.',
+      batchSize: 'Document batch size',
+      batchSizeTip: 'A whole number from 1 to 1000. Leave blank to use 100.',
+      instanceUrlInvalid:
+        'Enter a canonical HTTPS Salesforce organization origin, such as https://your-domain.my.salesforce.com.',
+      objectsInvalid:
+        'Enter comma-separated SObject API names using letters, digits and underscores; each name must start with a letter.',
+      apiVersionInvalid: 'Enter an API version such as v59.0.',
+      batchSizeInvalid: 'Enter a whole number from 1 to 1000.',
+    },
     azureBlob: {
       name: 'Azure Blob Storage',
       description: 'Sync an Azure Blob container with ETag change detection.',

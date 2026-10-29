@@ -1,5 +1,38 @@
 export default {
   datasource: {
+    salesforce: {
+      name: 'Salesforce',
+      description:
+        '通过 SOQL 同步 Salesforce 组织中的 CRM 记录。保存仅校验配置，不连接 Salesforce。',
+      instance_url: '组织地址',
+      instance_urlTip:
+        '规范的 HTTPS Salesforce 组织源地址，不含末尾斜杠、凭据、端口、路径、查询参数或片段。',
+      client_id: '客户端 ID',
+      client_idTip:
+        '已启用 Client Credentials Flow 且包含 api 权限的 Connected App 的 Consumer Key。',
+      client_secret: '客户端密钥',
+      client_secretTip:
+        '用于客户端凭据认证的 Connected App 的 Consumer Secret。',
+      objectScope: '对象范围',
+      objectScopeTip:
+        '默认对象为 Account、Contact、Opportunity、Case 和 Knowledge__kav。仅默认范围允许缺少 Knowledge。选择无对象则不进行同步。',
+      defaultScope: '默认对象',
+      noneScope: '无对象',
+      selectedScope: '指定对象',
+      objects: '对象 API 名称',
+      objectsTip:
+        '以逗号分隔的 SObject API 名称。所有明确指定的对象都必须在组织中可用。',
+      apiVersion: 'API 版本',
+      apiVersionTip: '使用组织支持的 REST API 版本，留空使用 v59.0。',
+      batchSize: '文档批次大小',
+      batchSizeTip: '1 至 1000 的整数，留空使用 100。',
+      instanceUrlInvalid:
+        '请输入规范的 HTTPS Salesforce 组织源地址，例如 https://your-domain.my.salesforce.com。',
+      objectsInvalid:
+        '请输入以逗号分隔的 SObject API 名称，仅允许字母、数字和下划线，且以字母开头。',
+      apiVersionInvalid: '请输入 v59.0 等格式的 API 版本。',
+      batchSizeInvalid: '请输入 1 至 1000 的整数。',
+    },
     azureBlob: {
       name: 'Azure Blob 存储',
       description: '同步 Azure Blob 容器，通过 ETag 识别文件变更。',

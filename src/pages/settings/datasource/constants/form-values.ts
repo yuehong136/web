@@ -6,6 +6,7 @@ import { DataSourceFormDefaultValues } from '@/pages/settings/datasource/constan
 import { deletionSyncSources } from '@/pages/settings/datasource/constants/sync-settings'
 import { getRestApiFormConfig, prepareRestApiConfig } from './rest-api-values'
 import { prepareAzureBlobConfig } from './azure-blob'
+import { getSalesforceFormValues, prepareSalesforceConfig } from './salesforce'
 
 type FormValues = Record<string, unknown> & {
   config?: Record<string, unknown>
@@ -32,6 +33,9 @@ export function getDataSourceDefaultValues(
     },
   }
   const values: FormValues = { ...defaults, ...detail, config }
+  if (source === DataSourceKey.SALESFORCE) {
+    return { ...values, ...getSalesforceFormValues(config) }
+  }
   if (source === DataSourceKey.SLACK) {
     const channels = config.channels
     values.slackChannelScope =
@@ -97,8 +101,18 @@ export function prepareDataSourceValues(
     jiraAuthMode,
     restApiSettings: _restApiSettings,
     slackChannelScope,
+    salesforceObjectScope,
     ...prepared
   } = values
+  if (source === DataSourceKey.SALESFORCE) {
+    return {
+      ...prepared,
+      config: prepareSalesforceConfig(
+        values.config ?? {},
+        salesforceObjectScope,
+      ),
+    }
+  }
   if (source === DataSourceKey.AZURE_BLOB) {
     return { ...prepared, config: prepareAzureBlobConfig(values.config ?? {}) }
   }

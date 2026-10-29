@@ -24,6 +24,7 @@ export enum DataSourceKey {
   AIRTABLE = 'airtable',
   DINGTALK_AI_TABLE = 'dingtalk_ai_table',
   ZENDESK = 'zendesk',
+  SALESFORCE = 'salesforce',
   SHAREPOINT = 'sharepoint',
   SLACK = 'slack',
   TEAMS = 'teams',

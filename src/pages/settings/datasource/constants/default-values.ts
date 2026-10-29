@@ -5,6 +5,7 @@ import { confluenceDefaultValues } from './confluence'
 import { bitbucketDefaultValues } from './bitbucket'
 import { restApiDefaultValues } from './rest-api'
 import { azureBlobDefaultValues } from './azure-blob'
+import { salesforceDefaultValues } from './salesforce'
 
 /**
  * 所有数据源的默认值配置
@@ -12,6 +13,7 @@ import { azureBlobDefaultValues } from './azure-blob'
 export const DataSourceFormDefaultValues: Record<DataSourceKey, any> = {
   ...microsoftDefaultValues,
   [DataSourceKey.AZURE_BLOB]: azureBlobDefaultValues,
+  [DataSourceKey.SALESFORCE]: salesforceDefaultValues,
   [DataSourceKey.SHAREPOINT]: {
     name: '',
     source: DataSourceKey.SHAREPOINT,

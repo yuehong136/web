@@ -54,6 +54,11 @@ export const generateDataSourceInfo = (
     description: t('datasource.azureBlob.description'),
     icon: <Database size={ICON_SIZE} className="text-text-primary" />,
   },
+  [DataSourceKey.SALESFORCE]: {
+    name: t('datasource.salesforce.name'),
+    description: t('datasource.salesforce.description'),
+    icon: <Cloud size={ICON_SIZE} className="text-text-primary" />,
+  },
   [DataSourceKey.OUTLOOK]: {
     name: 'Outlook',
     description: t('datasource.microsoft.outlookDescription'),
@@ -383,6 +388,7 @@ export const DataSourceGroups = {
     DataSourceKey.WEBDAV,
   ],
   collaboration: [
+    DataSourceKey.SALESFORCE,
     DataSourceKey.TEAMS,
     DataSourceKey.SHAREPOINT,
     DataSourceKey.SLACK,
