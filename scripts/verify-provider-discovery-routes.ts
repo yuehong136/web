@@ -48,11 +48,14 @@ for (const endpoint of [fixture.origin]) {
   assert.equal(url.protocol, 'http:')
   assert.ok(['127.0.0.1', 'localhost', '[::1]'].includes(url.hostname))
 }
-if (
-  fixture.providerName === 'OpenRouter' &&
-  fixture.controlledTransport === true
-) {
-  assert.equal(fixture.discovery.base_url, 'https://openrouter.ai/api/v1')
+const controlledOrigin =
+  fixture.providerName === 'OpenRouter'
+    ? 'https://openrouter.ai/api/v1'
+    : fixture.providerName === 'VolcEngine'
+      ? 'https://ark.cn-beijing.volces.com/api/v3'
+      : undefined
+if (controlledOrigin && fixture.controlledTransport === true) {
+  assert.equal(fixture.discovery.base_url, controlledOrigin)
 } else {
   const url = new URL(fixture.discovery.base_url)
   assert.equal(url.protocol, 'http:')
