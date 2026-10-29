@@ -1,5 +1,6 @@
 import { stubNativeDialog } from '@/components/ui/__tests__/native-dialog'
-import { act, StrictMode } from 'react'
+import { ProviderRegionField } from '../provider-region-field'
+import { act, StrictMode, useState } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ModelProvidersPage } from '../../index'
 import { modelProvidersAPI } from '@/api/llm-providers'
@@ -398,3 +399,43 @@ for (const provider of [
     expect(verify).not.toHaveBeenCalled()
   })
 }
+
+it('invalidates verification through the external Tongyi region Select without losing credentials', async () => {
+  function RegionalDraft() {
+    const [region, setRegion] = useState('cn')
+    return (
+      <ApiKeyModal
+        isOpen
+        providerName="Tongyi-Qianwen"
+        onSave={save}
+        onVerify={verify}
+        onClose={close}
+      >
+        {(invalidate) => (
+          <ProviderRegionField
+            provider="Tongyi-Qianwen"
+            value={region}
+            onChange={(value) => {
+              invalidate()
+              setRegion(value)
+            }}
+          />
+        )}
+      </ApiKeyModal>
+    )
+  }
+  await act(async () => root.render(<RegionalDraft />))
+  await change(field('API key'), 'synthetic-regional-key')
+  await act(async () => button('Test connection').click())
+  expect(document.body.textContent).toContain('Connection verified')
+  await act(async () =>
+    document.getElementById('model-instance-region')!.click(),
+  )
+  await act(async () =>
+    [...document.querySelectorAll<HTMLElement>('[role=option]')]
+      .find((option) => option.textContent === 'International')!
+      .click(),
+  )
+  expect(document.body.textContent).not.toContain('Connection verified')
+  expect(field('API key').value).toBe('synthetic-regional-key')
+})

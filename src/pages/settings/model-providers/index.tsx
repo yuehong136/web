@@ -93,23 +93,28 @@ export function ModelProvidersPage() {
           )
         }}
       >
-        <div className="flex flex-col gap-space-sm">
-          <Label htmlFor="model-instance-name">
-            {t('settings.models.instances.name')}
-          </Label>
-          <Input
-            id="model-instance-name"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            required
-          />
-          <ProviderRegionField
-            provider={provider}
-            value={region}
-            onChange={setRegion}
-            urls={factories.find((item) => item.name === provider)?.url}
-          />
-        </div>
+        {(invalidate) => (
+          <div className="flex flex-col gap-space-sm">
+            <Label htmlFor="model-instance-name">
+              {t('settings.models.instances.name')}
+            </Label>
+            <Input
+              id="model-instance-name"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              required
+            />
+            <ProviderRegionField
+              provider={provider}
+              value={region}
+              onChange={(value) => {
+                invalidate()
+                setRegion(value)
+              }}
+              urls={factories.find((item) => item.name === provider)?.url}
+            />
+          </div>
+        )}
       </ApiKeyModal>
     </div>
   )

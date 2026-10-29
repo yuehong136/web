@@ -6,7 +6,7 @@ import type {
 } from '@/stores/model'
 
 export interface ApiKeyModalProps {
-  children?: ReactNode
+  children?: ReactNode | ((invalidate: () => void) => ReactNode)
   isOpen: boolean
   onClose: () => void
   providerName: string

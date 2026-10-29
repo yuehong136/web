@@ -72,7 +72,9 @@ function ApiKeyModalForm(props: ApiKeyModalProps) {
           onChangeCapture={actions.invalidate}
           className="max-h-[calc(90vh-200px)] space-y-space-base overflow-y-auto px-space-lg py-space-base"
         >
-          {props.children}
+          {typeof props.children === 'function'
+            ? props.children(actions.invalidate)
+            : props.children}
           <ProviderFormFields
             provider={provider}
             draft={draft}
