@@ -1,3 +1,5 @@
+import { useQueryClient } from '@tanstack/react-query'
+import { llmKeys } from '@/hooks/use-llm-request'
 /**
  * 首页对话逻辑 Hook
  * 管理消息发送、流式响应、SSE 连接等
@@ -82,6 +84,7 @@ export const useHomeChat = ({
   identity = '',
   onConversationIdChange,
 }: UseHomeChatOptions) => {
+  const queryClient = useQueryClient()
   const { t } = useTranslation()
   const {
     messages,
@@ -216,6 +219,7 @@ export const useHomeChat = ({
       const { signal } = owner.controller
       const userMessageContent = inputValue.trim()
       const resources = getHomeContextResources({
+        modelProviders: queryClient.getQueryData(llmKeys.myLLMs()),
         selectedApp,
         selectedModelId,
         selectedMCPIds,
@@ -356,6 +360,7 @@ export const useHomeChat = ({
       selectedModelId,
       selectedMCPIds,
       selectedMCPServers,
+      queryClient,
       identity,
       scopeKey,
       onConversationIdChange,
@@ -378,6 +383,7 @@ export const useHomeChat = ({
         content: inputValue,
         scope: { identity, threadId: localThreadId.current },
         resources: getHomeContextResources({
+          modelProviders: queryClient.getQueryData(llmKeys.myLLMs()),
           selectedModelId,
           selectedMCPIds,
           selectedMCPServers,
@@ -469,6 +475,7 @@ export const useHomeChat = ({
       selectedModelId,
       selectedMCPIds,
       selectedMCPServers,
+      queryClient,
       identity,
       claimRequest,
       settleAnswer,

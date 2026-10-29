@@ -31,6 +31,8 @@ export interface ContextResource {
   readonly kind: ContextResourceKind
   readonly id: string
   readonly label: string
+  /** Optional model identity captured at submission, independent of current selection. */
+  readonly provider?: string
   readonly availability: ResourceAvailability
   readonly origin: 'inherited' | 'turn'
 }

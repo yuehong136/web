@@ -80,6 +80,7 @@ export function HomeComposer({
     messageId: 'draft',
     stage: 'selected',
     resources: getHomeContextResources({
+      modelProviders: myLLMs,
       selectedApp: selectedApps[0],
       selectedModelId,
       selectedMCPIds,

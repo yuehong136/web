@@ -4,6 +4,8 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { setProductLanguage } from '@/locales/i18n'
 import type { ReferenceChunk } from '@/utils/reference-replacer'
 import type { ChatMessage } from '../../types'
+import { createContextManifest } from '@/lib/ai-workspace/contracts'
+import { useHomeStore } from '@/stores/home'
 import { ChatSection } from '../ChatSection'
 
 // W4：[ID:n] → <sup>n</sup> → 角标；解析到的引用是按钮，编号与来源面板、详情侧栏
@@ -50,7 +52,24 @@ vi.mock('@/components/chat/MarkdownCodeBlock', () => ({
   useMarkdownComponents: (components?: object) => components ?? {},
 }))
 vi.mock('@/hooks/use-llm-request', () => ({
-  useFetchMyLLMs: () => ({ myLLMs: {}, isLoading: false }),
+  useFetchMyLLMs: () => ({
+    myLLMs: {
+      OpenAI: {
+        tags: 'chat',
+        llm: [
+          {
+            id: 117,
+            reference: '117',
+            name: 'gpt-test',
+            type: 'chat',
+            used_token: 0,
+            status: '0',
+          },
+        ],
+      },
+    },
+    isLoading: false,
+  }),
 }))
 vi.mock('@/hooks/use-model-provider-request', () => ({
   useDefaultModelReference: () => ({
@@ -218,4 +237,37 @@ it('gives same-document chunks in the source panel the numbers their citations s
   await settle()
   expect(evidenceText()).toContain('harness.pdf')
   expect(evidenceText()).toContain('片段 2 的内容')
+})
+
+it('resolves an old numeric message title and provider independently from the current model', async () => {
+  const previous = useHomeStore.getState().selectedModelId
+  useHomeStore.setState({ selectedModelId: '999' })
+  const message = answer('Identity fixture')
+  message.contextManifest = createContextManifest({
+    scope: { identity: 'owner', threadId: 'thread' },
+    messageId: message.id,
+    stage: 'submitted',
+    resources: [
+      {
+        kind: 'model',
+        id: '117',
+        label: '117',
+        availability: 'unknown',
+        origin: 'turn',
+      },
+    ],
+  })
+  try {
+    await render([message])
+    expect(container.querySelector('.chat-message-heading')?.textContent).toBe(
+      'gpt-test',
+    )
+    expect(
+      container
+        .querySelector('.chat-message-identity use')
+        ?.getAttribute('xlink:href'),
+    ).toContain('openai')
+  } finally {
+    useHomeStore.setState({ selectedModelId: previous })
+  }
 })

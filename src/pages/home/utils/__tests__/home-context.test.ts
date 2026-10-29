@@ -1,3 +1,8 @@
+import {
+  homeMessageIdentity,
+  resolveHomeModelIdentity,
+} from '../model-identity'
+import type { MyLLMProvider } from '@/stores/model'
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import type { DialogApp } from '@/types/api'
@@ -34,7 +39,7 @@ test('app mode records inherited settings and excludes unsent free model/MCP cho
       {
         kind: 'model',
         id: 'bound-model@provider',
-        label: 'bound-model@provider',
+        label: 'bound-model',
         origin: 'inherited',
       },
       {
@@ -117,4 +122,74 @@ test('one immutable submission snapshot belongs to both messages and survives la
     [userMessage].map(({ role, content }) => ({ role, content })),
     [{ role: 'user', content: 'Question' }],
   )
+})
+
+const providers: MyLLMProvider = {
+  OpenAI: {
+    tags: 'chat',
+    llm: [
+      {
+        id: 117,
+        name: 'gpt-test',
+        label: 'gpt-test',
+        type: 'chat',
+        status: '0',
+        used_token: 0,
+      },
+    ],
+  },
+  DeepSeek: {
+    tags: 'chat',
+    llm: [{ id: 118, name: 'deepseek-test', type: 'chat', used_token: 0 }],
+  },
+}
+test('numeric model references capture a readable identity without changing submitted IDs', () => {
+  const resources = getHomeContextResources({
+    selectedModelId: '117',
+    selectedMCPIds: [],
+    modelProviders: providers,
+  })
+  assert.equal(resources[0].id, '117')
+  assert.equal(resources[0].label, 'gpt-test')
+  assert.equal(resources[0].provider, 'OpenAI')
+  const turn = createHomeTurn({
+    content: 'Hello',
+    scope: { identity: 'owner', threadId: 'thread' },
+    resources,
+  })
+  assert.deepEqual(
+    homeMessageIdentity(turn.assistantMessage.contextManifest, {}, '118'),
+    { label: 'gpt-test', provider: 'OpenAI' },
+  )
+})
+test('old numeric snapshots resolve by message reference rather than the current selection', () => {
+  const turn = createHomeTurn({
+    content: 'Hello',
+    scope: { identity: 'owner', threadId: 'thread' },
+    resources: [
+      {
+        kind: 'model',
+        id: '117',
+        label: '117',
+        origin: 'turn',
+        availability: 'unknown',
+      },
+    ],
+  })
+  assert.deepEqual(
+    homeMessageIdentity(
+      turn.assistantMessage.contextManifest,
+      providers,
+      '118',
+    ),
+    { label: 'gpt-test', provider: 'OpenAI' },
+  )
+  assert.deepEqual(
+    homeMessageIdentity(turn.assistantMessage.contextManifest, {}, '118'),
+    { label: undefined, provider: undefined },
+  )
+  assert.deepEqual(resolveHomeModelIdentity(providers, 'gpt-test@OpenAI'), {
+    label: 'gpt-test',
+    provider: 'OpenAI',
+  })
 })

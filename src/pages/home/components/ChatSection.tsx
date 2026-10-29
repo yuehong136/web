@@ -15,7 +15,7 @@ import { ChatScrollViewport } from '@/components/patterns/chat/chat-scroll-viewp
 import { ProviderIcon } from '@/components/ui/provider-icon'
 import { PageLoadingState } from '@/components/patterns/page-states'
 import { useFetchMyLLMs } from '@/hooks/use-llm-request'
-import { findProviderNameByModelName } from '@/stores/model'
+import { homeMessageIdentity } from '../utils/model-identity'
 import { useHomeStore } from '@/stores/home'
 import { createTimelineNodesFromToolCalls } from '@/lib/streaming'
 import { copyToClipboardWithFeedback } from '@/lib/clipboard'
@@ -69,7 +69,6 @@ function ChatSectionContent({
   const { myLLMs } = useFetchMyLLMs()
   const selectedModelId = useHomeStore((state) => state.selectedModelId)
   const selectedApp = useHomeStore((state) => state.selectedApps[0])
-  const provider = findProviderNameByModelName(myLLMs, selectedModelId, true)
   const viewReference = workspace.viewReference
   const copy = useCallback(
     (text: string) =>
@@ -96,23 +95,27 @@ function ChatSectionContent({
         : message.parsedToolCalls?.length
           ? createTimelineNodesFromToolCalls(message.parsedToolCalls)
           : undefined
-      const submittedLabel = message.contextManifest?.resources.find(
-        (resource) => resource.kind === 'app' || resource.kind === 'model',
-      )?.label
+      const identity = homeMessageIdentity(
+        message.contextManifest,
+        myLLMs,
+        selectedModelId,
+        selectedApp?.name,
+      )
       return {
         id: message.id,
         role: message.role,
         timestamp: message.timestamp,
         label: user
           ? t('chat.transcript.user')
-          : submittedLabel ||
-            selectedApp?.name ||
-            provider ||
-            t('chat.transcript.assistant'),
+          : identity.label || t('chat.transcript.assistant'),
         identity: user ? (
           <User className="size-icon-md text-text-secondary" />
-        ) : provider && !selectedApp ? (
-          <ProviderIcon provider={provider} size={24} className="size-6" />
+        ) : identity.provider ? (
+          <ProviderIcon
+            provider={identity.provider}
+            size={24}
+            className="size-6"
+          />
         ) : (
           <Bot className="size-6 text-text-secondary" />
         ),
@@ -167,7 +170,8 @@ function ChatSectionContent({
   }, [
     messages,
     isStreaming,
-    provider,
+    myLLMs,
+    selectedModelId,
     selectedApp,
     t,
     viewReference,

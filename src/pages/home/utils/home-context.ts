@@ -1,3 +1,6 @@
+import { resolveHomeModelIdentity } from './model-identity'
+import type { MyLLMProvider } from '@/stores/model'
+import i18n from '@/locales/i18n'
 import {
   createContextManifest,
   type ContextResource,
@@ -10,6 +13,7 @@ import type { ChatMessage } from '@/pages/home/types'
 
 export interface HomeContextSelection {
   selectedApp?: DialogApp | null
+  modelProviders?: MyLLMProvider
   selectedModelId: string
   selectedMCPIds: readonly string[]
   selectedMCPServers?: readonly MCPServer[]
@@ -18,6 +22,7 @@ export interface HomeContextSelection {
 /** Mirror the two real transports: app configuration or explicit model/MCP IDs. */
 export function getHomeContextResources({
   selectedApp,
+  modelProviders = {},
   selectedModelId,
   selectedMCPIds,
   selectedMCPServers = [],
@@ -29,11 +34,18 @@ export function getHomeContextResources({
     label: string | undefined,
     origin: ContextResource['origin'],
   ) => {
+    const identity =
+      kind === 'model'
+        ? resolveHomeModelIdentity(modelProviders, id)
+        : undefined
     if (id)
       resources.push({
         kind,
         id,
-        label: label || id,
+        label: identity
+          ? (identity.label ?? i18n.t('common.modelPicker.savedModel'))
+          : label || id,
+        ...(identity?.provider ? { provider: identity.provider } : {}),
         // Configuration and cached tool names are not live availability probes.
         availability: 'unknown',
         origin,
