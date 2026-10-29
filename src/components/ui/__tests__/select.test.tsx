@@ -12,6 +12,8 @@ import {
 } from '../select'
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from '../sheet'
 import { findOption, installRadixSelectDom } from './helpers/radix-select'
+import { stubNativeDialog } from './native-dialog'
+import { ScopedTheme } from '@/themes/scoped-theme'
 
 let root: Root | undefined
 let restoreDom: (() => void) | undefined
@@ -372,4 +374,78 @@ test('disabling an open select closes its list', async () => {
   expect(listbox()).toBeNull()
   expect(trigger()?.disabled).toBe(true)
   expect(onChange).not.toHaveBeenCalled()
+})
+
+test('a select in a native modal keeps its options inside the dialog', async () => {
+  const native = stubNativeDialog()
+  const onChange = vi.fn<(value: string) => void>()
+  try {
+    await render(
+      <Dialog open onOpenChange={() => {}}>
+        <DialogContent modal>
+          <FruitSelect onChange={onChange} />
+        </DialogContent>
+      </Dialog>,
+    )
+    await openWithKeyboard()
+    expect(listbox()?.closest('dialog')).toBe(document.querySelector('dialog'))
+    await press('ArrowDown')
+    await press('Enter')
+    expect(onChange).toHaveBeenCalledWith('banana')
+    expect(trigger()?.textContent).toBe('Banana')
+  } finally {
+    await act(async () => root?.unmount())
+    root = undefined
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    native.restore()
+  }
+})
+
+test('a select targets its nearest dialog and removes the popup on unmount', async () => {
+  await render(
+    <>
+      <dialog open id="unrelated-dialog" />
+      <dialog open id="outer-dialog">
+        <dialog open id="inner-dialog">
+          <FruitSelect />
+        </dialog>
+      </dialog>
+    </>,
+  )
+  await openWithKeyboard()
+  expect(listbox()?.closest('dialog')?.id).toBe('inner-dialog')
+  await act(async () => root?.render(null))
+  await new Promise((resolve) => setTimeout(resolve, 0))
+  expect(listbox()).toBeNull()
+})
+
+test('a scoped portal container inside the dialog keeps priority and appearance', async () => {
+  vi.stubGlobal('matchMedia', () => ({
+    matches: false,
+    addEventListener() {},
+    removeEventListener() {},
+    addListener() {},
+    removeListener() {},
+  }))
+  try {
+    await render(
+      <dialog open id="scoped-dialog">
+        <ScopedTheme theme="dark" density="compact">
+          <FruitSelect />
+        </ScopedTheme>
+      </dialog>,
+    )
+    await openWithKeyboard()
+    const scope = document.querySelector('#scoped-dialog > [data-theme="dark"]')
+    expect(scope).not.toBeNull()
+    expect(scope?.contains(listbox())).toBe(true)
+    expect(
+      listbox()?.closest('[data-density]')?.getAttribute('data-density'),
+    ).toBe('compact')
+  } finally {
+    await act(async () => root?.unmount())
+    root = undefined
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    vi.unstubAllGlobals()
+  }
 })

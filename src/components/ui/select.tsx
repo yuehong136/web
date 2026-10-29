@@ -47,6 +47,7 @@ interface SelectContextValue {
   placeholder?: string
   disabled: boolean
   open: boolean
+  dialogContainer?: HTMLDialogElement
   rootRef: React.RefObject<HTMLDivElement | null>
   items: ItemRegistry
   registerItem: (
@@ -77,6 +78,20 @@ export const Select: React.FC<SelectProps> = ({
 }) => {
   const rootRef = React.useRef<HTMLDivElement>(null)
   const [open, setOpen] = React.useState(false)
+  const [dialogContainer, setDialogContainer] = React.useState<
+    HTMLDialogElement | undefined
+  >()
+  const handleOpenChange = (next: boolean) => {
+    // Native modal dialogs make siblings inert, including portals on body.
+    // Capture the nearest dialog from the event rather than reading a ref in render.
+    setDialogContainer(
+      next
+        ? (rootRef.current?.closest<HTMLDialogElement>('dialog[open]') ??
+            undefined)
+        : undefined,
+    )
+    setOpen(next)
+  }
   // A list left open when the select becomes disabled would still accept a pick.
   if (disabled && open) setOpen(false)
 
@@ -127,11 +142,20 @@ export const Select: React.FC<SelectProps> = ({
       placeholder,
       disabled,
       open,
+      dialogContainer,
       rootRef,
       items,
       registerItem,
     }),
-    [selected, placeholder, disabled, open, items, registerItem],
+    [
+      selected,
+      placeholder,
+      disabled,
+      open,
+      dialogContainer,
+      items,
+      registerItem,
+    ],
   )
 
   return (
@@ -142,7 +166,7 @@ export const Select: React.FC<SelectProps> = ({
           value={selected}
           onValueChange={handleValueChange}
           open={open}
-          onOpenChange={setOpen}
+          onOpenChange={handleOpenChange}
           disabled={disabled}
         >
           {children}
@@ -217,12 +241,19 @@ export const SelectContent: React.FC<SelectContentProps> = ({
   children,
   className,
 }) => {
-  const { open, rootRef } = useSelectContext('SelectContent')
+  const { open, rootRef, dialogContainer } = useSelectContext('SelectContent')
   const portalContainer = usePortalContainer()
   const theme = useNearestPortalTheme(rootRef, open)
+  // Keep a scoped target inside the dialog; an outer scope stays inherited
+  // when the popup moves into the dialog's native top layer.
+  const container =
+    dialogContainer &&
+    (!portalContainer || !dialogContainer.contains(portalContainer))
+      ? dialogContainer
+      : portalContainer
 
   return (
-    <SelectPrimitive.Portal container={portalContainer}>
+    <SelectPrimitive.Portal container={container}>
       <SelectPrimitive.Content
         position="popper"
         side="bottom"
