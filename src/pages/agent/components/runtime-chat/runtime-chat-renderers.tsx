@@ -26,7 +26,7 @@ interface RuntimeChatMarkdownProps {
 
 export function getReferenceChunks(reference: unknown): ReferenceChunk[] {
   if (Array.isArray(reference)) {
-    return reference as ReferenceChunk[]
+    return extractReferencesFromSSEData({ chunks: reference })
   }
 
   return extractReferencesFromSSEData({ reference })

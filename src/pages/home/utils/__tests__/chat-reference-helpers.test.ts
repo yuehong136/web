@@ -241,3 +241,42 @@ test('hasCitationMarkers finds [ID:n] markers only', () => {
   assert.equal(hasCitationMarkers('没有引用'), false)
   assert.equal(hasCitationMarkers('[ID:] 与 [12]'), false)
 })
+
+test('history canonical citation_id keeps original gaps and numeric zero identity', () => {
+  const groups = [
+    {
+      chunks: [
+        {
+          id: 'legacy',
+          content: 'legacy',
+          document_id: null,
+          document_name: null,
+          dataset_id: null,
+          citation_id: '1',
+        },
+        {
+          id: 0,
+          content: '0',
+          document_id: null,
+          document_name: null,
+          dataset_id: null,
+          citation_id: '2',
+        },
+      ],
+    },
+  ]
+  const references = alignHistoryReferences([prologue, ...turn(1)], groups)[2]!
+  assert.deepEqual(
+    references.map((item) => [
+      item.id,
+      item.reference_index,
+      item.reference_key,
+    ]),
+    [
+      ['legacy', 1, '1'],
+      [0, 2, '2'],
+    ],
+  )
+  assert.equal(references[1].document_id, '')
+  assert.equal(references[1].dataset_id, '')
+})

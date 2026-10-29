@@ -283,6 +283,11 @@ export const generateDataSourceInfo = (
     description: t('datasource.postgresqlDescription'),
     icon: <Server className="size-icon-lg text-text-primary" />,
   },
+  [DataSourceKey.MSSQL]: {
+    name: 'Microsoft SQL Server',
+    description: t('datasource.mssqlDescription'),
+    icon: <Database className="size-icon-lg text-text-primary" />,
+  },
   [DataSourceKey.GOOGLE_DRIVE]: {
     name: 'Google Drive',
     description: t('datasource.googleDriveDescription'),
@@ -405,7 +410,11 @@ export const DataSourceGroups = {
     DataSourceKey.GITLAB,
     DataSourceKey.BITBUCKET,
   ],
-  database: [DataSourceKey.MYSQL, DataSourceKey.POSTGRESQL],
+  database: [
+    DataSourceKey.MYSQL,
+    DataSourceKey.POSTGRESQL,
+    DataSourceKey.MSSQL,
+  ],
   communication: [
     DataSourceKey.REST_API,
     DataSourceKey.GOOGLE_DRIVE,

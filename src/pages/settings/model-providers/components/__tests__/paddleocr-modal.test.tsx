@@ -1,3 +1,4 @@
+import { stubNativeDialog } from '@/components/ui/__tests__/native-dialog'
 import { act, StrictMode } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ModelProvidersPage } from '../../index'
@@ -21,6 +22,7 @@ vi.mock('../available-models', () => ({
 }))
 
 Reflect.set(globalThis, 'IS_REACT_ACT_ENVIRONMENT', true)
+let native: ReturnType<typeof stubNativeDialog>
 let root: Root
 let container: HTMLDivElement
 const save = vi.fn()
@@ -75,6 +77,7 @@ const select = async (algorithm: string) => {
   )
 }
 beforeEach(async () => {
+  native = stubNativeDialog()
   vi.clearAllMocks()
   vi.stubGlobal('matchMedia', () => ({
     matches: false,
@@ -100,6 +103,7 @@ beforeEach(async () => {
 afterEach(async () => {
   await act(async () => root.unmount())
   container.remove()
+  native.restore()
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
 })

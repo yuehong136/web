@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import { useState, useMemo, type FC } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Search, Plus } from 'lucide-react'
 import { Input } from '@/components/ui/input'
@@ -12,43 +12,16 @@ import {
   ModelCapability,
 } from '@/components/models/model-capabilities'
 
-// 模型类型标签
-type TagType =
-  | 'LLM'
-  | 'TEXT EMBEDDING'
-  | 'TEXT RE-RANK'
-  | 'TTS'
-  | 'SPEECH2TEXT'
-  | 'IMAGE2TEXT'
-  | 'MODERATION'
-
-// 标签排序
-const TAG_ORDER: Record<TagType, number> = {
-  LLM: 1,
-  'TEXT EMBEDDING': 2,
-  'TEXT RE-RANK': 3,
-  TTS: 4,
-  SPEECH2TEXT: 5,
-  IMAGE2TEXT: 6,
-  MODERATION: 7,
-}
-
-const sortTags = (tags: string): string[] => {
-  return tags
-    .split(',')
-    .map((tag) => tag.trim())
-    .filter(Boolean)
-    .sort(
-      (a, b) =>
-        (TAG_ORDER[a as TagType] || 999) - (TAG_ORDER[b as TagType] || 999),
-    )
-}
+import {
+  availableModelFilters,
+  sortProviderTags,
+} from './available-model-filters'
 
 interface AvailableModelsProps {
   handleAddModel: (factoryName: string) => void
 }
 
-export const AvailableModels: React.FC<AvailableModelsProps> = ({
+export const AvailableModels: FC<AvailableModelsProps> = ({
   handleAddModel,
 }) => {
   const { t } = useTranslation()
@@ -57,48 +30,21 @@ export const AvailableModels: React.FC<AvailableModelsProps> = ({
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedTags, setSelectedTags] = useState<string[]>([])
 
-  // 获取已添加的厂商名称列表
-  const addedProviderNames = useMemo(() => {
-    return Object.keys(myLLMs)
-  }, [myLLMs])
-
-  // 获取可用厂商列表（排除已添加的）
-  const availableFactories = useMemo(() => {
-    return factories.filter(
-      (factory) => !addedProviderNames.includes(factory.name),
-    )
-  }, [factories, addedProviderNames])
-
-  // 过滤模型列表：基于搜索和标签
-  const filteredModels = useMemo(() => {
-    return availableFactories.filter((factory) => {
-      // 搜索匹配
-      const matchesSearch = factory.name
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase())
-
-      // 标签匹配
-      const tags = factory.tags.split(',').map((tag) => tag.trim())
-      const matchesTag = selectedTags.every((tag) => tags.includes(tag))
-
-      return matchesSearch && matchesTag
-    })
-  }, [availableFactories, searchTerm, selectedTags])
-
-  // 获取所有可用标签（只从未添加的厂商中收集）
-  const allTags = useMemo(() => {
-    const tagsSet = new Set<string>()
-    availableFactories.forEach((factory) => {
-      factory.tags.split(',').forEach((tag) => {
-        const trimmed = tag.trim()
-        if (trimmed) tagsSet.add(trimmed)
-      })
-    })
-    return Array.from(tagsSet).sort(
-      (a, b) =>
-        (TAG_ORDER[a as TagType] || 999) - (TAG_ORDER[b as TagType] || 999),
-    )
-  }, [availableFactories])
+  const {
+    allTags,
+    searched,
+    filtered: filteredModels,
+    counts,
+  } = useMemo(
+    () =>
+      availableModelFilters(
+        factories,
+        Object.keys(myLLMs),
+        searchTerm,
+        selectedTags,
+      ),
+    [factories, myLLMs, searchTerm, selectedTags],
+  )
 
   const handleTagClick = (tag: string) => {
     setSelectedTags((current) =>
@@ -129,8 +75,7 @@ export const AvailableModels: React.FC<AvailableModelsProps> = ({
       </div>
 
       {/* 标签过滤 - 使用主题感知样式 */}
-      <div
-        role="group"
+      <fieldset
         aria-label={t('settings.models.filterCapabilities')}
         className="mb-space-sm flex flex-wrap gap-2"
       >
@@ -146,7 +91,10 @@ export const AvailableModels: React.FC<AvailableModelsProps> = ({
               : 'bg-components-button-secondary-bg text-text-secondary hover:bg-components-button-secondary-bg-hover',
           )}
         >
-          {t('settings.models.allProviders')}
+          {t('settings.models.allProviders')}{' '}
+          <span className="ml-space-xs tabular-nums opacity-70">
+            {searched.length}
+          </span>
         </button>
 
         {/* 各标签按钮 */}
@@ -163,10 +111,13 @@ export const AvailableModels: React.FC<AvailableModelsProps> = ({
                 : 'bg-components-button-secondary-bg text-text-secondary hover:bg-components-button-secondary-bg-hover',
             )}
           >
-            <ModelCapability type={tag} />
+            <ModelCapability type={tag} />{' '}
+            <span className="ml-space-xs tabular-nums opacity-70">
+              {counts.get(tag) ?? 0}
+            </span>
           </button>
         ))}
-      </div>
+      </fieldset>
 
       <p className="mb-space-base text-xs text-text-secondary">
         {t('settings.models.filterCapabilitiesHint')}
@@ -199,12 +150,12 @@ interface AvailableModelCardProps {
   onAdd: () => void
 }
 
-const AvailableModelCard: React.FC<AvailableModelCardProps> = ({
+const AvailableModelCard: FC<AvailableModelCardProps> = ({
   factory,
   onAdd,
 }) => {
   const { t } = useTranslation()
-  const sortedTags = sortTags(factory.tags)
+  const sortedTags = sortProviderTags(factory.tags)
 
   return (
     <div className="rounded-radius-lg border border-border-default p-space-base">

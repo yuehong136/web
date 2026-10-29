@@ -2,13 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { Eye, EyeOff } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { Checkbox } from '@/components/ui/checkbox'
 
 interface LocalModelFieldsProps {
   providerName: string
@@ -35,8 +29,9 @@ interface LocalModelFieldsProps {
 export const LocalModelFields = (props: LocalModelFieldsProps) => {
   const { t } = useTranslation()
   const key = 'settings.models.localModel'
+  const selectedTypes = props.modelType.split(',').filter(Boolean)
   const supportsTools =
-    props.modelType === 'chat' || props.modelType === 'image2text'
+    selectedTypes.includes('chat') || selectedTypes.includes('image2text')
   return (
     <>
       <div>
@@ -46,18 +41,29 @@ export const LocalModelFields = (props: LocalModelFieldsProps) => {
         >
           {t(`${key}.type`)}
         </label>
-        <Select value={props.modelType} onValueChange={props.onModelTypeChange}>
-          <SelectTrigger id="local-model-type" className="w-full">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {props.modelTypes.map((type) => (
-              <SelectItem key={type.value} value={type.value}>
-                {type.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div
+          id="local-model-type"
+          role="group"
+          aria-label={t(`${key}.type`)}
+          className="flex flex-wrap gap-space-sm"
+        >
+          {props.modelTypes.map((type) => (
+            <label key={type.value} className="flex items-center gap-space-xs">
+              <Checkbox
+                checked={selectedTypes.includes(type.value)}
+                onCheckedChange={(checked) =>
+                  props.onModelTypeChange(
+                    (checked === true
+                      ? [...selectedTypes, type.value]
+                      : selectedTypes.filter((value) => value !== type.value)
+                    ).join(','),
+                  )
+                }
+              />
+              {t(`common.modelPicker.capabilities.${type.value}`)}
+            </label>
+          ))}
+        </div>
       </div>
       <div>
         <label
@@ -78,7 +84,7 @@ export const LocalModelFields = (props: LocalModelFieldsProps) => {
           htmlFor="local-model-url"
           className="mb-2 block text-sm font-medium text-text-primary"
         >
-          Base URL
+          {t('settings.models.form.baseUrl')}
         </label>
         <Input
           id="local-model-url"
@@ -96,7 +102,7 @@ export const LocalModelFields = (props: LocalModelFieldsProps) => {
           htmlFor="local-model-key"
           className="mb-2 block text-sm font-medium text-text-primary"
         >
-          API Key
+          {t('settings.models.form.apiKey')}
         </label>
         <div className="relative">
           <Input
@@ -132,19 +138,21 @@ export const LocalModelFields = (props: LocalModelFieldsProps) => {
           htmlFor="local-model-tokens"
           className="mb-2 block text-sm font-medium text-text-primary"
         >
-          Max Tokens
+          {t('settings.models.form.maxTokens')}
         </label>
         <Input
           id="local-model-tokens"
           type="number"
-          value={props.maxTokens}
+          value={Number.isFinite(props.maxTokens) ? props.maxTokens : ''}
           onChange={(event) =>
-            props.onMaxTokensChange(parseInt(event.target.value) || 8192)
+            props.onMaxTokensChange(
+              event.target.value === '' ? NaN : Number(event.target.value),
+            )
           }
-          min={1}
+          min={0}
         />
       </div>
-      {props.modelType === 'chat' && (
+      {selectedTypes.includes('chat') && (
         <div className="flex items-center justify-between">
           <label
             htmlFor="local-model-vision"

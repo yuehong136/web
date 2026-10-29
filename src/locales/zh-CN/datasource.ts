@@ -1,5 +1,15 @@
 export default {
   datasource: {
+    mssqlDescription: '使用只读 SELECT 账号连接 Microsoft SQL Server。',
+    mssqlQueryTip:
+      '请输入一条 SELECT 查询，支持 Markdown SQL 代码块和带 schema 的表名。WHERE、TOP、ORDER BY 和分页保留原有范围。',
+    mssqlContentColumnsTip: '作为文档内容的列。留空使用全部列。',
+    mssqlMetadataColumnsTip: '附加为文档元数据的列。',
+    mssqlIdColumnTip: '用作文档 ID 的稳定唯一列。',
+    mssqlTimestampColumnTip:
+      '增量同步使用的日期时间列。SQL Server 的 timestamp/rowversion 列不是日期时间值。',
+    invalidDatabasePort: '请输入 1 到 65535 之间的整数端口。',
+
     salesforce: {
       name: 'Salesforce',
       description:

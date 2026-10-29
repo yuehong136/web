@@ -15,12 +15,12 @@ export interface ApiKeyModalProps {
   onSave: (
     apiKey: string,
     baseUrl?: string,
-    additionalParams?: Record<string, any>,
+    additionalParams?: Record<string, unknown>,
   ) => Promise<void | ModelVerifyResult>
   onVerify?: (
     apiKey: string,
     baseUrl?: string,
-    additionalParams?: Record<string, any>,
+    additionalParams?: Record<string, unknown>,
   ) => Promise<void | ModelVerifyResult>
 }
 
@@ -78,7 +78,7 @@ export const buildLocalModelParams = (
     mdl_type: modelTypes.join(','),
     api_base: values.baseUrl.trim(),
     max_tokens: values.maxTokens,
-    ...(values.apiKey.trim() ? { api_key: values.apiKey } : {}),
+    ...(values.apiKey.trim() ? { api_key: values.apiKey.trim() } : {}),
     ...((modelTypes.includes('chat') || modelTypes.includes('image2text')) &&
     values.includeTools
       ? { is_tools: values.isTools }

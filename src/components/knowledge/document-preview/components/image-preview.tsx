@@ -24,6 +24,7 @@ const ImagePreviewInner: FC<{
   alt?: string
 }> = ({ objectUrl, sourceUrl, alt }) => {
   const { t } = useTranslation()
+  const [failedUrl, setFailedUrl] = useState<string>()
   const [scale, setScale] = useState(1)
   const [rotation, setRotation] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
@@ -89,7 +90,7 @@ const ImagePreviewInner: FC<{
     event.preventDefault()
   }
 
-  if (!objectUrl) {
+  if (!objectUrl || failedUrl === objectUrl) {
     return (
       <ErrorState
         icon={<ImageIcon className="h-16 w-16" />}
@@ -155,11 +156,12 @@ const ImagePreviewInner: FC<{
         <img
           src={objectUrl}
           alt={alt || t('knowledge.preview.imagePreview')}
-          className="max-h-full max-w-full select-none object-contain transition-transform duration-200"
+          className="max-h-full max-w-full object-contain transition-transform duration-200 select-none"
           style={{
             transform: `scale(${scale}) rotate(${rotation}deg) translate(${position.x / scale}px, ${position.y / scale}px)`,
           }}
           draggable={false}
+          onError={() => setFailedUrl(objectUrl)}
         />
       </button>
     </div>

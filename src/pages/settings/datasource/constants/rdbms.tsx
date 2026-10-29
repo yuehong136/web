@@ -3,7 +3,7 @@ import { FormFieldType, type FormFieldConfig } from '../types'
 const getCommonDatabaseFormFields = (
   t: (key: string) => string,
   port: string,
-  tooltipPrefix: 'mysql' | 'postgresql',
+  tooltipPrefix: 'mysql' | 'postgresql' | 'mssql',
 ): FormFieldConfig[] => [
   {
     label: t('datasource.fieldHost'),
@@ -18,6 +18,18 @@ const getCommonDatabaseFormFields = (
     type: FormFieldType.Number,
     required: true,
     placeholder: port,
+    step: 1,
+    validate: (value) => {
+      const numeric =
+        typeof value === 'number'
+          ? value
+          : typeof value === 'string' && value.trim()
+            ? Number(value)
+            : NaN
+      return Number.isInteger(numeric) && numeric >= 1 && numeric <= 65535
+        ? true
+        : 'datasource.invalidDatabasePort'
+    },
   },
   {
     label: t('datasource.fieldDatabase'),
@@ -41,8 +53,11 @@ const getCommonDatabaseFormFields = (
     label: t('datasource.fieldSqlQuery'),
     name: 'config.query',
     type: FormFieldType.Textarea,
-    required: false,
-    placeholder: t('datasource.rdbmsQueryPlaceholder'),
+    required: tooltipPrefix === 'mssql',
+    placeholder:
+      tooltipPrefix === 'mssql'
+        ? 'SELECT id, body FROM dbo.records'
+        : t('datasource.rdbmsQueryPlaceholder'),
     tooltip: t(`datasource.${tooltipPrefix}QueryTip`),
   },
   {
@@ -86,3 +101,7 @@ export const getMySQLFormFields = (
 export const getPostgreSQLFormFields = (
   t: (key: string) => string,
 ): FormFieldConfig[] => getCommonDatabaseFormFields(t, '5432', 'postgresql')
+
+export const getMSSQLFormFields = (
+  t: (key: string) => string,
+): FormFieldConfig[] => getCommonDatabaseFormFields(t, '1433', 'mssql')

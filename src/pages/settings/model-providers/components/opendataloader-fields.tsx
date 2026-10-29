@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Input } from '@/components/ui/input'
 
 interface OpenDataLoaderFieldsProps {
@@ -20,86 +21,93 @@ export const OpenDataLoaderFields = ({
   onApiServerChange,
   onApiKeyChange,
   onTimeoutChange,
-}: OpenDataLoaderFieldsProps) => (
-  <>
-    <div>
-      <label
-        htmlFor="opendataloader-model-type"
-        className="mb-space-sm block text-sm font-medium text-text-primary"
-      >
-        模型类型
-      </label>
-      <Input
-        id="opendataloader-model-type"
-        value="OCR"
-        disabled
-        className="cursor-not-allowed bg-surface-secondary"
-      />
-    </div>
-    <div>
-      <label
-        htmlFor="opendataloader-model-name"
-        className="mb-space-sm block text-sm font-medium text-text-primary"
-      >
-        模型名称 <span className="text-status-error">*</span>
-      </label>
-      <Input
-        id="opendataloader-model-name"
-        value={modelName}
-        onChange={(event) => onModelNameChange(event.target.value)}
-        placeholder="opendataloader-from-env-1"
-        required
-      />
-    </div>
-    <div>
-      <label
-        htmlFor="opendataloader-api-server"
-        className="mb-space-sm block text-sm font-medium text-text-primary"
-      >
-        API Server <span className="text-status-error">*</span>
-      </label>
-      <Input
-        id="opendataloader-api-server"
-        value={apiServer}
-        onChange={(event) => onApiServerChange(event.target.value)}
-        placeholder="http://host.docker.internal:9383"
-        required
-      />
-    </div>
-    <div>
-      <label
-        htmlFor="opendataloader-api-key"
-        className="mb-space-sm block text-sm font-medium text-text-primary"
-      >
-        API Key{' '}
-        <span className="ml-space-xs font-normal text-text-tertiary">
-          (可选)
-        </span>
-      </label>
-      <Input
-        id="opendataloader-api-key"
-        type="password"
-        value={apiKey}
-        onChange={(event) => onApiKeyChange(event.target.value)}
-        placeholder="Bearer token"
-      />
-    </div>
-    <div>
-      <label
-        htmlFor="opendataloader-timeout"
-        className="mb-space-sm block text-sm font-medium text-text-primary"
-      >
-        请求超时（秒）
-      </label>
-      <Input
-        id="opendataloader-timeout"
-        type="number"
-        min={1}
-        value={timeout}
-        onChange={(event) =>
-          onTimeoutChange(Number.parseInt(event.target.value, 10) || 600)
-        }
-      />
-    </div>
-  </>
-)
+}: OpenDataLoaderFieldsProps) => {
+  const { t } = useTranslation()
+  return (
+    <>
+      <div>
+        <label
+          htmlFor="opendataloader-model-type"
+          className="mb-space-sm block text-sm font-medium text-text-primary"
+        >
+          {t('settings.models.form.modelType')}
+        </label>
+        <Input
+          id="opendataloader-model-type"
+          value="OCR"
+          disabled
+          className="cursor-not-allowed bg-surface-secondary"
+        />
+      </div>
+      <div>
+        <label
+          htmlFor="opendataloader-model-name"
+          className="mb-space-sm block text-sm font-medium text-text-primary"
+        >
+          {t('settings.models.form.modelName')}{' '}
+          <span className="text-status-error">*</span>
+        </label>
+        <Input
+          id="opendataloader-model-name"
+          value={modelName}
+          onChange={(event) => onModelNameChange(event.target.value)}
+          placeholder={t('settings.models.form.ocrModelExample')}
+          required
+        />
+      </div>
+      <div>
+        <label
+          htmlFor="opendataloader-api-server"
+          className="mb-space-sm block text-sm font-medium text-text-primary"
+        >
+          {t('settings.models.form.apiServer')}{' '}
+          <span className="text-status-error">*</span>
+        </label>
+        <Input
+          id="opendataloader-api-server"
+          value={apiServer}
+          onChange={(event) => onApiServerChange(event.target.value)}
+          placeholder={t('settings.models.form.apiServerExample')}
+          required
+        />
+      </div>
+      <div>
+        <label
+          htmlFor="opendataloader-api-key"
+          className="mb-space-sm block text-sm font-medium text-text-primary"
+        >
+          {t('settings.models.form.apiKey')}{' '}
+          <span className="ml-space-xs font-normal text-text-tertiary">
+            {t('settings.models.form.optional')}
+          </span>
+        </label>
+        <Input
+          id="opendataloader-api-key"
+          type="password"
+          value={apiKey}
+          onChange={(event) => onApiKeyChange(event.target.value)}
+          placeholder={t('settings.models.form.credentialExample')}
+        />
+      </div>
+      <div>
+        <label
+          htmlFor="opendataloader-timeout"
+          className="mb-space-sm block text-sm font-medium text-text-primary"
+        >
+          {t('settings.models.form.timeout')}
+        </label>
+        <Input
+          id="opendataloader-timeout"
+          type="number"
+          min={1}
+          value={Number.isFinite(timeout) ? timeout : ''}
+          onChange={(event) =>
+            onTimeoutChange(
+              event.target.value === '' ? NaN : Number(event.target.value),
+            )
+          }
+        />
+      </div>
+    </>
+  )
+}

@@ -1,5 +1,17 @@
 export default {
   datasource: {
+    mssqlDescription:
+      'Connect to Microsoft SQL Server using a SELECT-only account.',
+    mssqlQueryTip:
+      'Enter one SELECT query. Markdown SQL fences and schema-qualified names are supported. WHERE, TOP, ORDER BY and paging keep their original scope.',
+    mssqlContentColumnsTip:
+      'Columns whose text is used as document content. Leave empty to use all columns.',
+    mssqlMetadataColumnsTip: 'Columns to attach as document metadata.',
+    mssqlIdColumnTip: 'Stable unique column used as the document ID.',
+    mssqlTimestampColumnTip:
+      'Date/time column for incremental sync. SQL Server timestamp/rowversion columns are not date/time values.',
+    invalidDatabasePort: 'Enter a whole port number from 1 to 65535.',
+
     salesforce: {
       name: 'Salesforce',
       description:

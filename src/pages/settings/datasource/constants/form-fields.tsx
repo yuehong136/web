@@ -9,7 +9,11 @@ import {
   getOciStorageFormFields,
   getR2FormFields,
 } from './cloud-storage'
-import { getMySQLFormFields, getPostgreSQLFormFields } from './rdbms'
+import {
+  getMSSQLFormFields,
+  getMySQLFormFields,
+  getPostgreSQLFormFields,
+} from './rdbms'
 import { getJiraFormFields } from '@/pages/settings/datasource/constants/jira'
 import { getDeletionSyncFields } from '@/pages/settings/datasource/constants/sync-settings'
 import { getRestApiFormFields } from './rest-api'
@@ -308,6 +312,7 @@ const getSourceFormFields = (
   [DataSourceKey.BITBUCKET]: getBitbucketFormFields(t),
   [DataSourceKey.MYSQL]: getMySQLFormFields(t),
   [DataSourceKey.POSTGRESQL]: getPostgreSQLFormFields(t),
+  [DataSourceKey.MSSQL]: getMSSQLFormFields(t),
   [DataSourceKey.GOOGLE_DRIVE]: [
     {
       label: 'Primary Admin Email',

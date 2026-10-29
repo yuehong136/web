@@ -80,3 +80,58 @@ it('resolves keyed citations only by their key, never by position', async () => 
   expect(missing.startsWith('plain')).toBe(true)
   expect(five).toContain('five.pdf')
 })
+
+it('uses canonical citation_id after invalid list entries were removed without positional fallback', async () => {
+  // The server canonicalizes [null, 'legacy', 0], retaining each original slot.
+  const references = extractReferencesFromSSEData({
+    reference: {
+      chunks: [
+        { ...chunk(1, 'legacy.pdf'), citation_id: '1' },
+        { ...chunk(2, 'zero.pdf'), id: 0, citation_id: '2' },
+      ],
+    },
+  })
+  await renderCitations(references, ['0', '1', '2'])
+  expect(resolved()).toEqual([
+    'plain 1',
+    '引用 1：legacy.pdf',
+    '引用 2：zero.pdf',
+  ])
+})
+
+it('preserves a hole in the middle and follows explicit keyed identity', async () => {
+  const references = extractReferencesFromSSEData({
+    chunks: [
+      { ...chunk(0, 'first.pdf'), citation_id: '0' },
+      { ...chunk(2, 'last.pdf'), citation_id: '2' },
+    ],
+  })
+  await renderCitations(references, ['0', '1', '2'])
+  expect(resolved()).toEqual([
+    '引用 0：first.pdf',
+    'plain 2',
+    '引用 2：last.pdf',
+  ])
+  const keyed = extractReferencesFromSSEData({
+    reference: {
+      chunks: {
+        '2': { ...chunk(2, 'keyed-zero.pdf'), id: 0, citation_id: '2' },
+      },
+    },
+  })
+  await renderCitations(keyed, ['0', '2'])
+  expect(resolved()).toEqual(['plain 1', '引用 2：keyed-zero.pdf'])
+})
+
+it('retains original slots when malformed rows arrive before or between chunk records', async () => {
+  const references = extractReferencesFromSSEData({
+    chunks: [null, chunk(1, 'one.pdf'), false, chunk(3, 'three.pdf')],
+  })
+  await renderCitations(references, ['0', '1', '2', '3'])
+  expect(resolved()).toEqual([
+    'plain 1',
+    '引用 1：one.pdf',
+    'plain 3',
+    '引用 3：three.pdf',
+  ])
+})
