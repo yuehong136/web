@@ -98,7 +98,6 @@ export async function cleanupDiscoveryFixture(
   api: {
     inventory: () => Promise<DiscoverySnapshot>
     deleteInstance: (provider: string, instance: string) => Promise<unknown>
-    deleteProvider: (provider: string) => Promise<unknown>
   },
 ) {
   const receipt = validateDiscoveryReceipt(scope, value)
@@ -167,31 +166,11 @@ export async function cleanupDiscoveryFixture(
     'Unowned provider instances changed',
   )
   assert.deepEqual(remaining.models, borrowedModels, 'Unowned models changed')
-  // A provider row belongs to this run only because owner mode proved it absent.
-  // Preserve it whenever another instance or model now uses that provider.
-  const hasOtherResources =
-    remaining.instances.length > 0 ||
-    remaining.models.some((item) => item.provider_name === scope.providerName)
-  let providerDeleted = false
-  if (!hasOtherResources) {
-    const current = remaining.providers.filter(
-      (item) => item.name === scope.providerName,
-    )
-    assert.equal(current.length, 1)
-    assert.equal(current[0].id, receipt.providerId)
-    await api.deleteProvider(scope.providerName)
-    const final = await api.inventory()
-    assert.equal(
-      final.providers.some((item) => item.name === scope.providerName),
-      false,
-    )
-    assert.deepEqual(final.instances, borrowedInstances)
-    assert.deepEqual(final.models, borrowedModels)
-    providerDeleted = true
-  }
+  // Parent deletion is unsafe across an inventory/delete race. The registered
+  // scratch-database owner removes the retained provider row during final DROP.
   return {
     modelIds: receipt.modelIds,
     instanceId: receipt.instanceId,
-    providerDeleted,
+    providerDeleted: false,
   }
 }

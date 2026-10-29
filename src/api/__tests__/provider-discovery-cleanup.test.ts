@@ -141,9 +141,6 @@ test('discovery cleanup deletes the exact owned instance and preserves another i
         (item) => !receipt.modelIds.includes(item.id),
       )
     },
-    deleteProvider: async (provider) => {
-      calls.push(['provider', provider])
-    },
   })
   assert.deepEqual(calls, [['instance', 'Ollama', 'fixture-instance']])
   assert.equal(result.providerDeleted, false)
@@ -154,7 +151,7 @@ test('discovery cleanup deletes the exact owned instance and preserves another i
   ])
 })
 
-test('discovery cleanup removes a proven newly created provider only after its owned instance and models are gone', async () => {
+test('discovery cleanup retains the provider even when its owned instance and models are gone', async () => {
   const scope = {
     ownerId: 'fixture-owner',
     origin: 'http://127.0.0.1:20001',
@@ -196,13 +193,10 @@ test('discovery cleanup removes a proven newly created provider only after its o
       snapshot.instances = []
       snapshot.models = []
     },
-    deleteProvider: async () => {
-      assert.deepEqual(snapshot.instances, [])
-      assert.deepEqual(snapshot.models, [])
-      calls.push('provider')
-      snapshot.providers = []
-    },
   })
-  assert.deepEqual(calls, ['instance', 'provider'])
-  assert.equal(result.providerDeleted, true)
+  assert.deepEqual(calls, ['instance'])
+  assert.equal(result.providerDeleted, false)
+  assert.deepEqual(snapshot.providers, [
+    { name: 'Ollama', id: 'created-provider' },
+  ])
 })

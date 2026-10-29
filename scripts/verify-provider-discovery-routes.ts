@@ -95,7 +95,6 @@ try {
     const cleaned = await cleanupDiscoveryFixture(fixture, prior, {
       inventory,
       deleteInstance: api.deleteInstance,
-      deleteProvider: api.deleteProvider,
     })
     record('web-discovery-consumer-cleaned', {
       providerName: fixture.providerName,
