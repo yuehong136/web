@@ -81,6 +81,14 @@ beforeEach(async () => {
     addEventListener() {},
     removeEventListener() {},
   }))
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    },
+  )
   vi.resetAllMocks()
   native = stubNativeDialog()
   useAuthStore.setState({ user: { id: 'discovery-owner' } as never })
@@ -470,4 +478,97 @@ it('discovers VolcEngine without an endpoint and verifies and saves the exact se
     { instance_name: 'Ark connection', ...candidate },
     expect.any(AbortSignal),
   )
+})
+
+it('mixes multiple manual drafts with discovered models, deduplicates names and keeps failed candidates for retry', async () => {
+  await render()
+  await change('discovery-instance-name', 'Mixed connection')
+  await click(button('Find models'))
+  await choose('First model')
+  await click(button('Add custom model'))
+  await change('instance-model-name', ' stable-a ')
+  await click(button('Add to selection'))
+  expect(document.querySelector('[role=alert]')?.textContent).toContain(
+    'already',
+  )
+  expect(mocks.verify).not.toHaveBeenCalled()
+  await change('instance-model-name', ' local-custom ')
+  const vision = [...document.querySelectorAll('label')].find(
+    (item) => item.textContent === 'image2text',
+  )!
+  await click(vision.querySelector('[role=checkbox]')!)
+  await click(button('Add to selection'))
+  expect(document.activeElement).toBe(button('Add custom model'))
+  expect(
+    document
+      .querySelector('[aria-label="local-custom"]')
+      ?.getAttribute('aria-checked'),
+  ).toBe('true')
+  await click(button('Add custom model'))
+  await change('instance-model-name', 'second-custom')
+  await click(button('Add to selection'))
+  expect(document.body.textContent).toContain('3 models selected')
+  expect(mocks.create).not.toHaveBeenCalled()
+  mocks.verify.mockRejectedValueOnce(Error('private vendor details'))
+  await click(button('Test connection'))
+  expect(document.body.textContent).not.toContain('private vendor details')
+  expect(document.body.textContent).toContain('3 models selected')
+  await click(button('Test connection'))
+  const candidate = mocks.verify.mock.calls.at(-1)![1]
+  expect(candidate.model_ids).toEqual([])
+  expect(candidate.custom_models.slice(1)).toEqual([
+    {
+      model_name: 'local-custom',
+      model_types: ['chat', 'image2text'],
+      max_tokens: 0,
+      is_tools: false,
+    },
+    {
+      model_name: 'second-custom',
+      model_types: ['chat'],
+      max_tokens: 0,
+      is_tools: false,
+    },
+  ])
+  mocks.create.mockRejectedValueOnce(Error('private save details'))
+  await click(button('Save'))
+  expect(close).not.toHaveBeenCalled()
+  expect(document.body.textContent).not.toContain('private save details')
+  expect(document.body.textContent).toContain('3 models selected')
+  expect(button('Save').disabled).toBe(true)
+  await click(button('Test connection'))
+  await click(button('Save'))
+  expect(mocks.create.mock.calls.at(-1)![1]).toEqual({
+    instance_name: 'Mixed connection',
+    ...candidate,
+  })
+  expect(close).toHaveBeenCalledOnce()
+})
+
+it('keeps manual drafts through discovery failure and deduplicates a later remote result without replacing manual capabilities', async () => {
+  await render()
+  await click(button('Add custom model'))
+  await change('instance-model-name', 'stable-a')
+  await click(button('Add to selection'))
+  mocks.discover.mockRejectedValueOnce(Error('network failure'))
+  await click(button('Find models'))
+  expect(document.body.textContent).toContain('1 model selected')
+  await click(button('Retry'))
+  expect(document.querySelector('[aria-label="First model"]')).toBeNull()
+  await click(button('Select page results'))
+  await click(button('Test connection'))
+  expect(mocks.verify.mock.calls[0][1].custom_models).toEqual([
+    {
+      model_name: 'stable-a',
+      model_types: ['chat'],
+      max_tokens: 0,
+      is_tools: false,
+    },
+    {
+      model_name: 'stable-b',
+      model_types: ['chat', 'image2text'],
+      max_tokens: 0,
+      is_tools: true,
+    },
+  ])
 })

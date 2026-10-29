@@ -92,6 +92,7 @@ export const llmAPI = {
       name: provider.name,
       tags: provider.model_types.join(','),
       logo: '',
+      url: provider.url,
     })),
 }
 

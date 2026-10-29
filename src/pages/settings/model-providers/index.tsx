@@ -1,3 +1,5 @@
+import { useFetchFactories } from '@/hooks/use-llm-request'
+import { ProviderRegionField } from './components/provider-region-field'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useModelProviderMutation } from '@/hooks/use-model-provider-request'
@@ -22,6 +24,7 @@ import { Label } from '@/components/ui/label'
 export function ModelProvidersPage() {
   const { t } = useTranslation()
   const mutation = useModelProviderMutation()
+  const { factories } = useFetchFactories()
   const [manualMode, setManualMode] = useState(false)
   const [provider, setProvider] = useState(''),
     [name, setName] = useState(''),
@@ -100,13 +103,11 @@ export function ModelProvidersPage() {
             onChange={(event) => setName(event.target.value)}
             required
           />
-          <Label htmlFor="model-instance-region">
-            {t('settings.models.instances.region')}
-          </Label>
-          <Input
-            id="model-instance-region"
+          <ProviderRegionField
+            provider={provider}
             value={region}
-            onChange={(event) => setRegion(event.target.value)}
+            onChange={setRegion}
+            urls={factories.find((item) => item.name === provider)?.url}
           />
         </div>
       </ApiKeyModal>

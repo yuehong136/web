@@ -8,7 +8,17 @@ export default {
       filterCapabilities: 'Filter by model capabilities',
       filterCapabilitiesHint:
         'Select multiple capabilities to show providers that support all of them.',
+      regions: {
+        cn: 'China',
+        intl: 'International',
+        endpointHint:
+          'Leave Base URL empty to use the official endpoint for this region. A custom Base URL takes priority.',
+      },
       discovery: {
+        addCustom: 'Add custom model',
+        addToSelection: 'Add to selection',
+        customModels: 'Custom model drafts',
+        duplicate: 'This model name is already in the candidate list.',
         searchPage: 'Search models on this page',
         selectPage: 'Select page results',
         clearSelection: 'Clear selection',

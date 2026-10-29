@@ -1,7 +1,7 @@
 import { useId, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type {
-  DiscoveredModel,
+  InstanceModelInput,
   ModelDiscoveryPage,
 } from '@/api/llm-provider-types'
 import { ModelCapabilities } from '@/components/models/model-capabilities'
@@ -11,9 +11,9 @@ import { Input } from '@/components/ui/input'
 
 interface Props {
   page: ModelDiscoveryPage
-  selected: ReadonlyMap<string, DiscoveredModel>
+  selected: ReadonlyMap<string, InstanceModelInput>
   pending: boolean
-  changeSelection: (selection: Map<string, DiscoveredModel>) => void
+  changeSelection: (selection: Map<string, InstanceModelInput>) => void
   changePage: (number: number) => void
 }
 
@@ -54,7 +54,7 @@ export function DiscoveredModelPicker({
           disabled={!additions.length || selected.size + additions.length > 100}
           onClick={() => {
             const next = new Map(selected)
-            for (const model of models) next.set(model.model_name, model)
+            for (const model of additions) next.set(model.model_name, model)
             changeSelection(next)
           }}
         >

@@ -433,6 +433,7 @@ export const IconMap: Record<string, string> = {
 }
 
 export interface LLMFactoryInterface {
+  url?: Record<string, string>
   name: string
   logo: string
   tags: string

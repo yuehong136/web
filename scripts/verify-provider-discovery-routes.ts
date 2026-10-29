@@ -34,6 +34,8 @@ interface Descriptor {
   controlledTransport?: boolean
   expectedInventoryTotal?: number
   expectedPageLengths?: number[]
+  after298Case?: 'cn' | 'intl' | 'explicit' | 'mineru' | 'mixed'
+  rejectedModelName?: string
 }
 const path = process.env.I_WEB_ACCEPTANCE_DESCRIPTOR
 assert.ok(
@@ -54,7 +56,9 @@ const controlledOrigin =
     : fixture.providerName === 'VolcEngine'
       ? 'https://ark.cn-beijing.volces.com/api/v3'
       : undefined
-if (controlledOrigin && fixture.controlledTransport === true) {
+if (fixture.after298Case && !fixture.discovery.base_url) {
+  assert.ok(['cn', 'intl', 'mixed', 'mineru'].includes(fixture.after298Case))
+} else if (controlledOrigin && fixture.controlledTransport === true) {
   assert.equal(fixture.discovery.base_url, controlledOrigin)
 } else {
   const url = new URL(fixture.discovery.base_url)
@@ -120,6 +124,17 @@ try {
   } else {
     const before = await inventory()
     assertDiscoveryProviderAbsent(fixture, before.providers)
+    if (fixture.after298Case && fixture.providerName === 'Tongyi-Qianwen') {
+      const available = await api.providers(true)
+      assert.deepEqual(
+        available.find((provider) => provider.name === fixture.providerName)
+          ?.url,
+        {
+          cn: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
+          intl: 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1',
+        },
+      )
+    }
     const page = await api.discoverModels(fixture.providerName, input)
     assert.ok(page.items.length && page.total >= page.items.length)
     assert.ok(
@@ -165,6 +180,17 @@ try {
       ? discovered.filter((item) => item.model_name === fixture.modelName)
       : discovered.slice(0, 2)
     assert.ok(selected.length)
+    if (fixture.after298Case === 'mixed') {
+      selected.push({
+        model_name: 'manual-qwen',
+        display_name: 'manual-qwen',
+        model_types: ['chat'],
+        max_tokens: 0,
+        is_tools: false,
+        features: [],
+        source: 'static',
+      })
+    }
     const candidate: ConnectionCandidate = {
       ...input,
       model_ids: [],
@@ -177,10 +203,112 @@ try {
         }),
       ),
     }
+    if (fixture.after298Case) {
+      const rejectWithoutWrites = async (operation: () => Promise<unknown>) => {
+        await assert.rejects(
+          operation,
+          (error: unknown) => error instanceof APIError && error.status >= 400,
+        )
+        assert.deepEqual(await inventory(), before)
+      }
+      await rejectWithoutWrites(() =>
+        api.verifyConnection(fixture.providerName, {
+          ...candidate,
+          custom_models: [],
+        }),
+      )
+      await rejectWithoutWrites(() =>
+        api.createInstance(fixture.providerName, {
+          instance_name: fixture.instanceName,
+          ...candidate,
+          custom_models: [],
+        }),
+      )
+      if (fixture.providerName === 'Tongyi-Qianwen') {
+        await rejectWithoutWrites(() =>
+          api.discoverModels(fixture.providerName, {
+            ...input,
+            region: 'unknown',
+          }),
+        )
+        await rejectWithoutWrites(() =>
+          api.verifyConnection(fixture.providerName, {
+            ...candidate,
+            region: 'unknown',
+          }),
+        )
+      }
+      record('web-after298-failures-no-write', {
+        case: fixture.after298Case,
+        modelCount: before.models.length,
+        instanceCount: before.instances.length,
+      })
+    }
+    if (
+      fixture.after298Case &&
+      fixture.providerName === 'Tongyi-Qianwen' &&
+      fixture.rejectedModelName
+    ) {
+      const rejected = {
+        ...candidate,
+        custom_models: [
+          {
+            ...candidate.custom_models![0],
+            model_name: fixture.rejectedModelName,
+          },
+        ],
+      }
+      await assert.rejects(
+        () => api.verifyConnection(fixture.providerName, rejected),
+        (error: unknown) => error instanceof APIError && error.status >= 400,
+      )
+      assert.deepEqual(await inventory(), before)
+    }
     const verified = await api.verifyConnection(fixture.providerName, candidate)
     assert.equal(verified.verified, true)
     assert.ok(selected.some((item) => item.model_name === verified.model_name))
     assert.deepEqual(await inventory(), before)
+    if (fixture.after298Case) {
+      // A successful verify never authorizes a changed draft: creation must
+      // validate the submitted candidate again, before committing any row.
+      await assert.rejects(
+        () =>
+          api.createInstance(fixture.providerName, {
+            instance_name: fixture.instanceName,
+            ...candidate,
+            custom_models: [
+              ...candidate.custom_models!,
+              candidate.custom_models![0],
+            ],
+          }),
+        (error: unknown) => error instanceof APIError && error.status >= 400,
+      )
+      assert.deepEqual(await inventory(), before)
+    }
+    if (
+      fixture.after298Case &&
+      fixture.providerName === 'Tongyi-Qianwen' &&
+      fixture.rejectedModelName
+    ) {
+      await assert.rejects(
+        () =>
+          api.createInstance(fixture.providerName, {
+            instance_name: fixture.instanceName,
+            ...candidate,
+            custom_models: [
+              {
+                ...candidate.custom_models![0],
+                model_name: fixture.rejectedModelName,
+              },
+            ],
+          }),
+        (error: unknown) => error instanceof APIError && error.status >= 400,
+      )
+      assert.deepEqual(await inventory(), before)
+      record('web-after298-provider-reprobe-failed-no-write', {
+        case: fixture.after298Case,
+      })
+    }
     await api.createInstance(fixture.providerName, {
       instance_name: fixture.instanceName,
       ...candidate,

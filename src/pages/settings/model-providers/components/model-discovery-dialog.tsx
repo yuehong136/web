@@ -4,7 +4,6 @@ import { apiClient } from '@/api/client'
 import { modelProvidersAPI } from '@/api/llm-providers'
 import type {
   ConnectionCandidate,
-  DiscoveredModel,
   InstanceInput,
   InstanceModelInput,
   ModelDiscoveryPage,
@@ -12,6 +11,7 @@ import type {
 import { useModelProviderMutation } from '@/hooks/use-model-provider-request'
 import { useAuthStore } from '@/stores/auth'
 import { DEFAULT_BASE_URLS } from '../constants'
+import { CustomModelDrafts } from './custom-model-drafts'
 import { DiscoveredModelPicker } from './discovered-model-picker'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -48,7 +48,7 @@ export const supportsModelDiscovery = (provider: string) =>
 
 /** Presentation metadata must never leak into model registration payloads. */
 export function discoveredModelRegistration(
-  model: DiscoveredModel,
+  model: InstanceModelInput,
 ): InstanceModelInput {
   return {
     model_name: model.model_name,
@@ -81,9 +81,13 @@ function ModelDiscoveryForm({ provider, close, configureManually }: Props) {
   )
   const [region, setRegion] = useState('')
   const [page, setPage] = useState<ModelDiscoveryPage>()
-  const [selected, setSelected] = useState<Map<string, DiscoveredModel>>(
+  const [selected, setSelected] = useState<Map<string, InstanceModelInput>>(
     new Map(),
   )
+  const [customModels, setCustomModels] = useState<
+    Map<string, InstanceModelInput>
+  >(new Map())
+  const [discoveredNames, setDiscoveredNames] = useState(new Set<string>())
   const [phase, setPhase] = useState<
     'idle' | 'discovering' | 'verifying' | 'saving'
   >('idle')
@@ -114,7 +118,11 @@ function ModelDiscoveryForm({ provider, close, configureManually }: Props) {
     setter(value)
     setPhase('idle')
     setPage(undefined)
-    setSelected(new Map())
+    setSelected(
+      (current) =>
+        new Map([...current].filter(([name]) => customModels.has(name))),
+    )
+    setDiscoveredNames(new Set())
     setDiscoveryFailed(false)
     invalidate()
   }
@@ -134,7 +142,11 @@ function ModelDiscoveryForm({ provider, close, configureManually }: Props) {
     const operation = begin()
     setPhase('discovering')
     setDiscoveryFailed(false)
-    if (reset) setSelected(new Map())
+    if (reset)
+      setSelected(
+        (current) =>
+          new Map([...current].filter(([name]) => customModels.has(name))),
+      )
     invalidate()
     try {
       const result = await modelProvidersAPI.discoverModels(
@@ -143,7 +155,16 @@ function ModelDiscoveryForm({ provider, close, configureManually }: Props) {
         number,
         operation.signal,
       )
-      if (operation.current()) setPage(result)
+      if (operation.current()) {
+        setDiscoveredNames(
+          (current) =>
+            new Set([
+              ...current,
+              ...result.items.map((model) => model.model_name),
+            ]),
+        )
+        setPage(result)
+      }
     } catch {
       if (operation.current()) {
         setPage(undefined)
@@ -300,7 +321,12 @@ function ModelDiscoveryForm({ provider, close, configureManually }: Props) {
             />
           ) : page ? (
             <DiscoveredModelPicker
-              page={page}
+              page={{
+                ...page,
+                items: page.items.filter(
+                  (model) => !customModels.has(model.model_name),
+                ),
+              }}
               selected={selected}
               pending={pending}
               changeSelection={(selection) => {
@@ -310,6 +336,28 @@ function ModelDiscoveryForm({ provider, close, configureManually }: Props) {
               changePage={(number) => void discover(number)}
             />
           ) : null}
+          <CustomModelDrafts
+            models={customModels}
+            selected={selected}
+            pending={pending}
+            existingNames={
+              new Set([...discoveredNames, ...customModels.keys()])
+            }
+            add={(model) => {
+              if (selected.size >= 100) throw Error('selection-full')
+              setCustomModels((current) =>
+                new Map(current).set(model.model_name, model),
+              )
+              setSelected((current) =>
+                new Map(current).set(model.model_name, model),
+              )
+              invalidate()
+            }}
+            changeSelection={(selection) => {
+              setSelected(selection)
+              invalidate()
+            }}
+          />
           {verified && (
             <div role="status" className="text-sm">
               <p className="text-status-success">

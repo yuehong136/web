@@ -7,7 +7,17 @@ export default {
       filterCapabilities: '按模型能力筛选',
       filterCapabilitiesHint: '可多选，仅显示同时支持所有已选能力的提供商。',
 
+      regions: {
+        cn: '中国',
+        intl: '国际',
+        endpointHint:
+          '服务地址留空时使用所选区域的官方端点；自定义服务地址优先。',
+      },
       discovery: {
+        addCustom: '添加自定义模型',
+        addToSelection: '添加到选择',
+        customModels: '自定义模型草稿',
+        duplicate: '候选列表中已存在此模型名称。',
         searchPage: '搜索本页模型',
         selectPage: '选择本页结果',
         clearSelection: '清空选择',

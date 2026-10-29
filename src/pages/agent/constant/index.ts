@@ -1088,7 +1088,6 @@ export const RestrictedUpstreamMap: Record<string, Operator[]> = {
   [Operator.Extractor]: [Operator.Begin],
 }
 
-// ==================== 不支持调试/复制的节点 ====================
 export const NoDebugOperatorsList = [
   Operator.Begin,
   Operator.Message,
@@ -1105,6 +1104,7 @@ export const NoDebugOperatorsList = [
   Operator.TitleChunker,
   Operator.Extractor,
   Operator.Tool,
+  Operator.Loop,
 ]
 
 export const NoCopyOperatorsList = [

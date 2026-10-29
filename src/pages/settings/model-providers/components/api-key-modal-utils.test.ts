@@ -176,3 +176,30 @@ test('verification candidate omits identity and exactly matches the saved fields
     buildInstancePayload('SILICONFLOW', '', 'synthetic', '', {}, ''),
   )
 })
+
+test('Tongyi region selection uses cn/intl, leaves official endpoint mapping to the server and preserves explicit URLs', () => {
+  for (const value of ['', 'default', 'cn', 'intl']) {
+    const candidate = buildConnectionCandidate(
+      'Tongyi-Qianwen',
+      'synthetic',
+      undefined,
+      {},
+      value,
+    )
+    assert.equal(candidate.base_url, '')
+    assert.equal(candidate.region, value === 'intl' ? 'intl' : 'cn')
+  }
+  assert.equal(
+    buildConnectionCandidate(
+      'Tongyi-Qianwen',
+      'synthetic',
+      'https://custom.example/v1',
+      {},
+      'intl',
+    ).base_url,
+    'https://custom.example/v1',
+  )
+  assert.throws(() =>
+    buildConnectionCandidate('Tongyi-Qianwen', 'synthetic', '', {}, 'unknown'),
+  )
+})

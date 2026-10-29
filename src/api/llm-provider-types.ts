@@ -22,6 +22,7 @@ export const providerSchema = z
     name: z.string().min(1),
     model_types: z.array(modelTypeSchema),
     status: modelStatusSchema,
+    url: z.record(z.string(), z.string()).optional(),
   })
   .passthrough()
 export const instanceSchema = z

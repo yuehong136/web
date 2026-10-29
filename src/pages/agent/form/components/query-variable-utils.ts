@@ -69,6 +69,10 @@ export function isQueryVariableTypeMatch(
       return true
     }
 
+    if (normalizedFilter === 'file' && normalizedCandidate === 'array<file>') {
+      return true
+    }
+
     if (
       isArrayLikeType(normalizedCandidate) &&
       isArrayLikeType(normalizedFilter)
@@ -111,7 +115,9 @@ export function filterQueryVariableOptionGroupsByTypes(
     .filter((group) => group.options.length > 0)
 }
 
-export function flattenQueryVariableOptions(groups: QueryVariableOptionGroup[]) {
+export function flattenQueryVariableOptions(
+  groups: QueryVariableOptionGroup[],
+) {
   return groups.flatMap((group) =>
     group.options.map((option) => ({
       ...option,

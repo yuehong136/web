@@ -11,6 +11,11 @@ export function resolveInstanceRegion(
   baseUrl: string,
   region: string,
 ): string {
+  if (provider === 'Tongyi-Qianwen') {
+    if (!['', 'default', 'cn', 'intl'].includes(region))
+      throw Error('invalid-region')
+    return region === 'intl' ? 'intl' : 'cn'
+  }
   if (provider !== 'SILICONFLOW') return region
   if (!['', 'default', 'cn', 'intl'].includes(region))
     throw Error('invalid-region')
