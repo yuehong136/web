@@ -27,6 +27,7 @@ describe('Explore send lifecycle and ownership', () => {
   let client: QueryClient
   let session: ReturnType<typeof useExploreConversation>
   let send: ReturnType<typeof useExploreSend>
+  let selectedModel: string
   let selectedApp: string
   const originalIdentity = useAuthStore.getState().token
   const clearFiles = vi.fn()
@@ -38,7 +39,8 @@ describe('Explore send lifecycle and ownership', () => {
     send = useExploreSend({
       conversation: session,
       selectedApp,
-      selectedModel: 'fixture-model',
+      selectedModel,
+      appModelReference: 'app-model@OpenAI',
       settings: defaultChatSettings,
       enableReasoning: false,
       enableInternet: false,
@@ -64,6 +66,7 @@ describe('Explore send lifecycle and ownership', () => {
     clearFiles.mockClear()
     refetch.mockClear()
     selectedApp = ''
+    selectedModel = 'fixture-model'
     host = document.createElement('div')
     document.body.append(host)
     client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
@@ -89,6 +92,82 @@ describe('Explore send lifecycle and ownership', () => {
     useAuthStore.setState({ token: originalIdentity })
     vi.restoreAllMocks()
     vi.unstubAllGlobals()
+  })
+
+  it('captures the sending model and provider while subsequent selection and cache change', async () => {
+    const pending = deferred<Response>()
+    vi.mocked(conversationAPI.chatServiceStream).mockReturnValueOnce(
+      pending.promise,
+    )
+    selectedModel = '117'
+    await act(async () => {
+      client.setQueryData(['llm', 'myLLMs'], {
+        OpenAI: {
+          tags: 'chat',
+          llm: [
+            { id: 117, name: 'Original model', type: 'chat', used_token: 0 },
+          ],
+        },
+      })
+      root.render(
+        <QueryClientProvider client={client}>
+          <Probe />
+        </QueryClientProvider>,
+      )
+    })
+    let sending!: Promise<void>
+    await act(async () => {
+      sending = send('Question')
+    })
+    selectedModel = '118'
+    await act(async () => {
+      client.setQueryData(['llm', 'myLLMs'], {})
+      root.render(
+        <QueryClientProvider client={client}>
+          <Probe />
+        </QueryClientProvider>,
+      )
+      pending.resolve(response([{ data: 'Answer' }, { data: true }]))
+      await sending
+    })
+    expect(session.messages[1].modelIdentity).toEqual({
+      reference: '117',
+      label: 'Original model',
+      provider: 'OpenAI',
+    })
+    expect(conversationAPI.chatServiceStream).toHaveBeenCalledWith(
+      expect.objectContaining({
+        llm_name: '117',
+        messages: [{ role: 'user', content: 'Question' }],
+      }),
+      expect.anything(),
+    )
+  })
+
+  it('identifies the actual fallback request when application conversation creation fails', async () => {
+    vi.spyOn(conversationAPI, 'setConversation').mockRejectedValue(
+      new Error('fixture creation failure'),
+    )
+    selectedApp = 'app-A'
+    await act(async () =>
+      root.render(
+        <QueryClientProvider client={client}>
+          <Probe />
+        </QueryClientProvider>,
+      ),
+    )
+    await act(async () => {
+      await send('Question')
+    })
+    expect(session.messages[1].modelIdentity).toMatchObject({
+      reference: 'fixture-model',
+      label: 'fixture-model',
+    })
+    expect(conversationAPI.chatServiceStream).toHaveBeenCalledWith(
+      expect.objectContaining({ llm_name: 'fixture-model' }),
+      expect.anything(),
+    )
+    expect(conversationAPI.completion).not.toHaveBeenCalled()
   })
 
   it.each(['fallback', 'completion'] as const)(

@@ -159,6 +159,7 @@ export interface ParsedChatToolCall {
 }
 
 export interface ChatMessage {
+  modelIdentity?: import('@/lib/model-identity').ModelIdentitySnapshot
   id: string
   role: 'user' | 'assistant'
   content: string

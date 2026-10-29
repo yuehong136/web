@@ -6,6 +6,8 @@ import {
   useState,
 } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useModelIdentity } from '@/components/models/model-identity'
+import type { ModelIdentitySnapshot } from '@/lib/model-identity'
 import { conversationAPI } from '@/api/conversation'
 import { toast } from '@/lib/toast'
 import {
@@ -27,6 +29,7 @@ interface PreviewOptions {
   canSend: boolean
 }
 export interface PreviewRunDetails {
+  modelIdentity?: ModelIdentitySnapshot
   model: string
   overrides: Record<string, number>
   knowledgeCount: number
@@ -36,6 +39,9 @@ export interface PreviewRunDetails {
 
 export function useCreateAppPreview(options: PreviewOptions) {
   const { t } = useTranslation()
+  const { label, provider } = useModelIdentity({
+    reference: options.savedConfig?.llm_id,
+  })
   const [previewMessages, setPreviewMessages] = useState<PreviewMessage[]>([])
   const [inputValue, setInputValue] = useState('')
   const [status, setStatus] = useState<PreviewStatus>('idle')
@@ -157,6 +163,7 @@ export function useCreateAppPreview(options: PreviewOptions) {
       }
       const baseDetails = {
         model: savedConfig.llm_id,
+        modelIdentity: { reference: savedConfig.llm_id, label, provider },
         overrides,
         knowledgeCount: savedConfig.kb_ids.length,
         elapsedMs: 0,
@@ -197,7 +204,12 @@ export function useCreateAppPreview(options: PreviewOptions) {
             role: 'user',
             content: content.trim(),
           },
-          { id: assistantId, role: 'assistant', content: '' },
+          {
+            id: assistantId,
+            role: 'assistant',
+            content: '',
+            modelIdentity: baseDetails.modelIdentity,
+          },
         ])
         appended = true
         setInputValue((current) =>
@@ -263,7 +275,7 @@ export function useCreateAppPreview(options: PreviewOptions) {
         }
       }
     },
-    [t],
+    [t, label, provider],
   )
 
   const handleRetryPreview = useCallback(() => {

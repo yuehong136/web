@@ -1,3 +1,4 @@
+import type { ModelIdentitySnapshot } from '@/lib/model-identity'
 import {
   useCallback,
   useEffect,
@@ -22,6 +23,7 @@ interface OwnedChatRun {
   sessionId: string
   messageId: string
   state: StructuredChatState
+  modelIdentity: ModelIdentitySnapshot
   saved: boolean
 }
 
@@ -37,6 +39,7 @@ export const useMcpChatRun = ({
   setSessions,
   onProgress,
 }: McpChatRunOptions) => {
+  const [modelIdentity, setModelIdentity] = useState<ModelIdentitySnapshot>({})
   const ownerRef = useRef<OwnedChatRun | null>(null)
   const mountedRef = useRef(true)
   const [state, setState] = useState(createInitialStructuredChatState)
@@ -61,6 +64,7 @@ export const useMcpChatRun = ({
         const message: ChatMessage = {
           id: owner.messageId,
           role: 'assistant',
+          modelIdentity: owner.modelIdentity,
           content: finalState.accumulatedText,
           timestamp: new Date().toLocaleTimeString(),
           runPhase: finalState.phase,
@@ -110,7 +114,11 @@ export const useMcpChatRun = ({
   }, [])
 
   const run = useCallback(
-    async (targetSessionId: string, request: MCPChatServiceRequest) => {
+    async (
+      targetSessionId: string,
+      request: MCPChatServiceRequest,
+      identity?: ModelIdentitySnapshot,
+    ) => {
       if (ownerRef.current) return
       const owner: OwnedChatRun = {
         controller: new AbortController(),
@@ -118,7 +126,9 @@ export const useMcpChatRun = ({
         messageId: crypto.randomUUID(),
         state: createInitialStructuredChatState(),
         saved: false,
+        modelIdentity: { ...identity, reference: request.llm_name },
       }
+      setModelIdentity(owner.modelIdentity)
       ownerRef.current = owner
       reset()
       setState(owner.state)
@@ -161,5 +171,5 @@ export const useMcpChatRun = ({
     [finish, onProgress, reset, schedulePatch, setSessions],
   )
 
-  return { state, isStreaming, run, stop }
+  return { state, isStreaming, run, stop, modelIdentity }
 }

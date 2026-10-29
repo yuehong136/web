@@ -6,6 +6,7 @@ import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import Bubble from '@ant-design/x/es/bubble'
 import { ChatComposer } from '@/components/chat/chat-composer'
+import { ModelIdentity } from '@/components/models/model-identity'
 import { getAppChatBubbleProps } from '@/components/chat/app-chat-message'
 import { MessageActionsFooter } from '@/components/chat/MessageActionsFooter'
 import {
@@ -176,6 +177,7 @@ export function PreviewPane(props: PreviewPaneProps) {
                 {...getAppChatBubbleProps(
                   message.role,
                   savedConfig ?? undefined,
+                  message.modelIdentity ?? {},
                 )}
                 content={message.content}
                 streaming={active}
@@ -349,7 +351,14 @@ export function PreviewPane(props: PreviewPaneProps) {
           {runDetails ? (
             <dl className="space-y-space-base py-space-lg">
               {[
-                [t('studio.editor.requestModel'), runDetails.model],
+                [
+                  t('studio.editor.requestModel'),
+                  <ModelIdentity
+                    {...(runDetails.modelIdentity ?? {
+                      reference: runDetails.model,
+                    })}
+                  />,
+                ],
                 [
                   t('studio.editor.duration'),
                   `${(runDetails.elapsedMs / 1000).toFixed(2)} s`,

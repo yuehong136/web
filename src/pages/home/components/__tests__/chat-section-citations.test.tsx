@@ -271,3 +271,42 @@ it('resolves an old numeric message title and provider independently from the cu
     useHomeStore.setState({ selectedModelId: previous })
   }
 })
+
+it('uses the submitted app model in the title and leaves unattributed history generic', async () => {
+  const message = answer('App answer')
+  message.contextManifest = createContextManifest({
+    scope: { identity: 'owner', threadId: 'thread' },
+    messageId: message.id,
+    stage: 'submitted',
+    resources: [
+      {
+        kind: 'app',
+        id: 'app-a',
+        label: 'My app',
+        origin: 'turn',
+        availability: 'unknown',
+      },
+      {
+        kind: 'model',
+        id: '117',
+        label: '117',
+        origin: 'inherited',
+        availability: 'unknown',
+      },
+    ],
+  })
+  await render([message])
+  expect(container.querySelector('.chat-message-heading')?.textContent).toBe(
+    'gpt-test',
+  )
+  expect(
+    container
+      .querySelector('.chat-message-identity use')
+      ?.getAttribute('xlink:href'),
+  ).toBe('#icon-openai')
+  await render([answer('Legacy answer')])
+  expect(container.querySelector('.chat-message-heading')?.textContent).toBe(
+    '助手',
+  )
+  expect(container.querySelector('.chat-message-identity use')).toBeNull()
+})

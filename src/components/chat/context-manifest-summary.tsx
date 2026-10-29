@@ -1,3 +1,4 @@
+import { ModelIdentity } from '@/components/models/model-identity'
 import { ChevronDown, Layers3 } from 'lucide-react'
 import type { ContextManifest } from '@/lib/ai-workspace/contracts'
 import { useTypedTranslation } from '@/locales/use-typed-translation'
@@ -47,7 +48,15 @@ export function ContextManifestSummary({
             >
               <span>{t(resource.kind)}</span>
               <span className="min-w-0 font-medium break-words text-text-primary">
-                {resource.label}
+                {resource.kind === 'model' ? (
+                  <ModelIdentity
+                    reference={resource.id}
+                    label={resource.label}
+                    provider={resource.provider}
+                  />
+                ) : (
+                  resource.label
+                )}
               </span>
               <span className="text-text-caption">
                 {t(resource.origin)} · {t(resource.availability)}

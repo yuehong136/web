@@ -67,6 +67,7 @@ export interface TempAppConfig {
 }
 
 export interface PreviewMessage {
+  modelIdentity?: import('@/lib/model-identity').ModelIdentitySnapshot
   role: 'user' | 'assistant'
   content: string
   id: string

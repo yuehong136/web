@@ -150,6 +150,28 @@ describe('Studio preview request ownership', () => {
     await act(async () => preview.handleResetPreview())
     expect(preview.previewMessages[0].content).toBe('Different opener')
   })
+  it('retains the model identity from sending when a different model is saved', async () => {
+    vi.spyOn(conversationAPI, 'setConversation').mockResolvedValue({
+      id: 'conversation-1',
+    })
+    vi.spyOn(conversationAPI, 'completion').mockResolvedValue(sse('answer'))
+    snapshot = { ...snapshot, llm_id: 'gpt-4.1@OpenAI' }
+    await act(async () => root.render(<Harness />))
+    await act(async () => preview.handleSendPreviewMessage('question'))
+    await act(async () =>
+      root.render(
+        <Harness config={{ ...snapshot, llm_id: 'deepseek@DeepSeek' }} />,
+      ),
+    )
+    expect(preview.previewMessages.at(-1)?.modelIdentity).toEqual({
+      reference: 'gpt-4.1@OpenAI',
+      label: 'gpt-4.1',
+      provider: 'OpenAI',
+    })
+    expect(preview.runDetails?.modelIdentity).toEqual(
+      preview.previewMessages.at(-1)?.modelIdentity,
+    )
+  })
   it('blocks unsaved configurations and stale sessions even for direct calls', async () => {
     const create = vi.spyOn(conversationAPI, 'setConversation')
     await act(async () => root.render(<Harness canSend={false} />))

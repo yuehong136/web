@@ -1,3 +1,5 @@
+import { modelMessageProps } from '@/components/models/model-identity'
+import { resolveModelIdentity } from '@/lib/model-identity'
 import { useTranslation } from 'react-i18next'
 import { ControlledAttachments } from '@/components/chat/controlled-attachments'
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
@@ -6,9 +8,8 @@ import { ChatHeader } from '@/components/chat/ChatHeader'
 import { WelcomeMessage } from '@/components/chat/WelcomeMessage'
 import { Bubble, Think, Sender } from '@ant-design/x'
 import type { AttachmentsProps, BubbleListProps } from '@ant-design/x'
-import { Bot, Paperclip, Square, Upload } from 'lucide-react'
+import { Paperclip, Square, Upload } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { ProviderIcon } from '@/components/ui/provider-icon'
 import XMarkdown, { type ComponentProps } from '@ant-design/x-markdown'
 import { StreamingXMarkdown } from '@/components/chat/streaming-x-markdown'
 import {
@@ -20,10 +21,7 @@ import type { MCPChatServiceRequest } from '@/api/mcp-chat-service'
 import { getRunPhaseNotice } from '@/lib/streaming'
 import { useMcpChatRun } from '@/pages/mcp-chat/use-mcp-chat-run'
 import { ToolCallRenderer } from '@/components/chat/ToolCallRenderer'
-import {
-  findFirstEnabledModelByType,
-  findProviderNameByModelName,
-} from '@/stores/model'
+import { findFirstEnabledModelByType } from '@/stores/model'
 import { useModelSelectorRequest } from '@/hooks/use-model-selector-request'
 import { useMcpUpload } from '@/hooks/use-mcp-upload'
 import { toast } from '@/lib/toast'
@@ -388,6 +386,7 @@ export default function MCPChatPage() {
 
   const {
     state: streamState,
+    modelIdentity: activeModelIdentity,
     isStreaming,
     run: runChat,
     stop: stopRun,
@@ -435,26 +434,6 @@ export default function MCPChatPage() {
     }
   }
 
-  // 根据选中的模型名称找到对应的厂商名称
-  const selectedProviderName = useMemo(() => {
-    return findProviderNameByModelName(myLLMs, selectedModelId, true)
-  }, [selectedModelId, myLLMs])
-
-  // 获取 AI 头像 - 直接使用厂商 logo，不包裹气泡框
-  const getAssistantAvatar = useCallback(() => {
-    if (selectedProviderName) {
-      return (
-        <ProviderIcon
-          provider={selectedProviderName}
-          className="h-8 w-8"
-          size={32}
-        />
-      )
-    }
-    // 没有厂商信息时使用默认图标
-    return <EntityAvatar shape="circle" tone="neutral" icon={<Bot />} />
-  }, [selectedProviderName])
-
   const userAvatar = useCurrentUserAvatar()
   const getUserAvatar = useCallback(
     () => <EntityAvatar {...userAvatar} shape="circle" />,
@@ -472,7 +451,9 @@ export default function MCPChatPage() {
       // 设置消息位置：用户消息在右边，AI 消息在左边
       placement: (msg.role === 'user' ? 'end' : 'start') as 'start' | 'end',
       // 设置头像
-      avatar: msg.role === 'user' ? getUserAvatar() : getAssistantAvatar(),
+      ...(msg.role === 'user'
+        ? { avatar: getUserAvatar() }
+        : modelMessageProps(msg.modelIdentity)),
       // 消息样式
       styles:
         msg.role === 'user'
@@ -546,7 +527,7 @@ export default function MCPChatPage() {
             }
           : undefined,
     }))
-  }, [historyMessages, getUserAvatar, getAssistantAvatar, t])
+  }, [historyMessages, getUserAvatar, t])
 
   // 转换消息数据为 Bubble.List 需要的格式
   const bubbleItems = React.useMemo<BubbleListProps['items']>(() => {
@@ -570,7 +551,7 @@ export default function MCPChatPage() {
         // 设置消息位置：AI 消息在左边
         placement: 'start' as const,
         // 设置 AI 头像
-        avatar: getAssistantAvatar(),
+        ...modelMessageProps(activeModelIdentity),
         // 消息样式
         styles: {
           content: {
@@ -648,7 +629,7 @@ export default function MCPChatPage() {
     streamingContent,
     streamingToolCalls,
     isToolAnalyzing,
-    getAssistantAvatar,
+    activeModelIdentity,
   ])
 
   // 新消息进入会话时自动滚动到底部（单通道调度）
@@ -727,11 +708,15 @@ export default function MCPChatPage() {
         structured_output: selectedMCPIds.length > 0,
         delta_stream: true,
       }
-      await runChat(activeSessionId, request)
+      await runChat(activeSessionId, request, {
+        ...resolveModelIdentity(myLLMs, selectedModelId),
+        reference: selectedModelId,
+      })
     },
     [
       activeSessionId,
       selectedModelId,
+      myLLMs,
       selectedMCPIds,
       mcpConfig,
       sessions,

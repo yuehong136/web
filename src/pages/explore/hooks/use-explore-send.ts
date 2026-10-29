@@ -1,3 +1,4 @@
+import { useModelIdentity } from '@/components/models/model-identity'
 import { useCallback, type Dispatch, type SetStateAction } from 'react'
 import { useTranslation } from 'react-i18next'
 import { conversationAPI } from '@/api/conversation'
@@ -13,6 +14,7 @@ interface ExploreSendOptions {
   conversation: ExploreConversation
   selectedApp: string
   selectedModel: string | null
+  appModelReference?: string
   settings: ChatSettings
   enableReasoning: boolean
   enableInternet: boolean
@@ -29,6 +31,7 @@ export function useExploreSend({
   conversation,
   selectedApp,
   selectedModel,
+  appModelReference,
   settings,
   enableReasoning,
   enableInternet,
@@ -38,6 +41,11 @@ export function useExploreSend({
   refetchConversations,
 }: ExploreSendOptions) {
   const { t } = useTranslation()
+  const reference = selectedModel || 'gpt-4o-mini'
+  const { label, provider } = useModelIdentity({ reference })
+  const { label: appLabel, provider: appProvider } = useModelIdentity({
+    reference: appModelReference,
+  })
   return useCallback(
     async (
       message: string,
@@ -63,6 +71,7 @@ export function useExploreSend({
         ...updated,
         {
           role: 'assistant',
+          modelIdentity: {},
           content: '',
           id: assistantId,
           runPhase: 'running',
@@ -121,6 +130,13 @@ export function useExploreSend({
         const signal = run.controller.signal
         let response: Response
         if (conversationId) {
+          run.update({
+            modelIdentity: {
+              reference: appModelReference,
+              label: appLabel,
+              provider: appProvider,
+            },
+          })
           const params: Parameters<typeof conversationAPI.completion>[0] = {
             conversation_id: conversationId,
             messages: updated.map((item) => ({
@@ -139,6 +155,7 @@ export function useExploreSend({
           }
           response = await conversationAPI.completion(params, { signal })
         } else {
+          run.update({ modelIdentity: { reference, label, provider } })
           const request: ChatServiceRequest = {
             prompt: '',
             messages: updated.map((item) => ({
@@ -176,6 +193,12 @@ export function useExploreSend({
       conversation,
       selectedApp,
       selectedModel,
+      reference,
+      appModelReference,
+      appLabel,
+      appProvider,
+      label,
+      provider,
       settings,
       enableReasoning,
       enableInternet,

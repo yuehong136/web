@@ -67,8 +67,6 @@ function ChatSectionContent({
   const { t } = useTranslation()
   const workspace = useChatWorkspace()!
   const { myLLMs } = useFetchMyLLMs()
-  const selectedModelId = useHomeStore((state) => state.selectedModelId)
-  const selectedApp = useHomeStore((state) => state.selectedApps[0])
   const viewReference = workspace.viewReference
   const copy = useCallback(
     (text: string) =>
@@ -95,12 +93,7 @@ function ChatSectionContent({
         : message.parsedToolCalls?.length
           ? createTimelineNodesFromToolCalls(message.parsedToolCalls)
           : undefined
-      const identity = homeMessageIdentity(
-        message.contextManifest,
-        myLLMs,
-        selectedModelId,
-        selectedApp?.name,
-      )
+      const identity = homeMessageIdentity(message.contextManifest, myLLMs)
       return {
         id: message.id,
         role: message.role,
@@ -171,8 +164,6 @@ function ChatSectionContent({
     messages,
     isStreaming,
     myLLMs,
-    selectedModelId,
-    selectedApp,
     t,
     viewReference,
     copy,

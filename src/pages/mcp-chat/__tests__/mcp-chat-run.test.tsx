@@ -215,3 +215,27 @@ it('changing sessions stops the old subscription and unmount aborts outstanding 
   })
   expect(signals[1].aborted).toBe(true)
 })
+
+it('persists the identity captured at submission with its exact model reference', async () => {
+  vi.stubGlobal(
+    'fetch',
+    vi
+      .fn()
+      .mockResolvedValue(fixtureResponse(structuredChatFixtures.completed)),
+  )
+  const identity = {
+    reference: '117',
+    label: 'Original model',
+    provider: 'OpenAI',
+  }
+  let pending!: Promise<void>
+  await act(async () => {
+    pending = hook.run('s1', { ...request, llm_name: '117' }, identity)
+    identity.label = 'Changed selection'
+  })
+  await act(async () => pending)
+  expect(
+    sessions[0].messages.find((message) => message.role === 'assistant')
+      ?.modelIdentity,
+  ).toEqual({ reference: '117', label: 'Original model', provider: 'OpenAI' })
+})

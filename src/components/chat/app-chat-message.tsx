@@ -1,3 +1,5 @@
+import type { ModelIdentitySnapshot } from '@/lib/model-identity'
+import { ModelIdentity } from '@/components/models/model-identity'
 import type { BubbleProps } from '@ant-design/x'
 import { Bot } from 'lucide-react'
 import { EntityAvatar } from '@/components/patterns/entity-avatar'
@@ -8,6 +10,7 @@ import '@/components/chat/app-chat-message.css'
 export interface AppChatIdentity {
   /** App id; keeps the monogram tone it has in the app lists. */
   id?: string
+  llm_id?: string
   name?: string
   icon?: string
 }
@@ -38,9 +41,14 @@ export function AppChatAvatar({
 export function getAppChatBubbleProps(
   role: 'user' | 'assistant',
   app?: AppChatIdentity,
+  modelIdentity?: ModelIdentitySnapshot,
 ) {
   const user = role === 'user'
   return {
+    header:
+      !user && (app?.llm_id || modelIdentity) ? (
+        <ModelIdentity {...(modelIdentity ?? { reference: app?.llm_id })} />
+      ) : undefined,
     placement: user ? 'end' : 'start',
     variant: 'borderless',
     avatar: <AppChatAvatar role={role} {...app} />,
@@ -69,6 +77,7 @@ export function getAppChatBubbleProps(
     },
   } satisfies Pick<
     BubbleProps,
+    | 'header'
     | 'placement'
     | 'variant'
     | 'avatar'

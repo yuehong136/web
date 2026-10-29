@@ -133,19 +133,40 @@ describe('Studio test chat composer', () => {
   })
   it('shows saved configuration semantics and does not display a disabled local max-token value', async () => {
     props.runDetails = {
-      model: 'recorded-model',
+      model: '117',
+      modelIdentity: {
+        reference: '117',
+        label: 'recorded-model',
+        provider: 'OpenAI',
+      },
       overrides: {},
       knowledgeCount: 1,
       elapsedMs: 0,
       status: 'completed',
     }
+    props.savedConfig = { ...props.savedConfig!, llm_id: '118' }
+    props.previewMessages = [
+      {
+        id: 'recorded-answer',
+        role: 'assistant',
+        content: 'Answer',
+        modelIdentity: props.runDetails.modelIdentity,
+      },
+    ]
     await render()
+    expect(container.querySelector('.ant-bubble-header')?.textContent).toBe(
+      'recorded-model',
+    )
     const button = container.querySelector<HTMLButtonElement>(
       '[aria-label="Run details"]',
     )!
     await act(async () => button.click())
     const sheet = document.querySelector('[role="dialog"]')!
     expect(sheet.textContent).toContain('recorded-model')
+    expect(sheet.textContent).not.toContain('117')
+    expect(sheet.querySelector('use')?.getAttribute('xlink:href')).toBe(
+      '#icon-openai',
+    )
     expect(sheet.textContent).toContain('Use model default')
     expect(sheet.textContent).not.toContain('4096')
   })

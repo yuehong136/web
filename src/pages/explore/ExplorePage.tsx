@@ -297,6 +297,7 @@ export const ExplorePage: FC = () => {
   const handleSendMessage = useExploreSend({
     conversation,
     selectedApp,
+    appModelReference: dialogSettings.llmId,
     selectedModel,
     settings: chatSettings,
     enableReasoning,
@@ -424,17 +425,11 @@ export const ExplorePage: FC = () => {
     () =>
       messages.map((msg, index) => {
         // 判断当前消息是否正在流式输出
-        const lastAssistantMsgIndex = [...messages]
-          .reverse()
-          .findIndex((m) => m.role === 'assistant')
-        const actualLastIndex =
-          lastAssistantMsgIndex >= 0
-            ? messages.length - 1 - lastAssistantMsgIndex
-            : -1
         const isCurrentStreamingMessage =
           isStreaming &&
           msg.role === 'assistant' &&
-          index === actualLastIndex &&
+          index ===
+            messages.findLastIndex((item) => item.role === 'assistant') &&
           (msg.runPhase === 'running' || msg.runPhase === 'cancelRequested')
 
         return {
@@ -447,7 +442,11 @@ export const ExplorePage: FC = () => {
           // 只在消息刚创建、还没有任何内容时显示三个点动画
           // 一旦有 content 或 thinking，就显示实际内容
           loading: isCurrentStreamingMessage && !msg.content && !msg.thinking,
-          ...getAppChatBubbleProps(msg.role, currentApp ?? undefined),
+          ...getAppChatBubbleProps(
+            msg.role,
+            currentApp ?? undefined,
+            msg.modelIdentity ?? {},
+          ),
           contentRender:
             msg.role === 'assistant'
               ? () => {

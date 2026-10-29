@@ -13,6 +13,7 @@ import { useAuthStore } from '@/stores/auth'
 import type { ReferenceChunk } from '@/utils/reference-replacer'
 
 export interface ExploreMessage {
+  modelIdentity?: import('@/lib/model-identity').ModelIdentitySnapshot
   role: 'user' | 'assistant'
   content: string
   id?: string
@@ -25,7 +26,10 @@ export interface ExploreMessage {
 }
 
 type ExploreRunUpdate = Partial<
-  Pick<ExploreMessage, 'content' | 'thinking' | 'references' | 'runPhase'>
+  Pick<
+    ExploreMessage,
+    'content' | 'thinking' | 'references' | 'runPhase' | 'modelIdentity'
+  >
 >
 
 interface ConversationDetail {

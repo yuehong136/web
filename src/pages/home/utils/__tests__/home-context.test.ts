@@ -158,7 +158,7 @@ test('numeric model references capture a readable identity without changing subm
     resources,
   })
   assert.deepEqual(
-    homeMessageIdentity(turn.assistantMessage.contextManifest, {}, '118'),
+    homeMessageIdentity(turn.assistantMessage.contextManifest, {}),
     { label: 'gpt-test', provider: 'OpenAI' },
   )
 })
@@ -177,15 +177,11 @@ test('old numeric snapshots resolve by message reference rather than the current
     ],
   })
   assert.deepEqual(
-    homeMessageIdentity(
-      turn.assistantMessage.contextManifest,
-      providers,
-      '118',
-    ),
+    homeMessageIdentity(turn.assistantMessage.contextManifest, providers),
     { label: 'gpt-test', provider: 'OpenAI' },
   )
   assert.deepEqual(
-    homeMessageIdentity(turn.assistantMessage.contextManifest, {}, '118'),
+    homeMessageIdentity(turn.assistantMessage.contextManifest, {}),
     { label: undefined, provider: undefined },
   )
   assert.deepEqual(resolveHomeModelIdentity(providers, 'gpt-test@OpenAI'), {
