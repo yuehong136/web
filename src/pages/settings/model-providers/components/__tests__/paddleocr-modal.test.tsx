@@ -197,7 +197,7 @@ it('shows connection validation with its inference boundary and translates the d
   expect(button('保存')).toBeTruthy()
 })
 
-it('reveals portal feedback in its scroll area and cancels queued work when dismissed', async () => {
+it('scrolls only for settled portal feedback and cancels queued work when dismissed', async () => {
   const frames = new Map<number, FrameRequestCallback>()
   let sequence = 0
   vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
@@ -207,20 +207,33 @@ it('reveals portal feedback in its scroll area and cancels queued work when dism
   const cancel = vi.fn((id: number) => frames.delete(id))
   vi.stubGlobal('cancelAnimationFrame', cancel)
   await render()
+  const area = document.querySelector('dialog fieldset') as HTMLFieldSetElement
+  Object.defineProperty(area, 'scrollHeight', { value: 900 })
   for (const [id, callback] of frames) {
     callback(0)
     frames.delete(id)
   }
-  const area = document.querySelector('dialog fieldset') as HTMLFieldSetElement
-  Object.defineProperty(area, 'scrollHeight', { value: 900 })
+  expect(area.scrollTop).toBe(0)
   await act(async () => button('Save').click())
   expect(frames.size).toBe(1)
   frames.get(sequence)!(0)
   frames.delete(sequence)
   expect(area.scrollTop).toBe(900)
+  area.scrollTop = 0
   await change(field('Model name (required)'), 'model')
   await change(field('Inference URL (required)'), 'https://service.example/ocr')
   await change(field('AI Studio access token (optional)'), 'synthetic-draft')
+  expect(frames.size).toBe(0)
+  expect(area.scrollTop).toBe(0)
+  verify.mockResolvedValueOnce({ isValid: false })
+  await act(async () => button('Test connection').click())
+  expect(frames.size).toBe(1)
+  frames.get(sequence)!(0)
+  frames.delete(sequence)
+  expect(area.scrollTop).toBe(900)
+  expect(document.querySelector('[role=status]')?.textContent).toContain(
+    'Connection test failed',
+  )
   await act(async () => button('Test connection').click())
   expect(frames.size).toBe(1)
   expect(field('AI Studio access token (optional)').value).toBe(
