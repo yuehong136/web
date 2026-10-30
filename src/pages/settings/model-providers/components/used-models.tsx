@@ -69,6 +69,7 @@ function ConfiguredProvider({ name, add }: { name: string; add: () => void }) {
     mutation = useModelProviderMutation()
   const [removing, setRemoving] = useState(false),
     [failed, setFailed] = useState(false)
+  if (instances.isSuccess && instances.data.length === 0) return null
   return (
     <article className="flex flex-col gap-space-base rounded-radius-lg border border-border-default p-space-base">
       <header className="flex items-center justify-between gap-space-base">

@@ -57,8 +57,8 @@ test('provider families keep one normalized candidate, zero limits and credentia
     ],
     [
       'VolcEngine',
-      { modelName: 'model', endpointId: 'endpoint', arkApiKey: 'key' },
-      { endpoint_id: 'endpoint', ark_api_key: 'key' },
+      { modelName: 'model', endpointId: 'endpoint', apiKey: 'key' },
+      { endpoint_id: 'endpoint', api_key: 'key' },
       ['chat'],
     ],
     [
@@ -272,7 +272,7 @@ test('special cloud models register all selected capabilities in one atomic cand
       googleRegion: 'region',
       googleServiceAccountKey: 'synthetic',
       endpointId: 'endpoint',
-      arkApiKey: 'synthetic',
+      apiKey: 'synthetic',
     }
     const result = buildProviderFormCandidate(provider, draft, false, true)
     assert.ok(result.ok)

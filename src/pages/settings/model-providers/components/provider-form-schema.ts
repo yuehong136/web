@@ -37,7 +37,6 @@ export interface ProviderDraft {
   googleServiceAccountKey: string
   azureApiVersion: string
   endpointId: string
-  arkApiKey: string
   bedrockAuthMode: string
   bedrockAk: string
   bedrockSk: string
@@ -123,7 +122,6 @@ export function createProviderDraft(
     googleServiceAccountKey: '',
     azureApiVersion: '2024-02-01',
     endpointId: '',
-    arkApiKey: '',
     bedrockAuthMode: 'access_key_secret',
     bedrockAk: '',
     bedrockSk: '',
@@ -236,7 +234,7 @@ const special: Record<string, (draft: ProviderDraft) => ProviderField[]> = {
       id: 'volc-model-id',
       placeholder: 'settings.models.volcEngine.modelIdRequired',
     },
-    text('arkApiKey', 'arkApiKey', true, true),
+    key,
     tokens,
   ],
   Bedrock: (d) => [

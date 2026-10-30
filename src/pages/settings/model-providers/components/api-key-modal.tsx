@@ -15,6 +15,7 @@ import {
   type ProviderDraft,
 } from './provider-form-schema'
 import { useProviderFormActions } from './use-provider-form-actions'
+import { useProviderFeedback } from './use-provider-feedback'
 
 export function ApiKeyModal(props: ApiKeyModalProps) {
   const owner = useAuthStore(
@@ -38,6 +39,9 @@ function ApiKeyModalForm(props: ApiKeyModalProps) {
   const [toolsChanged, setToolsChanged] = useState(false)
   const local = isLocalProvider(provider, props.isLocal)
   const actions = useProviderFormActions(props, draft, local, toolsChanged)
+  const scrollArea = useProviderFeedback<HTMLFieldSetElement>(
+    actions.error || actions.verified,
+  )
   const change = <K extends keyof ProviderDraft>(
     name: K,
     value: ProviderDraft[K],
@@ -68,6 +72,7 @@ function ApiKeyModalForm(props: ApiKeyModalProps) {
           )}
         />
         <fieldset
+          ref={scrollArea}
           disabled={!!actions.busy}
           onChangeCapture={actions.invalidate}
           className="max-h-[calc(90vh-200px)] space-y-space-base overflow-y-auto px-space-lg py-space-base"
@@ -132,7 +137,9 @@ function ApiKeyModalForm(props: ApiKeyModalProps) {
                 type="button"
                 variant="ghost"
                 onClick={() => void actions.run('verify')}
-                disabled={!!actions.busy}
+                aria-disabled={!!actions.busy}
+                aria-busy={actions.busy === 'verify'}
+                className="aria-disabled:pointer-events-none aria-disabled:opacity-50"
               >
                 <RefreshCcw
                   className={

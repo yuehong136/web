@@ -114,7 +114,7 @@ export function buildProviderFormCandidate(
       model()
       Object.assign(fields, {
         endpoint_id: d.endpointId.trim(),
-        ark_api_key: d.arkApiKey.trim(),
+        api_key: d.apiKey.trim(),
       })
       break
     case 'Bedrock':

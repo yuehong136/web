@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { LoaderCircle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { apiClient } from '@/api/client'
 import { modelProvidersAPI } from '@/api/llm-providers'
@@ -13,6 +14,7 @@ import { useAuthStore } from '@/stores/auth'
 import { DEFAULT_BASE_URLS } from '../constants'
 import { CustomModelDrafts } from './custom-model-drafts'
 import { DiscoveredModelPicker } from './discovered-model-picker'
+import { useProviderFeedback } from './use-provider-feedback'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -94,6 +96,9 @@ function ModelDiscoveryForm({ provider, close, configureManually }: Props) {
   const [discoveryFailed, setDiscoveryFailed] = useState(false)
   const [failure, setFailure] = useState<'verify' | 'save'>()
   const [verified, setVerified] = useState(false)
+  const scrollArea = useProviderFeedback<HTMLDivElement>(
+    failure ?? (verified ? true : null),
+  )
   const mutation = useModelProviderMutation()
   const controller = useRef<AbortController | null>(null)
   const generation = useRef(0)
@@ -182,6 +187,7 @@ function ModelDiscoveryForm({ provider, close, configureManually }: Props) {
     custom_models: [...selected.values()].map(discoveredModelRegistration),
   })
   const verify = async () => {
+    if (pending || !selected.size) return
     const operation = begin()
     setPhase('verifying')
     invalidate()
@@ -240,7 +246,10 @@ function ModelDiscoveryForm({ provider, close, configureManually }: Props) {
             {t('settings.models.discovery.description')}
           </DialogDescription>
         </DialogHeader>
-        <div className="flex min-h-0 flex-col gap-space-base overflow-auto px-space-lg pb-space-lg">
+        <div
+          ref={scrollArea}
+          className="flex min-h-0 flex-col gap-space-base overflow-auto px-space-lg pb-space-lg"
+        >
           <fieldset disabled={pending} className="grid gap-space-sm">
             <Label htmlFor="discovery-instance-name">
               {t('settings.models.instances.name')}
@@ -394,9 +403,14 @@ function ModelDiscoveryForm({ provider, close, configureManually }: Props) {
           <Button
             variant="outline"
             onClick={() => void verify()}
-            disabled={pending || !selected.size}
-            loading={phase === 'verifying'}
+            disabled={!selected.size}
+            aria-disabled={pending || !selected.size}
+            aria-busy={phase === 'verifying'}
+            className="aria-disabled:pointer-events-none aria-disabled:opacity-50"
           >
+            {phase === 'verifying' && (
+              <LoaderCircle aria-hidden className="size-icon-sm animate-spin" />
+            )}
             {t('settings.models.connection.validate')}
           </Button>
           <Button

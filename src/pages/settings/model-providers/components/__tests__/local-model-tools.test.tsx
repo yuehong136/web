@@ -264,7 +264,7 @@ it.each([
     expect(document.body.textContent).toContain(required)
     await change(modelId, 'provider-model-id')
     await change(
-      document.querySelector<HTMLInputElement>('input[id$="-arkApiKey"]')!,
+      document.querySelector<HTMLInputElement>('input[id$="-apiKey"]')!,
       'owned-ark-key',
     )
     await act(async () => {
@@ -277,7 +277,7 @@ it.each([
       llm_factory: 'VolcEngine',
       llm_name: 'owned-display-name',
       endpoint_id: 'provider-model-id',
-      ark_api_key: 'owned-ark-key',
+      api_key: 'owned-ark-key',
     })
     expect(save.mock.calls[0][2]).not.toHaveProperty('model_id')
   },

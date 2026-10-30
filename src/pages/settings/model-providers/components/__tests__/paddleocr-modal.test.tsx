@@ -197,6 +197,41 @@ it('shows connection validation with its inference boundary and translates the d
   expect(button('保存')).toBeTruthy()
 })
 
+it('reveals portal feedback in its scroll area and cancels queued work when dismissed', async () => {
+  const frames = new Map<number, FrameRequestCallback>()
+  let sequence = 0
+  vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+    frames.set(++sequence, callback)
+    return sequence
+  })
+  const cancel = vi.fn((id: number) => frames.delete(id))
+  vi.stubGlobal('cancelAnimationFrame', cancel)
+  await render()
+  for (const [id, callback] of frames) {
+    callback(0)
+    frames.delete(id)
+  }
+  const area = document.querySelector('dialog fieldset') as HTMLFieldSetElement
+  Object.defineProperty(area, 'scrollHeight', { value: 900 })
+  await act(async () => button('Save').click())
+  expect(frames.size).toBe(1)
+  frames.get(sequence)!(0)
+  frames.delete(sequence)
+  expect(area.scrollTop).toBe(900)
+  await change(field('Model name (required)'), 'model')
+  await change(field('Inference URL (required)'), 'https://service.example/ocr')
+  await change(field('AI Studio access token (optional)'), 'synthetic-draft')
+  await act(async () => button('Test connection').click())
+  expect(frames.size).toBe(1)
+  expect(field('AI Studio access token (optional)').value).toBe(
+    'synthetic-draft',
+  )
+  const frame = sequence
+  await render(false)
+  expect(cancel).toHaveBeenCalledWith(frame)
+  expect(frames.has(frame)).toBe(false)
+})
+
 it('explains both service protocols and keeps a cloud URL when switching algorithms', async () => {
   await render()
   const apiUrl = 'https://paddleocr.aistudio-app.com/api/v2/ocr/jobs'
