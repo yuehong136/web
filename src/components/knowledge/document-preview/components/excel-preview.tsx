@@ -2,6 +2,7 @@ import { memo, useEffect, useRef, useState, type FC } from 'react'
 import { FileSpreadsheet } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { ErrorState, LoadingState } from './preview-state'
+import './excel-preview.css'
 
 const ExcelPreviewInner: FC<{
   arrayBuffer?: ArrayBuffer

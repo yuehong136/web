@@ -1,0 +1,34 @@
+/* The previewer's own scrollbars must override the app-wide hidden defaults. */
+.excel-csv-previewer .x-spreadsheet-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-components-scrollbar-thumb)
+    var(--color-components-scrollbar-track);
+  background-color: var(--color-background-surface);
+}
+
+/* Overlay scrollbars otherwise collapse the previewer's rail to its 1px child. */
+.excel-csv-previewer .x-spreadsheet-scrollbar.horizontal {
+  min-height: var(--space-sm);
+}
+
+.excel-csv-previewer .x-spreadsheet-scrollbar.vertical {
+  min-width: var(--space-sm);
+}
+
+.excel-csv-previewer .x-spreadsheet-scrollbar::-webkit-scrollbar {
+  width: var(--space-xs);
+  height: var(--space-xs);
+}
+
+.excel-csv-previewer .x-spreadsheet-scrollbar::-webkit-scrollbar-track {
+  background: var(--color-components-scrollbar-track);
+}
+
+.excel-csv-previewer .x-spreadsheet-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--color-components-scrollbar-thumb);
+  border-radius: var(--space-2xs);
+}
+
+.excel-csv-previewer .x-spreadsheet-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--color-components-scrollbar-thumb-hover);
+}
