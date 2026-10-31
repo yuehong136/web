@@ -190,6 +190,64 @@ test('图片验证码走 POST + email 查询参数，返回原始图片', async 
   assert.equal(blob.size, 3)
 })
 
+test('恢复密码携带浏览器凭证，保留图片和布尔响应及现有登录状态', async () => {
+  const originalFetch = globalThis.fetch
+  const requests: { url: string; init?: RequestInit }[] = []
+  apiClient.setAuthToken('existing-login')
+  globalThis.fetch = (async (input, init) => {
+    const url = String(input)
+    requests.push({ url, init })
+    return url.includes('/forgot/captcha')
+      ? new Response(new Uint8Array([1, 2, 3]), {
+          headers: { 'content-type': 'image/png' },
+        })
+      : jsonResponse({ code: 0, data: true })
+  }) as typeof globalThis.fetch
+
+  try {
+    const image = await authAPI.requestPasswordResetCaptcha('a@example.test')
+    assert.equal(image.type, 'image/png')
+    assert.equal(image.size, 3)
+    assert.equal(
+      await authAPI.sendPasswordResetOtp({
+        email: 'a@example.test',
+        captcha: 'AB12',
+      }),
+      true,
+    )
+    assert.equal(
+      await authAPI.verifyPasswordResetOtp({
+        email: 'a@example.test',
+        otp: '123456',
+      }),
+      true,
+    )
+    assert.equal(
+      await authAPI.resetPassword({
+        email: 'a@example.test',
+        new_password: 'next',
+        confirm_new_password: 'next',
+      }),
+      true,
+    )
+    assert.equal(requests.length, 4)
+    for (const { init } of requests) {
+      assert.equal(init?.credentials, 'include')
+      assert.equal(new Headers(init?.headers).has('Authorization'), false)
+    }
+    assert.match(requests[0]!.url, /captcha\?email=a%40example\.test$/)
+    await authAPI.getUserInfo()
+    assert.equal(
+      new Headers(requests[4]?.init?.headers).get('Authorization'),
+      'Bearer existing-login',
+    )
+    assert.equal(requests[4]?.init?.credentials, undefined)
+  } finally {
+    globalThis.fetch = originalFetch
+    apiClient.setAuthToken(null)
+  }
+})
+
 test('POST /auth/login 返回完整信封，JWT 从 Authorization 响应头取', async () => {
   await withFetch(
     () =>

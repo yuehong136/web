@@ -160,7 +160,7 @@ export const authAPI = {
     const response = await apiClient.post<Response>(
       '/auth/password/forgot/captcha',
       undefined,
-      { ...sdkBase, skipAuth: true, params: { email } },
+      { ...sdkBase, skipAuth: true, credentials: 'include', params: { email } },
     )
     if (!(response instanceof Response)) {
       throw new APIError(
@@ -177,6 +177,7 @@ export const authAPI = {
     apiClient.post('/auth/password/forgot/otp', data, {
       ...sdkBase,
       skipAuth: true,
+      credentials: 'include',
     }),
 
   // 忘记密码第 3 步：校验邮箱 OTP
@@ -186,6 +187,7 @@ export const authAPI = {
     apiClient.post('/auth/password/forgot/otp/verify', data, {
       ...sdkBase,
       skipAuth: true,
+      credentials: 'include',
     }),
 
   // 忘记密码第 4 步：提交新密码
@@ -193,6 +195,7 @@ export const authAPI = {
     apiClient.post('/auth/password/reset', data, {
       ...sdkBase,
       skipAuth: true,
+      credentials: 'include',
     }),
 
   // 用户设置更新（含修改密码）—— PATCH /api/v1/users/me
