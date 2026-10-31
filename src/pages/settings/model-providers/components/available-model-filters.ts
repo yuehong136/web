@@ -2,12 +2,19 @@ import type { LLMFactoryInterface } from '@/stores/model'
 
 const TAG_ORDER: Record<string, number> = {
   LLM: 1,
+  chat: 1,
   'TEXT EMBEDDING': 2,
+  embedding: 2,
   'TEXT RE-RANK': 3,
+  rerank: 3,
   TTS: 4,
+  tts: 4,
   SPEECH2TEXT: 5,
+  speech2text: 5,
   IMAGE2TEXT: 6,
-  MODERATION: 7,
+  image2text: 6,
+  ocr: 7,
+  MODERATION: 8,
 }
 
 export const sortProviderTags = (tags: string): string[] =>

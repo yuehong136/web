@@ -2,7 +2,10 @@ import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { AvailableModels } from '../available-models'
-import { availableModelFilters } from '../available-model-filters'
+import {
+  availableModelFilters,
+  sortProviderTags,
+} from '../available-model-filters'
 import type { LLMFactoryInterface, MyLLMProvider } from '@/stores/model'
 import i18n from '@/locales/i18n'
 
@@ -80,6 +83,62 @@ it('shows zero counts for empty search results and never counts configured provi
   expect(searched.searched.map((item) => item.name)).toEqual(['Beta'])
   expect(searched.counts.get('LLM')).toBe(1)
   expect(searched.counts.get('TEXT EMBEDDING')).toBe(0)
+})
+
+it('orders canonical REST capabilities alongside legacy tags and keeps unknown tags last', () => {
+  expect(
+    sortProviderTags(
+      'future,ocr,image2text,speech2text,tts,rerank,embedding,chat,ocr',
+    ),
+  ).toEqual([
+    'chat',
+    'embedding',
+    'rerank',
+    'tts',
+    'speech2text',
+    'image2text',
+    'ocr',
+    'future',
+  ])
+  expect(sortProviderTags('IMAGE2TEXT,ocr,LLM,TTS,SPEECH2TEXT')).toEqual([
+    'LLM',
+    'TTS',
+    'SPEECH2TEXT',
+    'IMAGE2TEXT',
+    'ocr',
+  ])
+})
+
+it('renders canonical image, speech and OCR filters in order with accessible AND counts', async () => {
+  mocks.factories = [
+    factory('Vision OCR', 'ocr,image2text,chat,ocr'),
+    factory('Speech', 'speech2text'),
+    factory('OCR only', 'ocr'),
+    factory('Vision OCR', 'image2text'),
+  ]
+  mocks.myLLMs = {}
+  await act(async () =>
+    root.render(<AvailableModels handleAddModel={vi.fn()} />),
+  )
+  const filters = container.querySelector('fieldset')!
+  const labels = [...filters.querySelectorAll('button')].map((button) =>
+    button.textContent?.replace(/\s+/g, ' ').trim(),
+  )
+  expect(labels).toEqual([
+    'All 3',
+    'Chat 1',
+    'Transcription 1',
+    'Vision 1',
+    'OCR 2',
+  ])
+  await click(findButton('OCR 2'))
+  expect(findButton('OCR 2').getAttribute('aria-pressed')).toBe('true')
+  expect(findButton('Transcription 0')).toBeDefined()
+  await click(findButton('Vision 1'))
+  expect(findButton('OCR 1')).toBeDefined()
+  expect(container.textContent).toContain('Vision OCR')
+  expect(container.textContent).not.toContain('OCR only')
+  expect(container.querySelectorAll('h4')).toHaveLength(1)
 })
 
 it('renders accessible capability counts, updates AND intersections and resets with All', async () => {
