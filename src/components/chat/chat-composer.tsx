@@ -16,6 +16,7 @@ interface ComposerSlots {
   attachments?: ReactNode
   leading?: ReactNode
   configuration?: ReactNode
+  /** Pass false when the surrounding workspace already renders a hint. */
   hint?: ReactNode
 }
 
@@ -25,6 +26,9 @@ export interface ChatComposerProps {
   onSubmit: (value: string) => void
   state: ComposerState
   placeholder: string
+  disabled?: boolean
+  /** Attachments or task parameters can make an empty text draft sendable. */
+  allowEmpty?: boolean
   labels?: { submit?: string; stop?: string }
   slots?: ComposerSlots
   autoSize?: SenderProps['autoSize']
@@ -41,6 +45,8 @@ export const ChatComposer = forwardRef<SenderRef, ChatComposerProps>(
       onSubmit,
       state,
       placeholder,
+      disabled = false,
+      allowEmpty = false,
       labels,
       slots,
       autoSize = { minRows: 2, maxRows: 7 },
@@ -51,7 +57,10 @@ export const ChatComposer = forwardRef<SenderRef, ChatComposerProps>(
   ) {
     const { t } = useTranslation()
     const composing = useRef(false)
-    const canSubmit = state.kind === 'ready' && Boolean(value.trim())
+    const canSubmit =
+      !disabled &&
+      state.kind === 'ready' &&
+      (allowEmpty || Boolean(value.trim()))
     const submit = () => {
       if (canSubmit && !composing.current) onSubmit(value)
     }
@@ -72,6 +81,7 @@ export const ChatComposer = forwardRef<SenderRef, ChatComposerProps>(
           value={value}
           onChange={onChange}
           placeholder={placeholder}
+          disabled={disabled}
           autoSize={autoSize}
           onPasteFile={onPasteFile}
           onSubmit={submit}
@@ -139,11 +149,13 @@ export const ChatComposer = forwardRef<SenderRef, ChatComposerProps>(
             </div>
           }
         />
-        <div className="chat-composer-hint">
-          {state.kind === 'blocked' && state.reason
-            ? state.reason
-            : (slots?.hint ?? t('chat.composer.keyboardHint'))}
-        </div>
+        {slots?.hint !== false && (
+          <div className="chat-composer-hint">
+            {state.kind === 'blocked' && state.reason
+              ? state.reason
+              : (slots?.hint ?? t('chat.composer.keyboardHint'))}
+          </div>
+        )}
       </div>
     )
   },

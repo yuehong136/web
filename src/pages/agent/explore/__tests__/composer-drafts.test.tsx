@@ -195,3 +195,22 @@ it('keeps the draft when Begin inputs are dismissed and clears it once they are 
   await waitForState(() => expect(composer().value).toBe(''))
   await act(async () => body.end())
 })
+
+it('starts a task without requiring text in the shared composer', async () => {
+  page = await mountPage([], '/agent/canvas/explore?isNew=true', {
+    graph: {
+      nodes: [{ id: 'begin', data: { form: { mode: 'task' } } }],
+      edges: [],
+    },
+  })
+  await waitForState(() =>
+    expect(button('Send').hasAttribute('disabled')).toBe(false),
+  )
+  api.createSession.mockResolvedValueOnce(session('created'))
+  const body = stream()
+  api.runAgentSession.mockResolvedValueOnce(body.response)
+  await press({ key: 'Enter' })
+  await waitForState(() => expect(api.runAgentSession).toHaveBeenCalledOnce())
+  expect(api.runAgentSession.mock.calls[0]?.[0].query).toBe('')
+  await act(async () => body.end())
+})

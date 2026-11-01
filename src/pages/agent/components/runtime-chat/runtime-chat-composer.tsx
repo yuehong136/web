@@ -1,10 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import type { KeyboardEvent } from 'react'
+import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ArrowUp, Paperclip, Square, X } from 'lucide-react'
+import { Paperclip, X } from 'lucide-react'
+import { ChatComposer } from '@/components/chat/chat-composer'
 import { Button } from '@/components/ui/button'
 import { FileIcon } from '@/components/ui/file-icon'
-import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import { FileUploadDirectUpload } from '../../debug-content/uploader'
 import {
@@ -59,22 +58,9 @@ export function RuntimeChatComposer({
   const controlled = controlledDraft !== undefined
   const draft = controlledDraft ?? localDraft
   const { content: value, files } = draft
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
   const loading = status === AgentRuntimeStatus.RUNNING
   const sendDisabled =
     disabled || (!isTaskMode && !value.trim() && files.length === 0)
-
-  useEffect(() => {
-    if (!textareaRef.current) {
-      return
-    }
-
-    textareaRef.current.style.height = 'auto'
-    textareaRef.current.style.height = `${Math.min(
-      textareaRef.current.scrollHeight,
-      density === 'compact' ? 96 : 120,
-    )}px`
-  }, [density, value])
 
   // 附件在上传完成后才回写，必须基于当时的草稿更新，不能覆盖上传期间输入的文字
   const updateDraft = useCallback(
@@ -100,25 +86,6 @@ export function RuntimeChatComposer({
       current === submitted ? EMPTY_RUNTIME_CHAT_DRAFT : current,
     )
   }, [controlled, draft, loading, onSend, sendDisabled])
-
-  const handleKeyDown = useCallback(
-    (event: KeyboardEvent<HTMLTextAreaElement>) => {
-      // 输入法组字时的 Enter 只确认组字；浏览器上报方式不一，三种都拦住
-      if (
-        event.nativeEvent.isComposing ||
-        event.keyCode === 229 ||
-        event.key === 'Process'
-      ) {
-        return
-      }
-
-      if (event.key === 'Enter' && !event.shiftKey) {
-        event.preventDefault()
-        handleSend()
-      }
-    },
-    [handleSend],
-  )
 
   const handleRemoveFile = useCallback(
     (index: number) => {
@@ -147,71 +114,74 @@ export function RuntimeChatComposer({
           contentClassName,
         )}
       >
-        <div className="rounded-radius-xl border border-components-card-border bg-components-card-bg p-space-base shadow-elevation-low">
-          {files.length > 0 ? (
-            <div className="mb-space-sm flex flex-wrap gap-space-xs">
-              {files.map((file, index) => (
-                <div
-                  key={`${file.id || file.name}-${index}`}
-                  className="flex max-w-full min-w-0 items-center gap-space-xs rounded-radius-md border border-border-default bg-background-subtle px-space-sm py-space-xs"
-                >
-                  <FileIcon
-                    fileType={file.type}
-                    fileName={file.name}
-                    size="sm"
-                  />
-                  <span className="max-w-[220px] min-w-0 flex-1 truncate text-sm text-text-secondary">
-                    {file.name}
-                  </span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-sm"
-                    className="size-5 text-text-tertiary hover:text-text-primary"
-                    onClick={() => handleRemoveFile(index)}
-                    disabled={disabled}
-                    aria-label={t('agent.explore.removeAttachment', {
-                      name: file.name,
-                    })}
+        <ChatComposer
+          value={value}
+          onChange={(content) => {
+            updateDraft((current) => ({ ...current, content }))
+          }}
+          onSubmit={handleSend}
+          state={
+            loading
+              ? {
+                  kind: 'running',
+                  stop: () => {
+                    void onStop()
+                  },
+                }
+              : { kind: 'ready' }
+          }
+          disabled={disabled}
+          allowEmpty={isTaskMode || files.length > 0}
+          placeholder={
+            placeholder ||
+            t(
+              isTaskMode
+                ? 'agent.explore.taskPlaceholder'
+                : 'agent.explore.messagePlaceholder',
+            )
+          }
+          autoSize={
+            density === 'compact' ? { minRows: 1, maxRows: 4 } : undefined
+          }
+          labels={{
+            submit: t('agent.share.send'),
+            stop: t('agent.share.stop'),
+          }}
+          slots={{
+            hint: false,
+            attachments: files.length > 0 && (
+              <div className="flex flex-wrap gap-space-xs">
+                {files.map((file, index) => (
+                  <div
+                    key={`${file.id || file.name}-${index}`}
+                    className="flex max-w-full min-w-0 items-center gap-space-xs rounded-radius-md border border-border-default bg-background-subtle px-space-sm py-space-xs"
                   >
-                    <X className="size-3" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          ) : null}
-
-          {/* 生成中也可编写下一条草稿；等待补填输入时由 disabled 锁定 */}
-          <Textarea
-            ref={textareaRef}
-            variant="chat"
-            aria-label={placeholder || t('agent.explore.messagePlaceholder')}
-            value={value}
-            onChange={(event) => {
-              const content = event.target.value
-              updateDraft((current) => ({ ...current, content }))
-            }}
-            onKeyDown={handleKeyDown}
-            placeholder={
-              placeholder ||
-              t(
-                isTaskMode
-                  ? 'agent.explore.taskPlaceholder'
-                  : 'agent.explore.messagePlaceholder',
-              )
-            }
-            className={cn(
-              'w-full placeholder:text-text-tertiary',
-              density === 'compact'
-                ? 'min-h-[48px] text-sm'
-                : 'min-h-[60px] text-base',
-            )}
-            rows={1}
-            disabled={disabled}
-          />
-
-          <div className="mt-space-sm flex items-center justify-between">
-            <div className="flex items-center gap-space-xs">
+                    <FileIcon
+                      fileType={file.type}
+                      fileName={file.name}
+                      size="sm"
+                    />
+                    <span className="max-w-[220px] min-w-0 flex-1 truncate text-sm text-text-secondary">
+                      {file.name}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      className="size-5 text-text-tertiary hover:text-text-primary"
+                      onClick={() => handleRemoveFile(index)}
+                      disabled={disabled}
+                      aria-label={t('agent.explore.removeAttachment', {
+                        name: file.name,
+                      })}
+                    >
+                      <X className="size-3" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            ),
+            leading: (
               <FileUploadDirectUpload
                 canvasId={canvasId}
                 value={files}
@@ -226,45 +196,13 @@ export function RuntimeChatComposer({
                 buttonLabel={t('agent.share.uploadAttachment')}
                 buttonVariant="ghost"
                 buttonSize="icon"
-                buttonClassName="size-10 rounded-radius-full text-text-tertiary hover:bg-components-button-ghost-bg-hover hover:text-text-primary"
+                buttonClassName="text-text-tertiary hover:text-text-primary"
                 disabled={disabled}
-                triggerIcon={<Paperclip className="size-4" />}
+                triggerIcon={<Paperclip className="size-icon-sm" />}
               />
-            </div>
-
-            {loading ? (
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="rounded-radius-full bg-status-error-solid text-status-error-on-solid hover:bg-status-error-solid-hover"
-                onClick={() => {
-                  void onStop()
-                }}
-                aria-label={t('agent.share.stop')}
-              >
-                <Square className="size-4" />
-              </Button>
-            ) : (
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className={cn(
-                  'rounded-radius-full transition-colors disabled:opacity-100',
-                  sendDisabled
-                    ? 'bg-border-default text-text-tertiary'
-                    : 'bg-text-primary text-text-inverted hover:bg-text-secondary',
-                )}
-                disabled={sendDisabled}
-                onClick={handleSend}
-                aria-label={t('agent.share.send')}
-              >
-                <ArrowUp className="size-4" />
-              </Button>
-            )}
-          </div>
-        </div>
+            ),
+          }}
+        />
       </div>
     </div>
   )

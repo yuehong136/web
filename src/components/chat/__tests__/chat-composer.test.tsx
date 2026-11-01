@@ -1,7 +1,11 @@
 import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
-import { ChatComposer, type ComposerState } from '../chat-composer'
+import {
+  ChatComposer,
+  type ChatComposerProps,
+  type ComposerState,
+} from '../chat-composer'
 import { stubChatDOM } from './chat-dom'
 import { setProductLanguage } from '@/locales/i18n'
 
@@ -10,7 +14,11 @@ let host: HTMLDivElement
 const send = vi.fn()
 const stop = vi.fn()
 const change = vi.fn()
-const render = (state: ComposerState = { kind: 'ready' }, value = 'draft') =>
+const render = (
+  state: ComposerState = { kind: 'ready' },
+  value = 'draft',
+  options: Pick<ChatComposerProps, 'disabled' | 'allowEmpty' | 'slots'> = {},
+) =>
   act(async () =>
     root.render(
       <ChatComposer
@@ -19,6 +27,7 @@ const render = (state: ComposerState = { kind: 'ready' }, value = 'draft') =>
         onSubmit={send}
         state={state}
         placeholder="Message"
+        {...options}
       />,
     ),
   )
@@ -130,4 +139,28 @@ it('language changes retain the editor, focus and the user draft', async () => {
   expect(input.selectionStart).toBe(2)
   expect(input.selectionEnd).toBe(4)
   expect(send).not.toHaveBeenCalled()
+})
+
+it('allows attachment or task-only submission while preserving disabled and run gates', async () => {
+  await render({ kind: 'ready' }, '', { allowEmpty: true })
+  await key()
+  expect(send).toHaveBeenCalledExactlyOnceWith('')
+  send.mockClear()
+
+  await render({ kind: 'ready' }, 'waiting for inputs', {
+    allowEmpty: true,
+    disabled: true,
+  })
+  expect(host.querySelector('textarea')!.disabled).toBe(true)
+  expect(
+    host.querySelector<HTMLButtonElement>('button[aria-label="Submit"]')!
+      .disabled,
+  ).toBe(true)
+  await key()
+  await render({ kind: 'blocked' }, '', { allowEmpty: true })
+  await key()
+  await render({ kind: 'running', stop }, '', { allowEmpty: true })
+  await key()
+  expect(send).not.toHaveBeenCalled()
+  expect(host.querySelector('textarea')!.disabled).toBe(false)
 })
