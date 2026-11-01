@@ -132,12 +132,28 @@ export const buildAuthHeader = (): string | null => {
 export const fetchPreviewResource = async (
   url: string,
   signal?: AbortSignal,
-  redirect?: RequestRedirect,
+  redirect: 'error' = 'error',
 ): Promise<Response> => {
+  const apiUrl = new URL(
+    getDocumentFileUrl('preview-origin'),
+    typeof window === 'undefined' ? undefined : window.location?.origin,
+  )
+  const target = new URL(url, apiUrl)
+  if (
+    url !== url.trim() ||
+    url.startsWith('//') ||
+    /[\\\s]/.test(url) ||
+    !['http:', 'https:'].includes(target.protocol) ||
+    target.origin !== apiUrl.origin ||
+    target.username ||
+    target.password
+  ) {
+    throw new TypeError('Invalid preview URL')
+  }
   const headers = new Headers()
   const auth = buildAuthHeader()
   if (auth) headers.set('Authorization', auth)
-  return fetch(url, { signal, headers, redirect })
+  return fetch(target.href, { signal, headers, redirect })
 }
 
 /** 只读信封里的业务码（旧格式 retcode、新格式 code），不读任何文本字段 */

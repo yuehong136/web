@@ -138,6 +138,11 @@ export function mergeOperatorFormWithDefaults(
   operator: OperatorType,
   form?: Record<string, unknown>,
 ): Record<string, unknown> {
+  if (operator === Operator.TitleChunker) {
+    // Its normalizer owns defaults and legacy levels/rules/hierarchy migration.
+    return normalizeOperatorFormForStore(operator, form)
+  }
+
   const nextForm =
     operator === Operator.ListOperations
       ? prepareListOperationsForm(form)
@@ -152,14 +157,6 @@ export function mergeOperatorFormWithDefaults(
 
   if (operator === Operator.TokenChunker) {
     ;(['delimiters', 'children_delimiters'] as const).forEach((key) => {
-      if (key in nextForm) {
-        mergedForm[key] = nextForm[key]
-      }
-    })
-  }
-
-  if (operator === Operator.TitleChunker) {
-    ;(['hierarchyRules', 'groupRules'] as const).forEach((key) => {
       if (key in nextForm) {
         mergedForm[key] = nextForm[key]
       }

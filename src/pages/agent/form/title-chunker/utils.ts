@@ -135,7 +135,10 @@ export function normalizeTitleChunkerFormForStore(
   const method = isTitleChunkerMethod(form.method)
     ? form.method
     : TitleChunkerMethod.Hierarchy
-  const legacyHierarchy = normalizeHierarchyValue(form.hierarchy, '3')
+  const legacyHierarchy = normalizeHierarchyValue(
+    form.hierarchy,
+    method === TitleChunkerMethod.Group ? '0' : '3',
+  )
   const legacyRules =
     form.rules !== undefined
       ? normalizeRules(form.rules)
