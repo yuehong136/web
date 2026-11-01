@@ -4,6 +4,7 @@ import {
   assertNonEmptyBlob,
   assertPreviewResponse,
   buildAuthHeader,
+  fetchPreviewResource,
   getDocumentUrl,
   getFileType,
   isZipLikeBlob,
@@ -62,6 +63,50 @@ test('buildAuthHeader normalizes missing, raw and bearer tokens', async () => {
   await withLocalStorageToken('Bearer token-2', () => {
     assert.equal(buildAuthHeader(), 'Bearer token-2')
   })
+})
+
+test('preview requests keep JWTs in headers, preserve cancellation and reject foreign destinations', async () => {
+  const originalFetch = globalThis.fetch
+  const calls: { url: string; init?: RequestInit }[] = []
+  globalThis.fetch = async (url, init) => {
+    calls.push({ url: String(url), init })
+    return new Response('# Authenticated markdown')
+  }
+  try {
+    await withLocalStorageToken('preview-test-token', async () => {
+      const controller = new AbortController()
+      const url = getDocumentUrl('doc/中文')
+      const response = await fetchPreviewResource(url, controller.signal)
+      assert.equal(await response.text(), '# Authenticated markdown')
+      assert.equal(calls[0].url, url)
+      assert.equal(new URL(calls[0].url).search, '')
+      assert.equal(
+        new Headers(calls[0].init?.headers).get('Authorization'),
+        'Bearer preview-test-token',
+      )
+      assert.equal(calls[0].init?.signal, controller.signal)
+      assert.equal(calls[0].init?.redirect, 'error')
+      for (const foreign of [
+        'https://external.example.test/file.md',
+        '//external.example.test/file.md',
+        'http://localhost:8000.external.example.test/file.md',
+        'http://user:password@localhost:8000/api/v1/documents/x/preview',
+        'data:text/plain,markdown',
+      ]) {
+        await assert.rejects(() => fetchPreviewResource(foreign), TypeError)
+      }
+      assert.equal(calls.length, 1)
+    })
+    await withLocalStorageToken(null, async () => {
+      await fetchPreviewResource(getDocumentUrl('anonymous'))
+      assert.equal(
+        new Headers(calls[1].init?.headers).has('Authorization'),
+        false,
+      )
+    })
+  } finally {
+    globalThis.fetch = originalFetch
+  }
 })
 
 test('getFileType covers supported preview formats', () => {
