@@ -25,19 +25,12 @@ import { useMemo } from 'react'
 import { type Control, useFieldArray, useForm, useWatch } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
-import {
-  TitleChunkerMethod,
-  initialTitleChunkerValues,
-} from '../chunker-constants'
-import { useFormValues } from '../../hooks/use-form-values'
+import { TitleChunkerMethod } from '../chunker-constants'
 import { useWatchFormChange } from '../../hooks/use-watch-form-change'
 import type { INextOperatorForm } from '../../types'
 import { FormWrapper, Output, buildOutputList } from '../components'
-import {
-  getTitleChunkerHierarchyOptions,
-  normalizeTitleChunkerFormForStore,
-  type TitleChunkerRule,
-} from './utils'
+import { getTitleChunkerHierarchyOptions, type TitleChunkerRule } from './utils'
+import { useTitleChunkerValues } from './use-title-chunker-values'
 
 const expressionField = z.string().refine(
   (value) => {
@@ -205,9 +198,7 @@ function RulesFieldArray({ name, control }: RulesFieldArrayProps) {
 
 export function TitleChunkerForm({ node }: INextOperatorForm) {
   const { t } = useTranslation()
-  const values = normalizeTitleChunkerFormForStore(
-    useFormValues(initialTitleChunkerValues, node),
-  )
+  const values = useTitleChunkerValues(node)
 
   const form = useForm<
     TitleChunkerFormValues,
@@ -358,9 +349,17 @@ export function TitleChunkerForm({ node }: INextOperatorForm) {
         )}
 
         {method === TitleChunkerMethod.Group ? (
-          <RulesFieldArray name="groupRules" control={form.control} />
+          <RulesFieldArray
+            key="groupRules"
+            name="groupRules"
+            control={form.control}
+          />
         ) : (
-          <RulesFieldArray name="hierarchyRules" control={form.control} />
+          <RulesFieldArray
+            key="hierarchyRules"
+            name="hierarchyRules"
+            control={form.control}
+          />
         )}
 
         <Output list={outputs} />
