@@ -1,5 +1,7 @@
 export const searchWorkspaceResource = {
   workspace: {
+    topResults: 'Top results',
+    candidateMatches: 'Candidates: {{count}} · Documents: {{documents}}',
     mapTitle: 'Question map',
     mapLoading: 'Generating a question map…',
     mapEmpty: 'No question map was returned.',

@@ -1,5 +1,7 @@
 export const searchWorkspaceResource = {
   workspace: {
+    topResults: '返回条数',
+    candidateMatches: '候选结果：{{count}} · 文档：{{documents}}',
     mapTitle: '问题思维导图',
     mapLoading: '正在生成问题思维导图…',
     mapEmpty: '未返回可展示的思维导图。',

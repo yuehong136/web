@@ -65,6 +65,38 @@ export const localeRegistry = {
     matches: (value: string) =>
       value === 'en' || value === 'en-us' || value.startsWith('en-'),
   },
+  'ko-KR': {
+    label: 'Korean (preview)',
+    nativeLabel: '한국어 (미리보기)',
+    namespaces: {
+      common: () => import('./ko-KR/common'),
+      layout: () => import('./ko-KR/layout'),
+      'route-errors': () => import('./ko-KR/route-errors'),
+      auth: () => import('./ko-KR/auth'),
+      desktop: () => import('./ko-KR/desktop'),
+      home: () => import('./ko-KR/home'),
+      chat: () => import('./ko-KR/chat'),
+      agent: () => import('./ko-KR/agent'),
+      agents: () => import('./ko-KR/agents'),
+      flow: () => import('./ko-KR/flow'),
+      knowledge: () => import('./ko-KR/knowledge'),
+      'document-create': () => import('./ko-KR/document-create'),
+      datasource: () => import('./ko-KR/datasource'),
+      explore: () => import('./ko-KR/explore'),
+      search: () => import('./ko-KR/search'),
+      memory: () => import('./ko-KR/memory'),
+      studio: () => import('./ko-KR/studio'),
+      mcp: () => import('./ko-KR/mcp'),
+      settings: () => import('./ko-KR/settings'),
+      sandbox: () => import('./ko-KR/sandbox'),
+      channel: () => import('./ko-KR/channel'),
+      skills: () => import('./ko-KR/skills'),
+      appearance: () => import('./ko-KR/appearance'),
+      sources: () => import('./ko-KR/sources'),
+      reference: () => import('./ko-KR/reference'),
+    },
+    matches: (value: string) => value === 'ko' || value.startsWith('ko-'),
+  },
 } as const
 
 export type ProductLocale = keyof typeof localeRegistry
@@ -113,7 +145,9 @@ export const loadLocaleNamespace = async (
   const module = (await localeRegistry[locale].namespaces[
     namespace
   ]()) as Record<string, LocaleResource>
-  return (module.default ?? module[`${namespace}Resource`]) as LocaleResource
+  return (module.default ??
+    module.resource ??
+    module[`${namespace}Resource`]) as LocaleResource
 }
 
 export const loadLocaleResource = async (

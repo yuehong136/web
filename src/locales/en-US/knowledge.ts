@@ -900,6 +900,8 @@ export default {
       },
     },
     search: {
+      topResults: 'Top results',
+      candidateTotal: 'Candidate matches: {{count}}',
       title: 'Retrieval test',
       description: 'Test retrieval quality and tune query parameters.',
       queryTitle: 'Query',
@@ -1138,6 +1140,9 @@ export default {
     logs: knowledgeLogs,
     metadata,
     preview: {
+      fitWidth: 'Fit to width',
+      pageCount_one: '{{count}} page',
+      pageCount_other: '{{count}} pages',
       loading: 'Loading...',
       loadFailed: 'Load failed',
       unknownError: 'Unknown error',

@@ -12,7 +12,10 @@ const parsers = vi.hoisted(() => ({
   ppt: vi.fn(),
 }))
 
-vi.mock('mammoth', () => ({ default: { convertToHtml: parsers.docx } }))
+vi.mock('../components/docx-document', () => ({
+  renderDocxDocument: parsers.docx,
+  stepDocxZoom: (zoom: number, direction: number) => zoom + direction * 25,
+}))
 vi.mock('@js-preview/excel', () => ({
   default: {
     init: () => ({ preview: parsers.excel, destroy: () => undefined }),
@@ -20,6 +23,42 @@ vi.mock('@js-preview/excel', () => ({
 }))
 vi.mock('@js-preview/excel/lib/index.css', () => ({}))
 vi.mock('pptx-preview', () => ({ init: () => ({ preview: parsers.ppt }) }))
+
+it('ignores a late Word parse and does not re-import on locale changes or zoom', async () => {
+  let resolveFirst!: (html: string) => void
+  const first = new Promise<string>((resolve) => {
+    resolveFirst = resolve
+  })
+  parsers.docx
+    .mockReturnValueOnce(first)
+    .mockResolvedValueOnce('<p>Current document</p>')
+  const a = new ArrayBuffer(4)
+  const b = new ArrayBuffer(8)
+  await act(async () =>
+    root.render(<DocxPreview arrayBuffer={a} sourceUrl="/a" />),
+  )
+  await act(async () =>
+    root.render(<DocxPreview arrayBuffer={b} sourceUrl="/b" />),
+  )
+  await settle(() => Boolean(container.querySelector('iframe')))
+  await act(async () => resolveFirst('<p>Stale document</p>'))
+  expect(container.querySelector('iframe')?.srcdoc).toContain(
+    'Current document',
+  )
+  expect(container.querySelector('iframe')?.srcdoc).not.toContain(
+    'Stale document',
+  )
+  expect(container.querySelector('iframe')?.getAttribute('sandbox')).toBe(
+    'allow-same-origin',
+  )
+  await act(async () => setProductLanguage('en-US'))
+  await act(async () =>
+    container
+      .querySelector<HTMLButtonElement>('button[aria-label="Zoom in"]')!
+      .click(),
+  )
+  expect(parsers.docx).toHaveBeenCalledTimes(2)
+})
 
 type Preview = ComponentType<{ arrayBuffer?: ArrayBuffer; sourceUrl: string }>
 
@@ -45,6 +84,13 @@ const settle = async (done: () => boolean) => {
 beforeEach(async () => {
   await setProductLanguage('zh-CN')
   vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true)
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      observe() {}
+      disconnect() {}
+    },
+  )
   container = document.createElement('div')
   document.body.append(container)
   root = createRoot(container)
@@ -108,10 +154,11 @@ describe.each<[string, Preview, keyof typeof parsers, string, string, string]>([
     expect(text()).toContain(UNREADABLE.zh)
     expect(text()).not.toContain(PARSER_MESSAGE)
     // 原始报错仍在控制台，便于排查损坏文件
-    expect(consoleError).toHaveBeenCalledWith(
-      expect.stringContaining('preview error'),
-      expect.objectContaining({ message: PARSER_MESSAGE }),
-    )
+    if (parser !== 'docx')
+      expect(consoleError).toHaveBeenCalledWith(
+        expect.stringContaining('preview error'),
+        expect.objectContaining({ message: PARSER_MESSAGE }),
+      )
 
     await act(async () => setProductLanguage('en-US'))
     await settle(() => text().includes(enTitle))
@@ -121,7 +168,9 @@ describe.each<[string, Preview, keyof typeof parsers, string, string, string]>([
   })
 
   it('still renders the document when parsing succeeds', async () => {
-    parsers[parser].mockResolvedValue({ value: '<p>Quarterly report</p>' })
+    parsers[parser].mockResolvedValue(
+      parser === 'docx' ? '<p>Quarterly report</p>' : undefined,
+    )
 
     await renderPreview()
     await settle(() => !text().includes(loadingText))
@@ -130,6 +179,9 @@ describe.each<[string, Preview, keyof typeof parsers, string, string, string]>([
     expect(text()).not.toContain(loadingText)
     expect(text()).not.toContain(zhTitle)
     expect(text()).not.toContain(UNREADABLE.zh)
-    if (parser === 'docx') expect(text()).toContain('Quarterly report')
+    if (parser === 'docx')
+      expect(container.querySelector('iframe')?.srcdoc).toContain(
+        'Quarterly report',
+      )
   })
 })

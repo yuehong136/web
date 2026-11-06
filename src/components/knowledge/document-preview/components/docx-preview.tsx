@@ -1,52 +1,14 @@
-import { memo, useEffect, useState, type FC } from 'react'
-import { FileText } from 'lucide-react'
-import mammoth from 'mammoth'
+import { memo, useCallback, useEffect, useRef, useState, type FC } from 'react'
+import { FileText, ScanLine, ZoomIn, ZoomOut } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { SafeHtml } from '@/components/ui/safe-html'
+import { Button } from '@/components/ui/button'
 import { ErrorState, LoadingState } from './preview-state'
+import { renderDocxDocument, stepDocxZoom } from './docx-document'
 
-const styleDocxHtml = (html: string): string => {
-  return html
-    .replace(/<p>/g, '<p class="mb-3 text-text-secondary leading-relaxed">')
-    .replace(
-      /<h1>/g,
-      '<h1 class="text-2xl font-bold mt-6 mb-3 text-text-primary">',
-    )
-    .replace(
-      /<h2>/g,
-      '<h2 class="text-xl font-semibold mt-5 mb-2 text-text-primary">',
-    )
-    .replace(
-      /<h3>/g,
-      '<h3 class="text-lg font-semibold mt-4 mb-2 text-text-primary">',
-    )
-    .replace(
-      /<h4>/g,
-      '<h4 class="text-base font-semibold mt-4 mb-2 text-text-primary">',
-    )
-    .replace(
-      /<h5>/g,
-      '<h5 class="text-sm font-semibold mt-3 mb-2 text-text-primary">',
-    )
-    .replace(
-      /<h6>/g,
-      '<h6 class="text-sm font-medium mt-3 mb-2 text-text-primary">',
-    )
-    .replace(
-      /<table>/g,
-      '<table class="min-w-full border-collapse border border-border-default my-4">',
-    )
-    .replace(
-      /<th>/g,
-      '<th class="border border-border-default px-4 py-2 bg-background-surface text-left font-medium">',
-    )
-    .replace(/<td>/g, '<td class="border border-border-default px-4 py-2">')
-    .replace(/<ul>/g, '<ul class="list-disc pl-6 mb-3">')
-    .replace(/<ol>/g, '<ol class="list-decimal pl-6 mb-3">')
-    .replace(/<li>/g, '<li class="mb-1">')
-    .replace(/<a /g, '<a class="text-text-accent hover:underline" ')
-    .replace(/<strong>/g, '<strong class="font-semibold text-text-primary">')
-    .replace(/<em>/g, '<em class="italic">')
+interface DocumentResult {
+  input?: ArrayBuffer
+  html?: string
+  failed?: boolean
 }
 
 const DocxPreviewInner: FC<{
@@ -54,67 +16,137 @@ const DocxPreviewInner: FC<{
   sourceUrl: string
 }> = ({ arrayBuffer, sourceUrl }) => {
   const { t } = useTranslation()
-  const [loading, setLoading] = useState(true)
-  const [failed, setFailed] = useState(false)
-  const [htmlContent, setHtmlContent] = useState<string>('')
+  const frame = useRef<HTMLIFrameElement>(null)
+  const [result, setResult] = useState<DocumentResult>({})
+  const [zoom, setZoom] = useState<number | null>(null)
+  const [layout, setLayout] = useState({ width: 0, pages: 0, viewport: 0 })
+  const ready = result.input === arrayBuffer && Boolean(result.html)
+  const failed = result.input === arrayBuffer && result.failed
+  const fitZoom = layout.width
+    ? Math.max(
+        5,
+        Math.min(
+          100,
+          Math.floor(((layout.viewport - 32) / layout.width) * 100),
+        ),
+      )
+    : 100
+  const scale = zoom ?? fitZoom
 
   useEffect(() => {
-    let mounted = true
-
-    const loadDocx = async () => {
+    let active = true
+    const parse = async () => {
       try {
-        setLoading(true)
-        setFailed(false)
-
-        if (!arrayBuffer) {
-          throw new Error(t('knowledge.preview.documentPreviewFailed'))
+        if (!arrayBuffer) throw new Error('Missing Word content')
+        const html = await renderDocxDocument(arrayBuffer)
+        if (active) {
+          setResult({ input: arrayBuffer, html })
+          setZoom(null)
         }
-
-        const result = await mammoth.convertToHtml(
-          { arrayBuffer },
-          { includeDefaultStyleMap: true },
-        )
-
-        if (mounted) {
-          // mammoth 转换的是用户上传文档（不可信），渲染前由 SafeHtml 统一净化
-          setHtmlContent(styleDocxHtml(result.value))
-          setLoading(false)
-        }
-      } catch (err) {
-        if (mounted) {
-          console.error('Docx preview error:', err)
-          // 解析库的报错只进控制台，界面显示固定文案
-          setFailed(true)
-          setLoading(false)
-        }
+      } catch {
+        if (active) setResult({ input: arrayBuffer, failed: true })
       }
     }
-
-    loadDocx()
-
+    void parse()
     return () => {
-      mounted = false
+      active = false
     }
-  }, [arrayBuffer, t])
+  }, [arrayBuffer])
 
-  if (loading) {
-    return <LoadingState message={t('knowledge.preview.loadingDocument')} />
-  }
+  useEffect(() => {
+    if (!ready || !frame.current) return
+    const element = frame.current
+    const measure = () => {
+      const doc = element.contentDocument
+      if (!doc) return
+      const pages = [
+        ...doc.querySelectorAll<HTMLElement>('.docx-wrapper > section'),
+      ]
+      setLayout({
+        width: Math.max(
+          0,
+          ...pages.map((page) => Math.max(page.offsetWidth, page.scrollWidth)),
+        ),
+        pages: pages.length,
+        viewport: element.clientWidth,
+      })
+    }
+    element.addEventListener('load', measure)
+    const observer = new ResizeObserver(measure)
+    observer.observe(element)
+    measure()
+    return () => {
+      element.removeEventListener('load', measure)
+      observer.disconnect()
+    }
+  }, [ready, result.html])
 
-  if (failed) {
+  const applyFrameStyle = useCallback(() => {
+    const doc = frame.current?.contentDocument
+    if (!doc) return
+    doc.documentElement.style.setProperty('--preview-zoom', String(scale / 100))
+  }, [scale])
+  useEffect(applyFrameStyle, [applyFrameStyle, result.html])
+
+  if (failed)
     return (
       <ErrorState
-        icon={<FileText className="h-16 w-16" />}
+        icon={<FileText className="size-icon-2xl" />}
         title={t('knowledge.preview.documentPreviewFailed')}
         message={t('knowledge.preview.errors.unreadable')}
         url={sourceUrl}
       />
     )
-  }
+  if (!ready)
+    return <LoadingState message={t('knowledge.preview.loadingDocument')} />
 
   return (
-    <div className="h-full w-full overflow-auto bg-background-surface p-6">
-      <SafeHtml className="mx-auto max-w-4xl" html={htmlContent} />
+    <div className="flex h-full min-h-0 w-full flex-col bg-background-surface">
+      <div className="flex shrink-0 items-center justify-between gap-space-sm border-b border-border-default px-space-md py-space-xs">
+        <span className="text-sm text-text-secondary" aria-live="polite">
+          {t('knowledge.preview.pageCount', { count: layout.pages })}
+        </span>
+        <div className="flex items-center gap-space-xs">
+          <Button
+            variant="ghost"
+            size="sm"
+            aria-label={t('common.documentImage.zoomOut')}
+            disabled={scale <= 5}
+            onClick={() => setZoom(stepDocxZoom(scale, -1))}
+          >
+            <ZoomOut className="size-icon-sm" />
+          </Button>
+          <span className="text-sm text-text-primary tabular-nums">
+            {scale}%
+          </span>
+          <Button
+            variant="ghost"
+            size="sm"
+            aria-label={t('common.documentImage.zoomIn')}
+            disabled={scale >= 200}
+            onClick={() => setZoom(stepDocxZoom(scale, 1))}
+          >
+            <ZoomIn className="size-icon-sm" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            aria-label={t('knowledge.preview.fitWidth')}
+            onClick={() => setZoom(null)}
+          >
+            <ScanLine className="size-icon-sm" />
+          </Button>
+        </div>
+      </div>
+      <iframe
+        ref={frame}
+        title={t('knowledge.preview.documentPreview')}
+        sandbox="allow-same-origin"
+        referrerPolicy="no-referrer"
+        srcDoc={result.html}
+        onLoad={applyFrameStyle}
+        className="min-h-0 w-full flex-1 border-0 bg-background-subtle"
+      />
     </div>
   )
 }

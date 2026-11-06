@@ -192,6 +192,38 @@ it('retains a draft after business failure, then saves the correct payload and r
   expect(document.activeElement).toBe(button('Edit profile'))
 })
 
+it('rejects invalid names without an API mutation and saves 100 Unicode code points after trim', async () => {
+  await render()
+  await click(button('Edit profile'))
+  const name = container.querySelector<HTMLInputElement>(
+    'input[aria-label="Display name"]',
+  )!
+  expect(name.getAttribute('maxlength')).toBeNull()
+  for (const value of [
+    'a'.repeat(101),
+    '𐐀'.repeat(101),
+    'John\tDoe',
+    'Jose\u0301',
+    'bad@name',
+  ]) {
+    await change(name, value)
+    await click(button('Save changes'))
+    expect(mocks.update).not.toHaveBeenCalled()
+  }
+  const valid = '𐐀'.repeat(98) + '中한'
+  await change(name, `\uFEFF ${valid} \uFEFF`)
+  mocks.update.mockImplementationOnce(async () => {
+    profile = { ...profile, nickname: valid }
+    return { retcode: 0, data: true }
+  })
+  await click(button('Save changes'))
+  expect(mocks.update).toHaveBeenCalledOnce()
+  expect(mocks.update).toHaveBeenCalledWith(
+    expect.objectContaining({ nickname: valid }),
+  )
+  expect(useAuthStore.getState().user?.nickname).toBe(valid)
+})
+
 it('validates the native password dialog and closes with Escape back to its trigger', async () => {
   await render()
   const trigger = button('Change password')

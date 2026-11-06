@@ -354,6 +354,9 @@ export default {
       passwordInvalid: '请检查密码输入后重试。',
       validation: {
         nameRequired: '请输入显示名称。',
+        nameMaxLength: '名称最多 100 个字符。',
+        nameInvalidCharacters:
+          "名称只能包含字母、数字、空格以及 . _ ' - 字符。",
         timeZoneRequired: '请选择时区。',
         currentPasswordRequired: '请输入当前密码。',
         newPasswordLength: '新密码至少需要 8 个字符。',

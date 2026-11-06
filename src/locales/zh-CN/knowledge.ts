@@ -851,6 +851,8 @@ export default {
       },
     },
     search: {
+      topResults: '返回条数',
+      candidateTotal: '候选结果：{{count}}',
       title: '检索测试',
       description: '测试知识库召回效果并调整检索参数。',
       queryTitle: '查询条件',
@@ -1075,6 +1077,9 @@ export default {
     logs: knowledgeLogs,
     metadata,
     preview: {
+      fitWidth: '适合宽度',
+      pageCount_one: '{{count}} 页',
+      pageCount_other: '{{count}} 页',
       loading: '加载中...',
       loadFailed: '加载失败',
       unknownError: '未知错误',

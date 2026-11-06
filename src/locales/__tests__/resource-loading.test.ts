@@ -20,6 +20,8 @@ describe('lazy locale resource registry', () => {
     expect(normalizeLocale(' en_GB ')).toBe('en-US')
     expect(normalizeLocale('zh-Hans-CN')).toBe('zh-CN')
     expect(normalizeLocale('zh_CN')).toBe('zh-CN')
+    expect(normalizeLocale(' KO_kr ')).toBe('ko-KR')
+    expect(normalizeLocale('ko')).toBe('ko-KR')
     expect(normalizeLocale('fr-FR')).toBeUndefined()
     expect(normalizeLocale(null)).toBeUndefined()
   })
@@ -42,7 +44,7 @@ describe('lazy locale resource registry', () => {
     const complete = await createI18nResources()
     for (const locale of localeCodes) {
       const legacy =
-        locale === 'en-US'
+        locale !== 'zh-CN'
           ? (await import('../en-US')).default
           : (await import('../zh-CN')).default
       expect(flatten(complete[locale].translation).sort()).toEqual(

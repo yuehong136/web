@@ -374,6 +374,9 @@ export default {
       passwordInvalid: 'Check your password entries and try again.',
       validation: {
         nameRequired: 'Enter a display name.',
+        nameMaxLength: 'Name must be at most 100 characters.',
+        nameInvalidCharacters:
+          "Name can only contain letters, numbers, spaces, and . _ ' -",
         timeZoneRequired: 'Choose a time zone.',
         currentPasswordRequired: 'Enter your current password.',
         newPasswordLength: 'Use at least 8 characters for your new password.',

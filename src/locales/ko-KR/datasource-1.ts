@@ -1,0 +1,31 @@
+export const translations = {
+  'datasource.salesforce.client_idTip':
+    '클라이언트 자격 증명 흐름이 활성화되고 api 범위가 있는 Connected App의 소비자 키.',
+  'datasource.slack.channels': '채널',
+  'datasource.logTask': '작업',
+  'datasource.restApi.queryParams': '쿼리 파라미터',
+  'datasource.restApi.none': '없음',
+  'datasource.restApi.username': '사용자 이름',
+  'datasource.restApi.password': '비밀번호',
+  'datasource.restApi.metadataFields': '메타데이터 필드',
+  'datasource.restApi.settings': '설정',
+  'datasource.restApi.testConnection': '연결 테스트',
+  'datasource.configuration': '설정',
+  'datasource.statusPending': '대기 중',
+  'datasource.statusRunning': '실행 중',
+  'datasource.statusCompleted': '완료',
+  'datasource.statusFailed': '실패',
+  'datasource.resume': '이력서',
+  'datasource.logStatus': '상태',
+  'datasource.seafileScope_account': '계정',
+  'datasource.seafileScope_directory': '디렉토리',
+  'datasource.fieldHost': '호스트',
+  'datasource.fieldPort': '포트',
+  'datasource.fieldDatabase': '데이터베이스',
+  'datasource.fieldUsername': '사용자 이름',
+  'datasource.fieldPassword': '비밀번호',
+  'datasource.mysqlContentColumnsTip':
+    '문서 콘텐츠로 결합하여 벡터화할 컬럼 이름 (쉼표로 구분).',
+  'datasource.postgresqlContentColumnsTip':
+    '문서 콘텐츠로 결합하여 벡터화할 컬럼 이름 (쉼표로 구분).',
+} as const

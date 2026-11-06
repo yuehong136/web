@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { nicknameSchema } from './nickname'
 
 export enum ProfileMode {
   VIEW = 'view',
@@ -7,10 +8,7 @@ export enum ProfileMode {
 }
 
 export const profileSchema = z.object({
-  userName: z
-    .string()
-    .trim()
-    .min(1, { message: 'settings.profile.validation.nameRequired' }),
+  userName: nicknameSchema,
   timeZone: z.string().refine((value) => value.trim().length > 0, {
     message: 'settings.profile.validation.timeZoneRequired',
   }),

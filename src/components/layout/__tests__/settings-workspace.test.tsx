@@ -15,6 +15,7 @@ import { MemoryDetailLayout } from '@/pages/memory/MemoryDetailLayout'
 import { ExploreSidebar } from '@/pages/explore/components/explore-sidebar'
 import { MemoryRouter } from 'react-router-dom'
 import i18n from '@/locales/i18n'
+import { supportedLocales } from '@/locales/locale-registry'
 import { AvailableModels } from '@/pages/settings/model-providers/components/available-models'
 
 vi.mock('@/hooks/use-llm-request', () => ({
@@ -268,7 +269,12 @@ it('offers one Settings entry in the account menu and puts appearance in a keybo
     Array.from(document.querySelectorAll('[role="menuitemradio"]')).map(
       (item) => item.textContent,
     ),
-  ).toEqual(['Light', 'Dark', 'System', '简体中文', 'English'])
+  ).toEqual([
+    'Light',
+    'Dark',
+    'System',
+    ...supportedLocales.map((locale) => locale.nativeLabel),
+  ])
   await act(async () =>
     document.activeElement?.dispatchEvent(
       new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }),

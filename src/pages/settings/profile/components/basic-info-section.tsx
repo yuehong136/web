@@ -78,7 +78,12 @@ export const BasicInfoSection = ({
                   inputSize="sm"
                 />
               ) : (
-                profile.userName
+                <span
+                  className="block min-w-0 truncate"
+                  title={profile.userName}
+                >
+                  {profile.userName}
+                </span>
               )
             }
           />
