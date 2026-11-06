@@ -16,6 +16,7 @@ test('mindmap passes cancellation through the shared client without serializing 
   try {
     await searchAPI.mindmap({
       question: 'Question',
+      search_id: 'search-nonempty',
       kb_ids: ['kb'],
       doc_ids: ['doc'],
       signal: controller.signal,
@@ -25,7 +26,7 @@ test('mindmap passes cancellation through the shared client without serializing 
     assert.deepEqual(call?.data, {
       question: 'Question',
       kb_ids: ['kb'],
-      search_id: undefined,
+      search_id: 'search-nonempty',
       doc_ids: ['doc'],
     })
   } finally {
@@ -37,7 +38,9 @@ test('shared mindmap keeps entry credentials separate from the product session',
   const originalPost = apiClient.post
   const originalWindow = Object.getOwnPropertyDescriptor(globalThis, 'window')
   let config: RequestConfig | undefined
-  apiClient.post = (async (_endpoint, _data, options) => {
+  let payload: unknown
+  apiClient.post = (async (_endpoint, data, options) => {
+    payload = data
     config = options
     return { label: 'Evidence' }
   }) as typeof apiClient.post
@@ -46,7 +49,16 @@ test('shared mindmap keeps entry credentials separate from the product session',
     value: { location: { search: '?auth=fixture-share-only' } },
   })
   try {
-    await searchAPI.mindmapShare({ question: 'Question', kb_ids: ['kb'] })
+    await searchAPI.mindmapShare({
+      question: 'Question',
+      kb_ids: ['kb'],
+      search_id: 'shared-search',
+    })
+    assert.deepEqual(payload, {
+      question: 'Question',
+      kb_ids: ['kb'],
+      search_id: 'shared-search',
+    })
     assert.equal(config?.skipAuth, true)
     assert.deepEqual(config?.headers, {
       Authorization: 'Bearer fixture-share-only',
