@@ -24,7 +24,6 @@ interface UseSearchExecutionInput {
 }
 
 interface SearchOverride {
-  page?: number
   pageSize?: number
   selectedDocIds?: string[]
   config?: Partial<
@@ -52,16 +51,12 @@ export interface UseSearchExecutionResult {
   selectedDocIds: string[]
   showDocFilter: boolean
   pageSize: number
-  currentPage: number
   hasSearched: boolean
   searchError: SearchError | undefined
   requestScope: SearchRequestScope | undefined
-  totalPages: number
-  pageNumbers: number[]
   runSearch: (override?: SearchOverride) => Promise<void>
   retrySearch: () => void
   handleSearchSubmit: () => void
-  handlePageChange: (page: number) => void
   handlePageSizeChange: (size: number) => void
   handleDocFilter: (docId: string, checked: boolean) => void
   handleClearDocFilter: () => void
@@ -86,7 +81,6 @@ export const useSearchExecution = ({
   const [selectedDocIds, setSelectedDocIds] = React.useState<string[]>([])
   const [showDocFilter, setShowDocFilter] = React.useState(true)
   const [pageSize, setPageSize] = React.useState(DEFAULT_PAGE_SIZE)
-  const [currentPage, setCurrentPage] = React.useState(1)
   const [hasSearched, setHasSearched] = React.useState(false)
   const [searchError, setSearchError] = React.useState<SearchError>()
   const [requestScope, setRequestScope] = React.useState<SearchRequestScope>()
@@ -100,7 +94,6 @@ export const useSearchExecution = ({
     activeMetaDataFilter,
     pageSize,
     selectedDocIds,
-    currentPage,
   })
 
   React.useLayoutEffect(() => {
@@ -112,7 +105,6 @@ export const useSearchExecution = ({
       activeMetaDataFilter,
       pageSize,
       selectedDocIds,
-      currentPage,
     }
   }, [
     query,
@@ -122,7 +114,6 @@ export const useSearchExecution = ({
     activeMetaDataFilter,
     pageSize,
     selectedDocIds,
-    currentPage,
   ])
 
   React.useEffect(
@@ -210,7 +201,7 @@ export const useSearchExecution = ({
         kb_ids: [kbId],
         question,
         ...params,
-        page: override?.page ?? latest.currentPage,
+        page: 1,
         size: override?.pageSize ?? latest.pageSize,
         doc_ids: docs.length ? [...docs] : null,
         cross_languages: languages.length ? [...languages] : null,
@@ -232,23 +223,13 @@ export const useSearchExecution = ({
   }, [executeRequest])
 
   const handleSearchSubmit = React.useCallback(() => {
-    setCurrentPage(1)
-    void runSearch({ page: 1 })
+    void runSearch()
   }, [runSearch])
-
-  const handlePageChange = React.useCallback(
-    (page: number) => {
-      if (!lastRequestRef.current) return
-      setCurrentPage(page)
-      void executeRequest({ ...lastRequestRef.current, page })
-    },
-    [executeRequest],
-  )
 
   const handlePageSizeChange = React.useCallback(
     (size: number) => {
+      latestArgsRef.current.pageSize = size
       setPageSize(size)
-      setCurrentPage(1)
       if (lastRequestRef.current)
         void executeRequest({ ...lastRequestRef.current, page: 1, size })
     },
@@ -259,7 +240,6 @@ export const useSearchExecution = ({
     (next: string[]) => {
       latestArgsRef.current.selectedDocIds = next
       setSelectedDocIds(next)
-      setCurrentPage(1)
       if (lastRequestRef.current)
         void executeRequest({
           ...lastRequestRef.current,
@@ -294,21 +274,9 @@ export const useSearchExecution = ({
     [],
   )
   const commitConfigPageSize = React.useCallback((size: number) => {
+    latestArgsRef.current.pageSize = size
     setPageSize(size)
-    setCurrentPage(1)
   }, [])
-
-  const totalPages = Math.max(1, Math.ceil(totalResults / pageSize))
-  const pageNumbers = React.useMemo(
-    () =>
-      Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-        if (totalPages <= 5) return i + 1
-        if (currentPage <= 3) return i + 1
-        if (currentPage >= totalPages - 2) return totalPages - 4 + i
-        return currentPage - 2 + i
-      }),
-    [currentPage, totalPages],
-  )
 
   return {
     query,
@@ -321,16 +289,12 @@ export const useSearchExecution = ({
     selectedDocIds,
     showDocFilter,
     pageSize,
-    currentPage,
     hasSearched,
     searchError,
     requestScope,
-    totalPages,
-    pageNumbers,
     runSearch,
     retrySearch,
     handleSearchSubmit,
-    handlePageChange,
     handlePageSizeChange,
     handleDocFilter,
     handleClearDocFilter,

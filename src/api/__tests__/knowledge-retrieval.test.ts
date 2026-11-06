@@ -108,3 +108,31 @@ test('business errors and legacy or invalid envelopes cannot acknowledge migrate
     await assert.rejects(knowledgeGraphAPI.get('a'), APIError)
   }
 })
+
+test('retrieval cancellation is transport metadata and never enters the query body', async (t) => {
+  const controller = new AbortController()
+  let captured: RequestInit | undefined
+  t.mock.method(
+    globalThis,
+    'fetch',
+    async (_url: string, init: RequestInit) => {
+      captured = init
+      return new Promise<Response>((_resolve, reject) => {
+        init.signal?.addEventListener(
+          'abort',
+          () => reject(init.signal?.reason),
+          { once: true },
+        )
+      })
+    },
+  )
+  const pending = knowledgeRetrievalAPI.test(
+    { kb_ids: ['a'], question: 'q', page: 1, size: 10, top_k: 1024 },
+    { signal: controller.signal },
+  )
+  assert.ok(captured?.signal)
+  assert.equal(JSON.parse(String(captured?.body)).signal, undefined)
+  controller.abort()
+  await assert.rejects(pending, { name: 'AbortError' })
+  assert.equal(captured?.signal?.aborted, true)
+})

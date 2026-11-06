@@ -76,16 +76,12 @@ function Harness() {
       selectedDocIds={e.selectedDocIds}
       showDocFilter={e.showDocFilter}
       highlight
-      currentPage={e.currentPage}
       pageSize={e.pageSize}
-      totalPages={e.totalPages}
-      pageNumbers={e.pageNumbers}
       onToggleDocFilter={e.toggleDocFilter}
       onDocFilter={e.handleDocFilter}
       onClearDocFilter={e.handleClearDocFilter}
       onSelectAllDocs={e.handleSelectAllDocs}
       onOpenResultPreview={vi.fn()}
-      onPageChange={e.handlePageChange}
       onPageSizeChange={e.handlePageSizeChange}
     />
   )
@@ -138,7 +134,7 @@ afterEach(async () => {
   vi.unstubAllGlobals()
 })
 
-it('typing alone stays in the initial state; pagination uses the submitted query and controls', async () => {
+it('Top controls keep the submitted query, candidate total and independent retrieval parameters', async () => {
   await act(async () => execution.setQuery('Original question'))
   expect(container.textContent).toContain('Start retrieval test')
   expect(container.textContent).not.toContain('No relevant results')
@@ -150,19 +146,27 @@ it('typing alone stays in the initial state; pagination uses the submitted query
       similarity_threshold: 0.8,
     })
   })
-  await act(async () => execution.handlePageChange(2))
-  expect(calls.at(-1)).toMatchObject({
-    question: 'Original question',
-    page: 2,
-    size: 20,
-    similarity_threshold: 0.2,
-  })
+  expect(execution.totalResults).toBe(40)
+  expect(execution.results).toHaveLength(1)
+  expect(container.textContent).not.toContain('Previous')
+  expect(container.textContent).not.toContain('Next page')
   await act(async () => execution.handlePageSizeChange(10))
   expect(calls.at(-1)).toMatchObject({
     question: 'Original question',
     page: 1,
     size: 10,
+    top_k: 1024,
+    similarity_threshold: 0.2,
   })
+  await act(async () => execution.handleDocFilter('a', true))
+  expect(calls.at(-1)).toMatchObject({
+    page: 1,
+    size: 10,
+    doc_ids: ['a'],
+    top_k: 1024,
+  })
+  await act(async () => execution.handleClearDocFilter())
+  expect(calls.at(-1)).toMatchObject({ page: 1, size: 10, doc_ids: null })
 })
 
 it('disabling metadata filtering clears the immediate Apply request, rather than reusing the old filter', async () => {
@@ -180,7 +184,6 @@ it('disabling metadata filtering clears the immediate Apply request, rather than
   })
   await act(async () =>
     execution.runSearch({
-      page: 1,
       config: { activeMetaDataFilter: undefined },
     }),
   )

@@ -68,7 +68,7 @@ export const AdvancedParamsSection: React.FC<AdvancedParamsSectionProps> = ({
           <div className="grid grid-cols-2 gap-space-base">
             <div>
               <label className="mb-1 block text-xs font-medium text-text-secondary">
-                {t('knowledge.search.config.pageSize')}
+                {t('knowledge.search.topResults')}
               </label>
               <Input
                 type="number"

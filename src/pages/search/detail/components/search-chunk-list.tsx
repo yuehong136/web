@@ -8,7 +8,6 @@ import type { ChunkResult } from '@/types/search'
 
 interface SearchChunkListProps {
   chunks: ChunkResult[]
-  total: number
   isLoading: boolean
   onViewDetail: (chunk: ChunkResult, allChunks: ChunkResult[]) => void
 }
@@ -120,7 +119,6 @@ const SearchChunkCard: FC<{
 
 const SearchChunkList: FC<SearchChunkListProps> = ({
   chunks,
-  total,
   isLoading,
   onViewDetail,
 }) => {
@@ -159,7 +157,7 @@ const SearchChunkList: FC<SearchChunkListProps> = ({
           {t('searchPage.workspace.results')}
         </span>
         <span className="text-xs text-text-tertiary">
-          {t('searchPage.workspace.count', { count: total })}
+          {t('searchPage.workspace.count', { count: chunks.length })}
         </span>
       </div>
 

@@ -13,37 +13,40 @@ export interface DatasetGraphResponse {
 
 export const knowledgeRetrievalAPI = {
   // 执行检索测试
-  test: async (data: {
-    reference_metadata?: ReferenceMetadataConfig
-    kb_ids: string[]
-    question: string
-    page?: number
-    size?: number
-    doc_ids?: string[] | null
-    similarity_threshold?: number
-    vector_similarity_weight?: number
-    use_kg?: boolean
-    top_k?: number
-    rerank_id?: string | null
-    tenant_rerank_id?: number | null
-    search_id?: string | null
-    highlight?: boolean
-    keyword?: boolean
-    search_mode?: {
-      type: 'sparse' | 'dense' | 'hybrid' | 'fusion'
-      weight_dense?: number
-      weight_sparse?: number
-      weights?: string
-    } | null
-    cross_languages?: string[] | null
-    meta_data_filter?: {
-      method: 'auto' | 'semi_auto' | 'manual'
-      logic?: 'and' | 'or'
-      semi_auto?: Array<string | { key: string; op?: string }>
-      manual?: Array<{ key: string; op: string; value: string }>
-    }
-    metadata_condition?: MetadataCondition
-  }): Promise<{
+  test: async (
+    data: {
+      reference_metadata?: ReferenceMetadataConfig
+      kb_ids: string[]
+      question: string
+      page?: number
+      size?: number
+      doc_ids?: string[] | null
+      similarity_threshold?: number
+      vector_similarity_weight?: number
+      use_kg?: boolean
+      top_k?: number
+      rerank_id?: string | null
+      tenant_rerank_id?: number | null
+      search_id?: string | null
+      highlight?: boolean
+      keyword?: boolean
+      search_mode?: {
+        type: 'sparse' | 'dense' | 'hybrid' | 'fusion'
+        weight_dense?: number
+        weight_sparse?: number
+        weights?: string
+      } | null
+      cross_languages?: string[] | null
+      meta_data_filter?: {
+        method: 'auto' | 'semi_auto' | 'manual'
+        logic?: 'and' | 'or'
+        semi_auto?: Array<string | { key: string; op?: string }>
+        manual?: Array<{ key: string; op: string; value: string }>
+      }
+      metadata_condition?: MetadataCondition
+    },
+    options?: { signal?: AbortSignal },
+  ): Promise<{
     total: number
     chunks: Array<{
       document_metadata?: Record<string, unknown>
@@ -72,7 +75,11 @@ export const knowledgeRetrievalAPI = {
     return apiClient.post(
       '/v1/datasets/search',
       { ...body, dataset_ids: kb_ids },
-      { ...knowledgeRestConfig, responseContract: 'rest200' },
+      {
+        ...knowledgeRestConfig,
+        responseContract: 'rest200',
+        signal: options?.signal,
+      },
     )
   },
 }

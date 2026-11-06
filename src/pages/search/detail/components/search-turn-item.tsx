@@ -4,9 +4,17 @@ import { useTranslation } from 'react-i18next'
 import {
   SearchExecutionPhase,
   type ChunkResult,
+  type DocAgg,
   type SearchTurn,
 } from '@/types/search'
 import { Button } from '@/components/ui/button'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 import SearchChunkList from './search-chunk-list'
 import SearchDocFilterRail from './search-doc-filter-rail'
@@ -23,6 +31,12 @@ interface SearchTurnItemProps {
   onDocFilterChange: (turnId: string, docIds: string[] | null) => void
   onAskRelated: (question: string) => void
   onViewChunkDetail: (chunk: ChunkResult, allChunks: ChunkResult[]) => void
+  resultSize?: number
+  isRefining?: boolean
+  refinementError?: boolean
+  onResultSizeChange?: (size: number) => void
+  onRetryResults?: () => void
+  sourceOptions?: DocAgg[]
 }
 
 function SearchTurnItem({
@@ -35,6 +49,12 @@ function SearchTurnItem({
   onDocFilterChange,
   onAskRelated,
   onViewChunkDetail,
+  resultSize = 10,
+  isRefining = false,
+  refinementError = false,
+  onResultSizeChange,
+  onRetryResults,
+  sourceOptions,
 }: SearchTurnItemProps) {
   const { t } = useTranslation()
   const bodyId = useId()
@@ -59,7 +79,7 @@ function SearchTurnItem({
   return (
     <section
       className="min-w-0 border-b border-border-subtle pb-space-lg"
-      aria-busy={turn.isStreaming}
+      aria-busy={turn.isStreaming || isRefining}
     >
       <div className="mb-space-base flex flex-wrap items-center justify-between gap-space-sm">
         <div className="flex min-w-0 flex-wrap items-center gap-space-sm text-xs text-text-secondary">
@@ -72,7 +92,7 @@ function SearchTurnItem({
             </span>
           )}
           <span>
-            {t('searchPage.workspace.matches', {
+            {t('searchPage.workspace.candidateMatches', {
               count: turn.total,
               documents: turn.docAggs.length,
             })}
@@ -139,19 +159,58 @@ function SearchTurnItem({
                   onViewDetail={onViewChunkDetail}
                 />
                 <SearchDocFilterRail
-                  docAggs={turn.docAggs}
+                  disabled={turn.isStreaming}
+                  docAggs={sourceOptions ?? turn.docAggs}
                   selectedDocIds={selectedDocIds}
                   onSelectionChange={(ids) => onDocFilterChange(turn.id, ids)}
                 />
               </div>
             ) : (
               <SearchDocFilterRail
-                docAggs={turn.docAggs}
+                disabled={turn.isStreaming}
+                docAggs={sourceOptions ?? turn.docAggs}
                 selectedDocIds={selectedDocIds}
                 onSelectionChange={(ids) => onDocFilterChange(turn.id, ids)}
               />
             )}
             <div>
+              {onResultSizeChange && (
+                <div className="mb-space-sm flex items-center gap-space-sm">
+                  <span className="text-sm text-text-secondary">
+                    {t('searchPage.workspace.topResults')}
+                  </span>
+                  <Select
+                    value={String(resultSize)}
+                    onValueChange={(value) => onResultSizeChange(Number(value))}
+                    disabled={turn.isStreaming}
+                  >
+                    <SelectTrigger
+                      aria-label={t('searchPage.workspace.topResults')}
+                      className="w-24"
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[10, 20, 50, 100].map((size) => (
+                        <SelectItem key={size} value={String(size)}>
+                          {size}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              {refinementError && (
+                <p
+                  role="status"
+                  className="mb-space-sm text-sm text-status-error"
+                >
+                  {t('searchPage.workspace.failed')}{' '}
+                  <Button variant="outline" size="sm" onClick={onRetryResults}>
+                    {t('common.retry')}
+                  </Button>
+                </p>
+              )}
               <Button
                 variant="ghost"
                 size="sm"
@@ -177,9 +236,9 @@ function SearchTurnItem({
               {showChunks && (
                 <SearchChunkList
                   chunks={filteredChunks}
-                  total={turn.total}
                   isLoading={
-                    turn.phase === SearchExecutionPhase.RETRIEVING &&
+                    (isRefining ||
+                      turn.phase === SearchExecutionPhase.RETRIEVING) &&
                     filteredChunks.length === 0
                   }
                   onViewDetail={onViewChunkDetail}

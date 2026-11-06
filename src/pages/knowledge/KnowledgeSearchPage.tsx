@@ -118,7 +118,6 @@ const KnowledgeSearchWorkbench: React.FC<{ id?: string }> = ({ id }) => {
 
       if (execution.hasSearched && execution.query.trim()) {
         void execution.runSearch({
-          page: 1,
           pageSize: nextConfig.pageSize,
           config: {
             searchParams: nextConfig.searchParams,
@@ -165,10 +164,7 @@ const KnowledgeSearchWorkbench: React.FC<{ id?: string }> = ({ id }) => {
             selectedDocIds={execution.selectedDocIds}
             showDocFilter={execution.showDocFilter}
             highlight={params.searchParams.highlight}
-            currentPage={execution.currentPage}
             pageSize={execution.pageSize}
-            totalPages={execution.totalPages}
-            pageNumbers={execution.pageNumbers}
             onToggleDocFilter={execution.toggleDocFilter}
             onDocFilter={execution.handleDocFilter}
             onClearDocFilter={execution.handleClearDocFilter}
@@ -177,7 +173,6 @@ const KnowledgeSearchWorkbench: React.FC<{ id?: string }> = ({ id }) => {
               closeConfigPanel()
               preview.openPreview(result)
             }}
-            onPageChange={execution.handlePageChange}
             onPageSizeChange={execution.handlePageSizeChange}
           />
 

@@ -77,10 +77,8 @@ const SearchDetailContent: React.FC = () => {
     isSaving,
     isDirty,
   } = useSearchSettings(searchApp)
-  const { turns, phase, isSearching, search, stop, clear } = useSearchExecution(
-    searchApp,
-    appliedConfig,
-  )
+  const { turns, phase, isSearching, search, stop, clear, retrieval } =
+    useSearchExecution(searchApp, appliedConfig)
 
   const [docFilterByTurnId, setDocFilterByTurnId] = useState<
     Record<string, string[] | null>
@@ -368,14 +366,23 @@ const SearchDetailContent: React.FC = () => {
                       expandedByTurnId[turn.id] ?? index === turns.length - 1
                     }
                     turn={turn}
+                    resultSize={retrieval.sizes[turn.id]}
+                    isRefining={retrieval.pending[turn.id]}
+                    refinementError={retrieval.errors[turn.id]}
+                    sourceOptions={retrieval.sources[turn.id]}
+                    onResultSizeChange={(size) =>
+                      void retrieval.refine(turn.id, { size })
+                    }
+                    onRetryResults={() => void retrieval.refine(turn.id, {})}
                     selectedDocIds={docFilterByTurnId[turn.id] ?? null}
                     onToggleExpand={() => handleToggleTurnExpand(turn.id)}
-                    onDocFilterChange={(turnId, docIds) =>
+                    onDocFilterChange={(turnId, docIds) => {
                       setDocFilterByTurnId((prev) => ({
                         ...prev,
                         [turnId]: docIds,
                       }))
-                    }
+                      void retrieval.refine(turnId, { docIds })
+                    }}
                     onAskRelated={handleSearch}
                     onViewChunkDetail={handleOpenChunkDetail}
                   />

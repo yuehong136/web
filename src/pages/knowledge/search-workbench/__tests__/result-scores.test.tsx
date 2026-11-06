@@ -60,16 +60,12 @@ const renderPanel = (results: RetrievalResultView[]) =>
         selectedDocIds={[]}
         showDocFilter={false}
         highlight={false}
-        currentPage={1}
         pageSize={20}
-        totalPages={1}
-        pageNumbers={[1]}
         onToggleDocFilter={vi.fn()}
         onDocFilter={vi.fn()}
         onClearDocFilter={vi.fn()}
         onSelectAllDocs={vi.fn()}
         onOpenResultPreview={vi.fn()}
-        onPageChange={vi.fn()}
         onPageSizeChange={vi.fn()}
       />,
     ),

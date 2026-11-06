@@ -6,7 +6,13 @@ import { HighlightText } from '@/components/knowledge/HighlightText'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { FileIcon } from '@/components/ui/file-icon'
-import { PageSizeSelector } from '@/components/ui/page-size-selector'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Tooltip } from '@/components/ui/tooltip'
 
 import {
@@ -40,16 +46,12 @@ interface ResultPanelProps {
   selectedDocIds: string[]
   showDocFilter: boolean
   highlight: boolean
-  currentPage: number
   pageSize: number
-  totalPages: number
-  pageNumbers: number[]
   onToggleDocFilter: () => void
   onDocFilter: (docId: string, checked: boolean) => void
   onClearDocFilter: () => void
   onSelectAllDocs: () => void
   onOpenResultPreview: (result: RetrievalResultView) => void
-  onPageChange: (page: number) => void
   onPageSizeChange: (size: number) => void
 }
 
@@ -67,16 +69,12 @@ export const ResultPanel: React.FC<ResultPanelProps> = ({
   selectedDocIds,
   showDocFilter,
   highlight,
-  currentPage,
   pageSize,
-  totalPages,
-  pageNumbers,
   onToggleDocFilter,
   onDocFilter,
   onClearDocFilter,
   onSelectAllDocs,
   onOpenResultPreview,
-  onPageChange,
   onPageSizeChange,
 }) => {
   const { t } = useTranslation()
@@ -100,7 +98,7 @@ export const ResultPanel: React.FC<ResultPanelProps> = ({
                     ? t('knowledge.search.errors.title')
                     : !hasSearched
                       ? t('knowledge.search.startTitle')
-                      : t('knowledge.search.foundResults', {
+                      : t('knowledge.search.candidateTotal', {
                           count: totalResults,
                         })}
               </span>
@@ -140,6 +138,33 @@ export const ResultPanel: React.FC<ResultPanelProps> = ({
               )}
             </div>
           </div>
+        </div>
+
+        <div className="mt-space-sm flex items-center gap-space-sm">
+          <span className="text-sm text-text-secondary">
+            {t('knowledge.search.topResults')}
+          </span>
+          <Select
+            value={String(pageSize)}
+            onValueChange={(value) => onPageSizeChange(Number(value))}
+            disabled={isSearching}
+          >
+            <SelectTrigger
+              aria-label={t('knowledge.search.topResults')}
+              className="w-24"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {[...new Set([...PAGE_SIZE_OPTIONS, pageSize])]
+                .sort((a, b) => a - b)
+                .map((size) => (
+                  <SelectItem key={size} value={String(size)}>
+                    {size}
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {requestScope && (
@@ -209,7 +234,7 @@ export const ResultPanel: React.FC<ResultPanelProps> = ({
               <RetrievalResultCard
                 key={result.id}
                 result={result}
-                order={(currentPage - 1) * pageSize + index + 1}
+                order={index + 1}
                 highlight={highlight}
                 onOpen={() => onOpenResultPreview(result)}
               />
@@ -217,59 +242,6 @@ export const ResultPanel: React.FC<ResultPanelProps> = ({
           </div>
         )}
       </div>
-
-      {results.length > 0 && (
-        <div className="border-t border-border-default bg-background-surface px-space-base py-space-sm">
-          <div className="flex flex-wrap items-center justify-between gap-space-base">
-            <div className="text-sm text-text-secondary">
-              {t('knowledge.search.totalResults', { count: totalResults })}
-            </div>
-
-            <div className="flex flex-wrap items-center gap-space-base">
-              <PageSizeSelector
-                pageSize={pageSize}
-                onChange={onPageSizeChange}
-                options={[...PAGE_SIZE_OPTIONS]}
-              />
-
-              <div className="flex items-center gap-space-xs">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onPageChange(currentPage - 1)}
-                  disabled={isSearching || currentPage <= 1}
-                >
-                  {t('knowledge.search.previousPage')}
-                </Button>
-
-                <div className="flex items-center gap-space-xs">
-                  {pageNumbers.map((pageNum) => (
-                    <Button
-                      key={pageNum}
-                      disabled={isSearching}
-                      variant={currentPage === pageNum ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => onPageChange(pageNum)}
-                      className="min-w-[32px]"
-                    >
-                      {pageNum}
-                    </Button>
-                  ))}
-                </div>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onPageChange(currentPage + 1)}
-                  disabled={isSearching || currentPage >= totalPages}
-                >
-                  {t('knowledge.search.nextPage')}
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </section>
   )
 }

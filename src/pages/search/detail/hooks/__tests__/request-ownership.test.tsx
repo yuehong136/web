@@ -124,3 +124,109 @@ it('clearing a pending run cannot repopulate results when retrieval later finish
   expect(current.phase).toBe(SearchExecutionPhase.IDLE)
   expect(conversationAPI.generateRelatedQuestions).not.toHaveBeenCalled()
 })
+
+it('Top is independent of candidate top_k, survives source changes and new rounds, and refines retrieval only', async () => {
+  const docs = [
+    { doc_id: 'doc-a', doc_name: 'A', count: 34 },
+    { doc_id: 'doc-b', doc_name: 'B', count: 37 },
+  ]
+  const test = vi
+    .spyOn(knowledgeAPI.retrievalTest, 'test')
+    .mockResolvedValue({ ...empty, total: 71, doc_aggs: docs })
+  await act(async () => root.render(<Surface value={app('A')} />))
+  await act(async () => current.search('Question'))
+  const id = current.turns[0].id
+  expect(test.mock.calls[0][0]).toMatchObject({
+    page: 1,
+    size: 10,
+    top_k: 8,
+    search_id: 'A',
+  })
+  expect(current.turns[0].total).toBe(71)
+  await act(async () => current.retrieval.refine(id, { size: 50 }))
+  await act(async () => current.retrieval.refine(id, { docIds: ['doc-b'] }))
+  expect(test.mock.calls.at(-1)?.[0]).toMatchObject({
+    page: 1,
+    size: 50,
+    top_k: 8,
+    doc_ids: ['doc-b'],
+    search_id: 'A',
+    question: 'Question',
+  })
+  expect(conversationAPI.generateRelatedQuestions).toHaveBeenCalledTimes(1)
+  await act(async () => current.retrieval.refine(id, { docIds: null }))
+  expect(test.mock.calls.at(-1)?.[0]).toMatchObject({ size: 50, doc_ids: null })
+  const before = test.mock.calls.length
+  await act(async () => current.retrieval.refine(id, { docIds: [] }))
+  expect(test).toHaveBeenCalledTimes(before)
+  expect(current.turns[0].total).toBe(0)
+  await act(async () => current.search('Next question'))
+  expect(test.mock.calls.at(-1)?.[0]).toMatchObject({
+    size: 50,
+    doc_ids: null,
+    top_k: 8,
+  })
+})
+
+it('a late Top response cannot overwrite a newer source selection and failures retry the exact submitted request', async () => {
+  const old = deferred()
+  const test = vi
+    .spyOn(knowledgeAPI.retrievalTest, 'test')
+    .mockResolvedValueOnce(empty)
+    .mockReturnValueOnce(old.promise)
+    .mockResolvedValueOnce({ ...empty, total: 37 })
+    .mockRejectedValueOnce(new Error('private credentials'))
+    .mockResolvedValue(empty)
+  await act(async () => root.render(<Surface value={app('A')} />))
+  await act(async () => current.search('Question'))
+  const id = current.turns[0].id
+  let pending!: Promise<void>
+  await act(async () => {
+    pending = current.retrieval.refine(id, { size: 20 })
+  })
+  const oldSignal = test.mock.calls[1][1]?.signal
+  await act(async () => current.retrieval.refine(id, { docIds: ['chosen'] }))
+  expect(oldSignal?.aborted).toBe(true)
+  await act(async () => {
+    old.resolve({ ...empty, total: 999 })
+    await pending
+  })
+  expect(current.turns[0].total).toBe(37)
+  await act(async () => current.retrieval.refine(id, { size: 100 }))
+  expect(current.retrieval.errors[id]).toBe(true)
+  expect(JSON.stringify(current.turns)).not.toContain('private credentials')
+  const failed = test.mock.calls.at(-1)?.[0]
+  await act(async () => current.retrieval.refine(id, {}))
+  expect(test.mock.calls.at(-1)?.[0]).toEqual(failed)
+  expect(current.retrieval.errors[id]).toBe(false)
+})
+
+it('clearing or changing apps aborts refinement ownership and resets its selected Top', async () => {
+  const old = deferred()
+  const test = vi
+    .spyOn(knowledgeAPI.retrievalTest, 'test')
+    .mockResolvedValueOnce(empty)
+    .mockReturnValueOnce(old.promise)
+    .mockResolvedValue(empty)
+  await act(async () => root.render(<Surface value={app('A')} />))
+  await act(async () => current.search('Question'))
+  let pending!: Promise<void>
+  await act(async () => {
+    pending = current.retrieval.refine(current.turns[0].id, { size: 100 })
+  })
+  const signal = test.mock.calls[1][1]?.signal
+  await act(async () => root.render(<Surface value={app('B')} />))
+  expect(signal?.aborted).toBe(true)
+  await act(async () => {
+    old.resolve({ ...empty, total: 999 })
+    await pending
+  })
+  expect(current.turns).toEqual([])
+  await act(async () => current.search('New question'))
+  expect(test.mock.calls.at(-1)?.[0]).toMatchObject({
+    size: 10,
+    search_id: 'B',
+  })
+  await act(async () => current.clear())
+  expect(current.retrieval.sizes).toEqual({})
+})

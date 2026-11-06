@@ -6,6 +6,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import type { DocAgg } from '@/types/search'
 
 interface SearchDocFilterRailProps {
+  disabled?: boolean
   docAggs: DocAgg[]
   /** null means all documents; [] intentionally means no documents. */
   selectedDocIds: string[] | null
@@ -14,6 +15,7 @@ interface SearchDocFilterRailProps {
 const PAGE_SIZE = 100
 
 function SearchDocFilterRail({
+  disabled = false,
   docAggs,
   selectedDocIds,
   onSelectionChange,
@@ -37,7 +39,10 @@ function SearchDocFilterRail({
     )
   }
   return (
-    <fieldset className="min-w-0 rounded-radius-lg border border-border-subtle bg-background-subtle p-space-base">
+    <fieldset
+      disabled={disabled}
+      className="min-w-0 rounded-radius-lg border border-border-subtle bg-background-subtle p-space-base"
+    >
       <legend className="px-space-xs text-sm font-semibold text-text-primary">
         {t('searchPage.workspace.sources')}
       </legend>

@@ -28,6 +28,7 @@ import {
   buildRuntimeConfig,
   type SearchRuntimeOptions,
 } from './search-runtime-config'
+import { useSearchRetrieval } from './use-search-retrieval'
 
 const isRunningPhase = (phase: SearchExecutionPhase) => {
   return (
@@ -88,6 +89,13 @@ export const useSearchExecution = (
     },
     [],
   )
+  const retrieval = useSearchRetrieval(scopeKey, updateTurn)
+  const {
+    register: registerRetrieval,
+    reset: resetRetrieval,
+    resultSize,
+    captureSources,
+  } = retrieval
 
   const resetPendingStreamPatch = useCallback(() => {
     if (streamFrameRef.current !== null) {
@@ -271,27 +279,32 @@ export const useSearchExecution = (
                   }
                 : undefined
 
+        const retrievalRequest = {
+          kb_ids: config.kb_ids,
+          question: query.trim(),
+          page: 1,
+          size: resultSize,
+          top_k: config.top_k,
+          search_id: searchApp.id,
+          doc_ids: options?.docIds?.length ? options.docIds : null,
+          similarity_threshold: config.similarity_threshold,
+          vector_similarity_weight: config.vector_similarity_weight,
+          use_kg: config.use_kg,
+          rerank_id: config.use_rerank ? config.rerank_id || null : null,
+          highlight: true,
+          keyword: true,
+          cross_languages: config.cross_languages?.length
+            ? config.cross_languages
+            : null,
+          meta_data_filter: metaDataFilter,
+          reference_metadata: config.reference_metadata,
+        }
+        registerRetrieval(turnId, retrievalRequest)
         const retrievalPromise = knowledgeAPI.retrievalTest
-          .test({
-            kb_ids: config.kb_ids,
-            question: query.trim(),
-            page: 1,
-            size: config.top_k || 8,
-            doc_ids: options?.docIds?.length ? options.docIds : null,
-            similarity_threshold: config.similarity_threshold,
-            vector_similarity_weight: config.vector_similarity_weight,
-            use_kg: config.use_kg,
-            rerank_id: config.use_rerank ? config.rerank_id || null : null,
-            highlight: true,
-            keyword: true,
-            cross_languages: config.cross_languages?.length
-              ? config.cross_languages
-              : null,
-            meta_data_filter: metaDataFilter,
-            reference_metadata: config.reference_metadata,
-          })
+          .test(retrievalRequest, { signal })
           .then((result) => {
             if (!ownsRequest() || signal.aborted) return
+            captureSources(turnId, result.doc_aggs)
             updateTurn(turnId, {
               chunks: result.chunks as ChunkResult[],
               docAggs: result.doc_aggs as DocAgg[],
@@ -440,6 +453,9 @@ export const useSearchExecution = (
     },
     [
       appliedConfig,
+      captureSources,
+      registerRetrieval,
+      resultSize,
       ensureRerankModelMap,
       flushPendingStreamPatch,
       resetPendingStreamPatch,
@@ -468,13 +484,14 @@ export const useSearchExecution = (
   }, [resetPendingStreamPatch, flushPendingStreamPatch])
 
   const clear = useCallback(() => {
+    resetRetrieval()
     requestRevision.current++
     abortControllerRef.current?.abort()
     abortControllerRef.current = null
     resetPendingStreamPatch()
     setTurns([])
     setPhase(SearchExecutionPhase.IDLE)
-  }, [resetPendingStreamPatch])
+  }, [resetPendingStreamPatch, resetRetrieval])
 
   return {
     turns,
@@ -483,5 +500,6 @@ export const useSearchExecution = (
     search,
     stop,
     clear,
+    retrieval,
   }
 }
