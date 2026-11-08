@@ -37,7 +37,7 @@ export default {
       error: '渠道加载失败',
       errorDescription: '暂时无法读取渠道信息，请稍后重试。',
       empty: '还没有渠道',
-      emptyDescription: '创建飞书渠道，并绑定一个 MultiRAG Agent 或对话应用。',
+      emptyDescription: '选择可用平台，并绑定一个 MultiRAG Agent 或对话应用。',
       providersUnavailable:
         '暂时取不到渠道类型元数据，无法新建或编辑渠道；已有渠道的启停与删除不受影响。',
     },

@@ -42,7 +42,7 @@ export default {
         'Channel information is temporarily unavailable. Try again shortly.',
       empty: 'No channels yet',
       emptyDescription:
-        'Create a Feishu channel and bind a MultiRAG Agent or dialog app.',
+        'Choose an available platform and bind a MultiRAG Agent or dialog app.',
       providersUnavailable:
         'Channel type metadata is temporarily unavailable, so channels cannot be created or edited. Enabling, disabling and deleting existing channels still work.',
     },

@@ -60,14 +60,14 @@ export const ChannelRow = ({
   const errorCode = channel.runtime?.last_error_code
 
   return (
-    <li className="gap-space-base px-space-base py-space-sm hover:bg-surface-secondary flex items-center border-t border-border-subtle transition-colors first:border-t-0">
+    <li className="flex items-center gap-space-base border-t border-border-subtle px-space-base py-space-sm transition-colors first:border-t-0 hover:bg-surface-secondary">
       <span
         className={`size-2 shrink-0 rounded-full ${HEALTH_DOT[health]}`}
         aria-hidden="true"
       />
 
       <div className="min-w-0 flex-1">
-        <div className="gap-space-sm flex items-center">
+        <div className="flex items-center gap-space-sm">
           <span className="truncate font-medium text-text-primary">
             {channel.name}
           </span>
@@ -75,7 +75,7 @@ export const ChannelRow = ({
               ten rows a banner per channel is taller than the list it explains. */}
           {stale ? (
             <span
-              className="gap-space-xs rounded-radius-sm inline-flex shrink-0 items-center bg-status-warning-subtle px-1.5 py-0.5 text-xs text-status-warning"
+              className="inline-flex shrink-0 items-center gap-space-xs rounded-radius-sm bg-status-warning-subtle px-1.5 py-0.5 text-xs text-status-warning"
               title={t('channel.binding.revisionStale')}
             >
               <TriangleAlert className="size-3" aria-hidden="true" />
@@ -84,14 +84,14 @@ export const ChannelRow = ({
           ) : null}
           {errorCode ? (
             <span
-              className="rounded-radius-sm shrink-0 bg-status-error-subtle px-1.5 py-0.5 font-mono text-xs text-status-error"
+              className="shrink-0 rounded-radius-sm bg-status-error-subtle px-1.5 py-0.5 font-mono text-xs text-status-error"
               title={t('channel.runtime.errorCode', { code: errorCode })}
             >
               {errorCode}
             </span>
           ) : null}
         </div>
-        <p className="text-text-caption truncate text-xs">
+        <p className="truncate text-xs text-text-caption">
           {targetType ? (
             <>
               {t(
@@ -106,14 +106,14 @@ export const ChannelRow = ({
         </p>
       </div>
 
-      <div className="gap-space-xs hidden shrink-0 items-center text-sm sm:flex">
+      <div className="hidden shrink-0 items-center gap-space-xs text-sm sm:flex">
         <span className={HEALTH_TEXT[health]}>
           {t(`channel.health.${health}`)}
         </span>
       </div>
 
       <span
-        className="text-text-caption hidden w-28 shrink-0 text-right text-xs lg:block"
+        className="hidden w-28 shrink-0 text-right text-xs text-text-caption lg:block"
         title={
           channel.runtime?.heartbeat_at
             ? formatDate(channel.runtime.heartbeat_at)
@@ -127,7 +127,7 @@ export const ChannelRow = ({
           two of them destructive. A menu keeps the row scannable and puts a
           deliberate click in front of delete. */}
       <DropdownMenu>
-        <DropdownMenuTrigger>
+        <DropdownMenuTrigger asChild>
           <Button
             size="sm"
             variant="ghost"
