@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid'
 import { Position, type Edge } from '@xyflow/react'
 import humanIdModule from 'human-id'
 import type {
@@ -46,7 +47,6 @@ import type {
   ReconstructedGraph,
   SerializeGraphOptions,
 } from './types'
-
 const DEFAULT_GRAPH_POSITION = { x: 120, y: 120 }
 const DEFAULT_EDGE_TYPE = 'buttonEdge'
 const COMPONENT_GRID_X_GAP = 280
@@ -59,7 +59,7 @@ const createHumanId =
   (humanIdModule as { default?: () => string; humanId?: () => string })
     .default ||
   (humanIdModule as { humanId?: () => string }).humanId ||
-  (() => crypto.randomUUID())
+  (() => uuidv4())
 
 type FormRecord = Record<string, unknown>
 type AgentToolEntry = {

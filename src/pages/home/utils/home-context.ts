@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid'
 import { resolveHomeModelIdentity } from './model-identity'
 import type { MyLLMProvider } from '@/stores/model'
 import i18n from '@/locales/i18n'
@@ -10,7 +11,6 @@ import { getCurrentLanguage } from '@/locales/i18n'
 import type { DialogApp } from '@/types/api'
 import type { MCPServer } from '@/types/mcp'
 import type { ChatMessage } from '@/pages/home/types'
-
 export interface HomeContextSelection {
   selectedApp?: DialogApp | null
   modelProviders?: MyLLMProvider
@@ -78,7 +78,7 @@ export function createHomeTurn({
   scope: WorkspaceScope
   resources: readonly ContextResource[]
 }): { userMessage: ChatMessage; assistantMessage: ChatMessage } {
-  const assistantId = crypto.randomUUID()
+  const assistantId = uuidv4()
   const contextManifest = createContextManifest({
     scope,
     messageId: assistantId,
@@ -92,7 +92,7 @@ export function createHomeTurn({
   const timestamp = new Date().toLocaleTimeString(getCurrentLanguage())
   return {
     userMessage: {
-      id: crypto.randomUUID(),
+      id: uuidv4(),
       role: 'user',
       content: content.trim(),
       timestamp,

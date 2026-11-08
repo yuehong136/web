@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid'
 import { useEffect, useRef } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { skillsAPI } from '@/api/skills'
@@ -7,7 +8,6 @@ import type {
   SkillSearchMode,
 } from '@/api/skill-types'
 import { MutationErrorFeedback } from '@/lib/mutation-error-feedback'
-
 export const skillKeys = {
   all: ['skill-assets'] as const,
   capabilities: () => [...skillKeys.all, 'capabilities'] as const,
@@ -142,7 +142,7 @@ export function useSkillAction(
   return {
     ...mutation,
     requestKey: (intent: string) => {
-      const key = keys.current.get(intent) || crypto.randomUUID()
+      const key = keys.current.get(intent) || uuidv4()
       keys.current.set(intent, key)
       return key
     },

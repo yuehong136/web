@@ -1,7 +1,7 @@
+import { v4 as uuidv4 } from 'uuid'
 import { useEffect, useState, type MutableRefObject } from 'react'
 import { useAuthStore } from '@/stores/auth'
 import { sameRequestIdentity } from '@/lib/request-identity'
-
 export interface HomeScopeSync {
   scope: string
   target: string | null
@@ -48,7 +48,7 @@ export function useHomeScope({
     syncedRef.current = { scope: scopeKey, target }
     detachRequest()
     resetConversation()
-    localThreadIdRef.current = crypto.randomUUID()
+    localThreadIdRef.current = uuidv4()
     if (target) void loadHistory(target)
   }, [
     scopeKey,

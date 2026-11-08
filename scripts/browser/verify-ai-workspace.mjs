@@ -7,6 +7,7 @@ import { chromium } from 'playwright'
 import { installWorkspaceFixtures } from './workspace-fixtures.mjs'
 import { verifyWorkspacePaths } from './workspace-paths.mjs'
 import { profileRouteLoads } from './profile-route-loads.mjs'
+import { verifyHttpHome } from './verify-http-home.mjs'
 
 const production = process.argv.includes('--production')
 const output = `output/playwright/round2/${production ? 'browser' : 'browser-dev'}`
@@ -78,12 +79,13 @@ try {
   try {
     const result = await verifyWorkspacePaths(page, { baseURL, output, state })
     assert.deepEqual(errors, [], 'Browser page errors')
+    const httpHome = await verifyHttpHome(browser, { baseURL, output })
     const routeLoads = production
       ? await profileRouteLoads(browser, { baseURL, output })
       : null
     writeFileSync(
       `${output}/results.json`,
-      `${JSON.stringify({ production, browser: browser.version(), checks: result, routeLoads, pageErrors: errors }, null, 2)}\n`,
+      `${JSON.stringify({ production, browser: browser.version(), checks: result, routeLoads, httpHome, pageErrors: errors }, null, 2)}\n`,
     )
     console.log(
       JSON.stringify(

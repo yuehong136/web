@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid'
 import type { ModelIdentitySnapshot } from '@/lib/model-identity'
 import {
   useCallback,
@@ -17,7 +18,6 @@ import {
   type StructuredChatState,
 } from '@/lib/streaming'
 import type { ChatMessage, ChatSession } from '@/types/mcp'
-
 interface OwnedChatRun {
   controller: AbortController
   sessionId: string
@@ -123,7 +123,7 @@ export const useMcpChatRun = ({
       const owner: OwnedChatRun = {
         controller: new AbortController(),
         sessionId: targetSessionId,
-        messageId: crypto.randomUUID(),
+        messageId: uuidv4(),
         state: createInitialStructuredChatState(),
         saved: false,
         modelIdentity: { ...identity, reference: request.llm_name },
@@ -134,7 +134,7 @@ export const useMcpChatRun = ({
       setState(owner.state)
       setIsStreaming(true)
       const userMessage: ChatMessage = {
-        id: crypto.randomUUID(),
+        id: uuidv4(),
         role: 'user',
         content: request.messages.at(-1)?.content ?? '',
         timestamp: new Date().toLocaleTimeString(),
