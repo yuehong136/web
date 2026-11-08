@@ -9,8 +9,14 @@ export async function verifyHttpHome(browser, { baseURL, output }) {
   const state = await installWorkspaceFixtures(context)
   await context.route('**/*', async (route) => {
     const url = new URL(route.request().url())
+    // The standard CI build uses localhost:8000; deployment builds can be same-origin.
+    // Both API origins must reach the controlled fixture before static asset routing.
+    if (
+      /^\/(api\/)?v1\//.test(url.pathname) &&
+      [origin, 'http://localhost:8000'].includes(url.origin)
+    )
+      return route.fallback()
     if (url.origin !== origin) return route.abort()
-    if (/^\/(api\/)?v1\//.test(url.pathname)) return route.fallback()
     const response = await route.fetch({
       url: `${baseURL}${url.pathname}${url.search}`,
     })
