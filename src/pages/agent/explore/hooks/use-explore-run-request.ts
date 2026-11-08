@@ -1,3 +1,4 @@
+import { useAuthStore } from '@/stores'
 import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { agentAPI } from '@/api/agent'
@@ -51,6 +52,7 @@ export function useExploreRunRequest({
   return useCallback(
     async (input: ExploreRunRequest) => {
       if (!canSend) return
+      const authorId = useAuthStore.getState().user?.id
       const request = owner.begin()
       if (!request) return
       // 占有成功即接纳：提交的草稿交回所有者清除，之后的失败也不再回填
@@ -101,6 +103,7 @@ export function useExploreRunRequest({
                   {
                     id: createLocalRuntimeMessageId('user'),
                     role: 'user' as const,
+                    authorId,
                     content: input.userMessageContent || content.trim(),
                     files,
                   },

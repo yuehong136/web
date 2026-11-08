@@ -1,3 +1,4 @@
+import { useAuthStore } from '@/stores'
 import { useCallback, type Dispatch, type SetStateAction } from 'react'
 import { useTranslation } from 'react-i18next'
 import { agentAPI } from '@/api/agent'
@@ -78,6 +79,7 @@ export function useAgentRuntimeRequest({
         toast.error(t('agent.runtime.runFailed'))
         return
       }
+      const authorId = useAuthStore.getState().user?.id
       const attempt = owner.begin()
       // A new request has no task ID until its own SSE advertises one.
       setLatestTaskId('')
@@ -100,6 +102,7 @@ export function useAgentRuntimeRequest({
             {
               id: createLocalRuntimeMessageId('user'),
               role: 'user',
+              authorId,
               content: userMessageContent || content.trim(),
               files,
             },

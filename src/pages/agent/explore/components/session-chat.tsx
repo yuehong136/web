@@ -1,3 +1,5 @@
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
+import { useCurrentUserAvatar } from '@/hooks/use-current-user-avatar'
 import { useTranslation } from 'react-i18next'
 import {
   AppScene,
@@ -85,6 +87,7 @@ export function SessionChat({
   onStop,
 }: SessionChatProps) {
   const { t } = useTranslation()
+  const user = useCurrentUserAvatar()
   const readyEmpty =
     active && !loadingSession && !sessionError && messages.length === 0
   return (
@@ -160,6 +163,8 @@ export function SessionChat({
             <RuntimeChatMessageList
               canvasId={canvasId}
               messages={messages}
+              userAvatar={<EntityAvatar {...user} shape="circle" />}
+              userId={user.seed}
               status={status}
               className="max-w-3xl"
               onSubmitAwaitingInputs={onSubmitAwaitingInputs}

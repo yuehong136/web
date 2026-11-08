@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { AppScene, PageEmptyState } from '@/components/patterns'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {
@@ -13,6 +14,8 @@ import type { RuntimeChatComposerMode, RuntimeChatSendRequest } from './types'
 
 interface RuntimeChatPanelProps {
   canvasId?: string
+  userAvatar?: ReactNode
+  userId?: string
   messages: RuntimeMessage[]
   status: AgentRuntimeStatus
   isTaskMode?: boolean
@@ -35,6 +38,8 @@ interface RuntimeChatPanelProps {
 export function RuntimeChatPanel({
   canvasId,
   messages,
+  userAvatar,
+  userId,
   status,
   isTaskMode = false,
   composerMode,
@@ -72,6 +77,8 @@ export function RuntimeChatPanel({
             <RuntimeChatMessageList
               canvasId={canvasId || ''}
               messages={messages}
+              userAvatar={userAvatar}
+              userId={userId}
               status={status}
               density={density}
               onSubmitAwaitingInputs={onSubmitAwaitingInputs}

@@ -1,3 +1,5 @@
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
+import { useCurrentUserAvatar } from '@/hooks/use-current-user-avatar'
 import { memo, useCallback } from 'react'
 import { toast } from '@/lib/toast'
 import { RuntimeChatPanel } from '../../../components/runtime-chat'
@@ -9,6 +11,7 @@ interface AgentChatBoxProps {
 }
 
 function AgentChatBoxBase({ controller }: AgentChatBoxProps) {
+  const user = useCurrentUserAvatar()
   const handleDownloadAttachment = useCallback(
     async (file: RuntimeAttachment) => {
       try {
@@ -24,6 +27,8 @@ function AgentChatBoxBase({ controller }: AgentChatBoxProps) {
     <RuntimeChatPanel
       canvasId={controller.canvasId}
       messages={controller.messages}
+      userId={user.seed}
+      userAvatar={<EntityAvatar {...user} shape="circle" />}
       status={controller.status}
       isTaskMode={controller.isTaskMode}
       composerMode={controller.isTaskMode ? 'hidden' : 'compact'}

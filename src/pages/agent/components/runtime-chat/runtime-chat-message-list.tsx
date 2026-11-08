@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useMemo, useState } from 'react'
+import { Fragment, useCallback, useMemo, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Bubble } from '@ant-design/x'
 import type { BubbleListProps } from '@ant-design/x'
@@ -51,6 +51,9 @@ interface RuntimeChatMessageListProps {
   status: AgentRuntimeStatus
   density?: 'comfortable' | 'compact' | 'flush'
   className?: string
+  /** Caller-owned identity; absent for anonymous visitors and unowned history. */
+  userAvatar?: ReactNode
+  userId?: string
   onSubmitAwaitingInputs: (
     messageId: string,
     values: BeginQuery[],
@@ -65,6 +68,8 @@ export function RuntimeChatMessageList({
   status,
   density = 'comfortable',
   className,
+  userAvatar,
+  userId,
   onSubmitAwaitingInputs,
   onXCardAction,
   onDownloadAttachment,
@@ -209,7 +214,13 @@ export function RuntimeChatMessageList({
         role: message.role,
         content: useTextTyping ? mainContent : message.content || '',
         placement: isUser ? ('end' as const) : ('start' as const),
-        avatar: isUser ? <UserAvatar /> : <AssistantAvatar />,
+        avatar: isUser ? (
+          ((message.authorId && message.authorId === userId
+            ? userAvatar
+            : undefined) ?? <UserAvatar />)
+        ) : (
+          <AssistantAvatar />
+        ),
         loading: shouldShowRuntimeBubbleLoading(renderState, isStreaming),
         streaming: isStreaming,
         typing: useTextTyping ? CHAT_TEXT_TYPING : false,
@@ -374,6 +385,8 @@ export function RuntimeChatMessageList({
     onXCardAction,
     status,
     t,
+    userAvatar,
+    userId,
   ])
 
   return (

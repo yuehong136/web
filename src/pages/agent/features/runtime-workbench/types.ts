@@ -32,6 +32,8 @@ export interface RuntimeAttachment {
 }
 
 export interface RuntimeMessage {
+  /** Known author of a local user turn; never inferred from the viewer. */
+  authorId?: string
   id: string
   role: 'user' | 'assistant' | 'system'
   content: string
