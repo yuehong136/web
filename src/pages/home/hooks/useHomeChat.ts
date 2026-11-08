@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid'
 import { modelIdentityPayload } from '@/lib/model-identity'
 import { useQueryClient } from '@tanstack/react-query'
 import { llmKeys } from '@/hooks/use-llm-request'
@@ -17,7 +18,6 @@ import { llmKeys } from '@/hooks/use-llm-request'
  * 401/429/5xx、业务错误帧）作为消息状态显示，正文、引用与执行步骤保留，
  * 只用固定文案提示，不展示后端错误原文，也不自动重发。
  */
-
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from '@/lib/toast'
@@ -106,7 +106,7 @@ export const useHomeChat = ({
 
   // 当前持有流式状态的请求；为 null 时没有任何请求可以写入
   const requestRef = useRef<HomeChatRequest | null>(null)
-  const localThreadId = useRef(crypto.randomUUID())
+  const localThreadId = useRef(uuidv4())
 
   // 是否是应用对话模式
   const isAppMode = !!selectedApp
@@ -527,7 +527,7 @@ export const useHomeChat = ({
   const clearMessages = useCallback(() => {
     detachRequest()
     resetConversation()
-    localThreadId.current = crypto.randomUUID()
+    localThreadId.current = uuidv4()
   }, [detachRequest, resetConversation])
 
   return {

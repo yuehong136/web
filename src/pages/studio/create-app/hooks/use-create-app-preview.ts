@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid'
 import { modelIdentityPayload } from '@/lib/model-identity'
 import {
   useCallback,
@@ -23,7 +24,6 @@ import { extractReferencesFromSSEData } from '@/utils/reference-replacer'
 import { configSignature, type PreviewStatus } from '../editor-state'
 import type { AppConfig, PreviewMessage } from '../types'
 import { buildPrologueMessages } from '../utils'
-
 interface PreviewOptions {
   dialogId: string | null
   savedConfig: AppConfig | null
@@ -172,7 +172,7 @@ export function useCreateAppPreview(options: PreviewOptions) {
       setRunDetails({ ...baseDetails, status: 'preparing' })
       setStatus('preparing')
       const history = historyOverride ?? messagesRef.current
-      const assistantId = `preview-${run}-${crypto.randomUUID()}`
+      const assistantId = `preview-${run}-${uuidv4()}`
       let appended = false
       const finish = (nextStatus: PreviewStatus) => {
         if (owner.current !== run) return
@@ -201,7 +201,7 @@ export function useCreateAppPreview(options: PreviewOptions) {
         setPreviewMessages([
           ...history,
           {
-            id: `user-${crypto.randomUUID()}`,
+            id: `user-${uuidv4()}`,
             role: 'user',
             content: content.trim(),
           },
