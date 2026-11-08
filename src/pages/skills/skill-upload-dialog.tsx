@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid'
 import { Label } from '@/components/ui/label'
 import { useId, useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -21,7 +22,6 @@ import {
 } from '@/components/ui/dialog'
 import { prepareSkillDirectory } from './skill-upload-package'
 import { SkillError } from './skill-shared'
-
 const schema = z.object({
   name: z
     .string()
@@ -47,14 +47,14 @@ export function SkillUploadDialog({
   const [archive, setArchive] = useState(true)
   const [files, setFiles] = useState<File[]>([])
   const [activate, setActivate] = useState(false)
-  const [requestKey, setRequestKey] = useState(() => crypto.randomUUID())
+  const [requestKey, setRequestKey] = useState(() => uuidv4())
   const action = useSkillAction(onAccepted)
   const form = useForm({
     resolver: zodResolver(schema),
     defaultValues: { name: '', version: '1.0.0' },
   })
   const changed = () => {
-    setRequestKey(crypto.randomUUID())
+    setRequestKey(uuidv4())
     action.reset()
   }
   return (
