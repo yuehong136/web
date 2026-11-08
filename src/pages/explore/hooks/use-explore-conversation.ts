@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { historyModelIdentities } from '@/lib/model-identity'
 import { useQueryClient } from '@tanstack/react-query'
@@ -12,7 +13,6 @@ import {
 } from '@/lib/streaming'
 import { useAuthStore } from '@/stores/auth'
 import type { ReferenceChunk } from '@/utils/reference-replacer'
-
 export interface ExploreMessage {
   modelIdentity?: import('@/lib/model-identity').ModelIdentitySnapshot
   role: 'user' | 'assistant'
@@ -56,7 +56,7 @@ export function useExploreConversation() {
   const [isStreaming, setIsStreaming] = useState(false)
   const [isLoadingConversation, setIsLoadingConversation] = useState(false)
   const generation = useRef(0)
-  const [historyScope] = useState(() => crypto.randomUUID())
+  const [historyScope] = useState(() => uuidv4())
   const identityGeneration = useRef(0)
   const activeRun = useRef<{
     messageId: string

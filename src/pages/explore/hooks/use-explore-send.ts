@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid'
 import { modelIdentityPayload } from '@/lib/model-identity'
 import { useModelIdentity } from '@/components/models/model-identity'
 import { useCallback, type Dispatch, type SetStateAction } from 'react'
@@ -10,7 +11,6 @@ import type {
   ExploreMessage,
 } from '@/pages/explore/hooks/use-explore-conversation'
 import { consumeExploreResponse } from '@/pages/explore/hooks/explore-stream'
-
 interface ExploreSendOptions {
   conversation: ExploreConversation
   selectedApp: string
@@ -25,7 +25,7 @@ interface ExploreSendOptions {
   refetchConversations: () => unknown
 }
 
-const messageId = () => `msg-${crypto.randomUUID()}`
+const messageId = () => `msg-${uuidv4()}`
 
 /** Domain send orchestration; session ownership guards every asynchronous write. */
 export function useExploreSend({
