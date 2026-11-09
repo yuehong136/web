@@ -1,5 +1,12 @@
 export default {
   common: {
+    embeddingSelector: {
+      label: 'Embedding model',
+      tooltip:
+        'Vectorizes content and affects retrieval quality. If no model is available, add an embedding model in model providers.',
+      placeholder: 'Select an embedding model',
+      noResults: 'No matching embedding models',
+    },
     modelPicker: {
       assistant: 'AI assistant',
       savedModel: 'Saved model',
@@ -129,6 +136,7 @@ export default {
     pleaseInput: 'Please input',
     required: 'Required',
     select: 'Select',
+    automatic: 'Automatic',
     selectType: 'Select type',
     selectPlaceholder: 'Select...',
     searchPlaceholder: 'Search...',

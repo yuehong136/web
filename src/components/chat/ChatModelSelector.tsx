@@ -61,11 +61,11 @@ export function ChatModelSelector({
           type="button"
           disabled={disabled}
           onClick={() => navigate('/settings/model-providers')}
-          title={t('home.input.configureModelAction')}
+          title={t('chat.modelSelector.configureAction')}
           className="flex h-10 items-center gap-2 rounded-radius-md px-3 text-sm text-status-warning hover:bg-status-warning-subtle"
         >
           <Settings aria-hidden className="size-4" />
-          {t('home.input.configureModel')}
+          {t('chat.modelSelector.configure')}
         </button>
       ) : (
         <ModelSelect

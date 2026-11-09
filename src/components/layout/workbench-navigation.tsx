@@ -180,12 +180,12 @@ export const useDefaultSecondaryNavigation = () => {
       tools: { section: 'tools', title: t('layout.nav.tools'), groups: [] },
       settings: {
         section: 'settings',
-        title: t('settings.title'),
+        title: t('layout.sidebar.settings'),
         groups: [
           {
             items: [
               {
-                title: t('settings.nav.profile'),
+                title: t('layout.sidebar.profile'),
                 href: ROUTES.SETTINGS_PROFILE,
                 icon: Settings,
               },
@@ -205,7 +205,7 @@ export const useDefaultSecondaryNavigation = () => {
       })
     }
     sections.tools.groups[0].items.push({
-      title: t('mcp.servers.playgroundTitle'),
+      title: t('layout.nav.mcpPlayground'),
       href: '/mcp-chat',
       icon: Rocket,
     })

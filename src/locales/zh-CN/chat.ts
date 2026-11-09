@@ -180,6 +180,8 @@ export default {
       removeVariable: '删除变量',
     },
     modelSelector: {
+      configure: '配置模型',
+      configureAction: '打开模型配置',
       label: '聊天模型',
       tooltip: '选择用于对话或图像识别的模型',
       loading: '加载模型中...',

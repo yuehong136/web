@@ -11,6 +11,10 @@ import {
 } from '../check-agent-i18n-hardcoded.mjs'
 import { checkCatalogPair, readCatalog } from '../i18n-catalog-quality.mjs'
 import { createTranslationContract } from '../generate-i18n-types.mjs'
+import {
+  missingTranslationKeys,
+  translationUsages,
+} from '../i18n-source-usage.mjs'
 
 const scan = (source, file = 'src/pages/example.tsx') =>
   hardcodedFindings(
@@ -18,6 +22,54 @@ const scan = (source, file = 'src/pages/example.tsx') =>
     source,
     new Set(source.split('\n').map((_, index) => index + 1)),
   )
+
+test('translation references preserve lexical scopes, wrapper prefixes and dynamic families', () => {
+  const source = `
+    function shared() {
+      const {t} = useTranslation()
+      const {t: tw} = useTypedTranslation('chat.aiWorkspace')
+      t('common.save'); tw('noOriginal')
+    }
+    function typed() {
+      const {t} = useTypedTranslation('layout')
+      return t('sidebar.profile')
+    }
+    function tool() {
+      const t = useFlowLabel()
+      return t('topN', 'Top N')
+    }
+    const item = {titleKey: 'layout.nav.skills'}
+    i18n.t(\`flow.status.\${value}\`)
+  `
+  assert.deepEqual(
+    translationUsages('view.tsx', source).map(({ key }) => key),
+    [
+      'common.save',
+      'chat.aiWorkspace.noOriginal',
+      'layout.sidebar.profile',
+      'flow.topN',
+      'layout.nav.skills',
+      'flow.status.*',
+    ],
+  )
+})
+
+test('translation defaults cannot mask missing keys; plural forms and dynamic families remain valid', () => {
+  const read = (file) =>
+    file.endsWith('index.ts')
+      ? "export default {common:{save:'Save',total_other:'{{count}}'},flow:{status:{ready:'Ready'}}}"
+      : "t('common.save'); t('common.total', {count: 2}); t(`flow.status.${status}`); t('common.missing', 'Fallback')"
+  assert.deepEqual(
+    missingTranslationKeys(read, ['view.tsx']).map(({ key, locale }) => [
+      key,
+      locale,
+    ]),
+    [
+      ['common.missing', 'en-US'],
+      ['common.missing', 'zh-CN'],
+    ],
+  )
+})
 
 test('AST source scanner covers JSX, accessible names, tooltips and toast strings in both languages', () => {
   const source = `const view = <button aria-label="Open details" title={'打开'}><span>Save changes</span>{'取消'}</button>\ntoast.error('Could not save')\nconst title = t('common.title', '中文fallback')\n`
@@ -281,6 +333,30 @@ function withRepository(run) {
     rmSync(root, { recursive: true, force: true })
   }
 }
+
+test('missing-key checks read committed sources and catalogs rather than current editor changes', () => {
+  withRepository(({ root, git, write, base }) => {
+    write('src/view.tsx', "export const view = t('common.missing', 'Fallback')")
+    git(['add', '.'])
+    git(['commit', '-qm', 'missing reference'])
+    write('src/view.tsx', "export const view = t('common.save')")
+    assert.deepEqual(runCheck(['--base', base], root).keyFindings, [])
+    assert.deepEqual(
+      runCheck(['--base', base, '--head', 'HEAD'], root).keyFindings.map(
+        ({ key, locale }) => [key, locale],
+      ),
+      [
+        ['common.missing', 'en-US'],
+        ['common.missing', 'zh-CN'],
+      ],
+    )
+    assert.deepEqual(
+      runCheck(['--base', base, '--head', 'HEAD', '--catalogs-only'], root)
+        .keyFindings,
+      [],
+    )
+  })
+})
 
 test('large CSS and generated diffs do not hide real tracked or untracked UI additions', () => {
   withRepository(({ root, git, write, base }) => {

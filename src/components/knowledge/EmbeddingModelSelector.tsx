@@ -30,8 +30,8 @@ export const EmbeddingModelSelector: FC<EmbeddingModelSelectorProps> = ({
     <div className="space-y-2">
       {showLabel && (
         <div className="flex items-center text-sm font-medium text-text-primary">
-          {t('knowledge.embeddingSelector.label')}
-          <FormTooltip tooltip={t('knowledge.embeddingSelector.tooltip')} />
+          {t('common.embeddingSelector.label')}
+          <FormTooltip tooltip={t('common.embeddingSelector.tooltip')} />
         </div>
       )}
       <ModelSelect
@@ -42,9 +42,9 @@ export const EmbeddingModelSelector: FC<EmbeddingModelSelectorProps> = ({
         error={error}
         onRetry={onRetry}
         disabled={disabled}
-        ariaLabel={t('knowledge.embeddingSelector.label')}
-        placeholder={t('knowledge.embeddingSelector.placeholder')}
-        emptyText={t('knowledge.embeddingSelector.noResults')}
+        ariaLabel={t('common.embeddingSelector.label')}
+        placeholder={t('common.embeddingSelector.placeholder')}
+        emptyText={t('common.embeddingSelector.noResults')}
         triggerClassName="h-10"
       />
     </div>

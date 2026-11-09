@@ -1,5 +1,12 @@
 export default {
   mcp: {
+    attachments: {
+      upload: 'Upload file',
+      remove: 'Remove {{name}}',
+      retry: 'Retry {{name}}',
+      failed: 'Upload failed',
+      uploaded: 'File {{name}} uploaded',
+    },
     tools: {
       refresh: 'Refresh tools',
     },

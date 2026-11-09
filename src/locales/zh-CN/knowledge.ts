@@ -233,15 +233,6 @@ export default {
         integrity: '数据库约束错误：请检查必填字段是否完整',
       },
     },
-    embeddingSelector: {
-      label: '嵌入模型',
-      loading: '加载嵌入模型中...',
-      empty: '暂无可用的嵌入模型，请先在模型供应商中添加',
-      tooltip:
-        '用于文档向量化的嵌入模型，影响检索质量。所有新创建的知识库使用的默认嵌入模型。如未显示可选模型，请检查你是否在使用 MultiRAG slim 版(不含嵌入模型)；或确认你的模型供应商是否提供该模型。',
-      placeholder: '请选择嵌入模型',
-      noResults: '未找到匹配的嵌入模型',
-    },
     settings: {
       validation: {
         parserRequired: '请选择内置解析器',

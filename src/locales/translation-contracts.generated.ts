@@ -10,8 +10,10 @@ export interface TranslationContracts {
     'nav.home': undefined
     'nav.knowledge': undefined
     'nav.mcp': undefined
+    'nav.mcpPlayground': undefined
     'nav.memory': undefined
     'nav.search': undefined
+    'nav.skills': undefined
     'nav.studio': undefined
     'nav.tools': undefined
     'sidebar.accountMenu': { name: string | number }

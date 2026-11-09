@@ -43,11 +43,13 @@ export default {
       explore: '探索',
       search: '搜索',
       knowledge: '知识库',
+      skills: '技能库',
       memory: '记忆库',
       agents: '智能体',
       studio: '工作室',
       tools: '工具箱',
       mcp: 'MCP',
+      mcpPlayground: 'MCP 实验场',
     },
   },
 }

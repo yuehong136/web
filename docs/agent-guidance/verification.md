@@ -45,7 +45,7 @@ npm run build:analyze # 生成 dist/stats.html bundle treemap（不部署）
 npm run lint         # eslint src
 npm run lint:all     # eslint .
 npm run lint:typed   # type-aware lint，先覆盖 Agent 关键目录
-npm run lint:i18n-agent # AST 扫描新增中英 UI 文案及全域 catalog 质量增量
+npm run lint:i18n-agent # AST 扫描新增中英 UI 文案、全源码翻译 key 引用及 catalog 质量增量
 node scripts/check-agent-i18n-hardcoded.mjs --all --catalogs-only # 全量 key/插值/复数/空译文
 node scripts/check-agent-i18n-hardcoded.mjs --base <sha> --head HEAD # 检查已提交改动
 npm run typecheck:agent-strict # Agent 关键目录严格类型检查

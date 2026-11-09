@@ -1,4 +1,5 @@
 export const translations = {
+  'chat.modelSelector.configure': '모델 설정',
   'chat.aiWorkspace.selected': '선택됨',
   'chat.aiWorkspace.failed': '실패',
   'chat.aiWorkspace.model': '모델',

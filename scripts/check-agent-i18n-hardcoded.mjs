@@ -5,6 +5,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import ts from 'typescript'
 import { catalogFindings } from './i18n-catalog-quality.mjs'
+import { missingTranslationKeys } from './i18n-source-usage.mjs'
 
 const visibleProps = new Set([
   'title',
@@ -199,6 +200,7 @@ export function runCheck(args = process.argv.slice(2), cwd = process.cwd()) {
           ? readFileSync(path.join(cwd, file), 'utf8')
           : undefined
   let sourceFindings = []
+  let keyFindings = []
   if (!options.catalogsOnly) {
     const diff = git(
       [
@@ -239,6 +241,15 @@ export function runCheck(args = process.argv.slice(2), cwd = process.cwd()) {
     sourceFindings = [...changed].flatMap(([file, lines]) =>
       hardcodedFindings(file, readCurrent(file) ?? '', lines),
     )
+    const sourceFiles = git(
+      head
+        ? ['ls-tree', '-r', '--name-only', head, '--', 'src']
+        : ['ls-files', '-co', '--exclude-standard', '--', 'src'],
+      cwd,
+    )
+      .split('\n')
+      .filter((file) => /\.[jt]sx?$/u.test(file) && !ignoredFile.test(file))
+    keyFindings = missingTranslationKeys(readCurrent, sourceFiles)
   }
   const previousCatalogFindings = options.all
     ? new Set()
@@ -252,6 +263,7 @@ export function runCheck(args = process.argv.slice(2), cwd = process.cwd()) {
   )
   return {
     sourceFindings,
+    keyFindings,
     catalogIssues,
     legacyCatalogIssues: previousCatalogFindings.size,
   }
@@ -271,7 +283,14 @@ if (
       console.error(
         `Locale ${finding.rule}: ${finding.key} (${finding.detail})`,
       )
-    const count = result.sourceFindings.length + result.catalogIssues.length
+    for (const finding of result.keyFindings)
+      console.error(
+        `Missing translation: ${finding.file}:${finding.line} ${finding.key} (${finding.locale})`,
+      )
+    const count =
+      result.sourceFindings.length +
+      result.catalogIssues.length +
+      result.keyFindings.length
     console.log(
       `i18n quality: ${count} new issue(s); ${result.legacyCatalogIssues} baseline catalog issue(s).`,
     )

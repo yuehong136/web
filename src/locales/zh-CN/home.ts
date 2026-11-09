@@ -30,8 +30,6 @@ export default {
       selectSkills: '选择技能或应用',
       addAttachment: '添加附件',
       inspiration: '获取灵感',
-      configureModel: '配置模型',
-      configureModelAction: '打开模型配置',
       selectModelFirst: '请先选择一个聊天模型',
       removeSelection: '移除 {{name}}',
     },

@@ -138,7 +138,7 @@ export function EmbedAuthorised({
     } else {
       postToParent({
         type: 'save-error',
-        error: t('agent.editor.saveFailed', '保存失败'),
+        error: t('common.saveFailed'),
       })
     }
   }, [id, title, flowDetail?.title, saveGraph, postToParent, t])

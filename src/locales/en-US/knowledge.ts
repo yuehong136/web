@@ -248,15 +248,6 @@ export default {
         integrity: 'Database constraint error. Check required fields.',
       },
     },
-    embeddingSelector: {
-      label: 'Embedding model',
-      loading: 'Loading embedding models...',
-      empty: 'No embedding models available. Add one in model providers first.',
-      tooltip:
-        'Embedding model used to vectorize documents and affect retrieval quality. It is the default embedding model for newly created knowledge bases. If no model appears, check whether you are using MultiRAG slim without embedding models, or confirm that your provider offers an embedding model.',
-      placeholder: 'Select an embedding model',
-      noResults: 'No matching embedding models',
-    },
     settings: {
       validation: {
         parserRequired: 'Select a builtin parser',

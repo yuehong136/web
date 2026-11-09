@@ -53,7 +53,7 @@ export const navItems: NavItem[] = [
   },
   {
     title: 'Skills',
-    titleKey: 'skills.title',
+    titleKey: 'layout.nav.skills',
     href: ROUTES.SKILLS,
     icon: Library,
   },

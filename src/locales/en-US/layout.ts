@@ -44,11 +44,13 @@ export default {
       explore: 'Explore',
       search: 'Search',
       knowledge: 'Knowledge',
+      skills: 'Skill library',
       memory: 'Memory',
       agents: 'Agents',
       studio: 'Studio',
       tools: 'Tools',
       mcp: 'MCP',
+      mcpPlayground: 'MCP playground',
     },
   },
 }

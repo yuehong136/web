@@ -64,7 +64,7 @@ function WebhookUrlCard() {
           <div className="text-sm font-medium text-text-primary">
             {t('flow.webhook.name', 'Webhook')}
           </div>
-          <div className="mt-space-xs break-all text-sm text-text-secondary">
+          <div className="mt-space-xs text-sm break-all text-text-secondary">
             {text}
           </div>
         </div>
@@ -104,17 +104,14 @@ export function BeginWebhookFields() {
                 value={field.value ?? []}
                 onChange={field.onChange}
                 options={buildOptions(Object.values(WebhookMethod))}
-                placeholder={t('fileManager.pleaseSelect', 'Please select')}
+                placeholder={t('common.selectPlaceholder')}
               />
             </FormControl>
           </FormItem>
         )}
       />
 
-      <CollapsibleSection
-        title={t('flow.security', 'Security')}
-        defaultOpen
-      >
+      <CollapsibleSection title={t('flow.security', 'Security')} defaultOpen>
         <div className="space-y-space-md">
           <FormField
             control={form.control}
@@ -126,7 +123,9 @@ export function BeginWebhookFields() {
                   <SelectWithSearch
                     value={field.value}
                     onChange={field.onChange}
-                    options={buildOptions(Object.values(WebhookSecurityAuthType))}
+                    options={buildOptions(
+                      Object.values(WebhookSecurityAuthType),
+                    )}
                   />
                 </FormControl>
               </FormItem>
@@ -169,9 +168,13 @@ export function BeginWebhookFields() {
                       value={field.value}
                       onChange={(value) => {
                         field.onChange(value)
-                        form.setValue('security.rate_limit.limit', requestLimitMap[value] ?? 100, {
-                          shouldDirty: true,
-                        })
+                        form.setValue(
+                          'security.rate_limit.limit',
+                          requestLimitMap[value] ?? 100,
+                          {
+                            shouldDirty: true,
+                          },
+                        )
                       }}
                       options={buildOptions(RateLimitPerList)}
                     />
@@ -186,7 +189,9 @@ export function BeginWebhookFields() {
             name="security.max_body_size"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('flow.webhook.maxBodySize', 'Max body size')}</FormLabel>
+                <FormLabel>
+                  {t('flow.webhook.maxBodySize', 'Max body size')}
+                </FormLabel>
                 <FormControl>
                   <SelectWithSearch
                     value={field.value}

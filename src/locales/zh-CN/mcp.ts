@@ -1,5 +1,12 @@
 export default {
   mcp: {
+    attachments: {
+      upload: '上传文件',
+      remove: '移除 {{name}}',
+      retry: '重试 {{name}}',
+      failed: '上传失败',
+      uploaded: '文件 {{name}} 上传成功',
+    },
     tools: {
       refresh: '刷新工具',
     },

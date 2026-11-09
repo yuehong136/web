@@ -1,5 +1,12 @@
 export default {
   common: {
+    embeddingSelector: {
+      label: '嵌入模型',
+      tooltip:
+        '用于将内容转成向量，影响检索质量。若没有可选模型，请在模型供应商中添加嵌入模型。',
+      placeholder: '请选择嵌入模型',
+      noResults: '未找到匹配的嵌入模型',
+    },
     modelPicker: {
       assistant: 'AI助手',
       savedModel: '已保存的模型',
@@ -127,6 +134,7 @@ export default {
     pleaseInput: '请输入',
     required: '必填',
     select: '请选择',
+    automatic: '自动',
     selectType: '选择类型',
     selectPlaceholder: '请选择',
     searchPlaceholder: '搜索...',

@@ -51,8 +51,6 @@ export const translations = {
   'knowledge.create.validation.title': '유효성 검사 실패',
   'knowledge.create.validation.embeddingRequired': 'Embedding 모델 선택',
   'knowledge.create.success.title': '생성됨',
-  'knowledge.embeddingSelector.label': 'Embedding 모델',
-  'knowledge.embeddingSelector.placeholder': 'Embedding 모델 선택',
   'knowledge.settings.validationTitle': '유효성 검사 실패',
   'knowledge.settings.successTitle': '업데이트됨',
   'knowledge.settings.sections.datasource': '데이터 소스',

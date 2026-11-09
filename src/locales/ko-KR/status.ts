@@ -1,12 +1,12 @@
 /** Korean preview; untranslated keys use explicit per-domain English fallback. */
 export const koreanTranslationStatus = {
   common: {
-    translated: 47,
-    englishFallback: 94,
+    translated: 49,
+    englishFallback: 97,
   },
   layout: {
     translated: 41,
-    englishFallback: 1,
+    englishFallback: 3,
   },
   'route-errors': {
     translated: 14,
@@ -21,12 +21,12 @@ export const koreanTranslationStatus = {
     englishFallback: 36,
   },
   home: {
-    translated: 4,
-    englishFallback: 58,
+    translated: 3,
+    englishFallback: 57,
   },
   chat: {
-    translated: 41,
-    englishFallback: 129,
+    translated: 42,
+    englishFallback: 130,
   },
   agent: {
     translated: 57,
@@ -41,8 +41,8 @@ export const koreanTranslationStatus = {
     englishFallback: 715,
   },
   knowledge: {
-    translated: 279,
-    englishFallback: 866,
+    translated: 277,
+    englishFallback: 862,
   },
   'document-create': {
     translated: 0,
@@ -70,7 +70,7 @@ export const koreanTranslationStatus = {
   },
   mcp: {
     translated: 20,
-    englishFallback: 113,
+    englishFallback: 118,
   },
   settings: {
     translated: 96,

@@ -1092,14 +1092,14 @@ export default function MCPChatPage() {
                   >
                     <ControlledAttachments
                       items={attachmentItems}
-                      uploadLabel={t('explore.sender.uploadFile')}
+                      uploadLabel={t('mcp.attachments.upload')}
                       removeLabel={(name) =>
-                        t('explore.attachmentStatus.remove', { name })
+                        t('mcp.attachments.remove', { name })
                       }
                       retryLabel={(name) =>
-                        t('explore.attachmentStatus.retry', { name })
+                        t('mcp.attachments.retry', { name })
                       }
-                      failureLabel={t('explore.attachmentStatus.failed')}
+                      failureLabel={t('mcp.attachments.failed')}
                       maxCount={uploadConfig.maxCount}
                       getDropContainer={() => dropContainerRef.current}
                       onRemove={removeUploadFile}
@@ -1197,7 +1197,7 @@ export default function MCPChatPage() {
                         const result = await uploadFile(file)
                         if (result) {
                           toast.success(
-                            t('explore.toast.uploadSuccess', {
+                            t('mcp.attachments.uploaded', {
                               name: file.name,
                             }),
                           )

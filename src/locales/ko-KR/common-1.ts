@@ -1,4 +1,6 @@
 export const translations = {
+  'common.embeddingSelector.label': 'Embedding 모델',
+  'common.embeddingSelector.placeholder': 'Embedding 모델 선택',
   'common.modelPicker.loading': '모델 로딩 중…',
   'common.modelPicker.capabilities.chat': '채팅',
   'common.modelPicker.capabilities.embedding': '임베딩',

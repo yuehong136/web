@@ -192,6 +192,8 @@ export default {
       removeVariable: 'Remove variable',
     },
     modelSelector: {
+      configure: 'Configure model',
+      configureAction: 'Open model settings',
       label: 'Chat model',
       tooltip: 'Model used for chat or image understanding',
       loading: 'Loading models...',
