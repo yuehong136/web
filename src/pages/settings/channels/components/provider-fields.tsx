@@ -71,10 +71,10 @@ const ProviderField = ({
       name={name}
       render={({ field: formField }) => (
         <FormItem>
-          <div className="gap-space-sm flex items-center justify-between">
+          <div className="flex items-center justify-between gap-space-sm">
             <FormLabel required={field.required}>{copy.label}</FormLabel>
             {field.secret && secretConfigured ? (
-              <span className="gap-space-xs flex items-center text-xs text-status-success">
+              <span className="flex items-center gap-space-xs text-xs text-status-success">
                 <CheckCircle2 className="size-icon-sm" aria-hidden="true" />
                 {t('channel.secret.configured')}
               </span>
@@ -85,14 +85,7 @@ const ProviderField = ({
               // An unknown kind renders disabled rather than throwing, so a
               // server that introduces a control type does not need a
               // coordinated frontend release to stay usable.
-              <Input
-                value=""
-                disabled
-                readOnly
-                placeholder={t('channel.form.unsupportedField', {
-                  defaultValue: field.label,
-                })}
-              />
+              <Input value="" disabled readOnly placeholder={copy.label} />
             ) : field.kind === 'switch' ? (
               <Switch
                 checked={formField.value === true}
