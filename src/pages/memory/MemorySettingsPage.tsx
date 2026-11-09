@@ -1,38 +1,30 @@
-/**
- * 记忆库设置页面
- * 优化版本：水平布局表单 + 高级设置折叠 + 模型选择器对接
- *
- * 禁用逻辑（参考 ragflow）：
- * - 嵌入模型：始终禁用（创建后不能修改）
- * - LLM 模型、记忆类型：当记忆库中有消息记录时禁用
- */
-
-import { useCallback, useEffect, useMemo, type FC, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
+import { LockKeyhole, RotateCcw, Save } from 'lucide-react'
+import { ConsolePageTemplate } from '@/components/page-templates/console-page-template'
+import { PageHeader } from '@/components/patterns/page-header'
 import {
-  Save,
-  Loader2,
-  HelpCircle,
-  User,
-  Users,
-  RotateCcw,
-  AlertCircle,
-} from 'lucide-react'
+  PageLoadingState,
+  PageErrorState,
+} from '@/components/patterns/page-states'
+import { SectionCard } from '@/components/patterns/section-card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Slider } from '@/components/ui/slider'
-import { Form, FormControl, FormField, FormMessage } from '@/components/ui/form'
 import {
-  TooltipRoot as Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Select,
   SelectContent,
@@ -40,638 +32,454 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { RadioGroup, RadioGroupItem } from '@/components/ui'
-import { Label } from '@/components/ui/label'
-import { Separator } from '@/components/ui/separator'
-import { CollapsibleSection } from '@/components/ui/collapsible-section'
+import { AvatarUpload } from '@/components/memory/AvatarUpload'
 import { ChatModelSelector } from '@/components/memory/ChatModelSelector'
 import { MemoryTypeSelect } from '@/components/memory/MemoryTypeSelect'
-import { AvatarUpload } from '@/components/memory/AvatarUpload'
 import { ReadOnlyModelField } from '@/components/memory/read-only-model-field'
-import { formatBytes, cn } from '@/lib/utils'
+import { MemoryTypeBadge } from '@/components/memory/memory-labels'
+import {
+  getMemorySettingsSchema,
+  getMemorySettingsValues,
+  type MemorySettingsValues,
+} from '@/components/memory/memory-settings-form'
 import {
   useMemoryConfig,
   useUpdateMemory,
   useMessageList,
 } from '@/hooks/use-memory'
+import { formatBytes } from '@/lib/utils'
+import type { MemoryType } from '@/types/memory'
 
-// 表单验证 Schema
-// 注意：后端不允许修改 storage_type, embd_id
-// memory_type 和 llm_id 在有消息记录时禁用编辑
-const getMemorySettingsSchema = (t: ReturnType<typeof useTranslation>['t']) =>
-  z.object({
-    name: z.string().min(1, t('memory.validation.nameRequired')),
-    description: z.string().optional(),
-    avatar: z.string().optional(),
-    memory_type: z
-      .array(z.string())
-      .min(1, t('memory.validation.memoryTypeRequired'))
-      .refine((arr) => arr.includes('raw'), {
-        message: t('memory.validation.rawRequired'),
-      }),
-    permissions: z.enum(['me', 'team'] as const),
-    llm_id: z.string().min(1, t('memory.validation.selectLlmRequired')),
-    memory_size: z.number().min(1048576).max(104857600), // 1MB - 100MB
-    forgetting_policy: z.enum(['FIFO', 'LRU'] as const),
-    temperature: z.number().min(0).max(1), // 后端限制 0-1
-    system_prompt: z.string().optional(),
-    user_prompt: z.string().optional(),
-  })
-
-type MemorySettingsFormValues = z.infer<
-  ReturnType<typeof getMemorySettingsSchema>
->
-
-// 水平表单项组件
-interface HorizontalFormItemProps {
-  label: string
-  required?: boolean
-  tooltip?: string
-  disabled?: boolean
-  disabledHint?: string
-  children: ReactNode
-  className?: string
-}
-
-const HorizontalFormItem: FC<HorizontalFormItemProps> = ({
+function SettingField({
   label,
-  required,
-  tooltip,
-  disabled,
-  disabledHint,
+  description,
   children,
-  className,
-}) => (
-  <div className={cn('flex items-start gap-4', className)}>
-    <div className="w-28 shrink-0 pt-2.5">
-      <div className="flex flex-wrap items-center gap-1.5">
-        <span className="text-sm text-text-secondary">{label}</span>
-        {required && <span className="text-status-error">*</span>}
-        {tooltip && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <HelpCircle className="h-3.5 w-3.5 cursor-help text-text-tertiary" />
-              </TooltipTrigger>
-              <TooltipContent className="max-w-xs whitespace-pre-line">
-                {tooltip}
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
-        {disabled && disabledHint && (
-          <span className="text-xs text-text-tertiary">({disabledHint})</span>
-        )}
-      </div>
-    </div>
-    <div className="min-w-0 flex-1">{children}</div>
-  </div>
-)
-
-// 只读字段组件
-interface ReadOnlyFieldProps {
-  value: ReactNode
+}: {
+  label: string
+  description?: string
+  children: ReactNode
+}) {
+  return (
+    <FormItem className="space-y-space-sm">
+      <FormLabel>{label}</FormLabel>
+      <FormControl>{children}</FormControl>
+      {description && (
+        <FormDescription className="text-xs leading-relaxed whitespace-pre-line">
+          {description}
+        </FormDescription>
+      )}
+      <FormMessage />
+    </FormItem>
+  )
 }
 
-const ReadOnlyField: FC<ReadOnlyFieldProps> = ({ value }) => (
-  <div className="flex h-10 items-center rounded-md border border-border-default bg-surface-secondary/50 px-3 text-sm text-text-secondary">
-    {value || '-'}
-  </div>
-)
+export function MemorySettingsPage() {
+  const { id } = useParams<{ id: string }>()
+  return id ? <MemorySettings key={id} memoryId={id} /> : null
+}
 
-export const MemorySettingsPage: FC = () => {
+function MemorySettings({ memoryId }: { memoryId: string }) {
   const { t } = useTranslation()
-  const { id: memoryId } = useParams<{ id: string }>()
-  const memorySettingsSchema = useMemo(() => getMemorySettingsSchema(t), [t])
-
-  // 获取配置
-  const { data: config, isLoading } = useMemoryConfig(memoryId)
-  const updateMutation = useUpdateMemory()
-
-  // 获取消息数量，用于判断是否允许编辑某些字段
-  const { data: messageData } = useMessageList(memoryId, {
-    page: 1,
-    page_size: 1,
+  const query = useMemoryConfig(memoryId)
+  const messages = useMessageList(memoryId, { page: 1, page_size: 1 })
+  const update = useUpdateMemory()
+  const schema = useMemo(() => getMemorySettingsSchema(t), [t])
+  const form = useForm<MemorySettingsValues>({
+    resolver: zodResolver(schema),
+    defaultValues: getMemorySettingsValues(),
   })
-  const messageCount = messageData?.total_count || 0
-
-  // 是否有消息记录 - 决定 memory_type 和 llm_id 是否可编辑
-  const hasMessages = messageCount > 0
-  const getMemoryTypeLabel = useCallback(
-    (type: string) => t(`memory.filters.${type}`, type),
-    [t],
-  )
-
-  // 表单
-  const form = useForm<MemorySettingsFormValues>({
-    resolver: zodResolver(memorySettingsSchema),
-    defaultValues: {
-      name: '',
-      description: '',
-      avatar: '',
-      memory_type: ['raw'],
-      permissions: 'me',
-      llm_id: '',
-      memory_size: 5242880, // 5MB
-      forgetting_policy: 'FIFO',
-      temperature: 0.7,
-      system_prompt: '',
-      user_prompt: '',
-    },
-  })
-
-  // 加载配置后填充表单
+  const { isDirty } = form.formState
+  const [activeSection, setActiveSection] = useState('identity')
   useEffect(() => {
-    if (config) {
-      form.reset({
-        name: config.name,
-        description: config.description || '',
-        avatar: config.avatar || '',
-        memory_type: config.memory_type || ['raw'],
-        permissions: config.permissions,
-        llm_id: config.llm_id,
-        memory_size: config.memory_size,
-        forgetting_policy: config.forgetting_policy,
-        temperature: config.temperature || 0.7,
-        system_prompt: config.system_prompt || '',
-        user_prompt: config.user_prompt || '',
+    if (query.data && !form.formState.isDirty)
+      form.reset(getMemorySettingsValues(query.data))
+  }, [query.data, form])
+  // Keep model/type editing locked until the existing-message check succeeds.
+  const locked =
+    messages.isPending ||
+    messages.isError ||
+    (messages.data?.total_count ?? 0) > 0
+  const submit = async (values: MemorySettingsValues) => {
+    try {
+      await update.mutateAsync({
+        id: memoryId,
+        data: locked ? { ...values, memory_type: undefined } : values,
       })
-    }
-  }, [config, form])
-
-  // 提交表单
-  const onSubmit = (values: MemorySettingsFormValues) => {
-    if (!memoryId) return
-
-    // 如果有消息记录，不提交 memory_type（后端也不接受）
-    const submitData = hasMessages
-      ? { ...values, memory_type: undefined }
-      : values
-
-    updateMutation.mutate({
-      id: memoryId,
-      data: submitData,
-    })
-  }
-
-  // 重置表单
-  const handleReset = () => {
-    if (config) {
-      form.reset({
-        name: config.name,
-        description: config.description || '',
-        avatar: config.avatar || '',
-        memory_type: config.memory_type || ['raw'],
-        permissions: config.permissions,
-        llm_id: config.llm_id,
-        memory_size: config.memory_size,
-        forgetting_policy: config.forgetting_policy,
-        temperature: config.temperature || 0.7,
-        system_prompt: config.system_prompt || '',
-        user_prompt: config.user_prompt || '',
-      })
+      form.reset(values)
+    } catch {
+      /* The mutation owns error feedback; keep unsaved input. */
     }
   }
-
-  if (isLoading) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-text-tertiary" />
-      </div>
-    )
-  }
-
+  if (query.isPending) return <PageLoadingState />
+  if (query.isError || !query.data)
+    return <PageErrorState onRetry={() => query.refetch()} />
   return (
-    <div className="h-full overflow-auto">
-      <div className="mx-auto max-w-3xl px-6 py-6">
-        {/* 页面标题 */}
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold text-text-primary">
-            {t('memory.config.title')}
-          </h2>
-          <p className="mt-1 text-sm text-text-secondary">
-            {t('memory.config.description')}
-          </p>
-        </div>
-
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            {/* ==================== 基础信息 ==================== */}
-            <section className="space-y-5">
-              <h3 className="text-base font-medium text-text-primary">
-                {t('memory.config.basicInfo')}
-              </h3>
-
-              {/* 头像 */}
-              <FormField
-                control={form.control}
-                name="avatar"
-                render={({ field }) => (
-                  <HorizontalFormItem label={t('memory.fields.avatar')}>
-                    <AvatarUpload
-                      value={field.value}
-                      onChange={field.onChange}
-                      size="lg"
-                      name={form.watch('name')}
-                      seed={memoryId}
-                      tips={t('memory.fields.avatarUploadTips')}
-                    />
-                    <FormMessage className="mt-1" />
-                  </HorizontalFormItem>
-                )}
-              />
-
-              {/* 名称 */}
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <HorizontalFormItem label={t('memory.fields.name')} required>
-                    <FormControl>
-                      <Input
-                        placeholder={t('memory.fields.namePlaceholder')}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage className="mt-1" />
-                  </HorizontalFormItem>
-                )}
-              />
-
-              {/* 描述 */}
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <HorizontalFormItem label={t('memory.fields.description')}>
-                    <FormControl>
-                      <Textarea
-                        placeholder={t('memory.fields.descriptionPlaceholder')}
-                        rows={3}
-                        className="resize-none"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage className="mt-1" />
-                  </HorizontalFormItem>
-                )}
-              />
-
-              {/* 记忆类型 - 有消息时禁用 */}
-              <FormField
-                control={form.control}
-                name="memory_type"
-                render={({ field }) => (
-                  <HorizontalFormItem
-                    label={t('memory.filters.memoryType')}
-                    required
-                    disabled={hasMessages}
-                    disabledHint={
-                      hasMessages
-                        ? t('memory.config.messageLockedHint', {
-                            count: messageCount,
-                          })
-                        : undefined
-                    }
-                    tooltip={t('memory.filters.tooltip')}
-                  >
-                    {hasMessages ? (
-                      // 有消息时只读展示
-                      <div className="flex flex-wrap gap-2">
-                        {field.value?.map((type) => (
-                          <span
-                            key={type}
-                            className="rounded-md bg-surface-accent/10 px-2.5 py-1 text-xs font-medium text-text-accent"
-                          >
-                            {getMemoryTypeLabel(type)}
-                          </span>
-                        )) || (
-                          <span className="text-sm text-text-tertiary">-</span>
-                        )}
-                      </div>
-                    ) : (
-                      // 无消息时可编辑
-                      <>
-                        <FormControl>
-                          <MemoryTypeSelect
-                            value={field.value}
-                            onChange={field.onChange}
-                          />
-                        </FormControl>
-                        <FormMessage className="mt-1" />
-                      </>
-                    )}
-                  </HorizontalFormItem>
-                )}
-              />
-            </section>
-
-            <Separator />
-
-            {/* ==================== 模型配置 ==================== */}
-            <section className="space-y-5">
-              <div className="flex items-center justify-between">
-                <h3 className="text-base font-medium text-text-primary">
-                  {t('memory.config.modelConfig')}
-                </h3>
-                {hasMessages && (
-                  <div className="flex items-center gap-1.5 text-xs text-status-warning">
-                    <AlertCircle className="h-3.5 w-3.5" />
-                    <span>
-                      {t('memory.config.messageLockedBanner', {
-                        count: messageCount,
-                      })}
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              {/* 嵌入模型 - 始终只读 */}
-              <HorizontalFormItem
-                label={t('memory.fields.embeddingModel')}
-                tooltip={t('memory.fields.embeddingModelTooltip')}
-                disabled
-                disabledHint={t('memory.common.notEditable')}
-              >
-                <ReadOnlyModelField modelId={config?.embd_id} />
-              </HorizontalFormItem>
-
-              {/* LLM 模型 - 有消息时禁用 */}
-              <FormField
-                control={form.control}
-                name="llm_id"
-                render={({ field }) => (
-                  <HorizontalFormItem
-                    label={t('memory.fields.llm')}
-                    required
-                    tooltip={t('memory.fields.llmTooltip')}
-                    disabled={hasMessages}
-                    disabledHint={
-                      hasMessages
-                        ? t('memory.config.messageLockedHint', {
-                            count: messageCount,
-                          })
-                        : undefined
-                    }
-                  >
-                    {hasMessages ? (
-                      // 有消息时只读展示（带厂商图标）
-                      <ReadOnlyModelField modelId={field.value} />
-                    ) : (
-                      // 无消息时可编辑
-                      <>
-                        <ChatModelSelector
-                          selectedModelId={field.value}
-                          onSelect={(id) => field.onChange(id || '')}
-                          showLabel={false}
+    <Form {...form}>
+      <ConsolePageTemplate
+        header={
+          <PageHeader
+            title={t('memory.config.title')}
+            description={t('memory.workspace.settingsDescription')}
+            titleSize="md"
+            wrapActions
+            actions={
+              <>
+                <output className="hidden text-xs text-text-tertiary xl:block">
+                  {t(
+                    isDirty
+                      ? 'memory.workspace.unsaved'
+                      : 'memory.workspace.saved',
+                  )}
+                </output>
+                <Button
+                  variant="outline"
+                  disabled={!isDirty || update.isPending}
+                  onClick={() =>
+                    form.reset(getMemorySettingsValues(query.data))
+                  }
+                  aria-label={t('memory.workspace.resetChanges')}
+                >
+                  <RotateCcw className="size-icon-sm" />
+                </Button>
+                <Button
+                  type="submit"
+                  form="memory-settings"
+                  disabled={!isDirty || update.isPending}
+                >
+                  <Save className="size-icon-sm" />
+                  {t(update.isPending ? 'common.loading' : 'common.save')}
+                </Button>
+              </>
+            }
+          />
+        }
+      >
+        <form
+          id="memory-settings"
+          onSubmit={form.handleSubmit(submit, (errors) => {
+            const field = Object.keys(errors)[0]
+            setActiveSection(
+              ['memory_size', 'forgetting_policy'].includes(field)
+                ? 'policy'
+                : ['temperature', 'system_prompt', 'user_prompt'].includes(
+                      field,
+                    )
+                  ? 'extraction'
+                  : 'identity',
+            )
+          })}
+          className="mx-auto max-w-5xl p-space-lg"
+        >
+          <Tabs
+            value={activeSection}
+            onValueChange={setActiveSection}
+            className="space-y-space-lg"
+          >
+            <TabsList className="max-w-full">
+              <TabsTrigger value="identity">
+                {t('memory.workspace.identityTab')}
+              </TabsTrigger>
+              <TabsTrigger value="policy">
+                {t('memory.workspace.policyTab')}
+              </TabsTrigger>
+              <TabsTrigger value="extraction">
+                {t('memory.workspace.extractionTab')}
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="identity" className="space-y-space-lg">
+              <SectionCard title={t('memory.config.basicInfo')}>
+                <div className="space-y-space-lg">
+                  <FormField
+                    control={form.control}
+                    name="avatar"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('memory.fields.avatar')}</FormLabel>
+                        <AvatarUpload
+                          value={field.value}
+                          onChange={field.onChange}
+                          size="lg"
+                          name={form.getValues('name')}
+                          seed={memoryId}
+                          tips={t('memory.fields.avatarUploadTips')}
                         />
-                        <FormMessage className="mt-1" />
-                      </>
+                        <FormMessage />
+                      </FormItem>
                     )}
-                  </HorizontalFormItem>
-                )}
-              />
-            </section>
-
-            <Separator />
-
-            {/* ==================== 高级设置（可折叠） ==================== */}
-            <CollapsibleSection
-              title={t('memory.config.advancedSettings')}
-              defaultOpen={false}
-            >
-              <div className="space-y-5">
-                {/* 权限 */}
-                <FormField
-                  control={form.control}
-                  name="permissions"
-                  render={({ field }) => (
-                    <HorizontalFormItem label={t('memory.fields.permission')}>
-                      <FormControl>
-                        <RadioGroup
+                  />
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <SettingField label={t('memory.fields.name')}>
+                        <Input
+                          {...field}
+                          placeholder={t('memory.fields.namePlaceholder')}
+                        />
+                      </SettingField>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <SettingField label={t('memory.fields.description')}>
+                        <Textarea
+                          {...field}
+                          rows={3}
+                          placeholder={t(
+                            'memory.fields.descriptionPlaceholder',
+                          )}
+                        />
+                      </SettingField>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="permissions"
+                    render={({ field }) => (
+                      <SettingField label={t('memory.fields.permission')}>
+                        <Select
                           value={field.value}
                           onValueChange={field.onChange}
-                          className="flex gap-6"
                         >
-                          <div className="flex items-center gap-2">
-                            <RadioGroupItem value="me" id="perm-me" />
-                            <Label
-                              htmlFor="perm-me"
-                              className="flex cursor-pointer items-center gap-1.5 text-sm"
-                            >
-                              <User className="h-4 w-4" />
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="me">
                               {t('memory.fields.onlyMe')}
-                            </Label>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <RadioGroupItem value="team" id="perm-team" />
-                            <Label
-                              htmlFor="perm-team"
-                              className="flex cursor-pointer items-center gap-1.5 text-sm"
-                            >
-                              <Users className="h-4 w-4" />
+                            </SelectItem>
+                            <SelectItem value="team">
                               {t('memory.fields.team')}
-                            </Label>
-                          </div>
-                        </RadioGroup>
-                      </FormControl>
-                      <FormMessage className="mt-1" />
-                    </HorizontalFormItem>
-                  )}
-                />
-
-                {/* 存储类型 - 只读 */}
-                <HorizontalFormItem
-                  label={t('memory.fields.storageType')}
-                  disabled
-                  disabledHint={t('memory.common.notEditable')}
-                >
-                  <ReadOnlyField
-                    value={
-                      config?.storage_type === 'graph'
-                        ? t('memory.fields.graph')
-                        : t('memory.fields.table')
-                    }
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </SettingField>
+                    )}
                   />
-                </HorizontalFormItem>
-
-                {/* 记忆大小 */}
-                <FormField
-                  control={form.control}
-                  name="memory_size"
-                  render={({ field }) => (
-                    <HorizontalFormItem
-                      label={t('memory.config.memorySize')}
-                      tooltip={t('memory.config.memorySizeTooltip')}
-                    >
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
+                </div>
+              </SectionCard>
+              <SectionCard title={t('memory.config.modelConfig')}>
+                <div className="space-y-space-lg">
+                  {locked && (
+                    <p className="flex items-start gap-space-sm rounded-radius-lg bg-background-subtle p-space-base text-xs leading-relaxed text-text-secondary">
+                      <LockKeyhole className="size-icon-sm shrink-0" />
+                      {t('memory.workspace.modelLock')}
+                    </p>
+                  )}
+                  <FormField
+                    control={form.control}
+                    name="memory_type"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('memory.filters.memoryType')}</FormLabel>
+                        {locked ? (
+                          <div className="flex flex-wrap gap-space-sm">
+                            {field.value.map((type) => (
+                              <MemoryTypeBadge
+                                key={type}
+                                type={type as MemoryType}
+                              />
+                            ))}
+                          </div>
+                        ) : (
                           <FormControl>
-                            <Slider
-                              min={1048576}
-                              max={104857600}
-                              step={1048576}
-                              value={[field.value]}
-                              onValueChange={([value]) => field.onChange(value)}
-                              className="flex-1"
+                            <MemoryTypeSelect
+                              value={field.value}
+                              onChange={field.onChange}
                             />
                           </FormControl>
-                          <span className="ml-4 min-w-[60px] text-right text-sm text-text-secondary">
+                        )}
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="space-y-space-sm">
+                    <p className="text-sm font-medium">
+                      {t('memory.fields.embeddingModel')}
+                    </p>
+                    <ReadOnlyModelField modelId={query.data.embd_id} />
+                    <p className="text-xs text-text-tertiary">
+                      {t('memory.common.notEditable')}
+                    </p>
+                  </div>
+                  <FormField
+                    control={form.control}
+                    name="llm_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('memory.fields.llm')}</FormLabel>
+                        {locked ? (
+                          <ReadOnlyModelField modelId={field.value} />
+                        ) : (
+                          <FormControl>
+                            <ChatModelSelector
+                              selectedModelId={field.value}
+                              onSelect={(id) => field.onChange(id || '')}
+                              showLabel={false}
+                            />
+                          </FormControl>
+                        )}
+                        <FormDescription>
+                          {t('memory.fields.llmTooltip')}
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </SectionCard>
+            </TabsContent>
+            <TabsContent value="policy">
+              <SectionCard title={t('memory.workspace.policyTab')}>
+                <div className="space-y-space-xl">
+                  <p className="text-sm leading-relaxed text-text-secondary">
+                    {t('memory.workspace.policyDescription')}
+                  </p>
+                  <FormField
+                    control={form.control}
+                    name="memory_size"
+                    render={({ field }) => (
+                      <FormItem>
+                        <div className="flex justify-between gap-space-base">
+                          <FormLabel>
+                            {t('memory.workspace.capacity')}
+                          </FormLabel>
+                          <span className="text-sm font-medium text-text-accent">
                             {formatBytes(field.value)}
                           </span>
                         </div>
-                      </div>
-                      <FormMessage className="mt-1" />
-                    </HorizontalFormItem>
-                  )}
-                />
-
-                {/* 遗忘策略 */}
-                <FormField
-                  control={form.control}
-                  name="forgetting_policy"
-                  render={({ field }) => (
-                    <HorizontalFormItem
-                      label={t('memory.config.forgettingPolicy')}
-                    >
-                      <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="h-10">
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="FIFO">
-                            {t('memory.config.fifo')}
-                          </SelectItem>
-                          <SelectItem value="LRU">
-                            {t('memory.config.lru')}
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage className="mt-1" />
-                    </HorizontalFormItem>
-                  )}
-                />
-
-                {/* 温度 */}
-                <FormField
-                  control={form.control}
-                  name="temperature"
-                  render={({ field }) => (
-                    <HorizontalFormItem
-                      label={t('memory.config.temperature')}
-                      tooltip={t('memory.config.temperatureTooltip')}
-                    >
-                      <div className="flex items-center gap-4">
                         <FormControl>
                           <Slider
-                            min={0}
-                            max={1}
-                            step={0.1}
+                            aria-label={t('memory.workspace.capacity')}
+                            min={1048576}
+                            max={104857600}
+                            step={1048576}
                             value={[field.value]}
                             onValueChange={([value]) => field.onChange(value)}
-                            className="flex-1"
                           />
                         </FormControl>
+                        <FormDescription>
+                          {t('memory.workspace.capacityDescription')}
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="forgetting_policy"
+                    render={({ field }) => (
+                      <SettingField
+                        label={t('memory.config.forgettingPolicy')}
+                        description={t(
+                          'memory.workspace.forgettingDescription',
+                        )}
+                      >
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="FIFO">
+                              {t('memory.config.fifo')}
+                            </SelectItem>
+                            <SelectItem value="LRU">
+                              {t('memory.config.lru')}
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </SettingField>
+                    )}
+                  />
+                  <div className="rounded-radius-lg bg-background-subtle p-space-base">
+                    <p className="text-xs text-text-tertiary">
+                      {t('memory.fields.storageType')}
+                    </p>
+                    <p className="mt-space-xs text-sm">
+                      {t(
+                        query.data.storage_type === 'graph'
+                          ? 'memory.fields.graph'
+                          : 'memory.fields.table',
+                      )}{' '}
+                      · {t('memory.common.notEditable')}
+                    </p>
+                  </div>
+                </div>
+              </SectionCard>
+            </TabsContent>
+            <TabsContent value="extraction">
+              <SectionCard title={t('memory.workspace.extractionTab')}>
+                <div className="space-y-space-lg">
+                  <p className="text-sm leading-relaxed text-text-secondary">
+                    {t('memory.workspace.extractionDescription')}
+                  </p>
+                  <FormField
+                    control={form.control}
+                    name="temperature"
+                    render={({ field }) => (
+                      <SettingField
+                        label={t('memory.config.temperature')}
+                        description={t('memory.config.temperatureTooltip')}
+                      >
                         <Input
                           type="number"
                           min={0}
                           max={1}
                           step={0.1}
-                          value={field.value}
+                          className="max-w-32"
+                          {...field}
                           onChange={(e) =>
-                            field.onChange(parseFloat(e.target.value) || 0)
+                            field.onChange(
+                              e.target.value === ''
+                                ? NaN
+                                : Number(e.target.value),
+                            )
                           }
-                          className="h-8 w-20 text-center"
                         />
-                      </div>
-                      <FormMessage className="mt-1" />
-                    </HorizontalFormItem>
-                  )}
-                />
-
-                {/* 系统提示词 */}
-                <FormField
-                  control={form.control}
-                  name="system_prompt"
-                  render={({ field }) => (
-                    <HorizontalFormItem
-                      label={t('memory.config.systemPrompt')}
-                      className="items-start"
-                    >
-                      <FormControl>
+                      </SettingField>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="system_prompt"
+                    render={({ field }) => (
+                      <SettingField label={t('memory.config.systemPrompt')}>
                         <Textarea
+                          {...field}
+                          rows={10}
+                          className="font-mono text-xs leading-relaxed"
                           placeholder={t(
                             'memory.config.systemPromptPlaceholder',
                           )}
-                          rows={4}
-                          className="resize-none"
-                          {...field}
                         />
-                      </FormControl>
-                      <FormMessage className="mt-1" />
-                    </HorizontalFormItem>
-                  )}
-                />
-
-                {/* 用户提示词 */}
-                <FormField
-                  control={form.control}
-                  name="user_prompt"
-                  render={({ field }) => (
-                    <HorizontalFormItem
-                      label={t('memory.config.userPrompt')}
-                      className="items-start"
-                    >
-                      <FormControl>
+                      </SettingField>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="user_prompt"
+                    render={({ field }) => (
+                      <SettingField label={t('memory.config.userPrompt')}>
                         <Textarea
-                          placeholder={t('memory.config.userPromptPlaceholder')}
-                          rows={4}
-                          className="resize-none"
                           {...field}
+                          rows={6}
+                          className="font-mono text-xs leading-relaxed"
+                          placeholder={t('memory.config.userPromptPlaceholder')}
                         />
-                      </FormControl>
-                      <FormMessage className="mt-1" />
-                    </HorizontalFormItem>
-                  )}
-                />
-              </div>
-            </CollapsibleSection>
-
-            {/* ==================== 操作按钮 ==================== */}
-            <div className="flex justify-end gap-3 border-t border-border-default pt-6">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleReset}
-                disabled={updateMutation.isPending}
-                className="gap-2"
-              >
-                <RotateCcw className="h-4 w-4" />
-                {t('common.cancel')}
-              </Button>
-              <Button
-                type="submit"
-                disabled={updateMutation.isPending}
-                className="gap-2"
-              >
-                {updateMutation.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Save className="h-4 w-4" />
-                )}
-                {t('common.save')}
-              </Button>
-            </div>
-          </form>
-        </Form>
-      </div>
-    </div>
+                      </SettingField>
+                    )}
+                  />
+                </div>
+              </SectionCard>
+            </TabsContent>
+          </Tabs>
+        </form>
+      </ConsolePageTemplate>
+    </Form>
   )
 }
-
-MemorySettingsPage.displayName = 'MemorySettingsPage'

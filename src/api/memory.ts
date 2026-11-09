@@ -18,6 +18,7 @@ import type {
   MemoryListResponse,
   MessageListResponse,
   MessageContentResponse,
+  MemoryMessage,
   MemoryMessagesDetailResponse,
 } from '@/types/memory'
 
@@ -180,15 +181,18 @@ export const memoryAPI = {
      * 搜索消息
      * GET /api/v1/messages/search
      */
-    search: (params: {
-      memory_id: string[]
-      query: string
-      similarity_threshold?: number
-      keywords_similarity_weight?: number
-      top_n?: number
-      agent_id?: string
-      session_id?: string
-    }): Promise<unknown> => {
+    search: async (
+      params: {
+        memory_id: string[]
+        query: string
+        similarity_threshold?: number
+        keywords_similarity_weight?: number
+        top_n?: number
+        agent_id?: string
+        session_id?: string
+      },
+      signal?: AbortSignal,
+    ): Promise<MemoryMessage[]> => {
       const queryParams = new URLSearchParams()
       params.memory_id.forEach((id) => queryParams.append('memory_id', id))
       queryParams.set('query', params.query)
@@ -206,10 +210,10 @@ export const memoryAPI = {
         queryParams.set('top_n', params.top_n.toString())
       if (params.agent_id) queryParams.set('agent_id', params.agent_id)
       if (params.session_id) queryParams.set('session_id', params.session_id)
-      return apiClient.get(
-        `/messages/search?${queryParams.toString()}`,
-        sdkBase,
-      )
+      const response = await apiClient.get<
+        MemoryMessage[] | SdkEnvelope<MemoryMessage[]>
+      >(`/messages/search?${queryParams.toString()}`, { ...sdkBase, signal })
+      return unwrapSdkEnvelope(response)
     },
 
     /**

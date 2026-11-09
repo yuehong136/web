@@ -118,13 +118,14 @@ export interface CreateMemoryParams {
 
 /**
  * 更新记忆库请求参数
- * 注意：后端不允许修改 id, tenant_id, memory_type, storage_type, embd_id
+ * 记忆类型仅在记忆库为空时可修改；身份和存储字段保持固定。
  */
 export interface UpdateMemoryParams {
   name?: string
   description?: string
   avatar?: string
   permissions?: PermissionType
+  memory_type?: string[]
   llm_id?: string
   memory_size?: number
   forgetting_policy?: ForgettingPolicy

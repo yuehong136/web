@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, NavLink } from 'react-router-dom'
 import { ArrowLeft, Database, MessageSquare, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { cn, formatRelativeTime, formatBytes } from '@/lib/utils'
+import { cn, formatBytes } from '@/lib/utils'
 import { ROUTES } from '@/constants'
 import type { Memory } from '@/types/memory'
 import { EntityAvatar } from '@/components/patterns/entity-avatar'
@@ -18,19 +18,19 @@ export function MemorySidebar({
   isLoading = false,
   memoryId,
 }: MemorySidebarProps) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const id = memoryId || memory?.id
   const items = [
     {
       to: `/memory/${id}`,
       icon: MessageSquare,
-      label: t('memory.messages.title'),
+      label: t('memory.workspace.title'),
       end: true,
     },
     {
       to: `/memory/${id}/settings`,
       icon: Settings,
-      label: t('memory.config.title'),
+      label: t('memory.workspace.strategy'),
     },
   ]
   return (
@@ -103,11 +103,19 @@ export function MemorySidebar({
               ? t('memory.fields.graph')
               : t('memory.fields.table')}
             {typeof memory.memory_size === 'number' && (
-              <> · {formatBytes(memory.memory_size)}</>
+              <>
+                {' '}
+                · {t('memory.workspace.capacity')}{' '}
+                {formatBytes(memory.memory_size)}
+              </>
             )}
           </p>
           {memory.create_time && (
-            <p>{formatRelativeTime(memory.create_time)}</p>
+            <p>
+              {new Intl.DateTimeFormat(i18n.resolvedLanguage, {
+                dateStyle: 'medium',
+              }).format(memory.create_time)}
+            </p>
           )}
         </footer>
       )}

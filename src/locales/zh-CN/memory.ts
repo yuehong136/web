@@ -1,8 +1,8 @@
 export default {
   memory: {
     page: {
-      title: '记忆库管理',
-      description: '管理您的 AI 记忆，让对话更智能',
+      title: '记忆库',
+      description: '把对话沉淀为可追溯、可验证的长期记忆',
       create: '创建记忆库',
     },
     common: {
@@ -91,7 +91,7 @@ export default {
       messagesDescription: '当智能体使用此记忆库时，对话内容将自动记录在这里',
     },
     messages: {
-      title: '消息列表',
+      title: '记忆工作台',
       description: '记忆提取使用高级设置中的提示词和温度值进行配置。',
       searchPlaceholder: '搜索消息...',
       total: '共 {{count}} 条',
@@ -172,6 +172,80 @@ export default {
     deleteDialog: {
       title: '删除记忆库',
       description: '删除后，此记忆中的所有消息都将被删除，智能体将无法检索。',
+    },
+    workspace: {
+      enabledCount: '{{count}} 条记忆已启用',
+      stateHelp: '本页范围与状态说明',
+
+      sourcePage: '第 {{page}} 页 · 本页 {{count}} 条对话来源',
+      messageId: '消息 ID',
+      title: '记忆工作台',
+      description: '看清 AI 记住了什么，追溯每条记忆，并验证能否被检索。',
+      strategy: '设置与策略',
+      testRecall: '检索测试',
+      memories: '提取的记忆',
+      sources: '对话来源',
+      all: '全部状态',
+      enabled: '已启用',
+      disabled: '已停用',
+      forgotten: '已遗忘',
+      stateFilter: '筛选本页状态',
+      pageOverview: '本页 {{sources}} 条来源 · {{memories}} 条提取记忆',
+      pageScope:
+        '其中 {{count}} 条提取记忆已启用；数量与状态筛选均仅针对本页。',
+      sessionPlaceholder: '按完整会话 ID 查找来源',
+      checkSession: '请检查会话 ID，或清除筛选后重试。',
+      lifecycleHint:
+        '遗忘记录仍保留在此供追溯；已遗忘的记录无法再切换状态。来源与提取记忆各自维护状态，遗忘来源不会自动遗忘其提取结果。',
+      toggleMessage: '切换消息 {{id}} 的启用状态',
+      noEntries: '这里还没有匹配的记忆',
+      noEntriesDescription:
+        '可切换到对话来源、调整状态筛选，或前往其他页查看。',
+      source: '来源',
+      extractCount: '{{count}} 条提取记忆',
+      copySession: '复制来源会话 ID',
+      noContent: '暂无内容，打开详情查看',
+      forgetExplanation:
+        '此操作会为当前这条记录标记遗忘时间，之后无法检索或重新启用。记录仍在列表中保留；关联的来源和提取结果不会一并遗忘。',
+      inspect: '记忆详情',
+      inspectDescription: '查看内容、来源和生命周期。',
+      technicalDetails: '原始内容与技术详情',
+      recallDescription: '直接查询当前记忆库，检查问题能否召回已有内容。',
+      recallQuestion: '你希望 AI 想起什么？',
+      recallPlaceholder: '例如：我喜欢吃什么？',
+      recall: '检索',
+      recallOptions: '检索参数',
+      threshold: '相似度阈值',
+      recallReady: '用一个真实问题试试',
+      recallBoundary:
+        '此处验证记忆库的直接检索结果，不会生成回答或写入新记忆。智能体是否调用记忆工具，取决于其模型和编排配置。',
+      recallResults: '“{{query}}” · 返回 {{count}} 条结果（最多 5 条）',
+      recallError: '检索未完成，请检查模型服务或稍后重试。',
+      noRecall: '没有召回匹配记忆',
+      noRecallDescription: '可换一种提问方式，或调整相似度阈值后重试。',
+      memoryActions: '{{name}} 的操作',
+      capacity: '容量上限',
+      cardDescription: '从对话中积累事实、经历与习惯，为后续交流提供上下文。',
+      yourMemories: '你的记忆库',
+      listHint: '打开记忆库，查看内容或测试检索',
+      settingsDescription: '决定记忆如何被提取、保存与共享。',
+      unsaved: '有未保存的更改',
+      saved: '配置已同步',
+      resetChanges: '撤销未保存的更改',
+      identityTab: '身份与模型',
+      policyTab: '容量与遗忘',
+      extractionTab: '记忆提取',
+      modelLock:
+        '存在消息记录或尚未完成检查时，记忆类型与提取模型保持只读。嵌入模型在创建后固定。',
+      policyDescription: '设置记忆库的容量边界，以及容量管理时采用的遗忘策略。',
+      capacityDescription:
+        '这是配置的容量上限，不代表当前实际用量。消息内容与嵌入向量都会占用容量。',
+      forgettingDescription:
+        'FIFO 优先遗忘较早写入的记录；LRU 优先遗忘最近较少使用的记录。',
+      extractionDescription:
+        '控制模型如何从新对话中提取记忆。提示词与温度用于记忆提取，不会替代智能体的对话提示词。',
+      agentFilter: '按智能体筛选',
+      allAgents: '全部智能体',
     },
   },
 }

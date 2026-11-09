@@ -183,5 +183,87 @@ export default {
       description:
         'After deletion, all messages in this memory bank will be removed and agents will no longer retrieve them.',
     },
+    workspace: {
+      enabledCount: 'Enabled memories: {{count}}',
+      stateHelp: 'Page scope and lifecycle help',
+
+      sourcePage: 'Page {{page}} · Sources on this page: {{count}}',
+      messageId: 'Message ID',
+      title: 'Memory workspace',
+      description:
+        'See what AI remembers, trace each memory, and verify retrieval.',
+      strategy: 'Settings & policies',
+      testRecall: 'Test retrieval',
+      memories: 'Extracted memories',
+      sources: 'Conversation sources',
+      all: 'All states',
+      enabled: 'Enabled',
+      disabled: 'Disabled',
+      forgotten: 'Forgotten',
+      stateFilter: 'Filter states on this page',
+      pageOverview:
+        'This page: {{sources}} sources · {{memories}} extracted memories',
+      pageScope:
+        '{{count}} extracted memories are enabled. Counts and state filters apply to this page only.',
+      sessionPlaceholder: 'Find a source by its full session ID',
+      checkSession: 'Check the session ID or clear the filter to try again.',
+      lifecycleHint:
+        'Forgotten records remain visible for traceability and their state cannot be changed. Sources and extracts have independent states; forgetting a source does not automatically forget its extracts.',
+      toggleMessage: 'Toggle message {{id}}',
+      noEntries: 'No matching memories here',
+      noEntriesDescription:
+        'Switch to conversation sources, adjust the state filter, or check another page.',
+      source: 'Source',
+      extractCount: 'Extracted memories: {{count}}',
+      copySession: 'Copy source session ID',
+      noContent: 'No content preview; open details',
+      forgetExplanation:
+        'This marks the selected record with a forgetting time. It can no longer be retrieved or re-enabled, but stays visible in the list. Related sources and extracts are not forgotten together.',
+      inspect: 'Memory details',
+      inspectDescription: 'Inspect content, provenance, and lifecycle.',
+      technicalDetails: 'Raw content & technical details',
+      recallDescription:
+        'Query this memory directly to check whether existing content can be recalled.',
+      recallQuestion: 'What should AI remember?',
+      recallPlaceholder: 'For example: What do I like to eat?',
+      recall: 'Search',
+      recallOptions: 'Retrieval parameters',
+      threshold: 'Similarity threshold',
+      recallReady: 'Try a real question',
+      recallBoundary:
+        'This tests direct retrieval without generating an answer or writing a memory. An agent’s use of memory tools depends on its model and workflow configuration.',
+      recallResults: '“{{query}}” · {{count}} results (up to 5)',
+      recallError:
+        'Retrieval failed. Check the model service or try again later.',
+      noRecall: 'No matching memories recalled',
+      noRecallDescription:
+        'Rephrase your question or adjust the similarity threshold and try again.',
+      memoryActions: 'Actions for {{name}}',
+      capacity: 'Capacity limit',
+      cardDescription:
+        'Build context for future conversations from facts, experiences, and habits.',
+      yourMemories: 'Your memories',
+      listHint: 'Open a memory to inspect content or test retrieval',
+      settingsDescription:
+        'Control how memories are extracted, retained, and shared.',
+      unsaved: 'Unsaved changes',
+      saved: 'Configuration synced',
+      resetChanges: 'Discard unsaved changes',
+      identityTab: 'Identity & models',
+      policyTab: 'Capacity & forgetting',
+      extractionTab: 'Extraction',
+      modelLock:
+        'Memory types and the extraction model remain read-only while records exist or the record check is incomplete. The embedding model is fixed after creation.',
+      policyDescription:
+        'Set a capacity limit and choose a forgetting policy for capacity management.',
+      capacityDescription:
+        'This is a configured limit, not current usage. Both message content and embedding vectors consume capacity.',
+      forgettingDescription:
+        'FIFO forgets older records first; LRU prioritizes records used less recently.',
+      extractionDescription:
+        'Control how the model extracts memories from new conversations. These prompts and temperature apply to extraction, independently of agent conversation prompts.',
+      agentFilter: 'Filter by agent',
+      allAgents: 'All agents',
+    },
   },
 }

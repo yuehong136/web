@@ -4,7 +4,6 @@
 
 export { MemoryCard } from './MemoryCard'
 export { CreateMemoryDialog } from './CreateMemoryDialog'
-export { MemoryMessageTable } from './MemoryMessageTable'
 export { MemorySidebar } from './MemorySidebar'
 export { MemoryStatsCard } from './MemoryStatsCard'
 export { MemoryEmptyState } from './MemoryEmptyState'

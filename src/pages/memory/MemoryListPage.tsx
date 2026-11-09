@@ -1,25 +1,21 @@
-/**
- * 记忆库列表页面
- * 布局参考知识库管理页面，筛选组件保留 ListFilterBar 的 Popover 方式
- */
-
-import { useEffect, useMemo, useState, type FC } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Brain, Plus, Search } from 'lucide-react'
+import { ConsolePageTemplate } from '@/components/page-templates/console-page-template'
+import { PageHeader } from '@/components/patterns/page-header'
+import { PageToolbar } from '@/components/patterns/page-toolbar'
 import {
-  Plus,
-  Grid,
-  List as ListIcon,
-  Database,
-  MessageSquare,
-  HardDrive,
-  Zap,
-  Search,
-  ChevronLeft,
-  ChevronRight,
-  ArrowUpDown,
-} from 'lucide-react'
+  PageEmptyState,
+  PageErrorState,
+  PageLoadingState,
+} from '@/components/patterns/page-states'
+import { ListPagination } from '@/components/patterns/list-pagination'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import {
+  FilterPopover,
+  type FilterConfig,
+} from '@/components/ui/filter-popover'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,21 +26,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import {
-  FilterPopover,
-  type FilterConfig,
-  type FilterValue,
-} from '@/components/ui/filter-popover'
-import { CustomSelect } from '@/components/ui/custom-select'
-import { PageSizeSelector } from '@/components/ui/page-size-selector'
-import { ViewToggle } from '@/components/ui/view-toggle'
-import {
-  MemoryCard,
-  MemoryListView,
-  CreateMemoryDialog,
-  MemoryStatsCard,
-  MemoryEmptyState,
-} from '@/components/memory'
+import { MemoryCard, CreateMemoryDialog } from '@/components/memory'
 import { useMemoryStore } from '@/stores/memory'
 import {
   useMemoryList,
@@ -53,432 +35,199 @@ import {
   useDeleteMemory,
   useDebouncedSearch,
 } from '@/hooks/use-memory'
-import {
-  MemoryType,
-  type Memory,
-  type CreateMemoryParams,
-  type UpdateMemoryParams,
-} from '@/types/memory'
+import type { Memory } from '@/types/memory'
 
-export const MemoryListPage: FC = () => {
+export function MemoryListPage() {
   const { t } = useTranslation()
-  // Store state
   const {
     filter,
     setFilter,
+    resetFilter,
     page,
     setPage,
     pageSize,
     setPageSize,
-    viewMode,
-    setViewMode,
     createModalOpen,
     editingMemory,
     openCreateModal,
     closeCreateModal,
+    closeEditModal,
     openEditModal,
   } = useMemoryStore()
-
-  // 搜索防抖
-  const [searchInput, setSearchInput] = useState(filter.keywords)
-  const debouncedSearch = useDebouncedSearch(searchInput)
-
-  // 删除确认弹窗状态
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [memoryToDelete, setMemoryToDelete] = useState<Memory | null>(null)
-
-  // 时间格式
-  const [timeFormat, setTimeFormat] = useState<
-    'detailed' | 'compact' | 'relative'
-  >('detailed')
-  const [sortDesc, setSortDesc] = useState(true)
-
-  // 更新筛选条件（搜索词变化时）
+  const [search, setSearch] = useState(filter.keywords)
+  const debounced = useDebouncedSearch(search)
+  const [deleting, setDeleting] = useState<Memory | null>(null)
   useEffect(() => {
-    if (debouncedSearch !== filter.keywords) {
-      setFilter({ keywords: debouncedSearch })
-    }
-  }, [debouncedSearch, filter.keywords, setFilter])
-
-  // API hooks
-  const { data, isLoading } = useMemoryList({
+    if (debounced !== filter.keywords) setFilter({ keywords: debounced })
+  }, [debounced, filter.keywords, setFilter])
+  const query = useMemoryList({
     page,
     page_size: pageSize,
     keywords: filter.keywords,
-    memory_type: filter.memoryType.length > 0 ? filter.memoryType : undefined,
+    memory_type: filter.memoryType.length ? filter.memoryType : undefined,
     storage_type: filter.storageType || undefined,
   })
-
-  const createMutation = useCreateMemory()
-  const updateMutation = useUpdateMemory()
-  const deleteMutation = useDeleteMemory()
-
-  // 记忆库列表
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- memory_list 的 || [] fallback 在 useMemo 里重新计算，引用差异可忽略
-  const memories = data?.memory_list || []
-  const total = data?.total_count || 0
-
-  const sortedMemories = useMemo(() => {
-    const getSortTime = (memory: Memory) =>
-      memory.update_time ?? memory.create_time ?? 0
-    return [...memories].sort((a, b) =>
-      sortDesc
-        ? getSortTime(b) - getSortTime(a)
-        : getSortTime(a) - getSortTime(b),
-    )
-  }, [memories, sortDesc])
-
-  // 统计数据（示例数据，实际应从 API 获取）
-  const stats = {
-    totalMemories: total,
-    totalMessages: 1280,
-    totalStorage: '45.6 MB',
-    activeMemories: Math.floor(total * 0.8),
-  }
-
-  // 处理创建
-  const handleCreate = (formData: CreateMemoryParams) => {
-    createMutation.mutate(formData)
-  }
-
-  // 处理更新
-  const handleUpdate = (id: string, data: UpdateMemoryParams) => {
-    updateMutation.mutate({ id, data })
-  }
-
-  // 处理编辑
-  const handleEdit = (memory: Memory) => {
-    openEditModal(memory)
-  }
-
-  // 打开删除确认
-  const handleDeleteClick = (memory: Memory) => {
-    setMemoryToDelete(memory)
-    setDeleteDialogOpen(true)
-  }
-
-  // 确认删除
-  const handleConfirmDelete = () => {
-    if (memoryToDelete) {
-      deleteMutation.mutate(memoryToDelete.id)
-    }
-    setDeleteDialogOpen(false)
-    setMemoryToDelete(null)
-  }
-
-  // 筛选器配置
-  const filterConfigs: FilterConfig[] = [
+  const create = useCreateMemory()
+  const update = useUpdateMemory()
+  const remove = useDeleteMemory()
+  const memories = query.data?.memory_list ?? []
+  const total = query.data?.total_count ?? 0
+  const filtered =
+    !!filter.keywords || !!filter.memoryType.length || !!filter.storageType
+  const filterConfig: FilterConfig[] = [
     {
       key: 'memoryType',
       label: t('memory.filters.memoryType'),
-      options: [
-        { value: MemoryType.Raw, label: t('memory.filters.raw') },
-        {
-          value: MemoryType.Semantic,
-          label: t('memory.filters.semantic'),
-        },
-        {
-          value: MemoryType.Episodic,
-          label: t('memory.filters.episodic'),
-        },
-        {
-          value: MemoryType.Procedural,
-          label: t('memory.filters.procedural'),
-        },
-      ],
+      options: ['raw', 'semantic', 'episodic', 'procedural'].map((value) => ({
+        value,
+        label: t(`memory.filters.${value}`),
+      })),
     },
   ]
-
-  // 筛选值转换
-  const filterValue: FilterValue = {
-    memoryType: filter.memoryType,
-  }
-
-  // 处理筛选变化
-  const handleFilterChange = (newValue: FilterValue) => {
-    setFilter({ memoryType: (newValue.memoryType || []) as MemoryType[] })
-  }
-
-  // 判断是否显示空状态
-  const showEmptyState = !isLoading && sortedMemories.length === 0
-  const emptyStateType = filter.keywords ? 'search' : 'list'
-
   return (
-    <div className="flex h-full flex-col p-6">
-      {/* 页面头部 - 标题 + 创建按钮 */}
-      <div className="mb-4 flex items-start justify-between">
-        <div>
-          <h1 className="text-xl font-semibold text-text-primary">
-            {t('memory.page.title')}
-          </h1>
-          <p className="mt-1 text-sm text-text-secondary">
-            {t('memory.page.description')}
+    <ConsolePageTemplate
+      header={
+        <PageHeader
+          title={t('memory.page.title')}
+          titleSize="md"
+          description={t('memory.page.description')}
+          wrapActions
+          actions={
+            <Button onClick={openCreateModal}>
+              <Plus className="size-icon-sm" />
+              {t('memory.page.create')}
+            </Button>
+          }
+        />
+      }
+      toolbar={
+        <PageToolbar
+          wrap
+          left={
+            <Input
+              aria-label={t('memory.filters.searchPlaceholder')}
+              placeholder={t('memory.filters.searchPlaceholder')}
+              className="max-w-md"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              leftIcon={<Search className="size-icon-sm" />}
+            />
+          }
+          right={
+            <>
+              <FilterPopover
+                filters={filterConfig}
+                value={{ memoryType: filter.memoryType }}
+                onChange={(value) =>
+                  setFilter({ memoryType: value.memoryType ?? [] })
+                }
+              />
+              {filtered && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setSearch('')
+                    resetFilter()
+                  }}
+                >
+                  {t('memory.common.clear')}
+                </Button>
+              )}
+            </>
+          }
+        />
+      }
+      footer={
+        total > 0 && !query.isError ? (
+          <div className="border-t border-border-subtle bg-background-surface px-space-lg pb-space-base [&>div]:mt-space-sm">
+            <ListPagination
+              total={total}
+              page={page}
+              pageSize={pageSize}
+              onPageChange={setPage}
+              onPageSizeChange={setPageSize}
+            />
+          </div>
+        ) : null
+      }
+    >
+      <div className="mx-auto max-w-7xl space-y-space-lg p-space-lg">
+        <div className="flex flex-wrap items-center justify-between gap-space-sm">
+          <h2 className="text-sm font-medium text-text-primary">
+            {t('memory.workspace.yourMemories')}{' '}
+            <span className="ml-space-xs rounded-radius-full bg-background-subtle px-space-sm py-space-xs text-xs text-text-secondary">
+              {query.isPending ? '—' : total}
+            </span>
+          </h2>
+          <p className="text-xs text-text-tertiary">
+            {t('memory.workspace.listHint')}
           </p>
         </div>
-        <Button onClick={openCreateModal}>
-          <Plus className="mr-2 h-4 w-4" />
-          {t('memory.page.create')}
-        </Button>
-      </div>
-
-      {/* 统计卡片 - 与知识库页面保持一致的布局 */}
-      <div className="mb-4">
-        <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <MemoryStatsCard
-            title={t('memory.stats.totalMemories')}
-            value={stats.totalMemories}
-            icon={Database}
-            color="info"
-          />
-          <MemoryStatsCard
-            title={t('memory.stats.totalMessages')}
-            value={stats.totalMessages}
-            icon={MessageSquare}
-            color="success"
-          />
-          <MemoryStatsCard
-            title={t('memory.stats.totalStorage')}
-            value={stats.totalStorage}
-            icon={HardDrive}
-            color="info"
-          />
-          <MemoryStatsCard
-            title={t('memory.stats.activeMemories')}
-            value={stats.activeMemories}
-            icon={Zap}
-            color="warning"
-          />
-        </div>
-      </div>
-
-      {/* 搜索和筛选工具栏 */}
-      <div className="mb-4 flex items-center space-x-4">
-        {/* 左侧：搜索框 */}
-        <div className="max-w-md flex-1">
-          <Input
-            type="search"
-            placeholder={t('memory.filters.searchPlaceholder')}
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            leftIcon={<Search className="h-4 w-4" />}
-          />
-        </div>
-
-        {/* 右侧：筛选 + 时间格式 + 视图切换 */}
-        <div className="flex items-center space-x-2">
-          {/* 筛选按钮 */}
-          <FilterPopover
-            filters={filterConfigs}
-            value={filterValue}
-            onChange={handleFilterChange}
-          />
-
-          {/* 时间格式选择器 */}
-          <CustomSelect
-            options={[
-              {
-                value: 'detailed',
-                label: t('memory.toolbar.detailedTime'),
-              },
-              {
-                value: 'compact',
-                label: t('memory.toolbar.compactTime'),
-              },
-              {
-                value: 'relative',
-                label: t('memory.toolbar.relativeTime'),
-              },
-            ]}
-            value={timeFormat}
-            onChange={(value) =>
-              setTimeFormat(value as 'detailed' | 'compact' | 'relative')
-            }
-            size="sm"
-            className="min-w-[100px]"
-          />
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setSortDesc((prev) => !prev)}
-            className="flex h-9 items-center gap-1 px-2 text-xs"
-          >
-            <ArrowUpDown className="h-3.5 w-3.5" />
-            <span>
-              {sortDesc
-                ? t('memory.toolbar.descending')
-                : t('memory.toolbar.ascending')}
-            </span>
-          </Button>
-
-          {/* 视图切换 */}
-          <ViewToggle
-            value={viewMode}
-            onChange={setViewMode}
-            size="md"
-            options={[
-              {
-                value: 'grid',
-                icon: <Grid />,
-                label: t('memory.toolbar.gridView'),
-              },
-              {
-                value: 'list',
-                icon: <ListIcon />,
-                label: t('memory.toolbar.listView'),
-              },
-            ]}
-          />
-        </div>
-      </div>
-
-      {/* 内容区域 */}
-      {showEmptyState ? (
-        <div className="flex flex-1 items-center justify-center">
-          <MemoryEmptyState type={emptyStateType} onAction={openCreateModal} />
-        </div>
-      ) : (
-        <>
-          {/* 可滚动内容区域 - pt-1 pb-2 为悬停效果留出空间 */}
-          <div className="-mx-1 flex-1 overflow-y-auto px-1 pt-1 pb-2">
-            {viewMode === 'grid' ? (
-              /* 卡片网格视图 */
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {isLoading
-                  ? // 加载骨架屏
-                    [...Array(8)].map((_, i) => (
-                      <div
-                        key={i}
-                        className="h-[180px] animate-pulse rounded-lg bg-surface-secondary"
-                      />
-                    ))
-                  : sortedMemories.map((memory) => (
-                      <MemoryCard
-                        key={memory.id}
-                        data={memory}
-                        onEdit={handleEdit}
-                        onDelete={handleDeleteClick}
-                        timeFormat={timeFormat}
-                      />
-                    ))}
-              </div>
-            ) : (
-              /* 列表视图 */
-              <MemoryListView
-                data={sortedMemories}
-                onEdit={handleEdit}
-                onDelete={handleDeleteClick}
-                isLoading={isLoading}
-                timeFormat={timeFormat}
-              />
+        {query.isPending ? (
+          <PageLoadingState />
+        ) : query.isError ? (
+          <PageErrorState onRetry={() => query.refetch()} />
+        ) : !memories.length ? (
+          <PageEmptyState
+            title={t(
+              filtered ? 'memory.empty.searchTitle' : 'memory.empty.listTitle',
             )}
-          </div>
-
-          {/* 分页控件 - 固定在底部，参考知识库页面 */}
-          {(() => {
-            const totalPages = Math.ceil(total / pageSize)
-            return totalPages > 0 ? (
-              <div
-                className="mt-4 rounded-lg border shadow-xs"
-                style={{
-                  borderColor: 'var(--color-components-card-border)',
-                  backgroundColor: 'var(--color-components-card-bg)',
-                }}
+            description={t(
+              filtered
+                ? 'memory.empty.searchDescription'
+                : 'memory.empty.listDescription',
+            )}
+            icon={<Brain className="size-icon-lg" />}
+            action={
+              <Button
+                onClick={
+                  filtered
+                    ? () => {
+                        setSearch('')
+                        resetFilter()
+                      }
+                    : openCreateModal
+                }
               >
-                <div className="flex items-center justify-between px-6 py-4">
-                  <div
-                    className="text-sm"
-                    style={{ color: 'var(--color-components-pagination-text)' }}
-                  >
-                    {t('memory.pagination.total', {
-                      count: total,
-                    })}
-                  </div>
-
-                  <div className="flex items-center space-x-4">
-                    {/* 每页显示选择器 */}
-                    <PageSizeSelector
-                      pageSize={pageSize}
-                      onChange={(size) => setPageSize(size)}
-                      options={[6, 12, 24, 48]}
-                    />
-
-                    {/* 页码导航 */}
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setPage(page - 1)}
-                        disabled={page === 1}
-                      >
-                        <ChevronLeft className="h-4 w-4" />
-                        {t('memory.pagination.previous')}
-                      </Button>
-
-                      <div className="flex items-center space-x-1">
-                        {Array.from(
-                          { length: Math.max(1, Math.min(7, totalPages)) },
-                          (_, i) => {
-                            let pageNum = i + 1
-
-                            // Show first page, last page, current page and surrounding pages
-                            if (totalPages > 7) {
-                              if (page <= 4) {
-                                pageNum = i + 1
-                              } else if (page >= totalPages - 3) {
-                                pageNum = totalPages - 6 + i
-                              } else {
-                                pageNum = page - 3 + i
-                              }
-                            }
-
-                            return (
-                              <Button
-                                key={pageNum}
-                                variant={
-                                  page === pageNum ? 'default' : 'outline'
-                                }
-                                size="sm"
-                                onClick={() => setPage(pageNum)}
-                                className="min-w-[40px]"
-                              >
-                                {pageNum}
-                              </Button>
-                            )
-                          },
-                        )}
-                      </div>
-
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setPage(page + 1)}
-                        disabled={page === totalPages || totalPages === 0}
-                      >
-                        {t('memory.pagination.next')}
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : null
-          })()}
-        </>
-      )}
-
-      {/* 创建/编辑弹窗 */}
+                {t(filtered ? 'memory.common.clear' : 'memory.page.create')}
+              </Button>
+            }
+          />
+        ) : (
+          <>
+            <div className="grid grid-cols-1 gap-space-base lg:grid-cols-2 2xl:grid-cols-3">
+              {memories.map((memory) => (
+                <MemoryCard
+                  key={memory.id}
+                  data={memory}
+                  onEdit={openEditModal}
+                  onDelete={setDeleting}
+                />
+              ))}
+            </div>
+          </>
+        )}
+      </div>
       <CreateMemoryDialog
-        open={createModalOpen}
-        onOpenChange={closeCreateModal}
-        onCreate={handleCreate}
-        onUpdate={handleUpdate}
-        isLoading={createMutation.isPending || updateMutation.isPending}
+        open={createModalOpen || !!editingMemory}
+        onOpenChange={(open) => {
+          if (!open) {
+            closeCreateModal()
+            closeEditModal()
+          }
+        }}
         initialData={editingMemory}
+        onCreate={(data) => create.mutate(data)}
+        onUpdate={(id, data) => update.mutate({ id, data })}
+        isLoading={create.isPending || update.isPending}
       />
-
-      {/* 删除确认弹窗 */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+      <AlertDialog
+        open={!!deleting}
+        onOpenChange={(open) => {
+          if (!open && !remove.isPending) setDeleting(null)
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
@@ -487,20 +236,33 @@ export const MemoryListPage: FC = () => {
             <AlertDialogDescription>
               {t('memory.deleteDialog.description')}
             </AlertDialogDescription>
+            <p className="text-sm font-medium break-words text-text-primary">
+              {deleting?.name}
+            </p>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogCancel disabled={remove.isPending}>
+              {t('common.cancel')}
+            </AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleConfirmDelete}
               variant="destructive"
+              disabled={remove.isPending}
+              onClick={async (e) => {
+                e.preventDefault()
+                if (!deleting) return
+                try {
+                  await remove.mutateAsync(deleting.id)
+                  setDeleting(null)
+                } catch {
+                  /* Mutation owns error feedback. */
+                }
+              }}
             >
               {t('common.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </ConsolePageTemplate>
   )
 }
-
-MemoryListPage.displayName = 'MemoryListPage'

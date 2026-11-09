@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils'
 interface ConsolePageTemplateProps extends React.HTMLAttributes<HTMLDivElement> {
   header?: React.ReactNode
   toolbar?: React.ReactNode
+  footer?: React.ReactNode
   rail?: React.ReactNode
   children: React.ReactNode
   /**
@@ -20,6 +21,7 @@ interface ConsolePageTemplateProps extends React.HTMLAttributes<HTMLDivElement> 
 export const ConsolePageTemplate: React.FC<ConsolePageTemplateProps> = ({
   header,
   toolbar,
+  footer,
   rail,
   children,
   bodyOverflow = 'auto',
@@ -51,6 +53,7 @@ export const ConsolePageTemplate: React.FC<ConsolePageTemplateProps> = ({
         >
           {children}
         </div>
+        {footer ? <div className="shrink-0">{footer}</div> : null}
       </div>
     </div>
   )
