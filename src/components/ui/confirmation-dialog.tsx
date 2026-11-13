@@ -50,8 +50,10 @@ export const ConfirmationDialog = ({
           }}
         >
           <Alert.Title className="text-lg font-semibold">{title}</Alert.Title>
-          <Alert.Description className="mt-space-sm text-sm text-text-secondary">
-            {description}
+          <Alert.Description asChild>
+            <div className="mt-space-sm text-sm text-text-secondary">
+              {description}
+            </div>
           </Alert.Description>
           <div className="mt-space-lg flex justify-end gap-space-sm">
             <Alert.Cancel asChild>

@@ -103,7 +103,33 @@ export default {
         failed:
           '未能保存更改。请检查配置或已有模型引用后重试，已填写的内容会保留。',
         deleteConfirm:
-          '删除 {{name}}？应用、知识库或默认设置正在使用的模型需要先解除关联。',
+          '删除 {{name}} 及其模型配置？请先更换有效配置和当前发布版本中的模型。历史记录会保留，不阻止删除；旧会话再次运行时可能需要重新选择模型。',
+      },
+      deletion: {
+        referenceList: '模型引用位置',
+        blocked: '无法删除：仍有 {{count}} 处引用这些模型。',
+        blocked_other: '无法删除：仍有 {{count}} 处引用这些模型。',
+        deleted: '（已删除的配置）',
+        resourceId: 'ID：{{id}}',
+        models: '使用模型：{{models}}',
+        resolve:
+          '请先更换下列有效配置中的模型，再重试删除。已删除配置、旧版本和会话快照不阻止删除；当前发布版本仍需更换模型并重新发布。',
+        types: {
+          Tenant: '默认模型设置',
+          Knowledgebase: '知识库',
+          Document: '文档',
+          Dialog: '聊天应用',
+          Memory: '记忆库',
+          UserCanvas: 'Agent / 工作流',
+          UserCanvasVersion: 'Agent / 工作流当前发布版本',
+          Search: '搜索应用',
+          SkillSearchConfig: '技能库检索配置',
+          PythonSkillCoreConfig: 'Python 技能检索配置',
+          API4Conversation: '会话快照',
+          ChannelCanvasCandidate: '渠道会话',
+          PipelineOperationLog: '流水线历史记录',
+          SharedResource: '其他账号的共享模型引用（请联系资源所有者处理）',
+        },
       },
       volcEngine: { modelId: '模型 ID', modelIdRequired: '请输入模型 ID。' },
       localModel: {

@@ -5,6 +5,7 @@ import { FormProvider, useForm, useWatch } from 'react-hook-form'
 import { Settings2 } from 'lucide-react'
 import { Button, Modal } from '@/components/ui'
 import { ChunkMethodForm } from '@/pages/knowledge/settings/ChunkMethodForm'
+import { LLMModelItem } from '@/pages/knowledge/settings/configuration/common-item'
 import type { Document, MetadataDefinition } from '@/types/api'
 import { metadataConfigToFields } from '@/api/knowledge-metadata'
 import type { DocumentParserSubmission } from '@/hooks/use-document-parser-modal'
@@ -159,10 +160,13 @@ function ParserDraftModal({
                 />
               )}
               {parseType === 1 && parserId && (
-                <ChunkMethodForm
-                  onMetadataSettingsClick={handleMetadataSettingsClick}
-                  metadataCount={metadataConfigToFields(metadata).length}
-                />
+                <>
+                  <LLMModelItem documentScope />
+                  <ChunkMethodForm
+                    onMetadataSettingsClick={handleMetadataSettingsClick}
+                    metadataCount={metadataConfigToFields(metadata).length}
+                  />
+                </>
               )}
             </fieldset>
           </form>

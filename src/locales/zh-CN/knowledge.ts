@@ -271,6 +271,15 @@ export default {
         description: '描述信息',
         descriptionPlaceholder: '请输入知识库描述',
         embeddingModel: '嵌入模型',
+        globalIndexModel: '全局索引模型',
+        globalIndexModelTip:
+          'RAPTOR 和知识图谱生成使用此模型。修改后用于后续任务；已有文档保存的解析模型不会同步更换。',
+        documentParserModel: '文档解析模型',
+        documentParserModelTip:
+          '此文档保存的解析模型，用于需要聊天模型的解析步骤。仅更换模型不会改写已有解析结果；如需应用到已有内容，请重新解析。知识库级 RAPTOR 和知识图谱任务使用知识库的全局索引模型。',
+        parserModelDefault: '未指定，运行时使用租户默认模型',
+        parserModelSavedTip:
+          '已有模型配置会保留，可能来自创建时的租户默认值；更改租户默认模型不会覆盖这里的值。保存不会自动重新解析。',
         embeddingModelTooltip:
           '知识库采用的默认嵌入模型。更换前会检查与已有分块向量的兼容性，保存不会重建已有向量。',
         embeddingModelPlaceholder: '请选择嵌入模型',

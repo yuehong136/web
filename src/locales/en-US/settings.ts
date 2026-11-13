@@ -109,7 +109,38 @@ export default {
         failed:
           'Could not save this change. Check the configuration or existing model references and try again. Your entries are kept.',
         deleteConfirm:
-          'Delete {{name}}? Models used by applications, datasets or defaults must be unlinked first.',
+          'Delete {{name}} and its model configurations? Replace models in live configurations and the current published version first. History is kept and does not block deletion; running an old conversation again may require selecting another model.',
+      },
+      deletion: {
+        referenceList: 'Model reference locations',
+        blocked:
+          'Cannot delete: these models are still referenced in {{count}} places.',
+        blocked_one:
+          'Cannot delete: these models are still referenced in {{count}} place.',
+        blocked_other:
+          'Cannot delete: these models are still referenced in {{count}} places.',
+        deleted: ' (deleted configuration)',
+        resourceId: 'ID: {{id}}',
+        models: 'Models: {{models}}',
+        resolve:
+          'Replace the models in these live configurations, then try again. Deleted configurations, older versions and conversation snapshots do not block deletion. Update and republish the current published version if it still uses these models.',
+        types: {
+          Tenant: 'Default model settings',
+          Knowledgebase: 'Dataset',
+          Document: 'Document',
+          Dialog: 'Chat application',
+          Memory: 'Memory',
+          UserCanvas: 'Agent / workflow',
+          UserCanvasVersion: 'Agent / workflow current published version',
+          Search: 'Search application',
+          SkillSearchConfig: 'Skill search configuration',
+          PythonSkillCoreConfig: 'Python skill search configuration',
+          API4Conversation: 'Conversation snapshot',
+          ChannelCanvasCandidate: 'Channel conversation',
+          PipelineOperationLog: 'Pipeline history',
+          SharedResource:
+            'Shared model reference in another account (contact its owner)',
+        },
       },
       volcEngine: { modelId: 'Model ID', modelIdRequired: 'Enter a Model ID.' },
       localModel: {

@@ -24,6 +24,7 @@ import {
   DefaultEntityTypes,
 } from '@/types/knowledge-form'
 import { SliderInputFormField } from './SliderInputFormField'
+import { LLMModelItem } from '@/pages/knowledge/settings/configuration/common-item'
 
 interface GraphRagFormFieldsProps {
   className?: string
@@ -153,6 +154,7 @@ export function GraphRagFormFields({ className }: GraphRagFormFieldsProps) {
 
   return (
     <div className={cn('space-y-4', className)}>
+      <LLMModelItem />
       {/* 启用 GraphRAG */}
       <FormField
         control={form.control}

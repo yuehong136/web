@@ -15,6 +15,7 @@ import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
 import { InstanceModelForm } from './instance-model-form'
 import { InstanceModelRow } from './instance-model-row'
 import { KeyRound, MapPin, Plug } from 'lucide-react'
+import { ModelMutationError } from './model-mutation-error'
 
 type Removal = { label: string; operation: () => Promise<unknown> }
 export function ProviderInstance({ instance }: { instance: ModelInstance }) {
@@ -25,15 +26,19 @@ export function ProviderInstance({ instance }: { instance: ModelInstance }) {
     [baseUrl, setBaseUrl] = useState(instance.base_url),
     [region, setRegion] = useState(instance.region)
   const [clear, setClear] = useState(false),
-    [failed, setFailed] = useState(false)
+    [failure, setFailure] = useState<unknown>(null)
   const [removal, setRemoval] = useState<Removal | null>(null)
+  const requestRemoval = (target: Removal) => {
+    setFailure(null)
+    setRemoval(target)
+  }
   const models = useTenantModels(),
     mutation = useModelProviderMutation()
   const perform = (operation: () => Promise<unknown>, done?: () => void) => {
-    setFailed(false)
+    setFailure(null)
     mutation.mutate(operation, {
       onSuccess: done,
-      onError: () => setFailed(true),
+      onError: (error) => setFailure(error),
     })
   }
   const owned = (models.data ?? []).filter(
@@ -114,7 +119,7 @@ export function ProviderInstance({ instance }: { instance: ModelInstance }) {
             size="sm"
             variant="ghost"
             onClick={() =>
-              setRemoval({
+              requestRemoval({
                 label: instance.instance_name,
                 operation: () =>
                   modelProvidersAPI.deleteInstance(
@@ -211,7 +216,7 @@ export function ProviderInstance({ instance }: { instance: ModelInstance }) {
                 )
               }
               onRemove={() =>
-                setRemoval({
+                requestRemoval({
                   label: model.name,
                   operation: () =>
                     modelProvidersAPI.deleteModel(
@@ -225,11 +230,7 @@ export function ProviderInstance({ instance }: { instance: ModelInstance }) {
           ))}
         </ul>
       )}
-      {failed && (
-        <p role="alert" className="text-status-error">
-          {t('settings.models.instances.failed')}
-        </p>
-      )}
+      {!removal && failure !== null && <ModelMutationError error={failure} />}
       {addingModel && (
         <InstanceModelForm
           provider={instance.provider_name}
@@ -243,9 +244,16 @@ export function ProviderInstance({ instance }: { instance: ModelInstance }) {
           !open && !mutation.isPending && setRemoval(null)
         }
         title={t('common.delete')}
-        description={t('settings.models.instances.deleteConfirm', {
-          name: removal?.label,
-        })}
+        description={
+          <div className="space-y-space-sm">
+            <span className="block">
+              {t('settings.models.instances.deleteConfirm', {
+                name: removal?.label,
+              })}
+            </span>
+            {failure !== null && <ModelMutationError error={failure} />}
+          </div>
+        }
         cancelLabel={t('common.cancel')}
         confirmLabel={t('common.delete')}
         pending={mutation.isPending}

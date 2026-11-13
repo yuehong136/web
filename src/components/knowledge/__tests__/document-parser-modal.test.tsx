@@ -6,6 +6,7 @@ import { ChunkMethodModal } from '../ChunkMethodModal'
 import { useDocumentParserModal } from '@/hooks/use-document-parser-modal'
 import { documentKeys } from '@/hooks/use-document-request'
 import { knowledgeKeys } from '@/hooks/use-knowledge-request'
+import { llmAPI } from '@/api/llm'
 import { useAuthStore } from '@/stores/auth'
 import { apiClient } from '@/api/client'
 import { setProductLanguage } from '@/locales/i18n'
@@ -20,6 +21,7 @@ let datasetId: string
 let wire: ReturnType<typeof canonical>
 let calls: { method: string; url: URL; body: any }[]
 let respond: (url: URL, init?: RequestInit) => Promise<Response>
+const originalScrollIntoView = Element.prototype.scrollIntoView
 
 const pipelineId = 'a'.repeat(32)
 function canonical(extra: Record<string, unknown> = {}) {
@@ -157,6 +159,7 @@ async function waitForSaveSettled() {
 const writes = () => calls.filter((call) => call.method === 'PATCH')
 
 beforeEach(async () => {
+  Element.prototype.scrollIntoView = () => {}
   vi.stubGlobal('matchMedia', (query: string) => ({
     matches: false,
     media: query,
@@ -235,6 +238,7 @@ afterEach(async () => {
   apiClient.setAuthToken(null)
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
+  Element.prototype.scrollIntoView = originalScrollIntoView
 })
 
 it('opens actual nested children and percent units; no-op mounts no defaults into a PATCH', async () => {
@@ -248,6 +252,60 @@ it('opens actual nested children and percent units; no-op mounts no defaults int
   await save()
   expect(writes()).toHaveLength(0)
   expect(modal.open).toBe(false)
+})
+
+it('shows a legacy model and replaces only the document model through the canonical PATCH', async () => {
+  vi.spyOn(llmAPI, 'getMyLLMs').mockResolvedValue({
+    OpenAI: {
+      tags: 'CHAT',
+      llm: [
+        {
+          id: '54',
+          name: 'replacement',
+          type: 'chat',
+          status: '1',
+          used_token: 0,
+        },
+      ],
+    },
+  })
+  wire.parser_config = {
+    llm_id: 'glm-5-turbo@ZHIPU-AI',
+    opaque: { keep: true },
+  }
+  await open({
+    parser_config: structuredClone(wire.parser_config),
+  })
+  const label = [...document.querySelectorAll('label')].find(
+    (item) => item.textContent === 'Document parsing model',
+  )!
+  expect(label.parentElement!.textContent).toContain('glm-5-turbo')
+  await act(async () =>
+    label
+      .parentElement!.querySelector<HTMLButtonElement>('[role=combobox]')!
+      .click(),
+  )
+  await waitForState(() =>
+    expect(
+      [...document.querySelectorAll('[role=option]')].map((item) =>
+        item.getAttribute('data-value'),
+      ),
+    ).toContain('54'),
+  )
+  const option = [
+    ...document.querySelectorAll<HTMLElement>('[role=option]'),
+  ].find((item) => item.getAttribute('data-value') === '54')!
+  expect(option).toBeDefined()
+  await act(async () => option.click())
+  await save()
+  await waitForSaveSettled()
+  expect(writes()).toHaveLength(1)
+  expect(writes()[0].body).toEqual({ parser_config: { llm_id: '54' } })
+  expect(wire.parser_config).toEqual({ llm_id: '54', opaque: { keep: true } })
+  await open(wire)
+  expect(document.body.textContent).toContain('replacement')
+  await save()
+  expect(writes()).toHaveLength(1)
 })
 
 it('an explicit overlap edit submits only that field and preserves unrelated historical configuration', async () => {

@@ -287,6 +287,15 @@ export default {
         description: 'Description',
         descriptionPlaceholder: 'Enter a knowledge base description',
         embeddingModel: 'Embedding model',
+        globalIndexModel: 'Global index model',
+        globalIndexModelTip:
+          'Used for RAPTOR and knowledge graph generation in subsequent tasks. Existing documents retain their saved parsing model.',
+        documentParserModel: 'Document parsing model',
+        documentParserModelTip:
+          'The model saved for this document, used by parsing steps that require a chat model. Changing only the model retains existing parsing results; reparse to apply it to existing content. Dataset-level RAPTOR and knowledge graph tasks use the global index model.',
+        parserModelDefault: 'Not specified; use the tenant default at runtime',
+        parserModelSavedTip:
+          'Saved models are retained and may come from the tenant default at creation. Changing the tenant default does not replace this value. Saving does not reparse content.',
         embeddingModelTooltip:
           'The default embedding model used by this knowledge base. Changing the model checks compatibility with existing chunk vectors before saving. Existing vectors are not rebuilt.',
         embeddingModelPlaceholder: 'Select an embedding model',

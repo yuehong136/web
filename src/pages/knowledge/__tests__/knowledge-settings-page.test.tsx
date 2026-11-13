@@ -251,6 +251,72 @@ afterEach(async () => {
   Element.prototype.scrollIntoView = originalScrollIntoView
 })
 
+it('shows and replaces the saved global index model even with GraphRAG disabled', async () => {
+  stored.parser_config = {
+    ...stored.parser_config,
+    llm_id: 'glm-5-turbo@ZHIPU-AI',
+    raptor: { use_raptor: true },
+  }
+  mockModels(async () => ({
+    OpenAI: {
+      tags: 'CHAT',
+      llm: [
+        {
+          id: '54',
+          name: 'replacement',
+          type: 'chat',
+          status: '1',
+          used_token: 0,
+        },
+        {
+          id: '55',
+          name: 'disabled',
+          type: 'chat',
+          status: '0',
+          used_token: 0,
+        },
+        {
+          id: '56',
+          name: 'embedding',
+          type: 'embedding',
+          status: '1',
+          used_token: 0,
+        },
+      ],
+    },
+  }))
+  await reload()
+  expect(field('Global index model').textContent).toContain('glm-5-turbo')
+  await waitForPage(() =>
+    expect(field('Global index model').textContent).toContain('Unavailable'),
+  )
+  await selectOption('Global index model', '54')
+  await save()
+  expect(writes[0]).toMatchObject({ parser_config: { llm_id: '54' } })
+  await reload()
+  expect(field('Global index model').textContent).toContain('replacement')
+  expect(stored.parser_config?.graphrag?.use_graphrag).toBe(false)
+})
+
+it.each(['glm-5-turbo@ZHIPU-AI', '', null, undefined])(
+  'preserves the saved parser model %s during an unrelated settings save',
+  async (value) => {
+    stored.parser_config = { ...stored.parser_config, llm_id: value }
+    if (value === undefined) delete stored.parser_config.llm_id
+    await reload()
+    if (!value)
+      expect(field('Global index model').textContent).toContain(
+        'tenant default',
+      )
+    await input('Knowledge base name', 'Renamed docs')
+    await save()
+    expect(writes[0]).toMatchObject({ name: 'Renamed docs' })
+    expect(stored.parser_config?.llm_id).toBe(value)
+    const wireConfig = JSON.parse(JSON.stringify(writes[0].parser_config))
+    expect(Object.hasOwn(wireConfig, 'llm_id')).toBe(value !== undefined)
+  },
+)
+
 it('retains an edited parser draft when delayed model loading and refresh update the options', async () => {
   stored.embedding_model = 'late-embedding'
   let finishModelLoad!: (models: MyLLMProvider) => void

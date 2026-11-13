@@ -73,6 +73,7 @@ export const metadataFieldSchema = z.looseObject({
 
 // 解析器配置 Schema
 export const parserConfigSchema = z.looseObject({
+  llm_id: z.string().nullish(),
   layout_recognize: z.string().default('DeepDOC'),
   chunk_token_num: numericField().min(1).max(8192).default(512),
   delimiter: z.string().default('\n'),

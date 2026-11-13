@@ -15,6 +15,7 @@ import {
 } from '@/components/patterns'
 import { ProviderInstance } from './provider-instance'
 import { ProviderIcon } from '@/components/ui/provider-icon'
+import { ModelMutationError } from './model-mutation-error'
 
 export function UsedModels({
   handleAddModel,
@@ -68,7 +69,7 @@ function ConfiguredProvider({ name, add }: { name: string; add: () => void }) {
     instances = useProviderInstances(name),
     mutation = useModelProviderMutation()
   const [removing, setRemoving] = useState(false),
-    [failed, setFailed] = useState(false)
+    [failure, setFailure] = useState<unknown>(null)
   if (instances.isSuccess && instances.data.length === 0) return null
   return (
     <article className="flex flex-col gap-space-base rounded-radius-lg border border-border-default p-space-base">
@@ -83,7 +84,14 @@ function ConfiguredProvider({ name, add }: { name: string; add: () => void }) {
           <Button variant="outline" size="sm" onClick={add}>
             {t('settings.models.instances.add')}
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => setRemoving(true)}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setFailure(null)
+              setRemoving(true)
+            }}
+          >
             {t('common.delete')}
           </Button>
         </div>
@@ -106,24 +114,27 @@ function ConfiguredProvider({ name, add }: { name: string; add: () => void }) {
           <ProviderInstance key={instance.id} instance={instance} />
         ))
       )}
-      {failed && (
-        <p role="alert" className="text-status-error">
-          {t('settings.models.instances.failed')}
-        </p>
-      )}
+      {!removing && failure !== null && <ModelMutationError error={failure} />}
       <ConfirmationDialog
         open={removing}
         onOpenChange={(open) => !mutation.isPending && setRemoving(open)}
         title={t('common.delete')}
-        description={t('settings.models.instances.deleteConfirm', { name })}
+        description={
+          <div className="space-y-space-sm">
+            <span className="block">
+              {t('settings.models.instances.deleteConfirm', { name })}
+            </span>
+            {failure !== null && <ModelMutationError error={failure} />}
+          </div>
+        }
         confirmLabel={t('common.delete')}
         cancelLabel={t('common.cancel')}
         pending={mutation.isPending}
         onConfirm={() => {
-          setFailed(false)
+          setFailure(null)
           mutation.mutate(() => modelProvidersAPI.deleteProvider(name), {
             onSuccess: () => setRemoving(false),
-            onError: () => setFailed(true),
+            onError: (error) => setFailure(error),
           })
         }}
       />
