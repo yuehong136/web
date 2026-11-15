@@ -13,6 +13,7 @@ import {
   Plug,
   Palette,
   Terminal,
+  Waypoints,
 } from 'lucide-react'
 import { useUIStore } from '@/stores'
 import { SidebarUtilities } from '@/components/layout/sidebar-utilities'
@@ -90,6 +91,11 @@ export const SettingsLayout: React.FC = () => {
             title: t('settings.nav.modelProviders'),
             href: '/settings/model-providers',
             icon: Server,
+          },
+          {
+            title: t('settings.nav.modelGateway'),
+            href: '/settings/model-gateway',
+            icon: Waypoints,
           },
           {
             title: t('settings.nav.datasource'),

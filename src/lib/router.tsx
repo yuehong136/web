@@ -180,6 +180,10 @@ const ModelProvidersPage = lazyNamed(
   () => import('@/pages/settings/model-providers'),
   'ModelProvidersPage',
 )
+const ModelGatewayPage = lazyNamed(
+  () => import('@/pages/settings/model-gateway'),
+  'ModelGatewayPage',
+)
 const MCPServersPage = lazyNamed(
   () => import('@/pages/settings/MCPServersPage'),
   'MCPServersPage',
@@ -499,6 +503,10 @@ const topLevelRoutes: RouteObject[] = [
           {
             path: 'model-providers',
             element: withLoading(ModelProvidersPage),
+          },
+          {
+            path: 'model-gateway',
+            element: withLoading(ModelGatewayPage),
           },
           {
             path: 'mcp-servers',

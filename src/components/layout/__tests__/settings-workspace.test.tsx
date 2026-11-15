@@ -227,6 +227,7 @@ it('defaults Settings to Profile, preserves its return location, and orders acco
     'Appearance',
     'Team',
     'Model providers',
+    'Model gateway',
     'Data sources',
     'MCP',
     'Channels',
