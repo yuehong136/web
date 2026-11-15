@@ -409,6 +409,12 @@ function ChangingBankWorkspace() {
 
 it("does not let a previous bank's delayed create result replace the current URL", async () => {
   vi.mocked(memoryAPI.dreaming.list).mockResolvedValue({ jobs: [] })
+  vi.mocked(memoryAPI.dreaming.job).mockImplementation(async (_mid, jobId) => ({
+    ...structuredClone(job),
+    job_id: jobId,
+    analysis_operation_id: null,
+    execution: null,
+  }))
   vi.mocked(memoryAPI.revision.operations).mockResolvedValue({
     operations: [],
     next_cursor: null,

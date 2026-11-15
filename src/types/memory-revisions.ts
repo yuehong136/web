@@ -11,6 +11,15 @@ export interface MemoryCapabilities {
     max_candidates: number
     max_publication_candidates: number
     execution?: 'persistent_background'
+    discoveries?: {
+      supported: boolean
+      registered_active_only: true
+      max_sources: number
+      max_batch_sources: number
+      max_runs_per_request: number
+      expected_preview_hash_required: true
+      token_fit: 'not_checked'
+    }
   }
   revisions?: {
     supported: boolean

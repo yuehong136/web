@@ -1,7 +1,9 @@
+import { memoryIncrementalMessages } from './memory-incremental'
 import { memoryRecoveryMessages } from './memory-recovery'
 
 export default {
   memory: {
+    incremental: memoryIncrementalMessages,
     recovery: memoryRecoveryMessages,
     dreaming: {
       title: '整理与审核',

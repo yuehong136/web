@@ -1,8 +1,9 @@
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ConsolePageTemplate } from '@/components/page-templates/console-page-template'
 import { PageHeader } from '@/components/patterns/page-header'
 import { Alert } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
 import {
   PageLoadingState,
   PageErrorState,
@@ -22,8 +23,20 @@ function MemoryMaintenance({ memoryId }: { memoryId: string }) {
     <ConsolePageTemplate
       header={
         <PageHeader
+          wrapActions
           title={t('memory.dreaming.title')}
           description={t('memory.dreaming.description')}
+          actions={
+            capabilities.data?.maintenance?.discoveries?.supported ? (
+              <Button asChild variant="outline">
+                <Link
+                  to={`/memory/${encodeURIComponent(memoryId)}/maintenance/batches`}
+                >
+                  {t('memory.incremental.title')}
+                </Link>
+              </Button>
+            ) : undefined
+          }
         />
       }
     >

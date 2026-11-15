@@ -8,3 +8,5 @@ export { MemoryMessagesPage } from './MemoryMessagesPage'
 export { MemorySettingsPage } from './MemorySettingsPage'
 export { MemoryMaintenancePage } from './memory-maintenance-page'
 export { MemoryOperationsPage } from './memory-operations-page'
+
+export { MemoryIncrementalPage } from './memory-incremental-page'
