@@ -1,6 +1,7 @@
 import type { QueryClient } from '@tanstack/react-query'
 import { memoryKeys } from '@/hooks/use-memory'
 import { memoryRevisionKeys } from '@/hooks/memory-revision-keys'
+import { memoryMaintenanceKeys } from '@/hooks/memory-maintenance-keys'
 import type { MemoryListResponse } from '@/types/memory'
 export { confirmedMemoryDeletion } from '@/lib/memory-operation'
 
@@ -10,6 +11,7 @@ export async function clearDeletedMemory(
   memoryId: string,
 ): Promise<void> {
   const keys = [
+    memoryMaintenanceKeys.bank(memoryId),
     memoryKeys.messages(memoryId),
     memoryKeys.messageContents(memoryId),
     memoryKeys.detail(memoryId),

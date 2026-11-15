@@ -13,6 +13,7 @@ export function memoryOperationReady(operation?: MemoryOperation): boolean {
   if (operation?.kind === 'delete_memory')
     return confirmedMemoryDeletion(operation)
   if (operation?.index_sync_status !== 'ready') return false
+  if (operation.kind === 'dream_publish') return operation.status === 'ready'
   return (
     operation.kind !== 'append_raw' ||
     operation.queue_state === 'submitted' ||

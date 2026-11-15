@@ -9,6 +9,14 @@
 
 import { apiClient } from './client'
 import type {
+  MemoryMaintenanceJob,
+  MemoryMaintenanceCandidate,
+  MemoryMaintenanceCommand,
+  MemoryCandidateReview,
+  MemoryCandidatePublication,
+  MemoryMaintenancePublication,
+} from '@/types/memory-dreaming'
+import type {
   MemoryCapabilities,
   MemoryEntry,
   MemoryRevisionPage,
@@ -191,8 +199,79 @@ export function createMemoryRevisionAPI(
   }
 }
 
+export function createMemoryDreamingAPI(
+  baseURL = API_BASE_URL,
+  client = apiClient,
+) {
+  const sdkBase = { baseURL: `${baseURL}/api` }
+  const path = (memoryId: string, jobId?: string) =>
+    `/memories/${encodeURIComponent(memoryId)}/maintenance-jobs${jobId ? `/${encodeURIComponent(jobId)}` : ''}`
+  return {
+    create: (
+      memoryId: string,
+      command: MemoryMaintenanceCommand,
+    ): Promise<MemoryMaintenanceJob> =>
+      client.post(path(memoryId), command, sdkBase),
+    list: (
+      memoryId: string,
+      signal?: AbortSignal,
+    ): Promise<{ jobs: MemoryMaintenanceJob[] }> =>
+      client.get(path(memoryId), { ...sdkBase, signal, params: { limit: 20 } }),
+    job: (
+      memoryId: string,
+      jobId: string,
+      signal?: AbortSignal,
+    ): Promise<MemoryMaintenanceJob> =>
+      client.get(path(memoryId, jobId), { ...sdkBase, signal }),
+    candidates: (
+      memoryId: string,
+      jobId: string,
+      signal?: AbortSignal,
+    ): Promise<{ candidates: MemoryMaintenanceCandidate[] }> =>
+      client.get(`${path(memoryId, jobId)}/candidates`, { ...sdkBase, signal }),
+    run: (
+      memoryId: string,
+      jobId: string,
+      operationId: string,
+    ): Promise<MemoryMaintenanceJob> =>
+      client.post(
+        `${path(memoryId, jobId)}/runs`,
+        { operation_id: operationId },
+        sdkBase,
+      ),
+    review: (
+      memoryId: string,
+      jobId: string,
+      candidateId: string,
+      command: MemoryCandidateReview,
+    ): Promise<MemoryMaintenanceCandidate> =>
+      client.post(
+        `${path(memoryId, jobId)}/candidates/${encodeURIComponent(candidateId)}/reviews`,
+        command,
+        sdkBase,
+      ),
+    publish: (
+      memoryId: string,
+      jobId: string,
+      command: MemoryCandidatePublication,
+    ): Promise<MemoryMaintenancePublication> =>
+      client.post(`${path(memoryId, jobId)}/publications`, command, sdkBase),
+    cancel: (
+      memoryId: string,
+      jobId: string,
+      operationId: string,
+    ): Promise<MemoryMaintenanceJob> =>
+      client.post(
+        `${path(memoryId, jobId)}/cancellations`,
+        { operation_id: operationId },
+        sdkBase,
+      ),
+  }
+}
+
 export const memoryAPI = {
   revision: createMemoryRevisionAPI(),
+  dreaming: createMemoryDreamingAPI(),
   // ============ 记忆库管理 ============
   // 后端路由: api/apps/sdk/memories.py，前缀 /api/v1
   memory: {

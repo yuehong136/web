@@ -1,5 +1,124 @@
 export default {
   memory: {
+    dreaming: {
+      title: '整理与审核',
+      description: '生成记忆候选，核对来源，再审核并发布。',
+      boundary:
+        '模型生成的候选与正常记忆分开保存。请核对并批准候选后，再显式发布；任务完成不代表事实已经核实。',
+      unsupported: '当前后端不支持记忆候选整理与审核，已有记忆控件仍可使用。',
+      newJob: '准备整理任务',
+      sourceIds: 'RAW 来源 ID',
+      sourcePlaceholder: '输入精确十进制 ID，每行一个或用逗号分隔',
+      explicitScope:
+        '显式选择 1–{{count}} 个 RAW 来源 ID，空范围不会解释为整个记忆库。',
+      invalidSources:
+        '请输入 1–{{count}} 个不重复的正 int64 十进制来源 ID，不可使用舍入后的数值。',
+      invalidEntries:
+        '最多选择 32 个不重复的条目 ID，每个为 32 位小写十六进制字符。',
+      invalidBudget: '请输入整数 token：输入 1,024–32,768，输出 256–8,192。',
+      entryIds: '目标条目 ID（可选）',
+      entryScope: '只允许为这些当前条目提出局部修订；不选条目时只能新增记忆。',
+      inspectSources: '检查／登记所选来源',
+      sourceRegistration: '所选来源管理',
+      registrationBoundary:
+        '请先逐条显式登记来源，再创建任务。来源登记可能为整个记忆库启用受管模式；来源撤回不可恢复，另有独立确认。',
+      policy: '整理策略',
+      policies: {
+        general: '一般事实',
+        preferences: '偏好',
+        decisions: '决定',
+        procedures: '操作经验',
+      },
+      inputBudget: '输入 token 预算',
+      outputBudget: '输出 token 预算',
+      budgetBoundary:
+        '这里使用宿主估算预算。过大的来源整条延后，不截断正文；模型用量与估算 token 分开计算。',
+      requiresManaged:
+        '任务需要受管记忆库和已登记的有效来源，请先使用显式来源登记控件。',
+      create: '创建输入快照',
+      createUnknown:
+        '创建结果尚未确认。请保留此操作 ID，读取任务列表，或显式重试原来的完整请求。',
+      findCreatedJob: '查找原任务',
+      retryCreate: '重试原创建请求',
+      jobs: '任务与分析',
+      job: '任务 ID',
+      jobState: '任务状态',
+      selectJob: '选择任务',
+      resumeJob: '打开已有任务 ID',
+      resumePublication: '读取发布操作 ID',
+      open: '打开',
+      run: '显式运行分析',
+      cancel: '取消任务',
+      explicitRun:
+        '读取或刷新任务不会运行模型。失败或中断后的分析继续使用原分析操作 ID。',
+      analysisOperation: '分析操作',
+      estimatedInput: '估算输入 token／预算',
+      coverage:
+        '所选 {{selected}} · 纳入 {{included}} · 已分析 {{analyzed}} · 延后 {{deferred}}',
+      deferred:
+        '部分来源已整条延后，尚未分析，不可把本次结果当作覆盖了全部所选来源。',
+      analysisReady: '分析已结束，候选仍需审核并显式发布，事实仍未经过核实。',
+      runningBoundary:
+        '在途模型请求可能仍在结束中。刷新只读取状态；只有服务端确认后，取消才算完成。',
+      inputManifest: '输入版本与覆盖范围',
+      sourceVersion: '版本 {{revision}} · 代次 {{generation}}',
+      inputDeferred: '此输入已延后，正文尚未分析。',
+      analysisModel: '分析模型',
+      usage: '模型报告用量（与估算分开）',
+      jobStates: {
+        pending: '输入快照已准备',
+        running: '正在分析',
+        ready: '分析已结束',
+        failed: '分析失败／待恢复',
+        cancel_requested: '已请求取消',
+        canceled: '已取消',
+        stale: '输入已变更',
+        redacted: '证据不可用',
+      },
+      coverageStates: {
+        included: '已纳入',
+        deferred: '已延后',
+        analyzed: '已分析',
+      },
+      candidates: '审核候选',
+      noCandidates: '暂无可审核候选',
+      noCandidatesDescription:
+        '请先准备并显式运行任务；分析成功也可能没有可发布的变更。',
+      actions: {
+        add: '新增记忆',
+        patch: '局部修订当前条目',
+        noop: '无需变更',
+      },
+      candidateStates: {
+        pending: '等待审核',
+        approved: '已批准，未发布',
+        rejected: '已拒绝',
+        publishing: '正在发布',
+        published: '已发布',
+        stale: '已过期',
+        redacted: '正文已隐藏',
+      },
+      candidateRevision: '候选版本 {{revision}}',
+      targetEntry: '目标条目',
+      targetRevision: '预期条目版本 {{revision}}',
+      selectPublication: '选择发布',
+      assessment: '评估',
+      old_text: '原内容',
+      new_text: '建议结果',
+      provenance: '证据来源（{{count}}）',
+      redacted: '证据不可用或已经变更，候选正文已隐藏，不可批准或发布。',
+      approve: '批准候选',
+      reject: '拒绝候选',
+      reviewUnknown: '审核结果尚未确认。请读取当前状态，或显式重试原审核操作。',
+      retryReview: '重试原审核',
+      conflict:
+        '范围或版本已变更。请刷新并核对最新来源与候选差异后，再创建新命令；结果未知的发布仍保留原操作 ID。',
+      publishBoundary:
+        '只发布已批准且仍为当前版本的候选，每批最多 {{count}} 条。所选批次使用同一个发布决定，索引同步仍可能未完成。',
+      publishSelected: '发布已选批准候选（{{count}}）',
+      anotherBatch: '准备另一批已审核候选',
+      refreshRejected: '先核对被拒操作，再重新审核选择',
+    },
     writers: {
       rawPublished: '原始对话发布已确认。',
       queueUnconfirmed: '原始对话已入索引，但提取队列的受理结果仍未确认。',

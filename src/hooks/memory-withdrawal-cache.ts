@@ -1,6 +1,7 @@
 import type { QueryClient } from '@tanstack/react-query'
 import { memoryKeys } from '@/hooks/use-memory'
 import { memoryRevisionKeys } from '@/hooks/memory-revision-keys'
+import { redactMaintenanceSource } from '@/hooks/memory-maintenance-cache'
 import type { MemorySourceState } from '@/types/memory-revisions'
 
 type RecordValue = Record<string, unknown>
@@ -61,6 +62,7 @@ export async function redactWithdrawnSource(
 ): Promise<void> {
   if (!confirmedWithdrawnSource(memoryId, source)) return
   const sourceId = source.source_id
+  await redactMaintenanceSource(cache, memoryId, sourceId)
   const sameCacheSource = (value: unknown): boolean =>
     identity(value) === sourceId ||
     (typeof value === 'number' &&

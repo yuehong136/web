@@ -11,8 +11,9 @@ export const memoryRevisionKeys = {
     [...memoryRevisionKeys.bank(id), 'history'] as const,
   history: (id: string, entryId: string, cursor?: string) =>
     [...memoryRevisionKeys.histories(id), entryId, cursor] as const,
+  sources: (id: string) => [...memoryRevisionKeys.bank(id), 'source'] as const,
   source: (id: string, sourceId: string) =>
-    [...memoryRevisionKeys.bank(id), 'source', sourceId] as const,
+    [...memoryRevisionKeys.sources(id), sourceId] as const,
   operation: (id: string, operationId: string) =>
     [...memoryRevisionKeys.bank(id), 'operation', operationId] as const,
 }

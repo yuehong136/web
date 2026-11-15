@@ -1,5 +1,131 @@
 export default {
   memory: {
+    dreaming: {
+      title: 'Maintenance',
+      description:
+        'Prepare memory candidates, inspect their sources, and review publication.',
+      boundary:
+        'Model-generated candidates remain separate from active memory. Review and approve candidates before explicitly publishing them; completion does not verify their factual accuracy.',
+      unsupported:
+        'This backend does not support reviewed memory maintenance. Existing memory controls remain available.',
+      newJob: 'Prepare a job',
+      sourceIds: 'RAW source IDs',
+      sourcePlaceholder:
+        'One exact decimal ID per line, or separated by commas',
+      explicitScope:
+        'Select 1–{{count}} exact RAW source IDs. An empty selection never means the whole bank.',
+      invalidSources:
+        'Enter 1–{{count}} unique, positive int64 decimal source IDs without rounding.',
+      invalidEntries:
+        'Select up to 32 unique entry IDs (32 lowercase hexadecimal characters each).',
+      invalidBudget: 'Use whole tokens: input 1,024–32,768; output 256–8,192.',
+      entryIds: 'Target entry IDs (optional)',
+      entryScope:
+        'Only these current entries can receive a proposed patch. An empty selection allows additions only.',
+      inspectSources: 'Inspect / register selected sources',
+      sourceRegistration: 'Selected source controls',
+      registrationBoundary:
+        'Register each source explicitly before creating a job. Registration can activate managed mode for this entire bank. Source withdrawal is permanent and uses its own confirmation.',
+      policy: 'Policy',
+      policies: {
+        general: 'General facts',
+        preferences: 'Preferences',
+        decisions: 'Decisions',
+        procedures: 'Procedures',
+      },
+      inputBudget: 'Input token budget',
+      outputBudget: 'Output token budget',
+      budgetBoundary:
+        'These are estimated host budgets. Oversized sources are deferred whole, without truncation; model usage and estimated tokens are separate.',
+      requiresManaged:
+        'This job requires a managed bank and registered active sources. Use the explicit source registration controls first.',
+      create: 'Create input snapshot',
+      createUnknown:
+        'The create result is unconfirmed. Preserve this operation ID; read the job list or explicitly retry the same frozen request.',
+      findCreatedJob: 'Find the original job',
+      retryCreate: 'Retry the same create request',
+      jobs: 'Jobs & analysis',
+      job: 'Job ID',
+      jobState: 'Job state',
+      selectJob: 'Select a job',
+      resumeJob: 'Open an existing job ID',
+      resumePublication: 'Read a publication operation ID',
+      open: 'Open',
+      run: 'Run analysis explicitly',
+      cancel: 'Cancel job',
+      explicitRun:
+        'Reading or refreshing a job never runs the model. Failed or interrupted analysis keeps the same analysis operation ID.',
+      analysisOperation: 'Analysis operation',
+      estimatedInput: 'Estimated input tokens / budget',
+      coverage:
+        'Selected {{selected}} · included {{included}} · analyzed {{analyzed}} · deferred {{deferred}}',
+      deferred:
+        'Some sources were deferred whole and have not been analyzed. Do not treat this job as complete coverage of every selected source.',
+      analysisReady:
+        'Analysis finished. Candidates still require review and explicit publication; their facts remain unverified.',
+      runningBoundary:
+        'An in-flight model request may still be settling. Refresh reads state; cancellation is not complete until the server confirms it.',
+      inputManifest: 'Input versions & coverage',
+      sourceVersion: 'revision {{revision}} · generation {{generation}}',
+      inputDeferred: 'This input is deferred; its body was not analyzed.',
+      analysisModel: 'Analysis model',
+      usage: 'Reported model usage (separate from estimates)',
+      jobStates: {
+        pending: 'Snapshot prepared',
+        running: 'Analysis running',
+        ready: 'Analysis finished',
+        failed: 'Analysis failed / needs recovery',
+        cancel_requested: 'Cancellation requested',
+        canceled: 'Canceled',
+        stale: 'Inputs changed',
+        redacted: 'Unavailable evidence',
+      },
+      coverageStates: {
+        included: 'Included',
+        deferred: 'Deferred',
+        analyzed: 'Analyzed',
+      },
+      candidates: 'Review candidates',
+      noCandidates: 'No reviewable candidates',
+      noCandidatesDescription:
+        'Prepare and explicitly run a job. A successful analysis can also produce no publishable change.',
+      actions: {
+        add: 'Add memory',
+        patch: 'Patch current entry',
+        noop: 'No change',
+      },
+      candidateStates: {
+        pending: 'Awaiting review',
+        approved: 'Approved, unpublished',
+        rejected: 'Rejected',
+        publishing: 'Publication pending',
+        published: 'Published',
+        stale: 'Stale',
+        redacted: 'Redacted',
+      },
+      candidateRevision: 'candidate revision {{revision}}',
+      targetEntry: 'Target entry',
+      targetRevision: 'expected entry revision {{revision}}',
+      selectPublication: 'Select for publication',
+      assessment: 'Assessment',
+      old_text: 'Before',
+      new_text: 'Proposed result',
+      provenance: 'Evidence sources ({{count}})',
+      redacted:
+        'The evidence is unavailable or changed. Candidate text is hidden and cannot be approved or published.',
+      approve: 'Approve candidate',
+      reject: 'Reject candidate',
+      reviewUnknown:
+        'The review result is unconfirmed. Read current state or explicitly retry this original review operation.',
+      retryReview: 'Retry original review',
+      conflict:
+        'The selection or version changed. Refresh and inspect the latest sources and candidate diff before creating a new command. An unknown publication keeps its original operation ID.',
+      publishBoundary:
+        'Only approved candidates at their current revision can publish (up to {{count}}). This is a single selected batch decision; index synchronization may still be pending.',
+      publishSelected: 'Publish selected approved candidates ({{count}})',
+      anotherBatch: 'Prepare another reviewed batch',
+      refreshRejected: 'Recheck rejected operation before reviewing again',
+    },
     writers: {
       rawPublished: 'Raw conversation publication confirmed.',
       queueUnconfirmed:

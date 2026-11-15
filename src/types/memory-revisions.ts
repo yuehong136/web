@@ -1,5 +1,16 @@
 /** Physical IDs are decimal strings; revision counters remain safe integers. */
 export interface MemoryCapabilities {
+  maintenance?: {
+    supported: boolean
+    modes: string[]
+    candidate_review_required: boolean
+    actions: string[]
+    requires_registered_sources: boolean
+    automatic_publication: boolean
+    max_sources: number
+    max_candidates: number
+    max_publication_candidates: number
+  }
   revisions?: {
     supported: boolean
     managed: boolean
@@ -89,6 +100,14 @@ export interface MemoryRevisionPreview {
 }
 
 export interface MemoryOperation {
+  job_id?: string
+  candidate_ids?: string[]
+  entries?: {
+    candidate_id: string
+    entry_id: string
+    new_revision: number
+    message_id: string
+  }[]
   operation_id: string
   kind: string
   status: string

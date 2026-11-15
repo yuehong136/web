@@ -1,6 +1,12 @@
 import { useTranslation } from 'react-i18next'
 import { Link, NavLink } from 'react-router-dom'
-import { ArrowLeft, Database, MessageSquare, Settings } from 'lucide-react'
+import {
+  ArrowLeft,
+  Database,
+  MessageSquare,
+  Settings,
+  Sparkles,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn, formatBytes } from '@/lib/utils'
 import { ROUTES } from '@/constants'
@@ -31,6 +37,11 @@ export function MemorySidebar({
       to: `/memory/${id}/settings`,
       icon: Settings,
       label: t('memory.workspace.strategy'),
+    },
+    {
+      to: `/memory/${id}/maintenance`,
+      icon: Sparkles,
+      label: t('memory.dreaming.title'),
     },
   ]
   return (
