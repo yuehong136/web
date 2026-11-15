@@ -77,7 +77,10 @@ export async function runMemoryBackgroundConsumer(
       assert.equal(original.can_reconcile, false)
     let current = await jobs.job(config.memoryId, job.job_id)
     const deadline = Date.now() + 30000
-    while (current.state !== 'ready' && Date.now() < deadline) {
+    while (
+      (current.state !== 'ready' || current.execution?.state !== 'succeeded') &&
+      Date.now() < deadline
+    ) {
       assert.ok(
         !['failed', 'canceled', 'stale', 'redacted'].includes(current.state),
         `Analysis reached terminal state ${current.state}`,
