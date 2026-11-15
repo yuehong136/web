@@ -34,6 +34,7 @@ export function MemorySourcePanel({
   const controlId = useId()
   const safeId = editableMemoryId(sourceId)
   const capabilities = useMemoryCapabilities(memoryId)
+  const maxReasonChars = capabilities.data?.revisions?.max_reason_chars ?? 1024
   const supported = capabilities.data?.source_withdrawals?.supported === true
   const source = useMemorySourceState(memoryId, sourceId, !!safeId && supported)
   const [confirmed, setConfirmed] = useState(false)
@@ -141,7 +142,7 @@ export function MemorySourcePanel({
             </Label>
             <Input
               id={`${controlId}-reason`}
-              maxLength={2048}
+              maxLength={maxReasonChars}
               value={reason}
               disabled={busy}
               onChange={(event) => setReason(event.target.value)}
@@ -165,6 +166,7 @@ export function MemorySourcePanel({
               busy ||
               !withdrawConfirmed ||
               !reason.trim() ||
+              reason.length > maxReasonChars ||
               state.source_revision === null
             }
             onClick={async () => {

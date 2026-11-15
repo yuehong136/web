@@ -476,3 +476,18 @@ it('redacts cached content and the stale edit draft after source withdrawal whil
   expect(document.body.textContent).not.toContain('Sensitive unsent draft')
   expect(document.body.textContent).toContain('memory.revisions.refreshStatus')
 })
+
+it('bounds correction reasons to the current backend contract before previewing', async () => {
+  vi.spyOn(memoryAPI.revision, 'findEntry').mockResolvedValue(entry)
+  const revise = vi.spyOn(memoryAPI.revision, 'revise')
+  await render()
+  await vi.waitFor(() =>
+    expect(host.querySelector('#revision-reason')).not.toBeNull(),
+  )
+  expect(
+    host.querySelector<HTMLInputElement>('#revision-reason')!.maxLength,
+  ).toBe(1024)
+  await fill('#revision-reason', 'x'.repeat(1025))
+  expect(button('memory.revisions.preview').disabled).toBe(true)
+  expect(revise).not.toHaveBeenCalled()
+})

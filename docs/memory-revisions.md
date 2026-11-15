@@ -4,7 +4,7 @@ The memory workspace inspector supports managed corrections when the backend adv
 
 Before the first adoption, the inspector explains that managed mode applies to the entire memory bank: ordinary append and automatic extraction are temporarily restricted, as is whole-bank deletion. Existing unadopted records remain readable. Coordinated enable, disable and forget actions remain available where the backend supports them; permanent source tombstones cannot be re-enabled.
 
-Corrections target the current revision. Replace its content or supply a single exact text patch, enter a reason and preview the result before submitting. Changing the draft invalidates the preview. A conflict requires a refresh and a new preview. Historical content remains read-only, and a manual correction is labelled as a user assertion rather than a verified fact.
+Corrections target the current revision. Replace its content or supply a single exact text patch, enter a reason (at most 1,024 characters) and preview the result before submitting. Changing the draft invalidates the preview. A conflict requires a refresh and a new preview. Historical content remains read-only, and a manual correction is labelled as a user assertion rather than a verified fact.
 
 A submitted operation may still be pending. The inspector reads publication and index synchronization separately; reading status never advances work. An explicit reconciliation action can resume pending work using its original operation. When a request times out or its commit is unconfirmed, retain that operation ID and inspect it instead of resending the command.
 

@@ -9,6 +9,7 @@ export interface MemoryCapabilities {
     coordinated_state_changes?: boolean
     max_content_bytes: number
     max_content_tokens: number
+    max_reason_chars?: number
   }
   source_withdrawals?: { supported: boolean; permanent: boolean }
 }

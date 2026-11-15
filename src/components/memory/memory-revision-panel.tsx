@@ -76,6 +76,7 @@ export function MemoryRevisionPanel({
         key={entry.data.entry_id}
         memoryId={memoryId}
         entry={entry.data}
+        maxReasonChars={capabilities.data?.revisions?.max_reason_chars ?? 1024}
         onRefresh={refresh}
       />
     )
@@ -128,10 +129,12 @@ export function MemoryRevisionPanel({
 function MemoryRevisionEditor({
   memoryId,
   entry,
+  maxReasonChars,
   onRefresh,
 }: {
   memoryId: string
   entry: MemoryEntry
+  maxReasonChars: number
   onRefresh: () => void
 }) {
   const { t } = useTranslation()
@@ -150,6 +153,7 @@ function MemoryRevisionEditor({
   )
   const valid =
     !!reason.trim() &&
+    reason.length <= maxReasonChars &&
     new TextEncoder().encode(content).length <= 65535 &&
     (mode === 'content' ? !!content.trim() : !!oldText)
   const currentPreview =
@@ -288,7 +292,7 @@ function MemoryRevisionEditor({
             <Input
               id="revision-reason"
               value={reason}
-              maxLength={2048}
+              maxLength={maxReasonChars}
               disabled={!editable || command.isPending}
               onChange={(event) => {
                 setReason(event.target.value)
