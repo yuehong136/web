@@ -9,6 +9,11 @@ import {
 } from '@/hooks/memory-withdrawal-cache'
 import { memoryKeys } from '@/hooks/use-memory'
 import { MutationErrorFeedback } from '@/lib/mutation-error-feedback'
+import {
+  memoryOperationNeedsPolling,
+  MEMORY_OPERATION_POLL_MS,
+} from '@/lib/memory-operation'
+import type { MemoryOperation } from '@/types/memory-revisions'
 
 export { memoryRevisionKeys }
 
@@ -69,9 +74,13 @@ export function useMemorySourceState(
   })
 }
 
-export function useMemoryOperation(memoryId: string, operationId: string) {
+export function useMemoryOperation(
+  memoryId: string,
+  operationId: string,
+  poll = false,
+) {
   const cache = useQueryClient()
-  return useQuery({
+  return useQuery<MemoryOperation>({
     queryKey: memoryRevisionKeys.operation(memoryId, operationId),
     queryFn: async ({ signal }) => {
       const result = await memoryAPI.revision.operation(
@@ -85,6 +94,13 @@ export function useMemoryOperation(memoryId: string, operationId: string) {
     },
     enabled: !!operationId,
     retry: false,
+    staleTime: poll ? 0 : undefined,
+    refetchInterval: (query) =>
+      poll &&
+      !query.state.error &&
+      memoryOperationNeedsPolling(query.state.data)
+        ? MEMORY_OPERATION_POLL_MS
+        : false,
   })
 }
 

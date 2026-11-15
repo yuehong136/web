@@ -33,9 +33,11 @@ import type { MemoryOperation } from '@/types/memory-revisions'
 export function MemoryDeletionDialog({
   memory,
   onClose,
+  onOperationStarted,
 }: {
   memory: Memory
   onClose: () => void
+  onOperationStarted?: (operationId: string) => void
 }) {
   const { t } = useTranslation()
   const cache = useQueryClient()
@@ -133,6 +135,7 @@ export function MemoryDeletionDialog({
                   }
                   const id = `memory-delete-${uuid()}`
                   setOperationId(id)
+                  onOperationStarted?.(id)
                   const operation = await deletion.mutateAsync(id)
                   cache.setQueryData(
                     memoryRevisionKeys.operation(memory.id, id),

@@ -1,0 +1,55 @@
+export const memoryRecoveryMessages = {
+  title: '待办与恢复',
+  bankIdentifier: '记忆库 {{id}}',
+  readOnlyBoundary:
+    '本页读取服务端持久记录。刷新、重新打开和轮询不会运行分析、发布候选或推进对账；恢复命令需要明确操作。',
+  inbox: '服务端操作待办',
+  pendingView: '待处理',
+  allView: '全部操作',
+  pendingFound: '此记忆库存在等待完成或需要对账的操作。',
+  openPending: '查看待处理操作',
+  openMemory: '打开记忆工作台',
+  openJob: '打开任务与候选',
+  empty: '此视图暂无操作',
+  emptyDescription: '可以读取已知操作 ID、切换全部操作，或刷新服务端列表。',
+  discoveryFailed: '暂时无法读取操作列表，请重试或读取已知的原操作 ID。',
+  knownOperation: '读取原操作',
+  previous: '上一页',
+  next: '下一页',
+  pending: '待处理或尚未确认',
+  ready: '操作已就绪',
+  unknown: '结果尚未确认。请读取原操作并保留 ID，不要替换成新命令。',
+  operatorNeeded: '需要管理员核验与对账',
+  operatorRequired:
+    '旧尝试可能仍有在途请求，管理员须独立确认它们已经结束后，才能继续恢复。',
+  analysisPending: '分析尚未完成，候选仍与正常记忆分开保存。',
+  submitAnalysis: '提交后台分析',
+  openAnalysisOperation: '打开分析操作',
+  backgroundBoundary:
+    '提交记录保存在服务端，关页不会发送取消命令。本页只读取进度，审核和发布仍需明确操作。',
+  executionAttempt: '执行尝试：{{count}}',
+  memoryStates: {
+    deleting:
+      '正常供给已停止，正在等待写入排空与已跟踪数据清理，请保留原删除操作。',
+    deleted:
+      '记忆库已删除，现在仅可读取最小删除审计；备份和客户端副本未获物理清除认证。',
+  },
+  executionStates: {
+    queued: '已排队等待分析',
+    claimed: '已领取，等待开始',
+    running: '正在后台分析',
+    succeeded: '分析完成，候选待审核',
+    failed: '本次分析失败',
+    canceled: '执行已取消',
+    needs_reconciliation: '执行需要对账',
+  },
+  executionHints: {
+    queued: '等待工作进程领取这次显式提交。',
+    claimed: '提交已被领取，尚未确认模型工作已开始。',
+    running: '请求仍可能在途，心跳过期不能作为请求已经结束的证据。',
+    succeeded: '生成的候选仍未经过事实核实，需要人工审核并明确发布。',
+    failed: '请读取原操作，查看当前允许的恢复动作。',
+    canceled: '任务取消不代表另行受理的发布暂存已清理。',
+    needs_reconciliation: '保留原操作 ID，并独立核验旧请求已经结束。',
+  },
+}

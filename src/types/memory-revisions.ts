@@ -10,6 +10,7 @@ export interface MemoryCapabilities {
     max_sources: number
     max_candidates: number
     max_publication_candidates: number
+    execution?: 'persistent_background'
   }
   revisions?: {
     supported: boolean
@@ -99,8 +100,28 @@ export interface MemoryRevisionPreview {
   source_checks: { source_id: string; state: string }[]
 }
 
+export interface MemoryBackgroundExecution {
+  state:
+    | 'queued'
+    | 'claimed'
+    | 'running'
+    | 'succeeded'
+    | 'failed'
+    | 'canceled'
+    | 'needs_reconciliation'
+  attempt: number
+  queued_at: string
+  heartbeat_at: string | null
+  finished_at: string | null
+  error_code: string | null
+  needs_operator_reconciliation: boolean
+}
+
 export interface MemoryOperation {
-  job_id?: string
+  writer_busy?: boolean
+  execution?: MemoryBackgroundExecution | null
+  can_reconcile?: boolean
+  job_id?: string | null
   candidate_ids?: string[]
   entries?: {
     candidate_id: string
@@ -134,9 +155,22 @@ export interface MemoryOperation {
   raw_source_id?: string | null
   message_ids?: string[]
   extraction_task_id?: string | null
-  queue_state?: MemoryAppendQueueState
+  queue_state?: MemoryAppendQueueState | null
   evicted_sources?: { source_id: string; operation_id: string; state: string }[]
   source?: MemorySourceState
+}
+
+export interface MemoryOperationSummary extends MemoryOperation {
+  created_at: string
+  updated_at: string
+}
+
+export interface MemoryOperationPage {
+  operations: MemoryOperationSummary[]
+  next_cursor: string | null
+  limit: number
+  view: 'pending' | 'all'
+  memory_state: 'active' | 'deleting' | 'deleted'
 }
 
 export type MemoryAppendQueueState =

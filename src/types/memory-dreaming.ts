@@ -1,4 +1,7 @@
-import type { MemoryOperation } from './memory-revisions'
+import type {
+  MemoryBackgroundExecution,
+  MemoryOperation,
+} from './memory-revisions'
 
 export type MemoryDreamingPolicy =
   | 'general'
@@ -16,6 +19,7 @@ export interface MemoryMaintenanceInput {
   defer_reason: string | null
 }
 export interface MemoryMaintenanceJob {
+  execution?: MemoryBackgroundExecution | null
   job_id: string
   operation_id: string
   state:

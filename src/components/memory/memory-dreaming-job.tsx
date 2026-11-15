@@ -1,11 +1,13 @@
 import { useTranslation } from 'react-i18next'
 import { Alert } from '@/components/ui/alert'
 import type { MemoryMaintenanceJob } from '@/types/memory-dreaming'
+import { MemoryExecutionStatus } from './memory-execution-status'
 
 export function MemoryDreamingJob({ job }: { job: MemoryMaintenanceJob }) {
   const { t } = useTranslation()
   return (
     <section className="space-y-space-sm" aria-live="polite">
+      <MemoryExecutionStatus execution={job.execution} />
       <dl className="grid gap-space-sm text-sm sm:grid-cols-2">
         <div>
           <dt className="text-text-secondary">{t('memory.dreaming.job')}</dt>

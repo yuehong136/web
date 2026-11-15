@@ -1,5 +1,8 @@
+import { memoryRecoveryMessages } from './memory-recovery'
+
 export default {
   memory: {
+    recovery: memoryRecoveryMessages,
     dreaming: {
       title: 'Maintenance',
       description:

@@ -1,5 +1,8 @@
+import { memoryRecoveryMessages } from './memory-recovery'
+
 export default {
   memory: {
+    recovery: memoryRecoveryMessages,
     dreaming: {
       title: '整理与审核',
       description: '生成记忆候选，核对来源，再审核并发布。',

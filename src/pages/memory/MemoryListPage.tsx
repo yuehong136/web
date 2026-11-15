@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Brain, Plus, Search } from 'lucide-react'
 import { ConsolePageTemplate } from '@/components/page-templates/console-page-template'
@@ -28,6 +29,7 @@ import {
 import type { Memory } from '@/types/memory'
 
 export function MemoryListPage() {
+  const navigate = useNavigate()
   const { t } = useTranslation()
   const {
     filter,
@@ -215,6 +217,11 @@ export function MemoryListPage() {
         <MemoryDeletionDialog
           key={deleting.id}
           memory={deleting}
+          onOperationStarted={(operationId) =>
+            navigate(
+              `/memory/${encodeURIComponent(deleting.id)}/operations?${new URLSearchParams({ operation: operationId })}`,
+            )
+          }
           onClose={() => setDeleting(null)}
         />
       )}

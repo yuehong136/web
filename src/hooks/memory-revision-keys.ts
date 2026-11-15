@@ -16,4 +16,8 @@ export const memoryRevisionKeys = {
     [...memoryRevisionKeys.sources(id), sourceId] as const,
   operation: (id: string, operationId: string) =>
     [...memoryRevisionKeys.bank(id), 'operation', operationId] as const,
+  operations: (id: string) =>
+    [...memoryRevisionKeys.bank(id), 'operations'] as const,
+  inbox: (id: string, view: string, cursor?: string) =>
+    [...memoryRevisionKeys.operations(id), view, cursor] as const,
 }

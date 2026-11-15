@@ -6,7 +6,9 @@ import {
   MessageSquare,
   Settings,
   Sparkles,
+  ListTodo,
 } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn, formatBytes } from '@/lib/utils'
 import { ROUTES } from '@/constants'
@@ -17,33 +19,49 @@ interface MemorySidebarProps {
   memory: Memory | null
   isLoading?: boolean
   memoryId?: string
+  recoveryOnly?: boolean
 }
 
 export function MemorySidebar({
   memory,
   isLoading = false,
   memoryId,
+  recoveryOnly = false,
 }: MemorySidebarProps) {
   const { t, i18n } = useTranslation()
   const id = memoryId || memory?.id
-  const items = [
-    {
-      to: `/memory/${id}`,
-      icon: MessageSquare,
-      label: t('memory.workspace.title'),
-      end: true,
-    },
-    {
-      to: `/memory/${id}/settings`,
-      icon: Settings,
-      label: t('memory.workspace.strategy'),
-    },
-    {
-      to: `/memory/${id}/maintenance`,
-      icon: Sparkles,
-      label: t('memory.dreaming.title'),
-    },
-  ]
+  const operations = {
+    to: `/memory/${id}/operations`,
+    icon: ListTodo,
+    label: t('memory.recovery.title'),
+    end: true,
+  }
+  const items: {
+    to: string
+    icon: LucideIcon
+    label: string
+    end?: boolean
+  }[] = recoveryOnly
+    ? [operations]
+    : [
+        {
+          to: `/memory/${id}`,
+          icon: MessageSquare,
+          label: t('memory.workspace.title'),
+          end: true,
+        },
+        {
+          to: `/memory/${id}/settings`,
+          icon: Settings,
+          label: t('memory.workspace.strategy'),
+        },
+        {
+          to: `/memory/${id}/maintenance`,
+          icon: Sparkles,
+          label: t('memory.dreaming.title'),
+        },
+        operations,
+      ]
   return (
     <div className="flex h-full min-h-0 flex-col bg-components-sidebar-bg">
       <header className="flex h-12 shrink-0 items-center border-b border-border-subtle px-space-sm">
@@ -68,7 +86,10 @@ export function MemorySidebar({
         />
         <div className="min-w-0">
           <p className="truncate text-sm font-medium" title={memory?.name}>
-            {memory?.name || t('memory.common.loading')}
+            {memory?.name ||
+              (recoveryOnly
+                ? t('memory.recovery.bankIdentifier', { id })
+                : t('memory.common.loading'))}
           </p>
           {memory?.description && (
             <p

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { randomUUID } from 'node:crypto'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'
+import { setTimeout as delay } from 'node:timers/promises'
 import { APIClient, APIError } from '../../src/api/client'
 import {
   createMemoryDreamingAPI,
@@ -60,11 +61,20 @@ export async function runMemoryDreamingConsumer(
     assert.equal(read.state, 'pending', 'GET must not start model analysis')
     assert.equal(read.analysis_operation_id, null)
     const runId = `web-dream-run-${randomUUID()}`
-    const analyzed = await api.run(config.memoryId, job.job_id, runId)
+    let analyzed = await api.run(config.memoryId, job.job_id, runId)
+    const deadline = Date.now() + 30000
+    while (analyzed.state !== 'ready' && Date.now() < deadline) {
+      assert.ok(
+        !['failed', 'canceled', 'stale', 'redacted'].includes(analyzed.state),
+      )
+      assert.notEqual(analyzed.execution?.needs_operator_reconciliation, true)
+      await delay(100)
+      analyzed = await api.job(config.memoryId, job.job_id)
+    }
     assert.equal(
       analyzed.state,
       'ready',
-      'The fixture analyzer must finish inline',
+      'The owned worker or inline fixture must finish in the controlled window',
     )
     assert.equal(analyzed.analysis_operation_id, runId)
     const first = await api.candidates(config.memoryId, job.job_id)

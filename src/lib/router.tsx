@@ -125,6 +125,10 @@ const MemoryMaintenancePage = lazyNamed(
   () => import('@/pages/memory'),
   'MemoryMaintenancePage',
 )
+const MemoryOperationsPage = lazyNamed(
+  () => import('@/pages/memory'),
+  'MemoryOperationsPage',
+)
 
 // Explore & Search
 const ExplorePage = lazyNamed(() => import('@/pages/explore'), 'ExplorePage')
@@ -319,6 +323,10 @@ const topLevelRoutes: RouteObject[] = [
       {
         path: ROUTES.MEMORY,
         element: withLoading(MemoryListPage),
+      },
+      {
+        path: '/memory/:id/operations',
+        element: withLoading(MemoryOperationsPage),
       },
       {
         path: '/memory/:id',

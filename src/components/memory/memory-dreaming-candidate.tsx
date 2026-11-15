@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { Alert } from '@/components/ui/alert'
+import { Link } from 'react-router-dom'
 import type {
   MemoryCandidateReview,
   MemoryMaintenanceCandidate,
@@ -127,7 +128,12 @@ export function MemoryDreamingCandidate({
       {candidate.publication_operation_id && (
         <p className="text-xs break-all">
           {t('memory.revisions.operation')}:{' '}
-          {candidate.publication_operation_id}
+          <Link
+            className="underline underline-offset-2"
+            to={`../operations?${new URLSearchParams({ operation: candidate.publication_operation_id })}`}
+          >
+            {candidate.publication_operation_id}
+          </Link>
         </p>
       )}
       {retainedReview && (

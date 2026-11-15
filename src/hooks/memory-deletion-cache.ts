@@ -5,6 +5,26 @@ import { memoryMaintenanceKeys } from '@/hooks/memory-maintenance-keys'
 import type { MemoryListResponse } from '@/types/memory'
 export { confirmedMemoryDeletion } from '@/lib/memory-operation'
 
+/** A server-confirmed closing bank cannot retain normal-supply bodies in this client. */
+export async function clearUnavailableMemoryBodies(
+  cache: QueryClient,
+  memoryId: string,
+): Promise<void> {
+  const keys = [
+    memoryKeys.messages(memoryId),
+    memoryKeys.messageContents(memoryId),
+    memoryRevisionKeys.entries(memoryId),
+    memoryRevisionKeys.histories(memoryId),
+    memoryMaintenanceKeys.bank(memoryId),
+  ]
+  await Promise.all(
+    keys.map((queryKey) =>
+      cache.cancelQueries({ queryKey }, { revert: false }),
+    ),
+  )
+  for (const queryKey of keys) cache.removeQueries({ queryKey })
+}
+
 /** Cancel stale reads before dropping a confirmed deleted bank's cached bodies. */
 export async function clearDeletedMemory(
   cache: QueryClient,

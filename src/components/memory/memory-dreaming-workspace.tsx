@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { v4 as uuid } from 'uuid'
 import { useTranslation } from 'react-i18next'
@@ -25,6 +25,7 @@ import {
 import {
   memoryCommandErrorKey,
   useMemoryCommand,
+  useMemoryOperation,
 } from '@/hooks/use-memory-revisions'
 import {
   memoryMaintenanceKeys,
@@ -38,11 +39,14 @@ import type {
   MemoryMaintenanceCandidate,
   MemoryMaintenanceCommand,
 } from '@/types/memory-dreaming'
-import { MemoryDreamingForm } from './memory-dreaming-form'
+import { MemoryDreamingSetup } from './memory-dreaming-setup'
 import { MemoryDreamingCandidate } from './memory-dreaming-candidate'
-import { MemoryDreamingJob } from './memory-dreaming-job'
+import { MemoryDreamingJobActions } from './memory-dreaming-job-actions'
 import { MemoryOperationPanel } from './memory-operation-panel'
-import { MemorySourcePanel } from './memory-source-panel'
+import { useMemoryOperationInbox } from '@/hooks/use-memory-operation-inbox'
+import { useMemoryRecoverySelection } from '@/hooks/use-memory-recovery-selection'
+import { memoryRevisionKeys } from '@/hooks/memory-revision-keys'
+import { useMemoryActionScope } from '@/hooks/use-memory-action-scope'
 
 const commandId = () => `memory-${uuid()}`
 const knownRejection = (error: unknown) =>
@@ -57,12 +61,33 @@ export function MemoryDreamingWorkspace({
 }) {
   const { t } = useTranslation()
   const cache = useQueryClient()
-  const jobs = useMemoryMaintenanceJobs(memoryId)
-  const [jobId, setJobId] = useState('')
+  const persistent =
+    capabilities.maintenance?.execution === 'persistent_background'
+  const jobs = useMemoryMaintenanceJobs(memoryId, true, persistent)
+  const inbox = useMemoryOperationInbox(
+    memoryId,
+    'pending',
+    undefined,
+    persistent,
+  )
+  const {
+    jobId,
+    operationId,
+    selectJob: selectRecoveryJob,
+    selectOperation,
+  } = useMemoryRecoverySelection()
+  const selectedOperation = useMemoryOperation(
+    memoryId,
+    operationId,
+    persistent,
+  )
+  const beginAction = useMemoryActionScope(memoryId, jobId, operationId)
+  const publicationId =
+    selectedOperation.data?.kind === 'dream_analyze' ? '' : operationId
+  const setPublicationId = (id: string) => selectOperation(id, jobId)
   const [resumeJob, setResumeJob] = useState('')
-  const job = useMemoryMaintenanceJob(memoryId, jobId)
-  const candidates = useMemoryMaintenanceCandidates(memoryId, jobId)
-  const [inspectedSources, setInspectedSources] = useState<string[]>([])
+  const job = useMemoryMaintenanceJob(memoryId, jobId, persistent)
+  const candidates = useMemoryMaintenanceCandidates(memoryId, jobId, persistent)
   const [createAttempt, setCreateAttempt] =
     useState<MemoryMaintenanceCommand | null>(null)
   const [runId, setRunId] = useState('')
@@ -71,7 +96,6 @@ export function MemoryDreamingWorkspace({
     {},
   )
   const [selected, setSelected] = useState<Record<string, number>>({})
-  const [publicationId, setPublicationId] = useState('')
   const [rejectedPublication, setRejectedPublication] = useState(false)
   const [publicationReady, setPublicationReady] = useState(false)
   const [feedback, setFeedback] = useState('')
@@ -122,29 +146,76 @@ export function MemoryDreamingWorkspace({
     review.isPending ||
     publish.isPending
   const refresh = async () => {
-    await cache.invalidateQueries({
-      queryKey: memoryMaintenanceKeys.bank(memoryId),
-    })
+    await Promise.all([
+      cache.invalidateQueries({
+        queryKey: memoryMaintenanceKeys.bank(memoryId),
+      }),
+      cache.invalidateQueries({
+        queryKey: memoryRevisionKeys.operations(memoryId),
+      }),
+      ...(operationId
+        ? [
+            cache.invalidateQueries({
+              queryKey: memoryRevisionKeys.operation(memoryId, operationId),
+            }),
+          ]
+        : []),
+    ])
   }
   const selectJob = (id: string) => {
-    setJobId(id)
+    selectRecoveryJob(id)
     setSelected({})
     setReviews({})
     setRunId('')
     setCancelId('')
-    setPublicationId('')
     setRejectedPublication(false)
     setPublicationReady(false)
     setFeedback('')
   }
+  useEffect(() => {
+    if (jobId || createAttempt) return
+    if (operationId && selectedOperation.data?.job_id)
+      selectOperation(operationId, selectedOperation.data.job_id, {
+        replace: true,
+      })
+    else if (!operationId && jobs.data?.jobs[0])
+      selectRecoveryJob(jobs.data.jobs[0].job_id, { replace: true })
+  }, [
+    jobId,
+    createAttempt,
+    operationId,
+    selectRecoveryJob,
+    selectOperation,
+    selectedOperation.data?.job_id,
+    jobs.data,
+  ])
+  useEffect(() => {
+    if (!persistent || !jobId || operationId || !inbox.data) return
+    const original = inbox.data?.operations.find(
+      (operation) =>
+        operation.job_id === jobId && operation.kind === 'dream_publish',
+    )
+    const originalId = original?.operation_id || job.data?.analysis_operation_id
+    if (originalId) selectOperation(originalId, jobId, { replace: true })
+  }, [
+    persistent,
+    jobId,
+    operationId,
+    selectOperation,
+    inbox.data,
+    job.data?.analysis_operation_id,
+  ])
   const submitCreate = async (command: MemoryMaintenanceCommand) => {
+    const current = beginAction()
     setCreateAttempt(command)
     setFeedback('')
     try {
       const result = await create.mutateAsync(command)
+      if (!current()) return
       setCreateAttempt(null)
       selectJob(result.job_id)
     } catch (error) {
+      if (!current()) return
       setFeedback(
         knownRejection(error)
           ? 'memory.dreaming.conflict'
@@ -152,7 +223,7 @@ export function MemoryDreamingWorkspace({
       )
       if (knownRejection(error)) setCreateAttempt(null)
     } finally {
-      await refresh()
+      if (current()) await refresh()
     }
   }
   const submitReview = async (
@@ -224,69 +295,32 @@ export function MemoryDreamingWorkspace({
   const maxPublish = capabilities.maintenance?.max_publication_candidates ?? 16
   return (
     <div className="space-y-space-lg">
-      <SectionCard title={t('memory.dreaming.newJob')}>
-        <MemoryDreamingForm
-          disabled={busy || !!createAttempt}
-          managed={capabilities.revisions?.managed === true}
-          maxSources={capabilities.maintenance?.max_sources ?? 32}
-          onInspectSources={setInspectedSources}
-          onCreate={(command) =>
-            void submitCreate({ operation_id: commandId(), ...command })
+      <MemoryDreamingSetup
+        memoryId={memoryId}
+        capabilities={capabilities}
+        busy={busy}
+        createPending={create.isPending}
+        createAttempt={createAttempt}
+        onCreate={(command) =>
+          void submitCreate({ operation_id: commandId(), ...command })
+        }
+        onRetryCreate={() => {
+          if (createAttempt) void submitCreate(createAttempt)
+        }}
+        onFindCreatedJob={async () => {
+          if (!createAttempt) return
+          const current = beginAction()
+          const result = await jobs.refetch()
+          if (!current()) return
+          const found = result.data?.jobs.find(
+            (item) => item.operation_id === createAttempt.operation_id,
+          )
+          if (found) {
+            setCreateAttempt(null)
+            selectJob(found.job_id)
           }
-        />
-        {createAttempt && !create.isPending && (
-          <Alert variant="warning" className="mt-space-base space-y-space-sm">
-            <p>{t('memory.dreaming.createUnknown')}</p>
-            <p className="font-mono text-xs break-all">
-              {createAttempt.operation_id}
-            </p>
-            <div className="flex flex-wrap gap-space-sm">
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={busy}
-                onClick={async () => {
-                  const result = await jobs.refetch()
-                  const found = result.data?.jobs.find(
-                    (item) => item.operation_id === createAttempt.operation_id,
-                  )
-                  if (found) {
-                    setCreateAttempt(null)
-                    selectJob(found.job_id)
-                  }
-                }}
-              >
-                {t('memory.dreaming.findCreatedJob')}
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={busy}
-                onClick={() => void submitCreate(createAttempt)}
-              >
-                {t('memory.dreaming.retryCreate')}
-              </Button>
-            </div>
-          </Alert>
-        )}
-        {!!inspectedSources.length && (
-          <details open className="mt-space-base space-y-space-sm">
-            <summary className="cursor-pointer text-sm font-medium">
-              {t('memory.dreaming.sourceRegistration')}
-            </summary>
-            <p className="text-sm text-text-secondary">
-              {t('memory.dreaming.registrationBoundary')}
-            </p>
-            {inspectedSources.map((sourceId) => (
-              <MemorySourcePanel
-                key={sourceId}
-                memoryId={memoryId}
-                sourceId={sourceId}
-              />
-            ))}
-          </details>
-        )}
-      </SectionCard>
+        }}
+      />
       {feedback && (
         <Alert variant="warning" role="alert">
           {t(feedback)}
@@ -357,63 +391,38 @@ export function MemoryDreamingWorkspace({
               <PageErrorState onRetry={() => job.refetch()} />
             ) : (
               <>
-                <MemoryDreamingJob job={job.data} />
-                <div className="flex flex-wrap gap-space-sm">
-                  <Button
-                    disabled={
-                      busy || !['pending', 'failed'].includes(job.data.state)
+                <MemoryDreamingJobActions
+                  memoryId={memoryId}
+                  job={job.data}
+                  persistent={persistent}
+                  busy={busy}
+                  runId={runId}
+                  onRun={async () => {
+                    const operationId =
+                      job.data!.analysis_operation_id || runId || commandId()
+                    setRunId(operationId)
+                    setFeedback('')
+                    try {
+                      await run.mutateAsync(operationId)
+                    } catch (error) {
+                      setFeedback(memoryCommandErrorKey(error))
+                    } finally {
+                      await refresh()
                     }
-                    onClick={async () => {
-                      const operationId =
-                        job.data.analysis_operation_id || runId || commandId()
-                      setRunId(operationId)
-                      setFeedback('')
-                      try {
-                        await run.mutateAsync(operationId)
-                      } catch (error) {
-                        setFeedback(memoryCommandErrorKey(error))
-                      } finally {
-                        await refresh()
-                      }
-                    }}
-                  >
-                    {t('memory.dreaming.run')}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    disabled={
-                      busy ||
-                      [
-                        'canceled',
-                        'redacted',
-                        'stale',
-                        'cancel_requested',
-                      ].includes(job.data.state)
+                  }}
+                  onCancel={async () => {
+                    const operationId = cancelId || commandId()
+                    setCancelId(operationId)
+                    setFeedback('')
+                    try {
+                      await cancel.mutateAsync(operationId)
+                    } catch (error) {
+                      setFeedback(memoryCommandErrorKey(error))
+                    } finally {
+                      await refresh()
                     }
-                    onClick={async () => {
-                      const operationId = cancelId || commandId()
-                      setCancelId(operationId)
-                      setFeedback('')
-                      try {
-                        await cancel.mutateAsync(operationId)
-                      } catch (error) {
-                        setFeedback(memoryCommandErrorKey(error))
-                      } finally {
-                        await refresh()
-                      }
-                    }}
-                  >
-                    {t('memory.dreaming.cancel')}
-                  </Button>
-                </div>
-                <p className="text-xs text-text-secondary">
-                  {t('memory.dreaming.explicitRun')}
-                </p>
-                {runId && (
-                  <p className="font-mono text-xs break-all">
-                    {t('memory.dreaming.analysisOperation')}: {runId}
-                  </p>
-                )}
+                  }}
+                />
               </>
             )}
           </div>
@@ -524,11 +533,12 @@ export function MemoryDreamingWorkspace({
               {t('memory.dreaming.open')}
             </Button>
           </div>
-          {publicationId && (
+          {operationId && (
             <div className="mt-space-base space-y-space-sm">
               <MemoryOperationPanel
                 memoryId={memoryId}
-                operationId={publicationId}
+                operationId={operationId}
+                poll={persistent}
                 onRefresh={() => void refresh()}
                 onStatus={publicationStatus}
               />
@@ -537,15 +547,19 @@ export function MemoryDreamingWorkspace({
                   variant="outline"
                   disabled={busy}
                   onClick={async () => {
+                    const current = beginAction()
                     try {
                       await memoryAPI.revision.operation(
                         memoryId,
                         publicationId,
                       )
+                      if (!current()) return
                       setFeedback('memory.revisions.inflight')
                     } catch (error) {
+                      if (!current()) return
                       if (error instanceof APIError && error.status === 404) {
                         await refresh()
+                        if (!current()) return
                         setPublicationId('')
                         setRejectedPublication(false)
                         setSelected({})

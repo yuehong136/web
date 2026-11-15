@@ -1,3 +1,4 @@
+import { MemoryRouter } from 'react-router-dom'
 import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
@@ -161,33 +162,35 @@ async function fill(selector: string, value: string) {
 async function render() {
   await act(async () =>
     root.render(
-      <QueryClientProvider client={cache}>
-        <MemoryDreamingWorkspace
-          memoryId="bank"
-          capabilities={{
-            revisions: {
-              supported: true,
-              managed: true,
-              activation_scope: 'memory_bank',
-              ordinary_writes_after_activation: true,
-              managed_delete_supported: true,
-              max_content_bytes: 65535,
-              max_content_tokens: 8192,
-            },
-            maintenance: {
-              supported: true,
-              modes: ['dream'],
-              candidate_review_required: true,
-              actions: ['add', 'patch', 'noop'],
-              requires_registered_sources: true,
-              automatic_publication: false,
-              max_sources: 32,
-              max_candidates: 32,
-              max_publication_candidates: 16,
-            },
-          }}
-        />
-      </QueryClientProvider>,
+      <MemoryRouter initialEntries={['/memory/bank/maintenance']}>
+        <QueryClientProvider client={cache}>
+          <MemoryDreamingWorkspace
+            memoryId="bank"
+            capabilities={{
+              revisions: {
+                supported: true,
+                managed: true,
+                activation_scope: 'memory_bank',
+                ordinary_writes_after_activation: true,
+                managed_delete_supported: true,
+                max_content_bytes: 65535,
+                max_content_tokens: 8192,
+              },
+              maintenance: {
+                supported: true,
+                modes: ['dream'],
+                candidate_review_required: true,
+                actions: ['add', 'patch', 'noop'],
+                requires_registered_sources: true,
+                automatic_publication: false,
+                max_sources: 32,
+                max_candidates: 32,
+                max_publication_candidates: 16,
+              },
+            }}
+          />
+        </QueryClientProvider>
+      </MemoryRouter>,
     ),
   )
 }

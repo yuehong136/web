@@ -23,6 +23,7 @@ import type {
   MemoryRevisionCommand,
   MemoryRevisionPreview,
   MemoryOperation,
+  MemoryOperationPage,
   MemorySourceState,
   MemoryAppendCommand,
   MemoryAppendOperation,
@@ -142,6 +143,16 @@ export function createMemoryRevisionAPI(
         `/memories/${encodeURIComponent(memoryId)}/operations/${encodeURIComponent(operationId)}`,
         { ...sdkBase, signal },
       ),
+    operations: (
+      memoryId: string,
+      params: { view: 'pending' | 'all'; limit: number; cursor?: string },
+      signal?: AbortSignal,
+    ): Promise<MemoryOperationPage> =>
+      client.get(`/memories/${encodeURIComponent(memoryId)}/operations`, {
+        ...sdkBase,
+        signal,
+        params,
+      }),
     reconcile: (
       memoryId: string,
       operationId: string,

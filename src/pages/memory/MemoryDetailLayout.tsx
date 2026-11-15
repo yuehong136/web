@@ -14,6 +14,7 @@ import { MemorySidebar } from '@/components/memory'
 import { useMemoryDetail } from '@/hooks/use-memory'
 import { useTranslation } from 'react-i18next'
 import { useRegisterSecondaryNavigation } from '@/components/layout/workbench-navigation'
+import { MemoryRecoveryNotice } from '@/components/memory/memory-recovery-notice'
 
 export const MemoryDetailLayout: React.FC = () => {
   const { id } = useParams<{ id: string }>()
@@ -41,8 +42,11 @@ export const MemoryDetailLayout: React.FC = () => {
 
   if (managed)
     return (
-      <div className="h-full overflow-auto bg-background-default">
-        <Outlet />
+      <div className="flex h-full min-h-0 flex-col bg-background-default">
+        {id && <MemoryRecoveryNotice memoryId={id} />}
+        <div className="min-h-0 flex-1 overflow-auto">
+          <Outlet />
+        </div>
       </div>
     )
 
@@ -67,8 +71,11 @@ export const MemoryDetailLayout: React.FC = () => {
 
         {/* 主内容区 */}
         <ResizablePanel defaultSize="80%">
-          <div className="h-full overflow-auto">
-            <Outlet />
+          <div className="flex h-full min-h-0 flex-col">
+            {id && <MemoryRecoveryNotice memoryId={id} />}
+            <div className="min-h-0 flex-1 overflow-auto">
+              <Outlet />
+            </div>
           </div>
         </ResizablePanel>
       </ResizablePanelGroup>

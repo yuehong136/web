@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Alert } from '@/components/ui/alert'
 import { memoryOperationReady } from '@/lib/memory-operation'
 import type { MemoryOperation } from '@/types/memory-revisions'
+import { MemoryExecutionStatus } from './memory-execution-status'
 import {
   memoryCommandErrorKey,
   useMemoryCommand,
@@ -16,19 +17,27 @@ export function MemoryOperationPanel({
   operationId,
   onRefresh,
   onStatus,
+  poll = false,
 }: {
   memoryId: string
   operationId: string
   onRefresh: () => void
   onStatus?: (operation: MemoryOperation) => void
+  poll?: boolean
 }) {
   const { t } = useTranslation()
-  const query = useMemoryOperation(memoryId, operationId)
+  const query = useMemoryOperation(memoryId, operationId, poll)
   const reconcile = useMemoryCommand(memoryId, () =>
     memoryAPI.revision.reconcile(memoryId, operationId),
   )
   const deletion = query.data?.kind === 'delete_memory'
   const append = query.data?.kind === 'append_raw'
+  const analysis = query.data?.kind === 'dream_analyze'
+  const unknown =
+    query.data?.status === 'persistence_unknown' ||
+    query.data?.index_sync_status === 'unknown'
+  const canReconcile =
+    query.data?.can_reconcile ?? (!analysis && query.data?.retryable)
   const ready = memoryOperationReady(query.data)
   useEffect(() => {
     if (query.data) onStatus?.(query.data)
@@ -54,17 +63,25 @@ export function MemoryOperationPanel({
             ? ready
               ? 'memory.deletion.completed'
               : 'memory.deletion.pending'
-            : append
+            : analysis
               ? ready
-                ? 'memory.writers.rawPublished'
-                : query.data?.index_sync_status === 'ready'
-                  ? 'memory.writers.queueUnconfirmed'
-                  : 'memory.writers.appendPending'
-              : ready
-                ? 'memory.revisions.ready'
-                : 'memory.revisions.pending',
+                ? 'memory.dreaming.analysisReady'
+                : 'memory.recovery.analysisPending'
+              : append
+                ? ready
+                  ? 'memory.writers.rawPublished'
+                  : query.data?.index_sync_status === 'ready'
+                    ? 'memory.writers.queueUnconfirmed'
+                    : 'memory.writers.appendPending'
+                : ready
+                  ? 'memory.revisions.ready'
+                  : 'memory.revisions.pending',
         )}
       </Alert>
+      <MemoryExecutionStatus execution={query.data?.execution} />
+      {unknown && (
+        <Alert variant="warning">{t('memory.recovery.unknown')}</Alert>
+      )}
       {query.data && (
         <dl className="grid grid-cols-2 gap-space-sm text-xs">
           <dt>{t('memory.revisions.publication')}</dt>
@@ -164,7 +181,13 @@ export function MemoryOperationPanel({
         </p>
       )}
       {query.data?.needs_operator_reconciliation && (
-        <Alert variant="warning">{t('memory.deletion.operatorRequired')}</Alert>
+        <Alert variant="warning">
+          {t(
+            deletion
+              ? 'memory.deletion.operatorRequired'
+              : 'memory.recovery.operatorRequired',
+          )}
+        </Alert>
       )}
       {(query.isError || reconcile.isError) && (
         <p role="alert" className="text-sm text-status-error">
@@ -187,23 +210,27 @@ export function MemoryOperationPanel({
         >
           {t('memory.revisions.refreshStatus')}
         </Button>
-        {query.data?.retryable && !ready && (
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={reconcile.isPending}
-            onClick={async () => {
-              try {
-                await reconcile.mutateAsync(undefined)
-                onRefresh()
-              } catch {
-                /* Fixed local feedback above. */
-              }
-            }}
-          >
-            {t('memory.revisions.reconcile')}
-          </Button>
-        )}
+        {canReconcile &&
+          !query.data?.writer_busy &&
+          !query.data?.needs_operator_reconciliation &&
+          !query.data?.execution?.needs_operator_reconciliation &&
+          !ready && (
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={reconcile.isPending}
+              onClick={async () => {
+                try {
+                  await reconcile.mutateAsync(undefined)
+                  onRefresh()
+                } catch {
+                  /* Fixed local feedback above. */
+                }
+              }}
+            >
+              {t('memory.revisions.reconcile')}
+            </Button>
+          )}
       </div>
     </section>
   )
