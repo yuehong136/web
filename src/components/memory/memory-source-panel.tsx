@@ -105,6 +105,7 @@ export function MemorySourcePanel({
       {!state.managed ? (
         <>
           <MemoryAdoptionConfirmation
+            capabilities={capabilities.data}
             managed={capabilities.data?.revisions?.managed === true}
             checked={confirmed}
             onCheckedChange={setConfirmed}

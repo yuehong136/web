@@ -1,5 +1,40 @@
 export default {
   memory: {
+    writers: {
+      activation:
+        'This enables managed mode for the whole memory bank. Existing unadopted records remain readable.',
+      managed: 'This memory bank uses managed publication.',
+      append: 'New conversations',
+      automatic_extraction: 'Automatic extraction',
+      fifo: 'FIFO capacity retention',
+      supported: 'Supported',
+      unavailable: 'Unavailable on this server',
+      operationBoundary:
+        'Accepted work may still be pending. Inspect its operation before treating it as published.',
+      legacyDrain:
+        'Before deployment, operators must drain legacy writers and verify untracked tasks. Unknown writes can block deletion until reconciled.',
+    },
+    deletion: {
+      description:
+        'Stop new writes and retrieval, wait for admitted writers to settle, then remove the bank and tracked data. Backups and untraceable copies are not certified erased.',
+      completed: 'Memory bank deletion confirmed',
+      pending: 'Deletion accepted. Waiting for writers and tracked cleanup.',
+      lifecycle: 'Bank lifecycle',
+      notConfirmed: 'Not confirmed',
+      blockedBy: 'Waiting on',
+      operatorRequired:
+        'An unresolved writer requires operator verification. Keep this operation ID; creating another operation does not release it.',
+      keepOperation:
+        'Keep this operation ID until deletion is confirmed. Reading status does not advance cleanup. This page does not restore the operation after a reload.',
+      unavailable:
+        'This server does not yet support coordinated deletion of managed banks.',
+      drain: {
+        active_attempts: 'Active writer attempts',
+        unknown_attempts: 'Unknown writer attempts',
+        pending_appends: 'Pending appends',
+        untracked_tasks: 'Untracked tasks',
+      },
+    },
     revisions: {
       notCertified: 'Not certified complete',
       trackedCleanup: 'Tracked index cleanup',

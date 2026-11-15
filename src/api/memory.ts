@@ -132,6 +132,15 @@ export function createMemoryRevisionAPI(
         {},
         sdkBase,
       ),
+    deleteBank: (
+      memoryId: string,
+      operationId: string,
+    ): Promise<MemoryOperation> =>
+      client.post(
+        `/memories/${encodeURIComponent(memoryId)}/deletions`,
+        { operation_id: operationId },
+        sdkBase,
+      ),
     source: (
       memoryId: string,
       sourceId: string,

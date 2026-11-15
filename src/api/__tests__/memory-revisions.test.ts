@@ -45,6 +45,7 @@ test('managed memory routes encode resource keys and preserve large decimal phys
   await api.source(bank, source)
   await api.adoptSource(bank, source, 'register', 'a'.repeat(64))
   await api.withdraw(bank, source, 'withdraw', 2, 'Access revoked')
+  await api.deleteBank(bank, 'delete-bank')
   assert.ok(
     calls.every((call) =>
       call.url.startsWith(
@@ -72,6 +73,9 @@ test('managed memory routes encode resource keys and preserve large decimal phys
     expected_source_revision: 2,
     reason: 'Access revoked',
   })
+  assert.ok(calls[11].url.endsWith('/deletions'))
+  assert.equal(calls[11].method, 'POST')
+  assert.deepEqual(calls[11].body, { operation_id: 'delete-bank' })
 })
 
 test('accepted publication stays pending and a 503 commit uncertainty is never automatically resent', async (t) => {

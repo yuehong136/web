@@ -32,7 +32,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
-import { Alert } from '@/components/ui/alert'
+import { MemoryManagedNotice } from '@/components/memory/memory-managed-notice'
 import { useMemoryCapabilities } from '@/hooks/use-memory-revisions'
 import { MemorySourcePagination } from '@/components/memory/memory-source-pagination'
 import { MemoryMessageFeed } from '@/components/memory/memory-message-feed'
@@ -300,9 +300,7 @@ function MemoryWorkspace({ memoryId }: { memoryId: string }) {
             </PopoverContent>
           </Popover>
         </div>
-        {managed && (
-          <Alert variant="info">{t('memory.revisions.managedNotice')}</Alert>
-        )}
+        {managed && <MemoryManagedNotice capabilities={capabilities.data} />}
         {query.isPending ? (
           <PageLoadingState />
         ) : query.isError ? (

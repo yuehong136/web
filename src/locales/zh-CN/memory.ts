@@ -1,5 +1,38 @@
 export default {
   memory: {
+    writers: {
+      activation: '此操作为整个记忆库启用受管模式，既有未接管记录仍可读取。',
+      managed: '本库使用受管发布流程。',
+      append: '新增对话',
+      automatic_extraction: '自动提取',
+      fifo: 'FIFO 容量保留',
+      supported: '已支持',
+      unavailable: '当前服务不可用',
+      operationBoundary:
+        '工作已受理时仍可能等待发布，请查看操作状态后再确认生效。',
+      legacyDrain:
+        '部署前须由运维排空旧写入进程并核验未跟踪任务；结果未知的写入在对账前可能阻塞删除。',
+    },
+    deletion: {
+      description:
+        '先停止新增写入与检索，等待已受理写入排空，再删除记忆库及已跟踪数据。不认证备份和无法追踪的副本已被抹除。',
+      completed: '记忆库删除已确认',
+      pending: '删除已受理，正在等待写入排空与已跟踪数据清理。',
+      lifecycle: '记忆库状态',
+      notConfirmed: '尚未确认',
+      blockedBy: '等待项目',
+      operatorRequired:
+        '存在结果未确认的写入，需要人工核验。请保留此操作号；创建新操作不会解除阻塞。',
+      keepOperation:
+        '请保留此操作号直至删除确认。读取状态不会推进清理；刷新页面后不会自动恢复此操作。',
+      unavailable: '当前服务尚不支持协调删除受管记忆库。',
+      drain: {
+        active_attempts: '进行中的写入尝试',
+        unknown_attempts: '结果未知的写入尝试',
+        pending_appends: '待处理追加',
+        untracked_tasks: '未跟踪任务',
+      },
+    },
     revisions: {
       notCertified: '未确认全部完成',
       trackedCleanup: '已追踪索引清理',

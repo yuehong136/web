@@ -12,6 +12,22 @@ export interface MemoryCapabilities {
     max_reason_chars?: number
   }
   source_withdrawals?: { supported: boolean; permanent: boolean }
+  writes?: {
+    supported: boolean
+    append: boolean
+    automatic_extraction: boolean
+    fifo: boolean
+    publication_state: 'operation'
+    queue_replay: 'stable_task_id'
+    untracked_legacy_tasks: 'operator_attestation'
+  }
+  deletions?: {
+    supported: boolean
+    requires_writer_drain: boolean
+    audit_tombstone: boolean
+    physical_erasure_certified: boolean
+    publication_state: 'operation'
+  }
 }
 
 export interface MemoryRevisionSource {
@@ -86,6 +102,16 @@ export interface MemoryOperation {
   physical_cleanup_complete?: boolean
   projection_cleanup_status?: string
   untraceable_copies?: boolean
+  lifecycle?: 'deleting' | 'deleted'
+  tracked_cleanup_confirmed?: boolean
+  blocked_by?: string[]
+  writer_drain?: {
+    active_attempts: number
+    unknown_attempts: number
+    pending_appends: number
+    untracked_tasks: number
+  }
+  needs_operator_reconciliation?: boolean
   source?: MemorySourceState
 }
 

@@ -10,31 +10,19 @@ import {
   PageLoadingState,
 } from '@/components/patterns/page-states'
 import { ListPagination } from '@/components/patterns/list-pagination'
-import { Alert } from '@/components/ui/alert'
-import { useMemoryCapabilities } from '@/hooks/use-memory-revisions'
+import { MemoryDeletionDialog } from '@/components/memory/memory-deletion-dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
   FilterPopover,
   type FilterConfig,
 } from '@/components/ui/filter-popover'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
 import { MemoryCard, CreateMemoryDialog } from '@/components/memory'
 import { useMemoryStore } from '@/stores/memory'
 import {
   useMemoryList,
   useCreateMemory,
   useUpdateMemory,
-  useDeleteMemory,
   useDebouncedSearch,
 } from '@/hooks/use-memory'
 import type { Memory } from '@/types/memory'
@@ -59,13 +47,6 @@ export function MemoryListPage() {
   const [search, setSearch] = useState(filter.keywords)
   const debounced = useDebouncedSearch(search)
   const [deleting, setDeleting] = useState<Memory | null>(null)
-  const deleteCapabilities = useMemoryCapabilities(
-    deleting?.id ?? '',
-    !!deleting,
-  )
-  const managedDeleteBlocked =
-    deleteCapabilities.data?.revisions?.managed === true &&
-    deleteCapabilities.data.revisions.managed_delete_supported !== true
   useEffect(() => {
     if (debounced !== filter.keywords) setFilter({ keywords: debounced })
   }, [debounced, filter.keywords, setFilter])
@@ -78,7 +59,6 @@ export function MemoryListPage() {
   })
   const create = useCreateMemory()
   const update = useUpdateMemory()
-  const remove = useDeleteMemory()
   const memories = query.data?.memory_list ?? []
   const total = query.data?.total_count ?? 0
   const filtered =
@@ -231,62 +211,13 @@ export function MemoryListPage() {
         onUpdate={(id, data) => update.mutate({ id, data })}
         isLoading={create.isPending || update.isPending}
       />
-      <AlertDialog
-        open={!!deleting}
-        onOpenChange={(open) => {
-          if (!open && !remove.isPending) setDeleting(null)
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {t('memory.deleteDialog.title')}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {t('memory.deleteDialog.description')}
-            </AlertDialogDescription>
-            <p className="text-sm font-medium break-words text-text-primary">
-              {deleting?.name}
-            </p>
-          </AlertDialogHeader>
-          {managedDeleteBlocked && (
-            <Alert variant="warning">
-              {t('memory.revisions.managedNotice')}
-            </Alert>
-          )}
-          {deleteCapabilities.isError && (
-            <Alert variant="warning">
-              {t('memory.revisions.capabilitiesFailed')}
-            </Alert>
-          )}
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={remove.isPending}>
-              {t('common.cancel')}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              variant="destructive"
-              disabled={
-                remove.isPending ||
-                deleteCapabilities.isPending ||
-                deleteCapabilities.isError ||
-                managedDeleteBlocked
-              }
-              onClick={async (e) => {
-                e.preventDefault()
-                if (!deleting) return
-                try {
-                  await remove.mutateAsync(deleting.id)
-                  setDeleting(null)
-                } catch {
-                  /* Mutation owns error feedback. */
-                }
-              }}
-            >
-              {t('common.delete')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {deleting && (
+        <MemoryDeletionDialog
+          key={deleting.id}
+          memory={deleting}
+          onClose={() => setDeleting(null)}
+        />
+      )}
     </ConsolePageTemplate>
   )
 }

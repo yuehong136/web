@@ -87,6 +87,7 @@ export function MemoryRevisionPanel({
         {t('memory.revisions.adoptDescription')}
       </p>
       <MemoryAdoptionConfirmation
+        capabilities={capabilities.data}
         managed={capabilities.data?.revisions?.managed === true}
         checked={confirmed}
         onCheckedChange={setConfirmed}
