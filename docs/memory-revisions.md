@@ -20,7 +20,7 @@ New managed API physical IDs are decimal strings. Unsafe numeric identifiers rec
 
 ## Whole-bank deletion
 
-A managed bank uses the deletion command only when both managed deletion and the deletion capability are enabled. It does not use the legacy immediate-delete API. The dialog keeps the original operation ID while writers drain, reports active and unknown attempts, pending appends, untracked tasks and operator reconciliation requirements, and prevents accidental dismissal of the pending handle. Page reload does not restore this handle; keep the displayed ID for operational recovery.
+When the server advertises coordinated deletion, both managed and unmanaged banks use the deletion command. Managed banks also require managed-deletion support; they never fall back to the legacy immediate-delete API. An unmanaged bank on an older backend without the coordinated capability retains legacy deletion. The dialog keeps the original operation ID while writers drain, reports active and unknown attempts, pending appends, untracked tasks and operator reconciliation requirements, and prevents accidental dismissal of the pending handle. Page reload does not restore this handle; keep the displayed ID for operational recovery.
 
 Receiving 202, stopping supply or reaching an index-ready state is insufficient to report deletion complete. The bank leaves the list only when the deletion operation reports `lifecycle: deleted` and `tracked_cleanup_confirmed: true`. A failed or unknown request never clears the bank or automatically resends the command. Reading status does not advance deletion; reconciliation is explicit. An in-flight attempt can still block reconciliation after its lease expires.
 

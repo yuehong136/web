@@ -47,6 +47,7 @@ export function MemoryDeletionDialog({
   const [operationId, setOperationId] = useState('')
   const completing = useRef(false)
   const managed = capabilities.data?.revisions?.managed === true
+  const coordinated = capabilities.data?.deletions?.supported === true
   const blocked =
     managed &&
     (capabilities.data?.revisions?.managed_delete_supported !== true ||
@@ -74,7 +75,7 @@ export function MemoryDeletionDialog({
           <AlertDialogTitle>{t('memory.deleteDialog.title')}</AlertDialogTitle>
           <AlertDialogDescription>
             {t(
-              managed
+              coordinated
                 ? 'memory.deletion.description'
                 : 'memory.deleteDialog.description',
             )}
@@ -125,7 +126,7 @@ export function MemoryDeletionDialog({
               onClick={async (event) => {
                 event.preventDefault()
                 try {
-                  if (!managed) {
+                  if (!coordinated) {
                     await legacy.mutateAsync(memory.id)
                     onClose()
                     return

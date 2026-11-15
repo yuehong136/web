@@ -203,6 +203,26 @@ it('does not enable managed deletion when the backend capability remains false',
   expect(post).not.toHaveBeenCalled()
 })
 
+it('uses coordinated deletion for a strict unmanaged bank when the deletion capability is enabled', async () => {
+  const capabilities = await memoryAPI.revision.capabilities('bank')
+  vi.mocked(memoryAPI.revision.capabilities).mockResolvedValue({
+    ...capabilities,
+    revisions: { ...capabilities.revisions!, managed: false },
+  })
+  const post = vi
+    .spyOn(memoryAPI.revision, 'deleteBank')
+    .mockImplementation(async (_bank, id) => operation(id))
+  const legacy = vi.spyOn(memoryAPI.memory, 'delete')
+  await render()
+  await click('common.delete')
+  await vi.waitFor(() =>
+    expect(document.body.textContent).toContain('memory.deletion.pending'),
+  )
+  expect(post).toHaveBeenCalledOnce()
+  expect(legacy).not.toHaveBeenCalled()
+  expect(closed).not.toHaveBeenCalled()
+})
+
 it('requires the full deletion receipt and preserves unrelated bank caches and the operation handle', async () => {
   expect(
     confirmedMemoryDeletion({ ...operation(), lifecycle: 'deleted' }),
@@ -233,6 +253,19 @@ it('requires the full deletion receipt and preserves unrelated bank caches and t
   expect(
     client.getQueryData(memoryRevisionKeys.operation('bank', 'delete')),
   ).toBeDefined()
+})
+
+it('retains legacy deletion for an unmanaged bank without the coordinated capability', async () => {
+  vi.mocked(memoryAPI.revision.capabilities).mockResolvedValue({})
+  const legacy = vi
+    .spyOn(memoryAPI.memory, 'delete')
+    .mockResolvedValue(undefined)
+  const post = vi.spyOn(memoryAPI.revision, 'deleteBank')
+  await render()
+  await click('common.delete')
+  await vi.waitFor(() => expect(closed).toHaveBeenCalledOnce())
+  expect(legacy).toHaveBeenCalledWith('bank')
+  expect(post).not.toHaveBeenCalled()
 })
 
 it('reports each managed writer capability and keeps old restricted behavior when flags are absent', async () => {
