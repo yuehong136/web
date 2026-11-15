@@ -2,6 +2,7 @@ import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { memoryKeys } from '@/hooks/use-memory'
 import { memoryAPI } from '@/api/memory'
 import { APIError } from '@/api/client'
 import { MemoryRevisionPanel } from '../memory-revision-panel'
@@ -490,4 +491,56 @@ it('bounds correction reasons to the current backend contract before previewing'
   await fill('#revision-reason', 'x'.repeat(1025))
   expect(button('memory.revisions.preview').disabled).toBe(true)
   expect(revise).not.toHaveBeenCalled()
+})
+
+it('does not clear existing source bodies after an unconfirmed 503 when state reads remain active', async () => {
+  const cached = {
+    message_list: [
+      {
+        memory_id: 'bank',
+        message_id: 10,
+        message_type: 'raw',
+        content: 'Still authorized source',
+        extract: [],
+      },
+    ],
+    total_count: 1,
+  }
+  const key = memoryKeys.messageList('bank', {})
+  client.setQueryData(key, cached)
+  vi.spyOn(memoryAPI.revision, 'source').mockResolvedValue({
+    managed: true,
+    memory_id: 'bank',
+    source_id: '10',
+    source_revision: 1,
+    generation: 1,
+    state: 'active',
+    content_sha256: 'a'.repeat(64),
+    scope: {},
+  })
+  const withdraw = vi.spyOn(memoryAPI.revision, 'withdraw').mockRejectedValue(
+    new APIError(503, 'unknown', 'Untrusted error', {
+      requires_reconciliation: true,
+    }),
+  )
+  await act(async () =>
+    root.render(
+      <QueryClientProvider client={client}>
+        <MemorySourcePanel memoryId="bank" sourceId="10" />
+      </QueryClientProvider>,
+    ),
+  )
+  await vi.waitFor(() =>
+    expect(button('memory.revisions.withdraw')).toBeDefined(),
+  )
+  await fill('input', 'Controlled withdrawal')
+  await act(async () =>
+    host.querySelector<HTMLButtonElement>('[role="checkbox"]')!.click(),
+  )
+  await click('memory.revisions.withdraw')
+  await vi.waitFor(() =>
+    expect(host.textContent).toContain('memory.revisions.unknown'),
+  )
+  expect(client.getQueryData(key)).toEqual(cached)
+  expect(withdraw).toHaveBeenCalledOnce()
 })

@@ -84,6 +84,9 @@ export interface MemoryOperation {
   outbox_id?: string | null
   stop_supply?: string
   physical_cleanup_complete?: boolean
+  projection_cleanup_status?: string
+  untraceable_copies?: boolean
+  source?: MemorySourceState
 }
 
 export interface MemorySourceState {

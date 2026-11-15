@@ -45,6 +45,12 @@ export function MemoryOperationPanel({
               <dd>{query.data.stop_supply}</dd>
             </>
           )}
+          {query.data.projection_cleanup_status && (
+            <>
+              <dt>{t('memory.revisions.trackedCleanup')}</dt>
+              <dd>{query.data.projection_cleanup_status}</dd>
+            </>
+          )}
           {query.data.physical_cleanup_complete !== undefined && (
             <>
               <dt>{t('memory.revisions.cleanup')}</dt>
@@ -52,12 +58,17 @@ export function MemoryOperationPanel({
                 {t(
                   query.data.physical_cleanup_complete
                     ? 'memory.revisions.complete'
-                    : 'memory.revisions.pendingShort',
+                    : 'memory.revisions.notCertified',
                 )}
               </dd>
             </>
           )}
         </dl>
+      )}
+      {query.data?.untraceable_copies && (
+        <p className="text-xs text-text-secondary">
+          {t('memory.revisions.retainedCopies')}
+        </p>
       )}
       {(query.isError || reconcile.isError) && (
         <p role="alert" className="text-sm text-status-error">

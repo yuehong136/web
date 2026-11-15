@@ -1,0 +1,18 @@
+import { memoryKeys } from '@/hooks/use-memory'
+
+export const memoryRevisionKeys = {
+  bank: (id: string) => [...memoryKeys.all, id, 'managed'] as const,
+  capabilities: (id: string) =>
+    [...memoryRevisionKeys.bank(id), 'capabilities'] as const,
+  entries: (id: string) => [...memoryRevisionKeys.bank(id), 'entry'] as const,
+  entry: (id: string, messageId: string) =>
+    [...memoryRevisionKeys.entries(id), messageId] as const,
+  histories: (id: string) =>
+    [...memoryRevisionKeys.bank(id), 'history'] as const,
+  history: (id: string, entryId: string, cursor?: string) =>
+    [...memoryRevisionKeys.histories(id), entryId, cursor] as const,
+  source: (id: string, sourceId: string) =>
+    [...memoryRevisionKeys.bank(id), 'source', sourceId] as const,
+  operation: (id: string, operationId: string) =>
+    [...memoryRevisionKeys.bank(id), 'operation', operationId] as const,
+}

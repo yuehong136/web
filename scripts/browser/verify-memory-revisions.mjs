@@ -139,6 +139,30 @@ try {
         },
       ],
     }
+    const otherRaw = {
+      ...raw,
+      message_id: 20,
+      content: 'Other source conversation',
+      session_id: 'other-controlled-session',
+      extract: [
+        {
+          ...raw.extract[0],
+          message_id: 21,
+          source_id: 20,
+          content: 'Other source memory',
+        },
+      ],
+    }
+    const sourceState = () => ({
+      managed,
+      memory_id: 'fixture-memory',
+      source_id: '10',
+      source_revision: 1,
+      generation: withdrawn ? 2 : 1,
+      state: withdrawn ? 'forgotten' : 'active',
+      content_sha256: 'a'.repeat(64),
+      scope: { session_id: 'controlled-session', user_id: 'controlled-user' },
+    })
     await context.route(/\/api\/v1\/(?:memories|messages)/, async (route) => {
       const request = route.request(),
         path = new URL(request.url()).pathname,
@@ -217,26 +241,14 @@ try {
           retryable: true,
         }
         operations.set(body.operation_id, data)
-      } else if (path.endsWith('/state'))
-        data = {
-          managed,
-          memory_id: 'fixture-memory',
-          source_id: '10',
-          source_revision: 1,
-          generation: 1,
-          state: withdrawn ? 'forgotten' : 'active',
-          content_sha256: 'a'.repeat(64),
-          scope: {
-            session_id: 'controlled-session',
-            user_id: 'controlled-user',
-          },
-        }
+      } else if (path.endsWith('/state')) data = sourceState()
       else if (path.endsWith('/withdrawals')) {
         withdrawn = true
         status = 202
         data = {
           operation_id: body.operation_id,
           kind: 'withdraw_source',
+          source: sourceState(),
           status: 'published',
           index_sync_status: 'pending',
           stop_supply: 'withdrawn',
@@ -251,7 +263,13 @@ try {
           ...operations.get(id),
           status: 'ready',
           index_sync_status: 'ready',
-          physical_cleanup_complete: true,
+          ...(operations.get(id)?.kind === 'withdraw_source'
+            ? {
+                physical_cleanup_complete: false,
+                projection_cleanup_status: 'confirmed',
+                untraceable_copies: true,
+              }
+            : {}),
           retryable: false,
         }
         operations.set(id, data)
@@ -260,7 +278,22 @@ try {
       else if (path.endsWith('/entries/entry-a')) data = entry()
       else
         data = {
-          messages: { message_list: [raw], total_count: 1 },
+          messages: {
+            message_list: [
+              withdrawn
+                ? {
+                    ...raw,
+                    content: undefined,
+                    content_embed: undefined,
+                    status: false,
+                    managed_source_state: 'forgotten',
+                    extract: [],
+                  }
+                : raw,
+              otherRaw,
+            ],
+            total_count: 2,
+          },
           storage_type: 'table',
         }
       await route.fulfill({
@@ -420,6 +453,16 @@ try {
     })
     await page.keyboard.press('Escape')
     assert.equal(await dialog.count(), 0)
+    assert.equal(
+      await page
+        .getByRole('button', { name: 'Original memory', exact: true })
+        .count(),
+      0,
+      'Withdrawn body must not remain behind the inspector',
+    )
+    await page
+      .getByRole('button', { name: 'Other source memory', exact: true })
+      .waitFor()
     assert.deepEqual(errors, [])
     const visible = await page.locator('body').innerText()
     assert.ok(!visible.includes('memory.revisions.'))

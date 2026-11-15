@@ -1,22 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { APIError } from '@/api/client'
 import { memoryAPI } from '@/api/memory'
+import { memoryRevisionKeys } from '@/hooks/memory-revision-keys'
+import {
+  confirmedWithdrawnSource,
+  operationWithdrawnSource,
+  redactWithdrawnSource,
+} from '@/hooks/memory-withdrawal-cache'
 import { memoryKeys } from '@/hooks/use-memory'
 import { MutationErrorFeedback } from '@/lib/mutation-error-feedback'
 
-export const memoryRevisionKeys = {
-  bank: (id: string) => [...memoryKeys.all, id, 'managed'] as const,
-  capabilities: (id: string) =>
-    [...memoryRevisionKeys.bank(id), 'capabilities'] as const,
-  entry: (id: string, messageId: string) =>
-    [...memoryRevisionKeys.bank(id), 'entry', messageId] as const,
-  history: (id: string, entryId: string, cursor?: string) =>
-    [...memoryRevisionKeys.bank(id), 'history', entryId, cursor] as const,
-  source: (id: string, sourceId: string) =>
-    [...memoryRevisionKeys.bank(id), 'source', sourceId] as const,
-  operation: (id: string, operationId: string) =>
-    [...memoryRevisionKeys.bank(id), 'operation', operationId] as const,
-}
+export { memoryRevisionKeys }
 
 export function useMemoryCapabilities(memoryId: string, enabled = true) {
   return useQuery({
@@ -60,20 +54,35 @@ export function useMemorySourceState(
   sourceId: string,
   enabled: boolean,
 ) {
+  const cache = useQueryClient()
   return useQuery({
     queryKey: memoryRevisionKeys.source(memoryId, sourceId),
-    queryFn: ({ signal }) =>
-      memoryAPI.revision.source(memoryId, sourceId, signal),
+    queryFn: async ({ signal }) => {
+      const result = await memoryAPI.revision.source(memoryId, sourceId, signal)
+      const source = confirmedWithdrawnSource(memoryId, result)
+      if (source)
+        await redactWithdrawnSource(cache, memoryId, source, 'source-read')
+      return result
+    },
     enabled,
     retry: false,
   })
 }
 
 export function useMemoryOperation(memoryId: string, operationId: string) {
+  const cache = useQueryClient()
   return useQuery({
     queryKey: memoryRevisionKeys.operation(memoryId, operationId),
-    queryFn: ({ signal }) =>
-      memoryAPI.revision.operation(memoryId, operationId, signal),
+    queryFn: async ({ signal }) => {
+      const result = await memoryAPI.revision.operation(
+        memoryId,
+        operationId,
+        signal,
+      )
+      const source = operationWithdrawnSource(memoryId, result)
+      if (source) await redactWithdrawnSource(cache, memoryId, source)
+      return result
+    },
     enabled: !!operationId,
     retry: false,
   })
@@ -88,6 +97,10 @@ export function useMemoryCommand<T, R>(
   return useMutation({
     mutationFn: command,
     retry: false,
+    onSuccess: async (result) => {
+      const source = operationWithdrawnSource(memoryId, result)
+      if (source) await redactWithdrawnSource(cache, memoryId, source)
+    },
     meta: { errorFeedback: MutationErrorFeedback.Local },
     onSettled: () => {
       void cache.invalidateQueries({

@@ -1,6 +1,11 @@
 export default {
   memory: {
     revisions: {
+      notCertified: '未确认全部完成',
+      trackedCleanup: '已追踪索引清理',
+      retainedCopies:
+        '此回执仅覆盖已追踪投影，不代表未追踪副本或备份已被删除。',
+
       managedForgetScope:
         '停止正常供给此派生记忆，并隐去其已追踪受管版本的历史正文。原始来源、其他派生记忆、无关副本和备份仍保留，物理清理单独记录状态。',
       inflight:

@@ -1,6 +1,11 @@
 export default {
   memory: {
     revisions: {
+      notCertified: 'Not certified complete',
+      trackedCleanup: 'Tracked index cleanup',
+      retainedCopies:
+        'This receipt covers tracked projections. It does not certify erasure of untracked copies or backups.',
+
       managedForgetScope:
         'Stop normal supply of this derived memory and redact its tracked managed revision history. The raw source, other derived memories, unrelated copies and backups remain. Physical cleanup is tracked separately.',
       inflight:
