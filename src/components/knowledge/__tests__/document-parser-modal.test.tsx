@@ -280,6 +280,7 @@ it('shows a legacy model and replaces only the document model through the canoni
     (item) => item.textContent === 'Document parsing model',
   )!
   expect(label.parentElement!.textContent).toContain('glm-5-turbo')
+  await waitForCatalog()
   await act(async () =>
     label
       .parentElement!.querySelector<HTMLButtonElement>('[role=combobox]')!
