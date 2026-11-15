@@ -112,7 +112,36 @@ export interface MemoryOperation {
     untracked_tasks: number
   }
   needs_operator_reconciliation?: boolean
+  raw_source_id?: string | null
+  message_ids?: string[]
+  extraction_task_id?: string | null
+  queue_state?: MemoryAppendQueueState
+  evicted_sources?: { source_id: string; operation_id: string; state: string }[]
   source?: MemorySourceState
+}
+
+export type MemoryAppendQueueState =
+  | 'not_required'
+  | 'pending'
+  | 'submitted'
+  | 'unknown'
+
+export interface MemoryAppendCommand {
+  operation_id: string
+  user_input: string
+  agent_response: string
+  agent_id: string
+  session_id: string
+  user_id?: string
+}
+
+export interface MemoryAppendOperation extends MemoryOperation {
+  kind: 'append_raw'
+  raw_source_id: string | null
+  message_ids: string[]
+  extraction_task_id: string | null
+  queue_state: MemoryAppendQueueState
+  evicted_sources: { source_id: string; operation_id: string; state: string }[]
 }
 
 export interface MemorySourceState {

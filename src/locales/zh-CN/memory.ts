@@ -1,6 +1,16 @@
 export default {
   memory: {
     writers: {
+      rawPublished: '原始对话发布已确认。',
+      queueUnconfirmed: '原始对话已入索引，但提取队列的受理结果仍未确认。',
+      appendPending: '原始对话正在等待发布。',
+      queueState: '提取队列',
+      rawSource: '原始来源 ID',
+      extractionTask: '提取任务 ID',
+      noExtraction: '此记忆库无需创建提取任务。',
+      extractionBoundary:
+        '任务已入队不代表提取已完成。请单独查看工作任务；此回执不确认事实已被提取。',
+
       activation: '此操作为整个记忆库启用受管模式，既有未接管记录仍可读取。',
       managed: '本库使用受管发布流程。',
       append: '新增对话',

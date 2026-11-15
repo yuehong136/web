@@ -16,6 +16,8 @@ import type {
   MemoryRevisionPreview,
   MemoryOperation,
   MemorySourceState,
+  MemoryAppendCommand,
+  MemoryAppendOperation,
 } from '@/types/memory-revisions'
 import { collectListWindow, isLargeListWindow } from './list-pagination'
 import { API_BASE_URL } from '@/constants'
@@ -58,6 +60,15 @@ export function createMemoryRevisionAPI(
 ) {
   const sdkBase = { baseURL: `${baseURL}/api` }
   return {
+    append: (
+      memoryId: string,
+      command: MemoryAppendCommand,
+    ): Promise<MemoryAppendOperation> =>
+      client.post(
+        `/memories/${encodeURIComponent(memoryId)}/messages`,
+        command,
+        sdkBase,
+      ),
     capabilities: (
       memoryId: string,
       signal?: AbortSignal,

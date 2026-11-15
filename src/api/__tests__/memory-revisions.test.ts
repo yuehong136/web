@@ -142,3 +142,57 @@ test('history and state lookups propagate cancellation through shared transport'
   )
   assert.equal(signal?.aborted, true)
 })
+
+test('ordinary append preserves the exact command and decimal IDs while an indexed unknown queue stays unknown', async (t) => {
+  const client = new APIClient('https://fixture.invalid')
+  const api = createMemoryRevisionAPI('https://fixture.invalid', client)
+  const calls: { url: string; body: unknown }[] = []
+  t.mock.method(
+    globalThis,
+    'fetch',
+    async (url: string | URL | Request, init?: RequestInit) => {
+      calls.push({ url: String(url), body: JSON.parse(String(init?.body)) })
+      return response(
+        {
+          operation_id: 'stable',
+          kind: 'append_raw',
+          status: 'published',
+          index_sync_status: 'ready',
+          retryable: true,
+          raw_source_id: '9007199254740993',
+          message_ids: ['9007199254740993'],
+          extraction_task_id: 'stable-task',
+          queue_state: 'unknown',
+          evicted_sources: [
+            {
+              source_id: '9223372036854775807',
+              operation_id: 'eviction',
+              state: 'forgotten',
+            },
+          ],
+        },
+        202,
+      )
+    },
+  )
+  const command = {
+    operation_id: 'stable',
+    user_input: 'Controlled input',
+    agent_response: 'Controlled response',
+    agent_id: 'agent',
+    session_id: 'session',
+    user_id: '  external user  ',
+  }
+  const result = await api.append('bank/a', command)
+  assert.equal(calls.length, 1)
+  assert.equal(
+    calls[0].url,
+    'https://fixture.invalid/api/v1/memories/bank%2Fa/messages',
+  )
+  assert.deepEqual(calls[0].body, command)
+  assert.equal(result.raw_source_id, '9007199254740993')
+  assert.deepEqual(result.message_ids, ['9007199254740993'])
+  assert.equal(result.evicted_sources[0].source_id, '9223372036854775807')
+  assert.equal(result.queue_state, 'unknown')
+  assert.equal(result.index_sync_status, 'ready')
+})

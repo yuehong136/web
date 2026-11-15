@@ -13,6 +13,8 @@ import {
 } from '@/hooks/memory-deletion-cache'
 import { MemoryDeletionDialog } from '../memory-deletion-dialog'
 import { MemoryManagedNotice } from '../memory-managed-notice'
+import { MemoryOperationPanel } from '../memory-operation-panel'
+import { memoryOperationReady } from '@/lib/memory-operation'
 import type { Memory } from '@/types/memory'
 import type { MemoryOperation } from '@/types/memory-revisions'
 
@@ -284,4 +286,88 @@ it('cancels an in-flight stale list before it can restore a confirmed deleted ba
     memory_list: [other],
     total_count: 1,
   })
+})
+
+it('requires a confirmed queue acknowledgement for append readiness without changing old operation kinds', () => {
+  const append: MemoryOperation = {
+    operation_id: 'append',
+    kind: 'append_raw',
+    status: 'published',
+    index_sync_status: 'ready',
+    retryable: true,
+  }
+  for (const queue_state of ['pending', 'unknown', undefined] as const)
+    expect(memoryOperationReady({ ...append, queue_state })).toBe(false)
+  for (const queue_state of ['submitted', 'not_required'] as const)
+    expect(memoryOperationReady({ ...append, queue_state })).toBe(true)
+  expect(
+    memoryOperationReady({
+      ...append,
+      queue_state: 'submitted',
+      index_sync_status: 'pending',
+    }),
+  ).toBe(false)
+  expect(memoryOperationReady({ ...append, kind: 'revise' })).toBe(true)
+})
+
+it('keeps an indexed append with unknown queue acknowledgement out of the success state', async () => {
+  vi.mocked(memoryAPI.revision.operation).mockResolvedValue({
+    operation_id: 'append',
+    kind: 'append_raw',
+    status: 'published',
+    index_sync_status: 'ready',
+    queue_state: 'unknown',
+    retryable: true,
+    raw_source_id: '9007199254740993',
+    extraction_task_id: 'stable-task',
+  })
+  await act(async () =>
+    root.render(
+      <QueryClientProvider client={client}>
+        <MemoryOperationPanel
+          memoryId="bank"
+          operationId="append"
+          onRefresh={() => undefined}
+        />
+      </QueryClientProvider>,
+    ),
+  )
+  await vi.waitFor(() =>
+    expect(host.textContent).toContain('memory.writers.queueUnconfirmed'),
+  )
+  expect(host.textContent).not.toContain('memory.revisions.ready')
+  expect(host.textContent).not.toContain('memory.writers.rawPublished')
+  expect(host.textContent).toContain('memory.writers.extractionBoundary')
+  expect(host.textContent).toContain('9007199254740993')
+  expect(host.textContent).toContain('stable-task')
+  expect(host.querySelector('.bg-components-alert-success-bg')).toBeNull()
+  expect(host.querySelector('.bg-components-alert-warning-bg')).not.toBeNull()
+})
+
+it('labels a submitted extraction task separately from raw conversation publication', async () => {
+  vi.mocked(memoryAPI.revision.operation).mockResolvedValue({
+    operation_id: 'append',
+    kind: 'append_raw',
+    status: 'published',
+    index_sync_status: 'ready',
+    queue_state: 'submitted',
+    retryable: false,
+    extraction_task_id: 'stable-task',
+  })
+  await act(async () =>
+    root.render(
+      <QueryClientProvider client={client}>
+        <MemoryOperationPanel
+          memoryId="bank"
+          operationId="append"
+          onRefresh={() => undefined}
+        />
+      </QueryClientProvider>,
+    ),
+  )
+  await vi.waitFor(() =>
+    expect(host.textContent).toContain('memory.writers.rawPublished'),
+  )
+  expect(host.textContent).toContain('memory.writers.extractionBoundary')
+  expect(host.textContent).not.toContain('memory.revisions.ready')
 })

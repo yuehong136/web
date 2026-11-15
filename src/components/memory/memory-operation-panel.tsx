@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { memoryAPI } from '@/api/memory'
 import { Button } from '@/components/ui/button'
 import { Alert } from '@/components/ui/alert'
-import { confirmedMemoryDeletion } from '@/hooks/memory-deletion-cache'
+import { memoryOperationReady } from '@/lib/memory-operation'
 import type { MemoryOperation } from '@/types/memory-revisions'
 import {
   memoryCommandErrorKey,
@@ -28,9 +28,8 @@ export function MemoryOperationPanel({
     memoryAPI.revision.reconcile(memoryId, operationId),
   )
   const deletion = query.data?.kind === 'delete_memory'
-  const ready = deletion
-    ? confirmedMemoryDeletion(query.data)
-    : query.data?.index_sync_status === 'ready'
+  const append = query.data?.kind === 'append_raw'
+  const ready = memoryOperationReady(query.data)
   useEffect(() => {
     if (query.data) onStatus?.(query.data)
   }, [query.data, onStatus])
@@ -41,15 +40,29 @@ export function MemoryOperationPanel({
     >
       <h3 className="text-sm font-medium">{t('memory.revisions.operation')}</h3>
       <p className="font-mono text-xs break-all">{operationId}</p>
-      <Alert variant={ready ? 'success' : 'info'}>
+      <Alert
+        variant={
+          ready
+            ? 'success'
+            : append && query.data?.queue_state === 'unknown'
+              ? 'warning'
+              : 'info'
+        }
+      >
         {t(
           deletion
             ? ready
               ? 'memory.deletion.completed'
               : 'memory.deletion.pending'
-            : ready
-              ? 'memory.revisions.ready'
-              : 'memory.revisions.pending',
+            : append
+              ? ready
+                ? 'memory.writers.rawPublished'
+                : query.data?.index_sync_status === 'ready'
+                  ? 'memory.writers.queueUnconfirmed'
+                  : 'memory.writers.appendPending'
+              : ready
+                ? 'memory.revisions.ready'
+                : 'memory.revisions.pending',
         )}
       </Alert>
       {query.data && (
@@ -58,6 +71,28 @@ export function MemoryOperationPanel({
           <dd>{query.data.status}</dd>
           <dt>{t('memory.revisions.indexSync')}</dt>
           <dd>{query.data.index_sync_status}</dd>
+          {append && (
+            <>
+              <dt>{t('memory.writers.queueState')}</dt>
+              <dd>{query.data.queue_state ?? 'unknown'}</dd>
+              {query.data.raw_source_id && (
+                <>
+                  <dt>{t('memory.writers.rawSource')}</dt>
+                  <dd className="font-mono break-all">
+                    {query.data.raw_source_id}
+                  </dd>
+                </>
+              )}
+              {query.data.extraction_task_id && (
+                <>
+                  <dt>{t('memory.writers.extractionTask')}</dt>
+                  <dd className="font-mono break-all">
+                    {query.data.extraction_task_id}
+                  </dd>
+                </>
+              )}
+            </>
+          )}
           {query.data.lifecycle && (
             <>
               <dt>{t('memory.deletion.lifecycle')}</dt>
@@ -108,6 +143,15 @@ export function MemoryOperationPanel({
             </>
           )}
         </dl>
+      )}
+      {append && (
+        <p className="text-xs text-text-secondary">
+          {t(
+            query.data?.queue_state === 'not_required'
+              ? 'memory.writers.noExtraction'
+              : 'memory.writers.extractionBoundary',
+          )}
+        </p>
       )}
       {query.data?.untraceable_copies && (
         <p className="text-xs text-text-secondary">

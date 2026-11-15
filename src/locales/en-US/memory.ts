@@ -1,6 +1,17 @@
 export default {
   memory: {
     writers: {
+      rawPublished: 'Raw conversation publication confirmed.',
+      queueUnconfirmed:
+        'The raw conversation is indexed, but extraction queue acknowledgement is still unconfirmed.',
+      appendPending: 'Raw conversation publication is pending.',
+      queueState: 'Extraction queue',
+      rawSource: 'Raw source ID',
+      extractionTask: 'Extraction task ID',
+      noExtraction: 'This bank does not require an extraction task.',
+      extractionBoundary:
+        'A submitted queue task is not completed extraction. Check the worker task separately; this receipt does not confirm extracted facts.',
+
       activation:
         'This enables managed mode for the whole memory bank. Existing unadopted records remain readable.',
       managed: 'This memory bank uses managed publication.',
