@@ -84,6 +84,8 @@ export default {
         included: 'Included',
         deferred: 'Deferred',
         analyzed: 'Analyzed',
+        stale: 'Source changed; saved body unavailable',
+        redacted: 'Source withdrawn; saved body withheld',
       },
       candidates: 'Review candidates',
       noCandidates: 'No reviewable candidates',

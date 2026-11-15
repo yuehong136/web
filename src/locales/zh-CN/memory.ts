@@ -79,6 +79,8 @@ export default {
         included: '已纳入',
         deferred: '已延后',
         analyzed: '已分析',
+        stale: '来源已变更，快照正文不可用',
+        redacted: '来源已撤回，快照正文已隐藏',
       },
       candidates: '审核候选',
       noCandidates: '暂无可审核候选',

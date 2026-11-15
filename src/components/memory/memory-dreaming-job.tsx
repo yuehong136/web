@@ -61,7 +61,7 @@ export function MemoryDreamingJob({ job }: { job: MemoryMaintenanceJob }) {
               <p className="font-mono text-text-secondary">
                 {input.content_sha256}
               </p>
-              {input.defer_reason && (
+              {input.coverage === 'deferred' && input.defer_reason && (
                 <p>{t('memory.dreaming.inputDeferred')}</p>
               )}
             </li>

@@ -12,7 +12,7 @@ export interface MemoryMaintenanceInput {
   source_generation: number
   content_sha256: string
   scope: Record<string, unknown>
-  coverage: 'included' | 'deferred' | 'analyzed'
+  coverage: 'included' | 'deferred' | 'analyzed' | 'stale' | 'redacted'
   defer_reason: string | null
 }
 export interface MemoryMaintenanceJob {
