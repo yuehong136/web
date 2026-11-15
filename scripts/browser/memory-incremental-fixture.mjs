@@ -20,7 +20,8 @@ export async function installMemoryIncrementalFixture(
   let plan,
     lastSelection,
     creationVisible = false,
-    mixed = false
+    mixed = false,
+    cancellationUnknown = false
   const commands = {
     preview: [],
     create: [],
@@ -230,7 +231,12 @@ export async function installMemoryIncrementalFixture(
         const prior = runs.get(body.operation_id)
         if (prior) {
           assert.deepEqual(prior, body)
-          plan.batches[0] = { ...plan.batches[0], state: 'submitted' }
+          plan.batches[0] = {
+            ...plan.batches[0],
+            state: 'submitted',
+            job_state: 'pending',
+            execution: execution('queued'),
+          }
           progress()
           data = plan
         } else {
@@ -263,7 +269,19 @@ export async function installMemoryIncrementalFixture(
         path.endsWith('/cancellations')
       ) {
         commands.cancel.push(body)
-        data = plan
+        plan.state = 'canceled'
+        if (cancellationUnknown) {
+          cancellationUnknown = false
+          status = 503
+          data = { operation_id: body.operation_id }
+        } else {
+          for (const batch of plan.batches) {
+            batch.state = 'canceled'
+            if (batch.execution) batch.execution = execution('canceled')
+          }
+          progress()
+          data = plan
+        }
       } else if (path.includes('/maintenance-discoveries/')) data = plan
       else if (path.endsWith('/operations'))
         data = {
@@ -358,6 +376,22 @@ export async function installMemoryIncrementalFixture(
     },
     setMixed,
     primeMixed,
+    primeRecovery: () => {
+      primeMixed()
+      mixed = false
+      plan.state = 'partial'
+      for (const batch of plan.batches) {
+        batch.state = 'unknown'
+        batch.job_state = null
+        batch.execution = null
+        batch.error_code = 'incremental_child_commit_unknown'
+      }
+      runs.set('original-run', { operation_id: 'original-run', limit: 1 })
+      progress()
+    },
+    failNextCancellation: () => {
+      cancellationUnknown = true
+    },
     get plan() {
       return plan
     },

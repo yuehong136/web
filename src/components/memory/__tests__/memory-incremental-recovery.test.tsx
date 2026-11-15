@@ -144,7 +144,7 @@ it('finds an unknown creation on the server after reload without repeating the c
   expect(memoryAPI.incremental.run).not.toHaveBeenCalled()
 })
 
-it('retains an unknown run ID and exact limit across reload and only replays on click', async () => {
+it('replays the original unknown command after reload and acknowledges its own subset despite another unknown child', async () => {
   h.plans = [h.discovery]
   vi.mocked(memoryAPI.incremental.run).mockImplementation(async () => {
     h.discovery.batches[0].state = 'unknown'
@@ -170,12 +170,23 @@ it('retains an unknown run ID and exact limit across reload and only replays on 
     h.host.querySelector<HTMLInputElement>('#incremental-run-limit')!.disabled,
   ).toBe(true)
   expect(memoryAPI.incremental.run).toHaveBeenCalledOnce()
+  h.discovery.batches[0].state = 'submitted'
+  h.discovery.batches[1].state = 'unknown'
   vi.mocked(memoryAPI.incremental.run).mockResolvedValue(
     structuredClone(h.discovery),
   )
   await h.click('memory.incremental.retryOriginalRun')
   expect(vi.mocked(memoryAPI.incremental.run).mock.calls[1][2]).toEqual(command)
-  expect(h.button('memory.incremental.retryOriginalRun')).toBeDefined()
+  await vi.waitFor(() =>
+    expect(h.button('memory.incremental.retryOriginalRun')).toBeUndefined(),
+  )
+  expect(h.button('memory.incremental.submitChildren')!.disabled).toBe(false)
+  expect(
+    h.host.querySelector<HTMLInputElement>('#incremental-run-limit')!.disabled,
+  ).toBe(false)
+  expect(h.host.textContent).toContain('memory.incremental.runAccepted')
+  expect(h.host.textContent).toContain('memory.incremental.batchStates.unknown')
+  expect(memoryAPI.incremental.run).toHaveBeenCalledTimes(2)
 })
 
 it('reopens server plans without inventing a lost parent run request', async () => {
@@ -190,11 +201,12 @@ it('reopens server plans without inventing a lost parent run request', async () 
   expect(memoryAPI.incremental.run).not.toHaveBeenCalled()
 })
 
-it('keeps cancellation identity after reload and does not equate cancellation with work draining', async () => {
+it('replays the same cancellation after the parent was already canceled before an unknown child acknowledgment', async () => {
   h.plans = [h.discovery]
-  vi.mocked(memoryAPI.incremental.cancel).mockRejectedValue(
-    new APIError(503, 'unknown', 'untrusted detail'),
-  )
+  vi.mocked(memoryAPI.incremental.cancel).mockImplementation(async () => {
+    h.discovery.state = 'canceled'
+    throw new APIError(503, 'unknown', 'untrusted detail')
+  })
   await h.render()
   await vi.waitFor(() =>
     expect(h.button('memory.incremental.cancelPlan')).toBeDefined(),
@@ -207,10 +219,17 @@ it('keeps cancellation identity after reload and does not equate cancellation wi
   )
   expect(h.host.textContent).toContain('memory.incremental.cancelBoundary')
   expect(memoryAPI.incremental.cancel).toHaveBeenCalledOnce()
+  expect(h.button('memory.incremental.retryCancel')!.disabled).toBe(false)
+  vi.mocked(memoryAPI.incremental.cancel).mockResolvedValue(
+    structuredClone(h.discovery),
+  )
   await h.click('memory.incremental.retryCancel')
   expect(vi.mocked(memoryAPI.incremental.cancel).mock.calls[1][2]).toBe(
     original,
   )
+  expect(h.button('memory.incremental.retryCancel')!.disabled).toBe(true)
+  expect(memoryAPI.incremental.cancel).toHaveBeenCalledTimes(2)
+  expect(h.host.textContent).toContain('memory.incremental.cancelBoundary')
   expect(memoryAPI.incremental.run).not.toHaveBeenCalled()
 })
 

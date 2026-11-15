@@ -157,7 +157,7 @@ it('shows failed and whole-source blocked children without claiming covered or c
   )
 })
 
-it('continues only GET polling while queued or unconfirmed execution remains', async () => {
+it('continues only GET polling while real queued or unsettled execution remains', async () => {
   vi.useFakeTimers()
   h.discovery.batches[0] = {
     ...h.discovery.batches[0],
@@ -192,6 +192,12 @@ it('continues only GET polling while queued or unconfirmed execution remains', a
     memoryDiscoveryNeedsPolling({
       ...settled,
       batches: settled.batches.map((batch) => ({ ...batch, state: 'unknown' })),
+    }),
+  ).toBe(false)
+  expect(
+    memoryDiscoveryNeedsPolling({
+      ...settled,
+      batches: [{ ...h.discovery.batches[0], state: 'unknown' }],
     }),
   ).toBe(true)
 })
@@ -233,6 +239,7 @@ it('does not keep polling an idle plan or lists containing only deferred and ter
   for (const state of [
     'planned',
     'created',
+    'unknown',
     'blocked',
     'failed',
     'canceled',

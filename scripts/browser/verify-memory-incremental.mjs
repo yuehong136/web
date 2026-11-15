@@ -4,15 +4,19 @@ import { withOwnedMemoryBrowser } from './owned-memory-browser.mjs'
 import { installWorkspaceFixtures } from './workspace-fixtures.mjs'
 import { installMemoryIncrementalFixture } from './memory-incremental-fixture.mjs'
 
+const recoveryOnly = process.argv.includes('--recovery-only')
+
 await withOwnedMemoryBrowser(async ({ browser, baseURL, output, event }) => {
   const captures = [],
     checks = []
-  for (const [locale, mode, mobile] of [
-    ['en-US', 'light', false],
-    ['zh-CN', 'dark', false],
-    ['en-US', 'light', true],
-    ['zh-CN', 'dark', true],
-  ]) {
+  for (const [locale, mode, mobile] of recoveryOnly
+    ? [['en-US', 'light', false]]
+    : [
+        ['en-US', 'light', false],
+        ['zh-CN', 'dark', false],
+        ['en-US', 'light', true],
+        ['zh-CN', 'dark', true],
+      ]) {
     const viewport = mobile
       ? { width: 390, height: 844 }
       : { width: 1440, height: 1100 }
@@ -76,6 +80,78 @@ await withOwnedMemoryBrowser(async ({ browser, baseURL, output, event }) => {
           ),
           'No horizontal viewport overflow',
         )
+      if (recoveryOnly) {
+        fixture.primeRecovery()
+        await page.goto(
+          `${baseURL}/memory/owned-memory/maintenance/batches?batch=${fixture.discoveryId}&run=original-run&run_limit=1`,
+        )
+        await button('Retry original submission', '重试原推进请求').waitFor()
+        assert.equal(fixture.commands.runs.length, 0)
+        await button('Retry original submission', '重试原推进请求').click()
+        await button('Submit bounded child jobs', '提交有界子任务').waitFor()
+        assert.deepEqual(fixture.commands.runs, [
+          { operation_id: 'original-run', limit: 1 },
+        ])
+        assert.equal(fixture.plan.batches[1].state, 'unknown')
+        assert.equal(
+          await page
+            .getByLabel('Children per explicit submission', { exact: true })
+            .isDisabled(),
+          false,
+        )
+        await button(
+          'Submit bounded child jobs',
+          '提交有界子任务',
+        ).scrollIntoViewIfNeeded()
+        await capture('subset-acknowledged')
+        fixture.failNextCancellation()
+        await button(
+          'Cancel unfinished plan and candidates',
+          '取消未完成计划与候选',
+        ).click()
+        await page
+          .getByText('Completion is unconfirmed.', { exact: false })
+          .waitFor()
+        const original = fixture.commands.cancel[0]
+        assert.equal(fixture.plan.state, 'canceled')
+        await page.reload()
+        const retry = button('Retry original cancellation', '重试原取消请求')
+        await retry.waitFor()
+        assert.equal(await retry.isEnabled(), true)
+        assert.equal(fixture.commands.cancel.length, 1)
+        assert.equal(
+          new URL(page.url()).searchParams.get('cancel'),
+          original.operation_id,
+        )
+        await retry.scrollIntoViewIfNeeded()
+        await capture('cancellation-recovered')
+        await retry.click()
+        await page.waitForFunction(() =>
+          [...document.querySelectorAll('button')].some(
+            (button) =>
+              button.textContent === 'Retry original cancellation' &&
+              button.disabled,
+          ),
+        )
+        assert.deepEqual(fixture.commands.cancel, [original, original])
+        assert.equal(fixture.commands.runs.length, 1)
+        assert.equal(fixture.commands.review, 0)
+        assert.equal(fixture.commands.publish, 0)
+        assert.deepEqual(errors, [])
+        assert.deepEqual(fixture.errors, [])
+        checks.push({
+          locale,
+          mode,
+          viewport,
+          passed: true,
+          acknowledgedOwnSubsetDespiteOtherUnknown: true,
+          canceledParentReloadRetainsOriginalCancellation: true,
+          reloadDidNotPost: true,
+          noAutomaticReviewOrPublication: true,
+        })
+        event('scenario', checks.at(-1))
+        continue
+      }
       if (mobile) {
         fixture.primeMixed()
         await page.goto(

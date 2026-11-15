@@ -27,7 +27,7 @@ export function memoryDiscoveryNeedsPolling(value?: MemoryDiscovery): boolean {
     !value ||
     value.batches.some(
       (batch) =>
-        ['submitted', 'running', 'unknown'].includes(batch.state) ||
+        ['submitted', 'running'].includes(batch.state) ||
         ['queued', 'claimed', 'running', 'needs_reconciliation'].includes(
           batch.execution?.state ?? '',
         ),

@@ -55,10 +55,8 @@ export function MemoryDiscoveryDetail({
   const cancel = useMemoryDiscoveryCommand(memoryId, (operationId: string) =>
     memoryAPI.incremental.cancel(memoryId, value.discovery_id, operationId),
   )
-  const runAcknowledged =
-    run.isSuccess &&
-    run.variables.operation_id === runId &&
-    !value.batches.some((batch) => batch.state === 'unknown')
+  const runAcknowledged = run.isSuccess && run.variables.operation_id === runId
+  const cancelAcknowledged = cancel.isSuccess && cancel.variables === cancelId
   const replay = !!runId && !runAcknowledged
   const validLimit = Number.isInteger(limit) && limit >= 1 && limit <= maximum
   const workRemains = value.batches.some((batch) =>
@@ -198,7 +196,7 @@ export function MemoryDiscoveryDetail({
             disabled={
               busy ||
               value.state === 'stale' ||
-              (value.state === 'canceled' && !cancelError)
+              (value.state === 'canceled' && (!cancelId || cancelAcknowledged))
             }
             className="h-auto min-h-9 max-w-full whitespace-normal"
             onClick={() => void stop()}
