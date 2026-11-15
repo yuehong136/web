@@ -141,3 +141,37 @@ it('finds a next source using the next offset without trusting a window-sized to
     client.clear()
   }
 })
+
+it('keeps temporary managed source inactivity reversible and permanent source tombstones disabled', async () => {
+  const inactive = {
+    ...source,
+    forget_at: 'None',
+    managed_source_state: 'inactive' as const,
+  }
+  const withdrawn = {
+    ...inactive,
+    message_id: 12,
+    managed_source_state: 'forgotten' as const,
+  }
+  expect(getMemoryLifecycle(inactive)).toBe('disabled')
+  expect(getMemoryLifecycle(withdrawn)).toBe('forgotten')
+  expect(
+    getMemoryLifecycle({ ...withdrawn, managed_source_state: 'deleted' }),
+  ).toBe('forgotten')
+  await act(async () =>
+    root.render(
+      <MemoryMessageFeed
+        sources={[inactive, withdrawn]}
+        view="sources"
+        state="all"
+        busy={false}
+        onInspect={vi.fn()}
+        onStatusChange={vi.fn()}
+        onForget={vi.fn()}
+      />,
+    ),
+  )
+  const toggles = host.querySelectorAll<HTMLButtonElement>('[role="switch"]')
+  expect(toggles[0].disabled).toBe(false)
+  expect(toggles[1].disabled).toBe(true)
+})

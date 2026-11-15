@@ -1,5 +1,73 @@
 export default {
   memory: {
+    revisions: {
+      managedForgetScope:
+        '停止正常供给此派生记忆，并隐去其已追踪受管版本的历史正文。原始来源、其他派生记忆、无关副本和备份仍保留，物理清理单独记录状态。',
+      inflight:
+        '先前尝试可能仍在运行。请保留此操作 ID，等待并查询状态；继续对账前可能需要人工核验。',
+      title: '修订记忆',
+      adoptDescription:
+        '编辑前需明确接管这条派生记忆。查看历史不会自动接管或发布。',
+      activationImpact:
+        '此操作将为整个记忆库启用受管模式。普通自动写入与整库删除暂时受限，既有未接管记录仍可读取。',
+      managedImpact:
+        '本库已受管。普通自动写入与整库删除暂时受限，未接管记录仍可读取。',
+      activationConfirm: '我理解此影响适用于整个记忆库。',
+      adopt: '启用受管编辑',
+      userAsserted:
+        '人工修订属于用户声明。来源引用表示出处，不代表内容已被事实验证。',
+      version: '第 {{revision}} 版',
+      refresh: '刷新当前版本',
+      replace: '替换全文',
+      exactPatch: '精确文本补丁',
+      content: '修订后内容',
+      oldText: '待替换原文（须唯一匹配）',
+      newText: '替换文本',
+      reason: '原因',
+      preview: '预览修订',
+      submit: '提交已预览的修订',
+      previewTitle: '修订预览',
+      estimatedTokens: '估算 token：{{count}}',
+      before: '修订前',
+      after: '修订后',
+      history: '修订历史与来源',
+      redacted: '此历史视图中的正文已移除。',
+      firstHistory: '最新版本',
+      source: '来源',
+      scope: '来源范围',
+      sourceManaged: '已登记来源',
+      sourceUnmanaged: '未登记来源',
+      adoptSource: '登记来源以便撤回',
+      withdraw: '撤回来源',
+      withdrawScope:
+        '永久停止向正常读取提供此来源及其已追踪派生记忆。历史正文将隐去，物理索引清理单独记录状态；不会删除备份或无关副本。',
+      withdrawConfirm: '我确认撤回此来源及其已追踪派生记忆。',
+      withdrawn: '此来源已停止正常供给，物理清理状态请查看操作记录。',
+      operation: '操作状态',
+      publication: '发布状态',
+      indexSync: '索引同步',
+      supply: '正常供给',
+      cleanup: '物理清理',
+      complete: '已完成',
+      pendingShort: '待处理或尚未确认',
+      ready: '此操作已确认就绪。',
+      pending: '尚未确认完成。可读取最新状态，或明确发起对账以继续待处理工作。',
+      refreshStatus: '读取最新状态',
+      reconcile: '对账此操作',
+      statusFailed:
+        '暂时无法确认状态。请保留此操作 ID 并刷新，不要新建命令重发。',
+      conflict: '记录已变化。请刷新后重新预览，再提交修订。',
+      unknown: '结果尚未确认。请查询原操作并明确发起对账，不要重发命令。',
+      failed: '请求未能完成。请刷新记录或查询操作状态。',
+      unsupported: '当前存储后端不支持受管修订。',
+      unsafeId: '此旧版标识符无法精确表示。为保护原记录，已禁用编辑。',
+      capabilitiesFailed: '无法加载记忆编辑能力。',
+      readOnly: '此版本暂不可编辑，请刷新状态。',
+      managedNotice:
+        '受管模式已启用。普通自动写入与整库删除暂时受限，既有记录仍可读取。',
+      legacyForgetScope:
+        '此遗忘操作仅停止正常检索所选记录，不会删除原始来源、其他派生记忆、历史或备份。来源撤回是来源详情中的独立操作。',
+    },
     page: {
       title: '记忆库',
       description: '把对话沉淀为可追溯、可验证的长期记忆',

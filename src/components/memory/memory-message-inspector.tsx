@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Copy, MessageSquare, Braces } from 'lucide-react'
 import { memoryAPI } from '@/api/memory'
+import { editableMemoryId } from '@/hooks/use-memory-revisions'
 import { memoryKeys } from '@/hooks/use-memory'
 import { useCopyFeedback } from '@/hooks/use-copy-feedback'
 import { Button } from '@/components/ui/button'
@@ -16,6 +17,7 @@ import {
   PageErrorState,
   PageLoadingState,
 } from '@/components/patterns/page-states'
+import { MemoryRevisionPanel } from './memory-revision-panel'
 import { MemoryStatusBadge, MemoryTypeBadge } from './memory-labels'
 import { parseMemoryConversation } from './memory-lifecycle'
 import type { MemoryMessage } from '@/types/memory'
@@ -39,7 +41,7 @@ export function MemoryMessageInspector({
       String(message?.message_id ?? ''),
     ),
     queryFn: () => memoryAPI.message.getContent(memoryId, message!.message_id),
-    enabled: !!message,
+    enabled: !!message && !!editableMemoryId(message.message_id),
   })
   const content = query.data?.content ?? message?.content ?? ''
   const parsed = parseMemoryConversation(content)
@@ -106,7 +108,8 @@ export function MemoryMessageInspector({
                 </dd>
               </div>
             </dl>
-            {query.isPending ? (
+            {(query.isPending || query.isFetching) &&
+            !!editableMemoryId(message.message_id) ? (
               <PageLoadingState />
             ) : query.isError ? (
               <PageErrorState
@@ -166,6 +169,11 @@ export function MemoryMessageInspector({
                 </details>
               </>
             )}
+            <MemoryRevisionPanel
+              key={`${memoryId}:${message.message_id}`}
+              memoryId={memoryId}
+              message={message}
+            />
           </div>
         )}
       </SheetContent>

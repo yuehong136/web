@@ -7,6 +7,7 @@ import {
   MessageSquare,
   Sparkles,
 } from 'lucide-react'
+import { editableMemoryId } from '@/hooks/use-memory-revisions'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { PageEmptyState } from '@/components/patterns/page-states'
@@ -34,6 +35,8 @@ export function MemoryMessageFeed({
   state,
   busy,
   onInspect,
+  readOnly = false,
+  managed = false,
   onStatusChange,
   onForget,
 }: {
@@ -41,6 +44,8 @@ export function MemoryMessageFeed({
   view: 'memories' | 'sources'
   state: 'all' | MemoryLifecycle
   busy: boolean
+  readOnly?: boolean
+  managed?: boolean
   onInspect: (message: MemoryMessage) => void
   onStatusChange: (id: number, status: boolean) => void
   onForget: (id: number) => Promise<unknown>
@@ -115,7 +120,12 @@ export function MemoryMessageFeed({
                   <div className="flex shrink-0 items-center gap-space-sm">
                     <Switch
                       checked={message.status}
-                      disabled={forgotten || busy}
+                      disabled={
+                        forgotten ||
+                        busy ||
+                        readOnly ||
+                        !editableMemoryId(message.message_id)
+                      }
                       aria-label={t('memory.workspace.toggleMessage', {
                         id: message.message_id,
                       })}
@@ -128,7 +138,12 @@ export function MemoryMessageFeed({
                       size="icon-sm"
                       aria-label={t('memory.messages.forget')}
                       title={t('memory.messages.forget')}
-                      disabled={forgotten || busy}
+                      disabled={
+                        forgotten ||
+                        busy ||
+                        readOnly ||
+                        !editableMemoryId(message.message_id)
+                      }
                       onClick={() => setForgetting(message)}
                     >
                       <History className="size-icon-sm" />
@@ -175,7 +190,13 @@ export function MemoryMessageFeed({
               {t('memory.messages.forgetTitle')}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {t('memory.workspace.forgetExplanation')}
+              {t(
+                managed
+                  ? forgetting?.message_type === 'raw'
+                    ? 'memory.revisions.withdrawScope'
+                    : 'memory.revisions.managedForgetScope'
+                  : 'memory.revisions.legacyForgetScope',
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -97,6 +97,7 @@ export interface MemoryMessage {
   valid_at: string
   forget_at?: string
   status: boolean
+  managed_source_state?: 'active' | 'inactive' | 'forgotten' | 'deleted'
 
   // 子消息（用于展开显示）
   extract?: MemoryMessage[]

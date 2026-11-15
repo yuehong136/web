@@ -32,6 +32,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
+import { Alert } from '@/components/ui/alert'
+import { useMemoryCapabilities } from '@/hooks/use-memory-revisions'
 import { MemorySourcePagination } from '@/components/memory/memory-source-pagination'
 import { MemoryMessageFeed } from '@/components/memory/memory-message-feed'
 import { MemoryMessageInspector } from '@/components/memory/memory-message-inspector'
@@ -85,6 +87,8 @@ function MemoryWorkspace({ memoryId }: { memoryId: string }) {
   const enabled = entries.filter(
     ({ message }) => getMemoryLifecycle(message) === 'enabled',
   ).length
+  const capabilities = useMemoryCapabilities(memoryId)
+  const managed = capabilities.data?.revisions?.managed === true
   const update = useUpdateMessageState()
   const forget = useForgetMessage()
   const filtered = !!sessionFilter || agent !== 'all'
@@ -296,6 +300,9 @@ function MemoryWorkspace({ memoryId }: { memoryId: string }) {
             </PopoverContent>
           </Popover>
         </div>
+        {managed && (
+          <Alert variant="info">{t('memory.revisions.managedNotice')}</Alert>
+        )}
         {query.isPending ? (
           <PageLoadingState />
         ) : query.isError ? (
@@ -318,6 +325,11 @@ function MemoryWorkspace({ memoryId }: { memoryId: string }) {
           <MemoryMessageFeed
             sources={sources}
             view={view}
+            managed={managed}
+            readOnly={
+              managed &&
+              capabilities.data?.revisions?.coordinated_state_changes !== true
+            }
             state={state}
             busy={update.isPending || forget.isPending || query.isFetching}
             onInspect={inspect}

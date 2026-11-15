@@ -1,5 +1,81 @@
 export default {
   memory: {
+    revisions: {
+      managedForgetScope:
+        'Stop normal supply of this derived memory and redact its tracked managed revision history. The raw source, other derived memories, unrelated copies and backups remain. Physical cleanup is tracked separately.',
+      inflight:
+        'A previous attempt may still be running. Keep this operation ID, wait and inspect its status. Manual verification may be needed before reconciliation can proceed.',
+      title: 'Correct memory',
+      adoptDescription:
+        'Adopt this derived record before editing. Reading history never adopts or publishes it.',
+      activationImpact:
+        'This enables managed mode for the entire memory bank. Ordinary automatic writes and whole-bank deletion are temporarily restricted. Existing unadopted records remain readable.',
+      managedImpact:
+        'This bank is managed. Ordinary automatic writes and whole-bank deletion are temporarily restricted; unadopted records remain readable.',
+      activationConfirm: 'I understand this applies to the entire memory bank.',
+      adopt: 'Enable managed editing',
+      userAsserted:
+        'A manual correction is a user assertion. A source reference records provenance and does not verify that the statement is true.',
+      version: 'Revision {{revision}}',
+      refresh: 'Refresh current revision',
+      replace: 'Replace content',
+      exactPatch: 'Exact text patch',
+      content: 'Corrected content',
+      oldText: 'Exact text to replace (must occur once)',
+      newText: 'Replacement text',
+      reason: 'Reason',
+      preview: 'Preview correction',
+      submit: 'Submit previewed correction',
+      previewTitle: 'Correction preview',
+      estimatedTokens: 'Estimated tokens: {{count}}',
+      before: 'Before',
+      after: 'After',
+      history: 'Revision history and sources',
+      redacted: 'Content has been removed from this history view.',
+      firstHistory: 'Newest revisions',
+      source: 'Source',
+      scope: 'Source scope',
+      sourceManaged: 'Registered source',
+      sourceUnmanaged: 'Unregistered source',
+      adoptSource: 'Register source for withdrawal',
+      withdraw: 'Withdraw source',
+      withdrawScope:
+        'Permanently stop supplying this source and its tracked derived memories from normal reads. Historical content is redacted and physical index cleanup is tracked separately. This does not erase backups or unrelated copies.',
+      withdrawConfirm:
+        'I confirm withdrawal for this source and its tracked derived memories.',
+      withdrawn:
+        'This source is withdrawn from normal supply. Check the operation for physical cleanup status.',
+      operation: 'Operation status',
+      publication: 'Publication',
+      indexSync: 'Index synchronization',
+      supply: 'Normal supply',
+      cleanup: 'Physical cleanup',
+      complete: 'Complete',
+      pendingShort: 'Pending or unconfirmed',
+      ready: 'The operation is confirmed ready.',
+      pending:
+        'Completion has not been confirmed. Read the latest status, or reconcile this operation to resume pending work.',
+      refreshStatus: 'Read latest status',
+      reconcile: 'Reconcile this operation',
+      statusFailed:
+        'Status could not be confirmed. Keep this operation ID and refresh; do not submit a new command.',
+      conflict:
+        'The record changed. Refresh it and create a new preview before submitting.',
+      unknown:
+        'The result is unconfirmed. Read the original operation and reconcile explicitly; do not resend the command.',
+      failed:
+        'The request could not be completed. Refresh the record or read its operation status.',
+      unsupported:
+        'Managed corrections are unavailable on this storage backend.',
+      unsafeId:
+        'This legacy identifier cannot be represented exactly. Editing is disabled to protect the original record.',
+      capabilitiesFailed: 'Memory editing capabilities could not be loaded.',
+      readOnly: 'This revision is not editable. Refresh its state.',
+      managedNotice:
+        'Managed mode is active. Ordinary automatic writes and whole-bank deletion are restricted. Existing records remain readable.',
+      legacyForgetScope:
+        'This forget action stops normal retrieval for this selected record only. It does not erase raw sources, other derived memories, history or backups. Source withdrawal is a separate action in the source inspector.',
+    },
     page: {
       title: 'Memory banks',
       description: 'Manage AI memory so conversations become more contextual.',

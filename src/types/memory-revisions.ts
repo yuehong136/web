@@ -1,0 +1,97 @@
+/** Physical IDs are decimal strings; revision counters remain safe integers. */
+export interface MemoryCapabilities {
+  revisions?: {
+    supported: boolean
+    managed: boolean
+    activation_scope: 'memory_bank'
+    ordinary_writes_after_activation: boolean
+    managed_delete_supported: boolean
+    coordinated_state_changes?: boolean
+    max_content_bytes: number
+    max_content_tokens: number
+  }
+  source_withdrawals?: { supported: boolean; permanent: boolean }
+}
+
+export interface MemoryRevisionSource {
+  source_id: string
+  source_revision: number
+  generation: number
+  content_sha256: string
+  relation: string
+  locator: Record<string, unknown>
+}
+
+export interface MemoryRevision {
+  revision: number
+  parent_revision: number | null
+  message_id: string
+  content: string | null
+  content_sha256: string
+  origin: string
+  assessment: { kind?: string; verification_status?: string }
+  redacted: boolean
+  sources: MemoryRevisionSource[]
+}
+
+export interface MemoryEntry {
+  entry_id: string
+  memory_id: string
+  legacy_message_id: string
+  current_revision: number
+  current_message_id: string
+  generation: number
+  state: string
+  current: MemoryRevision
+}
+
+export interface MemoryRevisionPage {
+  revisions: MemoryRevision[]
+  next_cursor: string | null
+}
+
+export interface MemoryRevisionCommand {
+  operation_id: string
+  expected_revision: number
+  content?: string
+  patch?: { old_text: string; new_text: string }
+  reason: string
+  dry_run: boolean
+}
+
+export interface MemoryRevisionPreview {
+  dry_run: true
+  entry_id: string
+  expected_revision: number
+  current_revision: number
+  content: string
+  content_sha256: string
+  estimated_tokens: number
+  diff: { old_text: string; new_text: string }
+  source_checks: { source_id: string; state: string }[]
+}
+
+export interface MemoryOperation {
+  operation_id: string
+  kind: string
+  status: string
+  entry_id?: string | null
+  new_revision?: number | null
+  index_sync_status: string
+  retryable: boolean
+  error_code?: string | null
+  outbox_id?: string | null
+  stop_supply?: string
+  physical_cleanup_complete?: boolean
+}
+
+export interface MemorySourceState {
+  managed: boolean
+  memory_id: string
+  source_id: string
+  source_revision: number | null
+  generation: number | null
+  state: string
+  content_sha256: string
+  scope: Record<string, unknown>
+}

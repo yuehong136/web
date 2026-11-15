@@ -8,6 +8,15 @@
  */
 
 import { apiClient } from './client'
+import type {
+  MemoryCapabilities,
+  MemoryEntry,
+  MemoryRevisionPage,
+  MemoryRevisionCommand,
+  MemoryRevisionPreview,
+  MemoryOperation,
+  MemorySourceState,
+} from '@/types/memory-revisions'
 import { collectListWindow, isLargeListWindow } from './list-pagination'
 import { API_BASE_URL } from '@/constants'
 import type {
@@ -43,7 +52,127 @@ function unwrapSdkEnvelope<T>(response: T | SdkEnvelope<T>): T {
   return response as T
 }
 
+export function createMemoryRevisionAPI(
+  baseURL = API_BASE_URL,
+  client = apiClient,
+) {
+  const sdkBase = { baseURL: `${baseURL}/api` }
+  return {
+    capabilities: (
+      memoryId: string,
+      signal?: AbortSignal,
+    ): Promise<MemoryCapabilities> =>
+      client.get(`/memories/${encodeURIComponent(memoryId)}/capabilities`, {
+        ...sdkBase,
+        signal,
+      }),
+    findEntry: (
+      memoryId: string,
+      messageId: string,
+      signal?: AbortSignal,
+    ): Promise<MemoryEntry | null> =>
+      client.get(
+        `/memories/${encodeURIComponent(memoryId)}/messages/${encodeURIComponent(messageId)}/entry`,
+        { ...sdkBase, signal },
+      ),
+    adoptEntry: (
+      memoryId: string,
+      operationId: string,
+      messageId: string,
+    ): Promise<MemoryOperation> =>
+      client.post(
+        `/memories/${encodeURIComponent(memoryId)}/entries`,
+        { operation_id: operationId, legacy_message_id: messageId },
+        sdkBase,
+      ),
+    getEntry: (
+      memoryId: string,
+      entryId: string,
+      signal?: AbortSignal,
+    ): Promise<MemoryEntry> =>
+      client.get(
+        `/memories/${encodeURIComponent(memoryId)}/entries/${encodeURIComponent(entryId)}`,
+        { ...sdkBase, signal },
+      ),
+    history: (
+      memoryId: string,
+      entryId: string,
+      cursor?: string,
+      signal?: AbortSignal,
+    ): Promise<MemoryRevisionPage> =>
+      client.get(
+        `/memories/${encodeURIComponent(memoryId)}/entries/${encodeURIComponent(entryId)}/revisions`,
+        { ...sdkBase, signal, params: { limit: 20, cursor } },
+      ),
+    revise: (
+      memoryId: string,
+      entryId: string,
+      command: MemoryRevisionCommand,
+    ): Promise<MemoryRevisionPreview | MemoryOperation> =>
+      client.post(
+        `/memories/${encodeURIComponent(memoryId)}/entries/${encodeURIComponent(entryId)}/revisions`,
+        command,
+        sdkBase,
+      ),
+    operation: (
+      memoryId: string,
+      operationId: string,
+      signal?: AbortSignal,
+    ): Promise<MemoryOperation> =>
+      client.get(
+        `/memories/${encodeURIComponent(memoryId)}/operations/${encodeURIComponent(operationId)}`,
+        { ...sdkBase, signal },
+      ),
+    reconcile: (
+      memoryId: string,
+      operationId: string,
+    ): Promise<MemoryOperation> =>
+      client.post(
+        `/memories/${encodeURIComponent(memoryId)}/operations/${encodeURIComponent(operationId)}/reconciliations`,
+        {},
+        sdkBase,
+      ),
+    source: (
+      memoryId: string,
+      sourceId: string,
+      signal?: AbortSignal,
+    ): Promise<MemorySourceState> =>
+      client.get(
+        `/memories/${encodeURIComponent(memoryId)}/sources/${encodeURIComponent(sourceId)}/state`,
+        { ...sdkBase, signal },
+      ),
+    adoptSource: (
+      memoryId: string,
+      sourceId: string,
+      operationId: string,
+      hash: string,
+    ): Promise<MemoryOperation> =>
+      client.post(
+        `/memories/${encodeURIComponent(memoryId)}/sources/${encodeURIComponent(sourceId)}/adoptions`,
+        { operation_id: operationId, expected_content_sha256: hash },
+        sdkBase,
+      ),
+    withdraw: (
+      memoryId: string,
+      sourceId: string,
+      operationId: string,
+      revision: number,
+      reason: string,
+    ): Promise<MemoryOperation> =>
+      client.post(
+        `/memories/${encodeURIComponent(memoryId)}/sources/${encodeURIComponent(sourceId)}/withdrawals`,
+        {
+          operation_id: operationId,
+          expected_source_revision: revision,
+          reason,
+        },
+        sdkBase,
+      ),
+  }
+}
+
 export const memoryAPI = {
+  revision: createMemoryRevisionAPI(),
   // ============ 记忆库管理 ============
   // 后端路由: api/apps/sdk/memories.py，前缀 /api/v1
   memory: {

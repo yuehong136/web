@@ -10,6 +10,8 @@ import {
   PageLoadingState,
 } from '@/components/patterns/page-states'
 import { ListPagination } from '@/components/patterns/list-pagination'
+import { Alert } from '@/components/ui/alert'
+import { useMemoryCapabilities } from '@/hooks/use-memory-revisions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -57,6 +59,13 @@ export function MemoryListPage() {
   const [search, setSearch] = useState(filter.keywords)
   const debounced = useDebouncedSearch(search)
   const [deleting, setDeleting] = useState<Memory | null>(null)
+  const deleteCapabilities = useMemoryCapabilities(
+    deleting?.id ?? '',
+    !!deleting,
+  )
+  const managedDeleteBlocked =
+    deleteCapabilities.data?.revisions?.managed === true &&
+    deleteCapabilities.data.revisions.managed_delete_supported !== true
   useEffect(() => {
     if (debounced !== filter.keywords) setFilter({ keywords: debounced })
   }, [debounced, filter.keywords, setFilter])
@@ -240,13 +249,28 @@ export function MemoryListPage() {
               {deleting?.name}
             </p>
           </AlertDialogHeader>
+          {managedDeleteBlocked && (
+            <Alert variant="warning">
+              {t('memory.revisions.managedNotice')}
+            </Alert>
+          )}
+          {deleteCapabilities.isError && (
+            <Alert variant="warning">
+              {t('memory.revisions.capabilitiesFailed')}
+            </Alert>
+          )}
           <AlertDialogFooter>
             <AlertDialogCancel disabled={remove.isPending}>
               {t('common.cancel')}
             </AlertDialogCancel>
             <AlertDialogAction
               variant="destructive"
-              disabled={remove.isPending}
+              disabled={
+                remove.isPending ||
+                deleteCapabilities.isPending ||
+                deleteCapabilities.isError ||
+                managedDeleteBlocked
+              }
               onClick={async (e) => {
                 e.preventDefault()
                 if (!deleting) return
