@@ -78,6 +78,8 @@ npm ci
 cp .env.example .env.local
 ```
 
+`npm ci` runs the project's `postinstall`, which applies the dependency patches in [`patches/`](./patches) with `patch-package`. npm 11 and later block the install scripts of dependencies unless they are approved in `allowScripts`; the web app needs none of them. If you install with `--ignore-scripts`, run `npx patch-package` afterwards. Running it again is safe: applied patches are skipped.
+
 ### 2. Connect your backend
 
 Edit `.env.local` to match your services. These are the defaults from [`.env.example`](./.env.example):
