@@ -47,8 +47,6 @@ export default {
     },
     list: {
       title: 'Knowledge bases',
-      description:
-        'Manage knowledge bases, upload documents, and tune retrieval.',
       searchPlaceholder: 'Search knowledge bases...',
       results_one: '{{count}} knowledge base',
       results_other: '{{count}} knowledge bases',
@@ -100,19 +98,11 @@ export default {
       actions: {
         create: 'Create knowledge base',
         delete: 'Delete',
-        deleteSelected: 'Delete ({{count}})',
         settings: 'Settings',
       },
       stats: {
-        totalKnowledgeBases: 'Knowledge bases',
         totalDocuments: 'Documents',
         totalChunks: 'Chunks',
-        totalTokens: 'Tokens',
-      },
-      status: {
-        hasContent: 'Has content',
-        empty: 'Empty',
-        unknown: 'Unknown',
       },
       filters: {
         title: 'Filters',
@@ -155,10 +145,6 @@ export default {
         asc: 'Ascending',
         desc: 'Descending',
       },
-      view: {
-        grid: 'Grid view',
-        table: 'Table view',
-      },
       empty: {
         clearSearch: 'Clear search',
         title: 'No knowledge bases yet',
@@ -167,8 +153,6 @@ export default {
         filteredDescription: 'Adjust the search query or filters.',
       },
       pagination: {
-        total: '{{count}} items',
-        selected: ' · {{count}} selected',
         previous: 'Previous',
         next: 'Next',
       },
@@ -177,15 +161,8 @@ export default {
         status: 'Status',
         documents: 'Documents',
         chunks: 'Chunks',
-        tokens: 'Tokens',
         updatedAt: 'Updated',
         actions: 'Actions',
-      },
-      confirm: {
-        deleteSingle:
-          'Delete this knowledge base? This action cannot be undone.',
-        deleteBulk:
-          'Delete the selected {{count}} knowledge bases? This action cannot be undone.',
       },
       notifications: {
         deleteSuccessTitle: 'Deleted',

@@ -46,7 +46,6 @@ export default {
     },
     list: {
       title: '知识库',
-      description: '管理您的知识库，上传文档，配置检索参数',
       searchPlaceholder: '搜索知识库...',
       results_one: '{{count}} 个知识库',
       results_other: '{{count}} 个知识库',
@@ -98,19 +97,11 @@ export default {
       actions: {
         create: '创建知识库',
         delete: '删除',
-        deleteSelected: '删除 ({{count}})',
         settings: '设置',
       },
       stats: {
-        totalKnowledgeBases: '知识库总数',
         totalDocuments: '总文档数',
         totalChunks: '总块数',
-        totalTokens: '总 Token',
-      },
-      status: {
-        hasContent: '有内容',
-        empty: '空知识库',
-        unknown: '未知',
       },
       filters: {
         title: '筛选条件',
@@ -153,10 +144,6 @@ export default {
         asc: '正序',
         desc: '倒序',
       },
-      view: {
-        grid: '网格视图',
-        table: '表格视图',
-      },
       empty: {
         clearSearch: '清除搜索',
         title: '还没有知识库',
@@ -165,8 +152,6 @@ export default {
         filteredDescription: '尝试调整搜索条件或筛选器',
       },
       pagination: {
-        total: '共 {{count}} 项',
-        selected: ' · 已选择 {{count}} 个',
         previous: '上一页',
         next: '下一页',
       },
@@ -175,13 +160,8 @@ export default {
         status: '状态',
         documents: '文档数',
         chunks: '块数',
-        tokens: 'Token',
         updatedAt: '更新时间',
         actions: '操作',
-      },
-      confirm: {
-        deleteSingle: '确定要删除这个知识库吗？此操作不可撤销。',
-        deleteBulk: '确定要删除选中的 {{count}} 个知识库吗？此操作不可撤销。',
       },
       notifications: {
         deleteSuccessTitle: '删除成功',
