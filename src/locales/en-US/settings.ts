@@ -272,6 +272,8 @@ export default {
       developer: 'Developer',
       system: 'System',
       admin: 'Administration',
+      models: 'Models',
+      integrations: 'Integrations',
     },
     modelGateway: {
       loading: 'Loading model gateway…',

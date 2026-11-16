@@ -11,6 +11,7 @@ import {
 } from '@/components/patterns/page-states'
 import { Pager } from '@/components/patterns/pager'
 import { SettingRow, SettingSection } from '@/components/patterns/setting-row'
+import { SETTINGS_CARD } from '@/pages/settings/components/settings-card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -139,8 +140,12 @@ export function ApiKeysPage() {
 
   return (
     <>
-      <SettingsTemplate description={t('settings.apiKeys.page.description')}>
+      <SettingsTemplate
+        width="wide"
+        description={t('settings.apiKeys.page.description')}
+      >
         <SettingSection
+          className={SETTINGS_CARD}
           title={t('settings.apiKeys.page.keysTitle')}
           description={
             allKeys.length
@@ -178,7 +183,10 @@ export function ApiKeysPage() {
           ) : null}
         </SettingSection>
 
-        <SettingSection title={t('settings.apiKeys.capabilities.title')}>
+        <SettingSection
+          title={t('settings.apiKeys.capabilities.title')}
+          className={SETTINGS_CARD}
+        >
           <SettingRow
             label={t('settings.apiKeys.capabilities.scopes')}
             description={t(apiKeysCapabilities.scopes.reasonKey)}

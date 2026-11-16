@@ -252,6 +252,8 @@ export default {
       developer: '开发者',
       system: '系统',
       admin: '管理',
+      models: '模型',
+      integrations: '集成',
     },
     modelGateway: {
       loading: '正在加载模型网关…',

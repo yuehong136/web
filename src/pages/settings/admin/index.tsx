@@ -10,6 +10,7 @@ import {
   PageLoadingState,
 } from '@/components/patterns/page-states'
 import { SettingSection } from '@/components/patterns/setting-row'
+import { SETTINGS_CARD } from '@/pages/settings/components/settings-card'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Input } from '@/components/ui/input'
@@ -213,6 +214,7 @@ const UsersPanel: React.FC<{
   return (
     <>
       <SettingsTemplate
+        width="wide"
         description={t('settings.admin.users.description')}
         actions={
           <>
@@ -243,6 +245,7 @@ const UsersPanel: React.FC<{
         }
       >
         <SettingSection
+          className={SETTINGS_CARD}
           title={t('settings.admin.users.title')}
           actions={
             <Button

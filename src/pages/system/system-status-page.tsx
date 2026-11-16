@@ -1,6 +1,15 @@
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { RefreshCw } from 'lucide-react'
+import {
+  Cpu,
+  Database,
+  DatabaseZap,
+  HardDrive,
+  RefreshCw,
+  ScanSearch,
+  Zap,
+  type LucideIcon,
+} from 'lucide-react'
 import { SettingsTemplate } from '@/components/page-templates/settings-template'
 import { InlineStats } from '@/components/patterns/inline-stats'
 import {
@@ -9,6 +18,7 @@ import {
   PageLoadingState,
 } from '@/components/patterns/page-states'
 import { SettingRow, SettingSection } from '@/components/patterns/setting-row'
+import { SETTINGS_CARD } from '@/pages/settings/components/settings-card'
 import { Button } from '@/components/ui/button'
 import {
   useRefreshSystemStatus,
@@ -33,6 +43,41 @@ const DOT: Record<Health, string> = {
   green: 'bg-status-success',
   yellow: 'bg-status-warning',
   red: 'bg-status-error',
+}
+
+const COMPONENT_ICON: Record<ComponentRow['id'], LucideIcon> = {
+  database: Database,
+  database_pool: DatabaseZap,
+  doc_engine: ScanSearch,
+  redis: Zap,
+  storage: HardDrive,
+}
+
+const TILE: Record<Health, string> = {
+  green: 'bg-background-subtle text-text-secondary',
+  yellow: 'bg-status-warning-subtle text-status-warning',
+  red: 'bg-status-error-subtle text-status-error',
+}
+
+/** The component's icon on a tile tinted by its health. */
+function HealthTile({
+  icon: Icon,
+  status,
+}: {
+  icon: LucideIcon
+  status: Health
+}) {
+  return (
+    <span
+      aria-hidden="true"
+      className={cn(
+        'flex size-8 shrink-0 items-center justify-center rounded-radius-md [&_svg]:size-icon-sm',
+        TILE[status],
+      )}
+    >
+      <Icon strokeWidth={1.75} />
+    </span>
+  )
 }
 
 function HealthLabel({ status }: { status: Health }) {
@@ -66,6 +111,7 @@ function ComponentStatusRow({
       : undefined
   return (
     <SettingRow
+      leading={<HealthTile icon={COMPONENT_ICON[row.id]} status={row.status} />}
       label={name}
       description={detail}
       tone={row.error ? 'error' : 'default'}
@@ -117,6 +163,7 @@ function ExecutorStatusRow({ row }: { row: ExecutorRow }) {
   return (
     <div className="flex flex-col">
       <SettingRow
+        leading={<HealthTile icon={Cpu} status={row.status} />}
         label={row.name}
         description={meta.join(' · ')}
         tone={row.status === 'red' ? 'error' : 'default'}
@@ -208,7 +255,10 @@ export function SystemPage() {
   else
     body = (
       <>
-        <SettingSection title={t('settings.system.componentsTitle')}>
+        <SettingSection
+          title={t('settings.system.componentsTitle')}
+          className={SETTINGS_CARD}
+        >
           <div className="pb-space-sm">
             <InlineStats
               items={[
@@ -250,7 +300,10 @@ export function SystemPage() {
           ))}
         </SettingSection>
 
-        <SettingSection title={t('settings.system.executorsTitle')}>
+        <SettingSection
+          title={t('settings.system.executorsTitle')}
+          className={SETTINGS_CARD}
+        >
           {executors.length ? (
             executors.map((row) => <ExecutorStatusRow key={row.id} row={row} />)
           ) : (
@@ -263,7 +316,10 @@ export function SystemPage() {
         </SettingSection>
 
         {version ? (
-          <SettingSection title={t('settings.system.versionTitle')}>
+          <SettingSection
+            title={t('settings.system.versionTitle')}
+            className={SETTINGS_CARD}
+          >
             <SettingRow label={t('settings.system.version')}>
               <span className="font-mono text-sm text-text-secondary">
                 {version.version || '—'}

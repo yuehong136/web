@@ -76,19 +76,8 @@ export const SettingsLayout: React.FC = () => {
         ],
       },
       {
-        label: t('settings.groups.workspace'),
+        label: t('settings.groups.models'),
         items: [
-          {
-            title: t('settings.nav.team'),
-            href: '/settings/team',
-            icon: Users,
-            badge: pendingCount,
-            badgeLabel: t('layout.invitations.pending', {
-              count: pendingCount,
-            }),
-            onSelect:
-              pendingCount > 0 ? () => setActiveTab('joined-teams') : undefined,
-          },
           {
             title: t('settings.nav.modelProviders'),
             href: '/settings/model-providers',
@@ -99,17 +88,22 @@ export const SettingsLayout: React.FC = () => {
             href: '/settings/model-gateway',
             icon: Waypoints,
           },
-          {
-            title: t('settings.nav.datasource'),
-            href: '/settings/datasource',
-            icon: Database,
-            matcher: (pathname) => pathname.startsWith('/settings/datasource'),
-          },
+        ],
+      },
+      {
+        label: t('settings.groups.integrations'),
+        items: [
           {
             title: t('settings.nav.mcp'),
             href: MCP_PATH,
             icon: Plug,
             matcher: (pathname) => pathname.startsWith(MCP_PATH),
+          },
+          {
+            title: t('settings.nav.datasource'),
+            href: '/settings/datasource',
+            icon: Database,
+            matcher: (pathname) => pathname.startsWith('/settings/datasource'),
           },
           {
             title: t('settings.nav.channels'),
@@ -131,6 +125,17 @@ export const SettingsLayout: React.FC = () => {
       {
         label: t('settings.groups.admin'),
         items: [
+          {
+            title: t('settings.nav.team'),
+            href: '/settings/team',
+            icon: Users,
+            badge: pendingCount,
+            badgeLabel: t('layout.invitations.pending', {
+              count: pendingCount,
+            }),
+            onSelect:
+              pendingCount > 0 ? () => setActiveTab('joined-teams') : undefined,
+          },
           {
             title: t('settings.nav.userManagement'),
             href: '/settings/admin',
