@@ -137,7 +137,7 @@
     "pptx-preview": "^1.0.7",
     "react": "19.3.1",
     "react-dom": "19.3.1",
-    "react-dropzone": "^14.3.8",
+    "react-dropzone": "^20.2.0",
     "react-hook-form": "^7.92.0",
     "react-i18next": "18.0.2",
     "react-markdown": "^10.1.0",

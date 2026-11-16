@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
-import type { FileRejection } from 'react-dropzone'
+import type { FileRejection, FileWithPath } from 'react-dropzone'
 import type { FileUploaderTexts, UploadFile, FileUploadStatus } from './types'
 
 interface UseFileUploaderOptions {
@@ -73,7 +73,8 @@ export function useFileUploader({
       if (availableSlots <= 0) {
         onFilesRejected?.([
           {
-            file: acceptedFiles[0],
+            // Dropzone hands over file-selector FileWithPath objects.
+            file: acceptedFiles[0] as FileWithPath,
             errors: [
               {
                 code: 'too-many-files',
