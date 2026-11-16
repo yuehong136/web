@@ -1,10 +1,10 @@
-import { useState, useMemo, type FC } from 'react'
+import { useEffect, useState, useMemo, type FC } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Search, Plus } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { useFetchFactories, useFetchMyLLMs } from '@/hooks/use-llm-request'
-import { ProviderIcon } from '@/components/ui/provider-icon'
+import { ProviderLogo } from '@/components/patterns/provider-logo'
 import { SettingRow, SettingSection } from '@/components/patterns/setting-row'
 import { cn } from '@/lib/utils'
 import {
@@ -17,14 +17,22 @@ import {
   sortProviderTags,
 } from './available-model-filters'
 
+const PROVIDER_SEARCH_ID = 'model-provider-search'
+
 interface AvailableModelsProps {
   handleAddModel: (factoryName: string) => void
+  /** Each increment focuses the search box ("Connect provider", "Browse all"). */
+  focusSearchRequest?: number
 }
 
 export const AvailableModels: FC<AvailableModelsProps> = ({
   handleAddModel,
+  focusSearchRequest = 0,
 }) => {
   const { t } = useTranslation()
+  useEffect(() => {
+    if (focusSearchRequest) document.getElementById(PROVIDER_SEARCH_ID)?.focus()
+  }, [focusSearchRequest])
   const { factories } = useFetchFactories()
   const { myLLMs } = useFetchMyLLMs()
   const [searchTerm, setSearchTerm] = useState('')
@@ -69,6 +77,7 @@ export const AvailableModels: FC<AvailableModelsProps> = ({
     >
       <div className="flex flex-col gap-space-sm pb-space-sm">
         <Input
+          id={PROVIDER_SEARCH_ID}
           type="search"
           inputSize="sm"
           className="sm:w-64"
@@ -117,13 +126,7 @@ export const AvailableModels: FC<AvailableModelsProps> = ({
         filteredModels.map((factory) => (
           <SettingRow
             key={factory.id}
-            leading={
-              <ProviderIcon
-                provider={factory.name}
-                className="size-6"
-                size={24}
-              />
-            }
+            leading={<ProviderLogo provider={factory.name} size="md" />}
             label={
               <>
                 <span className="block truncate">{factory.name}</span>

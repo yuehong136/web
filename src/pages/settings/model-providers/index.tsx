@@ -24,6 +24,9 @@ import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ConnectedProviders } from './components/connected-providers'
 import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
+import { Plus } from 'lucide-react'
+import { ProviderCatalog } from './components/provider-catalog'
 
 type ModelsTab = 'defaults' | 'providers'
 
@@ -32,8 +35,22 @@ export function ModelProvidersPage() {
   const [params, setParams] = useSearchParams()
   const tab: ModelsTab =
     params.get('tab') === 'providers' ? 'providers' : 'defaults'
-  const setTab = (next: ModelsTab) =>
-    setParams(next === 'defaults' ? {} : { tab: next }, { replace: true })
+  // `?provider=` scrolls the Providers tab to that provider's card.
+  const revealProvider = tab === 'providers' ? params.get('provider') : null
+  const setTab = (next: ModelsTab, focusProvider?: string) =>
+    setParams(
+      next === 'defaults'
+        ? {}
+        : focusProvider
+          ? { tab: next, provider: focusProvider }
+          : { tab: next },
+      { replace: true },
+    )
+  const [searchRequest, setSearchRequest] = useState(0)
+  const browseCatalog = () => {
+    setTab('providers')
+    setSearchRequest((count) => count + 1)
+  }
   const mutation = useModelProviderMutation()
   const { factories } = useFetchFactories()
   const [manualMode, setManualMode] = useState(false)
@@ -53,7 +70,11 @@ export function ModelProvidersPage() {
   return (
     <Tabs
       value={tab}
-      onValueChange={(value) => setTab(value as ModelsTab)}
+      onValueChange={(value) => {
+        // Switching tabs by hand keeps focus on the tab strip.
+        setSearchRequest(0)
+        setTab(value as ModelsTab)
+      }}
       className="h-full"
     >
       <SettingsTemplate
@@ -70,24 +91,35 @@ export function ModelProvidersPage() {
             </TabsTrigger>
           </TabsList>
         }
-        title={t(
-          tab === 'defaults'
-            ? 'settings.models.defaults'
-            : 'settings.models.tabs.providers',
-        )}
+        width="wide"
         description={t(
           tab === 'defaults'
             ? 'settings.models.defaultDescription'
             : 'settings.models.providersDescription',
         )}
+        actions={
+          <Button
+            size="sm"
+            leftIcon={<Plus aria-hidden className="size-icon-sm" />}
+            onClick={browseCatalog}
+          >
+            {t('settings.models.connectProvider')}
+          </Button>
+        }
       >
         <TabsContent value="defaults" className="mt-0">
           <SystemSetting />
-          <ConnectedProviders onManage={() => setTab('providers')} />
+          <ConnectedProviders onManage={(name) => setTab('providers', name)} />
+          <ProviderCatalog onConnect={open} onBrowseAll={browseCatalog} />
         </TabsContent>
         <TabsContent value="providers" className="mt-0">
-          <UsedModels handleAddModel={open} />
-          <AvailableModels handleAddModel={open} />
+          <UsedModels handleAddModel={open} revealProvider={revealProvider} />
+          <div className="mt-space-xl">
+            <AvailableModels
+              handleAddModel={open}
+              focusSearchRequest={searchRequest}
+            />
+          </div>
         </TabsContent>
       </SettingsTemplate>
       {provider && supportsModelDiscovery(provider) && !manualMode && (

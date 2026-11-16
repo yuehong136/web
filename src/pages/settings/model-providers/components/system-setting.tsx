@@ -1,12 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useForm, useWatch } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
-import { SettingRow, SettingSection } from '@/components/patterns/setting-row'
 import { cn } from '@/lib/utils'
 import { defaultModelStatus } from './default-model-status'
+import { DefaultModelRow } from './default-model-row'
 import {
   AppScene,
   PageErrorState,
@@ -119,6 +119,7 @@ function DefaultModelsForm({
   onSave: (values: TenantModelSettings) => Promise<unknown>
 }) {
   const { t } = useTranslation()
+  const headingId = useId()
   const current = useMemo(() => getModelValues(tenant), [tenant])
   const form = useForm<ModelValues>({
     resolver: zodResolver(defaultModelsSchema),
@@ -181,59 +182,82 @@ function DefaultModelsForm({
   }
 
   const uncertain = modelsLoading || modelsFailed
+  const slots = MODEL_FIELDS.map((config) => {
+    const builtin = config.field === 'embd_id' ? builtinEmbedding : undefined
+    const status = defaultModelStatus(
+      values[config.field],
+      options[config.field],
+      { uncertain, builtin: Boolean(builtin) },
+    )
+    return { config, builtin, status }
+  })
+  const setCount = slots.filter(({ status }) => status === 'set').length
   return (
     <form
       onSubmit={(event) => {
         void form.handleSubmit(save)(event)
       }}
     >
-      <SettingSection>
-        {MODEL_FIELDS.map((config) => {
-          const label = t(`settings.models.defaultFields.${config.name}.label`)
-          const builtin =
-            config.field === 'embd_id' ? builtinEmbedding : undefined
-          const status = defaultModelStatus(
-            values[config.field],
-            options[config.field],
-            { uncertain, builtin: Boolean(builtin) },
-          )
-          const attention = status === 'missing' || status === 'unavailable'
-          return (
-            <SettingRow
-              key={config.field}
-              label={
-                <>
-                  {label}
-                  {'required' in config && config.required ? (
-                    <span
-                      aria-hidden
-                      className="ml-space-2xs text-status-error"
-                    >
-                      *
-                    </span>
-                  ) : null}
-                </>
-              }
-              tone={attention ? 'warning' : 'default'}
-              description={
-                builtin
-                  ? t('settings.models.defaultsBuiltin', {
-                      model: builtin.model_name,
-                      instance: builtin.model_instance,
-                    })
-                  : status === 'missing'
-                    ? t(`settings.models.defaultFields.${config.name}.missing`)
-                    : status === 'unavailable'
-                      ? t('settings.models.defaultUnavailableHint')
-                      : t(`settings.models.defaultFields.${config.name}.hint`)
-              }
-            >
-              <div className="w-full sm:w-64">
+      <section
+        aria-labelledby={headingId}
+        data-slot="default-models"
+        className="flex flex-col gap-space-sm rounded-radius-xl border border-border-subtle bg-components-card-bg p-space-md"
+      >
+        <div className="flex flex-wrap items-center gap-x-space-md gap-y-space-xs">
+          <h2
+            id={headingId}
+            className="text-sm font-semibold text-text-primary"
+          >
+            {t('settings.models.defaults')}
+          </h2>
+          {uncertain ? null : (
+            <DefaultsProgress set={setCount} total={slots.length} />
+          )}
+        </div>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(26rem,100%),1fr))] gap-x-space-lg gap-y-space-2xs">
+          {slots.map(({ config, builtin, status }) => {
+            const label = t(
+              `settings.models.defaultFields.${config.name}.label`,
+            )
+            const attention = status === 'missing' || status === 'unavailable'
+            return (
+              <DefaultModelRow
+                key={config.field}
+                kind={config.types[0]}
+                attention={attention}
+                label={
+                  <>
+                    {label}
+                    {'required' in config && config.required ? (
+                      <span
+                        aria-hidden
+                        className="ml-space-2xs text-status-error"
+                      >
+                        *
+                      </span>
+                    ) : null}
+                  </>
+                }
+                hint={
+                  builtin
+                    ? t('settings.models.defaultsBuiltin', {
+                        model: builtin.model_name,
+                        instance: builtin.model_instance,
+                      })
+                    : status === 'missing'
+                      ? t(
+                          `settings.models.defaultFields.${config.name}.missing`,
+                        )
+                      : status === 'unavailable'
+                        ? t('settings.models.defaultUnavailableHint')
+                        : t(`settings.models.defaultFields.${config.name}.hint`)
+                }
+              >
                 <ModelSelect
                   ariaLabel={label}
                   triggerClassName={cn(
                     'w-full',
-                    attention && 'border-status-warning',
+                    attention && 'border-status-warning-border',
                   )}
                   value={builtin ? '' : values[config.field]}
                   {...options[config.field]}
@@ -250,17 +274,17 @@ function DefaultModelsForm({
                   searchPlaceholder={t('common.search')}
                   allowClear
                 />
-              </div>
-            </SettingRow>
-          )
-        })}
+              </DefaultModelRow>
+            )
+          })}
+        </div>
         {modelsLoading ? (
-          <output className="border-t border-border-subtle py-space-sm text-sm text-text-secondary">
+          <output className="border-t border-border-subtle pt-space-sm text-sm text-text-secondary">
             {t('common.modelPicker.loading')}
           </output>
         ) : null}
         {modelsFailed ? (
-          <div className="flex items-center justify-between gap-space-sm border-t border-border-subtle py-space-sm text-sm text-text-secondary">
+          <div className="flex items-center justify-between gap-space-sm border-t border-border-subtle pt-space-sm text-sm text-text-secondary">
             <span>{t('settings.models.defaultsModelsFailed')}</span>
             <Button
               type="button"
@@ -275,7 +299,7 @@ function DefaultModelsForm({
         {saveFailed ? (
           <p
             role="alert"
-            className="border-t border-border-subtle py-space-sm text-sm text-status-error"
+            className="border-t border-border-subtle pt-space-sm text-sm text-status-error"
           >
             {t('settings.models.defaultsSaveFailed')}
           </p>
@@ -314,7 +338,26 @@ function DefaultModelsForm({
             </Button>
           </div>
         </div>
-      </SettingSection>
+      </section>
     </form>
+  )
+}
+
+/** "6 / 7 set" with a small bar; the count is the accessible part. */
+function DefaultsProgress({ set, total }: { set: number; total: number }) {
+  const { t } = useTranslation()
+  return (
+    <span className="flex items-center gap-space-sm text-xs text-text-secondary tabular-nums">
+      <span
+        aria-hidden
+        className="h-1.5 w-24 overflow-hidden rounded-radius-full bg-background-subtle"
+      >
+        <span
+          className="block h-full rounded-radius-full bg-status-success"
+          style={{ width: `${(set / total) * 100}%` }}
+        />
+      </span>
+      {t('settings.models.defaultsProgress', { set, total })}
+    </span>
   )
 }

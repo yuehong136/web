@@ -332,7 +332,7 @@ it('shows an unregistered built-in embedding default without creating a selectab
   expect(mocks.update).toHaveBeenLastCalledWith('embedding', 6)
 })
 
-it('flags missing and unavailable defaults as setting rows with a warning', async () => {
+it('flags missing and unavailable defaults as default-model rows with a warning', async () => {
   defaults = defaults.map((row) =>
     row.model_type === 'chat'
       ? { ...row, model_id: 4, reference: '4', model_name: 'disabled' }
@@ -340,7 +340,7 @@ it('flags missing and unavailable defaults as setting rows with a warning', asyn
   )
   await render()
   const row = (kind: string) =>
-    [...container.querySelectorAll('[data-slot="setting-row"]')].find(
+    [...container.querySelectorAll('[data-slot="default-model-row"]')].find(
       (element) =>
         element.textContent?.includes(
           i18n.t(`settings.models.defaultFields.${kind}.label`),
