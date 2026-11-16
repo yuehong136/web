@@ -65,9 +65,9 @@
     "desktop/**/*.{mjs,ts,tsx}": "eslint"
   },
   "dependencies": {
-    "@ant-design/cssinjs": "2.1.0",
+    "@ant-design/cssinjs": "2.1.2",
     "@ant-design/x": "2.10.0",
-    "@ant-design/x-card": "2.9.0",
+    "@ant-design/x-card": "2.10.0",
     "@ant-design/x-markdown": "2.10.0",
     "@ant-design/x-sdk": "2.10.0",
     "@antv/g6": "5.1.1",
@@ -116,7 +116,7 @@
     "@types/papaparse": "^5.5.1",
     "@uiw/react-md-editor": "^4.0.8",
     "@xyflow/react": "^12.9.1",
-    "antd": "6.1.1",
+    "antd": "6.7.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
