@@ -96,6 +96,10 @@ export const koreanTranslationStatus = {
     translated: 8,
     englishFallback: 22,
   },
+  'ai-tools': {
+    translated: 0,
+    englishFallback: 97,
+  },
   reference: {
     translated: 3,
     englishFallback: 22,

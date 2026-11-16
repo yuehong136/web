@@ -1,16 +1,12 @@
-import React, { useRef, useState } from 'react'
+import React, { useState } from 'react'
+import { useDropzone } from 'react-dropzone'
+import { useTranslation } from 'react-i18next'
+import { CheckCircle2, FileUp, Upload } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/lib/toast'
-import {
-  Upload,
-  FileText,
-  Loader2,
-  CheckCircle2,
-  AlertTriangle,
-  FileUp,
-} from 'lucide-react'
 import { documentAPI } from '@/api/document'
-import { cn } from '@/lib/utils'
+import { cn, formatBytes } from '@/lib/utils'
 
 export interface PlaceholderData {
   [key: string]: string
@@ -28,30 +24,31 @@ interface FileUploadProps {
   setIsLoading: (loading: boolean) => void
 }
 
+const DOCX_MIME =
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+const MAX_SIZE = 10 * 1024 * 1024
+
+/**
+ * Step 1: one drop zone with its help text inside. The zone takes drops; the
+ * button inside opens the file picker, so the keyboard path is a plain
+ * button rather than a focusable drop area.
+ */
 const FileUpload: React.FC<FileUploadProps> = ({
   onFileUploaded,
   onFileProcessed,
   isLoading,
   setIsLoading,
 }) => {
-  const [dragActive, setDragActive] = useState(false)
+  const { t } = useTranslation()
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
-
-  const handleDrag = (e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    if (e.type === 'dragenter' || e.type === 'dragover') setDragActive(true)
-    else if (e.type === 'dragleave') setDragActive(false)
-  }
 
   const validateFile = (file: File): boolean => {
     if (!file.name.toLowerCase().endsWith('.docx')) {
-      toast.error('仅支持 .docx 格式的Word文档')
+      toast.error(t('aiTools.autoFill.upload.invalidType'))
       return false
     }
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error('文件大小不能超过 10MB')
+    if (file.size > MAX_SIZE) {
+      toast.error(t('aiTools.autoFill.upload.tooLarge'))
       return false
     }
     return true
@@ -68,154 +65,88 @@ const FileUpload: React.FC<FileUploadProps> = ({
         placeholders: result.placeholders || {},
         file: result.file,
       })
-      toast.success('文档解析成功！')
-    } catch (e) {
-      console.error(e)
-      toast.error('文档处理失败，请重试')
+      toast.success(t('aiTools.autoFill.upload.parsed'))
+    } catch (error) {
+      console.error(error)
+      toast.error(t('aiTools.autoFill.upload.failed'))
       setSelectedFile(null)
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setDragActive(false)
-    if (e.dataTransfer.files && e.dataTransfer.files[0])
-      processFile(e.dataTransfer.files[0])
-  }
+  const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
+    accept: { [DOCX_MIME]: ['.docx'] },
+    multiple: false,
+    noClick: true,
+    noKeyboard: true,
+    disabled: isLoading,
+    onDrop: (accepted, rejected) => {
+      const file = accepted[0] ?? rejected[0]?.file
+      if (file) void processFile(file)
+    },
+  })
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) processFile(e.target.files[0])
-  }
-
-  const handleButtonClick = () => fileInputRef.current?.click()
-
-  const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return `${bytes} B`
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
-  }
+  const example = `{{${t('aiTools.autoFill.upload.placeholderName')}}}`
 
   return (
-    <div className="space-y-6">
-      {/* 上传区域 */}
-      <div
-        className={cn(
-          'group relative cursor-pointer rounded-2xl border-2 border-dashed transition-all duration-200',
-          dragActive &&
-            'scale-[1.01] border-components-upload-border-dragover bg-components-upload-bg-dragover',
-          selectedFile &&
-            !isLoading &&
-            'border-status-success-border bg-status-success-subtle',
-          !dragActive &&
-            !selectedFile &&
-            'border-components-upload-border hover:border-components-upload-border-hover hover:bg-background-subtle',
-          isLoading && 'pointer-events-none',
-        )}
-        onDragEnter={handleDrag}
-        onDragLeave={handleDrag}
-        onDragOver={handleDrag}
-        onDrop={handleDrop}
-        onClick={handleButtonClick}
-      >
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".docx"
-          onChange={handleFileSelect}
-          className="hidden"
-          disabled={isLoading}
+    <div
+      {...getRootProps({
+        'aria-busy': isLoading,
+        className: cn(
+          'flex flex-col items-center gap-space-md rounded-radius-xl border border-dashed px-space-lg py-space-2xl text-center transition-colors motion-reduce:transition-none',
+          isDragActive
+            ? 'border-components-upload-border-dragover bg-components-upload-bg-dragover'
+            : 'border-components-upload-border bg-components-upload-bg hover:border-components-upload-border-hover',
+        ),
+      })}
+    >
+      <input {...getInputProps()} />
+      {isLoading ? (
+        <Spinner size="lg" />
+      ) : selectedFile ? (
+        <CheckCircle2
+          className="size-icon-xl text-status-success"
+          aria-hidden="true"
         />
-
-        <div className="flex flex-col items-center justify-center px-8 py-16">
-          {/* 图标 */}
-          <div
-            className={cn(
-              'mb-6 flex h-16 w-16 items-center justify-center rounded-2xl transition-all',
-              isLoading && 'bg-status-info-subtle',
-              selectedFile && !isLoading && 'bg-status-success-subtle',
-              !selectedFile &&
-                !isLoading &&
-                'bg-background-subtle group-hover:bg-status-info-subtle',
-            )}
-          >
-            {isLoading ? (
-              <Loader2 className="h-8 w-8 animate-spin text-status-info" />
-            ) : selectedFile ? (
-              <CheckCircle2 className="h-8 w-8 text-status-success" />
-            ) : (
-              <FileUp className="h-8 w-8 text-text-secondary transition-colors group-hover:text-status-info" />
-            )}
-          </div>
-
-          {/* 文字内容 */}
-          {isLoading ? (
-            <div className="text-center">
-              <h3 className="mb-2 text-lg font-medium text-text-primary">
-                正在解析文档...
-              </h3>
-              <p className="text-sm text-text-secondary">
-                系统正在识别文档中的占位符
-              </p>
-            </div>
-          ) : selectedFile ? (
-            <div className="text-center">
-              <h3 className="mb-2 text-lg font-medium text-text-primary">
-                {selectedFile.name}
-              </h3>
-              <p className="mb-4 text-sm text-text-secondary">
-                {formatFileSize(selectedFile.size)}
-              </p>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  handleButtonClick()
-                }}
-              >
-                更换文件
-              </Button>
-            </div>
-          ) : (
-            <div className="text-center">
-              <h3 className="mb-2 text-lg font-medium text-text-primary">
-                拖放文件到此处
-              </h3>
-              <p className="mb-4 text-sm text-text-secondary">
-                或点击选择文件上传
-              </p>
-              <Button variant="default" size="sm">
-                <Upload className="mr-2 h-4 w-4" />
-                选择文件
-              </Button>
-            </div>
-          )}
-        </div>
+      ) : (
+        <FileUp
+          className="size-icon-xl text-text-tertiary"
+          aria-hidden="true"
+        />
+      )}
+      <div className="flex flex-col gap-space-2xs" aria-live="polite">
+        <p className="text-base font-medium text-text-primary">
+          {isLoading
+            ? t('aiTools.autoFill.upload.parsing')
+            : selectedFile
+              ? selectedFile.name
+              : t('aiTools.autoFill.upload.dropTitle')}
+        </p>
+        {isLoading ? (
+          <p className="text-sm text-text-secondary">
+            {t('aiTools.autoFill.upload.parsingHint')}
+          </p>
+        ) : selectedFile ? (
+          <p className="text-sm text-text-secondary tabular-nums">
+            {formatBytes(selectedFile.size)}
+          </p>
+        ) : null}
       </div>
-
-      {/* 文件要求说明 */}
-      <div className="grid gap-3 md:grid-cols-2">
-        <div className="flex items-start gap-3 rounded-xl border border-border-default bg-background-subtle p-4">
-          <FileText className="mt-0.5 h-5 w-5 shrink-0 text-text-secondary" />
-          <div>
-            <p className="text-sm font-medium text-text-primary">支持格式</p>
-            <p className="text-sm text-text-secondary">
-              Microsoft Word 文档 (.docx)，最大 10MB
-            </p>
-          </div>
-        </div>
-        <div className="flex items-start gap-3 rounded-xl border border-border-default bg-background-subtle p-4">
-          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-text-secondary" />
-          <div>
-            <p className="text-sm font-medium text-text-primary">占位符格式</p>
-            <p className="text-sm text-text-secondary">
-              使用 {'{{占位符名称}}'} 格式标记待填充位置
-            </p>
-          </div>
-        </div>
+      <Button
+        type="button"
+        variant={selectedFile ? 'outline' : 'default'}
+        onClick={open}
+        disabled={isLoading}
+      >
+        <Upload aria-hidden="true" />
+        {selectedFile
+          ? t('aiTools.autoFill.upload.replace')
+          : t('aiTools.autoFill.upload.choose')}
+      </Button>
+      <div className="flex flex-col gap-space-2xs text-xs text-text-tertiary">
+        <p>{t('aiTools.autoFill.upload.formatHelp')}</p>
+        <p>{t('aiTools.autoFill.upload.placeholderHelp', { example })}</p>
       </div>
     </div>
   )

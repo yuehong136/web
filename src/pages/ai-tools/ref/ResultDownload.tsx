@@ -1,17 +1,28 @@
 import React, { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { toast } from '@/lib/toast'
-import DocumentPreview from './DocumentPreview'
+import { useTranslation } from 'react-i18next'
 import {
-  Download,
+  ArrowLeft,
   CheckCircle2,
-  RotateCcw,
+  Clock,
+  Download,
   Eye,
   FileText,
-  Clock,
   HardDrive,
-  ArrowLeft,
+  RotateCcw,
 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { toast } from '@/lib/toast'
+import { formatBytes } from '@/lib/utils'
+import { getCurrentLanguage } from '@/locales/i18n'
+import { FilledDocxPreview } from './filled-docx-preview'
 
 interface ResultDownloadProps {
   fileData: string
@@ -20,46 +31,48 @@ interface ResultDownloadProps {
   onBackToFill?: () => void
 }
 
+const DOCX_MIME =
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+
+/** Step 3: the filled document with download, preview and next steps. */
 const ResultDownload: React.FC<ResultDownloadProps> = ({
   fileData,
   onReset,
   originalFileName,
   onBackToFill,
 }) => {
+  const { t } = useTranslation()
   const [isDownloading, setIsDownloading] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
+  const [finishedAt] = useState(() => new Date())
 
   const downloadFile = async () => {
     try {
       setIsDownloading(true)
-      const byteChars = atob(fileData)
-      const byteNumbers = new Array(byteChars.length)
-      for (let i = 0; i < byteChars.length; i++)
-        byteNumbers[i] = byteChars.charCodeAt(i)
-      const byteArray = new Uint8Array(byteNumbers)
-      const blob = new Blob([byteArray], {
-        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      })
-      const url = window.URL.createObjectURL(blob)
+      const bytes = Uint8Array.from(atob(fileData), (char) =>
+        char.charCodeAt(0),
+      )
+      const url = window.URL.createObjectURL(
+        new Blob([bytes], { type: DOCX_MIME }),
+      )
       const link = document.createElement('a')
       link.href = url
-      const ts = new Date().toISOString().slice(0, 19).replace(/:/g, '-')
-      const baseName = originalFileName.replace(/\.docx$/i, '')
-      link.download = `${baseName}_filled_${ts}.docx`
+      const stamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-')
+      link.download = `${originalFileName.replace(/\.docx$/i, '')}_filled_${stamp}.docx`
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
-      toast.success('文档下载成功！')
-    } catch (e) {
-      console.error(e)
-      toast.error('下载失败，请重试')
+      toast.success(t('aiTools.autoFill.result.downloaded'))
+    } catch (error) {
+      console.error(error)
+      toast.error(t('aiTools.autoFill.result.downloadFailed'))
     } finally {
       setIsDownloading(false)
     }
   }
 
-  const currentTime = new Date().toLocaleString('zh-CN', {
+  const finishedLabel = finishedAt.toLocaleString(getCurrentLanguage(), {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -67,107 +80,100 @@ const ResultDownload: React.FC<ResultDownloadProps> = ({
     minute: '2-digit',
   })
 
-  const formatFileSize = (base64: string) => {
-    const bytes = (base64.length * 3) / 4
-    if (bytes < 1024) return `${Math.round(bytes)} B`
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
-  }
-
   return (
-    <div className="space-y-8">
-      {/* 成功状态 */}
-      <div className="py-8 text-center">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-status-success-subtle">
-          <CheckCircle2 className="h-8 w-8 text-status-success" />
-        </div>
-        <h2 className="mb-2 text-xl font-semibold text-text-primary">
-          文档填充完成
+    <div className="flex flex-col gap-space-lg">
+      <div className="flex flex-col items-center gap-space-sm text-center">
+        <CheckCircle2
+          className="size-icon-xl text-status-success"
+          aria-hidden="true"
+        />
+        <h2 className="text-base font-semibold text-text-primary">
+          {t('aiTools.autoFill.result.heading')}
         </h2>
-        <p className="text-text-secondary">
-          所有占位符已成功替换为您提供的数据
+        <p className="text-sm text-text-secondary">
+          {t('aiTools.autoFill.result.description')}
         </p>
       </div>
 
-      {/* 文件信息卡片 */}
-      <div className="rounded-xl border border-border-default bg-background-subtle p-5">
-        <div className="flex items-start gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-status-info-subtle">
-            <FileText className="h-6 w-6 text-status-info" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <h3 className="mb-3 truncate font-medium text-text-primary">
-              {originalFileName}
-            </h3>
-            <div className="grid grid-cols-2 gap-y-2 text-sm sm:grid-cols-3">
-              <div className="flex items-center gap-1.5 text-text-secondary">
-                <HardDrive className="h-3.5 w-3.5" />
-                <span>{formatFileSize(fileData)}</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-text-secondary">
-                <Clock className="h-3.5 w-3.5" />
-                <span>{currentTime}</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="inline-flex items-center rounded-full bg-status-success-subtle px-2 py-0.5 text-xs font-medium text-status-success">
-                  已完成
-                </span>
-              </div>
-            </div>
+      <div className="flex items-start gap-space-base rounded-radius-lg border border-border-default bg-background-surface p-space-base">
+        <FileText
+          className="size-icon-lg shrink-0 text-text-tertiary"
+          aria-hidden="true"
+        />
+        <div className="flex min-w-0 flex-1 flex-col gap-space-xs">
+          <p className="truncate text-sm font-medium text-text-primary">
+            {originalFileName}
+          </p>
+          <div className="flex flex-wrap items-center gap-x-space-md gap-y-space-2xs text-xs text-text-secondary">
+            <span className="inline-flex items-center gap-space-xs tabular-nums">
+              <HardDrive className="size-icon-xs" aria-hidden="true" />
+              {formatBytes((fileData.length * 3) / 4, 1)}
+            </span>
+            <span className="inline-flex items-center gap-space-xs tabular-nums">
+              <Clock className="size-icon-xs" aria-hidden="true" />
+              {finishedLabel}
+            </span>
+            <span className="rounded-radius-sm bg-status-success-subtle px-space-xs text-status-success">
+              {t('aiTools.autoFill.result.status')}
+            </span>
           </div>
         </div>
       </div>
 
-      {/* 操作按钮 */}
-      <div className="grid gap-3 sm:grid-cols-2">
-        <Button
-          onClick={downloadFile}
-          disabled={isDownloading}
-          size="lg"
-          className="w-full"
-        >
-          <Download className="mr-2 h-4 w-4" />
-          {isDownloading ? '正在下载...' : '下载文档'}
+      <div className="grid gap-space-sm sm:grid-cols-2">
+        <Button onClick={downloadFile} disabled={isDownloading} size="lg">
+          <Download aria-hidden="true" />
+          {isDownloading
+            ? t('aiTools.autoFill.result.downloading')
+            : t('aiTools.autoFill.result.download')}
         </Button>
         <Button
           variant="outline"
           size="lg"
-          className="w-full"
           onClick={() => setShowPreview(true)}
         >
-          <Eye className="mr-2 h-4 w-4" />
-          在线预览
+          <Eye aria-hidden="true" />
+          {t('aiTools.autoFill.result.preview')}
         </Button>
       </div>
 
-      {/* 底部操作 */}
-      <div className="flex items-center justify-between border-t border-border-default pt-4">
-        {onBackToFill && (
+      <div className="flex items-center justify-between gap-space-sm border-t border-border-subtle pt-space-base">
+        {onBackToFill ? (
           <Button variant="ghost" size="sm" onClick={onBackToFill}>
-            <ArrowLeft className="mr-1 h-4 w-4" />
-            返回编辑
+            <ArrowLeft aria-hidden="true" />
+            {t('aiTools.autoFill.result.backToEdit')}
           </Button>
-        )}
+        ) : null}
         <Button
           variant="outline"
           size="sm"
           onClick={onReset}
           className="ml-auto"
         >
-          <RotateCcw className="mr-1 h-4 w-4" />
-          处理新文档
+          <RotateCcw aria-hidden="true" />
+          {t('aiTools.autoFill.result.newDocument')}
         </Button>
       </div>
 
-      {/* 预览弹窗 */}
-      {showPreview && (
-        <DocumentPreview
-          fileData={fileData}
-          originalFileName={originalFileName}
-          onClose={() => setShowPreview(false)}
-          onDownload={downloadFile}
-        />
-      )}
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogContent size="2xl" modal className="h-[85dvh]">
+          <DialogHeader>
+            <DialogTitle className="truncate">{originalFileName}</DialogTitle>
+          </DialogHeader>
+          <DialogBody className="flex flex-col px-0 pb-0">
+            <FilledDocxPreview
+              fileData={showPreview ? fileData : null}
+              className="border-t border-border-subtle"
+            />
+          </DialogBody>
+          <DialogFooter>
+            <Button onClick={downloadFile} disabled={isDownloading}>
+              <Download aria-hidden="true" />
+              {t('aiTools.autoFill.result.download')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

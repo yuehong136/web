@@ -1,48 +1,39 @@
 import React, { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Badge } from '@/components/ui/badge'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { toast } from '@/lib/toast'
-import { Modal } from '@/components/ui/modal'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Switch } from '@/components/ui/switch'
 import { useTranslation } from 'react-i18next'
-import { useStructuredAIFill } from './use-structured-ai-fill'
 import {
-  createEmptyDataSourceForm,
-  type DataSourceItem,
-} from './data-input-data-source-panel'
-import {
-  UserInputSection,
-  type UploadedFile,
-  type UserInputMode,
-} from './data-input-user-input-section'
-import { ChatModelSelector } from '@/components/chat/ChatModelSelector'
-import { documentAPI } from '@/api/document'
-import { useFetchMCPServers } from '@/hooks/use-mcp-request'
-import { useModelSelectorRequest } from '@/hooks/use-model-selector-request'
-import { copyToClipboardWithFeedback } from '@/lib/clipboard'
-import { cn } from '@/lib/utils'
-import {
-  Save,
-  Loader2,
-  Copy,
-  RotateCcw,
   ArrowLeft,
+  ChevronDown,
+  Code2,
+  Copy,
+  FormInput,
+  PlugZap,
+  RotateCcw,
+  Save,
+  Search,
   Settings2,
   Sparkles,
-  PlugZap,
-  ChevronDown,
-  ChevronUp,
-  Search,
-  Code2,
-  FormInput,
-  AlertCircle,
 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Spinner } from '@/components/ui/spinner'
+import { Switch } from '@/components/ui/switch'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Textarea } from '@/components/ui/textarea'
+import { documentAPI } from '@/api/document'
+import { copyToClipboardWithFeedback } from '@/lib/clipboard'
+import { toast } from '@/lib/toast'
+import { useStructuredAIFill } from './use-structured-ai-fill'
+import {
+  DataInputSettingsDialog,
+  type LlmConfig,
+  type McpConfig,
+  type PromptConfig,
+} from './data-input-settings-dialog'
+import type {
+  UploadedFile,
+  UserInputMode,
+} from './data-input-user-input-section'
 
 export interface PlaceholderData {
   [key: string]: string
@@ -58,9 +49,15 @@ interface DataInputProps {
   setIsLoading: (loading: boolean) => void
 }
 
-const DEFAULT_SYSTEM_PROMPT =
-  '你是一名严谨的表单填充助手。请只输出 JSON，不要包含多余说明。输入给你占位符的 JSON 模板和用户补充信息，请根据语义补全缺失字段，保持键名不变，值为字符串，必须返回有效 JSON。'
+const DOCX_MIME =
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
 
+const emptyForm = (placeholders: PlaceholderData) =>
+  Object.fromEntries(Object.keys(placeholders).map((key) => [key, '']))
+
+const isFilled = (value: string | undefined) => Boolean(value?.trim())
+
+/** Step 2: fill the placeholders by hand, as JSON, or with AI. */
 const DataInput: React.FC<DataInputProps> = ({
   placeholders,
   processedFile,
@@ -70,101 +67,89 @@ const DataInput: React.FC<DataInputProps> = ({
   isLoading,
   setIsLoading,
 }) => {
+  const { t } = useTranslation()
   const [formData, setFormData] = useState<PlaceholderData>({})
   const [jsonInput, setJsonInput] = useState('')
   const [activeTab, setActiveTab] = useState<'form' | 'json'>('form')
-  const [validationErrors, setValidationErrors] = useState<string[]>([])
   const [settingsOpen, setSettingsOpen] = useState(false)
-  const { data: serverData, isFetching: mcpLoading } = useFetchMCPServers({
-    page_size: 100,
-    errorMessage: '获取 MCP 列表失败',
-    enabled: settingsOpen,
-  })
-  const mcpServers = serverData?.mcp_servers ?? []
-  const { t } = useTranslation()
   const { aiFilling, aiRawOutput, fill } = useStructuredAIFill(setIsLoading)
-  const { myLLMs, modelRequest } = useModelSelectorRequest()
-  const [llmConfig, setLlmConfig] = useState({
+  const [llmConfig, setLlmConfig] = useState<LlmConfig>({
     llm_name: '',
     temperature: 0.3,
     max_tokens: 2048,
   })
-  const [mcpConfig, setMcpConfig] = useState({
-    mcp_ids: [] as string[],
+  const [mcpConfig, setMcpConfig] = useState<McpConfig>({
+    mcp_ids: [],
     mcp_timeout: 10,
     verbose_tool_use: false,
   })
-  const [promptConfig, setPromptConfig] = useState({
-    systemPrompt: DEFAULT_SYSTEM_PROMPT,
+  const [promptConfig, setPromptConfig] = useState<PromptConfig>(() => ({
+    systemPrompt: t('aiTools.autoFill.prompt.system'),
     userInput: '',
-  })
-  const [settingsTab, setSettingsTab] = useState<'llm' | 'prompt' | 'mcp'>(
-    'llm',
-  )
+  }))
   const [searchKey, setSearchKey] = useState('')
   const [showOnlyEmpty, setShowOnlyEmpty] = useState(false)
-  const [showAiRaw, setShowAiRaw] = useState(false)
-
-  // 用户输入模式相关（状态留在本组件：设置弹窗关闭卸载子树时不丢数据）
+  // Kept here so closing the settings dialog keeps typed text and files.
   const [userInputMode, setUserInputMode] = useState<UserInputMode>('manual')
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
-  const [dataSources, setDataSources] = useState<DataSourceItem[]>([])
-  const [showAddDataSource, setShowAddDataSource] = useState(false)
-  const [newDataSourceType, setNewDataSourceType] = useState<
-    'api' | 'database'
-  >('api')
-  const [newDataSourceForm, setNewDataSourceForm] = useState(
-    createEmptyDataSourceForm,
-  )
 
   const [previousPlaceholders, setPreviousPlaceholders] =
     useState<PlaceholderData | null>(null)
   if (previousPlaceholders !== placeholders) {
     setPreviousPlaceholders(placeholders)
-    const initial: PlaceholderData = {}
-    Object.keys(placeholders).forEach((k) => (initial[k] = ''))
+    const initial = emptyForm(placeholders)
     setFormData(initial)
     setJsonInput(JSON.stringify(initial, null, 2))
   }
 
-  const _validateData = (_data: PlaceholderData) => {
-    // 不再强制必填，允许部分字段为空
-    return [] as string[]
-  }
+  const placeholderKeys = Object.keys(placeholders)
+  const filledCount = placeholderKeys.filter((key) =>
+    isFilled(formData[key]),
+  ).length
+  const filteredKeys = placeholderKeys.filter((key) => {
+    const hit =
+      !searchKey || key.toLowerCase().includes(searchKey.toLowerCase())
+    return showOnlyEmpty ? hit && !isFilled(formData[key]) : hit
+  })
 
-  const handleFormChange = (key: string, value: string) => {
-    const next = { ...formData, [key]: value }
+  const setForm = (next: PlaceholderData) => {
     setFormData(next)
     setJsonInput(JSON.stringify(next, null, 2))
-    if (validationErrors.length) setValidationErrors([])
   }
 
   const handleJsonChange = (value: string) => {
     setJsonInput(value)
     try {
       setFormData(JSON.parse(value))
-      setValidationErrors([])
     } catch {
-      /* ignore */
+      /* keep the last valid form while the JSON is being edited */
     }
   }
 
-  const buildUserMessage = (userInput: string, data: PlaceholderData) => {
-    const payload = JSON.stringify(data || {}, null, 2)
-    return [
-      '请根据以下 JSON 模板补全占位符，只返回 JSON 且键名保持一致：',
-      payload,
-      `用户补充信息：${userInput || '无'}`,
-    ].join('\n')
+  /** The supplement the model sees: typed text, or the attached files. */
+  const supplement = () => {
+    const files = uploadedFiles
+      .filter((file) => file.content)
+      .map((file) =>
+        t('aiTools.autoFill.prompt.file', {
+          name: file.name,
+          content: file.content,
+        }),
+      )
+    const parts =
+      userInputMode === 'file' ? files : [promptConfig.userInput.trim()]
+    return (
+      parts.filter(Boolean).join('\n\n') || t('aiTools.autoFill.prompt.none')
+    )
   }
 
   const handleAIFill = async () => {
     if (placeholderKeys.length === 0) {
-      toast.error('暂无占位符可填充')
+      toast.error(t('aiTools.autoFill.fill.noFields'))
       return
     }
     if (!llmConfig.llm_name) {
-      toast.error('请先在设置中选择模型')
+      toast.error(t('aiTools.autoFill.fill.chooseModel'))
       setSettingsOpen(true)
       return
     }
@@ -174,13 +159,17 @@ const DataInput: React.FC<DataInputProps> = ({
     } catch {
       baseData = formData
     }
-
-    const requestBody = {
-      prompt: (promptConfig.systemPrompt || DEFAULT_SYSTEM_PROMPT).trim(),
+    const parsed = await fill({
+      prompt: (
+        promptConfig.systemPrompt || t('aiTools.autoFill.prompt.system')
+      ).trim(),
       messages: [
         {
           role: 'user' as const,
-          content: buildUserMessage(promptConfig.userInput, baseData),
+          content: t('aiTools.autoFill.prompt.user', {
+            template: JSON.stringify(baseData || {}, null, 2),
+            input: supplement(),
+          }),
         },
       ],
       llm_name: llmConfig.llm_name,
@@ -197,490 +186,246 @@ const DataInput: React.FC<DataInputProps> = ({
       files: [],
       structured_output: mcpConfig.mcp_ids.length > 0,
       delta_stream: true,
-    }
-
-    const parsed = await fill(requestBody)
+    })
     if (!parsed) return
-    setFormData(parsed)
-    setJsonInput(JSON.stringify(parsed, null, 2))
+    setForm(parsed)
     toast.success(t('chat.stream.aiFillComplete'))
   }
 
-  const copyJson = () =>
-    copyToClipboardWithFeedback(jsonInput, 'JSON已复制到剪贴板', '复制失败')
   const resetForm = () => {
-    const initial: PlaceholderData = {}
-    Object.keys(placeholders).forEach((k) => (initial[k] = ''))
-    setFormData(initial)
-    setJsonInput(JSON.stringify(initial, null, 2))
-    setValidationErrors([])
-    toast.success('表单已重置')
+    setForm(emptyForm(placeholders))
+    toast.success(t('aiTools.autoFill.fill.resetDone'))
   }
 
   const fillDocument = async () => {
     if (!processedFile) {
-      toast.error('缺少处理后的文档，请重新上传')
+      toast.error(t('aiTools.autoFill.fill.missingFile'))
       return
     }
     setIsLoading(true)
     try {
-      const base64ToFile = (data: string, filename: string) => {
-        const clean = data.trim()
-        const byteString = atob(clean)
-        const ab = new ArrayBuffer(byteString.length)
-        const ia = new Uint8Array(ab)
-        for (let i = 0; i < byteString.length; i++)
-          ia[i] = byteString.charCodeAt(i)
-        return new File([ia], filename, {
-          type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        })
-      }
-      const safeName = originalFileName || 'document.docx'
-      const uploadFile = base64ToFile(processedFile, safeName)
-      const resp = await documentAPI.fillDocx(uploadFile, formData)
-      onDataFilled(resp.file)
-      toast.success('文档填充成功！')
+      const bytes = Uint8Array.from(atob(processedFile.trim()), (char) =>
+        char.charCodeAt(0),
+      )
+      const upload = new File([bytes], originalFileName || 'document.docx', {
+        type: DOCX_MIME,
+      })
+      const response = await documentAPI.fillDocx(upload, formData)
+      onDataFilled(response.file)
+      toast.success(t('aiTools.autoFill.fill.generated'))
     } catch (error) {
       console.error(error)
-      toast.error('填充文档失败，请重试')
+      toast.error(t('aiTools.autoFill.fill.generateFailed'))
     } finally {
       setIsLoading(false)
     }
   }
 
-  const placeholderKeys = Object.keys(placeholders)
-  const filteredKeys = placeholderKeys.filter((k) => {
-    const hit = !searchKey || k.toLowerCase().includes(searchKey.toLowerCase())
-    const notEmpty = formData[k] && formData[k].trim() !== ''
-    if (showOnlyEmpty) return hit && !notEmpty
-    return hit
-  })
-
-  const filledCount = placeholderKeys.filter(
-    (k) => formData[k] && formData[k].trim() !== '',
-  ).length
-
   return (
-    <div className="space-y-6">
-      {/* 顶部操作栏 */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-3">
+    <div className="flex flex-col gap-space-lg">
+      <div className="flex flex-wrap items-center justify-between gap-space-sm">
+        <div className="flex items-center gap-space-sm">
           <Button variant="ghost" size="sm" onClick={onBackToUpload}>
-            <ArrowLeft className="mr-1 h-4 w-4" />
-            返回
+            <ArrowLeft aria-hidden="true" />
+            {t('aiTools.autoFill.fill.back')}
           </Button>
-          <div className="h-4 w-px bg-border-default" />
-          <div className="flex items-center gap-2 text-sm text-text-secondary">
-            <Badge variant="secondary" className="font-normal">
-              {filledCount}/{placeholderKeys.length} 已填写
-            </Badge>
-          </div>
+          <span className="text-sm text-text-secondary tabular-nums">
+            {t('aiTools.autoFill.fill.filled', {
+              filled: filledCount,
+              total: placeholderKeys.length,
+            })}
+          </span>
         </div>
-
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-space-xs">
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={resetForm}
+            aria-label={t('aiTools.autoFill.fill.reset')}
+          >
+            <RotateCcw aria-hidden="true" />
+          </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={() => setSettingsOpen(true)}
           >
-            <Settings2 className="mr-1 h-4 w-4" />
-            设置
+            <Settings2 aria-hidden="true" />
+            {t('aiTools.autoFill.fill.settings')}
           </Button>
           <Button
+            variant="outline"
             size="sm"
             onClick={handleAIFill}
             disabled={isLoading || aiFilling || placeholderKeys.length === 0}
-            className="border-0 bg-linear-to-r from-violet-500 to-purple-500 text-white hover:from-violet-600 hover:to-purple-600"
           >
             {aiFilling ? (
-              <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+              <Spinner size="sm" />
             ) : (
-              <Sparkles className="mr-1 h-4 w-4" />
+              <Sparkles aria-hidden="true" />
             )}
-            AI 填写
-          </Button>
-          <Button variant="ghost" size="sm" onClick={resetForm}>
-            <RotateCcw className="h-4 w-4" />
+            {t('aiTools.autoFill.fill.aiFill')}
           </Button>
         </div>
       </div>
 
-      {/* 状态信息 */}
-      <div className="flex flex-wrap items-center gap-3 text-sm">
-        <div className="flex items-center gap-1.5 rounded-md bg-background-subtle px-2.5 py-1">
-          <span className="text-text-secondary">模型:</span>
-          <span className="font-medium text-text-primary">
-            {llmConfig.llm_name || '未选择'}
+      <div className="flex flex-wrap items-center gap-x-space-md gap-y-space-xs text-sm">
+        <p className="flex items-center gap-space-xs">
+          <span className="text-text-secondary">
+            {t('aiTools.autoFill.fill.model')}
           </span>
-        </div>
-        {mcpConfig.mcp_ids.length > 0 && (
-          <div className="flex items-center gap-1.5 rounded-md bg-background-subtle px-2.5 py-1">
-            <PlugZap className="h-3.5 w-3.5 text-text-secondary" />
-            <span className="font-medium text-text-primary">
-              {mcpConfig.mcp_ids.length} MCP
-            </span>
-          </div>
-        )}
+          <span className="font-medium text-text-primary">
+            {llmConfig.llm_name || t('aiTools.autoFill.fill.noModel')}
+          </span>
+        </p>
+        {mcpConfig.mcp_ids.length > 0 ? (
+          <p className="flex items-center gap-space-xs text-text-secondary">
+            <PlugZap className="size-icon-xs" aria-hidden="true" />
+            {t('aiTools.autoFill.fill.mcpCount', {
+              count: mcpConfig.mcp_ids.length,
+            })}
+          </p>
+        ) : null}
       </div>
 
-      {/* 验证错误 */}
-      {validationErrors.length > 0 && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            <ul className="list-inside list-disc space-y-1">
-              {validationErrors.slice(0, 3).map((err) => (
-                <li key={err}>{err}</li>
-              ))}
-              {validationErrors.length > 3 && (
-                <li>还有 {validationErrors.length - 3} 个字段未填写</li>
-              )}
-            </ul>
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {/* 主内容区 - Tabs */}
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
-        <div className="mb-4 flex items-center justify-between gap-4">
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => setActiveTab(value as 'form' | 'json')}
+      >
+        <div className="mb-space-base flex flex-wrap items-center justify-between gap-space-sm">
           <TabsList>
-            <TabsTrigger value="form" className="gap-1.5">
-              <FormInput className="h-4 w-4" />
-              表单
+            <TabsTrigger value="form">
+              <FormInput aria-hidden="true" />
+              {t('aiTools.autoFill.fill.tabs.form')}
             </TabsTrigger>
-            <TabsTrigger value="json" className="gap-1.5">
-              <Code2 className="h-4 w-4" />
-              JSON
+            <TabsTrigger value="json">
+              <Code2 aria-hidden="true" />
+              {t('aiTools.autoFill.fill.tabs.json')}
             </TabsTrigger>
           </TabsList>
-
-          {activeTab === 'form' && (
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <Search className="absolute top-1/2 left-2.5 h-4 w-4 -translate-y-1/2 text-text-secondary" />
-                <Input
-                  value={searchKey}
-                  onChange={(e) => setSearchKey(e.target.value)}
-                  placeholder="搜索字段..."
-                  inputSize="sm"
-                  className="w-[160px] pl-8"
-                />
-              </div>
-              <label className="flex cursor-pointer items-center gap-2 text-sm text-text-secondary">
+          {activeTab === 'form' ? (
+            <div className="flex items-center gap-space-sm">
+              <Input
+                value={searchKey}
+                onChange={(event) => setSearchKey(event.target.value)}
+                placeholder={t('aiTools.autoFill.fill.searchFields')}
+                aria-label={t('aiTools.autoFill.fill.searchFields')}
+                inputSize="sm"
+                leftIcon={<Search className="size-icon-sm" />}
+                className="w-40"
+              />
+              <label className="flex cursor-pointer items-center gap-space-xs text-sm text-text-secondary">
                 <Switch
                   checked={showOnlyEmpty}
                   onCheckedChange={setShowOnlyEmpty}
-                  className="scale-90"
                 />
-                仅看未填
+                {t('aiTools.autoFill.fill.onlyEmpty')}
               </label>
             </div>
-          )}
+          ) : null}
         </div>
 
         <TabsContent value="form" className="mt-0">
-          {placeholderKeys.length === 0 ? (
-            <div className="py-12 text-center text-text-secondary">
-              文档中没有检测到占位符
-            </div>
-          ) : filteredKeys.length === 0 ? (
-            <div className="py-12 text-center text-text-secondary">
-              没有匹配的字段
-            </div>
+          {placeholderKeys.length === 0 || filteredKeys.length === 0 ? (
+            <p className="py-space-2xl text-center text-sm text-text-secondary">
+              {placeholderKeys.length === 0
+                ? t('aiTools.autoFill.fill.noPlaceholders')
+                : t('aiTools.autoFill.fill.noMatches')}
+            </p>
           ) : (
-            <div
-              className="-mr-2 max-h-[50vh] overflow-auto pr-2"
-              style={{ WebkitOverflowScrolling: 'touch' }}
-            >
-              <div className="grid gap-4 sm:grid-cols-2">
-                {filteredKeys.map((k) => (
-                  <div key={k} className="space-y-1.5">
-                    <label className="block truncate text-sm font-medium text-text-primary">
-                      {k}
-                    </label>
-                    <Input
-                      value={formData[k] || ''}
-                      onChange={(e) => handleFormChange(k, e.target.value)}
-                      className={cn(!formData[k] && 'border-dashed')}
-                    />
-                  </div>
-                ))}
-              </div>
+            <div className="grid gap-space-base sm:grid-cols-2">
+              {filteredKeys.map((key) => (
+                <div key={key} className="flex min-w-0 flex-col gap-space-xs">
+                  <Label htmlFor={`placeholder-${key}`} className="truncate">
+                    {key}
+                  </Label>
+                  <Input
+                    id={`placeholder-${key}`}
+                    value={formData[key] || ''}
+                    onChange={(event) =>
+                      setForm({ ...formData, [key]: event.target.value })
+                    }
+                  />
+                </div>
+              ))}
             </div>
           )}
         </TabsContent>
 
-        <TabsContent value="json" className="mt-0 space-y-4">
+        <TabsContent value="json" className="mt-0 flex flex-col gap-space-base">
           <div className="relative">
             <Textarea
               value={jsonInput}
-              onChange={(e) => handleJsonChange(e.target.value)}
-              className="min-h-[240px] resize-none font-mono text-sm"
+              onChange={(event) => handleJsonChange(event.target.value)}
+              aria-label={t('aiTools.autoFill.fill.tabs.json')}
+              className="min-h-60 resize-none font-mono text-sm"
             />
             <Button
               variant="ghost"
-              size="sm"
-              onClick={copyJson}
-              className="absolute top-2 right-2"
+              size="icon-sm"
+              aria-label={t('aiTools.autoFill.fill.copyJson')}
+              onClick={() =>
+                copyToClipboardWithFeedback(
+                  jsonInput,
+                  t('aiTools.autoFill.fill.jsonCopied'),
+                  t('aiTools.autoFill.fill.copyFailed'),
+                )
+              }
+              className="absolute top-space-xs right-space-xs"
             >
-              <Copy className="h-4 w-4" />
+              <Copy aria-hidden="true" />
             </Button>
           </div>
-
-          {aiRawOutput && (
-            <div className="overflow-hidden rounded-lg border border-border-default">
-              <button
-                onClick={() => setShowAiRaw((v) => !v)}
-                className="flex w-full items-center justify-between bg-background-subtle px-4 py-2.5 transition-colors hover:bg-muted"
-              >
-                <span className="flex items-center gap-2 text-sm font-medium">
-                  <Sparkles className="h-4 w-4 text-purple-500" />
-                  AI 原始输出
+          {aiRawOutput ? (
+            <details className="group rounded-radius-lg border border-border-default">
+              <summary className="flex cursor-pointer list-none items-center gap-space-xs px-space-base py-space-sm text-sm font-medium text-text-primary hover:bg-state-hover [&::-webkit-details-marker]:hidden">
+                <Sparkles
+                  className="size-icon-sm text-text-tertiary"
+                  aria-hidden="true"
+                />
+                <span className="flex-1">
+                  {t('aiTools.autoFill.fill.rawOutput')}
                 </span>
-                {showAiRaw ? (
-                  <ChevronUp className="h-4 w-4" />
-                ) : (
-                  <ChevronDown className="h-4 w-4" />
-                )}
-              </button>
-              {showAiRaw && (
-                <div className="bg-background-body p-4">
-                  <pre className="max-h-40 overflow-auto text-xs whitespace-pre-wrap text-text-secondary">
-                    {aiRawOutput}
-                  </pre>
-                </div>
-              )}
-            </div>
-          )}
+                <ChevronDown
+                  className="size-icon-sm transition-transform group-open:rotate-180 motion-reduce:transition-none"
+                  aria-hidden="true"
+                />
+              </summary>
+              <pre className="max-h-40 overflow-auto border-t border-border-subtle p-space-base text-xs whitespace-pre-wrap text-text-secondary">
+                {aiRawOutput}
+              </pre>
+            </details>
+          ) : null}
         </TabsContent>
       </Tabs>
 
-      {/* 提交按钮 */}
-      <div className="flex justify-end border-t border-border-default pt-4">
+      <div className="flex justify-end border-t border-border-subtle pt-space-base">
         <Button
           onClick={fillDocument}
           disabled={isLoading || placeholderKeys.length === 0}
           size="lg"
         >
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              正在填充...
-            </>
-          ) : (
-            <>
-              <Save className="mr-2 h-4 w-4" />
-              生成文档
-            </>
-          )}
+          {isLoading ? <Spinner size="sm" /> : <Save aria-hidden="true" />}
+          {isLoading
+            ? t('aiTools.autoFill.fill.generating')
+            : t('aiTools.autoFill.fill.generate')}
         </Button>
       </div>
 
-      {/* 设置弹窗 */}
-      <Modal
+      <DataInputSettingsDialog
         open={settingsOpen}
-        onClose={() => setSettingsOpen(false)}
-        title="AI 填写设置"
-        description="配置模型和提示词参数"
-        size="lg"
-      >
-        <div className="space-y-4">
-          <Tabs
-            value={settingsTab}
-            onValueChange={(v) => setSettingsTab(v as any)}
-          >
-            <TabsList className="mb-4 w-full *:flex-1">
-              <TabsTrigger value="llm">模型</TabsTrigger>
-              <TabsTrigger value="prompt">提示词</TabsTrigger>
-              <TabsTrigger value="mcp">高级</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="llm" className="space-y-4">
-              <div>
-                <ChatModelSelector
-                  models={myLLMs}
-                  {...modelRequest}
-                  selectedModelName={llmConfig.llm_name}
-                  onSelect={(name) =>
-                    setLlmConfig((prev) => ({ ...prev, llm_name: name || '' }))
-                  }
-                  modelTypes={['chat']}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="mb-1.5 block text-sm text-text-secondary">
-                    Temperature
-                  </label>
-                  <Input
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    max="1"
-                    value={llmConfig.temperature}
-                    onChange={(e) =>
-                      setLlmConfig((prev) => ({
-                        ...prev,
-                        temperature: Number(e.target.value),
-                      }))
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-sm text-text-secondary">
-                    Max Tokens
-                  </label>
-                  <Input
-                    type="number"
-                    min="256"
-                    max="4096"
-                    value={llmConfig.max_tokens}
-                    onChange={(e) =>
-                      setLlmConfig((prev) => ({
-                        ...prev,
-                        max_tokens: Number(e.target.value),
-                      }))
-                    }
-                  />
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="prompt" className="space-y-4">
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-text-primary">
-                  系统提示词
-                </label>
-                <Textarea
-                  className="min-h-[80px] resize-none"
-                  value={promptConfig.systemPrompt}
-                  onChange={(e) =>
-                    setPromptConfig((prev) => ({
-                      ...prev,
-                      systemPrompt: e.target.value,
-                    }))
-                  }
-                  placeholder={DEFAULT_SYSTEM_PROMPT}
-                />
-                <p className="mt-1.5 text-xs text-text-secondary">
-                  为空时将使用默认提示词
-                </p>
-              </div>
-
-              <UserInputSection
-                userInputMode={userInputMode}
-                setUserInputMode={setUserInputMode}
-                userInput={promptConfig.userInput}
-                onUserInputChange={(value) =>
-                  setPromptConfig((prev) => ({ ...prev, userInput: value }))
-                }
-                uploadedFiles={uploadedFiles}
-                setUploadedFiles={setUploadedFiles}
-                dataSourcePanel={{
-                  dataSources,
-                  setDataSources,
-                  showAddDataSource,
-                  setShowAddDataSource,
-                  newDataSourceType,
-                  setNewDataSourceType,
-                  newDataSourceForm,
-                  setNewDataSourceForm,
-                }}
-              />
-            </TabsContent>
-
-            <TabsContent value="mcp" className="space-y-4">
-              <div>
-                <div className="mb-2 flex items-center gap-2">
-                  <label className="text-sm font-medium text-text-primary">
-                    MCP 工具
-                  </label>
-                  {mcpLoading && (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin text-text-secondary" />
-                  )}
-                </div>
-                <ScrollArea className="h-32 rounded-md border border-border-default p-2">
-                  {mcpServers.length === 0 ? (
-                    <div className="py-4 text-center text-sm text-text-secondary">
-                      暂无可用 MCP
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {mcpServers.map((server) => (
-                        <label
-                          key={server.id}
-                          className="flex cursor-pointer items-center gap-2 text-sm"
-                        >
-                          <Checkbox
-                            checked={mcpConfig.mcp_ids.includes(server.id)}
-                            onCheckedChange={(checked) => {
-                              setMcpConfig((prev) => ({
-                                ...prev,
-                                mcp_ids: checked
-                                  ? [...prev.mcp_ids, server.id]
-                                  : prev.mcp_ids.filter(
-                                      (id) => id !== server.id,
-                                    ),
-                              }))
-                            }}
-                          />
-                          <span className="text-text-primary">
-                            {server.name}
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-                  )}
-                </ScrollArea>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="mb-1.5 block text-sm text-text-secondary">
-                    超时时间（秒）
-                  </label>
-                  <Input
-                    type="number"
-                    min="1"
-                    max="60"
-                    value={mcpConfig.mcp_timeout}
-                    onChange={(e) =>
-                      setMcpConfig((prev) => ({
-                        ...prev,
-                        mcp_timeout: Number(e.target.value),
-                      }))
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-sm text-text-secondary">
-                    工具调用详情
-                  </label>
-                  <div className="flex h-9 items-center">
-                    <Switch
-                      checked={mcpConfig.verbose_tool_use}
-                      onCheckedChange={(checked) =>
-                        setMcpConfig((prev) => ({
-                          ...prev,
-                          verbose_tool_use: checked,
-                        }))
-                      }
-                    />
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
-          </Tabs>
-
-          <div className="flex justify-end gap-2 border-t border-border-default pt-2">
-            <Button variant="outline" onClick={() => setSettingsOpen(false)}>
-              取消
-            </Button>
-            <Button onClick={() => setSettingsOpen(false)}>确定</Button>
-          </div>
-        </div>
-      </Modal>
+        onOpenChange={setSettingsOpen}
+        llmConfig={llmConfig}
+        setLlmConfig={setLlmConfig}
+        mcpConfig={mcpConfig}
+        setMcpConfig={setMcpConfig}
+        promptConfig={promptConfig}
+        setPromptConfig={setPromptConfig}
+        userInputMode={userInputMode}
+        setUserInputMode={setUserInputMode}
+        uploadedFiles={uploadedFiles}
+        setUploadedFiles={setUploadedFiles}
+      />
     </div>
   )
 }
