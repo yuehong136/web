@@ -122,12 +122,10 @@ export function DataTable<T>({
       aria-label={label}
       data-slot="data-table"
       wrapperClassName={cn('min-w-0', className)}
-      className="text-sm"
     >
       <TableHeader
         className={cn(
           stickyHeader && 'sticky top-0 z-10 bg-background-surface',
-          '[&_tr]:border-border-subtle',
         )}
       >
         <TableRow className="hover:bg-transparent">
@@ -149,7 +147,7 @@ export function DataTable<T>({
               key={column.key}
               style={column.width ? { width: column.width } : undefined}
               className={cn(
-                'h-auto px-space-base py-space-xs text-xs font-medium whitespace-nowrap text-text-tertiary',
+                'h-auto px-space-base py-space-xs whitespace-nowrap',
                 index === 0 && !selection && 'pl-space-md',
                 ALIGN[column.align ?? 'start'],
                 column.hideBelow && HIDE[column.hideBelow],
@@ -190,7 +188,7 @@ export function DataTable<T>({
                 aria-current={isActive || undefined}
                 onClick={onRowClick ? rowClick(row) : undefined}
                 className={cn(
-                  'group/row border-border-subtle hover:bg-state-hover data-[state=selected]:bg-state-selected-bg',
+                  'group/row',
                   isActive && 'bg-state-selected-bg',
                   onRowClick && 'cursor-pointer',
                 )}
