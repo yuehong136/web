@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { useChatModelOptions } from '@/hooks/use-llm-request'
-import { SegmentedChoice } from '@/pages/agent/form/components/segmented-choice'
+import { SegmentedControl } from '@/components/ui/segmented-control'
 import type { SkeletonSchema } from '../../types'
 import { ModelSelect } from './model-select'
 import { useGenerateSkeleton } from './use-generate-skeleton'
@@ -157,7 +157,8 @@ export function AiSkeletonDialog({
             <Label id={modeLabelId} className="text-xs text-text-secondary">
               {t('flow.htmlReportAiExtractionMode', 'Extraction mode')}
             </Label>
-            <SegmentedChoice
+            <SegmentedControl
+              fullWidth
               aria-labelledby={modeLabelId}
               value={mode}
               onValueChange={setMode}

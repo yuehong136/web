@@ -1,7 +1,7 @@
 import React from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '@/stores/auth'
-import { Loading } from '@/components/ui/loading'
+import { Spinner } from '@/components/ui/spinner'
 import { ROUTES } from '@/constants'
 import { RouteErrorKind, RouteRecoveryPage } from '@/components/routing'
 
@@ -26,7 +26,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <Loading variant="spinner" size="lg" />
+        <Spinner size="lg" />
       </div>
     )
   }

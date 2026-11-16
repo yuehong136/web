@@ -10,7 +10,12 @@ import {
   Workflow,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Dropdown, DropdownItem } from '@/components/ui/dropdown'
+import {
+  ActionMenu,
+  ActionMenuContent,
+  ActionMenuItem,
+  ActionMenuTrigger,
+} from '@/components/ui/action-menu'
 import { cn } from '@/lib/utils'
 import type { SearchAppListItem } from '@/types/search'
 import {
@@ -104,27 +109,27 @@ const SearchGridCard: React.FC<SearchGridCardProps> = ({
           </div>
 
           <div onClick={(e) => e.stopPropagation()}>
-            <Dropdown
-              trigger={
-                <Button variant="ghost" size="icon-sm">
-                  <MoreVertical className="h-4 w-4" />
+            <ActionMenu>
+              <ActionMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label={t('common.more')}
+                >
+                  <MoreVertical className="size-icon-sm" />
                 </Button>
-              }
-            >
-              <DropdownItem
-                icon={<Settings className="h-4 w-4" />}
-                onClick={() => onEdit(app.id)}
-              >
-                {t('searchPage.card.settings', '设置')}
-              </DropdownItem>
-              <DropdownItem
-                icon={<Trash2 className="h-4 w-4" />}
-                onClick={() => onDelete(app)}
-                danger
-              >
-                {t('searchPage.card.delete', '删除')}
-              </DropdownItem>
-            </Dropdown>
+              </ActionMenuTrigger>
+              <ActionMenuContent align="end">
+                <ActionMenuItem onSelect={() => onEdit(app.id)}>
+                  <Settings className="size-icon-sm" />
+                  {t('searchPage.card.settings', '设置')}
+                </ActionMenuItem>
+                <ActionMenuItem danger onSelect={() => onDelete(app)}>
+                  <Trash2 className="size-icon-sm" />
+                  {t('searchPage.card.delete', '删除')}
+                </ActionMenuItem>
+              </ActionMenuContent>
+            </ActionMenu>
           </div>
         </div>
 

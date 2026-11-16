@@ -9,7 +9,7 @@ import {
   ArrowLeft,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { NavigationTooltip } from '@/components/ui/navigation-tooltip'
+import { Tooltip } from '@/components/ui/tooltip'
 import {
   Sheet,
   SheetClose,
@@ -84,7 +84,15 @@ const RailLinks = ({
             : currentPath === item.href
           return (
             <li key={item.href}>
-              <NavigationTooltip content={item.title} enabled={collapsed}>
+              <Tooltip
+                content={item.title}
+                side="right"
+                sideOffset={12}
+                delayDuration={100}
+                asChild
+                portal
+                disabled={!collapsed}
+              >
                 <Link
                   to={item.href}
                   onClick={() => {
@@ -119,7 +127,7 @@ const RailLinks = ({
                     </span>
                   )}
                 </Link>
-              </NavigationTooltip>
+              </Tooltip>
             </li>
           )
         })}
@@ -175,7 +183,15 @@ export const ContextRail = ({
       >
         {backLink && (
           <div className="px-space-sm pt-space-sm">
-            <NavigationTooltip content={backLink.label} enabled={collapsed}>
+            <Tooltip
+              content={backLink.label}
+              side="right"
+              sideOffset={12}
+              delayDuration={100}
+              asChild
+              portal
+              disabled={!collapsed}
+            >
               <Button
                 asChild
                 variant="ghost"
@@ -192,7 +208,7 @@ export const ContextRail = ({
                   )}
                 </Link>
               </Button>
-            </NavigationTooltip>
+            </Tooltip>
           </div>
         )}
         <div
@@ -210,8 +226,13 @@ export const ContextRail = ({
           >
             {title}
           </span>
-          <NavigationTooltip
+          <Tooltip
             content={collapsed ? labels.expand : labels.collapse}
+            side="right"
+            sideOffset={12}
+            delayDuration={100}
+            asChild
+            portal
           >
             <Button
               variant="ghost"
@@ -227,7 +248,7 @@ export const ContextRail = ({
                 <PanelLeftClose className="size-icon-sm" />
               )}
             </Button>
-          </NavigationTooltip>
+          </Tooltip>
         </div>
         <RailLinks
           groups={groups}

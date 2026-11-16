@@ -20,7 +20,8 @@ import { cn } from '@/lib/utils'
  * - green: 绿色 (用于情景记忆等标签)
  */
 const badgeVariants = cva(
-  'inline-flex shrink-0 items-center rounded-full px-2 py-1 text-xs font-medium whitespace-nowrap transition-colors focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-hidden',
+  // DreamJira lozenge: 4px corners, 12/16 medium text, a tight inline box.
+  'inline-flex max-w-full shrink-0 items-center gap-space-xs rounded-radius-sm px-space-sm py-space-2xs text-xs leading-4 font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:ring-offset-2 focus-visible:outline-hidden',
   {
     variants: {
       variant: {
@@ -32,7 +33,7 @@ const badgeVariants = cva(
           'bg-components-badge-success-bg text-components-badge-success-text',
         warning:
           'bg-components-badge-warning-bg text-components-badge-warning-text',
-        outline: 'border border-border-default text-text-primary',
+        outline: 'border border-border-default text-text-secondary',
         blue: 'bg-components-badge-blue-bg text-components-badge-blue-text',
         orange:
           'bg-components-badge-orange-bg text-components-badge-orange-text',

@@ -10,16 +10,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { PageEmptyState } from '@/components/patterns/page-states'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { MemoryStatusBadge, MemoryTypeBadge } from './memory-labels'
 import {
   getMemoryEntries,
@@ -163,44 +154,27 @@ export function MemoryMessageFeed({
           })}
         </div>
       )}
-      <AlertDialog
+      <ConfirmDialog
         open={!!forgetting}
         onOpenChange={(open) => {
           if (!open && !busy) setForgetting(null)
         }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {t('memory.messages.forgetTitle')}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {t('memory.workspace.forgetExplanation')}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={busy}>
-              {t('common.cancel')}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              variant="destructive"
-              disabled={busy}
-              onClick={async (event) => {
-                event.preventDefault()
-                if (!forgetting) return
-                try {
-                  await onForget(forgetting.message_id)
-                  setForgetting(null)
-                } catch {
-                  /* The mutation owns feedback; retain the selected record for retry. */
-                }
-              }}
-            >
-              {busy ? t('common.loading') : t('memory.messages.forget')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        variant="destructive"
+        pending={busy}
+        title={t('memory.messages.forgetTitle')}
+        description={t('memory.workspace.forgetExplanation')}
+        cancelLabel={t('common.cancel')}
+        confirmLabel={busy ? t('common.loading') : t('memory.messages.forget')}
+        onConfirm={async () => {
+          if (!forgetting) return
+          try {
+            await onForget(forgetting.message_id)
+            setForgetting(null)
+          } catch {
+            /* The mutation owns feedback; retain the selected record for retry. */
+          }
+        }}
+      />
     </>
   )
 }

@@ -5,16 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import type { FilterConfig, FilterValue } from '@/components/ui/filter-popover'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { useSearchStore } from '@/stores/search'
 import {
   useDeleteSearch,
@@ -263,7 +254,7 @@ export const SearchListPage: React.FC = () => {
                   ? [...Array(8)].map((_, i) => (
                       <div
                         key={i}
-                        className="bg-surface-secondary h-[180px] animate-pulse rounded-lg"
+                        className="h-[180px] animate-pulse rounded-lg bg-surface-secondary"
                       />
                     ))
                   : pageData.map((app) => (
@@ -307,31 +298,23 @@ export const SearchListPage: React.FC = () => {
         onClose={() => setShowCreateDialog(false)}
       />
 
-      <AlertDialog
+      <ConfirmDialog
         open={Boolean(deleteTarget)}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {t('searchPage.deleteDialog.title', '删除搜索应用')}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {t(
-                'searchPage.deleteDialog.description',
-                '将永久删除「{{name}}」，该操作不可撤销。',
-                { name: deleteTarget?.name || '' },
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={handleDelete}>
-              删除
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        variant="destructive"
+        title={t('searchPage.deleteDialog.title', '删除搜索应用')}
+        description={t(
+          'searchPage.deleteDialog.description',
+          '将永久删除「{{name}}」，该操作不可撤销。',
+          { name: deleteTarget?.name || '' },
+        )}
+        confirmLabel={t('common.delete')}
+        // The list closes the dialog at once; the request reports by toast.
+        onConfirm={() => {
+          void handleDelete()
+          setDeleteTarget(null)
+        }}
+      />
     </div>
   )
 }

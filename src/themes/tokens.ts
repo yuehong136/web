@@ -178,9 +178,6 @@ export interface DesignTokens
 
   'components-popover-bg': string
 
-  'components-tooltip-bg': string
-  'components-tooltip-text': string
-
   // ===== 导航和标签 =====
   'components-tabs-border': string
   'components-tabs-bg': string
@@ -377,10 +374,6 @@ export interface DesignTokens
 
   // ===== 设置页面专用 =====
   'components-settings-content-bg': string
-  'components-settings-section-bg': string
-  'components-settings-section-border': string
-  'components-settings-section-title': string
-  'components-settings-section-description': string
 
   // ===== 系统状态页面专用 =====
   'components-system-accent-bg': string
@@ -582,9 +575,6 @@ export const defaultTokens: DesignTokens = {
 
   'components-popover-bg': '',
 
-  'components-tooltip-bg': '',
-  'components-tooltip-text': '',
-
   // 导航和标签
   'components-tabs-border': '',
   'components-tabs-bg': '',
@@ -771,10 +761,6 @@ export const defaultTokens: DesignTokens = {
 
   // 设置页面专用
   'components-settings-content-bg': '',
-  'components-settings-section-bg': '',
-  'components-settings-section-border': '',
-  'components-settings-section-title': '',
-  'components-settings-section-description': '',
 
   // 系统状态页面专用
   'components-system-accent-bg': '',

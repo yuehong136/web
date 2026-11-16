@@ -456,6 +456,13 @@ export default {
         submit: '保存密码',
       },
     },
+    team: {
+      memberActions: '{{name}} 的成员操作',
+      makeAdmin: '设为管理员',
+      removeAdmin: '取消管理员',
+      revokeInvite: '撤销邀请',
+      removeMember: '移除成员',
+    },
     system: {
       live: '实时监控',
       updating: '正在更新',

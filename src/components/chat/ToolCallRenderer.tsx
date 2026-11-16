@@ -19,7 +19,7 @@ import { CodeBlock } from './CodeBlock'
 import { parseToolJsonObject } from '@/components/chat/tool-json'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Loading } from '@/components/ui/loading'
+import { Spinner } from '@/components/ui/spinner'
 import {
   Collapsible,
   CollapsibleContent,
@@ -192,7 +192,7 @@ const ResultContent: React.FC<{ result: any; status: string }> = ({
     if (status === 'running') {
       return (
         <div className="flex items-center gap-2">
-          <Loading size="sm" />
+          <Spinner size="sm" />
           <span
             className="text-sm"
             style={{ color: 'var(--color-text-secondary)' }}
@@ -457,7 +457,7 @@ export const ToolCallRenderer: React.FC<ToolCallRendererProps> = ({
           }}
         >
           <div className="flex items-center gap-2">
-            <Loading size="sm" />
+            <Spinner size="sm" />
             <span
               className="text-sm"
               style={{ color: 'var(--color-text-secondary)' }}
@@ -510,7 +510,7 @@ export const ToolCallRenderer: React.FC<ToolCallRendererProps> = ({
           )}
           {isAnalyzing && (
             <div className="flex items-center gap-1.5">
-              <Loading size="sm" />
+              <Spinner size="sm" />
               <span
                 className="text-xs"
                 style={{ color: 'var(--color-text-secondary)' }}

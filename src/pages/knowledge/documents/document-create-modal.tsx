@@ -5,7 +5,15 @@ import {
   DocumentCreationMode,
   type CreatedDatasetDocument,
 } from '@/api/knowledge-rest'
-import { Button, Input, Modal, Switch } from '@/components/ui'
+import { Button, Input, Switch } from '@/components/ui'
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { toast } from '@/lib/toast'
 
 type CreateMode = DocumentCreationMode.WEB | DocumentCreationMode.EMPTY
@@ -87,85 +95,93 @@ export function DocumentCreateModal({
   }
 
   return (
-    <Modal
-      open
-      onClose={handleClose}
-      showCloseButton={!pending}
-      title={t(isWeb ? 'documentCreate.webTitle' : 'documentCreate.blankTitle')}
-      description={t(
-        isWeb
-          ? 'documentCreate.webDescription'
-          : 'documentCreate.blankDescription',
-      )}
-    >
-      <form
-        onSubmit={handleSubmit}
-        noValidate
-        className="gap-space-base flex flex-col"
-      >
-        <Input
-          label={t('documentCreate.name')}
-          value={name}
-          onChange={(event) => {
-            setName(event.target.value)
-            setNameError('')
-          }}
-          placeholder={t(
-            isWeb
-              ? 'documentCreate.webNamePlaceholder'
-              : 'documentCreate.blankNamePlaceholder',
-          )}
-          error={nameError}
-          disabled={pending}
-          required
-        />
-        {isWeb && (
-          <Input
-            label={t('documentCreate.url')}
-            type="url"
-            value={url}
-            onChange={(event) => {
-              setUrl(event.target.value)
-              setUrlError('')
-            }}
-            placeholder={t('documentCreate.urlPlaceholder')}
-            error={urlError}
-            disabled={pending}
-            required
-          />
-        )}
-        {isWeb && (
-          <div className="gap-space-base rounded-radius-lg bg-surface-secondary p-space-base flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-text-primary">
-                {t('documentCreate.parseAfterCreate')}
-              </p>
-              <p className="text-text-caption text-xs">
-                {t('documentCreate.parseAfterCreateDescription')}
-              </p>
-            </div>
-            <Switch
-              checked={parseAfterCreate}
-              onCheckedChange={setParseAfterCreate}
-              disabled={pending}
-              aria-label={t('documentCreate.parseAfterCreate')}
-            />
-          </div>
-        )}
-        <div className="gap-space-sm pt-space-base flex justify-end border-t border-border-subtle">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleClose}
-            disabled={pending}
+    <Dialog open onOpenChange={(next) => !next && handleClose()}>
+      <DialogContent size="md" showCloseButton={!pending}>
+        <DialogHeader>
+          <DialogTitle>
+            {t(isWeb ? 'documentCreate.webTitle' : 'documentCreate.blankTitle')}
+          </DialogTitle>
+          <DialogDescription>
+            {t(
+              isWeb
+                ? 'documentCreate.webDescription'
+                : 'documentCreate.blankDescription',
+            )}
+          </DialogDescription>
+        </DialogHeader>
+        <DialogBody>
+          <form
+            onSubmit={handleSubmit}
+            noValidate
+            className="flex flex-col gap-space-base"
           >
-            {t('knowledge.common.cancel')}
-          </Button>
-          <Button type="submit" loading={pending} disabled={pending}>
-            {t(pending ? 'documentCreate.creating' : 'documentCreate.create')}
-          </Button>
-        </div>
-      </form>
-    </Modal>
+            <Input
+              label={t('documentCreate.name')}
+              value={name}
+              onChange={(event) => {
+                setName(event.target.value)
+                setNameError('')
+              }}
+              placeholder={t(
+                isWeb
+                  ? 'documentCreate.webNamePlaceholder'
+                  : 'documentCreate.blankNamePlaceholder',
+              )}
+              error={nameError}
+              disabled={pending}
+              required
+            />
+            {isWeb && (
+              <Input
+                label={t('documentCreate.url')}
+                type="url"
+                value={url}
+                onChange={(event) => {
+                  setUrl(event.target.value)
+                  setUrlError('')
+                }}
+                placeholder={t('documentCreate.urlPlaceholder')}
+                error={urlError}
+                disabled={pending}
+                required
+              />
+            )}
+            {isWeb && (
+              <div className="flex items-center justify-between gap-space-base rounded-radius-lg bg-surface-secondary p-space-base">
+                <div>
+                  <p className="text-sm font-medium text-text-primary">
+                    {t('documentCreate.parseAfterCreate')}
+                  </p>
+                  <p className="text-xs text-text-caption">
+                    {t('documentCreate.parseAfterCreateDescription')}
+                  </p>
+                </div>
+                <Switch
+                  checked={parseAfterCreate}
+                  onCheckedChange={setParseAfterCreate}
+                  disabled={pending}
+                  aria-label={t('documentCreate.parseAfterCreate')}
+                />
+              </div>
+            )}
+            <div className="flex justify-end gap-space-sm border-t border-border-subtle pt-space-base">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleClose}
+                disabled={pending}
+              >
+                {t('knowledge.common.cancel')}
+              </Button>
+              <Button type="submit" loading={pending} disabled={pending}>
+                {t(
+                  pending ? 'documentCreate.creating' : 'documentCreate.create',
+                )}
+              </Button>
+            </div>
+          </form>
+        </DialogBody>
+      </DialogContent>
+    </Dialog>
   )
 }

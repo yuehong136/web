@@ -486,6 +486,13 @@ export default {
         submit: 'Save password',
       },
     },
+    team: {
+      memberActions: 'Member actions for {{name}}',
+      makeAdmin: 'Make admin',
+      removeAdmin: 'Remove admin',
+      revokeInvite: 'Revoke invitation',
+      removeMember: 'Remove member',
+    },
     system: {
       live: 'Live monitoring',
       updating: 'Updating',

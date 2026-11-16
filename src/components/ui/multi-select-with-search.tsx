@@ -139,20 +139,16 @@ export const MultiSelectWithSearch = forwardRef<
             ref={ref}
             disabled={disabled}
             className={cn(
-              'group h-auto min-h-10 w-full justify-between border border-border bg-transparent px-3 py-1.5 font-normal outline-hidden outline-offset-0 hover:bg-state-hover focus-visible:border-components-select-border-focus focus-visible:ring-1 focus-visible:ring-state-focus/30 [&_svg]:pointer-events-auto',
+              'group h-auto min-h-[var(--control-height)] w-full justify-between border border-components-select-border bg-components-select-bg px-[var(--control-padding-x)] py-space-2xs font-normal text-components-select-text outline-hidden outline-offset-0 hover:border-components-input-border-hover hover:bg-state-hover focus-visible:border-components-select-border-focus focus-visible:ring-1 focus-visible:ring-state-focus focus-visible:ring-offset-0 data-[state=open]:border-components-select-border-focus [&_svg]:pointer-events-auto',
               triggerClassName,
             )}
           >
             {values.length > 0 ? (
-              <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1">
+              <div className="flex min-w-0 flex-1 flex-wrap items-center gap-space-xs">
                 {selectedLabels
                   .slice(0, maxDisplayItems)
                   .map(({ value, label }) => (
-                    <Badge
-                      key={value}
-                      variant="secondary"
-                      className="px-2 py-0.5 text-xs"
-                    >
+                    <Badge key={value} variant="secondary">
                       {label}
                       <XIcon
                         className="ml-1 h-3 w-3 cursor-pointer hover:text-status-error"
@@ -161,7 +157,7 @@ export const MultiSelectWithSearch = forwardRef<
                     </Badge>
                   ))}
                 {values.length > maxDisplayItems && (
-                  <Badge variant="secondary" className="px-2 py-0.5 text-xs">
+                  <Badge variant="secondary">
                     +{values.length - maxDisplayItems}
                   </Badge>
                 )}
@@ -187,17 +183,17 @@ export const MultiSelectWithSearch = forwardRef<
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className="w-full min-w-[var(--radix-popper-anchor-width)] border-border p-0"
+          className="w-full min-w-[var(--radix-popper-anchor-width)] rounded-radius-xl border-border-default p-0"
           align="start"
         >
-          <Command className="p-4">
+          <Command className="p-space-xs">
             {options && options.length > 0 && (
               <CommandInput
                 placeholder="Search..."
                 className="placeholder:text-text-tertiary"
               />
             )}
-            <CommandList className="mt-2 outline-hidden">
+            <CommandList className="mt-space-xs outline-hidden">
               <CommandEmpty>
                 <div className="text-text-tertiary">{emptyText}</div>
               </CommandEmpty>
@@ -219,7 +215,7 @@ export const MultiSelectWithSearch = forwardRef<
                             disabled={option.disabled}
                             onSelect={() => handleSelect(option.value)}
                             className={cn(
-                              'min-h-9',
+                              'min-h-[var(--control-height)]',
                               values.includes(option.value)
                                 ? "bg-state-selected-bg data-[selected='true']:bg-state-selected-bg"
                                 : '',
@@ -250,7 +246,7 @@ export const MultiSelectWithSearch = forwardRef<
                       disabled={group.disabled}
                       onSelect={() => handleSelect(group.value!)}
                       className={cn(
-                        'min-h-9',
+                        'min-h-[var(--control-height)]',
                         values.includes(group.value)
                           ? "bg-state-selected-bg data-[selected='true']:bg-state-selected-bg"
                           : '',

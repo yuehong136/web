@@ -4,7 +4,14 @@ import { useTranslation } from 'react-i18next'
 import { Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Modal } from '@/components/ui/modal'
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
 import type { KnowledgeBase } from '@/types/api'
 import type { QuickEditValues } from './types'
@@ -63,13 +70,50 @@ export const KnowledgeQuickEditDialog: FC<KnowledgeEditDialogProps> = ({
   }
 
   return (
-    <Modal
-      open={open}
-      onClose={handleCancel}
-      title={t('knowledge.list.quickEdit.title')}
-      size="md"
-      footer={
-        <div className="flex items-center justify-end gap-space-sm">
+    <Dialog open={open} onOpenChange={(next) => !next && handleCancel()}>
+      <DialogContent size="md">
+        <DialogHeader>
+          <DialogTitle>{t('knowledge.list.quickEdit.title')}</DialogTitle>
+        </DialogHeader>
+        <DialogBody>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <div className="mb-2 block text-sm font-medium text-text-secondary">
+                {t('knowledge.list.quickEdit.fields.name')}
+                <span className="ml-1 text-status-error">*</span>
+              </div>
+              <Input
+                id="knowledge-quick-edit-name"
+                value={formData.name}
+                onChange={handleInputChange('name')}
+                placeholder={t(
+                  'knowledge.list.quickEdit.fields.namePlaceholder',
+                )}
+                title={t('knowledge.list.quickEdit.fields.nameTooltip')}
+                required
+              />
+              <p className="mt-1 text-sm text-text-tertiary">
+                {t('knowledge.list.quickEdit.fields.nameRule')}
+              </p>
+            </div>
+
+            <div>
+              <div className="mb-2 block text-sm font-medium text-text-secondary">
+                {t('knowledge.list.quickEdit.fields.description')}
+              </div>
+              <Textarea
+                id="knowledge-quick-edit-description"
+                value={formData.description}
+                onChange={handleInputChange('description')}
+                placeholder={t(
+                  'knowledge.list.quickEdit.fields.descriptionPlaceholder',
+                )}
+                rows={3}
+              />
+            </div>
+          </form>
+        </DialogBody>
+        <DialogFooter>
           <Button
             variant="outline"
             onClick={handleCancel}
@@ -84,43 +128,8 @@ export const KnowledgeQuickEditDialog: FC<KnowledgeEditDialogProps> = ({
           >
             {t('knowledge.list.quickEdit.actions.save')}
           </Button>
-        </div>
-      }
-    >
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <div className="mb-2 block text-sm font-medium text-text-secondary">
-            {t('knowledge.list.quickEdit.fields.name')}
-            <span className="ml-1 text-status-error">*</span>
-          </div>
-          <Input
-            id="knowledge-quick-edit-name"
-            value={formData.name}
-            onChange={handleInputChange('name')}
-            placeholder={t('knowledge.list.quickEdit.fields.namePlaceholder')}
-            title={t('knowledge.list.quickEdit.fields.nameTooltip')}
-            required
-          />
-          <p className="mt-1 text-sm text-text-tertiary">
-            {t('knowledge.list.quickEdit.fields.nameRule')}
-          </p>
-        </div>
-
-        <div>
-          <div className="mb-2 block text-sm font-medium text-text-secondary">
-            {t('knowledge.list.quickEdit.fields.description')}
-          </div>
-          <Textarea
-            id="knowledge-quick-edit-description"
-            value={formData.description}
-            onChange={handleInputChange('description')}
-            placeholder={t(
-              'knowledge.list.quickEdit.fields.descriptionPlaceholder',
-            )}
-            rows={3}
-          />
-        </div>
-      </form>
-    </Modal>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }

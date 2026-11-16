@@ -9,7 +9,7 @@ import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
-import { Loading } from '@/components/ui/loading'
+import { Spinner } from '@/components/ui/spinner'
 import { ROUTES } from '@/constants'
 import { useAuthStore } from '@/stores/auth'
 import { getSafeLoginRedirect } from '../login-redirect'
@@ -176,7 +176,7 @@ export const LoginForm: React.FC = () => {
         <Button type="submit" className="w-full" disabled={isLoading}>
           {isLoading ? (
             <>
-              <Loading variant="spinner" size="sm" className="mr-space-xs" />
+              <Spinner size="sm" className="mr-space-xs" />
               {t('auth.login.submitting')}
             </>
           ) : (

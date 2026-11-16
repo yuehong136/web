@@ -4,11 +4,9 @@
  */
 
 import React from 'react'
-import { Button } from '@/components/ui/button'
-import { Dropdown, DropdownItem } from '@/components/ui/dropdown'
-import { MoreVertical, Trash2, ShieldPlus, ShieldMinus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { RoleBadge } from './RoleBadge'
+import { TeamMemberActionsMenu } from './team-member-actions-menu'
 import { TenantRole, type TeamMember, type TeamPermissions } from '@/types/team'
 import type { TimeFormat } from '@/stores/team'
 import { formatTeamTime } from '../utils'
@@ -108,51 +106,13 @@ export const TeamMemberListRow: React.FC<TeamMemberListRowProps> = ({
       {/* 操作列 */}
       <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
         {hasActions && (
-          <Dropdown
-            trigger={
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                className="opacity-0 transition-opacity group-hover:opacity-100"
-              >
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            }
-          >
-            {canChangeRole &&
-              member.role === TenantRole.Normal &&
-              onChangeRole && (
-                <DropdownItem
-                  icon={<ShieldPlus className="h-4 w-4" />}
-                  onClick={() =>
-                    onChangeRole(member.user_id, member.nickname, member.role)
-                  }
-                >
-                  设为管理员
-                </DropdownItem>
-              )}
-            {canChangeRole &&
-              member.role === TenantRole.Admin &&
-              onChangeRole && (
-                <DropdownItem
-                  icon={<ShieldMinus className="h-4 w-4" />}
-                  onClick={() =>
-                    onChangeRole(member.user_id, member.nickname, member.role)
-                  }
-                >
-                  取消管理员
-                </DropdownItem>
-              )}
-            {canRemove && onRemove && (
-              <DropdownItem
-                icon={<Trash2 className="h-4 w-4" />}
-                onClick={() => onRemove(member.user_id, member.nickname)}
-                danger
-              >
-                {member.role === TenantRole.Invite ? '撤销邀请' : '移除成员'}
-              </DropdownItem>
-            )}
-          </Dropdown>
+          <TeamMemberActionsMenu
+            member={member}
+            canChangeRole={canChangeRole}
+            canRemove={canRemove}
+            onChangeRole={onChangeRole}
+            onRemove={onRemove}
+          />
         )}
       </div>
     </div>

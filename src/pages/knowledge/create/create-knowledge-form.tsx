@@ -8,7 +8,13 @@ import {
 import { ArrowRight, HelpCircle, Loader2, Sparkles } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
-import { CustomSelect } from '@/components/ui/custom-select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -138,13 +144,23 @@ export const CreateKnowledgeForm: FC<CreateKnowledgeFormProps> = ({
               <HelpCircle className="h-4 w-4 cursor-help text-text-tertiary hover:text-text-secondary" />
             </Tooltip>
           </div>
-          <CustomSelect
+          <Select
             disabled={isLoading}
-            onChange={(value) => updateField('language', value)}
-            options={languageOptions}
+            onValueChange={(value) => updateField('language', value)}
             placeholder={t('knowledge.create.fields.languagePlaceholder')}
             value={formData.language}
-          />
+          >
+            <SelectTrigger aria-label={t('knowledge.create.fields.language')}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {languageOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <EmbeddingModelSelector
@@ -165,15 +181,25 @@ export const CreateKnowledgeForm: FC<CreateKnowledgeFormProps> = ({
               <HelpCircle className="h-4 w-4 cursor-help text-text-tertiary hover:text-text-secondary" />
             </Tooltip>
           </div>
-          <CustomSelect
+          <Select
             disabled={isLoading}
-            onChange={(value) =>
+            onValueChange={(value) =>
               updateField('permission', value as KnowledgePermission)
             }
-            options={permissionOptions}
             placeholder={t('knowledge.create.fields.permissionPlaceholder')}
             value={formData.permission}
-          />
+          >
+            <SelectTrigger aria-label={t('knowledge.create.fields.permission')}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {permissionOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="flex items-start gap-space-sm rounded-radius-xl bg-status-info-subtle p-space-base">

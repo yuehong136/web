@@ -1,8 +1,20 @@
 import * as React from 'react'
-import { createPortal } from 'react-dom'
+import * as Menu from '@radix-ui/react-dropdown-menu'
 import { cn } from '@/lib/utils'
-import { useNearestPortalTheme, usePortalContainer } from './portal-theme'
+import {
+  ActionMenuContent,
+  ActionMenuShortcut,
+  menuItemClass,
+  menuLabelClass,
+  menuSeparatorClass,
+} from './action-menu'
 
+/**
+ * The long-standing DropdownMenu API on Radix DropdownMenu, so every menu
+ * shares ActionMenu's keyboard model (arrow keys, typeahead, Escape) and
+ * geometry. Items keep `onClick`; Radix runs it for pointer and keyboard
+ * selection alike.
+ */
 export interface DropdownMenuProps {
   children: React.ReactNode
   open?: boolean
@@ -26,18 +38,10 @@ export interface DropdownMenuItemProps extends React.ButtonHTMLAttributes<HTMLBu
   children: React.ReactNode
 }
 
-const DropdownMenuContext = React.createContext<
-  | {
-      isOpen: boolean
-      setIsOpen: (open: boolean) => void
-      closeDropdown?: () => void
-      triggerRef: React.RefObject<HTMLDivElement | null>
-    }
-  | undefined
->(undefined)
-
-const DROPDOWN_MENU_OFFSET = 8
-const DROPDOWN_VIEWPORT_MARGIN = 8
+const DropdownMenuOpenContext = React.createContext<{
+  open: boolean
+  setOpen: (open: boolean) => void
+} | null>(null)
 
 export const DropdownMenu: React.FC<DropdownMenuProps> = ({
   children,
@@ -46,25 +50,23 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({
 }) => {
   const [internalOpen, setInternalOpen] = React.useState(false)
   const isOpen = open ?? internalOpen
-  const setIsOpen = React.useCallback(
+  const setOpen = React.useCallback(
     (next: boolean) => {
       if (open === undefined) setInternalOpen(next)
       onOpenChange?.(next)
     },
     [open, onOpenChange],
   )
-  const triggerRef = React.useRef<HTMLDivElement>(null)
-
-  const closeDropdown = React.useCallback(() => setIsOpen(false), [setIsOpen])
-
+  const context = React.useMemo(
+    () => ({ open: isOpen, setOpen }),
+    [isOpen, setOpen],
+  )
   return (
-    <DropdownMenuContext.Provider
-      value={{ isOpen, setIsOpen, closeDropdown, triggerRef }}
-    >
-      <div ref={triggerRef} className="relative inline-block text-left">
+    <DropdownMenuOpenContext.Provider value={context}>
+      <Menu.Root open={isOpen} onOpenChange={setOpen}>
         {children}
-      </div>
-    </DropdownMenuContext.Provider>
+      </Menu.Root>
+    </DropdownMenuOpenContext.Provider>
   )
 }
 
@@ -72,29 +74,22 @@ export const DropdownMenuTrigger: React.FC<DropdownMenuTriggerProps> = ({
   asChild = false,
   children,
   className,
-  ...props
 }) => {
-  const context = React.useContext(DropdownMenuContext)
-  if (!context) {
-    throw new Error('DropdownMenuTrigger must be used within DropdownMenu')
-  }
-
-  const handleClick = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    context.setIsOpen(!context.isOpen)
-  }
-
-  if (asChild && React.isValidElement(children)) {
-    // 如果是asChild，我们需要clone children并添加onClick
-    return React.cloneElement(children, {
-      onClick: handleClick,
-    } as any)
-  }
-
+  const context = React.useContext(DropdownMenuOpenContext)
   return (
-    <button className={className} onClick={handleClick} {...props}>
+    <Menu.Trigger
+      asChild={asChild}
+      className={asChild ? undefined : className}
+      onClick={(event) => {
+        // Triggers sit inside clickable rows and cards; opening must not activate them.
+        event.stopPropagation()
+        // Radix opens on pointer down and on keys. A click without a pointer
+        // (assistive technology, scripted activation) would otherwise do nothing.
+        if (event.detail === 0) context?.setOpen(!context.open)
+      }}
+    >
       {children}
-    </button>
+    </Menu.Trigger>
   )
 }
 
@@ -102,153 +97,41 @@ export const DropdownMenuContent: React.FC<DropdownMenuContentProps> = ({
   align = 'right',
   className,
   children,
-}) => {
-  const context = React.useContext(DropdownMenuContext)
-  const dropdownRef = React.useRef<HTMLDivElement>(null)
-  const fallbackRef = React.useRef<HTMLDivElement>(null)
-  const [position, setPosition] = React.useState({ top: 0, left: 0 })
-  const portalContainer = usePortalContainer()
-  const theme = useNearestPortalTheme(
-    context?.triggerRef ?? fallbackRef,
-    Boolean(context?.isOpen),
-  )
+}) => (
+  <ActionMenuContent
+    align={align === 'right' ? 'end' : 'start'}
+    sideOffset={8}
+    className={cn('min-w-44', className)}
+  >
+    {children}
+  </ActionMenuContent>
+)
 
-  const isOpen = context?.isOpen
-  const triggerRef = context?.triggerRef
-  // 计算下拉菜单位置
-  const updatePosition = React.useCallback(() => {
-    if (!isOpen || !triggerRef?.current) {
-      return
-    }
-
-    const rect = triggerRef.current.getBoundingClientRect()
-    const menuWidth = dropdownRef.current?.offsetWidth ?? 180
-    const preferredLeft = align === 'right' ? rect.right - menuWidth : rect.left
-    const maxLeft = window.innerWidth - menuWidth - DROPDOWN_VIEWPORT_MARGIN
-
-    setPosition({
-      top: rect.bottom + DROPDOWN_MENU_OFFSET,
-      left: Math.min(
-        Math.max(DROPDOWN_VIEWPORT_MARGIN, preferredLeft),
-        Math.max(DROPDOWN_VIEWPORT_MARGIN, maxLeft),
-      ),
-    })
-  }, [align, isOpen, triggerRef])
-
-  React.useLayoutEffect(() => {
-    if (!context?.isOpen) {
-      return undefined
-    }
-
-    updatePosition()
-    window.addEventListener('resize', updatePosition)
-    return () => window.removeEventListener('resize', updatePosition)
-  }, [context?.isOpen, updatePosition])
-
-  // 处理点击外部关闭
-  React.useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node) &&
-        context?.triggerRef.current &&
-        !context.triggerRef.current.contains(event.target as Node)
-      ) {
-        context?.closeDropdown?.()
-      }
-    }
-
-    if (context?.isOpen) {
-      document.addEventListener('mousedown', handleClickOutside)
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- 只监听 context 具体字段，全量 context 作为依赖会被反复创建
-  }, [context?.isOpen, context?.closeDropdown, context?.triggerRef])
-
-  if (!context) {
-    throw new Error('DropdownMenuContent must be used within DropdownMenu')
-  }
-
-  if (!context.isOpen) {
-    return null
-  }
-
-  return createPortal(
-    <>
-      {/* Backdrop */}
-      <div
-        data-theme={theme}
-        className="fixed inset-0 z-[9998]"
-        onClick={() => context.closeDropdown?.()}
-      />
-
-      {/* Dropdown content */}
-      <div
-        data-theme={theme}
-        ref={dropdownRef}
-        className={cn(
-          'fixed z-[9999] min-w-[180px] rounded-radius-md border border-border-default bg-background-surface p-space-xs shadow-elevation-medium',
-          className,
-        )}
-        style={{
-          top: position.top,
-          left: position.left,
-        }}
-      >
-        {children}
-      </div>
-    </>,
-    portalContainer ?? document.body,
-  )
-}
-
-export const DropdownMenuItem: React.FC<DropdownMenuItemProps> = ({
-  className,
-  children,
-  onClick,
-  ...props
-}) => {
-  const context = React.useContext(DropdownMenuContext)
-
-  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (onClick) {
-      onClick(e)
-    }
-    // 自动关闭下拉框
-    context?.closeDropdown?.()
-  }
-
-  return (
+export const DropdownMenuItem = React.forwardRef<
+  HTMLButtonElement,
+  DropdownMenuItemProps
+>(({ className, children, disabled, type = 'button', ...props }, ref) => (
+  <Menu.Item asChild disabled={disabled}>
     <button
-      type="button"
+      ref={ref}
+      type={type}
+      disabled={disabled}
       className={cn(
-        'flex h-8 w-full items-center gap-space-sm rounded-radius-sm px-space-sm text-left text-sm font-medium text-text-primary transition-colors hover:bg-background-subtle disabled:pointer-events-none disabled:opacity-50 [&_svg]:h-icon-sm [&_svg]:w-icon-sm [&_svg]:shrink-0 [&_svg]:stroke-[1.75] [&_svg]:text-text-secondary',
+        menuItemClass,
+        'w-full text-left [&_svg]:text-text-secondary [&_svg:not([class*=size-])]:size-icon-sm',
         className,
       )}
-      onClick={handleClick}
       {...props}
     >
       {children}
     </button>
-  )
-}
+  </Menu.Item>
+))
+DropdownMenuItem.displayName = 'DropdownMenuItem'
 
 export const DropdownMenuSeparator: React.FC<{ className?: string }> = ({
   className,
-}) => {
-  return (
-    <div
-      className={cn(
-        'mx-space-xs my-space-xs h-px bg-border-default',
-        className,
-      )}
-      role="separator"
-    />
-  )
-}
+}) => <Menu.Separator className={cn(menuSeparatorClass, className)} />
 
 export interface DropdownMenuLabelProps {
   className?: string
@@ -258,16 +141,8 @@ export interface DropdownMenuLabelProps {
 export const DropdownMenuLabel: React.FC<DropdownMenuLabelProps> = ({
   className,
   children,
-}) => {
-  return (
-    <div
-      className={cn(
-        'px-2 py-1.5 text-sm font-semibold text-text-primary',
-        className,
-      )}
-      role="label"
-    >
-      {children}
-    </div>
-  )
-}
+}) => (
+  <Menu.Label className={cn(menuLabelClass, className)}>{children}</Menu.Label>
+)
+
+export const DropdownMenuShortcut = ActionMenuShortcut

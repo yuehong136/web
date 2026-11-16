@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { ConfirmModal } from '@/components/ui'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
 interface ChunkDeleteConfirmsProps {
   deleteConfirmOpen: boolean
@@ -28,32 +28,32 @@ export const ChunkDeleteConfirms = ({
 
   return (
     <>
-      <ConfirmModal
+      <ConfirmDialog
         open={deleteConfirmOpen}
-        onClose={() => {
-          if (!isPending) onDeleteConfirmClose()
+        onOpenChange={(next) => {
+          if (!next && !isPending) onDeleteConfirmClose()
         }}
         onConfirm={onDeleteConfirm}
-        loading={isPending}
+        pending={isPending}
         variant="destructive"
-        confirmText={t('common.delete')}
-        cancelText={t('common.cancel')}
+        confirmLabel={t('common.delete')}
+        cancelLabel={t('common.cancel')}
         title={t('knowledge.chunks.modal.deleteTitle')}
         description={t('knowledge.chunks.modal.deleteDescription', {
           id: deletingChunkId,
         })}
       />
 
-      <ConfirmModal
+      <ConfirmDialog
         open={deleteSelectedConfirmOpen}
-        onClose={() => {
-          if (!isPending) onDeleteSelectedConfirmClose()
+        onOpenChange={(next) => {
+          if (!next && !isPending) onDeleteSelectedConfirmClose()
         }}
         onConfirm={onDeleteSelectedConfirm}
-        loading={isPending}
+        pending={isPending}
         variant="destructive"
-        confirmText={t('common.delete')}
-        cancelText={t('common.cancel')}
+        confirmLabel={t('common.delete')}
+        cancelLabel={t('common.cancel')}
         title={t('knowledge.chunks.modal.bulkDeleteTitle')}
         description={t('knowledge.chunks.modal.bulkDeleteDescription', {
           count: selectedChunkCount,

@@ -194,9 +194,6 @@ export const lightTokens: DesignTokens = {
 
   'components-popover-bg': surfaces.light.elevated,
 
-  'components-tooltip-bg': '#1f2937',
-  'components-tooltip-text': '#ffffff',
-
   // ===== 导航和标签 =====
   'components-tabs-border': '#e5e7eb',
   'components-tabs-bg': '#f5f5f5',
@@ -391,10 +388,6 @@ export const lightTokens: DesignTokens = {
 
   // ===== 设置页面专用 =====
   'components-settings-content-bg': surfaces.light.surface,
-  'components-settings-section-bg': surfaces.light.surface,
-  'components-settings-section-border': surfaces.light.borderSubtle,
-  'components-settings-section-title': surfaces.light.text,
-  'components-settings-section-description': surfaces.light.secondary,
 
   // ===== 系统状态页面专用 =====
   'components-system-accent-bg': palette.light.selectionTint,
@@ -606,9 +599,6 @@ export const darkTokens: DesignTokens = {
 
   'components-popover-bg': surfaces.dark.elevated,
 
-  'components-tooltip-bg': '#0f172a',
-  'components-tooltip-text': surfaces.dark.text,
-
   // ===== 导航和标签 =====
   'components-tabs-border': '#475569',
   'components-tabs-bg': 'rgba(255, 255, 255, 0.06)',
@@ -803,10 +793,6 @@ export const darkTokens: DesignTokens = {
 
   // ===== 设置页面专用 =====
   'components-settings-content-bg': surfaces.dark.surface,
-  'components-settings-section-bg': surfaces.dark.surface,
-  'components-settings-section-border': surfaces.dark.borderSubtle,
-  'components-settings-section-title': surfaces.dark.text,
-  'components-settings-section-description': surfaces.dark.secondary,
 
   // ===== 系统状态页面专用 =====
   'components-system-accent-bg': palette.dark.selectionTint,

@@ -118,8 +118,7 @@ async function click(label: string) {
   await act(async () => button!.click())
 }
 function activeFilter() {
-  // The display-mode toggle in the toolbar also exposes aria-pressed; the
-  // status filter options live in the popover dialog.
+  // The status filter options live in the popover dialog.
   return document.querySelector('[role="dialog"] button[aria-pressed="true"]')
     ?.textContent
 }

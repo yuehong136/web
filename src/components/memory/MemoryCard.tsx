@@ -10,7 +10,12 @@ import {
   LockKeyhole,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Dropdown, DropdownItem } from '@/components/ui/dropdown'
+import {
+  ActionMenu,
+  ActionMenuContent,
+  ActionMenuItem,
+  ActionMenuTrigger,
+} from '@/components/ui/action-menu'
 import { EntityAvatar } from '@/components/patterns/entity-avatar'
 import { MemoryTypeBadge } from './memory-labels'
 import type { Memory } from '@/types/memory'
@@ -56,8 +61,8 @@ export function MemoryCard({
           </p>
         </div>
         <div className="relative z-10">
-          <Dropdown
-            trigger={
+          <ActionMenu>
+            <ActionMenuTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon-sm"
@@ -67,22 +72,18 @@ export function MemoryCard({
               >
                 <MoreHorizontal className="size-icon-sm" />
               </Button>
-            }
-          >
-            <DropdownItem
-              icon={<Pencil className="size-icon-sm" />}
-              onClick={() => onEdit?.(data)}
-            >
-              {t('common.edit')}
-            </DropdownItem>
-            <DropdownItem
-              danger
-              icon={<Trash2 className="size-icon-sm" />}
-              onClick={() => onDelete?.(data)}
-            >
-              {t('common.delete')}
-            </DropdownItem>
-          </Dropdown>
+            </ActionMenuTrigger>
+            <ActionMenuContent align="end">
+              <ActionMenuItem onSelect={() => onEdit?.(data)}>
+                <Pencil className="size-icon-sm" />
+                {t('common.edit')}
+              </ActionMenuItem>
+              <ActionMenuItem danger onSelect={() => onDelete?.(data)}>
+                <Trash2 className="size-icon-sm" />
+                {t('common.delete')}
+              </ActionMenuItem>
+            </ActionMenuContent>
+          </ActionMenu>
         </div>
       </div>
       <div className="flex-1 px-space-lg pb-space-lg">

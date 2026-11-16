@@ -4,10 +4,17 @@
  */
 
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { ViewToggle } from '@/components/ui/view-toggle'
-import { CustomSelect } from '@/components/ui/custom-select'
+import { SegmentedControl } from '@/components/ui/segmented-control'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   ResourceListContainer,
   ResourceListHeader,
@@ -22,7 +29,13 @@ import {
 } from 'lucide-react'
 import { useTeamStore } from '@/stores/team'
 import { useFilteredMembers } from './hooks'
-import type { TeamMember, TenantInfo, JoinedTeam, TenantRole, TeamPermissions } from '@/types/team'
+import type {
+  TeamMember,
+  TenantInfo,
+  JoinedTeam,
+  TenantRole,
+  TeamPermissions,
+} from '@/types/team'
 import {
   TeamMemberCard,
   TeamMemberListRow,
@@ -30,6 +43,12 @@ import {
   MemberSkeleton,
   TeamSelector,
 } from './components'
+
+const TIME_FORMAT_OPTIONS = [
+  { value: 'detailed', label: '详细时间' },
+  { value: 'compact', label: '简洁时间' },
+  { value: 'relative', label: '相对时间' },
+]
 
 interface TeamManagementTabProps {
   tenantInfo: TenantInfo | null
@@ -41,7 +60,11 @@ interface TeamManagementTabProps {
   permissions: TeamPermissions
   onSelectTenant: (tenantId: string) => void
   onRemoveMember: (userId: string, nickname: string) => void
-  onChangeRole: (userId: string, nickname: string, currentRole: TenantRole) => void
+  onChangeRole: (
+    userId: string,
+    nickname: string,
+    currentRole: TenantRole,
+  ) => void
   onOpenInviteDialog: () => void
 }
 
@@ -58,6 +81,7 @@ export const TeamManagementTab: React.FC<TeamManagementTabProps> = ({
   onChangeRole,
   onOpenInviteDialog,
 }) => {
+  const { t } = useTranslation()
   const {
     viewMode,
     setViewMode,
@@ -68,19 +92,23 @@ export const TeamManagementTab: React.FC<TeamManagementTabProps> = ({
   } = useTeamStore()
 
   const [memberSortDesc, setMemberSortDesc] = React.useState(true)
-  const filteredMembers = useFilteredMembers(members, memberSearchQuery, memberSortDesc)
+  const filteredMembers = useFilteredMembers(
+    members,
+    memberSearchQuery,
+    memberSortDesc,
+  )
 
   return (
-    <div className="flex-1 flex flex-col min-h-0">
+    <div className="flex min-h-0 flex-1 flex-col">
       {/* 团队选择器 + 工具栏 */}
-      <div className="flex items-center space-x-4 mb-4">
+      <div className="mb-4 flex items-center space-x-4">
         <TeamSelector
           ownTenant={tenantInfo}
           manageableTeams={manageableTeams}
           selectedTenantId={selectedTenantId}
           onSelectTenant={onSelectTenant}
         />
-        <div className="flex-1 max-w-md">
+        <div className="max-w-md flex-1">
           <Input
             type="search"
             placeholder="搜索成员..."
@@ -90,30 +118,37 @@ export const TeamManagementTab: React.FC<TeamManagementTabProps> = ({
           />
         </div>
         <div className="flex items-center space-x-2">
-          <CustomSelect
-            options={[
-              { value: 'detailed', label: '详细时间' },
-              { value: 'compact', label: '简洁时间' },
-              { value: 'relative', label: '相对时间' },
-            ]}
+          <Select
             value={timeFormat}
-            onChange={(value) => setTimeFormat(value as 'detailed' | 'compact' | 'relative')}
-            size="sm"
-            className="min-w-[100px]"
-          />
+            onValueChange={(value) =>
+              setTimeFormat(value as 'detailed' | 'compact' | 'relative')
+            }
+          >
+            <SelectTrigger className="min-w-[100px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {TIME_FORMAT_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Button
             variant="outline"
             size="sm"
             onClick={() => setMemberSortDesc((prev) => !prev)}
-            className="h-9 px-2 flex items-center gap-1 text-xs"
+            className="flex h-9 items-center gap-1 px-2 text-xs"
           >
             <ArrowUpDown className="h-3.5 w-3.5" />
             <span>{memberSortDesc ? '倒序' : '正序'}</span>
           </Button>
-          <ViewToggle
+          <SegmentedControl
+            aria-label={t('common.viewToggle')}
+            iconOnly
             value={viewMode}
-            onChange={setViewMode}
-            size="md"
+            onValueChange={setViewMode}
             options={[
               { value: 'grid', icon: <Grid3X3 />, label: '网格视图' },
               { value: 'list', icon: <ListIcon />, label: '列表视图' },
@@ -121,7 +156,7 @@ export const TeamManagementTab: React.FC<TeamManagementTabProps> = ({
           />
           {permissions.canInvite && (
             <Button size="sm" onClick={onOpenInviteDialog}>
-              <UserPlus className="h-4 w-4 mr-1" />
+              <UserPlus className="mr-1 h-4 w-4" />
               邀请成员
             </Button>
           )}
@@ -129,7 +164,7 @@ export const TeamManagementTab: React.FC<TeamManagementTabProps> = ({
       </div>
 
       {/* 成员列表 */}
-      <div className="flex-1 overflow-y-auto pt-1 pb-2 -mx-1 px-1">
+      <div className="-mx-1 flex-1 overflow-y-auto px-1 pt-1 pb-2">
         {membersLoading ? (
           <MemberSkeleton viewMode={viewMode} count={6} />
         ) : filteredMembers.length === 0 ? (
@@ -139,7 +174,7 @@ export const TeamManagementTab: React.FC<TeamManagementTabProps> = ({
             onInvite={permissions.canInvite ? onOpenInviteDialog : undefined}
           />
         ) : viewMode === 'grid' ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {filteredMembers.map((member) => (
               <TeamMemberCard
                 key={member.user_id}

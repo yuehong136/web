@@ -28,7 +28,7 @@ import { TitleChunkerMethod } from '../chunker-constants'
 import { useWatchFormChange } from '../../hooks/use-watch-form-change'
 import type { INextOperatorForm } from '../../types'
 import { FormWrapper, Output, buildOutputList } from '../components'
-import { SegmentedChoice } from '@/pages/agent/form/components/segmented-choice'
+import { SegmentedControl } from '@/components/ui/segmented-control'
 import { getTitleChunkerHierarchyOptions, type TitleChunkerRule } from './utils'
 import { useTitleChunkerValues } from './use-title-chunker-values'
 
@@ -248,7 +248,8 @@ export function TitleChunkerForm({ node }: INextOperatorForm) {
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <SegmentedChoice
+                <SegmentedControl
+                  fullWidth
                   value={field.value ?? TitleChunkerMethod.Hierarchy}
                   onValueChange={field.onChange}
                   options={[

@@ -5,12 +5,7 @@ import {
 import * as React from 'react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  SegmentedTabs,
-  SegmentedTabsList,
-  SegmentedTabsTrigger,
-  SegmentedTabsContent,
-} from '@/components/ui/segmented-tabs'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { MCPFormKeyValues } from '@/components/mcp/mcp-form-key-values'
 import { MCPProtocolSelect } from '@/components/mcp/mcp-protocol-select'
 import { Button } from '@/components/ui/button'
@@ -276,16 +271,19 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
       </div>
 
       <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
-        <SegmentedTabs
+        <Tabs
           value={activeTab}
           onValueChange={(value) => setActiveTab(value as TabType)}
           className="flex min-h-0 flex-1 flex-col"
         >
-          <SegmentedTabsList aria-label={t('mcp.form.sections')}>
+          <TabsList
+            aria-label={t('mcp.form.sections')}
+            className="w-full shrink-0 px-space-lg"
+          >
             {tabs.map((tab) => {
               const Icon = tab.icon
               return (
-                <SegmentedTabsTrigger key={tab.id} value={tab.id}>
+                <TabsTrigger key={tab.id} value={tab.id}>
                   <Icon className="size-icon-sm" />
                   {t(tab.labelKey)}
                   {tab.id === 'headers' && headerEntries.length > 0 && (
@@ -294,14 +292,14 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
                   {tab.id === 'variables' && variableEntries.length > 0 && (
                     <Badge variant="secondary">{variableEntries.length}</Badge>
                   )}
-                </SegmentedTabsTrigger>
+                </TabsTrigger>
               )
             })}
-          </SegmentedTabsList>
+          </TabsList>
           {/* 右侧内容 */}
           <div className="min-h-0 flex-1 overflow-y-auto p-space-lg">
             {/* 基本配置 */}
-            <SegmentedTabsContent value="basic">
+            <TabsContent value="basic" className="mt-0">
               <div className="max-w-2xl space-y-6">
                 {/* 服务器名称 */}
                 <div className="space-y-2">
@@ -367,10 +365,10 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
                   />
                 </div>
               </div>
-            </SegmentedTabsContent>
+            </TabsContent>
 
             {/* 请求头 */}
-            <SegmentedTabsContent value="headers">
+            <TabsContent value="headers" className="mt-0">
               <div className="max-w-2xl">
                 <div className="mb-6">
                   <h3 className="mb-1 text-base font-medium text-[var(--color-text-primary)]">
@@ -391,10 +389,10 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
                   emptyDescription={t('mcp.form.headersEmptyDescription')}
                 />
               </div>
-            </SegmentedTabsContent>
+            </TabsContent>
 
             {/* 环境变量 */}
-            <SegmentedTabsContent value="variables">
+            <TabsContent value="variables" className="mt-0">
               <div className="max-w-2xl">
                 <div className="mb-6">
                   <h3 className="mb-1 text-base font-medium text-[var(--color-text-primary)]">
@@ -415,10 +413,10 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
                   emptyDescription={t('mcp.form.variablesEmptyDescription')}
                 />
               </div>
-            </SegmentedTabsContent>
+            </TabsContent>
 
             {/* 连接测试 */}
-            <SegmentedTabsContent value="test">
+            <TabsContent value="test" className="mt-0">
               <div className="max-w-2xl space-y-6">
                 <div className="mb-6">
                   <h3 className="mb-1 text-base font-medium text-[var(--color-text-primary)]">
@@ -529,9 +527,9 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
                   </div>
                 )}
               </div>
-            </SegmentedTabsContent>
+            </TabsContent>
           </div>
-        </SegmentedTabs>
+        </Tabs>
 
         {/* Footer */}
         <div className="flex shrink-0 items-center justify-end gap-3 border-t border-[var(--color-border-subtle)] bg-[var(--color-background-subtle)] px-6 py-4">

@@ -8,7 +8,12 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { Input } from '@/components/ui/input'
-import { Modal } from '@/components/ui/modal'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { setProductLanguage } from '@/locales/i18n'
 
 let root: Root
@@ -103,7 +108,7 @@ it('associates validation with its field and preserves native required semantics
   )
 })
 
-it('keeps legacy modals in their full origin scope with unique names and localized close actions', async () => {
+it('keeps dialogs in their full origin scope with unique names and localized close actions', async () => {
   await setProductLanguage('en-US')
   try {
     await act(async () =>
@@ -115,14 +120,19 @@ it('keeps legacy modals in their full origin scope with unique names and localiz
           textScale={1.25}
         >
           {['First panel', 'Second panel'].map((title) => (
-            <Modal key={title} open onClose={() => undefined} title={title}>
-              <p>{title}</p>
-            </Modal>
+            <Dialog key={title} open onOpenChange={() => undefined}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>{title}</DialogTitle>
+                </DialogHeader>
+                <p>{title}</p>
+              </DialogContent>
+            </Dialog>
           ))}
         </ScopedTheme>,
       ),
     )
-    const dialogs = [...container.querySelectorAll('[role="dialog"]')]
+    const dialogs = [...container.querySelectorAll('dialog')]
     expect(dialogs).toHaveLength(2)
     const ids = dialogs.map((dialog) => dialog.getAttribute('aria-labelledby'))
     expect(new Set(ids).size).toBe(2)
@@ -136,7 +146,11 @@ it('keeps legacy modals in their full origin scope with unique names and localiz
       expect(
         dialog.closest('[data-density]')?.getAttribute('data-density'),
       ).toBe('compact')
-      expect(dialog.querySelector('button')?.textContent).toBe('Close')
+      expect(
+        [...dialog.querySelectorAll('button')].map(
+          (button) => button.textContent,
+        ),
+      ).toContain('Close')
     })
   } finally {
     await act(async () => {

@@ -1,6 +1,8 @@
 @layer base {
+  /* Native controls match the Radix Checkbox and RadioGroup in ui/. */
   input[type='checkbox'],
   .form-checkbox {
+    border-radius: var(--radius-sm);
     color: var(--color-components-checkbox-bg-checked);
     accent-color: var(--color-components-checkbox-bg-checked);
     background-color: var(--color-components-checkbox-bg);

@@ -2,8 +2,15 @@ import type { FC } from 'react'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FormProvider, useForm, useWatch } from 'react-hook-form'
-import { Settings2 } from 'lucide-react'
-import { Button, Modal } from '@/components/ui'
+import { Button } from '@/components/ui'
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { ChunkMethodForm } from '@/pages/knowledge/settings/ChunkMethodForm'
 import { LLMModelItem } from '@/pages/knowledge/settings/configuration/common-item'
 import type { Document, MetadataDefinition } from '@/types/api'
@@ -99,80 +106,83 @@ function ParserDraftModal({
   const pipelineId = useWatch({ control: methods.control, name: 'pipeline_id' })
 
   return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title={t('knowledge.settings.fields.chunkMethod')}
-      icon={<Settings2 className="size-icon-lg" />}
-      size="lg"
-      footer={
-        <div className="flex w-full justify-end gap-space-md">
+    <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
+      <DialogContent size="lg">
+        <DialogHeader>
+          <DialogTitle>
+            {t('knowledge.settings.fields.chunkMethod')}
+          </DialogTitle>
+        </DialogHeader>
+        <DialogBody>
+          <FormProvider {...methods}>
+            <ParserFieldScope.Provider value="document">
+              <form
+                id="document-parser-draft"
+                onSubmit={methods.handleSubmit(handleSubmit)}
+                className="space-y-space-base"
+              >
+                {(draftError || errorKey) && (
+                  <p role="alert" className="text-status-error">
+                    {t(draftError || errorKey!)}
+                  </p>
+                )}
+                <ParserModeSelector
+                  value={parseType}
+                  disabled={busy}
+                  onChange={(value) =>
+                    methods.setValue('parseType', value, { shouldDirty: true })
+                  }
+                />
+                <fieldset disabled={busy} className="space-y-space-base">
+                  {parseType === 1 ? (
+                    <DocumentBuiltinSelector
+                      document={document}
+                      value={parserId}
+                      disabled={busy}
+                      onChange={(value) =>
+                        methods.setValue('parser_id', value, {
+                          shouldDirty: true,
+                        })
+                      }
+                    />
+                  ) : (
+                    <DocumentPipelineSelector
+                      value={pipelineId}
+                      datasetId={datasetId}
+                      tenantId={tenantId}
+                      actorKey={actorKey}
+                      disabled={busy}
+                      onChange={(value) =>
+                        methods.setValue('pipeline_id', value, {
+                          shouldDirty: true,
+                        })
+                      }
+                    />
+                  )}
+                  {parseType === 1 && parserId && (
+                    <>
+                      <LLMModelItem documentScope />
+                      <ChunkMethodForm
+                        onMetadataSettingsClick={handleMetadataSettingsClick}
+                        metadataCount={metadataConfigToFields(metadata).length}
+                      />
+                    </>
+                  )}
+                </fieldset>
+              </form>
+            </ParserFieldScope.Provider>
+          </FormProvider>
+        </DialogBody>
+        <DialogFooter>
           <Button type="button" variant="outline" onClick={onClose}>
             {t('knowledge.common.cancel')}
           </Button>
           <Button type="submit" form="document-parser-draft" loading={busy}>
             {t('knowledge.common.save')}
           </Button>
-        </div>
-      }
-    >
-      <FormProvider {...methods}>
-        <ParserFieldScope.Provider value="document">
-          <form
-            id="document-parser-draft"
-            onSubmit={methods.handleSubmit(handleSubmit)}
-            className="space-y-space-base"
-          >
-            {(draftError || errorKey) && (
-              <p role="alert" className="text-status-error">
-                {t(draftError || errorKey!)}
-              </p>
-            )}
-            <ParserModeSelector
-              value={parseType}
-              disabled={busy}
-              onChange={(value) =>
-                methods.setValue('parseType', value, { shouldDirty: true })
-              }
-            />
-            <fieldset disabled={busy} className="space-y-space-base">
-              {parseType === 1 ? (
-                <DocumentBuiltinSelector
-                  document={document}
-                  value={parserId}
-                  disabled={busy}
-                  onChange={(value) =>
-                    methods.setValue('parser_id', value, { shouldDirty: true })
-                  }
-                />
-              ) : (
-                <DocumentPipelineSelector
-                  value={pipelineId}
-                  datasetId={datasetId}
-                  tenantId={tenantId}
-                  actorKey={actorKey}
-                  disabled={busy}
-                  onChange={(value) =>
-                    methods.setValue('pipeline_id', value, {
-                      shouldDirty: true,
-                    })
-                  }
-                />
-              )}
-              {parseType === 1 && parserId && (
-                <>
-                  <LLMModelItem documentScope />
-                  <ChunkMethodForm
-                    onMetadataSettingsClick={handleMetadataSettingsClick}
-                    metadataCount={metadataConfigToFields(metadata).length}
-                  />
-                </>
-              )}
-            </fieldset>
-          </form>
-        </ParserFieldScope.Provider>
-      </FormProvider>
-    </Modal>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }
 

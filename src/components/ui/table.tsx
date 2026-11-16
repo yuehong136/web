@@ -108,7 +108,7 @@ const TableInner = <T,>(
           </colgroup>
           <thead
             className={cn(
-              '[&_tr]:border-b',
+              '[&_tr]:border-b [&_tr]:border-border-default',
               stickyHeader && 'sticky top-0 z-20 bg-background-surface',
             )}
           >
@@ -118,7 +118,7 @@ const TableInner = <T,>(
                 const isActive = sortConfig?.field === field
                 const direction = sortConfig?.direction ?? 'asc'
                 const thClasses = cn(
-                  'h-12 px-4 text-left align-middle font-medium text-muted-foreground',
+                  'h-9 px-space-base text-left align-middle text-xs font-medium text-text-tertiary first:pl-space-md',
                   stickyHeader && 'bg-background-surface',
                   col.align === 'right' && 'text-right',
                   col.align === 'center' && 'text-center',
@@ -147,7 +147,7 @@ const TableInner = <T,>(
                     <span
                       className={cn(
                         col.sortable && onSort
-                          ? 'inline-flex cursor-pointer select-none items-center gap-1'
+                          ? 'inline-flex cursor-pointer items-center gap-space-xs select-none'
                           : undefined,
                       )}
                     >
@@ -167,9 +167,9 @@ const TableInner = <T,>(
             {rows.map((record, index) => {
               const rowAttrs = onRow ? onRow(record, index) : undefined
               const rowClass = cn(
-                'border-b transition-colors',
-                hoverable ? 'hover:bg-muted/50' : undefined,
-                striped ? 'odd:bg-muted/30' : undefined,
+                'border-b border-border-default transition-colors',
+                hoverable ? 'hover:bg-state-hover' : undefined,
+                striped ? 'odd:bg-background-subtle' : undefined,
                 rowAttrs?.className,
               )
               const rowKeyValue = resolveRowKey(record, rowKey, index)
@@ -179,7 +179,7 @@ const TableInner = <T,>(
                 <tr key={rowKeyValue} className={rowClass} {...restRowAttrs}>
                   {columns.map((col) => {
                     const tdClasses = cn(
-                      'p-4 align-middle',
+                      'h-11 px-space-base py-space-xs align-middle first:pl-space-md',
                       col.align === 'right' && 'text-right',
                       col.align === 'center' && 'text-center',
                     )
@@ -224,7 +224,11 @@ const TableHeader = React.forwardRef<
   HTMLTableSectionElement,
   React.HTMLAttributes<HTMLTableSectionElement>
 >(({ className, ...props }, ref) => (
-  <thead ref={ref} className={cn('[&_tr]:border-b', className)} {...props} />
+  <thead
+    ref={ref}
+    className={cn('[&_tr]:border-b [&_tr]:border-border-default', className)}
+    {...props}
+  />
 ))
 TableHeader.displayName = 'TableHeader'
 
@@ -247,7 +251,7 @@ const TableFooter = React.forwardRef<
   <tfoot
     ref={ref}
     className={cn(
-      'bg-muted/50 border-t font-medium [&>tr]:last:border-b-0',
+      'border-t border-border-default bg-background-subtle font-medium [&>tr]:last:border-b-0',
       className,
     )}
     {...props}
@@ -262,7 +266,7 @@ const TableRow = React.forwardRef<
   <tr
     ref={ref}
     className={cn(
-      'hover:bg-muted/50 border-b transition-colors data-[state=selected]:bg-muted',
+      'border-b border-border-default transition-colors hover:bg-state-hover data-[state=selected]:bg-state-selected-bg',
       className,
     )}
     {...props}
@@ -277,7 +281,7 @@ const TableHead = React.forwardRef<
   <th
     ref={ref}
     className={cn(
-      'h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0',
+      'h-9 px-space-base text-left align-middle text-xs font-medium text-text-tertiary first:pl-space-md [&:has([role=checkbox])]:pr-0',
       className,
     )}
     {...props}
@@ -291,7 +295,10 @@ const TableCell = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <td
     ref={ref}
-    className={cn('p-4 align-middle [&:has([role=checkbox])]:pr-0', className)}
+    className={cn(
+      'h-11 px-space-base py-space-xs align-middle first:pl-space-md [&:has([role=checkbox])]:pr-0',
+      className,
+    )}
     {...props}
   />
 ))
@@ -303,7 +310,7 @@ const TableCaption = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <caption
     ref={ref}
-    className={cn('mt-4 text-sm text-muted-foreground', className)}
+    className={cn('mt-space-md text-sm text-text-tertiary', className)}
     {...props}
   />
 ))

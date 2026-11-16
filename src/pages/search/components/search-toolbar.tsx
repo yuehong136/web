@@ -2,8 +2,14 @@ import React, { memo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ArrowUpDown, LayoutGrid, List, Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
-import { ViewToggle } from '@/components/ui/view-toggle'
-import { CustomSelect } from '@/components/ui/custom-select'
+import { SegmentedControl } from '@/components/ui/segmented-control'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   FilterPopover,
   type FilterConfig,
@@ -67,54 +73,55 @@ const SearchToolbar: React.FC<SearchToolbarProps> = ({
         />
 
         <div className="w-[160px]">
-          <CustomSelect
+          <Select
             value={sortBy}
-            size="sm"
-            onChange={(value) =>
+            onValueChange={(value) =>
               onSortByChange(value as 'update_time' | 'create_time' | 'name')
             }
-            options={[
-              {
-                value: 'update_time',
-                label: t('searchPage.toolbar.sortUpdated', '按更新时间'),
-              },
-              {
-                value: 'create_time',
-                label: t('searchPage.toolbar.sortCreated', '按创建时间'),
-              },
-              {
-                value: 'name',
-                label: t('searchPage.toolbar.sortName', '按名称'),
-              },
-            ]}
-          />
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="update_time">
+                {t('searchPage.toolbar.sortUpdated', '按更新时间')}
+              </SelectItem>
+              <SelectItem value="create_time">
+                {t('searchPage.toolbar.sortCreated', '按创建时间')}
+              </SelectItem>
+              <SelectItem value="name">
+                {t('searchPage.toolbar.sortName', '按名称')}
+              </SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
-        <CustomSelect
-          options={[
-            {
-              value: 'detailed',
-              label: t('searchPage.toolbar.detailedTime', '详细时间'),
-            },
-            {
-              value: 'compact',
-              label: t('searchPage.toolbar.compactTime', '简洁时间'),
-            },
-            {
-              value: 'relative',
-              label: t('searchPage.toolbar.relativeTime', '相对时间'),
-            },
-          ]}
+        <Select
           value={timeFormat}
-          onChange={(value) => onTimeFormatChange(value as SearchTimeFormat)}
-          size="sm"
-          className="min-w-[100px]"
-        />
+          onValueChange={(value) =>
+            onTimeFormatChange(value as SearchTimeFormat)
+          }
+        >
+          <SelectTrigger className="min-w-[100px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="detailed">
+              {t('searchPage.toolbar.detailedTime', '详细时间')}
+            </SelectItem>
+            <SelectItem value="compact">
+              {t('searchPage.toolbar.compactTime', '简洁时间')}
+            </SelectItem>
+            <SelectItem value="relative">
+              {t('searchPage.toolbar.relativeTime', '相对时间')}
+            </SelectItem>
+          </SelectContent>
+        </Select>
 
         <button
           type="button"
           onClick={onSortDescToggle}
-          className="rounded-radius-md hover:bg-surface-secondary flex h-9 items-center gap-1 border border-border-default bg-background-subtle px-2 text-xs text-text-secondary"
+          className="flex h-9 items-center gap-1 rounded-radius-md border border-border-default bg-background-subtle px-2 text-xs text-text-secondary hover:bg-surface-secondary"
         >
           <ArrowUpDown className="h-3.5 w-3.5" />
           <span>
@@ -124,10 +131,11 @@ const SearchToolbar: React.FC<SearchToolbarProps> = ({
           </span>
         </button>
 
-        <ViewToggle
+        <SegmentedControl
+          aria-label={t('common.viewToggle')}
+          iconOnly
           value={viewMode}
-          onChange={onViewModeChange}
-          size="md"
+          onValueChange={onViewModeChange}
           options={[
             {
               value: 'grid',

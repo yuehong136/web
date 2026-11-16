@@ -12,21 +12,24 @@ export interface SwitchProps extends React.ComponentPropsWithoutRef<
   size?: 'sm' | 'md' | 'lg'
 }
 
+// DreamJira switch: a one-pixel track border with a 2px inset thumb that is
+// dark when off and white on the checked fill, so both states read on any
+// surface without relying on the track colour alone.
 const sizeConfig = {
   sm: {
     root: 'h-5 w-9',
-    thumb: 'h-4 w-4',
+    thumb: 'size-3.5',
     translate: 'data-[state=checked]:translate-x-4',
   },
   md: {
     root: 'h-6 w-11',
-    thumb: 'h-5 w-5',
+    thumb: 'size-4.5',
     translate: 'data-[state=checked]:translate-x-5',
   },
   lg: {
-    root: 'h-7 w-[52px]',
-    thumb: 'h-6 w-6',
-    translate: 'data-[state=checked]:translate-x-[26px]',
+    root: 'h-7 w-13',
+    thumb: 'size-5.5',
+    translate: 'data-[state=checked]:translate-x-6',
   },
 }
 
@@ -39,24 +42,12 @@ const Switch = React.forwardRef<
   return (
     <SwitchPrimitive.Root
       className={cn(
-        // 基础样式
-        'peer inline-flex shrink-0 cursor-pointer items-center rounded-full',
-        // 边框和背景
-        'border-2 border-transparent',
-        // 过渡动画 - 更平滑的 200ms 过渡
-        'transition-all duration-200 ease-out',
-        // 焦点样式 - 现代化的 ring 效果
-        'focus-visible:ring-2 focus-visible:ring-[var(--color-state-focus)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-background-body)] focus-visible:outline-hidden',
-        // 禁用状态
+        'peer inline-flex shrink-0 cursor-pointer items-center rounded-radius-full border p-space-2xs outline-hidden',
+        'transition-colors duration-150 motion-reduce:transition-none',
+        'focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:ring-offset-2 focus-visible:ring-offset-background-surface',
         'disabled:cursor-not-allowed disabled:opacity-50',
-        // 选中/未选中状态背景 - 添加微妙的内阴影
-        'data-[state=checked]:bg-[var(--color-components-switch-bg-checked)]',
-        'data-[state=unchecked]:bg-[var(--color-components-switch-bg)]',
-        // 悬停效果 - 未选中时轻微变深
-        'data-[state=unchecked]:hover:bg-[var(--color-border-default)]',
-        // 选中时的悬停效果 - 轻微变亮
-        'data-[state=checked]:hover:brightness-110',
-        // 尺寸
+        'data-[state=unchecked]:border-components-checkbox-border data-[state=unchecked]:bg-components-switch-bg data-[state=unchecked]:hover:border-components-input-border-hover',
+        'data-[state=checked]:border-components-switch-bg-checked data-[state=checked]:bg-components-switch-bg-checked',
         config.root,
         className,
       )}
@@ -65,17 +56,10 @@ const Switch = React.forwardRef<
     >
       <SwitchPrimitive.Thumb
         className={cn(
-          // 基础样式
-          'pointer-events-none block rounded-full',
-          // 背景色
-          'bg-[var(--color-components-switch-thumb)]',
-          // 阴影 - 现代化的多层阴影效果
-          'shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.06)]',
-          // 过渡动画 - 弹性效果
-          'transition-transform duration-200 ease-out',
-          // 位置
-          'data-[state=unchecked]:translate-x-0',
-          // 尺寸
+          'pointer-events-none block rounded-radius-full shadow-elevation-low',
+          'transition-transform duration-150 motion-reduce:transition-none',
+          'data-[state=unchecked]:translate-x-0 data-[state=unchecked]:bg-text-secondary',
+          'data-[state=checked]:bg-components-switch-thumb',
           config.thumb,
           config.translate,
         )}

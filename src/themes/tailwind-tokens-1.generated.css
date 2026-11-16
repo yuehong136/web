@@ -442,18 +442,6 @@
   --color-components-settings-rail-title: var(
     --color-components-settings-rail-title
   );
-  --color-components-settings-section-bg: var(
-    --color-components-settings-section-bg
-  );
-  --color-components-settings-section-border: var(
-    --color-components-settings-section-border
-  );
-  --color-components-settings-section-description: var(
-    --color-components-settings-section-description
-  );
-  --color-components-settings-section-title: var(
-    --color-components-settings-section-title
-  );
   --color-components-sidebar-bg: var(--color-components-sidebar-bg);
   --color-components-sidebar-border: var(--color-components-sidebar-border);
   --color-components-sidebar-item-bg: var(--color-components-sidebar-item-bg);
@@ -476,4 +464,10 @@
     --color-components-slider-thumb-border
   );
   --color-components-slider-track: var(--color-components-slider-track);
+  --color-components-spinner-color: var(--color-components-spinner-color);
+  --color-components-split-pane-bg: var(--color-components-split-pane-bg);
+  --color-components-split-pane-border: var(
+    --color-components-split-pane-border
+  );
+  --color-components-steps-active-bg: var(--color-components-steps-active-bg);
 }

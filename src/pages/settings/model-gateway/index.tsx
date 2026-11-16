@@ -7,12 +7,7 @@ import {
   PageErrorState,
   PageLoadingState,
 } from '@/components/patterns'
-import {
-  SegmentedTabs,
-  SegmentedTabsContent,
-  SegmentedTabsList,
-  SegmentedTabsTrigger,
-} from '@/components/ui/segmented-tabs'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   useFetchGatewayKeys,
   useFetchGatewayModels,
@@ -66,34 +61,37 @@ export const ModelGatewayPage = () => {
   const keys = keysQuery.data ?? []
 
   return (
-    <SegmentedTabs
+    <Tabs
       value={tab}
       onValueChange={(value) => setTab(value as GatewayTab)}
       className="flex h-full min-h-0 flex-col"
     >
       <div className="px-space-lg pt-space-lg">
-        <SegmentedTabsList aria-label={t('settings.modelGateway.tabsLabel')}>
+        <TabsList
+          aria-label={t('settings.modelGateway.tabsLabel')}
+          className="w-full"
+        >
           {TABS.map((item) => (
-            <SegmentedTabsTrigger key={item} value={item}>
+            <TabsTrigger key={item} value={item}>
               {t(`settings.modelGateway.tabs.${item}`)}
-            </SegmentedTabsTrigger>
+            </TabsTrigger>
           ))}
-        </SegmentedTabsList>
+        </TabsList>
       </div>
       <div className="scroll-area min-h-0 flex-1 overflow-y-auto p-space-lg">
-        <SegmentedTabsContent value="models">
+        <TabsContent value="models" className="mt-0">
           <ModelsPanel models={models} />
-        </SegmentedTabsContent>
-        <SegmentedTabsContent value="keys">
+        </TabsContent>
+        <TabsContent value="keys" className="mt-0">
           <KeysPanel keys={keys} models={models} />
-        </SegmentedTabsContent>
-        <SegmentedTabsContent value="logs">
+        </TabsContent>
+        <TabsContent value="logs" className="mt-0">
           <LogsPanel keys={keys} models={models} />
-        </SegmentedTabsContent>
-        <SegmentedTabsContent value="usage">
+        </TabsContent>
+        <TabsContent value="usage" className="mt-0">
           <UsagePanel />
-        </SegmentedTabsContent>
+        </TabsContent>
       </div>
-    </SegmentedTabs>
+    </Tabs>
   )
 }

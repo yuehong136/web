@@ -4,21 +4,23 @@
  */
 
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { ViewToggle } from '@/components/ui/view-toggle'
-import { CustomSelect } from '@/components/ui/custom-select'
+import { SegmentedControl } from '@/components/ui/segmented-control'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   ResourceListContainer,
   ResourceListHeader,
   ResourceListBody,
 } from '@/components/ui/resource-list'
-import {
-  Search,
-  Grid3X3,
-  List as ListIcon,
-  ArrowUpDown,
-} from 'lucide-react'
+import { Search, Grid3X3, List as ListIcon, ArrowUpDown } from 'lucide-react'
 import { useTeamStore } from '@/stores/team'
 import { useFilteredJoinedTeams } from './hooks'
 import type { JoinedTeam } from '@/types/team'
@@ -28,6 +30,12 @@ import {
   TeamEmptyState,
   MemberSkeleton,
 } from './components'
+
+const TIME_FORMAT_OPTIONS = [
+  { value: 'detailed', label: '详细时间' },
+  { value: 'compact', label: '简洁时间' },
+  { value: 'relative', label: '相对时间' },
+]
 
 interface JoinedTeamsTabProps {
   joinedTeams: JoinedTeam[]
@@ -48,6 +56,7 @@ export const JoinedTeamsTab: React.FC<JoinedTeamsTabProps> = ({
   onLeave,
   onManageTeam,
 }) => {
+  const { t } = useTranslation()
   const {
     joinedTeamsViewMode,
     setJoinedTeamsViewMode,
@@ -58,13 +67,17 @@ export const JoinedTeamsTab: React.FC<JoinedTeamsTabProps> = ({
   } = useTeamStore()
 
   const [joinedTeamSortDesc, setJoinedTeamSortDesc] = React.useState(true)
-  const filteredJoinedTeams = useFilteredJoinedTeams(joinedTeams, teamSearchQuery, joinedTeamSortDesc)
+  const filteredJoinedTeams = useFilteredJoinedTeams(
+    joinedTeams,
+    teamSearchQuery,
+    joinedTeamSortDesc,
+  )
 
   return (
-    <div className="flex-1 flex flex-col min-h-0">
+    <div className="flex min-h-0 flex-1 flex-col">
       {/* 工具栏 */}
-      <div className="flex items-center space-x-4 mb-4">
-        <div className="flex-1 max-w-md">
+      <div className="mb-4 flex items-center space-x-4">
+        <div className="max-w-md flex-1">
           <Input
             type="search"
             placeholder="搜索团队..."
@@ -74,30 +87,37 @@ export const JoinedTeamsTab: React.FC<JoinedTeamsTabProps> = ({
           />
         </div>
         <div className="flex items-center space-x-2">
-          <CustomSelect
-            options={[
-              { value: 'detailed', label: '详细时间' },
-              { value: 'compact', label: '简洁时间' },
-              { value: 'relative', label: '相对时间' },
-            ]}
+          <Select
             value={timeFormat}
-            onChange={(value) => setTimeFormat(value as 'detailed' | 'compact' | 'relative')}
-            size="sm"
-            className="min-w-[100px]"
-          />
+            onValueChange={(value) =>
+              setTimeFormat(value as 'detailed' | 'compact' | 'relative')
+            }
+          >
+            <SelectTrigger className="min-w-[100px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {TIME_FORMAT_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Button
             variant="outline"
             size="sm"
             onClick={() => setJoinedTeamSortDesc((prev) => !prev)}
-            className="h-9 px-2 flex items-center gap-1 text-xs"
+            className="flex h-9 items-center gap-1 px-2 text-xs"
           >
             <ArrowUpDown className="h-3.5 w-3.5" />
             <span>{joinedTeamSortDesc ? '倒序' : '正序'}</span>
           </Button>
-          <ViewToggle
+          <SegmentedControl
+            aria-label={t('common.viewToggle')}
+            iconOnly
             value={joinedTeamsViewMode}
-            onChange={setJoinedTeamsViewMode}
-            size="md"
+            onValueChange={setJoinedTeamsViewMode}
             options={[
               { value: 'grid', icon: <Grid3X3 />, label: '网格视图' },
               { value: 'list', icon: <ListIcon />, label: '列表视图' },
@@ -107,7 +127,7 @@ export const JoinedTeamsTab: React.FC<JoinedTeamsTabProps> = ({
       </div>
 
       {/* 团队列表 */}
-      <div className="flex-1 overflow-y-auto pt-1 pb-2 -mx-1 px-1">
+      <div className="-mx-1 flex-1 overflow-y-auto px-1 pt-1 pb-2">
         {teamsLoading ? (
           <MemberSkeleton viewMode={joinedTeamsViewMode} count={6} />
         ) : filteredJoinedTeams.length === 0 ? (
@@ -116,7 +136,7 @@ export const JoinedTeamsTab: React.FC<JoinedTeamsTabProps> = ({
             searchQuery={teamSearchQuery}
           />
         ) : joinedTeamsViewMode === 'grid' ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {filteredJoinedTeams.map((team) => (
               <JoinedTeamCard
                 key={team.tenant_id}

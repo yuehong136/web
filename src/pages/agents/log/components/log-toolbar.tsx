@@ -1,7 +1,13 @@
 import { Search } from 'lucide-react'
 import { PageToolbar } from '@/components/patterns'
 import { Button } from '@/components/ui/button'
-import { CustomSelect } from '@/components/ui/custom-select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import type { AgentFlow } from '@/types/agent'
 import { AGENT_LOG_STATUS_LABELS } from '../constants'
@@ -46,18 +52,23 @@ export function LogToolbar({ agent, params, onChange }: LogToolbarProps) {
       right={
         params.canvas ? (
           <>
-            <CustomSelect
-              size="sm"
-              className="w-[120px]"
+            <Select
               value={params.status}
-              onChange={(value) =>
+              onValueChange={(value) =>
                 onChange({ status: value as AgentLogStatus })
               }
-              options={Object.values(AgentLogStatus).map((status) => ({
-                value: status,
-                label: AGENT_LOG_STATUS_LABELS[status],
-              }))}
-            />
+            >
+              <SelectTrigger className="w-[120px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.values(AgentLogStatus).map((status) => (
+                  <SelectItem key={status} value={status}>
+                    {AGENT_LOG_STATUS_LABELS[status]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Input
               type="search"
               inputSize="sm"

@@ -1,14 +1,5 @@
 import { PromptEditor } from '@/components/prompt-editor'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import {
   Form,
   FormControl,
@@ -84,7 +75,10 @@ export function ExtractorForm({ node }: INextOperatorForm) {
 
   useWatchFormChange(node?.id, form)
 
-  const outputs = useMemo(() => buildOutputList(form.getValues('outputs')), [form])
+  const outputs = useMemo(
+    () => buildOutputList(form.getValues('outputs')),
+    [form],
+  )
 
   const applyFieldPreset = (fieldName: string) => {
     const preset = getExtractorPromptPreset(fieldName)
@@ -188,43 +182,30 @@ export function ExtractorForm({ node }: INextOperatorForm) {
         <Output list={outputs} />
       </FormWrapper>
 
-      <AlertDialog open={Boolean(pendingFieldName)} onOpenChange={(open) => !open && setPendingFieldName(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {t('flow.switchPrompt', 'Switch prompt preset')}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {t(
-                'flow.switchPromptMessage',
-                'Changing the field will replace the current prompt preset.',
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel
-              onClick={() => {
-                form.setValue('field_name', previousFieldName, {
-                  shouldDirty: false,
-                })
-                setPendingFieldName(null)
-              }}
-            >
-              {t('common.cancel', 'Cancel')}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                if (pendingFieldName) {
-                  applyFieldPreset(pendingFieldName)
-                }
-                setPendingFieldName(null)
-              }}
-            >
-              {t('common.confirm', 'Confirm')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDialog
+        open={Boolean(pendingFieldName)}
+        // Cancel and Escape both keep the previous field and its preset.
+        onOpenChange={(open) => {
+          if (open) return
+          form.setValue('field_name', previousFieldName, {
+            shouldDirty: false,
+          })
+          setPendingFieldName(null)
+        }}
+        title={t('flow.switchPrompt', 'Switch prompt preset')}
+        description={t(
+          'flow.switchPromptMessage',
+          'Changing the field will replace the current prompt preset.',
+        )}
+        cancelLabel={t('common.cancel', 'Cancel')}
+        confirmLabel={t('common.confirm', 'Confirm')}
+        onConfirm={() => {
+          if (pendingFieldName) {
+            applyFieldPreset(pendingFieldName)
+          }
+          setPendingFieldName(null)
+        }}
+      />
     </Form>
   )
 }

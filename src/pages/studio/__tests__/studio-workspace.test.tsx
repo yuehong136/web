@@ -60,6 +60,9 @@ const button = (text: string, scope: ParentNode = document) =>
   [...scope.querySelectorAll<HTMLButtonElement>('button')].find(
     (element) => element.textContent === text,
   )!
+const projectTypeRadios = () => [
+  ...document.querySelectorAll<HTMLElement>('dialog [role="radio"]'),
+]
 const labelled = (label: string) =>
   container.querySelector<HTMLButtonElement>(`button[aria-label="${label}"]`)!
 /** Radix menus open from the keyboard in jsdom (no pointer events). */
@@ -229,7 +232,8 @@ it('keeps the destructive confirmation and selection on failure, then clears onl
 it('uses keyboard-selectable project types and navigates through the router', async () => {
   const router = await render()
   await click(button('New project'))
-  const radios = document.querySelectorAll<HTMLElement>('[role="radio"]')
+  // The list's view switch is a radio group too; pick the dialog's choices.
+  const radios = projectTypeRadios()
   await act(async () => {
     radios[0].focus()
     radios[0].dispatchEvent(
@@ -256,7 +260,7 @@ it('returns focus to the persistent project opener after continuing to Create ap
   const origin = button('New project', container)
   origin.focus()
   await click(origin)
-  await click(document.querySelector<HTMLElement>('[role="radio"]')!)
+  await click(projectTypeRadios()[0])
   const continueButton = button('Continue')
   continueButton.focus()
   await click(continueButton)

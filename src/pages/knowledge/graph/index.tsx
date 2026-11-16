@@ -1,7 +1,7 @@
 import { memo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useFetchKnowledgeGraph } from '@/hooks/use-knowledge-request'
-import { Loading } from '@/components/ui/loading'
+import { Spinner } from '@/components/ui/spinner'
 import { Network } from 'lucide-react'
 import { WorkspacePageTemplate } from '@/components/page-templates'
 import { PageEmptyState, PageErrorState } from '@/components/patterns'
@@ -28,11 +28,7 @@ function KnowledgeGraphPageComponent() {
   if (isLoading) {
     return (
       <div className="flex h-full items-center justify-center">
-        <Loading
-          variant="spinner"
-          size="lg"
-          text={t('knowledge.graph.loading')}
-        />
+        <Spinner size="lg" stacked label={t('knowledge.graph.loading')} />
       </div>
     )
   }

@@ -1,254 +1,67 @@
-import * as React from 'react'
-import { createPortal } from 'react-dom'
-import { X } from 'lucide-react'
-import { useTranslation } from 'react-i18next'
-import { cn } from '@/lib/utils'
-import { Button } from './button'
-import { useActivePortalTheme, usePortalContainer } from './portal-theme'
+import type * as React from 'react'
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from './dialog'
 
 export interface ModalProps {
   open: boolean
   onClose: () => void
-  /** 标题文本 */
   title?: string
-  /** 标题图标 */
-  icon?: React.ReactNode
-  /** 描述文本 */
   description?: string
   children: React.ReactNode
   size?: 'sm' | 'md' | 'lg' | 'xl' | 'full'
   closeOnOverlayClick?: boolean
-  closeOnEscape?: boolean
   showCloseButton?: boolean
   footer?: React.ReactNode
   className?: string
   theme?: string | null
-  /** 内容区域的自定义类名 */
   contentClassName?: string
 }
 
-const sizeClasses = {
-  sm: 'max-w-md',
-  md: 'max-w-lg',
-  lg: 'max-w-2xl',
-  xl: 'max-w-4xl',
-  full: 'max-w-[calc(100vw-2rem)] max-h-[calc(100vh-2rem)]',
-}
-
 /**
- * 现代化 Modal 组件
- *
- * 设计特点：
- * - 简洁的视觉风格，无多余边框
- * - 毛玻璃遮罩层
- * - 流畅的入场动画
- * - 清晰的信息层次
+ * @deprecated Compose `Dialog`, `DialogContent`, `DialogHeader`, `DialogBody`
+ * and `DialogFooter` from `@/components/ui/dialog`. This adapter only keeps
+ * `pages/ai-tools/ref/DataInput.tsx` working until it migrates; do not add
+ * new callers.
  */
 export const Modal: React.FC<ModalProps> = ({
   open,
   onClose,
   title,
-  icon,
   description,
   children,
   size = 'md',
   closeOnOverlayClick = true,
-  closeOnEscape = true,
   showCloseButton = true,
   footer,
   className,
   theme,
   contentClassName,
-}) => {
-  const { t } = useTranslation()
-  const titleId = React.useId()
-  const descriptionId = React.useId()
-  const modalRef = React.useRef<HTMLDivElement>(null)
-  const portalContainer = usePortalContainer()
-  const scopedTheme = useActivePortalTheme(open, theme)
-
-  // Handle escape key
-  React.useEffect(() => {
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && closeOnEscape) {
-        onClose()
-      }
-    }
-
-    if (open) {
-      document.addEventListener('keydown', handleEscape)
-      document.body.style.overflow = 'hidden'
-    }
-
-    return () => {
-      document.removeEventListener('keydown', handleEscape)
-      document.body.style.overflow = 'unset'
-    }
-  }, [open, closeOnEscape, onClose])
-
-  // Handle overlay click
-  const handleOverlayClick = (event: React.MouseEvent) => {
-    if (closeOnOverlayClick && event.target === event.currentTarget) {
-      onClose()
-    }
-  }
-
-  if (!open) return null
-
-  const modalContent = (
-    <div
-      data-theme={scopedTheme}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby={title ? titleId : undefined}
-      aria-describedby={description ? descriptionId : undefined}
+}) => (
+  <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
+    <DialogContent
+      size={size}
+      className={className}
+      theme={theme}
+      showCloseButton={showCloseButton}
+      closeOnOverlayClick={closeOnOverlayClick}
     >
-      {/* Overlay - 毛玻璃效果 */}
-      <div
-        className="animate-in fade-in-0 fixed inset-0 bg-black/50 backdrop-blur-xs duration-200"
-        onClick={handleOverlayClick}
-      />
-
-      {/* Modal Container */}
-      <div
-        ref={modalRef}
-        className={cn(
-          'relative z-10 w-full rounded-xl shadow-2xl',
-          'bg-[var(--color-background-surface)]',
-          'animate-in fade-in-0 zoom-in-95 duration-200',
-          'flex max-h-[calc(100vh-2rem)] flex-col',
-          sizeClasses[size],
-          className,
-        )}
-      >
-        {/* Close Button - 始终在右上角 */}
-        {showCloseButton && (
-          <button
-            type="button"
-            onClick={onClose}
-            className={cn(
-              'absolute top-4 right-4 z-10',
-              'rounded-lg p-1.5',
-              'text-[var(--color-text-tertiary)]',
-              'hover:bg-[var(--color-surface-secondary)] hover:text-[var(--color-text-primary)]',
-              'transition-colors duration-150',
-            )}
-          >
-            <X className="h-4 w-4" />
-            <span className="sr-only">{t('common.close')}</span>
-          </button>
-        )}
-
-        {/* Header - 无边框设计 */}
-        {(title || icon) && (
-          <div className="shrink-0 px-6 pt-6 pb-2">
-            <div className="flex items-center gap-3 pr-8">
-              {icon && (
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-state-selected-bg text-state-selected-text">
-                  <span>{icon}</span>
-                </div>
-              )}
-              <div className="min-w-0">
-                {title && (
-                  <h2
-                    id={titleId}
-                    className="truncate text-lg font-semibold text-[var(--color-text-primary)]"
-                  >
-                    {title}
-                  </h2>
-                )}
-                {description && (
-                  <p
-                    id={descriptionId}
-                    className="mt-0.5 line-clamp-2 text-sm text-[var(--color-text-secondary)]"
-                  >
-                    {description}
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Content - 可滚动区域 */}
-        <div
-          className={cn(
-            'flex-1 overflow-y-auto px-6 py-4',
-            'scrollbar-thin scrollbar-thumb-[var(--color-border-default)] scrollbar-track-transparent',
-            contentClassName,
-          )}
-        >
-          {children}
-        </div>
-
-        {/* Footer - 简洁分隔 */}
-        {footer && (
-          <div className="shrink-0 border-t border-[var(--color-border-subtle)] px-6 py-4">
-            {footer}
-          </div>
-        )}
-      </div>
-    </div>
-  )
-
-  return createPortal(modalContent, portalContainer ?? document.body)
-}
-
-/**
- * 确认对话框
- *
- * 用于需要用户确认的操作
- */
-export const ConfirmModal: React.FC<{
-  open: boolean
-  onClose: () => void
-  onConfirm: () => void
-  title: string
-  description: string
-  confirmText?: string
-  cancelText?: string
-  variant?: 'default' | 'destructive'
-  loading?: boolean
-  icon?: React.ReactNode
-}> = ({
-  open,
-  onClose,
-  onConfirm,
-  title,
-  description,
-  confirmText,
-  cancelText,
-  variant = 'default',
-  loading = false,
-  icon,
-}) => {
-  const { t } = useTranslation()
-  return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title={title}
-      icon={icon}
-      size="sm"
-      footer={
-        <div className="flex w-full justify-end gap-3">
-          <Button variant="outline" onClick={onClose} disabled={loading}>
-            {cancelText ?? t('common.cancel')}
-          </Button>
-          <Button
-            variant={variant === 'destructive' ? 'destructive' : 'default'}
-            onClick={onConfirm}
-            loading={loading}
-          >
-            {confirmText ?? t('common.confirm')}
-          </Button>
-        </div>
-      }
-    >
-      <p className="text-[var(--color-text-secondary)]">{description}</p>
-    </Modal>
-  )
-}
-
-export default Modal
+      {title || description ? (
+        <DialogHeader>
+          {title ? <DialogTitle>{title}</DialogTitle> : null}
+          {description ? (
+            <DialogDescription>{description}</DialogDescription>
+          ) : null}
+        </DialogHeader>
+      ) : null}
+      <DialogBody className={contentClassName}>{children}</DialogBody>
+      {footer ? <DialogFooter>{footer}</DialogFooter> : null}
+    </DialogContent>
+  </Dialog>
+)

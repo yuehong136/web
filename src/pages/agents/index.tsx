@@ -15,15 +15,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { FilterPopover, type FilterValue } from '@/components/ui/filter-popover'
 import { AssetListControls } from '@/components/patterns/asset-list-controls'
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { toast } from '@/lib/toast'
 import {
   buildAgentCanvasPath,
@@ -430,46 +422,32 @@ export default function AgentsPage() {
         onConfirm={handleRename}
       />
 
-      <AlertDialog
+      <ConfirmDialog
         open={Boolean(flowToDelete)}
         onOpenChange={(open) => {
           if (!open && !deleteAgent.isLoading) setFlowToDelete(null)
         }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {t('agents.deleteTitle', '删除 Agent 资产')}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {flowToDelete
-                ? t(
-                    'agents.deleteDescription',
-                    '将删除「{{name}}」。当前阶段不保留回收站。',
-                    {
-                      name: resolveLocalizedText(
-                        flowToDelete.title,
-                        t('agents.unnamedAgent'),
-                      ),
-                    },
-                  )
-                : t('agents.deleteFallback', '删除后无法恢复。')}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteAgent.isLoading}>
-              {t('common.cancel')}
-            </AlertDialogCancel>
-            <Button
-              variant="destructive"
-              loading={deleteAgent.isLoading}
-              onClick={handleDelete}
-            >
-              {t('agents.confirmDelete', '确认删除')}
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        variant="destructive"
+        pending={deleteAgent.isLoading}
+        title={t('agents.deleteTitle', '删除 Agent 资产')}
+        cancelLabel={t('common.cancel')}
+        confirmLabel={t('agents.confirmDelete', '确认删除')}
+        onConfirm={handleDelete}
+        description={
+          flowToDelete
+            ? t(
+                'agents.deleteDescription',
+                '将删除「{{name}}」。当前阶段不保留回收站。',
+                {
+                  name: resolveLocalizedText(
+                    flowToDelete.title,
+                    t('agents.unnamedAgent'),
+                  ),
+                },
+              )
+            : t('agents.deleteFallback', '删除后无法恢复。')
+        }
+      />
     </>
   )
 }
