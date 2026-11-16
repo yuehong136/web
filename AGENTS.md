@@ -17,7 +17,7 @@
 - 内部引用用 `@/`；新文件用命名导出，组件文件 `kebab-case.tsx`，hook 文件 `use-*.ts`。保留遗留页面已有默认导出。
 - 源文件大小按 [文件体积基线](scripts/file-size-baseline.json) 棘轮执行：新文件不得超过 600 行，在册文件不得增长。拆分后只收紧基线；避免与任务无关的重构和全仓格式化。
 - UI 复用 `src/components/ui/` → `patterns/` → `page-templates/`；业务编排留在 `src/pages/` 或 feature 容器。局部特例通过 props/组合实现；共享缺陷可直接修复并检查调用方兼容性。
-- 视觉语义使用设计令牌，图标仅用 `lucide-react`；产品 UI 文案走 i18n，中英资源同步。模型输出、用户内容及协议字段不翻译。
+- 视觉语义使用设计令牌；界面图标默认 `lucide-react`，缺少合适图形时可用其他维护活跃的图标集，厂商/品牌标识统一走 `ProviderLogo`。产品 UI 文案走 i18n，中英资源同步。模型输出、用户内容及协议字段不翻译。
 - HTTP 归领域 API；普通请求使用共享 `APIClient`，流式请求复用领域传输与共享 SSE 解析。服务器状态归 TanStack Query，UI 状态归 Zustand；流式 chunk 不进 Query cache；仅持久化 UI 偏好。
 - 模型/工具输出视为不可信输入；HTML 用 `SafeHtml` 或沙箱 iframe，密钥只留服务端，不记录 prompt、访问凭证或工具敏感内容。脱敏的 token 用量/成本统计与凭证分开处理，具体边界见安全专题。
 

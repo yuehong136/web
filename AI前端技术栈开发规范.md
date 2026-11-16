@@ -39,7 +39,7 @@ Multi-RAG Frontend 是企业级 AI 前端，覆盖：
 | 样式            | Tailwind CSS + 语义化 token                                                   |
 | 原子组件        | Radix UI                                                                      |
 | 表单            | react-hook-form + zod                                                         |
-| 图标            | lucide-react（**唯一**）                                                      |
+| 图标            | 界面图标 lucide-react；品牌标识自有 SVG + @lobehub/icons-static-svg           |
 | 聊天 UI         | @ant-design/x 套件（x、x-card、x-markdown、x-sdk）                            |
 | 画布            | @xyflow/react、@antv/g6                                                       |
 | 编辑器          | @monaco-editor/react、@lexical/react                                          |
@@ -61,7 +61,7 @@ Multi-RAG Frontend 是企业级 AI 前端，覆盖：
 - ❌ Day.js 之外的旧 moment 系（避免新增）
 - ❌ Jest（正式测试使用 Node/tsx 与 Vitest，均由测试 inventory 收口）
 - ❌ Emotion / styled-components / 任意 CSS-in-JS（统一 Tailwind + token）
-- ❌ 新增其他图标库（业务图标统一 `lucide-react`，第三方内部依赖不作为业务入口）
+- ❌ 把品牌/厂商标识画成界面图标或首字母块（统一走 `ProviderLogo`；界面图标默认 `lucide-react`，确需其他图标集时选维护活跃、可按需引入的）
 - ❌ Vite 7 时代的 `build.rollupOptions.output.manualChunks` 拆包配置（Vite 8 统一走 Rolldown `codeSplitting.groups`）
 
 ## 3. 目录结构基线

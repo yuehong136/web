@@ -117,6 +117,13 @@
 - 物件用默认圆角方块，人和聊天角色用 `shape="circle"`；匿名访客、未命名助手用 `tone="neutral"` 加图标。
 - 当前登录用户用 `useCurrentUserAvatar()` 取头像参数；助手显示应用或 Agent 自己的身份，不再用 "AI"/"U" 文字块。
 - 不得再写渐变底 + 白字首字母、页面内的哈希配色或 `components-avatar-gradient-*` 之类的头像令牌。
+- 没有图片时，按类型显示用 `kind`（对话、Agent、知识库、搜索、记忆、技能等的图形），列表卡片需要说明类型时用 `badge` 角标；按类型统一取色用 `tone="kind"`。类型、图形和色位定义在 `patterns/entity-kind.ts`。
+
+#### 身份与 AI 时刻（强制）
+
+- 厂商、模型供应商的标识统一用 `patterns/provider-logo.tsx` 的 `ProviderLogo`（底层为自有 SVG 与 `@lobehub/icons-static-svg`），彩色标识保留原色，单色标识跟随文字色；不得把品牌标识画成界面图标或首字母块。
+- 文件在列表、引用芯片、来源条中统一用 `patterns/file-kind-tile.tsx` 的 `FileKindTile`，颜色取 `components-file-{kind}-*`。
+- 潮光渐变 `bg-ai-tide`、聚焦光晕 `ai-glow`、顶部光晕 `ai-halo`、流光文字 `text-shimmer` 只用于 AI 时刻：聚焦的输入框、思考和检索中、运行中的 Agent、首页问候。普通按钮、卡片和标签不使用。
 
 ### 设计令牌（强制 — 禁止任意值）
 

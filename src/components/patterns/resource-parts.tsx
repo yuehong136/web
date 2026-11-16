@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Checkbox } from '@/components/ui/checkbox'
 import { cn } from '@/lib/utils'
 import { EntityAvatar, type EntityAvatarSize } from './entity-avatar'
+import type { EntityKind } from './entity-kind'
 
 export interface ResourceAvatar {
   /** Image URL, data URL or bare base64 payload. */
@@ -11,7 +12,11 @@ export interface ResourceAvatar {
   seed?: string | null
   icon?: ReactNode
   shape?: 'rounded' | 'circle'
-  tone?: 'auto' | 'neutral'
+  tone?: 'auto' | 'neutral' | 'kind'
+  /** Kind glyph in place of the monogram when there is no image. */
+  kind?: EntityKind
+  /** Corner badge naming the kind (agent, knowledge, …). */
+  badge?: EntityKind
 }
 
 export interface ResourceSelection {

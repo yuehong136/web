@@ -23,6 +23,11 @@
   --color-chat-header-bg: var(--color-chat-header-bg);
   --color-chat-header-border: var(--color-chat-header-border);
   --color-chat-welcome-border: var(--color-chat-welcome-border);
+  --color-components-ai-from: var(--color-components-ai-from);
+  --color-components-ai-glow: var(--color-components-ai-glow);
+  --color-components-ai-ring: var(--color-components-ai-ring);
+  --color-components-ai-to: var(--color-components-ai-to);
+  --color-components-ai-via: var(--color-components-ai-via);
   --color-components-alert-error-bg: var(--color-components-alert-error-bg);
   --color-components-alert-error-border: var(
     --color-components-alert-error-border
@@ -269,6 +274,22 @@
   --color-components-dropdown-item-text: var(
     --color-components-dropdown-item-text
   );
+  --color-components-file-doc-bg: var(--color-components-file-doc-bg);
+  --color-components-file-doc-text: var(--color-components-file-doc-text);
+  --color-components-file-image-bg: var(--color-components-file-image-bg);
+  --color-components-file-image-text: var(--color-components-file-image-text);
+  --color-components-file-media-bg: var(--color-components-file-media-bg);
+  --color-components-file-media-text: var(--color-components-file-media-text);
+  --color-components-file-pdf-bg: var(--color-components-file-pdf-bg);
+  --color-components-file-pdf-text: var(--color-components-file-pdf-text);
+  --color-components-file-sheet-bg: var(--color-components-file-sheet-bg);
+  --color-components-file-sheet-text: var(--color-components-file-sheet-text);
+  --color-components-file-slide-bg: var(--color-components-file-slide-bg);
+  --color-components-file-slide-text: var(--color-components-file-slide-text);
+  --color-components-file-text-bg: var(--color-components-file-text-bg);
+  --color-components-file-text-text: var(--color-components-file-text-text);
+  --color-components-file-web-bg: var(--color-components-file-web-bg);
+  --color-components-file-web-text: var(--color-components-file-web-text);
   --color-components-glassmorphism-bg: var(--color-components-glassmorphism-bg);
   --color-components-glassmorphism-border: var(
     --color-components-glassmorphism-border
@@ -431,43 +452,4 @@
   --color-components-select-placeholder: var(
     --color-components-select-placeholder
   );
-  --color-components-select-text: var(--color-components-select-text);
-  --color-components-settings-content-bg: var(
-    --color-components-settings-content-bg
-  );
-  --color-components-settings-rail-bg: var(--color-components-settings-rail-bg);
-  --color-components-settings-rail-border: var(
-    --color-components-settings-rail-border
-  );
-  --color-components-settings-rail-title: var(
-    --color-components-settings-rail-title
-  );
-  --color-components-sidebar-bg: var(--color-components-sidebar-bg);
-  --color-components-sidebar-border: var(--color-components-sidebar-border);
-  --color-components-sidebar-item-bg: var(--color-components-sidebar-item-bg);
-  --color-components-sidebar-item-bg-active: var(
-    --color-components-sidebar-item-bg-active
-  );
-  --color-components-sidebar-item-bg-hover: var(
-    --color-components-sidebar-item-bg-hover
-  );
-  --color-components-sidebar-item-text: var(
-    --color-components-sidebar-item-text
-  );
-  --color-components-sidebar-item-text-active: var(
-    --color-components-sidebar-item-text-active
-  );
-  --color-components-skeleton-bg: var(--color-components-skeleton-bg);
-  --color-components-slider-range: var(--color-components-slider-range);
-  --color-components-slider-thumb: var(--color-components-slider-thumb);
-  --color-components-slider-thumb-border: var(
-    --color-components-slider-thumb-border
-  );
-  --color-components-slider-track: var(--color-components-slider-track);
-  --color-components-spinner-color: var(--color-components-spinner-color);
-  --color-components-split-pane-bg: var(--color-components-split-pane-bg);
-  --color-components-split-pane-border: var(
-    --color-components-split-pane-border
-  );
-  --color-components-steps-active-bg: var(--color-components-steps-active-bg);
 }

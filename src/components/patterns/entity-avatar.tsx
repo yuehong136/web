@@ -1,6 +1,11 @@
 import * as React from 'react'
 import * as AvatarPrimitive from '@radix-ui/react-avatar'
 import { cn } from '@/lib/utils'
+import {
+  ENTITY_KIND_ICON,
+  ENTITY_KIND_TONE,
+  type EntityKind,
+} from './entity-kind'
 
 /**
  * One avatar for apps, agents, knowledge bases, search apps, memories, users,
@@ -46,6 +51,15 @@ const RADII: Record<EntityAvatarSize, string> = {
 
 export type EntityAvatarSize = keyof typeof SIZES
 
+// Kind badges only from `sm` up; smaller avatars have no room for one.
+const BADGES: Partial<Record<EntityAvatarSize, string>> = {
+  sm: 'size-3 [&_svg]:size-2',
+  md: 'size-3.5 [&_svg]:size-2.5',
+  lg: 'size-4 [&_svg]:size-2.5',
+  xl: 'size-[1.125rem] [&_svg]:size-3',
+  '2xl': 'size-5 [&_svg]:size-3.5',
+}
+
 export interface EntityAvatarProps extends Omit<
   React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Root>,
   'children'
@@ -61,8 +75,15 @@ export interface EntityAvatarProps extends Omit<
   shape?: 'rounded' | 'circle'
   /** Shown instead of the monogram, e.g. a Bot icon for an unnamed assistant. */
   icon?: React.ReactNode
-  /** `neutral` drops the categorical tint (anonymous users, generic roles). */
-  tone?: 'auto' | 'neutral'
+  /**
+   * `neutral` drops the categorical tint (anonymous users, generic roles);
+   * `kind` uses the tint of `kind` (or `badge`) instead of the seed's.
+   */
+  tone?: 'auto' | 'neutral' | 'kind'
+  /** Shows the kind's glyph instead of the monogram when there is no image. */
+  kind?: EntityKind
+  /** A small corner badge naming the entity's kind (agent, knowledge, …). */
+  badge?: EntityKind
   /** Adds role="img" and a label; leave false when the name is shown next to it. */
   labelled?: boolean
 }
@@ -105,17 +126,26 @@ export function EntityAvatar({
   shape = 'rounded',
   icon,
   tone = 'auto',
+  kind,
+  badge,
   labelled = false,
   className,
   ...props
 }: EntityAvatarProps) {
   const monogram = getEntityMonogram(name)
   const key = seed?.trim() || name?.trim() || ''
+  const kindTone = kind ?? badge
   const toneClass =
-    tone === 'neutral' || !key ? NEUTRAL_TONE : TONES[getEntityToneIndex(key)]
+    tone === 'kind' && kindTone
+      ? TONES[ENTITY_KIND_TONE[kindTone]]
+      : tone === 'neutral' || !key
+        ? NEUTRAL_TONE
+        : TONES[getEntityToneIndex(key)]
   const imageSrc = resolveAvatarSrc(src)
+  const KindIcon = kind ? ENTITY_KIND_ICON[kind] : null
+  const BadgeIcon = badge ? ENTITY_KIND_ICON[badge] : null
 
-  return (
+  const avatar = (
     <AvatarPrimitive.Root
       data-slot="entity-avatar"
       role={labelled ? 'img' : undefined}
@@ -146,8 +176,29 @@ export function EntityAvatar({
           toneClass,
         )}
       >
-        {icon ?? monogram}
+        {icon ?? (KindIcon ? <KindIcon aria-hidden /> : monogram)}
       </AvatarPrimitive.Fallback>
     </AvatarPrimitive.Root>
+  )
+  if (!BadgeIcon || !badge || !BADGES[size]) return avatar
+
+  // The badge sits outside the clipped avatar, cut out of the surface by a ring.
+  return (
+    <span
+      data-slot="entity-avatar-badge-anchor"
+      className="relative inline-flex shrink-0 align-middle"
+    >
+      {avatar}
+      <span
+        aria-hidden
+        className={cn(
+          'absolute -right-1 -bottom-1 flex items-center justify-center rounded-radius-sm ring-2 ring-background-surface',
+          TONES[ENTITY_KIND_TONE[badge]],
+          BADGES[size],
+        )}
+      >
+        <BadgeIcon />
+      </span>
+    </span>
   )
 }

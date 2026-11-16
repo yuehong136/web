@@ -43,9 +43,10 @@ export function buildPresetTokens(
   const retintNeutral = neutralMap(surfacePalette[mode], surfaces)
   const tokens = { ...base }
   for (const key of Object.keys(tokens) as (keyof DesignTokens)[]) {
-    // Intent colors and categorical series have their own semantics and contrast contract.
+    // Intent colors, categorical series and identity tints (avatars, file
+    // kinds, the AI tide) have their own semantics and contrast contract.
     if (
-      /^(status-|data-viz-|text-(success|warning|error|inverted|on-accent)|components-(alert-|method-|badge-(success|warning|error)|canvas-node-status-))/.test(
+      /^(status-|data-viz-|text-(success|warning|error|inverted|on-accent)|components-(alert-|method-|avatar-|file-|ai-|badge-(success|warning|error)|canvas-node-status-))/.test(
         key,
       ) ||
       key === 'components-button-primary-text' ||
