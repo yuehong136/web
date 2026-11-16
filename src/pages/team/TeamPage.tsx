@@ -3,16 +3,24 @@
  * 容器组件 - 组合 hooks、tabs 和 dialogs
  */
 
-import React from 'react'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { Users, Building2, UserCheck, Clock, Shield } from 'lucide-react'
-import { useTeamStore } from '@/stores/team'
+import { useTranslation } from 'react-i18next'
+import { UserPlus } from 'lucide-react'
+import { DetailTemplate } from '@/components/page-templates'
+import { InlineStats, type InlineStat } from '@/components/patterns'
+import { Button } from '@/components/ui/button'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useTeamStore, type TeamActiveTab } from '@/stores/team'
 import { useTeamPageData, useTeamActions } from './hooks'
 import { TeamManagementTab } from './TeamManagementTab'
 import { JoinedTeamsTab } from './JoinedTeamsTab'
-import { BatchInviteDialog, ConfirmDialog, TeamStatsCard } from './components'
+import { BatchInviteDialog, TeamSelector } from './components'
 
-export const TeamPage: React.FC = () => {
+const TAB_CONTENT =
+  'mt-0 flex min-h-0 flex-1 flex-col focus-visible:ring-0 focus-visible:ring-offset-0'
+
+export function TeamPage() {
+  const { t } = useTranslation()
   const {
     tenantInfo,
     joinedTeams,
@@ -26,7 +34,6 @@ export const TeamPage: React.FC = () => {
     pendingTeamInvites,
     currentUserId,
   } = useTeamPageData()
-
   const {
     handleBatchInvite,
     handleRemoveMember,
@@ -39,7 +46,6 @@ export const TeamPage: React.FC = () => {
     handleConfirmLeave,
     loadingStates,
   } = useTeamActions(selectedTenantId)
-
   const {
     activeTab,
     setActiveTab,
@@ -50,108 +56,137 @@ export const TeamPage: React.FC = () => {
     setSelectedManagedTenantId,
   } = useTeamStore()
 
-  // 从已加入团队跳转到团队管理
-  const handleManageTeam = (tenantId: string) => {
-    setSelectedManagedTenantId(tenantId)
-    setActiveTab('my-team')
-  }
-
-  // 确认对话框统一处理
-  const handleConfirm = () => {
-    if (confirmDialog.type === 'remove') handleConfirmRemove()
-    else if (confirmDialog.type === 'leave') handleConfirmLeave()
-    else if (confirmDialog.type === 'change-role') handleConfirmRoleChange()
+  const membersTab = activeTab === 'my-team'
+  // Members and joined teams are complete lists, so these are true totals.
+  const memberStats: InlineStat[] = [
+    {
+      key: 'admins',
+      label: t('settings.team.stats.admins'),
+      value: stats.adminMembers,
+    },
+    {
+      key: 'pending',
+      label: t('settings.team.stats.pending'),
+      value: stats.pendingInvites,
+      tone: stats.pendingInvites ? 'warning' : undefined,
+    },
+  ]
+  const teamStats: InlineStat[] = [
+    {
+      key: 'invitations',
+      label: t('settings.team.stats.invitations'),
+      value: pendingTeamInvites,
+      tone: pendingTeamInvites ? 'warning' : undefined,
+    },
+  ]
+  const busy =
+    loadingStates.removeLoading ||
+    loadingStates.respondLoading ||
+    loadingStates.roleLoading
+  const target = confirmDialog.target?.name ?? ''
+  const confirmCopy =
+    confirmDialog.type === 'remove'
+      ? {
+          title: t('settings.team.confirm.removeTitle'),
+          description: t('settings.team.confirm.removeDescription', {
+            name: target,
+          }),
+          confirm: t('settings.team.confirm.remove'),
+          destructive: true,
+        }
+      : confirmDialog.type === 'leave'
+        ? {
+            title: t('settings.team.confirm.leaveTitle'),
+            description: t('settings.team.confirm.leaveDescription', {
+              name: target,
+            }),
+            confirm: t('settings.team.confirm.leave'),
+            destructive: true,
+          }
+        : {
+            title: t('settings.team.confirm.roleTitle'),
+            description: t(
+              confirmDialog.roleChangeInfo?.newRole === 'admin'
+                ? 'settings.team.confirm.makeAdminDescription'
+                : 'settings.team.confirm.removeAdminDescription',
+              { name: target },
+            ),
+            confirm: t('common.confirm'),
+            destructive: false,
+          }
+  const confirm = () => {
+    if (confirmDialog.type === 'remove') void handleConfirmRemove()
+    else if (confirmDialog.type === 'leave') void handleConfirmLeave()
+    else if (confirmDialog.type === 'change-role')
+      void handleConfirmRoleChange()
   }
 
   return (
-    <div className="flex h-full flex-col p-6">
-      {/* 统计卡片 */}
-      <div className="mb-4">
-        <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
-          <TeamStatsCard
-            title="成员总数"
-            value={stats.totalMembers}
-            icon={Users}
-            color="info"
-          />
-          <TeamStatsCard
-            title="活跃成员"
-            value={stats.activeMembers}
-            icon={UserCheck}
-            color="success"
-          />
-          <TeamStatsCard
-            title="管理员"
-            value={stats.adminMembers}
-            icon={Shield}
-            color="purple"
-          />
-          <TeamStatsCard
-            title="待处理邀请"
-            value={stats.pendingInvites + pendingTeamInvites}
-            icon={Clock}
-            color="warning"
-          />
-          <TeamStatsCard
-            title="已加入团队"
-            value={stats.joinedTeams}
-            icon={Building2}
-            color="purple"
-          />
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <Tabs
-        value={activeTab}
-        onValueChange={(value) =>
-          setActiveTab(value as 'my-team' | 'joined-teams')
+    <Tabs
+      value={activeTab}
+      onValueChange={(value) => setActiveTab(value as TeamActiveTab)}
+      className="h-full min-h-0"
+    >
+      <DetailTemplate
+        title={t('settings.team.title')}
+        count={membersTab ? members.length : joinedTeams.length}
+        countLabel={
+          membersTab
+            ? t('settings.team.memberCount', { count: members.length })
+            : t('settings.team.teamCount', { count: joinedTeams.length })
         }
-        className="flex min-h-0 flex-1 flex-col"
-      >
-        <div className="mb-4 flex items-center justify-center">
-          <TabsList>
+        subline={<InlineStats items={membersTab ? memberStats : teamStats} />}
+        actions={
+          membersTab ? (
+            <>
+              <TeamSelector
+                ownTenant={tenantInfo}
+                manageableTeams={manageableTeams}
+                selectedTenantId={selectedTenantId}
+                onSelectTenant={setSelectedManagedTenantId}
+              />
+              {permissions.canInvite && members.length > 0 ? (
+                <Button onClick={() => setInviteDialogOpen(true)}>
+                  <UserPlus className="size-icon-sm" aria-hidden="true" />
+                  {t('settings.team.invite')}
+                </Button>
+              ) : null}
+            </>
+          ) : null
+        }
+        tabs={
+          <TabsList
+            aria-label={t('settings.team.tabs.label')}
+            className="border-b-0"
+          >
             <TabsTrigger value="my-team">
-              <Users className="mr-2 h-4 w-4" />
-              团队管理
-              {stats.pendingInvites > 0 && (
-                <span className="ml-2 rounded-full bg-status-warning-subtle px-1.5 py-0.5 text-xs text-status-warning">
-                  {stats.pendingInvites}
-                </span>
-              )}
+              {t('settings.team.tabs.members')}
+              <span className="text-xs font-normal text-text-tertiary tabular-nums">
+                {members.length}
+              </span>
             </TabsTrigger>
             <TabsTrigger value="joined-teams">
-              <Building2 className="mr-2 h-4 w-4" />
-              已加入的团队
-              {pendingTeamInvites > 0 && (
-                <span className="ml-2 rounded-full bg-status-info-subtle px-1.5 py-0.5 text-xs text-status-info">
-                  {pendingTeamInvites}
-                </span>
-              )}
+              {t('settings.team.tabs.joined')}
+              <span className="text-xs font-normal text-text-tertiary tabular-nums">
+                {joinedTeams.length}
+              </span>
             </TabsTrigger>
           </TabsList>
-        </div>
-
-        <TabsContent value="my-team" className="flex min-h-0 flex-1 flex-col">
+        }
+        bodyScroll="none"
+      >
+        <TabsContent value="my-team" className={TAB_CONTENT}>
           <TeamManagementTab
-            tenantInfo={tenantInfo}
-            manageableTeams={manageableTeams}
-            selectedTenantId={selectedTenantId}
             currentUserId={currentUserId}
             members={members}
             membersLoading={membersLoading}
             permissions={permissions}
-            onSelectTenant={setSelectedManagedTenantId}
             onRemoveMember={handleRemoveMember}
             onChangeRole={handleChangeRole}
             onOpenInviteDialog={() => setInviteDialogOpen(true)}
           />
         </TabsContent>
-
-        <TabsContent
-          value="joined-teams"
-          className="flex min-h-0 flex-1 flex-col"
-        >
+        <TabsContent value="joined-teams" className={TAB_CONTENT}>
           <JoinedTeamsTab
             joinedTeams={joinedTeams}
             teamsLoading={teamsLoading}
@@ -159,34 +194,34 @@ export const TeamPage: React.FC = () => {
             onAccept={handleAcceptInvitation}
             onReject={handleRejectInvitation}
             onLeave={handleLeaveTeam}
-            onManageTeam={handleManageTeam}
+            onManageTeam={(tenantId) => {
+              setSelectedManagedTenantId(tenantId)
+              setActiveTab('my-team')
+            }}
           />
         </TabsContent>
-      </Tabs>
+      </DetailTemplate>
 
-      {/* 批量邀请对话框 */}
       <BatchInviteDialog
         open={inviteDialogOpen}
         onOpenChange={setInviteDialogOpen}
         onInvite={handleBatchInvite}
         isLoading={loadingStates.batchInviteLoading}
       />
-
-      {/* 确认对话框 */}
       <ConfirmDialog
         open={confirmDialog.open}
-        onOpenChange={closeConfirmDialog}
-        type={confirmDialog.type}
-        targetName={confirmDialog.target?.name ?? ''}
-        roleChangeInfo={confirmDialog.roleChangeInfo}
-        onConfirm={handleConfirm}
-        isLoading={
-          loadingStates.removeLoading ||
-          loadingStates.respondLoading ||
-          loadingStates.roleLoading
-        }
+        onOpenChange={(open) => {
+          if (!open && !busy) closeConfirmDialog()
+        }}
+        variant={confirmCopy.destructive ? 'destructive' : 'default'}
+        pending={busy}
+        title={confirmCopy.title}
+        description={confirmCopy.description}
+        cancelLabel={t('common.cancel')}
+        confirmLabel={confirmCopy.confirm}
+        onConfirm={confirm}
       />
-    </div>
+    </Tabs>
   )
 }
 

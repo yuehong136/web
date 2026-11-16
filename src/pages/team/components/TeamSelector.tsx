@@ -1,20 +1,18 @@
-/**
- * 团队选择器组件
- * 用于在「团队管理」tab 中切换当前管理的团队
- */
-
-import React from 'react'
-import { Button } from '@/components/ui/button'
+import { useTranslation } from 'react-i18next'
+import { ChevronsUpDown } from 'lucide-react'
 import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from '@/components/ui/popover'
-import { ChevronDown } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { TenantRole, type TenantInfo, type JoinedTeam } from '@/types/team'
-import { RoleBadge } from './RoleBadge'
+  ActionMenu,
+  ActionMenuContent,
+  ActionMenuLabel,
+  ActionMenuRadioGroup,
+  ActionMenuRadioItem,
+  ActionMenuSeparator,
+  ActionMenuTrigger,
+} from '@/components/ui/action-menu'
+import { Button } from '@/components/ui/button'
 import { EntityAvatar } from '@/components/patterns/entity-avatar'
+import { TenantRole, type JoinedTeam, type TenantInfo } from '@/types/team'
+import { RoleBadge } from './RoleBadge'
 
 interface TeamSelectorProps {
   ownTenant: TenantInfo | null
@@ -23,134 +21,87 @@ interface TeamSelectorProps {
   onSelectTenant: (tenantId: string) => void
 }
 
-export const TeamSelector: React.FC<TeamSelectorProps> = ({
+/** Switches the managed team; hidden when the user manages only their own. */
+export function TeamSelector({
   ownTenant,
   manageableTeams,
   selectedTenantId,
   onSelectTenant,
-}) => {
-  const [open, setOpen] = React.useState(false)
-
-  // 找到当前选中的团队信息
-  const selectedTeam = React.useMemo(() => {
-    if (!selectedTenantId || selectedTenantId === ownTenant?.tenant_id) {
-      return ownTenant
-        ? {
-            name: ownTenant.name,
-            role: TenantRole.Owner,
-            avatar: null as string | null,
-          }
-        : null
-    }
-    const team = manageableTeams.find((t) => t.tenant_id === selectedTenantId)
-    return team
-      ? { name: team.nickname, role: team.role, avatar: team.avatar }
-      : null
-  }, [selectedTenantId, ownTenant, manageableTeams])
-
-  const handleSelect = (tenantId: string) => {
-    onSelectTenant(tenantId)
-    setOpen(false)
-  }
-
-  // 如果只有自己的团队，不显示选择器
+}: TeamSelectorProps) {
+  const { t } = useTranslation()
   if (manageableTeams.length === 0) return null
-
+  const ownName = ownTenant?.name || t('settings.team.selector.own')
+  const managed = manageableTeams.find(
+    (team) => team.tenant_id === selectedTenantId,
+  )
+  const current = managed
+    ? {
+        name: managed.nickname || t('settings.team.unnamedTeam'),
+        role: managed.role,
+        seed: managed.tenant_id,
+        avatar: managed.avatar,
+      }
+    : {
+        name: ownName,
+        role: TenantRole.Owner,
+        seed: ownTenant?.tenant_id,
+        avatar: null,
+      }
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
+    <ActionMenu>
+      <ActionMenuTrigger asChild>
         <Button
+          type="button"
           variant="outline"
-          size="sm"
-          className="min-w-[200px] justify-between gap-2"
+          aria-label={`${t('settings.team.selector.label')}: ${current.name}`}
+          className="max-w-64 justify-between"
         >
-          <div className="flex min-w-0 items-center gap-2">
-            {selectedTeam && (
-              <>
-                <span className="truncate text-sm font-medium">
-                  {selectedTeam.name || '未命名团队'}
-                </span>
-                <RoleBadge role={selectedTeam.role} />
-              </>
-            )}
-          </div>
-          <ChevronDown
-            className={cn(
-              'h-4 w-4 shrink-0 transition-transform',
-              open && 'rotate-180',
-            )}
+          <span className="flex min-w-0 items-center gap-space-xs">
+            <EntityAvatar
+              name={current.name}
+              src={current.avatar}
+              seed={current.seed}
+              size="xs"
+              shape="circle"
+            />
+            <span className="truncate">{current.name}</span>
+          </span>
+          <ChevronsUpDown
+            className="size-icon-sm text-text-tertiary"
+            aria-hidden="true"
           />
         </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[280px] p-1" align="start">
-        {/* 我的团队 */}
-        {ownTenant && (
-          <>
-            <div className="px-2 py-1.5 text-xs font-medium text-text-tertiary">
-              我的团队
-            </div>
-            <button
-              onClick={() => handleSelect(ownTenant.tenant_id)}
-              className={cn(
-                'flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors',
-                'hover:bg-surface-secondary',
-                selectedTenantId === ownTenant.tenant_id &&
-                  'bg-surface-secondary',
-              )}
-            >
-              <EntityAvatar
-                name={ownTenant.name || '我的团队'}
-                seed={ownTenant.tenant_id}
-                shape="circle"
-              />
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-medium text-text-primary">
-                  {ownTenant.name || '我的团队'}
-                </div>
-              </div>
-              <RoleBadge role={TenantRole.Owner} />
-            </button>
-          </>
-        )}
-
-        {/* 管理的团队 */}
-        {manageableTeams.length > 0 && (
-          <>
-            <div className="mt-1 px-2 py-1.5 text-xs font-medium text-text-tertiary">
-              管理的团队
-            </div>
-            {manageableTeams.map((team) => (
-              <button
-                key={team.tenant_id}
-                onClick={() => handleSelect(team.tenant_id)}
-                className={cn(
-                  'flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors',
-                  'hover:bg-surface-secondary',
-                  selectedTenantId === team.tenant_id && 'bg-surface-secondary',
-                )}
-              >
-                <EntityAvatar
-                  name={team.nickname}
-                  src={team.avatar}
-                  seed={team.tenant_id}
-                  shape="circle"
-                />
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-medium text-text-primary">
-                    {team.nickname || '未命名团队'}
-                  </div>
-                  <div className="truncate text-xs text-text-tertiary">
-                    {team.email}
-                  </div>
-                </div>
-                <RoleBadge role={team.role} />
-              </button>
-            ))}
-          </>
-        )}
-      </PopoverContent>
-    </Popover>
+      </ActionMenuTrigger>
+      <ActionMenuContent align="end" className="min-w-64">
+        <ActionMenuRadioGroup
+          value={selectedTenantId ?? ownTenant?.tenant_id ?? ''}
+          onValueChange={onSelectTenant}
+        >
+          {ownTenant ? (
+            <>
+              <ActionMenuLabel className="px-space-sm py-space-xs text-xs text-text-tertiary">
+                {t('settings.team.selector.own')}
+              </ActionMenuLabel>
+              <ActionMenuRadioItem value={ownTenant.tenant_id}>
+                <span className="min-w-0 flex-1 truncate">{ownName}</span>
+                <RoleBadge role={TenantRole.Owner} />
+              </ActionMenuRadioItem>
+              <ActionMenuSeparator />
+            </>
+          ) : null}
+          <ActionMenuLabel className="px-space-sm py-space-xs text-xs text-text-tertiary">
+            {t('settings.team.selector.managed')}
+          </ActionMenuLabel>
+          {manageableTeams.map((team) => (
+            <ActionMenuRadioItem key={team.tenant_id} value={team.tenant_id}>
+              <span className="min-w-0 flex-1 truncate">
+                {team.nickname || t('settings.team.unnamedTeam')}
+              </span>
+              <RoleBadge role={team.role} />
+            </ActionMenuRadioItem>
+          ))}
+        </ActionMenuRadioGroup>
+      </ActionMenuContent>
+    </ActionMenu>
   )
 }
-
-TeamSelector.displayName = 'TeamSelector'

@@ -4,6 +4,7 @@
  */
 
 import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   useFetchTenantInfo,
   useFetchTeamMembers,
@@ -112,6 +113,7 @@ export const useTeamPageData = () => {
 
 /** 团队操作 handlers */
 export const useTeamActions = (selectedTenantId: string | null) => {
+  const { t } = useTranslation()
   const { user } = useAuthStore()
   const {
     openConfirmDialog,
@@ -127,7 +129,7 @@ export const useTeamActions = (selectedTenantId: string | null) => {
   const { rejectInvitation, isLoading: rejectLoading } = useRejectInvitation()
 
   const handleBatchInvite = async (emails: string[]) => {
-    if (!selectedTenantId) throw new Error('无法获取租户信息')
+    if (!selectedTenantId) throw new Error('No team selected')
     return await batchInvite({ tenantId: selectedTenantId, emails })
   }
 
@@ -142,9 +144,9 @@ export const useTeamActions = (selectedTenantId: string | null) => {
         tenantId: selectedTenantId,
         userId: confirmDialog.target.id,
       })
-      toast.success('操作成功')
+      toast.success(t('settings.team.feedback.success'))
     } catch {
-      toast.error('操作失败')
+      toast.error(t('settings.team.feedback.failed'))
     } finally {
       closeConfirmDialog()
     }
@@ -176,13 +178,15 @@ export const useTeamActions = (selectedTenantId: string | null) => {
         userId: confirmDialog.target.id,
         role: confirmDialog.roleChangeInfo.newRole,
       })
-      const label =
-        confirmDialog.roleChangeInfo.newRole === 'admin'
-          ? '已设为管理员'
-          : '已取消管理员'
-      toast.success(label)
+      toast.success(
+        t(
+          confirmDialog.roleChangeInfo.newRole === 'admin'
+            ? 'settings.team.feedback.madeAdmin'
+            : 'settings.team.feedback.removedAdmin',
+        ),
+      )
     } catch {
-      toast.error('操作失败')
+      toast.error(t('settings.team.feedback.failed'))
     } finally {
       closeConfirmDialog()
     }
@@ -191,9 +195,9 @@ export const useTeamActions = (selectedTenantId: string | null) => {
   const handleAcceptInvitation = async (tenantId: string) => {
     try {
       await acceptInvitation(tenantId)
-      toast.success('已接受邀请')
+      toast.success(t('settings.team.feedback.accepted'))
     } catch {
-      toast.error('操作失败')
+      toast.error(t('settings.team.feedback.failed'))
     }
   }
 
@@ -201,9 +205,9 @@ export const useTeamActions = (selectedTenantId: string | null) => {
     if (!user?.id) return
     try {
       await rejectInvitation({ tenantId, userId: user.id })
-      toast.success('已拒绝邀请')
+      toast.success(t('settings.team.feedback.rejected'))
     } catch {
-      toast.error('操作失败')
+      toast.error(t('settings.team.feedback.failed'))
     }
   }
 
@@ -221,9 +225,9 @@ export const useTeamActions = (selectedTenantId: string | null) => {
         tenantId: confirmDialog.target.id,
         userId: user.id,
       })
-      toast.success('已退出团队')
+      toast.success(t('settings.team.feedback.left'))
     } catch {
-      toast.error('操作失败')
+      toast.error(t('settings.team.feedback.failed'))
     } finally {
       closeConfirmDialog()
     }

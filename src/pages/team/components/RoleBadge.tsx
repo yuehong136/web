@@ -1,60 +1,36 @@
-/**
- * 角色徽章组件
- * 展示组件 - 无 hooks、无 API、无 store
- */
-
-import React from 'react'
-import { Crown, Shield, UserCheck, Clock } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { useTranslation } from 'react-i18next'
+import { Clock, Crown, Shield, UserCheck } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
 import { TenantRole } from '@/types/team'
 
-interface RoleBadgeProps {
+const ROLES = {
+  [TenantRole.Owner]: { key: 'owner', icon: Crown },
+  [TenantRole.Admin]: { key: 'admin', icon: Shield },
+  [TenantRole.Normal]: { key: 'normal', icon: UserCheck },
+  [TenantRole.Invite]: { key: 'invite', icon: Clock },
+} as const
+
+/**
+ * Team role lozenge. Roles are categories and stay neutral; only a pending
+ * invitation, which waits on someone, carries the warning colour.
+ */
+export function RoleBadge({
+  role,
+  className,
+}: {
   role: TenantRole
   className?: string
-}
-
-const roleConfig = {
-  [TenantRole.Owner]: {
-    label: '所有者',
-    icon: Crown,
-    className: 'bg-status-warning-subtle text-status-warning',
-  },
-  [TenantRole.Admin]: {
-    label: '管理员',
-    icon: Shield,
-    className:
-      'bg-components-badge-purple-bg text-components-badge-purple-text',
-  },
-  [TenantRole.Normal]: {
-    label: '成员',
-    icon: UserCheck,
-    className:
-      'bg-[var(--color-background-subtle)] text-[var(--color-text-secondary)]',
-  },
-  [TenantRole.Invite]: {
-    label: '待接受',
-    icon: Clock,
-    className:
-      'bg-[var(--color-components-badge-blue-bg)] text-[var(--color-components-badge-blue-text)]',
-  },
-}
-
-export const RoleBadge: React.FC<RoleBadgeProps> = ({ role, className }) => {
-  const config = roleConfig[role] || roleConfig[TenantRole.Normal]
+}) {
+  const { t } = useTranslation()
+  const config = ROLES[role] ?? ROLES[TenantRole.Normal]
   const Icon = config.icon
-
   return (
-    <span
-      className={cn(
-        'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium',
-        config.className,
-        className,
-      )}
+    <Badge
+      variant={role === TenantRole.Invite ? 'warning' : 'secondary'}
+      className={className}
     >
-      <Icon className="h-3 w-3" />
-      {config.label}
-    </span>
+      <Icon className="size-icon-xs" aria-hidden="true" />
+      {t(`settings.team.roles.${config.key}`)}
+    </Badge>
   )
 }
-
-RoleBadge.displayName = 'RoleBadge'

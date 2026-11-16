@@ -136,7 +136,7 @@ it('retains search and list preferences across theme and locale updates without 
   await type(search, 'Research')
   await click(
     container.querySelector<HTMLButtonElement>(
-      'button[aria-label="List view"]',
+      'button[aria-label="Grid view"]',
     )!,
   )
   await act(async () => setAppearance({ preset: 'graphite', mode: 'dark' }))
@@ -145,9 +145,10 @@ it('retains search and list preferences across theme and locale updates without 
   expect(search.value).toBe('Research')
   expect(
     container
-      .querySelector('button[aria-label="列表视图"]')
-      ?.getAttribute('aria-pressed'),
+      .querySelector('button[aria-label="卡片视图"]')
+      ?.getAttribute('aria-checked'),
   ).toBe('true')
+  expect(container.querySelector('[data-slot="resource-card"]')).not.toBeNull()
   expect(mock.list).toHaveBeenLastCalledWith(
     expect.objectContaining({ keywords: 'Research' }),
   )
@@ -223,4 +224,36 @@ it('keeps the selected asset in the delete dialog when the existing delete mutat
   expect(mock.deleteAgent).toHaveBeenCalledExactlyOnceWith('flow-one')
   expect(document.querySelector('[role=alertdialog]')).not.toBeNull()
   expect(document.body.textContent).not.toContain('private-delete-trace')
+})
+
+it('lists agents as rows with type and node meta, and pages with the shared pager', async () => {
+  await render()
+  const row = container.querySelector('[data-slot="resource-row"]')!
+  expect(row.textContent).toContain('Research')
+  expect(row.textContent).toContain('Research workflow')
+  expect(row.textContent).toContain('Agent')
+  expect(
+    container.querySelector('[data-slot="page-title-bar"] h1')?.textContent,
+  ).toBe('Agent Center')
+  expect(container.textContent).toContain('1–7 / 7')
+  expect(container.querySelector('[data-slot="inline-stats"]')).toBeNull()
+})
+it('gives the empty state the create, template and import paths without duplicating them in the header', async () => {
+  mock.list.mockReturnValue({
+    agents: [],
+    total: 0,
+    isLoading: false,
+    isError: false,
+    refetch: mock.refetch,
+  })
+  const router = await render()
+  const header = container.querySelector('[data-slot="page-title-bar"]')!
+  expect(header.textContent).not.toContain('New asset')
+  expect(header.textContent).not.toContain('Import JSON')
+  expect(header.textContent).toContain('Ops logs')
+  expect(container.textContent).toContain('No agents or pipelines yet')
+  expect(button('New asset')).toBeTruthy()
+  expect(button('Import JSON')).toBeTruthy()
+  await click(button('Create from template'))
+  expect(router.state.location.pathname).toBe('/agent-templates')
 })

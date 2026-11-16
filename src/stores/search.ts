@@ -14,6 +14,6 @@ export const useSearchStore = create<SearchUIState>((set) => ({
   settingsOpen: false,
   setSettingsOpen: (open) => set({ settingsOpen: open }),
 
-  viewMode: 'grid',
+  viewMode: 'list',
   setViewMode: (mode) => set({ viewMode: mode }),
 }))

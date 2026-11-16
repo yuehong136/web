@@ -1,11 +1,25 @@
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react'
 import { memoryAPI } from '@/api/memory'
 import { memoryKeys } from '@/hooks/use-memory'
+import {
+  ActionMenu,
+  ActionMenuContent,
+  ActionMenuLabel,
+  ActionMenuRadioGroup,
+  ActionMenuRadioItem,
+  ActionMenuTrigger,
+} from '@/components/ui/action-menu'
 import { Button } from '@/components/ui/button'
-import { PageSizeSelector } from '@/components/ui/page-size-selector'
 
+const PAGE_SIZES = [10, 20, 50]
+
+/**
+ * Open-ended pager for memory sources, styled like the shared `Pager`. The
+ * message API cannot report a trustworthy total, so the next page is probed
+ * instead of computing a range.
+ */
 export function MemorySourcePagination({
   memoryId,
   page,
@@ -50,51 +64,81 @@ export function MemorySourcePagination({
     enabled: !loading && count === pageSize,
   })
   return (
-    <div className="flex flex-wrap items-center justify-between gap-space-sm border-t border-border-subtle bg-background-surface px-space-lg py-space-base">
-      <p className="text-xs text-text-secondary" aria-live="polite">
+    <div className="flex min-h-[var(--control-height)] shrink-0 flex-wrap items-center gap-x-space-md border-t border-border-subtle py-space-2xs pr-space-sm pl-space-md text-xs text-text-tertiary">
+      <p aria-live="polite" className="min-w-0 tabular-nums">
         {t('memory.workspace.sourcePage', { page, count })}
       </p>
-      <div className="flex flex-wrap items-center gap-space-base">
-        <PageSizeSelector
-          pageSize={pageSize}
-          options={[10, 20, 50]}
-          onChange={onPageSizeChange}
-        />
-        {next.isError && count === pageSize && (
-          <Button size="sm" variant="ghost" onClick={() => next.refetch()}>
+      <span className="flex-1" aria-hidden="true" />
+      <nav
+        aria-label={t('common.patterns.pager.label')}
+        className="flex items-center gap-space-xs tabular-nums"
+      >
+        <ActionMenu>
+          <ActionMenuTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="text-xs font-normal text-text-tertiary"
+            >
+              {t('common.patterns.pager.perPage', { count: pageSize })}
+              <ChevronDown className="size-icon-xs" aria-hidden="true" />
+            </Button>
+          </ActionMenuTrigger>
+          <ActionMenuContent align="end" className="min-w-36">
+            <ActionMenuLabel className="px-space-sm py-space-xs text-xs text-text-tertiary">
+              {t('common.pagination.pageSizePrefix')}
+            </ActionMenuLabel>
+            <ActionMenuRadioGroup
+              value={String(pageSize)}
+              onValueChange={(value) => onPageSizeChange(Number(value))}
+            >
+              {PAGE_SIZES.map((option) => (
+                <ActionMenuRadioItem key={option} value={String(option)}>
+                  {t('common.patterns.pager.perPage', { count: option })}
+                </ActionMenuRadioItem>
+              ))}
+            </ActionMenuRadioGroup>
+          </ActionMenuContent>
+        </ActionMenu>
+        {next.isError && count === pageSize ? (
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            className="text-xs"
+            onClick={() => next.refetch()}
+          >
             {t('common.retry')}
           </Button>
-        )}
-        <div className="flex items-center gap-space-sm">
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={page <= 1 || loading}
-            onClick={() => onPageChange(page - 1)}
-          >
-            <ChevronLeft className="size-icon-sm" />
-            {t('common.previousPage')}
-          </Button>
-          <span className="text-xs text-text-secondary tabular-nums">
-            {page}
-          </span>
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={
-              loading ||
-              count < pageSize ||
-              !next.data ||
-              next.isFetching ||
-              next.isError
-            }
-            onClick={() => onPageChange(page + 1)}
-          >
-            {t('common.nextPage')}
-            <ChevronRight className="size-icon-sm" />
-          </Button>
-        </div>
-      </div>
+        ) : null}
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          aria-label={t('common.previousPage')}
+          disabled={page <= 1 || loading}
+          onClick={() => onPageChange(page - 1)}
+        >
+          <ChevronLeft className="size-icon-sm" aria-hidden="true" />
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          aria-label={t('common.nextPage')}
+          disabled={
+            loading ||
+            count < pageSize ||
+            !next.data ||
+            next.isFetching ||
+            next.isError
+          }
+          onClick={() => onPageChange(page + 1)}
+        >
+          <ChevronRight className="size-icon-sm" aria-hidden="true" />
+        </Button>
+      </nav>
     </div>
   )
 }

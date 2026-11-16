@@ -9,14 +9,7 @@ import {
   useSkillCapabilities,
 } from '@/hooks/use-skill-request'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '@/components/ui/dialog'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
 export function SkillError({ error }: { error: unknown }) {
   const { t, i18n } = useTranslation()
@@ -40,39 +33,7 @@ export function SkillError({ error }: { error: unknown }) {
   )
 }
 
-export function SkillPagination({
-  page,
-  total,
-  setPage,
-}: {
-  page: number
-  total: number
-  setPage: (page: number) => void
-}) {
-  const { t } = useTranslation()
-  return (
-    <div className="flex flex-wrap items-center justify-end gap-space-sm py-space-base">
-      <span className="text-sm text-text-secondary">
-        {t('skills.page', { page, total })}
-      </span>
-      <Button
-        variant="outline"
-        disabled={page <= 1}
-        onClick={() => setPage(page - 1)}
-      >
-        {t('skills.previous')}
-      </Button>
-      <Button
-        variant="outline"
-        disabled={page * 20 >= total}
-        onClick={() => setPage(page + 1)}
-      >
-        {t('skills.next')}
-      </Button>
-    </div>
-  )
-}
-
+/** Destructive confirmation shared by both skill protocols. */
 export function SkillDeleteDialog({
   open,
   onClose,
@@ -86,27 +47,19 @@ export function SkillDeleteDialog({
 }) {
   const { t } = useTranslation()
   return (
-    <Dialog
+    <ConfirmDialog
       open={open}
       onOpenChange={(value) => {
         if (!value && !pending) onClose()
       }}
-    >
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{t('skills.deleteConfirm')}</DialogTitle>
-          <DialogDescription>{t('skills.deleteDescription')}</DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button variant="outline" disabled={pending} onClick={onClose}>
-            {t('skills.cancel')}
-          </Button>
-          <Button variant="destructive" disabled={pending} onClick={onConfirm}>
-            {t('skills.delete')}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      variant="destructive"
+      pending={pending}
+      title={t('skills.deleteConfirm')}
+      description={t('skills.deleteDescription')}
+      cancelLabel={t('skills.cancel')}
+      confirmLabel={t('skills.delete')}
+      onConfirm={onConfirm}
+    />
   )
 }
 

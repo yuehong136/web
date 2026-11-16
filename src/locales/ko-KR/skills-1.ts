@@ -10,8 +10,6 @@ export const translations = {
   'skills.delete': '삭제',
   'skills.deleteSelected': '선택 항목 삭제',
   'skills.search': '검색',
-  'skills.previous': '이전',
-  'skills.next': '다음',
   'skills.directory': '디렉토리',
   'skills.files': '파일',
   'skills.version': '버전',

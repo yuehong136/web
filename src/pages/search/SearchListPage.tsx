@@ -1,10 +1,11 @@
 import { toast } from '@/lib/toast'
-import React, { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState, type FC } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Plus } from 'lucide-react'
+import { CollectionTemplate } from '@/components/page-templates'
+import { PageErrorState, PageLoadingState, Pager } from '@/components/patterns'
 import { Button } from '@/components/ui/button'
-import type { FilterConfig, FilterValue } from '@/components/ui/filter-popover'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { useSearchStore } from '@/stores/search'
 import {
@@ -15,20 +16,29 @@ import { ROUTES } from '@/constants'
 import type { SearchAppListItem } from '@/types/search'
 import CreateSearchDialog from './components/CreateSearchDialog'
 import SearchEmptyState from './components/SearchEmptyState'
-import SearchGridCard from './components/search-grid-card'
-import SearchListView from './components/search-list-view'
-import SearchPagination from './components/search-pagination'
-import SearchStatsRow from './components/search-stats-row'
-import SearchToolbar from './components/search-toolbar'
+import {
+  SearchAppCollection,
+  SearchFilterBar,
+  countSearchFeatures,
+  type SearchFeatureFilters,
+  type SearchSortBy,
+} from './components/search-collection'
 import {
   resolveRelatedEnabled,
   resolveSummaryEnabled,
   type SearchTimeFormat,
 } from './components/utils'
 
-type SearchSortBy = 'update_time' | 'create_time' | 'name'
+const PAGE_SIZES = [12, 24, 48]
+/** Feature filters are applied client-side over this many apps. */
+const FILTER_FETCH_SIZE = 1000
 
-export const SearchListPage: React.FC = () => {
+const matchesToggle = (selected: string[], enabled: boolean) =>
+  selected.length === 0 ||
+  (selected.includes('enabled') && enabled) ||
+  (selected.includes('disabled') && !enabled)
+
+export const SearchListPage: FC = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { viewMode, setViewMode } = useSearchStore()
@@ -40,7 +50,7 @@ export const SearchListPage: React.FC = () => {
   const [sortBy, setSortBy] = useState<SearchSortBy>('update_time')
   const [sortDesc, setSortDesc] = useState(true)
   const [timeFormat, setTimeFormat] = useState<SearchTimeFormat>('detailed')
-  const [filters, setFilters] = useState<FilterValue>({
+  const [filters, setFilters] = useState<SearchFeatureFilters>({
     summary: [],
     related: [],
   })
@@ -48,98 +58,36 @@ export const SearchListPage: React.FC = () => {
   const [deleteTarget, setDeleteTarget] = useState<SearchAppListItem | null>(
     null,
   )
-  const filterConfigs: FilterConfig[] = useMemo(
-    () => [
-      {
-        key: 'summary',
-        label: t('searchPage.filters.summary', 'AI 摘要'),
-        options: [
-          {
-            value: 'enabled',
-            label: t('searchPage.filters.enabled', '已开启'),
-          },
-          {
-            value: 'disabled',
-            label: t('searchPage.filters.disabled', '已关闭'),
-          },
-        ],
-      },
-      {
-        key: 'related',
-        label: t('searchPage.filters.related', '相关问题'),
-        options: [
-          {
-            value: 'enabled',
-            label: t('searchPage.filters.enabled', '已开启'),
-          },
-          {
-            value: 'disabled',
-            label: t('searchPage.filters.disabled', '已关闭'),
-          },
-        ],
-      },
-    ],
-    [t],
-  )
 
-  const hasActiveFilters = useMemo(
-    () =>
-      Object.values(filters).some(
-        (values) => Array.isArray(values) && values.length > 0,
-      ),
-    [filters],
-  )
-
-  const requestPage = hasActiveFilters ? 1 : currentPage
-  const requestPageSize = hasActiveFilters ? 1000 : pageSize
-
-  const { searchApps, total, isLoading } = useFetchSearchAppList({
-    page: requestPage,
-    page_size: requestPageSize,
-    orderby: sortBy,
-    desc: sortDesc,
-    keywords: keyword || undefined,
-  })
-
-  const filteredApps = useMemo(() => {
-    if (!hasActiveFilters) return searchApps
-
-    return searchApps.filter((app) => {
-      const summaryEnabled = resolveSummaryEnabled(app)
-      const relatedEnabled = resolveRelatedEnabled(app)
-
-      const summaryFilter = filters.summary || []
-      const relatedFilter = filters.related || []
-
-      const summaryMatch =
-        summaryFilter.length === 0 ||
-        (summaryFilter.includes('enabled') && summaryEnabled) ||
-        (summaryFilter.includes('disabled') && !summaryEnabled)
-
-      const relatedMatch =
-        relatedFilter.length === 0 ||
-        (relatedFilter.includes('enabled') && relatedEnabled) ||
-        (relatedFilter.includes('disabled') && !relatedEnabled)
-
-      return summaryMatch && relatedMatch
+  const hasActiveFilters = filters.summary.length + filters.related.length > 0
+  const { searchApps, total, isLoading, isError, refetch } =
+    useFetchSearchAppList({
+      page: hasActiveFilters ? 1 : currentPage,
+      page_size: hasActiveFilters ? FILTER_FETCH_SIZE : pageSize,
+      orderby: sortBy,
+      desc: sortDesc,
+      keywords: keyword || undefined,
     })
-  }, [filters.related, filters.summary, hasActiveFilters, searchApps])
 
+  const filteredApps = useMemo(
+    () =>
+      hasActiveFilters
+        ? searchApps.filter(
+            (app) =>
+              matchesToggle(filters.summary, resolveSummaryEnabled(app)) &&
+              matchesToggle(filters.related, resolveRelatedEnabled(app)),
+          )
+        : searchApps,
+    [filters, hasActiveFilters, searchApps],
+  )
   const totalCount = hasActiveFilters ? filteredApps.length : total
-
   const pageData = useMemo(() => {
     if (!hasActiveFilters) return searchApps
-
     const start = (currentPage - 1) * pageSize
-    const end = start + pageSize
-    return filteredApps.slice(start, end)
+    return filteredApps.slice(start, start + pageSize)
   }, [currentPage, filteredApps, hasActiveFilters, pageSize, searchApps])
 
-  const totalPages = useMemo(
-    () => Math.ceil(totalCount / pageSize),
-    [totalCount, pageSize],
-  )
-
+  const totalPages = Math.ceil(totalCount / pageSize)
   if (totalPages === 0 && currentPage !== 1) setCurrentPage(1)
   else if (totalPages > 0 && currentPage > totalPages)
     setCurrentPage(totalPages)
@@ -148,150 +96,121 @@ export const SearchListPage: React.FC = () => {
     setKeyword(value)
     setCurrentPage(1)
   }, [])
-
   const handleOpen = useCallback(
-    (id: string) => {
-      navigate(`${ROUTES.SEARCH}/${id}`)
-    },
+    (id: string) => navigate(`${ROUTES.SEARCH}/${id}`),
     [navigate],
   )
+  const handleDelete = useCallback(
+    async (target: SearchAppListItem) => {
+      try {
+        await deleteSearch(target.id)
+        toast.success(t('searchPage.notifications.deleteSuccessTitle'), {
+          description: t('searchPage.notifications.deleteSuccessMessage'),
+        })
+      } catch {
+        toast.error(t('searchPage.notifications.deleteFailedTitle'), {
+          description: t('searchPage.notifications.deleteFailedMessage'),
+        })
+      }
+    },
+    [deleteSearch, t],
+  )
+  const resetFilters = () => {
+    handleKeywordChange('')
+    setFilters({ summary: [], related: [] })
+  }
 
-  const handleDelete = useCallback(async () => {
-    if (!deleteTarget) return
-
-    try {
-      await deleteSearch(deleteTarget.id)
-      toast.success(
-        t('searchPage.notifications.deleteSuccessTitle', '删除成功'),
-        {
-          description: t(
-            'searchPage.notifications.deleteSuccessMessage',
-            '搜索应用已删除',
-          ),
-        },
-      )
-      setDeleteTarget(null)
-    } catch {
-      toast.error(t('searchPage.notifications.deleteFailedTitle', '删除失败'), {
-        description: t(
-          'searchPage.notifications.deleteFailedMessage',
-          '删除搜索应用时发生错误',
-        ),
-      })
-    }
-  }, [deleteSearch, deleteTarget, t])
-
-  const showEmptyState = !isLoading && pageData.length === 0
-  const emptyStateType = keyword || hasActiveFilters ? 'search' : 'list'
+  const filtered = Boolean(keyword) || hasActiveFilters
+  const state = isError
+    ? 'error'
+    : isLoading && !pageData.length
+      ? 'loading'
+      : !pageData.length
+        ? 'empty'
+        : 'content'
+  const features = countSearchFeatures(pageData)
 
   return (
-    <div className="flex h-full flex-col p-6">
-      <div className="mb-4 flex items-start justify-between">
-        <div>
-          <h1 className="text-xl font-semibold text-text-primary">
-            {t('searchPage.title', '搜索应用')}
-          </h1>
-          <p className="mt-1 text-sm text-text-secondary">
-            {t(
-              'searchPage.description',
-              '在选定知识库之上完成检索与 AI 总结，打造专用搜索应用。',
-            )}
-          </p>
-        </div>
-        <Button onClick={() => setShowCreateDialog(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          {t('searchPage.create', '创建搜索应用')}
-        </Button>
-      </div>
-
-      <div className="mb-4">
-        <SearchStatsRow
-          total={totalCount}
-          apps={hasActiveFilters ? filteredApps : searchApps}
-        />
-      </div>
-
-      <div className="mb-4">
-        <SearchToolbar
-          keyword={keyword}
-          onKeywordChange={handleKeywordChange}
-          viewMode={viewMode}
-          onViewModeChange={setViewMode}
-          sortBy={sortBy}
-          onSortByChange={(value) => {
-            setSortBy(value)
-            setCurrentPage(1)
-          }}
-          sortDesc={sortDesc}
-          onSortDescToggle={() => {
-            setSortDesc((prev) => !prev)
-            setCurrentPage(1)
-          }}
-          timeFormat={timeFormat}
-          onTimeFormatChange={setTimeFormat}
-          filterConfigs={filterConfigs}
-          filterValue={filters}
-          onFilterChange={(value) => {
-            setFilters(value)
-            setCurrentPage(1)
-          }}
-        />
-      </div>
-
-      {showEmptyState ? (
-        <div className="flex flex-1 items-center justify-center">
-          <SearchEmptyState
-            onCreate={() => setShowCreateDialog(true)}
-            type={emptyStateType}
+    <>
+      <CollectionTemplate
+        title={t('searchPage.title')}
+        count={totalCount}
+        countLabel={t('searchPage.results', { count: totalCount })}
+        actions={
+          state === 'empty' && !filtered ? null : (
+            <Button onClick={() => setShowCreateDialog(true)}>
+              <Plus className="size-icon-sm" aria-hidden="true" />
+              {t('searchPage.create')}
+            </Button>
+          )
+        }
+        filterBar={
+          <SearchFilterBar
+            keyword={keyword}
+            onKeywordChange={handleKeywordChange}
+            filters={filters}
+            onFiltersChange={(value) => {
+              setFilters(value)
+              setCurrentPage(1)
+            }}
+            sortBy={sortBy}
+            onSortByChange={(value) => {
+              setSortBy(value)
+              setCurrentPage(1)
+            }}
+            sortDesc={sortDesc}
+            onSortDescChange={(value) => {
+              setSortDesc(value)
+              setCurrentPage(1)
+            }}
+            timeFormat={timeFormat}
+            onTimeFormatChange={setTimeFormat}
+            view={viewMode}
+            onViewChange={setViewMode}
           />
-        </div>
-      ) : (
-        <>
-          <div className="-mx-1 flex-1 overflow-y-auto px-1 pt-1 pb-2">
-            {viewMode === 'grid' ? (
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {isLoading
-                  ? [...Array(8)].map((_, i) => (
-                      <div
-                        key={i}
-                        className="h-[180px] animate-pulse rounded-lg bg-surface-secondary"
-                      />
-                    ))
-                  : pageData.map((app) => (
-                      <SearchGridCard
-                        key={app.id}
-                        app={app}
-                        timeFormat={timeFormat}
-                        onOpen={handleOpen}
-                        onEdit={handleOpen}
-                        onDelete={(item) => setDeleteTarget(item)}
-                      />
-                    ))}
-              </div>
-            ) : (
-              <SearchListView
-                data={pageData}
-                isLoading={isLoading}
-                timeFormat={timeFormat}
-                onOpen={handleOpen}
-                onEdit={handleOpen}
-                onDelete={(app) => setDeleteTarget(app)}
-              />
-            )}
-          </div>
-
-          <SearchPagination
-            total={totalCount}
-            currentPage={currentPage}
+        }
+        state={state}
+        loadingState={<PageLoadingState title={t('searchPage.loading')} />}
+        errorState={
+          <PageErrorState
+            title={t('searchPage.loadFailedTitle')}
+            description={t('searchPage.loadFailedDescription')}
+            retryLabel={t('common.retry')}
+            onRetry={() => {
+              void refetch()
+            }}
+          />
+        }
+        emptyState={
+          <SearchEmptyState
+            type={filtered ? 'search' : 'list'}
+            onCreate={() => setShowCreateDialog(true)}
+            onReset={resetFilters}
+          />
+        }
+        footerNote={t('searchPage.pageFeatures', features)}
+        footer={
+          <Pager
+            page={currentPage}
             pageSize={pageSize}
+            total={totalCount}
             onPageChange={setCurrentPage}
+            pageSizeOptions={PAGE_SIZES}
             onPageSizeChange={(size) => {
               setPageSize(size)
               setCurrentPage(1)
             }}
           />
-        </>
-      )}
+        }
+      >
+        <SearchAppCollection
+          apps={pageData}
+          view={viewMode}
+          timeFormat={timeFormat}
+          onOpen={handleOpen}
+          onDelete={setDeleteTarget}
+        />
+      </CollectionTemplate>
 
       <CreateSearchDialog
         open={showCreateDialog}
@@ -302,20 +221,19 @@ export const SearchListPage: React.FC = () => {
         open={Boolean(deleteTarget)}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
         variant="destructive"
-        title={t('searchPage.deleteDialog.title', '删除搜索应用')}
-        description={t(
-          'searchPage.deleteDialog.description',
-          '将永久删除「{{name}}」，该操作不可撤销。',
-          { name: deleteTarget?.name || '' },
-        )}
+        title={t('searchPage.deleteDialog.title')}
+        description={t('searchPage.deleteDialog.description', {
+          name: deleteTarget?.name || '',
+        })}
+        cancelLabel={t('common.cancel')}
         confirmLabel={t('common.delete')}
         // The list closes the dialog at once; the request reports by toast.
         onConfirm={() => {
-          void handleDelete()
+          if (deleteTarget) void handleDelete(deleteTarget)
           setDeleteTarget(null)
         }}
       />
-    </div>
+    </>
   )
 }
 

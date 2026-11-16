@@ -271,7 +271,7 @@ it('core browse reads unindexed Files directories without requesting indexed sea
     ),
   )
   expect(container.textContent).toContain('Unindexed package')
-  expect(container.textContent).toContain('1 results')
+  expect(container.textContent).toContain('1–1 / 1')
   expect(search).not.toHaveBeenCalled()
 })
 

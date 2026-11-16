@@ -85,7 +85,7 @@ export const koreanTranslationStatus = {
     englishFallback: 125,
   },
   skills: {
-    translated: 42,
+    translated: 40,
     englishFallback: 129,
   },
   appearance: {

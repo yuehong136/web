@@ -1,4 +1,6 @@
+import { useTranslation } from 'react-i18next'
 import { MessageSquare } from 'lucide-react'
+import { PageEmptyState } from '@/components/patterns'
 import { LogDetail } from '@/pages/agent/features/log-detail'
 
 interface SessionDetailPaneProps {
@@ -10,21 +12,14 @@ export function SessionDetailPane({
   canvasId,
   sessionId,
 }: SessionDetailPaneProps) {
-  if (!canvasId || !sessionId) {
+  const { t } = useTranslation()
+  if (!canvasId || !sessionId)
     return (
-      <div className="p-space-xl flex h-full flex-col items-center justify-center bg-components-split-pane-bg text-center">
-        <div className="mb-space-base rounded-radius-lg shadow-elevation-low flex h-14 w-14 items-center justify-center border border-border-default bg-components-console-surface text-text-tertiary">
-          <MessageSquare className="size-6" />
-        </div>
-        <h3 className="text-base font-semibold text-text-primary">
-          从左侧选择一条 session
-        </h3>
-        <p className="mt-space-xs max-w-sm text-sm leading-relaxed text-text-tertiary">
-          右侧会展示完整的消息回放、Trace 时间线、输入输出与 Raw 数据。
-        </p>
-      </div>
+      <PageEmptyState
+        icon={<MessageSquare className="size-icon-lg" />}
+        title={t('agents.runLogs.detailTitle')}
+        description={t('agents.runLogs.detailDescription')}
+      />
     )
-  }
-
   return <LogDetail mode="session" canvasId={canvasId} sessionId={sessionId} />
 }

@@ -1,18 +1,22 @@
-import { useMemo, useState, type ReactNode } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Search, Sparkles } from 'lucide-react'
-import { ListPageTemplate } from '@/components/page-templates'
+import { useTranslation } from 'react-i18next'
+import { GitBranch, LayoutTemplate, Plus, Search } from 'lucide-react'
+import { CollectionTemplate } from '@/components/page-templates'
 import {
-  AppScene,
+  FilterBar,
+  PageEmptyState,
   PageErrorState,
   PageLoadingState,
+  ResourceCard,
+  ResourceGrid,
 } from '@/components/patterns'
-import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { useFetchAgentTemplates, useSetAgent } from '@/hooks/use-agent-request'
 import {
   buildAgentCanvasPath,
   buildInitialDsl,
+  countFlowNodes,
   inferCanvasTypeFromGraph,
   resolveCanvasCategory,
   resolveCanvasKind,
@@ -20,30 +24,89 @@ import {
 } from '@/lib/agent'
 import { AgentCanvasType, type AgentTemplate } from '@/types/agent'
 import { CreateAgentDialog } from './components/create-agent-dialog'
-import { TemplateCard } from './components/template-card'
 import { TemplateCategorySidebar } from './components/template-category-sidebar'
-import { AgentEmptyState } from './components/agent-empty-state'
 import {
   ALL_CATEGORY_KEY,
   RECOMMENDED_KEY,
-  getCategory,
+  categoryLabelKey,
   normalizeCategoryKey,
 } from './components/template-category-config'
 
 function resolveTemplateKind(template: AgentTemplate | null) {
-  if (!template) {
-    return AgentCanvasType.AGENT
-  }
-
+  if (!template) return AgentCanvasType.AGENT
   const graphKind = inferCanvasTypeFromGraph(template.dsl?.graph)
-  if (graphKind === AgentCanvasType.PIPELINE) {
-    return graphKind
-  }
-
+  if (graphKind === AgentCanvasType.PIPELINE) return graphKind
   return resolveCanvasKind(template)
 }
 
+function TemplateSection({
+  title,
+  templates,
+  onSelect,
+}: {
+  title: string
+  templates: AgentTemplate[]
+  onSelect: (template: AgentTemplate) => void
+}) {
+  const { t } = useTranslation()
+  return (
+    <section aria-label={title}>
+      <h2 className="flex items-baseline gap-space-sm px-space-md pt-space-md text-sm font-semibold text-text-primary">
+        {title}
+        <span className="text-xs font-normal text-text-tertiary tabular-nums">
+          {t('agents.templatesPage.count', { count: templates.length })}
+        </span>
+      </h2>
+      <ResourceGrid label={title}>
+        {templates.map((template) => {
+          const name = resolveLocalizedText(
+            template.title,
+            t('agents.unnamedTemplate'),
+          )
+          return (
+            <ResourceCard
+              key={template.id}
+              name={name}
+              description={resolveLocalizedText(
+                template.description,
+                t('agents.templateDescriptionFallback'),
+              )}
+              avatar={{ src: template.avatar, seed: template.id }}
+              eyebrow={t(
+                categoryLabelKey(normalizeCategoryKey(template.canvas_type)),
+              )}
+              onOpen={() => onSelect(template)}
+              actions={
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  aria-label={`${t('agents.templatesPage.use')}: ${name}`}
+                  onClick={() => onSelect(template)}
+                >
+                  <Plus className="size-icon-sm" aria-hidden="true" />
+                  {t('agents.templatesPage.use')}
+                </Button>
+              }
+              meta={
+                <span className="inline-flex items-center gap-space-xs">
+                  <GitBranch
+                    className="size-icon-xs shrink-0"
+                    aria-hidden="true"
+                  />
+                  {t('agents.nodeCount', { count: countFlowNodes(template) })}
+                </span>
+              }
+            />
+          )
+        })}
+      </ResourceGrid>
+    </section>
+  )
+}
+
 export default function AgentTemplatesPage() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const templatesQuery = useFetchAgentTemplates()
   const setAgent = useSetAgent()
@@ -56,7 +119,6 @@ export default function AgentTemplatesPage() {
     () => templatesQuery.data || [],
     [templatesQuery.data],
   )
-
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = {
       [ALL_CATEGORY_KEY]: templates.length,
@@ -69,44 +131,35 @@ export default function AgentTemplatesPage() {
     return counts
   }, [templates])
 
-  const keywordMatches = (template: AgentTemplate) => {
-    if (!keyword.trim()) return true
-    const text = `${resolveLocalizedText(template.title)} ${resolveLocalizedText(template.description, '')}`
-    return text.toLowerCase().includes(keyword.trim().toLowerCase())
-  }
-
-  const recommendedTemplates = useMemo(
-    () =>
-      templates.filter(
-        (template) =>
-          normalizeCategoryKey(template.canvas_type) === RECOMMENDED_KEY &&
-          keywordMatches(template),
-      ),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [templates, keyword],
-  )
-
-  const filteredTemplates = useMemo(() => {
+  const matching = useMemo(() => {
+    const term = keyword.trim().toLowerCase()
     return templates.filter((template) => {
-      if (!keywordMatches(template)) return false
-      if (selectedKey === ALL_CATEGORY_KEY) return true
-      return normalizeCategoryKey(template.canvas_type) === selectedKey
+      if (!term) return true
+      const text = `${resolveLocalizedText(template.title)} ${resolveLocalizedText(template.description, '')}`
+      return text.toLowerCase().includes(term)
     })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [templates, keyword, selectedKey])
+  }, [templates, keyword])
+  const isRecommended = (template: AgentTemplate) =>
+    normalizeCategoryKey(template.canvas_type) === RECOMMENDED_KEY
+  const recommended = matching.filter(isRecommended)
+  const showAll = selectedKey === ALL_CATEGORY_KEY
+  const mainTemplates = showAll
+    ? matching.filter((template) => !isRecommended(template))
+    : matching.filter(
+        (template) =>
+          normalizeCategoryKey(template.canvas_type) === selectedKey,
+      )
+  const visibleRecommended = showAll ? recommended : []
+  const filtered = Boolean(keyword.trim()) || !showAll
 
   const handleCreateFromTemplate = async (payload: {
     title: string
     kind: AgentCanvasType
   }) => {
     const template = selectedTemplate
-    if (!template) {
-      return
-    }
-
+    if (!template) return
     const templateKind = resolveTemplateKind(template)
     const templateCategory = resolveCanvasCategory(templateKind)
-
     const flow = await setAgent.setAgent({
       title: payload.title,
       canvas_category: templateCategory,
@@ -114,146 +167,111 @@ export default function AgentTemplatesPage() {
       description: resolveLocalizedText(template.description, ''),
       dsl: template.dsl || buildInitialDsl(templateKind),
     })
-
     navigate(buildAgentCanvasPath(flow.id, templateCategory))
   }
 
-  const showRecommendedSection =
-    selectedKey === ALL_CATEGORY_KEY && recommendedTemplates.length > 0
-
-  const selectedCategory = getCategory(selectedKey)
-  const mainSectionTitle =
-    selectedKey === ALL_CATEGORY_KEY ? '全部模板' : selectedCategory.label
-  const mainSectionTemplates =
-    selectedKey === ALL_CATEGORY_KEY
-      ? filteredTemplates.filter(
-          (template) =>
-            normalizeCategoryKey(template.canvas_type) !== RECOMMENDED_KEY,
-        )
-      : filteredTemplates
-
-  const gridClasses =
-    'grid grid-cols-1 gap-space-lg md:grid-cols-2 xl:grid-cols-3'
-
-  const renderSectionHeader = (
-    title: string,
-    count: number,
-    tone?: ReactNode,
-  ) => (
-    <div className="gap-space-sm flex min-w-0 items-center">
-      {tone}
-      <h2 className="truncate text-base font-semibold text-text-primary">
-        {title}
-      </h2>
-      <span className="text-sm font-medium text-text-tertiary">
-        {count} 个模板
-      </span>
-    </div>
-  )
-
-  const renderContent = () => (
-    <div className="gap-space-2xl pb-space-md flex flex-col">
-      {showRecommendedSection ? (
-        <section className="gap-space-lg flex flex-col">
-          {renderSectionHeader(
-            '精选推荐',
-            recommendedTemplates.length,
-            <Sparkles className="h-4 w-4 text-components-badge-purple-text" />,
-          )}
-          <div className={gridClasses}>
-            {recommendedTemplates.map((template) => (
-              <TemplateCard
-                key={`recommended-${template.id}`}
-                template={template}
-                onSelect={setSelectedTemplate}
-              />
-            ))}
-          </div>
-        </section>
-      ) : null}
-
-      <section className="gap-space-lg flex flex-col">
-        {renderSectionHeader(mainSectionTitle, mainSectionTemplates.length)}
-        <div className={gridClasses}>
-          {mainSectionTemplates.map((template) => (
-            <TemplateCard
-              key={template.id}
-              template={template}
-              onSelect={setSelectedTemplate}
-            />
-          ))}
-        </div>
-      </section>
-    </div>
-  )
-
-  const pageState: 'content' | 'loading' | 'empty' | 'error' = (() => {
-    if (templatesQuery.isLoading) return 'loading'
-    if (templatesQuery.isError) return 'error'
-    if (!filteredTemplates.length && !recommendedTemplates.length)
-      return 'empty'
-    return 'content'
-  })()
+  const state = templatesQuery.isError
+    ? 'error'
+    : templatesQuery.isLoading
+      ? 'loading'
+      : !mainTemplates.length && !visibleRecommended.length
+        ? 'empty'
+        : 'content'
 
   return (
     <>
-      <div className="flex h-full min-h-0 bg-components-console-bg">
+      <div className="flex h-full min-h-0">
         <TemplateCategorySidebar
           value={selectedKey}
           onChange={setSelectedKey}
           counts={categoryCounts}
         />
-
         <div className="min-w-0 flex-1">
-          <ListPageTemplate
-            title="Agent Templates"
-            description="从官方模板库出发快速构建 Agent 与 Pipeline,按分类浏览或搜索关键词。"
-            headerActions={
-              <Button variant="outline" onClick={() => navigate('/agents')}>
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                返回 Agent Center
-              </Button>
-            }
-            toolbarLeft={
-              <Input
-                type="search"
-                placeholder="搜索模板标题或用途"
-                value={keyword}
-                onChange={(event) => setKeyword(event.target.value)}
-                leftIcon={<Search className="h-4 w-4" />}
+          <CollectionTemplate
+            title={t('agents.templates')}
+            crumbs={[{ label: t('agents.center'), to: '/agents' }]}
+            count={templates.length}
+            countLabel={t('agents.templatesPage.results', {
+              count: templates.length,
+            })}
+            filterBar={
+              <FilterBar
+                search={{
+                  value: keyword,
+                  onChange: setKeyword,
+                  placeholder: t('agents.templatesPage.searchPlaceholder'),
+                }}
               />
             }
-            state={pageState}
+            state={state}
             loadingState={
               <PageLoadingState
-                scene={AppScene.CONSOLE}
-                title="正在加载模板"
-                description="先把模板资产整理进新的 Agent 创建链路。"
+                title={t('agents.templatesPage.loadingTitle')}
+                description={t('agents.templatesPage.loadingDescription')}
               />
             }
             errorState={
               <PageErrorState
-                scene={AppScene.CONSOLE}
-                title="模板加载失败"
-                description="请检查 `/api/v1/agents/templates` 接口。"
+                title={t('agents.templatesPage.loadFailedTitle')}
+                description={t('agents.templatesPage.loadFailedDescription')}
+                retryLabel={t('common.retry')}
                 onRetry={() => {
                   void templatesQuery.refetch()
                 }}
               />
             }
             emptyState={
-              <AgentEmptyState
-                type={
-                  keyword || selectedKey !== ALL_CATEGORY_KEY
-                    ? 'search'
-                    : 'list'
-                }
-                onCreate={() => navigate('/agents?create=1')}
-              />
+              filtered ? (
+                <PageEmptyState
+                  icon={<Search className="size-icon-lg" />}
+                  title={t('agents.noMatchTitle')}
+                  description={t('agents.noMatchDescription')}
+                  action={
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setKeyword('')
+                        setSelectedKey(ALL_CATEGORY_KEY)
+                      }}
+                    >
+                      {t('agents.resetFilters')}
+                    </Button>
+                  }
+                />
+              ) : (
+                <PageEmptyState
+                  icon={<LayoutTemplate className="size-icon-lg" />}
+                  title={t('agents.templatesPage.emptyTitle')}
+                  description={t('agents.templatesPage.emptyDescription')}
+                  action={
+                    <Button onClick={() => navigate('/agents?create=1')}>
+                      <Plus className="size-icon-sm" aria-hidden="true" />
+                      {t('agents.templatesPage.createBlank')}
+                    </Button>
+                  }
+                />
+              )
             }
           >
-            {renderContent()}
-          </ListPageTemplate>
+            {visibleRecommended.length ? (
+              <TemplateSection
+                title={t('agents.templatesPage.featured')}
+                templates={visibleRecommended}
+                onSelect={setSelectedTemplate}
+              />
+            ) : null}
+            {mainTemplates.length ? (
+              <TemplateSection
+                title={t(
+                  showAll
+                    ? 'agents.templatesPage.all'
+                    : categoryLabelKey(selectedKey),
+                )}
+                templates={mainTemplates}
+                onSelect={setSelectedTemplate}
+              />
+            ) : null}
+          </CollectionTemplate>
         </div>
       </div>
 
@@ -267,8 +285,8 @@ export default function AgentTemplatesPage() {
         }
         initialKind={resolveTemplateKind(selectedTemplate)}
         allowKindChange={false}
-        title="基于模板创建"
-        description="先复制模板骨架,再在新的编辑器壳层里增量替换节点与配置。"
+        title={t('agents.templatesPage.createTitle')}
+        description={t('agents.templatesPage.createDescription')}
       />
     </>
   )

@@ -2,7 +2,7 @@ export default {
   memory: {
     page: {
       title: '记忆库',
-      description: '把对话沉淀为可追溯、可验证的长期记忆',
+      results: '记忆库：{{count}}',
       create: '创建记忆库',
     },
     common: {
@@ -226,7 +226,6 @@ export default {
       memoryActions: '{{name}} 的操作',
       capacity: '容量上限',
       cardDescription: '从对话中积累事实、经历与习惯，为后续交流提供上下文。',
-      yourMemories: '你的记忆库',
       listHint: '打开记忆库，查看内容或测试检索',
       settingsDescription: '决定记忆如何被提取、保存与共享。',
       unsaved: '有未保存的更改',

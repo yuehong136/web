@@ -4,19 +4,10 @@ import { Badge } from '@/components/ui/badge'
 import type { MemoryMessage, MemoryType } from '@/types/memory'
 import { getMemoryLifecycle } from './memory-lifecycle'
 
+/** Memory type is a category, not a state, so it stays neutral. */
 export function MemoryTypeBadge({ type }: { type: MemoryType }) {
   const { t } = useTranslation()
-  const variants = {
-    raw: 'blue',
-    semantic: 'purple',
-    episodic: 'green',
-    procedural: 'orange',
-  } as const
-  return (
-    <Badge variant={variants[type] ?? 'secondary'}>
-      {t(`memory.filters.${type}`, type)}
-    </Badge>
-  )
+  return <Badge variant="secondary">{t(`memory.filters.${type}`, type)}</Badge>
 }
 
 export function MemoryStatusBadge({ message }: { message: MemoryMessage }) {

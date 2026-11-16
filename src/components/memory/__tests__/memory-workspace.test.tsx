@@ -130,8 +130,8 @@ it('finds a next source using the next offset without trusting a window-sized to
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0))
     })
-    const next = Array.from(host.querySelectorAll('button')).find(
-      (button) => button.textContent === 'common.nextPage',
+    const next = host.querySelector<HTMLButtonElement>(
+      'button[aria-label="common.nextPage"]',
     )!
     expect(next.disabled).toBe(false)
     await act(async () => next.click())

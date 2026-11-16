@@ -1,23 +1,31 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Folder, Plus, ArrowUpRight } from 'lucide-react'
-import { ListPageTemplate } from '@/components/page-templates'
+import { FolderPlus, Plus } from 'lucide-react'
+import { CollectionTemplate } from '@/components/page-templates'
 import {
-  PageLoadingState,
+  FilterBar,
   PageEmptyState,
   PageErrorState,
+  PageLoadingState,
+  Pager,
 } from '@/components/patterns'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { useCoreSpaces, useCoreAction } from '@/hooks/use-skill-core-request'
 import { skillCoreAPI } from '@/api/skill-core'
 import type { CoreSpace } from '@/api/skill-core-types'
-import { SkillDeleteDialog, SkillError, SkillPagination } from '../skill-shared'
+import { SkillDeleteDialog, SkillError } from '../skill-shared'
+import {
+  SkillNotices,
+  SkillSpaceList,
+  type SkillSpaceItem,
+} from '../skill-collection'
 import { CoreSpaceDialog } from './core-space-dialog'
 import { CoreImportDialog } from './core-import-dialog'
 import { CoreDeletion, useCoreDeletionRoute } from './core-deletion'
 
+const PAGE_SIZE = 20
+
+/** Core protocol: the space list is loaded whole and paged here. */
 export function CoreSpacesPage() {
   const { t } = useTranslation()
   const query = useCoreSpaces()
@@ -32,121 +40,118 @@ export function CoreSpacesPage() {
     query.data?.spaces.filter((space) =>
       space.name.toLocaleLowerCase().includes(filter.toLocaleLowerCase()),
     ) || []
+  const items: SkillSpaceItem[] = spaces
+    .slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+    .map((space) => ({
+      id: space.id,
+      name: space.name,
+      description: space.description,
+      href: `/skills/${space.id}`,
+      status:
+        space.status === 'active'
+          ? undefined
+          : space.delete_error
+            ? { label: t('skills.states.delete_failed'), tone: 'error' }
+            : { label: t(`skills.states.${space.status}`) },
+      onImport: () => setImporting(space),
+      importDisabled: space.status !== 'active',
+      onEdit: () => setEditing(space),
+      editDisabled: space.status !== 'active',
+      onDelete: () => setDeleting(space),
+      deleteDisabled:
+        space.status === 'deleting' && !space.delete_error?.retryable,
+    }))
+  const state = query.isLoading
+    ? 'loading'
+    : query.error
+      ? 'error'
+      : !spaces.length
+        ? 'empty'
+        : 'content'
+
   return (
     <>
-      <ListPageTemplate
+      <CollectionTemplate
         title={t('skills.title')}
+        count={query.data ? spaces.length : undefined}
+        countLabel={t('skills.spaceResults', { count: spaces.length })}
         description={t('skills.discoverDescription')}
-        headerActions={
-          <Button onClick={() => setEditing('new')}>
-            <Plus className="size-icon-sm" />
-            {t('skills.createSpace')}
-          </Button>
+        actions={
+          state === 'empty' && !filter ? null : (
+            <Button onClick={() => setEditing('new')}>
+              <Plus className="size-icon-sm" aria-hidden="true" />
+              {t('skills.createSpace')}
+            </Button>
+          )
         }
-        toolbarLeft={
-          <Input
-            aria-label={t('skills.filter')}
-            placeholder={t('skills.filter')}
-            value={filter}
-            onChange={(event) => {
-              setFilter(event.target.value)
-              setPage(1)
-            }}
+        filterBar={
+          <div className="flex flex-col gap-space-sm">
+            <FilterBar
+              search={{
+                value: filter,
+                onChange: (value) => {
+                  setFilter(value)
+                  setPage(1)
+                },
+                placeholder: t('skills.filter'),
+              }}
+            />
+            <SkillNotices>
+              {tracker.ids.map((id) => (
+                <CoreDeletion
+                  key={id}
+                  id={id}
+                  dismiss={() => tracker.dismiss(id)}
+                />
+              ))}
+              {action.error ? <SkillError error={action.error} /> : null}
+            </SkillNotices>
+          </div>
+        }
+        state={state}
+        loadingState={<PageLoadingState title={t('skills.loading')} />}
+        errorState={
+          <PageErrorState
+            title={t('skills.error')}
+            description={<SkillError error={query.error} />}
+            onRetry={() => void query.refetch()}
+            retryLabel={t('skills.retry')}
           />
         }
-        pagination={
-          <SkillPagination
+        emptyState={
+          <PageEmptyState
+            icon={<FolderPlus className="size-icon-lg" />}
+            title={t(filter ? 'skills.noSpaceMatches' : 'skills.empty')}
+            description={t(
+              filter
+                ? 'skills.noSpaceMatchesDescription'
+                : 'skills.emptyDescription',
+            )}
+            action={
+              filter ? (
+                <Button variant="outline" onClick={() => setFilter('')}>
+                  {t('skills.clearFilter')}
+                </Button>
+              ) : (
+                <Button onClick={() => setEditing('new')}>
+                  <Plus className="size-icon-sm" aria-hidden="true" />
+                  {t('skills.createSpace')}
+                </Button>
+              )
+            }
+          />
+        }
+        footer={
+          <Pager
             page={page}
+            pageSize={PAGE_SIZE}
             total={spaces.length}
-            setPage={setPage}
+            onPageChange={setPage}
           />
         }
       >
-        <div className="flex flex-col gap-space-base">
-          {tracker.ids.map((id) => (
-            <CoreDeletion
-              key={id}
-              id={id}
-              dismiss={() => tracker.dismiss(id)}
-            />
-          ))}
-          <SkillError error={action.error} />
-          {query.isLoading ? (
-            <PageLoadingState title={t('skills.loading')} description="" />
-          ) : query.error ? (
-            <PageErrorState
-              title={t('skills.error')}
-              description={<SkillError error={query.error} />}
-              onRetry={() => void query.refetch()}
-              retryLabel={t('skills.retry')}
-            />
-          ) : !spaces.length ? (
-            <PageEmptyState
-              title={t('skills.empty')}
-              description={t('skills.emptyDescription')}
-            />
-          ) : (
-            <div className="grid gap-space-base md:grid-cols-2 xl:grid-cols-3">
-              {spaces.slice((page - 1) * 20, page * 20).map((space) => (
-                <article
-                  key={space.id}
-                  className="flex flex-col gap-space-base rounded-radius-lg border border-border-default bg-background-surface p-space-lg"
-                >
-                  <Link
-                    to={`/skills/${space.id}`}
-                    className="flex items-center gap-space-sm font-semibold text-text-primary hover:underline"
-                  >
-                    <Folder className="size-icon-md text-text-secondary" />
-                    <span className="min-w-0 flex-1 truncate">
-                      {space.name}
-                    </span>
-                    <ArrowUpRight className="size-icon-sm" />
-                  </Link>
-                  <p className="line-clamp-3 flex-1 text-sm text-text-secondary">
-                    {space.description || t('skills.spaceDescription')}
-                  </p>
-                  {space.status !== 'active' && (
-                    <p>
-                      {t(
-                        `skills.states.${space.delete_error ? 'delete_failed' : space.status}`,
-                      )}
-                    </p>
-                  )}
-                  <div className="flex flex-wrap gap-space-sm">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={space.status !== 'active'}
-                      onClick={() => setImporting(space)}
-                    >
-                      {t('skills.import')}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      disabled={space.status !== 'active'}
-                      onClick={() => setEditing(space)}
-                    >
-                      {t('skills.editSpace')}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      disabled={
-                        space.status === 'deleting' &&
-                        !space.delete_error?.retryable
-                      }
-                      onClick={() => setDeleting(space)}
-                    >
-                      {t('skills.delete')}
-                    </Button>
-                  </div>
-                </article>
-              ))}
-            </div>
-          )}
-        </div>
-      </ListPageTemplate>
+        <SkillSpaceList spaces={items} />
+      </CollectionTemplate>
       {editing && (
         <CoreSpaceDialog
           space={editing === 'new' ? undefined : editing}
