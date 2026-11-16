@@ -10,6 +10,7 @@ import type { MCPServer } from '@/types/mcp'
 import type { MyLLMProvider } from '@/stores/model'
 import type { ContextManifest } from '@/lib/ai-workspace/contracts'
 import { ContextManifestSummary } from '@/components/chat/context-manifest-summary'
+import './tide-composer.css'
 
 interface ChatInputBoxProps {
   inputValue: string
@@ -74,6 +75,7 @@ export function ChatInputBox({
   return (
     <ChatComposer
       ref={inputRef}
+      className="tide-composer"
       value={inputValue}
       onChange={onInputChange}
       onSubmit={onSend}
@@ -131,6 +133,7 @@ export function ChatInputBox({
             onRetry={onRetryModels}
             variant="minimal"
             dropdownDirection={variant === 'welcome' ? 'down' : 'up'}
+            triggerClassName="h-[var(--control-height-sm)] bg-transparent"
             disabled={scopeLocked || isModelLocked}
           />
         ),

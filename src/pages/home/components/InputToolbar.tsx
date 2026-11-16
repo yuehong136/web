@@ -1,8 +1,12 @@
 import type { FC, RefObject } from 'react'
 import { useTranslation } from 'react-i18next'
-import { AtSign, Paperclip, Lightbulb } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Plus, Paperclip, Lightbulb } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import {
+  COMPOSER_PILL,
+  COMPOSER_PILL_IDLE,
+  COMPOSER_PILL_ON,
+} from './composer-pill'
 
 interface InputToolbarProps {
   isSkillPanelOpen: boolean
@@ -15,7 +19,7 @@ interface InputToolbarProps {
   size?: 'normal' | 'compact'
 }
 
-/** Composer pills: pick an app or skill with @; attachments only when wired. */
+/** Composer pills: add an app or skill (also typed as @); attachments only when wired. */
 export const InputToolbar: FC<InputToolbarProps> = ({
   isSkillPanelOpen,
   hasSelectedItems,
@@ -27,48 +31,46 @@ export const InputToolbar: FC<InputToolbarProps> = ({
   size = 'normal',
 }) => {
   const { t } = useTranslation()
-  const buttonSize = size === 'compact' ? 'icon-sm' : 'icon'
   return (
-    <div className="flex items-center gap-space-2xs">
-      <Button
+    <div className="flex items-center gap-space-xs">
+      <button
         type="button"
         ref={atButtonRef}
-        variant="ghost"
-        size={buttonSize}
         onClick={onAtClick}
         disabled={disabled}
         aria-label={t('home.input.selectSkills', '选择技能或应用')}
         aria-pressed={isSkillPanelOpen}
+        title={t('home.input.selectSkills', '选择技能或应用')}
         className={cn(
-          (isSkillPanelOpen || hasSelectedItems) &&
-            'bg-state-selected-bg text-state-selected-text hover:bg-state-selected-bg',
+          COMPOSER_PILL,
+          isSkillPanelOpen || hasSelectedItems
+            ? COMPOSER_PILL_ON
+            : COMPOSER_PILL_IDLE,
         )}
       >
-        <AtSign aria-hidden="true" />
-      </Button>
+        <Plus aria-hidden="true" />
+      </button>
       {onAttachmentClick && (
-        <Button
+        <button
           type="button"
-          variant="ghost"
-          size={buttonSize}
           onClick={onAttachmentClick}
           disabled={disabled}
+          className={cn(COMPOSER_PILL, COMPOSER_PILL_IDLE)}
           aria-label={t('home.input.addAttachment', '添加附件')}
         >
           <Paperclip aria-hidden="true" />
-        </Button>
+        </button>
       )}
       {size === 'normal' && onInspirationClick && (
-        <Button
+        <button
           type="button"
-          variant="ghost"
-          size={buttonSize}
           onClick={onInspirationClick}
           disabled={disabled}
+          className={cn(COMPOSER_PILL, COMPOSER_PILL_IDLE)}
           aria-label={t('home.input.inspiration', '获取灵感')}
         >
           <Lightbulb aria-hidden="true" />
-        </Button>
+        </button>
       )}
     </div>
   )

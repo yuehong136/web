@@ -1,59 +1,73 @@
-import { useRef } from 'react'
+import { useRef, type Ref } from 'react'
 import type { SenderRef } from '@ant-design/x/es/sender/interface'
-import { useTranslation } from 'react-i18next'
-import { GitCompareArrows, ListChecks, NotebookPen } from 'lucide-react'
-import { ChatEmptyState } from '@/components/chat/chat-empty-state'
+import { useHomeStore } from '@/stores/home'
 import { HomeComposer } from './home-composer'
+import { HomeGreeting } from './home-greeting'
+import { HomeStarters } from './home-starters'
+import { HomeRecentWork } from './home-recent-work'
 import { RecentAppConversations } from '@/pages/home/components/recent-app-conversations'
-import { recommendCards } from '../constants'
-
-const STARTER_ICONS = [ListChecks, GitCompareArrows, NotebookPen]
+import { useHomeOverview } from '../hooks/use-home-overview'
 
 interface WelcomeSectionProps {
   inputValue: string
   onInputChange: (value: string) => void
   onSend: () => void
   isSendPending?: boolean
+  /** The composer's frame, measured when the first message leaves it. */
+  composerRef?: Ref<HTMLDivElement>
 }
 
-/** New chat: a short question, the composer, one row of starters, recent app conversations. */
+/**
+ * New chat: the tide greeting and the page heading, the composer as the hero,
+ * four starters, then work to pick up again (the selected app's conversations,
+ * otherwise recently updated apps and knowledge bases).
+ */
 export function WelcomeSection({
   inputValue,
   onInputChange,
   onSend,
   isSendPending = false,
+  composerRef,
 }: WelcomeSectionProps) {
-  const { t } = useTranslation()
   const composer = useRef<SenderRef>(null)
+  const hasApp = useHomeStore((state) => state.selectedApps.length > 0)
+  const overview = useHomeOverview()
   return (
-    <ChatEmptyState
-      title={t('home.empty.title')}
-      description={t('home.empty.description')}
-      composer={
-        <HomeComposer
-          inputRef={composer}
-          value={inputValue}
-          onChange={onInputChange}
-          onSend={onSend}
-          placement="welcome"
-          request={{ phase: isSendPending ? 'preparing' : 'idle' }}
+    <div
+      data-home-welcome
+      className="flex min-h-0 flex-1 flex-col overflow-y-auto ai-halo px-space-sm sm:px-space-lg"
+    >
+      <div className="mx-auto my-auto flex w-full max-w-2xl flex-col gap-space-lg py-space-xl sm:py-space-2xl">
+        <HomeGreeting
+          knowledgeTotal={overview.knowledgeTotal}
+          mcpTotal={overview.mcpTotal}
         />
-      }
-      suggestionsLabel={t('home.empty.suggestions')}
-      suggestions={recommendCards.map((card, index) => {
-        const Icon = STARTER_ICONS[index % STARTER_ICONS.length]
-        return {
-          id: String(card.id),
-          label: card.tagKey ? t(card.tagKey, card.tag) : card.tag,
-          prompt: card.titleKey ? t(card.titleKey, card.title) : card.title,
-          icon: <Icon aria-hidden="true" />,
-        }
-      })}
-      onSuggestion={(prompt) => {
-        onInputChange(prompt)
-        composer.current?.focus()
-      }}
-      footer={<RecentAppConversations />}
-    />
+        <div ref={composerRef} data-home-composer="welcome">
+          <HomeComposer
+            inputRef={composer}
+            value={inputValue}
+            onChange={onInputChange}
+            onSend={onSend}
+            placement="welcome"
+            request={{ phase: isSendPending ? 'preparing' : 'idle' }}
+          />
+        </div>
+        <HomeStarters
+          onPick={(prompt) => {
+            onInputChange(prompt)
+            composer.current?.focus()
+          }}
+        />
+        {hasApp ? (
+          <RecentAppConversations />
+        ) : (
+          <HomeRecentWork
+            apps={overview.apps}
+            knowledgeBases={overview.knowledgeBases}
+            loading={overview.loading}
+          />
+        )}
+      </div>
+    </div>
   )
 }

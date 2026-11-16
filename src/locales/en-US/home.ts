@@ -1,7 +1,7 @@
 export default {
   home: {
     empty: {
-      title: 'What are we working on today?',
+      title: 'What can AI help you with today?',
       description:
         'Ask directly and the model answers; @ an app to search its knowledge bases, or @ an MCP service to use its tools.',
       suggestions: 'Ways to start',
@@ -16,9 +16,39 @@ export default {
       draft: 'Plan the next step',
       draftPrompt:
         'Draft a concise action plan from the background material and list the next steps.',
+      explain: 'Explain a concept',
+      explainPrompt:
+        'Explain this concept in plain language and give one example:',
+      summarizeHint: 'Key conclusions, each with its source',
+      compareHint: 'Differences, evidence and trade-offs',
+      draftHint: 'Turn the background into a plan',
+      explainHint: 'Plain words, then an example',
+    },
+    greeting: {
+      morning: 'Good morning',
+      afternoon: 'Good afternoon',
+      evening: 'Good evening',
+      knowledge_one: '{{count}} knowledge base',
+      knowledge_other: '{{count}} knowledge bases',
+      mcp_one: '{{count}} MCP service',
+      mcp_other: '{{count}} MCP services',
+      availableOne: '{{item}} available',
+      availableBoth: '{{first}} and {{second}} available',
+    },
+    continue: {
+      title: 'Continue working',
+      app: 'Chat app',
+      knowledge: 'Knowledge base',
+      documents_one: '{{count}} document',
+      documents_other: '{{count}} documents',
+      chunks_one: '{{count}} chunk',
+      chunks_other: '{{count}} chunks',
+      messages_one: '{{count}} message',
+      messages_other: '{{count}} messages',
     },
     input: {
-      welcomePlaceholder: 'Message me or assign a task',
+      welcomePlaceholder:
+        'Message me or assign a task — type @ to add an app or skill',
       chatPlaceholder: 'Type a message, press Enter to send',
       loadingHistory: 'Loading conversation history...',
       stop: 'Stop receiving',

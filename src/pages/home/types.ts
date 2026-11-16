@@ -7,6 +7,7 @@ import type { StreamToolCallInfo as ToolCallInfo } from '@/lib/streaming'
 import type { AgentTimelineNode } from '@/utils/agent-timeline'
 import type { ReferenceChunk } from '@/utils/reference-replacer'
 import type { ContextManifest } from '@/lib/ai-workspace/contracts'
+import type { LucideIcon } from 'lucide-react'
 
 // Re-export think types from common utils
 export type { ThinkExtractResult, ThinkingStatus } from '@/utils/think-utils'
@@ -42,7 +43,11 @@ export interface RecommendCard {
   titleKey?: string
   tag: string
   tagKey?: string
-  bgColor: string
+  /** One line under the label saying what the starter does. */
+  descriptionKey?: string
+  icon: LucideIcon
+  /** Static tint classes for the icon tile (an entity avatar tone). */
+  tone: string
   hasImage?: boolean
   imageUrl?: string
 }

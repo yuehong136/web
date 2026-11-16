@@ -1,7 +1,7 @@
 export default {
   home: {
     empty: {
-      title: '今天要处理什么？',
+      title: '今天想让 AI 帮你做什么？',
       description:
         '直接提问由模型回答；@ 一个应用会检索它绑定的知识库，@ MCP 服务可以调用工具。',
       suggestions: '可以这样开始',
@@ -13,9 +13,32 @@ export default {
       comparePrompt: '请比较这些方案的差异、依据和待确认的问题。',
       draft: '形成下一步',
       draftPrompt: '请根据背景资料起草一份简明的行动方案，列出下一步。',
+      explain: '解释概念',
+      explainPrompt: '请用通俗的语言解释这个概念，并举一个例子：',
+      summarizeHint: '提炼结论，逐条附上出处',
+      compareHint: '列出差异、依据和取舍',
+      draftHint: '把背景整理成行动方案',
+      explainHint: '通俗讲清楚，再举个例子',
+    },
+    greeting: {
+      morning: '早上好',
+      afternoon: '下午好',
+      evening: '晚上好',
+      knowledge_other: '{{count}} 个知识库',
+      mcp_other: '{{count}} 个 MCP 服务',
+      availableOne: '{{item}}可用',
+      availableBoth: '{{first}}、{{second}}可用',
+    },
+    continue: {
+      title: '继续工作',
+      app: '对话应用',
+      knowledge: '知识库',
+      documents_other: '{{count}} 个文档',
+      chunks_other: '{{count}} 个分块',
+      messages_other: '{{count}} 条消息',
     },
     input: {
-      welcomePlaceholder: '给我发消息或布置任务',
+      welcomePlaceholder: '给我发消息或布置任务，输入 @ 选择应用或技能',
       chatPlaceholder: '输入消息，按 Enter 发送',
       loadingHistory: '加载对话历史...',
       stop: '停止接收',

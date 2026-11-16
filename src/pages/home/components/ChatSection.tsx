@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useRef } from 'react'
+import type { SenderRef } from '@ant-design/x/es/sender/interface'
 import { useTranslation } from 'react-i18next'
 import {
   ChatTranscript,
@@ -25,6 +26,7 @@ import { copyToClipboardWithFeedback } from '@/lib/clipboard'
 import { extractThinkContent } from '@/utils/think-utils'
 import { AnswerStatusNotice } from './answer-status-notice'
 import { HomeComposer } from './home-composer'
+import { ComposerEntrance, type ComposerOrigin } from './composer-entrance'
 import { renderHomeThreadIdentity } from './home-thread-identity'
 import { getHomeMessagePhase } from '../utils/answer-status'
 import type { ChatMessage } from '../types'
@@ -41,6 +43,8 @@ interface ChatSectionProps {
   isToolAnalyzing: boolean
   isLoadingHistory?: boolean
   isSendPending?: boolean
+  /** Where the welcome composer was when this conversation's first message left it. */
+  composerOrigin?: ComposerOrigin | null
 }
 
 export function ChatSection(props: ChatSectionProps) {
@@ -67,8 +71,10 @@ function ChatSectionContent({
   streamingThinking = '',
   isLoadingHistory = false,
   isSendPending = false,
+  composerOrigin = null,
 }: ChatSectionProps) {
   const { t } = useTranslation()
+  const composer = useRef<SenderRef>(null)
   const workspace = useChatWorkspace()!
   const { myLLMs } = useFetchMyLLMs()
   const { viewReference } = workspace
@@ -215,8 +221,13 @@ function ChatSectionContent({
         <TurnRail turns={turns} rootRef={thread} />
       </div>
       <div className="shrink-0 px-space-sm pt-space-xs pb-space-sm sm:px-space-lg sm:pb-space-md">
-        <div className="mx-auto w-full max-w-2xl">
+        <ComposerEntrance
+          origin={composerOrigin}
+          focusTarget={composer}
+          className="mx-auto w-full max-w-2xl"
+        >
           <HomeComposer
+            inputRef={composer}
             value={inputValue}
             onChange={onInputChange}
             onSend={onSend}
@@ -228,7 +239,7 @@ function ChatSectionContent({
                 : { phase: isSendPending ? 'preparing' : 'idle' }
             }
           />
-        </div>
+        </ComposerEntrance>
       </div>
     </div>
   )

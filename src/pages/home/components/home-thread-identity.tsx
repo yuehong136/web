@@ -1,6 +1,6 @@
 import { Bot } from 'lucide-react'
 import { EntityAvatar } from '@/components/patterns/entity-avatar'
-import { ProviderIcon } from '@/components/ui/provider-icon'
+import { ProviderLogo } from '@/components/patterns/provider-logo'
 import type { DialogApp } from '@/types/api'
 import type { MyLLMProvider } from '@/stores/model'
 import {
@@ -46,7 +46,7 @@ export function renderHomeThreadIdentity({
   return (
     <>
       {identity.provider ? (
-        <ProviderIcon provider={identity.provider} size={16} />
+        <ProviderLogo provider={identity.provider} size="xs" tile={false} />
       ) : (
         <Bot aria-hidden="true" className="size-icon-xs" />
       )}
