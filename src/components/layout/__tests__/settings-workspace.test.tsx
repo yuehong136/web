@@ -64,7 +64,12 @@ afterEach(async () => {
   container.remove()
   vi.unstubAllGlobals()
 })
-const render = async (returnTo: string, pathname = '/settings/mcp') => {
+// The MCP page draws its own heading, so the layout heading is checked on a
+// page whose title still comes from the settings layout.
+const render = async (
+  returnTo: string,
+  pathname = '/settings/model-gateway',
+) => {
   const router = createMemoryRouter(
     [
       {
@@ -81,6 +86,10 @@ const render = async (returnTo: string, pathname = '/settings/mcp') => {
             children: [
               { index: true, element: <SettingsIndexRedirect /> },
               { path: 'mcp', element: <p>MCP servers content</p> },
+              {
+                path: 'model-gateway',
+                element: <p>Model gateway content</p>,
+              },
               { path: 'api/keys', element: <p>API keys content</p> },
               { path: 'api/docs', element: <p>API docs content</p> },
               { path: 'profile', element: <p>Profile page</p> },
@@ -173,12 +182,12 @@ it('keeps a fixed primary rail, collapses only the secondary panel, and restores
 it('keeps one precise settings heading in the top bar through route, locale, and navigation changes', async () => {
   const router = await render('/home')
   const title = () => container.querySelector('header h1')?.textContent
-  expect(title()).toBe('MCP servers')
+  expect(title()).toBe('Model gateway')
   expect(
     container.querySelectorAll('nav[aria-label="breadcrumb"]'),
   ).toHaveLength(1)
   await click(button('Collapse secondary navigation'))
-  expect(title()).toBe('MCP servers')
+  expect(title()).toBe('Model gateway')
   for (const [route, expected] of [
     ['api/keys', 'API keys'],
     ['api/keys/', 'API keys'],
@@ -217,16 +226,17 @@ it('defaults Settings to Profile, preserves its return location, and orders acco
     container.querySelectorAll('nav[aria-label="Settings"] a'),
   ).map((a) => a.textContent)
   expect(links).toEqual([
+    // Account, models, integrations, administration.
     'Profile',
     'Appearance',
-    'Team',
     'Model providers',
     'Model gateway',
-    'Data sources',
     'MCP',
+    'Data sources',
     'Channels',
     'API keys',
     'API docs',
+    'Team',
     'User management',
     'Sandbox execution',
     'System status',
