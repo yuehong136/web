@@ -1,45 +1,62 @@
 import { toast } from '@/lib/toast'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
+import type { CollectionView } from '@/components/patterns'
 import { ROUTES } from '@/constants'
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import {
   useDeleteKnowledge,
   useFetchKnowledgeList,
 } from '@/hooks/use-knowledge-request'
 import type { KnowledgeBase } from '@/types/api'
-import { DEFAULT_PAGE_SIZE } from './constants'
+import { DEFAULT_PAGE_SIZE, SEARCH_DEBOUNCE_MS } from './constants'
 import { useQuickEdit } from './use-quick-edit'
-import { formatKnowledgeTime, getStatusClassName } from './utils'
-import type { KnowledgeTimeFormat, KnowledgeViewMode } from './types'
+import type { KnowledgeGroupBy, KnowledgeTimeFormat } from './types'
+
+export interface KnowledgeDeletion {
+  ids: string[]
+  /** Set when one named base is deleted from its row. */
+  name?: string
+}
+
+/** Paths a knowledge row can open; `import` opens the upload dialog. */
+export const knowledgePaths = {
+  create: `${ROUTES.KNOWLEDGE}/create`,
+  documents: (id: string) => `${ROUTES.KNOWLEDGE}/${id}/documents`,
+  importDocuments: (id: string) =>
+    `${ROUTES.KNOWLEDGE}/${id}/documents?import=1`,
+  search: (id: string) => `${ROUTES.KNOWLEDGE}/${id}/search`,
+  settings: (id: string) => `${ROUTES.KNOWLEDGE}/${id}/settings`,
+}
 
 export const useKnowledgeListPage = () => {
   const navigate = useNavigate()
   const { t } = useTranslation()
 
-  const [viewMode, setViewMode] = useState<KnowledgeViewMode>('grid')
-  const [selectedBases, setSelectedBases] = useState<string[]>([])
-  const [sortBy] = useState<'create_time' | 'update_time' | 'name' | 'doc_num'>(
-    'update_time',
-  )
+  const [viewMode, setViewMode] = useState<CollectionView>('list')
+  const [groupBy, setGroupBy] = useState<KnowledgeGroupBy>('content')
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [sortDesc, setSortDesc] = useState(true)
   const [timeFormat, setTimeFormat] = useState<KnowledgeTimeFormat>('detailed')
   const [editingKnowledgeBase, setEditingKnowledgeBase] =
     useState<KnowledgeBase | null>(null)
-  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [deletion, setDeletion] = useState<KnowledgeDeletion | null>(null)
+  const [deleting, setDeleting] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
   const [searchQuery, setSearchQuery] = useState('')
+  const keywords = useDebouncedValue(searchQuery, SEARCH_DEBOUNCE_MS)
 
-  // 服务器态走 React Query：分页/排序/搜索参数进 queryKey，变更自动重取
-  // （替代原 store.loadKnowledgeBases 的手动 fetch-effect，行为等价）
-  const { knowledgeBases, total, isLoading, refetch } = useFetchKnowledgeList({
-    page: currentPage,
-    page_size: pageSize,
-    orderby: sortBy,
-    desc: sortDesc,
-    keywords: searchQuery,
-  })
+  // Paging, sort and keywords are part of the query key, so changes refetch.
+  const { knowledgeBases, total, isLoading, isError, refetch } =
+    useFetchKnowledgeList({
+      page: currentPage,
+      page_size: pageSize,
+      orderby: 'update_time',
+      desc: sortDesc,
+      keywords,
+    })
   const { deleteKnowledge } = useDeleteKnowledge()
 
   const changeSearchQuery = useCallback((query: string) => {
@@ -47,176 +64,130 @@ export const useKnowledgeListPage = () => {
     setCurrentPage(1)
   }, [])
 
-  const totalPages = Math.ceil(total / pageSize)
+  const changePageSize = useCallback((size: number) => {
+    setPageSize(size)
+    setCurrentPage(1)
+  }, [])
 
-  const timeFormatOptions = useMemo(
-    () => [
-      { value: 'detailed', label: t('knowledge.list.timeFormat.detailed') },
-      { value: 'compact', label: t('knowledge.list.timeFormat.compact') },
-      { value: 'relative', label: t('knowledge.list.timeFormat.relative') },
-    ],
-    [t],
-  )
-
-  // 列表只保留后端可信筛选：关键词搜索。是否处于筛选态即「有搜索词」。
+  // Keyword search is the only server filter the list offers.
   const hasActiveSearch = searchQuery.trim() !== ''
 
-  const formatTime = useCallback(
-    (timestamp: number) => formatKnowledgeTime(timestamp, timeFormat),
-    [timeFormat],
-  )
-
-  const getStatusText = useCallback(
-    (knowledgeBase: KnowledgeBase) => {
-      if (knowledgeBase.doc_num > 0) {
-        return t('knowledge.list.status.hasContent')
-      }
-
-      if (knowledgeBase.permission === 'me') {
-        return t('knowledge.list.status.empty')
-      }
-
-      return t('knowledge.list.status.unknown')
-    },
-    [t],
-  )
-
-  const handleCreateSuccess = useCallback(
-    (knowledgeBaseId: string) => {
-      void refetch()
-      navigate(`${ROUTES.KNOWLEDGE}/${knowledgeBaseId}`)
-    },
-    [navigate, refetch],
-  )
-
-  const handleView = useCallback(
-    (knowledgeBaseId: string) => {
-      navigate(`${ROUTES.KNOWLEDGE}/${knowledgeBaseId}`)
-    },
+  const openCreate = useCallback(
+    () => navigate(knowledgePaths.create),
     [navigate],
   )
 
-  const handleDelete = useCallback(
-    async (knowledgeBaseId: string) => {
-      if (!window.confirm(t('knowledge.list.confirm.deleteSingle'))) {
-        return
-      }
+  const requestDelete = useCallback(
+    (target: KnowledgeDeletion) => {
+      if (!deleting) setDeletion(target)
+    },
+    [deleting],
+  )
 
-      try {
-        await deleteKnowledge(knowledgeBaseId)
+  const cancelDelete = useCallback(() => {
+    if (!deleting) setDeletion(null)
+  }, [deleting])
+
+  const confirmDelete = useCallback(async () => {
+    if (!deletion || deleting) return
+    const { ids, name } = deletion
+    setDeleting(true)
+    try {
+      await Promise.all(ids.map((id) => deleteKnowledge(id)))
+      setSelectedIds((previous) => previous.filter((id) => !ids.includes(id)))
+      setDeletion(null)
+      if (name)
         toast.success(t('knowledge.list.notifications.deleteSuccessTitle'), {
           description: t('knowledge.list.notifications.deleteSuccessMessage'),
         })
-      } catch {
-        toast.error(t('knowledge.list.notifications.deleteErrorTitle'), {
-          description: t('knowledge.list.notifications.deleteErrorMessage'),
-        })
-      }
-    },
-    [deleteKnowledge, t],
-  )
-
-  const handleBulkDelete = useCallback(async () => {
-    if (selectedBases.length === 0) {
-      return
-    }
-
-    if (
-      !window.confirm(
-        t('knowledge.list.confirm.deleteBulk', {
-          count: selectedBases.length,
-        }),
-      )
-    ) {
-      return
-    }
-
-    try {
-      await Promise.all(selectedBases.map((id) => deleteKnowledge(id)))
-      setSelectedBases([])
-      toast.success(t('knowledge.list.notifications.bulkDeleteSuccessTitle'), {
-        description: t(
-          'knowledge.list.notifications.bulkDeleteSuccessMessage',
+      else
+        toast.success(
+          t('knowledge.list.notifications.bulkDeleteSuccessTitle'),
           {
-            count: selectedBases.length,
+            description: t(
+              'knowledge.list.notifications.bulkDeleteSuccessMessage',
+              { count: ids.length },
+            ),
           },
-        ),
-      })
+        )
     } catch {
-      toast.error(t('knowledge.list.notifications.bulkDeleteErrorTitle'), {
-        description: t('knowledge.list.notifications.deleteErrorMessage'),
-      })
+      toast.error(
+        t(
+          name
+            ? 'knowledge.list.notifications.deleteErrorTitle'
+            : 'knowledge.list.notifications.bulkDeleteErrorTitle',
+        ),
+        { description: t('knowledge.list.notifications.deleteErrorMessage') },
+      )
+    } finally {
+      setDeleting(false)
     }
-  }, [deleteKnowledge, selectedBases, t])
+  }, [deleteKnowledge, deleting, deletion, t])
 
   const { handleQuickEditSubmit, isQuickEditSubmitting } = useQuickEdit({
     editingKnowledgeBase,
     onUpdated: () => setEditingKnowledgeBase(null),
   })
 
-  const toggleSelectedBase = useCallback((knowledgeBaseId: string) => {
-    setSelectedBases((prev) =>
-      prev.includes(knowledgeBaseId)
-        ? prev.filter((id) => id !== knowledgeBaseId)
-        : [...prev, knowledgeBaseId],
+  const toggleSelected = useCallback((id: string, checked: boolean) => {
+    setSelectedIds((previous) =>
+      checked
+        ? [...new Set([...previous, id])]
+        : previous.filter((item) => item !== id),
     )
   }, [])
 
-  const toggleGridSelection = useCallback(
-    (knowledgeBaseId: string, checked: boolean) => {
-      setSelectedBases((prev) =>
+  // Page-level select-all keeps selections made on other pages.
+  const togglePage = useCallback(
+    (checked: boolean) => {
+      const visible = knowledgeBases.map((knowledgeBase) => knowledgeBase.id)
+      setSelectedIds((previous) =>
         checked
-          ? [...prev, knowledgeBaseId]
-          : prev.filter((id) => id !== knowledgeBaseId),
+          ? [...new Set([...previous, ...visible])]
+          : previous.filter((id) => !visible.includes(id)),
       )
     },
-    [],
+    [knowledgeBases],
   )
 
-  const toggleSelectAll = useCallback(() => {
-    setSelectedBases((prev) =>
-      prev.length === knowledgeBases.length
-        ? []
-        : knowledgeBases.map((knowledgeBase) => knowledgeBase.id),
-    )
-  }, [knowledgeBases])
-
   return {
-    currentPage,
-    editingKnowledgeBase,
-    formatTime,
-    getStatusClassName,
-    getStatusText,
-    handleBulkDelete,
-    handleCreateSuccess,
-    handleDelete,
-    handleQuickEditSubmit,
-    handleView,
-    hasActiveSearch,
-    isLoading,
-    isQuickEditSubmitting,
-    knowledgeBases,
-    searchQuery,
-    selectedBases,
-    setCurrentPage,
-    setEditingKnowledgeBase,
-    setPageSize,
-    setSearchQuery: changeSearchQuery,
-    setShowCreateModal,
-    setSortDesc,
-    setTimeFormat,
-    setViewMode,
-    showCreateModal,
-    sortDesc,
     t,
-    timeFormat,
-    timeFormatOptions,
-    toggleGridSelection,
-    toggleSelectedBase,
-    toggleSelectAll,
+    navigate,
+    knowledgeBases,
     total,
-    totalPages,
-    pageSize,
+    isLoading,
+    isError,
+    refetch,
     viewMode,
+    setViewMode,
+    groupBy,
+    setGroupBy,
+    sortDesc,
+    setSortDesc,
+    timeFormat,
+    setTimeFormat,
+    searchQuery,
+    setSearchQuery: changeSearchQuery,
+    hasActiveSearch,
+    currentPage,
+    setCurrentPage,
+    pageSize,
+    setPageSize: changePageSize,
+    selectedIds,
+    setSelectedIds,
+    toggleSelected,
+    togglePage,
+    openCreate,
+    editingKnowledgeBase,
+    setEditingKnowledgeBase,
+    handleQuickEditSubmit,
+    isQuickEditSubmitting,
+    deletion,
+    deleting,
+    requestDelete,
+    cancelDelete,
+    confirmDelete,
   }
 }
+
+export type KnowledgeListPageState = ReturnType<typeof useKnowledgeListPage>

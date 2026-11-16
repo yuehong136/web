@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { setProductLanguage } from '@/locales/i18n'
 import { toRetrievalResultViewList } from '../adapters/retrieval-result'
 import { ResultPanel } from '../result-panel'
-import { ResultPreviewModal } from '../result-preview-modal'
+import { ResultPreview } from '../result-preview-panel'
 import type { RetrievalResult, RetrievalResultView } from '../types'
 
 const chunk = (
@@ -137,30 +137,29 @@ describe('retrieval test scores', () => {
     expect(container.textContent).toContain('“不可用”表示检索没有返回')
   })
 
-  it('the preview dialog distinguishes unavailable from zero', async () => {
+  it('the preview Inspector distinguishes unavailable from zero', async () => {
     const renderPreview = (result: RetrievalResultView) =>
       act(async () =>
         root.render(
-          <ResultPreviewModal
+          <ResultPreview
             result={result}
             highlightEnabled={false}
             isMarkdownPreview={false}
             onTogglePreview={vi.fn()}
-            onClose={vi.fn()}
           />,
         ),
       )
 
     await renderPreview(partial)
-    let dialog = document.querySelector('dialog')?.textContent
-    expect(dialog).toContain('Combined similarity: 61.0%')
-    expect(dialog).toContain('Vector: Unavailable')
-    expect(dialog).toContain('Text: Unavailable')
+    let preview = container.textContent
+    expect(preview).toContain('Combined similarity: 61.0%')
+    expect(preview).toContain('Vector: Unavailable')
+    expect(preview).toContain('Text: Unavailable')
 
     await renderPreview(zero)
-    dialog = document.querySelector('dialog')?.textContent
-    expect(dialog).toContain('Vector: 0.0%')
-    expect(dialog).toContain('Text: 0.0%')
-    expect(dialog).not.toContain('Unavailable')
+    preview = container.textContent
+    expect(preview).toContain('Vector: 0.0%')
+    expect(preview).toContain('Text: 0.0%')
+    expect(preview).not.toContain('Unavailable')
   })
 })

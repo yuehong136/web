@@ -52,8 +52,9 @@ import {
   buildKnowledgeSettingsParserConfig,
 } from './settings/knowledge-settings-form-values'
 import { MetadataManageType } from '@/types/api'
-import { PageEmptyState, PageHeader, SectionCard } from '@/components/patterns'
-import { SplitDetailPageTemplate } from '@/components/page-templates'
+import { PageEmptyState } from '@/components/patterns'
+import { KnowledgeSectionTemplate } from './components/knowledge-section-template'
+import { SettingsSection } from './settings/settings-section'
 
 const ParserVisualizationPanel = React.lazy(async () => ({
   default: (await import('./settings/ParserVisualizationPanel'))
@@ -237,47 +238,47 @@ const KnowledgeSettingsPage: React.FC = () => {
 
   return (
     <Form {...form}>
-      <SplitDetailPageTemplate
-        paneVariant="card"
-        leftWidth={720}
-        minLeft={560}
-        header={
-          <PageHeader
-            compact
-            surface="elevated"
-            titleSize="md"
-            title={t('knowledge.settings.title')}
-            description={t('knowledge.settings.description')}
-            actions={
-              <>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleReset}
-                  disabled={isLoading}
-                >
-                  {t('knowledge.common.cancel')}
-                </Button>
-                <Button
-                  type="submit"
-                  form={KB_SETTINGS_FORM_ID}
-                  loading={isLoading}
-                  leftIcon={<Save className="h-4 w-4" />}
-                >
-                  {t('knowledge.common.save')}
-                </Button>
-              </>
-            }
-          />
+      <KnowledgeSectionTemplate
+        title={t('knowledge.settings.title')}
+        subline={
+          <p className="text-xs text-text-tertiary">
+            {t('knowledge.settings.description')}
+          </p>
         }
-        leftPane={
-          <section aria-label={t('knowledge.settings.formLabel')}>
+        actions={
+          <>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={handleReset}
+              disabled={isLoading}
+            >
+              {t('knowledge.common.cancel')}
+            </Button>
+            <Button
+              type="submit"
+              form={KB_SETTINGS_FORM_ID}
+              loading={isLoading}
+              leftIcon={<Save className="size-icon-sm" aria-hidden="true" />}
+            >
+              {t('knowledge.common.save')}
+            </Button>
+          </>
+        }
+        bodyScroll="none"
+      >
+        <div className="flex min-h-0 flex-1">
+          <section
+            aria-label={t('knowledge.settings.formLabel')}
+            data-scroll-root="settings-body"
+            className="scroll-area min-h-0 min-w-0 flex-1 overflow-y-auto"
+          >
             <form
               id={KB_SETTINGS_FORM_ID}
               onSubmit={form.handleSubmit(handleSubmit)}
-              className="space-y-space-md p-space-lg"
+              className="mx-auto flex w-full max-w-[calc(45rem*var(--text-scale,1))] flex-col gap-space-lg px-space-md py-space-lg sm:px-space-xl"
             >
-              <SectionCard title={t('knowledge.settings.sections.basic')}>
+              <SettingsSection title={t('knowledge.settings.sections.basic')}>
                 <GeneralForm
                   embeddingModelOptions={embeddingModels.options}
                   embeddingKnownOptions={embeddingModels.knownOptions}
@@ -286,18 +287,22 @@ const KnowledgeSettingsPage: React.FC = () => {
                   embeddingModelLoading={isLoadingModels}
                   avatarSeed={id}
                 />
-              </SectionCard>
+              </SettingsSection>
 
-              <SectionCard title={t('knowledge.settings.sections.indexing')}>
+              <SettingsSection
+                title={t('knowledge.settings.sections.indexing')}
+              >
                 <div className="space-y-space-lg">
                   <GraphRagFormFields />
                   <div className="border-t border-border-subtle pt-space-md">
                     <RaptorFormFields />
                   </div>
                 </div>
-              </SectionCard>
+              </SettingsSection>
 
-              <SectionCard title={t('knowledge.settings.sections.pipeline')}>
+              <SettingsSection
+                title={t('knowledge.settings.sections.pipeline')}
+              >
                 <div className="space-y-space-md">
                   <FormField
                     control={form.control}
@@ -407,44 +412,49 @@ const KnowledgeSettingsPage: React.FC = () => {
                     />
                   )}
                 </div>
-              </SectionCard>
+              </SettingsSection>
 
-              <SectionCard title={t('knowledge.settings.sections.datasource')}>
+              <SettingsSection
+                title={t('knowledge.settings.sections.datasource')}
+              >
                 <LinkDataSource kbId={id!} />
-              </SectionCard>
+              </SettingsSection>
             </form>
           </section>
-        }
-        rightPane={
-          <section aria-label={t('knowledge.settings.previewLabel')}>
-            {parseType === 1 ? (
-              <React.Suspense
-                fallback={
-                  <PageEmptyState
-                    compact
-                    title={t('knowledge.common.loading')}
-                    description={t('knowledge.common.preparing')}
-                  />
-                }
-              >
-                <ParserVisualizationPanel selectedParser={selectedParserId} />
-              </React.Suspense>
-            ) : (
-              <div className="space-y-space-sm p-space-lg">
-                <h3 className="text-base font-medium text-text-primary">
-                  {t('knowledge.settings.pipelinePreview.title')}
-                </h3>
-                <p className="text-sm text-text-tertiary">
-                  {t('knowledge.settings.pipelinePreview.description')}
-                </p>
-                <p className="text-sm text-text-tertiary">
-                  {t('knowledge.settings.pipelinePreview.createTip')}
-                </p>
-              </div>
-            )}
-          </section>
-        }
-      />
+          <aside
+            aria-label={t('knowledge.settings.previewLabel')}
+            className="scroll-area hidden min-h-0 w-96 shrink-0 overflow-y-auto border-l border-border-subtle xl:block"
+          >
+            <section aria-label={t('knowledge.settings.previewLabel')}>
+              {parseType === 1 ? (
+                <React.Suspense
+                  fallback={
+                    <PageEmptyState
+                      compact
+                      title={t('knowledge.common.loading')}
+                      description={t('knowledge.common.preparing')}
+                    />
+                  }
+                >
+                  <ParserVisualizationPanel selectedParser={selectedParserId} />
+                </React.Suspense>
+              ) : (
+                <div className="space-y-space-sm p-space-lg">
+                  <h3 className="text-base font-medium text-text-primary">
+                    {t('knowledge.settings.pipelinePreview.title')}
+                  </h3>
+                  <p className="text-sm text-text-tertiary">
+                    {t('knowledge.settings.pipelinePreview.description')}
+                  </p>
+                  <p className="text-sm text-text-tertiary">
+                    {t('knowledge.settings.pipelinePreview.createTip')}
+                  </p>
+                </div>
+              )}
+            </section>
+          </aside>
+        </div>
+      </KnowledgeSectionTemplate>
 
       {id ? (
         <React.Suspense fallback={null}>

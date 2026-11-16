@@ -1,6 +1,5 @@
 export { FileStatusBadge } from './FileStatusBadge'
 export { KnowledgeLogsPage } from './KnowledgeLogsPage'
-export { LogDetailModal } from './LogDetailModal'
 export { LogStatsCards } from './LogStatsCards'
 export { LogTabFilter } from './LogTabFilter'
 export { LogTable } from './LogTable'

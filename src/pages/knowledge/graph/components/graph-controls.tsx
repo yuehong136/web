@@ -1,7 +1,5 @@
 import { memo, useCallback, useSyncExternalStore, type RefObject } from 'react'
 import type { ForceGraphHandle } from './force-graph'
-import type { GraphStats } from '../types'
-import { GraphStatsBadge } from './graph-stats-badge'
 import { GraphToolbar } from './graph-toolbar'
 
 function subscribeFullscreen(listener: () => void) {
@@ -12,13 +10,11 @@ function subscribeFullscreen(listener: () => void) {
 interface GraphControlsProps {
   graphRef: RefObject<ForceGraphHandle | null>
   fullscreenTargetRef: RefObject<HTMLDivElement | null>
-  stats: GraphStats
 }
 
 function GraphControlsComponent({
   graphRef,
   fullscreenTargetRef,
-  stats,
 }: GraphControlsProps) {
   const handleZoomIn = useCallback(() => graphRef.current?.zoomIn(), [graphRef])
   const handleZoomOut = useCallback(
@@ -59,16 +55,13 @@ function GraphControlsComponent({
   }, [getFullscreenTarget])
 
   return (
-    <>
-      <GraphStatsBadge stats={stats} />
-      <GraphToolbar
-        isFullscreen={isFullscreen}
-        onZoomIn={handleZoomIn}
-        onZoomOut={handleZoomOut}
-        onFitView={handleFitView}
-        onFullscreen={handleFullscreen}
-      />
-    </>
+    <GraphToolbar
+      isFullscreen={isFullscreen}
+      onZoomIn={handleZoomIn}
+      onZoomOut={handleZoomOut}
+      onFitView={handleFitView}
+      onFullscreen={handleFullscreen}
+    />
   )
 }
 

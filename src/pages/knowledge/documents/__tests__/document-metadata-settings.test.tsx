@@ -110,7 +110,6 @@ function Harness() {
         currentKnowledgeBase={null}
         listState={listState}
         pageModals={pageModals}
-        logModal={{ logVisible: false, logInfo: {} } as Props['logModal']}
         generate={{ deleteConfirmOpen: false } as Props['generate']}
         navigate={vi.fn()}
         isRenaming={false}

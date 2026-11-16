@@ -26,7 +26,7 @@ export function DocumentCreateMenu({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button>
-          <Plus className="mr-space-sm size-icon-sm" aria-hidden="true" />
+          <Plus className="size-icon-sm" aria-hidden="true" />
           {t('documentCreate.menu')}
         </Button>
       </DropdownMenuTrigger>

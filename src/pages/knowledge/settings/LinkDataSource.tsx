@@ -165,17 +165,10 @@ function LinkDataSourceModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent size="md">
         <DialogHeader>
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-blue-500 to-cyan-600">
-              <Link className="h-5 w-5 text-white" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <DialogTitle>{t('datasource.linkDataSource')}</DialogTitle>
-              <DialogDescription>
-                {t('datasource.linkDataSourceDescription')}
-              </DialogDescription>
-            </div>
-          </div>
+          <DialogTitle>{t('datasource.linkDataSource')}</DialogTitle>
+          <DialogDescription>
+            {t('datasource.linkDataSourceDescription')}
+          </DialogDescription>
         </DialogHeader>
 
         <div className="max-h-[320px] space-y-3 overflow-y-auto px-6 py-4">
@@ -232,10 +225,11 @@ function LinkDataSourceModal({
               )
             })
           ) : (
-            <div className="py-10 text-center">
-              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-surface-secondary">
-                <Database className="h-8 w-8 text-text-tertiary" />
-              </div>
+            <div className="py-space-2xl text-center">
+              <Database
+                className="mx-auto mb-space-base size-icon-xl text-text-tertiary"
+                aria-hidden="true"
+              />
               <p className="text-sm font-medium text-text-secondary">
                 {t('datasource.noAvailableSources')}
               </p>

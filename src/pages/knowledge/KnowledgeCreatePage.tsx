@@ -1,12 +1,18 @@
 import { useCallback, type FC } from 'react'
-import { ArrowLeft, Database } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
+import { DetailTemplate } from '@/components/page-templates'
 import { ROUTES } from '@/constants'
+import { cn } from '@/lib/utils'
 import { CreateKnowledgeForm } from './create/create-knowledge-form'
+import { knowledgePaths } from './list/use-knowledge-list-page'
 
+const STEPS = ['details', 'import'] as const
+
+/**
+ * The one way to create a knowledge base: details here, then the new base's
+ * documents page opens with the upload dialog for step two.
+ */
 export const KnowledgeCreatePage: FC = () => {
   const navigate = useNavigate()
   const { t } = useTranslation()
@@ -17,49 +23,48 @@ export const KnowledgeCreatePage: FC = () => {
 
   const handleCreated = useCallback(
     (knowledgeBaseId: string) => {
-      navigate(`${ROUTES.KNOWLEDGE}/${knowledgeBaseId}`)
+      navigate(knowledgePaths.importDocuments(knowledgeBaseId))
     },
     [navigate],
   )
 
   return (
-    <div className="min-h-screen bg-background-body">
-      <div className="mx-auto max-w-3xl px-space-lg py-space-xl">
-        <div className="mb-space-xl">
-          <Button
-            className="mb-space-base gap-space-xs text-text-secondary hover:text-text-primary"
-            onClick={handleCancel}
-            size="sm"
-            variant="ghost"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            {t('knowledge.create.actions.back')}
-          </Button>
-
-          <div className="flex items-center gap-space-base">
-            <div className="flex h-12 w-12 items-center justify-center rounded-radius-xl bg-state-selected-bg text-state-selected-text">
-              <Database className="size-icon-lg" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-semibold text-text-primary">
-                {t('knowledge.create.title')}
-              </h1>
-              <p className="mt-1 text-text-secondary">
-                {t('knowledge.create.description')}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <Card className="overflow-hidden" padding="none">
-          <CreateKnowledgeForm
-            bodyClassName="p-space-lg"
-            onCancel={handleCancel}
-            onCreated={handleCreated}
-            submitLabel={t('knowledge.create.actions.submit')}
-          />
-        </Card>
+    <DetailTemplate
+      title={t('knowledge.create.title')}
+      crumbs={[{ label: t('knowledge.nav.knowledge'), to: ROUTES.KNOWLEDGE }]}
+      subline={
+        <ol
+          aria-label={t('knowledge.create.steps.label')}
+          className="flex flex-wrap items-center gap-x-space-md gap-y-space-2xs text-xs text-text-tertiary"
+        >
+          {STEPS.map((step, index) => (
+            <li
+              key={step}
+              aria-current={index === 0 ? 'step' : undefined}
+              className={cn(
+                'inline-flex items-center gap-space-xs',
+                index === 0 && 'font-medium text-text-primary',
+              )}
+            >
+              <span className="tabular-nums">{index + 1}</span>
+              {t(`knowledge.create.steps.${step}`)}
+            </li>
+          ))}
+        </ol>
+      }
+    >
+      <div className="mx-auto w-full max-w-[calc(45rem*var(--text-scale,1))] px-space-md py-space-lg sm:px-space-xl">
+        <p className="mb-space-base text-sm text-text-secondary">
+          {t('knowledge.create.description')}
+        </p>
+        <CreateKnowledgeForm
+          bodyClassName="p-0"
+          footerClassName="mt-space-lg border-t border-border-subtle bg-transparent px-0"
+          onCancel={handleCancel}
+          onCreated={handleCreated}
+          submitLabel={t('knowledge.create.actions.createAndImport')}
+        />
       </div>
-    </div>
+    </DetailTemplate>
   )
 }

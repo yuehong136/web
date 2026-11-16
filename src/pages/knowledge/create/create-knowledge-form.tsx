@@ -90,15 +90,15 @@ export const CreateKnowledgeForm: FC<CreateKnowledgeFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit}>
-      <div className={cn('space-y-5 p-space-lg', bodyClassName)}>
-        <div className="space-y-2">
+      <div className={cn('space-y-space-lg p-space-lg', bodyClassName)}>
+        <div className="space-y-space-xs">
           <div className="flex items-center gap-space-xs">
             <Label className="text-sm font-medium text-text-primary">
               {t('knowledge.create.fields.name')}
-              <span className="ml-1 text-status-error">*</span>
+              <span className="ml-space-2xs text-status-error">*</span>
             </Label>
             <Tooltip content={t('knowledge.create.fields.nameTooltip')}>
-              <HelpCircle className="h-4 w-4 cursor-help text-text-tertiary hover:text-text-secondary" />
+              <HelpCircle className="size-icon-sm cursor-help text-text-tertiary hover:text-text-secondary" />
             </Tooltip>
           </div>
           <Input
@@ -117,13 +117,13 @@ export const CreateKnowledgeForm: FC<CreateKnowledgeFormProps> = ({
           </p>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-space-xs">
           <div className="flex items-center gap-space-xs">
             <Label className="text-sm font-medium text-text-primary">
               {t('knowledge.create.fields.description')}
             </Label>
             <Tooltip content={t('knowledge.create.fields.descriptionTooltip')}>
-              <HelpCircle className="h-4 w-4 cursor-help text-text-tertiary hover:text-text-secondary" />
+              <HelpCircle className="size-icon-sm cursor-help text-text-tertiary hover:text-text-secondary" />
             </Tooltip>
           </div>
           <Textarea
@@ -135,13 +135,13 @@ export const CreateKnowledgeForm: FC<CreateKnowledgeFormProps> = ({
           />
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-space-xs">
           <div className="flex items-center gap-space-xs">
             <Label className="text-sm font-medium text-text-primary">
               {t('knowledge.create.fields.language')}
             </Label>
             <Tooltip content={t('knowledge.create.fields.languageTooltip')}>
-              <HelpCircle className="h-4 w-4 cursor-help text-text-tertiary hover:text-text-secondary" />
+              <HelpCircle className="size-icon-sm cursor-help text-text-tertiary hover:text-text-secondary" />
             </Tooltip>
           </div>
           <Select
@@ -172,13 +172,13 @@ export const CreateKnowledgeForm: FC<CreateKnowledgeFormProps> = ({
           selectedModelId={formData.embd_id || null}
         />
 
-        <div className="space-y-2">
+        <div className="space-y-space-xs">
           <div className="flex items-center gap-space-xs">
             <Label className="text-sm font-medium text-text-primary">
               {t('knowledge.create.fields.permission')}
             </Label>
             <Tooltip content={t('knowledge.create.fields.permissionTooltip')}>
-              <HelpCircle className="h-4 w-4 cursor-help text-text-tertiary hover:text-text-secondary" />
+              <HelpCircle className="size-icon-sm cursor-help text-text-tertiary hover:text-text-secondary" />
             </Tooltip>
           </div>
           <Select
@@ -203,8 +203,11 @@ export const CreateKnowledgeForm: FC<CreateKnowledgeFormProps> = ({
         </div>
 
         <div className="flex items-start gap-space-sm rounded-radius-xl bg-status-info-subtle p-space-base">
-          <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-status-info" />
-          <div className="space-y-1">
+          <Sparkles
+            className="size-icon-sm shrink-0 text-status-info"
+            aria-hidden="true"
+          />
+          <div className="space-y-space-2xs">
             <p className="text-sm font-medium text-text-primary">
               {t('knowledge.create.tip.title')}
             </p>
@@ -230,19 +233,22 @@ export const CreateKnowledgeForm: FC<CreateKnowledgeFormProps> = ({
           {t('knowledge.common.cancel')}
         </Button>
         <Button
-          className="gap-1.5"
+          className="gap-space-xs"
           disabled={!canSubmit || isLoading}
           type="submit"
         >
           {isLoading ? (
             <>
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2
+                className="size-icon-sm animate-spin"
+                aria-hidden="true"
+              />
               {t('knowledge.create.actions.creating')}
             </>
           ) : (
             <>
               {submitLabel ?? t('knowledge.create.actions.submit')}
-              <ArrowRight className="h-4 w-4" />
+              <ArrowRight className="size-icon-sm" aria-hidden="true" />
             </>
           )}
         </Button>

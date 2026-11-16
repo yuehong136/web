@@ -68,15 +68,12 @@ export const ChunkImagePreviewModal = ({
         <DocumentImagePreviewProvider resetKey={previewImageId ?? ''}>
           <div className="flex flex-col items-center gap-4">
             {previewImageId && (
-              <div
-                className="relative flex w-full items-center justify-center"
-                style={{ minHeight: '400px', maxHeight: '70vh' }}
-              >
+              <div className="relative flex max-h-[70vh] min-h-96 w-full items-center justify-center">
                 {image.objectUrl ? (
                   <img
                     src={image.objectUrl}
                     alt={t('knowledge.chunks.modal.imagePreviewAlt')}
-                    className="max-h-[70vh] max-w-full rounded-lg bg-background-subtle object-contain shadow-lg"
+                    className="max-h-[70vh] max-w-full rounded-radius-lg bg-background-subtle object-contain"
                   />
                 ) : (
                   <DocumentImageFeedback image={image} />

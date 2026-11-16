@@ -1,10 +1,14 @@
 import { memo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useFetchKnowledgeGraph } from '@/hooks/use-knowledge-request'
-import { Spinner } from '@/components/ui/spinner'
 import { Network } from 'lucide-react'
-import { WorkspacePageTemplate } from '@/components/page-templates'
-import { PageEmptyState, PageErrorState } from '@/components/patterns'
+import {
+  InlineStats,
+  PageEmptyState,
+  PageErrorState,
+  PageLoadingState,
+} from '@/components/patterns'
+import { KnowledgeSectionTemplate } from '../components/knowledge-section-template'
 import { ForceGraph } from './components/force-graph'
 import { GraphSidePanel } from './components/graph-side-panel'
 import { GraphControls } from './components/graph-controls'
@@ -25,66 +29,76 @@ function KnowledgeGraphPageComponent() {
 
   const isEmpty = !data || (data.nodes.length === 0 && data.edges.length === 0)
 
-  if (isLoading) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <Spinner size="lg" stacked label={t('knowledge.graph.loading')} />
-      </div>
-    )
-  }
-
-  if (isError) {
-    return (
-      <PageErrorState
-        title={t('knowledge.graph.errorTitle')}
-        retryLabel={t('knowledge.common.retry')}
-        onRetry={() => refetch()}
-      />
-    )
-  }
-
-  if (isEmpty) {
-    return (
-      <PageEmptyState
-        title={t('knowledge.graph.emptyTitle')}
-        description={t('knowledge.graph.emptyDescription')}
-        icon={<Network className="size-6" />}
-      />
-    )
-  }
-
   return (
-    <WorkspacePageTemplate className="h-full">
-      <div
-        ref={fullscreenTargetRef}
-        className="relative h-full w-full overflow-hidden bg-components-workspace-bg"
-      >
-        <ForceGraph
-          ref={graphRef}
-          data={data}
-          onNodeClick={selectNode}
-          onEdgeClick={selectEdge}
-          onCanvasClick={clearSelection}
-          selectedNodeId={
-            selectedElement?.type === 'node'
-              ? selectedElement.data.id
-              : undefined
-          }
+    <KnowledgeSectionTemplate
+      title={t('knowledge.nav.graph')}
+      subline={
+        isEmpty ? null : (
+          <InlineStats
+            aria-label={t('knowledge.graph.stats.label')}
+            items={[
+              {
+                key: 'nodes',
+                label: t('knowledge.graph.stats.nodesLabel'),
+                value: stats.nodeCount.toLocaleString(),
+              },
+              {
+                key: 'edges',
+                label: t('knowledge.graph.stats.edgesLabel'),
+                value: stats.edgeCount.toLocaleString(),
+              },
+            ]}
+          />
+        )
+      }
+      state={isLoading ? 'loading' : isError ? 'error' : 'content'}
+      loadingState={<PageLoadingState title={t('knowledge.graph.loading')} />}
+      errorState={
+        <PageErrorState
+          title={t('knowledge.graph.errorTitle')}
+          retryLabel={t('knowledge.common.retry')}
+          onRetry={() => refetch()}
         />
+      }
+      bodyScroll="none"
+    >
+      {isEmpty ? (
+        <PageEmptyState
+          title={t('knowledge.graph.emptyTitle')}
+          description={t('knowledge.graph.emptyDescription')}
+          icon={<Network className="size-icon-lg" />}
+        />
+      ) : (
+        <div
+          ref={fullscreenTargetRef}
+          className="relative min-h-0 flex-1 overflow-hidden bg-background-surface"
+        >
+          <ForceGraph
+            ref={graphRef}
+            data={data}
+            onNodeClick={selectNode}
+            onEdgeClick={selectEdge}
+            onCanvasClick={clearSelection}
+            selectedNodeId={
+              selectedElement?.type === 'node'
+                ? selectedElement.data.id
+                : undefined
+            }
+          />
 
-        <GraphControls
-          graphRef={graphRef}
-          fullscreenTargetRef={fullscreenTargetRef}
-          stats={stats}
-        />
+          <GraphControls
+            graphRef={graphRef}
+            fullscreenTargetRef={fullscreenTargetRef}
+          />
 
-        <GraphSidePanel
-          selectedElement={selectedElement}
-          onClose={clearSelection}
-          onNodeNavigate={selectNode}
-        />
-      </div>
-    </WorkspacePageTemplate>
+          <GraphSidePanel
+            selectedElement={selectedElement}
+            onClose={clearSelection}
+            onNodeNavigate={selectNode}
+          />
+        </div>
+      )}
+    </KnowledgeSectionTemplate>
   )
 }
 

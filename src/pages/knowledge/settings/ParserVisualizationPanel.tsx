@@ -4,8 +4,7 @@ import {
   DocumentParserType,
   DOCUMENT_PARSER_TYPE_LABELS,
 } from '@/types/document-parser'
-import { Card } from '@/components/ui/card'
-import { FileText, Lightbulb, Image } from 'lucide-react'
+import { FileText } from 'lucide-react'
 import { getParserImageFileNames } from './parser-image-map'
 
 const chunkMethodImages = import.meta.glob<{ default: string }>(
@@ -63,11 +62,12 @@ export const ParserVisualizationPanel: React.FC<
 
   if (!parserInfo) {
     return (
-      <div className="flex min-h-full flex-col items-center justify-center p-8 text-center">
-        <div className="mb-5 flex h-24 w-24 items-center justify-center rounded-2xl bg-background-subtle">
-          <FileText className="h-12 w-12 text-text-tertiary" />
-        </div>
-        <h3 className="mb-2 text-base font-medium text-text-primary">
+      <div className="flex min-h-full flex-col items-center justify-center p-space-xl text-center">
+        <FileText
+          className="mb-space-base size-icon-xl text-text-tertiary"
+          aria-hidden="true"
+        />
+        <h3 className="mb-space-xs text-sm font-semibold text-text-primary">
           {t('knowledge.settings.parserDescription.fallbackTitle')}
         </h3>
         <p className="max-w-xs text-sm text-text-tertiary">
@@ -98,30 +98,21 @@ export const ParserVisualizationPanel: React.FC<
   return (
     <div className="min-h-full">
       {/* 头部信息 */}
-      <div className="border-b border-border-default p-6">
-        <div className="flex items-start gap-4">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-radius-xl bg-status-info-subtle">
-            <Lightbulb className="h-5 w-5 text-text-accent" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <h2 className="mb-1.5 text-lg font-semibold text-text-primary">
-              {parserInfo.title}
-            </h2>
-            <div className="text-sm text-text-secondary">
-              <span className="font-medium">
-                {t('knowledge.settings.parserDescription.supportedFormats')}
-              </span>
-              <span className="text-text-accent">
-                {detailedInfo.supportedFormats}
-              </span>
-            </div>
-          </div>
-        </div>
+      <div className="border-b border-border-subtle p-space-md">
+        <h2 className="mb-space-2xs text-sm font-semibold text-text-primary">
+          {parserInfo.title}
+        </h2>
+        <p className="text-xs text-text-secondary">
+          <span className="font-medium">
+            {t('knowledge.settings.parserDescription.supportedFormats')}
+          </span>
+          {detailedInfo.supportedFormats}
+        </p>
       </div>
 
       {/* 分块方法说明 */}
-      <div className="border-b border-border-default p-6">
-        <h3 className="mb-3 text-base font-medium text-text-primary">
+      <div className="border-b border-border-subtle p-space-md">
+        <h3 className="mb-space-sm text-sm font-semibold text-text-primary">
           {t('knowledge.settings.parserDescription.methodDescription')}
         </h3>
         <div className="text-sm leading-relaxed whitespace-pre-line text-text-secondary">
@@ -131,22 +122,21 @@ export const ParserVisualizationPanel: React.FC<
 
       {/* 使用示例 */}
       {images.length > 0 && (
-        <div className="p-6">
-          <h3 className="mb-3 flex items-center gap-2 text-base font-medium text-text-primary">
-            <Image className="h-4 w-4 text-text-accent" />
+        <div className="p-space-md">
+          <h3 className="mb-space-xs text-sm font-semibold text-text-primary">
             {t('knowledge.settings.parserDescription.examples')}
           </h3>
-          <p className="mb-4 text-sm text-text-tertiary">
+          <p className="mb-space-base text-xs text-text-tertiary">
             {t('knowledge.settings.parserDescription.examplesDescription')}
           </p>
 
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 gap-space-base">
             {images.map((imageName, index) => (
-              <Card
+              <figure
                 key={index}
-                className="border-border-subtle bg-background-subtle p-3 transition-colors hover:border-border-default"
+                className="rounded-radius-lg border border-border-subtle p-space-sm"
               >
-                <div className="mb-2 aspect-[4/3] overflow-hidden rounded-lg bg-background">
+                <div className="mb-space-xs aspect-4/3 overflow-hidden rounded-radius-md bg-background-subtle">
                   <img
                     src={imageName}
                     alt={t('knowledge.settings.parserDescription.exampleAlt', {
@@ -156,12 +146,12 @@ export const ParserVisualizationPanel: React.FC<
                     data-dark-enhance="true"
                   />
                 </div>
-                <p className="text-center text-xs text-text-tertiary">
+                <figcaption className="text-center text-xs text-text-tertiary">
                   {t('knowledge.settings.parserDescription.exampleLabel', {
                     index: index + 1,
                   })}
-                </p>
-              </Card>
+                </figcaption>
+              </figure>
             ))}
           </div>
         </div>

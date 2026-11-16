@@ -1,5 +1,7 @@
 import { useTranslation } from 'react-i18next'
-import { FileText } from 'lucide-react'
+import { ScrollText } from 'lucide-react'
+import { PageEmptyState } from '@/components/patterns'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface LogTableEmptyStateProps {
   message?: string
@@ -9,12 +11,11 @@ export function LogTableEmptyState({ message }: LogTableEmptyStateProps) {
   const { t } = useTranslation()
 
   return (
-    <div className="flex flex-col items-center justify-center py-16">
-      <FileText className="mb-3 h-12 w-12 text-text-tertiary opacity-30" />
-      <p className="text-sm text-text-tertiary">
-        {message || t('knowledge.logs.table.empty')}
-      </p>
-    </div>
+    <PageEmptyState
+      compact
+      icon={<ScrollText className="size-icon-lg" />}
+      title={message || t('knowledge.logs.table.empty')}
+    />
   )
 }
 
@@ -24,12 +25,9 @@ interface LogTableSkeletonProps {
 
 export function LogTableSkeleton({ rows = 5 }: LogTableSkeletonProps) {
   return (
-    <div className="space-y-3">
+    <div className="flex flex-col gap-space-sm p-space-md">
       {Array.from({ length: rows }).map((_, index) => (
-        <div
-          key={index}
-          className="rounded-radius-lg h-12 animate-pulse bg-background-subtle"
-        />
+        <Skeleton key={index} className="h-9 w-full" />
       ))}
     </div>
   )

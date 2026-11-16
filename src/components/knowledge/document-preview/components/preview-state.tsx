@@ -1,20 +1,17 @@
 import type { FC, ReactNode } from 'react'
 import { Download, ExternalLink, FileText } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { Spinner } from '@/components/ui/spinner'
 
 export const LoadingState: FC<{ message?: string }> = ({ message }) => {
   const { t } = useTranslation()
   return (
     <div className="flex h-full w-full items-center justify-center bg-background-subtle">
-      <div className="flex flex-col items-center gap-3">
-        <div
-          className="h-10 w-10 animate-spin rounded-full border-b-2"
-          style={{ borderColor: 'var(--color-text-accent)' }}
-        />
-        <span className="text-sm text-text-secondary">
-          {message ?? t('knowledge.preview.loading')}
-        </span>
-      </div>
+      <Spinner
+        size="lg"
+        stacked
+        label={message ?? t('knowledge.preview.loading')}
+      />
     </div>
   )
 }

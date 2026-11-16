@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
 
 import { SplitDetailPageTemplate } from '@/components/page-templates'
+import { KnowledgeSectionTemplate } from './components/knowledge-section-template'
 import { useMetadataFieldKeys } from '@/hooks/use-metadata'
 import { metadataConfigToFields } from '@/lib/metadata-config'
 import { useFetchKnowledgeDetail } from '@/hooks/use-knowledge-request'
@@ -10,12 +11,12 @@ import { useFetchKnowledgeDetail } from '@/hooks/use-knowledge-request'
 import {
   ConfigPanelSheet,
   ResultPanel,
-  ResultPreviewModal,
   SearchPanel,
   createActiveMetaDataFilter,
   useConfigPanelUi,
   useFetchRerankLLMs,
   useResultPreview,
+  useResultPreviewPanel,
   useSearchExecution,
   useSearchModeOptions,
   useSearchParamsState,
@@ -132,79 +133,85 @@ const KnowledgeSearchWorkbench: React.FC<{ id?: string }> = ({ id }) => {
   )
 
   const configSnapshot = createConfigSnapshot()
+  const previewPanel = useResultPreviewPanel({
+    result: preview.selectedResult,
+    highlightEnabled: params.searchParams.highlight,
+    isMarkdownPreview: preview.isMarkdownPreview,
+    onTogglePreview: preview.togglePreview,
+    onClose: preview.closePreview,
+  })
 
   return (
-    <SplitDetailPageTemplate
-      leftWidth={420}
-      minLeft={360}
-      leftPane={
-        <SearchPanel
-          query={execution.query}
-          isSearching={execution.isSearching}
-          searchModeLabel={searchModeLabel}
-          activeConfigBadges={params.activeConfigBadges}
-          onQueryChange={execution.setQuery}
-          onSearch={execution.handleSearchSubmit}
-          onOpenConfig={openConfigPanel}
-        />
-      }
-      rightPane={
-        <div className="relative h-full min-h-0 overflow-hidden bg-background-surface">
-          <ResultPanel
-            hasSearched={execution.hasSearched}
-            searchError={execution.searchError}
-            requestScope={execution.requestScope}
-            docOptions={execution.docOptions}
-            onRetry={execution.retrySearch}
-            onOpenConfig={openConfigPanel}
+    <KnowledgeSectionTemplate
+      title={t('knowledge.nav.search')}
+      inspector={previewPanel}
+      bodyScroll="none"
+    >
+      <SplitDetailPageTemplate
+        className="flex-1"
+        leftWidth={420}
+        minLeft={360}
+        leftPane={
+          <SearchPanel
+            query={execution.query}
             isSearching={execution.isSearching}
-            results={execution.results}
-            totalResults={execution.totalResults}
-            docAggs={execution.docAggs}
-            selectedDocIds={execution.selectedDocIds}
-            showDocFilter={execution.showDocFilter}
-            highlight={params.searchParams.highlight}
-            pageSize={execution.pageSize}
-            onToggleDocFilter={execution.toggleDocFilter}
-            onDocFilter={execution.handleDocFilter}
-            onClearDocFilter={execution.handleClearDocFilter}
-            onSelectAllDocs={execution.handleSelectAllDocs}
-            onOpenResultPreview={(result) => {
-              closeConfigPanel()
-              preview.openPreview(result)
-            }}
-            onPageSizeChange={execution.handlePageSizeChange}
+            searchModeLabel={searchModeLabel}
+            activeConfigBadges={params.activeConfigBadges}
+            onQueryChange={execution.setQuery}
+            onSearch={execution.handleSearchSubmit}
+            onOpenConfig={openConfigPanel}
           />
+        }
+        rightPane={
+          <div className="relative h-full min-h-0 overflow-hidden bg-background-surface">
+            <ResultPanel
+              hasSearched={execution.hasSearched}
+              searchError={execution.searchError}
+              requestScope={execution.requestScope}
+              docOptions={execution.docOptions}
+              onRetry={execution.retrySearch}
+              onOpenConfig={openConfigPanel}
+              isSearching={execution.isSearching}
+              results={execution.results}
+              totalResults={execution.totalResults}
+              docAggs={execution.docAggs}
+              selectedDocIds={execution.selectedDocIds}
+              showDocFilter={execution.showDocFilter}
+              highlight={params.searchParams.highlight}
+              pageSize={execution.pageSize}
+              onToggleDocFilter={execution.toggleDocFilter}
+              onDocFilter={execution.handleDocFilter}
+              onClearDocFilter={execution.handleClearDocFilter}
+              onSelectAllDocs={execution.handleSelectAllDocs}
+              onOpenResultPreview={(result) => {
+                closeConfigPanel()
+                preview.openPreview(result)
+              }}
+              onPageSizeChange={execution.handlePageSizeChange}
+            />
 
-          <ConfigPanelSheet
-            open={configPanel.open}
-            onClose={closeConfigPanel}
-            onApply={handleApplyConfig}
-            initialConfig={configSnapshot}
-            advancedOpen={configPanel.advancedOpen}
-            onToggleAdvanced={configPanel.toggleAdvanced}
-            rerankModels={rerankQuery.data ?? []}
-            rerankLoading={rerankQuery.isLoading}
-            rerankError={rerankErrorText}
-            onRetryModels={rerankQuery.refetch}
-            metadataFields={metadataFields}
-            metadataFieldsLoading={metadataKeysQuery.isLoading}
-            metadataFieldsError={Boolean(metadataKeysQuery.error)}
-            onRetryMetadataFields={() => {
-              void metadataKeysQuery.refetch()
-            }}
-          />
-
-          <ResultPreviewModal
-            result={preview.selectedResult}
-            highlightEnabled={params.searchParams.highlight}
-            isMarkdownPreview={preview.isMarkdownPreview}
-            onTogglePreview={preview.togglePreview}
-            onClose={preview.closePreview}
-          />
-        </div>
-      }
-    />
+            <ConfigPanelSheet
+              open={configPanel.open}
+              onClose={closeConfigPanel}
+              onApply={handleApplyConfig}
+              initialConfig={configSnapshot}
+              advancedOpen={configPanel.advancedOpen}
+              onToggleAdvanced={configPanel.toggleAdvanced}
+              rerankModels={rerankQuery.data ?? []}
+              rerankLoading={rerankQuery.isLoading}
+              rerankError={rerankErrorText}
+              onRetryModels={rerankQuery.refetch}
+              metadataFields={metadataFields}
+              metadataFieldsLoading={metadataKeysQuery.isLoading}
+              metadataFieldsError={Boolean(metadataKeysQuery.error)}
+              onRetryMetadataFields={() => {
+                void metadataKeysQuery.refetch()
+              }}
+            />
+          </div>
+        }
+      />
+    </KnowledgeSectionTemplate>
   )
 }
 

@@ -1,7 +1,7 @@
 import { createInstance } from 'i18next'
 import { I18nextProvider } from 'react-i18next'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { act, useEffect } from 'react'
+import { act, useEffect, type PropsWithChildren } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { MemoryRouter, Routes, Route, useNavigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -14,6 +14,13 @@ import en from '@/locales/en-US/knowledge'
 import zh from '@/locales/zh-CN/knowledge'
 import { LogTableRow } from '../components/log-table-row'
 import { LogTabType } from '../constants'
+
+// The page always mounts its Inspector; jsdom has no ResizeObserver.
+vi.mock('react-resizable-panels', () => ({
+  Group: ({ children }: PropsWithChildren) => <div>{children}</div>,
+  Panel: ({ children }: PropsWithChildren) => <div>{children}</div>,
+  Separator: () => <hr />,
+}))
 
 async function render(
   taskType: string,
@@ -222,7 +229,7 @@ describe('log pagination request ownership', () => {
     await mount(true)
     const next = () =>
       Array.from(container.querySelectorAll('button')).find(
-        (button) => button.textContent === 'Next',
+        (button) => button.getAttribute('aria-label') === 'Next',
       )!
     await act(async () => next().click())
     await settle()

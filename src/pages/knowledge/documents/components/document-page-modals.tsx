@@ -20,14 +20,11 @@ import { DocumentCreateModal } from '../document-create-modal'
 import { DocumentCreationMode } from '@/api/knowledge-rest'
 import { metadataConfigToFields } from '@/api/knowledge-metadata'
 import { GenerateDeleteConfirm } from '../generate'
-import { ProcessLogModal } from '../process-log-modal'
 import type { DocumentListState } from '../types'
-import type { useDocumentLogModal } from '../hooks/use-document-log-modal'
 import type { useDocumentPageModals } from '../hooks/use-document-page-modals'
 import type { useGenerateState } from '../generate/hooks'
 
 type PageModals = ReturnType<typeof useDocumentPageModals>
-type LogModal = ReturnType<typeof useDocumentLogModal>
 type GenerateState = ReturnType<typeof useGenerateState>
 
 interface DocumentPageModalsProps {
@@ -35,10 +32,10 @@ interface DocumentPageModalsProps {
   currentKnowledgeBase: KnowledgeBase | null
   listState: DocumentListState
   pageModals: PageModals
-  logModal: LogModal
   generate: GenerateState
   navigate: NavigateFunction
   isRenaming: boolean
+  isDeleting?: boolean
 }
 
 export function DocumentPageModals({
@@ -46,10 +43,10 @@ export function DocumentPageModals({
   currentKnowledgeBase,
   listState,
   pageModals,
-  logModal,
   generate,
   navigate,
   isRenaming,
+  isDeleting = false,
 }: DocumentPageModalsProps) {
   const { t } = useTranslation()
   const metadata = pageModals.singleFileMetadataDoc?.parser_config?.metadata
@@ -100,8 +97,26 @@ export function DocumentPageModals({
         open={pageModals.deleteConfirmOpen}
         onOpenChange={(next) => !next && pageModals.setDeleteConfirmOpen(false)}
         onConfirm={pageModals.handleDelete}
+        variant="destructive"
+        pending={isDeleting}
         title={t('knowledge.documents.deleteTitle')}
         description={t('knowledge.documents.deleteDescription')}
+        cancelLabel={t('knowledge.common.cancel')}
+        confirmLabel={t('knowledge.documents.bulkActions.delete')}
+      />
+
+      <ConfirmDialog
+        open={Boolean(pageModals.bulkDeleteIds)}
+        onOpenChange={(next) => !next && pageModals.cancelBulkDelete()}
+        onConfirm={() => void pageModals.confirmBulkDelete()}
+        variant="destructive"
+        pending={pageModals.isBulkDeleting}
+        title={t('knowledge.documents.deleteTitle')}
+        description={t('knowledge.documents.bulkDeleteConfirm', {
+          count: pageModals.bulkDeleteIds?.length ?? 0,
+        })}
+        cancelLabel={t('knowledge.common.cancel')}
+        confirmLabel={t('knowledge.documents.bulkActions.delete')}
       />
 
       {kbId && (
@@ -165,12 +180,6 @@ export function DocumentPageModals({
         documents={pageModals.reparsingDocs}
         knowledgeBase={currentKnowledgeBase}
         isLoading={pageModals.isReparsing}
-      />
-
-      <ProcessLogModal
-        visible={logModal.logVisible}
-        onClose={logModal.hideLog}
-        logInfo={logModal.logInfo}
       />
 
       <ChunkMethodModal

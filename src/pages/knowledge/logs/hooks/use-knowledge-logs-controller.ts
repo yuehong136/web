@@ -19,6 +19,16 @@ export function useKnowledgeLogsController() {
   const currentLogs =
     activeTab === LogTabType.FILE_LOGS ? fileLogs : datasetLogs
 
+  const { closeDetail } = detailModal
+  // A log from the other tab cannot be shown with this tab's detail view.
+  const changeTab = useCallback(
+    (tab: LogTabType) => {
+      closeDetail()
+      setActiveTab(tab)
+    },
+    [closeDetail],
+  )
+
   const handleRefresh = useCallback(() => {
     stats.refetch()
     currentLogs.refetch()
@@ -35,7 +45,7 @@ export function useKnowledgeLogsController() {
 
   return {
     activeTab,
-    setActiveTab,
+    setActiveTab: changeTab,
     stats,
     currentLogs,
     processedLogs,
