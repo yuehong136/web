@@ -1,11 +1,10 @@
 import * as React from 'react'
 import { useTranslation } from 'react-i18next'
-import { FileText, Search, Star } from 'lucide-react'
+import { FileText, Search } from 'lucide-react'
 
-import { HighlightText } from '@/components/knowledge/HighlightText'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { FileIcon } from '@/components/ui/file-icon'
+import { FileKindTile } from '@/components/patterns/file-kind-tile'
 import {
   Select,
   SelectContent,
@@ -21,6 +20,7 @@ import {
   PageLoadingState,
 } from '@/components/patterns/page-states'
 import { DocFilterPanel } from './doc-filter-panel'
+import { RetrievalResultCard } from './result-card'
 import { SearchScopeSummary } from './search-scope-summary'
 import type { SearchError } from './hooks/use-search-execution'
 
@@ -30,7 +30,7 @@ import type {
   RetrievalResultView,
   SearchRequestScope,
 } from './types'
-import { formatResultScore, hasUnavailableScore } from './utils'
+import { hasUnavailableScore } from './utils'
 
 interface ResultPanelProps {
   hasSearched: boolean
@@ -85,13 +85,16 @@ export const ResultPanel: React.FC<ResultPanelProps> = ({
         <div className="flex flex-wrap items-start justify-between gap-space-base">
           <div className="min-w-0">
             <div className="flex items-center gap-space-sm">
-              <FileText className="h-5 w-5 text-text-secondary" />
+              <FileText
+                className="size-icon-md text-text-secondary"
+                aria-hidden="true"
+              />
               <h2 className="text-base font-semibold text-text-primary">
                 {t('knowledge.search.resultsTitle')}
               </h2>
             </div>
             <div className="mt-space-xs flex flex-wrap items-center gap-space-sm text-sm text-text-secondary">
-              <span>
+              <span className={isSearching ? 'text-shimmer' : undefined}>
                 {isSearching
                   ? t('knowledge.search.searching')
                   : searchError
@@ -119,12 +122,10 @@ export const ResultPanel: React.FC<ResultPanelProps> = ({
                       key={doc.doc_id}
                       content={`${doc.doc_name}: ${t('knowledge.search.chunksCount', { count: doc.count })}`}
                     >
-                      <Badge
-                        variant="secondary"
-                        className="max-w-[160px] truncate text-xs"
-                      >
-                        {doc.doc_name}
-                      </Badge>
+                      <span className="inline-flex h-5.5 max-w-40 min-w-0 items-center gap-space-xs rounded-radius-full border border-border-subtle bg-background-subtle pr-space-sm pl-space-2xs text-xs text-text-secondary">
+                        <FileKindTile name={doc.doc_name} size="xs" />
+                        <span className="truncate">{doc.doc_name}</span>
+                      </span>
                     </Tooltip>
                   ))}
                   {docAggs.length > 3 && (
@@ -243,111 +244,5 @@ export const ResultPanel: React.FC<ResultPanelProps> = ({
         )}
       </div>
     </section>
-  )
-}
-
-interface RetrievalResultCardProps {
-  result: RetrievalResultView
-  order: number
-  highlight: boolean
-  onOpen: () => void
-}
-
-const RetrievalResultCard: React.FC<RetrievalResultCardProps> = ({
-  result,
-  order,
-  highlight,
-  onOpen,
-}) => {
-  const { t } = useTranslation()
-  const { scores } = result
-  const combined = formatResultScore(scores.combined, t)
-  const hasMore =
-    result.text.length > 200 ||
-    Boolean(result.highlight && result.highlight.length > 200)
-
-  return (
-    <article className="rounded-radius-lg border border-border-default bg-background-surface p-space-base transition-colors hover:bg-components-card-bg-hover">
-      <div className="mb-space-base flex flex-wrap items-start justify-between gap-space-base">
-        <div className="flex min-w-0 items-center gap-space-sm">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-radius-full bg-status-success-subtle text-sm font-semibold text-status-success">
-            {order}
-          </div>
-          <p className="truncate text-xs text-text-tertiary">ID: {result.id}</p>
-        </div>
-        {/* 不可用的评分改用中性描边徽标，文字写明“不可用”，颜色不是唯一信号 */}
-        <div className="flex flex-wrap items-center justify-end gap-space-xs">
-          <Tooltip content={`${t('knowledge.search.similarity')}: ${combined}`}>
-            <Badge
-              variant={scores.combined === null ? 'outline' : 'blue'}
-              className="text-xs"
-            >
-              <Star className="mr-1 h-3 w-3" />
-              {t('knowledge.search.similarityShort')} {combined}
-            </Badge>
-          </Tooltip>
-          <Badge
-            variant={scores.vector === null ? 'outline' : 'green'}
-            className="text-xs"
-          >
-            {t('knowledge.search.vector')} {formatResultScore(scores.vector, t)}
-          </Badge>
-          <Badge
-            variant={scores.term === null ? 'outline' : 'purple'}
-            className="text-xs"
-          >
-            {t('knowledge.search.text')} {formatResultScore(scores.term, t)}
-          </Badge>
-        </div>
-      </div>
-
-      <button
-        type="button"
-        className="mb-space-base block w-full rounded-radius-md p-space-xs text-left text-sm leading-relaxed text-text-secondary transition-colors hover:bg-background-subtle"
-        onClick={onOpen}
-      >
-        <HighlightText
-          html={result.highlight}
-          text={result.text}
-          enableHighlight={highlight}
-          truncate
-          truncateLength={200}
-        />
-        {hasMore && (
-          <span className="mt-space-xs inline-flex text-xs font-medium text-text-accent">
-            {t('knowledge.search.expand')}
-          </span>
-        )}
-      </button>
-
-      <div className="border-t border-border-default pt-space-sm">
-        <div className="flex flex-wrap items-center justify-between gap-space-sm">
-          <div className="flex min-w-0 items-center gap-space-sm">
-            <FileIcon
-              fileName={result.doc.name}
-              fileType={result.doc.extension}
-              size="sm"
-            />
-            <div className="min-w-0">
-              <div className="truncate text-sm font-medium text-text-secondary">
-                {result.doc.name}
-              </div>
-              <div className="mt-1 text-xs text-text-tertiary">
-                {t('knowledge.search.fromDocument')}
-              </div>
-            </div>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7 shrink-0 px-2 text-xs"
-            onClick={onOpen}
-          >
-            <FileText className="mr-1 h-3 w-3" />
-            {t('knowledge.search.details')}
-          </Button>
-        </div>
-      </div>
-    </article>
   )
 }
