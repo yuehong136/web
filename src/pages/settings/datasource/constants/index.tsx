@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next'
 import {
   Cloud,
   Database,
-  Github,
   Globe,
   Mail,
   Rss,
@@ -12,6 +11,7 @@ import {
   UsersRound,
 } from 'lucide-react'
 import SvgIcon from '@/components/ui/svg-icon'
+import { GithubMark } from './github-mark'
 import { DataSourceKey, type IDataSourceInfoMap } from '../types'
 import { getBaseFormFields, getDataSourceFormFields } from './form-fields'
 
@@ -247,7 +247,7 @@ export const generateDataSourceInfo = (
   [DataSourceKey.GITHUB]: {
     name: 'GitHub',
     description: t('datasource.githubDescription'),
-    icon: <Github className="h-7 w-7 text-text-primary" />,
+    icon: <GithubMark className="h-7 w-7 text-text-primary" />,
   },
   [DataSourceKey.GITLAB]: {
     name: 'GitLab',
