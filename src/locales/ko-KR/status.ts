@@ -14,7 +14,7 @@ export const koreanTranslationStatus = {
   },
   auth: {
     translated: 17,
-    englishFallback: 1,
+    englishFallback: 27,
   },
   desktop: {
     translated: 6,
