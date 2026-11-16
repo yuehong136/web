@@ -60,6 +60,7 @@ async function render() {
     [
       { path: '/knowledge', element: <KnowledgeListPage /> },
       { path: '/knowledge/create', element: <h1>Create page</h1> },
+      { path: '/settings/datasource', element: <h1>Data sources</h1> },
     ],
     { initialEntries: ['/knowledge'] },
   )
@@ -153,4 +154,82 @@ it('deletes the selected bases after a confirm dialog', async () => {
   await click(buttonByText('Delete', dialog)!)
   expect(mocks.deleteKnowledge).toHaveBeenCalledExactlyOnceWith('Drafts')
   expect(container.querySelector('[data-slot="bulk-action-bar"]')).toBeNull()
+})
+
+it('opens small collections as cards with identity chips and a create card', async () => {
+  mocks.list.mockReturnValue({
+    knowledgeBases: page,
+    total: 3,
+    isLoading: false,
+    isError: false,
+    refetch: vi.fn(),
+  })
+  const router = await render()
+  const cards = [
+    ...container.querySelectorAll<HTMLElement>('[data-slot="resource-card"]'),
+  ]
+  expect(cards.map((card) => card.querySelector('h3')?.textContent)).toEqual([
+    'Drafts',
+    'Manuals',
+    'Contracts',
+  ])
+  const manuals = cards[1]
+  const chips = [
+    ...manuals.querySelectorAll('[data-slot="resource-chip"]'),
+  ].map((chip) => chip.textContent)
+  expect(chips).toEqual(['bge-m3', '4 documents', '120 chunks'])
+  // Quick actions fold into the card menu; selection still works.
+  expect(
+    manuals.querySelector('[aria-label="More actions for Manuals"]'),
+  ).not.toBeNull()
+  expect(manuals.querySelector('[aria-label="Select Manuals"]')).not.toBeNull()
+
+  const create = container.querySelector<HTMLButtonElement>(
+    '[data-slot="resource-create-card"] button',
+  )!
+  await click(create)
+  expect(router.state.location.pathname).toBe('/knowledge/create')
+})
+
+it('keeps the view the user picked over the small-collection default', async () => {
+  mocks.list.mockReturnValue({
+    knowledgeBases: page,
+    total: 3,
+    isLoading: false,
+    isError: false,
+    refetch: vi.fn(),
+  })
+  await render()
+  expect(container.querySelector('[data-slot="resource-card"]')).not.toBeNull()
+  const list = container.querySelector<HTMLElement>(
+    '[role="radio"][aria-label="List view"]',
+  )!
+  await click(list)
+  expect(container.querySelector('[data-slot="resource-card"]')).toBeNull()
+  expect(container.querySelectorAll('[data-slot="resource-row"]')).toHaveLength(
+    3,
+  )
+})
+
+it('starts an empty workspace with real start paths, not a bare message', async () => {
+  mocks.list.mockReturnValue({
+    knowledgeBases: [],
+    total: 0,
+    isLoading: false,
+    isError: false,
+    refetch: vi.fn(),
+  })
+  const router = await render()
+  const start = container.querySelector('[data-slot="empty-start"]')!
+  expect(start.querySelector('h2')?.textContent).toBe(
+    'Build a knowledge base so every answer has a source',
+  )
+  // No filter bar or header create button over an empty workspace.
+  expect(buttonByText('Create knowledge base', container)).toBeUndefined()
+  const paths = [...start.querySelectorAll<HTMLButtonElement>('li button')]
+  expect(
+    paths.map((path) => path.querySelector('span span')?.textContent),
+  ).toEqual(['Upload files', 'Connect a data source'])
+  await click(paths[1])
+  expect(router.state.location.pathname).toBe('/settings/datasource')
 })

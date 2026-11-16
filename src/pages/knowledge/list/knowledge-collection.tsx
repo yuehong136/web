@@ -15,8 +15,12 @@ import {
   type CollectionView,
   type ResourceItemProps,
 } from '@/components/patterns'
+import { ResourceCreateCard } from '@/components/patterns/resource-card'
+import { knowledgeAvatar } from '@/components/knowledge/knowledge-identity'
 import type { KnowledgeBase } from '@/types/api'
 import {
+  KnowledgeCardChips,
+  KnowledgeCardMeta,
   KnowledgeMeta,
   KnowledgeRowActions,
   KnowledgeVisibilityBadge,
@@ -39,9 +43,11 @@ const GROUP_ICONS: Record<Exclude<KnowledgeGroupKey, 'all'>, LucideIcon> = {
 function GroupHeading({
   groupKey,
   count,
+  grid = false,
 }: {
   groupKey: Exclude<KnowledgeGroupKey, 'all'>
   count: number
+  grid?: boolean
 }) {
   const { t } = useTranslation()
   const Icon = GROUP_ICONS[groupKey]
@@ -49,7 +55,11 @@ function GroupHeading({
     <h2
       data-slot="knowledge-group"
       data-group={groupKey}
-      className="flex items-center gap-space-xs border-b border-border-subtle bg-background-subtle px-space-md py-space-xs text-xs font-medium text-text-secondary"
+      className={
+        grid
+          ? 'flex items-center gap-space-xs px-space-md pt-space-md text-xs font-medium text-text-secondary'
+          : 'flex items-center gap-space-xs border-b border-border-subtle bg-background-subtle px-space-md py-space-xs text-xs font-medium text-text-secondary'
+      }
     >
       <Icon className="size-icon-xs shrink-0" aria-hidden="true" />
       {t(`knowledge.list.groups.${groupKey}`)}
@@ -67,9 +77,11 @@ interface KnowledgeCollectionProps {
   onToggleSelected: (id: string, checked: boolean) => void
   onTogglePage: (checked: boolean) => void
   handlers: KnowledgeRowActionHandlers
+  /** Ends the grid with a "new knowledge base" card. */
+  onCreate?: () => void
 }
 
-/** The loaded page as grouped rows (default) or cards, with selection. */
+/** The loaded page as grouped rows or cards, with selection. */
 export function KnowledgeCollection({
   knowledgeBases,
   viewMode,
@@ -79,6 +91,7 @@ export function KnowledgeCollection({
   onToggleSelected,
   onTogglePage,
   handlers,
+  onCreate,
 }: KnowledgeCollectionProps) {
   const { t } = useTranslation()
   const groups = groupKnowledgeBases(knowledgeBases, groupBy)
@@ -88,14 +101,21 @@ export function KnowledgeCollection({
   const allSelected =
     knowledgeBases.length > 0 && selectedOnPage === knowledgeBases.length
 
-  const item = (knowledgeBase: KnowledgeBase): ResourceItemProps => ({
+  const item = (
+    knowledgeBase: KnowledgeBase,
+    compactActions: boolean,
+  ): ResourceItemProps => ({
     name: knowledgeBase.name,
     description:
       knowledgeBase.description || t('knowledge.common.emptyDescription'),
-    avatar: { src: knowledgeBase.avatar, seed: knowledgeBase.id },
+    avatar: knowledgeAvatar(knowledgeBase),
     status: <KnowledgeVisibilityBadge knowledgeBase={knowledgeBase} />,
     actions: (
-      <KnowledgeRowActions knowledgeBase={knowledgeBase} handlers={handlers} />
+      <KnowledgeRowActions
+        knowledgeBase={knowledgeBase}
+        handlers={handlers}
+        compact={compactActions}
+      />
     ),
     onOpen: () => handlers.onOpen(knowledgeBase),
     selection: {
@@ -110,10 +130,21 @@ export function KnowledgeCollection({
   if (viewMode === 'grid')
     return (
       <div data-slot="knowledge-collection">
-        {groups.map((group) => (
-          <div key={group.key}>
+        {groups.map((group, index) => (
+          <section
+            key={group.key}
+            aria-label={
+              group.key === 'all'
+                ? undefined
+                : t(`knowledge.list.groups.${group.key}`)
+            }
+          >
             {group.key !== 'all' ? (
-              <GroupHeading groupKey={group.key} count={group.items.length} />
+              <GroupHeading
+                groupKey={group.key}
+                count={group.items.length}
+                grid
+              />
             ) : null}
             <ResourceGrid
               label={
@@ -125,17 +156,25 @@ export function KnowledgeCollection({
               {group.items.map((knowledgeBase) => (
                 <ResourceCard
                   key={knowledgeBase.id}
-                  {...item(knowledgeBase)}
+                  {...item(knowledgeBase, true)}
+                  chips={<KnowledgeCardChips knowledgeBase={knowledgeBase} />}
                   meta={
-                    <KnowledgeMeta
+                    <KnowledgeCardMeta
                       knowledgeBase={knowledgeBase}
                       timeFormat={timeFormat}
                     />
                   }
                 />
               ))}
+              {onCreate && index === groups.length - 1 ? (
+                <ResourceCreateCard
+                  label={t('knowledge.list.actions.create')}
+                  description={t('knowledge.list.createCard')}
+                  onClick={onCreate}
+                />
+              ) : null}
             </ResourceGrid>
-          </div>
+          </section>
         ))}
       </div>
     )
@@ -146,6 +185,7 @@ export function KnowledgeCollection({
         name={t('common.name')}
         status={t('knowledge.list.columns.visibility')}
         meta={t('knowledge.list.columns.content')}
+        withAvatar
         selection={{
           checked: allSelected,
           indeterminate: selectedOnPage > 0 && !allSelected,
@@ -170,12 +210,11 @@ export function KnowledgeCollection({
           {group.items.map((knowledgeBase) => (
             <ResourceRow
               key={knowledgeBase.id}
-              {...item(knowledgeBase)}
+              {...item(knowledgeBase, false)}
               meta={
                 <KnowledgeMeta
                   knowledgeBase={knowledgeBase}
                   timeFormat={timeFormat}
-                  compact
                 />
               }
             />

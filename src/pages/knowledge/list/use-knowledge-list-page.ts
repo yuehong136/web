@@ -10,7 +10,11 @@ import {
   useFetchKnowledgeList,
 } from '@/hooks/use-knowledge-request'
 import type { KnowledgeBase } from '@/types/api'
-import { DEFAULT_PAGE_SIZE, SEARCH_DEBOUNCE_MS } from './constants'
+import {
+  DEFAULT_PAGE_SIZE,
+  GRID_DEFAULT_MAX_ITEMS,
+  SEARCH_DEBOUNCE_MS,
+} from './constants'
 import { useQuickEdit } from './use-quick-edit'
 import type { KnowledgeGroupBy, KnowledgeTimeFormat } from './types'
 
@@ -23,6 +27,7 @@ export interface KnowledgeDeletion {
 /** Paths a knowledge row can open; `import` opens the upload dialog. */
 export const knowledgePaths = {
   create: `${ROUTES.KNOWLEDGE}/create`,
+  dataSources: '/settings/datasource',
   documents: (id: string) => `${ROUTES.KNOWLEDGE}/${id}/documents`,
   importDocuments: (id: string) =>
     `${ROUTES.KNOWLEDGE}/${id}/documents?import=1`,
@@ -34,7 +39,8 @@ export const useKnowledgeListPage = () => {
   const navigate = useNavigate()
   const { t } = useTranslation()
 
-  const [viewMode, setViewMode] = useState<CollectionView>('list')
+  // Null until the user picks a view; small collections then open as cards.
+  const [viewChoice, setViewChoice] = useState<CollectionView | null>(null)
   const [groupBy, setGroupBy] = useState<KnowledgeGroupBy>('content')
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [sortDesc, setSortDesc] = useState(true)
@@ -58,6 +64,8 @@ export const useKnowledgeListPage = () => {
       keywords,
     })
   const { deleteKnowledge } = useDeleteKnowledge()
+  const viewMode: CollectionView =
+    viewChoice ?? (total <= GRID_DEFAULT_MAX_ITEMS ? 'grid' : 'list')
 
   const changeSearchQuery = useCallback((query: string) => {
     setSearchQuery(query)
@@ -74,6 +82,12 @@ export const useKnowledgeListPage = () => {
 
   const openCreate = useCallback(
     () => navigate(knowledgePaths.create),
+    [navigate],
+  )
+
+  // Connectors are configured in settings, then linked from a base's settings.
+  const openDataSources = useCallback(
+    () => navigate(knowledgePaths.dataSources),
     [navigate],
   )
 
@@ -159,7 +173,7 @@ export const useKnowledgeListPage = () => {
     isError,
     refetch,
     viewMode,
-    setViewMode,
+    setViewMode: setViewChoice,
     groupBy,
     setGroupBy,
     sortDesc,
@@ -178,6 +192,7 @@ export const useKnowledgeListPage = () => {
     toggleSelected,
     togglePage,
     openCreate,
+    openDataSources,
     editingKnowledgeBase,
     setEditingKnowledgeBase,
     handleQuickEditSubmit,
