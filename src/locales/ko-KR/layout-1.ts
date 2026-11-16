@@ -1,5 +1,4 @@
 export const translations = {
-  'layout.brandName': 'AI 플랫폼',
   'layout.workspace.skipToTask': '주 작업 공간으로 건너뛰기',
   'layout.workspace.mainTask': '주 작업 공간',
   'layout.sidebar.expand': '사이드바 펼치기',

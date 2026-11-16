@@ -5,8 +5,8 @@ export const koreanTranslationStatus = {
     englishFallback: 97,
   },
   layout: {
-    translated: 41,
-    englishFallback: 3,
+    translated: 40,
+    englishFallback: 7,
   },
   'route-errors': {
     translated: 14,
@@ -18,7 +18,7 @@ export const koreanTranslationStatus = {
   },
   desktop: {
     translated: 6,
-    englishFallback: 36,
+    englishFallback: 59,
   },
   home: {
     translated: 3,

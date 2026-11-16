@@ -1,6 +1,6 @@
 export default {
   layout: {
-    brandName: 'AI平台',
+    brandName: '沧溟 AI',
     workspace: {
       skipToTask: '跳至主任务区',
       mainTask: '主任务区',
