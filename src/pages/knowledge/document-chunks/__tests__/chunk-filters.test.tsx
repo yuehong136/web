@@ -63,14 +63,7 @@ function Surface() {
         total={list.total}
         isAllSelected={false}
         isPartialSelected={false}
-        selectedCount={0}
-        hasSelected={false}
         onSelectAll={() => {}}
-        onBulkEnable={() => {}}
-        onBulkDisable={() => {}}
-        onBulkDeleteClick={() => {}}
-        isBulkSwitchPending={false}
-        isDeletePending={false}
       />
       <output aria-busy={list.loading || list.isRefreshing}>
         {list.filteredChunks.map((row) => row.content_with_weight).join('|')}
@@ -117,10 +110,23 @@ async function click(label: string) {
   expect(button, label).toBeTruthy()
   await act(async () => button!.click())
 }
+// The status filter is an always-visible radio group; options carry counts.
+function statusOption(label: string) {
+  const option = [
+    ...document.querySelectorAll<HTMLButtonElement>(
+      '[role="radiogroup"][aria-label="Status"] [role="radio"]',
+    ),
+  ].find((item) => item.textContent?.startsWith(label))
+  expect(option, label).toBeTruthy()
+  return option!
+}
+async function chooseStatus(label: string) {
+  await act(async () => statusOption(label).click())
+}
 function activeFilter() {
-  // The status filter options live in the popover dialog.
-  return document.querySelector('[role="dialog"] button[aria-pressed="true"]')
-    ?.textContent
+  return document.querySelector(
+    '[role="radiogroup"][aria-label="Status"] [aria-checked="true"]',
+  )?.textContent
 }
 beforeEach(async () => {
   restoreDom = installRadixSelectDom()
@@ -187,26 +193,27 @@ it('defaults to All, preserves false for disabled, and resets pagination when fi
   expect(container.querySelector('output')?.textContent).toBe(
     'Enabled chunk|Disabled chunk',
   )
-  await click('Filter')
   await waitForState(() => expect(activeFilter()).toContain('All'))
+  // All counts the document's chunks; a filter shows its own match count.
+  expect(activeFilter()).toBe('All2')
   await click('Next page')
   await waitForList(() =>
     expect(calls.at(-1)?.searchParams.get('page')).toBe('2'),
   )
-  await click('Enabled')
+  await chooseStatus('Enabled')
   await waitForList(() => {
     expect(calls.at(-1)?.searchParams.get('available')).toBe('true')
     expect(calls.at(-1)?.searchParams.get('page')).toBe('1')
   })
   expect(container.querySelector('output')?.textContent).toBe('Enabled chunk')
-  expect(activeFilter()).toBe('Enabled')
-  await click('Disabled')
+  expect(activeFilter()).toBe('Enabled1')
+  await chooseStatus('Disabled')
   await waitForList(() =>
     expect(calls.at(-1)?.searchParams.get('available')).toBe('false'),
   )
   expect(container.querySelector('output')?.textContent).toBe('Disabled chunk')
-  expect(activeFilter()).toBe('Disabled')
-  await click('All')
+  expect(activeFilter()).toBe('Disabled1')
+  await chooseStatus('All')
   await waitForList(() =>
     expect(calls.at(-1)?.searchParams.has('available')).toBe(false),
   )

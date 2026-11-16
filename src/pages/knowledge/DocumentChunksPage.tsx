@@ -1,10 +1,14 @@
-import { Info, PanelsLeftBottom, Plus } from 'lucide-react'
+import { Info, PanelsRightBottom, Plus } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
 import { DetailTemplate } from '@/components/page-templates'
+import { FileKindTile } from '@/components/patterns/file-kind-tile'
 import { Button, Tooltip } from '@/components/ui'
 import { ROUTES } from '@/constants'
 import { useFetchKnowledgeDetail } from '@/hooks/use-knowledge-request'
+import { DocumentStatusBadge } from './documents/document-status-cell'
+import { useDocumentParserLabel } from './documents/parser-method-cell'
+import { ChunkBulkBar } from './document-chunks/components/chunk-bulk-bar'
 import { ChunkEditOverlay } from './document-chunks/components/chunk-edit-overlay'
 import { ChunkList } from './document-chunks/components/chunk-list'
 import { ChunkModals } from './document-chunks/components/chunk-modals'
@@ -13,15 +17,41 @@ import {
   ChunkSideSheet,
   DocumentChunksWorkspace,
 } from './document-chunks/components/document-chunks-shell'
-import { DocumentInfoPanel } from './document-chunks/components/document-info-panel'
+import {
+  DocumentInfoPanel,
+  DocumentParserPanel,
+} from './document-chunks/components/document-info-panel'
 import {
   useChunkPanelLayout,
   useDocumentChunksController,
 } from './document-chunks/hooks'
+import type { ChunkListDocument } from './document-chunks/types'
+import { legacyRunStatus } from './document-chunks/utils'
 
 const DocumentChunksPage = () => {
   const { id, docId } = useParams<{ id: string; docId: string }>()
   return <DocumentChunksContent key={`${id}:${docId}`} />
+}
+
+/** "128 chunks · General · ● Completed" under the document name. */
+function DocumentSubline({ docInfo }: { docInfo: ChunkListDocument }) {
+  const { t } = useTranslation()
+  const parser = useDocumentParserLabel(docInfo)
+  return (
+    <span className="inline-flex flex-wrap items-center gap-x-space-sm gap-y-space-2xs text-xs text-text-tertiary">
+      <span className="tabular-nums">
+        {t('knowledge.chunks.toolbar.totalChunks', {
+          count: docInfo.chunk_num || 0,
+        })}
+      </span>
+      <span aria-hidden="true">·</span>
+      <span>{parser}</span>
+      <span aria-hidden="true">·</span>
+      <DocumentStatusBadge
+        document={{ ...docInfo, run: legacyRunStatus(docInfo.run) }}
+      />
+    </span>
+  )
 }
 
 const DocumentChunksContent = () => {
@@ -40,6 +70,14 @@ const DocumentChunksContent = () => {
   const closeEditor = () => {
     if (!c.pending.save) editForm.reset()
   }
+  const sourceShowing = panel.isPanelOpen && panel.tab === 'source'
+  const infoShowing = panel.isPanelOpen && panel.tab === 'info'
+  const searchSummary = list.debouncedSearchKeyword
+    ? t('knowledge.chunks.toolbar.searchHits', {
+        keyword: list.debouncedSearchKeyword,
+        count: list.total,
+      })
+    : undefined
 
   return (
     <DetailTemplate
@@ -52,29 +90,43 @@ const DocumentChunksContent = () => {
           to: `${ROUTES.KNOWLEDGE}/${id}/documents`,
         },
       ]}
+      leading={
+        list.docInfo ? (
+          <FileKindTile
+            name={list.docInfo.suffix || list.docInfo.name}
+            size="md"
+          />
+        ) : undefined
+      }
       title={
         <span title={list.docInfo?.name}>
           {list.docInfo?.name || t('knowledge.nav.documentFallback')}
         </span>
       }
+      subline={
+        list.docInfo ? <DocumentSubline docInfo={list.docInfo} /> : undefined
+      }
       actions={
         <>
           <Button
-            variant={panel.isPreviewPanelOpen ? 'secondary' : 'ghost'}
+            variant={sourceShowing ? 'secondary' : 'ghost'}
             size="sm"
-            onClick={panel.togglePreview}
-            aria-pressed={panel.isPreviewPanelOpen}
+            onClick={() => panel.togglePanel('source')}
+            aria-pressed={sourceShowing}
             disabled={!list.docInfo}
           >
-            <PanelsLeftBottom className="size-icon-sm" aria-hidden="true" />
-            {t('knowledge.chunks.workspace.source')}
+            <PanelsRightBottom className="size-icon-sm" aria-hidden="true" />
+            <span className="hidden sm:inline">
+              {t('knowledge.chunks.workspace.source')}
+            </span>
           </Button>
           <Tooltip content={t('knowledge.chunks.info.title')}>
             <Button
-              variant="ghost"
+              variant={infoShowing ? 'secondary' : 'ghost'}
               size="sm"
-              onClick={panel.openInfo}
+              onClick={() => panel.togglePanel('info')}
               aria-label={t('knowledge.chunks.info.title')}
+              aria-pressed={infoShowing}
               disabled={!list.docInfo || Boolean(list.error)}
             >
               <Info className="size-icon-sm" aria-hidden="true" />
@@ -91,11 +143,24 @@ const DocumentChunksContent = () => {
       }
     >
       <DocumentChunksWorkspace
-        previewOpen={panel.isPreviewPanelOpen}
-        onClosePreview={panel.closePreview}
+        previewOpen={panel.isPanelOpen && Boolean(list.docInfo)}
+        onClosePreview={panel.closePanel}
+        panelTab={panel.tab}
+        onPanelTabChange={panel.setTab}
+        onSplitChange={panel.onSplitChange}
         docId={list.docId}
         docInfo={list.docInfo}
         selectedChunk={editForm.selectedChunk}
+        infoPanel={
+          <DocumentInfoPanel
+            docInfo={list.docInfo}
+            selectedChunk={editForm.selectedChunk}
+            onClearSelectedChunk={editForm.clearSelected}
+            onStartMetaAnnotation={c.handleStartMetaAnnotation}
+            disabled={disabled}
+          />
+        }
+        configPanel={<DocumentParserPanel docInfo={list.docInfo} />}
       >
         <ChunkToolbar
           knowledgeIds={list.kbId ? [list.kbId] : []}
@@ -106,17 +171,10 @@ const DocumentChunksContent = () => {
           filterStatus={list.filterStatus}
           onFilterStatusChange={list.setFilterStatus}
           total={list.total}
+          documentTotal={list.docInfo?.chunk_num}
           isAllSelected={selection.isAllSelected(list.filteredChunks)}
           isPartialSelected={selection.isPartialSelected(list.filteredChunks)}
-          selectedCount={selection.selectedCount}
-          hasSelected={selection.hasSelected}
           onSelectAll={c.handleSelectAll}
-          onClearSelection={selection.clear}
-          onBulkEnable={c.handleBulkEnable}
-          onBulkDisable={c.handleBulkDisable}
-          onBulkDeleteClick={deleteState.openBulkDelete}
-          isBulkSwitchPending={c.pending.bulkSwitch}
-          isDeletePending={c.pending.delete}
           disabled={disabled}
           isRefreshing={list.isRefreshing}
         />
@@ -132,6 +190,9 @@ const DocumentChunksContent = () => {
           selectedChunkIds={selection.selectedChunkIds}
           textMode={list.textMode}
           filterKey={`${list.debouncedSearchKeyword}:${list.filterStatus}`}
+          sourceVisible={sourceShowing}
+          summary={searchSummary}
+          hasSelection={selection.hasSelected}
           isMutationPending={disabled}
           isRefreshing={list.isRefreshing}
           onRefetch={() => list.refetchChunkList()}
@@ -148,21 +209,15 @@ const DocumentChunksContent = () => {
           onCheckboxChange={selection.toggleSingle}
           onPreviewImage={c.setPreviewImageId}
         />
-      </DocumentChunksWorkspace>
-      <ChunkSideSheet
-        open={panel.isInfoPanelOpen}
-        onClose={panel.closeInfo}
-        title={t('knowledge.chunks.info.title')}
-      >
-        <DocumentInfoPanel
-          docInfo={list.docInfo}
-          selectedChunk={editForm.selectedChunk}
-          onCollapsePanel={panel.closeInfo}
-          onClearSelectedChunk={editForm.clearSelected}
-          onStartMetaAnnotation={c.handleStartMetaAnnotation}
+        <ChunkBulkBar
+          selectedCount={selection.selectedCount}
+          onBulkEnable={c.handleBulkEnable}
+          onBulkDisable={c.handleBulkDisable}
+          onBulkDeleteClick={deleteState.openBulkDelete}
+          onClearSelection={selection.clear}
           disabled={disabled}
         />
-      </ChunkSideSheet>
+      </DocumentChunksWorkspace>
       <ChunkSideSheet
         open={editForm.isEditMode}
         onClose={closeEditor}
