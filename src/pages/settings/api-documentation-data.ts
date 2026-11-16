@@ -12,6 +12,13 @@ import {
   type Response,
 } from '@/pages/settings/api-keys-types'
 
+/** Query keys for the API reference specification. */
+export const apiDocumentationKeys = {
+  all: ['apiDocumentation'] as const,
+  spec: (dynamic: boolean) =>
+    [...apiDocumentationKeys.all, 'spec', dynamic] as const,
+}
+
 export const convertToAPIEndpoints = (spec: OpenAPISpec): APIEndpoint[] => {
   const endpoints: APIEndpoint[] = []
 
@@ -117,7 +124,8 @@ export async function loadApiSpecification(
       return {
         spec: await loadStaticAPIData(signal),
         source: 'static' as const,
-        warning: '后端接口加载失败，已切换到静态文件',
+        /** The page shows a fixed, translated notice for this code. */
+        warning: 'dynamic-fallback' as const,
       }
     }
   }

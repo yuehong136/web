@@ -1,10 +1,9 @@
 import { memo, useEffect, useState, type FC, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Loader2, Plus } from 'lucide-react'
-
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -98,26 +97,18 @@ export const CreateApiKeyDialog: FC<CreateApiKeyDialogProps> = memo(
       <Dialog open={open} onOpenChange={handleDialogOpenChange}>
         <DialogContent
           size="lg"
-          className="max-w-2xl"
           showCloseButton={!isLoading}
           closeOnOverlayClick={!isLoading}
         >
           <DialogHeader>
-            <div className="flex items-center gap-space-sm">
-              <div className="flex h-10 w-10 items-center justify-center rounded-radius-lg bg-surface-secondary">
-                <Plus className="h-icon-md w-icon-md text-text-primary" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <DialogTitle>{t('settings.apiKeys.create.title')}</DialogTitle>
-                <DialogDescription>
-                  {t('settings.apiKeys.create.description')}
-                </DialogDescription>
-              </div>
-            </div>
+            <DialogTitle>{t('settings.apiKeys.create.title')}</DialogTitle>
+            <DialogDescription>
+              {t('settings.apiKeys.create.description')}
+            </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleSubmit}>
-            <div className="space-y-space-base px-space-lg py-space-base">
+            <DialogBody className="space-y-space-base">
               <div className="space-y-space-xs">
                 <Label htmlFor="create-api-key-name">
                   {t('settings.apiKeys.create.nameLabel')}{' '}
@@ -171,7 +162,7 @@ export const CreateApiKeyDialog: FC<CreateApiKeyDialogProps> = memo(
                   {t(submitErrorKeys[submitError])}
                 </p>
               )}
-            </div>
+            </DialogBody>
 
             <DialogFooter>
               <Button
@@ -182,10 +173,11 @@ export const CreateApiKeyDialog: FC<CreateApiKeyDialogProps> = memo(
               >
                 {t('common.cancel')}
               </Button>
-              <Button type="submit" disabled={isLoading || !name.trim()}>
-                {isLoading && (
-                  <Loader2 className="mr-space-sm h-icon-sm w-icon-sm animate-spin" />
-                )}
+              <Button
+                type="submit"
+                loading={isLoading}
+                disabled={isLoading || !name.trim()}
+              >
                 {t('common.create')}
               </Button>
             </DialogFooter>

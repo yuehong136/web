@@ -11,6 +11,7 @@ import { ROUTES } from '@/constants'
 import { ErrorFallback, NotFoundPage } from '@/pages/error'
 import { skillRoutes } from '@/pages/skills/skill-routes'
 import { RouteLocaleBoundary } from '@/locales/locale-boundary'
+import { API_KEYS_PATH } from '@/pages/settings/api-routes'
 import { useTranslation } from 'react-i18next'
 
 // ---------------------------------------------------------------------------
@@ -200,7 +201,14 @@ const MCPBatchPage = lazyNamed(
   () => import('@/pages/settings/MCPBatchPage'),
   'MCPBatchPage',
 )
-const ApiKeysPage = lazy(() => import('@/pages/settings/ApiKeysPage'))
+const ApiKeysPage = lazyNamed(
+  () => import('@/pages/settings/api-keys/api-keys-page'),
+  'ApiKeysPage',
+)
+const ApiDocsPage = lazyNamed(
+  () => import('@/pages/settings/api-docs/api-docs-page'),
+  'ApiDocsPage',
+)
 const SystemPage = lazyNamed(() => import('@/pages/system'), 'SystemPage')
 const TeamPage = lazyNamed(() => import('@/pages/team'), 'TeamPage')
 const DataSourcePage = lazy(() => import('@/pages/settings/datasource'))
@@ -530,7 +538,18 @@ const topLevelRoutes: RouteObject[] = [
           },
           {
             path: 'api-keys',
-            element: withLoading(ApiKeysPage),
+            element: <Navigate to={API_KEYS_PATH} replace />,
+          },
+          {
+            path: 'api',
+            children: [
+              {
+                index: true,
+                element: <Navigate to={API_KEYS_PATH} replace />,
+              },
+              { path: 'keys', element: withLoading(ApiKeysPage) },
+              { path: 'docs', element: withLoading(ApiDocsPage) },
+            ],
           },
           {
             path: 'system',

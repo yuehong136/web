@@ -2,6 +2,7 @@ import * as React from 'react'
 import { Link, Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
+  BookOpen,
   Database,
   Server,
   Users,
@@ -31,6 +32,7 @@ import { ROUTES } from '@/constants'
 import { useRegisterSecondaryNavigation } from '@/components/layout/workbench-navigation'
 import { usePendingTeamInvitations } from '@/hooks/use-pending-team-invitations'
 import { useTeamStore } from '@/stores/team'
+import { API_DOCS_PATH, API_KEYS_PATH } from './api-routes'
 
 export const SettingsIndexRedirect = () => {
   const { state } = useLocation()
@@ -115,9 +117,14 @@ export const SettingsLayout: React.FC = () => {
             icon: MessageCircleMore,
           },
           {
-            title: t('settings.nav.api'),
-            href: '/settings/api-keys',
+            title: t('settings.nav.apiKeys'),
+            href: API_KEYS_PATH,
             icon: Key,
+          },
+          {
+            title: t('settings.nav.apiDocs'),
+            href: API_DOCS_PATH,
+            icon: BookOpen,
           },
         ],
       },

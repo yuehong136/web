@@ -13,7 +13,8 @@ import {
 import { APIError } from '@/api/client-types'
 import { createQueryClient } from '@/lib/query-client'
 import { setProductLanguage } from '@/locales/i18n'
-import ApiDocumentationPage from '@/pages/settings/ApiKeysPage'
+import { MemoryRouter } from 'react-router-dom'
+import { ApiKeysPage } from '@/pages/settings/api-keys/api-keys-page'
 import type { SystemAPIToken } from '@/types/api'
 
 const mocks = vi.hoisted(() => ({
@@ -35,38 +36,6 @@ vi.mock('@/api/system', () => ({
 vi.mock('@/lib/toast', () => ({
   toast: { success: mocks.success, error: mocks.error, warning: mocks.warning },
 }))
-vi.mock('@/pages/settings/api-documentation-data', async (original) => ({
-  ...(await original<
-    typeof import('@/pages/settings/api-documentation-data')
-  >()),
-  loadApiSpecification: async () => ({
-    spec: {
-      openapi: '3.0.0',
-      info: { title: 'Test', version: '1' },
-      paths: { '/ping': { get: { operationId: 'ping', summary: 'Ping' } } },
-    },
-    source: 'static' as const,
-  }),
-}))
-vi.mock('@/hooks/use-environment-request', () => {
-  const resolver = {
-    currentEnvironment: null,
-    selectedEnvironmentId: null,
-    selectEnvironment: () => {},
-    getVariableMap: () => ({}),
-    resolveText: (text: string) => text,
-  }
-  return { useEnvironmentResolver: () => resolver }
-})
-vi.mock('@/components/environment', () => ({
-  ModernEnvironmentSelector: () => null,
-  NewEnvironmentManager: () => null,
-}))
-vi.mock('@monaco-editor/react', () => ({
-  default: () => null,
-  loader: { config: () => {} },
-}))
-
 const apiKey = (name: string, token: string): SystemAPIToken => ({
   tenant_id: 'shared-tenant',
   token,
@@ -102,13 +71,14 @@ beforeEach(async () => {
   root = createRoot(container)
   await act(async () =>
     root.render(
-      <QueryClientProvider client={client}>
-        <ApiDocumentationPage />
-      </QueryClientProvider>,
+      <MemoryRouter>
+        <QueryClientProvider client={client}>
+          <ApiKeysPage />
+        </QueryClientProvider>
+      </MemoryRouter>,
     ),
   )
-  await click(await waitFor(() => textButton('API Key')))
-  await waitFor(() => document.querySelector('.divide-y > div'))
+  await waitFor(() => rows()[0])
 })
 afterEach(async () => {
   expect(nativeConfirm).not.toHaveBeenCalled()
@@ -117,6 +87,8 @@ afterEach(async () => {
   vi.restoreAllMocks()
 })
 
+const rows = () =>
+  Array.from(document.querySelectorAll('[data-slot="api-key-row"]'))
 const textButton = (text: string) =>
   Array.from(document.querySelectorAll<HTMLButtonElement>('button')).find(
     (element) => element.textContent?.trim() === text,
@@ -175,8 +147,7 @@ const SEARCH_DEBOUNCE_MS = 350
 const toEnglish = () => act(async () => setProductLanguage('en-US'))
 
 it('gives each key its own row identity even when keys share a tenant_id', () => {
-  const rows = Array.from(document.querySelectorAll('.divide-y > div'))
-  expect(rows.map((row) => row.textContent)).toEqual([
+  expect(rows().map((row) => row.textContent)).toEqual([
     expect.stringContaining('First key'),
     expect.stringContaining('Second key'),
   ])
@@ -264,7 +235,7 @@ it('surfaces a partial regeneration and offers to retry revoking only the old to
   expect(mocks.success).toHaveBeenCalledWith('旧令牌已撤销')
 })
 
-it('dismisses only the confirmation on Escape, keeping the key manager open', async () => {
+it('dismisses only the confirmation on Escape, keeping the list in place', async () => {
   await requestAction('删除')
   await act(async () => {
     document.activeElement!.dispatchEvent(
@@ -277,7 +248,7 @@ it('dismisses only the confirmation on Escape, keeping the key manager open', as
   })
   await flush()
   expect(alertDialog()).toBeNull()
-  expect(document.querySelectorAll('.divide-y > div')).toHaveLength(2)
+  expect(rows()).toHaveLength(2)
   expect(document.activeElement).toBe(rowTrigger('Second key 的操作'))
   expect(mocks.deleteToken).not.toHaveBeenCalled()
 })
@@ -294,31 +265,41 @@ it('renders the row actions and confirmation in English', async () => {
   expect(mocks.success).toHaveBeenCalledWith('API key deleted')
 })
 
-it('renders the key manager in English without exposing full tokens', async () => {
+it('renders the keys page in English without exposing full tokens', async () => {
   await toEnglish()
   const search = labelled<HTMLInputElement>('Search API keys')
   expect(search.placeholder).toBe('Search API keys...')
-  const manager = search.closest('dialog')!
   for (const text of [
-    'API key management',
-    'Create, regenerate, and delete the API keys used to call the API.',
-    'New API key',
-    'Name',
-    'Token',
-    'Description',
-    'Created',
-    'Updated',
-    'Actions',
+    'Keys',
     '2 API keys',
-    'Items per page',
-    'Previous',
-    'Next',
+    'New API key',
+    'What keys can do',
+    'Every key can call all workspace APIs. Per-key scopes are not available.',
+    "A key's name and description cannot be changed.",
+    'Open API docs',
   ]) {
-    expect(manager.textContent).toContain(text)
+    expect(container.textContent).toContain(text)
   }
-  expect(manager.textContent).not.toMatch(/[一-鿿]/)
+  expect(container.textContent).not.toMatch(/密钥|创建于/)
   expect(labelled('Copy token for Second key')).toBeTruthy()
+  expect(container.querySelector('a[href="/settings/api/docs"]')).toBeTruthy()
   expect(document.body.innerHTML).not.toMatch(/token-(first|second)/)
+})
+
+it('shows a new key once after creating it, then forgets it', async () => {
+  await toEnglish()
+  await click(textButton('New API key'))
+  const name = document.querySelector<HTMLInputElement>('#create-api-key-name')!
+  await typeInto(name, 'Third key')
+  await click(textButton('Create'))
+  const reveal = await waitFor(() =>
+    document.querySelector('[data-testid="revealed-key"]'),
+  )
+  expect(reveal.textContent).toBe('token-new')
+  expect(document.body.textContent).toContain('Copy the key "Second key"')
+  await click(textButton('Done'))
+  expect(document.querySelector('[data-testid="revealed-key"]')).toBeNull()
+  expect(document.body.innerHTML).not.toMatch(/token-new/)
 })
 
 it('tells an empty search apart from having no keys, in English', async () => {
@@ -326,13 +307,12 @@ it('tells an empty search apart from having no keys, in English', async () => {
   const search = labelled<HTMLInputElement>('Search API keys')
   await typeInto(search, 'nothing matches')
   await sleep(SEARCH_DEBOUNCE_MS)
-  const manager = search.closest('dialog')!
-  expect(manager.textContent).toContain('No API keys match your search.')
-  expect(manager.textContent).not.toContain('create your first key')
+  expect(container.textContent).toContain('No API keys match your search.')
+  expect(container.textContent).not.toContain('create your first key')
 
   await typeInto(search, '')
   await sleep(SEARCH_DEBOUNCE_MS)
-  await waitFor(() => document.querySelector('.divide-y > div'))
+  await waitFor(() => rows()[0])
   // Deleting refetches the list; the server now has no keys left.
   mocks.getTokenList.mockResolvedValue([])
   await requestAction('Delete', 'Actions for Second key')
@@ -344,6 +324,7 @@ it('tells an empty search apart from having no keys, in English', async () => {
     'Select "New API key" to create your first key.',
   )
   expect(empty.body.textContent).not.toContain('0 API keys')
+  expect(labelled('Search API keys')).toBeNull()
 })
 
 it('shows a fixed English error when creating a key fails, never the raw API error', async () => {
