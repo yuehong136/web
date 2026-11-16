@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import {
   ApiTokenRevokeError,
   useDeleteApiToken,
@@ -90,7 +90,8 @@ export const ApiKeyActionDialog = ({
   }
 
   return (
-    <ConfirmationDialog
+    <ConfirmDialog
+      variant="destructive"
       open={Boolean(action)}
       onOpenChange={(open) => {
         if (!open && !pending) onClose()

@@ -10,7 +10,7 @@ import type {
 import { PageEmptyState, PageToolbar } from '@/components/patterns'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import {
   Table,
   TableBody,
@@ -254,7 +254,8 @@ export const KeysPanel = ({ keys, models }: KeysPanelProps) => {
         name={created?.name ?? ''}
         onClose={() => setCreated(null)}
       />
-      <ConfirmationDialog
+      <ConfirmDialog
+        variant="destructive"
         open={pendingRevoke !== null}
         onOpenChange={(open) => !open && setPendingRevoke(null)}
         title={t('settings.modelGateway.keys.revokeTitle')}

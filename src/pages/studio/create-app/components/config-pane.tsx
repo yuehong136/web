@@ -1,10 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import {
-  SegmentedTabs,
-  SegmentedTabsContent,
-  SegmentedTabsList,
-  SegmentedTabsTrigger,
-} from '@/components/ui/segmented-tabs'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   useStudioEditorPreferences,
   type EditorTab,
@@ -30,59 +25,60 @@ export function ConfigPane({
   const tab = useStudioEditorPreferences((state) => state.tab)
   const setTab = useStudioEditorPreferences((state) => state.setTab)
   return (
-    <SegmentedTabs
+    <Tabs
       value={tab}
       onValueChange={(value) => setTab(value as EditorTab)}
       className="flex h-full min-h-0 flex-col bg-components-studio-surface"
     >
-      <SegmentedTabsList
+      <TabsList
+        variant="segmented"
         aria-label={t('studio.editor.edit')}
-        className="grid grid-cols-2 overflow-visible p-space-xs sm:grid-cols-4"
+        className="m-space-sm grid shrink-0 grid-cols-2 sm:grid-cols-4"
       >
         {(['prompt', 'knowledge', 'model', 'experience'] as const).map(
           (value) => (
-            <SegmentedTabsTrigger
+            <TabsTrigger
               key={value}
               value={value}
-              className="min-w-0 justify-center px-space-xs py-space-xs"
+              className="min-w-0 justify-center px-space-xs"
             >
               {t(`studio.editor.${value}`)}
-            </SegmentedTabsTrigger>
+            </TabsTrigger>
           ),
         )}
-      </SegmentedTabsList>
-      <SegmentedTabsContent
+      </TabsList>
+      <TabsContent
         value="prompt"
         forceMount
         hidden={tab !== 'prompt'}
-        className="min-h-0 flex-1 data-[state=inactive]:hidden"
+        className="mt-0 min-h-0 flex-1 data-[state=inactive]:hidden"
       >
         <PromptPane {...prompt} />
-      </SegmentedTabsContent>
-      <SegmentedTabsContent
+      </TabsContent>
+      <TabsContent
         value="knowledge"
         forceMount
         hidden={tab !== 'knowledge'}
-        className="min-h-0 flex-1 overflow-y-auto data-[state=inactive]:hidden"
+        className="mt-0 min-h-0 flex-1 overflow-y-auto data-[state=inactive]:hidden"
       >
         <KnowledgeConfig {...knowledge} />
-      </SegmentedTabsContent>
-      <SegmentedTabsContent
+      </TabsContent>
+      <TabsContent
         value="model"
         forceMount
         hidden={tab !== 'model'}
-        className="min-h-0 flex-1 overflow-y-auto data-[state=inactive]:hidden"
+        className="mt-0 min-h-0 flex-1 overflow-y-auto data-[state=inactive]:hidden"
       >
         <ModelConfig {...model} />
-      </SegmentedTabsContent>
-      <SegmentedTabsContent
+      </TabsContent>
+      <TabsContent
         value="experience"
         forceMount
         hidden={tab !== 'experience'}
-        className="min-h-0 flex-1 overflow-y-auto data-[state=inactive]:hidden"
+        className="mt-0 min-h-0 flex-1 overflow-y-auto data-[state=inactive]:hidden"
       >
         <ExperienceConfig {...experience} />
-      </SegmentedTabsContent>
-    </SegmentedTabs>
+      </TabsContent>
+    </Tabs>
   )
 }

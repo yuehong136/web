@@ -13,7 +13,7 @@ import {
   User,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { NavigationTooltip } from '@/components/ui/navigation-tooltip'
+import { Tooltip } from '@/components/ui/tooltip'
 import {
   ActionMenu,
   ActionMenuContent,
@@ -75,9 +75,14 @@ export const SidebarUtilities = ({
       className={cn('flex items-center gap-space-xs', collapsed && 'flex-col')}
     >
       <ActionMenu>
-        <NavigationTooltip
+        <Tooltip
           content={pendingCount > 0 ? `${name} · ${pendingLabel}` : name}
-          enabled={collapsed}
+          side="right"
+          sideOffset={12}
+          delayDuration={100}
+          asChild
+          portal
+          disabled={!collapsed}
         >
           <ActionMenuTrigger asChild>
             <Button
@@ -123,7 +128,7 @@ export const SidebarUtilities = ({
               )}
             </Button>
           </ActionMenuTrigger>
-        </NavigationTooltip>
+        </Tooltip>
         <ActionMenuContent side="top" align="start" className="w-56">
           <ActionMenuLabel className="flex items-center gap-space-sm px-space-sm py-space-sm text-sm font-normal text-text-primary">
             <EntityAvatar

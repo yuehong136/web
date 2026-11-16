@@ -23,7 +23,7 @@ import { useFormValues } from '../../hooks/use-form-values'
 import { useWatchFormChange } from '../../hooks/use-watch-form-change'
 import type { INextOperatorForm } from '../../types'
 import { FormWrapper, Output, buildOutputList } from '../components'
-import { SegmentedChoice } from '@/pages/agent/form/components/segmented-choice'
+import { SegmentedControl } from '@/components/ui/segmented-control'
 import { normalizeTokenChunkerFormForStore } from './utils'
 
 const tokenChunkerSchema = z.object({
@@ -143,7 +143,8 @@ export function TokenChunkerForm({ node }: INextOperatorForm) {
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <SegmentedChoice
+                <SegmentedControl
+                  fullWidth
                   value={field.value ?? TokenChunkerDelimiterMode.TokenSize}
                   onValueChange={field.onChange}
                   options={[

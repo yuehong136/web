@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next'
 import type { ReactNode, Ref } from 'react'
 import { Menu, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { NavigationTooltip } from '@/components/ui/navigation-tooltip'
+import { Tooltip } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 
 interface AppTopBarProps {
@@ -67,7 +67,14 @@ export const AppTopBar = ({
           </Button>
           {showSecondaryToggle && (
             <div className="hidden md:block">
-              <NavigationTooltip content={label}>
+              <Tooltip
+                content={label}
+                side="right"
+                sideOffset={12}
+                delayDuration={100}
+                asChild
+                portal
+              >
                 <Button
                   ref={secondaryToggleRef}
                   variant="ghost"
@@ -90,7 +97,7 @@ export const AppTopBar = ({
                     />
                   )}
                 </Button>
-              </NavigationTooltip>
+              </Tooltip>
             </div>
           )}
         </>

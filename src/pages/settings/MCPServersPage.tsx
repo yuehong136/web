@@ -8,7 +8,7 @@ import {
   ModalContent,
   ModalTitle,
 } from '@/components/ui/modal-primitives'
-import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import {
   Select,
   SelectContent,
@@ -26,7 +26,7 @@ import {
   Rocket,
   ArrowUpDown,
 } from 'lucide-react'
-import { ViewToggle } from '@/components/ui/view-toggle'
+import { SegmentedControl } from '@/components/ui/segmented-control'
 import { ListPageTemplate } from '@/components/page-templates'
 import {
   PageEmptyState,
@@ -312,10 +312,11 @@ export const MCPServersPage: React.FC<ServerListPageProps> = ({
               <ArrowUpDown className="size-icon-sm" />
               {t(sortDesc ? 'mcp.servers.descending' : 'mcp.servers.ascending')}
             </Button>
-            <ViewToggle
+            <SegmentedControl
+              aria-label={t('common.viewToggle')}
+              iconOnly
               value={viewMode}
-              onChange={setViewMode}
-              size="md"
+              onValueChange={setViewMode}
               options={[
                 {
                   value: 'grid',
@@ -402,7 +403,8 @@ export const MCPServersPage: React.FC<ServerListPageProps> = ({
           />
         )}
       </ListPageTemplate>
-      <ConfirmationDialog
+      <ConfirmDialog
+        variant="destructive"
         open={Boolean(pendingDelete)}
         onOpenChange={(open) => {
           if (!open && !deleteMutation.isPending) setPendingDelete(null)

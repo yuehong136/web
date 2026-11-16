@@ -10,7 +10,7 @@ import {
   Network,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Loading } from '@/components/ui/loading'
+import { Spinner } from '@/components/ui/spinner'
 import { useFetchKnowledgeDetail } from '@/hooks/use-knowledge-request'
 import { ROUTES } from '@/constants'
 import { ConsolePageTemplate } from '@/components/page-templates'
@@ -133,7 +133,7 @@ const KnowledgeDetailLayout: React.FC = () => {
   if (!currentKnowledgeBase) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <Loading variant="spinner" size="lg" />
+        <Spinner size="lg" />
       </div>
     )
   }

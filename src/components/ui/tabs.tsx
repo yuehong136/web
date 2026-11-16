@@ -1,141 +1,108 @@
 import * as React from 'react'
+import * as TabsPrimitive from '@radix-ui/react-tabs'
+import { cn } from '@/lib/utils'
+import {
+  segmentedItemVariants,
+  segmentedListVariants,
+} from './segmented-control'
 
-export interface TabsProps {
-  defaultValue?: string
-  value?: string
-  onValueChange?: (value: string) => void
-  children?: React.ReactNode
-  className?: string
+type TabsVariant = 'underline' | 'segmented'
+
+const TabsVariantContext = React.createContext<TabsVariant>('underline')
+
+export type TabsProps = React.ComponentPropsWithoutRef<
+  typeof TabsPrimitive.Root
+>
+
+export interface TabsListProps extends React.ComponentPropsWithoutRef<
+  typeof TabsPrimitive.List
+> {
+  /**
+   * `underline` (default) for section tabs over a panel; `segmented` for a
+   * compact switch inside toolbars and narrow panes.
+   */
+  variant?: TabsVariant
 }
 
-export interface TabsListProps {
-  children?: React.ReactNode
-  className?: string
-}
+export type TabsTriggerProps = React.ComponentPropsWithoutRef<
+  typeof TabsPrimitive.Trigger
+>
 
-export interface TabsTriggerProps {
-  value: string
-  children?: React.ReactNode
-  className?: string
-  disabled?: boolean
-}
+export type TabsContentProps = React.ComponentPropsWithoutRef<
+  typeof TabsPrimitive.Content
+>
 
-export interface TabsContentProps {
-  value: string
-  children?: React.ReactNode
-  className?: string
-}
+/**
+ * Radix Tabs: arrow keys (and Home/End) move between triggers, the active
+ * trigger owns the tab stop, and panels are labelled by their trigger.
+ * `value`/`defaultValue`/`onValueChange` behave as before.
+ */
+export const Tabs = React.forwardRef<
+  React.ElementRef<typeof TabsPrimitive.Root>,
+  TabsProps
+>((props, ref) => <TabsPrimitive.Root ref={ref} {...props} />)
+Tabs.displayName = 'Tabs'
 
-// Simple Tabs implementation without Radix UI
-const TabsContext = React.createContext<{
-  value?: string
-  onValueChange?: (value: string) => void
-}>({})
+export const TabsList = React.forwardRef<
+  React.ElementRef<typeof TabsPrimitive.List>,
+  TabsListProps
+>(({ className, variant = 'underline', ...props }, ref) => (
+  <TabsVariantContext.Provider value={variant}>
+    <TabsPrimitive.List
+      ref={ref}
+      data-variant={variant}
+      className={cn(
+        variant === 'segmented'
+          ? segmentedListVariants()
+          : // DreamJira tab bar: text tabs over a hairline, 16px apart.
+            'inline-flex min-h-[var(--control-height-lg)] max-w-full items-stretch gap-space-md border-b border-border-default',
+        className,
+      )}
+      {...props}
+    />
+  </TabsVariantContext.Provider>
+))
+TabsList.displayName = 'TabsList'
 
-export const Tabs: React.FC<TabsProps> = ({
-  defaultValue,
-  value,
-  onValueChange,
-  children,
-  className = '',
-}) => {
-  const [internalValue, setInternalValue] = React.useState(defaultValue || '')
-
-  const currentValue = value !== undefined ? value : internalValue
-
-  const handleValueChange = (newValue: string) => {
-    if (value === undefined) {
-      setInternalValue(newValue)
-    }
-    onValueChange?.(newValue)
-  }
-
+export const TabsTrigger = React.forwardRef<
+  React.ElementRef<typeof TabsPrimitive.Trigger>,
+  TabsTriggerProps
+>(({ className, ...props }, ref) => {
+  const variant = React.useContext(TabsVariantContext)
   return (
-    <TabsContext.Provider
-      value={{ value: currentValue, onValueChange: handleValueChange }}
-    >
-      <div className={className}>{children}</div>
-    </TabsContext.Provider>
+    <TabsPrimitive.Trigger
+      ref={ref}
+      className={cn(
+        variant === 'segmented'
+          ? segmentedItemVariants()
+          : [
+              // The 2px indicator overlaps the bar's hairline.
+              '-mb-px inline-flex shrink-0 items-center justify-center gap-space-xs border-b-2 border-transparent px-space-2xs text-sm font-medium whitespace-nowrap text-text-secondary',
+              'outline-hidden transition-colors duration-150 motion-reduce:transition-none',
+              'hover:text-text-primary focus-visible:rounded-radius-sm focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:ring-inset',
+              'disabled:pointer-events-none disabled:opacity-50',
+              'data-[state=active]:border-text-primary data-[state=active]:text-text-primary',
+              "[&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-icon-sm",
+            ],
+        className,
+      )}
+      {...props}
+    />
   )
-}
+})
+TabsTrigger.displayName = 'TabsTrigger'
 
-export const TabsList: React.FC<TabsListProps> = ({
-  children,
-  className = '',
-}) => {
-  return (
-    <div
-      className={`inline-flex h-11 items-center justify-center rounded-lg p-1 ${className}`}
-      style={{
-        backgroundColor: 'var(--color-components-tabs-bg)',
-        color: 'var(--color-components-tabs-inactive-text)',
-        border: '1px solid var(--color-components-tabs-border)',
-      }}
-    >
-      {children}
-    </div>
-  )
-}
-
-export const TabsTrigger: React.FC<TabsTriggerProps> = ({
-  value,
-  children,
-  className = '',
-  disabled = false,
-}) => {
-  const { value: activeValue, onValueChange } = React.useContext(TabsContext)
-  const isActive = activeValue === value
-
-  return (
-    <button
-      type="button"
-      disabled={disabled}
-      onClick={() => !disabled && onValueChange?.(value)}
-      className={`inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium whitespace-nowrap transition-all focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50 ${className}`}
-      style={{
-        backgroundColor: isActive
-          ? 'var(--color-components-tabs-active-bg)'
-          : 'transparent',
-        color: isActive
-          ? 'var(--color-components-tabs-active-text)'
-          : 'var(--color-components-tabs-inactive-text)',
-        boxShadow: isActive
-          ? '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1)'
-          : 'none',
-      }}
-      onMouseEnter={(e) => {
-        if (!isActive) {
-          ;(e.target as HTMLElement).style.backgroundColor =
-            'var(--color-state-hover)'
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!isActive) {
-          ;(e.target as HTMLElement).style.backgroundColor = 'transparent'
-        }
-      }}
-    >
-      {children}
-    </button>
-  )
-}
-
-export const TabsContent: React.FC<TabsContentProps> = ({
-  value,
-  children,
-  className = '',
-}) => {
-  const { value: activeValue } = React.useContext(TabsContext)
-
-  if (activeValue !== value) {
-    return null
-  }
-
-  return (
-    <div
-      className={`mt-2 ring-offset-background focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:ring-offset-2 focus-visible:outline-hidden ${className}`}
-    >
-      {children}
-    </div>
-  )
-}
+export const TabsContent = React.forwardRef<
+  React.ElementRef<typeof TabsPrimitive.Content>,
+  TabsContentProps
+>(({ className, ...props }, ref) => (
+  <TabsPrimitive.Content
+    ref={ref}
+    className={cn(
+      'mt-space-sm outline-hidden focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:ring-offset-2 focus-visible:ring-offset-background-surface',
+      className,
+    )}
+    {...props}
+  />
+))
+TabsContent.displayName = 'TabsContent'

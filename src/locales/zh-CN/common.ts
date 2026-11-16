@@ -65,6 +65,11 @@ export default {
       previous: '上一张',
       next: '下一张',
     },
+    // 基础组件（src/components/ui）的内置文案
+    confirmDialog: {
+      typeToConfirm: '输入“{{text}}”以确认',
+      typeToConfirmHint: '输入内容与名称一致后才能继续。',
+    },
     // 操作按钮
     add: '添加',
     create: '创建',

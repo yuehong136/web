@@ -12,7 +12,12 @@ import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Dropdown, DropdownItem } from '@/components/ui/dropdown'
+import {
+  ActionMenu,
+  ActionMenuContent,
+  ActionMenuItem,
+  ActionMenuTrigger,
+} from '@/components/ui/action-menu'
 import { cn } from '@/lib/utils'
 import type { KnowledgeBase } from '@/types/api'
 import { EntityAvatar } from '@/components/patterns/entity-avatar'
@@ -80,37 +85,32 @@ export const KnowledgeCard: FC<KnowledgeCardProps> = ({
               </span>
             </div>
           </div>
-          <Dropdown
-            trigger={
+          <ActionMenu>
+            <ActionMenuTrigger asChild>
               <Button
+                aria-label={t('common.more')}
                 onClick={(event) => event.stopPropagation()}
                 size="icon-sm"
                 variant="ghost"
               >
-                <MoreVertical className="h-4 w-4" />
+                <MoreVertical className="size-icon-sm" />
               </Button>
-            }
-          >
-            <DropdownItem
-              icon={<Settings className="h-4 w-4" />}
-              onClick={(event) => {
-                event.stopPropagation()
-                onSettings()
-              }}
+            </ActionMenuTrigger>
+            {/* The menu portals out, but React clicks still bubble to the card. */}
+            <ActionMenuContent
+              align="end"
+              onClick={(event) => event.stopPropagation()}
             >
-              {t('knowledge.list.actions.settings')}
-            </DropdownItem>
-            <DropdownItem
-              danger
-              icon={<Trash2 className="h-4 w-4" />}
-              onClick={(event) => {
-                event.stopPropagation()
-                onDelete()
-              }}
-            >
-              {t('knowledge.list.actions.delete')}
-            </DropdownItem>
-          </Dropdown>
+              <ActionMenuItem onSelect={onSettings}>
+                <Settings className="size-icon-sm" />
+                {t('knowledge.list.actions.settings')}
+              </ActionMenuItem>
+              <ActionMenuItem danger onSelect={onDelete}>
+                <Trash2 className="size-icon-sm" />
+                {t('knowledge.list.actions.delete')}
+              </ActionMenuItem>
+            </ActionMenuContent>
+          </ActionMenu>
         </div>
 
         {knowledgeBase.description ? (

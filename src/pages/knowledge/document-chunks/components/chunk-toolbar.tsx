@@ -11,6 +11,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { Button, Checkbox, Input, Label } from '@/components/ui'
 import { PageToolbar } from '@/components/patterns'
+import { SegmentedControl } from '@/components/ui/segmented-control'
 import {
   Popover,
   PopoverContent,
@@ -158,28 +159,15 @@ export const ChunkToolbar = ({
                 </div>
               </PopoverContent>
             </Popover>
-            <fieldset
+            <SegmentedControl
               aria-label={t('knowledge.chunks.toolbar.displayMode')}
-              className="flex gap-space-2xs rounded-radius-lg border border-components-segmented-border bg-components-segmented-bg p-space-2xs"
-            >
-              {textModeOptions.map(({ mode, label }) => (
-                <Button
-                  key={mode}
-                  type="button"
-                  size="sm"
-                  variant="ghost"
-                  aria-pressed={textMode === mode}
-                  onClick={() => onTextModeChange(mode)}
-                  className={cn(
-                    'text-components-segmented-item-text hover:bg-components-segmented-item-bg-hover',
-                    textMode === mode &&
-                      'bg-components-segmented-item-bg-active text-components-segmented-item-text-active shadow-elevation-low hover:bg-components-segmented-item-bg-active',
-                  )}
-                >
-                  {label}
-                </Button>
-              ))}
-            </fieldset>
+              value={textMode}
+              onValueChange={onTextModeChange}
+              options={textModeOptions.map(({ mode, label }) => ({
+                value: mode,
+                label,
+              }))}
+            />
           </>
         }
       />

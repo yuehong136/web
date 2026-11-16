@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Switch } from '@/components/ui/switch'
-import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { InstanceModelForm } from './instance-model-form'
 import { InstanceModelRow } from './instance-model-row'
 import { KeyRound, MapPin, Plug } from 'lucide-react'
@@ -238,7 +238,8 @@ export function ProviderInstance({ instance }: { instance: ModelInstance }) {
           close={() => setAddingModel(false)}
         />
       )}
-      <ConfirmationDialog
+      <ConfirmDialog
+        variant="destructive"
         open={!!removal}
         onOpenChange={(open) =>
           !open && !mutation.isPending && setRemoval(null)

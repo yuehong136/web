@@ -5,10 +5,16 @@
  */
 
 import React, { memo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ChevronRight, MoreVertical } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Dropdown, DropdownItem } from '@/components/ui/dropdown'
+import {
+  ActionMenu,
+  ActionMenuContent,
+  ActionMenuItem,
+  ActionMenuTrigger,
+} from '@/components/ui/action-menu'
 import { cn } from '@/lib/utils'
 
 // ============================================================================
@@ -166,6 +172,7 @@ export const ResourceListRow: React.FC<ResourceListRowProps> = memo(
     gridCols = 'grid-cols-[2fr_repeat(5,1fr)_60px]',
     className,
   }) => {
+    const { t } = useTranslation()
     const handleClick = (e: React.MouseEvent) => {
       // 如果点击的是选择框或操作菜单，不触发行点击
       if ((e.target as HTMLElement).closest('[data-stop-propagation]')) {
@@ -240,28 +247,30 @@ export const ResourceListRow: React.FC<ResourceListRowProps> = memo(
           data-stop-propagation
           onClick={(e) => e.stopPropagation()}
         >
-          <Dropdown
-            trigger={
+          <ActionMenu>
+            <ActionMenuTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon-sm"
-                className="opacity-0 transition-opacity group-hover:opacity-100"
+                aria-label={t('common.more')}
+                className="opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100"
               >
-                <MoreVertical className="h-4 w-4" />
+                <MoreVertical className="size-icon-sm" />
               </Button>
-            }
-          >
-            {actions.map((action) => (
-              <DropdownItem
-                key={action.key}
-                icon={action.icon}
-                onClick={action.onClick}
-                danger={action.danger}
-              >
-                {action.label}
-              </DropdownItem>
-            ))}
-          </Dropdown>
+            </ActionMenuTrigger>
+            <ActionMenuContent align="end">
+              {actions.map((action) => (
+                <ActionMenuItem
+                  key={action.key}
+                  danger={action.danger}
+                  onSelect={action.onClick}
+                >
+                  {action.icon}
+                  {action.label}
+                </ActionMenuItem>
+              ))}
+            </ActionMenuContent>
+          </ActionMenu>
         </div>
       </div>
     )

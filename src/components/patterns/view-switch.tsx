@@ -1,7 +1,6 @@
-import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { LayoutGrid, List } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { SegmentedControl } from '@/components/ui/segmented-control'
 
 export type CollectionView = 'list' | 'grid'
 
@@ -16,9 +15,8 @@ export interface ViewSwitchProps {
 }
 
 /**
- * List / grid switch for collection pages: two pressed-state icon buttons in a
- * segmented track. Local stand-in until the shared ui SegmentedControl lands;
- * the props are the swap boundary, so callers do not change.
+ * List / grid switch for collection pages: the icon-only SegmentedControl
+ * preset with the shared labels and icons.
  */
 export function ViewSwitch({
   value,
@@ -29,46 +27,26 @@ export function ViewSwitch({
   className,
 }: ViewSwitchProps) {
   const { t } = useTranslation()
-  const options: { value: CollectionView; label: string; icon: ReactNode }[] = [
-    {
-      value: 'list',
-      label: listLabel ?? t('common.patterns.view.list'),
-      icon: <List className="size-icon-sm" aria-hidden="true" />,
-    },
-    {
-      value: 'grid',
-      label: gridLabel ?? t('common.patterns.view.grid'),
-      icon: <LayoutGrid className="size-icon-sm" aria-hidden="true" />,
-    },
-  ]
   return (
-    <fieldset
+    <SegmentedControl
       aria-label={label ?? t('common.patterns.view.label')}
-      className={cn(
-        'inline-flex h-[var(--control-height-sm)] min-w-0 shrink-0 items-stretch gap-space-2xs rounded-radius-md bg-background-subtle p-space-2xs',
-        className,
-      )}
-    >
-      {options.map((option) => {
-        const active = option.value === value
-        return (
-          <button
-            key={option.value}
-            type="button"
-            aria-label={option.label}
-            title={option.label}
-            aria-pressed={active}
-            onClick={() => onChange(option.value)}
-            className={cn(
-              'inline-flex aspect-square items-center justify-center rounded-radius-sm text-text-secondary outline-hidden transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-focus',
-              active &&
-                'bg-background-surface text-text-primary shadow-elevation-low ring-1 ring-border-default',
-            )}
-          >
-            {option.icon}
-          </button>
-        )
-      })}
-    </fieldset>
+      iconOnly
+      size="sm"
+      value={value}
+      onValueChange={onChange}
+      className={className}
+      options={[
+        {
+          value: 'list',
+          label: listLabel ?? t('common.patterns.view.list'),
+          icon: <List />,
+        },
+        {
+          value: 'grid',
+          label: gridLabel ?? t('common.patterns.view.grid'),
+          icon: <LayoutGrid />,
+        },
+      ]}
+    />
   )
 }

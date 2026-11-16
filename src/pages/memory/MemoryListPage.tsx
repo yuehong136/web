@@ -16,16 +16,7 @@ import {
   FilterPopover,
   type FilterConfig,
 } from '@/components/ui/filter-popover'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { MemoryCard, CreateMemoryDialog } from '@/components/memory'
 import { useMemoryStore } from '@/stores/memory'
 import {
@@ -222,47 +213,31 @@ export function MemoryListPage() {
         onUpdate={(id, data) => update.mutate({ id, data })}
         isLoading={create.isPending || update.isPending}
       />
-      <AlertDialog
+      <ConfirmDialog
         open={!!deleting}
         onOpenChange={(open) => {
           if (!open && !remove.isPending) setDeleting(null)
         }}
+        variant="destructive"
+        pending={remove.isPending}
+        title={t('memory.deleteDialog.title')}
+        description={t('memory.deleteDialog.description')}
+        cancelLabel={t('common.cancel')}
+        confirmLabel={t('common.delete')}
+        onConfirm={async () => {
+          if (!deleting) return
+          try {
+            await remove.mutateAsync(deleting.id)
+            setDeleting(null)
+          } catch {
+            /* Mutation owns error feedback. */
+          }
+        }}
       >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {t('memory.deleteDialog.title')}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {t('memory.deleteDialog.description')}
-            </AlertDialogDescription>
-            <p className="text-sm font-medium break-words text-text-primary">
-              {deleting?.name}
-            </p>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={remove.isPending}>
-              {t('common.cancel')}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              variant="destructive"
-              disabled={remove.isPending}
-              onClick={async (e) => {
-                e.preventDefault()
-                if (!deleting) return
-                try {
-                  await remove.mutateAsync(deleting.id)
-                  setDeleting(null)
-                } catch {
-                  /* Mutation owns error feedback. */
-                }
-              }}
-            >
-              {t('common.delete')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        <p className="font-medium break-words text-text-primary">
+          {deleting?.name}
+        </p>
+      </ConfirmDialog>
     </ConsolePageTemplate>
   )
 }

@@ -151,13 +151,14 @@ it('groups sort and display choices in one menu named after the current sort', a
   expect(callbacks.display).toHaveBeenCalledWith('relative')
 })
 
-it('switches views with pressed-state buttons inside a labelled group', async () => {
+it('switches views with checked radios inside a labelled group', async () => {
   const callbacks = await setup()
-  const group = view.container.querySelector('fieldset')!
+  const group = view.container.querySelector('[role="radiogroup"]')!
   expect(group.getAttribute('aria-label')).toBe('View')
-  expect(byLabel(group, 'List view')?.getAttribute('aria-pressed')).toBe('true')
+  expect(byLabel(group, 'List view')?.getAttribute('aria-checked')).toBe('true')
   const grid = byLabel(group, 'Grid view')!
-  expect(grid.getAttribute('aria-pressed')).toBe('false')
+  expect(grid.getAttribute('aria-checked')).toBe('false')
+  expect(grid.getAttribute('role')).toBe('radio')
   expect(grid.tagName).toBe('BUTTON')
   await click(grid)
   expect(callbacks.view).toHaveBeenCalledWith('grid')

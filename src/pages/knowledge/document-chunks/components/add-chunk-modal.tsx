@@ -6,7 +6,14 @@ import {
   Plus,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Button, Modal, TagEditor } from '@/components/ui'
+import { Button, TagEditor } from '@/components/ui'
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { FileUploader, type UploadFile } from '@/components/ui/file-uploader'
 import { Textarea } from '@/components/ui/textarea'
 
@@ -46,115 +53,122 @@ export const AddChunkModal = ({
   const { t } = useTranslation()
 
   return (
-    <Modal
+    <Dialog
       open={open}
-      onClose={() => {
-        if (!isPending) onClose()
+      onOpenChange={(next) => {
+        if (!next && !isPending) onClose()
       }}
-      title={t('knowledge.chunks.modal.addTitle')}
-      size="lg"
     >
-      <fieldset
-        disabled={isPending}
-        inert={isPending}
-        className="space-y-5"
-        aria-busy={isPending}
-      >
-        <div>
-          <span
-            id="new-chunk-content-label"
-            className="mb-2 block text-sm font-medium text-text-primary"
+      <DialogContent size="lg">
+        <DialogHeader>
+          <DialogTitle>{t('knowledge.chunks.modal.addTitle')}</DialogTitle>
+        </DialogHeader>
+        <DialogBody>
+          <fieldset
+            disabled={isPending}
+            inert={isPending}
+            className="space-y-5"
+            aria-busy={isPending}
           >
-            {t('knowledge.chunks.modal.content')}
-          </span>
-          <Textarea
-            id="new-chunk-content"
-            aria-labelledby="new-chunk-content-label"
-            value={content}
-            onChange={(event) => onContentChange(event.target.value)}
-            placeholder={t('knowledge.chunks.modal.contentPlaceholder')}
-            className="h-40 max-h-[60vh] resize-y rounded-md px-3 py-2"
-          />
-        </div>
+            <div>
+              <span
+                id="new-chunk-content-label"
+                className="mb-2 block text-sm font-medium text-text-primary"
+              >
+                {t('knowledge.chunks.modal.content')}
+              </span>
+              <Textarea
+                id="new-chunk-content"
+                aria-labelledby="new-chunk-content-label"
+                value={content}
+                onChange={(event) => onContentChange(event.target.value)}
+                placeholder={t('knowledge.chunks.modal.contentPlaceholder')}
+                className="h-40 max-h-[60vh] resize-y rounded-md px-3 py-2"
+              />
+            </div>
 
-        <div>
-          <div className="mb-2 flex items-center gap-2">
-            <ImageIcon className="size-icon-sm text-text-accent" />
-            <FieldLabel>{t('knowledge.chunks.modal.image')}</FieldLabel>
-            <span className="text-xs text-text-tertiary">
-              {t('knowledge.chunks.modal.optional')}
-            </span>
-          </div>
-          <FileUploader
-            value={image}
-            onValueChange={onImageChange}
-            accept={{
-              'image/png': [],
-              'image/jpeg': [],
-              'image/webp': [],
-            }}
-            maxFileCount={1}
-            maxSize={ADD_CHUNK_IMAGE_MAX_SIZE_BYTES}
-            multiple={false}
-            hideDropzoneOnMaxFileCount
-            enableFolderUpload={false}
-            title={t('knowledge.chunks.modal.imageUploaderTitle')}
-            description={t('knowledge.chunks.modal.imageUploaderDescription')}
-            texts={{
-              selectFile: t('knowledge.chunks.modal.selectImage'),
-              selectedFiles: (count, maxFileCount) =>
-                t('knowledge.chunks.modal.selectedImages', {
-                  count,
-                  maxFileCount,
-                }),
-              clearAll: t('knowledge.chunks.modal.clearImage'),
-              totalSize: t('knowledge.chunks.modal.totalSize'),
-              remainingFiles: (count) =>
-                t('knowledge.chunks.modal.remainingImages', { count }),
-              removeFile: t('knowledge.chunks.modal.removeImage'),
-              tooManyFiles: (maxFileCount) =>
-                t('knowledge.chunks.modal.tooManyImages', { maxFileCount }),
-            }}
-            showProgress={false}
-            compact
-          />
-        </div>
+            <div>
+              <div className="mb-2 flex items-center gap-2">
+                <ImageIcon className="size-icon-sm text-text-accent" />
+                <FieldLabel>{t('knowledge.chunks.modal.image')}</FieldLabel>
+                <span className="text-xs text-text-tertiary">
+                  {t('knowledge.chunks.modal.optional')}
+                </span>
+              </div>
+              <FileUploader
+                value={image}
+                onValueChange={onImageChange}
+                accept={{
+                  'image/png': [],
+                  'image/jpeg': [],
+                  'image/webp': [],
+                }}
+                maxFileCount={1}
+                maxSize={ADD_CHUNK_IMAGE_MAX_SIZE_BYTES}
+                multiple={false}
+                hideDropzoneOnMaxFileCount
+                enableFolderUpload={false}
+                title={t('knowledge.chunks.modal.imageUploaderTitle')}
+                description={t(
+                  'knowledge.chunks.modal.imageUploaderDescription',
+                )}
+                texts={{
+                  selectFile: t('knowledge.chunks.modal.selectImage'),
+                  selectedFiles: (count, maxFileCount) =>
+                    t('knowledge.chunks.modal.selectedImages', {
+                      count,
+                      maxFileCount,
+                    }),
+                  clearAll: t('knowledge.chunks.modal.clearImage'),
+                  totalSize: t('knowledge.chunks.modal.totalSize'),
+                  remainingFiles: (count) =>
+                    t('knowledge.chunks.modal.remainingImages', { count }),
+                  removeFile: t('knowledge.chunks.modal.removeImage'),
+                  tooManyFiles: (maxFileCount) =>
+                    t('knowledge.chunks.modal.tooManyImages', { maxFileCount }),
+                }}
+                showProgress={false}
+                compact
+              />
+            </div>
 
-        <TagModalSection
-          icon={<Key className="h-4 w-4 text-text-accent" />}
-          label={t('knowledge.chunks.modal.keywords')}
-          value={importantKwd}
-          onChange={onImportantKwdChange}
-          placeholder={t('knowledge.chunks.modal.keywordPlaceholder')}
-          variant="info"
-        />
+            <TagModalSection
+              icon={<Key className="h-4 w-4 text-text-accent" />}
+              label={t('knowledge.chunks.modal.keywords')}
+              value={importantKwd}
+              onChange={onImportantKwdChange}
+              placeholder={t('knowledge.chunks.modal.keywordPlaceholder')}
+              variant="info"
+            />
 
-        <TagModalSection
-          icon={
-            <MessageCircleQuestion className="h-4 w-4 text-status-warning" />
-          }
-          label={t('knowledge.chunks.modal.questions')}
-          value={questionKwd}
-          onChange={onQuestionKwdChange}
-          placeholder={t('knowledge.chunks.modal.questionPlaceholder')}
-          variant="warning"
-        />
+            <TagModalSection
+              icon={
+                <MessageCircleQuestion className="h-4 w-4 text-status-warning" />
+              }
+              label={t('knowledge.chunks.modal.questions')}
+              value={questionKwd}
+              onChange={onQuestionKwdChange}
+              placeholder={t('knowledge.chunks.modal.questionPlaceholder')}
+              variant="warning"
+            />
 
-        <div className="flex justify-end space-x-3 pt-2">
-          <Button variant="outline" onClick={onClose} disabled={isPending}>
-            {t('knowledge.chunks.modal.cancel')}
-          </Button>
-          <Button
-            onClick={onCreate}
-            disabled={!canSubmit || !content.trim()}
-            loading={isPending}
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            {t('knowledge.chunks.modal.addChunk')}
-          </Button>
-        </div>
-      </fieldset>
-    </Modal>
+            <div className="flex justify-end space-x-3 pt-2">
+              <Button variant="outline" onClick={onClose} disabled={isPending}>
+                {t('knowledge.chunks.modal.cancel')}
+              </Button>
+              <Button
+                onClick={onCreate}
+                disabled={!canSubmit || !content.trim()}
+                loading={isPending}
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                {t('knowledge.chunks.modal.addChunk')}
+              </Button>
+            </div>
+          </fieldset>
+        </DialogBody>
+      </DialogContent>
+    </Dialog>
   )
 }
 

@@ -1,5 +1,5 @@
 /**
- * 顶部 "生成" 下拉按钮
+ * 顶部 "生成" 弹出面板按钮
  *
  * - 运行中：图标脉冲动画
  * - 有已完成结果：按钮右上角绿色小圆点
@@ -12,10 +12,10 @@ import { WandSparkles } from 'lucide-react'
 import { Button } from '@/components/ui'
 import { Tooltip } from '@/components/ui/tooltip'
 import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-} from '@/components/ui/dropdown-menu'
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import {
   GenerateTaskType,
   GenerateTaskStatus,
@@ -75,7 +75,7 @@ const GenerateButtonComponent: React.FC<GenerateButtonProps> = ({
   }, [hasRunning, hasFailed, hasCompleted])
 
   return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen}>
       <Tooltip
         content={
           disabled
@@ -83,7 +83,7 @@ const GenerateButtonComponent: React.FC<GenerateButtonProps> = ({
             : t('knowledge.documents.generate.tooltip')
         }
       >
-        <DropdownMenuTrigger asChild>
+        <PopoverTrigger asChild>
           <div className="relative inline-flex">
             <Button variant="outline" disabled={disabled}>
               <WandSparkles
@@ -102,9 +102,10 @@ const GenerateButtonComponent: React.FC<GenerateButtonProps> = ({
               />
             )}
           </div>
-        </DropdownMenuTrigger>
+        </PopoverTrigger>
       </Tooltip>
-      <DropdownMenuContent className="w-[360px] p-4">
+      {/* Task controls, not menu items: a popover keeps them in the Tab order. */}
+      <PopoverContent align="end" sideOffset={8} className="w-[360px]">
         <div className="space-y-3">
           <TaskItem
             type={GenerateTaskType.GraphRAG}
@@ -127,8 +128,8 @@ const GenerateButtonComponent: React.FC<GenerateButtonProps> = ({
             onDelete={handleDelete}
           />
         </div>
-      </DropdownMenuContent>
-    </DropdownMenu>
+      </PopoverContent>
+    </Popover>
   )
 }
 

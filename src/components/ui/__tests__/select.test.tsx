@@ -2,7 +2,6 @@ import { act, useState, type ReactNode } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { Dialog, DialogContent } from '../dialog'
-import { Modal } from '../modal'
 import {
   Select,
   SelectContent,
@@ -220,11 +219,6 @@ const outerLayers: Record<
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent>{children}</DialogContent>
     </Dialog>
-  ),
-  Modal: ({ open, setOpen, children }) => (
-    <Modal open={open} onClose={() => setOpen(false)} title="Outer modal">
-      {children}
-    </Modal>
   ),
 }
 

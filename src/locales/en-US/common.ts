@@ -66,6 +66,11 @@ export default {
       previous: 'Previous slide',
       next: 'Next slide',
     },
+    // Built-in copy of the base components (src/components/ui)
+    confirmDialog: {
+      typeToConfirm: 'Type “{{text}}” to confirm',
+      typeToConfirmHint: 'You can continue once the text matches the name.',
+    },
     // Action buttons
     add: 'Add',
     create: 'Create',

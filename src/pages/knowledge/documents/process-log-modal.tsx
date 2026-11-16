@@ -6,9 +6,16 @@
 
 import React, { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { FileText } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Modal, Button } from '@/components/ui'
+import { Button } from '@/components/ui'
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Tooltip } from '@/components/ui/tooltip'
 import { TaskStatus, TaskStatusConfig } from './constants'
 
@@ -156,70 +163,72 @@ export const ProcessLogModal: React.FC<ProcessLogModalProps> = ({
   }, [logInfo])
 
   return (
-    <Modal
-      open={visible}
-      onClose={onClose}
-      title={t('knowledge.documents.processLog.title')}
-      icon={<FileText className="h-5 w-5" />}
-      size="lg"
-      footer={
-        <div className="flex justify-end">
+    <Dialog open={visible} onOpenChange={(next) => !next && onClose()}>
+      <DialogContent size="lg">
+        <DialogHeader>
+          <DialogTitle>{t('knowledge.documents.processLog.title')}</DialogTitle>
+        </DialogHeader>
+        <DialogBody>
+          <div className="rounded-lg">
+            <div className="flex flex-wrap">
+              {displayFields.map((key) => {
+                const value = logInfo[key]
+                const label = t(fieldLabelKeys[key])
+
+                // 详情日志 - 全宽展示
+                if (key === 'details') {
+                  return (
+                    <div className="mt-2 w-full" key={key}>
+                      <InfoItem
+                        label={label}
+                        fullWidth
+                        value={
+                          <div className="mt-1 scrollbar-thin h-fit max-h-[350px] w-full overflow-y-auto rounded-lg bg-surface-secondary p-3 text-wrap whitespace-pre-line text-text-secondary">
+                            {highlightErrors(value as string)}
+                          </div>
+                        }
+                      />
+                    </div>
+                  )
+                }
+
+                // 状态字段 - 使用状态徽章
+                if (key === 'status') {
+                  return (
+                    <div className="mb-4 flex w-1/2 flex-col" key={key}>
+                      <span className="text-sm text-text-tertiary">
+                        {label}
+                      </span>
+                      <div className="mt-1">
+                        <StatusBadge status={value as string} />
+                      </div>
+                    </div>
+                  )
+                }
+
+                // 其他字段 - 半宽展示
+                // 对于文件名、创建者等可能较长的字段，启用 tooltip
+                const needsOverflowTip =
+                  key === 'fileName' || key === 'uploadedBy'
+                return (
+                  <div className="w-1/2" key={key}>
+                    <InfoItem
+                      label={label}
+                      value={String(value)}
+                      overflowTip={needsOverflowTip}
+                    />
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </DialogBody>
+        <DialogFooter>
           <Button onClick={onClose}>
             {t('knowledge.documents.processLog.close')}
           </Button>
-        </div>
-      }
-    >
-      <div className="rounded-lg">
-        <div className="flex flex-wrap">
-          {displayFields.map((key) => {
-            const value = logInfo[key]
-            const label = t(fieldLabelKeys[key])
-
-            // 详情日志 - 全宽展示
-            if (key === 'details') {
-              return (
-                <div className="mt-2 w-full" key={key}>
-                  <InfoItem
-                    label={label}
-                    fullWidth
-                    value={
-                      <div className="mt-1 scrollbar-thin h-fit max-h-[350px] w-full overflow-y-auto rounded-lg bg-surface-secondary p-3 text-wrap whitespace-pre-line text-text-secondary">
-                        {highlightErrors(value as string)}
-                      </div>
-                    }
-                  />
-                </div>
-              )
-            }
-
-            // 状态字段 - 使用状态徽章
-            if (key === 'status') {
-              return (
-                <div className="mb-4 flex w-1/2 flex-col" key={key}>
-                  <span className="text-sm text-text-tertiary">{label}</span>
-                  <div className="mt-1">
-                    <StatusBadge status={value as string} />
-                  </div>
-                </div>
-              )
-            }
-
-            // 其他字段 - 半宽展示
-            // 对于文件名、创建者等可能较长的字段，启用 tooltip
-            const needsOverflowTip = key === 'fileName' || key === 'uploadedBy'
-            return (
-              <div className="w-1/2" key={key}>
-                <InfoItem
-                  label={label}
-                  value={String(value)}
-                  overflowTip={needsOverflowTip}
-                />
-              </div>
-            )
-          })}
-        </div>
-      </div>
-    </Modal>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }

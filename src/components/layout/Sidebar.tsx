@@ -11,7 +11,7 @@ import {
   type SecondaryNavigation,
   type WorkbenchSection,
 } from '@/components/layout/workbench-navigation'
-import { NavigationTooltip } from '@/components/ui/navigation-tooltip'
+import { Tooltip } from '@/components/ui/tooltip'
 import { NavigationFlyout } from '@/components/patterns/navigation-flyout'
 import { SecondaryNavigationContent } from '@/components/patterns/secondary-navigation-content'
 import { Button } from '@/components/ui/button'
@@ -141,13 +141,28 @@ export const Sidebar = ({
               {link}
             </NavigationFlyout>
           ) : (
-            <NavigationTooltip key={item.href} content={title}>
+            <Tooltip
+              key={item.href}
+              content={title}
+              side="right"
+              sideOffset={12}
+              delayDuration={100}
+              asChild
+              portal
+            >
               {link}
-            </NavigationTooltip>
+            </Tooltip>
           )
         })}
         <ActionMenu>
-          <NavigationTooltip content={t('layout.sidebar.more')}>
+          <Tooltip
+            content={t('layout.sidebar.more')}
+            side="right"
+            sideOffset={12}
+            delayDuration={100}
+            asChild
+            portal
+          >
             <ActionMenuTrigger asChild>
               <Button
                 variant="ghost"
@@ -162,7 +177,7 @@ export const Sidebar = ({
                 <MoreHorizontal className="size-icon-md" aria-hidden="true" />
               </Button>
             </ActionMenuTrigger>
-          </NavigationTooltip>
+          </Tooltip>
           <ActionMenuContent side="right" align="start" sideOffset={8}>
             {moreNavItems.map((item) => {
               const Icon = item.icon

@@ -2,7 +2,7 @@ import React from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Loading } from '@/components/ui/loading'
+import { Spinner } from '@/components/ui/spinner'
 import { useAuthStore } from '@/stores/auth'
 import { ROUTES } from '@/constants'
 import { Progress } from '@/components/ui/progress'
@@ -214,7 +214,7 @@ export const RegisterPage: React.FC = () => {
                 >
                   {isLoading ? (
                     <>
-                      <Loading variant="spinner" size="sm" className="mr-2" />
+                      <Spinner size="sm" className="mr-2" />
                       创建中...
                     </>
                   ) : (

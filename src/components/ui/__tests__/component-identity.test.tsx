@@ -1,7 +1,7 @@
 import { act, cloneElement, type ReactElement } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
-import { Loading } from '@/components/ui/loading'
+import { Spinner } from '@/components/ui/spinner'
 import { TaskExecutorChart } from '@/components/ui/task-executor-chart'
 import type { TaskExecutorHeartbeat } from '@/api/system'
 
@@ -29,16 +29,13 @@ afterEach(async () => {
 })
 
 it('keeps the loading animation node when its parent updates', async () => {
-  await act(async () =>
-    root.render(<Loading variant="dots" size="md" text="first" />),
-  )
-  const dot = container.querySelector('.animate-pulse')
-  expect(dot).not.toBeNull()
-  await act(async () =>
-    root.render(<Loading variant="dots" size="md" text="next" />),
-  )
-  expect(container.querySelector('.animate-pulse')).toBe(dot)
+  await act(async () => root.render(<Spinner label="first" />))
+  const ring = container.querySelector('.animate-spin')
+  expect(ring).not.toBeNull()
+  await act(async () => root.render(<Spinner label="next" />))
+  expect(container.querySelector('.animate-spin')).toBe(ring)
   expect(container.textContent).toBe('next')
+  expect(container.querySelector('[role="status"]')).not.toBeNull()
 })
 
 it('keeps the pinned chart close button and focus across heartbeat updates', async () => {

@@ -1,16 +1,7 @@
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import { AlertCircle, AlertTriangle } from 'lucide-react'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
 interface DeleteMetadataConfirmProps {
   open: boolean
@@ -35,38 +26,34 @@ export const DeleteMetadataConfirm: React.FC<DeleteMetadataConfirmProps> = ({
   const action = confirmLabel ?? t('knowledge.metadata.modal.confirmDelete')
 
   return (
-    <AlertDialog open={open} onOpenChange={(isOpen) => !isOpen && onCancel()}>
-      <AlertDialogContent className="max-w-[400px]">
-        <AlertDialogHeader className="pb-2">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-status-error-subtle">
-              <AlertTriangle className="h-5 w-5 text-status-error" />
-            </div>
-            <AlertDialogTitle className="text-base">{title}</AlertDialogTitle>
-          </div>
-        </AlertDialogHeader>
-        <AlertDialogDescription>
-          <div className="space-y-3 pl-[52px]">
-            <div className="inline-flex items-center rounded-md border border-border-default bg-surface-secondary px-3 py-1.5">
-              <span className="max-w-[260px] truncate text-sm font-medium text-text-primary">
-                {name}
-              </span>
-            </div>
-            <div className="flex items-start gap-2 rounded-md border border-status-warning-border bg-status-warning-subtle p-2.5">
-              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-status-warning" />
-              <p className="text-xs leading-relaxed text-text-secondary">
-                {warnText}
-              </p>
-            </div>
-          </div>
-        </AlertDialogDescription>
-        <AlertDialogFooter className="pt-4">
-          <AlertDialogCancel>{t('knowledge.common.cancel')}</AlertDialogCancel>
-          <AlertDialogAction variant="destructive" onClick={onConfirm}>
-            {action}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <ConfirmDialog
+      open={open}
+      onOpenChange={(isOpen) => !isOpen && onCancel()}
+      variant="destructive"
+      icon={<AlertTriangle />}
+      title={title}
+      cancelLabel={t('knowledge.common.cancel')}
+      confirmLabel={action}
+      // Confirming also dismisses, as the caller expects onCancel to close.
+      onConfirm={() => {
+        onConfirm()
+        onCancel()
+      }}
+    >
+      <div className="space-y-space-sm">
+        <div className="inline-flex max-w-full items-center rounded-radius-md border border-border-default bg-background-subtle px-space-sm py-space-xs">
+          <span className="truncate font-medium text-text-primary">{name}</span>
+        </div>
+        <div
+          role="note"
+          className="flex items-start gap-space-sm rounded-radius-md border border-status-warning-border bg-status-warning-subtle p-space-sm"
+        >
+          <AlertCircle className="mt-space-2xs size-icon-sm shrink-0 text-status-warning" />
+          <p className="text-xs leading-relaxed text-text-secondary">
+            {warnText}
+          </p>
+        </div>
+      </div>
+    </ConfirmDialog>
   )
 }

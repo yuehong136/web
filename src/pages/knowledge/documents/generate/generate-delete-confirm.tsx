@@ -4,7 +4,7 @@
 
 import React, { memo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ConfirmModal } from '@/components/ui'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { GenerateTaskType } from '@/hooks/use-generate-task'
 import { TASK_TYPE_CONFIG } from './constants'
 
@@ -27,13 +27,13 @@ const GenerateDeleteConfirmComponent: React.FC<GenerateDeleteConfirmProps> = ({
   const label = type ? t(TASK_TYPE_CONFIG[type].labelKey) : ''
 
   return (
-    <ConfirmModal
+    <ConfirmDialog
       open={open}
-      loading={loading}
+      pending={loading}
       variant="destructive"
-      confirmText={t('common.delete')}
-      cancelText={t('common.cancel')}
-      onClose={onClose}
+      confirmLabel={t('common.delete')}
+      cancelLabel={t('common.cancel')}
+      onOpenChange={(next) => !next && onClose()}
       onConfirm={onConfirm}
       title={t('knowledge.documents.generate.deleteTitle', { label })}
       description={t('knowledge.documents.generate.deleteDescription', {

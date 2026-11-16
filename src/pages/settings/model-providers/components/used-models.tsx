@@ -7,7 +7,7 @@ import {
 } from '@/hooks/use-model-provider-request'
 import { modelProvidersAPI } from '@/api/llm-providers'
 import { Button } from '@/components/ui/button'
-import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import {
   PageErrorState,
   PageLoadingState,
@@ -115,7 +115,8 @@ function ConfiguredProvider({ name, add }: { name: string; add: () => void }) {
         ))
       )}
       {!removing && failure !== null && <ModelMutationError error={failure} />}
-      <ConfirmationDialog
+      <ConfirmDialog
+        variant="destructive"
         open={removing}
         onOpenChange={(open) => !mutation.isPending && setRemoving(open)}
         title={t('common.delete')}

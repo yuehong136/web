@@ -5,7 +5,7 @@ import type { GatewayModel } from '@/api/model-gateway'
 import { PageEmptyState, PageToolbar } from '@/components/patterns'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import {
   Table,
   TableBody,
@@ -200,7 +200,8 @@ export const ModelsPanel = ({ models }: ModelsPanelProps) => {
       {formOpen ? (
         <ModelFormDialog model={editing} onOpenChange={setFormOpen} />
       ) : null}
-      <ConfirmationDialog
+      <ConfirmDialog
+        variant="destructive"
         open={pendingDelete !== null}
         onOpenChange={(open) => !open && setPendingDelete(null)}
         title={t('settings.modelGateway.models.deleteTitle')}

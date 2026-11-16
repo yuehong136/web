@@ -9,10 +9,16 @@ import {
   Trash2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { CustomSelect } from '@/components/ui/custom-select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
-import { Loading } from '@/components/ui/loading'
-import { ViewToggle } from '@/components/ui/view-toggle'
+import { Spinner } from '@/components/ui/spinner'
+import { SegmentedControl } from '@/components/ui/segmented-control'
 import { KnowledgeListView } from '@/components/knowledge'
 import { ListPageTemplate } from '@/components/page-templates'
 import { PageEmptyState } from '@/components/patterns/page-states'
@@ -52,18 +58,26 @@ export const KnowledgeListPage: FC = () => {
 
   const toolbarRight = (
     <>
-      <CustomSelect
-        className="min-w-[110px]"
-        onChange={(value) =>
+      <Select
+        onValueChange={(value) =>
           page.setTimeFormat(value as typeof page.timeFormat)
         }
-        options={page.timeFormatOptions}
-        size="sm"
         value={page.timeFormat}
-      />
+      >
+        <SelectTrigger className="min-w-[110px]">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {page.timeFormatOptions.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
       <Button
-        className="px-space-sm h-9 text-xs"
+        className="h-9 px-space-sm text-xs"
         onClick={() => page.setSortDesc((prev) => !prev)}
         size="sm"
         variant="outline"
@@ -74,8 +88,10 @@ export const KnowledgeListPage: FC = () => {
           : page.t('knowledge.list.sort.asc')}
       </Button>
 
-      <ViewToggle
-        onChange={page.setViewMode}
+      <SegmentedControl
+        aria-label={page.t('common.viewToggle')}
+        iconOnly
+        onValueChange={page.setViewMode}
         options={[
           {
             icon: <Grid3X3 />,
@@ -88,7 +104,6 @@ export const KnowledgeListPage: FC = () => {
             value: 'table',
           },
         ]}
-        size="md"
         value={page.viewMode}
       />
     </>
@@ -96,7 +111,7 @@ export const KnowledgeListPage: FC = () => {
 
   const content =
     page.viewMode === 'grid' ? (
-      <div className="gap-space-base grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-space-base md:grid-cols-2 xl:grid-cols-3">
         {page.knowledgeBases.map((knowledgeBase) => (
           <KnowledgeCard
             formatTime={page.formatTime}
@@ -154,7 +169,7 @@ export const KnowledgeListPage: FC = () => {
             </Button>
           </>
         }
-        loadingState={<Loading size="lg" variant="spinner" />}
+        loadingState={<Spinner size="lg" />}
         pagination={
           <KnowledgeListPagination
             currentPage={page.currentPage}

@@ -1,7 +1,16 @@
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { NavigateFunction } from 'react-router-dom'
-import { Button, ConfirmModal, Input, Modal } from '@/components/ui'
+import { Button, Input } from '@/components/ui'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { ChunkMethodModal, ReparseConfirmModal } from '@/components/knowledge'
 import { MetadataManageType as MetadataType } from '@/types/api'
 import type { KnowledgeBase } from '@/types/api'
@@ -51,24 +60,29 @@ export function DocumentPageModals({
 
   return (
     <>
-      <Modal
+      <Dialog
         open={pageModals.renameModalOpen}
-        onClose={() => pageModals.setRenameModalOpen(false)}
-        title={t('knowledge.documents.renameTitle')}
+        onOpenChange={(next) => !next && pageModals.setRenameModalOpen(false)}
       >
-        <div className="space-y-4">
-          <div>
-            <span className="block text-sm font-medium text-text-primary">
+        <DialogContent size="md">
+          <DialogHeader>
+            <DialogTitle>{t('knowledge.documents.renameTitle')}</DialogTitle>
+          </DialogHeader>
+          <DialogBody>
+            <label
+              htmlFor="newDocName"
+              className="mb-space-xs block text-sm font-medium text-text-primary"
+            >
               {t('knowledge.documents.newName')}
-            </span>
+            </label>
             <Input
               id="newDocName"
               value={pageModals.newDocName}
               onChange={(e) => pageModals.setNewDocName(e.target.value)}
               placeholder={t('knowledge.documents.newNamePlaceholder')}
             />
-          </div>
-          <div className="flex justify-end space-x-2">
+          </DialogBody>
+          <DialogFooter>
             <Button
               variant="outline"
               onClick={() => pageModals.setRenameModalOpen(false)}
@@ -78,13 +92,13 @@ export function DocumentPageModals({
             <Button onClick={pageModals.handleRename} loading={isRenaming}>
               {t('knowledge.documents.confirm')}
             </Button>
-          </div>
-        </div>
-      </Modal>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-      <ConfirmModal
+      <ConfirmDialog
         open={pageModals.deleteConfirmOpen}
-        onClose={() => pageModals.setDeleteConfirmOpen(false)}
+        onOpenChange={(next) => !next && pageModals.setDeleteConfirmOpen(false)}
         onConfirm={pageModals.handleDelete}
         title={t('knowledge.documents.deleteTitle')}
         description={t('knowledge.documents.deleteDescription')}

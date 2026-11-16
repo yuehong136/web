@@ -1,7 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import {
-  Modal,
   Button,
   FileUploader,
   Switch,
@@ -9,6 +8,13 @@ import {
   type FileRejection,
   type FileUploaderTexts,
 } from '@/components/ui'
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { knowledgeAPI } from '@/api/knowledge'
 import { getPartialDatasetUpload } from '@/api/knowledge-rest'
 import { toast } from '@/lib/toast'
@@ -316,100 +322,104 @@ function DocumentUploadSession({
   }
 
   return (
-    <Modal
-      open={open}
-      onClose={handleClose}
-      title={t('knowledge.documents.upload.title')}
-      size="lg"
-    >
-      <div className="flex flex-col gap-space-lg">
-        <FileUploader
-          value={uploadFiles.map(({ file, errorKey, ...feedback }) =>
-            Object.assign(file, feedback, {
-              error: errorKey ? t(errorKey) : undefined,
-            }),
-          )}
-          onValueChange={handleUploadFilesChange}
-          onFilesRejected={handleFilesRejected}
-          onRetry={handleRetryUpload}
-          maxSize={DOCUMENT_UPLOAD_MAX_SIZE}
-          maxFileCount={DOCUMENT_UPLOAD_MAX_FILE_COUNT}
-          multiple={true}
-          showProgress={true}
-          disabled={uploading}
-          dropzoneHeight="min-h-[180px]"
-          listMaxHeight="max-h-[240px]"
-          texts={uploadTexts}
-        />
+    <Dialog open={open} onOpenChange={(next) => !next && handleClose()}>
+      <DialogContent size="lg">
+        <DialogHeader>
+          <DialogTitle>{t('knowledge.documents.upload.title')}</DialogTitle>
+        </DialogHeader>
+        <DialogBody>
+          <div className="flex flex-col gap-space-lg">
+            <FileUploader
+              value={uploadFiles.map(({ file, errorKey, ...feedback }) =>
+                Object.assign(file, feedback, {
+                  error: errorKey ? t(errorKey) : undefined,
+                }),
+              )}
+              onValueChange={handleUploadFilesChange}
+              onFilesRejected={handleFilesRejected}
+              onRetry={handleRetryUpload}
+              maxSize={DOCUMENT_UPLOAD_MAX_SIZE}
+              maxFileCount={DOCUMENT_UPLOAD_MAX_FILE_COUNT}
+              multiple={true}
+              showProgress={true}
+              disabled={uploading}
+              dropzoneHeight="min-h-[180px]"
+              listMaxHeight="max-h-[240px]"
+              texts={uploadTexts}
+            />
 
-        {isTableParser &&
-          uploadFiles
-            .filter(({ file }) => isTableFile(file))
-            .map(({ file, status }) => (
-              <TableFileColumnConfig
-                key={file.uid}
-                file={file}
-                disabled={uploading || status === 'success'}
-                onChange={updateTableConfig}
+            {isTableParser &&
+              uploadFiles
+                .filter(({ file }) => isTableFile(file))
+                .map(({ file, status }) => (
+                  <TableFileColumnConfig
+                    key={file.uid}
+                    file={file}
+                    disabled={uploading || status === 'success'}
+                    onChange={updateTableConfig}
+                  />
+                ))}
+
+            {notice && (
+              <div
+                role="alert"
+                className="rounded-radius-md border border-status-warning/30 bg-status-warning-subtle p-space-md text-sm text-text-primary"
+              >
+                {t(notice.key, notice.values)}
+              </div>
+            )}
+            <div className="flex items-center justify-between gap-space-md rounded-radius-lg bg-background-subtle p-space-md">
+              <div className="flex flex-col">
+                <span className="text-sm font-medium text-text-primary">
+                  {t('knowledge.documents.upload.parseOnUpload')}
+                </span>
+                <span className="text-xs text-text-tertiary">
+                  {t('knowledge.documents.upload.parseOnUploadDescription')}
+                </span>
+              </div>
+              <Switch
+                aria-label={t('knowledge.documents.upload.parseOnUpload')}
+                checked={parseOnUpload}
+                onCheckedChange={setParseOnUpload}
+                disabled={uploading}
               />
-            ))}
+            </div>
 
-        {notice && (
-          <div
-            role="alert"
-            className="rounded-radius-md border border-status-warning/30 bg-status-warning-subtle p-space-md text-sm text-text-primary"
-          >
-            {t(notice.key, notice.values)}
+            <div className="flex justify-end gap-space-sm border-t border-border-subtle pt-space-md">
+              <Button
+                variant={allSucceeded ? 'default' : 'outline'}
+                onClick={handleClose}
+                disabled={uploading}
+              >
+                {allSucceeded
+                  ? t('common.close')
+                  : t('knowledge.common.cancel')}
+              </Button>
+              {!allSucceeded && (
+                <Button
+                  onClick={() => {
+                    void handleUpload()
+                  }}
+                  loading={uploading}
+                  disabled={uploadFiles.length === 0}
+                >
+                  {uploading
+                    ? t('knowledge.documents.upload.uploading')
+                    : uploadFiles.some((entry) => entry.status === 'success')
+                      ? t('knowledge.documents.upload.uploadRemaining', {
+                          count: uploadFiles.filter(
+                            (entry) => entry.status !== 'success',
+                          ).length,
+                        })
+                      : t('knowledge.documents.upload.uploadCount', {
+                          count: uploadFiles.length,
+                        })}
+                </Button>
+              )}
+            </div>
           </div>
-        )}
-        <div className="flex items-center justify-between gap-space-md rounded-radius-lg bg-background-subtle p-space-md">
-          <div className="flex flex-col">
-            <span className="text-sm font-medium text-text-primary">
-              {t('knowledge.documents.upload.parseOnUpload')}
-            </span>
-            <span className="text-xs text-text-tertiary">
-              {t('knowledge.documents.upload.parseOnUploadDescription')}
-            </span>
-          </div>
-          <Switch
-            aria-label={t('knowledge.documents.upload.parseOnUpload')}
-            checked={parseOnUpload}
-            onCheckedChange={setParseOnUpload}
-            disabled={uploading}
-          />
-        </div>
-
-        <div className="flex justify-end gap-space-sm border-t border-border-subtle pt-space-md">
-          <Button
-            variant={allSucceeded ? 'default' : 'outline'}
-            onClick={handleClose}
-            disabled={uploading}
-          >
-            {allSucceeded ? t('common.close') : t('knowledge.common.cancel')}
-          </Button>
-          {!allSucceeded && (
-            <Button
-              onClick={() => {
-                void handleUpload()
-              }}
-              loading={uploading}
-              disabled={uploadFiles.length === 0}
-            >
-              {uploading
-                ? t('knowledge.documents.upload.uploading')
-                : uploadFiles.some((entry) => entry.status === 'success')
-                  ? t('knowledge.documents.upload.uploadRemaining', {
-                      count: uploadFiles.filter(
-                        (entry) => entry.status !== 'success',
-                      ).length,
-                    })
-                  : t('knowledge.documents.upload.uploadCount', {
-                      count: uploadFiles.length,
-                    })}
-            </Button>
-          )}
-        </div>
-      </div>
-    </Modal>
+        </DialogBody>
+      </DialogContent>
+    </Dialog>
   )
 }
