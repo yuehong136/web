@@ -66,15 +66,6 @@ export interface Response {
   headers?: Record<string, Parameter>
 }
 
-export interface TestResponse {
-  status: number
-  statusText: string
-  time: number
-  size?: string
-  headers?: Record<string, string>
-  data?: unknown
-}
-
 export interface OpenAPIParameter {
   name: string
   in: Parameter['in']
@@ -118,61 +109,6 @@ export type OpenAPIPathItem = Partial<
   Record<Lowercase<ApiMethod>, OpenAPIOperation>
 >
 
-export interface ParamRow {
-  id: string
-  enabled: boolean
-  name: string
-  value: string
-  type: string
-  description: string
-  required?: boolean
-  in?: string
-}
-
-export interface HeaderRow {
-  id: string
-  enabled: boolean
-  name: string
-  value: string
-  description: string
-}
-
-export type BodyType =
-  | 'none'
-  | 'form-data'
-  | 'x-www-form-urlencoded'
-  | 'json'
-  | 'xml'
-  | 'raw'
-  | 'binary'
-  | 'graphql'
-  | 'msgpack'
-
-export interface FormDataRow {
-  id: string
-  enabled: boolean
-  key: string
-  value: string
-  type: 'text' | 'file'
-  description?: string
-}
-
-export interface UrlEncodedRow {
-  id: string
-  enabled: boolean
-  key: string
-  value: string
-  type:
-    | 'string'
-    | 'integer'
-    | 'number'
-    | 'boolean'
-    | 'file'
-    | 'array'
-    | 'object'
-  description?: string
-}
-
 export type ApiKey = SystemAPIToken
 
 const HTTP_METHODS = [
@@ -184,9 +120,6 @@ const HTTP_METHODS = [
   'head',
   'options',
 ] as const
-
-export const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null
 
 export const isHttpMethod = (method: string): method is Lowercase<ApiMethod> =>
   (HTTP_METHODS as readonly string[]).includes(method)

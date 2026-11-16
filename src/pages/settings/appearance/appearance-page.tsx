@@ -1,8 +1,11 @@
 import { Check, Monitor, Moon, RotateCcw, Sun } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { PageHeader } from '@/components/patterns/page-header'
+import type { ReactNode } from 'react'
+import { SettingsTemplate } from '@/components/page-templates/settings-template'
+import { SettingRow, SettingSection } from '@/components/patterns/setting-row'
 import { PreferenceChoiceGroup } from '@/components/patterns/preference-choice-group'
 import { Button } from '@/components/ui/button'
+import { SegmentedControl } from '@/components/ui/segmented-control'
 import { supportedLocales } from '@/locales/i18n'
 import { useUIStore } from '@/stores/ui'
 import {
@@ -42,43 +45,63 @@ export function AppearancePage() {
   const appearance = useAppearance()
   const language = useUIStore((state) => state.language)
   const setLanguage = useUIStore((state) => state.setLanguage)
+  const segmented = <T extends string>(
+    label: string,
+    value: T,
+    options: readonly { value: T; label: string; icon?: ReactNode }[],
+    onChange: (value: T) => void,
+  ) => (
+    <SegmentedControl
+      aria-label={label}
+      size="sm"
+      value={value}
+      onValueChange={onChange}
+      options={options}
+    />
+  )
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-space-xl p-space-base sm:p-space-lg lg:p-space-xl">
-      <PageHeader
-        title={t('appearance.title')}
-        description={t('appearance.description')}
-        surface="plain"
-        wrapActions
-        actions={
-          <Button
-            variant="ghost"
-            size="sm"
-            leftIcon={<RotateCcw className="size-icon-sm" />}
-            onClick={() => setAppearance(DEFAULT_APPEARANCE)}
-          >
-            {t('appearance.reset')}
-          </Button>
-        }
-      />
-      <div className="grid min-w-0 gap-space-xl xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
-        <div className="min-w-0 space-y-space-xl">
-          <PreferenceChoiceGroup
-            label={t('appearance.preset')}
-            description={t('appearance.presetDescription')}
-            value={appearance.preset}
-            choices={APPEARANCE_PRESETS.map((preset) => ({
-              value: preset,
-              label: t(`appearance.presets.${preset}.name`),
-              description: t(`appearance.presets.${preset}.description`),
-              preview: <PresetSwatch preset={preset} />,
-            }))}
-            onChange={(preset) => setAppearance({ preset })}
-          />
-          <PreferenceChoiceGroup
-            label={t('appearance.mode')}
-            value={appearance.mode}
-            className="grid-cols-1 sm:grid-cols-3"
-            choices={(
+    <SettingsTemplate
+      description={
+        <>
+          {t('appearance.description')}
+          <span className="ml-space-xs inline-flex items-center gap-space-2xs text-text-tertiary">
+            <Check className="size-icon-xs" aria-hidden="true" />
+            {t('appearance.saved')}
+          </span>
+        </>
+      }
+      actions={
+        <Button
+          variant="ghost"
+          size="sm"
+          leftIcon={<RotateCcw className="size-icon-sm" />}
+          onClick={() => setAppearance(DEFAULT_APPEARANCE)}
+        >
+          {t('appearance.reset')}
+        </Button>
+      }
+    >
+      <AppearancePreview />
+      <div className="mt-space-lg">
+        <PreferenceChoiceGroup
+          label={t('appearance.preset')}
+          description={t('appearance.presetDescription')}
+          value={appearance.preset}
+          choices={APPEARANCE_PRESETS.map((preset) => ({
+            value: preset,
+            label: t(`appearance.presets.${preset}.name`),
+            description: t(`appearance.presets.${preset}.description`),
+            preview: <PresetSwatch preset={preset} />,
+          }))}
+          onChange={(preset) => setAppearance({ preset })}
+        />
+      </div>
+      <SettingSection className="mt-space-lg">
+        <SettingRow label={t('appearance.mode')}>
+          {segmented(
+            t('appearance.mode'),
+            appearance.mode,
+            (
               [
                 ['system', Monitor],
                 ['light', Sun],
@@ -87,63 +110,64 @@ export function AppearancePage() {
             ).map(([value, Icon]) => ({
               value,
               label: t(`appearance.modes.${value}`),
-              icon: <Icon className="size-icon-sm" />,
-            }))}
-            onChange={(mode) => setAppearance({ mode })}
-          />
-          <PreferenceChoiceGroup
-            label={t('appearance.density')}
-            value={appearance.density}
-            choices={(['comfortable', 'compact'] as const).map((value) => ({
+              icon: <Icon aria-hidden="true" />,
+            })),
+            (mode) => setAppearance({ mode }),
+          )}
+        </SettingRow>
+        <SettingRow label={t('appearance.density')}>
+          {segmented(
+            t('appearance.density'),
+            appearance.density,
+            (['comfortable', 'compact'] as const).map((value) => ({
               value,
               label: t(`appearance.densities.${value}`),
-            }))}
-            onChange={(density) => setAppearance({ density })}
-          />
-          <PreferenceChoiceGroup
-            label={t('appearance.textScale')}
-            value={String(appearance.textScale)}
-            className="grid-cols-1 sm:grid-cols-3"
-            choices={[
+            })),
+            (density) => setAppearance({ density }),
+          )}
+        </SettingRow>
+        <SettingRow label={t('appearance.textScale')}>
+          {segmented(
+            t('appearance.textScale'),
+            String(appearance.textScale),
+            [
               { value: '1', label: t('appearance.scales.standard') },
               { value: '1.125', label: t('appearance.scales.larger') },
               { value: '1.25', label: t('appearance.scales.largest') },
-            ]}
-            onChange={(value) =>
+            ],
+            (value) =>
               setAppearance({
                 textScale:
                   value === '1.25' ? 1.25 : value === '1.125' ? 1.125 : 1,
-              })
-            }
-          />
-          <PreferenceChoiceGroup
-            label={t('appearance.motion')}
-            value={appearance.motion}
-            choices={(['system', 'reduced'] as const).map((value) => ({
+              }),
+          )}
+        </SettingRow>
+        <SettingRow label={t('appearance.motion')}>
+          {segmented(
+            t('appearance.motion'),
+            appearance.motion,
+            (['system', 'reduced'] as const).map((value) => ({
               value,
               label: t(`appearance.motions.${value}`),
-            }))}
-            onChange={(motion) => setAppearance({ motion })}
-          />
-          <PreferenceChoiceGroup
-            label={t('appearance.language')}
-            description={t('appearance.languageDescription')}
-            value={language}
-            choices={supportedLocales.map((locale) => ({
+            })),
+            (motion) => setAppearance({ motion }),
+          )}
+        </SettingRow>
+        <SettingRow
+          label={t('appearance.language')}
+          description={t('appearance.languageDescription')}
+        >
+          {segmented(
+            t('appearance.language'),
+            language,
+            supportedLocales.map((locale) => ({
               value: locale.code,
               label: locale.nativeLabel,
-            }))}
-            onChange={setLanguage}
-          />
-          <p className="flex items-center gap-space-xs text-xs text-text-secondary">
-            <Check className="size-icon-sm" aria-hidden="true" />
-            {t('appearance.saved')}
-          </p>
-        </div>
-        <div className="min-w-0 xl:sticky xl:top-space-lg xl:self-start">
-          <AppearancePreview />
-        </div>
-      </div>
-    </div>
+            })),
+            setLanguage,
+          )}
+        </SettingRow>
+      </SettingSection>
+    </SettingsTemplate>
   )
 }

@@ -15,6 +15,7 @@ import {
 } from '@/components/patterns'
 import { ProviderInstance } from './provider-instance'
 import { ProviderIcon } from '@/components/ui/provider-icon'
+import { SettingRow, SettingSection } from '@/components/patterns/setting-row'
 import { ModelMutationError } from './model-mutation-error'
 
 export function UsedModels({
@@ -42,10 +43,10 @@ export function UsedModels({
       />
     )
   return (
-    <section className="flex flex-col gap-space-base">
-      <h2 className="text-base font-semibold">
-        {t('settings.models.configured')}
-      </h2>
+    <SettingSection
+      title={t('settings.models.configured')}
+      description={t('settings.models.configuredHint')}
+    >
       {providers.data.length ? (
         providers.data.map((provider) => (
           <ConfiguredProvider
@@ -61,7 +62,7 @@ export function UsedModels({
           compact
         />
       )}
-    </section>
+    </SettingSection>
   )
 }
 function ConfiguredProvider({ name, add }: { name: string; add: () => void }) {
@@ -72,48 +73,52 @@ function ConfiguredProvider({ name, add }: { name: string; add: () => void }) {
     [failure, setFailure] = useState<unknown>(null)
   if (instances.isSuccess && instances.data.length === 0) return null
   return (
-    <article className="flex flex-col gap-space-base rounded-radius-lg border border-border-default p-space-base">
-      <header className="flex items-center justify-between gap-space-base">
-        <div className="flex min-w-0 items-center gap-3">
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-radius-md bg-background-subtle">
-            <ProviderIcon provider={name} className="size-6" size={24} />
-          </span>
-          <h3 className="truncate text-sm font-semibold">{name}</h3>
-        </div>
-        <div className="flex gap-space-xs">
-          <Button variant="outline" size="sm" onClick={add}>
-            {t('settings.models.instances.add')}
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setFailure(null)
-              setRemoving(true)
-            }}
-          >
-            {t('common.delete')}
-          </Button>
-        </div>
-      </header>
-      {instances.isPending ? (
-        <PageLoadingState
-          title={t('common.loading')}
-          description={null}
-          compact
-        />
-      ) : instances.isError ? (
-        <PageErrorState
-          title={t('settings.models.defaultsModelsFailed')}
-          description={null}
-          onRetry={() => void instances.refetch()}
-          compact
-        />
-      ) : (
-        instances.data.map((instance) => (
-          <ProviderInstance key={instance.id} instance={instance} />
-        ))
-      )}
+    <article aria-label={name} className="flex flex-col">
+      <SettingRow
+        leading={<ProviderIcon provider={name} className="size-6" size={24} />}
+        label={name}
+        description={
+          instances.isSuccess
+            ? t('settings.models.connections', {
+                count: instances.data.length,
+              })
+            : undefined
+        }
+      >
+        <Button variant="outline" size="sm" onClick={add}>
+          {t('settings.models.instances.add')}
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            setFailure(null)
+            setRemoving(true)
+          }}
+        >
+          {t('common.delete')}
+        </Button>
+      </SettingRow>
+      <div className="flex flex-col pb-space-sm pl-space-xl">
+        {instances.isPending ? (
+          <PageLoadingState
+            title={t('common.loading')}
+            description={null}
+            compact
+          />
+        ) : instances.isError ? (
+          <PageErrorState
+            title={t('settings.models.defaultsModelsFailed')}
+            description={null}
+            onRetry={() => void instances.refetch()}
+            compact
+          />
+        ) : (
+          instances.data.map((instance) => (
+            <ProviderInstance key={instance.id} instance={instance} />
+          ))
+        )}
+      </div>
       {!removing && failure !== null && <ModelMutationError error={failure} />}
       <ConfirmDialog
         variant="destructive"

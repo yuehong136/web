@@ -32,7 +32,7 @@ import {
   limitSummary,
 } from '../utils'
 import { KeyFormDialog } from './key-form-dialog'
-import { KeyRevealDialog } from './key-reveal-dialog'
+import { KeyRevealDialog } from '@/pages/settings/components/key-reveal-dialog'
 
 interface KeysPanelProps {
   keys: GatewayKey[]
@@ -251,7 +251,14 @@ export const KeysPanel = ({ keys, models }: KeysPanelProps) => {
       ) : null}
       <KeyRevealDialog
         plaintext={created?.key ?? null}
-        name={created?.name ?? ''}
+        labels={{
+          title: t('settings.modelGateway.keys.revealTitle', {
+            name: created?.name ?? '',
+          }),
+          description: t('settings.modelGateway.keys.revealDescription'),
+          usage: t('settings.modelGateway.keys.revealUsage'),
+          done: t('settings.modelGateway.keys.revealDone'),
+        }}
         onClose={() => setCreated(null)}
       />
       <ConfirmDialog

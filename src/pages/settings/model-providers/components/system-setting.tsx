@@ -3,8 +3,10 @@ import { useTranslation } from 'react-i18next'
 import { useForm, useWatch } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { FormTooltip } from '@/components/ui/tooltip'
 import { Button } from '@/components/ui/button'
+import { SettingRow, SettingSection } from '@/components/patterns/setting-row'
+import { cn } from '@/lib/utils'
+import { defaultModelStatus } from './default-model-status'
 import {
   AppScene,
   PageErrorState,
@@ -178,62 +180,62 @@ function DefaultModelsForm({
     }
   }
 
+  const uncertain = modelsLoading || modelsFailed
   return (
-    <section className="flex flex-col gap-space-lg">
-      <header className="flex flex-col gap-space-xs">
-        <h2 className="text-base font-semibold text-text-primary">
-          {t('settings.models.defaults')}
-        </h2>
-        <p className="text-sm text-text-secondary">
-          {t('settings.models.defaultDescription')}
-        </p>
-      </header>
-      <form
-        onSubmit={(event) => {
-          void form.handleSubmit(save)(event)
-        }}
-        className="overflow-hidden rounded-radius-lg border border-border-subtle"
-      >
-        <div className="flex flex-col divide-y divide-border-subtle">
-          {MODEL_FIELDS.map((config) => (
-            <div
+    <form
+      onSubmit={(event) => {
+        void form.handleSubmit(save)(event)
+      }}
+    >
+      <SettingSection>
+        {MODEL_FIELDS.map((config) => {
+          const label = t(`settings.models.defaultFields.${config.name}.label`)
+          const builtin =
+            config.field === 'embd_id' ? builtinEmbedding : undefined
+          const status = defaultModelStatus(
+            values[config.field],
+            options[config.field],
+            { uncertain, builtin: Boolean(builtin) },
+          )
+          const attention = status === 'missing' || status === 'unavailable'
+          return (
+            <SettingRow
               key={config.field}
-              className="grid items-center gap-space-md p-space-base sm:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)]"
-            >
-              <div className="flex flex-col gap-space-xs">
-                <span className="flex items-center gap-space-xs text-sm font-medium text-text-primary">
-                  {t(`settings.models.defaultFields.${config.name}.label`)}
-                  {'required' in config && config.required && (
-                    <span aria-hidden className="text-status-error">
+              label={
+                <>
+                  {label}
+                  {'required' in config && config.required ? (
+                    <span
+                      aria-hidden
+                      className="ml-space-2xs text-status-error"
+                    >
                       *
                     </span>
-                  )}
-                  <FormTooltip
-                    tooltip={t(
-                      `settings.models.defaultFields.${config.name}.hint`,
-                    )}
-                  />
-                </span>
-              </div>
-              <div className="flex flex-col gap-space-sm">
-                {config.field === 'embd_id' && builtinEmbedding && (
-                  <output className="text-sm text-text-secondary">
-                    {t('settings.models.defaultsBuiltin', {
-                      model: builtinEmbedding.model_name,
-                      instance: builtinEmbedding.model_instance,
-                    })}
-                  </output>
-                )}
+                  ) : null}
+                </>
+              }
+              tone={attention ? 'warning' : 'default'}
+              description={
+                builtin
+                  ? t('settings.models.defaultsBuiltin', {
+                      model: builtin.model_name,
+                      instance: builtin.model_instance,
+                    })
+                  : status === 'missing'
+                    ? t(`settings.models.defaultFields.${config.name}.missing`)
+                    : status === 'unavailable'
+                      ? t('settings.models.defaultUnavailableHint')
+                      : t(`settings.models.defaultFields.${config.name}.hint`)
+              }
+            >
+              <div className="w-full sm:w-64">
                 <ModelSelect
-                  ariaLabel={t(
-                    `settings.models.defaultFields.${config.name}.label`,
+                  ariaLabel={label}
+                  triggerClassName={cn(
+                    'w-full',
+                    attention && 'border-status-warning',
                   )}
-                  triggerClassName="w-full"
-                  value={
-                    config.field === 'embd_id' && builtinEmbedding
-                      ? ''
-                      : values[config.field]
-                  }
+                  value={builtin ? '' : values[config.field]}
                   {...options[config.field]}
                   loading={modelsLoading}
                   error={modelsFailed}
@@ -249,16 +251,16 @@ function DefaultModelsForm({
                   allowClear
                 />
               </div>
-            </div>
-          ))}
-        </div>
-        {modelsLoading && (
-          <output className="block p-space-md text-sm text-text-secondary">
+            </SettingRow>
+          )
+        })}
+        {modelsLoading ? (
+          <output className="border-t border-border-subtle py-space-sm text-sm text-text-secondary">
             {t('common.modelPicker.loading')}
           </output>
-        )}
-        {modelsFailed && (
-          <div className="flex items-center justify-between gap-space-sm border-t border-border-subtle p-space-md text-sm text-text-secondary">
+        ) : null}
+        {modelsFailed ? (
+          <div className="flex items-center justify-between gap-space-sm border-t border-border-subtle py-space-sm text-sm text-text-secondary">
             <span>{t('settings.models.defaultsModelsFailed')}</span>
             <Button
               type="button"
@@ -269,16 +271,16 @@ function DefaultModelsForm({
               {t('common.retry')}
             </Button>
           </div>
-        )}
-        {saveFailed && (
+        ) : null}
+        {saveFailed ? (
           <p
             role="alert"
-            className="px-space-lg py-space-md text-sm text-status-error"
+            className="border-t border-border-subtle py-space-sm text-sm text-status-error"
           >
             {t('settings.models.defaultsSaveFailed')}
           </p>
-        )}
-        <footer className="flex flex-wrap items-center justify-between gap-space-md border-t border-border-subtle bg-background-subtle p-space-md">
+        ) : null}
+        <div className="flex flex-wrap items-center justify-between gap-space-md border-t border-border-subtle pt-space-sm">
           <output className="text-sm text-text-secondary">
             {t(
               pending
@@ -311,8 +313,8 @@ function DefaultModelsForm({
               {t('common.save')}
             </Button>
           </div>
-        </footer>
-      </form>
-    </section>
+        </div>
+      </SettingSection>
+    </form>
   )
 }

@@ -242,16 +242,16 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
   return (
     <div className="@container flex h-full max-h-[85dvh] flex-col">
       {/* Header */}
-      <div className="flex shrink-0 items-center justify-between border-b border-[var(--color-border-subtle)] px-6 py-4">
+      <div className="flex shrink-0 items-center justify-between border-b border-border-subtle px-6 py-4">
         <div className="flex min-w-0 flex-wrap items-center gap-space-sm">
           <div className="flex h-9 w-9 items-center justify-center rounded-radius-md bg-background-subtle">
             <Server className="size-icon-md text-text-secondary" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
+            <h2 className="text-lg font-semibold text-text-primary">
               {isEditing ? t('mcp.form.editTitle') : t('mcp.form.createTitle')}
             </h2>
-            <p className="text-sm text-[var(--color-text-tertiary)]">
+            <p className="text-sm text-text-tertiary">
               {isEditing
                 ? t('mcp.form.editDescription', { name: server?.name })
                 : t('mcp.form.createDescription')}
@@ -264,7 +264,7 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
           size="icon"
           onClick={onCancel}
           aria-label={t('common.close')}
-          className="h-8 w-8 text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)]"
+          className="h-8 w-8 text-text-tertiary hover:text-text-primary"
         >
           <X className="h-4 w-4" />
         </Button>
@@ -305,7 +305,7 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
                 <div className="space-y-2">
                   <label
                     htmlFor={`${formId}-name`}
-                    className="text-sm font-medium text-[var(--color-text-primary)]"
+                    className="text-sm font-medium text-text-primary"
                   >
                     {t('mcp.form.name')}{' '}
                     <span className="text-status-error">*</span>
@@ -327,7 +327,7 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
                 <div className="space-y-2">
                   <label
                     htmlFor={`${formId}-url`}
-                    className="text-sm font-medium text-[var(--color-text-primary)]"
+                    className="text-sm font-medium text-text-primary"
                   >
                     {t('mcp.form.url')}{' '}
                     <span className="text-status-error">*</span>
@@ -346,10 +346,10 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
                 <div className="space-y-2">
                   <label
                     htmlFor={`${formId}-description`}
-                    className="text-sm font-medium text-[var(--color-text-primary)]"
+                    className="text-sm font-medium text-text-primary"
                   >
                     {t('mcp.form.description')}{' '}
-                    <span className="font-normal text-[var(--color-text-tertiary)]">
+                    <span className="font-normal text-text-tertiary">
                       {t('mcp.form.optional')}
                     </span>
                   </label>
@@ -371,10 +371,10 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
             <TabsContent value="headers" className="mt-0">
               <div className="max-w-2xl">
                 <div className="mb-6">
-                  <h3 className="mb-1 text-base font-medium text-[var(--color-text-primary)]">
+                  <h3 className="mb-1 text-base font-medium text-text-primary">
                     {t('mcp.form.httpHeaders')}
                   </h3>
-                  <p className="text-sm text-[var(--color-text-tertiary)]">
+                  <p className="text-sm text-text-tertiary">
                     {t('mcp.form.headersDescription')}
                   </p>
                 </div>
@@ -395,10 +395,10 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
             <TabsContent value="variables" className="mt-0">
               <div className="max-w-2xl">
                 <div className="mb-6">
-                  <h3 className="mb-1 text-base font-medium text-[var(--color-text-primary)]">
+                  <h3 className="mb-1 text-base font-medium text-text-primary">
                     {t('mcp.form.variables')}
                   </h3>
-                  <p className="text-sm text-[var(--color-text-tertiary)]">
+                  <p className="text-sm text-text-tertiary">
                     {t('mcp.form.variablesDescription')}
                   </p>
                 </div>
@@ -419,10 +419,10 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
             <TabsContent value="test" className="mt-0">
               <div className="max-w-2xl space-y-6">
                 <div className="mb-6">
-                  <h3 className="mb-1 text-base font-medium text-[var(--color-text-primary)]">
+                  <h3 className="mb-1 text-base font-medium text-text-primary">
                     {t('mcp.form.test')}
                   </h3>
-                  <p className="text-sm text-[var(--color-text-tertiary)]">
+                  <p className="text-sm text-text-tertiary">
                     {t('mcp.form.testDescription')}
                   </p>
                 </div>
@@ -472,7 +472,7 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
                         <p className="text-sm font-medium text-status-error">
                           {t('mcp.form.failed')}
                         </p>
-                        <p className="text-sm break-all text-[var(--color-text-secondary)]">
+                        <p className="text-sm break-all text-text-secondary">
                           {testResult.error}
                         </p>
                       </div>
@@ -482,12 +482,12 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
 
                 {/* 测试结果 - 成功：工具列表 */}
                 {testResult?.success && (
-                  <div className="overflow-hidden rounded-lg border border-[var(--color-border-default)]">
+                  <div className="overflow-hidden rounded-lg border border-border-default">
                     {/* 工具列表标题栏 */}
-                    <div className="flex items-center justify-between border-b border-[var(--color-border-subtle)] bg-[var(--color-background-subtle)] px-4 py-3">
+                    <div className="flex items-center justify-between border-b border-border-subtle bg-background-subtle px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <Braces className="h-4 w-4 text-[var(--color-text-tertiary)]" />
-                        <span className="text-sm font-medium text-[var(--color-text-primary)]">
+                        <Braces className="h-4 w-4 text-text-tertiary" />
+                        <span className="text-sm font-medium text-text-primary">
                           {t('mcp.form.availableTools')}
                         </span>
                         <Badge
@@ -500,15 +500,15 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
                     </div>
 
                     {testResult.tools && testResult.tools.length > 0 ? (
-                      <div className="max-h-[320px] divide-y divide-[var(--color-border-subtle)] overflow-y-auto">
+                      <div className="max-h-[320px] divide-y divide-border-subtle overflow-y-auto">
                         {testResult.tools.map((tool, index) => (
                           <ToolItem key={index} tool={tool} />
                         ))}
                       </div>
                     ) : (
                       <div className="flex flex-col items-center justify-center py-10 text-center">
-                        <Info className="mb-2 h-5 w-5 text-[var(--color-text-tertiary)]" />
-                        <p className="text-sm text-[var(--color-text-secondary)]">
+                        <Info className="mb-2 h-5 w-5 text-text-tertiary" />
+                        <p className="text-sm text-text-secondary">
                           {t('mcp.form.noTools')}
                         </p>
                       </div>
@@ -518,9 +518,9 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
 
                 {/* 提示信息 */}
                 {!testResult && (
-                  <div className="flex items-start gap-3 rounded-lg border border-[var(--color-border-subtle)] bg-[var(--color-background-subtle)] p-4">
-                    <Info className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-text-tertiary)]" />
-                    <div className="space-y-1 text-sm text-[var(--color-text-tertiary)]">
+                  <div className="flex items-start gap-3 rounded-lg border border-border-subtle bg-background-subtle p-4">
+                    <Info className="mt-0.5 h-4 w-4 shrink-0 text-text-tertiary" />
+                    <div className="space-y-1 text-sm text-text-tertiary">
                       <p>{t('mcp.form.testHint')}</p>
                       <p>{t('mcp.form.saveHint')}</p>
                     </div>
@@ -532,7 +532,7 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
         </Tabs>
 
         {/* Footer */}
-        <div className="flex shrink-0 items-center justify-end gap-3 border-t border-[var(--color-border-subtle)] bg-[var(--color-background-subtle)] px-6 py-4">
+        <div className="flex shrink-0 items-center justify-end gap-3 border-t border-border-subtle bg-background-subtle px-6 py-4">
           <Button
             type="button"
             variant="outline"

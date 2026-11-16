@@ -331,3 +331,31 @@ it('shows an unregistered built-in embedding default without creating a selectab
   })
   expect(mocks.update).toHaveBeenLastCalledWith('embedding', 6)
 })
+
+it('flags missing and unavailable defaults as setting rows with a warning', async () => {
+  defaults = defaults.map((row) =>
+    row.model_type === 'chat'
+      ? { ...row, model_id: 4, reference: '4', model_name: 'disabled' }
+      : row,
+  )
+  await render()
+  const row = (kind: string) =>
+    [...container.querySelectorAll('[data-slot="setting-row"]')].find(
+      (element) =>
+        element.textContent?.includes(
+          i18n.t(`settings.models.defaultFields.${kind}.label`),
+        ),
+    )!
+  expect(row('chat').textContent).toContain(
+    i18n.t('settings.models.defaultUnavailableHint'),
+  )
+  expect(row('ocr').textContent).toContain(
+    'Not set: text in scanned PDFs cannot be extracted.',
+  )
+  expect(row('ocr').querySelector('.text-status-warning')).toBeTruthy()
+  await choose('ocr', '3')
+  expect(row('ocr').textContent).toContain(
+    i18n.t('settings.models.defaultFields.ocr.hint'),
+  )
+  expect(row('ocr').querySelector('.text-status-warning')).toBeNull()
+})

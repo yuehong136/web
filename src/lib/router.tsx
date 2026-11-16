@@ -3,6 +3,7 @@ import {
   createBrowserRouter,
   Navigate,
   type RouteObject,
+  useLocation,
   useParams,
 } from 'react-router-dom'
 import { Layout } from '@/components/layout/Layout'
@@ -11,6 +12,7 @@ import { ROUTES } from '@/constants'
 import { ErrorFallback, NotFoundPage } from '@/pages/error'
 import { skillRoutes } from '@/pages/skills/skill-routes'
 import { RouteLocaleBoundary } from '@/locales/locale-boundary'
+import { API_KEYS_PATH, MCP_PATH } from '@/pages/settings/settings-routes'
 import { useTranslation } from 'react-i18next'
 
 // ---------------------------------------------------------------------------
@@ -184,23 +186,18 @@ const ModelGatewayPage = lazyNamed(
   () => import('@/pages/settings/model-gateway'),
   'ModelGatewayPage',
 )
-const MCPServersPage = lazyNamed(
-  () => import('@/pages/settings/MCPServersPage'),
-  'MCPServersPage',
+const MCPPage = lazyNamed(
+  () => import('@/pages/settings/mcp/mcp-page'),
+  'MCPPage',
 )
-const MCPToolsPage = lazyNamed(
-  () => import('@/pages/settings/MCPToolsPage'),
-  'MCPToolsPage',
+const ApiKeysPage = lazyNamed(
+  () => import('@/pages/settings/api-keys/api-keys-page'),
+  'ApiKeysPage',
 )
-const MCPTestPage = lazyNamed(
-  () => import('@/pages/settings/MCPTestPage'),
-  'MCPTestPage',
+const ApiDocsPage = lazyNamed(
+  () => import('@/pages/settings/api-docs/api-docs-page'),
+  'ApiDocsPage',
 )
-const MCPBatchPage = lazyNamed(
-  () => import('@/pages/settings/MCPBatchPage'),
-  'MCPBatchPage',
-)
-const ApiKeysPage = lazy(() => import('@/pages/settings/ApiKeysPage'))
 const SystemPage = lazyNamed(() => import('@/pages/system'), 'SystemPage')
 const TeamPage = lazyNamed(() => import('@/pages/team'), 'TeamPage')
 const DataSourcePage = lazy(() => import('@/pages/settings/datasource'))
@@ -222,6 +219,21 @@ const ChannelsPage = lazyNamed(
 
 // Document Preview
 const DocumentPreviewPage = lazy(() => import('@/pages/document-preview'))
+
+// ---------------------------------------------------------------------------
+/** Redirects a retired route, keeping its query and optionally opening a tab. */
+function SearchRedirect({ to, tab }: { to: string; tab?: string }) {
+  const { search } = useLocation()
+  const params = new URLSearchParams(search)
+  const legacyServer = params.get('serverId')
+  if (legacyServer && !params.has('server')) params.set('server', legacyServer)
+  params.delete('serverId')
+  if (tab) params.set('tab', tab)
+  const query = params.toString()
+  return (
+    <Navigate to={{ pathname: to, search: query ? `?${query}` : '' }} replace />
+  )
+}
 
 // ---------------------------------------------------------------------------
 // The retired prompt editor edited the same dialog the Studio editor opens.
@@ -450,7 +462,7 @@ const topLevelRoutes: RouteObject[] = [
       },
       {
         path: ROUTES.MCP_SERVERS,
-        element: <Navigate to="/settings/mcp-servers" replace />,
+        element: <Navigate to={MCP_PATH} replace />,
       },
       {
         path: ROUTES.STUDIO,
@@ -508,21 +520,19 @@ const topLevelRoutes: RouteObject[] = [
             path: 'model-gateway',
             element: withLoading(ModelGatewayPage),
           },
-          {
-            path: 'mcp-servers',
-            element: withLoading(MCPServersPage),
-          },
+          { path: 'mcp', element: withLoading(MCPPage) },
+          { path: 'mcp-servers', element: <SearchRedirect to={MCP_PATH} /> },
           {
             path: 'mcp-tools',
-            element: withLoading(MCPToolsPage),
+            element: <SearchRedirect to={MCP_PATH} tab="tools" />,
           },
           {
             path: 'mcp-test',
-            element: withLoading(MCPTestPage),
+            element: <SearchRedirect to={MCP_PATH} tab="test" />,
           },
           {
             path: 'mcp-batch',
-            element: withLoading(MCPBatchPage),
+            element: <SearchRedirect to={MCP_PATH} tab="batch" />,
           },
           {
             path: 'channels',
@@ -530,7 +540,18 @@ const topLevelRoutes: RouteObject[] = [
           },
           {
             path: 'api-keys',
-            element: withLoading(ApiKeysPage),
+            element: <Navigate to={API_KEYS_PATH} replace />,
+          },
+          {
+            path: 'api',
+            children: [
+              {
+                index: true,
+                element: <Navigate to={API_KEYS_PATH} replace />,
+              },
+              { path: 'keys', element: withLoading(ApiKeysPage) },
+              { path: 'docs', element: withLoading(ApiDocsPage) },
+            ],
           },
           {
             path: 'system',

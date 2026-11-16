@@ -2,6 +2,7 @@ import React from 'react'
 import { useTranslation } from 'react-i18next'
 import { PencilLine } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { SettingsTemplate } from '@/components/page-templates/settings-template'
 import {
   AppScene,
   PageLoadingState,
@@ -63,7 +64,7 @@ export const ProfilePage: React.FC = () => {
 
   return (
     <>
-      <div className="mx-auto flex min-h-full w-full max-w-4xl flex-col gap-space-lg p-space-lg">
+      <SettingsTemplate description={t('settings.profile.pageDescription')}>
         <BasicInfoSection
           profile={profile}
           draft={draft}
@@ -75,6 +76,7 @@ export const ProfilePage: React.FC = () => {
               <Button
                 ref={editTrigger}
                 variant="outline"
+                size="sm"
                 onClick={startEditing}
                 leftIcon={<PencilLine className="size-icon-sm" />}
               >
@@ -104,7 +106,7 @@ export const ProfilePage: React.FC = () => {
             startChangingPassword()
           }}
         />
-      </div>
+      </SettingsTemplate>
 
       <PasswordChangeDialog
         open={isChangingPassword}

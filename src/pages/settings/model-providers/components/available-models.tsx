@@ -3,9 +3,9 @@ import { useTranslation } from 'react-i18next'
 import { Search, Plus } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { type LLMFactoryInterface } from '@/stores/model'
 import { useFetchFactories, useFetchMyLLMs } from '@/hooks/use-llm-request'
 import { ProviderIcon } from '@/components/ui/provider-icon'
+import { SettingRow, SettingSection } from '@/components/patterns/setting-row'
 import { cn } from '@/lib/utils'
 import {
   ModelCapabilities,
@@ -54,142 +54,100 @@ export const AvailableModels: FC<AvailableModelsProps> = ({
     )
   }
 
-  return (
-    <div className="p-space-base text-text-primary">
-      {/* 标题 */}
-      <h2 className="mb-space-base text-base font-semibold">
-        {t('settings.models.available')}
-      </h2>
+  const chip = (pressed: boolean) =>
+    cn(
+      'inline-flex min-h-[var(--control-height-sm)] items-center gap-space-xs rounded-radius-sm border px-space-sm text-xs outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-state-focus',
+      pressed
+        ? 'border-border-strong bg-state-selected-bg text-text-primary'
+        : 'border-border-default text-text-secondary hover:bg-state-hover',
+    )
 
-      <div className="mb-space-base">
+  return (
+    <SettingSection
+      title={t('settings.models.available')}
+      description={t('settings.models.filterCapabilitiesHint')}
+    >
+      <div className="flex flex-col gap-space-sm pb-space-sm">
         <Input
           type="search"
+          inputSize="sm"
+          className="sm:w-64"
           aria-label={t('settings.models.searchProviders')}
           placeholder={t('common.search')}
           value={searchTerm}
           onChange={(event) => setSearchTerm(event.target.value)}
-          leftIcon={
-            <Search aria-hidden className="size-4 text-text-secondary" />
-          }
+          leftIcon={<Search aria-hidden className="size-icon-sm" />}
         />
-      </div>
-
-      {/* 标签过滤 - 使用主题感知样式 */}
-      <fieldset
-        aria-label={t('settings.models.filterCapabilities')}
-        className="mb-space-sm flex flex-wrap gap-2"
-      >
-        {/* All 按钮 */}
-        <button
-          type="button"
-          aria-pressed={selectedTags.length === 0}
-          onClick={() => setSelectedTags([])}
-          className={cn(
-            'min-h-7 rounded-radius-sm px-2 text-xs transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-focus',
-            selectedTags.length === 0
-              ? 'bg-text-primary text-background'
-              : 'bg-components-button-secondary-bg text-text-secondary hover:bg-components-button-secondary-bg-hover',
-          )}
+        <fieldset
+          aria-label={t('settings.models.filterCapabilities')}
+          className="flex flex-wrap gap-space-xs"
         >
-          {t('settings.models.allProviders')}{' '}
-          <span className="ml-space-xs tabular-nums opacity-70">
-            {searched.length}
-          </span>
-        </button>
-
-        {/* 各标签按钮 */}
-        {allTags.map((tag) => (
           <button
-            key={tag}
             type="button"
-            aria-pressed={selectedTags.includes(tag)}
-            onClick={() => handleTagClick(tag)}
-            className={cn(
-              'min-h-7 rounded-radius-sm px-2 text-xs transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-focus',
-              selectedTags.includes(tag)
-                ? 'bg-text-primary text-background'
-                : 'bg-components-button-secondary-bg text-text-secondary hover:bg-components-button-secondary-bg-hover',
-            )}
+            aria-pressed={selectedTags.length === 0}
+            onClick={() => setSelectedTags([])}
+            className={chip(selectedTags.length === 0)}
           >
-            <ModelCapability type={tag} />{' '}
-            <span className="ml-space-xs tabular-nums opacity-70">
-              {counts.get(tag) ?? 0}
+            {t('settings.models.allProviders')}{' '}
+            <span className="text-text-tertiary tabular-nums">
+              {searched.length}
             </span>
           </button>
-        ))}
-      </fieldset>
-
-      <p className="mb-space-base text-xs text-text-secondary">
-        {t('settings.models.filterCapabilitiesHint')}
-      </p>
-
-      {/* 模型列表 */}
-      <div className="flex flex-col gap-space-base">
-        {filteredModels.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-text-tertiary">
-            <Search className="mb-4 h-12 w-12 opacity-30" />
-            <p className="text-sm">{t('common.noResults')}</p>
-          </div>
-        ) : (
-          filteredModels.map((factory) => (
-            <AvailableModelCard
-              key={factory.id}
-              factory={factory}
-              onAdd={() => handleAddModel(factory.name)}
-            />
-          ))
-        )}
+          {allTags.map((tag) => (
+            <button
+              key={tag}
+              type="button"
+              aria-pressed={selectedTags.includes(tag)}
+              onClick={() => handleTagClick(tag)}
+              className={chip(selectedTags.includes(tag))}
+            >
+              <ModelCapability type={tag} />{' '}
+              <span className="text-text-tertiary tabular-nums">
+                {counts.get(tag) ?? 0}
+              </span>
+            </button>
+          ))}
+        </fieldset>
       </div>
-    </div>
-  )
-}
-
-// 可用模型卡片组件
-interface AvailableModelCardProps {
-  factory: LLMFactoryInterface
-  onAdd: () => void
-}
-
-const AvailableModelCard: FC<AvailableModelCardProps> = ({
-  factory,
-  onAdd,
-}) => {
-  const { t } = useTranslation()
-  const sortedTags = sortProviderTags(factory.tags)
-
-  return (
-    <div className="rounded-radius-lg border border-border-default p-space-base">
-      {/* 头部：图标 + 名称 + 添加按钮 */}
-      <div className="mb-3 flex items-center gap-3">
-        {/* 图标 - 使用 ProviderIcon 组件 */}
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-background">
-          <ProviderIcon provider={factory.name} className="h-6 w-6" size={24} />
-        </div>
-
-        {/* 名称 */}
-        <div className="min-w-0 flex-1">
-          <h4 className="truncate text-base font-normal text-text-primary">
-            {factory.name}
-          </h4>
-        </div>
-
-        {/* 添加按钮 - hover 时显示 */}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={(e) => {
-            e.stopPropagation()
-            onAdd()
-          }}
-          className="shrink-0"
-        >
-          <Plus className="h-3 w-3" />
-          {t('common.add')}
-        </Button>
-      </div>
-
-      {/* 标签列表 */}
-      <ModelCapabilities types={sortedTags} />
-    </div>
+      {filteredModels.length === 0 ? (
+        <p className="border-t border-border-subtle py-space-lg text-center text-sm text-text-tertiary">
+          {t('common.noResults')}
+        </p>
+      ) : (
+        filteredModels.map((factory) => (
+          <SettingRow
+            key={factory.id}
+            leading={
+              <ProviderIcon
+                provider={factory.name}
+                className="size-6"
+                size={24}
+              />
+            }
+            label={
+              <>
+                <span className="block truncate">{factory.name}</span>
+                <ModelCapabilities
+                  types={sortProviderTags(factory.tags)}
+                  className="mt-space-2xs font-normal"
+                />
+              </>
+            }
+          >
+            <Button
+              variant="outline"
+              size="sm"
+              aria-label={t('settings.models.addProviderNamed', {
+                name: factory.name,
+              })}
+              leftIcon={<Plus aria-hidden className="size-icon-sm" />}
+              onClick={() => handleAddModel(factory.name)}
+            >
+              {t('common.add')}
+            </Button>
+          </SettingRow>
+        ))
+      )}
+    </SettingSection>
   )
 }

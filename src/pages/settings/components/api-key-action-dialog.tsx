@@ -31,11 +31,14 @@ const confirmationCopy = {
 interface ApiKeyActionDialogProps {
   action: ApiKeyAction | null
   onClose: () => void
+  /** Receives the replacement key so its secret can be shown once. */
+  onRegenerated?: (created: ApiKey) => void
 }
 
 export const ApiKeyActionDialog = ({
   action,
   onClose,
+  onRegenerated,
 }: ApiKeyActionDialogProps) => {
   const { t } = useTranslation()
   const deleteToken = useDeleteApiToken()
@@ -46,8 +49,9 @@ export const ApiKeyActionDialog = ({
 
   const regenerate = async (apiKey: ApiKey) => {
     try {
-      await regenerateToken.mutateAsync(apiKey)
+      const created = await regenerateToken.mutateAsync(apiKey)
       toast.success(t('settings.apiKeys.regenerate.success'))
+      onRegenerated?.(created)
     } catch (error) {
       if (!(error instanceof ApiTokenRevokeError)) {
         if (getMutationErrorNotice(error)) {

@@ -138,7 +138,9 @@ it('renders canonical image, speech and OCR filters in order with accessible AND
   expect(findButton('OCR 1')).toBeDefined()
   expect(container.textContent).toContain('Vision OCR')
   expect(container.textContent).not.toContain('OCR only')
-  expect(container.querySelectorAll('h4')).toHaveLength(1)
+  expect(container.querySelectorAll('[data-slot="setting-row"]')).toHaveLength(
+    1,
+  )
 })
 
 it('renders accessible capability counts, updates AND intersections and resets with All', async () => {

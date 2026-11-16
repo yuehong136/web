@@ -256,6 +256,8 @@ export default {
 
     // 删除确认
     deleteConfirmTitle: '删除数据源',
+    deleteNamed: '删除 {{name}}',
+    addNamed: '添加 {{name}}',
     deleteConfirmMessage:
       '确定要删除数据源 "{{name}}" 吗？此操作不可撤销，关联的知识库将不再同步数据。',
 

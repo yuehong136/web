@@ -45,15 +45,15 @@ export function ProviderInstance({ instance }: { instance: ModelInstance }) {
     (model) => model.instance_id === instance.id,
   )
   return (
-    <section className="flex min-w-0 flex-col gap-space-sm rounded-radius-md bg-background-subtle p-space-base">
+    <section className="flex min-w-0 flex-col gap-space-sm border-t border-border-subtle py-space-sm first:border-t-0">
       <div className="flex flex-wrap items-center justify-between gap-space-sm">
-        <div className="min-w-0 space-y-2">
-          <h3 className="flex items-center gap-2 text-sm font-medium text-text-primary">
-            <Plug aria-hidden className="size-4 text-text-tertiary" />
+        <div className="min-w-0 space-y-space-xs">
+          <h4 className="flex items-center gap-space-xs text-sm font-medium text-text-primary">
+            <Plug aria-hidden className="size-icon-sm text-text-tertiary" />
             {instance.instance_name === 'default'
               ? t('common.modelPicker.defaultConnection')
               : instance.instance_name}
-          </h3>
+          </h4>
           <p
             className="truncate text-xs text-text-secondary"
             title={instance.base_url}
@@ -61,15 +61,15 @@ export function ProviderInstance({ instance }: { instance: ModelInstance }) {
             {instance.base_url ||
               t('settings.models.instances.defaultEndpoint')}
           </p>
-          <div className="flex flex-wrap items-center gap-3 text-xs text-text-secondary">
+          <div className="flex flex-wrap items-center gap-space-sm text-xs text-text-secondary">
             {instance.region && (
-              <span className="inline-flex items-center gap-1">
-                <MapPin aria-hidden className="size-3" />
+              <span className="inline-flex items-center gap-space-2xs">
+                <MapPin aria-hidden className="size-icon-xs" />
                 {instance.region}
               </span>
             )}
-            <span className="inline-flex items-center gap-1">
-              <KeyRound aria-hidden className="size-3" />
+            <span className="inline-flex items-center gap-space-2xs">
+              <KeyRound aria-hidden className="size-icon-xs" />
               {t(
                 instance.has_api_key
                   ? 'settings.models.instances.keySaved'
@@ -197,7 +197,9 @@ export function ProviderInstance({ instance }: { instance: ModelInstance }) {
         </form>
       )}
       {models.isError ? (
-        <p role="alert">{t('settings.models.defaultsModelsFailed')}</p>
+        <p role="alert" className="text-sm text-status-error">
+          {t('settings.models.defaultsModelsFailed')}
+        </p>
       ) : (
         <ul className="divide-y divide-border-subtle border-t border-border-subtle">
           {owned.map((model) => (

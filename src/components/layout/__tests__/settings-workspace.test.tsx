@@ -64,7 +64,7 @@ afterEach(async () => {
   container.remove()
   vi.unstubAllGlobals()
 })
-const render = async (returnTo: string, pathname = '/settings/mcp-servers') => {
+const render = async (returnTo: string, pathname = '/settings/mcp') => {
   const router = createMemoryRouter(
     [
       {
@@ -80,10 +80,9 @@ const render = async (returnTo: string, pathname = '/settings/mcp-servers') => {
             element: <SettingsLayout />,
             children: [
               { index: true, element: <SettingsIndexRedirect /> },
-              { path: 'mcp-servers', element: <p>MCP servers content</p> },
-              { path: 'mcp-tools', element: <p>MCP tools content</p> },
-              { path: 'mcp-test', element: <p>MCP test content</p> },
-              { path: 'mcp-batch', element: <p>MCP batch content</p> },
+              { path: 'mcp', element: <p>MCP servers content</p> },
+              { path: 'api/keys', element: <p>API keys content</p> },
+              { path: 'api/docs', element: <p>API docs content</p> },
               { path: 'profile', element: <p>Profile page</p> },
               { path: 'datasource-detail', element: <h1>Source entity</h1> },
             ],
@@ -181,22 +180,17 @@ it('keeps one precise settings heading in the top bar through route, locale, and
   await click(button('Collapse secondary navigation'))
   expect(title()).toBe('MCP servers')
   for (const [route, expected] of [
-    ['mcp-tools', 'MCP tools'],
-    ['mcp-tools/', 'MCP tools'],
-    ['mcp-test', 'MCP test'],
-    ['mcp-test/', 'MCP test'],
-    ['mcp-batch', 'MCP batch'],
-    ['mcp-batch/', 'MCP batch'],
+    ['api/keys', 'API keys'],
+    ['api/keys/', 'API keys'],
+    ['api/docs', 'API docs'],
+    ['api/docs/', 'API docs'],
   ]) {
     await act(async () => router.navigate(`/settings/${route}`))
     expect(title()).toBe(expected)
     expect(container.querySelectorAll('h1')).toHaveLength(1)
-    expect(
-      container.querySelector('header a[href="/settings/mcp-servers"]'),
-    ).toBeTruthy()
   }
   await act(async () => i18n.changeLanguage('zh-CN'))
-  expect(title()).toBe('MCP 批处理')
+  expect(title()).toBe('API 文档')
   await act(async () => router.navigate('/home'))
   expect(container.querySelector('header h1')).toBeNull()
   expect(container.querySelector('h1')?.textContent).toBe('Home workspace')
@@ -231,7 +225,8 @@ it('defaults Settings to Profile, preserves its return location, and orders acco
     'Data sources',
     'MCP',
     'Channels',
-    'API',
+    'API keys',
+    'API docs',
     'User management',
     'Sandbox execution',
     'System status',
@@ -295,12 +290,12 @@ it('closes the mobile drawer after selecting a route and restores its toggle foc
   const drawer = document.querySelector<HTMLElement>('[role="dialog"]')!
   expect(drawer.querySelector('nav[aria-label="Settings"]')).toBeTruthy()
   await click(
-    drawer.querySelector<HTMLAnchorElement>('a[href="/settings/mcp-servers"]')!,
+    drawer.querySelector<HTMLAnchorElement>('a[href="/settings/mcp"]')!,
   )
   await act(async () => {
     await new Promise((resolve) => setTimeout(resolve, 0))
   })
-  expect(router.state.location.pathname).toBe('/settings/mcp-servers')
+  expect(router.state.location.pathname).toBe('/settings/mcp')
   expect(document.querySelector('[role="dialog"]')).toBeNull()
   expect(document.activeElement).toBe(button('Open navigation'))
 })

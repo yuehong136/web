@@ -282,6 +282,8 @@ export default {
 
     // Delete confirmation
     deleteConfirmTitle: 'Delete Data Source',
+    deleteNamed: 'Delete {{name}}',
+    addNamed: 'Add {{name}}',
     deleteConfirmMessage:
       'Are you sure you want to delete data source "{{name}}"? This action cannot be undone and linked knowledge bases will no longer sync data.',
 

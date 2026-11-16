@@ -4,7 +4,9 @@ import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { adminAPI, getAdminToken } from '@/api/admin'
 import { Button } from '@/components/ui/button'
-import { ConsolePageTemplate } from '@/components/page-templates'
+import { SettingsTemplate } from '@/components/page-templates/settings-template'
+import { SettingRow, SettingSection } from '@/components/patterns/setting-row'
+import { SegmentedControl } from '@/components/ui/segmented-control'
 import {
   PageEmptyState,
   PageErrorState,
@@ -53,7 +55,7 @@ export function SandboxPage() {
     return (
       <PageErrorState
         title={t('sandbox.loadFailed')}
-        description={error.message}
+        description={null}
         onRetry={() => {
           void providers.refetch()
           void config.refetch()
@@ -64,36 +66,35 @@ export function SandboxPage() {
   if (!providers.data || !config.data || !schema.data)
     return <PageLoadingState />
   return (
-    <ConsolePageTemplate>
-      <div className="mx-auto w-full max-w-5xl space-y-space-lg p-space-base md:p-space-xl">
-        <div className="space-y-space-xs">
-          <h2 className="text-lg font-semibold">{t('sandbox.title')}</h2>
-          <p className="text-sm text-text-secondary">
-            {t('sandbox.description')}
-          </p>
-          <p className="text-xs text-text-caption">
+    <SettingsTemplate
+      description={
+        <>
+          {t('sandbox.description')}{' '}
+          <span className="text-text-tertiary">
             {t('sandbox.active', {
               provider: config.data.effective_provider_type,
             })}
-          </p>
-        </div>
-        <div
-          className="flex flex-wrap gap-space-sm"
-          aria-label={t('sandbox.providers')}
-        >
-          {providers.data.map((item) => (
-            <Button
-              key={item.id}
-              type="button"
-              variant={item.id === provider ? 'default' : 'outline'}
-              aria-pressed={item.id === provider}
-              onClick={() => setSelected(item.id)}
-            >
-              {item.name}
-              {!item.available ? ` · ${t('sandbox.disabled')}` : ''}
-            </Button>
-          ))}
-        </div>
+          </span>
+        </>
+      }
+    >
+      <SettingSection>
+        <SettingRow label={t('sandbox.providers')}>
+          <SegmentedControl
+            aria-label={t('sandbox.providers')}
+            size="sm"
+            value={provider ?? ''}
+            onValueChange={setSelected}
+            options={providers.data.map((item) => ({
+              value: item.id,
+              label: item.available
+                ? item.name
+                : `${item.name} · ${t('sandbox.disabled')}`,
+            }))}
+          />
+        </SettingRow>
+      </SettingSection>
+      <div className="mt-space-lg">
         <SandboxForm
           key={config.data.provider_type}
           saved={config.data}
@@ -104,6 +105,6 @@ export function SandboxPage() {
           }
         />
       </div>
-    </ConsolePageTemplate>
+    </SettingsTemplate>
   )
 }

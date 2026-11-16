@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { useTranslation } from 'react-i18next'
-import { Loader2, MoreHorizontal, RefreshCw, Trash2 } from 'lucide-react'
+import { MoreHorizontal, RefreshCw, Trash2 } from 'lucide-react'
+import { Spinner } from '@/components/ui/spinner'
 import { Button } from '@/components/ui/button'
 import {
   ActionMenu,
@@ -8,6 +9,7 @@ import {
   ActionMenuItem,
   ActionMenuTrigger,
 } from '@/components/ui/action-menu'
+import { apiKeysCapabilities } from '@/pages/settings/api-keys-capabilities'
 import type { ApiKey } from '@/pages/settings/api-keys-types'
 import type { ApiKeyAction } from '@/pages/settings/components/api-key-action-dialog'
 
@@ -38,21 +40,25 @@ export const ApiKeyRowActions = ({
           aria-label={t('settings.apiKeys.actions.menu', { name: apiKey.name })}
         >
           {busy ? (
-            <Loader2 className="size-icon-sm animate-spin text-text-tertiary" />
+            <Spinner size="sm" />
           ) : (
             <MoreHorizontal className="size-icon-sm" />
           )}
         </Button>
       </ActionMenuTrigger>
       <ActionMenuContent align="end" className="min-w-40">
-        <ActionMenuItem onSelect={() => request('regenerate')}>
-          <RefreshCw className="size-icon-sm" />
-          {t('settings.apiKeys.actions.regenerate')}
-        </ActionMenuItem>
-        <ActionMenuItem danger onSelect={() => request('delete')}>
-          <Trash2 className="size-icon-sm" />
-          {t('settings.apiKeys.actions.delete')}
-        </ActionMenuItem>
+        {apiKeysCapabilities.regenerate.enabled ? (
+          <ActionMenuItem onSelect={() => request('regenerate')}>
+            <RefreshCw className="size-icon-sm" />
+            {t('settings.apiKeys.actions.regenerate')}
+          </ActionMenuItem>
+        ) : null}
+        {apiKeysCapabilities.revoke.enabled ? (
+          <ActionMenuItem danger onSelect={() => request('delete')}>
+            <Trash2 className="size-icon-sm" />
+            {t('settings.apiKeys.actions.delete')}
+          </ActionMenuItem>
+        ) : null}
       </ActionMenuContent>
     </ActionMenu>
   )

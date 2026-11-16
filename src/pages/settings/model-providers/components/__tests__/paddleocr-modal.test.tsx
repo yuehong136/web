@@ -2,6 +2,7 @@ import { stubNativeDialog } from '@/components/ui/__tests__/native-dialog'
 import { ProviderRegionField } from '../provider-region-field'
 import { act, StrictMode, useState } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { MemoryRouter } from 'react-router-dom'
 import { ModelProvidersPage } from '../../index'
 import { modelProvidersAPI } from '@/api/llm-providers'
 import { createRoot, type Root } from 'react-dom/client'
@@ -11,6 +12,7 @@ import { PADDLEOCR_ALGORITHMS } from '../paddleocr-config'
 import { setProductLanguage } from '@/locales/i18n'
 
 vi.mock('../system-setting', () => ({ SystemSetting: () => null }))
+vi.mock('../connected-providers', () => ({ ConnectedProviders: () => null }))
 vi.mock('../used-models', () => ({ UsedModels: () => null }))
 vi.mock('../available-models', () => ({
   AvailableModels: ({
@@ -379,7 +381,11 @@ it('lets the real page edit a new draft while an old save is pending', async () 
   await act(async () =>
     root.render(
       <QueryClientProvider client={client}>
-        <ModelProvidersPage />
+        <MemoryRouter
+          initialEntries={['/settings/model-providers?tab=providers']}
+        >
+          <ModelProvidersPage />
+        </MemoryRouter>
       </QueryClientProvider>,
     ),
   )

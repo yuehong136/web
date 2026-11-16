@@ -1,4 +1,3 @@
-import { useTranslation } from 'react-i18next'
 import { AvatarUpload } from '@/components/ui/avatar-upload'
 import type { ProfileData } from '@/pages/settings/profile/types'
 import { EntityAvatar } from '@/components/patterns/entity-avatar'
@@ -15,7 +14,6 @@ export const ProfileAvatarField = ({
   saving: boolean
   onChange: (avatar: string) => void
 }) => {
-  const { t } = useTranslation()
   const { seed } = useCurrentUserAvatar()
   return (
     <div className="flex items-center gap-space-base">
@@ -35,11 +33,6 @@ export const ProfileAvatarField = ({
           size="2xl"
           shape="circle"
         />
-      )}
-      {isEditing && (
-        <p className="text-xs text-text-secondary">
-          {t('settings.profile.avatarHint')}
-        </p>
       )}
     </div>
   )
