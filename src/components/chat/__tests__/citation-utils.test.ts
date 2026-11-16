@@ -4,7 +4,11 @@ import {
   getCitationNumber,
   getCitedChunks,
   getSourceBadge,
+  getSourceTitle,
+  groupAdjacentCitations,
+  parseCitationIds,
 } from '../citation-utils'
+import { convertReferencesToSup } from '@/utils/message-utils'
 import type { ReferenceChunk } from '@/utils/reference-replacer'
 
 const chunk = (id: string, extra: Partial<ReferenceChunk> = {}) =>
@@ -45,4 +49,25 @@ test('source badges name the file type, web results and unnamed chunks', () => {
   )
   assert.equal(getSourceBadge(chunk('a', { doc_type: 'image' })), 'IMG')
   assert.equal(getSourceBadge(chunk('a')), 'DOC')
+})
+
+test('back-to-back citations become one marker; code and spaced citations stay apart', () => {
+  const markdown = convertReferencesToSup(
+    'a[ID:0][ID:1][ID:0]. b [ID:2] [ID:3] `[ID:4][ID:5]`',
+  )
+  assert.equal(
+    groupAdjacentCitations(markdown),
+    'a<sup>0,1,0</sup>. b <sup>2</sup> <sup>3</sup> `[ID:4][ID:5]`',
+  )
+  assert.deepEqual(parseCitationIds('0,1,0'), ['0', '1', '0'])
+  assert.deepEqual(parseCitationIds(' 7 '), ['7'])
+  // A superscript that is not a citation list is left to render as written
+  assert.equal(parseCitationIds('2nd'), null)
+  assert.equal(parseCitationIds(''), null)
+})
+
+test('chips show the document name without its extension', () => {
+  assert.equal(getSourceTitle('检索白皮书 v2.pdf'), '检索白皮书 v2')
+  assert.equal(getSourceTitle('README'), 'README')
+  assert.equal(getSourceTitle('.env'), '.env')
 })

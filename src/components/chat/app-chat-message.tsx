@@ -1,10 +1,10 @@
 import type { ModelIdentitySnapshot } from '@/lib/model-identity'
-import { ModelIdentity } from '@/components/models/model-identity'
 import type { BubbleProps } from '@ant-design/x'
 import { Bot } from 'lucide-react'
 import { EntityAvatar } from '@/components/patterns/entity-avatar'
 import { useCurrentUserAvatar } from '@/hooks/use-current-user-avatar'
 import { ChatBubbleLoading } from '@/components/chat/ChatBubbleLoading'
+import { AnswerIdentity } from '@/components/chat/answer-identity'
 import '@/components/chat/app-chat-message.css'
 
 export interface AppChatIdentity {
@@ -47,7 +47,7 @@ export function getAppChatBubbleProps(
   return {
     header:
       !user && (app?.llm_id || modelIdentity) ? (
-        <ModelIdentity {...(modelIdentity ?? { reference: app?.llm_id })} />
+        <AnswerIdentity {...(modelIdentity ?? { reference: app?.llm_id })} />
       ) : undefined,
     placement: user ? 'end' : 'start',
     variant: 'borderless',

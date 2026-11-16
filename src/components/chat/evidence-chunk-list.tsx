@@ -5,6 +5,7 @@ import type { ReferenceChunk } from '@/utils/reference-replacer'
 import { toPlainText, truncateText } from './reference-meta'
 import { getCitationNumber } from './citation-utils'
 import { EvidenceScore, useEvidenceScoreLine } from './evidence-score'
+import { SourceTile } from './source-tile'
 
 export interface EvidenceChunkRowProps {
   chunk: ReferenceChunk
@@ -16,7 +17,7 @@ export interface EvidenceChunkRowProps {
   onSelect: (chunk: ReferenceChunk) => void
 }
 
-/** One retrieved passage: number, document, snippet and its scores. */
+/** One retrieved passage: file tile, document, citation number and snippet, then its score. */
 export function EvidenceChunkRow({
   chunk,
   references,
@@ -34,16 +35,15 @@ export function EvidenceChunkRow({
     <button
       type="button"
       data-evidence-chunk={chunk.id}
+      data-cited={cited || undefined}
       aria-current={selected || undefined}
       onClick={() => onSelect(chunk)}
       className={cn(
-        'flex w-full min-w-0 items-start gap-space-base rounded-radius-md px-space-sm py-space-sm text-start hover:bg-state-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-focus',
-        selected && 'bg-state-selected-bg',
+        'flex w-full min-w-0 items-start gap-space-base rounded-radius-lg border border-transparent px-space-sm py-space-sm text-start transition-colors hover:border-border-subtle hover:bg-state-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-focus motion-reduce:transition-none',
+        selected && 'border-border-accent bg-state-selected-bg',
       )}
     >
-      <span className="grid size-icon-xl shrink-0 place-items-center rounded-radius-sm bg-background-subtle font-mono text-xs text-text-secondary">
-        {number}
-      </span>
+      <SourceTile chunk={chunk} size="md" className="mt-space-2xs" />
       <span className="min-w-0 flex-1">
         <span
           className={cn(
@@ -51,9 +51,10 @@ export function EvidenceChunkRow({
             cited ? 'text-text-primary' : 'text-text-secondary',
           )}
         >
-          {cited ? tw('sourceNumber', { number }) : tw('notCited')} · {name}
+          {name}
         </span>
         <span className="block truncate text-xs text-text-tertiary">
+          {cited ? tw('sourceNumber', { number }) : tw('notCited')} ·{' '}
           {truncateText(toPlainText(chunk.content), 120)}
         </span>
         {detailed && scoreLine && (

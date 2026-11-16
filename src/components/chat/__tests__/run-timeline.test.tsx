@@ -52,7 +52,7 @@ it('only shows actual steps, keeps user disclosure choice, and makes unfinished 
   disclosure.open = true
   expect(host.textContent).toContain('1 steps')
   expect(host.querySelector('[data-step-status="loading"]')).not.toBeNull()
-  expect(host.querySelector('.chat-shimmer')?.textContent).toBe('Running')
+  expect(host.querySelector('.text-shimmer')?.textContent).toBe('Running')
   await act(async () =>
     root.render(<RunTimeline nodes={[node]} phase="locallyStopped" />),
   )
@@ -107,6 +107,57 @@ it('summarizes a list result as a count and shows the observed duration', async 
   expect(summary.querySelector('.run-step-duration')?.textContent).toBe('0.4s')
   // No approval controls: the web backend cannot pause a tool for confirmation.
   expect(host.querySelectorAll('button')).toHaveLength(0)
+})
+
+it('leads with retrieval: it shimmers while running, then reports the hits and keeps its log', async () => {
+  const log = 'Searching 2 knowledge bases\nMatched 4 passages'
+  await act(async () =>
+    root.render(
+      <RunTimeline
+        nodes={[]}
+        retrieval={{ status: 'loading', content: log }}
+      />,
+    ),
+  )
+  const step = () =>
+    host.querySelector<HTMLElement>('[data-step-kind="retrieval"]')!
+  expect(step().dataset.stepStatus).toBe('loading')
+  expect(step().querySelector('.text-shimmer')?.textContent).toBe(
+    'Retrieving...',
+  )
+  await act(async () =>
+    root.render(
+      <RunTimeline
+        nodes={[node]}
+        phase="completed"
+        retrieval={{ status: 'complete', content: log, hits: 4 }}
+      />,
+    ),
+  )
+  expect(step().dataset.stepStatus).toBe('success')
+  expect(step().querySelector('summary')?.textContent).toContain(
+    'Searched knowledge',
+  )
+  expect(step().querySelector('summary')?.textContent).toContain(
+    '4 passages found',
+  )
+  // Retrieval comes first, before the tool calls of the same answer
+  const steps = [...host.querySelectorAll('.run-step')]
+  expect(steps[0]).toBe(step())
+  expect(steps).toHaveLength(2)
+  expect(step().querySelector('details')?.textContent).toContain(
+    'Matched 4 passages',
+  )
+  await act(async () =>
+    root.render(
+      <RunTimeline
+        nodes={[]}
+        retrieval={{ status: 'interrupted', content: '' }}
+      />,
+    ),
+  )
+  expect(step().dataset.stepStatus).toBe('unconfirmed')
+  expect(step().textContent).toContain('Retrieval interrupted')
 })
 
 it('code follows the nearest appearance scope and updates without replacing the block', async () => {

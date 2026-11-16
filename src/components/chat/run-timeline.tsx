@@ -1,4 +1,14 @@
-import { ChevronRight } from 'lucide-react'
+import type { ReactNode } from 'react'
+import {
+  Check,
+  ChevronRight,
+  LoaderCircle,
+  Minus,
+  Plug,
+  Wrench,
+  X,
+  Zap,
+} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { CodeBlock } from './CodeBlock'
 import { ReasoningDisclosure } from './reasoning-disclosure'
@@ -23,6 +33,8 @@ const stringify = (value: unknown): string => {
 const hasValue = (value: unknown) =>
   value !== undefined && value !== null && value !== ''
 
+export type StepStatus = ReturnType<typeof getToolStepStatus>
+
 export const getToolStepStatus = (node: AgentTimelineNode, phase: RunPhase) =>
   node.status === 'loading' && isRunTerminal(phase)
     ? 'unconfirmed'
@@ -40,6 +52,72 @@ function resultCount(result: unknown): number | null {
   } catch {
     return null
   }
+}
+
+const STATUS_ICON: Record<StepStatus, ReactNode> = {
+  success: <Check aria-hidden strokeWidth={2.5} className="size-icon-xs" />,
+  loading: (
+    <LoaderCircle
+      aria-hidden
+      strokeWidth={2.5}
+      className="size-icon-xs animate-spin motion-reduce:animate-none"
+    />
+  ),
+  error: <X aria-hidden strokeWidth={2.5} className="size-icon-xs" />,
+  unconfirmed: <Minus aria-hidden strokeWidth={2.5} className="size-icon-xs" />,
+}
+
+/** Check, spinner, cross or dash in a small tinted dot; the status is also written out. */
+function StepDot({ status }: { status: StepStatus }) {
+  return (
+    <span
+      className={cn(
+        'grid size-4.5 shrink-0 place-items-center rounded-radius-full',
+        status === 'success' && 'bg-status-success-subtle text-status-success',
+        status === 'loading' && 'bg-state-selected-bg text-text-accent',
+        status === 'error' && 'bg-status-error-subtle text-status-error',
+        status === 'unconfirmed' && 'bg-background-subtle text-text-tertiary',
+      )}
+    >
+      {STATUS_ICON[status]}
+    </span>
+  )
+}
+
+/** One step line: dot, what ran, then quieter facts (count, status, duration). */
+function StepSummary({
+  status,
+  label,
+  tool,
+  meta,
+  duration,
+}: {
+  status: StepStatus
+  label: ReactNode
+  tool?: ReactNode
+  meta?: ReactNode
+  duration?: string | null
+}) {
+  return (
+    <summary className="run-step-heading">
+      <StepDot status={status} />
+      <span
+        className={cn(
+          'min-w-0 shrink-0',
+          status === 'loading' && !tool && 'text-shimmer',
+        )}
+      >
+        {label}
+      </span>
+      {tool}
+      {meta}
+      {duration && <span className="run-step-duration">{duration}</span>}
+      <ChevronRight
+        aria-hidden="true"
+        className="run-step-chevron size-icon-xs shrink-0 text-text-tertiary"
+      />
+    </summary>
+  )
 }
 
 function ToolStep({
@@ -61,13 +139,16 @@ function ToolStep({
         />
       </li>
     )
-  const name =
-    node.metadata?.toolName ||
-    (node.kind === 'reasoning'
+  const toolName = node.metadata?.toolName
+  const label = toolName
+    ? t(node.kind === 'skill' ? 'chat.steps.skill' : 'chat.steps.tool')
+    : node.kind === 'reasoning'
       ? t('chat.runTimeline.reasoningTitle')
       : node.kind === 'system'
         ? t('chat.runTimeline.analysis')
-        : node.title || t('chat.runTimeline.step'))
+        : node.title || t('chat.runTimeline.step')
+  const ToolIcon =
+    node.kind === 'mcp' ? Plug : node.kind === 'skill' ? Zap : Wrench
   const count = status === 'success' ? resultCount(payload?.result) : null
   const elapsed = node.metadata?.elapsedMs
   const duration =
@@ -82,35 +163,33 @@ function ToolStep({
   return (
     <li className="run-step" data-step-status={status}>
       <details>
-        <summary className="run-step-heading">
-          {node.metadata?.toolName ? (
-            <code className="min-w-0 break-all">{name}</code>
-          ) : (
-            <span className="min-w-0 font-medium text-text-primary">
-              {name}
+        <StepSummary
+          status={status}
+          label={label}
+          tool={
+            toolName && (
+              <code className="run-step-tool">
+                <ToolIcon aria-hidden className="size-icon-xs shrink-0" />
+                <span className="min-w-0 truncate">{toolName}</span>
+              </code>
+            )
+          }
+          meta={
+            <span
+              className={cn(
+                'run-step-meta',
+                status === 'loading' && 'text-shimmer',
+                status === 'error' && 'text-status-error',
+                status === 'success' && count === null && 'sr-only',
+              )}
+            >
+              {count === null
+                ? t(`chat.runTimeline.status.${status}`)
+                : t('chat.runTimeline.resultCount', { count })}
             </span>
-          )}
-          <span
-            className={cn(
-              'min-w-0',
-              status === 'loading' && 'chat-shimmer',
-              status === 'error' && 'text-status-error',
-              status === 'success' && count === null && 'sr-only',
-            )}
-          >
-            {count === null
-              ? t(`chat.runTimeline.status.${status}`)
-              : t('chat.runTimeline.resultCount', { count })}
-          </span>
-          {duration && <span className="run-step-duration">{duration}</span>}
-          <ChevronRight
-            aria-hidden="true"
-            className={cn(
-              'size-icon-xs shrink-0 text-text-tertiary',
-              !duration && 'ms-auto',
-            )}
-          />
-        </summary>
+          }
+          duration={duration}
+        />
         <div className="run-step-content">
           {payload ? (
             <>
@@ -154,34 +233,98 @@ function ToolStep({
   )
 }
 
+export interface RetrievalStepData {
+  status: 'loading' | 'complete' | 'interrupted'
+  /** The retrieval log the answer stream carried, as plain text. */
+  content: string
+  /** Chunks retrieved for the answer, once they are known. */
+  hits?: number
+}
+
+/** Knowledge retrieval as the first step: running, how many passages it found, its log. */
+function RetrievalStep({ status, content, hits }: RetrievalStepData) {
+  const { t } = useTranslation()
+  const stepStatus: StepStatus =
+    status === 'loading'
+      ? 'loading'
+      : status === 'complete'
+        ? 'success'
+        : 'unconfirmed'
+  return (
+    <li
+      className="run-step"
+      data-step-status={stepStatus}
+      data-step-kind="retrieval"
+      aria-busy={status === 'loading' || undefined}
+    >
+      <details>
+        <StepSummary
+          status={stepStatus}
+          label={
+            <span aria-live="polite">
+              {t(
+                status === 'loading'
+                  ? 'chat.retrieving.inProgress'
+                  : status === 'complete'
+                    ? 'chat.steps.retrieval'
+                    : 'chat.retrieving.interrupted',
+              )}
+            </span>
+          }
+          meta={
+            status === 'complete' && hits ? (
+              <span className="run-step-meta">
+                {t('chat.steps.hits', { count: hits })}
+              </span>
+            ) : undefined
+          }
+        />
+        <div className="run-step-content max-h-64 overflow-y-auto overscroll-contain whitespace-pre-wrap">
+          {content || t('chat.runTimeline.noToolDetail')}
+        </div>
+      </details>
+    </li>
+  )
+}
+
 /**
- * Observed steps only, as one compact timeline: name · result count ·
- * duration, with arguments and results behind each step. There are no
- * predicted steps, percentages or approval buttons: the web backend cannot
- * pause an MCP write for confirmation, so the timeline only reports what ran.
+ * Observed steps only, as one compact list: retrieval, then each tool, MCP or
+ * skill call with its name · result count · duration, arguments and results
+ * behind the line. There are no predicted steps, percentages or approval
+ * buttons: the web backend cannot pause an MCP write for confirmation, so the
+ * list only reports what ran.
  */
 export function RunTimeline({
   nodes,
   phase,
+  retrieval,
 }: {
   nodes: AgentTimelineNode[]
-  phase: RunPhase
+  /** Tool steps need the run phase to tell unfinished from unconfirmed. */
+  phase?: RunPhase
+  retrieval?: RetrievalStepData | null
 }) {
   const { t } = useTranslation()
-  const steps = nodes.filter(
-    (node) => node.kind !== 'answer' && node.kind !== 'error',
-  )
-  if (!steps.length) return null
+  const steps = phase
+    ? nodes.filter((node) => node.kind !== 'answer' && node.kind !== 'error')
+    : []
+  const count = steps.length + (retrieval ? 1 : 0)
+  if (!count) return null
   return (
-    <section data-run-phase={phase} aria-label={t('chat.runTimeline.title')}>
+    <section
+      data-run-phase={phase}
+      data-run-timeline
+      aria-label={t('chat.runTimeline.title')}
+    >
       <h3 className="sr-only">
-        {t('chat.runTimeline.title')} ·{' '}
-        {t('chat.runTimeline.count', { count: steps.length })}
+        {t('chat.runTimeline.title')} · {t('chat.runTimeline.count', { count })}
       </h3>
       <ol className="run-steps">
-        {steps.map((node) => (
-          <ToolStep key={node.id} node={node} phase={phase} />
-        ))}
+        {retrieval && <RetrievalStep {...retrieval} />}
+        {phase &&
+          steps.map((node) => (
+            <ToolStep key={node.id} node={node} phase={phase} />
+          ))}
       </ol>
     </section>
   )

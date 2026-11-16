@@ -1,7 +1,10 @@
 import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
-import { ReasoningDisclosure } from '../reasoning-disclosure'
+import {
+  REASONING_COLLAPSE_DELAY,
+  ReasoningDisclosure,
+} from '../reasoning-disclosure'
 import { stubChatDOM } from './chat-dom'
 import { setProductLanguage } from '@/locales/i18n'
 
@@ -30,7 +33,7 @@ afterEach(async () => {
 
 const trigger = () => host.querySelector<HTMLButtonElement>('button')!
 
-it('is one collapsed line that shimmers while thinking and then reports the time', async () => {
+it('streams open with a shimmer, then folds into one timed line a second after it ends', async () => {
   vi.useFakeTimers()
   const render = (thinking: boolean) =>
     act(async () =>
@@ -42,15 +45,19 @@ it('is one collapsed line that shimmers while thinking and then reports the time
       ),
     )
   await render(true)
-  expect(trigger().getAttribute('aria-expanded')).toBe('false')
-  expect(host.querySelector('.chat-shimmer')?.textContent).toBe('Thinking…')
-  // No fixed-height plain-text box: nothing renders until the reader expands it
-  expect(host.querySelector('.reasoning-markdown')).toBeNull()
+  // While the model thinks, its reasoning is visible (as Markdown) under the shimmer
+  expect(trigger().getAttribute('aria-expanded')).toBe('true')
+  expect(host.querySelector('.text-shimmer')?.textContent).toBe('Thinking…')
+  expect(host.querySelector('.reasoning-markdown')).not.toBeNull()
   await act(async () => vi.advanceTimersByTime(3000))
   expect(trigger().textContent).toContain('3 s')
   await render(false)
   expect(trigger().textContent).toBe('Thought for 3 seconds')
-  expect(host.querySelector('.chat-shimmer')).toBeNull()
+  expect(host.querySelector('.text-shimmer')).toBeNull()
+  expect(trigger().getAttribute('aria-expanded')).toBe('true')
+  await act(async () => vi.advanceTimersByTime(REASONING_COLLAPSE_DELAY))
+  expect(trigger().getAttribute('aria-expanded')).toBe('false')
+  expect(host.querySelector('.reasoning-markdown')).toBeNull()
   vi.useRealTimers()
 
   await act(async () => trigger().click())
@@ -59,6 +66,22 @@ it('is one collapsed line that shimmers while thinking and then reports the time
   // Reasoning is Markdown (x-markdown), not pre-wrapped text
   expect(body.querySelector('strong')?.textContent).toBe('Plan')
   expect(body.textContent).not.toContain('**')
+})
+
+it('keeps the reader’s own choice over the automatic open and fold', async () => {
+  vi.useFakeTimers()
+  const render = (thinking: boolean) =>
+    act(async () =>
+      root.render(<ReasoningDisclosure content="plan" thinking={thinking} />),
+    )
+  await render(true)
+  await act(async () => trigger().click())
+  expect(trigger().getAttribute('aria-expanded')).toBe('false')
+  await render(false)
+  await act(async () => trigger().click())
+  await act(async () => vi.advanceTimersByTime(REASONING_COLLAPSE_DELAY * 2))
+  // Opened by the reader after it finished: it does not fold away under them
+  expect(trigger().getAttribute('aria-expanded')).toBe('true')
 })
 
 it('says only “Thought” for history, where no timing was observed', async () => {

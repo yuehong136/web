@@ -81,6 +81,10 @@ describe('Studio preview citations', () => {
     const trigger = container.querySelector<HTMLButtonElement>(
       '[data-reasoning="thinking"] button',
     )!
+    // Reasoning streams open; the reader can fold it and open it again
+    expect(trigger.getAttribute('aria-expanded')).toBe('true')
+    expect(container.textContent).toContain('先核对数据来源')
+    await act(async () => trigger.click())
     expect(trigger.getAttribute('aria-expanded')).toBe('false')
     expect(container.textContent).not.toContain('先核对数据来源')
     await act(async () => trigger.click())
@@ -134,7 +138,7 @@ describe('Studio preview citations', () => {
         <PreviewAnswer content="" isStreaming onViewReference={() => {}} />,
       ),
     )
-    expect(container.querySelector('output .chat-shimmer')?.textContent).toBe(
+    expect(container.querySelector('output .text-shimmer')?.textContent).toBe(
       '正在思考…',
     )
     await act(async () =>
@@ -226,6 +230,13 @@ describe('Studio preview citations', () => {
       ),
     )
     // The shared source line under the answer; no score when none was returned
+    await act(async () =>
+      container
+        .querySelector<HTMLButtonElement>(
+          '[data-source-strip] [data-source-toggle]',
+        )!
+        .click(),
+    )
     const source = container.querySelector<HTMLButtonElement>(
       '[data-source-strip] [data-source-chunk]',
     )!

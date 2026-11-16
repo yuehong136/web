@@ -15,7 +15,7 @@ export const ChatBubbleLoading = React.memo(() => {
         aria-hidden="true"
         className="size-icon-sm animate-spin text-text-tertiary motion-reduce:animate-none"
       />
-      <span className="chat-shimmer">{t('chat.thread.thinking')}</span>
+      <span className="text-shimmer">{t('chat.thread.thinking')}</span>
     </output>
   )
 })

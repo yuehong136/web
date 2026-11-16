@@ -1,17 +1,16 @@
 import { memo, useId, useMemo, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Search } from 'lucide-react'
 import { markdownConfig, useMarkdownComponents } from './MarkdownCodeBlock'
 import { ChatBubbleLoading } from './ChatBubbleLoading'
-import { RetrievalProgress } from './retrieval-progress'
 import { ReasoningDisclosure } from './reasoning-disclosure'
 import { CarouselWrapper } from './CarouselWrapper'
 import { ReferenceImageList } from './ReferenceImageList'
-import { createReferenceMarkerComponent } from './ReferenceMarker'
+import { createCitationChipComponent } from './citation-chip'
 import { SourceStrip } from './source-strip'
 import { StreamingXMarkdown } from './streaming-x-markdown'
-import { RunTimeline } from './run-timeline'
-import { getCitedChunks } from './citation-utils'
+import { RunTimeline, type RetrievalStepData } from './run-timeline'
+import { AnswerIdentity, type AnswerIdentityProps } from './answer-identity'
+import { getCitedChunks, groupAdjacentCitations } from './citation-utils'
 import type { EvidenceOptions } from './chat-workspace-context'
 import { ArtifactMessageContext } from '@/components/chat/artifact-message-context'
 import { ContextManifestSummary } from '@/components/chat/context-manifest-summary'
@@ -32,6 +31,8 @@ export interface MessagePartsProps {
   content: string
   thinking?: string
   messageId?: string
+  /** Who answered (provider logo, model name) and when, shown above the answer. */
+  identity?: AnswerIdentityProps
   contextManifest?: ContextManifest
   references?: ReferenceChunk[]
   run: { phase?: RunPhase; steps?: AgentTimelineNode[] }
@@ -44,11 +45,12 @@ export interface MessagePartsProps {
   ) => void
 }
 
-/** Text, reasoning, observed tool steps and citations share one rendering path. */
+/** Identity, observed steps, reasoning, text and citations share one rendering path. */
 export const MessageParts = memo(function MessageParts({
   content,
   thinking,
   messageId,
+  identity,
   contextManifest,
   references = NO_REFERENCES,
   run,
@@ -72,7 +74,7 @@ export const MessageParts = memo(function MessageParts({
   const thinkContent =
     trailingReasoning || (nodes.length ? '' : thinking || fallback.thinkContent)
   const mainContent = fallback.mainContent
-  // Stable while streaming text grows, so the citation markers keep their identity.
+  // Stable while streaming text grows, so the citation chips keep their identity.
   const citedKey = getCitedChunks(mainContent, references)
     .map((chunk) => references.indexOf(chunk))
     .join(',')
@@ -89,7 +91,7 @@ export const MessageParts = memo(function MessageParts({
     () =>
       hasCitations
         ? {
-            sup: createReferenceMarkerComponent(references, {
+            sup: createCitationChipComponent(references, {
               onViewDetail: (chunk) =>
                 onViewReference(chunk, references, { cited, messageId }),
               onCopy: (text) =>
@@ -109,7 +111,7 @@ export const MessageParts = memo(function MessageParts({
     [mainContent, references],
   )
   const markdown = hasCitations
-    ? convertReferencesToSup(processedContent)
+    ? groupAdjacentCitations(convertReferencesToSup(processedContent))
     : processedContent
   const renderPart = (part: string, key?: string) => (
     <StreamingXMarkdown
@@ -137,6 +139,19 @@ export const MessageParts = memo(function MessageParts({
           )
       })
   }
+  const retrieval: RetrievalStepData | null =
+    fallback.retrievalStatus === 'none'
+      ? null
+      : {
+          status:
+            fallback.retrievalStatus === 'complete'
+              ? 'complete'
+              : isStreaming
+                ? 'loading'
+                : 'interrupted',
+          content: fallback.retrievalContent.replace(/<\/?br\s*\/?>/gi, '\n'),
+          hits: references.length || undefined,
+        }
   const showSources = references.length > 0 && !isStreaming
   const openChunks = () =>
     onViewReference(cited[0] ?? references[0], references, {
@@ -150,13 +165,15 @@ export const MessageParts = memo(function MessageParts({
         className="message-parts space-y-space-sm"
         data-run-phase={run.phase}
       >
+        {identity && <AnswerIdentity {...identity} />}
         {contextManifest && (
           <ContextManifestSummary manifest={contextManifest} />
         )}
-        {hasToolFlow && run.phase && (
-          <RunTimeline nodes={chainNodes} phase={run.phase} />
-        )}
-        <RetrievalProgress result={fallback} isStreaming={isStreaming} />
+        <RunTimeline
+          nodes={hasToolFlow ? chainNodes : []}
+          phase={run.phase}
+          retrieval={retrieval}
+        />
         {thinkContent && (
           <ReasoningDisclosure
             key={messageId}
@@ -168,25 +185,6 @@ export const MessageParts = memo(function MessageParts({
                 : Boolean(thinking) || fallback.status === 'thinking')
             }
           />
-        )}
-        {showSources && !hasToolFlow && (
-          <button
-            type="button"
-            data-retrieval-summary
-            onClick={openChunks}
-            className="inline-flex min-h-[var(--control-height-sm)] max-w-full items-center gap-space-xs rounded-radius-sm text-start text-sm text-text-secondary hover:text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-focus"
-          >
-            <Search
-              aria-hidden="true"
-              className="size-icon-sm shrink-0 text-text-tertiary"
-            />
-            {cited.length
-              ? t('chat.thread.retrievedCited', {
-                  count: references.length,
-                  cited: cited.length,
-                })
-              : t('chat.thread.retrieved', { count: references.length })}
-          </button>
         )}
         {mainContent && (
           <div className="bubble-copy-text markdown-content prose max-w-none">
