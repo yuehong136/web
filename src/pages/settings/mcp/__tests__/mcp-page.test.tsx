@@ -7,6 +7,10 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import i18n from '@/locales/i18n'
 import { MCPPage } from '@/pages/settings/mcp/mcp-page'
 import type { MCPServer } from '@/types/mcp'
+import {
+  WorkbenchHeaderProvider,
+  useWorkbenchHeaderState,
+} from '@/components/layout/workbench-header'
 
 const mocks = vi.hoisted(() => ({
   servers: [] as MCPServer[],
@@ -105,8 +109,35 @@ function LocationProbe() {
 const location = () =>
   document.querySelector('[data-testid="location"]')?.textContent
 
-const render = async (path = '/settings/mcp') => {
+/** The app shell's header: the route title steps aside when a page claims it. */
+function ShellHarness({ children }: PropsWithChildren) {
+  const { value, titleClaimed, titleRef, actionsRef } =
+    useWorkbenchHeaderState()
+  return (
+    <>
+      <header>
+        {titleClaimed ? null : <h1>Settings route title</h1>}
+        <div ref={titleRef} />
+        <div ref={actionsRef} />
+      </header>
+      <div data-main-task-area>
+        <WorkbenchHeaderProvider value={value}>
+          {children}
+        </WorkbenchHeaderProvider>
+      </div>
+    </>
+  )
+}
+
+const render = async (path = '/settings/mcp', { shell = false } = {}) => {
   const client = new QueryClient()
+  const page = shell ? (
+    <ShellHarness>
+      <MCPPage />
+    </ShellHarness>
+  ) : (
+    <MCPPage />
+  )
   await act(async () =>
     root.render(
       <QueryClientProvider client={client}>
@@ -116,7 +147,7 @@ const render = async (path = '/settings/mcp') => {
               path="/settings/mcp"
               element={
                 <>
-                  <MCPPage />
+                  {page}
                   <LocationProbe />
                 </>
               }
@@ -228,9 +259,9 @@ const activate = (element: HTMLElement) =>
     element.focus()
   })
 
-it('lists servers in one table with the heading left to the settings shell', async () => {
+it('lists servers in one table under its own page heading', async () => {
   await render()
-  expect(container.querySelectorAll('h1')).toHaveLength(0)
+  expect(container.querySelectorAll('h1')).toHaveLength(1)
   expect(rowNames()).toEqual(['new-server', 'old-server'])
   expect(textButton('Create server')).toBeTruthy()
   expect(container.querySelector('a[href="/mcp-chat"]')).toBeTruthy()
@@ -377,4 +408,26 @@ it('switches tabs through the URL so the panel can be linked', async () => {
   expect(location()).toBe('/settings/mcp?tab=test')
   await click(button('Close details'))
   expect(location()).toBe('/settings/mcp')
+})
+
+it.each([
+  '/settings/mcp',
+  '/settings/mcp?tab=tools',
+  '/settings/mcp?tab=test',
+  '/settings/mcp?tab=batch',
+])('has exactly one h1 inside the app shell at %s', async (path) => {
+  await render(path, { shell: true })
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0))
+  })
+  expect(
+    [...document.querySelectorAll('h1')].map((heading) => heading.textContent),
+  ).toEqual([i18n.t('mcp.servers.title')])
+})
+
+it('has exactly one h1 outside the app shell', async () => {
+  await render()
+  expect(
+    [...document.querySelectorAll('h1')].map((heading) => heading.textContent),
+  ).toEqual([i18n.t('mcp.servers.title')])
 })

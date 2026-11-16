@@ -248,7 +248,8 @@ export function MCPPage() {
   return (
     <>
       <CollectionTemplate
-        hideHeader
+        title={t('mcp.servers.title')}
+        crumbs={[{ label: t('settings.title'), to: '/settings/profile' }]}
         filterBar={
           <FilterBar
             search={{

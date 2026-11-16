@@ -168,8 +168,10 @@ export const SettingsLayout: React.FC = () => {
   const isDatasourceDetail = pathname === '/settings/datasource-detail'
   const parentHref = isDatasourceDetail ? currentItem?.href : undefined
   const parentTitle = currentItem?.title
-  // Data source details name the entity in their own h1.
-  const CurrentTitle = isDatasourceDetail ? 'span' : 'h1'
+  // Data source details name the entity in their own h1, and the MCP page's
+  // collection title bar is its h1; every other page's h1 is this crumb.
+  const CurrentTitle =
+    isDatasourceDetail || pathname === MCP_PATH ? 'span' : 'h1'
   const breadcrumb = React.useMemo(
     () => (
       <Breadcrumb>
