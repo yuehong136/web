@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
+  BookOpen,
   Clock,
   Database,
   MoreHorizontal,
@@ -21,13 +22,17 @@ import {
   type ResourceItemProps,
 } from '@/components/patterns'
 import {
+  ResourceChip,
+  ResourceCreateCard,
+} from '@/components/patterns/resource-card'
+import { StatusDot } from '@/components/studio'
+import {
   ActionMenu,
   ActionMenuContent,
   ActionMenuItem,
   ActionMenuSeparator,
   ActionMenuTrigger,
 } from '@/components/ui/action-menu'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import type { SearchAppListItem } from '@/types/search'
 import {
@@ -147,16 +152,78 @@ export function countSearchFeatures(apps: SearchAppListItem[]) {
   }
 }
 
-function KnowledgeStatus({ app }: { app: SearchAppListItem }) {
+function KnowledgeStatus({
+  app,
+  card = false,
+}: {
+  app: SearchAppListItem
+  /** Cards show only the warning; the count moves to a chip. */
+  card?: boolean
+}) {
   const { t } = useTranslation()
   const count = resolveKbCount(app)
   // Without a knowledge base a search app retrieves nothing.
   if (!count)
-    return <Badge variant="warning">{t('searchPage.card.noKnowledge')}</Badge>
+    return <StatusDot tone="warning" label={t('searchPage.card.noKnowledge')} />
+  if (card) return null
   return (
     <span className="inline-flex items-center gap-space-xs text-xs text-text-tertiary">
       <Database className="size-icon-xs shrink-0" aria-hidden="true" />
       {t('searchPage.card.knowledgeBases', { count })}
+    </span>
+  )
+}
+
+const hasSearchChips = (app: SearchAppListItem) =>
+  resolveKbCount(app) > 0 ||
+  resolveSummaryEnabled(app) ||
+  resolveRelatedEnabled(app)
+
+/** Linked knowledge bases and the features that are on, as card chips. */
+function SearchChips({ app }: { app: SearchAppListItem }) {
+  const { t } = useTranslation()
+  const count = resolveKbCount(app)
+  return (
+    <>
+      {count ? (
+        <ResourceChip
+          icon={
+            <BookOpen
+              aria-hidden="true"
+              className="text-components-avatar-5-text"
+            />
+          }
+        >
+          {t('searchPage.card.knowledgeBases', { count })}
+        </ResourceChip>
+      ) : null}
+      {resolveSummaryEnabled(app) ? (
+        <ResourceChip icon={<Sparkles aria-hidden="true" />}>
+          {t('searchPage.card.summaryOn')}
+        </ResourceChip>
+      ) : null}
+      {resolveRelatedEnabled(app) ? (
+        <ResourceChip icon={<Workflow aria-hidden="true" />}>
+          {t('searchPage.card.relatedOn')}
+        </ResourceChip>
+      ) : null}
+    </>
+  )
+}
+
+function SearchUpdated({
+  app,
+  timeFormat,
+}: {
+  app: SearchAppListItem
+  timeFormat: SearchTimeFormat
+}) {
+  return (
+    <span className="inline-flex min-w-0 items-center gap-space-xs">
+      <Clock className="size-icon-xs shrink-0" aria-hidden="true" />
+      <time className="truncate">
+        {formatSearchTime(app.update_time, timeFormat)}
+      </time>
     </span>
   )
 }
@@ -208,12 +275,7 @@ function SearchMeta({
         resolveRelatedEnabled(app),
         <Workflow className="size-icon-xs shrink-0" aria-hidden="true" />,
       )}
-      <span className="inline-flex min-w-0 items-center gap-space-xs">
-        <Clock className="size-icon-xs shrink-0" aria-hidden="true" />
-        <time className="truncate">
-          {formatSearchTime(app.update_time, timeFormat)}
-        </time>
-      </span>
+      <SearchUpdated app={app} timeFormat={timeFormat} />
     </>
   )
 }
@@ -224,21 +286,24 @@ interface SearchAppCollectionProps {
   timeFormat: SearchTimeFormat
   onOpen: (id: string) => void
   onDelete: (app: SearchAppListItem) => void
+  /** Ends the grid with a "create search app" card. */
+  onCreate?: () => void
 }
 
-/** The current page of search apps as rows or cards. */
+/** The current page of search apps as cards or rows. */
 export function SearchAppCollection({
   apps,
   view,
   timeFormat,
   onOpen,
   onDelete,
+  onCreate,
 }: SearchAppCollectionProps) {
   const { t } = useTranslation()
   const item = (app: SearchAppListItem): ResourceItemProps => ({
     name: app.name,
     description: app.description || undefined,
-    avatar: { src: app.avatar, seed: app.id },
+    avatar: { src: app.avatar, seed: app.id, badge: 'search' },
     status: <KnowledgeStatus app={app} />,
     onOpen: () => onOpen(app.id),
     actions: (
@@ -275,9 +340,19 @@ export function SearchAppCollection({
           <ResourceCard
             key={app.id}
             {...item(app)}
-            meta={<SearchMeta app={app} timeFormat={timeFormat} />}
+            eyebrow={t('searchPage.card.kind')}
+            status={<KnowledgeStatus app={app} card />}
+            chips={hasSearchChips(app) ? <SearchChips app={app} /> : undefined}
+            meta={<SearchUpdated app={app} timeFormat={timeFormat} />}
           />
         ))}
+        {onCreate ? (
+          <ResourceCreateCard
+            label={t('searchPage.create')}
+            description={t('searchPage.card.createDescription')}
+            onClick={onCreate}
+          />
+        ) : null}
       </ResourceGrid>
     )
   return (

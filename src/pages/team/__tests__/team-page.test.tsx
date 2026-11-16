@@ -3,6 +3,7 @@ import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { changeLanguage } from '@/locales/i18n'
 import { useTeamStore } from '@/stores/team'
+import { useCollectionViewStore } from '@/stores/collection-view'
 import { useAuthStore } from '@/stores'
 import type { JoinedTeam, TeamMember } from '@/types/team'
 import { TeamPage } from '../TeamPage'
@@ -95,6 +96,7 @@ beforeEach(async () => {
   api.remove.mockResolvedValue(true)
   api.accept.mockResolvedValue(true)
   useTeamStore.getState().reset()
+  useCollectionViewStore.getState().reset()
   useAuthStore.setState({ user: { id: 'me' } } as never)
   await changeLanguage('en-US')
   container = document.createElement('div')
@@ -116,9 +118,26 @@ it('titles the page, uses two tabs and inline totals instead of stat cards', asy
   expect(stats.textContent).toContain('Pending invitations1')
   expect(container.querySelectorAll('[role="tab"]')).toHaveLength(2)
   expect(button('Invite members', header)).toBeTruthy()
+  // A small team opens as cards, ending in an invite card.
+  const cards = container.querySelectorAll('[data-slot="resource-card"]')
+  expect(cards).toHaveLength(3)
+  expect(container.textContent).toContain('Owner One (you)')
+  expect(
+    container.querySelector('[data-slot="resource-grid"] [style]'),
+  ).toBeNull()
+  const invite = container.querySelector<HTMLButtonElement>(
+    '[data-slot="resource-create-card"] button',
+  )!
+  expect(invite.textContent).toContain('Invite members')
+  await act(async () => invite.click())
+  expect(useTeamStore.getState().inviteDialogOpen).toBe(true)
+})
+
+it('keeps rows for members once the list view is chosen', async () => {
+  useCollectionViewStore.getState().choose('team-members', 'list')
+  await act(async () => root.render(<TeamPage />))
   const rows = container.querySelectorAll('[data-slot="resource-row"]')
   expect(rows).toHaveLength(3)
-  expect(container.textContent).toContain('Owner One (you)')
   expect(
     container.querySelector('[data-slot="resource-list"] [style]'),
   ).toBeNull()
@@ -151,10 +170,13 @@ it('accepts a pending team invitation from the joined teams tab', async () => {
   const header = container.querySelector('[data-slot="page-title-bar"]')!
   expect(header.textContent).toContain('Teams: 1')
   expect(button('Invite members', header)).toBeUndefined()
-  const row = container.querySelector('[data-slot="resource-row"]')!
-  expect(row.textContent).toContain('Research')
-  expect(row.textContent).toContain('Pending')
-  await act(async () => button('Accept invitation', row)!.click())
+  const card = container.querySelector('[data-slot="resource-card"]')!
+  expect(card.textContent).toContain('Research')
+  expect(card.textContent).toContain('Pending')
+  expect(
+    card.querySelector('[data-slot="entity-avatar-badge-anchor"]'),
+  ).not.toBeNull()
+  await act(async () => button('Accept invitation', card)!.click())
   expect(api.accept).toHaveBeenCalledWith('t1')
 })
 

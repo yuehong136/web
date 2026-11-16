@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { StudioPage } from '../StudioPage'
 import { useStudioStore } from '@/stores/studio'
+import { useCollectionViewStore } from '@/stores/collection-view'
 import { changeLanguage } from '@/locales/i18n'
 import { DEFAULT_APPEARANCE, setAppearance } from '@/themes/appearance'
 import type { DialogApp } from '@/types/api'
@@ -23,7 +24,19 @@ const toast = vi.hoisted(() => ({
   error: vi.fn(),
   info: vi.fn(),
 }))
+const agents = vi.hoisted(() => ({
+  templates: [] as unknown[],
+  setAgent: vi.fn(),
+}))
 vi.mock('@/api/dialog', () => ({ dialogAPI: api }))
+vi.mock('@/hooks/use-agent-request', () => ({
+  useFetchAgentTemplates: () => ({
+    data: agents.templates,
+    isLoading: false,
+    isError: false,
+  }),
+  useSetAgent: () => ({ setAgent: agents.setAgent, isLoading: false }),
+}))
 vi.mock('@/lib/toast', () => ({ toast }))
 const apps = [
   {
@@ -91,6 +104,7 @@ async function render() {
       { path: '/studio', element: <StudioPage /> },
       { path: '/studio/create-app', element: <h1>App editor</h1> },
       { path: '/agents', element: <h1>Agents</h1> },
+      { path: '/agent-templates', element: <h1>Templates</h1> },
     ],
     { initialEntries: ['/studio'] },
   )
@@ -132,6 +146,8 @@ beforeEach(async () => {
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   })
   useStudioStore.getState().reset()
+  useCollectionViewStore.getState().reset()
+  agents.templates = []
   setAppearance({ ...DEFAULT_APPEARANCE, mode: 'light' })
   await changeLanguage('en-US')
   container = document.createElement('div')
@@ -150,7 +166,7 @@ it('uses a real error state and retries without exposing backend content or pret
   api.list.mockRejectedValueOnce(new Error('private-response-content'))
   await render()
   expect(container.textContent).toContain('Could not load apps')
-  expect(container.textContent).not.toContain('No apps yet')
+  expect(container.textContent).not.toContain('Build your first app')
   expect(container.textContent).not.toContain('private-response-content')
   await click(button('Retry'))
   await settle()
@@ -177,11 +193,11 @@ it('keeps selected IDs through status filters, view, appearance, and locale chan
     container.querySelector('[data-filter-key="status"]')?.textContent,
   ).toBe('StatusDraft')
   await click(labelled('Grid view'))
-  expect(useStudioStore.getState().viewMode).toBe('grid')
+  expect(useCollectionViewStore.getState().chosen.studio).toBe('grid')
   await click(labelled('List view'))
   await act(async () => setAppearance({ preset: 'ocean', textScale: 1.25 }))
   await act(async () => changeLanguage('zh-CN'))
-  expect(useStudioStore.getState().viewMode).toBe('list')
+  expect(useCollectionViewStore.getState().chosen.studio).toBe('list')
   expect(useStudioStore.getState().selectedIds).toEqual(['one'])
   await act(async () => useStudioStore.getState().setFilter({ status: [] }))
   expect(
@@ -191,7 +207,7 @@ it('keeps selected IDs through status filters, view, appearance, and locale chan
   ).toBe('true')
 })
 it('selects only visible page IDs while preserving selection from another page', async () => {
-  useStudioStore.setState({ viewMode: 'list', selectedIds: ['off-page'] })
+  useStudioStore.setState({ selectedIds: ['off-page'] })
   await render()
   const selectPage = () =>
     container.querySelector<HTMLElement>(
@@ -358,4 +374,145 @@ it('changes the server page size from the pager menu and returns to page one', a
   expect(api.list).toHaveBeenLastCalledWith(
     expect.objectContaining({ page: 1, page_size: 24 }),
   )
+})
+
+const template = (id: string, title: string, canvasType: string | null) => ({
+  id,
+  title,
+  description: `${title} description`,
+  canvas_type: canvasType,
+  create_time: 1,
+  update_time: 1,
+  user_id: 'system',
+  permission: 'team',
+  dsl: {
+    components: {},
+    graph: { nodes: [], edges: [] },
+    history: [],
+    messages: [],
+    reference: [],
+    globals: {},
+    retrieval: [],
+  },
+})
+it('opens a small studio as chat-app cards with identity chips, a create card and template suggestions', async () => {
+  api.list.mockResolvedValue({
+    dialogs: [{ ...apps[0], llm_id: 'deepseek-chat@DeepSeek' }, apps[1]],
+    total: 2,
+  })
+  agents.templates = [
+    template('t-agent', 'Stock research', 'Agent'),
+    template('t-support', 'Help desk', 'customer_support'),
+    template('t-featured', 'Knowledge assistant', 'Recommended'),
+    template('t-other', 'Fourth', null),
+  ]
+  await render()
+  const cards = [
+    ...container.querySelectorAll<HTMLElement>('[data-slot="resource-card"]'),
+  ]
+  expect(cards).toHaveLength(2)
+  const alpha = cards.find((card) => card.textContent?.includes('Alpha'))!
+  const beta = cards.find((card) => card.textContent?.includes('Beta'))!
+  expect(alpha.textContent).toContain('Chat app')
+  expect(alpha.querySelector('[data-slot="status-dot"]')?.textContent).toBe(
+    'Published',
+  )
+  expect(beta.querySelector('[data-slot="status-dot"]')?.textContent).toBe(
+    'Draft',
+  )
+  expect(
+    [...alpha.querySelectorAll('[data-slot="resource-chip"]')].map(
+      (chip) => chip.textContent,
+    ),
+  ).toEqual(['deepseek-chat', '1 knowledge base'])
+  expect(alpha.querySelector('[data-slot="provider-logo"]')).not.toBeNull()
+  expect(beta.textContent).toContain('No knowledge base')
+  expect(
+    alpha.querySelector('[data-slot="entity-avatar-badge-anchor"]'),
+  ).not.toBeNull()
+
+  const row = container.querySelector<HTMLElement>(
+    '[data-slot="studio-template-row"]',
+  )!
+  const suggestions = [...row.querySelectorAll<HTMLButtonElement>('li button')]
+  expect(
+    suggestions.map((element) => element.getAttribute('aria-label')),
+  ).toEqual([
+    'Use template Knowledge assistant',
+    'Use template Stock research',
+    'Use template Help desk',
+  ])
+  expect(row.textContent).toContain('4 templates')
+  expect(row.querySelector('a')?.getAttribute('href')).toBe('/agent-templates')
+  await click(suggestions[0])
+  expect(document.body.textContent).toContain('Create from template')
+  expect(
+    document.querySelector<HTMLInputElement>('dialog input[id$="-name"]')
+      ?.value,
+  ).toBe('Knowledge assistant')
+  await act(async () =>
+    document.activeElement!.dispatchEvent(
+      new KeyboardEvent('keydown', {
+        key: 'Escape',
+        bubbles: true,
+        cancelable: true,
+      }),
+    ),
+  )
+
+  await click(
+    container.querySelector<HTMLButtonElement>(
+      '[data-slot="resource-create-card"] button',
+    )!,
+  )
+  expect(useStudioStore.getState().projectTypeModalOpen).toBe(true)
+})
+it('hides the template row while a filter narrows the grid', async () => {
+  api.list.mockResolvedValue({ dialogs: apps, total: 2 })
+  agents.templates = [template('t-agent', 'Stock research', 'Agent')]
+  await render()
+  expect(
+    container.querySelector('[data-slot="studio-template-row"]'),
+  ).not.toBeNull()
+  await openMenu(container.querySelector('[data-filter-key="status"]')!)
+  await click(menuItem('Draft'))
+  await closeMenu()
+  expect(
+    container.querySelector('[data-slot="studio-template-row"]'),
+  ).toBeNull()
+  expect(container.querySelector('[data-slot="resource-card"]')).not.toBeNull()
+})
+it('gives a first-time studio three start paths instead of header actions', async () => {
+  api.list.mockResolvedValue({ dialogs: [], total: 0 })
+  const router = await render()
+  const header = container.querySelector('[data-slot="page-title-bar"]')!
+  expect(header.textContent).not.toContain('New project')
+  expect(header.textContent).not.toContain('Import')
+  expect(container.querySelector('input[type=search]')).toBeNull()
+  const paths = [
+    ...container.querySelectorAll<HTMLButtonElement>(
+      '[data-slot="empty-start"] button',
+    ),
+  ]
+  const path = (title: string) =>
+    paths.find((element) => element.textContent?.startsWith(title))!
+  expect(paths).toHaveLength(3)
+  await click(path('Import app templates'))
+  expect(document.querySelector('dialog')?.textContent).toContain(
+    'Import app templates',
+  )
+  await act(async () =>
+    document.activeElement!.dispatchEvent(
+      new KeyboardEvent('keydown', {
+        key: 'Escape',
+        bubbles: true,
+        cancelable: true,
+      }),
+    ),
+  )
+  await click(path('Create a chat app'))
+  expect(useStudioStore.getState().createAppModalOpen).toBe(true)
+  await act(async () => useStudioStore.getState().closeCreateAppModal())
+  await click(path('Start from a template'))
+  expect(router.state.location.pathname).toBe('/agent-templates')
 })

@@ -31,7 +31,16 @@ export const namespacesForPath = (pathname: string): LocaleNamespace[] => {
       'knowledge',
     )
   } else if (/^\/(studio|dialogs?)(\/|$)/.test(pathname)) {
-    domains.push('studio', 'flow', 'agent', 'chat', 'knowledge', 'settings')
+    // `agents`: the Studio list suggests agent templates.
+    domains.push(
+      'studio',
+      'flow',
+      'agent',
+      'agents',
+      'chat',
+      'knowledge',
+      'settings',
+    )
   } else if (/^\/skills(\/|$)/.test(pathname)) domains.push('skills')
   else if (/^\/memory(\/|$)/.test(pathname)) domains.push('memory')
   else if (/^\/explore(\/|$)/.test(pathname))

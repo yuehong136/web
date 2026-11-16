@@ -12,18 +12,9 @@ import {
   ResourceGrid,
 } from '@/components/patterns'
 import { Button } from '@/components/ui/button'
-import { useFetchAgentTemplates, useSetAgent } from '@/hooks/use-agent-request'
-import {
-  buildAgentCanvasPath,
-  buildInitialDsl,
-  countFlowNodes,
-  inferCanvasTypeFromGraph,
-  resolveCanvasCategory,
-  resolveCanvasKind,
-  resolveLocalizedText,
-} from '@/lib/agent'
-import { AgentCanvasType, type AgentTemplate } from '@/types/agent'
-import { CreateAgentDialog } from './components/create-agent-dialog'
+import { useFetchAgentTemplates } from '@/hooks/use-agent-request'
+import { countFlowNodes, resolveLocalizedText } from '@/lib/agent'
+import type { AgentTemplate } from '@/types/agent'
 import { TemplateCategorySidebar } from './components/template-category-sidebar'
 import {
   ALL_CATEGORY_KEY,
@@ -31,13 +22,12 @@ import {
   categoryLabelKey,
   normalizeCategoryKey,
 } from './components/template-category-config'
-
-function resolveTemplateKind(template: AgentTemplate | null) {
-  if (!template) return AgentCanvasType.AGENT
-  const graphKind = inferCanvasTypeFromGraph(template.dsl?.graph)
-  if (graphKind === AgentCanvasType.PIPELINE) return graphKind
-  return resolveCanvasKind(template)
-}
+import { TemplateCreateDialog } from './components/template-create-dialog'
+import {
+  TemplateCategoryMark,
+  TemplateTile,
+  templateEntityKind,
+} from './components/template-tile'
 
 function TemplateSection({
   title,
@@ -71,10 +61,22 @@ function TemplateSection({
                 template.description,
                 t('agents.templateDescriptionFallback'),
               )}
-              avatar={{ src: template.avatar, seed: template.id }}
+              leading={<TemplateTile template={template} />}
               eyebrow={t(
-                categoryLabelKey(normalizeCategoryKey(template.canvas_type)),
+                templateEntityKind(template) === 'workflow'
+                  ? 'agents.kindPipeline'
+                  : 'agents.kindAgent',
               )}
+              chips={
+                <TemplateCategoryMark
+                  template={template}
+                  label={t(
+                    categoryLabelKey(
+                      normalizeCategoryKey(template.canvas_type),
+                    ),
+                  )}
+                />
+              }
               onOpen={() => onSelect(template)}
               actions={
                 <Button
@@ -109,7 +111,6 @@ export default function AgentTemplatesPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const templatesQuery = useFetchAgentTemplates()
-  const setAgent = useSetAgent()
   const [keyword, setKeyword] = useState('')
   const [selectedKey, setSelectedKey] = useState<string>(ALL_CATEGORY_KEY)
   const [selectedTemplate, setSelectedTemplate] =
@@ -151,24 +152,6 @@ export default function AgentTemplatesPage() {
       )
   const visibleRecommended = showAll ? recommended : []
   const filtered = Boolean(keyword.trim()) || !showAll
-
-  const handleCreateFromTemplate = async (payload: {
-    title: string
-    kind: AgentCanvasType
-  }) => {
-    const template = selectedTemplate
-    if (!template) return
-    const templateKind = resolveTemplateKind(template)
-    const templateCategory = resolveCanvasCategory(templateKind)
-    const flow = await setAgent.setAgent({
-      title: payload.title,
-      canvas_category: templateCategory,
-      avatar: template.avatar,
-      description: resolveLocalizedText(template.description, ''),
-      dsl: template.dsl || buildInitialDsl(templateKind),
-    })
-    navigate(buildAgentCanvasPath(flow.id, templateCategory))
-  }
 
   const state = templatesQuery.isError
     ? 'error'
@@ -275,18 +258,9 @@ export default function AgentTemplatesPage() {
         </div>
       </div>
 
-      <CreateAgentDialog
-        key={selectedTemplate?.id || 'template-create-dialog'}
-        open={Boolean(selectedTemplate)}
-        onOpenChange={(open) => !open && setSelectedTemplate(null)}
-        onConfirm={handleCreateFromTemplate}
-        defaultTitle={
-          selectedTemplate ? resolveLocalizedText(selectedTemplate.title) : ''
-        }
-        initialKind={resolveTemplateKind(selectedTemplate)}
-        allowKindChange={false}
-        title={t('agents.templatesPage.createTitle')}
-        description={t('agents.templatesPage.createDescription')}
+      <TemplateCreateDialog
+        template={selectedTemplate}
+        onClose={() => setSelectedTemplate(null)}
       />
     </>
   )

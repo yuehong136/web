@@ -5,6 +5,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router-dom'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import AgentsPage from '../index'
 import { changeLanguage } from '@/locales/i18n'
+import { useCollectionViewStore } from '@/stores/collection-view'
 import { DEFAULT_APPEARANCE, setAppearance } from '@/themes/appearance'
 import { AgentCanvasType, type AgentFlow } from '@/types/agent'
 import { stubNativeDialog } from '@/components/ui/__tests__/native-dialog'
@@ -101,6 +102,7 @@ beforeEach(async () => {
   }))
   mock.setAgent.mockResolvedValue(flow)
   mock.deleteAgent.mockResolvedValue(true)
+  useCollectionViewStore.getState().reset()
   await changeLanguage('en-US')
   setAppearance({ ...DEFAULT_APPEARANCE, mode: 'light' })
   container = document.createElement('div')
@@ -123,7 +125,9 @@ it('shows real totals without page-derived KPI cards and retries a true load fai
   })
   await render()
   expect(container.textContent).toContain('Failed to load Agent list')
-  expect(container.textContent).not.toContain('No agents or pipelines yet')
+  expect(container.textContent).not.toContain(
+    'Let agents handle multi-step work',
+  )
   await click(button('Retry'))
   expect(mock.refetch).toHaveBeenCalledOnce()
 })
@@ -136,7 +140,7 @@ it('retains search and list preferences across theme and locale updates without 
   await type(search, 'Research')
   await click(
     container.querySelector<HTMLButtonElement>(
-      'button[aria-label="Grid view"]',
+      'button[aria-label="List view"]',
     )!,
   )
   await act(async () => setAppearance({ preset: 'graphite', mode: 'dark' }))
@@ -145,10 +149,11 @@ it('retains search and list preferences across theme and locale updates without 
   expect(search.value).toBe('Research')
   expect(
     container
-      .querySelector('button[aria-label="卡片视图"]')
+      .querySelector('button[aria-label="列表视图"]')
       ?.getAttribute('aria-checked'),
   ).toBe('true')
-  expect(container.querySelector('[data-slot="resource-card"]')).not.toBeNull()
+  expect(container.querySelector('[data-slot="resource-row"]')).not.toBeNull()
+  expect(useCollectionViewStore.getState().chosen.agents).toBe('list')
   expect(mock.list).toHaveBeenLastCalledWith(
     expect.objectContaining({ keywords: 'Research' }),
   )
@@ -226,17 +231,58 @@ it('keeps the selected asset in the delete dialog when the existing delete mutat
   expect(document.body.textContent).not.toContain('private-delete-trace')
 })
 
-it('lists agents as rows with type and node meta, and pages with the shared pager', async () => {
+it('shows a small collection as kind-badged cards ending in a create card, and pages with the shared pager', async () => {
+  mock.list.mockImplementation(() => ({
+    agents: [{ ...flow, tags: 'ops,research', release: true }],
+    total: 7,
+    isLoading: false,
+    isError: false,
+    refetch: mock.refetch,
+  }))
   await render()
-  const row = container.querySelector('[data-slot="resource-row"]')!
-  expect(row.textContent).toContain('Research')
-  expect(row.textContent).toContain('Research workflow')
-  expect(row.textContent).toContain('Agent')
+  const card = container.querySelector('[data-slot="resource-card"]')!
+  expect(card.textContent).toContain('Research')
+  expect(card.textContent).toContain('Research workflow')
+  expect(card.textContent).toContain('Agent')
+  expect(card.textContent).toContain('Published')
+  expect(
+    [...card.querySelectorAll('[data-slot="resource-chip"]')].map(
+      (chip) => chip.textContent,
+    ),
+  ).toEqual(['ops', 'research'])
+  expect(
+    card.querySelector('[data-slot="entity-avatar-badge-anchor"]'),
+  ).not.toBeNull()
   expect(
     container.querySelector('[data-slot="page-title-bar"] h1')?.textContent,
   ).toBe('Agent Center')
   expect(container.textContent).toContain('1–7 / 7')
   expect(container.querySelector('[data-slot="inline-stats"]')).toBeNull()
+  await click(
+    container.querySelector<HTMLButtonElement>(
+      '[data-slot="resource-create-card"] button',
+    )!,
+  )
+  expect(document.querySelector('input[id$="-name"]')).not.toBeNull()
+})
+it('lists larger collections as rows with type meta unless cards were chosen', async () => {
+  mock.list.mockImplementation(() => ({
+    agents: [flow],
+    total: 40,
+    isLoading: false,
+    isError: false,
+    refetch: mock.refetch,
+  }))
+  await render()
+  const row = container.querySelector('[data-slot="resource-row"]')!
+  expect(row.textContent).toContain('Research')
+  expect(row.textContent).toContain('Agent')
+  expect(container.querySelector('[data-slot="resource-card"]')).toBeNull()
+  await act(async () => root.unmount())
+  root = createRoot(container)
+  useCollectionViewStore.getState().choose('agents', 'grid')
+  await render()
+  expect(container.querySelector('[data-slot="resource-card"]')).not.toBeNull()
 })
 it('gives the empty state the create, template and import paths without duplicating them in the header', async () => {
   mock.list.mockReturnValue({
@@ -251,9 +297,18 @@ it('gives the empty state the create, template and import paths without duplicat
   expect(header.textContent).not.toContain('New asset')
   expect(header.textContent).not.toContain('Import JSON')
   expect(header.textContent).toContain('Ops logs')
-  expect(container.textContent).toContain('No agents or pipelines yet')
-  expect(button('New asset')).toBeTruthy()
-  expect(button('Import JSON')).toBeTruthy()
-  await click(button('Create from template'))
+  expect(container.textContent).toContain('Let agents handle multi-step work')
+  const paths = [
+    ...container.querySelectorAll<HTMLButtonElement>(
+      '[data-slot="empty-start"] button',
+    ),
+  ]
+  const path = (title: string) =>
+    paths.find((element) => element.textContent?.startsWith(title))!
+  expect(paths).toHaveLength(3)
+  expect(container.querySelector('input[type=search]')).toBeNull()
+  expect(path('New asset')).toBeTruthy()
+  expect(path('Import JSON')).toBeTruthy()
+  await click(path('Create from template'))
   expect(router.state.location.pathname).toBe('/agent-templates')
 })

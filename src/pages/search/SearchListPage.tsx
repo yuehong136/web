@@ -7,7 +7,7 @@ import { CollectionTemplate } from '@/components/page-templates'
 import { PageErrorState, PageLoadingState, Pager } from '@/components/patterns'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import { useSearchStore } from '@/stores/search'
+import { useCollectionView } from '@/stores/collection-view'
 import {
   useDeleteSearch,
   useFetchSearchAppList,
@@ -41,7 +41,6 @@ const matchesToggle = (selected: string[], enabled: boolean) =>
 export const SearchListPage: FC = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { viewMode, setViewMode } = useSearchStore()
   const { deleteSearch } = useDeleteSearch()
 
   const [keyword, setKeyword] = useState('')
@@ -81,6 +80,11 @@ export const SearchListPage: FC = () => {
     [filters, hasActiveFilters, searchApps],
   )
   const totalCount = hasActiveFilters ? filteredApps.length : total
+  const [viewMode, setViewMode] = useCollectionView(
+    'search',
+    isLoading && !searchApps.length ? undefined : total,
+    Boolean(keyword) || hasActiveFilters,
+  )
   const pageData = useMemo(() => {
     if (!hasActiveFilters) return searchApps
     const start = (currentPage - 1) * pageSize
@@ -129,6 +133,7 @@ export const SearchListPage: FC = () => {
         ? 'empty'
         : 'content'
   const features = countSearchFeatures(pageData)
+  const firstUse = state === 'empty' && !filtered
 
   return (
     <>
@@ -137,7 +142,7 @@ export const SearchListPage: FC = () => {
         count={totalCount}
         countLabel={t('searchPage.results', { count: totalCount })}
         actions={
-          state === 'empty' && !filtered ? null : (
+          firstUse ? null : (
             <Button onClick={() => setShowCreateDialog(true)}>
               <Plus className="size-icon-sm" aria-hidden="true" />
               {t('searchPage.create')}
@@ -145,29 +150,31 @@ export const SearchListPage: FC = () => {
           )
         }
         filterBar={
-          <SearchFilterBar
-            keyword={keyword}
-            onKeywordChange={handleKeywordChange}
-            filters={filters}
-            onFiltersChange={(value) => {
-              setFilters(value)
-              setCurrentPage(1)
-            }}
-            sortBy={sortBy}
-            onSortByChange={(value) => {
-              setSortBy(value)
-              setCurrentPage(1)
-            }}
-            sortDesc={sortDesc}
-            onSortDescChange={(value) => {
-              setSortDesc(value)
-              setCurrentPage(1)
-            }}
-            timeFormat={timeFormat}
-            onTimeFormatChange={setTimeFormat}
-            view={viewMode}
-            onViewChange={setViewMode}
-          />
+          firstUse ? undefined : (
+            <SearchFilterBar
+              keyword={keyword}
+              onKeywordChange={handleKeywordChange}
+              filters={filters}
+              onFiltersChange={(value) => {
+                setFilters(value)
+                setCurrentPage(1)
+              }}
+              sortBy={sortBy}
+              onSortByChange={(value) => {
+                setSortBy(value)
+                setCurrentPage(1)
+              }}
+              sortDesc={sortDesc}
+              onSortDescChange={(value) => {
+                setSortDesc(value)
+                setCurrentPage(1)
+              }}
+              timeFormat={timeFormat}
+              onTimeFormatChange={setTimeFormat}
+              view={viewMode}
+              onViewChange={setViewMode}
+            />
+          )
         }
         state={state}
         loadingState={<PageLoadingState title={t('searchPage.loading')} />}
@@ -185,6 +192,7 @@ export const SearchListPage: FC = () => {
           <SearchEmptyState
             type={filtered ? 'search' : 'list'}
             onCreate={() => setShowCreateDialog(true)}
+            onOpenKnowledge={() => navigate(ROUTES.KNOWLEDGE)}
             onReset={resetFilters}
           />
         }
@@ -209,6 +217,7 @@ export const SearchListPage: FC = () => {
           timeFormat={timeFormat}
           onOpen={handleOpen}
           onDelete={setDeleteTarget}
+          onCreate={() => setShowCreateDialog(true)}
         />
       </CollectionTemplate>
 

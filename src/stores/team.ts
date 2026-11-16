@@ -6,7 +6,6 @@
 import { create } from 'zustand'
 import type { BatchInviteResponse } from '@/types/team'
 
-export type TeamViewMode = 'grid' | 'list'
 export type TeamActiveTab = 'my-team' | 'joined-teams'
 export type TimeFormat = 'detailed' | 'compact' | 'relative'
 
@@ -24,14 +23,6 @@ export interface ConfirmDialogState {
 }
 
 interface TeamUIState {
-  // 我的团队视图模式
-  viewMode: TeamViewMode
-  setViewMode: (mode: TeamViewMode) => void
-
-  // 已加入团队视图模式
-  joinedTeamsViewMode: TeamViewMode
-  setJoinedTeamsViewMode: (mode: TeamViewMode) => void
-
   // 当前激活的 Tab
   activeTab: TeamActiveTab
   setActiveTab: (tab: TeamActiveTab) => void
@@ -72,8 +63,6 @@ interface TeamUIState {
 }
 
 const initialState = {
-  viewMode: 'list' as TeamViewMode,
-  joinedTeamsViewMode: 'list' as TeamViewMode,
   activeTab: 'my-team' as TeamActiveTab,
   memberSearchQuery: '',
   teamSearchQuery: '',
@@ -92,8 +81,6 @@ const initialState = {
 export const useTeamStore = create<TeamUIState>()((set) => ({
   ...initialState,
 
-  setViewMode: (mode) => set({ viewMode: mode }),
-  setJoinedTeamsViewMode: (mode) => set({ joinedTeamsViewMode: mode }),
   setActiveTab: (tab) => set({ activeTab: tab }),
   setMemberSearchQuery: (query) => set({ memberSearchQuery: query }),
   setTeamSearchQuery: (query) => set({ teamSearchQuery: query }),

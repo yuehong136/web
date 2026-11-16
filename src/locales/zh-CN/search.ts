@@ -48,6 +48,8 @@ export default {
       ascending: '正序',
     },
     card: {
+      kind: '搜索应用',
+      createDescription: '在知识库中检索并生成 AI 摘要',
       summaryOn: '摘要开启',
       summaryOff: '摘要关闭',
       relatedOn: '相关问题开启',
@@ -62,10 +64,15 @@ export default {
     empty: {
       reset: '清除搜索与筛选',
       searchTitle: '未找到匹配的搜索应用',
-      listTitle: '还没有搜索应用',
+      listTitle: '在一处检索所有文档',
       searchDescription: '尝试调整搜索条件或筛选器后重试。',
       listDescription:
-        '创建搜索应用，配置知识库和检索参数，快速从文档中查找信息并生成 AI 摘要',
+        '创建搜索应用，配置知识库和检索参数，快速从文档中查找信息并生成 AI 摘要。',
+      createDescription: '选择知识库、调好检索参数，再打开 AI 摘要。',
+      createCta: '创建',
+      knowledgeTitle: '先准备知识库',
+      knowledgeDescription: '搜索应用从知识库中检索，先上传文档。',
+      knowledgeCta: '前往知识库',
     },
     pagination: {
       previous: '上一页',

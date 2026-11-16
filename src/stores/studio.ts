@@ -24,8 +24,7 @@ interface StudioState {
   page: number
   pageSize: number
 
-  // 视图状态
-  viewMode: 'grid' | 'list'
+  // 视图状态（列表/卡片见 collection-view）
   timeFormat: TimeFormatType
 
   // 选中状态（用于批量操作）
@@ -47,7 +46,6 @@ interface StudioActions {
   setPageSize: (pageSize: number) => void
 
   // 视图操作
-  setViewMode: (mode: 'grid' | 'list') => void
   setTimeFormat: (format: TimeFormatType) => void
 
   // 选中操作
@@ -78,8 +76,6 @@ const initialState: StudioState = {
   filter: initialFilterState,
   page: 1,
   pageSize: 12,
-  // Rows are the default collection layout; cards are opt-in.
-  viewMode: 'list',
   timeFormat: 'detailed',
   selectedIds: [],
   projectTypeModalOpen: false,
@@ -119,11 +115,6 @@ export const useStudioStore = create<StudioState & StudioActions>()(
       }),
 
     // 视图操作
-    setViewMode: (mode) =>
-      set((state) => {
-        state.viewMode = mode
-      }),
-
     setTimeFormat: (format) =>
       set((state) => {
         state.timeFormat = format

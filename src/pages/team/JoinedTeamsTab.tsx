@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/action-menu'
 import { Button } from '@/components/ui/button'
 import { useTeamStore } from '@/stores/team'
+import { useCollectionView } from '@/stores/collection-view'
 import { TenantRole, type JoinedTeam } from '@/types/team'
 import { useFilteredJoinedTeams } from './hooks'
 import { formatTeamTime } from './utils'
@@ -129,19 +130,17 @@ export function JoinedTeamsTab({
   ...handlers
 }: JoinedTeamsTabProps) {
   const { t } = useTranslation()
-  const {
-    joinedTeamsViewMode,
-    setJoinedTeamsViewMode,
-    teamSearchQuery,
-    setTeamSearchQuery,
-    timeFormat,
-    setTimeFormat,
-  } = useTeamStore()
+  const { teamSearchQuery, setTeamSearchQuery, timeFormat, setTimeFormat } =
+    useTeamStore()
   const [sortDesc, setSortDesc] = useState(true)
   const filtered = useFilteredJoinedTeams(
     joinedTeams,
     teamSearchQuery,
     sortDesc,
+  )
+  const [joinedTeamsViewMode, setJoinedTeamsViewMode] = useCollectionView(
+    'team-joined',
+    teamsLoading ? undefined : joinedTeams.length,
   )
 
   const item = (team: JoinedTeam): ResourceItemProps => {
@@ -149,7 +148,7 @@ export function JoinedTeamsTab({
     return {
       name,
       description: team.email,
-      avatar: { src: team.avatar, seed: team.tenant_id, shape: 'circle' },
+      avatar: { src: team.avatar, seed: team.tenant_id, badge: 'team' },
       status: <RoleBadge role={team.role} />,
       meta: (
         <span>

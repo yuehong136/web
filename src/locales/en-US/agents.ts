@@ -56,9 +56,9 @@ export default {
     viewLogs: 'View run logs',
     noDescription: 'No description yet.',
     noUpdateTime: 'Update time unavailable',
-    emptyTitle: 'No agents or pipelines yet',
+    emptyTitle: 'Let agents handle multi-step work',
     emptyDescription:
-      'Create a workflow, start from a template, or import JSON.',
+      'Agents chain models, knowledge bases and tools; pipelines parse documents into knowledge bases.',
     noMatchTitle: 'No matching projects',
     noMatchDescription: 'Try another search or clear the filters.',
     resetFilters: 'Clear search and filters',
@@ -66,6 +66,22 @@ export default {
     sortPageScope: 'Update order applies to this page.',
     kindAgent: 'Agent',
     kindPipeline: 'Pipeline',
+    published: 'Published',
+    draft: 'Draft',
+    knowledgeLinked_one: '{{count}} knowledge base',
+    knowledgeLinked_other: '{{count}} knowledge bases',
+    createCardDescription: 'Agent workflow or ingestion pipeline',
+    empty: {
+      createDescription:
+        'Start from a blank canvas and connect models, knowledge and tools.',
+      createCta: 'Create',
+      templateDescription:
+        'Copy a ready-made agent or pipeline, then adjust it to fit.',
+      templateCta: 'Browse templates',
+      importDescription:
+        'Import a workflow JSON exported from another workspace.',
+      importCta: 'Choose a file',
+    },
 
     tagOption: '{{tag}} ({{count}})',
     templatesPage: {

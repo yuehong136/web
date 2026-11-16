@@ -7,9 +7,17 @@ import {
   ResourceList,
   ResourceListHeader,
   ResourceRow,
+  type CollectionView,
   type ResourceItemProps,
 } from '@/components/patterns'
-import { AppActions, AppMetadata, AppStatus } from '@/components/studio'
+import { ResourceCreateCard } from '@/components/patterns/resource-card'
+import {
+  AppActions,
+  AppKnowledgeChip,
+  AppMetadata,
+  AppStatus,
+  ModelChip,
+} from '@/components/studio'
 import { useStudioStore, type TimeFormatType } from '@/stores/studio'
 import type { DialogApp } from '@/types/api'
 
@@ -18,6 +26,8 @@ interface StudioFilterBarProps {
   onSearchChange: (value: string) => void
   sortDescending: boolean
   onSortDescendingChange: (descending: boolean) => void
+  view: CollectionView
+  onViewChange: (view: CollectionView) => void
 }
 
 /** Search, status chip, one sort/display menu and the list/grid switch. */
@@ -26,16 +36,17 @@ export function StudioFilterBar({
   onSearchChange,
   sortDescending,
   onSortDescendingChange,
+  view,
+  onViewChange,
 }: StudioFilterBarProps) {
   const { t } = useTranslation()
-  const { status, timeFormat, viewMode } = useStudioStore(
+  const { status, timeFormat } = useStudioStore(
     useShallow((state) => ({
       status: state.filter.status,
       timeFormat: state.timeFormat,
-      viewMode: state.viewMode,
     })),
   )
-  const { setFilter, setTimeFormat, setViewMode } = useStudioStore.getState()
+  const { setFilter, setTimeFormat } = useStudioStore.getState()
   const timeFormats: Record<TimeFormatType, string> = {
     detailed: t('studio.toolbar.detailedTime'),
     compact: t('studio.toolbar.compactTime'),
@@ -81,31 +92,35 @@ export function StudioFilterBar({
           })),
         },
       ]}
-      view={{ value: viewMode, onChange: setViewMode }}
+      view={{ value: view, onChange: onViewChange }}
     />
   )
 }
 
 interface StudioAppListProps {
   apps: DialogApp[]
+  view: CollectionView
   onEdit: (app: DialogApp) => void
   onDelete: (app: DialogApp) => void
   onExport: (app: DialogApp) => void
+  /** Ends the grid with a "new project" card. */
+  onCreate?: () => void
 }
 
-/** The current page of apps as rows (default) or cards, with selection. */
+/** The current page of chat apps as cards or rows, with selection. */
 export function StudioAppList({
   apps,
+  view,
   onEdit,
   onDelete,
   onExport,
+  onCreate,
 }: StudioAppListProps) {
   const { t } = useTranslation()
-  const { selectedIds, timeFormat, viewMode } = useStudioStore(
+  const { selectedIds, timeFormat } = useStudioStore(
     useShallow((state) => ({
       selectedIds: state.selectedIds,
       timeFormat: state.timeFormat,
-      viewMode: state.viewMode,
     })),
   )
   const { toggleSelect, selectAll } = useStudioStore.getState()
@@ -127,7 +142,7 @@ export function StudioAppList({
   const item = (app: DialogApp): ResourceItemProps => ({
     name: app.name,
     description: app.description || t('studio.card.noDescription'),
-    avatar: { src: app.icon, seed: app.id },
+    avatar: { src: app.icon, seed: app.id, badge: 'chat' },
     status: <AppStatus status={app.status} />,
     actions: (
       <AppActions
@@ -145,17 +160,30 @@ export function StudioAppList({
     },
   })
 
-  if (viewMode === 'grid')
+  if (view === 'grid')
     return (
       <ResourceGrid label={t('studio.page.title')}>
         {apps.map((app) => (
           <ResourceCard
             key={app.id}
             {...item(app)}
-            eyebrow={t('studio.card.app')}
-            meta={<AppMetadata app={app} timeFormat={timeFormat} />}
+            eyebrow={t('studio.card.chatApp')}
+            chips={
+              <>
+                <ModelChip reference={app.llm_id} />
+                <AppKnowledgeChip app={app} />
+              </>
+            }
+            meta={<AppMetadata app={app} timeFormat={timeFormat} card />}
           />
         ))}
+        {onCreate ? (
+          <ResourceCreateCard
+            label={t('studio.page.createProject')}
+            description={t('studio.card.createDescription')}
+            onClick={onCreate}
+          />
+        ) : null}
       </ResourceGrid>
     )
   return (

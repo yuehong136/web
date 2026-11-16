@@ -17,6 +17,8 @@ import {
   type CollectionView,
   type ResourceItemProps,
 } from '@/components/patterns'
+import { ResourceCreateCard } from '@/components/patterns/resource-card'
+import { ModelChip } from '@/components/studio'
 import {
   ActionMenu,
   ActionMenuContent,
@@ -146,21 +148,24 @@ interface MemoryCollectionProps {
   onOpen: (memory: Memory) => void
   onEdit: (memory: Memory) => void
   onDelete: (memory: Memory) => void
+  /** Ends the grid with a "create memory bank" card. */
+  onCreate?: () => void
 }
 
-/** The current page of memory banks as rows (default) or cards. */
+/** The current page of memory banks as cards or rows. */
 export function MemoryCollection({
   memories,
   view,
   onOpen,
   onEdit,
   onDelete,
+  onCreate,
 }: MemoryCollectionProps) {
   const { t } = useTranslation()
   const item = (memory: Memory): ResourceItemProps => ({
     name: memory.name,
     description: memory.description || t('memory.workspace.cardDescription'),
-    avatar: { src: memory.avatar, seed: memory.id },
+    avatar: { src: memory.avatar, seed: memory.id, badge: 'memory' },
     status: <MemoryPermission memory={memory} />,
     meta: <MemoryMeta memory={memory} />,
     onOpen: () => onOpen(memory),
@@ -200,18 +205,26 @@ export function MemoryCollection({
           <ResourceCard
             key={memory.id}
             {...item(memory)}
+            // Permission moves to the eyebrow on cards.
             eyebrow={<MemoryPermission memory={memory} />}
-            status={
-              memory.memory_type.length ? (
-                <span className="flex flex-wrap gap-space-xs">
-                  {memory.memory_type.map((type) => (
-                    <MemoryTypeBadge key={type} type={type} />
-                  ))}
-                </span>
-              ) : undefined
+            status={undefined}
+            chips={
+              <>
+                <ModelChip reference={memory.llm_id} />
+                {memory.memory_type.map((type) => (
+                  <MemoryTypeBadge key={type} type={type} />
+                ))}
+              </>
             }
           />
         ))}
+        {onCreate ? (
+          <ResourceCreateCard
+            label={t('memory.page.create')}
+            description={t('memory.empty.createCardDescription')}
+            onClick={onCreate}
+          />
+        ) : null}
       </ResourceGrid>
     )
   return (

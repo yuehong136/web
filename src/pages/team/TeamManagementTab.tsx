@@ -11,8 +11,10 @@ import {
   ResourceRow,
   type ResourceItemProps,
 } from '@/components/patterns'
+import { ResourceCreateCard } from '@/components/patterns/resource-card'
 import { Button } from '@/components/ui/button'
 import { useTeamStore } from '@/stores/team'
+import { useCollectionView } from '@/stores/collection-view'
 import { TenantRole, type TeamMember, type TeamPermissions } from '@/types/team'
 import { useFilteredMembers } from './hooks'
 import { formatTeamTime } from './utils'
@@ -45,16 +47,15 @@ export function TeamManagementTab({
   onOpenInviteDialog,
 }: TeamManagementTabProps) {
   const { t } = useTranslation()
-  const {
-    viewMode,
-    setViewMode,
-    memberSearchQuery,
-    setMemberSearchQuery,
-    timeFormat,
-    setTimeFormat,
-  } = useTeamStore()
+  const { memberSearchQuery, setMemberSearchQuery, timeFormat, setTimeFormat } =
+    useTeamStore()
   const [sortDesc, setSortDesc] = useState(true)
   const filtered = useFilteredMembers(members, memberSearchQuery, sortDesc)
+  // The member list is complete, so its length is the collection size.
+  const [viewMode, setViewMode] = useCollectionView(
+    'team-members',
+    membersLoading ? undefined : members.length,
+  )
 
   const item = (member: TeamMember): ResourceItemProps => {
     const self = member.user_id === currentUserId
@@ -156,6 +157,13 @@ export function TeamManagementTab({
           {filtered.map((member) => (
             <ResourceCard key={member.user_id} {...item(member)} />
           ))}
+          {permissions.canInvite && !memberSearchQuery ? (
+            <ResourceCreateCard
+              label={t('settings.team.invite')}
+              description={t('settings.team.inviteCardDescription')}
+              onClick={onOpenInviteDialog}
+            />
+          ) : null}
         </ResourceGrid>
       ) : (
         <ResourceList

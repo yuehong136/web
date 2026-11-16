@@ -5,7 +5,7 @@ import {
   ResourceList,
   ResourceRow,
 } from '@/components/patterns'
-import { resolveLocalizedText } from '@/lib/agent'
+import { isPipelineFlow, resolveLocalizedText } from '@/lib/agent'
 import type { AgentFlow } from '@/types/agent'
 
 interface LogEmptyStateProps {
@@ -51,7 +51,11 @@ export function LogEmptyState({
                   t('agents.unnamedAgent'),
                 )}
                 description={<span className="font-mono">{agent.id}</span>}
-                avatar={{ src: agent.avatar, seed: agent.id }}
+                avatar={{
+                  src: agent.avatar,
+                  seed: agent.id,
+                  badge: isPipelineFlow(agent) ? 'workflow' : 'agent',
+                }}
                 onOpen={() => onSelectAgent(agent.id)}
               />
             ))}

@@ -607,6 +607,8 @@ export default {
       compactTime: 'Compact time',
       relativeTime: 'Relative time',
       invite: 'Invite members',
+      inviteCardDescription:
+        'Invite people by email; they join once they accept',
       selector: {
         label: 'Team to manage',
         own: 'My team',

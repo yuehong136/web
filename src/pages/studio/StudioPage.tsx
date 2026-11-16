@@ -16,7 +16,9 @@ import { CreateProjectModal } from './components/CreateProjectModal'
 import { CreateAppModal } from './components/CreateAppModal'
 import { ImportTemplateDialog } from './components/ImportTemplateDialog'
 import { StudioAppList, StudioFilterBar } from './components/studio-app-list'
+import { TemplateStartRow } from './components/template-start-row'
 import { useStudioStore } from '@/stores/studio'
+import { useCollectionView } from '@/stores/collection-view'
 import {
   useFetchDialogList,
   useDeleteDialogApps,
@@ -37,7 +39,9 @@ export function StudioPage() {
   } | null>(null)
   const [sortDesc, setSortDesc] = useState(true)
   const [importOpen, setImportOpen] = useState(false)
-  const projectTrigger = useRef<HTMLButtonElement>(null)
+  // Where create dialogs return focus: the header button, the grid's create
+  // card or an empty-state path, whichever opened them.
+  const createOrigin = useRef<HTMLElement | null>(null)
   const {
     data,
     loading,
@@ -67,6 +71,11 @@ export function StudioPage() {
     [data.dialogs, store.filter.status, sortDesc],
   )
   const filtered = Boolean(searchString || store.filter.status.length)
+  const [view, setView] = useCollectionView(
+    'studio',
+    loading && !data.dialogs.length ? undefined : data.total,
+    Boolean(searchString),
+  )
   const state = isError
     ? 'error'
     : loading && !data.dialogs.length
@@ -74,6 +83,17 @@ export function StudioPage() {
       : !apps.length
         ? 'empty'
         : 'content'
+  const firstUse = state === 'empty' && !filtered
+  const rememberOrigin = () => {
+    createOrigin.current =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null
+  }
+  const openProjects = () => {
+    rememberOrigin()
+    store.openProjectTypeModal()
+  }
   const resetFilters = () => {
     handleInputChange('')
     store.setFilter({ status: [] })
@@ -110,24 +130,31 @@ export function StudioPage() {
         count={data.total}
         countLabel={t('studio.page.results', { count: data.total })}
         actions={
-          <>
-            <Button variant="ghost" onClick={() => setImportOpen(true)}>
-              <Upload className="size-icon-sm" aria-hidden="true" />
-              {t('studio.page.import')}
-            </Button>
-            <Button ref={projectTrigger} onClick={store.openProjectTypeModal}>
-              <Plus className="size-icon-sm" aria-hidden="true" />
-              {t('studio.page.createProject')}
-            </Button>
-          </>
+          // The first-use empty state carries create, template and import.
+          firstUse ? null : (
+            <>
+              <Button variant="ghost" onClick={() => setImportOpen(true)}>
+                <Upload className="size-icon-sm" aria-hidden="true" />
+                {t('studio.page.import')}
+              </Button>
+              <Button onClick={openProjects}>
+                <Plus className="size-icon-sm" aria-hidden="true" />
+                {t('studio.page.createProject')}
+              </Button>
+            </>
+          )
         }
         filterBar={
-          <StudioFilterBar
-            search={searchString}
-            onSearchChange={handleInputChange}
-            sortDescending={sortDesc}
-            onSortDescendingChange={setSortDesc}
-          />
+          firstUse ? undefined : (
+            <StudioFilterBar
+              search={searchString}
+              onSearchChange={handleInputChange}
+              sortDescending={sortDesc}
+              onSortDescendingChange={setSortDesc}
+              view={view}
+              onViewChange={setView}
+            />
+          )
         }
         state={state}
         loadingState={
@@ -149,7 +176,12 @@ export function StudioPage() {
         emptyState={
           <AppEmptyState
             type={filtered ? 'search' : 'list'}
-            onAction={store.openProjectTypeModal}
+            onCreate={() => {
+              rememberOrigin()
+              store.openCreateAppModal()
+            }}
+            onTemplate={() => navigate(ROUTES.AGENT_TEMPLATES)}
+            onImport={() => setImportOpen(true)}
             onReset={resetFilters}
           />
         }
@@ -199,10 +231,13 @@ export function StudioPage() {
       >
         <StudioAppList
           apps={apps}
+          view={view}
           onEdit={editApp}
           onDelete={deleteApp}
           onExport={(app) => exportApps.mutate([app.id])}
+          onCreate={openProjects}
         />
+        {view === 'grid' && !filtered ? <TemplateStartRow /> : null}
       </CollectionTemplate>
       <CreateProjectModal
         isOpen={store.projectTypeModalOpen}
@@ -216,7 +251,7 @@ export function StudioPage() {
       <CreateAppModal
         isOpen={store.createAppModalOpen}
         onClose={store.closeCreateAppModal}
-        returnFocusRef={projectTrigger}
+        returnFocusRef={createOrigin}
       />
       <ConfirmDialog
         open={Boolean(deletion)}

@@ -576,6 +576,7 @@ export default {
       compactTime: '简洁时间',
       relativeTime: '相对时间',
       invite: '邀请成员',
+      inviteCardDescription: '按邮箱批量邀请，对方接受后加入团队',
       selector: {
         label: '管理的团队',
         own: '我的团队',
