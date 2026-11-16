@@ -1,25 +1,37 @@
 import { useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Search, Upload, Settings2, FileText } from 'lucide-react'
-import { ListPageTemplate } from '@/components/page-templates'
+import { PackagePlus, Pencil, Search, Settings2, Upload } from 'lucide-react'
+import { CollectionTemplate } from '@/components/page-templates'
 import {
-  PageLoadingState,
   PageEmptyState,
   PageErrorState,
+  PageLoadingState,
+  Pager,
 } from '@/components/patterns'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import {
   useCoreSpace,
   useCoreSearch,
   useCoreChildren,
 } from '@/hooks/use-skill-core-request'
-import { SkillError, SkillPagination } from '../skill-shared'
+import { SkillError } from '../skill-shared'
+import {
+  SkillAssetList,
+  SkillNotices,
+  type SkillAssetItem,
+} from '../skill-collection'
+import { SkillSearchForm } from '../skill-search-form'
 import { CoreConfigDialog } from './core-config-dialog'
 import { CoreImportDialog } from './core-import-dialog'
 import { CoreSpaceDialog } from './core-space-dialog'
 
+const PAGE_SIZE = 20
+
+/**
+ * Core protocol adapter: browsing lists the space's skill folders (no index
+ * needed), searching uses the indexed search. Both become `SkillAssetItem`s.
+ */
 export function CoreSpacePage() {
   const { spaceId = '' } = useParams()
   const { t } = useTranslation()
@@ -41,131 +53,138 @@ export function CoreSpacePage() {
         refetch: folders.refetch,
         data: {
           total: browse.length,
-          skills: browse.slice((page - 1) * 20, page * 20).map((file) => ({
-            folder_id: file.id,
-            name: file.name,
-            description: '',
-            version: undefined,
-            tags: [] as string[],
-          })),
+          skills: browse
+            .slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+            .map((file) => ({
+              folder_id: file.id,
+              name: file.name,
+              description: '',
+              version: undefined,
+              tags: [] as string[],
+            })),
         },
       }
+  const total = listing.data?.total ?? 0
+  const items: SkillAssetItem[] = (listing.data?.skills ?? []).map((skill) => ({
+    key: skill.folder_id,
+    name: skill.name,
+    description: skill.description || t('skills.core.readDescription'),
+    href: `/skills/${spaceId}/skills/${encodeURIComponent(skill.folder_id)}`,
+    status: { label: t('skills.localSource') },
+    meta:
+      [skill.version, ...(skill.tags ?? [])].filter(Boolean).join(' · ') ||
+      undefined,
+  }))
+  const active = space.data?.status === 'active'
+  const state = listing.isLoading
+    ? 'loading'
+    : listing.error
+      ? 'error'
+      : !items.length
+        ? 'empty'
+        : 'content'
+
   return (
     <>
-      <ListPageTemplate
+      <CollectionTemplate
         title={space.data?.name || t('skills.title')}
+        crumbs={[{ label: t('skills.title'), to: '/skills' }]}
+        count={listing.data ? total : undefined}
+        countLabel={t('skills.skillResults', { count: total })}
         description={space.data?.description || t('skills.discoverDescription')}
-        headerActions={
+        actions={
           <>
-            <Button variant="ghost" asChild>
-              <Link to="/skills">{t('skills.back')}</Link>
-            </Button>
             <Button
-              disabled={space.data?.status !== 'active'}
-              onClick={() => setDialog('import')}
+              variant="ghost"
+              disabled={!space.data}
+              onClick={() => setDialog('edit')}
             >
-              <Upload className="size-icon-sm" />
-              {t('skills.import')}
+              <Pencil className="size-icon-sm" aria-hidden="true" />
+              {t('skills.editSpace')}
             </Button>
             <Button
-              variant="outline"
+              variant="ghost"
               disabled={!space.data}
               onClick={() => setDialog('config')}
             >
-              <Settings2 className="size-icon-sm" />
+              <Settings2 className="size-icon-sm" aria-hidden="true" />
               {t('skills.configuration')}
             </Button>
+            {state === 'empty' && !query ? null : (
+              <Button disabled={!active} onClick={() => setDialog('import')}>
+                <Upload className="size-icon-sm" aria-hidden="true" />
+                {t('skills.import')}
+              </Button>
+            )}
           </>
         }
-        toolbarLeft={
-          <form
-            className="flex w-full items-center gap-space-sm"
-            onSubmit={(event) => {
-              event.preventDefault()
-              setQuery(draft.trim())
-              setPage(1)
-              if (draft.trim() === query)
-                void (query ? search.refetch() : folders.refetch())
-            }}
-          >
-            <Input
-              aria-label={t('skills.query')}
-              placeholder={t('skills.query')}
-              value={draft}
-              onChange={(event) => setDraft(event.target.value)}
+        filterBar={
+          <div className="flex flex-col gap-space-sm">
+            <SkillSearchForm
+              draft={draft}
+              onDraftChange={setDraft}
+              onSubmit={() => {
+                setQuery(draft.trim())
+                setPage(1)
+                if (draft.trim() === query)
+                  void (query ? search.refetch() : folders.refetch())
+              }}
             />
-            <Button type="submit" variant="outline">
-              <Search className="size-icon-sm" />
-              {t('skills.search')}
-            </Button>
-          </form>
+            <SkillNotices>
+              {space.error ? <SkillError error={space.error} /> : null}
+              {space.data?.status && !active ? (
+                <p className="text-sm text-status-warning">
+                  {t(`skills.states.${space.data.status}`)}
+                </p>
+              ) : null}
+            </SkillNotices>
+          </div>
         }
-        toolbarRight={
-          <Button
-            variant="ghost"
-            disabled={!space.data}
-            onClick={() => setDialog('edit')}
-          >
-            {t('skills.editSpace')}
-          </Button>
+        state={state}
+        loadingState={<PageLoadingState title={t('skills.loading')} />}
+        errorState={
+          <PageErrorState
+            title={t('skills.error')}
+            description={<SkillError error={listing.error} />}
+            onRetry={() => void listing.refetch()}
+            retryLabel={t('skills.retry')}
+          />
         }
-        pagination={
-          <SkillPagination
+        emptyState={
+          query ? (
+            <PageEmptyState
+              icon={<Search className="size-icon-lg" />}
+              title={t('skills.empty')}
+              description={t('skills.noMatches')}
+            />
+          ) : (
+            <PageEmptyState
+              icon={<PackagePlus className="size-icon-lg" />}
+              title={t('skills.empty')}
+              description={t('skills.core.emptySpace')}
+              action={
+                <Button disabled={!active} onClick={() => setDialog('import')}>
+                  <Upload className="size-icon-sm" aria-hidden="true" />
+                  {t('skills.import')}
+                </Button>
+              }
+            />
+          )
+        }
+        footer={
+          <Pager
             page={page}
-            total={listing.data?.total || 0}
-            setPage={setPage}
+            pageSize={PAGE_SIZE}
+            total={total}
+            onPageChange={setPage}
           />
         }
       >
-        <div className="flex flex-col gap-space-base">
-          <SkillError error={space.error} />
-          {space.data?.status && space.data.status !== 'active' && (
-            <p>{t(`skills.states.${space.data.status}`)}</p>
-          )}
-          {listing.isLoading ? (
-            <PageLoadingState title={t('skills.loading')} description="" />
-          ) : listing.error ? (
-            <PageErrorState
-              title={t('skills.error')}
-              description={<SkillError error={listing.error} />}
-              onRetry={() => void listing.refetch()}
-              retryLabel={t('skills.retry')}
-            />
-          ) : !listing.data?.skills.length ? (
-            <PageEmptyState
-              title={t('skills.empty')}
-              description={t(
-                query ? 'skills.noMatches' : 'skills.core.emptySpace',
-              )}
-            />
-          ) : (
-            <div className="grid gap-space-base md:grid-cols-2 xl:grid-cols-3">
-              {listing.data.skills.map((skill) => (
-                <Link
-                  key={skill.folder_id}
-                  to={`/skills/${spaceId}/skills/${encodeURIComponent(skill.folder_id)}`}
-                  className="flex flex-col gap-space-base rounded-radius-lg border border-border-default bg-background-surface p-space-lg hover:bg-state-hover"
-                >
-                  <div className="flex items-center gap-space-sm">
-                    <FileText className="size-icon-md text-text-secondary" />
-                    <strong className="truncate">{skill.name}</strong>
-                  </div>
-                  <p className="line-clamp-3 text-sm text-text-secondary">
-                    {skill.description || t('skills.core.readDescription')}
-                  </p>
-                  <div className="flex flex-wrap gap-space-sm text-xs text-text-caption">
-                    <span>{t('skills.localSource')}</span>
-                    {skill.version && <span>{skill.version}</span>}
-                    {skill.tags?.map((tag) => (
-                      <span key={tag}>{tag}</span>
-                    ))}
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
-      </ListPageTemplate>
+        <SkillAssetList
+          skills={items}
+          metaLabel={`${t('skills.version')} · ${t('skills.tags')}`}
+        />
+      </CollectionTemplate>
       {dialog === 'import' && space.data && (
         <CoreImportDialog space={space.data} onClose={() => setDialog(null)} />
       )}

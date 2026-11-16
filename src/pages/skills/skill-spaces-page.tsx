@@ -1,7 +1,6 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Folder, Plus } from 'lucide-react'
+import { FolderPlus, Plus, Trash2 } from 'lucide-react'
 import type { SkillSpace } from '@/api/skill-types'
 import { skillsAPI } from '@/api/skills'
 import {
@@ -9,24 +8,32 @@ import {
   useSkillCapabilities,
   useSkillSpaces,
 } from '@/hooks/use-skill-request'
-import { ListPageTemplate } from '@/components/page-templates'
+import { CollectionTemplate } from '@/components/page-templates'
 import {
-  PageLoadingState,
+  BulkActionBar,
+  FilterBar,
   PageEmptyState,
   PageErrorState,
+  PageLoadingState,
+  Pager,
 } from '@/components/patterns'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Checkbox } from '@/components/ui/checkbox'
 import { SkillSpaceDialog } from './skill-space-dialog'
 import { SkillUploadDialog } from './skill-upload-dialog'
+import {
+  SkillNotices,
+  SkillSpaceList,
+  pageSelection,
+  type SkillSpaceItem,
+} from './skill-collection'
 import {
   SkillDeleteDialog,
   SkillError,
   SkillOperations,
-  SkillPagination,
   useSkillOperationRoute,
 } from './skill-shared'
+
+const PAGE_SIZE = 20
 
 export function SkillSpacesPage() {
   const { t } = useTranslation()
@@ -38,145 +45,172 @@ export function SkillSpacesPage() {
   const [importing, setImporting] = useState<SkillSpace | null>(null)
   const tracker = useSkillOperationRoute()
   const action = useSkillAction(tracker.accepted)
-  const query = useSkillSpaces({ page, page_size: 20, keywords })
+  const query = useSkillSpaces({ page, page_size: PAGE_SIZE, keywords })
   const capabilities = useSkillCapabilities()
   const writable = (space: SkillSpace) =>
-    capabilities.data?.writable &&
-    capabilities.data?.backend === space.backend_owner &&
-    space.state === 'active'
+    Boolean(
+      capabilities.data?.writable &&
+      capabilities.data?.backend === space.backend_owner &&
+      space.state === 'active',
+    )
+  const spaces = query.data?.spaces ?? []
+  const total = query.data?.total ?? 0
+  const items: SkillSpaceItem[] = spaces.map((space) => ({
+    id: space.id,
+    name: space.name,
+    description: space.description,
+    href: tracker.href(`/skills/${space.id}`),
+    status:
+      space.state === 'active'
+        ? undefined
+        : {
+            label: t(`skills.states.${space.state}`),
+            tone: space.state.endsWith('failed') ? 'error' : 'default',
+          },
+    note:
+      !writable(space) && capabilities.data
+        ? t(
+            capabilities.data.writable === false
+              ? 'skills.readOnly'
+              : 'skills.ownerMismatch',
+          )
+        : undefined,
+    selection: {
+      checked: selected.includes(space.id),
+      disabled: !writable(space),
+      label: t('skills.select', { name: space.name }),
+      onCheckedChange: (checked) =>
+        setSelected((value) =>
+          checked
+            ? [...value, space.id]
+            : value.filter((id) => id !== space.id),
+        ),
+    },
+    onImport: () => setImporting(space),
+    importDisabled: !writable(space) || !capabilities.data?.storage_available,
+    onEdit: () => setEditing(space),
+    editDisabled: !writable(space),
+  }))
+  const changePage = (value: number) => {
+    setPage(value)
+    setSelected([])
+  }
+  const state = query.isLoading
+    ? 'loading'
+    : query.error
+      ? 'error'
+      : !spaces.length
+        ? 'empty'
+        : 'content'
+  const canCreate = Boolean(capabilities.data?.writable)
+
   return (
     <>
-      <ListPageTemplate
+      <CollectionTemplate
         title={t('skills.title')}
+        count={query.data ? total : undefined}
+        countLabel={t('skills.spaceResults', { count: total })}
         description={t('skills.discoverDescription')}
-        headerActions={
-          <Button
-            disabled={!capabilities.data?.writable}
-            onClick={() => setEditing('new')}
-          >
-            <Plus className="size-icon-sm" />
-            {t('skills.createSpace')}
-          </Button>
+        actions={
+          state === 'empty' && !keywords ? null : (
+            <Button disabled={!canCreate} onClick={() => setEditing('new')}>
+              <Plus className="size-icon-sm" aria-hidden="true" />
+              {t('skills.createSpace')}
+            </Button>
+          )
         }
-        toolbarLeft={
-          <Input
-            aria-label={t('skills.filter')}
-            placeholder={t('skills.filter')}
-            value={keywords}
-            onChange={(event) => {
-              setKeywords(event.target.value)
-              setPage(1)
-              setSelected([])
-            }}
+        filterBar={
+          <div className="flex flex-col gap-space-sm">
+            <FilterBar
+              search={{
+                value: keywords,
+                onChange: (value) => {
+                  setKeywords(value)
+                  changePage(1)
+                },
+                placeholder: t('skills.filter'),
+              }}
+            />
+            <SkillNotices>
+              {tracker.ids.length ? (
+                <SkillOperations tracker={tracker} />
+              ) : null}
+              {action.error || capabilities.error ? (
+                <SkillError error={action.error || capabilities.error} />
+              ) : null}
+            </SkillNotices>
+          </div>
+        }
+        state={state}
+        loadingState={<PageLoadingState title={t('skills.loading')} />}
+        errorState={
+          <PageErrorState
+            title={t('skills.error')}
+            description={<SkillError error={query.error} />}
+            onRetry={() => void query.refetch()}
+            retryLabel={t('skills.retry')}
           />
         }
-        toolbarRight={
-          <Button
-            variant="outline"
-            disabled={!selected.length || action.isPending}
-            onClick={() => setDeleting(true)}
-          >
-            {t('skills.deleteSelected')} ({selected.length})
-          </Button>
+        emptyState={
+          <PageEmptyState
+            icon={<FolderPlus className="size-icon-lg" />}
+            title={t(keywords ? 'skills.noSpaceMatches' : 'skills.empty')}
+            description={t(
+              keywords
+                ? 'skills.noSpaceMatchesDescription'
+                : 'skills.emptyDescription',
+            )}
+            action={
+              keywords ? (
+                <Button variant="outline" onClick={() => setKeywords('')}>
+                  {t('skills.clearFilter')}
+                </Button>
+              ) : (
+                <Button disabled={!canCreate} onClick={() => setEditing('new')}>
+                  <Plus className="size-icon-sm" aria-hidden="true" />
+                  {t('skills.createSpace')}
+                </Button>
+              )
+            }
+          />
         }
-        pagination={
-          <SkillPagination
+        footer={
+          <Pager
             page={page}
-            total={query.data?.total || 0}
-            setPage={(value) => {
-              setPage(value)
-              setSelected([])
-            }}
+            pageSize={PAGE_SIZE}
+            total={total}
+            onPageChange={changePage}
           />
+        }
+        bulkActions={
+          selected.length ? (
+            <BulkActionBar
+              count={selected.length}
+              onClear={() => setSelected([])}
+            >
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-status-error"
+                disabled={action.isPending}
+                onClick={() => setDeleting(true)}
+              >
+                <Trash2 className="size-icon-sm" aria-hidden="true" />
+                {t('skills.delete')}
+              </Button>
+            </BulkActionBar>
+          ) : null
         }
       >
-        <div className="flex flex-col gap-space-base">
-          <SkillOperations tracker={tracker} />
-          <SkillError error={action.error || capabilities.error} />
-          {query.isLoading ? (
-            <PageLoadingState title={t('skills.loading')} description="" />
-          ) : query.error ? (
-            <PageErrorState
-              title={t('skills.error')}
-              description={<SkillError error={query.error} />}
-              onRetry={() => void query.refetch()}
-              retryLabel={t('skills.retry')}
-            />
-          ) : !query.data?.spaces.length ? (
-            <PageEmptyState
-              title={t('skills.empty')}
-              description={t('skills.emptyDescription')}
-            />
-          ) : (
-            <div className="grid gap-space-base md:grid-cols-2 xl:grid-cols-3">
-              {query.data.spaces.map((space) => (
-                <article
-                  key={space.id}
-                  className="rounded-radius-lg border border-border-default bg-background-surface p-space-lg"
-                >
-                  <div className="flex items-center gap-space-sm">
-                    <Checkbox
-                      aria-label={t('skills.select', { name: space.name })}
-                      checked={selected.includes(space.id)}
-                      disabled={!writable(space)}
-                      onCheckedChange={(checked) =>
-                        setSelected((value) =>
-                          checked
-                            ? [...value, space.id]
-                            : value.filter((id) => id !== space.id),
-                        )
-                      }
-                    />
-                    <Folder className="size-icon-md text-text-secondary" />
-                    <Link
-                      className="min-w-0 flex-1 truncate font-semibold text-text-primary hover:underline"
-                      to={tracker.href(`/skills/${space.id}`)}
-                    >
-                      {space.name}
-                    </Link>
-                  </div>
-                  <p className="my-space-base line-clamp-3 text-sm text-text-secondary">
-                    {space.description}
-                  </p>
-                  <div className="flex items-center justify-between gap-space-sm">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled={
-                        !writable(space) ||
-                        !capabilities.data?.storage_available
-                      }
-                      onClick={() => setImporting(space)}
-                    >
-                      {t('skills.import')}
-                    </Button>
-                    <span className="text-sm text-text-secondary">
-                      {t(`skills.states.${space.state}`)}
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      disabled={!writable(space)}
-                      onClick={() => setEditing(space)}
-                    >
-                      {t('skills.editSpace')}
-                    </Button>
-                  </div>
-                  {!writable(space) && capabilities.data && (
-                    <p className="text-sm text-text-secondary">
-                      {t(
-                        capabilities.data?.writable === false
-                          ? 'skills.readOnly'
-                          : 'skills.ownerMismatch',
-                      )}
-                    </p>
-                  )}
-                </article>
-              ))}
-            </div>
+        <SkillSpaceList
+          spaces={items}
+          selectAll={pageSelection(
+            spaces.filter(writable).map((space) => space.id),
+            selected,
+            setSelected,
           )}
-        </div>
-      </ListPageTemplate>
+        />
+      </CollectionTemplate>
       {editing && (
         <SkillSpaceDialog
           space={editing === 'new' ? undefined : editing}
