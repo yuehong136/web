@@ -40,7 +40,10 @@ export function PreferenceChoiceGroup<T extends string>({
           <label
             key={choice.value}
             htmlFor={`${name}-${choice.value}`}
-            className="min-w-0 cursor-pointer"
+            // Anchors the visually hidden radio inside its card. Otherwise it
+            // is placed against an ancestor outside the scrolling settings
+            // area, and focusing it scrolls the app shell out of view.
+            className="relative min-w-0 cursor-pointer"
           >
             <input
               id={`${name}-${choice.value}`}
