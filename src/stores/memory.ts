@@ -91,7 +91,7 @@ const initialState: MemoryState = {
   filter: initialFilterState,
   page: 1,
   pageSize: 12,
-  viewMode: 'grid',
+  viewMode: 'list',
   selectedIds: [],
   messageFilter: initialMessageFilterState,
   messagePage: 1,

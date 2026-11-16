@@ -2,7 +2,7 @@ export default {
   memory: {
     page: {
       title: 'Memory banks',
-      description: 'Manage AI memory so conversations become more contextual.',
+      results: 'Memory banks: {{count}}',
       create: 'Create memory bank',
     },
     common: {
@@ -242,7 +242,6 @@ export default {
       capacity: 'Capacity limit',
       cardDescription:
         'Build context for future conversations from facts, experiences, and habits.',
-      yourMemories: 'Your memories',
       listHint: 'Open a memory to inspect content or test retrieval',
       settingsDescription:
         'Control how memories are extracted, retained, and shared.',
