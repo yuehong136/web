@@ -119,20 +119,6 @@ function normalizeModuleId(id: string): string {
   return id.replaceAll('\\', '/')
 }
 
-// 代码块使用项目的 code-block.css；避免 react-shiki 默认样式覆盖主题和布局。
-function stubReactShikiCss(): Plugin {
-  return {
-    name: 'stub-react-shiki-css',
-    enforce: 'pre',
-    load(id) {
-      if (normalizeModuleId(id).includes('/react-shiki/dist/style.css')) {
-        return ''
-      }
-      return null
-    },
-  }
-}
-
 function isPackage(id: string, packageName: string): boolean {
   const normalized = normalizeModuleId(id)
   return (
@@ -175,7 +161,6 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [
-      stubReactShikiCss(),
       rendererNetworkPolicyReceiptPlugin(env, mode),
       react(),
       tailwindcss(),
