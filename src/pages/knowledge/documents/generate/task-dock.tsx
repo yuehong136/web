@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next'
 import { ExternalLink } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui'
+import { cn } from '@/lib/utils'
 import {
   GenerateTaskType,
   GenerateTaskStatus,
@@ -60,24 +61,30 @@ const TaskDockComponent: React.FC<TaskDockProps> = ({
   if (items.length === 0) return null
 
   return (
-    <div className="mb-4 rounded-lg border border-border-default bg-background-surface p-4">
-      <div className="mb-3 flex items-center justify-between">
+    <div
+      data-slot="generate-task-dock"
+      className="shrink-0 border-b border-border-subtle px-space-md py-space-sm"
+    >
+      <div className="mb-space-sm flex items-center justify-between">
         <h4 className="text-sm font-medium text-text-primary">
           {t('knowledge.documents.generate.tasksTitle')}
         </h4>
         <Button
           variant="ghost"
           size="sm"
-          className="h-7 text-xs"
+          className="text-xs"
           onClick={() => navigate(`/knowledge/${kbId}/logs`)}
         >
-          <ExternalLink className="mr-1 h-3 w-3" />
+          <ExternalLink className="size-icon-xs" aria-hidden="true" />
           {t('knowledge.documents.generate.viewLogs')}
         </Button>
       </div>
 
       <div
-        className={`grid gap-3 ${items.length > 1 ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'}`}
+        className={cn(
+          'grid grid-cols-1 gap-space-sm',
+          items.length > 1 && 'md:grid-cols-2',
+        )}
       >
         {items.map((item) => (
           <TaskItem

@@ -9,8 +9,7 @@ export { FilterPopover, FilterButton } from './document-filter-popover'
 export { DocumentUploadModal } from './document-upload-modal'
 export { BulkActionToolbar } from './bulk-action-toolbar'
 export {
-  DocumentStatusCell,
-  DocumentMetadataCell,
+  DocumentStatusBadge,
   DocumentEnableSwitch,
 } from './document-status-cell'
 export { DocumentActionCell } from './document-action-cell'

@@ -1,7 +1,7 @@
 import { useCallback, useLayoutEffect, useRef, useState } from 'react'
 import type { ReparseOptions } from '@/api/knowledge-document-ingest'
-import { useTranslation } from 'react-i18next'
 import { DocumentCreationMode } from '@/api/knowledge-rest'
+import { useConsumedSearchFlag } from '@/hooks/use-consumed-search-flag'
 import { useDocumentParserModal } from '@/hooks/use-document-parser-modal'
 import type { Document, KnowledgeBase, MetadataDefinition } from '@/types/api'
 import type { DocumentListState } from '../types'
@@ -14,6 +14,8 @@ interface UseDocumentPageModalsProps {
   currentKnowledgeBase: KnowledgeBase | null
   listState: DocumentListState
   actions: DocumentActions
+  /** Called with the ids a confirmed delete removed. */
+  onDeleted?: (ids: string[]) => void
 }
 
 export function useDocumentPageModals({
@@ -21,9 +23,13 @@ export function useDocumentPageModals({
   currentKnowledgeBase,
   listState,
   actions,
+  onDeleted,
 }: UseDocumentPageModalsProps) {
-  const { t } = useTranslation()
-  const [uploadModalOpen, setUploadModalOpen] = useState(false)
+  // `?import=1` (new base, list row "add documents") opens the upload dialog.
+  const [uploadModalOpen, setUploadModalOpen] = useConsumedSearchFlag(
+    'import',
+    '1',
+  )
   const [createMode, setCreateMode] = useState<
     DocumentCreationMode.WEB | DocumentCreationMode.EMPTY | null
   >(null)
@@ -32,6 +38,8 @@ export function useDocumentPageModals({
   const [newDocName, setNewDocName] = useState('')
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [deletingDocId, setDeletingDocId] = useState('')
+  const [bulkDeleteIds, setBulkDeleteIds] = useState<string[] | null>(null)
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false)
   const [reparseModalOpen, setReparseModalOpen] = useState(false)
   const [reparsingDocs, setReparsingDocs] = useState<Document[]>([])
   const [isReparsing, setIsReparsing] = useState(false)
@@ -170,19 +178,33 @@ export function useDocumentPageModals({
   const handleDelete = useCallback(async () => {
     if (!deletingDocId) return
     await actions.handleDelete([deletingDocId])
+    onDeleted?.([deletingDocId])
     setDeleteConfirmOpen(false)
     setDeletingDocId('')
-  }, [deletingDocId, actions])
+  }, [deletingDocId, actions, onDeleted])
 
-  const handleBulkDelete = useCallback(async () => {
+  const handleBulkDelete = useCallback(() => {
     const docIds = Array.from(listState.selectedDocs)
-    const confirmed = window.confirm(
-      t('knowledge.documents.bulkDeleteConfirm', { count: docIds.length }),
-    )
-    if (!confirmed) return
-    await actions.handleDelete(docIds)
-    listState.clearSelection()
-  }, [listState, actions, t])
+    if (docIds.length) setBulkDeleteIds(docIds)
+  }, [listState.selectedDocs])
+
+  const cancelBulkDelete = useCallback(() => {
+    if (!isBulkDeleting) setBulkDeleteIds(null)
+  }, [isBulkDeleting])
+
+  const confirmBulkDelete = useCallback(async () => {
+    if (!bulkDeleteIds || isBulkDeleting) return
+    const docIds = bulkDeleteIds
+    setIsBulkDeleting(true)
+    try {
+      await actions.handleDelete(docIds)
+      onDeleted?.(docIds)
+      listState.clearSelection()
+      setBulkDeleteIds(null)
+    } finally {
+      setIsBulkDeleting(false)
+    }
+  }, [actions, bulkDeleteIds, isBulkDeleting, listState, onDeleted])
 
   const handleShowChunkMethodModal = useCallback(
     (doc: Document) => {
@@ -257,6 +279,10 @@ export function useDocumentPageModals({
     requestDelete,
     handleDelete,
     handleBulkDelete,
+    bulkDeleteIds,
+    isBulkDeleting,
+    cancelBulkDelete,
+    confirmBulkDelete,
     handleShowDocumentMetadata,
     handleShowChunkMethodModal,
     handleShowSingleFileMetadataSettings,

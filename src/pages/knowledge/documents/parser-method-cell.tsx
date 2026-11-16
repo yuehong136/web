@@ -1,33 +1,17 @@
 /**
- * 解析方式单元格组件
- *
- * 显示文档的解析方式，悬停时显示阴影覆盖效果，点击后弹出配置弹窗
+ * The document's chunk method; activating it opens the chunk method dialog.
  */
 
-import React from 'react'
+import type { FC } from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from '@/components/ui/dropdown-menu'
-import { Settings2 } from 'lucide-react'
 import type { Document } from '@/types/api'
 import {
   DocumentParserType,
   DOCUMENT_PARSER_TYPE_LABELS,
 } from '@/types/document-parser'
 
-interface ParserMethodCellProps {
-  document: Document
-  onShowChunkMethodModal: (doc: Document) => void
-}
-
-/**
- * 获取解析器的友好显示名称
- */
-function getParserLabel(
+/** Friendly parser name; the built-in `naive` parser reads as General. */
+export function getParserLabel(
   parserId: string | undefined,
   defaultLabel: string,
 ): string {
@@ -36,34 +20,37 @@ function getParserLabel(
   return DOCUMENT_PARSER_TYPE_LABELS[parserId as DocumentParserType] || parserId
 }
 
-export const ParserMethodCell: React.FC<ParserMethodCellProps> = ({
+export function useDocumentParserLabel(document: Document) {
+  const { t } = useTranslation()
+  return document.pipeline_id
+    ? t('knowledge.documents.chunkMethodModal.pipelineLabel')
+    : getParserLabel(document.parser_id, t('knowledge.documents.defaultParser'))
+}
+
+interface ParserMethodCellProps {
+  document: Document
+  onShowChunkMethodModal: (doc: Document) => void
+}
+
+export const ParserMethodCell: FC<ParserMethodCellProps> = ({
   document,
   onShowChunkMethodModal,
 }) => {
   const { t } = useTranslation()
-  const parserLabel = document.pipeline_id
-    ? t('knowledge.documents.chunkMethodModal.pipelineLabel')
-    : getParserLabel(document.parser_id, t('knowledge.documents.defaultParser'))
+  const parserLabel = useDocumentParserLabel(document)
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button
-          type="button"
-          className="inline-flex cursor-pointer items-center rounded-sm px-2 py-1 transition-colors hover:bg-state-hover hover:shadow-elevation-low"
-          aria-label={t('knowledge.documents.configureParser')}
-        >
-          <span className="max-w-[80px] truncate text-sm text-text-secondary">
-            {parserLabel}
-          </span>
-        </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="left">
-        <DropdownMenuItem onClick={() => onShowChunkMethodModal(document)}>
-          <Settings2 className="mr-2 h-4 w-4" />
-          {t('knowledge.documents.configureParser')}
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <button
+      type="button"
+      title={t('knowledge.documents.configureParser')}
+      aria-label={t('knowledge.documents.configureParserFor', {
+        name: document.name,
+        parser: parserLabel,
+      })}
+      onClick={() => onShowChunkMethodModal(document)}
+      className="max-w-full truncate rounded-radius-sm text-left text-sm text-text-secondary outline-hidden hover:text-text-primary hover:underline focus-visible:ring-2 focus-visible:ring-state-focus"
+    >
+      {parserLabel}
+    </button>
   )
 }

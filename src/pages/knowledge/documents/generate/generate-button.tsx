@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next'
 import { WandSparkles } from 'lucide-react'
 import { Button } from '@/components/ui'
 import { Tooltip } from '@/components/ui/tooltip'
+import { cn } from '@/lib/utils'
 import {
   Popover,
   PopoverContent,
@@ -67,10 +68,10 @@ const GenerateButtonComponent: React.FC<GenerateButtonProps> = ({
     graphStatus === GenerateTaskStatus.Failed ||
     raptorStatus === GenerateTaskStatus.Failed
 
-  const dotColor = useMemo(() => {
-    if (hasRunning) return 'var(--color-state-focus)'
-    if (hasFailed) return 'var(--color-status-error)'
-    if (hasCompleted) return 'var(--color-status-success)'
+  const dotClass = useMemo(() => {
+    if (hasRunning) return 'bg-state-focus animate-pulse'
+    if (hasFailed) return 'bg-status-error'
+    if (hasCompleted) return 'bg-status-success'
     return null
   }, [hasRunning, hasFailed, hasCompleted])
 
@@ -87,18 +88,19 @@ const GenerateButtonComponent: React.FC<GenerateButtonProps> = ({
           <div className="relative inline-flex">
             <Button variant="outline" disabled={disabled}>
               <WandSparkles
-                className={`mr-2 h-4 w-4 ${hasRunning ? 'animate-pulse' : ''}`}
+                className={cn('size-icon-sm', hasRunning && 'animate-pulse')}
+                aria-hidden="true"
               />
               {t('knowledge.documents.generate.button')}
             </Button>
             {/* 状态指示圆点 */}
-            {dotColor && !disabled && (
+            {dotClass && !disabled && (
               <span
-                className={`absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full border-2 ${hasRunning ? 'animate-pulse' : ''}`}
-                style={{
-                  backgroundColor: dotColor,
-                  borderColor: 'var(--color-background-surface)',
-                }}
+                aria-hidden="true"
+                className={cn(
+                  'absolute -top-1 -right-1 size-2.5 rounded-radius-full border-2 border-background-surface',
+                  dotClass,
+                )}
               />
             )}
           </div>
@@ -106,7 +108,7 @@ const GenerateButtonComponent: React.FC<GenerateButtonProps> = ({
       </Tooltip>
       {/* Task controls, not menu items: a popover keeps them in the Tab order. */}
       <PopoverContent align="end" sideOffset={8} className="w-[360px]">
-        <div className="space-y-3">
+        <div className="space-y-space-base">
           <TaskItem
             type={GenerateTaskType.GraphRAG}
             status={graphStatus}
