@@ -110,7 +110,7 @@ export const SidebarUtilities = ({
                     <span
                       aria-hidden
                       data-pending-invitations={pendingCount}
-                      className="absolute -top-0.5 -right-0.5 size-1.5 rounded-radius-full bg-text-secondary ring-2 ring-components-sidebar-bg"
+                      className="absolute -top-space-2xs -right-space-2xs size-1.5 rounded-radius-full bg-text-secondary ring-2 ring-components-sidebar-bg"
                     />
                     <span id={pendingDescriptionId} className="sr-only">
                       {pendingLabel}

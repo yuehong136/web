@@ -14,7 +14,7 @@ import {
 import { ROUTES } from '@/constants'
 
 export interface NavItem {
-  title: string
+  /** Label key under `layout.nav`; the label itself lives in the catalogs. */
   titleKey: string
   href: string
   icon: React.ComponentType<{ className?: string }>
@@ -28,61 +28,51 @@ export interface NavItem {
 
 export const navItems: NavItem[] = [
   {
-    title: '首页',
     titleKey: 'layout.nav.home',
     href: ROUTES.HOME,
     icon: Home,
   },
   {
-    title: '探索',
     titleKey: 'layout.nav.explore',
     href: ROUTES.EXPLORE,
     icon: Compass,
   },
   {
-    title: '搜索',
     titleKey: 'layout.nav.search',
     href: ROUTES.SEARCH,
     icon: Search,
   },
   {
-    title: '知识库',
     titleKey: 'layout.nav.knowledge',
     href: ROUTES.KNOWLEDGE,
     icon: BookOpen,
   },
   {
-    title: 'Skills',
     titleKey: 'layout.nav.skills',
     href: ROUTES.SKILLS,
     icon: Library,
   },
   {
-    title: '记忆库',
     titleKey: 'layout.nav.memory',
     href: ROUTES.MEMORY,
     icon: HardDrive,
   },
   {
-    title: '智能体',
     titleKey: 'layout.nav.agents',
     href: ROUTES.AGENTS,
     icon: Workflow,
   },
   {
-    title: '工作室',
     titleKey: 'layout.nav.studio',
     href: ROUTES.STUDIO,
     icon: Briefcase,
   },
   {
-    title: '工具箱',
     titleKey: 'layout.nav.tools',
     href: ROUTES.AUTO_FILL,
     icon: Wrench,
   },
   {
-    title: 'MCP',
     titleKey: 'layout.nav.mcp',
     href: ROUTES.MCP_SERVERS,
     icon: Server,

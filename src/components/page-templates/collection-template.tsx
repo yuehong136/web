@@ -120,7 +120,7 @@ export function CollectionTemplate({
           <>
             <div
               data-scroll-root="list-body"
-              className="scroll-area -mx-1 flex flex-1 flex-col overflow-y-auto px-1 pt-1 pb-2"
+              className="scroll-area -mx-space-xs flex flex-1 flex-col overflow-y-auto px-space-xs pt-space-xs pb-space-sm"
             >
               {children}
             </div>
