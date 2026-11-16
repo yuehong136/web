@@ -15,6 +15,7 @@ export const SecondaryNavigationContent = ({
   contentOnly = false,
   touchTargets = false,
   scroll = 'self',
+  headerDivider = true,
 }: {
   title: string
   groups: ContextRailGroup[]
@@ -26,11 +27,18 @@ export const SecondaryNavigationContent = ({
   touchTargets?: boolean
   /** Mobile navigation delegates scrolling to the sheet viewport. */
   scroll?: 'self' | 'parent'
+  /** The docked panel sits on the shell tone without a rule under its title. */
+  headerDivider?: boolean
 }) => (
   <>
     {!contentOnly && (
       <>
-        <header className="flex min-h-[calc(var(--control-height)+var(--space-sm))] shrink-0 items-center border-b border-border-subtle px-space-base py-space-sm">
+        <header
+          className={cn(
+            'flex min-h-[calc(var(--control-height)+var(--space-sm))] shrink-0 items-center px-space-base py-space-sm',
+            headerDivider && 'border-b border-border-subtle',
+          )}
+        >
           <p className="truncate text-sm font-semibold text-text-primary">
             {title}
           </p>

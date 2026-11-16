@@ -101,6 +101,19 @@ for (const preset of APPEARANCE_PRESETS) {
       assert.ok(
         contrast(values['state-focus'], values['background-surface']) >= 3,
       )
+      // Pages and the header inside the raised workbench share its surface,
+      // which stands apart from the shell tone the navigation sits on.
+      for (const ground of [
+        'components-nav-bg',
+        'components-console-bg',
+        'components-workspace-bg',
+        'components-settings-content-bg',
+      ] as const)
+        assert.equal(values[ground], values['background-surface'], ground)
+      assert.notEqual(
+        values['components-app-shell-bg'],
+        values['background-surface'],
+      )
       const antd = buildAntdTheme(mode === 'dark', preset)
       assert.equal(antd.token?.colorText, values['text-primary'])
       assert.equal(

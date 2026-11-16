@@ -66,7 +66,7 @@ export const Sidebar = ({
       aria-label={t('layout.sidebar.primaryNavigation')}
       data-primary-navigation
       className={cn(
-        'flex h-full min-h-0 w-[calc(var(--control-height)+var(--space-md))] shrink-0 flex-col border-r border-border-subtle bg-components-sidebar-bg py-space-sm',
+        'flex h-full min-h-0 w-[calc(var(--nav-rail-item)+var(--space-md))] shrink-0 flex-col bg-components-sidebar-bg py-space-sm',
         className,
       )}
     >
@@ -109,7 +109,7 @@ export const Sidebar = ({
               aria-label={title}
               aria-current={section === itemSection ? 'page' : undefined}
               className={cn(
-                'flex min-h-[var(--control-height)] w-full items-center justify-center rounded-radius-lg focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden focus-visible:ring-inset',
+                'flex min-h-[var(--nav-rail-item)] w-full items-center justify-center rounded-radius-lg focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden focus-visible:ring-inset',
                 section === itemSection
                   ? 'bg-components-sidebar-item-bg-active text-components-sidebar-item-text-active'
                   : 'text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover hover:text-text-primary',
@@ -153,7 +153,7 @@ export const Sidebar = ({
                 variant="ghost"
                 size="icon"
                 className={cn(
-                  'w-full text-text-secondary',
+                  'h-[var(--nav-rail-item)] w-full text-text-secondary',
                   section === 'tools' &&
                     'bg-components-sidebar-item-bg-active text-text-primary',
                 )}

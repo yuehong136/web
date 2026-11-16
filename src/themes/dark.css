@@ -98,7 +98,7 @@
   --color-components-sidebar-item-text-active: #edeef3;
 
   /* ===== 导航组件 ===== */
-  --color-components-nav-bg: #121b23;
+  --color-components-nav-bg: #17212a;
   --color-components-nav-item-text: #989bab;
 
   /* ===== 下拉菜单组件 ===== */
@@ -457,10 +457,10 @@
   --color-components-settings-rail-bg: #17212a;
   --color-components-settings-rail-border: #223140;
   --color-components-settings-rail-title: #edeef3;
-  --color-components-console-bg: #121b23;
+  --color-components-console-bg: #17212a;
   --color-components-console-surface: #17212a;
   --color-components-console-border: #2b3a48;
-  --color-components-workspace-bg: #121b23;
+  --color-components-workspace-bg: #17212a;
   --color-components-workspace-surface: #17212a;
   --color-components-workspace-border: #2b3a48;
   --color-components-studio-bg: #121b23;
@@ -468,7 +468,7 @@
   --color-components-studio-border: #2b3a48;
   --color-components-split-pane-bg: #121b23;
   --color-components-split-pane-border: #2b3a48;
-  --color-components-settings-content-bg: #121b23;
+  --color-components-settings-content-bg: #17212a;
   --color-components-settings-section-bg: #17212a;
   --color-components-settings-section-border: #223140;
   --color-components-settings-section-title: #edeef3;
@@ -601,7 +601,7 @@ html[data-theme='dark'],
   --color-components-sidebar-item-text-active: #f4f4f5;
 
   /* ===== 导航组件 ===== */
-  --color-components-nav-bg: #18181b;
+  --color-components-nav-bg: #202024;
   --color-components-nav-item-text: #a1a1aa;
 
   /* ===== 下拉菜单组件 ===== */
@@ -960,10 +960,10 @@ html[data-theme='dark'],
   --color-components-settings-rail-bg: #202024;
   --color-components-settings-rail-border: rgba(244, 244, 245, 0.07);
   --color-components-settings-rail-title: #f4f4f5;
-  --color-components-console-bg: #18181b;
+  --color-components-console-bg: #202024;
   --color-components-console-surface: #202024;
   --color-components-console-border: rgba(244, 244, 245, 0.12);
-  --color-components-workspace-bg: #18181b;
+  --color-components-workspace-bg: #202024;
   --color-components-workspace-surface: #202024;
   --color-components-workspace-border: rgba(244, 244, 245, 0.12);
   --color-components-studio-bg: #18181b;
@@ -971,7 +971,7 @@ html[data-theme='dark'],
   --color-components-studio-border: rgba(244, 244, 245, 0.12);
   --color-components-split-pane-bg: #18181b;
   --color-components-split-pane-border: rgba(244, 244, 245, 0.12);
-  --color-components-settings-content-bg: #18181b;
+  --color-components-settings-content-bg: #202024;
   --color-components-settings-section-bg: #202024;
   --color-components-settings-section-border: rgba(244, 244, 245, 0.07);
   --color-components-settings-section-title: #f4f4f5;
@@ -1103,7 +1103,7 @@ html[data-theme='dark'],
   --color-components-sidebar-item-text-active: #f2eade;
 
   /* ===== 导航组件 ===== */
-  --color-components-nav-bg: #25221e;
+  --color-components-nav-bg: #2c2823;
   --color-components-nav-item-text: #b1a493;
 
   /* ===== 下拉菜单组件 ===== */
@@ -1467,10 +1467,10 @@ html[data-theme='dark'],
   --color-components-settings-rail-bg: #2c2823;
   --color-components-settings-rail-border: rgba(242, 234, 222, 0.08);
   --color-components-settings-rail-title: #f2eade;
-  --color-components-console-bg: #25221e;
+  --color-components-console-bg: #2c2823;
   --color-components-console-surface: #2c2823;
   --color-components-console-border: rgba(242, 234, 222, 0.14);
-  --color-components-workspace-bg: #25221e;
+  --color-components-workspace-bg: #2c2823;
   --color-components-workspace-surface: #2c2823;
   --color-components-workspace-border: rgba(242, 234, 222, 0.14);
   --color-components-studio-bg: #25221e;
@@ -1478,7 +1478,7 @@ html[data-theme='dark'],
   --color-components-studio-border: rgba(242, 234, 222, 0.14);
   --color-components-split-pane-bg: #25221e;
   --color-components-split-pane-border: rgba(242, 234, 222, 0.14);
-  --color-components-settings-content-bg: #25221e;
+  --color-components-settings-content-bg: #2c2823;
   --color-components-settings-section-bg: #2c2823;
   --color-components-settings-section-border: rgba(242, 234, 222, 0.08);
   --color-components-settings-section-title: #f2eade;
@@ -1610,7 +1610,7 @@ html[data-theme='dark'],
   --color-components-sidebar-item-text-active: #eef0f3;
 
   /* ===== 导航组件 ===== */
-  --color-components-nav-bg: #17191d;
+  --color-components-nav-bg: #1d2025;
   --color-components-nav-item-text: #a0a9b8;
 
   /* ===== 下拉菜单组件 ===== */
@@ -1974,10 +1974,10 @@ html[data-theme='dark'],
   --color-components-settings-rail-bg: #1d2025;
   --color-components-settings-rail-border: rgba(238, 240, 243, 0.08);
   --color-components-settings-rail-title: #eef0f3;
-  --color-components-console-bg: #17191d;
+  --color-components-console-bg: #1d2025;
   --color-components-console-surface: #1d2025;
   --color-components-console-border: rgba(238, 240, 243, 0.14);
-  --color-components-workspace-bg: #17191d;
+  --color-components-workspace-bg: #1d2025;
   --color-components-workspace-surface: #1d2025;
   --color-components-workspace-border: rgba(238, 240, 243, 0.14);
   --color-components-studio-bg: #17191d;
@@ -1985,7 +1985,7 @@ html[data-theme='dark'],
   --color-components-studio-border: rgba(238, 240, 243, 0.14);
   --color-components-split-pane-bg: #17191d;
   --color-components-split-pane-border: rgba(238, 240, 243, 0.14);
-  --color-components-settings-content-bg: #17191d;
+  --color-components-settings-content-bg: #1d2025;
   --color-components-settings-section-bg: #1d2025;
   --color-components-settings-section-border: rgba(238, 240, 243, 0.08);
   --color-components-settings-section-title: #eef0f3;
@@ -2117,7 +2117,7 @@ html[data-theme='dark'],
   --color-components-sidebar-item-text-active: #e6f4fc;
 
   /* ===== 导航组件 ===== */
-  --color-components-nav-bg: #0f2533;
+  --color-components-nav-bg: #142f40;
   --color-components-nav-item-text: #95b8cb;
 
   /* ===== 下拉菜单组件 ===== */
@@ -2481,10 +2481,10 @@ html[data-theme='dark'],
   --color-components-settings-rail-bg: #142f40;
   --color-components-settings-rail-border: rgba(230, 244, 252, 0.08);
   --color-components-settings-rail-title: #e6f4fc;
-  --color-components-console-bg: #0f2533;
+  --color-components-console-bg: #142f40;
   --color-components-console-surface: #142f40;
   --color-components-console-border: rgba(230, 244, 252, 0.14);
-  --color-components-workspace-bg: #0f2533;
+  --color-components-workspace-bg: #142f40;
   --color-components-workspace-surface: #142f40;
   --color-components-workspace-border: rgba(230, 244, 252, 0.14);
   --color-components-studio-bg: #0f2533;
@@ -2492,7 +2492,7 @@ html[data-theme='dark'],
   --color-components-studio-border: rgba(230, 244, 252, 0.14);
   --color-components-split-pane-bg: #0f2533;
   --color-components-split-pane-border: rgba(230, 244, 252, 0.14);
-  --color-components-settings-content-bg: #0f2533;
+  --color-components-settings-content-bg: #142f40;
   --color-components-settings-section-bg: #142f40;
   --color-components-settings-section-border: rgba(230, 244, 252, 0.08);
   --color-components-settings-section-title: #e6f4fc;

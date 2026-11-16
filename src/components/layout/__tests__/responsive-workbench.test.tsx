@@ -177,6 +177,32 @@ it('adapts the secondary navigation without rewriting its preference or remounti
   ).toBe('false')
 })
 
+it('raises only the task area while navigation sits on the shell tone', async () => {
+  await render()
+  const rail = container.querySelector<HTMLElement>(
+    '[data-primary-navigation]',
+  )!
+  const panel = container.querySelector<HTMLElement>('[data-secondary-panel]')!
+  const workbench = container.querySelector<HTMLElement>(
+    '[data-main-task-area]',
+  )!.parentElement!.parentElement!
+  // Rail and docked panel have no dividers; the panel title has no rule.
+  for (const navigation of [rail, panel])
+    expect(navigation.classList.contains('border-r')).toBe(false)
+  expect(panel.querySelector('header')?.classList.contains('border-b')).toBe(
+    false,
+  )
+  expect(rail.className).toContain('var(--nav-rail-item)')
+  // From the rail breakpoint up, only the task area is a bordered card.
+  for (const raised of [
+    'md:rounded-radius-xl',
+    'md:border',
+    'md:my-space-sm',
+    'md:h-auto',
+  ])
+    expect(workbench.classList.contains(raised)).toBe(true)
+})
+
 it('mounts mobile navigation once on demand and restores the actual opening control', async () => {
   await resize(390)
   await render()

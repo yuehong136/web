@@ -26,6 +26,9 @@ html[data-preset] {
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
   --radius-full: 9999px;
+  /* Workbench chrome follows the control scale unless a preset sets its own. */
+  --nav-rail-item: var(--control-height);
+  --workbench-header-height: calc(var(--control-height) + var(--space-sm));
 }
 /* DreamJira scale: Geist for Latin over system CJK, radii 4/6/8/12. */
 [data-preset='mist'] {
@@ -87,8 +90,11 @@ html[data-preset] {
   --control-padding-x-lg: 16px;
   --control-gap: 6px;
 }
-/* Mist uses DreamJira's 32px controls; compact steps down once more. */
+/* Mist uses DreamJira's 32px controls, 36px rail items and a 48px workbench
+   header; compact steps down once more. */
 [data-preset='mist'][data-density='comfortable'] {
+  --nav-rail-item: calc(2.25rem * var(--text-scale, 1));
+  --workbench-header-height: calc(3rem * var(--text-scale, 1));
   --control-height-sm: calc(1.75rem * var(--text-scale, 1));
   --control-height: calc(2rem * var(--text-scale, 1));
   --control-height-lg: calc(2.5rem * var(--text-scale, 1));
@@ -97,6 +103,8 @@ html[data-preset] {
   --control-padding-x-lg: 16px;
 }
 [data-preset='mist'][data-density='compact'] {
+  --nav-rail-item: calc(2rem * var(--text-scale, 1));
+  --workbench-header-height: calc(2.5rem * var(--text-scale, 1));
   --control-height-sm: calc(1.5rem * var(--text-scale, 1));
   --control-height: calc(1.75rem * var(--text-scale, 1));
   --control-height-lg: calc(2rem * var(--text-scale, 1));

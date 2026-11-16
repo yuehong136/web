@@ -96,7 +96,7 @@ export const lightTokens: DesignTokens = {
   'components-sidebar-item-text-active': surfaces.light.text,
 
   // ===== 导航组件 =====
-  'components-nav-bg': surfaces.light.canvas,
+  'components-nav-bg': surfaces.light.surface,
   'components-nav-item-text': surfaces.light.secondary,
 
   // ===== 下拉菜单组件 =====
@@ -377,10 +377,10 @@ export const lightTokens: DesignTokens = {
   'components-settings-rail-bg': surfaces.light.surface,
   'components-settings-rail-border': surfaces.light.borderSubtle,
   'components-settings-rail-title': surfaces.light.text,
-  'components-console-bg': surfaces.light.canvas,
+  'components-console-bg': surfaces.light.surface,
   'components-console-surface': surfaces.light.surface,
   'components-console-border': surfaces.light.border,
-  'components-workspace-bg': surfaces.light.canvas,
+  'components-workspace-bg': surfaces.light.surface,
   'components-workspace-surface': surfaces.light.surface,
   'components-workspace-border': surfaces.light.border,
   'components-studio-bg': surfaces.light.canvas,
@@ -390,7 +390,7 @@ export const lightTokens: DesignTokens = {
   'components-split-pane-border': surfaces.light.border,
 
   // ===== 设置页面专用 =====
-  'components-settings-content-bg': surfaces.light.canvas,
+  'components-settings-content-bg': surfaces.light.surface,
   'components-settings-section-bg': surfaces.light.surface,
   'components-settings-section-border': surfaces.light.borderSubtle,
   'components-settings-section-title': surfaces.light.text,
@@ -508,7 +508,7 @@ export const darkTokens: DesignTokens = {
   'components-sidebar-item-text-active': surfaces.dark.text,
 
   // ===== 导航组件 =====
-  'components-nav-bg': surfaces.dark.canvas,
+  'components-nav-bg': surfaces.dark.surface,
   'components-nav-item-text': surfaces.dark.tertiary,
 
   // ===== 下拉菜单组件 =====
@@ -789,10 +789,10 @@ export const darkTokens: DesignTokens = {
   'components-settings-rail-bg': surfaces.dark.surface,
   'components-settings-rail-border': surfaces.dark.borderSubtle,
   'components-settings-rail-title': surfaces.dark.text,
-  'components-console-bg': surfaces.dark.canvas,
+  'components-console-bg': surfaces.dark.surface,
   'components-console-surface': surfaces.dark.surface,
   'components-console-border': surfaces.dark.border,
-  'components-workspace-bg': surfaces.dark.canvas,
+  'components-workspace-bg': surfaces.dark.surface,
   'components-workspace-surface': surfaces.dark.surface,
   'components-workspace-border': surfaces.dark.border,
   'components-studio-bg': surfaces.dark.canvas,
@@ -802,7 +802,7 @@ export const darkTokens: DesignTokens = {
   'components-split-pane-border': surfaces.dark.border,
 
   // ===== 设置页面专用 =====
-  'components-settings-content-bg': surfaces.dark.canvas,
+  'components-settings-content-bg': surfaces.dark.surface,
   'components-settings-section-bg': surfaces.dark.surface,
   'components-settings-section-border': surfaces.dark.borderSubtle,
   'components-settings-section-title': surfaces.dark.text,

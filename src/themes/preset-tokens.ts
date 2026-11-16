@@ -77,6 +77,11 @@ export function buildPresetTokens(
     'border-default': surfaces.border,
     'border-subtle': surfaces.borderSubtle,
     'border-strong': surfaces.borderStrong,
+    // The workbench header and page grounds inside it share its surface.
+    'components-nav-bg': surfaces.surface,
+    'components-console-bg': surfaces.surface,
+    'components-workspace-bg': surfaces.surface,
+    'components-settings-content-bg': surfaces.surface,
     'components-input-bg': surfaces.surface,
     'components-input-bg-focus': surfaces.surface,
     'components-input-bg-hover': surfaces.canvas,

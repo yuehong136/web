@@ -60,7 +60,7 @@ const WorkbenchFrame = ({ children }: React.PropsWithChildren) => {
       data-navigation-mode={
         viewport.wide ? 'docked' : viewport.desktop ? 'overlay' : 'mobile'
       }
-      className="relative h-dvh overflow-hidden bg-components-app-shell-bg md:p-space-sm"
+      className="relative h-dvh overflow-hidden bg-components-app-shell-bg"
       style={viewport.height > 0 ? { height: viewport.height } : undefined}
     >
       <a
@@ -70,7 +70,8 @@ const WorkbenchFrame = ({ children }: React.PropsWithChildren) => {
       >
         {t('layout.workspace.skipToTask')}
       </a>
-      <div className="flex h-full min-h-0 min-w-0 overflow-hidden md:rounded-radius-xl md:border md:border-components-main-workbench-border">
+      {/* Navigation sits on the shell tone; only the task area is raised. */}
+      <div className="flex h-full min-h-0 min-w-0 overflow-hidden">
         {viewport.desktop && (
           <Sidebar
             secondaryCollapsed={effectiveCollapsed}
@@ -85,16 +86,21 @@ const WorkbenchFrame = ({ children }: React.PropsWithChildren) => {
           className={
             effectiveCollapsed
               ? 'hidden'
-              : 'flex h-full min-h-0 w-[calc(14rem*var(--text-scale,1))] max-w-[28vw] shrink-0 flex-col overflow-hidden border-r border-border-subtle bg-components-sidebar-bg'
+              : 'flex h-full min-h-0 w-[calc(16rem*var(--text-scale,1))] max-w-[28vw] shrink-0 flex-col overflow-hidden bg-components-sidebar-bg'
           }
         >
           {viewport.desktop && !effectiveCollapsed && (
-            <SecondaryNavigationContent {...definition} currentPath={pathname}>
+            <SecondaryNavigationContent
+              {...definition}
+              currentPath={pathname}
+              headerDivider={false}
+            >
               {definition.content}
             </SecondaryNavigationContent>
           )}
         </div>
         <MainWorkbench
+          className="md:my-space-sm md:mr-space-sm md:h-auto md:self-stretch md:rounded-radius-xl md:border md:border-components-main-workbench-border md:shadow-elevation-low"
           contentId={contentId}
           contentLabel={t('layout.workspace.mainTask')}
           header={
