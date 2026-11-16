@@ -32,6 +32,8 @@ export default {
       knowledge: 'Knowledge',
       chunks: 'Chunks',
       documentFallback: 'Document',
+      allKnowledge: 'All knowledge bases',
+      identity: 'Knowledge base',
     },
     shared: {
       knowledgeBaseSelector: {
@@ -100,6 +102,7 @@ export default {
         delete: 'Delete',
         settings: 'Settings',
       },
+      createCard: 'Add documents right after',
       stats: {
         totalDocuments: 'Documents',
         totalChunks: 'Chunks',
@@ -151,6 +154,17 @@ export default {
         description: 'Create your first knowledge base to get started.',
         filteredTitle: 'No matching knowledge bases',
         filteredDescription: 'Adjust the search query or filters.',
+        startTitle: 'Build a knowledge base so every answer has a source',
+        startDescription:
+          'Uploaded documents are parsed, chunked and embedded automatically. Ask in chat later and trace every claim back to the original.',
+        uploadTitle: 'Upload files',
+        uploadDescription:
+          'Create a base, then upload PDF, Word, Excel, PPT or Markdown. Parsing starts on upload.',
+        uploadCta: 'Start',
+        sourceTitle: 'Connect a data source',
+        sourceDescription:
+          'Set up websites, object storage or existing systems in settings, then link them to a base for scheduled sync.',
+        sourceCta: 'Manage data sources',
       },
       pagination: {
         previous: 'Previous',
@@ -660,6 +674,28 @@ export default {
       selectDocument: 'Select {{name}}',
       configureParserFor:
         'Change the chunk method of {{name}} (currently {{parser}})',
+      viewChunksCount_one: 'View its {{count}} chunk',
+      viewChunksCount_other: 'View its {{count}} chunks',
+      dropHint: {
+        idle: 'Drop files here or click to upload; parsing starts on upload',
+        formats: 'PDF, Word, Excel, PPT, Markdown and more',
+        release: 'Release to upload these files',
+      },
+      statusSummary: {
+        label: 'Parse status',
+        item: '{{count}} {{status}}',
+      },
+      emptyStart: {
+        uploadDescription:
+          'PDF, Word, Excel, PPT or Markdown, or a whole folder at once',
+        uploadCta: 'Choose files',
+        webDescription: 'Enter a URL and keep the page text as a document',
+        webCta: 'Enter a URL',
+        sourceTitle: 'Link a data source',
+        sourceDescription:
+          'Link a configured data source in this base’s settings to sync documents on a schedule',
+        sourceCta: 'Open settings',
+      },
       sort: {
         newest: 'Newest uploads first',
         oldest: 'Oldest uploads first',
@@ -675,6 +711,18 @@ export default {
         rename: 'Rename',
         download: 'Download',
         delete: 'Delete',
+        tokens: 'Tokens',
+        properties: 'Properties',
+        uploadedOn: 'Uploaded {{date}}',
+        chunkPreview: 'Chunk preview',
+        allChunks_one: 'All {{count}} chunk',
+        allChunks_other: 'All {{count}} chunks',
+        chunkPage: 'p. {{page}}',
+        chunkPreviewUnavailable:
+          'Chunk preview is unavailable here. Open the chunk page instead.',
+        earlierSteps_one: '{{count}} earlier step is in the full log',
+        earlierSteps_other: '{{count}} earlier steps are in the full log',
+        fullLog: 'Show full log',
       },
       manageMetadata: 'Manage metadata',
       import: 'Import documents',
@@ -835,6 +883,8 @@ export default {
           'Contact an administrator for download permission.',
         enableDocument: 'Enable document',
         disableDocument: 'Disable document',
+        retryParse: 'Retry',
+        previewSource: 'Preview original',
       },
       bulkActions: {
         selected: '{{count}} documents selected',
@@ -1302,6 +1352,10 @@ export default {
         source: 'Source preview',
         previewUnavailable:
           'The source document is currently unavailable. Try again or close the preview to keep reviewing chunks.',
+        sourceTab: 'In source',
+        configTab: 'Parser settings',
+        panelLabel: 'Source and document information',
+        closePanel: 'Close side panel',
       },
       pagination: {
         range: '{{start}}–{{end}} of {{total}} chunks',
@@ -1343,6 +1397,11 @@ export default {
         totalChunks: '{{count}} chunks',
         searchSummary: '(Search: "{{keyword}}")',
         filterSummary: '(Filter: {{status}})',
+        statusFilter: 'Status',
+        selectedChunks_one: '{{count}} chunk selected',
+        selectedChunks_other: '{{count}} chunks selected',
+        searchHits_one: 'Search "{{keyword}}": {{count}} matching chunk',
+        searchHits_other: 'Search "{{keyword}}": {{count}} matching chunks',
       },
       list: {
         inspectChunk: 'Inspect chunk #{{no}}',
@@ -1366,6 +1425,9 @@ export default {
         thumbnailAlt: 'Chunk thumbnail',
         keywords: 'Keywords',
         questions: 'Questions',
+        keywordsAndQuestions: 'Keywords and questions',
+        pageLabel: 'p. {{page}}',
+        located: 'Located in source',
         previousPage: 'Previous',
         nextPage: 'Next',
         type: {

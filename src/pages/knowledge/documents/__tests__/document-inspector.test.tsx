@@ -156,19 +156,34 @@ afterEach(async () => {
   vi.restoreAllMocks()
 })
 
+const menuItems = () =>
+  [...document.querySelectorAll<HTMLElement>('[role="menuitem"]')].map((item) =>
+    item.textContent?.trim(),
+  )
+async function openRowMenu(name: string) {
+  const trigger = container.querySelector<HTMLButtonElement>(
+    `button[aria-label="More actions for ${name}"]`,
+  )!
+  await act(async () => {
+    trigger.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }),
+    )
+  })
+}
+
 it('shows six default columns and opens a row in the Inspector without leaving the page', async () => {
   const router = await render()
   const headers = [...container.querySelectorAll('thead th')]
     .map((cell) => cell.textContent?.trim())
     .filter(Boolean)
-  // Six data columns, then the visually hidden row-actions header.
+  // Six data columns in the board's order, then the hidden row-actions header.
   expect(headers).toEqual([
     'File name',
     'Chunks',
     'Parser',
     'Task status',
-    'Enabled',
     'Created at',
+    'Enabled',
     'Actions',
   ])
   expect(panel()).toBeNull()
@@ -192,12 +207,45 @@ it('shows six default columns and opens a row in the Inspector without leaving t
   expect(row.getAttribute('aria-current')).toBe('true')
 })
 
-it('opens the Inspector from the keyboard-reachable name and links to the chunks page', async () => {
+it('links the file name to its chunks page', async () => {
   const router = await render()
-  const name = [...container.querySelectorAll('tbody button')].find(
-    (button) => button.textContent === 'notes.pdf',
-  ) as HTMLButtonElement
+  const name = [...container.querySelectorAll('tbody a')].find(
+    (link) => link.textContent === 'report.pdf',
+  ) as HTMLAnchorElement
+  expect(name.getAttribute('href')).toBe(
+    '/knowledge/kb/documents/report/chunks',
+  )
   await act(async () => name.click())
+  expect(router.state.location.pathname).toBe(
+    '/knowledge/kb/documents/report/chunks',
+  )
+})
+
+it('keeps every row action in one menu, with the Inspector reachable from the keyboard', async () => {
+  const router = await render()
+  await openRowMenu('notes.pdf')
+  expect(menuItems()).toEqual([
+    'View chunks',
+    'Preview original',
+    'View details',
+    'Rename document',
+    'Configure parser',
+    'Edit metadata',
+    'Re-parse',
+    'Download document',
+    'Delete document. This cannot be undone.',
+  ])
+  const preview = document.querySelector<HTMLAnchorElement>(
+    '[role="menuitem"][href]',
+  )!
+  expect(preview.getAttribute('href')).toBe(
+    '/document/notes/preview?name=notes.pdf&extension=pdf',
+  )
+  expect(preview.getAttribute('target')).toBe('_blank')
+  const details = [
+    ...document.querySelectorAll<HTMLElement>('[role="menuitem"]'),
+  ].find((item) => item.textContent?.trim() === 'View details')!
+  await act(async () => details.click())
   expect(panel()?.querySelector('h2')?.textContent).toBe('notes.pdf')
   await act(async () =>
     panel()!
@@ -207,6 +255,65 @@ it('opens the Inspector from the keyboard-reachable name and links to the chunks
   expect(router.state.location.pathname).toBe(
     '/knowledge/kb/documents/notes/chunks',
   )
+})
+
+it('summarises parse states, offers a retry on failures and shows parse steps', async () => {
+  await render()
+  const summary = container.querySelector(
+    '[data-slot="document-status-summary"]',
+  )!
+  expect(
+    [...summary.querySelectorAll('li')].map((item) => item.textContent),
+  ).toEqual(['1 Completed', '1 Failed'])
+  const failed = container.querySelector('[data-status="4"]')!
+  expect(failed.textContent).toContain('Failed')
+  expect(failed.querySelector('button')?.getAttribute('aria-label')).toBe(
+    'Retry: notes.pdf',
+  )
+
+  const row = [...container.querySelectorAll('tbody tr')].find((tr) =>
+    tr.textContent?.includes('report.pdf'),
+  )!
+  await act(async () =>
+    (row.querySelector('td:nth-child(4)') as HTMLElement).click(),
+  )
+  const steps = [
+    ...panel()!.querySelectorAll<HTMLElement>(
+      '[data-slot="document-parse-steps"] li',
+    ),
+  ].map((step) => [step.dataset.state, step.textContent])
+  expect(steps).toEqual([
+    ['done', 'Parsed.'],
+    ['error', '[ERROR] Page 3 skipped'],
+  ])
+})
+
+it('opens the upload dialog with files dropped on the hint', async () => {
+  await render()
+  const hint = container.querySelector<HTMLButtonElement>(
+    '[data-slot="document-drop-hint"]',
+  )!
+  const file = new File(['hello'], 'dropped.md', { type: 'text/markdown' })
+  const drop = new Event('drop', { bubbles: true, cancelable: true })
+  Object.assign(drop, {
+    dataTransfer: {
+      types: ['Files'],
+      items: [
+        {
+          kind: 'file',
+          getAsFile: () => file,
+          webkitGetAsEntry: () => ({ isDirectory: false }),
+        },
+      ],
+      files: [file],
+    },
+  })
+  await act(async () => {
+    hint.dispatchEvent(drop)
+  })
+  const dialog = document.querySelector('dialog[open]')
+  expect(dialog?.textContent).toContain('Upload documents')
+  expect(dialog?.textContent).toContain('dropped.md')
 })
 
 it('opens the upload dialog once for the create flow import step', async () => {

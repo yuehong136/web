@@ -1,5 +1,5 @@
 import type { FC } from 'react'
-import { Database, Plus, Search, Trash2 } from 'lucide-react'
+import { Plus, Search, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { CollectionTemplate } from '@/components/page-templates'
@@ -13,6 +13,7 @@ import {
 } from '@/components/patterns'
 import { PAGE_SIZE_OPTIONS } from './list/constants'
 import { KnowledgeCollection } from './list/knowledge-collection'
+import { KnowledgeEmptyStart } from './list/knowledge-empty-start'
 import { KnowledgeListFilterBar } from './list/knowledge-list-filter-bar'
 import { KnowledgeQuickEditDialog } from './list/quick-edit-modal'
 import {
@@ -32,6 +33,7 @@ export const KnowledgeListPage: FC = () => {
       : page.knowledgeBases.length === 0
         ? 'empty'
         : 'content'
+  const firstUse = state === 'empty' && !page.hasActiveSearch
   const createButton = (
     <Button onClick={page.openCreate}>
       <Plus className="size-icon-sm" aria-hidden="true" />
@@ -45,22 +47,23 @@ export const KnowledgeListPage: FC = () => {
         title={t('knowledge.list.title')}
         count={page.total}
         countLabel={t('knowledge.list.results', { count: page.total })}
-        actions={
-          state === 'empty' && !page.hasActiveSearch ? null : createButton
-        }
+        description={firstUse ? t('knowledge.list.empty.title') : undefined}
+        actions={firstUse ? null : createButton}
         filterBar={
-          <KnowledgeListFilterBar
-            search={page.searchQuery}
-            onSearchChange={page.setSearchQuery}
-            sortDescending={page.sortDesc}
-            onSortDescendingChange={page.setSortDesc}
-            groupBy={page.groupBy}
-            onGroupByChange={page.setGroupBy}
-            timeFormat={page.timeFormat}
-            onTimeFormatChange={page.setTimeFormat}
-            view={page.viewMode}
-            onViewChange={page.setViewMode}
-          />
+          firstUse ? null : (
+            <KnowledgeListFilterBar
+              search={page.searchQuery}
+              onSearchChange={page.setSearchQuery}
+              sortDescending={page.sortDesc}
+              onSortDescendingChange={page.setSortDesc}
+              groupBy={page.groupBy}
+              onGroupByChange={page.setGroupBy}
+              timeFormat={page.timeFormat}
+              onTimeFormatChange={page.setTimeFormat}
+              view={page.viewMode}
+              onViewChange={page.setViewMode}
+            />
+          )
         }
         state={state}
         loadingState={
@@ -95,11 +98,9 @@ export const KnowledgeListPage: FC = () => {
               }
             />
           ) : (
-            <PageEmptyState
-              icon={<Database className="size-icon-lg" />}
-              title={t('knowledge.list.empty.title')}
-              description={t('knowledge.list.empty.description')}
-              action={createButton}
+            <KnowledgeEmptyStart
+              onCreate={page.openCreate}
+              onConnectSource={page.openDataSources}
             />
           )
         }
@@ -166,6 +167,7 @@ export const KnowledgeListPage: FC = () => {
           selectedIds={page.selectedIds}
           onToggleSelected={page.toggleSelected}
           onTogglePage={page.togglePage}
+          onCreate={page.openCreate}
           handlers={{
             onOpen: (knowledgeBase) =>
               page.navigate(knowledgePaths.documents(knowledgeBase.id)),

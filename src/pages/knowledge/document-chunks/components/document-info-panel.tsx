@@ -1,8 +1,10 @@
-import { useId, useState, type ReactNode } from 'react'
-import { ChevronDown, FileText, Tag, X } from 'lucide-react'
+import type { ReactNode } from 'react'
+import { FileText, Tag, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui'
+import { FileKindTile } from '@/components/patterns/file-kind-tile'
 import { cn, formatDate } from '@/lib/utils'
+import { useDocumentParserLabel } from '../../documents/parser-method-cell'
 import { formatChunkFileSize } from '../utils'
 import type { ChunkData, ChunkListDocument } from '../types'
 import { ParserConfigDetails } from './parser-config-details'
@@ -10,108 +12,122 @@ import { ParserConfigDetails } from './parser-config-details'
 interface DocumentInfoPanelProps {
   docInfo: ChunkListDocument | null
   selectedChunk: ChunkData | null
-  onCollapsePanel: () => void
   onClearSelectedChunk: () => void
   onStartMetaAnnotation: () => void
   disabled?: boolean
 }
 
+/** "Document information" tab: the selected chunk, metadata and the file. */
 export const DocumentInfoPanel = ({
   docInfo,
   selectedChunk,
-  onCollapsePanel,
   onClearSelectedChunk,
   onStartMetaAnnotation,
   disabled = false,
 }: DocumentInfoPanelProps) => {
   const { t } = useTranslation()
-  const [showParserConfig, setShowParserConfig] = useState(false)
-  const parserConfigId = useId()
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-background-surface">
-      <div className="flex shrink-0 items-center justify-between gap-space-base border-b border-border-default px-space-lg py-space-base">
-        <h2 className="text-base font-semibold text-text-primary">
-          {t('knowledge.chunks.info.title')}
-        </h2>
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          onClick={onCollapsePanel}
-          aria-label={t('common.close')}
-        >
-          <X className="size-icon-sm" />
-        </Button>
-      </div>
-
-      <div className="scrollbar-thin min-h-0 flex-1 scrollbar-thumb-components-scrollbar-thumb scrollbar-track-transparent space-y-space-lg overflow-y-auto p-space-lg">
-        {selectedChunk && (
-          <section className="rounded-radius-lg border border-border-subtle p-space-base">
-            <div className="flex items-center justify-between gap-space-sm">
-              <div className="flex min-w-0 items-center gap-space-sm text-sm text-text-secondary">
-                <FileText className="size-icon-sm shrink-0" />
-                <span>{t('knowledge.chunks.info.selectedChunk')}</span>
-                <span
-                  className={cn(
-                    'shrink-0 rounded-radius-full px-space-sm py-space-2xs text-xs',
-                    selectedChunk.available_int === 1
-                      ? 'bg-status-success-subtle text-status-success'
-                      : 'bg-background-subtle text-text-secondary',
-                  )}
-                >
-                  {selectedChunk.available_int === 1
-                    ? t('knowledge.chunks.list.statusEnabled')
-                    : t('knowledge.chunks.list.statusDisabled')}
-                </span>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                onClick={onClearSelectedChunk}
-                aria-label={t('common.clear')}
+    <PanelBody>
+      {selectedChunk && (
+        <section className="rounded-radius-lg border border-border-subtle bg-background-surface p-space-sm">
+          <div className="flex items-center justify-between gap-space-sm">
+            <div className="flex min-w-0 items-center gap-space-sm text-sm text-text-secondary">
+              <FileText className="size-icon-sm shrink-0" aria-hidden="true" />
+              <span>{t('knowledge.chunks.info.selectedChunk')}</span>
+              <span
+                className={cn(
+                  'shrink-0 rounded-radius-full px-space-sm py-space-2xs text-xs',
+                  selectedChunk.available_int === 1
+                    ? 'bg-status-success-subtle text-status-success'
+                    : 'bg-background-subtle text-text-secondary',
+                )}
               >
-                <X className="size-icon-sm" />
-              </Button>
+                {selectedChunk.available_int === 1
+                  ? t('knowledge.chunks.list.statusEnabled')
+                  : t('knowledge.chunks.list.statusDisabled')}
+              </span>
             </div>
-            <p className="mt-space-sm font-mono text-xs break-all text-text-tertiary">
-              {selectedChunk.chunk_id}
-            </p>
-          </section>
-        )}
-
-        <section>
-          <div className="mb-space-sm flex items-center justify-between gap-space-base">
-            <SectionTitle>
-              {t('knowledge.chunks.info.metadataTitle')}
-            </SectionTitle>
             <Button
               variant="ghost"
-              size="sm"
-              onClick={onStartMetaAnnotation}
-              disabled={disabled || !docInfo}
+              size="icon-sm"
+              onClick={onClearSelectedChunk}
+              aria-label={t('common.clear')}
             >
-              <Tag className="size-icon-sm" />
-              {t('common.edit')}
+              <X className="size-icon-sm" aria-hidden="true" />
             </Button>
           </div>
-          <MetadataSummary docInfo={docInfo} />
+          <p className="mt-space-xs font-mono text-xs break-all text-text-tertiary">
+            {selectedChunk.chunk_id}
+          </p>
         </section>
+      )}
 
-        {docInfo && (
-          <>
-            <FileSummary docInfo={docInfo} />
-            <TechnicalSummary
-              docInfo={docInfo}
-              showParserConfig={showParserConfig}
-              onShowParserConfigChange={setShowParserConfig}
-              parserConfigId={parserConfigId}
-            />
-          </>
-        )}
-      </div>
-    </div>
+      <section>
+        <div className="mb-space-xs flex items-center justify-between gap-space-base">
+          <SectionTitle>
+            {t('knowledge.chunks.info.metadataTitle')}
+          </SectionTitle>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onStartMetaAnnotation}
+            disabled={disabled || !docInfo}
+          >
+            <Tag className="size-icon-sm" aria-hidden="true" />
+            {t('common.edit')}
+          </Button>
+        </div>
+        <MetadataSummary docInfo={docInfo} />
+      </section>
+
+      {docInfo ? <FileSummary docInfo={docInfo} /> : null}
+    </PanelBody>
   )
 }
+
+/** "Parser configuration" tab: the chunk method and its settings. */
+export const DocumentParserPanel = ({
+  docInfo,
+}: {
+  docInfo: ChunkListDocument | null
+}) => {
+  const { t } = useTranslation()
+  if (!docInfo) return <PanelBody>{null}</PanelBody>
+  return (
+    <PanelBody>
+      <section>
+        <SectionTitle>
+          {t('knowledge.chunks.info.technicalParams')}
+        </SectionTitle>
+        <dl className="mt-space-xs divide-y divide-border-subtle">
+          <InfoRow
+            label={t('knowledge.chunks.info.chunkMethod')}
+            value={<ParserLabel docInfo={docInfo} />}
+          />
+        </dl>
+      </section>
+      <section>
+        <SectionTitle>{t('knowledge.chunks.info.parserConfig')}</SectionTitle>
+        {docInfo.parser_config ? (
+          <ParserConfigDetails parserConfig={docInfo.parser_config} />
+        ) : (
+          <p className="py-space-sm text-sm text-text-tertiary">—</p>
+        )}
+      </section>
+    </PanelBody>
+  )
+}
+
+const ParserLabel = ({ docInfo }: { docInfo: ChunkListDocument }) => (
+  <>{useDocumentParserLabel(docInfo)}</>
+)
+
+const PanelBody = ({ children }: { children: ReactNode }) => (
+  <div className="scrollbar-thin h-full min-h-0 scrollbar-thumb-components-scrollbar-thumb scrollbar-track-transparent space-y-space-lg overflow-y-auto p-space-md">
+    {children}
+  </div>
+)
 
 const MetadataSummary = ({
   docInfo,
@@ -138,9 +154,12 @@ const FileSummary = ({ docInfo }: { docInfo: ChunkListDocument }) => {
   const { t } = useTranslation()
 
   return (
-    <section className="border-t border-border-subtle pt-space-lg">
-      <SectionTitle>{t('knowledge.chunks.info.fileInfo')}</SectionTitle>
-      <dl className="mt-space-sm divide-y divide-border-subtle">
+    <section className="border-t border-border-subtle pt-space-md">
+      <div className="mb-space-xs flex items-center gap-space-sm">
+        <FileKindTile name={docInfo.suffix || docInfo.name} size="sm" />
+        <SectionTitle>{t('knowledge.chunks.info.fileInfo')}</SectionTitle>
+      </div>
+      <dl className="divide-y divide-border-subtle">
         <InfoRow
           label={t('knowledge.chunks.info.fileName')}
           value={docInfo.name}
@@ -166,57 +185,8 @@ const FileSummary = ({ docInfo }: { docInfo: ChunkListDocument }) => {
   )
 }
 
-interface TechnicalSummaryProps {
-  docInfo: ChunkListDocument
-  showParserConfig: boolean
-  onShowParserConfigChange: (show: boolean) => void
-  parserConfigId: string
-}
-
-const TechnicalSummary = ({
-  docInfo,
-  showParserConfig,
-  onShowParserConfigChange,
-  parserConfigId,
-}: TechnicalSummaryProps) => {
-  const { t } = useTranslation()
-
-  return (
-    <section className="border-t border-border-subtle pt-space-lg">
-      <SectionTitle>{t('knowledge.chunks.info.technicalParams')}</SectionTitle>
-      <dl className="mt-space-sm">
-        <InfoRow
-          label={t('knowledge.chunks.info.chunkMethod')}
-          value={docInfo.parser_id}
-        />
-      </dl>
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => onShowParserConfigChange(!showParserConfig)}
-        className="mt-space-sm w-full justify-between px-space-sm text-text-secondary"
-        aria-expanded={showParserConfig}
-        aria-controls={parserConfigId}
-      >
-        {t('knowledge.chunks.info.parserConfig')}
-        <ChevronDown
-          className={cn(
-            'size-icon-sm transition-transform',
-            showParserConfig && 'rotate-180',
-          )}
-        />
-      </Button>
-      <div id={parserConfigId} hidden={!showParserConfig}>
-        {docInfo.parser_config && (
-          <ParserConfigDetails parserConfig={docInfo.parser_config} />
-        )}
-      </div>
-    </section>
-  )
-}
-
 const SectionTitle = ({ children }: { children: ReactNode }) => (
-  <h3 className="text-sm font-semibold text-text-primary">{children}</h3>
+  <h3 className="text-xs font-medium text-text-tertiary">{children}</h3>
 )
 
 interface InfoRowProps {

@@ -21,6 +21,8 @@ import {
   ActionMenuSeparator,
   ActionMenuTrigger,
 } from '@/components/ui/action-menu'
+import { ResourceChip } from '@/components/patterns/resource-card'
+import { EmbeddingModelChip } from '@/components/knowledge/knowledge-identity'
 import type { KnowledgeBase } from '@/types/api'
 import { formatKnowledgeTime, getKnowledgeVisibility } from './utils'
 import type { KnowledgeTimeFormat } from './types'
@@ -39,15 +41,34 @@ export function KnowledgeVisibilityBadge({
   )
 }
 
-/** Document and chunk counts with the update time; `compact` fits a row. */
-export function KnowledgeMeta({
+function KnowledgeUpdated({
   knowledgeBase,
   timeFormat,
-  compact = false,
 }: {
   knowledgeBase: KnowledgeBase
   timeFormat: KnowledgeTimeFormat
-  compact?: boolean
+}) {
+  if (!knowledgeBase.update_time) return null
+  return (
+    <span className="inline-flex min-w-0 items-center gap-space-xs">
+      <Clock className="size-icon-xs shrink-0" aria-hidden="true" />
+      <time
+        className="truncate"
+        dateTime={new Date(knowledgeBase.update_time).toISOString()}
+      >
+        {formatKnowledgeTime(knowledgeBase.update_time, timeFormat)}
+      </time>
+    </span>
+  )
+}
+
+/** Row meta: document and chunk counts with the update time. */
+export function KnowledgeMeta({
+  knowledgeBase,
+  timeFormat,
+}: {
+  knowledgeBase: KnowledgeBase
+  timeFormat: KnowledgeTimeFormat
 }) {
   const { t } = useTranslation()
   const counts = [
@@ -68,39 +89,57 @@ export function KnowledgeMeta({
       }),
     },
   ]
-  const updated = knowledgeBase.update_time
-    ? formatKnowledgeTime(knowledgeBase.update_time, timeFormat)
-    : null
   return (
     <>
       {counts.map(({ key, icon: Icon, value, label }) => (
         <span
           key={key}
           className="inline-flex items-center gap-space-xs"
-          title={compact ? label : undefined}
+          title={label}
         >
           <Icon className="size-icon-xs shrink-0" aria-hidden="true" />
-          {compact ? (
-            <>
-              <span className="sr-only">{label}</span>
-              <span aria-hidden="true">{value.toLocaleString()}</span>
-            </>
-          ) : (
-            label
-          )}
+          <span className="sr-only">{label}</span>
+          <span aria-hidden="true">{value.toLocaleString()}</span>
         </span>
       ))}
-      {updated ? (
-        <span className="inline-flex min-w-0 items-center gap-space-xs">
-          <Clock className="size-icon-xs shrink-0" aria-hidden="true" />
-          <time
-            className="truncate"
-            dateTime={new Date(knowledgeBase.update_time).toISOString()}
-          >
-            {updated}
-          </time>
-        </span>
-      ) : null}
+      <KnowledgeUpdated knowledgeBase={knowledgeBase} timeFormat={timeFormat} />
+    </>
+  )
+}
+
+/** Card footer: the update time (counts sit in the chips above it). */
+export function KnowledgeCardMeta({
+  knowledgeBase,
+  timeFormat,
+}: {
+  knowledgeBase: KnowledgeBase
+  timeFormat: KnowledgeTimeFormat
+}) {
+  return (
+    <KnowledgeUpdated knowledgeBase={knowledgeBase} timeFormat={timeFormat} />
+  )
+}
+
+/** Card chips: embedding model with its provider logo, documents, chunks. */
+export function KnowledgeCardChips({
+  knowledgeBase,
+}: {
+  knowledgeBase: KnowledgeBase
+}) {
+  const { t } = useTranslation()
+  return (
+    <>
+      <EmbeddingModelChip modelId={knowledgeBase.embd_id} />
+      <ResourceChip icon={<FileText aria-hidden="true" />}>
+        {t('knowledge.common.documentsCount', {
+          count: knowledgeBase.doc_num || 0,
+        })}
+      </ResourceChip>
+      <ResourceChip icon={<Layers aria-hidden="true" />}>
+        {t('knowledge.common.chunksCount', {
+          count: knowledgeBase.chunk_num || 0,
+        })}
+      </ResourceChip>
     </>
   )
 }
@@ -114,40 +153,53 @@ export interface KnowledgeRowActionHandlers {
   onDelete: (knowledgeBase: KnowledgeBase) => void
 }
 
-/** Quick actions (add documents, retrieval test) and the overflow menu. */
+/**
+ * Quick actions (add documents, retrieval test) and the overflow menu. Cards
+ * have room for one button, so `compact` folds the quick actions into it.
+ */
 export function KnowledgeRowActions({
   knowledgeBase,
   handlers,
+  compact = false,
 }: {
   knowledgeBase: KnowledgeBase
   handlers: KnowledgeRowActionHandlers
+  compact?: boolean
 }) {
   const { t } = useTranslation()
   const name = knowledgeBase.name
   return (
     <>
-      <Tooltip content={t('knowledge.list.rowActions.addDocuments')}>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          aria-label={t('knowledge.list.rowActions.addDocumentsTo', { name })}
-          onClick={() => handlers.onImport(knowledgeBase)}
-        >
-          <Upload className="size-icon-sm" aria-hidden="true" />
-        </Button>
-      </Tooltip>
-      <Tooltip content={t('knowledge.list.rowActions.searchTest')}>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          aria-label={t('knowledge.list.rowActions.searchTestFor', { name })}
-          onClick={() => handlers.onSearch(knowledgeBase)}
-        >
-          <Search className="size-icon-sm" aria-hidden="true" />
-        </Button>
-      </Tooltip>
+      {compact ? null : (
+        <>
+          <Tooltip content={t('knowledge.list.rowActions.addDocuments')}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              aria-label={t('knowledge.list.rowActions.addDocumentsTo', {
+                name,
+              })}
+              onClick={() => handlers.onImport(knowledgeBase)}
+            >
+              <Upload className="size-icon-sm" aria-hidden="true" />
+            </Button>
+          </Tooltip>
+          <Tooltip content={t('knowledge.list.rowActions.searchTest')}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              aria-label={t('knowledge.list.rowActions.searchTestFor', {
+                name,
+              })}
+              onClick={() => handlers.onSearch(knowledgeBase)}
+            >
+              <Search className="size-icon-sm" aria-hidden="true" />
+            </Button>
+          </Tooltip>
+        </>
+      )}
       <ActionMenu>
         <ActionMenuTrigger asChild>
           <Button
@@ -164,6 +216,18 @@ export function KnowledgeRowActions({
             <FolderOpen className="size-icon-sm" aria-hidden="true" />
             {t('knowledge.list.rowActions.open')}
           </ActionMenuItem>
+          {compact ? (
+            <>
+              <ActionMenuItem onSelect={() => handlers.onImport(knowledgeBase)}>
+                <Upload className="size-icon-sm" aria-hidden="true" />
+                {t('knowledge.list.rowActions.addDocuments')}
+              </ActionMenuItem>
+              <ActionMenuItem onSelect={() => handlers.onSearch(knowledgeBase)}>
+                <Search className="size-icon-sm" aria-hidden="true" />
+                {t('knowledge.list.rowActions.searchTest')}
+              </ActionMenuItem>
+            </>
+          ) : null}
           <ActionMenuItem onSelect={() => handlers.onEdit(knowledgeBase)}>
             <Pencil className="size-icon-sm" aria-hidden="true" />
             {t('knowledge.list.rowActions.edit')}

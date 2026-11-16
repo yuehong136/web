@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import {
@@ -10,6 +11,8 @@ import {
 } from '@/components/ui'
 
 interface ChunkPaginationProps {
+  /** Shown at the start, e.g. how many chunks a search matched. */
+  summary?: ReactNode
   total: number
   page: number
   pageSize: number
@@ -18,6 +21,7 @@ interface ChunkPaginationProps {
 }
 
 export const ChunkPagination = ({
+  summary,
   total,
   page,
   pageSize,
@@ -35,9 +39,11 @@ export const ChunkPagination = ({
         page,
         total: totalPages,
       })}
-      className="flex shrink-0 flex-wrap items-center justify-between gap-space-sm border-t border-border-subtle bg-background-surface px-space-md py-space-sm"
+      className="flex min-h-[var(--control-height)] shrink-0 flex-wrap items-center gap-x-space-sm gap-y-space-2xs border-t border-border-subtle px-space-md py-space-2xs text-xs text-text-tertiary"
     >
-      <span className="text-xs whitespace-nowrap text-text-tertiary tabular-nums">
+      {summary ? <span className="min-w-0 truncate">{summary}</span> : null}
+      <span className="flex-1" aria-hidden="true" />
+      <span className="font-mono whitespace-nowrap tabular-nums">
         {t('knowledge.chunks.pagination.range', {
           start: rangeStart,
           end: rangeEnd,

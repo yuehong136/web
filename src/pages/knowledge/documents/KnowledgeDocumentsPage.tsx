@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Tag } from 'lucide-react'
@@ -17,10 +17,12 @@ import { KnowledgeSectionTemplate } from '../components/knowledge-section-templa
 import { SectionFooter } from '../components/section-footer'
 import { BulkActionToolbar } from './bulk-action-toolbar'
 import { DocumentCreateMenu } from './components/document-create-menu'
+import { DocumentDropHint } from './components/document-drop-hint'
 import { DocumentEmptyState } from './components/document-empty-state'
 import { DocumentFilterBar } from './components/document-filter-bar'
 import { useDocumentInspectorPanel } from './components/document-inspector'
 import { DocumentPageModals } from './components/document-page-modals'
+import { DocumentStatusSummary } from './components/document-status-summary'
 import { PAGE_SIZE_OPTIONS } from './constants'
 import {
   DocumentActionCell,
@@ -35,6 +37,7 @@ import {
   useDocumentPageModals,
   useFilterCollections,
 } from './hooks/index'
+import { useDocumentDropUpload } from './hooks/use-document-drop-upload'
 import { useDocumentInspector } from './hooks/use-document-inspector'
 
 export function KnowledgeDocumentsPage() {
@@ -69,12 +72,16 @@ function DocumentsPage() {
   const chunkNum = currentKnowledgeBase?.chunk_num ?? 0
   const { canDownloadInTenant } = useAbilities()
   const canDownload = canDownloadInTenant(currentKnowledgeBase?.tenant_id)
+  const upload = useDocumentDropUpload(pageModals.setUploadModalOpen)
+  const chunksHref = useCallback(
+    (doc: Document) => `/knowledge/${kbId}/documents/${doc.id}/chunks`,
+    [kbId],
+  )
 
   const handlers = useMemo<DocumentRowHandlers>(
     () => ({
       onOpenDetails: inspector.openDocument,
-      onViewChunks: (doc: Document) =>
-        navigate(`/knowledge/${kbId}/documents/${doc.id}/chunks`),
+      onViewChunks: (doc: Document) => navigate(chunksHref(doc)),
       onStartParse: pageModals.handleStartParse,
       onStopParse: (doc: Document) => actions.handleStopParse([doc.id]),
       onRename: pageModals.openRenameModal,
@@ -83,14 +90,16 @@ function DocumentsPage() {
       onEditMetadata: pageModals.handleShowDocumentMetadata,
       onChangeChunkMethod: pageModals.handleShowChunkMethodModal,
     }),
-    [actions, inspector.openDocument, kbId, navigate, pageModals],
+    [actions, chunksHref, inspector.openDocument, navigate, pageModals],
   )
   const columns = useDocumentTableColumns({
-    onOpenDetails: inspector.openDocument,
+    chunksHref,
     onToggleStatus: actions.handleToggleStatus,
     onShowChunkMethodModal: pageModals.handleShowChunkMethodModal,
+    onRetryParse: pageModals.handleStartParse,
   })
   const inspectorPanel = useDocumentInspectorPanel({
+    kbId,
     document: inspector.document,
     open: inspector.open,
     onClose: inspector.close,
@@ -119,6 +128,9 @@ function DocumentsPage() {
         countLabel={t('knowledge.documents.totalDocuments', {
           count: listState.total,
         })}
+        subline={
+          <DocumentStatusSummary filterOptions={listState.filterOptions} />
+        }
         actions={
           <>
             <GenerateButton
@@ -140,7 +152,7 @@ function DocumentsPage() {
               {t('knowledge.documents.manageMetadata')}
             </Button>
             <DocumentCreateMenu
-              onOpenUpload={() => pageModals.setUploadModalOpen(true)}
+              onOpenUpload={() => upload.openUpload()}
               onOpenCreate={pageModals.setCreateMode}
             />
           </>
@@ -186,12 +198,14 @@ function DocumentsPage() {
             <DocumentEmptyState
               filtered={listState.hasActiveFilters}
               onClearFilters={listState.clearAllFilters}
-              onOpenUpload={() => pageModals.setUploadModalOpen(true)}
+              onOpenUpload={() => upload.openUpload()}
               onOpenCreate={pageModals.setCreateMode}
+              onLinkDataSource={() => navigate(`/knowledge/${kbId}/settings`)}
             />
           </div>
         ) : (
           <>
+            <DocumentDropHint onUpload={upload.openUpload} />
             <div
               data-scroll-root="documents-body"
               className={cn(
@@ -260,6 +274,7 @@ function DocumentsPage() {
         currentKnowledgeBase={currentKnowledgeBase}
         listState={listState}
         pageModals={pageModals}
+        upload={upload}
         generate={generate}
         navigate={navigate}
         isRenaming={actions.isRenaming}

@@ -4,6 +4,9 @@ export type TextMode = 'full' | 'ellipse'
 
 export type ChunkFilterStatus = 'all' | 'enabled' | 'disabled'
 
+/** Tabs of the chunk page's side panel. */
+export type ChunkPanelTab = 'source' | 'info' | 'config'
+
 export interface ChunkData {
   chunk_id: string
   content_with_weight: string

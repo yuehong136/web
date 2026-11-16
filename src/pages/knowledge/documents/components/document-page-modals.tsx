@@ -23,15 +23,19 @@ import { GenerateDeleteConfirm } from '../generate'
 import type { DocumentListState } from '../types'
 import type { useDocumentPageModals } from '../hooks/use-document-page-modals'
 import type { useGenerateState } from '../generate/hooks'
+import type { useDocumentDropUpload } from '../hooks/use-document-drop-upload'
 
 type PageModals = ReturnType<typeof useDocumentPageModals>
 type GenerateState = ReturnType<typeof useGenerateState>
+type UploadEntry = ReturnType<typeof useDocumentDropUpload>
 
 interface DocumentPageModalsProps {
   kbId?: string
   currentKnowledgeBase: KnowledgeBase | null
   listState: DocumentListState
   pageModals: PageModals
+  /** Upload dialog entry; carries files dropped on the page. */
+  upload?: UploadEntry
   generate: GenerateState
   navigate: NavigateFunction
   isRenaming: boolean
@@ -43,6 +47,7 @@ export function DocumentPageModals({
   currentKnowledgeBase,
   listState,
   pageModals,
+  upload,
   generate,
   navigate,
   isRenaming,
@@ -122,7 +127,10 @@ export function DocumentPageModals({
       {kbId && (
         <DocumentUploadModal
           open={pageModals.uploadModalOpen}
-          onClose={() => pageModals.setUploadModalOpen(false)}
+          onClose={
+            upload?.closeUpload ?? (() => pageModals.setUploadModalOpen(false))
+          }
+          initialFiles={upload?.initialFiles}
           kbId={kbId}
           isTableParser={currentKnowledgeBase?.parser_id === 'table'}
           onSuccess={listState.refetch}

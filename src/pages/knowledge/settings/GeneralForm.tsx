@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { useTranslation } from 'react-i18next'
 import { useFormContext } from 'react-hook-form'
-import { Upload, Database } from 'lucide-react'
+import { Upload } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -85,7 +85,8 @@ export function GeneralForm({
                 src={avatarValue}
                 seed={avatarSeed}
                 size="xl"
-                icon={nameValue?.trim() ? undefined : <Database />}
+                kind="knowledge"
+                tone="kind"
               />
               <div>
                 {/* eslint-disable-next-line no-restricted-syntax -- hidden file input: @/components/ui/input has no type="file" hidden + ref-click pattern */}

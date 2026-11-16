@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
+import { FileKindTile } from '@/components/patterns/file-kind-tile'
 import { FileStatusBadge } from '../FileStatusBadge'
 import { LogTabType, RunningStatus } from '../constants'
 import { formatDate, formatSecondsToHumanReadable } from '../utils'
@@ -54,7 +55,12 @@ export function LogDetailBody({ logInfo, activeTab }: LogDetailBodyProps) {
       <dl className="grid grid-cols-3 gap-x-space-md gap-y-space-sm">
         {isFileLogs && displayInfo.fileName ? (
           <Property label={t('knowledge.logs.detail.fileName')}>
-            {displayInfo.fileName}
+            <span className="inline-flex min-w-0 items-center gap-space-xs">
+              <FileKindTile name={displayInfo.fileName} size="xs" />
+              <span className="min-w-0 break-words">
+                {displayInfo.fileName}
+              </span>
+            </span>
           </Property>
         ) : null}
         <Property label={t('knowledge.logs.detail.status')}>

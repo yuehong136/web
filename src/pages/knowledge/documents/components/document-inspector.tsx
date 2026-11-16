@@ -1,12 +1,16 @@
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Edit2, ListTree, Tags, Trash2 } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Download, Edit2, Eye, ListTree, Tags, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tooltip } from '@/components/ui/tooltip'
 import type { InspectorPanelProps } from '@/components/patterns'
+import { FileKindTile } from '@/components/patterns/file-kind-tile'
 import type { Document } from '@/types/api'
+import { TaskStatus } from '../constants'
 import {
   DocumentParseButton,
+  documentPreviewHref,
   type DocumentRowHandlers,
 } from '../document-action-cell'
 import {
@@ -19,7 +23,8 @@ import {
   formatDocumentDuration,
   formatDocumentFileSize,
 } from '../utils/format'
-import { DocumentParseLog } from './document-parse-log'
+import { DocumentChunkPreview } from './document-chunk-preview'
+import { DocumentParseSteps } from './document-parse-steps'
 
 function Property({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -42,9 +47,9 @@ function Section({
   children: ReactNode
 }) {
   return (
-    <section className="border-t border-border-subtle pt-space-md">
-      <div className="mb-space-sm flex items-center gap-space-sm">
-        <h3 className="min-w-0 flex-1 text-sm font-semibold text-text-primary">
+    <section className="flex flex-col gap-space-sm">
+      <div className="flex min-h-[var(--control-height-sm)] items-center gap-space-sm">
+        <h3 className="min-w-0 flex-1 text-xs font-medium text-text-tertiary">
           {title}
         </h3>
         {action}
@@ -54,13 +59,26 @@ function Section({
   )
 }
 
+function StatTile({ label, value }: { label: string; value: ReactNode }) {
+  return (
+    <div className="flex min-w-0 flex-col gap-space-2xs rounded-radius-lg bg-background-subtle p-space-sm">
+      <dt className="truncate text-xs text-text-tertiary">{label}</dt>
+      <dd className="truncate font-mono text-base font-semibold text-text-primary tabular-nums">
+        {value}
+      </dd>
+    </div>
+  )
+}
+
 interface DocumentDetailsProps {
+  kbId?: string
   document: Document
   onToggleStatus: (doc: Document) => void
   handlers: DocumentRowHandlers
 }
 
 function DocumentDetails({
+  kbId,
   document,
   onToggleStatus,
   handlers,
@@ -69,62 +87,99 @@ function DocumentDetails({
   const parserLabel = useDocumentParserLabel(document)
   const metadata = Object.entries(document.meta_fields ?? {})
   const uploader = document.nickname || document.created_by
+  const running = document.run === TaskStatus.RUNNING
   return (
-    <div className="flex flex-col gap-space-md text-sm">
-      <dl className="grid grid-cols-3 gap-x-space-md gap-y-space-sm">
-        <Property label={t('knowledge.documents.processLog.status')}>
-          <DocumentStatusBadge document={document} />
-        </Property>
-        <Property label={t('knowledge.documents.table.parser')}>
-          <Button
-            type="button"
-            variant="link"
-            size="sm"
-            className="min-h-0 p-0"
-            onClick={() => handlers.onChangeChunkMethod(document)}
-          >
-            {parserLabel}
-          </Button>
-        </Property>
-        <Property label={t('knowledge.documents.table.chunks')}>
-          <span className="tabular-nums">
-            {t('knowledge.documents.inspector.chunksAndTokens', {
-              chunks: (document.chunk_num || 0).toLocaleString(),
-              tokens: (document.token_num || 0).toLocaleString(),
-            })}
-          </span>
-        </Property>
-        <Property label={t('knowledge.documents.processLog.fileSize')}>
-          <span className="tabular-nums">
-            {formatDocumentFileSize(document.size || 0)}
-            {document.suffix || document.type
-              ? ` · ${(document.suffix || document.type).toUpperCase()}`
-              : ''}
-          </span>
-        </Property>
-        <Property label={t('knowledge.documents.processLog.uploadedBy')}>
-          {uploader || t('knowledge.documents.unknown')}
-        </Property>
-        <Property label={t('knowledge.documents.processLog.uploadDate')}>
-          {formatDocumentDate(document.create_date)}
-        </Property>
-        {document.process_begin_at ? (
-          <Property label={t('knowledge.documents.processLog.processBeginAt')}>
-            {formatDocumentDate(document.process_begin_at)}
-          </Property>
-        ) : null}
-        {document.process_duration ? (
-          <Property label={t('knowledge.documents.processLog.duration')}>
-            {formatDocumentDuration(document.process_duration)}
-          </Property>
-        ) : null}
-        <Property label={t('knowledge.documents.table.enabled')}>
-          <DocumentEnableSwitch
+    <div className="flex flex-col gap-space-lg text-sm">
+      <div className="flex items-center gap-space-sm">
+        <FileKindTile name={document.suffix || document.name} size="lg" />
+        <div className="flex min-w-0 flex-1 flex-col gap-space-2xs">
+          <DocumentStatusBadge
             document={document}
-            onToggle={() => onToggleStatus(document)}
+            onRetry={() => handlers.onStartParse(document)}
           />
-        </Property>
+          <span className="truncate text-xs text-text-tertiary">
+            {[
+              formatDocumentFileSize(document.size || 0),
+              (document.suffix || document.type || '').toUpperCase(),
+            ]
+              .filter(Boolean)
+              .join(' · ')}
+          </span>
+        </div>
+        <DocumentEnableSwitch
+          document={document}
+          onToggle={() => onToggleStatus(document)}
+        />
+      </div>
+
+      <dl className="grid grid-cols-3 gap-space-sm">
+        <StatTile
+          label={t('knowledge.documents.table.chunks')}
+          value={(document.chunk_num || 0).toLocaleString()}
+        />
+        <StatTile
+          label={t('knowledge.documents.inspector.tokens')}
+          value={(document.token_num || 0).toLocaleString()}
+        />
+        <StatTile
+          label={t('knowledge.documents.processLog.duration')}
+          value={
+            document.process_duration
+              ? formatDocumentDuration(document.process_duration)
+              : '—'
+          }
+        />
       </dl>
+
+      <Section title={t('knowledge.documents.inspector.parseLog')}>
+        <DocumentParseSteps message={document.progress_msg} running={running} />
+      </Section>
+
+      {(document.chunk_num || 0) > 0 ? (
+        <Section
+          title={t('knowledge.documents.inspector.chunkPreview')}
+          action={
+            <Button asChild variant="link" size="sm" className="h-auto p-0">
+              <Link to={`/knowledge/${kbId}/documents/${document.id}/chunks`}>
+                {t('knowledge.documents.inspector.allChunks', {
+                  count: document.chunk_num,
+                })}
+              </Link>
+            </Button>
+          }
+        >
+          <DocumentChunkPreview kbId={kbId} document={document} />
+        </Section>
+      ) : null}
+
+      <Section title={t('knowledge.documents.inspector.properties')}>
+        <dl className="grid grid-cols-3 gap-x-space-md gap-y-space-sm">
+          <Property label={t('knowledge.documents.table.parser')}>
+            <Button
+              type="button"
+              variant="link"
+              size="sm"
+              className="min-h-0 p-0"
+              onClick={() => handlers.onChangeChunkMethod(document)}
+            >
+              {parserLabel}
+            </Button>
+          </Property>
+          <Property label={t('knowledge.documents.processLog.uploadedBy')}>
+            {uploader || t('knowledge.documents.unknown')}
+          </Property>
+          <Property label={t('knowledge.documents.processLog.uploadDate')}>
+            {formatDocumentDate(document.create_date)}
+          </Property>
+          {document.process_begin_at ? (
+            <Property
+              label={t('knowledge.documents.processLog.processBeginAt')}
+            >
+              {formatDocumentDate(document.process_begin_at)}
+            </Property>
+          ) : null}
+        </dl>
+      </Section>
 
       <Section
         title={t('knowledge.documents.table.metadata')}
@@ -154,15 +209,12 @@ function DocumentDetails({
           </p>
         )}
       </Section>
-
-      <Section title={t('knowledge.documents.inspector.parseLog')}>
-        <DocumentParseLog message={document.progress_msg} />
-      </Section>
     </div>
   )
 }
 
 interface DocumentInspectorOptions {
+  kbId?: string
   document: Document | null
   open: boolean
   onClose: () => void
@@ -172,11 +224,12 @@ interface DocumentInspectorOptions {
 }
 
 /**
- * Inspector props for the selected document: properties, metadata and the
- * parse log, with the chunk page one click away. Replaces the process-log
- * dialog so the table stays visible.
+ * Inspector props for the selected document: identity, figures, parse
+ * steps, a chunk preview, properties and metadata, with the chunk page one
+ * click away. The table stays visible beside it.
  */
 export function useDocumentInspectorPanel({
+  kbId,
   document,
   open,
   onClose,
@@ -192,6 +245,11 @@ export function useDocumentInspectorPanel({
     },
     scopeKey: 'knowledge-document',
     title: document?.name ?? t('knowledge.documents.inspector.title'),
+    description: document
+      ? t('knowledge.documents.inspector.uploadedOn', {
+          date: formatDocumentDate(document.create_date),
+        })
+      : undefined,
     actions: document ? (
       <Tooltip content={t('knowledge.documents.actions.viewChunks')}>
         <Button
@@ -207,6 +265,7 @@ export function useDocumentInspectorPanel({
     ) : null,
     content: document ? (
       <DocumentDetails
+        kbId={kbId}
         document={document}
         onToggleStatus={onToggleStatus}
         handlers={handlers}
@@ -220,6 +279,16 @@ export function useDocumentInspectorPanel({
           onStartParse={() => handlers.onStartParse(document)}
           onStopParse={() => handlers.onStopParse(document)}
         />
+        <Button asChild variant="outline" size="sm">
+          <a
+            href={documentPreviewHref(document)}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Eye className="size-icon-sm" aria-hidden="true" />
+            {t('knowledge.documents.actions.previewSource')}
+          </a>
+        </Button>
         <Button
           type="button"
           variant="ghost"
@@ -236,6 +305,7 @@ export function useDocumentInspectorPanel({
             size="sm"
             onClick={() => handlers.onDownload(document)}
           >
+            <Download className="size-icon-sm" aria-hidden="true" />
             {t('knowledge.documents.inspector.download')}
           </Button>
         ) : null}

@@ -31,6 +31,8 @@ export default {
       knowledge: '知识库',
       chunks: '切片',
       documentFallback: '文档',
+      allKnowledge: '全部知识库',
+      identity: '知识库信息',
     },
     shared: {
       knowledgeBaseSelector: {
@@ -99,6 +101,7 @@ export default {
         delete: '删除',
         settings: '设置',
       },
+      createCard: '创建后即可上传文档',
       stats: {
         totalDocuments: '总文档数',
         totalChunks: '总块数',
@@ -150,6 +153,17 @@ export default {
         description: '创建您的第一个知识库开始使用',
         filteredTitle: '未找到匹配的知识库',
         filteredDescription: '尝试调整搜索条件或筛选器',
+        startTitle: '建一个知识库，让回答有据可查',
+        startDescription:
+          '上传文档后会自动解析、分块和向量化。之后在对话里提问，每个结论都能追溯到原文。',
+        uploadTitle: '上传文件',
+        uploadDescription:
+          '先建知识库，再上传 PDF、Word、Excel、PPT、Markdown，上传后自动解析',
+        uploadCta: '开始',
+        sourceTitle: '连接数据源',
+        sourceDescription:
+          '在设置里配置网页、对象存储或已有系统，再关联到知识库定时同步',
+        sourceCta: '管理数据源',
       },
       pagination: {
         previous: '上一页',
@@ -631,6 +645,26 @@ export default {
       clearFilters: '清除筛选',
       selectDocument: '选择 {{name}}',
       configureParserFor: '更改 {{name}} 的解析方式（当前：{{parser}}）',
+      viewChunksCount_one: '点击查看 {{count}} 个分块',
+      viewChunksCount_other: '点击查看 {{count}} 个分块',
+      dropHint: {
+        idle: '把文件拖到这里或点击上传，上传后自动解析',
+        formats: '支持 PDF、Word、Excel、PPT、Markdown 等格式',
+        release: '松开即可上传这些文件',
+      },
+      statusSummary: {
+        label: '解析状态',
+        item: '{{count}} {{status}}',
+      },
+      emptyStart: {
+        uploadDescription: 'PDF、Word、Excel、PPT、Markdown，可整个文件夹上传',
+        uploadCta: '选择文件',
+        webDescription: '输入网址，抓取网页正文作为文档',
+        webCta: '填写网址',
+        sourceTitle: '关联数据源',
+        sourceDescription: '在知识库设置里关联已配置的数据源，定时同步文档',
+        sourceCta: '前往设置',
+      },
       sort: {
         newest: '最新上传优先',
         oldest: '最早上传优先',
@@ -646,6 +680,17 @@ export default {
         rename: '重命名',
         download: '下载',
         delete: '删除',
+        tokens: 'Token',
+        properties: '属性',
+        uploadedOn: '{{date}} 上传',
+        chunkPreview: '分块预览',
+        allChunks_one: '全部 {{count}} 块',
+        allChunks_other: '全部 {{count}} 块',
+        chunkPage: '第 {{page}} 页',
+        chunkPreviewUnavailable: '暂时无法预览分块，可在分块页查看',
+        earlierSteps_one: '更早的 {{count}} 步见完整日志',
+        earlierSteps_other: '更早的 {{count}} 步见完整日志',
+        fullLog: '查看完整日志',
       },
       manageMetadata: '管理元数据',
       import: '导入文档',
@@ -798,6 +843,8 @@ export default {
         noDownloadPermission: '请联系管理员获取下载权限',
         enableDocument: '点击启用文档',
         disableDocument: '点击禁用文档',
+        retryParse: '重试',
+        previewSource: '预览原文',
       },
       bulkActions: {
         selected: '已选择 {{count}} 个文档',
@@ -1232,6 +1279,10 @@ export default {
         source: '原文对照',
         previewUnavailable:
           '暂时无法读取原文。可以重试，或关闭预览继续审阅切片。',
+        sourceTab: '原文定位',
+        configTab: '解析配置',
+        panelLabel: '原文与文档信息',
+        closePanel: '关闭侧栏',
       },
       pagination: {
         range: '{{start}}–{{end}} / {{total}} 个切片',
@@ -1273,6 +1324,11 @@ export default {
         totalChunks: '共 {{count}} 个分段',
         searchSummary: '（搜索：“{{keyword}}”）',
         filterSummary: '（筛选：{{status}}）',
+        statusFilter: '启用状态',
+        selectedChunks_one: '已选 {{count}} 个分块',
+        selectedChunks_other: '已选 {{count}} 个分块',
+        searchHits_one: '搜索“{{keyword}}”：命中 {{count}} 个分块',
+        searchHits_other: '搜索“{{keyword}}”：命中 {{count}} 个分块',
       },
       list: {
         inspectChunk: '查看切片 #{{no}}',
@@ -1296,6 +1352,9 @@ export default {
         thumbnailAlt: '切片缩略图',
         keywords: '关键词',
         questions: '问题',
+        keywordsAndQuestions: '关键词与问题',
+        pageLabel: '第 {{page}} 页',
+        located: '原文已定位',
         previousPage: '上一页',
         nextPage: '下一页',
         type: {

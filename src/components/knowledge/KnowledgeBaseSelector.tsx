@@ -22,7 +22,7 @@ import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 import { useKnowledgeSelector } from '@/hooks/use-knowledge-selector'
 import type { KnowledgeBase } from '@/types/api'
-import { EntityAvatar } from '@/components/patterns/entity-avatar'
+import { EmbeddingModelLabel, KnowledgeAvatar } from './knowledge-identity'
 
 interface KnowledgeBaseSelectorProps extends Pick<
   ComponentPropsWithoutRef<typeof Button>,
@@ -69,7 +69,7 @@ const KnowledgeBaseOptionLabel: FC<{
       {isSelected && <CheckIcon className="h-3 w-3 text-white" />}
     </div>
 
-    <EntityAvatar name={kb.name} src={kb.avatar} seed={kb.id} size="xs" />
+    <KnowledgeAvatar knowledgeBase={kb} size="xs" />
 
     <span
       className={cn(
@@ -96,12 +96,14 @@ const KnowledgeBaseOptionLabel: FC<{
     {kb.embd_id && (
       <div
         className={cn(
-          'max-w-[160px] shrink-0 truncate rounded-md border px-2 py-0.5 text-xs',
-          'border-border-subtle bg-background-subtle text-text-secondary',
-          isDisabled && 'text-text-disabled',
+          'flex max-w-40 shrink-0 items-center rounded-radius-md border border-border-subtle bg-background-subtle px-space-sm py-space-2xs',
+          isDisabled && 'opacity-60',
         )}
       >
-        {kb.embd_id}
+        <EmbeddingModelLabel
+          modelId={kb.embd_id}
+          className="text-text-secondary"
+        />
       </div>
     )}
   </div>
@@ -115,7 +117,7 @@ const SelectedKnowledgeBaseBadge: FC<{
     variant="secondary"
     className="flex h-6 max-w-[240px] items-center gap-1 bg-components-badge-info-bg px-1.5 py-0.5 text-xs text-components-badge-info-text"
   >
-    <EntityAvatar name={kb.name} src={kb.avatar} seed={kb.id} size="2xs" />
+    <KnowledgeAvatar knowledgeBase={kb} size="2xs" />
     <span className="min-w-0 truncate">{kb.name}</span>
     {kb.nickname && (
       <span
