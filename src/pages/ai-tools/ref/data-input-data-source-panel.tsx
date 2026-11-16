@@ -1,6 +1,6 @@
 import React from 'react'
-import { Button } from '@/components/vendor/ui/button'
-import { Input } from '@/components/vendor/ui/input'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { toast } from '@/lib/toast'
 import { cn } from '@/lib/utils'
@@ -142,7 +142,7 @@ export const DataSourcePanel: React.FC<DataSourcePanelProps> = ({
                   }))
                 }
                 placeholder="数据源名称"
-                className="h-8"
+                inputSize="sm"
               />
             </div>
 
@@ -161,7 +161,7 @@ export const DataSourcePanel: React.FC<DataSourcePanelProps> = ({
                       }))
                     }
                     placeholder="https://api.example.com/data"
-                    className="h-8"
+                    inputSize="sm"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
@@ -196,7 +196,8 @@ export const DataSourcePanel: React.FC<DataSourcePanelProps> = ({
                         }))
                       }
                       placeholder='{"Authorization": "..."}'
-                      className="h-8 font-mono text-xs"
+                      inputSize="sm"
+                      className="font-mono text-xs"
                     />
                   </div>
                 </div>
@@ -237,7 +238,7 @@ export const DataSourcePanel: React.FC<DataSourcePanelProps> = ({
                         }))
                       }
                       placeholder="localhost"
-                      className="h-8"
+                      inputSize="sm"
                     />
                   </div>
                   <div>
@@ -253,7 +254,7 @@ export const DataSourcePanel: React.FC<DataSourcePanelProps> = ({
                         }))
                       }
                       placeholder="3306"
-                      className="h-8"
+                      inputSize="sm"
                     />
                   </div>
                 </div>
@@ -271,7 +272,7 @@ export const DataSourcePanel: React.FC<DataSourcePanelProps> = ({
                         }))
                       }
                       placeholder="database"
-                      className="h-8"
+                      inputSize="sm"
                     />
                   </div>
                   <div>
@@ -287,7 +288,7 @@ export const DataSourcePanel: React.FC<DataSourcePanelProps> = ({
                         }))
                       }
                       placeholder="root"
-                      className="h-8"
+                      inputSize="sm"
                     />
                   </div>
                   <div>
@@ -304,7 +305,7 @@ export const DataSourcePanel: React.FC<DataSourcePanelProps> = ({
                         }))
                       }
                       placeholder="••••••"
-                      className="h-8"
+                      inputSize="sm"
                     />
                   </div>
                 </div>
@@ -321,7 +322,8 @@ export const DataSourcePanel: React.FC<DataSourcePanelProps> = ({
                       }))
                     }
                     placeholder="SELECT * FROM table LIMIT 100"
-                    className="h-8 font-mono text-xs"
+                    inputSize="sm"
+                    className="font-mono text-xs"
                   />
                 </div>
               </>

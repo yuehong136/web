@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Button } from '@/components/vendor/ui/button'
+import { Button } from '@/components/ui/button'
 import { toast } from '@/lib/toast'
 import DocumentPreview from './DocumentPreview'
 import {

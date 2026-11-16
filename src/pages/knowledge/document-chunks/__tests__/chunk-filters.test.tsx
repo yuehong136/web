@@ -118,7 +118,10 @@ async function click(label: string) {
   await act(async () => button!.click())
 }
 function activeFilter() {
-  return document.querySelector('button[aria-pressed="true"]')?.textContent
+  // The display-mode toggle in the toolbar also exposes aria-pressed; the
+  // status filter options live in the popover dialog.
+  return document.querySelector('[role="dialog"] button[aria-pressed="true"]')
+    ?.textContent
 }
 beforeEach(async () => {
   restoreDom = installRadixSelectDom()

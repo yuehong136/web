@@ -8,14 +8,14 @@
  * 又会误关 Sheet。留在 Sheet 子树内即可正常交互、焦点也由 Sheet 的 FocusScope 兜住。
  */
 import { Loader2, Sparkles, X } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Segmented, SegmentedItem } from '@/components/vendor/ui/segmented'
 import { useChatModelOptions } from '@/hooks/use-llm-request'
+import { SegmentedChoice } from '@/pages/agent/form/components/segmented-choice'
 import type { SkeletonSchema } from '../../types'
 import { ModelSelect } from './model-select'
 import { useGenerateSkeleton } from './use-generate-skeleton'
@@ -40,6 +40,7 @@ export function AiSkeletonDialog({
   const [text, setText] = useState('')
   const [model, setModel] = useState('')
   const [mode, setMode] = useState<'detailed' | 'layout'>('detailed')
+  const modeLabelId = useId()
 
   const { generate, cancel, status, progress, error } = useGenerateSkeleton(
     (skeleton) => {
@@ -153,21 +154,27 @@ export function AiSkeletonDialog({
           </div>
 
           <div className="space-y-space-xs">
-            <Label className="text-xs text-text-secondary">
+            <Label id={modeLabelId} className="text-xs text-text-secondary">
               {t('flow.htmlReportAiExtractionMode', 'Extraction mode')}
             </Label>
-            <Segmented
+            <SegmentedChoice
+              aria-labelledby={modeLabelId}
               value={mode}
-              onValueChange={(v) => setMode(v as 'detailed' | 'layout')}
-              block
-            >
-              <SegmentedItem value="detailed">
-                {t('flow.htmlReportAiModeDetailed', 'Detailed semantics')}
-              </SegmentedItem>
-              <SegmentedItem value="layout">
-                {t('flow.htmlReportAiModeLayout', 'Layout first')}
-              </SegmentedItem>
-            </Segmented>
+              onValueChange={setMode}
+              options={[
+                {
+                  value: 'detailed',
+                  label: t(
+                    'flow.htmlReportAiModeDetailed',
+                    'Detailed semantics',
+                  ),
+                },
+                {
+                  value: 'layout',
+                  label: t('flow.htmlReportAiModeLayout', 'Layout first'),
+                },
+              ]}
+            />
             <p className="text-xs text-text-tertiary">
               {mode === 'layout'
                 ? t(

@@ -54,7 +54,7 @@
 
 #### 展示组件 vs 容器组件（强制）
 
-**展示组件**（`src/components/ui/`、`src/components/vendor/`、`src/components/patterns/`）：
+**展示组件**（`src/components/ui/`、`src/components/patterns/`）：
 
 - 纯展示，只接收 props
 - ❌ 禁止：业务态 `useState`、加载数据的 `useEffect`、API 调用、读 store

@@ -16,7 +16,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
-import { Segmented, SegmentedItem } from '@/components/vendor/ui/segmented'
 import { cn } from '@/lib/utils'
 import { ChunkTagsPopover } from './chunk-tags-popover'
 import type { ChunkFilterStatus, TextMode } from '../types'
@@ -74,6 +73,10 @@ export const ChunkToolbar = ({
     enabled: t('knowledge.chunks.toolbar.filterEnabled'),
     disabled: t('knowledge.chunks.toolbar.filterDisabled'),
   }
+  const textModeOptions: { mode: TextMode; label: string }[] = [
+    { mode: 'ellipse', label: t('knowledge.chunks.toolbar.ellipsis') },
+    { mode: 'full', label: t('knowledge.chunks.toolbar.fullText') },
+  ]
   const mutationPending = disabled || isBulkSwitchPending || isDeletePending
 
   return (
@@ -155,18 +158,28 @@ export const ChunkToolbar = ({
                 </div>
               </PopoverContent>
             </Popover>
-            <Segmented
-              value={textMode}
-              onValueChange={(value) => onTextModeChange(value as TextMode)}
+            <fieldset
               aria-label={t('knowledge.chunks.toolbar.displayMode')}
+              className="flex gap-space-2xs rounded-radius-lg border border-components-segmented-border bg-components-segmented-bg p-space-2xs"
             >
-              <SegmentedItem value="ellipse">
-                {t('knowledge.chunks.toolbar.ellipsis')}
-              </SegmentedItem>
-              <SegmentedItem value="full">
-                {t('knowledge.chunks.toolbar.fullText')}
-              </SegmentedItem>
-            </Segmented>
+              {textModeOptions.map(({ mode, label }) => (
+                <Button
+                  key={mode}
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  aria-pressed={textMode === mode}
+                  onClick={() => onTextModeChange(mode)}
+                  className={cn(
+                    'text-components-segmented-item-text hover:bg-components-segmented-item-bg-hover',
+                    textMode === mode &&
+                      'bg-components-segmented-item-bg-active text-components-segmented-item-text-active shadow-elevation-low hover:bg-components-segmented-item-bg-active',
+                  )}
+                >
+                  {label}
+                </Button>
+              ))}
+            </fieldset>
           </>
         }
       />

@@ -1,4 +1,3 @@
-import { Segmented, SegmentedItem } from '@/components/vendor/ui/segmented'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -24,6 +23,7 @@ import { useFormValues } from '../../hooks/use-form-values'
 import { useWatchFormChange } from '../../hooks/use-watch-form-change'
 import type { INextOperatorForm } from '../../types'
 import { FormWrapper, Output, buildOutputList } from '../components'
+import { SegmentedChoice } from '@/pages/agent/form/components/segmented-choice'
 import { normalizeTokenChunkerFormForStore } from './utils'
 
 const tokenChunkerSchema = z.object({
@@ -74,7 +74,7 @@ function DelimiterList({ name, label, control }: DelimiterListProps) {
 
       <div className="space-y-space-sm">
         {fieldArray.fields.map((field, index) => (
-          <div key={field.id} className="gap-space-sm flex items-center">
+          <div key={field.id} className="flex items-center gap-space-sm">
             <FormField
               control={control}
               name={`${name}.${index}.value`}
@@ -143,21 +143,24 @@ export function TokenChunkerForm({ node }: INextOperatorForm) {
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <Segmented
+                <SegmentedChoice
                   value={field.value ?? TokenChunkerDelimiterMode.TokenSize}
                   onValueChange={field.onChange}
-                  block
-                >
-                  <SegmentedItem value={TokenChunkerDelimiterMode.TokenSize}>
-                    {t('flow.tokenSize', 'Token Size')}
-                  </SegmentedItem>
-                  <SegmentedItem value={TokenChunkerDelimiterMode.Delimiter}>
-                    {t('flow.delimiters', 'Delimiters')}
-                  </SegmentedItem>
-                  <SegmentedItem value={TokenChunkerDelimiterMode.One}>
-                    {t('flow.one', 'One')}
-                  </SegmentedItem>
-                </Segmented>
+                  options={[
+                    {
+                      value: TokenChunkerDelimiterMode.TokenSize,
+                      label: t('flow.tokenSize', 'Token Size'),
+                    },
+                    {
+                      value: TokenChunkerDelimiterMode.Delimiter,
+                      label: t('flow.delimiters', 'Delimiters'),
+                    },
+                    {
+                      value: TokenChunkerDelimiterMode.One,
+                      label: t('flow.one', 'One'),
+                    },
+                  ]}
+                />
               </FormControl>
             </FormItem>
           )}
@@ -257,7 +260,7 @@ export function TokenChunkerForm({ node }: INextOperatorForm) {
         )}
 
         {delimiterMode === TokenChunkerDelimiterMode.One && (
-          <div className="gap-space-sm rounded-radius-md bg-surface-secondary px-space-md py-space-sm flex items-start border border-border-default">
+          <div className="flex items-start gap-space-sm rounded-radius-md border border-border-default bg-surface-secondary px-space-md py-space-sm">
             <Info className="mt-0.5 size-4 shrink-0 text-text-secondary" />
             <div className="space-y-space-2xs">
               <div className="text-sm font-medium text-text-primary">
@@ -279,7 +282,7 @@ export function TokenChunkerForm({ node }: INextOperatorForm) {
               control={form.control}
               name="enable_children"
               render={({ field }) => (
-                <FormItem className="rounded-radius-md px-space-sm py-space-sm flex items-center justify-between border border-border-default">
+                <FormItem className="flex items-center justify-between rounded-radius-md border border-border-default px-space-sm py-space-sm">
                   <FormLabel>
                     {t(
                       'flow.enableChildrenDelimiters',

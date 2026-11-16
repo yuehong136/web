@@ -1,13 +1,8 @@
 import React, { useState } from 'react'
-import { Button } from '@/components/vendor/ui/button'
-import { Input } from '@/components/vendor/ui/input'
-import { Textarea } from '@/components/vendor/ui/textarea'
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/vendor/ui/tabs'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -348,7 +343,7 @@ const DataInput: React.FC<DataInputProps> = ({
       {/* 主内容区 - Tabs */}
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
         <div className="mb-4 flex items-center justify-between gap-4">
-          <TabsList className="bg-background-subtle">
+          <TabsList>
             <TabsTrigger value="form" className="gap-1.5">
               <FormInput className="h-4 w-4" />
               表单
@@ -367,7 +362,8 @@ const DataInput: React.FC<DataInputProps> = ({
                   value={searchKey}
                   onChange={(e) => setSearchKey(e.target.value)}
                   placeholder="搜索字段..."
-                  className="h-8 w-[160px] pl-8"
+                  inputSize="sm"
+                  className="w-[160px] pl-8"
                 />
               </div>
               <label className="flex cursor-pointer items-center gap-2 text-sm text-text-secondary">
@@ -405,7 +401,7 @@ const DataInput: React.FC<DataInputProps> = ({
                     <Input
                       value={formData[k] || ''}
                       onChange={(e) => handleFormChange(k, e.target.value)}
-                      className={cn('h-10', !formData[k] && 'border-dashed')}
+                      className={cn(!formData[k] && 'border-dashed')}
                     />
                   </div>
                 ))}
@@ -493,7 +489,7 @@ const DataInput: React.FC<DataInputProps> = ({
             value={settingsTab}
             onValueChange={(v) => setSettingsTab(v as any)}
           >
-            <TabsList className="mb-4 grid w-full grid-cols-3">
+            <TabsList className="mb-4 w-full *:flex-1">
               <TabsTrigger value="llm">模型</TabsTrigger>
               <TabsTrigger value="prompt">提示词</TabsTrigger>
               <TabsTrigger value="mcp">高级</TabsTrigger>

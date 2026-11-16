@@ -28,31 +28,31 @@ Multi-RAG Frontend 是企业级 AI 前端，覆盖：
 
 具体版本以 [package.json](package.json) 和 [package-lock.json](package-lock.json) 为准；下表记录选型，不维护第二份版本快照。
 
-| 层                       | 选型                                                                          |
-| ------------------------ | ----------------------------------------------------------------------------- |
-| 框架                     | React                                                                         |
-| 语言                     | TypeScript（strict）                                                          |
-| 构建                     | Vite                                                                          |
-| 路由                     | react-router-dom                                                              |
-| 服务器状态               | TanStack Query                                                                |
-| 客户端状态               | Zustand                                                                       |
-| 样式                     | Tailwind CSS + 语义化 token                                                   |
-| 原子组件                 | Radix UI                                                                      |
-| 表单                     | react-hook-form + zod                                                         |
-| 图标                     | lucide-react（**唯一**）                                                      |
-| 聊天 UI                  | @ant-design/x 套件（x、x-card、x-markdown、x-sdk）                            |
-| 画布                     | @xyflow/react、@antv/g6                                                       |
-| 编辑器                   | @monaco-editor/react、@lexical/react                                          |
-| Markdown                 | react-markdown + markdown-it + remark-gfm + mathjax3                          |
-| 流式                     | eventsource-parser                                                            |
-| 拖拽                     | @dnd-kit/core / sortable / utilities                                          |
-| 文档预览                 | docx-preview、pptx-preview、mammoth、@js-preview/excel、react-pdf-highlighter |
-| 图表                     | recharts                                                                      |
-| 流程图                   | mermaid                                                                       |
-| 净化                     | DOMPurify                                                                     |
-| 国际化                   | react-i18next + i18next + browser-languagedetector                            |
-| Toast / Drawer / Command | sonner / vaul / cmdk                                                          |
-| 可拖动分栏               | react-resizable-panels                                                        |
+| 层              | 选型                                                                          |
+| --------------- | ----------------------------------------------------------------------------- |
+| 框架            | React                                                                         |
+| 语言            | TypeScript（strict）                                                          |
+| 构建            | Vite                                                                          |
+| 路由            | react-router-dom                                                              |
+| 服务器状态      | TanStack Query                                                                |
+| 客户端状态      | Zustand                                                                       |
+| 样式            | Tailwind CSS + 语义化 token                                                   |
+| 原子组件        | Radix UI                                                                      |
+| 表单            | react-hook-form + zod                                                         |
+| 图标            | lucide-react（**唯一**）                                                      |
+| 聊天 UI         | @ant-design/x 套件（x、x-card、x-markdown、x-sdk）                            |
+| 画布            | @xyflow/react、@antv/g6                                                       |
+| 编辑器          | @monaco-editor/react、@lexical/react                                          |
+| Markdown        | react-markdown + markdown-it + remark-gfm + mathjax3                          |
+| 流式            | eventsource-parser                                                            |
+| 拖拽            | @dnd-kit/core / sortable / utilities                                          |
+| 文档预览        | docx-preview、pptx-preview、mammoth、@js-preview/excel、react-pdf-highlighter |
+| 图表            | recharts                                                                      |
+| 流程图          | mermaid                                                                       |
+| 净化            | DOMPurify                                                                     |
+| 国际化          | react-i18next + i18next + browser-languagedetector                            |
+| Toast / Command | sonner / cmdk                                                                 |
+| 可拖动分栏      | react-resizable-panels                                                        |
 
 **已正式弃用 / 不再使用**：
 
@@ -194,7 +194,7 @@ src/
 
 ### 6.2 展示组件 vs 容器组件
 
-**展示组件**（`components/ui`、`components/patterns`、`components/vendor`）：
+**展示组件**（`components/ui`、`components/patterns`）：
 
 - 只接收 props
 - 不读 store、不发请求、不做页面级副作用

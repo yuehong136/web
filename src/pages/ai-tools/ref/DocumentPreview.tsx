@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { renderAsync } from 'docx-preview'
-import { Button } from '@/components/vendor/ui/button'
-import { Badge } from '@/components/vendor/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import {
   X,
   Download,

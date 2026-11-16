@@ -127,13 +127,11 @@
 ### 1. 导入组件
 
 ```typescript
-import {
-  MCPServersPage,
-  MCPToolsPage,
-  MCPTestPage,
-  MCPBatchPage,
-} from '@/pages/settings'
-import { MCPServerForm } from '@/components/mcp'
+import { MCPServersPage } from '@/pages/settings/MCPServersPage'
+import { MCPToolsPage } from '@/pages/settings/MCPToolsPage'
+import { MCPTestPage } from '@/pages/settings/MCPTestPage'
+import { MCPBatchPage } from '@/pages/settings/MCPBatchPage'
+import { MCPServerForm } from '@/components/mcp/MCPServerForm'
 ```
 
 ### 2. 使用示例
@@ -166,12 +164,10 @@ src/
 │   │   ├── MCPToolsPage.tsx        # 工具管理
 │   │   ├── MCPTestPage.tsx         # 连接测试
 │   │   ├── MCPBatchPage.tsx        # 批量操作
-│   │   ├── index.ts                # 导出索引
 │   │   └── README.md               # 文档说明
 ├── components/
 │   ├── mcp/
-│   │   ├── MCPServerForm.tsx       # 服务器表单
-│   │   └── index.ts                # 组件导出
+│   │   └── MCPServerForm.tsx       # 服务器表单
 │   └── ui/
 │       ├── textarea.tsx            # 新增UI组件
 │       ├── select.tsx              # 新增UI组件
