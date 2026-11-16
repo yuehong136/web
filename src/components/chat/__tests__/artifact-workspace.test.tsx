@@ -27,11 +27,9 @@ vi.mock('@/components/layout/ai-workspace', () => ({
     </div>
   ),
 }))
-vi.mock('../reference-detail-panel', () => ({
-  ReferenceDetailPanel: ({ chunk }: { chunk: ReferenceChunk }) => (
-    <div data-reference-chunk={chunk.id}>
-      <div data-context-panel-body>{chunk.content}</div>
-    </div>
+vi.mock('../evidence-source-detail', () => ({
+  EvidenceSourceDetail: ({ chunk }: { chunk: ReferenceChunk }) => (
+    <div data-reference-chunk={chunk.id}>{chunk.content}</div>
   ),
 }))
 vi.mock('@ant-design/x', () => ({ Mermaid: () => null }))
@@ -369,7 +367,7 @@ it('keeps evidence, artifact and their scroll positions while tabs change with m
   await render('thread-A', 'report.txt')
   await click('[data-open-evidence]')
   const source = host.querySelector<HTMLElement>(
-    '[data-reference-chunk] [data-context-panel-body]',
+    '[data-evidence-body]:has([data-reference-chunk])',
   )!
   source.scrollTop = 87
   await click('[data-artifact-card]')
@@ -377,19 +375,30 @@ it('keeps evidence, artifact and their scroll positions while tabs change with m
     '[data-artifact-panel] [data-context-panel-body]',
   )!
   artifactPanel.scrollTop = 123
+  // Sources · All chunks · Artifacts; arrow keys move between them
   const tabs = [...host.querySelectorAll<HTMLButtonElement>('[role="tab"]')]
+  expect(tabs.map((tab) => tab.textContent)).toEqual([
+    'Sources1',
+    'All chunks1',
+    'Artifacts',
+  ])
+  tabs[2].focus()
   await act(async () =>
-    tabs[1].dispatchEvent(
+    tabs[2].dispatchEvent(
       new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true }),
     ),
   )
+  expect(document.activeElement).toBe(tabs[1])
+  // Radix tabs select on pointer down, as a mouse click does
+  const select = (tab: HTMLElement) =>
+    tab.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, button: 0 }))
+  await act(async () => select(tabs[0]))
   expect(tabs[0].getAttribute('aria-selected')).toBe('true')
-  expect(document.activeElement).toBe(tabs[0])
   expect(
-    host.querySelector('[data-reference-chunk] [data-context-panel-body]'),
+    host.querySelector('[data-evidence-body]:has([data-reference-chunk])'),
   ).toBe(source)
   expect(source.scrollTop).toBe(87)
-  await act(async () => tabs[1].click())
+  await act(async () => select(tabs[2]))
   expect(
     host.querySelector('[data-artifact-panel] [data-context-panel-body]'),
   ).toBe(artifactPanel)

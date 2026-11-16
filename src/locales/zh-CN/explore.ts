@@ -44,37 +44,27 @@ export default {
     header: {
       market: '应用市场',
       chatSettings: '聊天设置',
-      defaultLayout: '默认布局',
-      centerLayout: '居中布局',
-      fullLayout: '全屏布局',
+    },
+    empty: {
+      suggestions: '可以这样开始',
     },
     market: {
       added: '已添加',
       addToWorkspace: '添加到工作区',
     },
     prompts: {
-      explain: {
-        label: '解释这个概念',
-        description: '深入了解',
-      },
-      code: {
-        label: '写一段代码',
-        description: '编程助手',
-      },
-      summarize: {
-        label: '总结要点',
-        description: '快速提取',
-      },
-      translate: {
-        label: '翻译文本',
-        description: '多语言',
-      },
+      explain: { label: '解释这个概念' },
+      code: { label: '写一段代码' },
+      summarize: { label: '总结要点' },
+      translate: { label: '翻译文本' },
     },
     sender: {
+      onlineSearchUnavailable: '此应用未配置 Tavily Key，无法联网搜索',
+      appModel: '应用默认',
       placeholder: '输入消息，按 Enter 发送，也可直接发送附件',
       uploadFile: '上传文件',
       stop: '停止接收',
-      thinking: '深度思考',
+      thinking: '深度研究',
       onlineSearch: '联网搜索',
       uploading: '上传中...',
       attachmentsReady: '{{count}} 个附件已就绪',
@@ -94,8 +84,6 @@ export default {
     toast: {
       copied: '已复制到剪贴板',
       copyFailed: '复制失败',
-      like: '感谢您的反馈',
-      dislike: '感谢您的反馈，我们会继续改进',
       missingUserMessage: '无法找到对应的用户消息',
       assistantError: '抱歉，发生了错误，请重试。',
       uploadSuccess: '文件 {{name}} 上传成功',

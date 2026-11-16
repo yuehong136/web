@@ -213,30 +213,59 @@ it('numbers repeated, out-of-order and unknown citations by reference position',
   expect(evidenceText()).toContain('片段 2 的内容')
 })
 
-it('gives same-document chunks in the source panel the numbers their citations show', async () => {
+it('lists cited sources under the answer with the numbers their citations show', async () => {
   const references = [
     chunk(0),
     chunk(1, { document_id: 'doc-2', document_name: 'report.pdf' }),
     chunk(2),
+    chunk(3, { similarity: 0.41 }),
   ]
   await render([answer('甲[ID:0]乙[ID:1]丙[ID:2]。', references)])
   expect(markerButtons()).toEqual(['1', '2', '3'])
 
-  await act(async () => buttonWithText(container, '引用来源')!.click())
-  // 同文档两段在 harness.pdf 下，编号仍是 1 和 3
-  for (const [number, content] of [
-    ['1', '片段 0 的内容'],
-    ['2', '片段 1 的内容'],
-    ['3', '片段 2 的内容'],
-  ]) {
-    const item = buttonWithText(container, content)!
-    expect(item.textContent?.startsWith(number)).toBe(true)
-  }
+  // One line of cited sources; the uncited chunk is only in the evidence panel
+  const strip = container.querySelector('[data-source-strip]')!
+  const chips = [
+    ...strip.querySelectorAll<HTMLButtonElement>('[data-source-chunk]'),
+  ]
+  expect(chips.map((chip) => chip.getAttribute('aria-label'))).toEqual([
+    '引用 1：harness.pdf',
+    '引用 2：report.pdf',
+    '引用 3：harness.pdf',
+  ])
+  expect(chips[0].textContent).toContain('相关度 62%')
+  expect(container.querySelector('[data-retrieval-summary]')?.textContent).toBe(
+    '检索到 4 个片段，引用其中 3 个',
+  )
 
-  await act(async () => buttonWithText(container, '片段 2 的内容')!.click())
+  await act(async () => chips[2].click())
   await settle()
   expect(evidenceText()).toContain('harness.pdf')
   expect(evidenceText()).toContain('片段 2 的内容')
+  expect(evidenceText()).toContain('综合 62%')
+})
+
+it('opens every retrieved chunk, cited or not, with its scores', async () => {
+  const references = [
+    chunk(0, { vector_similarity: 0.7, term_similarity: 0.5 }),
+    chunk(1, { similarity: 0.41 }),
+  ]
+  await render([answer('甲[ID:0]。', references)])
+  await act(async () =>
+    container.querySelector<HTMLButtonElement>('[data-source-all]')!.click(),
+  )
+  await settle()
+  const panel = document.querySelector('[role="dialog"]:has(h2)')!
+  expect(
+    panel.querySelector('[role="tab"][aria-selected="true"]')?.textContent,
+  ).toContain('全部片段')
+  const rows = [...panel.querySelectorAll('[data-evidence-chunks] button')]
+  expect(rows.map((row) => row.textContent)).toEqual([
+    expect.stringContaining('引用 1 · harness.pdf'),
+    expect.stringContaining('未引用 · harness.pdf'),
+  ])
+  expect(rows[0].textContent).toContain('综合 62% · 向量 70% · 关键词 50%')
+  expect(rows[1].textContent).toContain('41%')
 })
 
 it('resolves an old numeric message title and provider independently from the current model', async () => {
@@ -259,13 +288,14 @@ it('resolves an old numeric message title and provider independently from the cu
   })
   try {
     await render([message])
-    expect(container.querySelector('.chat-message-heading')?.textContent).toBe(
+    // The model shows once in the header and as each answer's meta line
+    expect(container.querySelector('.chat-message-meta')?.textContent).toBe(
       'gpt-test',
     )
+    const identity = container.querySelector('[data-thread-identity]')
+    expect(identity?.textContent).toBe('gpt-test')
     expect(
-      container
-        .querySelector('.chat-message-identity use')
-        ?.getAttribute('xlink:href'),
+      identity?.querySelector('use')?.getAttribute('xlink:href'),
     ).toContain('openai')
   } finally {
     useHomeStore.setState({ selectedModelId: previous })
@@ -296,17 +326,21 @@ it('uses the submitted app model in the title and leaves unattributed history ge
     ],
   })
   await render([message])
-  expect(container.querySelector('.chat-message-heading')?.textContent).toBe(
+  expect(container.querySelector('.chat-message-meta')?.textContent).toBe(
     'gpt-test',
   )
-  expect(
-    container
-      .querySelector('.chat-message-identity use')
-      ?.getAttribute('xlink:href'),
-  ).toBe('#icon-openai')
   await render([answer('Legacy answer')])
-  expect(container.querySelector('.chat-message-heading')?.textContent).toBe(
-    '助手',
-  )
-  expect(container.querySelector('.chat-message-identity use')).toBeNull()
+  // Unattributed history gets no invented model name
+  expect(container.querySelector('.chat-message-meta')).toBeNull()
+  expect(container.querySelector('article[aria-label="助手"]')).not.toBeNull()
+})
+
+it('keeps the actions of the latest answer visible and reveals earlier ones on hover', async () => {
+  const first = answer('First answer')
+  const second = { ...answer('Second answer'), id: 'answer-2' }
+  await render([first, second])
+  const bars = [...container.querySelectorAll('.chat-message-actions')]
+  expect(bars).toHaveLength(2)
+  expect(bars[0].hasAttribute('data-persistent')).toBe(false)
+  expect(bars[1].hasAttribute('data-persistent')).toBe(true)
 })

@@ -97,6 +97,9 @@ export interface TranslationContracts {
     artifactLoading: undefined
     artifacts: undefined
     artifactUnavailable: undefined
+    chunks: undefined
+    close: undefined
+    combinedScore: { score: string | number }
     context: undefined
     copy: undefined
     download: undefined
@@ -104,9 +107,13 @@ export interface TranslationContracts {
     failed: undefined
     file: undefined
     inherited: undefined
+    keywordScore: { score: string | number }
     knowledgeBase: undefined
     model: undefined
     noOriginal: undefined
+    noScore: undefined
+    notCited: undefined
+    otherChunks: undefined
     preparing: undefined
     preview: undefined
     previewUnavailable: undefined
@@ -115,15 +122,19 @@ export interface TranslationContracts {
     resize: undefined
     returnToAnswer: undefined
     revoked: undefined
+    scores: undefined
     selected: undefined
     selectionNotice: undefined
     serverConfirmed: undefined
     snapshotNotice: undefined
+    sourceNumber: { number: string | number }
+    sources: undefined
     submitted: undefined
     technicalDetails: undefined
     tool: undefined
     turn: undefined
     unknown: undefined
     used: undefined
+    vectorScore: { score: string | number }
   }
 }

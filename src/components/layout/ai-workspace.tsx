@@ -1,4 +1,10 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import {
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from 'react'
 import { Group, Panel, Separator } from 'react-resizable-panels'
 import {
   Sheet,
@@ -7,9 +13,21 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { getReturnFocusTargets } from '@/components/chat/use-return-focus'
+import { cn } from '@/lib/utils'
 
 const WIDTH_PREFERENCE = 'ai-workspace-panel-width'
 const MIN_DOCK_CONTAINER_WIDTH = 1100
+const PHONE_QUERY = '(max-width: 767px)'
+
+const subscribePhone = (listener: () => void) => {
+  if (typeof window.matchMedia !== 'function') return () => {}
+  const media = window.matchMedia(PHONE_QUERY)
+  media.addEventListener('change', listener)
+  return () => media.removeEventListener('change', listener)
+}
+const readPhone = () =>
+  typeof window.matchMedia === 'function' &&
+  window.matchMedia(PHONE_QUERY).matches
 
 function initialWidth() {
   try {
@@ -32,6 +50,8 @@ export interface AiWorkspaceProps {
   scopeKey: string
   /** Explicit resource actions may replace the originating main-area control. */
   returnFocusTargets?: readonly HTMLElement[]
+  /** Where the detail slides in on phones (under 768px). Defaults to the right. */
+  phoneSheetSide?: 'right' | 'bottom'
 }
 
 /** The primary panel stays mounted across resource, locale and width changes. */
@@ -45,6 +65,7 @@ export function AiWorkspace({
   onOpenChange,
   scopeKey,
   returnFocusTargets,
+  phoneSheetSide = 'right',
 }: AiWorkspaceProps) {
   const container = useRef<HTMLDivElement>(null)
   const [wide, setWide] = useState(false)
@@ -52,6 +73,9 @@ export function AiWorkspace({
   const targets = useRef<HTMLElement[]>([])
   const wasOpen = useRef(false)
   const previousScope = useRef(scopeKey)
+  const phone =
+    useSyncExternalStore(subscribePhone, readPhone, () => false) &&
+    phoneSheetSide === 'bottom'
 
   useEffect(() => {
     const element = container.current
@@ -166,9 +190,12 @@ export function AiWorkspace({
         }}
       >
         <SheetContent
-          side="right"
+          side={phone ? 'bottom' : 'right'}
           showCloseButton={false}
-          className="h-full w-full overflow-hidden p-0 sm:max-w-xl"
+          className={cn(
+            'overflow-hidden p-0',
+            phone ? 'h-5/6 rounded-t-radius-xl' : 'h-full w-full sm:max-w-xl',
+          )}
           onCloseAutoFocus={(event) => event.preventDefault()}
         >
           <SheetTitle className="sr-only">{detailTitle}</SheetTitle>

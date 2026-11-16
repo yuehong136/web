@@ -117,16 +117,17 @@ export const ChatComposer = forwardRef<SenderRef, ChatComposerProps>(
           suffix={false}
           footer={
             <div className="chat-composer-toolbar">
-              <div className="relative flex min-w-0 flex-1 items-center gap-space-sm">
+              <div className="relative flex min-w-0 flex-1 items-center gap-space-2xs">
                 {slots?.leading}
               </div>
-              <div className="flex min-w-0 items-center gap-space-sm">
+              <div className="flex min-w-0 items-center gap-space-xs">
                 {slots?.configuration}
                 {state.kind === 'running' ? (
                   <Button
                     type="button"
                     variant="secondary"
                     size="icon"
+                    className="rounded-radius-full"
                     onClick={state.stop}
                     aria-label={labels?.stop ?? t('chat.stream.stop')}
                     title={labels?.stop ?? t('chat.stream.stop')}
@@ -137,6 +138,7 @@ export const ChatComposer = forwardRef<SenderRef, ChatComposerProps>(
                   <Button
                     type="button"
                     size="icon"
+                    className="rounded-radius-full"
                     disabled={!canSubmit}
                     onClick={submit}
                     aria-label={labels?.submit ?? t('common.submit')}

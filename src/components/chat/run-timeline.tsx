@@ -1,20 +1,14 @@
-import {
-  CheckCircle2,
-  ChevronDown,
-  CircleHelp,
-  CircleX,
-  LoaderCircle,
-  Wrench,
-} from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { CodeBlock } from './CodeBlock'
-import { ThinkWrapper } from './ThinkWrapper'
+import { ReasoningDisclosure } from './reasoning-disclosure'
 import {
   isRunTerminal,
   type AgentTimelineNode,
   type RunPhase,
 } from '@/lib/streaming'
 import { cn } from '@/lib/utils'
+import '@/components/chat/app-chat-message.css'
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -36,6 +30,18 @@ export const getToolStepStatus = (node: AgentTimelineNode, phase: RunPhase) =>
       ? 'unconfirmed'
       : node.status
 
+/** Items in a list result, when the tool returned one (or a JSON list as text). */
+function resultCount(result: unknown): number | null {
+  if (Array.isArray(result)) return result.length
+  if (typeof result !== 'string') return null
+  try {
+    const parsed: unknown = JSON.parse(result)
+    return Array.isArray(parsed) ? parsed.length : null
+  } catch {
+    return null
+  }
+}
+
 function ToolStep({
   node,
   phase,
@@ -43,64 +49,82 @@ function ToolStep({
   node: AgentTimelineNode
   phase: RunPhase
 }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const status = getToolStepStatus(node, phase)
   const payload = isRecord(node.content) ? node.content : null
-  const Icon =
-    status === 'loading'
-      ? LoaderCircle
-      : status === 'success'
-        ? CheckCircle2
-        : status === 'error'
-          ? CircleX
-          : CircleHelp
-  const title =
+  if (node.kind === 'reasoning' && typeof node.content === 'string')
+    return (
+      <li className="run-step" data-step-status={status}>
+        <ReasoningDisclosure
+          content={node.content}
+          thinking={status === 'loading'}
+        />
+      </li>
+    )
+  const name =
     node.metadata?.toolName ||
     (node.kind === 'reasoning'
       ? t('chat.runTimeline.reasoningTitle')
       : node.kind === 'system'
         ? t('chat.runTimeline.analysis')
         : node.title || t('chat.runTimeline.step'))
+  const count = status === 'success' ? resultCount(payload?.result) : null
+  const elapsed = node.metadata?.elapsedMs
+  const duration =
+    typeof elapsed === 'number' && Number.isFinite(elapsed) && elapsed >= 0
+      ? new Intl.NumberFormat(i18n.resolvedLanguage ?? i18n.language, {
+          style: 'unit',
+          unit: 'second',
+          unitDisplay: 'narrow',
+          maximumFractionDigits: 1,
+        }).format(elapsed / 1000)
+      : null
   return (
-    <li className="run-timeline-step" data-step-status={status}>
+    <li className="run-step" data-step-status={status}>
       <details>
         <summary className="run-step-heading">
-          <Icon
+          {node.metadata?.toolName ? (
+            <code className="min-w-0 break-all">{name}</code>
+          ) : (
+            <span className="min-w-0 font-medium text-text-primary">
+              {name}
+            </span>
+          )}
+          <span
+            className={cn(
+              'min-w-0',
+              status === 'loading' && 'chat-shimmer',
+              status === 'error' && 'text-status-error',
+              status === 'success' && count === null && 'sr-only',
+            )}
+          >
+            {count === null
+              ? t(`chat.runTimeline.status.${status}`)
+              : t('chat.runTimeline.resultCount', { count })}
+          </span>
+          {duration && <span className="run-step-duration">{duration}</span>}
+          <ChevronRight
             aria-hidden="true"
             className={cn(
-              'size-icon-sm shrink-0',
-              status === 'loading' && 'animate-spin',
-              status === 'success'
-                ? 'text-status-success'
-                : status === 'error'
-                  ? 'text-status-error'
-                  : 'text-text-secondary',
+              'size-icon-xs shrink-0 text-text-tertiary',
+              !duration && 'ms-auto',
             )}
           />
-          <span className="min-w-0 flex-1 font-medium break-words">
-            {title}
-          </span>
-          <span className="text-xs text-text-secondary">
-            {t(`chat.runTimeline.status.${status}`)}
-          </span>
-          <ChevronDown className="size-icon-xs shrink-0" aria-hidden="true" />
         </summary>
         <div className="run-step-content">
           {payload ? (
             <>
               {typeof payload.reasoning === 'string' && payload.reasoning && (
-                <ThinkWrapper
-                  status={status === 'loading' ? 'thinking' : 'complete'}
-                  titles={{ complete: t('chat.thinking.details') }}
-                >
-                  <p className="whitespace-pre-wrap">{payload.reasoning}</p>
-                </ThinkWrapper>
+                <ReasoningDisclosure
+                  content={payload.reasoning}
+                  thinking={status === 'loading'}
+                />
               )}
               {(['arguments', 'result', 'error'] as const).map(
                 (key) =>
                   hasValue(payload[key]) && (
                     <div key={key} className="space-y-space-xs">
-                      <p className="text-xs font-medium text-text-secondary">
+                      <p className="text-xs font-medium text-text-tertiary">
                         {t(`chat.runTimeline.${key}`)}
                       </p>
                       <CodeBlock
@@ -116,7 +140,7 @@ function ToolStep({
           ) : hasValue(node.content) ? (
             <p className="whitespace-pre-wrap">{stringify(node.content)}</p>
           ) : (
-            <p>
+            <p className="text-text-tertiary">
               {t(
                 status === 'loading'
                   ? 'chat.runTimeline.toolRunning'
@@ -130,7 +154,12 @@ function ToolStep({
   )
 }
 
-/** Only observed events appear here. There are no predicted steps or percentages. */
+/**
+ * Observed steps only, as one compact timeline: name · result count ·
+ * duration, with arguments and results behind each step. There are no
+ * predicted steps, percentages or approval buttons: the web backend cannot
+ * pause an MCP write for confirmation, so the timeline only reports what ran.
+ */
 export function RunTimeline({
   nodes,
   phase,
@@ -143,31 +172,17 @@ export function RunTimeline({
     (node) => node.kind !== 'answer' && node.kind !== 'error',
   )
   if (!steps.length) return null
-  const active = steps.some(
-    (node) => getToolStepStatus(node, phase) === 'loading',
-  )
   return (
-    <details className="run-timeline" data-run-phase={phase}>
-      <summary className="run-timeline-summary">
-        {active ? (
-          <LoaderCircle
-            className="size-icon-sm animate-spin"
-            aria-hidden="true"
-          />
-        ) : (
-          <Wrench className="size-icon-sm" aria-hidden="true" />
-        )}
-        <span>{t('chat.runTimeline.title')}</span>
-        <span className="text-xs text-text-tertiary">
-          {t('chat.runTimeline.count', { count: steps.length })}
-        </span>
-        <ChevronDown className="ms-auto size-icon-sm" aria-hidden="true" />
-      </summary>
-      <ol className="run-timeline-list">
+    <section data-run-phase={phase} aria-label={t('chat.runTimeline.title')}>
+      <h3 className="sr-only">
+        {t('chat.runTimeline.title')} ·{' '}
+        {t('chat.runTimeline.count', { count: steps.length })}
+      </h3>
+      <ol className="run-steps">
         {steps.map((node) => (
           <ToolStep key={node.id} node={node} phase={phase} />
         ))}
       </ol>
-    </details>
+    </section>
   )
 }

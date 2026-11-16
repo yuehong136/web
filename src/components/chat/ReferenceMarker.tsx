@@ -4,7 +4,14 @@
  *
  * 展示组件原则：只接收 props，不包含业务逻辑
  */
-import { useRef, useState, type FC, type ReactNode } from 'react'
+import {
+  useEffect,
+  useRef,
+  useState,
+  type FC,
+  type PointerEvent,
+  type ReactNode,
+} from 'react'
 import { Copy, ChevronRight, ExternalLink } from 'lucide-react'
 import type { Config } from 'dompurify'
 import { useTranslation } from 'react-i18next'
@@ -46,9 +53,12 @@ const TABLE_PREVIEW_PURIFY_OPTIONS: Config = {
 }
 
 const FOOTER_BUTTON_CLASS = cn(
-  'flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs transition-colors hover:opacity-80',
+  'flex items-center gap-space-xs rounded-radius-md px-space-sm py-space-xs text-xs transition-colors hover:bg-state-hover',
   'focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden',
 )
+// A pointer resting on the pill previews it; moving away closes it again.
+const HOVER_OPEN_DELAY = 350
+const HOVER_CLOSE_DELAY = 200
 
 /**
  * 内联引用标记组件。浮层只做阅读时的快速预览，不展示检索匹配评分：
@@ -64,6 +74,42 @@ export const ReferenceMarker: FC<ReferenceMarkerProps> = ({
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const trigger = useRef<HTMLButtonElement>(null)
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Hover previews must not pull keyboard focus into the popover.
+  const openedByHover = useRef(false)
+  const clearTimer = () => {
+    if (timer.current) clearTimeout(timer.current)
+    timer.current = null
+  }
+  useEffect(
+    () => () => {
+      if (timer.current) clearTimeout(timer.current)
+    },
+    [],
+  )
+  const hoverOpen = (event: PointerEvent) => {
+    if (event.pointerType !== 'mouse') return
+    clearTimer()
+    if (open) return
+    timer.current = setTimeout(() => {
+      openedByHover.current = true
+      setOpen(true)
+    }, HOVER_OPEN_DELAY)
+  }
+  const hoverClose = (event: PointerEvent) => {
+    if (event.pointerType !== 'mouse') return
+    clearTimer()
+    if (!openedByHover.current) return
+    timer.current = setTimeout(() => {
+      openedByHover.current = false
+      setOpen(false)
+    }, HOVER_CLOSE_DELAY)
+  }
+  const changeOpen = (next: boolean) => {
+    clearTimer()
+    openedByHover.current = false
+    setOpen(next)
+  }
   const displayIndex =
     chunk?.reference_index !== undefined
       ? chunk.reference_index
@@ -74,7 +120,7 @@ export const ReferenceMarker: FC<ReferenceMarkerProps> = ({
   // 找不到对应引用时保留普通上标文本，不做没有操作的按钮
   if (!chunk) {
     return (
-      <sup className="mx-0.5 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded bg-background-subtle px-1 text-xs font-medium text-text-tertiary">
+      <sup className="mx-space-2xs inline-flex h-icon-sm min-w-icon-sm items-center justify-center rounded-radius-sm bg-background-subtle px-space-xs font-mono text-xs font-medium text-text-tertiary">
         {displayIndex}
       </sup>
     )
@@ -91,7 +137,7 @@ export const ReferenceMarker: FC<ReferenceMarkerProps> = ({
     chunk.doc_type === 'table' && chunk.content?.includes('<table')
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={changeOpen}>
       {/* 原生按钮作触发器：键盘可达，引用详情关闭后焦点也能回到这里 */}
       <sup>
         <PopoverTrigger asChild>
@@ -99,12 +145,15 @@ export const ReferenceMarker: FC<ReferenceMarkerProps> = ({
             ref={trigger}
             type="button"
             aria-label={label}
+            data-citation-pill
+            onPointerEnter={hoverOpen}
+            onPointerLeave={hoverClose}
             className={cn(
-              'inline-flex cursor-pointer items-center justify-center',
-              'mx-0.5 -mt-1 h-[20px] min-w-[20px] px-1.5',
-              'rounded-md bg-state-focus-10 text-xs font-semibold text-text-accent',
-              'transition-all duration-200 ease-out',
-              'hover:scale-110 hover:shadow-xs',
+              'inline-flex cursor-pointer items-center justify-center align-baseline',
+              'mx-space-2xs h-icon-sm min-w-icon-sm px-space-xs',
+              'rounded-radius-sm border border-border-default bg-background-subtle font-mono text-xs leading-none font-medium text-text-secondary',
+              'transition-colors hover:border-components-button-primary-bg hover:text-text-accent motion-reduce:transition-none',
+              'aria-expanded:border-components-button-primary-bg aria-expanded:bg-state-selected-bg aria-expanded:text-state-selected-text',
               'focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden',
             )}
           >
@@ -114,13 +163,18 @@ export const ReferenceMarker: FC<ReferenceMarkerProps> = ({
       </sup>
       <PopoverContent
         aria-label={label}
-        className="w-80 overflow-hidden rounded-xl p-0"
+        className="w-80 overflow-hidden rounded-radius-lg p-0"
         align="start"
         sideOffset={8}
+        onPointerEnter={hoverOpen}
+        onPointerLeave={hoverClose}
+        onOpenAutoFocus={(event) => {
+          if (openedByHover.current) event.preventDefault()
+        }}
       >
         <div className="flex flex-col bg-components-card-bg">
           {/* 头部 - 文档信息 */}
-          <div className="flex items-center gap-2.5 border-b border-border-subtle bg-background-subtle px-3.5 py-2.5">
+          <div className="flex items-center gap-space-sm border-b border-border-subtle bg-background-subtle px-space-base py-space-sm">
             {getDocTypeIcon(
               chunk.doc_type,
               chunk.document_name,
@@ -136,22 +190,22 @@ export const ReferenceMarker: FC<ReferenceMarkerProps> = ({
 
           <ReferenceMetadataBadges metadata={chunk.document_metadata} />
           {/* 内容预览 */}
-          <div className="px-3.5 py-3">
+          <div className="px-space-base py-space-base">
             {isTableContent ? (
               <SafeHtml
-                className="max-h-32 overflow-auto rounded-md bg-background-subtle p-2 text-sm text-text-primary"
+                className="max-h-32 overflow-auto rounded-radius-md bg-background-subtle p-space-sm text-sm text-text-primary"
                 html={chunk.content || ''}
                 options={TABLE_PREVIEW_PURIFY_OPTIONS}
               />
             ) : (
-              <p className="m-0 line-clamp-4 text-sm leading-[1.7] text-text-secondary">
+              <p className="m-0 line-clamp-4 text-sm leading-relaxed text-text-secondary">
                 {truncateText(toPlainText(chunk.content), 200)}
               </p>
             )}
           </div>
 
           {/* 操作按钮 */}
-          <div className="flex items-center gap-1 border-t border-border-subtle px-2.5 py-2">
+          <div className="flex items-center gap-space-xs border-t border-border-subtle px-space-sm py-space-sm">
             <button
               type="button"
               className={cn(FOOTER_BUTTON_CLASS, 'text-text-secondary')}
@@ -186,11 +240,11 @@ export const ReferenceMarker: FC<ReferenceMarkerProps> = ({
               data-reference-details
               className={cn(
                 FOOTER_BUTTON_CLASS,
-                'gap-1 bg-state-focus-10 font-medium text-text-accent',
+                'font-medium text-text-accent',
               )}
               onClick={(e) => {
                 e.stopPropagation()
-                setOpen(false)
+                changeOpen(false)
                 trigger.current?.focus({ preventScroll: true })
                 onViewDetail?.(chunk)
               }}

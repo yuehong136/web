@@ -67,19 +67,10 @@ export const GenerationPresetSelector: React.FC<
 
   return (
     <div className={cn('space-y-2', className)}>
-      <label
-        className="block text-sm font-medium"
-        style={{ color: 'var(--color-text-primary)' }}
-      >
+      <label className="block text-sm font-medium text-text-primary">
         {t('chat.generationPreset.label')}
       </label>
-      <div
-        className="flex rounded-lg p-1"
-        style={{
-          backgroundColor: 'var(--color-components-segmented-bg)',
-          border: '1px solid var(--color-components-segmented-border)',
-        }}
-      >
+      <div className="flex rounded-radius-lg border border-components-segmented-border bg-components-segmented-bg p-space-xs">
         {generationPresetOptions.map((option) => {
           const isActive = value === option.value
           return (
@@ -91,31 +82,16 @@ export const GenerationPresetSelector: React.FC<
               onClick={() => onChange(option.value)}
               title={t(option.descriptionKey)}
               className={cn(
-                'flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-all duration-200',
-                'focus:outline-hidden focus-visible:ring-2',
+                'flex-1 rounded-radius-md px-space-base py-space-xs text-xs font-medium transition-colors duration-200',
+                'focus:outline-hidden focus-visible:ring-2 focus-visible:ring-state-focus',
+                isActive
+                  ? 'bg-components-segmented-item-bg-active text-components-segmented-item-text-active shadow-elevation-low'
+                  : 'bg-components-segmented-item-bg text-components-segmented-item-text',
+                !isActive &&
+                  !disabled &&
+                  'hover:bg-components-segmented-item-bg-hover',
                 disabled && 'cursor-not-allowed opacity-50',
               )}
-              style={{
-                backgroundColor: isActive
-                  ? 'var(--color-components-segmented-item-bg-active)'
-                  : 'var(--color-components-segmented-item-bg)',
-                color: isActive
-                  ? 'var(--color-components-segmented-item-text-active)'
-                  : 'var(--color-components-segmented-item-text)',
-                boxShadow: isActive ? 'var(--elevation-low)' : 'none',
-              }}
-              onMouseEnter={(e) => {
-                if (!isActive && !disabled) {
-                  e.currentTarget.style.backgroundColor =
-                    'var(--color-components-segmented-item-bg-hover)'
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isActive && !disabled) {
-                  e.currentTarget.style.backgroundColor =
-                    'var(--color-components-segmented-item-bg)'
-                }
-              }}
             >
               {t(option.labelKey)}
             </button>

@@ -1,18 +1,21 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Bot, User } from 'lucide-react'
 import {
   ChatTranscript,
   type TranscriptItem,
 } from '@/components/chat/chat-transcript'
-import { MessageParts } from '@/components/chat/message-parts'
+import {
+  MessageParts,
+  type MessagePartsProps,
+} from '@/components/chat/message-parts'
 import { ContextManifestSummary } from '@/components/chat/context-manifest-summary'
 import { MessageActionsFooter } from '@/components/chat/MessageActionsFooter'
 import { ChatWorkspace } from '@/components/chat/chat-workspace'
 import { useChatWorkspace } from '@/components/chat/chat-workspace-context'
+import { ChatThreadHeader } from '@/components/chat/chat-thread-header'
+import { TurnRail, type ThreadTurn } from '@/components/chat/turn-rail'
 import { useAuthStore } from '@/stores/auth'
 import { ChatScrollViewport } from '@/components/patterns/chat/chat-scroll-viewport'
-import { ProviderIcon } from '@/components/ui/provider-icon'
 import { PageLoadingState } from '@/components/patterns/page-states'
 import { useFetchMyLLMs } from '@/hooks/use-llm-request'
 import { homeMessageIdentity } from '../utils/model-identity'
@@ -22,6 +25,7 @@ import { copyToClipboardWithFeedback } from '@/lib/clipboard'
 import { extractThinkContent } from '@/utils/think-utils'
 import { AnswerStatusNotice } from './answer-status-notice'
 import { HomeComposer } from './home-composer'
+import { renderHomeThreadIdentity } from './home-thread-identity'
 import { getHomeMessagePhase } from '../utils/answer-status'
 import type { ChatMessage } from '../types'
 
@@ -67,7 +71,15 @@ function ChatSectionContent({
   const { t } = useTranslation()
   const workspace = useChatWorkspace()!
   const { myLLMs } = useFetchMyLLMs()
-  const viewReference = workspace.viewReference
+  const { viewReference } = workspace
+  const openEvidence = useCallback<MessagePartsProps['onViewReference']>(
+    (chunk, references, options) =>
+      viewReference(chunk, references, options?.messageId, options),
+    [viewReference],
+  )
+  const thread = useRef<HTMLDivElement>(null)
+  const selectedApp = useHomeStore((state) => state.selectedApps[0])
+  const selectedModelId = useHomeStore((state) => state.selectedModelId)
   const copy = useCallback(
     (text: string) =>
       void copyToClipboardWithFeedback(
@@ -93,29 +105,17 @@ function ChatSectionContent({
         : message.parsedToolCalls?.length
           ? createTimelineNodesFromToolCalls(message.parsedToolCalls)
           : undefined
-      const identity = homeMessageIdentity(
-        message.contextManifest,
-        myLLMs,
-        message.modelIdentity,
-      )
+      const model = user
+        ? undefined
+        : homeMessageIdentity(
+            message.contextManifest,
+            myLLMs,
+            message.modelIdentity,
+          ).label
+      const meta = [model, message.timestamp].filter(Boolean).join(' · ')
       return {
         id: message.id,
         role: message.role,
-        timestamp: message.timestamp,
-        label: user
-          ? t('chat.transcript.user')
-          : identity.label || t('chat.transcript.assistant'),
-        identity: user ? (
-          <User className="size-icon-md text-text-secondary" />
-        ) : identity.provider ? (
-          <ProviderIcon
-            provider={identity.provider}
-            size={24}
-            className="size-6"
-          />
-        ) : (
-          <Bot className="size-6 text-text-secondary" />
-        ),
         phase: user ? undefined : phase,
         body: user ? (
           <div className="space-y-space-sm">
@@ -133,12 +133,14 @@ function ChatSectionContent({
             contextManifest={message.contextManifest}
             run={{ phase, steps }}
             notice={<AnswerStatusNotice status={message.status} />}
-            onViewReference={viewReference}
+            onViewReference={openEvidence}
           />
         ),
+        meta: !active && meta ? meta : undefined,
         actions:
           !active && Boolean(content.trim()) ? (
             <MessageActionsFooter
+              className="flex"
               content={content}
               onCopy={() => copy(content)}
               showTTS={!user}
@@ -153,13 +155,12 @@ function ChatSectionContent({
         id: 'streaming-assistant',
         role: 'assistant',
         phase: 'running',
-        identity: <Bot className="size-6 text-text-secondary" />,
         body: (
           <MessageParts
             content={streamingContent}
             thinking={streamingThinking}
             run={{ phase: 'running' }}
-            onViewReference={viewReference}
+            onViewReference={openEvidence}
           />
         ),
       })
@@ -168,31 +169,53 @@ function ChatSectionContent({
     messages,
     isStreaming,
     myLLMs,
-    t,
-    viewReference,
+    openEvidence,
     copy,
     streamingContent,
     streamingThinking,
   ])
+  const turns = useMemo<ThreadTurn[]>(
+    () =>
+      messages
+        .filter((message) => message.role === 'user')
+        .map((message) => ({ id: message.id, question: message.content })),
+    [messages],
+  )
+  const title = turns[0]?.question.trim()
   return (
     <div className="app-chat-area home-chat-area flex min-h-0 flex-1 flex-col">
-      <ChatScrollViewport
-        followKey={messages.findLast((message) => message.role === 'user')?.id}
-        isStreaming={isStreaming}
-        className="px-space-md pb-space-lg sm:px-space-lg"
-        contentClassName="mx-auto w-full max-w-3xl"
-      >
-        {isLoadingHistory ? (
-          <PageLoadingState
-            title={t('home.input.loadingHistory')}
-            description={null}
-          />
-        ) : (
-          <ChatTranscript items={items} />
-        )}
-      </ChatScrollViewport>
-      <div className="shrink-0 px-space-md pt-space-sm pb-space-md sm:px-space-lg">
-        <div className="mx-auto w-full max-w-3xl">
+      <ChatThreadHeader
+        title={title || t('chat.thread.newChat')}
+        placeholder={!title}
+        identity={renderHomeThreadIdentity({
+          app: selectedApp,
+          messages,
+          providers: myLLMs ?? {},
+          selectedModelId,
+        })}
+      />
+      <div ref={thread} className="relative flex min-h-0 flex-1 flex-col">
+        <ChatScrollViewport
+          followKey={
+            messages.findLast((message) => message.role === 'user')?.id
+          }
+          isStreaming={isStreaming}
+          className="px-space-md pb-space-lg sm:px-space-lg"
+          contentClassName="mx-auto w-full max-w-2xl"
+        >
+          {isLoadingHistory ? (
+            <PageLoadingState
+              title={t('home.input.loadingHistory')}
+              description={null}
+            />
+          ) : (
+            <ChatTranscript items={items} />
+          )}
+        </ChatScrollViewport>
+        <TurnRail turns={turns} rootRef={thread} />
+      </div>
+      <div className="shrink-0 px-space-sm pt-space-xs pb-space-sm sm:px-space-lg sm:pb-space-md">
+        <div className="mx-auto w-full max-w-2xl">
           <HomeComposer
             value={inputValue}
             onChange={onInputChange}

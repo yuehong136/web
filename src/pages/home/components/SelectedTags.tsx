@@ -1,6 +1,7 @@
-import React from 'react'
+import type { FC } from 'react'
 import { useTranslation } from 'react-i18next'
-import { X, MessageSquare, Globe, Server, Wrench } from 'lucide-react'
+import { X, Globe, Server, Wrench } from 'lucide-react'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 import type { DialogApp } from '@/types/api'
 import type { MCPServer } from '@/types/mcp'
 
@@ -13,23 +14,27 @@ interface SelectedTagsProps {
   disabled?: boolean
 }
 
-const removeButtonClassName =
-  'rounded-full p-0.5 hover:bg-state-selected/20 disabled:cursor-not-allowed disabled:opacity-50'
+const CHIP =
+  'inline-flex h-6 max-w-full min-w-0 items-center gap-space-xs rounded-radius-md bg-background-subtle ps-space-xs pe-space-2xs text-xs text-text-primary'
+const REMOVE =
+  'grid size-icon-md shrink-0 place-items-center rounded-radius-sm text-text-tertiary hover:bg-state-hover hover:text-text-primary focus-visible:outline-2 focus-visible:outline-state-focus disabled:cursor-not-allowed disabled:opacity-50'
 
 // 根据服务器类型获取图标
 const getServerIcon = (serverType: string) => {
+  const className = 'size-icon-xs shrink-0 text-text-secondary'
   switch (serverType) {
     case 'sse':
-      return <Globe className="h-3.5 w-3.5" />
+      return <Globe aria-hidden="true" className={className} />
     case 'streamable-http':
     case 'http':
-      return <Server className="h-3.5 w-3.5" />
+      return <Server aria-hidden="true" className={className} />
     default:
-      return <Wrench className="h-3.5 w-3.5" />
+      return <Wrench aria-hidden="true" className={className} />
   }
 }
 
-export const SelectedTags: React.FC<SelectedTagsProps> = ({
+/** Context chips above the composer: the app or MCP services this turn uses. */
+export const SelectedTags: FC<SelectedTagsProps> = ({
   selectedMCPServers,
   selectedApps,
   onRemoveSkill,
@@ -42,44 +47,41 @@ export const SelectedTags: React.FC<SelectedTagsProps> = ({
   }
 
   return (
-    <div className="mb-3 flex flex-wrap gap-2">
-      {/* 已选技能 */}
+    <div className="mb-space-sm flex flex-wrap gap-space-xs">
       {selectedMCPServers.map((server) => (
-        <div
-          key={`skill-${server.id}`}
-          className="flex items-center gap-1.5 rounded-full bg-state-selected-bg px-2.5 py-1 text-xs font-medium text-state-selected-text"
-        >
+        <span key={`skill-${server.id}`} className={CHIP}>
           {getServerIcon(server.server_type)}
-          <span>{server.name}</span>
+          <span className="truncate">{server.name}</span>
           <button
             type="button"
             onClick={() => onRemoveSkill(server.id)}
             disabled={disabled}
             aria-label={t('home.input.removeSelection', { name: server.name })}
-            className={removeButtonClassName}
+            className={REMOVE}
           >
-            <X className="h-3 w-3" />
+            <X aria-hidden="true" className="size-icon-xs" />
           </button>
-        </div>
+        </span>
       ))}
-      {/* 已选应用 */}
       {selectedApps.map((app) => (
-        <div
-          key={`app-${app.id}`}
-          className="flex items-center gap-1.5 rounded-full bg-state-selected-bg px-2.5 py-1 text-xs font-medium text-state-selected-text"
-        >
-          <MessageSquare className="h-3.5 w-3.5" />
-          <span>{app.name}</span>
+        <span key={`app-${app.id}`} className={CHIP}>
+          <EntityAvatar
+            name={app.name}
+            src={app.icon}
+            seed={app.id}
+            size="2xs"
+          />
+          <span className="truncate">{app.name}</span>
           <button
             type="button"
             onClick={() => onRemoveApp(app.id)}
             disabled={disabled}
             aria-label={t('home.input.removeSelection', { name: app.name })}
-            className={removeButtonClassName}
+            className={REMOVE}
           >
-            <X className="h-3 w-3" />
+            <X aria-hidden="true" className="size-icon-xs" />
           </button>
-        </div>
+        </span>
       ))}
     </div>
   )
