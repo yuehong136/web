@@ -1,10 +1,11 @@
 import { useTranslation } from 'react-i18next'
-import { MoreVertical, ShieldMinus, ShieldPlus, Trash2 } from 'lucide-react'
+import { MoreHorizontal, ShieldMinus, ShieldPlus, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   ActionMenu,
   ActionMenuContent,
   ActionMenuItem,
+  ActionMenuSeparator,
   ActionMenuTrigger,
 } from '@/components/ui/action-menu'
 import { TenantRole, type TeamMember } from '@/types/team'
@@ -21,7 +22,7 @@ interface TeamMemberActionsMenuProps {
   onRemove?: (userId: string, nickname: string) => void
 }
 
-/** Role and membership actions shared by the member card and list row. */
+/** Role and membership actions for a member row or card. */
 export const TeamMemberActionsMenu = ({
   member,
   canChangeRole,
@@ -32,46 +33,48 @@ export const TeamMemberActionsMenu = ({
   const { t } = useTranslation()
   const changeRole = () =>
     onChangeRole?.(member.user_id, member.nickname, member.role)
+  const roleItem =
+    canChangeRole && onChangeRole
+      ? member.role === TenantRole.Normal
+        ? { icon: ShieldPlus, label: t('settings.team.makeAdmin') }
+        : member.role === TenantRole.Admin
+          ? { icon: ShieldMinus, label: t('settings.team.removeAdmin') }
+          : null
+      : null
 
   return (
     <ActionMenu>
       <ActionMenuTrigger asChild>
         <Button
+          type="button"
           variant="ghost"
           size="icon-sm"
           aria-label={t('settings.team.memberActions', {
             name: member.nickname,
           })}
-          className="opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100"
-          onClick={(event) => event.stopPropagation()}
         >
-          <MoreVertical className="size-icon-sm" />
+          <MoreHorizontal className="size-icon-sm" aria-hidden="true" />
         </Button>
       </ActionMenuTrigger>
       <ActionMenuContent align="end">
-        {canChangeRole && member.role === TenantRole.Normal && onChangeRole && (
+        {roleItem ? (
           <ActionMenuItem onSelect={changeRole}>
-            <ShieldPlus className="size-icon-sm" />
-            {t('settings.team.makeAdmin')}
+            <roleItem.icon className="size-icon-sm" aria-hidden="true" />
+            {roleItem.label}
           </ActionMenuItem>
-        )}
-        {canChangeRole && member.role === TenantRole.Admin && onChangeRole && (
-          <ActionMenuItem onSelect={changeRole}>
-            <ShieldMinus className="size-icon-sm" />
-            {t('settings.team.removeAdmin')}
-          </ActionMenuItem>
-        )}
-        {canRemove && onRemove && (
+        ) : null}
+        {roleItem && canRemove && onRemove ? <ActionMenuSeparator /> : null}
+        {canRemove && onRemove ? (
           <ActionMenuItem
             danger
             onSelect={() => onRemove(member.user_id, member.nickname)}
           >
-            <Trash2 className="size-icon-sm" />
+            <Trash2 className="size-icon-sm" aria-hidden="true" />
             {member.role === TenantRole.Invite
               ? t('settings.team.revokeInvite')
               : t('settings.team.removeMember')}
           </ActionMenuItem>
-        )}
+        ) : null}
       </ActionMenuContent>
     </ActionMenu>
   )

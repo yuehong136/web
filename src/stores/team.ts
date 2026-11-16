@@ -63,7 +63,7 @@ interface TeamUIState {
   openConfirmDialog: (
     type: 'remove' | 'leave' | 'change-role',
     target: { id: string; name: string },
-    roleChangeInfo?: { newRole: 'admin' | 'normal' }
+    roleChangeInfo?: { newRole: 'admin' | 'normal' },
   ) => void
   closeConfirmDialog: () => void
 
@@ -72,8 +72,8 @@ interface TeamUIState {
 }
 
 const initialState = {
-  viewMode: 'grid' as TeamViewMode,
-  joinedTeamsViewMode: 'grid' as TeamViewMode,
+  viewMode: 'list' as TeamViewMode,
+  joinedTeamsViewMode: 'list' as TeamViewMode,
   activeTab: 'my-team' as TeamActiveTab,
   memberSearchQuery: '',
   teamSearchQuery: '',

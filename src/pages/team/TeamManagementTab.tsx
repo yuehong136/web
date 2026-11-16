@@ -1,64 +1,30 @@
-/**
- * 团队管理 Tab 内容
- * 包含团队选择器、搜索工具栏和成员列表
- */
-
-import React from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { SegmentedControl } from '@/components/ui/segmented-control'
+import { Search, UserPlus, Users } from 'lucide-react'
+import { CollectionTemplate } from '@/components/page-templates'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import {
-  ResourceListContainer,
+  PageEmptyState,
+  ResourceCard,
+  ResourceGrid,
+  ResourceList,
   ResourceListHeader,
-  ResourceListBody,
-} from '@/components/ui/resource-list'
-import {
-  Search,
-  Grid3X3,
-  List as ListIcon,
-  ArrowUpDown,
-  UserPlus,
-} from 'lucide-react'
+  ResourceRow,
+  type ResourceItemProps,
+} from '@/components/patterns'
+import { Button } from '@/components/ui/button'
 import { useTeamStore } from '@/stores/team'
+import { TenantRole, type TeamMember, type TeamPermissions } from '@/types/team'
 import { useFilteredMembers } from './hooks'
-import type {
-  TeamMember,
-  TenantInfo,
-  JoinedTeam,
-  TenantRole,
-  TeamPermissions,
-} from '@/types/team'
-import {
-  TeamMemberCard,
-  TeamMemberListRow,
-  TeamEmptyState,
-  MemberSkeleton,
-  TeamSelector,
-} from './components'
-
-const TIME_FORMAT_OPTIONS = [
-  { value: 'detailed', label: '详细时间' },
-  { value: 'compact', label: '简洁时间' },
-  { value: 'relative', label: '相对时间' },
-]
+import { formatTeamTime } from './utils'
+import { RoleBadge } from './components/RoleBadge'
+import { TeamFilterBar } from './components/team-filter-bar'
+import { TeamMemberActionsMenu } from './components/team-member-actions-menu'
 
 interface TeamManagementTabProps {
-  tenantInfo: TenantInfo | null
-  manageableTeams: JoinedTeam[]
-  selectedTenantId: string | null
   currentUserId?: string
   members: TeamMember[]
   membersLoading: boolean
   permissions: TeamPermissions
-  onSelectTenant: (tenantId: string) => void
   onRemoveMember: (userId: string, nickname: string) => void
   onChangeRole: (
     userId: string,
@@ -68,19 +34,16 @@ interface TeamManagementTabProps {
   onOpenInviteDialog: () => void
 }
 
-export const TeamManagementTab: React.FC<TeamManagementTabProps> = ({
-  tenantInfo,
-  manageableTeams,
-  selectedTenantId,
+/** Members of the selected team as rows or cards. */
+export function TeamManagementTab({
   currentUserId,
   members,
   membersLoading,
   permissions,
-  onSelectTenant,
   onRemoveMember,
   onChangeRole,
   onOpenInviteDialog,
-}) => {
+}: TeamManagementTabProps) {
   const { t } = useTranslation()
   const {
     viewMode,
@@ -90,134 +53,126 @@ export const TeamManagementTab: React.FC<TeamManagementTabProps> = ({
     timeFormat,
     setTimeFormat,
   } = useTeamStore()
+  const [sortDesc, setSortDesc] = useState(true)
+  const filtered = useFilteredMembers(members, memberSearchQuery, sortDesc)
 
-  const [memberSortDesc, setMemberSortDesc] = React.useState(true)
-  const filteredMembers = useFilteredMembers(
-    members,
-    memberSearchQuery,
-    memberSortDesc,
-  )
+  const item = (member: TeamMember): ResourceItemProps => {
+    const self = member.user_id === currentUserId
+    const canRemove =
+      permissions.canRemove && member.role !== TenantRole.Owner && !self
+    const canChangeRole =
+      permissions.canChangeRole &&
+      member.role !== TenantRole.Owner &&
+      member.role !== TenantRole.Invite &&
+      !self
+    const name = member.nickname || t('settings.team.unnamedMember')
+    return {
+      name: self ? `${name} ${t('settings.team.you')}` : name,
+      description: member.email,
+      avatar: {
+        src: member.avatar,
+        seed: member.user_id,
+        shape: 'circle',
+      },
+      status: <RoleBadge role={member.role} />,
+      meta: (
+        <span>
+          {formatTeamTime(
+            member.update_date,
+            member.delta_seconds,
+            timeFormat,
+          ) ?? t('settings.team.unknownTime')}
+        </span>
+      ),
+      actions:
+        canRemove || canChangeRole ? (
+          <TeamMemberActionsMenu
+            member={member}
+            canChangeRole={canChangeRole}
+            canRemove={canRemove}
+            onChangeRole={onChangeRole}
+            onRemove={onRemoveMember}
+          />
+        ) : undefined,
+    }
+  }
+
+  const state = membersLoading
+    ? 'loading'
+    : filtered.length === 0
+      ? 'empty'
+      : 'content'
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      {/* 团队选择器 + 工具栏 */}
-      <div className="mb-4 flex items-center space-x-4">
-        <TeamSelector
-          ownTenant={tenantInfo}
-          manageableTeams={manageableTeams}
-          selectedTenantId={selectedTenantId}
-          onSelectTenant={onSelectTenant}
+    <CollectionTemplate
+      filterBar={
+        <TeamFilterBar
+          search={memberSearchQuery}
+          onSearchChange={setMemberSearchQuery}
+          searchPlaceholder={t('settings.team.searchMembers')}
+          sortDescending={sortDesc}
+          onSortDescendingChange={setSortDesc}
+          timeFormat={timeFormat}
+          onTimeFormatChange={setTimeFormat}
+          view={viewMode}
+          onViewChange={setViewMode}
         />
-        <div className="max-w-md flex-1">
-          <Input
-            type="search"
-            placeholder="搜索成员..."
-            value={memberSearchQuery}
-            onChange={(e) => setMemberSearchQuery(e.target.value)}
-            leftIcon={<Search className="h-4 w-4" />}
-          />
-        </div>
-        <div className="flex items-center space-x-2">
-          <Select
-            value={timeFormat}
-            onValueChange={(value) =>
-              setTimeFormat(value as 'detailed' | 'compact' | 'relative')
+      }
+      state={state}
+      emptyState={
+        memberSearchQuery ? (
+          <PageEmptyState
+            icon={<Search className="size-icon-lg" />}
+            title={t('settings.team.empty.searchTitle')}
+            description={t('settings.team.empty.searchDescription')}
+            action={
+              <Button
+                variant="outline"
+                onClick={() => setMemberSearchQuery('')}
+              >
+                {t('settings.team.empty.clearSearch')}
+              </Button>
             }
-          >
-            <SelectTrigger className="min-w-[100px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {TIME_FORMAT_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setMemberSortDesc((prev) => !prev)}
-            className="flex h-9 items-center gap-1 px-2 text-xs"
-          >
-            <ArrowUpDown className="h-3.5 w-3.5" />
-            <span>{memberSortDesc ? '倒序' : '正序'}</span>
-          </Button>
-          <SegmentedControl
-            aria-label={t('common.viewToggle')}
-            iconOnly
-            value={viewMode}
-            onValueChange={setViewMode}
-            options={[
-              { value: 'grid', icon: <Grid3X3 />, label: '网格视图' },
-              { value: 'list', icon: <ListIcon />, label: '列表视图' },
-            ]}
           />
-          {permissions.canInvite && (
-            <Button size="sm" onClick={onOpenInviteDialog}>
-              <UserPlus className="mr-1 h-4 w-4" />
-              邀请成员
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {/* 成员列表 */}
-      <div className="-mx-1 flex-1 overflow-y-auto px-1 pt-1 pb-2">
-        {membersLoading ? (
-          <MemberSkeleton viewMode={viewMode} count={6} />
-        ) : filteredMembers.length === 0 ? (
-          <TeamEmptyState
-            type={memberSearchQuery ? 'search' : 'members'}
-            searchQuery={memberSearchQuery}
-            onInvite={permissions.canInvite ? onOpenInviteDialog : undefined}
-          />
-        ) : viewMode === 'grid' ? (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {filteredMembers.map((member) => (
-              <TeamMemberCard
-                key={member.user_id}
-                member={member}
-                currentUserId={currentUserId}
-                permissions={permissions}
-                onRemove={onRemoveMember}
-                onChangeRole={onChangeRole}
-                timeFormat={timeFormat}
-              />
-            ))}
-          </div>
         ) : (
-          <ResourceListContainer>
+          <PageEmptyState
+            icon={<Users className="size-icon-lg" />}
+            title={t('settings.team.empty.membersTitle')}
+            description={t('settings.team.empty.membersDescription')}
+            action={
+              permissions.canInvite ? (
+                <Button onClick={onOpenInviteDialog}>
+                  <UserPlus className="size-icon-sm" aria-hidden="true" />
+                  {t('settings.team.invite')}
+                </Button>
+              ) : undefined
+            }
+          />
+        )
+      }
+    >
+      {viewMode === 'grid' ? (
+        <ResourceGrid label={t('settings.team.tabs.members')}>
+          {filtered.map((member) => (
+            <ResourceCard key={member.user_id} {...item(member)} />
+          ))}
+        </ResourceGrid>
+      ) : (
+        <ResourceList
+          label={t('settings.team.tabs.members')}
+          header={
             <ResourceListHeader
-              columns={[
-                { key: 'member', label: '成员' },
-                { key: 'role', label: '角色' },
-                { key: 'email', label: '邮箱' },
-                { key: 'join_time', label: '加入时间' },
-                { key: 'actions', label: '操作' },
-              ]}
-              showSelect={false}
-              gridCols="grid-cols-[2fr_1fr_1fr_120px_60px]"
+              name={t('settings.team.columns.member')}
+              status={t('settings.team.columns.role')}
+              meta={t('settings.team.columns.updated')}
             />
-            <ResourceListBody>
-              {filteredMembers.map((member) => (
-                <TeamMemberListRow
-                  key={member.user_id}
-                  member={member}
-                  currentUserId={currentUserId}
-                  permissions={permissions}
-                  onRemove={onRemoveMember}
-                  onChangeRole={onChangeRole}
-                  timeFormat={timeFormat}
-                />
-              ))}
-            </ResourceListBody>
-          </ResourceListContainer>
-        )}
-      </div>
-    </div>
+          }
+        >
+          {filtered.map((member) => (
+            <ResourceRow key={member.user_id} {...item(member)} />
+          ))}
+        </ResourceList>
+      )}
+    </CollectionTemplate>
   )
 }
-
-TeamManagementTab.displayName = 'TeamManagementTab'

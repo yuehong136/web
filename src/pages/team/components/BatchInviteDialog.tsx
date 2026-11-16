@@ -3,21 +3,23 @@
  * 支持多邮箱输入、前端校验、逐条结果展示
  */
 
-import React, { useState, useCallback } from 'react'
+import { useCallback, useId, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { Send } from 'lucide-react'
 import {
   Dialog,
+  DialogBody,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { UserPlus, Loader2, Send } from 'lucide-react'
-import { InviteResultsView } from './InviteResultsView'
+import { Textarea } from '@/components/ui/textarea'
 import type { BatchInviteResponse } from '@/types/team'
+import { InviteResultsView } from './InviteResultsView'
 
 interface BatchInviteDialogProps {
   open: boolean
@@ -27,177 +29,160 @@ interface BatchInviteDialogProps {
 }
 
 type DialogPhase = 'input' | 'submitting' | 'results'
+type InviteError = 'empty' | 'allInvalid' | 'failed' | null
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const EXAMPLE = 'user1@example.com\nuser2@example.com'
 
 /** 将输入文本解析为去重的邮箱列表 */
-const parseEmails = (text: string): string[] => {
-  const raw = text
-    .split(/[\n,;]+/)
-    .map((s) => s.trim().toLowerCase())
-    .filter(Boolean)
-  return [...new Set(raw)]
-}
+const parseEmails = (text: string): string[] => [
+  ...new Set(
+    text
+      .split(/[\n,;]+/)
+      .map((value) => value.trim().toLowerCase())
+      .filter(Boolean),
+  ),
+]
 
-export const BatchInviteDialog: React.FC<BatchInviteDialogProps> = ({
+export function BatchInviteDialog({
   open,
   onOpenChange,
   onInvite,
   isLoading = false,
-}) => {
+}: BatchInviteDialogProps) {
+  const { t } = useTranslation()
+  const fieldId = useId()
   const [input, setInput] = useState('')
-  const [error, setError] = useState('')
+  const [error, setError] = useState<InviteError>(null)
   const [phase, setPhase] = useState<DialogPhase>('input')
   const [results, setResults] = useState<BatchInviteResponse | null>(null)
 
-  const parsedEmails = React.useMemo(() => parseEmails(input), [input])
-  const invalidEmails = React.useMemo(
-    () => parsedEmails.filter((e) => !EMAIL_REGEX.test(e)),
-    [parsedEmails],
-  )
-  const validEmails = React.useMemo(
-    () => parsedEmails.filter((e) => EMAIL_REGEX.test(e)),
-    [parsedEmails],
-  )
+  const parsedEmails = useMemo(() => parseEmails(input), [input])
+  const invalidEmails = parsedEmails.filter((email) => !EMAIL_REGEX.test(email))
+  const validCount = parsedEmails.length - invalidEmails.length
 
   const handleSubmit = useCallback(async () => {
-    setError('')
-
-    if (parsedEmails.length === 0) {
-      setError('请输入至少一个邮箱地址')
-      return
-    }
-
-    if (invalidEmails.length > 0 && validEmails.length === 0) {
-      setError('所有输入的邮箱格式均无效')
-      return
-    }
-
+    setError(null)
+    if (parsedEmails.length === 0) return setError('empty')
+    if (validCount === 0) return setError('allInvalid')
     setPhase('submitting')
     try {
-      // 发送所有解析出的邮箱（包括无效的，让后端统一返回结果）
-      const response = await onInvite(parsedEmails)
-      setResults(response)
+      // The backend reports invalid addresses too, so send everything parsed.
+      setResults(await onInvite(parsedEmails))
       setPhase('results')
     } catch {
-      setError('邀请失败，请重试')
+      setError('failed')
       setPhase('input')
     }
-  }, [parsedEmails, invalidEmails, validEmails, onInvite])
+  }, [parsedEmails, validCount, onInvite])
 
   const handleClose = useCallback(() => {
     setInput('')
-    setError('')
+    setError(null)
     setPhase('input')
     setResults(null)
     onOpenChange(false)
   }, [onOpenChange])
 
-  const handleBack = useCallback(() => {
-    setPhase('input')
-    setResults(null)
-  }, [])
+  const submitting = phase === 'submitting'
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <Dialog open={open} onOpenChange={(value) => !value && handleClose()}>
       <DialogContent size="lg">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <UserPlus className="h-5 w-5" />
-            邀请成员
-          </DialogTitle>
+          <DialogTitle>{t('settings.team.inviteDialog.title')}</DialogTitle>
           <DialogDescription>
-            {phase === 'results'
-              ? '邀请已发送，以下是每个邮箱的处理结果'
-              : '输入成员邮箱地址，每行一个或用逗号分隔，批量发送邀请'}
+            {t(
+              phase === 'results'
+                ? 'settings.team.inviteDialog.resultsDescription'
+                : 'settings.team.inviteDialog.description',
+            )}
           </DialogDescription>
         </DialogHeader>
-
-        <div className="px-6 py-4">
-          {/* 输入阶段 */}
-          {(phase === 'input' || phase === 'submitting') && (
-            <div className="space-y-3">
-              <Label htmlFor="emails">邮箱地址</Label>
-              <Textarea
-                id="emails"
-                placeholder={
-                  'user1@example.com\nuser2@example.com\nuser3@example.com'
-                }
-                value={input}
-                onChange={(e) => {
-                  setInput(e.target.value)
-                  setError('')
-                }}
-                disabled={phase === 'submitting'}
-                className="min-h-[120px] font-mono text-sm"
-              />
-
-              {/* 解析提示 */}
-              <div className="flex items-center justify-between text-xs text-text-tertiary">
-                <span>
-                  {parsedEmails.length > 0
-                    ? `已识别 ${parsedEmails.length} 个邮箱${invalidEmails.length > 0 ? `（${invalidEmails.length} 个格式无效）` : ''}`
-                    : '支持每行一个邮箱，或用逗号、分号分隔'}
-                </span>
-              </div>
-
-              {/* 无效邮箱预览 */}
-              {invalidEmails.length > 0 && (
-                <div className="rounded-lg bg-status-warning-subtle px-3 py-2 text-xs text-status-warning">
-                  格式无效：{invalidEmails.join(', ')}
-                </div>
-              )}
-
-              {error && <p className="text-sm text-status-error">{error}</p>}
-            </div>
-          )}
-
-          {/* 结果阶段 */}
-          {phase === 'results' && results && (
+        <DialogBody>
+          {phase === 'results' && results ? (
             <InviteResultsView
               results={results.results}
               summary={results.summary}
             />
+          ) : (
+            <div className="flex flex-col gap-space-sm">
+              <Label htmlFor={fieldId}>
+                {t('settings.team.inviteDialog.emails')}
+              </Label>
+              <Textarea
+                id={fieldId}
+                placeholder={EXAMPLE}
+                value={input}
+                onChange={(event) => {
+                  setInput(event.target.value)
+                  setError(null)
+                }}
+                disabled={submitting}
+                aria-invalid={error ? true : undefined}
+                className="min-h-32 font-mono text-sm"
+              />
+              <p className="text-xs text-text-tertiary">
+                {parsedEmails.length
+                  ? t('settings.team.inviteDialog.recognized', {
+                      count: parsedEmails.length,
+                      invalid: invalidEmails.length,
+                    })
+                  : t('settings.team.inviteDialog.hint')}
+              </p>
+              {invalidEmails.length > 0 ? (
+                <p className="rounded-radius-md border border-status-warning-border bg-status-warning-subtle px-space-sm py-space-xs text-xs break-all text-status-warning">
+                  {t('settings.team.inviteDialog.invalidList', {
+                    emails: invalidEmails.join(', '),
+                  })}
+                </p>
+              ) : null}
+              {error ? (
+                <p role="alert" className="text-sm text-status-error">
+                  {t(`settings.team.inviteDialog.errors.${error}`)}
+                </p>
+              ) : null}
+            </div>
           )}
-        </div>
-
+        </DialogBody>
         <DialogFooter>
           {phase === 'results' ? (
             <>
-              <Button variant="outline" onClick={handleBack}>
-                继续邀请
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setPhase('input')
+                  setResults(null)
+                }}
+              >
+                {t('settings.team.inviteDialog.inviteMore')}
               </Button>
-              <Button onClick={handleClose}>完成</Button>
+              <Button onClick={handleClose}>
+                {t('settings.team.inviteDialog.done')}
+              </Button>
             </>
           ) : (
             <>
               <Button
                 variant="outline"
                 onClick={handleClose}
-                disabled={phase === 'submitting'}
+                disabled={submitting}
               >
-                取消
+                {t('common.cancel')}
               </Button>
               <Button
-                onClick={handleSubmit}
-                disabled={
-                  phase === 'submitting' ||
-                  isLoading ||
-                  parsedEmails.length === 0
-                }
+                onClick={() => void handleSubmit()}
+                loading={submitting}
+                disabled={submitting || isLoading || !parsedEmails.length}
               >
-                {phase === 'submitting' ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    发送中...
-                  </>
-                ) : (
-                  <>
-                    <Send className="mr-2 h-4 w-4" />
-                    发送邀请
-                    {validEmails.length > 0 ? ` (${validEmails.length})` : ''}
-                  </>
+                {submitting ? null : (
+                  <Send className="size-icon-sm" aria-hidden="true" />
                 )}
+                {validCount
+                  ? t('settings.team.inviteDialog.sendCount', {
+                      count: validCount,
+                    })
+                  : t('settings.team.inviteDialog.send')}
               </Button>
             </>
           )}
@@ -206,5 +191,3 @@ export const BatchInviteDialog: React.FC<BatchInviteDialogProps> = ({
     </Dialog>
   )
 }
-
-BatchInviteDialog.displayName = 'BatchInviteDialog'

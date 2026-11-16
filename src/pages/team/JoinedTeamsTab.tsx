@@ -1,41 +1,37 @@
-/**
- * 已加入的团队 Tab 内容
- * 包含搜索工具栏和团队列表
- */
-
-import React from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { SegmentedControl } from '@/components/ui/segmented-control'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  Building2,
+  Check,
+  LogOut,
+  MoreHorizontal,
+  Search,
+  Settings,
+  X,
+} from 'lucide-react'
+import { CollectionTemplate } from '@/components/page-templates'
 import {
-  ResourceListContainer,
+  PageEmptyState,
+  ResourceCard,
+  ResourceGrid,
+  ResourceList,
   ResourceListHeader,
-  ResourceListBody,
-} from '@/components/ui/resource-list'
-import { Search, Grid3X3, List as ListIcon, ArrowUpDown } from 'lucide-react'
-import { useTeamStore } from '@/stores/team'
-import { useFilteredJoinedTeams } from './hooks'
-import type { JoinedTeam } from '@/types/team'
+  ResourceRow,
+  type ResourceItemProps,
+} from '@/components/patterns'
 import {
-  JoinedTeamCard,
-  JoinedTeamListRow,
-  TeamEmptyState,
-  MemberSkeleton,
-} from './components'
-
-const TIME_FORMAT_OPTIONS = [
-  { value: 'detailed', label: '详细时间' },
-  { value: 'compact', label: '简洁时间' },
-  { value: 'relative', label: '相对时间' },
-]
+  ActionMenu,
+  ActionMenuContent,
+  ActionMenuItem,
+  ActionMenuTrigger,
+} from '@/components/ui/action-menu'
+import { Button } from '@/components/ui/button'
+import { useTeamStore } from '@/stores/team'
+import { TenantRole, type JoinedTeam } from '@/types/team'
+import { useFilteredJoinedTeams } from './hooks'
+import { formatTeamTime } from './utils'
+import { RoleBadge } from './components/RoleBadge'
+import { TeamFilterBar } from './components/team-filter-bar'
 
 interface JoinedTeamsTabProps {
   joinedTeams: JoinedTeam[]
@@ -47,15 +43,91 @@ interface JoinedTeamsTabProps {
   onManageTeam: (tenantId: string) => void
 }
 
-export const JoinedTeamsTab: React.FC<JoinedTeamsTabProps> = ({
-  joinedTeams,
-  teamsLoading,
-  respondLoading,
+function JoinedTeamActions({
+  team,
+  name,
+  busy,
   onAccept,
   onReject,
   onLeave,
   onManageTeam,
-}) => {
+}: Omit<
+  JoinedTeamsTabProps,
+  'joinedTeams' | 'teamsLoading' | 'respondLoading'
+> & {
+  team: JoinedTeam
+  name: string
+  busy: boolean
+}) {
+  const { t } = useTranslation()
+  if (team.role === TenantRole.Invite)
+    return (
+      <>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          disabled={busy}
+          onClick={() => onAccept(team.tenant_id)}
+        >
+          <Check className="size-icon-sm" aria-hidden="true" />
+          {t('settings.team.accept')}
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          aria-label={t('settings.team.reject')}
+          disabled={busy}
+          onClick={() => onReject(team.tenant_id)}
+        >
+          <X className="size-icon-sm" aria-hidden="true" />
+        </Button>
+      </>
+    )
+  const manager =
+    team.role === TenantRole.Owner || team.role === TenantRole.Admin
+  if (!manager && team.role !== TenantRole.Normal) return null
+  return (
+    <ActionMenu>
+      <ActionMenuTrigger asChild>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          aria-label={t('settings.team.teamActions', { name })}
+        >
+          <MoreHorizontal className="size-icon-sm" aria-hidden="true" />
+        </Button>
+      </ActionMenuTrigger>
+      <ActionMenuContent align="end">
+        {manager ? (
+          <ActionMenuItem onSelect={() => onManageTeam(team.tenant_id)}>
+            <Settings className="size-icon-sm" aria-hidden="true" />
+            {t('settings.team.manage')}
+          </ActionMenuItem>
+        ) : (
+          <ActionMenuItem
+            danger
+            disabled={busy}
+            onSelect={() => onLeave(team.tenant_id, team.nickname)}
+          >
+            <LogOut className="size-icon-sm" aria-hidden="true" />
+            {t('settings.team.leave')}
+          </ActionMenuItem>
+        )}
+      </ActionMenuContent>
+    </ActionMenu>
+  )
+}
+
+/** Teams the user belongs to or is invited to, as rows or cards. */
+export function JoinedTeamsTab({
+  joinedTeams,
+  teamsLoading,
+  respondLoading,
+  ...handlers
+}: JoinedTeamsTabProps) {
   const { t } = useTranslation()
   const {
     joinedTeamsViewMode,
@@ -65,123 +137,108 @@ export const JoinedTeamsTab: React.FC<JoinedTeamsTabProps> = ({
     timeFormat,
     setTimeFormat,
   } = useTeamStore()
-
-  const [joinedTeamSortDesc, setJoinedTeamSortDesc] = React.useState(true)
-  const filteredJoinedTeams = useFilteredJoinedTeams(
+  const [sortDesc, setSortDesc] = useState(true)
+  const filtered = useFilteredJoinedTeams(
     joinedTeams,
     teamSearchQuery,
-    joinedTeamSortDesc,
+    sortDesc,
   )
+
+  const item = (team: JoinedTeam): ResourceItemProps => {
+    const name = team.nickname || t('settings.team.unnamedTeam')
+    return {
+      name,
+      description: team.email,
+      avatar: { src: team.avatar, seed: team.tenant_id, shape: 'circle' },
+      status: <RoleBadge role={team.role} />,
+      meta: (
+        <span>
+          {formatTeamTime(team.update_date, team.delta_seconds, timeFormat) ??
+            t('settings.team.unknownTime')}
+        </span>
+      ),
+      actions: (
+        <JoinedTeamActions
+          team={team}
+          name={name}
+          busy={respondLoading}
+          {...handlers}
+        />
+      ),
+    }
+  }
+
+  const state = teamsLoading
+    ? 'loading'
+    : filtered.length === 0
+      ? 'empty'
+      : 'content'
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      {/* 工具栏 */}
-      <div className="mb-4 flex items-center space-x-4">
-        <div className="max-w-md flex-1">
-          <Input
-            type="search"
-            placeholder="搜索团队..."
-            value={teamSearchQuery}
-            onChange={(e) => setTeamSearchQuery(e.target.value)}
-            leftIcon={<Search className="h-4 w-4" />}
-          />
-        </div>
-        <div className="flex items-center space-x-2">
-          <Select
-            value={timeFormat}
-            onValueChange={(value) =>
-              setTimeFormat(value as 'detailed' | 'compact' | 'relative')
+    <CollectionTemplate
+      filterBar={
+        <TeamFilterBar
+          search={teamSearchQuery}
+          onSearchChange={setTeamSearchQuery}
+          searchPlaceholder={t('settings.team.searchTeams')}
+          sortDescending={sortDesc}
+          onSortDescendingChange={setSortDesc}
+          timeFormat={timeFormat}
+          onTimeFormatChange={setTimeFormat}
+          view={joinedTeamsViewMode}
+          onViewChange={setJoinedTeamsViewMode}
+        />
+      }
+      state={state}
+      emptyState={
+        teamSearchQuery ? (
+          <PageEmptyState
+            icon={<Search className="size-icon-lg" />}
+            title={t('settings.team.empty.searchTitle')}
+            description={t('settings.team.empty.searchDescription')}
+            action={
+              <Button variant="outline" onClick={() => setTeamSearchQuery('')}>
+                {t('settings.team.empty.clearSearch')}
+              </Button>
             }
-          >
-            <SelectTrigger className="min-w-[100px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {TIME_FORMAT_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setJoinedTeamSortDesc((prev) => !prev)}
-            className="flex h-9 items-center gap-1 px-2 text-xs"
-          >
-            <ArrowUpDown className="h-3.5 w-3.5" />
-            <span>{joinedTeamSortDesc ? '倒序' : '正序'}</span>
-          </Button>
-          <SegmentedControl
-            aria-label={t('common.viewToggle')}
-            iconOnly
-            value={joinedTeamsViewMode}
-            onValueChange={setJoinedTeamsViewMode}
-            options={[
-              { value: 'grid', icon: <Grid3X3 />, label: '网格视图' },
-              { value: 'list', icon: <ListIcon />, label: '列表视图' },
-            ]}
           />
-        </div>
-      </div>
-
-      {/* 团队列表 */}
-      <div className="-mx-1 flex-1 overflow-y-auto px-1 pt-1 pb-2">
-        {teamsLoading ? (
-          <MemberSkeleton viewMode={joinedTeamsViewMode} count={6} />
-        ) : filteredJoinedTeams.length === 0 ? (
-          <TeamEmptyState
-            type={teamSearchQuery ? 'search' : 'joined-teams'}
-            searchQuery={teamSearchQuery}
-          />
-        ) : joinedTeamsViewMode === 'grid' ? (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {filteredJoinedTeams.map((team) => (
-              <JoinedTeamCard
-                key={team.tenant_id}
-                team={team}
-                onAccept={onAccept}
-                onReject={onReject}
-                onLeave={onLeave}
-                onManageTeam={onManageTeam}
-                timeFormat={timeFormat}
-                isLoading={respondLoading}
-              />
-            ))}
-          </div>
         ) : (
-          <ResourceListContainer>
+          <PageEmptyState
+            icon={<Building2 className="size-icon-lg" />}
+            title={t('settings.team.empty.joinedTitle')}
+            description={t('settings.team.empty.joinedDescription')}
+          />
+        )
+      }
+    >
+      {joinedTeamsViewMode === 'grid' ? (
+        <ResourceGrid label={t('settings.team.tabs.joined')}>
+          {filtered.map((team) => (
+            <ResourceCard key={team.tenant_id} {...item(team)} />
+          ))}
+        </ResourceGrid>
+      ) : (
+        <ResourceList
+          label={t('settings.team.tabs.joined')}
+          header={
             <ResourceListHeader
-              columns={[
-                { key: 'team', label: '团队' },
-                { key: 'role', label: '角色' },
-                { key: 'email', label: '邮箱' },
-                { key: 'join_time', label: '加入时间' },
-                { key: 'actions', label: '操作' },
-              ]}
-              showSelect={false}
-              gridCols="grid-cols-[2fr_1fr_1fr_120px_100px]"
+              name={t('settings.team.columns.team')}
+              status={t('settings.team.columns.role')}
+              meta={t('settings.team.columns.updated')}
             />
-            <ResourceListBody>
-              {filteredJoinedTeams.map((team) => (
-                <JoinedTeamListRow
-                  key={team.tenant_id}
-                  team={team}
-                  onAccept={onAccept}
-                  onReject={onReject}
-                  onLeave={onLeave}
-                  onManageTeam={onManageTeam}
-                  timeFormat={timeFormat}
-                  isLoading={respondLoading}
-                />
-              ))}
-            </ResourceListBody>
-          </ResourceListContainer>
-        )}
-      </div>
-    </div>
+          }
+        >
+          {filtered.map((team) => (
+            <ResourceRow
+              key={team.tenant_id}
+              {...item(team)}
+              actionsVisibility={
+                team.role === TenantRole.Invite ? 'always' : 'hover'
+              }
+            />
+          ))}
+        </ResourceList>
+      )}
+    </CollectionTemplate>
   )
 }
-
-JoinedTeamsTab.displayName = 'JoinedTeamsTab'
