@@ -1,5 +1,5 @@
 import { type ClassValue, clsx } from 'clsx'
-import { twMerge } from 'tailwind-merge'
+import { twMerge } from '@/lib/tailwind-merge'
 import i18n, { getCurrentLanguage } from '@/locales/i18n'
 
 export function cn(...inputs: ClassValue[]) {

@@ -22,11 +22,15 @@ const EXTENSIONS: Record<Exclude<FileKind, 'text'>, readonly string[]> = {
   ],
 }
 
-const KIND_BY_EXTENSION = new Map(
-  Object.entries(EXTENSIONS).flatMap(([kind, list]) =>
+const KIND_BY_EXTENSION = new Map<string, FileKind>([
+  ...Object.entries(EXTENSIONS).flatMap(([kind, list]) =>
     list.map((ext) => [ext, kind as FileKind] as const),
   ),
-)
+  // Sources without a file name (web pages, images) can pass their kind.
+  ['web', 'web'],
+  ['img', 'image'],
+  ['image', 'image'],
+])
 
 /** Lower-case extension of a file name, or the value itself when it is one. */
 export function fileExtension(nameOrExt: string): string {
@@ -76,7 +80,9 @@ export function FileKindTile({
   className,
 }: FileKindTileProps) {
   const ext = fileExtension(name)
-  const label = (ext && ext.length <= 4 ? ext : fileKindOf(name)).toUpperCase()
+  const full = (ext && ext.length <= 4 ? ext : fileKindOf(name)).toUpperCase()
+  // The 16px tile only fits three letters (DOCX → DOC, XLSX → XLS).
+  const label = size === 'xs' ? full.slice(0, 3) : full
   return (
     <span
       aria-hidden

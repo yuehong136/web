@@ -42,7 +42,7 @@ export function BulkActionBar({
       className={cn(
         'flex max-w-full items-center gap-space-2xs rounded-radius-xl border border-border-default bg-background-surface py-space-xs pr-space-xs pl-space-base text-sm',
         placement === 'floating'
-          ? 'absolute bottom-space-md left-1/2 z-20 -translate-x-1/2 shadow-elevation-high'
+          ? 'absolute bottom-space-md left-1/2 z-20 w-max max-w-[calc(100%-var(--space-md)*2)] -translate-x-1/2 shadow-elevation-high'
           : 'shadow-elevation-low',
         className,
       )}

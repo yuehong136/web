@@ -21,6 +21,15 @@ it('maps file names and bare extensions to a file kind', () => {
   expect(fileKindOf('README.md')).toBe('text')
   expect(fileKindOf('archive.tar.zst')).toBe('text')
   expect(fileExtension('a.b.CSV')).toBe('csv')
+  expect(fileKindOf('web')).toBe('web')
+  expect(fileKindOf('img')).toBe('image')
+})
+
+it('fits three letters into the smallest tile', async () => {
+  await view.render(<FileKindTile name="report.docx" size="xs" />)
+  expect(
+    view.container.querySelector('[data-slot="file-kind-tile"]')?.textContent,
+  ).toBe('DOC')
 })
 
 it('labels a file tile with its extension and colors it by kind', async () => {

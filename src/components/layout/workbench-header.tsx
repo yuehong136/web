@@ -59,17 +59,22 @@ export type WorkbenchHeaderPlacement = 'pending' | 'workbench' | 'inline'
  * dialogs and standalone or embedded pages render their title inline. Until
  * the root mounts (`pending`) neither placement renders, so nothing flashes.
  */
-export function useWorkbenchHeader(part: WorkbenchHeaderPart) {
+export function useWorkbenchHeader(
+  part: WorkbenchHeaderPart,
+  /** False when the template draws no title, so the shell keeps its own. */
+  enabled = true,
+) {
   const context = React.useContext(WorkbenchHeaderContext)
   const [root, setRoot] = React.useState<HTMLElement | null>(null)
-  const owns = !context
-    ? false
-    : root
-      ? Boolean(
-          root.closest('[data-main-task-area]') &&
-          !root.parentElement?.closest(TEMPLATE_ROOTS),
-        )
-      : null
+  const owns =
+    !context || !enabled
+      ? false
+      : root
+        ? Boolean(
+            root.closest('[data-main-task-area]') &&
+            !root.parentElement?.closest(TEMPLATE_ROOTS),
+          )
+        : null
   const claim = context?.claim
   React.useLayoutEffect(
     () => (owns && claim ? claim(part) : undefined),

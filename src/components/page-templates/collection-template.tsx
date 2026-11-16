@@ -89,7 +89,10 @@ export function CollectionTemplate({
   children,
 }: CollectionTemplateProps) {
   const inset = appearance === 'inset'
-  const { bindRoot, placement, target } = useWorkbenchHeader('title')
+  const { bindRoot, placement, target } = useWorkbenchHeader(
+    'title',
+    !hideHeader && Boolean(title),
+  )
   const stateNode = resolveTemplateState(
     state,
     { loadingState, emptyState, errorState },
