@@ -28,6 +28,14 @@ import type {
   MemoryAppendCommand,
   MemoryAppendOperation,
 } from '@/types/memory-revisions'
+import type {
+  MemoryDiscoverySelection,
+  MemoryDiscoveryPreview,
+  MemoryDiscoveryCreate,
+  MemoryDiscovery,
+  MemoryDiscoveryPage,
+  MemoryDiscoveryRun,
+} from '@/types/memory-incremental'
 import { collectListWindow, isLargeListWindow } from './list-pagination'
 import { API_BASE_URL } from '@/constants'
 import type {
@@ -280,7 +288,64 @@ export function createMemoryDreamingAPI(
   }
 }
 
+export function createMemoryIncrementalAPI(
+  baseURL = API_BASE_URL,
+  client = apiClient,
+) {
+  const sdkBase = { baseURL: `${baseURL}/api` }
+  const path = (memoryId: string, discoveryId?: string) =>
+    `/memories/${encodeURIComponent(memoryId)}/maintenance-discoveries${discoveryId ? `/${encodeURIComponent(discoveryId)}` : ''}`
+  return {
+    preview: (
+      memoryId: string,
+      selection: MemoryDiscoverySelection,
+    ): Promise<MemoryDiscoveryPreview> =>
+      client.post(`${path(memoryId)}/preview`, selection, sdkBase),
+    create: (
+      memoryId: string,
+      command: MemoryDiscoveryCreate,
+    ): Promise<MemoryDiscovery> =>
+      client.post(path(memoryId), command, sdkBase),
+    list: (
+      memoryId: string,
+      operationId?: string,
+      signal?: AbortSignal,
+    ): Promise<MemoryDiscoveryPage> =>
+      client.get(path(memoryId), {
+        ...sdkBase,
+        signal,
+        params: {
+          limit: 20,
+          ...(operationId ? { operation_id: operationId } : {}),
+        },
+      }),
+    discovery: (
+      memoryId: string,
+      discoveryId: string,
+      signal?: AbortSignal,
+    ): Promise<MemoryDiscovery> =>
+      client.get(path(memoryId, discoveryId), { ...sdkBase, signal }),
+    run: (
+      memoryId: string,
+      discoveryId: string,
+      command: MemoryDiscoveryRun,
+    ): Promise<MemoryDiscovery> =>
+      client.post(`${path(memoryId, discoveryId)}/runs`, command, sdkBase),
+    cancel: (
+      memoryId: string,
+      discoveryId: string,
+      operationId: string,
+    ): Promise<MemoryDiscovery> =>
+      client.post(
+        `${path(memoryId, discoveryId)}/cancellations`,
+        { operation_id: operationId },
+        sdkBase,
+      ),
+  }
+}
+
 export const memoryAPI = {
+  incremental: createMemoryIncrementalAPI(),
   revision: createMemoryRevisionAPI(),
   dreaming: createMemoryDreamingAPI(),
   // ============ 记忆库管理 ============
