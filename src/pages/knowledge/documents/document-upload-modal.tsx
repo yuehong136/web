@@ -365,7 +365,7 @@ function DocumentUploadSession({
                 role="alert"
                 className="rounded-radius-md border border-status-warning/30 bg-status-warning-subtle p-space-md text-sm text-text-primary"
               >
-                {t(notice.key, notice.values)}
+                {t(notice.key, notice.values ?? {})}
               </div>
             )}
             <div className="flex items-center justify-between gap-space-md rounded-radius-lg bg-background-subtle p-space-md">

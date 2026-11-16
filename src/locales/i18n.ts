@@ -45,7 +45,7 @@ void installPlugin(LanguageDetector)
     fallbackLng: DEFAULT_PRODUCT_LANGUAGE,
     defaultNS: 'translation',
     ns: ['translation'],
-    initImmediate: false,
+    initAsync: false,
     interpolation: { escapeValue: false },
     react: { useSuspense: false },
     detection: {

@@ -356,7 +356,7 @@ export function resolveFormSheetDescription({
     options?: Record<string, unknown>,
   ) =>
     t
-      ? t(key, fallback, options)
+      ? t(key, fallback, options ?? {})
       : fallback.replace('{{type}}', String(options?.type ?? ''))
   const unknownDescription = operatorType
     ? translate(

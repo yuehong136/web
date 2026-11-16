@@ -127,7 +127,7 @@ it('gates a new domain, exposes a translated retry and keeps an existing draft o
     resources: {},
     lng: 'en-US',
     fallbackLng: false,
-    initImmediate: false,
+    initAsync: false,
   })
   const runtime = createLocaleRuntime({
     instance,

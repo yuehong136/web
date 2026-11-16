@@ -139,8 +139,7 @@ export const knowledgeSettingsFormValuesSchema = z.object({
 
 /** Mode-specific validation belongs to submit; persisted values can always hydrate. */
 export function createKnowledgeSettingsFormSchema(
-  translate: (key: string, options?: { count: number }) => string = (key) =>
-    key,
+  translate: (key: string, options: { count: number }) => string = (key) => key,
 ) {
   return knowledgeSettingsFormValuesSchema.superRefine((data, ctx) => {
     const addError = (path: string, key: string) =>

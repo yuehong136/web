@@ -59,7 +59,7 @@ describe('Korean preview catalog', () => {
       resources: {},
       lng: 'en-US',
       fallbackLng: false,
-      initImmediate: false,
+      initAsync: false,
     })
     const persisted: string[] = []
     const runtime = createLocaleRuntime({

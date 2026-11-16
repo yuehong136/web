@@ -35,7 +35,7 @@ async function setup(
     resources: {},
     lng: 'zh-CN',
     fallbackLng: false,
-    initImmediate: false,
+    initAsync: false,
   })
   const persist = vi.fn()
   const applyDocument = vi.fn()
