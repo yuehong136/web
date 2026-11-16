@@ -1,11 +1,12 @@
 import { useState, type ReactNode } from 'react'
-import { Brain, ChevronDown, LoaderCircle, Search } from 'lucide-react'
+import { ChevronRight, LoaderCircle, Search, Sparkles } from 'lucide-react'
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
 import { cn } from '@/lib/utils'
+import '@/components/chat/app-chat-message.css'
 
 interface ProcessDisclosureProps {
   children: ReactNode
@@ -14,7 +15,7 @@ interface ProcessDisclosureProps {
   loading: boolean
 }
 
-/** Collapsed by default; user choice remains available throughout streaming. */
+/** One collapsed line; the reader can expand it at any time, also while streaming. */
 export function ProcessDisclosure({
   children,
   kind,
@@ -22,32 +23,36 @@ export function ProcessDisclosure({
   loading,
 }: ProcessDisclosureProps) {
   const [expanded, setExpanded] = useState(false)
-  const Icon = loading ? LoaderCircle : kind === 'retrieving' ? Search : Brain
+  const Icon = loading
+    ? LoaderCircle
+    : kind === 'retrieving'
+      ? Search
+      : Sparkles
   return (
     <Collapsible
       open={expanded}
       onOpenChange={setExpanded}
       data-process-kind={kind}
       aria-busy={loading}
-      className={cn(
-        'border-s-2 ps-space-sm',
-        kind === 'retrieving'
-          ? 'border-status-success text-status-success'
-          : 'border-border-default text-text-secondary',
-      )}
+      className="text-sm text-text-secondary"
     >
-      <CollapsibleTrigger className="group flex w-full items-center gap-space-xs rounded-radius-sm py-space-xs text-start text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-focus">
+      <CollapsibleTrigger className="group inline-flex min-h-[var(--control-height-sm)] max-w-full items-center gap-space-xs rounded-radius-sm text-start hover:text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-focus">
         <Icon
           aria-hidden="true"
-          className={cn('size-icon-sm shrink-0', loading && 'animate-spin')}
+          className={cn(
+            'size-icon-sm shrink-0 text-text-tertiary',
+            loading && 'animate-spin motion-reduce:animate-none',
+          )}
         />
-        <span aria-live="polite">{title}</span>
-        <ChevronDown
+        <span aria-live="polite" className={cn(loading && 'chat-shimmer')}>
+          {title}
+        </span>
+        <ChevronRight
           aria-hidden="true"
-          className="ms-auto size-icon-sm transition-transform group-data-[state=open]:rotate-180"
+          className="size-icon-xs shrink-0 text-text-tertiary transition-transform group-data-[state=open]:rotate-90 motion-reduce:transition-none"
         />
       </CollapsibleTrigger>
-      <CollapsibleContent className="max-h-64 overflow-y-auto overscroll-contain text-sm text-text-secondary">
+      <CollapsibleContent className="mt-space-xs max-h-64 overflow-y-auto overscroll-contain border-s border-border-default ps-space-md text-text-secondary">
         {children}
       </CollapsibleContent>
     </Collapsible>

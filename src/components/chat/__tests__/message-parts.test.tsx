@@ -105,7 +105,24 @@ it('a completed body never loses small updates and preserves actual citation mar
   )
   await render('Evidence [ID:0].')
   expect(host.querySelector('.markdown-content')?.textContent).toContain('.')
-  expect(host.textContent).toContain('Sources')
+  // One source line under the answer; it opens the evidence for that chunk
+  const source = host.querySelector<HTMLButtonElement>(
+    '[data-source-strip] [data-source-chunk]',
+  )!
+  expect(source.getAttribute('aria-label')).toBe('Citation 1: Evidence.pdf')
+  await act(async () => source.click())
+  expect(view).toHaveBeenLastCalledWith(references[0], references, {
+    cited: [references[0]],
+    messageId: undefined,
+  })
+  await act(async () =>
+    host.querySelector<HTMLButtonElement>('[data-retrieval-summary]')!.click(),
+  )
+  expect(view).toHaveBeenLastCalledWith(references[0], references, {
+    view: 'chunks',
+    cited: [references[0]],
+    messageId: undefined,
+  })
 })
 
 it('historical tool rows without a result never become invented completed steps', async () => {

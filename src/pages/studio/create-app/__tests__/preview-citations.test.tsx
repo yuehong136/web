@@ -77,9 +77,9 @@ describe('Studio preview citations', () => {
         />,
       ),
     )
-    expect(container.textContent).toContain('思考中...')
+    expect(container.textContent).toContain('正在思考…')
     const trigger = container.querySelector<HTMLButtonElement>(
-      '[data-process-kind="thinking"] button',
+      '[data-reasoning="thinking"] button',
     )!
     expect(trigger.getAttribute('aria-expanded')).toBe('false')
     expect(container.textContent).not.toContain('先核对数据来源')
@@ -97,7 +97,8 @@ describe('Studio preview citations', () => {
         />,
       ),
     )
-    expect(container.textContent).toContain('思考详情')
+    // One collapsed line: “已思考 N 秒”, timed on this device
+    expect(trigger.textContent).toMatch(/^已思考 \d+ 秒$/)
     expect(container.querySelector('[data-run-phase="completed"]')).toBeNull()
     expect(trigger.getAttribute('aria-expanded')).toBe('true')
     expect(container.textContent).toContain('先核对数据来源')
@@ -116,20 +117,26 @@ describe('Studio preview citations', () => {
         />,
       ),
     )
-    expect(container.textContent).toContain('思考详情')
+    // History has no observed timing, so the line reads only “已思考”
+    expect(
+      container.querySelector('[data-reasoning="complete"] button')
+        ?.textContent,
+    ).toBe('已思考')
     expect(container.querySelector('[data-run-phase="completed"]')).toBeNull()
     expect(
       container.querySelector('.markdown-content')?.textContent?.trim(),
     ).toBe('结果一致')
   })
 
-  it('shows the shared three-dot waiting indicator only during active generation', async () => {
+  it('shows the shared thinking line only during active generation', async () => {
     await act(async () =>
       root.render(
         <PreviewAnswer content="" isStreaming onViewReference={() => {}} />,
       ),
     )
-    expect(container.querySelectorAll('.ant-bubble-dot-item')).toHaveLength(3)
+    expect(container.querySelector('output .chat-shimmer')?.textContent).toBe(
+      '正在思考…',
+    )
     await act(async () =>
       root.render(
         <PreviewAnswer
@@ -139,7 +146,7 @@ describe('Studio preview citations', () => {
         />,
       ),
     )
-    expect(container.querySelector('.ant-bubble-dot-item')).toBeNull()
+    expect(container.querySelector('output')).toBeNull()
   })
   it('attaches the final frame references to the streamed answer', async () => {
     let preview!: ReturnType<typeof useCreateAppPreview>
@@ -203,7 +210,7 @@ describe('Studio preview citations', () => {
 
     expect(container.textContent).not.toContain('[ID:0]')
     expect(container.querySelector('sup')).not.toBeNull()
-    expect(container.textContent).toContain('引用来源')
+    expect(container.querySelector('[data-source-strip]')).not.toBeNull()
   })
 
   it('opens lightweight sources and keeps document detail callbacks without inventing a score', async () => {
@@ -218,20 +225,19 @@ describe('Studio preview citations', () => {
         />,
       ),
     )
-    const sources = Array.from(container.querySelectorAll('button')).find(
-      (button) => button.textContent?.includes('引用来源'),
+    // The shared source line under the answer; no score when none was returned
+    const source = container.querySelector<HTMLButtonElement>(
+      '[data-source-strip] [data-source-chunk]',
     )!
-    expect(sources.getAttribute('aria-expanded')).toBe('false')
-    await act(async () => sources.click())
-    expect(sources.getAttribute('aria-expanded')).toBe('true')
-    const detail = Array.from(container.querySelectorAll('button')).find(
-      (button) => button.textContent?.includes(chunk.content!),
-    )!
-    expect(detail.textContent).not.toContain('0%')
-    await act(async () => detail.click())
-    expect(view).toHaveBeenCalledWith(chunk, [chunk])
+    expect(source.getAttribute('aria-label')).toBe('引用 1：harness.html')
+    expect(source.textContent).not.toContain('%')
+    await act(async () => source.click())
+    expect(view).toHaveBeenCalledWith(chunk, [chunk], {
+      cited: [chunk],
+      messageId: undefined,
+    })
     await act(async () => setProductLanguage('en-US'))
-    expect(sources.textContent).toContain('Sources')
+    expect(source.getAttribute('aria-label')).toBe('Citation 1: harness.html')
   })
 
   it('keeps the text unchanged until references arrive', async () => {
@@ -246,6 +252,6 @@ describe('Studio preview citations', () => {
     )
 
     expect(container.querySelector('sup')).toBeNull()
-    expect(container.textContent).not.toContain('引用来源')
+    expect(container.querySelector('[data-source-strip]')).toBeNull()
   })
 })

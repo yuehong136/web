@@ -12,6 +12,8 @@ import { I18nextProvider } from 'react-i18next'
 import en from '@/locales/en-US/chat'
 import zh from '@/locales/zh-CN/chat'
 
+// Reasoning steps render Markdown; the diagram vendor has an unresolved ESM import in Node.
+vi.mock('@ant-design/x', () => ({ Mermaid: () => null }))
 vi.mock('react-shiki/core', () => ({
   useShikiHighlighter: () => undefined,
   createJavaScriptRegexEngine: () => ({}),
@@ -43,11 +45,14 @@ it('only shows actual steps, keeps user disclosure choice, and makes unfinished 
   await act(async () =>
     root.render(<RunTimeline nodes={[node]} phase="running" />),
   )
+  // Each step is one line: its arguments and result stay behind the disclosure.
   const disclosure = host.querySelector('details')!
   expect(disclosure.open).toBe(false)
+  expect(disclosure.querySelector('summary code')?.textContent).toBe('lookup')
   disclosure.open = true
   expect(host.textContent).toContain('1 steps')
   expect(host.querySelector('[data-step-status="loading"]')).not.toBeNull()
+  expect(host.querySelector('.chat-shimmer')?.textContent).toBe('Running')
   await act(async () =>
     root.render(<RunTimeline nodes={[node]} phase="locallyStopped" />),
   )
@@ -80,6 +85,29 @@ it.each([0, false])(
     expect(host.textContent).toContain(String(result))
   },
 )
+
+it('summarizes a list result as a count and shows the observed duration', async () => {
+  await act(async () =>
+    root.render(
+      <RunTimeline
+        phase="completed"
+        nodes={[
+          {
+            ...node,
+            status: 'success',
+            metadata: { toolName: 'lookup', elapsedMs: 420 },
+            content: { arguments: { q: 'x' }, result: [1, 2, 3] },
+          },
+        ]}
+      />,
+    ),
+  )
+  const summary = host.querySelector('summary')!
+  expect(summary.textContent).toContain('Returned 3 items')
+  expect(summary.querySelector('.run-step-duration')?.textContent).toBe('0.4s')
+  // No approval controls: the web backend cannot pause a tool for confirmation.
+  expect(host.querySelectorAll('button')).toHaveLength(0)
+})
 
 it('code follows the nearest appearance scope and updates without replacing the block', async () => {
   setAppearance({ mode: 'dark', preset: 'studio' })

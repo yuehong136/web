@@ -1,15 +1,18 @@
 import { memo, useId, useMemo, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Search } from 'lucide-react'
 import { markdownConfig, useMarkdownComponents } from './MarkdownCodeBlock'
 import { ChatBubbleLoading } from './ChatBubbleLoading'
 import { RetrievalProgress } from './retrieval-progress'
-import { ThinkWrapper } from './ThinkWrapper'
+import { ReasoningDisclosure } from './reasoning-disclosure'
 import { CarouselWrapper } from './CarouselWrapper'
 import { ReferenceImageList } from './ReferenceImageList'
 import { createReferenceMarkerComponent } from './ReferenceMarker'
-import { ReferencePanel } from './ReferencePanel'
+import { SourceStrip } from './source-strip'
 import { StreamingXMarkdown } from './streaming-x-markdown'
 import { RunTimeline } from './run-timeline'
+import { getCitedChunks } from './citation-utils'
+import type { EvidenceOptions } from './chat-workspace-context'
 import { ArtifactMessageContext } from '@/components/chat/artifact-message-context'
 import { ContextManifestSummary } from '@/components/chat/context-manifest-summary'
 import type { ContextManifest } from '@/lib/ai-workspace/contracts'
@@ -33,7 +36,12 @@ export interface MessagePartsProps {
   references?: ReferenceChunk[]
   run: { phase?: RunPhase; steps?: AgentTimelineNode[] }
   notice?: ReactNode
-  onViewReference: (chunk: ReferenceChunk, references: ReferenceChunk[]) => void
+  /** `options.messageId` is this message's id, so one stable handler serves every message. */
+  onViewReference: (
+    chunk: ReferenceChunk,
+    references: ReferenceChunk[],
+    options?: EvidenceOptions & { messageId?: string },
+  ) => void
 }
 
 /** Text, reasoning, observed tool steps and citations share one rendering path. */
@@ -64,6 +72,15 @@ export const MessageParts = memo(function MessageParts({
   const thinkContent =
     trailingReasoning || (nodes.length ? '' : thinking || fallback.thinkContent)
   const mainContent = fallback.mainContent
+  // Stable while streaming text grows, so the citation markers keep their identity.
+  const citedKey = getCitedChunks(mainContent, references)
+    .map((chunk) => references.indexOf(chunk))
+    .join(',')
+  const cited = useMemo(
+    () =>
+      citedKey ? citedKey.split(',').map((index) => references[+index]) : [],
+    [citedKey, references],
+  )
   // 已结束却没有引用数据（终帧前停止、历史对不上）时 [ID:n] 也转成角标，解析不到的
   // 渲染为不可交互的上标；流式中等终帧引用，正文不带 [ID:n] 时不接管模型自己写的 <sup>
   const hasCitations =
@@ -73,7 +90,8 @@ export const MessageParts = memo(function MessageParts({
       hasCitations
         ? {
             sup: createReferenceMarkerComponent(references, {
-              onViewDetail: (chunk) => onViewReference(chunk, references),
+              onViewDetail: (chunk) =>
+                onViewReference(chunk, references, { cited, messageId }),
               onCopy: (text) =>
                 void copyToClipboardWithFeedback(
                   text,
@@ -83,7 +101,7 @@ export const MessageParts = memo(function MessageParts({
             }),
           }
         : undefined,
-    [hasCitations, references, onViewReference, t],
+    [hasCitations, references, cited, messageId, onViewReference, t],
   )
   const markdownComponents = useMarkdownComponents(citationComponents)
   const { content: processedContent, carouselGroups } = useMemo(
@@ -119,10 +137,17 @@ export const MessageParts = memo(function MessageParts({
           )
       })
   }
+  const showSources = references.length > 0 && !isStreaming
+  const openChunks = () =>
+    onViewReference(cited[0] ?? references[0], references, {
+      view: 'chunks',
+      cited,
+      messageId,
+    })
   return (
     <ArtifactMessageContext value={messageId ?? generatedMessageId}>
       <div
-        className="message-parts space-y-space-md"
+        className="message-parts space-y-space-sm"
         data-run-phase={run.phase}
       >
         {contextManifest && (
@@ -133,31 +158,35 @@ export const MessageParts = memo(function MessageParts({
         )}
         <RetrievalProgress result={fallback} isStreaming={isStreaming} />
         {thinkContent && (
-          <ThinkWrapper
-            status={
+          <ReasoningDisclosure
+            key={messageId}
+            content={thinkContent}
+            thinking={
               isStreaming &&
               (trailingReasoning
                 ? lastNode?.status === 'loading'
                 : Boolean(thinking) || fallback.status === 'thinking')
-                ? 'thinking'
-                : 'complete'
             }
-            messageId={messageId}
-            titles={
-              run.phase === 'completed'
-                ? undefined
-                : { complete: t('chat.thinking.details') }
-            }
+          />
+        )}
+        {showSources && !hasToolFlow && (
+          <button
+            type="button"
+            data-retrieval-summary
+            onClick={openChunks}
+            className="inline-flex min-h-[var(--control-height-sm)] max-w-full items-center gap-space-xs rounded-radius-sm text-start text-sm text-text-secondary hover:text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-focus"
           >
-            <section
-              aria-label={t('chat.thinking.details')}
-              // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- long reasoning is keyboard scrollable
-              tabIndex={0}
-              className="max-h-64 overflow-y-auto overscroll-contain whitespace-pre-wrap text-text-secondary"
-            >
-              {thinkContent}
-            </section>
-          </ThinkWrapper>
+            <Search
+              aria-hidden="true"
+              className="size-icon-sm shrink-0 text-text-tertiary"
+            />
+            {cited.length
+              ? t('chat.thread.retrievedCited', {
+                  count: references.length,
+                  cited: cited.length,
+                })
+              : t('chat.thread.retrieved', { count: references.length })}
+          </button>
         )}
         {mainContent && (
           <div className="bubble-copy-text markdown-content prose max-w-none">
@@ -170,19 +199,22 @@ export const MessageParts = memo(function MessageParts({
           !nodes.length &&
           fallback.retrievalStatus === 'none' && <ChatBubbleLoading />}
         {notice}
-        {!!references.length && !isStreaming && (
+        {showSources && (
           <>
             <ReferenceImageList
               referenceChunks={references}
               messageContent={mainContent}
-              onImageClick={(chunk) => onViewReference(chunk, references)}
+              onImageClick={(chunk) =>
+                onViewReference(chunk, references, { cited, messageId })
+              }
             />
-            <ReferencePanel
-              chunks={references}
-              variant="inline"
-              onChunkClick={(chunk) => onViewReference(chunk, references)}
-              defaultVisiblePerDoc={2}
-              className="mt-space-xs"
+            <SourceStrip
+              references={references}
+              cited={cited}
+              onOpen={(chunk) =>
+                onViewReference(chunk, references, { cited, messageId })
+              }
+              onShowAll={openChunks}
             />
           </>
         )}

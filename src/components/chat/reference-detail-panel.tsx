@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
 import { Check, Copy, ExternalLink } from 'lucide-react'
 import { Watermark } from 'antd'
-import type { Config } from 'dompurify'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { ContextPanel } from '@/components/patterns/context-panel'
@@ -9,6 +8,7 @@ import { SafeHtml } from '@/components/ui/safe-html'
 import { ReferenceDiagnostics } from '@/components/chat/reference-diagnostics'
 import { ReferenceMetadataBadges } from '@/components/chat/reference-metadata-badges'
 import {
+  CHUNK_CONTENT_PURIFY_OPTIONS,
   getDocTypeIcon,
   getOriginalSource,
   getOriginalSourceLink,
@@ -26,31 +26,6 @@ export interface ReferenceDetailPanelProps {
   chunk: ReferenceChunk | null
   allChunks?: ReferenceChunk[]
   onCopySuccess?: () => void
-}
-
-// 引用内容白名单（chunk 内容来自文档解析，按不可信输入对待）
-const CHUNK_CONTENT_PURIFY_OPTIONS: Config = {
-  ALLOWED_TAGS: [
-    'table',
-    'thead',
-    'tbody',
-    'tr',
-    'th',
-    'td',
-    'caption',
-    'br',
-    'p',
-    'div',
-    'span',
-    'strong',
-    'em',
-    'b',
-    'i',
-    'ul',
-    'ol',
-    'li',
-  ],
-  ALLOWED_ATTR: ['rowspan', 'colspan', 'class'],
 }
 
 const hasEntries = (value?: Record<string, unknown> | null) =>

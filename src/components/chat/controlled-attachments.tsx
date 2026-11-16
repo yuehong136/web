@@ -22,6 +22,8 @@ type ControlledAttachmentsProps = Omit<
   onUpload: (file: File) => Promise<void>
   onRemove: (uid: string) => void
   onRetry?: (uid: string) => void
+  /** Root layout; prefer token classes over `styles.root`. */
+  className?: string
 }
 
 /** Requests and rows belong to the composer. Vendor upload/list state never owns them. */
@@ -36,12 +38,13 @@ export function ControlledAttachments({
   onRetry,
   styles,
   maxCount,
+  className,
   ...props
 }: ControlledAttachmentsProps) {
   const picker = useRef<ComponentRef<typeof Attachments>>(null)
   const full = maxCount !== undefined && items.length >= maxCount
   return (
-    <div style={styles?.root}>
+    <div className={className} style={styles?.root}>
       {items.length > 0 && (
         <div
           className="flex items-center gap-space-md overflow-x-auto"

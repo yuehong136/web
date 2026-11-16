@@ -1,14 +1,10 @@
 import {
-  lazy,
-  Suspense,
   useCallback,
   useEffect,
-  useId,
   useLayoutEffect,
   useMemo,
   useRef,
   useState,
-  type KeyboardEvent,
   type ReactNode,
 } from 'react'
 import { AiWorkspace } from '@/components/layout/ai-workspace'
@@ -17,33 +13,30 @@ import { useAuthStore } from '@/stores/auth'
 import type { ArtifactRef } from '@/lib/ai-workspace/contracts'
 import type { ReferenceChunk } from '@/utils/reference-replacer'
 import { isArtifactUrl } from '@/lib/agent/artifact-url'
-import { ReferenceDetailPanel } from '@/components/chat/reference-detail-panel'
-import { ChatWorkspaceContext } from '@/components/chat/chat-workspace-context'
+import {
+  ChatWorkspaceContext,
+  type EvidenceOptions,
+} from '@/components/chat/chat-workspace-context'
 import { sameArtifactIdentity } from '@/components/chat/artifact-identity'
 import { getReturnFocusTargets } from '@/components/chat/use-return-focus'
+import {
+  EvidencePanel,
+  type EvidenceSelection,
+  type EvidenceTab,
+} from '@/components/chat/evidence-panel'
 
-const ArtifactDetailPanel = lazy(() =>
-  import('@/components/chat/artifact-detail-panel').then((module) => ({
-    default: module.ArtifactDetailPanel,
-  })),
-)
-type ResourceTab = 'evidence' | 'artifacts'
 interface Selection {
   scope: string
   open: boolean
-  tab: ResourceTab
-  reference?: {
-    chunk: ReferenceChunk
-    references: ReferenceChunk[]
-    messageId?: string
-  }
+  tab: EvidenceTab
+  reference?: EvidenceSelection
   artifact?: ArtifactRef
   returnFocusTargets?: readonly HTMLElement[]
 }
 const emptySelection = (scope: string): Selection => ({
   scope,
   open: false,
-  tab: 'evidence',
+  tab: 'sources',
 })
 
 export interface ChatWorkspaceProps {
@@ -85,7 +78,6 @@ export function ChatWorkspace({ scopeKey, children }: ChatWorkspaceProps) {
       ? selection
       : emptySelection(resourceScope)
   if (selection.scope !== resourceScope) setSelection(visible)
-  const tabId = useId()
   const close = useCallback((open: boolean) => {
     if (!open) setSelection((previous) => ({ ...previous, open: false }))
   }, [])
@@ -94,6 +86,7 @@ export function ChatWorkspace({ scopeKey, children }: ChatWorkspaceProps) {
       chunk: ReferenceChunk,
       references: ReferenceChunk[],
       messageId?: string,
+      options?: EvidenceOptions,
     ) => {
       if (currentScope.current !== resourceScope) return
       const candidates = getReturnFocusTargets()
@@ -106,8 +99,17 @@ export function ChatWorkspace({ scopeKey, children }: ChatWorkspaceProps) {
         ...previous,
         scope: resourceScope,
         open: true,
-        tab: 'evidence',
-        reference: { chunk, references, messageId },
+        tab: options?.view ?? 'sources',
+        reference: {
+          chunk,
+          references,
+          messageId,
+          cited:
+            options?.cited ??
+            (previous.reference?.references === references
+              ? previous.reference.cited
+              : undefined),
+        },
         returnFocusTargets: origin ?? previous.returnFocusTargets,
       }))
     },
@@ -161,27 +163,14 @@ export function ChatWorkspace({ scopeKey, children }: ChatWorkspaceProps) {
     () => ({ viewReference, viewArtifact, selectedArtifact: visible.artifact }),
     [viewReference, viewArtifact, visible.artifact],
   )
-  const setTab = (tab: ResourceTab) =>
+  const setTab = (tab: EvidenceTab) =>
     setSelection((previous) => ({ ...previous, tab }))
-  const navigateTab = (event: KeyboardEvent<HTMLButtonElement>) => {
-    if (
-      !visible.reference ||
-      !visible.artifact ||
-      !['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)
+  const selectChunk = (chunk: ReferenceChunk) =>
+    setSelection((previous) =>
+      previous.reference
+        ? { ...previous, reference: { ...previous.reference, chunk } }
+        : previous,
     )
-      return
-    event.preventDefault()
-    const next: ResourceTab =
-      event.key === 'Home'
-        ? 'evidence'
-        : event.key === 'End'
-          ? 'artifacts'
-          : visible.tab === 'evidence'
-            ? 'artifacts'
-            : 'evidence'
-    setTab(next)
-    document.getElementById(`${tabId}-${next}`)?.focus()
-  }
   return (
     <ChatWorkspaceContext value={actions}>
       <AiWorkspace
@@ -191,87 +180,19 @@ export function ChatWorkspace({ scopeKey, children }: ChatWorkspaceProps) {
         returnFocusTargets={visible.returnFocusTargets}
         detailTitle={t(visible.tab)}
         resizeLabel={t('resize')}
+        phoneSheetSide="bottom"
         detail={
           visible.open ? (
-            <div
-              className="flex h-full min-h-0 flex-col"
-              data-workspace-resources
-            >
-              <div
-                role="tablist"
-                className="flex shrink-0 gap-space-sm border-b border-border-subtle p-space-sm"
-              >
-                {(['evidence', 'artifacts'] as const).map((tab) => (
-                  <button
-                    key={tab}
-                    type="button"
-                    role="tab"
-                    id={`${tabId}-${tab}`}
-                    aria-controls={`${tabId}-${tab}-panel`}
-                    aria-selected={visible.tab === tab}
-                    tabIndex={visible.tab === tab ? 0 : -1}
-                    disabled={
-                      tab === 'evidence'
-                        ? !visible.reference
-                        : !visible.artifact
-                    }
-                    onClick={() => setTab(tab)}
-                    onKeyDown={navigateTab}
-                    className="rounded-radius-sm px-space-sm py-space-xs text-sm text-text-secondary hover:bg-state-hover focus-visible:outline focus-visible:outline-state-focus disabled:opacity-50 aria-selected:bg-background-subtle aria-selected:font-medium aria-selected:text-text-primary"
-                  >
-                    {t(tab)}
-                  </button>
-                ))}
-              </div>
-              <section
-                role="tabpanel"
-                id={`${tabId}-evidence-panel`}
-                aria-labelledby={`${tabId}-evidence`}
-                hidden={visible.tab !== 'evidence'}
-                className="min-h-0 flex-1"
-              >
-                {visible.reference && (
-                  <ReferenceDetailPanel
-                    chunk={visible.reference.chunk}
-                    allChunks={visible.reference.references}
-                    onClose={() => close(false)}
-                    onSelectChunk={(chunk) => {
-                      if (visible.reference)
-                        viewReference(
-                          chunk,
-                          visible.reference.references,
-                          visible.reference.messageId,
-                        )
-                    }}
-                  />
-                )}
-              </section>
-              <section
-                role="tabpanel"
-                id={`${tabId}-artifacts-panel`}
-                aria-labelledby={`${tabId}-artifacts`}
-                hidden={visible.tab !== 'artifacts'}
-                className="min-h-0 flex-1"
-              >
-                {visible.artifact && (
-                  <Suspense
-                    fallback={
-                      <output className="block p-space-md text-sm text-text-secondary">
-                        {t('artifactLoading')}
-                      </output>
-                    }
-                  >
-                    <ArtifactDetailPanel
-                      key={visible.artifact.id}
-                      artifact={visible.artifact}
-                      scopeKey={resourceScope}
-                      onClose={() => close(false)}
-                      onStateChange={updateArtifactState}
-                    />
-                  </Suspense>
-                )}
-              </section>
-            </div>
+            <EvidencePanel
+              tab={visible.tab}
+              onTabChange={setTab}
+              reference={visible.reference}
+              artifact={visible.artifact}
+              scopeKey={resourceScope}
+              onSelectChunk={selectChunk}
+              onArtifactStateChange={updateArtifactState}
+              onClose={() => close(false)}
+            />
           ) : null
         }
       >

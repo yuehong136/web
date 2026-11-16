@@ -1,14 +1,21 @@
 import type { BubbleListProps, BubbleProps } from '@ant-design/x'
 
+/**
+ * The shared thread look on antd-x: answers without a bubble or avatar, user
+ * turns as a compact subtle bubble (`chat-user-bubble`), actions outside.
+ */
 export const CHAT_BUBBLE_ROLES = {
   user: {
     placement: 'end',
-    variant: 'filled',
-    shape: 'round',
+    variant: 'borderless',
+    classNames: { content: 'chat-user-bubble' },
+    footerPlacement: 'outer-end',
   },
   assistant: {
     placement: 'start',
     variant: 'borderless',
+    classNames: { content: 'chat-answer-bubble' },
+    footerPlacement: 'outer-start',
   },
 } satisfies NonNullable<BubbleListProps['role']>
 

@@ -1,16 +1,21 @@
 import * as React from 'react'
+import { LoaderCircle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import '@/components/chat/app-chat-message.css'
 
+/** The answer has not started yet: one quiet “Thinking…” line. */
 export const ChatBubbleLoading = React.memo(() => {
   const { t } = useTranslation()
   return (
     <output
-      className="inline-flex items-center gap-1 px-space-xs py-space-xs"
+      className="inline-flex min-h-[var(--control-height-sm)] items-center gap-space-xs text-sm text-text-secondary"
       aria-label={t('common.loading')}
     >
-      <span className="ant-bubble-dot-item size-1.5 animate-bounce rounded-radius-full [animation-delay:-0.2s] motion-reduce:animate-none" />
-      <span className="ant-bubble-dot-item size-1.5 animate-bounce rounded-radius-full [animation-delay:-0.1s] motion-reduce:animate-none" />
-      <span className="ant-bubble-dot-item size-1.5 animate-bounce rounded-radius-full motion-reduce:animate-none" />
+      <LoaderCircle
+        aria-hidden="true"
+        className="size-icon-sm animate-spin text-text-tertiary motion-reduce:animate-none"
+      />
+      <span className="chat-shimmer">{t('chat.thread.thinking')}</span>
     </output>
   )
 })

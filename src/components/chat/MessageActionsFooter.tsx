@@ -190,10 +190,10 @@ export const MessageActionsFooter: React.FC<MessageActionsFooterProps> =
       ])
 
       return (
-        <div className={className || 'mt-2 flex justify-start'}>
+        <div className={className || 'mt-space-sm flex justify-start'}>
           <Actions items={actionItems} variant="borderless" />
           {/* Hidden audio element for TTS playback */}
-          {showTTS && <audio ref={audioRef} style={{ display: 'none' }} />}
+          {showTTS && <audio ref={audioRef} hidden />}
         </div>
       )
     },

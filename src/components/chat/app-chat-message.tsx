@@ -54,27 +54,8 @@ export function getAppChatBubbleProps(
     avatar: <AppChatAvatar role={role} {...app} />,
     footerPlacement: user ? undefined : 'outer-start',
     loadingRender: () => <ChatBubbleLoading />,
-    styles: {
-      content: user
-        ? {
-            backgroundColor: 'var(--color-chat-bubble-user-bg)',
-            color: 'var(--color-chat-bubble-user-text)',
-            borderRadius: '18px',
-            padding: '12px 16px',
-            boxShadow: 'var(--shadow-sm)',
-            maxWidth: 'min(640px, 100%)',
-            overflowWrap: 'anywhere',
-          }
-        : {
-            backgroundColor: 'transparent',
-            color: 'var(--color-text-primary)',
-            borderRadius: '0',
-            padding: '0',
-            border: 'none',
-            boxShadow: 'none',
-            overflowWrap: 'anywhere',
-          },
-    },
+    // Same thread look as Home and Explore (see app-chat-message.css).
+    classNames: { content: user ? 'chat-user-bubble' : 'chat-answer-bubble' },
   } satisfies Pick<
     BubbleProps,
     | 'header'
@@ -82,7 +63,7 @@ export function getAppChatBubbleProps(
     | 'variant'
     | 'avatar'
     | 'footerPlacement'
-    | 'styles'
+    | 'classNames'
     | 'loadingRender'
   >
 }
