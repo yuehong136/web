@@ -54,8 +54,13 @@ export default {
     },
     card: {
       app: 'App',
+      chatApp: 'Chat app',
       knowledgeBases: 'Knowledge bases',
       knowledgeCount: 'Knowledge bases: {{count}}',
+      knowledgeLinked_one: '{{count}} knowledge base',
+      knowledgeLinked_other: '{{count}} knowledge bases',
+      noKnowledge: 'No knowledge base',
+      createDescription: 'Chat app or agent workflow',
       edit: 'Edit',
       delete: 'Delete',
       settings: 'Settings',
@@ -67,13 +72,32 @@ export default {
       noUpdateTime: 'Update time unavailable',
     },
     empty: {
-      listTitle: 'No apps yet',
+      listTitle: 'Build your first app',
       listDescription:
-        'Create a conversational app or import a template to begin.',
+        'Chat apps answer from your knowledge bases with citations; agents chain tools to finish multi-step work.',
       searchTitle: 'No matching apps',
       searchDescription:
         'Try another search or clear the filters for this page.',
-      createFirst: 'Create an app',
+      createTitle: 'Create a chat app',
+      createDescription:
+        'Pick a model, write the prompt and link knowledge bases.',
+      createCta: 'Start',
+      templateTitle: 'Start from a template',
+      templateDescription:
+        'Copy a ready-made agent template and adjust it in the editor.',
+      templateCta: 'Browse templates',
+      importTitle: 'Import app templates',
+      importDescription:
+        'Upload exported JSON or ZIP templates to bring in several apps at once.',
+      importCta: 'Choose a file',
+    },
+    templates: {
+      title: 'Start from a template',
+      count_one: '{{count}} template',
+      count_other: '{{count}} templates',
+      all: 'All templates',
+      use: 'Use',
+      useNamed: 'Use template {{name}}',
     },
     deleteDialog: {
       title: 'Delete apps',

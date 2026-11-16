@@ -1,52 +1,95 @@
 import { useTranslation } from 'react-i18next'
-import { AppWindow, Plus, Search } from 'lucide-react'
+import { LayoutTemplate, MessageSquare, Search, Upload } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import {
+  EmptyStart,
+  type EmptyStartPath,
+} from '@/components/patterns/empty-start'
 import { PageEmptyState } from '@/components/patterns/page-states'
+import { KindStackIllustration } from './collection-identity'
 
 interface AppEmptyStateProps {
   type: 'list' | 'search'
-  onAction?: () => void
+  /** First-use path: create a chat app. */
+  onCreate?: () => void
+  /** First-use path: start from an agent template. */
+  onTemplate?: () => void
+  /** First-use path: import app templates. */
+  onImport?: () => void
   onReset?: () => void
   className?: string
 }
+
+/**
+ * First use: start paths over a faded grid. Search or filter misses keep the
+ * plain empty state with a reset.
+ */
 export function AppEmptyState({
   type,
-  onAction,
+  onCreate,
+  onTemplate,
+  onImport,
   onReset,
   className,
 }: AppEmptyStateProps) {
   const { t } = useTranslation()
-  const search = type === 'search'
+  if (type === 'search')
+    return (
+      <PageEmptyState
+        className={className}
+        title={t('studio.empty.searchTitle')}
+        description={t('studio.empty.searchDescription')}
+        icon={<Search className="size-icon-lg" />}
+        action={
+          onReset && (
+            <Button variant="outline" onClick={onReset}>
+              {t('studio.filters.reset')}
+            </Button>
+          )
+        }
+      />
+    )
+  const paths: EmptyStartPath[] = []
+  if (onCreate)
+    paths.push({
+      key: 'create',
+      primary: true,
+      icon: <MessageSquare />,
+      iconClassName: 'bg-components-avatar-6-bg text-components-avatar-6-text',
+      title: t('studio.empty.createTitle'),
+      description: t('studio.empty.createDescription'),
+      cta: t('studio.empty.createCta'),
+      onSelect: onCreate,
+    })
+  if (onTemplate)
+    paths.push({
+      key: 'template',
+      icon: <LayoutTemplate />,
+      iconClassName: 'bg-components-avatar-7-bg text-components-avatar-7-text',
+      title: t('studio.empty.templateTitle'),
+      description: t('studio.empty.templateDescription'),
+      cta: t('studio.empty.templateCta'),
+      onSelect: onTemplate,
+    })
+  if (onImport)
+    paths.push({
+      key: 'import',
+      icon: <Upload />,
+      iconClassName: 'bg-components-avatar-4-bg text-components-avatar-4-text',
+      title: t('studio.empty.importTitle'),
+      description: t('studio.empty.importDescription'),
+      cta: t('studio.empty.importCta'),
+      onSelect: onImport,
+    })
   return (
-    <PageEmptyState
+    <EmptyStart
       className={className}
-      title={t(search ? 'studio.empty.searchTitle' : 'studio.empty.listTitle')}
-      description={t(
-        search
-          ? 'studio.empty.searchDescription'
-          : 'studio.empty.listDescription',
-      )}
-      icon={
-        search ? (
-          <Search className="size-icon-lg" />
-        ) : (
-          <AppWindow className="size-icon-lg" />
-        )
+      illustration={
+        <KindStackIllustration kinds={['agent', 'chat', 'knowledge']} />
       }
-      action={
-        search
-          ? onReset && (
-              <Button variant="outline" onClick={onReset}>
-                {t('studio.filters.reset')}
-              </Button>
-            )
-          : onAction && (
-              <Button onClick={onAction}>
-                <Plus className="size-icon-sm" aria-hidden="true" />
-                {t('studio.empty.createFirst')}
-              </Button>
-            )
-      }
+      title={t('studio.empty.listTitle')}
+      description={t('studio.empty.listDescription')}
+      paths={paths}
     />
   )
 }
