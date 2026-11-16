@@ -45,7 +45,7 @@ export function PageTitleBar({
     <header
       data-slot="page-title-bar"
       className={cn(
-        'flex min-h-[calc(var(--control-height)+var(--space-md))] shrink-0 flex-wrap items-center gap-x-space-sm gap-y-space-xs border-b border-border-subtle py-space-sm pr-space-sm pl-space-md',
+        'flex min-h-[var(--workbench-header-height)] shrink-0 flex-wrap items-center gap-x-space-sm gap-y-space-xs border-b border-border-subtle py-space-sm pr-space-sm pl-space-md',
         className,
       )}
     >
