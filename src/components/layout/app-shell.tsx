@@ -12,6 +12,10 @@ import {
   getWorkbenchSection,
 } from '@/components/layout/workbench-navigation'
 import { useWorkbenchViewport } from '@/components/layout/use-workbench-viewport'
+import {
+  WorkbenchHeaderProvider,
+  useWorkbenchHeaderState,
+} from '@/components/layout/workbench-header'
 import { SecondaryNavigationContent } from '@/components/patterns/secondary-navigation-content'
 import { useUIStore } from '@/stores'
 
@@ -50,6 +54,7 @@ const WorkbenchFrame = ({ children }: React.PropsWithChildren) => {
   const mobileToggle = React.useRef<HTMLButtonElement>(null)
   const secondaryToggle = React.useRef<HTMLButtonElement>(null)
   const navigationReturnFocus = React.useRef<HTMLElement | null>(null)
+  const header = useWorkbenchHeaderState()
   const overlayNavigation = !viewport.wide
   const hasSecondaryContent = definition.hasSecondaryContent !== false
   const effectiveCollapsed =
@@ -124,12 +129,18 @@ const WorkbenchFrame = ({ children }: React.PropsWithChildren) => {
               }}
               secondaryPanelId={overlayNavigation ? mobilePanelId : panelId}
               sectionLabel={definition.title}
+              titleRef={header.titleRef}
+              actionsRef={header.actionsRef}
+              titleClaimed={header.titleClaimed}
+              actionsClaimed={header.actionsClaimed}
             >
               {definition.header}
             </AppTopBar>
           }
         >
-          {children}
+          <WorkbenchHeaderProvider value={header.value}>
+            {children}
+          </WorkbenchHeaderProvider>
         </MainWorkbench>
       </div>
       <MobileSidebarSheet

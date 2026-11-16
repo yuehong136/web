@@ -7,6 +7,10 @@ import {
   Inspector,
   type InspectorPanelProps,
 } from '@/components/patterns/inspector'
+import {
+  WorkbenchHeaderSlot,
+  useWorkbenchHeader,
+} from '@/components/layout/workbench-header'
 import { cn } from '@/lib/utils'
 import { resolveTemplateState, type TemplateState } from './template-state'
 
@@ -43,7 +47,8 @@ export interface DetailTemplateProps {
 /**
  * Detail page skeleton: crumbs + title bar, tabs, optional toolbar, the body
  * and an Inspector slot. Replaces stacked headers and back arrows; the
- * crumbs are the way back.
+ * crumbs are the way back. Inside the app shell the title bar moves into the
+ * card header.
  */
 export function DetailTemplate({
   title,
@@ -63,11 +68,21 @@ export function DetailTemplate({
   className,
   children,
 }: DetailTemplateProps) {
+  const { bindRoot, placement, target } = useWorkbenchHeader('title')
   const stateNode = resolveTemplateState(
     state,
     { loadingState, errorState },
     true,
   )
+  const titleBar = {
+    title,
+    crumbs,
+    leading,
+    count,
+    countLabel,
+    subline,
+    actions,
+  }
   const body = stateNode ? (
     <div className="scroll-area flex min-h-0 min-w-0 flex-1 flex-col items-center justify-center overflow-y-auto">
       {stateNode}
@@ -87,18 +102,17 @@ export function DetailTemplate({
   )
   return (
     <div
+      ref={bindRoot}
       data-slot="detail-template"
       className={cn('flex h-full min-h-0 min-w-0 flex-col', className)}
     >
-      <PageTitleBar
-        title={title}
-        crumbs={crumbs}
-        leading={leading}
-        count={count}
-        countLabel={countLabel}
-        subline={subline}
-        actions={actions}
-      />
+      <WorkbenchHeaderSlot
+        placement={placement}
+        target={target}
+        inline={<PageTitleBar {...titleBar} />}
+      >
+        <PageTitleBar {...titleBar} placement="workbench" />
+      </WorkbenchHeaderSlot>
       {tabs ? (
         <div className="flex min-h-[var(--control-height-lg)] shrink-0 items-stretch overflow-x-auto border-b border-border-subtle px-space-md">
           {tabs}

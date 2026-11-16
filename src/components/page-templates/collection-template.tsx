@@ -8,6 +8,10 @@ import {
   Inspector,
   type InspectorPanelProps,
 } from '@/components/patterns/inspector'
+import {
+  WorkbenchHeaderSlot,
+  useWorkbenchHeader,
+} from '@/components/layout/workbench-header'
 import { cn } from '@/lib/utils'
 import { resolveTemplateState, type TemplateState } from './template-state'
 
@@ -58,6 +62,8 @@ export interface CollectionTemplateProps {
  * Collection page skeleton: 48px title bar (title, count, InlineStats,
  * actions), FilterBar strip, rows or grid, page states, pager footer and an
  * optional floating BulkActionBar / Inspector. Data stays in the page.
+ * Inside the app shell the title bar moves into the card header instead of
+ * stacking a second title row.
  */
 export function CollectionTemplate({
   title,
@@ -83,6 +89,7 @@ export function CollectionTemplate({
   children,
 }: CollectionTemplateProps) {
   const inset = appearance === 'inset'
+  const { bindRoot, placement, target } = useWorkbenchHeader('title')
   const stateNode = resolveTemplateState(
     state,
     { loadingState, emptyState, errorState },
@@ -160,21 +167,29 @@ export function CollectionTemplate({
     </div>
   )
 
+  const titleBar = {
+    title,
+    count,
+    countLabel,
+    crumbs,
+    leading,
+    subline: stats ?? description,
+    actions,
+  }
   return (
     <div
+      ref={bindRoot}
       data-slot="collection-template"
       className={cn('flex h-full min-h-0 min-w-0 flex-col', className)}
     >
       {!hideHeader && title ? (
-        <PageTitleBar
-          title={title}
-          count={count}
-          countLabel={countLabel}
-          crumbs={crumbs}
-          leading={leading}
-          subline={stats ?? description}
-          actions={actions}
-        />
+        <WorkbenchHeaderSlot
+          placement={placement}
+          target={target}
+          inline={<PageTitleBar {...titleBar} />}
+        >
+          <PageTitleBar {...titleBar} placement="workbench" />
+        </WorkbenchHeaderSlot>
       ) : null}
       {filterBar ? (
         <div className="shrink-0 border-b border-border-subtle py-space-sm pr-space-sm pl-space-md">
