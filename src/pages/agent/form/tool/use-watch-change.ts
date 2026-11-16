@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import type { FieldValues, UseFormReturn } from 'react-hook-form'
 import { useWatch } from 'react-hook-form'
 import useGraphStore from '../../store'
@@ -11,10 +11,14 @@ export function useWatchFormChange<
   const values = useWatch({ control: form.control })
   const toolContext = useSelectedTool(node)
   const updateNodeForm = useGraphStore((state) => state.updateNodeForm)
+  // isDirty clears once values return to their defaults; that edit must sync too.
+  const editedTool = useRef<string>(undefined)
 
   useEffect(() => {
+    const tool = `${toolContext?.agentNodeId}:${toolContext?.toolIndex}`
+    if (form.formState.isDirty) editedTool.current = tool
     if (
-      !form.formState.isDirty ||
+      editedTool.current !== tool ||
       !toolContext?.agentNodeId ||
       typeof toolContext.toolIndex !== 'number'
     ) {

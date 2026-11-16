@@ -24,5 +24,8 @@ export function createTypedTranslator<Scope extends TranslationScope>(
   translate: TFunction,
 ): TypedTranslate<Scope> {
   return ((key: string, values?: Record<string, string | number>) =>
-    translate(`${scope}.${key}`, values ?? {})) as TypedTranslate<Scope>
+    translate(
+      `${scope}.${key}` as string,
+      values ?? {},
+    )) as TypedTranslate<Scope>
 }

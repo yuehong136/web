@@ -18,8 +18,9 @@ import {
 } from './pipeline-result-utils'
 import { Braces, FileText, ImageIcon, Table2 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import type { TFunction } from 'i18next'
 
-type Translate = (key: string, options?: Record<string, unknown>) => string
+type Translate = TFunction
 
 interface ResultMetricProps {
   label: string
@@ -28,7 +29,7 @@ interface ResultMetricProps {
 
 export function ResultMetric({ label, value }: ResultMetricProps) {
   return (
-    <div className="bg-surface-secondary flex items-center justify-between gap-space-sm rounded-radius-md px-space-sm py-space-xs">
+    <div className="flex items-center justify-between gap-space-sm rounded-radius-md bg-surface-secondary px-space-sm py-space-xs">
       <span className="text-text-secondary">{label}</span>
       <span className="font-medium text-text-primary">{value}</span>
     </div>
@@ -47,7 +48,7 @@ export function ResultStatCard({
   icon: Icon,
 }: ResultStatCardProps) {
   return (
-    <div className="bg-surface-secondary rounded-radius-lg border border-border-subtle px-space-base py-space-sm">
+    <div className="rounded-radius-lg border border-border-subtle bg-surface-secondary px-space-base py-space-sm">
       <div className="flex items-center justify-between gap-space-sm">
         <span className="min-w-0 truncate text-xs font-medium text-text-tertiary">
           {label}
@@ -69,7 +70,7 @@ interface MetadataChipProps {
 
 export function MetadataChip({ label, value, fullValue }: MetadataChipProps) {
   return (
-    <div className="bg-surface-primary min-w-0 rounded-radius-md border border-border-subtle px-space-sm py-space-xs">
+    <div className="min-w-0 rounded-radius-md border border-border-subtle bg-surface-primary px-space-sm py-space-xs">
       <dt className="text-xs text-text-tertiary">{label}</dt>
       <dd
         className="mt-space-2xs truncate text-sm font-medium text-text-primary"
@@ -94,7 +95,7 @@ export function ResultViewSwitch({
 }: ResultViewSwitchProps) {
   return (
     <div
-      className="bg-surface-secondary inline-flex gap-space-2xs rounded-radius-md border border-border-subtle p-space-2xs"
+      className="inline-flex gap-space-2xs rounded-radius-md border border-border-subtle bg-surface-secondary p-space-2xs"
       aria-label={t('flow.pipelineResult.viewModeLabel')}
     >
       <Button
@@ -162,8 +163,8 @@ export function ChunkCard({
       className={cn(
         'w-full rounded-radius-lg border p-space-base text-left transition-colors',
         selected
-          ? 'bg-surface-secondary border-components-button-primary-bg'
-          : 'bg-surface-primary hover:bg-surface-secondary border-border-subtle hover:border-border-default',
+          ? 'border-components-button-primary-bg bg-surface-secondary'
+          : 'border-border-subtle bg-surface-primary hover:border-border-default hover:bg-surface-secondary',
       )}
     >
       <div className="flex flex-wrap items-center justify-between gap-space-sm">
@@ -267,7 +268,7 @@ export function ChunkDetail({
           </Badge>
         </div>
 
-        <div className="bg-surface-secondary rounded-radius-md p-space-sm">
+        <div className="rounded-radius-md bg-surface-secondary p-space-sm">
           <p className="text-xs font-medium text-text-tertiary uppercase">
             {t('flow.pipelineResult.chunkTextLabel')}
           </p>
@@ -277,7 +278,7 @@ export function ChunkDetail({
         </div>
 
         {vectorFields.length > 0 ? (
-          <div className="bg-surface-secondary rounded-radius-md p-space-sm">
+          <div className="rounded-radius-md bg-surface-secondary p-space-sm">
             <p className="text-xs font-medium text-text-tertiary uppercase">
               {t('flow.pipelineResult.vectorSummaryLabel')}
             </p>
@@ -300,7 +301,7 @@ export function ChunkDetail({
         ) : null}
 
         {metadata.length > 0 ? (
-          <div className="bg-surface-secondary rounded-radius-md p-space-sm">
+          <div className="rounded-radius-md bg-surface-secondary p-space-sm">
             <p className="text-xs font-medium text-text-tertiary uppercase">
               {t('flow.pipelineResult.metadataTitle')}
             </p>
@@ -317,7 +318,7 @@ export function ChunkDetail({
           </div>
         ) : null}
 
-        <div className="bg-surface-secondary rounded-radius-md p-space-sm">
+        <div className="rounded-radius-md bg-surface-secondary p-space-sm">
           <p className="text-xs font-medium text-text-tertiary uppercase">
             {t('flow.pipelineResult.rawChunkLabel')}
           </p>

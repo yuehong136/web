@@ -31,7 +31,7 @@ UI 变更检查明暗主题、键盘交互及受影响流程。新增或改变 s
 
 - 测试使用 `tsx --test` / Node test / Vitest；不引入 Jest，不顺手迁移存量 runner。测试放对应 `__tests__/`；API 合同在 `src/api/__tests__/`。
 - 新增测试必须被 `verify:test-inventory` 归到唯一正式 lane 并进入 `test:ci`；仅加进专项脚本不够。lane 为 `source-node`、`source-vitest`、`desktop-node`、`tooling-node`。
-- `patch-package` 在 postinstall 执行，补丁失效要修补丁，不能通过删除补丁绕过。
+- `patch-package` 在 postinstall 执行，补丁失效要修补丁，不能通过删除补丁绕过。npm 11+ 默认阻止依赖包的安装脚本，但仍执行根项目 postinstall；用 `--ignore-scripts` 安装后须手动运行 `npx patch-package`。补丁必须可重复运行（第二次显示已应用）：只新增行的 hunk 总能再次套用，需改动一行原文作为锚点。
 - Vite 使用 Rolldown/Oxc。生产拆包配置为 `build.rolldownOptions.output.codeSplitting.groups`；不恢复 Rollup `manualChunks`，不为桌面构建降级 Vite 8。预构建/压缩优先使用 `rolldownOptions` / `oxc`，临时兼容需有第三方插件不兼容证据。
 - Tailwind 使用原生 Vite 插件与 CSS 配置；`build:themes` 同时生成语义工具类映射，格式化后产物应无漂移。独立样式的 `@apply` 使用 `@reference`，不引入旧 PostCSS 或 JavaScript Tailwind 配置。样式编译合同进入 source-node lane，并配合明暗主题、焦点和实际交互验收。
 

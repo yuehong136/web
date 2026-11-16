@@ -1,5 +1,5 @@
 import pick from 'lodash/pick'
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { useWatch } from 'react-hook-form'
 import type { UseFormReturn } from 'react-hook-form'
 import useGraphStore from '../../../store'
@@ -24,8 +24,13 @@ export function useWatchFormChange(
     [tools, watchedItems],
   )
 
+  // isDirty clears once values return to their defaults; that edit must sync too.
+  const editedMcp = useRef<string>(undefined)
+
   useEffect(() => {
-    if (!form.formState.isDirty || Object.keys(tools).length === 0) {
+    const mcp = `${agentNodeId}:${mcpIndex}`
+    if (form.formState.isDirty) editedMcp.current = mcp
+    if (editedMcp.current !== mcp || Object.keys(tools).length === 0) {
       return
     }
 

@@ -9,9 +9,15 @@ diff --git a/node_modules/@js-preview/excel/lib/index.js b/node_modules/@js-prev
 diff --git a/node_modules/@js-preview/excel/lib/index.d.ts b/node_modules/@js-preview/excel/lib/index.d.ts
 --- a/node_modules/@js-preview/excel/lib/index.d.ts
 +++ b/node_modules/@js-preview/excel/lib/index.d.ts
-@@ -0,0 +1,5 @@
+@@ -3,6 +3,10 @@
+     minRowLength?: number;
+     showContextmenu?: boolean;
+ }
+-
 +export interface TableHeaderWorkbook {
 +    SheetNames: string[];
 +    Sheets: Record<string, Record<string, { v?: unknown } | unknown>>;
 +}
 +export declare function readTableHeaderWorkbook(data: ArrayBuffer): TableHeaderWorkbook;
+ export interface JsExcelPreview {
+     preview: (src: string | ArrayBuffer | Blob) => Promise<any>;

@@ -13,7 +13,7 @@ export const createIsolatedLocaleRuntime = (
     fallbackLng: false,
     ns: ['translation'],
     defaultNS: 'translation',
-    initImmediate: false,
+    initAsync: false,
     interpolation: { escapeValue: false },
     react: { useSuspense: false },
   })

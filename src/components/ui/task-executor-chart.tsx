@@ -236,7 +236,7 @@ const TaskExecutorChart: React.FC<TaskExecutorChartProps> = ({
                   content={<CustomTooltip pinned={pinnedData !== null} />}
                 />
                 {anomalyRegions.map((region, index) => (
-                  <ReferenceArea
+                  <ReferenceArea<string, number | 'auto'>
                     key={`${region.level}-${region.x1}-${region.x2}-${index}`}
                     x1={region.x1}
                     x2={region.x2}

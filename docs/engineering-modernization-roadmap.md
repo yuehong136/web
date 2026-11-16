@@ -752,6 +752,7 @@
 | 2026-06-10 | 发现 docs/ 整体未被跟踪；豁免并提交本路线图 | （见 git log） | 其余 docs 入库与否待 owner 决策                                                            |
 | 2026-08-10 | 低风险依赖维护与 auth cache isolation       | 见 git log     | audit 31→5；补丁敏感和 breaking 升级保留为独立工作                                         |
 | 2026-08-13 | 复核订正为部分完成                          | —              | 根目录两个临时报告已不存在；settings.local 仍 tracked；无依赖机器人；剩余 5 项需可达性校准 |
+| 2026-11-17 | 全量依赖升级（含 major）与未用依赖清理      | 见 git log     | 暂缓 xyflow 13、mermaid 12、prettier 3.9+、cssinjs 2.2、types/node 26；理由见各提交说明    |
 
 #### 2026-10-02 技术栈升级队列
 

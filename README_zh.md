@@ -82,6 +82,8 @@ npm ci
 cp .env.example .env.local
 ```
 
+`npm ci` 会执行项目自身的 `postinstall`，用 `patch-package` 应用 [`patches/`](./patches) 中的依赖补丁。npm 11 及以上默认阻止依赖包的安装脚本（除非在 `allowScripts` 中批准），Web 应用不需要这些脚本。如果用 `--ignore-scripts` 安装，之后手动运行 `npx patch-package`；重复运行是安全的，已应用的补丁会被跳过。
+
 ### 2. 连接后端
 
 编辑 `.env.local`，将地址改为实际服务地址。以下为 [`.env.example`](./.env.example) 的默认配置：

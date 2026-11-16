@@ -64,6 +64,11 @@ Object.defineProperties(globalThis, {
     configurable: true,
     value: globalThis,
   },
+  // jsencrypt 3.5+ reads self.crypto at import time, as browsers expose it.
+  self: {
+    configurable: true,
+    value: globalThis,
+  },
 })
 
 const { STORAGE_KEYS } = await import('@/constants')

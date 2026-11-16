@@ -62,7 +62,7 @@ test('programmatic packaging wrapper requests only the current-platform dir targ
 })
 
 test('Electron and ASAR security settings are explicit', () => {
-  assert.equal(electronBuilderConfig.electronVersion, '43.4.0')
+  assert.equal(electronBuilderConfig.electronVersion, '45.3.3')
   assert.equal(electronBuilderConfig.asar, true)
   assert.equal(electronBuilderConfig.disableAsarIntegrity, false)
   assert.deepEqual(hardenedElectronFuses, {

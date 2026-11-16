@@ -207,8 +207,10 @@ it('restores document styles after StrictMode cleanup and actual unmount', async
         <Preview />
       </StrictMode>,
     )
-    expect(document.documentElement.style.background).toBe('transparent')
-    expect(document.body.style.background).toBe('transparent')
+    // jsdom 31 serializes the all-initial `background: transparent` shorthand
+    // as "none", so assert the longhand colour instead.
+    expect(document.documentElement.style.backgroundColor).toBe('transparent')
+    expect(document.body.style.backgroundColor).toBe('transparent')
     expect(document.body.style.margin).toBe('0px')
     await act(async () => root.render(null))
     expect(document.documentElement.style.background).toBe('red')
