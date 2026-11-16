@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Bot, Check, ChevronsUpDown, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -7,11 +8,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 import { resolveLocalizedText } from '@/lib/agent'
 import { cn } from '@/lib/utils'
 import type { AgentFlow } from '@/types/agent'
 import { useCanvasPicker } from '../hooks/use-canvas-picker'
-import { EntityAvatar } from '@/components/patterns/entity-avatar'
 
 interface CanvasSelectorProps {
   selectedAgent?: AgentFlow
@@ -19,103 +20,111 @@ interface CanvasSelectorProps {
   onSelect: (canvasId: string) => void
 }
 
+/** Popover picker for the agent whose runs are shown. */
 export function CanvasSelector({
   selectedAgent,
   selectedCanvasId,
   onSelect,
 }: CanvasSelectorProps) {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const picker = useCanvasPicker()
   const title = selectedAgent
-    ? resolveLocalizedText(selectedAgent.title, '未命名 Agent')
-    : selectedCanvasId || '选择 Agent'
-  const subtitle = selectedAgent ? '已发布 · 最近更新' : '选择后查看记录'
-
-  const handleSelect = (canvasId: string) => {
-    onSelect(canvasId)
-    setOpen(false)
-  }
+    ? resolveLocalizedText(selectedAgent.title, t('agents.unnamedAgent'))
+    : selectedCanvasId || t('agents.selectAgent')
+  const agents = picker.keyword ? picker.agents : picker.recentAgents
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
-          className="h-9 min-w-[260px] justify-between px-space-xs"
+          size="sm"
+          aria-label={`${t('agents.runLogs.agent')}: ${title}`}
+          className="max-w-full min-w-48 justify-between"
         >
           <span className="flex min-w-0 items-center gap-space-xs">
             <EntityAvatar
               name={selectedAgent ? title : undefined}
               src={selectedAgent?.avatar}
               seed={selectedAgent?.id}
-              size="sm"
+              size="xs"
               icon={selectedAgent ? undefined : <Bot />}
+              tone={selectedAgent ? 'auto' : 'neutral'}
             />
-            <span className="min-w-0 text-left">
-              <span className="block truncate text-xs font-medium text-text-primary">
-                {title}
-              </span>
-              <span className="block truncate text-[11px] font-normal text-text-tertiary">
-                {subtitle}
-              </span>
-            </span>
+            <span className="min-w-0 truncate">{title}</span>
           </span>
-          <ChevronsUpDown className="size-4 text-text-tertiary" />
+          <ChevronsUpDown
+            className="size-icon-sm text-text-tertiary"
+            aria-hidden="true"
+          />
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-[360px] p-space-sm">
+      <PopoverContent align="start" className="w-80 p-space-sm">
         <Input
           type="search"
           inputSize="sm"
-          placeholder="搜索 Agent"
+          aria-label={t('agents.searchAgent')}
+          placeholder={t('agents.searchAgent')}
           value={picker.keyword}
           onChange={(event) => picker.setKeyword(event.target.value)}
-          leftIcon={<Search className="size-4" />}
+          leftIcon={<Search className="size-icon-sm" aria-hidden="true" />}
         />
-        <div className="mt-space-sm max-h-[320px] overflow-auto">
-          <div className="mb-space-xs px-space-xs text-xs font-medium text-text-tertiary">
-            {picker.keyword ? '搜索结果' : '最近更新'}
-          </div>
-          {(picker.keyword ? picker.agents : picker.recentAgents).map(
-            (agent) => {
-              const agentTitle = resolveLocalizedText(
-                agent.title,
-                '未命名 Agent',
-              )
-              const active = agent.id === selectedCanvasId
-              return (
+        <p className="mt-space-sm px-space-xs py-space-xs text-xs font-medium text-text-tertiary">
+          {picker.keyword
+            ? t('agents.runLogs.searchResults')
+            : t('agents.runLogs.recent')}
+        </p>
+        <ul className="flex max-h-80 flex-col gap-space-2xs overflow-auto">
+          {agents.map((agent) => {
+            const agentTitle = resolveLocalizedText(
+              agent.title,
+              t('agents.unnamedAgent'),
+            )
+            const active = agent.id === selectedCanvasId
+            return (
+              <li key={agent.id}>
                 <button
-                  key={agent.id}
                   type="button"
+                  aria-current={active || undefined}
                   className={cn(
-                    'flex w-full items-center justify-between rounded-radius-md px-space-sm py-space-sm text-left transition-colors',
+                    'flex w-full items-center gap-space-sm rounded-radius-md px-space-sm py-space-xs text-left text-sm outline-hidden focus-visible:ring-2 focus-visible:ring-state-focus',
                     active
-                      ? 'bg-components-card-bg-hover text-text-primary'
-                      : 'text-text-secondary hover:bg-surface-secondary',
+                      ? 'bg-state-selected-bg text-text-primary'
+                      : 'text-text-secondary hover:bg-state-hover hover:text-text-primary',
                   )}
-                  onClick={() => handleSelect(agent.id)}
+                  onClick={() => {
+                    onSelect(agent.id)
+                    setOpen(false)
+                  }}
                 >
-                  <span className="min-w-0">
-                    <span className="block truncate text-sm font-medium">
+                  <EntityAvatar
+                    name={agentTitle}
+                    src={agent.avatar}
+                    seed={agent.id}
+                    size="sm"
+                  />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate font-medium">
                       {agentTitle}
                     </span>
-                    <span className="block truncate text-xs text-text-tertiary">
+                    <span className="block truncate font-mono text-xs text-text-tertiary">
                       {agent.id}
                     </span>
                   </span>
                   {active ? (
-                    <Check className="size-4 text-status-success" />
+                    <Check className="size-icon-sm" aria-hidden="true" />
                   ) : null}
                 </button>
-              )
-            },
-          )}
-          {!picker.isLoading && picker.agents.length === 0 ? (
-            <div className="px-space-sm py-space-lg text-center text-sm text-text-tertiary">
-              暂无匹配 Agent
-            </div>
-          ) : null}
-        </div>
+              </li>
+            )
+          })}
+        </ul>
+        {!picker.isLoading && agents.length === 0 ? (
+          <p className="px-space-sm py-space-lg text-center text-sm text-text-tertiary">
+            {t('agents.runLogs.noAgents')}
+          </p>
+        ) : null}
       </PopoverContent>
     </Popover>
   )

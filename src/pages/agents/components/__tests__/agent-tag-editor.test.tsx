@@ -3,7 +3,7 @@ import { createRoot, type Root } from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { AgentTagEditor } from '../agent-tag-editor'
-import { AgentCard } from '../agent-card'
+import { AgentCollection } from '../agent-collection'
 import { agentQueryKeys } from '@/hooks/use-agent-query'
 import type { AgentFlow } from '@/types/agent'
 
@@ -134,8 +134,11 @@ it('retains the editor when the card dropdown unmounts', async () => {
     const [open, setOpen] = useState(false)
     return (
       <>
-        <AgentCard
-          flow={agent}
+        <AgentCollection
+          agents={[{ ...agent, user_id: 'owner' }]}
+          view="grid"
+          timeFormat="detailed"
+          currentUserId="owner"
           onOpen={vi.fn()}
           onDelete={vi.fn()}
           onEditTags={() => setOpen(true)}

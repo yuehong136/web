@@ -1,9 +1,9 @@
-import React from 'react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { ManagedSecondaryNavigation } from '@/components/layout/workbench-navigation'
 import {
   CATEGORY_ORDER,
+  categoryLabelKey,
   type TemplateCategory,
 } from './template-category-config'
 
@@ -14,104 +14,82 @@ interface TemplateCategorySidebarProps {
   className?: string
 }
 
-export const TemplateCategorySidebar: React.FC<
-  TemplateCategorySidebarProps
-> = ({ value, onChange, counts, className }) => {
+/**
+ * Template categories in the shell's secondary panel. Rows match the shared
+ * secondary navigation (selected background, neutral icons, quiet counts).
+ */
+export function TemplateCategorySidebar({
+  value,
+  onChange,
+  counts,
+  className,
+}: TemplateCategorySidebarProps) {
   const { t } = useTranslation()
+  const title = t('agents.templateCategories')
   const renderItem = (category: TemplateCategory) => {
     const Icon = category.icon
-    const isActive = value === category.key
+    const active = value === category.key
     const count = counts[category.key] ?? 0
-
     return (
-      <button
-        key={category.key}
-        type="button"
-        onClick={() => onChange(category.key)}
-        className={cn(
-          'group relative flex w-full items-center gap-space-sm rounded-radius-md px-space-base py-space-sm text-left',
-          'transition-colors duration-150',
-          'focus:outline-hidden focus-visible:ring-2 focus-visible:ring-state-focus',
-          isActive
-            ? 'bg-state-selected-bg text-state-selected-text'
-            : 'text-text-secondary hover:bg-background-subtle hover:text-text-primary',
-        )}
-      >
-        {isActive ? (
-          <span className="absolute top-2 bottom-2 left-0 w-0.5 rounded-radius-full bg-state-selected" />
-        ) : null}
-        <div
+      <li key={category.key}>
+        <button
+          type="button"
+          aria-pressed={active}
+          onClick={() => onChange(category.key)}
           className={cn(
-            'flex h-8 w-8 items-center justify-center rounded-radius-md transition-colors',
-            isActive
-              ? 'text-state-selected-text'
-              : 'text-text-tertiary group-hover:text-text-primary',
+            'flex min-h-[var(--control-height-sm)] w-full items-center gap-space-sm rounded-radius-md px-space-sm py-space-xs text-left text-sm outline-hidden focus-visible:ring-2 focus-visible:ring-state-focus',
+            active
+              ? 'bg-state-selected-bg font-medium text-state-selected-text'
+              : 'text-text-secondary hover:bg-state-hover hover:text-text-primary',
           )}
         >
-          <Icon className="h-4 w-4" />
-        </div>
-
-        <span
-          className={cn(
-            'flex-1 truncate text-sm',
-            isActive ? 'font-semibold text-state-selected-text' : 'font-medium',
-          )}
-        >
-          {category.label}
-        </span>
-
-        {count > 0 ? (
-          <span
-            className={cn(
-              'min-w-6 text-right text-xs font-semibold tabular-nums',
-              isActive ? 'text-state-selected-text' : 'text-text-tertiary',
-            )}
-          >
-            {count}
+          <Icon className="size-icon-sm shrink-0" aria-hidden="true" />
+          <span className="min-w-0 flex-1 truncate">
+            {t(categoryLabelKey(category.key))}
           </span>
-        ) : null}
-      </button>
+          {count > 0 ? (
+            <span className="text-xs text-text-tertiary tabular-nums">
+              {count}
+            </span>
+          ) : null}
+        </button>
+      </li>
     )
   }
-
-  const allItem = CATEGORY_ORDER.find((c) => c.isAll)!
-  const recommendedItem = CATEGORY_ORDER.find((c) => c.isRecommended)!
-  const regularItems = CATEGORY_ORDER.filter(
-    (c) => !c.isAll && !c.isRecommended,
+  const pinned = CATEGORY_ORDER.filter(
+    (category) => category.isAll || category.isRecommended,
+  )
+  const regular = CATEGORY_ORDER.filter(
+    (category) => !category.isAll && !category.isRecommended,
   )
 
   return (
     <ManagedSecondaryNavigation
       section="agents"
-      title={t('agents.templateCategories')}
-      fallbackClassName={cn('h-full w-64 shrink-0', className)}
+      title={title}
+      fallbackClassName={cn(
+        'h-full w-64 shrink-0 border-r border-border-subtle',
+        className,
+      )}
     >
-      <aside
-        className={cn(
-          'flex h-full w-full min-w-0 flex-col bg-components-console-surface',
-        )}
-      >
-        <div className="border-b border-border-subtle px-space-lg py-space-base">
-          <p className="text-sm font-semibold text-text-primary">
-            {t('agents.templateCategories')}
+      <div className="flex h-full min-h-0 w-full min-w-0 flex-col">
+        <header className="flex min-h-[calc(var(--control-height)+var(--space-sm))] shrink-0 items-center px-space-base py-space-sm">
+          <p className="truncate text-sm font-semibold text-text-primary">
+            {title}
           </p>
-        </div>
-
-        <div className="flex-1 overflow-y-auto px-space-base py-space-base">
-          <div className="flex flex-col gap-space-xs">
-            {renderItem(allItem)}
-            {renderItem(recommendedItem)}
-          </div>
-
-          <div className="my-space-md h-px bg-border-subtle" />
-
-          <div className="flex flex-col gap-space-xs">
-            {regularItems.map(renderItem)}
-          </div>
-        </div>
-      </aside>
+        </header>
+        <nav
+          aria-label={title}
+          className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-space-sm"
+        >
+          <ul className="flex flex-col gap-space-2xs">
+            {pinned.map(renderItem)}
+          </ul>
+          <ul className="mt-space-sm flex flex-col gap-space-2xs border-t border-border-subtle pt-space-sm">
+            {regular.map(renderItem)}
+          </ul>
+        </nav>
+      </div>
     </ManagedSecondaryNavigation>
   )
 }
-
-TemplateCategorySidebar.displayName = 'TemplateCategorySidebar'

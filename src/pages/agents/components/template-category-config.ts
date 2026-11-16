@@ -10,13 +10,10 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 
-export type CategoryTone = 'info' | 'success' | 'warning' | 'purple' | 'neutral'
-
 export interface TemplateCategory {
+  /** Normalised `canvas_type`; also the `agents.templatesPage.categories` key. */
   key: string
-  label: string
   icon: LucideIcon
-  tone: CategoryTone
   isRecommended?: boolean
   isAll?: boolean
 }
@@ -26,44 +23,18 @@ export const RECOMMENDED_KEY = 'recommended'
 export const OTHER_KEY = 'other'
 
 export const CATEGORY_ORDER: TemplateCategory[] = [
-  {
-    key: ALL_CATEGORY_KEY,
-    label: '全部模板',
-    icon: LayoutGrid,
-    tone: 'neutral',
-    isAll: true,
-  },
-  {
-    key: RECOMMENDED_KEY,
-    label: '精选推荐',
-    icon: Sparkles,
-    tone: 'purple',
-    isRecommended: true,
-  },
-  { key: 'agent', label: 'Agent 通用', icon: Bot, tone: 'info' },
-  {
-    key: 'customersupport',
-    label: '客户支持',
-    icon: MessageCircle,
-    tone: 'success',
-  },
-  { key: 'marketing', label: '营销', icon: Megaphone, tone: 'warning' },
-  { key: 'consumerapp', label: '消费者应用', icon: Box, tone: 'info' },
-  {
-    key: 'pipeline',
-    label: 'Pipeline 流水线',
-    icon: Database,
-    tone: 'warning',
-  },
-  { key: OTHER_KEY, label: '其他', icon: MoreHorizontal, tone: 'neutral' },
+  { key: ALL_CATEGORY_KEY, icon: LayoutGrid, isAll: true },
+  { key: RECOMMENDED_KEY, icon: Sparkles, isRecommended: true },
+  { key: 'agent', icon: Bot },
+  { key: 'customersupport', icon: MessageCircle },
+  { key: 'marketing', icon: Megaphone },
+  { key: 'consumerapp', icon: Box },
+  { key: 'pipeline', icon: Database },
+  { key: OTHER_KEY, icon: MoreHorizontal },
 ]
 
-const CATEGORY_LOOKUP: Record<string, TemplateCategory> = CATEGORY_ORDER.reduce(
-  (acc, item) => {
-    acc[item.key] = item
-    return acc
-  },
-  {} as Record<string, TemplateCategory>,
+const CATEGORY_LOOKUP: Record<string, TemplateCategory> = Object.fromEntries(
+  CATEGORY_ORDER.map((item) => [item.key, item]),
 )
 
 export function normalizeCategoryKey(canvasType: unknown): string {
@@ -80,17 +51,6 @@ export function getCategory(key: string): TemplateCategory {
   return CATEGORY_LOOKUP[key] || CATEGORY_LOOKUP[OTHER_KEY]
 }
 
-const TONE_CLASSES: Record<CategoryTone, { bg: string; text: string }> = {
-  info: { bg: 'bg-status-info-subtle', text: 'text-status-info' },
-  success: { bg: 'bg-status-success-subtle', text: 'text-status-success' },
-  warning: { bg: 'bg-status-warning-subtle', text: 'text-status-warning' },
-  purple: {
-    bg: 'bg-components-badge-purple-bg',
-    text: 'text-components-badge-purple-text',
-  },
-  neutral: { bg: 'bg-background-subtle', text: 'text-text-secondary' },
-}
-
-export function getToneClasses(tone: CategoryTone) {
-  return TONE_CLASSES[tone]
-}
+/** i18n key of a category label. */
+export const categoryLabelKey = (key: string) =>
+  `agents.templatesPage.categories.${getCategory(key).key}`

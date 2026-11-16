@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import { agentAPI } from '@/api/agent'
 import { downloadCsvFile } from '@/lib/download'
@@ -148,6 +149,7 @@ export function buildAgentLogCsvFilename(
 }
 
 export function useAgentLogExport() {
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
   const [isExporting, setIsExporting] = useState(false)
 
@@ -171,11 +173,9 @@ export function useAgentLogExport() {
         buildAgentLogCsv({ canvasId, agent, sessions }),
         buildAgentLogCsvFilename(canvasId),
       )
-      toast.success('CSV 已导出')
-    } catch (error) {
-      toast.error(
-        `导出失败: ${error instanceof Error ? error.message : '未知错误'}`,
-      )
+      toast.success(t('agents.runLogs.exported'))
+    } catch {
+      toast.error(t('agents.runLogs.exportFailed'))
     } finally {
       setIsExporting(false)
     }

@@ -1,25 +1,29 @@
+import { useTranslation } from 'react-i18next'
+import { ExternalLink } from 'lucide-react'
 import {
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  ExternalLink,
-} from 'lucide-react'
-import {
-  AppScene,
   PageEmptyState,
   PageErrorState,
   PageLoadingState,
+  Pager,
 } from '@/components/patterns'
 import { Button } from '@/components/ui/button'
 import type { AgentSession } from '@/types/agent'
-import type { AgentLogParamPatch, AgentLogParams } from '../types'
+import { extractAgentLogStatus } from '../hooks/use-agent-log-list'
+import {
+  AgentLogStatus,
+  type AgentLogParamPatch,
+  type AgentLogParams,
+} from '../types'
 import { SessionListRow } from './session-list-row'
+
+const PAGE_SIZES = [12, 24, 48]
 
 interface SessionListPaneProps {
   params: AgentLogParams
+  /** The current server page, before status/source filters. */
+  pageSessions: AgentSession[]
   sessions: AgentSession[]
   total: number
-  filteredTotal: number
   isLoading: boolean
   isError: boolean
   isFiltered: boolean
@@ -28,11 +32,23 @@ interface SessionListPaneProps {
   onOpenExplore: () => void
 }
 
+/** Counts for the sessions on the current server page only. */
+export function summarizeSessionPage(sessions: AgentSession[]) {
+  const count = (status: AgentLogStatus) =>
+    sessions.filter((session) => extractAgentLogStatus(session) === status)
+      .length
+  return {
+    ok: count(AgentLogStatus.OK),
+    err: count(AgentLogStatus.ERR),
+    run: count(AgentLogStatus.RUN),
+  }
+}
+
 export function SessionListPane({
   params,
+  pageSessions,
   sessions,
   total,
-  filteredTotal,
   isLoading,
   isError,
   isFiltered,
@@ -40,123 +56,68 @@ export function SessionListPane({
   onRetry,
   onOpenExplore,
 }: SessionListPaneProps) {
-  if (isLoading && sessions.length === 0) {
+  const { t } = useTranslation()
+  if (isLoading && pageSessions.length === 0)
     return (
       <PageLoadingState
-        scene={AppScene.CONSOLE}
         compact
-        title="正在加载 Session"
-        description="正在读取当前 Agent 的运行记录。"
+        title={t('agents.runLogs.loadingTitle')}
+        description={t('agents.runLogs.loadingDescription')}
       />
     )
-  }
-
-  if (isError) {
+  if (isError)
     return (
       <PageErrorState
-        scene={AppScene.CONSOLE}
         compact
-        title="Session 列表加载失败"
-        description="请检查后端会话接口或稍后重试。"
+        title={t('agents.runLogs.loadFailedTitle')}
+        description={t('agents.runLogs.loadFailedDescription')}
+        retryLabel={t('common.retry')}
         onRetry={onRetry}
       />
     )
-  }
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-components-console-surface">
-      <div className="px-space-base flex h-12 shrink-0 items-center justify-between border-b border-border-subtle">
-        <div className="text-sm font-semibold text-text-primary">
-          Session 列表
-        </div>
-        <div className="gap-space-sm flex items-center text-xs text-text-tertiary">
-          <span>共 {isFiltered ? filteredTotal : total} 条</span>
-          <Button variant="ghost" size="sm" className="px-space-xs h-7 text-xs">
-            最近更新
-            <ChevronDown className="size-3.5" />
-          </Button>
-        </div>
-      </div>
-      <div className="flex-1 overflow-auto overscroll-contain">
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="min-h-0 flex-1 overflow-auto overscroll-contain">
         {sessions.length > 0 ? (
-          sessions.map((session) => (
-            <SessionListRow
-              key={session.id}
-              session={session}
-              active={session.id === params.sessionId}
-              onSelect={(sessionId) => onChange({ sessionId })}
-            />
-          ))
+          <ul aria-label={t('agents.runLogs.sessions')}>
+            {sessions.map((session) => (
+              <SessionListRow
+                key={session.id}
+                session={session}
+                active={session.id === params.sessionId}
+                onSelect={(sessionId) => onChange({ sessionId })}
+              />
+            ))}
+          </ul>
         ) : (
           <PageEmptyState
-            scene={AppScene.CONSOLE}
             compact
-            title="暂无运行记录"
-            description="当前筛选条件下没有可查看的 Session。"
+            title={t('agents.runLogs.emptyTitle')}
+            description={t('agents.runLogs.emptyDescription')}
             action={
               <Button variant="outline" size="sm" onClick={onOpenExplore}>
-                <ExternalLink className="size-3.5" />
-                打开 Explore
+                <ExternalLink className="size-icon-sm" aria-hidden="true" />
+                {t('agents.runLogs.openExplore')}
               </Button>
             }
           />
         )}
       </div>
-      <CompactPagination
-        total={isFiltered ? filteredTotal : total}
-        serverTotal={total}
-        page={params.page}
-        pageSize={params.pageSize}
-        isFiltered={isFiltered}
-        onPageChange={(page) => onChange({ page })}
-      />
-    </div>
-  )
-}
-
-function CompactPagination({
-  total,
-  serverTotal,
-  page,
-  pageSize,
-  isFiltered,
-  onPageChange,
-}: {
-  total: number
-  serverTotal: number
-  page: number
-  pageSize: number
-  isFiltered: boolean
-  onPageChange: (page: number) => void
-}) {
-  const totalPages = Math.max(1, Math.ceil(total / pageSize))
-  return (
-    <div className="gap-space-sm px-space-base py-space-base flex shrink-0 flex-col border-t border-border-subtle text-xs text-text-tertiary">
-      <span className="leading-none">
-        第 {page} / {totalPages} 页
-        {isFiltered ? ` · 服务器共 ${serverTotal}` : ''}
-      </span>
-      <div className="gap-space-xs flex items-center">
-        <Button
-          variant="outline"
-          size="sm"
-          className="min-w-0 flex-1"
-          disabled={page <= 1}
-          onClick={() => onPageChange(page - 1)}
-        >
-          <ChevronLeft className="size-3.5" />
-          上一页
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          className="min-w-0 flex-1"
-          disabled={page >= totalPages}
-          onClick={() => onPageChange(page + 1)}
-        >
-          下一页
-          <ChevronRight className="size-3.5" />
-        </Button>
+      <div className="flex shrink-0 flex-col gap-space-2xs border-t border-border-subtle py-space-xs pr-space-sm pl-space-md text-xs text-text-tertiary">
+        <p className="tabular-nums">
+          {t('agents.runLogs.pageSummary', summarizeSessionPage(pageSessions))}
+          {isFiltered ? ` · ${t('agents.runLogs.pageScope')}` : null}
+        </p>
+        <Pager
+          className="self-end"
+          page={params.page}
+          pageSize={params.pageSize}
+          total={total}
+          onPageChange={(page) => onChange({ page })}
+          pageSizeOptions={PAGE_SIZES}
+          onPageSizeChange={(pageSize) => onChange({ pageSize, page: 1 })}
+        />
       </div>
     </div>
   )

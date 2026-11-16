@@ -1,22 +1,27 @@
 import { useNavigate } from 'react-router-dom'
-import { ConsolePageTemplate } from '@/components/page-templates'
+import { useTranslation } from 'react-i18next'
+import { Download, ExternalLink, RefreshCw } from 'lucide-react'
+import { DetailTemplate } from '@/components/page-templates'
+import { InlineStats, type InlineStat } from '@/components/patterns'
+import { Button } from '@/components/ui/button'
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from '@/components/ui/resizable'
 import { useFetchAgent } from '@/hooks/use-agent-request'
+import { isPipelineFlow } from '@/lib/agent'
+import { formatTimestampDetailed } from '@/lib/utils'
 import { useAgentLogExport } from './hooks/use-agent-log-export'
 import { useAgentLogList } from './hooks/use-agent-log-list'
 import { useCanvasPicker } from './hooks/use-canvas-picker'
 import { LogEmptyState } from './components/log-empty-state'
-import { LogPageHeader } from './components/log-page-header'
-import { LogSummaryBand } from './components/log-summary-band'
 import { LogToolbar } from './components/log-toolbar'
 import { SessionDetailPane } from './components/session-detail-pane'
 import { SessionListPane } from './components/session-list-pane'
 
 export default function AgentLogsPage() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const logList = useAgentLogList()
   const canvasPicker = useCanvasPicker()
@@ -30,9 +35,7 @@ export default function AgentLogsPage() {
     : '/agents'
 
   const handleExport = () => {
-    if (!canvasId) {
-      return
-    }
+    if (!canvasId) return
     void exportState.handleExport({
       canvasId,
       agent,
@@ -40,39 +43,78 @@ export default function AgentLogsPage() {
     })
   }
 
+  // Sessions arrive newest first, so page 1 holds the latest one.
+  const latest =
+    logList.params.page === 1 ? logList.sessions[0]?.update_time : undefined
+  const stats: InlineStat[] = agent
+    ? [
+        {
+          key: 'kind',
+          label: t('agents.runLogs.kind'),
+          value: t(
+            isPipelineFlow(agent) ? 'agents.kindPipeline' : 'agents.kindAgent',
+          ),
+        },
+        ...(latest
+          ? [
+              {
+                key: 'latest',
+                label: t('agents.runLogs.latest'),
+                value: formatTimestampDetailed(latest),
+              },
+            ]
+          : []),
+      ]
+    : []
+
   return (
-    <ConsolePageTemplate
-      header={
-        <LogPageHeader
-          agent={agent}
-          sessionId={logList.params.sessionId}
-          hasCanvas={Boolean(canvasId)}
-          isExporting={exportState.isExporting}
-          onRefresh={() => {
-            void logList.query.refetch()
-            void agentQuery.refetch()
-          }}
-          onExport={handleExport}
-          onOpenExplore={() => navigate(openExplorePath)}
-          onBack={() => navigate('/agents')}
-        />
+    <DetailTemplate
+      title={t('agents.logs')}
+      crumbs={[{ label: t('agents.center'), to: '/agents' }]}
+      count={canvasId ? logList.total : undefined}
+      countLabel={
+        canvasId
+          ? t('agents.runLogs.sessionCount', { count: logList.total })
+          : undefined
+      }
+      subline={stats.length ? <InlineStats items={stats} /> : undefined}
+      actions={
+        canvasId ? (
+          <>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={t('common.refresh')}
+              onClick={() => {
+                void logList.query.refetch()
+                void agentQuery.refetch()
+              }}
+            >
+              <RefreshCw className="size-icon-sm" aria-hidden="true" />
+            </Button>
+            <Button
+              variant="ghost"
+              loading={exportState.isExporting}
+              onClick={handleExport}
+            >
+              <Download className="size-icon-sm" aria-hidden="true" />
+              {t('common.export')}
+            </Button>
+            <Button variant="ghost" onClick={() => navigate(openExplorePath)}>
+              <ExternalLink className="size-icon-sm" aria-hidden="true" />
+              {t('agents.runLogs.openExplore')}
+            </Button>
+          </>
+        ) : null
       }
       toolbar={
-        <>
-          <LogToolbar
-            agent={agent}
-            params={logList.params}
-            onChange={logList.setParams}
-          />
-          <LogSummaryBand
-            agent={agent}
-            total={logList.total}
-            filteredTotal={logList.filteredTotal}
-            isFiltered={logList.isStatusFiltered}
-            sessions={logList.sessions}
-          />
-        </>
+        <LogToolbar
+          agent={agent}
+          params={logList.params}
+          onChange={logList.setParams}
+        />
       }
+      bodyScroll={canvasId ? 'none' : 'auto'}
     >
       {!canvasId ? (
         <LogEmptyState
@@ -82,19 +124,19 @@ export default function AgentLogsPage() {
       ) : (
         <ResizablePanelGroup
           orientation="horizontal"
-          className="h-full min-h-0 bg-components-split-pane-bg"
+          className="min-h-0 flex-1"
         >
           <ResizablePanel
-            defaultSize="16%"
-            minSize="12%"
-            maxSize="22%"
-            className="min-w-[280px] bg-components-console-surface"
+            defaultSize="24%"
+            minSize="18%"
+            maxSize="36%"
+            className="min-w-72"
           >
             <SessionListPane
               params={logList.params}
+              pageSessions={logList.sessions}
               sessions={logList.filteredSessions}
               total={logList.total}
-              filteredTotal={logList.filteredTotal}
               isLoading={logList.query.isLoading}
               isError={logList.query.isError}
               isFiltered={logList.isStatusFiltered}
@@ -105,8 +147,8 @@ export default function AgentLogsPage() {
               onOpenExplore={() => navigate(openExplorePath)}
             />
           </ResizablePanel>
-          <ResizableHandle className="w-px bg-transparent transition-colors hover:bg-border-accent" />
-          <ResizablePanel defaultSize="72%" minSize="52%" className="min-w-0">
+          <ResizableHandle className="w-px bg-border-subtle transition-colors hover:bg-border-strong" />
+          <ResizablePanel defaultSize="76%" minSize="52%" className="min-w-0">
             <SessionDetailPane
               canvasId={canvasId}
               sessionId={logList.params.sessionId}
@@ -114,6 +156,6 @@ export default function AgentLogsPage() {
           </ResizablePanel>
         </ResizablePanelGroup>
       )}
-    </ConsolePageTemplate>
+    </DetailTemplate>
   )
 }

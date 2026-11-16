@@ -4,17 +4,14 @@ import { useConsumedSearchFlag } from '@/hooks/use-consumed-search-flag'
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ListPageTemplate } from '@/components/page-templates'
+import { CollectionTemplate } from '@/components/page-templates'
 import {
-  AppScene,
-  ListPagination,
   PageErrorState,
   PageLoadingState,
+  Pager,
+  type CollectionView,
 } from '@/components/patterns'
-import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { FilterPopover, type FilterValue } from '@/components/ui/filter-popover'
-import { AssetListControls } from '@/components/patterns/asset-list-controls'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { toast } from '@/lib/toast'
 import {
@@ -32,30 +29,26 @@ import {
   useSetAgent,
 } from '@/hooks/use-agent-request'
 import {
-  AgentCanvasType,
+  type AgentCanvasType,
   type AgentDsl,
   type AgentFlow,
   type AgentGraph,
 } from '@/types/agent'
+import { ClipboardList, FileInput, LayoutTemplate, Plus } from 'lucide-react'
 import {
-  ClipboardList,
-  FileInput,
-  LayoutTemplate,
-  Plus,
-  Search,
-} from 'lucide-react'
-import { AgentCard } from './components/agent-card'
-import { AgentEmptyState } from './components/agent-empty-state'
-import {
-  AgentListView,
+  AgentCollection,
+  AgentFilterBar,
+  type AgentKindFilter,
   type AgentTimeFormat,
-} from './components/agent-list-view'
+} from './components/agent-collection'
+import { AgentEmptyState } from './components/agent-empty-state'
 import { CreateAgentDialog } from './components/create-agent-dialog'
 import { ImportAgentDialog } from './components/import-agent-dialog'
 import { RenameAgentDialog } from './components/rename-agent-dialog'
 import { useRenameAgent } from './hooks/use-rename-agent'
 
 const DEFAULT_PAGE_SIZE = 12
+const PAGE_SIZES = [6, 12, 24, 48]
 
 export default function AgentsPage() {
   const { t } = useTranslation()
@@ -66,8 +59,8 @@ export default function AgentsPage() {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
   const [keyword, setKeyword] = useState('')
-  const [kind, setKind] = useState<'all' | AgentCanvasType>('all')
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [kind, setKind] = useState<AgentKindFilter>('all')
+  const [viewMode, setViewMode] = useState<CollectionView>('list')
   const [timeFormat, setTimeFormat] = useState<AgentTimeFormat>('detailed')
   const [sortDesc, setSortDesc] = useState(true)
   const [createOpen, setCreateOpen] = useConsumedSearchFlag('create', '1')
@@ -107,7 +100,7 @@ export default function AgentsPage() {
       dsl: buildInitialDsl(payload.kind),
     })
 
-    toast.success(t('agents.created', '骨架已创建'))
+    toast.success(t('agents.created'))
     navigate(buildAgentCanvasPath(flow.id, payload.kind))
   }
 
@@ -147,7 +140,7 @@ export default function AgentsPage() {
       dsl,
     })
 
-    toast.success(t('agents.imported', 'JSON 已导入到新的 Agent 骨架'))
+    toast.success(t('agents.imported'))
     navigate(buildAgentCanvasPath(flow.id, kind))
   }
 
@@ -162,18 +155,6 @@ export default function AgentsPage() {
       .catch(() => {
         // The mutation owner reports the failure; keep the selected asset for retry.
       })
-  }
-
-  const filterValue: FilterValue = {
-    kind: kind === 'all' ? [] : [kind],
-    tags: selectedTags,
-  }
-
-  const handleFilterChange = (value: FilterValue) => {
-    const next = value.kind?.[0] as AgentCanvasType | undefined
-    setPage(1)
-    setKind(next || 'all')
-    setSelectedTags(value.tags || [])
   }
 
   const handleOpen = (flow: AgentFlow) => {
@@ -193,137 +174,97 @@ export default function AgentsPage() {
     setFlowToRename(null)
   }
 
-  const showEmptyState = !listQuery.isLoading && sortedAgents.length === 0
-  const emptyStateType: 'list' | 'search' =
-    keyword || kind !== 'all' || selectedTags.length ? 'search' : 'list'
-
-  const pageState: 'content' | 'loading' | 'empty' | 'error' = (() => {
-    if (listQuery.isLoading && page === 1) return 'loading'
-    if (listQuery.isError) return 'error'
-    if (showEmptyState) return 'empty'
-    return 'content'
-  })()
+  const filtered = Boolean(keyword || kind !== 'all' || selectedTags.length)
+  const pageState: 'content' | 'loading' | 'empty' | 'error' = listQuery.isError
+    ? 'error'
+    : listQuery.isLoading && !sortedAgents.length
+      ? 'loading'
+      : !sortedAgents.length
+        ? 'empty'
+        : 'content'
+  // The empty state carries create, template and import; keep them once.
+  const showCreateActions = pageState !== 'empty' || filtered
+  const resetFilters = () => {
+    setKeyword('')
+    setKind('all')
+    setSelectedTags([])
+    setPage(1)
+  }
 
   return (
     <>
-      <ListPageTemplate
+      <CollectionTemplate
         title={t('agents.center')}
-        className="p-space-base md:p-space-lg"
-        description={t('agents.centerDescription')}
-        headerActions={
+        count={listQuery.total}
+        countLabel={t('agents.resultCount', { count: listQuery.total })}
+        actions={
           <>
-            <Button
-              variant="outline"
-              onClick={() => navigate('/agent-templates')}
-            >
-              <LayoutTemplate className="size-icon-sm" aria-hidden="true" />
-              {t('agents.templatesButton', '模板')}
-            </Button>
-            <Button variant="outline" onClick={() => navigate('/agents/log')}>
+            <Button variant="ghost" onClick={() => navigate('/agents/log')}>
               <ClipboardList className="size-icon-sm" aria-hidden="true" />
-              {t('agents.opsLogs', '运维日志')}
+              {t('agents.opsLogs')}
             </Button>
-            <Button variant="outline" onClick={() => setImportOpen(true)}>
-              <FileInput className="size-icon-sm" aria-hidden="true" />
-              {t('agents.importJson', '导入 JSON')}
-            </Button>
-            <Button onClick={() => setCreateOpen(true)}>
-              <Plus className="size-icon-sm" aria-hidden="true" />
-              {t('agents.createAsset', '新建资产')}
-            </Button>
+            {showCreateActions ? (
+              <>
+                <Button
+                  variant="ghost"
+                  onClick={() => navigate('/agent-templates')}
+                >
+                  <LayoutTemplate className="size-icon-sm" aria-hidden="true" />
+                  {t('agents.templatesButton')}
+                </Button>
+                <Button variant="ghost" onClick={() => setImportOpen(true)}>
+                  <FileInput className="size-icon-sm" aria-hidden="true" />
+                  {t('agents.importJson')}
+                </Button>
+                <Button onClick={() => setCreateOpen(true)}>
+                  <Plus className="size-icon-sm" aria-hidden="true" />
+                  {t('agents.createAsset')}
+                </Button>
+              </>
+            ) : null}
           </>
         }
-        toolbarLeft={
-          <Input
-            type="search"
-            aria-label={t('agents.searchPlaceholder')}
-            placeholder={t('agents.searchPlaceholder', '搜索标题或资产意图')}
-            value={keyword}
-            onChange={(event) => {
+        filterBar={
+          <AgentFilterBar
+            keyword={keyword}
+            onKeywordChange={(value) => {
               setPage(1)
-              setKeyword(event.target.value)
+              setKeyword(value)
             }}
-            leftIcon={<Search className="size-icon-sm" aria-hidden="true" />}
-          />
-        }
-        toolbarRight={
-          <>
-            <FilterPopover
-              filters={[
-                {
-                  key: 'kind',
-                  label: t('agents.type', '类型'),
-                  options: [
-                    { value: AgentCanvasType.AGENT, label: t('agents.agents') },
-                    {
-                      value: AgentCanvasType.PIPELINE,
-                      label: t('agents.pipelines'),
-                    },
-                  ],
-                },
-                {
-                  key: 'tags',
-                  label: t('agents.tags'),
-                  options: [
-                    ...new Set([
-                      ...tagCounts.map(({ tag }) => tag),
-                      ...selectedTags,
-                    ]),
-                  ].map((tag) => ({
-                    value: tag,
-                    label: `${tag} (${tagCounts.find((entry) => entry.tag === tag)?.count || 0})`,
-                  })),
-                },
-              ]}
-              className="h-auto min-h-[var(--control-height-sm)]"
-              value={filterValue}
-              onChange={handleFilterChange}
-            />
-            <AssetListControls
-              view={viewMode}
-              onViewChange={setViewMode}
-              timeFormat={timeFormat}
-              onTimeFormatChange={setTimeFormat}
-              sortDescending={sortDesc}
-              onToggleSort={() => setSortDesc((value) => !value)}
-              labels={{
-                view: t('common.viewToggle'),
-                grid: t('agents.gridView'),
-                list: t('agents.listView'),
-                timeFormat: t('agents.timeFormat'),
-                detailed: t('agents.detailedTime'),
-                compact: t('agents.compactTime'),
-                relative: t('agents.relativeTime'),
-                newest: t('agents.descending'),
-                oldest: t('agents.ascending'),
-              }}
-            />
-          </>
-        }
-        pagination={
-          <ListPagination
-            total={listQuery.total}
-            page={page}
-            pageSize={pageSize}
-            onPageChange={setPage}
-            onPageSizeChange={(size) => {
+            kind={kind}
+            onKindChange={(value) => {
               setPage(1)
-              setPageSize(size)
+              setKind(value)
             }}
+            tags={selectedTags}
+            tagCounts={tagCounts}
+            onTagsChange={(value) => {
+              setPage(1)
+              setSelectedTags(value)
+            }}
+            onClearFilters={() => {
+              setPage(1)
+              setKind('all')
+              setSelectedTags([])
+            }}
+            sortDescending={sortDesc}
+            onSortDescendingChange={setSortDesc}
+            timeFormat={timeFormat}
+            onTimeFormatChange={setTimeFormat}
+            view={viewMode}
+            onViewChange={setViewMode}
           />
         }
         state={pageState}
         loadingState={
           <PageLoadingState
-            scene={AppScene.CONSOLE}
-            title={t('agents.loadingTitle', '正在加载 Agent 资产')}
+            title={t('agents.loadingTitle')}
             description={t('agents.loadingDescription')}
           />
         }
         errorState={
           <PageErrorState
-            scene={AppScene.CONSOLE}
-            title={t('agents.loadFailedTitle', 'Agent 列表加载失败')}
+            title={t('agents.loadFailedTitle')}
             description={t('agents.loadFailedDescription')}
             retryLabel={t('common.retry')}
             onRetry={() => {
@@ -333,66 +274,41 @@ export default function AgentsPage() {
         }
         emptyState={
           <AgentEmptyState
-            type={emptyStateType}
+            type={filtered ? 'search' : 'list'}
             onCreate={() => setCreateOpen(true)}
             onTemplate={() => navigate('/agent-templates')}
             onImport={() => setImportOpen(true)}
-            onReset={() => {
-              setKeyword('')
-              setKind('all')
-              setSelectedTags([])
+            onReset={resetFilters}
+          />
+        }
+        footerNote={t('agents.sortPageScope')}
+        footer={
+          <Pager
+            page={page}
+            pageSize={pageSize}
+            total={listQuery.total}
+            onPageChange={setPage}
+            pageSizeOptions={PAGE_SIZES}
+            onPageSizeChange={(size) => {
               setPage(1)
+              setPageSize(size)
             }}
           />
         }
       >
-        <div className="mb-space-base flex flex-wrap justify-between gap-space-sm text-sm text-text-secondary">
-          <p>{t('agents.resultCount', { count: listQuery.total })}</p>
-          <p className="text-xs">{t('agents.sortPageScope')}</p>
-        </div>
-        {viewMode === 'grid' ? (
-          <div className="grid grid-cols-1 gap-space-lg md:grid-cols-2 xl:grid-cols-3">
-            {listQuery.isLoading
-              ? [...Array(6)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="h-[180px] animate-pulse rounded-radius-lg bg-surface-secondary"
-                  />
-                ))
-              : sortedAgents.map((flow) => (
-                  <AgentCard
-                    key={flow.id}
-                    flow={flow}
-                    onOpen={handleOpen}
-                    onDelete={setFlowToDelete}
-                    onExport={downloadFlowJson}
-                    onRename={setFlowToRename}
-                    onEditTags={
-                      currentUserId &&
-                      (flow.user_id || flow.tenant_id) === currentUserId
-                        ? setFlowToEditTags
-                        : undefined
-                    }
-                    onViewLogs={handleViewLogs}
-                    timeFormat={timeFormat}
-                  />
-                ))}
-          </div>
-        ) : (
-          <AgentListView
-            data={sortedAgents}
-            isLoading={listQuery.isLoading}
-            timeFormat={timeFormat}
-            onOpen={handleOpen}
-            onDelete={setFlowToDelete}
-            onExport={downloadFlowJson}
-            onRename={setFlowToRename}
-            onEditTags={setFlowToEditTags}
-            currentUserId={currentUserId}
-            onViewLogs={handleViewLogs}
-          />
-        )}
-      </ListPageTemplate>
+        <AgentCollection
+          agents={sortedAgents}
+          view={viewMode}
+          timeFormat={timeFormat}
+          currentUserId={currentUserId}
+          onOpen={handleOpen}
+          onDelete={setFlowToDelete}
+          onExport={downloadFlowJson}
+          onRename={setFlowToRename}
+          onEditTags={setFlowToEditTags}
+          onViewLogs={handleViewLogs}
+        />
+      </CollectionTemplate>
 
       {flowToEditTags && (
         <AgentTagEditor
@@ -429,23 +345,19 @@ export default function AgentsPage() {
         }}
         variant="destructive"
         pending={deleteAgent.isLoading}
-        title={t('agents.deleteTitle', '删除 Agent 资产')}
+        title={t('agents.deleteTitle')}
         cancelLabel={t('common.cancel')}
-        confirmLabel={t('agents.confirmDelete', '确认删除')}
+        confirmLabel={t('agents.confirmDelete')}
         onConfirm={handleDelete}
         description={
           flowToDelete
-            ? t(
-                'agents.deleteDescription',
-                '将删除「{{name}}」。当前阶段不保留回收站。',
-                {
-                  name: resolveLocalizedText(
-                    flowToDelete.title,
-                    t('agents.unnamedAgent'),
-                  ),
-                },
-              )
-            : t('agents.deleteFallback', '删除后无法恢复。')
+            ? t('agents.deleteDescription', {
+                name: resolveLocalizedText(
+                  flowToDelete.title,
+                  t('agents.unnamedAgent'),
+                ),
+              })
+            : t('agents.deleteFallback')
         }
       />
     </>

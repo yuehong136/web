@@ -1,16 +1,6 @@
-import { Search } from 'lucide-react'
-import { PageToolbar } from '@/components/patterns'
-import { Button } from '@/components/ui/button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
+import { useTranslation } from 'react-i18next'
+import { FilterBar } from '@/components/patterns'
 import type { AgentFlow } from '@/types/agent'
-import { AGENT_LOG_STATUS_LABELS } from '../constants'
 import {
   AgentLogStatus,
   type AgentLogParamPatch,
@@ -24,82 +14,79 @@ interface LogToolbarProps {
   onChange: (patch: AgentLogParamPatch) => void
 }
 
-export function LogToolbar({ agent, params, onChange }: LogToolbarProps) {
-  const hasActiveFilters = Boolean(
-    params.keywords ||
-    params.from ||
-    params.to ||
-    params.user ||
-    params.source ||
-    params.status !== AgentLogStatus.ALL,
-  )
+const STATUSES = [
+  AgentLogStatus.OK,
+  AgentLogStatus.ERR,
+  AgentLogStatus.RUN,
+  AgentLogStatus.WARN,
+]
+/** Session origins the backend records in `session.source`. */
+const SOURCES = ['explore', 'share', 'webhook', 'editor']
 
+/** Agent picker, then the session search and status chip once one is chosen. */
+export function LogToolbar({ agent, params, onChange }: LogToolbarProps) {
+  const { t } = useTranslation()
   return (
-    <PageToolbar
-      left={
-        <>
-          <span className="shrink-0 text-xs text-text-tertiary">
-            当前 Agent
-          </span>
-          <CanvasSelector
-            selectedAgent={agent}
-            selectedCanvasId={params.canvas}
-            onSelect={(canvas) => onChange({ canvas, page: 1 })}
-          />
-          {params.canvas ? <div className="h-6 w-px bg-border-subtle" /> : null}
-        </>
-      }
-      right={
-        params.canvas ? (
-          <>
-            <Select
-              value={params.status}
-              onValueChange={(value) =>
-                onChange({ status: value as AgentLogStatus })
-              }
-            >
-              <SelectTrigger className="w-[120px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.values(AgentLogStatus).map((status) => (
-                  <SelectItem key={status} value={status}>
-                    {AGENT_LOG_STATUS_LABELS[status]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Input
-              type="search"
-              inputSize="sm"
-              className="w-[320px]"
-              placeholder="搜索 session id / query / 用户"
-              value={params.keywords || ''}
-              onChange={(event) => onChange({ keywords: event.target.value })}
-              leftIcon={<Search className="size-4" />}
-            />
-            {hasActiveFilters ? (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() =>
-                  onChange({
-                    status: AgentLogStatus.ALL,
-                    source: undefined,
-                    from: undefined,
-                    to: undefined,
-                    user: undefined,
-                    keywords: undefined,
-                    page: 1,
-                  })
-                }
-              >
-                重置
-              </Button>
-            ) : null}
-          </>
-        ) : null
-      }
-    />
+    <div className="flex min-w-0 flex-wrap items-center gap-space-sm">
+      <CanvasSelector
+        selectedAgent={agent}
+        selectedCanvasId={params.canvas}
+        onSelect={(canvas) => onChange({ canvas, page: 1 })}
+      />
+      {params.canvas ? (
+        <FilterBar
+          className="min-w-0 flex-1"
+          search={{
+            value: params.keywords || '',
+            onChange: (keywords) => onChange({ keywords }),
+            placeholder: t('agents.runLogs.searchPlaceholder'),
+          }}
+          filters={[
+            {
+              key: 'status',
+              label: t('agents.runLogs.status'),
+              selection: 'single',
+              value:
+                params.status === AgentLogStatus.ALL ? [] : [params.status],
+              options: STATUSES.map((status) => ({
+                value: status,
+                label: t(`agents.runLogs.statuses.${status}`),
+              })),
+            },
+            {
+              key: 'source',
+              label: t('agents.runLogs.source'),
+              selection: 'single',
+              value: params.source ? [params.source] : [],
+              options: SOURCES.map((value) => ({
+                value,
+                label: t(`agents.runLogs.sources.${value}`),
+              })),
+            },
+          ]}
+          onFilterChange={(key, value) =>
+            onChange(
+              key === 'status'
+                ? {
+                    status:
+                      (value[0] as AgentLogStatus | undefined) ??
+                      AgentLogStatus.ALL,
+                  }
+                : { source: value[0] },
+            )
+          }
+          onClearFilters={() =>
+            onChange({
+              status: AgentLogStatus.ALL,
+              source: undefined,
+              from: undefined,
+              to: undefined,
+              user: undefined,
+              page: 1,
+            })
+          }
+        />
+      ) : null}
+    </div>
   )
 }
