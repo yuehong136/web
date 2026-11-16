@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import type { FieldValues, UseFormReturn } from 'react-hook-form'
 import { useWatch } from 'react-hook-form'
 import { useFormBinding } from './use-form-binding'
@@ -12,12 +12,15 @@ export function useWatchFormChange<
   const updateNodeForm = useGraphStore((state) => state.updateNodeForm)
   const nodeId = binding?.nodeId ?? id
   const path = binding?.path
+  // isDirty clears once values return to their defaults; that edit must sync too.
+  const editedNodeId = useRef<string>(undefined)
 
   useEffect(() => {
-    if (!nodeId || !form?.formState.isDirty) {
+    if (form?.formState.isDirty) editedNodeId.current = nodeId
+    if (!nodeId || editedNodeId.current !== nodeId) {
       return
     }
-    const nextValues = form.getValues() || {}
+    const nextValues = form?.getValues() || {}
     updateNodeForm(nodeId, nextValues, path)
   }, [form, form?.formState.isDirty, nodeId, path, updateNodeForm, values])
 }

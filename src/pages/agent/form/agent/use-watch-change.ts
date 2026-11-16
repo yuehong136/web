@@ -1,5 +1,5 @@
 import omit from 'lodash/omit.js'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import type { FieldValues, UseFormReturn } from 'react-hook-form'
 import { useWatch } from 'react-hook-form'
 import { PromptRole } from '../../constant'
@@ -10,9 +10,12 @@ export function useWatchFormChange<
 >(id?: string, form?: UseFormReturn<TFieldValues>) {
   const values = useWatch({ control: form?.control })
   const updateNodeForm = useGraphStore((state) => state.updateNodeForm)
+  // isDirty clears once values return to their defaults; that edit must sync too.
+  const editedId = useRef<string>(undefined)
 
   useEffect(() => {
-    if (!id || !form?.formState.isDirty) {
+    if (form?.formState.isDirty) editedId.current = id
+    if (!id || !form || editedId.current !== id) {
       return
     }
 

@@ -75,7 +75,8 @@ function editedValue(
   dirty: unknown,
 ): unknown {
   if (!dirty || sameParserValue(initial, current)) return undefined
-  if (dirty === true) {
+  // react-hook-form 7.90+ marks edited arrays per item; lists save whole.
+  if (dirty === true || (Array.isArray(dirty) && Array.isArray(current))) {
     if (current === undefined) return invalidDraft()
     return structuredClone(current)
   }

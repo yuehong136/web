@@ -113,6 +113,14 @@ test('explicit context, child disable and partial metadata intents serialize onl
     }),
     { parser_config: { metadata: [] } },
   )
+  // react-hook-form 7.90+ reports an edited list item by item.
+  current.parser_config.metadata = [{ key: 'author', type: 'string' }]
+  assert.deepEqual(
+    serializeParserDraft(initial, current, {
+      parser_config: { metadata: [{ key: true, type: true }] },
+    }),
+    { parser_config: { metadata: [{ key: 'author', type: 'string' }] } },
+  )
   const schema = hydrateParserDraft(
     document({
       parser_config: {
