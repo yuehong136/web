@@ -13,6 +13,26 @@ export const isEditableKeyboardTarget = (target: EventTarget | null) => {
   return ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)
 }
 
+/** ⌘/Ctrl + key shortcuts, shared by the key handler and the key caps. */
+const modifierShortcuts: Partial<Record<ProductCommandId, string>> = {
+  [ProductCommandId.OPEN_PALETTE]: 'k',
+  [ProductCommandId.NEW_CONVERSATION]: 'n',
+  [ProductCommandId.TOGGLE_SIDEBAR]: 'b',
+  [ProductCommandId.NAVIGATE_SETTINGS]: ',',
+}
+
+/**
+ * Commands that still run while typing in a field. Opening the palette is
+ * the way out of an input; editors that bind the same keys handle the event
+ * first and mark it default-prevented.
+ */
+const editableShortcuts = new Set<ProductCommandId>([
+  ProductCommandId.OPEN_PALETTE,
+])
+
+export const isShortcutAllowedInEditable = (id: ProductCommandId) =>
+  editableShortcuts.has(id)
+
 export const getKeyboardCommand = (
   event: Pick<
     KeyboardEvent,
@@ -25,10 +45,10 @@ export const getKeyboardCommand = (
   const commandModifier = event.metaKey || event.ctrlKey
 
   if (commandModifier && !event.altKey && !event.shiftKey) {
-    if (key === 'k') return ProductCommandId.OPEN_PALETTE
-    if (key === 'n') return ProductCommandId.NEW_CONVERSATION
-    if (key === 'b') return ProductCommandId.TOGGLE_SIDEBAR
-    if (key === ',') return ProductCommandId.NAVIGATE_SETTINGS
+    const match = Object.entries(modifierShortcuts).find(
+      ([, shortcut]) => shortcut === key,
+    )
+    if (match) return match[0] as ProductCommandId
   }
 
   if (event.metaKey && !event.ctrlKey && !event.altKey) {
@@ -42,4 +62,23 @@ export const getKeyboardCommand = (
   }
 
   return undefined
+}
+
+/** Apple keyboards label the command modifier ⌘; everything else Ctrl. */
+export const isApplePlatform = () => {
+  if (typeof navigator === 'undefined') return false
+  const platform =
+    (navigator as Navigator & { userAgentData?: { platform?: string } })
+      .userAgentData?.platform ||
+    navigator.platform ||
+    navigator.userAgent
+  return /mac|iphone|ipad|ipod/i.test(platform)
+}
+
+/** Key caps for a command's shortcut on this platform, e.g. `['Ctrl', 'K']`. */
+export const getCommandShortcutKeys = (
+  id: ProductCommandId,
+): string[] | undefined => {
+  const key = modifierShortcuts[id]
+  return key ? [isApplePlatform() ? '⌘' : 'Ctrl', key.toUpperCase()] : undefined
 }

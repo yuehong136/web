@@ -5,7 +5,11 @@ import { PlatformKind, useApplicationComposition } from '@/platform'
 import { useHomeStore } from '@/stores/home'
 import { useUIStore } from '@/stores/ui'
 import { CommandPalette } from './command-palette'
-import { getKeyboardCommand, isEditableKeyboardTarget } from './keyboard'
+import {
+  getKeyboardCommand,
+  isEditableKeyboardTarget,
+  isShortcutAllowedInEditable,
+} from './keyboard'
 import { getDesktopActivityForPath } from './navigation'
 import { CommandRegistry } from './registry'
 import {
@@ -181,10 +185,16 @@ export const ApplicationCommandProvider: React.FC<React.PropsWithChildren> = ({
     if (!useRendererShortcuts) return
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.isComposing || event.keyCode === 229) return
-      if (isEditableKeyboardTarget(event.target)) return
 
       const id = getKeyboardCommand(event)
       if (!id) return
+      // Typing keeps its keys; only the palette opens from a field, and only
+      // when the field's own editor did not take the key.
+      if (
+        isEditableKeyboardTarget(event.target) &&
+        (!isShortcutAllowedInEditable(id) || event.defaultPrevented)
+      )
+        return
 
       event.preventDefault()
       void execute(id)
@@ -215,6 +225,10 @@ export const ApplicationCommandProvider: React.FC<React.PropsWithChildren> = ({
     </CommandContext.Provider>
   )
 }
+
+/** For shared chrome that also renders outside the command provider. */
+export const useOptionalApplicationCommands = () =>
+  React.useContext(CommandContext)
 
 export const useApplicationCommands = () => {
   const context = React.useContext(CommandContext)

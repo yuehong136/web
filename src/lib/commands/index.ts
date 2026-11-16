@@ -1,9 +1,14 @@
 export {
   ApplicationCommandProvider,
   useApplicationCommands,
+  useOptionalApplicationCommands,
 } from './command-provider'
 export { CommandRegistry } from './registry'
-export { getKeyboardCommand, isEditableKeyboardTarget } from './keyboard'
+export {
+  getCommandShortcutKeys,
+  getKeyboardCommand,
+  isEditableKeyboardTarget,
+} from './keyboard'
 export { getDesktopActivityForPath } from './navigation'
 export {
   CommandCategory,
