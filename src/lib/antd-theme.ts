@@ -6,6 +6,15 @@ import {
   type AppearancePreset,
 } from '@/themes/appearance'
 
+/** `--radius` per preset in themes/appearance.css (radius-lg). */
+const PRESET_RADIUS: Record<AppearancePreset, number> = {
+  mist: 8,
+  studio: 10,
+  paper: 8,
+  graphite: 6,
+  ocean: 12,
+}
+
 export function buildAntdTheme(
   isDark: boolean,
   preset: AppearancePreset = getAppearance().preset,
@@ -50,7 +59,11 @@ export function buildAntdTheme(
       colorBgContainer: token('background-surface'),
       colorBgContainerDisabled: token('components-input-bg-disabled'),
       colorBgElevated: token('components-dropdown-bg'),
+      colorBgLayout: token('components-app-shell-bg'),
       colorBorder: token('border-default'),
+      colorBorderSecondary: token('border-default'),
+      controlItemBgHover: token('state-hover'),
+      controlItemBgActive: token('state-selected-bg'),
       borderRadius:
         preset === 'graphite' || preset === 'mist'
           ? 6
@@ -59,6 +72,13 @@ export function buildAntdTheme(
             : preset === 'paper'
               ? 8
               : 10,
+      // radius-sm for chips and radius-xl for popups, panels and dialogs.
+      borderRadiusSM: Math.max(2, PRESET_RADIUS[preset] - 4),
+      borderRadiusLG: PRESET_RADIUS[preset] + 4,
+      // Same levels as shadow-elevation-*: overlays medium, dialogs high.
+      boxShadow: 'var(--elevation-high)',
+      boxShadowSecondary: 'var(--elevation-medium)',
+      boxShadowTertiary: 'var(--elevation-low)',
       fontSize: 14 * appearance.textScale,
       // Matches --control-height* in appearance.css (Mist is one step smaller).
       ...(() => {
@@ -79,6 +99,29 @@ export function buildAntdTheme(
       motion: appearance.motion !== 'reduced' && !appearance.reducedMotion,
     },
     components: {
+      // DreamJira rows: 36px header, 44px body rows.
+      Table: {
+        headerBg: token('background-surface'),
+        headerColor: token('text-tertiary'),
+        headerSplitColor: 'transparent',
+        borderColor: token('border-default'),
+        rowHoverBg: token('state-hover'),
+        rowSelectedBg: token('state-selected-bg'),
+        rowSelectedHoverBg: token('state-selected-bg'),
+        cellPaddingBlock: 10,
+        cellPaddingInline: 12,
+        cellPaddingBlockSM: 6,
+      },
+      // A surface tooltip like ui/tooltip, not an inverted bubble.
+      Tooltip: {
+        colorBgSpotlight: token('components-popover-bg'),
+        colorTextLightSolid: token('text-primary'),
+      },
+      Modal: {
+        contentBg: token('components-dialog-bg'),
+        headerBg: token('components-dialog-bg'),
+        footerBg: token('components-dialog-bg'),
+      },
       Checkbox: {
         colorPrimary: token('components-checkbox-bg-checked'),
         colorPrimaryHover: token('components-checkbox-bg-checked'),

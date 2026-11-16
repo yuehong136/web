@@ -30,24 +30,13 @@ const Checkbox = React.forwardRef<
   <CheckboxPrimitive.Root
     ref={ref}
     className={cn(
-      // 基础样式
-      'peer size-4 shrink-0 rounded-sm border outline-0 transition-colors',
-      // 默认状态 - 未选中
-      'border-[var(--color-border-default)] bg-[var(--color-background-surface)]',
-      // 未选中时的 hover 状态
-      'data-[state=unchecked]:hover:border-[var(--color-border-accent)] data-[state=unchecked]:hover:bg-[var(--color-surface-secondary)]',
-      // focus 状态
-      'focus-visible:ring-2 focus-visible:ring-[var(--color-state-focus)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-background-body)]',
-      // disabled 状态
+      'peer size-icon-sm shrink-0 rounded-radius-sm border outline-0 transition-colors duration-150 motion-reduce:transition-none',
+      'border-components-checkbox-border bg-components-checkbox-bg',
+      'data-[state=unchecked]:hover:border-components-input-border-hover',
+      'focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:ring-offset-2 focus-visible:ring-offset-background-surface',
       'disabled:cursor-not-allowed disabled:opacity-50',
-      // checked 状态 - 使用设计令牌
-      'data-[state=checked]:border-[var(--color-components-checkbox-border-checked)] data-[state=checked]:bg-[var(--color-components-checkbox-bg-checked)] data-[state=checked]:text-[var(--color-components-checkbox-icon)]',
-      // checked 状态的 hover - 保持选中样式，稍微变亮
-      'data-[state=checked]:hover:opacity-90',
-      // indeterminate 状态
-      'data-[state=indeterminate]:border-[var(--color-components-checkbox-border-checked)] data-[state=indeterminate]:bg-[var(--color-components-checkbox-bg-checked)] data-[state=indeterminate]:text-[var(--color-components-checkbox-icon)]',
-      // indeterminate 状态的 hover
-      'data-[state=indeterminate]:hover:opacity-90',
+      'data-[state=checked]:border-components-checkbox-border-checked data-[state=checked]:bg-components-checkbox-bg-checked data-[state=checked]:text-components-checkbox-icon',
+      'data-[state=indeterminate]:border-components-checkbox-border-checked data-[state=indeterminate]:bg-components-checkbox-bg-checked data-[state=indeterminate]:text-components-checkbox-icon',
       className,
     )}
     checked={indeterminate ? 'indeterminate' : checked}

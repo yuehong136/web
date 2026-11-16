@@ -123,7 +123,7 @@ const TagEditor = React.forwardRef<HTMLDivElement, TagEditorProps>(
           <Tooltip key={`${tag}-${index}`} content={tag}>
             <div
               className={cn(
-                'inline-flex items-center gap-1.5 rounded-md border border-dashed px-2.5 py-1 text-xs font-medium transition-colors',
+                'inline-flex items-center gap-space-xs rounded-radius-sm border border-dashed px-space-sm py-space-2xs text-xs leading-4 font-medium transition-colors',
                 tagClassName,
               )}
               style={{

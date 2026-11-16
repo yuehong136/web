@@ -186,8 +186,8 @@ export const SelectTrigger = React.forwardRef<
     <SelectPrimitive.Trigger
       ref={ref}
       className={cn(
-        'group flex h-12 w-full items-center justify-between gap-space-sm rounded-radius-xl border border-components-select-border bg-components-select-bg px-space-md py-space-base text-left text-sm text-components-select-text outline-hidden transition-colors',
-        'focus:border-components-select-border-focus focus-visible:ring-2 focus-visible:ring-state-focus-10 data-[state=open]:border-components-select-border-focus',
+        'group flex min-h-[var(--control-height)] w-full min-w-0 items-center justify-between gap-space-sm rounded-radius-md border border-components-select-border bg-components-select-bg px-[var(--control-padding-x)] py-space-2xs text-left text-sm text-components-select-text outline-hidden transition-colors duration-150 hover:border-components-input-border-hover motion-reduce:transition-none',
+        'focus:border-components-select-border-focus focus-visible:ring-1 focus-visible:ring-state-focus data-[state=open]:border-components-select-border-focus',
         'disabled:cursor-not-allowed disabled:opacity-50',
         className,
       )}
@@ -200,7 +200,7 @@ export const SelectTrigger = React.forwardRef<
     >
       {children}
       <SelectPrimitive.Icon asChild>
-        <ChevronDown className="size-icon-sm shrink-0 transition-transform group-data-[state=open]:rotate-180" />
+        <ChevronDown className="size-icon-sm shrink-0 text-text-tertiary transition-transform group-data-[state=open]:rotate-180 motion-reduce:transition-none" />
       </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>
   )
@@ -261,7 +261,7 @@ export const SelectContent: React.FC<SelectContentProps> = ({
         sideOffset={4}
         data-theme={theme}
         className={cn(
-          'relative z-[1000] max-h-[min(15rem,var(--radix-select-content-available-height))] max-w-[var(--radix-select-content-available-width)] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-radius-xl border border-components-dropdown-border bg-components-dropdown-bg text-sm text-components-dropdown-item-text shadow-elevation-medium',
+          'relative z-[1000] max-h-[min(15rem,var(--radix-select-content-available-height))] max-w-[var(--radix-select-content-available-width)] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-radius-xl border border-border-default bg-components-dropdown-bg text-sm text-components-dropdown-item-text shadow-elevation-medium',
           className,
         )}
         // Escape closes this list only. Legacy layers listen on document
@@ -299,16 +299,16 @@ export const SelectItem = React.forwardRef<HTMLDivElement, SelectItemProps>(
         ref={ref}
         value={value}
         className={cn(
-          'relative flex w-full cursor-pointer items-center rounded-radius-lg py-space-sm pr-space-sm pl-space-xl text-sm text-components-dropdown-item-text outline-hidden select-none',
-          'data-[state=checked]:bg-state-selected-bg data-[state=checked]:text-state-selected-text',
-          // The highlight is the focus indicator, so it wins over the selection fill.
-          'data-[highlighted]:bg-components-dropdown-item-bg-hover data-[highlighted]:data-[state=checked]:bg-components-dropdown-item-bg-hover',
+          'relative flex min-h-[var(--control-height)] w-full cursor-pointer items-center rounded-radius-md py-space-xs pr-space-sm pl-space-xl text-sm text-components-dropdown-item-text outline-hidden select-none',
+          // The check mark carries the selection; colour only reinforces it.
+          'data-[state=checked]:font-medium data-[state=checked]:text-state-selected-text',
+          'data-[highlighted]:bg-state-hover',
           'data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50',
           className,
         )}
         {...props}
       >
-        <span className="absolute left-space-sm flex size-icon-sm items-center justify-center">
+        <span className="absolute left-space-sm flex size-icon-sm items-center justify-center text-state-selected">
           <SelectPrimitive.ItemIndicator>
             <Check className="size-icon-sm" />
           </SelectPrimitive.ItemIndicator>
@@ -331,7 +331,7 @@ export const SelectLabel: React.FC<{
 }> = ({ children, className }) => (
   <SelectPrimitive.Label
     className={cn(
-      'py-space-xs pr-space-sm pl-space-xl text-sm font-semibold text-text-primary',
+      'pt-space-sm pr-space-sm pb-space-2xs pl-space-xl text-xs font-medium text-text-tertiary',
       className,
     )}
   >

@@ -4,16 +4,18 @@ import { cn } from '@/lib/utils'
 import { CircleAlert } from 'lucide-react'
 
 const inputVariants = cva(
-  'flex w-full rounded-radius-md border bg-components-input-bg px-[var(--control-padding-x)] py-space-xs text-sm text-components-input-text transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium focus:bg-components-input-bg-focus focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50',
+  // DreamJira input: the border turns to the focus colour and a one-pixel
+  // ring doubles it, so focus never depends on a hairline alone.
+  'flex w-full min-w-0 rounded-radius-md border bg-components-input-bg px-[var(--control-padding-x)] py-space-xs text-sm text-components-input-text transition-colors duration-150 placeholder:text-components-input-text-placeholder file:border-0 file:bg-transparent file:text-sm file:font-medium focus:bg-components-input-bg-focus focus-visible:ring-1 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none',
   {
     variants: {
       variant: {
         default:
-          'border-components-input-border focus:border-components-input-border-focus',
+          'border-components-input-border hover:border-components-input-border-hover focus:border-components-input-border-focus focus-visible:ring-state-focus',
         destructive:
-          'border-components-input-border-error focus:border-components-input-border-error',
-        success: 'border-status-success',
-        warning: 'border-status-warning',
+          'border-components-input-border-error focus:border-components-input-border-error focus-visible:ring-components-input-border-error',
+        success: 'border-status-success focus-visible:ring-status-success',
+        warning: 'border-status-warning focus-visible:ring-status-warning',
       },
       inputSize: {
         default: 'min-h-[var(--control-height)]',

@@ -37,6 +37,14 @@ export interface DialogTriggerProps extends React.ButtonHTMLAttributes<HTMLButto
   asChild?: boolean
 }
 
+/** DreamJira overlay: a flat scrim, no blur. */
+export const dialogOverlayClass =
+  'animate-in fade-in-0 fixed inset-0 bg-components-dialog-overlay duration-200 motion-reduce:animate-none'
+
+/** The 32px ghost close button shared by Dialog, Sheet and ConfirmDialog. */
+export const dialogCloseClass =
+  'absolute top-space-md right-space-md z-10 inline-flex size-[var(--control-height)] items-center justify-center rounded-radius-md text-text-secondary transition-colors duration-150 outline-hidden hover:bg-state-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-focus motion-reduce:transition-none'
+
 const sizeClasses = {
   sm: 'max-w-md',
   md: 'max-w-lg',
@@ -278,11 +286,11 @@ export const DialogContent: React.FC<DialogContentProps> = ({
           type="button"
           tabIndex={modal ? -1 : undefined}
           aria-label={t('common.closeDialog')}
-          className="animate-in fade-in-0 fixed inset-0 bg-black/50 backdrop-blur-xs duration-200"
+          className={dialogOverlayClass}
           onClick={() => onOpenChange(false)}
         />
       ) : (
-        <div className="animate-in fade-in-0 fixed inset-0 bg-black/50 backdrop-blur-xs duration-200" />
+        <div className={dialogOverlayClass} />
       )}
 
       {/* Dialog Container */}
@@ -290,10 +298,10 @@ export const DialogContent: React.FC<DialogContentProps> = ({
         ref={contentRef}
         tabIndex={modal ? -1 : undefined}
         className={cn(
-          'relative z-10 w-full rounded-xl shadow-2xl',
+          'relative z-10 w-full rounded-radius-xl border border-border-default shadow-elevation-high',
           // Native <dialog> defaults to black text; inherit the theme instead.
-          'bg-[var(--color-background-surface)] text-text-primary',
-          'animate-in fade-in-0 zoom-in-95 duration-200',
+          'bg-components-dialog-bg text-text-primary',
+          'animate-in fade-in-0 zoom-in-95 duration-200 motion-reduce:animate-none',
           'flex max-h-[calc(100vh-2rem)] flex-col',
           sizeClasses[size],
           className,
@@ -304,15 +312,9 @@ export const DialogContent: React.FC<DialogContentProps> = ({
           <button
             type="button"
             onClick={() => onOpenChange(false)}
-            className={cn(
-              'absolute top-4 right-4 z-10',
-              'rounded-lg p-1.5',
-              'text-[var(--color-text-tertiary)]',
-              'hover:bg-[var(--color-surface-secondary)] hover:text-[var(--color-text-primary)]',
-              'transition-colors duration-150',
-            )}
+            className={dialogCloseClass}
           >
-            <X className="h-4 w-4" aria-hidden="true" />
+            <X className="size-icon-sm" aria-hidden="true" />
             <span className="sr-only">{t('common.close')}</span>
           </button>
         )}
@@ -333,7 +335,12 @@ export const DialogContent: React.FC<DialogContentProps> = ({
 export const DialogHeader: React.FC<DialogHeaderProps> = ({
   className,
   ...props
-}) => <div className={cn('shrink-0 px-6 pt-6 pb-4', className)} {...props} />
+}) => (
+  <div
+    className={cn('shrink-0 px-space-lg pt-space-lg pb-space-md', className)}
+    {...props}
+  />
+)
 
 /**
  * Dialog 标题
@@ -350,7 +357,7 @@ export const DialogTitle: React.FC<DialogTitleProps> = ({
       ref={(node) => accessibility?.registerTitle(node)}
       id={id ?? accessibility?.titleId}
       className={cn(
-        'pr-8 text-lg font-semibold text-[var(--color-text-primary)]',
+        'pr-space-2xl text-lg leading-7 font-semibold text-text-primary',
         className,
       )}
       {...props}
@@ -373,14 +380,27 @@ export const DialogDescription: React.FC<DialogDescriptionProps> = ({
     <p
       ref={(node) => accessibility?.registerDescription(node)}
       id={id ?? accessibility?.descriptionId}
-      className={cn(
-        'mt-1 text-sm text-[var(--color-text-secondary)]',
-        className,
-      )}
+      className={cn('mt-space-xs text-sm text-text-secondary', className)}
       {...props}
     />
   )
 }
+
+/**
+ * Dialog 主体：头部与底栏之间的滚动区域，长内容滚动时底栏保持可见。
+ */
+export const DialogBody: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
+  className,
+  ...props
+}) => (
+  <div
+    className={cn(
+      'min-h-0 flex-1 overflow-y-auto px-space-lg pb-space-lg',
+      className,
+    )}
+    {...props}
+  />
+)
 
 /**
  * Dialog 底部
@@ -391,8 +411,7 @@ export const DialogFooter: React.FC<DialogFooterProps> = ({
 }) => (
   <div
     className={cn(
-      'flex shrink-0 items-center justify-end gap-3 px-6 py-4',
-      'border-t border-[var(--color-border-subtle)]',
+      'flex shrink-0 items-center justify-end gap-space-sm border-t border-border-default px-space-lg py-space-base',
       className,
     )}
     {...props}

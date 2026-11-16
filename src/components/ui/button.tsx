@@ -5,20 +5,21 @@ import { cn } from './utils'
 import { LoaderCircle } from 'lucide-react'
 
 const buttonVariants = cva(
-  "inline-flex shrink-0 items-center justify-center gap-[var(--control-gap)] whitespace-nowrap rounded-radius-md text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-icon-sm [&_svg]:shrink-0 outline-hidden focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:ring-offset-2 focus-visible:ring-offset-background-surface",
+  "inline-flex shrink-0 items-center justify-center gap-[var(--control-gap)] whitespace-nowrap rounded-radius-md border border-transparent text-sm font-medium transition-colors duration-150 disabled:pointer-events-none disabled:opacity-50 motion-reduce:transition-none [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-icon-sm [&_svg]:shrink-0 outline-hidden focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:ring-offset-2 focus-visible:ring-offset-background-surface",
   {
     variants: {
       variant: {
         default:
-          'border border-components-button-primary-border bg-components-button-primary-bg text-components-button-primary-text hover:border-components-button-primary-border-hover hover:bg-components-button-primary-bg-hover active:bg-components-button-primary-bg-active',
+          'border-components-button-primary-border bg-components-button-primary-bg text-components-button-primary-text hover:border-components-button-primary-border-hover hover:bg-components-button-primary-bg-hover active:bg-components-button-primary-bg-active',
         destructive:
           'bg-status-error-solid text-status-error-on-solid hover:bg-status-error-solid-hover',
+        // DreamJira "secondary": a bordered surface button.
         outline:
-          'border border-components-button-secondary-border bg-components-button-secondary-bg text-components-button-secondary-text hover:border-components-button-secondary-border-hover hover:bg-components-button-secondary-bg-hover',
+          'border-border-default bg-background-surface text-text-primary hover:border-border-strong hover:bg-state-hover',
         secondary:
           'bg-components-button-secondary-bg text-components-button-secondary-text hover:bg-components-button-secondary-bg-hover',
         ghost:
-          'hover:bg-components-button-ghost-bg-hover text-components-button-ghost-text',
+          'text-text-secondary hover:bg-state-hover hover:text-text-primary',
         link: 'text-text-accent underline-offset-4 hover:underline',
         success:
           'bg-status-success-solid text-status-success-on-solid hover:bg-status-success-solid-hover',

@@ -143,7 +143,7 @@ export const SelectWithSearch = forwardRef<
               ref={ref}
               disabled={disabled}
               className={cn(
-                'group h-10 w-full justify-between border border-border bg-transparent px-3 font-normal outline-hidden outline-offset-0 hover:bg-state-hover focus-visible:border-components-select-border-focus focus-visible:ring-1 focus-visible:ring-state-focus/30 [&_svg]:pointer-events-auto',
+                'group h-[var(--control-height)] w-full justify-between border border-components-select-border bg-components-select-bg px-[var(--control-padding-x)] font-normal text-components-select-text outline-hidden outline-offset-0 hover:border-components-input-border-hover hover:bg-state-hover focus-visible:border-components-select-border-focus focus-visible:ring-1 focus-visible:ring-state-focus focus-visible:ring-offset-0 data-[state=open]:border-components-select-border-focus [&_svg]:pointer-events-auto',
                 triggerClassName,
                 variant !== 'default' && 'w-auto max-w-full',
                 variant === 'minimal' && 'border-transparent shadow-none',
@@ -194,7 +194,7 @@ export const SelectWithSearch = forwardRef<
         </div>
         <PopoverContent
           className={cn(
-            'w-[var(--radix-popper-anchor-width)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-radius-lg border-border p-0 shadow-elevation-high',
+            'w-[var(--radix-popper-anchor-width)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-radius-xl border-border-default p-0 shadow-elevation-medium',
             rich && 'w-[max(var(--radix-popper-anchor-width),22rem)]',
           )}
           align="start"
@@ -206,7 +206,7 @@ export const SelectWithSearch = forwardRef<
             className="rounded-none bg-background-surface"
           >
             {options && options.length > 0 && (
-              <div className="border-b border-border-subtle p-2 focus-within:bg-background-subtle">
+              <div className="border-b border-border-default p-space-xs">
                 <CommandInput
                   placeholder={searchPlaceholder}
                   aria-label={searchPlaceholder}
@@ -243,7 +243,7 @@ export const SelectWithSearch = forwardRef<
                             disabled={option.disabled}
                             onSelect={handleSelect}
                             className={cn(
-                              'min-h-10 gap-3 rounded-radius-md px-2.5 py-2.5',
+                              'min-h-10 gap-space-base px-space-sm py-space-sm',
                               value === option.value
                                 ? "bg-state-selected-bg data-[selected='true']:bg-state-selected-bg"
                                 : '',
@@ -290,7 +290,7 @@ export const SelectWithSearch = forwardRef<
                       disabled={group.disabled}
                       onSelect={handleSelect}
                       className={cn(
-                        'min-h-9',
+                        'min-h-[var(--control-height)]',
                         value === group.value
                           ? "bg-state-selected-bg data-[selected='true']:bg-state-selected-bg"
                           : '',

@@ -125,7 +125,7 @@ export const SidebarUtilities = ({
           </ActionMenuTrigger>
         </NavigationTooltip>
         <ActionMenuContent side="top" align="start" className="w-56">
-          <ActionMenuLabel className="flex items-center gap-space-sm px-space-sm py-space-sm">
+          <ActionMenuLabel className="flex items-center gap-space-sm px-space-sm py-space-sm text-sm font-normal text-text-primary">
             <EntityAvatar
               name={name}
               src={user?.avatar}

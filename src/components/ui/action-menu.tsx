@@ -10,11 +10,27 @@ import {
 export const ActionMenu = Menu.Root
 export const ActionMenuTrigger = Menu.Trigger
 export const ActionMenuRadioGroup = Menu.RadioGroup
-export const ActionMenuLabel = Menu.Label
+export const ActionMenuGroup = Menu.Group
 export const ActionMenuSub = Menu.Sub
 
-const contentClass =
-  'z-50 max-h-[var(--radix-dropdown-menu-content-available-height)] min-w-48 overflow-y-auto rounded-radius-lg border border-border-default bg-components-dropdown-bg p-space-xs text-sm text-text-primary shadow-elevation-medium'
+/**
+ * DreamJira menu geometry, shared by ActionMenu, DropdownMenu and
+ * ContextMenu: a 12px panel with 4px inset, 32px rows with 6px corners.
+ */
+export const menuContentClass =
+  'z-50 min-w-48 overflow-y-auto rounded-radius-xl border border-border-default bg-components-dropdown-bg p-space-xs text-sm text-text-primary shadow-elevation-medium outline-hidden'
+
+export const menuItemClass =
+  'relative flex min-h-[var(--control-height)] cursor-default items-center gap-space-sm rounded-radius-md px-space-sm py-space-xs text-sm text-text-primary outline-hidden select-none data-[highlighted]:bg-state-hover data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:shrink-0'
+
+export const menuLabelClass =
+  'px-space-sm pt-space-sm pb-space-2xs text-xs font-medium text-text-tertiary'
+
+export const menuSeparatorClass =
+  '-mx-space-xs my-space-xs h-px bg-border-default'
+
+export const menuShortcutClass =
+  'ml-auto shrink-0 pl-space-md font-mono text-xs text-text-tertiary'
 
 export const ActionMenuContent = React.forwardRef<
   React.ElementRef<typeof Menu.Content>,
@@ -28,7 +44,11 @@ export const ActionMenuContent = React.forwardRef<
         ref={ref}
         data-theme={theme}
         sideOffset={sideOffset}
-        className={cn(contentClass, className)}
+        className={cn(
+          menuContentClass,
+          'max-h-[var(--radix-dropdown-menu-content-available-height)]',
+          className,
+        )}
         {...props}
       />
     </Menu.Portal>
@@ -36,14 +56,23 @@ export const ActionMenuContent = React.forwardRef<
 })
 ActionMenuContent.displayName = 'ActionMenuContent'
 
-const itemClass =
-  'flex min-h-8 cursor-default items-center gap-space-sm rounded-radius-md px-space-sm py-space-xs text-text-primary outline-hidden data-[highlighted]:bg-state-hover data-[disabled]:pointer-events-none data-[disabled]:opacity-50'
+export const ActionMenuLabel = React.forwardRef<
+  React.ElementRef<typeof Menu.Label>,
+  React.ComponentPropsWithoutRef<typeof Menu.Label>
+>(({ className, ...props }, ref) => (
+  <Menu.Label ref={ref} className={cn(menuLabelClass, className)} {...props} />
+))
+ActionMenuLabel.displayName = 'ActionMenuLabel'
 
 export const ActionMenuSubTrigger = React.forwardRef<
   React.ElementRef<typeof Menu.SubTrigger>,
   React.ComponentPropsWithoutRef<typeof Menu.SubTrigger>
 >(({ className, children, ...props }, ref) => (
-  <Menu.SubTrigger ref={ref} className={cn(itemClass, className)} {...props}>
+  <Menu.SubTrigger
+    ref={ref}
+    className={cn(menuItemClass, 'data-[state=open]:bg-state-hover', className)}
+    {...props}
+  >
     {children}
     <ChevronRight className="ml-auto size-icon-sm shrink-0 text-text-tertiary" />
   </Menu.SubTrigger>
@@ -61,7 +90,11 @@ export const ActionMenuSubContent = React.forwardRef<
       <Menu.SubContent
         ref={ref}
         data-theme={theme}
-        className={cn(contentClass, className)}
+        className={cn(
+          menuContentClass,
+          'max-h-[var(--radix-dropdown-menu-content-available-height)]',
+          className,
+        )}
         {...props}
       />
     </Menu.Portal>
@@ -76,7 +109,7 @@ export const ActionMenuItem = React.forwardRef<
   <Menu.Item
     ref={ref}
     className={cn(
-      itemClass,
+      menuItemClass,
       danger && 'text-status-error data-[highlighted]:bg-status-error-subtle',
       className,
     )}
@@ -89,9 +122,9 @@ export const ActionMenuRadioItem = React.forwardRef<
   React.ElementRef<typeof Menu.RadioItem>,
   React.ComponentPropsWithoutRef<typeof Menu.RadioItem>
 >(({ className, children, ...props }, ref) => (
-  <Menu.RadioItem ref={ref} className={cn(itemClass, className)} {...props}>
+  <Menu.RadioItem ref={ref} className={cn(menuItemClass, className)} {...props}>
     {children}
-    <span className="ml-auto flex size-icon-sm items-center justify-center">
+    <span className="ml-auto flex size-icon-sm items-center justify-center text-state-selected">
       <Menu.ItemIndicator>
         <Check className="size-icon-sm" />
       </Menu.ItemIndicator>
@@ -100,6 +133,23 @@ export const ActionMenuRadioItem = React.forwardRef<
 ))
 ActionMenuRadioItem.displayName = 'ActionMenuRadioItem'
 
-export const ActionMenuSeparator = () => (
-  <Menu.Separator className="my-space-xs border-t border-border-subtle" />
+export const ActionMenuSeparator = React.forwardRef<
+  React.ElementRef<typeof Menu.Separator>,
+  React.ComponentPropsWithoutRef<typeof Menu.Separator>
+>(({ className, ...props }, ref) => (
+  <Menu.Separator
+    ref={ref}
+    className={cn(menuSeparatorClass, className)}
+    {...props}
+  />
+))
+ActionMenuSeparator.displayName = 'ActionMenuSeparator'
+
+/** Trailing key hint inside a menu item, e.g. `Ctrl+Enter`. */
+export const ActionMenuShortcut = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLSpanElement>) => (
+  <span className={cn(menuShortcutClass, className)} {...props} />
 )
+ActionMenuShortcut.displayName = 'ActionMenuShortcut'

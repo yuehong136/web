@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { cn } from '@/lib/utils'
 import { Button, type ButtonProps } from './button'
 import { useActivePortalTheme, usePortalContainer } from './portal-theme'
+import { dialogOverlayClass } from './dialog'
 
 export interface AlertDialogProps {
   open: boolean
@@ -33,6 +34,10 @@ const AlertDialogContext = React.createContext<
  *
  * 用于需要用户确认的重要操作
  * 不可通过点击遮罩层关闭
+ *
+ * @deprecated Use `ConfirmDialog` from `@/components/ui/confirm-dialog`. Kept
+ * for `pages/studio/StudioPage.tsx` and `pages/settings/channels/index.tsx`
+ * until they migrate; do not add new callers.
  */
 export const AlertDialog: React.FC<AlertDialogProps> = ({
   open,
@@ -103,15 +108,15 @@ export const AlertDialogContent: React.FC<
       aria-modal="true"
     >
       {/* Overlay - 不可点击关闭 */}
-      <div className="animate-in fade-in-0 fixed inset-0 bg-black/50 backdrop-blur-xs duration-200" />
+      <div className={dialogOverlayClass} />
 
       {/* AlertDialog Container */}
       <div
         className={cn(
-          'relative z-10 w-full max-w-md rounded-xl shadow-2xl',
-          'bg-[var(--color-background-surface)]',
-          'animate-in fade-in-0 zoom-in-95 duration-200',
-          'p-6',
+          'relative z-10 w-full max-w-md rounded-radius-xl border border-border-default shadow-elevation-high',
+          'bg-components-dialog-bg text-text-primary',
+          'animate-in fade-in-0 zoom-in-95 duration-200 motion-reduce:animate-none',
+          'p-space-lg',
           className,
         )}
         {...props}
@@ -130,7 +135,7 @@ export const AlertDialogContent: React.FC<
 export const AlertDialogHeader: React.FC<AlertDialogHeaderProps> = ({
   className,
   ...props
-}) => <div className={cn('space-y-2', className)} {...props} />
+}) => <div className={cn('space-y-space-xs', className)} {...props} />
 
 /**
  * AlertDialog 底部
@@ -140,7 +145,10 @@ export const AlertDialogFooter: React.FC<AlertDialogFooterProps> = ({
   ...props
 }) => (
   <div
-    className={cn('mt-6 flex items-center justify-end gap-3', className)}
+    className={cn(
+      'mt-space-lg flex items-center justify-end gap-space-sm',
+      className,
+    )}
     {...props}
   />
 )
@@ -154,7 +162,7 @@ export const AlertDialogTitle: React.FC<AlertDialogTitleProps> = ({
 }) => (
   <h2
     className={cn(
-      'text-lg font-semibold text-[var(--color-text-primary)]',
+      'text-lg leading-7 font-semibold text-text-primary',
       className,
     )}
     {...props}
@@ -169,10 +177,7 @@ export const AlertDialogDescription: React.FC<AlertDialogDescriptionProps> = ({
   children,
   ...props
 }) => (
-  <div
-    className={cn('text-sm text-[var(--color-text-secondary)]', className)}
-    {...props}
-  >
+  <div className={cn('text-sm text-text-secondary', className)} {...props}>
     {children}
   </div>
 )

@@ -4,6 +4,12 @@ import * as React from 'react'
 import * as ContextMenuPrimitive from '@radix-ui/react-context-menu'
 import { cn } from '@/lib/utils'
 import { useActivePortalTheme, usePortalContainer } from './portal-theme'
+import {
+  menuContentClass,
+  menuItemClass,
+  menuLabelClass,
+  menuSeparatorClass,
+} from './action-menu'
 
 const ContextMenu = ContextMenuPrimitive.Root
 const ContextMenuTrigger = ContextMenuPrimitive.Trigger
@@ -25,7 +31,8 @@ const ContextMenuContent = React.forwardRef<
         ref={ref}
         data-theme={theme}
         className={cn(
-          'z-50 min-w-[180px] rounded-radius-md border border-border-primary bg-surface-primary p-space-xs text-text-primary shadow-elevation-medium',
+          menuContentClass,
+          'max-h-[var(--radix-context-menu-content-available-height)]',
           className,
         )}
         {...props}
@@ -41,10 +48,7 @@ const ContextMenuItem = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <ContextMenuPrimitive.Item
     ref={ref}
-    className={cn(
-      'flex cursor-default items-center gap-space-sm rounded-radius-sm px-space-sm py-space-xs text-sm outline-hidden select-none focus:bg-surface-secondary data-[disabled]:pointer-events-none data-[disabled]:text-text-disabled',
-      className,
-    )}
+    className={cn(menuItemClass, className)}
     {...props}
   />
 ))
@@ -56,7 +60,7 @@ const ContextMenuSeparator = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <ContextMenuPrimitive.Separator
     ref={ref}
-    className={cn('my-space-xs h-px bg-border-primary', className)}
+    className={cn(menuSeparatorClass, className)}
     {...props}
   />
 ))
@@ -68,10 +72,7 @@ const ContextMenuLabel = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <ContextMenuPrimitive.Label
     ref={ref}
-    className={cn(
-      'px-space-sm py-space-xs text-xs font-medium text-text-secondary',
-      className,
-    )}
+    className={cn(menuLabelClass, className)}
     {...props}
   />
 ))
