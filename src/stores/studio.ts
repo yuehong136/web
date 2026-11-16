@@ -78,7 +78,8 @@ const initialState: StudioState = {
   filter: initialFilterState,
   page: 1,
   pageSize: 12,
-  viewMode: 'grid',
+  // Rows are the default collection layout; cards are opt-in.
+  viewMode: 'list',
   timeFormat: 'detailed',
   selectedIds: [],
   projectTypeModalOpen: false,
@@ -186,7 +187,7 @@ export const useStudioStore = create<StudioState & StudioActions>()(
 
     // 重置
     reset: () => set(initialState),
-  }))
+  })),
 )
 
 // ============ 选择器 ============

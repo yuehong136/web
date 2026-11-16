@@ -9,10 +9,6 @@ import { useStudioStore } from '@/stores/studio'
 import { changeLanguage } from '@/locales/i18n'
 import { DEFAULT_APPEARANCE, setAppearance } from '@/themes/appearance'
 import type { DialogApp } from '@/types/api'
-import {
-  chooseOption,
-  installRadixSelectDom,
-} from '@/components/ui/__tests__/helpers/radix-select'
 import { stubNativeDialog } from '@/components/ui/__tests__/native-dialog'
 const api = vi.hoisted(() => ({
   list: vi.fn(),
@@ -64,6 +60,28 @@ const button = (text: string, scope: ParentNode = document) =>
   [...scope.querySelectorAll<HTMLButtonElement>('button')].find(
     (element) => element.textContent === text,
   )!
+const labelled = (label: string) =>
+  container.querySelector<HTMLButtonElement>(`button[aria-label="${label}"]`)!
+/** Radix menus open from the keyboard in jsdom (no pointer events). */
+const openMenu = (trigger: HTMLElement) =>
+  act(async () => {
+    trigger.focus()
+    trigger.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }),
+    )
+  })
+const menuItem = (text: string) =>
+  [
+    ...document.querySelectorAll<HTMLElement>(
+      '[role="menuitem"], [role="menuitemcheckbox"], [role="menuitemradio"]',
+    ),
+  ].find((element) => element.textContent?.trim() === text)!
+const closeMenu = () =>
+  act(async () =>
+    document.activeElement!.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }),
+    ),
+  )
 async function render() {
   const router = createMemoryRouter(
     [
@@ -144,21 +162,20 @@ it('keeps selected IDs through status filters, view, appearance, and locale chan
       '[role="checkbox"][aria-label="Select Alpha"]',
     )!,
   )
-  await click(button('Filter'))
-  await click(document.getElementById('status-0')!)
+  expect(container.textContent).toContain('1 selected')
+  await openMenu(container.querySelector('[data-filter-key="status"]')!)
+  await click(menuItem('Draft'))
   expect(useStudioStore.getState().filter.status).toEqual(['0'])
+  expect(menuItem('Draft').getAttribute('aria-checked')).toBe('true')
   expect(container.textContent).not.toContain('Alpha')
   expect(useStudioStore.getState().selectedIds).toEqual(['one'])
-  await act(async () =>
-    document.dispatchEvent(
-      new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }),
-    ),
-  )
-  await click(
-    container.querySelector<HTMLButtonElement>(
-      'button[aria-label="List view"]',
-    )!,
-  )
+  await closeMenu()
+  expect(
+    container.querySelector('[data-filter-key="status"]')?.textContent,
+  ).toBe('StatusDraft')
+  await click(labelled('Grid view'))
+  expect(useStudioStore.getState().viewMode).toBe('grid')
+  await click(labelled('List view'))
   await act(async () => setAppearance({ preset: 'ocean', textScale: 1.25 }))
   await act(async () => changeLanguage('zh-CN'))
   expect(useStudioStore.getState().viewMode).toBe('list')
@@ -190,7 +207,11 @@ it('keeps the destructive confirmation and selection on failure, then clears onl
     new Error('sensitive-delete-detail'),
   )
   await render()
-  await click(button('Delete (1)'))
+  const toolbar = container.querySelector<HTMLElement>(
+    '[role="toolbar"][aria-label="Bulk actions"]',
+  )!
+  expect(toolbar.textContent).toContain('1 selected')
+  await click(button('Delete', toolbar))
   await click(button('Delete', document.querySelector('[role="alertdialog"]')!))
   await settle()
   expect(document.querySelector('[role="alertdialog"]')).not.toBeNull()
@@ -285,32 +306,52 @@ it('keeps the create-app draft on failure and through theme and locale changes',
 it('sorts current-page results and changes their time format through the shared controls', async () => {
   await render()
   const titles = () =>
-    [...container.querySelectorAll('h2 button')].map(
+    [...container.querySelectorAll('button[data-slot="resource-name"]')].map(
       (element) => element.textContent,
     )
+  const sortMenu = () =>
+    container.querySelector<HTMLElement>('[data-slot="filter-bar-sort"]')!
   expect(titles()).toEqual(['Beta', 'Alpha'])
-  await click(button('Newest first'))
+  expect(sortMenu().getAttribute('aria-label')).toBe('Sort: Newest first')
+  await openMenu(sortMenu())
+  await click(menuItem('Oldest first'))
   expect(titles()).toEqual(['Alpha', 'Beta'])
-  const trigger = container.querySelector<HTMLElement>(
-    'button[aria-label="Time display"]',
-  )!
-  const restoreDom = installRadixSelectDom()
-  try {
-    await chooseOption(trigger, 'Relative time')
-  } finally {
-    restoreDom()
-  }
+  await openMenu(sortMenu())
+  expect(menuItem('Detailed time').getAttribute('aria-checked')).toBe('true')
+  await click(menuItem('Relative time'))
   expect(useStudioStore.getState().timeFormat).toBe('relative')
+})
+it('opens an app from its name and keeps per-row actions in the menu', async () => {
+  const router = await render()
+  await openMenu(labelled('Actions for Alpha'))
+  expect(menuItem('Export template')).toBeTruthy()
+  await click(menuItem('Export template'))
+  expect(api.exportTemplates).toHaveBeenCalledWith(['one'])
+  await click(button('Beta', container))
+  expect(router.state.location.pathname).toBe('/studio/create-app')
+  expect(new URLSearchParams(router.state.location.search).get('id')).toBe(
+    'two',
+  )
 })
 it('uses real server page state and disables navigation after the last page', async () => {
   await render()
-  await click(button('Next'))
+  expect(container.textContent).toContain('1–12 / 20')
+  await click(labelled('Previous'))
+  expect(labelled('Previous').disabled).toBe(true)
+  await click(labelled('Next'))
   await settle()
   expect(api.list).toHaveBeenLastCalledWith(
     expect.objectContaining({ page: 2, page_size: 12 }),
   )
-  expect(button('Next').disabled).toBe(true)
-  expect(
-    container.querySelector('button[aria-current="page"]')?.textContent,
-  ).toBe('2')
+  expect(labelled('Next').disabled).toBe(true)
+  expect(container.textContent).toContain('13–20 / 20')
+})
+it('changes the server page size from the pager menu and returns to page one', async () => {
+  await render()
+  await openMenu(button('12 / page', container))
+  await click(menuItem('24 / page'))
+  await settle()
+  expect(api.list).toHaveBeenLastCalledWith(
+    expect.objectContaining({ page: 1, page_size: 24 }),
+  )
 })

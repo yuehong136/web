@@ -170,6 +170,43 @@ export default {
       pageSizePrefix: 'Items per page',
       pageSizeSuffix: 'items',
     },
+    // Collection, detail and settings building blocks (components/patterns)
+    patterns: {
+      select: 'Select {{name}}',
+      breadcrumb: 'Breadcrumb',
+      view: {
+        label: 'View',
+        list: 'List view',
+        grid: 'Grid view',
+      },
+      filterBar: {
+        sort: 'Sort',
+        clearFilters: 'Clear filters',
+        clearFilter: 'Clear',
+        moreValues: '{{value}} +{{count}}',
+      },
+      pager: {
+        label: 'Pagination',
+        range: '{{start}}–{{end}} / {{total}}',
+        perPage: '{{count}} / page',
+        loaded: '{{loaded}} of {{total}} loaded',
+        allLoaded: 'All {{count}} loaded',
+        loadMore: 'Load more',
+      },
+      bulk: {
+        label: 'Bulk actions',
+        selected: '{{count}} selected',
+        clear: 'Clear selection',
+      },
+      table: {
+        actions: 'Actions',
+        selectAll: 'Select all rows on this page',
+      },
+      inspector: {
+        close: 'Close details',
+        resize: 'Resize details panel',
+      },
+    },
 
     // API error messages
     errors: {

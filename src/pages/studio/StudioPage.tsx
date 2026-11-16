@@ -1,9 +1,8 @@
 import { useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Download, Plus, Search, Trash2, Upload, X } from 'lucide-react'
+import { Download, Plus, Trash2, Upload } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -13,18 +12,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { FilterPopover } from '@/components/ui/filter-popover'
-import { ListPageTemplate } from '@/components/page-templates'
+import { CollectionTemplate } from '@/components/page-templates'
 import {
-  ListPagination,
+  BulkActionBar,
   PageErrorState,
   PageLoadingState,
+  Pager,
 } from '@/components/patterns'
-import { AssetListControls } from '@/components/patterns/asset-list-controls'
-import { AppCard, AppListView, AppEmptyState } from '@/components/studio'
+import { AppEmptyState } from '@/components/studio'
 import { CreateProjectModal } from './components/CreateProjectModal'
 import { CreateAppModal } from './components/CreateAppModal'
 import { ImportTemplateDialog } from './components/ImportTemplateDialog'
+import { StudioAppList, StudioFilterBar } from './components/studio-app-list'
 import { useStudioStore } from '@/stores/studio'
 import {
   useFetchDialogList,
@@ -33,6 +32,8 @@ import {
 } from '@/hooks/use-dialog-apps'
 import { ROUTES } from '@/constants'
 import type { DialogApp } from '@/types/api'
+
+const PAGE_SIZES = [6, 12, 24, 48]
 
 export function StudioPage() {
   const { t } = useTranslation()
@@ -108,36 +109,17 @@ export function StudioPage() {
       },
     })
   }
-  const controls = (
-    <AssetListControls
-      view={store.viewMode}
-      onViewChange={store.setViewMode}
-      timeFormat={store.timeFormat}
-      onTimeFormatChange={store.setTimeFormat}
-      sortDescending={sortDesc}
-      onToggleSort={() => setSortDesc((value) => !value)}
-      labels={{
-        view: t('common.viewToggle'),
-        grid: t('studio.toolbar.gridView'),
-        list: t('studio.toolbar.listView'),
-        timeFormat: t('studio.toolbar.timeFormat'),
-        detailed: t('studio.toolbar.detailedTime'),
-        compact: t('studio.toolbar.compactTime'),
-        relative: t('studio.toolbar.relativeTime'),
-        newest: t('studio.toolbar.descending'),
-        oldest: t('studio.toolbar.ascending'),
-      }}
-    />
-  )
+  const selectedIds = store.selectedIds
+
   return (
     <>
-      <ListPageTemplate
+      <CollectionTemplate
         title={t('studio.page.title')}
-        description={t('studio.page.description')}
-        className="p-space-base md:p-space-lg"
-        headerActions={
-          <div className="flex flex-wrap gap-space-sm">
-            <Button variant="outline" onClick={() => setImportOpen(true)}>
+        count={data.total}
+        countLabel={t('studio.page.results', { count: data.total })}
+        actions={
+          <>
+            <Button variant="ghost" onClick={() => setImportOpen(true)}>
               <Upload className="size-icon-sm" aria-hidden="true" />
               {t('studio.page.import')}
             </Button>
@@ -145,38 +127,16 @@ export function StudioPage() {
               <Plus className="size-icon-sm" aria-hidden="true" />
               {t('studio.page.createProject')}
             </Button>
-          </div>
+          </>
         }
-        toolbarLeft={
-          <div className="flex min-w-0 flex-1 items-center gap-space-sm">
-            <Input
-              type="search"
-              aria-label={t('studio.filters.searchPlaceholder')}
-              placeholder={t('studio.filters.searchPlaceholder')}
-              value={searchString}
-              onChange={(event) => handleInputChange(event.target.value)}
-              leftIcon={<Search className="size-icon-sm" aria-hidden="true" />}
-            />
-            <FilterPopover
-              className="h-auto min-h-[var(--control-height-sm)]"
-              filters={[
-                {
-                  key: 'status',
-                  label: t('studio.filters.status'),
-                  options: [
-                    { value: '1', label: t('studio.filters.published') },
-                    { value: '0', label: t('studio.filters.draft') },
-                  ],
-                },
-              ]}
-              value={{ status: store.filter.status }}
-              onChange={(value) =>
-                store.setFilter({ status: value.status ?? [] })
-              }
-            />
-          </div>
+        filterBar={
+          <StudioFilterBar
+            search={searchString}
+            onSearchChange={handleInputChange}
+            sortDescending={sortDesc}
+            onSortDescendingChange={setSortDesc}
+          />
         }
-        toolbarRight={controls}
         state={state}
         loadingState={
           <PageLoadingState
@@ -201,94 +161,57 @@ export function StudioPage() {
             onReset={resetFilters}
           />
         }
-        pagination={
-          <ListPagination
-            total={data.total}
+        footerNote={t('studio.filters.pageScope')}
+        footer={
+          <Pager
             page={pagination.current}
             pageSize={pagination.pageSize}
+            total={data.total}
             onPageChange={(current) =>
               setPagination({ ...pagination, current })
             }
+            pageSizeOptions={PAGE_SIZES}
             onPageSizeChange={(pageSize) =>
               setPagination({ current: 1, pageSize })
             }
           />
         }
+        bulkActions={
+          selectedIds.length ? (
+            <BulkActionBar
+              count={selectedIds.length}
+              onClear={store.clearSelection}
+            >
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={exportApps.isPending}
+                onClick={() => exportApps.mutate(selectedIds)}
+              >
+                <Download className="size-icon-sm" aria-hidden="true" />
+                {t('common.export')}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-status-error"
+                disabled={deleteApps.isPending}
+                onClick={() => setDeletion({ ids: [...selectedIds] })}
+              >
+                <Trash2 className="size-icon-sm" aria-hidden="true" />
+                {t('common.delete')}
+              </Button>
+            </BulkActionBar>
+          ) : null
+        }
       >
-        <div className="mb-space-base flex flex-wrap items-center justify-between gap-space-sm text-sm text-text-secondary">
-          <p>{t('studio.page.results', { count: data.total })}</p>
-          <p className="text-xs">{t('studio.filters.pageScope')}</p>
-        </div>
-        {store.selectedIds.length > 0 && (
-          <section
-            aria-label={t('studio.page.selection')}
-            className="mb-space-base flex flex-wrap items-center gap-space-sm rounded-radius-lg border border-border-default bg-background-subtle p-space-sm"
-          >
-            <span className="mr-auto text-sm font-medium">
-              {t('studio.pagination.selected', {
-                count: store.selectedIds.length,
-              })}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={exportApps.isPending}
-              onClick={() => exportApps.mutate(store.selectedIds)}
-            >
-              <Download className="size-icon-sm" aria-hidden="true" />
-              {t('studio.page.exportSelected', {
-                count: store.selectedIds.length,
-              })}
-            </Button>
-            <Button
-              variant="destructive"
-              size="sm"
-              disabled={deleteApps.isPending}
-              onClick={() => setDeletion({ ids: [...store.selectedIds] })}
-            >
-              <Trash2 className="size-icon-sm" aria-hidden="true" />
-              {t('studio.page.deleteSelected', {
-                count: store.selectedIds.length,
-              })}
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              aria-label={t('studio.page.clearSelection')}
-              onClick={store.clearSelection}
-            >
-              <X className="size-icon-sm" aria-hidden="true" />
-            </Button>
-          </section>
-        )}
-        {store.viewMode === 'grid' ? (
-          <div className="grid grid-cols-1 gap-space-md md:grid-cols-2 xl:grid-cols-3">
-            {apps.map((app) => (
-              <AppCard
-                key={app.id}
-                data={app}
-                onEdit={editApp}
-                onDelete={deleteApp}
-                onExport={(app) => exportApps.mutate([app.id])}
-                selected={store.selectedIds.includes(app.id)}
-                onSelect={store.toggleSelect}
-                timeFormat={store.timeFormat}
-              />
-            ))}
-          </div>
-        ) : (
-          <AppListView
-            data={apps}
-            selectedIds={store.selectedIds}
-            onSelect={store.toggleSelect}
-            onSelectAll={store.selectAll}
-            onEdit={editApp}
-            onDelete={deleteApp}
-            onExport={(app) => exportApps.mutate([app.id])}
-            timeFormat={store.timeFormat}
-          />
-        )}
-      </ListPageTemplate>
+        <StudioAppList
+          apps={apps}
+          onEdit={editApp}
+          onDelete={deleteApp}
+          onExport={(app) => exportApps.mutate([app.id])}
+        />
+      </CollectionTemplate>
       <CreateProjectModal
         isOpen={store.projectTypeModalOpen}
         onClose={store.closeProjectTypeModal}

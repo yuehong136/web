@@ -1,23 +1,18 @@
 import { useTranslation } from 'react-i18next'
 import { Clock, Database } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
 import {
   formatRelativeTime,
   formatTimestampCompact,
   formatTimestampDetailed,
 } from '@/lib/utils'
+import type { TimeFormatType } from '@/stores/studio'
 import type { DialogApp } from '@/types/api'
-import type { TimeFormatType } from './AppCard'
 
 export function AppStatus({ status }: { status: string }) {
   const { t } = useTranslation()
   return (
-    <span
-      className={
-        status === '1'
-          ? 'rounded-radius-full bg-status-success-subtle px-space-sm py-space-2xs text-xs text-status-success'
-          : 'rounded-radius-full bg-background-subtle px-space-sm py-space-2xs text-xs text-text-secondary'
-      }
-    >
+    <Badge variant={status === '1' ? 'success' : 'secondary'}>
       {t(
         status === '1'
           ? 'studio.filters.published'
@@ -25,15 +20,19 @@ export function AppStatus({ status }: { status: string }) {
             ? 'studio.filters.draft'
             : 'studio.filters.unknown',
       )}
-    </span>
+    </Badge>
   )
 }
+
+/** Knowledge-base count and update time; `compact` fits a list row. */
 export function AppMetadata({
   app,
   timeFormat,
+  compact = false,
 }: {
   app: DialogApp
   timeFormat: TimeFormatType
+  compact?: boolean
 }) {
   const { t } = useTranslation()
   const timestamp = Number.isFinite(app.update_time)
@@ -48,23 +47,34 @@ export function AppMetadata({
           ? formatTimestampCompact
           : formatTimestampDetailed)(timestamp)
     : t('studio.card.noUpdateTime')
+  const knowledge = t('studio.card.knowledgeCount', {
+    count: app.kb_ids?.length ?? 0,
+  })
   return (
-    <div className="flex flex-wrap items-center gap-x-space-md gap-y-space-xs text-xs text-text-tertiary">
+    <>
       <span
         className="inline-flex items-center gap-space-xs"
-        aria-label={t('studio.card.knowledgeCount', {
-          count: app.kb_ids?.length ?? 0,
-        })}
+        title={compact ? knowledge : undefined}
       >
-        <Database className="size-icon-xs" aria-hidden="true" />
-        {t('studio.card.knowledgeCount', { count: app.kb_ids?.length ?? 0 })}
+        <Database className="size-icon-xs shrink-0" aria-hidden="true" />
+        {compact ? (
+          <>
+            <span className="sr-only">{knowledge}</span>
+            <span aria-hidden="true">{app.kb_ids?.length ?? 0}</span>
+          </>
+        ) : (
+          knowledge
+        )}
       </span>
       <span className="inline-flex min-w-0 items-center gap-space-xs">
         <Clock className="size-icon-xs shrink-0" aria-hidden="true" />
-        <time dateTime={valid ? new Date(timestamp).toISOString() : undefined}>
+        <time
+          className="truncate"
+          dateTime={valid ? new Date(timestamp).toISOString() : undefined}
+        >
           {formatted}
         </time>
       </span>
-    </div>
+    </>
   )
 }

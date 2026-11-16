@@ -1,10 +1,10 @@
 /**
- * 工作室组件统一导出
+ * 工作室列表的业务片段：行/卡片本身来自 patterns 的 ResourceRow / ResourceCard。
  */
 
-export { AppCard } from './AppCard'
-export type { TimeFormatType } from './AppCard'
+export { AppActions } from './app-actions'
+export type { AppActionProps } from './app-actions'
 
-export { AppListView } from './AppListView'
+export { AppMetadata, AppStatus } from './app-metadata'
 
 export { AppEmptyState } from './AppEmptyState'
