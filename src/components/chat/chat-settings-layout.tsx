@@ -19,8 +19,7 @@ export const SettingLabel: React.FC<{
 }> = ({ children, tooltip, htmlFor }) => (
   <Label
     htmlFor={htmlFor}
-    className="cursor-pointer text-sm font-medium"
-    style={{ color: 'var(--color-text-primary)' }}
+    className="cursor-pointer text-sm font-medium text-text-primary"
     title={tooltip}
   >
     {children}
@@ -51,14 +50,8 @@ export const ChatSettingsHeader: React.FC<{ onClose: () => void }> = ({
   const { t } = useTranslation()
 
   return (
-    <div
-      className="flex items-center justify-between p-4"
-      style={{ borderBottom: '1px solid var(--color-border-subtle)' }}
-    >
-      <h2
-        className="text-base font-medium"
-        style={{ color: 'var(--color-text-primary)' }}
-      >
+    <div className="flex items-center justify-between border-b border-border-subtle p-4">
+      <h2 className="text-base font-medium text-text-primary">
         {t('chat.settings.title')}
       </h2>
       <Button
@@ -68,10 +61,7 @@ export const ChatSettingsHeader: React.FC<{ onClose: () => void }> = ({
         className="h-8 w-8 p-0"
         aria-label={t('common.close')}
       >
-        <X
-          className="h-4 w-4"
-          style={{ color: 'var(--color-text-tertiary)' }}
-        />
+        <X className="h-4 w-4 text-text-tertiary" />
       </Button>
     </div>
   )
@@ -87,26 +77,9 @@ export const ChatSettingsSection: React.FC<{
   children: React.ReactNode
 }> = ({ title, open, onOpenChange, children }) => (
   <Collapsible open={open} onOpenChange={onOpenChange}>
-    <CollapsibleTrigger
-      className="flex w-full items-center justify-between px-4 py-3 transition-colors"
-      style={{
-        backgroundColor: 'transparent',
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.backgroundColor =
-          'var(--color-components-collapse-header-bg-hover)'
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.backgroundColor = 'transparent'
-      }}
-    >
-      <span
-        className="font-medium"
-        style={{ color: 'var(--color-text-primary)' }}
-      >
-        {title}
-      </span>
-      <span style={{ color: 'var(--color-text-tertiary)' }}>
+    <CollapsibleTrigger className="flex w-full items-center justify-between px-space-md py-space-base transition-colors hover:bg-components-collapse-header-bg-hover focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-state-focus">
+      <span className="font-medium text-text-primary">{title}</span>
+      <span className="text-text-tertiary">
         {open ? (
           <ChevronDown className="h-4 w-4" />
         ) : (

@@ -196,10 +196,7 @@ export const MetadataFilter: React.FC<MetadataFilterProps> = ({
     <div className="space-y-4">
       {/* 模式选择 */}
       <div className="space-y-2">
-        <Label
-          className="text-sm font-medium"
-          style={{ color: 'var(--color-text-primary)' }}
-        >
+        <Label className="text-sm font-medium text-text-primary">
           {t('knowledge.search.metadataFilter.label')}
         </Label>
         <Select
@@ -207,14 +204,7 @@ export const MetadataFilter: React.FC<MetadataFilterProps> = ({
           onValueChange={(v) => onModeChange(v as MetadataFilterMode)}
           disabled={disabled}
         >
-          <SelectTrigger
-            className="w-full"
-            style={{
-              backgroundColor: 'var(--color-components-input-bg)',
-              borderColor: 'var(--color-components-input-border)',
-              color: 'var(--color-components-input-text)',
-            }}
-          >
+          <SelectTrigger className="w-full">
             <SelectValue
               placeholder={t('knowledge.search.metadataFilter.selectMode')}
             />
@@ -299,10 +289,7 @@ export const MetadataFilter: React.FC<MetadataFilterProps> = ({
           {/* 逻辑操作符选择（当有多个条件时显示） */}
           {conditions.length > 1 && (
             <div className="flex items-center gap-2">
-              <span
-                className="text-sm"
-                style={{ color: 'var(--color-text-secondary)' }}
-              >
+              <span className="text-sm text-text-secondary">
                 {t('knowledge.search.metadataFilter.logic')}
               </span>
               <Select
@@ -310,14 +297,7 @@ export const MetadataFilter: React.FC<MetadataFilterProps> = ({
                 onValueChange={(v) => handleLogicChange(v as 'and' | 'or')}
                 disabled={disabled}
               >
-                <SelectTrigger
-                  className="w-24"
-                  style={{
-                    backgroundColor: 'var(--color-components-input-bg)',
-                    borderColor: 'var(--color-components-input-border)',
-                    color: 'var(--color-components-input-text)',
-                  }}
-                >
+                <SelectTrigger className="w-24">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -337,11 +317,7 @@ export const MetadataFilter: React.FC<MetadataFilterProps> = ({
             {conditions.map((condition, index) => (
               <div
                 key={index}
-                className="flex flex-col gap-2 rounded-lg p-3"
-                style={{
-                  backgroundColor: 'var(--color-background-subtle)',
-                  border: '1px solid var(--color-border-subtle)',
-                }}
+                className="flex flex-col gap-space-sm rounded-radius-lg border border-border-subtle bg-background-subtle p-space-base"
               >
                 {/* 字段名和删除按钮 */}
                 <div className="flex items-center gap-2">
@@ -353,14 +329,7 @@ export const MetadataFilter: React.FC<MetadataFilterProps> = ({
                       }
                       disabled={disabled}
                     >
-                      <SelectTrigger
-                        className="flex-1"
-                        style={{
-                          backgroundColor: 'var(--color-components-input-bg)',
-                          borderColor: 'var(--color-components-input-border)',
-                          color: 'var(--color-components-input-text)',
-                        }}
-                      >
+                      <SelectTrigger className="flex-1">
                         <SelectValue
                           placeholder={t(
                             'knowledge.search.metadataFilter.selectField',
@@ -386,11 +355,6 @@ export const MetadataFilter: React.FC<MetadataFilterProps> = ({
                       )}
                       disabled={disabled}
                       className="flex-1"
-                      style={{
-                        backgroundColor: 'var(--color-components-input-bg)',
-                        borderColor: 'var(--color-components-input-border)',
-                        color: 'var(--color-components-input-text)',
-                      }}
                     />
                   )}
                   <Button
@@ -400,10 +364,7 @@ export const MetadataFilter: React.FC<MetadataFilterProps> = ({
                     disabled={disabled}
                     className="h-8 w-8 p-0"
                   >
-                    <X
-                      className="h-4 w-4"
-                      style={{ color: 'var(--color-text-tertiary)' }}
-                    />
+                    <X className="h-4 w-4 text-text-tertiary" />
                   </Button>
                 </div>
 
@@ -415,14 +376,7 @@ export const MetadataFilter: React.FC<MetadataFilterProps> = ({
                   }
                   disabled={disabled}
                 >
-                  <SelectTrigger
-                    className="w-full"
-                    style={{
-                      backgroundColor: 'var(--color-components-input-bg)',
-                      borderColor: 'var(--color-components-input-border)',
-                      color: 'var(--color-components-input-text)',
-                    }}
-                  >
+                  <SelectTrigger className="w-full">
                     <SelectValue
                       placeholder={t(
                         'knowledge.search.metadataFilter.selectOperator',
@@ -449,11 +403,6 @@ export const MetadataFilter: React.FC<MetadataFilterProps> = ({
                       'knowledge.search.metadataFilter.inputValue',
                     )}
                     disabled={disabled}
-                    style={{
-                      backgroundColor: 'var(--color-components-input-bg)',
-                      borderColor: 'var(--color-components-input-border)',
-                      color: 'var(--color-components-input-text)',
-                    }}
                   />
                 )}
               </div>
@@ -467,10 +416,6 @@ export const MetadataFilter: React.FC<MetadataFilterProps> = ({
             onClick={() => handleAddCondition()}
             disabled={disabled}
             className="w-full"
-            style={{
-              borderColor: 'var(--color-border-default)',
-              color: 'var(--color-text-secondary)',
-            }}
           >
             <Plus className="mr-2 h-4 w-4" />
             {t('knowledge.search.metadataFilter.addCondition')}
