@@ -3,28 +3,25 @@ export default {
   title: 'Logs',
   description: 'View file processing and dataset operation logs.',
   stats: {
+    label: 'Ingestion summary',
     totalFiles: 'Total files',
     totalFilesTooltip: 'Total files in this knowledge base.',
     downloading: 'Downloading',
     downloadingTooltip: 'Files currently downloading.',
     processing: 'Processing',
-    processingTooltip: 'Files currently being processed or parsed.',
     success: 'Succeeded',
     failed: 'Failed',
     downloadSuccessTip: 'Files downloaded successfully.',
     downloadFailedTip: 'Files that failed to download.',
-    processSuccessTip: 'Files processed successfully.',
-    processFailedTip: 'Files that failed to process.',
   },
   tabs: {
+    label: 'Log type',
     fileLogs: 'File logs',
     datasetLogs: 'Dataset logs',
   },
   filter: {
     button: 'Filter',
     byStatus: 'Filter by status',
-    clear: 'Clear',
-    clearSearch: 'Clear search',
     searchPlaceholder: 'Search...',
   },
   status: {
@@ -41,8 +38,8 @@ export default {
     raptor: 'RAPTOR',
   },
   table: {
+    id: 'ID',
     empty: 'No data',
-    pagination: '{{total}} records, page {{page}} / {{totalPages}}',
     previous: 'Previous',
     next: 'Next',
     viewDetail: 'View details',
@@ -58,7 +55,6 @@ export default {
   detail: {
     fileTitle: 'File log details',
     datasetTitle: 'Dataset log details',
-    description: 'View detailed log information and processing progress.',
     fileName: 'File name',
     taskId: 'Task ID',
     source: 'Source',

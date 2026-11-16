@@ -1,6 +1,6 @@
 export { ResultPanel } from './result-panel'
 export { SearchPanel } from './search-panel'
-export { ResultPreviewModal } from './result-preview-modal'
+export { ResultPreview, useResultPreviewPanel } from './result-preview-panel'
 export { ConfigPanelSheet } from './config-panel'
 
 export type {

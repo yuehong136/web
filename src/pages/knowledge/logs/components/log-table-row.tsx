@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { Eye, MonitorUp, Network } from 'lucide-react'
+import { MonitorUp, Network, PanelRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { TableCell, TableRow } from '@/components/ui/table'
 import { Tooltip } from '@/components/ui/tooltip'
@@ -14,6 +14,7 @@ import { formatDate } from '../utils'
 import type { LogTableItem } from '../types'
 import { LogFileIcon } from './log-file-icon'
 import { EntityAvatar } from '@/components/patterns/entity-avatar'
+import { cn } from '@/lib/utils'
 
 // The built-in parser ("naive") and untitled runs read as the general pipeline.
 const pipelineAvatarName = (title?: string) =>
@@ -23,19 +24,31 @@ interface LogTableRowProps {
   item: LogTableItem
   activeTab: LogTabType
   onViewDetail: (item: LogTableItem) => void
+  /** Shown in the Inspector. */
+  active?: boolean
 }
+
+const CELL = 'px-space-base py-space-sm'
 
 export function LogTableRow({
   item,
   activeTab,
   onViewDetail,
+  active = false,
 }: LogTableRowProps) {
   const { t } = useTranslation()
   const isFileLogs = activeTab === LogTabType.FILE_LOGS
 
   return (
-    <TableRow className="group transition-colors hover:bg-background-subtle">
-      <TableCell>
+    <TableRow
+      aria-current={active || undefined}
+      onClick={(event) => {
+        if ((event.target as HTMLElement).closest('button, a')) return
+        onViewDetail(item)
+      }}
+      className={cn('cursor-pointer', active && 'bg-state-selected-bg')}
+    >
+      <TableCell className={cn(CELL, 'pl-space-md')}>
         <span className="font-mono text-xs whitespace-nowrap text-text-tertiary">
           {item.id || '-'}
         </span>
@@ -43,9 +56,9 @@ export function LogTableRow({
 
       {isFileLogs && (
         <>
-          <TableCell className="max-w-[240px]">
+          <TableCell className={cn(CELL, 'max-w-60')}>
             <Tooltip content={<span>{item.document_name}</span>}>
-              <div className="flex cursor-default items-center gap-2">
+              <div className="flex items-center gap-space-sm">
                 <LogFileIcon suffix={item.document_suffix} />
                 <span className="truncate text-sm text-text-primary">
                   {item.document_name || '-'}
@@ -53,21 +66,25 @@ export function LogTableRow({
               </div>
             </Tooltip>
           </TableCell>
-          <TableCell>
+          <TableCell className={CELL}>
             {!item.source_from ||
             item.source_from === 'local' ||
             item.source_from === '' ? (
-              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-state-focus-10">
-                <MonitorUp className="h-4 w-4 text-state-focus" />
-              </div>
+              <span className="inline-flex items-center gap-space-xs text-sm text-text-secondary">
+                <MonitorUp
+                  className="size-icon-sm text-text-tertiary"
+                  aria-hidden="true"
+                />
+                {t('knowledge.logs.detail.localUpload')}
+              </span>
             ) : (
               <span className="text-sm text-text-secondary capitalize">
                 {item.source_from}
               </span>
             )}
           </TableCell>
-          <TableCell>
-            <div className="flex items-center gap-2 whitespace-nowrap">
+          <TableCell className={CELL}>
+            <div className="flex items-center gap-space-sm whitespace-nowrap">
               <EntityAvatar
                 name={pipelineAvatarName(item.pipeline_title)}
                 size="xs"
@@ -83,12 +100,12 @@ export function LogTableRow({
         </>
       )}
 
-      <TableCell>
+      <TableCell className={CELL}>
         <span className="text-sm whitespace-nowrap text-text-secondary">
           {formatDate(item.process_begin_at || null)}
         </span>
       </TableCell>
-      <TableCell>
+      <TableCell className={CELL}>
         <span className="inline-flex items-center gap-space-sm text-sm whitespace-nowrap text-text-primary">
           {!isFileLogs &&
             (item.task_type === ProcessingType.KNOWLEDGE_GRAPH ||
@@ -103,23 +120,20 @@ export function LogTableRow({
             : formatDatasetTaskType(item.task_type, t)}
         </span>
       </TableCell>
-      <TableCell>
+      <TableCell className={CELL}>
         <FileStatusBadge status={item.operation_status as RunningStatus} />
       </TableCell>
-      <TableCell>
-        <div className="flex items-center gap-1">
-          <Tooltip content={t('knowledge.logs.table.viewDetail')}>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => onViewDetail(item)}
-              aria-label={t('knowledge.logs.table.viewDetail')}
-            >
-              <Eye className="h-4 w-4" />
-            </Button>
-          </Tooltip>
-        </div>
+      <TableCell className={cn(CELL, 'w-px px-space-sm')}>
+        <Tooltip content={t('knowledge.logs.table.viewDetail')}>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => onViewDetail(item)}
+            aria-label={t('knowledge.logs.table.viewDetail')}
+          >
+            <PanelRight className="size-icon-sm" aria-hidden="true" />
+          </Button>
+        </Tooltip>
       </TableCell>
     </TableRow>
   )

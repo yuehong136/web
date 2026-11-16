@@ -23,7 +23,7 @@ const FileStatusBadge: FC<FileStatusBadgeProps> = ({
   const { t } = useTranslation()
   const statusKey = status as RunningStatus
   const classes = StatusClassConfig[statusKey] || {
-    root: 'bg-state-neutral-10 text-text-secondary',
+    root: 'bg-background-subtle text-text-secondary',
     dot: 'bg-text-secondary',
   }
   const displayName =
@@ -36,21 +36,22 @@ const FileStatusBadge: FC<FileStatusBadgeProps> = ({
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-all duration-200',
+        'inline-flex items-center gap-space-xs rounded-radius-sm px-space-xs py-space-2xs text-xs leading-4 font-medium whitespace-nowrap',
         classes.root,
         className,
       )}
     >
       {showDot && (
         <span
+          aria-hidden="true"
           className={cn(
-            'h-1.5 w-1.5 shrink-0 rounded-full',
+            'size-1.5 shrink-0 rounded-radius-full',
             classes.dot,
             isRunning && 'animate-pulse',
           )}
         />
       )}
-      <span className="max-w-[80px] truncate">{displayName}</span>
+      <span className="max-w-24 truncate">{displayName}</span>
     </span>
   )
 }

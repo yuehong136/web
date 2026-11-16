@@ -45,9 +45,56 @@ export default {
       },
     },
     list: {
-      title: '知识库管理',
+      title: '知识库',
       description: '管理您的知识库，上传文档，配置检索参数',
       searchPlaceholder: '搜索知识库...',
+      results_one: '{{count}} 个知识库',
+      results_other: '{{count}} 个知识库',
+      loadingTitle: '正在加载知识库',
+      errorTitle: '知识库加载失败',
+      errorDescription: '请检查网络连接后重试。',
+      select: '选择 {{name}}',
+      selectPage: '选择本页全部知识库',
+      columns: {
+        visibility: '可见范围',
+        content: '内容与更新',
+      },
+      groupBy: {
+        label: '分组',
+        content: '按文档状态',
+        permission: '按可见范围',
+        none: '不分组',
+      },
+      groups: {
+        empty: '空知识库',
+        hasDocuments: '有文档',
+        me: '仅自己',
+        team: '团队',
+      },
+      pageStats: {
+        label: '本页统计',
+        knowledgeBases: '本页知识库',
+        documents: '本页文档',
+        chunks: '本页分块',
+      },
+      rowActions: {
+        open: '打开',
+        edit: '编辑名称和描述',
+        addDocuments: '添加文档',
+        addDocumentsTo: '向 {{name}} 添加文档',
+        searchTest: '检索测试',
+        searchTestFor: '检索测试：{{name}}',
+        more: '{{name}} 的更多操作',
+      },
+      deleteDialog: {
+        title: '删除知识库',
+        namedDescription:
+          '确定删除“{{name}}”吗？其中的文档和分块会一并删除，且无法恢复。',
+        bulkDescription_one:
+          '确定删除选中的 {{count}} 个知识库吗？其中的文档和分块会一并删除，且无法恢复。',
+        bulkDescription_other:
+          '确定删除选中的 {{count}} 个知识库吗？其中的文档和分块会一并删除，且无法恢复。',
+      },
       actions: {
         create: '创建知识库',
         delete: '删除',
@@ -95,11 +142,14 @@ export default {
         },
       },
       timeFormat: {
+        label: '时间格式',
         detailed: '详细时间',
         compact: '简洁时间',
         relative: '相对时间',
       },
       sort: {
+        updatedDesc: '最近更新优先',
+        updatedAsc: '最早更新优先',
         asc: '正序',
         desc: '倒序',
       },
@@ -108,6 +158,7 @@ export default {
         table: '表格视图',
       },
       empty: {
+        clearSearch: '清除搜索',
         title: '还没有知识库',
         description: '创建您的第一个知识库开始使用',
         filteredTitle: '未找到匹配的知识库',
@@ -172,10 +223,20 @@ export default {
         },
       },
     },
+    detail: {
+      errorTitle: '知识库加载失败',
+      errorDescription: '它可能已被删除，或你没有访问权限。',
+    },
     create: {
       title: '创建知识库',
       description: '创建一个新的知识库来管理和检索您的文档',
+      steps: {
+        label: '创建步骤',
+        details: '填写信息',
+        import: '添加文档',
+      },
       actions: {
+        createAndImport: '创建并添加文档',
         back: '返回',
         create: '创建',
         submit: '创建知识库',
@@ -582,6 +643,30 @@ export default {
       title: '文档',
       description: '管理知识库文档、解析任务和元数据。',
       searchPlaceholder: '搜索文档...',
+      loadingTitle: '正在加载文档',
+      errorTitle: '文档加载失败',
+      errorDescription: '请检查网络连接后重试。',
+      emptyFilteredTitle: '没有匹配的文档',
+      emptyFilteredDescription: '调整搜索词或筛选条件后再试。',
+      clearFilters: '清除筛选',
+      selectDocument: '选择 {{name}}',
+      configureParserFor: '更改 {{name}} 的解析方式（当前：{{parser}}）',
+      sort: {
+        newest: '最新上传优先',
+        oldest: '最早上传优先',
+        name: '按名称',
+        largest: '文件最大优先',
+      },
+      inspector: {
+        title: '文档详情',
+        chunksAndTokens: '{{chunks}} 个分块 · {{tokens}} Token',
+        editMetadata: '编辑',
+        parseLog: '解析日志',
+        noLog: '暂无解析日志',
+        rename: '重命名',
+        download: '下载',
+        delete: '删除',
+      },
       manageMetadata: '管理元数据',
       import: '导入文档',
       selectAll: '全选',
@@ -709,6 +794,7 @@ export default {
         actions: '操作',
       },
       filters: {
+        optionCount: '{{label}}（{{count}}）',
         system: '系统属性',
         fileType: '文件类型',
         taskStatus: '任务状态',
@@ -717,6 +803,7 @@ export default {
         statusFallback: '状态{{status}}',
       },
       taskStatus: {
+        runningPercent: '解析中 {{percent}}%',
         unstart: '未开始',
         running: '运行中',
         cancel: '已取消',
@@ -731,6 +818,10 @@ export default {
         none: '无',
       },
       actions: {
+        reparse: '重新解析',
+        viewChunks: '查看分块',
+        moreFor: '{{name}} 的更多操作',
+        withName: '{{action}}：{{name}}',
         viewDetail: '查看详情',
         startParse: '开始解析',
         stopTask: '停止当前任务',
@@ -887,6 +978,10 @@ export default {
       currentMode: '当前模式：{{mode}}',
       applyConfig: '应用配置',
       previewTitle: '内容预览',
+      resultId: 'ID: {{id}}',
+      beta: 'Beta',
+      scoresLabel: '相似度得分',
+      previewMode: '预览方式',
       raw: '原文',
       preview: '预览',
       charsCount: '字符数: {{count}}',
@@ -1055,8 +1150,9 @@ export default {
       emptyTitle: '暂无知识图谱数据',
       emptyDescription: '请先上传文档并运行 GraphRAG 生成知识图谱',
       stats: {
-        nodes: '{{count}} 节点',
-        edges: '{{count}} 关系',
+        label: '图谱规模',
+        nodesLabel: '节点',
+        edgesLabel: '关系',
       },
       controls: {
         zoomIn: '放大',
@@ -1167,7 +1263,6 @@ export default {
       tags: chunkTags,
       workspace: {
         source: '原文对照',
-        description: '检查切片内容与检索状态，点击正文展开阅读。',
         previewUnavailable:
           '暂时无法读取原文。可以重试，或关闭预览继续审阅切片。',
       },

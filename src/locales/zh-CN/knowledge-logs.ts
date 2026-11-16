@@ -3,28 +3,25 @@ export default {
   title: '日志管理',
   description: '查看文件处理和数据集操作的日志记录',
   stats: {
+    label: '入库概况',
     totalFiles: '总文件数',
     totalFilesTooltip: '知识库中的文件总数',
     downloading: '下载中',
     downloadingTooltip: '正在下载的文件数量',
     processing: '处理中',
-    processingTooltip: '正在处理（解析）的文件数量',
     success: '成功',
     failed: '失败',
     downloadSuccessTip: '下载成功的文件数',
     downloadFailedTip: '下载失败的文件数',
-    processSuccessTip: '处理成功的文件数',
-    processFailedTip: '处理失败的文件数',
   },
   tabs: {
+    label: '日志类型',
     fileLogs: '文件日志',
     datasetLogs: '数据集日志',
   },
   filter: {
     button: '筛选',
     byStatus: '按状态筛选',
-    clear: '清除',
-    clearSearch: '清除搜索',
     searchPlaceholder: '搜索...',
   },
   status: {
@@ -41,8 +38,8 @@ export default {
     raptor: 'RAPTOR',
   },
   table: {
+    id: 'ID',
     empty: '暂无数据',
-    pagination: '共 {{total}} 条记录，第 {{page}} / {{totalPages}} 页',
     previous: '上一页',
     next: '下一页',
     viewDetail: '查看详情',
@@ -58,7 +55,6 @@ export default {
   detail: {
     fileTitle: '文件日志详情',
     datasetTitle: '数据集日志详情',
-    description: '查看日志的详细信息和处理进度',
     fileName: '文件名',
     taskId: '任务ID',
     source: '来源',

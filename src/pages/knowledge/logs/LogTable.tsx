@@ -6,9 +6,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { cn } from '@/lib/utils'
 import { LogTabType } from './constants'
-import type { LogTableItem, PaginationState } from './types'
-import { LogTablePagination } from './components/log-table-pagination'
+import type { LogTableItem } from './types'
 import { LogTableRow } from './components/log-table-row'
 import {
   LogTableEmptyState,
@@ -19,18 +19,18 @@ interface LogTableProps {
   data: LogTableItem[]
   isLoading?: boolean
   activeTab: LogTabType
-  pagination: PaginationState
-  onPaginationChange: (page: number, pageSize?: number) => void
   onViewDetail: (item: LogTableItem) => void
+  /** The log shown in the Inspector. */
+  activeId?: string
 }
 
+/** File or dataset log rows; the page footer owns the pager. */
 export function LogTable({
   data,
   isLoading,
   activeTab,
-  pagination,
-  onPaginationChange,
   onViewDetail,
+  activeId,
 }: LogTableProps) {
   const { t } = useTranslation()
   const isFileLogs = activeTab === LogTabType.FILE_LOGS
@@ -43,63 +43,54 @@ export function LogTable({
     return <LogTableEmptyState />
   }
 
+  const head = 'h-auto px-space-base py-space-xs whitespace-nowrap'
   return (
-    <div className="space-y-4">
-      <div className="rounded-radius-lg overflow-hidden border border-border-default">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-background-subtle">
-              <TableHead className="whitespace-nowrap font-medium text-text-secondary">
-                ID
+    <Table aria-label={t(`knowledge.logs.tabs.${activeTab}`)}>
+      <TableHeader className="sticky top-0 z-10 bg-background-surface">
+        <TableRow className="hover:bg-transparent">
+          <TableHead className={cn(head, 'pl-space-md')}>
+            {t('knowledge.logs.table.id')}
+          </TableHead>
+          {isFileLogs && (
+            <>
+              <TableHead className={head}>
+                {t('knowledge.logs.table.fileName')}
               </TableHead>
-              {isFileLogs && (
-                <>
-                  <TableHead className="font-medium text-text-secondary">
-                    {t('knowledge.logs.table.fileName')}
-                  </TableHead>
-                  <TableHead className="whitespace-nowrap font-medium text-text-secondary">
-                    {t('knowledge.logs.table.source')}
-                  </TableHead>
-                  <TableHead className="whitespace-nowrap font-medium text-text-secondary">
-                    {t('knowledge.logs.table.pipeline')}
-                  </TableHead>
-                </>
-              )}
-              <TableHead className="whitespace-nowrap font-medium text-text-secondary">
-                {t('knowledge.logs.table.startTime')}
+              <TableHead className={head}>
+                {t('knowledge.logs.table.source')}
               </TableHead>
-              <TableHead className="whitespace-nowrap font-medium text-text-secondary">
-                {isFileLogs
-                  ? t('knowledge.logs.table.taskType')
-                  : t('knowledge.logs.table.processingType')}
+              <TableHead className={head}>
+                {t('knowledge.logs.table.pipeline')}
               </TableHead>
-              <TableHead className="whitespace-nowrap font-medium text-text-secondary">
-                {t('knowledge.logs.table.status')}
-              </TableHead>
-              <TableHead className="whitespace-nowrap font-medium text-text-secondary">
-                {t('knowledge.logs.table.actions')}
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {data.map((item) => (
-              <LogTableRow
-                key={item.id}
-                item={item}
-                activeTab={activeTab}
-                onViewDetail={onViewDetail}
-              />
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-
-      <LogTablePagination
-        page={pagination.page}
-        pageSize={pagination.pageSize}
-        total={pagination.total}
-        onChange={onPaginationChange}
-      />
-    </div>
+            </>
+          )}
+          <TableHead className={head}>
+            {t('knowledge.logs.table.startTime')}
+          </TableHead>
+          <TableHead className={head}>
+            {isFileLogs
+              ? t('knowledge.logs.table.taskType')
+              : t('knowledge.logs.table.processingType')}
+          </TableHead>
+          <TableHead className={head}>
+            {t('knowledge.logs.table.status')}
+          </TableHead>
+          <TableHead className={cn(head, 'w-px')}>
+            <span className="sr-only">{t('knowledge.logs.table.actions')}</span>
+          </TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {data.map((item) => (
+          <LogTableRow
+            key={item.id}
+            item={item}
+            activeTab={activeTab}
+            onViewDetail={onViewDetail}
+            active={item.id === activeId}
+          />
+        ))}
+      </TableBody>
+    </Table>
   )
 }

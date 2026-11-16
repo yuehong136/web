@@ -1,9 +1,10 @@
-import { FileText, Info, PanelsLeftBottom, Plus } from 'lucide-react'
+import { Info, PanelsLeftBottom, Plus } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
-import { ConsolePageTemplate } from '@/components/page-templates'
-import { PageHeader } from '@/components/patterns'
+import { DetailTemplate } from '@/components/page-templates'
 import { Button, Tooltip } from '@/components/ui'
+import { ROUTES } from '@/constants'
+import { useFetchKnowledgeDetail } from '@/hooks/use-knowledge-request'
 import { ChunkEditOverlay } from './document-chunks/components/chunk-edit-overlay'
 import { ChunkList } from './document-chunks/components/chunk-list'
 import { ChunkModals } from './document-chunks/components/chunk-modals'
@@ -25,6 +26,8 @@ const DocumentChunksPage = () => {
 
 const DocumentChunksContent = () => {
   const { t } = useTranslation()
+  const { id } = useParams<{ id: string }>()
+  const { knowledgeBase } = useFetchKnowledgeDetail(id)
   const panel = useChunkPanelLayout()
   const c = useDocumentChunksController()
   const { list, selection, addForm, editForm, metaForm, deleteState } = c
@@ -39,55 +42,52 @@ const DocumentChunksContent = () => {
   }
 
   return (
-    <ConsolePageTemplate
-      bodyOverflow="hidden"
+    <DetailTemplate
       className="w-full min-w-0"
-      header={
-        <PageHeader
-          compact
-          wrapActions
-          surface="elevated"
-          titleSize="md"
-          leading={<FileText className="size-icon-lg text-text-secondary" />}
-          title={
-            <span className="block truncate" title={list.docInfo?.name}>
-              {list.docInfo?.name || t('knowledge.nav.documentFallback')}
-            </span>
-          }
-          description={t('knowledge.chunks.workspace.description')}
-          actions={
-            <div className="flex flex-wrap items-center gap-space-xs">
-              <Button
-                variant={panel.isPreviewPanelOpen ? 'secondary' : 'ghost'}
-                size="sm"
-                onClick={panel.togglePreview}
-                aria-pressed={panel.isPreviewPanelOpen}
-                disabled={!list.docInfo}
-              >
-                <PanelsLeftBottom className="size-icon-sm" />
-                {t('knowledge.chunks.workspace.source')}
-              </Button>
-              <Tooltip content={t('knowledge.chunks.info.title')}>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={panel.openInfo}
-                  aria-label={t('knowledge.chunks.info.title')}
-                  disabled={!list.docInfo || Boolean(list.error)}
-                >
-                  <Info className="size-icon-sm" />
-                  <span className="hidden sm:inline">
-                    {t('knowledge.chunks.info.title')}
-                  </span>
-                </Button>
-              </Tooltip>
-              <Button size="sm" onClick={addForm.open} disabled={disabled}>
-                <Plus className="size-icon-sm" />
-                {t('knowledge.chunks.toolbar.addChunk')}
-              </Button>
-            </div>
-          }
-        />
+      bodyScroll="none"
+      crumbs={[
+        { label: t('knowledge.nav.knowledge'), to: ROUTES.KNOWLEDGE },
+        {
+          label: knowledgeBase?.name || t('knowledge.nav.documentFallback'),
+          to: `${ROUTES.KNOWLEDGE}/${id}/documents`,
+        },
+      ]}
+      title={
+        <span title={list.docInfo?.name}>
+          {list.docInfo?.name || t('knowledge.nav.documentFallback')}
+        </span>
+      }
+      actions={
+        <>
+          <Button
+            variant={panel.isPreviewPanelOpen ? 'secondary' : 'ghost'}
+            size="sm"
+            onClick={panel.togglePreview}
+            aria-pressed={panel.isPreviewPanelOpen}
+            disabled={!list.docInfo}
+          >
+            <PanelsLeftBottom className="size-icon-sm" aria-hidden="true" />
+            {t('knowledge.chunks.workspace.source')}
+          </Button>
+          <Tooltip content={t('knowledge.chunks.info.title')}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={panel.openInfo}
+              aria-label={t('knowledge.chunks.info.title')}
+              disabled={!list.docInfo || Boolean(list.error)}
+            >
+              <Info className="size-icon-sm" aria-hidden="true" />
+              <span className="hidden sm:inline">
+                {t('knowledge.chunks.info.title')}
+              </span>
+            </Button>
+          </Tooltip>
+          <Button size="sm" onClick={addForm.open} disabled={disabled}>
+            <Plus className="size-icon-sm" aria-hidden="true" />
+            {t('knowledge.chunks.toolbar.addChunk')}
+          </Button>
+        </>
       }
     >
       <DocumentChunksWorkspace
@@ -225,7 +225,7 @@ const DocumentChunksContent = () => {
         previewImageId={c.previewImageId}
         onPreviewImageClose={() => c.setPreviewImageId(null)}
       />
-    </ConsolePageTemplate>
+    </DetailTemplate>
   )
 }
 

@@ -2,12 +2,16 @@ import { useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { ListPageTemplate } from '@/components/page-templates'
+import { Pager } from '@/components/patterns'
+import { cn } from '@/lib/utils'
+import { KnowledgeSectionTemplate } from '../components/knowledge-section-template'
+import { SectionFooter } from '../components/section-footer'
 import { LogStatsCards } from './LogStatsCards'
 import { LogTabFilter } from './LogTabFilter'
 import { LogTable } from './LogTable'
 import { LogLoadError } from './components/log-load-error'
-import { LogDetailModal } from './LogDetailModal'
+import { useLogInspectorPanel } from './components/log-inspector'
+import { PAGE_SIZE_OPTIONS } from './constants'
 import { useKnowledgeLogsController } from './hooks'
 
 export function KnowledgeLogsPage() {
@@ -26,32 +30,34 @@ function KnowledgeLogsContent() {
     detailModal,
     handleRefresh,
   } = useKnowledgeLogsController()
+  const inspector = useLogInspectorPanel(detailModal)
+  const { pagination } = currentLogs
 
   return (
-    <ListPageTemplate
+    <KnowledgeSectionTemplate
       title={t('knowledge.logs.title')}
-      description={t('knowledge.logs.description')}
-      headerActions={
+      subline={
+        stats.error ? null : (
+          <LogStatsCards summary={stats.data} isLoading={stats.isLoading} />
+        )
+      }
+      actions={
         <Button
-          variant="outline"
-          size="sm"
+          variant="ghost"
           onClick={handleRefresh}
           disabled={currentLogs.isLoading}
-          className="gap-2"
         >
           <RefreshCw
-            className={`h-4 w-4 ${currentLogs.isLoading ? 'animate-spin' : ''}`}
+            className={cn(
+              'size-icon-sm',
+              currentLogs.isLoading && 'animate-spin',
+            )}
+            aria-hidden="true"
           />
           {t('knowledge.common.refresh')}
         </Button>
       }
-    >
-      {stats.error ? (
-        <LogLoadError onRetry={stats.refetch} />
-      ) : (
-        <LogStatsCards summary={stats.data} isLoading={stats.isLoading} />
-      )}
-      <div className="rounded-radius-xl border border-components-console-border bg-components-console-surface p-space-lg">
+      toolbar={
         <LogTabFilter
           activeTab={activeTab}
           onTabChange={setActiveTab}
@@ -60,27 +66,47 @@ function KnowledgeLogsContent() {
           filterValue={currentLogs.filterValue}
           onFilterChange={currentLogs.handleFilterSubmit}
         />
-
-        {currentLogs.error ? (
-          <LogLoadError onRetry={currentLogs.refetch} />
-        ) : (
-          <LogTable
-            data={processedLogs}
-            isLoading={currentLogs.isLoading}
-            activeTab={activeTab}
-            pagination={currentLogs.pagination}
-            onPaginationChange={currentLogs.handlePaginationChange}
-            onViewDetail={detailModal.openDetail}
-          />
-        )}
-      </div>
-
-      <LogDetailModal
-        open={detailModal.open}
-        onClose={detailModal.closeDetail}
-        logInfo={detailModal.selectedLog}
-        activeTab={detailModal.activeTab}
-      />
-    </ListPageTemplate>
+      }
+      inspector={inspector}
+      bodyScroll="none"
+    >
+      {stats.error ? <LogLoadError onRetry={stats.refetch} /> : null}
+      {currentLogs.error ? (
+        <LogLoadError onRetry={currentLogs.refetch} />
+      ) : (
+        <>
+          <div
+            data-scroll-root="logs-body"
+            className="scroll-area min-h-0 flex-1 overflow-y-auto"
+          >
+            <LogTable
+              data={processedLogs}
+              isLoading={currentLogs.isLoading}
+              activeTab={activeTab}
+              onViewDetail={detailModal.openDetail}
+              activeId={
+                detailModal.open ? detailModal.selectedLog?.id : undefined
+              }
+            />
+          </div>
+          {pagination.total > 0 ? (
+            <SectionFooter>
+              <Pager
+                page={pagination.page}
+                pageSize={pagination.pageSize}
+                total={pagination.total}
+                onPageChange={(page) =>
+                  currentLogs.handlePaginationChange(page)
+                }
+                pageSizeOptions={PAGE_SIZE_OPTIONS}
+                onPageSizeChange={(pageSize) =>
+                  currentLogs.handlePaginationChange(1, pageSize)
+                }
+              />
+            </SectionFooter>
+          ) : null}
+        </>
+      )}
+    </KnowledgeSectionTemplate>
   )
 }

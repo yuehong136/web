@@ -50,6 +50,53 @@ export default {
       description:
         'Manage knowledge bases, upload documents, and tune retrieval.',
       searchPlaceholder: 'Search knowledge bases...',
+      results_one: '{{count}} knowledge base',
+      results_other: '{{count}} knowledge bases',
+      loadingTitle: 'Loading knowledge bases',
+      errorTitle: "Couldn't load knowledge bases",
+      errorDescription: 'Check your connection and try again.',
+      select: 'Select {{name}}',
+      selectPage: 'Select all knowledge bases on this page',
+      columns: {
+        visibility: 'Visibility',
+        content: 'Content and updates',
+      },
+      groupBy: {
+        label: 'Group',
+        content: 'By document status',
+        permission: 'By visibility',
+        none: 'No grouping',
+      },
+      groups: {
+        empty: 'Empty',
+        hasDocuments: 'Has documents',
+        me: 'Only me',
+        team: 'Team',
+      },
+      pageStats: {
+        label: 'This page',
+        knowledgeBases: 'Bases on this page',
+        documents: 'Documents on this page',
+        chunks: 'Chunks on this page',
+      },
+      rowActions: {
+        open: 'Open',
+        edit: 'Edit name and description',
+        addDocuments: 'Add documents',
+        addDocumentsTo: 'Add documents to {{name}}',
+        searchTest: 'Retrieval test',
+        searchTestFor: 'Retrieval test: {{name}}',
+        more: 'More actions for {{name}}',
+      },
+      deleteDialog: {
+        title: 'Delete knowledge base',
+        namedDescription:
+          'Delete "{{name}}"? Its documents and chunks are deleted too. This cannot be undone.',
+        bulkDescription_one:
+          'Delete the selected knowledge base? Its documents and chunks are deleted too. This cannot be undone.',
+        bulkDescription_other:
+          'Delete the {{count}} selected knowledge bases? Their documents and chunks are deleted too. This cannot be undone.',
+      },
       actions: {
         create: 'Create knowledge base',
         delete: 'Delete',
@@ -97,11 +144,14 @@ export default {
         },
       },
       timeFormat: {
+        label: 'Time format',
         detailed: 'Detailed',
         compact: 'Compact',
         relative: 'Relative',
       },
       sort: {
+        updatedDesc: 'Recently updated first',
+        updatedAsc: 'Least recently updated first',
         asc: 'Ascending',
         desc: 'Descending',
       },
@@ -110,6 +160,7 @@ export default {
         table: 'Table view',
       },
       empty: {
+        clearSearch: 'Clear search',
         title: 'No knowledge bases yet',
         description: 'Create your first knowledge base to get started.',
         filteredTitle: 'No matching knowledge bases',
@@ -180,10 +231,20 @@ export default {
         },
       },
     },
+    detail: {
+      errorTitle: "Couldn't load this knowledge base",
+      errorDescription: "It may have been deleted, or you don't have access.",
+    },
     create: {
       title: 'Create knowledge base',
       description: 'Create a knowledge base to manage and retrieve documents.',
+      steps: {
+        label: 'Steps',
+        details: 'Details',
+        import: 'Add documents',
+      },
       actions: {
+        createAndImport: 'Create and add documents',
         back: 'Back',
         create: 'Create',
         submit: 'Create knowledge base',
@@ -613,6 +674,31 @@ export default {
       title: 'Documents',
       description: 'Manage documents, parsing tasks, and metadata.',
       searchPlaceholder: 'Search documents...',
+      loadingTitle: 'Loading documents',
+      errorTitle: "Couldn't load documents",
+      errorDescription: 'Check your connection and try again.',
+      emptyFilteredTitle: 'No matching documents',
+      emptyFilteredDescription: 'Change the search or filters and try again.',
+      clearFilters: 'Clear filters',
+      selectDocument: 'Select {{name}}',
+      configureParserFor:
+        'Change the chunk method of {{name}} (currently {{parser}})',
+      sort: {
+        newest: 'Newest uploads first',
+        oldest: 'Oldest uploads first',
+        name: 'Name',
+        largest: 'Largest files first',
+      },
+      inspector: {
+        title: 'Document details',
+        chunksAndTokens: '{{chunks}} chunks · {{tokens}} tokens',
+        editMetadata: 'Edit',
+        parseLog: 'Parse log',
+        noLog: 'No parse log yet',
+        rename: 'Rename',
+        download: 'Download',
+        delete: 'Delete',
+      },
       manageMetadata: 'Manage metadata',
       import: 'Import documents',
       selectAll: 'Select all',
@@ -748,6 +834,7 @@ export default {
         actions: 'Actions',
       },
       filters: {
+        optionCount: '{{label}} ({{count}})',
         system: 'System fields',
         fileType: 'File type',
         taskStatus: 'Task status',
@@ -756,6 +843,7 @@ export default {
         statusFallback: 'Status {{status}}',
       },
       taskStatus: {
+        runningPercent: 'Parsing {{percent}}%',
         unstart: 'Not started',
         running: 'Running',
         cancel: 'Cancelled',
@@ -770,6 +858,10 @@ export default {
         none: 'None',
       },
       actions: {
+        reparse: 'Re-parse',
+        viewChunks: 'View chunks',
+        moreFor: 'More actions for {{name}}',
+        withName: '{{action}}: {{name}}',
         viewDetail: 'View details',
         startParse: 'Start parsing',
         stopTask: 'Stop current task',
@@ -936,6 +1028,10 @@ export default {
       currentMode: 'Current mode: {{mode}}',
       applyConfig: 'Apply',
       previewTitle: 'Content preview',
+      resultId: 'ID: {{id}}',
+      beta: 'Beta',
+      scoresLabel: 'Similarity scores',
+      previewMode: 'Preview mode',
       raw: 'Raw',
       preview: 'Preview',
       charsCount: 'Characters: {{count}}',
@@ -1118,8 +1214,9 @@ export default {
       emptyDescription:
         'Upload documents and run GraphRAG to generate a knowledge graph.',
       stats: {
-        nodes: '{{count}} nodes',
-        edges: '{{count}} relations',
+        label: 'Graph size',
+        nodesLabel: 'Nodes',
+        edgesLabel: 'Relations',
       },
       controls: {
         zoomIn: 'Zoom in',
@@ -1240,8 +1337,6 @@ export default {
       tags: chunkTags,
       workspace: {
         source: 'Source preview',
-        description:
-          'Review chunk content and retrieval status. Select the text to expand it.',
         previewUnavailable:
           'The source document is currently unavailable. Try again or close the preview to keep reviewing chunks.',
       },

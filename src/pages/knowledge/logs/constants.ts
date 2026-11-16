@@ -52,20 +52,20 @@ export const StatusClassConfig = {
     dot: 'bg-status-error',
   },
   [RunningStatus.RUNNING]: {
-    root: 'bg-state-focus-10 text-state-focus',
-    dot: 'bg-state-focus',
+    root: 'bg-status-info-subtle text-status-info',
+    dot: 'bg-status-info',
   },
   [RunningStatus.UNSTART]: {
     root: 'bg-status-warning-subtle text-status-warning',
     dot: 'bg-status-warning',
   },
   [RunningStatus.CANCEL]: {
-    root: 'bg-state-neutral-10 text-text-tertiary',
+    root: 'bg-background-subtle text-text-tertiary',
     dot: 'bg-text-tertiary',
   },
   [RunningStatus.SCHEDULE]: {
-    root: 'bg-state-focus-10 text-state-focus',
-    dot: 'bg-state-focus',
+    root: 'bg-status-info-subtle text-status-info',
+    dot: 'bg-status-info',
   },
 } as const
 
