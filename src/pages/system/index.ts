@@ -1,1 +1,1 @@
-export { SystemPage } from './SystemPage'
+export { SystemPage } from './system-status-page'
