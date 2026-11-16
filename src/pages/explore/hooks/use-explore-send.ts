@@ -88,11 +88,10 @@ export function useExploreSend({
       try {
         if (!conversationId && selectedApp) {
           try {
-            const created = await conversationAPI.setConversation({
-              dialog_id: selectedApp,
+            const created = await conversationAPI.createConversation(
+              selectedApp,
               name,
-              is_new: true,
-            })
+            )
             if (!run.isCurrent()) return
             if (typeof created?.id === 'string' && created.id) {
               conversationId = created.id
@@ -112,12 +111,11 @@ export function useExploreSend({
           selectedApp
         ) {
           try {
-            await conversationAPI.setConversation({
-              dialog_id: selectedApp,
-              conversation_id: conversation.activeConversationKey,
+            await conversationAPI.renameConversation(
+              selectedApp,
+              conversation.activeConversationKey,
               name,
-              is_new: false,
-            })
+            )
             if (!run.isCurrent()) return
             conversation.setSelectedConversationDetail((detail) =>
               detail ? { ...detail, name } : detail,
@@ -130,7 +128,7 @@ export function useExploreSend({
         if (!run.isCurrent()) return
         const signal = run.controller.signal
         let response: Response
-        if (conversationId) {
+        if (conversationId && selectedApp) {
           run.update({
             modelIdentity: {
               reference: appModelReference,
@@ -139,7 +137,10 @@ export function useExploreSend({
             },
           })
           const params: Parameters<typeof conversationAPI.completion>[0] = {
-            conversation_id: conversationId,
+            chat_id: selectedApp,
+            session_id: conversationId,
+            // 基于更早的消息重新生成时，以本地分支替换服务端历史
+            regenerate: Boolean(baseMessages),
             messages: updated.map((item, index) => ({
               role: item.role,
               content: item.content,

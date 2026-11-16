@@ -126,13 +126,14 @@ describe.each([
       ])
     } else {
       await conversationAPI.completion({
-        conversation_id: 'fixture-conversation',
+        chat_id: 'fixture-chat',
+        session_id: 'fixture-conversation',
         messages: [
           { role: 'user', content: 'fixture', files: hook.getUploadedFiles() },
         ],
       })
       expect(fetchRequest.mock.calls[0][0]).toMatch(
-        /\/v1\/conversation\/completion$/,
+        /\/api\/v1\/chat\/completions$/,
       )
       expect(
         JSON.parse(fetchRequest.mock.calls[0][1].body).messages[0].files,

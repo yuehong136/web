@@ -161,9 +161,11 @@ describe('Studio preview citations', () => {
       return null
     }
     vi.spyOn(toast, 'error').mockImplementation(() => 1)
-    vi.spyOn(conversationAPI, 'setConversation').mockResolvedValue({
+    vi.spyOn(conversationAPI, 'createConversation').mockResolvedValue({
       id: 'conversation-1',
-    } as Awaited<ReturnType<typeof conversationAPI.setConversation>>)
+      messages: [],
+      reference: [],
+    })
     vi.spyOn(conversationAPI, 'completion').mockResolvedValue(
       sse(
         { retcode: 0, data: { answer: '在五个基准上', reference: {} } },

@@ -2,7 +2,7 @@ import { act, useState } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { conversationAPI } from '@/api/conversation'
+import { conversationAPI, type ConversationSession } from '@/api/conversation'
 import { defaultChatSettings } from '@/components/chat/ChatSettingsPanel'
 import { useAuthStore } from '@/stores/auth'
 import { useExploreConversation } from '@/pages/explore/hooks/use-explore-conversation'
@@ -145,7 +145,7 @@ describe('Explore send lifecycle and ownership', () => {
   })
 
   it('identifies the actual fallback request when application conversation creation fails', async () => {
-    vi.spyOn(conversationAPI, 'setConversation').mockRejectedValue(
+    vi.spyOn(conversationAPI, 'createConversation').mockRejectedValue(
       new Error('fixture creation failure'),
     )
     selectedApp = 'app-A'
@@ -170,10 +170,56 @@ describe('Explore send lifecycle and ownership', () => {
     expect(conversationAPI.completion).not.toHaveBeenCalled()
   })
 
+  it('regenerating from earlier messages asks the server to replace the stored branch', async () => {
+    selectedApp = 'app-A'
+    vi.spyOn(conversationAPI, 'createConversation').mockResolvedValue({
+      id: 'saved-conversation',
+      messages: [],
+      reference: [],
+    })
+    const rename = vi
+      .spyOn(conversationAPI, 'renameConversation')
+      .mockResolvedValue({
+        id: 'saved-conversation',
+        messages: [],
+        reference: [],
+      })
+    await act(async () =>
+      root.render(
+        <QueryClientProvider client={client}>
+          <Probe />
+        </QueryClientProvider>,
+      ),
+    )
+    await act(async () => {
+      await send('First question')
+    })
+    await act(async () => {
+      await send('First question again', [])
+    })
+    expect(conversationAPI.createConversation).toHaveBeenCalledTimes(1)
+    expect(rename).toHaveBeenCalledWith(
+      'app-A',
+      'saved-conversation',
+      'First question again',
+    )
+    const request = vi.mocked(conversationAPI.completion).mock.calls.at(-1)![0]
+    expect(request).toMatchObject({
+      chat_id: 'app-A',
+      session_id: 'saved-conversation',
+      regenerate: true,
+    })
+    expect(request.messages.map((message) => message.content)).toEqual([
+      'First question again',
+    ])
+  })
+
   it('restores persisted turn identity after history navigation and keeps it on later saves', async () => {
     selectedApp = 'app-A'
-    vi.spyOn(conversationAPI, 'setConversation').mockResolvedValue({
+    vi.spyOn(conversationAPI, 'createConversation').mockResolvedValue({
       id: 'saved-conversation',
+      messages: [],
+      reference: [],
     })
     await act(async () =>
       root.render(
@@ -185,8 +231,17 @@ describe('Explore send lifecycle and ownership', () => {
     await act(async () => {
       await send('First question')
     })
-    const sent = vi.mocked(conversationAPI.completion).mock.calls.at(-1)![0]
-      .messages
+    const request = vi.mocked(conversationAPI.completion).mock.calls.at(-1)![0]
+    expect(conversationAPI.createConversation).toHaveBeenCalledWith(
+      'app-A',
+      'First question',
+    )
+    expect(request).toMatchObject({
+      chat_id: 'app-A',
+      session_id: 'saved-conversation',
+      regenerate: false,
+    })
+    const sent = request.messages
     const lastUser = sent.at(-1)!
     expect(lastUser.model_identity).toEqual({
       reference: 'app-model@OpenAI',
@@ -195,14 +250,15 @@ describe('Explore send lifecycle and ownership', () => {
     })
     vi.spyOn(conversationAPI, 'getConversationDetail').mockResolvedValue({
       id: 'saved-conversation',
-      message: [
+      messages: [
         ...sent,
         { role: 'assistant', id: lastUser.id, content: 'Saved answer' },
       ],
+      reference: [],
     })
     await act(async () => session.resetConversation('another'))
     await act(async () => {
-      await session.fetchConversationDetail('saved-conversation')
+      await session.fetchConversationDetail('app-A', 'saved-conversation')
     })
     expect(session.messages.at(-1)?.modelIdentity).toEqual(
       lastUser.model_identity,
@@ -231,6 +287,15 @@ describe('Explore send lifecycle and ownership', () => {
         vi.mocked(conversationAPI.chatServiceStream).mockResolvedValue(fixture)
       else {
         vi.mocked(conversationAPI.completion).mockResolvedValue(fixture)
+        // 应用会话总是属于某个应用
+        selectedApp = 'app-A'
+        await act(async () =>
+          root.render(
+            <QueryClientProvider client={client}>
+              <Probe />
+            </QueryClientProvider>,
+          ),
+        )
         await act(async () =>
           session.setSelectedConversationDetail({ id: 'current' }),
         )
@@ -310,8 +375,8 @@ describe('Explore send lifecycle and ownership', () => {
   })
 
   it('does not attach a late created conversation to the newly selected session', async () => {
-    const creation = deferred<{ id: string }>()
-    vi.spyOn(conversationAPI, 'setConversation').mockReturnValue(
+    const creation = deferred<ConversationSession>()
+    vi.spyOn(conversationAPI, 'createConversation').mockReturnValue(
       creation.promise,
     )
     selectedApp = 'app-A'
@@ -328,7 +393,7 @@ describe('Explore send lifecycle and ownership', () => {
     })
     await act(async () => session.resetConversation('B'))
     await act(async () => {
-      creation.resolve({ id: 'A' })
+      creation.resolve({ id: 'A', messages: [], reference: [] })
       await oldSend
     })
     expect(session.activeConversationKey).toBe('B')
@@ -340,8 +405,8 @@ describe('Explore send lifecycle and ownership', () => {
   })
 
   it('stopping during conversation creation records a local outcome and opens no stream', async () => {
-    const creation = deferred<{ id: string }>()
-    vi.spyOn(conversationAPI, 'setConversation').mockReturnValue(
+    const creation = deferred<ConversationSession>()
+    vi.spyOn(conversationAPI, 'createConversation').mockReturnValue(
       creation.promise,
     )
     selectedApp = 'app-A'
@@ -359,7 +424,7 @@ describe('Explore send lifecycle and ownership', () => {
     await act(async () => session.abortChat())
     expect(session.messages[1].runPhase).toBe('locallyStopped')
     await act(async () => {
-      creation.resolve({ id: 'A' })
+      creation.resolve({ id: 'A', messages: [], reference: [] })
       await oldSend
     })
     expect(conversationAPI.completion).not.toHaveBeenCalled()
@@ -398,26 +463,28 @@ describe('Explore send lifecycle and ownership', () => {
   })
 
   it('never shares a pending history query across identity changes even with the same conversation id', async () => {
-    const old = deferred<unknown>()
+    const old = deferred<ConversationSession>()
     const get = vi
       .spyOn(conversationAPI, 'getConversationDetail')
       .mockReturnValueOnce(old.promise)
       .mockResolvedValueOnce({
         id: 'same-id',
-        message: [{ role: 'assistant', content: 'Account B history' }],
+        messages: [{ role: 'assistant', content: 'Account B history' }],
+        reference: [],
       })
     let history!: Promise<void>
     await act(async () => {
-      history = session.fetchConversationDetail('same-id')
+      history = session.fetchConversationDetail('app-A', 'same-id')
     })
     await act(async () => useAuthStore.setState({ token: 'identity-B' }))
     await act(async () => {
-      await session.fetchConversationDetail('same-id')
+      await session.fetchConversationDetail('app-A', 'same-id')
     })
     await act(async () => {
       old.resolve({
         id: 'same-id',
-        message: [{ role: 'assistant', content: 'Account A history' }],
+        messages: [{ role: 'assistant', content: 'Account A history' }],
+        reference: [],
       })
       await history
     })

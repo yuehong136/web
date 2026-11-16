@@ -110,6 +110,14 @@ export const useHomeChat = ({
 
   // 是否是应用对话模式
   const isAppMode = !!selectedApp
+  const selectedAppId = selectedApp?.id
+  // 会话详情按应用读取；没有选中应用时没有可载入的历史
+  const loadAppHistory = useCallback(
+    async (id: string) => {
+      if (selectedAppId) await loadHistory(selectedAppId, id)
+    },
+    [loadHistory, selectedAppId],
+  )
 
   // 会话所属范围（身份 + 应用）与已同步的选中会话
   const syncedRef = useRef<HomeScopeSync | null>(null)
@@ -142,7 +150,7 @@ export const useHomeChat = ({
     localThreadIdRef: localThreadId,
     detachRequest,
     resetConversation,
-    loadHistory,
+    loadHistory: loadAppHistory,
   })
 
   // 接纳闸门保证同一时间只有一次发送；新请求接管前先收回残留的旧归属
@@ -270,7 +278,8 @@ export const useHomeChat = ({
 
         const response = await conversationAPI.completion(
           {
-            conversation_id: conversationId,
+            chat_id: selectedApp.id,
+            session_id: conversationId,
             messages: requestMessages,
             quote: true,
           },
@@ -502,7 +511,7 @@ export const useHomeChat = ({
         selectedConversationId &&
         selectedConversationId !== conversationIdRef.current
       ) {
-        if (!requestRef.current) void loadHistory(selectedConversationId)
+        if (!requestRef.current) void loadAppHistory(selectedConversationId)
         return false
       }
       return runSend(() =>
@@ -515,7 +524,7 @@ export const useHomeChat = ({
       selectedConversationId,
       isLoadingHistoryRef,
       conversationIdRef,
-      loadHistory,
+      loadAppHistory,
       sendAppMessage,
       sendMCPMessage,
       runSend,

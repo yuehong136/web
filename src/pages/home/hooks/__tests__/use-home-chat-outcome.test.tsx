@@ -132,7 +132,9 @@ beforeEach(async () => {
   await setProductLanguage('zh-CN')
   queryClient = new QueryClient()
   vi.spyOn(conversationAPI, 'getConversationDetail').mockResolvedValue({
-    message: [],
+    id: 'conversation-1',
+    messages: [],
+    reference: [],
   })
   vi.spyOn(toast, 'error').mockImplementation(() => 1)
   vi.spyOn(toast, 'warning').mockImplementation(() => 1)
@@ -287,8 +289,8 @@ it('keeps a business failure when the connection breaks after the error frame', 
 
 it('reports a failed conversation creation with fixed text only', async () => {
   await renderSurface({ ...appOptions, selectedConversationId: null })
-  const setConversation = vi
-    .spyOn(conversationAPI, 'setConversation')
+  const createConversation = vi
+    .spyOn(conversationAPI, 'createConversation')
     .mockRejectedValueOnce(new APIError(408, 'TIMEOUT', 'timeout secret'))
     .mockRejectedValueOnce(new Error('upstream secret'))
 
@@ -299,7 +301,7 @@ it('reports a failed conversation creation with fixed text only', async () => {
     i18n.t('home.history.createFailed'),
   )
 
-  expect(setConversation).toHaveBeenCalledTimes(2)
+  expect(createConversation).toHaveBeenCalledTimes(2)
   expect(chat.messages).toEqual([])
   expect(shown()).not.toMatch(/timeout secret|upstream secret/)
 })

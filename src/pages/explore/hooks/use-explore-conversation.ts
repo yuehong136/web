@@ -36,7 +36,7 @@ type ExploreRunUpdate = Partial<
 interface ConversationDetail {
   id?: string
   name?: string
-  message?: {
+  messages?: {
     role?: string
     model_identity?: unknown
     content?: string
@@ -165,7 +165,7 @@ export function useExploreConversation() {
   )
 
   const fetchConversationDetail = useCallback(
-    async (id: string) => {
+    async (dialogId: string, id: string) => {
       resetConversation(id)
       const isCurrent = captureSession()
       setIsLoadingConversation(true)
@@ -177,14 +177,14 @@ export function useExploreConversation() {
             historyScope,
             identityGeneration.current,
           ],
-          queryFn: () => conversationAPI.getConversationDetail(id),
+          queryFn: () => conversationAPI.getConversationDetail(dialogId, id),
           staleTime: 0,
         })
         if (!isCurrent() || (detail.id && detail.id !== id)) return
         setSelectedConversationDetail({ ...detail, id })
-        const identities = historyModelIdentities(detail.message ?? [])
+        const identities = historyModelIdentities(detail.messages ?? [])
         setMessages(
-          (detail.message ?? []).map((message, index) => ({
+          (detail.messages ?? []).map((message, index) => ({
             modelIdentity: identities[index],
             role: message.role === 'user' ? 'user' : 'assistant',
             content: message.content ?? '',

@@ -2,7 +2,8 @@ import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { conversationAPI } from '@/api/conversation'
+import { conversationAPI, type ConversationSession } from '@/api/conversation'
+import type { UploadedFileInfo } from '@/config/chat'
 import { useExploreConversation } from '../use-explore-conversation'
 
 function deferred<T>() {
@@ -52,37 +53,39 @@ describe('Explore conversation ownership', () => {
   it.each(['success', 'failure'] as const)(
     'ignores a late history %s after selecting another session',
     async (outcome) => {
-      const old = deferred<unknown>()
+      const old = deferred<ConversationSession>()
       vi.spyOn(conversationAPI, 'getConversationDetail').mockImplementation(
-        (id) =>
+        (_dialogId, id) =>
           id === 'A'
             ? old.promise
             : Promise.resolve({
                 id: 'B',
-                message: [
+                messages: [
                   { id: 'same-id', role: 'user', content: 'B', files: [] },
                 ],
+                reference: [],
               }),
       )
       let pending: Promise<void>
       await act(async () => {
-        pending = session.fetchConversationDetail('A')
+        pending = session.fetchConversationDetail('app', 'A')
       })
       await act(async () => {
-        await session.fetchConversationDetail('B')
+        await session.fetchConversationDetail('app', 'B')
       })
       await act(async () => {
         if (outcome === 'success')
           old.resolve({
             id: 'A',
-            message: [
+            messages: [
               {
                 id: 'same-id',
                 role: 'user',
                 content: 'A',
-                files: [{ id: 'private-A' }],
+                files: [{ id: 'private-A' } as UploadedFileInfo],
               },
             ],
+            reference: [],
           })
         else old.reject(new Error('old failure'))
         await pending
@@ -130,18 +133,21 @@ describe('Explore conversation ownership', () => {
     const get = vi.spyOn(conversationAPI, 'getConversationDetail')
     get.mockResolvedValueOnce({
       id: 'A',
-      message: [{ role: 'user', content: 'Q1', files: [file] }],
+      messages: [{ role: 'user', content: 'Q1', files: [file] }],
+      reference: [],
     })
     await act(async () => {
-      await session.fetchConversationDetail('A')
+      await session.fetchConversationDetail('app', 'A')
     })
+    expect(get).toHaveBeenLastCalledWith('app', 'A')
     expect(session.messages[0].files).toEqual([file])
     get.mockResolvedValueOnce({
       id: 'A',
-      message: [{ role: 'user', content: 'private A', files: [file] }],
+      messages: [{ role: 'user', content: 'private A', files: [file] }],
+      reference: [],
     })
     await act(async () => {
-      await session.fetchConversationDetail('B')
+      await session.fetchConversationDetail('app', 'B')
     })
     expect(session.messages).toEqual([])
     expect(session.selectedConversationDetail).toBeNull()

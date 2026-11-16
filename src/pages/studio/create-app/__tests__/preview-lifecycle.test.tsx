@@ -1,12 +1,18 @@
 import { act, useEffect } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { conversationAPI } from '@/api/conversation'
+import { conversationAPI, type ConversationSession } from '@/api/conversation'
 import { toast } from '@/lib/toast'
 import { setProductLanguage } from '@/locales/i18n'
 import { createInitialConfig } from '../constants'
 import { useCreateAppPreview } from '../hooks/use-create-app-preview'
 import type { AppConfig } from '../types'
+
+const session = (id: string): ConversationSession => ({
+  id,
+  messages: [],
+  reference: [],
+})
 
 function deferred<T>() {
   let resolve!: (value: T) => void
@@ -64,9 +70,9 @@ afterEach(async () => {
 
 describe('Studio preview request ownership', () => {
   it('locks sends while a conversation is being created', async () => {
-    const pending = deferred<{ id: string }>()
+    const pending = deferred<ConversationSession>()
     const create = vi
-      .spyOn(conversationAPI, 'setConversation')
+      .spyOn(conversationAPI, 'createConversation')
       .mockReturnValue(pending.promise)
     const complete = vi
       .spyOn(conversationAPI, 'completion')
@@ -82,7 +88,7 @@ describe('Studio preview request ownership', () => {
     expect(create).toHaveBeenCalledOnce()
     await act(async () => preview.setInputValue('next message draft'))
     await act(async () => {
-      pending.resolve({ id: 'conversation-1' })
+      pending.resolve(session('conversation-1'))
       await task
     })
     expect(complete).toHaveBeenCalledOnce()
@@ -90,8 +96,8 @@ describe('Studio preview request ownership', () => {
     expect(preview.inputValue).toBe('next message draft')
   })
   it('ignores a late conversation after stop and reset', async () => {
-    const pending = deferred<{ id: string }>()
-    vi.spyOn(conversationAPI, 'setConversation').mockReturnValue(
+    const pending = deferred<ConversationSession>()
+    vi.spyOn(conversationAPI, 'createConversation').mockReturnValue(
       pending.promise,
     )
     const complete = vi.spyOn(conversationAPI, 'completion')
@@ -103,7 +109,7 @@ describe('Studio preview request ownership', () => {
       preview.handleResetPreview()
     })
     await act(async () => {
-      pending.resolve({ id: 'late-conversation' })
+      pending.resolve(session('late-conversation'))
       await task
     })
     expect(complete).not.toHaveBeenCalled()
@@ -112,9 +118,9 @@ describe('Studio preview request ownership', () => {
     expect(preview.previewMessages).toHaveLength(1)
   })
   it('ignores a late completion after the conversation is reset', async () => {
-    vi.spyOn(conversationAPI, 'setConversation').mockResolvedValue({
-      id: 'conversation-1',
-    })
+    vi.spyOn(conversationAPI, 'createConversation').mockResolvedValue(
+      session('conversation-1'),
+    )
     const pending = deferred<Response>()
     vi.spyOn(conversationAPI, 'completion').mockReturnValue(pending.promise)
     await act(async () => root.render(<Harness />))
@@ -131,9 +137,9 @@ describe('Studio preview request ownership', () => {
     expect(preview.status).toBe('idle')
   })
   it('does not replace history when a new opener is saved', async () => {
-    vi.spyOn(conversationAPI, 'setConversation').mockResolvedValue({
-      id: 'conversation-1',
-    })
+    vi.spyOn(conversationAPI, 'createConversation').mockResolvedValue(
+      session('conversation-1'),
+    )
     vi.spyOn(conversationAPI, 'completion').mockResolvedValue(sse('answer'))
     await act(async () => root.render(<Harness />))
     await act(async () => preview.handleSendPreviewMessage('first'))
@@ -151,9 +157,9 @@ describe('Studio preview request ownership', () => {
     expect(preview.previewMessages[0].content).toBe('Different opener')
   })
   it('retains the model identity from sending when a different model is saved', async () => {
-    vi.spyOn(conversationAPI, 'setConversation').mockResolvedValue({
-      id: 'conversation-1',
-    })
+    vi.spyOn(conversationAPI, 'createConversation').mockResolvedValue(
+      session('conversation-1'),
+    )
     vi.spyOn(conversationAPI, 'completion').mockResolvedValue(sse('answer'))
     snapshot = { ...snapshot, llm_id: 'gpt-4.1@OpenAI' }
     await act(async () => root.render(<Harness />))
@@ -173,7 +179,7 @@ describe('Studio preview request ownership', () => {
     )
   })
   it('blocks unsaved configurations and stale sessions even for direct calls', async () => {
-    const create = vi.spyOn(conversationAPI, 'setConversation')
+    const create = vi.spyOn(conversationAPI, 'createConversation')
     await act(async () => root.render(<Harness canSend={false} />))
     await act(async () => preview.handleSendPreviewMessage('blocked'))
     expect(create).not.toHaveBeenCalled()
@@ -185,8 +191,8 @@ describe('Studio preview request ownership', () => {
   })
   it('does not reuse a session belonging to another application with identical settings', async () => {
     const create = vi
-      .spyOn(conversationAPI, 'setConversation')
-      .mockResolvedValue({ id: 'conversation-2' })
+      .spyOn(conversationAPI, 'createConversation')
+      .mockResolvedValue(session('conversation-2'))
     vi.spyOn(conversationAPI, 'completion').mockResolvedValue(sse('answer'))
     await act(async () => root.render(<Harness />))
     await act(async () => root.render(<Harness id="app-2" />))
@@ -194,14 +200,12 @@ describe('Studio preview request ownership', () => {
     expect(create).not.toHaveBeenCalled()
     await act(async () => preview.handleResetPreview())
     await act(async () => preview.handleSendPreviewMessage('new session'))
-    expect(create).toHaveBeenCalledWith(
-      expect.objectContaining({ dialog_id: 'app-2' }),
-    )
+    expect(create).toHaveBeenCalledWith('app-2', expect.any(String))
   })
   it('retries the last turn explicitly without duplicating the user message', async () => {
-    vi.spyOn(conversationAPI, 'setConversation').mockResolvedValue({
-      id: 'conversation-1',
-    })
+    vi.spyOn(conversationAPI, 'createConversation').mockResolvedValue(
+      session('conversation-1'),
+    )
     const complete = vi
       .spyOn(conversationAPI, 'completion')
       .mockRejectedValueOnce(new Error('private error'))
@@ -214,6 +218,13 @@ describe('Studio preview request ownership', () => {
       preview.previewMessages.filter((message) => message.role === 'user'),
     ).toHaveLength(1)
     expect(preview.previewMessages.at(-1)?.content).toBe('retry answer')
+    expect(complete.mock.calls[0][0]).toMatchObject({
+      chat_id: 'app-1',
+      session_id: 'conversation-1',
+      regenerate: false,
+    })
+    // 重试以本地分支替换服务端历史
+    expect(complete.mock.calls[1][0].regenerate).toBe(true)
     expect(complete.mock.calls[1][0].messages).toEqual([
       {
         role: 'user',

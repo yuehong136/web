@@ -19,8 +19,8 @@ export interface CreatedConversation {
 }
 
 const toChatMessages = (detail: unknown): ChatMessage[] => {
-  const { message: history, reference } =
-    (detail as { message?: unknown; reference?: unknown } | null) ?? {}
+  const { messages: history, reference } =
+    (detail as { messages?: unknown; reference?: unknown } | null) ?? {}
   if (!Array.isArray(history)) return []
   // 消息本身不带引用；只有能与会话级引用组一一对应时才挂上，否则正文保留原样
   const references = alignHistoryReferences(history, reference)
@@ -110,10 +110,13 @@ export function useHomeConversation() {
 
   /** Loads and shows a conversation unless a newer selection replaced it. */
   const load = useCallback(
-    async (id: string) => {
+    async (dialogId: string, id: string) => {
       const generation = begin(true)
       try {
-        const detail: unknown = await conversationAPI.getConversationDetail(id)
+        const detail: unknown = await conversationAPI.getConversationDetail(
+          dialogId,
+          id,
+        )
         if (generation === generationRef.current)
           show(id, toChatMessages(detail))
       } catch (error) {
@@ -138,11 +141,7 @@ export function useHomeConversation() {
     ): Promise<CreatedConversation | null> => {
       const generation = begin(true)
       try {
-        const created = await conversationAPI.setConversation({
-          dialog_id: dialogId,
-          name,
-          is_new: true,
-        })
+        const created = await conversationAPI.createConversation(dialogId, name)
         if (created?.id) {
           // 服务端已有这条会话：刷新侧栏列表，让标题和选中项对得上
           void queryClient.invalidateQueries({
@@ -152,11 +151,8 @@ export function useHomeConversation() {
         if (generation !== generationRef.current) return null
         if (!created?.id) throw new Error(t('home.history.createFailed'))
 
-        // 开场白尽力加载：失败时首条消息照常发送，只是不带开场白
-        const opening = await conversationAPI
-          .getConversationDetail(created.id)
-          .then(toChatMessages, () => [])
-        if (generation !== generationRef.current) return null
+        // 创建结果已带应用开场白，无需再读一次会话详情
+        const opening = toChatMessages(created)
         show(created.id, opening)
         return { id: created.id, messages: opening }
       } finally {

@@ -2,7 +2,7 @@ import { act, useEffect } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
-import { conversationAPI } from '@/api/conversation'
+import { conversationAPI, type ConversationSession } from '@/api/conversation'
 import { toast } from '@/lib/toast'
 import { setProductLanguage } from '@/locales/i18n'
 import type { DialogApp } from '@/types/api'
@@ -90,8 +90,10 @@ beforeEach(async () => {
   histories.clear()
   queryClient = new QueryClient()
   vi.spyOn(conversationAPI, 'getConversationDetail').mockImplementation(
-    async (conversationId: string) =>
-      histories.get(conversationId) ?? { message: [] },
+    async (_dialogId: string, conversationId: string) =>
+      (histories.get(conversationId) ?? {
+        messages: [],
+      }) as unknown as ConversationSession,
   )
   vi.spyOn(toast, 'error').mockImplementation(() => 1)
   vi.spyOn(toast, 'warning').mockImplementation(() => 1)
@@ -304,7 +306,7 @@ const shownReferences = () =>
 
 it('shows history references when every answer has its reference group', async () => {
   histories.set('conversation-2', {
-    message: [prologue, ...turn(1), ...turn(2)],
+    messages: [prologue, ...turn(1), ...turn(2)],
     reference: [
       { chunks: [chunk(0), chunk(1)], doc_aggs: [], total: 2 },
       { chunks: { '0': chunk(5) }, doc_aggs: [], total: 1 },
@@ -328,7 +330,7 @@ it('shows history references when every answer has its reference group', async (
 it('shows no history references when answers and reference groups disagree', async () => {
   // 第二轮停止过：回答被下一次请求写回，引用组没有追加
   histories.set('conversation-2', {
-    message: [prologue, ...turn(1), ...turn(2), ...turn(3)],
+    messages: [prologue, ...turn(1), ...turn(2), ...turn(3)],
     reference: [
       { chunks: [chunk(0)], doc_aggs: [], total: 1 },
       { chunks: [chunk(1)], doc_aggs: [], total: 1 },
@@ -347,7 +349,7 @@ it('shows no history references when answers and reference groups disagree', asy
 
 it('restores model attribution paired to the saved turn without borrowing another turn or current app', async () => {
   histories.set('identity-history', {
-    message: [
+    messages: [
       {
         role: 'user',
         id: 'saved-turn',

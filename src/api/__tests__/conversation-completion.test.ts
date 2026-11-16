@@ -11,7 +11,7 @@ test('read-aloud keeps audio decoding with the caller and supports request cance
   })
   let request: RequestInit | undefined
   globalThis.fetch = (async (input, init) => {
-    assert.equal(new URL(String(input)).pathname, '/v1/conversation/tts')
+    assert.equal(new URL(String(input)).pathname, '/api/v1/chat/audio/speech')
     request = init
     return response
   }) as typeof fetch
@@ -49,27 +49,34 @@ test('application completions request text-only deltas through authenticated tra
   }) as typeof fetch
   try {
     const result = await conversationAPI.completion({
-      conversation_id: 'conversation-1',
-      messages: [{ role: 'user', content: 'Question?' }],
+      chat_id: 'chat-1',
+      session_id: 'session-1',
+      messages: [
+        { role: 'user', content: 'Earlier?', id: 'turn-1' },
+        { role: 'assistant', content: 'Earlier answer', id: 'turn-1' },
+        { role: 'user', content: 'Question?', id: 'turn-2' },
+      ],
       quote: true,
     })
     assert.equal(result, response)
     assert.equal(result.bodyUsed, false)
-    assert.equal(calls[0].url.pathname, '/v1/conversation/completion')
+    assert.equal(calls[0].url.pathname, '/api/v1/chat/completions')
     const headers = new Headers(calls[0].init?.headers)
     assert.equal(headers.get('Authorization'), 'Bearer unit-token')
     assert.equal(headers.get('Accept'), 'text/event-stream')
+    // The server keeps the stored history; a normal send appends one question.
     assert.deepEqual(JSON.parse(String(calls[0].init?.body)), {
-      conversation_id: 'conversation-1',
-      messages: [{ role: 'user', content: 'Question?' }],
+      chat_id: 'chat-1',
+      session_id: 'session-1',
+      messages: [{ role: 'user', content: 'Question?', id: 'turn-2' }],
       quote: true,
       stream: true,
       filter_condition: '',
-      stream_output: 'delta',
       audio_output: 'none',
     })
     await conversationAPI.completion({
-      conversation_id: 'conversation-1',
+      chat_id: 'chat-1',
+      session_id: 'session-1',
       messages: [{ role: 'user', content: 'Read this' }],
       audio_output: 'configured',
     })
@@ -79,6 +86,47 @@ test('application completions request text-only deltas through authenticated tra
     )
   } finally {
     apiClient.setAuthToken(null)
+    globalThis.fetch = originalFetch
+  }
+})
+
+test('regenerating replaces the stored history and keeps reply references by turn id', async () => {
+  const originalFetch = globalThis.fetch
+  let body: unknown
+  globalThis.fetch = (async (_input, init) => {
+    body = JSON.parse(String(init?.body))
+    return new Response('data:{"code":0,"data":true}\n\n', {
+      headers: { 'content-type': 'text/event-stream' },
+    })
+  }) as typeof fetch
+  try {
+    await conversationAPI.completion({
+      chat_id: 'chat-1',
+      session_id: 'session-1',
+      regenerate: true,
+      messages: [
+        { role: 'assistant', content: 'Hello', id: 'prologue-local' },
+        { role: 'user', content: 'First?', id: 'turn-1' },
+        { role: 'assistant', content: 'First answer', id: 'msg-local' },
+        { role: 'user', content: 'Again?', id: ' turn-2 ' },
+      ],
+    })
+    assert.deepEqual(body, {
+      chat_id: 'chat-1',
+      session_id: 'session-1',
+      quote: false,
+      filter_condition: '',
+      audio_output: 'none',
+      stream: true,
+      pass_all_history_messages: true,
+      messages: [
+        { role: 'assistant', content: 'Hello' },
+        { role: 'user', content: 'First?', id: 'turn-1' },
+        { role: 'assistant', content: 'First answer', id: 'turn-1' },
+        { role: 'user', content: 'Again?', id: 'turn-2' },
+      ],
+    })
+  } finally {
     globalThis.fetch = originalFetch
   }
 })
@@ -96,7 +144,11 @@ test('application completions can be stopped before response headers arrive', as
     })) as typeof fetch
   try {
     const pending = conversationAPI.completion(
-      { conversation_id: 'conversation-1', messages: [] },
+      {
+        chat_id: 'chat-1',
+        session_id: 'session-1',
+        messages: [{ role: 'user', content: 'Question?' }],
+      },
       { signal: controller.signal },
     )
     controller.abort()
@@ -135,7 +187,11 @@ test(
     const received: unknown[] = []
     try {
       const stream = await conversationAPI.completion(
-        { conversation_id: 'conversation-1', messages: [] },
+        {
+          chat_id: 'chat-1',
+          session_id: 'session-1',
+          messages: [{ role: 'user', content: 'Question?' }],
+        },
         { signal: controller.signal },
       )
       const end = await readSSEStream(stream, {
@@ -156,3 +212,74 @@ test(
     }
   },
 )
+
+test('application sessions use the RESTful routes scoped to their app', async () => {
+  const originalFetch = globalThis.fetch
+  const calls: Array<{ method?: string; url: URL; body?: unknown }> = []
+  const session = {
+    id: 'session-1',
+    chat_id: 'chat 1',
+    name: 'Named',
+    update_time: 20,
+    messages: [{ role: 'assistant', content: 'Hello' }],
+    reference: [],
+  }
+  globalThis.fetch = (async (input, init) => {
+    const url = new URL(String(input))
+    calls.push({
+      method: init?.method,
+      url,
+      body: init?.body ? JSON.parse(String(init.body)) : undefined,
+    })
+    const data =
+      init?.method === 'GET' && url.pathname.endsWith('/sessions')
+        ? [session]
+        : init?.method === 'DELETE'
+          ? true
+          : session
+    return Response.json({ code: 0, data })
+  }) as typeof fetch
+  try {
+    assert.deepEqual(await conversationAPI.getConversationsByDialog('chat 1'), [
+      {
+        id: 'session-1',
+        name: 'Named',
+        update_time: 20,
+        update_date: undefined,
+        message_count: 1,
+      },
+    ])
+    assert.equal(
+      (await conversationAPI.getConversationDetail('chat 1', 'session-1'))
+        .messages[0].content,
+      'Hello',
+    )
+    await conversationAPI.createConversation('chat 1', 'New')
+    await conversationAPI.renameConversation('chat 1', 'session-1', 'Renamed')
+    await conversationAPI.removeConversations('chat 1', ['session-1'])
+    assert.deepEqual(
+      calls.map(({ method, url, body }) => [
+        method,
+        url.pathname + url.search,
+        body,
+      ]),
+      [
+        [
+          'GET',
+          '/api/v1/chats/chat%201/sessions?page=1&page_size=0&orderby=create_time&desc=true',
+          undefined,
+        ],
+        ['GET', '/api/v1/chats/chat%201/sessions/session-1', undefined],
+        ['POST', '/api/v1/chats/chat%201/sessions', { name: 'New' }],
+        [
+          'PATCH',
+          '/api/v1/chats/chat%201/sessions/session-1',
+          { name: 'Renamed' },
+        ],
+        ['DELETE', '/api/v1/chats/chat%201/sessions', { ids: ['session-1'] }],
+      ],
+    )
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+})

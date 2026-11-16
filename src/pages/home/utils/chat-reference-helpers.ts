@@ -4,8 +4,8 @@ import {
 } from '@/utils/reference-replacer'
 
 /**
- * Home 应用模式的引用：流式帧的合并与历史回答的对齐（MultiRAG 旧版
- * `/v1/conversation/completion` 与 `/v1/conversation/get`）。
+ * Home 应用模式的引用：流式帧的合并与历史回答的对齐（MultiRAG
+ * `/api/v1/chat/completions` 与 `/api/v1/chats/{chat_id}/sessions/{session_id}`）。
  *
  * 帧协议：增量帧 `final: false` 的 `reference` 经 structure_answer 后是
  * `{chunks: []}`，空数组表示这一帧没带引用；终帧 `final: true` 携带本轮的权威引用，

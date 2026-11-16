@@ -338,17 +338,16 @@ export const ExplorePage: FC = () => {
     const isCurrent = captureSession()
 
     try {
-      const newConversation = await conversationAPI.setConversation({
-        dialog_id: selectedApp,
-        name: t('explore.conversations.fallbackName'),
-        is_new: true,
-      })
+      const newConversation = await conversationAPI.createConversation(
+        selectedApp,
+        t('explore.conversations.fallbackName'),
+      )
 
       if (!isCurrent()) return
       refetchConversations()
       if (newConversation?.id) {
         clearUploadFiles()
-        void fetchConversationDetail(newConversation.id)
+        void fetchConversationDetail(selectedApp, newConversation.id)
       }
     } catch (error) {
       console.error('Failed to create conversation:', error)
@@ -362,12 +361,11 @@ export const ExplorePage: FC = () => {
     const isCurrent = captureSession()
 
     try {
-      await conversationAPI.setConversation({
-        dialog_id: selectedApp,
-        conversation_id: renamingConversationId,
-        name: newConversationName.trim(),
-        is_new: false,
-      })
+      await conversationAPI.renameConversation(
+        selectedApp,
+        renamingConversationId,
+        newConversationName.trim(),
+      )
 
       refetchConversations()
 
@@ -548,7 +546,7 @@ export const ExplorePage: FC = () => {
 
   const handleConversationSelect = (key?: string) => {
     clearUploadFiles()
-    if (key) void fetchConversationDetail(key)
+    if (key && selectedApp) void fetchConversationDetail(selectedApp, key)
     else resetConversation()
   }
 
@@ -565,7 +563,7 @@ export const ExplorePage: FC = () => {
   const handleDeleteConversation = async (conversationId: string) => {
     const isCurrent = captureSession()
     try {
-      await conversationAPI.removeConversation([conversationId])
+      await conversationAPI.removeConversations(selectedApp, [conversationId])
       refetchConversations()
       if (isCurrent() && activeConversationKey === conversationId) {
         resetConversation()

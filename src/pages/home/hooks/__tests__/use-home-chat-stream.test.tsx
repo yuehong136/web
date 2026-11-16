@@ -2,7 +2,11 @@ import { act, useEffect } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
-import { conversationAPI } from '@/api/conversation'
+import {
+  conversationAPI,
+  type ConversationSession,
+  type ConversationSessionMessage,
+} from '@/api/conversation'
 import { chatKeys } from '@/hooks/use-chat-request'
 import { createInitialAgentTimelineState } from '@/lib/streaming'
 import { toast } from '@/lib/toast'
@@ -59,8 +63,13 @@ const select = (
   options: Partial<ChatOptions> = {},
 ) => renderSurface({ ...defaultOptions, ...options, selectedConversationId })
 
+const session = (
+  id: string,
+  messages: ConversationSessionMessage[] = [],
+): ConversationSession => ({ id, messages, reference: [] })
+
 const historyOf = (...contents: string[]) => ({
-  message: contents.map((content, index) => ({
+  messages: contents.map((content, index) => ({
     id: `history-${content}`,
     role: index % 2 ? 'assistant' : 'user',
     content,
@@ -85,8 +94,9 @@ beforeEach(async () => {
   queryClient = new QueryClient()
   vi.mocked(streamMCPAgentChat).mockReset()
   vi.spyOn(conversationAPI, 'getConversationDetail').mockImplementation(
-    (conversationId: string) =>
-      histories.get(conversationId) ?? Promise.resolve({ message: [] }),
+    (_dialogId: string, conversationId: string) =>
+      (histories.get(conversationId) ??
+        Promise.resolve({ messages: [] })) as Promise<ConversationSession>,
   )
   vi.spyOn(toast, 'error').mockImplementation(() => 1)
   container = document.createElement('div')
@@ -163,9 +173,9 @@ it('accepts one send at a time and reopens once the answer settles', async () =>
 
 it('rejects a repeated send while a new conversation is still being created', async () => {
   await renderSurface({ ...defaultOptions, selectedConversationId: null })
-  const created = deferred<{ id: string }>()
-  const setConversation = vi
-    .spyOn(conversationAPI, 'setConversation')
+  const created = deferred<ConversationSession>()
+  const createConversation = vi
+    .spyOn(conversationAPI, 'createConversation')
     .mockReturnValue(created.promise)
   vi.spyOn(conversationAPI, 'completion').mockResolvedValue(
     sse({ retcode: 0, data: true }),
@@ -178,11 +188,11 @@ it('rejects a repeated send while a new conversation is still being created', as
   expect(chat.sendMessage('连续 Enter')).toBe(false)
 
   await act(async () => {
-    created.resolve({ id: 'conversation-new' })
+    created.resolve(session('conversation-new'))
     await first
   })
 
-  expect(setConversation).toHaveBeenCalledTimes(1)
+  expect(createConversation).toHaveBeenCalledTimes(1)
   expect(conversationAPI.completion).toHaveBeenCalledTimes(1)
 })
 
@@ -255,7 +265,7 @@ it('gives each history message its own id when a question and its answer share o
   histories.set(
     'conversation-a',
     Promise.resolve({
-      message: [
+      messages: [
         { id: 'turn-1', role: 'user', content: '问题' },
         { id: 'turn-1', role: 'assistant', content: '回答' },
       ],
@@ -282,31 +292,36 @@ it('starts a clean conversation when a new one is opened while history loads', a
   expect(chat.messages).toEqual([])
   expect(chat.currentConversationId).toBeNull()
 
-  vi.spyOn(conversationAPI, 'setConversation').mockResolvedValue({
-    id: 'conversation-new',
-  })
+  vi.spyOn(conversationAPI, 'createConversation').mockResolvedValue(
+    session('conversation-new'),
+  )
   const completion = vi
     .spyOn(conversationAPI, 'completion')
     .mockResolvedValue(sse(done))
   await act(async () => chat.sendMessage('新会话的问题'))
 
+  expect(conversationAPI.createConversation).toHaveBeenCalledWith(
+    'dialog-1',
+    '新会话的问题',
+  )
   expect(completion.mock.calls[0][0]).toMatchObject({
-    conversation_id: 'conversation-new',
+    chat_id: 'dialog-1',
+    session_id: 'conversation-new',
     messages: [{ role: 'user', content: '新会话的问题' }],
   })
 })
 
 it('clears the history spinner when creating the conversation fails', async () => {
   await select(null)
-  const setConversation = vi
-    .spyOn(conversationAPI, 'setConversation')
+  const createConversation = vi
+    .spyOn(conversationAPI, 'createConversation')
     .mockRejectedValueOnce(new Error('network down'))
   await act(async () => chat.sendMessage('第一条'))
 
   expect(chat.isLoadingHistory).toBe(false)
   expect(chat.isSendPending).toBe(false)
 
-  setConversation.mockResolvedValue({ id: 'conversation-new' })
+  createConversation.mockResolvedValue(session('conversation-new'))
   vi.spyOn(conversationAPI, 'completion').mockResolvedValue(sse(done))
   let retry: ReturnType<typeof chat.sendMessage> = false
   await act(async () => {
@@ -323,16 +338,11 @@ it('loads the opening of a new conversation and keeps streaming after adopting i
     onConversationIdChange: (id: string | null) => adopted.push(id),
   }
   await select(null, options)
-  vi.spyOn(conversationAPI, 'setConversation').mockResolvedValue({
-    id: 'conversation-new',
-  })
-  histories.set(
-    'conversation-new',
-    Promise.resolve({
-      message: [
-        { id: 'opening', role: 'assistant', content: '你好，我是助手' },
-      ],
-    }),
+  // 创建结果自带应用开场白，不再单独读取会话详情
+  vi.spyOn(conversationAPI, 'createConversation').mockResolvedValue(
+    session('conversation-new', [
+      { id: 'opening', role: 'assistant', content: '你好，我是助手' },
+    ]),
   )
   const stream = openStream()
   const completion = vi
@@ -370,8 +380,8 @@ it('loads the opening of a new conversation and keeps streaming after adopting i
   expect(
     vi
       .mocked(conversationAPI.getConversationDetail)
-      .mock.calls.map(([id]) => id),
-  ).toEqual(['conversation-1', 'conversation-new'])
+      .mock.calls.map(([dialogId, id]) => `${dialogId}/${id}`),
+  ).toEqual(['dialog-1/conversation-1'])
 })
 
 it('drops the answer of a conversation that was switched away mid-stream', async () => {
@@ -412,7 +422,7 @@ it('drops the answer of a conversation that was switched away mid-stream', async
   expect(toast.error).not.toHaveBeenCalled()
 
   await act(async () => chat.sendMessage('B 的追问'))
-  expect(completion.mock.calls[1][0].conversation_id).toBe('conversation-b')
+  expect(completion.mock.calls[1][0].session_id).toBe('conversation-b')
 })
 
 it('ignores a late error from a request whose conversation was switched away', async () => {
@@ -445,8 +455,10 @@ it('abandons a first send whose new conversation was replaced by another selecti
     onConversationIdChange: (id: string | null) => adopted.push(id),
   }
   await select(null, options)
-  const created = deferred<{ id: string }>()
-  vi.spyOn(conversationAPI, 'setConversation').mockReturnValue(created.promise)
+  const created = deferred<ConversationSession>()
+  vi.spyOn(conversationAPI, 'createConversation').mockReturnValue(
+    created.promise,
+  )
   const completion = vi.spyOn(conversationAPI, 'completion')
   const slowB = deferred<unknown>()
   histories.set('conversation-b', slowB.promise)
@@ -457,7 +469,7 @@ it('abandons a first send whose new conversation was replaced by another selecti
   })
   await select('conversation-b', options)
   await act(async () => {
-    created.resolve({ id: 'conversation-new' })
+    created.resolve(session('conversation-new'))
     await pending
   })
 
@@ -482,8 +494,10 @@ it('abandons a first send when the app changes while its conversation is created
     onConversationIdChange: (id: string | null) => adopted.push(id),
   }
   await select(null, options)
-  const created = deferred<{ id: string }>()
-  vi.spyOn(conversationAPI, 'setConversation').mockReturnValue(created.promise)
+  const created = deferred<ConversationSession>()
+  vi.spyOn(conversationAPI, 'createConversation').mockReturnValue(
+    created.promise,
+  )
   const completion = vi.spyOn(conversationAPI, 'completion')
 
   let pending: ReturnType<typeof chat.sendMessage> = false
@@ -493,7 +507,7 @@ it('abandons a first send when the app changes while its conversation is created
   const otherApp = { id: 'dialog-2', name: 'Other' } as DialogApp
   await select(null, { ...options, selectedApp: otherApp })
   await act(async () => {
-    created.resolve({ id: 'conversation-new' })
+    created.resolve(session('conversation-new'))
     await pending
   })
 
@@ -709,8 +723,10 @@ it('captures app bindings before conversation creation and never submits unrelat
     selectedModelId: 'unsent-model',
     selectedMCPIds: ['unsent-mcp'],
   })
-  const created = deferred<{ id: string }>()
-  vi.spyOn(conversationAPI, 'setConversation').mockReturnValue(created.promise)
+  const created = deferred<ConversationSession>()
+  vi.spyOn(conversationAPI, 'createConversation').mockReturnValue(
+    created.promise,
+  )
   const completion = vi
     .spyOn(conversationAPI, 'completion')
     .mockResolvedValue(sse(done))
@@ -721,7 +737,7 @@ it('captures app bindings before conversation creation and never submits unrelat
   boundApp.llm_id = 'changed-after-send'
   boundApp.kb_names[0] = 'Changed after send'
   await act(async () => {
-    created.resolve({ id: 'actual-thread' })
+    created.resolve(session('actual-thread'))
     await pending
   })
   const snapshot = chat.messages[0].contextManifest!
@@ -738,7 +754,8 @@ it('captures app bindings before conversation creation and never submits unrelat
     ['Bound knowledge', 'inherited'],
   ])
   expect(completion.mock.calls[0][0]).toEqual({
-    conversation_id: 'actual-thread',
+    chat_id: boundApp.id,
+    session_id: 'actual-thread',
     messages: [
       {
         role: 'user',

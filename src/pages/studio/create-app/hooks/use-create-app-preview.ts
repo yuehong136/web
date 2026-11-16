@@ -186,14 +186,13 @@ export function useCreateAppPreview(options: PreviewOptions) {
       try {
         let conversationId = conversationRef.current
         if (!conversationId) {
-          const conversation = await conversationAPI.setConversation({
-            dialog_id: dialogId,
-            name: t('studio.editor.preview'),
-            is_new: true,
-          })
+          const conversation = await conversationAPI.createConversation(
+            dialogId,
+            t('studio.editor.preview'),
+          )
           if (owner.current !== run) return
           if (!conversation?.id) throw new Error('missing-conversation')
-          conversationId = conversation.id as string
+          conversationId = conversation.id
           conversationRef.current = conversationId
           setPreviewConversationId(conversationId)
         }
@@ -220,7 +219,10 @@ export function useCreateAppPreview(options: PreviewOptions) {
         setRunDetails({ ...baseDetails, status: 'streaming' })
         const response = await conversationAPI.completion(
           {
-            conversation_id: conversationId!,
+            chat_id: dialogId,
+            session_id: conversationId!,
+            // 重试以本地分支替换服务端历史，避免同一问题被追加两次
+            regenerate: Boolean(historyOverride),
             messages: [
               ...history
                 .filter((message) => !message.id.startsWith('prologue-'))
@@ -236,7 +238,6 @@ export function useCreateAppPreview(options: PreviewOptions) {
               },
             ],
             quote: savedConfig.prompt_config.quote,
-            stream: true,
           },
           { signal: controller.signal },
         )
