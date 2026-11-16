@@ -111,7 +111,7 @@ test('native spacing, radius, elevation and responsive variants compile', async 
   assert.match(css, /border-radius: var\(--radius-lg\)/)
   // Elevation reads the theme's runtime level, so scoped themes get their own.
   assert.match(css, /--tw-shadow: var\(--elevation-low\)/)
-  assert.match(css, /--elevation-low: 0 1px 2px/)
+  assert.match(css, /--elevation-low: 0 1px 3px/)
   assert.match(css, /@media \(width >= 48rem\)/)
   assert.match(css, /@media \(hover: hover\)/)
 })

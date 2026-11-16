@@ -16,11 +16,10 @@
   --twc-border: 198 200 210;
 
   /* ===== 阴影层级 (Tailwind shadow-elevation-*) ===== */
-  --elevation-low: 0 1px 2px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.1);
+  --elevation-low: 0 1px 3px rgba(20, 22, 40, 0.04);
   --elevation-medium:
-    0 4px 8px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.06);
-  --elevation-high:
-    0 10px 20px rgba(0, 0, 0, 0.12), 0 6px 10px rgba(0, 0, 0, 0.08);
+    0 12px 40px rgba(20, 22, 40, 0.12), 0 0 0 1px rgba(20, 22, 40, 0.05);
+  --elevation-high: 0 24px 80px rgba(20, 22, 40, 0.18);
 
   /* ===== 文本系统 ===== */
   --color-text-caption: #6a6d79;
@@ -514,11 +513,10 @@ html[data-theme='light'],
   --twc-border: 212 212 216;
 
   /* ===== 阴影层级 (Tailwind shadow-elevation-*) ===== */
-  --elevation-low: 0 1px 2px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.1);
+  --elevation-low: 0 1px 3px rgba(20, 22, 40, 0.04);
   --elevation-medium:
-    0 4px 8px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.06);
-  --elevation-high:
-    0 10px 20px rgba(0, 0, 0, 0.12), 0 6px 10px rgba(0, 0, 0, 0.08);
+    0 12px 40px rgba(20, 22, 40, 0.12), 0 0 0 1px rgba(20, 22, 40, 0.05);
+  --elevation-high: 0 24px 80px rgba(20, 22, 40, 0.18);
 
   /* ===== 文本系统 ===== */
   --color-text-caption: #6c6c75;
@@ -1011,11 +1009,10 @@ html[data-theme='light'],
   --twc-border: 207 197 182;
 
   /* ===== 阴影层级 (Tailwind shadow-elevation-*) ===== */
-  --elevation-low: 0 1px 2px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.1);
+  --elevation-low: 0 1px 3px rgba(20, 22, 40, 0.04);
   --elevation-medium:
-    0 4px 8px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.06);
-  --elevation-high:
-    0 10px 20px rgba(0, 0, 0, 0.12), 0 6px 10px rgba(0, 0, 0, 0.08);
+    0 12px 40px rgba(20, 22, 40, 0.12), 0 0 0 1px rgba(20, 22, 40, 0.05);
+  --elevation-high: 0 24px 80px rgba(20, 22, 40, 0.18);
 
   /* ===== 文本系统 ===== */
   --color-text-caption: #6f6557;
@@ -1508,11 +1505,10 @@ html[data-theme='light'],
   --twc-border: 194 199 206;
 
   /* ===== 阴影层级 (Tailwind shadow-elevation-*) ===== */
-  --elevation-low: 0 1px 2px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.1);
+  --elevation-low: 0 1px 3px rgba(20, 22, 40, 0.04);
   --elevation-medium:
-    0 4px 8px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.06);
-  --elevation-high:
-    0 10px 20px rgba(0, 0, 0, 0.12), 0 6px 10px rgba(0, 0, 0, 0.08);
+    0 12px 40px rgba(20, 22, 40, 0.12), 0 0 0 1px rgba(20, 22, 40, 0.05);
+  --elevation-high: 0 24px 80px rgba(20, 22, 40, 0.18);
 
   /* ===== 文本系统 ===== */
   --color-text-caption: #5c646f;
@@ -2005,11 +2001,10 @@ html[data-theme='light'],
   --twc-border: 171 200 213;
 
   /* ===== 阴影层级 (Tailwind shadow-elevation-*) ===== */
-  --elevation-low: 0 1px 2px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.1);
+  --elevation-low: 0 1px 3px rgba(20, 22, 40, 0.04);
   --elevation-medium:
-    0 4px 8px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.06);
-  --elevation-high:
-    0 10px 20px rgba(0, 0, 0, 0.12), 0 6px 10px rgba(0, 0, 0, 0.08);
+    0 12px 40px rgba(20, 22, 40, 0.12), 0 0 0 1px rgba(20, 22, 40, 0.05);
+  --elevation-high: 0 24px 80px rgba(20, 22, 40, 0.18);
 
   /* ===== 文本系统 ===== */
   --color-text-caption: #486a7a;
