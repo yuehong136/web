@@ -3,7 +3,7 @@ import { createRoot, type Root } from 'react-dom/client'
 import { createMemoryRouter, RouterProvider } from 'react-router-dom'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { changeLanguage } from '@/locales/i18n'
-import { useSearchStore } from '@/stores/search'
+import { useCollectionViewStore } from '@/stores/collection-view'
 import type { SearchAppListItem } from '@/types/search'
 import { SearchListPage } from '../SearchListPage'
 
@@ -68,7 +68,7 @@ async function render() {
 beforeEach(async () => {
   Reflect.set(globalThis, 'IS_REACT_ACT_ENVIRONMENT', true)
   vi.clearAllMocks()
-  useSearchStore.setState({ viewMode: 'list' })
+  useCollectionViewStore.getState().reset()
   await changeLanguage('en-US')
   container = document.createElement('div')
   document.body.append(container)
@@ -101,17 +101,28 @@ it('lists search apps as rows with knowledge status, page-scoped feature counts 
   expect(router.state.location.pathname).toBe('/search/a')
 })
 
-it('switches to cards from the view switch', async () => {
+it('opens a small collection as search-badged cards and remembers a switch to rows', async () => {
   list(apps, 2)
   await render()
+  const cards = container.querySelectorAll('[data-slot="resource-card"]')
+  expect(cards).toHaveLength(2)
+  expect(cards[0].textContent).toContain('2 knowledge bases')
+  expect(cards[1].textContent).toContain('No knowledge base')
+  expect(
+    cards[0].querySelector('[data-slot="entity-avatar-badge-anchor"]'),
+  ).not.toBeNull()
+  expect(
+    container.querySelector('[data-slot="resource-create-card"]'),
+  ).not.toBeNull()
   await act(async () =>
     container
-      .querySelector<HTMLButtonElement>('button[aria-label="Grid view"]')!
+      .querySelector<HTMLButtonElement>('button[aria-label="List view"]')!
       .click(),
   )
-  expect(
-    container.querySelectorAll('[data-slot="resource-card"]'),
-  ).toHaveLength(2)
+  expect(container.querySelectorAll('[data-slot="resource-row"]')).toHaveLength(
+    2,
+  )
+  expect(useCollectionViewStore.getState().chosen.search).toBe('list')
 })
 
 it('keeps the create action in the empty state only', async () => {
@@ -119,7 +130,12 @@ it('keeps the create action in the empty state only', async () => {
   await render()
   const header = container.querySelector('[data-slot="page-title-bar"]')!
   expect(button('Create search app', header)).toBeUndefined()
-  expect(container.textContent).toContain('No search apps yet')
-  await act(async () => button('Create search app')!.click())
+  expect(container.textContent).toContain('Search your documents in one place')
+  const create = [
+    ...container.querySelectorAll<HTMLButtonElement>(
+      '[data-slot="empty-start"] button',
+    ),
+  ].find((element) => element.textContent?.startsWith('Create search app'))!
+  await act(async () => create.click())
   expect(document.body.textContent).toContain('create-search')
 })

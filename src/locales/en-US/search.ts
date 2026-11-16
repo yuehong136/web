@@ -48,6 +48,8 @@ export default {
       ascending: 'Asc',
     },
     card: {
+      kind: 'Search app',
+      createDescription: 'Search your knowledge bases with AI summaries',
       summaryOn: 'Summary on',
       summaryOff: 'Summary off',
       relatedOn: 'Related on',
@@ -62,10 +64,17 @@ export default {
     empty: {
       reset: 'Clear search and filters',
       searchTitle: 'No matching search apps',
-      listTitle: 'No search apps yet',
+      listTitle: 'Search your documents in one place',
       searchDescription: 'Adjust your search or filters and try again.',
       listDescription:
         'Create a search app to configure knowledge bases and retrieval parameters for document search and AI summaries.',
+      createDescription:
+        'Pick knowledge bases, tune retrieval and turn on AI summaries.',
+      createCta: 'Create',
+      knowledgeTitle: 'Prepare a knowledge base',
+      knowledgeDescription:
+        'Search apps retrieve from knowledge bases. Upload documents first.',
+      knowledgeCta: 'Open knowledge bases',
     },
     pagination: {
       previous: 'Previous',
