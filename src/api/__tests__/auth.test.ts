@@ -10,13 +10,16 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { apiClient, type RequestConfig } from '../client'
 
-// jsencrypt（src/utils/crypt.ts 的依赖）在模块顶层就读 window，node:test 里没有这个
-// 全局。先补最小 shim，再动态 import 被测模块——静态 import 会先于任何语句求值。
-if (typeof (globalThis as { window?: unknown }).window === 'undefined') {
-  Object.defineProperty(globalThis, 'window', {
-    value: globalThis,
-    configurable: true,
-  })
+// jsencrypt（src/utils/crypt.ts 的依赖）在模块顶层就读 window 与 self（3.5 起），
+// node:test 里没有这两个全局。先补最小 shim，再动态 import 被测模块——静态 import
+// 会先于任何语句求值。
+for (const name of ['window', 'self']) {
+  if (typeof (globalThis as Record<string, unknown>)[name] === 'undefined') {
+    Object.defineProperty(globalThis, name, {
+      value: globalThis,
+      configurable: true,
+    })
+  }
 }
 
 const { authAPI } = await import('../auth')
