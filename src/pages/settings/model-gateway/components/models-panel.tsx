@@ -22,6 +22,8 @@ import { getMutationErrorNotice } from '@/lib/mutation-error-feedback'
 import { toast } from '@/lib/toast'
 import { gatewayErrorKey, limitSummary } from '../utils'
 import { ModelFormDialog } from './model-form-dialog'
+import { StatusDot } from './status-dot'
+import { ProviderLogo } from '@/components/patterns/provider-logo'
 
 interface ModelsPanelProps {
   models: GatewayModel[]
@@ -134,7 +136,15 @@ export const ModelsPanel = ({ models }: ModelsPanelProps) => {
                 </TableCell>
                 <TableCell className="text-sm text-text-secondary">
                   {model.target ? (
-                    `${model.target.provider} / ${model.target.model_name}`
+                    <span className="inline-flex min-w-0 items-center gap-space-xs">
+                      <ProviderLogo
+                        provider={model.target.provider}
+                        size="sm"
+                      />
+                      <span className="min-w-0 break-words">
+                        {`${model.target.provider} / ${model.target.model_name}`}
+                      </span>
+                    </span>
                   ) : (
                     <Badge variant="warning">
                       {t('settings.modelGateway.models.targetMissing')}
@@ -147,13 +157,11 @@ export const ModelsPanel = ({ models }: ModelsPanelProps) => {
                   })}
                 </TableCell>
                 <TableCell>
-                  <Badge
-                    variant={
-                      model.status === 'active' ? 'success' : 'secondary'
-                    }
+                  <StatusDot
+                    tone={model.status === 'active' ? 'success' : 'neutral'}
                   >
                     {t(`settings.modelGateway.modelStatus.${model.status}`)}
-                  </Badge>
+                  </StatusDot>
                 </TableCell>
                 <TableCell className="text-sm text-text-secondary">
                   {limitSummary(t, model) ??

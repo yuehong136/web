@@ -74,6 +74,7 @@ export const ModelGatewayPage = () => {
       className="h-full"
     >
       <SettingsTemplate
+        width="wide"
         tabs={
           ready ? (
             <TabsList

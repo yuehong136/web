@@ -8,7 +8,6 @@ import type {
   GatewayModel,
 } from '@/api/model-gateway'
 import { PageEmptyState, PageToolbar } from '@/components/patterns'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import {
@@ -32,6 +31,7 @@ import {
   limitSummary,
 } from '../utils'
 import { KeyFormDialog } from './key-form-dialog'
+import { StatusDot } from './status-dot'
 import { KeyRevealDialog } from '@/pages/settings/components/key-reveal-dialog'
 
 interface KeysPanelProps {
@@ -39,10 +39,10 @@ interface KeysPanelProps {
   models: GatewayModel[]
 }
 
-const STATUS_VARIANT = {
+const STATUS_TONE = {
   active: 'success',
-  disabled: 'secondary',
-  revoked: 'destructive',
+  disabled: 'neutral',
+  revoked: 'error',
 } as const
 
 function scopeLabel(t: TFunction, key: GatewayKey, known: Set<string>): string {
@@ -177,9 +177,9 @@ export const KeysPanel = ({ keys, models }: KeysPanelProps) => {
                     {key.redacted_key}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={STATUS_VARIANT[key.status]}>
+                    <StatusDot tone={STATUS_TONE[key.status]}>
                       {t(`settings.modelGateway.keyStatus.${key.status}`)}
-                    </Badge>
+                    </StatusDot>
                   </TableCell>
                   <TableCell className="text-sm text-text-secondary">
                     {scopeLabel(t, key, knownModels)}
