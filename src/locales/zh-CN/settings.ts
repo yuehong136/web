@@ -459,6 +459,7 @@ export default {
         title: '管理员验证',
         description: '用户管理由管理服务提供，请使用管理员账号登录后继续。',
         email: '管理员邮箱',
+        emailPlaceholder: 'admin@example.com',
         submit: '登录',
         required: '请填写邮箱和密码。',
         failed: '登录失败，请检查管理员凭据。',

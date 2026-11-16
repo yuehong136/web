@@ -93,6 +93,7 @@ export default {
     },
     test: {
       timeout: 'Timeout (seconds)',
+      urlPlaceholder: 'https://example.com/mcp',
       hint: 'Tests reachability and the protocol, and lists the tools. Nothing is saved.',
       result: 'Test result',
       succeeded_one: 'Connected, {{count}} tool found',

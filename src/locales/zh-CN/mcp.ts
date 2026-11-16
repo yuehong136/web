@@ -92,6 +92,7 @@ export default {
     },
     test: {
       timeout: '超时（秒）',
+      urlPlaceholder: 'https://example.com/mcp',
       hint: '检查地址可达性和协议，并列出工具。测试不会保存任何配置。',
       result: '测试结果',
       succeeded_one: '连接成功，发现 {{count}} 个工具',

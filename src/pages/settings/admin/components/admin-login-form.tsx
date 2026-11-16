@@ -55,7 +55,7 @@ export function AdminLoginForm({ onSuccess }: { onSuccess: () => void }) {
                 type="email"
                 inputSize="sm"
                 autoComplete="username"
-                placeholder="admin@example.com"
+                placeholder={t('settings.admin.login.emailPlaceholder')}
                 value={email}
                 onChange={(event) => {
                   setEmail(event.target.value)

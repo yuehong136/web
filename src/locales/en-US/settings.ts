@@ -490,6 +490,7 @@ export default {
         description:
           'User management runs on the admin service. Sign in with an administrator account to continue.',
         email: 'Administrator email',
+        emailPlaceholder: 'admin@example.com',
         submit: 'Sign in',
         required: 'Enter the email and password.',
         failed: 'Could not sign in. Check the administrator credentials.',

@@ -108,7 +108,7 @@ export function MCPTestPanel({ server }: { server: MCPServer | null }) {
           inputSize="sm"
           value={url}
           required
-          placeholder="https://"
+          placeholder={t('mcp.test.urlPlaceholder')}
           className="font-mono"
           onChange={(event) => setUrl(event.target.value)}
         />
