@@ -3,15 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Download, Plus, Trash2, Upload } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { CollectionTemplate } from '@/components/page-templates'
 import {
   BulkActionBar,
@@ -226,41 +218,27 @@ export function StudioPage() {
         onClose={store.closeCreateAppModal}
         returnFocusRef={projectTrigger}
       />
-      <AlertDialog
+      <ConfirmDialog
         open={Boolean(deletion)}
         onOpenChange={(open) => {
           if (!open && !deleteApps.isPending) setDeletion(null)
         }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {t('studio.deleteDialog.title')}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {deletion?.name
-                ? t('studio.deleteDialog.namedDescription', {
-                    name: deletion.name,
-                  })
-                : t('studio.deleteDialog.bulkDescription', {
-                    count: deletion?.ids.length ?? 0,
-                  })}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteApps.isPending}>
-              {t('common.cancel')}
-            </AlertDialogCancel>
-            <Button
-              variant="destructive"
-              loading={deleteApps.isPending}
-              onClick={confirmDelete}
-            >
-              {t('common.delete')}
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        variant="destructive"
+        pending={deleteApps.isPending}
+        title={t('studio.deleteDialog.title')}
+        description={
+          deletion?.name
+            ? t('studio.deleteDialog.namedDescription', {
+                name: deletion.name,
+              })
+            : t('studio.deleteDialog.bulkDescription', {
+                count: deletion?.ids.length ?? 0,
+              })
+        }
+        cancelLabel={t('common.cancel')}
+        confirmLabel={t('common.delete')}
+        onConfirm={confirmDelete}
+      />
       <ImportTemplateDialog
         isOpen={importOpen}
         onClose={() => setImportOpen(false)}

@@ -36,8 +36,8 @@ const AlertDialogContext = React.createContext<
  * 不可通过点击遮罩层关闭
  *
  * @deprecated Use `ConfirmDialog` from `@/components/ui/confirm-dialog`. Kept
- * for `pages/studio/StudioPage.tsx` and `pages/settings/channels/index.tsx`
- * until they migrate; do not add new callers.
+ * only for `pages/settings/channels/index.tsx`, whose changes go through the
+ * channel programme; do not add new callers.
  */
 export const AlertDialog: React.FC<AlertDialogProps> = ({
   open,
