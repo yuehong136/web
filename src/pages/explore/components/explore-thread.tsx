@@ -6,17 +6,10 @@ import { MessageActionBar } from '@/components/chat/message-action-bar'
 import { MessageActionsFooter } from '@/components/chat/MessageActionsFooter'
 import { CHAT_BUBBLE_ROLES } from '@/components/chat/antx-chat-config'
 import { TurnRail, type ThreadTurn } from '@/components/chat/turn-rail'
-import { useModelIdentity } from '@/components/models/model-identity'
-import type { ModelIdentitySnapshot } from '@/lib/model-identity'
 import { ExploreChatAnswer } from './explore-chat-answer'
 import { ExploreRunNotice } from './explore-run-notice'
 import { ExploreMessageAttachments } from './message-attachments'
 import type { ExploreMessage } from '../hooks/use-explore-conversation'
-
-/** The answering model, as plain meta text. */
-function AnswerModel(snapshot: ModelIdentitySnapshot) {
-  return useModelIdentity(snapshot).label ?? null
-}
 
 const messageKey = (message: ExploreMessage, index: number) =>
   `${message.role}_${message.id || index}`
@@ -30,8 +23,8 @@ export interface ExploreThreadProps {
 
 /**
  * Explore keeps antd-x Bubble.List, in the same thread look as Home: no
- * avatars or per-message headers, actions under each answer (only the latest
- * keeps them visible), the answering model as meta.
+ * avatars, the model (logo and name) above each answer, actions under it
+ * (only the latest keeps them visible).
  */
 export function ExploreThread({
   messages,
@@ -80,18 +73,12 @@ export function ExploreThread({
                   isStreaming={streaming}
                   runPhase={message.runPhase}
                   notice={<ExploreRunNotice phase={message.runPhase} />}
+                  identity={message.modelIdentity ?? {}}
                 />
               ),
           footer:
             streaming || !content.trim() ? undefined : (
-              <MessageActionBar
-                persistent={index === lastAnswer}
-                meta={
-                  user ? undefined : (
-                    <AnswerModel {...(message.modelIdentity ?? {})} />
-                  )
-                }
-              >
+              <MessageActionBar persistent={index === lastAnswer}>
                 <MessageActionsFooter
                   className="flex"
                   content={content}

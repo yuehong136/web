@@ -295,10 +295,11 @@ it('resolves an old numeric message title and provider independently from the cu
   })
   try {
     await render([message])
-    // The model shows once in the header and as each answer's meta line
-    expect(container.querySelector('.chat-message-meta')?.textContent).toBe(
-      'gpt-test',
-    )
+    // The model shows in the header and above each answer with its logo
+    expect(
+      container.querySelector('[data-answer-identity] [data-model-identity]')
+        ?.textContent,
+    ).toBe('gpt-test')
     const identity = container.querySelector('[data-thread-identity]')
     expect(identity?.textContent).toBe('gpt-test')
     expect(
@@ -333,12 +334,15 @@ it('uses the submitted app model in the title and leaves unattributed history ge
     ],
   })
   await render([message])
-  expect(container.querySelector('.chat-message-meta')?.textContent).toBe(
-    'gpt-test',
-  )
+  expect(
+    container.querySelector('[data-answer-identity] [data-model-identity]')
+      ?.textContent,
+  ).toBe('gpt-test')
   await render([answer('Legacy answer')])
   // Unattributed history gets no invented model name
-  expect(container.querySelector('.chat-message-meta')).toBeNull()
+  expect(
+    container.querySelector('[data-answer-identity]')?.textContent,
+  ).not.toContain('gpt-test')
   expect(container.querySelector('article[aria-label="助手"]')).not.toBeNull()
 })
 

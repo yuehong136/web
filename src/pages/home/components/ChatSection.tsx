@@ -111,14 +111,17 @@ function ChatSectionContent({
         : message.parsedToolCalls?.length
           ? createTimelineNodesFromToolCalls(message.parsedToolCalls)
           : undefined
-      const model = user
+      // Every answer names its model with the provider logo, then the time.
+      const identity = user
         ? undefined
-        : homeMessageIdentity(
-            message.contextManifest,
-            myLLMs,
-            message.modelIdentity,
-          ).label
-      const meta = [model, message.timestamp].filter(Boolean).join(' · ')
+        : {
+            ...homeMessageIdentity(
+              message.contextManifest,
+              myLLMs,
+              message.modelIdentity,
+            ),
+            time: message.timestamp,
+          }
       return {
         id: message.id,
         role: message.role,
@@ -140,9 +143,9 @@ function ChatSectionContent({
             run={{ phase, steps }}
             notice={<AnswerStatusNotice status={message.status} />}
             onViewReference={openEvidence}
+            identity={identity}
           />
         ),
-        meta: !active && meta ? meta : undefined,
         actions:
           !active && Boolean(content.trim()) ? (
             <MessageActionsFooter
