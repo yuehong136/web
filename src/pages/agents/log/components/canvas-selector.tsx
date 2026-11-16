@@ -9,7 +9,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { EntityAvatar } from '@/components/patterns/entity-avatar'
-import { resolveLocalizedText } from '@/lib/agent'
+import { isPipelineFlow, resolveLocalizedText } from '@/lib/agent'
 import { cn } from '@/lib/utils'
 import type { AgentFlow } from '@/types/agent'
 import { useCanvasPicker } from '../hooks/use-canvas-picker'
@@ -103,6 +103,7 @@ export function CanvasSelector({
                     src={agent.avatar}
                     seed={agent.id}
                     size="sm"
+                    badge={isPipelineFlow(agent) ? 'workflow' : 'agent'}
                   />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate font-medium">

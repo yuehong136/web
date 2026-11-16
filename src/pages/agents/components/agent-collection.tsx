@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { Clock, GitBranch } from 'lucide-react'
+import { BookOpen, Clock, GitBranch, Tag } from 'lucide-react'
 import {
   FilterBar,
   ResourceCard,
@@ -10,6 +10,11 @@ import {
   type CollectionView,
   type ResourceItemProps,
 } from '@/components/patterns'
+import {
+  ResourceChip,
+  ResourceCreateCard,
+} from '@/components/patterns/resource-card'
+import { StatusDot } from '@/components/studio'
 import { Badge } from '@/components/ui/badge'
 import {
   countFlowNodes,
@@ -22,8 +27,8 @@ import {
   formatTimestampDetailed,
 } from '@/lib/utils'
 import { AgentCanvasType, type AgentFlow } from '@/types/agent'
+import { splitAgentTags } from '../tag-utils'
 import { AgentActions, type AgentActionProps } from './agent-actions'
-import { AgentTags } from './agent-tags'
 
 export type AgentTimeFormat = 'detailed' | 'compact' | 'relative'
 export type AgentKindFilter = 'all' | AgentCanvasType
@@ -139,6 +144,49 @@ function AgentKindBadge({ flow }: { flow: AgentFlow }) {
   )
 }
 
+/** Published or draft, when the list response says so. */
+function AgentReleaseStatus({ flow }: { flow: AgentFlow }) {
+  const { t } = useTranslation()
+  if (typeof flow.release !== 'boolean') return null
+  return (
+    <StatusDot
+      tone={flow.release ? 'success' : 'warning'}
+      label={t(flow.release ? 'agents.published' : 'agents.draft')}
+    />
+  )
+}
+
+const hasAgentChips = (flow: AgentFlow) =>
+  Boolean(splitAgentTags(flow.tags).length || flow.datasets?.length)
+
+/** Tags and linked knowledge bases as card chips. */
+function AgentChips({ flow }: { flow: AgentFlow }) {
+  const { t } = useTranslation()
+  const tags = splitAgentTags(flow.tags)
+  const datasets = flow.datasets?.length ?? 0
+  return (
+    <>
+      {datasets ? (
+        <ResourceChip
+          icon={
+            <BookOpen
+              aria-hidden="true"
+              className="text-components-avatar-5-text"
+            />
+          }
+        >
+          {t('agents.knowledgeLinked', { count: datasets })}
+        </ResourceChip>
+      ) : null}
+      {tags.map((tag) => (
+        <span key={tag} title={tag} className="flex max-w-full min-w-0">
+          <ResourceChip icon={<Tag aria-hidden="true" />}>{tag}</ResourceChip>
+        </span>
+      ))}
+    </>
+  )
+}
+
 /** Node count and update time; `compact` fits the row's meta column. */
 function AgentMeta({
   flow,
@@ -200,15 +248,18 @@ interface AgentCollectionProps extends Omit<
   /** Only the owner may edit tags. */
   currentUserId?: string
   onEditTags?: (flow: AgentFlow) => void
+  /** Ends the grid with a "new asset" card. */
+  onCreate?: () => void
 }
 
-/** The current page of agents and pipelines as rows (default) or cards. */
+/** The current page of agents and pipelines as cards or rows. */
 export function AgentCollection({
   agents,
   view,
   timeFormat,
   currentUserId,
   onEditTags,
+  onCreate,
   ...actions
 }: AgentCollectionProps) {
   const { t } = useTranslation()
@@ -221,7 +272,11 @@ export function AgentCollection({
       name: title,
       description:
         resolveLocalizedText(flow.description, '') || t('agents.noDescription'),
-      avatar: { src: flow.avatar, seed: flow.id },
+      avatar: {
+        src: flow.avatar,
+        seed: flow.id,
+        badge: isPipelineFlow(flow) ? 'workflow' : 'agent',
+      },
       onOpen: () => actions.onOpen(flow),
       actions: (
         <AgentActions
@@ -244,10 +299,18 @@ export function AgentCollection({
             eyebrow={t(
               isPipelineFlow(flow) ? 'agents.kindPipeline' : 'agents.kindAgent',
             )}
-            status={flow.tags ? <AgentTags tags={flow.tags} /> : undefined}
+            status={<AgentReleaseStatus flow={flow} />}
+            chips={hasAgentChips(flow) ? <AgentChips flow={flow} /> : undefined}
             meta={<AgentMeta flow={flow} timeFormat={timeFormat} />}
           />
         ))}
+        {onCreate ? (
+          <ResourceCreateCard
+            label={t('agents.createAsset')}
+            description={t('agents.createCardDescription')}
+            onClick={onCreate}
+          />
+        ) : null}
       </ResourceGrid>
     )
   return (

@@ -5,12 +5,7 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { CollectionTemplate } from '@/components/page-templates'
-import {
-  PageErrorState,
-  PageLoadingState,
-  Pager,
-  type CollectionView,
-} from '@/components/patterns'
+import { PageErrorState, PageLoadingState, Pager } from '@/components/patterns'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { toast } from '@/lib/toast'
@@ -46,6 +41,7 @@ import { CreateAgentDialog } from './components/create-agent-dialog'
 import { ImportAgentDialog } from './components/import-agent-dialog'
 import { RenameAgentDialog } from './components/rename-agent-dialog'
 import { useRenameAgent } from './hooks/use-rename-agent'
+import { useCollectionView } from '@/stores/collection-view'
 
 const DEFAULT_PAGE_SIZE = 12
 const PAGE_SIZES = [6, 12, 24, 48]
@@ -60,7 +56,6 @@ export default function AgentsPage() {
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
   const [keyword, setKeyword] = useState('')
   const [kind, setKind] = useState<AgentKindFilter>('all')
-  const [viewMode, setViewMode] = useState<CollectionView>('list')
   const [timeFormat, setTimeFormat] = useState<AgentTimeFormat>('detailed')
   const [sortDesc, setSortDesc] = useState(true)
   const [createOpen, setCreateOpen] = useConsumedSearchFlag('create', '1')
@@ -175,6 +170,11 @@ export default function AgentsPage() {
   }
 
   const filtered = Boolean(keyword || kind !== 'all' || selectedTags.length)
+  const [viewMode, setViewMode] = useCollectionView(
+    'agents',
+    listQuery.isLoading && !sortedAgents.length ? undefined : listQuery.total,
+    filtered,
+  )
   const pageState: 'content' | 'loading' | 'empty' | 'error' = listQuery.isError
     ? 'error'
     : listQuery.isLoading && !sortedAgents.length
@@ -184,6 +184,7 @@ export default function AgentsPage() {
         : 'content'
   // The empty state carries create, template and import; keep them once.
   const showCreateActions = pageState !== 'empty' || filtered
+  const firstUse = !showCreateActions
   const resetFilters = () => {
     setKeyword('')
     setKind('all')
@@ -225,35 +226,37 @@ export default function AgentsPage() {
           </>
         }
         filterBar={
-          <AgentFilterBar
-            keyword={keyword}
-            onKeywordChange={(value) => {
-              setPage(1)
-              setKeyword(value)
-            }}
-            kind={kind}
-            onKindChange={(value) => {
-              setPage(1)
-              setKind(value)
-            }}
-            tags={selectedTags}
-            tagCounts={tagCounts}
-            onTagsChange={(value) => {
-              setPage(1)
-              setSelectedTags(value)
-            }}
-            onClearFilters={() => {
-              setPage(1)
-              setKind('all')
-              setSelectedTags([])
-            }}
-            sortDescending={sortDesc}
-            onSortDescendingChange={setSortDesc}
-            timeFormat={timeFormat}
-            onTimeFormatChange={setTimeFormat}
-            view={viewMode}
-            onViewChange={setViewMode}
-          />
+          firstUse ? undefined : (
+            <AgentFilterBar
+              keyword={keyword}
+              onKeywordChange={(value) => {
+                setPage(1)
+                setKeyword(value)
+              }}
+              kind={kind}
+              onKindChange={(value) => {
+                setPage(1)
+                setKind(value)
+              }}
+              tags={selectedTags}
+              tagCounts={tagCounts}
+              onTagsChange={(value) => {
+                setPage(1)
+                setSelectedTags(value)
+              }}
+              onClearFilters={() => {
+                setPage(1)
+                setKind('all')
+                setSelectedTags([])
+              }}
+              sortDescending={sortDesc}
+              onSortDescendingChange={setSortDesc}
+              timeFormat={timeFormat}
+              onTimeFormatChange={setTimeFormat}
+              view={viewMode}
+              onViewChange={setViewMode}
+            />
+          )
         }
         state={pageState}
         loadingState={
@@ -307,6 +310,7 @@ export default function AgentsPage() {
           onRename={setFlowToRename}
           onEditTags={setFlowToEditTags}
           onViewLogs={handleViewLogs}
+          onCreate={() => setCreateOpen(true)}
         />
       </CollectionTemplate>
 

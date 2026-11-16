@@ -15,13 +15,20 @@ interface SessionListRowProps {
   onSelect: (sessionId: string) => void
 }
 
-/** Status dots carry colour; the label beside them carries the meaning. */
+/**
+ * Status dots carry colour; the label beside them carries the meaning. A run
+ * still in progress is an AI moment: tide dot and shimmering label.
+ */
 const STATUS_DOT: Record<AgentLogStatus, string> = {
   [AgentLogStatus.ALL]: 'bg-text-tertiary',
   [AgentLogStatus.OK]: 'bg-status-success',
   [AgentLogStatus.ERR]: 'bg-status-error',
-  [AgentLogStatus.RUN]: 'bg-status-info',
+  [AgentLogStatus.RUN]: 'bg-ai-tide',
   [AgentLogStatus.WARN]: 'bg-status-warning',
+}
+const STATUS_LABEL: Partial<Record<AgentLogStatus, string>> = {
+  [AgentLogStatus.ERR]: 'text-status-error',
+  [AgentLogStatus.RUN]: 'text-shimmer',
 }
 
 function formatDuration(duration?: number): string {
@@ -66,9 +73,7 @@ export function SessionListRow({
           <span
             className={cn(
               'shrink-0 text-xs',
-              status === AgentLogStatus.ERR
-                ? 'text-status-error'
-                : 'text-text-tertiary',
+              STATUS_LABEL[status] ?? 'text-text-tertiary',
             )}
           >
             {t(`agents.runLogs.statuses.${status}`)}

@@ -54,8 +54,9 @@ export default {
     viewLogs: '查看运行记录',
     noDescription: '暂无描述。',
     noUpdateTime: '暂无更新时间',
-    emptyTitle: '还没有智能体或流水线',
-    emptyDescription: '新建工作流、使用模板，或导入 JSON。',
+    emptyTitle: '让智能体替你完成多步任务',
+    emptyDescription:
+      '智能体串联模型、知识库与工具；流水线负责解析文档并写入知识库。',
     noMatchTitle: '未找到匹配的项目',
     noMatchDescription: '请尝试其他关键词，或清除筛选条件。',
     resetFilters: '清除搜索与筛选',
@@ -63,6 +64,19 @@ export default {
     sortPageScope: '更新时间排序作用于当前页。',
     kindAgent: '智能体',
     kindPipeline: '流水线',
+    published: '已发布',
+    draft: '草稿',
+    knowledgeLinked_one: '{{count}} 个知识库',
+    knowledgeLinked_other: '{{count}} 个知识库',
+    createCardDescription: '智能体工作流或数据流水线',
+    empty: {
+      createDescription: '从空白画布开始，连接模型、知识库与工具。',
+      createCta: '新建',
+      templateDescription: '复制一个现成的智能体或流水线，再按需调整。',
+      templateCta: '浏览模板',
+      importDescription: '导入从其他环境导出的工作流 JSON。',
+      importCta: '选择文件',
+    },
 
     tagOption: '{{tag}}（{{count}}）',
     templatesPage: {

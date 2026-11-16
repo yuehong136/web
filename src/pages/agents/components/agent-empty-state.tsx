@@ -1,6 +1,11 @@
 import { useTranslation } from 'react-i18next'
-import { Bot, FileInput, LayoutTemplate, Plus, Search } from 'lucide-react'
+import { Bot, FileInput, LayoutTemplate, Search } from 'lucide-react'
+import {
+  EmptyStart,
+  type EmptyStartPath,
+} from '@/components/patterns/empty-start'
 import { PageEmptyState } from '@/components/patterns/page-states'
+import { KindStackIllustration } from '@/components/studio'
 import { Button } from '@/components/ui/button'
 interface AgentEmptyStateProps {
   type: 'list' | 'search'
@@ -10,6 +15,8 @@ interface AgentEmptyStateProps {
   onReset?: () => void
   className?: string
 }
+
+/** First use: create, template and import paths. Misses keep a reset. */
 export function AgentEmptyState({
   type,
   onCreate,
@@ -19,51 +26,63 @@ export function AgentEmptyState({
   className,
 }: AgentEmptyStateProps) {
   const { t } = useTranslation()
-  const search = type === 'search'
-  return (
-    <PageEmptyState
-      className={className}
-      title={t(search ? 'agents.noMatchTitle' : 'agents.emptyTitle')}
-      description={t(
-        search ? 'agents.noMatchDescription' : 'agents.emptyDescription',
-      )}
-      icon={
-        search ? (
-          <Search className="size-icon-lg" />
-        ) : (
-          <Bot className="size-icon-lg" />
-        )
-      }
-      action={
-        search ? (
+  if (type === 'search')
+    return (
+      <PageEmptyState
+        className={className}
+        title={t('agents.noMatchTitle')}
+        description={t('agents.noMatchDescription')}
+        icon={<Search className="size-icon-lg" />}
+        action={
           onReset && (
             <Button variant="outline" onClick={onReset}>
               {t('agents.resetFilters')}
             </Button>
           )
-        ) : (
-          <div className="flex flex-wrap justify-center gap-space-sm">
-            {onCreate && (
-              <Button onClick={onCreate}>
-                <Plus className="size-icon-sm" aria-hidden="true" />
-                {t('agents.createAsset')}
-              </Button>
-            )}
-            {onTemplate && (
-              <Button variant="outline" onClick={onTemplate}>
-                <LayoutTemplate className="size-icon-sm" aria-hidden="true" />
-                {t('agents.createFromTemplate')}
-              </Button>
-            )}
-            {onImport && (
-              <Button variant="outline" onClick={onImport}>
-                <FileInput className="size-icon-sm" aria-hidden="true" />
-                {t('agents.importJson')}
-              </Button>
-            )}
-          </div>
-        )
+        }
+      />
+    )
+  const paths: EmptyStartPath[] = []
+  if (onCreate)
+    paths.push({
+      key: 'create',
+      primary: true,
+      icon: <Bot />,
+      iconClassName: 'bg-components-avatar-7-bg text-components-avatar-7-text',
+      title: t('agents.createAsset'),
+      description: t('agents.empty.createDescription'),
+      cta: t('agents.empty.createCta'),
+      onSelect: onCreate,
+    })
+  if (onTemplate)
+    paths.push({
+      key: 'template',
+      icon: <LayoutTemplate />,
+      iconClassName: 'bg-components-avatar-2-bg text-components-avatar-2-text',
+      title: t('agents.createFromTemplate'),
+      description: t('agents.empty.templateDescription'),
+      cta: t('agents.empty.templateCta'),
+      onSelect: onTemplate,
+    })
+  if (onImport)
+    paths.push({
+      key: 'import',
+      icon: <FileInput />,
+      iconClassName: 'bg-components-avatar-4-bg text-components-avatar-4-text',
+      title: t('agents.importJson'),
+      description: t('agents.empty.importDescription'),
+      cta: t('agents.empty.importCta'),
+      onSelect: onImport,
+    })
+  return (
+    <EmptyStart
+      className={className}
+      illustration={
+        <KindStackIllustration kinds={['mcp', 'agent', 'knowledge']} />
       }
+      title={t('agents.emptyTitle')}
+      description={t('agents.emptyDescription')}
+      paths={paths}
     />
   )
 }
