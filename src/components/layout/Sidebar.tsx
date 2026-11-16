@@ -15,6 +15,7 @@ import { Tooltip } from '@/components/ui/tooltip'
 import { NavigationFlyout } from '@/components/patterns/navigation-flyout'
 import { SecondaryNavigationContent } from '@/components/patterns/secondary-navigation-content'
 import { WorkbenchQuickActions } from '@/components/layout/workbench-quick-actions'
+import { TideMark } from '@/components/layout/brand-mark'
 import { Button } from '@/components/ui/button'
 import {
   ActionMenu,
@@ -71,6 +72,9 @@ export const Sidebar = ({
         className,
       )}
     >
+      <div className="flex shrink-0 justify-center pt-space-2xs pb-space-base">
+        <TideMark size="md" />
+      </div>
       <nav
         aria-label={t('layout.sidebar.primaryNavigation')}
         className="flex min-h-0 flex-col gap-space-xs overflow-y-auto overscroll-contain px-space-sm"
@@ -110,9 +114,9 @@ export const Sidebar = ({
               aria-label={title}
               aria-current={section === itemSection ? 'page' : undefined}
               className={cn(
-                'flex min-h-[var(--nav-rail-item)] w-full items-center justify-center rounded-radius-lg focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden focus-visible:ring-inset',
+                'flex min-h-[var(--nav-rail-item)] w-full items-center justify-center rounded-radius-lg transition-colors focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden focus-visible:ring-inset motion-reduce:transition-none',
                 section === itemSection
-                  ? 'bg-components-sidebar-item-bg-active text-components-sidebar-item-text-active'
+                  ? 'bg-components-sidebar-item-bg-active text-components-sidebar-item-text-active shadow-elevation-low'
                   : 'text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover hover:text-text-primary',
               )}
             >

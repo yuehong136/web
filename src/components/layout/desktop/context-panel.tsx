@@ -22,7 +22,7 @@ const DesktopConversationPanel: React.FC = () => {
   if (!selectedApp) {
     return (
       <div className="px-space-md py-space-lg text-center">
-        <MessageSquarePlus className="mb-space-sm mx-auto size-icon-xl text-text-tertiary" />
+        <MessageSquarePlus className="mx-auto mb-space-sm size-icon-xl text-text-tertiary" />
         <p className="text-sm font-medium text-text-primary">
           {t('desktop.conversations.emptyTitle')}
         </p>
@@ -45,6 +45,7 @@ const DesktopConversationPanel: React.FC = () => {
     <SidebarConversations
       appId={selectedApp.id}
       appName={selectedApp.name}
+      appIcon={selectedApp.icon}
       currentConversationId={conversationId}
       onSelectConversation={(nextConversationId) => {
         selectConversation(nextConversationId)
@@ -64,8 +65,8 @@ export const DesktopContextPanel: React.FC = () => {
 
   return (
     <aside className="flex h-full min-w-0 flex-col bg-components-sidebar-bg">
-      <header className="px-space-md py-space-base border-b border-components-sidebar-border">
-        <p className="text-xs font-medium uppercase tracking-wide text-text-tertiary">
+      <header className="border-b border-components-sidebar-border px-space-md py-space-base">
+        <p className="text-xs font-medium tracking-wide text-text-tertiary uppercase">
           {t('desktop.workbench.context')}
         </p>
         <h2 className="mt-space-xs text-base font-semibold text-text-primary">
@@ -82,7 +83,7 @@ export const DesktopContextPanel: React.FC = () => {
               to={item.href}
               className={({ isActive }) =>
                 cn(
-                  'gap-space-sm rounded-radius-lg px-space-sm py-space-sm flex items-center text-sm transition-colors',
+                  'flex items-center gap-space-sm rounded-radius-lg px-space-sm py-space-sm text-sm transition-colors',
                   isActive
                     ? 'bg-components-sidebar-item-bg-active text-components-sidebar-item-text-active'
                     : 'text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover hover:text-text-primary',

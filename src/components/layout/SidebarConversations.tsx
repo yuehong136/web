@@ -116,6 +116,13 @@ export const SidebarConversations: React.FC<SidebarConversationsProps> = ({
                             : 'text-text-secondary hover:bg-state-hover hover:text-text-primary',
                         )}
                       >
+                        {/* Whose conversation it is, at a glance. */}
+                        <EntityAvatar
+                          name={name}
+                          src={appIcon}
+                          seed={appId}
+                          size="xs"
+                        />
                         <span className="min-w-0 flex-1 truncate">
                           {conv.name ||
                             conv.title ||
