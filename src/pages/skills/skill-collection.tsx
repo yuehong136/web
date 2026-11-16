@@ -15,7 +15,7 @@ import {
   ActionMenuSeparator,
   ActionMenuTrigger,
 } from '@/components/ui/action-menu'
-import { Badge } from '@/components/ui/badge'
+import { StatusDot } from '@/components/studio'
 import { Button } from '@/components/ui/button'
 
 /**
@@ -26,7 +26,7 @@ import { Button } from '@/components/ui/button'
 
 export interface SkillStatus {
   label: string
-  tone?: 'default' | 'warning' | 'error'
+  tone?: 'default' | 'success' | 'warning' | 'error'
 }
 
 export interface SkillSpaceItem {
@@ -62,13 +62,12 @@ export interface SkillAssetItem {
 
 function StatusBadge({ status }: { status?: SkillStatus }) {
   if (!status) return null
-  const variant =
-    status.tone === 'error'
-      ? 'destructive'
-      : status.tone === 'warning'
-        ? 'warning'
-        : 'secondary'
-  return <Badge variant={variant}>{status.label}</Badge>
+  return (
+    <StatusDot
+      tone={status.tone === 'default' || !status.tone ? 'neutral' : status.tone}
+      label={status.label}
+    />
+  )
 }
 
 function SpaceActions({ space }: { space: SkillSpaceItem }) {
@@ -156,7 +155,7 @@ export function SkillSpaceList({
           key={space.id}
           name={space.name}
           description={space.description || t('skills.spaceDescription')}
-          avatar={{ seed: space.id }}
+          avatar={{ seed: space.id, badge: 'skill' }}
           status={<StatusBadge status={space.status} />}
           meta={
             space.note ? (
@@ -212,7 +211,7 @@ export function SkillAssetList({
           key={skill.key}
           name={skill.name}
           description={skill.description || undefined}
-          avatar={{ seed: skill.key }}
+          avatar={{ seed: skill.key, badge: 'skill' }}
           status={<StatusBadge status={skill.status} />}
           meta={skill.meta}
           selection={skill.selection}

@@ -104,7 +104,7 @@ export function SkillSpacePage() {
         description: skill.description,
         href: tracker.href(`/skills/${spaceId}/skills/${skill.id}`),
         status: skill.active_version_id
-          ? { label: t('skills.active') }
+          ? { label: t('skills.active'), tone: 'success' }
           : { label: t('skills.noActive'), tone: 'warning' },
         meta: skill.tags.length ? skill.tags.join(' · ') : undefined,
         selection: {
