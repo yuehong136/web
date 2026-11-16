@@ -18,14 +18,15 @@ export default {
       saveFailed: 'Could not update the search configuration. Try again.',
     },
     title: 'Search apps',
-    description:
-      'Build dedicated search apps with retrieval and AI summaries on selected knowledge bases.',
     create: 'Create search app',
-    stats: {
-      total: 'Total search apps',
-      summary: 'AI summary enabled',
-      related: 'Related questions enabled',
-      knowledgeBases: 'Linked knowledge bases',
+    results: 'Search apps: {{count}}',
+    loading: 'Loading search apps',
+    loadFailedTitle: 'Could not load search apps',
+    loadFailedDescription: 'Try loading the list again. Your filters are kept.',
+    pageFeatures:
+      'This page: AI summary on {{summary}} · related questions on {{related}}',
+    columns: {
+      knowledge: 'Knowledge',
     },
     filters: {
       summary: 'AI summary',
@@ -35,6 +36,8 @@ export default {
     },
     toolbar: {
       searchPlaceholder: 'Search app name...',
+      order: 'Order',
+      timeFormat: 'Time display',
       sortUpdated: 'Updated time',
       sortCreated: 'Created time',
       sortName: 'Name',
@@ -43,19 +46,21 @@ export default {
       relativeTime: 'Relative time',
       descending: 'Desc',
       ascending: 'Asc',
-      gridView: 'Grid view',
-      listView: 'List view',
     },
     card: {
       summaryOn: 'Summary on',
       summaryOff: 'Summary off',
       relatedOn: 'Related on',
       relatedOff: 'Related off',
-      knowledgeBases: '{{count}} KBs',
+      knowledgeBases_one: '{{count}} knowledge base',
+      knowledgeBases_other: '{{count}} knowledge bases',
+      noKnowledge: 'No knowledge base',
+      actionsFor: 'Actions for {{name}}',
       settings: 'Settings',
       delete: 'Delete',
     },
     empty: {
+      reset: 'Clear search and filters',
       searchTitle: 'No matching search apps',
       listTitle: 'No search apps yet',
       searchDescription: 'Adjust your search or filters and try again.',
@@ -63,7 +68,6 @@ export default {
         'Create a search app to configure knowledge bases and retrieval parameters for document search and AI summaries.',
     },
     pagination: {
-      total: '{{count}} items',
       previous: 'Previous',
       next: 'Next',
     },

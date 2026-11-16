@@ -18,13 +18,15 @@ export default {
       saveFailed: '无法更新搜索配置，请重试。',
     },
     title: '搜索应用',
-    description: '在选定知识库之上完成检索与 AI 总结，打造专用搜索应用。',
     create: '创建搜索应用',
-    stats: {
-      total: '搜索应用总数',
-      summary: '已启用 AI 摘要',
-      related: '已启用相关问题',
-      knowledgeBases: '关联知识库总数',
+    results: '搜索应用：{{count}}',
+    loading: '正在加载搜索应用',
+    loadFailedTitle: '搜索应用加载失败',
+    loadFailedDescription: '请重新加载列表，当前筛选条件会保留。',
+    pageFeatures:
+      '本页：AI 摘要已开启 {{summary}} · 相关问题已开启 {{related}}',
+    columns: {
+      knowledge: '知识库',
     },
     filters: {
       summary: 'AI 摘要',
@@ -34,6 +36,8 @@ export default {
     },
     toolbar: {
       searchPlaceholder: '搜索应用名称...',
+      order: '顺序',
+      timeFormat: '时间显示方式',
       sortUpdated: '按更新时间',
       sortCreated: '按创建时间',
       sortName: '按名称',
@@ -42,19 +46,21 @@ export default {
       relativeTime: '相对时间',
       descending: '倒序',
       ascending: '正序',
-      gridView: '网格视图',
-      listView: '列表视图',
     },
     card: {
       summaryOn: '摘要开启',
       summaryOff: '摘要关闭',
       relatedOn: '相关问题开启',
       relatedOff: '相关问题关闭',
-      knowledgeBases: '{{count}} 知识库',
+      knowledgeBases_one: '{{count}} 个知识库',
+      knowledgeBases_other: '{{count}} 个知识库',
+      noKnowledge: '未关联知识库',
+      actionsFor: '{{name}}的操作',
       settings: '设置',
       delete: '删除',
     },
     empty: {
+      reset: '清除搜索与筛选',
       searchTitle: '未找到匹配的搜索应用',
       listTitle: '还没有搜索应用',
       searchDescription: '尝试调整搜索条件或筛选器后重试。',
@@ -62,7 +68,6 @@ export default {
         '创建搜索应用，配置知识库和检索参数，快速从文档中查找信息并生成 AI 摘要',
     },
     pagination: {
-      total: '共 {{count}} 项',
       previous: '上一页',
       next: '下一页',
     },
