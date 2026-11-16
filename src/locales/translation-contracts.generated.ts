@@ -33,11 +33,14 @@ export interface TranslationContracts {
     'sidebar.login': undefined
     'sidebar.logout': undefined
     'sidebar.more': undefined
+    'sidebar.newChat': undefined
     'sidebar.openNavigation': undefined
     'sidebar.openPageNavigation': undefined
     'sidebar.preferences': undefined
     'sidebar.primaryNavigation': undefined
     'sidebar.profile': undefined
+    'sidebar.search': undefined
+    'sidebar.searchEverything': undefined
     'sidebar.settings': undefined
     'sidebar.systemTheme': undefined
     'sidebar.theme': undefined

@@ -36,9 +36,10 @@ export const namespacesForPath = (pathname: string): LocaleNamespace[] => {
   else if (/^\/memory(\/|$)/.test(pathname)) domains.push('memory')
   else if (/^\/explore(\/|$)/.test(pathname))
     domains.push('explore', 'chat', 'agent')
-  else if (/^\/(ai-tools|tools|mcp(?:-[a-z]+)?)(\/|$)/.test(pathname))
+  else if (/^\/(ai-tools|tools|mcp(?:-[a-z]+)?)(\/|$)/.test(pathname)) {
     domains.push('mcp', 'chat')
-  else domains.push('home', 'chat', 'skills', 'knowledge', 'settings')
+    if (/^\/(ai-tools|tools)(\/|$)/.test(pathname)) domains.push('ai-tools')
+  } else domains.push('home', 'chat', 'skills', 'knowledge', 'settings')
   if (
     domains.some((domain) =>
       [

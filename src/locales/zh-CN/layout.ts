@@ -1,6 +1,6 @@
 export default {
   layout: {
-    brandName: 'AI平台',
+    brandName: '沧溟 AI',
     workspace: {
       skipToTask: '跳至主任务区',
       mainTask: '主任务区',
@@ -19,6 +19,9 @@ export default {
       primaryNavigation: '工作区导航',
       chooseAppForConversations: '选择一个应用，开始对话。',
       browseApps: '浏览应用',
+      newChat: '新对话',
+      search: '搜索',
+      searchEverything: '搜索对话和知识',
       more: '更多',
       expandSecondary: '展开二级导航',
       collapseSecondary: '收起二级导航',

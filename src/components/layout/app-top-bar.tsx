@@ -19,6 +19,13 @@ interface AppTopBarProps {
   mobilePanelId?: string
   navigationOpen?: boolean
   sectionLabel?: string
+  /** Portal target for a page template's title row (see workbench-header). */
+  titleRef?: Ref<HTMLDivElement>
+  /** Portal target for actions a template places at the header's end. */
+  actionsRef?: Ref<HTMLDivElement>
+  /** A template's title replaces the route header and section label. */
+  titleClaimed?: boolean
+  actionsClaimed?: boolean
   children?: ReactNode
 }
 export const AppTopBar = ({
@@ -35,6 +42,10 @@ export const AppTopBar = ({
   mobilePanelId,
   navigationOpen,
   sectionLabel,
+  titleRef,
+  actionsRef,
+  titleClaimed = false,
+  actionsClaimed = false,
   children,
 }: AppTopBarProps) => {
   const { t } = useTranslation()
@@ -102,14 +113,32 @@ export const AppTopBar = ({
           )}
         </>
       )}
-      <div className="min-w-0 flex-1">
-        {children ??
-          (sectionLabel && (
-            <p className="truncate text-sm font-medium text-text-primary">
-              {sectionLabel}
-            </p>
-          ))}
-      </div>
+      {!titleClaimed && (
+        <div className="min-w-0 flex-1 md:pl-space-xs">
+          {children ??
+            (sectionLabel && (
+              <p className="truncate text-base font-semibold tracking-tight text-text-primary">
+                {sectionLabel}
+              </p>
+            ))}
+        </div>
+      )}
+      <div
+        ref={titleRef}
+        data-workbench-title
+        className={cn(
+          'min-w-0 md:pl-space-xs',
+          titleClaimed ? 'flex flex-1' : 'hidden',
+        )}
+      />
+      <div
+        ref={actionsRef}
+        data-workbench-actions
+        className={cn(
+          'shrink-0 items-center gap-space-sm',
+          actionsClaimed ? 'flex' : 'hidden',
+        )}
+      />
     </header>
   )
 }

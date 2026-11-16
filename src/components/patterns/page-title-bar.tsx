@@ -23,6 +23,12 @@ export interface PageTitleBarProps {
   subline?: ReactNode
   /** Header actions; put the primary action last. */
   actions?: ReactNode
+  /**
+   * `page` is the template's own 48px header row. `workbench` is the same
+   * content laid into the shell card header: one line, the subline beside
+   * the title, crumbs and subline dropped on narrow screens.
+   */
+  placement?: 'page' | 'workbench'
   className?: string
 }
 
@@ -38,24 +44,45 @@ export function PageTitleBar({
   countLabel,
   subline,
   actions,
+  placement = 'page',
   className,
 }: PageTitleBarProps) {
   const { t } = useTranslation()
+  const workbench = placement === 'workbench'
+  const Root = workbench ? 'div' : 'header'
   return (
-    <header
+    <Root
       data-slot="page-title-bar"
+      data-placement={placement}
       className={cn(
-        'flex min-h-[var(--workbench-header-height)] shrink-0 flex-wrap items-center gap-x-space-sm gap-y-space-xs border-b border-border-subtle py-space-sm pr-space-sm pl-space-md',
+        'flex shrink-0 flex-wrap items-center gap-x-space-sm gap-y-space-xs',
+        workbench
+          ? 'min-w-0 flex-1'
+          : 'min-h-[var(--workbench-header-height)] border-b border-border-subtle py-space-sm pr-space-sm pl-space-md',
         className,
       )}
     >
-      {leading ? <div className="flex shrink-0">{leading}</div> : null}
-      <div className="flex min-w-0 flex-1 basis-60 flex-col gap-space-2xs">
+      {leading ? (
+        <div className={cn('flex shrink-0', workbench && 'max-md:hidden')}>
+          {leading}
+        </div>
+      ) : null}
+      <div
+        className={cn(
+          'flex min-w-0 flex-1',
+          workbench
+            ? 'basis-40 items-center gap-space-sm'
+            : 'basis-60 flex-col gap-space-2xs',
+        )}
+      >
         <div className="flex min-w-0 items-center gap-space-xs">
           {crumbs.length ? (
             <nav
               aria-label={t('common.patterns.breadcrumb')}
-              className="flex min-w-0 shrink items-center gap-space-xs text-sm text-text-secondary"
+              className={cn(
+                'flex min-w-0 shrink items-center gap-space-xs text-sm text-text-secondary',
+                workbench && 'max-md:hidden',
+              )}
             >
               {crumbs.map((crumb, index) => (
                 <Fragment key={index}>
@@ -88,13 +115,23 @@ export function PageTitleBar({
             </span>
           ) : null}
         </div>
-        {subline ? <div className="min-w-0">{subline}</div> : null}
+        {subline ? (
+          <div
+            data-slot="page-title-subline"
+            className={cn(
+              'min-w-0',
+              workbench && 'hidden shrink-2 truncate md:block',
+            )}
+          >
+            {subline}
+          </div>
+        ) : null}
       </div>
       {actions ? (
         <div className="flex shrink-0 flex-wrap items-center gap-space-sm">
           {actions}
         </div>
       ) : null}
-    </header>
+    </Root>
   )
 }

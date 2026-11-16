@@ -1,7 +1,12 @@
 // @vitest-environment jsdom
 
-import { describe, expect, it } from 'vitest'
-import { getKeyboardCommand, isEditableKeyboardTarget } from '../keyboard'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import {
+  getCommandShortcutKeys,
+  getKeyboardCommand,
+  isEditableKeyboardTarget,
+  isShortcutAllowedInEditable,
+} from '../keyboard'
 import { ProductCommandId } from '../types'
 
 const keyboard = (key: string, overrides: Partial<KeyboardEvent> = {}) => ({
@@ -48,5 +53,33 @@ describe('desktop command shortcuts', () => {
     expect(isEditableKeyboardTarget(document.createElement('button'))).toBe(
       false,
     )
+  })
+
+  it('lets only the palette shortcut through while typing', () => {
+    expect(isShortcutAllowedInEditable(ProductCommandId.OPEN_PALETTE)).toBe(
+      true,
+    )
+    expect(isShortcutAllowedInEditable(ProductCommandId.TOGGLE_SIDEBAR)).toBe(
+      false,
+    )
+  })
+
+  describe('key caps', () => {
+    afterEach(() => vi.unstubAllGlobals())
+
+    it('labels the modifier per platform and omits unbound commands', () => {
+      vi.stubGlobal('navigator', { platform: 'Win32', userAgent: '' })
+      expect(getCommandShortcutKeys(ProductCommandId.OPEN_PALETTE)).toEqual([
+        'Ctrl',
+        'K',
+      ])
+      vi.stubGlobal('navigator', { platform: 'MacIntel', userAgent: '' })
+      expect(getCommandShortcutKeys(ProductCommandId.NEW_CONVERSATION)).toEqual(
+        ['⌘', 'N'],
+      )
+      expect(
+        getCommandShortcutKeys(ProductCommandId.NAVIGATE_HOME),
+      ).toBeUndefined()
+    })
   })
 })

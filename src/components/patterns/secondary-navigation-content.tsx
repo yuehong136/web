@@ -16,6 +16,7 @@ export const SecondaryNavigationContent = ({
   touchTargets = false,
   scroll = 'self',
   headerDivider = true,
+  quickActions,
 }: {
   title: string
   groups: ContextRailGroup[]
@@ -29,8 +30,13 @@ export const SecondaryNavigationContent = ({
   scroll?: 'self' | 'parent'
   /** The docked panel sits on the shell tone without a rule under its title. */
   headerDivider?: boolean
+  /** Panel-top actions such as "New chat" and "Search", above the groups. */
+  quickActions?: ReactNode
 }) => (
   <>
+    {contentOnly && quickActions ? (
+      <div className="shrink-0 pt-space-sm">{quickActions}</div>
+    ) : null}
     {!contentOnly && (
       <>
         <header
@@ -43,6 +49,7 @@ export const SecondaryNavigationContent = ({
             {title}
           </p>
         </header>
+        {quickActions}
         {backLink && (
           <Button
             asChild

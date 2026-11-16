@@ -68,11 +68,13 @@ export const LoginForm: React.FC = () => {
 
   return (
     <div className="w-full max-w-md">
-      <div className="mb-space-xl">
-        <h1 className="mb-space-xs text-2xl font-bold text-text-primary">
+      <div className="mb-space-lg">
+        <h1 className="mb-space-xs text-xl font-semibold tracking-tight text-text-primary">
           {t('auth.login.title')}
         </h1>
-        <p className="text-text-secondary">{t('auth.login.description')}</p>
+        <p className="text-sm text-text-secondary">
+          {t('auth.login.description')}
+        </p>
       </div>
 
       {showExpiredAlert ? (

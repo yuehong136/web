@@ -28,6 +28,7 @@ export const localeRegistry = {
       appearance: () => import('./zh-CN/appearance'),
       sources: () => import('./zh-CN/sources'),
       reference: () => import('./zh-CN/reference'),
+      'ai-tools': () => import('./zh-CN/ai-tools'),
     },
     matches: (value: string) =>
       value === 'zh' || value === 'zh-cn' || value.startsWith('zh-hans'),
@@ -61,6 +62,7 @@ export const localeRegistry = {
       appearance: () => import('./en-US/appearance'),
       sources: () => import('./en-US/sources'),
       reference: () => import('./en-US/reference'),
+      'ai-tools': () => import('./en-US/ai-tools'),
     },
     matches: (value: string) =>
       value === 'en' || value === 'en-us' || value.startsWith('en-'),
@@ -94,6 +96,7 @@ export const localeRegistry = {
       appearance: () => import('./ko-KR/appearance'),
       sources: () => import('./ko-KR/sources'),
       reference: () => import('./ko-KR/reference'),
+      'ai-tools': () => import('./ko-KR/ai-tools'),
     },
     matches: (value: string) => value === 'ko' || value.startsWith('ko-'),
   },

@@ -23,6 +23,7 @@ import channel from './channel'
 import routeErrors from './route-errors'
 import { authResource as auth } from './auth'
 import { desktopResource as desktop } from './desktop'
+import aiTools from './ai-tools'
 
 export default {
   ...sandboxResource,
@@ -50,4 +51,5 @@ export default {
   ...routeErrors,
   ...auth,
   ...desktop,
+  ...aiTools,
 }

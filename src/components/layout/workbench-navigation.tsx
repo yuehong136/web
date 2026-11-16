@@ -127,7 +127,7 @@ const HomeConversations = () => {
   )
   if (!app)
     return (
-      <div className="flex flex-col gap-space-sm px-space-base py-space-lg">
+      <div className="flex flex-col items-start gap-space-sm px-space-base py-space-base">
         <p className="text-sm text-text-secondary">
           {t('layout.sidebar.chooseAppForConversations')}
         </p>
@@ -140,6 +140,8 @@ const HomeConversations = () => {
     <SidebarConversations
       appId={app.id}
       appName={app.name}
+      appIcon={app.icon}
+      showCreate={false}
       currentConversationId={conversationId}
       isCollapsed={false}
       onSelectConversation={(id) => {
@@ -156,15 +158,14 @@ const HomeConversations = () => {
 
 export const useDefaultSecondaryNavigation = () => {
   const { t } = useTranslation()
-  const homeAppId = useHomeStore((state) => state.selectedApps[0]?.id)
   return React.useMemo(() => {
     const sections: Record<WorkbenchSection, SecondaryNavigation> = {
       home: {
         section: 'home',
         title: t('layout.nav.home'),
         groups: [],
+        // "New chat" and "Search" keep the panel useful before an app is chosen.
         content: <HomeConversations />,
-        hasSecondaryContent: Boolean(homeAppId),
       },
       explore: {
         section: 'explore',
@@ -210,5 +211,5 @@ export const useDefaultSecondaryNavigation = () => {
       icon: Rocket,
     })
     return sections
-  }, [t, homeAppId])
+  }, [t])
 }
