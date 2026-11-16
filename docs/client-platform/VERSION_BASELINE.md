@@ -50,18 +50,20 @@
 | 组件              | 2026-08-13 快照                          | 决策                                                               |
 | ----------------- | ---------------------------------------- | ------------------------------------------------------------------ |
 | Node LTS          | `24.19.0`（Krypton，随附 npm `11.17.0`） | CLP-DESK 构建/CI 目标；修改 engines/packageManager 需独立升级任务  |
-| Electron          | `43.4.0`                                 | CLP-DESK 显式精确锁；跟随受支持 stable 升级节奏                    |
-| Rolldown          | `1.2.4`                                  | CLP-DESK main/preload direct build 显式精确锁                      |
-| electron-builder  | `26.15.7`                                | CLP-DESK 显式精确锁；见下方 dist-tag 说明                          |
+| Electron          | `45.3.3`                                 | CLP-DESK 显式精确锁；跟随受支持 stable 升级节奏                    |
+| Rolldown          | `1.3.2`                                  | CLP-DESK main/preload direct build 显式精确锁                      |
+| electron-builder  | `26.18.1`                                | CLP-DESK 显式精确锁；见下方 dist-tag 说明                          |
 | electron-updater  | `6.8.9`                                  | CLP-REL 候选；更新链路落地时精确锁并做签名/回滚测试                |
 | `@electron/fuses` | `2.1.3`                                  | CLP-DESK packaging/security 工具精确锁                             |
-| `@electron/asar`  | `4.2.1`                                  | CLP-DESK 最终 `app.asar` allowlist/integrity header 验证工具精确锁 |
+| `@electron/asar`  | `4.3.2`                                  | CLP-DESK 最终 `app.asar` allowlist/integrity header 验证工具精确锁 |
+
+2026-11-17 依赖升级把 Electron、Rolldown、electron-builder 与 `@electron/asar` 更新为上表版本，其余行仍是 2026-08-13 快照。
 
 2026-08-13 的 DESK0 本地 macOS arm64 证据使用 Node `24.4.1` / npm `11.5.1`，而不是本表的 release 目标 Node `24.19.0` / npm `11.17.0`。该结果只证明当前工作站链路；发布 CI 对齐仍需独立 toolchain 升级与重验。
 
 ### electron-builder dist-tag 差异
 
-核验时 npm `latest` 是 `26.15.3`，但官方 `v26` dist-tag/指定稳定补丁是 `26.15.7`。本方案不依赖浮动 `latest`，明确锁 `26.15.7`。任何升级都需重跑 ASAR integrity、fuses、签名、公证、sidecar 和更新 metadata 测试。
+2026-11-17 复核时 npm `latest` 是 `26.18.0`，官方 `v26` dist-tag 是 `26.18.1`（2026-08-13 时分别为 `26.15.3` / `26.15.7`）。本方案不依赖浮动 `latest`，明确锁 `v26` 的 `26.18.1`。任何升级都需重跑 ASAR integrity、fuses、签名、公证、sidecar 和更新 metadata 测试。
 
 ### electron-vite 暂不选
 
