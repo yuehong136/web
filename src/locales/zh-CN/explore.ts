@@ -51,6 +51,7 @@ export default {
     market: {
       added: '已添加',
       addToWorkspace: '添加到工作区',
+      kind: '对话应用',
     },
     prompts: {
       explain: { label: '解释这个概念' },

@@ -26,10 +26,9 @@ import {
 } from '@/components/chat/ChatSettingsPanel'
 import { ChatWorkspace } from '@/components/chat/chat-workspace'
 import { ChatThreadHeader } from '@/components/chat/chat-thread-header'
-import { ModelIdentity } from '@/components/models/model-identity'
 import { EntityAvatar } from '@/components/patterns/entity-avatar'
 import { ExploreSidebar, type ExploreTab } from './components/explore-sidebar'
-import { ExploreComposer } from './components/explore-composer'
+import { ExploreAppModel, ExploreComposer } from './components/explore-composer'
 import { ExploreDropOverlay } from './components/explore-drop-overlay'
 import { ExploreEmpty } from './components/explore-empty'
 import { ExploreMarket } from './components/explore-market'
@@ -343,10 +342,7 @@ export const ExplorePage: FC = () => {
       internetAvailable={internetAvailable}
       model={
         dialogSettings.llmId ? (
-          <>
-            <ModelIdentity reference={dialogSettings.llmId} showLogo={false} />
-            <span>{t('explore.sender.appModel')}</span>
-          </>
+          <ExploreAppModel reference={dialogSettings.llmId} />
         ) : undefined
       }
     />
@@ -430,7 +426,11 @@ export const ExplorePage: FC = () => {
 
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
               {mode === 'market' ? (
-                <ExploreMarket apps={dialogApps} loading={dialogAppsLoading} />
+                <ExploreMarket
+                  apps={dialogApps}
+                  loading={dialogAppsLoading}
+                  onOpenApp={handleAppSelect}
+                />
               ) : messages.length === 0 ? (
                 <ExploreEmpty
                   app={currentApp}

@@ -228,7 +228,7 @@ export const ExploreSidebar: FC<ExploreSidebarProps> = ({
                     type="button"
                     onClick={onDiscoverClick}
                     className={cn(
-                      'flex w-full items-center gap-space-sm rounded-radius-lg px-space-md py-space-sm text-left text-sm font-medium text-components-sidebar-item-text transition-colors',
+                      'flex min-h-[var(--control-height-sm)] w-full items-center gap-space-sm rounded-radius-md px-space-sm py-space-xs text-left text-sm font-medium text-components-sidebar-item-text transition-colors',
                       'hover:bg-components-sidebar-item-bg-hover hover:text-text-primary focus-visible:ring-1 focus-visible:ring-state-focus focus-visible:outline-hidden',
                       mode === 'market' &&
                         'bg-components-sidebar-item-bg-active text-components-sidebar-item-text-active',
@@ -269,7 +269,7 @@ export const ExploreSidebar: FC<ExploreSidebarProps> = ({
                             onClick={() => onAppSelect(app.id)}
                             title={app.name}
                             className={cn(
-                              'flex w-full items-center gap-space-sm rounded-radius-lg px-space-md py-space-sm text-left text-sm text-components-sidebar-item-text transition-colors',
+                              'flex min-h-[var(--control-height-sm)] w-full items-center gap-space-sm rounded-radius-md px-space-sm py-space-xs text-left text-sm text-components-sidebar-item-text transition-colors',
                               'hover:bg-components-sidebar-item-bg-hover hover:text-text-primary focus-visible:ring-1 focus-visible:ring-state-focus focus-visible:outline-hidden',
                               selected &&
                                 'bg-components-sidebar-item-bg-active text-components-sidebar-item-text-active',
