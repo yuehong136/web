@@ -194,9 +194,6 @@ export const lightTokens: DesignTokens = {
 
   'components-popover-bg': surfaces.light.elevated,
 
-  'components-tooltip-bg': '#1f2937',
-  'components-tooltip-text': '#ffffff',
-
   // ===== 导航和标签 =====
   'components-tabs-border': '#e5e7eb',
   'components-tabs-bg': '#f5f5f5',
@@ -601,9 +598,6 @@ export const darkTokens: DesignTokens = {
   'components-dialog-overlay': 'rgba(0, 0, 0, 0.75)',
 
   'components-popover-bg': surfaces.dark.elevated,
-
-  'components-tooltip-bg': '#0f172a',
-  'components-tooltip-text': surfaces.dark.text,
 
   // ===== 导航和标签 =====
   'components-tabs-border': '#475569',

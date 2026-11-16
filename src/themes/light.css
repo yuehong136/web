@@ -161,8 +161,6 @@
   --color-components-dialog-border: #f1f2f5;
   --color-components-dialog-overlay: rgba(0, 0, 0, 0.5);
   --color-components-popover-bg: #ffffff;
-  --color-components-tooltip-bg: #24252e;
-  --color-components-tooltip-text: #ffffff;
   --color-components-system-chart-tooltip-bg: #ffffff;
   --color-components-system-chart-tooltip-border: #e7e8ed;
   --color-components-system-chart-tooltip-text: #24252e;
@@ -654,8 +652,6 @@ html[data-theme='light'],
   --color-components-dialog-border: #e5e7eb;
   --color-components-dialog-overlay: rgba(0, 0, 0, 0.5);
   --color-components-popover-bg: #ffffff;
-  --color-components-tooltip-bg: #1f2937;
-  --color-components-tooltip-text: #ffffff;
   --color-components-system-chart-tooltip-bg: #ffffff;
   --color-components-system-chart-tooltip-border: #e5e7eb;
   --color-components-system-chart-tooltip-text: #18181b;
@@ -1146,8 +1142,6 @@ html[data-theme='light'],
   --color-components-dialog-border: #eae5db;
   --color-components-dialog-overlay: rgba(0, 0, 0, 0.5);
   --color-components-popover-bg: #f6f3ed;
-  --color-components-tooltip-bg: #2f2b24;
-  --color-components-tooltip-text: #ffffff;
   --color-components-system-chart-tooltip-bg: #fffdf8;
   --color-components-system-chart-tooltip-border: rgba(47, 43, 36, 0.13);
   --color-components-system-chart-tooltip-text: #2f2b24;
@@ -1638,8 +1632,6 @@ html[data-theme='light'],
   --color-components-dialog-border: #e2e4e7;
   --color-components-dialog-overlay: rgba(0, 0, 0, 0.5);
   --color-components-popover-bg: #f0f1f2;
-  --color-components-tooltip-bg: #202328;
-  --color-components-tooltip-text: #ffffff;
   --color-components-system-chart-tooltip-bg: #fcfcfd;
   --color-components-system-chart-tooltip-border: rgba(32, 35, 40, 0.14);
   --color-components-system-chart-tooltip-text: #202328;
@@ -2130,8 +2122,6 @@ html[data-theme='light'],
   --color-components-dialog-border: #dbeaf1;
   --color-components-dialog-overlay: rgba(0, 0, 0, 0.5);
   --color-components-popover-bg: #edf7fa;
-  --color-components-tooltip-bg: #123342;
-  --color-components-tooltip-text: #ffffff;
   --color-components-system-chart-tooltip-bg: #fbfeff;
   --color-components-system-chart-tooltip-border: rgba(18, 51, 66, 0.14);
   --color-components-system-chart-tooltip-text: #123342;

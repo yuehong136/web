@@ -178,9 +178,6 @@ export interface DesignTokens
 
   'components-popover-bg': string
 
-  'components-tooltip-bg': string
-  'components-tooltip-text': string
-
   // ===== 导航和标签 =====
   'components-tabs-border': string
   'components-tabs-bg': string
@@ -577,9 +574,6 @@ export const defaultTokens: DesignTokens = {
   'components-dialog-overlay': '',
 
   'components-popover-bg': '',
-
-  'components-tooltip-bg': '',
-  'components-tooltip-text': '',
 
   // 导航和标签
   'components-tabs-border': '',

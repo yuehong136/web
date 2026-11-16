@@ -161,8 +161,6 @@
   --color-components-dialog-border: rgba(255, 255, 255, 0.14);
   --color-components-dialog-overlay: rgba(0, 0, 0, 0.75);
   --color-components-popover-bg: #1b2630;
-  --color-components-tooltip-bg: #121b23;
-  --color-components-tooltip-text: #edeef3;
   --color-components-system-chart-tooltip-bg: #1b2630;
   --color-components-system-chart-tooltip-border: #2b3a48;
   --color-components-system-chart-tooltip-text: #edeef3;
@@ -659,8 +657,6 @@ html[data-theme='dark'],
   --color-components-dialog-border: rgba(255, 255, 255, 0.14);
   --color-components-dialog-overlay: rgba(0, 0, 0, 0.75);
   --color-components-popover-bg: #26262b;
-  --color-components-tooltip-bg: #0f172a;
-  --color-components-tooltip-text: #f4f4f5;
   --color-components-system-chart-tooltip-bg: #1e1e1e;
   --color-components-system-chart-tooltip-border: rgba(255, 255, 255, 0.12);
   --color-components-system-chart-tooltip-text: #f4f4f5;
@@ -1156,8 +1152,6 @@ html[data-theme='dark'],
   --color-components-dialog-border: rgba(255, 255, 255, 0.14);
   --color-components-dialog-overlay: rgba(0, 0, 0, 0.75);
   --color-components-popover-bg: #332e28;
-  --color-components-tooltip-bg: #25221e;
-  --color-components-tooltip-text: #f2eade;
   --color-components-system-chart-tooltip-bg: #332e28;
   --color-components-system-chart-tooltip-border: rgba(242, 234, 222, 0.14);
   --color-components-system-chart-tooltip-text: #f2eade;
@@ -1658,8 +1652,6 @@ html[data-theme='dark'],
   --color-components-dialog-border: rgba(255, 255, 255, 0.14);
   --color-components-dialog-overlay: rgba(0, 0, 0, 0.75);
   --color-components-popover-bg: #262a31;
-  --color-components-tooltip-bg: #17191d;
-  --color-components-tooltip-text: #eef0f3;
   --color-components-system-chart-tooltip-bg: #262a31;
   --color-components-system-chart-tooltip-border: rgba(238, 240, 243, 0.14);
   --color-components-system-chart-tooltip-text: #eef0f3;
@@ -2160,8 +2152,6 @@ html[data-theme='dark'],
   --color-components-dialog-border: rgba(255, 255, 255, 0.14);
   --color-components-dialog-overlay: rgba(0, 0, 0, 0.75);
   --color-components-popover-bg: #1a394b;
-  --color-components-tooltip-bg: #0f2533;
-  --color-components-tooltip-text: #e6f4fc;
   --color-components-system-chart-tooltip-bg: #1a394b;
   --color-components-system-chart-tooltip-border: rgba(230, 244, 252, 0.14);
   --color-components-system-chart-tooltip-text: #e6f4fc;

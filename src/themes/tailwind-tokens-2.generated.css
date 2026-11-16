@@ -263,8 +263,6 @@
   --color-components-tool-call-bg: var(--color-components-tool-call-bg);
   --color-components-tool-call-border: var(--color-components-tool-call-border);
   --color-components-tool-call-title: var(--color-components-tool-call-title);
-  --color-components-tooltip-bg: var(--color-components-tooltip-bg);
-  --color-components-tooltip-text: var(--color-components-tooltip-text);
   --color-components-upload-bg: var(--color-components-upload-bg);
   --color-components-upload-bg-dragover: var(
     --color-components-upload-bg-dragover
