@@ -150,10 +150,11 @@ describe('route recovery', () => {
       '/settings/appearance',
     )
     try {
+      // The settings shell owns the page h1; the route renders its controls.
       await vi.waitFor(() =>
-        expect(container.querySelector('h1')?.textContent).toBe(
-          'appearance.title',
-        ),
+        expect(
+          container.querySelector('[data-slot="settings-template"]'),
+        ).not.toBeNull(),
       )
       expect(container.textContent).not.toContain(
         'routeErrors.unavailable.appearance',
