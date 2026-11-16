@@ -168,6 +168,43 @@ export default {
       pageSizePrefix: '每页显示',
       pageSizeSuffix: '项',
     },
+    // 集合、详情与设置页的结构组件（components/patterns）
+    patterns: {
+      select: '选择 {{name}}',
+      breadcrumb: '面包屑导航',
+      view: {
+        label: '视图',
+        list: '列表视图',
+        grid: '卡片视图',
+      },
+      filterBar: {
+        sort: '排序',
+        clearFilters: '清除筛选',
+        clearFilter: '清除',
+        moreValues: '{{value}} +{{count}}',
+      },
+      pager: {
+        label: '分页',
+        range: '{{start}}–{{end}} / {{total}}',
+        perPage: '{{count}} 条/页',
+        loaded: '已加载 {{loaded}} / {{total}}',
+        allLoaded: '已加载全部 {{count}} 项',
+        loadMore: '加载更多',
+      },
+      bulk: {
+        label: '批量操作',
+        selected: '已选 {{count}} 项',
+        clear: '取消选择',
+      },
+      table: {
+        actions: '操作',
+        selectAll: '选择本页全部行',
+      },
+      inspector: {
+        close: '关闭详情',
+        resize: '调整详情面板宽度',
+      },
+    },
 
     // API 错误消息
     errors: {
