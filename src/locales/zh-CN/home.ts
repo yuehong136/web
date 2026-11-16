@@ -1,8 +1,10 @@
 export default {
   home: {
-    workspace: {
-      title: '把资料变成下一步行动',
-      description: '围绕一个问题展开对话；需要更多资料时，选择你的应用或工具。',
+    empty: {
+      title: '今天要处理什么？',
+      description:
+        '直接提问由模型回答；@ 一个应用会检索它绑定的知识库，@ MCP 服务可以调用工具。',
+      suggestions: '可以这样开始',
     },
     starters: {
       summarize: '总结资料',
@@ -11,16 +13,6 @@ export default {
       comparePrompt: '请比较这些方案的差异、依据和待确认的问题。',
       draft: '形成下一步',
       draftPrompt: '请根据背景资料起草一份简明的行动方案，列出下一步。',
-    },
-    greeting: {
-      lateNight: '夜深了',
-      beforeDawn: '凌晨好',
-      morning: '早上好',
-      forenoon: '上午好',
-      noon: '中午好',
-      afternoon: '下午好',
-      evening: '晚上好',
-      question: '{{greeting}}！有哪些工作要处理？',
     },
     input: {
       welcomePlaceholder: '给我发消息或布置任务',

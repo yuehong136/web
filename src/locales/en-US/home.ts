@@ -1,9 +1,10 @@
 export default {
   home: {
-    workspace: {
-      title: 'Turn your sources into a next step',
+    empty: {
+      title: 'What are we working on today?',
       description:
-        'Start with a question. Choose an app or tool when you need more context.',
+        'Ask directly and the model answers; @ an app to search its knowledge bases, or @ an MCP service to use its tools.',
+      suggestions: 'Ways to start',
     },
     starters: {
       summarize: 'Understand the sources',
@@ -15,16 +16,6 @@ export default {
       draft: 'Plan the next step',
       draftPrompt:
         'Draft a concise action plan from the background material and list the next steps.',
-    },
-    greeting: {
-      lateNight: 'It is late',
-      beforeDawn: 'Good early morning',
-      morning: 'Good morning',
-      forenoon: 'Good morning',
-      noon: 'Good noon',
-      afternoon: 'Good afternoon',
-      evening: 'Good evening',
-      question: '{{greeting}}! What work should we handle?',
     },
     input: {
       welcomePlaceholder: 'Message me or assign a task',

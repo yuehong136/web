@@ -1,6 +1,7 @@
-import React from 'react'
+import type { FC, RefObject } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AtSign, Paperclip, Lightbulb } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 interface InputToolbarProps {
@@ -10,11 +11,12 @@ interface InputToolbarProps {
   onAtClick: () => void
   onAttachmentClick?: () => void
   onInspirationClick?: () => void
-  atButtonRef?: React.RefObject<HTMLButtonElement>
+  atButtonRef?: RefObject<HTMLButtonElement>
   size?: 'normal' | 'compact'
 }
 
-export const InputToolbar: React.FC<InputToolbarProps> = ({
+/** Composer pills: pick an app or skill with @; attachments only when wired. */
+export const InputToolbar: FC<InputToolbarProps> = ({
   isSkillPanelOpen,
   hasSelectedItems,
   disabled = false,
@@ -25,57 +27,48 @@ export const InputToolbar: React.FC<InputToolbarProps> = ({
   size = 'normal',
 }) => {
   const { t } = useTranslation()
-  const buttonSize = size === 'compact' ? 'w-8 h-8' : 'w-9 h-9'
-  const iconSize = size === 'compact' ? 'w-4 h-4' : 'w-5 h-5'
-
+  const buttonSize = size === 'compact' ? 'icon-sm' : 'icon'
   return (
-    <div className="flex items-center gap-2">
-      <button
+    <div className="flex items-center gap-space-2xs">
+      <Button
         type="button"
         ref={atButtonRef}
+        variant="ghost"
+        size={buttonSize}
         onClick={onAtClick}
         disabled={disabled}
         aria-label={t('home.input.selectSkills', '选择技能或应用')}
+        aria-pressed={isSkillPanelOpen}
         className={cn(
-          buttonSize,
-          'flex items-center justify-center rounded-lg transition-colors',
-          isSkillPanelOpen || hasSelectedItems
-            ? 'bg-state-focus-subtle text-state-focus'
-            : 'text-text-tertiary hover:bg-background-subtle',
-          disabled && 'cursor-not-allowed opacity-50',
+          (isSkillPanelOpen || hasSelectedItems) &&
+            'bg-state-selected-bg text-state-selected-text hover:bg-state-selected-bg',
         )}
       >
-        <AtSign className={iconSize} />
-      </button>
+        <AtSign aria-hidden="true" />
+      </Button>
       {onAttachmentClick && (
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size={buttonSize}
           onClick={onAttachmentClick}
           disabled={disabled}
           aria-label={t('home.input.addAttachment', '添加附件')}
-          className={cn(
-            buttonSize,
-            'flex items-center justify-center rounded-lg transition-colors hover:bg-background-subtle',
-            disabled && 'cursor-not-allowed opacity-50',
-          )}
         >
-          <Paperclip className={cn(iconSize, 'text-text-tertiary')} />
-        </button>
+          <Paperclip aria-hidden="true" />
+        </Button>
       )}
       {size === 'normal' && onInspirationClick && (
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size={buttonSize}
           onClick={onInspirationClick}
           disabled={disabled}
           aria-label={t('home.input.inspiration', '获取灵感')}
-          className={cn(
-            buttonSize,
-            'flex items-center justify-center rounded-lg transition-colors hover:bg-background-subtle',
-            disabled && 'cursor-not-allowed opacity-50',
-          )}
         >
-          <Lightbulb className={cn(iconSize, 'text-text-tertiary')} />
-        </button>
+          <Lightbulb aria-hidden="true" />
+        </Button>
       )}
     </div>
   )

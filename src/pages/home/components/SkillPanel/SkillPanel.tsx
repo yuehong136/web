@@ -99,12 +99,9 @@ export const SkillPanel: React.FC<SkillPanelProps> = ({
     <div
       ref={panelRef}
       className={cn(
-        'absolute left-0 z-50 w-80 overflow-hidden rounded-xl border border-border-default bg-components-card-bg shadow-lg',
-        direction === 'up' ? 'bottom-full mb-2' : 'top-full mt-2',
+        'absolute left-0 z-50 w-80 overflow-hidden rounded-radius-lg border border-border-default bg-components-card-bg shadow-elevation-high',
+        direction === 'up' ? 'bottom-full mb-space-sm' : 'top-full mt-space-sm',
       )}
-      style={{
-        boxShadow: '0 4px 24px rgba(0, 0, 0, 0.12)',
-      }}
     >
       {/* 搜索框 */}
       <div className="border-b border-border-default p-3">
