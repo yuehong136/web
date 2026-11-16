@@ -32,7 +32,7 @@ import { ROUTES } from '@/constants'
 import { useRegisterSecondaryNavigation } from '@/components/layout/workbench-navigation'
 import { usePendingTeamInvitations } from '@/hooks/use-pending-team-invitations'
 import { useTeamStore } from '@/stores/team'
-import { API_DOCS_PATH, API_KEYS_PATH } from './api-routes'
+import { API_DOCS_PATH, API_KEYS_PATH, MCP_PATH } from './settings-routes'
 
 export const SettingsIndexRedirect = () => {
   const { state } = useLocation()
@@ -107,9 +107,9 @@ export const SettingsLayout: React.FC = () => {
           },
           {
             title: t('settings.nav.mcp'),
-            href: '/settings/mcp-servers',
+            href: MCP_PATH,
             icon: Plug,
-            matcher: (pathname) => pathname.startsWith('/settings/mcp'),
+            matcher: (pathname) => pathname.startsWith(MCP_PATH),
           },
           {
             title: t('settings.nav.channels'),
@@ -160,24 +160,13 @@ export const SettingsLayout: React.FC = () => {
     )
   const pageTitles: Record<string, string> = {
     '/settings': t('settings.nav.profile'),
-    '/settings/mcp-servers': t('mcp.servers.title'),
-    '/settings/mcp-tools': t('settings.nav.mcpTools'),
-    '/settings/mcp-test': t('settings.nav.mcpTest'),
-    '/settings/mcp-batch': t('settings.nav.mcpBatch'),
+    [MCP_PATH]: t('mcp.servers.title'),
     '/settings/datasource-detail': t('datasource.configuration'),
   }
   const currentTitle =
     pageTitles[pathname] || currentItem?.title || t('settings.title')
   const isDatasourceDetail = pathname === '/settings/datasource-detail'
-  const parentHref =
-    isDatasourceDetail ||
-    [
-      '/settings/mcp-tools',
-      '/settings/mcp-test',
-      '/settings/mcp-batch',
-    ].includes(pathname)
-      ? currentItem?.href
-      : undefined
+  const parentHref = isDatasourceDetail ? currentItem?.href : undefined
   const parentTitle = currentItem?.title
   const CurrentTitle =
     isDatasourceDetail || pathname === '/settings/appearance' ? 'span' : 'h1'

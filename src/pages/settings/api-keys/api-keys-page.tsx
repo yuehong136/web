@@ -29,7 +29,7 @@ import {
   type CreateApiKeySubmitData,
 } from '@/pages/settings/components/create-api-key-dialog'
 import { KeyRevealDialog } from '@/pages/settings/components/key-reveal-dialog'
-import { API_DOCS_PATH } from '@/pages/settings/api-routes'
+import { API_DOCS_PATH } from '@/pages/settings/settings-routes'
 import { ApiKeyRows } from './api-key-rows'
 
 const PAGE_SIZE = 10

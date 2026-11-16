@@ -1,128 +1,152 @@
-import React, { useState } from 'react'
-import { ChevronDown, ChevronRight, CircleDot } from 'lucide-react'
+import { useId, useState, type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
+import { ChevronDown, ChevronRight, Dot } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { MCPTool } from '@/types/mcp'
 
+interface ParameterSchema {
+  type?: string
+  description?: string
+}
+
 /**
- * MCP 工具项组件 — 可展开查看完整描述和参数详情
+ * One MCP tool: name and summary, expandable to the full description and a
+ * parameter table. `actions` (for example "Run") sit at the end of the row.
  */
-export const ToolItem: React.FC<{ tool: MCPTool }> = ({ tool }) => {
+export function ToolItem({
+  tool,
+  actions,
+}: {
+  tool: MCPTool
+  actions?: ReactNode
+}) {
+  const { t } = useTranslation()
   const [expanded, setExpanded] = useState(false)
-  const paramKeys = tool.inputSchema?.properties
-    ? Object.keys(tool.inputSchema.properties)
-    : []
-  const requiredKeys = tool.inputSchema?.required || []
+  const detailsId = useId()
+  const properties = (tool.inputSchema?.properties ?? {}) as Record<
+    string,
+    ParameterSchema | undefined
+  >
+  const paramKeys = Object.keys(properties)
+  const requiredKeys = tool.inputSchema?.required ?? []
   const hasDetails =
-    paramKeys.length > 0 || (tool.description && tool.description.length > 80)
+    paramKeys.length > 0 || (tool.description?.length ?? 0) > 80
+  const Chevron = expanded ? ChevronDown : ChevronRight
+
+  const summary = (
+    <>
+      <span className="flex size-icon-sm shrink-0 items-center justify-center text-text-tertiary">
+        {hasDetails ? (
+          <Chevron className="size-icon-sm" aria-hidden="true" />
+        ) : (
+          <Dot className="size-icon-sm" aria-hidden="true" />
+        )}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="flex flex-wrap items-center gap-space-sm">
+          <span className="font-mono text-sm font-medium text-text-primary">
+            {tool.name}
+          </span>
+          {paramKeys.length > 0 ? (
+            <span className="text-xs text-text-tertiary tabular-nums">
+              {t('mcp.tools.parameterCount', { count: paramKeys.length })}
+            </span>
+          ) : null}
+        </span>
+        {tool.description && !expanded ? (
+          <span className="mt-space-2xs line-clamp-2 block text-xs text-text-secondary">
+            {tool.description}
+          </span>
+        ) : null}
+      </span>
+    </>
+  )
 
   return (
-    <div>
-      <button
-        type="button"
-        onClick={() => hasDetails && setExpanded(!expanded)}
-        className={cn(
-          'flex w-full items-start gap-3 px-4 py-3 text-left transition-colors',
-          hasDetails
-            ? 'cursor-pointer hover:bg-[var(--color-state-hover)]'
-            : 'cursor-default',
-        )}
-      >
-        {/* 展开/收起指示 */}
-        <div className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center">
-          {hasDetails ? (
-            expanded ? (
-              <ChevronDown className="h-3.5 w-3.5 text-[var(--color-text-tertiary)]" />
-            ) : (
-              <ChevronRight className="h-3.5 w-3.5 text-[var(--color-text-tertiary)]" />
-            )
-          ) : (
-            <CircleDot className="h-3 w-3 text-[var(--color-text-muted)]" />
-          )}
-        </div>
-
-        {/* 工具信息 */}
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="font-mono text-sm font-medium text-[var(--color-text-primary)]">
-              {tool.name}
-            </span>
-            {paramKeys.length > 0 && (
-              <span className="text-xs text-[var(--color-text-muted)] tabular-nums">
-                {paramKeys.length} 参数
-              </span>
-            )}
+    <div className="border-t border-border-subtle first:border-t-0">
+      <div className="flex items-start gap-space-sm py-space-sm">
+        {hasDetails ? (
+          <button
+            type="button"
+            aria-expanded={expanded}
+            aria-controls={detailsId}
+            onClick={() => setExpanded(!expanded)}
+            className="flex min-w-0 flex-1 items-start gap-space-sm rounded-radius-sm text-left outline-hidden focus-visible:ring-2 focus-visible:ring-state-focus"
+          >
+            {summary}
+          </button>
+        ) : (
+          <div className="flex min-w-0 flex-1 items-start gap-space-sm">
+            {summary}
           </div>
-          {tool.description && !expanded && (
-            <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-[var(--color-text-tertiary)]">
+        )}
+        {actions ? (
+          <div className="flex shrink-0 items-center gap-space-xs">
+            {actions}
+          </div>
+        ) : null}
+      </div>
+
+      {expanded ? (
+        <div
+          id={detailsId}
+          className="flex flex-col gap-space-sm pb-space-sm pl-space-lg"
+        >
+          {tool.description ? (
+            <p className="text-xs whitespace-pre-wrap text-text-secondary">
               {tool.description}
             </p>
-          )}
-        </div>
-      </button>
-
-      {/* 展开区域：完整描述 + 参数表 */}
-      {expanded && (
-        <div className="space-y-3 px-4 pb-3 pl-11">
-          {/* 完整描述 */}
-          {tool.description && (
-            <p className="text-xs leading-relaxed whitespace-pre-wrap text-[var(--color-text-secondary)]">
-              {tool.description}
-            </p>
-          )}
-
-          {/* 参数表 */}
-          {paramKeys.length > 0 && (
-            <div className="overflow-hidden rounded-lg border border-[var(--color-border-subtle)] bg-[var(--color-background-subtle)]">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="border-b border-[var(--color-border-subtle)]">
-                    <th className="px-3 py-1.5 text-left font-medium text-[var(--color-text-tertiary)]">
-                      参数名
-                    </th>
-                    <th className="px-3 py-1.5 text-left font-medium text-[var(--color-text-tertiary)]">
-                      类型
-                    </th>
-                    <th className="w-10 px-3 py-1.5 text-left font-medium text-[var(--color-text-tertiary)]">
-                      必填
-                    </th>
-                    <th className="px-3 py-1.5 text-left font-medium text-[var(--color-text-tertiary)]">
-                      说明
-                    </th>
+          ) : null}
+          {paramKeys.length > 0 ? (
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b border-border-subtle text-left text-text-tertiary">
+                  <th className="py-space-2xs pr-space-sm font-medium">
+                    {t('mcp.tools.parameter')}
+                  </th>
+                  <th className="py-space-2xs pr-space-sm font-medium">
+                    {t('mcp.tools.type')}
+                  </th>
+                  <th className="py-space-2xs font-medium">
+                    {t('mcp.tools.parameterDescription')}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {paramKeys.map((key) => (
+                  <tr
+                    key={key}
+                    className="border-b border-border-subtle last:border-b-0"
+                  >
+                    <td className="py-space-2xs pr-space-sm font-mono whitespace-nowrap text-text-primary">
+                      {key}
+                      {requiredKeys.includes(key) ? (
+                        <span className="ml-space-2xs text-status-error">
+                          <span aria-hidden="true">*</span>
+                          <span className="sr-only">
+                            {t('mcp.tools.required')}
+                          </span>
+                        </span>
+                      ) : null}
+                    </td>
+                    <td className="py-space-2xs pr-space-sm whitespace-nowrap text-text-tertiary">
+                      {properties[key]?.type ?? '—'}
+                    </td>
+                    <td
+                      className={cn(
+                        'py-space-2xs text-text-secondary',
+                        !properties[key]?.description && 'text-text-tertiary',
+                      )}
+                    >
+                      {properties[key]?.description || '—'}
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-[var(--color-border-subtle)]">
-                  {paramKeys.map((key) => {
-                    const param = tool.inputSchema!.properties[key]
-                    const isRequired = requiredKeys.includes(key)
-                    return (
-                      <tr key={key}>
-                        <td className="px-3 py-1.5 font-mono whitespace-nowrap text-[var(--color-text-primary)]">
-                          {key}
-                        </td>
-                        <td className="px-3 py-1.5 whitespace-nowrap text-[var(--color-text-tertiary)]">
-                          {param?.type || '-'}
-                        </td>
-                        <td className="px-3 py-1.5 text-center">
-                          {isRequired ? (
-                            <span className="text-status-error">*</span>
-                          ) : (
-                            <span className="text-[var(--color-text-muted)]">
-                              -
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-3 py-1.5 text-[var(--color-text-tertiary)]">
-                          {param?.description || '-'}
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
+                ))}
+              </tbody>
+            </table>
+          ) : null}
         </div>
-      )}
+      ) : null}
     </div>
   )
 }
