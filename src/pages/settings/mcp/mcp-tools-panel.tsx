@@ -16,6 +16,7 @@ import { toast } from '@/lib/toast'
 import { cn } from '@/lib/utils'
 import type { MCPServer } from '@/types/mcp'
 import { MCPToolRunDialog, type ToolRunTarget } from './mcp-tool-run-dialog'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 
 /** Live tool lists of one server (or all of them), with a runner per tool. */
 export function MCPToolsPanel({
@@ -110,6 +111,13 @@ export function MCPToolsPanel({
         className="flex flex-col"
       >
         <div className="flex items-center gap-space-sm py-space-xs">
+          <EntityAvatar
+            name={server.name}
+            seed={server.id}
+            kind="mcp"
+            tone="kind"
+            size="sm"
+          />
           <h3 className="min-w-0 flex-1 truncate text-sm font-semibold text-text-primary">
             {server.name}
             <span className="ml-space-sm text-xs font-normal text-text-tertiary tabular-nums">
