@@ -5,7 +5,6 @@
   "src/types/api.ts": 1486,
   "src/pages/agent/constant/index.ts": 1373,
   "src/pages/MCPChatPage.tsx": 1322,
-  "src/pages/explore/ExplorePage.tsx": 1273,
   "src/components/environment/EnvironmentDetail.tsx": 949,
   "src/themes/theme-generator.ts": 908,
   "src/pages/agent/operators/serializers.ts": 860,

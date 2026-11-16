@@ -1,0 +1,138 @@
+import { useMemo, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
+import { Bubble, type BubbleListProps } from '@ant-design/x'
+import { ChatBubbleLoading } from '@/components/chat/ChatBubbleLoading'
+import { MessageActionBar } from '@/components/chat/message-action-bar'
+import { MessageActionsFooter } from '@/components/chat/MessageActionsFooter'
+import { CHAT_BUBBLE_ROLES } from '@/components/chat/antx-chat-config'
+import { TurnRail, type ThreadTurn } from '@/components/chat/turn-rail'
+import { useModelIdentity } from '@/components/models/model-identity'
+import type { ModelIdentitySnapshot } from '@/lib/model-identity'
+import { ExploreChatAnswer } from './explore-chat-answer'
+import { ExploreRunNotice } from './explore-run-notice'
+import { ExploreMessageAttachments } from './message-attachments'
+import type { ExploreMessage } from '../hooks/use-explore-conversation'
+
+/** The answering model, as plain meta text. */
+function AnswerModel(snapshot: ModelIdentitySnapshot) {
+  return useModelIdentity(snapshot).label ?? null
+}
+
+const messageKey = (message: ExploreMessage, index: number) =>
+  `${message.role}_${message.id || index}`
+
+export interface ExploreThreadProps {
+  messages: ExploreMessage[]
+  isStreaming: boolean
+  onCopy: (content: string) => void
+  onRegenerate: (assistantIndex: number) => void
+}
+
+/**
+ * Explore keeps antd-x Bubble.List, in the same thread look as Home: no
+ * avatars or per-message headers, actions under each answer (only the latest
+ * keeps them visible), the answering model as meta.
+ */
+export function ExploreThread({
+  messages,
+  isStreaming,
+  onCopy,
+  onRegenerate,
+}: ExploreThreadProps) {
+  const { t } = useTranslation()
+  const root = useRef<HTMLDivElement>(null)
+  const lastAnswer = messages.findLastIndex(
+    (message) => message.role === 'assistant',
+  )
+  const items = useMemo<BubbleListProps['items']>(
+    () =>
+      messages.map((message, index) => {
+        const key = messageKey(message, index)
+        const user = message.role === 'user'
+        const streaming =
+          isStreaming &&
+          !user &&
+          index === lastAnswer &&
+          (message.runPhase === 'running' ||
+            message.runPhase === 'cancelRequested')
+        const content = message.content || ''
+        return {
+          key,
+          role: message.role,
+          content,
+          streaming,
+          // Dots only until the first answer or reasoning text arrives.
+          loading: streaming && !message.content && !message.thinking,
+          loadingRender: () => <ChatBubbleLoading />,
+          contentRender: user
+            ? () => (
+                <div data-turn-id={key} aria-label={t('chat.transcript.user')}>
+                  {content}
+                  <ExploreMessageAttachments files={message.files} />
+                </div>
+              )
+            : () => (
+                <ExploreChatAnswer
+                  content={content}
+                  thinking={message.thinking}
+                  messageId={message.id}
+                  references={message.references}
+                  isStreaming={streaming}
+                  runPhase={message.runPhase}
+                  notice={<ExploreRunNotice phase={message.runPhase} />}
+                />
+              ),
+          footer:
+            streaming || !content.trim() ? undefined : (
+              <MessageActionBar
+                persistent={index === lastAnswer}
+                meta={
+                  user ? undefined : (
+                    <AnswerModel {...(message.modelIdentity ?? {})} />
+                  )
+                }
+              >
+                <MessageActionsFooter
+                  className="flex"
+                  content={content}
+                  onCopy={() => onCopy(content)}
+                  onRegenerate={user ? undefined : () => onRegenerate(index)}
+                  showTTS={!user}
+                  showRegenerate={!user}
+                  showFeedback={false}
+                />
+              </MessageActionBar>
+            ),
+        }
+      }),
+    [messages, isStreaming, lastAnswer, onCopy, onRegenerate, t],
+  )
+  const turns = useMemo<ThreadTurn[]>(
+    () =>
+      messages.flatMap((message, index) =>
+        message.role === 'user'
+          ? [{ id: messageKey(message, index), question: message.content }]
+          : [],
+      ),
+    [messages],
+  )
+  return (
+    <div
+      ref={root}
+      className="explore-chat-area app-chat-area relative h-full min-h-0"
+    >
+      {/* Full-width scroller (scrollbar at the edge), bubbles in the reading column. */}
+      <Bubble.List
+        items={items}
+        autoScroll
+        className="h-full"
+        classNames={{
+          scroll: 'px-space-md py-space-lg sm:px-space-lg',
+          bubble: 'mx-auto w-full max-w-2xl',
+        }}
+        role={CHAT_BUBBLE_ROLES}
+      />
+      <TurnRail turns={turns} rootRef={root} />
+    </div>
+  )
+}

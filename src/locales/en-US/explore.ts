@@ -45,38 +45,28 @@ export default {
     header: {
       market: 'App Market',
       chatSettings: 'Chat settings',
-      defaultLayout: 'Default layout',
-      centerLayout: 'Centered layout',
-      fullLayout: 'Full-width layout',
+    },
+    empty: {
+      suggestions: 'Ways to start',
     },
     market: {
       added: 'Added',
       addToWorkspace: 'Add to workspace',
     },
     prompts: {
-      explain: {
-        label: 'Explain this concept',
-        description: 'Learn in depth',
-      },
-      code: {
-        label: 'Write code',
-        description: 'Programming assistant',
-      },
-      summarize: {
-        label: 'Summarize key points',
-        description: 'Extract quickly',
-      },
-      translate: {
-        label: 'Translate text',
-        description: 'Multilingual',
-      },
+      explain: { label: 'Explain this concept' },
+      code: { label: 'Write code' },
+      summarize: { label: 'Summarize key points' },
+      translate: { label: 'Translate text' },
     },
     sender: {
+      onlineSearchUnavailable: 'Web search needs a Tavily key in this app',
+      appModel: 'App default',
       placeholder:
         'Type a message, press Enter to send, or send attachments directly',
       uploadFile: 'Upload file',
       stop: 'Stop receiving',
-      thinking: 'Deep thinking',
+      thinking: 'Deep research',
       onlineSearch: 'Web search',
       uploading: 'Uploading...',
       attachmentsReady: '{{count}} attachments ready',
@@ -96,8 +86,6 @@ export default {
     toast: {
       copied: 'Copied to clipboard',
       copyFailed: 'Copy failed',
-      like: 'Thanks for your feedback',
-      dislike: 'Thanks for your feedback. We will keep improving.',
       missingUserMessage: 'Could not find the matching user message',
       assistantError: 'Sorry, something went wrong. Please try again.',
       uploadSuccess: 'File {{name}} uploaded',

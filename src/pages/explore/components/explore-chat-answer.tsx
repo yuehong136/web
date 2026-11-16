@@ -1,3 +1,4 @@
+import { useCallback } from 'react'
 import {
   AppChatAnswer,
   type AppChatAnswerProps,
@@ -9,12 +10,11 @@ export function ExploreChatAnswer(
   props: Omit<AppChatAnswerProps, 'onViewReference'>,
 ) {
   const workspace = useChatWorkspace()
-  return (
-    <AppChatAnswer
-      {...props}
-      onViewReference={(chunk, references) =>
-        workspace?.viewReference(chunk, references, props.messageId)
-      }
-    />
+  const { messageId } = props
+  const viewReference = useCallback<AppChatAnswerProps['onViewReference']>(
+    (chunk, references, options) =>
+      workspace?.viewReference(chunk, references, messageId, options),
+    [workspace, messageId],
   )
+  return <AppChatAnswer {...props} onViewReference={viewReference} />
 }
