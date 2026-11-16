@@ -44,7 +44,7 @@ export function ProcessDisclosure({
             loading && 'animate-spin motion-reduce:animate-none',
           )}
         />
-        <span aria-live="polite" className={cn(loading && 'chat-shimmer')}>
+        <span aria-live="polite" className={cn(loading && 'text-shimmer')}>
           {title}
         </span>
         <ChevronRight

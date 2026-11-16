@@ -8,8 +8,8 @@ import { createContextManifest } from '@/lib/ai-workspace/contracts'
 import { useHomeStore } from '@/stores/home'
 import { ChatSection } from '../ChatSection'
 
-// W4：[ID:n] → <sup>n</sup> → 角标；解析到的引用是按钮，编号与来源面板、详情侧栏
-// 指向同一片段；解析不到的保留文本语义，渲染为不可交互的上标
+// W4：[ID:n] → <sup>n</sup> → 引用芯片；解析到的引用是按钮，编号与来源面板、详情侧栏
+// 指向同一片段；连写的引用合成一个芯片；解析不到的保留文本语义，渲染为不可交互的上标
 
 // @ant-design/x and the code-block renderers pull syntax-highlighter styles
 // Vitest cannot resolve. Citations only need each bubble's contentRender and the
@@ -138,7 +138,7 @@ const settle = () =>
 const markers = () => [...container.querySelectorAll<HTMLElement>('sup')]
 const markerButtons = () =>
   [...container.querySelectorAll<HTMLButtonElement>('sup button')].map(
-    (button) => button.textContent,
+    (button) => button.dataset.citationNumber,
   )
 // 详情在工作区证据面板打开（窄屏为 Sheet），标题是面板名，文档名在面板内
 const evidenceText = () =>
@@ -195,19 +195,21 @@ it('numbers repeated, out-of-order and unknown citations by reference position',
   ]
   await render([answer('乙[ID:2]甲[ID:0][ID:0]丁[ID:3]缺[ID:9]。', references)])
 
-  // 解析到的是按钮，编号取引用位置 + 1；越界的 [ID:9] 是不可交互的上标
-  expect(markerButtons()).toEqual(['3', '1', '1', '4'])
+  // 解析到的是按钮，编号取引用位置 + 1；连写的同一引用合成一个芯片；
+  // 越界的 [ID:9] 是不可交互的上标
+  expect(markerButtons()).toEqual(['3', '1', '4'])
   const unknown = markers().find((sup) => !sup.querySelector('button'))
   expect(unknown?.textContent).toBe('10')
 
-  // 角标 3 指向 report.pdf：打开浮层，再从"详情"打开证据面板
+  // 芯片 3 写着 report：打开浮层，再从“在面板中查看”打开证据面板
   const marker = container.querySelector<HTMLButtonElement>('sup button')!
+  expect(marker.textContent).toBe('PDFreport')
   await act(async () => marker.click())
   await settle()
   const popover = document.querySelector('[role="dialog"]')!
   expect(popover.textContent).toContain('report.pdf')
   expect(popover.textContent).toContain('片段 2 的内容')
-  await act(async () => buttonWithText(popover, '详情')!.click())
+  await act(async () => buttonWithText(popover, '在面板中查看')!.click())
   await settle()
   expect(evidenceText()).toContain('report.pdf')
   expect(evidenceText()).toContain('片段 2 的内容')
@@ -225,6 +227,9 @@ it('lists cited sources under the answer with the numbers their citations show',
 
   // One line of cited sources; the uncited chunk is only in the evidence panel
   const strip = container.querySelector('[data-source-strip]')!
+  const toggle = strip.querySelector<HTMLButtonElement>('[data-source-toggle]')!
+  expect(toggle.textContent).toContain('3 个来源')
+  await act(async () => toggle.click())
   const chips = [
     ...strip.querySelectorAll<HTMLButtonElement>('[data-source-chunk]'),
   ]
@@ -242,7 +247,7 @@ it('lists cited sources under the answer with the numbers their citations show',
   await settle()
   expect(evidenceText()).toContain('harness.pdf')
   expect(evidenceText()).toContain('片段 2 的内容')
-  expect(evidenceText()).toContain('综合 62%')
+  expect(evidenceText()).toMatch(/综合\s*62%/)
 })
 
 it('opens every retrieved chunk, cited or not, with its scores', async () => {
@@ -252,7 +257,9 @@ it('opens every retrieved chunk, cited or not, with its scores', async () => {
   ]
   await render([answer('甲[ID:0]。', references)])
   await act(async () =>
-    container.querySelector<HTMLButtonElement>('[data-source-all]')!.click(),
+    container
+      .querySelector<HTMLButtonElement>('[data-retrieval-summary]')!
+      .click(),
   )
   await settle()
   const panel = document.querySelector('[role="dialog"]:has(h2)')!
@@ -261,8 +268,8 @@ it('opens every retrieved chunk, cited or not, with its scores', async () => {
   ).toContain('全部片段')
   const rows = [...panel.querySelectorAll('[data-evidence-chunks] button')]
   expect(rows.map((row) => row.textContent)).toEqual([
-    expect.stringContaining('引用 1 · harness.pdf'),
-    expect.stringContaining('未引用 · harness.pdf'),
+    expect.stringContaining('harness.pdf引用 1 · '),
+    expect.stringContaining('harness.pdf未引用 · '),
   ])
   expect(rows[0].textContent).toContain('综合 62% · 向量 70% · 关键词 50%')
   expect(rows[1].textContent).toContain('41%')

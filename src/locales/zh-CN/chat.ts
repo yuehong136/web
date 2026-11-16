@@ -101,6 +101,26 @@ export default {
       turns: '对话轮次',
       jumpToTurn: '跳到第 {{count}} 轮：{{question}}',
     },
+    citation: {
+      relevance: '相关度',
+      viewInPanel: '在面板中查看',
+      previous: '上一个来源',
+      next: '下一个来源',
+      groupLabel_one: '{{label}}，另有 {{count}} 个来源',
+      groupLabel_other: '{{label}}，另有 {{count}} 个来源',
+    },
+    steps: {
+      retrieval: '检索知识库',
+      hits_one: '命中 {{count}} 个片段',
+      hits_other: '命中 {{count}} 个片段',
+      tool: '调用工具',
+      skill: '使用技能',
+    },
+    evidence: {
+      combined: '综合',
+      vector: '向量',
+      keyword: '关键词',
+    },
     thinking: {
       inProgress: '思考中...',
       complete: '思考过程',

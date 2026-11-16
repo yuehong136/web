@@ -105,7 +105,22 @@ it('a completed body never loses small updates and preserves actual citation mar
   )
   await render('Evidence [ID:0].')
   expect(host.querySelector('.markdown-content')?.textContent).toContain('.')
-  // One source line under the answer; it opens the evidence for that chunk
+  // One source line under the answer: the inline chip names the document
+  const chip = host.querySelector<HTMLButtonElement>(
+    'sup [data-citation-chip]',
+  )!
+  expect(chip.textContent).toContain('Evidence')
+  expect(chip.querySelector('[data-slot="file-kind-tile"]')?.textContent).toBe(
+    'PDF',
+  )
+  // The source pill expands to the cited sources; each opens its evidence
+  const toggle = host.querySelector<HTMLButtonElement>(
+    '[data-source-strip] [data-source-toggle]',
+  )!
+  expect(toggle.textContent).toContain('1 source')
+  expect(host.querySelector('[data-source-chunk]')).toBeNull()
+  await act(async () => toggle.click())
+  expect(toggle.getAttribute('aria-expanded')).toBe('true')
   const source = host.querySelector<HTMLButtonElement>(
     '[data-source-strip] [data-source-chunk]',
   )!
@@ -216,3 +231,98 @@ it.each(['en-US', 'zh-CN'] as const)(
     }
   },
 )
+
+it('names the answering model with its provider logo and the answer time', async () => {
+  await act(async () =>
+    root.render(
+      <MessageParts
+        content="Answer"
+        identity={{
+          reference: 'deepseek-v3@DeepSeek',
+          label: 'DeepSeek-V3.2',
+          provider: 'DeepSeek',
+          time: '14:32',
+        }}
+        run={{ phase: 'completed' }}
+        onViewReference={() => {}}
+      />,
+    ),
+  )
+  const identity = host.querySelector('[data-answer-identity]')!
+  expect(identity.textContent).toBe('DeepSeek-V3.214:32')
+  expect(
+    identity.querySelector('[data-model-identity] [data-slot="provider-logo"]'),
+  ).not.toBeNull()
+})
+
+it('groups back-to-back citations into one chip whose card pages through them', async () => {
+  const references: ReferenceChunk[] = [
+    {
+      id: 'a',
+      content: 'Alpha passage',
+      document_name: 'Retrieval paper.pdf',
+      document_id: 'd1',
+      dataset_id: 'kb',
+      similarity: 0.82,
+    },
+    {
+      id: 'b',
+      content: 'Beta passage',
+      document_name: 'Eval log.xlsx',
+      document_id: 'd2',
+      dataset_id: 'kb',
+    },
+    {
+      id: 'c',
+      content: 'Gamma passage',
+      document_name: 'notes.md',
+      document_id: 'd3',
+      dataset_id: 'kb',
+    },
+  ]
+  const view = vi.fn()
+  await act(async () =>
+    root.render(
+      <MessageParts
+        content="Claim [ID:0][ID:1][ID:0]. Other [ID:2]"
+        messageId="m1"
+        references={references}
+        run={{ phase: 'completed' }}
+        onViewReference={view}
+      />,
+    ),
+  )
+  const chips = [
+    ...host.querySelectorAll<HTMLButtonElement>('sup [data-citation-chip]'),
+  ]
+  expect(chips).toHaveLength(2)
+  expect(chips[0].textContent).toBe('PDFRetrieval paper+1')
+  expect(chips[0].dataset.citationNumber).toBe('1,2')
+  expect(chips[0].getAttribute('aria-label')).toBe(
+    'Citation 1: Retrieval paper.pdf, and 1 more source',
+  )
+  expect(chips[1].textContent).toBe('MDnotes')
+  await act(async () => chips[0].click())
+  await act(async () => new Promise((resolve) => setTimeout(resolve, 0)))
+  const card = document.querySelector<HTMLElement>('[role="dialog"]')!
+  expect(card.textContent).toContain('Retrieval paper.pdf')
+  expect(card.textContent).toContain('82%')
+  expect(card.textContent).toContain('Alpha passage')
+  expect(card.textContent).toContain('1/2')
+  await act(async () =>
+    card
+      .querySelector<HTMLButtonElement>('[aria-label="Next source"]')!
+      .click(),
+  )
+  expect(card.textContent).toContain('Eval log.xlsx')
+  expect(card.textContent).toContain('Citation 2')
+  // No score was returned for this chunk, so none is shown
+  expect(card.textContent).not.toContain('%')
+  await act(async () =>
+    card.querySelector<HTMLButtonElement>('[data-reference-details]')!.click(),
+  )
+  expect(view).toHaveBeenLastCalledWith(references[1], references, {
+    cited: references,
+    messageId: 'm1',
+  })
+})

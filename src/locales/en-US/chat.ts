@@ -104,6 +104,26 @@ export default {
       turns: 'Conversation turns',
       jumpToTurn: 'Go to turn {{count}}: {{question}}',
     },
+    citation: {
+      relevance: 'Relevance',
+      viewInPanel: 'View in panel',
+      previous: 'Previous source',
+      next: 'Next source',
+      groupLabel_one: '{{label}}, and {{count}} more source',
+      groupLabel_other: '{{label}}, and {{count}} more sources',
+    },
+    steps: {
+      retrieval: 'Searched knowledge',
+      hits_one: '{{count}} passage found',
+      hits_other: '{{count}} passages found',
+      tool: 'Called tool',
+      skill: 'Used skill',
+    },
+    evidence: {
+      combined: 'Combined',
+      vector: 'Vector',
+      keyword: 'Keyword',
+    },
     thinking: {
       inProgress: 'Thinking...',
       complete: 'Thought process',

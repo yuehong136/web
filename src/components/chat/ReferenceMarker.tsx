@@ -4,14 +4,7 @@
  *
  * 展示组件原则：只接收 props，不包含业务逻辑
  */
-import {
-  useEffect,
-  useRef,
-  useState,
-  type FC,
-  type PointerEvent,
-  type ReactNode,
-} from 'react'
+import { useRef, type FC, type ReactNode } from 'react'
 import { Copy, ChevronRight, ExternalLink } from 'lucide-react'
 import type { Config } from 'dompurify'
 import { useTranslation } from 'react-i18next'
@@ -32,6 +25,7 @@ import {
 import { cn } from '@/lib/utils'
 import type { ReferenceChunk } from '@/utils/reference-replacer'
 import { getChunkByRefId } from '@/utils/reference-utils'
+import { useHoverPopover } from './use-hover-popover'
 
 export interface ReferenceMarkerProps {
   /** 引用索引（从 0 开始） */
@@ -56,9 +50,6 @@ const FOOTER_BUTTON_CLASS = cn(
   'flex items-center gap-space-xs rounded-radius-md px-space-sm py-space-xs text-xs transition-colors hover:bg-state-hover',
   'focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden',
 )
-// A pointer resting on the pill previews it; moving away closes it again.
-const HOVER_OPEN_DELAY = 350
-const HOVER_CLOSE_DELAY = 200
 
 /**
  * 内联引用标记组件。浮层只做阅读时的快速预览，不展示检索匹配评分：
@@ -72,44 +63,13 @@ export const ReferenceMarker: FC<ReferenceMarkerProps> = ({
   children,
 }) => {
   const { t } = useTranslation()
-  const [open, setOpen] = useState(false)
+  const {
+    open,
+    onOpenChange: changeOpen,
+    hoverProps,
+    preventHoverFocus,
+  } = useHoverPopover()
   const trigger = useRef<HTMLButtonElement>(null)
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  // Hover previews must not pull keyboard focus into the popover.
-  const openedByHover = useRef(false)
-  const clearTimer = () => {
-    if (timer.current) clearTimeout(timer.current)
-    timer.current = null
-  }
-  useEffect(
-    () => () => {
-      if (timer.current) clearTimeout(timer.current)
-    },
-    [],
-  )
-  const hoverOpen = (event: PointerEvent) => {
-    if (event.pointerType !== 'mouse') return
-    clearTimer()
-    if (open) return
-    timer.current = setTimeout(() => {
-      openedByHover.current = true
-      setOpen(true)
-    }, HOVER_OPEN_DELAY)
-  }
-  const hoverClose = (event: PointerEvent) => {
-    if (event.pointerType !== 'mouse') return
-    clearTimer()
-    if (!openedByHover.current) return
-    timer.current = setTimeout(() => {
-      openedByHover.current = false
-      setOpen(false)
-    }, HOVER_CLOSE_DELAY)
-  }
-  const changeOpen = (next: boolean) => {
-    clearTimer()
-    openedByHover.current = false
-    setOpen(next)
-  }
   const displayIndex =
     chunk?.reference_index !== undefined
       ? chunk.reference_index
@@ -146,8 +106,7 @@ export const ReferenceMarker: FC<ReferenceMarkerProps> = ({
             type="button"
             aria-label={label}
             data-citation-pill
-            onPointerEnter={hoverOpen}
-            onPointerLeave={hoverClose}
+            {...hoverProps}
             className={cn(
               'inline-flex cursor-pointer items-center justify-center align-baseline',
               'mx-space-2xs h-icon-sm min-w-icon-sm px-space-xs',
@@ -166,11 +125,8 @@ export const ReferenceMarker: FC<ReferenceMarkerProps> = ({
         className="w-80 overflow-hidden rounded-radius-lg p-0"
         align="start"
         sideOffset={8}
-        onPointerEnter={hoverOpen}
-        onPointerLeave={hoverClose}
-        onOpenAutoFocus={(event) => {
-          if (openedByHover.current) event.preventDefault()
-        }}
+        {...hoverProps}
+        onOpenAutoFocus={preventHoverFocus}
       >
         <div className="flex flex-col bg-components-card-bg">
           {/* 头部 - 文档信息 */}

@@ -39,8 +39,6 @@
 }
 .app-chat-area .ant-bubble-start + .ant-bubble-end {
   margin-top: var(--space-sm);
-  padding-top: var(--space-lg);
-  border-top: 1px solid var(--color-border-subtle);
 }
 .app-chat-area .ant-bubble-body {
   min-width: 0;
@@ -94,8 +92,9 @@
   font-weight: 600;
 }
 
-/* Thread: one reading column, answers without a bubble, user turns as a
-   compact subtle bubble. Identity lives in the conversation header. */
+/* Thread: one reading column, answers without a bubble under a model
+   identity line, user turns as a compact subtle bubble. Turns are set apart
+   by space, not rules. */
 .chat-transcript {
   display: grid;
   gap: var(--space-lg);
@@ -105,8 +104,6 @@
 }
 .chat-transcript > li[data-message-role='user']:not(:first-child) {
   margin-top: var(--space-sm);
-  padding-top: var(--space-lg);
-  border-top: 1px solid var(--color-border-subtle);
 }
 .chat-transcript-message {
   min-width: 0;
@@ -125,8 +122,7 @@
 .chat-user-bubble {
   max-width: min(82%, 36rem);
   padding: var(--space-sm) var(--space-md);
-  border-radius: var(--radius-xl) var(--radius-xl) var(--radius-sm)
-    var(--radius-xl);
+  border-radius: calc(var(--radius-xl) + var(--space-xs));
   background: var(--color-chat-bubble-user-bg);
   color: var(--color-chat-bubble-user-text);
   font-family: var(--font-reading, var(--font-sans));
@@ -200,79 +196,28 @@
   max-height: 70vh;
   overflow: auto;
 }
-/* Reasoning, retrieval and tool steps: one collapsed line each. */
-.chat-shimmer {
-  background: linear-gradient(
-    90deg,
-    var(--color-text-tertiary) 0%,
-    var(--color-text-primary) 45%,
-    var(--color-text-tertiary) 90%
-  );
-  background-size: 200% 100%;
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
-  -webkit-text-fill-color: transparent;
-}
-@media (prefers-reduced-motion: no-preference) {
-  .chat-shimmer {
-    animation: chat-shimmer 1.8s linear infinite;
-  }
-}
-@keyframes chat-shimmer {
-  from {
-    background-position: 100% 0;
-  }
-  to {
-    background-position: -100% 0;
-  }
-}
-@media (forced-colors: active) {
-  .chat-shimmer {
-    background: none;
-    color: CanvasText;
-    -webkit-text-fill-color: CanvasText;
-  }
-}
+/* Steps: retrieval and tool calls, one line each behind a hairline. */
 .run-steps {
   display: grid;
-  gap: var(--space-xs);
-  margin: 0 0 0 calc(var(--space-sm) - 1px);
-  padding: var(--space-2xs) 0 var(--space-2xs) var(--space-md);
+  gap: var(--space-2xs);
+  margin: 0;
+  margin-inline-start: calc(var(--spacing-icon-sm) / 2 - 0.5px);
+  padding: 0;
   list-style: none;
   border-inline-start: 1px solid var(--color-border-default);
   color: var(--color-text-secondary);
   font-size: var(--text-sm);
 }
 .run-step {
-  position: relative;
-}
-.run-step::before {
-  content: '';
-  position: absolute;
-  inset-inline-start: calc(var(--space-md) * -1 - 4.5px);
-  top: 0.55em;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  border: 1.5px solid var(--color-status-success);
-  background: var(--color-background-surface);
-}
-.run-step[data-step-status='loading']::before {
-  border-color: var(--color-components-button-primary-bg);
-  background: var(--color-components-button-primary-bg);
-}
-.run-step[data-step-status='error']::before {
-  border-color: var(--color-status-error);
-}
-.run-step[data-step-status='unconfirmed']::before {
-  border-color: var(--color-border-strong);
+  min-width: 0;
+  padding-inline-start: var(--space-base);
 }
 .run-step-heading {
   display: flex;
   align-items: center;
-  gap: var(--space-xs);
-  min-height: 1.5rem;
+  gap: var(--space-sm);
+  min-height: 1.75rem;
+  min-width: 0;
   border-radius: var(--radius-sm);
   cursor: pointer;
   list-style: none;
@@ -280,29 +225,138 @@
 .run-step-heading::-webkit-details-marker {
   display: none;
 }
+.run-step-heading:hover {
+  color: var(--color-text-primary);
+}
 .run-step-heading:focus-visible {
   outline: 2px solid var(--color-state-focus);
   outline-offset: 2px;
 }
-.run-step-heading code {
-  padding: 1px var(--space-xs);
+.run-step-tool {
+  display: inline-flex;
+  min-width: 0;
+  max-width: 16rem;
+  align-items: center;
+  gap: var(--space-xs);
+  height: 1.25rem;
+  padding: 0 var(--space-xs);
+  border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-sm);
-  background: var(--color-background-subtle);
+  background: var(--color-background-surface);
   color: var(--color-text-primary);
   font-family: var(--font-mono);
   font-size: var(--text-xs);
 }
+.run-step-meta,
 .run-step-duration {
-  margin-inline-start: auto;
-  padding-inline-start: var(--space-base);
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
+  min-width: 0;
   color: var(--color-text-tertiary);
   white-space: nowrap;
+}
+.run-step-meta::before,
+.run-step-duration::before {
+  content: '· ';
+  color: var(--color-text-tertiary);
+}
+.run-step-meta.text-shimmer::before {
+  content: '';
+}
+.run-step-duration {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+.run-step-chevron {
+  margin-inline-start: auto;
+  transition: transform 200ms ease;
+}
+details[open] > .run-step-heading .run-step-chevron {
+  transform: rotate(90deg);
 }
 .run-step-content {
   display: grid;
   gap: var(--space-sm);
-  padding: var(--space-xs) 0 var(--space-sm);
+  margin: var(--space-2xs) 0 var(--space-sm);
+  padding-inline-start: calc(var(--spacing-icon-md) - 2px);
+  color: var(--color-text-secondary);
   overflow-wrap: anywhere;
+}
+@media (prefers-reduced-motion: reduce) {
+  .run-step-chevron {
+    transition: none;
+  }
+}
+
+/* Answer Markdown: lists, tables and emphasis in the reading column.
+   XMarkdown's own defaults are tuned through its variables. */
+.message-parts .x-markdown {
+  --margin-ul-ol: 0 0 var(--space-base);
+  --padding-ul-ol: 0 0 0 1.25rem;
+  --margin-li: var(--space-xs) 0;
+  --table-margin: var(--space-sm) 0 var(--space-base);
+  --td-th-padding: var(--space-sm) var(--space-base);
+  --border-font-weight: 500;
+}
+.message-parts .markdown-content strong {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+.message-parts .markdown-content table {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  overflow: auto;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+  background: transparent;
+}
+.message-parts .markdown-content :is(th, td) {
+  border: 0;
+  border-top: 1px solid var(--color-border-subtle);
+  text-align: start;
+  vertical-align: top;
+  color: var(--color-text-primary);
+  background: transparent;
+}
+.message-parts .markdown-content thead :is(th, td) {
+  border-top: 0;
+  background: var(--color-background-surface);
+  color: var(--color-text-tertiary);
+  font-size: var(--text-xs);
+}
+
+/* Inline citations: a chip on the text baseline, not a raised superscript. */
+.citation-chip-anchor {
+  font-size: inherit;
+  line-height: inherit;
+  vertical-align: baseline;
+}
+.citation-chip {
+  margin-inline: var(--space-2xs);
+  vertical-align: 0.0625rem;
+}
+
+/* The 2px caret after streaming text. */
+.chat-stream-caret {
+  display: inline-block;
+  width: 2px;
+  height: 1.1em;
+  margin-inline-start: 2px;
+  border-radius: 1px;
+  background: var(--color-text-accent);
+  vertical-align: text-bottom;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .chat-stream-caret {
+    animation: chat-stream-caret 1s steps(2, jump-none) infinite;
+  }
+}
+@keyframes chat-stream-caret {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
