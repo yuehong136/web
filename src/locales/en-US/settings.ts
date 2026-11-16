@@ -159,7 +159,30 @@ export default {
       available: 'Available providers',
       configured: 'Configured providers',
       defaults: 'Default models',
-      defaultDescription: 'Choose the models used by your workspace.',
+      defaultUnavailableHint:
+        'The saved model is turned off or was removed. Choose another one.',
+      tabs: {
+        label: 'Model settings',
+        defaults: 'Default models',
+        providers: 'Providers',
+      },
+      providersDescription:
+        'Connect model providers and choose which of their models can be used.',
+      configuredHint:
+        'Connections, credentials and the models each one offers.',
+      connections_one: '{{count}} connection',
+      connections_other: '{{count}} connections',
+      connected: 'Connected providers',
+      providerActive: 'Active',
+      providerInactive: 'Turned off',
+      manage: 'Manage',
+      addProvider: 'Add a provider',
+      addProviderHint_one: '{{count}} provider to choose from',
+      addProviderHint_other: '{{count}} providers to choose from',
+      addProviderNamed: 'Add {{name}}',
+      browse: 'Browse',
+      defaultDescription:
+        'New chats, agents and knowledge bases use these models unless an app picks its own. Changes apply after you save.',
       chooseProvider: 'Choose a provider from the available models.',
       paddleOCR: {
         title: 'Add PaddleOCR model',
@@ -208,30 +231,37 @@ export default {
         ocr: {
           label: 'OCR model',
           hint: 'The default OCR model for new parsing tasks.',
+          missing: 'Not set: text in scanned PDFs cannot be extracted.',
         },
         chat: {
           label: 'Chat model',
           hint: 'The default chat model for new knowledge bases.',
+          missing: 'Not set: new chats and agents need a model picked by hand.',
         },
         embedding: {
           label: 'Embedding model',
           hint: 'The default embedding model for new knowledge bases. Add a provider with an embedding model if no options appear.',
+          missing: 'Not set: new knowledge bases cannot index documents.',
         },
         vision: {
           label: 'Vision model',
           hint: 'The default model for describing images or video in new knowledge bases. Select a provider that supports image-to-text.',
+          missing: 'Not set: images and scanned pages are not described.',
         },
         speech: {
           label: 'Speech recognition',
           hint: 'The default model for transcribing speech in new knowledge bases. Select a provider that supports speech-to-text.',
+          missing: 'Not set: voice input is unavailable.',
         },
         rerank: {
           label: 'Reranking model',
           hint: 'The default model for ranking retrieval results. Select a provider that supports reranking.',
+          missing: 'Not set: retrieval results keep their original order.',
         },
         tts: {
           label: 'Speech generation',
           hint: 'The default model for generating spoken replies. Select a provider that supports text-to-speech.',
+          missing: 'Not set: answers cannot be read aloud.',
         },
       },
     },

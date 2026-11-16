@@ -18,11 +18,22 @@ import {
 } from './components/instance-payload'
 import { apiClient } from '@/api/client'
 import { modelProvidersAPI } from '@/api/llm-providers'
+import { useSearchParams } from 'react-router-dom'
+import { SettingsTemplate } from '@/components/page-templates/settings-template'
 import { Input } from '@/components/ui/input'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ConnectedProviders } from './components/connected-providers'
 import { Label } from '@/components/ui/label'
+
+type ModelsTab = 'defaults' | 'providers'
 
 export function ModelProvidersPage() {
   const { t } = useTranslation()
+  const [params, setParams] = useSearchParams()
+  const tab: ModelsTab =
+    params.get('tab') === 'providers' ? 'providers' : 'defaults'
+  const setTab = (next: ModelsTab) =>
+    setParams(next === 'defaults' ? {} : { tab: next }, { replace: true })
   const mutation = useModelProviderMutation()
   const { factories } = useFetchFactories()
   const [manualMode, setManualMode] = useState(false)
@@ -40,16 +51,45 @@ export function ModelProvidersPage() {
     setProvider(value)
   }
   return (
-    <div className="@container flex h-full min-h-0 flex-col gap-space-lg p-space-lg">
-      <div className="relative flex min-h-0 flex-1 flex-col overflow-auto rounded-radius-lg border border-border-default bg-background-surface @4xl:flex-row @4xl:overflow-hidden">
-        <section className="flex shrink-0 flex-col gap-space-base p-space-base @4xl:w-3/5 @4xl:overflow-auto @4xl:border-r @4xl:border-border-subtle">
+    <Tabs
+      value={tab}
+      onValueChange={(value) => setTab(value as ModelsTab)}
+      className="h-full"
+    >
+      <SettingsTemplate
+        tabs={
+          <TabsList
+            aria-label={t('settings.models.tabs.label')}
+            className="min-h-0 border-b-0"
+          >
+            <TabsTrigger value="defaults">
+              {t('settings.models.tabs.defaults')}
+            </TabsTrigger>
+            <TabsTrigger value="providers">
+              {t('settings.models.tabs.providers')}
+            </TabsTrigger>
+          </TabsList>
+        }
+        title={t(
+          tab === 'defaults'
+            ? 'settings.models.defaults'
+            : 'settings.models.tabs.providers',
+        )}
+        description={t(
+          tab === 'defaults'
+            ? 'settings.models.defaultDescription'
+            : 'settings.models.providersDescription',
+        )}
+      >
+        <TabsContent value="defaults" className="mt-0">
           <SystemSetting />
+          <ConnectedProviders onManage={() => setTab('providers')} />
+        </TabsContent>
+        <TabsContent value="providers" className="mt-0">
           <UsedModels handleAddModel={open} />
-        </section>
-        <section className="flex shrink-0 flex-col @4xl:w-2/5 @4xl:overflow-auto">
           <AvailableModels handleAddModel={open} />
-        </section>
-      </div>
+        </TabsContent>
+      </SettingsTemplate>
       {provider && supportsModelDiscovery(provider) && !manualMode && (
         <ModelDiscoveryDialog
           provider={provider}
@@ -116,7 +156,7 @@ export function ModelProvidersPage() {
           </div>
         )}
       </ApiKeyModal>
-    </div>
+    </Tabs>
   )
 }
 export default ModelProvidersPage

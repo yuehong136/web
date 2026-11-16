@@ -161,7 +161,7 @@ it.each(['en-US', 'zh-CN'])(
     await flush()
     await flush()
     const providerDelete = container.querySelector(
-      'article header button:last-child',
+      'article [data-slot="setting-row"] button:last-child',
     ) as HTMLButtonElement
     await act(async () => providerDelete.click())
     const dialog = document.querySelector('[role="alertdialog"]')!
