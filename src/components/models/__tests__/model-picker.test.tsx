@@ -490,8 +490,13 @@ it('combines provider capabilities, toggles each filter, and preserves search wh
       </QueryClientProvider>,
     ),
   )
+  // One SettingRow per provider; its add button is named after it.
   const names = () =>
-    [...container.querySelectorAll('h4')].map((el) => el.textContent)
+    [
+      ...container.querySelectorAll<HTMLButtonElement>(
+        '[data-slot="setting-row"] button[aria-label^="Add "]',
+      ),
+    ].map((el) => el.getAttribute('aria-label')!.slice('Add '.length))
   const filter = (name: string) =>
     [
       ...container.querySelectorAll<HTMLButtonElement>(
