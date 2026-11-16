@@ -101,13 +101,16 @@ afterEach(async () => {
   vi.unstubAllGlobals()
 })
 
+const rowLabels = () =>
+  Array.from(
+    container.querySelectorAll(
+      '[data-slot="setting-row"] > div:first-child > :first-child',
+    ),
+  ).map((element) => element.textContent)
+
 it('shows account details once in their intended order and translates the full view', async () => {
   await render()
-  expect(
-    Array.from(container.querySelectorAll('dt')).map(
-      (element) => element.textContent,
-    ),
-  ).toEqual([
+  expect(rowLabels()).toEqual([
     'Avatar',
     'Display name',
     'Sign-in email',
@@ -118,21 +121,18 @@ it('shows account details once in their intended order and translates the full v
   expect(container.querySelectorAll('h1')).toHaveLength(0)
   expect(
     container
-      .querySelector('h2')
-      ?.parentElement?.contains(button('Edit profile')),
+      .querySelector('h3')
+      ?.closest('section')
+      ?.contains(button('Edit profile')),
   ).toBe(true)
   expect(
-    Array.from(container.querySelectorAll('h2')).map(
+    Array.from(container.querySelectorAll('h3')).map(
       (element) => element.textContent,
     ),
   ).toEqual(['Account details', 'Account security'])
   await act(async () => i18n.changeLanguage('zh-CN'))
-  expect(container.querySelector('h2')?.textContent).toBe('账户资料')
-  expect(
-    Array.from(container.querySelectorAll('dt')).map(
-      (element) => element.textContent,
-    ),
-  ).toEqual(['头像', '显示名称', '登录邮箱', '时区', '密码'])
+  expect(container.querySelector('h3')?.textContent).toBe('账户资料')
+  expect(rowLabels()).toEqual(['头像', '显示名称', '登录邮箱', '时区', '密码'])
 })
 
 it('validates edits without submitting and restores the saved data and trigger focus on cancel', async () => {

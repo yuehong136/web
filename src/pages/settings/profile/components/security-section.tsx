@@ -1,7 +1,6 @@
 import { useTranslation } from 'react-i18next'
-import { SectionCard } from '@/components/patterns'
+import { SettingRow, SettingSection } from '@/components/patterns/setting-row'
 import { Button } from '@/components/ui/button'
-import { ProfileFieldRow } from '@/pages/settings/profile/components/profile-field-row'
 
 export const SecuritySection = ({
   disabled = false,
@@ -12,31 +11,21 @@ export const SecuritySection = ({
 }) => {
   const { t } = useTranslation()
   return (
-    <SectionCard
-      title={t('settings.profile.security')}
-      headingLevel={2}
-      padding="none"
-    >
-      <dl className="px-space-lg">
-        <ProfileFieldRow
-          label={t('settings.profile.password')}
-          value={
-            <div className="flex flex-wrap items-center justify-between gap-space-sm">
-              <p className="max-w-sm text-sm text-text-secondary">
-                {t('settings.profile.passwordHint')}
-              </p>
-              <Button
-                variant="outline"
-                type="button"
-                onClick={onChangePassword}
-                disabled={disabled}
-              >
-                {t('settings.profile.changePassword')}
-              </Button>
-            </div>
-          }
-        />
-      </dl>
-    </SectionCard>
+    <SettingSection title={t('settings.profile.security')}>
+      <SettingRow
+        label={t('settings.profile.password')}
+        description={t('settings.profile.passwordHint')}
+      >
+        <Button
+          variant="outline"
+          size="sm"
+          type="button"
+          onClick={onChangePassword}
+          disabled={disabled}
+        >
+          {t('settings.profile.changePassword')}
+        </Button>
+      </SettingRow>
+    </SettingSection>
   )
 }

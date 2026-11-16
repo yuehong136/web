@@ -168,8 +168,8 @@ export const SettingsLayout: React.FC = () => {
   const isDatasourceDetail = pathname === '/settings/datasource-detail'
   const parentHref = isDatasourceDetail ? currentItem?.href : undefined
   const parentTitle = currentItem?.title
-  const CurrentTitle =
-    isDatasourceDetail || pathname === '/settings/appearance' ? 'span' : 'h1'
+  // Data source details name the entity in their own h1.
+  const CurrentTitle = isDatasourceDetail ? 'span' : 'h1'
   const breadcrumb = React.useMemo(
     () => (
       <Breadcrumb>
