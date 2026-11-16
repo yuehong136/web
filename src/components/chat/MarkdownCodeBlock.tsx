@@ -280,18 +280,15 @@ export const markdownCodeComponents: MarkdownComponents = {
 }
 
 /**
- * Components map with placeholders for incomplete markdown tokens during streaming.
- * This keeps the "typing" feel while allowing XMarkdown to finalize syntax safely.
+ * Components map with placeholders for the incomplete tokens streaming still
+ * holds back (images, HTML, tables); emphasis, inline code, links and list
+ * items render as finished text (`incompleteMarkdown: 'complete'`).
  */
 export const markdownStreamingComponents: MarkdownComponents = {
   ...markdownCodeComponents,
-  'incomplete-link': memo(IncompleteMarkdownToken),
   'incomplete-image': memo(IncompleteMarkdownToken),
   'incomplete-html': memo(IncompleteMarkdownToken),
-  'incomplete-emphasis': memo(IncompleteMarkdownToken),
-  'incomplete-list': memo(IncompleteMarkdownToken),
   'incomplete-table': memo(IncompleteMarkdownToken),
-  'incomplete-inline-code': memo(IncompleteMarkdownToken),
 }
 
 export function mergeMarkdownComponents(
@@ -320,11 +317,23 @@ export function useMarkdownComponents(
   return React.useMemo(() => mergeMarkdownComponents(components), [components])
 }
 
+/** The 2px caret at the end of streaming text (styled in app-chat-message.css). */
+const StreamingCaret: React.FC = () => (
+  <span className="chat-stream-caret" aria-hidden="true" />
+)
+
 // 稳定的引用，避免每次渲染都传入新对象，导致 XMarkdown 内部 renderer / effect 反复重建。
+// Sentences fade in as they arrive (opacity only, so it stays with reduced
+// motion), a 2px caret marks the end, half-written emphasis, inline code,
+// links and list items render as finished text, and only the still-growing
+// section after the last heading is re-parsed per chunk.
 const STREAMING_MARKDOWN_OPTIONS: XMarkdownProps['streaming'] = {
   hasNextChunk: true,
   enableAnimation: true,
-  tail: true,
+  animationConfig: { splitBy: 'sentence', fadeDuration: 200 },
+  tail: { component: StreamingCaret },
+  incremental: true,
+  incompleteMarkdown: 'complete',
 }
 
 const STATIC_MARKDOWN_OPTIONS: XMarkdownProps['streaming'] = {
