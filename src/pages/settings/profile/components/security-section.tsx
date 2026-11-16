@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { SettingRow, SettingSection } from '@/components/patterns/setting-row'
+import { SETTINGS_CARD } from '@/pages/settings/components/settings-card'
 import { Button } from '@/components/ui/button'
 
 export const SecuritySection = ({
@@ -11,7 +12,10 @@ export const SecuritySection = ({
 }) => {
   const { t } = useTranslation()
   return (
-    <SettingSection title={t('settings.profile.security')}>
+    <SettingSection
+      title={t('settings.profile.security')}
+      className={SETTINGS_CARD}
+    >
       <SettingRow
         label={t('settings.profile.password')}
         description={t('settings.profile.passwordHint')}

@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
-import { Check, Copy } from 'lucide-react'
+import { Check, Copy, KeyRound } from 'lucide-react'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 import { SettingRow } from '@/components/patterns/setting-row'
 import { Button } from '@/components/ui/button'
 import { useCopyFeedback } from '@/hooks/use-copy-feedback'
@@ -50,6 +51,14 @@ export const ApiKeyRows = ({
         return (
           <li key={apiKey.token} data-slot="api-key-row">
             <SettingRow
+              leading={
+                <EntityAvatar
+                  name={apiKey.name}
+                  seed={`${apiKey.name}:${apiKey.create_date ?? ''}`}
+                  icon={<KeyRound aria-hidden="true" />}
+                  size="md"
+                />
+              }
               label={apiKey.name}
               description={meta.length ? meta.join(' · ') : undefined}
             >

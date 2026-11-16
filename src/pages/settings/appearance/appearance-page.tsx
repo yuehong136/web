@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next'
 import type { ReactNode } from 'react'
 import { SettingsTemplate } from '@/components/page-templates/settings-template'
 import { SettingRow, SettingSection } from '@/components/patterns/setting-row'
+import { SETTINGS_CARD } from '@/pages/settings/components/settings-card'
+import { cn } from '@/lib/utils'
 import { PreferenceChoiceGroup } from '@/components/patterns/preference-choice-group'
 import { Button } from '@/components/ui/button'
 import { SegmentedControl } from '@/components/ui/segmented-control'
@@ -96,7 +98,7 @@ export function AppearancePage() {
           onChange={(preset) => setAppearance({ preset })}
         />
       </div>
-      <SettingSection className="mt-space-lg">
+      <SettingSection className={cn('mt-space-lg', SETTINGS_CARD)}>
         <SettingRow label={t('appearance.mode')}>
           {segmented(
             t('appearance.mode'),

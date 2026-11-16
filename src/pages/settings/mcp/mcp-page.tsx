@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { CollectionTemplate } from '@/components/page-templates/collection-template'
 import { BulkActionBar } from '@/components/patterns/bulk-action-bar'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 import {
   DataTable,
   type DataTableColumn,
@@ -158,22 +159,31 @@ export function MCPPage() {
       key: 'name',
       header: t('mcp.servers.columns.name'),
       cell: (server) => (
-        <div className="min-w-0">
-          <button
-            type="button"
-            className="max-w-full truncate rounded-radius-sm text-left font-medium text-text-primary outline-hidden hover:underline focus-visible:ring-2 focus-visible:ring-state-focus"
-            onClick={() => openPanel('tools', server)}
-          >
-            {server.name}
-          </button>
-          {server.description ? (
-            <p
-              className="truncate text-xs text-text-tertiary"
-              title={server.description}
+        <div className="flex min-w-0 items-center gap-space-sm">
+          <EntityAvatar
+            name={server.name}
+            seed={server.id}
+            kind="mcp"
+            tone="kind"
+            size="md"
+          />
+          <div className="min-w-0">
+            <button
+              type="button"
+              className="max-w-full truncate rounded-radius-sm text-left font-medium text-text-primary outline-hidden hover:underline focus-visible:ring-2 focus-visible:ring-state-focus"
+              onClick={() => openPanel('tools', server)}
             >
-              {server.description}
-            </p>
-          ) : null}
+              {server.name}
+            </button>
+            {server.description ? (
+              <p
+                className="truncate text-xs text-text-tertiary"
+                title={server.description}
+              >
+                {server.description}
+              </p>
+            ) : null}
+          </div>
         </div>
       ),
     },
@@ -218,7 +228,22 @@ export function MCPPage() {
       header: t('mcp.servers.columns.tools'),
       width: '5rem',
       align: 'end',
-      cell: (server) => getServerTools(server).length,
+      cell: (server) => {
+        const count = getServerTools(server).length
+        // A server with discovered tools is ready (as in the footer stats).
+        return (
+          <span className="inline-flex items-center gap-space-xs tabular-nums">
+            <span
+              aria-hidden="true"
+              className={cn(
+                'size-1.5 rounded-radius-full',
+                count ? 'bg-status-success' : 'bg-text-tertiary',
+              )}
+            />
+            {count}
+          </span>
+        )
+      },
     },
     {
       key: 'created',
@@ -248,7 +273,8 @@ export function MCPPage() {
   return (
     <>
       <CollectionTemplate
-        hideHeader
+        title={t('mcp.servers.title')}
+        crumbs={[{ label: t('settings.title'), to: '/settings/profile' }]}
         filterBar={
           <FilterBar
             search={{

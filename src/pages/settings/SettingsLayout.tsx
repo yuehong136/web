@@ -76,19 +76,8 @@ export const SettingsLayout: React.FC = () => {
         ],
       },
       {
-        label: t('settings.groups.workspace'),
+        label: t('settings.groups.models'),
         items: [
-          {
-            title: t('settings.nav.team'),
-            href: '/settings/team',
-            icon: Users,
-            badge: pendingCount,
-            badgeLabel: t('layout.invitations.pending', {
-              count: pendingCount,
-            }),
-            onSelect:
-              pendingCount > 0 ? () => setActiveTab('joined-teams') : undefined,
-          },
           {
             title: t('settings.nav.modelProviders'),
             href: '/settings/model-providers',
@@ -99,17 +88,22 @@ export const SettingsLayout: React.FC = () => {
             href: '/settings/model-gateway',
             icon: Waypoints,
           },
-          {
-            title: t('settings.nav.datasource'),
-            href: '/settings/datasource',
-            icon: Database,
-            matcher: (pathname) => pathname.startsWith('/settings/datasource'),
-          },
+        ],
+      },
+      {
+        label: t('settings.groups.integrations'),
+        items: [
           {
             title: t('settings.nav.mcp'),
             href: MCP_PATH,
             icon: Plug,
             matcher: (pathname) => pathname.startsWith(MCP_PATH),
+          },
+          {
+            title: t('settings.nav.datasource'),
+            href: '/settings/datasource',
+            icon: Database,
+            matcher: (pathname) => pathname.startsWith('/settings/datasource'),
           },
           {
             title: t('settings.nav.channels'),
@@ -131,6 +125,17 @@ export const SettingsLayout: React.FC = () => {
       {
         label: t('settings.groups.admin'),
         items: [
+          {
+            title: t('settings.nav.team'),
+            href: '/settings/team',
+            icon: Users,
+            badge: pendingCount,
+            badgeLabel: t('layout.invitations.pending', {
+              count: pendingCount,
+            }),
+            onSelect:
+              pendingCount > 0 ? () => setActiveTab('joined-teams') : undefined,
+          },
           {
             title: t('settings.nav.userManagement'),
             href: '/settings/admin',
@@ -168,8 +173,10 @@ export const SettingsLayout: React.FC = () => {
   const isDatasourceDetail = pathname === '/settings/datasource-detail'
   const parentHref = isDatasourceDetail ? currentItem?.href : undefined
   const parentTitle = currentItem?.title
-  // Data source details name the entity in their own h1.
-  const CurrentTitle = isDatasourceDetail ? 'span' : 'h1'
+  // Data source details name the entity in their own h1, and the MCP page's
+  // collection title bar is its h1; every other page's h1 is this crumb.
+  const CurrentTitle =
+    isDatasourceDetail || pathname === MCP_PATH ? 'span' : 'h1'
   const breadcrumb = React.useMemo(
     () => (
       <Breadcrumb>

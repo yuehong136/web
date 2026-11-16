@@ -1,5 +1,6 @@
 import type { SelectOption } from '@/components/ui/select-with-search'
 import { ProviderIcon } from '@/components/ui/provider-icon'
+import { ProviderLogo } from '@/components/patterns/provider-logo'
 import {
   getLLMModelLabel,
   getLLMModelValue,
@@ -12,13 +13,25 @@ import { ModelCapabilities } from './model-capabilities'
 
 export type ModelOption = SelectOption & { aliases?: string[] }
 
+/** A provider group heading: logo tile and name (the name stays searchable). */
+export function ModelProviderGroupLabel({ provider }: { provider: string }) {
+  return (
+    <span className="inline-flex min-w-0 items-center gap-space-xs">
+      <span aria-hidden className="inline-flex">
+        <ProviderLogo provider={provider} size="xs" />
+      </span>
+      <span className="truncate">{provider}</span>
+    </span>
+  )
+}
+
 export function modelOptions(
   providers: MyLLMProvider,
   types?: readonly string[],
   mode?: LLMValueMode,
 ) {
   const groups = Object.entries(providers).map(([provider, data]) => ({
-    label: provider,
+    label: <ModelProviderGroupLabel provider={provider} />,
     options: data.llm
       .filter((model) => !types || types.includes(model.type))
       .map((model) => ({

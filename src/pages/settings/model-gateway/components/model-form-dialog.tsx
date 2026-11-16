@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { ProviderLogo } from '@/components/patterns/provider-logo'
 import { Textarea } from '@/components/ui/textarea'
 import {
   useCreateGatewayModel,
@@ -194,11 +195,20 @@ export const ModelFormDialog = ({
                           value={String(candidate.model_id)}
                           disabled={candidate.publishable_types.length === 0}
                         >
-                          {candidate.publishable_types.length === 0
-                            ? t('settings.modelGateway.models.notPublishable', {
-                                model: candidateLabel(candidate),
-                              })
-                            : candidateLabel(candidate)}
+                          <span className="inline-flex min-w-0 items-center gap-space-xs">
+                            <span aria-hidden className="inline-flex">
+                              <ProviderLogo
+                                provider={candidate.provider}
+                                size="xs"
+                              />
+                            </span>
+                            {candidate.publishable_types.length === 0
+                              ? t(
+                                  'settings.modelGateway.models.notPublishable',
+                                  { model: candidateLabel(candidate) },
+                                )
+                              : candidateLabel(candidate)}
+                          </span>
                         </SelectItem>
                       ))}
                     </SelectContent>

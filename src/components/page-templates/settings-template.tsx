@@ -13,23 +13,35 @@ export interface SettingsTemplateProps {
   actions?: ReactNode
   /** Tab strip above the column, e.g. `RouteTabs` for provider/gateway tabs. */
   tabs?: ReactNode
+  /**
+   * `form` keeps a readable 720px column; `wide` (up to 1040px) suits pages
+   * of tables and card grids such as providers, gateway, keys and users.
+   */
+  width?: 'form' | 'wide'
   className?: string
   /** `SettingSection`s. */
   children: ReactNode
 }
 
+const WIDTHS = {
+  form: 'max-w-[calc(45rem*var(--text-scale,1))]',
+  wide: 'max-w-[calc(65rem*var(--text-scale,1))]',
+} as const
+
 /**
- * Settings page skeleton: one centred 720px column (scaled with text size) of
- * `SettingSection` / `SettingRow`, so the title and content never jump
- * between settings pages. Inside the app shell the actions move to the end
- * of the card header, beside the settings breadcrumb; the section title and
- * lead stay at the top of the column.
+ * Settings page skeleton: one centred column (720px for forms, 1040px for
+ * tables and card grids, scaled with text size) of `SettingSection` /
+ * `SettingRow`, so the title and content never jump between settings pages.
+ * Inside the app shell the actions move to the end of the card header,
+ * beside the settings breadcrumb; the section title and lead stay at the
+ * top of the column.
  */
 export function SettingsTemplate({
   title,
   description,
   actions,
   tabs,
+  width = 'form',
   className,
   children,
 }: SettingsTemplateProps) {
@@ -59,7 +71,7 @@ export function SettingsTemplate({
         data-scroll-root="settings-body"
         className="scroll-area min-h-0 flex-1 overflow-y-auto px-space-md py-space-lg sm:px-space-xl"
       >
-        <div className="mx-auto w-full max-w-[calc(45rem*var(--text-scale,1))]">
+        <div data-width={width} className={cn('mx-auto w-full', WIDTHS[width])}>
           {title || description || inlineActions ? (
             <div className="mb-space-lg flex flex-wrap items-start gap-space-md">
               <div className="min-w-0 flex-1 basis-60">

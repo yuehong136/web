@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { SettingRow, SettingSection } from '@/components/patterns/setting-row'
+import { SETTINGS_CARD } from '@/pages/settings/components/settings-card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -43,7 +44,11 @@ export const BasicInfoSection = ({
 }: BasicInfoSectionProps) => {
   const { t } = useTranslation()
   return (
-    <SettingSection title={t('settings.profile.accountInfo')} actions={actions}>
+    <SettingSection
+      title={t('settings.profile.accountInfo')}
+      actions={actions}
+      className={SETTINGS_CARD}
+    >
       <SettingRow
         label={t('settings.profile.avatar')}
         description={isEditing ? t('settings.profile.avatarHint') : undefined}

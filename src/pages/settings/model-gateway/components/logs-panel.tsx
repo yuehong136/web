@@ -15,6 +15,7 @@ import {
   PageToolbar,
 } from '@/components/patterns'
 import { Badge } from '@/components/ui/badge'
+import { StatusDot } from './status-dot'
 import {
   Select,
   SelectContent,
@@ -212,9 +213,12 @@ export const LogsPanel = ({ keys, models }: LogsPanelProps) => {
                     ) : null}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={failed(log) ? 'destructive' : 'success'}>
+                    <StatusDot
+                      tone={failed(log) ? 'error' : 'success'}
+                      className="font-mono"
+                    >
                       {log.status_code}
-                    </Badge>
+                    </StatusDot>
                     {(log.error_code ?? log.error_type) ? (
                       <span className="ml-space-xs font-mono text-sm text-text-tertiary">
                         {log.error_code ?? log.error_type}
