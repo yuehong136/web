@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { primaryNavItems, moreNavItems } from '@/components/layout/Sidebar'
 import { SidebarUtilities } from '@/components/layout/sidebar-utilities'
 import { SecondaryNavigationContent } from '@/components/patterns/secondary-navigation-content'
+import { WorkbenchQuickActions } from '@/components/layout/workbench-quick-actions'
 import {
   getWorkbenchSection,
   type SecondaryNavigation,
@@ -129,6 +130,12 @@ export const MobileSidebarSheet = ({
               {...navigation}
               currentPath={pathname}
               onNavigate={() => onOpenChange(false)}
+              quickActions={
+                <WorkbenchQuickActions
+                  newConversation={navigation.section === 'home'}
+                  touch
+                />
+              }
             >
               {navigation.content}
             </SecondaryNavigationContent>

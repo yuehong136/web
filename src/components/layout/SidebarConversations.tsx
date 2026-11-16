@@ -1,6 +1,9 @@
 import React from 'react'
-import { Plus, MessageSquare } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { Button } from '@/components/ui/button'
+import { Spinner } from '@/components/ui/spinner'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 import { cn } from '@/lib/utils'
 import { useFetchConversationsByDialog } from '@/hooks/use-chat-request'
 import { getCurrentLanguage } from '@/locales/i18n'
@@ -12,117 +15,133 @@ import {
 interface SidebarConversationsProps {
   appId: string | undefined
   appName: string | undefined
+  /** App icon for the group row; falls back to the name's initial. */
+  appIcon?: string | null
   currentConversationId: string | null
   onSelectConversation: (conversationId: string) => void
   onCreateNew: () => void
   isCollapsed: boolean
+  /** The web panel puts "New chat" at its top; Desktop keeps this button. */
+  showCreate?: boolean
 }
 
+/**
+ * The selected app's conversations as one group: the app row, then threads
+ * by date, each with its relative time. Rows carry `data-nav-row` so the
+ * mobile sheet can raise them to touch size.
+ */
 export const SidebarConversations: React.FC<SidebarConversationsProps> = ({
   appId,
   appName,
+  appIcon,
   currentConversationId,
   onSelectConversation,
   onCreateNew,
   isCollapsed,
+  showCreate = true,
 }) => {
   const { t } = useTranslation()
   const { conversations, isLoading } = useFetchConversationsByDialog(appId)
 
-  // 按日期分组对话（侧边栏空间有限，不单独显示"昨天"分组）
+  // The panel is narrow, so "yesterday" folds into the last seven days.
   const groupedConversations = React.useMemo(() => {
     return groupConversationsByDate(conversations, { includeYesterday: false })
   }, [conversations])
 
-  if (!appId) return null
-
-  // 折叠状态下不显示
-  if (isCollapsed) return null
+  if (!appId || isCollapsed) return null
+  const name = appName || t('desktop.conversations.appFallback')
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col px-space-sm py-space-sm">
-      {/* 标题栏 */}
-      <div className="flex shrink-0 items-center justify-between rounded-radius-lg bg-background-subtle px-space-sm py-space-xs">
-        <span className="flex-1 truncate text-xs font-medium text-text-tertiary">
-          {t('desktop.conversations.panelTitle', {
-            appName: appName || t('desktop.conversations.appFallback'),
-          })}
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="flex min-h-[var(--control-height-sm)] shrink-0 items-center gap-space-sm px-space-base pt-space-xs">
+        <EntityAvatar name={name} src={appIcon} seed={appId} size="2xs" />
+        <span className="min-w-0 flex-1 truncate text-sm font-medium text-text-primary">
+          {name}
         </span>
-        <button
-          type="button"
-          onClick={onCreateNew}
-          className="shrink-0 rounded-radius-sm p-space-2xs transition-colors hover:bg-components-sidebar-item-bg-hover"
-          aria-label={t('desktop.conversations.newConversation')}
-          title={t('desktop.conversations.newConversation')}
-        >
-          <Plus className="size-icon-sm text-text-tertiary" />
-        </button>
+        {conversations.length > 0 ? (
+          <span className="shrink-0 text-xs text-text-tertiary tabular-nums">
+            {conversations.length}
+          </span>
+        ) : null}
+        {showCreate ? (
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={onCreateNew}
+            aria-label={t('desktop.conversations.newConversation')}
+          >
+            <Plus className="size-icon-sm" aria-hidden="true" />
+          </Button>
+        ) : null}
       </div>
 
-      {/* 对话列表 - 移除高度限制，使用 flex-1 充分利用空间 */}
-      <div className="min-h-0 flex-1 overflow-y-auto px-space-sm">
-        {isLoading ? (
-          <div className="flex items-center justify-center py-space-lg">
-            <div className="size-icon-sm animate-spin rounded-radius-full border-2 border-text-tertiary border-t-transparent" />
+      <nav
+        aria-label={t('desktop.conversations.panelTitle', { appName: name })}
+        className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-space-sm pb-space-sm"
+      >
+        {isLoading && conversations.length === 0 ? (
+          <div className="flex justify-center py-space-lg">
+            <Spinner size="sm" />
           </div>
         ) : conversations.length === 0 ? (
-          <p className="py-space-lg text-center text-xs text-text-tertiary">
+          <p className="px-space-sm py-space-lg text-center text-xs text-text-tertiary">
             {t('desktop.conversations.empty')}
           </p>
         ) : (
-          <div className="space-y-space-md">
-            {groupedConversations.map(
-              ({ group, conversations: groupConvs }) => (
-                <div key={group}>
-                  {/* 分组标题 */}
-                  <div className="sticky top-0 z-10 bg-components-sidebar-bg px-space-sm py-space-xs">
-                    <span className="text-xs font-medium tracking-wide text-text-tertiary uppercase">
-                      {t(`desktop.conversations.groups.${group}`)}
-                    </span>
-                  </div>
-                  {/* 分组内的对话 */}
-                  <div className="space-y-space-2xs">
-                    {groupConvs.map((conv) => (
+          groupedConversations.map(({ group, conversations: groupConvs }) => (
+            <section
+              key={group}
+              aria-label={t(`desktop.conversations.groups.${group}`)}
+            >
+              <p
+                aria-hidden="true"
+                className="sticky top-0 z-10 bg-components-sidebar-bg px-space-sm pt-space-sm pb-space-2xs text-xs font-medium text-text-tertiary"
+              >
+                {t(`desktop.conversations.groups.${group}`)}
+              </p>
+              <ul className="flex flex-col gap-space-2xs">
+                {groupConvs.map((conv) => {
+                  const active = currentConversationId === conv.id
+                  return (
+                    <li key={conv.id}>
                       <button
                         type="button"
-                        key={conv.id}
+                        data-nav-row
                         onClick={() => onSelectConversation(conv.id)}
+                        aria-current={active ? 'page' : undefined}
                         className={cn(
-                          'flex w-full items-center gap-space-sm rounded-radius-lg px-space-sm py-space-sm text-left transition-colors',
-                          currentConversationId === conv.id
-                            ? 'bg-state-focus-subtle text-state-focus'
-                            : 'text-text-secondary hover:bg-background-subtle',
+                          'flex min-h-[var(--control-height-sm)] w-full items-center gap-space-sm rounded-radius-md px-space-sm text-left text-sm outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-state-focus motion-reduce:transition-none',
+                          active
+                            ? 'bg-state-selected-bg font-medium text-state-selected-text'
+                            : 'text-text-secondary hover:bg-state-hover hover:text-text-primary',
                         )}
                       >
-                        <MessageSquare className="size-icon-sm shrink-0" />
-                        <div className="min-w-0 flex-1">
-                          <div className="truncate text-xs">
-                            {conv.name ||
-                              conv.title ||
-                              t('desktop.conversations.untitled')}
-                          </div>
-                          <div className="text-xs text-text-tertiary">
-                            {formatRelativeTime(
-                              conv.update_time || conv.update_date,
-                              {
-                                locale: getCurrentLanguage(),
-                                format: (key, count) =>
-                                  t(`desktop.conversations.time.${key}`, {
-                                    count,
-                                  }),
-                              },
-                            )}
-                          </div>
-                        </div>
+                        <span className="min-w-0 flex-1 truncate">
+                          {conv.name ||
+                            conv.title ||
+                            t('desktop.conversations.untitled')}
+                        </span>
+                        <span className="shrink-0 text-xs font-normal text-text-tertiary tabular-nums">
+                          {formatRelativeTime(
+                            conv.update_time || conv.update_date,
+                            {
+                              locale: getCurrentLanguage(),
+                              format: (key, count) =>
+                                t(`desktop.conversations.time.${key}`, {
+                                  count,
+                                }),
+                            },
+                          )}
+                        </span>
                       </button>
-                    ))}
-                  </div>
-                </div>
-              ),
-            )}
-          </div>
+                    </li>
+                  )
+                })}
+              </ul>
+            </section>
+          ))
         )}
-      </div>
+      </nav>
     </div>
   )
 }

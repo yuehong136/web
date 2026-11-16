@@ -14,6 +14,7 @@ import {
 import { Tooltip } from '@/components/ui/tooltip'
 import { NavigationFlyout } from '@/components/patterns/navigation-flyout'
 import { SecondaryNavigationContent } from '@/components/patterns/secondary-navigation-content'
+import { WorkbenchQuickActions } from '@/components/layout/workbench-quick-actions'
 import { Button } from '@/components/ui/button'
 import {
   ActionMenu,
@@ -133,6 +134,12 @@ export const Sidebar = ({
                   {...definition}
                   currentPath={pathname}
                   onNavigate={() => setFlyout(null)}
+                  quickActions={
+                    <WorkbenchQuickActions
+                      newConversation={itemSection === 'home'}
+                      onDismiss={() => setFlyout(null)}
+                    />
+                  }
                 >
                   {definition.content}
                 </SecondaryNavigationContent>

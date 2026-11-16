@@ -17,6 +17,7 @@ import {
   useWorkbenchHeaderState,
 } from '@/components/layout/workbench-header'
 import { SecondaryNavigationContent } from '@/components/patterns/secondary-navigation-content'
+import { WorkbenchQuickActions } from '@/components/layout/workbench-quick-actions'
 import { useUIStore } from '@/stores'
 
 export const AppShell = ({ children }: React.PropsWithChildren) => (
@@ -99,6 +100,11 @@ const WorkbenchFrame = ({ children }: React.PropsWithChildren) => {
               {...definition}
               currentPath={pathname}
               headerDivider={false}
+              quickActions={
+                <WorkbenchQuickActions
+                  newConversation={definition.section === 'home'}
+                />
+              }
             >
               {definition.content}
             </SecondaryNavigationContent>
