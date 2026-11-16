@@ -391,10 +391,6 @@ export const lightTokens: DesignTokens = {
 
   // ===== 设置页面专用 =====
   'components-settings-content-bg': surfaces.light.surface,
-  'components-settings-section-bg': surfaces.light.surface,
-  'components-settings-section-border': surfaces.light.borderSubtle,
-  'components-settings-section-title': surfaces.light.text,
-  'components-settings-section-description': surfaces.light.secondary,
 
   // ===== 系统状态页面专用 =====
   'components-system-accent-bg': palette.light.selectionTint,
@@ -803,10 +799,6 @@ export const darkTokens: DesignTokens = {
 
   // ===== 设置页面专用 =====
   'components-settings-content-bg': surfaces.dark.surface,
-  'components-settings-section-bg': surfaces.dark.surface,
-  'components-settings-section-border': surfaces.dark.borderSubtle,
-  'components-settings-section-title': surfaces.dark.text,
-  'components-settings-section-description': surfaces.dark.secondary,
 
   // ===== 系统状态页面专用 =====
   'components-system-accent-bg': palette.dark.selectionTint,
