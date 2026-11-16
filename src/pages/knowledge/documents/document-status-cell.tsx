@@ -5,71 +5,116 @@
 
 import type { FC } from 'react'
 import { useTranslation } from 'react-i18next'
-import { CheckCircle, X, XCircle } from 'lucide-react'
+import { RotateCw } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Tooltip } from '@/components/ui'
+import { Button, Tooltip } from '@/components/ui'
 import { Switch } from '@/components/ui/switch'
 import type { Document } from '@/types/api'
 import { TaskStatus, TaskStatusConfig } from './constants'
 
-const STATUS_ICONS: Partial<Record<TaskStatus, typeof X>> = {
-  [TaskStatus.CANCEL]: X,
-  [TaskStatus.DONE]: CheckCircle,
-  [TaskStatus.FAIL]: XCircle,
+/** Dot colour per status; the label always names the state too. */
+const STATUS_DOT: Record<TaskStatus, string> = {
+  [TaskStatus.UNSTART]: 'bg-text-tertiary',
+  [TaskStatus.RUNNING]: 'bg-status-info',
+  [TaskStatus.CANCEL]: 'bg-status-warning',
+  [TaskStatus.DONE]: 'bg-status-success',
+  [TaskStatus.FAIL]: 'bg-status-error',
 }
 
-/** Status lozenge; a running parse shows its progress instead. */
-export const DocumentStatusBadge: FC<{
-  document: Pick<Document, 'run' | 'progress'>
-}> = ({ document }) => {
-  const { t } = useTranslation()
-  const { run, progress } = document
+const STATUS_TEXT: Record<TaskStatus, string> = {
+  [TaskStatus.UNSTART]: 'text-text-tertiary',
+  [TaskStatus.RUNNING]: 'text-text-secondary',
+  [TaskStatus.CANCEL]: 'text-text-secondary',
+  [TaskStatus.DONE]: 'text-text-secondary',
+  [TaskStatus.FAIL]: 'text-status-error',
+}
 
-  if (run === TaskStatus.RUNNING) {
-    const percent = Math.round((progress || 0) * 100)
+const knownStatus = (run: string): TaskStatus =>
+  run in TaskStatusConfig ? (run as TaskStatus) : TaskStatus.UNSTART
+
+export function StatusDot({
+  status,
+  className,
+}: {
+  status: TaskStatus
+  className?: string
+}) {
+  return (
+    <span
+      aria-hidden="true"
+      className={cn(
+        'size-1.5 shrink-0 rounded-radius-full',
+        STATUS_DOT[status],
+        className,
+      )}
+    />
+  )
+}
+
+/**
+ * Status dot and label. A running parse shimmers with its percentage over a
+ * thin tide bar (an AI moment); a failed one can offer a retry.
+ */
+export const DocumentStatusBadge: FC<{
+  document: Pick<Document, 'run' | 'progress' | 'name'>
+  /** Shown next to a failed status; usually starts the parse again. */
+  onRetry?: () => void
+}> = ({ document, onRetry }) => {
+  const { t } = useTranslation()
+  const status = knownStatus(document.run)
+
+  if (status === TaskStatus.RUNNING) {
+    const percent = Math.round((document.progress || 0) * 100)
     return (
       <span
-        data-status={run}
-        className="inline-flex items-center gap-space-xs text-xs font-medium whitespace-nowrap text-components-task-status-running-text"
+        data-status={status}
+        className="inline-flex min-w-0 flex-col gap-space-2xs"
       >
+        <span className="inline-flex items-center gap-space-xs text-xs font-medium whitespace-nowrap">
+          <StatusDot status={status} />
+          <span className="text-shimmer tabular-nums">
+            {t('knowledge.documents.taskStatus.runningPercent', { percent })}
+          </span>
+        </span>
         <span
           aria-hidden="true"
-          className="relative h-1.5 w-12 overflow-hidden rounded-radius-full bg-components-task-status-running-progress-bg"
+          className="block h-0.5 w-full max-w-28 overflow-hidden rounded-radius-full bg-background-subtle"
         >
           <span
-            className="absolute inset-y-0 left-0 rounded-radius-full bg-components-task-status-running-progress-fill transition-all"
+            className="block h-full rounded-radius-full bg-ai-tide transition-[width] duration-500 motion-reduce:transition-none"
             style={{ width: `${percent}%` }}
           />
-        </span>
-        <span className="tabular-nums">
-          {t('knowledge.documents.taskStatus.runningPercent', { percent })}
         </span>
       </span>
     )
   }
 
-  const config =
-    TaskStatusConfig[run as TaskStatus] || TaskStatusConfig[TaskStatus.UNSTART]
-  const Icon = STATUS_ICONS[run as TaskStatus]
   return (
     <span
-      data-status={run}
+      data-status={status}
       className={cn(
-        'inline-flex items-center gap-space-xs rounded-radius-sm border px-space-xs py-space-2xs text-xs leading-4 font-medium whitespace-nowrap',
-        config.bgClass,
-        config.borderClass,
-        config.textClass,
+        'inline-flex items-center gap-space-xs text-xs font-medium whitespace-nowrap',
+        STATUS_TEXT[status],
       )}
     >
-      {Icon ? (
-        <Icon className="size-icon-xs" aria-hidden="true" />
-      ) : (
-        <span
-          aria-hidden="true"
-          className={cn('size-1.5 rounded-radius-full', config.dotClass)}
-        />
-      )}
-      {t(config.textKey)}
+      <StatusDot status={status} />
+      {t(TaskStatusConfig[status].textKey)}
+      {status === TaskStatus.FAIL && onRetry ? (
+        <Button
+          type="button"
+          variant="link"
+          size="sm"
+          className="h-auto min-h-0 p-0 text-xs"
+          onClick={onRetry}
+          aria-label={t('knowledge.documents.actions.withName', {
+            action: t('knowledge.documents.actions.retryParse'),
+            name: document.name,
+          })}
+        >
+          <RotateCw className="size-icon-xs" aria-hidden="true" />
+          {t('knowledge.documents.actions.retryParse')}
+        </Button>
+      ) : null}
     </span>
   )
 }

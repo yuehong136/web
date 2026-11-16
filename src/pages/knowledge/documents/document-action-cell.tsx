@@ -1,6 +1,6 @@
 /**
- * Row actions for a document: start/stop parsing, then an overflow menu with
- * the less frequent actions. Everything stays keyboard reachable.
+ * Row actions for a document: one overflow menu with every action, in the
+ * order of the Tide board. Everything stays keyboard reachable.
  */
 
 import type { FC } from 'react'
@@ -8,10 +8,12 @@ import { useTranslation } from 'react-i18next'
 import {
   Download,
   Edit2,
+  Eye,
   ListTree,
   MoreHorizontal,
   PanelRight,
   Play,
+  RotateCw,
   Settings2,
   Square,
   Tags,
@@ -41,6 +43,38 @@ export interface DocumentRowHandlers {
   onChangeChunkMethod: (doc: Document) => void
 }
 
+/** The read-only source viewer, opened in a new tab like citation links. */
+export function documentPreviewHref(
+  doc: Pick<Document, 'id' | 'name'> & {
+    suffix?: string
+    type?: string
+  },
+) {
+  const params = new URLSearchParams()
+  if (doc.name) params.set('name', doc.name)
+  const extension = doc.suffix || doc.type
+  if (extension) params.set('extension', extension)
+  const query = params.toString()
+  return `/document/${encodeURIComponent(doc.id)}/preview${query ? `?${query}` : ''}`
+}
+
+/** Start, re-parse or stop: the label and icon follow the parse state. */
+export function useDocumentParseAction(document: Document) {
+  const { t } = useTranslation()
+  const isRunning = document.run === TaskStatus.RUNNING
+  const label = isRunning
+    ? t('knowledge.documents.actions.stopTask')
+    : document.run === TaskStatus.UNSTART
+      ? t('knowledge.documents.actions.startParse')
+      : t('knowledge.documents.actions.reparse')
+  const Icon = isRunning
+    ? Square
+    : document.run === TaskStatus.UNSTART
+      ? Play
+      : RotateCw
+  return { isRunning, label, Icon }
+}
+
 interface DocumentParseButtonProps {
   document: Document
   onStartParse: () => void
@@ -57,13 +91,7 @@ export const DocumentParseButton: FC<DocumentParseButtonProps> = ({
   withLabel = false,
 }) => {
   const { t } = useTranslation()
-  const isRunning = document.run === TaskStatus.RUNNING
-  const label = isRunning
-    ? t('knowledge.documents.actions.stopTask')
-    : document.run === TaskStatus.UNSTART
-      ? t('knowledge.documents.actions.startParse')
-      : t('knowledge.documents.actions.reparse')
-  const Icon = isRunning ? Square : Play
+  const { isRunning, label, Icon } = useDocumentParseAction(document)
   const onClick = isRunning ? onStopParse : onStartParse
   if (withLabel)
     return (
@@ -102,6 +130,7 @@ export const DocumentActionCell: FC<DocumentActionCellProps> = ({
   handlers,
 }) => {
   const { t } = useTranslation()
+  const parse = useDocumentParseAction(document)
   const download = () => {
     if (!canDownload) {
       toast.warning(t('knowledge.documents.actions.noDownloadPermission'))
@@ -111,62 +140,73 @@ export const DocumentActionCell: FC<DocumentActionCellProps> = ({
   }
 
   return (
-    <>
-      <DocumentParseButton
-        document={document}
-        onStartParse={() => handlers.onStartParse(document)}
-        onStopParse={() => handlers.onStopParse(document)}
-      />
-      <ActionMenu>
-        <ActionMenuTrigger asChild>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            aria-label={t('knowledge.documents.actions.moreFor', {
-              name: document.name,
-            })}
+    <ActionMenu>
+      <ActionMenuTrigger asChild>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          aria-label={t('knowledge.documents.actions.moreFor', {
+            name: document.name,
+          })}
+        >
+          <MoreHorizontal className="size-icon-sm" aria-hidden="true" />
+        </Button>
+      </ActionMenuTrigger>
+      <ActionMenuContent align="end">
+        <ActionMenuItem onSelect={() => handlers.onViewChunks(document)}>
+          <ListTree className="size-icon-sm" aria-hidden="true" />
+          {t('knowledge.documents.actions.viewChunks')}
+        </ActionMenuItem>
+        <ActionMenuItem asChild>
+          <a
+            href={documentPreviewHref(document)}
+            target="_blank"
+            rel="noopener noreferrer"
           >
-            <MoreHorizontal className="size-icon-sm" aria-hidden="true" />
-          </Button>
-        </ActionMenuTrigger>
-        <ActionMenuContent align="end">
-          <ActionMenuItem onSelect={() => handlers.onOpenDetails(document)}>
-            <PanelRight className="size-icon-sm" aria-hidden="true" />
-            {t('knowledge.documents.actions.viewDetail')}
-          </ActionMenuItem>
-          <ActionMenuItem onSelect={() => handlers.onViewChunks(document)}>
-            <ListTree className="size-icon-sm" aria-hidden="true" />
-            {t('knowledge.documents.actions.viewChunks')}
-          </ActionMenuItem>
-          <ActionMenuSeparator />
-          <ActionMenuItem onSelect={() => handlers.onRename(document)}>
-            <Edit2 className="size-icon-sm" aria-hidden="true" />
-            {t('knowledge.documents.actions.rename')}
-          </ActionMenuItem>
-          <ActionMenuItem
-            onSelect={() => handlers.onChangeChunkMethod(document)}
-          >
-            <Settings2 className="size-icon-sm" aria-hidden="true" />
-            {t('knowledge.documents.configureParser')}
-          </ActionMenuItem>
-          <ActionMenuItem onSelect={() => handlers.onEditMetadata(document)}>
-            <Tags className="size-icon-sm" aria-hidden="true" />
-            {t('knowledge.metadata.editor.editMetadata')}
-          </ActionMenuItem>
-          <ActionMenuItem disabled={!canDownload} onSelect={download}>
-            <Download className="size-icon-sm" aria-hidden="true" />
-            {canDownload
-              ? t('knowledge.documents.actions.download')
-              : t('knowledge.documents.actions.noDownloadPermission')}
-          </ActionMenuItem>
-          <ActionMenuSeparator />
-          <ActionMenuItem danger onSelect={() => handlers.onDelete(document)}>
-            <Trash2 className="size-icon-sm" aria-hidden="true" />
-            {t('knowledge.documents.actions.delete')}
-          </ActionMenuItem>
-        </ActionMenuContent>
-      </ActionMenu>
-    </>
+            <Eye className="size-icon-sm" aria-hidden="true" />
+            {t('knowledge.documents.actions.previewSource')}
+          </a>
+        </ActionMenuItem>
+        <ActionMenuItem onSelect={() => handlers.onOpenDetails(document)}>
+          <PanelRight className="size-icon-sm" aria-hidden="true" />
+          {t('knowledge.documents.actions.viewDetail')}
+        </ActionMenuItem>
+        <ActionMenuSeparator />
+        <ActionMenuItem onSelect={() => handlers.onRename(document)}>
+          <Edit2 className="size-icon-sm" aria-hidden="true" />
+          {t('knowledge.documents.actions.rename')}
+        </ActionMenuItem>
+        <ActionMenuItem onSelect={() => handlers.onChangeChunkMethod(document)}>
+          <Settings2 className="size-icon-sm" aria-hidden="true" />
+          {t('knowledge.documents.configureParser')}
+        </ActionMenuItem>
+        <ActionMenuItem onSelect={() => handlers.onEditMetadata(document)}>
+          <Tags className="size-icon-sm" aria-hidden="true" />
+          {t('knowledge.metadata.editor.editMetadata')}
+        </ActionMenuItem>
+        <ActionMenuItem
+          onSelect={() =>
+            parse.isRunning
+              ? handlers.onStopParse(document)
+              : handlers.onStartParse(document)
+          }
+        >
+          <parse.Icon className="size-icon-sm" aria-hidden="true" />
+          {parse.label}
+        </ActionMenuItem>
+        <ActionMenuItem disabled={!canDownload} onSelect={download}>
+          <Download className="size-icon-sm" aria-hidden="true" />
+          {canDownload
+            ? t('knowledge.documents.actions.download')
+            : t('knowledge.documents.actions.noDownloadPermission')}
+        </ActionMenuItem>
+        <ActionMenuSeparator />
+        <ActionMenuItem danger onSelect={() => handlers.onDelete(document)}>
+          <Trash2 className="size-icon-sm" aria-hidden="true" />
+          {t('knowledge.documents.actions.delete')}
+        </ActionMenuItem>
+      </ActionMenuContent>
+    </ActionMenu>
   )
 }

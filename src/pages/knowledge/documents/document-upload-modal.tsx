@@ -26,9 +26,10 @@ import {
   tableUploadOptions,
   type TableUploadConfig,
 } from './table-upload-config'
-
-const DOCUMENT_UPLOAD_MAX_SIZE = 1024 * 1024 * 1024
-const DOCUMENT_UPLOAD_MAX_FILE_COUNT = 32
+import {
+  DOCUMENT_UPLOAD_MAX_FILE_COUNT,
+  DOCUMENT_UPLOAD_MAX_SIZE,
+} from './upload-seed'
 
 // Keep the native File intact; spreading it loses its prototype-backed fields.
 type DocumentUploadEntry = Pick<UploadFile, 'status' | 'progress'> & {
@@ -42,6 +43,8 @@ interface DocumentUploadModalProps {
   kbId: string
   onSuccess: () => void
   isTableParser?: boolean
+  /** Files dropped on the page, already checked by `seedUploadFiles`. */
+  initialFiles?: UploadFile[]
 }
 
 export function DocumentUploadModal(props: DocumentUploadModalProps) {
@@ -56,9 +59,16 @@ function DocumentUploadSession({
   kbId,
   onSuccess,
   isTableParser = false,
+  initialFiles,
 }: DocumentUploadModalProps) {
   const { t } = useTranslation()
-  const [uploadFiles, setUploadFiles] = useState<DocumentUploadEntry[]>([])
+  const [uploadFiles, setUploadFiles] = useState<DocumentUploadEntry[]>(() =>
+    (initialFiles ?? []).map((file) => ({
+      file,
+      status: file.status,
+      progress: file.progress,
+    })),
+  )
   const [uploading, setUploading] = useState(false)
   const [parseOnUpload, setParseOnUpload] = useState(true)
   const [notice, setNotice] = useState<{

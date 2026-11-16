@@ -42,6 +42,8 @@ export const BulkActionToolbar: FC<BulkActionToolbarProps> = ({
     <BulkActionBar
       count={selectedCount}
       onClear={onClearSelection}
+      // One line (shrink-to-fit beside `left-1/2` would wrap), above the pager.
+      className="bottom-[calc(var(--control-height)+var(--space-md))] w-max"
       label={t('knowledge.documents.bulkActions.selected', {
         count: selectedCount,
       })}
