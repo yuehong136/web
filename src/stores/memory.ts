@@ -24,9 +24,6 @@ interface MemoryState {
   page: number
   pageSize: number
 
-  // 视图状态
-  viewMode: 'grid' | 'list'
-
   // 选中状态（用于批量操作）
   selectedIds: string[]
 
@@ -48,9 +45,6 @@ interface MemoryActions {
   // 分页操作
   setPage: (page: number) => void
   setPageSize: (pageSize: number) => void
-
-  // 视图操作
-  setViewMode: (mode: 'grid' | 'list') => void
 
   // 选中操作
   toggleSelect: (id: string) => void
@@ -91,7 +85,6 @@ const initialState: MemoryState = {
   filter: initialFilterState,
   page: 1,
   pageSize: 12,
-  viewMode: 'list',
   selectedIds: [],
   messageFilter: initialMessageFilterState,
   messagePage: 1,
@@ -129,12 +122,6 @@ export const useMemoryStore = create<MemoryState & MemoryActions>()(
       set((state) => {
         state.pageSize = pageSize
         state.page = 1 // 重置到第一页
-      }),
-
-    // 视图操作
-    setViewMode: (mode) =>
-      set((state) => {
-        state.viewMode = mode
       }),
 
     // 选中操作

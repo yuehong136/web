@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Brain, Plus, Search } from 'lucide-react'
+import { Bot, Layers, Plus, Search } from 'lucide-react'
 import { CollectionTemplate } from '@/components/page-templates'
 import { PageEmptyState, PageErrorState, Pager } from '@/components/patterns'
+import { EmptyStart } from '@/components/patterns/empty-start'
+import { KindStackIllustration } from '@/components/studio'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { CreateMemoryDialog } from '@/components/memory'
@@ -12,6 +14,7 @@ import {
   MemoryFilterBar,
 } from '@/components/memory/memory-collection'
 import { useMemoryStore } from '@/stores/memory'
+import { useCollectionView } from '@/stores/collection-view'
 import {
   useMemoryList,
   useCreateMemory,
@@ -19,6 +22,7 @@ import {
   useDeleteMemory,
   useDebouncedSearch,
 } from '@/hooks/use-memory'
+import { ROUTES } from '@/constants'
 import type { Memory } from '@/types/memory'
 
 const PAGE_SIZES = [12, 24, 48]
@@ -34,8 +38,6 @@ export function MemoryListPage() {
     setPage,
     pageSize,
     setPageSize,
-    viewMode,
-    setViewMode,
     createModalOpen,
     editingMemory,
     openCreateModal,
@@ -63,6 +65,11 @@ export function MemoryListPage() {
   const total = query.data?.total_count ?? 0
   const filtered =
     !!filter.keywords || !!filter.memoryType.length || !!filter.storageType
+  const [viewMode, setViewMode] = useCollectionView(
+    'memory',
+    query.isPending ? undefined : total,
+    filtered,
+  )
   const clearAll = () => {
     setSearch('')
     resetFilter()
@@ -74,6 +81,7 @@ export function MemoryListPage() {
       : !memories.length
         ? 'empty'
         : 'content'
+  const firstUse = state === 'empty' && !filtered
 
   return (
     <>
@@ -82,7 +90,7 @@ export function MemoryListPage() {
         count={query.isPending ? undefined : total}
         countLabel={t('memory.page.results', { count: total })}
         actions={
-          state === 'empty' && !filtered ? null : (
+          firstUse ? null : (
             <Button onClick={openCreateModal}>
               <Plus className="size-icon-sm" aria-hidden="true" />
               {t('memory.page.create')}
@@ -90,25 +98,29 @@ export function MemoryListPage() {
           )
         }
         filterBar={
-          <MemoryFilterBar
-            search={search}
-            onSearchChange={setSearch}
-            memoryType={filter.memoryType}
-            onMemoryTypeChange={(memoryType) =>
-              setFilter({ memoryType: memoryType as typeof filter.memoryType })
-            }
-            storageType={filter.storageType}
-            onStorageTypeChange={(storageType) =>
-              setFilter({
-                storageType: storageType as typeof filter.storageType,
-              })
-            }
-            onClearFilters={() =>
-              setFilter({ memoryType: [], storageType: '' })
-            }
-            view={viewMode}
-            onViewChange={setViewMode}
-          />
+          firstUse ? undefined : (
+            <MemoryFilterBar
+              search={search}
+              onSearchChange={setSearch}
+              memoryType={filter.memoryType}
+              onMemoryTypeChange={(memoryType) =>
+                setFilter({
+                  memoryType: memoryType as typeof filter.memoryType,
+                })
+              }
+              storageType={filter.storageType}
+              onStorageTypeChange={(storageType) =>
+                setFilter({
+                  storageType: storageType as typeof filter.storageType,
+                })
+              }
+              onClearFilters={() =>
+                setFilter({ memoryType: [], storageType: '' })
+              }
+              view={viewMode}
+              onViewChange={setViewMode}
+            />
+          )
         }
         state={state}
         errorState={
@@ -120,35 +132,49 @@ export function MemoryListPage() {
           />
         }
         emptyState={
-          <PageEmptyState
-            title={t(
-              filtered ? 'memory.empty.searchTitle' : 'memory.empty.listTitle',
-            )}
-            description={t(
-              filtered
-                ? 'memory.empty.searchDescription'
-                : 'memory.empty.listDescription',
-            )}
-            icon={
-              filtered ? (
-                <Search className="size-icon-lg" />
-              ) : (
-                <Brain className="size-icon-lg" />
-              )
-            }
-            action={
-              filtered ? (
+          filtered ? (
+            <PageEmptyState
+              title={t('memory.empty.searchTitle')}
+              description={t('memory.empty.searchDescription')}
+              icon={<Search className="size-icon-lg" />}
+              action={
                 <Button variant="outline" onClick={clearAll}>
                   {t('memory.common.clear')}
                 </Button>
-              ) : (
-                <Button onClick={openCreateModal}>
-                  <Plus className="size-icon-sm" aria-hidden="true" />
-                  {t('memory.page.create')}
-                </Button>
-              )
-            }
-          />
+              }
+            />
+          ) : (
+            <EmptyStart
+              illustration={
+                <KindStackIllustration kinds={['chat', 'memory', 'agent']} />
+              }
+              title={t('memory.empty.startTitle')}
+              description={t('memory.empty.listDescription')}
+              paths={[
+                {
+                  key: 'create',
+                  primary: true,
+                  icon: <Layers />,
+                  iconClassName:
+                    'bg-components-avatar-8-bg text-components-avatar-8-text',
+                  title: t('memory.page.create'),
+                  description: t('memory.empty.createDescription'),
+                  cta: t('memory.empty.createCta'),
+                  onSelect: openCreateModal,
+                },
+                {
+                  key: 'agent',
+                  icon: <Bot />,
+                  iconClassName:
+                    'bg-components-avatar-7-bg text-components-avatar-7-text',
+                  title: t('memory.empty.agentTitle'),
+                  description: t('memory.empty.agentDescription'),
+                  cta: t('memory.empty.agentCta'),
+                  onSelect: () => navigate(ROUTES.AGENTS),
+                },
+              ]}
+            />
+          )
         }
         footerNote={t('memory.workspace.listHint')}
         footer={
@@ -168,6 +194,7 @@ export function MemoryListPage() {
           onOpen={(memory) => navigate(`/memory/${memory.id}`)}
           onEdit={openEditModal}
           onDelete={setDeleting}
+          onCreate={openCreateModal}
         />
       </CollectionTemplate>
       <CreateMemoryDialog

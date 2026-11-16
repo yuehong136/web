@@ -4,6 +4,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router-dom'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { changeLanguage } from '@/locales/i18n'
 import { useMemoryStore } from '@/stores/memory'
+import { useCollectionViewStore } from '@/stores/collection-view'
 import type { Memory } from '@/types/memory'
 import { MemoryListPage } from '../MemoryListPage'
 
@@ -61,7 +62,8 @@ beforeEach(async () => {
   Reflect.set(globalThis, 'IS_REACT_ACT_ENVIRONMENT', true)
   vi.clearAllMocks()
   useMemoryStore.getState().resetFilter()
-  useMemoryStore.setState({ viewMode: 'list', page: 1, pageSize: 12 })
+  useMemoryStore.setState({ page: 1, pageSize: 12 })
+  useCollectionViewStore.getState().reset()
   await changeLanguage('en-US')
   container = document.createElement('div')
   document.body.append(container)
@@ -88,7 +90,6 @@ it('lists memory banks as rows with the server total and opens a bank', async ()
 
 it('shows memory types as neutral badges on cards', async () => {
   list(memories, 1)
-  useMemoryStore.setState({ viewMode: 'grid' })
   await render()
   const card = container.querySelector('[data-slot="resource-card"]')!
   const badges = card.querySelectorAll('[data-slot="badge"]')
@@ -104,7 +105,12 @@ it('moves the create action into the empty state', async () => {
   await render()
   const header = container.querySelector('[data-slot="page-title-bar"]')!
   expect(button('Create memory bank', header)).toBeUndefined()
-  expect(container.textContent).toContain('No memory banks yet')
-  await act(async () => button('Create memory bank')!.click())
+  expect(container.textContent).toContain('Give your agents a memory')
+  const create = [
+    ...container.querySelectorAll<HTMLButtonElement>(
+      '[data-slot="empty-start"] button',
+    ),
+  ].find((element) => element.textContent?.startsWith('Create memory bank'))!
+  await act(async () => create.click())
   expect(document.body.textContent).toContain('create-memory')
 })

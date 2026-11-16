@@ -90,6 +90,15 @@ export default {
         'Create your first memory bank so AI can remember conversations.',
       searchTitle: 'No matching memory banks',
       searchDescription: 'Adjust your search or filters.',
+      startTitle: 'Give your agents a memory',
+      createDescription:
+        'Choose memory types, storage and the models that extract memories.',
+      createCta: 'Create',
+      agentTitle: 'Use memory in an agent',
+      agentDescription:
+        'Agents read and write memory banks from their retrieval and message steps.',
+      agentCta: 'Open agents',
+      createCardDescription: 'Remember conversations, facts and skills',
       messagesTitle: 'No messages',
       messagesDescription:
         'When agents use this memory bank, conversation content will be recorded here.',
