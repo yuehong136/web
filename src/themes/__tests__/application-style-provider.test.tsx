@@ -97,7 +97,8 @@ for (const preset of APPEARANCE_PRESETS) {
         getTokenValue(name, mode, preset)
       assert.equal(theme.token?.fontFamily, 'var(--font-interface)')
       assert.equal(theme.token?.fontFamilyCode, 'var(--font-code)')
-      assert.equal(theme.token?.controlHeight, 40)
+      // Compact controls are 32px (Mist 28px), scaled by 1.25.
+      assert.equal(theme.token?.controlHeight, preset === 'mist' ? 35 : 40)
       assert.equal(theme.token?.fontSize, 17.5)
       assert.equal(theme.token?.colorError, token('status-error'))
       assert.equal(theme.token?.colorWarning, token('status-warning'))

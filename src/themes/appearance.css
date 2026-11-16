@@ -27,6 +27,17 @@ html[data-preset] {
   --radius-xl: calc(var(--radius) + 4px);
   --radius-full: 9999px;
 }
+/* DreamJira scale: Geist for Latin over system CJK, radii 4/6/8/12. */
+[data-preset='mist'] {
+  --font-interface:
+    'Geist Variable', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei UI', 'Microsoft YaHei',
+    'Noto Sans CJK SC', 'Noto Sans SC', sans-serif;
+  --font-code:
+    'Geist Mono Variable', ui-monospace, 'SFMono-Regular', Menlo, Monaco,
+    Consolas, 'Liberation Mono', 'PingFang SC', 'Microsoft YaHei', monospace;
+  --radius: 0.5rem;
+}
 [data-preset='paper'] {
   --font-reading:
     Georgia, 'Times New Roman', 'Noto Serif CJK SC', 'Noto Serif SC',
@@ -75,6 +86,23 @@ html[data-preset] {
   --control-padding-x: 12px;
   --control-padding-x-lg: 16px;
   --control-gap: 6px;
+}
+/* Mist uses DreamJira's 32px controls; compact steps down once more. */
+[data-preset='mist'][data-density='comfortable'] {
+  --control-height-sm: calc(1.75rem * var(--text-scale, 1));
+  --control-height: calc(2rem * var(--text-scale, 1));
+  --control-height-lg: calc(2.5rem * var(--text-scale, 1));
+  --control-padding-x-sm: 8px;
+  --control-padding-x: 12px;
+  --control-padding-x-lg: 16px;
+}
+[data-preset='mist'][data-density='compact'] {
+  --control-height-sm: calc(1.5rem * var(--text-scale, 1));
+  --control-height: calc(1.75rem * var(--text-scale, 1));
+  --control-height-lg: calc(2rem * var(--text-scale, 1));
+  --control-padding-x-sm: 6px;
+  --control-padding-x: 10px;
+  --control-padding-x-lg: 12px;
 }
 [data-text-scale='1'] {
   --text-scale: 1;

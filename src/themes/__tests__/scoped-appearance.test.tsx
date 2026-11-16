@@ -67,7 +67,7 @@ it('provides a scoped portal container with all appearance dimensions', async ()
   expect(scope.querySelector('output')?.textContent).toBe('ocean/dark')
   expect(document.documentElement.dataset).toMatchObject({
     theme: 'light',
-    preset: 'studio',
+    preset: 'mist',
   })
 })
 function StatefulProbe() {
@@ -92,7 +92,7 @@ it('changes a local preview without resetting child state or global preferences'
   )
   expect(container.querySelector('button')?.textContent).toBe('1')
   expect(container.querySelector('[data-preset="graphite"]')).not.toBeNull()
-  expect(document.documentElement.dataset.preset).toBe('studio')
+  expect(document.documentElement.dataset.preset).toBe('mist')
 })
 it('lets a scope follow system motion independently of the global reduced preference', async () => {
   setAppearance({ motion: 'reduced' })

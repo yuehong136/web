@@ -15,6 +15,73 @@ interface PresetPalette {
 
 /** Role palettes, rather than component-specific color overrides, define each preset. */
 export const presetPalettes: Record<AppearancePreset, PresetPalette> = {
+  /**
+   * DreamJira "Mist": the shell sits on a cool sidebar tone (canvas) and work
+   * happens on white surfaces. Dark solid fills stay deep enough for white
+   * icons and labels; the light blue carries focus rings and accent text.
+   */
+  mist: {
+    surfaces: {
+      light: {
+        body: '#ffffff',
+        canvas: '#f3f7fa',
+        surface: '#ffffff',
+        subtle: '#f1f2f5',
+        elevated: '#ffffff',
+        text: '#24252e',
+        secondary: '#616370',
+        tertiary: '#6a6d79',
+        muted: '#6a6d79',
+        disabled: '#a3a6b1',
+        border: '#e7e8ed',
+        borderSubtle: '#eef0f3',
+        borderStrong: '#c6c8d2',
+        inputBorder: '#c6c8d2',
+        inputBorderHover: '#9fa2ae',
+      },
+      dark: {
+        body: '#17212a',
+        canvas: '#121b23',
+        surface: '#17212a',
+        subtle: '#202d39',
+        elevated: '#1b2630',
+        text: '#edeef3',
+        secondary: '#adafbd',
+        tertiary: '#989bab',
+        muted: '#989bab',
+        disabled: '#677284',
+        border: '#2b3a48',
+        borderSubtle: '#223140',
+        borderStrong: '#4b6275',
+        inputBorder: '#3b4e60',
+        inputBorderHover: '#4b6275',
+      },
+    },
+    interaction: {
+      light: {
+        // A step brighter than the brand action so checked controls and the
+        // primary button stay distinguishable.
+        selection: '#2f74ad',
+        selectionText: '#245e90',
+        focus: '#29669a',
+        selectionTint: '#e8f2fa',
+        selectionSoft: '#f2f8fc',
+        action: '#29669a',
+        actionHover: '#1e527f',
+        actionActive: '#174468',
+      },
+      dark: {
+        selection: '#3474aa',
+        selectionText: '#a3cff2',
+        focus: '#91c2eb',
+        selectionTint: '#203347',
+        selectionSoft: '#1a2a39',
+        action: '#2c6a9f',
+        actionHover: '#255d8d',
+        actionActive: '#1f507b',
+      },
+    },
+  },
   studio: { surfaces: surfacePalette, interaction: interactionPalette },
   paper: {
     surfaces: {

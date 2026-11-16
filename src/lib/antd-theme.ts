@@ -52,7 +52,7 @@ export function buildAntdTheme(
       colorBgElevated: token('components-dropdown-bg'),
       colorBorder: token('border-default'),
       borderRadius:
-        preset === 'graphite'
+        preset === 'graphite' || preset === 'mist'
           ? 6
           : preset === 'ocean'
             ? 12
@@ -60,12 +60,22 @@ export function buildAntdTheme(
               ? 8
               : 10,
       fontSize: 14 * appearance.textScale,
-      controlHeight:
-        (appearance.density === 'compact' ? 32 : 40) * appearance.textScale,
-      controlHeightSM:
-        (appearance.density === 'compact' ? 28 : 32) * appearance.textScale,
-      controlHeightLG:
-        (appearance.density === 'compact' ? 40 : 48) * appearance.textScale,
+      // Matches --control-height* in appearance.css (Mist is one step smaller).
+      ...(() => {
+        const [sm, md, lg] =
+          preset === 'mist'
+            ? appearance.density === 'compact'
+              ? [24, 28, 32]
+              : [28, 32, 40]
+            : appearance.density === 'compact'
+              ? [28, 32, 40]
+              : [32, 40, 48]
+        return {
+          controlHeight: md * appearance.textScale,
+          controlHeightSM: sm * appearance.textScale,
+          controlHeightLG: lg * appearance.textScale,
+        }
+      })(),
       motion: appearance.motion !== 'reduced' && !appearance.reducedMotion,
     },
     components: {

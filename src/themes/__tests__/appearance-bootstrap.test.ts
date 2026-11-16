@@ -101,7 +101,7 @@ test('bootstrap falls back through legacy keys and system preferences', () => {
 })
 test('bootstrap remains usable with denied storage and explicit share/widget themes', () => {
   const values = bootstrap({}, { denied: true, dark: true })
-  assert.equal(values['data-preset'], 'studio')
+  assert.equal(values['data-preset'], 'mist')
   assert.equal(values['data-theme'], 'dark')
   for (const path of ['/agent/share/demo', '/chats/widget']) {
     assert.equal(

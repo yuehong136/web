@@ -9,6 +9,10 @@ export const appearanceResource = {
     presetDescription:
       'Choose a palette. Reading size and density stay yours to decide.',
     presets: {
+      mist: {
+        name: 'Mist',
+        description: 'Clear misty blue. The default workspace style.',
+      },
       studio: {
         name: 'Studio',
         description: 'Quiet, neutral surfaces for everyday work.',

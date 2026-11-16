@@ -71,6 +71,9 @@ export function generatePresetValuesModule(base: TokenSets): string {
   const referenceRow = references
     .map((reference) => reference.padStart(referenceWidth, '0'))
     .join('')
+  // The canonical (Studio) values keep their exported names wherever Studio
+  // sits in the preset order.
+  const canonical = APPEARANCE_PRESETS.indexOf('studio') * 2
   const presets = APPEARANCE_PRESETS.map((preset) => {
     const index = APPEARANCE_PRESETS.indexOf(preset) * 2
     const light =
@@ -85,7 +88,7 @@ import { defaultTokens, type DesignTokens } from './tokens'
 import type { AppearancePreset, ResolvedTheme } from './appearance'
 
 // Reuse the existing token-name registry and share identical values across all
-// eight themes. Prefix rows are "shared characters in base 36:literal suffix".
+// preset themes. Prefix rows are "shared characters in base 36:literal suffix".
 const tokenNames = (Object.keys(defaultTokens) as (keyof DesignTokens)[]).sort()
 const valueRows = ${JSON.stringify(encodeValues(values))}
 const values: string[] = []
@@ -95,8 +98,8 @@ for (const row of valueRows) {
   const previous = values.at(-1) ?? ''
   values.push(previous.slice(0, shared) + row.slice(separator + 1))
 }
-// Each combination is either one constant, a light/dark pair, or eight values
-// ordered by preset then mode. Numeric references avoid repeating token names.
+// Each combination is either one constant, a light/dark pair, or one value per
+// theme ordered by preset then mode. Numeric references avoid repeating token names.
 const combinations = ${JSON.stringify(combinations.join('.'))}.split('.').map((row) => {
   const combination: string[] = []
   for (let index = 0; index < row.length; index += ${width}) {
@@ -111,8 +114,8 @@ function createTokenSet(themeIndex: number): Readonly<DesignTokens> {
     return [name, combination[themeIndex % combination.length]]
   }))) as Readonly<DesignTokens>
 }
-export const lightTokenValues = createTokenSet(0)
-export const darkTokenValues = createTokenSet(1)
+export const lightTokenValues = createTokenSet(${canonical})
+export const darkTokenValues = createTokenSet(${canonical + 1})
 export const presetTokenValues: Readonly<Record<AppearancePreset, Readonly<Record<ResolvedTheme, Readonly<DesignTokens>>>>> = Object.freeze({
 ${presets}
 })

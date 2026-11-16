@@ -12,7 +12,9 @@ import {
 import {
   lightTokenValues,
   darkTokenValues,
+  presetTokenValues,
 } from '@/themes/token-values.generated'
+import { DEFAULT_APPEARANCE } from '@/themes/appearance'
 import { interactionPalette } from '@/themes/interaction-palette'
 import { AVATAR_TONE_COUNT } from '@/themes/avatar-tokens'
 import {
@@ -86,13 +88,28 @@ test('getTokenValue: a known token differs between light and dark', () => {
 })
 
 test('getTokenValue: returns the value baked into the generated module', () => {
+  // Without a preset the current appearance (the default Mist) is read.
+  const preset = DEFAULT_APPEARANCE.preset
   assert.equal(
     getTokenValue('text-primary', 'light'),
-    lightTokenValues['text-primary'],
+    presetTokenValues[preset].light['text-primary'],
   )
   assert.equal(
     getTokenValue('text-primary', 'dark'),
+    presetTokenValues[preset].dark['text-primary'],
+  )
+  // The canonical exports stay the Studio values whatever the preset order.
+  assert.equal(
+    getTokenValue('text-primary', 'light', 'studio'),
+    lightTokenValues['text-primary'],
+  )
+  assert.equal(
+    getTokenValue('text-primary', 'dark', 'studio'),
     darkTokenValues['text-primary'],
+  )
+  assert.notEqual(
+    lightTokenValues['text-primary'],
+    presetTokenValues.mist.light['text-primary'],
   )
 })
 

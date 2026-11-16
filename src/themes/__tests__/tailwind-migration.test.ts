@@ -34,6 +34,23 @@ test('interface and Paper reading fonts work offline with explicit Chinese fallb
     /\[data-preset='paper'\][^}]*--reading-line-height: 1\.8/u,
   )
   assert.match(appearance, /--font-code:[^;]*ui-monospace[^;]*Consolas/su)
+  // Preset radii live on [data-preset]; a root-level --radius elsewhere would
+  // outrank them on <html> and pin every preset to one value.
+  const styles = await Promise.all(
+    ['mcp-chat-reference.css', 'reference.css', 'selection-controls.css'].map(
+      (name) => readFile(path.join(sourceRoot, 'styles', name), 'utf8'),
+    ),
+  )
+  for (const css of styles) assert.doesNotMatch(css, /--radius:/u)
+  // Mist's bundled Geist covers Latin; Chinese still falls back to system fonts.
+  assert.match(
+    appearance,
+    /\[data-preset='mist'\][^}]*--font-interface:[^;]*'Geist Variable'[^;]*PingFang SC[^;]*Microsoft YaHei[^;]*Noto Sans CJK SC/su,
+  )
+  assert.match(
+    appearance,
+    /\[data-preset='mist'\]\[data-density='comfortable'\][^}]*--control-height: calc\(2rem/u,
+  )
   const css = (await compiler).build(['font-sans', 'font-mono'])
   assert.match(css, /\.font-sans\s*\{\s*font-family: var\(--font-interface\)/u)
   assert.match(css, /\.font-mono\s*\{\s*font-family: var\(--font-code\)/u)

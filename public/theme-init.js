@@ -25,9 +25,11 @@
   preferences =
     preferences && typeof preferences === 'object' ? preferences : {}
   var preset =
-    ['studio', 'paper', 'graphite', 'ocean'].indexOf(preferences.preset) >= 0
+    ['mist', 'studio', 'paper', 'graphite', 'ocean'].indexOf(
+      preferences.preset,
+    ) >= 0
       ? preferences.preset
-      : 'studio'
+      : 'mist'
   var mode = preferences.mode == null ? legacyTheme : preferences.mode
   mode = mode === 'light' || mode === 'dark' ? mode : 'system'
   var density = preferences.density === 'compact' ? 'compact' : 'comfortable'

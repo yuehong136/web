@@ -6,6 +6,508 @@
  * 如需修改主题，请编辑 theme-generator.ts 文件
  */
 
+[data-preset='mist'][data-theme='dark'] {
+  /* ===== Tailwind 通道变量 (用于 /alpha 透明度支持) ===== */
+  --twc-primary: 44 106 159;
+  --twc-primary-foreground: 255 255 255;
+  --twc-foreground: 237 238 243;
+  --twc-background: 23 33 42;
+  --twc-ring: 145 194 235;
+  --twc-border: 59 78 96;
+
+  /* ===== 阴影层级 (Tailwind shadow-elevation-*) ===== */
+  --elevation-low: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.25);
+  --elevation-medium:
+    0 4px 8px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3);
+  --elevation-high:
+    0 10px 20px rgba(0, 0, 0, 0.5), 0 6px 10px rgba(0, 0, 0, 0.4);
+
+  /* ===== 文本系统 ===== */
+  --color-text-caption: #989bab;
+  --color-text-on-accent: #ffffff;
+  --color-text-primary: #edeef3;
+  --color-text-secondary: #adafbd;
+  --color-text-tertiary: #989bab;
+  --color-text-muted: #989bab;
+  --color-text-disabled: #677284;
+  --color-text-accent: #a3cff2;
+  --color-text-inverted: #111827;
+
+  /* ===== 背景系统 ===== */
+  --color-background-body: #17212a;
+  --color-background-default: #121b23;
+  --color-background-subtle: #202d39;
+  --color-background-section: #121b23;
+  --color-background-overlay: rgba(0, 0, 0, 0.75);
+  --color-background-surface: #17212a;
+
+  /* ===== 边框系统 ===== */
+  --color-border-primary: #2b3a48;
+  --color-border-hover: #4b6275;
+  --color-border-focus: #91c2eb;
+  --color-border-default: #2b3a48;
+  --color-border-subtle: #223140;
+  --color-border-strong: #4b6275;
+  --color-border-accent: #91c2eb;
+
+  /* ===== 按钮组件 ===== */
+  --color-components-button-primary-bg: #2c6a9f;
+  --color-components-button-primary-bg-hover: #255d8d;
+  --color-components-button-primary-bg-active: #1f507b;
+  --color-components-button-primary-bg-disabled: rgba(37, 99, 235, 0.16);
+  --color-components-button-primary-text: #ffffff;
+  --color-components-button-primary-text-disabled: rgba(255, 255, 255, 0.4);
+  --color-components-button-primary-border: #2c6a9f;
+  --color-components-button-primary-border-hover: #255d8d;
+  --color-components-button-secondary-bg: rgba(255, 255, 255, 0.06);
+  --color-components-button-secondary-bg-hover: rgba(255, 255, 255, 0.1);
+  --color-components-button-secondary-text: #ffffff;
+  --color-components-button-secondary-border: rgba(255, 255, 255, 0.1);
+  --color-components-button-secondary-border-hover: rgba(255, 255, 255, 0.2);
+  --color-components-button-ghost-bg-hover: rgba(255, 255, 255, 0.06);
+  --color-components-button-ghost-text: #ffffff;
+  --color-components-button-ghost-text-disabled: rgba(255, 255, 255, 0.4);
+
+  /* ===== 输入框组件 ===== */
+  --color-components-input-border-error: #ff968b;
+  --color-components-input-bg: #17212a;
+  --color-components-input-bg-hover: #121b23;
+  --color-components-input-bg-focus: #17212a;
+  --color-components-input-border: #3b4e60;
+  --color-components-input-border-hover: #677284;
+  --color-components-input-border-focus: #91c2eb;
+  --color-components-input-text: #edeef3;
+  --color-components-input-text-placeholder: #989bab;
+  --color-components-input-text-disabled: #677284;
+  --color-components-input-bg-disabled: #202d39;
+
+  /* ===== 卡片组件 ===== */
+  --color-components-card-bg: #17212a;
+  --color-components-card-bg-hover: #202d39;
+  --color-components-card-border: rgba(255, 255, 255, 0.12);
+  --color-components-card-meta-title: #edeef3;
+  --color-components-card-meta-description: #989bab;
+
+  /* ===== 侧边栏组件 ===== */
+  --color-components-sidebar-bg: #121b23;
+  --color-components-sidebar-border: rgba(255, 255, 255, 0.1);
+  --color-components-sidebar-item-bg: transparent;
+  --color-components-sidebar-item-bg-hover: rgba(255, 255, 255, 0.07);
+  --color-components-sidebar-item-bg-active: rgba(255, 255, 255, 0.1);
+  --color-components-sidebar-item-text: #989bab;
+  --color-components-sidebar-item-text-active: #edeef3;
+
+  /* ===== 导航组件 ===== */
+  --color-components-nav-bg: #121b23;
+  --color-components-nav-item-text: #989bab;
+
+  /* ===== 下拉菜单组件 ===== */
+  --color-components-dropdown-bg: #1b2630;
+  --color-components-dropdown-border: rgba(255, 255, 255, 0.14);
+  --color-components-dropdown-item-bg-hover: rgba(255, 255, 255, 0.07);
+  --color-components-dropdown-item-text: #edeef3;
+
+  /* ===== 聊天系统 ===== */
+  --color-chat-header-bg: #17212a;
+  --color-chat-header-border: #223140;
+  --color-chat-content-bg: #17212a;
+  --color-chat-welcome-border: #203347;
+  --color-chat-bubble-user-bg: #202d39;
+  --color-chat-bubble-user-text: #edeef3;
+
+  /* ===== 表格组件 ===== */
+  --color-components-table-bg: #17212a;
+  --color-components-table-border: rgba(255, 255, 255, 0.12);
+  --color-components-table-row-bg-hover: rgba(255, 255, 255, 0.06);
+
+  /* ===== 交互状态 ===== */
+  --color-state-hover: rgba(255, 255, 255, 0.07);
+  --color-state-active: rgba(255, 255, 255, 0.14);
+  --color-state-focus: #91c2eb;
+  --color-state-selected: #3474aa;
+  --color-state-selected-text: #a3cff2;
+  --color-state-selected-bg: #203347;
+  --color-state-disabled: rgba(255, 255, 255, 0.06);
+  --color-state-focus-10: #203347;
+  --color-state-neutral-10: rgba(161, 161, 170, 0.12);
+  --color-state-focus-subtle: #203347;
+
+  /* ===== 表单控件 ===== */
+  --color-components-checkbox-bg: rgba(255, 255, 255, 0.06);
+  --color-components-checkbox-bg-checked: #3474aa;
+  --color-components-checkbox-border: #3b4e60;
+  --color-components-checkbox-border-checked: #3474aa;
+  --color-components-checkbox-icon: #ffffff;
+  --color-components-radio-bg: rgba(255, 255, 255, 0.06);
+  --color-components-radio-bg-checked: rgba(255, 255, 255, 0.06);
+  --color-components-radio-border: #3b4e60;
+  --color-components-radio-border-checked: #3474aa;
+  --color-components-radio-dot: #3474aa;
+  --color-components-select-bg: rgba(255, 255, 255, 0.06);
+  --color-components-select-border: #3b4e60;
+  --color-components-select-border-focus: #91c2eb;
+  --color-components-select-text: #edeef3;
+  --color-components-select-placeholder: #989bab;
+  --color-components-switch-bg: rgba(255, 255, 255, 0.1);
+  --color-components-switch-bg-checked: #3474aa;
+  --color-components-switch-thumb: #edeef3;
+
+  /* ===== 滚动条系统 ===== */
+  --color-components-scrollbar-track: rgba(255, 255, 255, 0.06);
+  --color-components-scrollbar-thumb: rgba(255, 255, 255, 0.24);
+  --color-components-scrollbar-thumb-hover: rgba(255, 255, 255, 0.34);
+
+  /* ===== 对话框和覆盖层 ===== */
+  --color-components-dialog-bg: #17212a;
+  --color-components-dialog-border: rgba(255, 255, 255, 0.14);
+  --color-components-dialog-overlay: rgba(0, 0, 0, 0.75);
+  --color-components-popover-bg: #1b2630;
+  --color-components-tooltip-bg: #121b23;
+  --color-components-tooltip-text: #edeef3;
+  --color-components-system-chart-tooltip-bg: #1b2630;
+  --color-components-system-chart-tooltip-border: #2b3a48;
+  --color-components-system-chart-tooltip-text: #edeef3;
+  --color-components-system-chart-tooltip-muted: #989bab;
+
+  /* ===== 导航和标签 ===== */
+  --color-components-tabs-border: #3b4e60;
+  --color-components-tabs-bg: rgba(255, 255, 255, 0.06);
+  --color-components-tabs-active-bg: #203347;
+  --color-components-tabs-active-text: #a3cff2;
+  --color-components-tabs-inactive-text: #adafbd;
+
+  /* ===== 状态和通知 ===== */
+  --color-components-alert-info-bg: rgba(0, 73, 120, 0.344);
+  --color-components-alert-info-border: rgba(23, 159, 255, 0.466);
+  --color-components-alert-info-text: #7cbdff;
+  --color-components-alert-success-bg: rgba(0, 96, 29, 0.282);
+  --color-components-alert-success-border: rgba(29, 255, 128, 0.314);
+  --color-components-alert-success-text: #6ecf9c;
+  --color-components-alert-warning-bg: rgba(65, 45, 0, 0.667);
+  --color-components-alert-warning-border: rgba(112, 83, 0, 0.973);
+  --color-components-alert-warning-text: #eaa856;
+  --color-components-alert-error-bg: rgba(217, 22, 0, 0.195);
+  --color-components-alert-error-border: rgba(255, 75, 66, 0.494);
+  --color-components-alert-error-text: #ff968b;
+
+  /* ===== 加载和进度 ===== */
+  --color-components-skeleton-bg: rgba(255, 255, 255, 0.1);
+  --color-components-progress-bg: rgba(255, 255, 255, 0.1);
+  --color-components-progress-fill: #3474aa;
+  --color-components-spinner-color: #3474aa;
+  --color-components-task-status-running-progress-bg: rgba(161, 161, 170, 0.15);
+  --color-components-task-status-running-progress-fill: #3474aa;
+  --color-components-task-status-running-progress-glow: #1a2a39;
+  --color-components-loader-primary: #3474aa;
+  --color-components-canvas-skeleton-bg: rgba(255, 255, 255, 0.1);
+
+  /* ===== 代码和预格式化文本 ===== */
+  --color-components-code-bg: rgba(110, 118, 129, 0.15);
+  --color-components-code-text: #79c0ff;
+  --color-components-code-border: rgba(110, 118, 129, 0.2);
+  --color-components-pre-bg: #121b23;
+  --color-components-pre-text: #edeef3;
+  --color-components-pre-border: #202d39;
+
+  /* ===== 图标按钮 ===== */
+  --color-components-icon-button-bg-hover: rgba(255, 255, 255, 0.06);
+
+  /* ===== 画布系统 ===== */
+  --color-components-canvas-node-status-running-border: #7cbdff;
+  --color-components-canvas-node-status-running-halo: rgba(0, 93, 156, 0.375);
+  --color-components-canvas-node-status-running-icon: #7cbdff;
+  --color-components-canvas-edge-stroke-flowing: #7cbdff;
+  --color-components-canvas-node-status-success-bg: rgba(0, 96, 29, 0.282);
+  --color-components-canvas-node-status-success-border: rgba(
+    29,
+    255,
+    128,
+    0.314
+  );
+  --color-components-canvas-node-status-success-text: #6ecf9c;
+  --color-components-canvas-node-status-error-bg: rgba(217, 22, 0, 0.195);
+  --color-components-canvas-node-status-error-border: rgba(255, 75, 66, 0.494);
+  --color-components-canvas-node-status-error-text: #ff968b;
+  --color-components-canvas-bg: rgb(18, 18, 18);
+  --color-components-canvas-grid: rgba(255, 255, 255, 0.12);
+  --color-components-canvas-spotlight: #edeef3;
+  --color-components-canvas-node-bg: #17212a;
+  --color-components-canvas-node-border: rgba(255, 255, 255, 0.1);
+  --color-components-canvas-node-border-selected: #3474aa;
+  --color-components-canvas-edge-stroke-selected: #3474aa;
+  --color-components-canvas-edge-marker: rgb(113, 113, 122);
+  --color-components-canvas-edge-marker-selected: #3474aa;
+  --color-components-canvas-handle-bg: #3474aa;
+  --color-components-canvas-handle-icon: #ffffff;
+  --color-components-canvas-icon-start: #4ade80;
+  --color-components-canvas-icon-retrieval: #60a5fa;
+  --color-components-canvas-icon-message: #2dd4bf;
+  --color-components-canvas-icon-tool: #fb923c;
+  --color-components-canvas-icon-file: #4ade80;
+  --color-components-canvas-icon-splitter: #fb923c;
+  --color-components-canvas-icon-tokenizer: #c084fc;
+  --color-components-canvas-note-bg: rgba(234, 179, 8, 0.15);
+  --color-components-canvas-note-border: rgba(250, 204, 21, 0.4);
+  --color-components-canvas-note-border-selected: #facc15;
+  --color-components-canvas-note-title: #fde047;
+  --color-components-canvas-note-text: #fef08a;
+
+  /* ===== 其他组件 ===== */
+  --color-surface-primary: #17212a;
+  --color-surface-secondary: #202d39;
+  --color-surface-tertiary: #121b23;
+  --color-surface-accent: #3474aa;
+  --color-surface-accent-subtle: #203347;
+  --color-status-success: #6ecf9c;
+  --color-status-success-solid: #037a4a;
+  --color-status-success-solid-hover: #028653;
+  --color-status-success-on-solid: #ffffff;
+  --color-status-success-subtle: rgba(0, 96, 29, 0.282);
+  --color-status-success-subtle-hover: rgba(0, 135, 47, 0.282);
+  --color-status-success-border: rgba(29, 255, 128, 0.314);
+  --color-status-warning: #eaa856;
+  --color-status-warning-solid: #ffc75a;
+  --color-status-warning-solid-hover: #ffd596;
+  --color-status-warning-on-solid: #19160f;
+  --color-status-warning-subtle: rgba(65, 45, 0, 0.667);
+  --color-status-warning-subtle-hover: rgba(74, 53, 0, 0.806);
+  --color-status-warning-border: rgba(112, 83, 0, 0.973);
+  --color-status-error: #ff968b;
+  --color-status-error-solid: #d21e2a;
+  --color-status-error-solid-hover: #de2f33;
+  --color-status-error-on-solid: #ffffff;
+  --color-status-error-subtle: rgba(217, 22, 0, 0.195);
+  --color-status-error-subtle-hover: rgba(254, 41, 19, 0.234);
+  --color-status-error-border: rgba(255, 75, 66, 0.494);
+  --color-status-info: #7cbdff;
+  --color-status-info-solid: #026fb5;
+  --color-status-info-solid-hover: #0178c9;
+  --color-status-info-on-solid: #ffffff;
+  --color-status-info-subtle: rgba(0, 73, 120, 0.344);
+  --color-status-info-subtle-hover: rgba(0, 93, 156, 0.375);
+  --color-status-info-border: rgba(23, 159, 255, 0.466);
+  --color-components-badge-success-bg: rgba(0, 96, 29, 0.282);
+  --color-components-badge-success-text: #6ecf9c;
+  --color-components-badge-warning-bg: rgba(65, 45, 0, 0.667);
+  --color-components-badge-warning-text: #eaa856;
+  --color-components-badge-error-bg: rgba(217, 22, 0, 0.195);
+  --color-components-badge-error-text: #ff968b;
+  --color-components-badge-info-bg: rgba(0, 73, 120, 0.344);
+  --color-components-badge-info-text: #7cbdff;
+  --color-components-task-status-cancelled-bg: rgba(65, 45, 0, 0.667);
+  --color-components-task-status-cancelled-border: rgba(112, 83, 0, 0.973);
+  --color-components-task-status-cancelled-text: #eaa856;
+  --color-components-task-status-cancelled-dot: #eaa856;
+  --color-components-task-status-completed-bg: rgba(0, 96, 29, 0.282);
+  --color-components-task-status-completed-border: rgba(29, 255, 128, 0.314);
+  --color-components-task-status-completed-text: #6ecf9c;
+  --color-components-task-status-completed-dot: #6ecf9c;
+  --color-components-task-status-failed-bg: rgba(217, 22, 0, 0.195);
+  --color-components-task-status-failed-border: rgba(255, 75, 66, 0.494);
+  --color-components-task-status-failed-text: #ff968b;
+  --color-components-task-status-failed-dot: #ff968b;
+  --color-components-api-status-error-bg: rgba(217, 22, 0, 0.195);
+  --color-components-api-status-error-text: #ff968b;
+  --color-components-method-get-bg: rgba(0, 96, 29, 0.282);
+  --color-components-method-get-border: rgba(29, 255, 128, 0.314);
+  --color-components-method-get-text: #6ecf9c;
+  --color-components-method-put-bg: rgba(65, 45, 0, 0.667);
+  --color-components-method-put-border: rgba(112, 83, 0, 0.973);
+  --color-components-method-put-text: #eaa856;
+  --color-components-method-delete-bg: rgba(217, 22, 0, 0.195);
+  --color-components-method-delete-border: rgba(255, 75, 66, 0.494);
+  --color-components-method-delete-text: #ff968b;
+  --color-components-steps-completed-bg: #037a4a;
+  --color-components-steps-completed-text: #ffffff;
+  --color-components-steps-line-completed: #6ecf9c;
+  --color-components-system-health-ok-bg: rgba(0, 96, 29, 0.282);
+  --color-components-system-health-ok-border: rgba(29, 255, 128, 0.314);
+  --color-components-system-health-ok-text: #6ecf9c;
+  --color-components-system-health-warning-bg: rgba(65, 45, 0, 0.667);
+  --color-components-system-health-warning-border: rgba(112, 83, 0, 0.973);
+  --color-components-system-health-warning-text: #eaa856;
+  --color-components-system-health-error-bg: rgba(217, 22, 0, 0.195);
+  --color-components-system-health-error-border: rgba(255, 75, 66, 0.494);
+  --color-components-system-health-error-text: #ff968b;
+  --color-components-system-status-ok-bg: rgba(0, 96, 29, 0.282);
+  --color-components-system-status-ok-border: rgba(29, 255, 128, 0.314);
+  --color-components-system-status-ok-text: #6ecf9c;
+  --color-components-system-status-warning-bg: rgba(65, 45, 0, 0.667);
+  --color-components-system-status-warning-border: rgba(112, 83, 0, 0.973);
+  --color-components-system-status-warning-text: #eaa856;
+  --color-components-system-status-error-bg: rgba(217, 22, 0, 0.195);
+  --color-components-system-status-error-border: rgba(255, 75, 66, 0.494);
+  --color-components-system-status-error-text: #ff968b;
+  --color-components-system-chart-done: #6ecf9c;
+  --color-components-system-chart-done-soft: rgba(0, 96, 29, 0.282);
+  --color-components-system-chart-failed: #ff968b;
+  --color-components-system-chart-failed-soft: rgba(217, 22, 0, 0.195);
+  --color-components-system-chart-pending: #eaa856;
+  --color-components-system-chart-pending-soft: rgba(65, 45, 0, 0.667);
+  --color-components-avatar-1-bg: #522724;
+  --color-components-avatar-1-text: #e3827b;
+  --color-components-avatar-2-bg: #4a2f08;
+  --color-components-avatar-2-text: #cf9243;
+  --color-components-avatar-3-bg: #3a3706;
+  --color-components-avatar-3-text: #aba441;
+  --color-components-avatar-4-bg: #1b2630;
+  --color-components-avatar-4-text: #63b376;
+  --color-components-avatar-5-bg: #013e3e;
+  --color-components-avatar-5-text: #04b5b5;
+  --color-components-avatar-6-bg: #143854;
+  --color-components-avatar-6-text: #59a7e6;
+  --color-components-avatar-7-bg: #202d39;
+  --color-components-avatar-7-text: #a194e7;
+  --color-components-avatar-8-bg: #202d39;
+  --color-components-avatar-8-text: #d185c1;
+  --color-data-viz-categorical-1: #ee8a8a;
+  --color-data-viz-categorical-2: #17c2c9;
+  --color-data-viz-categorical-3: #c7a844;
+  --color-data-viz-categorical-4: #90a5f8;
+  --color-data-viz-categorical-5: #52c396;
+  --color-data-viz-categorical-6: #e18abe;
+  --color-data-viz-categorical-7: #e6955a;
+  --color-data-viz-categorical-8: #51b6ee;
+  --color-data-viz-categorical-9: #94b962;
+  --color-data-viz-categorical-10: #c095e7;
+  --color-components-method-post-bg: rgba(59, 130, 246, 0.2);
+  --color-components-method-post-text: #60a5fa;
+  --color-components-method-post-border: #3b82f6;
+  --color-components-method-patch-bg: rgba(168, 85, 247, 0.2);
+  --color-components-method-patch-text: #c084fc;
+  --color-components-method-patch-border: #a855f7;
+  --color-components-slider-track: rgba(255, 255, 255, 0.25);
+  --color-components-slider-range: #3474aa;
+  --color-components-slider-thumb: #edeef3;
+  --color-components-slider-thumb-border: #3474aa;
+  --color-components-tool-call-bg: rgba(59, 130, 246, 0.1);
+  --color-components-tool-call-border: rgba(59, 130, 246, 0.3);
+  --color-components-tool-call-title: #93c5fd;
+  --color-components-badge-bg: rgba(255, 255, 255, 0.1);
+  --color-components-badge-text: #edeef3;
+  --color-components-badge-border: #3b4e60;
+  --color-components-badge-neutral-bg: rgba(156, 163, 175, 0.15);
+  --color-components-badge-neutral-text: #989bab;
+  --color-components-badge-blue-bg: rgba(59, 130, 246, 0.2);
+  --color-components-badge-blue-text: #93c5fd;
+  --color-components-badge-orange-bg: rgba(249, 115, 22, 0.2);
+  --color-components-badge-orange-text: #fdba74;
+  --color-components-badge-purple-bg: rgba(168, 85, 247, 0.2);
+  --color-components-badge-purple-text: #a3cff2;
+  --color-components-badge-green-bg: rgba(34, 197, 94, 0.2);
+  --color-components-badge-green-text: #86efac;
+  --color-components-task-status-idle-bg: rgba(161, 161, 170, 0.08);
+  --color-components-task-status-idle-border: rgba(161, 161, 170, 0.15);
+  --color-components-task-status-idle-text: #989bab;
+  --color-components-task-status-idle-dot: #677284;
+  --color-components-task-status-running-bg: #203347;
+  --color-components-task-status-running-border: #203347;
+  --color-components-task-status-running-text: #a3cff2;
+  --color-components-task-status-running-dot: #3474aa;
+  --color-components-tag-bg: rgba(255, 255, 255, 0.08);
+  --color-components-tag-text: #edeef3;
+  --color-components-tag-border: rgba(255, 255, 255, 0.12);
+  --color-components-pagination-bg: #121b23;
+  --color-components-pagination-text: #989bab;
+  --color-components-pagination-border: rgba(255, 255, 255, 0.1);
+  --color-components-pagination-item-bg: rgba(255, 255, 255, 0.05);
+  --color-components-pagination-item-bg-hover: rgba(255, 255, 255, 0.08);
+  --color-components-pagination-item-bg-active: #2c6a9f;
+  --color-components-pagination-item-text: #edeef3;
+  --color-components-pagination-item-text-active: #ffffff;
+  --color-components-pagination-disabled-text: #3b4e60;
+  --color-components-steps-active-bg: #2c6a9f;
+  --color-components-steps-active-text: #ffffff;
+  --color-components-steps-inactive-bg: rgba(255, 255, 255, 0.05);
+  --color-components-steps-inactive-text: #989bab;
+  --color-components-steps-line: rgba(255, 255, 255, 0.1);
+  --color-components-collapse-header-bg-hover: rgba(255, 255, 255, 0.06);
+  --color-components-upload-bg: transparent;
+  --color-components-upload-bg-dragover: #203347;
+  --color-components-upload-border: rgba(255, 255, 255, 0.15);
+  --color-components-upload-border-hover: rgba(255, 255, 255, 0.25);
+  --color-components-upload-border-dragover: #91c2eb;
+  --color-components-upload-text: #edeef3;
+  --color-components-upload-text-secondary: #989bab;
+  --color-components-upload-icon: #3b4e60;
+  --color-components-segmented-bg: rgba(255, 255, 255, 0.05);
+  --color-components-segmented-border: rgba(255, 255, 255, 0.1);
+  --color-components-segmented-item-bg: transparent;
+  --color-components-segmented-item-bg-hover: rgba(255, 255, 255, 0.06);
+  --color-components-segmented-item-bg-active: #203347;
+  --color-components-segmented-item-text: #989bab;
+  --color-components-segmented-item-text-active: #a3cff2;
+  --color-components-glassmorphism-bg: rgba(26, 26, 26, 0.8);
+  --color-components-glassmorphism-border: rgba(255, 255, 255, 0.1);
+  --color-components-app-shell-bg: #121b23;
+  --color-components-main-workbench-bg: #121b23;
+  --color-components-main-workbench-surface: #17212a;
+  --color-components-main-workbench-border: #2b3a48;
+  --color-components-page-header-bg: #17212a;
+  --color-components-page-header-border: #223140;
+  --color-components-page-header-title: #edeef3;
+  --color-components-page-header-description: #adafbd;
+  --color-components-page-toolbar-bg: #17212a;
+  --color-components-page-toolbar-border: #223140;
+  --color-components-page-toolbar-text: #adafbd;
+  --color-components-page-state-icon-bg: rgba(255, 255, 255, 0.07);
+  --color-components-page-state-icon: #3474aa;
+  --color-components-page-state-title: #edeef3;
+  --color-components-page-state-description: #adafbd;
+  --color-components-settings-rail-bg: #17212a;
+  --color-components-settings-rail-border: #223140;
+  --color-components-settings-rail-title: #edeef3;
+  --color-components-console-bg: #121b23;
+  --color-components-console-surface: #17212a;
+  --color-components-console-border: #2b3a48;
+  --color-components-workspace-bg: #121b23;
+  --color-components-workspace-surface: #17212a;
+  --color-components-workspace-border: #2b3a48;
+  --color-components-studio-bg: #121b23;
+  --color-components-studio-surface: #17212a;
+  --color-components-studio-border: #2b3a48;
+  --color-components-split-pane-bg: #121b23;
+  --color-components-split-pane-border: #2b3a48;
+  --color-components-settings-content-bg: #121b23;
+  --color-components-settings-section-bg: #17212a;
+  --color-components-settings-section-border: #223140;
+  --color-components-settings-section-title: #edeef3;
+  --color-components-settings-section-description: #adafbd;
+  --color-components-system-accent-bg: #203347;
+  --color-components-system-accent-border: #3474aa;
+  --color-components-system-accent-text: #a3cff2;
+  --color-components-system-accent-soft: #1a2a39;
+  --color-components-system-page-bg: #121b23;
+  --color-components-system-panel-bg: #17212a;
+  --color-components-system-panel-border: rgba(255, 255, 255, 0.1);
+  --color-components-system-header-title: #edeef3;
+  --color-components-system-header-description: #adafbd;
+  --color-components-system-version-tag-bg: rgba(255, 255, 255, 0.05);
+  --color-components-system-version-tag-border: rgba(255, 255, 255, 0.1);
+  --color-components-system-version-tag-label: #adafbd;
+  --color-components-system-version-tag-value: #edeef3;
+  --color-components-system-section-title: #adafbd;
+  --color-components-system-section-divider: rgba(255, 255, 255, 0.1);
+  --color-components-system-empty-bg: #121b23;
+  --color-components-system-empty-border: rgba(255, 255, 255, 0.1);
+  --color-components-system-status-card-bg: #17212a;
+  --color-components-system-status-card-border: rgba(255, 255, 255, 0.1);
+  --color-components-system-status-card-border-hover: rgba(255, 255, 255, 0.2);
+  --color-components-system-chart-grid: rgba(255, 255, 255, 0.1);
+  --color-components-system-chart-axis: #adafbd;
+  --color-components-system-chart-lag: #989bab;
+  --color-components-system-chart-info-pill-bg: rgba(255, 255, 255, 0.05);
+  --color-components-system-chart-info-pill-text: #989bab;
+}
+
+/**
+ * 暗色主题 CSS 变量定义
+ * 基于 Dify 项目的设计令牌系统
+ *
+ * ⚠️ 注意: 此文件由代码自动生成，请勿手动修改!
+ * 如需修改主题，请编辑 theme-generator.ts 文件
+ */
+
 html[data-theme='dark'],
 [data-theme='dark'] {
   /* ===== Tailwind 通道变量 (用于 /alpha 透明度支持) ===== */

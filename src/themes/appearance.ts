@@ -7,6 +7,7 @@ export const Theme = {
 export type Theme = (typeof Theme)[keyof typeof Theme]
 export type ResolvedTheme = 'light' | 'dark'
 export const APPEARANCE_PRESETS = [
+  'mist',
   'studio',
   'paper',
   'graphite',
@@ -29,7 +30,7 @@ export interface ResolvedAppearance extends Appearance {
 }
 export const APPEARANCE_STORAGE_KEY = 'appearance'
 export const DEFAULT_APPEARANCE: Readonly<Appearance> = Object.freeze({
-  preset: 'studio',
+  preset: 'mist',
   mode: 'system',
   density: 'comfortable',
   textScale: 1,

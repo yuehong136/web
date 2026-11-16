@@ -7,6 +7,10 @@ export const appearanceResource = {
     preset: '工作台风格',
     presetDescription: '选择配色，阅读字号与信息密度仍可独立调整。',
     presets: {
+      mist: {
+        name: 'Mist',
+        description: '清透的雾蓝，默认工作台风格。',
+      },
       studio: { name: 'Studio', description: '安静、中性的日常工作空间。' },
       paper: { name: 'Paper', description: '温润的色调，适合阅读与思考。' },
       graphite: {

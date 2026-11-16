@@ -64,6 +64,8 @@ export interface TranslationContracts {
     presetDescription: undefined
     'presets.graphite.description': undefined
     'presets.graphite.name': undefined
+    'presets.mist.description': undefined
+    'presets.mist.name': undefined
     'presets.ocean.description': undefined
     'presets.ocean.name': undefined
     'presets.paper.description': undefined

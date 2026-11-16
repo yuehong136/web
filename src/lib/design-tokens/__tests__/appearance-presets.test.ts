@@ -142,6 +142,26 @@ test('Ant Design consumes density, text scale, and reduced motion dimensions', (
   assert.equal(theme.token?.borderRadius, 6)
 })
 
+test('Mist uses the DreamJira control scale in Ant Design', () => {
+  const comfortable = buildAntdTheme(false, 'mist', { ...DEFAULT_APPEARANCE })
+  assert.equal(DEFAULT_APPEARANCE.preset, 'mist')
+  assert.equal(comfortable.token?.borderRadius, 6)
+  assert.deepEqual(
+    [
+      comfortable.token?.controlHeightSM,
+      comfortable.token?.controlHeight,
+      comfortable.token?.controlHeightLG,
+    ],
+    [28, 32, 40],
+  )
+  const compact = buildAntdTheme(true, 'mist', {
+    ...DEFAULT_APPEARANCE,
+    density: 'compact',
+  })
+  assert.equal(compact.token?.controlHeight, 28)
+  assert.equal(compact.token?.colorPrimary, '#2c6a9f')
+})
+
 test('Ant Design respects the resolved OS reduced-motion setting', () => {
   const theme = buildAntdTheme(false, 'studio', {
     ...DEFAULT_APPEARANCE,

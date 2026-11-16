@@ -4,7 +4,7 @@ import { defaultTokens, type DesignTokens } from './tokens'
 import type { AppearancePreset, ResolvedTheme } from './appearance'
 
 // Reuse the existing token-name registry and share identical values across all
-// eight themes. Prefix rows are "shared characters in base 36:literal suffix".
+// preset themes. Prefix rows are "shared characters in base 36:literal suffix".
 const tokenNames = (Object.keys(defaultTokens) as (keyof DesignTokens)[]).sort()
 const valueRows = [
   '0:#0067b3',
@@ -38,7 +38,8 @@ const valueRows = [
   '3:4d70',
   '1:101214',
   '2:11827',
-  '2:23342',
+  '2:21b23',
+  '3:3342',
   '3:6887',
   '2:35379',
   '2:41416',
@@ -50,6 +51,8 @@ const valueRows = [
   '3:7b9b',
   '3:a34a',
   '2:7191d',
+  '3:212a',
+  '3:4468',
   '3:c2c9',
   '2:8181b',
   '2:9160f',
@@ -57,21 +60,31 @@ const valueRows = [
   '3:618a',
   '2:a1a1a',
   '3:202b',
+  '4:a39',
   '3:394b',
+  '2:b2630',
   '2:d1b18',
   '3:2025',
   '3:3e50',
   '3:4ed8',
   '2:e1e1e',
   '3:40af',
+  '3:527f',
   '2:f2937',
+  '3:507b',
   '3:6e99',
   '1:202024',
   '6:5',
   '4:328',
-  '2:4292e',
+  '4:d39',
+  '3:3347',
+  '2:23140',
+  '2:4252e',
+  '4:92e',
   '4:b37',
+  '3:5e90',
   '2:5221e',
+  '3:5d8d',
   '3:63eb',
   '2:6262b',
   '4:a31',
@@ -79,18 +92,24 @@ const valueRows = [
   '2:82c33',
   '2:9292e',
   '4:c32',
+  '3:669a',
+  '2:b3a48',
   '2:c2823',
+  '3:6a9f',
   '2:dd4bf',
   '2:f2b24',
+  '3:74ad',
   '1:30363d',
   '4:744',
   '2:32e28',
   '3:D4CB',
+  '2:474aa',
   '2:52f54',
   '2:63029',
   '2:74151',
   '2:a3706',
-  '2:b82f6',
+  '2:b4e60',
+  '3:82f6',
   '2:c647a',
   '3:9fbd',
   '2:d4f6d',
@@ -103,6 +122,7 @@ const valueRows = [
   '4:f08',
   '3:de80',
   '2:b5563',
+  '3:6275',
   '1:50371a',
   '2:1b6ee',
   '2:22724',
@@ -116,6 +136,7 @@ const valueRows = [
   '2:9a7e6',
   '2:c646f',
   '1:60a5fa',
+  '2:16370',
   '2:24522',
   '2:35b4f',
   '3:78d4',
@@ -123,8 +144,10 @@ const valueRows = [
   '3:b376',
   '3:c7e0',
   '2:5421b',
-  '2:78f21',
+  '2:77284',
+  '3:8f21',
   '2:85b4d',
+  '2:a6d79',
   '2:b56b9',
   '3:7280',
   '2:c6c75',
@@ -150,6 +173,7 @@ const valueRows = [
   '1:905a01',
   '3:a5f8',
   '2:15b02',
+  '3:c2eb',
   '3:def2',
   '2:333ea',
   '3:c5fd',
@@ -158,18 +182,23 @@ const valueRows = [
   '2:5b8cb',
   '2:79ea9',
   '2:866c1',
+  '3:9bab',
   '2:a7d03',
   '2:ca3af',
   '2:e448e',
+  '2:fa2ae',
   '1:a0a9b8',
   '2:16207',
   '3:94e7',
   '3:a1aa',
+  '2:3a6b1',
+  '3:cff2',
   '2:78bfa',
   '3:9d8f',
   '2:855f7',
   '2:ba441',
   '3:c8d5',
+  '2:dafbd',
   '1:b0bdd4',
   '3:ccd9',
   '2:1a493',
@@ -189,6 +218,7 @@ const valueRows = [
   '3:ddf3',
   '2:4b5fd',
   '3:f5f4',
+  '2:6c8d2',
   '2:7585c',
   '3:a844',
   '3:bbab',
@@ -220,6 +250,8 @@ const valueRows = [
   '2:6955a',
   '3:edf3',
   '3:f4fc',
+  '2:7e8ed',
+  '2:8f2fa',
   '2:9e6ff',
   '4:aec',
   '4:bef',
@@ -229,17 +261,21 @@ const valueRows = [
   '3:e5db',
   '4:aea',
   '2:cecf0',
-  '2:df7fa',
+  '2:deef3',
+  '3:f7fa',
   '2:e8a8a',
   '3:eae2',
   '4:cc6',
   '3:f0f3',
   '2:ff6ff',
   '1:f0f1f2',
+  '2:1f2f5',
   '2:2eade',
+  '3:f8fc',
   '2:3e8ff',
   '3:f3f5',
   '4:4f6',
+  '4:7fa',
   '2:4f4f5',
   '2:5f5f5',
   '2:6f3ed',
@@ -386,10 +422,10 @@ for (const row of valueRows) {
   const previous = values.at(-1) ?? ''
   values.push(previous.slice(0, shared) + row.slice(separator + 1))
 }
-// Each combination is either one constant, a light/dark pair, or eight values
-// ordered by preset then mode. Numeric references avoid repeating token names.
+// Each combination is either one constant, a light/dark pair, or one value per
+// theme ordered by preset then mode. Numeric references avoid repeating token names.
 const combinations =
-  '740y6j1f6c0t660n.6n18681s5y165r0r.7e7f.6h1y63285p1x5h1h.741n73206q1g6p0z.054e3v5c2w4j0w36.8v929z8z9u8s8d8o.054e3v5c2w4j1436.4d3g4f3t453h3u34.8w93a0909v8t8e8p.8u919y8y9t8r8c8n.186h3i6d246a115w.741n6j206c1g660z.7h81838ga97z8ba5.8x8j.989q.4w6v.8i7m.7i8m.003n.7l7o.7q9s.0f3d.8la6.8h7v.3w61.702q632q5p2q5h2q.4m5q.712l.3y56.692a572a4y2a4i2a.3f4h.5d1a57254y1v4i1e.0235.5107.010i.5g1063105p105h10.092y.5x2763285p1x5h1h.3a4c.6z2k63285p1x5h1h.4959.6i9f639f5p9f5h9f.5ia263a25pa25ha2.1i41.642h63395p2s5h2c.5j9w639w5p9w5h9w.123s.6g8463845p845h84.3c483e4l2z4a2i44.729463945p945h94.4x6r.6e8963895p895h89.3m503m5n3m583m3z.3c5t3e6d2z6a2i5w.6g9b639b5p9b5h9b.297432742v742f74.489o4f9o459o3u9o.181t3i3r242x111m.0k1k2o371d2e0l0x.659x639x5p9x5h9x.1w1i313j1r2j0s1b.74.6f9b639b5p9b5h9b.5z9f639f5p9f5h9f.7c9f.4p9k579k4y9k4i9k.0e7422741p740v74.7877.7675.053p3v4o2w3o0w2d.7d9h.152m.0o21.1t30.606o.404u.741o6j206c1g660z.7p7n.6u8q.6s95.626m.3q6t.4b6s.5t9f639f5p9f5h9f.4z744z6d4z6a4z5w.6n1z68285y1x5r1h.7b9h.2r4d324l2v4a2f44.749b6j9b6c9b669b.5a2n57394y2s4i2c.6k7t687t5y7t5r7t.5a7u577u4y7u4i7u.5e3k.5t9i639i5p9i5h9i.741u6j256c1v661e.6g9c639c5p9c5h9c.2r6h326d2v6a2f5w.9p9r.9k9g.749b73206q1g6p0z.6i9963285p1x5h1h.749h73206q1g6p0z.6l9e681s5y165r0r.5f2r57394y2s4i2c.3c4d3e4l2z4a2i44.8889.4g.3m4u.a1a2.262b.0b30.2r4n32542v4r2f4k.799c.741c6j1s6c16660r.5t9g639g5p9g5h9g.5a2r57394y2s4i2c.749a6j9a6c9a669a.6l9d689d5y9d5r9d.6k13681s5y165r0r.5o2357284y1x4i1h.1q5v226d1p6a0v5w.5a9l579l4y9l4i9l.489n4f9n459n3u9n.6i9a639a5p9a5h9a.649g639g5p9g5h9g.aa.649b639b5p9b5h9b.0b503l5n2g580p3z.7a9g.6g9f639f5p9f5h9f.74746j6d6c6a665w.5t9m639m5p9m5h9m.0h0g.6f9a639a5p9a5h9a.7g80828fa87y8aa4.6g9a639a5p9a5h9a.48424f4l454a3u44.741j73256q1v6p1e.5t9h9z8z9u8s8d8o.3b4d3e4l2z4a2i44.186h226d1p6a0v5w.8v9g9z9g9u9g8d9g.5t9h639h5p9h5h9h.6l9b689b5y9b5r9b.6i9b639b5p9b5h9b.5t2h63395p2s5h2c.3c4n3e542z4r2i4k.6g9d639d5p9d5h9d.8v9h9z9h9u9h8d9h.2r5s326d2v6a2f5w.7r85.7s87.483g4f3t453h3u34.2n4d324l2v4a2f44.6ba163a15pa15ha1.4ta3.1k41.1l0q221s1p160v0r.746h746d746a745w.7w9j.7x9m.5267.464v.0617.4753.333x.0m2t.4q5m.4s5u.0j2p.3843.5t9b639b5p9b5h9b.7r86.5l5b.555k.9796.040c.0a08.030d.7k7j.2u19.6x.6w6y.8ka7.1c303l5n2g580p3z.740u'
+  '8418840z7j1k790t730n.7g0v7n1b75246u176l0r.8e8f.7a1x7h2b6z2q6j2a6b1m.8418841u832f7q1l7p10.2j4m05564i663g5c0x3r.6r2e9va2az9zau9s9d9o.2d4m05564i663g5c153r.4z375343574g4t444h3p.5v379wa3b0a0av9t9e9p.771z9ua1ay9yat9r9c9n.2d721b7h457b2l77126q.8418841u7j2f791l7310.6s1y8h91939gb98z9bb5.9x9j.a8aq.5p7v.9i8m.8i9m.004a.8l8o.8qas.0f40.9lb6.9h8v.4j6x.7a3a803a6z3a6j3a6b3a.5f6k.8134.4l60.5v2s762s612s5r2s5a2s.4259.5v1j671d612m5r285a1i.023q.5u07.010i.7a116a116z116j116b11.093i.7a1x6t2p6z2q6j2a6b1m.3x52.7a1x7z336z2q6j2a6b1m.4y63.7aaf7iaf6zaf6jaf6baf.7ab26cb26zb26jb26bb2.1n4p.7a2t70306z3v6j3c6b2v.7aaw6daw6zaw6jaw6baw.134f.7a947f946z946j946b94.3w4v3z4x415e3j50314s.7aa482a46za46ja46ba4.5q7r.7a997d996z996j996b99.4955495t496h4962494n.3w723z6n417b3j77316q.7aab7fab6zab6jab6bab.3l842r843n843f842y84.54ao4xao57ao4tao4hao.2d2g1b26454e2l3h121t.191s0k1p383s1g2x0l0y.7aax71ax6zax6jax6bax.1q25291n3m4622320s1e.84.7aab7eab6zab6jab6bab.7aaf6vaf6zaf6jaf6baf.8caf.5vak5iak61ak5rak5aak.20840e842i841w840w84.8887.8685.2j2o054c4i5h3g4b0x2w.8dah.1635.0o2h.263k.6w7o.4o5n.8418841v7j2f791l7310.8p8n.7u9q.7sa5.6y7m.4d7t.517s.7aaf6naf6zaf6jaf6baf.5s725s845s7b5s775s6q.7g1x7n2c752q6u2a6l1m.8bah.3l4v3b533n5e3f502y4s.84ab84ab7jab79ab73ab.5v2t6436613v5r3c5a2v.7g8t7k8t758t6u8t6l8t.5v8u648u618u5r8u5a8u.6847.7aai6nai6zai6jai6bai.841j84277j2m7928731i.7aac7fac6zac6jac6bac.3l723b7h3n7b3f772y6q.apar.akag.841884ab832f7q1l7p10.7a1x7ia96z2q6j2a6b1m.841884ah832f7q1l7p10.7g0v7lae75246u176l0r.5v2t693b613v5r3c5a2v.543t5343574g4t444h3p.3w4v3z53415e3j50314s.9899.58.495n.b1b2.2n2u.0b3k.3l5b3b5g3n5y3f5k2y5d.89ac.840v841f7j247917730r.7aag6nag6zag6jag6bag.5v2t643b613v5r3c5a2v.84aa84aa7jaa79aa73aa.7gad7lad75ad6uad6lad.7g0v7k1475246u176l0r.5v1x6i2k612q5r2a5a1m.2072216p2i7b1w770w6q.5val64al61al5ral5aal.54an4xan57an4tan4han.7aaa7iaa6zaa6jaa6baa.7aag70ag6zag6jag6bag.ba.7aab70ab6zab6jab6bab.23550b5t486h2z620p4n.8aag.7aaf7faf6zaf6jaf6baf.847284847j7b7977736q.7aam6nam6zam6jam6bam.0h0g.7aaa7eaa6zaa6jaa6baa.7c1h8g90929fb88y9ab4.7aaa7faa6zaa6jaa6baa.544v4x4q575e4t504h4s.841j841o832m7q287p1i.6r2e6nahaz9zau9s9d9o.3w4v3y53415e3j50314s.20721b7h2i7b1w770w6q.6rag9vagazagauag9dag.7aah6nah6zah6jah6bah.7gab7lab75ab6uab6lab.7aab7iab6zab6jab6bab.7a2t6n306z3v6j3c6b2v.3w5b3z5g415y3j5k315d.7aad7fad6zad6jad6bad.6rah9vahazahauah9dah.3l723b6m3n7b3f772y6q.8r95.8s97.543t4x43574g4t444h3p.3l4v36533n5e3f502y4s.7ab178b16zb16jb16bb1.5mb3.1p4p.200v1r0q2i241w170w0r.8472847h847b8477846q.8waj.8xam.5w74.4u5o.061a.4w5x.3o4k.0m3d.5j6g.5l6o.0j39.3u4r.7aab6nab6zab6jab6bab.8r96.6f65.5z6e.a7a6.040c.0a08.030d.8k8j.3e1c.7x.7w7y.9kb7.23551f3k486h2z620p4n.840u'
     .split('.')
     .map((row) => {
       const combination: string[] = []
@@ -401,7 +437,7 @@ const combinations =
       return combination
     })
 const references =
-  '0001020103040506070806090a030b0c0c0a0d0e0f0g0h0i0j0k0l0m0n0o0p0e0g010q0r0s0t0u0v0w0x0y0z101112131415161718190e0g1a1b0h0j1c1d1e1f1g1h0k0m1i0n0p1j1k1l1m1n1o1p1m1p1q1l1r1s1t1u1v1w1x1y0j1y1z1y1q20212223202423251t1y0e0f0g0j260j0k0l0m2728292a2b2c2d0c2e2f2g0b2h1y2i1y1q2j2k2l1j01060c0c2m022n2m2o2p2q2r1j2s2t2u2v2w0g05080b082x1y01060c0e0f0g0k0l0m2y2z303132330n0o0p012g0c0a340b341y350b0c0a34363738391m3a2p1q2g2n3b3c3d2c1y2h2h2i1y1y3e3f1j3g3h3i0d3j2g3k2h2i052x0b010c0a0b0c0a340b013l3i3l352g0b3m1y3n1y3o1y01061m1q3p1q3q2g370m01060c2c1y3n0d1y3r3k340m0k0g0e373s2g3t0p0n3u3v3w3x0137340b0e0f0g0k0l0m0n0o0p010c3737340c371u0e0f0g0k0l0m0n0o0p3s3y342p0c3z400d3k4142434445460n0o0p0p0k0l0m0m0e0f0g0g4748494a0d0d1y481y3r3k4b4c4d4e4f3i0d4g054h382p2x01060c4i4j4k4l4m4n4o4p4q4r2m4s050d0d2o4t1y0d3k0g0f1q4u4v0e4w0j0i1q4x4y0h260m0l1q3p4z0k500p0o5152530n541y0d040301552x08562x1q3x342x'
+  '0001020103040506070806090a030b0c0c0a0d0e0f0g0h0i0j0k0l0m0n0o0p0e0g010q0r0s0t0u0v0w0x0y0z101112131415161718190e0g1a1b0h0j1c1d1e1f1g1h0k0m1i0n0p1j1k1l1m1n1o1p1m1p1q1l1r1s1t1u1v1w1x1y0j1y1z1y1q20212223202423251t1y0e0f0g0j260j0k0l0m2728292a2b2c2d0c2e2f2g0b2h1y2i1y1q2j2k2l1j01060c0c2m022n2m2o2p2q2r1j2s2t2u2v2w0g052x0b2x2y1y01060c0e0f0g0k0l0m2z30313233340n0o0p012g0c0a350b351y360b0c0a353738393a1m3b2p1q2g2n3c3d3e2c1y2h2h2i1y1y3f3g1j3h3i3j0d3k2g3l2h2i052y0b010c0a0b0c0a350b013m3j3m362g0b3n1y3o1y3p1y01061m1q3q1q3r2g380m01060c2c1y3o0d1y3s3l350m0k0g0e383t2g3u0p0n3v3w3x3y0138350b0e0f0g0k0l0m0n0o0p010c3838350c381u0e0f0g0k0l0m0n0o0p3t3z352p0c40410d3l4243444546470n0o0p0p0k0l0m0m0e0f0g0g48494a4b0d0d1y491y3s3l4c4d4e4f4g3j0d4h054i392p2y01060c4j4k4l4m4n4o4p4q4r4s2m4t050d0d2o4u1y0d3l0g0f1q4v4w0e4x0j0i1q4y4z0h260m0l1q3q500k510p0o5253540n551y0d040301562y2x572y1q3y352y'
     .match(/.{2}/g)!
     .map((value) => Number.parseInt(value, 36))
 function createTokenSet(themeIndex: number): Readonly<DesignTokens> {
@@ -414,19 +450,20 @@ function createTokenSet(themeIndex: number): Readonly<DesignTokens> {
     ),
   ) as Readonly<DesignTokens>
 }
-export const lightTokenValues = createTokenSet(0)
-export const darkTokenValues = createTokenSet(1)
+export const lightTokenValues = createTokenSet(2)
+export const darkTokenValues = createTokenSet(3)
 export const presetTokenValues: Readonly<
   Record<
     AppearancePreset,
     Readonly<Record<ResolvedTheme, Readonly<DesignTokens>>>
   >
 > = Object.freeze({
+  mist: Object.freeze({ light: createTokenSet(0), dark: createTokenSet(1) }),
   studio: Object.freeze({ light: lightTokenValues, dark: darkTokenValues }),
-  paper: Object.freeze({ light: createTokenSet(2), dark: createTokenSet(3) }),
+  paper: Object.freeze({ light: createTokenSet(4), dark: createTokenSet(5) }),
   graphite: Object.freeze({
-    light: createTokenSet(4),
-    dark: createTokenSet(5),
+    light: createTokenSet(6),
+    dark: createTokenSet(7),
   }),
-  ocean: Object.freeze({ light: createTokenSet(6), dark: createTokenSet(7) }),
+  ocean: Object.freeze({ light: createTokenSet(8), dark: createTokenSet(9) }),
 })

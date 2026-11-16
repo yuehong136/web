@@ -16,21 +16,23 @@
 - **构建集成**：主题生成集成到构建流程中
 - **类型安全**：TypeScript 类型定义确保使用安全
 
-交互色遵循浅绿／深紫的选中与焦点、浅黑／深蓝的主要操作两组配对，统一入口和语义边界见 [设计系统的交互色配对](./design-system.md#明暗主题的交互色配对)。
+Studio 预设的交互色遵循浅绿／深紫的选中与焦点、浅黑／深蓝的主要操作两组配对；默认的 Mist 预设两组都是雾蓝，选中填充比主要操作亮一阶以便区分。统一入口和语义边界见 [设计系统的交互色配对](./design-system.md#明暗主题的交互色配对)。
 
 ## 外观维度与局部预览
 
 外观偏好由 `@/themes` 的 `setAppearance`、`getAppearance`、`useAppearance` 管理：
-`preset`（studio / paper / graphite / ocean）、`mode`（system / light / dark）、
+`preset`（mist / studio / paper / graphite / ocean，默认 mist）、`mode`（system / light / dark）、
 `density`（comfortable / compact）、`textScale`（1 / 1.125 / 1.25）、`motion`（system / reduced）独立更新。
 核心以 `appearance` 作为完整偏好的持久化来源；`theme` 保留模式镜像以兼容旧入口，旧 `ui-storage.state.theme` 仅用于首次迁移。
 `useResolvedAppearance` 额外给出 `resolvedMode` 与 `reducedMotion`，快照引用在值未变化时保持稳定。
 主题和字号切换不得给应用根节点加 `key` 或重挂 Provider。
 
 `preset-palettes.ts` 定义角色调色板，`preset-tokens.ts` 将历史 token key 映射到角色，
-`npm run build:themes` 同步生成四套明暗 CSS 与 typed JavaScript token。
+`npm run build:themes` 同步生成各预设的明暗 CSS 与 typed JavaScript token。
 CSS 间距读 `--space-*`；控件读 `--control-height-sm` / `--control-height` / `--control-height-lg`
 和 `--control-padding-x-sm` / `--control-padding-x` / `--control-padding-x-lg`；
+Mist 采用 DreamJira 刻度：舒适密度控件 28 / 32 / 40px、紧凑 24 / 28 / 32px，圆角 4 / 6 / 8 / 12px，
+界面字体为随应用打包的 Geist（拉丁字形），中文回落系统字体；Ant Design 的控件高度和圆角在 `antd-theme.ts` 同步；
 文字缩放由 `--text-scale` 与 Tailwind typography token 消费，组件不要重复乘缩放系数。
 
 `ScopedTheme` 可覆盖 `theme`、`preset`、`density`、`textScale`、`motion`，未覆盖项继承父 scope。
