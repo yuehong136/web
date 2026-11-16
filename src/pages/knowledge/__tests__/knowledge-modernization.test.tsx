@@ -48,8 +48,14 @@ test('knowledge page templates expose stable scroll roots', () => {
     readTemplate('console-page-template.tsx'),
     /data-scroll-root=[\s\S]*console-body/,
   )
+  // ListPageTemplate is a preset of CollectionTemplate, which renders the
+  // list body for it.
   assert.match(
     readTemplate('list-page-template.tsx'),
+    /<CollectionTemplate[\s\S]*appearance="inset"/,
+  )
+  assert.match(
+    readTemplate('collection-template.tsx'),
     /data-scroll-root="list-body"/,
   )
   assert.match(
