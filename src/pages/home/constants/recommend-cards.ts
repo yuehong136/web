@@ -1,3 +1,9 @@
+import {
+  FileText,
+  GitCompareArrows,
+  Lightbulb,
+  NotebookPen,
+} from 'lucide-react'
 import type { RecommendCard } from '../types'
 
 /** Prefill prompts; nothing runs until the user submits their draft. */
@@ -8,7 +14,9 @@ export const recommendCards: RecommendCard[] = [
     titleKey: 'home.starters.summarizePrompt',
     tag: '总结资料',
     tagKey: 'home.starters.summarize',
-    bgColor: 'bg-components-card-bg',
+    descriptionKey: 'home.starters.summarizeHint',
+    icon: FileText,
+    tone: 'bg-components-avatar-6-bg text-components-avatar-6-text',
   },
   {
     id: 2,
@@ -16,7 +24,9 @@ export const recommendCards: RecommendCard[] = [
     titleKey: 'home.starters.comparePrompt',
     tag: '对比方案',
     tagKey: 'home.starters.compare',
-    bgColor: 'bg-components-card-bg',
+    descriptionKey: 'home.starters.compareHint',
+    icon: GitCompareArrows,
+    tone: 'bg-components-avatar-7-bg text-components-avatar-7-text',
   },
   {
     id: 3,
@@ -24,6 +34,18 @@ export const recommendCards: RecommendCard[] = [
     titleKey: 'home.starters.draftPrompt',
     tag: '形成下一步',
     tagKey: 'home.starters.draft',
-    bgColor: 'bg-components-card-bg',
+    descriptionKey: 'home.starters.draftHint',
+    icon: NotebookPen,
+    tone: 'bg-components-avatar-2-bg text-components-avatar-2-text',
+  },
+  {
+    id: 4,
+    title: '请用通俗的语言解释这个概念，并举一个例子：',
+    titleKey: 'home.starters.explainPrompt',
+    tag: '解释概念',
+    tagKey: 'home.starters.explain',
+    descriptionKey: 'home.starters.explainHint',
+    icon: Lightbulb,
+    tone: 'bg-components-avatar-5-bg text-components-avatar-5-text',
   },
 ]

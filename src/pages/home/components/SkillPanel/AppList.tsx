@@ -4,6 +4,7 @@ import { MessageSquare, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useFetchConversationsByDialog } from '@/hooks/use-chat-request'
 import { AppHistoryPanel } from './AppHistoryPanel'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 import type { DialogApp } from '@/types/api'
 
 interface AppListProps {
@@ -66,6 +67,8 @@ export const AppList: React.FC<AppListProps> = ({
           >
             {/* 应用项 */}
             <button
+              type="button"
+              aria-pressed={isSelected}
               onClick={() => onSelectApp(app, null)}
               className={cn(
                 'flex w-full items-center gap-3 px-4 py-3 text-left transition-colors',
@@ -74,27 +77,13 @@ export const AppList: React.FC<AppListProps> = ({
                   : 'hover:bg-background-subtle',
               )}
             >
-              <div
-                className={cn(
-                  'flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg',
-                  isSelected
-                    ? 'bg-state-focus text-text-inverted'
-                    : 'bg-background-subtle text-text-secondary',
-                )}
-              >
-                {app.icon ? (
-                  <img
-                    src={app.icon}
-                    alt={app.name}
-                    className="h-full w-full object-cover"
-                    onError={(e) => {
-                      ;(e.target as HTMLImageElement).style.display = 'none'
-                    }}
-                  />
-                ) : (
-                  <MessageSquare className="h-4 w-4" />
-                )}
-              </div>
+              <EntityAvatar
+                name={app.name}
+                src={app.icon}
+                seed={app.id}
+                badge="chat"
+                size="md"
+              />
               <div className="min-w-0 flex-1">
                 <div className="truncate text-sm font-medium text-text-primary">
                   {app.name}

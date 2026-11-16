@@ -15,21 +15,20 @@ interface SelectedTagsProps {
 }
 
 const CHIP =
-  'inline-flex h-6 max-w-full min-w-0 items-center gap-space-xs rounded-radius-md bg-background-subtle ps-space-xs pe-space-2xs text-xs text-text-primary'
+  'inline-flex h-7 max-w-full min-w-0 items-center gap-space-xs rounded-radius-full border border-border-subtle bg-background-subtle ps-space-2xs pe-space-2xs text-xs text-text-primary'
 const REMOVE =
-  'grid size-icon-md shrink-0 place-items-center rounded-radius-sm text-text-tertiary hover:bg-state-hover hover:text-text-primary focus-visible:outline-2 focus-visible:outline-state-focus disabled:cursor-not-allowed disabled:opacity-50'
+  'grid size-5 shrink-0 place-items-center rounded-radius-full text-text-tertiary hover:bg-state-hover hover:text-text-primary focus-visible:outline-2 focus-visible:outline-state-focus disabled:cursor-not-allowed disabled:opacity-50'
 
-// 根据服务器类型获取图标
+// 根据服务器类型获取图标：图标块按 MCP 类型取色，字形区分传输方式
 const getServerIcon = (serverType: string) => {
-  const className = 'size-icon-xs shrink-0 text-text-secondary'
   switch (serverType) {
     case 'sse':
-      return <Globe aria-hidden="true" className={className} />
+      return <Globe aria-hidden="true" />
     case 'streamable-http':
     case 'http':
-      return <Server aria-hidden="true" className={className} />
+      return <Server aria-hidden="true" />
     default:
-      return <Wrench aria-hidden="true" className={className} />
+      return <Wrench aria-hidden="true" />
   }
 }
 
@@ -50,7 +49,14 @@ export const SelectedTags: FC<SelectedTagsProps> = ({
     <div className="mb-space-sm flex flex-wrap gap-space-xs">
       {selectedMCPServers.map((server) => (
         <span key={`skill-${server.id}`} className={CHIP}>
-          {getServerIcon(server.server_type)}
+          <EntityAvatar
+            name={server.name}
+            kind="mcp"
+            tone="kind"
+            icon={getServerIcon(server.server_type)}
+            size="xs"
+            shape="circle"
+          />
           <span className="truncate">{server.name}</span>
           <button
             type="button"
@@ -69,7 +75,8 @@ export const SelectedTags: FC<SelectedTagsProps> = ({
             name={app.name}
             src={app.icon}
             seed={app.id}
-            size="2xs"
+            size="xs"
+            shape="circle"
           />
           <span className="truncate">{app.name}</span>
           <button

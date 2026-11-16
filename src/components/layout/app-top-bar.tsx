@@ -57,7 +57,7 @@ export const AppTopBar = ({
   return (
     <header
       className={cn(
-        'flex min-h-[var(--workbench-header-height)] shrink-0 items-center gap-space-sm border-b border-border-subtle bg-components-nav-bg px-space-sm py-space-xs',
+        'flex min-h-[var(--workbench-header-height)] shrink-0 items-center gap-space-sm bg-components-nav-bg px-space-sm py-space-xs',
         mobileOnly && 'md:hidden',
       )}
     >

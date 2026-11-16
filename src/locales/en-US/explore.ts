@@ -52,6 +52,7 @@ export default {
     market: {
       added: 'Added',
       addToWorkspace: 'Add to workspace',
+      kind: 'Chat app',
     },
     prompts: {
       explain: { label: 'Explain this concept' },

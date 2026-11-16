@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { ProductCommandId, useApplicationCommands } from '@/lib/commands'
 import { DesktopActivity, useUIStore } from '@/stores/ui'
 import { desktopActivityIcons } from './desktop-navigation'
+import { TideMark } from '../brand-mark'
 
 const activities = Object.values(DesktopActivity)
 
@@ -23,19 +24,19 @@ export const ActivityRail: React.FC = () => {
 
   return (
     <aside
-      className="py-space-sm flex h-full w-16 shrink-0 flex-col items-center border-r border-components-sidebar-border bg-components-sidebar-bg"
+      className="flex h-full w-16 shrink-0 flex-col items-center border-r border-components-sidebar-border bg-components-sidebar-bg py-space-sm"
       aria-label={t('desktop.activityRail.label')}
     >
       <button
         type="button"
-        className="mb-space-md rounded-radius-lg flex size-10 items-center justify-center bg-components-button-primary-bg text-components-button-primary-text"
+        className="mb-space-md flex size-10 items-center justify-center rounded-radius-lg focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden"
         onClick={() => void execute(ProductCommandId.NAVIGATE_HOME)}
         aria-label={t('desktop.activityRail.home')}
       >
-        <span className="text-xs font-bold">MR</span>
+        <TideMark size="md" />
       </button>
 
-      <nav className="gap-space-xs flex flex-1 flex-col">
+      <nav className="flex flex-1 flex-col gap-space-xs">
         {activities.map((activity) => {
           const Icon = desktopActivityIcons[activity]
           const label = t(`desktop.activities.${activity}`)
@@ -45,7 +46,7 @@ export const ActivityRail: React.FC = () => {
               <button
                 type="button"
                 className={cn(
-                  'rounded-radius-lg flex size-10 items-center justify-center transition-colors',
+                  'flex size-10 items-center justify-center rounded-radius-lg transition-colors',
                   selected
                     ? 'bg-components-sidebar-item-bg-active text-components-sidebar-item-text-active'
                     : 'text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover hover:text-text-primary',
@@ -61,11 +62,11 @@ export const ActivityRail: React.FC = () => {
         })}
       </nav>
 
-      <div className="gap-space-xs flex flex-col">
+      <div className="flex flex-col gap-space-xs">
         <Tooltip content={t('layout.sidebar.settings')} position="right">
           <button
             type="button"
-            className="rounded-radius-lg flex size-10 items-center justify-center text-components-sidebar-item-text transition-colors hover:bg-components-sidebar-item-bg-hover hover:text-text-primary"
+            className="flex size-10 items-center justify-center rounded-radius-lg text-components-sidebar-item-text transition-colors hover:bg-components-sidebar-item-bg-hover hover:text-text-primary"
             aria-label={t('layout.sidebar.settings')}
             onClick={() => void execute(ProductCommandId.NAVIGATE_SETTINGS)}
           >
@@ -75,7 +76,7 @@ export const ActivityRail: React.FC = () => {
         <Tooltip content={t('layout.sidebar.profile')} position="right">
           <button
             type="button"
-            className="rounded-radius-full flex size-10 items-center justify-center bg-background-subtle text-text-secondary transition-colors hover:text-text-primary"
+            className="flex size-10 items-center justify-center rounded-radius-full bg-background-subtle text-text-secondary transition-colors hover:text-text-primary"
             aria-label={t('layout.sidebar.profile')}
             onClick={() => void execute(ProductCommandId.NAVIGATE_SETTINGS)}
           >

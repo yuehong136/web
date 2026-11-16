@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Globe, Server, Wrench } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { MCPServer } from '@/types/mcp'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 
 interface SkillListProps {
   servers: MCPServer[]
@@ -16,12 +17,12 @@ interface SkillListProps {
 const getServerIcon = (serverType: string) => {
   switch (serverType) {
     case 'sse':
-      return <Globe className="h-4 w-4" />
+      return <Globe aria-hidden="true" />
     case 'streamable-http':
     case 'http':
-      return <Server className="h-4 w-4" />
+      return <Server aria-hidden="true" />
     default:
-      return <Wrench className="h-4 w-4" />
+      return <Wrench aria-hidden="true" />
   }
 }
 
@@ -62,6 +63,8 @@ export const SkillList: React.FC<SkillListProps> = ({
         return (
           <button
             key={server.id}
+            type="button"
+            aria-pressed={isSelected}
             onClick={() => onSelectSkill(server)}
             className={cn(
               'flex w-full items-center gap-3 px-4 py-3 text-left transition-colors',
@@ -70,16 +73,13 @@ export const SkillList: React.FC<SkillListProps> = ({
                 : 'hover:bg-background-subtle',
             )}
           >
-            <div
-              className={cn(
-                'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg',
-                isSelected
-                  ? 'bg-state-focus text-text-inverted'
-                  : 'bg-background-subtle text-text-secondary',
-              )}
-            >
-              {getServerIcon(server.server_type)}
-            </div>
+            <EntityAvatar
+              name={server.name}
+              kind="mcp"
+              tone="kind"
+              icon={getServerIcon(server.server_type)}
+              size="md"
+            />
             <div className="min-w-0 flex-1">
               <div className="truncate text-sm font-medium text-text-primary">
                 {server.name}

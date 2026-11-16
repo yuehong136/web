@@ -63,7 +63,7 @@ export const WorkbenchQuickActions = ({
           aria-keyshortcuts={ariaKeys(ProductCommandId.NEW_CONVERSATION)}
           onClick={() => run(ProductCommandId.NEW_CONVERSATION)}
           className={cn(
-            'flex w-full items-center gap-space-sm rounded-radius-md border border-border-default bg-background-surface px-space-sm text-sm font-medium text-text-primary shadow-elevation-low outline-hidden transition-colors hover:border-border-strong hover:bg-state-hover focus-visible:ring-2 focus-visible:ring-state-focus motion-reduce:transition-none',
+            'flex w-full items-center gap-space-sm rounded-radius-md border border-border-subtle bg-background-surface px-space-sm text-sm font-medium text-text-primary shadow-elevation-low outline-hidden transition-colors hover:border-border-strong hover:bg-state-hover focus-visible:ring-2 focus-visible:ring-state-focus motion-reduce:transition-none',
             touch ? 'min-h-11' : 'min-h-[var(--control-height-sm)]',
           )}
         >

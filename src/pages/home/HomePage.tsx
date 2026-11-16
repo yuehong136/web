@@ -2,16 +2,21 @@
  * 首页组件
  *
  * 功能：
- * - 欢迎界面：问候语、功能标签、推荐卡片
- * - 对话界面：消息列表、输入框、工具栏
+ * - 欢迎界面：问候语、输入框、起步卡片、继续工作
+ * - 对话界面：消息列表、输入框、工具栏；首条消息发出后输入框从居中滑到底部
  * - 支持 @技能 和 @应用
  * - 应用历史对话选择（加载历史消息并继续对话）
  */
 
-import { useCallback } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { useAuthStore } from '@/stores/auth'
 import { useHomeStore } from '@/stores/home'
 import { WelcomeSection, ChatSection } from './components'
+import {
+  HomeMotion,
+  readComposerOrigin,
+  type ComposerOrigin,
+} from './components/composer-entrance'
 import { useHomeChat } from './hooks'
 import { NEW_CONVERSATION_DRAFT, useHomeDrafts } from './hooks/use-home-drafts'
 
@@ -71,39 +76,59 @@ export const HomePage = () => {
     onConversationIdChange: handleConversationIdChange,
   })
 
-  // 处理发送：只有被接纳的那份草稿才清空，被拒绝时保留输入
-  const handleSend = useCallback(() => {
-    if (sendMessage(inputValue) !== false) clearDraft(draftKey, inputValue)
-  }, [clearDraft, draftKey, inputValue, sendMessage])
-
   // 是否显示欢迎界面（加载历史对话时显示对话界面）
   const showWelcome = messages.length === 0 && !isStreaming && !isLoadingHistory
 
+  // 首条消息从欢迎页发出时记下输入框位置，对话界面的输入框从这里滑到底部
+  const welcomeComposer = useRef<HTMLDivElement>(null)
+  const [dockFrom, setDockFrom] = useState<ComposerOrigin | null>(null)
+
+  // 处理发送：只有被接纳的那份草稿才清空，被拒绝时保留输入
+  const handleSend = useCallback(() => {
+    const origin = showWelcome
+      ? readComposerOrigin(welcomeComposer.current)
+      : null
+    const accepted = sendMessage(inputValue)
+    if (accepted === false) return
+    clearDraft(draftKey, inputValue)
+    if (!origin) return
+    setDockFrom(origin)
+    // The docked composer reads the origin once on mount; a send that never
+    // left the welcome view must not move a later conversation's composer.
+    void Promise.resolve(accepted).finally(() =>
+      setDockFrom((current) => (current === origin ? null : current)),
+    )
+  }, [clearDraft, draftKey, inputValue, sendMessage, showWelcome])
+
   return (
-    <div className="flex h-full flex-col bg-components-console-bg">
-      {showWelcome ? (
-        <WelcomeSection
-          inputValue={inputValue}
-          onInputChange={setInputValue}
-          onSend={handleSend}
-          isSendPending={isSendPending}
-        />
-      ) : (
-        <ChatSection
-          messages={messages}
-          inputValue={inputValue}
-          onInputChange={setInputValue}
-          onSend={handleSend}
-          onStop={stopStreaming}
-          isStreaming={isStreaming}
-          streamingContent={streamingContent}
-          streamingThinking={streamingThinking}
-          isToolAnalyzing={isToolAnalyzing}
-          isLoadingHistory={isLoadingHistory}
-          isSendPending={isSendPending}
-        />
-      )}
-    </div>
+    <HomeMotion>
+      <div className="flex h-full flex-col bg-components-console-bg">
+        {showWelcome ? (
+          <WelcomeSection
+            composerRef={welcomeComposer}
+            inputValue={inputValue}
+            onInputChange={setInputValue}
+            onSend={handleSend}
+            isSendPending={isSendPending}
+          />
+        ) : (
+          <ChatSection
+            messages={messages}
+            inputValue={inputValue}
+            onInputChange={setInputValue}
+            onSend={handleSend}
+            onStop={stopStreaming}
+            isStreaming={isStreaming}
+            streamingContent={streamingContent}
+            streamingThinking={streamingThinking}
+            isToolAnalyzing={isToolAnalyzing}
+            isLoadingHistory={isLoadingHistory}
+            isSendPending={isSendPending}
+            composerOrigin={dockFrom}
+          />
+        )}
+      </div>
+    </HomeMotion>
   )
 }
 
