@@ -48,6 +48,17 @@ const restrictedDesktopOutsideRendererBridgeImportPattern =
   '^(?:(?:\\.\\./)+desktop/|@/\\.\\./desktop/|desktop/|/.*?/desktop/)(?!protocol/renderer-bridge(?:/|$))'
 const restrictedDesktopAdapterImportPattern =
   '^(?:@/platform/desktop|(?:\\.\\.?/)+platform/desktop)(?:/|$)'
+// The second shadcn set under components/vendor was merged into components/ui.
+// Every src block that sets no-restricted-imports spreads this pattern, because
+// a later flat-config block replaces the rule options instead of merging them.
+const restrictedVendorUiImportPatterns = [
+  {
+    regex:
+      '^(?:@/components/vendor|(?:\\.\\.?/)+(?:[^/]+/)*components/vendor|(?:\\.\\.?/)+vendor/ui)(?:/|$)',
+    message:
+      'components/vendor was removed; import base components from @/components/ui.',
+  },
+]
 const platformBoundaryPlugin = {
   rules: {
     'no-restricted-dynamic-import': noRestrictedDynamicImport,
@@ -210,6 +221,7 @@ export default tseslint.config([
               message:
                 'Renderer product code must consume PlatformPort instead of a platform-specific adapter.',
             },
+            ...restrictedVendorUiImportPatterns,
           ],
         },
       ],
@@ -242,6 +254,7 @@ export default tseslint.config([
               message:
                 'Renderer composition roots cannot depend on Electron, preload, or host implementation paths.',
             },
+            ...restrictedVendorUiImportPatterns,
           ],
         },
       ],
@@ -273,6 +286,7 @@ export default tseslint.config([
               message:
                 'The Desktop adapter may import only the pure Renderer bridge contract.',
             },
+            ...restrictedVendorUiImportPatterns,
           ],
         },
       ],

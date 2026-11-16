@@ -1,4 +1,3 @@
-import { Segmented, SegmentedItem } from '@/components/vendor/ui/segmented'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import {
@@ -29,6 +28,7 @@ import { TitleChunkerMethod } from '../chunker-constants'
 import { useWatchFormChange } from '../../hooks/use-watch-form-change'
 import type { INextOperatorForm } from '../../types'
 import { FormWrapper, Output, buildOutputList } from '../components'
+import { SegmentedChoice } from '@/pages/agent/form/components/segmented-choice'
 import { getTitleChunkerHierarchyOptions, type TitleChunkerRule } from './utils'
 import { useTitleChunkerValues } from './use-title-chunker-values'
 
@@ -248,18 +248,20 @@ export function TitleChunkerForm({ node }: INextOperatorForm) {
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <Segmented
+                <SegmentedChoice
                   value={field.value ?? TitleChunkerMethod.Hierarchy}
                   onValueChange={field.onChange}
-                  block
-                >
-                  <SegmentedItem value={TitleChunkerMethod.Hierarchy}>
-                    {t('flow.hierarchy', 'Hierarchy')}
-                  </SegmentedItem>
-                  <SegmentedItem value={TitleChunkerMethod.Group}>
-                    {t('flow.group', 'Group')}
-                  </SegmentedItem>
-                </Segmented>
+                  options={[
+                    {
+                      value: TitleChunkerMethod.Hierarchy,
+                      label: t('flow.hierarchy', 'Hierarchy'),
+                    },
+                    {
+                      value: TitleChunkerMethod.Group,
+                      label: t('flow.group', 'Group'),
+                    },
+                  ]}
+                />
               </FormControl>
               <FormDescription>
                 {t(

@@ -194,7 +194,7 @@ src/
 
 ### 6.2 展示组件 vs 容器组件
 
-**展示组件**（`components/ui`、`components/patterns`、`components/vendor`）：
+**展示组件**（`components/ui`、`components/patterns`）：
 
 - 只接收 props
 - 不读 store、不发请求、不做页面级副作用

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { renderAsync } from 'docx-preview'
 import { Loader2, ZoomIn, ZoomOut, RotateCcw, AlertCircle } from 'lucide-react'
-import { Button } from '@/components/vendor/ui/button'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 interface DocxPreviewProps {

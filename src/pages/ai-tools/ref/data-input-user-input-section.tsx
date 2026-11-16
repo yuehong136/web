@@ -1,6 +1,6 @@
 import React from 'react'
-import { Button } from '@/components/vendor/ui/button'
-import { Textarea } from '@/components/vendor/ui/textarea'
+import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import { Database, FileText, FileUp, PenLine, X } from 'lucide-react'
 import {
