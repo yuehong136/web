@@ -57,7 +57,14 @@ test('back-to-back citations become one marker; code and spaced citations stay a
   )
   assert.equal(
     groupAdjacentCitations(markdown),
-    'a<sup>0,1,0</sup>. b <sup>2</sup> <sup>3</sup> `[ID:4][ID:5]`',
+    'a.<sup>0,1,0</sup> b <sup>2</sup> <sup>3</sup> `[ID:4][ID:5]`',
+  )
+  // Sentence punctuation moves in front of the chip so it never wraps alone.
+  assert.equal(
+    groupAdjacentCitations(
+      convertReferencesToSup('遗忘[ID:0]。下一句[ID:1][ID:2]，'),
+    ),
+    '遗忘。<sup>0</sup>下一句，<sup>1,2</sup>',
   )
   assert.deepEqual(parseCitationIds('0,1,0'), ['0', '1', '0'])
   assert.deepEqual(parseCitationIds(' 7 '), ['7'])

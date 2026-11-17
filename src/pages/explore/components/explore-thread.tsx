@@ -113,10 +113,8 @@ export function ExploreThread({
         items={items}
         autoScroll
         className="h-full"
-        classNames={{
-          scroll: 'px-space-md py-space-lg sm:px-space-lg',
-          bubble: 'mx-auto w-full max-w-2xl',
-        }}
+        // The reading column is set in app-chat-message.css (.explore-chat-area).
+        classNames={{ scroll: 'px-space-md py-space-lg sm:px-space-lg' }}
         role={CHAT_BUBBLE_ROLES}
       />
       <TurnRail turns={turns} rootRef={root} />

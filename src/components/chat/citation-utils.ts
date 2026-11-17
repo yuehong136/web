@@ -48,17 +48,24 @@ export function getSourceTitle(name: string): string {
 }
 
 const ADJACENT_CITATIONS = /(?:<sup>\d+<\/sup>){2,}/g
+// Sentence punctuation right after a chip, e.g. `遗忘<sup>0</sup>。`.
+const CHIP_THEN_PUNCTUATION =
+  /(<sup>\d+(?:,\d+)*<\/sup>)([。．，、；：！？.,;:!?]+)/g
 
 /**
  * Citations written back to back (`[ID:1][ID:2]`) become one chip: their ids
- * are joined into a single `<sup>1,2</sup>`. Runs after `[ID:n]` → `<sup>n</sup>`
- * so citations inside code stay untouched.
+ * are joined into a single `<sup>1,2</sup>`. Sentence punctuation that follows
+ * a chip moves in front of it (`遗忘。[chip]`), so the chip ends the sentence
+ * and a lone `。` never wraps onto the next line. Runs after
+ * `[ID:n]` → `<sup>n</sup>` so citations inside code stay untouched.
  */
 export function groupAdjacentCitations(markdown: string): string {
-  return markdown.replace(
-    ADJACENT_CITATIONS,
-    (run) => `<sup>${[...run.matchAll(/\d+/g)].join(',')}</sup>`,
-  )
+  return markdown
+    .replace(
+      ADJACENT_CITATIONS,
+      (run) => `<sup>${[...run.matchAll(/\d+/g)].join(',')}</sup>`,
+    )
+    .replace(CHIP_THEN_PUNCTUATION, '$2$1')
 }
 
 /** The citation ids a marker carries: `"3"` or a grouped `"1,2,5"`. */

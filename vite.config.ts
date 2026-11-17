@@ -191,6 +191,8 @@ export default defineConfig(({ mode }) => {
 
     server: {
       port: 5173,
+      // Agent worktrees live under .claude/; their edits must not reload the app.
+      watch: { ignored: ['**/.claude/**'] },
       proxy: {
         '/api': {
           target: fallbackApiBase,

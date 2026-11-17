@@ -37,6 +37,13 @@
 .app-chat-area .ant-bubble-list {
   gap: var(--space-lg);
 }
+/* Explore's antd-x thread keeps Home's reading column. Role class names
+   replace the list-level `bubble` class in Ant Design X 2.10, so it lives here. */
+.explore-chat-area .ant-bubble {
+  width: 100%;
+  max-width: 42rem;
+  margin-inline: auto;
+}
 .app-chat-area .ant-bubble-start + .ant-bubble-end {
   margin-top: var(--space-sm);
 }
