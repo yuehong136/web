@@ -90,7 +90,7 @@ export function KeyUsage({
               }),
             )
             .join('; ')}`}
-          className="flex h-14 items-end gap-0.5"
+          className="flex h-14 items-end gap-0.5 border-b border-border-subtle"
         >
           {values.map((item) => (
             <div
