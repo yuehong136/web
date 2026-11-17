@@ -2,9 +2,13 @@ import { act, useState } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { setProductLanguage } from '@/locales/i18n'
+import SearchChunkList from '../search-chunk-list'
 import SearchDocFilterRail from '../search-doc-filter-rail'
+import SearchStarterView from '../search-starter-view'
 import SearchTurnItem from '../search-turn-item'
 vi.mock('../search-summary-card', () => ({ default: () => null }))
+// The antd-x Sender pulls ESM-only code the test runner cannot load.
+vi.mock('../search-composer', () => ({ default: () => null }))
 import {
   SearchExecutionMode,
   SearchExecutionPhase,
@@ -122,4 +126,67 @@ it('labels a stopped round without claiming completion or configured steps as ex
   expect(container.textContent).toContain('Reception stopped')
   expect(container.textContent).not.toContain('Completed')
   expect(container.textContent).not.toContain('Reranked')
+})
+
+it('shows each passage with its file kind and all three scores, never a missing score as zero', async () => {
+  const onViewDetail = vi.fn()
+  const chunk = {
+    chunk_id: 'c1',
+    text: 'Hybrid retrieval weights',
+    doc_id: 'd1',
+    docnm_kwd: 'Retrieval guide.pdf',
+    kb_id: 'kb',
+    similarity: 0.824,
+    vector_similarity: Number.NaN,
+    term_similarity: 0.5,
+  }
+  await act(async () =>
+    root.render(
+      <SearchChunkList
+        chunks={[chunk]}
+        isLoading={false}
+        onViewDetail={onViewDetail}
+      />,
+    ),
+  )
+  const tile = container.querySelector('[data-slot="file-kind-tile"]')
+  expect(tile?.getAttribute('data-kind')).toBe('pdf')
+  expect(container.textContent).toContain('Retrieval guide.pdf')
+  const score = (series: string) =>
+    container.querySelector(`[data-score="${series}"]`)
+  expect(score('combined')?.textContent).toContain('82.4%')
+  expect(score('vector')?.textContent).toContain('Unavailable')
+  expect(score('vector')?.hasAttribute('data-unavailable')).toBe(true)
+  expect(score('term')?.textContent).toContain('50.0%')
+  await act(async () =>
+    Array.from(container.querySelectorAll('button'))
+      .find((button) => button.textContent === 'Inspect source')!
+      .click(),
+  )
+  expect(onViewDetail).toHaveBeenCalledWith(chunk, [chunk])
+})
+
+it('offers start paths that prefill the question', async () => {
+  const onPrefill = vi.fn()
+  await act(async () =>
+    root.render(
+      <SearchStarterView
+        isSearching={false}
+        prefillText=""
+        prefillVersion={0}
+        draft=""
+        onDraftChange={vi.fn()}
+        onSearch={vi.fn()}
+        onStop={vi.fn()}
+        onPrefill={onPrefill}
+      />,
+    ),
+  )
+  const paths = Array.from(container.querySelectorAll('li button'))
+  expect(paths).toHaveLength(3)
+  expect(paths[0]?.textContent).toContain('Use this question')
+  await act(async () => (paths[1] as HTMLButtonElement).click())
+  expect(onPrefill).toHaveBeenCalledWith(
+    expect.stringContaining('system architecture'),
+  )
 })

@@ -10,6 +10,20 @@ export const searchWorkspaceResource = {
     mapFallback: 'Showing a local structure from the retrieved sources.',
     fitView: 'Fit view',
     regenerate: 'Regenerate',
+    mapRoot: 'Mind map',
+    mapUntitled: 'Untitled',
+    mapNode: 'Node {{index}}',
+    mapUntitledDocument: 'Untitled document',
+    mapRenderFailed: 'Could not draw the map.',
+    scores: {
+      combined: 'Combined',
+      combinedFull: 'Combined similarity',
+      vector: 'Vector',
+      term: 'Text',
+      unavailable: 'Unavailable',
+    },
+    sourceDocument: 'Source document',
+    starterCta: 'Use this question',
 
     phases: {
       idle: 'Ready',
@@ -32,7 +46,6 @@ export const searchWorkspaceResource = {
     noMindmap: 'No mind map is available for this round',
     openSettings: 'Search settings',
     closeSettings: 'Close settings',
-    status: 'Knowledge bases: {{count}} · {{phase}}',
     turnCount_one: '{{count}} query. Expand a round to inspect its sources.',
     turnCount_other:
       '{{count}} queries. Expand a round to inspect its sources.',

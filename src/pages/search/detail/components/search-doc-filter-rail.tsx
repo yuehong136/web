@@ -1,6 +1,6 @@
 import { memo, useId, useState } from 'react'
-import { FileText } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { FileKindTile } from '@/components/patterns/file-kind-tile'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import type { DocAgg } from '@/types/search'
@@ -41,20 +41,29 @@ function SearchDocFilterRail({
   return (
     <fieldset
       disabled={disabled}
-      className="min-w-0 rounded-radius-lg border border-border-subtle bg-background-subtle p-space-base"
+      className="min-w-0 rounded-radius-xl border border-border-subtle bg-background-surface p-space-sm"
     >
-      <legend className="px-space-xs text-sm font-semibold text-text-primary">
-        {t('searchPage.workspace.sources')}
-      </legend>
-      {selectedDocIds !== null && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onSelectionChange(null)}
+      <legend className="sr-only">{t('searchPage.workspace.sources')}</legend>
+      <div className="flex min-h-[var(--control-height-sm)] items-center justify-between gap-space-sm px-space-xs pb-space-xs">
+        <span
+          aria-hidden="true"
+          className="flex items-center gap-space-xs text-sm font-semibold text-text-primary"
         >
-          {t('searchPage.workspace.reset')}
-        </Button>
-      )}
+          {t('searchPage.workspace.sources')}
+          <span className="font-mono text-xs font-normal text-text-tertiary">
+            {docAggs.length}
+          </span>
+        </span>
+        {selectedDocIds !== null && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onSelectionChange(null)}
+          >
+            {t('searchPage.workspace.reset')}
+          </Button>
+        )}
+      </div>
       <div className="max-h-72 space-y-space-xs overflow-y-auto overscroll-contain">
         {visible.map((doc, index) => (
           <label
@@ -69,10 +78,7 @@ function SearchDocFilterRail({
               }
               onCheckedChange={() => toggle(doc.doc_id)}
             />
-            <FileText
-              className="size-icon-sm shrink-0 text-text-secondary"
-              aria-hidden="true"
-            />
+            <FileKindTile name={doc.doc_name} size="xs" />
             <span
               className="min-w-0 flex-1 truncate text-text-primary"
               title={doc.doc_name}

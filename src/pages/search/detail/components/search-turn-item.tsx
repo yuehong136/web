@@ -15,8 +15,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  StatusDot,
+  type StatusDotTone,
+} from '@/components/studio/collection-identity'
 import { cn } from '@/lib/utils'
 import SearchChunkList from './search-chunk-list'
+import { SEARCH_PHASE_TONE } from './search-phase-tone'
 import SearchDocFilterRail from './search-doc-filter-rail'
 import SearchRelatedQuestions from './search-related-questions'
 import SearchSummaryCard from './search-summary-card'
@@ -68,14 +73,9 @@ function SearchTurnItem({
   )
   const interrupted = turn.errorMessageKey === 'chat.stream.interrupted'
   const phaseKey = interrupted ? 'interrupted' : turn.phase
-  const statusClass =
-    turn.phase === SearchExecutionPhase.COMPLETE
-      ? 'text-status-success'
-      : turn.phase === SearchExecutionPhase.ERROR
-        ? 'text-status-error'
-        : turn.phase === SearchExecutionPhase.STOPPED
-          ? 'text-text-secondary'
-          : 'text-status-info'
+  const statusTone: StatusDotTone = interrupted
+    ? 'warning'
+    : SEARCH_PHASE_TONE[turn.phase]
   return (
     <section
       className="min-w-0 border-b border-border-subtle pb-space-lg"
@@ -87,7 +87,7 @@ function SearchTurnItem({
             {t('searchPage.workspace.round', { index: index + 1 })}
           </span>
           {isLatest && (
-            <span className="rounded-radius-full bg-state-selected-bg px-space-sm py-space-xs text-state-selected-text">
+            <span className="rounded-radius-full bg-state-selected-bg px-space-sm py-space-2xs text-state-selected-text">
               {t('searchPage.workspace.current')}
             </span>
           )}
@@ -99,9 +99,12 @@ function SearchTurnItem({
           </span>
         </div>
         <div className="flex items-center gap-space-sm">
-          <span role="status" className={cn('text-xs', statusClass)}>
-            {t(`searchPage.workspace.phases.${phaseKey}`)}
-          </span>
+          <output className="inline-flex">
+            <StatusDot
+              tone={statusTone}
+              label={t(`searchPage.workspace.phases.${phaseKey}`)}
+            />
+          </output>
           <Button
             variant="ghost"
             size="icon-sm"

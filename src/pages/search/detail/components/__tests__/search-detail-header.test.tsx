@@ -3,6 +3,7 @@ import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import SearchDetailHeader from '../search-detail-header'
 import { setProductLanguage } from '@/locales/i18n'
+import { SearchExecutionPhase } from '@/types/search'
 
 describe('Search detail capability actions', () => {
   let container: HTMLDivElement
@@ -105,5 +106,44 @@ describe('Search detail capability actions', () => {
     )
     await act(async () => exportButton?.click())
     expect(onExport).not.toHaveBeenCalled()
+  })
+
+  it('names the search app with its avatar and shows the run as an AI moment', async () => {
+    await act(async () => {
+      root.render(
+        <SearchDetailHeader
+          appName="检索应用"
+          appId="search-1"
+          description="产品文档检索"
+          kbCount={0}
+          phase={SearchExecutionPhase.RETRIEVING}
+          phaseLabel="检索中"
+          hasTurns={false}
+          canOpenMindmap={false}
+          mindmapOpen={false}
+          settingsOpen={false}
+          canExport={false}
+          exportLabel="导出当前会话"
+          exportDisabledReason="搜索进行中，完成后可导出"
+          onBack={vi.fn()}
+          onClear={vi.fn()}
+          onToggleMindmap={vi.fn()}
+          onShare={vi.fn()}
+          onExport={vi.fn()}
+          onToggleSettings={vi.fn()}
+        />,
+      )
+    })
+
+    expect(
+      container.querySelector('[data-slot="entity-avatar-badge-anchor"]'),
+    ).not.toBeNull()
+    const dots = container.querySelectorAll('[data-slot="status-dot"]')
+    expect(dots[0]?.getAttribute('data-tone')).toBe('running')
+    expect(dots[0]?.textContent).toBe('检索中')
+    // Without a knowledge base the app retrieves nothing: say so.
+    expect(dots[1]?.getAttribute('data-tone')).toBe('warning')
+    expect(dots[1]?.textContent).toBe('未关联知识库')
+    expect(container.textContent).toContain('产品文档检索')
   })
 })
