@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
+import { ROUTES } from '@/constants'
 import { useTranslation } from 'react-i18next'
 import {
   Check,
@@ -322,7 +323,7 @@ export function MCPPage() {
                   />
                 </Button>
                 <Button asChild variant="ghost" size="sm">
-                  <Link to="/mcp-chat">
+                  <Link to={ROUTES.HOME}>
                     <MessagesSquare
                       className="size-icon-sm"
                       aria-hidden="true"

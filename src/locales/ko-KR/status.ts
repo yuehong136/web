@@ -69,7 +69,7 @@ export const koreanTranslationStatus = {
     englishFallback: 238,
   },
   mcp: {
-    translated: 20,
+    translated: 18,
     englishFallback: 118,
   },
   settings: {

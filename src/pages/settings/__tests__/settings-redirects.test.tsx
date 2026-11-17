@@ -69,6 +69,9 @@ it.each([
   ['/settings/mcp-test', '/settings/mcp?tab=test'],
   ['/settings/mcp-batch', '/settings/mcp?tab=batch'],
   ['/settings/api-keys', '/settings/api/keys'],
+  // The MCP playground became Home's model and MCP chat.
+  ['/mcp-chat', '/home'],
+  ['/mcp-chat?q=1', '/home?q=1'],
 ])('redirects the retired %s to %s', async (from, to) => {
   Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true })
   expect(await redirectFrom(from)).toBe(to)

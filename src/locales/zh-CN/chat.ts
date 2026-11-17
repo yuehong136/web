@@ -124,7 +124,6 @@ export default {
     thinking: {
       inProgress: '思考中...',
       complete: '思考过程',
-      details: '思考详情',
     },
     retrieving: {
       inProgress: '检索中...',
@@ -144,7 +143,6 @@ export default {
       locallyStopped: '已停止接收并保留内容，尚未确认服务端任务取消。',
       cancelRequested: '已请求取消，正在等待任务响应。',
       serverCancelled: '服务端已确认任务取消。',
-      toolUnconfirmed: '结果未确认',
       aiFillInvalid: '完整回复未能解析为表单 JSON，请调整提示词后重试。',
       aiFillComplete: 'AI 填写完成',
       stop: '停止接收',

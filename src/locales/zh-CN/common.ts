@@ -8,7 +8,6 @@ export default {
       noResults: '未找到匹配的嵌入模型',
     },
     modelPicker: {
-      assistant: 'AI助手',
       savedModel: '已保存的模型',
       unavailableShort: '不可用',
       loading: '正在加载模型…',
