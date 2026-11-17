@@ -40,6 +40,17 @@ test('a short preview starts a little before the first match', () => {
   assert.ok(excerptAround(text, ['absent'], 100).startsWith('xxx'))
 })
 
+test('a preview never cuts an English word in half', () => {
+  const text = `${'中文铺垫。'.repeat(20)}the Darwin team presents HarnessX, ${'more words here '.repeat(20)}`
+  const excerpt = excerptAround(text, ['HarnessX'], 60)
+  assert.match(excerpt, /^…(\S+ )*HarnessX/)
+  // Each Latin run at either cut is a whole word from the text.
+  const first = excerpt.slice(1).split(/\s/)[0]
+  const last = excerpt.slice(0, -1).split(/\s/).at(-1)!
+  assert.ok(text.includes(` ${first} `) || /^[^A-Za-z]/.test(first))
+  assert.ok(['more', 'words', 'here'].includes(last), last)
+})
+
 test('full text is marked only for plain-text chunks with matches', () => {
   const chunk = {
     id: 1,

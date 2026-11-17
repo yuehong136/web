@@ -60,15 +60,33 @@ export function excerptAround(
   let start = 0
   if (terms.length) {
     const index = text.search(termPattern(terms, 'i'))
-    if (index > 0)
+    if (index > 0) {
       start = Math.max(
         0,
         Math.min(index - Math.floor(max / 4), text.length - max),
       )
+      // Begin at a whole word and drop the space before it, never past the
+      // match itself.
+      while (start < index && insideWord(text, start)) start++
+      while (start < index && /\s/.test(text[start])) start++
+    }
   }
-  const end = Math.min(text.length, start + max)
-  return `${start > 0 ? '…' : ''}${text.slice(start, end)}${end < text.length ? '…' : ''}`
+  let end = Math.min(text.length, start + max)
+  // End at a whole word too, giving back at most a short word's length.
+  for (let room = WORD_ROOM; room > 0 && insideWord(text, end); room--) end--
+  if (insideWord(text, end)) end = Math.min(text.length, start + max)
+  return `${start > 0 ? '…' : ''}${text.slice(start, end).trimEnd()}${end < text.length ? '…' : ''}`
 }
+
+const WORD_ROOM = 16
+const LATIN_WORD = /[A-Za-z0-9]/
+
+/** Whether `index` falls between two letters of a Latin word. */
+const insideWord = (text: string, index: number) =>
+  index > 0 &&
+  index < text.length &&
+  LATIN_WORD.test(text[index - 1]) &&
+  LATIN_WORD.test(text[index])
 
 /**
  * A cited chunk's full plain text as HTML with the matched words marked;

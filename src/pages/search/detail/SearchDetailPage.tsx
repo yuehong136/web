@@ -20,7 +20,6 @@ import {
 } from '@/types/search'
 import { copyToClipboard, formatDate } from '@/lib/utils'
 import { toast } from '@/lib/toast'
-import type { ReferenceChunk } from '@/utils/reference-replacer'
 import SearchComposer from './components/search-composer'
 import SearchDetailHeader from './components/search-detail-header'
 import SearchStarterView from './components/search-starter-view'
@@ -29,25 +28,11 @@ import SearchSettingsSheet from './components/SearchSettingsSheet'
 import SearchMindmapDrawer from './mindmap/mindmap-drawer'
 import { useSearchExecution } from './hooks/useSearchExecution'
 import { useSearchSettings } from './hooks/useSearchSettings'
+import { toReferenceChunk } from './search-reference-chunk'
 import {
   canExportSearchSession,
   downloadSearchSessionMarkdown,
 } from './export/search-session-export'
-
-const toReferenceChunk = (chunk: ChunkResult): ReferenceChunk => ({
-  id: chunk.chunk_id,
-  content: chunk.content_with_weight || chunk.highlight || chunk.text,
-  document_id: chunk.doc_id,
-  document_name: chunk.docnm_kwd,
-  document_metadata: chunk.document_metadata,
-  dataset_id: chunk.kb_id,
-  image_id: chunk.img_id,
-  doc_type: chunk.doc_type_kwd,
-  positions: chunk.positions,
-  similarity: chunk.similarity,
-  vector_similarity: chunk.vector_similarity,
-  term_similarity: chunk.term_similarity,
-})
 
 export const SearchDetailPage: React.FC = () => {
   const user = useAuthStore((state) => state.user)

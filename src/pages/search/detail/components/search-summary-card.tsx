@@ -17,6 +17,7 @@ import type { ChunkResult } from '@/types/search'
 import { convertReferencesToSup } from '@/utils/message-utils'
 import { extractThinkContent, type ThinkingStatus } from '@/utils/think-utils'
 import type { ReferenceChunk } from '@/utils/reference-replacer'
+import { toReferenceChunk } from '../search-reference-chunk'
 
 interface SearchSummaryCardProps {
   summary: string
@@ -26,21 +27,6 @@ interface SearchSummaryCardProps {
   references: ChunkResult[]
   onViewDetail: (chunk: ChunkResult, allChunks: ChunkResult[]) => void
 }
-
-const toReferenceChunk = (chunk: ChunkResult): ReferenceChunk => ({
-  id: chunk.chunk_id,
-  content: chunk.content_with_weight || chunk.highlight || chunk.text,
-  document_id: chunk.doc_id,
-  document_name: chunk.docnm_kwd,
-  document_metadata: chunk.document_metadata,
-  dataset_id: chunk.kb_id,
-  image_id: chunk.img_id,
-  doc_type: chunk.doc_type_kwd,
-  positions: chunk.positions,
-  similarity: chunk.similarity,
-  vector_similarity: chunk.vector_similarity,
-  term_similarity: chunk.term_similarity,
-})
 
 const SearchSummaryCard = ({
   summary,
