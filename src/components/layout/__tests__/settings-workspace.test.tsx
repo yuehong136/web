@@ -3,7 +3,7 @@ import * as React from 'react'
 import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { createMemoryRouter, Outlet, RouterProvider } from 'react-router-dom'
-import { afterEach, beforeEach, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, expect, it, onTestFinished, vi } from 'vitest'
 import { AppShell } from '@/components/layout/app-shell'
 import {
   SettingsLayout,
@@ -17,6 +17,7 @@ import { MemoryRouter } from 'react-router-dom'
 import i18n from '@/locales/i18n'
 import { supportedLocales } from '@/locales/locale-registry'
 import { AvailableModels } from '@/pages/settings/model-providers/components/available-models'
+import { stubNativeDialog } from '@/components/ui/__tests__/native-dialog'
 
 vi.mock('@/hooks/use-llm-request', () => ({
   useFetchMyLLMs: () => ({ myLLMs: {} }),
@@ -355,7 +356,10 @@ it('keeps secondary destinations in More and routes feature navigation into the 
 })
 
 it('keeps the Explore rename dialog alive when only its secondary navigation is collapsed', async () => {
+  const nativeDialog = stubNativeDialog()
+  onTestFinished(nativeDialog.restore)
   const close = vi.fn()
+  const confirm = vi.fn()
   await act(async () =>
     root.render(
       <MemoryRouter initialEntries={['/explore']}>
@@ -381,7 +385,7 @@ it('keeps the Explore rename dialog alive when only its secondary navigation is 
             onConversationSelect={vi.fn()}
             onRenameConversation={vi.fn()}
             onDeleteConversation={vi.fn().mockResolvedValue(undefined)}
-            onConfirmRenameConversation={vi.fn()}
+            onConfirmRenameConversation={confirm}
             onNewConversationNameChange={vi.fn()}
             onCloseRenameConversation={close}
           />
@@ -389,17 +393,20 @@ it('keeps the Explore rename dialog alive when only its secondary navigation is 
       </MemoryRouter>,
     ),
   )
-  const dialog = document.querySelector<HTMLElement>('[role="dialog"]')!
+  const dialog = document.querySelector<HTMLElement>('dialog[open]')!
   expect(dialog.textContent).toContain(
     i18n.t('explore.conversations.renameTitle'),
   )
   await act(async () => useUIStore.getState().setSidebarCollapsed(true))
-  expect(document.querySelector('[role="dialog"]')).toBe(dialog)
+  expect(document.querySelector('dialog[open]')).toBe(dialog)
   const cancel = Array.from(
     dialog.querySelectorAll<HTMLButtonElement>('button'),
   ).find((element) => element.textContent === 'Cancel')!
   await click(cancel)
   expect(close).toHaveBeenCalledOnce()
+  // Enter in the name field submits the form, like the confirm button.
+  await act(async () => dialog.querySelector('form')!.requestSubmit())
+  expect(confirm).toHaveBeenCalledOnce()
 })
 
 it('adds a model provider through an explicit accessible action', async () => {

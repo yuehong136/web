@@ -17,7 +17,6 @@ import type {
   ICategorizedDataSource,
 } from '@/pages/settings/datasource/types'
 import { useDataSourceInfo } from '@/pages/settings/datasource/constants'
-import { message } from 'antd'
 import { useTranslation } from 'react-i18next'
 import { toast } from '@/lib/toast'
 import { MutationErrorFeedback } from '@/lib/mutation-error-feedback'
@@ -126,11 +125,11 @@ export const useAddDataSource = () => {
       datasourceAPI.connector.set(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: datasourceKeys.lists() })
-      message.success(t('common.operationSuccess'))
+      toast.success(t('common.operationSuccess'))
       setAddingModalVisible(false)
     },
     onError: () => {
-      message.error(t('common.operationFailed'))
+      toast.error(t('common.operationFailed'))
     },
   })
 
@@ -172,10 +171,10 @@ export const useDeleteDataSource = () => {
     mutationFn: (id: string) => datasourceAPI.connector.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: datasourceKeys.lists() })
-      message.success(t('common.deleted'))
+      toast.success(t('common.deleted'))
     },
     onError: () => {
-      message.error(t('common.operationFailed'))
+      toast.error(t('common.operationFailed'))
     },
   })
 
@@ -260,10 +259,10 @@ export const useUpdateDataSourceStatus = (id?: string) => {
     onSuccess: (detail) => {
       queryClient.setQueryData(datasourceKeys.detail(targetId), detail)
       queryClient.invalidateQueries({ queryKey: datasourceKeys.all })
-      message.success(t('common.operationSuccess'))
+      toast.success(t('common.operationSuccess'))
     },
     onError: () => {
-      message.error(t('common.operationFailed'))
+      toast.error(t('common.operationFailed'))
     },
   })
 
@@ -284,10 +283,10 @@ export const useDataSourceRebuild = () => {
     mutationFn: (sourceId: string) =>
       datasourceAPI.connector.rebuild(sourceId, kbId as string),
     onSuccess: () => {
-      message.success(t('common.operationSuccess'))
+      toast.success(t('common.operationSuccess'))
     },
     onError: () => {
-      message.error(t('common.operationFailed'))
+      toast.error(t('common.operationFailed'))
     },
   })
 
@@ -332,10 +331,10 @@ export const useLinkDataSource = (kbId: string) => {
     }) => datasourceAPI.connector.link(connectorId, kbId, autoParse),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: datasourceKeys.byKb(kbId) })
-      message.success(t('common.operationSuccess'))
+      toast.success(t('common.operationSuccess'))
     },
     onError: () => {
-      message.error(t('common.operationFailed'))
+      toast.error(t('common.operationFailed'))
     },
   })
 
@@ -344,10 +343,10 @@ export const useLinkDataSource = (kbId: string) => {
       datasourceAPI.connector.unlink(connectorId, kbId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: datasourceKeys.byKb(kbId) })
-      message.success(t('common.operationSuccess'))
+      toast.success(t('common.operationSuccess'))
     },
     onError: () => {
-      message.error(t('common.operationFailed'))
+      toast.error(t('common.operationFailed'))
     },
   })
 
@@ -363,7 +362,7 @@ export const useLinkDataSource = (kbId: string) => {
       queryClient.invalidateQueries({ queryKey: datasourceKeys.byKb(kbId) })
     },
     onError: () => {
-      message.error(t('common.operationFailed'))
+      toast.error(t('common.operationFailed'))
     },
   })
 

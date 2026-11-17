@@ -1,5 +1,4 @@
 import type { FC } from 'react'
-import { ConfigProvider, Input, Modal, theme } from 'antd'
 import { Conversations } from '@ant-design/x'
 import {
   Edit3,
@@ -11,6 +10,16 @@ import {
 } from 'lucide-react'
 import type { TFunction } from 'i18next'
 import { PageEmptyState } from '@/components/patterns/page-states'
+import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
 import { ManagedSecondaryNavigation } from '@/components/layout/workbench-navigation'
 import { cn } from '@/lib/utils'
 import {
@@ -171,9 +180,6 @@ export const ExploreSidebar: FC<ExploreSidebarProps> = ({
   onCloseRenameConversation,
 }) => {
   const currentApp = dialogApps.find((app) => app.id === selectedApp)
-  const isDarkTheme =
-    typeof document !== 'undefined' &&
-    document.documentElement.classList.contains('dark')
 
   return (
     <>
@@ -317,107 +323,95 @@ export const ExploreSidebar: FC<ExploreSidebarProps> = ({
                     <div className="min-h-0 flex-1 overflow-y-auto">
                       <div className={CONVERSATION_CLASSNAME}>
                         <style>{CONVERSATION_STYLES}</style>
-                        <ConfigProvider
-                          theme={{
-                            algorithm: isDarkTheme
-                              ? theme.darkAlgorithm
-                              : theme.defaultAlgorithm,
-                          }}
-                        >
-                          {dialogConversationsLoading ? (
-                            <div className="explore-conversations-empty">
-                              {t('explore.conversations.loading')}
-                            </div>
-                          ) : dialogConversationsError ? (
-                            <div className="explore-conversations-empty text-status-error">
-                              {t('explore.sidebar.loadFailed')}
-                            </div>
-                          ) : (
-                            <Conversations
-                              activeKey={activeConversationKey}
-                              creation={{
-                                icon: <Plus className="h-4 w-4" />,
-                                label: t('explore.conversations.new'),
-                                onClick: onCreateConversation,
-                              }}
-                              groupable={{
-                                label: (group) =>
-                                  translateConversationGroup(
-                                    String(group) as ConversationDateGroup,
-                                    t,
-                                  ),
-                              }}
-                              items={
-                                dialogConversations.length === 0
-                                  ? []
-                                  : [...dialogConversations]
-                                      .sort((a, b) => {
-                                        const timeA =
-                                          a.update_time > 1000000000000
-                                            ? a.update_time
-                                            : a.update_time * 1000
-                                        const timeB =
-                                          b.update_time > 1000000000000
-                                            ? b.update_time
-                                            : b.update_time * 1000
-                                        return timeB - timeA
-                                      })
-                                      .map((conversation) => ({
-                                        key: conversation.id,
-                                        label:
-                                          conversation.name ||
-                                          t(
-                                            'explore.conversations.fallbackName',
-                                          ),
-                                        group: getConversationDateGroup(
-                                          conversation.update_time,
-                                        ),
-                                      }))
-                              }
-                              menu={(conversation) => ({
-                                items: [
-                                  {
-                                    label: t('explore.conversations.rename'),
-                                    key: 'rename',
-                                    icon: <Edit3 className="h-3 w-3" />,
-                                  },
-                                  {
-                                    label: t('explore.conversations.delete'),
-                                    key: 'delete',
-                                    icon: <Trash2 className="h-3 w-3" />,
-                                    danger: true,
-                                  },
-                                ],
-                                onClick: (menuInfo) => {
-                                  menuInfo.domEvent.stopPropagation()
-                                  const conversationId = String(
-                                    conversation.key,
-                                  )
-                                  const conversationData =
-                                    dialogConversations.find(
-                                      (item) => item.id === conversationId,
-                                    )
-
-                                  if (
-                                    menuInfo.key === 'rename' &&
-                                    conversationData
-                                  ) {
-                                    onRenameConversation(
-                                      conversationId,
-                                      conversationData.name ||
+                        {dialogConversationsLoading ? (
+                          <div className="explore-conversations-empty">
+                            {t('explore.conversations.loading')}
+                          </div>
+                        ) : dialogConversationsError ? (
+                          <div className="explore-conversations-empty text-status-error">
+                            {t('explore.sidebar.loadFailed')}
+                          </div>
+                        ) : (
+                          <Conversations
+                            activeKey={activeConversationKey}
+                            creation={{
+                              icon: <Plus className="h-4 w-4" />,
+                              label: t('explore.conversations.new'),
+                              onClick: onCreateConversation,
+                            }}
+                            groupable={{
+                              label: (group) =>
+                                translateConversationGroup(
+                                  String(group) as ConversationDateGroup,
+                                  t,
+                                ),
+                            }}
+                            items={
+                              dialogConversations.length === 0
+                                ? []
+                                : [...dialogConversations]
+                                    .sort((a, b) => {
+                                      const timeA =
+                                        a.update_time > 1000000000000
+                                          ? a.update_time
+                                          : a.update_time * 1000
+                                      const timeB =
+                                        b.update_time > 1000000000000
+                                          ? b.update_time
+                                          : b.update_time * 1000
+                                      return timeB - timeA
+                                    })
+                                    .map((conversation) => ({
+                                      key: conversation.id,
+                                      label:
+                                        conversation.name ||
                                         t('explore.conversations.fallbackName'),
-                                    )
-                                  } else if (menuInfo.key === 'delete') {
-                                    void onDeleteConversation(conversationId)
-                                  }
+                                      group: getConversationDateGroup(
+                                        conversation.update_time,
+                                      ),
+                                    }))
+                            }
+                            menu={(conversation) => ({
+                              items: [
+                                {
+                                  label: t('explore.conversations.rename'),
+                                  key: 'rename',
+                                  icon: <Edit3 className="h-3 w-3" />,
                                 },
-                              })}
-                              onActiveChange={(key) =>
-                                onConversationSelect(key || undefined)
-                              }
-                            />
-                          )}
-                        </ConfigProvider>
+                                {
+                                  label: t('explore.conversations.delete'),
+                                  key: 'delete',
+                                  icon: <Trash2 className="h-3 w-3" />,
+                                  danger: true,
+                                },
+                              ],
+                              onClick: (menuInfo) => {
+                                menuInfo.domEvent.stopPropagation()
+                                const conversationId = String(conversation.key)
+                                const conversationData =
+                                  dialogConversations.find(
+                                    (item) => item.id === conversationId,
+                                  )
+
+                                if (
+                                  menuInfo.key === 'rename' &&
+                                  conversationData
+                                ) {
+                                  onRenameConversation(
+                                    conversationId,
+                                    conversationData.name ||
+                                      t('explore.conversations.fallbackName'),
+                                  )
+                                } else if (menuInfo.key === 'delete') {
+                                  void onDeleteConversation(conversationId)
+                                }
+                              },
+                            })}
+                            onActiveChange={(key) =>
+                              onConversationSelect(key || undefined)
+                            }
+                          />
+                        )}
                       </div>
                     </div>
                   </>
@@ -434,24 +428,51 @@ export const ExploreSidebar: FC<ExploreSidebarProps> = ({
         </aside>
       </ManagedSecondaryNavigation>
       {activeTab === 'topics' && selectedApp && (
-        <Modal
-          title={t('explore.conversations.renameTitle')}
+        <Dialog
           open={!!renamingConversationId}
-          onOk={onConfirmRenameConversation}
-          onCancel={onCloseRenameConversation}
-          okText={t('common.confirm')}
-          cancelText={t('common.cancel')}
-          destroyOnHidden
+          onOpenChange={(open) => {
+            if (!open) onCloseRenameConversation()
+          }}
         >
-          <Input
-            value={newConversationName}
-            onChange={(event) =>
-              onNewConversationNameChange(event.target.value)
-            }
-            onPressEnter={onConfirmRenameConversation}
-            placeholder={t('explore.conversations.namePlaceholder')}
-          />
-        </Modal>
+          <DialogContent size="sm" modal>
+            <DialogHeader>
+              <DialogTitle>
+                {t('explore.conversations.renameTitle')}
+              </DialogTitle>
+            </DialogHeader>
+            {/* Enter submits, as the previous antd input did. */}
+            <form
+              noValidate
+              className="flex min-h-0 flex-1 flex-col"
+              onSubmit={(event) => {
+                event.preventDefault()
+                onConfirmRenameConversation()
+              }}
+            >
+              <DialogBody>
+                <Input
+                  autoFocus
+                  aria-label={t('explore.conversations.renameTitle')}
+                  value={newConversationName}
+                  onChange={(event) =>
+                    onNewConversationNameChange(event.target.value)
+                  }
+                  placeholder={t('explore.conversations.namePlaceholder')}
+                />
+              </DialogBody>
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onCloseRenameConversation}
+                >
+                  {t('common.cancel')}
+                </Button>
+                <Button type="submit">{t('common.confirm')}</Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       )}
     </>
   )
