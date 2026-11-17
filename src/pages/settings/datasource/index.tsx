@@ -1,11 +1,9 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Plus, Settings, Trash2 } from 'lucide-react'
 import { SettingsTemplate } from '@/components/page-templates/settings-template'
-import { PageEmptyState } from '@/components/patterns/page-states'
-import { SettingRow, SettingSection } from '@/components/patterns/setting-row'
-import { Button } from '@/components/ui/button'
+import { EmptyStart } from '@/components/patterns/empty-start'
+import { PageLoadingState } from '@/components/patterns/page-states'
+import { SettingSection } from '@/components/patterns/setting-row'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import {
   useAddDataSource,
@@ -13,17 +11,27 @@ import {
   useListDataSource,
 } from '@/hooks/use-datasource-request'
 import { AddDataSourceModal } from './components/add-datasource-modal'
+import { ConnectedSources } from './components/connected-sources'
+import { ConnectorCatalog } from './components/connector-catalog'
+import { ConnectorStackIllustration } from './components/connector-logo'
 import { useDataSourceInfo } from './constants'
-import { DataSourceKey, type IDataSourceBase } from './types'
+import { DataSourceKey, type IDataSource } from './types'
+
+/** First-use start paths: one common connector from each large group. */
+const START_PATHS = [
+  DataSourceKey.S3,
+  DataSourceKey.CONFLUENCE,
+  DataSourceKey.GITHUB,
+] as const
 
 /** Connected data sources and the source types that can be added. */
 export default function DataSourcePage() {
   const { t } = useTranslation()
   const { dataSourceInfo } = useDataSourceInfo()
-  const { categorizedList } = useListDataSource()
+  const { list, isFetching } = useListDataSource()
   const { handleDeleteAsync, deleteLoading } = useDeleteDataSource()
   const [deleting, setDeleting] = useState<{
-    source: IDataSourceBase
+    source: IDataSource
     returnFocus: HTMLElement | null
   } | null>(null)
   const {
@@ -35,15 +43,10 @@ export default function DataSourcePage() {
     showAddingModal,
   } = useAddDataSource()
 
-  const connected = categorizedList.flatMap((category) =>
-    category.list.map((source) => ({ source, category })),
-  )
-  const templates = Object.values(DataSourceKey).map((id) => ({
-    id,
-    name: dataSourceInfo[id]?.name || id,
-    description: dataSourceInfo[id]?.description || '',
-    icon: dataSourceInfo[id]?.icon,
-  }))
+  // Connections of types this build no longer knows are left out, as before.
+  const connected = list.filter((source) => dataSourceInfo[source.source])
+  const addType = (id: DataSourceKey) =>
+    showAddingModal({ id, ...dataSourceInfo[id] })
 
   const confirmDelete = async () => {
     if (!deleting) return
@@ -55,77 +58,65 @@ export default function DataSourcePage() {
     }
   }
 
-  const icon = (node: React.ReactNode) => (
-    <span className="flex size-6 items-center justify-center [&_svg]:size-icon-md">
-      {node}
-    </span>
-  )
-
   return (
     <>
-      <SettingsTemplate description={t('datasource.description')}>
-        <SettingSection title={t('datasource.addedSources')}>
-          {connected.length === 0 ? (
-            <PageEmptyState
-              compact
-              title={t('datasource.emptyTip')}
-              description={null}
+      <SettingsTemplate description={t('datasource.description')} width="wide">
+        {connected.length > 0 ? (
+          <SettingSection
+            title={t('datasource.addedSources')}
+            description={t('datasource.connectedCount', {
+              count: connected.length,
+            })}
+          >
+            <ConnectedSources
+              sources={connected}
+              info={dataSourceInfo}
+              onDelete={(source, returnFocus) =>
+                setDeleting({ source, returnFocus })
+              }
             />
-          ) : (
-            connected.map(({ source, category }) => (
-              <SettingRow
-                key={source.id}
-                leading={icon(category.icon)}
-                label={source.name}
-                description={category.name}
-              >
-                <Button asChild variant="ghost" size="sm">
-                  <Link
-                    to={`/settings/datasource-detail?id=${encodeURIComponent(source.id)}`}
-                  >
-                    <Settings className="size-icon-sm" aria-hidden="true" />
-                    {t('common.settings')}
-                  </Link>
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  aria-label={t('datasource.deleteNamed', {
-                    name: source.name,
-                  })}
-                  onClick={(event) =>
-                    setDeleting({ source, returnFocus: event.currentTarget })
-                  }
-                >
-                  <Trash2 className="size-icon-sm" aria-hidden="true" />
-                </Button>
-              </SettingRow>
-            ))
-          )}
-        </SettingSection>
+          </SettingSection>
+        ) : isFetching ? (
+          <PageLoadingState compact className="min-h-40" />
+        ) : (
+          <EmptyStart
+            ghost={false}
+            className="min-h-0 px-0 pt-space-md pb-space-xl"
+            illustration={
+              <ConnectorStackIllustration
+                icons={[
+                  dataSourceInfo[START_PATHS[0]].icon,
+                  dataSourceInfo[START_PATHS[1]].icon,
+                  dataSourceInfo[START_PATHS[2]].icon,
+                ]}
+              />
+            }
+            title={t('datasource.emptyStart.title')}
+            description={t('datasource.emptyTip')}
+            paths={START_PATHS.map((id, index) => ({
+              key: id,
+              icon: dataSourceInfo[id].icon,
+              iconClassName:
+                'bg-background-subtle text-text-primary ring-1 ring-border-subtle ring-inset [&_img]:size-icon-md',
+              title: dataSourceInfo[id].name,
+              description: dataSourceInfo[id].description,
+              cta: t('datasource.emptyStart.connect'),
+              onSelect: () => addType(id),
+              primary: index === 0,
+            }))}
+          />
+        )}
 
         <SettingSection
           title={t('datasource.availableSources')}
           description={t('datasource.availableSourcesDescription')}
         >
-          {templates.map((template) => (
-            <SettingRow
-              key={template.id}
-              leading={icon(template.icon)}
-              label={template.name}
-              description={template.description}
-            >
-              <Button
-                variant="outline"
-                size="sm"
-                aria-label={t('datasource.addNamed', { name: template.name })}
-                leftIcon={<Plus className="size-icon-sm" aria-hidden="true" />}
-                onClick={() => showAddingModal(template)}
-              >
-                {t('common.add')}
-              </Button>
-            </SettingRow>
-          ))}
+          <div className="pt-space-xs">
+            <ConnectorCatalog
+              info={dataSourceInfo}
+              onAdd={(source) => addType(source.id)}
+            />
+          </div>
         </SettingSection>
       </SettingsTemplate>
 

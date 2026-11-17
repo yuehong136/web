@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
@@ -17,6 +18,7 @@ import {
   prepareDataSourceValues,
   validateJiraCredentials,
 } from '@/pages/settings/datasource/constants/form-values'
+import { ConnectorLogo } from './connector-logo'
 
 interface AddDataSourceModalProps {
   visible: boolean
@@ -26,9 +28,7 @@ interface AddDataSourceModalProps {
   sourceData: IDataSourceInfo
 }
 
-/**
- * 添加数据源模态框 - 使用项目设计令牌
- */
+/** Adds a connection of one connector type: its logo, name and form. */
 export function AddDataSourceModal({
   visible,
   loading,
@@ -83,45 +83,36 @@ export function AddDataSourceModal({
         size="md"
         className="flex max-h-[85vh] flex-col gap-0 overflow-clip p-0"
       >
-        {/* 头部 */}
-        <DialogHeader className="border-b border-border-default bg-background-subtle px-6 py-5">
-          <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-border-default bg-background-body shadow-xs">
-              <div className="flex h-7 w-7 items-center justify-center">
-                {sourceData?.icon}
-              </div>
-            </div>
-            <div>
-              <DialogTitle className="text-lg font-semibold text-text-primary">
+        <DialogHeader className="border-b border-border-subtle px-space-lg py-space-base">
+          <div className="flex items-center gap-space-base">
+            <ConnectorLogo icon={sourceData?.icon} size="xl" />
+            <div className="flex min-w-0 flex-col gap-space-2xs">
+              <DialogTitle className="text-base font-semibold text-text-primary">
                 {t('datasource.addModalTitle', { name: sourceData?.name })}
               </DialogTitle>
-              <p className="mt-0.5 text-sm text-text-tertiary">
-                {sourceData?.description}
-              </p>
+              {sourceData?.description ? (
+                <DialogDescription className="text-sm text-text-secondary">
+                  {sourceData.description}
+                </DialogDescription>
+              ) : null}
             </div>
           </div>
         </DialogHeader>
 
-        {/* 表单内容区域 */}
-        <div className="min-h-0 flex-1 overflow-y-auto">
-          <div className="px-6 py-5">
+        <div className="scroll-area min-h-0 flex-1 overflow-y-auto">
+          <div className="px-space-lg py-space-base">
             <DynamicForm.Root
               fields={fields}
               onSubmit={handleOk}
               defaultValues={defaultValues}
               labelClassName="text-sm font-medium text-text-secondary"
             >
-              {/* 底部操作按钮 */}
-              <div className="sticky bottom-0 mt-6 flex items-center justify-end gap-3 border-t border-border-default bg-surface-primary pt-5">
-                <DynamicForm.CancelButton
-                  handleCancel={hideModal}
-                  className="h-10 px-5 text-sm font-medium"
-                />
+              <div className="sticky bottom-0 mt-space-lg flex items-center justify-end gap-space-sm border-t border-border-subtle bg-background-surface py-space-base">
+                <DynamicForm.CancelButton handleCancel={hideModal} />
                 <DynamicForm.SavingButton
                   submitLoading={loading}
                   buttonText={t('common.confirm')}
                   submitFunc={handleOk}
-                  className="h-10 px-6 text-sm font-medium"
                 />
               </div>
             </DynamicForm.Root>
