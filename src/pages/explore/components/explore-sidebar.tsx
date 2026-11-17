@@ -345,7 +345,7 @@ export const ExploreSidebar: FC<ExploreSidebarProps> = ({
                 {t('explore.conversations.renameTitle')}
               </DialogTitle>
             </DialogHeader>
-            {/* Enter submits, as the previous antd input did. */}
+            {/* Enter submits the new name. */}
             <form
               noValidate
               className="flex min-h-0 flex-1 flex-col"

@@ -1,4 +1,4 @@
-import { act, type ReactNode } from 'react'
+import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -8,9 +8,6 @@ import DocumentPreviewPage from '..'
 
 vi.mock('@/lib/toast', () => ({
   toast: { error: vi.fn(), success: vi.fn() },
-}))
-vi.mock('antd', () => ({
-  Watermark: ({ children }: { children: ReactNode }) => <>{children}</>,
 }))
 // 各格式渲染器依赖的 pdf.js / Office 解析库不在 jsdom 加载；失败态由共享组件渲染
 vi.mock(

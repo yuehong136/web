@@ -5,8 +5,6 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { ConfigProvider } from 'antd'
-import { buildAntdTheme } from '@/lib/antd-theme'
 import {
   normalizeAppearance,
   resolveAppearance,
@@ -81,32 +79,19 @@ export function ScopedTheme({
     () => ({ container, appearance }),
     [container, appearance],
   )
-  const antdTheme = useMemo(
-    () =>
-      buildAntdTheme(appearance.resolvedMode === 'dark', appearance.preset, {
-        ...appearance,
-        motion: appearance.reducedMotion ? 'reduced' : 'system',
-      }),
-    [appearance],
-  )
   return (
-    <ConfigProvider
-      theme={antdTheme}
-      getPopupContainer={() => container ?? document.body}
+    <div
+      ref={setContainer}
+      data-theme={appearance.resolvedMode}
+      data-preset={appearance.preset}
+      data-density={appearance.density}
+      data-text-scale={appearance.textScale}
+      data-motion={appearance.reducedMotion ? 'reduced' : 'system'}
+      className={className ?? 'contents'}
     >
-      <div
-        ref={setContainer}
-        data-theme={appearance.resolvedMode}
-        data-preset={appearance.preset}
-        data-density={appearance.density}
-        data-text-scale={appearance.textScale}
-        data-motion={appearance.reducedMotion ? 'reduced' : 'system'}
-        className={className ?? 'contents'}
-      >
-        <ThemeScopeContext.Provider value={scope}>
-          {children}
-        </ThemeScopeContext.Provider>
-      </div>
-    </ConfigProvider>
+      <ThemeScopeContext.Provider value={scope}>
+        {children}
+      </ThemeScopeContext.Provider>
+    </div>
   )
 }

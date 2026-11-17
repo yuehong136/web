@@ -32,7 +32,7 @@ Studio 预设的交互色遵循浅绿／深紫的选中与焦点、浅黑／深�
 CSS 间距读 `--space-*`；控件读 `--control-height-sm` / `--control-height` / `--control-height-lg`
 和 `--control-padding-x-sm` / `--control-padding-x` / `--control-padding-x-lg`；
 Mist 采用 DreamJira 刻度：舒适密度控件 28 / 32 / 40px、紧凑 24 / 28 / 32px，圆角 4 / 6 / 8 / 12px，
-界面字体为随应用打包的 Geist（拉丁字形），中文回落系统字体；Ant Design 的控件高度和圆角在 `antd-theme.ts` 同步；
+界面字体为随应用打包的 Geist（拉丁字形），中文回落系统字体；
 文字缩放由 `--text-scale` 与 Tailwind typography token 消费，组件不要重复乘缩放系数。
 
 `ScopedTheme` 可覆盖 `theme`、`preset`、`density`、`textScale`、`motion`，未覆盖项继承父 scope。

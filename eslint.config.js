@@ -468,46 +468,17 @@ export default tseslint.config([
     },
   },
   {
-    // Tide guard: Ant Design primitives come through src/components/ui/**.
-    // `@ant-design/x*` is a separate package and stays allowed. Allowlist, with
-    // the reason for each entry:
-    // - src/themes/**: the theme bridge (ConfigProvider, App, antd locales)
-    //   that feeds design tokens and the UI language into antd and antd-x.
-    // - src/lib/antd-theme.ts: builds the antd ThemeConfig, which needs antd's
-    //   dark/default algorithms.
-    // - Watermark files (below): canvas watermark over evidence and document
-    //   previews; ui/ has no equivalent.
-    // - controlled-attachments.tsx (below): `Upload.LIST_IGNORE` is the
-    //   sentinel antd-x Attachments (built on antd Upload) needs to keep rows
-    //   out of its own list.
+    // Tide guard: antd is no longer a dependency; UI primitives come from
+    // src/components/ui/**. The rule keeps it from coming back. The kept
+    // `@ant-design/x-markdown`, `x-card` and `x-sdk` are separate packages
+    // and stay allowed.
     files: ['src/**/*.{ts,tsx}'],
-    ignores: [
-      'src/themes/**',
-      'src/lib/antd-theme.ts',
-      '**/__tests__/**',
-      '**/*.test.{ts,tsx}',
-    ],
+    ignores: ['**/__tests__/**', '**/*.test.{ts,tsx}'],
     plugins: {
       'design-guard': designGuardPlugin,
     },
     rules: {
       'design-guard/no-direct-antd-import': 'error',
-    },
-  },
-  {
-    files: [
-      'src/pages/document-preview/index.tsx',
-      'src/components/chat/evidence-source-detail.tsx',
-      'src/components/chat/reference-detail-panel.tsx',
-    ],
-    rules: {
-      'design-guard/no-direct-antd-import': ['error', { allow: ['Watermark'] }],
-    },
-  },
-  {
-    files: ['src/components/chat/controlled-attachments.tsx'],
-    rules: {
-      'design-guard/no-direct-antd-import': ['error', { allow: ['Upload'] }],
     },
   },
   {

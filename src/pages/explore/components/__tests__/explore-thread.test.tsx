@@ -60,8 +60,8 @@ it('offers copy, read aloud and regenerate, and no feedback that is never saved'
   expect(labels).toContain('Read aloud')
   expect(labels.filter((label) => label === 'Regenerate')).toHaveLength(2)
   // Thumbs up/down only showed a toast; the web never sent the feedback.
-  expect(host.querySelector('.ant-actions-feedback')).toBeNull()
-  expect(labels.some((label) => /like|helpful/i.test(label ?? ''))).toBe(false)
+  expect(labels).not.toContain('Good answer')
+  expect(labels).not.toContain('Bad answer')
   const regenerateButtons = [
     ...host.querySelectorAll<HTMLButtonElement>('[aria-label="Regenerate"]'),
   ]

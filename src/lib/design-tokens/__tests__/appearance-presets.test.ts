@@ -14,7 +14,6 @@ import {
   validateTokens,
 } from '@/themes/theme-generator'
 import { createPresetTokenSets } from '@/themes/theme-artifact-generator'
-import { buildAntdTheme } from '@/lib/antd-theme'
 
 const normalizeCSS = (value: string) =>
   value
@@ -114,12 +113,6 @@ for (const preset of APPEARANCE_PRESETS) {
         values['components-app-shell-bg'],
         values['background-surface'],
       )
-      const antd = buildAntdTheme(mode === 'dark', preset)
-      assert.equal(antd.token?.colorText, values['text-primary'])
-      assert.equal(
-        antd.components?.Input?.colorBgContainer,
-        values['components-input-bg'],
-      )
     })
   }
 }
@@ -140,45 +133,4 @@ test('static canvas reads switch preset even when the mode remains unchanged', (
     presetTokenValues.ocean.light['components-card-bg'],
   )
   setAppearance({ ...DEFAULT_APPEARANCE })
-})
-
-test('Ant Design consumes density, text scale, and reduced motion dimensions', () => {
-  const theme = buildAntdTheme(false, 'graphite', {
-    ...DEFAULT_APPEARANCE,
-    density: 'compact',
-    textScale: 1.25,
-    motion: 'reduced',
-  })
-  assert.equal(theme.token?.controlHeight, 40)
-  assert.equal(theme.token?.fontSize, 17.5)
-  assert.equal(theme.token?.motion, false)
-  assert.equal(theme.token?.borderRadius, 6)
-})
-
-test('Mist uses the DreamJira control scale in Ant Design', () => {
-  const comfortable = buildAntdTheme(false, 'mist', { ...DEFAULT_APPEARANCE })
-  assert.equal(DEFAULT_APPEARANCE.preset, 'mist')
-  assert.equal(comfortable.token?.borderRadius, 6)
-  assert.deepEqual(
-    [
-      comfortable.token?.controlHeightSM,
-      comfortable.token?.controlHeight,
-      comfortable.token?.controlHeightLG,
-    ],
-    [28, 32, 40],
-  )
-  const compact = buildAntdTheme(true, 'mist', {
-    ...DEFAULT_APPEARANCE,
-    density: 'compact',
-  })
-  assert.equal(compact.token?.controlHeight, 28)
-  assert.equal(compact.token?.colorPrimary, '#2c6a9f')
-})
-
-test('Ant Design respects the resolved OS reduced-motion setting', () => {
-  const theme = buildAntdTheme(false, 'studio', {
-    ...DEFAULT_APPEARANCE,
-    reducedMotion: true,
-  })
-  assert.equal(theme.token?.motion, false)
 })

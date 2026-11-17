@@ -249,9 +249,3 @@ html[data-theme='dark'] .text-sm {
   /* 增加字间距，提升小字体可读性 */
   letter-spacing: 0.015em;
 }
-
-/* ===== Ant Design X Bubble Loading 三点动画主题适配 ===== */
-/* 使用 loader-primary 语义令牌：浅色绿色 / 深色紫色 */
-.ant-bubble-dot-item {
-  background-color: var(--color-components-loader-primary) !important;
-}

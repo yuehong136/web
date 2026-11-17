@@ -54,9 +54,7 @@ function sourceFiles(dir: string): string[] {
 const files = sourceFiles(srcDir).filter(
   (file) =>
     !file.startsWith(themeDir) ||
-    /tailwind\.css$|scoped-theme\.tsx$|application-style-provider\.tsx$/.test(
-      file,
-    ),
+    /tailwind\.css$|scoped-theme\.tsx$/.test(file),
 )
 
 function scan(

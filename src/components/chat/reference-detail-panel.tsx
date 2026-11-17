@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
 import { Check, Copy, ExternalLink } from 'lucide-react'
-import { Watermark } from 'antd'
+import { Watermark } from '@/components/ui/watermark'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { ContextPanel } from '@/components/patterns/context-panel'
@@ -139,11 +139,7 @@ export function ReferenceDetailPanel({
                 : t('sources.copy')}
             </Button>
           </div>
-          <Watermark
-            content={watermarkContent}
-            font={{ fontSize: 12 }}
-            gap={[80, 80]}
-          >
+          <Watermark content={watermarkContent} fontSize={12} gap={[80, 80]}>
             <div className="rounded-radius-lg border border-border-subtle bg-background-subtle p-space-base">
               {content.includes('<') ? (
                 <SafeHtml

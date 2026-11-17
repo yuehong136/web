@@ -201,16 +201,6 @@ const SearchSummaryCard = ({
                   .search-summary-markdown pre code {
                     color: var(--color-components-pre-text) !important;
                   }
-                  .search-summary-markdown .ant-mermaid-graph {
-                    height: auto !important;
-                    min-height: 220px !important;
-                    max-height: 70vh !important;
-                  }
-                  .search-summary-markdown .ant-mermaid-code {
-                    height: auto !important;
-                    min-height: 220px !important;
-                    max-height: 70vh !important;
-                  }
                 `}</style>
                 <StreamingXMarkdown
                   paragraphTag="div"

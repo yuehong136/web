@@ -223,10 +223,7 @@ test('application reset stays in a lower cascade layer than semantic button colo
     { base: sourceRoot, onDependency() {} },
   )
   const css = result.build(['text-components-button-primary-text'])
-  assert.match(
-    css,
-    /@layer reset, theme, base, antd, antdx, components, utilities;/,
-  )
+  assert.match(css, /@layer reset, theme, base, components, utilities;/)
   assert.match(css, /@layer reset \{[\s\S]*?input,[\s\S]*?color: inherit;/)
   assert.match(
     css,

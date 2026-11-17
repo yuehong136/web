@@ -6,7 +6,6 @@ import { Toaster } from 'sonner'
 import { handleCaughtApplicationError } from '@/components/ui/error-boundary'
 import { queryClient } from './lib/query-client'
 import { router } from './lib/router'
-import { ApplicationStyleProvider } from '@/themes/application-style-provider'
 import { initializeStores } from './stores'
 import i18n, {
   applyDocumentLocale,
@@ -45,7 +44,7 @@ export function Application({ composition }: ApplicationProps) {
   return (
     <PlatformProvider composition={composition}>
       <QueryClientProvider client={queryClient}>
-        <ApplicationStyleProvider appearance={appearance}>
+        <>
           <RouterProvider
             router={router}
             onError={handleCaughtApplicationError}
@@ -57,7 +56,7 @@ export function Application({ composition }: ApplicationProps) {
             closeButton
           />
           <ReactQueryDevtools initialIsOpen={false} />
-        </ApplicationStyleProvider>
+        </>
       </QueryClientProvider>
     </PlatformProvider>
   )

@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
 import { Check, Copy, ExternalLink } from 'lucide-react'
-import { Watermark } from 'antd'
+import { Watermark } from '@/components/ui/watermark'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { SafeHtml } from '@/components/ui/safe-html'
@@ -97,11 +97,7 @@ export function EvidenceSourceDetail({
         <section aria-label={tw('scores')}>
           <EvidenceScoreBars chunk={chunk} />
         </section>
-        <Watermark
-          content={watermarkContent}
-          font={{ fontSize: 12 }}
-          gap={[80, 80]}
-        >
+        <Watermark content={watermarkContent} fontSize={12} gap={[80, 80]}>
           {content.includes('<') ? (
             <SafeHtml
               className="prose prose-sm max-w-none break-words text-text-secondary"

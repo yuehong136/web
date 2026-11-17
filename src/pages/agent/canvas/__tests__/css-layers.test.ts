@@ -24,14 +24,14 @@ function layerOrder(css: string) {
   return order
 }
 
-test('the app names the xyflow layer between vendor and component layers', async () => {
+test('the app names the xyflow layer between the base and component layers', async () => {
   const result = await compile(
     '@import "./styles/application-reset.css";\n@import "./index.css";',
     { base: sourceRoot, onDependency() {} },
   )
   const order = layerOrder(result.build([]))
   const at = (name: string) => order.indexOf(name)
-  assert.ok(at('xyflow') > at('antdx'), order.join(', '))
+  assert.ok(at('xyflow') > at('base'), order.join(', '))
   assert.ok(at('xyflow') < at('components'), order.join(', '))
   assert.ok(at('components') < at('utilities'), order.join(', '))
 })

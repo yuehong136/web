@@ -201,7 +201,7 @@
 - ❌ 用 `style={{ color, backgroundColor, … }}` 表达普通视觉语义（仅允许动画、进度比例等动态计算值）
 - ❌ 第二套全屏页壳、独立白卡容器、备用根布局
 - ✅ 优先级：`@/components/ui/*` → `@/components/patterns/*` → `@/components/page-templates/*`
-- ❌ 直接从 `antd`（含 `antd/*` 子路径）导入：用 `src/components/ui/**` 的对应组件；`@ant-design/x-markdown`、`x-card`、`x-sdk` 不受限。由 `design-guard/no-direct-antd-import`（error，全 `src`）把关，白名单（主题桥 `src/themes/**`、`src/lib/antd-theme.ts`、无 ui/ 对应物的 `Watermark` 等）及每项理由写在 `eslint.config.js`。
+- ❌ 引入 `antd`（含 `antd/*` 子路径）：antd 已从依赖中移除，控件用 `src/components/ui/**`（水印用 `ui/watermark`）；`@ant-design/x-markdown`、`x-card`、`x-sdk` 不受限。由 `design-guard/no-direct-antd-import`（error，全 `src`）把关，防止重新引入。
 
 #### 作用域主题
 

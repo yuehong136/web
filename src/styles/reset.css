@@ -1,0 +1,85 @@
+/*
+ * The lowest cascade layer. Tailwind's preflight (in `base`) already resets
+ * margins, fonts, lists, media and form controls; these are the remaining
+ * rules the app relied on from the reset that used to ship with antd.
+ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+[tabindex='-1']:focus {
+  outline: none;
+}
+a,
+area,
+button,
+[role='button'],
+input:not([type='range']),
+label,
+select,
+summary,
+textarea {
+  touch-action: manipulation;
+}
+input,
+button,
+select,
+optgroup,
+textarea {
+  margin: 0;
+  color: inherit;
+  font-size: inherit;
+  font-family: inherit;
+  line-height: inherit;
+}
+input[type='date'],
+input[type='time'],
+input[type='datetime-local'],
+input[type='month'] {
+  appearance: listbox;
+}
+[type='number']::-webkit-inner-spin-button,
+[type='number']::-webkit-outer-spin-button {
+  height: auto;
+}
+[type='search'] {
+  outline-offset: -2px;
+  appearance: none;
+}
+[type='search']::-webkit-search-cancel-button,
+[type='search']::-webkit-search-decoration {
+  appearance: none;
+}
+dt {
+  font-weight: 500;
+}
+fieldset {
+  min-width: 0;
+}
+legend {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  color: inherit;
+  white-space: normal;
+}
+caption {
+  padding-top: 0.75em;
+  padding-bottom: 0.3em;
+  text-align: start;
+  caption-side: bottom;
+}
+output {
+  display: inline-block;
+}
+template {
+  display: none;
+}
+[hidden] {
+  display: none !important;
+}
