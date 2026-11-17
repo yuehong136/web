@@ -35,7 +35,7 @@ export const MetadataFieldTable: FC<MetadataFieldTableProps> = ({
         'bg-surface-primary shadow-xs',
       )}
     >
-      <div className="bg-surface-secondary/40 flex items-center border-b border-border-default/60">
+      <div className="flex items-center border-b border-border-default/60 bg-surface-secondary/40">
         <div className="w-[140px] shrink-0 px-4 py-2.5">
           <span className="text-xs font-medium tracking-wider text-text-secondary uppercase">
             {t('knowledge.metadata.modal.fieldName')}
@@ -67,7 +67,7 @@ export const MetadataFieldTable: FC<MetadataFieldTableProps> = ({
           <div className="flex flex-col items-center justify-center py-16 text-text-secondary">
             <div className="relative mb-3 h-10 w-10">
               <div className="absolute inset-0 rounded-full border-2 border-border-default" />
-              <div className="border-surface-accent absolute inset-0 animate-spin rounded-full border-2 border-t-transparent" />
+              <div className="absolute inset-0 animate-spin rounded-full border-2 border-surface-accent border-t-transparent" />
             </div>
             <span className="text-sm">
               {t('knowledge.metadata.modal.loading')}
@@ -75,8 +75,8 @@ export const MetadataFieldTable: FC<MetadataFieldTableProps> = ({
           </div>
         ) : data.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="from-surface-secondary to-surface-tertiary mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br shadow-xs">
-              <Database className="h-7 w-7 text-text-tertiary" />
+            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-components-page-state-icon-bg">
+              <Database className="h-7 w-7 text-components-page-state-icon" />
             </div>
             <p className="mb-1 text-sm font-medium text-text-secondary">
               {t('knowledge.metadata.modal.emptyTitle')}

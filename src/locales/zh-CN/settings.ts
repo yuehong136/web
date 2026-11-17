@@ -717,11 +717,6 @@ export default {
       live: '实时监控',
       updating: '正在更新',
     },
-    environment: {
-      variablesUsed: '使用的变量',
-      missingVariables: '缺失的变量',
-      missingVariablesHint: '这些变量在当前环境中不存在，解析时将保持原始格式',
-    },
     api: {
       documentation: '接口文档',
       refreshDocumentation: '刷新接口文档',

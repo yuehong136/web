@@ -18,18 +18,18 @@ const Form = FormProvider
 
 type FormFieldContextValue<
   TFieldValues extends FieldValues = FieldValues,
-  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
+  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 > = {
   name: TName
 }
 
 const FormFieldContext = React.createContext<FormFieldContextValue>(
-  {} as FormFieldContextValue
+  {} as FormFieldContextValue,
 )
 
 const FormField = <
   TFieldValues extends FieldValues = FieldValues,
-  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
+  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 >({
   ...props
 }: ControllerProps<TFieldValues, TName>) => {
@@ -68,7 +68,7 @@ type FormItemContextValue = {
 }
 
 const FormItemContext = React.createContext<FormItemContextValue>(
-  {} as FormItemContextValue
+  {} as FormItemContextValue,
 )
 
 interface FormItemProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -86,13 +86,13 @@ const FormItem = React.forwardRef<HTMLDivElement, FormItemProps>(
           className={cn(
             'space-y-2',
             horizontal && 'flex items-center space-y-0',
-            className
+            className,
           )}
           {...props}
         />
       </FormItemContext.Provider>
     )
-  }
+  },
 )
 FormItem.displayName = 'FormItem'
 
@@ -102,31 +102,33 @@ interface FormLabelProps extends React.LabelHTMLAttributes<HTMLLabelElement> {
   horizontal?: boolean
 }
 
-const FormLabel = React.forwardRef<
-  HTMLLabelElement,
-  FormLabelProps
->(({ className, required, tooltip, horizontal = false, children, ...props }, ref) => {
-  const { formItemId } = useFormField()
+const FormLabel = React.forwardRef<HTMLLabelElement, FormLabelProps>(
+  (
+    { className, required, tooltip, horizontal = false, children, ...props },
+    ref,
+  ) => {
+    const { formItemId } = useFormField()
 
-  return (
-    <Label
-      ref={ref}
-      className={cn(
-        'text-sm text-text-secondary',
-        horizontal && 'w-1/4 shrink-0',
-        className
-      )}
-      htmlFor={formItemId}
-      {...props}
-    >
-      <span className="flex items-center gap-0.5">
-        {required && <span className="text-red-500">*</span>}
-        {children}
-        {tooltip && <FormTooltip tooltip={tooltip} />}
-      </span>
-    </Label>
-  )
-})
+    return (
+      <Label
+        ref={ref}
+        className={cn(
+          'text-sm text-text-secondary',
+          horizontal && 'w-1/4 shrink-0',
+          className,
+        )}
+        htmlFor={formItemId}
+        {...props}
+      >
+        <span className="flex items-center gap-0.5">
+          {required && <span className="text-status-error">*</span>}
+          {children}
+          {tooltip && <FormTooltip tooltip={tooltip} />}
+        </span>
+      </Label>
+    )
+  },
+)
 FormLabel.displayName = 'FormLabel'
 
 interface FormControlProps extends React.ComponentPropsWithoutRef<typeof Slot> {
@@ -210,7 +212,7 @@ const FormMessage = React.forwardRef<
     <p
       ref={ref}
       id={formMessageId}
-      className={cn('text-sm font-medium text-red-500', className)}
+      className={cn('text-sm font-medium text-status-error', className)}
       {...props}
     >
       {body}
@@ -225,15 +227,16 @@ interface HorizontalFormItemProps {
   className?: string
 }
 
-const HorizontalFormItem = React.forwardRef<HTMLDivElement, HorizontalFormItemProps>(
-  ({ children, className }, ref) => {
-    return (
-      <div ref={ref} className={cn('flex items-start gap-1', className)}>
-        {children}
-      </div>
-    )
-  }
-)
+const HorizontalFormItem = React.forwardRef<
+  HTMLDivElement,
+  HorizontalFormItemProps
+>(({ children, className }, ref) => {
+  return (
+    <div ref={ref} className={cn('flex items-start gap-1', className)}>
+      {children}
+    </div>
+  )
+})
 HorizontalFormItem.displayName = 'HorizontalFormItem'
 
 export {

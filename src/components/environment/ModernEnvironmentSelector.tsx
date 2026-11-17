@@ -1,22 +1,18 @@
-// src/components/environment/ModernEnvironmentSelector.tsx
-import {
-  ChevronDown,
-  Globe,
-  Zap,
-  Plus,
-  Settings2,
-  RefreshCw,
-} from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { Check, ChevronDown, Globe, Plus, Settings2, Zap } from 'lucide-react'
+import { badgeVariants } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useEnvironmentStore } from '@/stores/environmentStore'
 import { useFetchEnvironments } from '@/hooks/use-environment-request'
 import { cn } from '@/lib/utils'
+import { environmentDotClass } from './environment-color'
 
 interface ModernEnvironmentSelectorProps {
   onEnvironmentChange?: (environmentId: string | null) => void
@@ -24,57 +20,43 @@ interface ModernEnvironmentSelectorProps {
   className?: string
 }
 
+const Dot = ({ className }: { className: string }) => (
+  <span
+    aria-hidden="true"
+    className={cn('size-2 shrink-0 rounded-radius-full', className)}
+  />
+)
+
+/** Picks the environment whose base URL and variables the API reference uses. */
 export function ModernEnvironmentSelector({
   onEnvironmentChange,
   onManageClick,
   className,
 }: ModernEnvironmentSelectorProps) {
+  const { t } = useTranslation()
   const { selectedEnvironmentId, selectEnvironment } = useEnvironmentStore()
   const { environments, isLoading } = useFetchEnvironments()
 
-  const selectedEnvironment = environments.find(
+  const selectedIndex = environments.findIndex(
     (env) => env.id === selectedEnvironmentId,
   )
+  const selectedEnvironment =
+    selectedIndex >= 0 ? environments[selectedIndex] : undefined
 
   const handleEnvironmentSelect = (environmentId: string) => {
     selectEnvironment(environmentId)
     onEnvironmentChange?.(environmentId)
   }
 
-  const getEnvironmentColor = (name: string) => {
-    const normalized = name.toLowerCase()
-    const colorMap: Record<string, string> = {
-      'dxl-193': 'bg-purple-500',
-      '1': 'bg-green-500',
-      '192-local': 'bg-teal-500',
-      production: 'bg-emerald-500',
-      prod: 'bg-emerald-500',
-      staging: 'bg-amber-500',
-      stage: 'bg-amber-500',
-      development: 'bg-blue-500',
-      dev: 'bg-blue-500',
-      test: 'bg-purple-500',
-      testing: 'bg-purple-500',
-      local: 'bg-text-tertiary',
-    }
-
-    return colorMap[normalized] || 'bg-violet-500'
-  }
-
-  const getEnvironmentIcon = (name: string) => {
-    const firstChar = name.charAt(0).toUpperCase()
-    return firstChar || '?'
-  }
-
-  if (isLoading) {
+  if (isLoading && environments.length === 0) {
     return (
       <Button
         variant="outline"
-        className={cn('w-64 gap-2 text-muted-foreground', className)}
-        disabled
+        size="sm"
+        className={cn('min-w-40', className)}
+        loading
       >
-        <RefreshCw className="h-4 w-4 animate-spin" />
-        加载中...
+        {t('environment.selector.loading')}
       </Button>
     )
   }
@@ -83,14 +65,12 @@ export function ModernEnvironmentSelector({
     return (
       <Button
         variant="outline"
-        className={cn(
-          'max-w-[200px] min-w-[160px] gap-2 text-muted-foreground',
-          className,
-        )}
+        size="sm"
+        className={cn('min-w-40', className)}
         onClick={onManageClick}
+        leftIcon={<Plus aria-hidden="true" />}
       >
-        <Plus className="h-4 w-4" />
-        请先创建环境
+        {t('environment.selector.createFirst')}
       </Button>
     )
   }
@@ -100,172 +80,111 @@ export function ModernEnvironmentSelector({
       <DropdownMenuTrigger asChild>
         <Button
           variant="outline"
-          className={cn(
-            'h-10 max-w-[200px] min-w-[160px] justify-between gap-3 px-4',
-            'border-border bg-background',
-            'hover:border-border/80 hover:bg-background/90 hover:shadow-xs',
-            'transition-colors duration-150',
-            className,
-          )}
+          size="sm"
+          className={cn('max-w-56 min-w-40 justify-between', className)}
         >
+          <span className="sr-only">{t('environment.selector.label')}: </span>
           {selectedEnvironment ? (
-            <div className="flex min-w-0 flex-1 items-center gap-2">
-              {/* Environment Icon */}
-              <div
-                className={cn(
-                  'flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white shadow-xs',
-                  getEnvironmentColor(selectedEnvironment.name),
+            <span className="flex min-w-0 flex-1 items-center gap-space-sm">
+              <Dot
+                className={environmentDotClass(
+                  selectedEnvironment.name,
+                  selectedIndex,
                 )}
-              >
-                {getEnvironmentIcon(selectedEnvironment.name)}
-              </div>
-
-              {/* Environment Name */}
-              <div className="flex min-w-0 items-center gap-2">
-                <span className="truncate text-sm font-medium text-foreground">
-                  {selectedEnvironment.name}
-                </span>
-                {selectedEnvironment.is_default && (
-                  <Zap className="h-3 w-3 shrink-0 text-amber-500" />
-                )}
-                {selectedEnvironment.is_global && (
-                  <Globe className="h-3 w-3 shrink-0 text-blue-500" />
-                )}
-              </div>
-            </div>
+              />
+              <span className="truncate text-text-primary">
+                {selectedEnvironment.name}
+              </span>
+              {selectedEnvironment.is_default && (
+                <Zap
+                  className="size-icon-xs shrink-0 text-status-warning"
+                  aria-label={t('environment.selector.default')}
+                />
+              )}
+              {selectedEnvironment.is_global && (
+                <Globe
+                  className="size-icon-xs shrink-0 text-text-tertiary"
+                  aria-label={t('environment.selector.global')}
+                />
+              )}
+            </span>
           ) : (
-            <span className="text-sm text-muted-foreground">
-              {isLoading
-                ? '加载中...'
-                : environments.length > 0
-                  ? '请选择环境'
-                  : '暂无环境'}
+            <span className="truncate text-text-secondary">
+              {t('environment.selector.choose')}
             </span>
           )}
-
           <ChevronDown
-            className={cn(
-              'h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200',
-            )}
+            className="size-icon-sm shrink-0 text-text-tertiary"
+            aria-hidden="true"
           />
         </Button>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent
         align="right"
-        className="w-[240px] border border-components-dropdown-border bg-components-dropdown-bg p-1 shadow-xl"
+        className="w-72 max-w-[calc(100vw-2rem)]"
       >
-        <div className="py-0.5">
-          {environments.map((env, index) => {
-            const isSelected = env.id === selectedEnvironmentId
-            const bgColor = getEnvironmentColor(env.name)
-            const icon = getEnvironmentIcon(env.name)
-
-            return (
-              <div key={env.id}>
-                <DropdownMenuItem
-                  onClick={() => handleEnvironmentSelect(env.id)}
-                  className={cn(
-                    'mx-1 cursor-pointer rounded-lg border-0 px-3 py-2.5',
-                    'hover:bg-state-hover focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden',
-                    'transition-colors duration-150',
-                    isSelected &&
-                      'bg-state-selected-bg text-state-selected-text ring-1 ring-state-selected/20 hover:bg-state-selected-bg',
+        {environments.map((env, index) => {
+          const isSelected = env.id === selectedEnvironmentId
+          return (
+            <DropdownMenuItem
+              key={env.id}
+              onClick={() => handleEnvironmentSelect(env.id)}
+              aria-current={isSelected ? 'true' : undefined}
+              className={cn(
+                'items-start py-space-xs',
+                isSelected && 'bg-state-selected-bg text-state-selected-text',
+              )}
+            >
+              <span className="flex h-5 items-center">
+                <Dot className={environmentDotClass(env.name, index)} />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="flex min-w-0 items-center gap-space-xs">
+                  <span className="truncate font-medium">{env.name}</span>
+                  {env.is_default && (
+                    <span
+                      className={cn(
+                        badgeVariants({ variant: 'secondary' }),
+                        'px-space-xs',
+                      )}
+                    >
+                      {t('environment.selector.default')}
+                    </span>
                   )}
-                >
-                  <div className="flex flex-col gap-0.5">
-                    {/* 第一行：选中指示器 + 图标 + 名称 + 状态标识 + 变量数量 */}
-                    <div className="flex items-center gap-3">
-                      {/* 选中指示器 - 最左侧 */}
-                      <div className="flex w-2 shrink-0 justify-start">
-                        {isSelected && (
-                          <div className="h-2 w-2 rounded-full bg-state-selected" />
-                        )}
-                      </div>
-
-                      {/* Environment Icon */}
-                      <div
-                        className={cn(
-                          'flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white shadow-xs',
-                          bgColor,
-                        )}
-                      >
-                        {icon}
-                      </div>
-
-                      {/* 名称和状态标识 */}
-                      <div className="flex min-w-0 flex-1 items-center gap-2">
-                        <span
-                          className={cn(
-                            'truncate text-sm font-medium',
-                            isSelected
-                              ? 'text-state-selected-text'
-                              : 'text-foreground',
-                          )}
-                        >
-                          {env.name}
-                        </span>
-
-                        {/* Status Badges */}
-                        {env.is_default && (
-                          <div
-                            className="h-2 w-2 shrink-0 rounded-full bg-amber-400"
-                            title="默认环境"
-                          />
-                        )}
-                        {env.is_global && (
-                          <div
-                            className="h-2 w-2 shrink-0 rounded-full bg-blue-400"
-                            title="全局环境"
-                          />
-                        )}
-                      </div>
-
-                      {/* 右侧：变量数量 */}
-                      <span className="shrink-0 text-xs text-muted-foreground">
-                        {env.variables_count} 变量
-                      </span>
-                    </div>
-
-                    {/* 第二行：仅描述 */}
-                    {env.description && (
-                      <div className="ml-11 truncate text-xs text-muted-foreground">
-                        {env.description}
-                      </div>
-                    )}
-                  </div>
-                </DropdownMenuItem>
-
-                {/* 分隔线 */}
-                {index < environments.length - 1 && (
-                  <div className="mx-3 my-0.5 h-px bg-border" />
+                  {env.is_global && (
+                    <Globe
+                      className="size-icon-xs shrink-0"
+                      aria-label={t('environment.selector.global')}
+                    />
+                  )}
+                </span>
+                {env.description ? (
+                  <span className="block truncate text-xs text-text-tertiary">
+                    {env.description}
+                  </span>
+                ) : null}
+              </span>
+              <span className="shrink-0 text-xs text-text-tertiary">
+                {t('environment.selector.variableCount', {
+                  count: env.variables_count ?? 0,
+                })}
+              </span>
+              <Check
+                className={cn(
+                  'size-icon-sm shrink-0',
+                  isSelected ? 'text-state-selected-text' : 'invisible',
                 )}
-              </div>
-            )
-          })}
-        </div>
-
-        <div className="mx-3 my-2 h-px bg-border" />
-
-        <div className="px-1 pb-1">
-          <DropdownMenuItem
-            onClick={() => onManageClick?.()}
-            className="mx-1 cursor-pointer rounded-lg border-0 px-3 py-2.5 transition-colors duration-150 hover:bg-primary/10"
-          >
-            <div className="flex items-center gap-3">
-              {/* 占位符保持对齐 */}
-              <div className="w-2 shrink-0"></div>
-
-              {/* 管理图标 */}
-              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/15">
-                <Settings2 className="h-4 w-4 text-primary" />
-              </div>
-
-              {/* 管理环境文字 */}
-              <span className="text-sm font-medium text-primary">管理环境</span>
-            </div>
-          </DropdownMenuItem>
-        </div>
+                aria-hidden="true"
+              />
+            </DropdownMenuItem>
+          )
+        })}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => onManageClick?.()}>
+          <Settings2 aria-hidden="true" />
+          {t('environment.selector.manage')}
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )

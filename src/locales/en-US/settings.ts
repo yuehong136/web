@@ -755,12 +755,6 @@ export default {
         current: 'Current task',
       },
     },
-    environment: {
-      variablesUsed: 'Variables used',
-      missingVariables: 'Missing variables',
-      missingVariablesHint:
-        'These variables do not exist in this environment and are kept as written during resolution.',
-    },
     api: {
       documentation: 'API documentation',
       refreshDocumentation: 'Refresh API documentation',

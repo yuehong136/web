@@ -230,7 +230,7 @@ export const ChatSettingsPanel: React.FC<ChatSettingsPanelProps> = ({
           {/* 助理姓名 */}
           <div className="space-y-2">
             <SettingLabel>
-              <span className="mr-1 text-red-500">*</span>
+              <span className="mr-1 text-status-error">*</span>
               {t('chat.settings.name')}
             </SettingLabel>
             <Input

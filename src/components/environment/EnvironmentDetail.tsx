@@ -1,949 +1,298 @@
+import { useEffect, useState, type MutableRefObject } from 'react'
+import { useTranslation } from 'react-i18next'
+import { Globe } from 'lucide-react'
+import {
+  PageEmptyState,
+  PageLoadingState,
+} from '@/components/patterns/page-states'
+import { environmentAPI } from '@/api/environment'
+import {
+  useCreateEnvironment,
+  useEnvironmentVariableMutations,
+  useUpdateEnvironment,
+} from '@/hooks/use-environment-request'
+import { toast } from '@/lib/toast'
+import type { Environment, EnvironmentUpdate } from '@/types/api'
+import { AddVariableDialog } from './add-variable-dialog'
+import { CreateModeVariablesTable } from './create-mode-variables-table'
+import { environmentDotClass } from './environment-color'
+import {
+  BaseUrlSection,
+  EnvironmentDetailHeader,
+  VariablesEmpty,
+  VariablesSection,
+} from './environment-detail-sections'
 import {
   environmentFormDefaults,
   type EnvironmentFormData,
 } from './environment-form-state'
-// src/components/environment/EnvironmentDetail.tsx
-import React, { useState } from 'react'
-import { TestTube, Copy, Plus } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Switch } from '@/components/ui/switch'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Label } from '@/components/ui/label'
-import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { EnvironmentVariablesTable } from '@/components/environment'
-import {
-  useCreateEnvironment,
-  useUpdateEnvironment,
-  useEnvironmentVariableMutations,
-} from '@/hooks/use-environment-request'
-import { environmentAPI } from '@/api/environment'
-import { toast } from '@/lib/toast'
-import { cn, copyToClipboard } from '@/lib/utils'
-import type { Environment } from '@/types/api'
-import { CreateModeVariablesTable } from './create-mode-variables-table'
-import { ResolvedVariablesSummary } from './resolved-variables-summary'
+  resolveLocally,
+  variableDraftProblem,
+  type CreateModeVariable,
+  type VariableDraft,
+} from './environment-variables'
+import { EnvironmentVariablesTable } from './EnvironmentVariablesTable'
+import { VariableResolveDialog } from './variable-resolve-dialog'
 
 interface EnvironmentDetailProps {
   environmentId: string | 'global' | 'create-new'
   currentEnvironment: Environment | null
+  /** Position in the environment list; picks the status dot colour. */
+  dotIndex?: number
   onDataChange: (isDirty: boolean) => void
-  onSaveRequest?: () => Promise<void>
+  /** Receives the save action that the manager's Save button runs. */
+  saveRef?: MutableRefObject<(() => Promise<void>) | null>
   onEnvironmentCreated?: (environmentId: string) => void
 }
+
+const FORM_FIELDS = ['name', 'description', 'base_url', 'is_default'] as const
 
 export function EnvironmentDetail({
   environmentId,
   currentEnvironment,
+  dotIndex = 0,
   onDataChange,
-  onSaveRequest,
+  saveRef,
+  onEnvironmentCreated,
 }: EnvironmentDetailProps) {
+  const { t } = useTranslation()
   const { createEnvironment } = useCreateEnvironment()
   const { updateEnvironment } = useUpdateEnvironment()
   const { addVariable } = useEnvironmentVariableMutations()
 
-  // 判断是否为创建模式
   const isCreateMode = environmentId === 'create-new'
-  const [formData, setFormData] = useState<EnvironmentFormData>({
-    name: '',
-    description: '',
-    base_url: '',
-    is_default: false,
-  })
-
-  const [originalData, setOriginalData] = useState<EnvironmentFormData>({
-    name: '',
-    description: '',
-    base_url: '',
-    is_default: false,
-  })
-
-  // 变量解析状态
-  const [isPreviewDialogOpen, setIsPreviewDialogOpen] = useState(false)
-  const [previewText, setPreviewText] = useState('')
-  const [resolveResult, setResolveResult] = useState<{
-    resolved_text: string
-    variables_used: string[]
-    missing_variables: string[]
-  } | null>(null)
-  const [isResolving, setIsResolving] = useState(false)
-
-  // 添加变量状态
-  const [isAddVariableDialogOpen, setIsAddVariableDialogOpen] = useState(false)
-  const [newVariable, setNewVariable] = useState<{
-    key_name: string
-    key_value: string
-    description: string
-    is_secret: boolean
-    variable_type: 'string' | 'number' | 'boolean'
-  }>({
-    key_name: '',
-    key_value: '',
-    description: '',
-    is_secret: false,
-    variable_type: 'string',
-  })
-
-  // 创建模式下的变量列表
+  const [formData, setFormData] = useState<EnvironmentFormData>(
+    environmentFormDefaults,
+  )
+  const [originalData, setOriginalData] = useState<EnvironmentFormData>(
+    environmentFormDefaults,
+  )
+  const [isResolveOpen, setIsResolveOpen] = useState(false)
+  const [isAddOpen, setIsAddOpen] = useState(false)
+  // Variables of an environment that is being created live here until saved.
   const [createModeVariables, setCreateModeVariables] = useState<
-    Array<{
-      key_name: string
-      key_value: string
-      description: string
-      is_secret: boolean
-      variable_type: 'string' | 'number' | 'boolean'
-      id: string // 临时ID
-    }>
+    CreateModeVariable[]
   >([])
 
-  // 重置创建模式变量列表和对话框状态
-  const resetInputs0 = [environmentId]
-  const [previousInputs0, setPreviousInputs0] = useState<unknown[] | null>(null)
-  if (
-    previousInputs0 === null ||
-    resetInputs0.some(
-      (value, index) => !Object.is(value, previousInputs0[index]),
-    )
-  ) {
-    setPreviousInputs0(resetInputs0)
-
-    if (isCreateMode) {
-      setCreateModeVariables([])
-    }
-
-    // 环境切换时强制重置所有对话框状态
-    setIsAddVariableDialogOpen(false)
-    setIsPreviewDialogOpen(false)
-    setResolveResult(null)
+  // Switching environments closes the dialogs and clears unsaved variables.
+  const [shownEnvironmentId, setShownEnvironmentId] = useState<string | null>(
+    null,
+  )
+  if (shownEnvironmentId !== environmentId) {
+    setShownEnvironmentId(environmentId)
+    if (isCreateMode) setCreateModeVariables([])
+    setIsAddOpen(false)
+    setIsResolveOpen(false)
   }
 
-  // 当环境数据变化时更新表单
-  const resetInputs1 = [currentEnvironment, environmentId, isCreateMode]
-  const [previousInputs1, setPreviousInputs1] = useState<unknown[] | null>(null)
+  // Load the form whenever the environment (or its fetched data) changes.
+  const [formSource, setFormSource] = useState<unknown[] | null>(null)
+  const nextFormSource = [currentEnvironment, environmentId]
   if (
-    previousInputs1 === null ||
-    resetInputs1.some(
-      (value, index) => !Object.is(value, previousInputs1[index]),
-    )
+    formSource === null ||
+    nextFormSource.some((value, index) => !Object.is(value, formSource[index]))
   ) {
-    setPreviousInputs1(resetInputs1)
-
-    if (isCreateMode) {
-      // 创建模式：初始化空表单
-      const emptyData = environmentFormDefaults()
-      setFormData(emptyData)
-      setOriginalData(emptyData)
-    } else if (currentEnvironment && environmentId !== 'global') {
-      // 编辑模式：加载环境数据
-      const newData = environmentFormDefaults(currentEnvironment)
-      setFormData(newData)
-      setOriginalData(newData)
+    setFormSource(nextFormSource)
+    if (isCreateMode || (currentEnvironment && environmentId !== 'global')) {
+      const data = environmentFormDefaults(
+        isCreateMode ? null : currentEnvironment,
+      )
+      setFormData(data)
+      setOriginalData(data)
     }
-  }
-
-  // 检查数据是否有变化
-  const checkDirty = (newFormData: EnvironmentFormData) => {
-    const isDirty = JSON.stringify(newFormData) !== JSON.stringify(originalData)
-    onDataChange(isDirty)
-    return isDirty
   }
 
   const handleFormChange = (
     field: keyof EnvironmentFormData,
     value: string | boolean,
   ) => {
-    const newFormData = { ...formData, [field]: value }
-    setFormData(newFormData)
-    checkDirty(newFormData)
+    const next = { ...formData, [field]: value }
+    setFormData(next)
+    onDataChange(JSON.stringify(next) !== JSON.stringify(originalData))
   }
 
-  // 保存环境信息
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- 调用方 useEffect 在 line 463 显式依赖 environmentId，无需包 useCallback
   const saveEnvironmentData = async () => {
     if (environmentId === 'global') return
-
     try {
       if (isCreateMode) {
-        // 创建模式：创建新环境
         if (!formData.name.trim()) {
-          toast.error('环境名称不能为空')
+          toast.error(t('environment.detail.nameRequired'))
           return
         }
-
-        const createData = {
-          name: formData.name,
-          description: formData.description,
-          base_url: formData.base_url,
-          is_default: formData.is_default,
+        const created = await createEnvironment({
+          ...formData,
           is_global: false,
-          variables: createModeVariables.map((v) => ({
-            key_name: v.key_name,
-            key_value: v.key_value,
-            description: v.description,
-            is_secret: v.is_secret,
-            variable_type: v.variable_type,
+          variables: createModeVariables.map((variable) => ({
+            key_name: variable.key_name,
+            key_value: variable.key_value,
+            description: variable.description,
+            is_secret: variable.is_secret,
+            variable_type: variable.variable_type,
           })),
-        }
-
-        await createEnvironment(createData)
-        toast.success('环境创建成功')
+        })
+        toast.success(t('environment.detail.created'))
         setOriginalData(formData)
-
-        // 创建成功后，不需要特殊处理，环境列表会自动刷新
-      } else {
-        // 编辑模式：更新环境
-        if (!currentEnvironment) return
-
-        // 只提交有变更的字段
-        const changedFields: any = {}
-        if (formData.name !== originalData.name)
-          changedFields.name = formData.name
-        if (formData.description !== originalData.description)
-          changedFields.description = formData.description
-        if (formData.base_url !== originalData.base_url)
-          changedFields.base_url = formData.base_url
-        if (formData.is_default !== originalData.is_default)
-          changedFields.is_default = formData.is_default
-
-        if (Object.keys(changedFields).length > 0) {
-          await updateEnvironment({
-            id: currentEnvironment.id,
-            data: changedFields,
-          })
-          setOriginalData(formData)
-          toast.success('环境信息已保存')
-        } else {
-          toast.success('没有变更需要保存')
-        }
+        onDataChange(false)
+        if (created?.id) onEnvironmentCreated?.(created.id)
+        return
       }
+      if (!currentEnvironment) return
+      // Only send the fields that changed.
+      const changed: EnvironmentUpdate = {}
+      for (const field of FORM_FIELDS) {
+        if (formData[field] !== originalData[field])
+          Object.assign(changed, { [field]: formData[field] })
+      }
+      if (Object.keys(changed).length === 0) {
+        toast.success(t('environment.detail.noChanges'))
+        return
+      }
+      await updateEnvironment({ id: currentEnvironment.id, data: changed })
+      setOriginalData(formData)
+      toast.success(t('environment.detail.saved'))
     } catch (error) {
-      toast.error('保存环境信息失败')
+      toast.error(t('environment.detail.saveFailed'))
       throw error
     }
   }
 
-  // 打开通用变量解析测试
-  const handleOpenVariableTest = () => {
-    setPreviewText('')
-    setResolveResult(null)
-    setIsPreviewDialogOpen(true)
-  }
+  // The manager's Save button runs the latest save action.
+  useEffect(() => {
+    if (!saveRef) return
+    saveRef.current = saveEnvironmentData
+    return () => {
+      if (saveRef.current === saveEnvironmentData) saveRef.current = null
+    }
+  })
 
-  // 执行变量解析
-  const performResolve = async (text: string) => {
-    if (!text.trim()) return
-
-    setIsResolving(true)
-    try {
-      if (isCreateMode) {
-        // 创建模式：使用本地变量进行解析
-        const variableMap: Record<string, string> = {}
-        createModeVariables.forEach((v) => {
-          variableMap[v.key_name] = v.key_value
-        })
-
-        const resolvedText = text.replace(/\{\{(\w+)\}\}/g, (match, key) => {
-          return variableMap[key] !== undefined ? variableMap[key] : match
-        })
-
-        const usedVariables = Object.keys(variableMap).filter((key) =>
-          text.includes(`{{${key}}}`),
-        )
-        const allVariableRefs = [...text.matchAll(/\{\{(\w+)\}\}/g)].map(
-          (match) => match[1],
-        )
-        const missingVariables = allVariableRefs.filter(
-          (key) => variableMap[key] === undefined,
-        )
-
-        setResolveResult({
-          resolved_text: resolvedText,
-          variables_used: usedVariables,
-          missing_variables: Array.from(new Set(missingVariables)),
-        })
-        toast.success('变量解析完成')
-      } else {
-        // 编辑模式：使用服务器端解析
-        const result = await environmentAPI.resolveVariablesOnServer(
+  const resolveText = async (text: string) =>
+    isCreateMode
+      ? resolveLocally(text, createModeVariables)
+      : environmentAPI.resolveVariablesOnServer(
           currentEnvironment?.id || environmentId,
           text,
         )
-        setResolveResult(result)
-        toast.success('变量解析完成')
-      }
-    } catch (error) {
-      console.error('变量解析失败:', error)
-      toast.error('变量解析失败')
-      setResolveResult(null)
-    } finally {
-      setIsResolving(false)
-    }
-  }
 
-  // 复制解析结果
-  const copyResolvedText = async () => {
-    if (!resolveResult?.resolved_text) return
-
-    try {
-      await copyToClipboard(resolveResult.resolved_text)
-      toast.success('已复制解析结果')
-    } catch (error) {
-      toast.error('复制失败')
-    }
-  }
-
-  // 处理添加变量
-  const handleAddVariable = () => {
-    setNewVariable({
-      key_name: '',
-      key_value: '',
-      description: '',
-      is_secret: false,
-      variable_type: 'string',
-    })
-    setIsAddVariableDialogOpen(true)
-  }
-
-  // 保存新变量
-  const handleSaveNewVariable = async () => {
-    if (!newVariable.key_name.trim()) {
-      toast.error('变量名不能为空')
+  const handleAddVariable = async (draft: VariableDraft) => {
+    const existing = isCreateMode
+      ? createModeVariables
+      : (currentEnvironment?.variables ?? [])
+    const problem = variableDraftProblem(
+      draft,
+      existing.map((variable) => variable.key_name),
+    )
+    if (problem) {
+      toast.error(t(`environment.variables.${problem}`))
       return
     }
-
-    // 验证变量名格式
-    const nameRegex = /^[A-Za-z_][A-Za-z0-9_]*$/
-    if (!nameRegex.test(newVariable.key_name)) {
-      toast.error('变量名只能包含字母、数字和下划线，且不能以数字开头')
-      return
-    }
-
     if (isCreateMode) {
-      // 创建模式：添加到本地变量列表
-      // 检查变量名唯一性
-      const existingVar = createModeVariables.find(
-        (v) => v.key_name === newVariable.key_name,
-      )
-      if (existingVar) {
-        toast.error('变量名已存在')
-        return
-      }
-
-      const newVar = {
-        ...newVariable,
-        id: `temp-${Date.now()}`, // 临时ID
-      }
-      setCreateModeVariables([...createModeVariables, newVar])
-      toast.success('变量已添加到列表')
-      onDataChange(true) // 标记有变更
-      setIsAddVariableDialogOpen(false)
-    } else {
-      // 编辑模式：直接调用API
-      // 检查变量名唯一性
-      const existingVar = currentEnvironment?.variables?.find(
-        (v) => v.key_name === newVariable.key_name,
-      )
-      if (existingVar) {
-        toast.error('变量名已存在')
-        return
-      }
-
-      try {
-        await addVariable(currentEnvironment?.id || environmentId, newVariable)
-        toast.success('变量已添加')
-        onDataChange(true)
-        setIsAddVariableDialogOpen(false)
-      } catch {
-        toast.error('添加变量失败')
-      }
+      setCreateModeVariables([
+        ...createModeVariables,
+        { ...draft, id: `temp-${Date.now()}` },
+      ])
+      toast.success(t('environment.variables.addedToList'))
+      onDataChange(true)
+      setIsAddOpen(false)
+      return
     }
-  }
-
-  // 暴露保存方法给父组件
-  React.useEffect(() => {
-    if (onSaveRequest) {
-      // 通过全局变量暴露保存方法
-      ;(window as any).__saveEnvironmentData = saveEnvironmentData
-    }
-    return () => {
-      if (typeof window !== 'undefined') {
-        delete (window as any).__saveEnvironmentData
-      }
-    }
-  }, [onSaveRequest, saveEnvironmentData])
-
-  // 验证base_url格式
-  const isValidUrl = (url: string) => {
-    if (!url) return true // 空值是允许的
     try {
-      const parsed = new URL(url)
-      return parsed.protocol === 'http:' || parsed.protocol === 'https:'
+      await addVariable(currentEnvironment?.id || environmentId, draft)
+      toast.success(t('environment.variables.added'))
+      onDataChange(true)
+      setIsAddOpen(false)
     } catch {
-      return false
+      toast.error(t('environment.variables.addFailed'))
     }
   }
 
-  // 如果是全局变量视图
   if (environmentId === 'global') {
     return (
       <div className="flex h-full flex-col">
-        <div className="border-b bg-background p-6">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
-              <span className="font-semibold text-blue-600">G</span>
-            </div>
-            <div>
-              <h1 className="text-xl font-semibold">全局变量</h1>
-              <p className="text-sm text-muted-foreground">
-                全局变量可在所有环境中使用
-              </p>
-            </div>
+        <header className="flex items-center gap-space-base border-b border-border-subtle px-space-lg py-space-base">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-radius-lg bg-status-info-subtle text-status-info">
+            <Globe className="size-icon-md" aria-hidden="true" />
+          </span>
+          <div className="min-w-0">
+            <h3 className="text-lg font-semibold text-text-primary">
+              {t('environment.global.title')}
+            </h3>
+            <p className="text-sm text-text-secondary">
+              {t('environment.global.description')}
+            </p>
           </div>
-        </div>
-
-        <div className="flex-1 overflow-auto p-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>全局变量</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="py-8 text-center text-muted-foreground">
-                <p>全局变量管理功能开发中...</p>
-              </div>
-            </CardContent>
-          </Card>
+        </header>
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <PageEmptyState
+            compact
+            icon={<Globe className="size-icon-lg" aria-hidden="true" />}
+            title={t('environment.global.comingSoon')}
+          />
         </div>
       </div>
     )
   }
 
-  // 如果是创建新环境模式
-  if (isCreateMode) {
+  if (!isCreateMode && !currentEnvironment) {
     return (
-      <div className="flex h-full flex-col">
-        {/* Header */}
-        <div className="border-b bg-background p-6">
-          <div className="flex items-start justify-between gap-4">
-            <div className="min-w-0 flex-1">
-              <div className="mb-2 flex items-center gap-3">
-                <div className="h-2 w-2 rounded-full bg-green-500" />
-                <Input
-                  value={formData.name}
-                  onChange={(e) => handleFormChange('name', e.target.value)}
-                  className="h-auto border-none bg-transparent px-0 text-xl font-semibold focus-visible:ring-0 focus-visible:ring-offset-0"
-                  placeholder="新环境名称"
-                />
-              </div>
-              <Textarea
-                value={formData.description}
-                onChange={(e) =>
-                  handleFormChange('description', e.target.value)
-                }
-                placeholder="环境描述（可选）"
-                className="resize-none border-none bg-transparent px-0 text-sm text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
-                rows={2}
-              />
-            </div>
-
-            <div className="flex items-center gap-4">
-              {/* 是否默认开关 */}
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="is-default"
-                  checked={formData.is_default}
-                  onCheckedChange={(checked) =>
-                    handleFormChange('is_default', checked)
-                  }
-                />
-                <Label htmlFor="is-default" className="text-sm">
-                  默认环境
-                </Label>
-              </div>
-
-              <Badge variant="secondary">新建</Badge>
-            </div>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 space-y-6 overflow-y-auto p-6">
-          {/* 前置 URL 卡片 */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">前置 URL</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <Input
-                  id="base-url"
-                  value={formData.base_url}
-                  onChange={(e) => handleFormChange('base_url', e.target.value)}
-                  placeholder="http://192.168.188.192:8123"
-                  className={cn(
-                    'font-mono text-sm',
-                    !isValidUrl(formData.base_url) &&
-                      formData.base_url &&
-                      'border-red-500',
-                  )}
-                />
-                {!isValidUrl(formData.base_url) && formData.base_url && (
-                  <p className="text-xs text-red-500">
-                    请输入有效的URL，如: http://192.168.188.192:8123
-                  </p>
-                )}
-                <p className="text-xs text-muted-foreground">
-                  示例: http://192.168.188.192:8123 (不要以 / 结尾)
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* 环境变量表 */}
-          <Card>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-base">环境变量</CardTitle>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleOpenVariableTest}
-                    disabled={createModeVariables.length === 0}
-                  >
-                    <TestTube className="mr-1 h-4 w-4" />
-                    测试解析
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleAddVariable}
-                  >
-                    <Plus className="mr-1 h-4 w-4" />
-                    添加变量
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="p-0">
-              {createModeVariables.length === 0 ? (
-                <div className="py-12 text-center text-muted-foreground">
-                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-                    <Plus className="h-6 w-6" />
-                  </div>
-                  <p className="mb-2 text-sm">暂无变量</p>
-                  <p className="text-xs">点击上方【添加变量】开始添加</p>
-                </div>
-              ) : (
-                <CreateModeVariablesTable
-                  variables={createModeVariables}
-                  onVariablesChange={(vars) => {
-                    setCreateModeVariables(vars)
-                    onDataChange(true) // 标记有变更
-                  }}
-                />
-              )}
-            </CardContent>
-          </Card>
-        </div>
-        {/* 正式添加变量对话框（创建模式可见） */}
-        <Dialog
-          open={isAddVariableDialogOpen}
-          onOpenChange={setIsAddVariableDialogOpen}
-        >
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>添加环境变量</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label>变量名 *</Label>
-                <Input
-                  value={newVariable.key_name}
-                  onChange={(e) =>
-                    setNewVariable({ ...newVariable, key_name: e.target.value })
-                  }
-                  placeholder="变量名，如: bearer_token"
-                  className="font-mono"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label>类型</Label>
-                  <Select
-                    value={newVariable.variable_type}
-                    onValueChange={(v) =>
-                      setNewVariable({
-                        ...newVariable,
-                        variable_type: v as any,
-                      })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="选择类型" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="string">string</SelectItem>
-                      <SelectItem value="number">number</SelectItem>
-                      <SelectItem value="boolean">boolean</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex items-center gap-2 pt-6">
-                  <Switch
-                    id="is-secret"
-                    checked={newVariable.is_secret}
-                    onCheckedChange={(checked) =>
-                      setNewVariable({ ...newVariable, is_secret: checked })
-                    }
-                  />
-                  <Label htmlFor="is-secret">密钥</Label>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>变量值 *</Label>
-                <Input
-                  value={newVariable.key_value}
-                  onChange={(e) =>
-                    setNewVariable({
-                      ...newVariable,
-                      key_value: e.target.value,
-                    })
-                  }
-                  placeholder="变量值"
-                  className="font-mono"
-                  type={newVariable.is_secret ? 'password' : 'text'}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>说明</Label>
-                <Textarea
-                  value={newVariable.description}
-                  onChange={(e) =>
-                    setNewVariable({
-                      ...newVariable,
-                      description: e.target.value,
-                    })
-                  }
-                  placeholder="该变量的用途说明（可选）"
-                  rows={3}
-                />
-              </div>
-              <div className="flex justify-end gap-2 pt-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsAddVariableDialogOpen(false)}
-                >
-                  取消
-                </Button>
-                <Button onClick={handleSaveNewVariable}>保存</Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
-    )
-  }
-
-  // 如果没有环境数据
-  if (!currentEnvironment) {
-    return (
-      <div className="flex h-full items-center justify-center text-muted-foreground">
-        <div className="text-center">
-          <p className="mb-2 text-lg">
-            {environmentId !== 'global'
-              ? '加载环境数据中...'
-              : '请选择一个环境'}
-          </p>
-          <p className="text-sm">
-            {environmentId !== 'global'
-              ? '正在获取环境详细信息'
-              : '从左侧列表中选择一个环境来查看和编辑其详细信息'}
-          </p>
-        </div>
-      </div>
+      <PageLoadingState
+        compact
+        title={t('environment.detail.loading')}
+        description={t('environment.detail.loadingHint')}
+      />
     )
   }
 
   return (
-    <div className="flex h-full flex-col">
-      {/* Header */}
-      <div className="border-b bg-background p-6">
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0 flex-1">
-            <div className="mb-2 flex items-center gap-3">
-              <div className="h-2 w-2 rounded-full bg-blue-500" />
-              <Input
-                value={formData.name}
-                onChange={(e) => handleFormChange('name', e.target.value)}
-                className="h-auto border-none bg-transparent px-0 text-xl font-semibold focus-visible:ring-0 focus-visible:ring-offset-0"
-                placeholder="环境名称"
+    <div className="flex h-full min-h-0 flex-col">
+      <EnvironmentDetailHeader
+        form={formData}
+        onChange={handleFormChange}
+        dotClassName={environmentDotClass(formData.name, dotIndex)}
+        isNew={isCreateMode}
+        isGlobal={Boolean(currentEnvironment?.is_global) && !isCreateMode}
+      />
+      <div className="min-h-0 flex-1 space-y-space-base overflow-y-auto p-space-lg">
+        <BaseUrlSection value={formData.base_url} onChange={handleFormChange} />
+        <VariablesSection
+          onTestResolve={() => setIsResolveOpen(true)}
+          onAddVariable={() => setIsAddOpen(true)}
+          testDisabled={isCreateMode && createModeVariables.length === 0}
+        >
+          {isCreateMode ? (
+            createModeVariables.length === 0 ? (
+              <VariablesEmpty />
+            ) : (
+              <CreateModeVariablesTable
+                variables={createModeVariables}
+                onVariablesChange={(variables) => {
+                  setCreateModeVariables(variables)
+                  onDataChange(true)
+                }}
               />
-            </div>
-            <Textarea
-              value={formData.description}
-              onChange={(e) => handleFormChange('description', e.target.value)}
-              placeholder="环境描述（可选）"
-              className="resize-none border-none bg-transparent px-0 text-sm text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
-              rows={2}
-            />
-          </div>
-
-          <div className="flex items-center gap-4">
-            {/* 是否默认开关 */}
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="is-default"
-                checked={formData.is_default}
-                onCheckedChange={(checked) =>
-                  handleFormChange('is_default', checked)
-                }
-              />
-              <Label htmlFor="is-default" className="text-sm">
-                默认环境
-              </Label>
-            </div>
-
-            {/* 全局标识 */}
-            {currentEnvironment.is_global && (
-              <Badge variant="outline">全局</Badge>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="flex-1 space-y-6 overflow-y-auto p-6">
-        {/* 前置 URL 卡片 */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">前置 URL</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <Input
-                id="base-url"
-                value={formData.base_url}
-                onChange={(e) => handleFormChange('base_url', e.target.value)}
-                placeholder="http://192.168.188.192:8123"
-                className={cn(
-                  'font-mono text-sm',
-                  !isValidUrl(formData.base_url) &&
-                    formData.base_url &&
-                    'border-red-500',
-                )}
-              />
-              {!isValidUrl(formData.base_url) && formData.base_url && (
-                <p className="text-xs text-red-500">
-                  请输入有效的URL，如: http://192.168.188.192:8123
-                </p>
-              )}
-              <p className="text-xs text-muted-foreground">
-                示例: http://192.168.188.192:8123 (不要以 / 结尾)
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* 环境变量表 */}
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base">环境变量</CardTitle>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleOpenVariableTest}
-                >
-                  <TestTube className="mr-1 h-4 w-4" />
-                  测试解析
-                </Button>
-                <Button variant="outline" size="sm" onClick={handleAddVariable}>
-                  <Plus className="mr-1 h-4 w-4" />
-                  添加变量
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0">
+            )
+          ) : currentEnvironment ? (
             <EnvironmentVariablesTable
               environmentId={currentEnvironment.id}
               variables={currentEnvironment.variables || []}
               onVariablesChange={() => onDataChange(true)}
-              hideAddButton={true}
-              hideAddDialog={true}
+              hideAddButton
+              hideAddDialog
             />
-          </CardContent>
-        </Card>
+          ) : null}
+        </VariablesSection>
       </div>
 
-      {/* 变量解析预览对话框 */}
-      <Dialog open={isPreviewDialogOpen} onOpenChange={setIsPreviewDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>变量解析预览</DialogTitle>
-          </DialogHeader>
-
-          <div className="space-y-4 pt-4">
-            {/* 输入文本 */}
-            <div className="space-y-2">
-              <Label>要解析的文本</Label>
-              <Textarea
-                value={previewText}
-                onChange={(e) => setPreviewText(e.target.value)}
-                placeholder="输入包含变量引用的文本，如: https://{{server_ip}}:{{port}}/api"
-                className="min-h-[80px] font-mono text-sm"
-              />
-              <div className="flex items-center justify-between">
-                <p className="text-xs text-muted-foreground">
-                  变量格式：<code>{'{{变量名}}'}</code>
-                </p>
-                <Button
-                  size="sm"
-                  onClick={() => performResolve(previewText)}
-                  disabled={!previewText.trim() || isResolving}
-                >
-                  {isResolving ? '解析中...' : '解析'}
-                </Button>
-              </div>
-            </div>
-
-            {/* 解析结果 */}
-            {resolveResult && (
-              <div className="space-y-4 border-t pt-4">
-                {/* 解析后的文本 */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label>解析结果</Label>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={copyResolvedText}
-                    >
-                      <Copy className="mr-1 h-4 w-4" />
-                      复制
-                    </Button>
-                  </div>
-                  <div className="rounded-md bg-muted/50 p-3">
-                    <code className="text-sm break-all">
-                      {resolveResult.resolved_text}
-                    </code>
-                  </div>
-                </div>
-
-                <ResolvedVariablesSummary
-                  variablesUsed={resolveResult.variables_used}
-                  missingVariables={resolveResult.missing_variables}
-                />
-              </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* 添加变量对话框（正式） */}
-      <Dialog
-        open={isAddVariableDialogOpen}
-        onOpenChange={setIsAddVariableDialogOpen}
-      >
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>添加环境变量</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>变量名 *</Label>
-              <Input
-                value={newVariable.key_name}
-                onChange={(e) =>
-                  setNewVariable({ ...newVariable, key_name: e.target.value })
-                }
-                placeholder="变量名，如: bearer_token"
-                className="font-mono"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label>类型</Label>
-                <Select
-                  value={newVariable.variable_type}
-                  onValueChange={(v) =>
-                    setNewVariable({ ...newVariable, variable_type: v as any })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="选择类型" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="string">string</SelectItem>
-                    <SelectItem value="number">number</SelectItem>
-                    <SelectItem value="boolean">boolean</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex items-center gap-2 pt-6">
-                <Switch
-                  id="is-secret"
-                  checked={newVariable.is_secret}
-                  onCheckedChange={(checked) =>
-                    setNewVariable({ ...newVariable, is_secret: checked })
-                  }
-                />
-                <Label htmlFor="is-secret">密钥</Label>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>变量值 *</Label>
-              <Input
-                value={newVariable.key_value}
-                onChange={(e) =>
-                  setNewVariable({ ...newVariable, key_value: e.target.value })
-                }
-                placeholder="变量值"
-                className="font-mono"
-                type={newVariable.is_secret ? 'password' : 'text'}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>说明</Label>
-              <Textarea
-                value={newVariable.description}
-                onChange={(e) =>
-                  setNewVariable({
-                    ...newVariable,
-                    description: e.target.value,
-                  })
-                }
-                placeholder="该变量的用途说明（可选）"
-                rows={3}
-              />
-            </div>
-            <div className="flex justify-end gap-2 pt-2">
-              <Button
-                variant="outline"
-                onClick={() => setIsAddVariableDialogOpen(false)}
-              >
-                取消
-              </Button>
-              <Button onClick={handleSaveNewVariable}>保存</Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <VariableResolveDialog
+        open={isResolveOpen}
+        onOpenChange={setIsResolveOpen}
+        onResolve={resolveText}
+      />
+      <AddVariableDialog
+        open={isAddOpen}
+        onOpenChange={setIsAddOpen}
+        onSubmit={handleAddVariable}
+      />
     </div>
   )
 }

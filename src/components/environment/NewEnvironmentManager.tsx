@@ -1,32 +1,49 @@
-// src/components/environment/NewEnvironmentManager.tsx
-import { useState } from 'react'
-import { Save } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { Layers, Save } from 'lucide-react'
+import { PageEmptyState } from '@/components/patterns/page-states'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import {
   useFetchEnvironment,
   useFetchEnvironments,
   useFetchGlobalEnvironments,
 } from '@/hooks/use-environment-request'
-import { EnvironmentList, EnvironmentDetail } from '@/components/environment'
 import { toast } from '@/lib/toast'
+import { EnvironmentDetail } from './EnvironmentDetail'
+import { EnvironmentList } from './EnvironmentList'
 
 interface NewEnvironmentManagerProps {
   isOpen: boolean
   onClose: () => void
 }
 
+type Selection = string | 'global' | 'create-new'
+/** What to do once the user agrees to drop unsaved changes. */
+type PendingLeave = { kind: 'select'; id: Selection } | { kind: 'close' }
+
+/** Manage the request environments of the API reference. */
 export function NewEnvironmentManager({
   isOpen,
   onClose,
 }: NewEnvironmentManagerProps) {
-  const [selectedEnvironmentId, setSelectedEnvironmentId] = useState<
-    string | null
-  >(null)
+  const { t } = useTranslation()
+  const [selectedEnvironmentId, setSelectedEnvironmentId] =
+    useState<Selection | null>(null)
   const [isDirty, setIsDirty] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [pendingLeave, setPendingLeave] = useState<PendingLeave | null>(null)
+  const saveRef = useRef<(() => Promise<void>) | null>(null)
 
-  // 服务器态走 React Query，仅在弹窗打开时拉取
+  // Server state comes from React Query, fetched only while open.
   const { environments } = useFetchEnvironments({ enabled: isOpen })
   const { globalEnvironments } = useFetchGlobalEnvironments({ enabled: isOpen })
   if (isOpen && environments.length > 0 && !selectedEnvironmentId) {
@@ -44,86 +61,67 @@ export function NewEnvironmentManager({
     detailEnvironmentId,
     { enabled: isOpen },
   )
+  const selectedIndex = environments.findIndex(
+    (env) => env.id === selectedEnvironmentId,
+  )
+  const isCreating = selectedEnvironmentId === 'create-new'
 
-  const handleEnvironmentSelect = (
-    environmentId: string | 'global' | 'create-new',
-  ) => {
-    // 如果有未保存的更改，提示用户
-    if (isDirty) {
-      const confirmed = window.confirm('您有未保存的更改，确定要切换环境吗？')
-      if (!confirmed) {
-        return
-      }
-    }
-
-    // 详情由 useFetchEnvironment(detailEnvironmentId) 自动按选中 id 拉取
+  const select = (environmentId: Selection) => {
     setSelectedEnvironmentId(environmentId)
     setIsDirty(false)
   }
-
-  const handleSave = async () => {
-    if (!selectedEnvironmentId || selectedEnvironmentId === 'global') return
-
-    setIsSaving(true)
-    try {
-      // 调用EnvironmentDetail暴露的保存方法
-      if (
-        typeof window !== 'undefined' &&
-        (window as any).__saveEnvironmentData
-      ) {
-        await (window as any).__saveEnvironmentData()
-        setIsDirty(false)
-      } else {
-        toast.error('保存功能暂不可用')
-      }
-    } catch {
-      toast.error('保存失败')
-    } finally {
-      setIsSaving(false)
-    }
-  }
-
-  const handleClose = () => {
-    if (isDirty) {
-      const confirmed = window.confirm('您有未保存的更改，确定要关闭吗？')
-      if (!confirmed) {
-        return
-      }
-    }
+  const close = () => {
     onClose()
     setIsDirty(false)
     setSelectedEnvironmentId(null)
   }
 
+  const handleEnvironmentSelect = (environmentId: Selection) => {
+    if (isDirty) setPendingLeave({ kind: 'select', id: environmentId })
+    else select(environmentId)
+  }
+  const handleClose = () => {
+    if (isDirty) setPendingLeave({ kind: 'close' })
+    else close()
+  }
+  const discardAndLeave = () => {
+    const leave = pendingLeave
+    setPendingLeave(null)
+    if (leave?.kind === 'select') select(leave.id)
+    else if (leave) close()
+  }
+
+  const handleSave = async () => {
+    if (!selectedEnvironmentId || selectedEnvironmentId === 'global') return
+    if (!saveRef.current) {
+      toast.error(t('environment.manager.saveUnavailable'))
+      return
+    }
+    setIsSaving(true)
+    try {
+      await saveRef.current()
+      setIsDirty(false)
+    } catch {
+      // The detail pane already reported the failure.
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="h-[90vh] w-full max-w-7xl gap-0 p-0">
-        <DialogHeader className="flex-row items-center justify-between border-b px-6 py-4">
-          <h2 className="text-lg font-semibold">环境管理</h2>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={handleClose}>
-              关闭
-            </Button>
-            <Button
-              size="sm"
-              onClick={handleSave}
-              disabled={!isDirty || isSaving}
-            >
-              <Save className="mr-1 h-4 w-4" />
-              {isSaving
-                ? selectedEnvironmentId === 'create-new'
-                  ? '创建中...'
-                  : '保存中...'
-                : selectedEnvironmentId === 'create-new'
-                  ? '创建'
-                  : '保存'}
-            </Button>
-          </div>
+      <DialogContent size="3xl" className="h-[90vh]">
+        <DialogHeader className="border-b border-border-subtle">
+          <DialogTitle>{t('environment.manager.title')}</DialogTitle>
+          <DialogDescription>
+            {t('environment.manager.description', {
+              syntax: `{{${t('environment.resolve.variableName')}}}`,
+            })}
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-1 overflow-hidden">
-          {/* 左侧环境列表 */}
-          <div className="bg-muted/20 w-80 border-r">
+        <div className="flex min-h-0 flex-1 flex-col md:flex-row">
+          <div className="max-h-56 shrink-0 overflow-y-auto border-b border-border-subtle bg-background-subtle md:max-h-none md:w-72 md:border-r md:border-b-0">
             <EnvironmentList
               environments={environments}
               globalEnvironments={globalEnvironments}
@@ -131,29 +129,63 @@ export function NewEnvironmentManager({
               onEnvironmentSelect={handleEnvironmentSelect}
             />
           </div>
-
-          {/* 右侧环境详情 */}
-          <div className="flex-1 overflow-hidden">
+          <div className="min-h-0 min-w-0 flex-1 overflow-hidden">
             {selectedEnvironmentId ? (
               <EnvironmentDetail
                 environmentId={selectedEnvironmentId}
                 currentEnvironment={currentEnvironment}
+                dotIndex={
+                  selectedIndex >= 0 ? selectedIndex : environments.length
+                }
                 onDataChange={setIsDirty}
-                onSaveRequest={handleSave}
+                saveRef={saveRef}
+                onEnvironmentCreated={select}
               />
             ) : (
-              <div className="flex h-full items-center justify-center text-muted-foreground">
-                <div className="text-center">
-                  <p className="mb-2 text-lg">请选择一个环境</p>
-                  <p className="text-sm">
-                    从左侧列表中选择一个环境来查看和编辑其详细信息
-                  </p>
-                </div>
-              </div>
+              <PageEmptyState
+                compact
+                icon={<Layers className="size-icon-lg" aria-hidden="true" />}
+                title={t('environment.manager.selectTitle')}
+                description={t('environment.manager.selectHint')}
+              />
             )}
           </div>
         </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={handleClose}>
+            {t('common.close')}
+          </Button>
+          <Button
+            onClick={handleSave}
+            disabled={!isDirty}
+            loading={isSaving}
+            leftIcon={<Save aria-hidden="true" />}
+          >
+            {t(
+              isCreating
+                ? 'environment.manager.create'
+                : 'environment.manager.save',
+            )}
+          </Button>
+        </DialogFooter>
       </DialogContent>
+
+      <ConfirmDialog
+        open={pendingLeave !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingLeave(null)
+        }}
+        variant="destructive"
+        title={t('environment.manager.discardTitle')}
+        description={t(
+          pendingLeave?.kind === 'close'
+            ? 'environment.manager.discardClose'
+            : 'environment.manager.discardSwitch',
+        )}
+        confirmLabel={t('environment.manager.discardConfirm')}
+        onConfirm={discardAndLeave}
+      />
     </Dialog>
   )
 }
