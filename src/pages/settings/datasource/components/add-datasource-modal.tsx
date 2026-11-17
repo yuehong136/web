@@ -100,7 +100,7 @@ export function AddDataSourceModal({
         </DialogHeader>
 
         <div className="scroll-area min-h-0 flex-1 overflow-y-auto">
-          <div className="px-space-lg py-space-base">
+          <div className="px-space-lg pt-space-base">
             <DynamicForm.Root
               fields={fields}
               onSubmit={handleOk}
