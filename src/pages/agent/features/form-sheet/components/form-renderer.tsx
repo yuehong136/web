@@ -1,4 +1,6 @@
+import { Suspense } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Spinner } from '@/components/ui/spinner'
 import type { RAGFlowNodeType } from '../../../types'
 import {
   legacyFormRenderers,
@@ -46,5 +48,19 @@ export function FormRenderer({
     )
   }
 
-  return <FormComponent node={node} nodeId={node.id} />
+  return (
+    <Suspense
+      fallback={
+        <output
+          className="flex items-center justify-center gap-space-sm p-space-lg text-sm text-text-secondary"
+          aria-live="polite"
+        >
+          <Spinner size="sm" />
+          {t('common.loading')}
+        </output>
+      }
+    >
+      <FormComponent node={node} nodeId={node.id} />
+    </Suspense>
+  )
 }

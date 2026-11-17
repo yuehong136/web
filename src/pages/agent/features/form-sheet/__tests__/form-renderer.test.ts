@@ -35,10 +35,14 @@ function resolveFormModule(modulePath: string) {
 }
 
 test('every form renderer entry references an imported, existing module', () => {
+  // Forms are imported statically, or loaded on demand with `lazy()`.
   const formImports = new Map(
     [
       ...registrySource.matchAll(
         /import \{ (\w+) \} from '\.\.\/\.\.\/\.\.\/form\/([^']+)'/g,
+      ),
+      ...registrySource.matchAll(
+        /const (\w+) = lazy\(async \(\) => \{\s*const module = await import\(\s*'\.\.\/\.\.\/\.\.\/form\/([^']+)'/g,
       ),
     ].map(([, renderer, modulePath]) => [renderer, modulePath]),
   )
@@ -88,6 +92,12 @@ test('critical migrated and compatibility mappings remain explicit', () => {
   assert.equal(migrated.Bing, 'BingForm')
   assert.equal(migrated.Email, 'EmailForm')
   assert.equal(legacy.Code, 'CodeForm')
+  // The report designer is half the canvas code: it must stay on demand.
+  assert.match(
+    registrySource,
+    /const HTMLReportForm = lazy\(/,
+    'HTMLReportForm must be loaded with lazy()',
+  )
   assert.equal(legacy.WaitingDialogue, 'CodeForm')
   assert.equal(legacy.ExcelProcessor, 'ToolForm')
   assert.equal(legacy.ExitLoop, 'EmptyForm')

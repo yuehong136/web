@@ -1,5 +1,5 @@
 import { BrowserForm } from '../../../form/browser-use'
-import type { ComponentType } from 'react'
+import { lazy, type ComponentType } from 'react'
 import { Operator } from '../../../constant'
 import { AgentForm } from '../../../form/agent'
 import { A2UIForm } from '../../../form/a2ui'
@@ -25,7 +25,6 @@ import { ListOperationsForm } from '../../../form/list-operations'
 import { LoopForm } from '../../../form/loop'
 import { MessageForm } from '../../../form/message'
 import { ParserForm } from '../../../form/parser'
-import { HTMLReportForm } from '../../../form/html-report'
 import { DocGeneratorForm } from '../../../form/doc-generator'
 import { PubMedForm } from '../../../form/pubmed'
 import { RelevantForm } from '../../../form/relevant-form'
@@ -49,6 +48,13 @@ import { YahooFinanceForm } from '../../../form/yahoo-finance'
 import type { INextOperatorForm } from '../../../types'
 
 const EmptyForm: ComponentType<INextOperatorForm> = () => null
+
+// The HTML report designer is about half of the canvas code and only needed
+// when such a node is open, so it loads on demand (FormRenderer suspends).
+const HTMLReportForm = lazy(async () => {
+  const module = await import('../../../form/html-report')
+  return { default: module.HTMLReportForm }
+})
 
 export const migratedFormRenderers: Record<
   string,
