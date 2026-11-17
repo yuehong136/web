@@ -7,12 +7,14 @@ export interface LimitDraft {
   parallel: string
 }
 
+/** An empty amount means "no quota"; the period is kept for when one is typed. */
 export interface QuotaDraft {
   tokens: string
-  period: 'none' | GatewayQuotaPeriod
+  period: GatewayQuotaPeriod
 }
 
-export const PUBLIC_NAME_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:/@-]{0,127}$/
+/** Aliases share the data plane's name rule. */
+export const ALIAS_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:/@-]{0,127}$/
 const MAX_RATE_LIMIT = 2_000_000_000
 const MAX_TOKEN_QUOTA = 9_000_000_000_000_000
 
@@ -37,7 +39,13 @@ export const quotaDraftOf = (
 ): QuotaDraft =>
   tokens !== null && period !== null
     ? { tokens: String(tokens), period }
-    : { tokens: '', period: 'none' }
+    : { tokens: '', period: 'month' }
+
+/** Whether any limit or quota is set (the limits section then starts open). */
+export const hasLimits = (limits: LimitDraft, quota: QuotaDraft) =>
+  [limits.rpm, limits.tpm, limits.parallel, quota.tokens].some((value) =>
+    value.trim(),
+  )
 
 /**
  * An empty field is `null` (unlimited), a positive integer is that number,
@@ -70,25 +78,15 @@ export interface QuotaPayload {
 }
 
 /**
- * The quota and its period travel together: both `null` for "no quota", or a
- * positive amount with its period. `null` is returned for an invalid amount.
+ * The quota and its period travel together: both `null` for "no quota" (an
+ * empty amount), or a positive amount with its period. `null` is returned for
+ * an invalid amount.
  */
 export function parseQuota(draft: QuotaDraft): QuotaPayload | null {
-  if (draft.period === 'none') return { token_quota: null, quota_period: null }
   const tokens = parsePositiveInteger(draft.tokens, MAX_TOKEN_QUOTA)
-  if (tokens === null || tokens === undefined) return null
+  if (tokens === undefined) return null
+  if (tokens === null) return { token_quota: null, quota_period: null }
   return { token_quota: tokens, quota_period: draft.period }
-}
-
-/** A public name suggestion from a registered model name. */
-export function suggestPublicName(modelName: string): string {
-  const cleaned = modelName
-    .split('___')[0]
-    .trim()
-    .replace(/[^A-Za-z0-9._:/@-]+/g, '-')
-    .replace(/^[^A-Za-z0-9]+/, '')
-    .slice(0, 128)
-  return cleaned
 }
 
 /** `datetime-local` value for an ISO instant, in the browser's time zone. */
@@ -112,4 +110,41 @@ export function parseExpiry(
   const date = new Date(value)
   if (Number.isNaN(date.getTime()) || date.getTime() <= now) return undefined
   return date.toISOString()
+}
+
+export const EXPIRY_PRESETS = ['never', '30', '90', '365', 'custom'] as const
+export type ExpiryPreset = (typeof EXPIRY_PRESETS)[number]
+
+export interface ExpiryDraft {
+  preset: ExpiryPreset
+  /** `datetime-local` value, used by the custom preset. */
+  custom: string
+}
+
+/** A stored expiry opens as a custom date; none opens as "never". */
+export const expiryDraftOf = (expiresAt: string | null): ExpiryDraft => {
+  const custom = toLocalInputValue(expiresAt)
+  return custom ? { preset: 'custom', custom } : { preset: 'never', custom: '' }
+}
+
+/** The end of the local day N days from now. */
+export function presetExpiry(days: number, now: number = Date.now()): Date {
+  const date = new Date(now)
+  date.setDate(date.getDate() + days)
+  date.setHours(23, 59, 0, 0)
+  return date
+}
+
+/**
+ * The expiry to send: an ISO instant, `null` for never, or `undefined` when
+ * the custom value is missing, malformed or not in the future.
+ */
+export function parseExpiryDraft(
+  draft: ExpiryDraft,
+  now: number = Date.now(),
+): string | null | undefined {
+  if (draft.preset === 'never') return null
+  if (draft.preset === 'custom')
+    return draft.custom.trim() ? parseExpiry(draft.custom, now) : undefined
+  return presetExpiry(Number(draft.preset), now).toISOString()
 }

@@ -12,17 +12,24 @@ import { API_BASE_URL } from '@/constants'
 const rest = { baseURL: `${API_BASE_URL}/api` }
 const base = '/v1/model-gateway'
 
-const path = (segment: string, id?: string) =>
-  id ? `${base}/${segment}/${encodeURIComponent(id)}` : `${base}/${segment}`
+const path = (segment: string, id?: string | number) =>
+  id === undefined
+    ? `${base}/${segment}`
+    : `${base}/${segment}/${encodeURIComponent(String(id))}`
 
-/** Model types the gateway can serve today. */
-export const GATEWAY_MODEL_TYPES = ['chat', 'embedding'] as const
-export type GatewayModelType = (typeof GATEWAY_MODEL_TYPES)[number]
-export type GatewayModelStatus = 'active' | 'inactive'
+/** Capabilities the gateway can serve today. */
+export const GATEWAY_CAPABILITIES = ['chat', 'embedding'] as const
+export type GatewayCapability = (typeof GATEWAY_CAPABILITIES)[number]
+export type GatewayModelState = 'callable' | 'closed' | 'unavailable'
+export type GatewayUnavailableReason =
+  'provider_not_supported' | 'endpoint_not_supported' | 'model_disabled'
 export type GatewayKeyStatus = 'active' | 'disabled' | 'revoked'
 export type GatewayQuotaPeriod = 'day' | 'month'
 export type GatewayUsageGroup = 'key' | 'model' | 'day' | 'end_user'
 export type GatewayLogOutcome = 'success' | 'error'
+/** Days covered by the overview window. */
+export const GATEWAY_WINDOWS = [1, 7, 30] as const
+export type GatewayWindow = (typeof GATEWAY_WINDOWS)[number]
 
 /** `null` means unlimited. */
 export interface GatewayRateLimits {
@@ -31,32 +38,50 @@ export interface GatewayRateLimits {
   max_parallel_requests: number | null
 }
 
-export interface GatewayModelTarget {
+/** A registered model as the gateway sees it; there is no publish step. */
+export interface GatewayCatalogModel extends GatewayRateLimits {
+  model_id: number
   model_name: string
   provider: string
-  instance: string
+  instance_id: string
+  instance_name: string
   model_types: string[]
-  available: boolean
-  relayable: boolean
-}
-
-/** A registered model and the types it can be published as (possibly none). */
-export interface GatewayCandidate extends GatewayModelTarget {
-  model_id: number
-  publishable_types: GatewayModelType[]
-}
-
-export interface GatewayModel extends GatewayRateLimits {
-  id: string
-  name: string
-  model_id: number
-  model_type: GatewayModelType | (string & {})
-  status: GatewayModelStatus
+  servable_types: GatewayCapability[]
+  state: GatewayModelState
+  reason: GatewayUnavailableReason | null
+  /** The open switch; it follows `new_models_enabled` until set explicitly. */
+  enabled: boolean
+  enabled_by_default: boolean
+  /** The primary name, always `names[0]`. */
+  call_name: string
+  /** Every name that reaches this model, primary first. */
+  names: string[]
+  alias: string | null
+  preferred: boolean
+  /** Another registered model has the same `model_name`. */
+  shares_name: boolean
   description: string | null
-  /** `null` once the registered model no longer exists. */
-  target: GatewayModelTarget | null
-  create_time: number | null
-  update_time: number | null
+  requests_7d: number
+}
+
+/** A provider connection (model instance), with or without models. */
+export interface GatewayConnection {
+  instance_id: string
+  instance_name: string
+  provider: string
+}
+
+export interface GatewayCatalog {
+  new_models_enabled: boolean
+  connections: GatewayConnection[]
+  models: GatewayCatalogModel[]
+}
+
+export interface GatewayCatalogModelUpdate extends Partial<GatewayRateLimits> {
+  enabled?: boolean
+  alias?: string | null
+  preferred?: boolean
+  description?: string | null
 }
 
 export interface GatewayKey extends GatewayRateLimits {
@@ -68,8 +93,12 @@ export interface GatewayKey extends GatewayRateLimits {
   redacted_key: string
   status: GatewayKeyStatus
   expires_at: string | null
+  /** Every open model, including ones opened later. */
   allow_all_models: boolean
-  allowed_model_ids: string[]
+  /** Whole connections, including models opened there later. */
+  allowed_instance_ids: string[]
+  /** Registered model ids: a snapshot, later models are not included. */
+  allowed_model_ids: number[]
   token_quota: number | null
   quota_period: GatewayQuotaPeriod | null
   /** Tokens used in the current period; `null` for keys without a quota. */
@@ -84,39 +113,30 @@ export interface GatewayKeyCreated extends GatewayKey {
   key: string
 }
 
-export interface GatewayModelCreateInput extends Partial<GatewayRateLimits> {
-  name: string
-  model_id: number
-  model_type: GatewayModelType
-  description?: string | null
-}
-
-export interface GatewayModelUpdateInput extends Partial<GatewayRateLimits> {
-  name?: string
-  description?: string | null
-  status?: GatewayModelStatus
-}
-
 /** The quota and its period are always sent together (both set or both null). */
 export interface GatewayKeyLimitsInput extends Partial<GatewayRateLimits> {
   token_quota?: number | null
   quota_period?: GatewayQuotaPeriod | null
 }
 
-export interface GatewayKeyCreateInput extends GatewayKeyLimitsInput {
+export interface GatewayKeyScopeInput {
+  allow_all_models?: boolean
+  allowed_instance_ids?: string[]
+  allowed_model_ids?: number[]
+}
+
+export interface GatewayKeyCreateInput
+  extends GatewayKeyLimitsInput, GatewayKeyScopeInput {
   name: string
   description?: string | null
   expires_at?: string | null
-  allow_all_models?: boolean
-  allowed_model_ids?: string[]
 }
 
-export interface GatewayKeyUpdateInput extends GatewayKeyLimitsInput {
+export interface GatewayKeyUpdateInput
+  extends GatewayKeyLimitsInput, GatewayKeyScopeInput {
   name?: string
   description?: string | null
   expires_at?: string | null
-  allow_all_models?: boolean
-  allowed_model_ids?: string[]
   status?: 'active' | 'disabled'
 }
 
@@ -124,8 +144,11 @@ export interface GatewayLog {
   id: string
   key_id: string
   key_name: string
+  /** The name the caller sent. */
   model: string | null
   gateway_model_id: string | null
+  /** The registered model that served the call. */
+  upstream_model_id: number | null
   upstream_model_name: string | null
   endpoint: string
   stream: boolean
@@ -192,28 +215,91 @@ export interface GatewayUsageQuery {
   end?: string
 }
 
+export interface GatewayOverviewTotals {
+  requests: number
+  errors: number
+  prompt_tokens: number
+  completion_tokens: number
+  total_tokens: number
+  usage_unknown: number
+  /** Median first-token latency of streamed calls; `null` when none. */
+  first_token_p50_ms: number | null
+}
+
+export interface GatewayOverviewBucket {
+  start: string
+  requests: number
+  errors: number
+}
+
+export interface GatewayOverview {
+  /** `null` when the data plane listens on a wildcard host. */
+  base_url: string | null
+  listen_port: number
+  data_plane: 'up' | 'down'
+  counts: { providers: number; callable_models: number; active_keys: number }
+  window: { start: string; end: string; days: number }
+  totals: GatewayOverviewTotals
+  previous_requests: number
+  errors_by_code: Array<{
+    status_code: number
+    code: string | null
+    count: number
+  }>
+  bucket: 'hour' | 'day'
+  series: GatewayOverviewBucket[]
+  top_models: Array<{
+    model_id: number
+    name: string
+    provider: string
+    requests: number
+    total_tokens: number
+  }>
+  top_keys: Array<{
+    key_id: string
+    key_name: string
+    requests: number
+    total_tokens: number
+  }>
+  recent_errors: GatewayLog[]
+}
+
 export const modelGatewayAPI = {
-  listCandidates(signal?: AbortSignal): Promise<GatewayCandidate[]> {
-    return apiClient.get(path('candidates'), { ...rest, signal })
+  getCatalog(signal?: AbortSignal): Promise<GatewayCatalog> {
+    return apiClient.get(path('catalog'), { ...rest, signal })
   },
 
-  listModels(signal?: AbortSignal): Promise<GatewayModel[]> {
-    return apiClient.get(path('models'), { ...rest, signal })
+  updateCatalogModel(
+    modelId: number,
+    input: GatewayCatalogModelUpdate,
+  ): Promise<GatewayCatalogModel> {
+    return apiClient.patch(path('catalog/models', modelId), input, rest)
   },
 
-  createModel(input: GatewayModelCreateInput): Promise<GatewayModel> {
-    return apiClient.post(path('models'), input, rest)
+  /** Opens or closes every model of one connection; returns the catalog. */
+  updateCatalogInstance(
+    instanceId: string,
+    input: { enabled: boolean },
+  ): Promise<GatewayCatalog> {
+    return apiClient.patch(path('catalog/instances', instanceId), input, rest)
   },
 
-  updateModel(
-    id: string,
-    input: GatewayModelUpdateInput,
-  ): Promise<GatewayModel> {
-    return apiClient.patch(path('models', id), input, rest)
+  /** The default for models registered later; returns the catalog. */
+  updateSettings(input: {
+    new_models_enabled: boolean
+  }): Promise<GatewayCatalog> {
+    return apiClient.patch(path('settings'), input, rest)
   },
 
-  deleteModel(id: string): Promise<null> {
-    return apiClient.delete(path('models', id), rest)
+  getOverview(
+    days: GatewayWindow,
+    signal?: AbortSignal,
+  ): Promise<GatewayOverview> {
+    return apiClient.get(path('overview'), {
+      ...rest,
+      params: { days },
+      signal,
+    })
   },
 
   listKeys(signal?: AbortSignal): Promise<GatewayKey[]> {

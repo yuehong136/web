@@ -1,14 +1,10 @@
 import { useTranslation } from 'react-i18next'
+import type { GatewayQuotaPeriod } from '@/api/model-gateway'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { SegmentedControl } from '@/components/ui/segmented-control'
 import type { LimitDraft, QuotaDraft } from '../form-model'
+import { PREFIX } from '../utils'
 
 interface LimitFieldsProps {
   idPrefix: string
@@ -18,9 +14,9 @@ interface LimitFieldsProps {
 }
 
 const FIELDS = [
-  ['rpm', 'settings.modelGateway.limits.rpm'],
-  ['tpm', 'settings.modelGateway.limits.tpm'],
-  ['parallel', 'settings.modelGateway.limits.parallel'],
+  ['rpm', `${PREFIX}.limits.rpm`],
+  ['tpm', `${PREFIX}.limits.tpm`],
+  ['parallel', `${PREFIX}.limits.parallel`],
 ] as const
 
 /** Requests per minute, tokens per minute and concurrency; empty is unlimited. */
@@ -32,7 +28,7 @@ export const LimitFields = ({
 }: LimitFieldsProps) => {
   const { t } = useTranslation()
   return (
-    <div className="grid gap-space-base sm:grid-cols-3">
+    <div className="grid gap-space-md sm:grid-cols-3">
       {FIELDS.map(([field, labelKey]) => (
         <div key={field} className="space-y-space-xs">
           <Label htmlFor={`${idPrefix}-${field}`}>{t(labelKey)}</Label>
@@ -41,7 +37,7 @@ export const LimitFields = ({
             inputMode="numeric"
             value={value[field]}
             disabled={disabled}
-            placeholder={t('settings.modelGateway.limits.unlimited')}
+            placeholder={t(`${PREFIX}.limits.unlimited`)}
             onChange={(event) =>
               onChange({ ...value, [field]: event.target.value })
             }
@@ -59,7 +55,7 @@ interface QuotaFieldsProps {
   onChange: (next: QuotaDraft) => void
 }
 
-/** A token budget per UTC day or month; "none" removes the quota. */
+/** A token budget per UTC day or month; an empty amount means no quota. */
 export const QuotaFields = ({
   idPrefix,
   value,
@@ -68,49 +64,32 @@ export const QuotaFields = ({
 }: QuotaFieldsProps) => {
   const { t } = useTranslation()
   return (
-    <div className="grid gap-space-base sm:grid-cols-3">
-      <div className="space-y-space-xs">
-        <Label htmlFor={`${idPrefix}-quota-period`}>
-          {t('settings.modelGateway.quota.period')}
-        </Label>
-        <Select
-          value={value.period}
-          disabled={disabled}
-          onValueChange={(period) =>
-            onChange({ ...value, period: period as QuotaDraft['period'] })
-          }
-        >
-          <SelectTrigger id={`${idPrefix}-quota-period`}>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="none">
-              {t('settings.modelGateway.quota.none')}
-            </SelectItem>
-            <SelectItem value="day">
-              {t('settings.modelGateway.quota.day')}
-            </SelectItem>
-            <SelectItem value="month">
-              {t('settings.modelGateway.quota.month')}
-            </SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="space-y-space-xs sm:col-span-2">
+    <div className="flex flex-wrap items-end gap-space-md">
+      <div className="min-w-48 flex-1 space-y-space-xs">
         <Label htmlFor={`${idPrefix}-quota-tokens`}>
-          {t('settings.modelGateway.quota.tokens')}
+          {t(`${PREFIX}.keyForm.quotaTokens`)}
         </Label>
         <Input
           id={`${idPrefix}-quota-tokens`}
           inputMode="numeric"
           value={value.tokens}
-          disabled={disabled || value.period === 'none'}
-          placeholder={t('settings.modelGateway.quota.tokensPlaceholder')}
+          disabled={disabled}
+          placeholder={t(`${PREFIX}.quota.tokensPlaceholder`)}
           onChange={(event) =>
             onChange({ ...value, tokens: event.target.value })
           }
         />
       </div>
+      <SegmentedControl<GatewayQuotaPeriod>
+        aria-label={t(`${PREFIX}.keyForm.quotaPeriod`)}
+        value={value.period}
+        disabled={disabled}
+        onValueChange={(period) => onChange({ ...value, period })}
+        options={[
+          { value: 'day', label: t(`${PREFIX}.quota.day`) },
+          { value: 'month', label: t(`${PREFIX}.quota.month`) },
+        ]}
+      />
     </div>
   )
 }

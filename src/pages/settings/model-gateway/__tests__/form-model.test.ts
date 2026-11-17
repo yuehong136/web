@@ -1,13 +1,16 @@
 import { describe, expect, it } from 'vitest'
 import {
-  PUBLIC_NAME_PATTERN,
+  ALIAS_PATTERN,
+  expiryDraftOf,
+  hasLimits,
   limitDraftOf,
   parseExpiry,
+  parseExpiryDraft,
   parseLimits,
   parsePositiveInteger,
   parseQuota,
+  presetExpiry,
   quotaDraftOf,
-  suggestPublicName,
   toLocalInputValue,
 } from '../form-model'
 
@@ -41,25 +44,27 @@ describe('limit parsing', () => {
 })
 
 describe('quota parsing', () => {
-  it('sends the quota and its period together, or both as null', () => {
-    expect(parseQuota({ tokens: '', period: 'none' })).toEqual({
+  it('sends no quota for an empty amount, whatever the period', () => {
+    expect(parseQuota({ tokens: '', period: 'month' })).toEqual({
       token_quota: null,
       quota_period: null,
     })
-    // A stale amount is ignored once the period is "none".
-    expect(parseQuota({ tokens: '500', period: 'none' })).toEqual({
+    expect(parseQuota({ tokens: '  ', period: 'day' })).toEqual({
       token_quota: null,
       quota_period: null,
     })
+  })
+
+  it('sends a positive amount together with its period', () => {
     expect(parseQuota({ tokens: '5000000', period: 'month' })).toEqual({
       token_quota: 5_000_000,
       quota_period: 'month',
     })
   })
 
-  it('requires a positive amount once a period is chosen', () => {
-    expect(parseQuota({ tokens: '', period: 'day' })).toBeNull()
+  it('rejects an amount that is not a positive integer', () => {
     expect(parseQuota({ tokens: '0', period: 'day' })).toBeNull()
+    expect(parseQuota({ tokens: '1.5', period: 'day' })).toBeNull()
   })
 
   it('accepts quotas above the rate-limit ceiling', () => {
@@ -71,30 +76,28 @@ describe('quota parsing', () => {
 
   it('shows a stored quota only when both parts exist', () => {
     expect(quotaDraftOf(1000, 'day')).toEqual({ tokens: '1000', period: 'day' })
-    expect(quotaDraftOf(null, null)).toEqual({ tokens: '', period: 'none' })
+    expect(quotaDraftOf(null, null)).toEqual({ tokens: '', period: 'month' })
+  })
+
+  it('knows whether any limit or quota is set', () => {
+    const none = { rpm: '', tpm: '', parallel: '' }
+    expect(hasLimits(none, { tokens: '', period: 'month' })).toBe(false)
+    expect(hasLimits({ ...none, tpm: '10' }, quotaDraftOf(null, null))).toBe(
+      true,
+    )
+    expect(hasLimits(none, { tokens: '100', period: 'day' })).toBe(true)
   })
 })
 
-describe('public names', () => {
-  it('suggests a valid public name from a registered model name', () => {
-    expect(suggestPublicName('qwen-plus___VLLM')).toBe('qwen-plus')
-    expect(suggestPublicName('Qwen/Qwen2.5 72B Instruct')).toBe(
-      'Qwen/Qwen2.5-72B-Instruct',
-    )
-    expect(suggestPublicName('  -local model')).toBe('local-model')
-    expect(
-      PUBLIC_NAME_PATTERN.test(suggestPublicName('bge-m3___OpenAI-API')),
-    ).toBe(true)
-  })
-
+describe('aliases', () => {
   it.each(['chat-default', 'org/model:v1', 'a', 'gpt-6.1@prod'])(
     'accepts %s',
-    (name) => expect(PUBLIC_NAME_PATTERN.test(name)).toBe(true),
+    (name) => expect(ALIAS_PATTERN.test(name)).toBe(true),
   )
 
   it.each(['', '-leading', 'has space', '中文', 'a'.repeat(129)])(
     'rejects %s',
-    (name) => expect(PUBLIC_NAME_PATTERN.test(name)).toBe(false),
+    (name) => expect(ALIAS_PATTERN.test(name)).toBe(false),
   )
 })
 
@@ -117,5 +120,39 @@ describe('expiry', () => {
     expect(toLocalInputValue(iso)).toBe('2027-03-04T05:06')
     expect(toLocalInputValue(null)).toBe('')
     expect(toLocalInputValue('garbage')).toBe('')
+  })
+})
+
+describe('expiry presets', () => {
+  const now = new Date(2026, 10, 17, 10, 30).getTime()
+
+  it('ends a preset at the end of that local day', () => {
+    const at = presetExpiry(30, now)
+    expect([at.getFullYear(), at.getMonth(), at.getDate()]).toEqual([
+      2026, 11, 17,
+    ])
+    expect([at.getHours(), at.getMinutes()]).toEqual([23, 59])
+  })
+
+  it('sends null for never, an instant for a preset, nothing for a bad custom value', () => {
+    expect(parseExpiryDraft({ preset: 'never', custom: '' }, now)).toBeNull()
+    expect(parseExpiryDraft({ preset: '90', custom: '' }, now)).toBe(
+      presetExpiry(90, now).toISOString(),
+    )
+    expect(
+      parseExpiryDraft({ preset: 'custom', custom: '' }, now),
+    ).toBeUndefined()
+    expect(
+      parseExpiryDraft({ preset: 'custom', custom: '2026-11-01T00:00' }, now),
+    ).toBeUndefined()
+  })
+
+  it('opens a stored expiry as a custom time and none as never', () => {
+    const iso = new Date(2027, 1, 15, 23, 59).toISOString()
+    expect(expiryDraftOf(iso)).toEqual({
+      preset: 'custom',
+      custom: '2027-02-15T23:59',
+    })
+    expect(expiryDraftOf(null)).toEqual({ preset: 'never', custom: '' })
   })
 })

@@ -47,15 +47,11 @@ function recordCalls(result: unknown = {}) {
 test('every route targets the RESTful model-gateway prefix', async () => {
   const { calls, restore } = recordCalls()
   try {
-    await modelGatewayAPI.listCandidates()
-    await modelGatewayAPI.listModels()
-    await modelGatewayAPI.createModel({
-      name: 'chat-default',
-      model_id: 7,
-      model_type: 'chat',
-    })
-    await modelGatewayAPI.updateModel('m/1', { status: 'inactive' })
-    await modelGatewayAPI.deleteModel('m/1')
+    await modelGatewayAPI.getCatalog()
+    await modelGatewayAPI.updateCatalogModel(11, { enabled: false })
+    await modelGatewayAPI.updateCatalogInstance('8c1f/a', { enabled: true })
+    await modelGatewayAPI.updateSettings({ new_models_enabled: false })
+    await modelGatewayAPI.getOverview(30)
     await modelGatewayAPI.listKeys()
     await modelGatewayAPI.updateKey('k 1', { rpm_limit: null })
     await modelGatewayAPI.revokeKey('k 1')
@@ -66,28 +62,34 @@ test('every route targets the RESTful model-gateway prefix', async () => {
   assert.deepEqual(
     calls.map((call) => `${call.verb} ${call.endpoint}`),
     [
-      'get /v1/model-gateway/candidates',
-      'get /v1/model-gateway/models',
-      'post /v1/model-gateway/models',
-      'patch /v1/model-gateway/models/m%2F1',
-      'delete /v1/model-gateway/models/m%2F1',
+      'get /v1/model-gateway/catalog',
+      'patch /v1/model-gateway/catalog/models/11',
+      'patch /v1/model-gateway/catalog/instances/8c1f%2Fa',
+      'patch /v1/model-gateway/settings',
+      'get /v1/model-gateway/overview',
       'get /v1/model-gateway/keys',
       'patch /v1/model-gateway/keys/k%201',
       'post /v1/model-gateway/keys/k%201/revoke',
     ],
   )
   assert.ok(calls.every((call) => call.config?.baseURL?.endsWith('/api')))
+  assert.deepEqual(calls[1]?.data, { enabled: false })
+  assert.deepEqual(calls[2]?.data, { enabled: true })
+  assert.deepEqual(calls[3]?.data, { new_models_enabled: false })
+  assert.deepEqual(calls[4]?.config?.params, { days: 30 })
   // Revoking carries no body, and an explicit null survives to clear a limit.
   assert.equal(calls[7]?.data, undefined)
   assert.deepEqual(calls[6]?.data, { rpm_limit: null })
 })
 
-test('createKey sends the limits and returns the one-time plaintext', async () => {
+test('createKey sends the scope as connection and model ids and returns the one-time plaintext', async () => {
   const created = { id: 'k1', name: 'runner', key: 'sk-mrag-plaintext' }
   const { calls, restore } = recordCalls(created)
   const input = {
     name: 'runner',
-    allowed_model_ids: ['m1'],
+    allow_all_models: false,
+    allowed_instance_ids: ['8c1f'],
+    allowed_model_ids: [21],
     rpm_limit: 60,
     token_quota: 1000,
     quota_period: 'month' as const,
@@ -99,6 +101,7 @@ test('createKey sends the limits and returns the one-time plaintext', async () =
     restore()
   }
 
+  assert.equal(calls[0]?.verb, 'post')
   assert.equal(calls[0]?.endpoint, '/v1/model-gateway/keys')
   assert.deepEqual(calls[0]?.data, input)
   assert.deepEqual(result, created)
@@ -113,9 +116,10 @@ test('log and usage queries pass their filters as params with the abort signal',
       controller.signal,
     )
     await modelGatewayAPI.usage(
-      { group_by: 'day', start: '2026-11-01T00:00:00.000Z' },
+      { group_by: 'day', key_id: 'k1', start: '2026-11-01T00:00:00.000Z' },
       controller.signal,
     )
+    await modelGatewayAPI.getOverview(1, controller.signal)
   } finally {
     restore()
   }
@@ -131,6 +135,9 @@ test('log and usage queries pass their filters as params with the abort signal',
   assert.equal(calls[1]?.endpoint, '/v1/model-gateway/usage')
   assert.deepEqual(calls[1]?.config?.params, {
     group_by: 'day',
+    key_id: 'k1',
     start: '2026-11-01T00:00:00.000Z',
   })
+  assert.deepEqual(calls[2]?.config?.params, { days: 1 })
+  assert.equal(calls[2]?.config?.signal, controller.signal)
 })
