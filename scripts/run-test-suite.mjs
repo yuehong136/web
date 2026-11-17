@@ -4,6 +4,7 @@ import { spawn } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import path from 'node:path'
+import { pathToFileURL } from 'node:url'
 import {
   formatInventorySummary,
   groupInventoryByLane,
@@ -45,6 +46,12 @@ function commandForLane(lane, files) {
           resolvePackageBin('tsx', 'tsx'),
           '--tsconfig',
           'tsconfig.app.json',
+          // After tsx's own flags. Components import their stylesheets;
+          // plain Node loads them as empty modules.
+          '--import',
+          pathToFileURL(
+            path.join(import.meta.dirname, 'node-test-register.mjs'),
+          ).href,
           '--test',
           '--test-concurrency=4',
           '--test-force-exit',
