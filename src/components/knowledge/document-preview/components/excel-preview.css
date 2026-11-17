@@ -1,3 +1,49 @@
+/* Excel 预览样式 (与 ragflow excel-csv-previewer 一致) */
+.excel-csv-previewer {
+  background: white;
+  overflow: auto;
+}
+
+.excel-csv-previewer .preview-excel-wrapper {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.excel-csv-previewer .preview-excel-wrapper .luckysheet {
+  width: 100% !important;
+}
+
+/* 确保表格内容正确显示 */
+.excel-csv-previewer table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 13px;
+}
+
+.excel-csv-previewer th,
+.excel-csv-previewer td {
+  border: 1px solid #e5e7eb;
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.excel-csv-previewer th {
+  background-color: #f3f4f6;
+  font-weight: 600;
+  color: #374151;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.excel-csv-previewer tr:nth-child(even) {
+  background-color: #f9fafb;
+}
+
+.excel-csv-previewer tr:hover {
+  background-color: #eff6ff;
+}
+
 /* The previewer's own scrollbars must override the app-wide hidden defaults. */
 .excel-csv-previewer .x-spreadsheet-scrollbar {
   scrollbar-width: thin;

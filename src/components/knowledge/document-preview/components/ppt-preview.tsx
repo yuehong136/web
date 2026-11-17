@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui'
 import { cn } from '@/lib/utils'
 import { ErrorState, LoadingState } from './preview-state'
+import '@/components/knowledge/document-preview/components/ppt-preview.css'
 
 const PptPreviewInner: FC<{
   arrayBuffer?: ArrayBuffer

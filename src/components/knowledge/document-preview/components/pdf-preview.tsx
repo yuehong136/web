@@ -17,6 +17,7 @@ import {
 } from 'react-pdf-highlighter'
 import type { IHighlight } from 'react-pdf-highlighter'
 import 'react-pdf-highlighter/dist/style.css'
+import '@/components/knowledge/document-preview/components/pdf-preview.css'
 import { pdfWorkerSrc } from '../constants'
 import type { RawHighlight } from '../types'
 import { buildPdfHighlights } from '../utils'
