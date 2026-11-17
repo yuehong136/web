@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/popover'
 import { hasKnowledgePlaceholder } from '@/lib/chat/knowledge-prompt'
 import { hasAppRetrievalSource } from '../knowledge-prompt'
-import { renderMarkdown } from '../utils'
+import { renderMarkdown } from './prompt-preview'
 import type { ConfigBindings } from './config-fields'
 import '@uiw/react-md-editor/markdown-editor.css'
 import '@uiw/react-markdown-preview/markdown.css'

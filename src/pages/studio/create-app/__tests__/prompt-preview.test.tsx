@@ -1,7 +1,7 @@
 import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
-import { renderMarkdown } from '../utils'
+import { renderMarkdown } from '../components/prompt-preview'
 
 // As in the chat tests: keep antd-x's diagram/highlighter bundle out of jsdom.
 vi.mock('@ant-design/x', () => ({ Mermaid: () => null }))
