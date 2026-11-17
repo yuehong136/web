@@ -22,18 +22,22 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
   const { isAuthenticated, isLoading, user, hasPermission, hasRole } =
     useAuthStore()
 
-  // 如果正在加载，显示加载状态
+  // While the session resolves, hold the shell tone so nothing flashes.
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div
+        aria-busy="true"
+        data-auth-guard="loading"
+        className="flex min-h-dvh items-center justify-center bg-components-app-shell-bg"
+      >
         <Spinner size="lg" />
       </div>
     )
   }
 
-  // 如果需要认证但用户未登录，重定向到登录页
+  // Signed-out visitors go to sign in and come back afterwards.
   if (requireAuth && !isAuthenticated) {
-    // 检查是否因为token过期而重定向
+    // Keep the "session expired" notice when the API logged the user out.
     const urlParams = new URLSearchParams(window.location.search)
     const isExpired = urlParams.get('expired') === 'true'
 
@@ -48,7 +52,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
     )
   }
 
-  // 如果用户已登录但访问登录/注册页，重定向到仪表板
+  // Signed-in users skip the sign-in and register pages.
   if (
     !requireAuth &&
     isAuthenticated &&
@@ -58,7 +62,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
     return <Navigate to={ROUTES.HOME} replace />
   }
 
-  // 检查权限
+  // Permission and role checks end at the forbidden recovery page.
   if (requiredPermissions.length > 0 && user) {
     const hasAllPermissions = requiredPermissions.every((permission) =>
       hasPermission(permission),
@@ -68,7 +72,6 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
     }
   }
 
-  // 检查角色
   if (requiredRoles.length > 0 && user) {
     const hasAllRoles = requiredRoles.every((role) => hasRole(role))
     if (!hasAllRoles) {

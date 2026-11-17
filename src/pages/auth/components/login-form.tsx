@@ -1,7 +1,7 @@
 import { useConsumedSearchFlag } from '@/hooks/use-consumed-search-flag'
 import React from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { AlertTriangle, Eye, EyeOff, Mail, X } from 'lucide-react'
+import { Eye, EyeOff, LockKeyhole, Mail } from 'lucide-react'
 import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
@@ -13,6 +13,8 @@ import { Spinner } from '@/components/ui/spinner'
 import { ROUTES } from '@/constants'
 import { useAuthStore } from '@/stores/auth'
 import { getSafeLoginRedirect } from '../login-redirect'
+import { AuthAlert } from './auth-alert'
+import { AuthHeading } from './login-frame'
 
 export const LoginForm: React.FC = () => {
   const { t } = useTranslation()
@@ -67,51 +69,32 @@ export const LoginForm: React.FC = () => {
   }
 
   return (
-    <div className="w-full max-w-md">
-      <div className="mb-space-lg">
-        <h1 className="mb-space-xs text-xl font-semibold tracking-tight text-text-primary">
-          {t('auth.login.title')}
-        </h1>
-        <p className="text-sm text-text-secondary">
-          {t('auth.login.description')}
-        </p>
-      </div>
+    <div className="w-full">
+      <AuthHeading
+        title={t('auth.login.title')}
+        description={t('auth.login.description')}
+      />
 
       {showExpiredAlert ? (
-        <div
-          className="mb-space-lg animate-fade-in rounded-radius-lg border border-components-alert-warning-border bg-components-alert-warning-bg px-space-md py-space-base text-components-alert-warning-text shadow-elevation-low"
-          role="alert"
+        <AuthAlert
+          tone="warning"
+          className="mb-space-lg"
+          title={t('auth.login.expiredTitle')}
+          dismissLabel={t('auth.login.closeAlert')}
+          onDismiss={() => setShowExpiredAlert(false)}
         >
-          <div className="flex items-center">
-            <AlertTriangle className="size-icon-md shrink-0" />
-            <div className="ml-space-sm flex-1">
-              <h2 className="text-sm font-medium">
-                {t('auth.login.expiredTitle')}
-              </h2>
-              <p className="mt-space-2xs text-xs">
-                {t('auth.login.expiredDescription')}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setShowExpiredAlert(false)}
-              className="ml-space-sm rounded-radius-md p-space-xs text-components-alert-warning-text hover:bg-status-warning-subtle focus:ring-2 focus:ring-state-focus focus:outline-hidden"
-              aria-label={t('auth.login.closeAlert')}
-            >
-              <X className="size-icon-sm" />
-            </button>
-          </div>
-        </div>
+          {t('auth.login.expiredDescription')}
+        </AuthAlert>
       ) : null}
 
-      <form className="space-y-space-base" onSubmit={handleSubmit(onSubmit)}>
+      <form
+        className="flex flex-col gap-space-base"
+        onSubmit={handleSubmit(onSubmit)}
+        aria-busy={isLoading || undefined}
+        noValidate
+      >
         {errors.root ? (
-          <div
-            className="rounded-radius-md border border-components-alert-error-border bg-components-alert-error-bg px-space-md py-space-base text-components-alert-error-text"
-            role="alert"
-          >
-            {errors.root.message}
-          </div>
+          <AuthAlert tone="error">{errors.root.message}</AuthAlert>
         ) : null}
 
         <Input
@@ -134,11 +117,13 @@ export const LoginForm: React.FC = () => {
           {...register('password')}
           error={errors.password?.message}
           placeholder={t('auth.login.passwordPlaceholder')}
+          leftIcon={<LockKeyhole className="size-icon-sm" />}
           rightIcon={
             <button
               type="button"
               onClick={() => setShowPassword((visible) => !visible)}
-              className="text-text-tertiary transition-colors hover:text-text-secondary"
+              aria-pressed={showPassword}
+              className="flex rounded-radius-sm text-text-tertiary outline-hidden transition-colors hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-focus"
               aria-label={
                 showPassword
                   ? t('auth.login.hidePassword')
@@ -175,7 +160,12 @@ export const LoginForm: React.FC = () => {
           </label>
         </div>
 
-        <Button type="submit" className="w-full" disabled={isLoading}>
+        <Button
+          type="submit"
+          size="lg"
+          className="mt-space-xs w-full"
+          disabled={isLoading}
+        >
           {isLoading ? (
             <>
               <Spinner size="sm" className="mr-space-xs" />
@@ -188,15 +178,15 @@ export const LoginForm: React.FC = () => {
       </form>
 
       {isRegistrationEnabled ? (
-        <div className="mt-space-xl text-center text-sm text-text-secondary">
+        <p className="mt-space-lg border-t border-border-subtle pt-space-base text-center text-sm text-text-secondary">
           {t('auth.login.noAccount')}{' '}
           <Link
             to={ROUTES.REGISTER}
-            className="font-medium text-text-accent hover:text-text-accent/80"
+            className="rounded-radius-sm font-medium text-text-accent underline-offset-2 outline-hidden hover:underline focus-visible:ring-2 focus-visible:ring-state-focus"
           >
             {t('auth.login.register')}
           </Link>
-        </div>
+        </p>
       ) : null}
     </div>
   )

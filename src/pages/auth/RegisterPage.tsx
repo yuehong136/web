@@ -9,7 +9,8 @@ import { ROUTES } from '@/constants'
 import { Progress } from '@/components/ui/progress'
 import { Label } from '@/components/ui/label'
 import { PlatformKind, usePlatform } from '@/platform'
-import { LoginFrame } from './components/login-frame'
+import { AuthAlert } from './components/auth-alert'
+import { AuthHeading, LoginFrame } from './components/login-frame'
 
 interface FormData {
   nickname: string
@@ -38,6 +39,7 @@ export const RegisterPage: React.FC = () => {
   })
   const [showPassword, _setShowPassword] = React.useState(false)
   const [showConfirmPassword, _setShowConfirmPassword] = React.useState(false)
+  const [failed, setFailed] = React.useState(false)
 
   const progress = ((currentStep + 1) / steps.length) * 100
   const step = steps[currentStep]
@@ -59,6 +61,7 @@ export const RegisterPage: React.FC = () => {
   }
 
   const handleSubmit = async () => {
+    setFailed(false)
     try {
       // Only the fields the backend accepts are sent.
       await registerUser({
@@ -69,19 +72,16 @@ export const RegisterPage: React.FC = () => {
       navigate(ROUTES.HOME)
     } catch (error: any) {
       console.error('Registration failed:', error.message || 'unknown error')
+      setFailed(true)
     }
   }
 
   return (
     <LoginFrame desktop={platform.kind === PlatformKind.DESKTOP}>
-      <div className="mb-space-lg">
-        <h1 className="mb-space-xs text-xl font-semibold tracking-tight text-text-primary">
-          {t('auth.register.title')}
-        </h1>
-        <p className="text-sm text-text-secondary">
-          {t('auth.register.description')}
-        </p>
-      </div>
+      <AuthHeading
+        title={t('auth.register.title')}
+        description={t('auth.register.description')}
+      />
 
       <div className="mb-space-lg">
         <div className="mb-space-xs flex justify-between text-xs text-text-tertiary">
@@ -108,7 +108,13 @@ export const RegisterPage: React.FC = () => {
         </div>
       </div>
 
-      <form className="space-y-space-base">
+      <form
+        className="flex flex-col gap-space-base"
+        aria-busy={isLoading || undefined}
+      >
+        {failed ? (
+          <AuthAlert tone="error">{t('auth.register.failed')}</AuthAlert>
+        ) : null}
         {step === 'personal' && (
           <>
             <div>
@@ -223,15 +229,15 @@ export const RegisterPage: React.FC = () => {
         </div>
       </form>
 
-      <div className="mt-space-lg text-center text-sm text-text-secondary">
+      <p className="mt-space-lg border-t border-border-subtle pt-space-base text-center text-sm text-text-secondary">
         {t('auth.register.haveAccount')}{' '}
         <Link
           to={ROUTES.LOGIN}
-          className="font-medium text-text-accent hover:underline"
+          className="rounded-radius-sm font-medium text-text-accent underline-offset-2 outline-hidden hover:underline focus-visible:ring-2 focus-visible:ring-state-focus"
         >
           {t('auth.register.signIn')}
         </Link>
-      </div>
+      </p>
     </LoginFrame>
   )
 }

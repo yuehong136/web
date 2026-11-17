@@ -57,6 +57,7 @@ export const authResource = {
       submitting: 'Creating account...',
       haveAccount: 'Already have an account?',
       signIn: 'Sign in',
+      failed: 'Could not create the account. Check your details and try again.',
     },
   },
 } as const

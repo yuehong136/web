@@ -8,6 +8,7 @@ import {
   ServerCrash,
   ShieldX,
 } from 'lucide-react'
+import { BrandMark } from '@/components/layout/brand-mark'
 import { Button } from '@/components/ui/button'
 import { PageErrorState } from '@/components/patterns'
 import { ROUTES } from '@/constants'
@@ -59,7 +60,7 @@ export function RouteRecoveryPage({ kind, onRetry }: RouteRecoveryPageProps) {
       data-route-recovery-action="home"
       onClick={() => navigate(ROUTES.HOME, { replace: true })}
     >
-      {t('routeErrors.actions.home', '返回首页')}
+      {t('routeErrors.actions.home')}
     </Button>
   )
 
@@ -75,7 +76,7 @@ export function RouteRecoveryPage({ kind, onRetry }: RouteRecoveryPageProps) {
             navigate(ROUTES.LOGIN, { replace: true, state: { from } })
           }
         >
-          {t('routeErrors.actions.login', '重新登录')}
+          {t('routeErrors.actions.login')}
         </Button>
         {homeAction}
       </>
@@ -91,7 +92,7 @@ export function RouteRecoveryPage({ kind, onRetry }: RouteRecoveryPageProps) {
           data-route-recovery-action="retry"
           onClick={onRetry ?? (() => window.location.reload())}
         >
-          {t('routeErrors.actions.retry', '重新加载')}
+          {t('routeErrors.actions.retry')}
         </Button>
         {homeAction}
       </>
@@ -105,7 +106,7 @@ export function RouteRecoveryPage({ kind, onRetry }: RouteRecoveryPageProps) {
           data-route-recovery-action="back"
           onClick={() => navigate(-1)}
         >
-          {t('routeErrors.actions.back', '返回上一页')}
+          {t('routeErrors.actions.back')}
         </Button>
         {homeAction}
       </>
@@ -119,10 +120,12 @@ export function RouteRecoveryPage({ kind, onRetry }: RouteRecoveryPageProps) {
       data-route-error-kind={kind}
       aria-label={t(`routeErrors.${copyKey}.title`)}
       role={kind === RouteErrorKind.NOT_FOUND ? undefined : 'alert'}
-      className="min-h-screen bg-background-body outline-hidden"
+      className="flex min-h-dvh flex-col bg-components-app-shell-bg outline-hidden"
     >
+      {/* Recovery pages stand outside the shell; the wordmark keeps them ours. */}
+      <BrandMark className="self-start px-space-lg pt-space-lg" />
       <PageErrorState
-        className="min-h-screen"
+        className="flex-1"
         titleAs="h1"
         title={t(`routeErrors.${copyKey}.title`)}
         description={t(`routeErrors.${copyKey}.description`)}
