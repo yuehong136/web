@@ -3,6 +3,10 @@ import { ChevronLeft, ChevronRight, Command, PanelLeft } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Tooltip } from '@/components/ui/tooltip'
 import { ProductCommandId, useApplicationCommands } from '@/lib/commands'
+import { cn } from '@/lib/utils'
+
+const ICON_BUTTON =
+  'flex size-8 shrink-0 items-center justify-center rounded-radius-md text-text-secondary outline-hidden transition-colors hover:bg-components-icon-button-bg-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-focus'
 
 interface ToolbarCommandProps {
   command: ProductCommandId
@@ -17,10 +21,10 @@ const ToolbarCommand: React.FC<ToolbarCommandProps> = ({
 }) => {
   const { execute } = useApplicationCommands()
   return (
-    <Tooltip content={label}>
+    <Tooltip content={label} asChild>
       <button
         type="button"
-        className="rounded-radius-md flex size-8 items-center justify-center text-text-secondary transition-colors hover:bg-components-icon-button-bg-hover hover:text-text-primary"
+        className={ICON_BUTTON}
         aria-label={label}
         onClick={() => void execute(command)}
       >
@@ -30,48 +34,106 @@ const ToolbarCommand: React.FC<ToolbarCommandProps> = ({
   )
 }
 
-export const DesktopToolbar: React.FC = () => {
+export interface DesktopToolbarProps {
+  /** Portal target for a page template's or conversation's title row. */
+  titleRef?: React.Ref<HTMLDivElement>
+  /** Portal target for actions placed at the toolbar's end. */
+  actionsRef?: React.Ref<HTMLDivElement>
+  /** A page owns the title area; the palette moves to the end. */
+  titleClaimed?: boolean
+  actionsClaimed?: boolean
+}
+
+/**
+ * The desktop window's one header row: history commands, then the page's
+ * own title and actions (see `workbench-header`), with the command palette
+ * centred while no page claims the title.
+ */
+export const DesktopToolbar: React.FC<DesktopToolbarProps> = ({
+  titleRef,
+  actionsRef,
+  titleClaimed = false,
+  actionsClaimed = false,
+}) => {
   const { t } = useTranslation()
   return (
-    <header className="px-space-sm relative flex h-12 shrink-0 items-center justify-between border-b border-components-main-workbench-border bg-components-main-workbench-surface">
-      <div className="gap-space-2xs flex items-center">
+    <header
+      data-desktop-toolbar
+      className="relative flex min-h-12 shrink-0 items-center gap-space-sm border-b border-components-main-workbench-border bg-components-main-workbench-surface px-space-sm py-space-2xs"
+    >
+      <div className="flex shrink-0 items-center gap-space-2xs">
         <ToolbarCommand
           command={ProductCommandId.TOGGLE_SIDEBAR}
           label={t('desktop.commands.toggleSidebar')}
         >
-          <PanelLeft className="size-icon-sm" />
+          <PanelLeft className="size-icon-sm" aria-hidden="true" />
         </ToolbarCommand>
         <ToolbarCommand
           command={ProductCommandId.NAVIGATE_BACK}
           label={t('desktop.commands.back')}
         >
-          <ChevronLeft className="size-icon-sm" />
+          <ChevronLeft className="size-icon-sm" aria-hidden="true" />
         </ToolbarCommand>
         <ToolbarCommand
           command={ProductCommandId.NAVIGATE_FORWARD}
           label={t('desktop.commands.forward')}
         >
-          <ChevronRight className="size-icon-sm" />
+          <ChevronRight className="size-icon-sm" aria-hidden="true" />
         </ToolbarCommand>
       </div>
-      <ToolbarPaletteButton />
-      <div className="w-24" aria-hidden="true" />
+      <div
+        ref={titleRef}
+        data-workbench-title
+        className={cn(
+          'min-w-0 items-center ps-space-xs',
+          titleClaimed ? 'flex flex-1' : 'hidden',
+        )}
+      />
+      {titleClaimed ? null : <div className="flex-1" aria-hidden="true" />}
+      <ToolbarPaletteButton compact={titleClaimed} />
+      <div
+        ref={actionsRef}
+        data-workbench-actions
+        className={cn(
+          'shrink-0 items-center gap-space-sm',
+          actionsClaimed ? 'flex' : 'hidden',
+        )}
+      />
     </header>
   )
 }
 
-const ToolbarPaletteButton: React.FC = () => {
+const ToolbarPaletteButton: React.FC<{ compact: boolean }> = ({ compact }) => {
   const { execute } = useApplicationCommands()
   const { t } = useTranslation()
+  const label = t('desktop.commands.openPalette')
+  const open = () => void execute(ProductCommandId.OPEN_PALETTE)
+  if (compact)
+    return (
+      <Tooltip content={label} asChild>
+        <button
+          type="button"
+          data-desktop-palette="compact"
+          className={ICON_BUTTON}
+          onClick={open}
+          aria-label={label}
+          aria-keyshortcuts="Control+K Meta+K"
+        >
+          <Command className="size-icon-sm" aria-hidden="true" />
+        </button>
+      </Tooltip>
+    )
   return (
     <button
       type="button"
-      className="gap-space-sm px-space-sm rounded-radius-md absolute left-1/2 flex h-8 -translate-x-1/2 items-center border border-components-button-secondary-border bg-components-button-secondary-bg text-xs text-components-button-secondary-text transition-colors hover:bg-components-button-secondary-bg-hover"
-      onClick={() => void execute(ProductCommandId.OPEN_PALETTE)}
-      aria-label={t('desktop.commands.openPalette')}
+      data-desktop-palette="centred"
+      className="absolute left-1/2 flex h-8 -translate-x-1/2 items-center gap-space-sm rounded-radius-md border border-components-button-secondary-border bg-components-button-secondary-bg px-space-sm text-xs text-components-button-secondary-text outline-hidden transition-colors hover:bg-components-button-secondary-bg-hover focus-visible:ring-2 focus-visible:ring-state-focus"
+      onClick={open}
+      aria-label={label}
+      aria-keyshortcuts="Control+K Meta+K"
     >
-      <Command className="size-icon-sm" />
-      <span>{t('desktop.commands.openPalette')}</span>
+      <Command className="size-icon-sm" aria-hidden="true" />
+      <span>{label}</span>
       <kbd className="text-text-tertiary">⌘/Ctrl K</kbd>
     </button>
   )

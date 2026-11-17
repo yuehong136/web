@@ -7,7 +7,6 @@ import {
   type ComponentProps,
   type FC,
 } from 'react'
-import { FileText } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import {
   AreaHighlight,
@@ -29,7 +28,7 @@ const HighlightPopup = ({
   comment: { text: string; emoji: string }
 }) =>
   comment.text ? (
-    <div className="rounded bg-yellow-100 px-2 py-1 text-xs text-yellow-800 shadow-lg">
+    <div className="rounded-radius-sm bg-status-warning-subtle px-space-sm py-space-2xs text-xs text-status-warning shadow-elevation-medium">
       {comment.emoji} {comment.text}
     </div>
   ) : null
@@ -154,7 +153,7 @@ const PdfPreviewInner: FC<{
   if (!objectUrl) {
     return (
       <ErrorState
-        icon={<FileText className="h-16 w-16" />}
+        fileKind="pdf"
         title={t('knowledge.preview.pdfLoadFailed')}
         message={t('knowledge.preview.unknownError')}
         url={sourceUrl}
@@ -177,7 +176,7 @@ const PdfPreviewInner: FC<{
         }}
         errorMessage={
           <ErrorState
-            icon={<FileText className="h-16 w-16" />}
+            fileKind="pdf"
             title={t('knowledge.preview.pdfRenderFailed')}
             message={t('knowledge.preview.tryOpenInNewWindow')}
             url={sourceUrl}

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { FileText, RotateCcw, ZoomIn, ZoomOut } from 'lucide-react'
+import { RotateCcw, ZoomIn, ZoomOut } from 'lucide-react'
+import { FileKindTile } from '@/components/patterns/file-kind-tile'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 import {
@@ -73,10 +74,7 @@ export const FilledDocxPreview = ({
           className,
         )}
       >
-        <FileText
-          className="size-icon-xl text-text-tertiary"
-          aria-hidden="true"
-        />
+        <FileKindTile name="docx" size="lg" className="mb-space-xs" />
         <p className="text-sm text-text-secondary">
           {t('aiTools.autoFill.preview.empty')}
         </p>

@@ -250,6 +250,20 @@ export default {
     availableSources: '可用数据源',
     availableSourcesDescription: '选择一个数据源类型来创建新的连接',
     emptyTip: '暂未添加数据源，点击下方数据源类型开始添加',
+    emptyStart: {
+      title: '连接第一个数据源',
+      connect: '连接',
+    },
+    connectedCount_one: '{{count}} 个连接',
+    connectedCount_other: '{{count}} 个连接',
+    settingsNamed: '{{name}} 的设置',
+    groups: {
+      storage: '云存储',
+      collaboration: '协作平台',
+      codeRepository: '代码仓库',
+      database: '数据库',
+      communication: '邮件、消息及其他',
+    },
 
     // 添加模态框
     addModalTitle: '添加 {{name}} 数据源',

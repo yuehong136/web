@@ -25,7 +25,8 @@ import {
 import { useDataSourceFormFields, useDataSourceInfo } from '../constants'
 import { DataSourceKey, type FormFieldConfig } from '../types'
 import { DataSourceLogsTable } from './logs-table'
-import { DataSourceStatusBadge, isDataSourceActive } from './status-display'
+import { ConnectorLogo } from '../components/connector-logo'
+import { DataSourceStatusDot, isDataSourceActive } from './status-display'
 import { SyncOverview } from './sync-overview'
 import { DataSourceActions, getScheduleFields } from './schedule-controls'
 import {
@@ -149,6 +150,7 @@ export default function DataSourceDetailPage() {
     <div className="h-full overflow-y-auto bg-components-settings-content-bg">
       <PageHeader
         compact
+        align="center"
         titleSize="md"
         title={detail.name}
         description={sourceInfo?.name}
@@ -163,16 +165,12 @@ export default function DataSourceDetailPage() {
               <ArrowLeft className="size-icon-sm" aria-hidden="true" />
               {t('common.back')}
             </Button>
-            <div className="h-8 w-8" aria-hidden="true">
-              {sourceInfo?.icon}
-            </div>
+            {sourceInfo ? (
+              <ConnectorLogo icon={sourceInfo.icon} size="lg" />
+            ) : null}
           </>
         }
-        actions={
-          <>
-            <DataSourceStatusBadge status={detail.status} />
-          </>
-        }
+        actions={<DataSourceStatusDot status={detail.status} />}
       />
 
       <main className="p-space-lg">

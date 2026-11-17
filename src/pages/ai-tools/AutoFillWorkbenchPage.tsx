@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { WandSparkles } from 'lucide-react'
 import { DetailTemplate } from '@/components/page-templates'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 import {
   ResizableHandle,
   ResizablePanel,
@@ -41,6 +43,13 @@ const AutoFillWorkbenchPage: React.FC = () => {
   return (
     <DetailTemplate
       title={t('aiTools.autoFill.title')}
+      leading={
+        <EntityAvatar
+          seed="ai-tools.auto-fill"
+          icon={<WandSparkles aria-hidden="true" />}
+          size="sm"
+        />
+      }
       actions={<AutoFillSteps current={currentStep} />}
       bodyScroll="none"
     >

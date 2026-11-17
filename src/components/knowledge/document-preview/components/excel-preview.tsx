@@ -1,5 +1,4 @@
 import { memo, useEffect, useRef, useState, type FC } from 'react'
-import { FileSpreadsheet } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { ErrorState, LoadingState } from './preview-state'
 import '@/components/knowledge/document-preview/components/excel-preview.css'
@@ -71,7 +70,7 @@ const ExcelPreviewInner: FC<{
   if (failed) {
     return (
       <ErrorState
-        icon={<FileSpreadsheet className="h-16 w-16" />}
+        fileKind="xlsx"
         title={t('knowledge.preview.excelPreviewFailed')}
         message={t('knowledge.preview.errors.unreadable')}
         url={sourceUrl}
@@ -88,7 +87,7 @@ const ExcelPreviewInner: FC<{
       )}
       <div
         ref={containerRef}
-        className="excel-csv-previewer h-full w-full rounded-md border border-border-default p-4"
+        className="excel-csv-previewer h-full w-full rounded-radius-md border border-border-default p-space-base"
       />
     </div>
   )

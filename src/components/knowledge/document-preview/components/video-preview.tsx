@@ -56,7 +56,7 @@ const VideoPreviewInner: FC<{
   if (!objectUrl) {
     return (
       <ErrorState
-        icon={<Video className="h-16 w-16" />}
+        icon={<Video />}
         title={t('knowledge.preview.videoLoadFailed')}
         url={sourceUrl}
       />
@@ -64,7 +64,7 @@ const VideoPreviewInner: FC<{
   }
 
   return (
-    <div className="relative flex h-full w-full flex-col bg-black">
+    <div className="relative flex h-full w-full flex-col bg-background-subtle">
       <div className="flex flex-1 items-center justify-center overflow-hidden">
         {/* User-uploaded preview files do not expose caption tracks. */}
         {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
@@ -79,13 +79,12 @@ const VideoPreviewInner: FC<{
           onEnded={() => setIsPlaying(false)}
         />
       </div>
-      <div className="bg-background-overlay px-4 py-3 backdrop-blur-xs">
-        <div className="flex items-center gap-3">
+      <div className="shrink-0 border-t border-border-subtle bg-background-surface px-space-md py-space-sm">
+        <div className="flex items-center gap-space-sm">
           <Button
             variant="ghost"
-            size="sm"
             onClick={togglePlay}
-            className="text-white hover:bg-background-surface/20"
+            size="icon-sm"
             aria-label={
               isPlaying
                 ? t('knowledge.preview.pause')
@@ -93,12 +92,12 @@ const VideoPreviewInner: FC<{
             }
           >
             {isPlaying ? (
-              <Pause className="h-5 w-5" />
+              <Pause className="size-icon-md" aria-hidden="true" />
             ) : (
-              <Play className="h-5 w-5" />
+              <Play className="size-icon-md" aria-hidden="true" />
             )}
           </Button>
-          <span className="min-w-[40px] text-xs text-white/80">
+          <span className="min-w-10 text-xs text-text-secondary tabular-nums">
             {formatMediaTime((progress / 100) * duration)}
           </span>
           <input
@@ -108,16 +107,15 @@ const VideoPreviewInner: FC<{
             value={progress}
             onChange={handleSeek}
             aria-label={t('knowledge.preview.videoProgress')}
-            className="h-1 flex-1 cursor-pointer appearance-none rounded-full bg-background-surface/30 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-background-surface"
+            className="h-1 flex-1 cursor-pointer appearance-none rounded-full bg-border-default outline-hidden focus-visible:ring-2 focus-visible:ring-state-focus [&::-webkit-slider-thumb]:size-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-state-focus"
           />
-          <span className="min-w-[40px] text-xs text-white/80">
+          <span className="min-w-10 text-xs text-text-secondary tabular-nums">
             {formatMediaTime(duration)}
           </span>
           <Button
             variant="ghost"
-            size="sm"
             onClick={toggleMute}
-            className="text-white hover:bg-background-surface/20"
+            size="icon-sm"
             aria-label={
               isMuted
                 ? t('knowledge.preview.unmute')
@@ -125,9 +123,9 @@ const VideoPreviewInner: FC<{
             }
           >
             {isMuted ? (
-              <VolumeX className="h-5 w-5" />
+              <VolumeX className="size-icon-md" aria-hidden="true" />
             ) : (
-              <Volume2 className="h-5 w-5" />
+              <Volume2 className="size-icon-md" aria-hidden="true" />
             )}
           </Button>
         </div>

@@ -1,10 +1,36 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
+import XMarkdown, {
+  type ComponentProps,
+  type XMarkdownProps,
+} from '@ant-design/x-markdown'
 import { Button } from '@/components/ui/button'
 import { PageLoadingState, PageEmptyState } from '@/components/patterns'
+import { FileKindTile } from '@/components/patterns/file-kind-tile'
 import { SkillError, saveSkillBlob } from './skill-shared'
+
+const WEB_LINK = /^https?:\/\//
+
+/** Only web links stay clickable, and always in a new, unlinked tab. */
+const SkillLink = ({
+  href,
+  children,
+}: ComponentProps<{ href?: string; children?: ReactNode }>) => (
+  <a
+    href={href && WEB_LINK.test(href) ? href : undefined}
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    {children}
+  </a>
+)
+
+// Skill files are untrusted: remote images are never fetched.
+const NoImage = () => null
+const COMPONENTS = { a: SkillLink, img: NoImage }
+const STATIC = { hasNextChunk: false }
+// Raw HTML is dropped, as before; `escapeRawHtml` keeps it inert regardless.
+const SKIP_HTML: XMarkdownProps['config'] = { renderer: { html: () => '' } }
 
 /** Untrusted Markdown: no raw HTML, remote images, or executable links. */
 export function SkillDocument({
@@ -49,7 +75,8 @@ export function SkillDocument({
   return (
     <div className="flex min-h-0 flex-col gap-space-base">
       <div className="flex flex-wrap items-center justify-between gap-space-sm">
-        <span className="min-w-0 text-sm break-all text-text-secondary">
+        <span className="flex min-w-0 items-center gap-space-sm text-sm break-all text-text-secondary">
+          <FileKindTile name={path} size="sm" />
           {path}
         </span>
         <div className="flex gap-space-sm">
@@ -67,31 +94,17 @@ export function SkillDocument({
         </div>
       </div>
       {content.text === null ? (
-        <p>{t('skills.binary')}</p>
+        <p className="text-sm text-text-secondary">{t('skills.binary')}</p>
       ) : markdown && !source ? (
         <article className="prose max-w-none break-words text-text-primary">
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
-            skipHtml
-            components={{
-              img: () => null,
-              a: ({ href, children }) => (
-                <a
-                  href={
-                    href?.startsWith('https://') || href?.startsWith('http://')
-                      ? href
-                      : undefined
-                  }
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {children}
-                </a>
-              ),
-            }}
+          <XMarkdown
+            components={COMPONENTS}
+            config={SKIP_HTML}
+            streaming={STATIC}
+            escapeRawHtml
           >
             {content.text.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, '')}
-          </ReactMarkdown>
+          </XMarkdown>
         </article>
       ) : (
         <pre className="scroll-area max-h-[60vh] overflow-auto rounded-radius-lg bg-background-subtle p-space-base font-mono text-sm break-words whitespace-pre-wrap">

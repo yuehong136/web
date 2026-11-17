@@ -57,6 +57,7 @@ export const authResource = {
       submitting: '创建中...',
       haveAccount: '已有账户？',
       signIn: '立即登录',
+      failed: '账号创建失败，请检查填写的信息后重试。',
     },
   },
 } as const

@@ -9,6 +9,7 @@ import { changeLanguage } from '@/locales/i18n'
 import AutoFillWorkbenchPage from '../AutoFillWorkbenchPage'
 
 const fill = vi.fn()
+const fillState = vi.hoisted(() => ({ aiFilling: false, aiRawOutput: '' }))
 
 vi.mock('@/components/layout/sidebar-utilities', () => ({
   SidebarUtilities: () => <button>Account</button>,
@@ -43,7 +44,7 @@ vi.mock(
   }),
 )
 vi.mock('../ref/use-structured-ai-fill', () => ({
-  useStructuredAIFill: () => ({ aiFilling: false, aiRawOutput: '', fill }),
+  useStructuredAIFill: () => ({ ...fillState, fill }),
 }))
 
 let container: HTMLDivElement
@@ -85,6 +86,8 @@ beforeEach(async () => {
     this.removeAttribute('open')
   }
   fill.mockReset().mockResolvedValue({ name: 'Ada' })
+  fillState.aiFilling = false
+  fillState.aiRawOutput = ''
   vi.mocked(documentAPI.processDocx).mockResolvedValue({
     placeholders: { name: '' },
     file: btoa('docx'),
@@ -189,4 +192,41 @@ it('moves to the fill step after upload and sends the typed supplement with AI f
   expect(
     container.querySelector<HTMLInputElement>('#placeholder-name')?.value,
   ).toBe('Ada')
+})
+
+it('marks the upload with a Word tile and gives the page its tool identity', async () => {
+  expect(header().querySelector('[data-slot="entity-avatar"]')).not.toBeNull()
+  const zone = container.querySelector('[data-main-task-area] .border-dashed')!
+  expect(
+    zone
+      .querySelector('[data-slot="file-kind-tile"]')
+      ?.getAttribute('data-kind'),
+  ).toBe('doc')
+})
+
+it('shimmers a status line only while AI fills the fields', async () => {
+  await upload()
+  const status = () =>
+    container.querySelector<HTMLOutputElement>('output[aria-live="polite"]')!
+  expect(status().textContent).toBe('')
+  expect(container.querySelector('.text-shimmer')).toBeNull()
+
+  fillState.aiFilling = true
+  fillState.aiRawOutput = '{"name": "A'
+  // Any state change re-renders with the hook's new values.
+  await act(async () => buttonByText(container, 'JSON').click())
+  await act(async () => {
+    const tab = Array.from(
+      container.querySelectorAll<HTMLElement>('[role="tab"]'),
+    ).find((item) => item.textContent === 'JSON')!
+    tab.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }))
+    tab.focus()
+  })
+  expect(status().dataset.aiFilling).toBe('true')
+  expect(status().querySelector('.text-shimmer')?.textContent).toBe(
+    'AI is filling in 1 field…',
+  )
+  expect(
+    container.querySelector('details summary .text-shimmer')?.textContent,
+  ).toBe('AI raw output')
 })

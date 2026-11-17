@@ -1,6 +1,8 @@
 import type { FC, ReactNode } from 'react'
 import { Download, ExternalLink, FileText } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { FileKindTile } from '@/components/patterns/file-kind-tile'
+import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 
 export const LoadingState: FC<{ message?: string }> = ({ message }) => {
@@ -16,49 +18,68 @@ export const LoadingState: FC<{ message?: string }> = ({ message }) => {
   )
 }
 
+/**
+ * The file's identity for a preview state: its type tile when the name or
+ * type is known, otherwise a neutral document glyph.
+ */
+export const PreviewFileMark: FC<{ name?: string; icon?: ReactNode }> = ({
+  name,
+  icon,
+}) =>
+  name ? (
+    <FileKindTile
+      name={name}
+      size="lg"
+      className="size-14 rounded-radius-xl text-sm"
+    />
+  ) : (
+    <span
+      aria-hidden="true"
+      className="flex size-14 items-center justify-center rounded-radius-xl bg-components-page-state-icon-bg text-components-page-state-icon [&_svg]:size-icon-lg"
+    >
+      {icon ?? <FileText />}
+    </span>
+  )
+
 export const ErrorState: FC<{
   icon?: ReactNode
   title?: string
   message?: string
   url?: string
   filename?: string
-}> = ({
-  icon = <FileText className="h-16 w-16" />,
-  title,
-  message,
-  url,
-  filename,
-}) => {
+  /** File name or extension for the type tile, e.g. "report.pdf" or "pdf". */
+  fileKind?: string
+}> = ({ icon, title, message, url, filename, fileKind }) => {
   const { t } = useTranslation()
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center bg-background-subtle p-8">
-      <div className="mb-4 text-text-muted">{icon}</div>
-      <p className="mb-2 text-base font-medium text-text-primary">
-        {title ?? t('knowledge.preview.loadFailed')}
-      </p>
-      <p className="mb-6 max-w-sm text-center text-sm text-text-secondary">
-        {message ?? t('knowledge.preview.unknownError')}
-      </p>
+    <div
+      role="alert"
+      className="flex h-full w-full flex-col items-center justify-center gap-space-md bg-background-subtle p-space-xl text-center"
+    >
+      <PreviewFileMark name={fileKind ?? filename} icon={icon} />
+      <div className="flex max-w-sm flex-col gap-space-xs">
+        <p className="text-base font-medium text-text-primary">
+          {title ?? t('knowledge.preview.loadFailed')}
+        </p>
+        <p className="text-sm text-text-secondary">
+          {message ?? t('knowledge.preview.unknownError')}
+        </p>
+      </div>
       {url && (
-        <div className="flex gap-3">
-          <a
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-lg border border-border-default bg-background-surface px-4 py-2 text-text-accent transition-colors hover:bg-state-hover"
-          >
-            <ExternalLink className="h-4 w-4" />
-            {t('knowledge.preview.openInNewWindow')}
-          </a>
-          {filename && (
-            <a
-              href={url}
-              download={filename}
-              className="inline-flex items-center gap-2 rounded-lg border border-border-default bg-background-surface px-4 py-2 text-text-primary transition-colors hover:bg-state-hover"
-            >
-              <Download className="h-4 w-4" />
-              {t('knowledge.preview.download')}
+        <div className="flex flex-wrap justify-center gap-space-sm">
+          <Button variant="outline" asChild>
+            <a href={url} target="_blank" rel="noopener noreferrer">
+              <ExternalLink className="size-icon-sm" aria-hidden="true" />
+              {t('knowledge.preview.openInNewWindow')}
             </a>
+          </Button>
+          {filename && (
+            <Button variant="outline" asChild>
+              <a href={url} download={filename}>
+                <Download className="size-icon-sm" aria-hidden="true" />
+                {t('knowledge.preview.download')}
+              </a>
+            </Button>
           )}
         </div>
       )}

@@ -9,6 +9,10 @@ import {
 import type { TFunction } from 'i18next'
 import { useTranslation } from 'react-i18next'
 import { Badge, type BadgeProps } from '@/components/ui/badge'
+import {
+  StatusDot,
+  type StatusDotTone,
+} from '@/components/studio/collection-identity'
 import { DataSourceStatus } from '../types'
 
 const STATUS_VARIANTS: Record<DataSourceStatus, BadgeProps['variant']> = {
@@ -18,6 +22,16 @@ const STATUS_VARIANTS: Record<DataSourceStatus, BadgeProps['variant']> = {
   [DataSourceStatus.PAUSED]: 'warning',
   [DataSourceStatus.COMPLETED]: 'success',
   [DataSourceStatus.FAILED]: 'destructive',
+}
+
+// A sync run is a background job, not an AI moment, so running reads as info.
+const STATUS_TONES: Record<DataSourceStatus, StatusDotTone> = {
+  [DataSourceStatus.PENDING]: 'neutral',
+  [DataSourceStatus.RUNNING]: 'info',
+  [DataSourceStatus.SCHEDULED]: 'info',
+  [DataSourceStatus.PAUSED]: 'warning',
+  [DataSourceStatus.COMPLETED]: 'success',
+  [DataSourceStatus.FAILED]: 'error',
 }
 
 export function isDataSourceActive(status?: DataSourceStatus): boolean {
@@ -57,6 +71,24 @@ export function DataSourceStatusBadge({
     <Badge variant={STATUS_VARIANTS[status]}>
       {getDataSourceStatusLabel(t, status)}
     </Badge>
+  )
+}
+
+/** The status as a labelled dot, for connector cards and the detail header. */
+export function DataSourceStatusDot({
+  status = DataSourceStatus.PENDING,
+  className,
+}: {
+  status?: DataSourceStatus
+  className?: string
+}) {
+  const { t } = useTranslation()
+  return (
+    <StatusDot
+      tone={STATUS_TONES[status]}
+      label={getDataSourceStatusLabel(t, status)}
+      className={className}
+    />
   )
 }
 

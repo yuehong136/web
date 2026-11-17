@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { useTranslation } from 'react-i18next'
-import { CheckCircle2, FileUp, Upload } from 'lucide-react'
+import { CheckCircle2, Upload } from 'lucide-react'
+import { FileKindTile } from '@/components/patterns/file-kind-tile'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/lib/toast'
@@ -104,16 +105,20 @@ const FileUpload: React.FC<FileUploadProps> = ({
       <input {...getInputProps()} />
       {isLoading ? (
         <Spinner size="lg" />
-      ) : selectedFile ? (
-        <CheckCircle2
-          className="size-icon-xl text-status-success"
-          aria-hidden="true"
-        />
       ) : (
-        <FileUp
-          className="size-icon-xl text-text-tertiary"
-          aria-hidden="true"
-        />
+        <span className="relative flex">
+          <FileKindTile
+            name={selectedFile?.name ?? 'docx'}
+            size="lg"
+            className="size-12 rounded-radius-lg text-xs"
+          />
+          {selectedFile ? (
+            <CheckCircle2
+              aria-hidden="true"
+              className="absolute -right-space-xs -bottom-space-xs size-icon-sm rounded-radius-full bg-background-surface text-status-success"
+            />
+          ) : null}
+        </span>
       )}
       <div className="flex flex-col gap-space-2xs" aria-live="polite">
         <p className="text-base font-medium text-text-primary">

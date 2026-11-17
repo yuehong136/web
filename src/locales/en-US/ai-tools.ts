@@ -34,6 +34,8 @@ export default {
         filled: '{{filled}}/{{total}} filled',
         settings: 'Settings',
         aiFill: 'AI fill',
+        aiFilling_one: 'AI is filling in {{count}} field…',
+        aiFilling_other: 'AI is filling in {{count}} fields…',
         reset: 'Clear all fields',
         model: 'Model',
         noModel: 'Not selected',

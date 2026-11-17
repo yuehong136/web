@@ -1,5 +1,4 @@
 import { memo, useMemo, type FC } from 'react'
-import { FileSpreadsheet } from 'lucide-react'
 import { parse } from 'papaparse'
 import { useTranslation } from 'react-i18next'
 import type { CSVData } from '../types'
@@ -28,7 +27,7 @@ const CsvPreviewInner: FC<{
   if (content === undefined) {
     return (
       <ErrorState
-        icon={<FileSpreadsheet className="h-16 w-16" />}
+        fileKind="csv"
         title={t('knowledge.preview.csvLoadFailed')}
         message={t('knowledge.preview.csvLoadFailed')}
         url={sourceUrl}
@@ -39,7 +38,7 @@ const CsvPreviewInner: FC<{
   if (!data) {
     return (
       <ErrorState
-        icon={<FileSpreadsheet className="h-16 w-16" />}
+        fileKind="csv"
         title={t('knowledge.preview.csvEmpty')}
         url={sourceUrl}
       />
@@ -47,14 +46,14 @@ const CsvPreviewInner: FC<{
   }
 
   return (
-    <div className="h-full w-full overflow-auto bg-background-surface p-4">
-      <table className="min-w-full divide-y divide-border-default overflow-hidden rounded-lg border border-border-default">
+    <div className="scroll-area h-full w-full overflow-auto bg-background-surface p-space-base">
+      <table className="min-w-full divide-y divide-border-default overflow-hidden rounded-radius-lg border border-border-default">
         <thead className="bg-background-surface">
           <tr>
             {data.headers.map((header, index) => (
               <th
                 key={`header-${index}`}
-                className="border-b border-border-default px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-primary"
+                className="border-b border-border-default bg-background-subtle px-space-base py-space-sm text-left text-xs font-semibold tracking-wider text-text-primary uppercase"
               >
                 {header ||
                   t('knowledge.preview.columnLabel', { no: index + 1 })}
@@ -71,7 +70,7 @@ const CsvPreviewInner: FC<{
               {row.map((cell, cellIndex) => (
                 <td
                   key={`cell-${rowIndex}-${cellIndex}`}
-                  className="whitespace-nowrap px-4 py-3 text-sm text-text-secondary"
+                  className="px-space-base py-space-sm text-sm whitespace-nowrap text-text-secondary"
                 >
                   {cell || '-'}
                 </td>

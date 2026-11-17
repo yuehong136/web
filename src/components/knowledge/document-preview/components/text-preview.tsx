@@ -1,13 +1,62 @@
-import { memo, type FC } from 'react'
-import { FileCode } from 'lucide-react'
-import ReactMarkdown from 'react-markdown'
+import { memo, type FC, type ReactNode } from 'react'
+import XMarkdown, {
+  type ComponentProps,
+  type XMarkdownProps,
+} from '@ant-design/x-markdown'
 import { useTranslation } from 'react-i18next'
-import remarkGfm from 'remark-gfm'
-import remarkBreaks from 'remark-breaks'
 import { ErrorState } from './preview-state'
 
-// Document previews keep TeX literal; chat math belongs to the shared XMarkdown pipeline.
-const MARKDOWN_PREVIEW_PLUGINS = [remarkGfm, remarkBreaks]
+/**
+ * Links and images keep relative targets and http(s)/mailto URLs; any other
+ * scheme (javascript:, data:, vbscript:…) is dropped, as react-markdown's
+ * default URL transform did.
+ */
+export function safeMarkdownUrl(value?: string): string | undefined {
+  if (!value) return undefined
+  const colon = value.indexOf(':')
+  const relative =
+    colon === -1 ||
+    [value.indexOf('/'), value.indexOf('?'), value.indexOf('#')].some(
+      (index) => index !== -1 && index < colon,
+    )
+  return relative || /^(https?|mailto):/i.test(value) ? value : undefined
+}
+
+const PreviewLink = ({
+  href,
+  title,
+  children,
+}: ComponentProps<{ href?: string; title?: string; children?: ReactNode }>) => {
+  const target = safeMarkdownUrl(href)
+  const external = target ? /^https?:/i.test(target) : false
+  return (
+    <a
+      href={target}
+      title={title}
+      target={external ? '_blank' : undefined}
+      rel={external ? 'noopener noreferrer' : undefined}
+    >
+      {children}
+    </a>
+  )
+}
+
+const PreviewImage = ({
+  src,
+  alt,
+  title,
+}: ComponentProps<{ src?: string; alt?: string; title?: string }>) => {
+  const target = safeMarkdownUrl(src)
+  return target ? (
+    <img src={target} alt={alt ?? ''} title={title} loading="lazy" />
+  ) : null
+}
+
+const COMPONENTS = { a: PreviewLink, img: PreviewImage }
+const STATIC = { hasNextChunk: false }
+// Document previews keep TeX literal (chat math belongs to the chat pipeline)
+// and turn single newlines into breaks, as remark-breaks did.
+const PREVIEW_CONFIG: XMarkdownProps['config'] = { gfm: true, breaks: true }
 
 const TextContent: FC<{
   content?: string
@@ -19,7 +68,7 @@ const TextContent: FC<{
   if (content === undefined) {
     return (
       <ErrorState
-        icon={<FileCode className="h-16 w-16" />}
+        fileKind={kind}
         title={
           kind === 'md'
             ? t('knowledge.preview.documentLoadFailed')
@@ -33,18 +82,24 @@ const TextContent: FC<{
 
   if (kind === 'md') {
     return (
-      <div className="h-full w-full overflow-auto bg-background-surface p-6">
-        <div className="prose prose-sm max-w-none">
-          <ReactMarkdown remarkPlugins={MARKDOWN_PREVIEW_PLUGINS}>
+      <div className="scroll-area h-full w-full overflow-auto bg-background-surface px-space-lg py-space-lg">
+        <div className="mx-auto prose prose-sm max-w-3xl">
+          {/* Raw HTML in the file is shown as text, never parsed. */}
+          <XMarkdown
+            components={COMPONENTS}
+            config={PREVIEW_CONFIG}
+            streaming={STATIC}
+            escapeRawHtml
+          >
             {content}
-          </ReactMarkdown>
+          </XMarkdown>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="h-full w-full overflow-auto bg-background-surface p-4">
+    <div className="scroll-area h-full w-full overflow-auto bg-background-surface p-space-base">
       <pre className="font-mono text-sm leading-relaxed break-words whitespace-pre-wrap text-text-secondary">
         {content}
       </pre>

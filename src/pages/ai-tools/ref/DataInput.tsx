@@ -21,6 +21,8 @@ import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
 import { documentAPI } from '@/api/document'
+import { useModelIdentity } from '@/components/models/model-identity'
+import { ProviderLogo } from '@/components/patterns/provider-logo'
 import { copyToClipboardWithFeedback } from '@/lib/clipboard'
 import { toast } from '@/lib/toast'
 import { useStructuredAIFill } from './use-structured-ai-fill'
@@ -56,6 +58,26 @@ const emptyForm = (placeholders: PlaceholderData) =>
   Object.fromEntries(Object.keys(placeholders).map((key) => [key, '']))
 
 const isFilled = (value: string | undefined) => Boolean(value?.trim())
+
+/** The chosen model with its provider logo, or "Not selected". */
+const FillModel = ({ reference }: { reference: string }) => {
+  const { t } = useTranslation()
+  const identity = useModelIdentity({ reference: reference || undefined })
+  if (!reference)
+    return (
+      <span className="text-text-tertiary">
+        {t('aiTools.autoFill.fill.noModel')}
+      </span>
+    )
+  return (
+    <span className="inline-flex min-w-0 items-center gap-space-xs font-medium text-text-primary">
+      {identity.provider ? (
+        <ProviderLogo provider={identity.provider} size="xs" />
+      ) : null}
+      <span className="truncate">{identity.label ?? reference}</span>
+    </span>
+  )
+}
 
 /** Step 2: fill the placeholders by hand, as JSON, or with AI. */
 const DataInput: React.FC<DataInputProps> = ({
@@ -262,7 +284,7 @@ const DataInput: React.FC<DataInputProps> = ({
             {aiFilling ? (
               <Spinner size="sm" />
             ) : (
-              <Sparkles aria-hidden="true" />
+              <Sparkles aria-hidden="true" className="text-components-ai-to" />
             )}
             {t('aiTools.autoFill.fill.aiFill')}
           </Button>
@@ -270,13 +292,11 @@ const DataInput: React.FC<DataInputProps> = ({
       </div>
 
       <div className="flex flex-wrap items-center gap-x-space-md gap-y-space-xs text-sm">
-        <p className="flex items-center gap-space-xs">
+        <p className="flex min-w-0 items-center gap-space-xs">
           <span className="text-text-secondary">
             {t('aiTools.autoFill.fill.model')}
           </span>
-          <span className="font-medium text-text-primary">
-            {llmConfig.llm_name || t('aiTools.autoFill.fill.noModel')}
-          </span>
+          <FillModel reference={llmConfig.llm_name} />
         </p>
         {mcpConfig.mcp_ids.length > 0 ? (
           <p className="flex items-center gap-space-xs text-text-secondary">
@@ -287,6 +307,29 @@ const DataInput: React.FC<DataInputProps> = ({
           </p>
         ) : null}
       </div>
+
+      {/* The one AI moment on this page: the model is filling the fields. */}
+      <output
+        aria-live="polite"
+        data-ai-filling={aiFilling || undefined}
+        className={
+          aiFilling ? 'flex items-center gap-space-xs text-sm' : 'sr-only'
+        }
+      >
+        {aiFilling ? (
+          <>
+            <Sparkles
+              aria-hidden="true"
+              className="size-icon-sm shrink-0 text-components-ai-to"
+            />
+            <span className="text-shimmer">
+              {t('aiTools.autoFill.fill.aiFilling', {
+                count: placeholderKeys.length,
+              })}
+            </span>
+          </>
+        ) : null}
+      </output>
 
       <Tabs
         value={activeTab}
@@ -380,10 +423,10 @@ const DataInput: React.FC<DataInputProps> = ({
             <details className="group rounded-radius-lg border border-border-default">
               <summary className="flex cursor-pointer list-none items-center gap-space-xs px-space-base py-space-sm text-sm font-medium text-text-primary hover:bg-state-hover [&::-webkit-details-marker]:hidden">
                 <Sparkles
-                  className="size-icon-sm text-text-tertiary"
+                  className="size-icon-sm text-components-ai-to"
                   aria-hidden="true"
                 />
-                <span className="flex-1">
+                <span className={aiFilling ? 'flex-1 text-shimmer' : 'flex-1'}>
                   {t('aiTools.autoFill.fill.rawOutput')}
                 </span>
                 <ChevronDown

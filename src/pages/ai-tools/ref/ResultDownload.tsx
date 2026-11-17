@@ -6,10 +6,10 @@ import {
   Clock,
   Download,
   Eye,
-  FileText,
   HardDrive,
   RotateCcw,
 } from 'lucide-react'
+import { FileKindTile } from '@/components/patterns/file-kind-tile'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -95,11 +95,8 @@ const ResultDownload: React.FC<ResultDownloadProps> = ({
         </p>
       </div>
 
-      <div className="flex items-start gap-space-base rounded-radius-lg border border-border-default bg-background-surface p-space-base">
-        <FileText
-          className="size-icon-lg shrink-0 text-text-tertiary"
-          aria-hidden="true"
-        />
+      <div className="flex items-center gap-space-base rounded-radius-xl border border-border-subtle bg-background-surface p-space-base">
+        <FileKindTile name={originalFileName} size="lg" />
         <div className="flex min-w-0 flex-1 flex-col gap-space-xs">
           <p className="truncate text-sm font-medium text-text-primary">
             {originalFileName}

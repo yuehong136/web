@@ -276,6 +276,20 @@ export default {
       'Select a data source type to create a new connection',
     emptyTip:
       'No data sources added yet. Click a data source type below to start adding.',
+    emptyStart: {
+      title: 'Connect your first data source',
+      connect: 'Connect',
+    },
+    connectedCount_one: '{{count}} connection',
+    connectedCount_other: '{{count}} connections',
+    settingsNamed: 'Settings for {{name}}',
+    groups: {
+      storage: 'Cloud storage',
+      collaboration: 'Collaboration',
+      codeRepository: 'Code repositories',
+      database: 'Databases',
+      communication: 'Mail, messaging and more',
+    },
 
     // Add modal
     addModalTitle: 'Add {{name}} Data Source',
