@@ -91,6 +91,9 @@ const syncDialogLabels = (
   }
 }
 
+/** Open dialogs, outermost first; only the last one answers Escape. */
+const openDialogStack: symbol[] = []
+
 export const Dialog: React.FC<DialogProps> = ({
   open,
   onOpenChange,
@@ -244,9 +247,15 @@ export const DialogContent: React.FC<DialogContentProps> = ({
     }
   }, [open, modal, returnFocusRef])
 
-  // Handle escape key
+  // Handle escape key: only the topmost open dialog closes. Every open dialog
+  // listens on document and the outer one registered first, so without the
+  // stack Escape in a nested dialog would close its parent instead.
   React.useEffect(() => {
+    if (!open) return
+    const token = Symbol('dialog')
+    openDialogStack.push(token)
     const handleEscape = (event: KeyboardEvent) => {
+      if (openDialogStack.at(-1) !== token) return
       // Nested Radix layers (menus, alert dialogs) mark Escape they consumed.
       if (event.key === 'Escape' && !event.defaultPrevented) {
         // Avoid a second native cancel after closing this controlled modal.
@@ -254,15 +263,14 @@ export const DialogContent: React.FC<DialogContentProps> = ({
         onOpenChange(false)
       }
     }
-
-    if (open) {
-      document.addEventListener('keydown', handleEscape)
-      document.body.style.overflow = 'hidden'
-    }
+    document.addEventListener('keydown', handleEscape)
+    document.body.style.overflow = 'hidden'
 
     return () => {
       document.removeEventListener('keydown', handleEscape)
-      document.body.style.overflow = 'unset'
+      openDialogStack.splice(openDialogStack.indexOf(token), 1)
+      // The page scrolls again only once the last dialog has closed.
+      if (!openDialogStack.length) document.body.style.overflow = 'unset'
     }
   }, [open, modal, onOpenChange])
 

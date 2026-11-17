@@ -291,3 +291,44 @@ describe('opt-in modal dialog focus', () => {
     expect(onOpenChange).not.toHaveBeenCalled()
   })
 })
+
+describe('nested dialogs', () => {
+  it('closes only the topmost dialog on Escape and keeps the page locked until the last one closes', async () => {
+    const closeOuter = vi.fn()
+    const closeInner = vi.fn()
+    const render = (inner: boolean) =>
+      act(async () =>
+        root.render(
+          <Dialog open onOpenChange={closeOuter}>
+            <DialogContent modal>
+              <DialogTitle>Manager</DialogTitle>
+              <Dialog open={inner} onOpenChange={closeInner}>
+                <DialogContent modal>
+                  <DialogTitle>Add variable</DialogTitle>
+                </DialogContent>
+              </Dialog>
+            </DialogContent>
+          </Dialog>,
+        ),
+      )
+    // As in the app: the manager opens first, the nested dialog from inside it.
+    await render(false)
+    await render(true)
+    await act(async () => {
+      document.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Escape', cancelable: true }),
+      )
+    })
+    expect(closeInner).toHaveBeenCalledWith(false)
+    expect(closeOuter).not.toHaveBeenCalled()
+    await render(false)
+    // The manager is still open, so the page stays locked.
+    expect(document.body.style.overflow).toBe('hidden')
+    await act(async () => {
+      document.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Escape', cancelable: true }),
+      )
+    })
+    expect(closeOuter).toHaveBeenCalledWith(false)
+  })
+})
