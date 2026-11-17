@@ -30,6 +30,9 @@ export const namespacesForPath = (pathname: string): LocaleNamespace[] => {
       'mcp',
       'knowledge',
     )
+    // The API reference manages request environments.
+    if (/^\/settings\/api\/docs(\/|$)/.test(pathname))
+      domains.push('environment')
   } else if (/^\/(studio|dialogs?)(\/|$)/.test(pathname)) {
     // `agents`: the Studio list suggests agent templates.
     domains.push(

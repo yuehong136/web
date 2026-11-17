@@ -74,7 +74,7 @@ export const koreanTranslationStatus = {
   },
   settings: {
     translated: 96,
-    englishFallback: 188,
+    englishFallback: 185,
   },
   sandbox: {
     translated: 4,
@@ -103,5 +103,9 @@ export const koreanTranslationStatus = {
   reference: {
     translated: 3,
     englishFallback: 22,
+  },
+  environment: {
+    translated: 0,
+    englishFallback: 140,
   },
 } as const

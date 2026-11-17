@@ -1,13 +1,12 @@
 import { useTranslation } from 'react-i18next'
 import { Badge } from '@/components/ui/badge'
-import { Label } from '@/components/ui/label'
 
 interface ResolvedVariablesSummaryProps {
   variablesUsed: string[]
   missingVariables: string[]
 }
 
-// 变量解析预览中的"使用的变量 / 缺失的变量"，从 EnvironmentDetail 抽出以控制文件体积。
+/** The variables a resolution used, and the references it could not resolve. */
 export function ResolvedVariablesSummary({
   variablesUsed,
   missingVariables,
@@ -17,32 +16,38 @@ export function ResolvedVariablesSummary({
   return (
     <>
       {variablesUsed.length > 0 && (
-        <div className="space-y-2">
-          <Label>{t('settings.environment.variablesUsed')}</Label>
-          <div className="flex flex-wrap gap-1">
+        <div className="space-y-space-xs">
+          <h3 className="text-sm font-medium text-text-primary">
+            {t('environment.resolve.variablesUsed')}
+          </h3>
+          <ul className="flex flex-wrap gap-space-xs">
             {variablesUsed.map((variable) => (
-              <Badge key={variable} variant="secondary" className="text-xs">
-                {variable}
-              </Badge>
+              <li key={variable}>
+                <Badge variant="success" className="font-mono">
+                  {variable}
+                </Badge>
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
       )}
 
       {missingVariables.length > 0 && (
-        <div className="space-y-2">
-          <Label className="text-status-error">
-            {t('settings.environment.missingVariables')}
-          </Label>
-          <div className="flex flex-wrap gap-1">
+        <div className="space-y-space-xs">
+          <h3 className="text-sm font-medium text-status-error">
+            {t('environment.resolve.missingVariables')}
+          </h3>
+          <ul className="flex flex-wrap gap-space-xs">
             {missingVariables.map((variable) => (
-              <Badge key={variable} variant="destructive" className="text-xs">
-                {variable}
-              </Badge>
+              <li key={variable}>
+                <Badge variant="destructive" className="font-mono">
+                  {variable}
+                </Badge>
+              </li>
             ))}
-          </div>
-          <p className="text-xs text-status-error">
-            {t('settings.environment.missingVariablesHint')}
+          </ul>
+          <p className="text-xs text-text-tertiary">
+            {t('environment.resolve.missingVariablesHint')}
           </p>
         </div>
       )}

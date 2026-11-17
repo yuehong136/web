@@ -24,6 +24,7 @@ import routeErrors from './route-errors'
 import { authResource as auth } from './auth'
 import { desktopResource as desktop } from './desktop'
 import aiTools from './ai-tools'
+import environment from './environment'
 
 export default {
   ...sandboxResource,
@@ -52,4 +53,5 @@ export default {
   ...auth,
   ...desktop,
   ...aiTools,
+  ...environment,
 }

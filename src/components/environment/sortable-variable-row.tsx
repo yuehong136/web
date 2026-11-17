@@ -1,14 +1,16 @@
+import { useTranslation } from 'react-i18next'
 import {
+  Check,
+  Copy,
+  Edit3,
   Eye,
   EyeOff,
-  Copy,
-  Check,
   GripVertical,
-  Edit3,
   Trash2,
 } from 'lucide-react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -19,10 +21,10 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { Badge } from '@/components/ui/badge'
 import { TableCell, TableRow } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
 import type { EnvironmentVariable, VariableType } from '@/types/api'
+import { VARIABLE_TYPES, maskSecret } from './environment-variables'
 
 export interface EditableVariable extends EnvironmentVariable {
   _isNew?: boolean
@@ -39,11 +41,14 @@ interface SortableRowProps {
   onDelete: () => void
   onToggleVisibility: () => void
   onCopy: () => void
-  onFieldChange: (field: keyof EnvironmentVariable, value: any) => void
+  onFieldChange: <K extends keyof EnvironmentVariable>(
+    field: K,
+    value: EnvironmentVariable[K],
+  ) => void
   copiedVariable: string | null
 }
 
-// 可拖拽排序的变量行，从 EnvironmentVariablesTable 抽出以控制文件体积。
+/** A saved variable row: drag to reorder, edit inline, reveal or copy the value. */
 export function SortableRow({
   variable,
   isEditing,
@@ -56,6 +61,7 @@ export function SortableRow({
   onFieldChange,
   copiedVariable,
 }: SortableRowProps) {
+  const { t } = useTranslation()
   const {
     attributes,
     listeners,
@@ -64,176 +70,186 @@ export function SortableRow({
     transition,
     isDragging,
   } = useSortable({ id: variable.id })
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  }
-
-  const displayValue =
-    variable.is_secret && !variable._showValue
-      ? '•'.repeat(Math.min(variable.key_value.length, 8))
-      : variable.key_value
+  const name = variable.key_name
+  const hidden = variable.is_secret && !variable._showValue
 
   return (
     <TableRow
       ref={setNodeRef}
-      style={style}
-      className={cn(isDragging && 'opacity-50', isEditing && 'bg-muted/50')}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
+      className={cn(
+        isDragging && 'relative z-10 bg-components-card-bg opacity-80',
+        isEditing && 'bg-state-hover',
+      )}
     >
-      {/* 拖拽手柄 */}
       <TableCell className="w-8">
-        <div
+        <button
+          type="button"
           {...attributes}
           {...listeners}
-          className="cursor-grab rounded p-1 hover:bg-muted active:cursor-grabbing"
+          aria-label={t('environment.variables.dragHandle', { name })}
+          className="flex cursor-grab items-center rounded-radius-sm p-space-2xs text-text-tertiary outline-hidden hover:bg-state-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-focus active:cursor-grabbing"
         >
-          <GripVertical className="h-4 w-4 text-muted-foreground" />
-        </div>
+          <GripVertical className="size-icon-sm" aria-hidden="true" />
+        </button>
       </TableCell>
 
-      {/* 变量名 */}
       <TableCell className="font-mono">
         {isEditing ? (
           <Input
+            inputSize="sm"
             value={variable.key_name}
-            onChange={(e) => onFieldChange('key_name', e.target.value)}
-            placeholder="变量名"
-            className="h-8"
+            onChange={(event) => onFieldChange('key_name', event.target.value)}
+            aria-label={t('environment.variables.columns.name')}
+            placeholder={t('environment.variables.namePlaceholder')}
+            spellCheck={false}
           />
         ) : (
-          <span className="text-sm">{variable.key_name}</span>
+          <span className="text-sm text-text-primary">{name}</span>
         )}
       </TableCell>
 
-      {/* 类型 */}
       <TableCell>
         {isEditing ? (
           <Select
             value={variable.variable_type}
-            onValueChange={(value: string) =>
+            onValueChange={(value) =>
               onFieldChange('variable_type', value as VariableType)
             }
           >
-            <SelectTrigger className="h-8">
+            <SelectTrigger
+              className="min-h-[var(--control-height-sm)]"
+              aria-label={t('environment.variables.columns.type')}
+            >
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="string">字符串</SelectItem>
-              <SelectItem value="number">数字</SelectItem>
-              <SelectItem value="boolean">布尔值</SelectItem>
+              {VARIABLE_TYPES.map((type) => (
+                <SelectItem key={type} value={type}>
+                  {t(`environment.variables.types.${type}`)}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         ) : (
-          <Badge variant="secondary" className="text-xs">
+          <Badge variant="secondary" className="font-mono">
             {variable.variable_type}
           </Badge>
         )}
       </TableCell>
 
-      {/* 本地值 */}
       <TableCell className="max-w-xs">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-space-xs">
           {isEditing ? (
             <Input
+              inputSize="sm"
               value={variable.key_value}
-              onChange={(e) => onFieldChange('key_value', e.target.value)}
-              type={
-                variable.is_secret && !variable._showValue ? 'password' : 'text'
+              onChange={(event) =>
+                onFieldChange('key_value', event.target.value)
               }
-              placeholder="变量值"
-              className="h-8 font-mono text-sm"
+              type={hidden ? 'password' : 'text'}
+              aria-label={t('environment.variables.columns.localValue')}
+              placeholder={t('environment.variables.valuePlaceholder')}
+              className="font-mono"
+              spellCheck={false}
+              autoComplete="off"
             />
           ) : (
-            <code className="flex-1 truncate font-mono text-sm">
-              {displayValue}
+            <code className="min-w-0 flex-1 truncate font-mono text-sm text-text-primary">
+              {hidden ? maskSecret(variable.key_value) : variable.key_value}
             </code>
           )}
-
           {variable.is_secret && (
             <Button
               variant="ghost"
-              size="sm"
+              size="icon-sm"
               onClick={onToggleVisibility}
-              className="h-8 w-8 p-0"
+              aria-label={t(
+                variable._showValue
+                  ? 'environment.variables.hide'
+                  : 'environment.variables.show',
+                { name },
+              )}
+              aria-pressed={Boolean(variable._showValue)}
             >
               {variable._showValue ? (
-                <EyeOff className="h-4 w-4" />
+                <EyeOff aria-hidden="true" />
               ) : (
-                <Eye className="h-4 w-4" />
+                <Eye aria-hidden="true" />
               )}
             </Button>
           )}
-
           <Button
             variant="ghost"
-            size="sm"
+            size="icon-sm"
             onClick={onCopy}
-            className="h-8 w-8 p-0"
+            aria-label={t('environment.variables.copy', { name })}
           >
             {copiedVariable === variable.id ? (
-              <Check className="h-4 w-4 text-green-600" />
+              <Check className="text-status-success" aria-hidden="true" />
             ) : (
-              <Copy className="h-4 w-4" />
+              <Copy aria-hidden="true" />
             )}
           </Button>
         </div>
       </TableCell>
 
-      {/* 密钥 */}
       <TableCell className="text-center">
         <Switch
           checked={variable.is_secret}
           onCheckedChange={(checked) => onFieldChange('is_secret', checked)}
           disabled={!isEditing}
+          aria-label={t('environment.variables.secretToggle', { name })}
         />
       </TableCell>
 
-      {/* 说明 */}
       <TableCell className="max-w-xs">
         {isEditing ? (
           <Input
-            value={variable.description}
-            onChange={(e) => onFieldChange('description', e.target.value)}
-            placeholder="说明（可选）"
-            className="h-8"
+            inputSize="sm"
+            value={variable.description ?? ''}
+            onChange={(event) =>
+              onFieldChange('description', event.target.value)
+            }
+            aria-label={t('environment.variables.columns.description')}
+            placeholder={t('environment.variables.descriptionPlaceholder')}
           />
         ) : (
-          <span className="truncate text-sm text-muted-foreground">
+          <span className="line-clamp-2 text-sm text-text-secondary">
             {variable.description || ''}
           </span>
         )}
       </TableCell>
 
-      {/* 操作 */}
       <TableCell>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-space-2xs">
           {isEditing ? (
             <>
               <Button variant="outline" size="sm" onClick={onCancel}>
-                取消
+                {t('common.cancel')}
               </Button>
               <Button size="sm" onClick={onSave}>
-                保存
+                {t('common.save')}
               </Button>
             </>
           ) : (
             <>
               <Button
                 variant="ghost"
-                size="sm"
+                size="icon-sm"
                 onClick={onEdit}
-                className="h-8 w-8 p-0"
+                aria-label={t('environment.variables.edit', { name })}
               >
-                <Edit3 className="h-4 w-4" />
+                <Edit3 aria-hidden="true" />
               </Button>
               <Button
                 variant="ghost"
-                size="sm"
+                size="icon-sm"
                 onClick={onDelete}
-                className="h-8 w-8 p-0 text-status-error"
+                aria-label={t('environment.variables.delete', { name })}
+                className="text-status-error hover:bg-status-error-subtle hover:text-status-error"
               >
-                <Trash2 className="h-4 w-4" />
+                <Trash2 aria-hidden="true" />
               </Button>
             </>
           )}
