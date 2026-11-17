@@ -134,15 +134,16 @@ async function flush() {
 }
 // Saves, readbacks, invalidations and catalog pages land on later macrotasks
 // with no bounded duration, so wait for the observable outcome instead of a
-// fixed delay. The bound only detects hangs; keep it well above a render under
-// parallel load.
+// fixed delay. The bound only detects hangs; under the full parallel suite a
+// render can take seconds, so it and the tests' own timeout leave room.
+vi.setConfig({ testTimeout: 30_000 })
 async function waitForState(check: () => void) {
   await vi.waitFor(
     async () => {
       await flush()
       check()
     },
-    { timeout: 4000 },
+    { timeout: 20_000 },
   )
 }
 // Cache state settles before observers are notified on a later macrotask, so

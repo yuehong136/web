@@ -36,6 +36,11 @@ function countCommit() {
     throw new Error(`Settings page exceeded ${COMMIT_BUDGET} commits`)
   }
 }
+// Waits only detect hangs. Under the full parallel suite one full-page render
+// can take seconds, so the bound and the tests' own timeout leave room for it.
+const WAIT_BOUND = 20_000
+vi.setConfig({ testTimeout: 30_000 })
+
 // A settled page stops committing; an async loop never goes quiet.
 async function waitForQuiet() {
   let previous = -1
@@ -48,14 +53,13 @@ async function waitForQuiet() {
       previous = commits
       expect(quiet, `still committing (${commits})`).toBe(true)
     },
-    { timeout: 4000, interval: 0 },
+    { timeout: WAIT_BOUND, interval: 0 },
   )
 }
 
 // Queries resolve on later macrotasks and dependent ones (the pipeline catalog)
 // only start after the form renders, so wait for outcomes, not a fixed delay.
-// The bound only detects hangs: one full-page render can exceed vitest's 1s
-// default under parallel load, so keep it just below the 5s test timeout.
+// The bound only detects hangs (see WAIT_BOUND).
 async function waitForPage(check: () => void) {
   await vi.waitFor(
     async () => {
@@ -64,7 +68,7 @@ async function waitForPage(check: () => void) {
       })
       check()
     },
-    { timeout: 4000 },
+    { timeout: WAIT_BOUND },
   )
 }
 async function render() {
@@ -118,12 +122,14 @@ async function selectOption(label: string, value: string) {
   await act(async () =>
     field(label).querySelector<HTMLButtonElement>('[role=combobox]')!.click(),
   )
-  await vi.waitFor(() =>
-    expect(
-      [...document.querySelectorAll('[role=option]')].some(
-        (element) => element.getAttribute('data-value') === value,
-      ),
-    ).toBe(true),
+  await vi.waitFor(
+    () =>
+      expect(
+        [...document.querySelectorAll('[role=option]')].some(
+          (element) => element.getAttribute('data-value') === value,
+        ),
+      ).toBe(true),
+    { timeout: WAIT_BOUND },
   )
   const option = [
     ...document.querySelectorAll<HTMLElement>('[role=option]'),
@@ -341,8 +347,9 @@ it('retains an edited parser draft when delayed model loading and refresh update
     },
   }
   await act(async () => finishModelLoad(models))
-  await vi.waitFor(() =>
-    expect(client.getQueryData(llmKeys.myLLMs())).toEqual(models),
+  await vi.waitFor(
+    () => expect(client.getQueryData(llmKeys.myLLMs())).toEqual(models),
+    { timeout: WAIT_BOUND },
   )
   await act(async () => {
     await new Promise((resolve) => setTimeout(resolve, 20))
@@ -483,10 +490,12 @@ it('saves distinct OCR models and a full vision deployment ID, reads them back, 
         ?.layout_recognize,
     ).toBe(selection.value)
     await reload()
-    await vi.waitFor(() =>
-      expect(
-        field('PDF parser').querySelector('[role=combobox]')?.textContent,
-      ).toContain(selection.label),
+    await vi.waitFor(
+      () =>
+        expect(
+          field('PDF parser').querySelector('[role=combobox]')?.textContent,
+        ).toContain(selection.label),
+      { timeout: WAIT_BOUND },
     )
   }
 
