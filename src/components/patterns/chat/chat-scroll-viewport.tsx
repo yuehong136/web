@@ -1,27 +1,33 @@
-import { useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ArrowDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useChatScrollFollow } from '@/hooks/use-chat-scroll-follow'
+import { ChatJumpToLatest } from './chat-jump-to-latest'
 
 interface ChatScrollViewportProps {
   children: ReactNode
-  /** A new value re-attaches the view to the latest content, e.g. after a send. */
-  followKey?: string | number | null
+  /**
+   * The newest question's id. When it changes while a reply is pending, the
+   * question is anchored near the top; a loaded conversation opens at the
+   * latest message instead. Questions carry `data-turn-id`.
+   */
+  anchorKey?: string | number | null
+  /** A reply is being prepared or streamed. */
+  pending?: boolean
   isStreaming?: boolean
   className?: string
   contentClassName?: string
 }
 
 /**
- * Scrollable chat log that owns follow/read behaviour. While the reader is
- * scrolled up, new content does not move the view; a button returns to the
- * latest message instead.
+ * Scrollable chat log that owns anchoring and follow/read behaviour. While
+ * the reader is scrolled away from the latest content nothing moves; a button
+ * returns to the latest message instead.
  */
 export function ChatScrollViewport({
   children,
-  followKey,
+  anchorKey,
+  pending = false,
   isStreaming = false,
   className,
   contentClassName,
@@ -30,19 +36,15 @@ export function ChatScrollViewport({
   const {
     containerRef,
     contentRef,
+    container,
     isFollowing,
     hasNewContent,
-    handleScroll,
     scrollToLatest,
-  } = useChatScrollFollow()
-
-  useEffect(() => {
-    scrollToLatest()
-  }, [followKey, scrollToLatest])
+  } = useChatScrollFollow({ anchorKey, pending: pending || isStreaming })
 
   const jumpToLatest = () => {
     scrollToLatest('smooth')
-    containerRef.current?.focus({ preventScroll: true })
+    container?.focus({ preventScroll: true })
   }
 
   return (
@@ -55,7 +57,6 @@ export function ChatScrollViewport({
         aria-label={t('chat.scroll.region')}
         // 跳回最新消息后接住焦点，避免按钮消失时焦点落到 body
         tabIndex={-1}
-        onScroll={handleScroll}
         className={cn(
           'min-h-0 flex-1 overflow-y-auto outline-hidden focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:ring-inset',
           className,
@@ -64,20 +65,15 @@ export function ChatScrollViewport({
         <div ref={contentRef} className={contentClassName}>
           {children}
         </div>
+        {/* Room below a short answer so its question can stay at the top. */}
+        <div
+          aria-hidden="true"
+          data-chat-anchor-space
+          style={{ height: 'var(--chat-anchor-space, 0px)' }}
+        />
       </div>
       {!isFollowing && (
-        <button
-          type="button"
-          onClick={jumpToLatest}
-          className="absolute bottom-space-md left-1/2 flex -translate-x-1/2 items-center gap-space-xs rounded-radius-full border border-border-default bg-components-card-bg px-space-md py-space-xs text-sm text-text-secondary shadow-elevation-medium outline-hidden transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-focus"
-        >
-          <ArrowDown className="size-icon-sm" aria-hidden="true" />
-          <span>
-            {hasNewContent
-              ? t('chat.scroll.newContent')
-              : t('chat.scroll.latest')}
-          </span>
-        </button>
+        <ChatJumpToLatest hasNewContent={hasNewContent} onJump={jumpToLatest} />
       )}
     </div>
   )

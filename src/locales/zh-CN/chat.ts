@@ -149,7 +149,7 @@ export default {
     },
     scroll: {
       region: '对话消息',
-      latest: '回到底部',
+      latest: '回到最新',
       newContent: '有新内容',
     },
     knowledgePrompt: {

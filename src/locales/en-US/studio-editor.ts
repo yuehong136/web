@@ -49,7 +49,6 @@ export const studioEditor = {
   modelDefault: 'Use model default',
   copy: 'Copy response',
   retry: 'Retry the last message',
-  bottom: 'Back to bottom',
   thinking: 'Reasoning',
   idle: 'Ready to test',
   preparing: 'Preparing conversation…',

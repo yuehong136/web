@@ -46,7 +46,6 @@ export const studioEditor = {
   modelDefault: '使用模型默认值',
   copy: '复制回复',
   retry: '重试上一条消息',
-  bottom: '回到底部',
   thinking: '思考过程',
   idle: '等待试聊',
   preparing: '准备会话…',

@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react'
+import { useLayoutEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Bubble, type BubbleListProps } from '@ant-design/x'
 import { ChatBubbleLoading } from '@/components/chat/ChatBubbleLoading'
@@ -6,6 +6,8 @@ import { MessageActionBar } from '@/components/chat/message-action-bar'
 import { MessageActionsFooter } from '@/components/chat/MessageActionsFooter'
 import { CHAT_BUBBLE_ROLES } from '@/components/chat/antx-chat-config'
 import { TurnRail, type ThreadTurn } from '@/components/chat/turn-rail'
+import { ChatJumpToLatest } from '@/components/patterns/chat/chat-jump-to-latest'
+import { useChatScrollFollow } from '@/hooks/use-chat-scroll-follow'
 import { ExploreChatAnswer } from './explore-chat-answer'
 import { ExploreRunNotice } from './explore-run-notice'
 import { ExploreMessageAttachments } from './message-attachments'
@@ -34,6 +36,32 @@ export function ExploreThread({
 }: ExploreThreadProps) {
   const { t } = useTranslation()
   const root = useRef<HTMLDivElement>(null)
+  const latestQuestion = messages.findLastIndex(
+    (message) => message.role === 'user',
+  )
+  // Same scrolling as Home: the newest question is anchored near the top and
+  // its answer streams in below; a loaded conversation opens at the latest.
+  const scroll = useChatScrollFollow({
+    anchorKey:
+      latestQuestion < 0
+        ? null
+        : messageKey(messages[latestQuestion], latestQuestion),
+    pending: isStreaming,
+  })
+  const { containerRef, contentRef } = scroll
+  // Bubble.List hands its scroll box to its ref only after a second render;
+  // the element itself is in the DOM from the first commit.
+  useLayoutEffect(() => {
+    const box = root.current?.querySelector<HTMLElement>(
+      '.ant-bubble-list-scroll-box',
+    )
+    containerRef(box ?? null)
+    contentRef(
+      box?.querySelector<HTMLElement>(
+        ':scope > .ant-bubble-list-scroll-content',
+      ) ?? null,
+    )
+  }, [containerRef, contentRef])
   const lastAnswer = messages.findLastIndex(
     (message) => message.role === 'assistant',
   )
@@ -111,13 +139,19 @@ export function ExploreThread({
       {/* Full-width scroller (scrollbar at the edge), bubbles in the reading column. */}
       <Bubble.List
         items={items}
-        autoScroll
+        autoScroll={false}
         className="h-full"
         // The reading column is set in app-chat-message.css (.explore-chat-area).
         classNames={{ scroll: 'px-space-md py-space-lg sm:px-space-lg' }}
         role={CHAT_BUBBLE_ROLES}
       />
       <TurnRail turns={turns} rootRef={root} />
+      {!scroll.isFollowing && (
+        <ChatJumpToLatest
+          hasNewContent={scroll.hasNewContent}
+          onJump={() => scroll.scrollToLatest('smooth')}
+        />
+      )}
     </div>
   )
 }

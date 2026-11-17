@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ArrowDown, Bug, Maximize2, Minimize2, RotateCcw } from 'lucide-react'
+import { Bug, Maximize2, Minimize2, RotateCcw } from 'lucide-react'
 import { StudioPanelShell } from '@/components/patterns'
+import { ChatScrollViewport } from '@/components/patterns/chat/chat-scroll-viewport'
 import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import Bubble from '@ant-design/x/es/bubble'
@@ -67,9 +68,6 @@ export function PreviewPane(props: PreviewPaneProps) {
     onFocus,
   } = props
   const { t } = useTranslation()
-  const scrollRef = useRef<HTMLDivElement>(null)
-  const following = useRef(true)
-  const [showBottom, setShowBottom] = useState(false)
   const [stoppedMessageId, setStoppedMessageId] = useState<string | null>(null)
   const [detailsOpen, setDetailsOpen] = useState(false)
   const [reference, setReference] = useState<{
@@ -83,10 +81,6 @@ export function PreviewPane(props: PreviewPaneProps) {
   )
   const blocked =
     isDirty || !savedConfig || previewStale || requiredVariables || saving
-  useEffect(() => {
-    const element = scrollRef.current
-    if (element && following.current) element.scrollTop = element.scrollHeight
-  }, [previewMessages, status])
   const send = (value: string) => {
     if (!blocked && !isStreaming) void handleSendPreviewMessage(value)
   }
@@ -94,6 +88,9 @@ export function PreviewPane(props: PreviewPaneProps) {
   const lastAssistant = previewMessages.findLastIndex(
     (message) => message.role === 'assistant',
   )
+  const lastQuestion = previewMessages.findLast(
+    (message) => message.role === 'user',
+  )?.id
   return (
     <StudioPanelShell
       density="compact"
@@ -147,33 +144,25 @@ export function PreviewPane(props: PreviewPaneProps) {
       }
       bodyClassName="relative flex min-h-0 flex-col"
     >
-      <div
-        ref={scrollRef}
-        className="app-chat-area min-h-0 flex-1 overflow-y-auto overscroll-contain p-space-base"
-        onScroll={() => {
-          const element = scrollRef.current
-          if (!element) return
-          following.current =
-            element.scrollHeight - element.scrollTop - element.clientHeight < 64
-          setShowBottom(!following.current)
-        }}
+      {/* Same scrolling as Home and Explore: a new question is anchored near
+          the top while its answer streams in below. */}
+      <ChatScrollViewport
+        anchorKey={lastQuestion}
+        isStreaming={isStreaming}
+        className="app-chat-area overscroll-contain p-space-base"
+        contentClassName="mx-auto max-w-prose space-y-space-base"
       >
-        <div
-          className="mx-auto max-w-prose space-y-space-base"
-          aria-live="polite"
-          aria-busy={isStreaming}
-        >
-          {previewMessages.map((message, index) => {
-            const active = isStreaming && index === lastAssistant
-            const user = message.role === 'user'
-            const canRegenerate =
-              !active &&
-              index === lastAssistant &&
-              !blocked &&
-              !message.id.startsWith('prologue-')
-            return (
+        {previewMessages.map((message, index) => {
+          const active = isStreaming && index === lastAssistant
+          const user = message.role === 'user'
+          const canRegenerate =
+            !active &&
+            index === lastAssistant &&
+            !blocked &&
+            !message.id.startsWith('prologue-')
+          return (
+            <div key={message.id} data-turn-id={user ? message.id : undefined}>
               <Bubble
-                key={message.id}
                 {...getAppChatBubbleProps(
                   message.role,
                   savedConfig ?? undefined,
@@ -231,42 +220,25 @@ export function PreviewPane(props: PreviewPaneProps) {
                   ) : undefined
                 }
               />
-            )
-          })}
-          {(status === 'failed' || status === 'interrupted') && (
-            <Alert variant="warning" className="space-y-space-sm">
-              <output className="block text-sm">
-                {t(`studio.editor.${requestStatus}`)}
-              </output>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={blocked || isStreaming}
-                onClick={handleRetryPreview}
-              >
-                {t('studio.editor.retry')}
-              </Button>
-            </Alert>
-          )}
-        </div>
-      </div>
-      {showBottom && (
-        <div className="flex shrink-0 justify-center py-space-xs">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => {
-              const element = scrollRef.current
-              if (element) element.scrollTop = element.scrollHeight
-              following.current = true
-              setShowBottom(false)
-            }}
-          >
-            <ArrowDown className="mr-space-xs size-icon-sm" />
-            {t('studio.editor.bottom')}
-          </Button>
-        </div>
-      )}
+            </div>
+          )
+        })}
+        {(status === 'failed' || status === 'interrupted') && (
+          <Alert variant="warning" className="space-y-space-sm">
+            <output className="block text-sm">
+              {t(`studio.editor.${requestStatus}`)}
+            </output>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={blocked || isStreaming}
+              onClick={handleRetryPreview}
+            >
+              {t('studio.editor.retry')}
+            </Button>
+          </Alert>
+        )}
+      </ChatScrollViewport>
       <div className="shrink-0 space-y-space-sm p-space-sm">
         {requiredVariables ? (
           <output className="text-xs leading-relaxed text-status-warning">

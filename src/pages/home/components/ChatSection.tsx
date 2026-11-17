@@ -225,9 +225,10 @@ function ChatSectionContent({
       />
       <div ref={thread} className="relative flex min-h-0 flex-1 flex-col">
         <ChatScrollViewport
-          followKey={
+          anchorKey={
             messages.findLast((message) => message.role === 'user')?.id
           }
+          pending={isSendPending}
           isStreaming={isStreaming}
           className="px-space-md pb-space-lg sm:px-space-lg"
           contentClassName={column}

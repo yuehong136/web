@@ -44,6 +44,15 @@
   max-width: 42rem;
   margin-inline: auto;
 }
+/* Room below a short answer so its question stays anchored at the top
+   (set by useChatScrollFollow on the scroll box, outside the measured
+   content). */
+.explore-chat-area .ant-bubble-list-scroll-box::after {
+  content: '';
+  display: block;
+  flex: none;
+  height: var(--chat-anchor-space, 0px);
+}
 .app-chat-area .ant-bubble-start + .ant-bubble-end {
   margin-top: var(--space-sm);
 }
