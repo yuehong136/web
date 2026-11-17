@@ -20,12 +20,12 @@ import {
   getOriginalSource,
   getOriginalSourceLink,
   toPlainText,
-  truncateText,
 } from './reference-meta'
 import { cn } from '@/lib/utils'
 import type { ReferenceChunk } from '@/utils/reference-replacer'
 import { getChunkByRefId } from '@/utils/reference-utils'
 import { useHoverPopover } from './use-hover-popover'
+import { ChunkExcerpt } from '@/components/chat/chunk-excerpt'
 
 export interface ReferenceMarkerProps {
   /** 引用索引（从 0 开始） */
@@ -154,9 +154,11 @@ export const ReferenceMarker: FC<ReferenceMarkerProps> = ({
                 options={TABLE_PREVIEW_PURIFY_OPTIONS}
               />
             ) : (
-              <p className="m-0 line-clamp-4 text-sm leading-relaxed text-text-secondary">
-                {truncateText(toPlainText(chunk.content), 200)}
-              </p>
+              <ChunkExcerpt
+                chunk={chunk}
+                max={200}
+                className="m-0 line-clamp-4 text-sm leading-relaxed text-text-secondary"
+              />
             )}
           </div>
 

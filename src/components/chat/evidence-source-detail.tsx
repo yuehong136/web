@@ -21,6 +21,8 @@ import { getCitationNumber } from './citation-utils'
 import { EvidenceScoreBars } from './evidence-score'
 import { EvidenceChunkRow } from './evidence-chunk-list'
 import { SourceTile } from './source-tile'
+import { HighlightText } from '@/components/knowledge/HighlightText'
+import { markedChunkHtml } from '@/components/chat/reference-highlight'
 
 export interface EvidenceSourceDetailProps {
   chunk: ReferenceChunk
@@ -52,6 +54,8 @@ export function EvidenceSourceDetail({
     [user?.email, user?.nickname, locale],
   )
   const content = chunk.content ?? ''
+  // Matched words, when the search engine reported them.
+  const marked = markedChunkHtml(chunk)
   const plain = toPlainText(content)
   const copy = useCallback(async () => {
     if (!plain) return
@@ -103,6 +107,11 @@ export function EvidenceSourceDetail({
               className="prose prose-sm max-w-none break-words text-text-secondary"
               html={content}
               options={CHUNK_CONTENT_PURIFY_OPTIONS}
+            />
+          ) : marked ? (
+            <HighlightText
+              html={marked}
+              className="text-sm leading-relaxed break-words text-text-secondary"
             />
           ) : (
             <p className="text-sm leading-relaxed break-words whitespace-pre-wrap text-text-secondary">

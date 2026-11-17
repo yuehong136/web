@@ -8,14 +8,10 @@ import { useId, useMemo, useState, type FC } from 'react'
 import { ChevronDown, ChevronRight, BookOpen } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { ReferenceMetadataBadges } from '@/components/chat/reference-metadata-badges'
-import {
-  getDocTypeIcon,
-  getDocTypeLabelKey,
-  toPlainText,
-  truncateText,
-} from './reference-meta'
+import { getDocTypeIcon, getDocTypeLabelKey } from './reference-meta'
 import { cn } from '@/lib/utils'
 import type { ReferenceChunk } from '@/utils/reference-replacer'
+import { ChunkExcerpt } from '@/components/chat/chunk-excerpt'
 
 /**
  * 文档聚合数据类型
@@ -114,9 +110,11 @@ const ChunkItem: FC<ChunkItemProps> = ({ chunk, index, onClick }) => {
         </div>
         <ReferenceMetadataBadges metadata={chunk.document_metadata} />
         {/* 内容摘要 */}
-        <p className="line-clamp-2 text-sm text-text-secondary">
-          {truncateText(toPlainText(chunk.content), 100)}
-        </p>
+        <ChunkExcerpt
+          chunk={chunk}
+          max={100}
+          className="line-clamp-2 text-sm text-text-secondary"
+        />
       </div>
 
       <ChevronRight

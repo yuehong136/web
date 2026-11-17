@@ -31,6 +31,11 @@ export interface ReferenceChunk {
   citation_id?: string
   reference_index?: number
   reference_key?: string
+  /**
+   * Fragments of the chunk with the matched words marked `<em>` by the
+   * search engine; only present when the backend asked for highlights.
+   */
+  highlight?: string
 }
 
 /**
@@ -153,6 +158,10 @@ const normalizeReferenceChunk = (
   for (const field of ['document_id', 'document_name', 'dataset_id'] as const) {
     if (Object.hasOwn(value, field)) chunk[field] = readString(value[field])
   }
+  // Keep a highlight only when it marks something.
+  if (typeof value.highlight === 'string' && value.highlight.includes('<em>'))
+    chunk.highlight = value.highlight
+  else delete chunk.highlight
   if (citationKey !== undefined) {
     const index = /^\d+$/.test(citationKey) ? Number(citationKey) : NaN
     chunk.reference_key = citationKey

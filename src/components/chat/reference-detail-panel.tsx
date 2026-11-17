@@ -19,6 +19,8 @@ import { copyToClipboard } from '@/lib/utils'
 import { toast } from '@/lib/toast'
 import { useAuthStore } from '@/stores'
 import type { ReferenceChunk } from '@/utils/reference-replacer'
+import { HighlightText } from '@/components/knowledge/HighlightText'
+import { markedChunkHtml } from '@/components/chat/reference-highlight'
 
 export interface ReferenceDetailPanelProps {
   onClose: () => void
@@ -70,6 +72,8 @@ export function ReferenceDetailPanel({
     [allChunks, chunk],
   )
   const content = chunk?.content ?? ''
+  // Matched words, when the search engine reported them.
+  const marked = markedChunkHtml(chunk)
   const plainContent = toPlainText(content)
   const copy = useCallback(async () => {
     if (!plainContent) return
@@ -146,6 +150,11 @@ export function ReferenceDetailPanel({
                   className="prose prose-sm max-w-none break-words text-text-primary"
                   html={content}
                   options={CHUNK_CONTENT_PURIFY_OPTIONS}
+                />
+              ) : marked ? (
+                <HighlightText
+                  html={marked}
+                  className="text-sm leading-relaxed break-words text-text-primary"
                 />
               ) : (
                 <p className="text-sm leading-relaxed break-words whitespace-pre-wrap text-text-primary">

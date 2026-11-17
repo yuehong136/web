@@ -20,7 +20,6 @@ import {
   getOriginalSource,
   getOriginalSourceLink,
   toPlainText,
-  truncateText,
 } from './reference-meta'
 import {
   getCitationNumber,
@@ -29,6 +28,7 @@ import {
 } from './citation-utils'
 import { SourceTile } from './source-tile'
 import { useHoverPopover } from './use-hover-popover'
+import { ChunkExcerpt } from '@/components/chat/chunk-excerpt'
 
 // Table chunks preview as a small table (parsed document content: untrusted).
 const TABLE_PREVIEW_PURIFY_OPTIONS: Config = {
@@ -107,9 +107,12 @@ function CitationCard({
           options={TABLE_PREVIEW_PURIFY_OPTIONS}
         />
       ) : (
-        <p className="m-0 line-clamp-4 text-xs leading-relaxed text-text-secondary">
-          {text ? truncateText(text, 200) : t('sources.noContent')}
-        </p>
+        <ChunkExcerpt
+          chunk={chunk}
+          max={200}
+          className="m-0 line-clamp-4 text-xs leading-relaxed text-text-secondary"
+          empty={t('sources.noContent')}
+        />
       )}
       <ReferenceMetadataBadges metadata={chunk.document_metadata} />
       <div className="-mb-space-xs flex min-w-0 items-center gap-space-2xs text-xs text-text-tertiary">
