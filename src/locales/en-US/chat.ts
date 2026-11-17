@@ -156,6 +156,15 @@ export default {
       aiFillComplete: 'AI fill completed',
       stop: 'Stop receiving',
     },
+    diagram: {
+      view: 'Diagram view',
+      picture: 'Diagram',
+      source: 'Source',
+      zoomIn: 'Zoom in',
+      zoomOut: 'Zoom out',
+      reset: 'Reset view',
+      download: 'Download SVG',
+    },
     scroll: {
       region: 'Conversation messages',
       latest: 'Jump to latest',

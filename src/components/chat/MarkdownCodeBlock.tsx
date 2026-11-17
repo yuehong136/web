@@ -1,5 +1,5 @@
 import React, { memo } from 'react'
-import { Mermaid } from '@ant-design/x'
+import { MermaidDiagram } from './mermaid-diagram'
 import type { ComponentProps, XMarkdownProps } from '@ant-design/x-markdown'
 import type { MarkedExtension } from 'marked'
 import { createChatLatexExtensions } from './latex-extension'
@@ -18,7 +18,7 @@ export type MarkdownComponents = Record<
 
 /**
  * Extract plain text from React children (may be string, element tree, or mixed).
- * CodeBlock and Mermaid expect a `string` child.
+ * CodeBlock and MermaidDiagram expect a `string` child.
  */
 function extractText(children: React.ReactNode): string {
   if (typeof children === 'string') return children
@@ -179,7 +179,13 @@ const SafeMermaid: React.FC<{
     return <CodeBlock code={normalizedCode} language="mermaid" />
   }
 
-  return <Mermaid config={diagramConfig}>{normalizedCode}</Mermaid>
+  return (
+    <MermaidDiagram
+      code={normalizedCode}
+      config={diagramConfig}
+      streaming={streamStatus === 'loading'}
+    />
+  )
 }
 
 /**

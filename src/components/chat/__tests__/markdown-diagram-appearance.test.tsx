@@ -10,8 +10,8 @@ vi.mock('react-shiki/core', () => ({
   useShikiHighlighter: () => undefined,
   createJavaScriptRegexEngine: () => ({}),
 }))
-vi.mock('@ant-design/x', () => ({
-  Mermaid: ({ config }: { config: unknown }) => (
+vi.mock('../mermaid-diagram', () => ({
+  MermaidDiagram: ({ config }: { config: unknown }) => (
     <output data-diagram-config>{JSON.stringify(config)}</output>
   ),
 }))

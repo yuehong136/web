@@ -6,8 +6,6 @@ import { stubChatDOM } from '@/components/chat/__tests__/chat-dom'
 import type { ExploreMessage } from '../../hooks/use-explore-conversation'
 import { ExploreThread } from '../explore-thread'
 
-// XMarkdown's Mermaid pulls in an ESM-only highlighter that Vitest can't load.
-vi.mock('@ant-design/x', () => ({ Mermaid: () => null }))
 vi.mock('../explore-chat-answer', () => ({
   ExploreChatAnswer: ({ content }: { content: string }) => <p>{content}</p>,
 }))

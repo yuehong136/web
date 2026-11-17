@@ -13,9 +13,9 @@ vi.mock('../CodeBlock', () => ({
     <pre data-language={language}>{code}</pre>
   ),
 }))
-vi.mock('@ant-design/x', () => ({
-  Mermaid: ({ children }: { children: string }) => (
-    <pre data-mermaid>{children}</pre>
+vi.mock('../mermaid-diagram', () => ({
+  MermaidDiagram: ({ code }: { code: string }) => (
+    <pre data-mermaid>{code}</pre>
   ),
 }))
 

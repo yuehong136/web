@@ -149,6 +149,15 @@ export default {
       aiFillComplete: 'AI 填写完成',
       stop: '停止接收',
     },
+    diagram: {
+      view: '图表视图',
+      picture: '图表',
+      source: '源码',
+      zoomIn: '放大',
+      zoomOut: '缩小',
+      reset: '复位',
+      download: '下载 SVG',
+    },
     scroll: {
       region: '对话消息',
       latest: '回到最新',
