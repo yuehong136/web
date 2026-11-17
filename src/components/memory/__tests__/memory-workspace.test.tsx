@@ -1,9 +1,11 @@
 import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
-import { MemoryMessageFeed } from '../memory-message-feed'
+import { memoryAPI } from '@/api/memory'
 import { getMemoryEntries, getMemoryLifecycle } from '../memory-lifecycle'
 import { getMemorySettingsValues } from '../memory-settings-form'
+import { MemorySourcePagination } from '../memory-source-pagination'
 import type { Memory, MemoryMessage } from '@/types/memory'
 
 vi.mock('react-i18next', () => ({
@@ -38,48 +40,14 @@ afterEach(async () => {
   host.remove()
 })
 
-it('keeps an enabled extract independently actionable when its source is forgotten', async () => {
+it('keeps an enabled extract independently actionable when its source is forgotten', () => {
+  // The record list that renders these lives with the memory detail pages
+  // (src/pages/memory/__tests__/memory-entry-list.test.tsx).
   const sources = [{ ...source, extract: [extract] }]
   expect(getMemoryEntries(sources)[0].source).toBe(sources[0])
   expect(getMemoryLifecycle(source)).toBe('forgotten')
   expect(getMemoryLifecycle(extract)).toBe('enabled')
   expect(getMemoryLifecycle({ ...extract, status: false })).toBe('disabled')
-  const inspect = vi.fn(),
-    status = vi.fn(),
-    forget = vi.fn().mockResolvedValue(undefined)
-  const props = {
-    sources,
-    state: 'all' as const,
-    busy: false,
-    onInspect: inspect,
-    onStatusChange: status,
-    onForget: forget,
-  }
-  await act(async () =>
-    root.render(<MemoryMessageFeed {...props} view="sources" />),
-  )
-  expect(
-    host.querySelector<HTMLButtonElement>('[role="switch"]')?.disabled,
-  ).toBe(true)
-  expect(
-    Array.from(host.querySelectorAll('button')).find(
-      (button) =>
-        button.getAttribute('aria-label') === 'memory.messages.forget',
-    )?.disabled,
-  ).toBe(true)
-  await act(async () =>
-    root.render(<MemoryMessageFeed {...props} view="memories" />),
-  )
-  const toggle = host.querySelector<HTMLButtonElement>('[role="switch"]')!
-  expect(toggle.disabled).toBe(false)
-  await act(async () => toggle.click())
-  expect(status).toHaveBeenCalledWith(11, false)
-  const sourceButton = Array.from(host.querySelectorAll('button')).find(
-    (button) => button.textContent === 'memory.workspace.source',
-  )!
-  await act(async () => sourceButton.click())
-  expect(inspect).toHaveBeenCalledWith(sources[0])
-  expect(forget).not.toHaveBeenCalled()
 })
 
 it('preserves a configured zero temperature when hydrating settings', () => {
@@ -89,10 +57,6 @@ it('preserves a configured zero temperature when hydrating settings', () => {
 })
 
 it('finds a next source using the next offset without trusting a window-sized total', async () => {
-  const { QueryClient, QueryClientProvider } =
-    await import('@tanstack/react-query')
-  const { memoryAPI } = await import('@/api/memory')
-  const { MemorySourcePagination } = await import('../memory-source-pagination')
   const get = vi.spyOn(memoryAPI.memory, 'getDetail').mockResolvedValue({
     messages: { message_list: [source], total_count: 1 },
     storage_type: 'table',
