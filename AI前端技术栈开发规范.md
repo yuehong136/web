@@ -47,7 +47,7 @@ Multi-RAG Frontend 是企业级 AI 前端，覆盖：
 | 流式            | eventsource-parser                                                            |
 | 拖拽            | @dnd-kit/core / sortable / utilities                                          |
 | 文档预览        | docx-preview、pptx-preview、mammoth、@js-preview/excel、react-pdf-highlighter |
-| 图表            | recharts                                                                      |
+| 图表            | echarts（报告类图表）、@antv/g6（知识图谱）；轻量趋势用内联 SVG               |
 | 流程图          | mermaid                                                                       |
 | 净化            | DOMPurify                                                                     |
 | 国际化          | react-i18next + i18next + browser-languagedetector                            |

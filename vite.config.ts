@@ -333,10 +333,6 @@ export default defineConfig(({ mode }) => {
                     'html-url-attributes',
                     'inline-style-parser',
                     'lowlight',
-                    'markdown-it',
-                    'markdown-it-container',
-                    'markdown-it-highlightjs',
-                    'markdown-it-mathjax3',
                     'prismjs',
                     'property-information',
                     'react-markdown',
@@ -437,8 +433,7 @@ export default defineConfig(({ mode }) => {
                 priority: 50,
                 entriesAware: true,
                 maxSize: 1024 * 1024,
-                test: (id: string) =>
-                  isPackage(id, 'recharts') || isPackagePrefix(id, 'd3'),
+                test: (id: string) => isPackagePrefix(id, 'd3'),
               },
               {
                 name: 'vendor-icons',

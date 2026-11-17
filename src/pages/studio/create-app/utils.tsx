@@ -1,41 +1,24 @@
-import type { ReactNode, CSSProperties } from 'react'
-import markdownit from 'markdown-it'
-import type { Config } from 'dompurify'
-import { SafeHtml } from '@/components/ui/safe-html'
+import type { ReactNode } from 'react'
+import { StreamingXMarkdown } from '@/components/chat/streaming-x-markdown'
 import { DEFAULT_PROLOGUE } from './constants'
 import type { PreviewMessage } from './types'
 
-const md = markdownit({ html: true, breaks: true, linkify: true })
-
-// 预览消息是模型输出（不可信），markdown-it 开了 html:true，必须净化后渲染。
-const MARKDOWN_PURIFY_OPTIONS: Config = {
-  USE_PROFILES: { html: true },
-  ADD_ATTR: ['target', 'rel'],
-}
-
+/**
+ * The system prompt preview, on the same Markdown renderer as chat answers.
+ * Raw HTML (often prompt markup such as `<context>`) is shown as text, never
+ * parsed, so the preview matches what the model receives.
+ */
 export const renderMarkdown = (content: string | ReactNode) => {
   if (!content || typeof content !== 'string') {
     return content
   }
 
   return (
-    <SafeHtml
-      html={md.render(content)}
-      options={MARKDOWN_PURIFY_OPTIONS}
-      className="prose prose-sm max-w-none"
-      style={
-        {
-          '--tw-prose-body': 'var(--color-text-primary)',
-          '--tw-prose-headings': 'var(--color-text-primary)',
-          '--tw-prose-links': 'var(--color-text-accent)',
-          '--tw-prose-bold': 'var(--color-text-primary)',
-          '--tw-prose-code': 'var(--color-text-primary)',
-          '--tw-prose-quotes': 'var(--color-text-secondary)',
-          '--tw-prose-quote-borders': 'var(--color-border-default)',
-          '--tw-prose-pre-bg': 'var(--color-components-pre-bg)',
-          '--tw-prose-pre-code': 'var(--color-components-pre-text)',
-        } as CSSProperties
-      }
+    <StreamingXMarkdown
+      content={content}
+      isStreaming={false}
+      escapeRawHtml
+      className="markdown-content text-sm"
     />
   )
 }
