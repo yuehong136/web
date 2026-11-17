@@ -1,5 +1,5 @@
 import type { Ref, RefObject, ReactNode } from 'react'
-import type { SenderRef } from '@ant-design/x/es/sender/interface'
+import type { SenderProps, SenderRef } from '@ant-design/x/es/sender/interface'
 import { useTranslation } from 'react-i18next'
 import { ChatComposer } from '@/components/chat/chat-composer'
 import { ChatModelSelector } from '@/components/chat/ChatModelSelector'
@@ -38,8 +38,17 @@ interface ChatInputBoxProps {
   scopeLocked?: boolean
   /** 暂时不接纳发送（如选中会话的历史载入中）：只禁用发送，输入与范围选择照常 */
   sendBlocked?: boolean
+  /** Why sending waits (e.g. uploads in progress); shown under the composer. */
+  sendBlockedReason?: string
   variant?: 'welcome' | 'chat'
   contextManifest?: ContextManifest
+  /** Pills after "+" (attachments, MCP options). */
+  leadingAddons?: ReactNode
+  /** The attachment tray above the draft. */
+  attachments?: ReactNode
+  onPasteFile?: SenderProps['onPasteFile']
+  /** Status line under the composer; the keyboard hint otherwise. */
+  hint?: ReactNode
 }
 
 /** Domain controls are slots; the shared composer owns keyboard/submission UI. */
@@ -68,8 +77,13 @@ export function ChatInputBox({
   isStreaming = false,
   scopeLocked = isStreaming,
   sendBlocked = false,
+  sendBlockedReason,
   variant = 'welcome',
   contextManifest,
+  leadingAddons,
+  attachments,
+  onPasteFile,
+  hint,
 }: ChatInputBoxProps) {
   const { t } = useTranslation()
   return (
@@ -80,17 +94,20 @@ export function ChatInputBox({
       onChange={onInputChange}
       onSubmit={onSend}
       placeholder={placeholder ?? t('home.input.welcomePlaceholder')}
+      onPasteFile={onPasteFile}
       state={
         isStreaming && onStop
           ? { kind: 'running', stop: onStop }
           : scopeLocked
             ? { kind: 'blocked', reason: t('chat.composer.preparing') }
             : sendBlocked
-              ? { kind: 'blocked' }
+              ? { kind: 'blocked', reason: sendBlockedReason }
               : { kind: 'ready' }
       }
       labels={{ stop: t('home.input.stop') }}
       slots={{
+        hint,
+        attachments,
         context:
           selectedMCPServers.length ||
           selectedApps.length ||
@@ -120,6 +137,7 @@ export function ChatInputBox({
               atButtonRef={skillPanelRef}
               size="compact"
             />
+            {leadingAddons}
             {skillPanelContent}
           </>
         ),

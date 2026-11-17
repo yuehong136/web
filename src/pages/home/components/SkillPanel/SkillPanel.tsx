@@ -37,7 +37,7 @@ export const SkillPanel: React.FC<SkillPanelProps> = ({
   const [activeTab, setActiveTab] = useState<'skill' | 'app'>('skill')
   const { data: serverData, isFetching: skillLoading } = useFetchMCPServers({
     page_size: 100,
-    errorMessage: t('home.skillPanel.loadFailed', '加载技能列表失败'),
+    errorMessage: t('home.skillPanel.loadFailed'),
     enabled: open && activeTab === 'skill',
   })
   const servers = useMemo(() => serverData?.mcp_servers ?? [], [serverData])
@@ -109,10 +109,8 @@ export const SkillPanel: React.FC<SkillPanelProps> = ({
           <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-text-tertiary" />
           <input
             type="text"
-            placeholder={t(
-              'home.skillPanel.searchPlaceholder',
-              '搜索技能/应用',
-            )}
+            placeholder={t('home.skillPanel.searchPlaceholder')}
+            aria-label={t('home.skillPanel.searchPlaceholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full rounded-lg border-none bg-background-subtle py-2 pr-3 pl-9 text-sm text-text-primary outline-hidden placeholder:text-text-tertiary"
@@ -135,7 +133,14 @@ export const SkillPanel: React.FC<SkillPanelProps> = ({
               : 'text-text-tertiary hover:text-text-secondary',
           )}
         >
-          {t('home.skillPanel.skills', '技能')}
+          {t('home.skillPanel.skills')}
+          {selectedSkillIds.length > 0 && (
+            <span className="ms-space-xs font-mono text-xs text-text-tertiary">
+              {t('home.skillPanel.selectedCount', {
+                count: selectedSkillIds.length,
+              })}
+            </span>
+          )}
         </button>
         <button
           onClick={() => {
@@ -149,7 +154,7 @@ export const SkillPanel: React.FC<SkillPanelProps> = ({
               : 'text-text-tertiary hover:text-text-secondary',
           )}
         >
-          {t('home.skillPanel.apps', '应用')}
+          {t('home.skillPanel.apps')}
         </button>
       </div>
 

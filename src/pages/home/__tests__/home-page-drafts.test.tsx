@@ -15,7 +15,8 @@ interface SectionProps {
 
 let section: SectionProps
 let chatOptions: Parameters<typeof useHomeChat>[0]
-const sendMessage = vi.fn<(input: string) => Promise<void> | false>()
+const sendMessage =
+  vi.fn<(input: string, files?: string[]) => Promise<void> | false>()
 
 vi.mock('../hooks', () => ({
   useHomeChat: (options: Parameters<typeof useHomeChat>[0]) => {
@@ -71,7 +72,8 @@ it('keeps the draft when the send is rejected', async () => {
   await type('请保留我')
   await send()
 
-  expect(sendMessage).toHaveBeenCalledWith('请保留我')
+  // No app is selected, so the turn carries the (empty) attachment ids.
+  expect(sendMessage).toHaveBeenCalledWith('请保留我', [])
   expect(section.inputValue).toBe('请保留我')
 })
 

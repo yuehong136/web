@@ -1,9 +1,11 @@
 import React from 'react'
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router-dom'
 import { Globe, Server, Wrench } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { MCPServer } from '@/types/mcp'
 import { EntityAvatar } from '@/components/patterns/entity-avatar'
+import { MCP_PATH } from '@/pages/settings/settings-routes'
 
 interface SkillListProps {
   servers: MCPServer[]
@@ -49,9 +51,17 @@ export const SkillList: React.FC<SkillListProps> = ({
         <Wrench className="mb-2 h-8 w-8 text-text-tertiary" />
         <p className="text-sm text-text-secondary">
           {searchTerm
-            ? t('home.skillPanel.noSkillMatch', '没有找到匹配的技能')
-            : t('home.skillPanel.noSkills', '暂无可用技能')}
+            ? t('home.skillPanel.noSkillMatch')
+            : t('home.skillPanel.noSkills')}
         </p>
+        {!searchTerm && (
+          <Link
+            to={MCP_PATH}
+            className="mt-space-xs text-xs text-text-accent underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-state-focus"
+          >
+            {t('home.skillPanel.addInSettings')}
+          </Link>
+        )}
       </div>
     )
   }
@@ -81,12 +91,22 @@ export const SkillList: React.FC<SkillListProps> = ({
               size="md"
             />
             <div className="min-w-0 flex-1">
-              <div className="truncate text-sm font-medium text-text-primary">
-                {server.name}
+              <div className="flex min-w-0 items-center gap-space-xs">
+                <span className="truncate text-sm font-medium text-text-primary">
+                  {server.name}
+                </span>
+                <span className="shrink-0 rounded-radius-sm bg-background-subtle px-space-xs font-mono text-xs text-text-tertiary">
+                  {server.server_type}
+                </span>
               </div>
               {server.description && (
                 <div className="truncate text-xs text-text-tertiary">
                   {server.description}
+                </div>
+              )}
+              {server.url && (
+                <div className="truncate font-mono text-xs text-text-tertiary">
+                  {server.url}
                 </div>
               )}
             </div>

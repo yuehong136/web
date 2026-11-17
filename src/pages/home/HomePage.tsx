@@ -6,6 +6,7 @@
  * - 对话界面：消息列表、输入框、工具栏；首条消息发出后输入框从居中滑到底部
  * - 支持 @技能 和 @应用
  * - 应用历史对话选择（加载历史消息并继续对话）
+ * - 模型/MCP 对话：附件、MCP 调用选项、本次访问内的对话列表
  */
 
 import { useCallback, useRef, useState } from 'react'
@@ -18,6 +19,11 @@ import {
   type ComposerOrigin,
 } from './components/composer-entrance'
 import { useHomeChat } from './hooks'
+import {
+  HomeAttachmentsContext,
+  useHomeAttachments,
+} from './hooks/use-home-attachments'
+import { HomeDropOverlay } from './components/home-drop-overlay'
 import { NEW_CONVERSATION_DRAFT, useHomeDrafts } from './hooks/use-home-drafts'
 
 export const HomePage = () => {
@@ -66,6 +72,9 @@ export const HomePage = () => {
     isSendPending,
     sendMessage,
     stopStreaming,
+    localThreads,
+    startNewChat,
+    openLocalThread,
   } = useHomeChat({
     selectedMCPIds,
     selectedMCPServers,
@@ -75,6 +84,11 @@ export const HomePage = () => {
     identity,
     onConversationIdChange: handleConversationIdChange,
   })
+
+  // 模型/MCP 回合的附件；应用对话没有附件合同
+  // 拖入文件的范围是整个首页；元素放在 state 里，监听随它挂载
+  const [dropTarget, setDropTarget] = useState<HTMLDivElement | null>(null)
+  const attachments = useHomeAttachments(!selectedApp, dropTarget)
 
   // 是否显示欢迎界面（加载历史对话时显示对话界面）
   const showWelcome = messages.length === 0 && !isStreaming && !isLoadingHistory
@@ -88,9 +102,13 @@ export const HomePage = () => {
     const origin = showWelcome
       ? readComposerOrigin(welcomeComposer.current)
       : null
-    const accepted = sendMessage(inputValue)
+    const accepted = sendMessage(
+      inputValue,
+      attachments.enabled ? attachments.fileIds() : [],
+    )
     if (accepted === false) return
     clearDraft(draftKey, inputValue)
+    attachments.reset()
     if (!origin) return
     setDockFrom(origin)
     // The docked composer reads the origin once on mount; a send that never
@@ -98,36 +116,47 @@ export const HomePage = () => {
     void Promise.resolve(accepted).finally(() =>
       setDockFrom((current) => (current === origin ? null : current)),
     )
-  }, [clearDraft, draftKey, inputValue, sendMessage, showWelcome])
+  }, [attachments, clearDraft, draftKey, inputValue, sendMessage, showWelcome])
 
   return (
     <HomeMotion>
-      <div className="flex h-full flex-col bg-components-console-bg">
-        {showWelcome ? (
-          <WelcomeSection
-            composerRef={welcomeComposer}
-            inputValue={inputValue}
-            onInputChange={setInputValue}
-            onSend={handleSend}
-            isSendPending={isSendPending}
-          />
-        ) : (
-          <ChatSection
-            messages={messages}
-            inputValue={inputValue}
-            onInputChange={setInputValue}
-            onSend={handleSend}
-            onStop={stopStreaming}
-            isStreaming={isStreaming}
-            streamingContent={streamingContent}
-            streamingThinking={streamingThinking}
-            isToolAnalyzing={isToolAnalyzing}
-            isLoadingHistory={isLoadingHistory}
-            isSendPending={isSendPending}
-            composerOrigin={dockFrom}
-          />
-        )}
-      </div>
+      <HomeAttachmentsContext.Provider value={attachments}>
+        <div
+          ref={setDropTarget}
+          className="flex h-full flex-col bg-components-console-bg"
+        >
+          {attachments.dragging && <HomeDropOverlay />}
+          {showWelcome ? (
+            <WelcomeSection
+              composerRef={welcomeComposer}
+              inputValue={inputValue}
+              onInputChange={setInputValue}
+              onSend={handleSend}
+              isSendPending={isSendPending}
+              localThreads={selectedApp ? [] : localThreads}
+              onOpenLocalThread={openLocalThread}
+            />
+          ) : (
+            <ChatSection
+              messages={messages}
+              inputValue={inputValue}
+              onInputChange={setInputValue}
+              onSend={handleSend}
+              onStop={stopStreaming}
+              isStreaming={isStreaming}
+              streamingContent={streamingContent}
+              streamingThinking={streamingThinking}
+              isToolAnalyzing={isToolAnalyzing}
+              isLoadingHistory={isLoadingHistory}
+              isSendPending={isSendPending}
+              composerOrigin={dockFrom}
+              localThreads={selectedApp ? [] : localThreads}
+              onOpenLocalThread={openLocalThread}
+              onNewChat={selectedApp ? undefined : startNewChat}
+            />
+          )}
+        </div>
+      </HomeAttachmentsContext.Provider>
     </HomeMotion>
   )
 }
