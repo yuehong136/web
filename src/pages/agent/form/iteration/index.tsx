@@ -121,19 +121,16 @@ export function IterationForm({ node }: INextOperatorForm) {
       <FormWrapper>
         <QueryVariable
           name="items_ref"
-          label={t('flow.iterationItems', '查找变量')}
+          label={t('flow.iterationItems')}
           types={ArrayFields as unknown as string[]}
           nodeId={node?.id}
         />
 
         <CompactRecordList
           name="output_items"
-          label={t('flow.output', '输出')}
-          addLabel={t('common.add', '添加')}
-          emptyLabel={t(
-            'flow.iterationOutputsEmpty',
-            '还没有输出项，添加子节点后再从这里引用它们的变量',
-          )}
+          label={t('flow.output')}
+          addLabel={t('common.add')}
+          emptyLabel={t('flow.iterationOutputsEmpty')}
           defaultValue={{ name: '', ref: '', type: 'Array<unknown>' }}
         >
           {({ field, index, ctx }) => (
@@ -147,7 +144,7 @@ export function IterationForm({ node }: INextOperatorForm) {
                       <Input
                         {...inputField}
                         value={inputField.value ?? ''}
-                        placeholder={t('flow.outputName', '输出名称')}
+                        placeholder={t('flow.outputName')}
                       />
                     </FormControl>
                     <FormMessage />

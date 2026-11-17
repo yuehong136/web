@@ -40,7 +40,7 @@ export function useSubmitForm() {
     mutationFn: async (values: ExeSqlFormValues) =>
       agentAPI.testDbConnect(values),
     onSuccess: () => {
-      toast.success('数据库连接测试成功')
+      toast.success(t('flow.databaseConnectionTestSucceeded'))
     },
     onError: () => {
       toast.error(t('flow.databaseConnectionTestFailed'))

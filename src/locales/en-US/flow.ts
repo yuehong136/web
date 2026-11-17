@@ -313,6 +313,7 @@ export default {
     crossLanguages: 'Cross Languages',
     dataManipulation: 'Data manipulation',
     database: 'Database',
+    databaseConnectionTestSucceeded: 'Database connection test succeeded',
     databaseConnectionTestFailed: 'Database connection test failed',
     datatype: 'Datatype',
     dataset: 'Dataset',

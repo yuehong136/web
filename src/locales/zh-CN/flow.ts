@@ -716,6 +716,7 @@ export default {
       '该组件通过SQL语句从相应的关系数据库中查询结果。支持MySQL，PostgreSQL，MariaDB。',
     dbType: '数据库类型',
     database: '数据库',
+    databaseConnectionTestSucceeded: '数据库连接测试成功',
     databaseConnectionTestFailed: '数据库连接测试失败',
     username: '用户名',
     host: '主机',
