@@ -6,15 +6,10 @@ import {
   attachmentMetadata,
   UploadXHR,
 } from '@/api/__tests__/helpers/upload-xhr'
-import { ControlledAttachments } from '@/components/chat/controlled-attachments'
+import { PromptInputAttachments } from '@/components/patterns/chat/prompt-input-attachments'
 import { useChatUpload } from '../use-chat-upload'
 import { useMcpUpload } from '../use-mcp-upload'
 
-// Load the real vendor implementation without unrelated markdown barrel exports.
-vi.mock('@ant-design/x', async () => ({
-  Attachments: (await import('@ant-design/x/es/attachments')).default,
-  FileCard: (await import('@ant-design/x/es/file-card/FileCard')).default,
-}))
 Reflect.set(globalThis, 'IS_REACT_ACT_ENVIRONMENT', true)
 
 describe.each([
@@ -28,15 +23,22 @@ describe.each([
   function Harness() {
     hook = useUpload()
     return (
-      <ControlledAttachments
+      <PromptInputAttachments
         maxCount={1}
-        uploadLabel="Upload file"
-        removeLabel={(name) => `Remove ${name}`}
-        retryLabel={(name) => `Retry ${name}`}
-        failureLabel="Upload failed"
-        items={hook.files.map(
-          ({ originFileObj: _originFileObj, ...file }) => file,
-        )}
+        labels={{
+          title: 'Attachments',
+          close: 'Close',
+          pick: 'Add files',
+          release: 'Drop to upload',
+          limits: 'One file',
+          remove: (name) => `Remove ${name}`,
+          retry: (name) => `Retry ${name}`,
+        }}
+        describe={(file) =>
+          file.status === 'error' ? 'Upload failed' : file.status
+        }
+        files={hook.files}
+        onClose={() => {}}
         onRetry={
           _name === 'Explore'
             ? (uid) => {
@@ -48,8 +50,8 @@ describe.each([
           removed(uid)
           hook.removeFile(uid)
         }}
-        onUpload={async (file) => {
-          await hook.upload(file)
+        onUpload={(file) => {
+          void hook.upload(file)
         }}
       />
     )
@@ -154,18 +156,12 @@ describe.each([
     await selectFile(['sample.txt', 'extra.txt'])
     expect(UploadXHR.instances).toHaveLength(1)
     expect(hook.files).toHaveLength(1)
-    expect(
-      container
-        .querySelector('.ant-attachment-placeholder')!
-        .getAttribute('aria-hidden'),
-    ).toBe('true')
+    // At capacity the tray offers no way to add more.
+    expect(container.querySelector('button[aria-label="Add files"]')).toBeNull()
+    expect(container.textContent).not.toContain('Add files')
     await removeCard()
     expect(hook.files).toEqual([])
-    expect(
-      container
-        .querySelector('.ant-attachment-placeholder')!
-        .getAttribute('aria-hidden'),
-    ).toBe('false')
+    expect(container.textContent).toContain('Add files')
   })
   if (_name === 'Explore') {
     it('retries through the rendered failed card without retaining the failed row', async () => {

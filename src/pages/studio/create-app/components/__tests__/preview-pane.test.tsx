@@ -154,7 +154,7 @@ describe('Studio test chat composer', () => {
       },
     ]
     await render()
-    expect(container.querySelector('.ant-bubble-header')?.textContent).toBe(
+    expect(container.querySelector('[data-answer-identity]')?.textContent).toBe(
       'recorded-model',
     )
     const button = container.querySelector<HTMLButtonElement>(

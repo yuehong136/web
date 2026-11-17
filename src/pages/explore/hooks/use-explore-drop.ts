@@ -1,17 +1,22 @@
 import { useEffect, useRef, useState } from 'react'
 
 /**
- * Whole-page file drag state. Dropped files are handled by the composer's
- * Attachments drop target; this only shows the overlay and opens the panel.
+ * Whole-page file drag state: files dragged in show the overlay and open the
+ * attachment panel; files dropped anywhere on the page go to `onFilesDrop`.
  */
-export function useExploreDrop(onFilesEnter: () => void) {
+export function useExploreDrop(
+  onFilesEnter: () => void,
+  onFilesDrop: (files: FileList) => void,
+) {
   const containerRef = useRef<HTMLDivElement>(null)
   const counter = useRef(0)
   const [isDragging, setIsDragging] = useState(false)
   const enter = useRef(onFilesEnter)
+  const drop = useRef(onFilesDrop)
   useEffect(() => {
     enter.current = onFilesEnter
-  }, [onFilesEnter])
+    drop.current = onFilesDrop
+  }, [onFilesEnter, onFilesDrop])
 
   useEffect(() => {
     const container = containerRef.current
@@ -37,6 +42,8 @@ export function useExploreDrop(onFilesEnter: () => void) {
       stop(event)
       counter.current = 0
       setIsDragging(false)
+      const files = event.dataTransfer?.files
+      if (files?.length) drop.current(files)
     }
     container.addEventListener('dragenter', onEnter)
     container.addEventListener('dragleave', onLeave)

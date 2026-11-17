@@ -3,14 +3,14 @@
  * composer. The tide glow belongs to the AI moment, so it shows only while the
  * draft has focus.
  */
-.tide-composer .app-chat-composer.ant-sender {
+.tide-composer .prompt-input {
   border-color: var(--color-border-default);
   border-radius: calc(var(--radius-xl) * 1.5);
   transition:
     border-color 160ms ease,
     box-shadow 160ms ease;
 }
-.tide-composer .app-chat-composer.ant-sender:focus-within {
+.tide-composer .prompt-input:focus-within {
   border-color: var(--color-components-ai-ring);
   box-shadow:
     0 0 0 4px var(--color-components-ai-glow),
@@ -22,17 +22,16 @@
  * `rounded-radius-full`, but tailwind-merge does not know the radius tokens,
  * so the button's base `rounded-radius-md` can win; pin the shape here.
  */
-.tide-composer .chat-composer-toolbar > :last-child > button:last-child,
 .tide-composer [data-composer-send] {
   border-radius: var(--radius-full);
 }
 @media (prefers-reduced-motion: reduce) {
-  .tide-composer .app-chat-composer.ant-sender {
+  .tide-composer .prompt-input {
     transition: none;
   }
 }
 @media (forced-colors: active) {
-  .tide-composer .app-chat-composer.ant-sender:focus-within {
+  .tide-composer .prompt-input:focus-within {
     outline: 2px solid CanvasText;
     outline-offset: 0;
   }

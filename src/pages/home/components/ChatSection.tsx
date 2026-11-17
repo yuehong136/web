@@ -1,5 +1,4 @@
 import { useCallback, useMemo, useRef } from 'react'
-import type { SenderRef } from '@ant-design/x/es/sender/interface'
 import { useTranslation } from 'react-i18next'
 import {
   ChatTranscript,
@@ -12,6 +11,7 @@ import {
 import { ContextManifestSummary } from '@/components/chat/context-manifest-summary'
 import { MessageActionsFooter } from '@/components/chat/MessageActionsFooter'
 import { ChatWorkspace } from '@/components/chat/chat-workspace'
+import type { ChatComposerRef } from '@/components/chat/chat-composer'
 import { useChatWorkspace } from '@/components/chat/chat-workspace-context'
 import { ChatThreadHeader } from '@/components/chat/chat-thread-header'
 import { TurnRail, type ThreadTurn } from '@/components/chat/turn-rail'
@@ -85,7 +85,7 @@ function ChatSectionContent({
   onNewChat,
 }: ChatSectionProps) {
   const { t } = useTranslation()
-  const composer = useRef<SenderRef>(null)
+  const composer = useRef<ChatComposerRef>(null)
   const workspace = useChatWorkspace()!
   const { myLLMs } = useFetchMyLLMs()
   const { viewReference } = workspace

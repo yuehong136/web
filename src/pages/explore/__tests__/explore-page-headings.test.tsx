@@ -104,8 +104,8 @@ vi.mock('../components/explore-sidebar', () => ({
 // The thread and attachment list pull antd-x code blocks Vitest cannot load;
 // this test is about the page's headings, not their rendering.
 vi.mock('../components/explore-thread', () => ({ ExploreThread: () => null }))
-vi.mock('@/components/chat/controlled-attachments', () => ({
-  ControlledAttachments: () => null,
+vi.mock('@/components/patterns/chat/prompt-input-attachments', () => ({
+  PromptInputAttachments: () => null,
 }))
 vi.mock('../components/explore-chat-answer', () => ({
   ExploreChatAnswer: ({ content }: { content: string }) => <p>{content}</p>,

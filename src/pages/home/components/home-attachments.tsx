@@ -1,11 +1,7 @@
-import { useMemo } from 'react'
-import type { AttachmentsProps } from '@ant-design/x'
 import type { TFunction } from 'i18next'
-import { Paperclip, Upload, X } from 'lucide-react'
+import { Paperclip } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { ControlledAttachments } from '@/components/chat/controlled-attachments'
-import { FileKindTile } from '@/components/patterns/file-kind-tile'
-import { Button } from '@/components/ui/button'
+import { PromptInputAttachments } from '@/components/patterns/chat/prompt-input-attachments'
 import { Spinner } from '@/components/ui/spinner'
 import { uploadConfig, type UploadFile } from '@/config/chat'
 import { cn, formatBytes } from '@/lib/utils'
@@ -14,9 +10,7 @@ import {
   COMPOSER_PILL,
   COMPOSER_PILL_IDLE,
   COMPOSER_PILL_ON,
-} from './composer-pill'
-
-type AttachmentItem = NonNullable<AttachmentsProps['items']>[number]
+} from '@/components/patterns/chat/composer-pill'
 
 const statusOf = (file: UploadFile, t: TFunction) =>
   file.status === 'uploading'
@@ -64,83 +58,31 @@ export function HomeAttachmentTray({
   attachments: HomeAttachments
 }) {
   const { t } = useTranslation()
-  const items = useMemo<AttachmentItem[]>(
-    () =>
-      attachments.files.map(({ originFileObj: _file, ...file }) => ({
-        ...file,
-        className: file.status === 'error' ? 'cursor-pointer' : undefined,
-        description: statusOf(file, t),
-        icon: <FileKindTile name={file.name} size="lg" />,
-        src: file.thumbUrl,
-      })),
-    [attachments.files, t],
-  )
   if (!attachments.open) return null
   return (
-    <section
-      aria-label={t('home.attachments.title')}
-      className="mb-space-sm rounded-radius-lg border border-border-subtle bg-background-subtle"
-      data-home-attachments
-    >
-      <header className="flex items-center gap-space-sm border-b border-border-subtle px-space-base py-space-xs">
-        <Upload aria-hidden="true" className="size-icon-sm text-text-accent" />
-        <span className="flex-1 text-sm font-medium text-text-primary">
-          {t('home.attachments.title')}
-        </span>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          aria-label={t('home.attachments.close')}
-          onClick={() => attachments.setOpen(false)}
-        >
-          <X aria-hidden="true" className="size-icon-sm" />
-        </Button>
-      </header>
-      <ControlledAttachments
-        items={items}
-        className="px-space-base py-space-base"
-        uploadLabel={t('home.attachments.add')}
-        removeLabel={(name) => t('home.attachments.remove', { name })}
-        retryLabel={(name) => t('home.attachments.retry', { name })}
-        failureLabel={t('home.attachments.failed')}
-        maxCount={uploadConfig.maxCount}
-        getDropContainer={attachments.getDropContainer}
-        onRemove={attachments.remove}
-        onRetry={attachments.retry}
-        overflow="scrollX"
-        placeholder={(type) => ({
-          icon: (
-            <span
-              className={cn(
-                'mb-space-sm grid size-icon-2xl place-items-center rounded-radius-lg',
-                type === 'drop'
-                  ? 'bg-state-focus-10 text-state-focus'
-                  : 'bg-background-surface text-text-tertiary',
-              )}
-            >
-              <Upload aria-hidden="true" className="size-icon-md" />
-            </span>
-          ),
-          title: (
-            <span className="text-sm font-medium text-text-primary">
-              {type === 'drop'
-                ? t('home.attachments.release')
-                : t('home.attachments.pick')}
-            </span>
-          ),
-          description: (
-            <span className="mt-space-xs block text-xs text-text-tertiary">
-              {t('home.attachments.limits', {
-                count: uploadConfig.maxCount,
-                size: Math.round(uploadConfig.maxSize / 1024 / 1024),
-              })}
-            </span>
-          ),
-        })}
-        onUpload={attachments.add}
-      />
-    </section>
+    <PromptInputAttachments
+      className="mb-space-sm"
+      files={attachments.files}
+      describe={(file) => statusOf(file, t)}
+      labels={{
+        title: t('home.attachments.title'),
+        close: t('home.attachments.close'),
+        pick: t('home.attachments.pick'),
+        release: t('home.attachments.release'),
+        limits: t('home.attachments.limits', {
+          count: uploadConfig.maxCount,
+          size: Math.round(uploadConfig.maxSize / 1024 / 1024),
+        }),
+        remove: (name) => t('home.attachments.remove', { name }),
+        retry: (name) => t('home.attachments.retry', { name }),
+      }}
+      maxCount={uploadConfig.maxCount}
+      dragging={attachments.dragging}
+      onUpload={(file) => void attachments.add(file)}
+      onRemove={attachments.remove}
+      onRetry={attachments.retry}
+      onClose={() => attachments.setOpen(false)}
+    />
   )
 }
 

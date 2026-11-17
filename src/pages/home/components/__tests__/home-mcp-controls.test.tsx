@@ -38,9 +38,6 @@ vi.mock('@/hooks/use-chat-request', () => ({
 }))
 vi.mock('../SkillPanel', () => ({ SkillPanel: () => null }))
 // The tray's picker loads the antd-x barrel, which Node cannot resolve.
-vi.mock('@/components/chat/controlled-attachments', () => ({
-  ControlledAttachments: () => <div data-attachment-picker />,
-}))
 vi.mock('@/components/chat/ChatModelSelector', () => ({
   ChatModelSelector: () => null,
 }))
@@ -141,9 +138,9 @@ it('offers attachments and MCP call options on model and MCP turns', async () =>
   expect(
     container.querySelector('section[aria-label="Attachments"]'),
   ).toBeTruthy()
-  expect(container.querySelector('[data-attachment-picker]')).toBeTruthy()
+  expect(container.querySelector('input[type="file"]')).toBeTruthy()
   await act(async () => byLabel('Close attachments')!.click())
-  expect(container.querySelector('[data-home-attachments]')).toBeNull()
+  expect(container.querySelector('[data-prompt-attachments]')).toBeNull()
 })
 
 it('hides attachments while an app answers', async () => {

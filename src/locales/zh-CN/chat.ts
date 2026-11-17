@@ -136,6 +136,8 @@ export default {
       resumeSpeech: '继续朗读',
       pauseSpeech: '暂停朗读',
       speechFailed: '语音播放失败，请重试。',
+      like: '回答有帮助',
+      dislike: '回答没帮助',
     },
     stream: {
       failed: '生成失败，请重试。',

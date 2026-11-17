@@ -6,7 +6,7 @@ import {
   COMPOSER_PILL,
   COMPOSER_PILL_IDLE,
   COMPOSER_PILL_ON,
-} from './composer-pill'
+} from '@/components/patterns/chat/composer-pill'
 
 interface InputToolbarProps {
   isSkillPanelOpen: boolean

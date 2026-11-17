@@ -3,7 +3,7 @@ import {
   ModelIdentity,
   modelMessageProps,
 } from '@/components/models/model-identity'
-import { getAppChatBubbleProps } from '@/components/chat/app-chat-message'
+import { getAppChatMessageParts } from '@/components/chat/app-chat-message'
 import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
@@ -123,7 +123,7 @@ it('resolves old numeric context cards and application titles with the matching 
       },
     ],
   })
-  const app = getAppChatBubbleProps('assistant', {
+  const app = getAppChatMessageParts('assistant', {
     name: 'My app',
     llm_id: '117',
   })
@@ -185,7 +185,7 @@ it('keeps a message snapshot when a connection disappears and when current defau
     ),
   ).toHaveLength(1)
   expect(
-    getAppChatBubbleProps('user', { name: 'App', llm_id: '117' }).header,
+    getAppChatMessageParts('user', { name: 'App', llm_id: '117' }).header,
   ).toBeUndefined()
   await act(async () => root.render(null))
   client.clear()

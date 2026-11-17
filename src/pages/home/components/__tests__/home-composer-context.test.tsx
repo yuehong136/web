@@ -45,8 +45,8 @@ vi.mock('@/hooks/use-chat-request', () => ({
 }))
 vi.mock('../SkillPanel', () => ({ SkillPanel: () => null }))
 // The attachment tray loads the antd-x barrel, which Node cannot resolve.
-vi.mock('@/components/chat/controlled-attachments', () => ({
-  ControlledAttachments: () => null,
+vi.mock('@/components/patterns/chat/prompt-input-attachments', () => ({
+  PromptInputAttachments: () => null,
 }))
 vi.mock('@/components/chat/ChatModelSelector', () => ({
   ChatModelSelector: (props: { loading?: boolean }) => (

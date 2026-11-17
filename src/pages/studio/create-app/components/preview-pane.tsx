@@ -5,11 +5,8 @@ import { StudioPanelShell } from '@/components/patterns'
 import { ChatScrollViewport } from '@/components/patterns/chat/chat-scroll-viewport'
 import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
-import Bubble from '@ant-design/x/es/bubble'
 import { ChatComposer } from '@/components/chat/chat-composer'
 import { ModelIdentity } from '@/components/models/model-identity'
-import { getAppChatBubbleProps } from '@/components/chat/app-chat-message'
-import { MessageActionsFooter } from '@/components/chat/MessageActionsFooter'
 import {
   Sheet,
   SheetContent,
@@ -18,10 +15,9 @@ import {
   SheetDescription,
 } from '@/components/ui/sheet'
 import { ReferenceDetailSheet } from '@/components/chat/ReferenceDetailSheet'
-import { copyToClipboardWithFeedback } from '@/lib/clipboard'
 import type { ReferenceChunk } from '@/utils/reference-replacer'
 import type { CreateAppPageController } from '../hooks/use-create-app-page'
-import { PreviewAnswer } from './preview-answer'
+import { PreviewThread } from './preview-thread'
 
 type PreviewBindings = Pick<
   CreateAppPageController,
@@ -150,81 +146,20 @@ export function PreviewPane(props: PreviewPaneProps) {
         anchorKey={lastQuestion}
         isStreaming={isStreaming}
         className="app-chat-area overscroll-contain p-space-base"
-        contentClassName="mx-auto max-w-prose space-y-space-base"
+        contentClassName="mx-auto max-w-prose"
       >
-        {previewMessages.map((message, index) => {
-          const active = isStreaming && index === lastAssistant
-          const user = message.role === 'user'
-          const canRegenerate =
-            !active &&
-            index === lastAssistant &&
-            !blocked &&
-            !message.id.startsWith('prologue-')
-          return (
-            <div key={message.id} data-turn-id={user ? message.id : undefined}>
-              <Bubble
-                {...getAppChatBubbleProps(
-                  message.role,
-                  savedConfig ?? undefined,
-                  message.modelIdentity ?? {},
-                )}
-                content={message.content}
-                streaming={active}
-                loading={active && !message.content && !message.thinking}
-                contentRender={
-                  user
-                    ? undefined
-                    : () => (
-                        <PreviewAnswer
-                          content={message.content}
-                          thinking={message.thinking}
-                          messageId={message.id}
-                          references={message.references}
-                          isStreaming={active}
-                          runPhase={
-                            active
-                              ? 'running'
-                              : index !== lastAssistant
-                                ? 'completed'
-                                : status === 'failed'
-                                  ? 'failed'
-                                  : status === 'interrupted'
-                                    ? stoppedMessageId === message.id
-                                      ? 'locallyStopped'
-                                      : 'interrupted'
-                                    : 'completed'
-                          }
-                          onViewReference={viewReference}
-                        />
-                      )
-                }
-                footer={
-                  !user &&
-                  !active &&
-                  message.content &&
-                  !message.id.startsWith('prologue-') ? (
-                    <MessageActionsFooter
-                      content={message.content}
-                      showTTS={false}
-                      showFeedback={false}
-                      showRegenerate={canRegenerate}
-                      onRegenerate={handleRetryPreview}
-                      onCopy={() =>
-                        void copyToClipboardWithFeedback(
-                          message.content,
-                          t('common.copied'),
-                          t('common.copyFailed'),
-                        )
-                      }
-                    />
-                  ) : undefined
-                }
-              />
-            </div>
-          )
-        })}
+        <PreviewThread
+          messages={previewMessages}
+          app={savedConfig ?? undefined}
+          isStreaming={isStreaming}
+          status={status}
+          stoppedMessageId={stoppedMessageId}
+          canRegenerate={!blocked}
+          onRegenerate={handleRetryPreview}
+          onViewReference={viewReference}
+        />
         {(status === 'failed' || status === 'interrupted') && (
-          <Alert variant="warning" className="space-y-space-sm">
+          <Alert variant="warning" className="mt-space-base space-y-space-sm">
             <output className="block text-sm">
               {t(`studio.editor.${requestStatus}`)}
             </output>

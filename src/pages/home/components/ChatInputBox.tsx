@@ -1,7 +1,9 @@
 import type { Ref, RefObject, ReactNode } from 'react'
-import type { SenderProps, SenderRef } from '@ant-design/x/es/sender/interface'
 import { useTranslation } from 'react-i18next'
-import { ChatComposer } from '@/components/chat/chat-composer'
+import {
+  ChatComposer,
+  type ChatComposerRef,
+} from '@/components/chat/chat-composer'
 import { ChatModelSelector } from '@/components/chat/ChatModelSelector'
 import { SelectedTags } from './SelectedTags'
 import { InputToolbar } from './InputToolbar'
@@ -16,7 +18,7 @@ interface ChatInputBoxProps {
   inputValue: string
   onInputChange: (value: string) => void
   placeholder?: string
-  inputRef?: Ref<SenderRef>
+  inputRef?: Ref<ChatComposerRef>
   selectedMCPServers: MCPServer[]
   selectedApps: DialogApp[]
   onRemoveSkill: (id: string) => void
@@ -46,7 +48,7 @@ interface ChatInputBoxProps {
   leadingAddons?: ReactNode
   /** The attachment tray above the draft. */
   attachments?: ReactNode
-  onPasteFile?: SenderProps['onPasteFile']
+  onPasteFile?: (files: FileList) => void
   /** Status line under the composer; the keyboard hint otherwise. */
   hint?: ReactNode
 }

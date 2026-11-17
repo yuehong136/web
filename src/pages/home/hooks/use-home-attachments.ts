@@ -15,7 +15,8 @@ import { toast } from '@/lib/toast'
  * attachment upload; the turn sends the uploaded ids (`files`). App
  * conversations have no attachment contract here, so `enabled` is false while
  * an app is selected: the tray hides and app turns send no files. Files
- * dragged anywhere over `dropTarget` open the tray.
+ * dragged anywhere over `dropTarget` open the tray; dropped there, they
+ * upload.
  */
 export function useHomeAttachments(
   enabled: boolean,
@@ -64,7 +65,7 @@ export function useHomeAttachments(
     setOpen(false)
   }, [clearFiles])
 
-  // Files dragged anywhere over Home open the panel; its drop target takes them.
+  // Files dragged anywhere over Home open the tray; dropped anywhere, they upload.
   useEffect(() => {
     const container = dropTarget
     if (!container || !enabled) return undefined
@@ -90,6 +91,8 @@ export function useHomeAttachments(
       hold(event)
       depth = 0
       setDragging(false)
+      const dropped = event.dataTransfer?.files
+      if (dropped?.length) addPasted(dropped)
     }
     container.addEventListener('dragenter', enter)
     container.addEventListener('dragleave', leave)
@@ -102,7 +105,7 @@ export function useHomeAttachments(
       container.removeEventListener('drop', drop)
       setDragging(false)
     }
-  }, [dropTarget, enabled])
+  }, [addPasted, dropTarget, enabled])
 
   return {
     enabled,
@@ -113,7 +116,6 @@ export function useHomeAttachments(
     open: enabled && open,
     setOpen,
     dragging: enabled && dragging,
-    getDropContainer: () => dropTarget,
     add,
     addPasted,
     remove: removeFile,

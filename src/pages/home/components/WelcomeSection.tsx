@@ -1,5 +1,5 @@
 import { useRef, type Ref } from 'react'
-import type { SenderRef } from '@ant-design/x/es/sender/interface'
+import type { ChatComposerRef } from '@/components/chat/chat-composer'
 import { useHomeStore } from '@/stores/home'
 import { HomeComposer } from './home-composer'
 import { HomeGreeting } from './home-greeting'
@@ -37,7 +37,7 @@ export function WelcomeSection({
   localThreads = [],
   onOpenLocalThread,
 }: WelcomeSectionProps) {
-  const composer = useRef<SenderRef>(null)
+  const composer = useRef<ChatComposerRef>(null)
   const hasApp = useHomeStore((state) => state.selectedApps.length > 0)
   const overview = useHomeOverview()
   return (

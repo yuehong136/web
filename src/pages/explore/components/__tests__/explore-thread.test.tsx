@@ -1,4 +1,4 @@
-import { act, type ReactNode } from 'react'
+import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { setProductLanguage } from '@/locales/i18n'
@@ -6,32 +6,8 @@ import { stubChatDOM } from '@/components/chat/__tests__/chat-dom'
 import type { ExploreMessage } from '../../hooks/use-explore-conversation'
 import { ExploreThread } from '../explore-thread'
 
-// Bubble.List renders each item's content and footer; the thread mapping is real.
-vi.mock('@ant-design/x', () => ({
-  Bubble: {
-    List: ({
-      items = [],
-    }: {
-      items?: Array<{
-        key: string
-        role: string
-        content: string
-        contentRender?: (content: string) => ReactNode
-        footer?: ReactNode
-      }>
-    }) => (
-      <div>
-        {items.map((item) => (
-          <div key={item.key} data-role={item.role}>
-            {item.contentRender?.(item.content) ?? item.content}
-            {item.footer}
-          </div>
-        ))}
-      </div>
-    ),
-  },
-  Mermaid: () => null,
-}))
+// XMarkdown's Mermaid pulls in an ESM-only highlighter that Vitest can't load.
+vi.mock('@ant-design/x', () => ({ Mermaid: () => null }))
 vi.mock('../explore-chat-answer', () => ({
   ExploreChatAnswer: ({ content }: { content: string }) => <p>{content}</p>,
 }))
@@ -106,7 +82,7 @@ it('keeps only the latest answer’s actions visible and marks each question as 
       />,
     ),
   )
-  const answers = [...host.querySelectorAll('[data-role="assistant"]')]
+  const answers = [...host.querySelectorAll('[data-message-role="assistant"]')]
   expect(
     answers.map((answer) =>
       answer
@@ -137,7 +113,7 @@ it('hides the actions of the answer that is still streaming', async () => {
       />,
     ),
   )
-  const answers = [...host.querySelectorAll('[data-role="assistant"]')]
+  const answers = [...host.querySelectorAll('[data-message-role="assistant"]')]
   expect(answers[1].querySelector('.chat-message-actions')).toBeNull()
   expect(answers[0].querySelector('.chat-message-actions')).not.toBeNull()
 })

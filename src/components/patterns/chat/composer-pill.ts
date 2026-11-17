@@ -1,5 +1,5 @@
 /**
- * Toolbar pills on the Home and Explore composers. Plain buttons rather than
+ * Toolbar pills on chat composers (PromptInputButton and Home's own pills). Plain buttons rather than
  * `Button`, so the pill shape and outline don't fight the base button classes
  * (token classes are not merged by tailwind-merge).
  */

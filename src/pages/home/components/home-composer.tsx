@@ -1,6 +1,6 @@
 import { useDefaultModelReference } from '@/hooks/use-model-provider-request'
 import { useEffect, useRef, type RefObject } from 'react'
-import type { SenderRef } from '@ant-design/x/es/sender/interface'
+import type { ChatComposerRef } from '@/components/chat/chat-composer'
 import { useTranslation } from 'react-i18next'
 import { useHomeStore } from '@/stores/home'
 import { findFirstEnabledModelByType } from '@/stores/model'
@@ -31,7 +31,7 @@ interface HomeComposerProps {
   /** 选中会话的历史载入中：只禁用发送，草稿与范围选择照常 */
   sendBlocked?: boolean
   placement: 'welcome' | 'conversation'
-  inputRef?: RefObject<SenderRef | null>
+  inputRef?: RefObject<ChatComposerRef | null>
 }
 
 /** Both entry states use the same selection and model controls. Drafts stay above this component. */
@@ -46,7 +46,7 @@ export function HomeComposer({
 }: HomeComposerProps) {
   const { t } = useTranslation()
   const user = useAuthStore((state) => state.user)
-  const ownInput = useRef<SenderRef>(null)
+  const ownInput = useRef<ChatComposerRef>(null)
   const sender = inputRef ?? ownInput
   const atButtonRef = useRef<HTMLButtonElement>(null!)
   const {
@@ -127,17 +127,8 @@ export function HomeComposer({
     selectedApps,
   ])
   const change = (next: string) => {
-    const element = sender.current?.inputElement
-    const cursor =
-      element && 'selectionStart' in element
-        ? element.selectionStart
-        : next.length
-    if (!locked)
-      handleAtInput(
-        next,
-        value,
-        typeof cursor === 'number' ? cursor : next.length,
-      )
+    const cursor = sender.current?.inputElement?.selectionStart ?? next.length
+    if (!locked) handleAtInput(next, value, cursor)
     onChange(next)
   }
   const cleanAt = () => {

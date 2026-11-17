@@ -1,13 +1,12 @@
-import { useLayoutEffect, useMemo, useRef } from 'react'
-import { useTranslation } from 'react-i18next'
-import { Bubble, type BubbleListProps } from '@ant-design/x'
+import { useMemo, useRef } from 'react'
 import { ChatBubbleLoading } from '@/components/chat/ChatBubbleLoading'
-import { MessageActionBar } from '@/components/chat/message-action-bar'
 import { MessageActionsFooter } from '@/components/chat/MessageActionsFooter'
-import { CHAT_BUBBLE_ROLES } from '@/components/chat/antx-chat-config'
+import {
+  ChatTranscript,
+  type TranscriptItem,
+} from '@/components/chat/chat-transcript'
 import { TurnRail, type ThreadTurn } from '@/components/chat/turn-rail'
-import { ChatJumpToLatest } from '@/components/patterns/chat/chat-jump-to-latest'
-import { useChatScrollFollow } from '@/hooks/use-chat-scroll-follow'
+import { ChatScrollViewport } from '@/components/patterns/chat/chat-scroll-viewport'
 import { ExploreChatAnswer } from './explore-chat-answer'
 import { ExploreRunNotice } from './explore-run-notice'
 import { ExploreMessageAttachments } from './message-attachments'
@@ -24,9 +23,10 @@ export interface ExploreThreadProps {
 }
 
 /**
- * Explore keeps antd-x Bubble.List, in the same thread look as Home: no
- * avatars, the model (logo and name) above each answer, actions under it
- * (only the latest keeps them visible).
+ * Explore's thread, the same as Home's: one reading column, no avatars, the
+ * model (logo and name) above each answer, actions under it (only the latest
+ * keeps them visible). A sent question is anchored near the top while its
+ * answer streams in below.
  */
 export function ExploreThread({
   messages,
@@ -34,41 +34,13 @@ export function ExploreThread({
   onCopy,
   onRegenerate,
 }: ExploreThreadProps) {
-  const { t } = useTranslation()
   const root = useRef<HTMLDivElement>(null)
-  const latestQuestion = messages.findLastIndex(
-    (message) => message.role === 'user',
-  )
-  // Same scrolling as Home: the newest question is anchored near the top and
-  // its answer streams in below; a loaded conversation opens at the latest.
-  const scroll = useChatScrollFollow({
-    anchorKey:
-      latestQuestion < 0
-        ? null
-        : messageKey(messages[latestQuestion], latestQuestion),
-    pending: isStreaming,
-  })
-  const { containerRef, contentRef } = scroll
-  // Bubble.List hands its scroll box to its ref only after a second render;
-  // the element itself is in the DOM from the first commit.
-  useLayoutEffect(() => {
-    const box = root.current?.querySelector<HTMLElement>(
-      '.ant-bubble-list-scroll-box',
-    )
-    containerRef(box ?? null)
-    contentRef(
-      box?.querySelector<HTMLElement>(
-        ':scope > .ant-bubble-list-scroll-content',
-      ) ?? null,
-    )
-  }, [containerRef, contentRef])
   const lastAnswer = messages.findLastIndex(
     (message) => message.role === 'assistant',
   )
-  const items = useMemo<BubbleListProps['items']>(
+  const items = useMemo<TranscriptItem[]>(
     () =>
       messages.map((message, index) => {
-        const key = messageKey(message, index)
         const user = message.role === 'user'
         const streaming =
           isStreaming &&
@@ -77,50 +49,46 @@ export function ExploreThread({
           (message.runPhase === 'running' ||
             message.runPhase === 'cancelRequested')
         const content = message.content || ''
+        // Dots only until the first answer or reasoning text arrives.
+        const waiting = streaming && !message.content && !message.thinking
         return {
-          key,
+          id: messageKey(message, index),
           role: message.role,
-          content,
-          streaming,
-          // Dots only until the first answer or reasoning text arrives.
-          loading: streaming && !message.content && !message.thinking,
-          loadingRender: () => <ChatBubbleLoading />,
-          contentRender: user
-            ? () => (
-                <div data-turn-id={key} aria-label={t('chat.transcript.user')}>
-                  {content}
-                  <ExploreMessageAttachments files={message.files} />
-                </div>
-              )
-            : () => (
-                <ExploreChatAnswer
-                  content={content}
-                  thinking={message.thinking}
-                  messageId={message.id}
-                  references={message.references}
-                  isStreaming={streaming}
-                  runPhase={message.runPhase}
-                  notice={<ExploreRunNotice phase={message.runPhase} />}
-                  identity={message.modelIdentity ?? {}}
-                />
-              ),
-          footer:
+          phase: streaming ? 'running' : undefined,
+          body: user ? (
+            <>
+              {content}
+              <ExploreMessageAttachments files={message.files} />
+            </>
+          ) : waiting ? (
+            <ChatBubbleLoading />
+          ) : (
+            <ExploreChatAnswer
+              content={content}
+              thinking={message.thinking}
+              messageId={message.id}
+              references={message.references}
+              isStreaming={streaming}
+              runPhase={message.runPhase}
+              notice={<ExploreRunNotice phase={message.runPhase} />}
+              identity={message.modelIdentity ?? {}}
+            />
+          ),
+          actions:
             streaming || !content.trim() ? undefined : (
-              <MessageActionBar persistent={index === lastAnswer}>
-                <MessageActionsFooter
-                  className="flex"
-                  content={content}
-                  onCopy={() => onCopy(content)}
-                  onRegenerate={user ? undefined : () => onRegenerate(index)}
-                  showTTS={!user}
-                  showRegenerate={!user}
-                  showFeedback={false}
-                />
-              </MessageActionBar>
+              <MessageActionsFooter
+                className="flex"
+                content={content}
+                onCopy={() => onCopy(content)}
+                onRegenerate={user ? undefined : () => onRegenerate(index)}
+                showTTS={!user}
+                showRegenerate={!user}
+                showFeedback={false}
+              />
             ),
         }
       }),
-    [messages, isStreaming, lastAnswer, onCopy, onRegenerate, t],
+    [messages, isStreaming, lastAnswer, onCopy, onRegenerate],
   )
   const turns = useMemo<ThreadTurn[]>(
     () =>
@@ -134,24 +102,17 @@ export function ExploreThread({
   return (
     <div
       ref={root}
-      className="explore-chat-area app-chat-area relative h-full min-h-0"
+      className="explore-chat-area app-chat-area relative flex h-full min-h-0 flex-col"
     >
-      {/* Full-width scroller (scrollbar at the edge), bubbles in the reading column. */}
-      <Bubble.List
-        items={items}
-        autoScroll={false}
-        className="h-full"
-        // The reading column is set in app-chat-message.css (.explore-chat-area).
-        classNames={{ scroll: 'px-space-md py-space-lg sm:px-space-lg' }}
-        role={CHAT_BUBBLE_ROLES}
-      />
+      <ChatScrollViewport
+        anchorKey={turns.at(-1)?.id}
+        isStreaming={isStreaming}
+        className="px-space-md sm:px-space-lg"
+        contentClassName="mx-auto w-full max-w-2xl"
+      >
+        <ChatTranscript items={items} />
+      </ChatScrollViewport>
       <TurnRail turns={turns} rootRef={root} />
-      {!scroll.isFollowing && (
-        <ChatJumpToLatest
-          hasNewContent={scroll.hasNewContent}
-          onJump={() => scroll.scrollToLatest('smooth')}
-        />
-      )}
     </div>
   )
 }

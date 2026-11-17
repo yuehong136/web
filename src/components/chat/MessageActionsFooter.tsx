@@ -1,16 +1,21 @@
 /**
- * 消息操作按钮组件
- * 用于显示消息底部的操作按钮，包括复制、TTS 朗读、重新生成、点赞/踩
- *
- * 由于使用了 useSpeech hook，每条消息需要创建独立的组件实例
+ * 消息操作按钮：复制、TTS 朗读、重新生成、点赞/踩。
+ * 每条消息各有一个实例（useSpeech 按消息朗读）。
  */
 import * as React from 'react'
 import { useTranslation } from 'react-i18next'
-import { Copy, RotateCcw, Volume2, Pause, LoaderCircle } from 'lucide-react'
-import Actions from '@ant-design/x/es/actions'
-import type { ActionsProps } from '@ant-design/x'
+import {
+  Copy,
+  LoaderCircle,
+  Pause,
+  RotateCcw,
+  ThumbsDown,
+  ThumbsUp,
+  Volume2,
+} from 'lucide-react'
+import { MessageAction } from '@/components/patterns/chat/message'
 import { useSpeech } from '@/hooks/use-speech'
-import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 export interface MessageActionsFooterProps {
   /** 消息内容（用于 TTS 朗读） */
@@ -33,24 +38,8 @@ export interface MessageActionsFooterProps {
   className?: string
 }
 
-/**
- * 消息操作按钮组件
- *
- * 功能：
- * - 复制内容到剪贴板
- * - TTS 文字转语音朗读
- * - 重新生成回答
- * - 点赞/踩反馈
- *
- * @example
- * <MessageActionsFooter
- *   content={mainContent}
- *   onCopy={() => copyToClipboard(mainContent)}
- *   onRegenerate={handleRegenerate}
- *   onLike={handleLike}
- *   onDislike={handleDislike}
- * />
- */
+type Feedback = 'like' | 'dislike' | null
+
 export const MessageActionsFooter: React.FC<MessageActionsFooterProps> =
   React.memo(
     ({
@@ -67,131 +56,75 @@ export const MessageActionsFooter: React.FC<MessageActionsFooterProps> =
       const { t } = useTranslation()
       const { isPlaying, isPaused, isLoading, handleTogglePlay, audioRef } =
         useSpeech(content)
-      const [feedbackValue, setFeedbackValue] = React.useState<
-        'like' | 'dislike' | 'default'
-      >('default')
-
-      const handleFeedbackChange = React.useCallback(
-        (value: 'like' | 'dislike' | 'default') => {
-          setFeedbackValue(value)
-          if (value === 'like') {
-            onLike?.()
-          }
-          if (value === 'dislike') {
-            onDislike?.()
-          }
-        },
-        [onLike, onDislike],
+      const [feedback, setFeedback] = React.useState<Feedback>(null)
+      const speechLabel = t(
+        isPlaying || isLoading
+          ? 'chat.actions.pauseSpeech'
+          : isPaused
+            ? 'chat.actions.resumeSpeech'
+            : 'chat.actions.readAloud',
       )
-
-      // 构建操作项列表
-      const actionItems = React.useMemo<ActionsProps['items']>(() => {
-        const items: ActionsProps['items'] = [
-          {
-            key: 'copy',
-            actionRender: () => (
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                className="ant-actions-button-item"
-                aria-label={t('common.copy')}
-                title={t('common.copy')}
-                onClick={onCopy}
-              >
-                <Copy className="size-icon-sm" />
-              </Button>
-            ),
-          },
-        ]
-
-        if (showTTS) {
-          items.push({
-            key: 'tts',
-            actionRender: () => (
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                className="ant-actions-button-item"
-                aria-label={t(
-                  isPlaying || isLoading
-                    ? 'chat.actions.pauseSpeech'
-                    : isPaused
-                      ? 'chat.actions.resumeSpeech'
-                      : 'chat.actions.readAloud',
-                )}
-                title={t(
-                  isPlaying || isLoading
-                    ? 'chat.actions.pauseSpeech'
-                    : isPaused
-                      ? 'chat.actions.resumeSpeech'
-                      : 'chat.actions.readAloud',
-                )}
-                aria-pressed={isPlaying || isLoading}
-                onClick={handleTogglePlay}
-              >
-                {isLoading ? (
-                  <LoaderCircle className="size-icon-sm animate-spin" />
-                ) : isPlaying ? (
-                  <Pause className="size-icon-sm" />
-                ) : (
-                  <Volume2 className="size-icon-sm" />
-                )}
-              </Button>
-            ),
-          })
-        }
-
-        if (showRegenerate && onRegenerate) {
-          items.push({
-            key: 'regenerate',
-            actionRender: () => (
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                className="ant-actions-button-item"
-                aria-label={t('chat.actions.regenerate')}
-                title={t('chat.actions.regenerate')}
-                onClick={onRegenerate}
-              >
-                <RotateCcw className="size-icon-sm" />
-              </Button>
-            ),
-          })
-        }
-
-        if (showFeedback && (onLike || onDislike)) {
-          items.push({
-            key: 'feedback',
-            actionRender: () => (
-              <Actions.Feedback
-                value={feedbackValue}
-                onChange={handleFeedbackChange}
-              />
-            ),
-          })
-        }
-
-        return items
-      }, [
-        feedbackValue,
-        handleFeedbackChange,
-        handleTogglePlay,
-        isLoading,
-        isPlaying,
-        isPaused,
-        onCopy,
-        onRegenerate,
-        onLike,
-        onDislike,
-        showFeedback,
-        showRegenerate,
-        showTTS,
-        t,
-      ])
-
+      const choose = (value: Exclude<Feedback, null>) => {
+        const next = feedback === value ? null : value
+        setFeedback(next)
+        if (next === 'like') onLike?.()
+        if (next === 'dislike') onDislike?.()
+      }
       return (
-        <div className={className || 'mt-space-sm flex justify-start'}>
-          <Actions items={actionItems} variant="borderless" />
+        <div
+          className={cn(
+            'flex items-center gap-space-2xs',
+            className ?? 'mt-space-sm',
+          )}
+          data-message-actions-footer
+        >
+          <MessageAction label={t('common.copy')} onClick={onCopy}>
+            <Copy aria-hidden="true" className="size-icon-sm" />
+          </MessageAction>
+          {showTTS && (
+            <MessageAction
+              label={speechLabel}
+              aria-pressed={isPlaying || isLoading}
+              onClick={handleTogglePlay}
+            >
+              {isLoading ? (
+                <LoaderCircle
+                  aria-hidden="true"
+                  className="size-icon-sm animate-spin motion-reduce:animate-none"
+                />
+              ) : isPlaying ? (
+                <Pause aria-hidden="true" className="size-icon-sm" />
+              ) : (
+                <Volume2 aria-hidden="true" className="size-icon-sm" />
+              )}
+            </MessageAction>
+          )}
+          {showRegenerate && onRegenerate && (
+            <MessageAction
+              label={t('chat.actions.regenerate')}
+              onClick={onRegenerate}
+            >
+              <RotateCcw aria-hidden="true" className="size-icon-sm" />
+            </MessageAction>
+          )}
+          {showFeedback && (onLike || onDislike) && (
+            <>
+              <MessageAction
+                label={t('chat.actions.like')}
+                aria-pressed={feedback === 'like'}
+                onClick={() => choose('like')}
+              >
+                <ThumbsUp aria-hidden="true" className="size-icon-sm" />
+              </MessageAction>
+              <MessageAction
+                label={t('chat.actions.dislike')}
+                aria-pressed={feedback === 'dislike'}
+                onClick={() => choose('dislike')}
+              >
+                <ThumbsDown aria-hidden="true" className="size-icon-sm" />
+              </MessageAction>
+            </>
+          )}
           {/* Hidden audio element for TTS playback */}
           {showTTS && <audio ref={audioRef} hidden />}
         </div>

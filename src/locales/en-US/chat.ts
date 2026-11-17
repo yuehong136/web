@@ -139,6 +139,8 @@ export default {
       resumeSpeech: 'Resume reading',
       pauseSpeech: 'Pause reading',
       speechFailed: 'Could not play audio. Try again.',
+      like: 'Good answer',
+      dislike: 'Bad answer',
     },
     stream: {
       failed: 'Generation failed. Please try again.',

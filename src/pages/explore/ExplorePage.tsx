@@ -1,11 +1,19 @@
 import { useExploreConversation } from '@/pages/explore/hooks/use-explore-conversation'
 import { useExploreSend } from '@/pages/explore/hooks/use-explore-send'
-import { useCallback, useMemo, useState, type FC } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type FC,
+} from 'react'
 import { SlidersHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tooltip } from '@/components/ui/tooltip'
 import { copyToClipboardWithFeedback } from '@/lib/clipboard'
 import { toast } from '@/lib/toast'
+import { uploadConfig } from '@/config/chat'
 import { findFirstEnabledModelByType } from '@/stores/model'
 import { useModelSelectorRequest } from '@/hooks/use-model-selector-request'
 import { useDialogApps } from '@/hooks/use-dialog-apps'
@@ -72,11 +80,17 @@ export const ExplorePage: FC = () => {
   const [chatSettings, setChatSettings] =
     useState<ChatSettings>(defaultChatSettings)
 
-  // 附件面板；拖入文件时自动打开
+  // 附件面板；拖入文件时自动打开，松手即上传
   const [headerOpen, setHeaderOpen] = useState(false)
   const openAttachments = useCallback(() => setHeaderOpen(true), [])
-  const { containerRef: dropContainerRef, isDragging } =
-    useExploreDrop(openAttachments)
+  const addFileRef = useRef<(file: File) => void>(() => {})
+  const dropFiles = useCallback((files: FileList) => {
+    for (const file of Array.from(files)) addFileRef.current(file)
+  }, [])
+  const { containerRef: dropContainerRef, isDragging } = useExploreDrop(
+    openAttachments,
+    dropFiles,
+  )
 
   // 深度研究与联网搜索（联网需要应用配置 Tavily Key）
   const [enableReasoning, setEnableReasoning] = useState(false)
@@ -101,6 +115,22 @@ export const ExplorePage: FC = () => {
     hasError: hasUploadError,
     retry: retryUploadFile,
   } = useChatUpload()
+  const addFile = useCallback(
+    (file: File) => {
+      if (file.size > uploadConfig.maxSize) {
+        toast.error(t('explore.toast.fileTooLarge', { name: file.name }))
+        return
+      }
+      void uploadFile(file).then((result) => {
+        if (result)
+          toast.success(t('explore.toast.uploadSuccess', { name: file.name }))
+      })
+    },
+    [t, uploadFile],
+  )
+  useEffect(() => {
+    addFileRef.current = addFile
+  }, [addFile])
 
   const { knowledgeBases, loadKnowledgeBases } = useKnowledgeBases()
   const rerankModels = useRerankModels(myLLMs)
@@ -328,13 +358,13 @@ export const ExplorePage: FC = () => {
         uploading: hasUploadingFiles,
         readyCount: uploadedAttachments.length,
         hasError: hasUploadError,
-        upload: uploadFile,
+        add: addFile,
         remove: removeUploadFile,
         retry: (uid) => void retryUploadFile(uid),
       }}
       attachmentsOpen={headerOpen}
       onAttachmentsOpenChange={setHeaderOpen}
-      getDropContainer={() => dropContainerRef.current}
+      dragging={isDragging}
       reasoning={enableReasoning}
       onReasoningChange={setEnableReasoning}
       internet={enableInternet}

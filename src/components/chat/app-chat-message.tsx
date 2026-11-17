@@ -1,9 +1,7 @@
 import type { ModelIdentitySnapshot } from '@/lib/model-identity'
-import type { BubbleProps } from '@ant-design/x'
 import { Bot } from 'lucide-react'
 import { EntityAvatar } from '@/components/patterns/entity-avatar'
 import { useCurrentUserAvatar } from '@/hooks/use-current-user-avatar'
-import { ChatBubbleLoading } from '@/components/chat/ChatBubbleLoading'
 import { AnswerIdentity } from '@/components/chat/answer-identity'
 import '@/components/chat/app-chat-message.css'
 
@@ -37,8 +35,8 @@ export function AppChatAvatar({
   )
 }
 
-/** Shared by application conversations and the Studio test chat. */
-export function getAppChatBubbleProps(
+/** Avatar and answer header for the Studio test chat. */
+export function getAppChatMessageParts(
   role: 'user' | 'assistant',
   app?: AppChatIdentity,
   modelIdentity?: ModelIdentitySnapshot,
@@ -49,21 +47,6 @@ export function getAppChatBubbleProps(
       !user && (app?.llm_id || modelIdentity) ? (
         <AnswerIdentity {...(modelIdentity ?? { reference: app?.llm_id })} />
       ) : undefined,
-    placement: user ? 'end' : 'start',
-    variant: 'borderless',
     avatar: <AppChatAvatar role={role} {...app} />,
-    footerPlacement: user ? undefined : 'outer-start',
-    loadingRender: () => <ChatBubbleLoading />,
-    // Same thread look as Home and Explore (see app-chat-message.css).
-    classNames: { content: user ? 'chat-user-bubble' : 'chat-answer-bubble' },
-  } satisfies Pick<
-    BubbleProps,
-    | 'header'
-    | 'placement'
-    | 'variant'
-    | 'avatar'
-    | 'footerPlacement'
-    | 'classNames'
-    | 'loadingRender'
-  >
+  }
 }

@@ -19,7 +19,7 @@ import {
   COMPOSER_PILL,
   COMPOSER_PILL_IDLE,
   COMPOSER_PILL_ON,
-} from './composer-pill'
+} from '@/components/patterns/chat/composer-pill'
 
 /** How the selected MCP services are called: tool-call timeout and detail. */
 export function McpRunOptions({ disabled }: { disabled?: boolean }) {
