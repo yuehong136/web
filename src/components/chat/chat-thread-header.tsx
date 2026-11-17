@@ -1,4 +1,8 @@
-import type { ReactNode } from 'react'
+import { useCallback, type ReactNode } from 'react'
+import {
+  WorkbenchHeaderSlot,
+  useWorkbenchHeader,
+} from '@/components/layout/workbench-header'
 import { cn } from '@/lib/utils'
 
 export interface ChatThreadHeaderProps {
@@ -10,21 +14,31 @@ export interface ChatThreadHeaderProps {
   placeholder?: boolean
 }
 
-/** The conversation header: title, the answering identity, then actions. */
+/**
+ * The conversation header: title, the answering identity, then actions.
+ * Inside the app shell it moves into the workbench header (one header row, as
+ * on the boards); standalone and embedded pages keep it inline.
+ */
 export function ChatThreadHeader({
   title,
   identity,
   actions,
   placeholder = false,
 }: ChatThreadHeaderProps) {
-  return (
-    <header
-      className={cn(
-        'flex min-h-12 shrink-0 items-center gap-space-sm ps-space-md pe-space-sm',
-        !placeholder && 'border-b border-border-subtle',
-      )}
-      data-thread-header
-    >
+  const titleSlot = useWorkbenchHeader('title')
+  const actionsSlot = useWorkbenchHeader('actions', Boolean(actions))
+  const bindTitleRoot = titleSlot.bindRoot
+  const bindActionsRoot = actionsSlot.bindRoot
+  const bindRoot = useCallback(
+    (element: HTMLElement | null) => {
+      bindTitleRoot(element)
+      bindActionsRoot(element)
+    },
+    [bindTitleRoot, bindActionsRoot],
+  )
+
+  const heading = (
+    <>
       <h1
         className={cn(
           'min-w-0 truncate text-base',
@@ -43,11 +57,49 @@ export function ChatThreadHeader({
           {identity}
         </span>
       )}
-      {actions && (
-        <div className="ms-auto flex shrink-0 items-center gap-space-2xs">
-          {actions}
+    </>
+  )
+  const actionGroup = actions ? (
+    <div className="ms-auto flex shrink-0 items-center gap-space-2xs">
+      {actions}
+    </div>
+  ) : null
+
+  if (titleSlot.placement === 'inline')
+    return (
+      <header
+        ref={bindRoot}
+        className={cn(
+          'flex min-h-12 shrink-0 items-center gap-space-sm ps-space-md pe-space-sm',
+          !placeholder && 'border-b border-border-subtle',
+        )}
+        data-thread-header
+      >
+        {heading}
+        {actionGroup}
+      </header>
+    )
+
+  return (
+    <span ref={bindRoot} hidden data-thread-header data-placement="workbench">
+      <WorkbenchHeaderSlot
+        placement={titleSlot.placement}
+        target={titleSlot.target}
+        inline={null}
+      >
+        <div className="flex min-w-0 flex-1 items-center gap-space-sm">
+          {heading}
         </div>
-      )}
-    </header>
+      </WorkbenchHeaderSlot>
+      {actionGroup ? (
+        <WorkbenchHeaderSlot
+          placement={actionsSlot.placement}
+          target={actionsSlot.target}
+          inline={null}
+        >
+          {actionGroup}
+        </WorkbenchHeaderSlot>
+      ) : null}
+    </span>
   )
 }

@@ -61,7 +61,7 @@ export function DefaultModelRow({
           {hint}
         </span>
       </div>
-      <div className="w-full min-w-0 sm:w-60">{children}</div>
+      <div className="w-full min-w-0 sm:w-80">{children}</div>
     </div>
   )
 }

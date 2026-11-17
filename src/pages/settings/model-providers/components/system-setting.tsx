@@ -214,7 +214,7 @@ function DefaultModelsForm({
             <DefaultsProgress set={setCount} total={slots.length} />
           )}
         </div>
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(26rem,100%),1fr))] gap-x-space-lg gap-y-space-2xs">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(30rem,100%),1fr))] gap-x-space-lg gap-y-space-2xs">
           {slots.map(({ config, builtin, status }) => {
             const label = t(
               `settings.models.defaultFields.${config.name}.label`,

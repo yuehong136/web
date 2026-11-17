@@ -95,13 +95,20 @@ describe('Markdown newline contracts', () => {
     expect(container.querySelector('pre br')).toBeNull()
   })
 
-  it('routes fenced mermaid using XMarkdown lang metadata', async () => {
-    await chat('```mermaid\ngraph LR\nA-->B\n```', true)
-    expect(container.querySelector('[data-mermaid]')?.textContent).toBe(
-      'graph LR\nA-->B\n',
-    )
-    expect(container.querySelector('[data-language="mermaid"]')).toBeNull()
-  })
+  // The first mermaid import alone takes 5–10s on a loaded machine.
+  it(
+    'routes fenced mermaid using XMarkdown lang metadata',
+    {
+      timeout: 30_000,
+    },
+    async () => {
+      await chat('```mermaid\ngraph LR\nA-->B\n```', true)
+      expect(container.querySelector('[data-mermaid]')?.textContent).toBe(
+        'graph LR\nA-->B\n',
+      )
+      expect(container.querySelector('[data-language="mermaid"]')).toBeNull()
+    },
+  )
 
   it('adds breaks in MD preview while preserving GFM, code and safe HTML handling', async () => {
     await act(async () =>
