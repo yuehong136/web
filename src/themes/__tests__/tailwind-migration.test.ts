@@ -37,8 +37,8 @@ test('interface and Paper reading fonts work offline with explicit Chinese fallb
   // Preset radii live on [data-preset]; a root-level --radius elsewhere would
   // outrank them on <html> and pin every preset to one value.
   const styles = await Promise.all(
-    ['mcp-chat-reference.css', 'reference.css', 'selection-controls.css'].map(
-      (name) => readFile(path.join(sourceRoot, 'styles', name), 'utf8'),
+    ['reference.css', 'selection-controls.css'].map((name) =>
+      readFile(path.join(sourceRoot, 'styles', name), 'utf8'),
     ),
   )
   for (const css of styles) assert.doesNotMatch(css, /--radius:/u)
@@ -114,6 +114,28 @@ test('native spacing, radius, elevation and responsive variants compile', async 
   assert.match(css, /--elevation-low: 0 1px 3px/)
   assert.match(css, /@media \(width >= 48rem\)/)
   assert.match(css, /@media \(hover: hover\)/)
+})
+
+test('global base rules keep their cascade without a page stylesheet', async () => {
+  const css = (await compiler).build(['line-clamp-1', 'line-clamp-2'])
+  // Line clamps come from Tailwind's own utilities.
+  for (const lines of [1, 2])
+    assert.match(
+      css,
+      new RegExp(
+        `\\.line-clamp-${lines} \\{\\s*overflow: hidden;\\s*display: -webkit-box;\\s*-webkit-box-orient: vertical;\\s*-webkit-line-clamp: ${lines};`,
+        'u',
+      ),
+    )
+  // The root size follows the appearance preset only.
+  assert.match(css, /html\[data-preset\] \{\s*font-size: 100%;/u)
+  assert.doesNotMatch(css, /--font-size|mcp-chat-page/u)
+  // Class-level specificity keeps token borders above the forms plugin's
+  // base input borders (element-level selectors).
+  assert.match(
+    css,
+    /\*:not\(\.\\_\) \{\s*border-color: var\(--color-border-default\);/u,
+  )
 })
 
 test('dark utilities recognize both scoped data-theme and class mode', async () => {
