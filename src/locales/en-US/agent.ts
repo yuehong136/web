@@ -126,6 +126,7 @@ export default {
         'Open it again from the Agent list or confirm that the asset is still available.',
       backToList: 'Back to Agent list',
       namePlaceholder: 'Enter Agent name',
+      nameLabel: 'Agent name',
       autosavePending: 'not saved yet',
       autosaveDescription: 'ID: {{id}} · Autosave {{time}}',
       back: 'Back',
@@ -137,6 +138,15 @@ export default {
       publishFailed: 'Publish failed',
     },
     canvas: {
+      status: {
+        running: 'Running',
+        success: 'Succeeded',
+        error: 'Failed',
+      },
+      deleteEdge: 'Delete connection',
+      defaultModel: 'Default model',
+      modelUnavailable:
+        'This model is no longer available. Choose another one.',
       controls: {
         label: 'Canvas controls',
         zoomIn: 'Zoom in',

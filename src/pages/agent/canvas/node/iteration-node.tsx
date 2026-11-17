@@ -5,7 +5,7 @@ import { memo, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useShallow } from 'zustand/react/shallow'
 import { NodeHandleId, Operator } from '../../constant'
-import OperatorIcon from '../../operator-icon'
+import { OperatorTile } from '../../operator-icon'
 import {
   getIterationChildSize,
   getIterationContentChildren,
@@ -74,21 +74,10 @@ export function InnerIterationNode({
     >
       <section
         className={cn(
-          'group border-border-primary relative h-full w-full rounded-radius-lg border border-dashed transition-[border-color,outline-color]',
-          'from-surface-secondary/40 bg-linear-to-br via-transparent to-components-system-accent-soft/20',
+          'group relative h-full w-full rounded-radius-lg border border-dashed border-border-default bg-background-subtle transition-[border-color,outline-color] motion-reduce:transition-none',
+          selected &&
+            'border-solid border-components-canvas-node-border-selected outline-2 -outline-offset-1 outline-components-canvas-node-border-selected',
         )}
-        style={
-          selected
-            ? {
-                borderStyle: 'solid',
-                borderColor:
-                  'var(--color-components-canvas-node-border-selected)',
-                outline:
-                  '2px solid var(--color-components-canvas-node-border-selected)',
-                outlineOffset: '-1px',
-              }
-            : undefined
-        }
       >
         <NodeResizeControl
           style={controlStyle}
@@ -107,27 +96,27 @@ export function InnerIterationNode({
           nodeId={id}
         />
 
-        <div
-          className={cn(
-            'absolute top-0 left-0 z-10 inline-flex max-w-[60%] items-center gap-space-xs rounded-tl-radius-lg rounded-tr-none rounded-br-radius-md rounded-bl-none bg-components-system-accent-soft px-space-sm py-1 text-components-system-accent-text shadow-elevation-low',
-          )}
-        >
-          <OperatorIcon name={data.label as Operator} />
-          <span className="truncate text-xs leading-none font-semibold">
+        {/* 24px tall: content children start at y = 24 (iteration-layout). */}
+        <div className="absolute top-0 left-0 z-10 inline-flex h-6 max-w-[60%] items-center gap-space-xs rounded-tl-radius-lg rounded-br-radius-md border-r border-b border-components-canvas-node-border bg-components-canvas-node-bg pr-space-sm pl-0.5">
+          <OperatorTile name={data.label as Operator} />
+          <span
+            className="truncate text-xs leading-none font-semibold text-text-primary"
+            title={data.name}
+          >
             {data.name}
           </span>
         </div>
 
         {!hasUserChildren && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-            <div className="bg-surface-primary/40 flex flex-col items-center gap-space-xs rounded-radius-md border border-dashed border-border-subtle px-space-md py-space-sm text-center">
+            <div className="flex flex-col items-center gap-space-xs rounded-radius-md border border-dashed border-border-subtle bg-components-canvas-node-bg px-space-md py-space-sm text-center">
               <span className="text-xs text-text-secondary">
                 {t(
                   'flow.iterationEmptyHint',
                   '拖入节点到此区域，或从右侧面板添加子节点',
                 )}
               </span>
-              <span className="text-[10px] text-text-disabled">
+              <span className="text-xs text-text-tertiary">
                 {t(
                   'flow.iterationEmptySubHint',
                   '左侧 Start 锚点会作为每轮迭代的入口',
@@ -148,7 +137,7 @@ export function InnerIterationStartNode({
 }: NodeProps<IIterationStartNode>) {
   return (
     <NodeWrapper
-      className="flex size-9 !w-9 items-center justify-center !rounded-full !border-components-system-accent-text !bg-components-system-accent-soft !p-0"
+      className="flex size-9 !w-9 items-center justify-center !rounded-full !p-0"
       selected={selected}
       id={id}
     >
@@ -160,9 +149,10 @@ export function InnerIterationStartNode({
         id={NodeHandleId.Start}
         nodeId={id}
       />
-      <div className="flex items-center justify-center text-components-system-accent-text">
-        <OperatorIcon name={Operator.Begin} />
-      </div>
+      <OperatorTile
+        name={Operator.IterationStart}
+        className="rounded-radius-full"
+      />
     </NodeWrapper>
   )
 }

@@ -1,6 +1,13 @@
-import type { Edge, EdgeProps } from '@xyflow/react'
-import { BaseEdge, EdgeLabelRenderer, getBezierPath } from '@xyflow/react'
+import {
+  BaseEdge,
+  EdgeLabelRenderer,
+  getBezierPath,
+  type Edge,
+  type EdgeProps,
+} from '@xyflow/react'
+import { X } from 'lucide-react'
 import { memo, useContext, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import useGraphStore from '../../store'
 import { cn } from '@/lib/utils'
 import { NodeHandleId, Operator } from '../../constant'
@@ -22,6 +29,7 @@ function InnerButtonEdge({
   data,
   sourceHandleId,
 }: EdgeProps<Edge<{ isHovered: boolean }>>) {
+  const { t } = useTranslation()
   const { deleteEdgeById, getOperatorTypeFromId } = useGraphStore(
     (state) => state,
   )
@@ -95,28 +103,22 @@ function InnerButtonEdge({
   const activeMarkerEnd =
     selected || isTargetPlaceholder ? 'url(#selected-marker)' : markerEnd
 
-  const flowingStyle = useMemo<React.CSSProperties>(() => {
-    if (!isFlowing) return {}
-    return {
-      stroke: 'var(--color-components-canvas-edge-stroke-flowing)',
-      strokeWidth: 2,
-      strokeDasharray: '6 4',
-      animation: 'canvas-edge-flow 0.6s linear infinite',
-    }
-  }, [isFlowing])
-
   return (
     <>
       <BaseEdge
         path={edgePath}
         markerEnd={activeMarkerEnd}
-        style={{
-          ...style,
-          ...selectedStyle,
-          ...placeholderHighlightStyle,
-          ...flowingStyle,
-        }}
-        className="text-text-tertiary"
+        // A flowing edge (feeding a running node) wins over selection; its
+        // stroke and reduced-motion-safe dash animation live in overrides.css.
+        style={
+          isFlowing
+            ? style
+            : { ...style, ...selectedStyle, ...placeholderHighlightStyle }
+        }
+        className={cn(
+          'stroke-components-canvas-edge-marker',
+          isFlowing && 'canvas-edge-flowing',
+        )}
       />
 
       <EdgeLabelRenderer>
@@ -132,14 +134,16 @@ function InnerButtonEdge({
         >
           <button
             className={cn(
-              'bg-surface-primary size-4 rounded-full border border-status-error leading-none text-status-error hover:bg-status-error-subtle',
+              'flex size-4 items-center justify-center rounded-radius-full border border-status-error-border bg-components-canvas-node-bg text-status-error shadow-elevation-low hover:bg-status-error-subtle',
               'invisible',
               { visible },
             )}
             type="button"
+            aria-label={t('agent.canvas.deleteEdge')}
+            title={t('agent.canvas.deleteEdge')}
             onClick={onEdgeClick}
           >
-            ×
+            <X aria-hidden className="size-2.5" />
           </button>
         </div>
       </EdgeLabelRenderer>

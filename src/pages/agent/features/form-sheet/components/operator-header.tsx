@@ -1,6 +1,7 @@
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { X } from 'lucide-react'
-import OperatorIcon from '../../../operator-icon'
+import { OperatorTile } from '../../../operator-icon'
 import type { OperatorHeaderProps } from '../types'
 import { NodeTitleInput } from './node-title-input'
 import { SingleStepDebugTrigger } from './single-step-debug-trigger'
@@ -13,11 +14,10 @@ export function OperatorHeader({
   canvasId,
   onClose,
 }: OperatorHeaderProps) {
+  const { t } = useTranslation()
   return (
     <div className="flex items-center gap-space-sm">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-radius-md bg-surface-secondary text-text-primary">
-        <OperatorIcon name={iconKey} className="size-5" />
-      </div>
+      <OperatorTile name={iconKey} size="lg" />
 
       <NodeTitleInput node={node} titleEditable={titleEditable} />
 
@@ -32,9 +32,11 @@ export function OperatorHeader({
         variant="ghost"
         size="icon-sm"
         className="shrink-0 text-text-secondary hover:text-text-primary"
+        aria-label={t('common.close')}
+        title={t('common.close')}
         onClick={onClose}
       >
-        <X className="size-4" />
+        <X className="size-icon-sm" />
       </Button>
     </div>
   )

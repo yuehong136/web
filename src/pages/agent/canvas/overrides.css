@@ -1,4 +1,7 @@
 /*
+ * Unlayered on purpose: these rules must beat xyflow's layered defaults
+ * and, for the running animation, the layered `ai-glow` utility.
+ *
  * IterationNode renders its own chrome, so xyflow's default group-wrapper
  * styling (padding / border / background / hover+selected shadows) has to
  * be flattened. The `width: 150px` rule from xyflow's base stylesheet on
@@ -22,31 +25,18 @@
 }
 
 /*
- * Runtime visualization: pulsing halo on the node currently executing,
- * and flowing dashes on edges feeding a running target. Colors come from
- * canvas-scene status tokens so dark mode stays consistent.
+ * Runtime visualization, the canvas's AI moment: the running node wears the
+ * tide ring (`ai-glow`) and its glow breathes; edges feeding a running node
+ * flow. With reduced motion both stay still.
  */
-@keyframes canvas-node-running-pulse {
+@keyframes canvas-node-tide {
   0%,
   100% {
-    box-shadow: 0 0 0 0 var(--color-components-canvas-node-status-running-halo);
+    box-shadow: 0 0 0 2px var(--color-components-ai-glow);
   }
   50% {
-    box-shadow: 0 0 0 6px var(--color-components-canvas-node-status-running-halo);
+    box-shadow: 0 0 0 6px var(--color-components-ai-glow);
   }
-}
-
-.canvas-node-running {
-  border-color: var(--color-components-canvas-node-status-running-border) !important;
-  animation: canvas-node-running-pulse 1.6s ease-in-out infinite;
-}
-
-.canvas-node-success {
-  border-color: var(--color-components-canvas-node-status-success-border) !important;
-}
-
-.canvas-node-error {
-  border-color: var(--color-components-canvas-node-status-error-border) !important;
 }
 
 @keyframes canvas-edge-flow {
@@ -55,9 +45,18 @@
   }
 }
 
-.react-flow__edge.canvas-edge-flowing .react-flow__edge-path {
+.react-flow__edge-path.canvas-edge-flowing {
   stroke: var(--color-components-canvas-edge-stroke-flowing);
   stroke-width: 2;
   stroke-dasharray: 6 4;
-  animation: canvas-edge-flow 0.6s linear infinite;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .canvas-node-running {
+    animation: canvas-node-tide 1.6s ease-in-out infinite;
+  }
+
+  .react-flow__edge-path.canvas-edge-flowing {
+    animation: canvas-edge-flow 0.6s linear infinite;
+  }
 }

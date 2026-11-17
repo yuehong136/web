@@ -13,7 +13,7 @@ export function GroupNodeLabel({
     <div className="h-full w-full" {...props}>
       <div
         className={cn(
-          'bg-surface-secondary text-text-primary w-fit px-space-sm py-space-xs text-xs',
+          'w-fit bg-surface-secondary px-space-sm py-space-xs text-xs text-text-primary',
           className,
         )}
       >
@@ -58,24 +58,18 @@ export function LabeledGroupNode({
   }
 
   const displayLabel = label ?? data?.name ?? data?.label
-  const labelText = typeof displayLabel === 'string' ? displayLabel : String(displayLabel || '')
+  const labelText =
+    typeof displayLabel === 'string' ? displayLabel : String(displayLabel || '')
 
   return (
     <div
       className={cn(
-        'h-full w-full rounded-radius-sm border border-border-primary bg-surface-secondary opacity-70 transition-[border-color,outline-color]',
+        'h-full w-full rounded-radius-sm border border-border-primary bg-surface-secondary opacity-70 transition-[border-color,outline-color] motion-reduce:transition-none',
+        selected &&
+          'border-components-canvas-node-border-selected outline-2 -outline-offset-1 outline-components-canvas-node-border-selected',
         className,
       )}
-      style={{
-        ...style,
-        ...(selected
-          ? {
-              borderColor: 'var(--color-components-canvas-node-border-selected)',
-              outline: '2px solid var(--color-components-canvas-node-border-selected)',
-              outlineOffset: '-1px',
-            }
-          : {}),
-      }}
+      style={style}
     >
       {labelText && (
         <Panel className="m-0 p-0" position={position}>

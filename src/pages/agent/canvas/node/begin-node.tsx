@@ -105,18 +105,8 @@ function InnerBeginNode({ id, data, selected }: NodeProps<IBeginNode>) {
         style={RightHandleStyle}
         nodeId={id}
       />
-      <NodeHeader
-        id={id}
-        name={data.name}
-        label={data.label}
-        icon={
-          <Play
-            className="size-4"
-            style={{ color: 'var(--color-components-canvas-icon-start)' }}
-          />
-        }
-      />
-      <section className="gap-space-sm flex flex-col">
+      <NodeHeader id={id} name={data.name} label={data.label} icon={<Play />} />
+      <section className="flex flex-col gap-space-sm">
         {!isPipeline && (
           <div>
             <Badge variant={getBeginModeVariant(mode)}>
@@ -126,7 +116,7 @@ function InnerBeginNode({ id, data, selected }: NodeProps<IBeginNode>) {
         )}
 
         {isWebhookMode ? (
-          <LabelCard className="gap-space-sm flex items-center">
+          <LabelCard className="flex items-center gap-space-sm">
             <span className="shrink-0 font-medium text-text-primary">URL</span>
             <span className="min-w-0 flex-1 truncate">{webhookUrl}</span>
           </LabelCard>
@@ -139,7 +129,7 @@ function InnerBeginNode({ id, data, selected }: NodeProps<IBeginNode>) {
               return (
                 <LabelCard
                   key={`${input.key || input.name || 'input'}-${index}`}
-                  className="gap-space-sm flex items-center"
+                  className="flex items-center gap-space-sm"
                 >
                   {Icon ? (
                     <Icon className="size-3.5 shrink-0 text-text-secondary" />

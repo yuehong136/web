@@ -112,6 +112,7 @@ export default {
       notFoundDescription: '请从智能体列表重新打开，或确认当前资产仍然可用。',
       backToList: '返回智能体列表',
       namePlaceholder: '输入 Agent 名称',
+      nameLabel: 'Agent 名称',
       autosavePending: '待首次保存',
       autosaveDescription: 'ID: {{id}} · 自动保存 {{time}}',
       back: '返回',
@@ -123,6 +124,14 @@ export default {
       publishFailed: '发布失败',
     },
     canvas: {
+      status: {
+        running: '运行中',
+        success: '运行成功',
+        error: '运行失败',
+      },
+      deleteEdge: '删除连线',
+      defaultModel: '默认模型',
+      modelUnavailable: '该模型已不可用，请重新选择',
       controls: {
         label: '画布控制',
         zoomIn: '放大',

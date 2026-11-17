@@ -8,7 +8,11 @@ import { NodeWrapper } from './node-wrapper'
 
 function InnerPlaceholderNode({ id, selected }: NodeProps) {
   return (
-    <NodeWrapper selected={selected} className="opacity-50" id={id}>
+    <NodeWrapper
+      selected={selected}
+      className="border-dashed opacity-60"
+      id={id}
+    >
       <CommonHandle
         type="target"
         position={Position.Left}
@@ -17,9 +21,9 @@ function InnerPlaceholderNode({ id, selected }: NodeProps) {
         id={NodeHandleId.End}
         nodeId={id}
       />
-      <div className="px-3 py-4 space-y-2">
-        <div className="h-6 w-6 rounded-full animate-pulse" style={{ backgroundColor: 'var(--color-components-canvas-skeleton-bg)' }} />
-        <div className="h-4 w-full rounded animate-pulse" style={{ backgroundColor: 'var(--color-components-canvas-skeleton-bg)' }} />
+      <div className="space-y-space-sm px-space-sm py-space-base">
+        <div className="size-5 rounded-radius-sm bg-components-canvas-skeleton-bg motion-safe:animate-pulse" />
+        <div className="h-4 w-full rounded-radius-sm bg-components-canvas-skeleton-bg motion-safe:animate-pulse" />
       </div>
     </NodeWrapper>
   )

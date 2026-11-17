@@ -1,10 +1,10 @@
 import { cn } from '@/lib/utils'
-import { Check, Loader, X } from 'lucide-react'
 import type { PropsWithChildren } from 'react'
 import { forwardRef, useContext, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { AgentInstanceContext } from '../../context'
 
-type NodeRuntimeStatus = 'idle' | 'running' | 'success' | 'error'
+export type NodeRuntimeStatus = 'idle' | 'running' | 'success' | 'error'
 
 interface NodeWrapperProps extends PropsWithChildren {
   selected?: boolean
@@ -27,8 +27,31 @@ const formatElapsed = (seconds?: number) => {
   return `${minutes}m${remaining}s`
 }
 
+// Running is the AI moment of the canvas: the tide ring (and a breathing
+// glow from overrides.css unless motion is reduced). Finished nodes keep a
+// hairline status border and a dot; colour is never the only signal.
+const STATUS_FRAME: Record<NodeRuntimeStatus, string> = {
+  idle: '',
+  running: 'ai-glow canvas-node-running',
+  success: 'border-components-canvas-node-status-success-border',
+  error: 'border-components-canvas-node-status-error-border',
+}
+
+const STATUS_DOT: Record<Exclude<NodeRuntimeStatus, 'idle'>, string> = {
+  running: 'bg-ai-tide motion-safe:animate-pulse',
+  success: 'bg-status-success',
+  error: 'bg-status-error',
+}
+
+const STATUS_LABEL = {
+  running: 'agent.canvas.status.running',
+  success: 'agent.canvas.status.success',
+  error: 'agent.canvas.status.error',
+} as const
+
 export const NodeWrapper = forwardRef<HTMLDivElement, NodeWrapperProps>(
   ({ children, selected, className, id }, ref) => {
+    const { t } = useTranslation()
     const {
       currentSendLoading,
       startButNotFinishedNodeIds = [],
@@ -60,59 +83,40 @@ export const NodeWrapper = forwardRef<HTMLDivElement, NodeWrapperProps>(
       return formatElapsed(nodeElapsedMap[id])
     }, [id, nodeElapsedMap, status])
 
+    const statusLabel = status === 'idle' ? undefined : t(STATUS_LABEL[status])
+
     return (
       <div
         ref={ref}
+        data-status={status}
         className={cn(
-          'group relative w-[208px] rounded-radius-lg border border-components-canvas-node-border bg-components-canvas-node-bg px-space-base py-space-base text-xs shadow-elevation-low transition-[border-color,box-shadow,outline-color]',
-          status === 'running' && 'canvas-node-running',
-          status === 'success' && !selected && 'canvas-node-success',
-          status === 'error' && !selected && 'canvas-node-error',
+          'group relative w-[208px] rounded-radius-lg border border-components-canvas-node-border bg-components-canvas-node-bg px-space-base py-space-base text-xs shadow-elevation-low transition-[border-color,box-shadow,outline-color] hover:shadow-elevation-medium motion-reduce:transition-none',
+          !selected && STATUS_FRAME[status],
+          selected &&
+            'border-components-canvas-node-border-selected outline-2 -outline-offset-1 outline-components-canvas-node-border-selected',
+          selected && status === 'running' && 'canvas-node-running ai-glow',
           className,
         )}
-        style={
-          selected
-            ? {
-                borderColor: 'var(--color-components-canvas-node-border-selected)',
-                outline: '2px solid var(--color-components-canvas-node-border-selected)',
-                outlineOffset: '-1px',
-              }
-            : undefined
-        }
       >
-        {status === 'running' && (
-          <div className="absolute right-0 top-0 flex items-center justify-end p-space-xs">
-            <Loader
-              size={12}
-              className="animate-spin text-components-canvas-node-status-running-icon"
-            />
-          </div>
-        )}
-        {status === 'success' && (
-          <div className="absolute right-0 top-0 flex items-center gap-space-xs p-space-xs">
-            {elapsedLabel && (
-              <span className="rounded-radius-sm bg-components-canvas-node-status-success-bg px-space-xs text-xs leading-tight text-components-canvas-node-status-success-text">
-                {elapsedLabel}
-              </span>
+        {status !== 'idle' && (
+          <span
+            data-slot="node-status"
+            title={statusLabel}
+            className={cn(
+              'pointer-events-none absolute top-space-xs right-space-xs flex items-center gap-space-xs text-xs leading-none tabular-nums',
+              status === 'error' ? 'text-status-error' : 'text-text-tertiary',
             )}
-            <Check
-              size={12}
-              className="text-components-canvas-node-status-success-border"
+          >
+            {elapsedLabel}
+            <span
+              aria-hidden
+              className={cn(
+                'size-1.5 shrink-0 rounded-radius-full',
+                STATUS_DOT[status],
+              )}
             />
-          </div>
-        )}
-        {status === 'error' && (
-          <div className="absolute right-0 top-0 flex items-center gap-space-xs p-space-xs">
-            {elapsedLabel && (
-              <span className="rounded-radius-sm bg-components-canvas-node-status-error-bg px-space-xs text-xs leading-tight text-components-canvas-node-status-error-text">
-                {elapsedLabel}
-              </span>
-            )}
-            <X
-              size={12}
-              className="text-components-canvas-node-status-error-border"
-            />
-          </div>
+            <span className="sr-only">{statusLabel}</span>
+          </span>
         )}
         {children}
       </div>

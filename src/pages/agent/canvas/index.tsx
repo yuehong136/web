@@ -360,7 +360,10 @@ function AgentCanvasInner({
           ariaLabelConfig={ariaLabelConfig}
         >
           <AgentBackground />
-          <Spotlight className="z-0" opcity={0.7} coverage={70} />
+          {/* The glow is an AI moment: only while a run is in progress. */}
+          {railSendLoading ? (
+            <Spotlight className="z-0" opcity={0.7} coverage={70} />
+          ) : null}
           <Controls
             position="bottom-center"
             orientation="horizontal"

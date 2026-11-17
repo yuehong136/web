@@ -8,7 +8,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import type { AgentTraceItem } from '@/types/agent'
-import OperatorIcon from '../../../operator-icon'
+import { OperatorTile } from '../../../operator-icon'
 import { JsonViewer } from '../../../form/components/json-viewer'
 
 interface TraceTimelineProps {
@@ -98,12 +98,10 @@ function TraceItem({
         >
           <AccordionTrigger className="py-space-sm hover:no-underline">
             <div className="flex min-w-0 items-center gap-space-sm">
-              <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-radius-md border border-border-default bg-surface-primary">
-                <OperatorIcon
-                  name={item.component_name || item.component_id || ''}
-                  className="size-4"
-                />
-              </span>
+              <OperatorTile
+                name={item.component_name || item.component_id || ''}
+                size="md"
+              />
               <span className="truncate text-sm font-medium text-text-primary">
                 {item.component_name ||
                   item.component_id ||

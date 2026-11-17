@@ -5,7 +5,8 @@ import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { NodeHandleId, Operator } from '../../constant'
 import { useFindMcpById } from '../../hooks/use-find-mcp-by-id'
-import OperatorIcon from '../../operator-icon'
+import { OperatorTile } from '../../operator-icon'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 import useGraphStore from '../../store'
 import { LabelCard } from './card'
 import NodeHeader from './node-header'
@@ -102,12 +103,7 @@ function InnerToolNode({
         id={id}
         name={data.name as string}
         label={data.label as string}
-        icon={
-          <Wrench
-            className="size-4"
-            style={{ color: 'var(--color-components-canvas-icon-tool)' }}
-          />
-        }
+        icon={<Wrench />}
       />
       <SummaryList
         items={items}
@@ -124,18 +120,24 @@ function InnerToolNode({
             data-tool-id={item.id}
             data-tool={item.kind === 'tool' ? item.operator : item.id}
             className={cn(
-              'gap-space-sm px-space-sm py-space-sm flex w-full items-center text-left transition-colors',
+              'flex w-full items-center gap-space-sm px-space-sm py-space-sm text-left transition-colors',
               withDivider && 'border-t border-border-subtle',
               item.kind === 'tool' && item.disabled
                 ? 'cursor-default opacity-70'
-                : 'hover:bg-surface-secondary/40 cursor-pointer',
+                : 'cursor-pointer hover:bg-state-hover',
             )}
           >
-            <div className="gap-space-sm pointer-events-none flex min-w-0 flex-1 items-center">
+            <div className="pointer-events-none flex min-w-0 flex-1 items-center gap-space-sm">
               {item.kind === 'tool' ? (
-                <OperatorIcon name={item.operator as Operator} />
+                <OperatorTile name={item.operator as Operator} />
               ) : (
-                <Wrench className="size-4 text-text-secondary" />
+                <EntityAvatar
+                  name={item.title}
+                  seed={item.id}
+                  kind="mcp"
+                  tone="kind"
+                  size="xs"
+                />
               )}
               <span className="truncate text-sm text-text-primary">
                 {item.title}
