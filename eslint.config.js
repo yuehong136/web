@@ -16,8 +16,19 @@ import noSensitiveDataInConsole from './eslint-rules/no-sensitive-data-in-consol
 import noImperativeHtml from './eslint-rules/no-imperative-html.js'
 import noRestrictedDynamicImport from './eslint-rules/no-restricted-dynamic-import.js'
 import noRawVisualValues from './eslint-rules/no-raw-visual-values.js'
+import noDirectAntdImport from './eslint-rules/no-direct-antd-import.js'
+import noLetterAvatar from './eslint-rules/no-letter-avatar.js'
 
 const typedLint = process.env.ESLINT_TYPED === 'true'
+// One plugin object: flat config refuses to redefine a plugin name with a
+// different object across config blocks.
+const designGuardPlugin = {
+  rules: {
+    'no-raw-visual-values': noRawVisualValues,
+    'no-direct-antd-import': noDirectAntdImport,
+    'no-letter-avatar': noLetterAvatar,
+  },
+}
 const restrictedNodeImportPaths = builtinModules
   .flatMap((moduleName) =>
     moduleName.startsWith('node:')
@@ -450,12 +461,66 @@ export default tseslint.config([
       '**/__tests__/**',
     ],
     plugins: {
-      'design-guard': {
-        rules: { 'no-raw-visual-values': noRawVisualValues },
-      },
+      'design-guard': designGuardPlugin,
     },
     rules: {
       'design-guard/no-raw-visual-values': 'error',
+    },
+  },
+  {
+    // Tide guard: Ant Design primitives come through src/components/ui/**.
+    // `@ant-design/x*` is a separate package and stays allowed. Allowlist, with
+    // the reason for each entry:
+    // - src/themes/**: the theme bridge (ConfigProvider, App, antd locales)
+    //   that feeds design tokens and the UI language into antd and antd-x.
+    // - src/lib/antd-theme.ts: builds the antd ThemeConfig, which needs antd's
+    //   dark/default algorithms.
+    // - Watermark files (below): canvas watermark over evidence and document
+    //   previews; ui/ has no equivalent.
+    // - controlled-attachments.tsx (below): `Upload.LIST_IGNORE` is the
+    //   sentinel antd-x Attachments (built on antd Upload) needs to keep rows
+    //   out of its own list.
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: [
+      'src/themes/**',
+      'src/lib/antd-theme.ts',
+      '**/__tests__/**',
+      '**/*.test.{ts,tsx}',
+    ],
+    plugins: {
+      'design-guard': designGuardPlugin,
+    },
+    rules: {
+      'design-guard/no-direct-antd-import': 'error',
+    },
+  },
+  {
+    files: [
+      'src/pages/document-preview/index.tsx',
+      'src/components/chat/evidence-source-detail.tsx',
+      'src/components/chat/reference-detail-panel.tsx',
+    ],
+    rules: {
+      'design-guard/no-direct-antd-import': ['error', { allow: ['Watermark'] }],
+    },
+  },
+  {
+    files: ['src/components/chat/controlled-attachments.tsx'],
+    rules: {
+      'design-guard/no-direct-antd-import': ['error', { allow: ['Upload'] }],
+    },
+  },
+  {
+    // Tide guard: letter avatars come from EntityAvatar, which owns monograms;
+    // brand marks use ProviderLogo. TSX only, so non-UI .ts helpers that
+    // capitalise words are not reported.
+    files: ['src/**/*.tsx'],
+    ignores: ['src/components/patterns/entity-avatar.tsx', '**/__tests__/**'],
+    plugins: {
+      'design-guard': designGuardPlugin,
+    },
+    rules: {
+      'design-guard/no-letter-avatar': 'error',
     },
   },
   {

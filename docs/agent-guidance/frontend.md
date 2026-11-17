@@ -118,6 +118,7 @@
 - 当前登录用户用 `useCurrentUserAvatar()` 取头像参数；助手显示应用或 Agent 自己的身份，不再用 "AI"/"U" 文字块。
 - 不得再写渐变底 + 白字首字母、页面内的哈希配色或 `components-avatar-gradient-*` 之类的头像令牌。
 - 没有图片时，按类型显示用 `kind`（对话、Agent、知识库、搜索、记忆、技能等的图形），列表卡片需要说明类型时用 `badge` 角标；按类型统一取色用 `tone="kind"`。类型、图形和色位定义在 `patterns/entity-kind.ts`。
+- 由 `design-guard/no-letter-avatar`（error，仅 `.tsx`）把关：`.charAt(0)`、`[0]`、`.at(0)`、`.slice(0, 1)`、`.substring(0, 1)`、`Array.from(x)[0]` 紧接 `.toUpperCase()` / `.toLocaleUpperCase()` 即报错（`entity-avatar.tsx` 除外）。单词首字母大写这类非 UI 处理放进 `.ts` 工具模块。
 
 #### 身份与 AI 时刻（强制）
 
@@ -194,6 +195,7 @@
 - ❌ 用 `style={{ color, backgroundColor, … }}` 表达普通视觉语义（仅允许动画、进度比例等动态计算值）
 - ❌ 第二套全屏页壳、独立白卡容器、备用根布局
 - ✅ 优先级：`@/components/ui/*` → `@/components/patterns/*` → `@/components/page-templates/*`
+- ❌ 直接从 `antd`（含 `antd/*` 子路径）导入：用 `src/components/ui/**` 的对应组件；`@ant-design/x*` 不受限。由 `design-guard/no-direct-antd-import`（error，全 `src`）把关，白名单（主题桥 `src/themes/**`、`src/lib/antd-theme.ts`、无 ui/ 对应物的 `Watermark` 等）及每项理由写在 `eslint.config.js`。
 
 #### 作用域主题
 

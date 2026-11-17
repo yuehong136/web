@@ -1,24 +1,34 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { Linter } from 'eslint'
+import tseslint from 'typescript-eslint'
+import noDirectAntdImport from '../no-direct-antd-import.js'
+import noLetterAvatar from '../no-letter-avatar.js'
 import noRawVisualValues from '../no-raw-visual-values.js'
 
-function verify(code) {
+const rules = {
+  'no-raw-visual-values': noRawVisualValues,
+  'no-direct-antd-import': noDirectAntdImport,
+  'no-letter-avatar': noLetterAvatar,
+}
+
+function lint(code, rule = 'no-raw-visual-values', options = []) {
   const linter = new Linter({ configType: 'flat' })
   return linter
     .verify(code, {
       languageOptions: {
         ecmaVersion: 'latest',
         sourceType: 'module',
+        parser: tseslint.parser,
         parserOptions: { ecmaFeatures: { jsx: true } },
       },
-      plugins: {
-        design: { rules: { 'no-raw-visual-values': noRawVisualValues } },
-      },
-      rules: { 'design/no-raw-visual-values': 'error' },
+      plugins: { design: { rules } },
+      rules: { [`design/${rule}`]: ['error', ...options] },
     })
     .map((message) => message.message)
 }
+
+const verify = (code) => lint(code)
 
 test('no-raw-visual-values rejects palette colours, raw colour values, plain gradients and emoji glyphs', () => {
   for (const code of [
@@ -49,6 +59,105 @@ test('no-raw-visual-values allows tokens, scrims, AI gradients and plain text', 
         "const g = 'text-sm text-text-tertiary tabular-nums'",
         "const h = 'background: blue-500 is just prose'",
       ].join('\n'),
+    ),
+    [],
+  )
+})
+
+test('no-direct-antd-import rejects antd imports, re-exports, dynamic imports and require', () => {
+  for (const code of [
+    "import { Modal } from 'antd'",
+    "import type { ThemeConfig } from 'antd'",
+    "import * as antd from 'antd'",
+    "import 'antd/dist/reset.css'",
+    "import zhCN from 'antd/locale/zh_CN'",
+    "import Button from 'antd/es/button'",
+    "export { Input } from 'antd'",
+    "export * from 'antd'",
+    "const m = await import('antd')",
+    'const m = await import(`antd/es/modal`)',
+    "const { message } = require('antd')",
+  ]) {
+    assert.equal(lint(code, 'no-direct-antd-import').length, 1, code)
+  }
+})
+
+test('no-direct-antd-import allows antd-x, other packages and lookalike names', () => {
+  assert.deepEqual(
+    lint(
+      [
+        "import { Conversations, XProvider } from '@ant-design/x'",
+        "import xZhCN from '@ant-design/x/locale/zh_CN'",
+        "import { XMarkdown } from '@ant-design/x-markdown'",
+        "import { StyleProvider } from '@ant-design/cssinjs'",
+        "import { Dialog } from '@/components/ui/dialog'",
+        "import antdTheme from '@/lib/antd-theme'",
+        "import something from 'antd-mobile-lookalike'",
+        "export { Button } from './antd'",
+      ].join('\n'),
+      'no-direct-antd-import',
+    ),
+    [],
+  )
+})
+
+test('no-direct-antd-import `allow` covers only the listed named imports from antd', () => {
+  const allow = [{ allow: ['Watermark'] }]
+  assert.deepEqual(
+    lint("import { Watermark } from 'antd'", 'no-direct-antd-import', allow),
+    [],
+  )
+  assert.deepEqual(
+    lint(
+      "import { type WatermarkProps, Watermark } from 'antd'",
+      'no-direct-antd-import',
+      [{ allow: ['Watermark', 'WatermarkProps'] }],
+    ),
+    [],
+  )
+  for (const code of [
+    "import { Watermark, Modal } from 'antd'",
+    "import * as antd from 'antd'",
+    "import Watermark from 'antd/es/watermark'",
+    "const m = await import('antd')",
+  ]) {
+    assert.equal(lint(code, 'no-direct-antd-import', allow).length, 1, code)
+  }
+})
+
+test('no-letter-avatar rejects a first character turned upper-case', () => {
+  for (const code of [
+    'const a = <span>{name.charAt(0).toUpperCase()}</span>',
+    'const b = name[0]?.toUpperCase()',
+    'const c = name?.[0]?.toLocaleUpperCase()',
+    'const d = name.slice(0, 1).toUpperCase()',
+    "const e = name.substring(0, 1).toLocaleUpperCase('tr')",
+    'const f = Array.from(name)[0].toUpperCase()',
+    'const g = [...name][0].toUpperCase()',
+    'const h = (user.name ?? "")\n  .charAt(0)\n  .toUpperCase()',
+    'const i = name.at(0)?.toUpperCase()',
+    'const j = name[0]!.toUpperCase()',
+    'const k = (name?.[0])?.toUpperCase()',
+  ]) {
+    assert.equal(lint(code, 'no-letter-avatar').length, 1, code)
+  }
+})
+
+test('no-letter-avatar allows whole-string casing and other indexes', () => {
+  assert.deepEqual(
+    lint(
+      [
+        'const a = method.toUpperCase()',
+        "const b = file.name.split('.').pop()?.toUpperCase()",
+        'const c = name.slice(0, 2).toUpperCase()',
+        'const d = name.slice(1).toLowerCase()',
+        'const e = name[1].toUpperCase()',
+        'const f = name.charAt(0).toLowerCase()',
+        'const g = name.charAt(0)',
+        'const h = items[0].label',
+        'const i = <EntityAvatar name={name} />',
+      ].join('\n'),
+      'no-letter-avatar',
     ),
     [],
   )
