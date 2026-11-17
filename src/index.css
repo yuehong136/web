@@ -114,12 +114,6 @@
     overflow: hidden;
   }
 
-  /* 页面容器样式 */
-  .page-container {
-    background-color: var(--color-background-section);
-    color: var(--color-text-primary);
-  }
-
   .scroll-area {
     overscroll-behavior: contain;
     scrollbar-gutter: stable;
@@ -148,99 +142,12 @@
 }
 
 @layer components {
-  /* 自定义组件样式 */
-  .btn-primary {
-    @apply inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-50;
-    @apply border border-primary bg-primary text-primary-foreground;
-    @apply ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-hidden;
-  }
-
-  .btn-primary:hover {
-    @apply bg-primary/90;
-  }
-
-  .btn-primary:active {
-    @apply bg-primary;
-  }
-
-  .btn-primary:disabled {
-    /* 颜色保持不变，使用 disabled:opacity-50 表达禁用态 */
-  }
-
-  .btn-secondary {
-    @apply inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-50;
-    @apply border bg-secondary text-secondary-foreground;
-    border-color: var(--color-components-button-secondary-border);
-    @apply ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-hidden;
-  }
-
-  .btn-secondary:hover {
-    background-color: var(--color-components-button-secondary-bg-hover);
-    border-color: var(--color-components-button-secondary-border-hover);
-  }
-
-  .btn-secondary:active {
-    @apply bg-secondary;
-  }
-
-  .btn-ghost {
-    @apply inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50;
-    color: var(--color-components-button-ghost-text);
-    @apply px-4 py-2;
-  }
-
-  .btn-ghost:hover {
-    background-color: var(--color-components-button-ghost-bg-hover);
-  }
-
-  .btn-ghost:disabled {
-    color: var(--color-components-button-ghost-text-disabled);
-  }
-
   .card {
     @apply rounded-lg border border-border bg-card shadow-elevation-low;
   }
 
   .card:hover {
     background-color: var(--color-components-card-bg-hover);
-  }
-
-  .input-field {
-    @apply flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50;
-    @apply border-input text-foreground;
-    background-color: var(--color-components-input-bg);
-  }
-
-  .input-field::placeholder {
-    @apply text-text-secondary;
-  }
-
-  .input-field:hover {
-    background-color: var(--color-components-input-bg-hover);
-    border-color: var(--color-components-input-border-hover);
-  }
-
-  .input-field:focus-visible {
-    background-color: var(--color-components-input-bg-focus);
-    @apply border-input focus-visible:ring-ring/50;
-  }
-
-  /* .input-field:disabled 样式由 disabled:opacity-50 控制 */
-
-  .sidebar-item {
-    @apply flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors;
-    background-color: var(--color-components-sidebar-item-bg);
-    color: var(--color-components-sidebar-item-text);
-  }
-
-  .sidebar-item:hover {
-    background-color: var(--color-components-sidebar-item-bg-hover);
-    color: var(--color-components-sidebar-item-text-active);
-  }
-
-  .sidebar-item.active {
-    background-color: var(--color-components-sidebar-item-bg-active);
-    color: var(--color-components-sidebar-item-text-active);
   }
 }
 
@@ -288,11 +195,11 @@
 }
 
 .scrollbar-thin:hover::-webkit-scrollbar-thumb {
-  background: rgba(156, 163, 175, 0.3);
+  background: var(--color-components-scrollbar-thumb);
 }
 
 .scrollbar-thin:hover::-webkit-scrollbar-thumb:hover {
-  background: rgba(156, 163, 175, 0.6);
+  background: var(--color-components-scrollbar-thumb-hover);
 }
 
 /* 确保在内容溢出时滚动条可见 */
@@ -301,38 +208,11 @@
 }
 
 .scrollbar-thin[style*='overflow']::-webkit-scrollbar-thumb {
-  background: rgba(156, 163, 175, 0.2);
+  background: var(--color-components-scrollbar-thumb);
 }
 
 .scrollbar-thin[style*='overflow']:hover::-webkit-scrollbar-thumb {
-  background: rgba(156, 163, 175, 0.4);
-}
-
-/* 为内容可滚动的容器提供视觉提示 */
-.scrollable-container {
-  position: relative;
-}
-
-.scrollable-container::after {
-  content: '';
-  position: absolute;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  width: 4px;
-  background: linear-gradient(
-    to bottom,
-    transparent,
-    rgba(156, 163, 175, 0.1),
-    transparent
-  );
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  pointer-events: none;
-}
-
-.scrollable-container:hover::after {
-  opacity: 1;
+  background: var(--color-components-scrollbar-thumb-hover);
 }
 
 /* 加载动画 */
@@ -353,18 +233,6 @@
   to {
     opacity: 1;
     transform: translateY(0);
-  }
-}
-
-@keyframes gradient {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
   }
 }
 
@@ -494,85 +362,11 @@
   margin: 2rem 0;
 }
 
-/* 聊天气泡专用样式 */
-.bubble-content .prose {
-  font-size: inherit;
-  line-height: inherit;
-}
-
-.bubble-content .prose > *:first-child {
-  margin-top: 0 !important;
-}
-
-.bubble-content .prose > *:last-child {
-  margin-bottom: 0 !important;
-}
-
 /* 暗黑模式下的文本清晰度优化 */
 html[data-theme='dark'] .text-xs,
 html[data-theme='dark'] .text-sm {
   /* 增加字间距，提升小字体可读性 */
   letter-spacing: 0.015em;
-}
-
-/* Antd Tabs 自定义样式 - API 页面 */
-.ant-tabs-custom .ant-tabs-nav {
-  margin: 0;
-  background: var(--color-components-tabs-bg);
-  border-radius: 12px;
-  padding: 4px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  height: 40px;
-  min-height: 40px;
-}
-
-.ant-tabs-custom .ant-tabs-nav-wrap {
-  border-radius: 12px;
-}
-
-.ant-tabs-custom .ant-tabs-nav-list {
-  background: transparent;
-}
-
-.ant-tabs-custom .ant-tabs-tab {
-  border: none !important;
-  background: transparent;
-  border-radius: 8px;
-  margin: 0 2px;
-  padding: 0 20px;
-  color: var(--color-components-tabs-inactive-text);
-  font-weight: 500;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-  min-width: 100px;
-  height: 32px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.ant-tabs-custom .ant-tabs-tab:hover {
-  color: var(--color-text-primary);
-  background: var(--color-state-hover);
-}
-
-.ant-tabs-custom .ant-tabs-tab.ant-tabs-tab-active {
-  background: var(--color-components-tabs-active-bg) !important;
-  color: var(--color-components-tabs-active-text);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  border: 1px solid var(--color-components-tabs-border);
-  transform: translateY(-1px);
-  width: 100%;
-}
-
-.ant-tabs-custom .ant-tabs-tab .ant-tabs-tab-btn {
-  color: inherit;
-  font-weight: inherit;
-}
-
-.ant-tabs-custom .ant-tabs-ink-bar {
-  display: none;
 }
 
 /* react-pdf-highlighter 高亮样式 */
@@ -728,30 +522,6 @@ html[data-theme='dark'] .text-sm {
 .prose th {
   background-color: var(--color-background-surface);
   font-weight: 600;
-}
-
-/* 视频预览控制栏样式 */
-.video-previewer input[type='range']::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 12px;
-  height: 12px;
-  background: white;
-  border-radius: 50%;
-  cursor: pointer;
-}
-
-.video-previewer input[type='range']::-moz-range-thumb {
-  width: 12px;
-  height: 12px;
-  background: white;
-  border-radius: 50%;
-  cursor: pointer;
-  border: none;
-}
-
-/* 图片预览过渡动画 */
-.image-previewer img {
-  transition: transform 0.2s ease-out;
 }
 
 /* PDF 高亮样式优化 */

@@ -455,7 +455,7 @@ export default tseslint.config([
       },
     },
     rules: {
-      'design-guard/no-raw-visual-values': 'warn',
+      'design-guard/no-raw-visual-values': 'error',
     },
   },
   {
