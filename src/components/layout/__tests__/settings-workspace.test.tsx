@@ -189,8 +189,8 @@ it('keeps one precise settings heading in the top bar through route, locale, and
   await click(button('Collapse secondary navigation'))
   expect(title()).toBe('Model gateway')
   for (const [route, expected] of [
-    ['api/keys', 'API keys'],
-    ['api/keys/', 'API keys'],
+    ['api/keys', 'RAG API keys'],
+    ['api/keys/', 'RAG API keys'],
     ['api/docs', 'API docs'],
     ['api/docs/', 'API docs'],
   ]) {
@@ -234,7 +234,7 @@ it('defaults Settings to Profile, preserves its return location, and orders acco
     'MCP',
     'Data sources',
     'Channels',
-    'API keys',
+    'RAG API keys',
     'API docs',
     'Team',
     'User management',

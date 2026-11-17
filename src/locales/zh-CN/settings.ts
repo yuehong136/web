@@ -467,7 +467,7 @@ export default {
       profile: '个人资料',
       systemStatus: '系统状态',
       api: 'API',
-      apiKeys: 'API 密钥',
+      apiKeys: 'RAG API 密钥',
       apiDocs: 'API 文档',
       userManagement: '用户管理',
     },

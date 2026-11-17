@@ -498,7 +498,7 @@ export default {
       profile: 'Profile',
       systemStatus: 'System status',
       api: 'API',
-      apiKeys: 'API keys',
+      apiKeys: 'RAG API keys',
       apiDocs: 'API docs',
       userManagement: 'User management',
     },
