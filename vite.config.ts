@@ -335,7 +335,6 @@ export default defineConfig(({ mode }) => {
                     'lowlight',
                     'prismjs',
                     'property-information',
-                    'react-markdown',
                     'react-property',
                     'rehype',
                     'space-separated-tokens',

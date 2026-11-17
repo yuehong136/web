@@ -43,7 +43,7 @@ Multi-RAG Frontend 是企业级 AI 前端，覆盖：
 | 聊天 UI         | @ant-design/x 套件（x、x-card、x-markdown、x-sdk）                            |
 | 画布            | @xyflow/react、@antv/g6                                                       |
 | 编辑器          | @monaco-editor/react、@lexical/react                                          |
-| Markdown        | react-markdown + markdown-it + remark-gfm                                     |
+| Markdown        | @ant-design/x-markdown（聊天、预览、文档统一渲染）                            |
 | 流式            | eventsource-parser                                                            |
 | 拖拽            | @dnd-kit/core / sortable / utilities                                          |
 | 文档预览        | docx-preview、pptx-preview、mammoth、@js-preview/excel、react-pdf-highlighter |
