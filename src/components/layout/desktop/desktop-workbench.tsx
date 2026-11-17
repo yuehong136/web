@@ -3,6 +3,10 @@ import { useTranslation } from 'react-i18next'
 import { Panel, Group, Separator, usePanelRef } from 'react-resizable-panels'
 import { cn } from '@/lib/utils'
 import { useUIStore } from '@/stores/ui'
+import {
+  WorkbenchHeaderProvider,
+  useWorkbenchHeaderState,
+} from '@/components/layout/workbench-header'
 import { ActivityRail } from './activity-rail'
 import { DesktopContextPanel } from './context-panel'
 import { DesktopToolbar } from './desktop-toolbar'
@@ -16,6 +20,9 @@ export const DesktopWorkbench: React.FC<React.PropsWithChildren> = ({
   const setCollapsed = useUIStore((state) => state.setDesktopSidebarCollapsed)
   const setWidth = useUIStore((state) => state.setDesktopSidebarWidth)
   const panelRef = usePanelRef()
+  // Pages hand their title row to the toolbar, as in the web shell, so a
+  // conversation or page never stacks a second header under it.
+  const header = useWorkbenchHeaderState()
 
   useEffect(() => {
     if (collapsed) panelRef.current?.collapse()
@@ -63,8 +70,17 @@ export const DesktopWorkbench: React.FC<React.PropsWithChildren> = ({
           defaultSize={`${collapsed ? 100 : 100 - width}%`}
         >
           <main className="flex h-full min-w-0 flex-col overflow-hidden bg-components-main-workbench-bg">
-            <DesktopToolbar />
-            <div className="min-h-0 flex-1 overflow-hidden">{children}</div>
+            <DesktopToolbar
+              titleRef={header.titleRef}
+              actionsRef={header.actionsRef}
+              titleClaimed={header.titleClaimed}
+              actionsClaimed={header.actionsClaimed}
+            />
+            <div data-main-task-area className="min-h-0 flex-1 overflow-hidden">
+              <WorkbenchHeaderProvider value={header.value}>
+                {children}
+              </WorkbenchHeaderProvider>
+            </div>
           </main>
         </Panel>
       </Group>

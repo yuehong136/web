@@ -1,7 +1,9 @@
 import React from 'react'
-import { CircleUserRound, Settings } from 'lucide-react'
+import { Settings } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 import { Tooltip } from '@/components/ui/tooltip'
+import { useCurrentUserAvatar } from '@/hooks/use-current-user-avatar'
 import { cn } from '@/lib/utils'
 import { ProductCommandId, useApplicationCommands } from '@/lib/commands'
 import { DesktopActivity, useUIStore } from '@/stores/ui'
@@ -16,6 +18,7 @@ export const ActivityRail: React.FC = () => {
   const active = useUIStore((state) => state.desktopActivity)
   const setActive = useUIStore((state) => state.setDesktopActivity)
   const setCollapsed = useUIStore((state) => state.setDesktopSidebarCollapsed)
+  const avatar = useCurrentUserAvatar()
 
   const selectActivity = (activity: DesktopActivity) => {
     setActive(activity)
@@ -46,7 +49,7 @@ export const ActivityRail: React.FC = () => {
               <button
                 type="button"
                 className={cn(
-                  'flex size-10 items-center justify-center rounded-radius-lg transition-colors',
+                  'flex size-10 items-center justify-center rounded-radius-lg outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-state-focus',
                   selected
                     ? 'bg-components-sidebar-item-bg-active text-components-sidebar-item-text-active'
                     : 'text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover hover:text-text-primary',
@@ -55,7 +58,7 @@ export const ActivityRail: React.FC = () => {
                 aria-pressed={selected}
                 onClick={() => selectActivity(activity)}
               >
-                <Icon className="size-icon-md" />
+                <Icon className="size-icon-md" aria-hidden="true" />
               </button>
             </Tooltip>
           )
@@ -66,21 +69,21 @@ export const ActivityRail: React.FC = () => {
         <Tooltip content={t('layout.sidebar.settings')} position="right">
           <button
             type="button"
-            className="flex size-10 items-center justify-center rounded-radius-lg text-components-sidebar-item-text transition-colors hover:bg-components-sidebar-item-bg-hover hover:text-text-primary"
+            className="flex size-10 items-center justify-center rounded-radius-lg text-components-sidebar-item-text outline-hidden transition-colors hover:bg-components-sidebar-item-bg-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-focus"
             aria-label={t('layout.sidebar.settings')}
             onClick={() => void execute(ProductCommandId.NAVIGATE_SETTINGS)}
           >
-            <Settings className="size-icon-md" />
+            <Settings className="size-icon-md" aria-hidden="true" />
           </button>
         </Tooltip>
         <Tooltip content={t('layout.sidebar.profile')} position="right">
           <button
             type="button"
-            className="flex size-10 items-center justify-center rounded-radius-full bg-background-subtle text-text-secondary transition-colors hover:text-text-primary"
+            className="flex size-10 items-center justify-center rounded-radius-full outline-hidden transition-colors hover:bg-components-sidebar-item-bg-hover focus-visible:ring-2 focus-visible:ring-state-focus"
             aria-label={t('layout.sidebar.profile')}
             onClick={() => void execute(ProductCommandId.NAVIGATE_SETTINGS)}
           >
-            <CircleUserRound className="size-icon-md" />
+            <EntityAvatar {...avatar} size="md" shape="circle" />
           </button>
         </Tooltip>
       </div>

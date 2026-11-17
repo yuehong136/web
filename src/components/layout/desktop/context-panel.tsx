@@ -2,6 +2,7 @@ import React from 'react'
 import { MessageSquarePlus } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { NavLink, useNavigate } from 'react-router-dom'
+import { PageEmptyState } from '@/components/patterns/page-states'
 import { Button } from '@/components/ui/button'
 import { ROUTES } from '@/constants'
 import { ProductCommandId, useApplicationCommands } from '@/lib/commands'
@@ -21,23 +22,23 @@ const DesktopConversationPanel: React.FC = () => {
 
   if (!selectedApp) {
     return (
-      <div className="px-space-md py-space-lg text-center">
-        <MessageSquarePlus className="mx-auto mb-space-sm size-icon-xl text-text-tertiary" />
-        <p className="text-sm font-medium text-text-primary">
-          {t('desktop.conversations.emptyTitle')}
-        </p>
-        <p className="mt-space-xs text-xs text-text-secondary">
-          {t('desktop.conversations.emptyDescription')}
-        </p>
-        <Button
-          size="sm"
-          variant="outline"
-          className="mt-space-md"
-          onClick={() => void execute(ProductCommandId.NAVIGATE_HOME)}
-        >
-          {t('desktop.conversations.chooseApp')}
-        </Button>
-      </div>
+      <PageEmptyState
+        compact
+        data-desktop-conversations-empty
+        className="min-h-0 [&>div]:p-space-sm"
+        icon={<MessageSquarePlus className="size-icon-lg" aria-hidden="true" />}
+        title={t('desktop.conversations.emptyTitle')}
+        description={t('desktop.conversations.emptyDescription')}
+        action={
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => void execute(ProductCommandId.NAVIGATE_HOME)}
+          >
+            {t('desktop.conversations.chooseApp')}
+          </Button>
+        }
+      />
     )
   }
 
@@ -83,14 +84,14 @@ export const DesktopContextPanel: React.FC = () => {
               to={item.href}
               className={({ isActive }) =>
                 cn(
-                  'flex items-center gap-space-sm rounded-radius-lg px-space-sm py-space-sm text-sm transition-colors',
+                  'flex items-center gap-space-sm rounded-radius-lg px-space-sm py-space-sm text-sm outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-state-focus',
                   isActive
                     ? 'bg-components-sidebar-item-bg-active text-components-sidebar-item-text-active'
                     : 'text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover hover:text-text-primary',
                 )
               }
             >
-              <Icon className="size-icon-sm" />
+              <Icon className="size-icon-sm" aria-hidden="true" />
               <span>{t(item.labelKey, item.fallbackLabel)}</span>
             </NavLink>
           )
@@ -106,7 +107,7 @@ export const DesktopContextPanel: React.FC = () => {
               className="w-full"
               onClick={() => void execute(ProductCommandId.NEW_CONVERSATION)}
             >
-              <MessageSquarePlus className="size-icon-sm" />
+              <MessageSquarePlus className="size-icon-sm" aria-hidden="true" />
               {t('desktop.commands.newConversation')}
             </Button>
           </div>
