@@ -186,6 +186,10 @@ it('keeps selected IDs through status filters, view, appearance, and locale chan
   await click(menuItem('Draft'))
   expect(useStudioStore.getState().filter.status).toEqual(['0'])
   expect(menuItem('Draft').getAttribute('aria-checked')).toBe('true')
+  // A card filtered out of a small list fades out (~160ms) before it leaves.
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 250))
+  })
   expect(container.textContent).not.toContain('Alpha')
   expect(useStudioStore.getState().selectedIds).toEqual(['one'])
   await closeMenu()

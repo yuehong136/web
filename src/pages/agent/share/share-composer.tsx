@@ -3,14 +3,9 @@ import type { RefObject } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { ComposerSendButton } from '@/components/chat/composer-send-button'
 import { cn } from '@/lib/utils'
-import {
-  ArrowUp,
-  Paperclip,
-  SlidersHorizontal,
-  Square,
-  Upload,
-} from 'lucide-react'
+import { Paperclip, SlidersHorizontal, Upload } from 'lucide-react'
 import type { AgentCanvasUploadResult } from '@/types/agent'
 
 interface ShareComposerProps {
@@ -109,10 +104,7 @@ export function ShareComposer({
             <Sender
               value={value}
               onChange={onChange}
-              placeholder={t(
-                'agent.share.messagePlaceholder',
-                '输入消息，按 Enter 发送',
-              )}
+              placeholder={t('agent.share.messagePlaceholder')}
               loading={isRunning}
               disabled={disabled || uploading}
               onSubmit={(content) => {
@@ -144,13 +136,13 @@ export function ShareComposer({
                 disabled={disabled || isRunning || uploading}
                 title={
                   uploading
-                    ? t('agent.share.uploading', '上传中')
-                    : t('agent.share.uploadAttachment', '上传附件')
+                    ? t('agent.share.uploading')
+                    : t('agent.share.uploadAttachment')
                 }
                 aria-label={
                   uploading
-                    ? t('agent.share.uploading', '上传中')
-                    : t('agent.share.uploadAttachment', '上传附件')
+                    ? t('agent.share.uploading')
+                    : t('agent.share.uploadAttachment')
                 }
               >
                 {uploading ? <Upload /> : <Paperclip />}
@@ -161,35 +153,24 @@ export function ShareComposer({
                   size="icon-sm"
                   onClick={onOpenParameters}
                   disabled={disabled || isRunning || uploading}
-                  title={t('agent.share.parameters', '运行参数')}
-                  aria-label={t('agent.share.parameters', '运行参数')}
+                  title={t('agent.share.parameters')}
+                  aria-label={t('agent.share.parameters')}
                 >
                   <SlidersHorizontal />
                 </Button>
               ) : null}
             </div>
 
-            {isRunning ? (
-              <Button
-                variant="destructive"
-                size="icon-sm"
-                onClick={onStop}
-                title={t('agent.share.stop', '停止输出')}
-                aria-label={t('agent.share.stop', '停止输出')}
-              >
-                <Square />
-              </Button>
-            ) : (
-              <Button
-                size="icon-sm"
-                onClick={() => onSubmit(value)}
-                disabled={disabled || uploading || !canSend}
-                title={t('agent.share.send', '发送')}
-                aria-label={t('agent.share.send', '发送')}
-              >
-                <ArrowUp />
-              </Button>
-            )}
+            <ComposerSendButton
+              size="icon-sm"
+              stopVariant="destructive"
+              running={Boolean(isRunning)}
+              canSend={!disabled && !uploading && canSend}
+              onSend={() => onSubmit(value)}
+              onStop={onStop}
+              sendLabel={t('agent.share.send')}
+              stopLabel={t('agent.share.stop')}
+            />
           </div>
         </div>
       </div>

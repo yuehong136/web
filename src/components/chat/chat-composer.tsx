@@ -1,9 +1,8 @@
 import { forwardRef, useRef, type ReactNode } from 'react'
 import type { SenderProps, SenderRef } from '@ant-design/x/es/sender/interface'
-import { ArrowUp, Square } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { AppChatComposer } from './app-chat-composer'
-import { Button } from '@/components/ui/button'
+import { ComposerSendButton } from './composer-send-button'
 import { cn } from '@/lib/utils'
 
 export type ComposerState =
@@ -122,31 +121,17 @@ export const ChatComposer = forwardRef<SenderRef, ChatComposerProps>(
               </div>
               <div className="flex min-w-0 items-center gap-space-xs">
                 {slots?.configuration}
-                {state.kind === 'running' ? (
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="icon"
-                    className="rounded-radius-full"
-                    onClick={state.stop}
-                    aria-label={labels?.stop ?? t('chat.stream.stop')}
-                    title={labels?.stop ?? t('chat.stream.stop')}
-                  >
-                    <Square className="size-icon-sm" aria-hidden="true" />
-                  </Button>
-                ) : (
-                  <Button
-                    type="button"
-                    size="icon"
-                    className="rounded-radius-full"
-                    disabled={!canSubmit}
-                    onClick={submit}
-                    aria-label={labels?.submit ?? t('common.submit')}
-                    title={labels?.submit ?? t('common.submit')}
-                  >
-                    <ArrowUp className="size-icon-sm" aria-hidden="true" />
-                  </Button>
-                )}
+                <ComposerSendButton
+                  running={state.kind === 'running'}
+                  canSend={canSubmit}
+                  onSend={submit}
+                  onStop={() => {
+                    if (state.kind === 'running') state.stop()
+                  }}
+                  sendLabel={labels?.submit ?? t('common.submit')}
+                  stopLabel={labels?.stop ?? t('chat.stream.stop')}
+                  className="rounded-radius-full"
+                />
               </div>
             </div>
           }

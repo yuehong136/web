@@ -1,21 +1,14 @@
 import { useMemo, type ReactNode } from 'react'
 import type { AttachmentsProps } from '@ant-design/x'
 import Sender from '@ant-design/x/es/sender'
-import {
-  ArrowUp,
-  Globe,
-  Paperclip,
-  Square,
-  Telescope,
-  Upload,
-} from 'lucide-react'
+import { Globe, Paperclip, Telescope, Upload } from 'lucide-react'
 import type { TFunction } from 'i18next'
 import { useTranslation } from 'react-i18next'
 import { AppChatComposer } from '@/components/chat/app-chat-composer'
+import { ComposerSendButton } from '@/components/chat/composer-send-button'
 import { useModelIdentity } from '@/components/models/model-identity'
 import { ProviderLogo } from '@/components/patterns/provider-logo'
 import { ControlledAttachments } from '@/components/chat/controlled-attachments'
-import { Button } from '@/components/ui/button'
 import { FileIcon } from '@/components/ui/file-icon'
 import { Spinner } from '@/components/ui/spinner'
 import { Tooltip } from '@/components/ui/tooltip'
@@ -307,33 +300,15 @@ export function ExploreComposer({
                 </span>
               )}
             </span>
-            {isStreaming ? (
-              <Button
-                type="button"
-                variant="secondary"
-                size="icon"
-                className="rounded-radius-full"
-                data-composer-send
-                onClick={onStop}
-                title={t('explore.sender.stop')}
-                aria-label={t('explore.sender.stop')}
-              >
-                <Square aria-hidden="true" className="size-icon-sm" />
-              </Button>
-            ) : (
-              <Button
-                type="button"
-                size="icon"
-                className="rounded-radius-full"
-                data-composer-send
-                disabled={!canSubmit}
-                onClick={submit}
-                aria-label={t('studio.editor.send')}
-                title={t('studio.editor.send')}
-              >
-                <ArrowUp aria-hidden="true" className="size-icon-sm" />
-              </Button>
-            )}
+            <ComposerSendButton
+              running={isStreaming}
+              canSend={canSubmit}
+              onSend={submit}
+              onStop={onStop}
+              sendLabel={t('studio.editor.send')}
+              stopLabel={t('explore.sender.stop')}
+              className="rounded-radius-full"
+            />
           </div>
         }
       />

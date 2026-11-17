@@ -7,6 +7,7 @@ import {
   ResourceName,
   type ResourceItemProps,
 } from './resource-parts'
+import { useResourceMotion, useResourcePresence } from './resource-presence'
 
 /* Column widths shared by the header and every row so cells line up. */
 const STATUS_CELL = 'flex shrink-0 items-center sm:w-28'
@@ -26,18 +27,22 @@ export interface ResourceListProps {
   className?: string
 }
 
-/** Full-bleed list of `ResourceRow`s; the default collection layout. */
+/**
+ * Full-bleed list of keyed `ResourceRow`s; the default collection layout. Rows
+ * enter and leave like `ResourceGrid` cards.
+ */
 export function ResourceList({
   label,
   header,
   children,
   className,
 }: ResourceListProps) {
+  const items = useResourcePresence(children)
   return (
     <div data-slot="resource-list" className={cn('min-w-0', className)}>
       {header}
       <ul aria-label={label} className="flex flex-col">
-        {children}
+        {items}
       </ul>
     </div>
   )
@@ -124,8 +129,10 @@ export function ResourceRow({
   className,
 }: ResourceRowProps) {
   const selected = selection?.checked ?? false
+  const motion = useResourceMotion()
   return (
     <li
+      {...motion}
       data-slot="resource-row"
       data-selected={selected || undefined}
       aria-current={current || undefined}

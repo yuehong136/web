@@ -7,6 +7,7 @@ import {
   ResourceName,
   type ResourceItemProps,
 } from './resource-parts'
+import { useResourceMotion, useResourcePresence } from './resource-presence'
 
 export interface ResourceGridProps {
   /** Accessible name for the grid list. */
@@ -16,15 +17,17 @@ export interface ResourceGridProps {
 }
 
 /**
- * Responsive card grid with the collection gutter; children are
+ * Responsive card grid with the collection gutter; children are keyed
  * `ResourceCard`s. Columns fill the width at ~280px each, so the grid adapts
- * when an Inspector opens beside it.
+ * when an Inspector opens beside it. Cards fade in on first load and when a
+ * few are added, and fade out when removed (see `useResourcePresence`).
  */
 export function ResourceGrid({
   label,
   children,
   className,
 }: ResourceGridProps) {
+  const items = useResourcePresence(children)
   return (
     <ul
       aria-label={label}
@@ -34,7 +37,7 @@ export function ResourceGrid({
         className,
       )}
     >
-      {children}
+      {items}
     </ul>
   )
 }
@@ -67,8 +70,10 @@ export function ResourceCard({
   className,
 }: ResourceCardProps) {
   const selected = selection?.checked ?? false
+  const motion = useResourceMotion()
   return (
     <li
+      {...motion}
       data-slot="resource-card"
       data-selected={selected || undefined}
       aria-current={current || undefined}
@@ -180,8 +185,9 @@ export function ResourceCreateCard({
   onClick,
   icon,
 }: ResourceCreateCardProps) {
+  const motion = useResourceMotion()
   return (
-    <li data-slot="resource-create-card" className="min-w-0">
+    <li {...motion} data-slot="resource-create-card" className="min-w-0">
       <button
         type="button"
         onClick={onClick}
