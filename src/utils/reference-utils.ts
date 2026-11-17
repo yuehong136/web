@@ -35,6 +35,13 @@ export const hasCitationMarkers = (text: string): boolean =>
   new RegExp(REFERENCE_PATTERN.source).test(text)
 
 /**
+ * Streaming text can stop mid-marker (`[ID:1`); drop that unfinished tail
+ * so protocol text never flashes before the marker completes.
+ */
+export const withoutPartialCitation = (text: string): string =>
+  text.replace(/\[(?:I(?:D(?::\d*)?)?)?$/, '')
+
+/**
  * 查找文本中所有的引用匹配
  * @param text 要搜索的文本
  * @returns 所有引用匹配的数组

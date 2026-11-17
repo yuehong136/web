@@ -23,6 +23,10 @@ import {
   processContentForCarousel,
 } from '@/utils/message-utils'
 import type { ReferenceChunk } from '@/utils/reference-replacer'
+import {
+  hasCitationMarkers,
+  withoutPartialCitation,
+} from '@/utils/reference-utils'
 import { extractThinkContent, type ThinkingStatus } from '@/utils/think-utils'
 import DebugContent from '../../debug-content'
 import { RuntimeTracePanel } from '../../features/runtime-workbench/components/runtime-trace-panel'
@@ -127,8 +131,17 @@ export function RuntimeChatMessageList({
           : 'complete'
         : 'none'
       const { content: processedContent, carouselGroups } =
-        processContentForCarousel(visibleMainContent, references)
-      const contentWithSup = references.length
+        processContentForCarousel(
+          isStreaming
+            ? withoutPartialCitation(visibleMainContent)
+            : visibleMainContent,
+          references,
+        )
+      // References arrive with the final frame; until then markers show as
+      // quiet numbered placeholders instead of `[ID:n]` text.
+      const hasCitations =
+        references.length > 0 || hasCitationMarkers(processedContent)
+      const contentWithSup = hasCitations
         ? convertReferencesToSup(processedContent)
         : processedContent
       const renderState = {
@@ -139,7 +152,7 @@ export function RuntimeChatMessageList({
         referencesLength: references.length,
         hasXCard,
       }
-      const SupComponent = references.length
+      const SupComponent = hasCitations
         ? createReferenceMarkerComponent(references, {
             onViewDetail: (chunk) => handleViewDetail(chunk, references),
             onCopy: (content) => {

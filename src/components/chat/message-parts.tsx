@@ -23,7 +23,10 @@ import {
 } from '@/utils/message-utils'
 import { extractThinkContent } from '@/utils/think-utils'
 import type { ReferenceChunk } from '@/utils/reference-replacer'
-import { hasCitationMarkers } from '@/utils/reference-utils'
+import {
+  hasCitationMarkers,
+  withoutPartialCitation,
+} from '@/utils/reference-utils'
 import '@/components/chat/app-chat-message.css'
 
 const NO_REFERENCES: ReferenceChunk[] = []
@@ -73,7 +76,9 @@ export const MessageParts = memo(function MessageParts({
   )
   const thinkContent =
     trailingReasoning || (nodes.length ? '' : thinking || fallback.thinkContent)
-  const mainContent = fallback.mainContent
+  const mainContent = isStreaming
+    ? withoutPartialCitation(fallback.mainContent)
+    : fallback.mainContent
   // Stable while streaming text grows, so the citation chips keep their identity.
   const citedKey = getCitedChunks(mainContent, references)
     .map((chunk) => references.indexOf(chunk))
@@ -83,10 +88,10 @@ export const MessageParts = memo(function MessageParts({
       citedKey ? citedKey.split(',').map((index) => references[+index]) : [],
     [citedKey, references],
   )
-  // 已结束却没有引用数据（终帧前停止、历史对不上）时 [ID:n] 也转成角标，解析不到的
-  // 渲染为不可交互的上标；流式中等终帧引用，正文不带 [ID:n] 时不接管模型自己写的 <sup>
-  const hasCitations =
-    references.length > 0 || (!isStreaming && hasCitationMarkers(mainContent))
+  // 引用数据随终帧到达：在此之前（流式中、终帧前停止、历史对不上）[ID:n] 先转成
+  // 不可交互的编号角标，引用到达后再变成芯片，正文里不出现协议文本；正文不带 [ID:n]
+  // 时不接管模型自己写的 <sup>
+  const hasCitations = references.length > 0 || hasCitationMarkers(mainContent)
   const citationComponents = useMemo(
     () =>
       hasCitations

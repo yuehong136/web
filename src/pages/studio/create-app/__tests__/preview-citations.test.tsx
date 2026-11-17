@@ -251,7 +251,7 @@ describe('Studio preview citations', () => {
     expect(source.getAttribute('aria-label')).toBe('Citation 1: harness.html')
   })
 
-  it('keeps the text unchanged until references arrive', async () => {
+  it('shows a quiet numbered placeholder, not protocol text, until references arrive', async () => {
     await act(async () =>
       root.render(
         <PreviewAnswer
@@ -262,7 +262,10 @@ describe('Studio preview citations', () => {
       ),
     )
 
-    expect(container.querySelector('sup')).toBeNull()
+    expect(container.textContent).not.toContain('[ID:0]')
+    // Not a chip yet: nothing to open until the final frame brings sources.
+    expect(container.querySelector('sup')?.textContent).toBe('1')
+    expect(container.querySelector('sup button')).toBeNull()
     expect(container.querySelector('[data-source-strip]')).toBeNull()
   })
 })

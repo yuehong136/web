@@ -78,6 +78,40 @@ it('retains interrupted content, honest step state and neutral reasoning details
   expect(host.querySelectorAll('[data-message-id]')).toHaveLength(1)
 })
 
+it('never shows citation protocol text while the answer streams', async () => {
+  const stream = (content: string, references: ReferenceChunk[] = []) =>
+    act(async () =>
+      root.render(
+        <MessageParts
+          content={content}
+          references={references}
+          run={{ phase: 'running' }}
+          onViewReference={() => {}}
+        />,
+      ),
+    )
+  // Before the final frame brings references: a quiet numbered placeholder,
+  // and a marker still being typed is held back.
+  await stream('Claim [ID:0] and more [ID')
+  const body = () => host.querySelector('.markdown-content')?.textContent ?? ''
+  expect(body()).not.toContain('[ID')
+  expect(host.querySelector('sup')?.textContent).toBe('1')
+  await stream('Claim [ID:0] and more [ID:1')
+  expect(body()).not.toContain('[ID')
+  // The final frame's references turn the placeholder into a chip.
+  await stream('Claim [ID:0] and more [ID:1]', [
+    {
+      id: 'chunk-0',
+      content: 'Evidence text',
+      document_name: 'Evidence.pdf',
+      document_id: 'doc-1',
+      dataset_id: 'kb-1',
+    },
+  ])
+  expect(body()).not.toContain('[ID')
+  expect(host.querySelector('sup [data-citation-chip]')).not.toBeNull()
+})
+
 it('a completed body never loses small updates and preserves actual citation markers', async () => {
   const references: ReferenceChunk[] = [
     {
