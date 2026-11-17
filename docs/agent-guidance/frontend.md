@@ -109,6 +109,12 @@
 
 不得再写"spinner + text-gray-\*"临时空态块。
 
+#### 对话界面（强制）
+
+- 首页、探索、应用预览共用一套：消息列表 `components/chat/chat-transcript.tsx`（基于 `patterns/chat/message.tsx`），输入框 `components/chat/chat-composer.tsx`（基于 `patterns/chat/prompt-input.tsx`，附件托盘 `prompt-input-attachments.tsx`），滚动 `patterns/chat/chat-scroll-viewport.tsx`（发送后锚定新问题、流式期间不追底）。Agent 运行对话的输入框也用 `ChatComposer`，其消息列表暂仍是 Ant Design X `Bubble`。新对话界面不再引入 `Bubble`、`Sender`、`Attachments`、`Actions`。
+- `message.tsx`、`prompt-input.tsx` 改编自 Vercel AI Elements（Apache-2.0），保留文件头的来源、许可证与修改说明；不引入 AI SDK 运行时。
+- 回答正文继续用 XMarkdown；Mermaid 用 `components/chat/mermaid-diagram.tsx`，代码高亮统一走 Shiki（`CodeBlock`）。
+
 #### 实体头像（强制）
 
 应用、Agent、知识库、搜索应用、记忆库、用户、团队成员和聊天角色统一用 `patterns/entity-avatar.tsx` 的 `EntityAvatar`：有图片时显示图片（兼容后端返回的裸 base64），加载失败或没有图片时显示单字头像，底色取 `components-avatar-{1..8}-*`（OKLCH 生成、单字对比度达 AA）。
