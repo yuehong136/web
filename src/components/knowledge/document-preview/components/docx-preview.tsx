@@ -1,5 +1,5 @@
 import { memo, useCallback, useEffect, useRef, useState, type FC } from 'react'
-import { FileText, ScanLine, ZoomIn, ZoomOut } from 'lucide-react'
+import { ScanLine, ZoomIn, ZoomOut } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { ErrorState, LoadingState } from './preview-state'
@@ -91,7 +91,7 @@ const DocxPreviewInner: FC<{
   if (failed)
     return (
       <ErrorState
-        icon={<FileText className="size-icon-2xl" />}
+        fileKind="docx"
         title={t('knowledge.preview.documentPreviewFailed')}
         message={t('knowledge.preview.errors.unreadable')}
         url={sourceUrl}

@@ -1,17 +1,9 @@
 import type { FC, ReactNode } from 'react'
-import {
-  Download,
-  ExternalLink,
-  FileCode,
-  FileSpreadsheet,
-  FileText,
-  Image as ImageIcon,
-  Presentation,
-  Video,
-} from 'lucide-react'
+import { Download, ExternalLink, Image as ImageIcon, Video } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button, Tooltip } from '@/components/ui'
 import type { FileType } from '../types'
+import { PreviewFileMark } from './preview-state'
 
 export const UnsupportedPreview: FC<{
   url: string
@@ -20,61 +12,45 @@ export const UnsupportedPreview: FC<{
   canDownload?: boolean
 }> = ({ url, filename, fileType, canDownload = false }) => {
   const { t } = useTranslation()
-  const typeLabels: Record<FileType, { label: string; icon: ReactNode }> = {
-    pdf: {
-      label: t('knowledge.preview.fileTypes.pdf'),
-      icon: <FileText className="h-16 w-16" />,
-    },
+  // `kind` names the type tile; media without a name keep a glyph.
+  const types: Record<
+    FileType,
+    { label: string; kind?: string; icon?: ReactNode }
+  > = {
+    pdf: { label: t('knowledge.preview.fileTypes.pdf'), kind: 'pdf' },
     image: {
       label: t('knowledge.preview.fileTypes.image'),
-      icon: <ImageIcon className="h-16 w-16" />,
+      icon: <ImageIcon />,
     },
-    video: {
-      label: t('knowledge.preview.fileTypes.video'),
-      icon: <Video className="h-16 w-16" />,
-    },
-    docx: {
-      label: t('knowledge.preview.fileTypes.docx'),
-      icon: <FileText className="h-16 w-16" />,
-    },
-    xlsx: {
-      label: t('knowledge.preview.fileTypes.xlsx'),
-      icon: <FileSpreadsheet className="h-16 w-16" />,
-    },
-    pptx: {
-      label: 'PowerPoint',
-      icon: <Presentation className="h-16 w-16" />,
-    },
-    txt: {
-      label: t('knowledge.preview.fileTypes.txt'),
-      icon: <FileCode className="h-16 w-16" />,
-    },
-    md: { label: 'Markdown', icon: <FileCode className="h-16 w-16" /> },
-    csv: {
-      label: t('knowledge.preview.fileTypes.csv'),
-      icon: <FileSpreadsheet className="h-16 w-16" />,
-    },
-    unknown: {
-      label: t('knowledge.preview.fileTypes.unknown'),
-      icon: <FileText className="h-16 w-16" />,
-    },
+    video: { label: t('knowledge.preview.fileTypes.video'), icon: <Video /> },
+    docx: { label: t('knowledge.preview.fileTypes.docx'), kind: 'docx' },
+    xlsx: { label: t('knowledge.preview.fileTypes.xlsx'), kind: 'xlsx' },
+    pptx: { label: 'PowerPoint', kind: 'pptx' },
+    txt: { label: t('knowledge.preview.fileTypes.txt'), kind: 'txt' },
+    md: { label: 'Markdown', kind: 'md' },
+    csv: { label: t('knowledge.preview.fileTypes.csv'), kind: 'csv' },
+    unknown: { label: t('knowledge.preview.fileTypes.unknown') },
   }
 
-  const { label, icon } = typeLabels[fileType] || typeLabels.unknown
+  const { label, kind, icon } = types[fileType] || types.unknown
+  // A real file name shows its own extension (ZIP, RAR…) on the tile.
+  const tileName = filename?.includes('.') ? filename : kind
 
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center bg-background-subtle p-8">
-      <div className="mb-6 text-text-muted">{icon}</div>
-      <h3 className="mb-2 text-lg font-medium text-text-primary">{label}</h3>
-      <p className="mb-8 max-w-sm text-center text-sm text-text-secondary">
-        {canDownload
-          ? t('knowledge.preview.unsupportedWithDownload')
-          : t('knowledge.preview.unsupported')}
-      </p>
-      <div className="flex gap-3">
+    <div className="flex h-full w-full flex-col items-center justify-center gap-space-md bg-background-subtle p-space-xl text-center">
+      <PreviewFileMark name={tileName} icon={icon} />
+      <div className="flex max-w-sm flex-col gap-space-xs">
+        <h3 className="text-base font-medium text-text-primary">{label}</h3>
+        <p className="text-sm text-text-secondary">
+          {canDownload
+            ? t('knowledge.preview.unsupportedWithDownload')
+            : t('knowledge.preview.unsupported')}
+        </p>
+      </div>
+      <div className="flex flex-wrap justify-center gap-space-sm">
         <Button variant="outline" asChild>
           <a href={url} target="_blank" rel="noopener noreferrer">
-            <ExternalLink className="mr-2 h-4 w-4" />
+            <ExternalLink className="size-icon-sm" aria-hidden="true" />
             {t('knowledge.preview.openInNewWindow')}
           </a>
         </Button>
@@ -86,12 +62,12 @@ export const UnsupportedPreview: FC<{
           <Button disabled={!canDownload} asChild={canDownload}>
             {canDownload ? (
               <a href={url} download={filename}>
-                <Download className="mr-2 h-4 w-4" />
+                <Download className="size-icon-sm" aria-hidden="true" />
                 {t('knowledge.preview.downloadFile')}
               </a>
             ) : (
               <>
-                <Download className="mr-2 h-4 w-4" />
+                <Download className="size-icon-sm" aria-hidden="true" />
                 {t('knowledge.preview.downloadFile')}
               </>
             )}

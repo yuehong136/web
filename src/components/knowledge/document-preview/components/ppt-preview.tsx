@@ -71,7 +71,7 @@ const PptPreviewInner: FC<{
   if (failed) {
     return (
       <ErrorState
-        icon={<Presentation className="h-16 w-16" />}
+        fileKind="pptx"
         title={t('knowledge.preview.pptPreviewFailed')}
         message={t('knowledge.preview.errors.unreadable')}
         url={sourceUrl}
@@ -81,9 +81,9 @@ const PptPreviewInner: FC<{
 
   return (
     <div className="ppt-previewer flex h-full w-full flex-col" ref={measureRef}>
-      <div className="flex shrink-0 items-center justify-between border-b border-border-default bg-surface-primary px-space-md py-space-sm">
+      <div className="flex shrink-0 items-center justify-between border-b border-border-subtle bg-background-surface px-space-md py-space-xs">
         <div className="flex items-center gap-space-xs text-text-secondary">
-          <Presentation className="h-4 w-4 shrink-0" />
+          <Presentation className="size-icon-sm shrink-0" aria-hidden="true" />
           {!loading && slideCount > 0 && (
             <span className="text-sm">
               {t('knowledge.preview.slideCount', { count: slideCount })}
@@ -96,33 +96,33 @@ const PptPreviewInner: FC<{
         <div className="flex items-center gap-space-xs">
           <Button
             variant="ghost"
-            size="sm"
             onClick={() => setZoom((z) => Math.max(50, z - 10))}
             disabled={zoom <= 50 || loading}
-            className="h-7 w-7 p-0"
+            size="icon-sm"
+            aria-label={t('knowledge.preview.zoomOut')}
           >
-            <ZoomOut className="h-3.5 w-3.5" />
+            <ZoomOut className="size-icon-sm" aria-hidden="true" />
           </Button>
-          <span className="min-w-[3rem] text-center text-sm text-text-secondary tabular-nums">
+          <span className="min-w-12 text-center text-sm text-text-secondary tabular-nums">
             {zoom}%
           </span>
           <Button
             variant="ghost"
-            size="sm"
             onClick={() => setZoom((z) => Math.min(200, z + 10))}
             disabled={zoom >= 200 || loading}
-            className="h-7 w-7 p-0"
+            size="icon-sm"
+            aria-label={t('knowledge.preview.zoomIn')}
           >
-            <ZoomIn className="h-3.5 w-3.5" />
+            <ZoomIn className="size-icon-sm" aria-hidden="true" />
           </Button>
           <Button
             variant="ghost"
-            size="sm"
             onClick={() => setZoom(100)}
             disabled={zoom === 100 || loading}
-            className="h-7 w-7 p-0"
+            size="icon-sm"
+            aria-label={t('knowledge.preview.reset')}
           >
-            <RotateCcw className="h-3.5 w-3.5" />
+            <RotateCcw className="size-icon-sm" aria-hidden="true" />
           </Button>
         </div>
       </div>

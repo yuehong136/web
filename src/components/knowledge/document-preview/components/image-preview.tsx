@@ -93,7 +93,7 @@ const ImagePreviewInner: FC<{
   if (!objectUrl || failedUrl === objectUrl) {
     return (
       <ErrorState
-        icon={<ImageIcon className="h-16 w-16" />}
+        icon={<ImageIcon />}
         title={t('knowledge.preview.imageLoadFailed')}
         url={sourceUrl}
       />
@@ -102,39 +102,54 @@ const ImagePreviewInner: FC<{
 
   return (
     <div className="relative flex h-full w-full flex-col bg-background-subtle">
-      <div className="flex items-center justify-center gap-1 border-b border-border-default bg-background-surface px-4 py-2">
+      <div className="flex items-center justify-center gap-space-2xs border-b border-border-subtle bg-background-surface px-space-md py-space-xs">
         <Tooltip content={t('knowledge.preview.zoomOut')}>
           <Button
             variant="ghost"
-            size="sm"
+            size="icon-sm"
             onClick={handleZoomOut}
             disabled={scale <= 0.1}
+            aria-label={t('knowledge.preview.zoomOut')}
           >
-            <ZoomOut className="h-4 w-4" />
+            <ZoomOut className="size-icon-sm" aria-hidden="true" />
           </Button>
         </Tooltip>
-        <span className="min-w-[50px] text-center font-mono text-xs text-text-secondary">
+        <span className="min-w-12 text-center font-mono text-xs text-text-secondary tabular-nums">
           {Math.round(scale * 100)}%
         </span>
         <Tooltip content={t('knowledge.preview.zoomIn')}>
           <Button
             variant="ghost"
-            size="sm"
+            size="icon-sm"
             onClick={handleZoomIn}
             disabled={scale >= 5}
+            aria-label={t('knowledge.preview.zoomIn')}
           >
-            <ZoomIn className="h-4 w-4" />
+            <ZoomIn className="size-icon-sm" aria-hidden="true" />
           </Button>
         </Tooltip>
-        <div className="mx-2 h-4 w-px bg-border-default" />
-        <Tooltip content={t('knowledge.preview.rotate90')}>
-          <Button variant="ghost" size="sm" onClick={handleRotate}>
-            <RotateCw className="h-4 w-4" />
+        <div
+          aria-hidden="true"
+          className="mx-space-xs h-4 w-px bg-border-default"
+        />
+        <Tooltip content={t('knowledge.preview.rotate90')} asChild>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={handleRotate}
+            aria-label={t('knowledge.preview.rotate90')}
+          >
+            <RotateCw className="size-icon-sm" aria-hidden="true" />
           </Button>
         </Tooltip>
-        <Tooltip content={t('knowledge.preview.reset')}>
-          <Button variant="ghost" size="sm" onClick={handleReset}>
-            <RotateCcw className="h-4 w-4" />
+        <Tooltip content={t('knowledge.preview.reset')} asChild>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={handleReset}
+            aria-label={t('knowledge.preview.reset')}
+          >
+            <RotateCcw className="size-icon-sm" aria-hidden="true" />
           </Button>
         </Tooltip>
       </div>
@@ -142,7 +157,7 @@ const ImagePreviewInner: FC<{
       <button
         type="button"
         className={cn(
-          'flex flex-1 items-center justify-center overflow-hidden p-4 text-left',
+          'flex flex-1 items-center justify-center overflow-hidden p-space-base text-left outline-hidden focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:ring-inset',
           scale > 1 && 'cursor-grab',
           isDragging && 'cursor-grabbing',
         )}

@@ -1,6 +1,7 @@
 import { useMemo, type FC } from 'react'
-import { Download, ExternalLink, FileText, X } from 'lucide-react'
+import { Download, ExternalLink, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { FileKindTile } from '@/components/patterns/file-kind-tile'
 import { Button, Tooltip } from '@/components/ui'
 import { previewErrorMessageKey } from '@/lib/knowledge/preview-error'
 import { cn } from '@/lib/utils'
@@ -26,60 +27,66 @@ const DocumentPreviewHeader: FC<{
   const title = docName || t('knowledge.preview.documentPreview')
   const canUseDocumentUrl = Boolean(documentUrl)
   const canDownloadDocument = canDownload && canUseDocumentUrl
+  const downloadLabel = canDownloadDocument
+    ? t('knowledge.preview.download')
+    : t('knowledge.preview.downloadDisabled')
+  const openLabel = t('knowledge.preview.openInNewWindow')
+  const closeLabel = t('knowledge.preview.closePreview')
 
   return (
-    <div className="flex items-center justify-between border-b border-border-default bg-background-surface px-4 py-2.5">
-      <div className="flex min-w-0 flex-1 items-center gap-2">
-        <FileText className="h-4 w-4 shrink-0 text-text-secondary" />
+    <div className="flex min-h-[var(--control-height-lg)] shrink-0 items-center justify-between gap-space-sm border-b border-border-subtle bg-background-surface px-space-md py-space-xs">
+      <div className="flex min-w-0 flex-1 items-center gap-space-sm">
+        {docName ? <FileKindTile name={docName} size="sm" /> : null}
         <Tooltip content={title}>
           <span className="truncate text-sm font-medium text-text-primary">
             {title}
           </span>
         </Tooltip>
       </div>
-      <div className="flex items-center gap-0.5">
-        <Tooltip
-          content={
-            canDownloadDocument
-              ? t('knowledge.preview.download')
-              : t('knowledge.preview.downloadDisabled')
-          }
-        >
+      <div className="flex shrink-0 items-center gap-space-2xs">
+        <Tooltip content={downloadLabel}>
           <Button
             variant="ghost"
-            size="sm"
+            size="icon-sm"
             disabled={!canDownloadDocument}
             asChild={canDownloadDocument}
+            aria-label={downloadLabel}
           >
             {canDownloadDocument ? (
               <a href={documentUrl} download={docName}>
-                <Download className="h-4 w-4" />
+                <Download className="size-icon-sm" aria-hidden="true" />
               </a>
             ) : (
-              <Download className="h-4 w-4" />
+              <Download className="size-icon-sm" aria-hidden="true" />
             )}
           </Button>
         </Tooltip>
-        <Tooltip content={t('knowledge.preview.openInNewWindow')}>
+        <Tooltip content={openLabel}>
           <Button
             variant="ghost"
-            size="sm"
+            size="icon-sm"
             disabled={!canUseDocumentUrl}
             asChild={canUseDocumentUrl}
+            aria-label={openLabel}
           >
             {canUseDocumentUrl ? (
               <a href={documentUrl} target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="h-4 w-4" />
+                <ExternalLink className="size-icon-sm" aria-hidden="true" />
               </a>
             ) : (
-              <ExternalLink className="h-4 w-4" />
+              <ExternalLink className="size-icon-sm" aria-hidden="true" />
             )}
           </Button>
         </Tooltip>
         {onClose && (
-          <Tooltip content={t('knowledge.preview.closePreview')}>
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              <X className="h-4 w-4" />
+          <Tooltip content={closeLabel} asChild>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={onClose}
+              aria-label={closeLabel}
+            >
+              <X className="size-icon-sm" aria-hidden="true" />
             </Button>
           </Tooltip>
         )}
