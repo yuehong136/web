@@ -9,12 +9,6 @@ import { ShareMessageList } from '../share-message-list'
 import { useSharedAgentRunner } from '../use-shared-agent-runner'
 
 // Keep the real Bubble list without loading unrelated package barrel renderers.
-vi.mock('@ant-design/x', async () => {
-  const module = await vi.importActual<
-    typeof import('@ant-design/x/lib/bubble')
-  >('@ant-design/x/lib/bubble/index.js')
-  return { Bubble: module.default, Mermaid: () => null, FileCard: () => null }
-})
 vi.mock('react-shiki/core', () => ({
   useShikiHighlighter: () => undefined,
   createJavaScriptRegexEngine: () => ({}),

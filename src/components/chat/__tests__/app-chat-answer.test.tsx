@@ -5,7 +5,9 @@ import { AppChatAnswer } from '@/components/chat/app-chat-answer'
 import { stubChatDOM } from '@/components/chat/__tests__/chat-dom'
 import { setProductLanguage } from '@/locales/i18n'
 
-vi.mock('@ant-design/x', () => ({ Mermaid: () => null }))
+vi.mock('@/components/chat/mermaid-diagram', () => ({
+  MermaidDiagram: () => null,
+}))
 vi.mock('react-shiki/core', () => ({
   useShikiHighlighter: () => undefined,
   createJavaScriptRegexEngine: () => ({}),

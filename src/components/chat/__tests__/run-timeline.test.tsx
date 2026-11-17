@@ -13,7 +13,9 @@ import en from '@/locales/en-US/chat'
 import zh from '@/locales/zh-CN/chat'
 
 // Reasoning steps render Markdown; the diagram vendor has an unresolved ESM import in Node.
-vi.mock('@ant-design/x', () => ({ Mermaid: () => null }))
+vi.mock('@/components/chat/mermaid-diagram', () => ({
+  MermaidDiagram: () => null,
+}))
 vi.mock('react-shiki/core', () => ({
   useShikiHighlighter: () => undefined,
   createJavaScriptRegexEngine: () => ({}),

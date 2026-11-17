@@ -23,7 +23,9 @@ import type { ChunkData } from '@/pages/knowledge/document-chunks/types'
 import type { UploadedFileInfo } from '@/config/chat'
 
 // Mermaid is unrelated to image ownership; its Node-only Prism import cannot resolve.
-vi.mock('@ant-design/x', () => ({ Mermaid: () => null }))
+vi.mock('@/components/chat/mermaid-diagram', () => ({
+  MermaidDiagram: () => null,
+}))
 vi.mock('@/components/chat/CodeBlock', () => ({ CodeBlock: () => null }))
 
 const KB = 'a'.repeat(32)

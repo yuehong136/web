@@ -25,6 +25,7 @@ export default {
       settingsComingSoon: '设置功能开发中...',
     },
     conversations: {
+      actions: '{{name}} 的操作',
       loading: '加载中...',
       new: '新建对话',
       fallbackName: '新对话',

@@ -1,7 +1,7 @@
-import { FileCard } from '@ant-design/x'
-import type { ComponentProps } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Bot, User } from 'lucide-react'
+import { Bot, Download, User } from 'lucide-react'
+import { FileKindTile } from '@/components/patterns/file-kind-tile'
+import { formatBytes } from '@/lib/utils'
 import {
   markdownConfig,
   type MarkdownComponents,
@@ -65,32 +65,6 @@ export function RuntimeChatMarkdown({
   )
 }
 
-const fileCardIconMap: Record<string, ComponentProps<typeof FileCard>['icon']> =
-  {
-    csv: 'excel',
-    doc: 'word',
-    docx: 'word',
-    html: 'default',
-    jpeg: 'image',
-    jpg: 'image',
-    js: 'javascript',
-    markdown: 'markdown',
-    md: 'markdown',
-    mdx: 'markdown',
-    mp3: 'audio',
-    mp4: 'video',
-    pdf: 'pdf',
-    png: 'image',
-    ppt: 'ppt',
-    pptx: 'ppt',
-    py: 'python',
-    txt: 'default',
-    wav: 'audio',
-    xls: 'excel',
-    xlsx: 'excel',
-    zip: 'zip',
-  }
-
 const getAttachmentExtension = (file: RuntimeAttachment) => {
   const explicitType = typeof file.type === 'string' ? file.type : undefined
   const explicitFormat =
@@ -117,30 +91,52 @@ export function RuntimeAttachmentList({
   }
 
   return (
-    <div className="mt-space-sm flex flex-wrap gap-space-sm">
-      {message.files.map((file, index) => (
-        <FileCard
-          key={`${file.id || file.name}-${index}`}
-          name={file.name}
-          byte={file.size}
-          size="small"
-          type="file"
-          icon={fileCardIconMap[getAttachmentExtension(file)] || 'default'}
-          description={
-            onDownloadAttachment
-              ? t('agent.explore.downloadAttachment')
-              : undefined
-          }
-          className={onDownloadAttachment ? 'cursor-pointer' : undefined}
-          onClick={
-            onDownloadAttachment
-              ? () => {
+    <ul className="mt-space-sm flex flex-wrap gap-space-sm">
+      {message.files.map((file, index) => {
+        const extension = getAttachmentExtension(file)
+        // The tile reads the kind from an extension; the type may say more.
+        const kindName = extension ? `file.${extension}` : file.name
+        const details = (
+          <>
+            <FileKindTile name={kindName} size="lg" />
+            <span className="min-w-0 flex-1 text-start">
+              <span className="block truncate text-sm text-text-primary">
+                {file.name}
+              </span>
+              <span className="block truncate text-xs text-text-tertiary">
+                {onDownloadAttachment
+                  ? t('agent.explore.downloadAttachment')
+                  : file.size
+                    ? formatBytes(file.size)
+                    : extension.toUpperCase()}
+              </span>
+            </span>
+          </>
+        )
+        const chip =
+          'flex w-60 max-w-full items-center gap-space-sm rounded-radius-md border border-border-subtle bg-components-input-bg p-space-sm'
+        return (
+          <li key={`${file.id || file.name}-${index}`} className="max-w-full">
+            {onDownloadAttachment ? (
+              <button
+                type="button"
+                className={`${chip} outline-hidden transition-colors hover:bg-state-hover focus-visible:ring-2 focus-visible:ring-state-focus motion-reduce:transition-none`}
+                onClick={() => {
                   void onDownloadAttachment(file)
-                }
-              : undefined
-          }
-        />
-      ))}
-    </div>
+                }}
+              >
+                {details}
+                <Download
+                  aria-hidden="true"
+                  className="size-icon-sm shrink-0 text-text-tertiary"
+                />
+              </button>
+            ) : (
+              <div className={chip}>{details}</div>
+            )}
+          </li>
+        )
+      })}
+    </ul>
   )
 }

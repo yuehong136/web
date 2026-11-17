@@ -1,32 +1,3 @@
-.app-chat-area .ant-bubble {
-  min-width: 0;
-  max-width: 100%;
-}
-/* antd-x Bubble.List in the thread look (see CHAT_BUBBLE_ROLES). */
-.app-chat-area .ant-bubble .chat-answer-bubble {
-  width: 100%;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-  color: var(--color-text-primary);
-  overflow-wrap: anywhere;
-}
-.app-chat-area .ant-bubble .chat-user-bubble {
-  border: 0;
-  box-shadow: none;
-  min-width: 0;
-}
-.app-chat-area .ant-bubble-list {
-  gap: var(--space-lg);
-}
-.app-chat-area .ant-bubble-start + .ant-bubble-end {
-  margin-top: var(--space-sm);
-}
-.app-chat-area .ant-bubble-body {
-  min-width: 0;
-}
 .app-chat-area .markdown-content {
   overflow-wrap: anywhere;
   color: var(--color-text-primary);
@@ -125,7 +96,6 @@
   align-items: flex-end;
 }
 [data-message-role='user'] .chat-message-body,
-.app-chat-area .ant-bubble .chat-user-bubble,
 .chat-user-bubble {
   max-width: min(82%, 36rem);
   padding: var(--space-sm) var(--space-md);
@@ -164,8 +134,7 @@
     opacity: 0;
     transition: opacity 150ms ease;
   }
-  :is(.chat-transcript-message, .ant-bubble):is(:hover, :focus-within)
-    .chat-message-actions {
+  .chat-transcript-message:is(:hover, :focus-within) .chat-message-actions {
     opacity: 1;
   }
 }

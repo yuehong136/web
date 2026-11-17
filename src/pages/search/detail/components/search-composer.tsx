@@ -1,17 +1,14 @@
-import './search-composer.css'
-import {
-  memo,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  type ElementRef,
-} from 'react'
-import { Sender } from '@ant-design/x'
+import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { AudioLines, Mic } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Button } from '@/components/ui/button'
+import {
+  ChatComposer,
+  type ChatComposerRef,
+} from '@/components/chat/chat-composer'
+import { PromptInputButton } from '@/components/patterns/chat/prompt-input'
 import { useSearchDictation } from '../hooks/use-search-dictation'
+// The search question is the page's hero: the tide ring while it has focus.
+import '@/components/patterns/chat/tide-composer.css'
 
 interface SearchComposerProps {
   onSearch: (query: string) => void | boolean
@@ -39,8 +36,7 @@ function SearchComposer({
   onValueChange,
 }: SearchComposerProps) {
   const { t } = useTranslation()
-  const sender = useRef<ElementRef<typeof Sender>>(null)
-  const composing = useRef(false)
+  const composer = useRef<ChatComposerRef>(null)
   const [draft, setDraft] = useState('')
   const value = controlled ?? draft
   const update = useCallback(
@@ -62,76 +58,55 @@ function SearchComposer({
     if (controlled === undefined && prefillText) setDraft(prefillText)
   }
   useEffect(() => {
-    if (prefillVersion && !isSearching) sender.current?.focus()
+    if (prefillVersion && !isSearching) composer.current?.focus()
   }, [prefillVersion, isSearching])
   const submit = (message: string) => {
-    if (composing.current || isSearching || !message.trim()) return
+    if (isSearching || !message.trim()) return
+    // A refused search keeps the question for another try.
     if (onSearch(message.trim()) !== false) update('')
   }
   return (
-    <div
-      className={`search-composer search-composer-${variant}`}
-      onCompositionStartCapture={() => {
-        composing.current = true
+    <ChatComposer
+      ref={composer}
+      className={`tide-composer search-composer search-composer-${variant}`}
+      value={value}
+      onChange={update}
+      onSubmit={submit}
+      placeholder={placeholder ?? t('searchPage.workspace.placeholder')}
+      state={
+        isSearching ? { kind: 'running', stop: onStop } : { kind: 'ready' }
+      }
+      autoSize={{ minRows: variant === 'hero' ? 2 : 1, maxRows: 7 }}
+      labels={{
+        submit: t('searchPage.workspace.sendHint'),
+        stop: t('searchPage.workspace.stop'),
       }}
-      onCompositionEndCapture={() => {
-        composing.current = false
-      }}
-    >
-      <Sender
-        ref={sender}
-        value={value}
-        onChange={update}
-        onSubmit={submit}
-        onCancel={onStop}
-        loading={isSearching}
-        submitType="enter"
-        autoSize={{ minRows: variant === 'hero' ? 2 : 1, maxRows: 7 }}
-        placeholder={placeholder ?? t('searchPage.workspace.placeholder')}
-        suffix={(_, { components }) => (
-          <div className="flex items-center gap-space-xs">
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              aria-label={t(
-                dictation.recording
-                  ? 'searchPage.workspace.stopRecording'
-                  : 'searchPage.workspace.speech',
-              )}
-              aria-pressed={dictation.recording}
-              onClick={dictation.recording ? dictation.stop : dictation.start}
-            >
-              {dictation.recording ? (
-                <AudioLines className="size-icon-sm" />
-              ) : (
-                <Mic className="size-icon-sm" />
-              )}
-            </Button>
-            {isSearching ? (
-              <components.LoadingButton
-                aria-label={t('searchPage.workspace.stop')}
-              />
-            ) : (
-              <components.SendButton
-                aria-label={t('searchPage.workspace.sendHint')}
-              />
+      slots={{
+        leading: (
+          <PromptInputButton
+            iconOnly
+            pressed={dictation.recording}
+            aria-label={t(
+              dictation.recording
+                ? 'searchPage.workspace.stopRecording'
+                : 'searchPage.workspace.speech',
             )}
-          </div>
-        )}
-        footer={
-          <div className="flex flex-wrap justify-between gap-space-sm text-xs text-text-secondary">
-            <span>
-              {t(
-                dictation.recording
-                  ? 'searchPage.workspace.recording'
-                  : 'searchPage.workspace.inputHint',
-              )}
-            </span>
-            <span>{t('searchPage.workspace.sendHint')}</span>
-          </div>
-        }
-      />
-    </div>
+            onClick={dictation.recording ? dictation.stop : dictation.start}
+          >
+            {dictation.recording ? (
+              <AudioLines aria-hidden="true" />
+            ) : (
+              <Mic aria-hidden="true" />
+            )}
+          </PromptInputButton>
+        ),
+        hint: `${t(
+          dictation.recording
+            ? 'searchPage.workspace.recording'
+            : 'searchPage.workspace.inputHint',
+        )} · ${t('searchPage.workspace.sendHint')}`,
+      }}
+    />
   )
 }
 

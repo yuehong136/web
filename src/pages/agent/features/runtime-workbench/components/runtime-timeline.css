@@ -1,0 +1,54 @@
+/* A run's steps: icons on a connecting line, details under each title. */
+.runtime-timeline {
+  --runtime-timeline-gap: var(--space-base);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--color-text-primary);
+}
+.runtime-timeline[data-compact] {
+  --runtime-timeline-gap: var(--space-sm);
+}
+.runtime-timeline-item {
+  display: flex;
+  gap: var(--space-sm);
+  min-width: 0;
+}
+.runtime-timeline-rail {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+}
+.runtime-timeline-icon {
+  display: inline-grid;
+  place-items: center;
+}
+.runtime-timeline-line {
+  flex: 1;
+  width: 0;
+  min-height: var(--space-sm);
+  margin-block: var(--space-2xs);
+  border-inline-start: 1px solid var(--color-border-default);
+}
+.runtime-timeline[data-line='dashed'] .runtime-timeline-line {
+  border-inline-start-style: dashed;
+}
+.runtime-timeline-item[data-status='loading'] .runtime-timeline-icon > * {
+  border-color: var(--color-state-focus);
+  color: var(--color-text-accent);
+}
+.runtime-timeline-item[data-status='error'] .runtime-timeline-icon > * {
+  border-color: var(--color-status-error);
+  color: var(--color-status-error);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .runtime-timeline-icon[data-blink] {
+    animation: runtime-timeline-blink 1.2s ease-in-out infinite;
+  }
+}
+@keyframes runtime-timeline-blink {
+  50% {
+    opacity: 0.45;
+  }
+}

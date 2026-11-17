@@ -1,5 +1,4 @@
 import type { FC } from 'react'
-import { Conversations } from '@ant-design/x'
 import {
   Edit3,
   MessageSquare,
@@ -10,6 +9,7 @@ import {
 } from 'lucide-react'
 import type { TFunction } from 'i18next'
 import { PageEmptyState } from '@/components/patterns/page-states'
+import { ConversationList } from '@/components/patterns/conversation-list'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -29,6 +29,10 @@ import {
 import type { DialogApp } from '@/types/api'
 import { translateConversationGroup } from './conversation-group-label'
 import { EntityAvatar } from '@/components/patterns/entity-avatar'
+
+/** Conversation times come in seconds or milliseconds. */
+const toMilliseconds = (time: number) =>
+  time > 1_000_000_000_000 ? time : time * 1000
 
 export type ExploreTab = 'workspace' | 'topics' | 'settings'
 export type ExploreMode = 'chat' | 'market'
@@ -65,85 +69,6 @@ interface ExploreSidebarProps {
   onNewConversationNameChange: (name: string) => void
   onCloseRenameConversation: () => void
 }
-
-const CONVERSATION_CLASSNAME = 'explore-conversations'
-
-const CONVERSATION_STYLES = `
-  .${CONVERSATION_CLASSNAME} .ant-conversations {
-    background-color: transparent !important;
-  }
-  .${CONVERSATION_CLASSNAME} .ant-conversations-creation {
-    margin: 8px 12px !important;
-    padding: 10px 12px !important;
-    border-radius: 8px !important;
-    background-color: var(--color-components-sidebar-item-bg-active) !important;
-    color: var(--color-components-sidebar-item-text-active) !important;
-    border: 1px solid var(--color-border-accent) !important;
-    transition: all 0.2s ease !important;
-    font-weight: 500 !important;
-  }
-  .${CONVERSATION_CLASSNAME} .ant-conversations-creation .ant-typography,
-  .${CONVERSATION_CLASSNAME} .ant-conversations-creation span {
-    color: var(--color-components-sidebar-item-text-active) !important;
-  }
-  .${CONVERSATION_CLASSNAME} .ant-conversations-creation:hover {
-    background-color: var(--color-components-button-primary-bg) !important;
-    color: var(--color-components-button-primary-text) !important;
-  }
-  .${CONVERSATION_CLASSNAME} .ant-conversations-creation:hover .ant-typography,
-  .${CONVERSATION_CLASSNAME} .ant-conversations-creation:hover span {
-    color: var(--color-components-button-primary-text) !important;
-  }
-  .${CONVERSATION_CLASSNAME} .ant-conversations-group-title,
-  .${CONVERSATION_CLASSNAME} .ant-conversations-group-title .ant-typography {
-    color: var(--color-text-tertiary) !important;
-    font-size: 12px !important;
-    padding: 12px 16px 4px !important;
-    font-weight: 500 !important;
-  }
-  .${CONVERSATION_CLASSNAME} .ant-conversations-list .ant-conversations-item {
-    background-color: transparent !important;
-    border-radius: 8px !important;
-    margin: 2px 8px !important;
-    padding: 8px 12px !important;
-    transition: all 0.2s ease !important;
-  }
-  .${CONVERSATION_CLASSNAME} .ant-conversations-list .ant-conversations-item:hover {
-    background-color: var(--color-components-sidebar-item-bg-hover) !important;
-  }
-  .${CONVERSATION_CLASSNAME} .ant-conversations-list .ant-conversations-item-active {
-    background-color: var(--color-components-sidebar-item-bg-active) !important;
-  }
-  .${CONVERSATION_CLASSNAME} .ant-conversations-list .ant-conversations-item-active .ant-conversations-item-label {
-    color: var(--color-components-sidebar-item-text-active) !important;
-  }
-  .${CONVERSATION_CLASSNAME} .ant-conversations-item-label {
-    color: var(--color-text-primary) !important;
-    font-size: 14px !important;
-  }
-  .${CONVERSATION_CLASSNAME} .ant-typography,
-  .${CONVERSATION_CLASSNAME} .ant-conversations-label,
-  .${CONVERSATION_CLASSNAME} span.ant-typography.ant-conversations-label {
-    color: var(--color-text-primary) !important;
-  }
-  .${CONVERSATION_CLASSNAME} .ant-conversations-item-active .ant-typography,
-  .${CONVERSATION_CLASSNAME} .ant-conversations-item-active .ant-conversations-label,
-  .${CONVERSATION_CLASSNAME} .ant-conversations-item-active span.ant-typography.ant-conversations-label {
-    color: var(--color-components-sidebar-item-text-active) !important;
-  }
-  .${CONVERSATION_CLASSNAME} .ant-conversations-item .anticon {
-    color: var(--color-text-tertiary) !important;
-  }
-  .${CONVERSATION_CLASSNAME} .ant-conversations-item:hover .anticon {
-    color: var(--color-text-secondary) !important;
-  }
-  .explore-conversations-empty {
-    text-align: center;
-    padding: 32px 16px;
-    color: var(--color-text-tertiary);
-    font-size: 14px;
-  }
-`
 
 const TAB_ITEMS: ExploreTab[] = ['workspace', 'topics', 'settings']
 
@@ -321,98 +246,78 @@ export const ExploreSidebar: FC<ExploreSidebarProps> = ({
                     </div>
 
                     <div className="min-h-0 flex-1 overflow-y-auto">
-                      <div className={CONVERSATION_CLASSNAME}>
-                        <style>{CONVERSATION_STYLES}</style>
-                        {dialogConversationsLoading ? (
-                          <div className="explore-conversations-empty">
-                            {t('explore.conversations.loading')}
-                          </div>
-                        ) : dialogConversationsError ? (
-                          <div className="explore-conversations-empty text-status-error">
-                            {t('explore.sidebar.loadFailed')}
-                          </div>
-                        ) : (
-                          <Conversations
-                            activeKey={activeConversationKey}
-                            creation={{
-                              icon: <Plus className="h-4 w-4" />,
-                              label: t('explore.conversations.new'),
-                              onClick: onCreateConversation,
-                            }}
-                            groupable={{
-                              label: (group) =>
-                                translateConversationGroup(
-                                  String(group) as ConversationDateGroup,
-                                  t,
-                                ),
-                            }}
-                            items={
-                              dialogConversations.length === 0
-                                ? []
-                                : [...dialogConversations]
-                                    .sort((a, b) => {
-                                      const timeA =
-                                        a.update_time > 1000000000000
-                                          ? a.update_time
-                                          : a.update_time * 1000
-                                      const timeB =
-                                        b.update_time > 1000000000000
-                                          ? b.update_time
-                                          : b.update_time * 1000
-                                      return timeB - timeA
-                                    })
-                                    .map((conversation) => ({
-                                      key: conversation.id,
-                                      label:
-                                        conversation.name ||
-                                        t('explore.conversations.fallbackName'),
-                                      group: getConversationDateGroup(
-                                        conversation.update_time,
-                                      ),
-                                    }))
-                            }
-                            menu={(conversation) => ({
-                              items: [
-                                {
-                                  label: t('explore.conversations.rename'),
-                                  key: 'rename',
-                                  icon: <Edit3 className="h-3 w-3" />,
-                                },
-                                {
-                                  label: t('explore.conversations.delete'),
-                                  key: 'delete',
-                                  icon: <Trash2 className="h-3 w-3" />,
-                                  danger: true,
-                                },
-                              ],
-                              onClick: (menuInfo) => {
-                                menuInfo.domEvent.stopPropagation()
-                                const conversationId = String(conversation.key)
-                                const conversationData =
-                                  dialogConversations.find(
-                                    (item) => item.id === conversationId,
-                                  )
-
-                                if (
-                                  menuInfo.key === 'rename' &&
-                                  conversationData
-                                ) {
-                                  onRenameConversation(
-                                    conversationId,
-                                    conversationData.name ||
-                                      t('explore.conversations.fallbackName'),
-                                  )
-                                } else if (menuInfo.key === 'delete') {
-                                  void onDeleteConversation(conversationId)
-                                }
-                              },
-                            })}
-                            onActiveChange={(key) =>
-                              onConversationSelect(key || undefined)
-                            }
-                          />
-                        )}
-                      </div>
+                      {dialogConversationsLoading ? (
+                        <div className="px-space-base py-space-lg text-center text-sm text-text-tertiary">
+                          {t('explore.conversations.loading')}
+                        </div>
+                      ) : dialogConversationsError ? (
+                        <div className="px-space-base py-space-lg text-center text-sm text-status-error">
+                          {t('explore.sidebar.loadFailed')}
+                        </div>
+                      ) : (
+                        <ConversationList
+                          activeKey={activeConversationKey}
+                          onSelect={onConversationSelect}
+                          creation={{
+                            icon: <Plus aria-hidden="true" />,
+                            label: t('explore.conversations.new'),
+                            onClick: onCreateConversation,
+                          }}
+                          groupLabel={(group) =>
+                            translateConversationGroup(
+                              group as ConversationDateGroup,
+                              t,
+                            )
+                          }
+                          items={[...dialogConversations]
+                            .sort(
+                              (a, b) =>
+                                toMilliseconds(b.update_time) -
+                                toMilliseconds(a.update_time),
+                            )
+                            .map((conversation) => ({
+                              key: conversation.id,
+                              label:
+                                conversation.name ||
+                                t('explore.conversations.fallbackName'),
+                              group: getConversationDateGroup(
+                                conversation.update_time,
+                              ),
+                            }))}
+                          actionsLabel={(item) =>
+                            t('explore.conversations.actions', {
+                              name: item.label,
+                            })
+                          }
+                          actions={[
+                            {
+                              key: 'rename',
+                              label: t('explore.conversations.rename'),
+                              icon: (
+                                <Edit3
+                                  aria-hidden="true"
+                                  className="size-icon-sm"
+                                />
+                              ),
+                              onSelect: (item) =>
+                                onRenameConversation(item.key, item.label),
+                            },
+                            {
+                              key: 'delete',
+                              label: t('explore.conversations.delete'),
+                              icon: (
+                                <Trash2
+                                  aria-hidden="true"
+                                  className="size-icon-sm"
+                                />
+                              ),
+                              danger: true,
+                              onSelect: (item) =>
+                                void onDeleteConversation(item.key),
+                            },
+                          ]}
+                        />
+                      )}
                     </div>
                   </>
                 )}

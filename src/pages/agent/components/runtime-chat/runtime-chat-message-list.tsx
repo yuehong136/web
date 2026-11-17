@@ -1,8 +1,11 @@
 import { Fragment, useCallback, useMemo, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Bubble } from '@ant-design/x'
-import type { BubbleListProps } from '@ant-design/x'
 import { CarouselWrapper } from '@/components/chat/CarouselWrapper'
+import { ChatBubbleLoading } from '@/components/chat/ChatBubbleLoading'
+import {
+  ChatTranscript,
+  type TranscriptItem,
+} from '@/components/chat/chat-transcript'
 import { MessageActionsFooter } from '@/components/chat/MessageActionsFooter'
 import { ReferenceDetailSheet } from '@/components/chat/ReferenceDetailSheet'
 import { ReferenceImageList } from '@/components/chat/ReferenceImageList'
@@ -11,10 +14,8 @@ import { ReferencePanel } from '@/components/chat/ReferencePanel'
 import { RetrievalProgress } from '@/components/chat/retrieval-progress'
 import { ThinkWrapper } from '@/components/chat/ThinkWrapper'
 import { mergeMarkdownComponents } from '@/components/chat/MarkdownCodeBlock'
-import {
-  CHAT_TEXT_TYPING,
-  shouldUseBubbleTyping,
-} from '@/components/chat/antx-chat-config'
+import { shouldTypeOut } from '@/components/chat/typing-heuristics'
+import { TypingText } from '@/components/patterns/chat/typing-text'
 import { cn, copyToClipboard } from '@/lib/utils'
 import { toast } from '@/lib/toast'
 import {
@@ -105,7 +106,7 @@ export function RuntimeChatMessageList({
     [t],
   )
 
-  const bubbleItems = useMemo<BubbleListProps['items']>(() => {
+  const items = useMemo<TranscriptItem[]>(() => {
     return messages.map((message, index) => {
       const isUser = message.role === 'user'
       const isLatest = index === messages.length - 1
@@ -159,7 +160,7 @@ export function RuntimeChatMessageList({
         !message.awaitingInputs?.length &&
         !message.files?.length &&
         references.length === 0 &&
-        shouldUseBubbleTyping(visibleMainContent)
+        shouldTypeOut(visibleMainContent)
       const showFooter = shouldShowRuntimeMessageFooter({
         isUser,
         isStreaming,
@@ -209,11 +210,19 @@ export function RuntimeChatMessageList({
         )
       }
 
+      const markTyped = () =>
+        setCompletedTypingMessageIds((previous) => {
+          if (previous.has(message.id)) return previous
+          const next = new Set(previous)
+          next.add(message.id)
+          return next
+        })
+
       return {
-        key: `${message.role}_${message.id || index}`,
-        role: message.role,
-        content: useTextTyping ? mainContent : message.content || '',
-        placement: isUser ? ('end' as const) : ('start' as const),
+        id: `${message.role}_${message.id || index}`,
+        // System notes read like answers, as they did in the bubble list.
+        role: isUser ? 'user' : 'assistant',
+        phase: isStreaming ? 'running' : undefined,
         avatar: isUser ? (
           ((message.authorId && message.authorId === userId
             ? userAvatar
@@ -221,149 +230,111 @@ export function RuntimeChatMessageList({
         ) : (
           <AssistantAvatar />
         ),
-        loading: shouldShowRuntimeBubbleLoading(renderState, isStreaming),
-        streaming: isStreaming,
-        typing: useTextTyping ? CHAT_TEXT_TYPING : false,
-        onTypingComplete: useTextTyping
-          ? () => {
-              setCompletedTypingMessageIds((previous) => {
-                if (previous.has(message.id)) {
-                  return previous
-                }
-                const next = new Set(previous)
-                next.add(message.id)
-                return next
-              })
-            }
-          : undefined,
-        footerPlacement: isUser ? undefined : ('outer-start' as const),
-        variant: 'borderless' as const,
-        styles: isUser
-          ? {
-              content: {
-                backgroundColor: 'var(--color-chat-bubble-user-bg)',
-                color: 'var(--color-chat-bubble-user-text)',
-                borderRadius: '18px',
-                padding: '12px 16px',
-                maxWidth: 'min(640px, 100%)',
-              },
-            }
-          : {
-              content: {
-                backgroundColor: 'transparent',
-                color: 'var(--color-text-primary)',
-                border: 'none',
-                boxShadow: 'none',
-                padding: '0',
-              },
-            },
-        contentRender: useTextTyping
-          ? undefined
-          : () => (
-              <div className="space-y-space-sm">
-                {isUser ? (
-                  <>
-                    {message.content ? (
-                      <div className="text-sm break-words whitespace-pre-wrap">
-                        {message.content}
-                      </div>
-                    ) : null}
-                    <RuntimeAttachmentList message={message} />
-                  </>
-                ) : (
-                  <>
-                    {message.logEvents?.length ? (
-                      <RuntimeTracePanel
-                        messages={[message]}
-                        loading={isStreaming}
-                        placement="message"
-                      />
-                    ) : null}
+        body: shouldShowRuntimeBubbleLoading(renderState, isStreaming) ? (
+          <ChatBubbleLoading />
+        ) : useTextTyping ? (
+          <TypingText text={mainContent} onComplete={markTyped} />
+        ) : (
+          <div className="space-y-space-sm">
+            {isUser ? (
+              <>
+                {message.content ? (
+                  <div className="break-words whitespace-pre-wrap">
+                    {message.content}
+                  </div>
+                ) : null}
+                <RuntimeAttachmentList message={message} />
+              </>
+            ) : (
+              <>
+                {message.logEvents?.length ? (
+                  <RuntimeTracePanel
+                    messages={[message]}
+                    loading={isStreaming}
+                    placement="message"
+                  />
+                ) : null}
 
-                    <RetrievalProgress
-                      result={fallback}
-                      isStreaming={isStreaming}
+                <RetrievalProgress
+                  result={fallback}
+                  isStreaming={isStreaming}
+                />
+                {thinkContent ? (
+                  <ThinkWrapper status={thinkingStatus} messageId={message.id}>
+                    <div className="text-sm whitespace-pre-wrap text-text-secondary">
+                      {thinkContent}
+                    </div>
+                  </ThinkWrapper>
+                ) : null}
+
+                {renderContentWithCarousels()}
+
+                <AgentXCardRenderer
+                  commands={message.xCardCommands}
+                  surfaceIds={message.xCardSurfaceIds}
+                  status={message.xCardStatus}
+                  onAction={onXCardAction}
+                />
+
+                <RuntimeAttachmentList
+                  message={message}
+                  onDownloadAttachment={onDownloadAttachment}
+                />
+
+                {references.length && !isStreaming ? (
+                  <ReferenceImageList
+                    referenceChunks={references}
+                    messageContent={mainContent}
+                    className="mt-space-base"
+                    onImageClick={(chunk) =>
+                      handleViewDetail(chunk, references)
+                    }
+                  />
+                ) : null}
+
+                {references.length && !isStreaming ? (
+                  <ReferencePanel
+                    chunks={references}
+                    onChunkClick={(chunk) =>
+                      handleViewDetail(chunk, references)
+                    }
+                    defaultVisiblePerDoc={2}
+                  />
+                ) : null}
+
+                {message.tips ? (
+                  <RuntimeChatMarkdown
+                    content={message.tips}
+                    streaming={false}
+                  />
+                ) : null}
+                {message.awaitingInputs?.length && isLatest ? (
+                  <div className="mt-space-md rounded-radius-md border border-border-primary bg-surface-primary p-space-sm">
+                    <DebugContent
+                      canvasId={canvasId}
+                      parameters={message.awaitingInputs}
+                      ok={(values) =>
+                        onSubmitAwaitingInputs(message.id, values)
+                      }
+                      isNext={false}
+                      loading={status === AgentRuntimeStatus.RUNNING}
+                      btnText={t('agent.explore.submitContinue')}
+                      className="min-h-0"
+                      maxHeight="max-h-none"
                     />
-                    {thinkContent ? (
-                      <ThinkWrapper
-                        status={thinkingStatus}
-                        messageId={message.id}
-                      >
-                        <div className="text-sm whitespace-pre-wrap text-text-secondary">
-                          {thinkContent}
-                        </div>
-                      </ThinkWrapper>
-                    ) : null}
+                  </div>
+                ) : null}
 
-                    {renderContentWithCarousels()}
-
-                    <AgentXCardRenderer
-                      commands={message.xCardCommands}
-                      surfaceIds={message.xCardSurfaceIds}
-                      status={message.xCardStatus}
-                      onAction={onXCardAction}
-                    />
-
-                    <RuntimeAttachmentList
-                      message={message}
-                      onDownloadAttachment={onDownloadAttachment}
-                    />
-
-                    {references.length && !isStreaming ? (
-                      <ReferenceImageList
-                        referenceChunks={references}
-                        messageContent={mainContent}
-                        className="mt-space-base"
-                        onImageClick={(chunk) =>
-                          handleViewDetail(chunk, references)
-                        }
-                      />
-                    ) : null}
-
-                    {references.length && !isStreaming ? (
-                      <ReferencePanel
-                        chunks={references}
-                        onChunkClick={(chunk) =>
-                          handleViewDetail(chunk, references)
-                        }
-                        defaultVisiblePerDoc={2}
-                      />
-                    ) : null}
-
-                    {message.tips ? (
-                      <RuntimeChatMarkdown
-                        content={message.tips}
-                        streaming={false}
-                      />
-                    ) : null}
-                    {message.awaitingInputs?.length && isLatest ? (
-                      <div className="mt-space-md rounded-radius-md border border-border-primary bg-surface-primary p-space-sm">
-                        <DebugContent
-                          canvasId={canvasId}
-                          parameters={message.awaitingInputs}
-                          ok={(values) =>
-                            onSubmitAwaitingInputs(message.id, values)
-                          }
-                          isNext={false}
-                          loading={status === AgentRuntimeStatus.RUNNING}
-                          btnText={t('agent.explore.submitContinue')}
-                          className="min-h-0"
-                          maxHeight="max-h-none"
-                        />
-                      </div>
-                    ) : null}
-
-                    {message.error ? (
-                      <p className="text-xs text-status-error">
-                        {message.error}
-                      </p>
-                    ) : null}
-                  </>
-                )}
-              </div>
-            ),
-        footer: showFooter ? (
+                {message.error ? (
+                  <p className="text-xs text-status-error">{message.error}</p>
+                ) : null}
+              </>
+            )}
+          </div>
+        ),
+        actions: showFooter ? (
           <MessageActionsFooter
+            className="flex"
             content={mainContent}
             onCopy={() => {
               void handleCopyContent(mainContent)
@@ -393,7 +364,7 @@ export function RuntimeChatMessageList({
     <>
       <div
         className={cn(
-          'runtime-chat-message-list mx-auto w-full py-space-lg',
+          'runtime-chat-message-list mx-auto w-full',
           density === 'flush'
             ? 'max-w-full px-0'
             : density === 'compact'
@@ -402,11 +373,7 @@ export function RuntimeChatMessageList({
           className,
         )}
       >
-        <Bubble.List
-          items={bubbleItems}
-          autoScroll
-          style={{ minHeight: '100%', paddingBottom: '8px' }}
-        />
+        <ChatTranscript items={items} />
       </div>
       <ReferenceDetailSheet
         open={detailOpen}

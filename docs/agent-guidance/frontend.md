@@ -111,7 +111,7 @@
 
 #### 对话界面（强制）
 
-- 首页、探索、应用预览共用一套：消息列表 `components/chat/chat-transcript.tsx`（基于 `patterns/chat/message.tsx`），输入框 `components/chat/chat-composer.tsx`（基于 `patterns/chat/prompt-input.tsx`，附件托盘 `prompt-input-attachments.tsx`），滚动 `patterns/chat/chat-scroll-viewport.tsx`（发送后锚定新问题、流式期间不追底）。Agent 运行对话的输入框也用 `ChatComposer`，其消息列表暂仍是 Ant Design X `Bubble`。新对话界面不再引入 `Bubble`、`Sender`、`Attachments`、`Actions`。
+- 首页、探索、应用预览、Agent 运行与分享对话、搜索共用一套：消息列表 `components/chat/chat-transcript.tsx`（基于 `patterns/chat/message.tsx`），输入框 `components/chat/chat-composer.tsx`（基于 `patterns/chat/prompt-input.tsx`，附件托盘 `prompt-input-attachments.tsx`），滚动 `patterns/chat/chat-scroll-viewport.tsx`（发送后锚定新问题、流式期间不追底），会话列表 `patterns/conversation-list.tsx`。`@ant-design/x` 已移除，不要再引入；保留的是 `@ant-design/x-markdown`、`x-card`、`x-sdk`。
 - `message.tsx`、`prompt-input.tsx` 改编自 Vercel AI Elements（Apache-2.0），保留文件头的来源、许可证与修改说明；不引入 AI SDK 运行时。
 - 回答正文继续用 XMarkdown；Mermaid 用 `components/chat/mermaid-diagram.tsx`，代码高亮统一走 Shiki（`CodeBlock`）。
 
@@ -201,7 +201,7 @@
 - ❌ 用 `style={{ color, backgroundColor, … }}` 表达普通视觉语义（仅允许动画、进度比例等动态计算值）
 - ❌ 第二套全屏页壳、独立白卡容器、备用根布局
 - ✅ 优先级：`@/components/ui/*` → `@/components/patterns/*` → `@/components/page-templates/*`
-- ❌ 直接从 `antd`（含 `antd/*` 子路径）导入：用 `src/components/ui/**` 的对应组件；`@ant-design/x*` 不受限。由 `design-guard/no-direct-antd-import`（error，全 `src`）把关，白名单（主题桥 `src/themes/**`、`src/lib/antd-theme.ts`、无 ui/ 对应物的 `Watermark` 等）及每项理由写在 `eslint.config.js`。
+- ❌ 直接从 `antd`（含 `antd/*` 子路径）导入：用 `src/components/ui/**` 的对应组件；`@ant-design/x-markdown`、`x-card`、`x-sdk` 不受限。由 `design-guard/no-direct-antd-import`（error，全 `src`）把关，白名单（主题桥 `src/themes/**`、`src/lib/antd-theme.ts`、无 ui/ 对应物的 `Watermark` 等）及每项理由写在 `eslint.config.js`。
 
 #### 作用域主题
 

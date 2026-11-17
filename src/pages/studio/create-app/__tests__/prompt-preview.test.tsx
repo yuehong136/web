@@ -4,7 +4,9 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { renderMarkdown } from '../components/prompt-preview'
 
 // As in the chat tests: keep antd-x's diagram/highlighter bundle out of jsdom.
-vi.mock('@ant-design/x', () => ({ Mermaid: () => null }))
+vi.mock('@/components/chat/mermaid-diagram', () => ({
+  MermaidDiagram: () => null,
+}))
 
 let root: Root
 let container: HTMLDivElement

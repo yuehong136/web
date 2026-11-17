@@ -9,7 +9,9 @@ import type { ReferenceChunk } from '@/utils/reference-replacer'
 
 // The diagram's vendor highlighter has an unresolved extensionless ESM import in Node.
 // Markdown, citations, tool steps and React escaping remain the real components.
-vi.mock('@ant-design/x', () => ({ Mermaid: () => null }))
+vi.mock('@/components/chat/mermaid-diagram', () => ({
+  MermaidDiagram: () => null,
+}))
 
 vi.mock('react-shiki/core', () => ({
   useShikiHighlighter: () => undefined,

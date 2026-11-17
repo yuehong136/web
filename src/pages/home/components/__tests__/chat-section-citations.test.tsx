@@ -14,34 +14,6 @@ import { ChatSection } from '../ChatSection'
 // @ant-design/x and the code-block renderers pull syntax-highlighter styles
 // Vitest cannot resolve. Citations only need each bubble's contentRender and the
 // merge of custom markdown components.
-vi.mock('@ant-design/x', () => {
-  const Stub = () => null
-  return {
-    Bubble: {
-      List: ({
-        items = [],
-      }: {
-        items?: Array<{
-          key: string
-          content: string
-          contentRender?: (content: string) => ReactNode
-        }>
-      }) => (
-        <div>
-          {items.map((item) => (
-            <div key={item.key}>
-              {item.contentRender?.(item.content) ?? item.content}
-            </div>
-          ))}
-        </div>
-      ),
-    },
-    Actions: Stub,
-    Mermaid: Stub,
-    Think: Stub,
-    ThoughtChain: Stub,
-  }
-})
 vi.mock('@/components/chat/CodeBlock', () => ({ CodeBlock: () => null }))
 vi.mock('@/components/chat/MarkdownCodeBlock', () => ({
   markdownConfig: {},

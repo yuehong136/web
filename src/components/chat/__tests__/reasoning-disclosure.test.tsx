@@ -9,7 +9,9 @@ import { stubChatDOM } from './chat-dom'
 import { setProductLanguage } from '@/locales/i18n'
 
 // The diagram vendor has an unresolved extensionless ESM import in Node.
-vi.mock('@ant-design/x', () => ({ Mermaid: () => null }))
+vi.mock('@/components/chat/mermaid-diagram', () => ({
+  MermaidDiagram: () => null,
+}))
 vi.mock('react-shiki/core', () => ({
   useShikiHighlighter: () => undefined,
   createJavaScriptRegexEngine: () => ({}),

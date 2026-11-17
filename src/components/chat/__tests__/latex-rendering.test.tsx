@@ -6,7 +6,9 @@ import { StreamingXMarkdown } from '../streaming-x-markdown'
 
 // Code highlighting is unrelated; keep XMarkdown and its LaTeX plugin real.
 vi.mock('../CodeBlock', () => ({ CodeBlock: () => null }))
-vi.mock('@ant-design/x', () => ({ Mermaid: () => null }))
+vi.mock('@/components/chat/mermaid-diagram', () => ({
+  MermaidDiagram: () => null,
+}))
 vi.mock('../MarkdownArtifact', () => ({
   MemoizedMarkdownArtifactImage: () => null,
   MemoizedMarkdownArtifactLink: () => null,

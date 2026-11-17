@@ -314,7 +314,6 @@ export default defineConfig(({ mode }) => {
                 test: (id: string) =>
                   isAnyPackage(id, [
                     'antd',
-                    '@ant-design/x',
                     '@ant-design/x-card',
                     '@ant-design/x-markdown',
                     '@ant-design/x-sdk',

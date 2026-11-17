@@ -18,7 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { ScrollArea } from '@/components/ui/scroll-area'
+import { ChatScrollViewport } from '@/components/patterns/chat/chat-scroll-viewport'
 import { MessageSquarePlus, Pencil } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { cn } from '@/lib/utils'
@@ -137,7 +137,10 @@ export function SessionChat({
         </p>
       ) : null}
       <div
-        className={cn('min-h-0', readyEmpty ? 'mt-auto shrink-0' : 'flex-1')}
+        className={cn(
+          'min-h-0',
+          readyEmpty ? 'mt-auto shrink-0' : 'flex flex-1 flex-col',
+        )}
       >
         {sessionError ? (
           <PageErrorState
@@ -188,10 +191,12 @@ export function SessionChat({
             </p>
           </header>
         ) : (
-          <ScrollArea
+          <ChatScrollViewport
+            anchorKey={
+              messages.findLast((message) => message.role === 'user')?.id
+            }
+            isStreaming={status === AgentRuntimeStatus.RUNNING}
             className="h-full"
-            aria-live="polite"
-            aria-busy={status === AgentRuntimeStatus.RUNNING}
           >
             <RuntimeChatMessageList
               canvasId={canvasId}
@@ -203,7 +208,7 @@ export function SessionChat({
               onSubmitAwaitingInputs={onSubmitAwaitingInputs}
               onXCardAction={onXCardAction}
             />
-          </ScrollArea>
+          </ChatScrollViewport>
         )}
       </div>
 

@@ -12,7 +12,7 @@ import { Tooltip } from '@/components/ui/tooltip'
 import { uploadConfig, type UploadFile } from '@/config/chat'
 import { formatBytes } from '@/lib/utils'
 // Same hero composer as Home: larger radius, tide glow only while focused.
-import '@/pages/home/components/tide-composer.css'
+import '@/components/patterns/chat/tide-composer.css'
 
 const getAttachmentStatusLabel = (file: UploadFile, t: TFunction) => {
   if (file.status === 'uploading')

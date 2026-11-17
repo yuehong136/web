@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AppScene, PageEmptyState } from '@/components/patterns'
-import { ScrollArea } from '@/components/ui/scroll-area'
+import { ChatScrollViewport } from '@/components/patterns/chat/chat-scroll-viewport'
 import {
   AgentRuntimeStatus,
   type RuntimeAttachment,
@@ -62,7 +62,7 @@ export function RuntimeChatPanel({
 
   return (
     <section className="flex h-full min-h-0 flex-1 flex-col bg-surface-primary">
-      <div className="min-h-0 flex-1">
+      <div className="flex min-h-0 flex-1 flex-col">
         {messages.length === 0 ? (
           <div className="flex h-full min-h-[240px] items-center justify-center p-space-lg">
             <PageEmptyState
@@ -84,7 +84,14 @@ export function RuntimeChatPanel({
             />
           </div>
         ) : (
-          <ScrollArea className="h-full">
+          // A sent question is anchored near the top while the run answers.
+          <ChatScrollViewport
+            anchorKey={
+              messages.findLast((message) => message.role === 'user')?.id
+            }
+            isStreaming={status === AgentRuntimeStatus.RUNNING}
+            className="h-full"
+          >
             <RuntimeChatMessageList
               canvasId={canvasId || ''}
               messages={messages}
@@ -96,7 +103,7 @@ export function RuntimeChatPanel({
               onXCardAction={onXCardAction}
               onDownloadAttachment={onDownloadAttachment}
             />
-          </ScrollArea>
+          </ChatScrollViewport>
         )}
       </div>
 

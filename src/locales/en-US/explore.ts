@@ -26,6 +26,7 @@ export default {
       settingsComingSoon: 'Settings are under development...',
     },
     conversations: {
+      actions: 'Actions for {{name}}',
       loading: 'Loading...',
       new: 'New conversation',
       fallbackName: 'New conversation',

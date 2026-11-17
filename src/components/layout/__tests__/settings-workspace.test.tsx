@@ -32,7 +32,6 @@ vi.mock('@/hooks/use-pending-team-invitations', () => ({
 vi.mock('@/components/layout/SidebarConversations', () => ({
   SidebarConversations: () => null,
 }))
-vi.mock('@ant-design/x', () => ({ Conversations: () => <div /> }))
 vi.mock('@/hooks/use-memory', () => ({
   useMemoryDetail: () => ({
     data: { id: 'memory-one', name: 'Session memory', storage_type: 'table' },

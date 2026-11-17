@@ -12,7 +12,7 @@ import type { MCPServer } from '@/types/mcp'
 import type { MyLLMProvider } from '@/stores/model'
 import type { ContextManifest } from '@/lib/ai-workspace/contracts'
 import { ContextManifestSummary } from '@/components/chat/context-manifest-summary'
-import './tide-composer.css'
+import '@/components/patterns/chat/tide-composer.css'
 
 interface ChatInputBoxProps {
   inputValue: string

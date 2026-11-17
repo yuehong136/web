@@ -32,7 +32,9 @@ vi.mock('../evidence-source-detail', () => ({
     <div data-reference-chunk={chunk.id}>{chunk.content}</div>
   ),
 }))
-vi.mock('@ant-design/x', () => ({ Mermaid: () => null }))
+vi.mock('@/components/chat/mermaid-diagram', () => ({
+  MermaidDiagram: () => null,
+}))
 vi.mock('react-shiki/core', () => ({
   useShikiHighlighter: () => undefined,
   createJavaScriptRegexEngine: () => ({}),

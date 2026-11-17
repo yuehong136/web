@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { renderToString } from 'react-dom/server'
 import { createCache, extractStyle, StyleProvider } from '@ant-design/cssinjs'
-import { Bubble } from '@ant-design/x'
 import { Button, Checkbox, Input, Radio, Select, Slider, Switch } from 'antd'
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
@@ -24,13 +23,11 @@ for (const isDark of [false, true]) {
           <Radio defaultChecked />
           <Switch defaultChecked />
           <Slider defaultValue={50} />
-          <Bubble content="Answer" />
         </ApplicationStyleProvider>
       </StyleProvider>,
     )
     const css = extractStyle(cache, { plain: true })
     assert.ok(css.includes('@layer antd{'))
-    assert.ok(css.includes('@layer antdx{'))
     // AntApp's broad anchor rule is the original source of the blue navigation.
     assert.match(css, /@layer antd\{[\s\S]*? a\{/)
   })

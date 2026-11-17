@@ -1,4 +1,4 @@
-import { act, type ReactNode } from 'react'
+import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { EntityAvatar } from '@/components/patterns/entity-avatar'
@@ -16,18 +16,6 @@ vi.mock('@/components/chat/streaming-x-markdown', () => ({
   StreamingXMarkdown: () => null,
 }))
 
-vi.mock('@ant-design/x', () => ({
-  Bubble: {
-    List: ({ items }: { items: { key: string; avatar: ReactNode }[] }) => (
-      <div>
-        {items.map((item) => (
-          <div key={item.key}>{item.avatar}</div>
-        ))}
-      </div>
-    ),
-  },
-}))
-
 const account = {
   id: 'signed-in',
   nickname: 'Alice',
@@ -41,6 +29,8 @@ const account = {
 
 let root: Root
 let container: HTMLDivElement
+/** The speaker's avatar beside the question. */
+const avatar = () => container.querySelector('.chat-message-avatar')!
 beforeEach(() => {
   Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true })
   useAuthStore.setState({
@@ -81,29 +71,29 @@ function Transcript({
 
 it('renders and updates the signed-in monogram only when the caller owns the transcript', async () => {
   await act(async () => root.render(<Transcript owned authorId="signed-in" />))
-  expect(container.textContent).toBe('A')
+  expect(avatar().textContent).toBe('A')
   await act(async () =>
     useAuthStore.setState({
       user: { ...account, nickname: '张三' },
     }),
   )
-  expect(container.textContent).toBe('张')
-  expect(container.querySelector('img')).toBeNull()
+  expect(avatar().textContent).toBe('张')
+  expect(avatar().querySelector('img')).toBeNull()
 })
 
 it('keeps anonymous share and unowned historical speakers neutral even while signed in', async () => {
   await act(async () => root.render(<Transcript />))
-  expect(container.textContent).toBe('')
-  expect(container.querySelector('svg.lucide-user')).not.toBeNull()
+  expect(avatar().textContent).toBe('')
+  expect(avatar().querySelector('svg.lucide-user')).not.toBeNull()
   expect(
-    container.querySelector('[data-slot="entity-avatar"]')?.className,
+    avatar().querySelector('[data-slot="entity-avatar"]')?.className,
   ).toContain('rounded-full')
 })
 
 it('does not relabel another author or legacy history with the current account', async () => {
   for (const authorId of ['another-user', undefined]) {
     await act(async () => root.render(<Transcript owned authorId={authorId} />))
-    expect(container.textContent).toBe('')
-    expect(container.querySelector('svg.lucide-user')).not.toBeNull()
+    expect(avatar().textContent).toBe('')
+    expect(avatar().querySelector('svg.lucide-user')).not.toBeNull()
   }
 })

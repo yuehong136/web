@@ -1,11 +1,8 @@
 import type { ReactNode } from 'react'
 import { StyleProvider } from '@ant-design/cssinjs'
-import { XProvider } from '@ant-design/x'
-import { App as AntApp } from 'antd'
+import { App as AntApp, ConfigProvider } from 'antd'
 import enUS from 'antd/locale/en_US'
 import zhCN from 'antd/locale/zh_CN'
-import xEnUS from '@ant-design/x/locale/en_US'
-import xZhCN from '@ant-design/x/locale/zh_CN'
 import { useTranslation } from 'react-i18next'
 import { buildAntdTheme } from '@/lib/antd-theme'
 import { normalizeLocale } from '@/locales/locale-registry'
@@ -34,17 +31,17 @@ export function ApplicationStyleProvider({
   return (
     // The root provider also contains AntApp's broad element reset rules.
     <StyleProvider layer>
-      <XProvider
+      <ConfigProvider
         theme={buildAntdTheme(
           snapshot.resolvedMode === 'dark',
           snapshot.preset,
           snapshot,
         )}
         direction="ltr"
-        locale={{ ...(english ? enUS : zhCN), ...(english ? xEnUS : xZhCN) }}
+        locale={english ? enUS : zhCN}
       >
         <AntApp>{children}</AntApp>
-      </XProvider>
+      </ConfigProvider>
     </StyleProvider>
   )
 }

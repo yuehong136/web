@@ -16,16 +16,6 @@ let inputBox: InputBoxProps | undefined
 
 // 与 chat-section-citations 相同：@ant-design/x 与代码块渲染器会拉入 Vitest
 // 解析不了的样式，这里只关心传给输入框的发送能力
-vi.mock('@ant-design/x', () => {
-  const Stub = () => null
-  return {
-    Bubble: { List: Stub },
-    Actions: Stub,
-    Mermaid: Stub,
-    Think: Stub,
-    ThoughtChain: Stub,
-  }
-})
 vi.mock('@/components/chat/CodeBlock', () => ({ CodeBlock: () => null }))
 vi.mock('@/components/chat/MarkdownCodeBlock', () => ({
   markdownConfig: {},

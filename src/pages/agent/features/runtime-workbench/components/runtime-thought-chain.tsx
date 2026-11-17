@@ -1,6 +1,5 @@
-import { ThoughtChain } from '@ant-design/x'
-import type { ThoughtChainProps } from '@ant-design/x'
 import { Badge } from '@/components/ui/badge'
+import { RuntimeTimeline, type RuntimeTimelineItem } from './runtime-timeline'
 import type { INodeEvent } from '../../../hooks/use-node-loading'
 import {
   buildRuntimeThoughtChainNodes,
@@ -77,7 +76,7 @@ export function RuntimeThoughtChain({
     return null
   }
 
-  const items: ThoughtChainProps['items'] = nodes.map((node) => {
+  const items: RuntimeTimelineItem[] = nodes.map((node) => {
     const elapsed = formatElapsedTime(node.elapsedTime)
     const hasContent = Boolean(
       node.inputs || node.outputs || node.thoughts || node.error,
@@ -131,7 +130,6 @@ export function RuntimeThoughtChain({
       ),
       status: node.status,
       blink: node.blink,
-      collapsible: hasContent,
       icon: (
         <span className="inline-flex size-6 items-center justify-center rounded-radius-full border border-border-subtle bg-surface-primary text-text-secondary">
           <ActionIcon className="size-3.5" />
@@ -182,21 +180,12 @@ export function RuntimeThoughtChain({
             : 'rounded-radius-md border border-border-default bg-surface-primary p-space-md'
       }
     >
-      <ThoughtChain
+      <RuntimeTimeline
         items={items}
         expandedKeys={expandedKeys}
         onExpand={setExpandedKeys}
         line={compact ? 'dashed' : 'solid'}
-        rootClassName="runtime-thought-chain"
-        classNames={{
-          root: 'text-text-primary',
-          item: compact ? 'py-space-xs [&+&]:mt-space-xs' : 'py-space-sm',
-          itemHeader: 'min-w-0',
-          itemContent: compact
-            ? 'max-h-80 max-w-full overflow-auto pt-space-sm'
-            : 'max-w-full overflow-auto pt-space-sm',
-          itemFooter: 'pt-space-xs',
-        }}
+        compact={compact}
       />
     </div>
   )
