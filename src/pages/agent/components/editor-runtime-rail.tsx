@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { SectionCard } from '@/components/patterns'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
+import { StatusDot } from '@/components/studio/collection-identity'
 import { formatTimestampDetailed } from '@/lib/utils'
 import {
   countFlowNodes,
@@ -14,6 +15,7 @@ import {
   RuntimeWorkbenchView,
   type RuntimeWorkbenchSummary,
 } from '../features/runtime-workbench'
+import { RUNTIME_STATUS_LABEL, RUNTIME_STATUS_TONE } from './runtime-status'
 import {
   PipelineWorkbenchView,
   type PipelineWorkbenchSummary,
@@ -44,29 +46,6 @@ interface EditorRuntimeRailProps {
   onOpenSettings: () => void
   onOpenShare: () => void
   onOpenVariables: () => void
-}
-
-const STATUS_LABEL_MAP: Record<
-  Exclude<AgentRuntimeStatus, AgentRuntimeStatus.STOPPED>,
-  string
-> = {
-  [AgentRuntimeStatus.IDLE]: 'agent.runtime.idle',
-  [AgentRuntimeStatus.PREPARING]: 'agent.runtime.preparing',
-  [AgentRuntimeStatus.RUNNING]: 'agent.runtime.running',
-  [AgentRuntimeStatus.SUCCESS]: 'agent.runtime.success',
-  [AgentRuntimeStatus.ERROR]: 'agent.runtime.error',
-}
-
-const STATUS_VARIANT_MAP: Record<
-  AgentRuntimeStatus,
-  'secondary' | 'warning' | 'success' | 'destructive' | 'outline'
-> = {
-  [AgentRuntimeStatus.IDLE]: 'secondary',
-  [AgentRuntimeStatus.PREPARING]: 'warning',
-  [AgentRuntimeStatus.RUNNING]: 'warning',
-  [AgentRuntimeStatus.SUCCESS]: 'success',
-  [AgentRuntimeStatus.ERROR]: 'destructive',
-  [AgentRuntimeStatus.STOPPED]: 'outline',
 }
 
 const isPipelineSummary = (
@@ -109,11 +88,22 @@ export function EditorRuntimeRail({
         className="min-h-0"
       >
         <div className="space-y-space-md">
-          <div>
-            <p className="text-base font-semibold text-text-primary">{title}</p>
-            <p className="mt-space-xs text-sm text-text-secondary">
-              {description}
-            </p>
+          <div className="flex items-start gap-space-sm">
+            <EntityAvatar
+              name={title}
+              src={flow?.avatar}
+              seed={flow?.id}
+              badge={isPipeline ? 'workflow' : 'agent'}
+              size="lg"
+            />
+            <div className="min-w-0">
+              <p className="text-base font-semibold break-words text-text-primary">
+                {title}
+              </p>
+              <p className="mt-space-xs text-sm text-text-secondary">
+                {description}
+              </p>
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-space-sm text-sm">
             <div className="rounded-radius-lg bg-surface-secondary p-space-sm">
@@ -182,18 +172,15 @@ export function EditorRuntimeRail({
                       : t('agent.embedRail.agentIdleDescription')}
               </p>
             </div>
-            <Badge
-              variant={STATUS_VARIANT_MAP[runtimeSummary.status]}
+            <StatusDot
+              tone={RUNTIME_STATUS_TONE[runtimeSummary.status]}
+              label={t(RUNTIME_STATUS_LABEL[runtimeSummary.status])}
               className="shrink-0"
-            >
-              {runtimeSummary.status === AgentRuntimeStatus.STOPPED
-                ? t('agent.runtime.outputDetached')
-                : t(STATUS_LABEL_MAP[runtimeSummary.status])}
-            </Badge>
+            />
           </div>
 
           {runtimeSummary.lastError ? (
-            <div className="rounded-radius-md border border-border-primary bg-surface-secondary px-space-sm py-space-xs text-xs text-status-error">
+            <div className="rounded-radius-md border border-status-error-border bg-status-error-subtle px-space-sm py-space-xs text-xs text-status-error">
               {runtimeSummary.lastError}
             </div>
           ) : null}

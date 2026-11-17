@@ -1,6 +1,6 @@
 import { FormControl, FormField, FormItem } from '@/components/ui/form'
 import { MultiSelectWithSearch } from '@/components/ui/multi-select-with-search'
-import { ProviderIcon } from '@/components/ui/provider-icon'
+import { ProviderLogo } from '@/components/patterns/provider-logo'
 import { useLLMGroupedOptionsByTypes } from '@/hooks/use-llm-request'
 import { cn } from '@/lib/utils'
 import { useMemo } from 'react'
@@ -179,17 +179,17 @@ export function ParserSetupBody({
         {
           label: 'MinerU',
           value: 'mineru',
-          icon: <ProviderIcon provider="MinerU" size={20} />,
+          icon: <ProviderLogo provider="MinerU" size="sm" />,
         },
         {
           label: 'PaddleOCR',
           value: 'paddleocr',
-          icon: <ProviderIcon provider="PaddleOCR" size={20} />,
+          icon: <ProviderLogo provider="PaddleOCR" size="sm" />,
         },
         {
           label: 'OpenDataLoader',
           value: 'opendataloader',
-          icon: <ProviderIcon provider="OpenDataLoader" size={20} />,
+          icon: <ProviderLogo provider="OpenDataLoader" size="sm" />,
         },
         ...pdfOCRModelOptions,
         ...buildModelOptions(imageModelOptions),

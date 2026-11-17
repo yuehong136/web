@@ -143,11 +143,9 @@ it('translates every runtime status while STOPPED remains output disconnected', 
       await render({
         runtimeSummary: { ...props.runtimeSummary, status: row[0] },
       })
-      expect(
-        [...host.querySelectorAll('div')].some(
-          (item) => item.textContent === row[labelIndex],
-        ),
-      ).toBe(true)
+      expect(host.querySelector('[data-slot="status-dot"]')?.textContent).toBe(
+        row[labelIndex],
+      )
       expectNoKeys()
     }
     expect(host.textContent).not.toContain(

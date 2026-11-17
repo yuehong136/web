@@ -63,7 +63,9 @@ const formatStepSummary = (
 
 function RuntimeStepGlyph({ node }: { node: RuntimeThoughtChainNode }) {
   if (node.status === 'loading') {
-    return <Loader2 className="size-3 animate-spin text-status-warning" />
+    return (
+      <Loader2 className="size-3 animate-spin text-status-warning motion-reduce:animate-none" />
+    )
   }
 
   if (node.status === 'error') {

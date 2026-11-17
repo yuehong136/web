@@ -185,7 +185,11 @@ export function RuntimeStatusBadge({ status }: { status: string }) {
   return (
     <Badge variant={STATUS_BADGE_MAP[status]} className="gap-space-xs">
       <StatusIcon
-        className={status === 'loading' ? 'size-3 animate-spin' : 'size-3'}
+        className={
+          status === 'loading'
+            ? 'size-3 animate-spin motion-reduce:animate-none'
+            : 'size-3'
+        }
       />
       {labelKey ? t(labelKey) : null}
     </Badge>

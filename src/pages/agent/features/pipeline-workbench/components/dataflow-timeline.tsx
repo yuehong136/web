@@ -19,8 +19,10 @@ const STATUS_DOT_CLASS: Record<string, string> = {
   success: 'bg-status-success',
   done: 'bg-status-success',
   ok: 'bg-status-success',
-  running: 'bg-status-warning animate-pulse',
-  pending: 'bg-status-warning animate-pulse',
+  // A step at work is the pipeline's AI moment: the tide, pulsing unless
+  // motion is reduced.
+  running: 'bg-ai-tide motion-safe:animate-pulse',
+  pending: 'bg-ai-tide motion-safe:animate-pulse',
   fail: 'bg-status-error',
   failed: 'bg-status-error',
   error: 'bg-status-error',
@@ -32,7 +34,7 @@ function resolveStatusClass(status: string, fallbackLoading: boolean) {
     return STATUS_DOT_CLASS[key]
   }
   return fallbackLoading
-    ? 'bg-status-warning animate-pulse'
+    ? 'bg-ai-tide motion-safe:animate-pulse'
     : 'bg-border-default'
 }
 
@@ -45,7 +47,7 @@ function resolveBorderClass(status: string, fallbackLoading: boolean) {
     return 'border-status-error bg-surface-primary'
   }
   if (fallbackLoading || key === 'running' || key === 'pending') {
-    return 'border-status-warning bg-surface-primary animate-pulse'
+    return 'ai-glow bg-surface-primary motion-safe:animate-pulse'
   }
   return 'border-border-default bg-surface-secondary'
 }
