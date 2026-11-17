@@ -51,6 +51,9 @@
    identity line, user turns as a compact subtle bubble. Turns are set apart
    by space, not rules. */
 .chat-transcript {
+  /* Resolve text in the nearest theme scope (share/widget pages set their
+     own), rather than inheriting the page theme's colour. */
+  color: var(--color-text-primary);
   display: grid;
   gap: var(--space-lg);
   margin: 0;

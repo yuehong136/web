@@ -123,3 +123,17 @@ it('updates legacy static token readers when only the preset changes', async () 
     getTokenValue('components-card-bg', 'light', 'ocean'),
   )
 })
+
+it('resets inherited text colour to the scope, not the page theme', async () => {
+  await act(async () =>
+    root.render(
+      <ScopedTheme theme="dark">
+        <p>Plain text</p>
+      </ScopedTheme>,
+    ),
+  )
+  const scope = container.querySelector<HTMLElement>('[data-theme="dark"]')!
+  // Plain text (e.g. an agent's opening line) inherits this, so it follows
+  // the scope even when the page around it uses the other theme.
+  expect(scope.style.color).toBe('var(--color-text-primary)')
+})

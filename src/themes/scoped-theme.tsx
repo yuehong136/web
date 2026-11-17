@@ -88,6 +88,8 @@ export function ScopedTheme({
       data-text-scale={appearance.textScale}
       data-motion={appearance.reducedMotion ? 'reduced' : 'system'}
       className={className ?? 'contents'}
+      // Inherited text takes this scope's colour, not the page theme's.
+      style={{ color: 'var(--color-text-primary)' }}
     >
       <ThemeScopeContext.Provider value={scope}>
         {children}
