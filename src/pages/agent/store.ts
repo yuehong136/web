@@ -1,17 +1,16 @@
 import type {
   Connection,
   Edge,
-  EdgeChange,
   EdgeMouseHandler,
-  NodePositionChange,
   NodeChange,
   OnConnect,
   OnEdgesChange,
   OnNodesChange,
   OnSelectionChangeFunc,
   OnSelectionChangeParams,
+  PositionChange,
 } from '@xyflow/react'
-import { addEdge, applyEdgeChanges, applyNodeChanges } from '@xyflow/react'
+import { addEdge, NodeChangeset } from '@xyflow/react'
 import omit from 'lodash/omit.js'
 import lodashSet from 'lodash/set.js'
 import { create } from 'zustand'
@@ -139,7 +138,7 @@ function normalizeIterationNodeChanges(
       return change
     }
 
-    const positionChange = change as NodePositionChange
+    const positionChange = change as PositionChange
     const node = lookup.get(change.id)
     if (!node?.parentId) {
       return change
@@ -229,13 +228,14 @@ const useGraphStore = create<RFState>()(
     clickedNodeId: '',
     clickedToolId: '',
 
-    onNodesChange: (changes) => {
+    onNodesChange: (changeset) => {
+      // xyflow 13 passes a changeset; iteration rules rewrite it as a list.
       const normalizedChanges = normalizeIterationNodeChanges(
         get().nodes,
-        changes,
+        changeset.toArray(),
       )
       const nextNodes = normalizeIterationNodes(
-        applyNodeChanges(normalizedChanges, get().nodes),
+        new NodeChangeset(normalizedChanges).applyTo(get().nodes),
       )
       const resizedNodes = resizeIterationContainers(
         nextNodes,
@@ -247,9 +247,9 @@ const useGraphStore = create<RFState>()(
       })
     },
 
-    onEdgesChange: (changes: EdgeChange[]) => {
+    onEdgesChange: (changeset) => {
       set({
-        edges: applyEdgeChanges(changes, get().edges),
+        edges: changeset.applyTo(get().edges),
       })
     },
 

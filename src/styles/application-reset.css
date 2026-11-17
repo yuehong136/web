@@ -1,3 +1,10 @@
 /* Vendor styles sit above preflight and below application component utilities. */
+/*
+ * xyflow (the agent canvas) ships its styles in `@layer xyflow` since v13.
+ * Naming it here, before `components`, keeps our utilities and canvas
+ * classes above the library defaults; the next statement then appends
+ * `components` and `utilities` after it.
+ */
+@layer reset, theme, base, antd, antdx, xyflow;
 @layer reset, theme, base, antd, antdx, components, utilities;
 @import 'antd/dist/reset.css' layer(reset);

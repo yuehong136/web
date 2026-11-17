@@ -122,6 +122,15 @@ export default {
       publishSuccessWithNote: '发布成功：{{note}}',
       publishFailed: '发布失败',
     },
+    canvas: {
+      controls: {
+        label: '画布控制',
+        zoomIn: '放大',
+        zoomOut: '缩小',
+        fitView: '适应画布',
+        interactive: '锁定或解锁画布',
+      },
+    },
     editorRuntimeRail: {
       currentAsset: '当前资产',
       autosave: '自动保存',

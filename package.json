@@ -112,7 +112,7 @@
     "@types/lodash": "^4.17.27",
     "@types/papaparse": "^5.5.2",
     "@uiw/react-md-editor": "^4.2.3",
-    "@xyflow/react": "^12.12.1",
+    "@xyflow/react": "^13.0.1",
     "antd": "6.7.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

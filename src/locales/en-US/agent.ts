@@ -136,6 +136,15 @@ export default {
       publishSuccessWithNote: 'Published: {{note}}',
       publishFailed: 'Publish failed',
     },
+    canvas: {
+      controls: {
+        label: 'Canvas controls',
+        zoomIn: 'Zoom in',
+        zoomOut: 'Zoom out',
+        fitView: 'Fit view',
+        interactive: 'Lock or unlock the canvas',
+      },
+    },
     editorRuntimeRail: {
       currentAsset: 'Current asset',
       autosave: 'Autosave',
