@@ -3,6 +3,7 @@ import { useMutation } from '@tanstack/react-query'
 import { searchAPI } from '@/api/search'
 import { isAbortError } from '@/api/request-abort'
 import { MutationErrorFeedback } from '@/lib/mutation-error-feedback'
+import { useMindmapLabels } from './use-mindmap-labels'
 import { normalizeMindmapTree, type MindmapTreeNode } from './utils'
 
 export interface SearchMindmapParams {
@@ -15,6 +16,7 @@ export interface SearchMindmapParams {
 
 /** A request has loading state, not an invented percentage or timer. */
 export function useSearchMindmap() {
+  const labels = useMindmapLabels()
   const [mindmap, setMindmap] = useState<MindmapTreeNode | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setLoading] = useState(false)
@@ -42,6 +44,7 @@ export function useSearchMindmap() {
         params.isShareMode
           ? await searchAPI.mindmapShare(payload)
           : await searchAPI.mindmap(payload),
+        labels,
       )
     },
   })

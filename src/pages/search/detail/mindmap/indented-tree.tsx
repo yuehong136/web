@@ -68,7 +68,8 @@ const getNodeText = (datum: unknown): string => {
     (value): value is string => typeof value === 'string' && value.length > 0,
   )
 
-  return text || (datum.id === ROOT_ID ? 'Mind Map' : '')
+  // normalizeMindmapTree names every node, including an unnamed root.
+  return text || ''
 }
 
 const getNodeSize = (datum: unknown): [number, number] => {
@@ -142,13 +143,13 @@ class SearchIndentedNode extends BaseNode {
   }
 
   getCountStyle(attributes: any) {
-    const { collapsed, color } = attributes
+    const { collapsed, color, badgeTextFill } = attributes
     if (!collapsed) return false
     const [, height] = this.getSize(attributes)
     return {
       backgroundFill: color,
       cursor: 'pointer',
-      fill: '#fff',
+      fill: badgeTextFill,
       fontSize: 9,
       padding: [0, 10],
       text: `${this.childrenData?.length || 0}`,
@@ -178,7 +179,7 @@ class SearchIndentedNode extends BaseNode {
   }
 
   getCollapseStyle(attributes: any) {
-    const { showIcon, color } = attributes
+    const { showIcon, color, badgeTextFill } = attributes
     if (!this.shouldShowCollapse(attributes)) return false
     const [, height] = this.getSize(attributes)
     return {
@@ -187,7 +188,7 @@ class SearchIndentedNode extends BaseNode {
       backgroundHeight: 12,
       backgroundWidth: 12,
       cursor: 'pointer',
-      fill: '#fff',
+      fill: badgeTextFill,
       fontSize: 10,
       text: '−',
       textAlign: 'center',
@@ -348,11 +349,14 @@ const IndentedTree = forwardRef<IndentedTreeRef, IndentedTreeProps>(
     const [failure, setFailure] = useState<object | null>(null)
     const { resolvedMode: mode, preset } = useResolvedAppearance()
     const theme = useMemo(() => {
-      // 缩进树按节点层级循环取色，用分类调色板前 6 档（按当前主题取色）。
+      // Depth cycles through the first six categorical colours of the theme.
       const palette = getCategoricalPalette(mode, 6, preset)
 
       return {
         palette,
+        // Count and collapse badges sit on a palette colour: white on the
+        // light palette, dark ink on the lighter dark-mode palette.
+        badgeText: getTokenValue('text-inverted', mode, preset),
         rootBackground: getTokenValue(
           'components-button-primary-bg',
           mode,
@@ -410,6 +414,7 @@ const IndentedTree = forwardRef<IndentedTreeRef, IndentedTreeProps>(
               labelTextAlign: (datum: any) =>
                 datum.id === ROOT_ID ? 'center' : 'left',
               labelTextBaseline: 'top',
+              badgeTextFill: theme.badgeText,
               color: (datum: any) => {
                 const depth = Number(datum?.depth ?? getNodeDepthById(datum.id))
                 return theme.palette[depth % theme.palette.length]
@@ -558,17 +563,14 @@ const IndentedTree = forwardRef<IndentedTreeRef, IndentedTreeProps>(
         {failed && (
           <div className="flex h-full flex-col items-center justify-center gap-space-sm">
             <output className="text-sm text-status-error">
-              {t(
-                'routeErrors.unexpected.description',
-                '页面遇到了意外问题，请重新加载。',
-              )}
+              {t('searchPage.workspace.mapRenderFailed')}
             </output>
             <button
               type="button"
               onClick={() => retry((value) => value + 1)}
-              className="rounded-radius-md border border-border-default px-space-sm py-space-xs text-sm text-text-secondary hover:text-text-primary"
+              className="rounded-radius-md border border-border-default px-space-sm py-space-xs text-sm text-text-secondary outline-hidden hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-focus"
             >
-              {t('routeErrors.actions.retry', '重新加载')}
+              {t('common.retry')}
             </button>
           </div>
         )}

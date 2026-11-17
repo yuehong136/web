@@ -50,6 +50,8 @@ import {
   type AnswerVerdict,
 } from '../utils/answer-status'
 import { useHomeConversation } from './use-home-conversation'
+import { useHomeChatOptions } from './use-home-chat-options'
+import { useHomeLocalThreads } from './use-home-local-threads'
 import {
   useHomeScope,
   type HomeScopeSync,
@@ -386,7 +388,7 @@ export const useHomeChat = ({
 
   // 发送消息 - MCP 模式
   const sendMCPMessage = useCallback(
-    async (inputValue: string) => {
+    async (inputValue: string, files: string[]) => {
       const owner = claimRequest()
       const ownsRequest = () => requestRef.current === owner
 
@@ -422,6 +424,7 @@ export const useHomeChat = ({
           },
         ]
 
+        const { mcpTimeout, verboseToolUse } = useHomeChatOptions.getState()
         const request: MCPChatServiceRequest = {
           prompt: '',
           messages: allMessages,
@@ -429,9 +432,9 @@ export const useHomeChat = ({
           stream: true,
           gen_conf: {},
           mcp_ids: [...selectedMCPIds],
-          mcp_timeout: 30000,
-          verbose_tool_use: true,
-          files: [],
+          mcp_timeout: mcpTimeout,
+          verbose_tool_use: verboseToolUse,
+          files,
           structured_output: selectedMCPIds.length > 0,
           delta_stream: true,
         }
@@ -496,10 +499,11 @@ export const useHomeChat = ({
   )
 
   // 发送消息（根据模式选择）。接纳在本次调用内同步判定：返回 false 表示拒绝，
-  // 调用方应保留草稿；会话创建、历史准备与流式期间的再次提交都会被拒绝
+  // 调用方应保留草稿；会话创建、历史准备与流式期间的再次提交都会被拒绝。
+  // 附件 id 只随模型/MCP 回合发送
   const { isPending: isSendPending, run: runSend } = useSubmitGate()
   const sendMessage = useCallback(
-    (inputValue: string): Promise<void> | false => {
+    (inputValue: string, files: string[] = []): Promise<void> | false => {
       if (!inputValue.trim() || isLoadingHistoryRef.current) return false
       if (!isAppMode && !selectedModelId) {
         toast.error(t('home.input.selectModelFirst'))
@@ -515,7 +519,9 @@ export const useHomeChat = ({
         return false
       }
       return runSend(() =>
-        isAppMode ? sendAppMessage(inputValue) : sendMCPMessage(inputValue),
+        isAppMode
+          ? sendAppMessage(inputValue)
+          : sendMCPMessage(inputValue, files),
       )
     },
     [
@@ -539,6 +545,17 @@ export const useHomeChat = ({
     localThreadId.current = uuidv4()
   }, [detachRequest, resetConversation])
 
+  // 模型/MCP 对话不落服务端：新对话前把当前对话留到本次访问的列表里
+  const localThreads = useHomeLocalThreads({
+    enabled: !isAppMode,
+    identity,
+    threadIdRef: localThreadId,
+    messagesRef,
+    requestRef,
+    clear: clearMessages,
+    show: updateMessages,
+  })
+
   return {
     messages,
     isStreaming,
@@ -552,5 +569,8 @@ export const useHomeChat = ({
     sendMessage,
     stopStreaming,
     clearMessages,
+    localThreads: localThreads.threads,
+    startNewChat: localThreads.startNewChat,
+    openLocalThread: localThreads.openLocalThread,
   }
 }

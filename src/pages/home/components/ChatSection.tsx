@@ -30,6 +30,9 @@ import { ComposerEntrance, type ComposerOrigin } from './composer-entrance'
 import { renderHomeThreadIdentity } from './home-thread-identity'
 import { getHomeMessagePhase } from '../utils/answer-status'
 import type { ChatMessage } from '../types'
+import type { HomeLocalThread } from '../hooks/use-home-local-threads'
+import { useHomeChatOptions } from '../hooks/use-home-chat-options'
+import { HomeThreadActions } from './local-threads'
 
 interface ChatSectionProps {
   messages: ChatMessage[]
@@ -45,6 +48,11 @@ interface ChatSectionProps {
   isSendPending?: boolean
   /** Where the welcome composer was when this conversation's first message left it. */
   composerOrigin?: ComposerOrigin | null
+  /** Model and MCP conversations set aside during this visit. */
+  localThreads?: HomeLocalThread[]
+  onOpenLocalThread?: (id: string) => void
+  /** Model and MCP chats only; app conversations start from the shell panel. */
+  onNewChat?: () => void
 }
 
 export function ChatSection(props: ChatSectionProps) {
@@ -72,6 +80,9 @@ function ChatSectionContent({
   isLoadingHistory = false,
   isSendPending = false,
   composerOrigin = null,
+  localThreads = [],
+  onOpenLocalThread = () => {},
+  onNewChat,
 }: ChatSectionProps) {
   const { t } = useTranslation()
   const composer = useRef<SenderRef>(null)
@@ -86,6 +97,8 @@ function ChatSectionContent({
   const thread = useRef<HTMLDivElement>(null)
   const selectedApp = useHomeStore((state) => state.selectedApps[0])
   const selectedModelId = useHomeStore((state) => state.selectedModelId)
+  const fullWidth = useHomeChatOptions((state) => state.fullWidth)
+  const column = fullWidth ? 'w-full' : 'mx-auto w-full max-w-2xl'
   const copy = useCallback(
     (text: string) =>
       void copyToClipboardWithFeedback(
@@ -202,6 +215,13 @@ function ChatSectionContent({
           providers: myLLMs ?? {},
           selectedModelId,
         })}
+        actions={
+          <HomeThreadActions
+            threads={localThreads}
+            onOpen={onOpenLocalThread}
+            onNewChat={onNewChat}
+          />
+        }
       />
       <div ref={thread} className="relative flex min-h-0 flex-1 flex-col">
         <ChatScrollViewport
@@ -210,7 +230,7 @@ function ChatSectionContent({
           }
           isStreaming={isStreaming}
           className="px-space-md pb-space-lg sm:px-space-lg"
-          contentClassName="mx-auto w-full max-w-2xl"
+          contentClassName={column}
         >
           {isLoadingHistory ? (
             <PageLoadingState
@@ -227,7 +247,7 @@ function ChatSectionContent({
         <ComposerEntrance
           origin={composerOrigin}
           focusTarget={composer}
-          className="mx-auto w-full max-w-2xl"
+          className={column}
         >
           <HomeComposer
             inputRef={composer}

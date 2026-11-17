@@ -264,7 +264,7 @@ it('lists servers in one table under its own page heading', async () => {
   expect(container.querySelectorAll('h1')).toHaveLength(1)
   expect(rowNames()).toEqual(['new-server', 'old-server'])
   expect(textButton('Create server')).toBeTruthy()
-  expect(container.querySelector('a[href="/mcp-chat"]')).toBeTruthy()
+  expect(container.querySelector('a[href="/home"]')).toBeTruthy()
   expect(container.textContent).toContain('Ready servers')
   await click(button('Copy URL for new-server'))
   expect(mocks.copy).toHaveBeenCalledWith('https://example.com/new-server')

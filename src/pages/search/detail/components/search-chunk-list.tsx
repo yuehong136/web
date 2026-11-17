@@ -2,9 +2,12 @@ import { ReferenceMetadataBadges } from '@/components/chat/reference-metadata-ba
 import { useTranslation } from 'react-i18next'
 import { memo, useState, type FC } from 'react'
 import type { Config } from 'dompurify'
-import { ChevronDown, ChevronUp, FileText, Layers } from 'lucide-react'
+import { ChevronDown, ChevronUp, Layers, PanelRight } from 'lucide-react'
+import { FileKindTile } from '@/components/patterns/file-kind-tile'
+import { Button } from '@/components/ui/button'
 import { SafeHtml } from '@/components/ui/safe-html'
 import type { ChunkResult } from '@/types/search'
+import { SearchScoreBars } from './search-score-bars'
 
 interface SearchChunkListProps {
   chunks: ChunkResult[]
@@ -12,7 +15,7 @@ interface SearchChunkListProps {
   onViewDetail: (chunk: ChunkResult, allChunks: ChunkResult[]) => void
 }
 
-// 检索高亮/块内容来自文档解析（不可信输入）
+// Highlights and passage text come from document parsing: untrusted input.
 const CHUNK_HIGHLIGHT_PURIFY_OPTIONS: Config = {
   ALLOWED_TAGS: [
     'mark',
@@ -29,6 +32,7 @@ const CHUNK_HIGHLIGHT_PURIFY_OPTIONS: Config = {
   ALLOWED_ATTR: ['class'],
 }
 
+/** One retrieved passage: rank, scores, the matched text and its file. */
 const SearchChunkCard: FC<{
   chunk: ChunkResult
   index: number
@@ -37,51 +41,28 @@ const SearchChunkCard: FC<{
 }> = ({ chunk, index, allChunks, onViewDetail }) => {
   const { t } = useTranslation()
   const [expanded, setExpanded] = useState(false)
-  const similarity =
-    Number.isFinite(chunk.similarity) &&
-    chunk.similarity >= 0 &&
-    chunk.similarity <= 1
-      ? Math.round(chunk.similarity * 100)
-      : undefined
   const rawContent =
     chunk.highlight || chunk.content_with_weight || chunk.text || ''
   const longContent = rawContent.length > 400
+  const documentName =
+    chunk.docnm_kwd || t('searchPage.workspace.mapUntitledDocument')
 
   return (
-    <div className="rounded-radius-xl border border-border-default bg-surface-primary p-space-sm">
-      <div className="mb-space-xs flex items-center justify-between">
-        <div className="flex min-w-0 items-center gap-2">
-          <span className="flex h-6 w-6 items-center justify-center rounded-radius-md bg-state-selected-bg text-xs font-medium text-state-selected-text">
+    <article className="flex flex-col gap-space-sm rounded-radius-xl border border-border-subtle bg-background-surface p-space-base transition-colors hover:border-border-strong">
+      <div className="flex flex-wrap items-start justify-between gap-space-base">
+        <div className="flex min-w-0 items-center gap-space-sm">
+          <span className="flex size-7 shrink-0 items-center justify-center rounded-radius-md bg-background-subtle font-mono text-xs font-semibold text-text-primary">
             {index + 1}
           </span>
-          <FileText className="h-3.5 w-3.5 text-text-tertiary" />
-          <span className="truncate text-sm font-medium text-text-primary">
-            {chunk.docnm_kwd}
+          <FileKindTile name={documentName} size="sm" />
+          <span
+            className="min-w-0 truncate text-sm font-medium text-text-primary"
+            title={documentName}
+          >
+            {documentName}
           </span>
         </div>
-        <button
-          type="button"
-          onClick={() => onViewDetail(chunk, allChunks)}
-          className="text-xs text-text-accent hover:underline"
-        >
-          {t('searchPage.workspace.details')}
-        </button>
-      </div>
-
-      <div className="mb-space-xs flex items-center gap-2 text-xs text-text-tertiary">
-        <span className="inline-flex h-1.5 w-16 overflow-hidden rounded-radius-full bg-background-subtle">
-          <span
-            className="h-full bg-status-success"
-            style={{
-              width: similarity === undefined ? undefined : `${similarity}%`,
-            }}
-          />
-        </span>
-        <span>
-          {similarity === undefined
-            ? t('sources.unavailable')
-            : `${similarity}%`}
-        </span>
+        <SearchScoreBars chunk={chunk} />
       </div>
 
       <SafeHtml
@@ -95,25 +76,37 @@ const SearchChunkCard: FC<{
       />
 
       <ReferenceMetadataBadges metadata={chunk.document_metadata} />
-      {longContent ? (
-        <button
-          type="button"
-          onClick={() => setExpanded((prev) => !prev)}
-          className="mt-space-xs inline-flex items-center gap-1 text-xs text-text-accent hover:underline"
+      <div className="flex flex-wrap items-center justify-between gap-space-sm border-t border-border-subtle pt-space-sm">
+        {longContent ? (
+          <button
+            type="button"
+            onClick={() => setExpanded((prev) => !prev)}
+            aria-expanded={expanded}
+            className="inline-flex items-center gap-space-2xs rounded-radius-sm text-xs text-text-accent outline-hidden hover:underline focus-visible:ring-2 focus-visible:ring-state-focus"
+          >
+            {t(
+              expanded
+                ? 'searchPage.workspace.collapse'
+                : 'searchPage.workspace.expand',
+            )}
+            {expanded ? (
+              <ChevronUp className="size-3" aria-hidden="true" />
+            ) : (
+              <ChevronDown className="size-3" aria-hidden="true" />
+            )}
+          </button>
+        ) : null}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="ms-auto shrink-0 text-xs"
+          onClick={() => onViewDetail(chunk, allChunks)}
         >
-          {t(
-            expanded
-              ? 'searchPage.workspace.collapse'
-              : 'searchPage.workspace.expand',
-          )}
-          {expanded ? (
-            <ChevronUp className="h-3 w-3" />
-          ) : (
-            <ChevronDown className="h-3 w-3" />
-          )}
-        </button>
-      ) : null}
-    </div>
+          <PanelRight className="size-icon-sm" aria-hidden="true" />
+          {t('searchPage.workspace.details')}
+        </Button>
+      </div>
+    </article>
   )
 }
 
@@ -125,16 +118,19 @@ const SearchChunkList: FC<SearchChunkListProps> = ({
   const { t } = useTranslation()
   if (isLoading) {
     return (
-      <div className="space-y-3">
+      <div className="space-y-space-sm" aria-hidden="true">
         {Array.from({ length: 3 }).map((_, index) => (
           <div
             key={index}
-            className="rounded-radius-xl border border-border-default bg-surface-primary p-space-sm"
+            className="flex flex-col gap-space-sm rounded-radius-xl border border-border-subtle bg-background-surface p-space-base"
           >
-            <div className="mb-3 h-4 w-1/3 animate-pulse rounded-radius-md bg-background-subtle" />
-            <div className="mb-2 h-3 w-full animate-pulse rounded-radius-md bg-background-subtle" />
-            <div className="mb-2 h-3 w-5/6 animate-pulse rounded-radius-md bg-background-subtle" />
-            <div className="h-3 w-3/4 animate-pulse rounded-radius-md bg-background-subtle" />
+            <div className="flex items-center gap-space-sm">
+              <div className="size-7 animate-pulse rounded-radius-md bg-background-subtle motion-reduce:animate-none" />
+              <div className="h-4 w-1/3 animate-pulse rounded-radius-md bg-background-subtle motion-reduce:animate-none" />
+            </div>
+            <div className="h-3 w-full animate-pulse rounded-radius-md bg-background-subtle motion-reduce:animate-none" />
+            <div className="h-3 w-5/6 animate-pulse rounded-radius-md bg-background-subtle motion-reduce:animate-none" />
+            <div className="h-3 w-3/4 animate-pulse rounded-radius-md bg-background-subtle motion-reduce:animate-none" />
           </div>
         ))}
       </div>
@@ -143,16 +139,19 @@ const SearchChunkList: FC<SearchChunkListProps> = ({
 
   if (!chunks.length) {
     return (
-      <div className="rounded-radius-xl border border-border-default bg-surface-primary p-space-base text-sm text-text-tertiary">
+      <p className="rounded-radius-xl border border-dashed border-border-default bg-background-subtle p-space-base text-sm text-text-secondary">
         {t('searchPage.workspace.noResults')}
-      </div>
+      </p>
     )
   }
 
   return (
     <div>
-      <div className="mb-space-xs flex items-center gap-2">
-        <Layers className="h-4 w-4 text-text-tertiary" />
+      <div className="mb-space-sm flex items-center gap-space-xs">
+        <Layers
+          className="size-icon-sm text-text-tertiary"
+          aria-hidden="true"
+        />
         <span className="text-sm font-medium text-text-primary">
           {t('searchPage.workspace.results')}
         </span>
@@ -161,7 +160,7 @@ const SearchChunkList: FC<SearchChunkListProps> = ({
         </span>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-space-sm">
         {chunks.map((chunk, index) => (
           <SearchChunkCard
             key={`${chunk.chunk_id || chunk.doc_id || 'chunk'}-${index}`}

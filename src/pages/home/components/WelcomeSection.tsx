@@ -7,6 +7,8 @@ import { HomeStarters } from './home-starters'
 import { HomeRecentWork } from './home-recent-work'
 import { RecentAppConversations } from '@/pages/home/components/recent-app-conversations'
 import { useHomeOverview } from '../hooks/use-home-overview'
+import type { HomeLocalThread } from '../hooks/use-home-local-threads'
+import { LocalThreadCards } from './local-threads'
 
 interface WelcomeSectionProps {
   inputValue: string
@@ -15,12 +17,16 @@ interface WelcomeSectionProps {
   isSendPending?: boolean
   /** The composer's frame, measured when the first message leaves it. */
   composerRef?: Ref<HTMLDivElement>
+  /** Model and MCP conversations set aside during this visit. */
+  localThreads?: HomeLocalThread[]
+  onOpenLocalThread?: (id: string) => void
 }
 
 /**
  * New chat: the tide greeting and the page heading, the composer as the hero,
  * four starters, then work to pick up again (the selected app's conversations,
- * otherwise recently updated apps and knowledge bases).
+ * otherwise this visit's model and MCP chats, then recently updated apps and
+ * knowledge bases).
  */
 export function WelcomeSection({
   inputValue,
@@ -28,6 +34,8 @@ export function WelcomeSection({
   onSend,
   isSendPending = false,
   composerRef,
+  localThreads = [],
+  onOpenLocalThread,
 }: WelcomeSectionProps) {
   const composer = useRef<SenderRef>(null)
   const hasApp = useHomeStore((state) => state.selectedApps.length > 0)
@@ -61,11 +69,19 @@ export function WelcomeSection({
         {hasApp ? (
           <RecentAppConversations />
         ) : (
-          <HomeRecentWork
-            apps={overview.apps}
-            knowledgeBases={overview.knowledgeBases}
-            loading={overview.loading}
-          />
+          <>
+            {onOpenLocalThread && (
+              <LocalThreadCards
+                threads={localThreads}
+                onOpen={onOpenLocalThread}
+              />
+            )}
+            <HomeRecentWork
+              apps={overview.apps}
+              knowledgeBases={overview.knowledgeBases}
+              loading={overview.loading}
+            />
+          </>
         )}
       </div>
     </div>

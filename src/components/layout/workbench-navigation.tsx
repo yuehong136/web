@@ -207,7 +207,8 @@ export const useDefaultSecondaryNavigation = () => {
     }
     sections.tools.groups[0].items.push({
       title: t('layout.nav.mcpPlayground'),
-      href: '/mcp-chat',
+      // MCP chat lives on Home: pick services with "+" or @.
+      href: ROUTES.HOME,
       icon: Rocket,
     })
     return sections

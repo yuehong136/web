@@ -10,6 +10,20 @@ export const searchWorkspaceResource = {
     mapFallback: '当前展示基于检索来源整理的本地结构图。',
     fitView: '适配视图',
     regenerate: '重新生成',
+    mapRoot: '思维导图',
+    mapUntitled: '未命名',
+    mapNode: '节点 {{index}}',
+    mapUntitledDocument: '未命名文档',
+    mapRenderFailed: '思维导图绘制失败。',
+    scores: {
+      combined: '综合',
+      combinedFull: '综合相似度',
+      vector: '向量',
+      term: '文本',
+      unavailable: '不可用',
+    },
+    sourceDocument: '来源文档',
+    starterCta: '用这个问题',
 
     phases: {
       idle: '准备就绪',
@@ -32,7 +46,6 @@ export const searchWorkspaceResource = {
     noMindmap: '当前轮次暂无思维导图数据',
     openSettings: '搜索配置',
     closeSettings: '收起配置',
-    status: '{{count}} 个知识库 · {{phase}}',
     turnCount_one: '共 {{count}} 轮查询，展开轮次可查看来源。',
     turnCount_other: '共 {{count}} 轮查询，展开轮次可查看来源。',
     expandAll: '全部展开',

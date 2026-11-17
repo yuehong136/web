@@ -11,7 +11,7 @@ import { createReferenceMarkerComponent } from '@/components/chat/ReferenceMarke
 import { ReferencePanel } from '@/components/chat/ReferencePanel'
 import { RetrievalProgress } from '@/components/chat/retrieval-progress'
 import { ThinkWrapper } from '@/components/chat/ThinkWrapper'
-import { copyToClipboard } from '@/lib/utils'
+import { cn, copyToClipboard } from '@/lib/utils'
 import { toast } from '@/lib/toast'
 import type { ChunkResult } from '@/types/search'
 import { convertReferencesToSup } from '@/utils/message-utils'
@@ -112,18 +112,35 @@ const SearchSummaryCard = ({
   )
     return null
 
+  // The summary is an AI moment: a tide accent always, the tide ring and a
+  // shimmering status only while it is being written.
   return (
     <div
-      className="min-w-0 bg-background-surface"
+      data-summary-streaming={isStreaming || undefined}
+      className={cn(
+        'relative min-w-0 overflow-hidden rounded-radius-xl border bg-background-surface transition-[border-color,box-shadow] duration-200 motion-reduce:transition-none',
+        isStreaming ? 'ai-glow' : 'border-border-subtle',
+      )}
       aria-live="polite"
       aria-busy={isStreaming}
     >
+      <span
+        aria-hidden="true"
+        className="absolute inset-x-0 top-0 h-0.5 bg-ai-tide"
+      />
       <div className="p-space-base">
-        <div className="mb-space-sm flex items-center gap-space-xs">
-          <Sparkles className="h-4 w-4 text-text-accent" />
-          <span className="text-sm font-semibold text-text-accent">
+        <div className="mb-space-sm flex items-center gap-space-sm">
+          <span className="flex size-6 shrink-0 items-center justify-center rounded-radius-md bg-ai-tide text-text-on-accent">
+            <Sparkles className="size-icon-xs" aria-hidden="true" />
+          </span>
+          <span className="text-sm font-semibold text-text-primary">
             {t('searchPage.workspace.summary')}
           </span>
+          {isStreaming ? (
+            <span className="min-w-0 text-shimmer truncate text-xs">
+              {t('searchPage.workspace.phases.summarizing')}
+            </span>
+          ) : null}
         </div>
 
         <div className="space-y-space-sm text-text-primary">
@@ -220,16 +237,19 @@ const SearchSummaryCard = ({
                 </>
               ) : null}
               {isStreaming ? (
-                <span className="mt-1 inline-block h-4 w-1.5 animate-pulse rounded-radius-sm bg-text-accent" />
+                <span
+                  aria-hidden="true"
+                  className="mt-space-2xs inline-block h-4 w-0.5 animate-pulse rounded-radius-full bg-text-accent motion-reduce:animate-none"
+                />
               ) : null}
             </>
           ) : !thinkContent &&
             parsedSummary.retrievalStatus === 'none' &&
             isStreaming ? (
-            <div className="space-y-space-xs">
-              <div className="h-4 w-full animate-pulse rounded-radius-md bg-background-subtle" />
-              <div className="h-4 w-4/5 animate-pulse rounded-radius-md bg-background-subtle" />
-              <div className="h-4 w-3/5 animate-pulse rounded-radius-md bg-background-subtle" />
+            <div className="space-y-space-xs" aria-hidden="true">
+              <div className="h-4 w-full animate-pulse rounded-radius-md bg-background-subtle motion-reduce:animate-none" />
+              <div className="h-4 w-4/5 animate-pulse rounded-radius-md bg-background-subtle motion-reduce:animate-none" />
+              <div className="h-4 w-3/5 animate-pulse rounded-radius-md bg-background-subtle motion-reduce:animate-none" />
             </div>
           ) : null}
         </div>

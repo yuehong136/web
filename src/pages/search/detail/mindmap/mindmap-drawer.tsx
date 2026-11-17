@@ -15,6 +15,7 @@ import {
 } from '@/components/patterns/page-states'
 import { useReturnFocus } from '@/components/chat/use-return-focus'
 import IndentedTree, { type IndentedTreeRef } from './indented-tree'
+import { useMindmapLabels } from './use-mindmap-labels'
 import { useSearchMindmap } from './use-search-mindmap'
 import { buildFallbackMindmapTree, type MindmapFallbackChunk } from './utils'
 
@@ -47,9 +48,10 @@ function SearchMindmapDrawer({
       void request({ question, kbIds, searchId, isShareMode })
     if (!open) cancel()
   }, [open, question, kbIds, searchId, isShareMode, request, cancel])
+  const labels = useMindmapLabels()
   const fallbackTree = useMemo(
-    () => buildFallbackMindmapTree(question, fallbackChunks),
-    [fallbackChunks, question],
+    () => buildFallbackMindmapTree(question, fallbackChunks, labels),
+    [fallbackChunks, question, labels],
   )
   const data = mindmap ?? fallbackTree
   return (

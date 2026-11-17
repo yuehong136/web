@@ -17,6 +17,4 @@ export const translations = {
   'mcp.servers.actions.test': '연결 테스트',
   'mcp.servers.actions.testShort': '테스트',
   'mcp.servers.card.copied': '복사됨',
-  'mcp.playground.newChat': '새 채팅',
-  'mcp.playground.welcome.academic': '학술 검색 중',
 } as const

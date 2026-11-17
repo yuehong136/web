@@ -127,7 +127,6 @@ export default {
     thinking: {
       inProgress: 'Thinking...',
       complete: 'Thought process',
-      details: 'Reasoning details',
     },
     retrieving: {
       inProgress: 'Retrieving...',
@@ -150,7 +149,6 @@ export default {
       cancelRequested:
         'Cancellation requested. Waiting for the task to respond.',
       serverCancelled: 'The server confirmed that the task was cancelled.',
-      toolUnconfirmed: 'Result unconfirmed',
       aiFillInvalid:
         'The completed response is not valid form JSON. Adjust the prompt and try again.',
       aiFillComplete: 'AI fill completed',

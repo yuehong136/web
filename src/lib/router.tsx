@@ -158,9 +158,6 @@ const AutoFillWorkbenchPage = lazyNamed(
   'AutoFillWorkbenchPage',
 )
 
-// MCP Chat
-const MCPChatPage = lazy(() => import('@/pages/MCPChatPage'))
-
 // Settings
 const SettingsLayout = lazyNamed(
   () => import('@/pages/settings/SettingsLayout'),
@@ -233,6 +230,13 @@ function SearchRedirect({ to, tab }: { to: string; tab?: string }) {
   return (
     <Navigate to={{ pathname: to, search: query ? `?${query}` : '' }} replace />
   )
+}
+
+// ---------------------------------------------------------------------------
+// The MCP playground became Home's model and MCP chat; keep any query on the way.
+function MCPChatRedirect() {
+  const { search, hash } = useLocation()
+  return <Navigate to={{ pathname: ROUTES.HOME, search, hash }} replace />
 }
 
 // ---------------------------------------------------------------------------
@@ -321,7 +325,7 @@ const topLevelRoutes: RouteObject[] = [
       },
       {
         path: '/mcp-chat',
-        element: withLoading(MCPChatPage),
+        element: <MCPChatRedirect />,
       },
       {
         path: ROUTES.KNOWLEDGE,

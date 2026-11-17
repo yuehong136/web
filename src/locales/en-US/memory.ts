@@ -192,6 +192,18 @@ export default {
       description:
         'After deletion, all messages in this memory bank will be removed and agents will no longer retrieve them.',
     },
+    detail: {
+      listSeparator: ', ',
+      noModel: 'No model set',
+      forgetMessage: 'Forget record #{{id}}',
+      viewLabel: 'View',
+      settingsPathTitle: 'Tune memory extraction',
+      settingsPathDescription:
+        'Choose the extraction model, memory types and forgetting policy.',
+      settingsPathCta: 'Open settings',
+      settingsSections: 'Settings sections',
+      lockedHint: 'Read-only for now',
+    },
     workspace: {
       enabledCount: 'Enabled memories: {{count}}',
       stateHelp: 'Page scope and lifecycle help',

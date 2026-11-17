@@ -180,6 +180,17 @@ export default {
       title: '删除记忆库',
       description: '删除后，此记忆中的所有消息都将被删除，智能体将无法检索。',
     },
+    detail: {
+      listSeparator: '、',
+      noModel: '未设置模型',
+      forgetMessage: '遗忘记录 #{{id}}',
+      viewLabel: '查看方式',
+      settingsPathTitle: '调整记忆提取',
+      settingsPathDescription: '选择提取模型、记忆类型与遗忘策略。',
+      settingsPathCta: '打开设置',
+      settingsSections: '设置分区',
+      lockedHint: '当前只读',
+    },
     workspace: {
       enabledCount: '{{count}} 条记忆已启用',
       stateHelp: '本页范围与状态说明',

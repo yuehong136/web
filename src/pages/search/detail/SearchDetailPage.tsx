@@ -162,28 +162,17 @@ const SearchDetailContent: React.FC = () => {
         copy: {
           exportedAt: t('searchPage.export.document.exportedAt', {
             date: formatDate(now),
-            defaultValue: '导出时间：{{date}}',
           }),
-          round: (index) =>
-            t('searchPage.export.document.round', {
-              index,
-              defaultValue: '第 {{index}} 轮',
-            }),
-          question: t('searchPage.export.document.question', '问题'),
-          answer: t('searchPage.export.document.answer', '回答'),
-          relatedQuestions: t(
-            'searchPage.export.document.relatedQuestions',
-            '相关问题',
-          ),
-          noSummary: t(
-            'searchPage.export.document.noSummary',
-            '本轮没有可导出的 AI 总结。',
-          ),
+          round: (index) => t('searchPage.export.document.round', { index }),
+          question: t('searchPage.export.document.question'),
+          answer: t('searchPage.export.document.answer'),
+          relatedQuestions: t('searchPage.export.document.relatedQuestions'),
+          noSummary: t('searchPage.export.document.noSummary'),
         },
       })
-      toast.success(t('searchPage.export.success', '当前会话已导出'))
+      toast.success(t('searchPage.export.success'))
     } catch {
-      toast.error(t('searchPage.export.failed', '导出失败，请重试'))
+      toast.error(t('searchPage.export.failed'))
     }
   }, [exportAppName, canExport, t, turns])
 
@@ -293,18 +282,19 @@ const SearchDetailContent: React.FC = () => {
     <div className="flex h-full flex-col bg-surface-primary">
       <SearchDetailHeader
         appName={searchApp.name}
+        appId={searchApp.id}
+        avatar={searchApp.avatar}
+        description={searchApp.description}
         kbCount={kbCount}
+        phase={phase}
         phaseLabel={t(`searchPage.workspace.phases.${phase}`)}
         hasTurns={hasTurns}
         canOpenMindmap={canOpenMindmap}
         mindmapOpen={mindmapOpen}
         settingsOpen={settingsOpen}
         canExport={canExport}
-        exportLabel={t('searchPage.export.action', '导出当前会话')}
-        exportDisabledReason={t(
-          'searchPage.export.streamingDisabled',
-          '搜索进行中，完成后可导出',
-        )}
+        exportLabel={t('searchPage.export.action')}
+        exportDisabledReason={t('searchPage.export.streamingDisabled')}
         onBack={() => navigate(ROUTES.SEARCH)}
         onClear={handleClear}
         onToggleMindmap={handleToggleMindmap}
@@ -329,7 +319,7 @@ const SearchDetailContent: React.FC = () => {
               />
             ) : (
               <div className="mx-auto max-w-6xl space-y-space-base pb-space-base">
-                <div className="flex items-center justify-between rounded-radius-lg border border-border-default bg-surface-secondary px-space-base py-space-xs">
+                <div className="flex flex-wrap items-center justify-between gap-space-sm rounded-radius-lg border border-border-subtle bg-background-subtle px-space-base py-space-xs">
                   <p className="text-xs text-text-secondary">
                     {t('searchPage.workspace.turnCount', {
                       count: turns.length,

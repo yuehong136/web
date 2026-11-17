@@ -8,7 +8,6 @@ export default {
       noResults: 'No matching embedding models',
     },
     modelPicker: {
-      assistant: 'AI assistant',
       savedModel: 'Saved model',
       unavailableShort: 'Unavailable',
       loading: 'Loading models…',

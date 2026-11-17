@@ -8,9 +8,6 @@
 @import './themes/dark.css';
 @import './styles/selection-controls.css';
 
-/* MCP 聊天页面专用样式 */
-@import './styles/mcp-chat-reference.css';
-
 /* 参考文献和引用相关样式 */
 @import './styles/reference.css';
 
@@ -103,8 +100,9 @@
     filter: none !important;
   }
 
-  /* 全局选择器样式 - 确保主题覆盖，但排除MCP聊天页面 */
-  *:not(.mcp-chat-page *) {
+  /* 全局边框色走主题令牌。:not(.\_) 不排除任何元素，只把特异度保持在
+     (0,1,0)，压过 @tailwindcss/forms 在 base 层给输入框的默认边框色 */
+  *:not(.\_) {
     border-color: var(--color-border-default);
   }
 

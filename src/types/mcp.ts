@@ -135,47 +135,6 @@ export interface PaginatedResponse<T> {
 export const MCP_SERVER_TYPES = ['sse', 'streamable-http'] as const
 export type MCPServerType = (typeof MCP_SERVER_TYPES)[number]
 
-// MCP实验场聊天相关类型定义
-export interface MCPChatConfig {
-  mcp_ids: string[]
-  mcp_timeout: number
-  verbose_tool_use: boolean
-}
-
-export interface ChatToolCall {
-  name: string
-  args: Record<string, any>
-  result?: string
-}
-
-export interface ParsedChatToolCall {
-  id?: string
-  name: string
-  args: Record<string, any>
-  arguments?: Record<string, any>
-  result: unknown
-  status?: 'pending' | 'running' | 'success' | 'error'
-  timestamp?: string
-}
-
-export interface ChatMessage {
-  modelIdentity?: import('@/lib/model-identity').ModelIdentitySnapshot
-  id: string
-  role: 'user' | 'assistant'
-  content: string
-  timestamp: string
-  runPhase?: import('@/lib/streaming/run-lifecycle').RunPhase
-  toolCalls?: ChatToolCall[]
-  parsedToolCalls?: ParsedChatToolCall[]
-}
-
-export interface ChatSession {
-  id: string
-  title: string
-  timestamp: string
-  messages: ChatMessage[]
-}
-
 export interface SpeechConfig {
   enabled: boolean
   continuous?: boolean

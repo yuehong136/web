@@ -13,6 +13,13 @@ import type { MCPServer } from '@/types/mcp'
 import { useAuthStore } from '@/stores/auth'
 import { createContextManifest } from '@/lib/ai-workspace/contracts'
 import { getHomeContextResources } from '@/pages/home/utils/home-context'
+import { useHomeAttachmentsContext } from '../hooks/use-home-attachments'
+import {
+  HomeAttachmentHint,
+  HomeAttachmentPill,
+  HomeAttachmentTray,
+} from './home-attachments'
+import { McpRunOptions } from './mcp-run-options'
 
 export type HomeComposerRequest =
   | { phase: 'idle' | 'preparing' }
@@ -72,6 +79,12 @@ export function HomeComposer({
     removeAtSymbol,
   } = useAtTrigger()
   const locked = request.phase !== 'idle'
+  // Model and MCP turns take files; app turns have no attachment contract.
+  const shared = useHomeAttachmentsContext()
+  const tray = shared?.enabled ? shared : null
+  const trayStatus = Boolean(
+    tray && (tray.uploading || tray.hasError || tray.readyCount > 0),
+  )
   const contextManifest = createContextManifest({
     scope: {
       identity: `${user?.id ?? ''}:${user?.tenant_id ?? ''}`,
@@ -154,7 +167,25 @@ export function HomeComposer({
       onStop={request.phase === 'running' ? request.stop : undefined}
       isStreaming={request.phase === 'running'}
       scopeLocked={locked}
-      sendBlocked={sendBlocked}
+      sendBlocked={sendBlocked || Boolean(tray?.uploading)}
+      sendBlockedReason={
+        tray?.uploading ? t('home.attachments.waitForUploads') : undefined
+      }
+      leadingAddons={
+        <>
+          {tray && <HomeAttachmentPill attachments={tray} disabled={locked} />}
+          {!selectedApps.length && selectedMCPServers.length > 0 && (
+            <McpRunOptions disabled={locked} />
+          )}
+        </>
+      }
+      attachments={tray ? <HomeAttachmentTray attachments={tray} /> : undefined}
+      onPasteFile={tray ? tray.addPasted : undefined}
+      hint={
+        tray && trayStatus ? (
+          <HomeAttachmentHint attachments={tray} />
+        ) : undefined
+      }
       placeholder={t(
         placement === 'welcome'
           ? 'home.input.welcomePlaceholder'

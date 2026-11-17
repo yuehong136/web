@@ -2,9 +2,11 @@ import { act, createRef } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, expect, it, vi, type Mock } from 'vitest'
 import { setProductLanguage } from '@/locales/i18n'
+import { getTokenValue } from '@/lib/design-tokens'
 import IndentedTree, { type IndentedTreeRef } from '../indented-tree'
 
 interface TestGraph {
+  options: { node: { style: Record<string, unknown> } }
   destroyed: boolean
   render: Mock<() => Promise<void>>
   fitView: Mock<() => Promise<void>>
@@ -40,8 +42,8 @@ vi.mock('@antv/g', () => ({ Rect: class {} }))
 vi.mock('@antv/g6', () => ({
   Graph: class {
     destroyed = false
-    constructor() {
-      state.graphs.push(this)
+    constructor(public options: unknown) {
+      state.graphs.push(this as never)
     }
     setData = vi.fn()
     render = vi.fn(async () => {
@@ -216,7 +218,7 @@ it('shows fixed local feedback for a current render failure and recreates the gr
   )
   await render()
   expect(container.querySelector('output')?.textContent).toContain(
-    'unexpected problem',
+    'Could not draw the map',
   )
   expect(container.textContent).not.toContain('private active render failure')
   const failed = state.graphs[0]!
@@ -239,7 +241,18 @@ it('reports a current asynchronous command failure rather than swallowing it', a
     ref.current!.fitView()
   })
   expect(container.querySelector('output')?.textContent).toContain(
-    'unexpected problem',
+    'Could not draw the map',
   )
   expect(container.textContent).not.toContain('private viewport failure')
+})
+
+it('draws badge ink from the theme tokens and redraws it when the theme changes', async () => {
+  await render()
+  const light = state.graphs[0]!.options.node.style.badgeTextFill
+  expect(light).toBe(getTokenValue('text-inverted', 'light', 'studio'))
+  await changeAppearance('dark', 'studio')
+  const dark = state.graphs.at(-1)!.options.node.style.badgeTextFill
+  expect(dark).toBe(getTokenValue('text-inverted', 'dark', 'studio'))
+  // Dark-mode palette colours are light, so the ink must not stay white.
+  expect(dark).not.toBe(light)
 })
