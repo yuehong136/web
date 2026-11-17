@@ -2,8 +2,12 @@ import { ThoughtChain } from '@ant-design/x'
 import type { ThoughtChainProps } from '@ant-design/x'
 import { Badge } from '@/components/ui/badge'
 import type { INodeEvent } from '../../../hooks/use-node-loading'
-import { buildRuntimeThoughtChainNodes } from '../thought-chain-utils'
+import {
+  buildRuntimeThoughtChainNodes,
+  resolveRuntimeThoughtNodeName,
+} from '../thought-chain-utils'
 import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   ACTION_BADGE_MAP,
   RuntimeStatusBadge,
@@ -35,6 +39,7 @@ export function RuntimeThoughtChain({
   compact = false,
   surface = 'framed',
 }: RuntimeThoughtChainProps) {
+  const { t } = useTranslation()
   const nodes = useMemo(
     () => buildRuntimeThoughtChainNodes(events, loading),
     [events, loading],
@@ -77,22 +82,30 @@ export function RuntimeThoughtChain({
     const hasContent = Boolean(
       node.inputs || node.outputs || node.thoughts || node.error,
     )
-    const inputSummary = summarizeValue(node.inputs, '无输入')
-    const outputSummary = summarizeValue(node.outputs, '等待输出')
+    const inputSummary = summarizeValue(
+      node.inputs,
+      t('agent.runtime.noInput'),
+      t,
+    )
+    const outputSummary = summarizeValue(
+      node.outputs,
+      t('agent.runtime.waitingOutput'),
+      t,
+    )
     const ActionIcon = getActionIcon(node.actionKind)
 
     return {
       key: node.key,
       title: (
-        <div className="gap-space-xs flex min-w-0 items-center">
+        <div className="flex min-w-0 items-center gap-space-xs">
           <Badge
             variant={ACTION_BADGE_MAP[node.actionKind]}
             className="shrink-0"
           >
-            {node.actionLabel}
+            {t(node.actionLabelKey)}
           </Badge>
           <span className="min-w-0 truncate text-sm font-medium text-text-primary">
-            {node.componentName}
+            {resolveRuntimeThoughtNodeName(node, t)}
           </span>
           {elapsed ? (
             <span className="shrink-0 text-xs text-text-tertiary">
@@ -103,13 +116,16 @@ export function RuntimeThoughtChain({
       ),
       description: (
         <div className="space-y-space-xs text-xs text-text-secondary">
-          <div className="gap-space-xs flex min-w-0 flex-wrap items-center">
+          <div className="flex min-w-0 flex-wrap items-center gap-space-xs">
             <RuntimeStatusBadge status={node.status} />
             {node.componentType ? <span>{node.componentType}</span> : null}
             {!compact && elapsed ? <span>{elapsed}</span> : null}
           </div>
           <div className="line-clamp-1 break-all">
-            输入：{inputSummary} · 输出：{outputSummary}
+            {t('agent.runtimePanel.thoughtChain.ioSummary', {
+              input: inputSummary,
+              output: outputSummary,
+            })}
           </div>
         </div>
       ),
@@ -117,22 +133,39 @@ export function RuntimeThoughtChain({
       blink: node.blink,
       collapsible: hasContent,
       icon: (
-        <span className="rounded-radius-full bg-surface-primary inline-flex size-6 items-center justify-center border border-border-subtle text-text-secondary">
+        <span className="inline-flex size-6 items-center justify-center rounded-radius-full border border-border-subtle bg-surface-primary text-text-secondary">
           <ActionIcon className="size-3.5" />
         </span>
       ),
       content: hasContent ? (
         <div className="space-y-space-sm">
-          <RuntimeThoughtPayload label="思考 / Trace" value={node.thoughts} />
-          <RuntimeThoughtPayload label="输入" value={node.inputs} />
-          <RuntimeThoughtPayload label="输出" value={node.outputs} />
-          <RuntimeThoughtPayload label="错误" value={node.error} tone="error" />
+          <RuntimeThoughtPayload
+            label={t('agent.runtimePanel.thoughtChain.thoughts')}
+            value={node.thoughts}
+          />
+          <RuntimeThoughtPayload
+            label={t('agent.runtime.input')}
+            value={node.inputs}
+          />
+          <RuntimeThoughtPayload
+            label={t('agent.runtime.output')}
+            value={node.outputs}
+          />
+          <RuntimeThoughtPayload
+            label={t('agent.runtimePanel.thoughtChain.error')}
+            value={node.error}
+            tone="error"
+          />
         </div>
       ) : undefined,
       footer: compact ? undefined : (
-        <div className="gap-space-xs flex min-w-0 flex-wrap items-center text-xs text-text-tertiary">
+        <div className="flex min-w-0 flex-wrap items-center gap-space-xs text-xs text-text-tertiary">
           <span>{node.eventName}</span>
-          <span>{node.eventCount} events</span>
+          <span>
+            {t('agent.runtimePanel.thoughtChain.eventCount', {
+              count: node.eventCount,
+            })}
+          </span>
           <span className="max-w-xs truncate">{node.componentId}</span>
         </div>
       ),
@@ -145,8 +178,8 @@ export function RuntimeThoughtChain({
         surface === 'bare'
           ? 'max-w-full overflow-hidden'
           : compact
-            ? 'rounded-radius-md bg-surface-primary p-space-sm max-w-full overflow-hidden border border-border-subtle'
-            : 'rounded-radius-md bg-surface-primary p-space-md border border-border-default'
+            ? 'max-w-full overflow-hidden rounded-radius-md border border-border-subtle bg-surface-primary p-space-sm'
+            : 'rounded-radius-md border border-border-default bg-surface-primary p-space-md'
       }
     >
       <ThoughtChain

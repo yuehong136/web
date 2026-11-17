@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { systemAPI } from '@/api/system'
 import { agentQueryKeys } from '@/hooks/use-agent-query'
 
@@ -9,6 +10,7 @@ const pickToken = (
 }
 
 export function useAgentDeliveryToken(enabled = true) {
+  const { t } = useTranslation()
   const query = useQuery({
     queryKey: agentQueryKeys.deliveryToken(),
     queryFn: () => systemAPI.getTokenList(),
@@ -24,14 +26,10 @@ export function useAgentDeliveryToken(enabled = true) {
     }
 
     if (!currentTokens?.length) {
-      throw new Error(
-        '未检测到系统 API Token，请先在系统 Token 管理中创建 Token。',
-      )
+      throw new Error(t('agent.share.noSystemToken'))
     }
 
-    throw new Error(
-      '第一条系统 API Token 缺少 beta，无法生成 RAGFlow 标准 Share 链接。',
-    )
+    throw new Error(t('agent.share.systemTokenMissingBeta'))
   }
 
   return {

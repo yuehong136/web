@@ -1,3 +1,4 @@
+import type { TFunction } from 'i18next'
 import { downloadGeneratedAttachment } from '@/api/document-files'
 import type { RuntimeAttachment } from '../../features/runtime-workbench/types'
 
@@ -11,11 +12,14 @@ const getAttachmentExt = (file: RuntimeAttachment) => {
   return typeof ext === 'string' && ext ? ext.replace(/^\./, '') : 'markdown'
 }
 
-export async function downloadRuntimeAttachment(file: RuntimeAttachment) {
+export async function downloadRuntimeAttachment(
+  file: RuntimeAttachment,
+  t: TFunction,
+) {
   const docId = getAttachmentDocId(file)
 
   if (!docId) {
-    throw new Error('附件缺少 doc_id，无法下载')
+    throw new Error(t('agent.runtimePanel.chatPanel.attachmentMissingDocId'))
   }
 
   await downloadGeneratedAttachment(docId, file.name, getAttachmentExt(file))

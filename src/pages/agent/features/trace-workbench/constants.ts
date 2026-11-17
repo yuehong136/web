@@ -19,55 +19,52 @@ export enum TraceWorkbenchCopyState {
   Copied = 'copied',
 }
 
-export const TRACE_RUN_STATUS_LABELS: Record<TraceRunStatus, string> = {
-  running: '运行中',
-  success: '成功',
-  error: '失败',
-  partial: '部分可用',
-  missing: '不可用',
-}
+export const TRACE_RUN_STATUS_LABEL_KEYS = {
+  running: 'agent.traceWorkbench.runStatus.running',
+  success: 'agent.traceWorkbench.runStatus.success',
+  error: 'agent.traceWorkbench.runStatus.error',
+  partial: 'agent.traceWorkbench.runStatus.partial',
+  missing: 'agent.traceWorkbench.runStatus.missing',
+} as const satisfies Record<TraceRunStatus, string>
 
-export const TRACE_SPAN_STATUS_LABELS: Record<TraceSpanStatus, string> = {
-  running: '运行中',
-  success: '成功',
-  error: '失败',
-  unknown: '未知',
-}
+export const TRACE_SPAN_STATUS_LABEL_KEYS = {
+  running: 'agent.traceWorkbench.spanStatus.running',
+  success: 'agent.traceWorkbench.spanStatus.success',
+  error: 'agent.traceWorkbench.spanStatus.error',
+  unknown: 'agent.traceWorkbench.spanStatus.unknown',
+} as const satisfies Record<TraceSpanStatus, string>
 
-export const TRACE_SPAN_KIND_LABELS: Record<TraceSpanKind, string> = {
-  node: '节点',
-  llm: 'LLM',
-  tool: 'Tool',
-  retrieval: 'Retrieval',
-  control: 'Control',
-  data: 'Data',
-  webhook: 'Webhook',
-  system: 'System',
-}
+export const TRACE_SPAN_KIND_LABEL_KEYS = {
+  node: 'agent.traceWorkbench.spanKind.node',
+  llm: 'agent.traceWorkbench.spanKind.llm',
+  tool: 'agent.traceWorkbench.spanKind.tool',
+  retrieval: 'agent.traceWorkbench.spanKind.retrieval',
+  control: 'agent.traceWorkbench.spanKind.control',
+  data: 'agent.traceWorkbench.spanKind.data',
+  webhook: 'agent.traceWorkbench.spanKind.webhook',
+  system: 'agent.traceWorkbench.spanKind.system',
+} as const satisfies Record<TraceSpanKind, string>
 
-export const TRACE_UNAVAILABLE_LABELS: Record<
-  TraceUnavailableReason,
-  TraceEmptyStateContent
-> = {
+export const TRACE_UNAVAILABLE_LABELS = {
   'no-message-id': {
-    title: '缺少 message id',
-    description: '当前 session 没有可用于回查 Redis Trace 的真实 message id。',
+    titleKey: 'agent.traceWorkbench.emptyState.noMessageId.title',
+    descriptionKey: 'agent.traceWorkbench.emptyState.noMessageId.description',
   },
   'redis-evicted': {
-    title: 'Trace 不可恢复',
-    description: 'Redis Trace 没有返回数据，可能已经过期或运行时未写入。',
+    titleKey: 'agent.traceWorkbench.emptyState.redisEvicted.title',
+    descriptionKey: 'agent.traceWorkbench.emptyState.redisEvicted.description',
   },
   'backend-empty': {
-    title: '后端返回空 Trace',
-    description: 'Trace 请求成功，但后端返回了空 payload。',
+    titleKey: 'agent.traceWorkbench.emptyState.backendEmpty.title',
+    descriptionKey: 'agent.traceWorkbench.emptyState.backendEmpty.description',
   },
   'query-error': {
-    title: 'Trace 查询失败',
-    description: 'Trace 请求失败，请刷新或检查后端 trace 接口状态。',
+    titleKey: 'agent.traceWorkbench.emptyState.queryError.title',
+    descriptionKey: 'agent.traceWorkbench.emptyState.queryError.description',
   },
-}
+} as const satisfies Record<TraceUnavailableReason, TraceEmptyStateContent>
 
-export const TRACE_LOADING_EMPTY_STATE: TraceEmptyStateContent = {
-  title: '正在加载 Trace',
-  description: '正在读取 session detail 与终态 Redis Trace。',
-}
+export const TRACE_LOADING_EMPTY_STATE = {
+  titleKey: 'agent.traceWorkbench.emptyState.loading.title',
+  descriptionKey: 'agent.traceWorkbench.emptyState.loading.description',
+} as const satisfies TraceEmptyStateContent

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import type {
   TraceRunViewModel,
   TraceSpanViewModel,
@@ -11,10 +12,20 @@ export function TraceRawPanel({
   viewModel: TraceRunViewModel
   span?: TraceSpanViewModel
 }) {
+  const { t } = useTranslation()
+
   return (
-    <div className="gap-space-base p-space-lg grid">
-      <TraceJsonViewer title="当前节点" value={span?.raw} height={260} />
-      <TraceJsonViewer title="本次运行" value={viewModel.raw} height={320} />
+    <div className="grid gap-space-base p-space-lg">
+      <TraceJsonViewer
+        title={t('agent.traceWorkbench.raw.currentSpan')}
+        value={span?.raw}
+        height={260}
+      />
+      <TraceJsonViewer
+        title={t('agent.traceWorkbench.raw.run')}
+        value={viewModel.raw}
+        height={320}
+      />
     </div>
   )
 }

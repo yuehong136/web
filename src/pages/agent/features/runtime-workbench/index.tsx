@@ -7,6 +7,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { useTranslation } from 'react-i18next'
 import { MessageSquareMore, NotebookText, Play, Square } from 'lucide-react'
 import { LogDetail } from '../log-detail'
 import { AgentChatBox } from './components/agent-chat-box'
@@ -25,6 +26,7 @@ export function RuntimeWorkbench({
   onOpenChange,
   onViewChange,
 }: RuntimeWorkbenchProps) {
+  const { t } = useTranslation()
   const summary = {
     ...controller.summary,
     currentView: view,
@@ -36,14 +38,16 @@ export function RuntimeWorkbench({
         showOverlay={false}
         showCloseButton={false}
         className={cn(
-          'top-20 flex h-auto min-w-[420px] max-w-[620px] flex-col gap-0 overflow-hidden p-0 sm:max-w-[620px]',
+          'top-20 flex h-auto max-w-[620px] min-w-[420px] flex-col gap-0 overflow-hidden p-0 sm:max-w-[620px]',
           'w-[36vw]',
         )}
         onInteractOutside={(event) => event.preventDefault()}
       >
-        <SheetTitle className="sr-only">Agent 运行工作台</SheetTitle>
+        <SheetTitle className="sr-only">
+          {t('agent.runtimePanel.workbench.title')}
+        </SheetTitle>
         <SheetDescription className="sr-only">
-          配置 Begin 输入、查看运行消息与节点执行时间线
+          {t('agent.runtimePanel.workbench.description')}
         </SheetDescription>
 
         <RuntimeHeader
@@ -61,16 +65,16 @@ export function RuntimeWorkbench({
           }
           className="flex min-h-0 flex-1 flex-col"
         >
-          <div className="border-border-primary px-space-md py-space-sm border-b">
-            <div className="gap-space-sm flex items-center justify-between">
+          <div className="border-b border-border-primary px-space-md py-space-sm">
+            <div className="flex items-center justify-between gap-space-sm">
               <TabsList className="w-full justify-start">
                 <TabsTrigger value={RuntimeWorkbenchView.RUN}>
                   <Play className="mr-space-xs size-4" />
-                  运行
+                  {t('agent.runtimePanel.workbench.runTab')}
                 </TabsTrigger>
                 <TabsTrigger value={RuntimeWorkbenchView.CONVERSATION}>
                   <MessageSquareMore className="mr-space-xs size-4" />
-                  会话
+                  {t('agent.runtimePanel.workbench.conversationTab')}
                 </TabsTrigger>
                 <TabsTrigger
                   value={RuntimeWorkbenchView.LOG}
@@ -81,7 +85,7 @@ export function RuntimeWorkbench({
                   }
                 >
                   <NotebookText className="mr-space-xs size-4" />
-                  日志
+                  {t('agent.runtime.logs')}
                 </TabsTrigger>
               </TabsList>
 
@@ -93,7 +97,7 @@ export function RuntimeWorkbench({
                   onClick={controller.handleStop}
                 >
                   <Square className="mr-space-xs size-4" />
-                  停止
+                  {t('agent.runtimePanel.workbench.stop')}
                 </Button>
               ) : null}
             </div>
@@ -118,7 +122,7 @@ export function RuntimeWorkbench({
             className="mt-0 min-h-0 flex-1 overflow-hidden"
           >
             {controller.viewingSessionId && controller.canvasId ? (
-              <div className="p-space-md h-full overflow-auto">
+              <div className="h-full overflow-auto p-space-md">
                 <LogDetail
                   mode="session"
                   canvasId={controller.canvasId}

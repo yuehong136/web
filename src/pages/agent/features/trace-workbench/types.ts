@@ -20,8 +20,8 @@ export interface TraceWorkbenchState {
 }
 
 export interface TraceEmptyStateContent {
-  title: string
-  description: string
+  titleKey: string
+  descriptionKey: string
 }
 
 export type TraceEmptyStateReason = TraceUnavailableReason | 'loading'

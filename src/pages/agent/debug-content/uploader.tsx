@@ -69,7 +69,7 @@ export function FileUploadDirectUpload({
   const handleFileChange = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
       if (!canvasId) {
-        toast.error('缺少画布 ID，无法上传文件')
+        toast.error(t('agent.debugUpload.missingCanvas'))
         e.target.value = ''
         return
       }
@@ -90,7 +90,7 @@ export function FileUploadDirectUpload({
             : selectedFiles.slice(0, remainingSlots)
 
         if (uploadFiles.length === 0) {
-          toast.error(`最多只能上传 ${maxFiles} 个文件`)
+          toast.error(t('agent.debugUpload.maxFiles', { count: maxFiles }))
           return
         }
 
@@ -108,12 +108,16 @@ export function FileUploadDirectUpload({
         setFiles(nextFiles)
         onChange?.(nextFiles)
       } catch (error) {
-        toast.error(error instanceof Error ? error.message : '上传文件失败')
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : t('agent.debugUpload.failed'),
+        )
       } finally {
         e.target.value = ''
       }
     },
-    [canvasId, files, maxFiles, multiple, onChange, uploadCanvasFile],
+    [canvasId, files, maxFiles, multiple, onChange, t, uploadCanvasFile],
   )
 
   const handleRemoveFile = useCallback(
@@ -131,6 +135,7 @@ export function FileUploadDirectUpload({
 
   return (
     <div className={cn('space-y-space-sm', className)}>
+      {/* eslint-disable-next-line no-restricted-syntax -- hidden file input: @/components/ui/input has no type="file" hidden + ref-click pattern */}
       <input
         ref={inputRef}
         type="file"
@@ -172,13 +177,13 @@ export function FileUploadDirectUpload({
       {showFileList && files.length > 0 && (
         <div
           className={cn(
-            compact ? 'gap-space-xs flex flex-wrap' : 'space-y-space-xs',
+            compact ? 'flex flex-wrap gap-space-xs' : 'space-y-space-xs',
           )}
         >
           {files.map((file, index) => (
             <div
               key={`${String(file.name || file.id || index)}-${index}`}
-              className="px-space-sm py-space-xs bg-surface-secondary rounded-radius-sm flex items-center justify-between"
+              className="flex items-center justify-between rounded-radius-sm bg-surface-secondary px-space-sm py-space-xs"
             >
               <span className="flex-1 truncate text-sm">
                 {String(file.name || file.id || `文件 ${index + 1}`)}

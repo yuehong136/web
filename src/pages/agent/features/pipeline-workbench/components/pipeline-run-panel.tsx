@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { SectionCard } from '@/components/patterns'
 import { Button } from '@/components/ui/button'
 import DebugContent from '../../../debug-content'
@@ -11,6 +12,7 @@ interface PipelineRunPanelProps {
 }
 
 export function PipelineRunPanel({ controller }: PipelineRunPanelProps) {
+  const { t } = useTranslation()
   const {
     canvasId,
     beginInputs,
@@ -32,18 +34,21 @@ export function PipelineRunPanel({ controller }: PipelineRunPanelProps) {
       type: 'file',
       value: quickFiles as unknown as string,
       optional: false,
-      name: '上传文档',
+      name: t('agent.pipelineRun.runPanel.uploadDocument'),
     }
     await handleRun([value])
-  }, [handleRun, quickFiles])
+  }, [handleRun, quickFiles, t])
 
   if (beginInputs.length > 0) {
     return (
       <div className="space-y-space-lg p-space-md">
-        <SectionCard title="Begin 输入" padding="default">
+        <SectionCard
+          title={t('agent.pipelineRun.runPanel.beginInputsTitle')}
+          padding="default"
+        >
           <div className="space-y-space-md">
             <p className="text-sm text-text-secondary">
-              上传文档或填写 Begin 节点定义的字段，点击"启动 Pipeline"会保存当前画布并触发数据流处理。
+              {t('agent.pipelineRun.runPanel.beginInputsHint')}
             </p>
             <DebugContent
               canvasId={canvasId}
@@ -51,7 +56,11 @@ export function PipelineRunPanel({ controller }: PipelineRunPanelProps) {
               ok={handleRun}
               isNext={false}
               loading={loading || saving}
-              btnText={loading ? '运行中…' : '启动 Pipeline'}
+              btnText={
+                loading
+                  ? t('agent.pipelineRun.runPanel.running')
+                  : t('agent.pipelineRun.runPanel.start')
+              }
               className="min-h-0"
               maxHeight="max-h-none"
             />
@@ -59,7 +68,10 @@ export function PipelineRunPanel({ controller }: PipelineRunPanelProps) {
         </SectionCard>
 
         {status === PipelineRuntimeStatus.ERROR && lastError ? (
-          <SectionCard title="启动失败" padding="default">
+          <SectionCard
+            title={t('agent.pipelineRun.runPanel.startFailed')}
+            padding="default"
+          >
             <p className="text-sm text-status-error">{lastError}</p>
           </SectionCard>
         ) : null}
@@ -69,10 +81,13 @@ export function PipelineRunPanel({ controller }: PipelineRunPanelProps) {
 
   return (
     <div className="space-y-space-lg p-space-md">
-      <SectionCard title="快速运行" padding="default">
+      <SectionCard
+        title={t('agent.pipelineRun.runPanel.quickRunTitle')}
+        padding="default"
+      >
         <div className="space-y-space-md">
           <p className="text-sm text-text-secondary">
-            当前 Begin 节点没有定义输入字段。直接上传样本文档即可启动 Pipeline 数据流。
+            {t('agent.pipelineRun.runPanel.quickRunHint')}
           </p>
           <FileUploadDirectUpload
             canvasId={canvasId}
@@ -82,7 +97,7 @@ export function PipelineRunPanel({ controller }: PipelineRunPanelProps) {
             }
             multiple
             maxFiles={5}
-            buttonLabel="选择样本文档"
+            buttonLabel={t('agent.pipelineRun.runPanel.selectSamples')}
           />
           <Button
             type="button"
@@ -90,13 +105,18 @@ export function PipelineRunPanel({ controller }: PipelineRunPanelProps) {
             disabled={loading || saving || quickFiles.length === 0}
             onClick={handleQuickStart}
           >
-            {loading ? '运行中…' : '启动 Pipeline'}
+            {loading
+              ? t('agent.pipelineRun.runPanel.running')
+              : t('agent.pipelineRun.runPanel.start')}
           </Button>
         </div>
       </SectionCard>
 
       {status === PipelineRuntimeStatus.ERROR && lastError ? (
-        <SectionCard title="启动失败" padding="default">
+        <SectionCard
+          title={t('agent.pipelineRun.runPanel.startFailed')}
+          padding="default"
+        >
           <p className="text-sm text-status-error">{lastError}</p>
         </SectionCard>
       ) : null}

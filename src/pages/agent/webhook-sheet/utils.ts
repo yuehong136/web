@@ -5,6 +5,7 @@ import {
   WebhookMethod,
   WebhookSecurityAuthType,
 } from '../constant'
+import type { TFunction } from 'i18next'
 import type { AgentFlow, AgentWebhookTestRequest } from '@/types/agent'
 import type { IBeginForm } from '../types'
 
@@ -64,6 +65,7 @@ const encodeBasicAuth = (username?: string, password?: string) => {
 export function buildWebhookTestRequest(
   canvasId: string,
   config: IBeginForm,
+  t: TFunction,
 ): WebhookTestBuildResult {
   const warnings: string[] = []
   const method = (config.methods?.[0] || WebhookMethod.Post).toUpperCase()
@@ -90,7 +92,7 @@ export function buildWebhookTestRequest(
 
   if (authType === WebhookSecurityAuthType.Jwt) {
     headers.Authorization = 'Bearer <paste-test-jwt>'
-    warnings.push('JWT 测试需要手动替换 Authorization header，前端不会生成或签名 JWT。')
+    warnings.push(t('agent.delivery.webhook.jwtWarning'))
   }
 
   return {
@@ -117,7 +119,8 @@ export function buildWebhookCurlExample(
     .join(' \\\n')
 
   const contentHeader =
-    request.contentType && request.contentType !== WebhookContentType.MultipartFormData
+    request.contentType &&
+    request.contentType !== WebhookContentType.MultipartFormData
       ? `  -H "Content-Type: ${request.contentType}"`
       : ''
   const allHeaders = [contentHeader, headers].filter(Boolean).join(' \\\n')

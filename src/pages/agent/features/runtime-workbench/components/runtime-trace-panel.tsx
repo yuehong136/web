@@ -10,9 +10,11 @@ import {
   XCircle,
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { RuntimeMessage } from '../types'
 import {
   buildRuntimeThoughtChainNodes,
+  resolveRuntimeThoughtNodeName,
   type RuntimeThoughtChainNode,
 } from '../thought-chain-utils'
 import { RuntimeThoughtChain } from './runtime-thought-chain'
@@ -44,7 +46,10 @@ const formatStepSummary = (
   const failed = nodes.filter((node) => node.status === 'error').length
   const running = nodes.filter((node) => node.status === 'loading').length
   const tools = nodes.filter((node) => node.actionKind === 'tool').length
-  const elapsed = nodes.reduce((total, node) => total + (node.elapsedTime || 0), 0)
+  const elapsed = nodes.reduce(
+    (total, node) => total + (node.elapsedTime || 0),
+    0,
+  )
 
   return {
     events: traceMessage.logEvents,
@@ -73,6 +78,7 @@ function RuntimeStepGlyph({ node }: { node: RuntimeThoughtChainNode }) {
 }
 
 function RuntimeStepPreview({ nodes }: { nodes: RuntimeThoughtChainNode[] }) {
+  const { t } = useTranslation()
   const visibleNodes = nodes.slice(0, 5)
   const hiddenCount = nodes.length - visibleNodes.length
 
@@ -84,7 +90,9 @@ function RuntimeStepPreview({ nodes }: { nodes: RuntimeThoughtChainNode[] }) {
           className="inline-flex max-w-48 items-center gap-space-xs rounded-radius-sm bg-surface-primary px-space-xs py-space-xs text-text-secondary"
         >
           <RuntimeStepGlyph node={node} />
-          <span className="truncate">{node.componentName}</span>
+          <span className="truncate">
+            {resolveRuntimeThoughtNodeName(node, t)}
+          </span>
         </div>
       ))}
       {hiddenCount > 0 ? (
@@ -100,6 +108,7 @@ export function RuntimeTracePanel({
   className,
   placement = 'global',
 }: RuntimeTracePanelProps) {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const summary = useMemo(
     () => formatStepSummary(messages, loading),
@@ -111,10 +120,12 @@ export function RuntimeTracePanel({
   }
 
   const statusText = summary.failed
-    ? `${summary.failed} 个失败`
+    ? t('agent.runtimePanel.tracePanel.failedCount', { count: summary.failed })
     : summary.running
-      ? `${summary.running} 个运行中`
-      : '已完成'
+      ? t('agent.runtimePanel.tracePanel.runningCount', {
+          count: summary.running,
+        })
+      : t('agent.runtime.success')
   const elapsedText =
     summary.elapsed > 0 ? `${Number(summary.elapsed.toFixed(3))}s` : undefined
 
@@ -126,58 +137,68 @@ export function RuntimeTracePanel({
           : 'rounded-radius-md border border-border-subtle bg-surface-secondary px-space-sm py-space-xs',
       )}
     >
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="h-auto w-full justify-start gap-space-sm px-0 py-space-xs text-text-secondary hover:bg-transparent hover:text-text-primary"
-          onClick={() => setOpen((previous) => !previous)}
-        >
-          {open ? (
-            <ChevronDown className="size-4 shrink-0" />
-          ) : (
-            <ChevronRight className="size-4 shrink-0" />
-          )}
-          <Activity className="size-4 shrink-0 text-text-accent" />
-          <span className="font-mono text-xs text-text-primary">agent.run</span>
-          <span className="text-xs text-text-secondary">
-            {summary.nodes.length} 步
-          </span>
-          {summary.tools ? (
-            <span className="text-xs text-text-secondary">
-              {summary.tools} tools
-            </span>
-          ) : null}
-          {elapsedText ? (
-            <span className="text-xs text-text-secondary">{elapsedText}</span>
-          ) : null}
-          <span className="text-xs text-text-secondary">{statusText}</span>
-        </Button>
-
-        {!open ? <RuntimeStepPreview nodes={summary.nodes} /> : null}
-
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        className="h-auto w-full justify-start gap-space-sm px-0 py-space-xs text-text-secondary hover:bg-transparent hover:text-text-primary"
+        onClick={() => setOpen((previous) => !previous)}
+      >
         {open ? (
-          <div className="max-h-80 overflow-auto border-t border-border-subtle pt-space-sm">
-            <RuntimeThoughtChain
-              events={summary.events}
-              loading={loading}
-              surface="bare"
-            />
-          </div>
+          <ChevronDown className="size-4 shrink-0" />
+        ) : (
+          <ChevronRight className="size-4 shrink-0" />
+        )}
+        <Activity className="size-4 shrink-0 text-text-accent" />
+        <span className="font-mono text-xs text-text-primary">
+          {/* i18n-ignore: protocol span name */}
+          agent.run
+        </span>
+        <span className="text-xs text-text-secondary">
+          {t('agent.runtimePanel.tracePanel.stepCount', {
+            count: summary.nodes.length,
+          })}
+        </span>
+        {summary.tools ? (
+          <span className="text-xs text-text-secondary">
+            {t('agent.runtimePanel.tracePanel.toolCount', {
+              count: summary.tools,
+            })}
+          </span>
         ) : null}
+        {elapsedText ? (
+          <span className="text-xs text-text-secondary">{elapsedText}</span>
+        ) : null}
+        <span className="text-xs text-text-secondary">{statusText}</span>
+      </Button>
+
+      {!open ? <RuntimeStepPreview nodes={summary.nodes} /> : null}
+
+      {open ? (
+        <div className="max-h-80 overflow-auto border-t border-border-subtle pt-space-sm">
+          <RuntimeThoughtChain
+            events={summary.events}
+            loading={loading}
+            surface="bare"
+          />
+        </div>
+      ) : null}
     </div>
   )
 
   if (placement === 'message') {
     return (
-      <div className={cn('mb-space-sm max-w-full', className)}>
-        {content}
-      </div>
+      <div className={cn('mb-space-sm max-w-full', className)}>{content}</div>
     )
   }
 
   return (
-    <div className={cn('w-full border-b border-border-subtle bg-surface-primary', className)}>
+    <div
+      className={cn(
+        'w-full border-b border-border-subtle bg-surface-primary',
+        className,
+      )}
+    >
       <div className="mx-auto w-full max-w-4xl px-space-lg py-space-sm">
         {content}
       </div>

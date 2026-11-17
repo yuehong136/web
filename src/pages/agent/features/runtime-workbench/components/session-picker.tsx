@@ -7,13 +7,14 @@ import {
 } from '@/components/ui/popover'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useFetchAgentSessions } from '@/hooks/use-agent-request'
-import { formatRelativeTime } from '@/lib/utils'
+import { cn, formatRelativeTime } from '@/lib/utils'
 import {
   extractSessionStatus,
   type AgentSessionRuntimeStatus,
 } from '@/pages/agent/adapters/session'
-import { cn } from '@/lib/utils'
 import { ChevronsUpDown } from 'lucide-react'
+import { useId } from 'react'
+import { useTranslation } from 'react-i18next'
 
 interface SessionPickerProps {
   canvasId?: string
@@ -22,11 +23,11 @@ interface SessionPickerProps {
   onSelect: (id: string | undefined) => void
 }
 
-const STATUS_LABEL_MAP: Record<AgentSessionRuntimeStatus, string> = {
-  success: '成功',
-  error: '失败',
-  unknown: '未知',
-}
+const STATUS_LABEL_KEY_MAP = {
+  success: 'agent.logDetail.status.success',
+  error: 'agent.logDetail.status.error',
+  unknown: 'agent.logDetail.status.unknown',
+} as const satisfies Record<AgentSessionRuntimeStatus, string>
 
 const STATUS_VARIANT_MAP: Record<
   AgentSessionRuntimeStatus,
@@ -43,6 +44,8 @@ export function SessionPicker({
   viewingSessionId,
   onSelect,
 }: SessionPickerProps) {
+  const { t } = useTranslation()
+  const idPrefix = useId()
   const sessionsQuery = useFetchAgentSessions(canvasId)
   const sessions = sessionsQuery.data.sessions.slice(0, 12)
 
@@ -50,16 +53,18 @@ export function SessionPicker({
     <Popover>
       <PopoverTrigger asChild>
         <Button type="button" variant="outline" size="sm">
-          切换会话
+          {t('agent.runtimePanel.sessionPicker.trigger')}
           <ChevronsUpDown className="size-4" />
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-[360px] p-space-sm">
         <div className="mb-space-sm flex items-center justify-between gap-space-sm">
           <div>
-            <p className="text-sm font-medium text-text-primary">最近会话</p>
+            <p className="text-sm font-medium text-text-primary">
+              {t('agent.runtimePanel.sessionPicker.recentSessions')}
+            </p>
             <p className="text-xs text-text-tertiary">
-              选择后只切换 Log 查看对象，不影响当前运行流。
+              {t('agent.runtimePanel.sessionPicker.hint')}
             </p>
           </div>
           {viewingSessionId ? (
@@ -69,7 +74,7 @@ export function SessionPicker({
               size="sm"
               onClick={() => onSelect(undefined)}
             >
-              返回 Live
+              {t('agent.runtimePanel.sessionPicker.backToLive')}
             </Button>
           ) : null}
         </div>
@@ -81,11 +86,14 @@ export function SessionPicker({
                 const status = extractSessionStatus(session)
                 const active = viewingSessionId === session.id
                 const current = currentSessionId === session.id
+                const nameId = `${idPrefix}-${session.id}-name`
 
                 return (
                   <button
                     key={session.id}
                     type="button"
+                    aria-labelledby={nameId}
+                    aria-pressed={active}
                     className={cn(
                       'w-full rounded-radius-md border p-space-sm text-left transition-colors',
                       active
@@ -97,27 +105,35 @@ export function SessionPicker({
                     <div className="flex items-start justify-between gap-space-sm">
                       <div className="min-w-0">
                         <div className="flex min-w-0 items-center gap-space-xs">
-                          <p className="truncate text-sm font-medium text-text-primary">
-                            {session.name || '未命名会话'}
+                          <p
+                            id={nameId}
+                            className="truncate text-sm font-medium text-text-primary"
+                          >
+                            {session.name ||
+                              t(
+                                'agent.runtimePanel.sessionPicker.unnamedSession',
+                              )}
                           </p>
                           {current ? (
                             <Badge variant="outline" className="shrink-0">
-                              Live
+                              {t('agent.runtimePanel.sessionPicker.liveBadge')}
                             </Badge>
                           ) : null}
                         </div>
                         <p className="mt-space-xs text-xs text-text-tertiary">
                           {session.update_time
                             ? formatRelativeTime(session.update_time)
-                            : '暂无时间信息'}
+                            : t('agent.runtimePanel.sessionPicker.noTime')}
                         </p>
                       </div>
                       <div className="flex shrink-0 items-center gap-space-xs">
                         <Badge variant={STATUS_VARIANT_MAP[status]}>
-                          {STATUS_LABEL_MAP[status]}
+                          {t(STATUS_LABEL_KEY_MAP[status])}
                         </Badge>
                         <span className="rounded-radius-full bg-surface-secondary px-space-sm py-[2px] text-xs text-text-secondary">
-                          {session.message_count || session.messages?.length || 0}
+                          {session.message_count ||
+                            session.messages?.length ||
+                            0}
                         </span>
                       </div>
                     </div>
@@ -126,7 +142,7 @@ export function SessionPicker({
               })
             ) : (
               <p className="py-space-xl text-center text-sm text-text-secondary">
-                暂无历史会话
+                {t('agent.runtimePanel.sessionPicker.empty')}
               </p>
             )}
           </div>

@@ -5,6 +5,7 @@ import {
   ListTree,
   type LucideIcon,
 } from 'lucide-react'
+import type { TFunction } from 'i18next'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
@@ -36,7 +37,11 @@ function resolvePanelHeight(height?: number | string) {
   return typeof height === 'number' ? `${height}px` : height
 }
 
-function buildVisibleLines(lines: string[], collapsed: boolean): DisplayLine[] {
+function buildVisibleLines(
+  lines: string[],
+  collapsed: boolean,
+  t: TFunction,
+): DisplayLine[] {
   if (!collapsed || lines.length <= COLLAPSED_LINE_LIMIT) {
     return lines.map((line, index) => ({
       number: index + 1,
@@ -52,7 +57,9 @@ function buildVisibleLines(lines: string[], collapsed: boolean): DisplayLine[] {
       text: line,
     })),
     {
-      text: `... 已折叠 ${lines.length - COLLAPSED_LINE_LIMIT} 行 ...`,
+      text: t('agent.traceWorkbench.jsonViewer.collapsedLines', {
+        count: lines.length - COLLAPSED_LINE_LIMIT,
+      }),
     },
     ...lines.slice(-tailCount).map((line, index) => ({
       number: lines.length - tailCount + index + 1,
@@ -73,14 +80,16 @@ export function TraceJsonViewer({
   const { t } = useTranslation()
   const [copied, setCopied] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
+  const resolvedEmptyLabel =
+    emptyLabel ?? t('agent.traceWorkbench.jsonViewer.notProvided')
   const payload = useMemo(
-    () => formatTracePayload(value, emptyLabel, { dedupeArrays }),
-    [dedupeArrays, emptyLabel, value],
+    () => formatTracePayload(value, resolvedEmptyLabel, { dedupeArrays }),
+    [dedupeArrays, resolvedEmptyLabel, value],
   )
   const lines = useMemo(() => payload.text.split('\n'), [payload.text])
   const visibleLines = useMemo(
-    () => buildVisibleLines(lines, collapsed),
-    [collapsed, lines],
+    () => buildVisibleLines(lines, collapsed, t),
+    [collapsed, lines, t],
   )
   const canCollapse = lines.length > COLLAPSED_LINE_LIMIT
   const panelHeight = resolvePanelHeight(height)
@@ -92,23 +101,23 @@ export function TraceJsonViewer({
       window.setTimeout(() => setCopied(false), 1400)
     } catch {
       setCopied(false)
-      toast.error(t('common.copyFailed', '复制失败'))
+      toast.error(t('common.copyFailed'))
     }
   }
 
   return (
     <section
       className={cn(
-        'rounded-radius-md bg-surface-primary min-h-0 overflow-hidden border border-border-subtle',
+        'min-h-0 overflow-hidden rounded-radius-md border border-border-subtle bg-surface-primary',
         className,
       )}
     >
-      <div className="gap-space-xs px-space-base py-space-xs flex min-h-10 items-center border-b border-border-subtle">
+      <div className="flex min-h-10 items-center gap-space-xs border-b border-border-subtle px-space-base py-space-xs">
         {Icon ? <Icon className="size-3.5 text-text-tertiary" /> : null}
         <h5 className="min-w-0 flex-1 truncate text-sm font-semibold text-text-primary">
           {title}
         </h5>
-        <span className="rounded-radius-full bg-surface-secondary px-space-xs text-text-caption py-[1px] font-mono text-[11px] uppercase">
+        <span className="rounded-radius-full bg-surface-secondary px-space-xs py-[1px] font-mono text-[11px] text-text-caption uppercase">
           {payload.language}
         </span>
         {canCollapse ? (
@@ -117,7 +126,11 @@ export function TraceJsonViewer({
             variant="ghost"
             size="icon-sm"
             className="size-7"
-            aria-label={collapsed ? `展开${title}` : `折叠${title}`}
+            aria-label={
+              collapsed
+                ? t('agent.traceWorkbench.jsonViewer.expand', { title })
+                : t('agent.traceWorkbench.jsonViewer.collapse', { title })
+            }
             onClick={() => setCollapsed((previous) => !previous)}
           >
             {collapsed ? (
@@ -132,7 +145,7 @@ export function TraceJsonViewer({
           variant="ghost"
           size="icon-sm"
           className="size-7"
-          aria-label={`复制${title}`}
+          aria-label={t('agent.traceWorkbench.jsonViewer.copy', { title })}
           onClick={handleCopy}
         >
           {copied ? (
@@ -152,10 +165,10 @@ export function TraceJsonViewer({
         <pre className="grid grid-cols-[auto_minmax(0,1fr)] text-xs leading-6">
           {visibleLines.map((line, index) => (
             <span key={`${index}-${line.text}`} className="contents">
-              <span className="bg-surface-secondary px-space-sm text-text-caption select-none border-r border-border-subtle text-right font-mono">
+              <span className="border-r border-border-subtle bg-surface-secondary px-space-sm text-right font-mono text-text-caption select-none">
                 {line.number || ''}
               </span>
-              <code className="px-space-base whitespace-pre-wrap break-words font-mono text-text-secondary">
+              <code className="px-space-base font-mono break-words whitespace-pre-wrap text-text-secondary">
                 {line.text || ' '}
               </code>
             </span>

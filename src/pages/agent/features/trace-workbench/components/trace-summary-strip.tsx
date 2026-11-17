@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import type { TraceRunViewModel } from '@/pages/agent/adapters/trace'
 import { formatTraceDuration } from '../utils'
@@ -16,7 +17,7 @@ function SummaryMetric({
   tone?: 'default' | 'error' | 'warning'
 }) {
   return (
-    <div className="px-space-base py-space-sm min-w-0 border-r border-border-subtle last:border-r-0">
+    <div className="min-w-0 border-r border-border-subtle px-space-base py-space-sm last:border-r-0">
       <div className="text-xs text-text-tertiary">{label}</div>
       <div
         className={cn(
@@ -35,25 +36,31 @@ function SummaryMetric({
 }
 
 export function TraceSummaryStrip({ summary }: TraceSummaryStripProps) {
+  const { t } = useTranslation()
+
   return (
     <div className="grid shrink-0 grid-cols-2 border-b border-components-split-pane-border bg-components-console-surface md:grid-cols-5">
-      <SummaryMetric label="节点" value={summary.spanCount} />
-      <SummaryMetric label="工具" value={summary.toolCallCount} />
+      <SummaryMetric label={t('agent.trace.node')} value={summary.spanCount} />
       <SummaryMetric
-        label="错误"
+        label={t('agent.trace.tool')}
+        value={summary.toolCallCount}
+      />
+      <SummaryMetric
+        label={t('agent.trace.error')}
         value={summary.errorCount}
         tone={summary.errorCount ? 'error' : 'default'}
       />
       <SummaryMetric
-        label="总耗时"
-        value={formatTraceDuration(summary.totalDuration)}
+        label={t('agent.trace.duration')}
+        value={formatTraceDuration(summary.totalDuration, t)}
       />
       <SummaryMetric
-        label="最慢节点"
+        label={t('agent.trace.slowestNode')}
         value={
           summary.slowestSpan
             ? `${summary.slowestSpan.name} · ${formatTraceDuration(
                 summary.slowestSpan.duration,
+                t,
               )}`
             : '-'
         }

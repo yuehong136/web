@@ -1,4 +1,5 @@
 import { SectionCard } from '@/components/patterns'
+import { useTranslation } from 'react-i18next'
 import DebugContent from '../../../debug-content'
 import type { AgentRuntimeController } from '../types'
 
@@ -7,14 +8,15 @@ interface AgentRunPanelProps {
 }
 
 export function AgentRunPanel({ controller }: AgentRunPanelProps) {
+  const { t } = useTranslation()
   return (
     <div className="space-y-space-lg p-space-md">
-      <SectionCard title="开始输入" padding="default">
+      <SectionCard title={t('agent.runtime.startInput')} padding="default">
         <div className="space-y-space-md">
           <p className="text-sm text-text-secondary">
             {controller.isTaskMode
-              ? '当前 Begin 节点处于任务模式，提交参数后会直接触发一次测试运行。'
-              : '提交 Begin 输入后进入会话，你可以继续发送测试消息。'}
+              ? t('agent.runtimePanel.runPanel.taskModeHint')
+              : t('agent.runtimePanel.runPanel.chatModeHint')}
           </p>
 
           <DebugContent
@@ -23,7 +25,11 @@ export function AgentRunPanel({ controller }: AgentRunPanelProps) {
             ok={controller.handleRun}
             isNext={false}
             loading={controller.loading || controller.saving}
-            btnText={controller.isTaskMode ? '开始运行' : '进入对话'}
+            btnText={
+              controller.isTaskMode
+                ? t('agent.runtime.startRun')
+                : t('agent.runtime.enterChat')
+            }
             className="min-h-0"
             maxHeight="max-h-none"
           />
@@ -31,9 +37,12 @@ export function AgentRunPanel({ controller }: AgentRunPanelProps) {
       </SectionCard>
 
       {!controller.beginInputs.length ? (
-        <SectionCard title="运行说明" padding="default">
+        <SectionCard
+          title={t('agent.runtime.runInstructions')}
+          padding="default"
+        >
           <p className="text-sm text-text-secondary">
-            当前 Begin 节点没有额外输入字段。你仍然可以提交本页，直接进入 会话。
+            {t('agent.runtimePanel.runPanel.noInputFields')}
           </p>
         </SectionCard>
       ) : null}

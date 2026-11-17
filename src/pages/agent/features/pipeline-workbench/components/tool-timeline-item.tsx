@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import {
   Accordion,
   AccordionContent,
@@ -15,6 +16,7 @@ interface ToolTimelineItemProps {
 }
 
 export function ToolTimelineItem({ item, depth = 0 }: ToolTimelineItemProps) {
+  const { t } = useTranslation()
   if (HIDDEN_TOOL_COMPONENT_IDS.has(item.component_id)) {
     return null
   }
@@ -33,7 +35,10 @@ export function ToolTimelineItem({ item, depth = 0 }: ToolTimelineItemProps) {
       )}
     >
       <Accordion type="single" collapsible>
-        <AccordionItem value={item.component_id || `tool-${depth}`} className="border-none">
+        <AccordionItem
+          value={item.component_id || `tool-${depth}`}
+          className="border-none"
+        >
           <AccordionTrigger className="py-space-xs hover:no-underline">
             <div className="flex items-center gap-space-xs">
               <span
@@ -43,10 +48,14 @@ export function ToolTimelineItem({ item, depth = 0 }: ToolTimelineItemProps) {
                 )}
               />
               <span className="font-medium text-text-primary">
-                {item.component_name || item.component_id || '工具节点'}
+                {item.component_name ||
+                  item.component_id ||
+                  t('agent.pipelineRun.timeline.toolNode')}
               </span>
-              {typeof item.elapsed_time === 'number' && item.elapsed_time > 0 ? (
+              {typeof item.elapsed_time === 'number' &&
+              item.elapsed_time > 0 ? (
                 <span className="text-xs text-text-secondary">
+                  {/* i18n-ignore: seconds unit suffix */}
                   {item.elapsed_time.toFixed(3)}s
                 </span>
               ) : null}
@@ -55,20 +64,26 @@ export function ToolTimelineItem({ item, depth = 0 }: ToolTimelineItemProps) {
           <AccordionContent>
             <div className="space-y-space-sm">
               <div>
-                <div className="mb-space-xs text-xs text-text-secondary">输入</div>
+                <div className="mb-space-xs text-xs text-text-secondary">
+                  {t('agent.runtime.input')}
+                </div>
                 <pre className="max-h-40 overflow-auto rounded-radius-sm bg-surface-primary p-space-sm text-xs">
                   {JSON.stringify(inputs, null, 2)}
                 </pre>
               </div>
               <div>
-                <div className="mb-space-xs text-xs text-text-secondary">输出</div>
+                <div className="mb-space-xs text-xs text-text-secondary">
+                  {t('agent.runtime.output')}
+                </div>
                 <pre className="max-h-40 overflow-auto rounded-radius-sm bg-surface-primary p-space-sm text-xs">
                   {JSON.stringify(outputs, null, 2)}
                 </pre>
               </div>
               {subTraces.length > 0 ? (
                 <div className="space-y-space-xs">
-                  <div className="text-xs text-text-secondary">子任务</div>
+                  <div className="text-xs text-text-secondary">
+                    {t('agent.pipelineRun.timeline.subtasks')}
+                  </div>
                   {subTraces.map((sub, index) => (
                     <ToolTimelineItem
                       key={`${sub.component_id || 'sub'}-${index}`}

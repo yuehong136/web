@@ -1,13 +1,35 @@
+import type { TFunction } from 'i18next'
 import { Operator } from '../../constant'
 import type { INodeData } from '../../hooks/use-node-loading'
+
+const ACTION_LABEL_KEY_MAP = {
+  action: 'agent.runtimePanel.thoughtChain.actions.action',
+  tool: 'agent.runtimePanel.thoughtChain.actions.tool',
+  control: 'agent.runtimePanel.thoughtChain.actions.control',
+  data: 'agent.runtimePanel.thoughtChain.actions.data',
+  system: 'agent.runtimePanel.thoughtChain.actions.system',
+} as const
+
+const NODE_NAME_KEY_MAP = {
+  begin: 'agent.runtimePanel.thoughtChain.nodeNames.begin',
+  workflowFinished:
+    'agent.runtimePanel.thoughtChain.nodeNames.workflowFinished',
+  error: 'agent.runtimePanel.thoughtChain.nodeNames.error',
+  event: 'agent.runtimePanel.thoughtChain.nodeNames.event',
+} as const
+
+type RuntimeThoughtChainActionKind = keyof typeof ACTION_LABEL_KEY_MAP
 
 export interface RuntimeThoughtChainNode {
   key: string
   componentId: string
+  /** Name from the run data (component name, id or event name). */
   componentName: string
+  /** i18n key for a fallback name when the run data carries none. */
+  componentNameKey?: (typeof NODE_NAME_KEY_MAP)[keyof typeof NODE_NAME_KEY_MAP]
   componentType?: string
-  actionKind: 'action' | 'tool' | 'control' | 'data' | 'system'
-  actionLabel: string
+  actionKind: RuntimeThoughtChainActionKind
+  actionLabelKey: (typeof ACTION_LABEL_KEY_MAP)[RuntimeThoughtChainActionKind]
   eventName: string
   eventCount: number
   status: 'loading' | 'success' | 'error' | 'abort'
@@ -71,15 +93,6 @@ const DATA_COMPONENT_TYPES = new Set<string>([
   Operator.Extractor,
 ])
 
-const ACTION_LABEL_MAP: Record<RuntimeThoughtChainNode['actionKind'], string> =
-  {
-    action: 'Agent Action',
-    tool: 'Tool Call',
-    control: 'Flow Control',
-    data: 'Data Step',
-    system: 'Runtime',
-  }
-
 const isRecord = (value: unknown): value is Record<string, unknown> => {
   return typeof value === 'object' && value !== null
 }
@@ -110,29 +123,42 @@ const resolveActionKind = (
   return 'action'
 }
 
-const getNodeDisplayName = (data: INodeData, event: string) => {
+const getNodeDisplayName = (
+  data: INodeData,
+  event: string,
+): Pick<RuntimeThoughtChainNode, 'componentName' | 'componentNameKey'> => {
   if (data.component_name) {
-    return data.component_name
+    return { componentName: data.component_name }
   }
 
   if (data.component_id === 'begin') {
-    return '开始'
+    return { componentName: '', componentNameKey: NODE_NAME_KEY_MAP.begin }
   }
 
   if (data.component_id) {
-    return data.component_id
+    return { componentName: data.component_id }
   }
 
   if (event === 'workflow_finished') {
-    return '工作流完成'
+    return {
+      componentName: '',
+      componentNameKey: NODE_NAME_KEY_MAP.workflowFinished,
+    }
   }
 
   if (event === 'error') {
-    return '运行错误'
+    return { componentName: '', componentNameKey: NODE_NAME_KEY_MAP.error }
   }
 
-  return event || '运行事件'
+  return event
+    ? { componentName: event }
+    : { componentName: '', componentNameKey: NODE_NAME_KEY_MAP.event }
 }
+
+export const resolveRuntimeThoughtNodeName = (
+  node: Pick<RuntimeThoughtChainNode, 'componentName' | 'componentNameKey'>,
+  t: TFunction,
+) => (node.componentNameKey ? t(node.componentNameKey) : node.componentName)
 
 const collectNodeField = (
   nodeEvents: Array<{ data: INodeData }>,
@@ -264,10 +290,10 @@ export function buildRuntimeThoughtChainNodes(
     return {
       key: componentId,
       componentId,
-      componentName: getNodeDisplayName(item.data, item.event),
+      ...getNodeDisplayName(item.data, item.event),
       componentType: item.data.component_type,
       actionKind,
-      actionLabel: ACTION_LABEL_MAP[actionKind],
+      actionLabelKey: ACTION_LABEL_KEY_MAP[actionKind],
       eventName: item.event,
       eventCount: nodeEvents.length,
       status,

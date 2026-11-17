@@ -110,6 +110,7 @@ function TraceItem({
               <Badge variant={getStatusVariant(status)}>{status}</Badge>
               {typeof item.elapsed_time === 'number' ? (
                 <span className="text-xs text-text-tertiary">
+                  {/* i18n-ignore: unit */}
                   {item.elapsed_time.toFixed(3)}s
                 </span>
               ) : null}

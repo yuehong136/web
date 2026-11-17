@@ -719,7 +719,10 @@ test('buildRuntimeThoughtChainNodes maps SSE node events to chain status', () =>
   assert.equal(runningNodes[1]?.status, 'loading')
   assert.equal(runningNodes[1]?.blink, true)
   assert.equal(runningNodes[1]?.actionKind, 'action')
-  assert.equal(runningNodes[1]?.actionLabel, 'Agent Action')
+  assert.equal(
+    runningNodes[1]?.actionLabelKey,
+    'agent.runtimePanel.thoughtChain.actions.action',
+  )
 
   const toolNodes = buildRuntimeThoughtChainNodes([
     {
@@ -734,7 +737,10 @@ test('buildRuntimeThoughtChainNodes maps SSE node events to chain status', () =>
   ])
 
   assert.equal(toolNodes[0]?.actionKind, 'tool')
-  assert.equal(toolNodes[0]?.actionLabel, 'Tool Call')
+  assert.equal(
+    toolNodes[0]?.actionLabelKey,
+    'agent.runtimePanel.thoughtChain.actions.tool',
+  )
 
   const failedNodes = buildRuntimeThoughtChainNodes(
     [

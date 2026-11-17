@@ -1,3 +1,8 @@
+import { traceWorkbenchMessages } from './agent-trace-workbench'
+import { pipelineWorkbenchMessages } from './agent-pipeline-workbench'
+import { deliveryMessages } from './agent-delivery'
+import { runtimePanelMessages } from './agent-runtime-panel'
+
 export default {
   agent: {
     unnamedAsset: '未命名资产',
@@ -32,6 +37,12 @@ export default {
       workspaceDescription: '提问、执行任务，或继续之前的对话。',
       history: '对话记录',
       newChat: '新对话',
+      start: {
+        newChatDescription: '提出问题或交代任务，智能体会一步步完成。',
+        newChatCta: '开始对话',
+        editDescription: '在画布上调整节点、工具和提示词。',
+        editCta: '打开画布',
+      },
       searchChats: '搜索对话内容',
       filterAndSort: '筛选与排序',
       clearFilters: '清除筛选',
@@ -194,10 +205,40 @@ export default {
     webhook: {
       testFailed: 'Webhook 测试失败',
     },
+    embedToolbar: {
+      explore: 'Explore',
+      settings: '设置',
+    },
+    embedShell: {
+      waitingTitle: '正在等待宿主初始化',
+      waitingDescription:
+        '已就绪，等待 {{origin}} 通过 postMessage 发送 embed-init。',
+      accessErrorTitle: '无法加载嵌入页',
+      authExpiredTitle: '身份验证已过期',
+      authExpiredDescription: '嵌入身份过期或无效，等待宿主刷新 JWT。',
+    },
+    globalVariables: {
+      saveFailed: '会话变量保存失败',
+    },
+    debugUpload: {
+      missingCanvas: '缺少画布 ID，无法上传文件',
+      maxFiles_one: '最多只能上传 {{count}} 个文件',
+      maxFiles_other: '最多只能上传 {{count}} 个文件',
+      failed: '上传文件失败',
+    },
+    xCard: {
+      renderFailed: '卡片渲染失败',
+    },
     share: {
       copied: 'Share 链接已复制',
       copyFailed: '复制失败，请手动复制 Share 链接',
       attachmentDownloadFailed: '附件下载失败',
+      attachmentMissingAgentId: '缺少 Agent ID，无法下载附件',
+      attachmentMissingDocId: '附件缺少 doc_id，无法下载',
+      noSystemToken:
+        '未检测到系统 API Token，请先在系统 Token 管理中创建 Token。',
+      systemTokenMissingBeta:
+        '第一条系统 API Token 缺少 beta，无法生成 RAGFlow 标准 Share 链接。',
       agentWidget: 'Agent Widget',
       agentShare: 'Agent Share',
       conversation: 'Conversation',
@@ -470,5 +511,9 @@ export default {
         empty: '暂无 Trace。',
       },
     },
+    traceWorkbench: traceWorkbenchMessages,
+    pipelineRun: pipelineWorkbenchMessages,
+    delivery: deliveryMessages,
+    runtimePanel: runtimePanelMessages,
   },
 }

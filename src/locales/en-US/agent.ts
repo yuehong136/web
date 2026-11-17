@@ -1,3 +1,8 @@
+import { traceWorkbenchMessages } from './agent-trace-workbench'
+import { pipelineWorkbenchMessages } from './agent-pipeline-workbench'
+import { deliveryMessages } from './agent-delivery'
+import { runtimePanelMessages } from './agent-runtime-panel'
+
 export default {
   agent: {
     unnamedAsset: 'Untitled asset',
@@ -34,6 +39,13 @@ export default {
         'Ask questions, run tasks, and keep the conversation going.',
       history: 'Conversations',
       newChat: 'New chat',
+      start: {
+        newChatDescription:
+          'Ask a question or hand over a task; the agent works through it step by step.',
+        newChatCta: 'Start chatting',
+        editDescription: 'Adjust nodes, tools and prompts on the canvas.',
+        editCta: 'Open canvas',
+      },
       searchChats: 'Search conversation content',
       filterAndSort: 'Filter and sort',
       clearFilters: 'Clear filters',
@@ -216,10 +228,43 @@ export default {
     webhook: {
       testFailed: 'Webhook test failed',
     },
+    embedToolbar: {
+      explore: 'Explore',
+      settings: 'Settings',
+    },
+    embedShell: {
+      waitingTitle: 'Waiting for the host',
+      waitingDescription:
+        'Ready. Waiting for {{origin}} to send embed-init through postMessage.',
+      accessErrorTitle: 'The embedded page cannot load',
+      authExpiredTitle: 'Sign-in expired',
+      authExpiredDescription:
+        'The embed identity has expired or is invalid. Waiting for the host to refresh the JWT.',
+    },
+    globalVariables: {
+      saveFailed: 'Could not save the conversation variables',
+    },
+    debugUpload: {
+      missingCanvas: 'Canvas ID is missing, so files cannot be uploaded',
+      maxFiles_one: 'You can upload at most {{count}} file',
+      maxFiles_other: 'You can upload at most {{count}} files',
+      failed: 'File upload failed',
+    },
+    xCard: {
+      renderFailed: 'The card could not be rendered',
+    },
     share: {
       copied: 'Share link copied',
       copyFailed: 'Copy failed. Copy the Share link manually.',
       attachmentDownloadFailed: 'Attachment download failed',
+      attachmentMissingAgentId:
+        'The Agent ID is missing, so the attachment cannot be downloaded',
+      attachmentMissingDocId:
+        'The attachment has no doc_id, so it cannot be downloaded',
+      noSystemToken:
+        'No system API token found. Create one in system token management first.',
+      systemTokenMissingBeta:
+        'The first system API token has no beta value, so a standard RAGFlow Share link cannot be generated.',
       agentWidget: 'Agent Widget',
       agentShare: 'Agent Share',
       conversation: 'Conversation',
@@ -516,5 +561,9 @@ export default {
         empty: 'No Trace yet.',
       },
     },
+    traceWorkbench: traceWorkbenchMessages,
+    pipelineRun: pipelineWorkbenchMessages,
+    delivery: deliveryMessages,
+    runtimePanel: runtimePanelMessages,
   },
 }

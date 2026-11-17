@@ -19,6 +19,7 @@ import {
   Rocket,
 } from 'lucide-react'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 interface Version {
   id: string
@@ -55,6 +56,7 @@ export function VersionDialog({
   onOpenWebhook,
   onOpenExplore,
 }: PublishConfirmDialogProps) {
+  const { t } = useTranslation()
   const [releaseNote, setReleaseNote] = useState('')
   const [hasPublished, setHasPublished] = useState(false)
 
@@ -70,15 +72,15 @@ export function VersionDialog({
 
     try {
       await copyToClipboard(publishedShareUrl)
-      toast.success('Share 链接已复制')
+      toast.success(t('agent.share.copied'))
     } catch {
-      toast.error('复制失败，请手动复制 Share 链接')
+      toast.error(t('agent.share.copyFailed'))
     }
   }
 
   const publishedAtLabel = lastPublishedAt
     ? formatTimestampDetailed(lastPublishedAt)
-    : '尚未发布'
+    : t('agent.delivery.version.neverPublished')
   const showSuccess = hasPublished && Boolean(publishedShareUrl)
 
   return (
@@ -87,7 +89,7 @@ export function VersionDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-space-sm">
             <Rocket className="size-5 text-text-accent" />
-            发布 Agent
+            {t('agent.delivery.version.title')}
           </DialogTitle>
         </DialogHeader>
 
@@ -96,54 +98,65 @@ export function VersionDialog({
             <div className="rounded-radius-lg border border-border-default bg-surface-secondary p-space-base">
               <div className="flex items-start justify-between gap-space-sm">
                 <div>
-                  <p className="text-sm text-text-tertiary">资产</p>
+                  <p className="text-sm text-text-tertiary">
+                    {t('agent.delivery.version.asset')}
+                  </p>
                   <p className="mt-space-xs text-base font-semibold text-text-primary">
                     {title}
                   </p>
                 </div>
                 <Badge variant={isPublished ? 'success' : 'secondary'}>
-                  {isPublished ? '已发布' : '未发布'}
+                  {isPublished
+                    ? t('agent.delivery.version.published')
+                    : t('agent.delivery.version.unpublished')}
                 </Badge>
               </div>
               <p className="mt-space-md flex items-center gap-space-xs text-sm text-text-secondary">
                 <Clock className="h-4 w-4" />
-                上次发布：{publishedAtLabel}
+                {t('agent.delivery.version.lastPublished', {
+                  time: publishedAtLabel,
+                })}
               </p>
             </div>
 
             <div className="space-y-space-sm">
               <p className="text-sm font-medium text-text-primary">
-                发布说明
+                {t('agent.delivery.version.releaseNote')}
               </p>
               <Textarea
                 value={releaseNote}
                 onChange={(event) => setReleaseNote(event.target.value)}
                 rows={4}
-                placeholder="记录本次发布的变更点"
+                placeholder={t('agent.delivery.version.releaseNotePlaceholder')}
               />
               <p className="text-xs text-text-secondary">
-                发布会保存当前画布并生成 released version；运行端可通过 release=true 使用已发布版本。
+                {t('agent.delivery.version.releaseHint')}
               </p>
             </div>
 
             {!tokenReady ? (
               <div className="rounded-radius-md border border-border-subtle bg-surface-secondary p-space-sm text-sm text-text-secondary">
-                未检测到第一条系统 API Token 的 beta。发布不会自动创建 Token；如需生成 Share 链接，请先到系统 Token 管理创建或刷新。
+                {t('agent.delivery.version.tokenMissing')}
               </div>
             ) : null}
 
-            <Button onClick={() => void handlePublish()} disabled={publishLoading}>
+            <Button
+              onClick={() => void handlePublish()}
+              disabled={publishLoading}
+            >
               <Rocket className="mr-space-xs h-4 w-4" />
-              {publishLoading ? '发布中...' : '确认发布'}
+              {publishLoading
+                ? t('agent.delivery.version.publishing')
+                : t('agent.delivery.version.publish')}
             </Button>
 
             {showSuccess ? (
               <div className="space-y-space-sm rounded-radius-lg border border-border-default bg-surface-secondary p-space-base">
                 <div className="flex items-center gap-space-xs text-sm font-medium text-text-primary">
                   <CheckCircle2 className="h-4 w-4 text-status-success" />
-                  发布完成
+                  {t('agent.delivery.version.publishDone')}
                 </div>
-                <p className="break-all text-xs text-text-secondary">
+                <p className="text-xs break-all text-text-secondary">
                   {publishedShareUrl}
                 </p>
                 <div className="flex flex-wrap gap-space-sm">
@@ -152,15 +165,15 @@ export function VersionDialog({
                     onClick={() => void handleCopyShareUrl()}
                   >
                     <Copy className="mr-space-xs h-4 w-4" />
-                    复制 Share
+                    {t('agent.delivery.version.copyShare')}
                   </Button>
                   <Button variant="outline" onClick={onOpenWebhook}>
                     <Link2 className="mr-space-xs h-4 w-4" />
-                    Webhook
+                    {t('agent.delivery.version.webhook')}
                   </Button>
                   <Button variant="outline" onClick={onOpenExplore}>
                     <Compass className="mr-space-xs h-4 w-4" />
-                    Explore
+                    {t('agent.delivery.version.explore')}
                   </Button>
                 </div>
               </div>
@@ -170,11 +183,11 @@ export function VersionDialog({
           <section className="space-y-space-sm">
             <div className="flex items-center gap-space-xs text-sm font-medium text-text-primary">
               <History className="h-4 w-4" />
-              版本历史
+              {t('agent.delivery.version.history')}
             </div>
             {versions.length === 0 ? (
               <div className="rounded-radius-lg border border-border-subtle bg-surface-secondary p-space-lg text-center text-sm text-text-secondary">
-                暂无版本记录
+                {t('agent.delivery.version.historyEmpty')}
               </div>
             ) : (
               <div className="space-y-space-sm">
@@ -189,11 +202,14 @@ export function VersionDialog({
                           {version.name}
                         </p>
                         <p className="mt-space-xs text-sm text-text-secondary">
-                          {version.createdAt || '无时间信息'}
+                          {version.createdAt ||
+                            t('agent.delivery.version.noTime')}
                         </p>
                       </div>
                       {version.release ? (
-                        <Badge variant="success">Published</Badge>
+                        <Badge variant="success">
+                          {t('agent.delivery.version.releasedBadge')}
+                        </Badge>
                       ) : null}
                     </div>
                     {version.description ? (

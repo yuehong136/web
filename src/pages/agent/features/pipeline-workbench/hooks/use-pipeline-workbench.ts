@@ -111,8 +111,8 @@ export function usePipelineWorkbench({
   }, [owner, status])
 
   const resolveCanvasTitle = useMemo(
-    () => resolveLocalizedText(agent?.title, '未命名资产'),
-    [agent?.title],
+    () => resolveLocalizedText(agent?.title, t('agent.unnamedAsset')),
+    [agent?.title, t],
   )
   const resultPath = useMemo(
     () =>
@@ -127,17 +127,17 @@ export function usePipelineWorkbench({
 
   const saveCurrentGraph = useCallback(async () => {
     if (!canvasId) {
-      toast.error('缺少画布 ID，无法保存当前 Pipeline 上下文')
+      toast.error(t('agent.pipelineRun.notices.missingCanvasForSave'))
       return false
     }
 
     const saved = await saveGraph(resolveCanvasTitle)
     if (!saved) {
-      toast.error('保存失败，无法启动 Pipeline')
+      toast.error(t('agent.pipelineRun.notices.saveFailed'))
       return false
     }
     return true
-  }, [canvasId, resolveCanvasTitle, saveGraph])
+  }, [canvasId, resolveCanvasTitle, saveGraph, t])
 
   const clearPipelineState = useCallback(() => {
     owner.reset()
@@ -151,12 +151,12 @@ export function usePipelineWorkbench({
   const handleRun = useCallback(
     async (values: BeginQuery[]) => {
       if (!canvasId) {
-        toast.error('缺少画布 ID，无法运行 Pipeline')
+        toast.error(t('agent.pipelineRun.notices.missingCanvasForRun'))
         return
       }
 
       if (!findNodeByName(Operator.Tokenizer)) {
-        const message = '请先添加 Tokenizer 节点，再启动 Pipeline'
+        const message = t('agent.pipelineRun.notices.tokenizerRequired')
         setLastError(message)
         setStatus(PipelineRuntimeStatus.ERROR)
         onViewChange(PipelineWorkbenchView.RUN)
@@ -229,6 +229,7 @@ export function usePipelineWorkbench({
           setLastTaskId(resolvedMessageId)
           onViewChange(PipelineWorkbenchView.LOG)
         } else {
+          // i18n-ignore: internal error; the catch below shows pipelineStartFailed instead
           throw new Error('未从 Pipeline 接口拿到 message_id')
         }
       } catch (error) {
@@ -291,26 +292,26 @@ export function usePipelineWorkbench({
   const handleDownloadOutput = useCallback(() => {
     const output = findPipelineEndOutput(trace)
     if (isPipelineEndOutputEmpty(trace) || output === undefined) {
-      toast.error('当前 Pipeline 暂无可下载的输出')
+      toast.error(t('agent.pipelineRun.notices.noDownloadableOutput'))
       return
     }
     const filename = `${resolveCanvasTitle || 'pipeline-output'}.json`
     downloadJsonFile(output, filename)
-  }, [resolveCanvasTitle, trace])
+  }, [resolveCanvasTitle, t, trace])
 
   const handleOpenResult = useCallback(() => {
     if (!outputAvailable) {
-      toast.info('当前 Pipeline 还没有可查看的结果')
+      toast.info(t('agent.pipelineRun.notices.noResult'))
       return
     }
 
     if (!resultPath) {
-      toast.info('已生成 END 输出，但缺少文件 doc_id，暂不能打开结果落地页')
+      toast.info(t('agent.pipelineRun.notices.resultMissingDocId'))
       return
     }
 
     navigate(resultPath)
-  }, [navigate, outputAvailable, resultPath])
+  }, [navigate, outputAvailable, resultPath, t])
 
   const summary = useMemo(
     () =>

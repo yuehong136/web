@@ -519,7 +519,7 @@ export function SingleStepDebugSheet({
             ) : (
               <div className="mt-space-md rounded-radius-md border border-border-primary bg-surface-secondary">
                 <div className="border-b border-border-primary px-space-sm py-space-xs text-sm text-text-secondary">
-                  JSON
+                  {t('agent.runtimePanel.formSheet.jsonLabel')}
                 </div>
                 <pre className="max-h-screen overflow-auto p-space-sm text-xs text-text-primary">
                   {serializedResult}

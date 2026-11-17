@@ -38,7 +38,7 @@ export const useWatchAgentChange = () => {
     const timer = setTimeout(async () => {
       if (!id || !flowDetail?.title) return
 
-      console.log('🔄 [自动保存] 20秒后触发自动保存')
+      console.debug('[autosave] saving after 20s without edits')
 
       try {
         // 获取title
@@ -51,9 +51,9 @@ export const useWatchAgentChange = () => {
         if (ret?.update_time) {
           setSaveTime(ret.update_time)
         }
-        console.log('✅ [自动保存] 保存成功')
+        console.debug('[autosave] saved')
       } catch (error) {
-        console.error('❌ [自动保存] 保存失败:', error)
+        console.error('[autosave] save failed:', error)
       }
     }, 20000) // 20秒防抖
 

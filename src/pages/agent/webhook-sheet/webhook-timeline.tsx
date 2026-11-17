@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Badge } from '@/components/ui/badge'
 import { JsonViewer } from '../form/components/json-viewer'
 import { formatTimestampDetailed } from '@/lib/utils'
@@ -19,10 +20,12 @@ const getEventTitle = (event: AgentWebhookTraceEvent) => {
 }
 
 export function WebhookTimeline({ events }: WebhookTimelineProps) {
+  const { t } = useTranslation()
+
   if (!events.length) {
     return (
-      <div className="rounded-radius-lg bg-surface-secondary p-space-lg border border-border-subtle text-center text-sm text-text-secondary">
-        暂无 trace 事件。点击测试后会从 webhook logs 接口轮询事件。
+      <div className="rounded-radius-lg border border-border-subtle bg-surface-secondary p-space-lg text-center text-sm text-text-secondary">
+        {t('agent.delivery.webhook.timeline.empty')}
       </div>
     )
   }
@@ -41,9 +44,9 @@ export function WebhookTimeline({ events }: WebhookTimelineProps) {
         return (
           <div
             key={`${event.event}-${event.message_id || index}-${index}`}
-            className="rounded-radius-lg bg-surface-secondary p-space-base border border-border-default"
+            className="rounded-radius-lg border border-border-default bg-surface-secondary p-space-base"
           >
-            <div className="mb-space-sm gap-space-sm flex flex-wrap items-center justify-between">
+            <div className="mb-space-sm flex flex-wrap items-center justify-between gap-space-sm">
               <div>
                 <p className="text-sm font-medium text-text-primary">
                   {getEventTitle(event)}

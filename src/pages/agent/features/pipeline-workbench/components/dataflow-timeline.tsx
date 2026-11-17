@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import {
   Accordion,
   AccordionContent,
@@ -54,10 +55,11 @@ function isNestedTrace(item: AgentTraceItem) {
 }
 
 export function DataflowTimeline({ trace, loading }: DataflowTimelineProps) {
+  const { t } = useTranslation()
   if (!Array.isArray(trace) || trace.length === 0) {
     return (
       <div className="py-space-xl text-center text-sm text-text-secondary">
-        Pipeline 暂未启动或还没有日志，可在运行页填写开始输入并启动。
+        {t('agent.pipelineRun.timeline.empty')}
       </div>
     )
   }
@@ -98,13 +100,13 @@ export function DataflowTimeline({ trace, loading }: DataflowTimelineProps) {
         return (
           <div
             key={`${item.component_id || idx}-${idx}`}
-            className="pl-space-xl relative"
+            className="relative pl-space-xl"
           >
             {idx < trace.length - 1 ? (
-              <div className="bg-surface-accent absolute bottom-0 left-[11px] top-8 w-0.5" />
+              <div className="absolute top-8 bottom-0 left-[11px] w-0.5 bg-surface-accent" />
             ) : null}
 
-            <div className="absolute left-0 top-0 flex items-center justify-center">
+            <div className="absolute top-0 left-0 flex items-center justify-center">
               <div
                 className={cn(
                   'flex size-6 items-center justify-center rounded-full border-2',
@@ -120,16 +122,18 @@ export function DataflowTimeline({ trace, loading }: DataflowTimelineProps) {
               </div>
             </div>
 
-            <div className="rounded-radius-md bg-surface-primary border border-border-default">
+            <div className="rounded-radius-md border border-border-default bg-surface-primary">
               <Accordion type="single" collapsible className="px-space-sm">
                 <AccordionItem
                   value={`${item.component_id || idx}-${idx}`}
                   className="border-none"
                 >
                   <AccordionTrigger className="py-space-sm hover:no-underline">
-                    <div className="gap-space-sm flex items-center">
+                    <div className="flex items-center gap-space-sm">
                       <span className="font-medium text-text-primary">
-                        {item.component_name || item.component_id || '节点'}
+                        {item.component_name ||
+                          item.component_id ||
+                          t('agent.pipelineRun.timeline.node')}
                       </span>
                       {elapsed ? (
                         <span className="text-xs text-text-secondary">
@@ -154,11 +158,11 @@ export function DataflowTimeline({ trace, loading }: DataflowTimelineProps) {
                       {typeof progress === 'number' ? (
                         <div>
                           <div className="mb-space-xs text-xs text-text-secondary">
-                            进度
+                            {t('agent.pipelineRun.timeline.progress')}
                           </div>
-                          <div className="rounded-radius-full bg-surface-secondary h-1.5 overflow-hidden">
+                          <div className="h-1.5 overflow-hidden rounded-radius-full bg-surface-secondary">
                             <div
-                              className="rounded-radius-full bg-surface-accent h-full"
+                              className="h-full rounded-radius-full bg-surface-accent"
                               style={{ width: `${progress}%` }}
                             />
                           </div>
@@ -166,26 +170,26 @@ export function DataflowTimeline({ trace, loading }: DataflowTimelineProps) {
                       ) : null}
                       <div>
                         <div className="mb-space-xs text-xs text-text-secondary">
-                          输入
+                          {t('agent.runtime.input')}
                         </div>
-                        <pre className="rounded-radius-sm bg-surface-secondary p-space-sm max-h-40 overflow-auto text-xs">
+                        <pre className="max-h-40 overflow-auto rounded-radius-sm bg-surface-secondary p-space-sm text-xs">
                           {JSON.stringify(inputs, null, 2)}
                         </pre>
                       </div>
                       <div>
                         <div className="mb-space-xs text-xs text-text-secondary">
-                          输出
+                          {t('agent.runtime.output')}
                         </div>
-                        <pre className="rounded-radius-sm bg-surface-secondary p-space-sm max-h-40 overflow-auto text-xs">
+                        <pre className="max-h-40 overflow-auto rounded-radius-sm bg-surface-secondary p-space-sm text-xs">
                           {JSON.stringify(outputs, null, 2)}
                         </pre>
                       </div>
                       {typeof item.message === 'string' && item.message ? (
                         <div>
                           <div className="mb-space-xs text-xs text-text-secondary">
-                            消息
+                            {t('agent.runtime.messages')}
                           </div>
-                          <pre className="rounded-radius-sm bg-surface-secondary p-space-sm max-h-40 overflow-auto text-xs">
+                          <pre className="max-h-40 overflow-auto rounded-radius-sm bg-surface-secondary p-space-sm text-xs">
                             {item.message}
                           </pre>
                         </div>
@@ -193,7 +197,7 @@ export function DataflowTimeline({ trace, loading }: DataflowTimelineProps) {
                       {traceMessages.length > 0 ? (
                         <div>
                           <div className="mb-space-xs text-xs text-text-secondary">
-                            运行消息
+                            {t('agent.pipelineRun.timeline.runMessages')}
                           </div>
                           <div className="space-y-space-xs">
                             {traceMessages.map((row, rowIdx) => (
@@ -204,6 +208,7 @@ export function DataflowTimeline({ trace, loading }: DataflowTimelineProps) {
                                 <div>{String(row.message)}</div>
                                 {typeof row.elapsed_time === 'number' ? (
                                   <div className="mt-space-xs text-text-tertiary">
+                                    {/* i18n-ignore: seconds unit suffix */}
                                     {row.elapsed_time.toFixed(3)}s
                                   </div>
                                 ) : null}
@@ -215,7 +220,7 @@ export function DataflowTimeline({ trace, loading }: DataflowTimelineProps) {
                       {subTraces.length > 0 ? (
                         <div className="space-y-space-xs">
                           <div className="text-xs text-text-secondary">
-                            子任务
+                            {t('agent.pipelineRun.timeline.subtasks')}
                           </div>
                           {subTraces.map((sub, subIdx) => (
                             <ToolTimelineItem
