@@ -32,6 +32,8 @@ export default {
         filled: '已填写 {{filled}}/{{total}}',
         settings: '设置',
         aiFill: 'AI 填写',
+        aiFilling_one: 'AI 正在填写 {{count}} 个字段…',
+        aiFilling_other: 'AI 正在填写 {{count}} 个字段…',
         reset: '清空所有字段',
         model: '模型',
         noModel: '未选择',

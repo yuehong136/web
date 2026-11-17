@@ -1,7 +1,8 @@
 import React from 'react'
 import { useDropzone } from 'react-dropzone'
 import { useTranslation } from 'react-i18next'
-import { FileText, FileUp, PenLine, X } from 'lucide-react'
+import { FileUp, PenLine, X } from 'lucide-react'
+import { FileKindTile } from '@/components/patterns/file-kind-tile'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { SegmentedControl } from '@/components/ui/segmented-control'
@@ -136,10 +137,7 @@ export const UserInputSection: React.FC<UserInputSectionProps> = ({
                     key={file.id}
                     className="flex items-center gap-space-sm rounded-radius-md bg-background-subtle px-space-sm py-space-2xs"
                   >
-                    <FileText
-                      className="size-icon-sm shrink-0 text-text-tertiary"
-                      aria-hidden="true"
-                    />
+                    <FileKindTile name={file.name} size="sm" />
                     <span className="min-w-0 flex-1 truncate text-sm">
                       {file.name}
                     </span>
