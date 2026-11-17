@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { TraceDebugActions } from './components/trace-debug-actions'
@@ -19,6 +20,7 @@ export function TraceWorkbench({
   className,
   onRefresh,
 }: TraceWorkbenchProps) {
+  const { t } = useTranslation()
   const state = useTraceWorkbench(viewModel)
   const isEmpty = state.flatSpans.length === 0
   const emptyReason = isLoading ? 'loading' : viewModel.unavailableReason
@@ -55,11 +57,21 @@ export function TraceWorkbench({
             <Tabs defaultValue="payload" className="min-h-0">
               <div className="px-space-lg pt-space-base">
                 <TabsList className="w-full justify-start">
-                  <TabsTrigger value="payload">Payload</TabsTrigger>
-                  <TabsTrigger value="context">Prompt & Context</TabsTrigger>
-                  <TabsTrigger value="output">Output</TabsTrigger>
-                  <TabsTrigger value="raw">Raw JSON</TabsTrigger>
-                  <TabsTrigger value="errors">Errors</TabsTrigger>
+                  <TabsTrigger value="payload">
+                    {t('agent.traceWorkbench.tabs.payload')}
+                  </TabsTrigger>
+                  <TabsTrigger value="context">
+                    {t('agent.traceWorkbench.tabs.context')}
+                  </TabsTrigger>
+                  <TabsTrigger value="output">
+                    {t('agent.traceWorkbench.tabs.output')}
+                  </TabsTrigger>
+                  <TabsTrigger value="raw">
+                    {t('agent.traceWorkbench.tabs.raw')}
+                  </TabsTrigger>
+                  <TabsTrigger value="errors">
+                    {t('agent.traceWorkbench.tabs.errors')}
+                  </TabsTrigger>
                 </TabsList>
               </div>
               <TabsContent value="payload" className="mt-0">

@@ -33,12 +33,7 @@ function InnerMessageNode({ id, data, selected }: NodeProps<IMessageNode>) {
           id={id}
           name={data.name}
           label={data.label}
-          icon={
-            <MessageSquare
-              className="h-4 w-4"
-              style={{ color: 'var(--color-components-canvas-icon-message)' }}
-            />
-          }
+          icon={<MessageSquare />}
         />
         <SummaryList
           items={messages}
@@ -47,7 +42,7 @@ function InnerMessageNode({ id, data, selected }: NodeProps<IMessageNode>) {
             <section
               key={`${id}-message-${index}`}
               className={cn(
-                withDivider && 'pt-space-sm border-t border-border-subtle',
+                withDivider && 'border-t border-border-subtle pt-space-sm',
               )}
             >
               <LabelCard>

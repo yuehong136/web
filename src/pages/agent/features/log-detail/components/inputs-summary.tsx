@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { FileIcon } from '@/components/ui/file-icon'
 import { formatRuntimeInputSummary } from '../../runtime-workbench/utils'
 import type { BeginQuery } from '../../../types'
@@ -9,12 +10,13 @@ interface InputsSummaryProps {
 }
 
 export function InputsSummary({ inputs, files }: InputsSummaryProps) {
+  const { t } = useTranslation()
   const summary = formatRuntimeInputSummary(inputs)
 
   if (!summary && files.length === 0) {
     return (
       <p className="text-sm text-text-secondary">
-        本次运行没有可展示的 Begin 输入。
+        {t('agent.runtimePanel.logDetail.noInputs')}
       </p>
     )
   }

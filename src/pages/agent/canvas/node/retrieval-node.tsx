@@ -60,7 +60,9 @@ function RetrievalSummary({
               name={label}
               src={item?.avatar ?? undefined}
               seed={itemId}
-              size="md"
+              size="sm"
+              kind={isMemoryMode ? 'memory' : 'knowledge'}
+              tone="kind"
             />
             <span className="min-w-0 flex-1 truncate text-sm text-text-primary">
               {label}
@@ -134,12 +136,7 @@ function InnerRetrievalNode({
           id={id}
           name={data.name}
           label={data.label}
-          icon={
-            <Database
-              className="h-4 w-4"
-              style={{ color: 'var(--color-components-canvas-icon-retrieval)' }}
-            />
-          }
+          icon={<Database />}
         />
         {isMemoryMode ? (
           <MemoryRetrievalSummary itemIds={itemIds} />

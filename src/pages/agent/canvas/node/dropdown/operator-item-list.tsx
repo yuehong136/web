@@ -6,7 +6,7 @@ import {
 } from '@/components/ui/tooltip'
 import { Operator } from '@/pages/agent/constant'
 import { AgentInstanceContext, HandleContext } from '@/pages/agent/context'
-import OperatorIcon from '@/pages/agent/operator-icon'
+import { OperatorTile } from '@/pages/agent/operator-icon'
 import { getOperatorDefinition } from '@/pages/agent/operators/registry'
 import { Position } from '@xyflow/react'
 import lowerFirst from 'lodash/lowerFirst.js'
@@ -63,15 +63,16 @@ export function OperatorItemList({
     const fallbackDescription =
       operatorDefinition?.description || `${fallbackName} node`
     const content = (
-      <div
-        className="gap-space-sm rounded-radius-sm px-space-sm py-space-xs flex cursor-pointer items-center justify-start transition-colors hover:bg-components-dropdown-item-bg-hover"
+      <button
+        type="button"
+        className="flex w-full cursor-pointer items-center justify-start gap-space-sm rounded-radius-sm px-space-sm py-space-xs text-left transition-colors outline-none hover:bg-components-dropdown-item-bg-hover focus-visible:bg-components-dropdown-item-bg-hover focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:ring-inset motion-reduce:transition-none"
         onClick={handleClick(operator)}
       >
-        <OperatorIcon name={operator} />
-        <span className="text-text-primary">
+        <OperatorTile name={operator} />
+        <span className="truncate text-text-primary">
           {t(`flow.${lowerFirst(operator)}`, fallbackName)}
         </span>
-      </div>
+      </button>
     )
 
     return (

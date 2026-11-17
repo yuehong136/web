@@ -39,7 +39,7 @@ export function LogDetailActions({
   onRefetchTrace,
 }: LogDetailActionsProps) {
   const { t } = useTranslation()
-  const copyFailedMessage = t('common.copyFailed', '复制失败')
+  const copyFailedMessage = t('common.copyFailed')
   const rawJson = viewModel.rawSession || viewModel
   const terminalWithEmptyTrace =
     (viewModel.status === 'success' || viewModel.status === 'error') &&
@@ -47,7 +47,7 @@ export function LogDetailActions({
     viewModel.traceUnavailableReason !== 'no-message-id'
 
   return (
-    <div className="gap-space-xs flex flex-wrap items-center">
+    <div className="flex flex-wrap items-center gap-space-xs">
       {viewModel.sessionId ? (
         <Button
           type="button"
@@ -62,7 +62,7 @@ export function LogDetailActions({
           }}
         >
           <Copy className="size-4" />
-          复制 Session ID
+          {t('agent.runtimePanel.logDetail.copySessionId')}
         </Button>
       ) : null}
       <Button
@@ -78,7 +78,7 @@ export function LogDetailActions({
         }}
       >
         <Copy className="size-4" />
-        复制 Raw JSON
+        {t('agent.runtimePanel.logDetail.copyRawJson')}
       </Button>
       {viewModel.traceItems.length ? (
         <>
@@ -91,7 +91,7 @@ export function LogDetailActions({
             }
           >
             <Download className="size-4" />
-            下载 Trace
+            {t('agent.runtimePanel.logDetail.downloadTrace')}
           </Button>
           <Button
             type="button"
@@ -106,7 +106,7 @@ export function LogDetailActions({
             }}
           >
             <Copy className="size-4" />
-            复制 Trace 路径
+            {t('agent.runtimePanel.logDetail.copyTracePaths')}
           </Button>
         </>
       ) : null}
@@ -118,7 +118,7 @@ export function LogDetailActions({
           onClick={onRefetchTrace}
         >
           <RefreshCcw className="size-4" />
-          重新拉取 Trace
+          {t('agent.runtimePanel.logDetail.refetchTrace')}
         </Button>
       ) : null}
       {source.mode === 'live' && viewModel.canRetry ? (
@@ -131,7 +131,7 @@ export function LogDetailActions({
           }}
         >
           <RotateCcw className="size-4" />
-          Retry
+          {t('agent.runtimePanel.logDetail.retry')}
         </Button>
       ) : null}
       {source.mode === 'session' && source.controller ? (
@@ -141,7 +141,7 @@ export function LogDetailActions({
           size="sm"
           onClick={source.controller.handleAdoptViewingSession}
         >
-          在此会话中继续
+          {t('agent.runtimePanel.logDetail.continueInSession')}
         </Button>
       ) : null}
     </div>

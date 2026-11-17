@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { Position } from '@xyflow/react'
+import { NodeChangeset, Position } from '@xyflow/react'
 import { Operator } from '../constant'
 import useGraphStore from '../store'
 import type { RAGFlowNodeType } from '../types'
@@ -51,13 +51,15 @@ test('iteration drag keeps the start lane fixed and only grows to the right/bott
     edges: [],
   })
 
-  useGraphStore.getState().onNodesChange([
-    {
-      id: 'agent-1',
-      type: 'position',
-      position: { x: 40, y: 8 },
-    },
-  ])
+  useGraphStore.getState().onNodesChange(
+    new NodeChangeset([
+      {
+        id: 'agent-1',
+        type: 'position',
+        position: { x: 40, y: 8 },
+      },
+    ]),
+  )
 
   let nodes = useGraphStore.getState().nodes
   let agentNode = nodes.find((node) => node.id === 'agent-1')
@@ -69,13 +71,15 @@ test('iteration drag keeps the start lane fixed and only grows to the right/bott
   assert.equal(iterationNode?.width, 500)
   assert.equal(iterationNode?.height, 250)
 
-  useGraphStore.getState().onNodesChange([
-    {
-      id: 'agent-1',
-      type: 'position',
-      position: { x: 292, y: 154 },
-    },
-  ])
+  useGraphStore.getState().onNodesChange(
+    new NodeChangeset([
+      {
+        id: 'agent-1',
+        type: 'position',
+        position: { x: 292, y: 154 },
+      },
+    ]),
+  )
 
   nodes = useGraphStore.getState().nodes
   agentNode = nodes.find((node) => node.id === 'agent-1')

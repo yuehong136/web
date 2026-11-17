@@ -1,4 +1,5 @@
 import { memo, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { XCard } from '@ant-design/x-card'
 import { AlertTriangle } from 'lucide-react'
 import { agentXCardComponents } from './components'
@@ -21,6 +22,7 @@ function AgentXCardRendererBase({
   status,
   onAction,
 }: AgentXCardRendererProps) {
+  const { t } = useTranslation()
   const visibleSurfaceIds = useMemo(
     () => surfaceIds.filter(Boolean),
     [surfaceIds],
@@ -37,8 +39,8 @@ function AgentXCardRendererBase({
   if (status === 'error') {
     return (
       <div className="mt-space-sm flex items-center gap-space-sm rounded-radius-md border border-status-error-border bg-status-error-subtle p-space-sm text-sm text-status-error">
-        <AlertTriangle className="size-4" />
-        卡片渲染失败
+        <AlertTriangle aria-hidden className="size-icon-sm" />
+        {t('agent.xCard.renderFailed')}
       </div>
     )
   }

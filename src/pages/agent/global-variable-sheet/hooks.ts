@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import type { AgentGlobalVariable } from '@/types/agent'
 import { resolveLocalizedText } from '@/lib/agent'
 import { toast } from '@/lib/toast'
@@ -12,6 +13,7 @@ import {
 } from './utils'
 
 export function useGlobalVariableSheet() {
+  const { t } = useTranslation()
   const { id = '' } = useParams<{ id: string }>()
   const { data: agent, refetch } = useFetchAgent()
   const { saveGraph, loading } = useSaveGraph(id, false)
@@ -29,8 +31,8 @@ export function useGlobalVariableSheet() {
   )
 
   const title = useMemo(
-    () => resolveLocalizedText(agent?.title, '未命名资产'),
-    [agent?.title],
+    () => resolveLocalizedText(agent?.title, t('agent.unnamedAsset')),
+    [agent?.title, t],
   )
 
   const saveVariables = useCallback(
@@ -40,14 +42,14 @@ export function useGlobalVariableSheet() {
       })
 
       if (!saved) {
-        toast.error('会话变量保存失败')
+        toast.error(t('agent.globalVariables.saveFailed'))
         return false
       }
 
       await refetch()
       return true
     },
-    [refetch, saveGraph, title],
+    [refetch, saveGraph, t, title],
   )
 
   const showAddModal = useCallback(() => {

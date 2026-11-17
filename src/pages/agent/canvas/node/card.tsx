@@ -1,8 +1,10 @@
 import { cn } from '@/lib/utils'
 import { useMemo, type PropsWithChildren } from 'react'
+import { useTranslation } from 'react-i18next'
+import { Cpu } from 'lucide-react'
 import { useFetchMyLLMs } from '@/hooks/use-llm-request'
 import { resolveLLMValue } from '@/stores/model'
-import { ProviderIcon } from '@/components/ui/provider-icon'
+import { ProviderLogo } from '@/components/patterns/provider-logo'
 
 type LabelCardProps = {
   className?: string
@@ -23,14 +25,17 @@ export function LabelCard({ children, className, ...props }: LabelCardProps) {
   )
 }
 
+/** The node's model: provider logo and name; a missing model reads as an error. */
 export function LLMLabelCard({ llmId }: { llmId?: string }) {
+  const { t } = useTranslation()
   const { myLLMs } = useFetchMyLLMs()
   const resolvedLlm = useMemo(
     () => resolveLLMValue(myLLMs, llmId, false),
     [llmId, myLLMs],
   )
   const isInvalidLlm = Boolean(llmId) && !resolvedLlm.matched
-  const displayName = resolvedLlm.modelName || llmId || 'Default LLM'
+  const displayName =
+    resolvedLlm.modelName || llmId || t('agent.canvas.defaultModel')
 
   return (
     <LabelCard
@@ -39,13 +44,21 @@ export function LLMLabelCard({ llmId }: { llmId?: string }) {
         isInvalidLlm &&
           'border-status-error-border bg-status-error-subtle text-status-error',
       )}
+      title={isInvalidLlm ? t('agent.canvas.modelUnavailable') : displayName}
     >
-      <ProviderIcon
-        provider={resolvedLlm.providerName || ''}
-        className="size-4 shrink-0"
-        size={16}
-      />
-      <span className="min-w-0 flex-1 truncate">{displayName}</span>
+      {resolvedLlm.providerName ? (
+        <ProviderLogo provider={resolvedLlm.providerName} size="xs" />
+      ) : (
+        <Cpu aria-hidden className="size-icon-xs shrink-0 text-text-tertiary" />
+      )}
+      <span
+        className={cn(
+          'min-w-0 flex-1 truncate',
+          !isInvalidLlm && 'text-text-primary',
+        )}
+      >
+        {displayName}
+      </span>
     </LabelCard>
   )
 }

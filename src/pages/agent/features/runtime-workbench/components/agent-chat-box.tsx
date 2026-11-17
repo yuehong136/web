@@ -1,6 +1,7 @@
 import { EntityAvatar } from '@/components/patterns/entity-avatar'
 import { useCurrentUserAvatar } from '@/hooks/use-current-user-avatar'
 import { memo, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { toast } from '@/lib/toast'
 import { RuntimeChatPanel } from '../../../components/runtime-chat'
 import { downloadRuntimeAttachment } from '../../../components/runtime-chat/download-runtime-attachment'
@@ -11,16 +12,21 @@ interface AgentChatBoxProps {
 }
 
 function AgentChatBoxBase({ controller }: AgentChatBoxProps) {
+  const { t } = useTranslation()
   const user = useCurrentUserAvatar()
   const handleDownloadAttachment = useCallback(
     async (file: RuntimeAttachment) => {
       try {
-        await downloadRuntimeAttachment(file)
+        await downloadRuntimeAttachment(file, t)
       } catch (error) {
-        toast.error(error instanceof Error ? error.message : '附件下载失败')
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : t('agent.runtimePanel.chatBox.downloadFailed'),
+        )
       }
     },
-    [],
+    [t],
   )
 
   return (
@@ -33,10 +39,12 @@ function AgentChatBoxBase({ controller }: AgentChatBoxProps) {
       isTaskMode={controller.isTaskMode}
       composerMode={controller.isTaskMode ? 'hidden' : 'compact'}
       density="compact"
-      emptyTitle="还没有运行消息"
-      emptyDescription="先在运行页提交开始输入，然后在这里发送测试消息。普通 Agent 会复用当前编辑器里的最新图谱。"
-      taskModeEmptyTitle="任务模式会话"
-      taskModeEmptyDescription="任务模式请先在运行页提交开始输入，运行后这里会展示消息与执行链路。"
+      emptyTitle={t('agent.runtimePanel.chatBox.emptyTitle')}
+      emptyDescription={t('agent.runtimePanel.chatBox.emptyDescription')}
+      taskModeEmptyTitle={t('agent.runtimePanel.chatPanel.taskModeTitle')}
+      taskModeEmptyDescription={t(
+        'agent.runtimePanel.chatBox.taskModeDescription',
+      )}
       onSend={controller.handleSendMessage}
       onStop={controller.handleStop}
       onSubmitAwaitingInputs={controller.handleSubmitAwaitingInputs}

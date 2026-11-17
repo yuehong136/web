@@ -79,8 +79,8 @@ export function WebhookSheet({
     [flowId],
   )
   const testBuild = useMemo(
-    () => buildWebhookTestRequest(flowId || '', config),
-    [config, flowId],
+    () => buildWebhookTestRequest(flowId || '', config, t),
+    [config, flowId, t],
   )
   const curlExample = useMemo(
     () => buildWebhookCurlExample(testUrl || webhookUrl, testBuild.request),
@@ -101,9 +101,9 @@ export function WebhookSheet({
       setCopied(true)
       window.setTimeout(() => setCopied(false), 2000)
     } catch {
-      toast.error('复制失败，请手动复制 Webhook URL')
+      toast.error(t('agent.delivery.webhook.copyUrlFailed'))
     }
-  }, [webhookUrl])
+  }, [t, webhookUrl])
 
   const pollTrace = useCallback(
     async (baseline?: AgentWebhookTraceSummary) => {
@@ -170,9 +170,7 @@ export function WebhookSheet({
       await pollTrace(baseline)
     } catch (error) {
       const message =
-        error instanceof Error
-          ? error.message
-          : t('agent.webhook.testFailed', 'Webhook test failed')
+        error instanceof Error ? error.message : t('agent.webhook.testFailed')
       setTestError(message)
       toast.error(message)
     } finally {
@@ -201,7 +199,7 @@ export function WebhookSheet({
       >
         <SheetHeader>
           <SheetTitle className="flex items-center gap-space-sm">
-            Webhook 测试
+            {t('agent.delivery.webhook.title')}
             <Badge
               variant={
                 status === 'success'
@@ -220,7 +218,9 @@ export function WebhookSheet({
 
         <div className="flex-1 space-y-space-lg overflow-auto py-space-lg">
           <section className="space-y-space-sm">
-            <p className="text-sm font-medium text-text-primary">Webhook URL</p>
+            <p className="text-sm font-medium text-text-primary">
+              {t('agent.delivery.webhook.url')}
+            </p>
             <div className="flex gap-space-sm">
               <Input
                 value={webhookUrl}
@@ -242,7 +242,7 @@ export function WebhookSheet({
             </div>
             {testUrl ? (
               <p className="text-xs break-all text-text-secondary">
-                Test endpoint: {testUrl}
+                {t('agent.delivery.webhook.testEndpoint', { url: testUrl })}
               </p>
             ) : null}
           </section>
@@ -271,7 +271,9 @@ export function WebhookSheet({
               ) : (
                 <Play className="mr-space-xs h-4 w-4" />
               )}
-              {testing ? '测试中...' : '触发测试'}
+              {testing
+                ? t('agent.delivery.webhook.testing')
+                : t('agent.delivery.webhook.trigger')}
             </Button>
             <Button
               variant="outline"
@@ -279,19 +281,21 @@ export function WebhookSheet({
               disabled={testing || !flowId}
             >
               <RefreshCw className="mr-space-xs h-4 w-4" />
-              刷新 Trace
+              {t('agent.delivery.webhook.refreshTrace')}
             </Button>
           </div>
 
           <Tabs defaultValue={WebhookTraceTab.Overview}>
             <TabsList>
               <TabsTrigger value={WebhookTraceTab.Overview}>
-                Overview
+                {t('agent.delivery.webhook.tabs.overview')}
               </TabsTrigger>
               <TabsTrigger value={WebhookTraceTab.Timeline}>
-                Timeline
+                {t('agent.delivery.webhook.tabs.timeline')}
               </TabsTrigger>
-              <TabsTrigger value={WebhookTraceTab.Request}>Request</TabsTrigger>
+              <TabsTrigger value={WebhookTraceTab.Request}>
+                {t('agent.delivery.webhook.tabs.request')}
+              </TabsTrigger>
             </TabsList>
             <TabsContent
               value={WebhookTraceTab.Overview}
@@ -299,19 +303,21 @@ export function WebhookSheet({
             >
               <div className="grid gap-space-md md:grid-cols-2">
                 <div className="space-y-space-sm">
-                  <p className="text-sm font-medium text-text-primary">Input</p>
+                  <p className="text-sm font-medium text-text-primary">
+                    {t('agent.delivery.webhook.sections.input')}
+                  </p>
                   <JsonViewer data={trace?.firstInput || {}} />
                 </div>
                 <div className="space-y-space-sm">
                   <p className="text-sm font-medium text-text-primary">
-                    Output
+                    {t('agent.delivery.webhook.sections.output')}
                   </p>
                   <JsonViewer data={trace?.latestOutput || {}} />
                 </div>
               </div>
               <div className="space-y-space-sm">
                 <p className="text-sm font-medium text-text-primary">
-                  Response
+                  {t('agent.delivery.webhook.sections.response')}
                 </p>
                 <JsonViewer data={responseSummary || {}} />
               </div>
@@ -324,11 +330,15 @@ export function WebhookSheet({
               className="space-y-space-md"
             >
               <div className="space-y-space-sm">
-                <p className="text-sm font-medium text-text-primary">Request</p>
+                <p className="text-sm font-medium text-text-primary">
+                  {t('agent.delivery.webhook.sections.request')}
+                </p>
                 <JsonViewer data={testBuild.request} />
               </div>
               <div className="space-y-space-sm">
-                <p className="text-sm font-medium text-text-primary">curl</p>
+                <p className="text-sm font-medium text-text-primary">
+                  {t('agent.delivery.webhook.sections.curl')}
+                </p>
                 <pre className="max-h-60 overflow-auto rounded-radius-md bg-surface-secondary p-space-sm text-xs text-text-primary">
                   {curlExample}
                 </pre>

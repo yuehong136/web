@@ -1,11 +1,14 @@
 import { Badge } from '@/components/ui/badge'
 import { AlertTriangle } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 interface ErrorBannerProps {
   message?: string
 }
 
 export function ErrorBanner({ message }: ErrorBannerProps) {
+  const { t } = useTranslation()
+
   if (!message) {
     return null
   }
@@ -15,7 +18,9 @@ export function ErrorBanner({ message }: ErrorBannerProps) {
       <div className="flex items-start gap-space-sm">
         <AlertTriangle className="mt-[2px] size-4 shrink-0 text-status-error" />
         <div className="min-w-0 space-y-space-xs">
-          <Badge variant="destructive">运行错误</Badge>
+          <Badge variant="destructive">
+            {t('agent.runtimePanel.logDetail.runError')}
+          </Badge>
           <p className="text-sm whitespace-pre-wrap text-status-error">
             {message}
           </p>

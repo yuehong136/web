@@ -144,6 +144,8 @@ export default function AgentExplorePage() {
         canvasId={canvasId}
         agentName={agentName}
         agentDescription={agentDescription}
+        agentAvatar={agentQuery.data?.avatar}
+        editorPath={buildAgentCanvasPath(canvasId, agentQuery.data)}
         active={active}
         isTaskMode={chat.isTaskMode}
         loadingSession={chat.loadingSession}

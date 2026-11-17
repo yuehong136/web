@@ -1,9 +1,12 @@
 import { EntityAvatar } from '@/components/patterns/entity-avatar'
+import {
+  EmptyStart,
+  type EmptyStartPath,
+} from '@/components/patterns/empty-start'
 import { useCurrentUserAvatar } from '@/hooks/use-current-user-avatar'
 import { useTranslation } from 'react-i18next'
 import {
   AppScene,
-  PageEmptyState,
   PageErrorState,
   PageLoadingState,
   SectionCard,
@@ -16,8 +19,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Button } from '@/components/ui/button'
-import { Bot, Plus } from 'lucide-react'
+import { MessageSquarePlus, Pencil } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import DebugContent from '../../debug-content'
 import type { BeginQuery } from '../../types'
@@ -35,6 +38,10 @@ interface SessionChatProps {
   canvasId: string
   agentName?: string
   agentDescription?: string
+  /** The agent's avatar, shown on the first-use start screen. */
+  agentAvatar?: string
+  /** The canvas editor, the second start path when the reader may edit. */
+  editorPath?: string
   onCreateSession?: () => void
   active: boolean
   isTaskMode: boolean
@@ -65,6 +72,8 @@ export function SessionChat({
   canvasId,
   agentName,
   agentDescription,
+  agentAvatar,
+  editorPath,
   onCreateSession,
   active,
   isTaskMode,
@@ -87,7 +96,30 @@ export function SessionChat({
   onStop,
 }: SessionChatProps) {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const user = useCurrentUserAvatar()
+  const startPaths: EmptyStartPath[] = []
+  if (onCreateSession)
+    startPaths.push({
+      key: 'new-chat',
+      icon: <MessageSquarePlus />,
+      iconClassName: 'bg-components-avatar-6-bg text-components-avatar-6-text',
+      title: t('agent.explore.newChat'),
+      description: t('agent.explore.start.newChatDescription'),
+      cta: t('agent.explore.start.newChatCta'),
+      onSelect: onCreateSession,
+      primary: true,
+    })
+  if (editorPath)
+    startPaths.push({
+      key: 'edit-agent',
+      icon: <Pencil />,
+      iconClassName: 'bg-components-avatar-7-bg text-components-avatar-7-text',
+      title: t('agent.explore.editAgent'),
+      description: t('agent.explore.start.editDescription'),
+      cta: t('agent.explore.start.editCta'),
+      onSelect: () => navigate(editorPath),
+    })
   const readyEmpty =
     active && !loadingSession && !sessionError && messages.length === 0
   return (
@@ -124,21 +156,22 @@ export function SessionChat({
             description={t('agent.explore.loadingDescription')}
           />
         ) : !active ? (
-          <PageEmptyState
-            scene={AppScene.SPLIT_DETAIL}
-            icon={<Bot className="size-icon-lg" />}
+          <EmptyStart
+            className="min-h-0 flex-1 overflow-auto"
+            illustration={
+              <EntityAvatar
+                name={agentName}
+                src={agentAvatar}
+                seed={canvasId}
+                badge="agent"
+                size="2xl"
+              />
+            }
             title={agentName || t('agent.explore.selectSession')}
             description={
               agentDescription || t('agent.explore.selectSessionDescription')
             }
-            action={
-              onCreateSession ? (
-                <Button onClick={onCreateSession}>
-                  <Plus className="size-icon-sm" />
-                  {t('agent.explore.newChat')}
-                </Button>
-              ) : undefined
-            }
+            paths={startPaths}
           />
         ) : messages.length === 0 ? (
           <header className="mx-auto w-full max-w-3xl px-space-lg pt-space-2xl pb-space-md text-center">

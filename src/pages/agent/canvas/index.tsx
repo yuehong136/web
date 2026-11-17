@@ -1,5 +1,4 @@
 import { useSetModalState } from '@/hooks/common-hooks'
-import type { ReactFlowInstance } from '@xyflow/react'
 import {
   ConnectionMode,
   ControlButton,
@@ -7,11 +6,12 @@ import {
   Position,
   ReactFlow,
   type Edge,
+  type ReactFlowInstance,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import './overrides.css'
 import { NotebookPen } from 'lucide-react'
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FormSheet } from '../features/form-sheet'
 import {
@@ -49,6 +49,7 @@ import { useParams } from 'react-router-dom'
 import { AgentBackground } from '@/components/canvas/background'
 import Spotlight from '@/components/spotlight'
 import { useIsDarkTheme } from '@/themes'
+import { cn } from '@/lib/utils'
 import {
   TooltipContent,
   TooltipProvider,
@@ -67,6 +68,15 @@ const nodeOrigin: [number, number] = [0.5, 0]
 const reactFlowProOptions = { hideAttribution: true }
 
 const deleteKeyCode = ['Delete', 'Backspace']
+
+// Utilities outrank xyflow's `@layer xyflow` rules (see
+// styles/application-reset.css), so the floating bar is styled here.
+const controlsClassName = cn(
+  'h-auto w-auto items-center gap-space-2xs rounded-radius-lg border border-border-subtle bg-components-canvas-node-bg p-space-2xs text-text-secondary shadow-elevation-medium',
+  '[&>button]:size-7 [&>button]:rounded-radius-md [&>button]:border-0 [&>button]:bg-transparent [&>button]:p-0 [&>button]:text-inherit [&>button]:transition-colors motion-reduce:[&>button]:transition-none',
+  '[&>button:hover]:bg-state-hover [&>button:hover]:text-text-primary [&>button:focus-visible]:outline-2 [&>button:focus-visible]:outline-state-focus',
+  '[&>button>svg]:size-icon-xs',
+)
 
 interface AgentCanvasProps {
   editorMode: 'agent' | 'pipeline'
@@ -101,6 +111,16 @@ function AgentCanvasInner({
     onEdgeMouseLeave,
   } = useSelectCanvasData()
   const isValidConnection = useValidateConnection()
+  const ariaLabelConfig = useMemo(
+    () => ({
+      'controls.ariaLabel': t('agent.canvas.controls.label'),
+      'controls.zoomIn.ariaLabel': t('agent.canvas.controls.zoomIn'),
+      'controls.zoomOut.ariaLabel': t('agent.canvas.controls.zoomOut'),
+      'controls.fitView.ariaLabel': t('agent.canvas.controls.fitView'),
+      'controls.interactive.ariaLabel': t('agent.canvas.controls.interactive'),
+    }),
+    [t],
+  )
 
   const [reactFlowInstance, setReactFlowInstance] =
     useState<ReactFlowInstance<RAGFlowNodeType, Edge>>()
@@ -255,7 +275,7 @@ function AgentCanvasInner({
     : agentRuntimeController.nodeElapsedMap
 
   return (
-    <div className="bg-surface-secondary h-full w-full">
+    <div className="h-full w-full bg-surface-secondary">
       {/* SVG 标记定义 - 仅用于声明 <defs>，不参与交互或布局 */}
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -329,32 +349,39 @@ function AgentCanvasInner({
           onEdgeMouseEnter={onEdgeMouseEnter}
           onEdgeMouseLeave={onEdgeMouseLeave}
           className="h-full"
-          colorMode={isDark ? 'dark' : 'light'}
+          // xyflow 13 infers the scheme from the DOM; pin the app's resolved one.
+          forceColorMode={isDark ? 'dark' : 'light'}
+          // v13 raises edges of selected nodes by default; keep v12 layering.
+          elevateEdgesOnSelect={false}
           defaultEdgeOptions={defaultEdgeOptions}
           deleteKeyCode={deleteKeyCode}
           onBeforeDelete={handleBeforeDelete}
           proOptions={reactFlowProOptions}
+          ariaLabelConfig={ariaLabelConfig}
         >
           <AgentBackground />
-          <Spotlight className="z-0" opcity={0.7} coverage={70} />
+          {/* The glow is an AI moment: only while a run is in progress. */}
+          {railSendLoading ? (
+            <Spotlight className="z-0" opcity={0.7} coverage={70} />
+          ) : null}
           <Controls
-            position={'bottom-center'}
+            position="bottom-center"
             orientation="horizontal"
-            className="bg-surface-primary px-space-base py-space-sm [&>button]:hover:bg-surface-secondary gap-space-sm rounded-radius-md shadow-elevation-low h-auto w-auto [&>button]:size-4 [&>button]:border-0 [&>button]:bg-transparent [&>button]:p-0 [&>button]:text-text-primary"
+            className={controlsClassName}
           >
-            <ControlButton>
-              <TooltipProvider delayDuration={200}>
-                <TooltipRoot>
-                  <TooltipTrigger asChild>
-                    <NotebookPen
-                      className="size-4 !fill-none"
-                      onClick={showImage}
-                    />
-                  </TooltipTrigger>
-                  <TooltipContent>{t('flow.note', '笔记')}</TooltipContent>
-                </TooltipRoot>
-              </TooltipProvider>
-            </ControlButton>
+            <TooltipProvider delayDuration={200}>
+              <TooltipRoot>
+                <TooltipTrigger asChild>
+                  <ControlButton
+                    onClick={showImage}
+                    aria-label={t('flow.note', '笔记')}
+                  >
+                    <NotebookPen aria-hidden className="fill-none" />
+                  </ControlButton>
+                </TooltipTrigger>
+                <TooltipContent>{t('flow.note', '笔记')}</TooltipContent>
+              </TooltipRoot>
+            </TooltipProvider>
           </Controls>
         </ReactFlow>
         {/* 下拉节点选择菜单 */}

@@ -6,11 +6,8 @@ import { StudioPageTemplate } from '@/components/page-templates'
 import {
   AppScene,
   PageErrorState,
-  PageHeader,
   PageLoadingState,
 } from '@/components/patterns'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { useSetModalState } from '@/hooks/common-hooks'
 import {
   buildAgentCanvasPath,
@@ -31,6 +28,7 @@ import { widgetSettingsGlobalKey } from './share/widget-settings'
 import { ShareEmbedDialog } from './share/share-embed-dialog'
 import { GlobalVariableSheet } from './global-variable-sheet'
 import AgentCanvas from './canvas'
+import { AgentEditorHeader } from './components/agent-editor-header'
 import { EditorRuntimeRail } from './components/editor-runtime-rail'
 import {
   AgentRuntimeStatus,
@@ -44,7 +42,6 @@ import {
 import { SettingDialog } from './setting-dialog'
 import { VersionDialog } from './version-dialog'
 import { WebhookSheet } from './webhook-sheet'
-import { ArrowLeft, Play, Save } from 'lucide-react'
 
 export default function AgentEditorPage() {
   const { t } = useTranslation()
@@ -282,62 +279,21 @@ export default function AgentEditorPage() {
     <>
       <StudioPageTemplate
         toolbar={
-          <>
-            <PageHeader
-              compact
-              align="center"
-              surface="elevated"
-              className="border-b-0 shadow-elevation-medium"
-              title={
-                <div className="flex max-w-xl min-w-[280px] items-center gap-space-sm">
-                  <Input
-                    value={title}
-                    onChange={(event) => {
-                      setTitleDirty(true)
-                      setTitle(event.target.value)
-                    }}
-                    className="h-11 text-base font-semibold"
-                    placeholder={t(
-                      'agent.editor.namePlaceholder',
-                      '输入 Agent 名称',
-                    )}
-                  />
-                </div>
-              }
-              description={t(
-                'agent.editor.autosaveDescription',
-                'ID: {{id}} · 自动保存 {{time}}',
-                {
-                  id: flowDetail.id,
-                  time:
-                    autosaveLabel ||
-                    t('agent.editor.autosavePending', '待首次保存'),
-                },
-              )}
-              actions={
-                <>
-                  <Button variant="outline" onClick={() => navigate('/agents')}>
-                    <ArrowLeft className="mr-space-xs h-4 w-4" />
-                    {t('agent.editor.back', '返回')}
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    onClick={handleSave}
-                    disabled={saving}
-                  >
-                    <Save className="mr-space-xs h-4 w-4" />
-                    {saving
-                      ? t('common.saving', '保存中...')
-                      : t('agent.editor.save', '保存')}
-                  </Button>
-                  <Button onClick={() => openRuntimeWorkbench()}>
-                    <Play className="mr-space-xs h-4 w-4" />
-                    {t('agent.editor.run', '运行')}
-                  </Button>
-                </>
-              }
-            />
-          </>
+          <AgentEditorHeader
+            flow={flowDetail}
+            kind={editorMode === 'pipeline' ? 'workflow' : 'agent'}
+            title={title}
+            onTitleChange={(nextTitle) => {
+              setTitleDirty(true)
+              setTitle(nextTitle)
+            }}
+            autosaveLabel={autosaveLabel}
+            runtimeStatus={runtimeSummary.status}
+            saving={saving}
+            onBack={() => navigate('/agents')}
+            onSave={() => void handleSave()}
+            onRun={() => openRuntimeWorkbench()}
+          />
         }
         sidePanel={
           <EditorRuntimeRail

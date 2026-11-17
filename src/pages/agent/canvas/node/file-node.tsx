@@ -53,7 +53,7 @@ function InnerFileNode({ id, data, selected }: NodeProps) {
         id={id}
         name={data.name as string}
         label={data.label as string}
-        icon={<FileUp className="w-4 h-4" style={{ color: 'var(--color-components-canvas-icon-file)' }} />}
+        icon={<FileUp />}
       />
       <SummaryList
         items={inputs}
@@ -62,9 +62,8 @@ function InnerFileNode({ id, data, selected }: NodeProps) {
         }
         renderItem={(input, index, { withDivider }) => {
           const Icon =
-            FileInputIconMap[
-              input.type as keyof typeof FileInputIconMap
-            ] || Type
+            FileInputIconMap[input.type as keyof typeof FileInputIconMap] ||
+            Type
 
           return (
             <div
@@ -77,10 +76,14 @@ function InnerFileNode({ id, data, selected }: NodeProps) {
               <Icon className="size-3.5 shrink-0 text-text-secondary" />
               <div className="min-w-0 flex-1">
                 <div className="truncate text-sm text-text-primary">
-                  {input.name || input.key || t('common.unassigned', 'Unassigned')}
+                  {input.name ||
+                    input.key ||
+                    t('common.unassigned', 'Unassigned')}
                 </div>
                 {input.key && input.key !== input.name ? (
-                  <div className="truncate text-text-secondary">{input.key}</div>
+                  <div className="truncate text-text-secondary">
+                    {input.key}
+                  </div>
                 ) : null}
               </div>
               <span className="shrink-0 text-text-tertiary">

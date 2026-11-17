@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import type { RAGFlowNodeType } from '../../../types'
 import {
   legacyFormRenderers,
@@ -15,6 +16,8 @@ export function FormRenderer({
   rendererKey,
   operatorType,
 }: FormRendererProps) {
+  const { t } = useTranslation()
+
   if (!node) {
     return null
   }
@@ -26,16 +29,17 @@ export function FormRenderer({
   if (!FormComponent) {
     return (
       <div className="space-y-space-md p-space-base">
-        <div className="rounded-radius-md border-border-primary bg-surface-secondary p-space-base border">
+        <div className="rounded-radius-md border border-border-primary bg-surface-secondary p-space-base">
           <div className="text-sm font-medium text-text-primary">
-            暂不支持编辑该节点配置
+            {t('agent.runtimePanel.formSheet.unsupportedTitle')}
           </div>
           <p className="mt-space-xs text-sm text-text-secondary">
-            当前节点类型为 {operatorType || 'unknown'}
-            。你可以继续在画布中连接、运行或保存该节点。
+            {t('agent.runtimePanel.formSheet.unsupportedDescription', {
+              type: operatorType || 'unknown',
+            })}
           </p>
         </div>
-        <pre className="rounded-radius-md border-border-primary bg-surface-secondary p-space-base max-h-[24rem] overflow-auto border text-xs text-text-secondary">
+        <pre className="max-h-[24rem] overflow-auto rounded-radius-md border border-border-primary bg-surface-secondary p-space-base text-xs text-text-secondary">
           {JSON.stringify(node.data?.form || {}, null, 2)}
         </pre>
       </div>

@@ -44,18 +44,14 @@ function ParserSummaryCard({
       )}
     >
       <span className="text-text-secondary">{`Parser ${index + 1}`}</span>
-      <div className="text-sm font-semibold leading-tight text-text-primary">
+      <div className="text-sm leading-tight font-semibold text-text-primary">
         {getParserFileTypeLabel(t, fileFormat)}
       </div>
     </div>
   )
 }
 
-function ParserNodeCollapsible({
-  items,
-}: {
-  items: ParserSetupSummary[]
-}) {
+function ParserNodeCollapsible({ items }: { items: ParserSetupSummary[] }) {
   const { t } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
   const visibleItems = items.slice(0, 3)
@@ -64,7 +60,9 @@ function ParserNodeCollapsible({
   if (items.length === 0) {
     return (
       <div className="px-space-sm py-space-sm">
-        <LabelCard>{t('flow.noParsersConfigured', 'No parsers configured')}</LabelCard>
+        <LabelCard>
+          {t('flow.noParsersConfigured', 'No parsers configured')}
+        </LabelCard>
       </div>
     )
   }
@@ -86,7 +84,7 @@ function ParserNodeCollapsible({
         ))}
 
         {hiddenItems.length > 0 ? (
-          <CollapsibleContent className="overflow-hidden data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up">
+          <CollapsibleContent className="data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up overflow-hidden">
             {hiddenItems.map((item, idx) => (
               <ParserSummaryCard
                 key={`${item.fileFormat || 'parser'}-${idx + visibleItems.length}`}
@@ -111,7 +109,11 @@ function ParserNodeCollapsible({
                   'mx-auto flex size-5 items-center justify-center rounded-radius-full bg-text-secondary text-text-inverted shadow-elevation-low transition-colors',
                   isOpen && 'bg-text-primary',
                 )}
-                aria-label={isOpen ? t('common.collapse', 'Collapse') : t('common.expand', 'Expand')}
+                aria-label={
+                  isOpen
+                    ? t('common.collapse', 'Collapse')
+                    : t('common.expand', 'Expand')
+                }
               >
                 {isOpen ? (
                   <ChevronUp className="size-3.5" />
@@ -127,7 +129,12 @@ function ParserNodeCollapsible({
   )
 }
 
-function InnerParserNode({ id, data, isConnectable, selected }: NodeProps<IParserNode>) {
+function InnerParserNode({
+  id,
+  data,
+  isConnectable,
+  selected,
+}: NodeProps<IParserNode>) {
   const setups = data.form?.setups
     ? normalizeParserSetupsForStore(data.form.setups)
     : []
@@ -162,8 +169,6 @@ function InnerParserNode({ id, data, isConnectable, selected }: NodeProps<IParse
           id={id}
           name={data.name as string}
           label={data.label as string}
-          icon={<></>}
-          className="gap-0"
         />
         <ParserNodeCollapsible items={setups} />
       </NodeWrapper>

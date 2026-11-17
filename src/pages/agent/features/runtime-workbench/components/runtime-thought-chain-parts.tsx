@@ -1,3 +1,5 @@
+import type { TFunction } from 'i18next'
+import { useTranslation } from 'react-i18next'
 import { Badge } from '@/components/ui/badge'
 import { JsonViewer } from '../../../form/components/json-viewer'
 import {
@@ -12,11 +14,11 @@ import {
   XCircle,
 } from 'lucide-react'
 
-export const STATUS_LABEL_MAP: Record<string, string> = {
-  loading: '运行中',
-  success: '已完成',
-  error: '失败',
-  abort: '已停止',
+export const STATUS_LABEL_KEY_MAP: Record<string, string> = {
+  loading: 'agent.runtime.running',
+  success: 'agent.runtime.success',
+  error: 'agent.runtime.error',
+  abort: 'agent.runtime.stopped',
 }
 
 export const STATUS_BADGE_MAP: Record<
@@ -60,24 +62,37 @@ const stringifyValue = (value: unknown) => {
   }
 }
 
-export const summarizeValue = (value: unknown, fallback: string) => {
+export const summarizeValue = (
+  value: unknown,
+  fallback: string,
+  t: TFunction,
+) => {
   if (value === undefined || value === null || value === '') {
     return fallback
   }
 
   if (Array.isArray(value)) {
-    return `${value.length} 项`
+    return t('agent.runtimePanel.thoughtChain.itemCount', {
+      count: value.length,
+    })
   }
 
   if (isRecord(value)) {
     const rawKeys = Object.keys(value)
     const keys = rawKeys.filter((key) => !key.startsWith('_'))
     if (!keys.length) {
-      return rawKeys.length ? '系统元数据' : fallback
+      return rawKeys.length
+        ? t('agent.runtimePanel.thoughtChain.systemMetadata')
+        : fallback
     }
 
     const preview = keys.slice(0, 3).join(', ')
-    return keys.length > 3 ? `${keys.length} 字段 · ${preview}...` : preview
+    return keys.length > 3
+      ? t('agent.runtimePanel.thoughtChain.fieldSummary', {
+          count: keys.length,
+          preview,
+        })
+      : preview
   }
 
   return String(value).slice(0, 80)
@@ -163,14 +178,20 @@ export function RuntimeThoughtPayload({
 }
 
 export function RuntimeStatusBadge({ status }: { status: string }) {
+  const { t } = useTranslation()
+  const labelKey = STATUS_LABEL_KEY_MAP[status]
   const StatusIcon = STATUS_ICONS[status] || XCircle
 
   return (
     <Badge variant={STATUS_BADGE_MAP[status]} className="gap-space-xs">
       <StatusIcon
-        className={status === 'loading' ? 'size-3 animate-spin' : 'size-3'}
+        className={
+          status === 'loading'
+            ? 'size-3 animate-spin motion-reduce:animate-none'
+            : 'size-3'
+        }
       />
-      {STATUS_LABEL_MAP[status]}
+      {labelKey ? t(labelKey) : null}
     </Badge>
   )
 }

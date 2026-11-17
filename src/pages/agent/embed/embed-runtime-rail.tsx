@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { SectionCard } from '@/components/patterns'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 import { formatTimestampDetailed } from '@/lib/utils'
 import {
   countFlowNodes,
@@ -70,7 +71,7 @@ export function EmbedRuntimeRail({
   )
 
   return (
-    <div className="gap-space-lg p-space-lg pb-space-2xl grid h-full min-h-0 auto-rows-max overflow-y-auto overscroll-contain">
+    <div className="grid h-full min-h-0 auto-rows-max gap-space-lg overflow-y-auto overscroll-contain p-space-lg pb-space-2xl">
       <AssetSummaryCard
         flow={flow}
         title={title}
@@ -130,13 +131,24 @@ function AssetSummaryCard({
       className="min-h-0"
     >
       <div className="space-y-space-md">
-        <div>
-          <p className="text-base font-semibold text-text-primary">{title}</p>
-          <p className="mt-space-xs text-sm text-text-secondary">
-            {description}
-          </p>
+        <div className="flex items-start gap-space-sm">
+          <EntityAvatar
+            name={title}
+            src={flow?.avatar}
+            seed={flow?.id}
+            badge={isPipelineFlow(flow) ? 'workflow' : 'agent'}
+            size="lg"
+          />
+          <div className="min-w-0">
+            <p className="text-base font-semibold break-words text-text-primary">
+              {title}
+            </p>
+            <p className="mt-space-xs text-sm text-text-secondary">
+              {description}
+            </p>
+          </div>
         </div>
-        <div className="gap-space-sm grid grid-cols-2 text-sm">
+        <div className="grid grid-cols-2 gap-space-sm text-sm">
           <SummaryMetric
             label={t('agent.embedRail.type', 'Type')}
             value={

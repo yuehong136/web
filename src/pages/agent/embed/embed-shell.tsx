@@ -1,4 +1,5 @@
 import { type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   AppScene,
   PageErrorState,
@@ -59,11 +60,14 @@ interface EmbedWaitingHostProps {
  * responsible for sending init after `ready`.
  */
 export function EmbedWaitingHost({ parentOrigin }: EmbedWaitingHostProps) {
+  const { t } = useTranslation()
   return (
     <PageLoadingState
       scene={AppScene.STUDIO}
-      title="正在等待宿主初始化"
-      description={`已就绪，等待 ${parentOrigin} 通过 postMessage 发送 embed-init。`}
+      title={t('agent.embedShell.waitingTitle')}
+      description={t('agent.embedShell.waitingDescription', {
+        origin: parentOrigin,
+      })}
     />
   )
 }
@@ -77,10 +81,11 @@ interface EmbedAccessErrorProps {
  * communication because we cannot trust an unverified parent at this point.
  */
 export function EmbedAccessError({ message }: EmbedAccessErrorProps) {
+  const { t } = useTranslation()
   return (
     <PageErrorState
       scene={AppScene.STUDIO}
-      title="无法加载嵌入页"
+      title={t('agent.embedShell.accessErrorTitle')}
       description={message}
     />
   )
@@ -97,12 +102,13 @@ interface EmbedAuthErrorProps {
  * notification.
  */
 export function EmbedAuthError({ onRetry }: EmbedAuthErrorProps) {
+  const { t } = useTranslation()
   return (
     <PageErrorState
       scene={AppScene.STUDIO}
-      title="身份验证已过期"
-      description="嵌入身份过期或无效，等待宿主刷新 JWT。"
-      retryLabel={onRetry ? '重试' : undefined}
+      title={t('agent.embedShell.authExpiredTitle')}
+      description={t('agent.embedShell.authExpiredDescription')}
+      retryLabel={onRetry ? t('common.retry') : undefined}
       onRetry={onRetry}
     />
   )

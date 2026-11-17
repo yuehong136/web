@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { Operator } from '@/pages/agent/constant'
 import OperatorIcon from '@/pages/agent/operator-icon'
@@ -6,7 +7,10 @@ import type {
   TraceSpanStatus,
   TraceSpanViewModel,
 } from '@/pages/agent/adapters/trace'
-import { TRACE_SPAN_KIND_LABELS, TRACE_SPAN_STATUS_LABELS } from '../constants'
+import {
+  TRACE_SPAN_KIND_LABEL_KEYS,
+  TRACE_SPAN_STATUS_LABEL_KEYS,
+} from '../constants'
 import { formatTraceDuration, getTraceDurationPercent } from '../utils'
 
 const STATUS_DOT_CLASSES: Record<TraceSpanStatus, string> = {
@@ -81,6 +85,7 @@ export function TraceSpanRow({
   isLast = false,
   totalDuration,
 }: TraceSpanRowProps) {
+  const { t } = useTranslation()
   const operatorName = resolveTraceOperatorName(span)
   const depthPadding =
     depth === 0 ? 'pl-space-xs' : depth === 1 ? 'pl-space-md' : 'pl-space-lg'
@@ -95,7 +100,9 @@ export function TraceSpanRow({
   return (
     <button
       type="button"
-      aria-label={`查看节点 ${span.name || span.id}`}
+      aria-label={t('agent.traceWorkbench.spanRow.view', {
+        name: span.name || span.id,
+      })}
       aria-pressed={selected}
       className={cn(
         'group grid w-full min-w-0 grid-cols-[32px_minmax(0,1fr)] pr-space-sm text-left text-text-secondary transition-colors',
@@ -141,7 +148,7 @@ export function TraceSpanRow({
                   {span.name}
                 </span>
                 <span className="shrink-0 rounded-radius-full border border-border-subtle px-space-xs py-[1px] text-[11px] text-text-tertiary">
-                  {TRACE_SPAN_KIND_LABELS[span.kind]}
+                  {t(TRACE_SPAN_KIND_LABEL_KEYS[span.kind])}
                 </span>
               </span>
               <span className="mt-space-xs flex min-w-0 items-center gap-space-xs text-xs text-text-caption">
@@ -151,13 +158,15 @@ export function TraceSpanRow({
                     STATUS_DOT_CLASSES[span.status],
                   )}
                 />
-                <span>{TRACE_SPAN_STATUS_LABELS[span.status]}</span>
+                <span>{t(TRACE_SPAN_STATUS_LABEL_KEYS[span.status])}</span>
               </span>
             </span>
           </span>
           <span
             className="block h-2 min-w-0 overflow-hidden rounded-radius-full bg-surface-secondary"
-            aria-label={`耗时占比 ${durationPercent.toFixed(1)}%`}
+            aria-label={t('agent.traceWorkbench.spanRow.durationShare', {
+              percent: durationPercent.toFixed(1),
+            })}
           >
             <span
               className={cn(
@@ -169,7 +178,7 @@ export function TraceSpanRow({
           </span>
           <span className="flex items-center justify-end gap-space-xs">
             <span className="font-mono text-xs text-text-secondary">
-              {formatTraceDuration(span.duration)}
+              {formatTraceDuration(span.duration, t)}
             </span>
             {span.children.length ? (
               <span className="shrink-0 rounded-radius-full bg-surface-secondary px-space-xs py-[1px] text-[11px] text-text-caption">

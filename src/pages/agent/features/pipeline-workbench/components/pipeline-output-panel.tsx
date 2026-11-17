@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { SectionCard } from '@/components/patterns'
 import { Button } from '@/components/ui/button'
 import { Download, ExternalLink } from 'lucide-react'
@@ -8,6 +9,7 @@ interface PipelineOutputPanelProps {
 }
 
 export function PipelineOutputPanel({ controller }: PipelineOutputPanelProps) {
+  const { t } = useTranslation()
   const {
     outputAvailable,
     endOutput,
@@ -21,7 +23,7 @@ export function PipelineOutputPanel({ controller }: PipelineOutputPanelProps) {
   return (
     <div className="space-y-space-lg p-space-md">
       <SectionCard
-        title="END 节点输出"
+        title={t('agent.pipelineRun.outputPanel.title')}
         padding="default"
         actions={
           <>
@@ -33,7 +35,7 @@ export function PipelineOutputPanel({ controller }: PipelineOutputPanelProps) {
               disabled={!outputAvailable}
             >
               <ExternalLink className="mr-space-xs size-4" />
-              查看结果
+              {t('agent.pipelineRun.outputPanel.viewResult')}
             </Button>
             <Button
               type="button"
@@ -43,7 +45,7 @@ export function PipelineOutputPanel({ controller }: PipelineOutputPanelProps) {
               disabled={!outputAvailable}
             >
               <Download className="mr-space-xs size-4" />
-              下载 JSON
+              {t('agent.pipelineRun.outputPanel.downloadJson')}
             </Button>
           </>
         }
@@ -51,12 +53,16 @@ export function PipelineOutputPanel({ controller }: PipelineOutputPanelProps) {
         {uploadedFile ? (
           <div className="mb-space-md rounded-radius-md border border-border-subtle bg-surface-secondary p-space-sm text-sm text-text-secondary">
             <div className="font-medium text-text-primary">
-              {String(uploadedFile.name || uploadedFile.id || '未命名文档')}
+              {String(
+                uploadedFile.name ||
+                  uploadedFile.id ||
+                  t('agent.runtime.unnamedDocument'),
+              )}
             </div>
             <div className="mt-space-xs text-xs text-text-tertiary">
               {resultPath
-                ? '已准备结果页上下文，可跳转查看本次运行结果。'
-                : '已记录本次文件；缺少 doc_id 时只能在当前面板查看 END 输出。'}
+                ? t('agent.pipelineRun.outputPanel.resultReady')
+                : t('agent.pipelineRun.outputPanel.resultMissingDocId')}
             </div>
           </div>
         ) : null}
@@ -66,13 +72,16 @@ export function PipelineOutputPanel({ controller }: PipelineOutputPanelProps) {
           </pre>
         ) : (
           <p className="text-sm text-text-secondary">
-            Pipeline 暂无可下载的 END 输出。运行完成后此处会展示数据流的最终结果。
+            {t('agent.pipelineRun.outputPanel.empty')}
           </p>
         )}
       </SectionCard>
 
       {lastError ? (
-        <SectionCard title="运行异常" padding="default">
+        <SectionCard
+          title={t('agent.pipelineRun.outputPanel.errorTitle')}
+          padding="default"
+        >
           <p className="text-sm text-status-error">{lastError}</p>
         </SectionCard>
       ) : null}

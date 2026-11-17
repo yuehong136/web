@@ -193,6 +193,9 @@ export function EmbedAuthorised({
         setTitleDirty(true)
         setTitle(next)
       }}
+      avatar={flowDetail.avatar}
+      avatarSeed={flowDetail.id}
+      kind={editorMode === 'pipeline' ? 'workflow' : 'agent'}
       show={access.show}
       onSave={() => void handleSave()}
       saving={saving}

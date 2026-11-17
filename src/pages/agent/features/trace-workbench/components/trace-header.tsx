@@ -1,8 +1,12 @@
 import { AlertTriangle, RefreshCw } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import type { TraceRunViewModel } from '@/pages/agent/adapters/trace'
-import { TRACE_RUN_STATUS_LABELS, TRACE_UNAVAILABLE_LABELS } from '../constants'
+import {
+  TRACE_RUN_STATUS_LABEL_KEYS,
+  TRACE_UNAVAILABLE_LABELS,
+} from '../constants'
 
 const STATUS_VARIANT_MAP: Record<
   TraceRunViewModel['status'],
@@ -28,7 +32,7 @@ function TraceIdentifier({ label, value }: { label: string; value?: string }) {
       : value
 
   return (
-    <div className="gap-space-xs rounded-radius-full bg-surface-secondary px-space-sm flex min-w-0 items-center border border-border-subtle py-[2px] text-xs text-text-tertiary">
+    <div className="flex min-w-0 items-center gap-space-xs rounded-radius-full border border-border-subtle bg-surface-secondary px-space-sm py-[2px] text-xs text-text-tertiary">
       <span className="shrink-0">{label}</span>
       <span className="font-mono text-text-secondary">
         {displayValue || '-'}
@@ -42,45 +46,56 @@ export function TraceHeader({
   isLoading,
   onRefresh,
 }: TraceHeaderProps) {
+  const { t } = useTranslation()
   const unavailable = viewModel.unavailableReason
     ? TRACE_UNAVAILABLE_LABELS[viewModel.unavailableReason]
     : undefined
 
   return (
-    <header className="gap-space-base px-space-lg py-space-base flex min-h-[64px] items-center justify-between border-b border-components-split-pane-border bg-components-console-surface">
+    <header className="flex min-h-[64px] items-center justify-between gap-space-base border-b border-components-split-pane-border bg-components-console-surface px-space-lg py-space-base">
       <div className="min-w-0">
-        <div className="gap-space-sm flex min-w-0 items-center">
+        <div className="flex min-w-0 items-center gap-space-sm">
           <Badge variant={STATUS_VARIANT_MAP[viewModel.status]}>
-            {TRACE_RUN_STATUS_LABELS[viewModel.status]}
+            {t(TRACE_RUN_STATUS_LABEL_KEYS[viewModel.status])}
           </Badge>
           <h3 className="truncate text-sm font-semibold text-text-primary">
-            Trace
+            {t('agent.trace.trace')}
           </h3>
           {unavailable ? (
-            <span className="gap-space-xs text-status-warning inline-flex min-w-0 items-center text-xs">
+            <span className="inline-flex min-w-0 items-center gap-space-xs text-xs text-status-warning">
               <AlertTriangle className="size-3.5 shrink-0" />
-              <span className="truncate">{unavailable.title}</span>
+              <span className="truncate">{t(unavailable.titleKey)}</span>
             </span>
           ) : null}
         </div>
-        <div className="mt-space-xs gap-space-xs flex min-w-0 flex-wrap items-center">
-          <TraceIdentifier label="Session" value={viewModel.sessionId} />
-          <TraceIdentifier label="Message" value={viewModel.messageId} />
+        <div className="mt-space-xs flex min-w-0 flex-wrap items-center gap-space-xs">
+          <TraceIdentifier
+            label={t('agent.trace.session')}
+            value={viewModel.sessionId}
+          />
+          <TraceIdentifier
+            label={t('agent.trace.message')}
+            value={viewModel.messageId}
+          />
         </div>
       </div>
-      <div className="gap-space-xs flex shrink-0 items-center">
+      <div className="flex shrink-0 items-center gap-space-xs">
         <span className="hidden text-xs text-text-tertiary xl:inline-flex">
-          {viewModel.summary.spanCount} spans
+          {t('agent.traceWorkbench.header.spanCount', {
+            count: viewModel.summary.spanCount,
+          })}
         </span>
         <span className="hidden text-xs text-text-tertiary xl:inline-flex">
-          {viewModel.summary.toolCallCount} tools
+          {t('agent.traceWorkbench.header.toolCount', {
+            count: viewModel.summary.toolCallCount,
+          })}
         </span>
         {onRefresh ? (
           <Button
             type="button"
             variant="ghost"
             size="icon-sm"
-            aria-label="刷新 Trace"
+            aria-label={t('agent.trace.refresh')}
             onClick={onRefresh}
             loading={isLoading}
           >

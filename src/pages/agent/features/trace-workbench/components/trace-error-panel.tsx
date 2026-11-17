@@ -1,4 +1,5 @@
 import { AlertTriangle, CheckCircle2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import type {
   TraceIssue,
   TraceRunViewModel,
@@ -19,6 +20,7 @@ interface TraceErrorPanelProps {
 }
 
 export function TraceErrorPanel({ viewModel, span }: TraceErrorPanelProps) {
+  const { t } = useTranslation()
   const spanIssues = span
     ? viewModel.issues.filter((issue) => issue.spanId === span.id)
     : []
@@ -34,10 +36,10 @@ export function TraceErrorPanel({ viewModel, span }: TraceErrorPanelProps) {
         <div className="flex flex-col items-center justify-center rounded-radius-md bg-surface-primary px-space-lg py-space-xl text-center">
           <CheckCircle2 className="size-8 text-status-success" />
           <div className="mt-space-sm text-sm font-semibold text-text-primary">
-            当前节点未记录错误
+            {t('agent.traceWorkbench.errorPanel.empty')}
           </div>
           <div className="mt-space-xs text-xs text-text-tertiary">
-            如果回答异常但 Trace 正常，请继续查看 Payload 与 Raw JSON。
+            {t('agent.traceWorkbench.errorPanel.emptyHint')}
           </div>
         </div>
       </div>
@@ -50,7 +52,7 @@ export function TraceErrorPanel({ viewModel, span }: TraceErrorPanelProps) {
         <div className="rounded-radius-md border border-status-error-border bg-status-error-subtle p-space-base text-status-error">
           <div className="flex items-center gap-space-xs text-sm font-semibold">
             <AlertTriangle className="size-3.5" />
-            节点错误
+            {t('agent.traceWorkbench.errorPanel.spanError')}
           </div>
           <pre className="mt-space-sm text-xs break-words whitespace-pre-wrap">
             {spanError}

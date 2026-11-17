@@ -2,6 +2,7 @@ import { memo } from 'react'
 import type { NodeProps } from '@xyflow/react'
 import { StickyNote } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { cn } from '@/lib/utils'
 
 function InnerNoteNode({ data, selected }: NodeProps) {
   const { t } = useTranslation()
@@ -10,30 +11,20 @@ function InnerNoteNode({ data, selected }: NodeProps) {
 
   return (
     <div
-      className="note-drag-handle min-h-[100px] min-w-[200px] cursor-move rounded-lg border-2 p-4 shadow-md"
-      style={{
-        backgroundColor: 'var(--color-components-canvas-note-bg)',
-        borderColor: selected
-          ? 'var(--color-components-canvas-note-border-selected)'
-          : 'var(--color-components-canvas-note-border)',
-      }}
+      className={cn(
+        'note-drag-handle min-h-[100px] min-w-[200px] cursor-move rounded-radius-lg border-2 bg-components-canvas-note-bg p-space-base shadow-elevation-low transition-[border-color,box-shadow] hover:shadow-elevation-medium motion-reduce:transition-none',
+        selected
+          ? 'border-components-canvas-note-border-selected'
+          : 'border-components-canvas-note-border',
+      )}
     >
-      <div className="mb-2 flex items-center gap-2">
-        <StickyNote
-          className="h-4 w-4"
-          style={{ color: 'var(--color-components-canvas-note-title)' }}
-        />
-        <div
-          className="text-sm font-semibold"
-          style={{ color: 'var(--color-components-canvas-note-title)' }}
-        >
+      <div className="mb-space-sm flex items-center gap-space-sm text-components-canvas-note-title">
+        <StickyNote aria-hidden className="size-icon-sm shrink-0" />
+        <div className="truncate text-sm font-semibold">
           {data.name as string}
         </div>
       </div>
-      <div
-        className="whitespace-pre-wrap text-xs"
-        style={{ color: 'var(--color-components-canvas-note-text)' }}
-      >
+      <div className="text-xs whitespace-pre-wrap text-components-canvas-note-text">
         {noteText}
       </div>
     </div>

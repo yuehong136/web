@@ -1,10 +1,15 @@
-export function formatTraceDuration(duration?: number) {
+import type { TFunction } from 'i18next'
+
+export function formatTraceDuration(
+  duration: number | undefined,
+  t: TFunction,
+) {
   if (typeof duration !== 'number' || Number.isNaN(duration)) {
-    return '未记录'
+    return t('agent.traceWorkbench.notRecorded')
   }
 
   if (duration <= 0) {
-    return '未记录'
+    return t('agent.traceWorkbench.notRecorded')
   }
 
   if (duration < 60) {
@@ -62,7 +67,7 @@ function dedupeDisplayPayload(value: unknown): unknown {
 
 export function formatTracePayload(
   value: unknown,
-  emptyLabel = '接口未提供',
+  emptyLabel: string,
   options: { dedupeArrays?: boolean } = {},
 ) {
   if (value === undefined || value === null || value === '') {

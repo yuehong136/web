@@ -70,12 +70,10 @@ function InnerA2UINode({ id, data, selected }: NodeProps<IA2UINode>) {
           id={id}
           name={data.name}
           label={data.label}
-          icon={
-            <GalleryVerticalEnd className="h-icon-md w-icon-md text-text-secondary" />
-          }
+          icon={<GalleryVerticalEnd />}
         />
-        <section className="gap-space-xs px-space-sm pb-space-xs flex flex-col">
-          <LabelCard className="gap-space-sm flex items-center">
+        <section className="flex flex-col gap-space-xs px-space-sm pb-space-xs">
+          <LabelCard className="flex items-center gap-space-sm">
             <BookOpen className="size-3.5 shrink-0 text-text-tertiary" />
             <span className="text-text-tertiary">
               {t('flow.catalog', 'Catalog')}
@@ -88,7 +86,7 @@ function InnerA2UINode({ id, data, selected }: NodeProps<IA2UINode>) {
         <SummaryList
           items={surfaceIds}
           empty={
-            <LabelCard className="gap-space-sm flex items-center text-text-tertiary">
+            <LabelCard className="flex items-center gap-space-sm text-text-tertiary">
               <Layers className="size-3.5 shrink-0" />
               <span>{t('flow.noSurface', 'No Surface')}</span>
             </LabelCard>
@@ -97,10 +95,10 @@ function InnerA2UINode({ id, data, selected }: NodeProps<IA2UINode>) {
             <section
               key={`${id}-surface-${surfaceId}`}
               className={cn(
-                withDivider && 'pt-space-sm border-t border-border-subtle',
+                withDivider && 'border-t border-border-subtle pt-space-sm',
               )}
             >
-              <LabelCard className="gap-space-sm flex items-center">
+              <LabelCard className="flex items-center gap-space-sm">
                 <Layers className="size-3.5 shrink-0 text-text-tertiary" />
                 <span className="min-w-0 flex-1 truncate font-medium text-text-primary">
                   {surfaceId}

@@ -1,4 +1,5 @@
 import { SectionCard } from '@/components/patterns'
+import { useTranslation } from 'react-i18next'
 import { LogDetail } from '../../log-detail'
 import { AgentRuntimeStatus, type AgentRuntimeController } from '../types'
 import { WorkFlowTimeline } from './workflow-timeline'
@@ -8,6 +9,7 @@ interface RuntimeLogPanelProps {
 }
 
 export function RuntimeLogPanel({ controller }: RuntimeLogPanelProps) {
+  const { t } = useTranslation()
   const terminal =
     controller.status === AgentRuntimeStatus.SUCCESS ||
     controller.status === AgentRuntimeStatus.ERROR ||
@@ -23,7 +25,10 @@ export function RuntimeLogPanel({ controller }: RuntimeLogPanelProps) {
 
   return (
     <div className="p-space-md">
-      <SectionCard title="节点时间线" padding="default">
+      <SectionCard
+        title={t('agent.runtimePanel.logPanel.nodeTimeline')}
+        padding="default"
+      >
         <WorkFlowTimeline
           currentEventListWithoutMessage={controller.logEvents}
           sendLoading={controller.loading}

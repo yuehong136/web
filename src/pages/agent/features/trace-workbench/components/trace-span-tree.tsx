@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import type { TraceSpanViewModel } from '@/pages/agent/adapters/trace'
 import { TraceSpanRow } from './trace-span-row'
 
@@ -58,16 +59,22 @@ export function TraceSpanTree({
   totalDuration,
   onSelect,
 }: TraceSpanTreeProps) {
+  const { t } = useTranslation()
+
   return (
     <div className="max-h-[calc(100vh-260px)] overflow-auto">
-      <div className="px-space-base py-space-sm border-b border-border-subtle">
-        <h4 className="text-sm font-semibold text-text-primary">执行链路</h4>
-        <div className="mt-space-xs text-text-caption grid grid-cols-[32px_minmax(0,1fr)] text-[11px]">
+      <div className="border-b border-border-subtle px-space-base py-space-sm">
+        <h4 className="text-sm font-semibold text-text-primary">
+          {t('agent.traceWorkbench.spanTree.title')}
+        </h4>
+        <div className="mt-space-xs grid grid-cols-[32px_minmax(0,1fr)] text-[11px] text-text-caption">
           <span />
           <span className="grid grid-cols-[minmax(132px,0.92fr)_minmax(100px,1fr)_72px]">
-            <span>节点</span>
-            <span>耗时瀑布</span>
-            <span className="text-right">Latency</span>
+            <span>{t('agent.trace.node')}</span>
+            <span>{t('agent.traceWorkbench.spanTree.waterfall')}</span>
+            <span className="text-right">
+              {t('agent.traceWorkbench.spanTree.latency')}
+            </span>
           </span>
         </div>
       </div>

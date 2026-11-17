@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import { AppScene, PageEmptyState } from '@/components/patterns'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {
@@ -44,16 +45,17 @@ export function RuntimeChatPanel({
   isTaskMode = false,
   composerMode,
   density = 'comfortable',
-  emptyTitle = '还没有消息',
-  emptyDescription = '发送第一条消息后开始会话。',
-  taskModeEmptyTitle = '任务模式会话',
-  taskModeEmptyDescription = '请先在运行页提交开始输入，运行后这里会展示消息与执行链路。',
+  emptyTitle,
+  emptyDescription,
+  taskModeEmptyTitle,
+  taskModeEmptyDescription,
   onSend,
   onStop,
   onSubmitAwaitingInputs,
   onXCardAction,
   onDownloadAttachment,
 }: RuntimeChatPanelProps) {
+  const { t } = useTranslation()
   const showComposer =
     composerMode !== 'hidden' && !isTaskMode && Boolean(canvasId)
   const isCompact = density === 'compact'
@@ -66,9 +68,18 @@ export function RuntimeChatPanel({
             <PageEmptyState
               scene={AppScene.WORKSPACE}
               compact={isCompact}
-              title={isTaskMode ? taskModeEmptyTitle : emptyTitle}
+              title={
+                isTaskMode
+                  ? (taskModeEmptyTitle ??
+                    t('agent.runtimePanel.chatPanel.taskModeTitle'))
+                  : (emptyTitle ?? t('agent.runtimePanel.chatPanel.emptyTitle'))
+              }
               description={
-                isTaskMode ? taskModeEmptyDescription : emptyDescription
+                isTaskMode
+                  ? (taskModeEmptyDescription ??
+                    t('agent.runtimePanel.chatPanel.taskModeDescription'))
+                  : (emptyDescription ??
+                    t('agent.runtimePanel.chatPanel.emptyDescription'))
               }
             />
           </div>
@@ -96,7 +107,7 @@ export function RuntimeChatPanel({
           disabled={Boolean(messages.at(-1)?.awaitingInputs?.length)}
           isTaskMode={isTaskMode}
           density={composerMode === 'compact' ? 'compact' : density}
-          placeholder="输入测试消息..."
+          placeholder={t('agent.runtimePanel.chatPanel.placeholder')}
           onSend={onSend}
           onStop={onStop}
         />

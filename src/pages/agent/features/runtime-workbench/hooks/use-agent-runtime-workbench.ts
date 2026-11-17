@@ -146,8 +146,8 @@ export function useAgentRuntimeWorkbench({
   )
 
   const resolveCanvasTitle = useMemo(() => {
-    return resolveLocalizedText(agent?.title, '未命名资产')
-  }, [agent?.title])
+    return resolveLocalizedText(agent?.title, t('agent.unnamedAsset'))
+  }, [agent?.title, t])
 
   const sessionName = useMemo(() => {
     if (!sessionId) {
@@ -161,19 +161,19 @@ export function useAgentRuntimeWorkbench({
 
   const saveCurrentGraph = useCallback(async () => {
     if (!canvasId) {
-      toast.error('缺少画布 ID，无法保存当前运行上下文')
+      toast.error(t('agent.runtimePanel.controller.missingCanvasForSave'))
       return false
     }
 
     const saved = await saveGraph(resolveCanvasTitle)
 
     if (!saved) {
-      toast.error('保存失败，无法进入运行工作台')
+      toast.error(t('agent.runtimePanel.controller.saveFailed'))
       return false
     }
 
     return true
-  }, [canvasId, resolveCanvasTitle, saveGraph])
+  }, [canvasId, resolveCanvasTitle, saveGraph, t])
 
   const appendAssistantPlaceholder = useCallback(() => {
     const assistantId = createLocalRuntimeMessageId('assistant')
@@ -390,7 +390,7 @@ export function useAgentRuntimeWorkbench({
 
       setStatus(AgentRuntimeStatus.IDLE)
       onViewChange(RuntimeWorkbenchView.CONVERSATION)
-      toast.success('运行参数已同步，开始输入测试消息')
+      toast.success(t('agent.runtimePanel.controller.inputsSynced'))
     },
     [
       clearRuntimeState,
@@ -400,6 +400,7 @@ export function useAgentRuntimeWorkbench({
       runRequest,
       saveCurrentGraph,
       sessionId,
+      t,
       updateNodeForm,
     ],
   )
@@ -488,7 +489,7 @@ export function useAgentRuntimeWorkbench({
   const handleCreateSession = useCallback(
     async (name?: string) => {
       if (!canvasId) {
-        toast.error('缺少画布 ID，无法创建会话')
+        toast.error(t('agent.runtimePanel.controller.missingCanvasForSession'))
         return
       }
 

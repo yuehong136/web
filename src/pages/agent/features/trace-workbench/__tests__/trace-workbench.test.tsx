@@ -1,7 +1,11 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import test from 'node:test'
+import { createInstance } from 'i18next'
+import type { ReactElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
+import { I18nextProvider } from 'react-i18next'
+import zhAgent from '@/locales/zh-CN/agent'
 import {
   adaptAgentTraceItems,
   buildTraceRunViewModel,
@@ -13,6 +17,20 @@ import {
   resolveDefaultTraceSpanId,
 } from '../hooks/use-trace-workbench'
 import { formatTraceDuration, formatTracePayload } from '../utils'
+
+const i18n = createInstance()
+await i18n.init({
+  lng: 'zh-CN',
+  resources: { 'zh-CN': { translation: zhAgent } },
+  interpolation: { escapeValue: false },
+})
+const t = i18n.t.bind(i18n)
+
+function renderWithI18n(element: ReactElement) {
+  return renderToStaticMarkup(
+    <I18nextProvider i18n={i18n}>{element}</I18nextProvider>,
+  )
+}
 
 test('trace workbench defaults to the first error span', () => {
   const viewModel = buildTraceRunViewModel({
@@ -62,10 +80,10 @@ test('trace workbench defaults to the slowest span when there is no error', () =
 })
 
 test('trace empty state renders unavailable reason specific content', () => {
-  const noMessageMarkup = renderToStaticMarkup(
+  const noMessageMarkup = renderWithI18n(
     <TraceEmptyState reason="no-message-id" />,
   )
-  const queryErrorMarkup = renderToStaticMarkup(
+  const queryErrorMarkup = renderWithI18n(
     <TraceEmptyState reason="query-error" />,
   )
 
@@ -128,7 +146,7 @@ test('trace span tree renders tool child spans', () => {
       },
     ]),
   })
-  const markup = renderToStaticMarkup(
+  const markup = renderWithI18n(
     <TraceSpanTree
       spans={viewModel.spans}
       selectedSpanId={viewModel.spans[0]?.children[0]?.id}
@@ -163,11 +181,11 @@ test('trace workbench source does not parse raw trace field names', () => {
 })
 
 test('trace workbench formats durations in seconds without rounding to zero', () => {
-  assert.equal(formatTraceDuration(0), '未记录')
-  assert.equal(formatTraceDuration(0.0004), '0.001s')
-  assert.equal(formatTraceDuration(0.0012), '0.001s')
-  assert.equal(formatTraceDuration(0.008), '0.008s')
-  assert.equal(formatTraceDuration(1.606), '1.606s')
+  assert.equal(formatTraceDuration(0, t), '未记录')
+  assert.equal(formatTraceDuration(0.0004, t), '0.001s')
+  assert.equal(formatTraceDuration(0.0012, t), '0.001s')
+  assert.equal(formatTraceDuration(0.008, t), '0.008s')
+  assert.equal(formatTraceDuration(1.606, t), '1.606s')
 })
 
 test('trace workbench dedupes identical input and output array entries for display', () => {

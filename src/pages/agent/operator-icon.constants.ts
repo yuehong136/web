@@ -102,3 +102,93 @@ export const LucideIconMap: Record<string, typeof Bot> = {
   [Operator.TitleChunker]: Layers,
   [Operator.Extractor]: Filter,
 }
+
+/**
+ * Operator families, matching the groups of the add-node menu. Each family
+ * keeps one tile colour wherever an operator is shown (nodes, menus, panels,
+ * run timelines).
+ */
+export type OperatorCategory =
+  | 'start'
+  | 'ai'
+  | 'knowledge'
+  | 'dialog'
+  | 'flow'
+  | 'data'
+  | 'tool'
+  | 'ingestion'
+  | 'note'
+
+const CATEGORY_MEMBERS: Record<
+  Exclude<OperatorCategory, 'tool'>,
+  readonly string[]
+> = {
+  start: [Operator.Begin, Operator.IterationStart, Operator.LoopStart],
+  ai: [
+    Operator.Agent,
+    Operator.RewriteQuestion,
+    Operator.KeywordExtract,
+    Operator.Extractor,
+  ],
+  knowledge: [Operator.Retrieval],
+  dialog: [
+    Operator.Message,
+    Operator.A2UI,
+    Operator.UserFillUp,
+    Operator.WaitingDialogue,
+  ],
+  flow: [
+    Operator.Categorize,
+    Operator.Switch,
+    Operator.Relevant,
+    Operator.Iteration,
+    Operator.Loop,
+    Operator.ExitLoop,
+  ],
+  data: [
+    Operator.Code,
+    Operator.StringTransform,
+    Operator.DataOperations,
+    Operator.ListOperations,
+    Operator.VariableAssigner,
+    Operator.VariableAggregator,
+  ],
+  ingestion: [
+    Operator.File,
+    Operator.Parser,
+    Operator.Tokenizer,
+    Operator.TokenChunker,
+    Operator.TitleChunker,
+  ],
+  note: [Operator.Note, Operator.Placeholder],
+}
+
+const OPERATOR_CATEGORY = new Map<string, OperatorCategory>(
+  Object.entries(CATEGORY_MEMBERS).flatMap(([category, members]) =>
+    members.map((member) => [member, category as OperatorCategory] as const),
+  ),
+)
+
+/** Anything else is a tool (search engines, HTTP, mail, SQL, MCP…). */
+export function getOperatorCategory(
+  operator?: string | null,
+): OperatorCategory {
+  return (operator && OPERATOR_CATEGORY.get(operator)) || 'tool'
+}
+
+/**
+ * Avatar tints per family (tomato, amber, olive, green, teal, blue, violet,
+ * pink): Agent and knowledge nodes share the Agent and knowledge-base kind
+ * colours. Static strings so Tailwind sees every class.
+ */
+export const OPERATOR_CATEGORY_TONE: Record<OperatorCategory, string> = {
+  start: 'bg-components-avatar-4-bg text-components-avatar-4-text',
+  ai: 'bg-components-avatar-7-bg text-components-avatar-7-text',
+  knowledge: 'bg-components-avatar-5-bg text-components-avatar-5-text',
+  dialog: 'bg-components-avatar-6-bg text-components-avatar-6-text',
+  flow: 'bg-components-avatar-2-bg text-components-avatar-2-text',
+  data: 'bg-components-avatar-3-bg text-components-avatar-3-text',
+  tool: 'bg-components-avatar-1-bg text-components-avatar-1-text',
+  ingestion: 'bg-components-avatar-8-bg text-components-avatar-8-text',
+  note: 'bg-background-subtle text-text-secondary',
+}

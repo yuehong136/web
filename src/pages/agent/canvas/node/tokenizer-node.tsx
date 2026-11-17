@@ -37,14 +37,9 @@ function InnerTokenizerNode({ id, data, isConnectable, selected }: NodeProps) {
           id={id}
           name={data.name as string}
           label={data.label as string}
-          icon={
-            <Layers
-              className="size-4"
-              style={{ color: 'var(--color-components-canvas-icon-tokenizer)' }}
-            />
-          }
+          icon={<Layers />}
         />
-        <LabelCard className="gap-space-xs flex flex-col text-text-primary">
+        <LabelCard className="flex flex-col gap-space-xs text-text-primary">
           <span className="text-text-secondary">
             {t('flow.searchMethod', 'Search Method')}
           </span>

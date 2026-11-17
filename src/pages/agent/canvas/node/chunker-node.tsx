@@ -41,12 +41,7 @@ function InnerChunkerNode({ id, data, isConnectable, selected }: NodeProps) {
           id={id}
           name={data.name as string}
           label={data.label as string}
-          icon={
-            <ListTree
-              className="h-4 w-4"
-              style={{ color: 'var(--color-components-canvas-icon-splitter)' }}
-            />
-          }
+          icon={<ListTree />}
         />
         <LabelCard className="text-text-primary">
           {data.name as string}
