@@ -78,7 +78,7 @@
 |  13 | ENG-3  | a11y 棘轮、核心模板小屏降级、i18n/route locale 收口、虚拟化和 mutation UX                            |   P2   | XXL，28–45 人日 | 拆成 4–6 个独立 PR；需产品确认移动端范围          | 进行中           |
 |  14 | HYG-3  | 修正文档版本表、环境变量登记和路线图状态漂移                                                         |   P2   |   S–M，2–4 人日 | AGENTS 单一来源；工具入口映射                     | 部分完成         |
 |  15 | ARCH-8 | 共享 Chat Workbench：composer、附件、滚动、停止/重试、工具调用、反馈和可访问状态                     |   P2   |  XL，15–25 人日 | 依赖 ARCH-7、ENG-2；需稳定消息/工具协议           | 进行中           |
-|  16 | ENG-12 | 按活跃度拆 ApiKeys、Provider modal、MCPChat、Explore，并收紧文件棘轮                                 |   P2   | XXL，25–40 人日 | 先修业务正确性，避免重构错误行为                  | 未开始           |
+|  16 | ENG-12 | 按活跃度拆 ApiKeys、Provider modal、MCPChat、Explore，并收紧文件棘轮                                 |   P2   | XXL，25–40 人日 | 先修业务正确性，避免重构错误行为                  | 部分完成         |
 |  17 | ARCH-9 | 试点 Projects/Spaces + Assets 信息架构，整合聊天、文件、知识、指令与 Studio                          |   P3   | XXL，25–45 人日 | 跨产品/前后端；需数据模型、权限和迁移方案         | 未开始           |
 |  18 | ARCH-5 | 设计令牌用量治理（Tailwind 4 迁移已完成）                                                            |   P3   |    L，8–12 人日 | 可靠性、体验和 Bundle 工作稳定后再做              | 部分完成         |
 
@@ -895,3 +895,5 @@ hooks 7 最新全量试跑为 151 errors / 93 files：set-state-in-effect 87、r
 2026-10-02 渠道样式补充（ARCH-6 / CHN-P7）：ProviderGallery 切换为新版可访问 outline，悬浮背景和焦点颜色改用实际存在的 background-subtle / state-focus 令牌，修复旧别名没有生成 CSS 的问题。浏览器在明暗两种主题下读回键盘焦点的 2px 语义色 ring，Enter 触发选择并读回 feishu；使用本地组件 fixture，不调用创建或连接接口。保留 manifest 驱动、disabled 和选择回调合同，未修改 API、凭据或生产数据。专项 lint 与 Web build、Bundle/file-size 门禁通过。
 
 2026-10-08 UI 审计 W0 死代码清理（[审计 §6](./design-reviews/ui-ux-modernization-audit-2026-10-05.md) 中标为“立即”的条目，`1a16008` 至 `82dd3c1` 共 7 个提交，删除约 6,800 行）：删除无引用的 Agent 组件、hooks 与 store action，旧 Header、布局导出与 MCPDashboard，旧 dialog 列表与提示词编辑页、theme-demo、工具市场及只为它存在的 4 个 vendor/ui 组件，知识库元数据弹窗与旧解析器代码，API 聚合 barrel、模拟的 `mcp-chat.ts` 与无调用方的方法和 hooks，Home 推荐卡与 WaveText；UI store 去掉无人读取的字段并升到 v2，带 v1 迁移与持久化测试。按约定保留 NoDebug/NoCopy 算子列表语义、`language` 偏好、`chatKeys` 与 `useFetchConversationsByDialog`、`metadata.updateDocumentMeta` 和 `mcp-chat-reference.css`。重定向与推荐卡的决定变更分别记在 ENG-8、ENG-6；文件体积基线随之收紧（`0d427ff`）。未做：审计中标为“迁移后”的条目与 knip 接入；清单之外另见的零调用导出也未删除，它们位于仍在使用的模块里：`use-llm-request` 的按类型选项 hooks、`use-mcp-request` 的创建/更新 hooks、`use-dialog-apps` 的单应用读写 hooks，以及 `dialogAPI.deleteChat`、`dialogAPI.create`。验证与真实页面检查见 ARCH-5 的 2026-10-08 记录。
+
+2026-11-17 潮汐（Tide）视觉重设计与 ENG-12 点名模块收口：ApiKeysPage 拆为 API 密钥与 API 文档两页后删除；provider API key modal 降到约 180 行；MCPChatPage 及其全局样式 `mcp-chat-reference.css` 删除，功能并入首页的模型/MCP 模式，`/mcp-chat` 重定向到首页；ExplorePage 降到约 480 行并移出基线。ENG-12 点名的四个模块已全部完成，剩余 12 个在册债务文件（类型定义、Agent 常量与序列化、主题生成器等）继续按棘轮偿还。同期新增 `design-guard/no-raw-visual-values`（error），禁止 Tailwind 原色板、任意颜色值、非 AI 时刻的渐变和 emoji 图标；删除 recharts、markdown-it、react-markdown 与 remark 插件，Markdown 统一走 `@ant-design/x-markdown`；`index.css` 删除无渲染规则（907 行降到 677 行）；对话框改为只有最上层响应 Escape。

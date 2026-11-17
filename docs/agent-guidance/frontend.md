@@ -124,6 +124,9 @@
 - 厂商、模型供应商的标识统一用 `patterns/provider-logo.tsx` 的 `ProviderLogo`（底层为自有 SVG 与 `@lobehub/icons-static-svg`），彩色标识保留原色，单色标识跟随文字色；不得把品牌标识画成界面图标或首字母块。
 - 文件在列表、引用芯片、来源条中统一用 `patterns/file-kind-tile.tsx` 的 `FileKindTile`，颜色取 `components-file-{kind}-*`。
 - 潮光渐变 `bg-ai-tide`、聚焦光晕 `ai-glow`、顶部光晕 `ai-halo`、流光文字 `text-shimmer` 只用于 AI 时刻：聚焦的输入框、思考和检索中、运行中的 Agent、首页问候。普通按钮、卡片和标签不使用。
+- 以上由 `design-guard/no-raw-visual-values`（error）把关：禁止 Tailwind 原色板（`bg-blue-500` 等）、任意颜色值（`bg-[#…]`、`text-[rgb(…)]`）、不含 `components-ai-*` 的渐变，以及 JSX 文本里的 emoji 图标。生成的报告 HTML 除外。
+- 集合页在用户未选择视图且数量不超过 12 时默认卡片网格（`src/stores/collection-view.ts`）；首次空状态用 `EmptyStart` 给出真实可用的起步路径，筛选为空仍用 `PageEmptyState`。
+- 应用壳内只有一行页面头部：页面模板与 `ChatThreadHeader` 通过 `useWorkbenchHeader` 把标题和操作放进工作台顶栏，壳外（嵌入、独立页）自动回到页内。
 
 ### 设计令牌（强制 — 禁止任意值）
 
