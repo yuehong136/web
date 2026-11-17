@@ -134,7 +134,12 @@ export function ExploreWorkspace({
                   <div className="min-h-0 flex-1">{history}</div>
                 </SheetContent>
               </Sheet>
-              <EntityAvatar name={agentName} src={avatar} seed={avatarSeed} />
+              <EntityAvatar
+                name={agentName}
+                src={avatar}
+                seed={avatarSeed}
+                badge="agent"
+              />
               <div className="min-w-0">
                 <h1 className="truncate text-base font-semibold text-text-primary">
                   {agentName}

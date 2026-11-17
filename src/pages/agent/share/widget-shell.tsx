@@ -2,6 +2,7 @@ import { playWidgetSound } from './widget-sound'
 import type { WidgetSettings } from './widget-settings'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { MessageCircle, X } from 'lucide-react'
@@ -111,11 +112,14 @@ export function WidgetStandalonePreview({
 
 export function WidgetShell({
   title,
+  avatar,
   children,
   variant = 'iframe',
   settings,
 }: {
   title: string
+  /** The agent's identity in the header; omitted when the share hides it. */
+  avatar?: { src?: string; seed?: string }
   children: ReactNode
   variant?: 'iframe' | 'panel'
   settings?: WidgetSettings
@@ -128,7 +132,15 @@ export function WidgetShell({
         variant === 'iframe' ? 'h-screen w-screen' : 'h-full w-full',
       )}
     >
-      <header className="widget-header flex items-center justify-between border-b border-border-subtle px-space-base py-space-sm">
+      <header className="widget-header flex items-center gap-space-sm border-b border-border-subtle px-space-base py-space-sm">
+        {avatar ? (
+          <EntityAvatar
+            name={settings?.widgetTitle.trim() || title}
+            src={avatar.src}
+            seed={avatar.seed}
+            badge="agent"
+          />
+        ) : null}
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold text-text-primary">
             {settings?.widgetTitle.trim() || title}

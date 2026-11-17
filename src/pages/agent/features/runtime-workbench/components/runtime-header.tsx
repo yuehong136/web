@@ -1,10 +1,12 @@
 import { useTranslation } from 'react-i18next'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { formatRelativeTime } from '@/lib/utils'
-import { cn } from '@/lib/utils'
 import { ExternalLink, Plus, RotateCcw, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
+import { StatusDot } from '@/components/studio/collection-identity'
+import { Button } from '@/components/ui/button'
+import { useFetchAgent } from '@/hooks/use-agent-request'
+import { resolveLocalizedText } from '@/lib/agent'
+import { cn, formatRelativeTime } from '@/lib/utils'
 import {
   AgentRuntimeStatus,
   RuntimeWorkbenchView,
@@ -13,6 +15,10 @@ import {
 } from '../types'
 import { SessionPicker } from './session-picker'
 import { AgentRunMode } from '../../../components/agent-run-mode'
+import {
+  RUNTIME_STATUS_LABEL,
+  RUNTIME_STATUS_TONE,
+} from '../../../components/runtime-status'
 
 interface RuntimeHeaderProps {
   summary: RuntimeWorkbenchSummary
@@ -20,29 +26,6 @@ interface RuntimeHeaderProps {
   onClose: () => void
   onReset: () => void
   onViewChange: (view: RuntimeWorkbenchView) => void
-}
-
-const STATUS_LABEL_MAP: Record<
-  Exclude<AgentRuntimeStatus, AgentRuntimeStatus.STOPPED>,
-  string
-> = {
-  [AgentRuntimeStatus.IDLE]: '待运行',
-  [AgentRuntimeStatus.PREPARING]: '准备中',
-  [AgentRuntimeStatus.RUNNING]: '运行中',
-  [AgentRuntimeStatus.SUCCESS]: '已完成',
-  [AgentRuntimeStatus.ERROR]: '失败',
-}
-
-const STATUS_VARIANT_MAP: Record<
-  AgentRuntimeStatus,
-  'secondary' | 'warning' | 'success' | 'destructive' | 'outline'
-> = {
-  [AgentRuntimeStatus.IDLE]: 'secondary',
-  [AgentRuntimeStatus.PREPARING]: 'warning',
-  [AgentRuntimeStatus.RUNNING]: 'warning',
-  [AgentRuntimeStatus.SUCCESS]: 'success',
-  [AgentRuntimeStatus.ERROR]: 'destructive',
-  [AgentRuntimeStatus.STOPPED]: 'outline',
 }
 
 export function RuntimeHeader({
@@ -53,58 +36,70 @@ export function RuntimeHeader({
   onViewChange,
 }: RuntimeHeaderProps) {
   const { t } = useTranslation()
+  // Same query the editor already loaded: the run belongs to this agent.
+  const { agent } = useFetchAgent(controller.canvasId)
+  const agentName = resolveLocalizedText(agent?.title, t('agent.unnamedAsset'))
   const visibleSessionId = controller.viewingSessionId || summary.sessionId
   const visibleSessionName =
     controller.viewingSessionId &&
     controller.viewingSessionId !== summary.sessionId
-      ? '历史会话'
-      : summary.sessionName || 'Live · 未命名'
+      ? t('agent.runtimePanel.header.historySession')
+      : summary.sessionName || t('agent.runtimePanel.header.liveUnnamed')
 
   return (
-    <div className="border-border-primary border-b px-space-md py-space-sm">
+    <div className="border-b border-border-default px-space-md py-space-sm">
       <div className="flex items-start justify-between gap-space-sm">
-        <div className="space-y-space-xs">
-          <div className="flex items-center gap-space-sm">
-            <h2 className="text-base font-medium text-text-primary">
-              Agent 运行与单步调试工作台
-            </h2>
-            <Badge variant={STATUS_VARIANT_MAP[summary.status]}>
-              {summary.status === AgentRuntimeStatus.STOPPED
-                ? t('agent.runtime.outputDetached')
-                : STATUS_LABEL_MAP[summary.status]}
-            </Badge>
-          </div>
-          <AgentRunMode mode={visibleSessionId ? 'session' : 'draft'} />
-          <p className="text-sm text-text-secondary">
-            {summary.lastRunAt
-              ? `最近一次运行 ${formatRelativeTime(summary.lastRunAt)}`
-              : '在这里配置 Begin 输入、查看对话结果与节点时间线。'}
-          </p>
-          {summary.lastError ? (
-            <p
-              className={cn(
-                'text-xs',
-                summary.status === AgentRuntimeStatus.ERROR
-                  ? 'text-status-error'
-                  : 'text-text-tertiary',
-              )}
-            >
-              {summary.lastError}
+        <div className="flex min-w-0 items-start gap-space-sm">
+          <EntityAvatar
+            name={agentName}
+            src={agent?.avatar}
+            seed={controller.canvasId}
+            badge="agent"
+          />
+          <div className="min-w-0 space-y-space-xs">
+            <div className="flex flex-wrap items-center gap-x-space-sm gap-y-space-2xs">
+              <h2 className="text-base font-medium text-text-primary">
+                {t('agent.runtimePanel.header.title')}
+              </h2>
+              <StatusDot
+                tone={RUNTIME_STATUS_TONE[summary.status]}
+                label={t(RUNTIME_STATUS_LABEL[summary.status])}
+              />
+            </div>
+            <AgentRunMode mode={visibleSessionId ? 'session' : 'draft'} />
+            <p className="text-sm text-text-secondary">
+              {summary.lastRunAt
+                ? t('agent.runtimePanel.header.lastRunAt', {
+                    time: formatRelativeTime(summary.lastRunAt),
+                  })
+                : t('agent.runtimePanel.header.idleDescription')}
             </p>
-          ) : null}
+            {summary.lastError ? (
+              <p
+                className={cn(
+                  'text-xs',
+                  summary.status === AgentRuntimeStatus.ERROR
+                    ? 'text-status-error'
+                    : 'text-text-tertiary',
+                )}
+              >
+                {summary.lastError}
+              </p>
+            ) : null}
+          </div>
         </div>
 
-        <div className="flex items-center gap-space-xs">
+        <div className="flex shrink-0 items-center gap-space-xs">
           <Button
             type="button"
             variant="ghost"
             size="icon-sm"
             className="text-text-secondary hover:text-text-primary"
             onClick={onReset}
-            title="清空当前运行记录"
-            aria-label="清空当前运行记录"
+            title={t('agent.runtimePanel.header.reset')}
+            aria-label={t('agent.runtimePanel.header.reset')}
           >
-            <RotateCcw className="size-4" />
+            <RotateCcw className="size-icon-sm" />
           </Button>
           <Button
             type="button"
@@ -112,21 +107,24 @@ export function RuntimeHeader({
             size="icon-sm"
             className="text-text-secondary hover:text-text-primary"
             onClick={onClose}
-            title="关闭运行工作台"
-            aria-label="关闭运行工作台"
+            title={t('agent.runtimePanel.header.close')}
+            aria-label={t('agent.runtimePanel.header.close')}
           >
-            <X className="size-4" />
+            <X className="size-icon-sm" />
           </Button>
         </div>
       </div>
 
-      <div className="bg-surface-secondary mt-space-sm flex flex-wrap items-center justify-between gap-space-sm rounded-radius-md border border-border-default px-space-sm py-space-xs">
+      <div className="mt-space-sm flex flex-wrap items-center justify-between gap-space-sm rounded-radius-md border border-border-subtle bg-background-subtle px-space-sm py-space-xs">
         <div className="min-w-0">
           <p className="truncate text-xs font-medium text-text-primary">
-            当前会话：{visibleSessionName}
+            {t('agent.runtimePanel.header.currentSession', {
+              name: visibleSessionName,
+            })}
           </p>
-          <p className="truncate text-xs text-text-tertiary">
-            {visibleSessionId || '运行后由后端返回 session_id'}
+          <p className="truncate font-mono text-xs text-text-tertiary">
+            {visibleSessionId ||
+              t('agent.runtimePanel.header.sessionIdPending')}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-space-xs">
@@ -138,8 +136,8 @@ export function RuntimeHeader({
               void controller.handleCreateSession()
             }}
           >
-            <Plus className="size-4" />
-            新建会话
+            <Plus className="size-icon-sm" />
+            {t('agent.runtimePanel.header.newSession')}
           </Button>
           <SessionPicker
             canvasId={controller.canvasId}
@@ -155,7 +153,7 @@ export function RuntimeHeader({
               <Link
                 to={`/agent/${controller.canvasId}/explore?sessionId=${encodeURIComponent(visibleSessionId)}`}
               >
-                <ExternalLink className="size-4" />
+                <ExternalLink className="size-icon-sm" />
                 {t('agent.runtime.viewInExplore')}
               </Link>
             </Button>

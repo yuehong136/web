@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import {
   Sheet,
@@ -33,6 +34,7 @@ export function PipelineWorkbench({
   onOpenChange,
   onViewChange,
 }: PipelineWorkbenchProps) {
+  const { t } = useTranslation()
   const summary = {
     ...controller.summary,
     currentView: view,
@@ -48,18 +50,20 @@ export function PipelineWorkbench({
         showOverlay={false}
         showCloseButton={false}
         className={cn(
-          'top-20 flex h-auto min-w-[420px] max-w-[680px] flex-col gap-0 overflow-hidden p-0 sm:max-w-[680px]',
+          'top-20 flex h-auto max-w-[680px] min-w-[420px] flex-col gap-0 overflow-hidden p-0 sm:max-w-[680px]',
           'w-[40vw]',
         )}
         onInteractOutside={(event) => event.preventDefault()}
       >
-        <SheetTitle className="sr-only">Pipeline 运行与日志工作台</SheetTitle>
+        <SheetTitle className="sr-only">
+          {t('agent.pipelineRun.header.title')}
+        </SheetTitle>
         <SheetDescription className="sr-only">
-          上传文档或填写 Begin 输入，启动 Pipeline
-          数据流，查看节点时间线与最终输出
+          {t('agent.pipelineRun.workbench.description')}
         </SheetDescription>
 
         <PipelineHeader
+          canvasId={controller.canvasId}
           summary={summary}
           onClose={() => onOpenChange(false)}
           onReset={controller.handleReset}
@@ -72,26 +76,26 @@ export function PipelineWorkbench({
           }
           className="flex min-h-0 flex-1 flex-col"
         >
-          <div className="border-border-primary px-space-md py-space-sm border-b">
-            <div className="gap-space-sm flex items-center justify-between">
+          <div className="border-b border-border-primary px-space-md py-space-sm">
+            <div className="flex items-center justify-between gap-space-sm">
               <TabsList className="w-full justify-start">
                 <TabsTrigger value={PipelineWorkbenchView.RUN}>
                   <Play className="mr-space-xs size-4" />
-                  运行
+                  {t('agent.pipelineRun.workbench.tabs.run')}
                 </TabsTrigger>
                 <TabsTrigger
                   value={PipelineWorkbenchView.LOG}
                   disabled={!controller.hasLogs}
                 >
                   <NotebookText className="mr-space-xs size-4" />
-                  日志
+                  {t('agent.pipelineRun.workbench.tabs.log')}
                 </TabsTrigger>
                 <TabsTrigger
                   value={PipelineWorkbenchView.OUTPUT}
                   disabled={!controller.outputAvailable}
                 >
                   <FileOutput className="mr-space-xs size-4" />
-                  输出
+                  {t('agent.pipelineRun.workbench.tabs.output')}
                 </TabsTrigger>
               </TabsList>
 
@@ -104,7 +108,9 @@ export function PipelineWorkbench({
                   disabled={controller.cancelling}
                 >
                   <Square className="mr-space-xs size-4" />
-                  {controller.cancelling ? '取消中…' : '停止'}
+                  {controller.cancelling
+                    ? t('agent.pipelineRun.workbench.cancelling')
+                    : t('agent.pipelineRun.workbench.stop')}
                 </Button>
               ) : null}
             </div>
@@ -122,7 +128,10 @@ export function PipelineWorkbench({
             className="mt-0 min-h-0 flex-1 overflow-auto"
           >
             <div className="p-space-md">
-              <SectionCard title="数据流时间线" padding="default">
+              <SectionCard
+                title={t('agent.pipelineRun.workbench.timelineTitle')}
+                padding="default"
+              >
                 <DataflowTimeline
                   trace={controller.trace}
                   loading={controller.loading}

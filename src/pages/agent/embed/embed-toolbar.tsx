@@ -1,5 +1,7 @@
 import { useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { PageHeader } from '@/components/patterns'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -19,6 +21,11 @@ export interface EmbedToolbarProps {
   /** Display title (editable input). */
   title: string
   onTitleChange: (next: string) => void
+
+  /** The agent's identity: avatar, tone seed and agent/workflow badge. */
+  avatar?: string
+  avatarSeed?: string
+  kind?: 'agent' | 'workflow'
 
   /** Whitelist of buttons to render. */
   show: ReadonlySet<EmbedShowKey>
@@ -44,7 +51,7 @@ export interface EmbedToolbarProps {
 /**
  * Toolbar for the embed shell. Imports the main project's PageHeader and
  * Button so any visual upgrade to those primitives automatically propagates
- * here. The shape mirrors `AgentEditorPage`'s toolbar but with embed-specific
+ * here. The shape mirrors `AgentEditorHeader` but with embed-specific
  * wiring: save calls useSaveGraph (real backend write), editor actions open
  * the same dialogs/sheets as the full editor, and only true route exits
  * postMessage to the host instead of `navigate(...)`.
@@ -55,6 +62,9 @@ export interface EmbedToolbarProps {
 export function EmbedToolbar({
   title,
   onTitleChange,
+  avatar,
+  avatarSeed,
+  kind = 'agent',
   show,
   onSave,
   saving,
@@ -66,6 +76,7 @@ export function EmbedToolbar({
   onOpenSettings,
   description,
 }: EmbedToolbarProps) {
+  const { t } = useTranslation()
   const handleNav = useCallback(
     (target: EmbedNavigateTarget) => () => onNavigateRequest(target),
     [onNavigateRequest],
@@ -81,15 +92,26 @@ export function EmbedToolbar({
   return (
     <PageHeader
       compact
+      align="center"
+      surface="plain"
+      wrapActions
+      className="min-h-13 border-b border-components-studio-border bg-components-studio-surface px-space-sm py-space-xs"
       title={
-        <div className="gap-space-sm flex max-w-xl items-center">
+        <span className="flex max-w-xl min-w-0 items-center gap-space-sm">
+          <EntityAvatar
+            name={title}
+            src={avatar}
+            seed={avatarSeed}
+            badge={kind}
+          />
           <Input
             value={title}
             onChange={(event) => onTitleChange(event.target.value)}
-            className="h-11 text-base font-semibold"
-            placeholder="输入 Agent 名称"
+            aria-label={t('agent.editor.nameLabel')}
+            className="h-9 min-w-48 text-base font-semibold"
+            placeholder={t('agent.editor.namePlaceholder')}
           />
-        </div>
+        </span>
       }
       description={description}
       actions={
@@ -97,53 +119,53 @@ export function EmbedToolbar({
           {showNav ? (
             <>
               <Button variant="outline" onClick={handleNav('back')}>
-                <ArrowLeft className="mr-space-xs h-4 w-4" />
-                返回
+                <ArrowLeft className="mr-space-xs size-icon-sm" />
+                {t('agent.editor.back')}
               </Button>
               <Button variant="outline" onClick={handleNav('explore')}>
-                <Compass className="mr-space-xs h-4 w-4" />
-                Explore
+                <Compass className="mr-space-xs size-icon-sm" />
+                {t('agent.embedToolbar.explore')}
               </Button>
             </>
           ) : null}
 
           {showPublish ? (
             <Button variant="outline" onClick={onOpenVersions}>
-              <History className="mr-space-xs h-4 w-4" />
-              发布
+              <History className="mr-space-xs size-icon-sm" />
+              {t('agent.embedRail.publish')}
             </Button>
           ) : null}
 
           {showWebhook ? (
             <Button variant="outline" onClick={onOpenWebhook}>
-              <Link2 className="mr-space-xs h-4 w-4" />
-              Webhook
+              <Link2 className="mr-space-xs size-icon-sm" />
+              {t('agent.embedRail.webhook')}
             </Button>
           ) : null}
 
           {showVariables ? (
             <Button variant="outline" onClick={onOpenVariables}>
-              <MessageSquareCode className="mr-space-xs h-4 w-4" />
-              会话变量
+              <MessageSquareCode className="mr-space-xs size-icon-sm" />
+              {t('agent.embedRail.variables')}
             </Button>
           ) : null}
 
           {showSettings ? (
             <Button variant="outline" onClick={onOpenSettings}>
-              <Settings2 className="mr-space-xs h-4 w-4" />
-              设置
+              <Settings2 className="mr-space-xs size-icon-sm" />
+              {t('agent.embedToolbar.settings')}
             </Button>
           ) : null}
 
           <Button variant="secondary" onClick={onSave} disabled={saving}>
-            <Save className="mr-space-xs h-4 w-4" />
-            {saving ? '保存中...' : '保存'}
+            <Save className="mr-space-xs size-icon-sm" />
+            {saving ? t('common.saving') : t('agent.editor.save')}
           </Button>
 
           {showRun ? (
             <Button onClick={onRun}>
-              <Play className="mr-space-xs h-4 w-4" />
-              运行
+              <Play className="mr-space-xs size-icon-sm" />
+              {t('agent.editor.run')}
             </Button>
           ) : null}
         </>

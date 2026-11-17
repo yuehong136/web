@@ -1,3 +1,4 @@
+import type { TFunction } from 'i18next'
 import type { RuntimeAttachment } from '../features/runtime-workbench/types'
 
 const EXTERNAL_API_BASE_URL = '/api'
@@ -12,10 +13,7 @@ const getAttachmentExt = (file: RuntimeAttachment) => {
   return typeof ext === 'string' && ext ? ext.replace(/^\./, '') : 'markdown'
 }
 
-const getDownloadFilename = (
-  response: Response,
-  fallback: string,
-) => {
+const getDownloadFilename = (response: Response, fallback: string) => {
   const disposition = response.headers.get('Content-Disposition')
   const utf8Match = disposition?.match(/filename\*=UTF-8''([^;\s]+)/)
   const asciiMatch =
@@ -43,19 +41,22 @@ export async function downloadShareAttachment({
   file,
   agentId,
   betaToken,
+  t,
 }: {
   file: RuntimeAttachment
   agentId: string
   betaToken: string
+  /** The page's translator: share pages and widgets scope their own locale. */
+  t: TFunction
 }) {
   const docId = getAttachmentDocId(file)
 
   if (!agentId) {
-    throw new Error('缺少 Agent ID，无法下载附件')
+    throw new Error(t('agent.share.attachmentMissingAgentId'))
   }
 
   if (!docId) {
-    throw new Error('附件缺少 doc_id，无法下载')
+    throw new Error(t('agent.share.attachmentMissingDocId'))
   }
 
   const params = new URLSearchParams({

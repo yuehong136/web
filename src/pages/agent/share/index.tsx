@@ -10,6 +10,7 @@ import {
   PageHeader,
   PageLoadingState,
 } from '@/components/patterns'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -315,6 +316,7 @@ export default function AgentSharePage() {
           file,
           agentId: access.agentId,
           betaToken: access.betaToken,
+          t,
         })
       } catch (error) {
         toast.error(
@@ -400,6 +402,18 @@ export default function AgentSharePage() {
       <WorkspacePageTemplate
         header={
           <PageHeader
+            align="center"
+            leading={
+              access.visibleAvatar ? (
+                <EntityAvatar
+                  name={shareQuery.data.title}
+                  src={shareQuery.data.avatar}
+                  seed={access.agentId}
+                  badge="agent"
+                  size="lg"
+                />
+              ) : undefined
+            }
             title={
               shareQuery.data.title ||
               t('agent.share.agentShare', 'Agent Share')
@@ -461,7 +475,7 @@ export default function AgentSharePage() {
               <div className="shrink-0 border-t border-border-subtle bg-components-workspace-bg py-space-base">
                 <div className="flex w-full flex-wrap items-center justify-between gap-space-sm rounded-radius-xl border border-border-default bg-surface-secondary p-space-sm shadow-elevation-low">
                   <div className="flex items-center gap-space-sm text-sm text-text-secondary">
-                    <Badge variant="purple">Task</Badge>
+                    <Badge variant="purple">{t('agent.share.task')}</Badge>
                     {runner.isRunning
                       ? t('agent.share.taskRunning', '任务运行中')
                       : t(

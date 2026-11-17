@@ -1,100 +1,101 @@
 import { useTranslation } from 'react-i18next'
-import { Badge } from '@/components/ui/badge'
+import { EntityAvatar } from '@/components/patterns/entity-avatar'
+import { StatusDot } from '@/components/studio/collection-identity'
 import { Button } from '@/components/ui/button'
+import { useFetchAgent } from '@/hooks/use-agent-request'
+import { resolveLocalizedText } from '@/lib/agent'
 import { cn, formatRelativeTime } from '@/lib/utils'
 import { RotateCcw, X } from 'lucide-react'
+import {
+  RUNTIME_STATUS_LABEL,
+  RUNTIME_STATUS_TONE,
+} from '../../../components/runtime-status'
 import { PipelineRuntimeStatus, type PipelineWorkbenchSummary } from '../types'
 
 interface PipelineHeaderProps {
+  /** The pipeline being run, for its avatar and name. */
+  canvasId?: string
   summary: PipelineWorkbenchSummary
   onClose: () => void
   onReset: () => void
 }
 
-const STATUS_LABEL_MAP: Record<
-  Exclude<PipelineRuntimeStatus, PipelineRuntimeStatus.STOPPED>,
-  string
-> = {
-  [PipelineRuntimeStatus.IDLE]: '待运行',
-  [PipelineRuntimeStatus.PREPARING]: '准备中',
-  [PipelineRuntimeStatus.RUNNING]: '运行中',
-  [PipelineRuntimeStatus.SUCCESS]: '已完成',
-  [PipelineRuntimeStatus.ERROR]: '失败',
-}
-
-const STATUS_VARIANT_MAP: Record<
-  PipelineRuntimeStatus,
-  'secondary' | 'warning' | 'success' | 'destructive' | 'outline'
-> = {
-  [PipelineRuntimeStatus.IDLE]: 'secondary',
-  [PipelineRuntimeStatus.PREPARING]: 'warning',
-  [PipelineRuntimeStatus.RUNNING]: 'warning',
-  [PipelineRuntimeStatus.SUCCESS]: 'success',
-  [PipelineRuntimeStatus.ERROR]: 'destructive',
-  [PipelineRuntimeStatus.STOPPED]: 'outline',
-}
-
 export function PipelineHeader({
+  canvasId,
   summary,
   onClose,
   onReset,
 }: PipelineHeaderProps) {
   const { t } = useTranslation()
+  const { agent } = useFetchAgent(canvasId)
+  const pipelineName = resolveLocalizedText(
+    agent?.title,
+    t('agent.unnamedAsset'),
+  )
   return (
-    <div className="border-border-primary px-space-md py-space-sm border-b">
-      <div className="gap-space-sm flex items-start justify-between">
-        <div className="space-y-space-xs">
-          <div className="gap-space-sm flex items-center">
-            <h2 className="text-base font-medium text-text-primary">
-              Pipeline 运行与日志工作台
-            </h2>
-            <Badge variant={STATUS_VARIANT_MAP[summary.status]}>
-              {summary.status === PipelineRuntimeStatus.STOPPED
-                ? t('agent.runtime.outputDetached')
-                : STATUS_LABEL_MAP[summary.status]}
-            </Badge>
+    <div className="border-b border-border-default px-space-md py-space-sm">
+      <div className="flex items-start justify-between gap-space-sm">
+        <div className="flex min-w-0 items-start gap-space-sm">
+          <EntityAvatar
+            name={pipelineName}
+            src={agent?.avatar}
+            seed={canvasId}
+            badge="workflow"
+          />
+          <div className="min-w-0 space-y-space-xs">
+            <div className="flex flex-wrap items-center gap-x-space-sm gap-y-space-2xs">
+              <h2 className="text-base font-medium text-text-primary">
+                {t('agent.pipelineRun.header.title')}
+              </h2>
+              <StatusDot
+                tone={RUNTIME_STATUS_TONE[summary.status]}
+                label={t(RUNTIME_STATUS_LABEL[summary.status])}
+              />
+            </div>
+            <p className="text-sm text-text-secondary">
+              {summary.lastRunAt
+                ? t('agent.pipelineRun.header.lastRunAt', {
+                    time: formatRelativeTime(summary.lastRunAt),
+                  })
+                : t('agent.pipelineRun.header.idleHint')}
+            </p>
+            {summary.uploadedFile ? (
+              <p className="text-xs text-text-tertiary">
+                {t('agent.runtime.runFile', {
+                  name: String(
+                    summary.uploadedFile.name ||
+                      summary.uploadedFile.id ||
+                      t('agent.runtime.unnamedDocument'),
+                  ),
+                })}
+              </p>
+            ) : null}
+            {summary.lastError ? (
+              <p
+                className={cn(
+                  'text-xs',
+                  summary.status === PipelineRuntimeStatus.ERROR
+                    ? 'text-status-error'
+                    : 'text-text-tertiary',
+                )}
+              >
+                {summary.lastError}
+              </p>
+            ) : null}
           </div>
-          <p className="text-sm text-text-secondary">
-            {summary.lastRunAt
-              ? `最近一次运行 ${formatRelativeTime(summary.lastRunAt)}`
-              : '上传文档触发数据流处理，并在右侧时间线和输出视图查看结果。'}
-          </p>
-          {summary.uploadedFile ? (
-            <p className="text-xs text-text-tertiary">
-              {t('agent.runtime.runFile', {
-                name: String(
-                  summary.uploadedFile.name ||
-                    summary.uploadedFile.id ||
-                    t('agent.runtime.unnamedDocument'),
-                ),
-              })}
-            </p>
-          ) : null}
-          {summary.lastError ? (
-            <p
-              className={cn(
-                'text-xs',
-                summary.status === PipelineRuntimeStatus.ERROR
-                  ? 'text-status-error'
-                  : 'text-text-tertiary',
-              )}
-            >
-              {summary.lastError}
-            </p>
-          ) : null}
         </div>
 
-        <div className="gap-space-xs flex items-center">
+        <div className="flex shrink-0 items-center gap-space-xs">
           <Button
             type="button"
             variant="ghost"
             size="icon-sm"
             className="text-text-secondary hover:text-text-primary"
             onClick={onReset}
-            title="清空当前 Pipeline 运行记录"
-            aria-label="清空当前 Pipeline 运行记录"
+            title={t('agent.pipelineRun.header.reset')}
+            aria-label={t('agent.pipelineRun.header.reset')}
           >
-            <RotateCcw className="size-4" />
+            <RotateCcw className="size-icon-sm" />
           </Button>
           <Button
             type="button"
@@ -102,10 +103,10 @@ export function PipelineHeader({
             size="icon-sm"
             className="text-text-secondary hover:text-text-primary"
             onClick={onClose}
-            title="关闭 Pipeline 工作台"
-            aria-label="关闭 Pipeline 工作台"
+            title={t('agent.pipelineRun.header.close')}
+            aria-label={t('agent.pipelineRun.header.close')}
           >
-            <X className="size-4" />
+            <X className="size-icon-sm" />
           </Button>
         </div>
       </div>

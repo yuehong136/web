@@ -1,8 +1,8 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import * as AlertDialog from '@radix-ui/react-alert-dialog'
 import { CircleAlert, Link2, MoreHorizontal, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import {
   Popover,
   PopoverContent,
@@ -34,7 +34,8 @@ export function SessionCard({
   const { t } = useTranslation()
   const [menuOpen, setMenuOpen] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
-  const menuRef = useRef<HTMLButtonElement>(null)
+  // State, not a ref: the confirm dialog reads it to return focus on close.
+  const [menuTrigger, setMenuTrigger] = useState<HTMLButtonElement | null>(null)
   const name = getExploreSessionTitle(
     session,
     t('agent.explore.untitledChatNamed', { id: session.id.slice(-6) }),
@@ -70,7 +71,7 @@ export function SessionCard({
       <Popover open={menuOpen} onOpenChange={setMenuOpen}>
         <PopoverTrigger asChild>
           <Button
-            ref={menuRef}
+            ref={setMenuTrigger}
             type="button"
             variant="ghost"
             size="icon-sm"
@@ -134,42 +135,22 @@ export function SessionCard({
           </Button>
         </PopoverContent>
       </Popover>
-      <AlertDialog.Root open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <AlertDialog.Portal>
-          <AlertDialog.Overlay className="fixed inset-0 z-50 bg-components-dialog-overlay" />
-          <AlertDialog.Content
-            onCloseAutoFocus={(event) => {
-              event.preventDefault()
-              menuRef.current?.focus()
-            }}
-            className="fixed top-1/2 left-1/2 z-50 w-full max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-radius-xl border border-border-default bg-components-console-surface p-space-lg shadow-elevation-high"
-          >
-            <AlertDialog.Title className="text-lg font-semibold text-text-primary">
-              {t('agent.explore.deleteChatNamed', { name })}
-            </AlertDialog.Title>
-            <AlertDialog.Description className="mt-space-sm text-sm text-text-secondary">
-              {t('agent.explore.deleteChatDescription')}
-            </AlertDialog.Description>
-            <div className="mt-space-lg flex justify-end gap-space-sm">
-              <AlertDialog.Cancel asChild>
-                <Button variant="outline" size="sm">
-                  {t('common.cancel')}
-                </Button>
-              </AlertDialog.Cancel>
-              <AlertDialog.Action asChild>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  disabled={disabled}
-                  onClick={onDelete}
-                >
-                  {t('agent.explore.deleteChat')}
-                </Button>
-              </AlertDialog.Action>
-            </div>
-          </AlertDialog.Content>
-        </AlertDialog.Portal>
-      </AlertDialog.Root>
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title={t('agent.explore.deleteChatNamed', { name })}
+        description={t('agent.explore.deleteChatDescription')}
+        confirmLabel={t('agent.explore.deleteChat')}
+        variant="destructive"
+        icon={<Trash2 />}
+        pending={disabled}
+        returnFocus={menuTrigger}
+        onConfirm={() => {
+          // The rail owns the request and its feedback; the card only asks.
+          setConfirmOpen(false)
+          onDelete()
+        }}
+      />
     </div>
   )
 }

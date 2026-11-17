@@ -329,6 +329,7 @@ function WidgetChatWindow({
           file,
           agentId: access.agentId,
           betaToken: access.betaToken,
+          t,
         })
       } catch (error) {
         toast.error(
@@ -362,6 +363,11 @@ function WidgetChatWindow({
     <WidgetShell
       title={
         shareQuery.data.title || t('agent.share.agentWidget', 'Agent Widget')
+      }
+      avatar={
+        access.visibleAvatar
+          ? { src: shareQuery.data.avatar, seed: access.agentId }
+          : undefined
       }
       variant={shellVariant}
       settings={access.widgetSettings}

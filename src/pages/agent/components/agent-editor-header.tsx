@@ -2,32 +2,12 @@ import { useTranslation } from 'react-i18next'
 import { ArrowLeft, Play, Save } from 'lucide-react'
 import { PageHeader } from '@/components/patterns'
 import { EntityAvatar } from '@/components/patterns/entity-avatar'
-import {
-  StatusDot,
-  type StatusDotTone,
-} from '@/components/studio/collection-identity'
+import { StatusDot } from '@/components/studio/collection-identity'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import type { AgentFlow } from '@/types/agent'
-import { AgentRuntimeStatus } from '../features/runtime-workbench/types'
-
-const STATUS_TONE: Record<AgentRuntimeStatus, StatusDotTone> = {
-  [AgentRuntimeStatus.IDLE]: 'neutral',
-  [AgentRuntimeStatus.PREPARING]: 'running',
-  [AgentRuntimeStatus.RUNNING]: 'running',
-  [AgentRuntimeStatus.SUCCESS]: 'success',
-  [AgentRuntimeStatus.ERROR]: 'error',
-  [AgentRuntimeStatus.STOPPED]: 'warning',
-}
-
-const STATUS_LABEL = {
-  [AgentRuntimeStatus.IDLE]: 'agent.runtime.idle',
-  [AgentRuntimeStatus.PREPARING]: 'agent.runtime.preparing',
-  [AgentRuntimeStatus.RUNNING]: 'agent.runtime.running',
-  [AgentRuntimeStatus.SUCCESS]: 'agent.runtime.success',
-  [AgentRuntimeStatus.ERROR]: 'agent.runtime.error',
-  [AgentRuntimeStatus.STOPPED]: 'agent.runtime.outputDetached',
-} as const
+import type { AgentRuntimeStatus } from '../features/runtime-workbench/types'
+import { RUNTIME_STATUS_LABEL, RUNTIME_STATUS_TONE } from './runtime-status'
 
 export interface AgentEditorHeaderProps {
   flow: Pick<AgentFlow, 'id' | 'avatar'>
@@ -101,8 +81,8 @@ export function AgentEditorHeader({
       actions={
         <>
           <StatusDot
-            tone={STATUS_TONE[runtimeStatus]}
-            label={t(STATUS_LABEL[runtimeStatus])}
+            tone={RUNTIME_STATUS_TONE[runtimeStatus]}
+            label={t(RUNTIME_STATUS_LABEL[runtimeStatus])}
             className="mr-space-xs"
           />
           <Button variant="outline" onClick={onSave} disabled={saving}>
