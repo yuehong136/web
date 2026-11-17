@@ -15,6 +15,7 @@ import noRawDangerouslySetInnerHtml from './eslint-rules/no-raw-dangerously-set-
 import noSensitiveDataInConsole from './eslint-rules/no-sensitive-data-in-console.js'
 import noImperativeHtml from './eslint-rules/no-imperative-html.js'
 import noRestrictedDynamicImport from './eslint-rules/no-restricted-dynamic-import.js'
+import noRawVisualValues from './eslint-rules/no-raw-visual-values.js'
 
 const typedLint = process.env.ESLINT_TYPED === 'true'
 const restrictedNodeImportPaths = builtinModules
@@ -436,6 +437,25 @@ export default tseslint.config([
             '页面层请优先使用 @/components/ui/input 或 textarea，例外需写明 UI 层缺口。',
         },
       ],
+    },
+  },
+  {
+    // Tide guard: colours come from design tokens, gradients only at AI moments
+    // (bg-ai-tide / components-ai-*), no emoji as UI glyphs. Generated report
+    // HTML keeps its own palette.
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: [
+      'src/themes/**',
+      'src/pages/agent/form/html-report/**',
+      '**/__tests__/**',
+    ],
+    plugins: {
+      'design-guard': {
+        rules: { 'no-raw-visual-values': noRawVisualValues },
+      },
+    },
+    rules: {
+      'design-guard/no-raw-visual-values': 'warn',
     },
   },
   {

@@ -1,0 +1,71 @@
+/**
+ * Tide guard: visual values come from design tokens.
+ *
+ * Flags, in string literals and template strings (className, cn(), class maps):
+ *  - Tailwind palette colours: `bg-blue-500`, `dark:text-gray-400`, `from-purple-100/50`
+ *  - arbitrary colour values: `bg-[#123456]`, `text-[rgb(0,0,0)]`, `border-[hsl(…)]`
+ *  - gradients outside AI moments: `bg-linear-to-r …` unless the same string uses
+ *    the tide tokens (`components-ai-*`); prefer the `bg-ai-tide` utility
+ * and, in JSX text, emoji used as UI glyphs (icons come from lucide-react,
+ * brand marks from ProviderLogo).
+ *
+ * Neutral `bg-black/50`-style scrims and `text-white` on tinted fills are not
+ * palette colours and stay allowed. Generated report HTML and user-configured
+ * widget colours are excluded in eslint.config.js.
+ */
+
+const PALETTE =
+  /(?:^|[\s"'`:(])(?:[a-z0-9-]+:)*(?:bg|text|border(?:-[xytrblse])?|ring|outline|fill|stroke|from|via|to|divide|decoration|placeholder|caret|accent|shadow)-(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3}\b/
+const ARBITRARY_COLOR =
+  /(?:bg|text|border(?:-[xytrblse])?|ring|outline|fill|stroke|from|via|to|decoration|shadow)-\[(?:#|rgba?\(|hsla?\(|oklch\()/
+const GRADIENT =
+  /(?:^|[\s"'`:])(?:[a-z0-9-]+:)*bg-(?:linear|gradient|radial|conic)-/
+const AI_TOKENS = /components-ai-/
+const EMOJI = /\p{Extended_Pictographic}/u
+
+const MESSAGES = {
+  palette:
+    'Use design tokens (text-text-*, bg-background-*, status-*, components-*) instead of Tailwind palette colours.',
+  arbitrary:
+    'Use design tokens instead of arbitrary colour values such as bg-[#…] or text-[rgb(…)].',
+  gradient:
+    'Gradients are reserved for AI moments: use bg-ai-tide, or build it from components-ai-* tokens.',
+  emoji:
+    'Do not use emoji as UI glyphs: use lucide-react icons, ProviderLogo for brands, and i18n for copy.',
+}
+
+function checkClasses(context, raw, node) {
+  if (typeof raw !== 'string' || raw.length < 4) return
+  if (PALETTE.test(raw)) context.report({ node, message: MESSAGES.palette })
+  else if (ARBITRARY_COLOR.test(raw))
+    context.report({ node, message: MESSAGES.arbitrary })
+  else if (GRADIENT.test(raw) && !AI_TOKENS.test(raw))
+    context.report({ node, message: MESSAGES.gradient })
+}
+
+/** @type {import('eslint').Rule.RuleModule} */
+export default {
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Disallow raw palette colours, arbitrary colour values, non-AI gradients and emoji glyphs in UI code.',
+    },
+    schema: [],
+    messages: {},
+  },
+  create(context) {
+    return {
+      Literal(node) {
+        checkClasses(context, node.value, node)
+      },
+      TemplateElement(node) {
+        checkClasses(context, node.value?.cooked, node)
+      },
+      JSXText(node) {
+        if (EMOJI.test(node.value))
+          context.report({ node, message: MESSAGES.emoji })
+      },
+    }
+  },
+}
