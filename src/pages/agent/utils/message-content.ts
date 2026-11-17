@@ -11,11 +11,7 @@ function getMessageContentValue(item: unknown): string {
     return String(item)
   }
 
-  if (
-    typeof item === 'object' &&
-    item !== null &&
-    'value' in item
-  ) {
+  if (typeof item === 'object' && item !== null && 'value' in item) {
     const value = (item as { value?: unknown }).value
 
     if (typeof value === 'string') {
@@ -30,9 +26,7 @@ function getMessageContentValue(item: unknown): string {
   return ''
 }
 
-export function convertMessageContentToStringArray(
-  content: unknown,
-): string[] {
+export function convertMessageContentToStringArray(content: unknown): string[] {
   if (!Array.isArray(content)) {
     return []
   }

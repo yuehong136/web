@@ -1,6 +1,6 @@
-import * as React from "react"
-import * as AvatarPrimitive from "@radix-ui/react-avatar"
-import { cn } from "@/lib/utils"
+import * as React from 'react'
+import * as AvatarPrimitive from '@radix-ui/react-avatar'
+import { cn } from '@/lib/utils'
 
 const Avatar = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Root>,
@@ -9,8 +9,8 @@ const Avatar = React.forwardRef<
   <AvatarPrimitive.Root
     ref={ref}
     className={cn(
-      "relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full",
-      className
+      'relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full',
+      className,
     )}
     {...props}
   />
@@ -23,7 +23,7 @@ const AvatarImage = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <AvatarPrimitive.Image
     ref={ref}
-    className={cn("aspect-square h-full w-full object-cover", className)}
+    className={cn('aspect-square h-full w-full object-cover', className)}
     {...props}
   />
 ))
@@ -36,8 +36,8 @@ const AvatarFallback = React.forwardRef<
   <AvatarPrimitive.Fallback
     ref={ref}
     className={cn(
-      "flex h-full w-full items-center justify-center rounded-full bg-background-subtle text-text-secondary font-medium text-sm",
-      className
+      'flex h-full w-full items-center justify-center rounded-full bg-background-subtle text-sm font-medium text-text-secondary',
+      className,
     )}
     {...props}
   />
@@ -58,7 +58,7 @@ const sizeClasses = {
   sm: 'h-6 w-6',
   md: 'h-8 w-8',
   lg: 'h-10 w-10',
-  xl: 'h-12 w-12'
+  xl: 'h-12 w-12',
 }
 
 /**
@@ -67,19 +67,15 @@ const sizeClasses = {
 const LegacyAvatar = React.forwardRef<HTMLDivElement, LegacyAvatarProps>(
   ({ className, src, alt, size = 'lg', fallback, ...props }, ref) => {
     return (
-      <Avatar
-        ref={ref}
-        className={cn(sizeClasses[size], className)}
-        {...props}
-      >
+      <Avatar ref={ref} className={cn(sizeClasses[size], className)} {...props}>
         <AvatarImage src={src || undefined} alt={alt || ''} />
         <AvatarFallback>{fallback}</AvatarFallback>
       </Avatar>
     )
-  }
+  },
 )
 
-LegacyAvatar.displayName = "LegacyAvatar"
+LegacyAvatar.displayName = 'LegacyAvatar'
 
 export { LegacyAvatar }
 
@@ -105,11 +101,11 @@ export const AvatarGroup = ({
 
   return (
     <div
-      className={cn('flex items-center flex-row-reverse', className)}
+      className={cn('flex flex-row-reverse items-center', className)}
       {...props}
     >
       {remainingAvatars > 0 && (
-        <Avatar className="-ml-2 hover:z-10 relative ring-2 ring-background">
+        <Avatar className="relative -ml-2 ring-2 ring-background hover:z-10">
           <AvatarFallback className="bg-muted-foreground text-white">
             +{remainingAvatars}
           </AvatarFallback>
@@ -119,7 +115,7 @@ export const AvatarGroup = ({
         if (!React.isValidElement(avatar)) return null
 
         return (
-          <div key={index} className="-ml-2 hover:z-10 relative">
+          <div key={index} className="relative -ml-2 hover:z-10">
             {React.cloneElement(avatar as React.ReactElement<AvatarProps>, {
               className: 'ring-2 ring-background',
             })}

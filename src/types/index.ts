@@ -303,10 +303,7 @@ export interface api__apps__conversation__CompletionRequest {
     }
   }>
   tool_choice?:
-    | 'auto'
-    | 'none'
-    | 'required'
-    | { type: string; function: { name: string } }
+    'auto' | 'none' | 'required' | { type: string; function: { name: string } }
 }
 
 // 通用完成请求
@@ -380,11 +377,7 @@ export interface HybridSearchMode {
 
 // 知识库状态
 export type KnowledgeBaseStatus =
-  | 'ready'
-  | 'processing'
-  | 'error'
-  | 'empty'
-  | 'training'
+  'ready' | 'processing' | 'error' | 'empty' | 'training'
 
 // 知识库实体
 export interface KnowledgeBase {
@@ -483,12 +476,7 @@ export interface KnowledgeEdge {
 
 // 文档状态
 export type DocumentStatus =
-  | 'uploading'
-  | 'processing'
-  | 'ready'
-  | 'error'
-  | 'pending'
-  | 'failed'
+  'uploading' | 'processing' | 'ready' | 'error' | 'pending' | 'failed'
 
 // 文档实体
 export interface Document {
@@ -613,11 +601,7 @@ export interface ChangeParserRequest {
 
 // 文件上传状态
 export type FileUploadStatus =
-  | 'pending'
-  | 'uploading'
-  | 'processing'
-  | 'completed'
-  | 'failed'
+  'pending' | 'uploading' | 'processing' | 'completed' | 'failed'
 
 // 文件实体
 export interface FileEntity {
@@ -802,13 +786,7 @@ export interface api__apps__chunk__HybridSearchMode {
 
 // 工作流节点类型
 export type WorkflowNodeType =
-  | 'input'
-  | 'output'
-  | 'llm'
-  | 'function'
-  | 'condition'
-  | 'loop'
-  | 'script'
+  'input' | 'output' | 'llm' | 'function' | 'condition' | 'loop' | 'script'
 
 // 工作流节点
 export interface WorkflowNode {
@@ -1899,12 +1877,7 @@ export type Timestamp = string
 
 // JSON类型定义
 export type JSONValue =
-  | string
-  | number
-  | boolean
-  | null
-  | JSONObject
-  | JSONArray
+  string | number | boolean | null | JSONObject | JSONArray
 export type JSONObject = { [key: string]: JSONValue }
 export type JSONArray = JSONValue[]
 

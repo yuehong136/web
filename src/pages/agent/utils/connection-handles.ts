@@ -1,7 +1,14 @@
-import { Position, type Connection, type Edge, type HandleType } from '@xyflow/react'
+import {
+  Position,
+  type Connection,
+  type Edge,
+  type HandleType,
+} from '@xyflow/react'
 import { NodeHandleId, RewriteQuestionHandleId } from '../constant'
 
-export function canStartConnectionDrag(handleType: HandleType | null | undefined) {
+export function canStartConnectionDrag(
+  handleType: HandleType | null | undefined,
+) {
   return handleType === 'source'
 }
 
@@ -12,7 +19,9 @@ interface PipelineHandleState {
   hasUpstreamConnection: boolean
 }
 
-export function getConnectionStartPosition(handleId: string | null | undefined) {
+export function getConnectionStartPosition(
+  handleId: string | null | undefined,
+) {
   if (handleId === RewriteQuestionHandleId.Left) {
     return Position.Left
   }

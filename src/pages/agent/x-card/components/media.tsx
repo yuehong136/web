@@ -118,12 +118,13 @@ export function XCardText({
   return (
     <p
       className={cn(
-        'whitespace-pre-wrap text-sm leading-6',
+        'text-sm leading-6 whitespace-pre-wrap',
         tone === 'inherit' ? 'text-current' : 'text-text-primary',
         variant === 'h1' && 'text-xl font-semibold',
         variant === 'h2' && 'text-lg font-semibold',
         variant === 'h3' && 'text-base font-semibold',
-        variant === 'caption' && (tone === 'inherit' ? 'text-xs' : 'text-xs text-text-secondary'),
+        variant === 'caption' &&
+          (tone === 'inherit' ? 'text-xs' : 'text-xs text-text-secondary'),
         className,
       )}
     >
@@ -166,13 +167,20 @@ export function XCardImage({
 export function XCardIcon({ name }: { name?: unknown }) {
   const iconName = toDisplayString(name)
   const Icon = iconMap[iconName] || Circle
-  return <Icon aria-label={iconName} className="h-icon-md w-icon-md text-text-secondary" />
+  return (
+    <Icon
+      aria-label={iconName}
+      className="h-icon-md w-icon-md text-text-secondary"
+    />
+  )
 }
 
 export function XCardVideo({ url }: { url?: unknown }) {
   const displayUrl = toDisplayString(url)
   if (!displayUrl) return null
-  return <video className="w-full rounded-radius-md" controls src={displayUrl} />
+  return (
+    <video className="w-full rounded-radius-md" controls src={displayUrl} />
+  )
 }
 
 export function XCardAudioPlayer({
@@ -186,7 +194,11 @@ export function XCardAudioPlayer({
   if (!displayUrl) return null
   return (
     <div className="space-y-space-xs">
-      {description ? <p className="text-xs text-text-secondary">{toDisplayString(description)}</p> : null}
+      {description ? (
+        <p className="text-xs text-text-secondary">
+          {toDisplayString(description)}
+        </p>
+      ) : null}
       <audio className="w-full" controls src={displayUrl} />
     </div>
   )

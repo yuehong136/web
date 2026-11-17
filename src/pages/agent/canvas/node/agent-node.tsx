@@ -117,11 +117,11 @@ function InnerAgentNode({
 
         <NodeHeader id={id} name={data.name} label={data.label} />
 
-        <section className="gap-space-sm flex flex-col">
+        <section className="flex flex-col gap-space-sm">
           <LLMLabelCard llmId={get(data, 'form.llm_id')} />
           {(isGotoMethod ||
             exceptionMethod === AgentExceptionMethod.Comment) && (
-            <div className="bg-surface-secondary rounded-radius-sm p-space-xs gap-space-sm flex justify-between">
+            <div className="flex justify-between gap-space-sm rounded-radius-sm bg-surface-secondary p-space-xs">
               <span className="text-text-secondary">{t('flow.onFailure')}</span>
               <span className="flex-1 truncate text-right">
                 {t(`flow.${exceptionMethod}`)}

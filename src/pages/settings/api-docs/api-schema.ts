@@ -8,8 +8,7 @@ export function resolveSchemaRef(
 ): Schema | undefined {
   const seen = new Set<string>()
   const schemas = spec?.components?.schemas as
-    | Record<string, Schema | undefined>
-    | undefined
+    Record<string, Schema | undefined> | undefined
   const resolveOnce = (schema: Schema | undefined): Schema | undefined => {
     if (!schema) return schema
     if (typeof schema.$ref === 'string') {

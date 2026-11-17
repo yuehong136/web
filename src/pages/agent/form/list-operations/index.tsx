@@ -300,7 +300,7 @@ const ListOperationsFields = memo(function ListOperationsFields({
         )}
 
         {operation === ListOperations.Filter && (
-          <div className="gap-space-md grid grid-cols-1 md:grid-cols-[0.8fr_1fr]">
+          <div className="grid grid-cols-1 gap-space-md md:grid-cols-[0.8fr_1fr]">
             <FormField
               control={form.control}
               name="filter.operator"

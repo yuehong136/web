@@ -1,4 +1,9 @@
-import type { AppConfig, LanguageOption, TempAppConfig, VariableForm } from './types'
+import type {
+  AppConfig,
+  LanguageOption,
+  TempAppConfig,
+  VariableForm,
+} from './types'
 
 export const DEFAULT_APP_NAME = '新建应用'
 export const DEFAULT_APP_DESCRIPTION = '这是一个AI助手应用'
@@ -85,7 +90,9 @@ export const createInitialConfig = ({
   },
 })
 
-export const createTempConfig = (config: Pick<AppConfig, 'name' | 'description' | 'icon'>): TempAppConfig => ({
+export const createTempConfig = (
+  config: Pick<AppConfig, 'name' | 'description' | 'icon'>,
+): TempAppConfig => ({
   name: config.name,
   description: config.description,
   icon: config.icon,

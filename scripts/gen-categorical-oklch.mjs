@@ -93,7 +93,10 @@ function simulate(hex, kind) {
   const rgb = [0, 2, 4].map((i) => parseInt(n.slice(i, i + 2), 16) / 255)
   const m = CVD[kind]
   const out = m.map((row) =>
-    Math.min(1, Math.max(0, row[0] * rgb[0] + row[1] * rgb[1] + row[2] * rgb[2])),
+    Math.min(
+      1,
+      Math.max(0, row[0] * rgb[0] + row[1] * rgb[1] + row[2] * rgb[2]),
+    ),
   )
   return out
 }

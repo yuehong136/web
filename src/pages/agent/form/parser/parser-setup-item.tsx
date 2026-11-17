@@ -40,14 +40,16 @@ export function ParserSetupItem({
   const stateLabel = hasError
     ? t('flow.parserStates.needsAttention', 'Needs attention')
     : t('flow.parserStates.edited', 'Edited')
-  const stateClassName = hasError ? 'text-status-warning' : 'text-text-secondary'
+  const stateClassName = hasError
+    ? 'text-status-warning'
+    : 'text-text-secondary'
   const StateIcon = hasError ? AlertCircle : Circle
 
   return (
     <div
       className={cn(
         'border-b border-border-subtle last:border-b-0',
-        selected && 'bg-background-subtle border-l-2 border-border-accent',
+        selected && 'border-l-2 border-border-accent bg-background-subtle',
       )}
     >
       <div
@@ -63,12 +65,12 @@ export function ParserSetupItem({
         >
           <div className="min-w-0 space-y-space-md">
             <div className="flex min-w-0 items-center gap-space-sm">
-              <span className="text-lg font-semibold leading-none text-text-primary">
+              <span className="text-lg leading-none font-semibold text-text-primary">
                 {`Parser ${index + 1}`}
               </span>
               <span
                 className={cn(
-                  'inline-flex items-center rounded-radius-full px-space-sm py-1 text-sm font-medium leading-none',
+                  'inline-flex items-center rounded-radius-full px-space-sm py-1 text-sm leading-none font-medium',
                   parserMeta.badgeClassName,
                 )}
               >
@@ -86,7 +88,7 @@ export function ParserSetupItem({
           {showState ? (
             <span
               className={cn(
-                'inline-flex items-center gap-1 rounded-radius-full bg-background-subtle px-space-sm py-1 text-sm font-medium leading-none',
+                'inline-flex items-center gap-1 rounded-radius-full bg-background-subtle px-space-sm py-1 text-sm leading-none font-medium',
                 stateClassName,
               )}
             >

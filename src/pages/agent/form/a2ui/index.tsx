@@ -61,7 +61,7 @@ export function A2UIForm({ node }: INextOperatorForm) {
       <FormWrapper>
         <FormItem>
           <FormLabel>A2UI Commands</FormLabel>
-          <div className="space-y-space-sm rounded-radius-md bg-surface-secondary p-space-sm border border-border-subtle text-xs leading-5 text-text-secondary">
+          <div className="space-y-space-sm rounded-radius-md border border-border-subtle bg-surface-secondary p-space-sm text-xs leading-5 text-text-secondary">
             <p>
               v0.9 raw JSON array / JSONL only. Catalog: {A2UIBasicCatalogId}.
               Required: createSurface, updateComponents, root component id.
@@ -71,7 +71,7 @@ export function A2UIForm({ node }: INextOperatorForm) {
           </div>
           <div className="space-y-space-md">
             {fields.map((field, index) => (
-              <div key={field.id} className="gap-space-sm flex items-start">
+              <div key={field.id} className="flex items-start gap-space-sm">
                 <FormField
                   control={form.control}
                   name={`commands.${index}.value`}
@@ -110,8 +110,8 @@ export function A2UIForm({ node }: INextOperatorForm) {
             <Plus className="size-4" />
             Add command block
           </Button>
-          <div className="space-y-space-sm rounded-radius-md bg-surface-secondary p-space-sm border border-border-subtle">
-            <div className="gap-space-sm flex items-center justify-between">
+          <div className="space-y-space-sm rounded-radius-md border border-border-subtle bg-surface-secondary p-space-sm">
+            <div className="flex items-center justify-between gap-space-sm">
               <FormLabel>Agent prompt template</FormLabel>
               <Button
                 type="button"
@@ -125,7 +125,7 @@ export function A2UIForm({ node }: INextOperatorForm) {
                   : t('flow.copyAgentPrompt', 'Copy agent prompt')}
               </Button>
             </div>
-            <pre className="rounded-radius-sm bg-surface-primary p-space-sm max-h-60 overflow-auto whitespace-pre-wrap text-xs leading-5 text-text-secondary">
+            <pre className="max-h-60 overflow-auto rounded-radius-sm bg-surface-primary p-space-sm text-xs leading-5 whitespace-pre-wrap text-text-secondary">
               {A2UI_AGENT_PROMPT_TEMPLATE}
             </pre>
           </div>

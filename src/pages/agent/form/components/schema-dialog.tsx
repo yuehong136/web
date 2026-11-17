@@ -15,12 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -59,9 +54,7 @@ export function SchemaDialog({
   )
   const jsonjoyTranslation = useMemo(
     () =>
-      i18n.language.toLowerCase().startsWith('zh')
-        ? jsonjoyZhCN
-        : jsonjoyEn,
+      i18n.language.toLowerCase().startsWith('zh') ? jsonjoyZhCN : jsonjoyEn,
     [i18n.language],
   )
   const [schema, setSchema] = useState<JSONSchema>(initialSchema)
@@ -106,14 +99,19 @@ export function SchemaDialog({
       <Dialog onOpenChange={(open) => !open && hideModal?.()} open>
         <DialogContent className="flex h-[70vh] flex-col md:max-w-[1200px]">
           <DialogHeader>
-            <DialogTitle>{t('flow.structuredOutput.configuration')}</DialogTitle>
+            <DialogTitle>
+              {t('flow.structuredOutput.configuration')}
+            </DialogTitle>
           </DialogHeader>
           <section className="min-h-0 flex-1 overflow-hidden">
             <div className="hidden h-full grid-cols-2 gap-space-md md:grid">
               {renderVisualEditor()}
               {renderSourceEditor()}
             </div>
-            <Tabs defaultValue="visual" className="flex h-full flex-col md:hidden">
+            <Tabs
+              defaultValue="visual"
+              className="flex h-full flex-col md:hidden"
+            >
               <TabsList className="shrink-0">
                 <TabsTrigger value="visual">
                   {t('flow.structuredOutput.visualMode')}
@@ -134,8 +132,14 @@ export function SchemaDialog({
             )}
           </section>
           <DialogFooter>
-            <Button variant="outline" onClick={() => hideModal?.()}>{t('common.cancel')}</Button>
-            <Button type="button" onClick={handleOk} disabled={Boolean(schemaError)}>
+            <Button variant="outline" onClick={() => hideModal?.()}>
+              {t('common.cancel')}
+            </Button>
+            <Button
+              type="button"
+              onClick={handleOk}
+              disabled={Boolean(schemaError)}
+            >
               {t('common.save')}
             </Button>
           </DialogFooter>

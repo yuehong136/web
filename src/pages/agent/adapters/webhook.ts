@@ -108,9 +108,7 @@ export function adaptAgentWebhookTrace(
 
   return {
     webhookId:
-      typeof payload?.webhook_id === 'string'
-        ? payload.webhook_id
-        : undefined,
+      typeof payload?.webhook_id === 'string' ? payload.webhook_id : undefined,
     events,
     nextSinceTs:
       typeof payload?.next_since_ts === 'number'

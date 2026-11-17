@@ -33,8 +33,8 @@ function NextStepDropdownBody({
   'hideModal' | 'onNodeCreated' | 'nodeId' | 'position'
 > & { isPipeline: boolean; title: string }) {
   return (
-    <div className="rounded-radius-md shadow-elevation-medium w-[300px] overflow-hidden border border-components-dropdown-border bg-components-dropdown-bg font-semibold text-text-primary">
-      <div className="px-space-sm py-space-sm border-b border-components-dropdown-border">
+    <div className="w-[300px] overflow-hidden rounded-radius-md border border-components-dropdown-border bg-components-dropdown-bg font-semibold text-text-primary shadow-elevation-medium">
+      <div className="border-b border-components-dropdown-border px-space-sm py-space-sm">
         <div className="text-sm font-medium text-text-primary">{title}</div>
       </div>
       <HideModalContext.Provider value={hideModal}>
@@ -110,7 +110,7 @@ export function InnerNextStepDropdown({
           side="right"
           sideOffset={12}
           onClick={(e) => e.stopPropagation()}
-          className="shadow-elevation-medium z-[1100] w-[300px] border-components-dropdown-border bg-components-dropdown-bg p-0 text-text-primary"
+          className="z-[1100] w-[300px] border-components-dropdown-border bg-components-dropdown-bg p-0 text-text-primary shadow-elevation-medium"
         >
           <NextStepDropdownBody
             hideModal={hideModal}

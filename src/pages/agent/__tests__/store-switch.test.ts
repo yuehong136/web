@@ -62,24 +62,19 @@ test('switch form targets ignore placeholder nodes during connect and disconnect
     edges: [],
   })
 
-  useGraphStore.getState().updateSwitchFormData(
-    'switch-1',
-    'Case 1',
-    'placeholder-1',
-    true,
-  )
-  useGraphStore.getState().updateSwitchFormData(
-    'switch-1',
-    SwitchElseTo,
-    'placeholder-1',
-    true,
-  )
+  useGraphStore
+    .getState()
+    .updateSwitchFormData('switch-1', 'Case 1', 'placeholder-1', true)
+  useGraphStore
+    .getState()
+    .updateSwitchFormData('switch-1', SwitchElseTo, 'placeholder-1', true)
 
   let switchNode = useGraphStore.getState().getNode('switch-1')
   let form = (switchNode?.data.form || {}) as Record<string, unknown>
 
   assert.deepEqual(
-    ((form.conditions as Array<Record<string, unknown>>)[0]?.to as unknown[]) || [],
+    ((form.conditions as Array<Record<string, unknown>>)[0]?.to as unknown[]) ||
+      [],
     [],
   )
   assert.deepEqual((form[SwitchElseTo] as unknown[]) || [], [])
@@ -111,18 +106,16 @@ test('switch form targets ignore placeholder nodes during connect and disconnect
     ],
   })
 
-  useGraphStore.getState().updateSwitchFormData(
-    'switch-1',
-    'Case 1',
-    'message-1',
-    false,
-  )
+  useGraphStore
+    .getState()
+    .updateSwitchFormData('switch-1', 'Case 1', 'message-1', false)
 
   switchNode = useGraphStore.getState().getNode('switch-1')
   form = (switchNode?.data.form || {}) as Record<string, unknown>
 
   assert.deepEqual(
-    ((form.conditions as Array<Record<string, unknown>>)[0]?.to as unknown[]) || [],
+    ((form.conditions as Array<Record<string, unknown>>)[0]?.to as unknown[]) ||
+      [],
     [],
   )
 })

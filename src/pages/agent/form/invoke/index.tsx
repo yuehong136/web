@@ -89,7 +89,7 @@ export function InvokeForm({ node }: INextOperatorForm) {
           )}
         />
 
-        <div className="gap-space-md grid md:grid-cols-3">
+        <div className="grid gap-space-md md:grid-cols-3">
           <FormField
             control={form.control}
             name="method"
@@ -198,7 +198,7 @@ export function InvokeForm({ node }: INextOperatorForm) {
           control={form.control}
           name="clean_html"
           render={({ field }) => (
-            <FormItem className="rounded-radius-md px-space-sm py-space-sm flex items-center justify-between border border-border-default">
+            <FormItem className="flex items-center justify-between rounded-radius-md border border-border-default px-space-sm py-space-sm">
               <FormLabel
                 tooltip={t(
                   'flow.cleanHtmlTip',

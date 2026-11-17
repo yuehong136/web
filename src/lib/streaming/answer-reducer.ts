@@ -24,8 +24,7 @@ export type StreamingAnswerFailure =
   | { kind: 'model_error'; code: string | null }
 
 export type StreamingAnswerFailureNotice =
-  | 'chat.stream.failed'
-  | 'chat.stream.interrupted'
+  'chat.stream.failed' | 'chat.stream.interrupted'
 
 export interface StreamingAnswerState {
   /** Raw accumulation; may hold backend error text, so render content/thinking. */

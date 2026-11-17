@@ -102,7 +102,7 @@ export function ReturnValueEditor({
   )
 
   return (
-    <section className="space-y-space-base pt-space-md border-t border-border-subtle">
+    <section className="space-y-space-base border-t border-border-subtle pt-space-md">
       <SectionHeader
         icon={<Braces className="size-icon-sm" />}
         title={t('flow.codeReturnValue', 'Return value')}
@@ -117,7 +117,7 @@ export function ReturnValueEditor({
         }
       />
 
-      <div className="gap-space-base grid sm:grid-cols-[minmax(0,1fr)_11rem]">
+      <div className="grid gap-space-base sm:grid-cols-[minmax(0,1fr)_11rem]">
         <div className="space-y-space-xs">
           <div className="text-sm text-text-secondary">
             {t('flow.outputName', 'Output name')}
@@ -162,7 +162,7 @@ export function ReturnValueEditor({
         </div>
       </div>
 
-      <p className="rounded-radius-md bg-surface-secondary px-space-sm py-space-xs border border-border-subtle text-xs leading-5 text-text-secondary">
+      <p className="rounded-radius-md border border-border-subtle bg-surface-secondary px-space-sm py-space-xs text-xs leading-5 text-text-secondary">
         {t(
           'flow.codeReturnTypeContractHint',
           'The value returned by main() must match {{type}}. Use the template selector above to switch both code and output type together.',

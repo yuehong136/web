@@ -1,11 +1,7 @@
 import type { AgentTraceItem, AgentWebhookTraceEvent } from '@/types/agent'
 
 export type TraceRunStatus =
-  | 'running'
-  | 'success'
-  | 'error'
-  | 'partial'
-  | 'missing'
+  'running' | 'success' | 'error' | 'partial' | 'missing'
 
 export type TraceSpanStatus = 'running' | 'success' | 'error' | 'unknown'
 
@@ -20,10 +16,7 @@ export type TraceSpanKind =
   | 'system'
 
 export type TraceUnavailableReason =
-  | 'no-message-id'
-  | 'redis-evicted'
-  | 'backend-empty'
-  | 'query-error'
+  'no-message-id' | 'redis-evicted' | 'backend-empty' | 'query-error'
 
 export type TraceConfidence = 'exact' | 'derived' | 'unavailable'
 

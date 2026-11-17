@@ -46,10 +46,7 @@ export const SUMMARY_PRESET_MAP: Record<
 }
 
 export type LLMSettingField =
-  | 'temperature'
-  | 'top_p'
-  | 'presence_penalty'
-  | 'frequency_penalty'
+  'temperature' | 'top_p' | 'presence_penalty' | 'frequency_penalty'
 
 export const matchSummaryPreset = (
   llmSetting?: SearchConfig['llm_setting'],

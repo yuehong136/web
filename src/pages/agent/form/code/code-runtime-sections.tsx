@@ -49,13 +49,13 @@ export function ParameterPreview({
   )
 
   return (
-    <section className="space-y-space-sm rounded-radius-lg bg-surface-secondary p-space-base border border-border-subtle">
+    <section className="space-y-space-sm rounded-radius-lg border border-border-subtle bg-surface-secondary p-space-base">
       <SectionHeader
         icon={<Variable className="size-icon-sm" />}
         title={t('flow.codeParameterPreview', 'Parameter preview')}
         description={getLanguageRuntimeHint(language, t)}
       />
-      <pre className="rounded-radius-md bg-surface-primary p-space-sm max-h-52 overflow-auto border border-border-subtle font-mono text-xs leading-5 text-text-primary">
+      <pre className="max-h-52 overflow-auto rounded-radius-md border border-border-subtle bg-surface-primary p-space-sm font-mono text-xs leading-5 text-text-primary">
         {preview}
       </pre>
     </section>
@@ -67,7 +67,7 @@ function CodeOutputOverview({ outputs }: { outputs?: CodeOutputMap }) {
   const businessOutputs = getBusinessOutputs(outputs)
 
   return (
-    <section className="space-y-space-base pt-space-md border-t border-border-subtle">
+    <section className="space-y-space-base border-t border-border-subtle pt-space-md">
       <SectionHeader
         icon={<Variable className="size-icon-sm" />}
         title={t('flow.codeOutputContract', 'Output contract')}
@@ -77,7 +77,7 @@ function CodeOutputOverview({ outputs }: { outputs?: CodeOutputMap }) {
         )}
       />
 
-      <div className="gap-space-base grid lg:grid-cols-2">
+      <div className="grid gap-space-base lg:grid-cols-2">
         <Output
           list={transferOutputs(businessOutputs)}
           title={t('flow.businessOutput', 'Business output')}
@@ -103,9 +103,9 @@ export function CodeRuntimeOverview({ outputs }: { outputs?: CodeOutputMap }) {
   const { t } = useTranslation()
 
   return (
-    <div className="rounded-radius-lg bg-surface-secondary p-space-base border border-border-subtle">
-      <div className="mb-space-base gap-space-sm flex items-center">
-        <span className="rounded-radius-md flex size-icon-xl items-center justify-center bg-background-surface text-text-secondary">
+    <div className="rounded-radius-lg border border-border-subtle bg-surface-secondary p-space-base">
+      <div className="mb-space-base flex items-center gap-space-sm">
+        <span className="flex size-icon-xl items-center justify-center rounded-radius-md bg-background-surface text-text-secondary">
           <Code2 className="size-icon-sm" />
         </span>
         <div className="min-w-0">

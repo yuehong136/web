@@ -145,7 +145,7 @@ export function GoogleScholarForm({ node }: INextOperatorForm) {
           control={form.control}
           name="patents"
           render={({ field }) => (
-            <FormItem className="gap-space-sm flex items-center">
+            <FormItem className="flex items-center gap-space-sm">
               <FormControl>
                 <Checkbox
                   checked={!!field.value}

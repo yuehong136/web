@@ -45,7 +45,7 @@ export function NaiveConfiguration({
       <ConfigurationFormContainer>
         <TocExtractionFormField />
         <ImageTableContextWindowFormField />
-        <AutoMetadataFormField 
+        <AutoMetadataFormField
           onSettingsClick={onMetadataSettingsClick}
           metadataCount={metadataCount}
         />

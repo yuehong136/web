@@ -137,10 +137,7 @@ export function IterationForm({ node }: INextOperatorForm) {
           defaultValue={{ name: '', ref: '', type: 'Array<unknown>' }}
         >
           {({ field, index, ctx }) => (
-            <CompactRecordRow
-              key={field.id}
-              onRemove={() => ctx.remove(index)}
-            >
+            <CompactRecordRow key={field.id} onRemove={() => ctx.remove(index)}>
               <FormField
                 control={form.control}
                 name={`output_items.${index}.name`}
@@ -161,7 +158,7 @@ export function IterationForm({ node }: INextOperatorForm) {
               <QueryVariable
                 name={`output_items.${index}.ref`}
                 hideLabel
-                className="flex-1 min-w-0"
+                className="min-w-0 flex-1"
                 optionGroups={childOutputGroups}
                 onChange={(value) => {
                   const selectedGroup = childOutputGroups.find((group) =>

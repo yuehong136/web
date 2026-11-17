@@ -239,11 +239,11 @@ export default function PipelineResultPage() {
           onRetry={() => void traceQuery.refetch()}
         />
       ) : (
-        <div className="gap-space-base p-space-lg flex flex-col">
-          <section className="rounded-radius-xl p-space-lg border border-components-console-border bg-components-console-surface">
-            <div className="gap-space-lg flex flex-col xl:flex-row xl:items-start xl:justify-between">
+        <div className="flex flex-col gap-space-base p-space-lg">
+          <section className="rounded-radius-xl border border-components-console-border bg-components-console-surface p-space-lg">
+            <div className="flex flex-col gap-space-lg xl:flex-row xl:items-start xl:justify-between">
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold uppercase tracking-wide text-text-tertiary">
+                <p className="text-xs font-semibold tracking-wide text-text-tertiary uppercase">
                   {t('flow.pipelineResult.runSummaryTitle')}
                 </p>
                 <h2 className="mt-space-xs truncate text-xl font-semibold text-text-primary">
@@ -253,7 +253,7 @@ export default function PipelineResultPage() {
                   {t('flow.pipelineResult.runSummaryDescription')}
                 </p>
               </div>
-              <div className="gap-space-sm grid min-w-0 grid-cols-2 sm:grid-cols-3 xl:w-[620px]">
+              <div className="grid min-w-0 grid-cols-2 gap-space-sm sm:grid-cols-3 xl:w-[620px]">
                 {statCards.map(({ label, value, icon }) => (
                   <ResultStatCard
                     key={label}
@@ -265,7 +265,7 @@ export default function PipelineResultPage() {
               </div>
             </div>
 
-            <dl className="mt-space-base gap-space-sm grid sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
+            <dl className="mt-space-base grid gap-space-sm sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
               {metadata.map(({ label, value, displayValue }) => (
                 <MetadataChip
                   key={label}
@@ -307,8 +307,8 @@ export default function PipelineResultPage() {
                   }
                   className="min-h-0"
                 >
-                  <div className="gap-space-base p-space-base flex flex-col border-b border-border-subtle lg:flex-row lg:items-center lg:justify-between">
-                    <div className="gap-space-sm flex min-w-0 flex-1 flex-col sm:flex-row">
+                  <div className="flex flex-col gap-space-base border-b border-border-subtle p-space-base lg:flex-row lg:items-center lg:justify-between">
+                    <div className="flex min-w-0 flex-1 flex-col gap-space-sm sm:flex-row">
                       <Input
                         inputSize="sm"
                         value={query}
@@ -324,7 +324,7 @@ export default function PipelineResultPage() {
                         }
                       >
                         <SelectTrigger
-                          className="rounded-radius-md h-10 sm:w-[180px]"
+                          className="h-10 rounded-radius-md sm:w-[180px]"
                           aria-label={t('flow.pipelineResult.typeFilter')}
                         >
                           <SelectValue />
@@ -348,12 +348,12 @@ export default function PipelineResultPage() {
 
                   <TabsContent
                     value={PipelineResultView.Chunks}
-                    className="p-space-base mt-0"
+                    className="mt-0 p-space-base"
                   >
-                    <div className="gap-space-base grid xl:grid-cols-[minmax(0,1fr)_360px]">
-                      <div className="space-y-space-sm min-w-0">
+                    <div className="grid gap-space-base xl:grid-cols-[minmax(0,1fr)_360px]">
+                      <div className="min-w-0 space-y-space-sm">
                         {filteredChunks.length > 0 ? (
-                          <div className="space-y-space-sm pr-space-xs max-h-[620px] overflow-auto">
+                          <div className="max-h-[620px] space-y-space-sm overflow-auto pr-space-xs">
                             {filteredChunks.map((chunk, index) => (
                               <ChunkCard
                                 key={`${getChunkOrder(chunk, index)}-${index}`}
@@ -389,14 +389,14 @@ export default function PipelineResultPage() {
 
                   <TabsContent
                     value={PipelineResultView.Json}
-                    className="p-space-base mt-0"
+                    className="mt-0 p-space-base"
                   >
                     <div className="space-y-space-sm">
-                      <div className="gap-space-sm rounded-radius-md bg-surface-secondary p-space-base flex items-start border border-border-subtle text-sm text-text-secondary">
+                      <div className="flex items-start gap-space-sm rounded-radius-md border border-border-subtle bg-surface-secondary p-space-base text-sm text-text-secondary">
                         <Braces className="mt-0.5 size-4 shrink-0 text-text-tertiary" />
                         <p>{t('flow.pipelineResult.compactJsonHint')}</p>
                       </div>
-                      <pre className="rounded-radius-md bg-surface-secondary p-space-base max-h-[620px] overflow-auto font-mono text-xs leading-relaxed text-text-primary">
+                      <pre className="max-h-[620px] overflow-auto rounded-radius-md bg-surface-secondary p-space-base font-mono text-xs leading-relaxed text-text-primary">
                         {displayJson}
                       </pre>
                     </div>

@@ -67,7 +67,7 @@ test('the vendored implementation and license match all pinned upstream file has
     ),
   )
   const names = []
-  for (let offset = 0; offset < archive.length; ) {
+  for (let offset = 0; offset < archive.length;) {
     const header = archive.subarray(offset, offset + 512)
     if (header.every((byte) => byte === 0)) break
     const name = header.subarray(0, 100).toString().replace(/\0.*$/, '')

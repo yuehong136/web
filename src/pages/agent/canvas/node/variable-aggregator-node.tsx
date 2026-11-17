@@ -36,7 +36,7 @@ function InnerVariableAggregatorNode({
             key={`${id}-group-${idx}`}
             className={cn(
               'space-y-space-sm',
-              withDivider && 'pt-space-sm border-t border-border-subtle',
+              withDivider && 'border-t border-border-subtle pt-space-sm',
             )}
           >
             <div className="flex items-center justify-between gap-2 text-xs">

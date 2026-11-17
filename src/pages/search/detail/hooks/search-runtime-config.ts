@@ -13,7 +13,7 @@ export interface SearchRuntimeOptions {
 export const buildRuntimeConfig = (
   baseConfig: SearchConfig,
   executionMode: SearchExecutionMode,
-  sourceMode: SearchSourceMode
+  sourceMode: SearchSourceMode,
 ): SearchConfig => {
   const modeConfigMap: Record<SearchExecutionMode, Partial<SearchConfig>> = {
     [SearchExecutionMode.QUICK_QA]: {

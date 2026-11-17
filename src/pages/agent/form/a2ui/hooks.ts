@@ -31,7 +31,11 @@ function toCommandStringArray(commands: unknown): string[] {
       if (typeof command === 'string') {
         return command
       }
-      if (typeof command === 'object' && command !== null && 'value' in command) {
+      if (
+        typeof command === 'object' &&
+        command !== null &&
+        'value' in command
+      ) {
         const value = (command as { value?: unknown }).value
         return typeof value === 'string' ? value : ''
       }

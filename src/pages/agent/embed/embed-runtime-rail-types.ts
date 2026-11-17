@@ -5,8 +5,7 @@ import {
 import type { PipelineWorkbenchSummary } from '../features/pipeline-workbench'
 
 export type EmbedRuntimeSummary =
-  | RuntimeWorkbenchSummary
-  | PipelineWorkbenchSummary
+  RuntimeWorkbenchSummary | PipelineWorkbenchSummary
 
 export const EMBED_STATUS_VARIANT_MAP: Record<
   AgentRuntimeStatus,

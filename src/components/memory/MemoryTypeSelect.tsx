@@ -254,7 +254,7 @@ export function MemoryTypeSelect({
                       )}
                     >
                       {isSelected && (
-                        <Check className="w-icon-xs h-icon-xs text-components-button-primary-text" />
+                        <Check className="h-icon-xs w-icon-xs text-components-button-primary-text" />
                       )}
                     </div>
                     <div className="flex-1 space-y-1">
@@ -279,7 +279,7 @@ export function MemoryTypeSelect({
           </CommandList>
 
           {/* 底部：已选数量提示 */}
-          <div className="bg-surface-secondary/30 border-t border-border-default px-3 py-2 text-xs text-text-tertiary">
+          <div className="border-t border-border-default bg-surface-secondary/30 px-3 py-2 text-xs text-text-tertiary">
             {t('memory.common.selectedCount', { count: value.length })}
           </div>
         </Command>

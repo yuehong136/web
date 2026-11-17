@@ -386,7 +386,7 @@ export const AvatarUpload = React.forwardRef<
           // 空状态：显示上传占位符
           <div
             className={cn(
-              'bg-surface-secondary grid place-content-center rounded-lg border border-dashed border-border-default',
+              'grid place-content-center rounded-lg border border-dashed border-border-default bg-surface-secondary',
               disabled && 'opacity-50',
             )}
             style={{ width: size, height: size }}
@@ -485,7 +485,7 @@ export const AvatarUpload = React.forwardRef<
               <div className="w-full">
                 <div
                   ref={containerRef}
-                  className="bg-surface-secondary relative mx-auto overflow-hidden rounded-lg border border-border-default"
+                  className="relative mx-auto overflow-hidden rounded-lg border border-border-default bg-surface-secondary"
                   style={{
                     width: '300px',
                     height: '300px',

@@ -68,7 +68,7 @@ const ConditionBlock = ({
   }
 
   return (
-    <div className="bg-surface-secondary rounded-radius-sm p-space-xs gap-space-xs flex flex-col">
+    <div className="flex flex-col gap-space-xs rounded-radius-sm bg-surface-secondary p-space-xs">
       {items.map((item, idx) => {
         const operatorLabelKey = getOperatorLabelKey(item?.operator)
         const operatorLabel = operatorLabelKey
@@ -81,14 +81,14 @@ const ConditionBlock = ({
         return (
           <section
             key={idx}
-            className="gap-space-sm flex items-center justify-between text-xs"
+            className="flex items-center justify-between gap-space-sm text-xs"
           >
             <div className="flex-1 truncate text-text-accent">
               {getLabel(item?.cpn_id)}
             </div>
             <span
               title={operatorLabel}
-              className="rounded-radius-sm bg-surface-primary px-space-xs inline-flex min-w-10 shrink-0 items-center justify-center border border-border-default py-px font-mono text-[11px] leading-5 text-text-secondary"
+              className="inline-flex min-w-10 shrink-0 items-center justify-center rounded-radius-sm border border-border-default bg-surface-primary px-space-xs py-px font-mono text-[11px] leading-5 text-text-secondary"
             >
               {getOperatorGlyph(item?.operator)}
             </span>
@@ -140,7 +140,7 @@ function InnerSwitchNode({ id, data, selected }: NodeProps<ISwitchNode>) {
         <LeftEndHandle nodeId={id} />
         <NodeHeader id={id} name={data.name} label={data.label} />
 
-        <section className="gap-space-sm flex flex-col">
+        <section className="flex flex-col gap-space-sm">
           {positions.map((position, idx) => (
             <div key={position.text}>
               <section className="flex flex-col text-xs">

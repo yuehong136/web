@@ -85,7 +85,7 @@ export function MetadataFilter({
   })
 
   return (
-    <section className="space-y-space-md rounded-radius-md p-space-base border border-border-default">
+    <section className="space-y-space-md rounded-radius-md border border-border-default p-space-base">
       <div className="space-y-space-xs">
         <div className="text-sm font-medium text-text-primary">
           {t('flow.metadataFilter', 'Metadata Filter')}
@@ -103,7 +103,7 @@ export function MetadataFilter({
         </div>
       </div>
 
-      <div className="gap-space-md grid md:grid-cols-2">
+      <div className="grid gap-space-md md:grid-cols-2">
         <FormField
           control={form.control}
           name={`${name}.method`}
@@ -187,9 +187,9 @@ export function MetadataFilter({
             return (
               <div
                 key={manualField.id}
-                className="space-y-space-sm rounded-radius-md p-space-sm border border-border-default"
+                className="space-y-space-sm rounded-radius-md border border-border-default p-space-sm"
               >
-                <div className="gap-space-sm grid md:grid-cols-[1.2fr_0.8fr]">
+                <div className="grid gap-space-sm md:grid-cols-[1.2fr_0.8fr]">
                   <FormField
                     control={form.control}
                     name={fieldKeyName}

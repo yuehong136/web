@@ -34,8 +34,8 @@ export const StatCard: React.FC<StatCardProps> = ({
 }) => {
   return (
     <SectionCard padding="default" className={className} {...props}>
-      <div className="gap-space-md flex items-start justify-between">
-        <div className="gap-space-xs flex flex-col">
+      <div className="flex items-start justify-between gap-space-md">
+        <div className="flex flex-col gap-space-xs">
           <p className="text-sm text-text-secondary">{title}</p>
           <p className="text-2xl font-semibold text-text-primary">{value}</p>
           {description ? (
@@ -45,7 +45,7 @@ export const StatCard: React.FC<StatCardProps> = ({
         {icon ? (
           <div
             className={cn(
-              'rounded-radius-lg flex h-10 w-10 items-center justify-center',
+              'flex h-10 w-10 items-center justify-center rounded-radius-lg',
               toneClasses[tone],
             )}
           >

@@ -91,15 +91,15 @@ function RetrievalToolFields() {
             <FormLabel>{t('flow.retrievalFrom', 'Retrieval From')}</FormLabel>
             <FormControl>
               <RadioGroup
-                className="gap-space-sm grid grid-cols-2"
+                className="grid grid-cols-2 gap-space-sm"
                 value={field.value ?? RetrievalFrom.Dataset}
                 onValueChange={field.onChange}
               >
-                <label className="gap-space-sm rounded-radius-md px-space-sm py-space-sm flex items-center border border-border-default">
+                <label className="flex items-center gap-space-sm rounded-radius-md border border-border-default px-space-sm py-space-sm">
                   <RadioGroupItem value={RetrievalFrom.Dataset} />
                   <span>{t('flow.dataset', 'Dataset')}</span>
                 </label>
-                <label className="gap-space-sm rounded-radius-md px-space-sm py-space-sm flex items-center border border-border-default">
+                <label className="flex items-center gap-space-sm rounded-radius-md border border-border-default px-space-sm py-space-sm">
                   <RadioGroupItem value={RetrievalFrom.Memory} />
                   <span>{t('flow.memories', 'Memories')}</span>
                 </label>
@@ -130,7 +130,7 @@ function RetrievalToolFields() {
       )}
 
       <Collapsible defaultOpen>
-        <CollapsibleTrigger className="gap-space-xs flex items-center text-sm font-medium text-text-primary">
+        <CollapsibleTrigger className="flex items-center gap-space-xs text-sm font-medium text-text-primary">
           <ChevronDown className="size-4" />
           {t('flow.advancedSettings', 'Advanced Settings')}
         </CollapsibleTrigger>
@@ -190,7 +190,7 @@ function RetrievalToolFields() {
             )}
           />
 
-          <div className="gap-space-md grid md:grid-cols-2">
+          <div className="grid gap-space-md md:grid-cols-2">
             <FormField
               control={form.control}
               name="top_n"
@@ -266,7 +266,7 @@ function RetrievalToolFields() {
                 control={form.control}
                 name="use_kg"
                 render={({ field }) => (
-                  <FormItem className="rounded-radius-md px-space-sm py-space-sm flex items-center justify-between border border-border-default">
+                  <FormItem className="flex items-center justify-between rounded-radius-md border border-border-default px-space-sm py-space-sm">
                     <FormLabel>
                       {t('flow.useKnowledgeGraph', 'Use Knowledge Graph')}
                     </FormLabel>
@@ -284,7 +284,7 @@ function RetrievalToolFields() {
                 control={form.control}
                 name="toc_enhance"
                 render={({ field }) => (
-                  <FormItem className="rounded-radius-md px-space-sm py-space-sm flex items-center justify-between border border-border-default">
+                  <FormItem className="flex items-center justify-between rounded-radius-md border border-border-default px-space-sm py-space-sm">
                     <FormLabel>{t('flow.tocEnhance', 'TOC Enhance')}</FormLabel>
                     <FormControl>
                       <Switch

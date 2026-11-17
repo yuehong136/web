@@ -5,7 +5,7 @@
 
 /** 用户列表项（对应 UserResponse model） */
 export interface AdminUser {
-  email: string        // 用户邮箱（同时作为 username 标识符）
+  email: string // 用户邮箱（同时作为 username 标识符）
   nickname: string
   is_active: boolean | null
   create_date?: string | null
@@ -13,9 +13,9 @@ export interface AdminUser {
 
 /** 创建用户请求参数 */
 export interface CreateUserParams {
-  username: string    // 实际是 email
+  username: string // 实际是 email
   password: string
-  role: string        // 'user' | 'admin'
+  role: string // 'user' | 'admin'
 }
 
 /** 修改密码请求参数 */

@@ -160,7 +160,7 @@ export const SearchModeSection: React.FC<SearchModeSectionProps> = ({
           return (
             <div key={option.value}>
               <label
-                className={`gap-space-sm rounded-radius-md px-space-sm py-space-sm flex items-start border transition-colors ${
+                className={`flex items-start gap-space-sm rounded-radius-md border px-space-sm py-space-sm transition-colors ${
                   selected
                     ? 'border-components-input-border-focus bg-components-input-bg-focus'
                     : 'border-transparent hover:bg-background-default'
@@ -172,7 +172,7 @@ export const SearchModeSection: React.FC<SearchModeSectionProps> = ({
                   className="mt-0.5"
                 />
                 <div className="min-w-0 flex-1">
-                  <div className="gap-space-xs flex items-center">
+                  <div className="flex items-center gap-space-xs">
                     {option.icon}
                     <span className="text-sm font-medium text-text-primary">
                       {option.label}
@@ -190,7 +190,7 @@ export const SearchModeSection: React.FC<SearchModeSectionProps> = ({
               </label>
 
               {searchMode.type === 'hybrid' && option.value === 'hybrid' && (
-                <div className="ml-space-lg mt-space-sm space-y-space-md pl-space-base border-l border-border-default">
+                <div className="mt-space-sm ml-space-lg space-y-space-md border-l border-border-default pl-space-base">
                   <div>
                     <label className="mb-2 block text-xs text-text-secondary">
                       {t('knowledge.search.config.vectorWeight')}
@@ -228,7 +228,7 @@ export const SearchModeSection: React.FC<SearchModeSectionProps> = ({
               )}
 
               {searchMode.type === 'fusion' && option.value === 'fusion' && (
-                <div className="ml-space-lg mt-space-sm space-y-space-md pl-space-base border-l border-border-default">
+                <div className="mt-space-sm ml-space-lg space-y-space-md border-l border-border-default pl-space-base">
                   <div>
                     <label className="mb-2 block text-xs text-text-secondary">
                       {t('knowledge.search.config.fusionTextWeight')}

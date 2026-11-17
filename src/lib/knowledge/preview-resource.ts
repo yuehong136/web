@@ -81,10 +81,7 @@ export class PreviewResourceErrorResult extends Error {
   constructor(
     public readonly category: PreviewErrorCategory,
     public readonly reason:
-      | 'http-error'
-      | 'json-error'
-      | 'html-response'
-      | 'empty-resource',
+      'http-error' | 'json-error' | 'html-response' | 'empty-resource',
     public readonly status?: number,
     public readonly code?: number,
   ) {

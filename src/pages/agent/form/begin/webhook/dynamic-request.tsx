@@ -1,9 +1,5 @@
 import { Button } from '@/components/ui/button'
-import {
-  FormControl,
-  FormField,
-  FormItem,
-} from '@/components/ui/form'
+import { FormControl, FormField, FormItem } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { SelectWithSearch } from '@/components/ui/select-with-search'
 import { Switch } from '@/components/ui/switch'
@@ -92,7 +88,9 @@ export function DynamicRequest({
                 name={`${name}.${index}.required`}
                 render={({ field: requiredField }) => (
                   <FormItem className="flex h-10 items-center justify-between gap-space-sm rounded-radius-md border border-border-default px-space-sm">
-                    <span className="text-sm text-text-secondary">Required</span>
+                    <span className="text-sm text-text-secondary">
+                      Required
+                    </span>
                     <FormControl>
                       <Switch
                         checked={Boolean(requiredField.value)}

@@ -73,4 +73,3 @@ export function hasSubAgent(edges: Edge[], nodeId?: string) {
   )
   return !!edge
 }
-

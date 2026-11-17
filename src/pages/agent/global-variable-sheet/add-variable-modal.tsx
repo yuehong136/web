@@ -145,7 +145,7 @@ export function AddVariableModal({
             onSubmit={form.handleSubmit(handleSubmit)}
             className="flex min-h-0 flex-col"
           >
-            <div className="px-space-lg pb-space-lg min-h-0 overflow-y-auto">
+            <div className="min-h-0 overflow-y-auto px-space-lg pb-space-lg">
               <div className="space-y-space-md">
                 <FormField
                   control={form.control}

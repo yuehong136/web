@@ -126,11 +126,11 @@ export function Designer({
         </SheetDescription>
 
         {/* 工具栏 */}
-        <header className="gap-space-sm px-space-base py-space-sm flex items-center border-b border-border-default">
+        <header className="flex items-center gap-space-sm border-b border-border-default px-space-base py-space-sm">
           <span className="text-sm font-semibold text-text-primary">
             {t('flow.htmlReportDesignerTitle', 'Report designer')}
           </span>
-          <div className="gap-space-xs ml-auto flex items-center">
+          <div className="ml-auto flex items-center gap-space-xs">
             <Button
               variant="ghost"
               size="icon-sm"
@@ -212,7 +212,7 @@ export function Designer({
                   onAddSection={handleAddSection}
                 />
               </aside>
-              <main className="bg-surface-secondary min-w-0 flex-1">
+              <main className="min-w-0 flex-1 bg-surface-secondary">
                 <Canvas
                   sections={state.present.sections}
                   selection={state.selection}
@@ -220,7 +220,7 @@ export function Designer({
                 />
               </main>
               <aside className="flex w-96 shrink-0 flex-col border-l border-border-default">
-                <div className="px-space-base py-space-sm border-b border-border-default">
+                <div className="border-b border-border-default px-space-base py-space-sm">
                   <span className="text-sm font-medium text-text-primary">
                     {t('flow.htmlReportTabInspector', 'Properties')}
                   </span>

@@ -60,11 +60,7 @@ export interface Section {
  * - sidebar-right: 左宽右窄（2:1）
  */
 export type LayoutType =
-  | 'full'
-  | 'two-column'
-  | 'three-column'
-  | 'sidebar-left'
-  | 'sidebar-right'
+  'full' | 'two-column' | 'three-column' | 'sidebar-left' | 'sidebar-right'
 
 /**
  * Hero 头图与文字的排布（仅 headerArt 命中时生效）：
@@ -225,14 +221,7 @@ export interface ChartBlock extends BlockBase {
 }
 
 export type ChartType =
-  | 'bar'
-  | 'line'
-  | 'area'
-  | 'pie'
-  | 'donut'
-  | 'radar'
-  | 'funnel'
-  | 'scatter'
+  'bar' | 'line' | 'area' | 'pie' | 'donut' | 'radar' | 'funnel' | 'scatter'
 
 export type ChartDatum = Record<string, string | number>
 

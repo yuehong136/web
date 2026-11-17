@@ -49,7 +49,7 @@ export function GlobalVariableSheet({ hideModal }: GlobalVariableSheetProps) {
           onInteractOutside={(event) => event.preventDefault()}
         >
           <SheetHeader className="p-space-lg">
-            <SheetTitle className="gap-space-sm flex items-center">
+            <SheetTitle className="flex items-center gap-space-sm">
               {t('flow.conversationVariable', '会话变量')}
             </SheetTitle>
             <SheetDescription>
@@ -72,7 +72,7 @@ export function GlobalVariableSheet({ hideModal }: GlobalVariableSheetProps) {
             </Button>
           </div>
 
-          <div className="gap-space-sm px-space-lg pb-space-lg flex flex-col">
+          <div className="flex flex-col gap-space-sm px-space-lg pb-space-lg">
             {entries.length === 0 ? (
               <div className="py-space-xl text-center text-text-secondary">
                 {t('flow.noVariables', '暂无变量')}
@@ -81,11 +81,11 @@ export function GlobalVariableSheet({ hideModal }: GlobalVariableSheetProps) {
               entries.map(([key, item]) => (
                 <div
                   key={key}
-                  className="gap-space-sm rounded-radius-lg px-space-lg py-space-sm hover:bg-surface-secondary group flex min-h-14 cursor-pointer items-center justify-between border border-border-default"
+                  className="group flex min-h-14 cursor-pointer items-center justify-between gap-space-sm rounded-radius-lg border border-border-default px-space-lg py-space-sm hover:bg-surface-secondary"
                   onClick={() => showEditModal(key)}
                 >
                   <div className="flex min-w-0 flex-col">
-                    <div className="gap-space-sm flex min-w-0 items-center">
+                    <div className="flex min-w-0 items-center gap-space-sm">
                       <span className="truncate font-medium text-text-primary">
                         {item.name || key}
                       </span>

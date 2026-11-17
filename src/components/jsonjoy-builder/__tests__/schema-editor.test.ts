@@ -62,10 +62,7 @@ test('schema editor adds, renames, removes, and tracks required properties', () 
   assert.equal(schema.properties?.answer, undefined)
   const finalAnswerSchema = schema.properties?.finalAnswer
   const finalAnswerObject = getObjectSchema(finalAnswerSchema)
-  assert.equal(
-    finalAnswerObject?.type,
-    'string',
-  )
+  assert.equal(finalAnswerObject?.type, 'string')
   assert.deepEqual(schema.required, ['finalAnswer'])
 
   schema = removeObjectProperty(schema, 'finalAnswer')

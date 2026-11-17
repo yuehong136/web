@@ -36,16 +36,13 @@ export function normalizeIterationOutputItems(value: unknown) {
   }
 
   if (value && typeof value === 'object') {
-    return Object.entries(value as Record<string, { ref?: string; type?: string }>).map(
-      ([name, item]) => ({
-        name,
-        ref: normalizeVariableReference(item?.ref),
-        type:
-          typeof item?.type === 'string'
-            ? item.type
-            : buildIterationType(),
-      }),
-    )
+    return Object.entries(
+      value as Record<string, { ref?: string; type?: string }>,
+    ).map(([name, item]) => ({
+      name,
+      ref: normalizeVariableReference(item?.ref),
+      type: typeof item?.type === 'string' ? item.type : buildIterationType(),
+    }))
   }
 
   return []
@@ -112,7 +109,9 @@ export function buildSuggestedIterationOutputItems(
     group.options.map((option) => {
       const baseName = option.label
       const groupTitle =
-        typeof group.title === 'string' ? group.title : option.value.split('@')[0]
+        typeof group.title === 'string'
+          ? group.title
+          : option.value.split('@')[0]
       const name = seenNames.has(baseName)
         ? `${groupTitle}_${baseName}`
         : baseName

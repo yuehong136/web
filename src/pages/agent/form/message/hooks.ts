@@ -30,10 +30,7 @@ export function useMessageFormValues(node?: RAGFlowNodeType) {
   return values
 }
 
-export function useWatchMessageFormChange(
-  id?: string,
-  form?: UseFormReturn,
-) {
+export function useWatchMessageFormChange(id?: string, form?: UseFormReturn) {
   const values = useWatch({ control: form?.control })
   const updateNodeForm = useGraphStore((state) => state.updateNodeForm)
 
@@ -55,8 +52,7 @@ export function useMessageWebhookState(form?: UseFormReturn) {
   const beginForm = (beginNode?.data?.form || {}) as Record<string, unknown>
   const isWebhookMode = beginForm.mode === AgentDialogueMode.Webhook
   const showWebhookResponseStatus =
-    isWebhookMode &&
-    beginForm.execution_mode === WebhookExecutionMode.Streaming
+    isWebhookMode && beginForm.execution_mode === WebhookExecutionMode.Streaming
 
   useEffect(() => {
     if (!showWebhookResponseStatus || !form) {

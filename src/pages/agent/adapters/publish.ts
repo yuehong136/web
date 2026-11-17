@@ -9,8 +9,7 @@ export function adaptAgentPublishSummary(
     title: resolveLocalizedText(flow?.title, '未命名资产'),
     avatar: flow?.avatar,
     isPublished: Boolean(flow?.release),
-    lastPublishedAt:
-      flow?.last_publish_time || flow?.release_time || undefined,
+    lastPublishedAt: flow?.last_publish_time || flow?.release_time || undefined,
     datasets: flow?.datasets || [],
   }
 }

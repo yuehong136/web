@@ -73,7 +73,7 @@ export function GraphTooltip({ data }: GraphTooltipProps) {
   return (
     <div
       role="tooltip"
-      className="rounded-radius-lg shadow-elevation-high pointer-events-none absolute z-20 max-w-64 border border-components-card-border bg-components-card-bg px-3 py-2 text-sm text-text-primary"
+      className="pointer-events-none absolute z-20 max-w-64 rounded-radius-lg border border-components-card-border bg-components-card-bg px-3 py-2 text-sm text-text-primary shadow-elevation-high"
       style={{
         left: data.x,
         top: data.y,
@@ -82,7 +82,7 @@ export function GraphTooltip({ data }: GraphTooltipProps) {
     >
       <div className="truncate font-semibold">{data.title}</div>
       {data.subtitle && (
-        <div className="mt-0.5 truncate text-xs uppercase text-text-muted">
+        <div className="mt-0.5 truncate text-xs text-text-muted uppercase">
           {data.subtitle}
         </div>
       )}

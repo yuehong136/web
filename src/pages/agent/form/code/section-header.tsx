@@ -14,13 +14,13 @@ export function SectionHeader({
   badge,
 }: SectionHeaderProps) {
   return (
-    <div className="gap-space-base flex min-w-0 items-start justify-between">
-      <div className="gap-space-sm flex min-w-0 items-start">
-        <span className="rounded-radius-md mt-space-xs flex size-icon-xl shrink-0 items-center justify-center bg-components-system-accent-soft text-components-system-accent-text">
+    <div className="flex min-w-0 items-start justify-between gap-space-base">
+      <div className="flex min-w-0 items-start gap-space-sm">
+        <span className="mt-space-xs flex size-icon-xl shrink-0 items-center justify-center rounded-radius-md bg-components-system-accent-soft text-components-system-accent-text">
           {icon}
         </span>
-        <div className="space-y-space-xs min-w-0">
-          <h4 className="text-base font-semibold leading-6 text-text-primary">
+        <div className="min-w-0 space-y-space-xs">
+          <h4 className="text-base leading-6 font-semibold text-text-primary">
             {title}
           </h4>
           {description ? (

@@ -9,9 +9,7 @@ import { Input } from '@/components/ui/input'
 import { SelectWithSearch } from '@/components/ui/select-with-search'
 import { useWatch, useFormContext } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import {
-  WebhookSecurityAuthType,
-} from '../../../constant'
+import { WebhookSecurityAuthType } from '../../../constant'
 
 const jwtAlgorithmOptions = ['HS256', 'HS384', 'HS512'].map((value) => ({
   label: value,
@@ -34,7 +32,9 @@ export function WebhookAuth() {
           name="security.token.token_header"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('flow.webhook.tokenHeader', 'Token header')}</FormLabel>
+              <FormLabel>
+                {t('flow.webhook.tokenHeader', 'Token header')}
+              </FormLabel>
               <FormControl>
                 <Input {...field} value={field.value ?? ''} />
               </FormControl>
@@ -46,7 +46,9 @@ export function WebhookAuth() {
           name="security.token.token_value"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('flow.webhook.tokenValue', 'Token value')}</FormLabel>
+              <FormLabel>
+                {t('flow.webhook.tokenValue', 'Token value')}
+              </FormLabel>
               <FormControl>
                 <Input {...field} value={field.value ?? ''} />
               </FormControl>

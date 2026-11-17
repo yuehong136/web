@@ -58,9 +58,9 @@ export function CanvasBlockChip({
       ref={setNodeRef}
       style={style}
       className={cn(
-        'gap-space-xs rounded-radius-md px-space-xs py-space-xs flex items-center border',
+        'flex items-center gap-space-xs rounded-radius-md border px-space-xs py-space-xs',
         generative
-          ? 'bg-surface-secondary border-dashed'
+          ? 'border-dashed bg-surface-secondary'
           : 'bg-surface-primary',
         selected
           ? 'border-border-focus ring-1 ring-state-focus'
@@ -72,7 +72,7 @@ export function CanvasBlockChip({
         type="button"
         {...attributes}
         {...listeners}
-        className="text-text-caption cursor-grab active:cursor-grabbing"
+        className="cursor-grab text-text-caption active:cursor-grabbing"
         aria-label={t('flow.htmlReportDragHandle', 'Drag to reorder')}
       >
         <GripVertical className="size-icon-sm" />
@@ -81,10 +81,10 @@ export function CanvasBlockChip({
       <button
         type="button"
         onClick={onSelect}
-        className="gap-space-2xs flex flex-1 items-center truncate text-left text-xs text-text-primary"
+        className="flex flex-1 items-center gap-space-2xs truncate text-left text-xs text-text-primary"
       >
         {generative && (
-          <Sparkles className="size-icon-sm text-text-caption shrink-0" />
+          <Sparkles className="size-icon-sm shrink-0 text-text-caption" />
         )}
         <span className="truncate">{t(label.labelKey, label.fallback)}</span>
       </button>

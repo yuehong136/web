@@ -133,7 +133,7 @@ export const FilterPopover: React.FC<FilterPopoverProps> = ({
                 onClick={clearAllFilters}
                 className="h-7 px-2 text-xs text-text-tertiary hover:text-text-primary"
               >
-                <X className="w-icon-xs h-icon-xs mr-1" />
+                <X className="mr-1 h-icon-xs w-icon-xs" />
                 {t('common.clear')}
               </Button>
             )}
@@ -153,7 +153,7 @@ export const FilterPopover: React.FC<FilterPopoverProps> = ({
                   return (
                     <div
                       key={option.value}
-                      className="gap-space-sm flex items-center"
+                      className="flex items-center gap-space-sm"
                     >
                       <Checkbox
                         id={`${filter.key}-${option.value}`}

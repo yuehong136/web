@@ -623,7 +623,7 @@ export const GoogleLanguageOptions = [
     language_code: 'zu',
     language_name: 'Zulu',
   },
-].map((x) => ({ label: x.language_name, value: x.language_code }));
+].map((x) => ({ label: x.language_name, value: x.language_code }))
 
 export const GoogleCountryOptions = [
   {
@@ -1586,4 +1586,4 @@ export const GoogleCountryOptions = [
     country_code: 'zw',
     country_name: 'Zimbabwe',
   },
-].map((x) => ({ label: x.country_name, value: x.country_code }));
+].map((x) => ({ label: x.country_name, value: x.country_code }))

@@ -1,10 +1,4 @@
-import {
-  ChevronDown,
-  ChevronRight,
-  Pencil,
-  Plus,
-  Trash2,
-} from 'lucide-react'
+import { ChevronDown, ChevronRight, Pencil, Plus, Trash2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -57,7 +51,10 @@ export function ObjectFieldsEditor({
 }: ObjectFieldsEditorProps) {
   const t = useTranslation()
   const [adding, setAdding] = useState(false)
-  const normalizedSchema = useMemo(() => normalizeObjectSchema(schema), [schema])
+  const normalizedSchema = useMemo(
+    () => normalizeObjectSchema(schema),
+    [schema],
+  )
   const properties = getSchemaProperties(normalizedSchema)
   const existingNames = properties.map((property) => property.name)
 
@@ -306,12 +303,15 @@ function ArrayItemEditor({
     onChange({
       ...schema,
       type: 'array',
-      items: withTypeDefaults({
-        name: 'items',
-        type,
-        description: '',
-        required: false,
-      }, itemsSchema),
+      items: withTypeDefaults(
+        {
+          name: 'items',
+          type,
+          description: '',
+          required: false,
+        },
+        itemsSchema,
+      ),
     })
   }
 

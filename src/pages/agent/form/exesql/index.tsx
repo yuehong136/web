@@ -34,11 +34,16 @@ export function ExeSQLForm({ node }: INextOperatorForm) {
 
   useWatchFormChange(node?.id, form)
 
-  const outputs = useMemo(() => buildOutputList(form.getValues('outputs')), [form])
+  const outputs = useMemo(
+    () => buildOutputList(form.getValues('outputs')),
+    [form],
+  )
 
   return (
     <Form {...form}>
-      <FormWrapper onSubmit={form.handleSubmit((data) => void testConnection(data))}>
+      <FormWrapper
+        onSubmit={form.handleSubmit((data) => void testConnection(data))}
+      >
         <FormField
           control={form.control}
           name="sql"

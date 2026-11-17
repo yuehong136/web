@@ -17,8 +17,7 @@ export const useValidateConnection = () => {
     hasUpstreamNode,
     edges,
     nodes,
-  } =
-    useGraphStore((state) => state)
+  } = useGraphStore((state) => state)
   const isPipeline = useIsPipeline()
 
   const isSameNodeChild = useCallback(
@@ -58,12 +57,11 @@ export const useValidateConnection = () => {
   const isValidConnection = useCallback(
     (connection: Connection | Edge) => {
       const isSelfConnected = connection.target === connection.source
-      const violatesPipelineSingleLine =
-        violatesPipelineSingleConnection({
-          isPipeline,
-          sourceHasDownstreamConnection: hasDownstreamNode(connection.source),
-          targetHasUpstreamConnection: hasUpstreamNode(connection.target),
-        })
+      const violatesPipelineSingleLine = violatesPipelineSingleConnection({
+        isPipeline,
+        sourceHasDownstreamConnection: hasDownstreamNode(connection.source),
+        targetHasUpstreamConnection: hasUpstreamNode(connection.target),
+      })
 
       const ret =
         !isSelfConnected &&

@@ -1,4 +1,8 @@
-import { findQueryVariableOption, normalizeVariableReference, type QueryVariableOptionGroup } from '../components/query-variable-utils'
+import {
+  findQueryVariableOption,
+  normalizeVariableReference,
+  type QueryVariableOptionGroup,
+} from '../components/query-variable-utils'
 import type { OutputMap } from '../components/output'
 
 export type VariableAggregatorGroup = {
@@ -38,7 +42,9 @@ export function normalizeVariableAggregatorGroups(
 
               return null
             })
-            .filter((variable): variable is { value: string } => Boolean(variable))
+            .filter((variable): variable is { value: string } =>
+              Boolean(variable),
+            )
         : []
 
       return {
@@ -61,9 +67,14 @@ export function buildVariableAggregatorOutputs(
     }
 
     const firstVariableRef = group.variables[0]?.value
-    const matchedOption = findQueryVariableOption(optionGroups, firstVariableRef)
+    const matchedOption = findQueryVariableOption(
+      optionGroups,
+      firstVariableRef,
+    )
     const type =
-      group.type || (matchedOption as { type?: string } | undefined)?.type || 'unknown'
+      group.type ||
+      (matchedOption as { type?: string } | undefined)?.type ||
+      'unknown'
 
     acc[group.group_name] = { type }
     return acc

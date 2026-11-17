@@ -16,17 +16,9 @@ export interface RunProjection {
 }
 
 export type ContextResourceKind =
-  | 'model'
-  | 'app'
-  | 'knowledgeBase'
-  | 'tool'
-  | 'file'
+  'model' | 'app' | 'knowledgeBase' | 'tool' | 'file'
 export type ResourceAvailability =
-  | 'ready'
-  | 'preparing'
-  | 'failed'
-  | 'revoked'
-  | 'unknown'
+  'ready' | 'preparing' | 'failed' | 'revoked' | 'unknown'
 export interface ContextResource {
   readonly kind: ContextResourceKind
   readonly id: string
@@ -62,12 +54,7 @@ export interface ArtifactRef {
   readonly name: string
   readonly mediaType?: string
   readonly state:
-    | 'unknown'
-    | 'ready'
-    | 'preparing'
-    | 'failed'
-    | 'unavailable'
-    | 'forbidden'
+    'unknown' | 'ready' | 'preparing' | 'failed' | 'unavailable' | 'forbidden'
   /** Only validated, existing artifact endpoints may be used for a resource. */
   readonly url: string
   readonly capabilities: {

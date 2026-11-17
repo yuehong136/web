@@ -45,7 +45,7 @@ export function EmbedRuntimeCard({
       className="min-h-0"
     >
       <div className="space-y-space-md">
-        <div className="gap-space-sm flex items-center justify-between">
+        <div className="flex items-center justify-between gap-space-sm">
           <div className="min-w-0">
             <p className="text-sm font-medium text-text-primary">
               {isPipeline
@@ -68,12 +68,12 @@ export function EmbedRuntimeCard({
         </div>
 
         {runtimeSummary.lastError ? (
-          <div className="rounded-radius-md border-border-primary bg-surface-secondary px-space-sm py-space-xs border text-xs text-status-error">
+          <div className="rounded-radius-md border border-border-primary bg-surface-secondary px-space-sm py-space-xs text-xs text-status-error">
             {runtimeSummary.lastError}
           </div>
         ) : null}
 
-        <div className="gap-space-sm grid grid-cols-2 text-sm">
+        <div className="grid grid-cols-2 gap-space-sm text-sm">
           <div className="rounded-radius-lg bg-surface-secondary p-space-sm">
             <p className="text-text-tertiary">
               {isPipeline
@@ -101,7 +101,7 @@ export function EmbedRuntimeCard({
           </div>
         </div>
 
-        <div className="gap-space-sm grid">
+        <div className="grid gap-space-sm">
           {isPipeline ? (
             <PipelineRuntimeActions
               runtimeSummary={runtimeSummary}

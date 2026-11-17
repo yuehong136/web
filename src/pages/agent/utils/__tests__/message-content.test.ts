@@ -13,7 +13,10 @@ test('message content converts between editor objects and persisted strings', ()
     { value: 'world' },
   ])
   assert.deepEqual(
-    convertMessageContentToStringArray([{ value: 'hello' }, { value: 'world' }]),
+    convertMessageContentToStringArray([
+      { value: 'hello' },
+      { value: 'world' },
+    ]),
     ['hello', 'world'],
   )
 })

@@ -1,4 +1,9 @@
-import { cloneElement, isValidElement, type ReactElement, type ReactNode } from 'react'
+import {
+  cloneElement,
+  isValidElement,
+  type ReactElement,
+  type ReactNode,
+} from 'react'
 import { cn } from '@/lib/utils'
 import { A2UI_INTERNAL_DATA_PATH_PREFIX } from '../normalize'
 
@@ -44,7 +49,8 @@ export const justifyClassMap = {
 export function toDisplayString(value: unknown) {
   if (value === undefined || value === null) return ''
   if (typeof value === 'string') return value
-  if (typeof value === 'number' || typeof value === 'boolean') return String(value)
+  if (typeof value === 'number' || typeof value === 'boolean')
+    return String(value)
   return ''
 }
 
@@ -58,7 +64,11 @@ export function toBoolean(value: unknown) {
 }
 
 export function toArray(value: unknown) {
-  return Array.isArray(value) ? value : value === undefined || value === null ? [] : [value]
+  return Array.isArray(value)
+    ? value
+    : value === undefined || value === null
+      ? []
+      : [value]
 }
 
 export function toWritableDataPath(value: unknown) {

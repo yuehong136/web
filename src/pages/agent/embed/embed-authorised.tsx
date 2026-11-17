@@ -62,8 +62,7 @@ export function EmbedAuthorised({
   const [runtimeWorkbenchView, setRuntimeWorkbenchView] =
     useState<string>(defaultRuntimeView)
   const buildIdleSummary = useCallback(():
-    | RuntimeWorkbenchSummary
-    | PipelineWorkbenchSummary => {
+    RuntimeWorkbenchSummary | PipelineWorkbenchSummary => {
     if (editorMode === 'pipeline') {
       return {
         status: AgentRuntimeStatus.IDLE,

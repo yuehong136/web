@@ -38,13 +38,16 @@ export function CompactRecordRow({
     >
       <div className="flex items-center gap-space-xs">
         <div
-          className={cn('flex-1 min-w-0 flex items-center gap-space-sm', gridClassName)}
+          className={cn(
+            'flex min-w-0 flex-1 items-center gap-space-sm',
+            gridClassName,
+          )}
         >
           {children}
         </div>
 
         {chip && (
-          <span className="rounded-radius-sm border border-border-default px-space-xs py-[2px] text-xs text-text-secondary whitespace-nowrap">
+          <span className="rounded-radius-sm border border-border-default px-space-xs py-[2px] text-xs whitespace-nowrap text-text-secondary">
             {chip}
           </span>
         )}

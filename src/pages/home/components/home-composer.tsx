@@ -22,8 +22,7 @@ import {
 import { McpRunOptions } from './mcp-run-options'
 
 export type HomeComposerRequest =
-  | { phase: 'idle' | 'preparing' }
-  | { phase: 'running'; stop: () => void }
+  { phase: 'idle' | 'preparing' } | { phase: 'running'; stop: () => void }
 interface HomeComposerProps {
   value: string
   onChange: (value: string) => void

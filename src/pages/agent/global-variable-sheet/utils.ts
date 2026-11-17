@@ -73,26 +73,36 @@ export function parseGlobalVariableValue(type: string, rawValue: string) {
       return rawValue === 'true'
     case TypesWithArray.Object:
       return assertPlainObject(
-        rawValue.trim() ? JSON.parse(rawValue) : JSON.parse(getDefaultValueForType(type)),
+        rawValue.trim()
+          ? JSON.parse(rawValue)
+          : JSON.parse(getDefaultValueForType(type)),
       )
     case TypesWithArray.ArrayString:
       return assertArrayOf(
-        rawValue.trim() ? JSON.parse(rawValue) : JSON.parse(getDefaultValueForType(type)),
+        rawValue.trim()
+          ? JSON.parse(rawValue)
+          : JSON.parse(getDefaultValueForType(type)),
         'string',
       )
     case TypesWithArray.ArrayNumber:
       return assertArrayOf(
-        rawValue.trim() ? JSON.parse(rawValue) : JSON.parse(getDefaultValueForType(type)),
+        rawValue.trim()
+          ? JSON.parse(rawValue)
+          : JSON.parse(getDefaultValueForType(type)),
         'number',
       )
     case TypesWithArray.ArrayBoolean:
       return assertArrayOf(
-        rawValue.trim() ? JSON.parse(rawValue) : JSON.parse(getDefaultValueForType(type)),
+        rawValue.trim()
+          ? JSON.parse(rawValue)
+          : JSON.parse(getDefaultValueForType(type)),
         'boolean',
       )
     case TypesWithArray.ArrayObject:
       return assertArrayOfObjects(
-        rawValue.trim() ? JSON.parse(rawValue) : JSON.parse(getDefaultValueForType(type)),
+        rawValue.trim()
+          ? JSON.parse(rawValue)
+          : JSON.parse(getDefaultValueForType(type)),
       )
     default:
       return rawValue
@@ -120,7 +130,8 @@ function assertArrayOfObjects(value: unknown) {
   if (
     !Array.isArray(value) ||
     !value.every(
-      (item) => typeof item === 'object' && item !== null && !Array.isArray(item),
+      (item) =>
+        typeof item === 'object' && item !== null && !Array.isArray(item),
     )
   ) {
     throw new Error('Expected array<object>')

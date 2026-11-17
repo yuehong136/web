@@ -33,9 +33,9 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
   const { t } = useTranslation()
 
   return (
-    <section className="p-space-lg flex h-full min-h-0 flex-col overflow-hidden">
-      <div className="gap-space-base pb-space-lg flex items-start justify-between">
-        <div className="gap-space-sm flex items-start">
+    <section className="flex h-full min-h-0 flex-col overflow-hidden p-space-lg">
+      <div className="flex items-start justify-between gap-space-base pb-space-lg">
+        <div className="flex items-start gap-space-sm">
           <Search className="mt-1 h-5 w-5 text-text-accent" />
           <div>
             <h2 className="text-base font-semibold text-text-primary">
@@ -62,7 +62,7 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
           <label className="block text-sm font-medium text-text-primary">
             {t('knowledge.search.queryLabel')}
           </label>
-          <div className="rounded-radius-lg relative border border-components-input-border bg-background-surface transition-colors focus-within:border-components-input-border-focus">
+          <div className="relative rounded-radius-lg border border-components-input-border bg-background-surface transition-colors focus-within:border-components-input-border-focus">
             <Textarea
               variant="chat"
               value={query}
@@ -74,9 +74,9 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
                 }
               }}
               placeholder={t('knowledge.search.queryPlaceholder')}
-              className="px-space-base py-space-base pb-space-2xl h-[200px] resize-none leading-relaxed"
+              className="h-[200px] resize-none px-space-base py-space-base pb-space-2xl leading-relaxed"
             />
-            <span className="bottom-space-sm left-space-base right-space-2xl pr-space-md absolute truncate text-xs text-text-tertiary">
+            <span className="absolute right-space-2xl bottom-space-sm left-space-base truncate pr-space-md text-xs text-text-tertiary">
               {t('knowledge.search.chars', { count: query.length })}
               <span className="ml-space-sm hidden md:inline">
                 {t('knowledge.search.searchShortcut')}
@@ -89,7 +89,7 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
               size="icon-sm"
               aria-label={t('knowledge.search.startSearch')}
               title={t('knowledge.search.startSearch')}
-              className="bottom-space-sm right-space-sm absolute"
+              className="absolute right-space-sm bottom-space-sm"
             >
               {isSearching ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -100,7 +100,7 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
           </div>
         </div>
 
-        <div className="mt-space-xl pt-space-base border-t border-border-default">
+        <div className="mt-space-xl border-t border-border-default pt-space-base">
           <div className="mb-space-sm flex items-center justify-between">
             <h3 className="text-sm font-medium text-text-primary">
               {t('knowledge.search.advancedParams')}
@@ -109,12 +109,12 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
               variant="ghost"
               size="sm"
               onClick={onOpenConfig}
-              className="px-space-xs h-7 text-xs"
+              className="h-7 px-space-xs text-xs"
             >
               {t('knowledge.search.settings')}
             </Button>
           </div>
-          <div className="gap-space-xs flex flex-wrap">
+          <div className="flex flex-wrap gap-space-xs">
             {activeConfigBadges.map((badge) => (
               <Badge
                 key={badge}

@@ -1,5 +1,9 @@
 import type { SearchAppListItem } from '@/types/search'
-import { formatRelativeTime, formatTimestampCompact, formatTimestampDetailed } from '@/lib/utils'
+import {
+  formatRelativeTime,
+  formatTimestampCompact,
+  formatTimestampDetailed,
+} from '@/lib/utils'
 
 type SearchListItemWithConfig = SearchAppListItem & {
   search_config?: {
@@ -29,7 +33,10 @@ export const resolveRelatedEnabled = (app: SearchAppListItem): boolean => {
 
 export type SearchTimeFormat = 'detailed' | 'compact' | 'relative'
 
-export const formatSearchTime = (timestamp: number, format: SearchTimeFormat): string => {
+export const formatSearchTime = (
+  timestamp: number,
+  format: SearchTimeFormat,
+): string => {
   switch (format) {
     case 'compact':
       return formatTimestampCompact(timestamp)

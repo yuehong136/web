@@ -244,12 +244,12 @@ function InnerDynamicCategorize({ nodeId }: DynamicCategorizeProps) {
       {fields.map((field, index) => (
         <div key={field.id}>
           <Collapsible defaultOpen>
-            <div className="gap-space-sm pb-space-sm flex items-center justify-between">
+            <div className="flex items-center justify-between gap-space-sm pb-space-sm">
               <span className="text-sm font-medium text-text-primary">
                 {form.watch(`items.${index}.name`) ||
                   `${t('flow.categoryName', 'Category')} ${index + 1}`}
               </span>
-              <div className="gap-space-xs flex items-center">
+              <div className="flex items-center gap-space-xs">
                 <Button
                   type="button"
                   variant="ghost"

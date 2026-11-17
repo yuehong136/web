@@ -1,9 +1,5 @@
 import { Button } from '@/components/ui/button'
-import {
-  FormControl,
-  FormField,
-  FormItem,
-} from '@/components/ui/form'
+import { FormControl, FormField, FormItem } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Trash2 } from 'lucide-react'
 import { useFieldArray, useFormContext } from 'react-hook-form'
@@ -22,10 +18,7 @@ export function DynamicStringForm({ name, label }: DynamicStringFormProps) {
 
   return (
     <section>
-      <DynamicFormHeader
-        label={label}
-        onClick={() => append({ value: '' })}
-      />
+      <DynamicFormHeader label={label} onClick={() => append({ value: '' })} />
       <div className="space-y-4">
         {fields.map((field, index) => (
           <div key={field.id} className="flex items-center gap-space-sm">

@@ -8,13 +8,7 @@ import type { EmbedLocaleValue, EmbedThemeValue } from './protocol'
  * surfaces must not generate further embedding links.
  */
 export type EmbedShowKey =
-  | 'save'
-  | 'run'
-  | 'nav'
-  | 'publish'
-  | 'webhook'
-  | 'settings'
-  | 'variables'
+  'save' | 'run' | 'nav' | 'publish' | 'webhook' | 'settings' | 'variables'
 
 const SHOW_KEYS: ReadonlySet<EmbedShowKey> = new Set([
   'save',

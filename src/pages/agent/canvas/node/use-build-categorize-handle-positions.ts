@@ -17,8 +17,8 @@ export const useBuildCategorizeHandlePositions = ({
   }, [data])
 
   const positions = useMemo(() => {
-    const list: Array<{ top: number; name: string; uuid: string }> & ICategorizeItem[] =
-      []
+    const list: Array<{ top: number; name: string; uuid: string }> &
+      ICategorizeItem[] = []
 
     items.forEach((x, idx) => {
       list.push({

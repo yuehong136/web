@@ -94,8 +94,7 @@ interface OpenDataLoaderParamsInput {
 }
 
 type OpenDataLoaderParamsResult =
-  | { ok: true; params: Record<string, unknown> }
-  | { ok: false; error: string }
+  { ok: true; params: Record<string, unknown> } | { ok: false; error: string }
 
 export const getDefaultModelType = (providerName: string): string => {
   if (providerName === 'Fish Audio') return 'tts'

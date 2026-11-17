@@ -5,11 +5,7 @@
  * detail）不进入分类结果，界面只能按分类显示固定文案。
  */
 export type PreviewErrorCategory =
-  | 'not-found'
-  | 'forbidden'
-  | 'session-expired'
-  | 'unsupported'
-  | 'unavailable'
+  'not-found' | 'forbidden' | 'session-expired' | 'unsupported' | 'unavailable'
 
 /**
  * MultiRAG `GET /v1/document/get/{doc_id}` 以 HTTP 200 返回业务失败：

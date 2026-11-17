@@ -1,7 +1,7 @@
 {
-  "src/types/index.ts": 2075,
+  "src/types/index.ts": 2048,
   "src/pages/agent/options/google.ts": 1589,
-  "src/types/api.ts": 1486,
+  "src/types/api.ts": 1467,
   "src/pages/agent/constant/index.ts": 1373,
   "src/themes/theme-generator.ts": 906,
   "src/pages/agent/operators/serializers.ts": 860,

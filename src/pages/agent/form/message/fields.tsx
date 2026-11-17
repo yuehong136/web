@@ -117,7 +117,9 @@ export function MessageOutputSettings() {
         name="output_format"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>{t('flow.downloadFileType', 'Download file type')}</FormLabel>
+            <FormLabel>
+              {t('flow.downloadFileType', 'Download file type')}
+            </FormLabel>
             <FormControl>
               <SelectWithSearch
                 value={field.value ?? ''}
@@ -146,7 +148,6 @@ export function MessageOutputSettings() {
           </FormItem>
         )}
       />
-
     </>
   )
 }

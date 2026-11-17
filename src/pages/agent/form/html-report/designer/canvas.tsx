@@ -19,14 +19,14 @@ export function Canvas({ sections, selection, dispatch }: CanvasProps) {
   const reportSelected = selection.kind === 'theme' || selection.kind === 'none'
 
   return (
-    <div className="space-y-space-sm p-space-base h-full overflow-auto">
+    <div className="h-full space-y-space-sm overflow-auto p-space-base">
       <button
         type="button"
         onClick={() =>
           dispatch({ type: 'select', selection: { kind: 'theme' } })
         }
         className={cn(
-          'gap-space-xs rounded-radius-lg px-space-sm py-space-sm flex w-full items-center border text-left',
+          'flex w-full items-center gap-space-xs rounded-radius-lg border px-space-sm py-space-sm text-left',
           reportSelected
             ? 'border-border-focus bg-surface-secondary'
             : 'border-border-default hover:bg-state-hover',
@@ -39,7 +39,7 @@ export function Canvas({ sections, selection, dispatch }: CanvasProps) {
       </button>
 
       {sections.length === 0 ? (
-        <div className="gap-space-sm p-space-lg flex flex-col items-center justify-center text-center">
+        <div className="flex flex-col items-center justify-center gap-space-sm p-space-lg text-center">
           <div className="rounded-radius-lg bg-surface-secondary p-space-sm text-text-caption">
             <LayoutGrid className="size-icon-lg" />
           </div>

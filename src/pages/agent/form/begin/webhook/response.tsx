@@ -11,9 +11,7 @@ import { SelectWithSearch } from '@/components/ui/select-with-search'
 import { Textarea } from '@/components/ui/textarea'
 import { useFormContext, useWatch } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import {
-  WebhookExecutionMode,
-} from '../../../constant'
+import { WebhookExecutionMode } from '../../../constant'
 
 function buildOptions(values: string[]) {
   return values.map((value) => ({
@@ -41,7 +39,12 @@ export function WebhookResponse() {
           name="execution_mode"
           render={({ field }) => (
             <FormItem>
-              <FormLabel tooltip={t('flow.webhook.executionModeTip', 'Choose how the webhook returns.')}>
+              <FormLabel
+                tooltip={t(
+                  'flow.webhook.executionModeTip',
+                  'Choose how the webhook returns.',
+                )}
+              >
                 {t('flow.webhook.executionMode', 'Execution mode')}
               </FormLabel>
               <FormControl>
@@ -85,7 +88,9 @@ export function WebhookResponse() {
               name="response.body_template"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('flow.webhook.bodyTemplate', 'Body template')}</FormLabel>
+                  <FormLabel>
+                    {t('flow.webhook.bodyTemplate', 'Body template')}
+                  </FormLabel>
                   <FormControl>
                     <Textarea rows={4} {...field} value={field.value ?? ''} />
                   </FormControl>

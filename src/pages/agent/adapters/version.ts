@@ -6,10 +6,7 @@ export function adaptAgentVersionSummary(
 ): AgentVersionSummary {
   return {
     ...payload,
-    id:
-      payload?.id ||
-      payload?.version_id ||
-      `version-${index}`,
+    id: payload?.id || payload?.version_id || `version-${index}`,
     title:
       payload?.title ||
       payload?.description ||

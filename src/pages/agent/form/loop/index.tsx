@@ -171,9 +171,7 @@ function LoopVariableValueField({
                 type="number"
                 {...field}
                 value={field.value ?? 0}
-                onChange={(event) =>
-                  field.onChange(Number(event.target.value))
-                }
+                onChange={(event) => field.onChange(Number(event.target.value))}
               />
             </FormControl>
           </FormItem>
@@ -182,7 +180,10 @@ function LoopVariableValueField({
     )
   }
 
-  if ((type || '').toLowerCase().startsWith('array') || type === TypesWithArray.Object) {
+  if (
+    (type || '').toLowerCase().startsWith('array') ||
+    type === TypesWithArray.Object
+  ) {
     return (
       <FormField
         control={form.control}
@@ -283,7 +284,11 @@ function LoopConditionValueField({
             <Input
               {...field}
               value={`${field.value ?? ''}`}
-              type={(type || '').toLowerCase().includes('number') ? 'number' : 'text'}
+              type={
+                (type || '').toLowerCase().includes('number')
+                  ? 'number'
+                  : 'text'
+              }
               onChange={(event) =>
                 (type || '').toLowerCase().includes('number')
                   ? field.onChange(Number(event.target.value))
@@ -297,9 +302,7 @@ function LoopConditionValueField({
   )
 }
 
-export const LoopForm = memo(function LoopForm({
-  node,
-}: INextOperatorForm) {
+export const LoopForm = memo(function LoopForm({ node }: INextOperatorForm) {
   const { t } = useTranslation()
   const baseOptionGroups = useBuildPromptVariableOptions()
   const values = useFormValues(initialLoopValues, node)
@@ -322,14 +325,13 @@ export const LoopForm = memo(function LoopForm({
       }>,
     [watchedLoopVariables],
   )
-  const conditions =
-    (useWatch({
-      control: form.control,
-      name: 'loop_termination_condition',
-    }) || []) as Array<{
-      variable?: string
-      operator?: string
-    }>
+  const conditions = (useWatch({
+    control: form.control,
+    name: 'loop_termination_condition',
+  }) || []) as Array<{
+    variable?: string
+    operator?: string
+  }>
 
   const currentLoopOptionGroup = useMemo(
     () => [
@@ -353,7 +355,10 @@ export const LoopForm = memo(function LoopForm({
     [baseOptionGroups, currentLoopOptionGroup],
   )
 
-  const outputs = useMemo(() => buildLoopOutputs(loopVariables), [loopVariables])
+  const outputs = useMemo(
+    () => buildLoopOutputs(loopVariables),
+    [loopVariables],
+  )
 
   useEffect(() => {
     form.setValue('outputs', outputs, { shouldDirty: true })
@@ -394,7 +399,7 @@ export const LoopForm = memo(function LoopForm({
                   control={form.control}
                   name={`loop_variables.${index}.variable`}
                   render={({ field: variableField }) => (
-                    <FormItem className="flex-[1.2_1_0] min-w-0">
+                    <FormItem className="min-w-0 flex-[1.2_1_0]">
                       <FormControl>
                         <Input
                           {...variableField}
@@ -409,12 +414,14 @@ export const LoopForm = memo(function LoopForm({
                   control={form.control}
                   name={`loop_variables.${index}.type`}
                   render={({ field: typeField }) => (
-                    <FormItem className="flex-[1_1_0] min-w-0">
+                    <FormItem className="min-w-0 flex-[1_1_0]">
                       <FormControl>
                         <SelectWithSearch
                           value={typeField.value || TypesWithArray.String}
                           onChange={typeField.onChange}
-                          options={buildTypeOptions(Object.values(TypesWithArray))}
+                          options={buildTypeOptions(
+                            Object.values(TypesWithArray),
+                          )}
                         />
                       </FormControl>
                     </FormItem>
@@ -424,7 +431,7 @@ export const LoopForm = memo(function LoopForm({
                   control={form.control}
                   name={`loop_variables.${index}.input_mode`}
                   render={({ field: inputModeField }) => (
-                    <FormItem className="flex-[0.9_1_0] min-w-0">
+                    <FormItem className="min-w-0 flex-[0.9_1_0]">
                       <FormControl>
                         <SelectWithSearch
                           value={inputModeField.value || InputMode.Constant}
@@ -442,7 +449,10 @@ export const LoopForm = memo(function LoopForm({
 
         <CompactRecordList
           name="loop_termination_condition"
-          label={t('flow.loopTerminationCondition', 'Loop termination condition')}
+          label={t(
+            'flow.loopTerminationCondition',
+            'Loop termination condition',
+          )}
           addLabel={t('common.add', 'Add')}
           emptyLabel={t('common.noData', 'No items yet')}
           defaultValue={{
@@ -454,9 +464,10 @@ export const LoopForm = memo(function LoopForm({
         >
           {({ field, index, ctx }) => {
             const variableValue = conditions[index]?.variable
-            const selectedLoopVariable = currentLoopOptionGroup[0]?.options.find(
-              (item) => item.value === variableValue,
-            )
+            const selectedLoopVariable =
+              currentLoopOptionGroup[0]?.options.find(
+                (item) => item.value === variableValue,
+              )
             const selectedBaseOption = baseOptionGroups
               .flatMap((group) => group.options)
               .find((item) => item.value === variableValue)
@@ -481,14 +492,14 @@ export const LoopForm = memo(function LoopForm({
                 <QueryVariable
                   name={`loop_termination_condition.${index}.variable`}
                   hideLabel
-                  className="flex-[1.4_1_0] min-w-0"
+                  className="min-w-0 flex-[1.4_1_0]"
                   optionGroups={conditionOptionGroups}
                 />
                 <FormField
                   control={form.control}
                   name={`loop_termination_condition.${index}.operator`}
                   render={({ field: operatorField }) => (
-                    <FormItem className="flex-[1_1_0] min-w-0">
+                    <FormItem className="min-w-0 flex-[1_1_0]">
                       <FormControl>
                         <SelectWithSearch
                           value={
@@ -505,7 +516,7 @@ export const LoopForm = memo(function LoopForm({
                   control={form.control}
                   name={`loop_termination_condition.${index}.input_mode`}
                   render={({ field: inputModeField }) => (
-                    <FormItem className="flex-[0.9_1_0] min-w-0">
+                    <FormItem className="min-w-0 flex-[0.9_1_0]">
                       <FormControl>
                         <SelectWithSearch
                           value={inputModeField.value || InputMode.Constant}

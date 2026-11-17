@@ -3,10 +3,7 @@ import { cn } from '@/lib/utils'
 import { Trash2 } from 'lucide-react'
 import { useFormContext, useWatch } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import {
-  getParserMeta,
-  getParserSetupSummary,
-} from './constants'
+import { getParserMeta, getParserSetupSummary } from './constants'
 import { ParserSetupBody } from './parser-setup-body'
 import type { ParserFormValues } from './schema'
 
@@ -37,21 +34,19 @@ export function ParserActiveEditor({
       <div className="flex items-start justify-between gap-space-lg">
         <div className="min-w-0 space-y-space-md">
           <div className="flex flex-wrap items-center gap-space-sm">
-            <h3 className="text-xl font-semibold leading-none text-text-primary">
+            <h3 className="text-xl leading-none font-semibold text-text-primary">
               {`Parser ${index + 1}`}
             </h3>
             <span
               className={cn(
-                'inline-flex items-center rounded-radius-full px-space-sm py-1 text-sm font-medium leading-none',
+                'inline-flex items-center rounded-radius-full px-space-sm py-1 text-sm leading-none font-medium',
                 parserMeta.badgeClassName,
               )}
             >
               {parserMeta.label}
             </span>
           </div>
-          <div className="text-lg leading-7 text-text-secondary">
-            {summary}
-          </div>
+          <div className="text-lg leading-7 text-text-secondary">{summary}</div>
         </div>
 
         {showRemove ? (
@@ -68,10 +63,7 @@ export function ParserActiveEditor({
         ) : null}
       </div>
 
-      <ParserSetupBody
-        index={index}
-        allFileFormats={allFileFormats}
-      />
+      <ParserSetupBody index={index} allFileFormats={allFileFormats} />
     </section>
   )
 }

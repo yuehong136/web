@@ -41,7 +41,7 @@ export default function ExeSQLToolForm({ node }: INextOperatorForm) {
         options={dbTypeOptions}
         searchable
       />
-      <div className="gap-space-md grid md:grid-cols-2">
+      <div className="grid gap-space-md md:grid-cols-2">
         <ToolTextField name="host" label={t('host', 'Host')} />
         <ToolNumberField
           name="port"

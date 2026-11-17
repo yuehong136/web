@@ -3,7 +3,9 @@ import { FormFieldType, type FormFieldConfig } from '../types'
 /**
  * S3 数据源表单字段配置
  */
-export const getS3FormFields = (t: (key: string) => string): FormFieldConfig[] => [
+export const getS3FormFields = (
+  t: (key: string) => string,
+): FormFieldConfig[] => [
   {
     label: 'AWS Region',
     name: 'config.credentials.region',
@@ -28,14 +30,20 @@ export const getS3FormFields = (t: (key: string) => string): FormFieldConfig[] =
     name: 'config.credentials.aws_access_key_id',
     type: FormFieldType.Text,
     required: true,
-    showWhen: { field: 'config.credentials.authentication_method', value: 'access_key' },
+    showWhen: {
+      field: 'config.credentials.authentication_method',
+      value: 'access_key',
+    },
   },
   {
     label: 'AWS Secret Access Key',
     name: 'config.credentials.aws_secret_access_key',
     type: FormFieldType.Password,
     required: true,
-    showWhen: { field: 'config.credentials.authentication_method', value: 'access_key' },
+    showWhen: {
+      field: 'config.credentials.authentication_method',
+      value: 'access_key',
+    },
   },
   {
     label: 'IAM Role ARN',
@@ -43,7 +51,10 @@ export const getS3FormFields = (t: (key: string) => string): FormFieldConfig[] =
     type: FormFieldType.Text,
     required: true,
     placeholder: 'arn:aws:iam::123456789012:role/MyRole',
-    showWhen: { field: 'config.credentials.authentication_method', value: 'iam_role_arn' },
+    showWhen: {
+      field: 'config.credentials.authentication_method',
+      value: 'iam_role_arn',
+    },
   },
   {
     label: 'Bucket Name',

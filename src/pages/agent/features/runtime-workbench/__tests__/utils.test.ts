@@ -296,8 +296,7 @@ test('normalizeRuntimeEvent extracts A2UI v0.9 commands incrementally', () => {
   assert.deepEqual(normalized.xCardSurfaceIds, ['message-card'])
   assert.equal(normalized.xCardCommands?.length, 1)
   const command = normalized.xCardCommands?.[0] as
-    | { createSurface?: { surfaceId?: string } }
-    | undefined
+    { createSurface?: { surfaceId?: string } } | undefined
   assert.equal(command?.createSurface?.surfaceId, 'message-card')
 })
 

@@ -48,14 +48,14 @@ export function FullPreview({ skeleton, onClose }: FullPreviewProps) {
   }
 
   return (
-    <div className="bg-surface-primary absolute inset-0 z-10 flex flex-col">
-      <div className="gap-space-sm px-space-base py-space-sm flex items-center border-b border-border-default">
+    <div className="absolute inset-0 z-10 flex flex-col bg-surface-primary">
+      <div className="flex items-center gap-space-sm border-b border-border-default px-space-base py-space-sm">
         <span className="text-sm font-medium text-text-primary">
           {report
             ? t('flow.htmlReportPreviewReportImported', 'Imported report')
             : t('flow.htmlReportPreview', 'Preview')}
         </span>
-        <div className="gap-space-xs ml-auto flex items-center">
+        <div className="ml-auto flex items-center gap-space-xs">
           {/* 文件选择是 @/components/ui 表达不了的语义,故此处用原生隐藏 input */}
           {/* eslint-disable-next-line no-restricted-syntax */}
           <input

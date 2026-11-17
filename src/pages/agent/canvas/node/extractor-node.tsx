@@ -7,9 +7,7 @@ import { RagNode } from './index'
 function InnerExtractorNode({ data, ...props }: NodeProps<IRagNode>) {
   return (
     <RagNode {...props} data={data}>
-      <LLMLabelCard
-        llmId={((data.form ?? {}) as { llm_id?: string }).llm_id}
-      />
+      <LLMLabelCard llmId={((data.form ?? {}) as { llm_id?: string }).llm_id} />
     </RagNode>
   )
 }

@@ -52,9 +52,10 @@ export function getFixedIterationStartPosition() {
   return { ...ITERATION_START_OFFSET }
 }
 
-export function clampIterationChildPosition(
-  position?: { x: number; y: number },
-) {
+export function clampIterationChildPosition(position?: {
+  x: number
+  y: number
+}) {
   if (!position) {
     return position
   }
@@ -79,7 +80,9 @@ export function getIterationChildSize(node?: SizedNode | null) {
 }
 
 export function isIterationContentChild(node?: RAGFlowNodeType | null) {
-  return !!node?.parentId && node.draggable !== false && !isIterationStartNode(node)
+  return (
+    !!node?.parentId && node.draggable !== false && !isIterationStartNode(node)
+  )
 }
 
 export function getIterationContentChildren(
@@ -116,7 +119,7 @@ export function normalizeIterationNodes(nodes: RAGFlowNodeType[]) {
     return {
       ...node,
       position: isIterationContentChild(node)
-        ? clampIterationChildPosition(node.position) ?? node.position
+        ? (clampIterationChildPosition(node.position) ?? node.position)
         : node.position,
       expandParent: false,
     }

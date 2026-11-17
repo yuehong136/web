@@ -40,7 +40,10 @@ export const useBeforeDelete = () => {
           deleteAgentToolNodeById(node.id)
         }
 
-        if (operatorType === Operator.Iteration || operatorType === Operator.Loop) {
+        if (
+          operatorType === Operator.Iteration ||
+          operatorType === Operator.Loop
+        ) {
           // Delete iteration/loop node and its children
           deleteIterationNodeById(node.id)
         }

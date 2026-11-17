@@ -19,7 +19,10 @@ export const StatGrid: React.FC<StatGridProps> = ({
   ...props
 }) => {
   return (
-    <div className={cn('grid gap-4 mb-6', columnClasses[columns], className)} {...props}>
+    <div
+      className={cn('mb-6 grid gap-4', columnClasses[columns], className)}
+      {...props}
+    >
       {children}
     </div>
   )

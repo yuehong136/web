@@ -11,7 +11,11 @@ import OperatorIcon from '../../operator-icon'
 import useGraphStore from '../../store'
 import type { INextOperatorForm, RAGFlowNodeType } from '../../types'
 import { useFindMcpById } from '../../hooks/use-find-mcp-by-id'
-import { useAgentToolActions, useAgentToolState, useSyncAgentToolNode } from './tool-hooks'
+import {
+  useAgentToolActions,
+  useAgentToolState,
+  useSyncAgentToolNode,
+} from './tool-hooks'
 import { AgentToolPopover } from './tool-popover'
 import { filterDownstreamAgentNodeIds } from '../../utils/filter-downstream-nodes'
 
@@ -117,15 +121,14 @@ export function AgentTools({ node }: AgentToolsProps) {
   const isEmpty = tools.length === 0 && mcp.length === 0
 
   const handleEdit = useMemo(
-    () =>
-      (event: Parameters<MouseEventHandler<HTMLButtonElement>>[0]) => {
-        if (!toolNodeId) {
-          return
-        }
+    () => (event: Parameters<MouseEventHandler<HTMLButtonElement>>[0]) => {
+      if (!toolNodeId) {
+        return
+      }
 
-        selectNodeIds([toolNodeId])
-        showFormDrawer?.(event, toolNodeId)
-      },
+      selectNodeIds([toolNodeId])
+      showFormDrawer?.(event, toolNodeId)
+    },
     [selectNodeIds, showFormDrawer, toolNodeId],
   )
 

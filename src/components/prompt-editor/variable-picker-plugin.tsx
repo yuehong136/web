@@ -96,7 +96,7 @@ const VariablePickerRow = forwardRef<
       onMouseEnter={onMouseEnter}
       onClick={onClick}
       className={cn(
-        'gap-space-sm rounded-radius-sm px-space-sm py-space-xs flex cursor-pointer items-center justify-between text-sm text-text-primary',
+        'flex cursor-pointer items-center justify-between gap-space-sm rounded-radius-sm px-space-sm py-space-xs text-sm text-text-primary',
         'hover:bg-components-dropdown-item-bg-hover focus-visible:bg-components-dropdown-item-bg-hover',
         isSelected && 'bg-components-dropdown-item-bg-hover',
         className,
@@ -133,7 +133,7 @@ function VariablePickerGroup({
   return (
     <ul role="group" aria-label={title} className="space-y-[2px]">
       <li role="presentation" className="px-space-xs">
-        <div className="py-space-xs cursor-auto text-xs font-medium uppercase tracking-wide text-text-tertiary">
+        <div className="cursor-auto py-space-xs text-xs font-medium tracking-wide text-text-tertiary uppercase">
           {title}
         </div>
       </li>
@@ -359,7 +359,7 @@ export default function VariablePickerMenuPlugin({
           <SelectedValueContext.Provider value={selectedValue}>
             <div
               className={cn(
-                'typeahead-popover nodrag nopan nowheel rounded-radius-md flex w-80 flex-col overflow-hidden border border-border-default bg-components-dropdown-bg shadow-lg',
+                'typeahead-popover nodrag nopan nowheel flex w-80 flex-col overflow-hidden rounded-radius-md border border-border-default bg-components-dropdown-bg shadow-lg',
               )}
               onWheelCapture={trapPopoverScroll}
               onMouseDown={preventPopoverMouseDown}
@@ -367,7 +367,7 @@ export default function VariablePickerMenuPlugin({
               onTouchStart={stopCanvasGesturePropagation}
               onTouchMove={stopCanvasGesturePropagation}
             >
-              <div className="gap-space-xs px-space-sm py-space-xs flex items-center border-b border-border-default">
+              <div className="flex items-center gap-space-xs border-b border-border-default px-space-sm py-space-xs">
                 <Variable className="size-3.5 text-text-secondary" />
                 <span className="text-xs text-text-secondary">
                   {queryString ? `/${queryString}` : '/'}
@@ -378,7 +378,7 @@ export default function VariablePickerMenuPlugin({
                 viewportClassName="typeahead-popover-scroll-viewport p-space-xs"
                 viewportRef={scrollViewportRef}
               >
-                <div className="space-y-space-sm max-h-64">
+                <div className="max-h-64 space-y-space-sm">
                   {groupedOptions.map((group) => (
                     <VariablePickerGroup
                       key={group.title}

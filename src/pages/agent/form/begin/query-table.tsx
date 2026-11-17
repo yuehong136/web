@@ -92,10 +92,10 @@ function SortableInputRow({
       }}
       className={cn(
         isDragging &&
-          'bg-surface-primary shadow-elevation-low relative z-10 opacity-80',
+          'relative z-10 bg-surface-primary opacity-80 shadow-elevation-low',
       )}
     >
-      <TableCell className="px-space-xs py-space-sm w-10 align-middle">
+      <TableCell className="w-10 px-space-xs py-space-sm align-middle">
         <Button
           {...attributes}
           {...listeners}
@@ -123,7 +123,7 @@ function SortableInputRow({
         {record.optional ? t('common.yes', 'Yes') : t('common.no', 'No')}
       </TableCell>
       <TableCell>
-        <div className="gap-space-xs flex items-center justify-end">
+        <div className="flex items-center justify-end gap-space-xs">
           <Button
             type="button"
             variant="ghost"
@@ -179,7 +179,7 @@ export function QueryTable({
   }
 
   return (
-    <div className="rounded-radius-lg bg-surface-secondary border border-border-default">
+    <div className="rounded-radius-lg border border-border-default bg-surface-secondary">
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}

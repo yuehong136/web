@@ -8,7 +8,11 @@ interface ToggleRowProps {
   onCheckedChange: (checked: boolean) => void
 }
 
-const ToggleRow: React.FC<ToggleRowProps> = ({ label, checked, onCheckedChange }) => {
+const ToggleRow: React.FC<ToggleRowProps> = ({
+  label,
+  checked,
+  onCheckedChange,
+}) => {
   return (
     <div className="flex items-center justify-between">
       <Label className="text-sm">{label}</Label>

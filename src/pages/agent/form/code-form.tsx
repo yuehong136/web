@@ -90,8 +90,7 @@ export function CodeForm({ node }: INextOperatorForm) {
 
   const watchedLanguage = form.watch('lang') as ProgrammingLanguageValue
   const watchedArguments = form.watch('arguments') as
-    | Record<string, unknown>
-    | undefined
+    Record<string, unknown> | undefined
   const watchedOutputs = form.watch('outputs') as CodeOutputMap | undefined
   const outputs = getCodeNodeOutputs(watchedOutputs)
   const externalOutputs = values.outputs as CodeOutputMap | undefined

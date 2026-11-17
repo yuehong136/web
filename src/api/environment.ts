@@ -16,25 +16,31 @@ import type {
 
 class EnvironmentAPI {
   // 环境管理
-  async getEnvironments(params?: EnvironmentQueryParams): Promise<EnvironmentSummary[]> {
+  async getEnvironments(
+    params?: EnvironmentQueryParams,
+  ): Promise<EnvironmentSummary[]> {
     const queryParams = new URLSearchParams()
     queryParams.append('page', (params?.page || 1).toString())
     queryParams.append('page_size', (params?.page_size || 20).toString())
     if (params?.search) queryParams.append('search', params.search)
-    if (params?.is_default !== undefined) queryParams.append('is_default', params.is_default.toString())
+    if (params?.is_default !== undefined)
+      queryParams.append('is_default', params.is_default.toString())
 
     const url = `/v1/api_environment/environments?${queryParams.toString()}`
-    
+
     try {
-      const paginatedResponse = await apiClient.get<PaginatedEnvironmentResponse>(url)
-      
+      const paginatedResponse =
+        await apiClient.get<PaginatedEnvironmentResponse>(url)
+
       if (paginatedResponse?.items && Array.isArray(paginatedResponse.items)) {
         // 简化处理，直接返回后端数据，添加兼容性
-        const environments = paginatedResponse.items.map((item: EnvironmentSummary) => ({
-          ...item,
-          description: item.description || '',
-          variables_count: item.variables_count || 0
-        }))
+        const environments = paginatedResponse.items.map(
+          (item: EnvironmentSummary) => ({
+            ...item,
+            description: item.description || '',
+            variables_count: item.variables_count || 0,
+          }),
+        )
         return environments
       }
       return []
@@ -45,17 +51,28 @@ class EnvironmentAPI {
   }
 
   async getEnvironment(id: string): Promise<Environment> {
-    const response = await apiClient.get<Environment>(`/v1/api_environment/environments/${id}`)
+    const response = await apiClient.get<Environment>(
+      `/v1/api_environment/environments/${id}`,
+    )
     return this.adaptEnvironmentData(response)
   }
 
   async createEnvironment(data: EnvironmentCreate): Promise<Environment> {
-    const response = await apiClient.post<Environment>('/v1/api_environment/environments', data)
+    const response = await apiClient.post<Environment>(
+      '/v1/api_environment/environments',
+      data,
+    )
     return this.adaptEnvironmentData(response)
   }
 
-  async updateEnvironment(id: string, data: EnvironmentUpdate): Promise<Environment> {
-    const response = await apiClient.put<Environment>(`/v1/api_environment/environments/${id}`, data)
+  async updateEnvironment(
+    id: string,
+    data: EnvironmentUpdate,
+  ): Promise<Environment> {
+    const response = await apiClient.put<Environment>(
+      `/v1/api_environment/environments/${id}`,
+      data,
+    )
     return this.adaptEnvironmentData(response)
   }
 
@@ -64,84 +81,102 @@ class EnvironmentAPI {
     // apiClient已处理错误检查，成功则无异常抛出
   }
 
-  async duplicateEnvironment(id: string, newName: string): Promise<Environment> {
+  async duplicateEnvironment(
+    id: string,
+    newName: string,
+  ): Promise<Environment> {
     // 使用后端提供的复制接口
     const response = await apiClient.post<Environment>(
-      `/v1/api_environment/environments/${id}/duplicate`, 
-      { new_name: newName }
+      `/v1/api_environment/environments/${id}/duplicate`,
+      { new_name: newName },
     )
     return this.adaptEnvironmentData(response)
   }
 
   async setDefaultEnvironment(id: string): Promise<Environment> {
-    const response = await apiClient.post<Environment>(`/v1/api_environment/environments/${id}/set-default`)
+    const response = await apiClient.post<Environment>(
+      `/v1/api_environment/environments/${id}/set-default`,
+    )
     return this.adaptEnvironmentData(response)
   }
 
   // 环境变量管理
-  async createVariable(environmentId: string, data: EnvironmentVariableCreate): Promise<EnvironmentVariable> {
+  async createVariable(
+    environmentId: string,
+    data: EnvironmentVariableCreate,
+  ): Promise<EnvironmentVariable> {
     const response = await apiClient.post<EnvironmentVariable>(
       `/v1/api_environment/environments/${environmentId}/variables`,
-      data
+      data,
     )
     // 添加兼容性字段
     return {
       ...response,
       key: response.key_name,
-      value: response.key_value
+      value: response.key_value,
     }
   }
 
   async updateVariable(
     environmentId: string,
     variableId: string,
-    data: EnvironmentVariableUpdate
+    data: EnvironmentVariableUpdate,
   ): Promise<EnvironmentVariable> {
     const response = await apiClient.put<EnvironmentVariable>(
       `/v1/api_environment/environments/${environmentId}/variables/${variableId}`,
-      data
+      data,
     )
     // 添加兼容性字段
     return {
       ...response,
       key: response.key_name,
-      value: response.key_value
+      value: response.key_value,
     }
   }
 
-  async deleteVariable(environmentId: string, variableId: string): Promise<void> {
-    await apiClient.delete<boolean>(`/v1/api_environment/environments/${environmentId}/variables/${variableId}`)
+  async deleteVariable(
+    environmentId: string,
+    variableId: string,
+  ): Promise<void> {
+    await apiClient.delete<boolean>(
+      `/v1/api_environment/environments/${environmentId}/variables/${variableId}`,
+    )
     // apiClient已处理错误检查，成功则无异常抛出
   }
 
   async batchUpdateVariables(
     environmentId: string,
-    variables: EnvironmentVariableCreate[]
+    variables: EnvironmentVariableCreate[],
   ): Promise<EnvironmentVariable[]> {
     const response = await apiClient.put<EnvironmentVariable[]>(
-      `/v1/api_environment/environments/${environmentId}/variables/batch`, 
-      { variables }
+      `/v1/api_environment/environments/${environmentId}/variables/batch`,
+      { variables },
     )
     // 添加兼容性字段
-    return response.map(variable => ({
+    return response.map((variable) => ({
       ...variable,
       key: variable.key_name,
-      value: variable.key_value
+      value: variable.key_value,
     }))
   }
 
   // 全局预设环境
   async getGlobalEnvironments(): Promise<GlobalEnvironment[]> {
-    const response = await apiClient.get<GlobalEnvironment[]>('/v1/api_environment/environments/global')
+    const response = await apiClient.get<GlobalEnvironment[]>(
+      '/v1/api_environment/environments/global',
+    )
     return response || []
   }
 
   // 变量解析预览（服务器端）
-  async resolveVariablesOnServer(environmentId: string, text: string): Promise<VariableResolveResponse> {
+  async resolveVariablesOnServer(
+    environmentId: string,
+    text: string,
+  ): Promise<VariableResolveResponse> {
     try {
       const response = await apiClient.post<VariableResolveResponse>(
         `/v1/api_environment/environments/${environmentId}/resolve`,
-        { text }
+        { text },
       )
       return response
     } catch (error) {
@@ -149,7 +184,7 @@ class EnvironmentAPI {
       return {
         resolved_text: text,
         variables_used: [],
-        missing_variables: []
+        missing_variables: [],
       }
     }
   }
@@ -165,7 +200,7 @@ class EnvironmentAPI {
   // 获取环境变量映射 - 适配后端字段
   getVariableMap(environment: Environment): Record<string, string> {
     const map: Record<string, string> = {}
-    environment.variables.forEach(variable => {
+    environment.variables.forEach((variable) => {
       // 支持新旧字段格式
       const key = variable.key_name || variable.key
       const value = variable.key_value || variable.value
@@ -175,14 +210,19 @@ class EnvironmentAPI {
   }
 
   // 验证变量引用
-  validateVariableReferences(text: string, availableVariables: string[]): { isValid: boolean; missingVariables: string[] } {
+  validateVariableReferences(
+    text: string,
+    availableVariables: string[],
+  ): { isValid: boolean; missingVariables: string[] } {
     const matches = text.match(/\{\{(\w+)\}\}/g) || []
-    const referencedVars = matches.map(match => match.slice(2, -2))
-    const missingVariables = referencedVars.filter(varName => !availableVariables.includes(varName))
-    
+    const referencedVars = matches.map((match) => match.slice(2, -2))
+    const missingVariables = referencedVars.filter(
+      (varName) => !availableVariables.includes(varName),
+    )
+
     return {
       isValid: missingVariables.length === 0,
-      missingVariables
+      missingVariables,
     }
   }
 
@@ -190,12 +230,13 @@ class EnvironmentAPI {
   adaptEnvironmentData(backendEnv: any): Environment {
     return {
       ...backendEnv,
-      variables: backendEnv.variables?.map((variable: any) => ({
-        ...variable,
-        // 兼容性字段
-        key: variable.key_name,
-        value: variable.key_value
-      })) || []
+      variables:
+        backendEnv.variables?.map((variable: any) => ({
+          ...variable,
+          // 兼容性字段
+          key: variable.key_name,
+          value: variable.key_value,
+        })) || [],
     }
   }
 
@@ -212,7 +253,7 @@ class EnvironmentAPI {
       create_time: backendSummary.create_time,
       update_time: backendSummary.update_time,
       create_date: backendSummary.create_date,
-      update_date: backendSummary.update_date
+      update_date: backendSummary.update_date,
     }
   }
 
@@ -228,7 +269,7 @@ class EnvironmentAPI {
       description: server.description,
       server_url: server.url,
       variables: server.variables || {},
-      is_active: true
+      is_active: true,
     }))
   }
 }

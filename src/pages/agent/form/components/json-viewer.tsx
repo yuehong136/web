@@ -16,7 +16,7 @@ export function JsonViewer({ data, className }: JsonViewerProps) {
 
   return (
     <pre
-      className={`bg-surface-secondary rounded-radius-md p-space-sm text-xs overflow-auto max-h-[300px] ${className || ''}`}
+      className={`max-h-[300px] overflow-auto rounded-radius-md bg-surface-secondary p-space-sm text-xs ${className || ''}`}
     >
       <code>{formattedJson}</code>
     </pre>

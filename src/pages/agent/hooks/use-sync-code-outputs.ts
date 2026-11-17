@@ -21,8 +21,7 @@ export function useSyncCodeOutputs(
 ) {
   useEffect(() => {
     const currentOutputs = form.getValues('outputs') as
-      | CodeOutputMap
-      | undefined
+      CodeOutputMap | undefined
 
     if (isEqual(currentOutputs, externalOutputs)) {
       return

@@ -14,7 +14,12 @@ import { Separator } from '@/components/ui/separator'
 import { initialCategorizeValues } from '../../constant'
 import { useFormValues } from '../../hooks/use-form-values'
 import type { INextOperatorForm } from '../../types'
-import { FormWrapper, Output, QueryVariable, transferOutputs } from '../components'
+import {
+  FormWrapper,
+  Output,
+  QueryVariable,
+  transferOutputs,
+} from '../components'
 import { LLMSelectField } from '../components/llm-select-field'
 import { DynamicCategorize } from './dynamic-categorize'
 import {

@@ -36,8 +36,7 @@ export const mcpQueryKeys = {
  */
 export const getServerTools = (server: MCPServer): MCPTool[] => {
   const toolsMap = server.variables?.tools as
-    | Record<string, MCPTool>
-    | undefined
+    Record<string, MCPTool> | undefined
   if (!toolsMap) return []
 
   return Object.entries(toolsMap).map(([name, tool]) => ({
@@ -53,8 +52,7 @@ export const getServerTools = (server: MCPServer): MCPTool[] => {
  */
 export const hasServerTools = (server: MCPServer): boolean => {
   const toolsMap = server.variables?.tools as
-    | Record<string, MCPTool>
-    | undefined
+    Record<string, MCPTool> | undefined
   return toolsMap ? Object.keys(toolsMap).length > 0 : false
 }
 

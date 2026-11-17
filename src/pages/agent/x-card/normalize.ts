@@ -1,4 +1,8 @@
-import type { AgentXCardActionPayload, AgentXCardCommand, A2UICommandEventData } from './types'
+import type {
+  AgentXCardActionPayload,
+  AgentXCardCommand,
+  A2UICommandEventData,
+} from './types'
 import { A2UI_CATALOG_ID } from './types'
 
 export const A2UI_INTERNAL_DATA_PATH_PREFIX = '__a2ui_data_path__:'
@@ -52,7 +56,8 @@ export function normalizeA2UICommandEventData(
           .filter((surfaceId): surfaceId is string => Boolean(surfaceId))
 
   return {
-    surface_id: typeof data.surface_id === 'string' ? data.surface_id : surfaceIds[0],
+    surface_id:
+      typeof data.surface_id === 'string' ? data.surface_id : surfaceIds[0],
     surface_ids: Array.from(new Set(surfaceIds)),
     commands,
   }
@@ -118,9 +123,7 @@ export function buildA2UIActionInput(payload: AgentXCardActionPayload) {
     metadata: {
       a2uiClientCapabilities: {
         'v0.9': {
-          supportedCatalogIds: [
-            A2UI_CATALOG_ID,
-          ],
+          supportedCatalogIds: [A2UI_CATALOG_ID],
           inlineCatalogs: [],
         },
       },
@@ -152,8 +155,12 @@ function normalizeChoiceOptions(value: unknown) {
         const optionValue = option.value
         const optionLabel = option.label ?? option.value
         return [
-          typeof optionValue === 'string' ? optionValue : String(optionValue ?? ''),
-          typeof optionLabel === 'string' ? optionLabel : String(optionLabel ?? ''),
+          typeof optionValue === 'string'
+            ? optionValue
+            : String(optionValue ?? ''),
+          typeof optionLabel === 'string'
+            ? optionLabel
+            : String(optionLabel ?? ''),
         ] as const
       })
       .filter(([optionValue]) => optionValue),
@@ -170,7 +177,9 @@ function pairChoiceValue(
   labels: Map<string, string>,
 ): ValueLabelPair | ValueLabelPair[] | unknown {
   if (Array.isArray(value)) {
-    return value.map((item) => pairChoiceValue(item, labels)) as ValueLabelPair[]
+    return value.map((item) =>
+      pairChoiceValue(item, labels),
+    ) as ValueLabelPair[]
   }
 
   if (typeof value === 'string') {
@@ -197,7 +206,10 @@ export function enrichContextWithLabels(
   for (const command of commands) {
     const record = command as unknown as Record<string, unknown>
     const updateComponents = record.updateComponents
-    if (!isRecord(updateComponents) || updateComponents.surfaceId !== payload.surfaceId) {
+    if (
+      !isRecord(updateComponents) ||
+      updateComponents.surfaceId !== payload.surfaceId
+    ) {
       continue
     }
 
@@ -218,9 +230,10 @@ export function enrichContextWithLabels(
         }
       }
 
-      const actionEvent = isRecord(component.action) && isRecord(component.action.event)
-        ? component.action.event
-        : undefined
+      const actionEvent =
+        isRecord(component.action) && isRecord(component.action.event)
+          ? component.action.event
+          : undefined
       if (
         component.id === payload.sourceComponentId &&
         actionEvent?.name === payload.name &&
@@ -236,40 +249,53 @@ export function enrichContextWithLabels(
     }
   }
 
-  return Object.entries(context).reduce<Record<string, unknown>>((result, [key, value]) => {
-    const path = pathsByActionKey.get(key) || `/${key}`
-    const labels = labelsByPath.get(path)
-    result[key] = labels ? pairChoiceValue(value, labels) : value
-    return result
-  }, {})
+  return Object.entries(context).reduce<Record<string, unknown>>(
+    (result, [key, value]) => {
+      const path = pathsByActionKey.get(key) || `/${key}`
+      const labels = labelsByPath.get(path)
+      result[key] = labels ? pairChoiceValue(value, labels) : value
+      return result
+    },
+    {},
+  )
 }
 
 function withInternalBindingPath(component: Record<string, unknown>) {
   if (
-    !['CheckBox', 'ChoicePicker', 'DateTimeInput', 'Slider', 'TextField'].includes(
-      String(component.component),
-    )
+    ![
+      'CheckBox',
+      'ChoicePicker',
+      'DateTimeInput',
+      'Slider',
+      'TextField',
+    ].includes(String(component.component))
   ) {
     return component
   }
 
   const writablePath = getPathValue(component.value)
   return writablePath
-    ? { ...component, dataPath: `${A2UI_INTERNAL_DATA_PATH_PREFIX}${writablePath}` }
+    ? {
+        ...component,
+        dataPath: `${A2UI_INTERNAL_DATA_PATH_PREFIX}${writablePath}`,
+      }
     : component
 }
 
 function withInternalBasicCatalogShape(component: Record<string, unknown>) {
   if (component.component === 'List' && isRecord(component.children)) {
     const children = component.children
-    const itemsPath = typeof children.path === 'string' ? children.path : undefined
+    const itemsPath =
+      typeof children.path === 'string' ? children.path : undefined
     return {
       ...component,
       children: undefined,
       items: itemsPath ? { path: itemsPath } : undefined,
       itemsPath,
       templateComponentId:
-        typeof children.componentId === 'string' ? children.componentId : undefined,
+        typeof children.componentId === 'string'
+          ? children.componentId
+          : undefined,
     }
   }
 
@@ -303,7 +329,10 @@ export function normalizeCommandsForXCardRenderer(
     const record = command as unknown as Record<string, unknown>
     const updateComponents = record.updateComponents
 
-    if (!isRecord(updateComponents) || !Array.isArray(updateComponents.components)) {
+    if (
+      !isRecord(updateComponents) ||
+      !Array.isArray(updateComponents.components)
+    ) {
       return command
     }
 

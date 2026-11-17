@@ -41,7 +41,7 @@ export function JsonCodeEditor({
   }, [currentTheme])
 
   return (
-    <div className="rounded-radius-md overflow-hidden border border-border-default">
+    <div className="overflow-hidden rounded-radius-md border border-border-default">
       <Editor
         height={height}
         defaultLanguage="json"

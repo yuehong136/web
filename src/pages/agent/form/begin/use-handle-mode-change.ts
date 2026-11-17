@@ -35,8 +35,8 @@ export function useHandleModeChange(form: UseFormReturn<BeginFormValues>) {
           key as Parameters<typeof form.setValue>[0],
           value as Parameters<typeof form.setValue>[1],
           {
-          shouldDirty: true,
-          shouldValidate: true,
+            shouldDirty: true,
+            shouldValidate: true,
           },
         )
       })

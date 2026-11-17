@@ -1,11 +1,5 @@
 export type AgentTimelineKind =
-  | 'reasoning'
-  | 'tool'
-  | 'mcp'
-  | 'skill'
-  | 'answer'
-  | 'system'
-  | 'error'
+  'reasoning' | 'tool' | 'mcp' | 'skill' | 'answer' | 'system' | 'error'
 
 export type AgentTimelineStatus = 'loading' | 'success' | 'error' | 'abort'
 

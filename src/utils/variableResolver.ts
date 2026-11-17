@@ -3,7 +3,7 @@ import type { Environment } from '@/types/api'
 
 export class VariableResolver {
   private variables: Map<string, string> = new Map()
-  
+
   constructor(environment?: Environment) {
     if (environment) {
       this.setEnvironment(environment)
@@ -12,7 +12,7 @@ export class VariableResolver {
 
   setEnvironment(environment: Environment) {
     this.variables.clear()
-    environment.variables.forEach(variable => {
+    environment.variables.forEach((variable) => {
       this.variables.set(variable.key, variable.value)
     })
   }
@@ -43,7 +43,7 @@ export class VariableResolver {
       if (value !== undefined) {
         return value
       }
-      
+
       // 如果变量不存在，保持原样
       console.warn(`Variable "${variableName}" not found in environment`)
       return match
@@ -62,11 +62,11 @@ export class VariableResolver {
    */
   resolveHeaders(headers: Record<string, string>): Record<string, string> {
     const resolved: Record<string, string> = {}
-    
+
     Object.entries(headers).forEach(([key, value]) => {
       resolved[key] = this.resolve(value)
     })
-    
+
     return resolved
   }
 
@@ -77,10 +77,10 @@ export class VariableResolver {
     if (typeof body === 'string') {
       return this.resolve(body)
     }
-    
+
     if (typeof body === 'object' && body !== null) {
       if (Array.isArray(body)) {
-        return body.map(item => this.resolveBody(item))
+        return body.map((item) => this.resolveBody(item))
       } else {
         const resolved: any = {}
         Object.entries(body).forEach(([key, value]) => {
@@ -89,7 +89,7 @@ export class VariableResolver {
         return resolved
       }
     }
-    
+
     return body
   }
 
@@ -99,17 +99,17 @@ export class VariableResolver {
   validate(text: string): ValidationResult {
     const matches = this.extractVariables(text)
     const missingVariables: string[] = []
-    
-    matches.forEach(variableName => {
+
+    matches.forEach((variableName) => {
       if (!this.variables.has(variableName)) {
         missingVariables.push(variableName)
       }
     })
-    
+
     return {
       isValid: missingVariables.length === 0,
       missingVariables,
-      availableVariables: Array.from(this.variables.keys())
+      availableVariables: Array.from(this.variables.keys()),
     }
   }
 
@@ -126,7 +126,7 @@ export class VariableResolver {
       return []
     }
 
-    return matches.map(match => match.slice(2, -2)) // 移除 {{ 和 }}
+    return matches.map((match) => match.slice(2, -2)) // 移除 {{ 和 }}
   }
 
   /**
@@ -175,13 +175,19 @@ export interface ValidationResult {
 export const globalVariableResolver = new VariableResolver()
 
 // 工具函数
-export function resolveText(text: string, variables: Record<string, string>): string {
+export function resolveText(
+  text: string,
+  variables: Record<string, string>,
+): string {
   const resolver = new VariableResolver()
   resolver.setVariables(variables)
   return resolver.resolve(text)
 }
 
-export function validateText(text: string, variables: Record<string, string>): ValidationResult {
+export function validateText(
+  text: string,
+  variables: Record<string, string>,
+): ValidationResult {
   const resolver = new VariableResolver()
   resolver.setVariables(variables)
   return resolver.validate(text)

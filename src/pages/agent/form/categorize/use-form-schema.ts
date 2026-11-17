@@ -17,7 +17,10 @@ export function useCreateCategorizeFormSchema() {
     items: z
       .array(
         z.object({
-          name: z.string().trim().min(1, t('flow.nameRequiredMsg', 'Name is required')),
+          name: z
+            .string()
+            .trim()
+            .min(1, t('flow.nameRequiredMsg', 'Name is required')),
           description: z.string().optional(),
           uuid: z.string(),
           examples: z

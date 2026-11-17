@@ -19,32 +19,34 @@ interface LeftEndHandleProps extends Omit<HandleProps, 'type' | 'position'> {
   nodeId: string
 }
 
-export const LeftEndHandle = memo(({ nodeId, ...props }: LeftEndHandleProps) => {
-  const isPipeline = useIsPipeline()
-  const hasUpstreamConnection = useGraphStore((state) =>
-    state.hasUpstreamNode(nodeId),
-  )
-  const baseIsConnectable = props.isConnectable ?? true
-  const isConnectable =
-    baseIsConnectable &&
-    isPipelineHandleConnectable({
-      isPipeline,
-      handleType: 'target',
-      hasDownstreamConnection: false,
-      hasUpstreamConnection,
-    })
+export const LeftEndHandle = memo(
+  ({ nodeId, ...props }: LeftEndHandleProps) => {
+    const isPipeline = useIsPipeline()
+    const hasUpstreamConnection = useGraphStore((state) =>
+      state.hasUpstreamNode(nodeId),
+    )
+    const baseIsConnectable = props.isConnectable ?? true
+    const isConnectable =
+      baseIsConnectable &&
+      isPipelineHandleConnectable({
+        isPipeline,
+        handleType: 'target',
+        hasDownstreamConnection: false,
+        hasUpstreamConnection,
+      })
 
-  return (
-    <Handle
-      type="target"
-      position={Position.Left}
-      id={NodeHandleId.End}
-      isConnectable={isConnectable}
-      className="!size-2 !border-none !bg-components-canvas-handle-bg"
-      {...props}
-    />
-  )
-})
+    return (
+      <Handle
+        type="target"
+        position={Position.Left}
+        id={NodeHandleId.End}
+        isConnectable={isConnectable}
+        className="!size-2 !border-none !bg-components-canvas-handle-bg"
+        {...props}
+      />
+    )
+  },
+)
 
 LeftEndHandle.displayName = 'LeftEndHandle'
 
@@ -116,7 +118,7 @@ export const CommonHandle = memo(
             showModal()
           }}
         >
-          <Plus className="hidden size-3 pointer-events-none text-components-canvas-handle-icon group-hover:inline-block" />
+          <Plus className="pointer-events-none hidden size-3 text-components-canvas-handle-icon group-hover:inline-block" />
           {visible && (
             <NextStepDropdown
               nodeId={nodeId}

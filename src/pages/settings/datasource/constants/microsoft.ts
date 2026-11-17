@@ -1,9 +1,7 @@
 import { DataSourceKey, FormFieldType, type FormFieldConfig } from '../types'
 
 type MicrosoftSource =
-  | DataSourceKey.TEAMS
-  | DataSourceKey.ONEDRIVE
-  | DataSourceKey.OUTLOOK
+  DataSourceKey.TEAMS | DataSourceKey.ONEDRIVE | DataSourceKey.OUTLOOK
 const defaults = (source: MicrosoftSource) => ({
   name: '',
   source,

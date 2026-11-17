@@ -105,7 +105,7 @@ export function NodeTitleInput({ node, titleEditable }: NodeTitleInputProps) {
   }
 
   return (
-    <div className="gap-space-xs flex min-w-0 flex-1 items-center">
+    <div className="flex min-w-0 flex-1 items-center gap-space-xs">
       <div className="truncate text-base font-medium text-text-primary">
         {node?.data?.name ||
           node?.data?.label ||

@@ -21,15 +21,9 @@ export interface MonacoEditorOptions {
   renderLineHighlight?: 'all' | 'line' | 'none' | 'gutter'
   matchBrackets?: 'always' | 'near' | 'never'
   autoClosingBrackets?:
-    | 'always'
-    | 'languageDefined'
-    | 'beforeWhitespace'
-    | 'never'
+    'always' | 'languageDefined' | 'beforeWhitespace' | 'never'
   autoClosingQuotes?:
-    | 'always'
-    | 'languageDefined'
-    | 'beforeWhitespace'
-    | 'never'
+    'always' | 'languageDefined' | 'beforeWhitespace' | 'never'
   guides?: {
     bracketPairs?: boolean
     indentation?: boolean
@@ -159,9 +153,7 @@ export function useMonacoTheme() {
           ],
     }
 
-    monaco.languages.json.jsonDefaults.setDiagnosticsOptions(
-      diagnosticsOptions,
-    )
+    monaco.languages.json.jsonDefaults.setDiagnosticsOptions(diagnosticsOptions)
   }
 
   return {

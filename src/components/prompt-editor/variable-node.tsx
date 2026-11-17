@@ -82,7 +82,7 @@ export class VariableNode extends DecoratorNode<ReactNode> {
     }
 
     return (
-      <span className="gap-space-xs rounded-radius-sm px-space-sm inline-flex max-w-full items-center bg-components-system-accent-soft py-0.5 align-middle text-sm text-components-system-accent-text">
+      <span className="inline-flex max-w-full items-center gap-space-xs rounded-radius-sm bg-components-system-accent-soft px-space-sm py-0.5 align-middle text-sm text-components-system-accent-text">
         {this.__icon ? (
           <span className="flex items-center justify-center [&_svg]:size-4">
             {this.__icon}
@@ -100,7 +100,7 @@ export class VariableNode extends DecoratorNode<ReactNode> {
           {this.__label}
         </span>
         {this.__dataType ? (
-          <span className="ml-space-xs rounded-radius-sm bg-background-surface/60 shrink-0 px-1 font-mono text-xs text-text-secondary">
+          <span className="ml-space-xs shrink-0 rounded-radius-sm bg-background-surface/60 px-1 font-mono text-xs text-text-secondary">
             {this.__dataType}
           </span>
         ) : null}

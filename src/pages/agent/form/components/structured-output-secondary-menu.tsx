@@ -44,12 +44,7 @@ function getStructuredDatatype(value: unknown) {
 
 export const StructuredOutputSecondaryMenu = forwardRef(
   function StructuredOutputSecondaryMenu(
-    {
-      className,
-      data,
-      click,
-      types = [],
-    }: StructuredOutputSecondaryMenuProps,
+    { className, data, click, types = [] }: StructuredOutputSecondaryMenuProps,
     ref: ForwardedRef<HTMLLIElement>,
   ) {
     const { t } = useTranslation()
@@ -57,10 +52,7 @@ export const StructuredOutputSecondaryMenu = forwardRef(
     const structuredOutput = filterStructuredOutput(data.value)
 
     const handleSubMenuClick = useCallback(
-      (
-          option: { label: ReactNode; value: string },
-          dataType?: string,
-        ) =>
+      (option: { label: ReactNode; value: string }, dataType?: string) =>
         () => {
           if (
             (!isEmpty(types) && types?.some((x) => x === dataType)) ||
@@ -110,7 +102,10 @@ export const StructuredOutputSecondaryMenu = forwardRef(
                   return (
                     <li key={key} className="pl-space-xs">
                       <div
-                        onClick={handleSubMenuClick(nextOption, compositeDataType)}
+                        onClick={handleSubMenuClick(
+                          nextOption,
+                          compositeDataType,
+                        )}
                         className="flex cursor-pointer items-center justify-between rounded-radius-sm p-space-xs text-sm text-text-primary hover:bg-components-dropdown-item-bg-hover"
                       >
                         <span className="truncate">{key}</span>

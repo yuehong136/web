@@ -11,7 +11,7 @@ interface SvgIconProps {
 
 /**
  * SVG 图标组件
- * 
+ *
  * @example
  * import s3Icon from '@/assets/svg/data-source/s3.svg'
  * <SvgIcon src={s3Icon} width={24} height={24} />

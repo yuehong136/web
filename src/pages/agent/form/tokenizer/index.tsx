@@ -1,5 +1,11 @@
 import { SliderInputFormField } from '@/components/forms/SliderInputFormField'
-import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from '@/components/ui/form'
 import { MultiSelectWithSearch } from '@/components/ui/multi-select-with-search'
 import { SelectWithSearch } from '@/components/ui/select-with-search'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -12,7 +18,10 @@ import { useFormValues } from '../../hooks/use-form-values'
 import { useWatchFormChange } from '../../hooks/use-watch-form-change'
 import type { INextOperatorForm } from '../../types'
 import { buildOutputList, FormWrapper, Output } from '../components'
-import { TokenizerFieldOptions, TokenizerSearchMethodOptions } from './constants'
+import {
+  TokenizerFieldOptions,
+  TokenizerSearchMethodOptions,
+} from './constants'
 
 const outputList = buildOutputList(initialTokenizerValues.outputs)
 

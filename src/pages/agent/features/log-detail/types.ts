@@ -28,10 +28,7 @@ export interface LogDetailViewModel {
   traceItems: AgentTraceItem[]
   traceRun: TraceRunViewModel
   traceUnavailableReason?:
-    | 'no-message-id'
-    | 'redis-evicted'
-    | 'fetching'
-    | undefined
+    'no-message-id' | 'redis-evicted' | 'fetching' | undefined
   canRetry: boolean
   rawSession?: unknown
 }

@@ -21,12 +21,7 @@ interface UseDocumentChunksControllerOptions {
 }
 
 type Operation =
-  | 'create'
-  | 'save'
-  | 'toggle'
-  | 'bulkSwitch'
-  | 'delete'
-  | 'metadata'
+  'create' | 'save' | 'toggle' | 'bulkSwitch' | 'delete' | 'metadata'
 
 export const useDocumentChunksController = (
   options: UseDocumentChunksControllerOptions = {},

@@ -24,7 +24,7 @@ export interface PaginationProps {
 
 /**
  * 分页组件
- * 
+ *
  * 用于长列表数据的分页展示和导航
  */
 export const Pagination: React.FC<PaginationProps> = ({
@@ -109,19 +109,16 @@ export const Pagination: React.FC<PaginationProps> = ({
   const pageNumbers = getPageNumbers()
 
   return (
-    <div 
-      className={cn(
-        'flex items-center gap-space-sm flex-wrap',
-        className
-      )}
-    >
+    <div className={cn('flex flex-wrap items-center gap-space-sm', className)}>
       {/* 总数显示 */}
       {showTotal && (
-        <span 
-          className="text-sm mr-space-sm"
+        <span
+          className="mr-space-sm text-sm"
           style={{ color: 'var(--color-text-tertiary)' }}
         >
-          共 <span style={{ color: 'var(--color-text-secondary)' }}>{total}</span> 条
+          共{' '}
+          <span style={{ color: 'var(--color-text-secondary)' }}>{total}</span>{' '}
+          条
         </span>
       )}
 
@@ -134,7 +131,10 @@ export const Pagination: React.FC<PaginationProps> = ({
         className="h-8 w-8"
         style={{
           backgroundColor: 'var(--color-components-pagination-item-bg)',
-          color: current <= 1 ? 'var(--color-components-pagination-disabled-text)' : 'var(--color-components-pagination-item-text)',
+          color:
+            current <= 1
+              ? 'var(--color-components-pagination-disabled-text)'
+              : 'var(--color-components-pagination-item-text)',
         }}
       >
         <ChevronLeft className="h-4 w-4" />
@@ -149,7 +149,11 @@ export const Pagination: React.FC<PaginationProps> = ({
                 key={`${page}-${index}`}
                 variant="ghost"
                 size="icon-sm"
-                onClick={() => handleEllipsisClick(page === 'prev-ellipsis' ? 'prev' : 'next')}
+                onClick={() =>
+                  handleEllipsisClick(
+                    page === 'prev-ellipsis' ? 'prev' : 'next',
+                  )
+                }
                 disabled={disabled}
                 className="h-8 w-8"
                 style={{
@@ -172,14 +176,14 @@ export const Pagination: React.FC<PaginationProps> = ({
               disabled={disabled}
               className={cn(
                 'h-8 min-w-[32px] px-2 font-medium',
-                isActive && 'font-semibold'
+                isActive && 'font-semibold',
               )}
               style={{
-                backgroundColor: isActive 
-                  ? 'var(--color-components-pagination-item-bg-active)' 
+                backgroundColor: isActive
+                  ? 'var(--color-components-pagination-item-bg-active)'
                   : 'var(--color-components-pagination-item-bg)',
-                color: isActive 
-                  ? 'var(--color-components-pagination-item-text-active)' 
+                color: isActive
+                  ? 'var(--color-components-pagination-item-text-active)'
                   : 'var(--color-components-pagination-item-text)',
               }}
             >
@@ -198,7 +202,10 @@ export const Pagination: React.FC<PaginationProps> = ({
         className="h-8 w-8"
         style={{
           backgroundColor: 'var(--color-components-pagination-item-bg)',
-          color: current >= totalPages ? 'var(--color-components-pagination-disabled-text)' : 'var(--color-components-pagination-item-text)',
+          color:
+            current >= totalPages
+              ? 'var(--color-components-pagination-disabled-text)'
+              : 'var(--color-components-pagination-item-text)',
         }}
       >
         <ChevronRight className="h-4 w-4" />
@@ -206,8 +213,8 @@ export const Pagination: React.FC<PaginationProps> = ({
 
       {/* 快速跳转 */}
       {showQuickJumper && totalPages > 1 && (
-        <div className="flex items-center gap-space-xs ml-space-sm">
-          <span 
+        <div className="ml-space-sm flex items-center gap-space-xs">
+          <span
             className="text-sm"
             style={{ color: 'var(--color-text-tertiary)' }}
           >
@@ -221,14 +228,14 @@ export const Pagination: React.FC<PaginationProps> = ({
             onChange={(e) => setJumpValue(e.target.value)}
             onKeyDown={handleJump}
             disabled={disabled}
-            className="w-12 h-8 px-2 text-sm text-center rounded-lg border transition-colors"
+            className="h-8 w-12 rounded-lg border px-2 text-center text-sm transition-colors"
             style={{
               backgroundColor: 'var(--color-components-input-bg)',
               borderColor: 'var(--color-components-input-border)',
               color: 'var(--color-text-primary)',
             }}
           />
-          <span 
+          <span
             className="text-sm"
             style={{ color: 'var(--color-text-tertiary)' }}
           >

@@ -33,7 +33,7 @@ export function RunResult({
   const hasWarn = failedRegions > 0 || failedSections > 0
   return (
     <div className="absolute inset-0 z-20 flex flex-col bg-background-surface">
-      <div className="gap-space-sm px-space-base py-space-sm flex items-center border-b border-border-default">
+      <div className="flex items-center gap-space-sm border-b border-border-default px-space-base py-space-sm">
         <span className="text-sm font-medium text-text-primary">
           {t('flow.htmlReportRunResult', 'Trial run result')}
         </span>
@@ -53,7 +53,7 @@ export function RunResult({
               })}
           </span>
         )}
-        <div className="gap-space-xs ml-auto flex items-center">
+        <div className="ml-auto flex items-center gap-space-xs">
           <Button
             variant="outline"
             size="sm"

@@ -177,7 +177,7 @@ function PaletteChip({ item, onAdd }: { item: BlockItem; onAdd: () => void }) {
       {...attributes}
       {...listeners}
       className={cn(
-        'rounded-radius-md bg-surface-primary px-space-sm py-space-xs w-full cursor-grab border border-border-default text-left text-xs text-text-primary transition-colors hover:bg-state-hover active:cursor-grabbing',
+        'w-full cursor-grab rounded-radius-md border border-border-default bg-surface-primary px-space-sm py-space-xs text-left text-xs text-text-primary transition-colors hover:bg-state-hover active:cursor-grabbing',
         isDragging && 'opacity-50',
       )}
     >
@@ -197,11 +197,11 @@ function PaletteGroup({
 }) {
   return (
     <div className="space-y-space-xs">
-      <div className="gap-space-xs text-text-caption flex items-center">
+      <div className="flex items-center gap-space-xs text-text-caption">
         {icon}
         <span className="text-xs font-medium">{title}</span>
       </div>
-      <div className="gap-space-xs grid grid-cols-2">{children}</div>
+      <div className="grid grid-cols-2 gap-space-xs">{children}</div>
     </div>
   )
 }
@@ -209,7 +209,7 @@ function PaletteGroup({
 export function Palette({ onAddBlock, onAddSection }: PaletteProps) {
   const { t } = useTranslation()
   return (
-    <div className="gap-space-base p-space-sm flex h-full flex-col overflow-auto">
+    <div className="flex h-full flex-col gap-space-base overflow-auto p-space-sm">
       <PaletteGroup
         icon={<Type className="size-icon-sm" />}
         title={t('flow.htmlReportGroupText', 'Text')}
@@ -271,7 +271,7 @@ export function Palette({ onAddBlock, onAddSection }: PaletteProps) {
             key={item.layout}
             type="button"
             onClick={() => onAddSection(item.layout)}
-            className="rounded-radius-md bg-surface-primary px-space-sm py-space-xs w-full border border-border-default text-left text-xs text-text-primary transition-colors hover:bg-state-hover"
+            className="w-full rounded-radius-md border border-border-default bg-surface-primary px-space-sm py-space-xs text-left text-xs text-text-primary transition-colors hover:bg-state-hover"
           >
             {t(item.labelKey, item.fallback)}
           </button>

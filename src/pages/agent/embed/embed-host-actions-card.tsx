@@ -54,7 +54,7 @@ export function EmbedHostActionsCard({
       padding="default"
       className="min-h-0"
     >
-      <div className="gap-space-sm grid">
+      <div className="grid gap-space-sm">
         {showExplore ? (
           <Button variant="outline" onClick={handleNavigate('explore')}>
             <Compass className="mr-space-xs size-icon-sm" />

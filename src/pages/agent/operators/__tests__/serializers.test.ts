@@ -169,8 +169,7 @@ test('message nodes normalize editor object content back to persisted string arr
   assert.deepEqual(
     (
       reconstructed.graph.nodes[0]?.data.form as
-        | Record<string, unknown>
-        | undefined
+        Record<string, unknown> | undefined
     )?.content,
     ['world'],
   )

@@ -16,8 +16,7 @@ export interface AppFileResolution {
 
 export interface AppEmptyResolution {
   readonly kind:
-    | AppRequestResolutionKind.INVALID
-    | AppRequestResolutionKind.NOT_FOUND
+    AppRequestResolutionKind.INVALID | AppRequestResolutionKind.NOT_FOUND
 }
 
 export type AppRequestResolution = AppFileResolution | AppEmptyResolution

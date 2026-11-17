@@ -27,9 +27,7 @@ export const buildAgentMessageItemReference = (
   const assistantMessages = conversation.message?.filter(
     (x) => x.role === MessageType.Assistant,
   )
-  const referenceIndex = assistantMessages.findIndex(
-    (x) => x.id === message.id,
-  )
+  const referenceIndex = assistantMessages.findIndex((x) => x.id === message.id)
   const reference = !isEmpty(message?.reference)
     ? message?.reference
     : (conversation?.reference ?? [])[referenceIndex]

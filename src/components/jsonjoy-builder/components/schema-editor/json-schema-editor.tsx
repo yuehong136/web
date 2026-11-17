@@ -40,7 +40,7 @@ const JsonSchemaEditor: FC<JsonSchemaEditorProps> = ({
   return (
     <div
       className={cn(
-        'bg-surface-primary border-border-primary w-full rounded-radius-lg border shadow-elevation-low',
+        'w-full rounded-radius-lg border border-border-primary bg-surface-primary shadow-elevation-low',
         fullscreenClass,
         className,
       )}
@@ -48,13 +48,13 @@ const JsonSchemaEditor: FC<JsonSchemaEditorProps> = ({
       {/* For mobile screens - show as tabs */}
       <div className="block w-full lg:hidden">
         <Tabs defaultValue="json" className="w-full">
-          <div className="border-border-primary flex w-full items-center justify-between border-b px-space-md py-space-base">
+          <div className="flex w-full items-center justify-between border-b border-border-primary px-space-md py-space-base">
             <h3 className="font-medium">{t.schemaEditorTitle}</h3>
             <div className="flex items-center gap-space-sm">
               <button
                 type="button"
                 onClick={toggleFullscreen}
-                className="hover:bg-surface-secondary rounded-radius-md p-1.5 transition-colors"
+                className="rounded-radius-md p-1.5 transition-colors hover:bg-surface-secondary"
                 aria-label="Toggle fullscreen"
               >
                 <Maximize2 size={16} />
@@ -90,12 +90,12 @@ const JsonSchemaEditor: FC<JsonSchemaEditorProps> = ({
           isFullscreen ? 'h-screen' : 'h-[600px]',
         )}
       >
-        <div className="border-border-primary flex w-full shrink-0 items-center justify-between border-b px-space-md py-space-base">
+        <div className="flex w-full shrink-0 items-center justify-between border-b border-border-primary px-space-md py-space-base">
           <h3 className="font-medium">{t.schemaEditorTitle}</h3>
           <button
             type="button"
             onClick={toggleFullscreen}
-            className="hover:bg-surface-secondary rounded-radius-md p-1.5 transition-colors"
+            className="rounded-radius-md p-1.5 transition-colors hover:bg-surface-secondary"
             aria-label={t.schemaEditorToggleFullscreen}
           >
             <Maximize2 size={16} />

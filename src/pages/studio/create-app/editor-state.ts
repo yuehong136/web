@@ -22,18 +22,9 @@ export const hasRequiredPreviewVariables = (config: AppConfig) =>
   )
 
 export type SaveStatus =
-  | 'unsaved'
-  | 'saving'
-  | 'saved'
-  | 'failed'
-  | 'unconfirmed'
+  'unsaved' | 'saving' | 'saved' | 'failed' | 'unconfirmed'
 export type PreviewStatus =
-  | 'idle'
-  | 'preparing'
-  | 'streaming'
-  | 'completed'
-  | 'interrupted'
-  | 'failed'
+  'idle' | 'preparing' | 'streaming' | 'completed' | 'interrupted' | 'failed'
 
 export interface ConfirmedSave {
   id: string

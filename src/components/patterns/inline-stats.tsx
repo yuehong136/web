@@ -2,11 +2,7 @@ import type { HTMLAttributes, ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 
 export type InlineStatTone =
-  | 'default'
-  | 'success'
-  | 'warning'
-  | 'error'
-  | 'info'
+  'default' | 'success' | 'warning' | 'error' | 'info'
 
 export interface InlineStat {
   /** Stable React key; defaults to the item index. */

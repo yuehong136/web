@@ -158,7 +158,9 @@ export function AgentAdvancedSettings({
           name="exception_method"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('flow.exceptionMethod', 'Exception Method')}</FormLabel>
+              <FormLabel>
+                {t('flow.exceptionMethod', 'Exception Method')}
+              </FormLabel>
               <FormControl>
                 <SelectWithSearch
                   value={field.value ?? ''}

@@ -60,7 +60,7 @@ export function FormSheet({
             )}
         </SheetDescription>
 
-        <section className="border-border-primary px-space-md py-space-sm border-b">
+        <section className="border-b border-border-primary px-space-md py-space-sm">
           <OperatorHeader
             node={node}
             titleEditable={context.titleEditable}

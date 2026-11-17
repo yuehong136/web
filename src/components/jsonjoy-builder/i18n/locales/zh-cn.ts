@@ -23,7 +23,8 @@ export const zhCN: Translation = {
   fieldAddNewLabel: '添加字段',
   fieldSaveConfirm: '保存字段',
   fieldNameDuplicate: '已存在同名字段。',
-  fieldNameInvalid: '字段名需以字母或下划线开头，只能包含字母、数字、下划线或美元符号。',
+  fieldNameInvalid:
+    '字段名需以字母或下划线开头，只能包含字母、数字、下划线或美元符号。',
   fieldNameRequired: '请输入字段名。',
 
   fieldTypeTextLabel: '文本',

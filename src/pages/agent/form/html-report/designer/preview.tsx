@@ -74,7 +74,7 @@ export function Preview({ skeleton, variant = 'panel' }: PreviewProps) {
 
   if (schema.sections.length === 0) {
     return (
-      <div className="p-space-lg text-text-caption flex h-full items-center justify-center text-center text-sm">
+      <div className="flex h-full items-center justify-center p-space-lg text-center text-sm text-text-caption">
         {t(
           'flow.htmlReportPreviewEmpty',
           'The preview shows here as you build the report',
@@ -91,7 +91,7 @@ export function Preview({ skeleton, variant = 'panel' }: PreviewProps) {
         title={title}
         srcDoc={srcDoc}
         sandbox="allow-scripts"
-        className="bg-surface-primary h-full w-full border-0"
+        className="h-full w-full border-0 bg-surface-primary"
       />
     )
   }
@@ -123,13 +123,13 @@ function ScaledFrame({ title, srcDoc }: { title: string; srcDoc: string }) {
   return (
     <div
       ref={ref}
-      className="bg-surface-secondary h-full w-full overflow-hidden"
+      className="h-full w-full overflow-hidden bg-surface-secondary"
     >
       <iframe
         title={title}
         srcDoc={srcDoc}
         sandbox="allow-scripts"
-        className="bg-surface-primary border-0"
+        className="border-0 bg-surface-primary"
         style={
           scaled
             ? {

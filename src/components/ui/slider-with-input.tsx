@@ -15,11 +15,11 @@ import {
 
 /**
  * LLM 参数控制组件 - Radix UI 版本
- * 
+ *
  * 布局结构（参考 ragflow 的单行紧凑设计）：
  * [标签 ⓘ]
  * [Switch] [======Slider======] [Input]
- * 
+ *
  * 特点：
  * 1. 开关控制参数是否启用
  * 2. 滑块用于快速调整
@@ -102,7 +102,7 @@ export const SliderWithInput: React.FC<SliderWithInputProps> = ({
     <div className={cn('space-y-space-sm', className)}>
       {/* 标签行 */}
       <div className="flex items-center gap-space-xs">
-        <span 
+        <span
           className="text-sm font-medium"
           style={{ color: 'var(--color-text-primary)' }}
         >
@@ -112,7 +112,7 @@ export const SliderWithInput: React.FC<SliderWithInputProps> = ({
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <HelpCircle 
+                <HelpCircle
                   className="h-3.5 w-3.5 cursor-help"
                   style={{ color: 'var(--color-text-tertiary)' }}
                 />
@@ -163,8 +163,8 @@ export const SliderWithInput: React.FC<SliderWithInputProps> = ({
             style={{ width: inputWidth }}
             className={cn(
               'h-9 rounded-radius-md px-space-sm text-center text-sm',
-              '[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none',
-              disabled && 'opacity-50 cursor-not-allowed'
+              '[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none',
+              disabled && 'cursor-not-allowed opacity-50',
             )}
           />
         )}

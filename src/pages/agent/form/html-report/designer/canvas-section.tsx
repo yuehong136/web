@@ -70,17 +70,17 @@ export function CanvasSection({
       ref={setNodeRef}
       style={style}
       className={cn(
-        'rounded-radius-lg bg-surface-secondary p-space-sm border',
+        'rounded-radius-lg border bg-surface-secondary p-space-sm',
         sectionSelected ? 'border-border-focus' : 'border-border-default',
         isDragging && 'opacity-50',
       )}
     >
-      <div className="mb-space-sm gap-space-xs flex items-center">
+      <div className="mb-space-sm flex items-center gap-space-xs">
         <button
           type="button"
           {...attributes}
           {...listeners}
-          className="text-text-caption cursor-grab active:cursor-grabbing"
+          className="cursor-grab text-text-caption active:cursor-grabbing"
           aria-label={t(
             'flow.htmlReportDragSection',
             'Drag to reorder section',
@@ -91,12 +91,12 @@ export function CanvasSection({
         <button
           type="button"
           onClick={onSelectSection}
-          className="gap-space-xs flex flex-1 items-center text-left"
+          className="flex flex-1 items-center gap-space-xs text-left"
         >
           <span className="text-xs font-medium text-text-secondary">
             {t('flow.htmlReportSection', 'Section')} {index + 1}
           </span>
-          <span className="rounded-radius-sm px-space-2xs text-text-caption bg-state-hover text-xs">
+          <span className="rounded-radius-sm bg-state-hover px-space-2xs text-xs text-text-caption">
             {t(layoutLabel.labelKey, layoutLabel.fallback)}
           </span>
         </button>
@@ -113,14 +113,14 @@ export function CanvasSection({
       <div
         ref={setSlotRef}
         className={cn(
-          'space-y-space-xs rounded-radius-md p-space-xs min-h-12 border border-dashed',
+          'min-h-12 space-y-space-xs rounded-radius-md border border-dashed p-space-xs',
           isOver
             ? 'border-border-focus bg-state-hover'
             : 'border-border-subtle',
         )}
       >
         {section.blocks.length === 0 ? (
-          <p className="py-space-sm text-text-caption text-center text-xs">
+          <p className="py-space-sm text-center text-xs text-text-caption">
             {t('flow.htmlReportDropHint', 'Drag blocks here')}
           </p>
         ) : (

@@ -14,7 +14,7 @@ export function EdgeDetail({ element, onNodeNavigate }: EdgeDetailProps) {
   return (
     <div className="space-y-5">
       <div className="space-y-3">
-        <div className="rounded-radius-lg flex items-center gap-2 border border-components-card-border bg-components-card-bg p-3">
+        <div className="flex items-center gap-2 rounded-radius-lg border border-components-card-border bg-components-card-bg p-3">
           {source && (
             <button
               type="button"

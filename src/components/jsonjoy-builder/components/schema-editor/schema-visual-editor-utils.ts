@@ -1,6 +1,4 @@
-import {
-  createFieldSchema,
-} from '../../lib/schema-editor'
+import { createFieldSchema } from '../../lib/schema-editor'
 import type {
   JSONSchema,
   NewField,
@@ -60,9 +58,10 @@ export function withTypeDefaults(
   field: NewField,
   previousSchema?: JSONSchema,
 ): ObjectJSONSchema {
-  const previous = previousSchema && isObjectSchema(previousSchema)
-    ? previousSchema
-    : undefined
+  const previous =
+    previousSchema && isObjectSchema(previousSchema)
+      ? previousSchema
+      : undefined
   const description = field.description.trim() || undefined
   const base = createFieldSchema(field)
   const next = isObjectSchema(base)
@@ -76,8 +75,8 @@ export function withTypeDefaults(
       description,
       properties:
         previous?.type === 'object'
-          ? previous.properties ?? {}
-          : next.properties ?? {},
+          ? (previous.properties ?? {})
+          : (next.properties ?? {}),
     }
   }
 
@@ -88,8 +87,8 @@ export function withTypeDefaults(
       description,
       items:
         previous?.type === 'array'
-          ? previous.items ?? { type: 'string' }
-          : next.items ?? { type: 'string' },
+          ? (previous.items ?? { type: 'string' })
+          : (next.items ?? { type: 'string' }),
     }
   }
 

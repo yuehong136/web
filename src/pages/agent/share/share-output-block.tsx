@@ -48,11 +48,11 @@ export function ShareOutputBlock({
         <p className="text-sm text-text-secondary">{description}</p>
       </div>
 
-      <div className="rounded-radius-lg bg-surface-primary relative border border-border-default">
+      <div className="relative rounded-radius-lg border border-border-default bg-surface-primary">
         <Button
           variant="outline"
           size="icon-sm"
-          className="right-space-sm top-space-sm absolute z-10"
+          className="absolute top-space-sm right-space-sm z-10"
           onClick={() => void handleCopy()}
           disabled={!value}
           aria-label={copyLabel}
@@ -64,7 +64,7 @@ export function ShareOutputBlock({
           )}
         </Button>
 
-        <pre className="p-space-base pr-space-2xl min-h-[128px] overflow-auto whitespace-pre-wrap break-all font-mono text-sm leading-relaxed text-text-primary">
+        <pre className="min-h-[128px] overflow-auto p-space-base pr-space-2xl font-mono text-sm leading-relaxed break-all whitespace-pre-wrap text-text-primary">
           {value ? (
             variant === 'html' ? (
               <HighlightedHtml value={value} />
@@ -77,7 +77,7 @@ export function ShareOutputBlock({
         </pre>
 
         {status !== 'idle' ? (
-          <div className="gap-space-xs px-space-base py-space-sm flex items-center border-t border-border-subtle text-xs">
+          <div className="flex items-center gap-space-xs border-t border-border-subtle px-space-base py-space-sm text-xs">
             {status === 'copied' ? (
               <>
                 <Check className="h-3.5 w-3.5 text-status-success" />

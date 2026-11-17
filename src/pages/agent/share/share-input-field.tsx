@@ -55,8 +55,8 @@ export function ShareInputField({
   const fileList = asFileList(value)
 
   return (
-    <div className="space-y-space-sm rounded-radius-lg bg-surface-secondary/50 p-space-base border border-border-default">
-      <div className="gap-space-sm flex flex-wrap items-center justify-between">
+    <div className="space-y-space-sm rounded-radius-lg border border-border-default bg-surface-secondary/50 p-space-base">
+      <div className="flex flex-wrap items-center justify-between gap-space-sm">
         <div>
           <Label className="text-sm font-medium text-text-primary">
             {label}
@@ -111,7 +111,7 @@ export function ShareInputField({
           onChange={(next) => onChange(fieldKey, next)}
         />
       ) : field.type === BeginQueryType.Boolean ? (
-        <label className="gap-space-sm flex items-center text-sm text-text-primary">
+        <label className="flex items-center gap-space-sm text-sm text-text-primary">
           <Checkbox
             checked={Boolean(value)}
             disabled={disabled}
@@ -133,7 +133,7 @@ export function ShareInputField({
             }}
           />
           {fileList.length ? (
-            <div className="gap-space-xs flex flex-wrap">
+            <div className="flex flex-wrap gap-space-xs">
               {fileList.map((file) => (
                 <Badge key={file.id || file.name} variant="outline">
                   {file.name || file.filename || file.id}

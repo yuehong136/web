@@ -17,9 +17,14 @@ const SchemaVisualEditor: FC<SchemaVisualEditorProps & KeyInputProps> = ({
   pattern,
 }) => {
   const t = useTranslation()
-  const normalizedSchema = useMemo(() => normalizeObjectSchema(schema), [schema])
+  const normalizedSchema = useMemo(
+    () => normalizeObjectSchema(schema),
+    [schema],
+  )
   const properties = getSchemaProperties(normalizedSchema)
-  const requiredCount = properties.filter((property) => property.required).length
+  const requiredCount = properties.filter(
+    (property) => property.required,
+  ).length
 
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-radius-md border border-border-subtle bg-surface-primary">

@@ -43,12 +43,14 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
       onOpenChange={setIsOpen}
       className={cn('w-full', className)}
     >
-      <div className="flex items-center gap-1.5 w-full">
-        <CollapsibleTrigger className="flex items-center gap-1.5 flex-1 group cursor-pointer">
+      <div className="flex w-full items-center gap-1.5">
+        <CollapsibleTrigger className="group flex flex-1 cursor-pointer items-center gap-1.5">
           <span
             className={cn(
               'transition-colors',
-              isOpen ? 'text-text-accent' : 'text-text-secondary group-hover:text-text-primary'
+              isOpen
+                ? 'text-text-accent'
+                : 'text-text-secondary group-hover:text-text-primary',
             )}
           >
             {isOpen ? (
@@ -58,17 +60,21 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
             )}
           </span>
           {icon && (
-            <span className={cn(
-              'transition-colors',
-              isOpen ? 'text-text-accent' : 'text-text-secondary'
-            )}>
+            <span
+              className={cn(
+                'transition-colors',
+                isOpen ? 'text-text-accent' : 'text-text-secondary',
+              )}
+            >
               {icon}
             </span>
           )}
           <span
             className={cn(
               'text-base font-medium transition-colors',
-              isOpen ? 'text-text-accent' : 'text-text-secondary group-hover:text-text-primary'
+              isOpen
+                ? 'text-text-accent'
+                : 'text-text-secondary group-hover:text-text-primary',
             )}
           >
             {title}
@@ -76,10 +82,8 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
         </CollapsibleTrigger>
         {extra && <div className="ml-auto">{extra}</div>}
       </div>
-      <CollapsibleContent className="overflow-hidden data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up">
-        <div className="pt-4">
-          {children}
-        </div>
+      <CollapsibleContent className="data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up overflow-hidden">
+        <div className="pt-4">{children}</div>
       </CollapsibleContent>
     </Collapsible>
   )

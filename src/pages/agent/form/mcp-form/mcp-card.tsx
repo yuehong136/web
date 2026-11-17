@@ -13,7 +13,7 @@ export function McpCard({ server, selected, onToggle }: McpCardProps) {
     <Card
       variant="interactive"
       padding="sm"
-      className="gap-space-sm flex items-start justify-between"
+      className="flex items-start justify-between gap-space-sm"
       onClick={() => onToggle(server.id)}
     >
       <div className="space-y-1">

@@ -558,7 +558,7 @@ export const FileIcon: FC<FileIconProps> = ({
         {showExtLabel && extension && (
           <span
             className={cn(
-              'absolute -bottom-0.5 -right-0.5 rounded font-bold uppercase leading-none',
+              'absolute -right-0.5 -bottom-0.5 rounded leading-none font-bold uppercase',
               labelSizeClasses[size],
             )}
             style={{
@@ -609,7 +609,7 @@ export const FileIcon: FC<FileIconProps> = ({
       {showExtLabel && extension && (
         <span
           className={cn(
-            'absolute -bottom-0.5 -right-0.5 rounded font-bold uppercase leading-none',
+            'absolute -right-0.5 -bottom-0.5 rounded leading-none font-bold uppercase',
             labelSizeClasses[size],
           )}
           style={{

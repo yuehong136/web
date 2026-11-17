@@ -147,7 +147,10 @@ describe('knowledge document creation', () => {
       ...document.body.querySelectorAll<HTMLInputElement>('input'),
     ]
     await act(async () => {
-      setInput(inputs.find((input) => input.type === 'text')!, 'Article')
+      setInput(
+        inputs.find((input) => input.type === 'text')!,
+        'Article',
+      )
       setInput(
         inputs.find((input) => input.type === 'url')!,
         'https://example.com/article',

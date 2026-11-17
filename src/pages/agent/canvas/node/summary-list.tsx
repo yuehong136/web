@@ -52,7 +52,7 @@ export function SummaryList<T>({
         )}
 
         {hiddenItems.length > 0 ? (
-          <CollapsibleContent className="overflow-hidden data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up">
+          <CollapsibleContent className="data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up overflow-hidden">
             {hiddenItems.map((item, index) =>
               renderItem(item, index + visibleItems.length, {
                 withDivider: true,

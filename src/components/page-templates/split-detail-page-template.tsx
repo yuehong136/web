@@ -48,7 +48,7 @@ export const SplitDetailPageTemplate: React.FC<
           className={cn(
             'min-h-0 shrink-0',
             card
-              ? 'rounded-radius-lg flex flex-col overflow-hidden border border-components-console-border bg-components-console-surface'
+              ? 'flex flex-col overflow-hidden rounded-radius-lg border border-components-console-border bg-components-console-surface'
               : 'scroll-area overflow-auto border-r border-components-split-pane-border',
           )}
           style={{ width: leftWidth, minWidth: minLeft }}
@@ -68,7 +68,7 @@ export const SplitDetailPageTemplate: React.FC<
           className={cn(
             'min-h-0 min-w-0 flex-1',
             card
-              ? 'rounded-radius-lg flex flex-col overflow-hidden border border-components-console-border bg-components-console-surface'
+              ? 'flex flex-col overflow-hidden rounded-radius-lg border border-components-console-border bg-components-console-surface'
               : 'scroll-area overflow-auto',
           )}
         >

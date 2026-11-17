@@ -27,10 +27,10 @@ export function NodeDetail({ element, onNodeNavigate }: NodeDetailProps) {
       <div className="space-y-2">
         <div className="flex items-center gap-2">
           <div
-            className="rounded-radius-full size-3 shrink-0"
+            className="size-3 shrink-0 rounded-radius-full"
             style={getNodeColorStyle(color)}
           />
-          <h3 className="break-all text-base font-semibold leading-tight text-text-primary">
+          <h3 className="text-base leading-tight font-semibold break-all text-text-primary">
             {data.label}
           </h3>
         </div>
@@ -47,14 +47,14 @@ export function NodeDetail({ element, onNodeNavigate }: NodeDetailProps) {
 
       {edges.length > 0 && (
         <div className="space-y-2">
-          <h4 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
+          <h4 className="text-xs font-semibold tracking-wider text-text-muted uppercase">
             {t('knowledge.graph.panel.relations', { count: edges.length })}
           </h4>
           <div className="space-y-1">
             {edges.map((edge) => (
               <div
                 key={edge.id}
-                className="rounded-radius-md flex items-center gap-1.5 border border-components-card-border bg-components-card-bg px-2 py-1.5 text-xs"
+                className="flex items-center gap-1.5 rounded-radius-md border border-components-card-border bg-components-card-bg px-2 py-1.5 text-xs"
               >
                 <Link2 className="size-3 shrink-0 text-text-muted" />
                 <span className="truncate text-text-secondary">
@@ -68,7 +68,7 @@ export function NodeDetail({ element, onNodeNavigate }: NodeDetailProps) {
 
       {neighbors.length > 0 && (
         <div className="space-y-2">
-          <h4 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
+          <h4 className="text-xs font-semibold tracking-wider text-text-muted uppercase">
             {t('knowledge.graph.panel.neighbors', {
               count: neighbors.length,
             })}
@@ -78,7 +78,7 @@ export function NodeDetail({ element, onNodeNavigate }: NodeDetailProps) {
               <button
                 key={node.id}
                 type="button"
-                className="rounded-radius-lg flex w-full cursor-pointer items-center gap-2 border border-components-card-border bg-components-card-bg px-2.5 py-2 text-left text-sm transition-colors hover:bg-components-card-bg-hover"
+                className="flex w-full cursor-pointer items-center gap-2 rounded-radius-lg border border-components-card-border bg-components-card-bg px-2.5 py-2 text-left text-sm transition-colors hover:bg-components-card-bg-hover"
                 onClick={() => onNodeNavigate(node.id)}
               >
                 <Circle

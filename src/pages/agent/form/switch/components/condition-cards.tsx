@@ -59,7 +59,7 @@ export function ConditionCards({
             className={cn(
               'relative min-w-0 flex-1 overflow-visible rounded-radius-md border border-border-default bg-transparent p-0 shadow-elevation-low transition-colors group-hover:border-border-strong',
               {
-                'before:absolute before:-left-10 before:top-1/2 before:h-px before:w-10 before:bg-border-default':
+                'before:absolute before:top-1/2 before:-left-10 before:h-px before:w-10 before:bg-border-default':
                   fields.length > 1 &&
                   (index === 0 || index === fields.length - 1),
               },

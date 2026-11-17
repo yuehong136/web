@@ -10,7 +10,7 @@ export function ResizeIcon() {
       fill="none"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="text-text-secondary hover:text-components-system-accent-text transition-colors"
+      className="text-text-secondary transition-colors hover:text-components-system-accent-text"
       style={{
         position: 'absolute',
         right: 4,
@@ -29,4 +29,3 @@ export const controlStyle = {
   border: 'none',
   cursor: 'nwse-resize',
 }
-

@@ -7,8 +7,7 @@ test('mindmap passes cancellation through the shared client without serializing 
   const original = apiClient.post
   const controller = new AbortController()
   let call:
-    | { endpoint: string; data: unknown; config?: RequestConfig }
-    | undefined
+    { endpoint: string; data: unknown; config?: RequestConfig } | undefined
   apiClient.post = (async (endpoint, data, config) => {
     call = { endpoint, data, config }
     return { label: 'Evidence' }

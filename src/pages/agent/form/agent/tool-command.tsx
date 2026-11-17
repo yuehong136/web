@@ -77,7 +77,7 @@ export function BuiltInToolCommand({
               return (
                 <CommandItem
                   key={operator}
-                  className="gap-space-sm flex items-center"
+                  className="flex items-center gap-space-sm"
                   onSelect={() => onSelect(operator)}
                 >
                   {isRetrieval ? (
@@ -134,7 +134,7 @@ export function McpToolCommand({
           return (
             <CommandItem
               key={server.id}
-              className="gap-space-sm flex items-center"
+              className="flex items-center gap-space-sm"
               onSelect={() => {
                 const nextIds = checked
                   ? selectedMcpIdList.filter((id) => id !== server.id)

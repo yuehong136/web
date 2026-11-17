@@ -10,12 +10,7 @@ import { navItems } from '@/components/layout/sidebar-config'
 import { Button } from '@/components/ui/button'
 
 export type WorkbenchSection =
-  | 'home'
-  | 'explore'
-  | 'knowledge'
-  | 'agents'
-  | 'tools'
-  | 'settings'
+  'home' | 'explore' | 'knowledge' | 'agents' | 'tools' | 'settings'
 export interface SecondaryNavigation {
   section: WorkbenchSection
   title: string

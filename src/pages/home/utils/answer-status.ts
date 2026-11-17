@@ -91,9 +91,8 @@ export const settleAnswerMessage = (
     ...message,
     isStreaming: false,
     status: { kind, partial },
-    timelineNodes: message.timelineNodes?.map(
-      (node): AgentTimelineNode =>
-        node.status === 'loading' ? { ...node, status: 'abort' } : node,
+    timelineNodes: message.timelineNodes?.map((node): AgentTimelineNode =>
+      node.status === 'loading' ? { ...node, status: 'abort' } : node,
     ),
   }
 }

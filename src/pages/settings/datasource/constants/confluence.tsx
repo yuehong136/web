@@ -3,7 +3,9 @@ import { FormFieldType, type FormFieldConfig } from '../types'
 /**
  * Confluence 数据源表单字段配置
  */
-export const getConfluenceFormFields = (t: (key: string) => string): FormFieldConfig[] => [
+export const getConfluenceFormFields = (
+  t: (key: string) => string,
+): FormFieldConfig[] => [
   {
     label: 'Wiki Base URL',
     name: 'config.wiki_base',

@@ -114,7 +114,7 @@ export function extractThinkContent(content: string): ThinkExtractResult {
     }
     if (!active || active === 'retrieving') contentWithoutThinking += text
   }
-  for (let index = 0; index < content.length; ) {
+  for (let index = 0; index < content.length;) {
     const length = literalLength(content, index)
     if (length) {
       append(content.slice(index, index + length))

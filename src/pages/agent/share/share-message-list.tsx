@@ -42,7 +42,7 @@ export function ShareMessageList({
     return (
       <div
         className={cn(
-          'p-space-lg flex min-h-full items-center justify-center',
+          'flex min-h-full items-center justify-center p-space-lg',
           className,
         )}
       >

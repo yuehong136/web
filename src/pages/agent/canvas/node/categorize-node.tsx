@@ -20,7 +20,13 @@ function InnerCategorizeNode({
   const { positions } = useBuildCategorizeHandlePositions({ data, id })
 
   return (
-    <ToolBar selected={selected} id={id} label={data.label} showRun={needsSingleStepDebugging(data.label)} showCopy={showCopyIcon(data.label)}>
+    <ToolBar
+      selected={selected}
+      id={id}
+      label={data.label}
+      showRun={needsSingleStepDebugging(data.label)}
+      showCopy={showCopyIcon(data.label)}
+    >
       <NodeWrapper selected={selected} id={id}>
         <LeftEndHandle nodeId={id} />
         <NodeHeader id={id} name={data.name} label={data.label} />

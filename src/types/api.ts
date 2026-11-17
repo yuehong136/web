@@ -1059,13 +1059,7 @@ export interface AIAnalysisResponse {
 
 // 模型类型枚举，对应后端的 LLMType
 export type LLMType =
-  | 'chat'
-  | 'embedding'
-  | 'speech2text'
-  | 'image2text'
-  | 'rerank'
-  | 'tts'
-  | 'ocr'
+  'chat' | 'embedding' | 'speech2text' | 'image2text' | 'rerank' | 'tts' | 'ocr'
 export interface LLMModel {
   id: string
   llm_name: string // 实际的模型名称
@@ -1433,22 +1427,9 @@ export interface ILogDetailInfo {
 
 export type SortDirection = 'asc' | 'desc'
 export type FilterOperator =
-  | 'eq'
-  | 'ne'
-  | 'gt'
-  | 'lt'
-  | 'gte'
-  | 'lte'
-  | 'in'
-  | 'like'
-  | 'between'
+  'eq' | 'ne' | 'gt' | 'lt' | 'gte' | 'lte' | 'in' | 'like' | 'between'
 export type FileType =
-  | 'document'
-  | 'image'
-  | 'audio'
-  | 'video'
-  | 'archive'
-  | 'other'
+  'document' | 'image' | 'audio' | 'video' | 'archive' | 'other'
 export type ProcessingStatus = 'pending' | 'processing' | 'completed' | 'failed'
 export type Permission = 'read' | 'write' | 'delete' | 'admin'
 

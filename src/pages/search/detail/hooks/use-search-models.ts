@@ -65,22 +65,20 @@ export function normalizeSearchModels(response: Record<string, unknown>) {
     ([providerName, providerValue]) => {
       const payload = providerValue as RawProviderPayload | RawModelItem[]
       const llmList = Array.isArray(payload) ? payload : payload?.llm || []
-      return llmList.map(
-        (model): LLMModel => ({
-          id:
-            model.id ||
-            `${model.llm_name || model.name || 'model'}@${providerName}`,
-          llm_name: model.name || model.llm_name || '',
-          display_name: model.label ?? model.display_name ?? model.llm_name,
-          fid: providerName,
-          mdl_type: (model.mdl_type ||
-            model.type ||
-            'chat') as LLMModel['mdl_type'],
-          available: isEnabledRawModel(model),
-          status: model.status,
-          name: model.name,
-        }),
-      )
+      return llmList.map((model): LLMModel => ({
+        id:
+          model.id ||
+          `${model.llm_name || model.name || 'model'}@${providerName}`,
+        llm_name: model.name || model.llm_name || '',
+        display_name: model.label ?? model.display_name ?? model.llm_name,
+        fid: providerName,
+        mdl_type: (model.mdl_type ||
+          model.type ||
+          'chat') as LLMModel['mdl_type'],
+        available: isEnabledRawModel(model),
+        status: model.status,
+        name: model.name,
+      }))
     },
   )
 

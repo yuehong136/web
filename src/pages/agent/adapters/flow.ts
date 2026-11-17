@@ -1,8 +1,4 @@
-import type {
-  AgentFlow,
-  AgentListResponse,
-  AgentTemplate,
-} from '@/types/agent'
+import type { AgentFlow, AgentListResponse, AgentTemplate } from '@/types/agent'
 import { AgentCanvasCategory, AgentCanvasType } from '@/types/agent'
 import { buildDefaultDslGlobals, deserializeDslToGraph } from '../operators'
 

@@ -100,7 +100,7 @@ export function HTMLReportForm({ node }: INextOperatorForm) {
               nodeId={node?.id}
               label={t('flow.htmlReportSource', 'Source material')}
             />
-            <p className="text-text-caption text-xs">
+            <p className="text-xs text-text-caption">
               {t(
                 'flow.htmlReportSourceDesc',
                 'Upstream content used to fill the report at run time.',
@@ -138,12 +138,12 @@ export function HTMLReportForm({ node }: INextOperatorForm) {
             control={form.control}
             name="parallel_fill"
             render={({ field }) => (
-              <FormItem className="gap-space-base flex items-center justify-between">
+              <FormItem className="flex items-center justify-between gap-space-base">
                 <div className="space-y-space-2xs">
                   <FormLabel>
                     {t('flow.htmlReportParallelFill', 'Parallel fill')}
                   </FormLabel>
-                  <p className="text-text-caption text-xs">
+                  <p className="text-xs text-text-caption">
                     {t(
                       'flow.htmlReportParallelFillDesc',
                       'Fill sections by calling the model concurrently to speed up generation; off runs section by section.',
@@ -189,7 +189,7 @@ export function HTMLReportForm({ node }: INextOperatorForm) {
                       }
                     />
                   </FormControl>
-                  <p className="text-text-caption text-xs">
+                  <p className="text-xs text-text-caption">
                     {t(
                       'flow.htmlReportConcurrencyDesc',
                       'Max simultaneous model calls when parallel (covers section fills and titles).',
@@ -202,11 +202,11 @@ export function HTMLReportForm({ node }: INextOperatorForm) {
           )}
 
           {/* 报告骨架摘要 */}
-          <div className="space-y-space-sm rounded-radius-lg bg-surface-secondary p-space-base border border-border-default">
+          <div className="space-y-space-sm rounded-radius-lg border border-border-default bg-surface-secondary p-space-base">
             <p className="text-xs font-medium text-text-secondary">
               {t('flow.htmlReportSummaryTitle', 'Report skeleton')}
             </p>
-            <div className="gap-space-sm grid grid-cols-2">
+            <div className="grid grid-cols-2 gap-space-sm">
               <SummaryStat
                 label={t('flow.htmlReportSummarySections', 'Sections')}
                 value={summary.sections}
@@ -253,7 +253,7 @@ function SummaryStat({ label, value }: { label: string; value: number }) {
   return (
     <div className="rounded-radius-md bg-surface-primary px-space-sm py-space-xs">
       <div className="text-lg font-semibold text-text-primary">{value}</div>
-      <div className="text-text-caption text-xs">{label}</div>
+      <div className="text-xs text-text-caption">{label}</div>
     </div>
   )
 }

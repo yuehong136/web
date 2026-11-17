@@ -1,17 +1,17 @@
-import * as React from "react";
-import { cn } from "./utils";
+import * as React from 'react'
+import { cn } from './utils'
 
 interface ProgressProps extends React.HTMLAttributes<HTMLDivElement> {
-  value?: number;
+  value?: number
 }
 
 function Progress({ className, value, ...props }: ProgressProps) {
-  const normalizedValue = Math.max(0, Math.min(100, value ?? 0));
+  const normalizedValue = Math.max(0, Math.min(100, value ?? 0))
 
   return (
     <div
       className={cn(
-        "relative h-2 w-full overflow-hidden rounded-full bg-components-progress-bg",
+        'relative h-2 w-full overflow-hidden rounded-full bg-components-progress-bg',
         className,
       )}
       {...props}
@@ -21,7 +21,7 @@ function Progress({ className, value, ...props }: ProgressProps) {
         style={{ transform: `translateX(-${100 - normalizedValue}%)` }}
       />
     </div>
-  );
+  )
 }
 
-export { Progress };
+export { Progress }

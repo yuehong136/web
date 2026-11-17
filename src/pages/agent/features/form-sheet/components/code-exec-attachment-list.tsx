@@ -14,9 +14,9 @@ export function CodeExecAttachmentList({
   if (attachments.length === 0) return null
 
   return (
-    <section className="rounded-radius-lg bg-surface-secondary p-space-base border border-border-subtle">
-      <div className="mb-space-sm gap-space-sm flex items-center">
-        <span className="rounded-radius-md flex size-8 shrink-0 items-center justify-center bg-components-system-accent-soft text-components-system-accent-text">
+    <section className="rounded-radius-lg border border-border-subtle bg-surface-secondary p-space-base">
+      <div className="mb-space-sm flex items-center gap-space-sm">
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-radius-md bg-components-system-accent-soft text-components-system-accent-text">
           <Paperclip className="size-4" />
         </span>
         <div className="min-w-0">
@@ -38,7 +38,7 @@ export function CodeExecAttachmentList({
           return (
             <div
               key={`${attachment}-${index}`}
-              className="rounded-radius-md bg-surface-primary px-space-sm py-space-xs border border-border-subtle text-sm"
+              className="rounded-radius-md border border-border-subtle bg-surface-primary px-space-sm py-space-xs text-sm"
             >
               {link.href && isArtifactUrl(link.href) ? (
                 <ArtifactLink href={link.href} className={linkClassName}>

@@ -22,7 +22,12 @@ import {
 import { useFormValues } from '../../hooks/use-form-values'
 import { useWatchFormChange } from '../../hooks/use-watch-form-change'
 import type { INextOperatorForm } from '../../types'
-import { FormWrapper, Output, QueryVariable, transferOutputs } from '../components'
+import {
+  FormWrapper,
+  Output,
+  QueryVariable,
+  transferOutputs,
+} from '../components'
 import {
   defaultStringTransformDelimiter,
   stringTransformMethodOptions,
@@ -45,10 +50,15 @@ export const StringTransformForm = memo(function StringTransformForm({
     () => [
       {
         label: t('flow.delimiters', 'Delimiters'),
-        options: Object.entries(StringTransformDelimiter).map(([key, value]) => ({
-          label: t(`flow.${key.charAt(0).toLowerCase()}${key.slice(1)}`, value),
-          value,
-        })),
+        options: Object.entries(StringTransformDelimiter).map(
+          ([key, value]) => ({
+            label: t(
+              `flow.${key.charAt(0).toLowerCase()}${key.slice(1)}`,
+              value,
+            ),
+            value,
+          }),
+        ),
       },
     ],
     [t],
@@ -70,7 +80,10 @@ export const StringTransformForm = memo(function StringTransformForm({
   useWatchFormChange(node?.id, form)
 
   const method = useWatch({ control: form.control, name: 'method' })
-  const delimiterValues = useWatch({ control: form.control, name: 'delimiters' })
+  const delimiterValues = useWatch({
+    control: form.control,
+    name: 'delimiters',
+  })
 
   const buildOutputs = useCallback((value?: string) => {
     const isMerge = value === StringTransformMethod.Merge
@@ -97,7 +110,9 @@ export const StringTransformForm = memo(function StringTransformForm({
   )
 
   useEffect(() => {
-    const nextDelimiterValues = Array.isArray(delimiterValues) ? delimiterValues : []
+    const nextDelimiterValues = Array.isArray(delimiterValues)
+      ? delimiterValues
+      : []
 
     if (!method) {
       return
@@ -180,7 +195,9 @@ export const StringTransformForm = memo(function StringTransformForm({
                 ) : (
                   <SelectWithSearch
                     options={delimiterOptionGroups}
-                    value={Array.isArray(field.value) ? (field.value[0] ?? '') : ''}
+                    value={
+                      Array.isArray(field.value) ? (field.value[0] ?? '') : ''
+                    }
                     onChange={(value) => field.onChange(value ? [value] : [])}
                   />
                 )}

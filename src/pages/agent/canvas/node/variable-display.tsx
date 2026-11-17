@@ -7,7 +7,7 @@ interface VariableDisplayProps {
 
 function VariableNodeDisplay({ label }: { label: ReactNode }) {
   return (
-    <div className="inline-flex items-center mr-1">
+    <div className="mr-1 inline-flex items-center">
       <span className="text-text-accent">{label}</span>
     </div>
   )
@@ -33,9 +33,7 @@ export function VariableDisplay({ content, getLabel }: VariableDisplayProps) {
 
     if (index > lastIndex) {
       elements.push(
-        <span key={`text-${index}`}>
-          {content.slice(lastIndex, index)}
-        </span>,
+        <span key={`text-${index}`}>{content.slice(lastIndex, index)}</span>,
       )
     }
 
@@ -60,4 +58,3 @@ export function VariableDisplay({ content, getLabel }: VariableDisplayProps) {
 
   return <>{elements.length > 0 ? elements : content}</>
 }
-

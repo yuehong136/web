@@ -36,7 +36,7 @@ export function ReportFields({ present, dispatch }: ReportFieldsProps) {
         text={t('flow.htmlReportReportSettings', 'Report settings')}
       />
       <div className="space-y-space-xs">
-        <div className="gap-space-sm flex items-center justify-between">
+        <div className="flex items-center justify-between gap-space-sm">
           <Label className="text-xs text-text-secondary">
             {t('flow.htmlReportTitle', 'Report title')}
           </Label>
@@ -107,7 +107,7 @@ export function ReportFields({ present, dispatch }: ReportFieldsProps) {
       </div>
       {/* 副标题:固定/模型(对称报告标题);模型态运行时按源文生成一行概述,布局优先自动开 */}
       <div className="space-y-space-xs">
-        <div className="gap-space-sm flex items-center justify-between">
+        <div className="flex items-center justify-between gap-space-sm">
           <Label className="text-xs text-text-secondary">
             {t('flow.htmlReportSubtitle', 'Subtitle')}
           </Label>

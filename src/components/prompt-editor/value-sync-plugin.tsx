@@ -132,8 +132,7 @@ export function ValueSyncPlugin({ value, options = [] }: ValueSyncPluginProps) {
   const resolveStructured = useMemo<StructuredResolver>(
     () => (value, flat) => {
       const resolved = findAgentStructuredOutputLabel(value, flat) as
-        | VariableOptionItem
-        | undefined
+        VariableOptionItem | undefined
       return resolved && typeof resolved.label === 'string'
         ? resolved
         : undefined

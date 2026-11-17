@@ -82,7 +82,7 @@ export function EnumField({
 
   return (
     <div className="space-y-space-xs">
-      <div className="gap-space-sm flex items-center justify-between">
+      <div className="flex items-center justify-between gap-space-sm">
         <Label className="text-xs text-text-secondary">{label}</Label>
         <ModeSwitch value={mode} modes={ENUM_MODES} onChange={onMode} />
       </div>
@@ -90,7 +90,7 @@ export function EnumField({
         select
       ) : (
         <>
-          <p className="text-text-caption text-xs">
+          <p className="text-xs text-text-caption">
             {t('flow.htmlReportEnumModelHint', 'Model picks one of:')}{' '}
             {options.map((opt) => t(opt.labelKey, opt.fallback)).join(' / ')}
           </p>

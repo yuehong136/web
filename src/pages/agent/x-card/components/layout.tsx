@@ -26,7 +26,13 @@ export function XCardRow({
   justify?: keyof typeof justifyClassMap
 }) {
   return (
-    <div className={cn('flex flex-wrap gap-space-sm', alignClassMap[align], justifyClassMap[justify])}>
+    <div
+      className={cn(
+        'flex flex-wrap gap-space-sm',
+        alignClassMap[align],
+        justifyClassMap[justify],
+      )}
+    >
       {children}
     </div>
   )
@@ -41,7 +47,13 @@ export function XCardColumn({
   justify?: keyof typeof justifyClassMap
 }) {
   return (
-    <div className={cn('flex flex-col gap-space-sm', alignClassMap[align], justifyClassMap[justify])}>
+    <div
+      className={cn(
+        'flex flex-col gap-space-sm',
+        alignClassMap[align],
+        justifyClassMap[justify],
+      )}
+    >
       {children}
     </div>
   )
@@ -59,17 +71,25 @@ export function XCardList({
 }) {
   const itemList = toArray(items)
   const isHorizontal = direction === 'horizontal'
-  const content = children || itemList.map((item, index) => (
-    <div
-      key={index}
-      className="rounded-radius-md border border-border-subtle bg-surface-secondary px-space-sm py-space-xs text-sm text-text-primary"
-    >
-      {toDisplayString(item) || JSON.stringify(item)}
-    </div>
-  ))
+  const content =
+    children ||
+    itemList.map((item, index) => (
+      <div
+        key={index}
+        className="rounded-radius-md border border-border-subtle bg-surface-secondary px-space-sm py-space-xs text-sm text-text-primary"
+      >
+        {toDisplayString(item) || JSON.stringify(item)}
+      </div>
+    ))
 
   return (
-    <div className={cn('flex gap-space-sm', isHorizontal ? 'flex-row flex-wrap' : 'flex-col', alignClassMap[align])}>
+    <div
+      className={cn(
+        'flex gap-space-sm',
+        isHorizontal ? 'flex-row flex-wrap' : 'flex-col',
+        alignClassMap[align],
+      )}
+    >
       {content}
     </div>
   )

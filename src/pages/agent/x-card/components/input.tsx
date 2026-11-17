@@ -27,11 +27,16 @@ export function XCardButton({
   children,
   onAction,
   variant = 'default',
-}: ActionComponentProps & CommonProps & {
-  variant?: 'borderless' | 'default' | 'primary'
-}) {
+}: ActionComponentProps &
+  CommonProps & {
+    variant?: 'borderless' | 'default' | 'primary'
+  }) {
   const buttonVariant =
-    variant === 'primary' ? 'default' : variant === 'borderless' ? 'ghost' : 'outline'
+    variant === 'primary'
+      ? 'default'
+      : variant === 'borderless'
+        ? 'ghost'
+        : 'outline'
 
   return (
     <UIButton
@@ -64,9 +69,19 @@ export function XCardTextField({
 
   return (
     <label className="block space-y-space-xs">
-      {label ? <span className="text-xs text-text-secondary">{toDisplayString(label)}</span> : null}
+      {label ? (
+        <span className="text-xs text-text-secondary">
+          {toDisplayString(label)}
+        </span>
+      ) : null}
       <UIInput
-        type={variant === 'number' ? 'number' : variant === 'obscured' ? 'password' : 'text'}
+        type={
+          variant === 'number'
+            ? 'number'
+            : variant === 'obscured'
+              ? 'password'
+              : 'text'
+        }
         value={toDisplayString(value)}
         onChange={(event) => {
           if (writablePath) onDataChange?.(writablePath, event.target.value)
@@ -118,7 +133,9 @@ export function XCardChoicePicker({
   variant?: 'multipleSelection' | 'mutuallyExclusive'
 }) {
   const writablePath = toWritableDataPath(dataPath)
-  const normalizedOptions = options.map(normalizeOption).filter((option) => option.value)
+  const normalizedOptions = options
+    .map(normalizeOption)
+    .filter((option) => option.value)
   const selectedValues = toArray(value).map(toDisplayString).filter(Boolean)
 
   if (variant === 'multipleSelection') {
@@ -136,7 +153,9 @@ export function XCardChoicePicker({
     return (
       <fieldset className="space-y-space-xs">
         {label ? (
-          <legend className="text-xs text-text-secondary">{toDisplayString(label)}</legend>
+          <legend className="text-xs text-text-secondary">
+            {toDisplayString(label)}
+          </legend>
         ) : null}
         <div
           className={
@@ -152,7 +171,9 @@ export function XCardChoicePicker({
             >
               <UICheckbox
                 checked={selectedSet.has(option.value)}
-                onCheckedChange={(nextValue) => toggleValue(option.value, nextValue === true)}
+                onCheckedChange={(nextValue) =>
+                  toggleValue(option.value, nextValue === true)
+                }
               />
               <span>{option.label}</span>
             </label>
@@ -166,7 +187,11 @@ export function XCardChoicePicker({
 
   return (
     <label className="block space-y-space-xs">
-      {label ? <span className="text-xs text-text-secondary">{toDisplayString(label)}</span> : null}
+      {label ? (
+        <span className="text-xs text-text-secondary">
+          {toDisplayString(label)}
+        </span>
+      ) : null}
       <Select
         value={selected}
         onValueChange={(nextValue) => {
@@ -174,7 +199,9 @@ export function XCardChoicePicker({
         }}
       >
         <SelectTrigger>
-          <SelectValue placeholder={filterable ? 'Select or search' : 'Select'} />
+          <SelectValue
+            placeholder={filterable ? 'Select or search' : 'Select'}
+          />
         </SelectTrigger>
         <SelectContent>
           {normalizedOptions.map((option) => (
@@ -236,7 +263,11 @@ export function XCardDateTimeInput({
 
   return (
     <label className="block space-y-space-xs">
-      {label ? <span className="text-xs text-text-secondary">{toDisplayString(label)}</span> : null}
+      {label ? (
+        <span className="text-xs text-text-secondary">
+          {toDisplayString(label)}
+        </span>
+      ) : null}
       <UIInput
         type="datetime-local"
         value={toDisplayString(value)}

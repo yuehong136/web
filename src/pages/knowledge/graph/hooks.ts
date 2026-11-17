@@ -3,7 +3,8 @@ import type { KnowledgeGraph } from '@/types/api'
 import type { SelectedElement, GraphStats } from './types'
 
 export function useGraphSelection(data: KnowledgeGraph | null) {
-  const [selectedElement, setSelectedElement] = useState<SelectedElement | null>(null)
+  const [selectedElement, setSelectedElement] =
+    useState<SelectedElement | null>(null)
 
   const selectNode = useCallback(
     (nodeId: string) => {
@@ -20,7 +21,12 @@ export function useGraphSelection(data: KnowledgeGraph | null) {
       )
       const neighbors = nodes.filter((n) => neighborIds.has(n.id))
 
-      setSelectedElement({ type: 'node', data: node, neighbors, edges: connectedEdges })
+      setSelectedElement({
+        type: 'node',
+        data: node,
+        neighbors,
+        edges: connectedEdges,
+      })
     },
     [data],
   )

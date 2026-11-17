@@ -106,10 +106,10 @@ export function SwitchForm({ node }: INextOperatorForm) {
                   </Button>
                 )}
               </div>
-              <section className="gap-space-sm relative flex">
+              <section className="relative flex gap-space-sm">
                 {conditionLength > 1 && (
                   <section className="flex w-[72px] shrink-0 flex-col items-center">
-                    <div className="relative w-1 flex-1 before:absolute before:bottom-0 before:left-10 before:top-20 before:w-px before:bg-border-default" />
+                    <div className="relative w-1 flex-1 before:absolute before:top-20 before:bottom-0 before:left-10 before:w-px before:bg-border-default" />
                     <FormField
                       control={form.control}
                       name={`${conditionKey}.${index}.logical_operator`}
@@ -120,7 +120,7 @@ export function SwitchForm({ node }: INextOperatorForm) {
                               value={logicField.value}
                               onValueChange={logicField.onChange}
                             >
-                              <SelectTrigger className="rounded-radius-md bg-surface-primary px-space-sm py-space-xs shadow-elevation-low h-10 min-w-20 border border-border-default text-sm">
+                              <SelectTrigger className="h-10 min-w-20 rounded-radius-md border border-border-default bg-surface-primary px-space-sm py-space-xs text-sm shadow-elevation-low">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
@@ -139,7 +139,7 @@ export function SwitchForm({ node }: INextOperatorForm) {
                         </FormItem>
                       )}
                     />
-                    <div className="relative w-1 flex-1 before:absolute before:bottom-36 before:left-10 before:top-0 before:w-px before:bg-border-default" />
+                    <div className="relative w-1 flex-1 before:absolute before:top-0 before:bottom-36 before:left-10 before:w-px before:bg-border-default" />
                   </section>
                 )}
                 <ConditionCards

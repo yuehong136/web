@@ -98,7 +98,7 @@ const FilterField: React.FC<FilterFieldProps> = ({
     return (
       <div className={`flex flex-col gap-2 ${level > 0 ? 'ml-1' : ''}`}>
         <div
-          className="hover:bg-surface-secondary flex cursor-pointer items-center justify-between rounded py-1 transition-colors"
+          className="flex cursor-pointer items-center justify-between rounded py-1 transition-colors hover:bg-surface-secondary"
           onClick={() => setShowAll(!showAll)}
         >
           <span className="text-sm text-text-secondary">{item.label}</span>
@@ -156,7 +156,7 @@ const FilterField: React.FC<FilterFieldProps> = ({
       className={`group flex items-center justify-between text-xs ${level > 0 ? 'ml-4' : ''}`}
     >
       <div
-        className="hover:bg-surface-secondary -mx-1 flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded px-1 py-1.5 transition-colors"
+        className="-mx-1 flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded px-1 py-1.5 transition-colors hover:bg-surface-secondary"
         onClick={() => handleCheckChange(!checked, isNestedChild, parentId)}
       >
         <Checkbox
@@ -169,14 +169,14 @@ const FilterField: React.FC<FilterFieldProps> = ({
           className="shrink-0"
         />
         <span
-          className="select-none truncate text-text-primary"
+          className="truncate text-text-primary select-none"
           title={item.label}
         >
           {item.label}
         </span>
       </div>
       {item.count !== undefined && (
-        <span className="ml-2 text-xs tabular-nums text-text-tertiary">
+        <span className="ml-2 text-xs text-text-tertiary tabular-nums">
           {item.count}
         </span>
       )}
@@ -325,7 +325,7 @@ export const FilterPopover: React.FC<FilterPopoverProps> = ({
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>{children}</PopoverTrigger>
       <PopoverContent className="w-80 p-0" align="end">
-        <div className="max-h-[60vh] space-y-4 overflow-y-auto px-4 py-3 scrollbar-thin">
+        <div className="scrollbar-thin max-h-[60vh] space-y-4 overflow-y-auto px-4 py-3">
           {/* 渲染分组筛选器 */}
           {filterGroup &&
             Object.entries(filterGroup).map(([groupName, fieldKeys]) => {
@@ -470,7 +470,7 @@ export const FilterButton: React.FC<FilterButtonProps> = ({
         <Funnel className="mr-2 h-4 w-4" />
         {t('knowledge.documents.filter')}
         {filterCount > 0 && (
-          <span className="ml-1 inline-flex items-center justify-center rounded-full bg-state-focus px-2 py-1 text-xs font-bold leading-none text-text-inverted">
+          <span className="ml-1 inline-flex items-center justify-center rounded-full bg-state-focus px-2 py-1 text-xs leading-none font-bold text-text-inverted">
             {filterCount}
           </span>
         )}

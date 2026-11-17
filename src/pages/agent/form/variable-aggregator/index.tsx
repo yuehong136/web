@@ -44,7 +44,9 @@ const variableAggregatorSchema = z.object({
       z.object({
         group_name: z.string().optional(),
         type: z.string().optional(),
-        variables: z.array(z.object({ value: z.string().optional() })).optional(),
+        variables: z
+          .array(z.object({ value: z.string().optional() }))
+          .optional(),
       }),
     )
     .optional(),
@@ -125,7 +127,7 @@ function VariableAggregatorGroupSection({
             <QueryVariable
               name={`groups.${groupIndex}.variables.${variableIndex}.value`}
               hideLabel
-              className="flex-1 min-w-0"
+              className="min-w-0 flex-1"
               nodeId={nodeId}
               types={currentGroupType ? [currentGroupType] : []}
               onChange={(value) => {
@@ -191,7 +193,10 @@ export const VariableAggregatorForm = memo(function VariableAggregatorForm({
     name: 'groups',
   })
 
-  const groups = useMemo(() => normalizeVariableAggregatorGroups(rawGroups), [rawGroups])
+  const groups = useMemo(
+    () => normalizeVariableAggregatorGroups(rawGroups),
+    [rawGroups],
+  )
 
   useEffect(() => {
     form.setValue(

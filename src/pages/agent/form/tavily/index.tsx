@@ -80,7 +80,7 @@ function StringArrayField({ name, label }: StringArrayFieldProps) {
       </div>
       <div className="space-y-2">
         {fields.map((field, index) => (
-          <div key={field.id} className="gap-space-sm flex items-center">
+          <div key={field.id} className="flex items-center gap-space-sm">
             <FormField
               control={form.control}
               name={`${name}.${index}`}

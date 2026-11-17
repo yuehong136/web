@@ -13,8 +13,7 @@ export interface MetadataCondition {
 
 export type MetadataValueType = 'string' | 'list' | 'time' | 'number'
 export type MetadataDefinition =
-  | MetadataFieldDefinition[]
-  | Record<string, unknown>
+  MetadataFieldDefinition[] | Record<string, unknown>
 
 /** 知识库 metadata 模板中的字段定义。 */
 export interface MetadataFieldDefinition {

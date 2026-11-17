@@ -77,7 +77,7 @@ export function FieldDirectiveRow({
 
   return (
     <div className="space-y-space-xs">
-      <div className="gap-space-sm flex items-center justify-between">
+      <div className="flex items-center justify-between gap-space-sm">
         <Label className="text-xs text-text-secondary">{label}</Label>
         {modes.length > 1 && (
           <ModeSwitch value={mode} modes={modes} onChange={onMode} />

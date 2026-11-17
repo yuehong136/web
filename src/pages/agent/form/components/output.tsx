@@ -83,8 +83,7 @@ export function Output({
         'space-y-space-base',
         isContrast &&
           'rounded-radius-xl border border-border-strong bg-text-primary p-space-lg shadow-elevation-low',
-        isCompact &&
-          'border-t border-border-subtle pt-space-md',
+        isCompact && 'border-t border-border-subtle pt-space-md',
       )}
     >
       <div className="flex items-start justify-between gap-space-base">
@@ -102,7 +101,9 @@ export function Output({
             <p
               className={cn(
                 isCompact ? 'text-sm leading-7' : 'text-xs',
-                isContrast ? 'text-text-inverted opacity-75' : 'text-text-secondary',
+                isContrast
+                  ? 'text-text-inverted opacity-75'
+                  : 'text-text-secondary',
               )}
             >
               {description}

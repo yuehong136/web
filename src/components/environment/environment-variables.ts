@@ -51,10 +51,7 @@ export function isValueOfType(value: string, type: VariableType): boolean {
 }
 
 export type VariableDraftProblem =
-  | 'nameRequired'
-  | 'nameInvalid'
-  | 'nameExists'
-  | 'typeMismatch'
+  'nameRequired' | 'nameInvalid' | 'nameExists' | 'typeMismatch'
 
 /**
  * The first problem that blocks saving a variable, as a key under

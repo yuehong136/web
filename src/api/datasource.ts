@@ -55,8 +55,7 @@ export interface OAuthStartResponse {
 
 /** Google 的 credentials 是 JSON 字符串，Box 的是 {client_id, client_secret, access_token, refresh_token} 对象。 */
 export type OAuthPollResult =
-  | { status: 'pending' }
-  | { status: 'completed'; credentials: unknown }
+  { status: 'pending' } | { status: 'completed'; credentials: unknown }
 
 export interface BoxOAuthStartPayload {
   client_id: string

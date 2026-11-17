@@ -68,11 +68,8 @@ export function renameObjectProperty(
   const renamedRequired = (newSchema.required || []).map((propertyName) =>
     propertyName === currentName ? nextName : propertyName,
   )
-  newSchema.required = renamedRequired.filter(
-    (propertyName, index, array) =>
-      propertyName !== nextName
-        ? true
-        : array.indexOf(propertyName) === index,
+  newSchema.required = renamedRequired.filter((propertyName, index, array) =>
+    propertyName !== nextName ? true : array.indexOf(propertyName) === index,
   )
 
   return updatePropertyRequired(newSchema, nextName, required)

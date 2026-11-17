@@ -57,7 +57,11 @@ export function QueryVariableList({
                 className="flex-1"
                 types={types}
               />
-              <Button type="button" variant="ghost" onClick={() => remove(index)}>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => remove(index)}
+              >
                 <X className="text-text-secondary" />
               </Button>
             </div>

@@ -13,19 +13,15 @@ import { initialParserValues } from '../../constant'
 import { useFormValues } from '../../hooks/use-form-values'
 import { useWatchFormChange } from '../../hooks/use-watch-form-change'
 import type { INextOperatorForm } from '../../types'
+import { FormWrapper, Output, buildOutputList } from '../components'
 import {
-  FormWrapper,
-  Output,
-  buildOutputList,
-} from '../components'
-import { getParserFileTypeLabel, parserAddableFileTypeOptions } from './constants'
+  getParserFileTypeLabel,
+  parserAddableFileTypeOptions,
+} from './constants'
 import { ParserActiveEditor } from './parser-active-editor'
 import { ParserSetupCard } from './parser-setup-card'
 import { parserSchema, type ParserFormValues } from './schema'
-import {
-  getDefaultParserSetup,
-  normalizeParserFormForStore,
-} from './utils'
+import { getDefaultParserSetup, normalizeParserFormForStore } from './utils'
 
 export const ParserForm = memo(function ParserForm({
   node,
@@ -55,7 +51,10 @@ export const ParserForm = memo(function ParserForm({
 
   useWatchFormChange(node?.id, form)
 
-  const outputs = useMemo(() => buildOutputList(form.getValues('outputs')), [form])
+  const outputs = useMemo(
+    () => buildOutputList(form.getValues('outputs')),
+    [form],
+  )
   const currentFileFormats = useMemo(
     () => watchedSetups?.map((item) => item?.fileFormat || '') || [],
     [watchedSetups],
@@ -65,7 +64,8 @@ export const ParserForm = memo(function ParserForm({
   )
   const [activeIndex, setActiveIndex] = useState(0)
   const [newParserType, setNewParserType] = useState('')
-  const activeFieldKey = setupsFieldArray.fields[activeIndex]?.id ?? `parser-${activeIndex}`
+  const activeFieldKey =
+    setupsFieldArray.fields[activeIndex]?.id ?? `parser-${activeIndex}`
   const listViewportRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
@@ -164,7 +164,10 @@ export const ParserForm = memo(function ParserForm({
               </div>
               {missingFileFormats.length === 0 ? (
                 <span className="text-base text-text-tertiary">
-                  {t('flow.parserAddDisabled', 'All parser types already added')}
+                  {t(
+                    'flow.parserAddDisabled',
+                    'All parser types already added',
+                  )}
                 </span>
               ) : null}
             </div>
