@@ -96,18 +96,16 @@ const VariablePickerRow = forwardRef<
       onMouseEnter={onMouseEnter}
       onClick={onClick}
       className={cn(
-        'flex cursor-pointer items-center justify-between gap-space-sm rounded-radius-sm px-space-sm py-space-xs text-sm text-text-primary',
-        'hover:bg-components-dropdown-item-bg-hover focus-visible:bg-components-dropdown-item-bg-hover',
-        isSelected && 'bg-components-dropdown-item-bg-hover',
+        'flex cursor-pointer items-center justify-between gap-space-sm rounded-radius-sm px-space-sm py-space-xs text-sm text-fg',
+        'hover:bg-fill-hover focus-visible:bg-fill-hover',
+        isSelected && 'bg-fill-hover',
         className,
       )}
     >
       <span className="min-w-0 flex-1 truncate">{label ?? option.label}</span>
-      <span className="shrink-0 text-xs text-text-secondary">
-        {option.type}
-      </span>
+      <span className="shrink-0 text-xs text-fg-muted">{option.type}</span>
       {hasSubMenu ? (
-        <ChevronRight className="ml-space-xs size-3.5 shrink-0 text-text-secondary" />
+        <ChevronRight className="ml-space-xs size-3.5 shrink-0 text-fg-muted" />
       ) : null}
     </li>
   )
@@ -133,7 +131,7 @@ function VariablePickerGroup({
   return (
     <ul role="group" aria-label={title} className="space-y-[2px]">
       <li role="presentation" className="px-space-xs">
-        <div className="cursor-auto py-space-xs text-xs font-medium tracking-wide text-text-tertiary uppercase">
+        <div className="cursor-auto py-space-xs text-xs font-medium tracking-wide text-fg-subtle uppercase">
           {title}
         </div>
       </li>
@@ -359,7 +357,7 @@ export default function VariablePickerMenuPlugin({
           <SelectedValueContext.Provider value={selectedValue}>
             <div
               className={cn(
-                'typeahead-popover nodrag nopan nowheel flex w-80 flex-col overflow-hidden rounded-radius-md border border-border-default bg-components-dropdown-bg shadow-lg',
+                'typeahead-popover nodrag nopan nowheel flex w-80 flex-col overflow-hidden rounded-radius-md border border-line bg-overlay shadow-lg',
               )}
               onWheelCapture={trapPopoverScroll}
               onMouseDown={preventPopoverMouseDown}
@@ -367,9 +365,9 @@ export default function VariablePickerMenuPlugin({
               onTouchStart={stopCanvasGesturePropagation}
               onTouchMove={stopCanvasGesturePropagation}
             >
-              <div className="flex items-center gap-space-xs border-b border-border-default px-space-sm py-space-xs">
-                <Variable className="size-3.5 text-text-secondary" />
-                <span className="text-xs text-text-secondary">
+              <div className="flex items-center gap-space-xs border-b border-line px-space-sm py-space-xs">
+                <Variable className="size-3.5 text-fg-muted" />
+                <span className="text-xs text-fg-muted">
                   {queryString ? `/${queryString}` : '/'}
                 </span>
               </div>

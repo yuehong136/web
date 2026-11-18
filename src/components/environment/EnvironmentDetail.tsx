@@ -209,15 +209,15 @@ export function EnvironmentDetail({
   if (environmentId === 'global') {
     return (
       <div className="flex h-full flex-col">
-        <header className="flex items-center gap-space-base border-b border-border-subtle px-space-lg py-space-base">
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-radius-lg bg-status-info-subtle text-status-info">
+        <header className="flex items-center gap-space-base border-b border-line-subtle px-space-lg py-space-base">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-radius-lg bg-info-soft text-info-fg">
             <Globe className="size-icon-md" aria-hidden="true" />
           </span>
           <div className="min-w-0">
-            <h3 className="text-lg font-semibold text-text-primary">
+            <h3 className="text-lg font-semibold text-fg">
               {t('environment.global.title')}
             </h3>
-            <p className="text-sm text-text-secondary">
+            <p className="text-sm text-fg-muted">
               {t('environment.global.description')}
             </p>
           </div>

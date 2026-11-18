@@ -92,29 +92,29 @@ export function ModernEnvironmentSelector({
                   selectedIndex,
                 )}
               />
-              <span className="truncate text-text-primary">
+              <span className="truncate text-fg">
                 {selectedEnvironment.name}
               </span>
               {selectedEnvironment.is_default && (
                 <Zap
-                  className="size-icon-xs shrink-0 text-status-warning"
+                  className="size-icon-xs shrink-0 text-warning-fg"
                   aria-label={t('environment.selector.default')}
                 />
               )}
               {selectedEnvironment.is_global && (
                 <Globe
-                  className="size-icon-xs shrink-0 text-text-tertiary"
+                  className="size-icon-xs shrink-0 text-fg-subtle"
                   aria-label={t('environment.selector.global')}
                 />
               )}
             </span>
           ) : (
-            <span className="truncate text-text-secondary">
+            <span className="truncate text-fg-muted">
               {t('environment.selector.choose')}
             </span>
           )}
           <ChevronDown
-            className="size-icon-sm shrink-0 text-text-tertiary"
+            className="size-icon-sm shrink-0 text-fg-subtle"
             aria-hidden="true"
           />
         </Button>
@@ -133,7 +133,7 @@ export function ModernEnvironmentSelector({
               aria-current={isSelected ? 'true' : undefined}
               className={cn(
                 'items-start py-space-xs',
-                isSelected && 'bg-state-selected-bg text-state-selected-text',
+                isSelected && 'bg-accent-soft text-accent-fg',
               )}
             >
               <span className="flex h-5 items-center">
@@ -160,12 +160,12 @@ export function ModernEnvironmentSelector({
                   )}
                 </span>
                 {env.description ? (
-                  <span className="block truncate text-xs text-text-tertiary">
+                  <span className="block truncate text-xs text-fg-subtle">
                     {env.description}
                   </span>
                 ) : null}
               </span>
-              <span className="shrink-0 text-xs text-text-tertiary">
+              <span className="shrink-0 text-xs text-fg-subtle">
                 {t('environment.selector.variableCount', {
                   count: env.variables_count ?? 0,
                 })}
@@ -173,7 +173,7 @@ export function ModernEnvironmentSelector({
               <Check
                 className={cn(
                   'size-icon-sm shrink-0',
-                  isSelected ? 'text-state-selected-text' : 'invisible',
+                  isSelected ? 'text-accent-fg' : 'invisible',
                 )}
                 aria-hidden="true"
               />

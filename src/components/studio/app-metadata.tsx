@@ -32,12 +32,7 @@ export function AppKnowledgeChip({ app }: { app: DialogApp }) {
   const count = app.kb_ids?.length ?? 0
   return (
     <ResourceChip
-      icon={
-        <BookOpen
-          aria-hidden="true"
-          className="text-components-avatar-5-text"
-        />
-      }
+      icon={<BookOpen aria-hidden="true" className="text-avatar-5-fg" />}
     >
       {count
         ? t('studio.card.knowledgeLinked', { count })

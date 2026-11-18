@@ -26,7 +26,7 @@ export function ParserModeSelector({
   const { t } = useTranslation()
   return (
     <div className="space-y-space-sm">
-      <div className="text-sm font-medium text-text-primary">
+      <div className="text-sm font-medium text-fg">
         {t(`${prefix}parseMethod`)}
       </div>
       <RadioGroup
@@ -79,7 +79,7 @@ export function DocumentBuiltinSelector({
         emptyText={t(`${prefix}parserEmpty`)}
       />
       {required && (
-        <p className="text-xs text-text-secondary">
+        <p className="text-xs text-fg-muted">
           {t(`${prefix}sourceParserHint`)}
         </p>
       )}
@@ -153,7 +153,7 @@ export function DocumentPipelineSelector({
         <p role="status">{t(`${prefix}pipelineLoading`)}</p>
       )}
       {catalog.isError && (
-        <div role="alert" className="text-status-error">
+        <div role="alert" className="text-danger-fg">
           {t(`${prefix}pipelineError`)}{' '}
           <Button
             type="button"
@@ -168,7 +168,7 @@ export function DocumentPipelineSelector({
         <p>{t(`${prefix}pipelineEmpty`)}</p>
       )}
       {catalog.selectedUnavailable && (
-        <p role="status" className="text-status-warning">
+        <p role="status" className="text-warning-fg">
           {t(`${prefix}pipelineUnavailable`)} <span>{value}</span>
         </p>
       )}
@@ -182,7 +182,7 @@ export function DocumentPipelineSelector({
           {t(`${prefix}pipelineMore`)}
         </Button>
       )}
-      <p className="text-xs text-text-secondary">{t(`${prefix}pipelineTip`)}</p>
+      <p className="text-xs text-fg-muted">{t(`${prefix}pipelineTip`)}</p>
     </div>
   )
 }

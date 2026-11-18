@@ -64,7 +64,7 @@ export function MemorySourcePagination({
     enabled: !loading && count === pageSize,
   })
   return (
-    <div className="flex min-h-[var(--control-height)] shrink-0 flex-wrap items-center gap-x-space-md border-t border-border-subtle py-space-2xs pr-space-sm pl-space-md text-xs text-text-tertiary">
+    <div className="flex min-h-[var(--control-height)] shrink-0 flex-wrap items-center gap-x-space-md border-t border-line-subtle py-space-2xs pr-space-sm pl-space-md text-xs text-fg-subtle">
       <p aria-live="polite" className="min-w-0 tabular-nums">
         {t('memory.workspace.sourcePage', { page, count })}
       </p>
@@ -79,14 +79,14 @@ export function MemorySourcePagination({
               type="button"
               variant="ghost"
               size="sm"
-              className="text-xs font-normal text-text-tertiary"
+              className="text-xs font-normal text-fg-subtle"
             >
               {t('common.patterns.pager.perPage', { count: pageSize })}
               <ChevronDown className="size-icon-xs" aria-hidden="true" />
             </Button>
           </ActionMenuTrigger>
           <ActionMenuContent align="end" className="min-w-36">
-            <ActionMenuLabel className="px-space-sm py-space-xs text-xs text-text-tertiary">
+            <ActionMenuLabel className="px-space-sm py-space-xs text-xs text-fg-subtle">
               {t('common.pagination.pageSizePrefix')}
             </ActionMenuLabel>
             <ActionMenuRadioGroup

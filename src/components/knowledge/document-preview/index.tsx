@@ -34,13 +34,11 @@ const DocumentPreviewHeader: FC<{
   const closeLabel = t('knowledge.preview.closePreview')
 
   return (
-    <div className="flex min-h-[var(--control-height-lg)] shrink-0 items-center justify-between gap-space-sm border-b border-border-subtle bg-background-surface px-space-md py-space-xs">
+    <div className="flex min-h-[var(--control-height-lg)] shrink-0 items-center justify-between gap-space-sm border-b border-line-subtle bg-surface px-space-md py-space-xs">
       <div className="flex min-w-0 flex-1 items-center gap-space-sm">
         {docName ? <FileKindTile name={docName} size="sm" /> : null}
         <Tooltip content={title}>
-          <span className="truncate text-sm font-medium text-text-primary">
-            {title}
-          </span>
+          <span className="truncate text-sm font-medium text-fg">{title}</span>
         </Tooltip>
       </div>
       <div className="flex shrink-0 items-center gap-space-2xs">
@@ -198,9 +196,7 @@ export const DocumentPreview: FC<DocumentPreviewProps> = ({
   }, [canDownload, docName, highlights, resource, t])
 
   return (
-    <div
-      className={cn('flex h-full flex-col bg-background-default', className)}
-    >
+    <div className={cn('flex h-full flex-col bg-canvas', className)}>
       {!hideHeader && (
         <DocumentPreviewHeader
           docName={docName}

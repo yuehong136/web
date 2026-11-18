@@ -60,7 +60,7 @@ export function LayoutRecognizeFormField({
         <span className="min-w-0 flex-1 truncate">
           {option.provider} / {option.label}
         </span>
-        <span className="shrink-0 text-xs text-status-warning">
+        <span className="shrink-0 text-xs text-warning-fg">
           {t('knowledge.settings.pdfParser.experimental')}
         </span>
       </span>
@@ -94,7 +94,7 @@ export function LayoutRecognizeFormField({
               <FormLabel
                 tooltip={t('knowledge.settings.fields.layoutParserTooltip')}
                 className={cn(
-                  'text-sm text-text-secondary',
+                  'text-sm text-fg-muted',
                   horizontal && 'w-1/4 shrink-0 pt-space-sm',
                 )}
               >
@@ -129,13 +129,13 @@ export function LayoutRecognizeFormField({
                 <div
                   aria-live="polite"
                   aria-busy={isLoading}
-                  className="space-y-space-xs text-xs text-text-secondary"
+                  className="space-y-space-xs text-xs text-fg-muted"
                 >
                   {!isLoading && !isError && modelCount === 0 ? (
                     <p>{t('knowledge.settings.pdfParser.empty')}</p>
                   ) : null}
                   {savedOnly && !isLoading && (
-                    <p className="flex items-start gap-space-xs text-status-warning">
+                    <p className="flex items-start gap-space-xs text-warning-fg">
                       <AlertTriangle
                         aria-hidden="true"
                         className="size-icon-sm shrink-0"

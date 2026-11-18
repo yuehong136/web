@@ -6,7 +6,7 @@ import { ProductCommandId, useApplicationCommands } from '@/lib/commands'
 import { cn } from '@/lib/utils'
 
 const ICON_BUTTON =
-  'flex size-8 shrink-0 items-center justify-center rounded-radius-md text-text-secondary outline-hidden transition-colors hover:bg-components-icon-button-bg-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-focus'
+  'flex size-8 shrink-0 items-center justify-center rounded-radius-md text-fg-muted outline-hidden transition-colors hover:bg-fill-hover hover:text-fg focus-visible:ring-2 focus-visible:ring-line-focus'
 
 interface ToolbarCommandProps {
   command: ProductCommandId
@@ -59,7 +59,7 @@ export const DesktopToolbar: React.FC<DesktopToolbarProps> = ({
   return (
     <header
       data-desktop-toolbar
-      className="relative flex min-h-12 shrink-0 items-center gap-space-sm border-b border-components-main-workbench-border bg-components-main-workbench-surface px-space-sm py-space-2xs"
+      className="relative flex min-h-12 shrink-0 items-center gap-space-sm border-b border-line-subtle bg-surface px-space-sm py-space-2xs"
     >
       <div className="flex shrink-0 items-center gap-space-2xs">
         <ToolbarCommand
@@ -127,14 +127,14 @@ const ToolbarPaletteButton: React.FC<{ compact: boolean }> = ({ compact }) => {
     <button
       type="button"
       data-desktop-palette="centred"
-      className="absolute left-1/2 flex h-8 -translate-x-1/2 items-center gap-space-sm rounded-radius-md border border-components-button-secondary-border bg-components-button-secondary-bg px-space-sm text-xs text-components-button-secondary-text outline-hidden transition-colors hover:bg-components-button-secondary-bg-hover focus-visible:ring-2 focus-visible:ring-state-focus"
+      className="absolute left-1/2 flex h-8 -translate-x-1/2 items-center gap-space-sm rounded-radius-md border border-line bg-fill-muted px-space-sm text-xs text-fg outline-hidden transition-colors hover:bg-fill-pressed focus-visible:ring-2 focus-visible:ring-line-focus"
       onClick={open}
       aria-label={label}
       aria-keyshortcuts="Control+K Meta+K"
     >
       <Command className="size-icon-sm" aria-hidden="true" />
       <span>{label}</span>
-      <kbd className="text-text-tertiary">⌘/Ctrl K</kbd>
+      <kbd className="text-fg-subtle">⌘/Ctrl K</kbd>
     </button>
   )
 }

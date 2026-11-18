@@ -62,10 +62,7 @@ export const StudioTriPanePageTemplate: React.FC<
   })
   return (
     <div
-      className={cn(
-        'flex h-full min-h-0 flex-col bg-components-studio-bg',
-        className,
-      )}
+      className={cn('flex h-full min-h-0 flex-col bg-canvas', className)}
       {...props}
     >
       {header}
@@ -81,20 +78,20 @@ export const StudioTriPanePageTemplate: React.FC<
             panelRef={leftPanelRef}
             {...leftPanelProps}
           >
-            <div className="h-full min-h-0 border-r border-components-studio-border">
+            <div className="h-full min-h-0 border-r border-line">
               {leftPane}
             </div>
           </ResizablePanel>
 
-          <ResizableHandle className="w-px bg-transparent transition-colors hover:bg-border-accent" />
+          <ResizableHandle className="w-px bg-transparent transition-colors hover:bg-line-focus" />
 
           <ResizablePanel id={panelIds[1]} {...centerPanelProps}>
-            <div className="h-full min-h-0 border-r border-components-studio-border">
+            <div className="h-full min-h-0 border-r border-line">
               {centerPane}
             </div>
           </ResizablePanel>
 
-          <ResizableHandle className="w-px bg-transparent transition-colors hover:bg-border-accent" />
+          <ResizableHandle className="w-px bg-transparent transition-colors hover:bg-line-focus" />
 
           <ResizablePanel
             id={panelIds[2]}

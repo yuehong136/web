@@ -17,7 +17,7 @@ export function ResolvedVariablesSummary({
     <>
       {variablesUsed.length > 0 && (
         <div className="space-y-space-xs">
-          <h3 className="text-sm font-medium text-text-primary">
+          <h3 className="text-sm font-medium text-fg">
             {t('environment.resolve.variablesUsed')}
           </h3>
           <ul className="flex flex-wrap gap-space-xs">
@@ -34,7 +34,7 @@ export function ResolvedVariablesSummary({
 
       {missingVariables.length > 0 && (
         <div className="space-y-space-xs">
-          <h3 className="text-sm font-medium text-status-error">
+          <h3 className="text-sm font-medium text-danger-fg">
             {t('environment.resolve.missingVariables')}
           </h3>
           <ul className="flex flex-wrap gap-space-xs">
@@ -46,7 +46,7 @@ export function ResolvedVariablesSummary({
               </li>
             ))}
           </ul>
-          <p className="text-xs text-text-tertiary">
+          <p className="text-xs text-fg-subtle">
             {t('environment.resolve.missingVariablesHint')}
           </p>
         </div>

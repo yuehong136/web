@@ -80,12 +80,12 @@ export const AutoResizeTextarea = React.forwardRef<
         )}
         style={{
           backgroundColor: isFocused
-            ? 'var(--color-components-input-bg-focus)'
-            : 'var(--color-components-input-bg)',
+            ? 'var(--color-surface)'
+            : 'var(--color-surface)',
           borderColor: isFocused
-            ? 'var(--color-components-input-border-focus)'
-            : 'var(--color-components-input-border)',
-          color: 'var(--color-components-input-text)',
+            ? 'var(--color-line-focus)'
+            : 'var(--color-line)',
+          color: 'var(--color-fg)',
           minHeight: '36px',
           ...style,
         }}

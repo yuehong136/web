@@ -39,14 +39,14 @@ export const MODEL_CAPABILITY_ICONS: Record<ModelCapabilityKind, LucideIcon> = {
  * capability keeps its colour on default-model rows and provider cards.
  */
 export const MODEL_CAPABILITY_TONES: Record<ModelCapabilityKind, string> = {
-  chat: 'bg-components-avatar-6-bg text-components-avatar-6-text',
-  embedding: 'bg-components-avatar-5-bg text-components-avatar-5-text',
-  rerank: 'bg-components-avatar-7-bg text-components-avatar-7-text',
-  image2text: 'bg-components-avatar-8-bg text-components-avatar-8-text',
-  speech2text: 'bg-components-avatar-2-bg text-components-avatar-2-text',
-  tts: 'bg-components-avatar-4-bg text-components-avatar-4-text',
-  ocr: 'bg-components-avatar-3-bg text-components-avatar-3-text',
-  tools: 'bg-components-avatar-1-bg text-components-avatar-1-text',
+  chat: 'bg-avatar-6-bg text-avatar-6-fg',
+  embedding: 'bg-avatar-5-bg text-avatar-5-fg',
+  rerank: 'bg-avatar-7-bg text-avatar-7-fg',
+  image2text: 'bg-avatar-8-bg text-avatar-8-fg',
+  speech2text: 'bg-avatar-2-bg text-avatar-2-fg',
+  tts: 'bg-avatar-4-bg text-avatar-4-fg',
+  ocr: 'bg-avatar-3-bg text-avatar-3-fg',
+  tools: 'bg-avatar-1-bg text-avatar-1-fg',
 }
 
 const aliases: Record<string, ModelCapabilityKind> = {
@@ -95,14 +95,14 @@ export function ModelCapabilities({
     <span
       data-slot="model-capabilities"
       className={cn(
-        'flex flex-wrap items-center gap-space-2xs text-xs text-text-secondary',
+        'flex flex-wrap items-center gap-space-2xs text-xs text-fg-muted',
         className,
       )}
     >
       {[...new Set([...types, ...(tools ? ['tools'] : [])])].map((type) => (
         <span
           key={type}
-          className="inline-flex h-5 items-center rounded-radius-full border border-border-subtle bg-background-subtle px-space-xs leading-none"
+          className="inline-flex h-5 items-center rounded-radius-full border border-line-subtle bg-sunken px-space-xs leading-none"
         >
           <ModelCapability type={type} />
         </span>

@@ -16,10 +16,7 @@ export const WorkspacePageTemplate: React.FC<WorkspacePageTemplateProps> = ({
 }) => {
   return (
     <div
-      className={cn(
-        'flex h-dvh min-h-0 flex-col bg-components-workspace-bg',
-        className,
-      )}
+      className={cn('flex h-dvh min-h-0 flex-col bg-surface', className)}
       {...props}
     >
       {header}

@@ -10,24 +10,22 @@ import {
 
 describe('environmentDotClass', () => {
   it('gives well-known environments their status colour', () => {
-    expect(environmentDotClass('Production', 4)).toBe('bg-status-error')
-    expect(environmentDotClass('prod-eu', 4)).toBe('bg-status-error')
-    expect(environmentDotClass('生产环境', 4)).toBe('bg-status-error')
-    expect(environmentDotClass('staging', 4)).toBe('bg-status-warning')
-    expect(environmentDotClass('pre-prod', 4)).toBe('bg-status-warning')
-    expect(environmentDotClass('预发', 4)).toBe('bg-status-warning')
-    expect(environmentDotClass('local', 4)).toBe('bg-status-success')
-    expect(environmentDotClass('本地调试', 4)).toBe('bg-status-success')
+    expect(environmentDotClass('Production', 4)).toBe('bg-danger-fg')
+    expect(environmentDotClass('prod-eu', 4)).toBe('bg-danger-fg')
+    expect(environmentDotClass('生产环境', 4)).toBe('bg-danger-fg')
+    expect(environmentDotClass('staging', 4)).toBe('bg-warning-fg')
+    expect(environmentDotClass('pre-prod', 4)).toBe('bg-warning-fg')
+    expect(environmentDotClass('预发', 4)).toBe('bg-warning-fg')
+    expect(environmentDotClass('local', 4)).toBe('bg-success-fg')
+    expect(environmentDotClass('本地调试', 4)).toBe('bg-success-fg')
   })
 
   it('colours every other environment by its list position', () => {
-    expect(environmentDotClass('dxl-193', 0)).toBe('bg-data-viz-categorical-1')
-    expect(environmentDotClass('product-api', 2)).toBe(
-      'bg-data-viz-categorical-3',
-    )
-    expect(environmentDotClass('team', 9)).toBe('bg-data-viz-categorical-10')
-    expect(environmentDotClass('team', 10)).toBe('bg-data-viz-categorical-1')
-    expect(environmentDotClass('team', -1)).toBe('bg-data-viz-categorical-1')
+    expect(environmentDotClass('dxl-193', 0)).toBe('bg-viz-1')
+    expect(environmentDotClass('product-api', 2)).toBe('bg-viz-3')
+    expect(environmentDotClass('team', 9)).toBe('bg-viz-10')
+    expect(environmentDotClass('team', 10)).toBe('bg-viz-1')
+    expect(environmentDotClass('team', -1)).toBe('bg-viz-1')
   })
 })
 

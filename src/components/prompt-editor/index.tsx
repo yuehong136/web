@@ -144,23 +144,21 @@ function PromptContent({
   return (
     <section
       className={cn(
-        'overflow-hidden rounded-radius-lg border bg-background-surface transition-[border-color,box-shadow]',
+        'overflow-hidden rounded-radius-lg border bg-surface transition-[border-color,box-shadow]',
         isFocused
-          ? 'border-components-system-accent-border ring-1 ring-components-system-accent-border'
-          : 'border-border-default',
+          ? 'border-accent-line ring-1 ring-accent-line'
+          : 'border-line',
       )}
     >
       {showToolbar && (
         <div
           className={cn(
             'flex items-center justify-between gap-space-sm border-b px-space-sm py-space-xs transition-colors',
-            isFocused
-              ? 'border-components-system-accent-border'
-              : 'border-border-default',
+            isFocused ? 'border-accent-line' : 'border-line',
           )}
         >
           <Tooltip content={<p>{t('flow.mergePathTip')}</p>}>
-            <label className="flex min-w-0 cursor-pointer items-center gap-space-xs text-xs text-text-secondary">
+            <label className="flex min-w-0 cursor-pointer items-center gap-space-xs text-xs text-fg-muted">
               <Switch
                 size="sm"
                 checked={pathAutoMergeEnabled}
@@ -192,7 +190,7 @@ function PromptContent({
         <ContentEditable
           {...accessibilityProps}
           className={cn(
-            'prompt-editor-content relative w-full px-space-sm text-base text-text-primary focus-visible:outline-hidden',
+            'prompt-editor-content relative w-full px-space-sm text-base text-fg focus-visible:outline-hidden',
             {
               'max-h-[50vh] min-h-40 overflow-auto py-space-sm': multiLine,
               'min-h-10 overflow-x-auto overflow-y-hidden py-space-sm whitespace-pre':
@@ -206,7 +204,7 @@ function PromptContent({
           <div
             aria-hidden="true"
             className={cn(
-              'pointer-events-none absolute right-space-sm left-space-sm text-base text-text-secondary',
+              'pointer-events-none absolute right-space-sm left-space-sm text-base text-fg-muted',
               {
                 'top-space-sm': multiLine,
                 'top-1/2 -translate-y-1/2 truncate': !multiLine,
@@ -323,7 +321,7 @@ export function PromptEditor({
         ></VariableOnChangePlugin>
       </LexicalComposer>
       {missingReferences.length > 0 ? (
-        <p className="text-xs text-status-warning">
+        <p className="text-xs text-warning-fg">
           {`Missing variables: ${missingReferences.join(', ')}`}
         </p>
       ) : null}

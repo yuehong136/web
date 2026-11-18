@@ -177,7 +177,7 @@ it('lays settings out as a titled column of labelled rows', async () => {
   )
   const label = view.container.querySelector('label[for="chat-model"]')!
   expect(label.textContent).toBe('Chat')
-  expect(
-    view.container.querySelector('p.text-status-warning')?.textContent,
-  ).toBe('Not set')
+  expect(view.container.querySelector('p.text-warning-fg')?.textContent).toBe(
+    'Not set',
+  )
 })

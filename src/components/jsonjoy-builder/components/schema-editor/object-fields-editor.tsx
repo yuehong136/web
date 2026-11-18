@@ -87,7 +87,7 @@ export function ObjectFieldsEditor({
   return (
     <div className="space-y-space-sm">
       {properties.length === 0 ? (
-        <div className="rounded-radius-md border border-border-subtle bg-surface-secondary p-space-md text-center text-sm text-text-caption">
+        <div className="rounded-radius-md border border-line-subtle bg-sunken p-space-md text-center text-sm text-fg-subtle">
           {t.visualEditorNoFieldsHint1}
         </div>
       ) : (
@@ -178,7 +178,7 @@ function SchemaFieldRow({
   return (
     <div
       className={cn(
-        'rounded-radius-md border border-border-subtle bg-surface-primary',
+        'rounded-radius-md border border-line-subtle bg-surface',
         depth > 0 && 'ml-space-md',
       )}
     >
@@ -200,23 +200,21 @@ function SchemaFieldRow({
         </Button>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-space-sm">
-            <span className="truncate text-sm font-medium text-text-primary">
-              {name}
-            </span>
+            <span className="truncate text-sm font-medium text-fg">{name}</span>
             {required && (
-              <span className="rounded-radius-sm bg-components-api-status-error-bg px-space-xs py-[1px] text-xs text-components-api-status-error-text">
+              <span className="rounded-radius-sm bg-danger-soft px-space-xs py-[1px] text-xs text-danger-fg">
                 {t.propertyRequired}
               </span>
             )}
           </div>
           {objectSchema.description && (
-            <p className="truncate text-xs text-text-caption">
+            <p className="truncate text-xs text-fg-subtle">
               {objectSchema.description}
             </p>
           )}
         </div>
         <SchemaTypeBadge type={type} />
-        <label className="flex shrink-0 items-center gap-space-xs text-xs text-text-caption">
+        <label className="flex shrink-0 items-center gap-space-xs text-xs text-fg-subtle">
           <Checkbox
             checked={required}
             onCheckedChange={(checked) => onRequiredChange(Boolean(checked))}
@@ -227,7 +225,7 @@ function SchemaFieldRow({
           type="button"
           variant="ghost"
           size="icon"
-          className="h-8 w-8 text-text-caption hover:text-text-primary"
+          className="h-8 w-8 text-fg-subtle hover:text-fg"
           onClick={() => setEditing((value) => !value)}
           aria-label={t.fieldSaveConfirm}
         >
@@ -237,7 +235,7 @@ function SchemaFieldRow({
           type="button"
           variant="ghost"
           size="icon"
-          className="h-8 w-8 text-text-caption hover:text-status-error"
+          className="h-8 w-8 text-fg-subtle hover:text-danger-fg"
           onClick={onDelete}
           aria-label={t.propertyDelete}
         >
@@ -245,7 +243,7 @@ function SchemaFieldRow({
         </Button>
       </div>
       {editing && (
-        <div className="border-t border-border-subtle p-space-sm">
+        <div className="border-t border-line-subtle p-space-sm">
           <InlineFieldForm
             initialField={buildFieldDraft(name, schema, required)}
             existingNames={existingNames}
@@ -260,7 +258,7 @@ function SchemaFieldRow({
         </div>
       )}
       {expanded && canExpand && (
-        <div className="border-t border-border-subtle p-space-sm">
+        <div className="border-t border-line-subtle p-space-sm">
           {type === 'object' ? (
             <ObjectFieldsEditor
               schema={schema}
@@ -318,7 +316,7 @@ function ArrayItemEditor({
   return (
     <div className="space-y-space-sm">
       <div className="flex items-center justify-between gap-space-sm">
-        <span className="text-sm font-medium text-text-secondary">
+        <span className="text-sm font-medium text-fg-muted">
           {t.arrayItemTypeLabel}
         </span>
         <Select

@@ -57,7 +57,7 @@ export const RerankModelSelector: FC<RerankModelSelectorProps> = ({
   ]
   return (
     <div className="space-y-2">
-      <div className="flex items-center text-xs font-medium text-text-primary">
+      <div className="flex items-center text-xs font-medium text-fg">
         {t('knowledge.search.rerank.label')}
         <FormTooltip tooltip={t('knowledge.search.rerank.tooltip')} />
       </div>

@@ -44,10 +44,8 @@ interface EnvironmentListProps {
 
 const rowClass = (selected: boolean) =>
   cn(
-    'flex w-full min-w-0 items-center gap-space-sm rounded-radius-lg px-space-sm py-space-xs text-left outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-state-focus',
-    selected
-      ? 'bg-state-selected-bg text-state-selected-text'
-      : 'text-text-primary hover:bg-state-hover',
+    'flex w-full min-w-0 items-center gap-space-sm rounded-radius-lg px-space-sm py-space-xs text-left outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-line-focus',
+    selected ? 'bg-accent-soft text-accent-fg' : 'text-fg hover:bg-fill-hover',
   )
 
 function SectionTitle({
@@ -59,7 +57,7 @@ function SectionTitle({
 }) {
   return (
     <div className="flex min-h-8 items-center justify-between px-space-sm">
-      <h3 className="text-xs font-medium text-text-tertiary">{children}</h3>
+      <h3 className="text-xs font-medium text-fg-subtle">{children}</h3>
       {action}
     </div>
   )
@@ -138,14 +136,14 @@ export function EnvironmentList({
           onClick={() => onEnvironmentSelect('global')}
           className={rowClass(selectedEnvironmentId === 'global')}
         >
-          <span className="flex size-8 shrink-0 items-center justify-center rounded-radius-md bg-status-info-subtle text-status-info">
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-radius-md bg-info-soft text-info-fg">
             <Globe className="size-icon-sm" aria-hidden="true" />
           </span>
           <span className="min-w-0 flex-1">
             <span className="block truncate text-sm font-medium">
               {t('environment.list.globalVariables')}
             </span>
-            <span className="block text-xs text-text-tertiary">
+            <span className="block text-xs text-fg-subtle">
               {t('environment.list.globalCount', {
                 count: globalEnvironments.length,
               })}
@@ -172,15 +170,15 @@ export function EnvironmentList({
         </SectionTitle>
 
         {environments.length === 0 ? (
-          <div className="flex flex-col items-center gap-space-xs rounded-radius-lg border border-dashed border-border-default px-space-sm py-space-lg text-center">
+          <div className="flex flex-col items-center gap-space-xs rounded-radius-lg border border-dashed border-line px-space-sm py-space-lg text-center">
             <Layers
-              className="size-icon-lg text-text-tertiary"
+              className="size-icon-lg text-fg-subtle"
               aria-hidden="true"
             />
-            <p className="text-sm font-medium text-text-primary">
+            <p className="text-sm font-medium text-fg">
               {t('environment.list.empty')}
             </p>
-            <p className="text-xs text-text-tertiary">
+            <p className="text-xs text-fg-subtle">
               {t('environment.list.emptyHint')}
             </p>
           </div>
@@ -227,14 +225,14 @@ export function EnvironmentList({
                         )}
                         {env.is_global && (
                           <Globe
-                            className="size-icon-xs shrink-0 text-text-tertiary"
+                            className="size-icon-xs shrink-0 text-fg-subtle"
                             aria-label={t('environment.list.global')}
                           />
                         )}
                       </span>
                       <span
                         id={`${rowId}-meta`}
-                        className="block truncate text-xs text-text-tertiary"
+                        className="block truncate text-xs text-fg-subtle"
                       >
                         {env.base_url ||
                           t('environment.list.variableCount', {
@@ -264,7 +262,7 @@ export function EnvironmentList({
                         {!env.is_default && (
                           <DropdownMenuItem
                             onClick={() => setDeleteTarget(env)}
-                            className="text-status-error [&_svg]:text-status-error"
+                            className="text-danger-fg [&_svg]:text-danger-fg"
                           >
                             <Trash2 aria-hidden="true" />
                             {t('environment.list.delete')}
@@ -347,7 +345,7 @@ export function EnvironmentList({
         pending={deleting}
         onConfirm={confirmDelete}
       >
-        <p className="rounded-radius-lg border border-status-error-border bg-status-error-subtle p-space-sm text-sm text-status-error">
+        <p className="rounded-radius-lg border border-danger-line bg-danger-soft p-space-sm text-sm text-danger-fg">
           {t('environment.delete.warning')}
         </p>
       </ConfirmDialog>

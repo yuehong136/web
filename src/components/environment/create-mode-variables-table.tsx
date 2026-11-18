@@ -51,7 +51,7 @@ export function CreateModeVariablesTable({
   }
 
   return (
-    <div className="overflow-hidden rounded-radius-lg border border-border-subtle">
+    <div className="overflow-hidden rounded-radius-lg border border-line-subtle">
       <Table>
         <TableHeader>
           <TableRow>
@@ -76,9 +76,7 @@ export function CreateModeVariablesTable({
             return (
               <TableRow key={variable.id}>
                 <TableCell>
-                  <code className="font-mono text-sm text-text-primary">
-                    {name}
-                  </code>
+                  <code className="font-mono text-sm text-fg">{name}</code>
                 </TableCell>
                 <TableCell>
                   <Badge variant="secondary" className="font-mono">
@@ -87,7 +85,7 @@ export function CreateModeVariablesTable({
                 </TableCell>
                 <TableCell className="max-w-xs">
                   <div className="flex items-center gap-space-xs">
-                    <code className="min-w-0 flex-1 truncate font-mono text-sm text-text-primary">
+                    <code className="min-w-0 flex-1 truncate font-mono text-sm text-fg">
                       {variable.is_secret && !shown
                         ? maskSecret(variable.key_value)
                         : variable.key_value}
@@ -131,7 +129,7 @@ export function CreateModeVariablesTable({
                   )}
                 </TableCell>
                 <TableCell>
-                  <span className="line-clamp-2 text-sm text-text-secondary">
+                  <span className="line-clamp-2 text-sm text-fg-muted">
                     {variable.description || ''}
                   </span>
                 </TableCell>
@@ -141,7 +139,7 @@ export function CreateModeVariablesTable({
                     size="icon-sm"
                     onClick={() => removeVariable(variable.id)}
                     aria-label={t('environment.variables.delete', { name })}
-                    className="text-status-error hover:bg-status-error-subtle hover:text-status-error"
+                    className="text-danger-fg hover:bg-danger-soft hover:text-danger-fg"
                   >
                     <Trash2 aria-hidden="true" />
                   </Button>

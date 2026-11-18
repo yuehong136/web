@@ -2,8 +2,8 @@
  * 高亮文本样式
  * 用于显示检索结果中的高亮文本（后端以 <em> 标出命中词）
  *
- * 命中词按搜索产品的通行做法渲染为琥珀色标记：正文色文字叠在 warning 浅色底上，
- * 明暗主题下都满足 WCAG AA（见 categorical-palette.test.ts 的 search highlights 断言）。
+ * 命中词按搜索产品的通行做法渲染为荧光笔标记：正文色文字叠在 highlight-bg 上，
+ * 所有方案的明暗主题都满足 WCAG AA（见 semantic-contract.test.ts 的 highlight 断言）。
  */
 
 .highlight-text {
@@ -13,10 +13,10 @@
 }
 
 .highlight-text em {
-  color: var(--color-text-primary);
   font-style: normal;
   font-weight: 500;
-  background-color: var(--color-status-warning-subtle);
+  background-color: var(--color-highlight-bg);
+  color: var(--color-highlight-fg);
   padding: 0 2px;
   border-radius: 3px;
   -webkit-box-decoration-break: clone;
@@ -25,7 +25,11 @@
 }
 
 .highlight-text em:hover {
-  background-color: var(--color-status-warning-subtle-hover);
+  background-color: color-mix(
+    in oklab,
+    var(--color-highlight-bg),
+    var(--color-fg) 8%
+  );
 }
 
 /* 嵌套命中沿用外层标记，不再叠加加深 */

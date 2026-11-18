@@ -66,13 +66,13 @@ const WorkbenchFrame = ({ children }: React.PropsWithChildren) => {
       data-navigation-mode={
         viewport.wide ? 'docked' : viewport.desktop ? 'overlay' : 'mobile'
       }
-      className="relative h-dvh overflow-hidden bg-components-app-shell-bg"
+      className="relative h-dvh overflow-hidden bg-canvas"
       style={viewport.height > 0 ? { height: viewport.height } : undefined}
     >
       <a
         href={`#${contentId}`}
         onClick={() => document.getElementById(contentId)?.focus()}
-        className="sr-only z-50 rounded-radius-md bg-background-surface p-space-base text-sm text-text-primary focus:not-sr-only focus:absolute focus:top-space-sm focus:left-space-sm focus:ring-2 focus:ring-state-focus"
+        className="sr-only z-50 rounded-radius-md bg-surface p-space-base text-sm text-fg focus:not-sr-only focus:absolute focus:top-space-sm focus:left-space-sm focus:ring-2 focus:ring-line-focus"
       >
         {t('layout.workspace.skipToTask')}
       </a>
@@ -92,7 +92,7 @@ const WorkbenchFrame = ({ children }: React.PropsWithChildren) => {
           className={
             effectiveCollapsed
               ? 'hidden'
-              : 'flex h-full min-h-0 w-[calc(16rem*var(--text-scale,1))] max-w-[28vw] shrink-0 flex-col overflow-hidden bg-components-sidebar-bg'
+              : 'flex h-full min-h-0 w-[calc(16rem*var(--text-scale,1))] max-w-[28vw] shrink-0 flex-col overflow-hidden bg-canvas'
           }
         >
           {viewport.desktop && !effectiveCollapsed && (
@@ -111,7 +111,7 @@ const WorkbenchFrame = ({ children }: React.PropsWithChildren) => {
           )}
         </div>
         <MainWorkbench
-          className="md:my-space-sm md:mr-space-sm md:h-auto md:self-stretch md:rounded-radius-xl md:border md:border-components-main-workbench-border md:shadow-elevation-low"
+          className="md:my-space-sm md:mr-space-sm md:h-auto md:self-stretch md:rounded-radius-xl md:border md:border-line-subtle md:shadow-elevation-low"
           contentId={contentId}
           contentLabel={t('layout.workspace.mainTask')}
           header={

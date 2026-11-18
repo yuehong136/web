@@ -27,7 +27,7 @@ export function ModelIdentityLogo(snapshot: ModelIdentitySnapshot) {
   return identity.provider ? (
     <ProviderIcon provider={identity.provider} size={24} className="size-6" />
   ) : (
-    <Bot aria-hidden className="size-6 text-text-secondary" />
+    <Bot aria-hidden className="size-6 text-fg-muted" />
   )
 }
 export function ModelIdentity({
@@ -38,7 +38,7 @@ export function ModelIdentity({
   const identity = useModelIdentity(snapshot)
   return (
     <span
-      className="inline-flex min-w-0 items-center gap-space-xs text-text-primary"
+      className="inline-flex min-w-0 items-center gap-space-xs text-fg"
       data-model-identity
     >
       {showLogo && <ModelIdentityLogo {...snapshot} />}

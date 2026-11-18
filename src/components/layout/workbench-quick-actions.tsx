@@ -63,7 +63,7 @@ export const WorkbenchQuickActions = ({
           aria-keyshortcuts={ariaKeys(ProductCommandId.NEW_CONVERSATION)}
           onClick={() => run(ProductCommandId.NEW_CONVERSATION)}
           className={cn(
-            'flex w-full items-center gap-space-sm rounded-radius-md border border-border-subtle bg-background-surface px-space-sm text-sm font-medium text-text-primary shadow-elevation-low outline-hidden transition-colors hover:border-border-strong hover:bg-state-hover focus-visible:ring-2 focus-visible:ring-state-focus motion-reduce:transition-none',
+            'flex w-full items-center gap-space-sm rounded-radius-md border border-line-subtle bg-surface px-space-sm text-sm font-medium text-fg shadow-elevation-low outline-hidden transition-colors hover:border-line-strong hover:bg-fill-hover focus-visible:ring-2 focus-visible:ring-line-focus motion-reduce:transition-none',
             touch ? 'min-h-11' : 'min-h-[var(--control-height-sm)]',
           )}
         >
@@ -80,9 +80,9 @@ export const WorkbenchQuickActions = ({
         aria-keyshortcuts={ariaKeys(ProductCommandId.OPEN_PALETTE)}
         onClick={() => run(ProductCommandId.OPEN_PALETTE)}
         className={cn(
-          'flex w-full items-center gap-space-sm rounded-radius-md px-space-sm text-sm text-text-secondary outline-hidden transition-colors hover:bg-state-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-focus motion-reduce:transition-none',
+          'flex w-full items-center gap-space-sm rounded-radius-md px-space-sm text-sm text-fg-muted outline-hidden transition-colors hover:bg-fill-hover hover:text-fg focus-visible:ring-2 focus-visible:ring-line-focus motion-reduce:transition-none',
           touch
-            ? 'min-h-11 border border-border-default bg-background-surface text-text-tertiary'
+            ? 'min-h-11 border border-line bg-surface text-fg-subtle'
             : 'min-h-[var(--control-height-sm)]',
         )}
       >

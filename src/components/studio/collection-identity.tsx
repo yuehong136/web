@@ -24,20 +24,20 @@ export type StatusDotTone =
   | 'running'
 
 const DOT: Record<StatusDotTone, string> = {
-  success: 'bg-status-success',
-  warning: 'bg-status-warning',
-  error: 'bg-status-error',
-  info: 'bg-status-info',
-  neutral: 'bg-text-tertiary',
+  success: 'bg-success-fg',
+  warning: 'bg-warning-fg',
+  error: 'bg-danger-fg',
+  info: 'bg-info-fg',
+  neutral: 'bg-fg-subtle',
   running: 'bg-ai-tide',
 }
 
 const LABEL: Record<StatusDotTone, string> = {
-  success: 'text-status-success',
-  warning: 'text-status-warning',
-  error: 'text-status-error',
-  info: 'text-status-info',
-  neutral: 'text-text-tertiary',
+  success: 'text-success-fg',
+  warning: 'text-warning-fg',
+  error: 'text-danger-fg',
+  info: 'text-info-fg',
+  neutral: 'text-fg-subtle',
   running: 'text-shimmer',
 }
 

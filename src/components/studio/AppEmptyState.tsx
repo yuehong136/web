@@ -55,7 +55,7 @@ export function AppEmptyState({
       key: 'create',
       primary: true,
       icon: <MessageSquare />,
-      iconClassName: 'bg-components-avatar-6-bg text-components-avatar-6-text',
+      iconClassName: 'bg-avatar-6-bg text-avatar-6-fg',
       title: t('studio.empty.createTitle'),
       description: t('studio.empty.createDescription'),
       cta: t('studio.empty.createCta'),
@@ -65,7 +65,7 @@ export function AppEmptyState({
     paths.push({
       key: 'template',
       icon: <LayoutTemplate />,
-      iconClassName: 'bg-components-avatar-7-bg text-components-avatar-7-text',
+      iconClassName: 'bg-avatar-7-bg text-avatar-7-fg',
       title: t('studio.empty.templateTitle'),
       description: t('studio.empty.templateDescription'),
       cta: t('studio.empty.templateCta'),
@@ -75,7 +75,7 @@ export function AppEmptyState({
     paths.push({
       key: 'import',
       icon: <Upload />,
-      iconClassName: 'bg-components-avatar-4-bg text-components-avatar-4-text',
+      iconClassName: 'bg-avatar-4-bg text-avatar-4-fg',
       title: t('studio.empty.importTitle'),
       description: t('studio.empty.importDescription'),
       cta: t('studio.empty.importCta'),

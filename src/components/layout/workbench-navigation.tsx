@@ -123,7 +123,7 @@ const HomeConversations = () => {
   if (!app)
     return (
       <div className="flex flex-col items-start gap-space-sm px-space-base py-space-base">
-        <p className="text-sm text-text-secondary">
+        <p className="text-sm text-fg-muted">
           {t('layout.sidebar.chooseAppForConversations')}
         </p>
         <Button asChild variant="outline" size="sm">

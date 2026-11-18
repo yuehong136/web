@@ -27,12 +27,12 @@ export const ActivityRail: React.FC = () => {
 
   return (
     <aside
-      className="flex h-full w-16 shrink-0 flex-col items-center border-r border-components-sidebar-border bg-components-sidebar-bg py-space-sm"
+      className="flex h-full w-16 shrink-0 flex-col items-center border-r border-line-subtle bg-canvas py-space-sm"
       aria-label={t('desktop.activityRail.label')}
     >
       <button
         type="button"
-        className="mb-space-md flex size-10 items-center justify-center rounded-radius-lg focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden"
+        className="mb-space-md flex size-10 items-center justify-center rounded-radius-lg focus-visible:ring-2 focus-visible:ring-line-focus focus-visible:outline-hidden"
         onClick={() => void execute(ProductCommandId.NAVIGATE_HOME)}
         aria-label={t('desktop.activityRail.home')}
       >
@@ -49,10 +49,10 @@ export const ActivityRail: React.FC = () => {
               <button
                 type="button"
                 className={cn(
-                  'flex size-10 items-center justify-center rounded-radius-lg outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-state-focus',
+                  'flex size-10 items-center justify-center rounded-radius-lg outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-line-focus',
                   selected
-                    ? 'bg-components-sidebar-item-bg-active text-components-sidebar-item-text-active'
-                    : 'text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover hover:text-text-primary',
+                    ? 'bg-fill-selected text-fg'
+                    : 'text-fg-muted hover:bg-fill-hover hover:text-fg',
                 )}
                 aria-label={label}
                 aria-pressed={selected}
@@ -69,7 +69,7 @@ export const ActivityRail: React.FC = () => {
         <Tooltip content={t('layout.sidebar.settings')} position="right">
           <button
             type="button"
-            className="flex size-10 items-center justify-center rounded-radius-lg text-components-sidebar-item-text outline-hidden transition-colors hover:bg-components-sidebar-item-bg-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-focus"
+            className="flex size-10 items-center justify-center rounded-radius-lg text-fg-muted outline-hidden transition-colors hover:bg-fill-hover hover:text-fg focus-visible:ring-2 focus-visible:ring-line-focus"
             aria-label={t('layout.sidebar.settings')}
             onClick={() => void execute(ProductCommandId.NAVIGATE_SETTINGS)}
           >
@@ -79,7 +79,7 @@ export const ActivityRail: React.FC = () => {
         <Tooltip content={t('layout.sidebar.profile')} position="right">
           <button
             type="button"
-            className="flex size-10 items-center justify-center rounded-radius-full outline-hidden transition-colors hover:bg-components-sidebar-item-bg-hover focus-visible:ring-2 focus-visible:ring-state-focus"
+            className="flex size-10 items-center justify-center rounded-radius-full outline-hidden transition-colors hover:bg-fill-hover focus-visible:ring-2 focus-visible:ring-line-focus"
             aria-label={t('layout.sidebar.profile')}
             onClick={() => void execute(ProductCommandId.NAVIGATE_SETTINGS)}
           >

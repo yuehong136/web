@@ -19,32 +19,24 @@
 .pdf-highlighter-container [data-pdf-highlight-focus='true'] .Highlight__part {
   background-color: color-mix(
     in srgb,
-    var(--color-components-system-accent-border) 50%,
+    var(--color-accent-line) 50%,
     transparent
   ) !important;
   box-shadow: 0 0 8px
-    color-mix(
-      in srgb,
-      var(--color-components-system-accent-border) 60%,
-      transparent
-    );
+    color-mix(in srgb, var(--color-accent-line) 60%, transparent);
 }
 
 /* 普通高亮区域样式 */
 .pdf-highlighter-container .Highlight__part {
-  background-color: var(--color-components-system-accent-bg) !important;
+  background-color: var(--color-accent-soft) !important;
   transition: background-color 0.2s ease;
 }
 
 /* 区域高亮样式 */
 .pdf-highlighter-container [data-pdf-highlight-kind='area'] .react-draggable {
-  background-color: var(--color-components-system-accent-bg) !important;
+  background-color: var(--color-accent-soft) !important;
   border: 2px solid
-    color-mix(
-      in srgb,
-      var(--color-components-system-accent-border) 60%,
-      transparent
-    );
+    color-mix(in srgb, var(--color-accent-line) 60%, transparent);
 }
 
 .pdf-highlighter-container
@@ -52,10 +44,10 @@
   .react-draggable {
   background-color: color-mix(
     in srgb,
-    var(--color-components-system-accent-border) 50%,
+    var(--color-accent-line) 50%,
     transparent
   ) !important;
-  border: 2px solid var(--color-components-system-accent-border);
+  border: 2px solid var(--color-accent-line);
 }
 
 /* PDF 高亮样式优化 */
@@ -76,11 +68,7 @@
   0%,
   100% {
     box-shadow: 0 0 0 0
-      color-mix(
-        in srgb,
-        var(--color-components-system-accent-border) 70%,
-        transparent
-      );
+      color-mix(in srgb, var(--color-accent-line) 70%, transparent);
   }
   50% {
     box-shadow: 0 0 0 8px transparent;

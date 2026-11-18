@@ -120,7 +120,7 @@ export function RouteRecoveryPage({ kind, onRetry }: RouteRecoveryPageProps) {
       data-route-error-kind={kind}
       aria-label={t(`routeErrors.${copyKey}.title`)}
       role={kind === RouteErrorKind.NOT_FOUND ? undefined : 'alert'}
-      className="flex min-h-dvh flex-col bg-components-app-shell-bg outline-hidden"
+      className="flex min-h-dvh flex-col bg-canvas outline-hidden"
     >
       {/* Recovery pages stand outside the shell; the wordmark keeps them ours. */}
       <BrandMark className="self-start px-space-lg pt-space-lg" />

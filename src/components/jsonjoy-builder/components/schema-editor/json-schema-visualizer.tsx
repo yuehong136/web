@@ -119,7 +119,7 @@ const JsonSchemaVisualizer: FC<JsonSchemaVisualizerProps> = ({
       className={cn('relative flex h-full flex-col overflow-hidden', className)}
     >
       {showHeader && (
-        <div className="flex shrink-0 items-center justify-between border-b border-border-primary bg-surface-secondary px-space-md py-space-sm">
+        <div className="flex shrink-0 items-center justify-between border-b border-line bg-sunken px-space-md py-space-sm">
           <div className="flex items-center gap-space-sm">
             <FileJson size={18} />
             <span className="text-sm font-medium">{t.visualizerSource}</span>
@@ -127,7 +127,7 @@ const JsonSchemaVisualizer: FC<JsonSchemaVisualizerProps> = ({
           <button
             type="button"
             onClick={handleDownload}
-            className="rounded-radius-md p-1.5 transition-colors hover:bg-surface-tertiary"
+            className="rounded-radius-md p-1.5 transition-colors hover:bg-canvas"
             title={t.visualizerDownloadTitle}
           >
             <Download size={16} />
@@ -136,14 +136,14 @@ const JsonSchemaVisualizer: FC<JsonSchemaVisualizerProps> = ({
       )}
       <div className="flex min-h-0 grow">
         {loadTimedOut && (
-          <div className="absolute inset-x-space-md bottom-space-md z-10 rounded-radius-md border border-status-warning-border bg-surface-primary p-space-sm shadow-elevation-low">
+          <div className="absolute inset-x-space-md bottom-space-md z-10 rounded-radius-md border border-warning-line bg-surface p-space-sm shadow-elevation-low">
             <div className="flex items-start gap-space-sm">
-              <AlertCircle className="mt-0.5 h-icon-sm w-icon-sm shrink-0 text-status-warning" />
+              <AlertCircle className="mt-0.5 h-icon-sm w-icon-sm shrink-0 text-warning-fg" />
               <div className="space-y-space-xs">
-                <p className="text-sm font-medium text-text-primary">
+                <p className="text-sm font-medium text-fg">
                   {t.visualizerLoadTimeoutTitle}
                 </p>
-                <p className="text-xs text-text-secondary">
+                <p className="text-xs text-fg-muted">
                   {t.visualizerLoadTimeoutDescription}
                 </p>
               </div>
@@ -159,7 +159,7 @@ const JsonSchemaVisualizer: FC<JsonSchemaVisualizerProps> = ({
           onMount={handleEditorDidMount}
           className="h-full w-full"
           loading={
-            <div className="flex h-full w-full items-center justify-center bg-surface-secondary">
+            <div className="flex h-full w-full items-center justify-center bg-sunken">
               <Loader2 className="h-6 w-6 animate-spin" />
             </div>
           }

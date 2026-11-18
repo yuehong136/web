@@ -242,16 +242,16 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
   return (
     <div className="@container flex h-full max-h-[85dvh] flex-col">
       {/* Header */}
-      <div className="flex shrink-0 items-center justify-between border-b border-border-subtle px-6 py-4">
+      <div className="flex shrink-0 items-center justify-between border-b border-line-subtle px-6 py-4">
         <div className="flex min-w-0 flex-wrap items-center gap-space-sm">
-          <div className="flex h-9 w-9 items-center justify-center rounded-radius-md bg-background-subtle">
-            <Server className="size-icon-md text-text-secondary" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-radius-md bg-sunken">
+            <Server className="size-icon-md text-fg-muted" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-text-primary">
+            <h2 className="text-lg font-semibold text-fg">
               {isEditing ? t('mcp.form.editTitle') : t('mcp.form.createTitle')}
             </h2>
-            <p className="text-sm text-text-tertiary">
+            <p className="text-sm text-fg-subtle">
               {isEditing
                 ? t('mcp.form.editDescription', { name: server?.name })
                 : t('mcp.form.createDescription')}
@@ -264,7 +264,7 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
           size="icon"
           onClick={onCancel}
           aria-label={t('common.close')}
-          className="h-8 w-8 text-text-tertiary hover:text-text-primary"
+          className="h-8 w-8 text-fg-subtle hover:text-fg"
         >
           <X className="h-4 w-4" />
         </Button>
@@ -305,10 +305,10 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
                 <div className="space-y-2">
                   <label
                     htmlFor={`${formId}-name`}
-                    className="text-sm font-medium text-text-primary"
+                    className="text-sm font-medium text-fg"
                   >
                     {t('mcp.form.name')}{' '}
-                    <span className="text-status-error">*</span>
+                    <span className="text-danger-fg">*</span>
                   </label>
                   <Input
                     id={`${formId}-name`}
@@ -327,10 +327,10 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
                 <div className="space-y-2">
                   <label
                     htmlFor={`${formId}-url`}
-                    className="text-sm font-medium text-text-primary"
+                    className="text-sm font-medium text-fg"
                   >
                     {t('mcp.form.url')}{' '}
-                    <span className="text-status-error">*</span>
+                    <span className="text-danger-fg">*</span>
                   </label>
                   <Input
                     id={`${formId}-url`}
@@ -346,10 +346,10 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
                 <div className="space-y-2">
                   <label
                     htmlFor={`${formId}-description`}
-                    className="text-sm font-medium text-text-primary"
+                    className="text-sm font-medium text-fg"
                   >
                     {t('mcp.form.description')}{' '}
-                    <span className="font-normal text-text-tertiary">
+                    <span className="font-normal text-fg-subtle">
                       {t('mcp.form.optional')}
                     </span>
                   </label>
@@ -371,10 +371,10 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
             <TabsContent value="headers" className="mt-0">
               <div className="max-w-2xl">
                 <div className="mb-6">
-                  <h3 className="mb-1 text-base font-medium text-text-primary">
+                  <h3 className="mb-1 text-base font-medium text-fg">
                     {t('mcp.form.httpHeaders')}
                   </h3>
-                  <p className="text-sm text-text-tertiary">
+                  <p className="text-sm text-fg-subtle">
                     {t('mcp.form.headersDescription')}
                   </p>
                 </div>
@@ -395,10 +395,10 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
             <TabsContent value="variables" className="mt-0">
               <div className="max-w-2xl">
                 <div className="mb-6">
-                  <h3 className="mb-1 text-base font-medium text-text-primary">
+                  <h3 className="mb-1 text-base font-medium text-fg">
                     {t('mcp.form.variables')}
                   </h3>
-                  <p className="text-sm text-text-tertiary">
+                  <p className="text-sm text-fg-subtle">
                     {t('mcp.form.variablesDescription')}
                   </p>
                 </div>
@@ -419,10 +419,10 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
             <TabsContent value="test" className="mt-0">
               <div className="max-w-2xl space-y-6">
                 <div className="mb-6">
-                  <h3 className="mb-1 text-base font-medium text-text-primary">
+                  <h3 className="mb-1 text-base font-medium text-fg">
                     {t('mcp.form.test')}
                   </h3>
-                  <p className="text-sm text-text-tertiary">
+                  <p className="text-sm text-fg-subtle">
                     {t('mcp.form.testDescription')}
                   </p>
                 </div>
@@ -447,8 +447,8 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
                       className={cn(
                         'flex items-center gap-1.5 text-sm font-medium',
                         testResult.success
-                          ? 'text-status-success'
-                          : 'text-status-error',
+                          ? 'text-success-fg'
+                          : 'text-danger-fg',
                       )}
                     >
                       {testResult.success ? (
@@ -465,14 +465,14 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
 
                 {/* 测试结果 - 失败 */}
                 {testResult && !testResult.success && (
-                  <div className="rounded-lg border border-status-error-border bg-status-error-subtle p-4">
+                  <div className="rounded-lg border border-danger-line bg-danger-soft p-4">
                     <div className="flex items-start gap-3">
-                      <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-status-error" />
+                      <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-danger-fg" />
                       <div className="min-w-0 space-y-1">
-                        <p className="text-sm font-medium text-status-error">
+                        <p className="text-sm font-medium text-danger-fg">
                           {t('mcp.form.failed')}
                         </p>
-                        <p className="text-sm break-all text-text-secondary">
+                        <p className="text-sm break-all text-fg-muted">
                           {testResult.error}
                         </p>
                       </div>
@@ -482,12 +482,12 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
 
                 {/* 测试结果 - 成功：工具列表 */}
                 {testResult?.success && (
-                  <div className="overflow-hidden rounded-lg border border-border-default">
+                  <div className="overflow-hidden rounded-lg border border-line">
                     {/* 工具列表标题栏 */}
-                    <div className="flex items-center justify-between border-b border-border-subtle bg-background-subtle px-4 py-3">
+                    <div className="flex items-center justify-between border-b border-line-subtle bg-sunken px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <Braces className="h-4 w-4 text-text-tertiary" />
-                        <span className="text-sm font-medium text-text-primary">
+                        <Braces className="h-4 w-4 text-fg-subtle" />
+                        <span className="text-sm font-medium text-fg">
                           {t('mcp.form.availableTools')}
                         </span>
                         <Badge
@@ -500,15 +500,15 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
                     </div>
 
                     {testResult.tools && testResult.tools.length > 0 ? (
-                      <div className="max-h-[320px] divide-y divide-border-subtle overflow-y-auto">
+                      <div className="max-h-[320px] divide-y divide-line-subtle overflow-y-auto">
                         {testResult.tools.map((tool, index) => (
                           <ToolItem key={index} tool={tool} />
                         ))}
                       </div>
                     ) : (
                       <div className="flex flex-col items-center justify-center py-10 text-center">
-                        <Info className="mb-2 h-5 w-5 text-text-tertiary" />
-                        <p className="text-sm text-text-secondary">
+                        <Info className="mb-2 h-5 w-5 text-fg-subtle" />
+                        <p className="text-sm text-fg-muted">
                           {t('mcp.form.noTools')}
                         </p>
                       </div>
@@ -518,9 +518,9 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
 
                 {/* 提示信息 */}
                 {!testResult && (
-                  <div className="flex items-start gap-3 rounded-lg border border-border-subtle bg-background-subtle p-4">
-                    <Info className="mt-0.5 h-4 w-4 shrink-0 text-text-tertiary" />
-                    <div className="space-y-1 text-sm text-text-tertiary">
+                  <div className="flex items-start gap-3 rounded-lg border border-line-subtle bg-sunken p-4">
+                    <Info className="mt-0.5 h-4 w-4 shrink-0 text-fg-subtle" />
+                    <div className="space-y-1 text-sm text-fg-subtle">
                       <p>{t('mcp.form.testHint')}</p>
                       <p>{t('mcp.form.saveHint')}</p>
                     </div>
@@ -532,7 +532,7 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
         </Tabs>
 
         {/* Footer */}
-        <div className="flex shrink-0 items-center justify-end gap-3 border-t border-border-subtle bg-background-subtle px-6 py-4">
+        <div className="flex shrink-0 items-center justify-end gap-3 border-t border-line-subtle bg-sunken px-6 py-4">
           <Button
             type="button"
             variant="outline"

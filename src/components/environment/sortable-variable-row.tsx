@@ -78,8 +78,8 @@ export function SortableRow({
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
       className={cn(
-        isDragging && 'relative z-10 bg-components-card-bg opacity-80',
-        isEditing && 'bg-state-hover',
+        isDragging && 'relative z-10 bg-raised opacity-80',
+        isEditing && 'bg-fill-hover',
       )}
     >
       <TableCell className="w-8">
@@ -88,7 +88,7 @@ export function SortableRow({
           {...attributes}
           {...listeners}
           aria-label={t('environment.variables.dragHandle', { name })}
-          className="flex cursor-grab items-center rounded-radius-sm p-space-2xs text-text-tertiary outline-hidden hover:bg-state-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-focus active:cursor-grabbing"
+          className="flex cursor-grab items-center rounded-radius-sm p-space-2xs text-fg-subtle outline-hidden hover:bg-fill-hover hover:text-fg focus-visible:ring-2 focus-visible:ring-line-focus active:cursor-grabbing"
         >
           <GripVertical className="size-icon-sm" aria-hidden="true" />
         </button>
@@ -105,7 +105,7 @@ export function SortableRow({
             spellCheck={false}
           />
         ) : (
-          <span className="text-sm text-text-primary">{name}</span>
+          <span className="text-sm text-fg">{name}</span>
         )}
       </TableCell>
 
@@ -155,7 +155,7 @@ export function SortableRow({
               autoComplete="off"
             />
           ) : (
-            <code className="min-w-0 flex-1 truncate font-mono text-sm text-text-primary">
+            <code className="min-w-0 flex-1 truncate font-mono text-sm text-fg">
               {hidden ? maskSecret(variable.key_value) : variable.key_value}
             </code>
           )}
@@ -186,7 +186,7 @@ export function SortableRow({
             aria-label={t('environment.variables.copy', { name })}
           >
             {copiedVariable === variable.id ? (
-              <Check className="text-status-success" aria-hidden="true" />
+              <Check className="text-success-fg" aria-hidden="true" />
             ) : (
               <Copy aria-hidden="true" />
             )}
@@ -215,7 +215,7 @@ export function SortableRow({
             placeholder={t('environment.variables.descriptionPlaceholder')}
           />
         ) : (
-          <span className="line-clamp-2 text-sm text-text-secondary">
+          <span className="line-clamp-2 text-sm text-fg-muted">
             {variable.description || ''}
           </span>
         )}
@@ -247,7 +247,7 @@ export function SortableRow({
                 size="icon-sm"
                 onClick={onDelete}
                 aria-label={t('environment.variables.delete', { name })}
-                className="text-status-error hover:bg-status-error-subtle hover:text-status-error"
+                className="text-danger-fg hover:bg-danger-soft hover:text-danger-fg"
               >
                 <Trash2 aria-hidden="true" />
               </Button>

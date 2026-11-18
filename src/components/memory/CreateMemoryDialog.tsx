@@ -198,7 +198,7 @@ export const CreateMemoryDialog: FC<CreateMemoryDialogProps> = ({
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium text-[var(--color-text-primary)]">
+                      <FormLabel className="text-sm font-medium text-[var(--color-fg)]">
                         {t('memory.fields.name')}
                       </FormLabel>
                       <FormControl>
@@ -212,7 +212,7 @@ export const CreateMemoryDialog: FC<CreateMemoryDialogProps> = ({
                   )}
                 />
 
-                <p className="text-center text-xs text-[var(--color-text-tertiary)]">
+                <p className="text-center text-xs text-[var(--color-fg-subtle)]">
                   {t('memory.dialog.editSettingsTip')}
                 </p>
               </div>
@@ -246,7 +246,7 @@ export const CreateMemoryDialog: FC<CreateMemoryDialogProps> = ({
       <DialogContent size="md">
         <DialogHeader>
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-radius-lg bg-state-selected-bg text-state-selected-text">
+            <div className="flex h-10 w-10 items-center justify-center rounded-radius-lg bg-accent-soft text-accent-fg">
               <Brain className="size-icon-md" />
             </div>
             <div className="min-w-0 flex-1">
@@ -266,7 +266,7 @@ export const CreateMemoryDialog: FC<CreateMemoryDialogProps> = ({
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm font-medium text-[var(--color-text-primary)]">
+                    <FormLabel className="text-sm font-medium text-[var(--color-fg)]">
                       {t('memory.fields.name')}
                     </FormLabel>
                     <FormControl>
@@ -286,7 +286,7 @@ export const CreateMemoryDialog: FC<CreateMemoryDialogProps> = ({
                 render={({ field }) => (
                   <FormItem>
                     <div className="flex items-center">
-                      <FormLabel className="text-sm font-medium text-[var(--color-text-primary)]">
+                      <FormLabel className="text-sm font-medium text-[var(--color-fg)]">
                         {t('memory.filters.memoryType')}
                       </FormLabel>
                       <FormTooltip tooltip={t('memory.filters.tooltip')} />
@@ -308,7 +308,7 @@ export const CreateMemoryDialog: FC<CreateMemoryDialogProps> = ({
                 render={({ field }) => (
                   <FormItem>
                     <div className="flex items-center">
-                      <FormLabel className="text-sm font-medium text-[var(--color-text-primary)]">
+                      <FormLabel className="text-sm font-medium text-[var(--color-fg)]">
                         {t('memory.fields.embeddingModel')}
                       </FormLabel>
                       <FormTooltip
@@ -341,7 +341,7 @@ export const CreateMemoryDialog: FC<CreateMemoryDialogProps> = ({
                 render={({ field }) => (
                   <FormItem>
                     <div className="flex items-center">
-                      <FormLabel className="text-sm font-medium text-[var(--color-text-primary)]">
+                      <FormLabel className="text-sm font-medium text-[var(--color-fg)]">
                         {t('memory.fields.llm')}
                       </FormLabel>
                       <FormTooltip tooltip={t('memory.fields.llmTooltip')} />

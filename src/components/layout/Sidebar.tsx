@@ -68,7 +68,7 @@ export const Sidebar = ({
       aria-label={t('layout.sidebar.primaryNavigation')}
       data-primary-navigation
       className={cn(
-        'flex h-full min-h-0 w-[calc(var(--nav-rail-item)+var(--space-md))] shrink-0 flex-col bg-components-sidebar-bg py-space-sm',
+        'flex h-full min-h-0 w-[calc(var(--nav-rail-item)+var(--space-md))] shrink-0 flex-col bg-canvas py-space-sm',
         className,
       )}
     >
@@ -114,10 +114,10 @@ export const Sidebar = ({
               aria-label={title}
               aria-current={section === itemSection ? 'page' : undefined}
               className={cn(
-                'flex min-h-[var(--nav-rail-item)] w-full items-center justify-center rounded-radius-lg transition-colors focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden focus-visible:ring-inset motion-reduce:transition-none',
+                'flex min-h-[var(--nav-rail-item)] w-full items-center justify-center rounded-radius-lg transition-colors focus-visible:ring-2 focus-visible:ring-line-focus focus-visible:outline-hidden focus-visible:ring-inset motion-reduce:transition-none',
                 section === itemSection
-                  ? 'bg-components-sidebar-item-bg-active text-components-sidebar-item-text-active shadow-elevation-low'
-                  : 'text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover hover:text-text-primary',
+                  ? 'bg-fill-selected text-fg shadow-elevation-low'
+                  : 'text-fg-muted hover:bg-fill-hover hover:text-fg',
               )}
             >
               <Icon className="size-icon-md" aria-hidden="true" />
@@ -179,9 +179,8 @@ export const Sidebar = ({
                 variant="ghost"
                 size="icon"
                 className={cn(
-                  'h-[var(--nav-rail-item)] w-full text-text-secondary',
-                  section === 'tools' &&
-                    'bg-components-sidebar-item-bg-active text-text-primary',
+                  'h-[var(--nav-rail-item)] w-full text-fg-muted',
+                  section === 'tools' && 'bg-fill-selected text-fg',
                 )}
                 aria-label={t('layout.sidebar.more')}
               >
@@ -205,7 +204,7 @@ export const Sidebar = ({
         </ActionMenu>
       </nav>
       <div className="min-h-space-sm flex-1" />
-      <div className="border-t border-border-subtle px-space-xs pt-space-sm">
+      <div className="border-t border-line-subtle px-space-xs pt-space-sm">
         <SidebarUtilities collapsed />
       </div>
     </aside>

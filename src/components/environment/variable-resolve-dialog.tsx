@@ -93,9 +93,9 @@ function VariableResolveBody({
           spellCheck={false}
         />
         <div className="flex flex-wrap items-center justify-between gap-space-sm">
-          <p className="text-xs text-text-tertiary">
+          <p className="text-xs text-fg-subtle">
             {t('environment.resolve.syntax')}{' '}
-            <code className="rounded-radius-sm bg-components-code-bg px-space-2xs font-mono text-components-code-text">
+            <code className="rounded-radius-sm bg-fill-muted px-space-2xs font-mono text-fg">
               {`{{${t('environment.resolve.variableName')}}}`}
             </code>
           </p>
@@ -113,11 +113,11 @@ function VariableResolveBody({
       {result ? (
         <section
           aria-live="polite"
-          className="space-y-space-base border-t border-border-subtle pt-space-base"
+          className="space-y-space-base border-t border-line-subtle pt-space-base"
         >
           <div className="space-y-space-xs">
             <div className="flex items-center justify-between gap-space-sm">
-              <h3 className="text-sm font-medium text-text-primary">
+              <h3 className="text-sm font-medium text-fg">
                 {t('environment.resolve.result')}
               </h3>
               <Button
@@ -129,8 +129,8 @@ function VariableResolveBody({
                 {t('environment.resolve.copy')}
               </Button>
             </div>
-            <div className="rounded-radius-lg border border-border-subtle bg-background-subtle p-space-sm">
-              <code className="font-mono text-sm break-all text-text-primary">
+            <div className="rounded-radius-lg border border-line-subtle bg-sunken p-space-sm">
+              <code className="font-mono text-sm break-all text-fg">
                 {result.resolved_text}
               </code>
             </div>

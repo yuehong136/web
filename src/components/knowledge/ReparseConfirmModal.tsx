@@ -111,7 +111,7 @@ export const ReparseConfirmModal: FC<ReparseConfirmModalProps> = ({
         }}
         onEscapeKeyDown={(event) => isLoading && event.preventDefault()}
         onInteractOutside={(event) => isLoading && event.preventDefault()}
-        className="top-1/2 right-auto bottom-auto left-1/2 h-auto w-[calc(100%-2rem)] max-w-[480px] -translate-x-1/2 -translate-y-1/2 rounded-xl border-0 bg-background-surface p-0 shadow-2xl sm:max-w-[480px]"
+        className="top-1/2 right-auto bottom-auto left-1/2 h-auto w-[calc(100%-2rem)] max-w-[480px] -translate-x-1/2 -translate-y-1/2 rounded-xl border-0 bg-surface p-0 shadow-2xl sm:max-w-[480px]"
       >
         {/* Close button */}
         <button
@@ -119,26 +119,23 @@ export const ReparseConfirmModal: FC<ReparseConfirmModalProps> = ({
           aria-label={t('common.close')}
           onClick={onClose}
           disabled={isLoading}
-          className="absolute top-4 right-4 rounded-md p-1.5 text-text-tertiary transition-colors hover:bg-background-subtle hover:text-text-primary"
+          className="absolute top-4 right-4 rounded-md p-1.5 text-fg-subtle transition-colors hover:bg-sunken hover:text-fg"
         >
           <X className="h-4 w-4" />
         </button>
 
         {/* Header */}
         <div className="px-space-lg pt-space-lg pb-space-base">
-          <SheetTitle
-            id={titleId}
-            className="text-lg font-semibold text-text-primary"
-          >
+          <SheetTitle id={titleId} className="text-lg font-semibold text-fg">
             {t('knowledge.documents.reparse.title')}
           </SheetTitle>
         </div>
 
         {/* Content */}
         <div className="space-y-4 px-6 pb-6">
-          <div className="flex items-center gap-3 rounded-lg bg-background-subtle px-4 py-3">
-            <FileText className="h-5 w-5 text-text-secondary" />
-            <span className="text-sm text-text-primary">
+          <div className="flex items-center gap-3 rounded-lg bg-sunken px-4 py-3">
+            <FileText className="h-5 w-5 text-fg-muted" />
+            <span className="text-sm text-fg">
               {t('knowledge.documents.reparse.selected', {
                 count: documents.length,
               })}
@@ -154,7 +151,7 @@ export const ReparseConfirmModal: FC<ReparseConfirmModalProps> = ({
                 }
                 disabled={isLoading}
                 icon={<Trash2 className="h-4 w-4" />}
-                iconColor="text-status-error"
+                iconColor="text-danger-fg"
                 title={t('knowledge.documents.reparse.clearChunksTitle', {
                   count: stats.totalChunks,
                 })}
@@ -176,7 +173,7 @@ export const ReparseConfirmModal: FC<ReparseConfirmModalProps> = ({
                 }
                 disabled={isLoading}
                 icon={<Tag className="h-4 w-4" />}
-                iconColor="text-state-selected-text"
+                iconColor="text-accent-fg"
                 title={t('knowledge.documents.reparse.applyMetadataTitle')}
                 description={
                   metadataFieldCount > 0
@@ -201,7 +198,7 @@ export const ReparseConfirmModal: FC<ReparseConfirmModalProps> = ({
           </div>
 
           {!hasExistingChunks && !hasMetadataEnabled && (
-            <div className="rounded-lg bg-background-subtle px-4 py-3 text-sm text-text-secondary">
+            <div className="rounded-lg bg-sunken px-4 py-3 text-sm text-fg-muted">
               {t('knowledge.documents.reparse.defaultTip')}
             </div>
           )}
@@ -242,7 +239,7 @@ const OptionCard: FC<OptionCardProps> = ({
   onChange,
   disabled = false,
   icon,
-  iconColor = 'text-text-secondary',
+  iconColor = 'text-fg-muted',
   title,
   description,
   warning,
@@ -254,10 +251,10 @@ const OptionCard: FC<OptionCardProps> = ({
       className={cn(
         'relative rounded-lg border transition-all duration-200',
         disabled
-          ? 'border-border-subtle bg-background-subtle/50 opacity-60'
+          ? 'border-line-subtle bg-sunken/50 opacity-60'
           : checked
-            ? 'border-state-selected bg-state-selected-bg'
-            : 'border-border-default bg-background-surface hover:border-border-accent',
+            ? 'border-accent-solid bg-accent-soft'
+            : 'border-line bg-surface hover:border-line-focus',
       )}
     >
       <div className="flex items-start gap-3 p-4">
@@ -274,7 +271,7 @@ const OptionCard: FC<OptionCardProps> = ({
             <label
               htmlFor={checkboxId}
               className={cn(
-                'text-sm font-medium text-text-primary',
+                'text-sm font-medium text-fg',
                 disabled ? 'cursor-not-allowed' : 'cursor-default',
               )}
             >
@@ -282,12 +279,12 @@ const OptionCard: FC<OptionCardProps> = ({
             </label>
           </div>
           {description && (
-            <p className="text-xs leading-relaxed text-text-tertiary">
+            <p className="text-xs leading-relaxed text-fg-subtle">
               {description}
             </p>
           )}
           {warning && (
-            <p className="flex items-center gap-1.5 text-xs leading-relaxed text-status-warning">
+            <p className="flex items-center gap-1.5 text-xs leading-relaxed text-warning-fg">
               <AlertCircle className="h-3 w-3 shrink-0" />
               <span>{warning}</span>
             </p>

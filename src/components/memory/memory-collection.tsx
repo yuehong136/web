@@ -101,7 +101,7 @@ function MemoryPermission({ memory }: { memory: Memory }) {
   const { t } = useTranslation()
   const Icon = memory.permissions === 'team' ? Users : LockKeyhole
   return (
-    <span className="inline-flex items-center gap-space-xs text-xs text-text-tertiary">
+    <span className="inline-flex items-center gap-space-xs text-xs text-fg-subtle">
       <Icon className="size-icon-xs shrink-0" aria-hidden="true" />
       {t(
         memory.permissions === 'team'

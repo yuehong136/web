@@ -93,7 +93,7 @@ export const SidebarUtilities = ({
                 pendingCount > 0 ? pendingDescriptionId : undefined
               }
               className={cn(
-                'min-w-0 flex-1 justify-start px-space-xs text-text-secondary',
+                'min-w-0 flex-1 justify-start px-space-xs text-fg-muted',
                 collapsed && 'w-full justify-center',
               )}
             >
@@ -110,7 +110,7 @@ export const SidebarUtilities = ({
                     <span
                       aria-hidden
                       data-pending-invitations={pendingCount}
-                      className="absolute -top-space-2xs -right-space-2xs size-1.5 rounded-radius-full bg-text-secondary ring-2 ring-components-sidebar-bg"
+                      className="absolute -top-space-2xs -right-space-2xs size-1.5 rounded-radius-full bg-fg-muted ring-2 ring-canvas"
                     />
                     <span id={pendingDescriptionId} className="sr-only">
                       {pendingLabel}
@@ -130,7 +130,7 @@ export const SidebarUtilities = ({
           </ActionMenuTrigger>
         </Tooltip>
         <ActionMenuContent side="top" align="start" className="w-56">
-          <ActionMenuLabel className="flex items-center gap-space-sm px-space-sm py-space-sm text-sm font-normal text-text-primary">
+          <ActionMenuLabel className="flex items-center gap-space-sm px-space-sm py-space-sm text-sm font-normal text-fg">
             <EntityAvatar
               name={name}
               src={user?.avatar}
@@ -141,7 +141,7 @@ export const SidebarUtilities = ({
             <div className="min-w-0">
               <p className="truncate font-medium">{name}</p>
               {user?.email && (
-                <p className="truncate text-xs font-normal text-text-secondary">
+                <p className="truncate text-xs font-normal text-fg-muted">
                   {user.email}
                 </p>
               )}
@@ -174,7 +174,7 @@ export const SidebarUtilities = ({
             >
               <Users className="size-icon-sm" />
               <span className="flex-1">{t('layout.invitations.title')}</span>
-              <span className="rounded-radius-sm bg-background-subtle px-space-xs text-xs text-text-secondary tabular-nums">
+              <span className="rounded-radius-sm bg-sunken px-space-xs text-xs text-fg-muted tabular-nums">
                 {pendingCount > 99 ? '99+' : pendingCount}
               </span>
             </ActionMenuItem>
@@ -189,7 +189,7 @@ export const SidebarUtilities = ({
               collisionPadding={8}
               className="w-52"
             >
-              <ActionMenuLabel className="px-space-sm py-space-xs text-xs text-text-secondary">
+              <ActionMenuLabel className="px-space-sm py-space-xs text-xs text-fg-muted">
                 {t('layout.sidebar.theme')}
               </ActionMenuLabel>
               <ActionMenuRadioGroup
@@ -216,7 +216,7 @@ export const SidebarUtilities = ({
                   {t('layout.sidebar.preferences')}
                 </NavLink>
               </ActionMenuItem>
-              <ActionMenuLabel className="px-space-sm py-space-xs text-xs text-text-secondary">
+              <ActionMenuLabel className="px-space-sm py-space-xs text-xs text-fg-muted">
                 {t('layout.sidebar.language')}
               </ActionMenuLabel>
               <ActionMenuRadioGroup

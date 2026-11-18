@@ -47,7 +47,7 @@ export function EmbeddingModelFormField({
           <FormLabel
             required
             tooltip={t('knowledge.settings.fields.embeddingModelTooltip')}
-            className="w-1/4 shrink-0 text-sm text-text-secondary"
+            className="w-1/4 shrink-0 text-sm text-fg-muted"
           >
             {t('knowledge.settings.fields.embeddingModel')}
           </FormLabel>

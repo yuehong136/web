@@ -111,7 +111,7 @@ export function NewEnvironmentManager({
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent size="3xl" className="h-[90vh]">
-        <DialogHeader className="border-b border-border-subtle">
+        <DialogHeader className="border-b border-line-subtle">
           <DialogTitle>{t('environment.manager.title')}</DialogTitle>
           <DialogDescription>
             {t('environment.manager.description', {
@@ -121,7 +121,7 @@ export function NewEnvironmentManager({
         </DialogHeader>
 
         <div className="flex min-h-0 flex-1 flex-col md:flex-row">
-          <div className="max-h-56 shrink-0 overflow-y-auto border-b border-border-subtle bg-background-subtle md:max-h-none md:w-72 md:border-r md:border-b-0">
+          <div className="max-h-56 shrink-0 overflow-y-auto border-b border-line-subtle bg-sunken md:max-h-none md:w-72 md:border-r md:border-b-0">
             <EnvironmentList
               environments={environments}
               globalEnvironments={globalEnvironments}
