@@ -39,6 +39,11 @@ export const appearanceResource = {
         description:
           'Graphite surfaces with amber highlights for operations, data and development.',
       },
+      custom: {
+        name: 'Custom',
+        description:
+          'Generate the whole palette from your brand color; contrast is checked the same way.',
+      },
     },
     mode: 'Color mode',
     modes: { system: 'Follow system', light: 'Light', dark: 'Dark' },
@@ -55,6 +60,16 @@ export const appearanceResource = {
     action: 'Primary button color',
     actionDescription: 'Use ink or the accent for primary and send buttons.',
     actions: { scheme: 'Follow style', ink: 'Ink', accent: 'Accent' },
+    brand: {
+      title: 'Custom palette',
+      description: 'Saved on this device only.',
+      color: 'Brand color',
+      colorDescription:
+        'Sets the accent hue and vividness; lightness is computed for contrast.',
+      chroma: 'Vividness',
+      neutral: 'Neutral tint',
+      neutralDescription: 'Lets the grays carry a little of the brand color.',
+    },
     language: 'Interface language',
     languageDescription:
       'Applies to the interface. Your messages and model responses keep their own language.',

@@ -2,10 +2,14 @@ import {
   ACTION_STYLES,
   COLOR_SCHEMES,
   CONTRAST_LEVELS,
+  DEFAULT_CUSTOM_SEED,
+  normalizeCustomSeed,
   type ActionStyle,
   type ColorScheme,
   type ContrastLevel,
+  type CustomSchemeSeed,
 } from './color-schemes'
+import { installCustomScheme } from './custom-scheme'
 
 /** Persisted appearance preferences. Each dimension changes independently. */
 export const Theme = {
@@ -15,11 +19,11 @@ export const Theme = {
 } as const
 export type Theme = (typeof Theme)[keyof typeof Theme]
 export type ResolvedTheme = 'light' | 'dark'
-/** Color schemes; see color-schemes.ts. */
-export const APPEARANCE_PRESETS = COLOR_SCHEMES
-export type AppearancePreset = ColorScheme
-export { ACTION_STYLES, CONTRAST_LEVELS }
-export type { ActionStyle, ContrastLevel }
+/** The six generated schemes plus the brand scheme built from `custom`. */
+export const APPEARANCE_PRESETS = [...COLOR_SCHEMES, 'custom'] as const
+export type AppearancePreset = ColorScheme | 'custom'
+export { ACTION_STYLES, CONTRAST_LEVELS, DEFAULT_CUSTOM_SEED }
+export type { ActionStyle, ContrastLevel, CustomSchemeSeed }
 /** Schemes before 2.0 map to their closest successor. */
 const LEGACY_PRESETS: Readonly<Record<string, AppearancePreset>> = {
   studio: 'ink',
@@ -38,6 +42,8 @@ export interface Appearance {
   motion: AppearanceMotion
   contrast: ContrastLevel
   action: ActionStyle
+  /** Seed of the brand scheme; used when `preset` is `custom`. */
+  custom: CustomSchemeSeed
 }
 export interface ResolvedAppearance extends Appearance {
   resolvedMode: ResolvedTheme
@@ -52,6 +58,7 @@ export const DEFAULT_APPEARANCE: Readonly<Appearance> = Object.freeze({
   motion: 'system',
   contrast: 'standard',
   action: 'scheme',
+  custom: DEFAULT_CUSTOM_SEED,
 })
 
 function normalizePreset(value: unknown): AppearancePreset {
@@ -84,7 +91,15 @@ export function normalizeAppearance(
       source.action === 'ink' || source.action === 'accent'
         ? source.action
         : 'scheme',
+    custom: normalizeCustomSeed(source.custom),
   }
+}
+
+/** Dimensions are primitives except the brand seed, which compares by value. */
+function sameDimension(key: keyof Appearance, a: Appearance, b: Appearance) {
+  return key === 'custom'
+    ? JSON.stringify(a.custom) === JSON.stringify(b.custom)
+    : a[key] === b[key]
 }
 
 function readStoredAppearance(): Appearance {
@@ -167,15 +182,14 @@ function applyToDocument() {
   root.setAttribute('data-motion', current.reducedMotion ? 'reduced' : 'system')
   root.setAttribute('data-contrast', current.contrast)
   root.setAttribute('data-action', current.action)
+  if (current.preset === 'custom') installCustomScheme(current.custom)
 }
 
 function publish(next: Readonly<Appearance>, persist: boolean) {
   const previous = getResolvedAppearance()
-  const preferencesChanged = Object.keys(DEFAULT_APPEARANCE).some(
-    (key) =>
-      next[key as keyof Appearance] !==
-      getAppearance()[key as keyof Appearance],
-  )
+  const preferencesChanged = (
+    Object.keys(DEFAULT_APPEARANCE) as (keyof Appearance)[]
+  ).some((key) => !sameDimension(key, next, getAppearance()))
   if (preferencesChanged) appearance = Object.freeze({ ...next })
   const candidate = resolveAppearance(getAppearance())
   const changed =

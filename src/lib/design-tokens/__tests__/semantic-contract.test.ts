@@ -4,10 +4,11 @@ import {
   ACTION_STYLES,
   COLOR_SCHEMES,
   CONTRAST_LEVELS,
+  customSchemeSeed,
 } from '@/themes/color-schemes'
 import { contrast, hexToRgb, over, type Rgb } from '@/themes/oklch'
 import { VIZ_COUNT, AVATAR_TONE_COUNT } from '@/themes/semantic-tokens'
-import { resolveTokens, schemeTokens } from '@/themes/theme-sets'
+import { resolveTokens, schemeTokens, seedTokens } from '@/themes/theme-sets'
 import type { DesignTokens, TokenName } from '@/themes/tokens'
 
 // WCAG 2.2 AA: 4.5:1 for text, 3:1 for graphics and control boundaries.
@@ -128,4 +129,34 @@ test('high contrast raises text contrast over the standard level', () => {
           `${scheme}/${mode} ${fg}`,
         )
     }
+})
+
+// The brand scheme takes any hue the user picks, so the generator must hold
+// the same contract across the whole input range, not just the six presets.
+test('brand schemes meet WCAG 2.2 AA across hues, chroma and neutral tints', () => {
+  const failures: string[] = []
+  for (let accentHue = 0; accentHue < 360; accentHue += 15)
+    for (const accentChroma of [0.04, 0.12, 0.22])
+      for (const neutralChroma of [0, 0.03]) {
+        const seed = customSchemeSeed({
+          accentHue,
+          accentChroma,
+          neutralChroma,
+        })
+        for (const mode of ['light', 'dark'] as const)
+          for (const level of CONTRAST_LEVELS)
+            for (const action of ACTION_STYLES) {
+              const values = resolveTokens(
+                seedTokens(seed, mode, level, action),
+              )
+              for (const [fg, bg, min] of PAIRS) {
+                const value = ratio(values, fg, bg)
+                if (value < min)
+                  failures.push(
+                    `h${accentHue} c${accentChroma} n${neutralChroma} ${mode}/${level}/${action} ${fg} on ${bg}: ${value.toFixed(2)}`,
+                  )
+              }
+            }
+      }
+  assert.deepEqual(failures.slice(0, 20), [], `${failures.length} failures`)
 })

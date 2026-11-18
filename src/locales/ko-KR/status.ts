@@ -90,7 +90,7 @@ export const koreanTranslationStatus = {
   },
   appearance: {
     translated: 11,
-    englishFallback: 40,
+    englishFallback: 49,
   },
   sources: {
     translated: 8,

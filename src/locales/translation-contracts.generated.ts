@@ -55,6 +55,13 @@ export interface TranslationContracts {
     'actions.accent': undefined
     'actions.ink': undefined
     'actions.scheme': undefined
+    'brand.chroma': undefined
+    'brand.color': undefined
+    'brand.colorDescription': undefined
+    'brand.description': undefined
+    'brand.neutral': undefined
+    'brand.neutralDescription': undefined
+    'brand.title': undefined
     contrast: undefined
     contrastDescription: undefined
     'contrasts.high': undefined
@@ -80,6 +87,8 @@ export interface TranslationContracts {
     'presets.celadon.name': undefined
     'presets.clay.description': undefined
     'presets.clay.name': undefined
+    'presets.custom.description': undefined
+    'presets.custom.name': undefined
     'presets.ink.description': undefined
     'presets.ink.name': undefined
     'presets.iris.description': undefined

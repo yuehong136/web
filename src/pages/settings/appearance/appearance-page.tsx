@@ -1,6 +1,6 @@
 import { Check, Monitor, Moon, RotateCcw, Sun } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import type { ReactNode } from 'react'
+import { useEffect, type ReactNode } from 'react'
 import { SettingsTemplate } from '@/components/page-templates/settings-template'
 import { SettingRow, SettingSection } from '@/components/patterns/setting-row'
 import { SETTINGS_CARD } from '@/pages/settings/components/settings-card'
@@ -21,7 +21,9 @@ import {
   useResolvedAppearance,
   type AppearancePreset,
 } from '@/themes'
+import { installCustomScheme } from '@/themes/custom-scheme'
 import { AppearancePreview } from './appearance-preview'
+import { BrandSchemeSection } from './brand-scheme-section'
 
 /** A miniature workbench: shell tone, work card, citation, AI composer, primary. */
 function PresetSwatch({ preset }: { preset: AppearancePreset }) {
@@ -57,6 +59,8 @@ export function AppearancePage() {
   const appearance = useAppearance()
   const language = useUIStore((state) => state.language)
   const setLanguage = useUIStore((state) => state.setLanguage)
+  // The brand swatch previews the stored seed even when another scheme is active.
+  useEffect(() => installCustomScheme(appearance.custom), [appearance.custom])
   const segmented = <T extends string>(
     label: string,
     value: T,
@@ -108,6 +112,12 @@ export function AppearancePage() {
           onChange={(preset) => setAppearance({ preset })}
         />
       </div>
+      {appearance.preset === 'custom' && (
+        <BrandSchemeSection
+          key={JSON.stringify(appearance.custom)}
+          seed={appearance.custom}
+        />
+      )}
       <SettingSection className={cn('mt-space-lg', SETTINGS_CARD)}>
         <SettingRow label={t('appearance.mode')}>
           {segmented(

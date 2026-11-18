@@ -12,10 +12,48 @@ import { COLOR_SCHEMES, SCHEME_SEEDS } from '@/themes/color-schemes'
 import { generateThemeCSS } from '@/themes/theme-generator'
 import { schemeTokens } from '@/themes/theme-sets'
 import { SEMANTIC_TOKENS } from '@/themes/semantic-tokens'
+import { customSchemeCSS, customTokenValues } from '@/themes/custom-scheme'
 
 test('every scheme is an appearance preset and Ink is the default', () => {
-  assert.deepEqual([...APPEARANCE_PRESETS], [...COLOR_SCHEMES])
+  assert.deepEqual([...APPEARANCE_PRESETS], [...COLOR_SCHEMES, 'custom'])
   assert.equal(DEFAULT_APPEARANCE.preset, 'ink')
+})
+
+test('the brand seed is clamped to the range the generator is tested on', () => {
+  assert.deepEqual(
+    normalizeAppearance({
+      custom: { accentHue: 725.4, accentChroma: 0.9, neutralChroma: -1 },
+    }).custom,
+    { accentHue: 0, accentChroma: 0.22, neutralChroma: 0 },
+  )
+  assert.deepEqual(normalizeAppearance({}).custom, DEFAULT_APPEARANCE.custom)
+})
+
+test('the brand scheme generates every role for both modes', () => {
+  const seed = { accentHue: 330, accentChroma: 0.15, neutralChroma: 0.01 }
+  const css = customSchemeCSS(seed)
+  for (const mode of ['light', 'dark'] as const) {
+    const start = css.indexOf(`[data-preset='custom'][data-theme='${mode}']`)
+    assert.ok(start >= 0, mode)
+    const body = css.slice(start, css.indexOf('}', start))
+    for (const token of SEMANTIC_TOKENS)
+      assert.equal(
+        body.split(`--color-${token}:`).length - 1,
+        1,
+        `${mode} ${token}`,
+      )
+  }
+  assert.ok(
+    css.includes(
+      "[data-preset='custom'][data-theme='dark'][data-contrast='high']",
+    ),
+  )
+  setAppearance({ preset: 'custom', custom: seed })
+  assert.equal(
+    getTokenValue('accent-solid', 'dark'),
+    customTokenValues(seed).dark['accent-solid'],
+  )
+  setAppearance({ ...DEFAULT_APPEARANCE })
 })
 
 test('pre-2.0 presets migrate to their successors', () => {

@@ -114,3 +114,92 @@ export const SCHEME_SEEDS: Record<ColorScheme, SchemeSeed> = {
     },
   },
 }
+
+/**
+ * A brand scheme from user input: accent hue and chroma plus how much of the
+ * accent hue tints the neutrals. The rest is derived the same way the built-in
+ * schemes are, and the generator runs in the browser.
+ */
+export interface CustomSchemeSeed {
+  accentHue: number
+  accentChroma: number
+  neutralChroma: number
+}
+
+export const CUSTOM_SEED_LIMITS = {
+  accentChroma: [0.04, 0.22],
+  neutralChroma: [0, 0.03],
+} as const
+
+export const DEFAULT_CUSTOM_SEED: Readonly<CustomSchemeSeed> = Object.freeze({
+  accentHue: 160,
+  accentChroma: 0.12,
+  neutralChroma: 0.006,
+})
+
+const clampNumber = (
+  value: unknown,
+  [min, max]: readonly [number, number],
+  fallback: number,
+) =>
+  typeof value === 'number' && Number.isFinite(value)
+    ? Math.min(max, Math.max(min, value))
+    : fallback
+
+export function normalizeCustomSeed(value: unknown): CustomSchemeSeed {
+  const source =
+    value && typeof value === 'object' ? (value as Record<string, unknown>) : {}
+  const hue = clampNumber(
+    source.accentHue,
+    [0, 360],
+    DEFAULT_CUSTOM_SEED.accentHue,
+  )
+  return {
+    accentHue: Math.round(hue) % 360,
+    accentChroma:
+      Math.round(
+        clampNumber(
+          source.accentChroma,
+          CUSTOM_SEED_LIMITS.accentChroma,
+          DEFAULT_CUSTOM_SEED.accentChroma,
+        ) * 1000,
+      ) / 1000,
+    neutralChroma:
+      Math.round(
+        clampNumber(
+          source.neutralChroma,
+          CUSTOM_SEED_LIMITS.neutralChroma,
+          DEFAULT_CUSTOM_SEED.neutralChroma,
+        ) * 1000,
+      ) / 1000,
+  }
+}
+
+const hueGap = (a: number, b: number) => {
+  const d = Math.abs(a - b) % 360
+  return d > 180 ? 360 - d : d
+}
+
+export function customSchemeSeed(custom: CustomSchemeSeed): SchemeSeed {
+  const h = custom.accentHue
+  // Status hues the accent would be mistaken for step 30° away from it.
+  const status: Partial<Record<StatusIntent, HueSeed>> = {}
+  for (const intent of STATUS_INTENTS) {
+    const base = STATUS_SEEDS[intent]
+    if (intent === 'info' || hueGap(base.h, h) >= 25) continue
+    const away =
+      ((base.h - h + 540) % 360) - 180 || (intent === 'danger' ? -1 : 1)
+    status[intent] = { ...base, h: (h + Math.sign(away) * 30 + 360) % 360 }
+  }
+  return {
+    neutral: { h, c: custom.neutralChroma },
+    accent: { h, c: custom.accentChroma },
+    ai: {
+      hues: [(h + 325) % 360, h, (h + 35) % 360],
+      c: Math.min(0.18, custom.accentChroma + 0.03),
+    },
+    action: 'accent',
+    surface: 'white',
+    status,
+  }
+}

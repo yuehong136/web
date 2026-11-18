@@ -144,3 +144,43 @@ test('appearance restores browser-default root rem sizing before applying textSc
   assert.match(css, /\[data-preset\]:not\(html\)/)
   assert.doesNotMatch(css, /(?:^|\n)html[^{}]*\{[^}]*font-size:[^;]*text-scale/)
 })
+test('bootstrap installs the cached brand scheme before React through a constructable sheet', () => {
+  class FakeSheet {
+    css = ''
+    replaceSync(css: string) {
+      this.css = css
+    }
+  }
+  const attributes: Record<string, string> = {}
+  const document = {
+    adoptedStyleSheets: [] as FakeSheet[],
+    documentElement: {
+      setAttribute: (key: string, value: string) => {
+        attributes[key] = value
+      },
+    },
+  }
+  const window: Record<string, unknown> = {
+    location: { pathname: '/', search: '' },
+    matchMedia: () => ({ matches: false }),
+  }
+  const storage: Record<string, string> = {
+    appearance: JSON.stringify({ preset: 'custom' }),
+    'appearance-custom-css': "[data-preset='custom'] { --color-fg: red; }",
+  }
+  runInNewContext(script, {
+    window,
+    document,
+    localStorage: { getItem: (key: string) => storage[key] ?? null },
+    URLSearchParams,
+    CSSStyleSheet: FakeSheet,
+  })
+  assert.equal(attributes['data-preset'], 'custom')
+  assert.equal(document.adoptedStyleSheets.length, 1)
+  assert.equal(
+    document.adoptedStyleSheets[0].css,
+    storage['appearance-custom-css'],
+  )
+  // The app reuses this sheet instead of adding a second one.
+  assert.equal(window.__appearanceCustomSheet, document.adoptedStyleSheets[0])
+})

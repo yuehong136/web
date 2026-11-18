@@ -100,6 +100,7 @@ it('applies and persists independent dimensions without losing the chosen mode',
     motion: 'reduced',
     contrast: 'high',
     action: 'accent',
+    custom: appearance.DEFAULT_APPEARANCE.custom,
   })
   expect(JSON.parse(localStorage.getItem('appearance')!)).toEqual(
     appearance.getAppearance(),
