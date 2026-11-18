@@ -119,8 +119,12 @@ async function verifyHomeResources(page, { output, state, checks }) {
     origin: new URL(page.url()).origin,
   })
   await typeScript.getByRole('button', { name: 'Copy', exact: true }).click()
+  // Windows hands the clipboard back with CRLF; compare the text itself.
   assert.equal(
-    await page.evaluate(() => navigator.clipboard.readText()),
+    (await page.evaluate(() => navigator.clipboard.readText())).replace(
+      /\r\n/g,
+      '\n',
+    ),
     originalCode,
   )
   await colorMode(page, 'light')
@@ -162,18 +166,21 @@ async function verifyHomeResources(page, { output, state, checks }) {
     'Real TypeScript/Python CodeBlock token spans and clipboard contents survive theme and language changes',
   )
 
+  // The answer's retrieval summary opens the evidence panel; its Sources tab
+  // shows the cited passage and owns its own scroll.
   await page
-    .getByRole('button', { name: /Sources.*citation/i })
+    .getByRole('button', { name: /Retrieved \d+ chunks?, cited \d+/ })
     .first()
     .click()
-  await page
-    .getByRole('button', { name: /原文证据/ })
-    .first()
-    .click()
-  await page.getByRole('tab', { name: 'Evidence', exact: true }).waitFor()
+  const sourcesTab = page.getByRole('tab', { name: /^Sources/ })
+  await sourcesTab.click()
   const sourceBody = page.locator(
-    '[role="tabpanel"]:not([hidden]) [data-context-panel-body]',
+    '[role="tabpanel"][data-state="active"][data-evidence-body]',
   )
+  await sourceBody
+    .getByText(/原文证据/)
+    .first()
+    .waitFor()
   const sourceNode = await sourceBody.elementHandle()
   await sourceBody.evaluate((node) => {
     node.scrollTop = 180
@@ -186,7 +193,7 @@ async function verifyHomeResources(page, { output, state, checks }) {
     await reportBody.evaluate((node) => node.ownerDocument.defaultView.scrollY),
     reportScroll,
   )
-  await page.getByRole('tab', { name: 'Evidence', exact: true }).click()
+  await sourcesTab.click()
   assert.ok(await sourceNode.evaluate((node) => node.isConnected))
   assert.equal(
     await sourceBody.evaluate((node) => node.scrollTop),
@@ -379,7 +386,9 @@ export async function verifyWorkspacePaths(page, { baseURL, output, state }) {
       .getAttribute('data-run-phase'),
     null,
   )
-  assert.equal(state.lastSubmission.conversation_id, 'fixture-conversation')
+  // App answers go to the RESTful completion route, scoped by chat and session.
+  assert.equal(state.lastSubmission.chat_id, 'fixture-app')
+  assert.equal(state.lastSubmission.session_id, 'fixture-conversation')
   assert.equal(state.lastSubmission.contextManifest, undefined)
   assert.equal(state.lastSubmission.mcp_ids, undefined)
   const submittedCount = await page
@@ -427,7 +436,9 @@ export async function verifyWorkspacePaths(page, { baseURL, output, state }) {
     'Wide evidence dock keeps the answer and composer interactive and preserves zero relevance',
   )
   networks.Search = await network(page)
-  await page.getByRole('button', { name: 'Close', exact: true }).click()
+  await page
+    .getByRole('button', { name: 'Close evidence panel', exact: true })
+    .click()
   assert.ok(await origin.evaluate((node) => node === document.activeElement))
 
   const marker = page.getByRole('button', { name: /^Citation 1:/ }).first()
@@ -435,7 +446,9 @@ export async function verifyWorkspacePaths(page, { baseURL, output, state }) {
   await marker.click()
   await page.locator('[data-reference-details]').click()
   await page.locator('[data-workspace-detail]').waitFor()
-  await page.getByRole('button', { name: 'Close', exact: true }).click()
+  await page
+    .getByRole('button', { name: 'Close evidence panel', exact: true })
+    .click()
   assert.ok(
     await markerOrigin.evaluate((node) => node === document.activeElement),
   )

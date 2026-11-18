@@ -266,19 +266,32 @@ async function measureIncrements(page, name, state, phases) {
     await send(page, 'Measure plain answer resources', 'RESOURCE_PROFILE_BASE')
   })
   await measurePhase(page, 'firstEvidence', phases, async () => {
+    // Home answers open evidence from their retrieval summary; Search keeps
+    // the sources list with one button per cited passage.
+    if (name === 'Home')
+      await page
+        .getByRole('button', { name: /Retrieved \d+ chunks?, cited \d+/ })
+        .first()
+        .click()
+    else {
+      await page
+        .getByRole('button', { name: /Sources.*citation/i })
+        .first()
+        .click()
+      await page
+        .getByRole('button', { name: /原文证据/ })
+        .first()
+        .click()
+    }
     await page
-      .getByRole('button', { name: /Sources.*citation/i })
-      .first()
-      .click()
-    await page
-      .getByRole('button', { name: /原文证据/ })
-      .first()
-      .click()
-    await page
-      .locator('[data-workspace-detail] [data-context-panel-body]')
+      .locator(
+        '[data-workspace-detail] [data-evidence-body][data-state="active"]',
+      )
       .waitFor()
   })
-  await page.getByRole('button', { name: 'Close', exact: true }).click()
+  await page
+    .getByRole('button', { name: 'Close evidence panel', exact: true })
+    .click()
   if (name === 'Home') {
     await measurePhase(page, 'firstArtifact', phases, async () => {
       await page

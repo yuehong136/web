@@ -204,6 +204,41 @@ export async function installWorkspaceFixtures(context) {
       }
     else if (pathname.endsWith('/chats')) data = { chats: [app], total: 1 }
     else if (pathname.endsWith('/chats/fixture-app')) data = app
+    // App conversations use the RESTful session routes.
+    else if (pathname.endsWith('/chats/fixture-app/sessions'))
+      data =
+        request.method() === 'POST'
+          ? {
+              // The server writes the app's opening into a new session.
+              id: 'fixture-conversation',
+              name: 'New chat',
+              messages: [{ role: 'assistant', content: 'How can I help?' }],
+            }
+          : [
+              {
+                id: 'fixture-recent',
+                name: 'Continue research',
+                update_time: 1792800000000,
+                messages: [],
+              },
+            ]
+    else if (pathname.endsWith('/chats/fixture-app/sessions/fixture-recent'))
+      data = {
+        id: 'fixture-recent',
+        name: 'Continue research',
+        messages: [
+          {
+            id: 'history-answer',
+            role: 'assistant',
+            content: 'Historic answer without a terminal receipt.',
+          },
+        ],
+        reference: [],
+      }
+    else if (
+      pathname.endsWith('/chats/fixture-app/sessions/fixture-conversation')
+    )
+      data = { id: 'fixture-conversation', messages: [], reference: [] }
     else if (pathname.endsWith('/conversation/set'))
       data = { id: 'fixture-conversation', message: [] }
     else if (pathname.endsWith('/conversation/list'))
