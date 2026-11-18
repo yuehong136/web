@@ -1,7 +1,6 @@
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { RouterProvider } from 'react-router-dom'
 import { QueryClientProvider } from '@tanstack/react-query'
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { Toaster } from 'sonner'
 import { handleCaughtApplicationError } from '@/components/ui/error-boundary'
 import { queryClient } from './lib/query-client'
@@ -14,6 +13,21 @@ import i18n, {
 } from './locales/i18n'
 import { PlatformProvider, type ApplicationComposition } from './platform'
 import { useResolvedAppearance } from '@/themes'
+
+/**
+ * TanStack Query devtools are a development aid. Their floating button sits
+ * over the bottom-right corner, where sheets and dialogs keep their primary
+ * action, so they load only on request (`VITE_QUERY_DEVTOOLS=true` in a
+ * local env file). Production builds never include them.
+ */
+const QueryDevtools =
+  import.meta.env.DEV && import.meta.env.VITE_QUERY_DEVTOOLS === 'true'
+    ? lazy(() =>
+        import('@tanstack/react-query-devtools').then((module) => ({
+          default: module.ReactQueryDevtools,
+        })),
+      )
+    : null
 
 export interface ApplicationProps {
   readonly composition: ApplicationComposition
@@ -55,7 +69,11 @@ export function Application({ composition }: ApplicationProps) {
             richColors
             closeButton
           />
-          <ReactQueryDevtools initialIsOpen={false} />
+          {QueryDevtools ? (
+            <Suspense fallback={null}>
+              <QueryDevtools initialIsOpen={false} />
+            </Suspense>
+          ) : null}
         </>
       </QueryClientProvider>
     </PlatformProvider>
