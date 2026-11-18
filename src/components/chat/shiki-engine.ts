@@ -1,3 +1,4 @@
+import { createCssVariablesTheme } from 'shiki/core'
 import { createJavaScriptRegexEngine } from 'shiki/engine/javascript'
 
 /**
@@ -13,11 +14,12 @@ import { createJavaScriptRegexEngine } from 'shiki/engine/javascript'
 export const shikiEngine = createJavaScriptRegexEngine({ forgiving: true })
 
 /**
- * 双主题配置：默认色为 light，dark 颜色写入 CSS 变量，
- * 通过 `code-block.css` 里 `.dark` / `[data-theme="dark"]` 选择器切换，
- * 与项目 Tailwind 的 darkMode 配置对齐，切换主题时无需重新高亮。
+ * 单一 CSS 变量主题：token 颜色写成 `var(--shiki-token-*)`，在 `code-block.css`
+ * 里映射到设计令牌 `syntax-*` / `code-*`。方案、明暗与对比度切换都只换变量值，
+ * 无需重新高亮，也不再加载 github-light / github-dark 两套主题。
  */
-export const CODE_THEMES = {
-  light: 'github-light',
-  dark: 'github-dark',
-}
+export const CODE_THEME = createCssVariablesTheme({
+  name: 'multirag-tokens',
+  variablePrefix: '--shiki-',
+  fontStyle: true,
+})

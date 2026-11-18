@@ -1,4 +1,5 @@
 import { getTokenValue, type ThemeMode } from './token-values'
+import { lightTokenValues } from '@/themes/token-values.generated'
 import type { AppearancePreset } from '@/themes/appearance'
 
 /**
@@ -33,18 +34,8 @@ export const DATA_VIZ_CATEGORICAL_TOKENS = [
  * 仅供 scoped-theme / embed 子树经 `readCssVar` 解析失败时使用；静态按主题路径
  * (`getCategoricalPalette(theme)`) 不再依赖该数组。
  */
-export const CATEGORICAL_FALLBACKS = [
-  '#c7585c',
-  '#009298',
-  '#9a7d03',
-  '#6378d4',
-  '#0a976c',
-  '#b95995',
-  '#be650f',
-  '#058ac2',
-  '#678f21',
-  '#9866c1',
-] as const
+export const CATEGORICAL_FALLBACKS: readonly string[] =
+  DATA_VIZ_CATEGORICAL_TOKENS.map((name) => lightTokenValues[name])
 
 /**
  * 按主题取分类调色板的颜色值（供 canvas / G6 等非 Tailwind 渲染器用）。

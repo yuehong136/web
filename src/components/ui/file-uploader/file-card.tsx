@@ -80,9 +80,9 @@ export const FileCard = memo(function FileCard({
           )}
           style={{
             backgroundColor: colors.accent,
-            color: 'white',
+            color: colors.bg,
             lineHeight: '1',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+            boxShadow: 'var(--elevation-low)',
           }}
         >
           {ext.slice(0, 4)}

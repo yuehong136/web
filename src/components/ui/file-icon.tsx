@@ -1,4 +1,5 @@
 import { useMemo, useState, type FC } from 'react'
+import { FILE_TONES, type FileTone } from './file-tones'
 import {
   FileText,
   FileSpreadsheet,
@@ -264,82 +265,42 @@ const CATEGORY_ICON_MAP: Record<FileCategory, LucideIcon> = {
 /**
  * 分类对应的颜色主题
  */
-const CATEGORY_COLOR_MAP: Record<
-  FileCategory,
-  { bg: string; text: string; accent: string }
-> = {
-  document: {
-    bg: 'rgba(239, 68, 68, 0.1)',
-    text: '#ef4444',
-    accent: '#ef4444',
-  }, // 红色 - PDF/文档
-  spreadsheet: {
-    bg: 'rgba(34, 197, 94, 0.1)',
-    text: '#22c55e',
-    accent: '#22c55e',
-  }, // 绿色 - 表格
-  presentation: {
-    bg: 'rgba(249, 115, 22, 0.1)',
-    text: '#f97316',
-    accent: '#f97316',
-  }, // 橙色 - PPT
-  image: { bg: 'rgba(236, 72, 153, 0.1)', text: '#ec4899', accent: '#ec4899' }, // 粉色 - 图片
-  video: { bg: 'rgba(168, 85, 247, 0.1)', text: '#a855f7', accent: '#a855f7' }, // 紫色 - 视频
-  audio: { bg: 'rgba(20, 184, 166, 0.1)', text: '#14b8a6', accent: '#14b8a6' }, // 青色 - 音频
-  code: { bg: 'rgba(59, 130, 246, 0.1)', text: '#3b82f6', accent: '#3b82f6' }, // 蓝色 - 代码
-  data: { bg: 'rgba(234, 179, 8, 0.1)', text: '#eab308', accent: '#eab308' }, // 黄色 - 数据
-  archive: {
-    bg: 'rgba(107, 114, 128, 0.1)',
-    text: '#6b7280',
-    accent: '#6b7280',
-  }, // 灰色 - 压缩包
-  font: { bg: 'rgba(99, 102, 241, 0.1)', text: '#6366f1', accent: '#6366f1' }, // 靛蓝 - 字体
-  design: { bg: 'rgba(139, 92, 246, 0.1)', text: '#8b5cf6', accent: '#8b5cf6' }, // 紫罗兰 - 设计
-  executable: {
-    bg: 'rgba(245, 158, 11, 0.1)',
-    text: '#f59e0b',
-    accent: '#f59e0b',
-  }, // 琥珀 - 可执行
-  unknown: {
-    bg: 'rgba(107, 114, 128, 0.1)',
-    text: '#6b7280',
-    accent: '#6b7280',
-  }, // 灰色 - 未知
+const CATEGORY_COLOR_MAP: Record<FileCategory, FileTone> = {
+  document: FILE_TONES.red,
+  spreadsheet: FILE_TONES.green,
+  presentation: FILE_TONES.orange,
+  image: FILE_TONES.pink,
+  video: FILE_TONES.purple,
+  audio: FILE_TONES.teal,
+  code: FILE_TONES.blue,
+  data: FILE_TONES.yellow,
+  archive: FILE_TONES.gray,
+  font: FILE_TONES.blue,
+  design: FILE_TONES.purple,
+  executable: FILE_TONES.orange,
+  unknown: FILE_TONES.gray,
 }
 
 /**
  * 特定扩展名的颜色覆盖（用于区分同类型中的不同文件）
  */
-const EXTENSION_COLOR_OVERRIDE: Record<
-  string,
-  { bg: string; text: string; accent: string }
-> = {
-  // PDF 使用红色
-  pdf: { bg: 'rgba(239, 68, 68, 0.1)', text: '#ef4444', accent: '#ef4444' },
-  // Word 使用蓝色
-  doc: { bg: 'rgba(59, 130, 246, 0.1)', text: '#3b82f6', accent: '#3b82f6' },
-  docx: { bg: 'rgba(59, 130, 246, 0.1)', text: '#3b82f6', accent: '#3b82f6' },
-  // Markdown 使用紫色
-  md: { bg: 'rgba(139, 92, 246, 0.1)', text: '#8b5cf6', accent: '#8b5cf6' },
-  mdx: { bg: 'rgba(139, 92, 246, 0.1)', text: '#8b5cf6', accent: '#8b5cf6' },
-  // Python 使用蓝黄色
-  py: { bg: 'rgba(59, 130, 246, 0.1)', text: '#3b82f6', accent: '#3b82f6' },
-  // JavaScript/TypeScript
-  js: { bg: 'rgba(234, 179, 8, 0.1)', text: '#eab308', accent: '#eab308' },
-  jsx: { bg: 'rgba(234, 179, 8, 0.1)', text: '#eab308', accent: '#eab308' },
-  ts: { bg: 'rgba(59, 130, 246, 0.1)', text: '#3b82f6', accent: '#3b82f6' },
-  tsx: { bg: 'rgba(59, 130, 246, 0.1)', text: '#3b82f6', accent: '#3b82f6' },
-  // Go
-  go: { bg: 'rgba(20, 184, 166, 0.1)', text: '#14b8a6', accent: '#14b8a6' },
-  // Rust
-  rs: { bg: 'rgba(249, 115, 22, 0.1)', text: '#f97316', accent: '#f97316' },
-  // Java
-  java: { bg: 'rgba(249, 115, 22, 0.1)', text: '#f97316', accent: '#f97316' },
-  // JSON
-  json: { bg: 'rgba(234, 179, 8, 0.1)', text: '#eab308', accent: '#eab308' },
-  // HTML/CSS
-  html: { bg: 'rgba(249, 115, 22, 0.1)', text: '#f97316', accent: '#f97316' },
-  css: { bg: 'rgba(59, 130, 246, 0.1)', text: '#3b82f6', accent: '#3b82f6' },
+const EXTENSION_COLOR_OVERRIDE: Record<string, FileTone> = {
+  pdf: FILE_TONES.red,
+  doc: FILE_TONES.blue,
+  docx: FILE_TONES.blue,
+  md: FILE_TONES.purple,
+  mdx: FILE_TONES.purple,
+  py: FILE_TONES.blue,
+  js: FILE_TONES.yellow,
+  jsx: FILE_TONES.yellow,
+  ts: FILE_TONES.blue,
+  tsx: FILE_TONES.blue,
+  go: FILE_TONES.teal,
+  rs: FILE_TONES.orange,
+  java: FILE_TONES.orange,
+  json: FILE_TONES.yellow,
+  html: FILE_TONES.orange,
+  css: FILE_TONES.blue,
 }
 
 /**
@@ -563,8 +524,8 @@ export const FileIcon: FC<FileIconProps> = ({
             )}
             style={{
               backgroundColor: colors.accent,
-              color: 'white',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+              color: colors.bg,
+              boxShadow: 'var(--elevation-low)',
               paddingTop: '2px',
               paddingBottom: '2px',
             }}
@@ -614,8 +575,8 @@ export const FileIcon: FC<FileIconProps> = ({
           )}
           style={{
             backgroundColor: colors.accent,
-            color: 'white',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+            color: colors.bg,
+            boxShadow: 'var(--elevation-low)',
             paddingTop: '2px',
             paddingBottom: '2px',
           }}

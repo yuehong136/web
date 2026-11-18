@@ -1,15 +1,12 @@
 import { createBundledHighlighter } from 'shiki/core'
 import { bundledLanguages } from 'shiki/langs'
-import { shikiEngine } from '@/components/chat/shiki-engine'
+import { CODE_THEME, shikiEngine } from '@/components/chat/shiki-engine'
 
-// Keep every existing language loader. Only the two themes used by CodeBlock
-// are emitted; the JavaScript engine needs no unused Oniguruma/WASM fallback.
+// Keep every existing language loader. The only theme is the CSS-variable one
+// that reads the design tokens; the JavaScript engine needs no Oniguruma/WASM.
 const createCodeHighlighter = createBundledHighlighter({
   langs: bundledLanguages,
-  themes: {
-    'github-light': () => import('shiki/themes/github-light.mjs'),
-    'github-dark': () => import('shiki/themes/github-dark.mjs'),
-  },
+  themes: {},
   engine: () => shikiEngine,
 })
 export type CodeHighlighter = Awaited<ReturnType<typeof createCodeHighlighter>>
@@ -22,7 +19,7 @@ export async function loadCodeHighlighter(language: string) {
     : 'text'
   const pending = (instance ??= createCodeHighlighter({
     langs: [],
-    themes: ['github-light', 'github-dark'],
+    themes: [CODE_THEME],
   }))
   let highlighter: CodeHighlighter
   try {
