@@ -9,25 +9,35 @@ export const appearanceResource = {
     presetDescription:
       'Choose a palette. Reading size and density stay yours to decide.',
     presets: {
+      ink: {
+        name: 'Ink',
+        description:
+          'Neutral grays with an ink primary; the accent marks selection, focus and citations. The default.',
+      },
       mist: {
         name: 'Mist',
-        description: 'Clear misty blue. The default workspace style.',
+        description:
+          'Cool blue-gray surfaces with a steel-blue primary, carried over from the previous default.',
       },
-      studio: {
-        name: 'Studio',
-        description: 'Quiet, neutral surfaces for everyday work.',
+      celadon: {
+        name: 'Celadon',
+        description:
+          'Green-tinted grays and a calm celadon accent for search and reading.',
       },
-      paper: {
-        name: 'Paper',
-        description: 'Warm tones for reading and thinking.',
+      clay: {
+        name: 'Clay',
+        description:
+          'Warm paper with a clay accent; long answers are set in a serif for writing and research.',
       },
-      graphite: {
-        name: 'Graphite',
-        description: 'Cool precision for tools and code.',
+      iris: {
+        name: 'Iris',
+        description:
+          'Violet accents over violet-gray surfaces for building agents and creative work.',
       },
-      ocean: {
-        name: 'Ocean',
-        description: 'Clear blue accents for exploration.',
+      amber: {
+        name: 'Amber',
+        description:
+          'Graphite surfaces with amber highlights for operations, data and development.',
       },
     },
     mode: 'Color mode',
@@ -38,6 +48,13 @@ export const appearanceResource = {
     scales: { standard: 'Standard', larger: 'Larger', largest: 'Largest' },
     motion: 'Motion',
     motions: { system: 'Follow system', reduced: 'Reduce motion' },
+    contrast: 'Contrast',
+    contrastDescription:
+      'High contrast darkens secondary text, borders and focus rings for bright rooms or when you need crisper text.',
+    contrasts: { standard: 'Standard', high: 'High' },
+    action: 'Primary button color',
+    actionDescription: 'Use ink or the accent for primary and send buttons.',
+    actions: { scheme: 'Follow style', ink: 'Ink', accent: 'Accent' },
     language: 'Interface language',
     languageDescription:
       'Applies to the interface. Your messages and model responses keep their own language.',

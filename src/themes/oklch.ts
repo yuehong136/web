@@ -92,3 +92,57 @@ export function alphaFor(target: Rgb, base: Rgb): { rgb: Rgb; alpha: number } {
 
 export const rgba = ({ rgb, alpha }: { rgb: Rgb; alpha: number }) =>
   `rgba(${rgb.join(', ')}, ${alpha})`
+
+/** An OKLCH color whose chroma already fits sRGB, so CSS and hex agree. */
+export interface Oklch {
+  readonly l: number
+  readonly c: number
+  readonly h: number
+  readonly alpha: number
+}
+
+const inGamut = (L: number, C: number, hue: number) =>
+  oklchToLinear(L, C, hue).every((v) => v >= -1e-4 && v <= 1 + 1e-4)
+
+/** Lowers chroma with the same rule as `oklchToRgb`, then keeps the result. */
+export function oklch(L: number, C: number, hue: number, alpha = 1): Oklch {
+  const l = Math.min(1, Math.max(0, L))
+  let c = Math.max(0, C)
+  while (!inGamut(l, c, hue) && c > 0) c = Math.max(0, c - 0.001)
+  return { l, c, h: ((hue % 360) + 360) % 360, alpha }
+}
+
+export const withAlpha = (color: Oklch, alpha: number): Oklch => ({
+  ...color,
+  alpha,
+})
+
+export const rgbOf = (color: Oklch): Rgb =>
+  oklchToRgb(color.l, color.c, color.h)
+
+const round = (value: number, digits: number) =>
+  String(Number(value.toFixed(digits)))
+
+/** CSS value: `oklch(L C H)` or `oklch(L C H / A)`. */
+export function cssOklch(color: Oklch): string {
+  const body = `${round(color.l, 4)} ${round(color.c, 4)} ${round(color.h, 2)}`
+  return color.alpha < 1
+    ? `oklch(${body} / ${round(color.alpha, 3)})`
+    : `oklch(${body})`
+}
+
+/** JavaScript value for canvas renderers that do not parse OKLCH. */
+export function jsColor(color: Oklch): string {
+  const rgb = rgbOf(color)
+  return color.alpha < 1
+    ? `rgba(${rgb.join(', ')}, ${round(color.alpha, 3)})`
+    : rgbToHex(rgb)
+}
+
+/** Contrast of `fg` over `bg`, compositing translucent colors over `base`. */
+export function contrastOver(fg: Oklch, bg: Oklch, base: Oklch): number {
+  const ground =
+    bg.alpha < 1 ? over(rgbOf(bg), bg.alpha, rgbOf(base)) : rgbOf(bg)
+  const text = fg.alpha < 1 ? over(rgbOf(fg), fg.alpha, ground) : rgbOf(fg)
+  return contrast(text, ground)
+}

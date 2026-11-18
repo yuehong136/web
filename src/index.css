@@ -16,12 +16,6 @@
 
 @layer base {
   :root {
-    /* 基础颜色变量 - 保持与原有样式兼容 */
-    --background: 255 255 255;
-    --foreground: 15 23 42;
-    --border: 226 232 240;
-    --ring: var(--twc-ring);
-
     /* 边框圆角 */
     --radius: 0.5rem;
     --radius-sm: calc(var(--radius) - 4px);

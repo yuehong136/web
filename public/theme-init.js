@@ -24,12 +24,18 @@
   }
   preferences =
     preferences && typeof preferences === 'object' ? preferences : {}
+  var legacyPresets = {
+    studio: 'ink',
+    graphite: 'ink',
+    paper: 'clay',
+    ocean: 'celadon',
+  }
   var preset =
-    ['mist', 'studio', 'paper', 'graphite', 'ocean'].indexOf(
+    ['ink', 'mist', 'celadon', 'clay', 'iris', 'amber'].indexOf(
       preferences.preset,
     ) >= 0
       ? preferences.preset
-      : 'mist'
+      : legacyPresets[preferences.preset] || 'ink'
   var mode = preferences.mode == null ? legacyTheme : preferences.mode
   mode = mode === 'light' || mode === 'dark' ? mode : 'system'
   var density = preferences.density === 'compact' ? 'compact' : 'comfortable'
@@ -38,6 +44,11 @@
       ? preferences.textScale
       : 1
   var motion = preferences.motion === 'reduced' ? 'reduced' : 'system'
+  var contrast = preferences.contrast === 'high' ? 'high' : 'standard'
+  var action =
+    preferences.action === 'ink' || preferences.action === 'accent'
+      ? preferences.action
+      : 'scheme'
   var pathname = window.location.pathname || ''
   if (
     pathname.indexOf('/agent/share') === 0 ||
@@ -70,4 +81,6 @@
   root.setAttribute('data-density', density)
   root.setAttribute('data-text-scale', String(scale))
   root.setAttribute('data-motion', reducedMotion ? 'reduced' : 'system')
+  root.setAttribute('data-contrast', contrast)
+  root.setAttribute('data-action', action)
 })()

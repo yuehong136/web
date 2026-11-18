@@ -39,6 +39,8 @@ export function ScopedTheme({
   density,
   textScale,
   motion,
+  contrast,
+  action,
   children,
   className,
 }: ScopedThemeProps) {
@@ -60,6 +62,8 @@ export function ScopedTheme({
           density: density ?? inherited.density,
           textScale: textScale ?? inherited.textScale,
           motion: motion ?? inherited.motion,
+          contrast: contrast ?? inherited.contrast,
+          action: action ?? inherited.action,
         }),
         systemDark,
         systemReducedMotion,
@@ -71,6 +75,8 @@ export function ScopedTheme({
       density,
       textScale,
       motion,
+      contrast,
+      action,
       systemDark,
       systemReducedMotion,
     ],
@@ -87,9 +93,11 @@ export function ScopedTheme({
       data-density={appearance.density}
       data-text-scale={appearance.textScale}
       data-motion={appearance.reducedMotion ? 'reduced' : 'system'}
+      data-contrast={appearance.contrast}
+      data-action={appearance.action}
       className={className ?? 'contents'}
       // Inherited text takes this scope's colour, not the page theme's.
-      style={{ color: 'var(--color-text-primary)' }}
+      style={{ color: 'var(--color-fg)' }}
     >
       <ThemeScopeContext.Provider value={scope}>
         {children}

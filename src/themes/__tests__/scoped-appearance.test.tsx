@@ -46,7 +46,7 @@ it('provides a scoped portal container with all appearance dimensions', async ()
     root.render(
       <ScopedTheme
         theme="dark"
-        preset="ocean"
+        preset="celadon"
         density="compact"
         textScale={1.25}
         motion="reduced"
@@ -56,7 +56,7 @@ it('provides a scoped portal container with all appearance dimensions', async ()
     ),
   )
   const scope = container.querySelector(
-    '[data-preset="ocean"]',
+    '[data-preset="celadon"]',
   ) as HTMLDivElement
   expect(scope.dataset).toMatchObject({
     theme: 'dark',
@@ -64,10 +64,10 @@ it('provides a scoped portal container with all appearance dimensions', async ()
     textScale: '1.25',
     motion: 'reduced',
   })
-  expect(scope.querySelector('output')?.textContent).toBe('ocean/dark')
+  expect(scope.querySelector('output')?.textContent).toBe('celadon/dark')
   expect(document.documentElement.dataset).toMatchObject({
     theme: 'light',
-    preset: 'mist',
+    preset: 'ink',
   })
 })
 function StatefulProbe() {
@@ -77,7 +77,7 @@ function StatefulProbe() {
 it('changes a local preview without resetting child state or global preferences', async () => {
   await act(async () =>
     root.render(
-      <ScopedTheme preset="paper">
+      <ScopedTheme preset="clay">
         <StatefulProbe />
       </ScopedTheme>,
     ),
@@ -85,14 +85,14 @@ it('changes a local preview without resetting child state or global preferences'
   act(() => container.querySelector('button')?.click())
   await act(async () =>
     root.render(
-      <ScopedTheme preset="graphite">
+      <ScopedTheme preset="iris">
         <StatefulProbe />
       </ScopedTheme>,
     ),
   )
   expect(container.querySelector('button')?.textContent).toBe('1')
-  expect(container.querySelector('[data-preset="graphite"]')).not.toBeNull()
-  expect(document.documentElement.dataset.preset).toBe('mist')
+  expect(container.querySelector('[data-preset="iris"]')).not.toBeNull()
+  expect(document.documentElement.dataset.preset).toBe('ink')
 })
 it('lets a scope follow system motion independently of the global reduced preference', async () => {
   setAppearance({ motion: 'reduced' })
@@ -109,18 +109,16 @@ it('lets a scope follow system motion independently of the global reduced prefer
 function LegacyCanvasProbe() {
   const dark = useIsDarkTheme()
   return (
-    <output>
-      {getTokenValue('components-card-bg', dark ? 'dark' : 'light')}
-    </output>
+    <output>{getTokenValue('accent-solid', dark ? 'dark' : 'light')}</output>
   )
 }
 it('updates legacy static token readers when only the preset changes', async () => {
   await act(async () => root.render(<LegacyCanvasProbe />))
   const oldColor = container.textContent
-  await act(async () => setAppearance({ preset: 'ocean' }))
+  await act(async () => setAppearance({ preset: 'celadon' }))
   expect(container.textContent).not.toBe(oldColor)
   expect(container.textContent).toBe(
-    getTokenValue('components-card-bg', 'light', 'ocean'),
+    getTokenValue('accent-solid', 'light', 'celadon'),
   )
 })
 
@@ -135,5 +133,5 @@ it('resets inherited text colour to the scope, not the page theme', async () => 
   const scope = container.querySelector<HTMLElement>('[data-theme="dark"]')!
   // Plain text (e.g. an agent's opening line) inherits this, so it follows
   // the scope even when the page around it uses the other theme.
-  expect(scope.style.color).toBe('var(--color-text-primary)')
+  expect(scope.style.color).toBe('var(--color-fg)')
 })

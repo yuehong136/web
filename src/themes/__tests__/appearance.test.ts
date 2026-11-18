@@ -43,13 +43,13 @@ it('keeps the preference and resolved snapshots stable until their values change
   expect(appearance.getResolvedAppearance()).toBe(resolved)
   const listener = vi.fn()
   cleanup = appearance.subscribeAppearance(listener)
-  appearance.setAppearance({ preset: 'paper' })
+  appearance.setAppearance({ preset: 'clay' })
   expect(listener).toHaveBeenCalledTimes(1)
   expect(appearance.getAppearance()).not.toBe(previous)
   expect(appearance.getResolvedAppearance().resolvedMode).toBe('light')
-  expect(appearance.getResolvedAppearance().preset).toBe('paper')
+  expect(appearance.getResolvedAppearance().preset).toBe('clay')
   const next = appearance.getAppearance()
-  appearance.setAppearance({ preset: 'paper' })
+  appearance.setAppearance({ preset: 'clay' })
   expect(appearance.getAppearance()).toBe(next)
   expect(listener).toHaveBeenCalledTimes(1)
 })
@@ -85,30 +85,36 @@ it('shares a single media subscription across repeated initialization and cleans
 it('applies and persists independent dimensions without losing the chosen mode', () => {
   appearance.setAppearance({
     mode: 'dark',
-    preset: 'ocean',
+    preset: 'celadon',
     density: 'compact',
     textScale: 1.25,
     motion: 'reduced',
+    contrast: 'high',
+    action: 'accent',
   })
   expect(appearance.getAppearance()).toEqual({
     mode: 'dark',
-    preset: 'ocean',
+    preset: 'celadon',
     density: 'compact',
     textScale: 1.25,
     motion: 'reduced',
+    contrast: 'high',
+    action: 'accent',
   })
   expect(JSON.parse(localStorage.getItem('appearance')!)).toEqual(
     appearance.getAppearance(),
   )
   expect(document.documentElement.dataset).toMatchObject({
     theme: 'dark',
-    preset: 'ocean',
+    preset: 'celadon',
     density: 'compact',
     textScale: '1.25',
     motion: 'reduced',
+    contrast: 'high',
+    action: 'accent',
   })
   appearance.setTheme(appearance.Theme.LIGHT)
-  expect(appearance.getAppearance().preset).toBe('ocean')
+  expect(appearance.getAppearance().preset).toBe('celadon')
 })
 
 it('follows reduced motion and removes the media listener for an explicit reduced preference', () => {
@@ -127,7 +133,7 @@ it('follows reduced motion and removes the media listener for an explicit reduce
 it('uses persisted appearance ahead of both legacy preferences', () => {
   localStorage.setItem(
     'appearance',
-    JSON.stringify({ preset: 'ocean', mode: 'light' }),
+    JSON.stringify({ preset: 'celadon', mode: 'light' }),
   )
   localStorage.setItem('theme', 'dark')
   localStorage.setItem(
@@ -137,7 +143,7 @@ it('uses persisted appearance ahead of both legacy preferences', () => {
   cleanup = appearance.initTheme()
   expect(appearance.getAppearance()).toEqual({
     ...appearance.DEFAULT_APPEARANCE,
-    preset: 'ocean',
+    preset: 'celadon',
     mode: 'light',
   })
 })
@@ -172,15 +178,15 @@ it('publishes preference changes from another tab and keeps the resolved mode co
   cleanup = appearance.subscribeAppearance(listener)
   localStorage.setItem(
     'appearance',
-    JSON.stringify({ preset: 'graphite', mode: 'dark' }),
+    JSON.stringify({ preset: 'iris', mode: 'dark' }),
   )
   window.dispatchEvent(new StorageEvent('storage', { key: 'appearance' }))
   expect(listener).toHaveBeenCalledTimes(1)
   expect(appearance.getResolvedAppearance()).toMatchObject({
-    preset: 'graphite',
+    preset: 'iris',
     resolvedMode: 'dark',
   })
-  expect(document.documentElement.dataset.preset).toBe('graphite')
+  expect(document.documentElement.dataset.preset).toBe('iris')
 })
 
 it('can initialize and apply preferences when browser storage is denied', () => {
@@ -193,10 +199,10 @@ it('can initialize and apply preferences when browser storage is denied', () => 
   cleanup = appearance.initTheme()
   expect(appearance.getAppearance()).toEqual(appearance.DEFAULT_APPEARANCE)
   expect(() =>
-    appearance.setAppearance({ preset: 'paper', mode: 'dark' }),
+    appearance.setAppearance({ preset: 'clay', mode: 'dark' }),
   ).not.toThrow()
   expect(document.documentElement.dataset).toMatchObject({
-    preset: 'paper',
+    preset: 'clay',
     theme: 'dark',
   })
 })

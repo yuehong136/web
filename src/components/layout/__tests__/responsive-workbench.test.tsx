@@ -264,7 +264,7 @@ it('keeps navigation and task drafts while preset and locale update in place', a
     'input[aria-label="Navigation draft"]',
   )
   const task = container.querySelector('input[aria-label="Task draft"]')
-  await act(async () => setAppearance({ preset: 'ocean', textScale: 1.25 }))
+  await act(async () => setAppearance({ preset: 'celadon', textScale: 1.25 }))
   await act(async () => changeLanguage('zh-CN'))
   expect(container.querySelector('input[aria-label="Navigation draft"]')).toBe(
     navigation,

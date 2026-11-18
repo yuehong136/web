@@ -1,4 +1,4 @@
-import type { FileKind } from '@/themes/avatar-tokens'
+import type { FileKind } from '@/themes/identity'
 import { cn } from '@/lib/utils'
 
 const EXTENSIONS: Record<Exclude<FileKind, 'text'>, readonly string[]> = {

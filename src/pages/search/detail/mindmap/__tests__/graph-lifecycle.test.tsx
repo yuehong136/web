@@ -19,7 +19,7 @@ interface TestGraph {
 const state = vi.hoisted(() => ({
   graphs: [] as TestGraph[],
   renderPlans: [] as (() => Promise<void>)[],
-  appearance: { resolvedMode: 'light', preset: 'studio' },
+  appearance: { resolvedMode: 'light', preset: 'ink' },
   listeners: new Set<() => void>(),
   observers: [] as { fire: () => void; disconnected: boolean }[],
 }))
@@ -123,7 +123,7 @@ beforeEach(async () => {
   state.graphs = []
   state.renderPlans = []
   state.observers = []
-  state.appearance = { resolvedMode: 'light', preset: 'studio' }
+  state.appearance = { resolvedMode: 'light', preset: 'ink' }
   container = document.createElement('div')
   document.body.append(container)
   root = createRoot(container)
@@ -166,7 +166,7 @@ it('serializes preset rebuilds and lets an existing resize observer target only 
   state.renderPlans.push(() => pending.promise)
   await render()
   const old = state.graphs[0]!
-  await changeAppearance('dark', 'ocean')
+  await changeAppearance('dark', 'celadon')
   expect(state.graphs).toHaveLength(1)
   expect(old.destroy).not.toHaveBeenCalled()
   await act(async () => {
@@ -199,7 +199,7 @@ it('drains an in-flight command but rejects later node commands on the retired g
     command = ref.current!.collapseAll()
   })
   expect(old.collapseElement).toHaveBeenCalledTimes(1)
-  await changeAppearance('light', 'paper')
+  await changeAppearance('light', 'clay')
   expect(old.destroy).not.toHaveBeenCalled()
   await act(async () => {
     ref.current!.fitView()
@@ -249,10 +249,10 @@ it('reports a current asynchronous command failure rather than swallowing it', a
 it('draws badge ink from the theme tokens and redraws it when the theme changes', async () => {
   await render()
   const light = state.graphs[0]!.options.node.style.badgeTextFill
-  expect(light).toBe(getTokenValue('text-inverted', 'light', 'studio'))
-  await changeAppearance('dark', 'studio')
+  expect(light).toBe(getTokenValue('text-inverted', 'light', 'ink'))
+  await changeAppearance('dark', 'ink')
   const dark = state.graphs.at(-1)!.options.node.style.badgeTextFill
-  expect(dark).toBe(getTokenValue('text-inverted', 'dark', 'studio'))
+  expect(dark).toBe(getTokenValue('text-inverted', 'dark', 'ink'))
   // Dark-mode palette colours are light, so the ink must not stay white.
   expect(dark).not.toBe(light)
 })

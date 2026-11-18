@@ -199,7 +199,7 @@ it('keeps selected IDs through status filters, view, appearance, and locale chan
   await click(labelled('Grid view'))
   expect(useCollectionViewStore.getState().chosen.studio).toBe('grid')
   await click(labelled('List view'))
-  await act(async () => setAppearance({ preset: 'ocean', textScale: 1.25 }))
+  await act(async () => setAppearance({ preset: 'celadon', textScale: 1.25 }))
   await act(async () => changeLanguage('zh-CN'))
   expect(useCollectionViewStore.getState().chosen.studio).toBe('list')
   expect(useStudioStore.getState().selectedIds).toEqual(['one'])
@@ -320,7 +320,7 @@ it('keeps the create-app draft on failure and through theme and locale changes',
   expect(toast.error).toHaveBeenCalledExactlyOnceWith(
     'Could not save the app. Try again.',
   )
-  await act(async () => setAppearance({ preset: 'paper', mode: 'dark' }))
+  await act(async () => setAppearance({ preset: 'clay', mode: 'dark' }))
   await act(async () => changeLanguage('zh-CN'))
   expect(document.querySelector('input[id$="-name"]')).toBe(name)
   expect(name.value).toBe('Draft app')

@@ -42,7 +42,7 @@ it('the real Markdown diagram adapter passes scoped mode, palette and text size 
     JSON.parse(host.querySelector('[data-diagram-config]')!.textContent!)
   await act(async () =>
     root.render(
-      <ScopedTheme theme="light" preset="paper" textScale={1}>
+      <ScopedTheme theme="light" preset="clay" textScale={1}>
         <Code {...props} />
       </ScopedTheme>,
     ),
@@ -53,7 +53,7 @@ it('the real Markdown diagram adapter passes scoped mode, palette and text size 
   expect(light.themeVariables.fontSize).toBe('14px')
   await act(async () =>
     root.render(
-      <ScopedTheme theme="dark" preset="ocean" textScale={1.25}>
+      <ScopedTheme theme="dark" preset="celadon" textScale={1.25}>
         <Code {...props} />
       </ScopedTheme>,
     ),

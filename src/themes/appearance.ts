@@ -1,3 +1,12 @@
+import {
+  ACTION_STYLES,
+  COLOR_SCHEMES,
+  CONTRAST_LEVELS,
+  type ActionStyle,
+  type ColorScheme,
+  type ContrastLevel,
+} from './color-schemes'
+
 /** Persisted appearance preferences. Each dimension changes independently. */
 export const Theme = {
   LIGHT: 'light',
@@ -6,14 +15,18 @@ export const Theme = {
 } as const
 export type Theme = (typeof Theme)[keyof typeof Theme]
 export type ResolvedTheme = 'light' | 'dark'
-export const APPEARANCE_PRESETS = [
-  'mist',
-  'studio',
-  'paper',
-  'graphite',
-  'ocean',
-] as const
-export type AppearancePreset = (typeof APPEARANCE_PRESETS)[number]
+/** Color schemes; see color-schemes.ts. */
+export const APPEARANCE_PRESETS = COLOR_SCHEMES
+export type AppearancePreset = ColorScheme
+export { ACTION_STYLES, CONTRAST_LEVELS }
+export type { ActionStyle, ContrastLevel }
+/** Schemes before 2.0 map to their closest successor. */
+const LEGACY_PRESETS: Readonly<Record<string, AppearancePreset>> = {
+  studio: 'ink',
+  graphite: 'ink',
+  paper: 'clay',
+  ocean: 'celadon',
+}
 export type AppearanceDensity = 'comfortable' | 'compact'
 export type AppearanceTextScale = 1 | 1.125 | 1.25
 export type AppearanceMotion = 'system' | 'reduced'
@@ -23,6 +36,8 @@ export interface Appearance {
   density: AppearanceDensity
   textScale: AppearanceTextScale
   motion: AppearanceMotion
+  contrast: ContrastLevel
+  action: ActionStyle
 }
 export interface ResolvedAppearance extends Appearance {
   resolvedMode: ResolvedTheme
@@ -30,12 +45,23 @@ export interface ResolvedAppearance extends Appearance {
 }
 export const APPEARANCE_STORAGE_KEY = 'appearance'
 export const DEFAULT_APPEARANCE: Readonly<Appearance> = Object.freeze({
-  preset: 'mist',
+  preset: 'ink',
   mode: 'system',
   density: 'comfortable',
   textScale: 1,
   motion: 'system',
+  contrast: 'standard',
+  action: 'scheme',
 })
+
+function normalizePreset(value: unknown): AppearancePreset {
+  if (APPEARANCE_PRESETS.includes(value as AppearancePreset))
+    return value as AppearancePreset
+  return (
+    (typeof value === 'string' && LEGACY_PRESETS[value]) ||
+    DEFAULT_APPEARANCE.preset
+  )
+}
 
 export function normalizeAppearance(
   value: unknown,
@@ -45,9 +71,7 @@ export function normalizeAppearance(
     value && typeof value === 'object' ? (value as Record<string, unknown>) : {}
   const mode = source.mode ?? legacyTheme
   return {
-    preset: APPEARANCE_PRESETS.includes(source.preset as AppearancePreset)
-      ? (source.preset as AppearancePreset)
-      : DEFAULT_APPEARANCE.preset,
+    preset: normalizePreset(source.preset),
     mode: mode === 'light' || mode === 'dark' ? mode : 'system',
     density: source.density === 'compact' ? 'compact' : 'comfortable',
     textScale:
@@ -55,6 +79,11 @@ export function normalizeAppearance(
         ? source.textScale
         : 1,
     motion: source.motion === 'reduced' ? 'reduced' : 'system',
+    contrast: source.contrast === 'high' ? 'high' : 'standard',
+    action:
+      source.action === 'ink' || source.action === 'accent'
+        ? source.action
+        : 'scheme',
   }
 }
 
@@ -136,6 +165,8 @@ function applyToDocument() {
   root.setAttribute('data-density', current.density)
   root.setAttribute('data-text-scale', String(current.textScale))
   root.setAttribute('data-motion', current.reducedMotion ? 'reduced' : 'system')
+  root.setAttribute('data-contrast', current.contrast)
+  root.setAttribute('data-action', current.action)
 }
 
 function publish(next: Readonly<Appearance>, persist: boolean) {

@@ -52,18 +52,35 @@ function bootstrap(
 test('bootstrap applies all persisted dimensions before React without inline style or eval', () => {
   const dimensions = {
     mode: 'dark',
-    preset: 'ocean',
+    preset: 'celadon',
     density: 'compact',
     textScale: 1.25,
     motion: 'reduced',
+    contrast: 'high',
+    action: 'accent',
   }
   assert.deepEqual(bootstrap({ appearance: JSON.stringify(dimensions) }), {
     'data-theme': 'dark',
-    'data-preset': 'ocean',
+    'data-preset': 'celadon',
     'data-density': 'compact',
     'data-text-scale': '1.25',
     'data-motion': 'reduced',
+    'data-contrast': 'high',
+    'data-action': 'accent',
   })
+  // Pre-2.0 presets map to their successors before the first paint.
+  for (const [legacy, next] of [
+    ['studio', 'ink'],
+    ['graphite', 'ink'],
+    ['paper', 'clay'],
+    ['ocean', 'celadon'],
+  ])
+    assert.equal(
+      bootstrap({ appearance: JSON.stringify({ preset: legacy }) })[
+        'data-preset'
+      ],
+      next,
+    )
   assert.doesNotMatch(script, /\.style\b|eval\(|new Function/)
 })
 test('bootstrap and runtime reject the same invalid dimensions', () => {
@@ -73,6 +90,8 @@ test('bootstrap and runtime reject the same invalid dimensions', () => {
     density: 'dense',
     textScale: '1.25',
     motion: 'full',
+    contrast: 'max',
+    action: 'brand',
   }
   const normalized = normalizeAppearance(invalid)
   const values = bootstrap({
@@ -83,6 +102,8 @@ test('bootstrap and runtime reject the same invalid dimensions', () => {
   assert.equal(values['data-preset'], normalized.preset)
   assert.equal(values['data-density'], normalized.density)
   assert.equal(values['data-text-scale'], String(normalized.textScale))
+  assert.equal(values['data-contrast'], normalized.contrast)
+  assert.equal(values['data-action'], normalized.action)
 })
 test('bootstrap falls back through legacy keys and system preferences', () => {
   assert.equal(bootstrap({ theme: 'dark' })['data-theme'], 'dark')
@@ -101,7 +122,7 @@ test('bootstrap falls back through legacy keys and system preferences', () => {
 })
 test('bootstrap remains usable with denied storage and explicit share/widget themes', () => {
   const values = bootstrap({}, { denied: true, dark: true })
-  assert.equal(values['data-preset'], 'mist')
+  assert.equal(values['data-preset'], 'ink')
   assert.equal(values['data-theme'], 'dark')
   for (const path of ['/agent/share/demo', '/chats/widget']) {
     assert.equal(

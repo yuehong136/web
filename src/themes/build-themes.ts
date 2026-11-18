@@ -13,8 +13,10 @@
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath, pathToFileURL } from 'url'
-import { generateThemeFiles, lightTokens, darkTokens } from './theme-generator'
-import { APPEARANCE_PRESETS } from './appearance'
+import { generateThemeFiles } from './theme-generator'
+import { COLOR_SCHEMES } from './color-schemes'
+import { SEMANTIC_TOKENS } from './semantic-tokens'
+import { TOKEN_NAMES } from './tokens'
 import { generateTailwindThemeFiles } from './tailwind-theme-generator'
 import { format, resolveConfig } from 'prettier'
 
@@ -65,48 +67,25 @@ async function main() {
     console.log(`   📄 ${path.relative(process.cwd(), DARK_CSS_PATH)}`)
     console.log(`   📄 ${path.relative(process.cwd(), TOKEN_VALUES_PATH)}`)
 
-    // 统计信息
-    const lightTokenCount = (light.match(/--color-/g) || []).length
-    const darkTokenCount = (dark.match(/--color-/g) || []).length
-    const jsLightCount =
-      Object.keys(lightTokens).length * APPEARANCE_PRESETS.length
-    const jsDarkCount =
-      Object.keys(darkTokens).length * APPEARANCE_PRESETS.length
-
-    console.log('')
-    console.log('📊 统计信息:')
-    console.log(`   🌞 亮色主题令牌数量(CSS): ${lightTokenCount}`)
-    console.log(`   🌙 暗色主题令牌数量(CSS): ${darkTokenCount}`)
+    // 每个方案的基础块都必须声明全部语义令牌，否则组件会静默取到空值。
+    for (const [name, css] of [
+      ['light', light],
+      ['dark', dark],
+    ] as const) {
+      const missing = SEMANTIC_TOKENS.filter(
+        (token) =>
+          css.split(`--color-${token}:`).length - 1 < COLOR_SCHEMES.length,
+      )
+      if (missing.length > 0) {
+        console.error(`❌ ${name}.css 缺少语义令牌: ${missing.join(', ')}`)
+        process.exit(1)
+      }
+    }
+    const size = (file: string) =>
+      `${(fs.statSync(file).size / 1024).toFixed(1)}KB`
     console.log(
-      `   🧩 JS 产物令牌数量: light ${jsLightCount} / dark ${jsDarkCount}`,
+      `   📦 ${COLOR_SCHEMES.length} 个方案 × 明暗；JS 产物每套 ${TOKEN_NAMES.length} 个令牌；${size(LIGHT_CSS_PATH)} + ${size(DARK_CSS_PATH)} + ${size(TOKEN_VALUES_PATH)}`,
     )
-    console.log(
-      `   📦 文件大小: ${(fs.statSync(LIGHT_CSS_PATH).size / 1024).toFixed(1)}KB + ${(fs.statSync(DARK_CSS_PATH).size / 1024).toFixed(1)}KB + ${(fs.statSync(TOKEN_VALUES_PATH).size / 1024).toFixed(1)}KB`,
-    )
-
-    // 两种消费入口必须覆盖同一套令牌，不能让组件因分类遗漏而缺少 CSS 值。
-    if (lightTokenCount !== darkTokenCount) {
-      console.error(
-        `❌ CSS 明暗令牌数不一致: light=${lightTokenCount} dark=${darkTokenCount}`,
-      )
-      process.exit(1)
-    }
-    if (jsLightCount !== jsDarkCount) {
-      console.error(
-        `❌ JS 明暗令牌数不一致: light=${jsLightCount} dark=${jsDarkCount}`,
-      )
-      process.exit(1)
-    }
-    if (jsLightCount !== lightTokenCount) {
-      console.error(
-        `❌ CSS 与 JS 令牌数量不一致: JS=${jsLightCount} CSS=${lightTokenCount}`,
-      )
-      process.exit(1)
-    }
-
-    if (errors.length === 0) {
-      console.log('   ✨ 所有设计令牌验证通过')
-    }
   } catch (error) {
     console.error('❌ 生成主题文件失败:', error)
     process.exit(1)

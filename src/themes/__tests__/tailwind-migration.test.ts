@@ -13,7 +13,7 @@ const compiler = readFile(path.join(sourceRoot, 'index.css'), 'utf8').then(
   (css) => compile(css, { base: sourceRoot, onDependency() {} }),
 )
 
-test('interface and Paper reading fonts work offline with explicit Chinese fallbacks', async () => {
+test('interface and Clay reading fonts work offline with explicit Chinese fallbacks', async () => {
   const [entry, appearance] = await Promise.all([
     readFile(path.join(sourceRoot, 'index.css'), 'utf8'),
     readFile(path.join(themeRoot, 'appearance.css'), 'utf8'),
@@ -27,11 +27,11 @@ test('interface and Paper reading fonts work offline with explicit Chinese fallb
   )
   assert.match(
     appearance,
-    /\[data-preset='paper'\][^}]*--font-reading:[^;]*Georgia[^;]*Noto Serif CJK SC[^;]*Songti SC[^;]*SimSun/su,
+    /\[data-preset='clay'\][^}]*--font-reading:[^;]*Georgia[^;]*Noto Serif CJK SC[^;]*Songti SC[^;]*SimSun/su,
   )
   assert.match(
     appearance,
-    /\[data-preset='paper'\][^}]*--reading-line-height: 1\.8/u,
+    /\[data-preset='clay'\][^}]*--reading-line-height: 1\.8/u,
   )
   assert.match(appearance, /--font-code:[^;]*ui-monospace[^;]*Consolas/su)
   // Preset radii live on [data-preset]; a root-level --radius elsewhere would
@@ -42,14 +42,14 @@ test('interface and Paper reading fonts work offline with explicit Chinese fallb
     ),
   )
   for (const css of styles) assert.doesNotMatch(css, /--radius:/u)
-  // Mist's bundled Geist covers Latin; Chinese still falls back to system fonts.
+  // Bundled Geist covers Latin in every scheme; Chinese falls back to system fonts.
   assert.match(
     appearance,
-    /\[data-preset='mist'\][^}]*--font-interface:[^;]*'Geist Variable'[^;]*PingFang SC[^;]*Microsoft YaHei[^;]*Noto Sans CJK SC/su,
+    /\[data-preset\] \{[^}]*--font-interface:[^;]*'Geist Variable'[^;]*PingFang SC[^;]*Microsoft YaHei[^;]*Noto Sans CJK SC/su,
   )
   assert.match(
     appearance,
-    /\[data-preset='mist'\]\[data-density='comfortable'\][^}]*--control-height: calc\(2rem/u,
+    /\[data-density='comfortable'\] \{[^}]*--control-height: calc\(2rem/u,
   )
   const css = (await compiler).build(['font-sans', 'font-mono'])
   assert.match(css, /\.font-sans\s*\{\s*font-family: var\(--font-interface\)/u)
@@ -74,28 +74,34 @@ test('committed CSS token mappings reproduce from the canonical registry', async
 
 test('semantic utilities preserve scoped runtime tokens and opacity modifiers', async () => {
   const css = (await compiler).build([
-    'bg-background-surface',
-    'text-text-primary',
-    'border-border-default',
+    'bg-surface',
+    'text-fg',
+    'border-line',
+    'bg-accent-soft',
     'bg-primary/90',
     'ring-ring/50',
+    'bg-danger-solid/20',
   ])
-  assert.match(css, /background-color: var\(--color-background-surface\)/)
-  assert.match(css, /color: var\(--color-text-primary\)/)
-  assert.match(css, /border-color: var\(--color-border-default\)/)
+  assert.match(css, /background-color: var\(--color-surface\)/)
+  assert.match(css, /color: var\(--color-fg\)/)
+  assert.match(css, /border-color: var\(--color-line\)/)
+  assert.match(css, /background-color: var\(--color-accent-soft\)/)
   assert.doesNotMatch(css, /::placeholder::placeholder/)
-  assert.doesNotMatch(
+  assert.doesNotMatch(css, /--color-fg:\s*var\(--color-fg\)/)
+  // Opacity modifiers mix the role itself; no RGB channel variables remain.
+  assert.match(
     css,
-    /--color-text-primary:\s*var\(--color-text-primary\)/,
+    /color-mix\(in oklab, var\(--color-action-bg\) 90%, transparent\)/,
   )
   assert.match(
     css,
-    /color-mix\(in oklab, rgb\(var\(--twc-primary\)\) 90%, transparent\)/,
+    /color-mix\(in oklab, var\(--color-line-focus\) 50%, transparent\)/,
   )
   assert.match(
     css,
-    /color-mix\(in oklab, rgb\(var\(--twc-ring\)\) 50%, transparent\)/,
+    /color-mix\(in oklab, var\(--color-danger-solid\) 20%, transparent\)/,
   )
+  assert.doesNotMatch(css, /--twc-/)
 })
 
 test('native spacing, radius, elevation and responsive variants compile', async () => {

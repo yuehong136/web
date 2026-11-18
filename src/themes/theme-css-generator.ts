@@ -1,114 +1,112 @@
-import type { DesignTokens } from './tokens'
-import { elevation } from './elevation'
-import { rgbChannels } from './interaction-palette'
-import type { AppearancePreset } from './appearance'
-
 /**
- * 生成主题 CSS 文件内容
+ * Generated CSS: one block per scheme and mode with the scales, elevation and
+ * semantic roles, then small override blocks for the high-contrast and
+ * primary-action variants, and (once, in light.css) the legacy aliases.
+ *
+ * Portal content (menus, dialogs) carries `data-theme` without `data-preset`;
+ * the descendant selector gives it the preset of the nearest themed ancestor.
  */
-export function generateThemeCSS(
-  tokens: DesignTokens,
-  themeName: 'light' | 'dark',
-  preset?: AppearancePreset,
-): string {
-  // 同时输出 html 级与子树级选择器，便于分享页 / 嵌入场景在子树覆盖主题
-  const selector = preset
-    ? `[data-preset="${preset}"][data-theme="${themeName}"]`
-    : `html[data-theme="${themeName}"], [data-theme="${themeName}"]`
+import { COLOR_SCHEMES, SCHEME_SEEDS, type ColorScheme } from './color-schemes'
+import type { Mode } from './color-scales'
+import { LEGACY_TOKENS } from './legacy-tokens'
+import { cssOklch } from './oklch'
+import {
+  SCALE_NAMES,
+  SEMANTIC_TOKENS,
+  type RoleValue,
+  type SchemeTokens,
+} from './semantic-tokens'
+import { schemeTokens } from './theme-sets'
 
-  let css = `/**\n * ${themeName === 'light' ? '亮色' : '暗色'}主题 CSS 变量定义\n * 基于 Dify 项目的设计令牌系统\n *\n * ⚠️ 注意: 此文件由代码自动生成，请勿手动修改!\n * 如需修改主题，请编辑 theme-generator.ts 文件\n */\n\n${selector} {\n  /* ===== Tailwind 通道变量 (用于 /alpha 透明度支持) ===== */\n  --twc-primary: ${rgbChannels(tokens['components-button-primary-bg'])};\n  --twc-primary-foreground: 255 255 255;\n  --twc-foreground: ${rgbChannels(tokens['text-primary'])};\n  --twc-background: ${rgbChannels(tokens['background-body'])};\n  --twc-ring: ${rgbChannels(tokens['state-focus'])};\n  --twc-border: ${rgbChannels(tokens['components-input-border'])};\n\n`
+const DEFAULT_SCHEME: ColorScheme = 'ink'
 
-  css += `  /* ===== 阴影层级 (Tailwind shadow-elevation-*) ===== */\n`
-  for (const [level, shadow] of Object.entries(elevation[themeName]))
-    css += `  --elevation-${level}: ${shadow};\n`
-  css += '\n'
+function selector(scheme: ColorScheme, mode: Mode, modifiers = ''): string {
+  const own = `[data-preset='${scheme}'][data-theme='${mode}']${modifiers}`
+  const portal = `[data-preset='${scheme}']${modifiers} [data-theme='${mode}']:not([data-preset])`
+  const orphan =
+    scheme === DEFAULT_SCHEME && !modifiers
+      ? [`[data-theme='${mode}']:not([data-preset], [data-preset] *)`]
+      : []
+  return [own, portal, ...orphan].join(',\n')
+}
 
-  // 按分类组织令牌
-  const categories = {
-    文本系统: Object.keys(tokens).filter((key) => key.startsWith('text-')),
-    背景系统: Object.keys(tokens).filter((key) =>
-      key.startsWith('background-'),
-    ),
-    边框系统: Object.keys(tokens).filter((key) => key.startsWith('border-')),
-    按钮组件: Object.keys(tokens).filter((key) =>
-      key.startsWith('components-button-'),
-    ),
-    输入框组件: Object.keys(tokens).filter((key) =>
-      key.startsWith('components-input-'),
-    ),
-    卡片组件: Object.keys(tokens).filter((key) =>
-      key.startsWith('components-card-'),
-    ),
-    侧边栏组件: Object.keys(tokens).filter((key) =>
-      key.startsWith('components-sidebar-'),
-    ),
-    导航组件: Object.keys(tokens).filter((key) =>
-      key.startsWith('components-nav-'),
-    ),
-    下拉菜单组件: Object.keys(tokens).filter((key) =>
-      key.startsWith('components-dropdown-'),
-    ),
-    聊天系统: Object.keys(tokens).filter((key) => key.startsWith('chat-')),
-    表格组件: Object.keys(tokens).filter((key) =>
-      key.startsWith('components-table-'),
-    ),
-    交互状态: Object.keys(tokens).filter((key) => key.startsWith('state-')),
-    表单控件: Object.keys(tokens).filter(
-      (key) =>
-        key.includes('-checkbox-') ||
-        key.includes('-radio-') ||
-        key.includes('-select-') ||
-        key.includes('-switch-'),
-    ),
-    滚动条系统: Object.keys(tokens).filter((key) =>
-      key.startsWith('components-scrollbar-'),
-    ),
-    对话框和覆盖层: Object.keys(tokens).filter(
-      (key) =>
-        key.includes('-dialog-') ||
-        key.includes('-popover-') ||
-        key.includes('-tooltip-'),
-    ),
-    导航和标签: Object.keys(tokens).filter(
-      (key) => key.includes('-tabs-') || key.includes('-breadcrumb-'),
-    ),
-    状态和通知: Object.keys(tokens).filter((key) => key.includes('-alert-')),
-    加载和进度: Object.keys(tokens).filter(
-      (key) =>
-        key.includes('-skeleton-') ||
-        key.includes('-progress-') ||
-        key.includes('-spinner-') ||
-        key.includes('-loader-'),
-    ),
-    代码和预格式化文本: Object.keys(tokens).filter(
-      (key) => key.includes('-code-') || key.includes('-pre-'),
-    ),
-    图标按钮: Object.keys(tokens).filter((key) =>
-      key.startsWith('components-icon-button-'),
-    ),
-    画布系统: Object.keys(tokens).filter((key) =>
-      key.startsWith('components-canvas-'),
-    ),
+function roleValue(value: RoleValue): string {
+  if (value.ref)
+    return `var(--${value.ref.startsWith('scale-') ? '' : 'color-'}${value.ref})`
+  return value.color === 'transparent' ? 'transparent' : cssOklch(value.color)
+}
+
+function declarations(tokens: SchemeTokens): Map<string, string> {
+  const out = new Map<string, string>()
+  for (const name of SCALE_NAMES)
+    tokens.scales[name].forEach((color, i) =>
+      out.set(`--scale-${name}-${i + 1}`, cssOklch(color)),
+    )
+  for (const [level, shadow] of Object.entries(tokens.elevation))
+    out.set(`--elevation-${level}`, shadow)
+  for (const name of SEMANTIC_TOKENS)
+    out.set(`--color-${name}`, roleValue(tokens.roles[name]))
+  return out
+}
+
+function block(rule: string, entries: Iterable<[string, string]>): string {
+  const lines = [...entries].map(([name, value]) => `  ${name}: ${value};`)
+  return lines.length ? `${rule} {\n${lines.join('\n')}\n}\n` : ''
+}
+
+function changed(next: Map<string, string>, base: Map<string, string>) {
+  return [...next].filter(([name, value]) => base.get(name) !== value)
+}
+
+export function generateThemeCSS(mode: Mode): string {
+  const parts = [
+    `/**\n * ${mode === 'light' ? 'Light' : 'Dark'} color schemes. Generated by npm run build:themes from\n * color-schemes.ts and semantic-tokens.ts — do not edit by hand.\n */\n`,
+  ]
+  for (const scheme of COLOR_SCHEMES) {
+    const base = declarations(schemeTokens(scheme, mode))
+    parts.push(
+      `/* ===== ${scheme} ===== */\n` + block(selector(scheme, mode), base),
+    )
+    const high = changed(declarations(schemeTokens(scheme, mode, 'high')), base)
+    parts.push(block(selector(scheme, mode, "[data-contrast='high']"), high))
+    for (const action of ['ink', 'accent'] as const) {
+      if (action === SCHEME_SEEDS[scheme].action) continue
+      const styled = changed(
+        declarations(schemeTokens(scheme, mode, 'standard', action)),
+        base,
+      )
+      // Both attributes: the high-contrast and action blocks already apply
+      // (the action block wins, being later); restate only what still differs.
+      const cascaded = new Map([...base, ...high, ...styled])
+      parts.push(
+        block(selector(scheme, mode, `[data-action='${action}']`), styled),
+        block(
+          selector(
+            scheme,
+            mode,
+            `[data-contrast='high'][data-action='${action}']`,
+          ),
+          changed(
+            declarations(schemeTokens(scheme, mode, 'high', action)),
+            cascaded,
+          ),
+        ),
+      )
+    }
   }
-
-  const categorized = new Set(Object.values(categories).flat())
-  const remaining = Object.keys(tokens).filter((key) => !categorized.has(key))
-  const emitted = new Set<string>()
-  Object.entries({ ...categories, 其他组件: remaining }).forEach(
-    ([categoryName, keys]) => {
-      if (keys.length > 0) {
-        css += `  /* ===== ${categoryName} ===== */\n`
-        keys.forEach((key) => {
-          if (emitted.has(key)) return
-          emitted.add(key)
-          css += `  --color-${key}: ${tokens[key as keyof DesignTokens]};\n`
-        })
-        css += '\n'
-      }
-    },
-  )
-
-  css += '}\n'
-
-  return css
+  if (mode === 'light') {
+    // Mode-independent: re-declared on every themed element so a scope that
+    // changes the roles also changes what the aliases resolve to.
+    parts.push(
+      '/* ===== Legacy aliases (migrate to the role names) ===== */\n' +
+        block(
+          '[data-preset],\n[data-theme]',
+          Object.entries(LEGACY_TOKENS).map(([legacy, role]) => [
+            `--color-${legacy}`,
+            role === 'transparent' ? 'transparent' : `var(--color-${role})`,
+          ]),
+        ),
+    )
+  }
+  return parts.filter(Boolean).join('\n')
 }

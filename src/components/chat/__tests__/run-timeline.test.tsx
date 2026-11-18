@@ -163,27 +163,27 @@ it('leads with retrieval: it shimmers while running, then reports the hits and k
 })
 
 it('code follows the nearest appearance scope and updates without replacing the block', async () => {
-  setAppearance({ mode: 'dark', preset: 'studio' })
+  setAppearance({ mode: 'dark', preset: 'ink' })
   await act(async () =>
     root.render(
-      <ScopedTheme theme="light" preset="paper" textScale={1.25}>
+      <ScopedTheme theme="light" preset="clay" textScale={1.25}>
         <CodeBlock code="const x = 0" language="ts" />
       </ScopedTheme>,
     ),
   )
   const block = host.querySelector<HTMLElement>('.code-block')!
   expect(block.dataset.codeMode).toBe('light')
-  expect(block.dataset.codePreset).toBe('paper')
+  expect(block.dataset.codePreset).toBe('clay')
   await act(async () =>
     root.render(
-      <ScopedTheme theme="dark" preset="ocean" textScale={1.125}>
+      <ScopedTheme theme="dark" preset="celadon" textScale={1.125}>
         <CodeBlock code="const x = 0" language="ts" />
       </ScopedTheme>,
     ),
   )
   expect(host.querySelector('.code-block')).toBe(block)
   expect(block.dataset.codeMode).toBe('dark')
-  expect(block.dataset.codePreset).toBe('ocean')
+  expect(block.dataset.codePreset).toBe('celadon')
   expect(block.textContent).toContain('const x = 0')
 })
 

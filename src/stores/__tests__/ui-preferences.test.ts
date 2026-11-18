@@ -30,9 +30,9 @@ it('mirrors product preferences while temporary entry languages stay out of pers
 })
 
 it('keeps legacy theme controls synchronized with the complete appearance owner', () => {
-  setAppearance({ preset: 'ocean', mode: 'dark' })
+  setAppearance({ preset: 'celadon', mode: 'dark' })
   expect(useUIStore.getState().theme).toBe('dark')
   useUIStore.getState().setTheme('light')
-  expect(JSON.parse(localStorage.getItem('appearance')!).preset).toBe('ocean')
+  expect(JSON.parse(localStorage.getItem('appearance')!).preset).toBe('celadon')
   expect(JSON.parse(localStorage.getItem('appearance')!).mode).toBe('light')
 })

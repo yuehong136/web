@@ -111,38 +111,37 @@
 @utility bg-ai-tide {
   background-image: linear-gradient(
     135deg,
-    var(--color-components-ai-from),
-    var(--color-components-ai-via) 55%,
-    var(--color-components-ai-to)
+    var(--color-ai-from),
+    var(--color-ai-via) 55%,
+    var(--color-ai-to)
   );
 }
 
 @utility ai-glow {
-  border-color: var(--color-components-ai-ring);
+  border-color: var(--color-ai-line);
   box-shadow:
-    0 0 0 4px var(--color-components-ai-glow),
-    0 18px 48px -18px
-      color-mix(in oklab, var(--color-components-ai-from) 45%, transparent);
+    0 0 0 4px var(--color-ai-glow),
+    0 18px 48px -18px color-mix(in oklab, var(--color-ai-from) 45%, transparent);
 }
 
 @utility ai-halo {
   background-image: radial-gradient(
     46rem 18rem at 50% -2.5rem,
-    var(--color-components-ai-glow),
+    var(--color-ai-glow),
     transparent 75%
   );
 }
 
 @utility text-shimmer {
-  color: var(--color-text-tertiary);
+  color: var(--color-fg-subtle);
   @media (prefers-reduced-motion: no-preference) {
     background: linear-gradient(
         90deg,
-        var(--color-text-tertiary) 0%,
-        var(--color-text-tertiary) 38%,
-        var(--color-text-primary) 50%,
-        var(--color-text-tertiary) 62%,
-        var(--color-text-tertiary) 100%
+        var(--color-fg-subtle) 0%,
+        var(--color-fg-subtle) 38%,
+        var(--color-fg) 50%,
+        var(--color-fg-subtle) 62%,
+        var(--color-fg-subtle) 100%
       )
       0 0 / 200% 100%;
     background-clip: text;
