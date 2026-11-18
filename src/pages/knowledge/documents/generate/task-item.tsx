@@ -103,7 +103,7 @@ const TaskItemComponent: React.FC<TaskItemProps> = ({
           <Icon
             className={cn('h-3.5 w-3.5 shrink-0', statusConfig.textClass)}
           />
-          <span className="truncate text-sm font-medium text-text-primary">
+          <span className="truncate text-sm font-medium text-fg">
             {t(typeConfig.labelKey)}
           </span>
           <span
@@ -141,7 +141,7 @@ const TaskItemComponent: React.FC<TaskItemProps> = ({
                 onClick={handleDelete}
                 disabled={isActionPending}
               >
-                <Trash2 className="h-3 w-3 text-status-error" />
+                <Trash2 className="h-3 w-3 text-danger-fg" />
               </Button>
             </Tooltip>
           )}
@@ -163,7 +163,7 @@ const TaskItemComponent: React.FC<TaskItemProps> = ({
       <div className="mb-1.5 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Icon className={cn('h-4 w-4', statusConfig.textClass)} />
-          <span className="text-sm font-medium text-text-primary">
+          <span className="text-sm font-medium text-fg">
             {t(typeConfig.labelKey)}
           </span>
           <span
@@ -207,7 +207,7 @@ const TaskItemComponent: React.FC<TaskItemProps> = ({
                 onClick={handlePause}
                 disabled={isActionPending}
               >
-                <CirclePause className="h-3.5 w-3.5 text-status-warning" />
+                <CirclePause className="h-3.5 w-3.5 text-warning-fg" />
               </Button>
             </Tooltip>
           )}
@@ -221,7 +221,7 @@ const TaskItemComponent: React.FC<TaskItemProps> = ({
                 onClick={handleDelete}
                 disabled={isActionPending}
               >
-                <Trash2 className="h-3.5 w-3.5 text-status-error" />
+                <Trash2 className="h-3.5 w-3.5 text-danger-fg" />
               </Button>
             </Tooltip>
           )}
@@ -230,7 +230,7 @@ const TaskItemComponent: React.FC<TaskItemProps> = ({
 
       {/* 描述行（仅 start/completed） */}
       {isQuiet && (
-        <p className="mb-0 text-xs text-text-tertiary">
+        <p className="mb-0 text-xs text-fg-subtle">
           {t(typeConfig.descriptionKey)}
         </p>
       )}
@@ -247,7 +247,7 @@ const TaskItemComponent: React.FC<TaskItemProps> = ({
                 style={
                   status === GenerateTaskStatus.Failed
                     ? ({
-                        '--progress-fill': 'var(--color-status-error)',
+                        '--progress-fill': 'var(--color-danger-fg)',
                       } as React.CSSProperties)
                     : undefined
                 }
@@ -270,7 +270,7 @@ const TaskItemComponent: React.FC<TaskItemProps> = ({
             <div>
               <div
                 className={cn(
-                  'overflow-hidden text-xs leading-relaxed whitespace-pre-line text-text-tertiary transition-all duration-200',
+                  'overflow-hidden text-xs leading-relaxed whitespace-pre-line text-fg-subtle transition-all duration-200',
                   logExpanded
                     ? 'scrollbar-thin max-h-[200px] overflow-y-auto'
                     : 'max-h-[3.6em]',

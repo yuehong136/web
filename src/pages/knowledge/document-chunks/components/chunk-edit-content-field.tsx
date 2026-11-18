@@ -26,7 +26,7 @@ export const ChunkEditContentField = ({
       <div className="flex items-center justify-between">
         <Label
           htmlFor={contentId}
-          className="block text-sm font-medium text-text-secondary"
+          className="block text-sm font-medium text-fg-muted"
         >
           {t('knowledge.chunks.edit.content')}
         </Label>
@@ -37,7 +37,7 @@ export const ChunkEditContentField = ({
           className={cn(
             'flex items-center space-x-1 text-xs',
             isMarkdownPreview &&
-              'border-border-accent bg-state-hover text-text-accent',
+              'border-line-focus bg-fill-hover text-accent-fg',
           )}
         >
           {isMarkdownPreview ? (
@@ -56,8 +56,8 @@ export const ChunkEditContentField = ({
 
       <div className="min-h-[200px]">
         {isMarkdownPreview ? (
-          <div className="scrollbar-thin h-full min-h-[200px] w-full overflow-y-auto rounded-md border border-components-input-border bg-background-subtle px-4 py-3">
-            <pre className="text-sm leading-relaxed break-words whitespace-pre-wrap text-text-secondary">
+          <div className="scrollbar-thin h-full min-h-[200px] w-full overflow-y-auto rounded-md border border-line bg-sunken px-4 py-3">
+            <pre className="text-sm leading-relaxed break-words whitespace-pre-wrap text-fg-muted">
               {editingChunkContent}
             </pre>
           </div>

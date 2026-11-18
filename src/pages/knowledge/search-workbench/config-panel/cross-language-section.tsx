@@ -19,7 +19,7 @@ export const CrossLanguageSection: React.FC<CrossLanguageSectionProps> = ({
 
   return (
     <div>
-      <label className="mb-2 block text-xs font-medium text-text-secondary">
+      <label className="mb-2 block text-xs font-medium text-fg-muted">
         {t('knowledge.search.config.crossLanguage')}
         {selectedLanguages.length > 0 && (
           <Badge variant="secondary" className="ml-2 text-xs">
@@ -37,10 +37,10 @@ export const CrossLanguageSection: React.FC<CrossLanguageSectionProps> = ({
         emptyText={t('knowledge.search.config.languageEmpty')}
         allowClear
         maxDisplayItems={100}
-        triggerClassName="min-h-10 bg-components-input-bg hover:bg-components-input-bg-hover focus-visible:border-components-input-border-focus focus-visible:bg-components-input-bg-focus focus-visible:ring-state-focus-subtle"
+        triggerClassName="min-h-10 bg-surface hover:bg-surface focus-visible:border-line-focus focus-visible:bg-surface focus-visible:ring-accent-soft"
       />
 
-      <div className="mt-1 text-xs text-text-tertiary">
+      <div className="mt-1 text-xs text-fg-subtle">
         {t('knowledge.search.config.languageHelp')}
       </div>
     </div>

@@ -155,8 +155,7 @@ export function MemoryListPage() {
                   key: 'create',
                   primary: true,
                   icon: <Layers />,
-                  iconClassName:
-                    'bg-components-avatar-8-bg text-components-avatar-8-text',
+                  iconClassName: 'bg-avatar-8-bg text-avatar-8-fg',
                   title: t('memory.page.create'),
                   description: t('memory.empty.createDescription'),
                   cta: t('memory.empty.createCta'),
@@ -165,8 +164,7 @@ export function MemoryListPage() {
                 {
                   key: 'agent',
                   icon: <Bot />,
-                  iconClassName:
-                    'bg-components-avatar-7-bg text-components-avatar-7-text',
+                  iconClassName: 'bg-avatar-7-bg text-avatar-7-fg',
                   title: t('memory.empty.agentTitle'),
                   description: t('memory.empty.agentDescription'),
                   cta: t('memory.empty.agentCta'),
@@ -231,9 +229,7 @@ export function MemoryListPage() {
           }
         }}
       >
-        <p className="font-medium break-words text-text-primary">
-          {deleting?.name}
-        </p>
+        <p className="font-medium break-words text-fg">{deleting?.name}</p>
       </ConfirmDialog>
     </>
   )

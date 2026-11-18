@@ -47,13 +47,13 @@ export const AdvancedParamsSection: React.FC<AdvancedParamsSectionProps> = ({
   }
 
   return (
-    <section className="border-t border-border-default pt-space-lg">
+    <section className="border-t border-line pt-space-lg">
       <button
         onClick={onToggle}
-        className="mb-space-base flex w-full items-center justify-between text-sm font-semibold text-text-primary"
+        className="mb-space-base flex w-full items-center justify-between text-sm font-semibold text-fg"
       >
         <span className="flex items-center gap-space-xs">
-          <SettingsIcon className="h-4 w-4 text-text-secondary" />
+          <SettingsIcon className="h-4 w-4 text-fg-muted" />
           {t('knowledge.search.config.advanced')}
         </span>
         {open ? (
@@ -67,7 +67,7 @@ export const AdvancedParamsSection: React.FC<AdvancedParamsSectionProps> = ({
         <div className="space-y-space-lg">
           <div className="grid grid-cols-2 gap-space-base">
             <div>
-              <label className="mb-1 block text-xs font-medium text-text-secondary">
+              <label className="mb-1 block text-xs font-medium text-fg-muted">
                 {t('knowledge.search.topResults')}
               </label>
               <Input
@@ -156,7 +156,7 @@ export const AdvancedParamsSection: React.FC<AdvancedParamsSectionProps> = ({
                   updateParam('use_kg', Boolean(checked))
                 }
               />
-              <span className="text-xs text-text-secondary">
+              <span className="text-xs text-fg-muted">
                 {t('knowledge.search.config.useKg')}
               </span>
             </label>
@@ -168,7 +168,7 @@ export const AdvancedParamsSection: React.FC<AdvancedParamsSectionProps> = ({
                   updateParam('highlight', Boolean(checked))
                 }
               />
-              <span className="text-xs text-text-secondary">
+              <span className="text-xs text-fg-muted">
                 {t('knowledge.search.config.highlight')}
               </span>
             </label>
@@ -180,7 +180,7 @@ export const AdvancedParamsSection: React.FC<AdvancedParamsSectionProps> = ({
                   updateParam('keyword', Boolean(checked))
                 }
               />
-              <span className="text-xs text-text-secondary">
+              <span className="text-xs text-fg-muted">
                 {t('knowledge.search.config.keyword')}
               </span>
             </label>

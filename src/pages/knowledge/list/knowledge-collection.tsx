@@ -57,13 +57,13 @@ function GroupHeading({
       data-group={groupKey}
       className={
         grid
-          ? 'flex items-center gap-space-xs px-space-md pt-space-md text-xs font-medium text-text-secondary'
-          : 'flex items-center gap-space-xs border-b border-border-subtle bg-background-subtle px-space-md py-space-xs text-xs font-medium text-text-secondary'
+          ? 'flex items-center gap-space-xs px-space-md pt-space-md text-xs font-medium text-fg-muted'
+          : 'flex items-center gap-space-xs border-b border-line-subtle bg-sunken px-space-md py-space-xs text-xs font-medium text-fg-muted'
       }
     >
       <Icon className="size-icon-xs shrink-0" aria-hidden="true" />
       {t(`knowledge.list.groups.${groupKey}`)}
-      <span className="text-text-tertiary tabular-nums">{count}</span>
+      <span className="text-fg-subtle tabular-nums">{count}</span>
     </h2>
   )
 }

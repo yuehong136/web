@@ -12,13 +12,13 @@ export const ParserConfigDetails = ({
   const { t } = useTranslation()
 
   return (
-    <div className="mt-2 space-y-3 rounded-lg border border-border-default bg-background-subtle p-3">
+    <div className="mt-2 space-y-3 rounded-lg border border-line bg-sunken p-3">
       <div className="space-y-2">
         {parserConfig.layout_recognize && (
           <ConfigRow
             label={t('knowledge.chunks.info.layoutRecognize')}
             value={
-              <span className="rounded bg-components-badge-info-bg px-2 py-0.5 text-xs text-components-badge-info-text">
+              <span className="rounded bg-info-soft px-2 py-0.5 text-xs text-info-fg">
                 {parserConfig.layout_recognize}
               </span>
             }
@@ -34,7 +34,7 @@ export const ParserConfigDetails = ({
           <ConfigRow
             label={t('knowledge.chunks.info.delimiter')}
             value={
-              <code className="rounded bg-background-subtle px-1.5 py-0.5 text-xs text-text-secondary">
+              <code className="rounded bg-sunken px-1.5 py-0.5 text-xs text-fg-muted">
                 {parserConfig.delimiter === '\n'
                   ? '\\n'
                   : parserConfig.delimiter}
@@ -76,7 +76,7 @@ export const ParserConfigDetails = ({
 
       {parserConfig.raptor?.use_raptor && (
         <ConfigSection
-          dotClassName="bg-components-badge-blue-bg"
+          dotClassName="bg-avatar-6-bg"
           title={t('knowledge.chunks.info.raptorEnhancement')}
         >
           {parserConfig.raptor.scope !== undefined && (
@@ -116,7 +116,7 @@ export const ParserConfigDetails = ({
           {parserConfig.raptor.prompt && (
             <div className="flex flex-col gap-1">
               <NestedLabel>{t('knowledge.chunks.info.prompt')}</NestedLabel>
-              <div className="scrollbar-thin max-h-20 overflow-y-auto rounded bg-background-subtle p-2 text-xs break-words whitespace-pre-wrap text-text-secondary">
+              <div className="scrollbar-thin max-h-20 overflow-y-auto rounded bg-sunken p-2 text-xs break-words whitespace-pre-wrap text-fg-muted">
                 {parserConfig.raptor.prompt}
               </div>
             </div>
@@ -126,7 +126,7 @@ export const ParserConfigDetails = ({
 
       {parserConfig.graphrag?.use_graphrag && (
         <ConfigSection
-          dotClassName="bg-components-badge-warning-bg"
+          dotClassName="bg-warning-soft"
           title={t('knowledge.chunks.info.graphRagEnhancement')}
         >
           {parserConfig.graphrag.method !== undefined && (
@@ -163,7 +163,7 @@ export const ParserConfigDetails = ({
                   (type: string, index: number) => (
                     <span
                       key={`${type}-${index}`}
-                      className="rounded bg-background-subtle px-1.5 py-0.5 text-xs text-text-secondary"
+                      className="rounded bg-sunken px-1.5 py-0.5 text-xs text-fg-muted"
                     >
                       {type}
                     </span>
@@ -185,9 +185,9 @@ interface RowProps {
 
 const ConfigRow = ({ label, value }: RowProps) => (
   <div className="flex items-center justify-between">
-    <span className="text-xs text-text-secondary">{label}</span>
+    <span className="text-xs text-fg-muted">{label}</span>
     {typeof value === 'string' || typeof value === 'number' ? (
-      <span className="text-xs font-medium text-text-primary">{value}</span>
+      <span className="text-xs font-medium text-fg">{value}</span>
     ) : (
       value
     )}
@@ -198,7 +198,7 @@ const NestedConfigRow = ({ label, value }: RowProps) => (
   <div className="flex justify-between">
     <NestedLabel>{label}</NestedLabel>
     {typeof value === 'string' || typeof value === 'number' ? (
-      <span className="text-xs text-text-secondary">{value}</span>
+      <span className="text-xs text-fg-muted">{value}</span>
     ) : (
       value
     )}
@@ -216,23 +216,23 @@ const ConfigSection = ({
   title,
   children,
 }: ConfigSectionProps) => (
-  <div className="border-t border-border-subtle pt-2">
+  <div className="border-t border-line-subtle pt-2">
     <div className="mb-2 flex items-center gap-1.5">
       <div className={cn('h-1.5 w-1.5 rounded-full', dotClassName)} />
-      <span className="text-xs font-medium text-text-primary">{title}</span>
+      <span className="text-xs font-medium text-fg">{title}</span>
     </div>
     <div className="space-y-1.5 pl-3">{children}</div>
   </div>
 )
 
 const NestedLabel = ({ children }: { children: ReactNode }) => (
-  <span className="text-xs text-text-muted">{children}</span>
+  <span className="text-xs text-fg-subtle">{children}</span>
 )
 
 const EnabledBadge = () => {
   const { t } = useTranslation()
   return (
-    <span className="rounded bg-components-badge-success-bg px-1.5 py-0.5 text-xs text-components-badge-success-text">
+    <span className="rounded bg-success-soft px-1.5 py-0.5 text-xs text-success-fg">
       {t('knowledge.chunks.info.enabled')}
     </span>
   )

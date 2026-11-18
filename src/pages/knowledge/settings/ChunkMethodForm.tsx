@@ -54,7 +54,7 @@ function EmptyConfiguration() {
   const { t } = useTranslation()
 
   return (
-    <div className="flex items-center justify-center py-8 text-text-tertiary">
+    <div className="flex items-center justify-center py-8 text-fg-subtle">
       {t('knowledge.settings.configuration.selectParser')}
     </div>
   )

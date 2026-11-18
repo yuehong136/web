@@ -78,16 +78,16 @@ function SearchTurnItem({
     : SEARCH_PHASE_TONE[turn.phase]
   return (
     <section
-      className="min-w-0 border-b border-border-subtle pb-space-lg"
+      className="min-w-0 border-b border-line-subtle pb-space-lg"
       aria-busy={turn.isStreaming || isRefining}
     >
       <div className="mb-space-base flex flex-wrap items-center justify-between gap-space-sm">
-        <div className="flex min-w-0 flex-wrap items-center gap-space-sm text-xs text-text-secondary">
-          <span className={cn('font-medium', isLatest && 'text-text-primary')}>
+        <div className="flex min-w-0 flex-wrap items-center gap-space-sm text-xs text-fg-muted">
+          <span className={cn('font-medium', isLatest && 'text-fg')}>
             {t('searchPage.workspace.round', { index: index + 1 })}
           </span>
           {isLatest && (
-            <span className="rounded-radius-full bg-state-selected-bg px-space-sm py-space-2xs text-state-selected-text">
+            <span className="rounded-radius-full bg-accent-soft px-space-sm py-space-2xs text-accent-fg">
               {t('searchPage.workspace.current')}
             </span>
           )}
@@ -130,17 +130,17 @@ function SearchTurnItem({
         onClick={onToggleExpand}
         aria-expanded={expanded}
         aria-controls={bodyId}
-        className="w-full rounded-radius-md py-space-sm text-left outline-hidden focus-visible:ring-2 focus-visible:ring-state-focus"
+        className="w-full rounded-radius-md py-space-sm text-left outline-hidden focus-visible:ring-2 focus-visible:ring-line-focus"
       >
-        <span className="block text-xs text-text-secondary">
+        <span className="block text-xs text-fg-muted">
           {t('searchPage.workspace.question')}
         </span>
-        <h3 className="mt-space-xs text-xl leading-snug font-semibold break-words text-text-primary">
+        <h3 className="mt-space-xs text-xl leading-snug font-semibold break-words text-fg">
           {turn.query}
         </h3>
       </button>
       {!expanded && (
-        <p className="mt-space-sm line-clamp-2 text-sm leading-relaxed text-text-secondary">
+        <p className="mt-space-sm line-clamp-2 text-sm leading-relaxed text-fg-muted">
           {turn.summary || t('searchPage.workspace.collapsed')}
         </p>
       )}
@@ -179,7 +179,7 @@ function SearchTurnItem({
             <div>
               {onResultSizeChange && (
                 <div className="mb-space-sm flex items-center gap-space-sm">
-                  <span className="text-sm text-text-secondary">
+                  <span className="text-sm text-fg-muted">
                     {t('searchPage.workspace.topResults')}
                   </span>
                   <Select
@@ -204,10 +204,7 @@ function SearchTurnItem({
                 </div>
               )}
               {refinementError && (
-                <p
-                  role="status"
-                  className="mb-space-sm text-sm text-status-error"
-                >
+                <p role="status" className="mb-space-sm text-sm text-danger-fg">
                   {t('searchPage.workspace.failed')}{' '}
                   <Button variant="outline" size="sm" onClick={onRetryResults}>
                     {t('common.retry')}
@@ -230,7 +227,7 @@ function SearchTurnItem({
                     ? 'searchPage.workspace.hideChunks'
                     : 'searchPage.workspace.showChunks',
                 )}
-                <span className="text-text-secondary">
+                <span className="text-fg-muted">
                   {t('searchPage.workspace.count', {
                     count: filteredChunks.length,
                   })}
@@ -257,7 +254,7 @@ function SearchTurnItem({
             {(turn.errorMessageKey || turn.errorMessage) && (
               <p
                 role="status"
-                className="rounded-radius-md border border-status-warning-subtle bg-status-warning-subtle p-space-base text-sm text-text-primary"
+                className="rounded-radius-md border border-warning-soft bg-warning-soft p-space-base text-sm text-fg"
               >
                 {turn.errorMessageKey
                   ? t(turn.errorMessageKey)

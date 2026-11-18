@@ -23,8 +23,8 @@ const FileStatusBadge: FC<FileStatusBadgeProps> = ({
   const { t } = useTranslation()
   const statusKey = status as RunningStatus
   const classes = StatusClassConfig[statusKey] || {
-    root: 'bg-background-subtle text-text-secondary',
-    dot: 'bg-text-secondary',
+    root: 'bg-sunken text-fg-muted',
+    dot: 'bg-fg-muted',
   }
   const displayName =
     name ||

@@ -56,8 +56,8 @@ function ActionButton({
         onClick={onClick}
         aria-label={label}
         className={cn(
-          'text-text-tertiary hover:text-text-primary',
-          danger && 'hover:text-status-error',
+          'text-fg-subtle hover:text-fg',
+          danger && 'hover:text-danger-fg',
         )}
       >
         {children}
@@ -109,10 +109,10 @@ export const ChunkListRow = ({
       className={cn(
         'flex flex-col gap-space-sm rounded-radius-xl border px-space-base py-space-sm transition-[border-color,background-color,box-shadow] duration-150',
         isActive
-          ? 'border-state-focus bg-state-selected-bg shadow-elevation-low'
+          ? 'border-line-focus bg-accent-soft shadow-elevation-low'
           : isSelected
-            ? 'border-state-focus-subtle bg-background-surface'
-            : 'border-border-subtle bg-background-surface hover:border-border-strong',
+            ? 'border-accent-soft bg-surface'
+            : 'border-line-subtle bg-surface hover:border-line-strong',
         !available && !isActive && 'opacity-70',
       )}
     >
@@ -125,14 +125,14 @@ export const ChunkListRow = ({
             onCheckboxChange(chunk.chunk_id, checked === true)
           }
         />
-        <span className="font-mono text-xs font-medium text-text-primary">
+        <span className="font-mono text-xs font-medium text-fg">
           #{sliceNo}
         </span>
-        <span className="min-w-0 truncate text-xs text-text-tertiary tabular-nums">
+        <span className="min-w-0 truncate text-xs text-fg-subtle tabular-nums">
           {meta.join(' · ')}
         </span>
         {isLocated ? (
-          <span className="inline-flex h-5 items-center rounded-radius-full border border-state-focus-subtle bg-state-focus-10 px-space-sm text-xs text-text-accent">
+          <span className="inline-flex h-5 items-center rounded-radius-full border border-accent-soft bg-accent-soft px-space-sm text-xs text-accent-fg">
             {t('knowledge.chunks.list.located')}
           </span>
         ) : null}
@@ -194,7 +194,7 @@ export const ChunkListRow = ({
           <button
             type="button"
             aria-label={t('knowledge.chunks.list.previewImage')}
-            className="group/thumb relative w-28 shrink-0 overflow-hidden rounded-radius-md border border-border-subtle bg-background-subtle outline-hidden focus-visible:ring-2 focus-visible:ring-state-focus"
+            className="group/thumb relative w-28 shrink-0 overflow-hidden rounded-radius-md border border-line-subtle bg-sunken outline-hidden focus-visible:ring-2 focus-visible:ring-line-focus"
             onClick={() => onPreviewImage(chunk.img_id)}
           >
             <DocumentImage
@@ -203,7 +203,7 @@ export const ChunkListRow = ({
               alt={t('knowledge.chunks.list.thumbnailAlt')}
               className="max-h-32 min-h-16 w-full object-cover"
             />
-            <span className="absolute right-space-xs bottom-space-xs flex size-5 items-center justify-center rounded-radius-sm bg-background-surface text-text-secondary shadow-elevation-low">
+            <span className="absolute right-space-xs bottom-space-xs flex size-5 items-center justify-center rounded-radius-sm bg-surface text-fg-muted shadow-elevation-low">
               <Maximize2 className="size-icon-xs" aria-hidden="true" />
             </span>
           </button>
@@ -214,7 +214,7 @@ export const ChunkListRow = ({
           aria-label={t('knowledge.chunks.list.inspectChunk', { no: sliceNo })}
           aria-pressed={isActive}
           aria-expanded={expanded}
-          className="min-w-0 flex-1 cursor-pointer rounded-radius-sm text-left text-sm leading-relaxed text-text-primary outline-hidden focus-visible:ring-2 focus-visible:ring-state-focus"
+          className="min-w-0 flex-1 cursor-pointer rounded-radius-sm text-left text-sm leading-relaxed text-fg outline-hidden focus-visible:ring-2 focus-visible:ring-line-focus"
           onClick={() => onSelectChunk(chunk)}
           onDoubleClick={() => {
             if (!isMutationPending) onEditChunk(chunk)
@@ -264,10 +264,8 @@ const KeywordChip = ({
   label: string | null
   value: string
 }) => (
-  <li className="inline-flex h-5.5 max-w-full min-w-0 items-center gap-space-xs rounded-radius-full border border-border-subtle bg-background-subtle px-space-sm text-xs text-text-secondary">
-    {label ? (
-      <span className="shrink-0 text-text-tertiary">{label}</span>
-    ) : null}
+  <li className="inline-flex h-5.5 max-w-full min-w-0 items-center gap-space-xs rounded-radius-full border border-line-subtle bg-sunken px-space-sm text-xs text-fg-muted">
+    {label ? <span className="shrink-0 text-fg-subtle">{label}</span> : null}
     <span className="truncate" title={value}>
       {value}
     </span>

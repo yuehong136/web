@@ -74,7 +74,7 @@ export function TableConfiguration() {
             </FormItem>
           )}
         />
-        <p className="text-sm text-text-secondary">
+        <p className="text-sm text-fg-muted">
           {label(mode === 'auto' ? 'autoDescription' : 'description')}
         </p>
         {mode === 'manual' &&
@@ -104,7 +104,7 @@ export function TableConfiguration() {
                           : undefined
                       }
                     >
-                      <span className="min-w-0 flex-1 text-sm break-words text-text-primary">
+                      <span className="min-w-0 flex-1 text-sm break-words text-fg">
                         {column}
                       </span>
                       <SelectWithSearch
@@ -136,9 +136,9 @@ export function TableConfiguration() {
               </div>
             </fieldset>
           ) : (
-            <p className="text-sm text-text-secondary">{label('empty')}</p>
+            <p className="text-sm text-fg-muted">{label('empty')}</p>
           ))}
-        <p className="text-sm text-text-secondary">{label('reparse')}</p>
+        <p className="text-sm text-fg-muted">{label('reparse')}</p>
       </ConfigurationFormContainer>
     </MainContainer>
   )

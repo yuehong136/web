@@ -77,7 +77,7 @@ export const ChunkMetadataModal = ({
             <X className="size-icon-sm" />
           </Button>
         </div>
-        <ModalDescription className="mb-space-lg text-sm text-text-secondary">
+        <ModalDescription className="mb-space-lg text-sm text-fg-muted">
           {t('knowledge.chunks.modal.metadataDescription')}
         </ModalDescription>
         <fieldset
@@ -89,7 +89,7 @@ export const ChunkMetadataModal = ({
             {editingMeta.map((item) => (
               <div
                 key={item.id}
-                className="flex items-center space-x-3 rounded-lg bg-background-subtle p-4"
+                className="flex items-center space-x-3 rounded-lg bg-sunken p-4"
               >
                 <div className="grid flex-1 grid-cols-2 gap-3">
                   <div>
@@ -141,7 +141,7 @@ export const ChunkMetadataModal = ({
                   variant="ghost"
                   size="icon-sm"
                   onClick={() => onRemoveMetaField(item.id)}
-                  className="text-status-error"
+                  className="text-danger-fg"
                   aria-label={t('knowledge.chunks.modal.removeMetadataField')}
                 >
                   <X className="h-4 w-4" />
@@ -150,8 +150,8 @@ export const ChunkMetadataModal = ({
             ))}
 
             {editingMeta.length === 0 && (
-              <div className="py-8 text-center text-text-tertiary">
-                <Tag className="mx-auto mb-4 h-12 w-12 text-text-muted" />
+              <div className="py-8 text-center text-fg-subtle">
+                <Tag className="mx-auto mb-4 h-12 w-12 text-fg-subtle" />
                 <p>{t('knowledge.chunks.modal.noMetadataFields')}</p>
                 <p className="text-sm">
                   {t('knowledge.chunks.modal.addFirstFieldHint')}
@@ -160,18 +160,18 @@ export const ChunkMetadataModal = ({
             )}
           </div>
 
-          <div className="border-t border-border-default pt-4">
+          <div className="border-t border-line pt-4">
             <Button
               variant="outline"
               onClick={onAddMetaField}
-              className="w-full text-text-accent"
+              className="w-full text-accent-fg"
             >
               <Plus className="mr-2 h-4 w-4" />
               {t('knowledge.chunks.modal.addMetadataField')}
             </Button>
           </div>
 
-          <div className="flex justify-end space-x-3 border-t border-border-default pt-4">
+          <div className="flex justify-end space-x-3 border-t border-line pt-4">
             <Button variant="outline" onClick={onClose} disabled={isPending}>
               {t('knowledge.chunks.modal.cancel')}
             </Button>
@@ -201,7 +201,7 @@ const FieldLabel = ({
 }) => (
   <span
     id={id}
-    className={`${compact ? 'mb-1 text-xs' : 'mb-2 text-sm'} block font-medium text-text-primary`}
+    className={`${compact ? 'mb-1 text-xs' : 'mb-2 text-sm'} block font-medium text-fg`}
   >
     {children}
   </span>

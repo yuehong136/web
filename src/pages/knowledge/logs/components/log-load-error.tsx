@@ -6,7 +6,7 @@ export function LogLoadError({ onRetry }: { onRetry: () => void }) {
   return (
     <div
       role="alert"
-      className="flex flex-wrap items-center justify-between gap-3 p-4 text-sm text-text-secondary"
+      className="flex flex-wrap items-center justify-between gap-3 p-4 text-sm text-fg-muted"
     >
       <span>{t('knowledge.logs.loadError')}</span>
       <Button variant="outline" size="sm" onClick={onRetry}>

@@ -63,10 +63,10 @@ const TaskDockComponent: React.FC<TaskDockProps> = ({
   return (
     <div
       data-slot="generate-task-dock"
-      className="shrink-0 border-b border-border-subtle px-space-md py-space-sm"
+      className="shrink-0 border-b border-line-subtle px-space-md py-space-sm"
     >
       <div className="mb-space-sm flex items-center justify-between">
-        <h4 className="text-sm font-medium text-text-primary">
+        <h4 className="text-sm font-medium text-fg">
           {t('knowledge.documents.generate.tasksTitle')}
         </h4>
         <Button

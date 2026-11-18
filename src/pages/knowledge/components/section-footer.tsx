@@ -14,7 +14,7 @@ export function SectionFooter({
   return (
     <div
       data-slot="section-footer"
-      className="flex min-h-[var(--control-height)] shrink-0 flex-wrap items-center gap-x-space-md border-t border-border-subtle py-space-2xs pr-space-sm pl-space-md text-xs text-text-tertiary"
+      className="flex min-h-[var(--control-height)] shrink-0 flex-wrap items-center gap-x-space-md border-t border-line-subtle py-space-2xs pr-space-sm pl-space-md text-xs text-fg-subtle"
     >
       {note ? <div className="min-w-0">{note}</div> : null}
       <span className="flex-1" aria-hidden="true" />

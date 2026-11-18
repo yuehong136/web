@@ -13,9 +13,9 @@ import { formatResultScore } from './utils'
 
 // Static class strings so Tailwind sees each series colour.
 const SCORE_FILL = {
-  combined: 'bg-data-viz-categorical-8',
-  vector: 'bg-data-viz-categorical-2',
-  term: 'bg-data-viz-categorical-10',
+  combined: 'bg-viz-8',
+  vector: 'bg-viz-2',
+  term: 'bg-viz-10',
 } as const
 
 /**
@@ -44,7 +44,7 @@ function ScoreBar({
       <span
         className={cn(
           'text-xs whitespace-nowrap tabular-nums',
-          score === null ? 'text-text-tertiary' : 'text-text-secondary',
+          score === null ? 'text-fg-subtle' : 'text-fg-muted',
         )}
       >
         {label} <span className="font-mono">{value}</span>
@@ -53,9 +53,7 @@ function ScoreBar({
         aria-hidden="true"
         className={cn(
           'block h-1 w-16 overflow-hidden rounded-radius-full',
-          score === null
-            ? 'border border-dashed border-border-default'
-            : 'bg-background-subtle',
+          score === null ? 'border border-dashed border-line' : 'bg-sunken',
         )}
       >
         {score === null ? null : (
@@ -94,13 +92,13 @@ export const RetrievalResultCard: React.FC<RetrievalResultCardProps> = ({
     Boolean(result.highlight && result.highlight.length > 200)
 
   return (
-    <article className="flex flex-col gap-space-sm rounded-radius-xl border border-border-subtle bg-background-surface p-space-base transition-colors hover:border-border-strong">
+    <article className="flex flex-col gap-space-sm rounded-radius-xl border border-line-subtle bg-surface p-space-base transition-colors hover:border-line-strong">
       <div className="flex flex-wrap items-start justify-between gap-space-base">
         <div className="flex min-w-0 items-center gap-space-sm">
-          <span className="flex size-7 shrink-0 items-center justify-center rounded-radius-md bg-background-subtle font-mono text-xs font-semibold text-text-primary">
+          <span className="flex size-7 shrink-0 items-center justify-center rounded-radius-md bg-sunken font-mono text-xs font-semibold text-fg">
             {order}
           </span>
-          <p className="truncate font-mono text-xs text-text-tertiary">
+          <p className="truncate font-mono text-xs text-fg-subtle">
             {t('knowledge.search.resultId', { id: result.id })}
           </p>
         </div>
@@ -126,7 +124,7 @@ export const RetrievalResultCard: React.FC<RetrievalResultCardProps> = ({
 
       <button
         type="button"
-        className="block w-full rounded-radius-md p-space-xs text-left text-sm leading-relaxed text-text-secondary outline-hidden transition-colors hover:bg-background-subtle focus-visible:ring-2 focus-visible:ring-state-focus"
+        className="block w-full rounded-radius-md p-space-xs text-left text-sm leading-relaxed text-fg-muted outline-hidden transition-colors hover:bg-sunken focus-visible:ring-2 focus-visible:ring-line-focus"
         onClick={onOpen}
       >
         <HighlightText
@@ -137,23 +135,23 @@ export const RetrievalResultCard: React.FC<RetrievalResultCardProps> = ({
           truncateLength={200}
         />
         {hasMore && (
-          <span className="mt-space-xs inline-flex text-xs font-medium text-text-accent">
+          <span className="mt-space-xs inline-flex text-xs font-medium text-accent-fg">
             {t('knowledge.search.expand')}
           </span>
         )}
       </button>
 
-      <div className="flex flex-wrap items-center justify-between gap-space-sm border-t border-border-subtle pt-space-sm">
+      <div className="flex flex-wrap items-center justify-between gap-space-sm border-t border-line-subtle pt-space-sm">
         <div className="flex min-w-0 items-center gap-space-sm">
           <FileKindTile
             name={result.doc.extension || result.doc.name}
             size="sm"
           />
           <div className="min-w-0">
-            <div className="truncate text-sm font-medium text-text-secondary">
+            <div className="truncate text-sm font-medium text-fg-muted">
               {result.doc.name}
             </div>
-            <div className="text-xs text-text-tertiary">
+            <div className="text-xs text-fg-subtle">
               {t('knowledge.search.fromDocument')}
             </div>
           </div>

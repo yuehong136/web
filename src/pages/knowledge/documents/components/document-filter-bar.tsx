@@ -118,9 +118,9 @@ export function DocumentFilterBar({
                 data-filter-key="metadata"
                 data-filter-set={metadataCount > 0 || undefined}
                 className={cn(
-                  'border border-dashed border-border-strong text-xs font-normal text-text-secondary',
+                  'border border-dashed border-line-strong text-xs font-normal text-fg-muted',
                   metadataCount > 0 &&
-                    'border-solid border-border-default bg-background-subtle text-text-primary',
+                    'border-solid border-line bg-sunken text-fg',
                 )}
               >
                 {t('knowledge.documents.filters.metadata')}

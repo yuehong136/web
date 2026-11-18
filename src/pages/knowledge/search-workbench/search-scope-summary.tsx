@@ -25,7 +25,7 @@ export function SearchScopeSummary({
   )
   return (
     <div
-      className="mt-space-sm space-y-space-xs text-xs break-words text-text-secondary"
+      className="mt-space-sm space-y-space-xs text-xs break-words text-fg-muted"
       aria-label={t('knowledge.search.scope.title')}
     >
       <p className="font-medium">{t('knowledge.search.scope.title')}</p>

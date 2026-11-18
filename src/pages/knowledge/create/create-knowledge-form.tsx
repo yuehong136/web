@@ -93,12 +93,12 @@ export const CreateKnowledgeForm: FC<CreateKnowledgeFormProps> = ({
       <div className={cn('space-y-space-lg p-space-lg', bodyClassName)}>
         <div className="space-y-space-xs">
           <div className="flex items-center gap-space-xs">
-            <Label className="text-sm font-medium text-text-primary">
+            <Label className="text-sm font-medium text-fg">
               {t('knowledge.create.fields.name')}
-              <span className="ml-space-2xs text-status-error">*</span>
+              <span className="ml-space-2xs text-danger-fg">*</span>
             </Label>
             <Tooltip content={t('knowledge.create.fields.nameTooltip')}>
-              <HelpCircle className="size-icon-sm cursor-help text-text-tertiary hover:text-text-secondary" />
+              <HelpCircle className="size-icon-sm cursor-help text-fg-subtle hover:text-fg-muted" />
             </Tooltip>
           </div>
           <Input
@@ -110,20 +110,20 @@ export const CreateKnowledgeForm: FC<CreateKnowledgeFormProps> = ({
             value={formData.name}
           />
           {nameError ? (
-            <p className="text-xs text-status-error">{nameError}</p>
+            <p className="text-xs text-danger-fg">{nameError}</p>
           ) : null}
-          <p className="text-xs text-text-tertiary">
+          <p className="text-xs text-fg-subtle">
             {t('knowledge.create.fields.nameRule')}
           </p>
         </div>
 
         <div className="space-y-space-xs">
           <div className="flex items-center gap-space-xs">
-            <Label className="text-sm font-medium text-text-primary">
+            <Label className="text-sm font-medium text-fg">
               {t('knowledge.create.fields.description')}
             </Label>
             <Tooltip content={t('knowledge.create.fields.descriptionTooltip')}>
-              <HelpCircle className="size-icon-sm cursor-help text-text-tertiary hover:text-text-secondary" />
+              <HelpCircle className="size-icon-sm cursor-help text-fg-subtle hover:text-fg-muted" />
             </Tooltip>
           </div>
           <Textarea
@@ -137,11 +137,11 @@ export const CreateKnowledgeForm: FC<CreateKnowledgeFormProps> = ({
 
         <div className="space-y-space-xs">
           <div className="flex items-center gap-space-xs">
-            <Label className="text-sm font-medium text-text-primary">
+            <Label className="text-sm font-medium text-fg">
               {t('knowledge.create.fields.language')}
             </Label>
             <Tooltip content={t('knowledge.create.fields.languageTooltip')}>
-              <HelpCircle className="size-icon-sm cursor-help text-text-tertiary hover:text-text-secondary" />
+              <HelpCircle className="size-icon-sm cursor-help text-fg-subtle hover:text-fg-muted" />
             </Tooltip>
           </div>
           <Select
@@ -174,11 +174,11 @@ export const CreateKnowledgeForm: FC<CreateKnowledgeFormProps> = ({
 
         <div className="space-y-space-xs">
           <div className="flex items-center gap-space-xs">
-            <Label className="text-sm font-medium text-text-primary">
+            <Label className="text-sm font-medium text-fg">
               {t('knowledge.create.fields.permission')}
             </Label>
             <Tooltip content={t('knowledge.create.fields.permissionTooltip')}>
-              <HelpCircle className="size-icon-sm cursor-help text-text-tertiary hover:text-text-secondary" />
+              <HelpCircle className="size-icon-sm cursor-help text-fg-subtle hover:text-fg-muted" />
             </Tooltip>
           </div>
           <Select
@@ -202,16 +202,16 @@ export const CreateKnowledgeForm: FC<CreateKnowledgeFormProps> = ({
           </Select>
         </div>
 
-        <div className="flex items-start gap-space-sm rounded-radius-xl bg-status-info-subtle p-space-base">
+        <div className="flex items-start gap-space-sm rounded-radius-xl bg-info-soft p-space-base">
           <Sparkles
-            className="size-icon-sm shrink-0 text-status-info"
+            className="size-icon-sm shrink-0 text-info-fg"
             aria-hidden="true"
           />
           <div className="space-y-space-2xs">
-            <p className="text-sm font-medium text-text-primary">
+            <p className="text-sm font-medium text-fg">
               {t('knowledge.create.tip.title')}
             </p>
-            <p className="text-sm leading-relaxed text-text-secondary">
+            <p className="text-sm leading-relaxed text-fg-muted">
               {t('knowledge.create.tip.description')}
             </p>
           </div>
@@ -220,7 +220,7 @@ export const CreateKnowledgeForm: FC<CreateKnowledgeFormProps> = ({
 
       <div
         className={cn(
-          'flex items-center justify-end gap-space-sm border-t border-border-default bg-background-subtle px-space-lg py-space-base',
+          'flex items-center justify-end gap-space-sm border-t border-line bg-sunken px-space-lg py-space-base',
           footerClassName,
         )}
       >

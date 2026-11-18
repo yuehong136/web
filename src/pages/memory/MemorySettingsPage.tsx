@@ -212,7 +212,7 @@ function MemorySettings({ memoryId }: { memoryId: string }) {
               })}
               className="mx-auto flex w-full max-w-4xl flex-col gap-space-lg px-space-md py-space-lg sm:px-space-lg"
             >
-              <p className="text-sm text-text-secondary">
+              <p className="text-sm text-fg-muted">
                 {t('memory.workspace.settingsDescription')}
               </p>
               <TabsContent value="identity" className="mt-0 space-y-space-lg">
@@ -298,7 +298,7 @@ function MemorySettings({ memoryId }: { memoryId: string }) {
                 >
                   <div className="space-y-space-lg">
                     {locked && (
-                      <p className="flex items-start gap-space-sm rounded-radius-lg border border-border-subtle bg-background-subtle p-space-base text-xs leading-relaxed text-text-secondary">
+                      <p className="flex items-start gap-space-sm rounded-radius-lg border border-line-subtle bg-sunken p-space-base text-xs leading-relaxed text-fg-muted">
                         <LockKeyhole
                           aria-hidden="true"
                           className="size-icon-sm shrink-0"
@@ -343,7 +343,7 @@ function MemorySettings({ memoryId }: { memoryId: string }) {
                         reference={config.embd_id}
                         hint={t('memory.common.notEditable')}
                       />
-                      <p className="text-xs text-text-tertiary">
+                      <p className="text-xs text-fg-subtle">
                         {t('memory.fields.embeddingModelTooltip')}
                       </p>
                     </div>
@@ -383,7 +383,7 @@ function MemorySettings({ memoryId }: { memoryId: string }) {
                   title={t('memory.workspace.policyTab')}
                 >
                   <div className="space-y-space-xl">
-                    <p className="text-sm leading-relaxed text-text-secondary">
+                    <p className="text-sm leading-relaxed text-fg-muted">
                       {t('memory.workspace.policyDescription')}
                     </p>
                     <FormField
@@ -395,7 +395,7 @@ function MemorySettings({ memoryId }: { memoryId: string }) {
                             <FormLabel>
                               {t('memory.workspace.capacity')}
                             </FormLabel>
-                            <span className="font-mono text-sm font-medium text-text-accent tabular-nums">
+                            <span className="font-mono text-sm font-medium text-accent-fg tabular-nums">
                               {formatBytes(field.value)}
                             </span>
                           </div>
@@ -445,12 +445,12 @@ function MemorySettings({ memoryId }: { memoryId: string }) {
                         </SettingField>
                       )}
                     />
-                    <div className="flex items-center justify-between gap-space-base rounded-radius-lg border border-border-subtle bg-background-subtle px-space-base py-space-sm">
+                    <div className="flex items-center justify-between gap-space-base rounded-radius-lg border border-line-subtle bg-sunken px-space-base py-space-sm">
                       <span className="flex flex-col gap-space-2xs">
-                        <span className="text-xs text-text-tertiary">
+                        <span className="text-xs text-fg-subtle">
                           {t('memory.fields.storageType')}
                         </span>
-                        <span className="text-sm text-text-primary">
+                        <span className="text-sm text-fg">
                           {t(
                             config.storage_type === 'graph'
                               ? 'memory.fields.graph'
@@ -458,7 +458,7 @@ function MemorySettings({ memoryId }: { memoryId: string }) {
                           )}
                         </span>
                       </span>
-                      <span className="flex items-center gap-space-xs text-xs text-text-tertiary">
+                      <span className="flex items-center gap-space-xs text-xs text-fg-subtle">
                         <LockKeyhole
                           aria-hidden="true"
                           className="size-icon-xs"
@@ -475,7 +475,7 @@ function MemorySettings({ memoryId }: { memoryId: string }) {
                   title={t('memory.workspace.extractionTab')}
                 >
                   <div className="space-y-space-lg">
-                    <p className="text-sm leading-relaxed text-text-secondary">
+                    <p className="text-sm leading-relaxed text-fg-muted">
                       {t('memory.workspace.extractionDescription')}
                     </p>
                     <FormField

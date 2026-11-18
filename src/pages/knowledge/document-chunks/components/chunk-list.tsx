@@ -82,7 +82,7 @@ export const ChunkList = ({
       <div
         ref={scrollRef}
         className={cn(
-          'scrollbar-thin min-h-0 flex-1 scrollbar-thumb-components-scrollbar-thumb scrollbar-track-transparent overflow-x-hidden overflow-y-auto',
+          'scrollbar-thin min-h-0 flex-1 scrollbar-thumb-line-strong scrollbar-track-transparent overflow-x-hidden overflow-y-auto',
           hasSelection && 'pb-[calc(var(--control-height)+var(--space-xl))]',
         )}
         aria-busy={loading || isRefreshing}

@@ -24,7 +24,7 @@ export function GraphToolbar({
     : t('knowledge.graph.controls.fullscreen')
 
   return (
-    <div className="absolute right-space-md bottom-space-md z-10 flex flex-col gap-space-2xs rounded-radius-lg border border-border-default bg-background-surface p-space-2xs shadow-elevation-medium">
+    <div className="absolute right-space-md bottom-space-md z-10 flex flex-col gap-space-2xs rounded-radius-lg border border-line bg-surface p-space-2xs shadow-elevation-medium">
       <Tooltip content={t('knowledge.graph.controls.zoomIn')}>
         <Button
           variant="ghost"
@@ -45,7 +45,7 @@ export function GraphToolbar({
           <ZoomOut className="size-icon-sm" />
         </Button>
       </Tooltip>
-      <div aria-hidden="true" className="mx-space-xs h-px bg-border-subtle" />
+      <div aria-hidden="true" className="mx-space-xs h-px bg-line-subtle" />
       <Tooltip content={t('knowledge.graph.controls.fitView')}>
         <Button
           variant="ghost"

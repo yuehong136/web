@@ -85,7 +85,7 @@ const PreviewContent = ({
         </div>
       )}
       {sourceUrl ? (
-        <div className="flex shrink-0 justify-end border-t border-border-subtle px-space-md py-space-xs">
+        <div className="flex shrink-0 justify-end border-t border-line-subtle px-space-md py-space-xs">
           <Button variant="link" size="sm" className="h-auto p-0" asChild>
             <a href={sourceUrl} target="_blank" rel="noopener noreferrer">
               <ExternalLink className="size-icon-sm" aria-hidden="true" />
@@ -121,7 +121,7 @@ export const ChunkSideSheet = ({
         side="right"
         showCloseButton={false}
         aria-describedby={undefined}
-        className="flex h-full w-full max-w-xl flex-col gap-0 border-border-default bg-background-surface p-0 motion-reduce:transition-none sm:w-full sm:max-w-xl"
+        className="flex h-full w-full max-w-xl flex-col gap-0 border-line bg-surface p-0 motion-reduce:transition-none sm:w-full sm:max-w-xl"
         onOpenAutoFocus={() => {
           returnFocus.current =
             document.activeElement instanceof HTMLElement
@@ -192,9 +192,9 @@ const ChunkSidePanel = ({
     <Tabs
       value={active}
       onValueChange={(value) => onTabChange(value as ChunkPanelTab)}
-      className="flex h-full min-h-0 flex-col bg-background-subtle"
+      className="flex h-full min-h-0 flex-col bg-sunken"
     >
-      <div className="flex shrink-0 items-end gap-space-sm border-b border-border-subtle pr-space-sm pl-space-md">
+      <div className="flex shrink-0 items-end gap-space-sm border-b border-line-subtle pr-space-sm pl-space-md">
         <TabsList
           aria-label={t('knowledge.chunks.workspace.panelLabel')}
           className="min-w-0 flex-1 overflow-x-auto border-b-0"
@@ -301,7 +301,7 @@ export const DocumentChunksWorkspace = ({
           </ResizablePanel>
           <ResizableHandle
             aria-label={t('knowledge.chunks.info.resizePreviewPanel')}
-            className="bg-border-subtle focus-visible:ring-state-focus"
+            className="bg-line-subtle focus-visible:ring-line-focus"
           />
           <ResizablePanel
             id="source"

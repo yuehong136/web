@@ -29,10 +29,8 @@ import { DocumentParseSteps } from './document-parse-steps'
 function Property({ label, children }: { label: string; children: ReactNode }) {
   return (
     <>
-      <dt className="min-w-0 truncate text-text-tertiary">{label}</dt>
-      <dd className="col-span-2 min-w-0 break-words text-text-primary">
-        {children}
-      </dd>
+      <dt className="min-w-0 truncate text-fg-subtle">{label}</dt>
+      <dd className="col-span-2 min-w-0 break-words text-fg">{children}</dd>
     </>
   )
 }
@@ -49,7 +47,7 @@ function Section({
   return (
     <section className="flex flex-col gap-space-sm">
       <div className="flex min-h-[var(--control-height-sm)] items-center gap-space-sm">
-        <h3 className="min-w-0 flex-1 text-xs font-medium text-text-tertiary">
+        <h3 className="min-w-0 flex-1 text-xs font-medium text-fg-subtle">
           {title}
         </h3>
         {action}
@@ -61,9 +59,9 @@ function Section({
 
 function StatTile({ label, value }: { label: string; value: ReactNode }) {
   return (
-    <div className="flex min-w-0 flex-col gap-space-2xs rounded-radius-lg bg-background-subtle p-space-sm">
-      <dt className="truncate text-xs text-text-tertiary">{label}</dt>
-      <dd className="truncate font-mono text-base font-semibold text-text-primary tabular-nums">
+    <div className="flex min-w-0 flex-col gap-space-2xs rounded-radius-lg bg-sunken p-space-sm">
+      <dt className="truncate text-xs text-fg-subtle">{label}</dt>
+      <dd className="truncate font-mono text-base font-semibold text-fg tabular-nums">
         {value}
       </dd>
     </div>
@@ -97,7 +95,7 @@ function DocumentDetails({
             document={document}
             onRetry={() => handlers.onStartParse(document)}
           />
-          <span className="truncate text-xs text-text-tertiary">
+          <span className="truncate text-xs text-fg-subtle">
             {[
               formatDocumentFileSize(document.size || 0),
               (document.suffix || document.type || '').toUpperCase(),
@@ -204,7 +202,7 @@ function DocumentDetails({
             ))}
           </dl>
         ) : (
-          <p className="text-text-tertiary">
+          <p className="text-fg-subtle">
             {t('knowledge.documents.metadataCell.notConfigured')}
           </p>
         )}
@@ -314,7 +312,7 @@ export function useDocumentInspectorPanel({
           type="button"
           variant="ghost"
           size="sm"
-          className="text-status-error"
+          className="text-danger-fg"
           onClick={() => handlers.onDelete(document)}
         >
           <Trash2 className="size-icon-sm" aria-hidden="true" />

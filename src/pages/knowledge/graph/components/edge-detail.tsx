@@ -14,21 +14,21 @@ export function EdgeDetail({ element, onNodeNavigate }: EdgeDetailProps) {
   return (
     <div className="space-y-5">
       <div className="space-y-3">
-        <div className="flex items-center gap-2 rounded-radius-lg border border-components-card-border bg-components-card-bg p-3">
+        <div className="flex items-center gap-2 rounded-radius-lg border border-line-subtle bg-raised p-3">
           {source && (
             <button
               type="button"
-              className="max-w-[100px] cursor-pointer truncate text-sm font-medium text-text-accent underline-offset-2 hover:underline"
+              className="max-w-[100px] cursor-pointer truncate text-sm font-medium text-accent-fg underline-offset-2 hover:underline"
               onClick={() => onNodeNavigate(source.id)}
             >
               {source.label}
             </button>
           )}
-          <ArrowRight className="size-4 shrink-0 text-text-muted" />
+          <ArrowRight className="size-4 shrink-0 text-fg-subtle" />
           {target && (
             <button
               type="button"
-              className="max-w-[100px] cursor-pointer truncate text-sm font-medium text-text-accent underline-offset-2 hover:underline"
+              className="max-w-[100px] cursor-pointer truncate text-sm font-medium text-accent-fg underline-offset-2 hover:underline"
               onClick={() => onNodeNavigate(target.id)}
             >
               {target.label}
@@ -39,7 +39,7 @@ export function EdgeDetail({ element, onNodeNavigate }: EdgeDetailProps) {
       </div>
 
       {data.properties?.description && (
-        <p className="text-sm leading-relaxed text-text-secondary">
+        <p className="text-sm leading-relaxed text-fg-muted">
           {data.properties.description}
         </p>
       )}

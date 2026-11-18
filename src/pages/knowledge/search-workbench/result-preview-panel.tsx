@@ -33,20 +33,20 @@ export const ResultPreview: React.FC<ResultPreviewProps> = ({
     <div className="flex flex-col gap-space-md text-sm">
       <ul
         aria-label={t('knowledge.search.scoresLabel')}
-        className="flex flex-col gap-space-2xs text-text-secondary"
+        className="flex flex-col gap-space-2xs text-fg-muted"
       >
         {scores.map((score) => (
           <li key={score.key} className="tabular-nums">
             {score.label}: {formatResultScore(result.scores[score.key], t)}
           </li>
         ))}
-        <li className="text-xs text-text-tertiary">
+        <li className="text-xs text-fg-subtle">
           {t('knowledge.search.resultId', { id: result.id })} ·{' '}
           {t('knowledge.search.charsCount', { count: result.text.length })}
         </li>
       </ul>
 
-      <div className="flex items-center gap-space-sm border-t border-border-subtle pt-space-md">
+      <div className="flex items-center gap-space-sm border-t border-line-subtle pt-space-md">
         <SegmentedControl
           aria-label={t('knowledge.search.previewMode')}
           size="sm"
@@ -63,11 +63,11 @@ export const ResultPreview: React.FC<ResultPreviewProps> = ({
       </div>
 
       {isMarkdownPreview ? (
-        <pre className="rounded-radius-md bg-background-subtle p-space-sm text-sm leading-relaxed break-words whitespace-pre-wrap text-text-secondary">
+        <pre className="rounded-radius-md bg-sunken p-space-sm text-sm leading-relaxed break-words whitespace-pre-wrap text-fg-muted">
           {result.text}
         </pre>
       ) : (
-        <div className="text-sm leading-relaxed whitespace-pre-wrap text-text-secondary">
+        <div className="text-sm leading-relaxed whitespace-pre-wrap text-fg-muted">
           <HighlightText
             html={result.highlight}
             text={result.text}

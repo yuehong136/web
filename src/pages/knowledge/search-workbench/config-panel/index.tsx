@@ -94,16 +94,16 @@ export const ConfigPanelSheet: React.FC<ConfigPanelSheetProps> = (props) => {
         }
       }}
     >
-      <div className="flex h-full w-[440px] max-w-[calc(100vw-2rem)] flex-col border-l border-border-default bg-background-surface">
-        <div className="border-b border-border-default px-space-lg py-space-base">
+      <div className="flex h-full w-[440px] max-w-[calc(100vw-2rem)] flex-col border-l border-line bg-surface">
+        <div className="border-b border-line px-space-lg py-space-base">
           <div className="flex items-start justify-between gap-space-base">
             <div className="flex items-start gap-space-sm">
-              <SettingsIcon className="mt-0.5 h-4 w-4 text-text-secondary" />
+              <SettingsIcon className="mt-0.5 h-4 w-4 text-fg-muted" />
               <div>
-                <h3 className="text-base font-semibold text-text-primary">
+                <h3 className="text-base font-semibold text-fg">
                   {t('knowledge.search.configTitle')}
                 </h3>
-                <p className="mt-space-xs text-xs text-text-tertiary">
+                <p className="mt-space-xs text-xs text-fg-subtle">
                   {t('knowledge.search.currentMode', {
                     mode: searchModeLabel,
                   })}
@@ -114,7 +114,7 @@ export const ConfigPanelSheet: React.FC<ConfigPanelSheetProps> = (props) => {
               variant="ghost"
               size="icon-sm"
               onClick={onClose}
-              className="shrink-0 text-text-tertiary hover:text-text-secondary"
+              className="shrink-0 text-fg-subtle hover:text-fg-muted"
               aria-label={t('knowledge.common.cancel')}
             >
               <X className="h-4 w-4" />
@@ -194,9 +194,9 @@ export const ConfigPanelSheet: React.FC<ConfigPanelSheetProps> = (props) => {
           )}
         </div>
 
-        <div className="border-t border-border-default bg-background-surface px-space-lg py-space-base">
+        <div className="border-t border-line bg-surface px-space-lg py-space-base">
           {metadataIssue && (
-            <p role="alert" className="mb-space-sm text-sm text-status-error">
+            <p role="alert" className="mb-space-sm text-sm text-danger-fg">
               {t(`knowledge.search.metadataFilter.validation.${metadataIssue}`)}
             </p>
           )}

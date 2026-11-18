@@ -59,25 +59,23 @@ function DataSourceItemCard({
   const { t } = useTranslation()
   const { dataSourceInfo } = useDataSourceInfo()
   const sourceInfo = dataSourceInfo[item.source as DataSourceKey] || {
-    icon: <Database className="h-5 w-5 text-text-tertiary" />,
+    icon: <Database className="h-5 w-5 text-fg-subtle" />,
     name: item.source,
   }
 
   return (
-    <div className="group flex h-12 items-center justify-between gap-2 rounded-lg border border-border px-3 transition-colors hover:bg-surface-secondary">
+    <div className="group flex h-12 items-center justify-between gap-2 rounded-lg border border-border px-3 transition-colors hover:bg-sunken">
       <div className="flex items-center gap-2">
         <div className="flex h-6 w-6 shrink-0 items-center justify-center">
           {sourceInfo.icon}
         </div>
-        <div className="text-sm font-medium text-text-primary">
-          {sourceInfo.name}
-        </div>
-        <div className="text-sm text-text-secondary">{item.name}</div>
+        <div className="text-sm font-medium text-fg">{sourceInfo.name}</div>
+        <div className="text-sm text-fg-muted">{item.name}</div>
       </div>
       <div className="flex items-center gap-1">
         {/* 自动解析开关 */}
         <div className="mr-3 hidden items-center gap-2 group-hover:flex">
-          <span className="text-xs text-text-tertiary">
+          <span className="text-xs text-fg-subtle">
             {t('datasource.autoParse')}
           </span>
           <Switch
@@ -117,7 +115,7 @@ function DataSourceItemCard({
             variant="ghost"
             size="sm"
             type="button"
-            className="hidden h-8 w-8 p-0 text-status-error group-hover:flex hover:text-status-error"
+            className="hidden h-8 w-8 p-0 text-danger-fg group-hover:flex hover:text-danger-fg"
             onClick={onUnbind}
           >
             <Unlink className="h-4 w-4" />
@@ -174,14 +172,14 @@ function LinkDataSourceModal({
         <div className="max-h-[320px] space-y-3 overflow-y-auto px-6 py-4">
           {isFetching ? (
             <div className="flex items-center justify-center py-10">
-              <Loader2 className="h-6 w-6 animate-spin text-text-tertiary" />
+              <Loader2 className="h-6 w-6 animate-spin text-fg-subtle" />
             </div>
           ) : availableSources.length > 0 ? (
             availableSources.map((source) => {
               const sourceInfo = dataSourceInfo[
                 source.source as DataSourceKey
               ] || {
-                icon: <Database className="h-5 w-5 text-text-tertiary" />,
+                icon: <Database className="h-5 w-5 text-fg-subtle" />,
                 name: source.source,
               }
               const isSelected = selected === source.id
@@ -191,20 +189,20 @@ function LinkDataSourceModal({
                   className={cn(
                     'flex cursor-pointer items-center justify-between rounded-xl border-2 px-4 py-3 transition-all',
                     isSelected
-                      ? 'border-border-accent bg-state-selected-bg'
-                      : 'border-border hover:border-border-hover hover:bg-surface-secondary',
+                      ? 'border-line-focus bg-accent-soft'
+                      : 'border-border hover:border-line-strong hover:bg-sunken',
                   )}
                   onClick={() => setSelected(source.id)}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-surface-secondary">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sunken">
                       {sourceInfo.icon}
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-sm font-medium text-text-primary">
+                      <span className="text-sm font-medium text-fg">
                         {sourceInfo.name}
                       </span>
-                      <span className="text-xs text-text-tertiary">
+                      <span className="text-xs text-fg-subtle">
                         {source.name}
                       </span>
                     </div>
@@ -213,12 +211,12 @@ function LinkDataSourceModal({
                     className={cn(
                       'flex h-5 w-5 items-center justify-center rounded-full border-2 transition-all',
                       isSelected
-                        ? 'border-border-accent bg-surface-accent'
+                        ? 'border-line-focus bg-accent-solid'
                         : 'border-border',
                     )}
                   >
                     {isSelected && (
-                      <div className="h-2 w-2 rounded-full bg-background-surface" />
+                      <div className="h-2 w-2 rounded-full bg-surface" />
                     )}
                   </div>
                 </div>
@@ -227,13 +225,13 @@ function LinkDataSourceModal({
           ) : (
             <div className="py-space-2xl text-center">
               <Database
-                className="mx-auto mb-space-base size-icon-xl text-text-tertiary"
+                className="mx-auto mb-space-base size-icon-xl text-fg-subtle"
                 aria-hidden="true"
               />
-              <p className="text-sm font-medium text-text-secondary">
+              <p className="text-sm font-medium text-fg-muted">
                 {t('datasource.noAvailableSources')}
               </p>
-              <p className="mt-1 text-xs text-text-tertiary">
+              <p className="mt-1 text-xs text-fg-subtle">
                 {t('datasource.configureSourcesFirst')}
               </p>
             </div>
@@ -312,10 +310,10 @@ export function LinkDataSource({ kbId, className }: LinkDataSourceProps) {
       {/* 标题和链接按钮 */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-base font-medium text-text-primary">
+          <h3 className="text-base font-medium text-fg">
             {t('datasource.dataSources')}
           </h3>
-          <p className="mt-0.5 text-xs text-text-tertiary">
+          <p className="mt-0.5 text-xs text-fg-subtle">
             {t('datasource.manageLinkedSources')}
           </p>
         </div>
@@ -334,7 +332,7 @@ export function LinkDataSource({ kbId, className }: LinkDataSourceProps) {
       {/* 已链接的数据源列表 */}
       {isFetching ? (
         <div className="flex items-center justify-center py-8">
-          <Loader2 className="h-6 w-6 animate-spin text-text-tertiary" />
+          <Loader2 className="h-6 w-6 animate-spin text-fg-subtle" />
         </div>
       ) : linkedSources.length > 0 ? (
         <div className="space-y-2">
@@ -351,11 +349,11 @@ export function LinkDataSource({ kbId, className }: LinkDataSourceProps) {
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-8">
-          <Database className="mb-2 h-10 w-10 text-text-tertiary" />
-          <p className="text-sm text-text-tertiary">
+          <Database className="mb-2 h-10 w-10 text-fg-subtle" />
+          <p className="text-sm text-fg-subtle">
             {t('datasource.noLinkedSources')}
           </p>
-          <p className="mt-1 text-xs text-text-tertiary">
+          <p className="mt-1 text-xs text-fg-subtle">
             {t('datasource.linkSourcesTip')}
           </p>
         </div>

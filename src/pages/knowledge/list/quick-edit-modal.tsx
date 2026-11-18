@@ -78,9 +78,9 @@ export const KnowledgeQuickEditDialog: FC<KnowledgeEditDialogProps> = ({
         <DialogBody>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <div className="mb-2 block text-sm font-medium text-text-secondary">
+              <div className="mb-2 block text-sm font-medium text-fg-muted">
                 {t('knowledge.list.quickEdit.fields.name')}
-                <span className="ml-1 text-status-error">*</span>
+                <span className="ml-1 text-danger-fg">*</span>
               </div>
               <Input
                 id="knowledge-quick-edit-name"
@@ -92,13 +92,13 @@ export const KnowledgeQuickEditDialog: FC<KnowledgeEditDialogProps> = ({
                 title={t('knowledge.list.quickEdit.fields.nameTooltip')}
                 required
               />
-              <p className="mt-1 text-sm text-text-tertiary">
+              <p className="mt-1 text-sm text-fg-subtle">
                 {t('knowledge.list.quickEdit.fields.nameRule')}
               </p>
             </div>
 
             <div>
-              <div className="mb-2 block text-sm font-medium text-text-secondary">
+              <div className="mb-2 block text-sm font-medium text-fg-muted">
                 {t('knowledge.list.quickEdit.fields.description')}
               </div>
               <Textarea

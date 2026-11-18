@@ -38,7 +38,7 @@ function DocumentSubline({ docInfo }: { docInfo: ChunkListDocument }) {
   const { t } = useTranslation()
   const parser = useDocumentParserLabel(docInfo)
   return (
-    <span className="inline-flex flex-wrap items-center gap-x-space-sm gap-y-space-2xs text-xs text-text-tertiary">
+    <span className="inline-flex flex-wrap items-center gap-x-space-sm gap-y-space-2xs text-xs text-fg-subtle">
       <span className="tabular-nums">
         {t('knowledge.chunks.toolbar.totalChunks', {
           count: docInfo.chunk_num || 0,

@@ -130,7 +130,7 @@ export function MemoryIdentityMeta({ memory }: { memory?: Memory }) {
   return (
     <p
       data-slot="memory-identity-meta"
-      className="flex min-w-0 items-center gap-space-xs text-xs text-text-tertiary"
+      className="flex min-w-0 items-center gap-space-xs text-xs text-fg-subtle"
     >
       {parts.map((part, index) => (
         <Fragment key={part.key}>
@@ -158,28 +158,28 @@ export function MemoryModelRow({
   return (
     <div
       data-slot="memory-model-row"
-      className="flex min-w-0 items-center gap-space-sm rounded-radius-lg border border-border-subtle bg-background-subtle px-space-sm py-space-xs"
+      className="flex min-w-0 items-center gap-space-sm rounded-radius-lg border border-line-subtle bg-sunken px-space-sm py-space-xs"
     >
       {identity.provider ? (
         <ProviderLogo provider={identity.provider} size="md" />
       ) : (
-        <span className="flex size-7 shrink-0 items-center justify-center rounded-radius-md bg-background-surface text-text-tertiary ring-1 ring-border-subtle ring-inset">
+        <span className="flex size-7 shrink-0 items-center justify-center rounded-radius-md bg-surface text-fg-subtle ring-1 ring-line-subtle ring-inset">
           <Cpu aria-hidden="true" className="size-icon-sm" />
         </span>
       )}
       <span className="flex min-w-0 flex-1 flex-col">
-        <span className="truncate text-sm font-medium text-text-primary">
+        <span className="truncate text-sm font-medium text-fg">
           {reference
             ? (identity.label ?? t('common.modelPicker.savedModel'))
             : t('memory.detail.noModel')}
         </span>
         {reference ? (
-          <span className="truncate font-mono text-xs text-text-tertiary">
+          <span className="truncate font-mono text-xs text-fg-subtle">
             {reference}
           </span>
         ) : null}
       </span>
-      <span className="flex shrink-0 items-center gap-space-xs text-xs text-text-tertiary">
+      <span className="flex shrink-0 items-center gap-space-xs text-xs text-fg-subtle">
         <LockKeyhole aria-hidden="true" className="size-icon-xs" />
         <span className="hidden sm:inline">{hint}</span>
         <span className="sr-only sm:hidden">{hint}</span>

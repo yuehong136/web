@@ -69,9 +69,9 @@ const GenerateButtonComponent: React.FC<GenerateButtonProps> = ({
     raptorStatus === GenerateTaskStatus.Failed
 
   const dotClass = useMemo(() => {
-    if (hasRunning) return 'bg-state-focus animate-pulse'
-    if (hasFailed) return 'bg-status-error'
-    if (hasCompleted) return 'bg-status-success'
+    if (hasRunning) return 'bg-line-focus animate-pulse'
+    if (hasFailed) return 'bg-danger-fg'
+    if (hasCompleted) return 'bg-success-fg'
     return null
   }, [hasRunning, hasFailed, hasCompleted])
 
@@ -98,7 +98,7 @@ const GenerateButtonComponent: React.FC<GenerateButtonProps> = ({
               <span
                 aria-hidden="true"
                 className={cn(
-                  'absolute -top-1 -right-1 size-2.5 rounded-radius-full border-2 border-background-surface',
+                  'absolute -top-1 -right-1 size-2.5 rounded-radius-full border-2 border-surface',
                   dotClass,
                 )}
               />

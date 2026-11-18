@@ -46,7 +46,7 @@ export function LogTable({
   const head = 'h-auto px-space-base py-space-xs whitespace-nowrap'
   return (
     <Table aria-label={t(`knowledge.logs.tabs.${activeTab}`)}>
-      <TableHeader className="sticky top-0 z-10 bg-background-surface">
+      <TableHeader className="sticky top-0 z-10 bg-surface">
         <TableRow className="hover:bg-transparent">
           <TableHead className={cn(head, 'pl-space-md')}>
             {t('knowledge.logs.table.id')}

@@ -27,13 +27,13 @@ export function DocFilterPanel({
   const { t } = useTranslation()
   if (!options.length && !selectedDocIds.length) return null
   return (
-    <div className="mt-space-base border-t border-border-default pt-space-base">
+    <div className="mt-space-base border-t border-line pt-space-base">
       <div className="flex flex-wrap items-center justify-between gap-space-sm">
         <button
           onClick={onToggle}
           aria-expanded={open}
           aria-controls="search-document-options"
-          className="flex items-center gap-space-xs text-sm font-medium text-text-secondary hover:text-text-primary"
+          className="flex items-center gap-space-xs text-sm font-medium text-fg-muted hover:text-fg"
         >
           <FileText className="size-icon-sm" />
           <span>{t('knowledge.search.docFilter')}</span>
@@ -64,7 +64,7 @@ export function DocFilterPanel({
           id="search-document-options"
           className="mt-space-sm space-y-space-sm"
         >
-          <p className="text-xs text-text-tertiary">
+          <p className="text-xs text-fg-subtle">
             {t('knowledge.search.scope.documentHelp')}
           </p>
           <div className="flex flex-wrap gap-space-xs">
@@ -72,7 +72,7 @@ export function DocFilterPanel({
               <label
                 key={doc.doc_id}
                 htmlFor={`search-document-${doc.doc_id}`}
-                className="flex cursor-pointer items-center gap-space-xs rounded-radius-full border border-border-default bg-background-subtle px-space-sm py-space-xs hover:bg-components-card-bg-hover"
+                className="flex cursor-pointer items-center gap-space-xs rounded-radius-full border border-line bg-sunken px-space-sm py-space-xs hover:bg-raised-hover"
               >
                 <Checkbox
                   id={`search-document-${doc.doc_id}`}
@@ -81,7 +81,7 @@ export function DocFilterPanel({
                     onDocFilter(doc.doc_id, checked === true)
                   }
                 />
-                <span className="max-w-xs truncate text-sm text-text-secondary">
+                <span className="max-w-xs truncate text-sm text-fg-muted">
                   {doc.doc_name}
                 </span>
               </label>

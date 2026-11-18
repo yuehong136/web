@@ -44,28 +44,28 @@ export const ProcessingTypeI18nKey: Record<ProcessingType, string> = {
 
 export const StatusClassConfig = {
   [RunningStatus.DONE]: {
-    root: 'bg-status-success-subtle text-status-success',
-    dot: 'bg-status-success',
+    root: 'bg-success-soft text-success-fg',
+    dot: 'bg-success-fg',
   },
   [RunningStatus.FAIL]: {
-    root: 'bg-status-error-subtle text-status-error',
-    dot: 'bg-status-error',
+    root: 'bg-danger-soft text-danger-fg',
+    dot: 'bg-danger-fg',
   },
   [RunningStatus.RUNNING]: {
-    root: 'bg-status-info-subtle text-status-info',
-    dot: 'bg-status-info',
+    root: 'bg-info-soft text-info-fg',
+    dot: 'bg-info-fg',
   },
   [RunningStatus.UNSTART]: {
-    root: 'bg-status-warning-subtle text-status-warning',
-    dot: 'bg-status-warning',
+    root: 'bg-warning-soft text-warning-fg',
+    dot: 'bg-warning-fg',
   },
   [RunningStatus.CANCEL]: {
-    root: 'bg-background-subtle text-text-tertiary',
-    dot: 'bg-text-tertiary',
+    root: 'bg-sunken text-fg-subtle',
+    dot: 'bg-fg-subtle',
   },
   [RunningStatus.SCHEDULE]: {
-    root: 'bg-status-info-subtle text-status-info',
-    dot: 'bg-status-info',
+    root: 'bg-info-soft text-info-fg',
+    dot: 'bg-info-fg',
   },
 } as const
 

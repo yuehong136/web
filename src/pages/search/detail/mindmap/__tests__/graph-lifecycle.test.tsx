@@ -249,10 +249,10 @@ it('reports a current asynchronous command failure rather than swallowing it', a
 it('draws badge ink from the theme tokens and redraws it when the theme changes', async () => {
   await render()
   const light = state.graphs[0]!.options.node.style.badgeTextFill
-  expect(light).toBe(getTokenValue('text-inverted', 'light', 'ink'))
+  expect(light).toBe(getTokenValue('fg-inverse', 'light', 'ink'))
   await changeAppearance('dark', 'ink')
   const dark = state.graphs.at(-1)!.options.node.style.badgeTextFill
-  expect(dark).toBe(getTokenValue('text-inverted', 'dark', 'ink'))
+  expect(dark).toBe(getTokenValue('fg-inverse', 'dark', 'ink'))
   // Dark-mode palette colours are light, so the ink must not stay white.
   expect(dark).not.toBe(light)
 })

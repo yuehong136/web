@@ -142,7 +142,7 @@ const CreateSearchDialog: React.FC<CreateSearchDialogProps> = ({
           {/* Name */}
           <div className="space-y-2">
             <Label>
-              名称 <span className="text-status-error">*</span>
+              名称 <span className="text-danger-fg">*</span>
             </Label>
             <Input
               value={name}
@@ -154,9 +154,7 @@ const CreateSearchDialog: React.FC<CreateSearchDialogProps> = ({
               variant={nameError ? 'destructive' : 'default'}
               aria-invalid={!!nameError}
             />
-            {nameError && (
-              <p className="text-xs text-status-error">{nameError}</p>
-            )}
+            {nameError && <p className="text-xs text-danger-fg">{nameError}</p>}
           </div>
 
           {/* Description */}
@@ -173,7 +171,7 @@ const CreateSearchDialog: React.FC<CreateSearchDialogProps> = ({
           {/* Knowledge Base Selection */}
           <div className="space-y-2">
             <Label>
-              知识库 <span className="text-status-error">*</span>
+              知识库 <span className="text-danger-fg">*</span>
             </Label>
             <MultiSelectWithSearch
               options={[{ label: '知识库', options: kbOptions }]}
@@ -182,7 +180,7 @@ const CreateSearchDialog: React.FC<CreateSearchDialogProps> = ({
               placeholder="选择关联的知识库"
               emptyText="暂无知识库"
             />
-            <p className="text-xs text-text-tertiary">
+            <p className="text-xs text-fg-subtle">
               选择要搜索的知识库，支持多选
             </p>
           </div>

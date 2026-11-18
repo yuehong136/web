@@ -10,9 +10,9 @@ import type { ChunkResult } from '@/types/search'
 
 // Same series colours as the knowledge retrieval test; static for Tailwind.
 const SCORE_FILL = {
-  combined: 'bg-data-viz-categorical-8',
-  vector: 'bg-data-viz-categorical-2',
-  term: 'bg-data-viz-categorical-10',
+  combined: 'bg-viz-8',
+  vector: 'bg-viz-2',
+  term: 'bg-viz-10',
 } as const
 
 type ScoreSeries = keyof typeof SCORE_FILL
@@ -46,7 +46,7 @@ function ScoreBar({
       <span
         className={cn(
           'text-xs whitespace-nowrap tabular-nums',
-          score === null ? 'text-text-tertiary' : 'text-text-secondary',
+          score === null ? 'text-fg-subtle' : 'text-fg-muted',
         )}
       >
         {label} <span className="font-mono">{value}</span>
@@ -55,9 +55,7 @@ function ScoreBar({
         aria-hidden="true"
         className={cn(
           'block h-1 w-16 overflow-hidden rounded-radius-full',
-          score === null
-            ? 'border border-dashed border-border-default'
-            : 'bg-background-subtle',
+          score === null ? 'border border-dashed border-line' : 'bg-sunken',
         )}
       >
         {score === null ? null : (

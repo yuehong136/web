@@ -65,7 +65,7 @@ export const BulkActionToolbar: FC<BulkActionToolbarProps> = ({
         type="button"
         variant="ghost"
         size="sm"
-        className="text-status-error"
+        className="text-danger-fg"
         onClick={onDelete}
         disabled={isLoading}
       >

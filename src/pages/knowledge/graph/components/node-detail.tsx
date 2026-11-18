@@ -30,7 +30,7 @@ export function NodeDetail({ element, onNodeNavigate }: NodeDetailProps) {
             className="size-3 shrink-0 rounded-radius-full"
             style={getNodeColorStyle(color)}
           />
-          <h3 className="text-base leading-tight font-semibold break-all text-text-primary">
+          <h3 className="text-base leading-tight font-semibold break-all text-fg">
             {data.label}
           </h3>
         </div>
@@ -38,7 +38,7 @@ export function NodeDetail({ element, onNodeNavigate }: NodeDetailProps) {
       </div>
 
       {data.properties?.description && (
-        <p className="text-sm leading-relaxed text-text-secondary">
+        <p className="text-sm leading-relaxed text-fg-muted">
           {data.properties.description}
         </p>
       )}
@@ -47,17 +47,17 @@ export function NodeDetail({ element, onNodeNavigate }: NodeDetailProps) {
 
       {edges.length > 0 && (
         <div className="space-y-2">
-          <h4 className="text-xs font-semibold tracking-wider text-text-muted uppercase">
+          <h4 className="text-xs font-semibold tracking-wider text-fg-subtle uppercase">
             {t('knowledge.graph.panel.relations', { count: edges.length })}
           </h4>
           <div className="space-y-1">
             {edges.map((edge) => (
               <div
                 key={edge.id}
-                className="flex items-center gap-1.5 rounded-radius-md border border-components-card-border bg-components-card-bg px-2 py-1.5 text-xs"
+                className="flex items-center gap-1.5 rounded-radius-md border border-line-subtle bg-raised px-2 py-1.5 text-xs"
               >
-                <Link2 className="size-3 shrink-0 text-text-muted" />
-                <span className="truncate text-text-secondary">
+                <Link2 className="size-3 shrink-0 text-fg-subtle" />
+                <span className="truncate text-fg-muted">
                   {edge.label || edge.id}
                 </span>
               </div>
@@ -68,7 +68,7 @@ export function NodeDetail({ element, onNodeNavigate }: NodeDetailProps) {
 
       {neighbors.length > 0 && (
         <div className="space-y-2">
-          <h4 className="text-xs font-semibold tracking-wider text-text-muted uppercase">
+          <h4 className="text-xs font-semibold tracking-wider text-fg-subtle uppercase">
             {t('knowledge.graph.panel.neighbors', {
               count: neighbors.length,
             })}
@@ -78,7 +78,7 @@ export function NodeDetail({ element, onNodeNavigate }: NodeDetailProps) {
               <button
                 key={node.id}
                 type="button"
-                className="flex w-full cursor-pointer items-center gap-2 rounded-radius-lg border border-components-card-border bg-components-card-bg px-2.5 py-2 text-left text-sm transition-colors hover:bg-components-card-bg-hover"
+                className="flex w-full cursor-pointer items-center gap-2 rounded-radius-lg border border-line-subtle bg-raised px-2.5 py-2 text-left text-sm transition-colors hover:bg-raised-hover"
                 onClick={() => onNodeNavigate(node.id)}
               >
                 <Circle
@@ -87,9 +87,9 @@ export function NodeDetail({ element, onNodeNavigate }: NodeDetailProps) {
                     getTypeColor(node.type || 'default', theme),
                   )}
                 />
-                <span className="truncate text-text-primary">{node.label}</span>
+                <span className="truncate text-fg">{node.label}</span>
                 {node.type && (
-                  <span className="ml-auto shrink-0 text-xs text-text-muted">
+                  <span className="ml-auto shrink-0 text-xs text-fg-subtle">
                     {node.type}
                   </span>
                 )}

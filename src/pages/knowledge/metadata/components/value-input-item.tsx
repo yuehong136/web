@@ -38,7 +38,7 @@ export const ValueInputItem = memo(function ValueInputItem({
         size="sm"
         onClick={() => onDelete(index)}
         disabled={disabled}
-        className="h-9 w-9 shrink-0 p-0 hover:bg-status-error-subtle hover:text-status-error"
+        className="h-9 w-9 shrink-0 p-0 hover:bg-danger-soft hover:text-danger-fg"
       >
         <Trash2 className="h-4 w-4" />
       </Button>

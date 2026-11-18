@@ -15,8 +15,8 @@ interface LogDetailBodyProps {
 function Property({ label, children }: { label: string; children: ReactNode }) {
   return (
     <>
-      <dt className="min-w-0 truncate text-text-tertiary">{label}</dt>
-      <dd className="col-span-2 min-w-0 break-words text-text-primary">
+      <dt className="min-w-0 truncate text-fg-subtle">{label}</dt>
+      <dd className="col-span-2 min-w-0 break-words text-fg">
         {children || '-'}
       </dd>
     </>
@@ -91,7 +91,7 @@ export function LogDetailBody({ logInfo, activeTab }: LogDetailBodyProps) {
         </Property>
         {displayInfo.taskId ? (
           <Property label={t('knowledge.logs.detail.taskId')}>
-            <code className="font-mono text-xs break-all text-text-secondary">
+            <code className="font-mono text-xs break-all text-fg-muted">
               {displayInfo.taskId}
             </code>
           </Property>
@@ -99,11 +99,11 @@ export function LogDetailBody({ logInfo, activeTab }: LogDetailBodyProps) {
       </dl>
 
       {displayInfo.details ? (
-        <section className="border-t border-border-subtle pt-space-md">
-          <h3 className="mb-space-sm text-sm font-semibold text-text-primary">
+        <section className="border-t border-line-subtle pt-space-md">
+          <h3 className="mb-space-sm text-sm font-semibold text-fg">
             {t('knowledge.logs.detail.details')}
           </h3>
-          <pre className="max-h-96 overflow-y-auto rounded-radius-md bg-background-subtle p-space-sm font-mono text-xs leading-relaxed break-words whitespace-pre-wrap text-text-secondary">
+          <pre className="max-h-96 overflow-y-auto rounded-radius-md bg-sunken p-space-sm font-mono text-xs leading-relaxed break-words whitespace-pre-wrap text-fg-muted">
             {highlightLogText(displayInfo.details)}
           </pre>
         </section>
@@ -118,19 +118,19 @@ function highlightLogText(text: string): ReactNode {
   return cleanText.split(logPattern).map((part, index) => {
     if (part.includes('[ERROR]'))
       return (
-        <span key={index} className="font-medium text-status-error">
+        <span key={index} className="font-medium text-danger-fg">
           {part}
         </span>
       )
     if (part.includes('[WARNING]'))
       return (
-        <span key={index} className="text-status-warning">
+        <span key={index} className="text-warning-fg">
           {part}
         </span>
       )
     if (part.includes('[INFO]'))
       return (
-        <span key={index} className="text-status-info">
+        <span key={index} className="text-info-fg">
           {part}
         </span>
       )

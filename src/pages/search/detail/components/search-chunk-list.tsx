@@ -6,6 +6,7 @@ import { ChevronDown, ChevronUp, Layers, PanelRight } from 'lucide-react'
 import { FileKindTile } from '@/components/patterns/file-kind-tile'
 import { Button } from '@/components/ui/button'
 import { SafeHtml } from '@/components/ui/safe-html'
+import { cn } from '@/lib/utils'
 import type { ChunkResult } from '@/types/search'
 import { SearchScoreBars } from './search-score-bars'
 
@@ -32,6 +33,10 @@ const CHUNK_HIGHLIGHT_PURIFY_OPTIONS: Config = {
   ALLOWED_ATTR: ['class'],
 }
 
+// Retrieval hits arrive as <em>/<mark>; render them as highlighter marks.
+const HIT_MARKS =
+  '[&_:is(em,mark)]:rounded-radius-sm [&_:is(em,mark)]:bg-highlight-bg [&_:is(em,mark)]:px-space-2xs [&_:is(em,mark)]:font-medium [&_:is(em,mark)]:text-highlight-fg [&_:is(em,mark)]:not-italic'
+
 /** One retrieved passage: rank, scores, the matched text and its file. */
 const SearchChunkCard: FC<{
   chunk: ChunkResult
@@ -48,15 +53,15 @@ const SearchChunkCard: FC<{
     chunk.docnm_kwd || t('searchPage.workspace.mapUntitledDocument')
 
   return (
-    <article className="flex flex-col gap-space-sm rounded-radius-xl border border-border-subtle bg-background-surface p-space-base transition-colors hover:border-border-strong">
+    <article className="flex flex-col gap-space-sm rounded-radius-xl border border-line-subtle bg-surface p-space-base transition-colors hover:border-line-strong">
       <div className="flex flex-wrap items-start justify-between gap-space-base">
         <div className="flex min-w-0 items-center gap-space-sm">
-          <span className="flex size-7 shrink-0 items-center justify-center rounded-radius-md bg-background-subtle font-mono text-xs font-semibold text-text-primary">
+          <span className="flex size-7 shrink-0 items-center justify-center rounded-radius-md bg-sunken font-mono text-xs font-semibold text-fg">
             {index + 1}
           </span>
           <FileKindTile name={documentName} size="sm" />
           <span
-            className="min-w-0 truncate text-sm font-medium text-text-primary"
+            className="min-w-0 truncate text-sm font-medium text-fg"
             title={documentName}
           >
             {documentName}
@@ -68,21 +73,24 @@ const SearchChunkCard: FC<{
       <SafeHtml
         className={
           !expanded && longContent
-            ? 'line-clamp-5 text-sm leading-relaxed text-text-secondary'
-            : 'text-sm leading-relaxed text-text-secondary'
+            ? cn(
+                'line-clamp-5 text-sm leading-relaxed text-fg-muted',
+                HIT_MARKS,
+              )
+            : cn('text-sm leading-relaxed text-fg-muted', HIT_MARKS)
         }
         html={rawContent}
         options={CHUNK_HIGHLIGHT_PURIFY_OPTIONS}
       />
 
       <ReferenceMetadataBadges metadata={chunk.document_metadata} />
-      <div className="flex flex-wrap items-center justify-between gap-space-sm border-t border-border-subtle pt-space-sm">
+      <div className="flex flex-wrap items-center justify-between gap-space-sm border-t border-line-subtle pt-space-sm">
         {longContent ? (
           <button
             type="button"
             onClick={() => setExpanded((prev) => !prev)}
             aria-expanded={expanded}
-            className="inline-flex items-center gap-space-2xs rounded-radius-sm text-xs text-text-accent outline-hidden hover:underline focus-visible:ring-2 focus-visible:ring-state-focus"
+            className="inline-flex items-center gap-space-2xs rounded-radius-sm text-xs text-accent-fg outline-hidden hover:underline focus-visible:ring-2 focus-visible:ring-line-focus"
           >
             {t(
               expanded
@@ -122,15 +130,15 @@ const SearchChunkList: FC<SearchChunkListProps> = ({
         {Array.from({ length: 3 }).map((_, index) => (
           <div
             key={index}
-            className="flex flex-col gap-space-sm rounded-radius-xl border border-border-subtle bg-background-surface p-space-base"
+            className="flex flex-col gap-space-sm rounded-radius-xl border border-line-subtle bg-surface p-space-base"
           >
             <div className="flex items-center gap-space-sm">
-              <div className="size-7 animate-pulse rounded-radius-md bg-background-subtle motion-reduce:animate-none" />
-              <div className="h-4 w-1/3 animate-pulse rounded-radius-md bg-background-subtle motion-reduce:animate-none" />
+              <div className="size-7 animate-pulse rounded-radius-md bg-sunken motion-reduce:animate-none" />
+              <div className="h-4 w-1/3 animate-pulse rounded-radius-md bg-sunken motion-reduce:animate-none" />
             </div>
-            <div className="h-3 w-full animate-pulse rounded-radius-md bg-background-subtle motion-reduce:animate-none" />
-            <div className="h-3 w-5/6 animate-pulse rounded-radius-md bg-background-subtle motion-reduce:animate-none" />
-            <div className="h-3 w-3/4 animate-pulse rounded-radius-md bg-background-subtle motion-reduce:animate-none" />
+            <div className="h-3 w-full animate-pulse rounded-radius-md bg-sunken motion-reduce:animate-none" />
+            <div className="h-3 w-5/6 animate-pulse rounded-radius-md bg-sunken motion-reduce:animate-none" />
+            <div className="h-3 w-3/4 animate-pulse rounded-radius-md bg-sunken motion-reduce:animate-none" />
           </div>
         ))}
       </div>
@@ -139,7 +147,7 @@ const SearchChunkList: FC<SearchChunkListProps> = ({
 
   if (!chunks.length) {
     return (
-      <p className="rounded-radius-xl border border-dashed border-border-default bg-background-subtle p-space-base text-sm text-text-secondary">
+      <p className="rounded-radius-xl border border-dashed border-line bg-sunken p-space-base text-sm text-fg-muted">
         {t('searchPage.workspace.noResults')}
       </p>
     )
@@ -148,14 +156,11 @@ const SearchChunkList: FC<SearchChunkListProps> = ({
   return (
     <div>
       <div className="mb-space-sm flex items-center gap-space-xs">
-        <Layers
-          className="size-icon-sm text-text-tertiary"
-          aria-hidden="true"
-        />
-        <span className="text-sm font-medium text-text-primary">
+        <Layers className="size-icon-sm text-fg-subtle" aria-hidden="true" />
+        <span className="text-sm font-medium text-fg">
           {t('searchPage.workspace.results')}
         </span>
-        <span className="text-xs text-text-tertiary">
+        <span className="text-xs text-fg-subtle">
           {t('searchPage.workspace.count', { count: chunks.length })}
         </span>
       </div>

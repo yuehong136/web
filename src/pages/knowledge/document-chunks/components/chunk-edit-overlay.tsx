@@ -52,13 +52,13 @@ export const ChunkEditOverlay = ({
 
   return (
     <div
-      className="relative flex h-full min-h-0 flex-col bg-background-surface"
+      className="relative flex h-full min-h-0 flex-col bg-surface"
       aria-busy={isPending}
     >
-      <div className="shrink-0 border-b border-border-default px-space-lg py-space-base">
+      <div className="shrink-0 border-b border-line px-space-lg py-space-base">
         <div className="flex items-start justify-between gap-space-base">
           <div className="min-w-0 space-y-space-xs">
-            <h2 className="text-base font-semibold text-text-primary">
+            <h2 className="text-base font-semibold text-fg">
               {t('knowledge.chunks.edit.title')}
             </h2>
             <Tooltip
@@ -66,7 +66,7 @@ export const ChunkEditOverlay = ({
                 id: selectedChunk.chunk_id,
               })}
             >
-              <span className="inline-block max-w-full cursor-help truncate font-mono text-xs text-text-tertiary">
+              <span className="inline-block max-w-full cursor-help truncate font-mono text-xs text-fg-subtle">
                 {displayChunkId}
               </span>
             </Tooltip>
@@ -83,7 +83,7 @@ export const ChunkEditOverlay = ({
         </div>
       </div>
 
-      <div className="scrollbar-thin min-h-0 flex-1 scrollbar-thumb-components-scrollbar-thumb scrollbar-track-transparent overflow-y-auto p-space-lg">
+      <div className="scrollbar-thin min-h-0 flex-1 scrollbar-thumb-line-strong scrollbar-track-transparent overflow-y-auto p-space-lg">
         <fieldset
           disabled={isPending}
           inert={isPending}
@@ -106,7 +106,7 @@ export const ChunkEditOverlay = ({
           )}
 
           <ChunkEditTagSection
-            icon={<Key className="size-icon-sm text-text-secondary" />}
+            icon={<Key className="size-icon-sm text-fg-muted" />}
             label={t('knowledge.chunks.edit.keywordLabel')}
             tooltip={t('knowledge.chunks.edit.keywordTooltip')}
             value={editingImportantKwd}
@@ -117,7 +117,7 @@ export const ChunkEditOverlay = ({
 
           <ChunkEditTagSection
             icon={
-              <MessageCircleQuestion className="size-icon-sm text-text-secondary" />
+              <MessageCircleQuestion className="size-icon-sm text-fg-muted" />
             }
             label={t('knowledge.chunks.edit.questionLabel')}
             tooltip={t('knowledge.chunks.edit.questionTooltip')}
@@ -129,7 +129,7 @@ export const ChunkEditOverlay = ({
         </fieldset>
       </div>
 
-      <div className="shrink-0 border-t border-border-default bg-background-surface px-space-lg py-space-base">
+      <div className="shrink-0 border-t border-line bg-surface px-space-lg py-space-base">
         <div className="flex justify-end gap-space-sm">
           <Button variant="outline" onClick={onCancel} disabled={isPending}>
             {t('knowledge.chunks.edit.cancel')}

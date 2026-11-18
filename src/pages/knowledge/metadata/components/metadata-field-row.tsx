@@ -46,8 +46,8 @@ export const MetadataFieldRow: FC<MetadataFieldRowProps> = ({
     <div
       className={cn(
         'group flex items-center',
-        'border-b border-border-default/60 last:border-b-0',
-        'bg-surface-primary hover:bg-surface-secondary/40',
+        'border-b border-line/60 last:border-b-0',
+        'bg-surface hover:bg-sunken/40',
         'transition-all duration-200 ease-out',
         disabled && 'opacity-60',
         className,
@@ -57,7 +57,7 @@ export const MetadataFieldRow: FC<MetadataFieldRowProps> = ({
         <TooltipProvider delayDuration={400}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <span className="block cursor-default truncate text-sm font-medium text-text-accent">
+              <span className="block cursor-default truncate text-sm font-medium text-accent-fg">
                 {field}
               </span>
             </TooltipTrigger>
@@ -75,7 +75,7 @@ export const MetadataFieldRow: FC<MetadataFieldRowProps> = ({
           <TooltipProvider delayDuration={400}>
             <Tooltip>
               <TooltipTrigger asChild>
-                <span className="block cursor-default truncate text-sm text-text-secondary">
+                <span className="block cursor-default truncate text-sm text-fg-muted">
                   {description || '-'}
                 </span>
               </TooltipTrigger>
@@ -108,7 +108,7 @@ export const MetadataFieldRow: FC<MetadataFieldRowProps> = ({
                 <TooltipProvider delayDuration={300}>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <span className="inline-flex cursor-default items-center rounded bg-surface-secondary/60 px-1.5 py-0.5 text-xs text-text-tertiary">
+                      <span className="inline-flex cursor-default items-center rounded bg-sunken/60 px-1.5 py-0.5 text-xs text-fg-subtle">
                         +{remainingCount}
                       </span>
                     </TooltipTrigger>
@@ -122,7 +122,7 @@ export const MetadataFieldRow: FC<MetadataFieldRowProps> = ({
               )}
             </>
           ) : (
-            <span className="text-sm text-text-tertiary">-</span>
+            <span className="text-sm text-fg-subtle">-</span>
           )}
         </div>
       </div>
@@ -146,7 +146,7 @@ export const MetadataFieldRow: FC<MetadataFieldRowProps> = ({
                     disabled={disabled}
                     className={cn(
                       'h-7 w-7 p-0',
-                      'hover:bg-surface-accent/10 hover:text-text-accent',
+                      'hover:bg-accent-solid/10 hover:text-accent-fg',
                       'transition-colors duration-150',
                     )}
                   >
@@ -170,7 +170,7 @@ export const MetadataFieldRow: FC<MetadataFieldRowProps> = ({
                     disabled={disabled}
                     className={cn(
                       'h-7 w-7 p-0',
-                      'hover:bg-status-error-subtle hover:text-status-error',
+                      'hover:bg-danger-soft hover:text-danger-fg',
                       'transition-colors duration-150',
                     )}
                   >
@@ -187,7 +187,7 @@ export const MetadataFieldRow: FC<MetadataFieldRowProps> = ({
         {onEdit && (
           <ChevronRight
             className={cn(
-              'h-4 w-4 text-text-tertiary',
+              'h-4 w-4 text-fg-subtle',
               'opacity-0 group-hover:opacity-60',
               'transition-opacity duration-200',
               'ml-1',

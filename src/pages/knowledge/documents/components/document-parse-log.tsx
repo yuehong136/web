@@ -14,18 +14,18 @@ export function DocumentParseLog({ message }: { message?: string | null }) {
   const { t } = useTranslation()
   if (!message?.trim())
     return (
-      <p className="text-sm text-text-tertiary">
+      <p className="text-sm text-fg-subtle">
         {t('knowledge.documents.inspector.noLog')}
       </p>
     )
   return (
     <pre
       data-slot="document-parse-log"
-      className="max-h-80 overflow-y-auto rounded-radius-md bg-background-subtle p-space-sm font-mono text-xs leading-relaxed break-words whitespace-pre-wrap text-text-secondary"
+      className="max-h-80 overflow-y-auto rounded-radius-md bg-sunken p-space-sm font-mono text-xs leading-relaxed break-words whitespace-pre-wrap text-fg-muted"
     >
       {splitParseLog(message).map((part, index) =>
         part.error ? (
-          <span key={index} className="text-status-error">
+          <span key={index} className="text-danger-fg">
             {part.text}
           </span>
         ) : (

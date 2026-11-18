@@ -89,7 +89,7 @@ export function TagSetItem({
                   </p>
                 </div>
               }
-              className="w-1/4 shrink-0 text-sm text-text-secondary"
+              className="w-1/4 shrink-0 text-sm text-fg-muted"
             >
               {t('knowledge.settings.fields.tagSet')}
             </FormLabel>
@@ -119,7 +119,7 @@ export function TagSetItem({
                                 {option?.label || value}
                                 <button
                                   type="button"
-                                  className="ml-1 rounded-full outline-hidden hover:bg-background-subtle"
+                                  className="ml-1 rounded-full outline-hidden hover:bg-sunken"
                                   onClick={(e) => {
                                     e.stopPropagation()
                                     handleRemove(value)
@@ -131,7 +131,7 @@ export function TagSetItem({
                             )
                           })
                         ) : (
-                          <span className="text-text-tertiary">
+                          <span className="text-fg-subtle">
                             {t('knowledge.settings.fields.tagSetPlaceholder')}
                           </span>
                         )}
@@ -175,7 +175,7 @@ export function TagSetItem({
                 </PopoverContent>
               </Popover>
               {tagKnowledgeOptions.length === 0 && (
-                <p className="mt-1 text-xs text-text-tertiary">
+                <p className="mt-1 text-xs text-fg-subtle">
                   {t('knowledge.settings.fields.tagSetTip')}
                 </p>
               )}

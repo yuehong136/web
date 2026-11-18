@@ -56,7 +56,7 @@ export function ChunkBulkBar({
         size="sm"
         onClick={onBulkDeleteClick}
         disabled={disabled}
-        className="text-status-error"
+        className="text-danger-fg"
       >
         <Trash2 className="size-icon-sm" aria-hidden="true" />
         {t('knowledge.chunks.toolbar.delete')}

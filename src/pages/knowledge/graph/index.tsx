@@ -71,7 +71,7 @@ function KnowledgeGraphPageComponent() {
       ) : (
         <div
           ref={fullscreenTargetRef}
-          className="relative min-h-0 flex-1 overflow-hidden bg-background-surface"
+          className="relative min-h-0 flex-1 overflow-hidden bg-surface"
         >
           <ForceGraph
             ref={graphRef}

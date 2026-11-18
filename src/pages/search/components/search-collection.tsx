@@ -167,7 +167,7 @@ function KnowledgeStatus({
     return <StatusDot tone="warning" label={t('searchPage.card.noKnowledge')} />
   if (card) return null
   return (
-    <span className="inline-flex items-center gap-space-xs text-xs text-text-tertiary">
+    <span className="inline-flex items-center gap-space-xs text-xs text-fg-subtle">
       <Database className="size-icon-xs shrink-0" aria-hidden="true" />
       {t('searchPage.card.knowledgeBases', { count })}
     </span>
@@ -187,12 +187,7 @@ function SearchChips({ app }: { app: SearchAppListItem }) {
     <>
       {count ? (
         <ResourceChip
-          icon={
-            <BookOpen
-              aria-hidden="true"
-              className="text-components-avatar-5-text"
-            />
-          }
+          icon={<BookOpen aria-hidden="true" className="text-avatar-5-fg" />}
         >
           {t('searchPage.card.knowledgeBases', { count })}
         </ResourceChip>

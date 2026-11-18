@@ -14,19 +14,17 @@ export function PropertyList({ properties }: PropertyListProps) {
 
   return (
     <div className="space-y-2">
-      <h4 className="text-xs font-semibold tracking-wider text-text-muted uppercase">
+      <h4 className="text-xs font-semibold tracking-wider text-fg-subtle uppercase">
         {t('knowledge.graph.panel.properties')}
       </h4>
       <div className="space-y-1.5">
         {entries.map(([key, value]) => (
           <div
             key={key}
-            className="flex items-start justify-between gap-2 rounded-radius-md border border-components-card-border bg-components-card-bg px-2 py-1.5 text-sm"
+            className="flex items-start justify-between gap-2 rounded-radius-md border border-line-subtle bg-raised px-2 py-1.5 text-sm"
           >
-            <span className="shrink-0 font-medium text-text-secondary">
-              {key}
-            </span>
-            <span className="text-right break-all text-text-primary">
+            <span className="shrink-0 font-medium text-fg-muted">{key}</span>
+            <span className="text-right break-all text-fg">
               {typeof value === 'object'
                 ? JSON.stringify(value)
                 : String(value)}

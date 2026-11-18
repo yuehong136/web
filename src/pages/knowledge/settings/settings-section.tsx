@@ -16,11 +16,11 @@ export function SettingsSection({
     <section
       aria-labelledby={headingId}
       data-slot="knowledge-settings-section"
-      className="border-t border-border-subtle pt-space-lg first:border-t-0 first:pt-0"
+      className="border-t border-line-subtle pt-space-lg first:border-t-0 first:pt-0"
     >
       <h2
         id={headingId}
-        className="mb-space-base text-sm font-semibold text-text-primary"
+        className="mb-space-base text-sm font-semibold text-fg"
       >
         {title}
       </h2>

@@ -53,8 +53,8 @@ export const MetadataFieldEditorModal: React.FC<
     >
       <DialogContent size="sm">
         <MetadataModalHeader
-          icon={<Settings2 className="h-5 w-5 text-status-info" />}
-          iconClassName="bg-status-info-subtle"
+          icon={<Settings2 className="h-5 w-5 text-info-fg" />}
+          iconClassName="bg-info-soft"
           title={title}
           subtitle={description}
         />

@@ -32,7 +32,7 @@ export function DocumentStatusSummary({
     <ul
       data-slot="document-status-summary"
       aria-label={t('knowledge.documents.statusSummary.label')}
-      className="flex flex-wrap items-center gap-x-space-md gap-y-space-2xs text-xs text-text-secondary"
+      className="flex flex-wrap items-center gap-x-space-md gap-y-space-2xs text-xs text-fg-muted"
     >
       {items.map(({ status, count }) => (
         <li key={status} className="inline-flex items-center gap-space-xs">

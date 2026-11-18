@@ -47,13 +47,13 @@ export const MemoryDetailLayout: FC = () => {
 
   if (managed)
     return (
-      <div className="h-full overflow-hidden bg-components-console-bg">
+      <div className="h-full overflow-hidden bg-surface">
         <Outlet context={context} />
       </div>
     )
 
   return (
-    <div className="h-full bg-components-console-bg">
+    <div className="h-full bg-surface">
       <ResizablePanelGroup orientation="horizontal" className="h-full">
         {/* 侧边栏 */}
         <ResizablePanel

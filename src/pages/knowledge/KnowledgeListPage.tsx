@@ -146,7 +146,7 @@ export const KnowledgeListPage: FC = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-status-error"
+                className="text-danger-fg"
                 disabled={page.deleting}
                 onClick={() =>
                   page.requestDelete({ ids: [...page.selectedIds] })

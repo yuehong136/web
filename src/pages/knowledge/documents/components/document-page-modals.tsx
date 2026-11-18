@@ -73,7 +73,7 @@ export function DocumentPageModals({
           <DialogBody>
             <label
               htmlFor="newDocName"
-              className="mb-space-xs block text-sm font-medium text-text-primary"
+              className="mb-space-xs block text-sm font-medium text-fg"
             >
               {t('knowledge.documents.newName')}
             </label>

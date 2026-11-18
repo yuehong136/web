@@ -35,7 +35,7 @@ export const KnowledgeCreatePage: FC = () => {
       subline={
         <ol
           aria-label={t('knowledge.create.steps.label')}
-          className="flex flex-wrap items-center gap-x-space-md gap-y-space-2xs text-xs text-text-tertiary"
+          className="flex flex-wrap items-center gap-x-space-md gap-y-space-2xs text-xs text-fg-subtle"
         >
           {STEPS.map((step, index) => (
             <li
@@ -43,7 +43,7 @@ export const KnowledgeCreatePage: FC = () => {
               aria-current={index === 0 ? 'step' : undefined}
               className={cn(
                 'inline-flex items-center gap-space-xs',
-                index === 0 && 'font-medium text-text-primary',
+                index === 0 && 'font-medium text-fg',
               )}
             >
               <span className="tabular-nums">{index + 1}</span>
@@ -54,12 +54,12 @@ export const KnowledgeCreatePage: FC = () => {
       }
     >
       <div className="mx-auto w-full max-w-[calc(45rem*var(--text-scale,1))] px-space-md py-space-lg sm:px-space-xl">
-        <p className="mb-space-base text-sm text-text-secondary">
+        <p className="mb-space-base text-sm text-fg-muted">
           {t('knowledge.create.description')}
         </p>
         <CreateKnowledgeForm
           bodyClassName="p-0"
-          footerClassName="mt-space-lg border-t border-border-subtle bg-transparent px-0"
+          footerClassName="mt-space-lg border-t border-line-subtle bg-transparent px-0"
           onCancel={handleCancel}
           onCreated={handleCreated}
           submitLabel={t('knowledge.create.actions.createAndImport')}

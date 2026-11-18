@@ -41,16 +41,16 @@ function SearchDocFilterRail({
   return (
     <fieldset
       disabled={disabled}
-      className="min-w-0 rounded-radius-xl border border-border-subtle bg-background-surface p-space-sm"
+      className="min-w-0 rounded-radius-xl border border-line-subtle bg-surface p-space-sm"
     >
       <legend className="sr-only">{t('searchPage.workspace.sources')}</legend>
       <div className="flex min-h-[var(--control-height-sm)] items-center justify-between gap-space-sm px-space-xs pb-space-xs">
         <span
           aria-hidden="true"
-          className="flex items-center gap-space-xs text-sm font-semibold text-text-primary"
+          className="flex items-center gap-space-xs text-sm font-semibold text-fg"
         >
           {t('searchPage.workspace.sources')}
-          <span className="font-mono text-xs font-normal text-text-tertiary">
+          <span className="font-mono text-xs font-normal text-fg-subtle">
             {docAggs.length}
           </span>
         </span>
@@ -69,7 +69,7 @@ function SearchDocFilterRail({
           <label
             key={doc.doc_id}
             htmlFor={`${id}-${currentPage}-${index}`}
-            className="flex min-w-0 cursor-pointer items-center gap-space-sm rounded-radius-md p-space-xs text-sm hover:bg-state-hover"
+            className="flex min-w-0 cursor-pointer items-center gap-space-sm rounded-radius-md p-space-xs text-sm hover:bg-fill-hover"
           >
             <Checkbox
               id={`${id}-${currentPage}-${index}`}
@@ -80,12 +80,12 @@ function SearchDocFilterRail({
             />
             <FileKindTile name={doc.doc_name} size="xs" />
             <span
-              className="min-w-0 flex-1 truncate text-text-primary"
+              className="min-w-0 flex-1 truncate text-fg"
               title={doc.doc_name}
             >
               {doc.doc_name}
             </span>
-            <span className="text-xs text-text-secondary tabular-nums">
+            <span className="text-xs text-fg-muted tabular-nums">
               {doc.count}
             </span>
           </label>
@@ -101,7 +101,7 @@ function SearchDocFilterRail({
           >
             {t('searchPage.pagination.previous')}
           </Button>
-          <span className="text-xs text-text-secondary">
+          <span className="text-xs text-fg-muted">
             {currentPage + 1}/{pages}
           </span>
           <Button

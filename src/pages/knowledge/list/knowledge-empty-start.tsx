@@ -28,8 +28,7 @@ export function KnowledgeEmptyStart({
           key: 'upload',
           primary: true,
           icon: <Upload aria-hidden="true" />,
-          iconClassName:
-            'bg-components-avatar-6-bg text-components-avatar-6-text',
+          iconClassName: 'bg-avatar-6-bg text-avatar-6-fg',
           title: t('knowledge.list.empty.uploadTitle'),
           description: t('knowledge.list.empty.uploadDescription'),
           cta: t('knowledge.list.empty.uploadCta'),
@@ -38,8 +37,7 @@ export function KnowledgeEmptyStart({
         {
           key: 'source',
           icon: <Plug aria-hidden="true" />,
-          iconClassName:
-            'bg-components-avatar-7-bg text-components-avatar-7-text',
+          iconClassName: 'bg-avatar-7-bg text-avatar-7-fg',
           title: t('knowledge.list.empty.sourceTitle'),
           description: t('knowledge.list.empty.sourceDescription'),
           cta: t('knowledge.list.empty.sourceCta'),

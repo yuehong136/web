@@ -24,13 +24,13 @@ export function DocumentChunkPreview({
   const preview = useDocumentChunkPreview(kbId, document)
   if (preview.isPending && preview.fetchStatus !== 'idle')
     return (
-      <output className="block text-xs text-text-tertiary">
+      <output className="block text-xs text-fg-subtle">
         {t('knowledge.chunks.list.loading')}
       </output>
     )
   if (preview.isError || !preview.data?.length)
     return (
-      <p className="text-xs text-text-tertiary">
+      <p className="text-xs text-fg-subtle">
         {t('knowledge.documents.inspector.chunkPreviewUnavailable')}
       </p>
     )
@@ -41,9 +41,9 @@ export function DocumentChunkPreview({
         return (
           <li
             key={chunk.chunk_id}
-            className="flex flex-col gap-space-xs rounded-radius-lg border border-border-subtle bg-background-subtle px-space-sm py-space-sm"
+            className="flex flex-col gap-space-xs rounded-radius-lg border border-line-subtle bg-sunken px-space-sm py-space-sm"
           >
-            <span className="font-mono text-xs text-text-tertiary">
+            <span className="font-mono text-xs text-fg-subtle">
               {[
                 `#${index + 1}`,
                 page
@@ -57,7 +57,7 @@ export function DocumentChunkPreview({
                 .join(' · ')}
             </span>
             <SafeHtml
-              className="line-clamp-3 text-xs leading-relaxed break-words text-text-secondary"
+              className="line-clamp-3 text-xs leading-relaxed break-words text-fg-muted"
               html={chunk.content_with_weight}
               options={PREVIEW_PURIFY}
             />

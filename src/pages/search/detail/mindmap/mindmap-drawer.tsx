@@ -59,7 +59,7 @@ function SearchMindmapDrawer({
       <SheetContent
         side="right"
         showCloseButton={false}
-        className="h-full w-full overflow-hidden bg-background-surface p-0 sm:max-w-2xl"
+        className="h-full w-full overflow-hidden bg-surface p-0 sm:max-w-2xl"
         {...returnFocus}
       >
         <ContextPanel
@@ -128,7 +128,7 @@ function SearchMindmapDrawer({
               {!mindmap && (
                 <p
                   role="status"
-                  className="rounded-radius-md bg-background-subtle p-space-base text-sm text-text-secondary"
+                  className="rounded-radius-md bg-sunken p-space-base text-sm text-fg-muted"
                 >
                   {t(error ?? 'searchPage.workspace.mapFallback')}{' '}
                   {error ? t('searchPage.workspace.mapFallback') : ''}

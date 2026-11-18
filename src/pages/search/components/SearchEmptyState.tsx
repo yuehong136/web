@@ -49,8 +49,7 @@ const SearchEmptyState: FC<SearchEmptyStateProps> = ({
           key: 'create',
           primary: true,
           icon: <Search />,
-          iconClassName:
-            'bg-components-avatar-2-bg text-components-avatar-2-text',
+          iconClassName: 'bg-avatar-2-bg text-avatar-2-fg',
           title: t('searchPage.create'),
           description: t('searchPage.empty.createDescription'),
           cta: t('searchPage.empty.createCta'),
@@ -61,8 +60,7 @@ const SearchEmptyState: FC<SearchEmptyStateProps> = ({
               {
                 key: 'knowledge',
                 icon: <BookOpen />,
-                iconClassName:
-                  'bg-components-avatar-5-bg text-components-avatar-5-text',
+                iconClassName: 'bg-avatar-5-bg text-avatar-5-fg',
                 title: t('searchPage.empty.knowledgeTitle'),
                 description: t('searchPage.empty.knowledgeDescription'),
                 cta: t('searchPage.empty.knowledgeCta'),

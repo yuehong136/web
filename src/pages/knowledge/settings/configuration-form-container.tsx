@@ -32,7 +32,7 @@ interface SectionTitleProps {
 
 export function SectionTitle({ children, className }: SectionTitleProps) {
   return (
-    <h4 className={cn('mb-3 text-sm font-medium text-text-primary', className)}>
+    <h4 className={cn('mb-3 text-sm font-medium text-fg', className)}>
       {children}
     </h4>
   )
@@ -63,8 +63,6 @@ export function ParserConfigurationEmptyState({
 }) {
   const { t } = useTranslation()
   return (
-    <div className="py-4 text-center text-sm text-text-tertiary">
-      {t(i18nKey)}
-    </div>
+    <div className="py-4 text-center text-sm text-fg-subtle">{t(i18nKey)}</div>
   )
 }
