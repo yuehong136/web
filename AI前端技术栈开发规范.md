@@ -136,38 +136,28 @@ src/
 
 ### 5.2 必备 token 清单
 
-`src/themes/tokens.ts` 包含约 1452 个 token。常用：
+颜色只有 128 个语义角色，由六套配色方案（墨、雾蓝、青瓷、陶土、鸢尾、琥珀）和用户的品牌色种子生成，全部方案共用同一组名字。常用：
 
-- 颜色：`surface-*`、`text-*`、`border-*`、`status-*`（反馈态）、`state-*`（交互态）、`data-viz-categorical-*`（分类/层级着色）
+- 表面：`canvas`（壳层）、`surface`（工作面）、`raised`、`overlay`、`sunken`；交互底 `fill-hover` / `fill-selected` / `fill-muted`
+- 文字与线：`fg` / `fg-muted` / `fg-subtle`，`line` / `line-subtle` / `line-strong` / `line-focus`
+- 主操作：`action-bg` / `action-bg-hover` / `action-fg`
+- 意图：`{accent,ai,neutral,success,warning,danger,info}-{fg,soft,soft-hover,line,solid,solid-hover,on-solid}`
+- AI 内容：`reasoning-*`、`tool-*`、`citation-*`、`highlight-*`、`caret`、`run-*`
+- 代码与图表：`code-*`、`syntax-*`、`viz-1..10`、`viz-axis`；身份色 `avatar-{1..8}-bg/fg`
 - 间距：`space-xs/sm/base/md/lg/xl/2xl`
 - 圆角：`radius-sm/md/lg/xl/full`
 - 阴影：`elevation-low/medium/high`
 - 图标：`icon-sm/md/lg/xl/2xl`
 
-> **反馈态 vs 交互态（强制）**：反馈色（success/warning/error/info）用 canonical `status-*`（含 `-10`/`-subtle`）；交互色（hover/active/focus/disabled/loading）用 `state-*`。历史的 `state-success/warning/error/info` 反馈 alias（含 `-10`/`-subtle`）已**物理删除**，反馈态一律 `status-*`——`error` 级 lint 规则 `design-tokens/no-feedback-state-token` 会拦截任何反馈态 `state-*` 形式（class 含 `from-/via-/to-` 渐变档位、`var(--color-state-*)`、裸字符串/`readCssVar()`/拼接）。分类/层级 data-viz 着色（如搜索 mindmap）用 `data-viz-categorical-1..6`。详见 `src/themes/design-system.md` 与 `docs/design-tokens/2026-05-20-feedback-state-alias-deprecate-summary.md`。
-
-**场景 token**（壳层、模板、状态块强制使用）：
-
-- `components-app-shell-*`
-- `components-main-workbench-*`
-- `components-page-header-*`
-- `components-page-toolbar-*`
-- `components-page-state-*`
-- `components-settings-rail-*`
-- `components-console-*`
-- `components-workspace-*`
-- `components-studio-*`
-- `components-split-pane-*`
-
-加上 `components-button-*`、`components-input-*`、`components-card-*` 等组件级 token。
+> **意图色（强制）**：文字用 `-fg`，浅色块用 `-soft` + `-line` + `-fg`，实色块用 `-solid` + `-on-solid`；不要给角色加透明度来造浅色。`design-tokens/no-feedback-state-token` 继续拦截已删除的 `state-{success,warning,error,info}` 形式。规则见 [frontend 专题](docs/agent-guidance/frontend.md#ui)，体系说明见 `src/themes/design-system.md`。
 
 ### 5.3 推荐 / 避免
 
 ```tsx
 // ✅
-<div className="rounded-radius-lg border border-border-default bg-surface-primary p-space-base">
-  <h2 className="text-text-primary font-medium">标题</h2>
-  <p className="text-text-secondary">说明</p>
+<div className="rounded-radius-lg border border-line bg-surface p-space-base">
+  <h2 className="text-fg font-medium">标题</h2>
+  <p className="text-fg-muted">说明</p>
 </div>
 
 // ❌
@@ -177,7 +167,7 @@ src/
 </div>
 ```
 
-修改 `tokens.ts` 后必须 `npm run build:themes` 重生 CSS。详见 `src/themes/design-system.md`、`development-guide.md`、`migration-guide.md`。
+修改配色方案种子（`color-schemes.ts`）或角色（`semantic-tokens.ts`）后必须 `npm run build:themes` 重生 CSS 与 JS，并跑 `npm run test:design-tokens`。详见 `src/themes/design-system.md`、`development-guide.md`、`migration-guide.md`。
 
 ### 5.4 作用域主题（agent share）
 
@@ -216,8 +206,8 @@ interface UserProfileProps {
 export function UserProfile({ user, className }: UserProfileProps) {
   return (
     <div className={className}>
-      <h3 className="font-medium text-text-primary">{user.name}</h3>
-      <p className="text-text-secondary">{user.email}</p>
+      <h3 className="font-medium text-fg">{user.name}</h3>
+      <p className="text-fg-muted">{user.email}</p>
     </div>
   )
 }

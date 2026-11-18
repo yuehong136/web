@@ -117,82 +117,64 @@
 
 #### 实体头像（强制）
 
-应用、Agent、知识库、搜索应用、记忆库、用户、团队成员和聊天角色统一用 `patterns/entity-avatar.tsx` 的 `EntityAvatar`：有图片时显示图片（兼容后端返回的裸 base64），加载失败或没有图片时显示单字头像，底色取 `components-avatar-{1..8}-*`（OKLCH 生成、单字对比度达 AA）。
+应用、Agent、知识库、搜索应用、记忆库、用户、团队成员和聊天角色统一用 `patterns/entity-avatar.tsx` 的 `EntityAvatar`：有图片时显示图片（兼容后端返回的裸 base64），加载失败或没有图片时显示单字头像，底色取身份色 `avatar-{1..8}-*`（OKLCH 生成、单字对比度达 AA，不随配色方案换色相）。
 
 - `seed` 传实体 id，同一实体在列表、详情、选择器、聊天里颜色一致；省略时按名称取色。
 - 物件用默认圆角方块，人和聊天角色用 `shape="circle"`；匿名访客、未命名助手用 `tone="neutral"` 加图标。
 - 当前登录用户用 `useCurrentUserAvatar()` 取头像参数；助手显示应用或 Agent 自己的身份，不再用 "AI"/"U" 文字块。
-- 不得再写渐变底 + 白字首字母、页面内的哈希配色或 `components-avatar-gradient-*` 之类的头像令牌。
+- 不得再写渐变底 + 白字首字母、页面内的哈希配色或自造的头像令牌。
 - 没有图片时，按类型显示用 `kind`（对话、Agent、知识库、搜索、记忆、技能等的图形），列表卡片需要说明类型时用 `badge` 角标；按类型统一取色用 `tone="kind"`。类型、图形和色位定义在 `patterns/entity-kind.ts`。
 - 由 `design-guard/no-letter-avatar`（error，仅 `.tsx`）把关：`.charAt(0)`、`[0]`、`.at(0)`、`.slice(0, 1)`、`.substring(0, 1)`、`Array.from(x)[0]` 紧接 `.toUpperCase()` / `.toLocaleUpperCase()` 即报错（`entity-avatar.tsx` 除外）。单词首字母大写这类非 UI 处理放进 `.ts` 工具模块。
 
 #### 身份与 AI 时刻（强制）
 
 - 厂商、模型供应商的标识统一用 `patterns/provider-logo.tsx` 的 `ProviderLogo`（底层为自有 SVG 与 `@lobehub/icons-static-svg`），彩色标识保留原色，单色标识跟随文字色；不得把品牌标识画成界面图标或首字母块。
-- 文件在列表、引用芯片、来源条中统一用 `patterns/file-kind-tile.tsx` 的 `FileKindTile`，颜色取 `components-file-{kind}-*`。
+- 文件在列表、引用芯片、来源条中统一用 `patterns/file-kind-tile.tsx` 的 `FileKindTile`；文件图标与上传卡片取 `components/ui/file-tones.ts`。两者都映射到身份色 `avatar-*`。
 - 潮光渐变 `bg-ai-tide`、聚焦光晕 `ai-glow`、顶部光晕 `ai-halo`、流光文字 `text-shimmer` 只用于 AI 时刻：聚焦的输入框、思考和检索中、运行中的 Agent、首页问候。普通按钮、卡片和标签不使用。
-- 以上由 `design-guard/no-raw-visual-values`（error）把关：禁止 Tailwind 原色板（`bg-blue-500` 等）、任意颜色值（`bg-[#…]`、`text-[rgb(…)]`）、不含 `components-ai-*` 的渐变，以及 JSX 文本里的 emoji 图标。生成的报告 HTML 除外。
+- AI 原生内容用专用角色：思考过程 `reasoning-*`，工具调用 `tool-*`，引用角标 `citation-*`，检索命中 `highlight-*`，流式光标 `caret`，运行状态 `run-*`（运行中同时用 `ai-*` 意图）。
+- 以上由 `design-guard/no-raw-visual-values`（error）把关：禁止 Tailwind 原色板（`bg-blue-500` 等）、任意颜色值（`bg-[#…]`、`text-[rgb(…)]`）、不含 `ai-from` / `ai-via` / `ai-to` 的渐变，以及 JSX 文本里的 emoji 图标。生成的报告 HTML 除外。
 - 集合页在用户未选择视图且数量不超过 12 时默认卡片网格（`src/stores/collection-view.ts`）；首次空状态用 `EmptyStart` 给出真实可用的起步路径，筛选为空仍用 `PageEmptyState`。
 - 应用壳内只有一行页面头部：页面模板与 `ChatThreadHeader` 通过 `useWorkbenchHeader` 把标题和操作放进工作台顶栏，壳外（嵌入、独立页）自动回到页内。
 
 ### 设计令牌（强制 — 禁止任意值）
 
-`src/themes/tokens.ts` 定义设计令牌。明暗调色板在 `theme-generator.ts`，CSS 通过 `npm run build:themes` 生成。深色模式自动适配，**业务代码禁止使用 `dark:` 前缀**。
+颜色只用语义角色。角色由 `src/themes/semantic-tokens.ts` 从配色方案种子（`color-schemes.ts`）生成，CSS 与 JS 通过 `npm run build:themes` 生成；体系与角色清单见 [色彩令牌 2.0](../../src/themes/design-system.md)。明暗、配色方案、对比度、主操作风格都由同一组角色承接，**业务代码禁止使用 `dark:` 前缀**，也不按方案写分支。
 
-| 类别         | ✅ 使用                                                                  | ❌ 禁止                                              |
-| ------------ | ------------------------------------------------------------------------ | ---------------------------------------------------- |
-| 表面         | `bg-background-surface`、`bg-background-subtle`                          | `bg-white`、`bg-[#1a73e8]`、`bg-blue-600`            |
-| 文字         | `text-text-primary`、`text-text-secondary`、`text-text-caption`          | `text-gray-*`、`text-black`                          |
-| 边框         | `border-border-default`、`border-border-subtle`                          | `border-gray-*`                                      |
-| 状态（反馈） | `text-status-success`、`bg-status-error-subtle`、`bg-status-error-solid` | `text-green-500`、`bg-red-100`、`bg-status-error/10` |
-| 间距         | `p-space-base`、`gap-space-md`                                           | `p-4`、`p-[20px]`                                    |
-| 圆角         | `rounded-radius-lg`                                                      | `rounded-lg`、`rounded-[12px]`                       |
-| 阴影         | `shadow-elevation-low/medium/high`（内联样式用 `var(--elevation-*)`）    | `shadow-md`、`shadow-sm`、阴影值放进 `--color-*`     |
-| 图标尺寸     | `size-icon-sm/md/lg/xl/2xl`                                              | `w-4 h-4`                                            |
+| 类别       | ✅ 使用                                                                             | ❌ 禁止                                              |
+| ---------- | ----------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| 表面       | `bg-canvas`（壳层）、`bg-surface`（工作面）、`bg-raised`、`bg-overlay`、`bg-sunken` | `bg-white`、`bg-[#1a73e8]`、`bg-blue-600`            |
+| 交互底     | `hover:bg-fill-hover`、`bg-fill-selected`、`bg-fill-muted`                          | 自写半透明黑白                                       |
+| 文字       | `text-fg`、`text-fg-muted`、`text-fg-subtle`                                        | `text-gray-*`、`text-black`                          |
+| 边框与焦点 | `border-line`、`border-line-subtle`、`ring-line-focus`                              | `border-gray-*`                                      |
+| 主操作     | `bg-action-bg text-action-fg hover:bg-action-bg-hover`                              | 用强调色或黑色手写主按钮                             |
+| 意图色     | `text-danger-fg`、`bg-success-soft`、`bg-warning-solid text-warning-on-solid`       | `text-green-500`、`bg-red-100`、`bg-danger-solid/10` |
+| 间距       | `p-space-base`、`gap-space-md`                                                      | `p-4`、`p-[20px]`                                    |
+| 圆角       | `rounded-radius-lg`                                                                 | `rounded-lg`、`rounded-[12px]`                       |
+| 阴影       | `shadow-elevation-low/medium/high`（内联样式用 `var(--elevation-*)`）               | `shadow-md`、`shadow-sm`、阴影值放进 `--color-*`     |
+| 图标尺寸   | `size-icon-sm/md/lg/xl/2xl`                                                         | `w-4 h-4`                                            |
 
 允许的非 token Tailwind 类：布局（`flex`、`grid`、`absolute`）、尺寸（`w-full`、`h-screen`、`max-w-*`）、状态前缀（`hover:`、`focus:`、`disabled:`、`sm:`、`md:`）。
 
-##### 状态色：反馈态（`status-*`）与交互态（`state-*`）—— 强制
+##### 意图 × 角色（强制）
 
-这是两条不同的语义轴，不要混用：
+`accent`、`ai`、`neutral`、`success`、`warning`、`danger`、`info` 七个意图共用同一组后缀：
 
-- **反馈态**（success / warning / error / info）→ **`status-*`**，按角色取用（每个意图同一套后缀）：
-  - `status-X`：文字、图标、指示点、进度条、图表标记，以及输入框等控件的错误边框。
-  - `status-X-solid` / `status-X-solid-hover` + `status-X-on-solid`：实心按钮、徽标、计数胶囊，三者成套使用，不要再给 `status-X` 配白字。
-  - `status-X-subtle` / `status-X-subtle-hover`：浅色提示条、标签、行高亮；悬停用 `-subtle-hover`。
-  - `status-X-border`：浅色提示条、标签和卡片的描边；粗的强调条、控件边界可以用 `status-X`。
-  - 不要给状态色加透明度修饰（`bg-status-error/10`、`border-status-info/30`、`text-status-success/80`），透明度由角色本身决定。
-  - 色阶由 `src/themes/status-palette.ts` 在 OKLCH 中生成：每个意图每套主题 12 阶，前景与实心标签按 WCAG AA 求解。`categorical-palette.test.ts` 的状态角色契约覆盖前景对各类底色、对自身浅色底、实心标签对实心底，旧的 500 色阶会被判失败。
-  - alert、badge、task-status、system-health/status、HTTP 方法 GET/PUT/DELETE、步骤条、画布节点状态、系统图表这些组件状态族由 `status-component-tokens.ts` 从同一色阶派生，不要在生成器里手写 hex。
-- **交互态**（hover / active / focus / disabled / selected）→ **`state-*`**：`state-hover`、`state-active`、`state-focus`、`state-disabled`、`state-selected`（及 `state-selected-text`/`state-selected-bg`、`state-focus-10`/`state-focus-subtle`）。它们不是反馈色，**不要**迁移到 `status-*`。
-- `state-{success,warning,error,info}`（含 `-10`/`-subtle`）曾是 `status-*` 反馈 token 的 legacy alias；全仓迁移已完成，这 12 个 alias 已**物理删除**（tokens/theme/CSS）。**反馈态一律用 `status-*`** —— `error` 级 lint 规则 `design-tokens/no-feedback-state-token` 现在拦截任何反馈态 `state-*` 形式（class 含 `from-/via-/to-` 渐变档位、`var(--color-state-*)`、裸字符串 / `readCssVar()` / 拼接）。详见 `docs/design-tokens/2026-05-20-feedback-state-alias-deprecate-summary.md`。分类/层级 data-viz 着色（如搜索 mindmap）用 `data-viz-categorical-1..10`（色盲友好 OKLCH 色阶；用 `node scripts/gen-categorical-oklch.mjs` 重新生成）。
+- `-fg`：文字、图标、指示点、控件错误提示。不要给 `-fg` 配白字，深色主题下它是浅色。
+- `-soft` / `-soft-hover` 加 `-line`：浅色提示条、标签、选中行与它们的描边。
+- `-solid` / `-solid-hover` 加 `-on-solid`：实心按钮、徽标、计数胶囊，三者成套使用。
+- 不要给角色加透明度修饰来造浅色（`bg-danger-solid/10`），浅色用 `-soft`；透明度修饰只用于装饰。
 
-##### JS/画布代码取 token（G6、图表、mindmap、知识图谱）—— 强制
+选中、焦点与链接用 `accent`：选中的控件是 `accent-solid`，选中行是 `accent-soft` 加 `accent-fg`，中性选中用 `fill-selected`。反馈色不能是唯一信号，配图标或文字。`design-tokens/no-feedback-state-token` 继续拦截已删除的 `state-{success,warning,error,info}` 形式。
 
-- 默认路径是**按主题静态取值**：从 `@/lib/design-tokens` 用 `getTokenValue(name, theme)` / `getCategoricalPalette(theme, count?)`，颜色由 `useResolvedAppearance()` 的 `resolvedMode` / `preset` 解析（React 外用 `getResolvedAppearance()`）。`getTokenValue(name, mode, preset)` / `getCategoricalPalette(mode, count, preset)` 的 preset 可省略以兼容旧消费面；缓存、图表 effect 必须同时依赖 mode 和 preset，避免只换预设时停留旧颜色。取值来源是生成的 `token-values.generated.ts`。
+##### JS/画布代码取 token（G6、图表、mindmap、知识图谱、Monaco）—— 强制
+
+- 默认路径是**按主题静态取值**：从 `@/lib/design-tokens` 用 `getTokenValue(name, mode, preset)` / `getCategoricalPalette(mode, count, preset)`，`mode` 与 `preset` 来自 `useResolvedAppearance()`（React 外用 `getResolvedAppearance()`）；缓存、图表 effect 必须同时依赖二者。值来自生成的 `token-values.generated.ts`（hex / rgba），`custom` 方案按用户的品牌色种子在运行时生成。
+- 分类色用 `viz-1..10`（身份稳定，不随方案换色相），轴线用 `viz-axis`；图表状态色用意图的 `-fg` / `-soft` 或 `run-*`。
 - `readCssVar` / 运行时 `getComputedStyle` 只保留给 scoped-theme/embed 表面。**禁止硬编码 hex**。
-- 图表语义状态色用 `components-system-chart-*`。
-
-#### 场景 token（壳层 / 模板 / 状态块强制）
-
-`tokens.ts` 中确认存在的前缀：
-
-- `components-app-shell-bg`
-- `components-main-workbench-{bg,surface,border}`
-- `components-page-header-{bg,border,title,description}`
-- `components-page-toolbar-{bg,border,text}`
-- `components-page-state-{icon-bg,icon,title,description}`
-- `components-settings-rail-{bg,border,title}`
-- `components-console-{bg,surface,border}`
-- `components-workspace-{bg,surface,border}`
-- `components-studio-{bg,surface,border}`
-- `components-split-pane-{bg,border}`
-
-加上更细粒度的 `components-button-*`、`components-input-*`、`components-card-*` 等。
 
 #### 令牌闭环（强制）
 
-`npm run test:design-tokens` 包含 `token-closure.test.ts`：源码里的 `var(--color-*)` 和令牌类名必须指向已定义的令牌或 Tailwind 别名；`--color-*` 只放颜色（阴影走 `elevation`，渐变和模糊不进令牌）；只有主题生成器可以声明 `--color-*`。写错的令牌名在 Tailwind 里会静默生成空样式，这条测试是唯一的拦截点。新增令牌必须同时有消费方，零引用令牌按 ARCH-5 删除。
+`npm run test:design-tokens` 包含 `token-closure.test.ts`：源码里的 `var(--color-*)` 和令牌类名必须指向已定义的令牌或 Tailwind 别名；`--color-*` 只放颜色（阴影走 `elevation`，渐变和模糊不进令牌）；只有主题生成器可以声明 `--color-*`（嵌入挂件在 `widget-theme.css` 里重指已有角色除外）。写错的令牌名在 Tailwind 里会静默生成空样式，这条测试是唯一的拦截点。意图矩阵以外的每个角色都必须有消费方，零引用会直接失败；新增角色要和它的第一个消费方一起提交。`semantic-contract.test.ts` 对全部方案、明暗、对比度、主操作风格以及一组品牌色种子校验 WCAG 2.2 AA。
 
 #### `src/pages/**` 禁止项
 
