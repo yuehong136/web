@@ -114,12 +114,12 @@ export function GroupedSelectWithSecondaryMenu({
           role="combobox"
           aria-expanded={open}
           className={cn(
-            'h-auto min-h-10 w-full justify-between gap-space-sm border-border-default bg-background-surface px-space-sm py-space-xs font-normal outline-hidden outline-offset-0 hover:bg-components-dropdown-item-bg-hover focus-visible:outline-[3px] [&_svg]:pointer-events-auto',
+            'h-auto min-h-10 w-full justify-between gap-space-sm border-line bg-surface px-space-sm py-space-xs font-normal outline-hidden outline-offset-0 hover:bg-fill-hover focus-visible:outline-[3px] [&_svg]:pointer-events-auto',
             triggerClassName,
           )}
         >
           {value && selectedItem ? (
-            <span className="inline-flex min-w-0 items-center gap-space-xs rounded-radius-sm bg-components-system-accent-soft px-space-sm py-0.5 text-sm text-components-system-accent-text">
+            <span className="inline-flex min-w-0 items-center gap-space-xs rounded-radius-sm bg-accent-soft px-space-sm py-0.5 text-sm text-accent-fg">
               <Braces className="size-4 shrink-0" />
               <span className="truncate text-sm opacity-75">
                 {selectedItem.parentLabel as React.ReactNode}
@@ -129,26 +129,26 @@ export function GroupedSelectWithSecondaryMenu({
                 {selectedItem.label}
               </span>
               {selectedItem.type ? (
-                <span className="ml-space-xs shrink-0 rounded-radius-sm bg-background-surface/60 px-1 font-mono text-xs text-text-secondary">
+                <span className="ml-space-xs shrink-0 rounded-radius-sm bg-surface/60 px-1 font-mono text-xs text-fg-muted">
                   {selectedItem.type}
                 </span>
               ) : null}
             </span>
           ) : (
-            <span className="truncate text-sm text-text-secondary">
+            <span className="truncate text-sm text-fg-muted">
               {placeholder || t('common.selectPlaceholder')}
             </span>
           )}
           <span className="ml-auto flex shrink-0 items-center gap-space-xs">
             {value ? (
               <XIcon
-                className="size-4 cursor-pointer text-text-secondary hover:text-text-primary"
+                className="size-4 cursor-pointer text-fg-muted hover:text-fg"
                 onClick={handleClear}
               />
             ) : null}
             <ChevronDownIcon
               size={16}
-              className="text-text-secondary"
+              className="text-fg-muted"
               aria-hidden="true"
             />
           </span>
@@ -156,7 +156,7 @@ export function GroupedSelectWithSecondaryMenu({
       </PopoverTrigger>
 
       <PopoverContent
-        className="w-[var(--radix-popover-trigger-width)] max-w-[420px] min-w-[220px] bg-components-dropdown-bg p-0 shadow-lg"
+        className="w-[var(--radix-popover-trigger-width)] max-w-[420px] min-w-[220px] bg-overlay p-0 shadow-lg"
         align="start"
         sideOffset={6}
       >
@@ -201,7 +201,7 @@ export function GroupedSelectWithSecondaryMenu({
                           className="flex cursor-default items-center justify-between"
                         >
                           {option.label}
-                          <span className="ml-auto text-text-secondary">›</span>
+                          <span className="ml-auto text-fg-muted">›</span>
                         </CommandItem>
                       </HoverCardTrigger>
                       <HoverCardContent
@@ -213,9 +213,9 @@ export function GroupedSelectWithSecondaryMenu({
                           <div
                             key={child.value}
                             className={cn(
-                              'cursor-pointer rounded-radius-sm px-space-sm py-1.5 text-sm hover:bg-components-dropdown-item-bg-hover',
+                              'cursor-pointer rounded-radius-sm px-space-sm py-1.5 text-sm hover:bg-fill-hover',
                               value === child.value &&
-                                'bg-components-system-accent-soft text-components-system-accent-text',
+                                'bg-accent-soft text-accent-fg',
                             )}
                             onClick={() => {
                               onChange?.(child.value)
@@ -239,7 +239,7 @@ export function GroupedSelectWithSecondaryMenu({
                       className="flex items-center justify-between"
                     >
                       <span>{option.label}</span>
-                      <span className="text-text-secondary">
+                      <span className="text-fg-muted">
                         {get(option, 'type')}
                       </span>
                     </CommandItem>

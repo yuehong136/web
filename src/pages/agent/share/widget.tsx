@@ -349,7 +349,7 @@ function WidgetChatWindow({
         variant={shellVariant}
         settings={access.widgetSettings}
       >
-        <div className="p-space-lg text-sm text-status-error">
+        <div className="p-space-lg text-sm text-danger-fg">
           {t(
             'agent.share.widgetMissingAccess',
             '缺少 shared_id 或 auth，无法加载浮窗。',
@@ -377,11 +377,11 @@ function WidgetChatWindow({
         onWheel={handleScrollPassthrough}
       >
         {shareQuery.isLoading ? (
-          <div className="p-space-lg text-sm text-text-secondary">
+          <div className="p-space-lg text-sm text-fg-muted">
             {t('agent.share.loadingTitle', '正在准备公共运行页')}
           </div>
         ) : shareQuery.isError ? (
-          <div className="p-space-lg text-sm text-status-error">
+          <div className="p-space-lg text-sm text-danger-fg">
             {t(
               'agent.share.widgetLoadFailed',
               '分享信息加载失败，请检查 shared_id 与 auth。',
@@ -389,7 +389,7 @@ function WidgetChatWindow({
           </div>
         ) : isWebhookMode ? (
           <div className="p-space-lg">
-            <div className="rounded-radius-md border border-border-default bg-background-subtle p-space-base text-sm text-text-secondary">
+            <div className="rounded-radius-md border border-line bg-sunken p-space-base text-sm text-fg-muted">
               {t(
                 'agent.share.webhookWidgetHint',
                 'Webhook Agent 通过外部 HTTP 请求触发，不使用浮窗对话输入框。',
@@ -411,7 +411,7 @@ function WidgetChatWindow({
       </div>
 
       {isWebhookMode ? null : isTaskMode ? (
-        <div className="border-t border-border-subtle p-space-base">
+        <div className="border-t border-line-subtle p-space-base">
           <div className="flex items-center justify-between gap-space-sm">
             <Badge variant="purple">{t('agent.share.task', 'Task')}</Badge>
             <Button

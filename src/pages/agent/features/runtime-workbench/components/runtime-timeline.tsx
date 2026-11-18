@@ -75,13 +75,13 @@ export function RuntimeTimeline({
                         : [...expandedKeys, item.key],
                     )
                   }
-                  className="flex w-full min-w-0 items-center gap-space-xs rounded-radius-sm text-start outline-hidden focus-visible:ring-2 focus-visible:ring-state-focus"
+                  className="flex w-full min-w-0 items-center gap-space-xs rounded-radius-sm text-start outline-hidden focus-visible:ring-2 focus-visible:ring-line-focus"
                 >
                   <span className="min-w-0 flex-1">{item.title}</span>
                   <ChevronRight
                     aria-hidden="true"
                     className={cn(
-                      'size-icon-sm shrink-0 text-text-tertiary transition-transform duration-150 motion-reduce:transition-none',
+                      'size-icon-sm shrink-0 text-fg-subtle transition-transform duration-150 motion-reduce:transition-none',
                       open && 'rotate-90',
                     )}
                   />

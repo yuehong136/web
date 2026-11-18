@@ -60,10 +60,10 @@ export function SessionPicker({
       <PopoverContent align="end" className="w-[360px] p-space-sm">
         <div className="mb-space-sm flex items-center justify-between gap-space-sm">
           <div>
-            <p className="text-sm font-medium text-text-primary">
+            <p className="text-sm font-medium text-fg">
               {t('agent.runtimePanel.sessionPicker.recentSessions')}
             </p>
-            <p className="text-xs text-text-tertiary">
+            <p className="text-xs text-fg-subtle">
               {t('agent.runtimePanel.sessionPicker.hint')}
             </p>
           </div>
@@ -97,8 +97,8 @@ export function SessionPicker({
                     className={cn(
                       'w-full rounded-radius-md border p-space-sm text-left transition-colors',
                       active
-                        ? 'border-state-focus bg-surface-secondary'
-                        : 'border-border-default hover:bg-surface-secondary',
+                        ? 'border-line-focus bg-sunken'
+                        : 'border-line hover:bg-sunken',
                     )}
                     onClick={() => onSelect(session.id)}
                   >
@@ -107,7 +107,7 @@ export function SessionPicker({
                         <div className="flex min-w-0 items-center gap-space-xs">
                           <p
                             id={nameId}
-                            className="truncate text-sm font-medium text-text-primary"
+                            className="truncate text-sm font-medium text-fg"
                           >
                             {session.name ||
                               t(
@@ -120,7 +120,7 @@ export function SessionPicker({
                             </Badge>
                           ) : null}
                         </div>
-                        <p className="mt-space-xs text-xs text-text-tertiary">
+                        <p className="mt-space-xs text-xs text-fg-subtle">
                           {session.update_time
                             ? formatRelativeTime(session.update_time)
                             : t('agent.runtimePanel.sessionPicker.noTime')}
@@ -130,7 +130,7 @@ export function SessionPicker({
                         <Badge variant={STATUS_VARIANT_MAP[status]}>
                           {t(STATUS_LABEL_KEY_MAP[status])}
                         </Badge>
-                        <span className="rounded-radius-full bg-surface-secondary px-space-sm py-[2px] text-xs text-text-secondary">
+                        <span className="rounded-radius-full bg-sunken px-space-sm py-[2px] text-xs text-fg-muted">
                           {session.message_count ||
                             session.messages?.length ||
                             0}
@@ -141,7 +141,7 @@ export function SessionPicker({
                 )
               })
             ) : (
-              <p className="py-space-xl text-center text-sm text-text-secondary">
+              <p className="py-space-xl text-center text-sm text-fg-muted">
                 {t('agent.runtimePanel.sessionPicker.empty')}
               </p>
             )}

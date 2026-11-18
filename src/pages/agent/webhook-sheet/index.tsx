@@ -218,15 +218,11 @@ export function WebhookSheet({
 
         <div className="flex-1 space-y-space-lg overflow-auto py-space-lg">
           <section className="space-y-space-sm">
-            <p className="text-sm font-medium text-text-primary">
+            <p className="text-sm font-medium text-fg">
               {t('agent.delivery.webhook.url')}
             </p>
             <div className="flex gap-space-sm">
-              <Input
-                value={webhookUrl}
-                readOnly
-                className="flex-1 bg-surface-secondary"
-              />
+              <Input value={webhookUrl} readOnly className="flex-1 bg-sunken" />
               <Button
                 variant="outline"
                 size="icon"
@@ -234,21 +230,21 @@ export function WebhookSheet({
                 className="shrink-0"
               >
                 {copied ? (
-                  <Check className="size-4 text-status-success" />
+                  <Check className="size-4 text-success-fg" />
                 ) : (
                   <Copy className="size-4" />
                 )}
               </Button>
             </div>
             {testUrl ? (
-              <p className="text-xs break-all text-text-secondary">
+              <p className="text-xs break-all text-fg-muted">
                 {t('agent.delivery.webhook.testEndpoint', { url: testUrl })}
               </p>
             ) : null}
           </section>
 
           {testBuild.warnings.length ? (
-            <div className="space-y-space-xs rounded-radius-md border border-border-subtle bg-surface-secondary p-space-sm text-sm text-text-secondary">
+            <div className="space-y-space-xs rounded-radius-md border border-line-subtle bg-sunken p-space-sm text-sm text-fg-muted">
               {testBuild.warnings.map((warning) => (
                 <p key={warning}>{warning}</p>
               ))}
@@ -256,7 +252,7 @@ export function WebhookSheet({
           ) : null}
 
           {testError ? (
-            <div className="rounded-radius-md border border-status-error-border bg-status-error-subtle p-space-sm text-sm text-status-error">
+            <div className="rounded-radius-md border border-danger-line bg-danger-soft p-space-sm text-sm text-danger-fg">
               {testError}
             </div>
           ) : null}
@@ -303,20 +299,20 @@ export function WebhookSheet({
             >
               <div className="grid gap-space-md md:grid-cols-2">
                 <div className="space-y-space-sm">
-                  <p className="text-sm font-medium text-text-primary">
+                  <p className="text-sm font-medium text-fg">
                     {t('agent.delivery.webhook.sections.input')}
                   </p>
                   <JsonViewer data={trace?.firstInput || {}} />
                 </div>
                 <div className="space-y-space-sm">
-                  <p className="text-sm font-medium text-text-primary">
+                  <p className="text-sm font-medium text-fg">
                     {t('agent.delivery.webhook.sections.output')}
                   </p>
                   <JsonViewer data={trace?.latestOutput || {}} />
                 </div>
               </div>
               <div className="space-y-space-sm">
-                <p className="text-sm font-medium text-text-primary">
+                <p className="text-sm font-medium text-fg">
                   {t('agent.delivery.webhook.sections.response')}
                 </p>
                 <JsonViewer data={responseSummary || {}} />
@@ -330,16 +326,16 @@ export function WebhookSheet({
               className="space-y-space-md"
             >
               <div className="space-y-space-sm">
-                <p className="text-sm font-medium text-text-primary">
+                <p className="text-sm font-medium text-fg">
                   {t('agent.delivery.webhook.sections.request')}
                 </p>
                 <JsonViewer data={testBuild.request} />
               </div>
               <div className="space-y-space-sm">
-                <p className="text-sm font-medium text-text-primary">
+                <p className="text-sm font-medium text-fg">
                   {t('agent.delivery.webhook.sections.curl')}
                 </p>
-                <pre className="max-h-60 overflow-auto rounded-radius-md bg-surface-secondary p-space-sm text-xs text-text-primary">
+                <pre className="max-h-60 overflow-auto rounded-radius-md bg-sunken p-space-sm text-xs text-fg">
                   {curlExample}
                 </pre>
               </div>

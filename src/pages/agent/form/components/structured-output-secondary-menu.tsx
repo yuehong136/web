@@ -83,7 +83,7 @@ export const StructuredOutputSecondaryMenu = forwardRef(
 
         if (isPlainObject(values) && properties) {
           return (
-            <ul className="border-l border-border-default">
+            <ul className="border-l border-line">
               {Object.entries(properties).map(([key, value]) => {
                 const nextOption = {
                   label: `${option.label}.${key}`,
@@ -106,10 +106,10 @@ export const StructuredOutputSecondaryMenu = forwardRef(
                           nextOption,
                           compositeDataType,
                         )}
-                        className="flex cursor-pointer items-center justify-between rounded-radius-sm p-space-xs text-sm text-text-primary hover:bg-components-dropdown-item-bg-hover"
+                        className="flex cursor-pointer items-center justify-between rounded-radius-sm p-space-xs text-sm text-fg hover:bg-fill-hover"
                       >
                         <span className="truncate">{key}</span>
-                        <span className="shrink-0 text-xs text-text-secondary">
+                        <span className="shrink-0 text-xs text-fg-muted">
                           {compositeDataType}
                         </span>
                       </div>
@@ -149,27 +149,25 @@ export const StructuredOutputSecondaryMenu = forwardRef(
             onClick={handleMenuClick}
             onMouseDown={(event) => event.preventDefault()}
             className={cn(
-              'flex cursor-pointer items-center gap-space-sm rounded-radius-sm px-space-sm py-space-xs text-sm text-text-primary',
-              'hover:bg-components-dropdown-item-bg-hover focus-visible:bg-components-dropdown-item-bg-hover',
+              'flex cursor-pointer items-center gap-space-sm rounded-radius-sm px-space-sm py-space-xs text-sm text-fg',
+              'hover:bg-fill-hover focus-visible:bg-fill-hover',
               className,
             )}
           >
             <span className="truncate">{data.label}</span>
-            <span className="ml-auto text-xs text-text-secondary">object</span>
-            <ChevronRight className="size-3.5 text-text-secondary" />
+            <span className="ml-auto text-xs text-fg-muted">object</span>
+            <ChevronRight className="size-3.5 text-fg-muted" />
           </li>
         </HoverCardTrigger>
 
         <HoverCardContent
           side="left"
           align="start"
-          className={cn(
-            'min-w-72 border border-border-default bg-components-dropdown-bg p-0 shadow-lg',
-          )}
+          className={cn('min-w-72 border border-line bg-overlay p-0 shadow-lg')}
         >
           <ScrollArea className="max-h-80 p-space-sm">
             <section>
-              <header className="mb-space-xs text-xs text-text-secondary">
+              <header className="mb-space-xs text-xs text-fg-muted">
                 {t('flow.structuredOutput.structuredOutput')}
               </header>
               {renderAgentStructuredOutput(structuredOutput, data)}

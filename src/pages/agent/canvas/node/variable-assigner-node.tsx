@@ -35,14 +35,14 @@ function InnerVariableAssignerNode({
           <section
             key={`${id}-variable-${idx}`}
             className={cn(
-              withDivider && 'border-t border-border-subtle pt-space-sm',
+              withDivider && 'border-t border-line-subtle pt-space-sm',
             )}
           >
             <LabelCard className="flex justify-between gap-2">
               <span className="flex min-w-0 flex-1 truncate">
                 {getLabel(variable?.variable)}
               </span>
-              <span className="rounded-radius-sm border border-border-default px-space-xs py-px text-[11px] leading-5 text-text-secondary">
+              <span className="rounded-radius-sm border border-line px-space-xs py-px text-[11px] leading-5 text-fg-muted">
                 {getVariableAssignerOperatorLabel(t, variable?.operator)}
               </span>
             </LabelCard>

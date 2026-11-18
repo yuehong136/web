@@ -183,7 +183,7 @@ export function FileUploadDirectUpload({
           {files.map((file, index) => (
             <div
               key={`${String(file.name || file.id || index)}-${index}`}
-              className="flex items-center justify-between rounded-radius-sm bg-surface-secondary px-space-sm py-space-xs"
+              className="flex items-center justify-between rounded-radius-sm bg-sunken px-space-sm py-space-xs"
             >
               <span className="flex-1 truncate text-sm">
                 {String(file.name || file.id || `文件 ${index + 1}`)}

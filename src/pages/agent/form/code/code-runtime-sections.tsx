@@ -49,13 +49,13 @@ export function ParameterPreview({
   )
 
   return (
-    <section className="space-y-space-sm rounded-radius-lg border border-border-subtle bg-surface-secondary p-space-base">
+    <section className="space-y-space-sm rounded-radius-lg border border-line-subtle bg-sunken p-space-base">
       <SectionHeader
         icon={<Variable className="size-icon-sm" />}
         title={t('flow.codeParameterPreview', 'Parameter preview')}
         description={getLanguageRuntimeHint(language, t)}
       />
-      <pre className="max-h-52 overflow-auto rounded-radius-md border border-border-subtle bg-surface-primary p-space-sm font-mono text-xs leading-5 text-text-primary">
+      <pre className="max-h-52 overflow-auto rounded-radius-md border border-line-subtle bg-surface p-space-sm font-mono text-xs leading-5 text-fg">
         {preview}
       </pre>
     </section>
@@ -67,7 +67,7 @@ function CodeOutputOverview({ outputs }: { outputs?: CodeOutputMap }) {
   const businessOutputs = getBusinessOutputs(outputs)
 
   return (
-    <section className="space-y-space-base border-t border-border-subtle pt-space-md">
+    <section className="space-y-space-base border-t border-line-subtle pt-space-md">
       <SectionHeader
         icon={<Variable className="size-icon-sm" />}
         title={t('flow.codeOutputContract', 'Output contract')}
@@ -103,23 +103,23 @@ export function CodeRuntimeOverview({ outputs }: { outputs?: CodeOutputMap }) {
   const { t } = useTranslation()
 
   return (
-    <div className="rounded-radius-lg border border-border-subtle bg-surface-secondary p-space-base">
+    <div className="rounded-radius-lg border border-line-subtle bg-sunken p-space-base">
       <div className="mb-space-base flex items-center gap-space-sm">
-        <span className="flex size-icon-xl items-center justify-center rounded-radius-md bg-background-surface text-text-secondary">
+        <span className="flex size-icon-xl items-center justify-center rounded-radius-md bg-surface text-fg-muted">
           <Code2 className="size-icon-sm" />
         </span>
         <div className="min-w-0">
-          <div className="text-sm font-semibold text-text-primary">
+          <div className="text-sm font-semibold text-fg">
             {t('flow.codeRuntimeShape', 'Runtime shape')}
           </div>
-          <div className="text-xs leading-5 text-text-secondary">
+          <div className="text-xs leading-5 text-fg-muted">
             {t(
               'flow.codeRuntimeShapeTip',
               'Downstream nodes see the same contract that the runtime validates.',
             )}
           </div>
         </div>
-        <Database className="ml-auto size-icon-sm shrink-0 text-text-tertiary" />
+        <Database className="ml-auto size-icon-sm shrink-0 text-fg-subtle" />
       </div>
       <CodeOutputOverview outputs={outputs} />
     </div>

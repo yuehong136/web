@@ -47,7 +47,7 @@ export function RuntimeHeader({
       : summary.sessionName || t('agent.runtimePanel.header.liveUnnamed')
 
   return (
-    <div className="border-b border-border-default px-space-md py-space-sm">
+    <div className="border-b border-line px-space-md py-space-sm">
       <div className="flex items-start justify-between gap-space-sm">
         <div className="flex min-w-0 items-start gap-space-sm">
           <EntityAvatar
@@ -58,7 +58,7 @@ export function RuntimeHeader({
           />
           <div className="min-w-0 space-y-space-xs">
             <div className="flex flex-wrap items-center gap-x-space-sm gap-y-space-2xs">
-              <h2 className="text-base font-medium text-text-primary">
+              <h2 className="text-base font-medium text-fg">
                 {t('agent.runtimePanel.header.title')}
               </h2>
               <StatusDot
@@ -67,7 +67,7 @@ export function RuntimeHeader({
               />
             </div>
             <AgentRunMode mode={visibleSessionId ? 'session' : 'draft'} />
-            <p className="text-sm text-text-secondary">
+            <p className="text-sm text-fg-muted">
               {summary.lastRunAt
                 ? t('agent.runtimePanel.header.lastRunAt', {
                     time: formatRelativeTime(summary.lastRunAt),
@@ -79,8 +79,8 @@ export function RuntimeHeader({
                 className={cn(
                   'text-xs',
                   summary.status === AgentRuntimeStatus.ERROR
-                    ? 'text-status-error'
-                    : 'text-text-tertiary',
+                    ? 'text-danger-fg'
+                    : 'text-fg-subtle',
                 )}
               >
                 {summary.lastError}
@@ -94,7 +94,7 @@ export function RuntimeHeader({
             type="button"
             variant="ghost"
             size="icon-sm"
-            className="text-text-secondary hover:text-text-primary"
+            className="text-fg-muted hover:text-fg"
             onClick={onReset}
             title={t('agent.runtimePanel.header.reset')}
             aria-label={t('agent.runtimePanel.header.reset')}
@@ -105,7 +105,7 @@ export function RuntimeHeader({
             type="button"
             variant="ghost"
             size="icon-sm"
-            className="text-text-secondary hover:text-text-primary"
+            className="text-fg-muted hover:text-fg"
             onClick={onClose}
             title={t('agent.runtimePanel.header.close')}
             aria-label={t('agent.runtimePanel.header.close')}
@@ -115,14 +115,14 @@ export function RuntimeHeader({
         </div>
       </div>
 
-      <div className="mt-space-sm flex flex-wrap items-center justify-between gap-space-sm rounded-radius-md border border-border-subtle bg-background-subtle px-space-sm py-space-xs">
+      <div className="mt-space-sm flex flex-wrap items-center justify-between gap-space-sm rounded-radius-md border border-line-subtle bg-sunken px-space-sm py-space-xs">
         <div className="min-w-0">
-          <p className="truncate text-xs font-medium text-text-primary">
+          <p className="truncate text-xs font-medium text-fg">
             {t('agent.runtimePanel.header.currentSession', {
               name: visibleSessionName,
             })}
           </p>
-          <p className="truncate font-mono text-xs text-text-tertiary">
+          <p className="truncate font-mono text-xs text-fg-subtle">
             {visibleSessionId ||
               t('agent.runtimePanel.header.sessionIdPending')}
           </p>

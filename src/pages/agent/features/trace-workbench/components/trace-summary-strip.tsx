@@ -17,15 +17,15 @@ function SummaryMetric({
   tone?: 'default' | 'error' | 'warning'
 }) {
   return (
-    <div className="min-w-0 border-r border-border-subtle px-space-base py-space-sm last:border-r-0">
-      <div className="text-xs text-text-tertiary">{label}</div>
+    <div className="min-w-0 border-r border-line-subtle px-space-base py-space-sm last:border-r-0">
+      <div className="text-xs text-fg-subtle">{label}</div>
       <div
         className={cn(
-          'mt-space-xs truncate font-mono text-sm font-semibold text-text-primary',
+          'mt-space-xs truncate font-mono text-sm font-semibold text-fg',
           tone === 'error'
-            ? 'text-status-error'
+            ? 'text-danger-fg'
             : tone === 'warning'
-              ? 'text-status-warning'
+              ? 'text-warning-fg'
               : undefined,
         )}
       >
@@ -39,7 +39,7 @@ export function TraceSummaryStrip({ summary }: TraceSummaryStripProps) {
   const { t } = useTranslation()
 
   return (
-    <div className="grid shrink-0 grid-cols-2 border-b border-components-split-pane-border bg-components-console-surface md:grid-cols-5">
+    <div className="grid shrink-0 grid-cols-2 border-b border-line bg-surface md:grid-cols-5">
       <SummaryMetric label={t('agent.trace.node')} value={summary.spanCount} />
       <SummaryMetric
         label={t('agent.trace.tool')}

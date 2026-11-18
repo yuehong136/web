@@ -76,7 +76,7 @@ export function XCardList({
     itemList.map((item, index) => (
       <div
         key={index}
-        className="rounded-radius-md border border-border-subtle bg-surface-secondary px-space-sm py-space-xs text-sm text-text-primary"
+        className="rounded-radius-md border border-line-subtle bg-sunken px-space-sm py-space-xs text-sm text-fg"
       >
         {toDisplayString(item) || JSON.stringify(item)}
       </div>
@@ -97,7 +97,7 @@ export function XCardList({
 
 export function XCardCard({ children }: CommonProps) {
   return (
-    <section className="rounded-radius-lg border border-border-default bg-surface-primary p-space-base shadow-elevation-low">
+    <section className="rounded-radius-lg border border-line bg-surface p-space-base shadow-elevation-low">
       <div className="space-y-space-sm">{children}</div>
     </section>
   )

@@ -40,16 +40,14 @@ export function ParserSetupItem({
   const stateLabel = hasError
     ? t('flow.parserStates.needsAttention', 'Needs attention')
     : t('flow.parserStates.edited', 'Edited')
-  const stateClassName = hasError
-    ? 'text-status-warning'
-    : 'text-text-secondary'
+  const stateClassName = hasError ? 'text-warning-fg' : 'text-fg-muted'
   const StateIcon = hasError ? AlertCircle : Circle
 
   return (
     <div
       className={cn(
-        'border-b border-border-subtle last:border-b-0',
-        selected && 'border-l-2 border-border-accent bg-background-subtle',
+        'border-b border-line-subtle last:border-b-0',
+        selected && 'border-l-2 border-line-focus bg-sunken',
       )}
     >
       <div
@@ -65,7 +63,7 @@ export function ParserSetupItem({
         >
           <div className="min-w-0 space-y-space-md">
             <div className="flex min-w-0 items-center gap-space-sm">
-              <span className="text-lg leading-none font-semibold text-text-primary">
+              <span className="text-lg leading-none font-semibold text-fg">
                 {`Parser ${index + 1}`}
               </span>
               <span
@@ -78,7 +76,7 @@ export function ParserSetupItem({
               </span>
             </div>
 
-            <div className="truncate pr-space-sm text-base leading-7 text-text-secondary">
+            <div className="truncate pr-space-sm text-base leading-7 text-fg-muted">
               {summary}
             </div>
           </div>
@@ -88,7 +86,7 @@ export function ParserSetupItem({
           {showState ? (
             <span
               className={cn(
-                'inline-flex items-center gap-1 rounded-radius-full bg-background-subtle px-space-sm py-1 text-sm leading-none font-medium',
+                'inline-flex items-center gap-1 rounded-radius-full bg-sunken px-space-sm py-1 text-sm leading-none font-medium',
                 stateClassName,
               )}
             >
@@ -102,7 +100,7 @@ export function ParserSetupItem({
               type="button"
               variant="ghost"
               size="icon-sm"
-              className="shrink-0 text-text-secondary hover:text-text-primary"
+              className="shrink-0 text-fg-muted hover:text-fg"
               onClick={onRemove}
               aria-label={t('common.delete', 'Delete')}
             >

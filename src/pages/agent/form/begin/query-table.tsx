@@ -39,7 +39,7 @@ type QueryTableProps = {
 
 function EllipsisCell({ value }: { value?: string }) {
   if (!value) {
-    return <span className="text-text-tertiary">-</span>
+    return <span className="text-fg-subtle">-</span>
   }
 
   return (
@@ -92,7 +92,7 @@ function SortableInputRow({
       }}
       className={cn(
         isDragging &&
-          'relative z-10 bg-surface-primary opacity-80 shadow-elevation-low',
+          'relative z-10 bg-surface opacity-80 shadow-elevation-low',
       )}
     >
       <TableCell className="w-10 px-space-xs py-space-sm align-middle">
@@ -103,7 +103,7 @@ function SortableInputRow({
           type="button"
           variant="ghost"
           size="icon-sm"
-          className="cursor-grab touch-none text-text-tertiary active:cursor-grabbing"
+          className="cursor-grab touch-none text-fg-subtle active:cursor-grabbing"
           aria-label={dragLabel}
           title={dragLabel}
         >
@@ -179,7 +179,7 @@ export function QueryTable({
   }
 
   return (
-    <div className="rounded-radius-lg border border-border-default bg-surface-secondary">
+    <div className="rounded-radius-lg border border-line bg-sunken">
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -221,7 +221,7 @@ export function QueryTable({
               <TableRow>
                 <TableCell
                   colSpan={6}
-                  className="py-space-lg text-center text-sm text-text-secondary"
+                  className="py-space-lg text-center text-sm text-fg-muted"
                 >
                   {t('common.noData', 'No data')}
                 </TableCell>

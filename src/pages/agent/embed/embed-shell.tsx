@@ -33,7 +33,7 @@ export function EmbedShell({
   return (
     <div
       className={cn(
-        'flex h-screen min-h-0 w-screen flex-col bg-components-studio-bg',
+        'flex h-screen min-h-0 w-screen flex-col bg-canvas',
         className,
       )}
     >
@@ -41,7 +41,7 @@ export function EmbedShell({
       <div className="flex min-h-0 flex-1">
         <div className="min-w-0 flex-1 overflow-auto">{children}</div>
         {sidePanel ? (
-          <aside className="flex min-h-0 w-80 shrink-0 flex-col border-l border-components-studio-border">
+          <aside className="flex min-h-0 w-80 shrink-0 flex-col border-l border-line">
             {sidePanel}
           </aside>
         ) : null}

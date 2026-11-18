@@ -89,7 +89,7 @@ export function SessionRail({
         className={cn(
           'w-full justify-start gap-space-sm px-space-sm text-sm',
           isNew &&
-            'bg-state-selected-bg text-state-selected-text hover:bg-state-selected-bg hover:text-state-selected-text',
+            'bg-accent-soft text-accent-fg hover:bg-accent-soft hover:text-accent-fg',
         )}
         onClick={onCreateSession}
       >
@@ -97,7 +97,7 @@ export function SessionRail({
         {t('agent.explore.newChat')}
       </Button>
       <div className="flex items-center justify-between gap-space-xs px-space-sm pt-space-sm">
-        <h2 className="hidden text-xs font-medium text-text-tertiary md:block">
+        <h2 className="hidden text-xs font-medium text-fg-subtle md:block">
           {t('agent.explore.history')}
         </h2>
         <div className="ml-auto flex items-center gap-space-xs">
@@ -108,9 +108,7 @@ export function SessionRail({
             aria-label={t('agent.explore.searchChats')}
             aria-expanded={searchOpen}
             aria-controls="explore-history-search"
-            className={
-              params.keywords ? 'text-text-accent' : 'text-text-secondary'
-            }
+            className={params.keywords ? 'text-accent-fg' : 'text-fg-muted'}
             onClick={() => setSearchOpen((value) => !value)}
           >
             {searchOpen ? (
@@ -151,7 +149,7 @@ export function SessionRail({
         <Button
           variant="ghost"
           size="sm"
-          className="justify-start px-space-sm text-xs text-text-secondary"
+          className="justify-start px-space-sm text-xs text-fg-muted"
           onClick={clearFilters}
         >
           {t('agent.explore.clearFilters')}
@@ -171,7 +169,7 @@ export function SessionRail({
           return (
             <Fragment key={session.id}>
               {group && group !== previous ? (
-                <h3 className="px-space-sm pt-space-base pb-space-xs text-xs font-medium text-text-tertiary">
+                <h3 className="px-space-sm pt-space-base pb-space-xs text-xs font-medium text-fg-subtle">
                   {groupLabel(group)}
                 </h3>
               ) : null}
@@ -223,7 +221,7 @@ export function SessionRail({
       </nav>
       {totalPages > 1 ? (
         <div className="flex items-center justify-between gap-space-sm px-space-sm pt-space-xs">
-          <p className="text-xs text-text-tertiary">
+          <p className="text-xs text-fg-subtle">
             {t('agent.explore.paginationLabel', {
               count: total,
               page: params.page,

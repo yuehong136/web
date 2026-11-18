@@ -240,16 +240,16 @@ export default function PipelineResultPage() {
         />
       ) : (
         <div className="flex flex-col gap-space-base p-space-lg">
-          <section className="rounded-radius-xl border border-components-console-border bg-components-console-surface p-space-lg">
+          <section className="rounded-radius-xl border border-line bg-surface p-space-lg">
             <div className="flex flex-col gap-space-lg xl:flex-row xl:items-start xl:justify-between">
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold tracking-wide text-text-tertiary uppercase">
+                <p className="text-xs font-semibold tracking-wide text-fg-subtle uppercase">
                   {t('flow.pipelineResult.runSummaryTitle')}
                 </p>
-                <h2 className="mt-space-xs truncate text-xl font-semibold text-text-primary">
+                <h2 className="mt-space-xs truncate text-xl font-semibold text-fg">
                   {agentTitle}
                 </h2>
-                <p className="mt-space-xs max-w-3xl text-sm text-text-secondary">
+                <p className="mt-space-xs max-w-3xl text-sm text-fg-muted">
                   {t('flow.pipelineResult.runSummaryDescription')}
                 </p>
               </div>
@@ -307,7 +307,7 @@ export default function PipelineResultPage() {
                   }
                   className="min-h-0"
                 >
-                  <div className="flex flex-col gap-space-base border-b border-border-subtle p-space-base lg:flex-row lg:items-center lg:justify-between">
+                  <div className="flex flex-col gap-space-base border-b border-line-subtle p-space-base lg:flex-row lg:items-center lg:justify-between">
                     <div className="flex min-w-0 flex-1 flex-col gap-space-sm sm:flex-row">
                       <Input
                         inputSize="sm"
@@ -338,7 +338,7 @@ export default function PipelineResultPage() {
                         </SelectContent>
                       </Select>
                     </div>
-                    <p className="shrink-0 text-sm font-medium text-text-secondary">
+                    <p className="shrink-0 text-sm font-medium text-fg-muted">
                       {t('flow.pipelineResult.filteredCount', {
                         shown: formatNumber.format(filteredChunks.length),
                         total: formatNumber.format(chunks.length),
@@ -392,11 +392,11 @@ export default function PipelineResultPage() {
                     className="mt-0 p-space-base"
                   >
                     <div className="space-y-space-sm">
-                      <div className="flex items-start gap-space-sm rounded-radius-md border border-border-subtle bg-surface-secondary p-space-base text-sm text-text-secondary">
-                        <Braces className="mt-0.5 size-4 shrink-0 text-text-tertiary" />
+                      <div className="flex items-start gap-space-sm rounded-radius-md border border-line-subtle bg-sunken p-space-base text-sm text-fg-muted">
+                        <Braces className="mt-0.5 size-4 shrink-0 text-fg-subtle" />
                         <p>{t('flow.pipelineResult.compactJsonHint')}</p>
                       </div>
-                      <pre className="max-h-[620px] overflow-auto rounded-radius-md bg-surface-secondary p-space-base font-mono text-xs leading-relaxed text-text-primary">
+                      <pre className="max-h-[620px] overflow-auto rounded-radius-md bg-sunken p-space-base font-mono text-xs leading-relaxed text-fg">
                         {displayJson}
                       </pre>
                     </div>

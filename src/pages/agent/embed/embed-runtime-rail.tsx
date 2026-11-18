@@ -140,12 +140,10 @@ function AssetSummaryCard({
             size="lg"
           />
           <div className="min-w-0">
-            <p className="text-base font-semibold break-words text-text-primary">
+            <p className="text-base font-semibold break-words text-fg">
               {title}
             </p>
-            <p className="mt-space-xs text-sm text-text-secondary">
-              {description}
-            </p>
+            <p className="mt-space-xs text-sm text-fg-muted">{description}</p>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-space-sm text-sm">
@@ -171,7 +169,7 @@ function AssetSummaryCard({
           />
         </div>
         {flow?.update_time ? (
-          <p className="text-xs text-text-tertiary">
+          <p className="text-xs text-fg-subtle">
             {t('agent.embedRail.updatedAt', 'Updated: {{time}}', {
               time: formatTimestampDetailed(flow.update_time),
             })}
@@ -184,9 +182,9 @@ function AssetSummaryCard({
 
 function SummaryMetric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-radius-lg bg-surface-secondary p-space-sm">
-      <p className="text-text-tertiary">{label}</p>
-      <p className="mt-space-xs font-medium text-text-primary">{value}</p>
+    <div className="rounded-radius-lg bg-sunken p-space-sm">
+      <p className="text-fg-subtle">{label}</p>
+      <p className="mt-space-xs font-medium text-fg">{value}</p>
     </div>
   )
 }
@@ -200,7 +198,7 @@ function HostManagedCard() {
       padding="default"
       className="min-h-0"
     >
-      <p className="text-sm text-text-secondary">
+      <p className="text-sm text-fg-muted">
         {t(
           'agent.embedRail.hostManagedDescription',
           'This iframe only exposes the save action. Runtime and delivery actions stay hidden until the host enables them through the show parameter.',

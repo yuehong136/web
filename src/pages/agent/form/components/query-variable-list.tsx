@@ -62,7 +62,7 @@ export function QueryVariableList({
                 variant="ghost"
                 onClick={() => remove(index)}
               >
-                <X className="text-text-secondary" />
+                <X className="text-fg-muted" />
               </Button>
             </div>
           )

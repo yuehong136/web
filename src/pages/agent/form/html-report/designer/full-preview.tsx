@@ -48,9 +48,9 @@ export function FullPreview({ skeleton, onClose }: FullPreviewProps) {
   }
 
   return (
-    <div className="absolute inset-0 z-10 flex flex-col bg-surface-primary">
-      <div className="flex items-center gap-space-sm border-b border-border-default px-space-base py-space-sm">
-        <span className="text-sm font-medium text-text-primary">
+    <div className="absolute inset-0 z-10 flex flex-col bg-surface">
+      <div className="flex items-center gap-space-sm border-b border-line px-space-base py-space-sm">
+        <span className="text-sm font-medium text-fg">
           {report
             ? t('flow.htmlReportPreviewReportImported', 'Imported report')
             : t('flow.htmlReportPreview', 'Preview')}

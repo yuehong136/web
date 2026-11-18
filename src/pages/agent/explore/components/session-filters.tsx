@@ -41,7 +41,7 @@ export function SessionFilters({
           variant="ghost"
           size="icon-sm"
           aria-label={t('agent.explore.filterAndSort')}
-          className={active ? 'text-text-accent' : 'text-text-secondary'}
+          className={active ? 'text-accent-fg' : 'text-fg-muted'}
         >
           <SlidersHorizontal className="size-icon-sm" />
           {active ? (
@@ -52,7 +52,7 @@ export function SessionFilters({
       <PopoverContent
         collisionPadding={8}
         align="start"
-        className="w-80 max-w-full space-y-space-md border-border-default bg-components-console-surface p-space-base motion-reduce:animate-none"
+        className="w-80 max-w-full space-y-space-md border-line bg-surface p-space-base motion-reduce:animate-none"
         aria-label={t('agent.explore.filterAndSort')}
       >
         <div className="flex items-center justify-between gap-space-sm">
@@ -62,7 +62,7 @@ export function SessionFilters({
           <Button
             variant="ghost"
             size="sm"
-            className="text-xs text-text-secondary"
+            className="text-xs text-fg-muted"
             onClick={onClear}
           >
             {t('agent.explore.clearFilters')}

@@ -82,8 +82,8 @@ export function Output({
       className={cn(
         'space-y-space-base',
         isContrast &&
-          'rounded-radius-xl border border-border-strong bg-text-primary p-space-lg shadow-elevation-low',
-        isCompact && 'border-t border-border-subtle pt-space-md',
+          'rounded-radius-xl border border-line-strong bg-fg p-space-lg shadow-elevation-low',
+        isCompact && 'border-t border-line-subtle pt-space-md',
       )}
     >
       <div className="flex items-start justify-between gap-space-base">
@@ -91,8 +91,8 @@ export function Output({
           <div
             className={cn(
               'font-medium',
-              isCompact ? 'text-lg text-text-primary' : 'text-sm',
-              isContrast ? 'text-text-inverted' : 'text-text-primary',
+              isCompact ? 'text-lg text-fg' : 'text-sm',
+              isContrast ? 'text-fg-inverse' : 'text-fg',
             )}
           >
             {resolvedTitle}
@@ -101,9 +101,7 @@ export function Output({
             <p
               className={cn(
                 isCompact ? 'text-sm leading-7' : 'text-xs',
-                isContrast
-                  ? 'text-text-inverted opacity-75'
-                  : 'text-text-secondary',
+                isContrast ? 'text-fg-inverse opacity-75' : 'text-fg-muted',
               )}
             >
               {description}
@@ -115,7 +113,7 @@ export function Output({
 
       <ul
         className={cn(
-          isCompact ? 'divide-y divide-border-subtle' : 'space-y-space-sm',
+          isCompact ? 'divide-y divide-line-subtle' : 'space-y-space-sm',
         )}
       >
         {list.map((x, idx) => (
@@ -127,20 +125,20 @@ export function Output({
                 ? 'min-h-12 py-space-base'
                 : 'rounded-radius-lg border px-space-sm py-space-sm shadow-elevation-low',
               isContrast
-                ? 'border-border-default bg-components-card-bg'
-                : !isCompact && 'border-border-default bg-background-subtle',
+                ? 'border-line bg-raised'
+                : !isCompact && 'border-line bg-sunken',
             )}
           >
             <div className="flex min-w-0 items-center gap-space-sm">
               {isCompact ? (
-                <span className="mt-0.5 h-2 w-2 shrink-0 rounded-radius-full bg-components-system-accent-text" />
+                <span className="mt-0.5 h-2 w-2 shrink-0 rounded-radius-full bg-accent-fg" />
               ) : (
                 <span
                   className={cn(
                     'flex h-8 w-8 shrink-0 items-center justify-center rounded-radius-md',
                     isContrast
-                      ? 'bg-components-system-accent-soft text-components-system-accent-text'
-                      : 'bg-components-system-accent-bg text-components-system-accent-text',
+                      ? 'bg-accent-soft text-accent-fg'
+                      : 'bg-accent-soft text-accent-fg',
                   )}
                 >
                   <Variable className="size-4" />
@@ -152,14 +150,14 @@ export function Output({
                   className={cn(
                     'truncate text-sm font-medium',
                     isCompact
-                      ? 'text-base leading-7 text-text-primary'
-                      : 'text-components-system-accent-text',
+                      ? 'text-base leading-7 text-fg'
+                      : 'text-accent-fg',
                   )}
                 >
                   {x.title}
                 </div>
                 {!isCompact ? (
-                  <div className="truncate text-xs text-text-secondary">
+                  <div className="truncate text-xs text-fg-muted">
                     {t('flow.output', 'Output')}
                   </div>
                 ) : null}
@@ -168,7 +166,7 @@ export function Output({
 
             {x.type ? (
               isCompact ? (
-                <span className="shrink-0 font-mono text-sm text-text-tertiary">
+                <span className="shrink-0 font-mono text-sm text-fg-subtle">
                   {x.type}
                 </span>
               ) : (
@@ -176,10 +174,10 @@ export function Output({
                   className={cn(
                     'inline-flex shrink-0 items-center rounded-radius-full border px-space-sm py-0.5 text-xs',
                     isContrast
-                      ? 'border-border-subtle bg-background-subtle text-text-secondary'
+                      ? 'border-line-subtle bg-sunken text-fg-muted'
                       : isCompact
-                        ? 'border-border-subtle bg-background-subtle font-mono text-text-tertiary'
-                        : 'border-border-default bg-surface-primary text-text-secondary',
+                        ? 'border-line-subtle bg-sunken font-mono text-fg-subtle'
+                        : 'border-line bg-surface text-fg-muted',
                   )}
                 >
                   {x.type}

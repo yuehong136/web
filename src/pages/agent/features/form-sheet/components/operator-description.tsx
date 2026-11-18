@@ -7,5 +7,5 @@ export function OperatorDescription({ description }: OperatorDescriptionProps) {
     return null
   }
 
-  return <p className="text-sm leading-6 text-text-secondary">{description}</p>
+  return <p className="text-sm leading-6 text-fg-muted">{description}</p>
 }

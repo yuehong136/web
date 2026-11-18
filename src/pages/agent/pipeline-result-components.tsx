@@ -29,9 +29,9 @@ interface ResultMetricProps {
 
 export function ResultMetric({ label, value }: ResultMetricProps) {
   return (
-    <div className="flex items-center justify-between gap-space-sm rounded-radius-md bg-surface-secondary px-space-sm py-space-xs">
-      <span className="text-text-secondary">{label}</span>
-      <span className="font-medium text-text-primary">{value}</span>
+    <div className="flex items-center justify-between gap-space-sm rounded-radius-md bg-sunken px-space-sm py-space-xs">
+      <span className="text-fg-muted">{label}</span>
+      <span className="font-medium text-fg">{value}</span>
     </div>
   )
 }
@@ -48,14 +48,14 @@ export function ResultStatCard({
   icon: Icon,
 }: ResultStatCardProps) {
   return (
-    <div className="rounded-radius-lg border border-border-subtle bg-surface-secondary px-space-base py-space-sm">
+    <div className="rounded-radius-lg border border-line-subtle bg-sunken px-space-base py-space-sm">
       <div className="flex items-center justify-between gap-space-sm">
-        <span className="min-w-0 truncate text-xs font-medium text-text-tertiary">
+        <span className="min-w-0 truncate text-xs font-medium text-fg-subtle">
           {label}
         </span>
-        <Icon className="size-4 text-text-tertiary" />
+        <Icon className="size-4 text-fg-subtle" />
       </div>
-      <p className="mt-space-xs text-xl font-semibold text-text-primary tabular-nums">
+      <p className="mt-space-xs text-xl font-semibold text-fg tabular-nums">
         {value}
       </p>
     </div>
@@ -70,10 +70,10 @@ interface MetadataChipProps {
 
 export function MetadataChip({ label, value, fullValue }: MetadataChipProps) {
   return (
-    <div className="min-w-0 rounded-radius-md border border-border-subtle bg-surface-primary px-space-sm py-space-xs">
-      <dt className="text-xs text-text-tertiary">{label}</dt>
+    <div className="min-w-0 rounded-radius-md border border-line-subtle bg-surface px-space-sm py-space-xs">
+      <dt className="text-xs text-fg-subtle">{label}</dt>
       <dd
-        className="mt-space-2xs truncate text-sm font-medium text-text-primary"
+        className="mt-space-2xs truncate text-sm font-medium text-fg"
         title={fullValue || value}
       >
         {value}
@@ -95,7 +95,7 @@ export function ResultViewSwitch({
 }: ResultViewSwitchProps) {
   return (
     <div
-      className="inline-flex gap-space-2xs rounded-radius-md border border-border-subtle bg-surface-secondary p-space-2xs"
+      className="inline-flex gap-space-2xs rounded-radius-md border border-line-subtle bg-sunken p-space-2xs"
       aria-label={t('flow.pipelineResult.viewModeLabel')}
     >
       <Button
@@ -105,8 +105,7 @@ export function ResultViewSwitch({
         aria-pressed={value === PipelineResultView.Chunks}
         className={cn(
           'h-8 px-space-sm',
-          value === PipelineResultView.Chunks &&
-            'bg-components-console-surface text-text-primary shadow-xs',
+          value === PipelineResultView.Chunks && 'bg-surface text-fg shadow-xs',
         )}
         onClick={() => onChange(PipelineResultView.Chunks)}
       >
@@ -120,8 +119,7 @@ export function ResultViewSwitch({
         aria-pressed={value === PipelineResultView.Json}
         className={cn(
           'h-8 px-space-sm',
-          value === PipelineResultView.Json &&
-            'bg-components-console-surface text-text-primary shadow-xs',
+          value === PipelineResultView.Json && 'bg-surface text-fg shadow-xs',
         )}
         onClick={() => onChange(PipelineResultView.Json)}
       >
@@ -163,8 +161,8 @@ export function ChunkCard({
       className={cn(
         'w-full rounded-radius-lg border p-space-base text-left transition-colors',
         selected
-          ? 'border-components-button-primary-bg bg-surface-secondary'
-          : 'border-border-subtle bg-surface-primary hover:border-border-default hover:bg-surface-secondary',
+          ? 'border-action-bg bg-sunken'
+          : 'border-line-subtle bg-surface hover:border-line hover:bg-sunken',
       )}
     >
       <div className="flex flex-wrap items-center justify-between gap-space-sm">
@@ -173,11 +171,11 @@ export function ChunkCard({
           <Badge variant={getTypeBadgeVariant(chunkType)}>
             {getTypeLabel(chunkType, t)}
           </Badge>
-          <span className="text-xs text-text-tertiary">
+          <span className="text-xs text-fg-subtle">
             {t('flow.pipelineResult.chunkOrder', { order })}
           </span>
         </div>
-        <span className="text-xs text-text-tertiary">
+        <span className="text-xs text-fg-subtle">
           {t('flow.pipelineResult.textLength', {
             value: formatNumber.format(text.length),
           })}
@@ -185,12 +183,12 @@ export function ChunkCard({
       </div>
 
       {title ? (
-        <p className="mt-space-sm truncate text-sm font-semibold text-text-primary">
+        <p className="mt-space-sm truncate text-sm font-semibold text-fg">
           {title}
         </p>
       ) : null}
 
-      <p className="mt-space-sm line-clamp-3 text-sm leading-relaxed break-words whitespace-pre-wrap text-text-secondary">
+      <p className="mt-space-sm line-clamp-3 text-sm leading-relaxed break-words whitespace-pre-wrap text-fg-muted">
         {text || t('flow.pipelineResult.emptyChunkText')}
       </p>
 
@@ -232,8 +230,8 @@ export function ChunkDetail({
 }: ChunkDetailProps) {
   if (!chunk) {
     return (
-      <aside className="min-w-0 border-t border-border-subtle pt-space-base xl:border-t-0 xl:border-l xl:pt-0 xl:pl-space-base">
-        <h4 className="mb-space-sm text-base font-semibold text-text-primary">
+      <aside className="min-w-0 border-t border-line-subtle pt-space-base xl:border-t-0 xl:border-l xl:pt-0 xl:pl-space-base">
+        <h4 className="mb-space-sm text-base font-semibold text-fg">
           {t('flow.pipelineResult.detailTitle')}
         </h4>
         <PageEmptyState
@@ -254,9 +252,9 @@ export function ChunkDetail({
   const displayChunkJson = JSON.stringify(createDisplayJson(chunk), null, 2)
 
   return (
-    <aside className="min-w-0 border-t border-border-subtle pt-space-base xl:border-t-0 xl:border-l xl:pt-0 xl:pl-space-base">
+    <aside className="min-w-0 border-t border-line-subtle pt-space-base xl:border-t-0 xl:border-l xl:pt-0 xl:pl-space-base">
       <div className="space-y-space-base">
-        <h4 className="text-base font-semibold text-text-primary">
+        <h4 className="text-base font-semibold text-fg">
           {t('flow.pipelineResult.detailTitle')}
         </h4>
         <div className="flex flex-wrap items-center gap-space-sm">
@@ -268,18 +266,18 @@ export function ChunkDetail({
           </Badge>
         </div>
 
-        <div className="rounded-radius-md bg-surface-secondary p-space-sm">
-          <p className="text-xs font-medium text-text-tertiary uppercase">
+        <div className="rounded-radius-md bg-sunken p-space-sm">
+          <p className="text-xs font-medium text-fg-subtle uppercase">
             {t('flow.pipelineResult.chunkTextLabel')}
           </p>
-          <p className="mt-space-sm max-h-[260px] overflow-auto text-sm leading-relaxed break-words whitespace-pre-wrap text-text-primary">
+          <p className="mt-space-sm max-h-[260px] overflow-auto text-sm leading-relaxed break-words whitespace-pre-wrap text-fg">
             {text || t('flow.pipelineResult.emptyChunkText')}
           </p>
         </div>
 
         {vectorFields.length > 0 ? (
-          <div className="rounded-radius-md bg-surface-secondary p-space-sm">
-            <p className="text-xs font-medium text-text-tertiary uppercase">
+          <div className="rounded-radius-md bg-sunken p-space-sm">
+            <p className="text-xs font-medium text-fg-subtle uppercase">
               {t('flow.pipelineResult.vectorSummaryLabel')}
             </p>
             <div className="mt-space-sm space-y-space-xs">
@@ -301,15 +299,15 @@ export function ChunkDetail({
         ) : null}
 
         {metadata.length > 0 ? (
-          <div className="rounded-radius-md bg-surface-secondary p-space-sm">
-            <p className="text-xs font-medium text-text-tertiary uppercase">
+          <div className="rounded-radius-md bg-sunken p-space-sm">
+            <p className="text-xs font-medium text-fg-subtle uppercase">
               {t('flow.pipelineResult.metadataTitle')}
             </p>
             <dl className="mt-space-sm space-y-space-xs">
               {metadata.map(({ key, value }) => (
                 <div key={key} className="space-y-space-2xs">
-                  <dt className="text-xs text-text-tertiary">{key}</dt>
-                  <dd className="text-xs break-all text-text-primary">
+                  <dt className="text-xs text-fg-subtle">{key}</dt>
+                  <dd className="text-xs break-all text-fg">
                     {formatMetadataValue(value, t)}
                   </dd>
                 </div>
@@ -318,11 +316,11 @@ export function ChunkDetail({
           </div>
         ) : null}
 
-        <div className="rounded-radius-md bg-surface-secondary p-space-sm">
-          <p className="text-xs font-medium text-text-tertiary uppercase">
+        <div className="rounded-radius-md bg-sunken p-space-sm">
+          <p className="text-xs font-medium text-fg-subtle uppercase">
             {t('flow.pipelineResult.rawChunkLabel')}
           </p>
-          <pre className="mt-space-sm max-h-[280px] overflow-auto font-mono text-xs leading-relaxed text-text-primary">
+          <pre className="mt-space-sm max-h-[280px] overflow-auto font-mono text-xs leading-relaxed text-fg">
             {displayChunkJson}
           </pre>
         </div>
@@ -346,7 +344,7 @@ export function getTypeLabel(
 }
 
 function ChunkTypeIcon({ type }: { type: PipelineResultChunkType }) {
-  const className = 'size-4 shrink-0 text-text-tertiary'
+  const className = 'size-4 shrink-0 text-fg-subtle'
   if (type === PipelineResultChunkType.Image) {
     return <ImageIcon className={className} />
   }

@@ -97,7 +97,7 @@ function InnerToolNode({
         type="target"
         position={Position.Top}
         isConnectable={isConnectable}
-        className="!size-2 !border-none !bg-components-canvas-handle-bg"
+        className="!size-2 !border-none !bg-accent-solid"
       />
       <NodeHeader
         id={id}
@@ -121,10 +121,10 @@ function InnerToolNode({
             data-tool={item.kind === 'tool' ? item.operator : item.id}
             className={cn(
               'flex w-full items-center gap-space-sm px-space-sm py-space-sm text-left transition-colors',
-              withDivider && 'border-t border-border-subtle',
+              withDivider && 'border-t border-line-subtle',
               item.kind === 'tool' && item.disabled
                 ? 'cursor-default opacity-70'
-                : 'cursor-pointer hover:bg-state-hover',
+                : 'cursor-pointer hover:bg-fill-hover',
             )}
           >
             <div className="pointer-events-none flex min-w-0 flex-1 items-center gap-space-sm">
@@ -139,9 +139,7 @@ function InnerToolNode({
                   size="xs"
                 />
               )}
-              <span className="truncate text-sm text-text-primary">
-                {item.title}
-              </span>
+              <span className="truncate text-sm text-fg">{item.title}</span>
             </div>
           </button>
         )}

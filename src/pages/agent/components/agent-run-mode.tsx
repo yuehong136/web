@@ -37,7 +37,7 @@ export function AgentRunMode({ mode, onChange, disabled }: AgentRunModeProps) {
       ) : (
         <Badge variant="outline">{t(`agent.runtime.mode.${mode}`)}</Badge>
       )}
-      <p className="text-xs text-text-secondary">
+      <p className="text-xs text-fg-muted">
         {t(`agent.runtime.mode.${mode}Description`)}
       </p>
     </div>

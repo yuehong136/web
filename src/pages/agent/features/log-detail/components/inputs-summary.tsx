@@ -15,7 +15,7 @@ export function InputsSummary({ inputs, files }: InputsSummaryProps) {
 
   if (!summary && files.length === 0) {
     return (
-      <p className="text-sm text-text-secondary">
+      <p className="text-sm text-fg-muted">
         {t('agent.runtimePanel.logDetail.noInputs')}
       </p>
     )
@@ -24,7 +24,7 @@ export function InputsSummary({ inputs, files }: InputsSummaryProps) {
   return (
     <div className="space-y-space-sm">
       {summary ? (
-        <pre className="max-h-[180px] overflow-auto rounded-radius-md bg-surface-secondary p-space-sm text-xs text-text-secondary">
+        <pre className="max-h-[180px] overflow-auto rounded-radius-md bg-sunken p-space-sm text-xs text-fg-muted">
           {summary}
         </pre>
       ) : null}
@@ -33,10 +33,10 @@ export function InputsSummary({ inputs, files }: InputsSummaryProps) {
           {files.map((file, index) => (
             <div
               key={`${file.id || file.name}-${index}`}
-              className="flex items-center gap-space-sm rounded-radius-md border border-border-default bg-surface-secondary px-space-sm py-space-xs"
+              className="flex items-center gap-space-sm rounded-radius-md border border-line bg-sunken px-space-sm py-space-xs"
             >
               <FileIcon fileType={file.type} fileName={file.name} size="sm" />
-              <span className="max-w-[220px] truncate text-sm text-text-primary">
+              <span className="max-w-[220px] truncate text-sm text-fg">
                 {file.name}
               </span>
             </div>

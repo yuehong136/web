@@ -85,28 +85,28 @@ export function TraceInsightPanel({ span }: { span?: TraceSpanViewModel }) {
 
   return (
     <div className="grid gap-space-base p-space-lg xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-      <section className="min-h-0 overflow-hidden rounded-radius-md bg-surface-primary">
-        <div className="flex items-center gap-space-xs border-b border-border-subtle px-space-base py-space-sm">
-          <Search className="size-3.5 text-text-tertiary" />
-          <h5 className="text-sm font-semibold text-text-primary">
+      <section className="min-h-0 overflow-hidden rounded-radius-md bg-surface">
+        <div className="flex items-center gap-space-xs border-b border-line-subtle px-space-base py-space-sm">
+          <Search className="size-3.5 text-fg-subtle" />
+          <h5 className="text-sm font-semibold text-fg">
             {t('agent.traceWorkbench.insight.keyFields')}
           </h5>
         </div>
         {items.length > 0 ? (
-          <div className="divide-y divide-border-subtle">
+          <div className="divide-y divide-line-subtle">
             {items.map((item) => (
               <div key={item.path} className="p-space-base">
                 <div className="flex min-w-0 items-center gap-space-xs">
-                  <span className="text-xs font-medium text-text-tertiary">
+                  <span className="text-xs font-medium text-fg-subtle">
                     {item.label}
                   </span>
-                  <span className="truncate font-mono text-xs text-text-caption">
+                  <span className="truncate font-mono text-xs text-fg-subtle">
                     {item.path}
                   </span>
                 </div>
                 <pre
                   className={cn(
-                    'mt-space-xs max-h-[180px] overflow-auto text-xs leading-relaxed break-words whitespace-pre-wrap text-text-primary',
+                    'mt-space-xs max-h-[180px] overflow-auto text-xs leading-relaxed break-words whitespace-pre-wrap text-fg',
                     typeof item.value === 'string' ? 'font-sans' : 'font-mono',
                   )}
                 >
@@ -116,7 +116,7 @@ export function TraceInsightPanel({ span }: { span?: TraceSpanViewModel }) {
             ))}
           </div>
         ) : (
-          <div className="px-space-base py-space-xl text-center text-sm text-text-tertiary">
+          <div className="px-space-base py-space-xl text-center text-sm text-fg-subtle">
             {t('agent.traceWorkbench.insight.empty')}
           </div>
         )}

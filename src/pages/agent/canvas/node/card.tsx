@@ -15,7 +15,7 @@ export function LabelCard({ children, className, ...props }: LabelCardProps) {
   return (
     <div
       className={cn(
-        'rounded-radius-md border border-border-subtle bg-background-subtle px-space-sm py-space-xs text-xs leading-5 text-text-secondary',
+        'rounded-radius-md border border-line-subtle bg-sunken px-space-sm py-space-xs text-xs leading-5 text-fg-muted',
         className,
       )}
       {...props}
@@ -41,21 +41,17 @@ export function LLMLabelCard({ llmId }: { llmId?: string }) {
     <LabelCard
       className={cn(
         'flex items-center gap-space-sm',
-        isInvalidLlm &&
-          'border-status-error-border bg-status-error-subtle text-status-error',
+        isInvalidLlm && 'border-danger-line bg-danger-soft text-danger-fg',
       )}
       title={isInvalidLlm ? t('agent.canvas.modelUnavailable') : displayName}
     >
       {resolvedLlm.providerName ? (
         <ProviderLogo provider={resolvedLlm.providerName} size="xs" />
       ) : (
-        <Cpu aria-hidden className="size-icon-xs shrink-0 text-text-tertiary" />
+        <Cpu aria-hidden className="size-icon-xs shrink-0 text-fg-subtle" />
       )}
       <span
-        className={cn(
-          'min-w-0 flex-1 truncate',
-          !isInvalidLlm && 'text-text-primary',
-        )}
+        className={cn('min-w-0 flex-1 truncate', !isInvalidLlm && 'text-fg')}
       >
         {displayName}
       </span>

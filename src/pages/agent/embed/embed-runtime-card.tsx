@@ -47,12 +47,12 @@ export function EmbedRuntimeCard({
       <div className="space-y-space-md">
         <div className="flex items-center justify-between gap-space-sm">
           <div className="min-w-0">
-            <p className="text-sm font-medium text-text-primary">
+            <p className="text-sm font-medium text-fg">
               {isPipeline
                 ? t('agent.embedRail.pipelineRun', 'Pipeline run')
                 : t('agent.embedRail.agentRun', 'Agent run')}
             </p>
-            <p className="mt-space-xs text-sm text-text-secondary">
+            <p className="mt-space-xs text-sm text-fg-muted">
               <RuntimeDescription
                 isPipeline={isPipeline}
                 runtimeSummary={runtimeSummary}
@@ -68,29 +68,29 @@ export function EmbedRuntimeCard({
         </div>
 
         {runtimeSummary.lastError ? (
-          <div className="rounded-radius-md border border-border-primary bg-surface-secondary px-space-sm py-space-xs text-xs text-status-error">
+          <div className="rounded-radius-md border border-line bg-sunken px-space-sm py-space-xs text-xs text-danger-fg">
             {runtimeSummary.lastError}
           </div>
         ) : null}
 
         <div className="grid grid-cols-2 gap-space-sm text-sm">
-          <div className="rounded-radius-lg bg-surface-secondary p-space-sm">
-            <p className="text-text-tertiary">
+          <div className="rounded-radius-lg bg-sunken p-space-sm">
+            <p className="text-fg-subtle">
               {isPipeline
                 ? t('agent.embedRail.nodeEvents', 'Node events')
                 : t('agent.runtime.messages', 'Messages')}
             </p>
-            <p className="mt-space-xs font-medium text-text-primary">
+            <p className="mt-space-xs font-medium text-fg">
               {runtimeSummary.messageCount}
             </p>
           </div>
-          <div className="rounded-radius-lg bg-surface-secondary p-space-sm">
-            <p className="text-text-tertiary">
+          <div className="rounded-radius-lg bg-sunken p-space-sm">
+            <p className="text-fg-subtle">
               {isPipeline
                 ? t('agent.runtime.output', 'Output')
                 : t('agent.runtime.logs', 'Logs')}
             </p>
-            <p className="mt-space-xs font-medium text-text-primary">
+            <p className="mt-space-xs font-medium text-fg">
               <RuntimeResultLabel
                 isPipeline={isPipeline}
                 runtimeSummary={runtimeSummary}

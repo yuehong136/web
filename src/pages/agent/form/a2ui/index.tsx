@@ -61,7 +61,7 @@ export function A2UIForm({ node }: INextOperatorForm) {
       <FormWrapper>
         <FormItem>
           <FormLabel>A2UI Commands</FormLabel>
-          <div className="space-y-space-sm rounded-radius-md border border-border-subtle bg-surface-secondary p-space-sm text-xs leading-5 text-text-secondary">
+          <div className="space-y-space-sm rounded-radius-md border border-line-subtle bg-sunken p-space-sm text-xs leading-5 text-fg-muted">
             <p>
               v0.9 raw JSON array / JSONL only. Catalog: {A2UIBasicCatalogId}.
               Required: createSurface, updateComponents, root component id.
@@ -110,7 +110,7 @@ export function A2UIForm({ node }: INextOperatorForm) {
             <Plus className="size-4" />
             Add command block
           </Button>
-          <div className="space-y-space-sm rounded-radius-md border border-border-subtle bg-surface-secondary p-space-sm">
+          <div className="space-y-space-sm rounded-radius-md border border-line-subtle bg-sunken p-space-sm">
             <div className="flex items-center justify-between gap-space-sm">
               <FormLabel>Agent prompt template</FormLabel>
               <Button
@@ -125,7 +125,7 @@ export function A2UIForm({ node }: INextOperatorForm) {
                   : t('flow.copyAgentPrompt', 'Copy agent prompt')}
               </Button>
             </div>
-            <pre className="max-h-60 overflow-auto rounded-radius-sm bg-surface-primary p-space-sm text-xs leading-5 whitespace-pre-wrap text-text-secondary">
+            <pre className="max-h-60 overflow-auto rounded-radius-sm bg-surface p-space-sm text-xs leading-5 whitespace-pre-wrap text-fg-muted">
               {A2UI_AGENT_PROMPT_TEMPLATE}
             </pre>
           </div>

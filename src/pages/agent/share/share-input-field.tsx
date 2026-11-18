@@ -55,15 +55,11 @@ export function ShareInputField({
   const fileList = asFileList(value)
 
   return (
-    <div className="space-y-space-sm rounded-radius-lg border border-border-default bg-surface-secondary/50 p-space-base">
+    <div className="space-y-space-sm rounded-radius-lg border border-line bg-sunken/50 p-space-base">
       <div className="flex flex-wrap items-center justify-between gap-space-sm">
         <div>
-          <Label className="text-sm font-medium text-text-primary">
-            {label}
-          </Label>
-          <p className="mt-space-xs text-xs text-text-secondary">
-            {description}
-          </p>
+          <Label className="text-sm font-medium text-fg">{label}</Label>
+          <p className="mt-space-xs text-xs text-fg-muted">{description}</p>
         </div>
         <Badge variant={required ? 'warning' : 'secondary'}>
           {required
@@ -111,7 +107,7 @@ export function ShareInputField({
           onChange={(next) => onChange(fieldKey, next)}
         />
       ) : field.type === BeginQueryType.Boolean ? (
-        <label className="flex items-center gap-space-sm text-sm text-text-primary">
+        <label className="flex items-center gap-space-sm text-sm text-fg">
           <Checkbox
             checked={Boolean(value)}
             disabled={disabled}

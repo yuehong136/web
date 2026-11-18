@@ -148,7 +148,7 @@ export const ParserForm = memo(function ParserForm({
     <Form {...form}>
       <FormWrapper className="space-y-space-xl">
         <div className="space-y-space-md">
-          <p className="max-w-3xl text-base leading-8 text-text-secondary">
+          <p className="max-w-3xl text-base leading-8 text-fg-muted">
             {t(
               'flow.parserDescription',
               'Extract raw text and structure from incoming files before downstream processing.',
@@ -159,11 +159,11 @@ export const ParserForm = memo(function ParserForm({
         <section className="space-y-space-lg">
           <div className="flex flex-col gap-space-md">
             <div className="flex items-center justify-between gap-space-sm">
-              <div className="text-base font-semibold text-text-secondary">
+              <div className="text-base font-semibold text-fg-muted">
                 {t('flow.parserList', 'Parsers')}
               </div>
               {missingFileFormats.length === 0 ? (
-                <span className="text-base text-text-tertiary">
+                <span className="text-base text-fg-subtle">
                   {t(
                     'flow.parserAddDisabled',
                     'All parser types already added',
@@ -180,7 +180,7 @@ export const ParserForm = memo(function ParserForm({
                     value={newParserType}
                     onChange={setNewParserType}
                     disabled={missingFileFormats.length === 0}
-                    triggerClassName="h-12 w-full rounded-radius-xl border-border-default bg-surface-primary px-space-base py-space-sm text-base"
+                    triggerClassName="h-12 w-full rounded-radius-xl border-line bg-surface px-space-base py-space-sm text-base"
                     placeholder={t('flow.addParser', 'Add parser')}
                   />
                 </div>
@@ -208,7 +208,7 @@ export const ParserForm = memo(function ParserForm({
           </div>
 
           <ScrollArea
-            className="border-y border-border-subtle"
+            className="border-y border-line-subtle"
             viewportClassName="max-h-80 overscroll-contain"
             viewportRef={listViewportRef}
             onWheelCapture={(event) => event.stopPropagation()}
@@ -236,7 +236,7 @@ export const ParserForm = memo(function ParserForm({
           />
         ) : null}
 
-        <Separator className="bg-border-subtle" />
+        <Separator className="bg-line-subtle" />
 
         <Output list={outputs} />
       </FormWrapper>

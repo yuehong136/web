@@ -16,17 +16,13 @@ export function SectionHeader({
   return (
     <div className="flex min-w-0 items-start justify-between gap-space-base">
       <div className="flex min-w-0 items-start gap-space-sm">
-        <span className="mt-space-xs flex size-icon-xl shrink-0 items-center justify-center rounded-radius-md bg-components-system-accent-soft text-components-system-accent-text">
+        <span className="mt-space-xs flex size-icon-xl shrink-0 items-center justify-center rounded-radius-md bg-accent-soft text-accent-fg">
           {icon}
         </span>
         <div className="min-w-0 space-y-space-xs">
-          <h4 className="text-base leading-6 font-semibold text-text-primary">
-            {title}
-          </h4>
+          <h4 className="text-base leading-6 font-semibold text-fg">{title}</h4>
           {description ? (
-            <p className="text-sm leading-6 text-text-secondary">
-              {description}
-            </p>
+            <p className="text-sm leading-6 text-fg-muted">{description}</p>
           ) : null}
         </div>
       </div>

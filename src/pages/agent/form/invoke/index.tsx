@@ -198,7 +198,7 @@ export function InvokeForm({ node }: INextOperatorForm) {
           control={form.control}
           name="clean_html"
           render={({ field }) => (
-            <FormItem className="flex items-center justify-between rounded-radius-md border border-border-default px-space-sm py-space-sm">
+            <FormItem className="flex items-center justify-between rounded-radius-md border border-line px-space-sm py-space-sm">
               <FormLabel
                 tooltip={t(
                   'flow.cleanHtmlTip',

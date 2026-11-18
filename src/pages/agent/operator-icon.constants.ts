@@ -182,13 +182,13 @@ export function getOperatorCategory(
  * colours. Static strings so Tailwind sees every class.
  */
 export const OPERATOR_CATEGORY_TONE: Record<OperatorCategory, string> = {
-  start: 'bg-components-avatar-4-bg text-components-avatar-4-text',
-  ai: 'bg-components-avatar-7-bg text-components-avatar-7-text',
-  knowledge: 'bg-components-avatar-5-bg text-components-avatar-5-text',
-  dialog: 'bg-components-avatar-6-bg text-components-avatar-6-text',
-  flow: 'bg-components-avatar-2-bg text-components-avatar-2-text',
-  data: 'bg-components-avatar-3-bg text-components-avatar-3-text',
-  tool: 'bg-components-avatar-1-bg text-components-avatar-1-text',
-  ingestion: 'bg-components-avatar-8-bg text-components-avatar-8-text',
-  note: 'bg-background-subtle text-text-secondary',
+  start: 'bg-avatar-4-bg text-avatar-4-fg',
+  ai: 'bg-avatar-7-bg text-avatar-7-fg',
+  knowledge: 'bg-avatar-5-bg text-avatar-5-fg',
+  dialog: 'bg-avatar-6-bg text-avatar-6-fg',
+  flow: 'bg-avatar-2-bg text-avatar-2-fg',
+  data: 'bg-avatar-3-bg text-avatar-3-fg',
+  tool: 'bg-avatar-1-bg text-avatar-1-fg',
+  ingestion: 'bg-avatar-8-bg text-avatar-8-fg',
+  note: 'bg-sunken text-fg-muted',
 }

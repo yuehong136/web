@@ -95,7 +95,7 @@ function RuleCard({
   return (
     <Card padding="sm">
       <CardHeader className="flex-row items-center justify-between p-space-sm">
-        <span className="text-sm font-medium text-text-primary">
+        <span className="text-sm font-medium text-fg">
           {t('flow.rule', 'Rule')} {ruleIndex + 1}
         </span>
         {canRemoveRule && (
@@ -312,7 +312,7 @@ export function TitleChunkerForm({ node }: INextOperatorForm) {
               control={form.control}
               name="include_heading_content"
               render={({ field }) => (
-                <FormItem className="flex items-center justify-between rounded-radius-md border border-border-default px-space-sm py-space-sm">
+                <FormItem className="flex items-center justify-between rounded-radius-md border border-line px-space-sm py-space-sm">
                   <div className="min-w-0 space-y-1">
                     <FormLabel>{t('flow.includeHeadingContent')}</FormLabel>
                     <FormDescription>
@@ -332,7 +332,7 @@ export function TitleChunkerForm({ node }: INextOperatorForm) {
               control={form.control}
               name="root_chunk_as_heading"
               render={({ field }) => (
-                <FormItem className="flex items-center justify-between rounded-radius-md border border-border-default px-space-sm py-space-sm">
+                <FormItem className="flex items-center justify-between rounded-radius-md border border-line px-space-sm py-space-sm">
                   <div className="min-w-0 space-y-1">
                     <FormLabel>{t('flow.rootAsHeading')}</FormLabel>
                     <FormDescription>

@@ -55,10 +55,10 @@ function ParserBodySection({
     <section
       className={cn(
         'space-y-space-xl',
-        subtle && 'rounded-radius-xl bg-background-subtle p-space-xl',
+        subtle && 'rounded-radius-xl bg-sunken p-space-xl',
       )}
     >
-      <div className="text-base font-semibold text-text-secondary">{title}</div>
+      <div className="text-base font-semibold text-fg-muted">{title}</div>
       {children}
     </section>
   )
@@ -105,7 +105,7 @@ export function ParserSetupBody({
   const parseMethod = setup?.parse_method
   const controlClassName = getParserControlClassName()
   const controlTriggerClassName = cn(
-    'h-12 rounded-radius-xl border-border-default bg-surface-primary px-space-base py-space-sm text-base',
+    'h-12 rounded-radius-xl border-line bg-surface px-space-base py-space-sm text-base',
     controlClassName,
   )
   const defaultSetup = getDefaultParserSetup(fileFormat || '')

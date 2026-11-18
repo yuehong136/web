@@ -88,20 +88,20 @@ export function VersionDialog({
       <DialogContent size="xl" className="overflow-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-space-sm">
-            <Rocket className="size-5 text-text-accent" />
+            <Rocket className="size-5 text-accent-fg" />
             {t('agent.delivery.version.title')}
           </DialogTitle>
         </DialogHeader>
 
         <div className="grid max-h-[70vh] gap-space-lg overflow-auto px-space-lg pb-space-lg lg:grid-cols-[0.9fr_1.1fr]">
           <section className="space-y-space-lg">
-            <div className="rounded-radius-lg border border-border-default bg-surface-secondary p-space-base">
+            <div className="rounded-radius-lg border border-line bg-sunken p-space-base">
               <div className="flex items-start justify-between gap-space-sm">
                 <div>
-                  <p className="text-sm text-text-tertiary">
+                  <p className="text-sm text-fg-subtle">
                     {t('agent.delivery.version.asset')}
                   </p>
-                  <p className="mt-space-xs text-base font-semibold text-text-primary">
+                  <p className="mt-space-xs text-base font-semibold text-fg">
                     {title}
                   </p>
                 </div>
@@ -111,7 +111,7 @@ export function VersionDialog({
                     : t('agent.delivery.version.unpublished')}
                 </Badge>
               </div>
-              <p className="mt-space-md flex items-center gap-space-xs text-sm text-text-secondary">
+              <p className="mt-space-md flex items-center gap-space-xs text-sm text-fg-muted">
                 <Clock className="h-4 w-4" />
                 {t('agent.delivery.version.lastPublished', {
                   time: publishedAtLabel,
@@ -120,7 +120,7 @@ export function VersionDialog({
             </div>
 
             <div className="space-y-space-sm">
-              <p className="text-sm font-medium text-text-primary">
+              <p className="text-sm font-medium text-fg">
                 {t('agent.delivery.version.releaseNote')}
               </p>
               <Textarea
@@ -129,13 +129,13 @@ export function VersionDialog({
                 rows={4}
                 placeholder={t('agent.delivery.version.releaseNotePlaceholder')}
               />
-              <p className="text-xs text-text-secondary">
+              <p className="text-xs text-fg-muted">
                 {t('agent.delivery.version.releaseHint')}
               </p>
             </div>
 
             {!tokenReady ? (
-              <div className="rounded-radius-md border border-border-subtle bg-surface-secondary p-space-sm text-sm text-text-secondary">
+              <div className="rounded-radius-md border border-line-subtle bg-sunken p-space-sm text-sm text-fg-muted">
                 {t('agent.delivery.version.tokenMissing')}
               </div>
             ) : null}
@@ -151,12 +151,12 @@ export function VersionDialog({
             </Button>
 
             {showSuccess ? (
-              <div className="space-y-space-sm rounded-radius-lg border border-border-default bg-surface-secondary p-space-base">
-                <div className="flex items-center gap-space-xs text-sm font-medium text-text-primary">
-                  <CheckCircle2 className="h-4 w-4 text-status-success" />
+              <div className="space-y-space-sm rounded-radius-lg border border-line bg-sunken p-space-base">
+                <div className="flex items-center gap-space-xs text-sm font-medium text-fg">
+                  <CheckCircle2 className="h-4 w-4 text-success-fg" />
                   {t('agent.delivery.version.publishDone')}
                 </div>
-                <p className="text-xs break-all text-text-secondary">
+                <p className="text-xs break-all text-fg-muted">
                   {publishedShareUrl}
                 </p>
                 <div className="flex flex-wrap gap-space-sm">
@@ -181,12 +181,12 @@ export function VersionDialog({
           </section>
 
           <section className="space-y-space-sm">
-            <div className="flex items-center gap-space-xs text-sm font-medium text-text-primary">
+            <div className="flex items-center gap-space-xs text-sm font-medium text-fg">
               <History className="h-4 w-4" />
               {t('agent.delivery.version.history')}
             </div>
             {versions.length === 0 ? (
-              <div className="rounded-radius-lg border border-border-subtle bg-surface-secondary p-space-lg text-center text-sm text-text-secondary">
+              <div className="rounded-radius-lg border border-line-subtle bg-sunken p-space-lg text-center text-sm text-fg-muted">
                 {t('agent.delivery.version.historyEmpty')}
               </div>
             ) : (
@@ -194,14 +194,12 @@ export function VersionDialog({
                 {versions.map((version) => (
                   <div
                     key={version.id}
-                    className="rounded-radius-lg border border-border-default bg-surface-secondary p-space-base"
+                    className="rounded-radius-lg border border-line bg-sunken p-space-base"
                   >
                     <div className="flex items-start justify-between gap-space-sm">
                       <div>
-                        <p className="font-medium text-text-primary">
-                          {version.name}
-                        </p>
-                        <p className="mt-space-xs text-sm text-text-secondary">
+                        <p className="font-medium text-fg">{version.name}</p>
+                        <p className="mt-space-xs text-sm text-fg-muted">
                           {version.createdAt ||
                             t('agent.delivery.version.noTime')}
                         </p>
@@ -213,7 +211,7 @@ export function VersionDialog({
                       ) : null}
                     </div>
                     {version.description ? (
-                      <p className="mt-space-sm text-sm text-text-tertiary">
+                      <p className="mt-space-sm text-sm text-fg-subtle">
                         {version.description}
                       </p>
                     ) : null}

@@ -77,11 +77,11 @@ const OperatorIcon = ({ name, className }: IProps) => {
     return (
       <div
         className={cn(
-          'inline-flex items-center justify-center rounded-radius-sm bg-surface-accent p-1',
+          'inline-flex items-center justify-center rounded-radius-sm bg-accent-solid p-1',
           className,
         )}
       >
-        <HousePlus className="size-3 text-text-on-accent" />
+        <HousePlus className="size-3 text-accent-on-solid" />
       </div>
     )
   }
@@ -130,7 +130,7 @@ export function OperatorTile({
       data-slot="operator-tile"
       data-category={category}
       className={cn(
-        'inline-flex shrink-0 items-center justify-center ring-1 ring-border-subtle ring-inset [&_svg]:shrink-0',
+        'inline-flex shrink-0 items-center justify-center ring-1 ring-line-subtle ring-inset [&_svg]:shrink-0',
         OPERATOR_CATEGORY_TONE[category],
         spec.tile,
         className,

@@ -66,18 +66,18 @@ export function CanvasContextMenu({
           {nodeName && <ContextMenuLabel>{nodeName}</ContextMenuLabel>}
           {nodeName && <ContextMenuSeparator />}
           <ContextMenuItem onSelect={handleCopy}>
-            <Copy className="size-3.5 text-text-secondary" />
+            <Copy className="size-3.5 text-fg-muted" />
             {t('flow.copy', '复制')}
           </ContextMenuItem>
           {onDebug && (
             <ContextMenuItem onSelect={handleDebug}>
-              <Play className="size-3.5 text-text-secondary" />
+              <Play className="size-3.5 text-fg-muted" />
               {t('flow.debug', '调试')}
             </ContextMenuItem>
           )}
           <ContextMenuSeparator />
           <ContextMenuItem onSelect={handleDelete}>
-            <Trash2 className="size-3.5 text-status-error" />
+            <Trash2 className="size-3.5 text-danger-fg" />
             {t('flow.delete', '删除')}
           </ContextMenuItem>
         </ContextMenuContent>

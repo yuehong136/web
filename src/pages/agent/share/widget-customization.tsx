@@ -18,8 +18,8 @@ export function WidgetCustomization({
 }) {
   const { t } = useTranslation()
   return (
-    <section className="space-y-space-base border-t border-border-subtle pt-space-lg">
-      <h3 className="text-sm font-medium text-text-secondary">
+    <section className="space-y-space-base border-t border-line-subtle pt-space-lg">
+      <h3 className="text-sm font-medium text-fg-muted">
         {t('agent.shareEmbed.customization')}
       </h3>
       <ShareSettingSwitch

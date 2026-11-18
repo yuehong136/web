@@ -178,7 +178,7 @@ const ListOperationsFields = memo(function ListOperationsFields({
 
   if (!validVersion) {
     return (
-      <p role="alert" className="p-space-base text-status-error">
+      <p role="alert" className="p-space-base text-danger-fg">
         {t('flow.listOperationsConfig.invalidVersion')}
       </p>
     )
@@ -188,7 +188,7 @@ const ListOperationsFields = memo(function ListOperationsFields({
     <Form {...form}>
       <FormWrapper>
         {legacy && (
-          <p className="text-text-secondary">
+          <p className="text-fg-muted">
             {t('flow.listOperationsConfig.legacyTip')}
           </p>
         )}

@@ -67,10 +67,10 @@ export function SessionDebugPanel({
         <dl className="space-y-space-lg text-sm">
           {session?.name ? (
             <div>
-              <dt className="text-text-secondary">
+              <dt className="text-fg-muted">
                 {t('agent.explore.conversation')}
               </dt>
-              <dd className="mt-space-xs break-words text-text-primary">
+              <dd className="mt-space-xs break-words text-fg">
                 {getExploreSessionTitle(
                   session,
                   t('agent.explore.untitledChatNamed', {
@@ -81,24 +81,22 @@ export function SessionDebugPanel({
             </div>
           ) : null}
           <div>
-            <dt className="text-text-secondary">
-              {t('agent.explore.messageCount')}
-            </dt>
-            <dd className="mt-space-xs text-text-primary">
+            <dt className="text-fg-muted">{t('agent.explore.messageCount')}</dt>
+            <dd className="mt-space-xs text-fg">
               {session?.message_count ?? session?.messages?.length ?? 0}
             </dd>
           </div>
           {(['create_time', 'update_time'] as const).map((field) =>
             session?.[field] ? (
               <div key={field}>
-                <dt className="text-text-secondary">
+                <dt className="text-fg-muted">
                   {t(
                     field === 'create_time'
                       ? 'agent.explore.createdAt'
                       : 'agent.explore.updatedAt',
                   )}
                 </dt>
-                <dd className="mt-space-xs text-text-primary">
+                <dd className="mt-space-xs text-fg">
                   {formatRelativeTime(session[field])}
                 </dd>
               </div>
@@ -106,27 +104,19 @@ export function SessionDebugPanel({
           )}
           {session?.version_title ? (
             <div>
-              <dt className="text-text-secondary">
-                {t('agent.explore.version')}
-              </dt>
-              <dd className="mt-space-xs break-words text-text-primary">
+              <dt className="text-fg-muted">{t('agent.explore.version')}</dt>
+              <dd className="mt-space-xs break-words text-fg">
                 {session.version_title}
               </dd>
             </div>
           ) : null}
           <div>
-            <dt className="text-text-secondary">
-              {t('agent.explore.sessionId')}
-            </dt>
-            <dd className="mt-space-xs break-all text-text-primary">
-              {sessionId}
-            </dd>
+            <dt className="text-fg-muted">{t('agent.explore.sessionId')}</dt>
+            <dd className="mt-space-xs break-all text-fg">{sessionId}</dd>
           </div>
           <div>
-            <dt className="text-text-secondary">
-              {t('agent.explore.errorSummary')}
-            </dt>
-            <dd className="mt-space-xs text-text-primary">
+            <dt className="text-fg-muted">{t('agent.explore.errorSummary')}</dt>
+            <dd className="mt-space-xs text-fg">
               {t(
                 hasError
                   ? 'agent.explore.errorDescription'
@@ -136,10 +126,10 @@ export function SessionDebugPanel({
           </div>
           {status === AgentRuntimeStatus.STOPPED && lastError ? (
             <div>
-              <dt className="text-text-secondary">
+              <dt className="text-fg-muted">
                 {t('agent.explore.stopFeedback')}
               </dt>
-              <dd className="mt-space-xs text-text-primary">{lastError}</dd>
+              <dd className="mt-space-xs text-fg">{lastError}</dd>
             </div>
           ) : null}
         </dl>
@@ -152,7 +142,7 @@ export function SessionDebugPanel({
         className="mt-0 space-y-space-md"
       >
         <div className="flex items-center justify-between gap-space-sm">
-          <p className="text-xs text-text-secondary">
+          <p className="text-xs text-fg-muted">
             {t('agent.explore.rawDescription')}
           </p>
           <Button
@@ -167,7 +157,7 @@ export function SessionDebugPanel({
             {t('agent.explore.downloadData')}
           </Button>
         </div>
-        <pre className="rounded-radius-md border border-border-default bg-background-subtle p-space-base text-xs break-words whitespace-pre-wrap text-text-secondary">
+        <pre className="rounded-radius-md border border-line bg-sunken p-space-base text-xs break-words whitespace-pre-wrap text-fg-muted">
           {JSON.stringify(session || {}, null, 2)}
         </pre>
       </TabsContent>

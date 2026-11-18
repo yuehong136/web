@@ -30,7 +30,7 @@ export function LlmSetting({ hideModel = false }: LlmSettingProps) {
           <FormItem>
             <div className="flex items-center justify-between">
               <FormLabel>{t('flow.temperature', 'Temperature')}</FormLabel>
-              <span className="text-xs text-text-secondary">
+              <span className="text-xs text-fg-muted">
                 {field.value ?? 0.1}
               </span>
             </div>
@@ -54,7 +54,7 @@ export function LlmSetting({ hideModel = false }: LlmSettingProps) {
           <FormItem>
             <div className="flex items-center justify-between">
               <FormLabel>{t('flow.topP', 'Top P')}</FormLabel>
-              <span className="text-xs text-text-secondary">
+              <span className="text-xs text-fg-muted">
                 {field.value ?? 0.3}
               </span>
             </div>
@@ -80,7 +80,7 @@ export function LlmSetting({ hideModel = false }: LlmSettingProps) {
               <FormLabel>
                 {t('flow.presencePenalty', 'Presence Penalty')}
               </FormLabel>
-              <span className="text-xs text-text-secondary">
+              <span className="text-xs text-fg-muted">
                 {field.value ?? 0.4}
               </span>
             </div>
@@ -106,7 +106,7 @@ export function LlmSetting({ hideModel = false }: LlmSettingProps) {
               <FormLabel>
                 {t('flow.frequencyPenalty', 'Frequency Penalty')}
               </FormLabel>
-              <span className="text-xs text-text-secondary">
+              <span className="text-xs text-fg-muted">
                 {field.value ?? 0.7}
               </span>
             </div>

@@ -97,44 +97,38 @@ export function EditorRuntimeRail({
               size="lg"
             />
             <div className="min-w-0">
-              <p className="text-base font-semibold break-words text-text-primary">
+              <p className="text-base font-semibold break-words text-fg">
                 {title}
               </p>
-              <p className="mt-space-xs text-sm text-text-secondary">
-                {description}
-              </p>
+              <p className="mt-space-xs text-sm text-fg-muted">{description}</p>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-space-sm text-sm">
-            <div className="rounded-radius-lg bg-surface-secondary p-space-sm">
-              <p className="text-text-tertiary">{t('agent.embedRail.type')}</p>
-              <p className="mt-space-xs font-medium text-text-primary">
+            <div className="rounded-radius-lg bg-sunken p-space-sm">
+              <p className="text-fg-subtle">{t('agent.embedRail.type')}</p>
+              <p className="mt-space-xs font-medium text-fg">
                 {isPipelineFlow(flow) ? t('agent.pipeline') : t('agent.agent')}
               </p>
             </div>
-            <div className="rounded-radius-lg bg-surface-secondary p-space-sm">
-              <p className="text-text-tertiary">
+            <div className="rounded-radius-lg bg-sunken p-space-sm">
+              <p className="text-fg-subtle">
                 {t('agent.editorRuntimeRail.autosave')}
               </p>
-              <p className="mt-space-xs font-medium text-text-primary">
+              <p className="mt-space-xs font-medium text-fg">
                 {autosaveLabel || t('agent.editor.autosavePending')}
               </p>
             </div>
-            <div className="rounded-radius-lg bg-surface-secondary p-space-sm">
-              <p className="text-text-tertiary">{t('agent.embedRail.nodes')}</p>
-              <p className="mt-space-xs font-medium text-text-primary">
-                {nodeCount}
-              </p>
+            <div className="rounded-radius-lg bg-sunken p-space-sm">
+              <p className="text-fg-subtle">{t('agent.embedRail.nodes')}</p>
+              <p className="mt-space-xs font-medium text-fg">{nodeCount}</p>
             </div>
-            <div className="rounded-radius-lg bg-surface-secondary p-space-sm">
-              <p className="text-text-tertiary">{t('agent.embedRail.edges')}</p>
-              <p className="mt-space-xs font-medium text-text-primary">
-                {edgeCount}
-              </p>
+            <div className="rounded-radius-lg bg-sunken p-space-sm">
+              <p className="text-fg-subtle">{t('agent.embedRail.edges')}</p>
+              <p className="mt-space-xs font-medium text-fg">{edgeCount}</p>
             </div>
           </div>
           {flow?.update_time ? (
-            <p className="text-xs text-text-tertiary">
+            <p className="text-xs text-fg-subtle">
               {t('agent.editorRuntimeRail.recentlyUpdatedAt', {
                 time: formatTimestampDetailed(flow.update_time),
               })}
@@ -153,14 +147,14 @@ export function EditorRuntimeRail({
         <div className="space-y-space-md">
           <div className="flex items-center justify-between gap-space-sm">
             <div className="min-w-0">
-              <p className="text-sm font-medium text-text-primary">
+              <p className="text-sm font-medium text-fg">
                 {t(
                   isPipeline
                     ? 'agent.embedRail.pipelineRun'
                     : 'agent.embedRail.agentRun',
                 )}
               </p>
-              <p className="mt-space-xs text-sm text-text-secondary">
+              <p className="mt-space-xs text-sm text-fg-muted">
                 {runtimeSummary.status === AgentRuntimeStatus.RUNNING
                   ? t('agent.embedRail.runningDescription')
                   : runtimeSummary.lastRunAt
@@ -180,29 +174,29 @@ export function EditorRuntimeRail({
           </div>
 
           {runtimeSummary.lastError ? (
-            <div className="rounded-radius-md border border-status-error-border bg-status-error-subtle px-space-sm py-space-xs text-xs text-status-error">
+            <div className="rounded-radius-md border border-danger-line bg-danger-soft px-space-sm py-space-xs text-xs text-danger-fg">
               {runtimeSummary.lastError}
             </div>
           ) : null}
 
           <div className="grid grid-cols-2 gap-space-sm text-sm">
-            <div className="rounded-radius-lg bg-surface-secondary p-space-sm">
-              <p className="text-text-tertiary">
+            <div className="rounded-radius-lg bg-sunken p-space-sm">
+              <p className="text-fg-subtle">
                 {t(
                   isPipeline
                     ? 'agent.embedRail.nodeEvents'
                     : 'agent.runtime.messages',
                 )}
               </p>
-              <p className="mt-space-xs font-medium text-text-primary">
+              <p className="mt-space-xs font-medium text-fg">
                 {runtimeSummary.messageCount}
               </p>
             </div>
-            <div className="rounded-radius-lg bg-surface-secondary p-space-sm">
-              <p className="text-text-tertiary">
+            <div className="rounded-radius-lg bg-sunken p-space-sm">
+              <p className="text-fg-subtle">
                 {t(isPipeline ? 'agent.runtime.output' : 'agent.runtime.logs')}
               </p>
-              <p className="mt-space-xs font-medium text-text-primary">
+              <p className="mt-space-xs font-medium text-fg">
                 {isPipeline
                   ? pipelineSummary?.outputAvailable
                     ? pipelineSummary.resultPath
@@ -304,7 +298,7 @@ export function EditorRuntimeRail({
           ) : null}
           <Button
             variant="ghost"
-            className="bg-surface-secondary text-text-secondary hover:text-text-primary"
+            className="bg-sunken text-fg-muted hover:text-fg"
             onClick={onOpenSettings}
           >
             <Settings2 className="mr-space-xs h-4 w-4" />
@@ -319,17 +313,17 @@ export function EditorRuntimeRail({
         className="min-h-0"
       >
         <div className="space-y-space-sm text-sm">
-          <div className="flex items-start gap-space-sm rounded-radius-lg bg-surface-secondary p-space-sm">
-            <Activity className="mt-[2px] h-icon-sm w-icon-sm shrink-0 text-text-accent" />
+          <div className="flex items-start gap-space-sm rounded-radius-lg bg-sunken p-space-sm">
+            <Activity className="mt-[2px] h-icon-sm w-icon-sm shrink-0 text-accent-fg" />
             <div className="min-w-0">
-              <p className="font-medium text-text-primary">
+              <p className="font-medium text-fg">
                 {t(
                   runtimeSummary.lastRunAt
                     ? 'agent.editorRuntimeRail.recentRun'
                     : 'agent.editorRuntimeRail.waitingFirstRun',
                 )}
               </p>
-              <p className="mt-space-2xs text-text-secondary">
+              <p className="mt-space-2xs text-fg-muted">
                 {runtimeSummary.lastRunAt
                   ? formatTimestampDetailed(runtimeSummary.lastRunAt)
                   : isPipeline
@@ -338,20 +332,18 @@ export function EditorRuntimeRail({
               </p>
             </div>
           </div>
-          <div className="rounded-radius-lg bg-surface-secondary p-space-sm">
-            <p className="text-text-tertiary">
+          <div className="rounded-radius-lg bg-sunken p-space-sm">
+            <p className="text-fg-subtle">
               {t('agent.editorRuntimeRail.saveStatus')}
             </p>
-            <p className="mt-space-xs font-medium text-text-primary">
+            <p className="mt-space-xs font-medium text-fg">
               {autosaveLabel || t('agent.editor.autosavePending')}
             </p>
           </div>
           {flow?.update_time ? (
-            <div className="rounded-radius-lg bg-surface-secondary p-space-sm">
-              <p className="text-text-tertiary">
-                {t('agent.center.updateTime')}
-              </p>
-              <p className="mt-space-xs font-medium text-text-primary">
+            <div className="rounded-radius-lg bg-sunken p-space-sm">
+              <p className="text-fg-subtle">{t('agent.center.updateTime')}</p>
+              <p className="mt-space-xs font-medium text-fg">
                 {formatTimestampDetailed(flow.update_time)}
               </p>
             </div>

@@ -117,7 +117,7 @@ function InnerBeginNode({ id, data, selected }: NodeProps<IBeginNode>) {
 
         {isWebhookMode ? (
           <LabelCard className="flex items-center gap-space-sm">
-            <span className="shrink-0 font-medium text-text-primary">URL</span>
+            <span className="shrink-0 font-medium text-fg">URL</span>
             <span className="min-w-0 flex-1 truncate">{webhookUrl}</span>
           </LabelCard>
         ) : visibleInputs.length > 0 ? (
@@ -132,17 +132,17 @@ function InnerBeginNode({ id, data, selected }: NodeProps<IBeginNode>) {
                   className="flex items-center gap-space-sm"
                 >
                   {Icon ? (
-                    <Icon className="size-3.5 shrink-0 text-text-secondary" />
+                    <Icon className="size-3.5 shrink-0 text-fg-muted" />
                   ) : (
-                    <Type className="size-3.5 shrink-0 text-text-secondary" />
+                    <Type className="size-3.5 shrink-0 text-fg-muted" />
                   )}
                   <div className="min-w-0 flex-1">
-                    <div className="truncate text-text-primary">
+                    <div className="truncate text-fg">
                       {input.name ||
                         input.key ||
                         t('common.unassigned', 'Unassigned')}
                     </div>
-                    <div className="truncate text-text-tertiary">
+                    <div className="truncate text-fg-subtle">
                       {[
                         input.key && input.key !== input.name
                           ? input.key
@@ -155,14 +155,14 @@ function InnerBeginNode({ id, data, selected }: NodeProps<IBeginNode>) {
                         .join(' · ')}
                     </div>
                   </div>
-                  <span className="shrink-0 text-text-tertiary">
+                  <span className="shrink-0 text-fg-subtle">
                     {getBeginInputTypeLabel(t, input.type)}
                   </span>
                 </LabelCard>
               )
             })}
             {remainingInputCount > 0 && (
-              <div className="text-xs text-text-tertiary">
+              <div className="text-xs text-fg-subtle">
                 +{remainingInputCount} {t('flow.input', 'Input')}
               </div>
             )}

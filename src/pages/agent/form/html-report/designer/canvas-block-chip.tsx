@@ -59,12 +59,8 @@ export function CanvasBlockChip({
       style={style}
       className={cn(
         'flex items-center gap-space-xs rounded-radius-md border px-space-xs py-space-xs',
-        generative
-          ? 'border-dashed bg-surface-secondary'
-          : 'bg-surface-primary',
-        selected
-          ? 'border-border-focus ring-1 ring-state-focus'
-          : 'border-border-default',
+        generative ? 'border-dashed bg-sunken' : 'bg-surface',
+        selected ? 'border-line-focus ring-1 ring-line-focus' : 'border-line',
         isDragging && 'opacity-50',
       )}
     >
@@ -72,7 +68,7 @@ export function CanvasBlockChip({
         type="button"
         {...attributes}
         {...listeners}
-        className="cursor-grab text-text-caption active:cursor-grabbing"
+        className="cursor-grab text-fg-subtle active:cursor-grabbing"
         aria-label={t('flow.htmlReportDragHandle', 'Drag to reorder')}
       >
         <GripVertical className="size-icon-sm" />
@@ -81,10 +77,10 @@ export function CanvasBlockChip({
       <button
         type="button"
         onClick={onSelect}
-        className="flex flex-1 items-center gap-space-2xs truncate text-left text-xs text-text-primary"
+        className="flex flex-1 items-center gap-space-2xs truncate text-left text-xs text-fg"
       >
         {generative && (
-          <Sparkles className="size-icon-sm shrink-0 text-text-caption" />
+          <Sparkles className="size-icon-sm shrink-0 text-fg-subtle" />
         )}
         <span className="truncate">{t(label.labelKey, label.fallback)}</span>
       </button>
@@ -93,7 +89,7 @@ export function CanvasBlockChip({
         <button
           type="button"
           onClick={() => onToggleRole(role === 'main' ? 'side' : 'main')}
-          className="rounded-radius-sm bg-surface-secondary px-space-xs text-xs text-text-secondary hover:bg-state-hover"
+          className="rounded-radius-sm bg-sunken px-space-xs text-xs text-fg-muted hover:bg-fill-hover"
         >
           {role === 'side'
             ? t('flow.htmlReportRoleSide', 'Side')
@@ -104,7 +100,7 @@ export function CanvasBlockChip({
       <button
         type="button"
         onClick={onDelete}
-        className="text-text-caption hover:text-status-error"
+        className="text-fg-subtle hover:text-danger-fg"
         aria-label={t('flow.htmlReportDeleteBlock', 'Delete block')}
       >
         <Trash2 className="size-icon-sm" />

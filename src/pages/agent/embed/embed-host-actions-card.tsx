@@ -82,7 +82,7 @@ export function EmbedHostActionsCard({
         {showSettings ? (
           <Button
             variant="outline"
-            className="bg-surface-secondary"
+            className="bg-sunken"
             onClick={onOpenSettings}
           >
             <Settings2 className="mr-space-xs size-icon-sm" />

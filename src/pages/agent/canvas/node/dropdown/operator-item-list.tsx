@@ -65,11 +65,11 @@ export function OperatorItemList({
     const content = (
       <button
         type="button"
-        className="flex w-full cursor-pointer items-center justify-start gap-space-sm rounded-radius-sm px-space-sm py-space-xs text-left transition-colors outline-none hover:bg-components-dropdown-item-bg-hover focus-visible:bg-components-dropdown-item-bg-hover focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:ring-inset motion-reduce:transition-none"
+        className="flex w-full cursor-pointer items-center justify-start gap-space-sm rounded-radius-sm px-space-sm py-space-xs text-left transition-colors outline-none hover:bg-fill-hover focus-visible:bg-fill-hover focus-visible:ring-2 focus-visible:ring-line-focus focus-visible:ring-inset motion-reduce:transition-none"
         onClick={handleClick(operator)}
       >
         <OperatorTile name={operator} />
-        <span className="truncate text-text-primary">
+        <span className="truncate text-fg">
           {t(`flow.${lowerFirst(operator)}`, fallbackName)}
         </span>
       </button>
@@ -95,7 +95,7 @@ export function OperatorItemList({
   }
 
   return (
-    <ul className="space-y-space-xs font-normal text-text-primary">
+    <ul className="space-y-space-xs font-normal text-fg">
       {operators.map(renderOperatorItem)}
     </ul>
   )

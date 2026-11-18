@@ -196,7 +196,7 @@ export function ShareEmbedDialog({
       <DialogContent size="3xl" className="overflow-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-space-sm">
-            <Share2 className="size-5 text-text-accent" />
+            <Share2 className="size-5 text-accent-fg" />
             {t('agent.shareEmbed.title', '分享与嵌入')}
           </DialogTitle>
           <DialogDescription className="flex items-center gap-space-xs">
@@ -217,15 +217,15 @@ export function ShareEmbedDialog({
 
         <div className="max-h-[76vh] overflow-auto px-space-lg pb-space-lg">
           <div className="grid items-stretch gap-space-lg lg:grid-cols-[0.9fr_1.25fr]">
-            <section className="flex h-full flex-col rounded-radius-xl border border-border-default bg-surface-primary p-space-xl">
+            <section className="flex h-full flex-col rounded-radius-xl border border-line bg-surface p-space-xl">
               <div className="flex h-full flex-col gap-space-lg">
                 <div className="space-y-space-base">
                   <div className="flex items-start justify-between gap-space-md">
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-text-secondary">
+                      <p className="text-sm font-medium text-fg-muted">
                         {t('agent.shareEmbed.agentInfo', 'Agent 信息')}
                       </p>
-                      <h3 className="mt-space-sm text-3xl font-semibold break-words text-text-primary">
+                      <h3 className="mt-space-sm text-3xl font-semibold break-words text-fg">
                         {title || agentId}
                       </h3>
                     </div>
@@ -238,7 +238,7 @@ export function ShareEmbedDialog({
                     </Badge>
                   </div>
 
-                  <div className="flex items-center gap-space-sm text-sm text-text-secondary">
+                  <div className="flex items-center gap-space-sm text-sm text-fg-muted">
                     <span className="break-all">shared_id: {agentId}</span>
                     <Button
                       variant="ghost"
@@ -255,7 +255,7 @@ export function ShareEmbedDialog({
                 </div>
 
                 {!betaToken ? (
-                  <div className="rounded-radius-md border border-status-warning bg-surface-secondary p-space-sm text-sm text-text-secondary">
+                  <div className="rounded-radius-md border border-warning-fg bg-sunken p-space-sm text-sm text-fg-muted">
                     {tokenError
                       ? t(
                           'agent.shareEmbed.tokenReadFailed',
@@ -268,8 +268,8 @@ export function ShareEmbedDialog({
                   </div>
                 ) : null}
 
-                <div className="space-y-space-base border-t border-border-subtle pt-space-lg">
-                  <p className="text-sm font-medium text-text-secondary">
+                <div className="space-y-space-base border-t border-line-subtle pt-space-lg">
+                  <p className="text-sm font-medium text-fg-muted">
                     {t('agent.shareEmbed.accessConfig', '访问配置')}
                   </p>
                   <div className="space-y-space-sm">
@@ -302,8 +302,8 @@ export function ShareEmbedDialog({
                   </div>
                 </div>
 
-                <div className="space-y-space-md border-t border-border-subtle pt-space-lg">
-                  <p className="text-sm font-medium text-text-secondary">
+                <div className="space-y-space-md border-t border-line-subtle pt-space-lg">
+                  <p className="text-sm font-medium text-fg-muted">
                     {t('agent.shareEmbed.embedType', '嵌入类型')}
                   </p>
                   <Tabs
@@ -357,8 +357,8 @@ export function ShareEmbedDialog({
                   </Button>
                 )}
 
-                <div className="space-y-space-md border-t border-border-subtle pt-space-lg">
-                  <p className="text-sm font-medium text-text-secondary">
+                <div className="space-y-space-md border-t border-line-subtle pt-space-lg">
+                  <p className="text-sm font-medium text-fg-muted">
                     {t('agent.shareEmbed.displayConfig', '展示配置')}
                   </p>
                   <div className="grid gap-space-lg sm:grid-cols-2">
@@ -401,7 +401,7 @@ export function ShareEmbedDialog({
                   </div>
                 </div>
 
-                <div className="space-y-space-md border-t border-border-subtle pt-space-lg">
+                <div className="space-y-space-md border-t border-line-subtle pt-space-lg">
                   <div className="flex items-center gap-space-xs">
                     <Label>
                       {t('agent.shareEmbed.externalUserId', '外部用户 ID')}
@@ -423,7 +423,7 @@ export function ShareEmbedDialog({
                   />
                 </div>
 
-                <div className="mt-auto grid gap-space-sm border-t border-border-subtle pt-space-lg sm:grid-cols-2">
+                <div className="mt-auto grid gap-space-sm border-t border-line-subtle pt-space-lg sm:grid-cols-2">
                   <Button
                     variant="outline"
                     onClick={onRefreshToken}
@@ -446,14 +446,14 @@ export function ShareEmbedDialog({
               </div>
             </section>
 
-            <section className="rounded-radius-xl border border-components-split-pane-border bg-components-split-pane-bg p-space-lg">
+            <section className="rounded-radius-xl border border-line bg-canvas p-space-lg">
               <div className="space-y-space-lg">
                 <div className="flex items-center justify-between gap-space-md">
                   <div>
-                    <p className="text-sm font-medium text-text-secondary">
+                    <p className="text-sm font-medium text-fg-muted">
                       {t('agent.shareEmbed.outputTitle')}
                     </p>
-                    <h3 className="mt-space-xs text-lg font-semibold text-text-primary">
+                    <h3 className="mt-space-xs text-lg font-semibold text-fg">
                       {t('agent.shareEmbed.outputTitle', '生成结果')}
                     </h3>
                   </div>
@@ -479,7 +479,7 @@ export function ShareEmbedDialog({
                   )}
                 />
 
-                <div className="border-t border-border-subtle pt-space-lg">
+                <div className="border-t border-line-subtle pt-space-lg">
                   <ShareOutputBlock
                     title={t('agent.shareEmbed.webEmbedCode', '网页嵌入代码')}
                     description={
@@ -509,9 +509,9 @@ export function ShareEmbedDialog({
             </section>
           </div>
 
-          <div className="mt-space-md grid gap-space-sm text-sm text-text-secondary lg:grid-cols-2">
+          <div className="mt-space-md grid gap-space-sm text-sm text-fg-muted lg:grid-cols-2">
             <div className="flex items-center gap-space-sm">
-              <ShieldCheck className="h-4 w-4 text-text-tertiary" />
+              <ShieldCheck className="h-4 w-4 text-fg-subtle" />
               <span>
                 {t(
                   'agent.shareEmbed.accessControlled',
@@ -520,7 +520,7 @@ export function ShareEmbedDialog({
               </span>
             </div>
             <div className="flex items-center gap-space-sm lg:justify-end">
-              <Sparkles className="h-4 w-4 text-text-tertiary" />
+              <Sparkles className="h-4 w-4 text-fg-subtle" />
               <span>
                 {t(
                   'agent.shareEmbed.configLiveUpdate',

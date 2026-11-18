@@ -62,7 +62,7 @@ export function SummaryList<T>({
         ) : null}
 
         {hiddenItems.length > 0 ? (
-          <div className="border-t border-border-subtle pt-space-sm">
+          <div className="border-t border-line-subtle pt-space-sm">
             <CollapsibleTrigger
               asChild
               onClick={(event) => event.stopPropagation()}
@@ -71,8 +71,8 @@ export function SummaryList<T>({
               <button
                 type="button"
                 className={cn(
-                  'mx-auto flex size-5 items-center justify-center rounded-radius-full bg-text-secondary text-text-inverted shadow-elevation-low transition-colors',
-                  isOpen && 'bg-text-primary',
+                  'mx-auto flex size-5 items-center justify-center rounded-radius-full bg-fg-muted text-fg-inverse shadow-elevation-low transition-colors',
+                  isOpen && 'bg-fg',
                 )}
               >
                 {isOpen ? (

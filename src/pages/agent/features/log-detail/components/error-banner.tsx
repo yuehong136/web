@@ -14,14 +14,14 @@ export function ErrorBanner({ message }: ErrorBannerProps) {
   }
 
   return (
-    <div className="rounded-radius-md border border-status-error-border bg-status-error-subtle p-space-base">
+    <div className="rounded-radius-md border border-danger-line bg-danger-soft p-space-base">
       <div className="flex items-start gap-space-sm">
-        <AlertTriangle className="mt-[2px] size-4 shrink-0 text-status-error" />
+        <AlertTriangle className="mt-[2px] size-4 shrink-0 text-danger-fg" />
         <div className="min-w-0 space-y-space-xs">
           <Badge variant="destructive">
             {t('agent.runtimePanel.logDetail.runError')}
           </Badge>
-          <p className="text-sm whitespace-pre-wrap text-status-error">
+          <p className="text-sm whitespace-pre-wrap text-danger-fg">
             {message}
           </p>
         </div>

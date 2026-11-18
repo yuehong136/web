@@ -14,32 +14,32 @@ import {
 import { formatTraceDuration, getTraceDurationPercent } from '../utils'
 
 const STATUS_DOT_CLASSES: Record<TraceSpanStatus, string> = {
-  success: 'bg-status-success',
-  error: 'bg-status-error',
-  running: 'bg-status-warning',
-  unknown: 'bg-text-caption',
+  success: 'bg-success-fg',
+  error: 'bg-danger-fg',
+  running: 'bg-warning-fg',
+  unknown: 'bg-fg-subtle',
 }
 
 const KIND_TONE_CLASSES: Record<TraceSpanKind, string> = {
-  node: 'text-text-tertiary bg-surface-secondary',
-  llm: 'text-status-info bg-status-info-subtle',
-  tool: 'text-status-warning bg-status-warning-subtle',
-  retrieval: 'text-status-success bg-status-success-subtle',
-  control: 'text-text-secondary bg-surface-secondary',
-  data: 'text-status-info bg-status-info-subtle',
-  webhook: 'text-status-warning bg-status-warning-subtle',
-  system: 'text-text-tertiary bg-surface-secondary',
+  node: 'text-fg-subtle bg-sunken',
+  llm: 'text-info-fg bg-info-soft',
+  tool: 'text-warning-fg bg-warning-soft',
+  retrieval: 'text-success-fg bg-success-soft',
+  control: 'text-fg-muted bg-sunken',
+  data: 'text-info-fg bg-info-soft',
+  webhook: 'text-warning-fg bg-warning-soft',
+  system: 'text-fg-subtle bg-sunken',
 }
 
 const KIND_BAR_CLASSES: Record<TraceSpanKind, string> = {
-  node: 'bg-text-caption',
-  llm: 'bg-status-info',
-  tool: 'bg-status-warning',
-  retrieval: 'bg-status-success',
-  control: 'bg-text-secondary',
-  data: 'bg-status-info',
-  webhook: 'bg-status-warning',
-  system: 'bg-text-caption',
+  node: 'bg-fg-subtle',
+  llm: 'bg-info-fg',
+  tool: 'bg-warning-fg',
+  retrieval: 'bg-success-fg',
+  control: 'bg-fg-muted',
+  data: 'bg-info-fg',
+  webhook: 'bg-warning-fg',
+  system: 'bg-fg-subtle',
 }
 
 const TRACE_OPERATOR_NAME_MAP: Partial<Record<TraceSpanKind, Operator>> = {
@@ -92,9 +92,9 @@ export function TraceSpanRow({
   const durationPercent = getTraceDurationPercent(span.duration, totalDuration)
   const durationBarClass =
     span.status === 'error'
-      ? 'bg-status-error'
+      ? 'bg-danger-fg'
       : span.status === 'running'
-        ? 'bg-status-warning'
+        ? 'bg-warning-fg'
         : KIND_BAR_CLASSES[span.kind]
 
   return (
@@ -105,7 +105,7 @@ export function TraceSpanRow({
       })}
       aria-pressed={selected}
       className={cn(
-        'group grid w-full min-w-0 grid-cols-[32px_minmax(0,1fr)] pr-space-sm text-left text-text-secondary transition-colors',
+        'group grid w-full min-w-0 grid-cols-[32px_minmax(0,1fr)] pr-space-sm text-left text-fg-muted transition-colors',
         depthPadding,
       )}
       onClick={() => onSelect(span.id)}
@@ -113,23 +113,21 @@ export function TraceSpanRow({
       <span className="relative flex min-h-[58px] justify-center">
         <span
           className={cn(
-            'absolute top-0 w-px bg-border-subtle',
+            'absolute top-0 w-px bg-line-subtle',
             isLast ? 'h-space-base' : 'bottom-0',
           )}
         />
         <span
           className={cn(
-            'z-10 mt-space-base h-2 w-2 shrink-0 rounded-radius-full ring-4 ring-components-console-surface transition-colors',
-            selected ? 'bg-state-focus' : STATUS_DOT_CLASSES[span.status],
+            'z-10 mt-space-base h-2 w-2 shrink-0 rounded-radius-full ring-4 ring-surface transition-colors',
+            selected ? 'bg-line-focus' : STATUS_DOT_CLASSES[span.status],
           )}
         />
       </span>
       <span
         className={cn(
           'my-space-xs min-w-0 rounded-radius-md px-space-sm py-space-sm transition-colors',
-          selected
-            ? 'bg-components-page-toolbar-bg text-text-primary'
-            : 'group-hover:bg-components-page-toolbar-bg',
+          selected ? 'bg-surface text-fg' : 'group-hover:bg-surface',
         )}
       >
         <span className="grid min-w-0 grid-cols-[minmax(132px,0.92fr)_minmax(100px,1fr)_72px] items-center gap-space-sm">
@@ -147,11 +145,11 @@ export function TraceSpanRow({
                 <span className="truncate text-sm font-medium">
                   {span.name}
                 </span>
-                <span className="shrink-0 rounded-radius-full border border-border-subtle px-space-xs py-[1px] text-[11px] text-text-tertiary">
+                <span className="shrink-0 rounded-radius-full border border-line-subtle px-space-xs py-[1px] text-[11px] text-fg-subtle">
                   {t(TRACE_SPAN_KIND_LABEL_KEYS[span.kind])}
                 </span>
               </span>
-              <span className="mt-space-xs flex min-w-0 items-center gap-space-xs text-xs text-text-caption">
+              <span className="mt-space-xs flex min-w-0 items-center gap-space-xs text-xs text-fg-subtle">
                 <span
                   className={cn(
                     'h-1.5 w-1.5 shrink-0 rounded-radius-full',
@@ -163,7 +161,7 @@ export function TraceSpanRow({
             </span>
           </span>
           <span
-            className="block h-2 min-w-0 overflow-hidden rounded-radius-full bg-surface-secondary"
+            className="block h-2 min-w-0 overflow-hidden rounded-radius-full bg-sunken"
             aria-label={t('agent.traceWorkbench.spanRow.durationShare', {
               percent: durationPercent.toFixed(1),
             })}
@@ -177,11 +175,11 @@ export function TraceSpanRow({
             />
           </span>
           <span className="flex items-center justify-end gap-space-xs">
-            <span className="font-mono text-xs text-text-secondary">
+            <span className="font-mono text-xs text-fg-muted">
               {formatTraceDuration(span.duration, t)}
             </span>
             {span.children.length ? (
-              <span className="shrink-0 rounded-radius-full bg-surface-secondary px-space-xs py-[1px] text-[11px] text-text-caption">
+              <span className="shrink-0 rounded-radius-full bg-sunken px-space-xs py-[1px] text-[11px] text-fg-subtle">
                 {span.children.length}
               </span>
             ) : null}

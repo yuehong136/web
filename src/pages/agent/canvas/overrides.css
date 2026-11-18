@@ -32,10 +32,10 @@
 @keyframes canvas-node-tide {
   0%,
   100% {
-    box-shadow: 0 0 0 2px var(--color-components-ai-glow);
+    box-shadow: 0 0 0 2px var(--color-ai-glow);
   }
   50% {
-    box-shadow: 0 0 0 6px var(--color-components-ai-glow);
+    box-shadow: 0 0 0 6px var(--color-ai-glow);
   }
 }
 
@@ -46,7 +46,7 @@
 }
 
 .react-flow__edge-path.canvas-edge-flowing {
-  stroke: var(--color-components-canvas-edge-stroke-flowing);
+  stroke: var(--color-run-running);
   stroke-width: 2;
   stroke-dasharray: 6 4;
 }

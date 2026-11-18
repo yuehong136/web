@@ -33,7 +33,7 @@ export function PipelineHeader({
     t('agent.unnamedAsset'),
   )
   return (
-    <div className="border-b border-border-default px-space-md py-space-sm">
+    <div className="border-b border-line px-space-md py-space-sm">
       <div className="flex items-start justify-between gap-space-sm">
         <div className="flex min-w-0 items-start gap-space-sm">
           <EntityAvatar
@@ -44,7 +44,7 @@ export function PipelineHeader({
           />
           <div className="min-w-0 space-y-space-xs">
             <div className="flex flex-wrap items-center gap-x-space-sm gap-y-space-2xs">
-              <h2 className="text-base font-medium text-text-primary">
+              <h2 className="text-base font-medium text-fg">
                 {t('agent.pipelineRun.header.title')}
               </h2>
               <StatusDot
@@ -52,7 +52,7 @@ export function PipelineHeader({
                 label={t(RUNTIME_STATUS_LABEL[summary.status])}
               />
             </div>
-            <p className="text-sm text-text-secondary">
+            <p className="text-sm text-fg-muted">
               {summary.lastRunAt
                 ? t('agent.pipelineRun.header.lastRunAt', {
                     time: formatRelativeTime(summary.lastRunAt),
@@ -60,7 +60,7 @@ export function PipelineHeader({
                 : t('agent.pipelineRun.header.idleHint')}
             </p>
             {summary.uploadedFile ? (
-              <p className="text-xs text-text-tertiary">
+              <p className="text-xs text-fg-subtle">
                 {t('agent.runtime.runFile', {
                   name: String(
                     summary.uploadedFile.name ||
@@ -75,8 +75,8 @@ export function PipelineHeader({
                 className={cn(
                   'text-xs',
                   summary.status === PipelineRuntimeStatus.ERROR
-                    ? 'text-status-error'
-                    : 'text-text-tertiary',
+                    ? 'text-danger-fg'
+                    : 'text-fg-subtle',
                 )}
               >
                 {summary.lastError}
@@ -90,7 +90,7 @@ export function PipelineHeader({
             type="button"
             variant="ghost"
             size="icon-sm"
-            className="text-text-secondary hover:text-text-primary"
+            className="text-fg-muted hover:text-fg"
             onClick={onReset}
             title={t('agent.pipelineRun.header.reset')}
             aria-label={t('agent.pipelineRun.header.reset')}
@@ -101,7 +101,7 @@ export function PipelineHeader({
             type="button"
             variant="ghost"
             size="icon-sm"
-            className="text-text-secondary hover:text-text-primary"
+            className="text-fg-muted hover:text-fg"
             onClick={onClose}
             title={t('agent.pipelineRun.header.close')}
             aria-label={t('agent.pipelineRun.header.close')}

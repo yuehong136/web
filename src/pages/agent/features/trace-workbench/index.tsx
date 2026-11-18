@@ -26,12 +26,7 @@ export function TraceWorkbench({
   const emptyReason = isLoading ? 'loading' : viewModel.unavailableReason
 
   return (
-    <div
-      className={cn(
-        'flex h-full min-h-0 flex-col bg-components-split-pane-bg',
-        className,
-      )}
-    >
+    <div className={cn('flex h-full min-h-0 flex-col bg-canvas', className)}>
       <TraceHeader
         viewModel={viewModel}
         isLoading={isLoading}
@@ -43,7 +38,7 @@ export function TraceWorkbench({
         <TraceEmptyState reason={emptyReason} />
       ) : (
         <div className="grid min-h-0 flex-1 grid-cols-1 items-start xl:grid-cols-[minmax(320px,34fr)_minmax(0,66fr)]">
-          <aside className="max-h-[calc(100vh-244px)] self-start overflow-hidden border-r border-components-split-pane-border bg-components-console-surface">
+          <aside className="max-h-[calc(100vh-244px)] self-start overflow-hidden border-r border-line bg-surface">
             <TraceSpanTree
               spans={viewModel.spans}
               selectedSpanId={state.selectedSpanId}
@@ -52,7 +47,7 @@ export function TraceWorkbench({
             />
           </aside>
 
-          <main className="min-h-0 overflow-auto bg-components-split-pane-bg">
+          <main className="min-h-0 overflow-auto bg-canvas">
             <TraceSpanDetail span={state.selectedSpan} />
             <Tabs defaultValue="payload" className="min-h-0">
               <div className="px-space-lg pt-space-base">

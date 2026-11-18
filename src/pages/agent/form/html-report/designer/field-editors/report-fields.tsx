@@ -37,7 +37,7 @@ export function ReportFields({ present, dispatch }: ReportFieldsProps) {
       />
       <div className="space-y-space-xs">
         <div className="flex items-center justify-between gap-space-sm">
-          <Label className="text-xs text-text-secondary">
+          <Label className="text-xs text-fg-muted">
             {t('flow.htmlReportTitle', 'Report title')}
           </Label>
           <ModeSwitch
@@ -86,7 +86,7 @@ export function ReportFields({ present, dispatch }: ReportFieldsProps) {
 
       {/* Hero 顶部装饰:eyebrow 小标 + 副标题,皆静态可选(留空则渲染时优雅省略) */}
       <div className="space-y-space-xs">
-        <Label className="text-xs text-text-secondary">
+        <Label className="text-xs text-fg-muted">
           {t('flow.htmlReportEyebrow', 'Eyebrow')}
         </Label>
         <Input
@@ -108,7 +108,7 @@ export function ReportFields({ present, dispatch }: ReportFieldsProps) {
       {/* 副标题:固定/模型(对称报告标题);模型态运行时按源文生成一行概述,布局优先自动开 */}
       <div className="space-y-space-xs">
         <div className="flex items-center justify-between gap-space-sm">
-          <Label className="text-xs text-text-secondary">
+          <Label className="text-xs text-fg-muted">
             {t('flow.htmlReportSubtitle', 'Subtitle')}
           </Label>
           <ModeSwitch
@@ -160,7 +160,7 @@ export function ReportFields({ present, dispatch }: ReportFieldsProps) {
 
       {/* Hero 头图:缺省=「高校·默认」图文卡;选「无」=纯文字 Hero;手选其它主题即用该图 */}
       <div className="space-y-space-xs">
-        <Label className="text-xs text-text-secondary">
+        <Label className="text-xs text-fg-muted">
           {t('flow.htmlReportHeaderArt', 'Header image')}
         </Label>
         <StructureSelect

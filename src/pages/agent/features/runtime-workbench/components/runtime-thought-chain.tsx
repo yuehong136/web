@@ -103,18 +103,16 @@ export function RuntimeThoughtChain({
           >
             {t(node.actionLabelKey)}
           </Badge>
-          <span className="min-w-0 truncate text-sm font-medium text-text-primary">
+          <span className="min-w-0 truncate text-sm font-medium text-fg">
             {resolveRuntimeThoughtNodeName(node, t)}
           </span>
           {elapsed ? (
-            <span className="shrink-0 text-xs text-text-tertiary">
-              {elapsed}
-            </span>
+            <span className="shrink-0 text-xs text-fg-subtle">{elapsed}</span>
           ) : null}
         </div>
       ),
       description: (
-        <div className="space-y-space-xs text-xs text-text-secondary">
+        <div className="space-y-space-xs text-xs text-fg-muted">
           <div className="flex min-w-0 flex-wrap items-center gap-space-xs">
             <RuntimeStatusBadge status={node.status} />
             {node.componentType ? <span>{node.componentType}</span> : null}
@@ -131,7 +129,7 @@ export function RuntimeThoughtChain({
       status: node.status,
       blink: node.blink,
       icon: (
-        <span className="inline-flex size-6 items-center justify-center rounded-radius-full border border-border-subtle bg-surface-primary text-text-secondary">
+        <span className="inline-flex size-6 items-center justify-center rounded-radius-full border border-line-subtle bg-surface text-fg-muted">
           <ActionIcon className="size-3.5" />
         </span>
       ),
@@ -157,7 +155,7 @@ export function RuntimeThoughtChain({
         </div>
       ) : undefined,
       footer: compact ? undefined : (
-        <div className="flex min-w-0 flex-wrap items-center gap-space-xs text-xs text-text-tertiary">
+        <div className="flex min-w-0 flex-wrap items-center gap-space-xs text-xs text-fg-subtle">
           <span>{node.eventName}</span>
           <span>
             {t('agent.runtimePanel.thoughtChain.eventCount', {
@@ -176,8 +174,8 @@ export function RuntimeThoughtChain({
         surface === 'bare'
           ? 'max-w-full overflow-hidden'
           : compact
-            ? 'max-w-full overflow-hidden rounded-radius-md border border-border-subtle bg-surface-primary p-space-sm'
-            : 'rounded-radius-md border border-border-default bg-surface-primary p-space-md'
+            ? 'max-w-full overflow-hidden rounded-radius-md border border-line-subtle bg-surface p-space-sm'
+            : 'rounded-radius-md border border-line bg-surface p-space-md'
       }
     >
       <RuntimeTimeline

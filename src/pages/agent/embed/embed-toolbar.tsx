@@ -95,7 +95,7 @@ export function EmbedToolbar({
       align="center"
       surface="plain"
       wrapActions
-      className="min-h-13 border-b border-components-studio-border bg-components-studio-surface px-space-sm py-space-xs"
+      className="min-h-13 border-b border-line bg-surface px-space-sm py-space-xs"
       title={
         <span className="flex max-w-xl min-w-0 items-center gap-space-sm">
           <EntityAvatar

@@ -100,7 +100,7 @@ export function HTMLReportForm({ node }: INextOperatorForm) {
               nodeId={node?.id}
               label={t('flow.htmlReportSource', 'Source material')}
             />
-            <p className="text-xs text-text-caption">
+            <p className="text-xs text-fg-subtle">
               {t(
                 'flow.htmlReportSourceDesc',
                 'Upstream content used to fill the report at run time.',
@@ -143,7 +143,7 @@ export function HTMLReportForm({ node }: INextOperatorForm) {
                   <FormLabel>
                     {t('flow.htmlReportParallelFill', 'Parallel fill')}
                   </FormLabel>
-                  <p className="text-xs text-text-caption">
+                  <p className="text-xs text-fg-subtle">
                     {t(
                       'flow.htmlReportParallelFillDesc',
                       'Fill sections by calling the model concurrently to speed up generation; off runs section by section.',
@@ -189,7 +189,7 @@ export function HTMLReportForm({ node }: INextOperatorForm) {
                       }
                     />
                   </FormControl>
-                  <p className="text-xs text-text-caption">
+                  <p className="text-xs text-fg-subtle">
                     {t(
                       'flow.htmlReportConcurrencyDesc',
                       'Max simultaneous model calls when parallel (covers section fills and titles).',
@@ -202,8 +202,8 @@ export function HTMLReportForm({ node }: INextOperatorForm) {
           )}
 
           {/* 报告骨架摘要 */}
-          <div className="space-y-space-sm rounded-radius-lg border border-border-default bg-surface-secondary p-space-base">
-            <p className="text-xs font-medium text-text-secondary">
+          <div className="space-y-space-sm rounded-radius-lg border border-line bg-sunken p-space-base">
+            <p className="text-xs font-medium text-fg-muted">
               {t('flow.htmlReportSummaryTitle', 'Report skeleton')}
             </p>
             <div className="grid grid-cols-2 gap-space-sm">
@@ -251,9 +251,9 @@ export function HTMLReportForm({ node }: INextOperatorForm) {
 
 function SummaryStat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-radius-md bg-surface-primary px-space-sm py-space-xs">
-      <div className="text-lg font-semibold text-text-primary">{value}</div>
-      <div className="text-xs text-text-caption">{label}</div>
+    <div className="rounded-radius-md bg-surface px-space-sm py-space-xs">
+      <div className="text-lg font-semibold text-fg">{value}</div>
+      <div className="text-xs text-fg-subtle">{label}</div>
     </div>
   )
 }

@@ -40,11 +40,11 @@ function ParserSummaryCard({
     <div
       className={cn(
         'flex flex-col gap-space-xs px-space-sm py-space-sm',
-        withDivider && 'border-t border-border-subtle',
+        withDivider && 'border-t border-line-subtle',
       )}
     >
-      <span className="text-text-secondary">{`Parser ${index + 1}`}</span>
-      <div className="text-sm leading-tight font-semibold text-text-primary">
+      <span className="text-fg-muted">{`Parser ${index + 1}`}</span>
+      <div className="text-sm leading-tight font-semibold text-fg">
         {getParserFileTypeLabel(t, fileFormat)}
       </div>
     </div>
@@ -97,7 +97,7 @@ function ParserNodeCollapsible({ items }: { items: ParserSetupSummary[] }) {
         ) : null}
 
         {hiddenItems.length > 0 ? (
-          <div className="border-t border-border-subtle pt-space-sm">
+          <div className="border-t border-line-subtle pt-space-sm">
             <CollapsibleTrigger
               asChild
               onClick={(event) => event.stopPropagation()}
@@ -106,8 +106,8 @@ function ParserNodeCollapsible({ items }: { items: ParserSetupSummary[] }) {
               <button
                 type="button"
                 className={cn(
-                  'mx-auto flex size-5 items-center justify-center rounded-radius-full bg-text-secondary text-text-inverted shadow-elevation-low transition-colors',
-                  isOpen && 'bg-text-primary',
+                  'mx-auto flex size-5 items-center justify-center rounded-radius-full bg-fg-muted text-fg-inverse shadow-elevation-low transition-colors',
+                  isOpen && 'bg-fg',
                 )}
                 aria-label={
                   isOpen

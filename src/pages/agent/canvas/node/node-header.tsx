@@ -30,7 +30,7 @@ const NodeHeader = ({
     <div className={cn(className, 'flex items-center gap-space-sm')}>
       <OperatorTile name={label} icon={icon} />
       <span
-        className="truncate text-sm leading-none font-semibold text-text-primary"
+        className="truncate text-sm leading-none font-semibold text-fg"
         title={name}
       >
         {name}

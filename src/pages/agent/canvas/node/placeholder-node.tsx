@@ -22,8 +22,8 @@ function InnerPlaceholderNode({ id, selected }: NodeProps) {
         nodeId={id}
       />
       <div className="space-y-space-sm px-space-sm py-space-base">
-        <div className="size-5 rounded-radius-sm bg-components-canvas-skeleton-bg motion-safe:animate-pulse" />
-        <div className="h-4 w-full rounded-radius-sm bg-components-canvas-skeleton-bg motion-safe:animate-pulse" />
+        <div className="size-5 rounded-radius-sm bg-fill-pressed motion-safe:animate-pulse" />
+        <div className="h-4 w-full rounded-radius-sm bg-fill-pressed motion-safe:animate-pulse" />
       </div>
     </NodeWrapper>
   )

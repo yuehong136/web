@@ -85,12 +85,12 @@ export function MetadataFilter({
   })
 
   return (
-    <section className="space-y-space-md rounded-radius-md border border-border-default p-space-base">
+    <section className="space-y-space-md rounded-radius-md border border-line p-space-base">
       <div className="space-y-space-xs">
-        <div className="text-sm font-medium text-text-primary">
+        <div className="text-sm font-medium text-fg">
           {t('flow.metadataFilter', 'Metadata Filter')}
         </div>
-        <div className="text-xs text-text-secondary">
+        <div className="text-xs text-fg-muted">
           {selectedKbId
             ? t(
                 'flow.metadataFilterDescription',
@@ -187,7 +187,7 @@ export function MetadataFilter({
             return (
               <div
                 key={manualField.id}
-                className="space-y-space-sm rounded-radius-md border border-border-default p-space-sm"
+                className="space-y-space-sm rounded-radius-md border border-line p-space-sm"
               >
                 <div className="grid gap-space-sm md:grid-cols-[1.2fr_0.8fr]">
                   <FormField
@@ -258,7 +258,7 @@ export function MetadataFilter({
                         />
                       </FormControl>
                       {suggestedValues.length > 0 && (
-                        <div className="text-xs text-text-secondary">
+                        <div className="text-xs text-fg-muted">
                           {t('flow.suggestedValues', 'Suggested values')}:{' '}
                           {suggestedValues.slice(0, 5).join(', ')}
                         </div>

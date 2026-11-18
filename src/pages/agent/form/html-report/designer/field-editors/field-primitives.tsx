@@ -15,7 +15,7 @@ import type { ControlKind, EnumOption } from './field-map'
 import type { FieldMode } from '../../types'
 
 export function InspectorHeading({ text }: { text: string }) {
-  return <h3 className="text-sm font-semibold text-text-primary">{text}</h3>
+  return <h3 className="text-sm font-semibold text-fg">{text}</h3>
 }
 
 export function InspectorField({
@@ -27,14 +27,14 @@ export function InspectorField({
 }) {
   return (
     <div className="space-y-space-xs">
-      <Label className="text-xs text-text-secondary">{label}</Label>
+      <Label className="text-xs text-fg-muted">{label}</Label>
       {children}
     </div>
   )
 }
 
 export function EmptyHint({ text }: { text: string }) {
-  return <p className="p-space-base text-sm text-text-caption">{text}</p>
+  return <p className="p-space-base text-sm text-fg-subtle">{text}</p>
 }
 
 /** 静态值控件:单行 text 或多行 textarea */
@@ -114,7 +114,7 @@ export function ModeSwitch({
 }) {
   const { t } = useTranslation()
   return (
-    <div className="inline-flex gap-space-2xs rounded-radius-md border border-border-subtle bg-background-subtle p-space-2xs">
+    <div className="inline-flex gap-space-2xs rounded-radius-md border border-line-subtle bg-sunken p-space-2xs">
       {modes.map((mode) => {
         const active = mode === value
         const label = MODE_LABELS[mode]
@@ -126,8 +126,8 @@ export function ModeSwitch({
             className={cn(
               'rounded-radius-sm px-space-sm py-space-2xs text-xs transition-colors',
               active
-                ? 'bg-background-surface text-text-primary shadow-elevation-low'
-                : 'text-text-secondary hover:text-text-primary',
+                ? 'bg-surface text-fg shadow-elevation-low'
+                : 'text-fg-muted hover:text-fg',
             )}
           >
             {t(label.labelKey, label.fallback)}

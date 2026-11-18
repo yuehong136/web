@@ -16,16 +16,16 @@ interface DataflowTimelineProps {
 }
 
 const STATUS_DOT_CLASS: Record<string, string> = {
-  success: 'bg-status-success',
-  done: 'bg-status-success',
-  ok: 'bg-status-success',
+  success: 'bg-success-fg',
+  done: 'bg-success-fg',
+  ok: 'bg-success-fg',
   // A step at work is the pipeline's AI moment: the tide, pulsing unless
   // motion is reduced.
   running: 'bg-ai-tide motion-safe:animate-pulse',
   pending: 'bg-ai-tide motion-safe:animate-pulse',
-  fail: 'bg-status-error',
-  failed: 'bg-status-error',
-  error: 'bg-status-error',
+  fail: 'bg-danger-fg',
+  failed: 'bg-danger-fg',
+  error: 'bg-danger-fg',
 }
 
 function resolveStatusClass(status: string, fallbackLoading: boolean) {
@@ -33,23 +33,21 @@ function resolveStatusClass(status: string, fallbackLoading: boolean) {
   if (STATUS_DOT_CLASS[key]) {
     return STATUS_DOT_CLASS[key]
   }
-  return fallbackLoading
-    ? 'bg-ai-tide motion-safe:animate-pulse'
-    : 'bg-border-default'
+  return fallbackLoading ? 'bg-ai-tide motion-safe:animate-pulse' : 'bg-line'
 }
 
 function resolveBorderClass(status: string, fallbackLoading: boolean) {
   const key = String(status || '').toLowerCase()
   if (key === 'success' || key === 'done' || key === 'ok') {
-    return 'border-status-success bg-surface-primary'
+    return 'border-success-fg bg-surface'
   }
   if (key === 'fail' || key === 'failed' || key === 'error') {
-    return 'border-status-error bg-surface-primary'
+    return 'border-danger-fg bg-surface'
   }
   if (fallbackLoading || key === 'running' || key === 'pending') {
-    return 'ai-glow bg-surface-primary motion-safe:animate-pulse'
+    return 'ai-glow bg-surface motion-safe:animate-pulse'
   }
-  return 'border-border-default bg-surface-secondary'
+  return 'border-line bg-sunken'
 }
 
 function isNestedTrace(item: AgentTraceItem) {
@@ -60,7 +58,7 @@ export function DataflowTimeline({ trace, loading }: DataflowTimelineProps) {
   const { t } = useTranslation()
   if (!Array.isArray(trace) || trace.length === 0) {
     return (
-      <div className="py-space-xl text-center text-sm text-text-secondary">
+      <div className="py-space-xl text-center text-sm text-fg-muted">
         {t('agent.pipelineRun.timeline.empty')}
       </div>
     )
@@ -105,7 +103,7 @@ export function DataflowTimeline({ trace, loading }: DataflowTimelineProps) {
             className="relative pl-space-xl"
           >
             {idx < trace.length - 1 ? (
-              <div className="absolute top-8 bottom-0 left-[11px] w-0.5 bg-surface-accent" />
+              <div className="absolute top-8 bottom-0 left-[11px] w-0.5 bg-accent-solid" />
             ) : null}
 
             <div className="absolute top-0 left-0 flex items-center justify-center">
@@ -124,7 +122,7 @@ export function DataflowTimeline({ trace, loading }: DataflowTimelineProps) {
               </div>
             </div>
 
-            <div className="rounded-radius-md border border-border-default bg-surface-primary">
+            <div className="rounded-radius-md border border-line bg-surface">
               <Accordion type="single" collapsible className="px-space-sm">
                 <AccordionItem
                   value={`${item.component_id || idx}-${idx}`}
@@ -132,18 +130,16 @@ export function DataflowTimeline({ trace, loading }: DataflowTimelineProps) {
                 >
                   <AccordionTrigger className="py-space-sm hover:no-underline">
                     <div className="flex items-center gap-space-sm">
-                      <span className="font-medium text-text-primary">
+                      <span className="font-medium text-fg">
                         {item.component_name ||
                           item.component_id ||
                           t('agent.pipelineRun.timeline.node')}
                       </span>
                       {elapsed ? (
-                        <span className="text-xs text-text-secondary">
-                          {elapsed}
-                        </span>
+                        <span className="text-xs text-fg-muted">{elapsed}</span>
                       ) : null}
                       {typeof progress === 'number' ? (
-                        <span className="text-xs text-text-secondary">
+                        <span className="text-xs text-fg-muted">
                           {progress.toFixed(2)}%
                         </span>
                       ) : null}
@@ -159,57 +155,57 @@ export function DataflowTimeline({ trace, loading }: DataflowTimelineProps) {
                     <div className="space-y-space-sm">
                       {typeof progress === 'number' ? (
                         <div>
-                          <div className="mb-space-xs text-xs text-text-secondary">
+                          <div className="mb-space-xs text-xs text-fg-muted">
                             {t('agent.pipelineRun.timeline.progress')}
                           </div>
-                          <div className="h-1.5 overflow-hidden rounded-radius-full bg-surface-secondary">
+                          <div className="h-1.5 overflow-hidden rounded-radius-full bg-sunken">
                             <div
-                              className="h-full rounded-radius-full bg-surface-accent"
+                              className="h-full rounded-radius-full bg-accent-solid"
                               style={{ width: `${progress}%` }}
                             />
                           </div>
                         </div>
                       ) : null}
                       <div>
-                        <div className="mb-space-xs text-xs text-text-secondary">
+                        <div className="mb-space-xs text-xs text-fg-muted">
                           {t('agent.runtime.input')}
                         </div>
-                        <pre className="max-h-40 overflow-auto rounded-radius-sm bg-surface-secondary p-space-sm text-xs">
+                        <pre className="max-h-40 overflow-auto rounded-radius-sm bg-sunken p-space-sm text-xs">
                           {JSON.stringify(inputs, null, 2)}
                         </pre>
                       </div>
                       <div>
-                        <div className="mb-space-xs text-xs text-text-secondary">
+                        <div className="mb-space-xs text-xs text-fg-muted">
                           {t('agent.runtime.output')}
                         </div>
-                        <pre className="max-h-40 overflow-auto rounded-radius-sm bg-surface-secondary p-space-sm text-xs">
+                        <pre className="max-h-40 overflow-auto rounded-radius-sm bg-sunken p-space-sm text-xs">
                           {JSON.stringify(outputs, null, 2)}
                         </pre>
                       </div>
                       {typeof item.message === 'string' && item.message ? (
                         <div>
-                          <div className="mb-space-xs text-xs text-text-secondary">
+                          <div className="mb-space-xs text-xs text-fg-muted">
                             {t('agent.runtime.messages')}
                           </div>
-                          <pre className="max-h-40 overflow-auto rounded-radius-sm bg-surface-secondary p-space-sm text-xs">
+                          <pre className="max-h-40 overflow-auto rounded-radius-sm bg-sunken p-space-sm text-xs">
                             {item.message}
                           </pre>
                         </div>
                       ) : null}
                       {traceMessages.length > 0 ? (
                         <div>
-                          <div className="mb-space-xs text-xs text-text-secondary">
+                          <div className="mb-space-xs text-xs text-fg-muted">
                             {t('agent.pipelineRun.timeline.runMessages')}
                           </div>
                           <div className="space-y-space-xs">
                             {traceMessages.map((row, rowIdx) => (
                               <div
                                 key={`${String(row.timestamp || rowIdx)}-${rowIdx}`}
-                                className="rounded-radius-sm bg-surface-secondary p-space-sm text-xs text-text-secondary"
+                                className="rounded-radius-sm bg-sunken p-space-sm text-xs text-fg-muted"
                               >
                                 <div>{String(row.message)}</div>
                                 {typeof row.elapsed_time === 'number' ? (
-                                  <div className="mt-space-xs text-text-tertiary">
+                                  <div className="mt-space-xs text-fg-subtle">
                                     {/* i18n-ignore: seconds unit suffix */}
                                     {row.elapsed_time.toFixed(3)}s
                                   </div>
@@ -221,7 +217,7 @@ export function DataflowTimeline({ trace, loading }: DataflowTimelineProps) {
                       ) : null}
                       {subTraces.length > 0 ? (
                         <div className="space-y-space-xs">
-                          <div className="text-xs text-text-secondary">
+                          <div className="text-xs text-fg-muted">
                             {t('agent.pipelineRun.timeline.subtasks')}
                           </div>
                           {subTraces.map((sub, subIdx) => (

@@ -74,11 +74,11 @@ function InnerA2UINode({ id, data, selected }: NodeProps<IA2UINode>) {
         />
         <section className="flex flex-col gap-space-xs px-space-sm pb-space-xs">
           <LabelCard className="flex items-center gap-space-sm">
-            <BookOpen className="size-3.5 shrink-0 text-text-tertiary" />
-            <span className="text-text-tertiary">
+            <BookOpen className="size-3.5 shrink-0 text-fg-subtle" />
+            <span className="text-fg-subtle">
               {t('flow.catalog', 'Catalog')}
             </span>
-            <span className="ml-auto truncate font-medium text-text-primary">
+            <span className="ml-auto truncate font-medium text-fg">
               {CATALOG_LABEL}
             </span>
           </LabelCard>
@@ -86,7 +86,7 @@ function InnerA2UINode({ id, data, selected }: NodeProps<IA2UINode>) {
         <SummaryList
           items={surfaceIds}
           empty={
-            <LabelCard className="flex items-center gap-space-sm text-text-tertiary">
+            <LabelCard className="flex items-center gap-space-sm text-fg-subtle">
               <Layers className="size-3.5 shrink-0" />
               <span>{t('flow.noSurface', 'No Surface')}</span>
             </LabelCard>
@@ -95,17 +95,15 @@ function InnerA2UINode({ id, data, selected }: NodeProps<IA2UINode>) {
             <section
               key={`${id}-surface-${surfaceId}`}
               className={cn(
-                withDivider && 'border-t border-border-subtle pt-space-sm',
+                withDivider && 'border-t border-line-subtle pt-space-sm',
               )}
             >
               <LabelCard className="flex items-center gap-space-sm">
-                <Layers className="size-3.5 shrink-0 text-text-tertiary" />
-                <span className="min-w-0 flex-1 truncate font-medium text-text-primary">
+                <Layers className="size-3.5 shrink-0 text-fg-subtle" />
+                <span className="min-w-0 flex-1 truncate font-medium text-fg">
                   {surfaceId}
                 </span>
-                <span className="shrink-0 text-text-tertiary">
-                  #{index + 1}
-                </span>
+                <span className="shrink-0 text-fg-subtle">#{index + 1}</span>
               </LabelCard>
             </section>
           )}

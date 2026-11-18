@@ -53,7 +53,7 @@ function RetrievalSummary({
             key={`${itemId}-${index}`}
             className={cn(
               'flex items-center gap-space-sm px-space-sm py-space-sm',
-              withDivider && 'border-t border-border-subtle',
+              withDivider && 'border-t border-line-subtle',
             )}
           >
             <EntityAvatar
@@ -64,7 +64,7 @@ function RetrievalSummary({
               kind={isMemoryMode ? 'memory' : 'knowledge'}
               tone="kind"
             />
-            <span className="min-w-0 flex-1 truncate text-sm text-text-primary">
+            <span className="min-w-0 flex-1 truncate text-sm text-fg">
               {label}
             </span>
           </div>

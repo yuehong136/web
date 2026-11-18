@@ -17,15 +17,11 @@ export function McpCard({ server, selected, onToggle }: McpCardProps) {
       onClick={() => onToggle(server.id)}
     >
       <div className="space-y-1">
-        <div className="text-sm font-medium text-text-primary">
-          {server.name}
-        </div>
+        <div className="text-sm font-medium text-fg">{server.name}</div>
         {server.description && (
-          <div className="text-xs text-text-secondary">
-            {server.description}
-          </div>
+          <div className="text-xs text-fg-muted">{server.description}</div>
         )}
-        <div className="text-xs text-text-tertiary">
+        <div className="text-xs text-fg-subtle">
           {server.server_type} · {server.url}
         </div>
       </div>

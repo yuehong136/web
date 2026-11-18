@@ -63,11 +63,11 @@ export function TraceSpanTree({
 
   return (
     <div className="max-h-[calc(100vh-260px)] overflow-auto">
-      <div className="border-b border-border-subtle px-space-base py-space-sm">
-        <h4 className="text-sm font-semibold text-text-primary">
+      <div className="border-b border-line-subtle px-space-base py-space-sm">
+        <h4 className="text-sm font-semibold text-fg">
           {t('agent.traceWorkbench.spanTree.title')}
         </h4>
-        <div className="mt-space-xs grid grid-cols-[32px_minmax(0,1fr)] text-[11px] text-text-caption">
+        <div className="mt-space-xs grid grid-cols-[32px_minmax(0,1fr)] text-[11px] text-fg-subtle">
           <span />
           <span className="grid grid-cols-[minmax(132px,0.92fr)_minmax(100px,1fr)_72px]">
             <span>{t('agent.trace.node')}</span>

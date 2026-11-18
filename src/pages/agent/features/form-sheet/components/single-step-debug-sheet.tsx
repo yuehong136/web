@@ -104,14 +104,14 @@ function DebugMetric({
   return (
     <div
       className={cn(
-        'min-w-0 rounded-radius-md border bg-surface-primary px-space-sm py-space-xs',
-        tone === 'success' && 'border-status-success-border',
-        tone === 'error' && 'border-status-error-border',
-        tone === 'default' && 'border-border-subtle',
+        'min-w-0 rounded-radius-md border bg-surface px-space-sm py-space-xs',
+        tone === 'success' && 'border-success-line',
+        tone === 'error' && 'border-danger-line',
+        tone === 'default' && 'border-line-subtle',
       )}
     >
-      <div className="text-xs leading-5 text-text-tertiary">{label}</div>
-      <div className="truncate text-sm font-semibold text-text-primary">
+      <div className="text-xs leading-5 text-fg-subtle">{label}</div>
+      <div className="truncate text-sm font-semibold text-fg">
         {value || '-'}
       </div>
     </div>
@@ -135,17 +135,17 @@ function CodeExecErrorPanel({
   }
 
   return (
-    <section className="rounded-radius-lg border border-status-error-border bg-status-error-subtle p-space-base">
+    <section className="rounded-radius-lg border border-danger-line bg-danger-soft p-space-base">
       <div className="flex items-start gap-space-sm">
-        <AlertCircle className="mt-0.5 size-4 shrink-0 text-status-error" />
+        <AlertCircle className="mt-0.5 size-4 shrink-0 text-danger-fg" />
         <div className="min-w-0 flex-1 space-y-space-sm">
           <div>
-            <h5 className="text-sm font-semibold text-status-error">
+            <h5 className="text-sm font-semibold text-danger-fg">
               {grouped.status === CodeExecDebugStatus.ContractError
                 ? t('flow.codeContractError', 'Return type mismatch')
                 : t('flow.codeExecutionError', 'Execution error')}
             </h5>
-            <p className="text-sm leading-6 break-words text-status-error">
+            <p className="text-sm leading-6 break-words text-danger-fg">
               {grouped.errorMessage}
             </p>
           </div>
@@ -239,8 +239,8 @@ function CodeExecDebugInspector({
     <div className="mt-space-md space-y-space-base">
       <section
         className={cn(
-          'rounded-radius-lg border bg-surface-secondary p-space-base',
-          hasError ? 'border-status-error-border' : 'border-border-subtle',
+          'rounded-radius-lg border bg-sunken p-space-base',
+          hasError ? 'border-danger-line' : 'border-line-subtle',
         )}
       >
         <div className="mb-space-base flex items-start justify-between gap-space-base">
@@ -249,8 +249,8 @@ function CodeExecDebugInspector({
               className={cn(
                 'mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-radius-md',
                 hasError
-                  ? 'bg-status-error-subtle text-status-error'
-                  : 'bg-status-success-subtle text-status-success',
+                  ? 'bg-danger-soft text-danger-fg'
+                  : 'bg-success-soft text-success-fg',
               )}
             >
               {hasError ? (
@@ -260,10 +260,10 @@ function CodeExecDebugInspector({
               )}
             </span>
             <div className="min-w-0">
-              <h4 className="text-base font-semibold text-text-primary">
+              <h4 className="text-base font-semibold text-fg">
                 {t('flow.codeRunInspector', 'Code run inspector')}
               </h4>
-              <p className="text-sm leading-6 text-text-secondary">
+              <p className="text-sm leading-6 text-fg-muted">
                 {t(
                   'flow.codeRunInspectorTip',
                   'Business value, type metadata, logs, and raw payload from this run.',
@@ -482,16 +482,16 @@ export function SingleStepDebugSheet({
           )}
         </SheetDescription>
 
-        <SheetHeader className="border-b border-border-primary px-space-md py-space-sm">
+        <SheetHeader className="border-b border-line px-space-md py-space-sm">
           <div className="flex items-center justify-between">
-            <span className="text-base font-medium text-text-primary">
+            <span className="text-base font-medium text-fg">
               {t('flow.testRun', 'Test run')}
             </span>
             <Button
               type="button"
               variant="ghost"
               size="icon-sm"
-              className="text-text-secondary transition-colors hover:text-text-primary"
+              className="text-fg-muted transition-colors hover:text-fg"
               onClick={onClose}
             >
               <X className="size-4" />
@@ -517,11 +517,11 @@ export function SingleStepDebugSheet({
                 componentId={componentId}
               />
             ) : (
-              <div className="mt-space-md rounded-radius-md border border-border-primary bg-surface-secondary">
-                <div className="border-b border-border-primary px-space-sm py-space-xs text-sm text-text-secondary">
+              <div className="mt-space-md rounded-radius-md border border-line bg-sunken">
+                <div className="border-b border-line px-space-sm py-space-xs text-sm text-fg-muted">
                   {t('agent.runtimePanel.formSheet.jsonLabel')}
                 </div>
-                <pre className="max-h-screen overflow-auto p-space-sm text-xs text-text-primary">
+                <pre className="max-h-screen overflow-auto p-space-sm text-xs text-fg">
                   {serializedResult}
                 </pre>
               </div>

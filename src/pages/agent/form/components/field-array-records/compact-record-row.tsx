@@ -32,7 +32,7 @@ export function CompactRecordRow({
   return (
     <div
       className={cn(
-        'rounded-radius-md border border-border-default bg-surface-secondary/40 px-space-sm py-space-xs',
+        'rounded-radius-md border border-line bg-sunken/40 px-space-sm py-space-xs',
         className,
       )}
     >
@@ -47,7 +47,7 @@ export function CompactRecordRow({
         </div>
 
         {chip && (
-          <span className="rounded-radius-sm border border-border-default px-space-xs py-[2px] text-xs whitespace-nowrap text-text-secondary">
+          <span className="rounded-radius-sm border border-line px-space-xs py-[2px] text-xs whitespace-nowrap text-fg-muted">
             {chip}
           </span>
         )}
@@ -85,7 +85,7 @@ export function CompactRecordRow({
 
       {hasAdvanced && (
         <Collapsible open={advancedOpen}>
-          <CollapsibleContent className="mt-space-sm border-t border-border-default pt-space-sm">
+          <CollapsibleContent className="mt-space-sm border-t border-line pt-space-sm">
             {advanced}
           </CollapsibleContent>
         </Collapsible>

@@ -119,12 +119,12 @@ export function XCardText({
     <p
       className={cn(
         'text-sm leading-6 whitespace-pre-wrap',
-        tone === 'inherit' ? 'text-current' : 'text-text-primary',
+        tone === 'inherit' ? 'text-current' : 'text-fg',
         variant === 'h1' && 'text-xl font-semibold',
         variant === 'h2' && 'text-lg font-semibold',
         variant === 'h3' && 'text-base font-semibold',
         variant === 'caption' &&
-          (tone === 'inherit' ? 'text-xs' : 'text-xs text-text-secondary'),
+          (tone === 'inherit' ? 'text-xs' : 'text-xs text-fg-muted'),
         className,
       )}
     >
@@ -151,7 +151,7 @@ export function XCardImage({
     <img
       alt={toDisplayString(description)}
       className={cn(
-        'w-full rounded-radius-md border border-border-subtle bg-surface-secondary',
+        'w-full rounded-radius-md border border-line-subtle bg-sunken',
         variant === 'icon' || variant === 'avatar' ? 'size-12' : 'max-h-64',
         fit === 'contain' && 'object-contain',
         fit === 'cover' && 'object-cover',
@@ -168,10 +168,7 @@ export function XCardIcon({ name }: { name?: unknown }) {
   const iconName = toDisplayString(name)
   const Icon = iconMap[iconName] || Circle
   return (
-    <Icon
-      aria-label={iconName}
-      className="h-icon-md w-icon-md text-text-secondary"
-    />
+    <Icon aria-label={iconName} className="h-icon-md w-icon-md text-fg-muted" />
   )
 }
 
@@ -195,9 +192,7 @@ export function XCardAudioPlayer({
   return (
     <div className="space-y-space-xs">
       {description ? (
-        <p className="text-xs text-text-secondary">
-          {toDisplayString(description)}
-        </p>
+        <p className="text-xs text-fg-muted">{toDisplayString(description)}</p>
       ) : null}
       <audio className="w-full" controls src={displayUrl} />
     </div>

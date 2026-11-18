@@ -132,7 +132,7 @@ export function CodeScriptEditor({
 
   const loading = (
     <output
-      className="flex h-full items-center justify-center gap-space-sm bg-surface-secondary text-sm text-text-secondary"
+      className="flex h-full items-center justify-center gap-space-sm bg-sunken text-sm text-fg-muted"
       aria-live="polite"
     >
       <Loader2 className="size-icon-md animate-spin" />
@@ -143,14 +143,14 @@ export function CodeScriptEditor({
   return (
     <TooltipProvider delayDuration={300}>
       <DialogPrimitive.Root open={isExpanded} onOpenChange={setIsExpanded}>
-        <div className="overflow-hidden rounded-radius-lg border border-border-default bg-surface-primary shadow-elevation-low">
-          <div className="flex items-center justify-between border-b border-border-subtle bg-surface-secondary px-space-sm py-space-xs">
+        <div className="overflow-hidden rounded-radius-lg border border-line bg-surface shadow-elevation-low">
+          <div className="flex items-center justify-between border-b border-line-subtle bg-sunken px-space-sm py-space-xs">
             <div className="flex min-w-0 items-center gap-space-sm">
-              <Code2 className="size-icon-sm shrink-0 text-text-secondary" />
-              <span className="text-sm font-medium text-text-primary">
+              <Code2 className="size-icon-sm shrink-0 text-fg-muted" />
+              <span className="text-sm font-medium text-fg">
                 {t('flow.code', 'Code')}
               </span>
-              <span className="rounded-radius-sm border border-border-subtle bg-surface-primary px-space-xs py-space-xs text-xs font-medium text-text-secondary">
+              <span className="rounded-radius-sm border border-line-subtle bg-surface px-space-xs py-space-xs text-xs font-medium text-fg-muted">
                 {languageLabel}
               </span>
             </div>
@@ -197,7 +197,7 @@ export function CodeScriptEditor({
           <DialogPrimitive.Content
             ref={expandedContentRef}
             tabIndex={-1}
-            className="fixed top-1/2 left-1/2 z-[71] flex h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[1600px] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-radius-lg border border-border-default bg-surface-primary shadow-elevation-high focus:outline-hidden xl:h-[90vh] xl:w-[90vw]"
+            className="fixed top-1/2 left-1/2 z-[71] flex h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[1600px] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-radius-lg border border-line bg-surface shadow-elevation-high focus:outline-hidden xl:h-[90vh] xl:w-[90vw]"
             onOpenAutoFocus={(event) => {
               event.preventDefault()
               expandedContentRef.current?.focus()
@@ -205,13 +205,13 @@ export function CodeScriptEditor({
             }}
             onPointerDownOutside={(event) => event.preventDefault()}
           >
-            <header className="flex shrink-0 items-center justify-between border-b border-border-subtle bg-surface-secondary px-space-base py-space-sm">
+            <header className="flex shrink-0 items-center justify-between border-b border-line-subtle bg-sunken px-space-base py-space-sm">
               <div className="flex min-w-0 items-center gap-space-sm">
-                <span className="flex size-icon-xl shrink-0 items-center justify-center rounded-radius-md bg-components-system-accent-soft text-components-system-accent-text">
+                <span className="flex size-icon-xl shrink-0 items-center justify-center rounded-radius-md bg-accent-soft text-accent-fg">
                   <Code2 className="size-icon-sm" />
                 </span>
                 <div className="min-w-0">
-                  <DialogPrimitive.Title className="truncate text-base font-semibold text-text-primary">
+                  <DialogPrimitive.Title className="truncate text-base font-semibold text-fg">
                     {t('flow.codeEditorTitle', 'Code editor')}
                   </DialogPrimitive.Title>
                   <DialogPrimitive.Description className="sr-only">
@@ -221,7 +221,7 @@ export function CodeScriptEditor({
                     )}
                   </DialogPrimitive.Description>
                 </div>
-                <span className="rounded-radius-sm border border-border-subtle bg-surface-primary px-space-xs py-space-xs text-xs font-medium text-text-secondary">
+                <span className="rounded-radius-sm border border-line-subtle bg-surface px-space-xs py-space-xs text-xs font-medium text-fg-muted">
                   {languageLabel}
                 </span>
               </div>
@@ -262,14 +262,14 @@ export function CodeScriptEditor({
               />
             </div>
 
-            <footer className="flex shrink-0 items-center justify-between border-t border-border-subtle bg-surface-secondary px-space-base py-space-xs text-xs text-text-secondary">
+            <footer className="flex shrink-0 items-center justify-between border-t border-line-subtle bg-sunken px-space-base py-space-xs text-xs text-fg-muted">
               <span>
                 {t('flow.codeEditorLineCount', 'Lines: {{count}}', {
                   count: lineCount,
                 })}
               </span>
               <span className="hidden items-center gap-space-xs sm:flex">
-                <kbd className="rounded-radius-sm border border-border-default bg-surface-primary px-space-xs py-space-xs font-mono text-xs text-text-primary">
+                <kbd className="rounded-radius-sm border border-line bg-surface px-space-xs py-space-xs font-mono text-xs text-fg">
                   Esc
                 </kbd>
                 {t('flow.codeEditorEscapeHint', 'Return to node configuration')}

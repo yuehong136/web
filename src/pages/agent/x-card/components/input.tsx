@@ -70,9 +70,7 @@ export function XCardTextField({
   return (
     <label className="block space-y-space-xs">
       {label ? (
-        <span className="text-xs text-text-secondary">
-          {toDisplayString(label)}
-        </span>
+        <span className="text-xs text-fg-muted">{toDisplayString(label)}</span>
       ) : null}
       <UIInput
         type={
@@ -103,7 +101,7 @@ export function XCardCheckBox({
   const writablePath = toWritableDataPath(dataPath)
 
   return (
-    <label className="flex items-center gap-space-sm text-sm text-text-primary">
+    <label className="flex items-center gap-space-sm text-sm text-fg">
       <UICheckbox
         checked={toBoolean(value)}
         onCheckedChange={(nextValue) => {
@@ -153,7 +151,7 @@ export function XCardChoicePicker({
     return (
       <fieldset className="space-y-space-xs">
         {label ? (
-          <legend className="text-xs text-text-secondary">
+          <legend className="text-xs text-fg-muted">
             {toDisplayString(label)}
           </legend>
         ) : null}
@@ -167,7 +165,7 @@ export function XCardChoicePicker({
           {normalizedOptions.map((option) => (
             <label
               key={option.value}
-              className="flex items-center gap-space-sm text-sm text-text-primary"
+              className="flex items-center gap-space-sm text-sm text-fg"
             >
               <UICheckbox
                 checked={selectedSet.has(option.value)}
@@ -188,9 +186,7 @@ export function XCardChoicePicker({
   return (
     <label className="block space-y-space-xs">
       {label ? (
-        <span className="text-xs text-text-secondary">
-          {toDisplayString(label)}
-        </span>
+        <span className="text-xs text-fg-muted">{toDisplayString(label)}</span>
       ) : null}
       <Select
         value={selected}
@@ -234,7 +230,7 @@ export function XCardSlider({
   const currentValue = toNumber(value, minValue)
   return (
     <div className="space-y-space-xs">
-      <div className="flex items-center justify-between gap-space-sm text-xs text-text-secondary">
+      <div className="flex items-center justify-between gap-space-sm text-xs text-fg-muted">
         <span>{toDisplayString(label)}</span>
         <span>{currentValue}</span>
       </div>
@@ -264,9 +260,7 @@ export function XCardDateTimeInput({
   return (
     <label className="block space-y-space-xs">
       {label ? (
-        <span className="text-xs text-text-secondary">
-          {toDisplayString(label)}
-        </span>
+        <span className="text-xs text-fg-muted">{toDisplayString(label)}</span>
       ) : null}
       <UIInput
         type="datetime-local"

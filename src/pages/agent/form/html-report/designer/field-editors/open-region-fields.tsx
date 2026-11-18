@@ -42,7 +42,7 @@ export function OpenRegionFields({
           }
         />
       </InspectorField>
-      <p className="text-xs leading-relaxed text-text-caption">
+      <p className="text-xs leading-relaxed text-fg-subtle">
         {t(
           'flow.htmlReportOpenRegionHelp',
           'The model builds this region at run time from your brief — e.g. "Three charts, you pick the type" or "First a paragraph, then a pie chart".',

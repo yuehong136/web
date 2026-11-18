@@ -47,7 +47,7 @@ export function PipelineRunPanel({ controller }: PipelineRunPanelProps) {
           padding="default"
         >
           <div className="space-y-space-md">
-            <p className="text-sm text-text-secondary">
+            <p className="text-sm text-fg-muted">
               {t('agent.pipelineRun.runPanel.beginInputsHint')}
             </p>
             <DebugContent
@@ -72,7 +72,7 @@ export function PipelineRunPanel({ controller }: PipelineRunPanelProps) {
             title={t('agent.pipelineRun.runPanel.startFailed')}
             padding="default"
           >
-            <p className="text-sm text-status-error">{lastError}</p>
+            <p className="text-sm text-danger-fg">{lastError}</p>
           </SectionCard>
         ) : null}
       </div>
@@ -86,7 +86,7 @@ export function PipelineRunPanel({ controller }: PipelineRunPanelProps) {
         padding="default"
       >
         <div className="space-y-space-md">
-          <p className="text-sm text-text-secondary">
+          <p className="text-sm text-fg-muted">
             {t('agent.pipelineRun.runPanel.quickRunHint')}
           </p>
           <FileUploadDirectUpload
@@ -117,7 +117,7 @@ export function PipelineRunPanel({ controller }: PipelineRunPanelProps) {
           title={t('agent.pipelineRun.runPanel.startFailed')}
           padding="default"
         >
-          <p className="text-sm text-status-error">{lastError}</p>
+          <p className="text-sm text-danger-fg">{lastError}</p>
         </SectionCard>
       ) : null}
     </div>

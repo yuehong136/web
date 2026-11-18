@@ -81,7 +81,7 @@ function InnerAgentNode({
             position={Position.Top}
             isConnectable={false}
             id={NodeHandleId.AgentTop}
-            className="!size-2 !border-none !bg-components-canvas-handle-bg"
+            className="!size-2 !border-none !bg-accent-solid"
           />
         )}
 
@@ -92,12 +92,9 @@ function InnerAgentNode({
           isConnectable={false}
           id={NodeHandleId.AgentBottom}
           style={{ left: 180 }}
-          className={cn(
-            'invisible !size-2 !border-none !bg-components-canvas-handle-bg',
-            {
-              visible: hasSubAgent(edges, id),
-            },
-          )}
+          className={cn('invisible !size-2 !border-none !bg-accent-solid', {
+            visible: hasSubAgent(edges, id),
+          })}
         />
 
         {/* 底部handles：Tool连接点 */}
@@ -107,12 +104,9 @@ function InnerAgentNode({
           isConnectable={false}
           id={NodeHandleId.Tool}
           style={{ left: 20 }}
-          className={cn(
-            'invisible !size-2 !border-none !bg-components-canvas-handle-bg',
-            {
-              visible: hasTools,
-            },
-          )}
+          className={cn('invisible !size-2 !border-none !bg-accent-solid', {
+            visible: hasTools,
+          })}
         />
 
         <NodeHeader id={id} name={data.name} label={data.label} />
@@ -121,8 +115,8 @@ function InnerAgentNode({
           <LLMLabelCard llmId={get(data, 'form.llm_id')} />
           {(isGotoMethod ||
             exceptionMethod === AgentExceptionMethod.Comment) && (
-            <div className="flex justify-between gap-space-sm rounded-radius-sm bg-surface-secondary p-space-xs">
-              <span className="text-text-secondary">{t('flow.onFailure')}</span>
+            <div className="flex justify-between gap-space-sm rounded-radius-sm bg-sunken p-space-xs">
+              <span className="text-fg-muted">{t('flow.onFailure')}</span>
               <span className="flex-1 truncate text-right">
                 {t(`flow.${exceptionMethod}`)}
               </span>
@@ -135,7 +129,7 @@ function InnerAgentNode({
             type="source"
             position={Position.Right}
             isConnectable={isConnectable}
-            className="!bg-status-error"
+            className="!bg-danger-fg"
             style={{ ...RightHandleStyle, top: 94 }}
             nodeId={id}
             id={NodeHandleId.AgentException}

@@ -12,7 +12,7 @@ import { OperatorItemList } from './operator-item-list'
 
 function OperatorAccordionTrigger({ children }: PropsWithChildren) {
   return (
-    <AccordionTrigger className="items-center text-xs text-text-secondary hover:no-underline">
+    <AccordionTrigger className="items-center text-xs text-fg-muted hover:no-underline">
       <span className="h-4 translate-y-1"> {children}</span>
     </AccordionTrigger>
   )
@@ -42,14 +42,14 @@ export function AccordionOperators({
   return (
     <Accordion
       type="multiple"
-      className="max-h-[45vh] overflow-auto px-space-sm text-text-primary"
+      className="max-h-[45vh] overflow-auto px-space-sm text-fg"
       defaultValue={['item-1', 'item-2', 'item-3', 'item-4', 'item-5']}
     >
       <AccordionItem value="item-1">
         <OperatorAccordionTrigger>
           {t('flow.foundation', '基础')}
         </OperatorAccordionTrigger>
-        <AccordionContent className="flex flex-col gap-space-base text-text-primary">
+        <AccordionContent className="flex flex-col gap-space-base text-fg">
           <OperatorItemList
             operators={[Operator.Agent, Operator.Retrieval]}
             isCustomDropdown={isCustomDropdown}
@@ -61,7 +61,7 @@ export function AccordionOperators({
         <OperatorAccordionTrigger>
           {t('flow.dialog', '对话')}
         </OperatorAccordionTrigger>
-        <AccordionContent className="flex flex-col gap-space-base text-text-primary">
+        <AccordionContent className="flex flex-col gap-space-base text-fg">
           <OperatorItemList
             operators={[Operator.Message, Operator.A2UI, Operator.UserFillUp]}
             isCustomDropdown={isCustomDropdown}
@@ -73,7 +73,7 @@ export function AccordionOperators({
         <OperatorAccordionTrigger>
           {t('flow.flow', '流程控制')}
         </OperatorAccordionTrigger>
-        <AccordionContent className="flex flex-col gap-space-base text-text-primary">
+        <AccordionContent className="flex flex-col gap-space-base text-fg">
           <OperatorItemList
             operators={[
               Operator.Switch,
@@ -91,7 +91,7 @@ export function AccordionOperators({
         <OperatorAccordionTrigger>
           {t('flow.dataManipulation', '数据操作')}
         </OperatorAccordionTrigger>
-        <AccordionContent className="flex flex-col gap-space-base text-text-primary">
+        <AccordionContent className="flex flex-col gap-space-base text-fg">
           <OperatorItemList
             operators={[
               Operator.Code,
@@ -110,7 +110,7 @@ export function AccordionOperators({
         <OperatorAccordionTrigger>
           {t('flow.tools', '工具')}
         </OperatorAccordionTrigger>
-        <AccordionContent className="flex flex-col gap-space-base text-text-primary">
+        <AccordionContent className="flex flex-col gap-space-base text-fg">
           <OperatorItemList
             operators={[
               Operator.TavilySearch,
@@ -213,7 +213,7 @@ export function PipelineAccordionOperators({
           defaultValue="item-1"
         >
           <AccordionItem value="item-1">
-            <AccordionTrigger className="translate-y-2 font-normal text-text-primary hover:no-underline">
+            <AccordionTrigger className="translate-y-2 font-normal text-fg hover:no-underline">
               {t('flow.chunker', 'Chunker')}
             </AccordionTrigger>
             <AccordionContent className="flex flex-col gap-space-base">

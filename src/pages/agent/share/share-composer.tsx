@@ -53,7 +53,7 @@ export function ShareComposer({
       className={cn(
         isInlineLayout
           ? undefined
-          : 'shrink-0 bg-surface-primary px-space-lg py-space-base',
+          : 'shrink-0 bg-surface px-space-lg py-space-base',
         className,
       )}
     >

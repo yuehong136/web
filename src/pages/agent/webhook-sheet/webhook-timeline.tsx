@@ -24,7 +24,7 @@ export function WebhookTimeline({ events }: WebhookTimelineProps) {
 
   if (!events.length) {
     return (
-      <div className="rounded-radius-lg border border-border-subtle bg-surface-secondary p-space-lg text-center text-sm text-text-secondary">
+      <div className="rounded-radius-lg border border-line-subtle bg-sunken p-space-lg text-center text-sm text-fg-muted">
         {t('agent.delivery.webhook.timeline.empty')}
       </div>
     )
@@ -44,15 +44,15 @@ export function WebhookTimeline({ events }: WebhookTimelineProps) {
         return (
           <div
             key={`${event.event}-${event.message_id || index}-${index}`}
-            className="rounded-radius-lg border border-border-default bg-surface-secondary p-space-base"
+            className="rounded-radius-lg border border-line bg-sunken p-space-base"
           >
             <div className="mb-space-sm flex flex-wrap items-center justify-between gap-space-sm">
               <div>
-                <p className="text-sm font-medium text-text-primary">
+                <p className="text-sm font-medium text-fg">
                   {getEventTitle(event)}
                 </p>
                 {timestamp ? (
-                  <p className="mt-space-xs text-xs text-text-tertiary">
+                  <p className="mt-space-xs text-xs text-fg-subtle">
                     {formatTimestampDetailed(timestamp)}
                   </p>
                 ) : null}

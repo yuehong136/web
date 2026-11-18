@@ -29,7 +29,7 @@ import { browserFormSchema } from './schema'
 function BrowserFieldMessage({ children }: { children: string }) {
   const { formMessageId } = useFormField()
   return (
-    <p id={formMessageId} role="alert" className="text-sm text-status-error">
+    <p id={formMessageId} role="alert" className="text-sm text-danger-fg">
       {children}
     </p>
   )
@@ -223,7 +223,7 @@ export function BrowserForm({ node }: INextOperatorForm) {
                             index: index + 1,
                           })}
                         />
-                        <p className="text-sm text-text-tertiary">
+                        <p className="text-sm text-fg-subtle">
                           {t('flow.browserUploadedFile')}
                         </p>
                       </>

@@ -128,9 +128,7 @@ export function ParserSetupAdvancedFields({
 
       {showMineruOptions ? (
         <>
-          <div className="text-base font-semibold text-text-secondary">
-            MinerU
-          </div>
+          <div className="text-base font-semibold text-fg-muted">MinerU</div>
           <div className="grid gap-space-xl md:grid-cols-2">
             <ParserSelectField
               control={form.control}

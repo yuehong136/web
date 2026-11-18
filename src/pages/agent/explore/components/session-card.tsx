@@ -48,22 +48,20 @@ export function SessionCard({
     <div
       className={cn(
         'group flex items-center rounded-radius-md transition-colors motion-reduce:transition-none',
-        selected
-          ? 'bg-state-selected-bg text-state-selected-text'
-          : 'text-text-primary hover:bg-background-subtle',
+        selected ? 'bg-accent-soft text-accent-fg' : 'text-fg hover:bg-sunken',
       )}
     >
       <button
         type="button"
         aria-pressed={selected}
         title={name}
-        className="flex min-w-0 flex-1 items-center gap-space-sm rounded-radius-md px-space-sm py-space-sm text-left outline-hidden focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:ring-inset"
+        className="flex min-w-0 flex-1 items-center gap-space-sm rounded-radius-md px-space-sm py-space-sm text-left outline-hidden focus-visible:ring-2 focus-visible:ring-line-focus focus-visible:ring-inset"
         onClick={onSelect}
       >
         <span className="truncate text-sm">{name}</span>
         {hasError ? (
           <CircleAlert
-            className="size-icon-sm shrink-0 text-status-error"
+            className="size-icon-sm shrink-0 text-danger-fg"
             aria-label={t('agent.explore.sessionError')}
           />
         ) : null}
@@ -77,7 +75,7 @@ export function SessionCard({
             size="icon-sm"
             disabled={disabled}
             className={cn(
-              'mr-space-xs shrink-0 text-text-tertiary transition-opacity focus-visible:opacity-100 motion-reduce:transition-none md:opacity-0 md:group-focus-within:opacity-100 md:group-hover:opacity-100',
+              'mr-space-xs shrink-0 text-fg-subtle transition-opacity focus-visible:opacity-100 motion-reduce:transition-none md:opacity-0 md:group-focus-within:opacity-100 md:group-hover:opacity-100',
               (selected || menuOpen) && 'md:opacity-100',
             )}
             aria-label={t('agent.explore.chatActionsNamed', { name })}
@@ -90,9 +88,9 @@ export function SessionCard({
           align="start"
           side="right"
           aria-label={t('agent.explore.chatActionsNamed', { name })}
-          className="w-56 border-border-default bg-components-console-surface p-space-xs motion-reduce:animate-none"
+          className="w-56 border-line bg-surface p-space-xs motion-reduce:animate-none"
         >
-          <p className="px-space-sm py-space-sm text-xs text-text-secondary">
+          <p className="px-space-sm py-space-sm text-xs text-fg-muted">
             {updated}
             <span className="block">
               {t('agent.explore.messageCount', {
@@ -124,7 +122,7 @@ export function SessionCard({
           <Button
             variant="ghost"
             size="sm"
-            className="w-full justify-start text-status-error"
+            className="w-full justify-start text-danger-fg"
             onClick={() => {
               setMenuOpen(false)
               setConfirmOpen(true)

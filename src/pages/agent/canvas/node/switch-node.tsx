@@ -68,7 +68,7 @@ const ConditionBlock = ({
   }
 
   return (
-    <div className="flex flex-col gap-space-xs rounded-radius-sm bg-surface-secondary p-space-xs">
+    <div className="flex flex-col gap-space-xs rounded-radius-sm bg-sunken p-space-xs">
       {items.map((item, idx) => {
         const operatorLabelKey = getOperatorLabelKey(item?.operator)
         const operatorLabel = operatorLabelKey
@@ -83,12 +83,12 @@ const ConditionBlock = ({
             key={idx}
             className="flex items-center justify-between gap-space-sm text-xs"
           >
-            <div className="flex-1 truncate text-text-accent">
+            <div className="flex-1 truncate text-accent-fg">
               {getLabel(item?.cpn_id)}
             </div>
             <span
               title={operatorLabel}
-              className="inline-flex min-w-10 shrink-0 items-center justify-center rounded-radius-sm border border-border-default bg-surface-primary px-space-xs py-px font-mono text-[11px] leading-5 text-text-secondary"
+              className="inline-flex min-w-10 shrink-0 items-center justify-center rounded-radius-sm border border-line bg-surface px-space-xs py-px font-mono text-[11px] leading-5 text-fg-muted"
             >
               {getOperatorGlyph(item?.operator)}
             </span>
@@ -151,7 +151,7 @@ function InnerSwitchNode({ id, data, selected }: NodeProps<ISwitchNode>) {
                   className="text-right"
                 >
                   <span>{getConditionLabel(t, idx, positions.length)}</span>
-                  <div className="text-text-secondary">
+                  <div className="text-fg-muted">
                     {idx < positions.length - 1 &&
                       t('flow.switchBranchLabels.case', {
                         index: idx + 1,
@@ -159,7 +159,7 @@ function InnerSwitchNode({ id, data, selected }: NodeProps<ISwitchNode>) {
                       })}
                   </div>
                 </div>
-                <span className="text-text-accent">
+                <span className="text-accent-fg">
                   {idx < positions.length - 1 &&
                     position.condition?.logical_operator &&
                     t(

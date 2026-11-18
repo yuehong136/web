@@ -57,22 +57,22 @@ export function ConditionCards({
         <div key={field.id} className="group flex min-w-0 items-start">
           <Card
             className={cn(
-              'relative min-w-0 flex-1 overflow-visible rounded-radius-md border border-border-default bg-transparent p-0 shadow-elevation-low transition-colors group-hover:border-border-strong',
+              'relative min-w-0 flex-1 overflow-visible rounded-radius-md border border-line bg-transparent p-0 shadow-elevation-low transition-colors group-hover:border-line-strong',
               {
-                'before:absolute before:top-1/2 before:-left-10 before:h-px before:w-10 before:bg-border-default':
+                'before:absolute before:top-1/2 before:-left-10 before:h-px before:w-10 before:bg-line':
                   fields.length > 1 &&
                   (index === 0 || index === fields.length - 1),
               },
             )}
           >
-            <section className="grid min-w-0 items-center gap-space-sm rounded-t-radius-md bg-surface-secondary p-space-sm lg:grid-cols-[minmax(0,1fr)_8rem_auto]">
+            <section className="grid min-w-0 items-center gap-space-sm rounded-t-radius-md bg-sunken p-space-sm lg:grid-cols-[minmax(0,1fr)_8rem_auto]">
               <div className="min-w-0">
                 <QueryVariable
                   name={`${name}.${index}.cpn_id`}
                   hideLabel
                   nodeId={nodeId}
                   className="min-w-0"
-                  triggerClassName="h-10 rounded-radius-md border border-border-default bg-surface-primary px-space-sm py-space-xs text-sm shadow-none hover:bg-surface-secondary"
+                  triggerClassName="h-10 rounded-radius-md border border-line bg-surface px-space-sm py-space-xs text-sm shadow-none hover:bg-sunken"
                 />
               </div>
               <div className="min-w-0">
@@ -86,7 +86,7 @@ export function ConditionCards({
                           value={operatorField.value}
                           onValueChange={operatorField.onChange}
                         >
-                          <SelectTrigger className="h-10 min-w-0 rounded-radius-md border border-border-default bg-surface-primary px-space-sm py-space-xs text-sm shadow-none hover:bg-surface-secondary">
+                          <SelectTrigger className="h-10 min-w-0 rounded-radius-md border border-line bg-surface px-space-sm py-space-xs text-sm shadow-none hover:bg-sunken">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -113,7 +113,7 @@ export function ConditionCards({
                 type="button"
                 variant="ghost"
                 size="icon-sm"
-                className="shrink-0 text-text-secondary hover:text-status-error"
+                className="shrink-0 text-fg-muted hover:text-danger-fg"
                 onClick={handleRemove(index)}
                 aria-label={t('common.remove')}
               >
@@ -133,7 +133,7 @@ export function ConditionCards({
                           'flow.switchConditionValuePlaceholder',
                           'Enter the value to compare with...',
                         )}
-                        className="min-h-24 rounded-radius-md border border-border-default bg-transparent px-space-md py-space-sm"
+                        className="min-h-24 rounded-radius-md border border-line bg-transparent px-space-md py-space-sm"
                       />
                     </FormControl>
                     <FormMessage />
@@ -148,7 +148,7 @@ export function ConditionCards({
         <Button
           type="button"
           variant="outline"
-          className="mt-space-sm w-full border-dashed border-border-default bg-surface-primary"
+          className="mt-space-sm w-full border-dashed border-line bg-surface"
           onClick={() =>
             append({
               cpn_id: '',

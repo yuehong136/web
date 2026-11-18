@@ -50,7 +50,7 @@ export function DynamicRequest({
         {fields.map((field, index) => (
           <div
             key={field.id}
-            className="flex items-start gap-space-sm rounded-radius-md border border-border-default px-space-sm py-space-sm"
+            className="flex items-start gap-space-sm rounded-radius-md border border-line px-space-sm py-space-sm"
           >
             <div className="grid min-w-0 flex-1 gap-space-sm md:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_auto]">
               <FormField
@@ -89,8 +89,8 @@ export function DynamicRequest({
                 control={form.control}
                 name={`${name}.${index}.required`}
                 render={({ field: requiredField }) => (
-                  <FormItem className="flex h-10 items-center justify-between gap-space-sm rounded-radius-md border border-border-default px-space-sm">
-                    <span className="text-sm text-text-secondary">
+                  <FormItem className="flex h-10 items-center justify-between gap-space-sm rounded-radius-md border border-line px-space-sm">
+                    <span className="text-sm text-fg-muted">
                       {t('common.required')}
                     </span>
                     <FormControl>

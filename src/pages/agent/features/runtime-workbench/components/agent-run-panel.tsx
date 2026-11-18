@@ -13,7 +13,7 @@ export function AgentRunPanel({ controller }: AgentRunPanelProps) {
     <div className="space-y-space-lg p-space-md">
       <SectionCard title={t('agent.runtime.startInput')} padding="default">
         <div className="space-y-space-md">
-          <p className="text-sm text-text-secondary">
+          <p className="text-sm text-fg-muted">
             {controller.isTaskMode
               ? t('agent.runtimePanel.runPanel.taskModeHint')
               : t('agent.runtimePanel.runPanel.chatModeHint')}
@@ -41,7 +41,7 @@ export function AgentRunPanel({ controller }: AgentRunPanelProps) {
           title={t('agent.runtime.runInstructions')}
           padding="default"
         >
-          <p className="text-sm text-text-secondary">
+          <p className="text-sm text-fg-muted">
             {t('agent.runtimePanel.runPanel.noInputFields')}
           </p>
         </SectionCard>

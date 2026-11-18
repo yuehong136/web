@@ -76,7 +76,7 @@ export function PipelineWorkbench({
           }
           className="flex min-h-0 flex-1 flex-col"
         >
-          <div className="border-b border-border-primary px-space-md py-space-sm">
+          <div className="border-b border-line px-space-md py-space-sm">
             <div className="flex items-center justify-between gap-space-sm">
               <TabsList className="w-full justify-start">
                 <TabsTrigger value={PipelineWorkbenchView.RUN}>

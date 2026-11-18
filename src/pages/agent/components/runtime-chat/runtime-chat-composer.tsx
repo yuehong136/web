@@ -100,7 +100,7 @@ export function RuntimeChatComposer({
   return (
     <div
       className={cn(
-        'border-t border-border-default bg-components-console-surface',
+        'border-t border-line bg-surface',
         density === 'compact'
           ? 'px-space-md py-space-sm'
           : 'px-space-lg py-space-base',
@@ -154,21 +154,21 @@ export function RuntimeChatComposer({
                 {files.map((file, index) => (
                   <div
                     key={`${file.id || file.name}-${index}`}
-                    className="flex max-w-full min-w-0 items-center gap-space-xs rounded-radius-md border border-border-default bg-background-subtle px-space-sm py-space-xs"
+                    className="flex max-w-full min-w-0 items-center gap-space-xs rounded-radius-md border border-line bg-sunken px-space-sm py-space-xs"
                   >
                     <FileIcon
                       fileType={file.type}
                       fileName={file.name}
                       size="sm"
                     />
-                    <span className="max-w-[220px] min-w-0 flex-1 truncate text-sm text-text-secondary">
+                    <span className="max-w-[220px] min-w-0 flex-1 truncate text-sm text-fg-muted">
                       {file.name}
                     </span>
                     <Button
                       type="button"
                       variant="ghost"
                       size="icon-sm"
-                      className="size-5 text-text-tertiary hover:text-text-primary"
+                      className="size-5 text-fg-subtle hover:text-fg"
                       onClick={() => handleRemoveFile(index)}
                       disabled={disabled}
                       aria-label={t('agent.explore.removeAttachment', {
@@ -196,7 +196,7 @@ export function RuntimeChatComposer({
                 buttonLabel={t('agent.share.uploadAttachment')}
                 buttonVariant="ghost"
                 buttonSize="icon"
-                buttonClassName="text-text-tertiary hover:text-text-primary"
+                buttonClassName="text-fg-subtle hover:text-fg"
                 disabled={disabled}
                 triggerIcon={<Paperclip className="size-icon-sm" />}
               />

@@ -32,11 +32,9 @@ function TraceIdentifier({ label, value }: { label: string; value?: string }) {
       : value
 
   return (
-    <div className="flex min-w-0 items-center gap-space-xs rounded-radius-full border border-border-subtle bg-surface-secondary px-space-sm py-[2px] text-xs text-text-tertiary">
+    <div className="flex min-w-0 items-center gap-space-xs rounded-radius-full border border-line-subtle bg-sunken px-space-sm py-[2px] text-xs text-fg-subtle">
       <span className="shrink-0">{label}</span>
-      <span className="font-mono text-text-secondary">
-        {displayValue || '-'}
-      </span>
+      <span className="font-mono text-fg-muted">{displayValue || '-'}</span>
     </div>
   )
 }
@@ -52,17 +50,17 @@ export function TraceHeader({
     : undefined
 
   return (
-    <header className="flex min-h-[64px] items-center justify-between gap-space-base border-b border-components-split-pane-border bg-components-console-surface px-space-lg py-space-base">
+    <header className="flex min-h-[64px] items-center justify-between gap-space-base border-b border-line bg-surface px-space-lg py-space-base">
       <div className="min-w-0">
         <div className="flex min-w-0 items-center gap-space-sm">
           <Badge variant={STATUS_VARIANT_MAP[viewModel.status]}>
             {t(TRACE_RUN_STATUS_LABEL_KEYS[viewModel.status])}
           </Badge>
-          <h3 className="truncate text-sm font-semibold text-text-primary">
+          <h3 className="truncate text-sm font-semibold text-fg">
             {t('agent.trace.trace')}
           </h3>
           {unavailable ? (
-            <span className="inline-flex min-w-0 items-center gap-space-xs text-xs text-status-warning">
+            <span className="inline-flex min-w-0 items-center gap-space-xs text-xs text-warning-fg">
               <AlertTriangle className="size-3.5 shrink-0" />
               <span className="truncate">{t(unavailable.titleKey)}</span>
             </span>
@@ -80,12 +78,12 @@ export function TraceHeader({
         </div>
       </div>
       <div className="flex shrink-0 items-center gap-space-xs">
-        <span className="hidden text-xs text-text-tertiary xl:inline-flex">
+        <span className="hidden text-xs text-fg-subtle xl:inline-flex">
           {t('agent.traceWorkbench.header.spanCount', {
             count: viewModel.summary.spanCount,
           })}
         </span>
-        <span className="hidden text-xs text-text-tertiary xl:inline-flex">
+        <span className="hidden text-xs text-fg-subtle xl:inline-flex">
           {t('agent.traceWorkbench.header.toolCount', {
             count: viewModel.summary.toolCallCount,
           })}

@@ -126,8 +126,8 @@ export function Designer({
         </SheetDescription>
 
         {/* 工具栏 */}
-        <header className="flex items-center gap-space-sm border-b border-border-default px-space-base py-space-sm">
-          <span className="text-sm font-semibold text-text-primary">
+        <header className="flex items-center gap-space-sm border-b border-line px-space-base py-space-sm">
+          <span className="text-sm font-semibold text-fg">
             {t('flow.htmlReportDesignerTitle', 'Report designer')}
           </span>
           <div className="ml-auto flex items-center gap-space-xs">
@@ -206,22 +206,22 @@ export function Designer({
             onDragEnd={handleDragEnd}
           >
             <div className="flex min-h-0 flex-1">
-              <aside className="w-48 shrink-0 border-r border-border-default">
+              <aside className="w-48 shrink-0 border-r border-line">
                 <Palette
                   onAddBlock={handleAddBlock}
                   onAddSection={handleAddSection}
                 />
               </aside>
-              <main className="min-w-0 flex-1 bg-surface-secondary">
+              <main className="min-w-0 flex-1 bg-sunken">
                 <Canvas
                   sections={state.present.sections}
                   selection={state.selection}
                   dispatch={dispatch}
                 />
               </main>
-              <aside className="flex w-96 shrink-0 flex-col border-l border-border-default">
-                <div className="border-b border-border-default px-space-base py-space-sm">
-                  <span className="text-sm font-medium text-text-primary">
+              <aside className="flex w-96 shrink-0 flex-col border-l border-line">
+                <div className="border-b border-line px-space-base py-space-sm">
+                  <span className="text-sm font-medium text-fg">
                     {t('flow.htmlReportTabInspector', 'Properties')}
                   </span>
                 </div>

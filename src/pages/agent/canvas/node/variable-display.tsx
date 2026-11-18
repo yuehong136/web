@@ -8,7 +8,7 @@ interface VariableDisplayProps {
 function VariableNodeDisplay({ label }: { label: ReactNode }) {
   return (
     <div className="mr-1 inline-flex items-center">
-      <span className="text-text-accent">{label}</span>
+      <span className="text-accent-fg">{label}</span>
     </div>
   )
 }
