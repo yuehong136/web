@@ -71,7 +71,8 @@ npm run test:design-tokens  # 合同测试：所有方案 × 明暗 × 对比度
 
 - `@tailwindcss/forms` 给原生文本框、文本域、下拉框和选择控件的白底、灰边、灰色占位文字和 blue-600 焦点环，由 `styles/selection-controls.css` 在 base 层改为语义角色；组件自己的工具类仍然优先。
 - 第三方 CSS 如果也用 `--color-` 前缀（例如 Markdown 编辑器自带的 GitHub Primer 变量），在它的局部样式里桥接到语义角色，同名的角色写 `inherit`（见 `pages/studio/create-app/components/editor.css`）。`token-closure.test.ts` 会检查这类冲突是否都已处理。
-- 文档内容本身（PDF 页、PPT 幻灯片、Excel 表格页）保持纸面原色，外围的查看器界面走令牌。
+- 文档内容本身（PDF 页、PPT 幻灯片、Excel 表格页）保持纸面原色，外围的查看器界面走令牌。纸面上的标记（PDF 高亮、文字选区、框选）在两种模式下都落在白纸上，所以用 `accent-solid` 的半透明混色，不用 `accent-soft`、`highlight-bg` 这类暗色模式下变深的表面角色（见 `pdf-preview.css`）。
+- React Flow 自己绘制的颜色都先读 `--xy-<名称>`、再回退到 `--xy-<名称>-default`，在画布的 `overrides.css` 里给 `--xy-*` 赋语义角色即可（框选、拖出的连线已接入）。
 
 ## 外观偏好 API
 

@@ -12,6 +12,21 @@
  * selector is retained only for legacy DSLs still persisted under xyflow's
  * built-in `group` type.
  */
+/*
+ * xyflow draws the box selection and the line dragged out of a handle
+ * itself; both read `--xy-*` before their `-default` fallback. The
+ * selection fill stays translucent so the nodes under it remain readable.
+ */
+.react-flow {
+  --xy-selection-background-color: color-mix(
+    in oklab,
+    var(--color-accent-solid) 8%,
+    transparent
+  );
+  --xy-selection-border: 1px dashed var(--color-accent-solid);
+  --xy-connectionline-stroke: var(--color-accent-solid);
+}
+
 .react-flow__node-iterationNode,
 .react-flow__node-group {
   --xy-node-background-color-default: transparent;

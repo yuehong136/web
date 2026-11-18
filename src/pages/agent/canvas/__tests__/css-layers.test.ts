@@ -51,3 +51,25 @@ test('canvas overrides stay unlayered so they beat the library defaults', async 
   )
   assert.doesNotMatch(css, /@layer/u)
 })
+
+test('box selection and connection line take the scheme accent', async () => {
+  const [overrides, library] = await Promise.all([
+    readFile(path.join(sourceRoot, 'pages/agent/canvas/overrides.css'), 'utf8'),
+    readFile(require.resolve('@xyflow/react/dist/style.css'), 'utf8'),
+  ])
+  for (const name of [
+    'selection-background-color',
+    'selection-border',
+    'connectionline-stroke',
+  ]) {
+    // xyflow must still read the override before its own default.
+    assert.ok(
+      library.includes(`var(--xy-${name}, var(--xy-${name}-default))`),
+      `xyflow reads --xy-${name}`,
+    )
+    assert.match(
+      overrides,
+      new RegExp(`--xy-${name}:[^;]*var\\(--color-accent-solid\\)`, 'u'),
+    )
+  }
+})
