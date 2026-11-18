@@ -58,7 +58,7 @@ export const koreanTranslationStatus = {
   },
   search: {
     translated: 31,
-    englishFallback: 152,
+    englishFallback: 163,
   },
   memory: {
     translated: 33,

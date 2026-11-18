@@ -117,6 +117,7 @@ function InnerBeginNode({ id, data, selected }: NodeProps<IBeginNode>) {
 
         {isWebhookMode ? (
           <LabelCard className="flex items-center gap-space-sm">
+            {/* i18n-ignore: protocol term */}
             <span className="shrink-0 font-medium text-fg">URL</span>
             <span className="min-w-0 flex-1 truncate">{webhookUrl}</span>
           </LabelCard>

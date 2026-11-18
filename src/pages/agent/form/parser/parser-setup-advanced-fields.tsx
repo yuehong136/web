@@ -128,6 +128,7 @@ export function ParserSetupAdvancedFields({
 
       {showMineruOptions ? (
         <>
+          {/* i18n-ignore: product name */}
           <div className="text-base font-semibold text-fg-muted">MinerU</div>
           <div className="grid gap-space-xl md:grid-cols-2">
             <ParserSelectField

@@ -155,6 +155,7 @@ export const StructuredOutputSecondaryMenu = forwardRef(
             )}
           >
             <span className="truncate">{data.label}</span>
+            {/* i18n-ignore: JSON Schema type name */}
             <span className="ml-auto text-xs text-fg-muted">object</span>
             <ChevronRight className="size-3.5 text-fg-muted" />
           </li>

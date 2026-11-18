@@ -134,6 +134,7 @@ const ToolbarPaletteButton: React.FC<{ compact: boolean }> = ({ compact }) => {
     >
       <Command className="size-icon-sm" aria-hidden="true" />
       <span>{label}</span>
+      {/* i18n-ignore: keyboard shortcut */}
       <kbd className="text-fg-subtle">⌘/Ctrl K</kbd>
     </button>
   )

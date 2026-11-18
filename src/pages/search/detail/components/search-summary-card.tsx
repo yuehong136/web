@@ -142,6 +142,7 @@ const SearchSummaryCard = ({
           {displaySummary ? (
             <>
               <div className="bubble-copy-text search-summary-markdown max-w-none text-sm leading-7 text-fg [&_h1]:mt-space-sm [&_h1]:mb-space-sm [&_h1]:text-lg [&_h1]:font-semibold [&_h1]:text-fg [&_h2]:mt-space-sm [&_h2]:mb-space-sm [&_h2]:text-base [&_h2]:font-semibold [&_h2]:text-fg [&_h3]:mt-space-sm [&_h3]:mb-space-xs [&_h3]:text-base [&_h3]:font-semibold [&_h3]:text-fg [&_li]:my-space-xs [&_li]:leading-7 [&_li]:text-fg [&_ol]:my-space-sm [&_p]:my-space-sm [&_p]:leading-7 [&_p]:text-fg [&_strong]:font-semibold [&_strong]:text-fg [&_ul]:my-space-sm [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+                {/* i18n-ignore: stylesheet text, not UI copy */}
                 <style>{`
                   .search-summary-markdown {
                     color: var(--color-fg) !important;
