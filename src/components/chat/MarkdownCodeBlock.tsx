@@ -8,6 +8,7 @@ import {
   MemoizedMarkdownArtifactLink,
 } from './MarkdownArtifact'
 import { CodeBlock } from './CodeBlock'
+import { MarkdownTable } from './markdown-table'
 import { useResolvedAppearance, useThemeScope } from '@/themes'
 import { getTokenValue } from '@/lib/design-tokens'
 
@@ -281,6 +282,7 @@ export const markdownCodeComponents: MarkdownComponents = {
   code: memo(MarkdownCode),
   a: MemoizedMarkdownArtifactLink,
   img: MemoizedMarkdownArtifactImage,
+  table: MarkdownTable,
 }
 
 /**

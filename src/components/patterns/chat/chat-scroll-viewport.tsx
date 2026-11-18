@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { useChatScrollFollow } from '@/hooks/use-chat-scroll-follow'
 import { ChatJumpToLatest } from './chat-jump-to-latest'
+import './chat-scroll-viewport.css'
 
 interface ChatScrollViewportProps {
   children: ReactNode
@@ -58,7 +59,7 @@ export function ChatScrollViewport({
         // 跳回最新消息后接住焦点，避免按钮消失时焦点落到 body
         tabIndex={-1}
         className={cn(
-          'min-h-0 flex-1 overflow-y-auto outline-hidden focus-visible:ring-2 focus-visible:ring-line-focus focus-visible:ring-inset',
+          'chat-scroll-viewport min-h-0 flex-1 overflow-y-auto outline-hidden focus-visible:ring-2 focus-visible:ring-line-focus focus-visible:ring-inset',
           className,
         )}
       >

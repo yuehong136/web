@@ -299,6 +299,53 @@ async function network(page) {
   })
 }
 
+/** A table wider than the reading column must not widen the thread. */
+async function verifyWideTable(page, checks) {
+  const measure = () =>
+    page.evaluate(() => {
+      const box = (node) => node.getBoundingClientRect()
+      const log = document.querySelector('[role="log"]')
+      const frame = log.querySelector('.chat-table-scroll')
+      const column = box(log.querySelector('.chat-transcript'))
+      const bubble = box(
+        log.querySelector('[data-message-role="user"] .chat-message-body'),
+      )
+      return {
+        logOverflow: log.scrollWidth - log.clientWidth,
+        column: column.width,
+        frameStart: box(frame).left - column.left,
+        frameEnd: box(frame).right - box(log).right,
+        frameWidth: box(frame).width,
+        tableWidth: box(frame.querySelector('table')).width,
+        bubbleEnd: bubble.right - column.right,
+        cells: frame.querySelectorAll('tbody td').length,
+      }
+    })
+  const wide = await measure()
+  assert.equal(wide.cells, 16)
+  assert.equal(wide.logOverflow, 0, 'the thread does not scroll sideways')
+  assert.ok(Math.abs(wide.bubbleEnd) < 1, 'questions end at the column edge')
+  assert.ok(Math.abs(wide.frameStart) < 1, 'the table starts at the column')
+  assert.ok(wide.frameEnd <= 0, 'the table stays inside the thread')
+  assert.ok(
+    wide.frameWidth > wide.column + 1,
+    'a wide table uses the free space beside the reading column',
+  )
+  const viewport = page.viewportSize()
+  await page.setViewportSize({ width: 820, height: viewport.height })
+  const narrow = await measure()
+  await page.setViewportSize(viewport)
+  assert.equal(narrow.logOverflow, 0, 'no sideways scroll at 820px')
+  assert.ok(narrow.frameEnd <= 0, 'the table stays inside a narrow thread')
+  assert.ok(
+    narrow.tableWidth > narrow.frameWidth,
+    'a table wider than the thread scrolls inside its frame',
+  )
+  checks.push(
+    'A wide answer table grows beside the reading column, then scrolls in its own frame; the thread never scrolls sideways',
+  )
+}
+
 export async function verifyWorkspacePaths(page, { baseURL, output, state }) {
   const checks = []
   const networks = {}
@@ -402,6 +449,7 @@ export async function verifyWorkspacePaths(page, { baseURL, output, state }) {
   checks.push(
     'Home app submission freezes a real scope without changing its API payload',
   )
+  await verifyWideTable(page, checks)
   await page.screenshot({ path: `${output}/home-context-dark-en.png` })
   networks.HomeAnswer = await network(page)
   await verifyHomeResources(page, { output, state, checks })

@@ -165,6 +165,13 @@ export default {
       reset: 'Reset view',
       download: 'Download SVG',
     },
+    table: {
+      region: 'Table',
+      copy: 'Copy table',
+      download: 'Download CSV',
+      expand: 'View full size',
+      filename: 'table.csv',
+    },
     scroll: {
       region: 'Conversation messages',
       latest: 'Jump to latest',

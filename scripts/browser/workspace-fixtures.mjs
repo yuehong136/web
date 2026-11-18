@@ -160,6 +160,16 @@ export async function installWorkspaceFixtures(context) {
       state.lastSubmission = request.postDataJSON()
       const answer = [
         'Evidence-backed answer. [ID:0]',
+        // Wider than the reading column: it must scroll in its own frame.
+        [
+          '| Period | Unit | Place and event | Outcome and significance |',
+          '| --- | --- | --- | --- |',
+          ...Array.from(
+            { length: 4 },
+            (_, row) =>
+              `| 1934-${row + 10} | Central Red Army (First Front Army) | Ruijin and Yudu, Jiangxi: the march begins | After the fifth counter-encirclement campaign failed the army left the central base area and moved west, a decision reviewed at later meetings. |`,
+          ),
+        ].join('\n'),
         '```typescript\nconst answer: number = 42\nconsole.log(answer)\n```',
         '```python\ndef summarize(value: int) -> str:\n    return f"Evidence {value}"\n```',
         '[Research report](/api/v1/documents/artifact/report.html)',

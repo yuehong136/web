@@ -158,6 +158,13 @@ export default {
       reset: '复位',
       download: '下载 SVG',
     },
+    table: {
+      region: '表格',
+      copy: '复制表格',
+      download: '下载 CSV',
+      expand: '放大查看',
+      filename: '表格.csv',
+    },
     scroll: {
       region: '对话消息',
       latest: '回到最新',

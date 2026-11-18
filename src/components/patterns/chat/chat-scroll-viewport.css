@@ -1,0 +1,7 @@
+/* The scrolling log is the size container wide blocks measure against.
+   `--chat-wide-room` is the free space on one side of a centred reading
+   column: resolved where it is used, `100%` is that block's own column. */
+.chat-scroll-viewport {
+  container: chat-viewport / inline-size;
+  --chat-wide-room: calc((100cqi - 100%) / 2);
+}
