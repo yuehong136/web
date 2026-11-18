@@ -80,36 +80,40 @@ export function KeyUsage({
           {t(`${PREFIX}.keys.detail.sparklineEmpty`)}
         </p>
       ) : (
-        <div
-          role="img"
-          aria-label={`${t(`${PREFIX}.keys.detail.sparkline`)}: ${values
-            .map((item) =>
-              t(`${PREFIX}.keys.detail.sparklineBar`, {
-                day: dayLabel(item.day),
-                value: formatCount(item.value),
-              }),
-            )
-            .join('; ')}`}
-          className="flex h-14 items-end gap-0.5 border-b border-border-subtle"
-        >
-          {values.map((item) => (
-            <div
-              key={item.day}
-              title={t(`${PREFIX}.keys.detail.sparklineBar`, {
-                day: dayLabel(item.day),
-                value: formatCompact(item.value),
-              })}
-              className="flex h-full min-w-0 flex-1 items-end"
-            >
+        <figure>
+          <figcaption className="sr-only">
+            {`${t(`${PREFIX}.keys.detail.sparkline`)}: ${values
+              .map((item) =>
+                t(`${PREFIX}.keys.detail.sparklineBar`, {
+                  day: dayLabel(item.day),
+                  value: formatCount(item.value),
+                }),
+              )
+              .join('; ')}`}
+          </figcaption>
+          <div
+            aria-hidden="true"
+            className="flex h-14 items-end gap-0.5 border-b border-border-subtle"
+          >
+            {values.map((item) => (
               <div
-                className="w-full rounded-t-radius-sm bg-components-progress-fill"
-                style={{
-                  height: `${Math.max(item.value ? 4 : 0, (item.value / peak) * 100)}%`,
-                }}
-              />
-            </div>
-          ))}
-        </div>
+                key={item.day}
+                title={t(`${PREFIX}.keys.detail.sparklineBar`, {
+                  day: dayLabel(item.day),
+                  value: formatCompact(item.value),
+                })}
+                className="flex h-full min-w-0 flex-1 items-end"
+              >
+                <div
+                  className="w-full rounded-t-radius-sm bg-components-progress-fill"
+                  style={{
+                    height: `${Math.max(item.value ? 4 : 0, (item.value / peak) * 100)}%`,
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+        </figure>
       )}
       <Button
         variant="link"

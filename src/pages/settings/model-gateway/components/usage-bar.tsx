@@ -18,25 +18,26 @@ export function UsageBar({
 }: UsageBarProps) {
   const value = Math.max(0, Math.min(100, percent))
   return (
-    <div
-      role="meter"
-      aria-label={label}
-      aria-valuemin={0}
-      aria-valuemax={100}
-      aria-valuenow={Math.round(value)}
-      className={cn(
-        'w-full overflow-hidden rounded-radius-full bg-components-progress-bg',
-        size === 'sm' ? 'h-1.5' : 'h-2',
-        className,
-      )}
-    >
+    <div className={cn('w-full', className)}>
+      {/* Screen readers get a native meter; the bar below is its picture. */}
+      <meter className="sr-only" min={0} max={100} value={value}>
+        {label}
+      </meter>
       <div
+        aria-hidden="true"
         className={cn(
-          'h-full rounded-radius-full',
-          value > 80 ? 'bg-status-warning' : 'bg-components-progress-fill',
+          'w-full overflow-hidden rounded-radius-full bg-components-progress-bg',
+          size === 'sm' ? 'h-1.5' : 'h-2',
         )}
-        style={{ width: `${value}%` }}
-      />
+      >
+        <div
+          className={cn(
+            'h-full rounded-radius-full',
+            value > 80 ? 'bg-status-warning' : 'bg-components-progress-fill',
+          )}
+          style={{ width: `${value}%` }}
+        />
+      </div>
     </div>
   )
 }

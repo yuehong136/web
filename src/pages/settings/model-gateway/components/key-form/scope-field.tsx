@@ -58,32 +58,43 @@ export function ScopeField({
         }
         className="grid gap-space-sm sm:grid-cols-2"
       >
-        {options.map((option) => (
-          <label
-            key={option.value}
-            htmlFor={`gateway-key-scope-${option.value}`}
-            className={cn(
-              'flex cursor-pointer items-start gap-space-sm rounded-radius-lg border p-space-md transition-colors',
-              mode === option.value
-                ? 'border-state-selected bg-state-selected-bg'
-                : 'border-border-default hover:bg-state-hover',
-            )}
-          >
-            <RadioGroupItem
-              id={`gateway-key-scope-${option.value}`}
-              value={option.value}
-              className="mt-space-2xs"
-            />
-            <span className="min-w-0">
-              <span className="block text-sm font-medium text-text-primary">
-                {option.title}
+        {options.map((option) => {
+          const id = `gateway-key-scope-${option.value}`
+          return (
+            // The radio's hit area stretches over the whole card.
+            <div
+              key={option.value}
+              className={cn(
+                'relative flex cursor-pointer items-start gap-space-sm rounded-radius-lg border p-space-md transition-colors',
+                mode === option.value
+                  ? 'border-state-selected bg-state-selected-bg'
+                  : 'border-border-default hover:bg-state-hover',
+              )}
+            >
+              <RadioGroupItem
+                id={id}
+                value={option.value}
+                aria-labelledby={`${id}-title`}
+                aria-describedby={`${id}-hint`}
+                className="mt-space-2xs after:absolute after:inset-0 after:rounded-radius-lg after:content-['']"
+              />
+              <span className="min-w-0">
+                <span
+                  id={`${id}-title`}
+                  className="block text-sm font-medium text-text-primary"
+                >
+                  {option.title}
+                </span>
+                <span
+                  id={`${id}-hint`}
+                  className="block text-xs text-text-tertiary"
+                >
+                  {option.hint}
+                </span>
               </span>
-              <span className="block text-xs text-text-tertiary">
-                {option.hint}
-              </span>
-            </span>
-          </label>
-        ))}
+            </div>
+          )
+        })}
       </RadioGroup>
       {scope.allModels ? null : (
         <ScopeTree

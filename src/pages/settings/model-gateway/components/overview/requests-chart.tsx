@@ -68,15 +68,17 @@ export function RequestsChart({ overview }: { overview: GatewayOverview }) {
           {t(`${PREFIX}.overview.chartEmpty`)}
         </p>
       ) : (
-        <>
-          <div
-            role="img"
-            aria-label={t(`${PREFIX}.overview.chartSummary`, {
+        <figure>
+          <figcaption className="sr-only">
+            {t(`${PREFIX}.overview.chartSummary`, {
               range: t(`${PREFIX}.overview.windows.${overview.window.days}`),
               requests: formatCount(overview.totals.requests),
               errors: formatCount(overview.totals.errors),
               peak: formatCount(peak),
             })}
+          </figcaption>
+          <div
+            aria-hidden="true"
             className="flex h-36 items-end gap-0.5 border-b border-border-subtle"
           >
             {rows.map((row) => {
@@ -127,7 +129,7 @@ export function RequestsChart({ overview }: { overview: GatewayOverview }) {
               ))}
             </tbody>
           </table>
-        </>
+        </figure>
       )}
     </SectionCard>
   )
