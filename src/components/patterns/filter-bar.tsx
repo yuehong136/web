@@ -115,7 +115,7 @@ export function FilterBar({
           type="button"
           variant="ghost"
           size="sm"
-          className="text-xs text-text-secondary"
+          className="text-xs text-fg-muted"
           onClick={onClearFilters}
         >
           <X className="size-icon-xs" aria-hidden="true" />
@@ -133,7 +133,7 @@ export function FilterBar({
               size="sm"
               data-slot="filter-bar-sort"
               aria-label={sortLabel ? `${sortTitle}: ${sortLabel}` : sortTitle}
-              className="text-xs font-normal text-text-secondary"
+              className="text-xs font-normal text-fg-muted"
             >
               <ArrowUpDown className="size-icon-sm" aria-hidden="true" />
               {sortLabel ?? sortTitle}
@@ -143,7 +143,7 @@ export function FilterBar({
             {menuGroups.map((group, index) => (
               <Fragment key={group.key}>
                 {index > 0 ? <ActionMenuSeparator /> : null}
-                <ActionMenuLabel className="px-space-sm py-space-xs text-xs text-text-tertiary">
+                <ActionMenuLabel className="px-space-sm py-space-xs text-xs text-fg-subtle">
                   {group.label}
                 </ActionMenuLabel>
                 <ActionMenuRadioGroup

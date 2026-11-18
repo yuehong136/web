@@ -11,17 +11,17 @@ export const Alert: React.FC<AlertProps> = ({
   ...props
 }) => {
   const base =
-    'rounded-radius-lg border px-space-base py-space-sm outline-hidden focus-visible:ring-2 focus-visible:ring-state-focus'
+    'rounded-radius-lg border px-space-base py-space-sm outline-hidden focus-visible:ring-2 focus-visible:ring-line-focus'
   const variantCls =
     variant === 'destructive'
-      ? 'border-components-alert-error-border bg-components-alert-error-bg text-components-alert-error-text'
+      ? 'border-danger-line bg-danger-soft text-danger-fg'
       : variant === 'success'
-        ? 'border-components-alert-success-border bg-components-alert-success-bg text-components-alert-success-text'
+        ? 'border-success-line bg-success-soft text-success-fg'
         : variant === 'warning'
-          ? 'border-components-alert-warning-border bg-components-alert-warning-bg text-components-alert-warning-text'
+          ? 'border-warning-line bg-warning-soft text-warning-fg'
           : variant === 'info'
-            ? 'border-components-alert-info-border bg-components-alert-info-bg text-components-alert-info-text'
-            : 'border-border-default bg-background-surface text-text-primary'
+            ? 'border-info-line bg-info-soft text-info-fg'
+            : 'border-line bg-surface text-fg'
 
   return <div className={cn(base, variantCls, className)} {...props} />
 }

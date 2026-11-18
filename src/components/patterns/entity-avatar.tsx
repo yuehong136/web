@@ -11,22 +11,22 @@ import {
  * One avatar for apps, agents, knowledge bases, search apps, memories, users,
  * teams and chat roles. The image wins when it loads; otherwise a monogram (or
  * the given icon) sits on a stable categorical tint whose foreground is solved
- * for WCAG AA in both themes (`components-avatar-{1..8}-*`).
+ * for WCAG AA in both themes (`avatar-{1..8}-*`).
  */
 
 // Static class strings so Tailwind can see every tone.
 const TONES = [
-  'bg-components-avatar-1-bg text-components-avatar-1-text',
-  'bg-components-avatar-2-bg text-components-avatar-2-text',
-  'bg-components-avatar-3-bg text-components-avatar-3-text',
-  'bg-components-avatar-4-bg text-components-avatar-4-text',
-  'bg-components-avatar-5-bg text-components-avatar-5-text',
-  'bg-components-avatar-6-bg text-components-avatar-6-text',
-  'bg-components-avatar-7-bg text-components-avatar-7-text',
-  'bg-components-avatar-8-bg text-components-avatar-8-text',
+  'bg-avatar-1-bg text-avatar-1-fg',
+  'bg-avatar-2-bg text-avatar-2-fg',
+  'bg-avatar-3-bg text-avatar-3-fg',
+  'bg-avatar-4-bg text-avatar-4-fg',
+  'bg-avatar-5-bg text-avatar-5-fg',
+  'bg-avatar-6-bg text-avatar-6-fg',
+  'bg-avatar-7-bg text-avatar-7-fg',
+  'bg-avatar-8-bg text-avatar-8-fg',
 ] as const
 
-const NEUTRAL_TONE = 'bg-background-subtle text-text-secondary'
+const NEUTRAL_TONE = 'bg-sunken text-fg-muted'
 
 const SIZES = {
   '2xs': 'size-4 text-[0.5625rem] [&_svg]:size-2.5',
@@ -155,7 +155,7 @@ export function EntityAvatar({
         'relative inline-flex shrink-0 overflow-hidden align-middle font-semibold select-none',
         // A hairline ring keeps white logos and pale tints from melting into
         // the surface behind them.
-        'after:pointer-events-none after:absolute after:inset-0 after:rounded-[inherit] after:ring-1 after:ring-border-subtle after:ring-inset',
+        'after:pointer-events-none after:absolute after:inset-0 after:rounded-[inherit] after:ring-1 after:ring-line-subtle after:ring-inset',
         SIZES[size],
         shape === 'circle' ? 'rounded-full' : RADII[size],
         className,
@@ -192,7 +192,7 @@ export function EntityAvatar({
       <span
         aria-hidden
         className={cn(
-          'absolute -right-1 -bottom-1 flex items-center justify-center rounded-radius-sm ring-2 ring-background-surface',
+          'absolute -right-1 -bottom-1 flex items-center justify-center rounded-radius-sm ring-2 ring-surface',
           TONES[ENTITY_KIND_TONE[badge]],
           BADGES[size],
         )}

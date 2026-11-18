@@ -104,7 +104,7 @@ export const SliderWithInput: React.FC<SliderWithInputProps> = ({
       <div className="flex items-center gap-space-xs">
         <span
           className="text-sm font-medium"
-          style={{ color: 'var(--color-text-primary)' }}
+          style={{ color: 'var(--color-fg)' }}
         >
           {label}
         </span>
@@ -114,7 +114,7 @@ export const SliderWithInput: React.FC<SliderWithInputProps> = ({
               <TooltipTrigger asChild>
                 <HelpCircle
                   className="h-3.5 w-3.5 cursor-help"
-                  style={{ color: 'var(--color-text-tertiary)' }}
+                  style={{ color: 'var(--color-fg-subtle)' }}
                 />
               </TooltipTrigger>
               <TooltipContent>

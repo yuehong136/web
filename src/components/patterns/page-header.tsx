@@ -42,10 +42,10 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   return (
     <header
       className={cn(
-        surface !== 'plain' && 'border-b border-components-page-header-border',
+        surface !== 'plain' && 'border-b border-line-subtle',
         surface === 'elevated'
-          ? 'bg-background-surface'
-          : surface !== 'plain' && 'bg-components-page-header-bg',
+          ? 'bg-surface'
+          : surface !== 'plain' && 'bg-surface',
         surface !== 'plain' &&
           (compact ? 'px-space-lg py-space-base' : 'px-space-lg py-space-lg'),
         className,
@@ -80,7 +80,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
               {title ? (
                 <h1
                   className={cn(
-                    'font-semibold text-components-page-header-title',
+                    'font-semibold text-fg',
                     titleSize === 'md' ? 'text-xl' : 'text-2xl',
                   )}
                 >
@@ -88,9 +88,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
                 </h1>
               ) : null}
               {description ? (
-                <p className="max-w-3xl text-sm text-components-page-header-description">
-                  {description}
-                </p>
+                <p className="max-w-3xl text-sm text-fg-muted">{description}</p>
               ) : null}
             </div>
           </div>

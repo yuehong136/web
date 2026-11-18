@@ -20,24 +20,24 @@ interface TagEditorProps {
 
 const variantStyles = {
   default: {
-    bg: 'var(--color-background-subtle)',
-    text: 'var(--color-text-primary)',
-    border: 'var(--color-border-default)',
+    bg: 'var(--color-sunken)',
+    text: 'var(--color-fg)',
+    border: 'var(--color-line)',
   },
   info: {
-    bg: 'var(--color-components-badge-info-bg)',
-    text: 'var(--color-components-badge-info-text)',
-    border: 'var(--color-components-badge-info-bg)',
+    bg: 'var(--color-info-soft)',
+    text: 'var(--color-info-fg)',
+    border: 'var(--color-info-soft)',
   },
   success: {
-    bg: 'var(--color-components-badge-success-bg)',
-    text: 'var(--color-components-badge-success-text)',
-    border: 'var(--color-components-badge-success-bg)',
+    bg: 'var(--color-success-soft)',
+    text: 'var(--color-success-fg)',
+    border: 'var(--color-success-soft)',
   },
   warning: {
-    bg: 'var(--color-components-badge-warning-bg)',
-    text: 'var(--color-components-badge-warning-text)',
-    border: 'var(--color-components-badge-warning-bg)',
+    bg: 'var(--color-warning-soft)',
+    text: 'var(--color-warning-fg)',
+    border: 'var(--color-warning-soft)',
   },
 }
 
@@ -138,7 +138,7 @@ const TagEditor = React.forwardRef<HTMLDivElement, TagEditorProps>(
                   type="button"
                   aria-label={t('common.remove')}
                   title={tag}
-                  className="rounded-radius-sm opacity-60 transition-opacity hover:opacity-100 focus-visible:outline-2 focus-visible:outline-state-focus"
+                  className="rounded-radius-sm opacity-60 transition-opacity hover:opacity-100 focus-visible:outline-2 focus-visible:outline-line-focus"
                   onClick={(e) => {
                     e.stopPropagation()
                     handleClose(tag)
@@ -173,8 +173,8 @@ const TagEditor = React.forwardRef<HTMLDivElement, TagEditorProps>(
               onClick={showInput}
               className="h-7 border border-dashed px-2"
               style={{
-                borderColor: 'var(--color-border-default)',
-                color: 'var(--color-text-secondary)',
+                borderColor: 'var(--color-line)',
+                color: 'var(--color-fg-muted)',
               }}
             >
               <Plus className="mr-1 h-3 w-3" />

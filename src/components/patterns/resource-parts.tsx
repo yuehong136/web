@@ -103,7 +103,7 @@ export function ResourceName({
       data-slot="resource-name"
       onClick={onOpen}
       className={cn(
-        'max-w-full truncate rounded-radius-sm text-left outline-hidden hover:underline focus-visible:ring-2 focus-visible:ring-state-focus',
+        'max-w-full truncate rounded-radius-sm text-left outline-hidden hover:underline focus-visible:ring-2 focus-visible:ring-line-focus',
         className,
       )}
     >

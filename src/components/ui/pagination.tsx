@@ -116,7 +116,7 @@ export const Pagination: React.FC<PaginationProps> = ({
       {showTotal && (
         <span
           className="mr-space-sm text-sm"
-          style={{ color: 'var(--color-text-tertiary)' }}
+          style={{ color: 'var(--color-fg-subtle)' }}
         >
           {t('common.total', { count: total })}
         </span>
@@ -130,11 +130,9 @@ export const Pagination: React.FC<PaginationProps> = ({
         disabled={current <= 1 || disabled}
         className="h-8 w-8"
         style={{
-          backgroundColor: 'var(--color-components-pagination-item-bg)',
+          backgroundColor: 'var(--color-surface)',
           color:
-            current <= 1
-              ? 'var(--color-components-pagination-disabled-text)'
-              : 'var(--color-components-pagination-item-text)',
+            current <= 1 ? 'var(--color-fg-disabled)' : 'var(--color-fg-muted)',
         }}
       >
         <ChevronLeft className="h-4 w-4" />
@@ -157,8 +155,8 @@ export const Pagination: React.FC<PaginationProps> = ({
                 disabled={disabled}
                 className="h-8 w-8"
                 style={{
-                  backgroundColor: 'var(--color-components-pagination-item-bg)',
-                  color: 'var(--color-components-pagination-item-text)',
+                  backgroundColor: 'var(--color-surface)',
+                  color: 'var(--color-fg-muted)',
                 }}
               >
                 <MoreHorizontal className="h-4 w-4" />
@@ -180,11 +178,9 @@ export const Pagination: React.FC<PaginationProps> = ({
               )}
               style={{
                 backgroundColor: isActive
-                  ? 'var(--color-components-pagination-item-bg-active)'
-                  : 'var(--color-components-pagination-item-bg)',
-                color: isActive
-                  ? 'var(--color-components-pagination-item-text-active)'
-                  : 'var(--color-components-pagination-item-text)',
+                  ? 'var(--color-fill-selected)'
+                  : 'var(--color-surface)',
+                color: isActive ? 'var(--color-fg)' : 'var(--color-fg-muted)',
               }}
             >
               {page}
@@ -201,11 +197,11 @@ export const Pagination: React.FC<PaginationProps> = ({
         disabled={current >= totalPages || disabled}
         className="h-8 w-8"
         style={{
-          backgroundColor: 'var(--color-components-pagination-item-bg)',
+          backgroundColor: 'var(--color-surface)',
           color:
             current >= totalPages
-              ? 'var(--color-components-pagination-disabled-text)'
-              : 'var(--color-components-pagination-item-text)',
+              ? 'var(--color-fg-disabled)'
+              : 'var(--color-fg-muted)',
         }}
       >
         <ChevronRight className="h-4 w-4" />
@@ -214,10 +210,7 @@ export const Pagination: React.FC<PaginationProps> = ({
       {/* 快速跳转 */}
       {showQuickJumper && totalPages > 1 && (
         <div className="ml-space-sm flex items-center gap-space-xs">
-          <span
-            className="text-sm"
-            style={{ color: 'var(--color-text-tertiary)' }}
-          >
+          <span className="text-sm" style={{ color: 'var(--color-fg-subtle)' }}>
             跳至
           </span>
           <input
@@ -230,15 +223,12 @@ export const Pagination: React.FC<PaginationProps> = ({
             disabled={disabled}
             className="h-8 w-12 rounded-lg border px-2 text-center text-sm transition-colors"
             style={{
-              backgroundColor: 'var(--color-components-input-bg)',
-              borderColor: 'var(--color-components-input-border)',
-              color: 'var(--color-text-primary)',
+              backgroundColor: 'var(--color-surface)',
+              borderColor: 'var(--color-line)',
+              color: 'var(--color-fg)',
             }}
           />
-          <span
-            className="text-sm"
-            style={{ color: 'var(--color-text-tertiary)' }}
-          >
+          <span className="text-sm" style={{ color: 'var(--color-fg-subtle)' }}>
             页
           </span>
         </div>

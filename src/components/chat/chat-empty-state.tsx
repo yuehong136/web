@@ -50,11 +50,11 @@ export function ChatEmptyState({
       <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center gap-space-md py-space-xl">
         <div className="space-y-space-xs">
           {leading}
-          <h1 className="text-xl leading-snug font-semibold text-text-primary">
+          <h1 className="text-xl leading-snug font-semibold text-fg">
             {title}
           </h1>
           {description && (
-            <p className="text-sm text-text-secondary">{description}</p>
+            <p className="text-sm text-fg-muted">{description}</p>
           )}
           {intro}
         </div>
@@ -70,7 +70,7 @@ export function ChatEmptyState({
                   type="button"
                   title={suggestion.prompt}
                   onClick={() => onSuggestion?.(suggestion.prompt)}
-                  className="inline-flex min-h-[var(--control-height)] items-center gap-space-xs rounded-radius-lg border border-border-default bg-background-surface px-space-base text-sm text-text-secondary transition-colors hover:border-border-strong hover:bg-state-hover hover:text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-focus [&_svg]:size-icon-sm [&_svg]:shrink-0"
+                  className="inline-flex min-h-[var(--control-height)] items-center gap-space-xs rounded-radius-lg border border-line bg-surface px-space-base text-sm text-fg-muted transition-colors hover:border-line-strong hover:bg-fill-hover hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-line-focus [&_svg]:size-icon-sm [&_svg]:shrink-0"
                 >
                   {suggestion.icon}
                   {suggestion.label}

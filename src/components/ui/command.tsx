@@ -13,7 +13,7 @@ const Command = React.forwardRef<
   <CommandPrimitive
     ref={ref}
     className={cn(
-      'flex h-full w-full flex-col overflow-hidden rounded-radius-xl bg-components-popover-bg text-text-primary',
+      'flex h-full w-full flex-col overflow-hidden rounded-radius-xl bg-overlay text-fg',
       className,
     )}
     {...props}
@@ -29,11 +29,11 @@ const CommandInput = React.forwardRef<
     className="flex items-center gap-space-sm px-space-base"
     data-cmdk-input-wrapper=""
   >
-    <Search className="size-icon-sm shrink-0 text-text-tertiary" />
+    <Search className="size-icon-sm shrink-0 text-fg-subtle" />
     <CommandPrimitive.Input
       ref={ref}
       className={cn(
-        'flex min-h-[var(--control-height)] w-full bg-transparent py-space-sm text-sm outline-hidden placeholder:text-components-input-text-placeholder disabled:cursor-not-allowed disabled:opacity-50',
+        'flex min-h-[var(--control-height)] w-full bg-transparent py-space-sm text-sm outline-hidden placeholder:text-fg-subtle disabled:cursor-not-allowed disabled:opacity-50',
         className,
       )}
       {...props}
@@ -65,7 +65,7 @@ const CommandEmpty = React.forwardRef<
 >((props, ref) => (
   <CommandPrimitive.Empty
     ref={ref}
-    className="py-space-lg text-center text-sm text-text-tertiary"
+    className="py-space-lg text-center text-sm text-fg-subtle"
     {...props}
   />
 ))
@@ -79,7 +79,7 @@ const CommandGroup = React.forwardRef<
   <CommandPrimitive.Group
     ref={ref}
     className={cn(
-      'overflow-hidden p-space-xs text-text-primary [&_[cmdk-group-heading]]:px-space-sm [&_[cmdk-group-heading]]:pt-space-sm [&_[cmdk-group-heading]]:pb-space-2xs [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-text-tertiary',
+      'overflow-hidden p-space-xs text-fg [&_[cmdk-group-heading]]:px-space-sm [&_[cmdk-group-heading]]:pt-space-sm [&_[cmdk-group-heading]]:pb-space-2xs [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-fg-subtle',
       className,
     )}
     {...props}
@@ -94,7 +94,7 @@ const CommandSeparator = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <CommandPrimitive.Separator
     ref={ref}
-    className={cn('-mx-space-xs h-px bg-border-default', className)}
+    className={cn('-mx-space-xs h-px bg-line', className)}
     {...props}
   />
 ))
@@ -107,7 +107,7 @@ const CommandItem = React.forwardRef<
   <CommandPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex min-h-[var(--control-height)] cursor-pointer items-center gap-space-sm rounded-radius-md px-space-sm py-space-xs text-sm outline-hidden select-none data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50 data-[selected='true']:bg-state-hover data-[selected=true]:text-text-primary [&_svg]:pointer-events-none [&_svg]:size-icon-sm [&_svg]:shrink-0",
+      "relative flex min-h-[var(--control-height)] cursor-pointer items-center gap-space-sm rounded-radius-md px-space-sm py-space-xs text-sm outline-hidden select-none data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50 data-[selected='true']:bg-fill-hover data-[selected=true]:text-fg [&_svg]:pointer-events-none [&_svg]:size-icon-sm [&_svg]:shrink-0",
       className,
     )}
     {...props}
@@ -123,7 +123,7 @@ const CommandShortcut = ({
   return (
     <span
       className={cn(
-        'ml-auto pl-space-md font-mono text-xs text-text-tertiary',
+        'ml-auto pl-space-md font-mono text-xs text-fg-subtle',
         className,
       )}
       {...props}

@@ -34,13 +34,13 @@ export function ProcessDisclosure({
       onOpenChange={setExpanded}
       data-process-kind={kind}
       aria-busy={loading}
-      className="text-sm text-text-secondary"
+      className="text-sm text-fg-muted"
     >
-      <CollapsibleTrigger className="group inline-flex min-h-[var(--control-height-sm)] max-w-full items-center gap-space-xs rounded-radius-sm text-start hover:text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-focus">
+      <CollapsibleTrigger className="group inline-flex min-h-[var(--control-height-sm)] max-w-full items-center gap-space-xs rounded-radius-sm text-start hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-line-focus">
         <Icon
           aria-hidden="true"
           className={cn(
-            'size-icon-sm shrink-0 text-text-tertiary',
+            'size-icon-sm shrink-0 text-fg-subtle',
             loading && 'animate-spin motion-reduce:animate-none',
           )}
         />
@@ -49,10 +49,10 @@ export function ProcessDisclosure({
         </span>
         <ChevronRight
           aria-hidden="true"
-          className="size-icon-xs shrink-0 text-text-tertiary transition-transform group-data-[state=open]:rotate-90 motion-reduce:transition-none"
+          className="size-icon-xs shrink-0 text-fg-subtle transition-transform group-data-[state=open]:rotate-90 motion-reduce:transition-none"
         />
       </CollapsibleTrigger>
-      <CollapsibleContent className="mt-space-xs max-h-64 overflow-y-auto overscroll-contain border-s border-border-default ps-space-md text-text-secondary">
+      <CollapsibleContent className="mt-space-xs max-h-64 overflow-y-auto overscroll-contain border-s border-line ps-space-md text-fg-muted">
         {children}
       </CollapsibleContent>
     </Collapsible>

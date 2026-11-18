@@ -42,12 +42,10 @@ export const SecondaryNavigationContent = ({
         <header
           className={cn(
             'flex min-h-[calc(var(--control-height)+var(--space-sm))] shrink-0 items-center px-space-base py-space-sm',
-            headerDivider && 'border-b border-border-subtle',
+            headerDivider && 'border-b border-line-subtle',
           )}
         >
-          <p className="truncate text-sm font-semibold text-text-primary">
-            {title}
-          </p>
+          <p className="truncate text-sm font-semibold text-fg">{title}</p>
         </header>
         {quickActions}
         {backLink && (
@@ -55,7 +53,7 @@ export const SecondaryNavigationContent = ({
             asChild
             variant="ghost"
             size="sm"
-            className="mx-space-sm mt-space-sm shrink-0 justify-start text-text-secondary"
+            className="mx-space-sm mt-space-sm shrink-0 justify-start text-fg-muted"
           >
             <Link to={backLink.href} onClick={onNavigate}>
               <ArrowLeft className="size-icon-sm" aria-hidden="true" />
@@ -78,13 +76,13 @@ export const SecondaryNavigationContent = ({
                 aria-label={group.label}
                 className={cn(
                   index > 0 &&
-                    'mt-space-base border-t border-border-subtle pt-space-sm',
+                    'mt-space-base border-t border-line-subtle pt-space-sm',
                 )}
               >
                 {group.label && (
                   <p
                     aria-hidden="true"
-                    className="px-space-sm py-space-xs text-xs font-medium text-text-tertiary"
+                    className="px-space-sm py-space-xs text-xs font-medium text-fg-subtle"
                   >
                     {group.label}
                   </p>
@@ -105,11 +103,11 @@ export const SecondaryNavigationContent = ({
                             onNavigate?.()
                           }}
                           className={cn(
-                            'flex min-h-[var(--control-height-sm)] items-center gap-space-sm rounded-radius-md px-space-sm py-space-xs text-sm outline-hidden focus-visible:ring-2 focus-visible:ring-state-focus',
+                            'flex min-h-[var(--control-height-sm)] items-center gap-space-sm rounded-radius-md px-space-sm py-space-xs text-sm outline-hidden focus-visible:ring-2 focus-visible:ring-line-focus',
                             touchTargets && 'min-h-11',
                             active
-                              ? 'bg-state-selected-bg font-medium text-state-selected-text'
-                              : 'text-text-secondary hover:bg-state-hover hover:text-text-primary',
+                              ? 'bg-accent-soft font-medium text-accent-fg'
+                              : 'text-fg-muted hover:bg-fill-hover hover:text-fg',
                           )}
                         >
                           {Icon && (
@@ -124,7 +122,7 @@ export const SecondaryNavigationContent = ({
                           {Boolean(item.badge) && (
                             <span
                               aria-label={item.badgeLabel}
-                              className="rounded-radius-sm bg-background-subtle px-space-xs text-xs text-text-secondary tabular-nums"
+                              className="rounded-radius-sm bg-sunken px-space-xs text-xs text-fg-muted tabular-nums"
                             >
                               {(item.badge ?? 0) > 99 ? '99+' : item.badge}
                             </span>

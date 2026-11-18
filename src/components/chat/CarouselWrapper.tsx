@@ -102,7 +102,7 @@ export const CarouselWrapper: React.FC<CarouselWrapperProps> = ({
               key={ref.id}
               source={{ kind: 'dataset', imageId: chunk.image_id }}
               alt={`Fig. ${chunkIndex + 1}`}
-              className="max-h-36 cursor-pointer rounded-lg border border-border-subtle object-contain"
+              className="max-h-36 cursor-pointer rounded-lg border border-line-subtle object-contain"
               onClick={() => handleImageClick(chunk)}
             />
           )
@@ -115,7 +115,7 @@ export const CarouselWrapper: React.FC<CarouselWrapperProps> = ({
     <React.Suspense
       fallback={
         <div className={`flex h-36 items-center justify-center ${className}`}>
-          <span className="text-text-tertiary">
+          <span className="text-fg-subtle">
             {t('common.documentImage.loading')}
           </span>
         </div>

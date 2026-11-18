@@ -16,7 +16,7 @@ const META_CELL =
 const ACTIONS_CELL =
   'flex min-w-[var(--control-height-sm)] shrink-0 items-center justify-end gap-space-2xs'
 const ROW =
-  'flex items-center gap-space-base border-b border-border-subtle px-space-md'
+  'flex items-center gap-space-base border-b border-line-subtle px-space-md'
 
 export interface ResourceListProps {
   /** Accessible name for the list. */
@@ -79,7 +79,7 @@ export function ResourceListHeader({
       data-slot="resource-list-header"
       className={cn(
         ROW,
-        'min-h-[var(--control-height-sm)] py-space-xs text-xs font-medium text-text-tertiary',
+        'min-h-[var(--control-height-sm)] py-space-xs text-xs font-medium text-fg-subtle',
         className,
       )}
     >
@@ -138,10 +138,9 @@ export function ResourceRow({
       aria-current={current || undefined}
       className={cn(
         ROW,
-        'group/row transition-colors hover:bg-state-hover',
+        'group/row transition-colors hover:bg-fill-hover',
         density === 'compact' ? 'py-space-xs' : 'py-space-sm',
-        (selected || current) &&
-          'bg-state-selected-bg hover:bg-state-selected-bg',
+        (selected || current) && 'bg-accent-soft hover:bg-accent-soft',
         className,
       )}
     >
@@ -158,10 +157,10 @@ export function ResourceRow({
         <ResourceName
           name={name}
           onOpen={onOpen}
-          className="min-w-0 font-medium text-text-primary"
+          className="min-w-0 font-medium text-fg"
         />
         {description ? (
-          <span className="hidden min-w-0 flex-1 truncate text-text-tertiary sm:block">
+          <span className="hidden min-w-0 flex-1 truncate text-fg-subtle sm:block">
             {description}
           </span>
         ) : null}
@@ -170,9 +169,7 @@ export function ResourceRow({
         <div className={STATUS_CELL}>{status}</div>
       ) : null}
       {meta !== undefined ? (
-        <div
-          className={cn(META_CELL, 'text-xs text-text-tertiary tabular-nums')}
-        >
+        <div className={cn(META_CELL, 'text-xs text-fg-subtle tabular-nums')}>
           {meta}
         </div>
       ) : null}

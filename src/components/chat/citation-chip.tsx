@@ -36,7 +36,7 @@ const TABLE_PREVIEW_PURIFY_OPTIONS: Config = {
   ALLOWED_ATTR: ['rowspan', 'colspan', 'class'],
 }
 const ICON_BUTTON =
-  'inline-flex size-7 shrink-0 items-center justify-center rounded-radius-md text-text-tertiary transition-colors hover:bg-state-hover hover:text-text-primary focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-state-focus disabled:pointer-events-none disabled:opacity-40 motion-reduce:transition-none'
+  'inline-flex size-7 shrink-0 items-center justify-center rounded-radius-md text-fg-subtle transition-colors hover:bg-fill-hover hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-line-focus disabled:pointer-events-none disabled:opacity-40 motion-reduce:transition-none'
 
 export interface CitationActions {
   /** Open the chunk in the evidence panel (or the caller's detail sheet). */
@@ -85,13 +85,13 @@ function CitationCard({
       <div className="flex min-w-0 items-center gap-space-sm">
         <SourceTile chunk={chunk} size="sm" />
         <span
-          className="min-w-0 flex-1 truncate text-sm font-medium text-text-primary"
+          className="min-w-0 flex-1 truncate text-sm font-medium text-fg"
           title={name}
         >
           {name}
         </span>
         {score !== null && (
-          <span className="shrink-0 font-mono text-xs text-text-tertiary tabular-nums">
+          <span className="shrink-0 font-mono text-xs text-fg-subtle tabular-nums">
             <span className="sr-only">{t('chat.citation.relevance')} </span>
             {formatRetrievalScore(
               score,
@@ -102,7 +102,7 @@ function CitationCard({
       </div>
       {isTable ? (
         <SafeHtml
-          className="max-h-32 overflow-auto rounded-radius-md bg-background-subtle p-space-sm text-xs text-text-primary"
+          className="max-h-32 overflow-auto rounded-radius-md bg-sunken p-space-sm text-xs text-fg"
           html={chunk.content || ''}
           options={TABLE_PREVIEW_PURIFY_OPTIONS}
         />
@@ -110,12 +110,12 @@ function CitationCard({
         <ChunkExcerpt
           chunk={chunk}
           max={200}
-          className="m-0 line-clamp-4 text-xs leading-relaxed text-text-secondary"
+          className="m-0 line-clamp-4 text-xs leading-relaxed text-fg-muted"
           empty={t('sources.noContent')}
         />
       )}
       <ReferenceMetadataBadges metadata={chunk.document_metadata} />
-      <div className="-mb-space-xs flex min-w-0 items-center gap-space-2xs text-xs text-text-tertiary">
+      <div className="-mb-space-xs flex min-w-0 items-center gap-space-2xs text-xs text-fg-subtle">
         {count > 1 && (
           <span className="flex shrink-0 items-center">
             <button
@@ -170,7 +170,7 @@ function CitationCard({
         <button
           type="button"
           data-reference-details
-          className="shrink-0 rounded-radius-sm px-space-xs py-space-2xs font-medium text-text-accent hover:underline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-state-focus"
+          className="shrink-0 rounded-radius-sm px-space-xs py-space-2xs font-medium text-accent-fg hover:underline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-line-focus"
           onClick={() => onViewDetail?.(chunk)}
         >
           {t('chat.citation.viewInPanel')}
@@ -227,10 +227,10 @@ export function CitationChip({
             data-citation-number={numbers.join(',')}
             {...hoverProps}
             className={cn(
-              'citation-chip inline-flex h-5 max-w-full cursor-pointer items-center gap-space-xs rounded-radius-full border border-border-subtle bg-background-subtle ps-0.5 pe-space-sm align-baseline text-xs leading-none font-normal text-text-secondary',
-              'transition-colors hover:border-border-accent hover:text-text-primary motion-reduce:transition-none',
-              'aria-expanded:border-border-accent aria-expanded:bg-state-selected-bg aria-expanded:text-text-primary',
-              'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-state-focus',
+              'citation-chip inline-flex h-5 max-w-full cursor-pointer items-center gap-space-xs rounded-radius-full border border-line-subtle bg-sunken ps-0.5 pe-space-sm align-baseline text-xs leading-none font-normal text-fg-muted',
+              'transition-colors hover:border-line-focus hover:text-fg motion-reduce:transition-none',
+              'aria-expanded:border-line-focus aria-expanded:bg-accent-soft aria-expanded:text-fg',
+              'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-line-focus',
             )}
           >
             <SourceTile chunk={first} size="xs" className="rounded-full" />
@@ -238,7 +238,7 @@ export function CitationChip({
               {getSourceTitle(name)}
             </span>
             {chunks.length > 1 && (
-              <span className="font-mono text-text-tertiary">
+              <span className="font-mono text-fg-subtle">
                 +{chunks.length - 1}
               </span>
             )}
@@ -293,7 +293,7 @@ export function createCitationChipComponent(
     ]
     if (!chunks.length)
       return (
-        <sup className="mx-space-2xs inline-flex h-icon-sm min-w-icon-sm items-center justify-center rounded-radius-sm bg-background-subtle px-space-xs font-mono text-xs font-medium text-text-tertiary">
+        <sup className="mx-space-2xs inline-flex h-icon-sm min-w-icon-sm items-center justify-center rounded-radius-sm bg-sunken px-space-xs font-mono text-xs font-medium text-fg-subtle">
           {ids.map((id) => Number(id) + 1).join(',')}
         </sup>
       )

@@ -29,12 +29,8 @@ export function PreferenceChoiceGroup<T extends string>({
   const name = useId()
   return (
     <fieldset className="min-w-0 space-y-space-base">
-      <legend className="text-sm font-semibold text-text-primary">
-        {label}
-      </legend>
-      {description && (
-        <p className="text-sm text-text-secondary">{description}</p>
-      )}
+      <legend className="text-sm font-semibold text-fg">{label}</legend>
+      {description && <p className="text-sm text-fg-muted">{description}</p>}
       <div className={cn('grid grid-cols-2 gap-space-sm', className)}>
         {choices.map((choice) => (
           <label
@@ -54,7 +50,7 @@ export function PreferenceChoiceGroup<T extends string>({
               checked={value === choice.value}
               onChange={() => onChange(choice.value)}
             />
-            <span className="flex h-full min-w-0 flex-col overflow-hidden rounded-radius-lg border border-border-default bg-background-surface text-text-primary transition-colors peer-checked:border-state-focus peer-checked:bg-state-selected-bg peer-focus-visible:ring-2 peer-focus-visible:ring-state-focus peer-focus-visible:ring-offset-2 hover:border-border-strong">
+            <span className="flex h-full min-w-0 flex-col overflow-hidden rounded-radius-lg border border-line bg-surface text-fg transition-colors peer-checked:border-line-focus peer-checked:bg-accent-soft peer-focus-visible:ring-2 peer-focus-visible:ring-line-focus peer-focus-visible:ring-offset-2 hover:border-line-strong">
               {choice.preview && (
                 <span aria-hidden="true">{choice.preview}</span>
               )}
@@ -65,7 +61,7 @@ export function PreferenceChoiceGroup<T extends string>({
                     {choice.label}
                   </span>
                   {choice.description && (
-                    <span className="mt-space-xs block text-xs leading-relaxed text-text-secondary">
+                    <span className="mt-space-xs block text-xs leading-relaxed text-fg-muted">
                       {choice.description}
                     </span>
                   )}
@@ -73,7 +69,7 @@ export function PreferenceChoiceGroup<T extends string>({
                 <Check
                   aria-hidden="true"
                   className={cn(
-                    'size-icon-sm shrink-0 text-text-accent',
+                    'size-icon-sm shrink-0 text-accent-fg',
                     value !== choice.value && 'invisible',
                   )}
                 />

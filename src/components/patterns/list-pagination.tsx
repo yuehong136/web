@@ -30,9 +30,9 @@ export const ListPagination: FC<ListPaginationProps> = ({
   const visibleCount = Math.max(1, Math.min(7, totalPages))
 
   return (
-    <div className="mt-space-base shrink-0 rounded-radius-lg border border-components-card-border bg-components-card-bg">
+    <div className="mt-space-base shrink-0 rounded-radius-lg border border-line-subtle bg-raised">
       <div className="flex flex-wrap items-center justify-between gap-space-base px-space-md py-space-sm">
-        <div className="text-sm text-components-pagination-text">
+        <div className="text-sm text-fg-muted">
           {t('common.totalItems', { count: total })}
           {extraInfo}
         </div>
@@ -85,7 +85,7 @@ export const ListPagination: FC<ListPaginationProps> = ({
             </div>
 
             <span
-              className="px-space-xs text-sm text-text-secondary tabular-nums lg:hidden"
+              className="px-space-xs text-sm text-fg-muted tabular-nums lg:hidden"
               aria-live="polite"
             >
               {page} / {totalPages}

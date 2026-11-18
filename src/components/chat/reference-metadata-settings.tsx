@@ -43,7 +43,7 @@ export function ReferenceMetadataSettings({
       </div>
       {value.include && (
         <>
-          <p className="text-xs text-text-secondary">
+          <p className="text-xs text-fg-muted">
             {t('common.referenceMetadata.hint')}
           </p>
           <div className="flex items-center justify-between gap-space-sm">
@@ -70,7 +70,7 @@ export function ReferenceMetadataSettings({
             />
           )}
           {isError && (
-            <p role="alert" className="text-xs text-status-error">
+            <p role="alert" className="text-xs text-danger-fg">
               {t('common.referenceMetadata.error')}
             </p>
           )}

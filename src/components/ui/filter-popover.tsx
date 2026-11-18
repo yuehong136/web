@@ -105,14 +105,14 @@ export const FilterPopover: React.FC<FilterPopoverProps> = ({
             size="sm"
             className={cn(
               'h-9',
-              filterCount > 0 && 'border-text-accent text-text-accent',
+              filterCount > 0 && 'border-accent-fg text-accent-fg',
               className,
             )}
           >
             <Filter className="mr-2 h-4 w-4" />
             {resolvedButtonText}
             {filterCount > 0 && (
-              <span className="ml-1 rounded-full bg-text-accent px-1.5 py-0.5 text-xs text-white">
+              <span className="ml-1 rounded-full bg-accent-fg px-1.5 py-0.5 text-xs text-white">
                 {filterCount}
               </span>
             )}
@@ -123,15 +123,13 @@ export const FilterPopover: React.FC<FilterPopoverProps> = ({
         <div className="space-y-4">
           {/* 筛选器头部 */}
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-text-primary">
-              {resolvedTitle}
-            </span>
+            <span className="text-sm font-medium text-fg">{resolvedTitle}</span>
             {filterCount > 0 && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={clearAllFilters}
-                className="h-7 px-2 text-xs text-text-tertiary hover:text-text-primary"
+                className="h-7 px-2 text-xs text-fg-subtle hover:text-fg"
               >
                 <X className="mr-1 h-icon-xs w-icon-xs" />
                 {t('common.clear')}
@@ -142,7 +140,7 @@ export const FilterPopover: React.FC<FilterPopoverProps> = ({
           {/* 筛选器列表 */}
           {filters.map((filter) => (
             <div key={filter.key}>
-              <Label className="mb-2 block text-xs font-medium text-text-secondary">
+              <Label className="mb-2 block text-xs font-medium text-fg-muted">
                 {filter.label}
               </Label>
               <div className="space-y-2">
@@ -164,7 +162,7 @@ export const FilterPopover: React.FC<FilterPopoverProps> = ({
                       />
                       <Label
                         htmlFor={`${filter.key}-${option.value}`}
-                        className="cursor-pointer text-sm text-text-secondary"
+                        className="cursor-pointer text-sm text-fg-muted"
                       >
                         {option.label}
                       </Label>

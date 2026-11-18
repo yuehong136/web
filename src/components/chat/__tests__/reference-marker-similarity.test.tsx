@@ -79,7 +79,7 @@ describe('reference retrieval score placement', () => {
       const value = [...document.querySelectorAll('dd')].find(
         (element) => element.textContent === label,
       )
-      expect(value?.className).toContain('text-text-primary')
+      expect(value?.className).toContain('text-fg')
       expect(value?.getAttribute('style')).toBeNull()
     },
   )

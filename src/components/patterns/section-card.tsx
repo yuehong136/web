@@ -28,15 +28,15 @@ export const SectionCard: React.FC<SectionCardProps> = ({
       variant="default"
       padding="none"
       className={cn(
-        'rounded-radius-xl border border-components-console-border bg-components-console-surface',
+        'rounded-radius-xl border border-line bg-surface',
         className,
       )}
       {...props}
     >
       {title || actions ? (
-        <div className="flex items-center justify-between gap-space-sm border-b border-border-subtle px-space-lg py-space-base">
+        <div className="flex items-center justify-between gap-space-sm border-b border-line-subtle px-space-lg py-space-base">
           {title ? (
-            <Heading className="text-base font-semibold text-text-primary">
+            <Heading className="text-base font-semibold text-fg">
               {title}
             </Heading>
           ) : (

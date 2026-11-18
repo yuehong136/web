@@ -21,25 +21,20 @@ import { cn } from '@/lib/utils'
  */
 const badgeVariants = cva(
   // DreamJira lozenge: 4px corners, 12/16 medium text, a tight inline box.
-  'inline-flex max-w-full shrink-0 items-center gap-space-xs rounded-radius-sm px-space-sm py-space-2xs text-xs leading-4 font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:ring-offset-2 focus-visible:outline-hidden',
+  'inline-flex max-w-full shrink-0 items-center gap-space-xs rounded-radius-sm px-space-sm py-space-2xs text-xs leading-4 font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-line-focus focus-visible:ring-offset-2 focus-visible:outline-hidden',
   {
     variants: {
       variant: {
-        default: 'bg-components-badge-bg text-components-badge-text',
-        secondary: 'bg-background-subtle text-text-secondary',
-        destructive:
-          'bg-components-badge-error-bg text-components-badge-error-text',
-        success:
-          'bg-components-badge-success-bg text-components-badge-success-text',
-        warning:
-          'bg-components-badge-warning-bg text-components-badge-warning-text',
-        outline: 'border border-border-default text-text-secondary',
-        blue: 'bg-components-badge-blue-bg text-components-badge-blue-text',
-        orange:
-          'bg-components-badge-orange-bg text-components-badge-orange-text',
-        purple:
-          'bg-components-badge-purple-bg text-components-badge-purple-text',
-        green: 'bg-components-badge-green-bg text-components-badge-green-text',
+        default: 'bg-fill-muted text-fg-muted',
+        secondary: 'bg-sunken text-fg-muted',
+        destructive: 'bg-danger-soft text-danger-fg',
+        success: 'bg-success-soft text-success-fg',
+        warning: 'bg-warning-soft text-warning-fg',
+        outline: 'border border-line text-fg-muted',
+        blue: 'bg-avatar-6-bg text-avatar-6-fg',
+        orange: 'bg-avatar-2-bg text-avatar-2-fg',
+        purple: 'bg-avatar-7-bg text-avatar-7-fg',
+        green: 'bg-avatar-4-bg text-avatar-4-fg',
       },
     },
     defaultVariants: {

@@ -9,16 +9,13 @@ const methodBadgeVariants = cva(
       // Status hues for the common verbs, identity hues for the rest; the
       // same role tokens in light and dark.
       method: {
-        GET: 'bg-status-success-subtle text-status-success border-status-success-border',
-        POST: 'bg-status-info-subtle text-status-info border-status-info-border',
-        PUT: 'bg-status-warning-subtle text-status-warning border-status-warning-border',
-        DELETE:
-          'bg-status-error-subtle text-status-error border-status-error-border',
-        PATCH:
-          'bg-components-avatar-7-bg text-components-avatar-7-text border-components-avatar-7-bg',
-        HEAD: 'bg-background-subtle text-text-secondary border-border-default',
-        OPTIONS:
-          'bg-components-avatar-8-bg text-components-avatar-8-text border-components-avatar-8-bg',
+        GET: 'bg-success-soft text-success-fg border-success-line',
+        POST: 'bg-info-soft text-info-fg border-info-line',
+        PUT: 'bg-warning-soft text-warning-fg border-warning-line',
+        DELETE: 'bg-danger-soft text-danger-fg border-danger-line',
+        PATCH: 'bg-avatar-7-bg text-avatar-7-fg border-avatar-7-bg',
+        HEAD: 'bg-sunken text-fg-muted border-line',
+        OPTIONS: 'bg-avatar-8-bg text-avatar-8-fg border-avatar-8-bg',
       },
       size: {
         default: 'px-2.5 py-0.5 text-xs',

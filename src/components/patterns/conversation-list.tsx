@@ -65,7 +65,7 @@ export function ConversationList({
         <button
           type="button"
           onClick={creation.onClick}
-          className="mb-space-xs flex items-center gap-space-sm rounded-radius-lg bg-components-sidebar-item-bg-active px-space-base py-space-sm text-sm font-medium text-components-sidebar-item-text-active outline-hidden transition-colors hover:bg-components-button-primary-bg hover:text-components-button-primary-text focus-visible:ring-2 focus-visible:ring-state-focus motion-reduce:transition-none [&_svg]:size-icon-sm"
+          className="mb-space-xs flex items-center gap-space-sm rounded-radius-lg bg-fill-selected px-space-base py-space-sm text-sm font-medium text-fg outline-hidden transition-colors hover:bg-action-bg hover:text-action-fg focus-visible:ring-2 focus-visible:ring-line-focus motion-reduce:transition-none [&_svg]:size-icon-sm"
         >
           {creation.icon}
           {creation.label}
@@ -74,7 +74,7 @@ export function ConversationList({
       {[...groups].map(([group, entries]) => (
         <section key={group || 'all'} className="min-w-0">
           {group && groupLabel ? (
-            <h3 className="px-space-sm pt-space-sm pb-space-2xs text-xs font-medium text-text-tertiary">
+            <h3 className="px-space-sm pt-space-sm pb-space-2xs text-xs font-medium text-fg-subtle">
               {groupLabel(group)}
             </h3>
           ) : null}
@@ -88,11 +88,11 @@ export function ConversationList({
                     aria-current={active ? 'true' : undefined}
                     onClick={() => onSelect(item.key)}
                     className={cn(
-                      'flex w-full min-w-0 items-center rounded-radius-md px-space-sm py-space-xs text-start text-sm outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-state-focus motion-reduce:transition-none',
+                      'flex w-full min-w-0 items-center rounded-radius-md px-space-sm py-space-xs text-start text-sm outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-line-focus motion-reduce:transition-none',
                       actions.length > 0 && 'pe-space-2xl',
                       active
-                        ? 'bg-components-sidebar-item-bg-active text-components-sidebar-item-text-active'
-                        : 'text-text-primary hover:bg-components-sidebar-item-bg-hover',
+                        ? 'bg-fill-selected text-fg'
+                        : 'text-fg hover:bg-fill-hover',
                     )}
                   >
                     <span className="truncate">{item.label}</span>

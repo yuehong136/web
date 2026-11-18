@@ -105,14 +105,11 @@ export function FilterChip({ filter, onChange }: FilterChipProps) {
           data-filter-key={filter.key}
           data-filter-set={set || undefined}
           className={cn(
-            'border border-dashed border-border-strong text-xs font-normal text-text-secondary',
-            set &&
-              'border-solid border-border-default bg-background-subtle text-text-primary',
+            'border border-dashed border-line-strong text-xs font-normal text-fg-muted',
+            set && 'border-solid border-line bg-sunken text-fg',
           )}
         >
-          <span className={cn(set && 'text-text-tertiary')}>
-            {filter.label}
-          </span>
+          <span className={cn(set && 'text-fg-subtle')}>{filter.label}</span>
           {summary ? (
             <span className="max-w-40 truncate">{summary}</span>
           ) : null}
@@ -120,7 +117,7 @@ export function FilterChip({ filter, onChange }: FilterChipProps) {
         </Button>
       </ActionMenuTrigger>
       <ActionMenuContent align="start" className="min-w-44">
-        <ActionMenuLabel className="px-space-sm py-space-xs text-xs text-text-tertiary">
+        <ActionMenuLabel className="px-space-sm py-space-xs text-xs text-fg-subtle">
           {filter.label}
         </ActionMenuLabel>
         {items}

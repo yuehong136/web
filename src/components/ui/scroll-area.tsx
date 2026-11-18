@@ -18,7 +18,7 @@ export const ScrollArea: React.FC<ScrollAreaProps> = ({
       <div
         ref={viewportRef}
         className={cn(
-          'scrollbar-thin h-full w-full scrollbar-thumb-components-scrollbar-thumb scrollbar-track-components-scrollbar-track overflow-auto',
+          'scrollbar-thin h-full w-full scrollbar-thumb-line-strong scrollbar-track-fill-muted overflow-auto',
           viewportClassName,
         )}
       >

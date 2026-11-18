@@ -143,7 +143,7 @@ export const SelectWithSearch = forwardRef<
               ref={ref}
               disabled={disabled}
               className={cn(
-                'group h-[var(--control-height)] w-full justify-between border border-components-select-border bg-components-select-bg px-[var(--control-padding-x)] font-normal text-components-select-text outline-hidden outline-offset-0 hover:border-components-input-border-hover hover:bg-state-hover focus-visible:border-components-select-border-focus focus-visible:ring-1 focus-visible:ring-state-focus focus-visible:ring-offset-0 data-[state=open]:border-components-select-border-focus [&_svg]:pointer-events-auto',
+                'group h-[var(--control-height)] w-full justify-between border border-line bg-surface px-[var(--control-padding-x)] font-normal text-fg outline-hidden outline-offset-0 hover:border-line-strong hover:bg-fill-hover focus-visible:border-line-focus focus-visible:ring-1 focus-visible:ring-line-focus focus-visible:ring-offset-0 data-[state=open]:border-line-focus [&_svg]:pointer-events-auto',
                 triggerClassName,
                 variant !== 'default' && 'w-auto max-w-full',
                 variant === 'minimal' && 'border-transparent shadow-none',
@@ -163,14 +163,14 @@ export const SelectWithSearch = forwardRef<
                   {selectLabel}
                 </div>
               ) : (
-                <span className="flex-1 text-left text-text-tertiary">
+                <span className="flex-1 text-left text-fg-subtle">
                   {placeholder}
                 </span>
               )}
               <div className="ml-2 flex shrink-0 items-center">
                 <ChevronDownIcon
                   size={16}
-                  className="ml-1 shrink-0 text-text-tertiary"
+                  className="ml-1 shrink-0 text-fg-subtle"
                   aria-hidden="true"
                 />
               </div>
@@ -186,7 +186,7 @@ export const SelectWithSearch = forwardRef<
                   : t('common.clear')
               }
               onClick={handleClear}
-              className="absolute top-1/2 right-8 flex size-6 -translate-y-1/2 items-center justify-center rounded-radius-sm text-text-tertiary hover:bg-state-hover focus-visible:ring-2 focus-visible:ring-state-focus"
+              className="absolute top-1/2 right-8 flex size-6 -translate-y-1/2 items-center justify-center rounded-radius-sm text-fg-subtle hover:bg-fill-hover focus-visible:ring-2 focus-visible:ring-line-focus"
             >
               <XIcon aria-hidden className="size-3.5" />
             </button>
@@ -194,23 +194,20 @@ export const SelectWithSearch = forwardRef<
         </div>
         <PopoverContent
           className={cn(
-            'w-[var(--radix-popper-anchor-width)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-radius-xl border-border-default p-0 shadow-elevation-medium',
+            'w-[var(--radix-popper-anchor-width)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-radius-xl border-line p-0 shadow-elevation-medium',
             rich && 'w-[max(var(--radix-popper-anchor-width),22rem)]',
           )}
           align="start"
           side={side}
           sideOffset={8}
         >
-          <Command
-            defaultValue={value}
-            className="rounded-none bg-background-surface"
-          >
+          <Command defaultValue={value} className="rounded-none bg-surface">
             {options && options.length > 0 && (
-              <div className="border-b border-border-default p-space-xs">
+              <div className="border-b border-line p-space-xs">
                 <CommandInput
                   placeholder={searchPlaceholder}
                   aria-label={searchPlaceholder}
-                  className="h-9 border-0 placeholder:text-text-tertiary focus:border-0 focus:ring-0 focus-visible:ring-0"
+                  className="h-9 border-0 placeholder:text-fg-subtle focus:border-0 focus:ring-0 focus-visible:ring-0"
                 />
               </div>
             )}
@@ -219,7 +216,7 @@ export const SelectWithSearch = forwardRef<
               onMouseEnter={undefined}
             >
               <CommandEmpty>
-                <div className="text-text-tertiary">{emptyText}</div>
+                <div className="text-fg-subtle">{emptyText}</div>
               </CommandEmpty>
               {options.map((group, idx) => {
                 if (group.options && group.options.length > 0) {
@@ -245,14 +242,14 @@ export const SelectWithSearch = forwardRef<
                             className={cn(
                               'min-h-10 gap-space-base px-space-sm py-space-sm',
                               value === option.value
-                                ? "bg-state-selected-bg data-[selected='true']:bg-state-selected-bg"
+                                ? "bg-accent-soft data-[selected='true']:bg-accent-soft"
                                 : '',
                             )}
                           >
                             {option.icon && (
                               <span
                                 aria-hidden
-                                className="flex size-8 shrink-0 items-center justify-center rounded-radius-md bg-background-subtle [&_svg]:size-5"
+                                className="flex size-8 shrink-0 items-center justify-center rounded-radius-md bg-sunken [&_svg]:size-5"
                               >
                                 {option.icon}
                               </span>
@@ -270,7 +267,7 @@ export const SelectWithSearch = forwardRef<
                             {value === option.value && (
                               <CheckIcon
                                 size={16}
-                                className="ml-auto text-state-selected-text"
+                                className="ml-auto text-accent-fg"
                               />
                             )}
                           </CommandItem>
@@ -292,7 +289,7 @@ export const SelectWithSearch = forwardRef<
                       className={cn(
                         'min-h-[var(--control-height)]',
                         value === group.value
-                          ? "bg-state-selected-bg data-[selected='true']:bg-state-selected-bg"
+                          ? "bg-accent-soft data-[selected='true']:bg-accent-soft"
                           : '',
                       )}
                     >
@@ -307,7 +304,7 @@ export const SelectWithSearch = forwardRef<
                       <span className="min-w-0 flex-1 leading-5">
                         {group.label}
                         {group.description && (
-                          <span className="block text-xs text-text-secondary">
+                          <span className="block text-xs text-fg-muted">
                             {group.description}
                           </span>
                         )}
@@ -315,7 +312,7 @@ export const SelectWithSearch = forwardRef<
                       {value === group.value && (
                         <CheckIcon
                           size={16}
-                          className="ml-auto text-state-selected-text"
+                          className="ml-auto text-accent-fg"
                         />
                       )}
                     </CommandItem>

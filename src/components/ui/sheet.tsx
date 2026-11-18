@@ -15,7 +15,7 @@ const SheetClose = SheetPrimitive.Close
 const SheetPortal = SheetPrimitive.Portal
 
 const sheetVariants = cva(
-  'fixed z-50 gap-space-md border-border-default bg-background-surface p-space-lg text-text-primary shadow-elevation-high transition ease-in-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-200 data-[state=open]:duration-200 motion-reduce:animate-none',
+  'fixed z-50 gap-space-md border-line bg-surface p-space-lg text-fg shadow-elevation-high transition ease-in-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-200 data-[state=open]:duration-200 motion-reduce:animate-none',
   {
     variants: {
       side: {
@@ -72,7 +72,7 @@ const SheetContent = React.forwardRef<
         >
           {children}
           {showCloseButton && (
-            <SheetPrimitive.Close className="absolute top-space-base right-space-base inline-flex size-[var(--control-height)] items-center justify-center rounded-radius-md text-text-secondary outline-hidden transition-colors hover:bg-state-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-focus disabled:pointer-events-none">
+            <SheetPrimitive.Close className="absolute top-space-base right-space-base inline-flex size-[var(--control-height)] items-center justify-center rounded-radius-md text-fg-muted outline-hidden transition-colors hover:bg-fill-hover hover:text-fg focus-visible:ring-2 focus-visible:ring-line-focus disabled:pointer-events-none">
               <X className="size-icon-sm" aria-hidden="true" />
               <span className="sr-only">{closeLabel}</span>
             </SheetPrimitive.Close>
@@ -90,7 +90,7 @@ const SheetOverlay = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SheetPrimitive.Overlay
     className={cn(
-      'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-components-dialog-overlay motion-reduce:animate-none',
+      'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-scrim motion-reduce:animate-none',
       className,
     )}
     {...props}
@@ -133,10 +133,7 @@ const SheetTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SheetPrimitive.Title
     ref={ref}
-    className={cn(
-      'text-lg leading-7 font-semibold text-text-primary',
-      className,
-    )}
+    className={cn('text-lg leading-7 font-semibold text-fg', className)}
     {...props}
   />
 ))
@@ -148,7 +145,7 @@ const SheetDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SheetPrimitive.Description
     ref={ref}
-    className={cn('text-sm text-text-secondary', className)}
+    className={cn('text-sm text-fg-muted', className)}
     {...props}
   />
 ))

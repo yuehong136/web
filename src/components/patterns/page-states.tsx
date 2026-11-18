@@ -68,17 +68,15 @@ export const PageLoadingState: React.FC<PageLoadingStateProps> = ({
   const { t } = useTranslation()
   return (
     <PageStateShell {...props}>
-      <div className="flex h-12 w-12 items-center justify-center rounded-radius-full bg-components-page-state-icon-bg text-components-page-state-icon">
+      <div className="flex h-12 w-12 items-center justify-center rounded-radius-full bg-fill-muted text-fg-subtle">
         <Loader2 className="h-6 w-6 animate-spin" />
       </div>
       <div className="flex flex-col gap-space-xs">
-        <h2 className="text-lg font-semibold text-components-page-state-title">
+        <h2 className="text-lg font-semibold text-fg">
           {title ?? t('common.loading')}
         </h2>
         {description ? (
-          <p className="text-sm text-components-page-state-description">
-            {description}
-          </p>
+          <p className="text-sm text-fg-muted">{description}</p>
         ) : null}
       </div>
     </PageStateShell>
@@ -94,17 +92,13 @@ export const PageEmptyState: React.FC<PageEmptyStateProps> = ({
 }) => {
   return (
     <PageStateShell {...props}>
-      <div className="flex h-12 w-12 items-center justify-center rounded-radius-full bg-components-page-state-icon-bg text-components-page-state-icon">
+      <div className="flex h-12 w-12 items-center justify-center rounded-radius-full bg-fill-muted text-fg-subtle">
         {icon ?? <Inbox className="h-6 w-6" />}
       </div>
       <div className="flex flex-col gap-space-xs">
-        <h2 className="text-lg font-semibold text-components-page-state-title">
-          {title}
-        </h2>
+        <h2 className="text-lg font-semibold text-fg">{title}</h2>
         {description ? (
-          <p className="text-sm text-components-page-state-description">
-            {description}
-          </p>
+          <p className="text-sm text-fg-muted">{description}</p>
         ) : null}
       </div>
       {action ? (
@@ -127,17 +121,15 @@ export const PageErrorState: React.FC<PageErrorStateProps> = ({
   const { t } = useTranslation()
   return (
     <PageStateShell {...props}>
-      <div className="flex h-12 w-12 items-center justify-center rounded-radius-full bg-status-error-subtle text-status-error">
+      <div className="flex h-12 w-12 items-center justify-center rounded-radius-full bg-danger-soft text-danger-fg">
         {icon ?? <AlertTriangle className="h-6 w-6" aria-hidden="true" />}
       </div>
       <div className="flex flex-col gap-space-xs">
-        <Title className="text-lg font-semibold text-components-page-state-title">
+        <Title className="text-lg font-semibold text-fg">
           {title ?? t('common.operationFailed')}
         </Title>
         {description ? (
-          <p className="text-sm text-components-page-state-description">
-            {description}
-          </p>
+          <p className="text-sm text-fg-muted">{description}</p>
         ) : null}
       </div>
       {action ? (

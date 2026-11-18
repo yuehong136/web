@@ -139,7 +139,7 @@ export const MultiSelectWithSearch = forwardRef<
             ref={ref}
             disabled={disabled}
             className={cn(
-              'group h-auto min-h-[var(--control-height)] w-full justify-between border border-components-select-border bg-components-select-bg px-[var(--control-padding-x)] py-space-2xs font-normal text-components-select-text outline-hidden outline-offset-0 hover:border-components-input-border-hover hover:bg-state-hover focus-visible:border-components-select-border-focus focus-visible:ring-1 focus-visible:ring-state-focus focus-visible:ring-offset-0 data-[state=open]:border-components-select-border-focus [&_svg]:pointer-events-auto',
+              'group h-auto min-h-[var(--control-height)] w-full justify-between border border-line bg-surface px-[var(--control-padding-x)] py-space-2xs font-normal text-fg outline-hidden outline-offset-0 hover:border-line-strong hover:bg-fill-hover focus-visible:border-line-focus focus-visible:ring-1 focus-visible:ring-line-focus focus-visible:ring-offset-0 data-[state=open]:border-line-focus [&_svg]:pointer-events-auto',
               triggerClassName,
             )}
           >
@@ -151,7 +151,7 @@ export const MultiSelectWithSearch = forwardRef<
                     <Badge key={value} variant="secondary">
                       {label}
                       <XIcon
-                        className="ml-1 h-3 w-3 cursor-pointer hover:text-status-error"
+                        className="ml-1 h-3 w-3 cursor-pointer hover:text-danger-fg"
                         onClick={(e) => handleRemove(value, e)}
                       />
                     </Badge>
@@ -163,39 +163,39 @@ export const MultiSelectWithSearch = forwardRef<
                 )}
               </div>
             ) : (
-              <span className="flex-1 text-left text-text-tertiary">
+              <span className="flex-1 text-left text-fg-subtle">
                 {placeholder}
               </span>
             )}
             <div className="ml-2 flex shrink-0 items-center">
               {values.length > 0 && allowClear && (
                 <XIcon
-                  className="mx-1 h-4 w-4 cursor-pointer text-text-tertiary opacity-0 transition-opacity group-hover:opacity-100 hover:text-text-secondary"
+                  className="mx-1 h-4 w-4 cursor-pointer text-fg-subtle opacity-0 transition-opacity group-hover:opacity-100 hover:text-fg-muted"
                   onClick={handleClear}
                 />
               )}
               <ChevronDownIcon
                 size={16}
-                className="ml-1 shrink-0 text-text-tertiary"
+                className="ml-1 shrink-0 text-fg-subtle"
                 aria-hidden="true"
               />
             </div>
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className="w-full min-w-[var(--radix-popper-anchor-width)] rounded-radius-xl border-border-default p-0"
+          className="w-full min-w-[var(--radix-popper-anchor-width)] rounded-radius-xl border-line p-0"
           align="start"
         >
           <Command className="p-space-xs">
             {options && options.length > 0 && (
               <CommandInput
                 placeholder="Search..."
-                className="placeholder:text-text-tertiary"
+                className="placeholder:text-fg-subtle"
               />
             )}
             <CommandList className="mt-space-xs outline-hidden">
               <CommandEmpty>
-                <div className="text-text-tertiary">{emptyText}</div>
+                <div className="text-fg-subtle">{emptyText}</div>
               </CommandEmpty>
               {options.map((group, idx) => {
                 if (group.options && group.options.length > 0) {
@@ -217,7 +217,7 @@ export const MultiSelectWithSearch = forwardRef<
                             className={cn(
                               'min-h-[var(--control-height)]',
                               values.includes(option.value)
-                                ? "bg-state-selected-bg data-[selected='true']:bg-state-selected-bg"
+                                ? "bg-accent-soft data-[selected='true']:bg-accent-soft"
                                 : '',
                             )}
                           >
@@ -227,7 +227,7 @@ export const MultiSelectWithSearch = forwardRef<
                             {values.includes(option.value) && (
                               <CheckIcon
                                 size={16}
-                                className="ml-auto text-state-selected-text"
+                                className="ml-auto text-accent-fg"
                               />
                             )}
                           </CommandItem>
@@ -248,7 +248,7 @@ export const MultiSelectWithSearch = forwardRef<
                       className={cn(
                         'min-h-[var(--control-height)]',
                         values.includes(group.value)
-                          ? "bg-state-selected-bg data-[selected='true']:bg-state-selected-bg"
+                          ? "bg-accent-soft data-[selected='true']:bg-accent-soft"
                           : '',
                       )}
                     >
@@ -256,7 +256,7 @@ export const MultiSelectWithSearch = forwardRef<
                       {values.includes(group.value) && (
                         <CheckIcon
                           size={16}
-                          className="ml-auto text-state-selected-text"
+                          className="ml-auto text-accent-fg"
                         />
                       )}
                     </CommandItem>

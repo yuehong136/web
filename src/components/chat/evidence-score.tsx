@@ -13,7 +13,7 @@ export function EvidenceScore({ value }: { value: unknown }) {
   const score = readRetrievalScore(value)
   if (score === null) return null
   return (
-    <span className="shrink-0 font-mono text-xs text-text-tertiary tabular-nums">
+    <span className="shrink-0 font-mono text-xs text-fg-subtle tabular-nums">
       {formatRetrievalScore(score, i18n.resolvedLanguage ?? i18n.language)}
     </span>
   )
@@ -21,24 +21,9 @@ export function EvidenceScore({ value }: { value: unknown }) {
 
 // Score kinds in display order: line key, bar label key, chunk field, bar tone.
 const SCORE_KINDS = [
-  [
-    'combinedScore',
-    'chat.evidence.combined',
-    'similarity',
-    'bg-data-viz-categorical-8',
-  ],
-  [
-    'vectorScore',
-    'chat.evidence.vector',
-    'vector_similarity',
-    'bg-data-viz-categorical-2',
-  ],
-  [
-    'keywordScore',
-    'chat.evidence.keyword',
-    'term_similarity',
-    'bg-data-viz-categorical-7',
-  ],
+  ['combinedScore', 'chat.evidence.combined', 'similarity', 'bg-viz-8'],
+  ['vectorScore', 'chat.evidence.vector', 'vector_similarity', 'bg-viz-2'],
+  ['keywordScore', 'chat.evidence.keyword', 'term_similarity', 'bg-viz-7'],
 ] as const
 
 /** The scores the backend returned for this chunk; missing or invalid ones are left out. */
@@ -83,21 +68,21 @@ export function EvidenceScoreBars({ chunk }: { chunk: ReferenceChunk }) {
   const { t: tw } = useTypedTranslation('chat.aiWorkspace')
   const scores = useEvidenceScores(chunk)
   if (!scores.length)
-    return <p className="text-xs text-text-tertiary">{tw('noScore')}</p>
+    return <p className="text-xs text-fg-subtle">{tw('noScore')}</p>
   return (
     <dl className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-space-sm gap-y-space-xs text-xs">
       {scores.map((item) => (
         <div key={item.key} className="contents">
-          <dt className="text-text-tertiary">{t(item.label)}</dt>
+          <dt className="text-fg-subtle">{t(item.label)}</dt>
           <dd aria-hidden="true" className="contents">
-            <span className="h-1.5 overflow-hidden rounded-radius-full bg-background-subtle">
+            <span className="h-1.5 overflow-hidden rounded-radius-full bg-sunken">
               <span
                 className={cn('block h-full rounded-radius-full', item.tone)}
                 style={{ width: `${item.score * 100}%` }}
               />
             </span>
           </dd>
-          <dd className="text-end font-mono text-text-primary tabular-nums">
+          <dd className="text-end font-mono text-fg tabular-nums">
             {item.value}
           </dd>
         </div>

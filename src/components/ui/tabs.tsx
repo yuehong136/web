@@ -55,7 +55,7 @@ export const TabsList = React.forwardRef<
         variant === 'segmented'
           ? segmentedListVariants()
           : // DreamJira tab bar: text tabs over a hairline, 16px apart.
-            'inline-flex min-h-[var(--control-height-lg)] max-w-full items-stretch gap-space-md border-b border-border-default',
+            'inline-flex min-h-[var(--control-height-lg)] max-w-full items-stretch gap-space-md border-b border-line',
         className,
       )}
       {...props}
@@ -77,11 +77,11 @@ export const TabsTrigger = React.forwardRef<
           ? segmentedItemVariants()
           : [
               // The 2px indicator overlaps the bar's hairline.
-              '-mb-px inline-flex shrink-0 items-center justify-center gap-space-xs border-b-2 border-transparent px-space-2xs text-sm font-medium whitespace-nowrap text-text-secondary',
+              '-mb-px inline-flex shrink-0 items-center justify-center gap-space-xs border-b-2 border-transparent px-space-2xs text-sm font-medium whitespace-nowrap text-fg-muted',
               'outline-hidden transition-colors duration-150 motion-reduce:transition-none',
-              'hover:text-text-primary focus-visible:rounded-radius-sm focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:ring-inset',
+              'hover:text-fg focus-visible:rounded-radius-sm focus-visible:ring-2 focus-visible:ring-line-focus focus-visible:ring-inset',
               'disabled:pointer-events-none disabled:opacity-50',
-              'data-[state=active]:border-text-primary data-[state=active]:text-text-primary',
+              'data-[state=active]:border-fg data-[state=active]:text-fg',
               "[&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-icon-sm",
             ],
         className,
@@ -99,7 +99,7 @@ export const TabsContent = React.forwardRef<
   <TabsPrimitive.Content
     ref={ref}
     className={cn(
-      'mt-space-sm outline-hidden focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:ring-offset-2 focus-visible:ring-offset-background-surface',
+      'mt-space-sm outline-hidden focus-visible:ring-2 focus-visible:ring-line-focus focus-visible:ring-offset-2 focus-visible:ring-offset-surface',
       className,
     )}
     {...props}

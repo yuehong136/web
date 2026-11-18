@@ -162,15 +162,15 @@ export function ArtifactDetailPanel({
       }
     >
       {resource.kind === 'loading' && (
-        <output className="block text-sm text-text-secondary">
+        <output className="block text-sm text-fg-muted">
           {t('artifactLoading')}
         </output>
       )}
       {resource.kind === 'unsupported' && (
-        <p className="text-sm text-text-secondary">{t('previewUnavailable')}</p>
+        <p className="text-sm text-fg-muted">{t('previewUnavailable')}</p>
       )}
       {resource.kind === 'error' && (
-        <p role="alert" className="text-sm text-status-error">
+        <p role="alert" className="text-sm text-danger-fg">
           {t(failureKey(resource.reason))}
         </p>
       )}
@@ -181,7 +181,7 @@ export function ArtifactDetailPanel({
             srcDoc={html}
             sandbox=""
             referrerPolicy="no-referrer"
-            className="h-full min-h-96 w-full rounded-radius-md border border-border-subtle bg-background-surface"
+            className="h-full min-h-96 w-full rounded-radius-md border border-line-subtle bg-surface"
           />
         ) : resource.preview === 'image' ? (
           <img
@@ -190,12 +190,12 @@ export function ArtifactDetailPanel({
             className="max-w-full rounded-radius-md"
           />
         ) : (
-          <pre className="overflow-x-auto rounded-radius-md border border-border-subtle bg-background-subtle p-space-md text-xs leading-relaxed whitespace-pre-wrap text-text-primary">
+          <pre className="overflow-x-auto rounded-radius-md border border-line-subtle bg-sunken p-space-md text-xs leading-relaxed whitespace-pre-wrap text-fg">
             <code>{resource.text}</code>
           </pre>
         ))}
       {downloadState.owner === owner && downloadState.failure && (
-        <output className="mt-space-sm block text-sm text-status-error">
+        <output className="mt-space-sm block text-sm text-danger-fg">
           {t(failureKey(downloadState.failure))}
         </output>
       )}

@@ -6,16 +6,16 @@ import { CircleAlert } from 'lucide-react'
 const inputVariants = cva(
   // DreamJira input: the border turns to the focus colour and a one-pixel
   // ring doubles it, so focus never depends on a hairline alone.
-  'flex w-full min-w-0 rounded-radius-md border bg-components-input-bg px-[var(--control-padding-x)] py-space-xs text-sm text-components-input-text transition-colors duration-150 placeholder:text-components-input-text-placeholder file:border-0 file:bg-transparent file:text-sm file:font-medium focus:bg-components-input-bg-focus focus-visible:ring-1 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none',
+  'flex w-full min-w-0 rounded-radius-md border bg-surface px-[var(--control-padding-x)] py-space-xs text-sm text-fg transition-colors duration-150 placeholder:text-fg-subtle file:border-0 file:bg-transparent file:text-sm file:font-medium focus:bg-surface focus-visible:ring-1 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none',
   {
     variants: {
       variant: {
         default:
-          'border-components-input-border hover:border-components-input-border-hover focus:border-components-input-border-focus focus-visible:ring-state-focus',
+          'border-line hover:border-line-strong focus:border-line-focus focus-visible:ring-line-focus',
         destructive:
-          'border-components-input-border-error focus:border-components-input-border-error focus-visible:ring-components-input-border-error',
-        success: 'border-status-success focus-visible:ring-status-success',
-        warning: 'border-status-warning focus-visible:ring-status-warning',
+          'border-danger-solid focus:border-danger-solid focus-visible:ring-danger-solid',
+        success: 'border-success-fg focus-visible:ring-success-fg',
+        warning: 'border-warning-fg focus-visible:ring-warning-fg',
       },
       inputSize: {
         default: 'min-h-[var(--control-height)]',
@@ -69,19 +69,14 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="space-y-space-xs">
         {label && (
-          <label
-            htmlFor={inputId}
-            className="text-sm font-medium text-text-primary"
-          >
+          <label htmlFor={inputId} className="text-sm font-medium text-fg">
             {label}
-            {required && (
-              <span className="ml-space-xs text-status-error">*</span>
-            )}
+            {required && <span className="ml-space-xs text-danger-fg">*</span>}
           </label>
         )}
         <div className="relative">
           {leftIcon && (
-            <div className="absolute top-1/2 left-space-base -translate-y-1/2 transform text-text-tertiary">
+            <div className="absolute top-1/2 left-space-base -translate-y-1/2 transform text-fg-subtle">
               {leftIcon}
             </div>
           )}
@@ -109,7 +104,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             }
           />
           {rightIcon && (
-            <div className="absolute top-1/2 right-space-base -translate-y-1/2 transform text-text-tertiary">
+            <div className="absolute top-1/2 right-space-base -translate-y-1/2 transform text-fg-subtle">
               {rightIcon}
             </div>
           )}
@@ -117,14 +112,14 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {error && (
           <p
             id={`${inputId}-hint`}
-            className="flex items-center gap-space-xs text-sm text-status-error"
+            className="flex items-center gap-space-xs text-sm text-danger-fg"
           >
             <CircleAlert className="size-icon-sm" aria-hidden="true" />
             {error}
           </p>
         )}
         {helpText && !error && (
-          <p id={`${inputId}-hint`} className="text-sm text-text-tertiary">
+          <p id={`${inputId}-hint`} className="text-sm text-fg-subtle">
             {helpText}
           </p>
         )}

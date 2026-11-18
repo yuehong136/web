@@ -50,7 +50,7 @@ export function Pager({
     <nav
       aria-label={t('common.patterns.pager.label')}
       className={cn(
-        'flex shrink-0 items-center gap-space-xs text-xs text-text-tertiary tabular-nums',
+        'flex shrink-0 items-center gap-space-xs text-xs text-fg-subtle tabular-nums',
         className,
       )}
     >
@@ -61,14 +61,14 @@ export function Pager({
               type="button"
               variant="ghost"
               size="sm"
-              className="text-xs font-normal text-text-tertiary"
+              className="text-xs font-normal text-fg-subtle"
             >
               {t('common.patterns.pager.perPage', { count: pageSize })}
               <ChevronDown className="size-icon-xs" aria-hidden="true" />
             </Button>
           </ActionMenuTrigger>
           <ActionMenuContent align="end" className="min-w-36">
-            <ActionMenuLabel className="px-space-sm py-space-xs text-xs text-text-tertiary">
+            <ActionMenuLabel className="px-space-sm py-space-xs text-xs text-fg-subtle">
               {t('common.pagination.pageSizePrefix')}
             </ActionMenuLabel>
             <ActionMenuRadioGroup
@@ -132,7 +132,7 @@ export function LoadMore({
   return (
     <div
       className={cn(
-        'flex shrink-0 items-center gap-space-sm text-xs text-text-tertiary tabular-nums',
+        'flex shrink-0 items-center gap-space-sm text-xs text-fg-subtle tabular-nums',
         className,
       )}
     >

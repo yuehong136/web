@@ -47,8 +47,8 @@ const TABLE_PREVIEW_PURIFY_OPTIONS: Config = {
 }
 
 const FOOTER_BUTTON_CLASS = cn(
-  'flex items-center gap-space-xs rounded-radius-md px-space-sm py-space-xs text-xs transition-colors hover:bg-state-hover',
-  'focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden',
+  'flex items-center gap-space-xs rounded-radius-md px-space-sm py-space-xs text-xs transition-colors hover:bg-fill-hover',
+  'focus-visible:ring-2 focus-visible:ring-line-focus focus-visible:outline-hidden',
 )
 
 /**
@@ -80,7 +80,7 @@ export const ReferenceMarker: FC<ReferenceMarkerProps> = ({
   // 找不到对应引用时保留普通上标文本，不做没有操作的按钮
   if (!chunk) {
     return (
-      <sup className="mx-space-2xs inline-flex h-icon-sm min-w-icon-sm items-center justify-center rounded-radius-sm bg-background-subtle px-space-xs font-mono text-xs font-medium text-text-tertiary">
+      <sup className="mx-space-2xs inline-flex h-icon-sm min-w-icon-sm items-center justify-center rounded-radius-sm bg-sunken px-space-xs font-mono text-xs font-medium text-fg-subtle">
         {displayIndex}
       </sup>
     )
@@ -110,10 +110,10 @@ export const ReferenceMarker: FC<ReferenceMarkerProps> = ({
             className={cn(
               'inline-flex cursor-pointer items-center justify-center align-baseline',
               'mx-space-2xs h-icon-sm min-w-icon-sm px-space-xs',
-              'rounded-radius-sm border border-border-default bg-background-subtle font-mono text-xs leading-none font-medium text-text-secondary',
-              'transition-colors hover:border-components-button-primary-bg hover:text-text-accent motion-reduce:transition-none',
-              'aria-expanded:border-components-button-primary-bg aria-expanded:bg-state-selected-bg aria-expanded:text-state-selected-text',
-              'focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden',
+              'rounded-radius-sm border border-line bg-sunken font-mono text-xs leading-none font-medium text-fg-muted',
+              'transition-colors hover:border-action-bg hover:text-accent-fg motion-reduce:transition-none',
+              'aria-expanded:border-action-bg aria-expanded:bg-accent-soft aria-expanded:text-accent-fg',
+              'focus-visible:ring-2 focus-visible:ring-line-focus focus-visible:outline-hidden',
             )}
           >
             {displayIndex}
@@ -128,16 +128,16 @@ export const ReferenceMarker: FC<ReferenceMarkerProps> = ({
         {...hoverProps}
         onOpenAutoFocus={preventHoverFocus}
       >
-        <div className="flex flex-col bg-components-card-bg">
+        <div className="flex flex-col bg-raised">
           {/* 头部 - 文档信息 */}
-          <div className="flex items-center gap-space-sm border-b border-border-subtle bg-background-subtle px-space-base py-space-sm">
+          <div className="flex items-center gap-space-sm border-b border-line-subtle bg-sunken px-space-base py-space-sm">
             {getDocTypeIcon(
               chunk.doc_type,
               chunk.document_name,
               'size-icon-sm',
             )}
             <span
-              className="block min-w-0 flex-1 truncate text-sm font-medium text-text-primary"
+              className="block min-w-0 flex-1 truncate text-sm font-medium text-fg"
               title={documentName}
             >
               {documentName}
@@ -149,7 +149,7 @@ export const ReferenceMarker: FC<ReferenceMarkerProps> = ({
           <div className="px-space-base py-space-base">
             {isTableContent ? (
               <SafeHtml
-                className="max-h-32 overflow-auto rounded-radius-md bg-background-subtle p-space-sm text-sm text-text-primary"
+                className="max-h-32 overflow-auto rounded-radius-md bg-sunken p-space-sm text-sm text-fg"
                 html={chunk.content || ''}
                 options={TABLE_PREVIEW_PURIFY_OPTIONS}
               />
@@ -157,16 +157,16 @@ export const ReferenceMarker: FC<ReferenceMarkerProps> = ({
               <ChunkExcerpt
                 chunk={chunk}
                 max={200}
-                className="m-0 line-clamp-4 text-sm leading-relaxed text-text-secondary"
+                className="m-0 line-clamp-4 text-sm leading-relaxed text-fg-muted"
               />
             )}
           </div>
 
           {/* 操作按钮 */}
-          <div className="flex items-center gap-space-xs border-t border-border-subtle px-space-sm py-space-sm">
+          <div className="flex items-center gap-space-xs border-t border-line-subtle px-space-sm py-space-sm">
             <button
               type="button"
-              className={cn(FOOTER_BUTTON_CLASS, 'text-text-secondary')}
+              className={cn(FOOTER_BUTTON_CLASS, 'text-fg-muted')}
               onClick={(e) => {
                 e.stopPropagation()
                 const text = toPlainText(chunk.content)
@@ -179,7 +179,7 @@ export const ReferenceMarker: FC<ReferenceMarkerProps> = ({
 
             {originalLink && (
               <a
-                className={cn(FOOTER_BUTTON_CLASS, 'text-text-secondary')}
+                className={cn(FOOTER_BUTTON_CLASS, 'text-fg-muted')}
                 href={originalLink.href}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -196,10 +196,7 @@ export const ReferenceMarker: FC<ReferenceMarkerProps> = ({
             <button
               type="button"
               data-reference-details
-              className={cn(
-                FOOTER_BUTTON_CLASS,
-                'font-medium text-text-accent',
-              )}
+              className={cn(FOOTER_BUTTON_CLASS, 'font-medium text-accent-fg')}
               onClick={(e) => {
                 e.stopPropagation()
                 changeOpen(false)

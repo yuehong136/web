@@ -42,16 +42,14 @@ export function ChatThreadHeader({
       <h1
         className={cn(
           'min-w-0 truncate text-base',
-          placeholder
-            ? 'font-medium text-text-secondary'
-            : 'font-semibold text-text-primary',
+          placeholder ? 'font-medium text-fg-muted' : 'font-semibold text-fg',
         )}
       >
         {title}
       </h1>
       {identity && (
         <span
-          className="hidden h-6 max-w-60 min-w-0 shrink-0 items-center gap-space-xs rounded-radius-md border border-border-default bg-background-surface ps-space-xs pe-space-sm text-xs text-text-secondary sm:inline-flex"
+          className="hidden h-6 max-w-60 min-w-0 shrink-0 items-center gap-space-xs rounded-radius-md border border-line bg-surface ps-space-xs pe-space-sm text-xs text-fg-muted sm:inline-flex"
           data-thread-identity
         >
           {identity}
@@ -71,7 +69,7 @@ export function ChatThreadHeader({
         ref={bindRoot}
         className={cn(
           'flex min-h-12 shrink-0 items-center gap-space-sm ps-space-md pe-space-sm',
-          !placeholder && 'border-b border-border-subtle',
+          !placeholder && 'border-b border-line-subtle',
         )}
         data-thread-header
       >

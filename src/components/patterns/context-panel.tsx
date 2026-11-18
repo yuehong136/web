@@ -44,7 +44,7 @@ export function ContextPanel({
       aria-labelledby={headingId}
       data-context-panel
       className={cn(
-        'flex h-full min-h-0 max-w-full min-w-0 shrink-0 flex-col overflow-hidden border-l border-border-subtle bg-background-surface text-text-primary',
+        'flex h-full min-h-0 max-w-full min-w-0 shrink-0 flex-col overflow-hidden border-l border-line-subtle bg-surface text-fg',
         widths[width],
         className,
       )}
@@ -52,7 +52,7 @@ export function ContextPanel({
     >
       <header
         className={cn(
-          'flex shrink-0 items-start gap-space-sm border-b border-border-subtle p-space-md',
+          'flex shrink-0 items-start gap-space-sm border-b border-line-subtle p-space-md',
           headerClassName,
         )}
       >
@@ -61,7 +61,7 @@ export function ContextPanel({
             {title}
           </h2>
           {description && (
-            <div className="mt-space-xs text-sm leading-relaxed text-text-secondary">
+            <div className="mt-space-xs text-sm leading-relaxed text-fg-muted">
               {description}
             </div>
           )}
@@ -92,7 +92,7 @@ export function ContextPanel({
         {children}
       </div>
       {footer && (
-        <footer className="shrink-0 border-t border-border-subtle p-space-md">
+        <footer className="shrink-0 border-t border-line-subtle p-space-md">
           {footer}
         </footer>
       )}

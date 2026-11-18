@@ -39,20 +39,17 @@ export const FileCard = memo(function FileCard({
         'group relative flex items-center gap-3 rounded-xl transition-all duration-300',
         'border border-transparent hover:shadow-md',
         compact ? 'p-2' : 'p-3',
-        file.status === 'error' &&
-          'bg-status-error-subtle ring-1 ring-status-error-border',
-        file.status === 'success' &&
-          'bg-status-success-subtle ring-1 ring-status-success-border',
-        file.status === 'uploading' &&
-          'bg-status-info-subtle ring-1 ring-status-info-border',
+        file.status === 'error' && 'bg-danger-soft ring-1 ring-danger-line',
+        file.status === 'success' && 'bg-success-soft ring-1 ring-success-line',
+        file.status === 'uploading' && 'bg-info-soft ring-1 ring-info-line',
         !file.status || file.status === 'pending'
-          ? 'hover:border-[var(--color-border-default)]'
+          ? 'hover:border-[var(--color-line)]'
           : '',
       )}
       style={{
         backgroundColor:
           file.status === 'pending' || !file.status
-            ? 'var(--color-background-subtle)'
+            ? 'var(--color-sunken)'
             : undefined,
       }}
     >
@@ -99,7 +96,7 @@ export const FileCard = memo(function FileCard({
               'truncate font-medium',
               compact ? 'max-w-[200px] text-xs' : 'max-w-[280px] text-sm',
             )}
-            style={{ color: 'var(--color-text-primary)' }}
+            style={{ color: 'var(--color-fg)' }}
           >
             {file.name}
           </p>
@@ -107,29 +104,29 @@ export const FileCard = memo(function FileCard({
         <div className="flex flex-wrap items-center gap-2">
           <span
             className={cn('tabular-nums', compact ? 'text-[10px]' : 'text-xs')}
-            style={{ color: 'var(--color-text-tertiary)' }}
+            style={{ color: 'var(--color-fg-subtle)' }}
           >
             {formatBytes(file.size)}
           </span>
           {file.status === 'success' && (
-            <span className="animate-in fade-in slide-in-from-left-1 flex items-center gap-1 text-xs text-text-primary duration-300">
-              <CheckCircle2 className="h-3 w-3 text-components-badge-success-text" />
+            <span className="animate-in fade-in slide-in-from-left-1 flex items-center gap-1 text-xs text-fg duration-300">
+              <CheckCircle2 className="h-3 w-3 text-success-fg" />
               <span className={compact ? 'hidden' : ''}>
                 {texts.uploadSuccess}
               </span>
             </span>
           )}
           {file.status === 'error' && (
-            <span className="animate-in fade-in slide-in-from-left-1 flex items-center gap-1 text-xs text-text-primary duration-300">
-              <AlertCircle className="h-3 w-3 text-components-badge-error-text" />
+            <span className="animate-in fade-in slide-in-from-left-1 flex items-center gap-1 text-xs text-fg duration-300">
+              <AlertCircle className="h-3 w-3 text-danger-fg" />
               <span className={compact ? 'hidden' : ''}>
                 {file.error || texts.uploadFailed}
               </span>
             </span>
           )}
           {file.status === 'uploading' && (
-            <span className="animate-in fade-in slide-in-from-left-1 flex items-center gap-1 text-xs text-text-primary duration-300">
-              <Loader2 className="h-3 w-3 animate-spin text-components-badge-info-text" />
+            <span className="animate-in fade-in slide-in-from-left-1 flex items-center gap-1 text-xs text-fg duration-300">
+              <Loader2 className="h-3 w-3 animate-spin text-info-fg" />
               <span className={compact ? 'hidden' : ''}>
                 {typeof file.progress === 'number'
                   ? `${Math.round(file.progress)}%`
@@ -144,7 +141,7 @@ export const FileCard = memo(function FileCard({
             <div className="animate-in fade-in slide-in-from-bottom-1 pt-1 duration-300">
               <Progress
                 value={file.progress}
-                className="h-1.5 [&>div]:bg-components-badge-info-text"
+                className="h-1.5 [&>div]:bg-info-fg"
               />
             </div>
           )}
@@ -171,7 +168,7 @@ export const FileCard = memo(function FileCard({
             size="icon-sm"
             onClick={() => onRemove(index)}
             className="h-7 w-7"
-            style={{ color: 'var(--color-text-tertiary)' }}
+            style={{ color: 'var(--color-fg-subtle)' }}
           >
             <X className="h-4 w-4" />
           </Button>

@@ -19,14 +19,14 @@ export const PageSizeSelector: React.FC<PageSizeSelectorProps> = ({
   return (
     <div
       className={cn('flex items-center space-x-3 text-sm', className)}
-      style={{ color: 'var(--color-components-pagination-text)' }}
+      style={{ color: 'var(--color-fg-muted)' }}
     >
       <span>{t('common.pagination.pageSizePrefix', 'Items per page')}</span>
       <div
         className="flex items-center rounded-lg p-1"
         style={{
-          backgroundColor: 'var(--color-components-pagination-bg)',
-          border: '1px solid var(--color-components-pagination-border)',
+          backgroundColor: 'var(--color-surface)',
+          border: '1px solid var(--color-line)',
         }}
       >
         {options.map((size) => (
@@ -40,23 +40,20 @@ export const PageSizeSelector: React.FC<PageSizeSelectorProps> = ({
             style={{
               backgroundColor:
                 pageSize === size
-                  ? 'var(--color-components-pagination-item-bg-active)'
-                  : 'var(--color-components-pagination-item-bg)',
+                  ? 'var(--color-fill-selected)'
+                  : 'var(--color-surface)',
               color:
-                pageSize === size
-                  ? 'var(--color-components-pagination-item-text-active)'
-                  : 'var(--color-components-pagination-item-text)',
+                pageSize === size ? 'var(--color-fg)' : 'var(--color-fg-muted)',
             }}
             onMouseEnter={(e) => {
               if (pageSize !== size) {
                 e.currentTarget.style.backgroundColor =
-                  'var(--color-components-pagination-item-bg-hover)'
+                  'var(--color-fill-hover)'
               }
             }}
             onMouseLeave={(e) => {
               if (pageSize !== size) {
-                e.currentTarget.style.backgroundColor =
-                  'var(--color-components-pagination-item-bg)'
+                e.currentTarget.style.backgroundColor = 'var(--color-surface)'
               }
             }}
           >

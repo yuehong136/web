@@ -123,22 +123,22 @@ const SafeMermaid: React.FC<{
       themeVariables: {
         darkMode: appearance.resolvedMode === 'dark',
         primaryColor: getTokenValue(
-          'components-card-bg',
+          'raised',
           appearance.resolvedMode,
           appearance.preset,
         ),
         primaryTextColor: getTokenValue(
-          'text-primary',
+          'fg',
           appearance.resolvedMode,
           appearance.preset,
         ),
         primaryBorderColor: getTokenValue(
-          'border-default',
+          'line',
           appearance.resolvedMode,
           appearance.preset,
         ),
         lineColor: getTokenValue(
-          'text-secondary',
+          'fg-muted',
           appearance.resolvedMode,
           appearance.preset,
         ),
@@ -212,7 +212,7 @@ const MarkdownCode: React.FC<ComponentProps> = ({
   if (!block) {
     return (
       <code
-        className="rounded border border-[var(--color-components-code-border)] bg-[var(--color-components-code-bg)] px-1.5 py-0.5 font-mono text-sm text-[var(--color-components-code-text)]"
+        className="rounded border border-[var(--color-line-subtle)] bg-[var(--color-fill-muted)] px-1.5 py-0.5 font-mono text-sm text-[var(--color-fg)]"
         {...rest}
       >
         {children}
@@ -264,9 +264,7 @@ const IncompleteMarkdownToken: React.FC<ComponentProps> = ({ domNode }) => {
   if (!pendingText) return null
 
   return (
-    <span className="whitespace-pre-wrap text-text-tertiary">
-      {pendingText}
-    </span>
+    <span className="whitespace-pre-wrap text-fg-subtle">{pendingText}</span>
   )
 }
 

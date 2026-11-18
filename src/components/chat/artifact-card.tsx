@@ -42,22 +42,22 @@ export function ArtifactCard({
   return (
     <button
       type="button"
-      className="my-space-sm inline-flex max-w-full items-center gap-space-md rounded-radius-lg border border-border-subtle bg-background-surface p-space-md text-left text-sm text-text-primary hover:bg-state-hover focus-visible:outline focus-visible:outline-state-focus"
+      className="my-space-sm inline-flex max-w-full items-center gap-space-md rounded-radius-lg border border-line-subtle bg-surface p-space-md text-left text-sm text-fg hover:bg-fill-hover focus-visible:outline focus-visible:outline-line-focus"
       data-artifact-card={artifact.id}
       data-artifact-message-id={messageId}
       onClick={() => workspace?.viewArtifact(artifact)}
     >
       <Icon
-        className="size-icon-lg shrink-0 text-text-secondary"
+        className="size-icon-lg shrink-0 text-fg-muted"
         aria-hidden="true"
       />
       <span className="min-w-0 flex-1">
         <span className="block truncate font-medium">{name}</span>
-        <span className="block text-xs text-text-secondary">
+        <span className="block text-xs text-fg-muted">
           {t('readOnly')} · {stateLabel}
         </span>
       </span>
-      <span className="inline-flex shrink-0 items-center gap-space-xs text-xs text-text-secondary">
+      <span className="inline-flex shrink-0 items-center gap-space-xs text-xs text-fg-muted">
         {t(kind === 'unsupported' ? 'download' : 'preview')}
         <ChevronRight className="size-icon-sm" aria-hidden="true" />
       </span>

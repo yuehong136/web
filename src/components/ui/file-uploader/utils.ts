@@ -71,8 +71,8 @@ export function getFileColor(fileName: string | undefined): {
 } {
   const defaultColor = {
     bg: 'rgba(107, 114, 128, 0.1)',
-    text: 'var(--color-text-tertiary)',
-    accent: 'var(--color-text-tertiary)',
+    text: 'var(--color-fg-subtle)',
+    accent: 'var(--color-fg-subtle)',
   }
   if (!fileName) return defaultColor
 

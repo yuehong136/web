@@ -1,6 +1,6 @@
 .app-chat-area .markdown-content {
   overflow-wrap: anywhere;
-  color: var(--color-text-primary);
+  color: var(--color-fg);
 }
 .app-chat-area .markdown-content pre,
 .app-chat-area .markdown-content table {
@@ -9,18 +9,18 @@
 }
 
 .app-chat-area .markdown-content a {
-  color: var(--color-text-accent);
+  color: var(--color-accent-fg);
 }
 .app-chat-area .markdown-content code {
-  background: var(--color-background-subtle);
-  color: var(--color-text-primary);
+  background: var(--color-sunken);
+  color: var(--color-fg);
 }
 .app-chat-area .markdown-content pre {
-  background: var(--color-components-pre-bg);
-  border-color: var(--color-components-pre-border);
+  background: var(--color-code-bg);
+  border-color: var(--color-line-subtle);
 }
 .app-chat-area .markdown-content pre code {
-  color: var(--color-components-pre-text);
+  color: var(--color-code-fg);
 }
 .app-chat-area .markdown-content table {
   display: block;
@@ -36,11 +36,11 @@
 .app-chat-area .markdown-content th,
 .app-chat-area .markdown-content td {
   border: 0;
-  border-bottom: 1px solid var(--color-border-subtle);
+  border-bottom: 1px solid var(--color-line-subtle);
   padding: var(--space-sm) var(--space-base);
   text-align: left;
   vertical-align: top;
-  color: var(--color-text-primary);
+  color: var(--color-fg);
   background: transparent;
 }
 .app-chat-area .markdown-content th {
@@ -53,7 +53,7 @@
 .chat-transcript {
   /* Resolve text in the nearest theme scope (share/widget pages set their
      own), rather than inheriting the page theme's colour. */
-  color: var(--color-text-primary);
+  color: var(--color-fg);
   display: grid;
   gap: var(--space-lg);
   margin: 0;
@@ -103,8 +103,8 @@
   max-width: min(82%, 36rem);
   padding: var(--space-sm) var(--space-md);
   border-radius: calc(var(--radius-xl) + var(--space-xs));
-  background: var(--color-chat-bubble-user-bg);
-  color: var(--color-chat-bubble-user-text);
+  background: var(--color-fill-muted);
+  color: var(--color-fg);
   font-family: var(--font-reading, var(--font-sans));
   font-size: var(--text-base);
   line-height: var(--reading-line-height, 1.65);
@@ -118,7 +118,7 @@
   min-height: var(--control-height-sm);
   margin-top: var(--space-xs);
   margin-inline-start: calc(var(--space-xs) * -1);
-  color: var(--color-text-tertiary);
+  color: var(--color-fg-subtle);
 }
 [data-message-role='user'] .chat-message-actions {
   margin-inline: 0 calc(var(--space-xs) * -1);
@@ -127,7 +127,7 @@
   margin-inline-start: var(--space-sm);
   font-family: var(--font-mono);
   font-size: var(--text-xs);
-  color: var(--color-text-tertiary);
+  color: var(--color-fg-subtle);
   white-space: nowrap;
 }
 /* The last answer keeps its actions; earlier ones reveal them on hover or
@@ -148,7 +148,7 @@
 }
 .message-parts {
   min-width: 0;
-  color: var(--color-text-primary);
+  color: var(--color-fg);
 }
 .message-parts .markdown-content {
   font-family: var(--font-reading, var(--font-sans));
@@ -161,15 +161,15 @@
   overflow-x: auto;
 }
 .message-parts .markdown-content a {
-  color: var(--color-text-accent);
+  color: var(--color-accent-fg);
 }
 /* Mermaid diagrams in answers: picture or source, zoom and pan. */
 .mermaid-diagram {
   margin: var(--space-sm) 0 var(--space-base);
   overflow: hidden;
-  border: 1px solid var(--color-border-subtle);
+  border: 1px solid var(--color-line-subtle);
   border-radius: var(--radius-lg);
-  background: var(--color-background-surface);
+  background: var(--color-surface);
   font-family: var(--font-reading);
 }
 .mermaid-diagram-toolbar {
@@ -177,7 +177,7 @@
   align-items: center;
   gap: var(--space-sm);
   padding: var(--space-xs) var(--space-sm);
-  border-bottom: 1px solid var(--color-border-subtle);
+  border-bottom: 1px solid var(--color-line-subtle);
 }
 .mermaid-diagram-stage {
   min-height: 12rem;
@@ -213,8 +213,8 @@
   margin-inline-start: calc(var(--spacing-icon-sm) / 2 - 0.5px);
   padding: 0;
   list-style: none;
-  border-inline-start: 1px solid var(--color-border-default);
-  color: var(--color-text-secondary);
+  border-inline-start: 1px solid var(--color-line);
+  color: var(--color-fg-muted);
   font-size: var(--text-sm);
 }
 .run-step {
@@ -235,10 +235,10 @@
   display: none;
 }
 .run-step-heading:hover {
-  color: var(--color-text-primary);
+  color: var(--color-fg);
 }
 .run-step-heading:focus-visible {
-  outline: 2px solid var(--color-state-focus);
+  outline: 2px solid var(--color-line-focus);
   outline-offset: 2px;
 }
 .run-step-tool {
@@ -249,23 +249,23 @@
   gap: var(--space-xs);
   height: 1.25rem;
   padding: 0 var(--space-xs);
-  border: 1px solid var(--color-border-subtle);
+  border: 1px solid var(--color-line-subtle);
   border-radius: var(--radius-sm);
-  background: var(--color-background-surface);
-  color: var(--color-text-primary);
+  background: var(--color-surface);
+  color: var(--color-fg);
   font-family: var(--font-mono);
   font-size: var(--text-xs);
 }
 .run-step-meta,
 .run-step-duration {
   min-width: 0;
-  color: var(--color-text-tertiary);
+  color: var(--color-fg-subtle);
   white-space: nowrap;
 }
 .run-step-meta::before,
 .run-step-duration::before {
   content: '· ';
-  color: var(--color-text-tertiary);
+  color: var(--color-fg-subtle);
 }
 .run-step-meta.text-shimmer::before {
   content: '';
@@ -286,7 +286,7 @@ details[open] > .run-step-heading .run-step-chevron {
   gap: var(--space-sm);
   margin: var(--space-2xs) 0 var(--space-sm);
   padding-inline-start: calc(var(--spacing-icon-md) - 2px);
-  color: var(--color-text-secondary);
+  color: var(--color-fg-muted);
   overflow-wrap: anywhere;
 }
 @media (prefers-reduced-motion: reduce) {
@@ -307,14 +307,14 @@ details[open] > .run-step-heading .run-step-chevron {
 }
 .message-parts .markdown-content strong {
   font-weight: 600;
-  color: var(--color-text-primary);
+  color: var(--color-fg);
 }
 .message-parts .markdown-content table {
   display: block;
   width: max-content;
   max-width: 100%;
   overflow: auto;
-  border: 1px solid var(--color-border-subtle);
+  border: 1px solid var(--color-line-subtle);
   border-radius: var(--radius-lg);
   font-size: var(--text-sm);
   font-variant-numeric: tabular-nums;
@@ -322,16 +322,16 @@ details[open] > .run-step-heading .run-step-chevron {
 }
 .message-parts .markdown-content :is(th, td) {
   border: 0;
-  border-top: 1px solid var(--color-border-subtle);
+  border-top: 1px solid var(--color-line-subtle);
   text-align: start;
   vertical-align: top;
-  color: var(--color-text-primary);
+  color: var(--color-fg);
   background: transparent;
 }
 .message-parts .markdown-content thead :is(th, td) {
   border-top: 0;
-  background: var(--color-background-surface);
-  color: var(--color-text-tertiary);
+  background: var(--color-surface);
+  color: var(--color-fg-subtle);
   font-size: var(--text-xs);
 }
 
@@ -353,7 +353,7 @@ details[open] > .run-step-heading .run-step-chevron {
   height: 1.1em;
   margin-inline-start: 2px;
   border-radius: 1px;
-  background: var(--color-text-accent);
+  background: var(--color-caret);
   vertical-align: text-bottom;
 }
 @media (prefers-reduced-motion: no-preference) {

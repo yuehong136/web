@@ -40,7 +40,7 @@ export function BulkActionBar({
       aria-label={ariaLabel ?? t('common.patterns.bulk.label')}
       data-slot="bulk-action-bar"
       className={cn(
-        'flex max-w-full items-center gap-space-2xs rounded-radius-xl border border-border-default bg-background-surface py-space-xs pr-space-xs pl-space-base text-sm',
+        'flex max-w-full items-center gap-space-2xs rounded-radius-xl border border-line bg-surface py-space-xs pr-space-xs pl-space-base text-sm',
         placement === 'floating'
           ? 'absolute bottom-space-md left-1/2 z-20 w-max max-w-[calc(100%-var(--space-md)*2)] -translate-x-1/2 shadow-elevation-high'
           : 'shadow-elevation-low',
@@ -58,7 +58,7 @@ export function BulkActionBar({
       </div>
       <span
         aria-hidden="true"
-        className="mx-space-xs h-4 w-px shrink-0 bg-border-default"
+        className="mx-space-xs h-4 w-px shrink-0 bg-line"
       />
       <Button
         type="button"

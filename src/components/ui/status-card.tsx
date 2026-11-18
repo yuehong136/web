@@ -14,33 +14,33 @@ interface StatusCardProps {
 const statusConfig = {
   green: {
     labelKey: 'common.statusCard.healthy',
-    border: 'border-l-components-system-status-ok-border',
-    badgeBg: 'bg-components-system-status-ok-bg',
-    badgeText: 'text-components-system-status-ok-text',
-    iconBg: 'bg-components-system-status-ok-bg',
-    iconText: 'text-components-system-status-ok-text',
-    dotBg: 'bg-components-system-status-ok-text',
-    metricText: 'text-components-system-status-ok-text',
+    border: 'border-l-success-line',
+    badgeBg: 'bg-success-soft',
+    badgeText: 'text-success-fg',
+    iconBg: 'bg-success-soft',
+    iconText: 'text-success-fg',
+    dotBg: 'bg-success-fg',
+    metricText: 'text-success-fg',
   },
   red: {
     labelKey: 'common.statusCard.unhealthy',
-    border: 'border-l-components-system-status-error-border',
-    badgeBg: 'bg-components-system-status-error-bg',
-    badgeText: 'text-components-system-status-error-text',
-    iconBg: 'bg-components-system-status-error-bg',
-    iconText: 'text-components-system-status-error-text',
-    dotBg: 'bg-components-system-status-error-text',
-    metricText: 'text-components-system-status-error-text',
+    border: 'border-l-danger-line',
+    badgeBg: 'bg-danger-soft',
+    badgeText: 'text-danger-fg',
+    iconBg: 'bg-danger-soft',
+    iconText: 'text-danger-fg',
+    dotBg: 'bg-danger-fg',
+    metricText: 'text-danger-fg',
   },
   yellow: {
     labelKey: 'common.statusCard.warning',
-    border: 'border-l-components-system-status-warning-border',
-    badgeBg: 'bg-components-system-status-warning-bg',
-    badgeText: 'text-components-system-status-warning-text',
-    iconBg: 'bg-components-system-status-warning-bg',
-    iconText: 'text-components-system-status-warning-text',
-    dotBg: 'bg-components-system-status-warning-text',
-    metricText: 'text-components-system-status-warning-text',
+    border: 'border-l-warning-line',
+    badgeBg: 'bg-warning-soft',
+    badgeText: 'text-warning-fg',
+    iconBg: 'bg-warning-soft',
+    iconText: 'text-warning-fg',
+    dotBg: 'bg-warning-fg',
+    metricText: 'text-warning-fg',
   },
 } as const
 
@@ -64,9 +64,9 @@ const StatusCard: React.FC<StatusCardProps> = memo(
     return (
       <div
         className={cn(
-          'relative rounded-xl border border-components-system-status-card-border bg-components-system-status-card-bg shadow-elevation-low',
+          'relative rounded-xl border border-line bg-raised shadow-elevation-low',
           'border-l-[3px] transition-all duration-200',
-          'hover:border-components-system-status-card-border-hover hover:bg-components-system-accent-soft',
+          'hover:border-line-strong hover:bg-accent-soft',
           config.border,
           className,
         )}
@@ -83,19 +83,16 @@ const StatusCard: React.FC<StatusCardProps> = memo(
               >
                 <span className={config.iconText}>{icon}</span>
               </div>
-              <h3 className="text-sm leading-tight font-semibold text-components-system-header-title">
+              <h3 className="text-sm leading-tight font-semibold text-fg">
                 {title}
               </h3>
             </div>
             <span
               className={cn(
                 'inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs font-semibold',
-                status === 'green' &&
-                  'border-components-system-status-ok-border',
-                status === 'yellow' &&
-                  'border-components-system-status-warning-border',
-                status === 'red' &&
-                  'border-components-system-status-error-border',
+                status === 'green' && 'border-success-line',
+                status === 'yellow' && 'border-warning-line',
+                status === 'red' && 'border-danger-line',
                 config.badgeBg,
                 config.badgeText,
               )}
@@ -108,7 +105,7 @@ const StatusCard: React.FC<StatusCardProps> = memo(
           {/* Primary metric: response time */}
           {responseTime && (
             <div className="mb-3">
-              <p className="mb-0.5 text-xs text-components-system-header-description">
+              <p className="mb-0.5 text-xs text-fg-muted">
                 {t('common.statusCard.responseTime')}
               </p>
               <p
@@ -124,26 +121,24 @@ const StatusCard: React.FC<StatusCardProps> = memo(
 
           {/* Secondary metrics */}
           {otherMetrics.length > 0 && (
-            <div className="space-y-1.5 border-t border-components-system-section-divider pt-3">
+            <div className="space-y-1.5 border-t border-line-subtle pt-3">
               {displayedSecondaryMetrics.map(([key, value]) => (
                 <div
                   key={key}
                   className="flex items-center justify-between text-xs"
                 >
-                  <span className="text-components-system-version-tag-label">
-                    {key}
-                  </span>
-                  <span className="font-mono font-medium text-components-system-version-tag-value">
+                  <span className="text-fg-muted">{key}</span>
+                  <span className="font-mono font-medium text-fg-muted">
                     {value}
                   </span>
                 </div>
               ))}
               {remainingSecondaryMetricsCount > 0 && (
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-components-system-version-tag-label">
+                  <span className="text-fg-muted">
                     {t('common.statusCard.moreMetrics')}
                   </span>
-                  <span className="font-medium text-components-system-accent-text">
+                  <span className="font-medium text-accent-fg">
                     +{remainingSecondaryMetricsCount}
                   </span>
                 </div>
@@ -153,10 +148,8 @@ const StatusCard: React.FC<StatusCardProps> = memo(
 
           {/* Error Message */}
           {error && (
-            <div className="mt-3 rounded-lg border border-components-system-health-error-border bg-components-system-health-error-bg p-2.5">
-              <p className="text-xs leading-relaxed text-components-system-health-error-text">
-                {error}
-              </p>
+            <div className="mt-3 rounded-lg border border-danger-line bg-danger-soft p-2.5">
+              <p className="text-xs leading-relaxed text-danger-fg">{error}</p>
             </div>
           )}
         </div>

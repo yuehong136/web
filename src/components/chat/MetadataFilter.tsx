@@ -196,7 +196,7 @@ export const MetadataFilter: React.FC<MetadataFilterProps> = ({
     <div className="space-y-4">
       {/* 模式选择 */}
       <div className="space-y-2">
-        <Label className="text-sm font-medium text-text-primary">
+        <Label className="text-sm font-medium text-fg">
           {t('knowledge.search.metadataFilter.label')}
         </Label>
         <Select
@@ -220,18 +220,18 @@ export const MetadataFilter: React.FC<MetadataFilterProps> = ({
       </div>
 
       {mode === 'auto' && (
-        <p className="text-xs text-text-tertiary">
+        <p className="text-xs text-fg-subtle">
           {t('knowledge.search.metadataFilter.autoHelp')}
         </p>
       )}
 
       {mode === 'semi_auto' && (
         <div className="space-y-3">
-          <p className="text-xs text-text-tertiary">
+          <p className="text-xs text-fg-subtle">
             {t('knowledge.search.metadataFilter.semiAutoHelp')}
           </p>
           {metadataFields.length === 0 ? (
-            <p className="text-xs text-text-tertiary">
+            <p className="text-xs text-fg-subtle">
               {t('knowledge.search.metadataFilter.noFields')}
             </p>
           ) : (
@@ -243,7 +243,7 @@ export const MetadataFilter: React.FC<MetadataFilterProps> = ({
                 return (
                   <div
                     key={field}
-                    className="flex items-center gap-space-sm rounded-radius-md border border-border-default bg-surface-secondary px-space-sm py-space-xs"
+                    className="flex items-center gap-space-sm rounded-radius-md border border-line bg-sunken px-space-sm py-space-xs"
                   >
                     <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-space-xs">
                       <Checkbox
@@ -253,7 +253,7 @@ export const MetadataFilter: React.FC<MetadataFilterProps> = ({
                         }
                         disabled={disabled}
                       />
-                      <span className="truncate text-sm text-text-secondary">
+                      <span className="truncate text-sm text-fg-muted">
                         {field}
                       </span>
                     </label>
@@ -289,7 +289,7 @@ export const MetadataFilter: React.FC<MetadataFilterProps> = ({
           {/* 逻辑操作符选择（当有多个条件时显示） */}
           {conditions.length > 1 && (
             <div className="flex items-center gap-2">
-              <span className="text-sm text-text-secondary">
+              <span className="text-sm text-fg-muted">
                 {t('knowledge.search.metadataFilter.logic')}
               </span>
               <Select
@@ -317,7 +317,7 @@ export const MetadataFilter: React.FC<MetadataFilterProps> = ({
             {conditions.map((condition, index) => (
               <div
                 key={index}
-                className="flex flex-col gap-space-sm rounded-radius-lg border border-border-subtle bg-background-subtle p-space-base"
+                className="flex flex-col gap-space-sm rounded-radius-lg border border-line-subtle bg-sunken p-space-base"
               >
                 {/* 字段名和删除按钮 */}
                 <div className="flex items-center gap-2">
@@ -364,7 +364,7 @@ export const MetadataFilter: React.FC<MetadataFilterProps> = ({
                     disabled={disabled}
                     className="h-8 w-8 p-0"
                   >
-                    <X className="h-4 w-4 text-text-tertiary" />
+                    <X className="h-4 w-4 text-fg-subtle" />
                   </Button>
                 </div>
 

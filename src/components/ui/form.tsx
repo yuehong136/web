@@ -113,7 +113,7 @@ const FormLabel = React.forwardRef<HTMLLabelElement, FormLabelProps>(
       <Label
         ref={ref}
         className={cn(
-          'text-sm text-text-secondary',
+          'text-sm text-fg-muted',
           horizontal && 'w-1/4 shrink-0',
           className,
         )}
@@ -121,7 +121,7 @@ const FormLabel = React.forwardRef<HTMLLabelElement, FormLabelProps>(
         {...props}
       >
         <span className="flex items-center gap-0.5">
-          {required && <span className="text-status-error">*</span>}
+          {required && <span className="text-danger-fg">*</span>}
           {children}
           {tooltip && <FormTooltip tooltip={tooltip} />}
         </span>
@@ -190,7 +190,7 @@ const FormDescription = React.forwardRef<
     <p
       ref={ref}
       id={formDescriptionId}
-      className={cn('text-sm text-text-tertiary', className)}
+      className={cn('text-sm text-fg-subtle', className)}
       {...props}
     />
   )
@@ -212,7 +212,7 @@ const FormMessage = React.forwardRef<
     <p
       ref={ref}
       id={formMessageId}
-      className={cn('text-sm font-medium text-status-error', className)}
+      className={cn('text-sm font-medium text-danger-fg', className)}
       {...props}
     >
       {body}

@@ -39,7 +39,7 @@ const DEFAULT_FILE_UPLOADER_TEXTS: FileUploaderTexts = {
     <>
       {count} files selected
       {Number.isFinite(maxFileCount) ? (
-        <span className="text-text-tertiary"> / {maxFileCount}</span>
+        <span className="text-fg-subtle"> / {maxFileCount}</span>
       ) : null}
     </>
   ),

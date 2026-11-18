@@ -8,12 +8,12 @@ export const ChatBubbleLoading = React.memo(() => {
   const { t } = useTranslation()
   return (
     <output
-      className="inline-flex min-h-[var(--control-height-sm)] items-center gap-space-xs text-sm text-text-secondary"
+      className="inline-flex min-h-[var(--control-height-sm)] items-center gap-space-xs text-sm text-fg-muted"
       aria-label={t('common.loading')}
     >
       <LoaderCircle
         aria-hidden="true"
-        className="size-icon-sm animate-spin text-text-tertiary motion-reduce:animate-none"
+        className="size-icon-sm animate-spin text-fg-subtle motion-reduce:animate-none"
       />
       <span className="text-shimmer">{t('chat.thread.thinking')}</span>
     </output>

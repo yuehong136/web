@@ -14,7 +14,7 @@ interface CodeHighlightProps {
 function PlainCode({ code }: { code: string }) {
   return (
     <pre className="m-0 overflow-x-auto px-space-md py-space-base text-sm leading-relaxed">
-      <code className="font-mono text-text-primary">{code}</code>
+      <code className="font-mono text-fg">{code}</code>
     </pre>
   )
 }

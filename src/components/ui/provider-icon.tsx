@@ -231,7 +231,7 @@ function ProviderLogoImage({
       style={size === undefined ? undefined : { width: size, height: size }}
     >
       {failed ? (
-        <Boxes aria-hidden className="size-full text-text-secondary" />
+        <Boxes aria-hidden className="size-full text-fg-muted" />
       ) : (
         <img
           src={url}
@@ -293,10 +293,7 @@ export const ProviderIcon: React.FC<ProviderIconProps> = ({
 
   // 默认图标（未找到匹配的厂商）
   return (
-    <Boxes
-      aria-hidden
-      className={cn('shrink-0 text-text-secondary', className)}
-    />
+    <Boxes aria-hidden className={cn('shrink-0 text-fg-muted', className)} />
   )
 }
 

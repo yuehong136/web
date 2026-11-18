@@ -67,10 +67,10 @@ export const GenerationPresetSelector: React.FC<
 
   return (
     <div className={cn('space-y-2', className)}>
-      <label className="block text-sm font-medium text-text-primary">
+      <label className="block text-sm font-medium text-fg">
         {t('chat.generationPreset.label')}
       </label>
-      <div className="flex rounded-radius-lg border border-components-segmented-border bg-components-segmented-bg p-space-xs">
+      <div className="flex rounded-radius-lg border border-line-subtle bg-sunken p-space-xs">
         {generationPresetOptions.map((option) => {
           const isActive = value === option.value
           return (
@@ -83,13 +83,11 @@ export const GenerationPresetSelector: React.FC<
               title={t(option.descriptionKey)}
               className={cn(
                 'flex-1 rounded-radius-md px-space-base py-space-xs text-xs font-medium transition-colors duration-200',
-                'focus:outline-hidden focus-visible:ring-2 focus-visible:ring-state-focus',
+                'focus:outline-hidden focus-visible:ring-2 focus-visible:ring-line-focus',
                 isActive
-                  ? 'bg-components-segmented-item-bg-active text-components-segmented-item-text-active shadow-elevation-low'
-                  : 'bg-components-segmented-item-bg text-components-segmented-item-text',
-                !isActive &&
-                  !disabled &&
-                  'hover:bg-components-segmented-item-bg-hover',
+                  ? 'bg-overlay text-fg shadow-elevation-low'
+                  : 'bg-transparent text-fg-muted',
+                !isActive && !disabled && 'hover:bg-fill-hover',
                 disabled && 'cursor-not-allowed opacity-50',
               )}
             >

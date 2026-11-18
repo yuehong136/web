@@ -74,7 +74,7 @@ export function AssetListControls({
       </Button>
       <fieldset
         aria-label={labels.view}
-        className="inline-flex gap-space-2xs rounded-radius-lg border border-border-default bg-background-subtle p-space-2xs"
+        className="inline-flex gap-space-2xs rounded-radius-lg border border-line bg-sunken p-space-2xs"
       >
         <Button
           type="button"

@@ -37,7 +37,7 @@ export interface ReferencePanelProps {
 }
 
 const FOCUS_RING_CLASS =
-  'focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden'
+  'focus-visible:ring-2 focus-visible:ring-line-focus focus-visible:outline-hidden'
 
 interface DocumentGroupData {
   /** 文档名；缺失时为空串，渲染时显示“未知文档” */
@@ -90,13 +90,13 @@ const ChunkItem: FC<ChunkItemProps> = ({ chunk, index, onClick }) => {
       type="button"
       className={cn(
         'flex w-full items-start gap-2 rounded-md px-3 py-2 text-left transition-colors',
-        'hover:bg-state-hover',
+        'hover:bg-fill-hover',
         FOCUS_RING_CLASS,
       )}
       onClick={() => onClick?.(chunk)}
     >
       {/* 索引标记 */}
-      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-state-focus-10 text-xs font-medium text-text-accent">
+      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-accent-soft text-xs font-medium text-accent-fg">
         {displayIndex}
       </span>
 
@@ -104,7 +104,7 @@ const ChunkItem: FC<ChunkItemProps> = ({ chunk, index, onClick }) => {
       <div className="min-w-0 flex-1">
         <div className="mb-0.5 flex items-center gap-2">
           {/* 类型标签 */}
-          <span className="rounded bg-background-subtle px-1.5 py-0.5 text-xs text-text-tertiary">
+          <span className="rounded bg-sunken px-1.5 py-0.5 text-xs text-fg-subtle">
             {t(getDocTypeLabelKey(chunk.doc_type))}
           </span>
         </div>
@@ -113,13 +113,13 @@ const ChunkItem: FC<ChunkItemProps> = ({ chunk, index, onClick }) => {
         <ChunkExcerpt
           chunk={chunk}
           max={100}
-          className="line-clamp-2 text-sm text-text-secondary"
+          className="line-clamp-2 text-sm text-fg-muted"
         />
       </div>
 
       <ChevronRight
         aria-hidden
-        className="mt-0.5 size-icon-sm shrink-0 text-text-tertiary"
+        className="mt-0.5 size-icon-sm shrink-0 text-fg-subtle"
       />
     </button>
   )
@@ -156,31 +156,31 @@ const DocumentGroup: FC<DocumentGroupProps> = ({
     <div
       className={
         inline
-          ? 'overflow-hidden border-l border-border-subtle pl-space-xs'
-          : 'overflow-hidden rounded-lg border border-components-card-border bg-components-card-bg'
+          ? 'overflow-hidden border-l border-line-subtle pl-space-xs'
+          : 'overflow-hidden rounded-lg border border-line-subtle bg-raised'
       }
     >
       {/* 文档头部 */}
       <div
         className={cn(
           'flex items-center gap-2 px-3 py-2',
-          !inline && 'border-b border-border-subtle bg-background-subtle',
+          !inline && 'border-b border-line-subtle bg-sunken',
         )}
       >
         {getDocTypeIcon(primaryChunk?.doc_type, docName, 'size-icon-sm')}
         <span
-          className="flex-1 truncate text-sm font-medium text-text-primary"
+          className="flex-1 truncate text-sm font-medium text-fg"
           title={displayName}
         >
           {displayName}
         </span>
-        <span className="rounded-full bg-background-default px-1.5 py-0.5 text-xs text-text-tertiary">
+        <span className="rounded-full bg-canvas px-1.5 py-0.5 text-xs text-fg-subtle">
           {t('reference.panel.chunkCount', { count: chunks.length })}
         </span>
       </div>
 
       {/* Chunk 列表 */}
-      <div className="divide-y divide-border-subtle">
+      <div className="divide-y divide-line-subtle">
         {visibleChunks.map(({ chunk, index }) => (
           <ChunkItem
             key={`${chunk.id || chunk.document_id || 'chunk'}-${index}`}
@@ -197,7 +197,7 @@ const DocumentGroup: FC<DocumentGroupProps> = ({
           type="button"
           aria-expanded={expanded}
           className={cn(
-            'flex w-full items-center justify-center gap-1 border-t border-border-subtle px-3 py-2 text-xs font-medium text-text-accent transition-colors',
+            'flex w-full items-center justify-center gap-1 border-t border-line-subtle px-3 py-2 text-xs font-medium text-accent-fg transition-colors',
             FOCUS_RING_CLASS,
           )}
           onClick={() => setExpanded(!expanded)}
@@ -257,24 +257,23 @@ export const ReferencePanel: FC<ReferencePanelProps> = ({
         className={cn(
           'flex items-center gap-2 transition-colors',
           inline
-            ? 'max-w-full rounded-md py-1 text-text-secondary hover:text-text-primary'
-            : 'w-full rounded-lg border border-border-subtle bg-background-subtle px-3 py-2',
+            ? 'max-w-full rounded-md py-1 text-fg-muted hover:text-fg'
+            : 'w-full rounded-lg border border-line-subtle bg-sunken px-3 py-2',
           FOCUS_RING_CLASS,
         )}
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <BookOpen
           aria-hidden
-          className="size-icon-sm shrink-0 text-text-accent"
+          className="size-icon-sm shrink-0 text-accent-fg"
         />
-        <span className="flex-1 text-left text-sm font-medium whitespace-nowrap text-text-primary">
+        <span className="flex-1 text-left text-sm font-medium whitespace-nowrap text-fg">
           {t('reference.panel.title')}
         </span>
         <span
           className={cn(
             'shrink-0 text-xs whitespace-nowrap',
-            !inline &&
-              'rounded-full bg-state-focus-10 px-2 py-0.5 text-text-accent',
+            !inline && 'rounded-full bg-accent-soft px-2 py-0.5 text-accent-fg',
           )}
         >
           <span className="hidden @2xs:inline">
@@ -285,7 +284,7 @@ export const ReferencePanel: FC<ReferencePanelProps> = ({
         </span>
         <ToggleIcon
           aria-hidden
-          className="size-icon-sm shrink-0 text-text-tertiary"
+          className="size-icon-sm shrink-0 text-fg-subtle"
         />
       </button>
 

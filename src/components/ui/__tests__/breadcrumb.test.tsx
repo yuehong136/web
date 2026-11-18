@@ -96,6 +96,6 @@ it('composes a native child link without nesting anchors and retains the navigat
   expect(container.querySelectorAll('a')).toHaveLength(1)
   const link = container.querySelector('a')!
   expect(link.getAttribute('href')).toBe('/settings/profile')
-  expect(link.className).toContain('text-text-secondary')
+  expect(link.className).toContain('text-fg-muted')
   expect(link.hasAttribute('asChild')).toBe(false)
 })
