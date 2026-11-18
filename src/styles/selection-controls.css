@@ -42,4 +42,50 @@
   input[type='range'] {
     accent-color: var(--color-accent-solid);
   }
+
+  /*
+   * @tailwindcss/forms gives text fields a white ground, a gray-500 border and
+   * placeholder, and a blue-600 focus ring, all outside the tokens (a white
+   * field in dark mode, a blue ring in every scheme). Utilities still win:
+   * they sit in a later layer.
+   */
+  :is(
+    [type='text'],
+    input:where(:not([type])),
+    [type='email'],
+    [type='url'],
+    [type='password'],
+    [type='number'],
+    [type='date'],
+    [type='datetime-local'],
+    [type='month'],
+    [type='search'],
+    [type='tel'],
+    [type='time'],
+    [type='week'],
+    [multiple],
+    textarea,
+    select
+  ) {
+    background-color: var(--color-surface);
+    border-color: var(--color-line);
+
+    &:focus {
+      --tw-ring-color: var(--color-line-focus);
+      --tw-ring-offset-color: var(--color-surface);
+      border-color: var(--color-line-focus);
+    }
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--color-fg-subtle);
+  }
+
+  /* Tailwind's ring offset defaults to white; dark schemes need the surface. */
+  *,
+  ::before,
+  ::after {
+    --tw-ring-offset-color: var(--color-surface);
+  }
 }

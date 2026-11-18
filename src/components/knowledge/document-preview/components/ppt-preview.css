@@ -6,13 +6,9 @@
   color-scheme: light;
 }
 
-/* 幻灯片滚动区：presentation viewer 风格深灰背景 */
+/* 幻灯片滚动区：凹陷底衬托白色幻灯片，明暗与方案由令牌承接 */
 .ppt-scroll-area {
-  background: #e8e8e8;
-}
-
-html[data-theme='dark'] .ppt-scroll-area {
-  background: #1c1c1e;
+  background: var(--color-sunken);
 }
 
 /* 修复 slide 间的黑条：

@@ -93,14 +93,56 @@ test('Tailwind aliases only point at runtime tokens', () => {
 // Embedded widgets apply the host's colors by re-pointing existing tokens inside
 // their own scope; they may not invent new token names.
 const SCOPED_OVERRIDES = /pages[\\/]agent[\\/]share[\\/]widget-theme\.css:/
+// The Markdown editor bridge maps the vendor's Primer palette (same --color-
+// prefix) to our roles; a vendor name that is also one of our roles may only
+// inherit the scheme's value.
+const VENDOR_BRIDGE =
+  /pages[\\/]studio[\\/]create-app[\\/]components[\\/]editor\.css:/
 
 test('only the theme generator declares --color-* variables', () => {
-  const problems = scan(/^\s*--color-([\w-]+)\s*:/gm, (match, where) =>
-    SCOPED_OVERRIDES.test(where) && tokens.has(match[1])
-      ? undefined
-      : `${where} declares --color-${match[1]}`,
+  const problems = scan(
+    /^\s*--color-([\w-]+)\s*:\s*([^;]+);/gm,
+    (match, where) => {
+      const [, name, value] = match
+      if (SCOPED_OVERRIDES.test(where) && tokens.has(name)) return undefined
+      if (
+        VENDOR_BRIDGE.test(where) &&
+        (!tokens.has(name) || value.trim() === 'inherit')
+      )
+        return undefined
+      return `${where} declares --color-${name}`
+    },
   )
   assert.equal(problems.length, 0, report(problems))
+})
+
+// Third-party CSS that reuses our prefix would silently replace a role inside
+// its subtree. Every such collision must be neutralized by the bridge.
+test('vendor palettes that share a role name inherit the scheme value', () => {
+  const root = fileURLToPath(new URL('../../../../', import.meta.url))
+  const bridge = readFileSync(
+    join(srcDir, 'pages/studio/create-app/components/editor.css'),
+    'utf8',
+  )
+  const vendorFiles = [
+    'node_modules/@uiw/react-md-editor/markdown-editor.css',
+    'node_modules/@uiw/react-markdown-preview/markdown.css',
+  ]
+  const collisions = new Set(
+    vendorFiles.flatMap((file) =>
+      [
+        ...readFileSync(join(root, file), 'utf8').matchAll(
+          /--color-([\w-]+)\s*:/g,
+        ),
+      ]
+        .map((match) => match[1])
+        .filter((name) => tokens.has(name)),
+    ),
+  )
+  const unresolved = [...collisions].filter(
+    (name) => !new RegExp(`--color-${name}\\s*:\\s*inherit;`).test(bridge),
+  )
+  assert.deepEqual(unresolved, [])
 })
 
 test('var(--color-*) references resolve to runtime tokens', () => {

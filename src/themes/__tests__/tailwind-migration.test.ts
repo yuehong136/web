@@ -178,6 +178,27 @@ test('native choice controls override forms defaults with scoped selection color
   )
 })
 
+test('text fields replace the forms plugin palette with roles', async () => {
+  const css = (await compiler).build([])
+  // The plugin's defaults stay in the output (its blue-600 ring among them).
+  // The overrides win on specificity, not order: :is([type='text'], …) is
+  // (0,1,0) against the plugin's input:where([type='text']) at (0,0,1).
+  assert.match(css, /--tw-ring-color: oklch\(54\.6% 0\.245 262\.881\)/)
+  assert.match(
+    css,
+    /&:focus \{\s*--tw-ring-color: var\(--color-line-focus\);\s*--tw-ring-offset-color: var\(--color-surface\);\s*border-color: var\(--color-line-focus\)/,
+  )
+  assert.match(css, /::placeholder \{\s*color: var\(--color-fg-subtle\)/)
+  assert.match(
+    css,
+    /:is\(\s*\[type='text'\][\s\S]*?\) \{\s*background-color: var\(--color-surface\);\s*border-color: var\(--color-line\)/,
+  )
+  assert.match(
+    css,
+    /\*,\s*::before,\s*::after \{\s*--tw-ring-offset-color: var\(--color-surface\)/,
+  )
+})
+
 test('selected input text and options compile independently of action colors', async () => {
   const css = (await compiler).build([
     'selection:bg-accent-solid',

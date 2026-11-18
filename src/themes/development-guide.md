@@ -67,6 +67,12 @@ npm run test:design-tokens  # 合同测试：所有方案 × 明暗 × 对比度
 
 `ScopedTheme` 可以覆盖 `theme`、`preset`、`density`、`textScale`、`motion`、`contrast`、`action`，未覆盖的维度继承父级（品牌种子全局只有一份，作用域里选 `custom` 时用的是同一个品牌色）。门户内容用 `usePortalContainer()` 挂到作用域容器里。嵌入组件（Agent 分享挂件）在 `pages/agent/share/widget-theme.css` 里把宿主颜色赋给语义角色，不新增令牌名。
 
+## 第三方样式
+
+- `@tailwindcss/forms` 给原生文本框、文本域、下拉框和选择控件的白底、灰边、灰色占位文字和 blue-600 焦点环，由 `styles/selection-controls.css` 在 base 层改为语义角色；组件自己的工具类仍然优先。
+- 第三方 CSS 如果也用 `--color-` 前缀（例如 Markdown 编辑器自带的 GitHub Primer 变量），在它的局部样式里桥接到语义角色，同名的角色写 `inherit`（见 `pages/studio/create-app/components/editor.css`）。`token-closure.test.ts` 会检查这类冲突是否都已处理。
+- 文档内容本身（PDF 页、PPT 幻灯片、Excel 表格页）保持纸面原色，外围的查看器界面走令牌。
+
 ## 外观偏好 API
 
 ```ts

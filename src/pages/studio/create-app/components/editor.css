@@ -1,3 +1,34 @@
+/*
+ * @uiw/react-md-editor and react-markdown-preview ship GitHub Primer variables
+ * under the same --color- prefix. Five share a name and a meaning with our
+ * roles (fg-muted, fg-subtle, accent-fg, danger-fg, success-fg) and inherit the
+ * scheme's value instead of Primer's; the rest are bridged to roles, so the
+ * editor follows the active scheme. The doubled class outranks the vendor's
+ * [data-color-mode] selectors.
+ */
+.studio-instruction-editor.studio-instruction-editor
+  :is(.wmde-markdown, .wmde-markdown-var) {
+  --color-fg-default: var(--color-fg);
+  --color-fg-muted: inherit;
+  --color-fg-subtle: inherit;
+  --color-canvas-default: var(--color-surface);
+  --color-canvas-subtle: var(--color-sunken);
+  --color-border-default: var(--color-line);
+  --color-border-muted: var(--color-line-subtle);
+  --color-neutral-muted: var(--color-fill-muted);
+  --color-accent-fg: inherit;
+  --color-accent-emphasis: var(--color-accent-solid);
+  --color-attention-fg: var(--color-warning-fg);
+  --color-attention-emphasis: var(--color-warning-solid);
+  --color-attention-subtle: var(--color-warning-soft);
+  --color-danger-fg: inherit;
+  --color-danger-emphasis: var(--color-danger-solid);
+  --color-success-fg: inherit;
+  --color-success-emphasis: var(--color-success-solid);
+  --color-done-fg: var(--color-ai-fg);
+  --color-done-emphasis: var(--color-ai-solid);
+  --color-copied-active-bg: var(--color-success-soft);
+}
 .studio-instruction-editor .w-md-editor {
   background: var(--color-surface);
   color: var(--color-fg);
