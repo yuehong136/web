@@ -13,7 +13,6 @@ const valueRows = [
   '4:b48',
   '4:c44',
   '3:302e',
-  '4:835',
   '3:5252',
   '3:6ea4',
   '3:70a6',
@@ -37,7 +36,6 @@ const valueRows = [
   '6:d',
   '3:9696',
   '2:2233c',
-  '3:3253',
   '3:5624',
   '4:c93',
   '3:6662',
@@ -75,7 +73,6 @@ const valueRows = [
   '2:e1216',
   '3:2459',
   '2:f1312',
-  '3:2969',
   '1:101214',
   '2:11115',
   '4:213',
@@ -135,7 +132,6 @@ const valueRows = [
   '2:f1d00',
   '3:63e1',
   '1:301c00',
-  '2:12062',
   '2:23a3f',
   '2:4373a',
   '4:a39',
@@ -168,8 +164,7 @@ const valueRows = [
   '2:24948',
   '3:99d0',
   '2:31c00',
-  '2:42900',
-  '3:484c',
+  '2:4484c',
   '2:6484b',
   '2:7474d',
   '2:83389',
@@ -181,7 +176,6 @@ const valueRows = [
   '2:b97d2',
   '2:cbd88',
   '2:d0d0e',
-  '3:2107',
   '3:4740',
   '2:f0812',
   '1:509f9a',
@@ -277,7 +271,6 @@ const valueRows = [
   '3:eceb',
   '1:905d01',
   '3:a5f8',
-  '3:ddd7',
   '2:15b02',
   '3:82dc',
   '2:27fe5',
@@ -297,7 +290,6 @@ const valueRows = [
   '2:f8d00',
   '3:a1a3',
   '1:a0a0a5',
-  '3:d3ff',
   '2:194e7',
   '2:34d16',
   '2:45009',
@@ -321,9 +313,7 @@ const valueRows = [
   '2:2403d',
   '3:76cd',
   '2:3bab9',
-  '2:4cdfe',
-  '3:dfff',
-  '3:efeb',
+  '2:4dfff',
   '2:55d2a',
   '3:7a04',
   '3:b9bd',
@@ -371,8 +361,6 @@ const valueRows = [
   '3:5c5f',
   '3:7c4a',
   '2:ac3bb',
-  '3:e6ff',
-  '2:bc4ff',
   '2:c243d',
   '2:d7a44',
   '2:f8c03',
@@ -388,7 +376,6 @@ const valueRows = [
   '3:f4d8',
   '2:4d6d8',
   '4:ad9',
-  '3:e2ff',
   '2:59801',
   '3:d6d7',
   '2:6d7db',
@@ -413,7 +400,6 @@ const valueRows = [
   '2:f6a63',
   '3:eafe',
   '1:e18abe',
-  '3:deff',
   '2:2666a',
   '3:7d36',
   '2:37725',
@@ -466,15 +452,13 @@ const valueRows = [
   '4:dfd',
   '6:f',
   '2:cfdfe',
-  '2:dbf71',
-  '3:e988',
+  '2:de988',
   '3:fcfe',
   '2:ecac5',
   '3:fcfb',
   '2:f9855',
   '3:ba5d',
   '4:b40',
-  '5:98',
   '3:c9c8',
   '4:cb3',
   '4:daf',
@@ -482,8 +466,6 @@ const valueRows = [
   '3:d090',
   '6:5',
   '4:189',
-  '4:9c6',
-  '4:bb1',
   '4:ef6',
   '3:e2df',
   '5:e1',
@@ -616,7 +598,7 @@ for (const row of valueRows) {
 // Each combination is either one constant, a light/dark pair, or one value per
 // theme ordered by scheme then mode. Numeric references avoid repeating token names.
 const combinations =
-  '3n5n2o5b194w7w9q677k7f9i.9t2f8y1q860md066ar4kd45s.dpdpdpdpdpdpdpdpdpdp3e2t.bs1rbi1oaz12dl3pc42udm3i.b71tay189u04dd4cbn36df42.3h410x2g0z1j8i8s636rcecl.2y3f0v140w1b83895r6cbmcw.2jbt0x2g0z1j2wc2636r2ibr.3ram0v140w1b45av5r6c3lai.dp1ydpdpdpdpdp1zdpdpdp1w.647j074e1a3184a17c8n7b93.3z5q111p3b4rauc8697aafc1.dtdudrdsgkgjdye0dvdwdzdx.ar4l8q0l7e06d16abz5od35p.dpdpdpdpdpdpdpdpdpdp3c2q.c42rbg00ab01dk3tci3ddo3g.bn37ap03910hdb4fca3wde40.6f6o0b0o1i1e8g987m858t8e.5z6b1308091c7v8b787m9o95.9nb46g7a2a4a8valb2cg7y97.727r172p0r1n9wbb8c9p8ha7.d94z.8mbd.dg4o.7ia8.c043.6d8d.ah29.0a5v.9s0j.091g.ax21.0y5f.bn3q.6182.d84n.7uac.cj1ycd1scc1ucm1zck1xcf1w.2jbt2cbq2dbp2wc22mbw2ibr.94b694b694b69cba94b694b6.ct6uct6uct6ucz70ct6uct6u.dp.di47di47di47dj48di47di47.d94sd94sd94sda4vd94sd94s.aaaqaaaqaaaqa5b1aaaqaaaq.9l9z9l9z9l9z9ba59l9z9l9z.b01m.2255.8w5h8l588o5d9f5t8x5j8u5g.cp1yco1scn1ucu1zcs1xcp1w.5a7z517q537s5m885e80577x.62755w6w5x6z6e7d65766073.fvemf7e8ffe1gbf0g3etfnef.fwenf8e9fge2gcf1g4eufoeg.fzeqfbecfje5gff4g7exfrej.fxepf9ebfhe4gdf3g5ewfpei.cr5l.0y4q.900k.bi0s.ax02.0c.14.dpbtdpbqdpbpdpc2dpbwdpbr.g0erfcedfke6ggf5g8eyfsek.3h410x2g0z1j8i8s636r7fcl.g1esfdeefle7ghf6g9ezftel.fyeofaeafie3gef2g6evfqeh.at3uae3kaj3mb346aw3yao3s.dp1ydp1sdp1udp1zdp1xdp1w.c52nbu2ebx2hcb2zc72sc32k.bl32be2vbf2xbv3abo34bk30.569m4x99509a5ia25c9r549k.4ian4ba94dad4ub54jas4hag.dp2ndp2edp2hcu2zdp2sdp2k.cj32cd2vcc2xcm3ack34cf30.6t6p6l6i6n6k746x6v6s6q6m.1k.77c977c977c977c977c987ch.g2dqfedqfmdqgidqgadqfudq.8a0u.9y0i.0n.dp26dp20dp23cu2bdp28dp24.10161h0q1016101610161016.494p25351d0p8j9e6j717t8f.8k9h8k9h8k9h797o8k9g92a0.38446h6y3844384438443844.1h0q150f4m591h0e1h1f1h0q.9vby.7n9j.0g27.7p9x.5u7g.1l52.8zb8.9dbh.0d4y.5y7l.ak1va30t8r05d64tb93jd74g.8p2f811q7h0mcy66a44kcq5s.7796779677967796779687a6.d55kd55kd55kd55kd55kd268.392l392l392l392l392l3o33.dn3gdn3gdn3gdn3gdn3gdk3v.dh3xdh3xdh3xdh3xdh3xdc4f.c9c9c9c9c9c9c9c9c9c9c6ch.bjcxbjcxbjcxbjcxbjcxbccv'
+  '3j5h2l55174q7p9g617d7998.9j2c8o1o7y0lck60ae4fco5m.d7d7d7d7d7d7d7d7d7d73b2q.be1pb41mam10d33lbq2rd43f.au1ral169k04cv48b933cx3y.3e3x0v2d0x1h8a8i5x6lc0c7.2v3c0t120u197v815l66b8ch.2gbf0v2d0x1h2tbo5x6l2fbd.3na90t120u1941ai5l663ha6.d71vd7d7d7d7d71wd7d7d71t.5y7c064a182y7w9r768f758t.3v5k0z1n384mahbu6374a3bn.dbdcd9dag2g1dgdidddedhdf.ae4g8h0k7805cl64bl5icn5j.d7d7d7d7d7d7d7d7d7d7392n.bq2ob2009z01d23pc43ad63d.b934ac038r0gct4bbw3scw3w.696i0a0n1g1c888y7f7x8j86.5t651107081a7o83727f9e8v.9dar6a7427468la8apc27r8x.6w7k152m0q1l9max849f899v.cr4t.8eaz.cy4j.7b9w.bm3z.6785.a526.095p.9i0i.081e.ak1y.0w59.b93m.5v7u.cq4i.7na0.c51vbz1qby1sc81wc61uc11t.2gbf29bc2abb2tbo2jbi2fbd.8uat8uat8uat92aw8uat8uat.ce6oce6oce6ocj6uce6oce6o.d7.d043d043d043d144d043d043.cr4ncr4ncr4ncs4pcr4ncr4n.9yad9yad9yad9tao9yad9yad.9b9p9b9p9b9p919t9b9p9b9p.8m5b8d528g57955n8n5d8k5a.cb1vca1qc91scf1wcd1ucb1t.547s4v7j4x7l5g80587t517q.5w6z5q6q5r6t68775z705u6x.fde4epdqexdjfteiflebf5dx.fee5eqdreydkfuejfmecf6dy.fhe8etduf1dnfxemfpeff9e1.ffe7erdtezdmfvelfneef7e0.cc5f.0w4l.8q0j.b40r.ak02.0b.12.d7bfd7bcd7bbd7bod7bid7bd.fie9eudvf2dofyenfqegfae2.3e3x0v2d0x1h8a8i5x6l79c7.fjeaevdwf3dpfzeofrehfbe3.fge6esdsf0dlfwekfoedf8dz.ag3qa23ga73iaq42aj3uab3o.d71vd71qd71sd71wd71ud71t.br2kbg2bbj2ebx2wbt2pbp2h.b72zb02sb12ubh37ba31b62x.509c4r8z4u905c9s569h4y9a.4daa479x49a14oas4eaf4ca4.d72kd72bd72ecf2wd72pd72h.c52zbz2sby2uc837c631c12x.6n6j6f6c6h6e6y6r6p6m6k6g.1i.fkd8ewd8f4d8g0d8fsd8fcd8.1z4z.820s.an1k.9o0h.0m.d723d71xd720cf28d725d721.0y141f0p0y140y140y140y14.454k22321b0o8b946d6v7m87.8c978c978c97737h8c968s9q.35406b6s3540354035403540.1f0p130e4h531f0d1f1d1f0p.9lbk.7g99.0f24.7i9n.5o7a.1j4w.8pav.93b3.0c4s.5s7e.718w718w718w718w718w7z9u.cp5ecp5ecp5ecp5ecp5ecm62.362i362i362i362i362i3k30.d53dd53dd53dd53dd53dd23r.cz3tcz3tcz3tcz3tcz3tcu4b.bvbvbvbvbvbvbvbvbvbvbsc3.b5cib5cib5cib5cib5ciaycg'
     .split('.')
     .map((row) => {
       const combination: string[] = []
@@ -628,7 +610,7 @@ const combinations =
       return combination
     })
 const references =
-  '000102030405060708090a0b0c0d0e0f0g0h0i0j0k0l0m0n0o0p0q0r0s0t0u0v0w0x0y0z10110h0304001112131415161718191a1b1613121c1d1e1f1g1h1i1j1k121l1m151n1o1p1q121r1s1t1u1v1e1w1x1y1z20212222231e1s1c18240h2526271b28151a29252a112b1f2c2d2e2f2g111v2h2i2j2k2l2m2n2o2p2q1s1v032r2s05002t2u2v2w2x2y2z'
+  '000102030405060708090a0b0c0d0e0f0g0h0i0j0k0l0m0n0o0p0q0r0s0t0u0v0w0x0y0z10110h030400111213141516171819121a1b1c1d1e1f1g1h1i121j1k151l1m1n1o121p1q1r1s1t1c1u1v1w1x1y1z2020211c1q1a18220h232425261527282329112a1d2b2c2d2e2f111t2g2h2i2j2k2l2m2n2o2p1q2q2r2s2t2u2v2w'
     .match(/.{2}/g)!
     .map((value) => Number.parseInt(value, 36))
 function createTokenSet(themeIndex: number): Readonly<DesignTokens> {

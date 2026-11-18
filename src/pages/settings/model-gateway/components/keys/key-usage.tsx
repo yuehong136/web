@@ -93,7 +93,7 @@ export function KeyUsage({
           </figcaption>
           <div
             aria-hidden="true"
-            className="flex h-14 items-end gap-0.5 border-b border-line-subtle"
+            className="flex h-14 items-end gap-0.5 border-b border-viz-axis"
           >
             {values.map((item) => (
               <div

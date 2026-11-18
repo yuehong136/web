@@ -46,8 +46,6 @@ const PAIRS: Pair[] = [
   ['citation-fg', 'citation-bg', 4.5],
   ['citation-fg', 'citation-bg-hover', 4.5],
   ['highlight-fg', 'highlight-bg', 4.5],
-  ['diff-add-fg', 'diff-add-bg', 4.5],
-  ['diff-del-fg', 'diff-del-bg', 4.5],
   ['reasoning-fg', 'surface', 4.5],
   ['code-fg', 'code-bg', 4.5],
   ['line-focus', 'surface', 3],
@@ -70,7 +68,7 @@ const PAIRS: Pair[] = [
     { length: VIZ_COUNT },
     (_, i) => [`viz-${i + 1}`, 'surface', 3] as const,
   ),
-  ...(['queued', 'running', 'waiting', 'succeeded', 'failed'] as const).map(
+  ...(['queued', 'running', 'succeeded', 'failed'] as const).map(
     (state) => [`run-${state}`, 'surface', 3] as const,
   ),
 ] as Pair[]

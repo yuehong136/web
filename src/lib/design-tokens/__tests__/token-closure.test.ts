@@ -136,3 +136,20 @@ test('readCssVar reads defined tokens', () => {
   )
   assert.equal(problems.length, 0, report(problems))
 })
+
+// ARCH-5: a role without a consumer is dead weight. The intent × role matrix is
+// exempt as a whole: it is a complete grid by design, so a cell may wait for
+// its first consumer. `files` already leaves out the generator and its outputs
+// (only the hand-written tailwind.css utilities and scoped-theme.tsx count).
+const MATRIX_CELL =
+  /^(accent|ai|neutral|success|warning|danger|info)-(solid|solid-hover|on-solid|fg|soft|soft-hover|line)$/
+
+test('every semantic role outside the intent matrix has a consumer', () => {
+  const sources = files.map((file) => readFileSync(file, 'utf8')).join('\n')
+  const unused = [...tokens].filter(
+    (name) =>
+      !MATRIX_CELL.test(name) &&
+      !new RegExp(`(?:-|--color-|['"\`])${name}(?![\\w-])`).test(sources),
+  )
+  assert.deepEqual(unused, [])
+})

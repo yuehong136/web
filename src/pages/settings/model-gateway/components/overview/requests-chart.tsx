@@ -79,7 +79,7 @@ export function RequestsChart({ overview }: { overview: GatewayOverview }) {
           </figcaption>
           <div
             aria-hidden="true"
-            className="flex h-36 items-end gap-0.5 border-b border-line-subtle"
+            className="flex h-36 items-end gap-0.5 border-b border-viz-axis"
           >
             {rows.map((row) => {
               const ok = Math.max(0, row.requests - row.errors)

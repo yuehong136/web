@@ -35,7 +35,6 @@ export const INTENT_ROLES = [
 type IntentRole = (typeof INTENT_ROLES)[number]
 
 export const VIZ_COUNT = 10
-export const VIZ_SEQUENCE_COUNT = 5
 export const AVATAR_TONE_COUNT = 8
 const range = (n: number) => Array.from({ length: n }, (_, i) => i + 1)
 
@@ -91,13 +90,8 @@ export const SEMANTIC_TOKENS = [
   'highlight-bg',
   'highlight-fg',
   'caret',
-  'diff-add-bg',
-  'diff-add-fg',
-  'diff-del-bg',
-  'diff-del-fg',
   'run-queued',
   'run-running',
-  'run-waiting',
   'run-succeeded',
   'run-failed',
   'run-cancelled',
@@ -110,10 +104,8 @@ export const SEMANTIC_TOKENS = [
   'syntax-string',
   'syntax-number',
   'syntax-comment',
-  // Data visualization: stable categorical identities, accent sequence
+  // Data visualization: stable categorical identities and the axis line
   ...range(VIZ_COUNT).map((n) => `viz-${n}` as const),
-  ...range(VIZ_SEQUENCE_COUNT).map((n) => `viz-seq-${n}` as const),
-  'viz-grid',
   'viz-axis',
   // Identity tones for avatars, knowledge bases, file kinds and providers
   ...range(AVATAR_TONE_COUNT).flatMap((n) => [
@@ -362,10 +354,6 @@ export function buildSchemeTokens(
   )
   set('highlight-fg', same('fg'))
   set('caret', step('ai', 9))
-  set('diff-add-bg', step('success', 3))
-  set('diff-add-fg', step('success', 11))
-  set('diff-del-bg', step('danger', 3))
-  set('diff-del-fg', step('danger', 11))
   set(
     'run-queued',
     contrast(rgbOf(gray[9]), surfaceRgb) >= 3
@@ -373,7 +361,6 @@ export function buildSchemeTokens(
       : step('gray', 11),
   )
   set('run-running', graphic('ai'))
-  set('run-waiting', graphic('warning'))
   set('run-succeeded', graphic('success'))
   set('run-failed', graphic('danger'))
   set('run-cancelled', step('gray', 8))
@@ -425,10 +412,6 @@ export function buildSchemeTokens(
   VIZ_HUES.forEach((hue, i) =>
     set(`viz-${i + 1}` as SemanticToken, literal(oklch(vizL, vizC, hue))),
   )
-  ;[3, 5, 7, 9, 11].forEach((n, i) =>
-    set(`viz-seq-${i + 1}` as SemanticToken, step('accent', n)),
-  )
-  set('viz-grid', same('line-subtle'))
   set('viz-axis', same('line'))
 
   // Identity
