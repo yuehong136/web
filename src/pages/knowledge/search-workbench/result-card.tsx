@@ -101,7 +101,7 @@ export const RetrievalResultCard: React.FC<RetrievalResultCardProps> = ({
             {order}
           </span>
           <p className="truncate font-mono text-xs text-text-tertiary">
-            ID: {result.id}
+            {t('knowledge.search.resultId', { id: result.id })}
           </p>
         </div>
         <div className="flex flex-wrap items-start justify-end gap-space-md">

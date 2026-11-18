@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { useTranslation } from 'react-i18next'
 import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from './button'
@@ -37,6 +38,7 @@ export const Pagination: React.FC<PaginationProps> = ({
   className,
   disabled = false,
 }) => {
+  const { t } = useTranslation()
   const totalPages = Math.ceil(total / pageSize)
   const [jumpValue, setJumpValue] = React.useState('')
 
@@ -116,9 +118,7 @@ export const Pagination: React.FC<PaginationProps> = ({
           className="mr-space-sm text-sm"
           style={{ color: 'var(--color-text-tertiary)' }}
         >
-          共{' '}
-          <span style={{ color: 'var(--color-text-secondary)' }}>{total}</span>{' '}
-          条
+          {t('common.total', { count: total })}
         </span>
       )}
 

@@ -5,6 +5,7 @@ import { SelectWithSearch } from '@/components/ui/select-with-search'
 import { Switch } from '@/components/ui/switch'
 import { Trash2 } from 'lucide-react'
 import { useFieldArray, useFormContext } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import type { ReactNode } from 'react'
 import { DynamicFormHeader } from '../../components'
 
@@ -26,6 +27,7 @@ export function DynamicRequest({
   label,
   operatorList,
 }: DynamicRequestProps) {
+  const { t } = useTranslation()
   const form = useFormContext()
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -89,7 +91,7 @@ export function DynamicRequest({
                 render={({ field: requiredField }) => (
                   <FormItem className="flex h-10 items-center justify-between gap-space-sm rounded-radius-md border border-border-default px-space-sm">
                     <span className="text-sm text-text-secondary">
-                      Required
+                      {t('common.required')}
                     </span>
                     <FormControl>
                       <Switch
