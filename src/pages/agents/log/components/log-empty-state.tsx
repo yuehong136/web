@@ -35,9 +35,9 @@ export function LogEmptyState({
       {recentAgents.length > 0 ? (
         <section
           aria-label={t('agents.runLogs.recent')}
-          className="w-full max-w-2xl overflow-hidden rounded-radius-xl border border-border-default"
+          className="w-full max-w-2xl overflow-hidden rounded-radius-xl border border-line"
         >
-          <h2 className="border-b border-border-subtle px-space-md py-space-xs text-xs font-medium text-text-tertiary">
+          <h2 className="border-b border-line-subtle px-space-md py-space-xs text-xs font-medium text-fg-subtle">
             {t('agents.runLogs.recent')}
           </h2>
           <ResourceList label={t('agents.runLogs.recent')}>

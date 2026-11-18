@@ -28,7 +28,7 @@ export function ExploreMessageAttachments({
             {images.map((file) => (
               <div
                 key={file.id}
-                className="overflow-hidden rounded-xl border border-border-subtle bg-background-subtle"
+                className="overflow-hidden rounded-xl border border-line-subtle bg-sunken"
               >
                 <DocumentImage
                   source={{ kind: 'runtime', fileId: file.id }}
@@ -36,7 +36,7 @@ export function ExploreMessageAttachments({
                   preview
                   className="max-h-64 w-full object-contain"
                 />
-                <div className="truncate px-3 py-1.5 text-xs text-text-secondary">
+                <div className="truncate px-3 py-1.5 text-xs text-fg-muted">
                   {file.name} · {formatBytes(file.size || 0)}
                 </div>
               </div>
@@ -47,14 +47,14 @@ export function ExploreMessageAttachments({
       {others.map((file) => (
         <div
           key={file.id}
-          className="flex items-center gap-3 rounded-xl border border-border-subtle bg-background-subtle px-3 py-2"
+          className="flex items-center gap-3 rounded-xl border border-line-subtle bg-sunken px-3 py-2"
         >
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-background-subtle">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sunken">
             <FileIcon fileName={file.name} size="md" />
           </div>
           <div className="min-w-0 flex-1">
             <div className="truncate text-sm font-medium">{file.name}</div>
-            <div className="text-xs text-text-secondary">
+            <div className="text-xs text-fg-muted">
               {getFileCategory(file.extension || '') === 'image'
                 ? t('explore.attachmentStatus.image')
                 : file.extension?.toUpperCase() || 'FILE'}{' '}

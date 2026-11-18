@@ -78,7 +78,7 @@ export const highlightMatch = (text: string, query: string) => {
   return (
     <>
       {text.slice(0, index)}
-      <mark className="bg-transparent font-semibold text-text-accent">
+      <mark className="bg-transparent font-semibold text-accent-fg">
         {text.slice(index, index + needle.length)}
       </mark>
       {text.slice(index + needle.length)}
@@ -87,7 +87,7 @@ export const highlightMatch = (text: string, query: string) => {
 }
 
 const icon = (Icon: LucideIcon) => (
-  <Icon className="size-icon-sm text-text-tertiary" aria-hidden="true" />
+  <Icon className="size-icon-sm text-fg-subtle" aria-hidden="true" />
 )
 
 const commandIcons: Partial<Record<ProductCommandId, LucideIcon>> = {

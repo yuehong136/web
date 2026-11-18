@@ -181,7 +181,7 @@ export const DataInputSettingsDialog = ({
                   }
                   placeholder={t('aiTools.autoFill.prompt.system')}
                 />
-                <p className="text-xs text-text-secondary">
+                <p className="text-xs text-fg-muted">
                   {t('aiTools.autoFill.settings.systemPromptHint')}
                 </p>
               </div>
@@ -199,20 +199,20 @@ export const DataInputSettingsDialog = ({
 
             <TabsContent value="mcp" className="flex flex-col gap-space-base">
               <div className="flex flex-col gap-space-xs">
-                <p className="flex items-center gap-space-xs text-sm font-medium text-text-primary">
+                <p className="flex items-center gap-space-xs text-sm font-medium text-fg">
                   {t('aiTools.autoFill.settings.mcpTools')}
                   {mcpLoading ? <Spinner size="sm" /> : null}
                 </p>
-                <ScrollArea className="h-32 rounded-radius-md border border-border-default p-space-sm">
+                <ScrollArea className="h-32 rounded-radius-md border border-line p-space-sm">
                   {mcpServers.length === 0 ? (
-                    <p className="py-space-base text-center text-sm text-text-secondary">
+                    <p className="py-space-base text-center text-sm text-fg-muted">
                       {t('aiTools.autoFill.settings.noMcp')}
                     </p>
                   ) : (
                     <ul className="flex flex-col gap-space-sm">
                       {mcpServers.map((server) => (
                         <li key={server.id}>
-                          <label className="flex cursor-pointer items-center gap-space-sm text-sm text-text-primary">
+                          <label className="flex cursor-pointer items-center gap-space-sm text-sm text-fg">
                             <Checkbox
                               checked={mcpConfig.mcp_ids.includes(server.id)}
                               onCheckedChange={(checked) =>

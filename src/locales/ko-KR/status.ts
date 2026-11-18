@@ -89,8 +89,8 @@ export const koreanTranslationStatus = {
     englishFallback: 129,
   },
   appearance: {
-    translated: 5,
-    englishFallback: 35,
+    translated: 11,
+    englishFallback: 40,
   },
   sources: {
     translated: 8,

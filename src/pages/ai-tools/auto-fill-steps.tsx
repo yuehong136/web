@@ -34,9 +34,7 @@ export const AutoFillSteps = ({ current }: { current: AutoFillStep }) => {
                 aria-hidden="true"
                 className={cn(
                   'h-px w-space-md',
-                  done || active
-                    ? 'bg-components-steps-line-completed'
-                    : 'bg-components-steps-line',
+                  done || active ? 'bg-success-fg' : 'bg-line',
                 )}
               />
             ) : null}
@@ -48,13 +46,9 @@ export const AutoFillSteps = ({ current }: { current: AutoFillStep }) => {
                 aria-hidden="true"
                 className={cn(
                   'flex size-5 shrink-0 items-center justify-center rounded-radius-full text-xs font-medium tabular-nums',
-                  done &&
-                    'bg-components-steps-completed-bg text-components-steps-completed-text',
-                  active &&
-                    'bg-components-steps-active-bg text-components-steps-active-text',
-                  !done &&
-                    !active &&
-                    'bg-components-steps-inactive-bg text-components-steps-inactive-text',
+                  done && 'bg-success-solid text-success-on-solid',
+                  active && 'bg-action-bg text-action-fg',
+                  !done && !active && 'bg-fill-muted text-fg-muted',
                 )}
               >
                 {done ? <Check className="size-icon-xs" /> : step.id}
@@ -63,8 +57,8 @@ export const AutoFillSteps = ({ current }: { current: AutoFillStep }) => {
                 aria-hidden={done ? true : undefined}
                 className={cn(
                   active
-                    ? 'font-medium text-text-primary'
-                    : 'text-text-secondary max-md:sr-only',
+                    ? 'font-medium text-fg'
+                    : 'text-fg-muted max-md:sr-only',
                 )}
               >
                 {label}

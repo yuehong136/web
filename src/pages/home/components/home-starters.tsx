@@ -19,7 +19,7 @@ export function HomeStarters({ onPick }: { onPick: (prompt: string) => void }) {
               type="button"
               title={prompt}
               onClick={() => onPick(prompt)}
-              className="flex h-full w-full flex-col items-start gap-space-sm rounded-radius-xl border border-border-subtle bg-background-surface p-space-base text-left outline-hidden transition-[border-color,box-shadow,transform] duration-150 hover:border-border-strong hover:shadow-elevation-medium focus-visible:ring-2 focus-visible:ring-state-focus motion-safe:hover:-translate-y-px"
+              className="flex h-full w-full flex-col items-start gap-space-sm rounded-radius-xl border border-line-subtle bg-surface p-space-base text-left outline-hidden transition-[border-color,box-shadow,transform] duration-150 hover:border-line-strong hover:shadow-elevation-medium focus-visible:ring-2 focus-visible:ring-line-focus motion-safe:hover:-translate-y-px"
             >
               <span
                 className={cn(
@@ -30,11 +30,11 @@ export function HomeStarters({ onPick }: { onPick: (prompt: string) => void }) {
                 <Icon aria-hidden="true" />
               </span>
               <span className="flex min-w-0 flex-col gap-space-2xs">
-                <span className="text-sm font-medium text-text-primary">
+                <span className="text-sm font-medium text-fg">
                   {card.tagKey ? t(card.tagKey, card.tag) : card.tag}
                 </span>
                 {card.descriptionKey ? (
-                  <span className="text-xs text-text-tertiary">
+                  <span className="text-xs text-fg-subtle">
                     {t(card.descriptionKey)}
                   </span>
                 ) : null}

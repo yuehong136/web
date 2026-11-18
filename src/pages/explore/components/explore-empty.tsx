@@ -10,22 +10,22 @@ const STARTERS = [
   {
     key: 'explain',
     icon: Lightbulb,
-    tone: 'bg-components-avatar-5-bg text-components-avatar-5-text',
+    tone: 'bg-avatar-5-bg text-avatar-5-fg',
   },
   {
     key: 'code',
     icon: Code2,
-    tone: 'bg-components-avatar-7-bg text-components-avatar-7-text',
+    tone: 'bg-avatar-7-bg text-avatar-7-fg',
   },
   {
     key: 'summarize',
     icon: ListChecks,
-    tone: 'bg-components-avatar-6-bg text-components-avatar-6-text',
+    tone: 'bg-avatar-6-bg text-avatar-6-fg',
   },
   {
     key: 'translate',
     icon: Languages,
-    tone: 'bg-components-avatar-2-bg text-components-avatar-2-text',
+    tone: 'bg-avatar-2-bg text-avatar-2-fg',
   },
 ] as const
 
@@ -60,17 +60,17 @@ export function ExploreEmpty({
             badge="chat"
             size="xl"
           />
-          <h2 className="text-2xl font-semibold tracking-tight text-pretty text-text-primary">
+          <h2 className="text-2xl font-semibold tracking-tight text-pretty text-fg">
             {name}
           </h2>
-          <p className="max-w-xl text-sm text-pretty text-text-secondary">
+          <p className="max-w-xl text-sm text-pretty text-fg-muted">
             {app?.description || t('explore.welcomeDescription')}
           </p>
         </div>
         {prologue ? (
           <div
             data-explore-prologue
-            className="flex items-start gap-space-sm rounded-radius-xl border border-border-subtle bg-background-surface p-space-md text-text-secondary"
+            className="flex items-start gap-space-sm rounded-radius-xl border border-line-subtle bg-surface p-space-md text-fg-muted"
           >
             <EntityAvatar
               name={name}
@@ -100,7 +100,7 @@ export function ExploreEmpty({
                     type="button"
                     title={label}
                     onClick={() => onSuggestion(label)}
-                    className="flex h-full w-full items-center gap-space-sm rounded-radius-xl border border-border-subtle bg-background-surface p-space-sm text-left text-sm font-medium text-text-primary outline-hidden transition-[border-color,box-shadow,transform] duration-150 hover:border-border-strong hover:shadow-elevation-medium focus-visible:ring-2 focus-visible:ring-state-focus motion-safe:hover:-translate-y-px"
+                    className="flex h-full w-full items-center gap-space-sm rounded-radius-xl border border-line-subtle bg-surface p-space-sm text-left text-sm font-medium text-fg outline-hidden transition-[border-color,box-shadow,transform] duration-150 hover:border-line-strong hover:shadow-elevation-medium focus-visible:ring-2 focus-visible:ring-line-focus motion-safe:hover:-translate-y-px"
                   >
                     <span
                       className={cn(

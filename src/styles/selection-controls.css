@@ -3,43 +3,43 @@
   input[type='checkbox'],
   .form-checkbox {
     border-radius: var(--radius-sm);
-    color: var(--color-components-checkbox-bg-checked);
-    accent-color: var(--color-components-checkbox-bg-checked);
-    background-color: var(--color-components-checkbox-bg);
-    border-color: var(--color-components-checkbox-border);
+    color: var(--color-accent-solid);
+    accent-color: var(--color-accent-solid);
+    background-color: var(--color-surface);
+    border-color: var(--color-line-strong);
   }
 
   input[type='radio'],
   .form-radio {
-    color: var(--color-components-radio-dot);
-    accent-color: var(--color-components-radio-dot);
-    background-color: var(--color-components-radio-bg);
-    border-color: var(--color-components-radio-border);
+    color: var(--color-accent-solid);
+    accent-color: var(--color-accent-solid);
+    background-color: var(--color-surface);
+    border-color: var(--color-line-strong);
   }
 
   input[type='checkbox']:checked,
   input[type='checkbox']:indeterminate,
   .form-checkbox:checked,
   .form-checkbox:indeterminate {
-    background-color: var(--color-components-checkbox-bg-checked);
-    border-color: var(--color-components-checkbox-border-checked);
+    background-color: var(--color-accent-solid);
+    border-color: var(--color-accent-solid);
   }
 
   input[type='radio']:checked,
   .form-radio:checked {
-    background-color: var(--color-components-radio-dot);
-    border-color: var(--color-components-radio-border-checked);
+    background-color: var(--color-accent-solid);
+    border-color: var(--color-accent-solid);
   }
 
   input[type='checkbox']:focus,
   input[type='radio']:focus,
   .form-checkbox:focus,
   .form-radio:focus {
-    --tw-ring-color: var(--color-state-focus);
-    --tw-ring-offset-color: var(--color-background-body);
+    --tw-ring-color: var(--color-line-focus);
+    --tw-ring-offset-color: var(--color-surface);
   }
 
   input[type='range'] {
-    accent-color: var(--color-components-slider-range);
+    accent-color: var(--color-accent-solid);
   }
 }

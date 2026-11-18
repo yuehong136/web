@@ -99,28 +99,28 @@ export const SkillPanel: React.FC<SkillPanelProps> = ({
     <div
       ref={panelRef}
       className={cn(
-        'absolute left-0 z-50 w-80 overflow-hidden rounded-radius-lg border border-border-default bg-components-card-bg shadow-elevation-high',
+        'absolute left-0 z-50 w-80 overflow-hidden rounded-radius-lg border border-line bg-raised shadow-elevation-high',
         direction === 'up' ? 'bottom-full mb-space-sm' : 'top-full mt-space-sm',
       )}
     >
       {/* 搜索框 */}
-      <div className="border-b border-border-default p-3">
+      <div className="border-b border-line p-3">
         <div className="relative">
-          <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-text-tertiary" />
+          <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-fg-subtle" />
           <input
             type="text"
             placeholder={t('home.skillPanel.searchPlaceholder')}
             aria-label={t('home.skillPanel.searchPlaceholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full rounded-lg border-none bg-background-subtle py-2 pr-3 pl-9 text-sm text-text-primary outline-hidden placeholder:text-text-tertiary"
+            className="w-full rounded-lg border-none bg-sunken py-2 pr-3 pl-9 text-sm text-fg outline-hidden placeholder:text-fg-subtle"
             autoFocus
           />
         </div>
       </div>
 
       {/* 标签切换 */}
-      <div className="flex border-b border-border-default">
+      <div className="flex border-b border-line">
         <button
           onClick={() => {
             setActiveTab('skill')
@@ -129,13 +129,13 @@ export const SkillPanel: React.FC<SkillPanelProps> = ({
           className={cn(
             'flex-1 py-2.5 text-sm font-medium transition-colors',
             activeTab === 'skill'
-              ? 'border-b-2 border-text-primary text-text-primary'
-              : 'text-text-tertiary hover:text-text-secondary',
+              ? 'border-b-2 border-fg text-fg'
+              : 'text-fg-subtle hover:text-fg-muted',
           )}
         >
           {t('home.skillPanel.skills')}
           {selectedSkillIds.length > 0 && (
-            <span className="ms-space-xs font-mono text-xs text-text-tertiary">
+            <span className="ms-space-xs font-mono text-xs text-fg-subtle">
               {t('home.skillPanel.selectedCount', {
                 count: selectedSkillIds.length,
               })}
@@ -150,8 +150,8 @@ export const SkillPanel: React.FC<SkillPanelProps> = ({
           className={cn(
             'flex-1 py-2.5 text-sm font-medium transition-colors',
             activeTab === 'app'
-              ? 'border-b-2 border-text-primary text-text-primary'
-              : 'text-text-tertiary hover:text-text-secondary',
+              ? 'border-b-2 border-fg text-fg'
+              : 'text-fg-subtle hover:text-fg-muted',
           )}
         >
           {t('home.skillPanel.apps')}

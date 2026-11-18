@@ -102,9 +102,7 @@ export function HomeAttachmentHint({
     )
   if (attachments.hasError)
     return (
-      <span className="text-status-error">
-        {t('home.attachments.errorHint')}
-      </span>
+      <span className="text-danger-fg">{t('home.attachments.errorHint')}</span>
     )
   if (attachments.readyCount > 0)
     return t('home.attachments.ready', { count: attachments.readyCount })

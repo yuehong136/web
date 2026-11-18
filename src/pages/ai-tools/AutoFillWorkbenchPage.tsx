@@ -22,8 +22,8 @@ const StepHeading = ({
   description: string
 }) => (
   <div className="mb-space-lg flex flex-col gap-space-2xs">
-    <h2 className="text-base font-semibold text-text-primary">{title}</h2>
-    <p className="text-sm text-text-secondary">{description}</p>
+    <h2 className="text-base font-semibold text-fg">{title}</h2>
+    <p className="text-sm text-fg-muted">{description}</p>
   </div>
 )
 
@@ -83,7 +83,7 @@ const AutoFillWorkbenchPage: React.FC = () => {
           <ResizablePanel defaultSize="50%" minSize="30%">
             <FilledDocxPreview
               fileData={processedData?.file || null}
-              className="border-l border-border-subtle"
+              className="border-l border-line-subtle"
             />
           </ResizablePanel>
         </ResizablePanelGroup>

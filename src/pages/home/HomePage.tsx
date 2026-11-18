@@ -121,10 +121,7 @@ export const HomePage = () => {
   return (
     <HomeMotion>
       <HomeAttachmentsContext.Provider value={attachments}>
-        <div
-          ref={setDropTarget}
-          className="flex h-full flex-col bg-components-console-bg"
-        >
+        <div ref={setDropTarget} className="flex h-full flex-col bg-surface">
           {attachments.dragging && <HomeDropOverlay />}
           {showWelcome ? (
             <WelcomeSection

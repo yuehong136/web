@@ -382,10 +382,7 @@ export const ExplorePage: FC = () => {
     <ChatWorkspace
       scopeKey={`${selectedApp}:${activeConversationKey ?? 'draft'}`}
     >
-      <div
-        ref={dropContainerRef}
-        className="flex h-full min-h-0 bg-background-surface"
-      >
+      <div ref={dropContainerRef} className="flex h-full min-h-0 bg-surface">
         {isDragging && <ExploreDropOverlay />}
 
         <ExploreSidebar

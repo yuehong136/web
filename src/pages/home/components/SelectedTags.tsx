@@ -15,9 +15,9 @@ interface SelectedTagsProps {
 }
 
 const CHIP =
-  'inline-flex h-7 max-w-full min-w-0 items-center gap-space-xs rounded-radius-full border border-border-subtle bg-background-subtle ps-space-2xs pe-space-2xs text-xs text-text-primary'
+  'inline-flex h-7 max-w-full min-w-0 items-center gap-space-xs rounded-radius-full border border-line-subtle bg-sunken ps-space-2xs pe-space-2xs text-xs text-fg'
 const REMOVE =
-  'grid size-5 shrink-0 place-items-center rounded-radius-full text-text-tertiary hover:bg-state-hover hover:text-text-primary focus-visible:outline-2 focus-visible:outline-state-focus disabled:cursor-not-allowed disabled:opacity-50'
+  'grid size-5 shrink-0 place-items-center rounded-radius-full text-fg-subtle hover:bg-fill-hover hover:text-fg focus-visible:outline-2 focus-visible:outline-line-focus disabled:cursor-not-allowed disabled:opacity-50'
 
 // 根据服务器类型获取图标：图标块按 MCP 类型取色，字形区分传输方式
 const getServerIcon = (serverType: string) => {

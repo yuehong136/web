@@ -38,16 +38,16 @@
   /* 确保 html 和 body 使用主题背景色 */
   html {
     @apply scroll-smooth;
-    background-color: var(--color-background-body);
-    color: var(--color-text-primary);
+    background-color: var(--color-surface);
+    color: var(--color-fg);
     height: 100%;
     overflow: hidden;
     overscroll-behavior: none;
   }
 
   body {
-    background-color: var(--color-background-body);
-    color: var(--color-text-primary);
+    background-color: var(--color-surface);
+    color: var(--color-fg);
     font-family: var(--font-interface, system-ui, sans-serif);
     font-feature-settings:
       'rlig' 1,
@@ -100,13 +100,13 @@
   /* 全局边框色走主题令牌。:not(.\_) 不排除任何元素，只把特异度保持在
      (0,1,0)，压过 @tailwindcss/forms 在 base 层给输入框的默认边框色 */
   *:not(.\_) {
-    border-color: var(--color-border-default);
+    border-color: var(--color-line);
   }
 
   /* 确保React应用根容器使用主题背景 */
   #root {
-    background-color: var(--color-background-body);
-    color: var(--color-text-primary);
+    background-color: var(--color-surface);
+    color: var(--color-fg);
     height: 100%;
     overflow: hidden;
   }
@@ -123,7 +123,7 @@
   h4,
   h5,
   h6 {
-    color: var(--color-text-primary);
+    color: var(--color-fg);
   }
 
   p,
@@ -134,7 +134,7 @@
 
   /* 链接样式 */
   a {
-    color: var(--color-text-accent);
+    color: var(--color-accent-fg);
   }
 }
 
@@ -144,7 +144,7 @@
   }
 
   .card:hover {
-    background-color: var(--color-components-card-bg-hover);
+    background-color: var(--color-raised-hover);
   }
 }
 
@@ -173,17 +173,17 @@
 }
 
 .scrollbar-thin::-webkit-scrollbar-track {
-  background: var(--color-components-scrollbar-track);
+  background: var(--color-fill-muted);
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb {
-  background: var(--color-components-scrollbar-thumb);
+  background: var(--color-line-strong);
   border-radius: 2px;
   transition: background-color 0.2s ease;
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-  background: var(--color-components-scrollbar-thumb-hover);
+  background: var(--color-fg-disabled);
 }
 
 /* 只在内容可滚动时显示滚动条 */
@@ -192,11 +192,11 @@
 }
 
 .scrollbar-thin:hover::-webkit-scrollbar-thumb {
-  background: var(--color-components-scrollbar-thumb);
+  background: var(--color-line-strong);
 }
 
 .scrollbar-thin:hover::-webkit-scrollbar-thumb:hover {
-  background: var(--color-components-scrollbar-thumb-hover);
+  background: var(--color-fg-disabled);
 }
 
 /* 确保在内容溢出时滚动条可见 */
@@ -205,11 +205,11 @@
 }
 
 .scrollbar-thin[style*='overflow']::-webkit-scrollbar-thumb {
-  background: var(--color-components-scrollbar-thumb);
+  background: var(--color-line-strong);
 }
 
 .scrollbar-thin[style*='overflow']:hover::-webkit-scrollbar-thumb {
-  background: var(--color-components-scrollbar-thumb-hover);
+  background: var(--color-fg-disabled);
 }
 
 /* 加载动画 */

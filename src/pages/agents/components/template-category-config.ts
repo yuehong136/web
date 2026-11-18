@@ -29,44 +29,44 @@ export const CATEGORY_ORDER: TemplateCategory[] = [
   {
     key: ALL_CATEGORY_KEY,
     icon: LayoutGrid,
-    tone: 'bg-background-subtle text-text-secondary',
+    tone: 'bg-sunken text-fg-muted',
     isAll: true,
   },
   {
     key: RECOMMENDED_KEY,
     icon: Sparkles,
-    tone: 'bg-components-avatar-2-bg text-components-avatar-2-text',
+    tone: 'bg-avatar-2-bg text-avatar-2-fg',
     isRecommended: true,
   },
   {
     key: 'agent',
     icon: Bot,
-    tone: 'bg-components-avatar-7-bg text-components-avatar-7-text',
+    tone: 'bg-avatar-7-bg text-avatar-7-fg',
   },
   {
     key: 'customersupport',
     icon: MessageCircle,
-    tone: 'bg-components-avatar-6-bg text-components-avatar-6-text',
+    tone: 'bg-avatar-6-bg text-avatar-6-fg',
   },
   {
     key: 'marketing',
     icon: Megaphone,
-    tone: 'bg-components-avatar-8-bg text-components-avatar-8-text',
+    tone: 'bg-avatar-8-bg text-avatar-8-fg',
   },
   {
     key: 'consumerapp',
     icon: Box,
-    tone: 'bg-components-avatar-5-bg text-components-avatar-5-text',
+    tone: 'bg-avatar-5-bg text-avatar-5-fg',
   },
   {
     key: 'pipeline',
     icon: Database,
-    tone: 'bg-components-avatar-4-bg text-components-avatar-4-text',
+    tone: 'bg-avatar-4-bg text-avatar-4-fg',
   },
   {
     key: OTHER_KEY,
     icon: MoreHorizontal,
-    tone: 'bg-components-avatar-3-bg text-components-avatar-3-text',
+    tone: 'bg-avatar-3-bg text-avatar-3-fg',
   },
 ]
 

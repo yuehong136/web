@@ -141,7 +141,7 @@ export function HomeThreadActions({
                 onClick={() => onOpen(thread.id)}
               >
                 <span className="min-w-0 flex-1 truncate">{thread.title}</span>
-                <span className="shrink-0 text-xs text-text-tertiary">
+                <span className="shrink-0 text-xs text-fg-subtle">
                   {relativeTime(thread.updatedAt)}
                 </span>
               </DropdownMenuItem>

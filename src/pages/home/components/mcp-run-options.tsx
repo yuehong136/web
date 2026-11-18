@@ -54,10 +54,10 @@ export function McpRunOptions({ disabled }: { disabled?: boolean }) {
       </PopoverTrigger>
       <PopoverContent align="start" className="flex w-80 flex-col gap-space-md">
         <div>
-          <p className="text-sm font-semibold text-text-primary">
+          <p className="text-sm font-semibold text-fg">
             {t('home.mcpOptions.title')}
           </p>
-          <p className="text-xs text-text-tertiary">
+          <p className="text-xs text-fg-subtle">
             {t('home.mcpOptions.description')}
           </p>
         </div>
@@ -66,7 +66,7 @@ export function McpRunOptions({ disabled }: { disabled?: boolean }) {
             <Label htmlFor={`${id}-timeout`} className="text-sm">
               {t('home.mcpOptions.timeout')}
             </Label>
-            <p className="text-xs text-text-tertiary">
+            <p className="text-xs text-fg-subtle">
               {t('home.mcpOptions.timeoutHint', {
                 min: MCP_TIMEOUT_MIN,
                 max: MCP_TIMEOUT_MAX,
@@ -94,7 +94,7 @@ export function McpRunOptions({ disabled }: { disabled?: boolean }) {
             <Label htmlFor={`${id}-verbose`} className="text-sm">
               {t('home.mcpOptions.verbose')}
             </Label>
-            <p className="text-xs text-text-tertiary">
+            <p className="text-xs text-fg-subtle">
               {t('home.mcpOptions.verboseHint')}
             </p>
           </div>

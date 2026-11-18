@@ -46,7 +46,7 @@ export function AuthAlert({
           type="button"
           onClick={onDismiss}
           aria-label={dismissLabel}
-          className="-me-space-xs rounded-radius-md p-space-2xs outline-hidden transition-colors hover:bg-state-hover focus-visible:ring-2 focus-visible:ring-state-focus"
+          className="-me-space-xs rounded-radius-md p-space-2xs outline-hidden transition-colors hover:bg-fill-hover focus-visible:ring-2 focus-visible:ring-line-focus"
         >
           <X aria-hidden="true" className="size-icon-sm" />
         </button>

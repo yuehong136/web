@@ -54,14 +54,14 @@ export function TemplateTile({
     >
       <span
         className={cn(
-          'flex items-center justify-center ring-1 ring-border-subtle ring-inset',
+          'flex items-center justify-center ring-1 ring-line-subtle ring-inset',
           SIZES[size],
           category.tone,
         )}
       >
         <Icon />
       </span>
-      <span className="absolute -right-1 -bottom-1 flex size-4 items-center justify-center rounded-radius-sm bg-components-avatar-7-bg text-components-avatar-7-text ring-2 ring-background-surface [&>svg]:size-2.5">
+      <span className="absolute -right-1 -bottom-1 flex size-4 items-center justify-center rounded-radius-sm bg-avatar-7-bg text-avatar-7-fg ring-2 ring-surface [&>svg]:size-2.5">
         <KindIcon />
       </span>
     </span>
@@ -81,7 +81,7 @@ export function TemplateCategoryMark({
   return (
     <span
       data-slot="template-category"
-      className="inline-flex h-5.5 max-w-full min-w-0 items-center gap-space-xs rounded-radius-full border border-border-subtle bg-background-subtle pr-space-sm pl-space-2xs text-xs text-text-secondary"
+      className="inline-flex h-5.5 max-w-full min-w-0 items-center gap-space-xs rounded-radius-full border border-line-subtle bg-sunken pr-space-sm pl-space-2xs text-xs text-fg-muted"
     >
       <span
         aria-hidden="true"

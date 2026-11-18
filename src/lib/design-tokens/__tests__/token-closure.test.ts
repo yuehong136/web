@@ -117,7 +117,7 @@ test('color utilities name defined tokens or aliases', () => {
     const name = match[1]
     if (!TOKEN_ROOT.test(name) && !SHADCN_NAMES.test(name)) return undefined
     if (NON_COLOR_UTILITIES.has(name)) return undefined
-    // A quoted bare token name is a token reference, e.g. getTokenValue('text-accent').
+    // A quoted bare token name is a token reference, e.g. getTokenValue('accent-fg').
     if (
       tokens.has(match[0]) &&
       /^['"]/.test(match.input!.slice(match.index! - 1))

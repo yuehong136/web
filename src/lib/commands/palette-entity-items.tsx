@@ -109,7 +109,7 @@ export const usePaletteEntityItems = (
         meta: time(conversation.update_time || conversation.update_date),
         icon: (
           <MessageSquare
-            className="size-icon-sm text-text-tertiary"
+            className="size-icon-sm text-fg-subtle"
             aria-hidden="true"
           />
         ),

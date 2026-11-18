@@ -123,7 +123,7 @@ export const LoginForm: React.FC = () => {
               type="button"
               onClick={() => setShowPassword((visible) => !visible)}
               aria-pressed={showPassword}
-              className="flex rounded-radius-sm text-text-tertiary outline-hidden transition-colors hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-focus"
+              className="flex rounded-radius-sm text-fg-subtle outline-hidden transition-colors hover:text-fg-muted focus-visible:ring-2 focus-visible:ring-line-focus"
               aria-label={
                 showPassword
                   ? t('auth.login.hidePassword')
@@ -154,7 +154,7 @@ export const LoginForm: React.FC = () => {
           />
           <label
             htmlFor="remember-me"
-            className="cursor-pointer text-sm text-text-primary"
+            className="cursor-pointer text-sm text-fg"
           >
             {t('auth.login.remember')}
           </label>
@@ -178,11 +178,11 @@ export const LoginForm: React.FC = () => {
       </form>
 
       {isRegistrationEnabled ? (
-        <p className="mt-space-lg border-t border-border-subtle pt-space-base text-center text-sm text-text-secondary">
+        <p className="mt-space-lg border-t border-line-subtle pt-space-base text-center text-sm text-fg-muted">
           {t('auth.login.noAccount')}{' '}
           <Link
             to={ROUTES.REGISTER}
-            className="rounded-radius-sm font-medium text-text-accent underline-offset-2 outline-hidden hover:underline focus-visible:ring-2 focus-visible:ring-state-focus"
+            className="rounded-radius-sm font-medium text-accent-fg underline-offset-2 outline-hidden hover:underline focus-visible:ring-2 focus-visible:ring-line-focus"
           >
             {t('auth.login.register')}
           </Link>

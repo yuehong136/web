@@ -109,13 +109,11 @@ export function ImportAgentDialog({
               }}
             />
             {file && (
-              <p className="text-sm break-words text-text-secondary">
-                {file.name}
-              </p>
+              <p className="text-sm break-words text-fg-muted">{file.name}</p>
             )}
           </div>
           {error && (
-            <p role="alert" className="text-sm text-status-error">
+            <p role="alert" className="text-sm text-danger-fg">
               {t(
                 error === 'type'
                   ? 'agents.importDialog.fileType'

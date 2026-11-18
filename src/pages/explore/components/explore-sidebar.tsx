@@ -113,10 +113,10 @@ export const ExploreSidebar: FC<ExploreSidebarProps> = ({
         title={t('layout.nav.explore')}
         fallbackClassName="h-full w-72 shrink-0"
       >
-        <aside className="flex h-full w-full min-w-0 flex-col bg-components-sidebar-bg">
-          <div className="border-b border-border-subtle p-space-sm">
+        <aside className="flex h-full w-full min-w-0 flex-col bg-canvas">
+          <div className="border-b border-line-subtle p-space-sm">
             <div
-              className="grid grid-cols-3 gap-space-2xs rounded-radius-lg bg-surface-secondary p-space-2xs"
+              className="grid grid-cols-3 gap-space-2xs rounded-radius-lg bg-sunken p-space-2xs"
               role="tablist"
               aria-label={t('explore.sidebar.navigation')}
             >
@@ -135,10 +135,9 @@ export const ExploreSidebar: FC<ExploreSidebarProps> = ({
                       tab === 'topics' ? onTopicsClick() : onTabChange(tab)
                     }
                     className={cn(
-                      'min-w-0 rounded-radius-md px-space-xs py-space-xs text-center text-sm font-medium text-components-sidebar-item-text transition-colors',
-                      'hover:bg-components-sidebar-item-bg-hover hover:text-text-primary focus-visible:ring-1 focus-visible:ring-state-focus focus-visible:outline-hidden',
-                      selected &&
-                        'bg-components-sidebar-item-bg-active text-components-sidebar-item-text-active',
+                      'min-w-0 rounded-radius-md px-space-xs py-space-xs text-center text-sm font-medium text-fg-muted transition-colors',
+                      'hover:bg-fill-hover hover:text-fg focus-visible:ring-1 focus-visible:ring-line-focus focus-visible:outline-hidden',
+                      selected && 'bg-fill-selected text-fg',
                       disabled && 'cursor-not-allowed opacity-50',
                     )}
                   >
@@ -159,10 +158,9 @@ export const ExploreSidebar: FC<ExploreSidebarProps> = ({
                     type="button"
                     onClick={onDiscoverClick}
                     className={cn(
-                      'flex min-h-[var(--control-height-sm)] w-full items-center gap-space-sm rounded-radius-md px-space-sm py-space-xs text-left text-sm font-medium text-components-sidebar-item-text transition-colors',
-                      'hover:bg-components-sidebar-item-bg-hover hover:text-text-primary focus-visible:ring-1 focus-visible:ring-state-focus focus-visible:outline-hidden',
-                      mode === 'market' &&
-                        'bg-components-sidebar-item-bg-active text-components-sidebar-item-text-active',
+                      'flex min-h-[var(--control-height-sm)] w-full items-center gap-space-sm rounded-radius-md px-space-sm py-space-xs text-left text-sm font-medium text-fg-muted transition-colors',
+                      'hover:bg-fill-hover hover:text-fg focus-visible:ring-1 focus-visible:ring-line-focus focus-visible:outline-hidden',
+                      mode === 'market' && 'bg-fill-selected text-fg',
                     )}
                   >
                     <Search className="h-4 w-4 shrink-0" />
@@ -172,19 +170,19 @@ export const ExploreSidebar: FC<ExploreSidebarProps> = ({
                   </button>
                 </div>
 
-                <div className="mx-space-sm border-t border-border-subtle" />
+                <div className="mx-space-sm border-t border-line-subtle" />
 
                 <div className="min-h-0 flex-1 space-y-space-2xs overflow-y-auto p-space-sm">
                   {dialogAppsLoading ? (
-                    <div className="py-space-xl text-center text-sm text-text-tertiary">
+                    <div className="py-space-xl text-center text-sm text-fg-subtle">
                       {t('explore.sidebar.loadingApps')}
                     </div>
                   ) : dialogAppsError ? (
-                    <div className="py-space-xl text-center text-sm text-status-error">
+                    <div className="py-space-xl text-center text-sm text-danger-fg">
                       {t('explore.sidebar.loadFailed')}
                     </div>
                   ) : dialogApps.length === 0 ? (
-                    <div className="py-space-xl text-center text-sm text-text-tertiary">
+                    <div className="py-space-xl text-center text-sm text-fg-subtle">
                       {t('explore.sidebar.noApps')}
                     </div>
                   ) : (
@@ -200,10 +198,9 @@ export const ExploreSidebar: FC<ExploreSidebarProps> = ({
                             onClick={() => onAppSelect(app.id)}
                             title={app.name}
                             className={cn(
-                              'flex min-h-[var(--control-height-sm)] w-full items-center gap-space-sm rounded-radius-md px-space-sm py-space-xs text-left text-sm text-components-sidebar-item-text transition-colors',
-                              'hover:bg-components-sidebar-item-bg-hover hover:text-text-primary focus-visible:ring-1 focus-visible:ring-state-focus focus-visible:outline-hidden',
-                              selected &&
-                                'bg-components-sidebar-item-bg-active text-components-sidebar-item-text-active',
+                              'flex min-h-[var(--control-height-sm)] w-full items-center gap-space-sm rounded-radius-md px-space-sm py-space-xs text-left text-sm text-fg-muted transition-colors',
+                              'hover:bg-fill-hover hover:text-fg focus-visible:ring-1 focus-visible:ring-line-focus focus-visible:outline-hidden',
+                              selected && 'bg-fill-selected text-fg',
                             )}
                           >
                             <EntityAvatar
@@ -229,8 +226,8 @@ export const ExploreSidebar: FC<ExploreSidebarProps> = ({
                   />
                 ) : (
                   <>
-                    <div className="border-b border-border-subtle p-space-sm">
-                      <div className="flex items-center rounded-radius-lg bg-surface-secondary p-space-sm">
+                    <div className="border-b border-line-subtle p-space-sm">
+                      <div className="flex items-center rounded-radius-lg bg-sunken p-space-sm">
                         <EntityAvatar
                           name={currentApp?.name}
                           src={currentApp?.icon}
@@ -238,7 +235,7 @@ export const ExploreSidebar: FC<ExploreSidebarProps> = ({
                           size="sm"
                         />
                         <div className="ml-space-sm min-w-0 flex-1">
-                          <p className="truncate text-sm font-medium text-text-primary">
+                          <p className="truncate text-sm font-medium text-fg">
                             {currentApp?.name}
                           </p>
                         </div>
@@ -247,11 +244,11 @@ export const ExploreSidebar: FC<ExploreSidebarProps> = ({
 
                     <div className="min-h-0 flex-1 overflow-y-auto">
                       {dialogConversationsLoading ? (
-                        <div className="px-space-base py-space-lg text-center text-sm text-text-tertiary">
+                        <div className="px-space-base py-space-lg text-center text-sm text-fg-subtle">
                           {t('explore.conversations.loading')}
                         </div>
                       ) : dialogConversationsError ? (
-                        <div className="px-space-base py-space-lg text-center text-sm text-status-error">
+                        <div className="px-space-base py-space-lg text-center text-sm text-danger-fg">
                           {t('explore.sidebar.loadFailed')}
                         </div>
                       ) : (

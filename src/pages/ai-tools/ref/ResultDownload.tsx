@@ -84,24 +84,24 @@ const ResultDownload: React.FC<ResultDownloadProps> = ({
     <div className="flex flex-col gap-space-lg">
       <div className="flex flex-col items-center gap-space-sm text-center">
         <CheckCircle2
-          className="size-icon-xl text-status-success"
+          className="size-icon-xl text-success-fg"
           aria-hidden="true"
         />
-        <h2 className="text-base font-semibold text-text-primary">
+        <h2 className="text-base font-semibold text-fg">
           {t('aiTools.autoFill.result.heading')}
         </h2>
-        <p className="text-sm text-text-secondary">
+        <p className="text-sm text-fg-muted">
           {t('aiTools.autoFill.result.description')}
         </p>
       </div>
 
-      <div className="flex items-center gap-space-base rounded-radius-xl border border-border-subtle bg-background-surface p-space-base">
+      <div className="flex items-center gap-space-base rounded-radius-xl border border-line-subtle bg-surface p-space-base">
         <FileKindTile name={originalFileName} size="lg" />
         <div className="flex min-w-0 flex-1 flex-col gap-space-xs">
-          <p className="truncate text-sm font-medium text-text-primary">
+          <p className="truncate text-sm font-medium text-fg">
             {originalFileName}
           </p>
-          <div className="flex flex-wrap items-center gap-x-space-md gap-y-space-2xs text-xs text-text-secondary">
+          <div className="flex flex-wrap items-center gap-x-space-md gap-y-space-2xs text-xs text-fg-muted">
             <span className="inline-flex items-center gap-space-xs tabular-nums">
               <HardDrive className="size-icon-xs" aria-hidden="true" />
               {formatBytes((fileData.length * 3) / 4, 1)}
@@ -110,7 +110,7 @@ const ResultDownload: React.FC<ResultDownloadProps> = ({
               <Clock className="size-icon-xs" aria-hidden="true" />
               {finishedLabel}
             </span>
-            <span className="rounded-radius-sm bg-status-success-subtle px-space-xs text-status-success">
+            <span className="rounded-radius-sm bg-success-soft px-space-xs text-success-fg">
               {t('aiTools.autoFill.result.status')}
             </span>
           </div>
@@ -134,7 +134,7 @@ const ResultDownload: React.FC<ResultDownloadProps> = ({
         </Button>
       </div>
 
-      <div className="flex items-center justify-between gap-space-sm border-t border-border-subtle pt-space-base">
+      <div className="flex items-center justify-between gap-space-sm border-t border-line-subtle pt-space-base">
         {onBackToFill ? (
           <Button variant="ghost" size="sm" onClick={onBackToFill}>
             <ArrowLeft aria-hidden="true" />
@@ -160,7 +160,7 @@ const ResultDownload: React.FC<ResultDownloadProps> = ({
           <DialogBody className="flex flex-col px-0 pb-0">
             <FilledDocxPreview
               fileData={showPreview ? fileData : null}
-              className="border-t border-border-subtle"
+              className="border-t border-line-subtle"
             />
           </DialogBody>
           <DialogFooter>

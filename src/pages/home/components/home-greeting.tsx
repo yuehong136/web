@@ -32,7 +32,7 @@ export function HomeGreeting({
     <div className="flex flex-col items-center gap-space-base text-center">
       <p
         data-home-greeting
-        className="inline-flex max-w-full items-center gap-space-sm rounded-radius-full border border-components-ai-ring bg-components-ai-glow py-space-xs ps-space-xs pe-space-base text-xs text-text-accent"
+        className="inline-flex max-w-full items-center gap-space-sm rounded-radius-full border border-ai-line bg-ai-glow py-space-xs ps-space-xs pe-space-base text-xs text-accent-fg"
       >
         <TideMark size="xs" />
         <span className="min-w-0 truncate">
@@ -48,10 +48,10 @@ export function HomeGreeting({
             }`}
         </span>
       </p>
-      <h1 className="text-2xl font-semibold tracking-tight text-pretty text-text-primary sm:text-3xl">
+      <h1 className="text-2xl font-semibold tracking-tight text-pretty text-fg sm:text-3xl">
         {t('home.empty.title')}
       </h1>
-      <p className="max-w-xl text-sm text-pretty text-text-tertiary">
+      <p className="max-w-xl text-sm text-pretty text-fg-subtle">
         {t('home.empty.description')}
       </p>
     </div>

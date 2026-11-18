@@ -16,7 +16,7 @@ export const recommendCards: RecommendCard[] = [
     tagKey: 'home.starters.summarize',
     descriptionKey: 'home.starters.summarizeHint',
     icon: FileText,
-    tone: 'bg-components-avatar-6-bg text-components-avatar-6-text',
+    tone: 'bg-avatar-6-bg text-avatar-6-fg',
   },
   {
     id: 2,
@@ -26,7 +26,7 @@ export const recommendCards: RecommendCard[] = [
     tagKey: 'home.starters.compare',
     descriptionKey: 'home.starters.compareHint',
     icon: GitCompareArrows,
-    tone: 'bg-components-avatar-7-bg text-components-avatar-7-text',
+    tone: 'bg-avatar-7-bg text-avatar-7-fg',
   },
   {
     id: 3,
@@ -36,7 +36,7 @@ export const recommendCards: RecommendCard[] = [
     tagKey: 'home.starters.draft',
     descriptionKey: 'home.starters.draftHint',
     icon: NotebookPen,
-    tone: 'bg-components-avatar-2-bg text-components-avatar-2-text',
+    tone: 'bg-avatar-2-bg text-avatar-2-fg',
   },
   {
     id: 4,
@@ -46,6 +46,6 @@ export const recommendCards: RecommendCard[] = [
     tagKey: 'home.starters.explain',
     descriptionKey: 'home.starters.explainHint',
     icon: Lightbulb,
-    tone: 'bg-components-avatar-5-bg text-components-avatar-5-text',
+    tone: 'bg-avatar-5-bg text-avatar-5-fg',
   },
 ]

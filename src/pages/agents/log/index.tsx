@@ -147,7 +147,7 @@ export default function AgentLogsPage() {
               onOpenExplore={() => navigate(openExplorePath)}
             />
           </ResizablePanel>
-          <ResizableHandle className="w-px bg-border-subtle transition-colors hover:bg-border-strong" />
+          <ResizableHandle className="w-px bg-line-subtle transition-colors hover:bg-line-strong" />
           <ResizablePanel defaultSize="76%" minSize="52%" className="min-w-0">
             <SessionDetailPane
               canvasId={canvasId}
