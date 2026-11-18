@@ -191,7 +191,7 @@ export function SkillSpacesPage() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-status-error"
+                className="text-danger-fg"
                 disabled={action.isPending}
                 onClick={() => setDeleting(true)}
               >

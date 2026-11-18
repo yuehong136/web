@@ -55,7 +55,7 @@ function ConfigForm({
   const action = useSkillAction(onAccepted)
   return (
     <form
-      className="flex flex-col gap-space-base px-space-lg pb-space-lg text-text-primary"
+      className="flex flex-col gap-space-base px-space-lg pb-space-lg text-fg"
       onSubmit={form.handleSubmit((data) =>
         action.mutate(async () => {
           const result = await skillsAPI.updateConfig(space, data)
@@ -166,11 +166,11 @@ function ConfigForm({
       )}
       <SkillError error={action.error} />
       {requiresReindex && (
-        <output className="text-sm text-status-info">
+        <output className="text-sm text-info-fg">
           {t('skills.requiresReindex')}
         </output>
       )}
-      <div className="flex flex-wrap justify-end gap-space-sm border-t border-border-subtle pt-space-base">
+      <div className="flex flex-wrap justify-end gap-space-sm border-t border-line-subtle pt-space-base">
         <Button
           type="button"
           variant="outline"
@@ -210,7 +210,7 @@ export function SkillConfigDialog({
         if (!open) onClose()
       }}
     >
-      <DialogContent className="overflow-y-auto text-text-primary">
+      <DialogContent className="overflow-y-auto text-fg">
         <DialogHeader>
           <DialogTitle>{t('skills.configuration')}</DialogTitle>
           <DialogDescription>

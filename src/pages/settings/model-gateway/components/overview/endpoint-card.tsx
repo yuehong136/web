@@ -51,11 +51,11 @@ export function EndpointCard({
             <div className="min-w-0">
               <h2
                 id="gateway-endpoint-title"
-                className="text-base font-semibold text-text-primary"
+                className="text-base font-semibold text-fg"
               >
                 {t(`${PREFIX}.overview.endpointTitle`)}
               </h2>
-              <p className="mt-space-2xs text-sm text-text-secondary">
+              <p className="mt-space-2xs text-sm text-fg-muted">
                 {t(`${PREFIX}.overview.endpointHint`)}
               </p>
             </div>
@@ -84,7 +84,7 @@ export function EndpointCard({
               {t(`${PREFIX}.overview.rerankPlanned`)}
             </li>
           </ul>
-          <div className="flex flex-wrap items-center gap-x-space-lg gap-y-space-xs text-sm text-text-secondary">
+          <div className="flex flex-wrap items-center gap-x-space-lg gap-y-space-xs text-sm text-fg-muted">
             <span>
               {t(`${PREFIX}.overview.providers`, {
                 count: overview.counts.providers,
@@ -111,7 +111,7 @@ export function EndpointCard({
             </Button>
           </div>
         </div>
-        <div className="min-w-0 flex-[1_1_24rem] border-t border-border-subtle p-space-lg md:border-t-0 md:border-l">
+        <div className="min-w-0 flex-[1_1_24rem] border-t border-line-subtle p-space-lg md:border-t-0 md:border-l">
           <CodeSamples
             label={t(`${PREFIX}.overview.samplesLabel`)}
             copyLabel={t(`${PREFIX}.overview.copySample`)}

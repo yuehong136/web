@@ -61,7 +61,7 @@ export function PaddleOCRFields(props: PaddleOCRFieldsProps) {
             ))}
           </SelectContent>
         </Select>
-        <p id={`${id}-deployment`} className="text-xs text-text-tertiary">
+        <p id={`${id}-deployment`} className="text-xs text-fg-subtle">
           {t(`${key}.deploymentHint`)}
         </p>
       </div>
@@ -76,7 +76,7 @@ export function PaddleOCRFields(props: PaddleOCRFieldsProps) {
           placeholder={`https://paddleocr-server.example${endpoint}`}
           aria-describedby={`${id}-url-hint`}
         />
-        <p id={`${id}-url-hint`} className="text-xs text-text-tertiary">
+        <p id={`${id}-url-hint`} className="text-xs text-fg-subtle">
           {t(`${key}.apiUrlHint`, { endpoint })}
         </p>
       </div>
@@ -94,7 +94,7 @@ export function PaddleOCRFields(props: PaddleOCRFieldsProps) {
           placeholder={t(`${key}.tokenPlaceholder`)}
         />
       </div>
-      <p className="text-xs text-text-tertiary">{t(`${key}.validationHint`)}</p>
+      <p className="text-xs text-fg-subtle">{t(`${key}.validationHint`)}</p>
     </>
   )
 }

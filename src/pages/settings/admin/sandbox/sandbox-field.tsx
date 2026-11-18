@@ -50,7 +50,7 @@ export function SandboxField({
             disabled={field.readonly}
             onCheckedChange={onChange}
           />
-          <span className="text-sm text-text-secondary">
+          <span className="text-sm text-fg-muted">
             {displayValue ? t('sandbox.enabled') : t('sandbox.disabled')}
           </span>
         </div>
@@ -93,7 +93,7 @@ export function SandboxField({
         />
       )}
       {field.secret && savedSecret ? (
-        <div className="flex items-center justify-between gap-space-sm text-xs text-text-secondary">
+        <div className="flex items-center justify-between gap-space-sm text-xs text-fg-muted">
           <span>{t('sandbox.secretConfigured')}</span>
           <Button type="button" variant="ghost" size="sm" onClick={onClear}>
             {t('sandbox.clearSecret')}
@@ -101,7 +101,7 @@ export function SandboxField({
         </div>
       ) : null}
       {field.type === 'integer' ? (
-        <p className="text-xs text-text-caption">
+        <p className="text-xs text-fg-subtle">
           {t('sandbox.range', { min: field.min ?? 0, max: field.max ?? '—' })}
         </p>
       ) : null}

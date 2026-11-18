@@ -110,7 +110,7 @@ export function InstanceModelEditor({
         {t('settings.models.localModel.tools')}
       </label>
       {failed && (
-        <p role="alert" className="text-status-error">
+        <p role="alert" className="text-danger-fg">
           {t(
             existingNames.has(name.trim())
               ? 'settings.models.discovery.duplicate'

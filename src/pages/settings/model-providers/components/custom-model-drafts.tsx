@@ -43,7 +43,7 @@ export function CustomModelDrafts({
         {t('settings.models.discovery.addCustom')}
       </Button>
       {editing && (
-        <div className="rounded-radius-md border border-border-default">
+        <div className="rounded-radius-md border border-line">
           <InstanceModelEditor
             pending={pending}
             existingNames={existingNames}
@@ -65,7 +65,7 @@ export function CustomModelDrafts({
       )}
       {models.size > 0 && (
         <fieldset disabled={pending}>
-          <legend className="text-sm text-text-secondary">
+          <legend className="text-sm text-fg-muted">
             {t('settings.models.discovery.customModels')}
           </legend>
           <ul className="max-h-48 overflow-auto">

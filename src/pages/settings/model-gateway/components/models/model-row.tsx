@@ -57,13 +57,13 @@ export function ModelRow({
   }
 
   return (
-    <TableRow className={cn(!callable && 'text-text-tertiary')}>
+    <TableRow className={cn(!callable && 'text-fg-subtle')}>
       <TableCell className="max-w-72 py-space-sm">
         <div className="flex flex-wrap items-center gap-space-xs">
           <span
             className={cn(
               'font-mono text-sm break-all',
-              callable ? 'text-text-primary' : 'text-text-tertiary',
+              callable ? 'text-fg' : 'text-fg-subtle',
             )}
           >
             {model.call_name}
@@ -81,7 +81,7 @@ export function ModelRow({
           ) : null}
         </div>
         {note ? (
-          <p className="mt-space-2xs text-xs text-text-tertiary">{note}</p>
+          <p className="mt-space-2xs text-xs text-fg-subtle">{note}</p>
         ) : null}
       </TableCell>
       <TableCell>
@@ -93,13 +93,13 @@ export function ModelRow({
           ))}
         </div>
       </TableCell>
-      <TableCell className="max-w-48 truncate font-mono text-xs text-text-secondary">
+      <TableCell className="max-w-48 truncate font-mono text-xs text-fg-muted">
         <span title={model.model_name}>{model.model_name}</span>
       </TableCell>
-      <TableCell className="text-sm text-text-secondary">
+      <TableCell className="text-sm text-fg-muted">
         {limitSummary(t, model) ?? t(`${PREFIX}.common.empty`)}
       </TableCell>
-      <TableCell className="text-right text-sm text-text-secondary tabular-nums">
+      <TableCell className="text-right text-sm text-fg-muted tabular-nums">
         {formatCount(model.requests_7d)}
       </TableCell>
       <TableCell>

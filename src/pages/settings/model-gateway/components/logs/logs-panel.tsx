@@ -100,9 +100,9 @@ export function LogsPanel({
         <Table
           aria-label={t(`${PREFIX}.tabs.logs`)}
           aria-busy={logsQuery.isPlaceholderData || undefined}
-          wrapperClassName="rounded-radius-lg border border-border-subtle"
+          wrapperClassName="rounded-radius-lg border border-line-subtle"
         >
-          <TableHeader className="bg-background-subtle">
+          <TableHeader className="bg-sunken">
             <TableRow>
               <TableHead>{t(`${PREFIX}.logs.columns.time`)}</TableHead>
               <TableHead>{t(`${PREFIX}.logs.columns.status`)}</TableHead>
@@ -210,7 +210,7 @@ export function LogsPanel({
             }}
           />
         </div>
-        <span className="ml-auto text-xs text-text-tertiary">
+        <span className="ml-auto text-xs text-fg-subtle">
           {t(`${PREFIX}.logs.shareHint`)}
         </span>
         <Button

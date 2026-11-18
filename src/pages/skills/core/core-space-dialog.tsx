@@ -72,7 +72,7 @@ export function CoreSpaceDialog({
           />
           <SkillError error={action.error} />
           {!space && action.error && (
-            <p aria-live="polite" className="text-sm text-text-secondary">
+            <p aria-live="polite" className="text-sm text-fg-muted">
               {t('skills.createUnknown')}
             </p>
           )}

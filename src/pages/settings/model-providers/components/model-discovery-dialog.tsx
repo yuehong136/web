@@ -303,7 +303,7 @@ function ModelDiscoveryForm({ provider, close, configureManually }: Props) {
             </Button>
           </fieldset>
           {(page || selected.size > 0) && (
-            <output className="text-sm text-text-secondary">
+            <output className="text-sm text-fg-muted">
               {t('settings.models.discovery.selected', {
                 count: selected.size,
               })}
@@ -369,16 +369,16 @@ function ModelDiscoveryForm({ provider, close, configureManually }: Props) {
           />
           {verified && (
             <div role="status" className="text-sm">
-              <p className="text-status-success">
+              <p className="text-success-fg">
                 {t('settings.models.connection.valid')}
               </p>
-              <p className="mt-space-xs text-xs text-text-secondary">
+              <p className="mt-space-xs text-xs text-fg-muted">
                 {t('settings.models.connection.scope')}
               </p>
             </div>
           )}
           {failure && (
-            <p role="alert" className="text-sm text-status-error">
+            <p role="alert" className="text-sm text-danger-fg">
               {t(
                 failure === 'verify'
                   ? 'settings.models.connection.invalid'

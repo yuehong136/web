@@ -51,17 +51,17 @@ function ConnectorTile({
         aria-label={t('datasource.addNamed', { name: source.name })}
         aria-describedby={source.description ? descriptionId : undefined}
         onClick={onAdd}
-        className="group flex h-full w-full min-w-0 items-center gap-space-sm rounded-radius-lg border border-border-subtle bg-background-surface p-space-sm text-left outline-hidden transition-[border-color,box-shadow,transform] duration-150 hover:border-border-strong hover:shadow-elevation-medium focus-visible:ring-2 focus-visible:ring-state-focus motion-safe:hover:-translate-y-px"
+        className="group flex h-full w-full min-w-0 items-center gap-space-sm rounded-radius-lg border border-line-subtle bg-surface p-space-sm text-left outline-hidden transition-[border-color,box-shadow,transform] duration-150 hover:border-line-strong hover:shadow-elevation-medium focus-visible:ring-2 focus-visible:ring-line-focus motion-safe:hover:-translate-y-px"
       >
         <ConnectorLogo icon={source.icon} size="lg" />
         <span className="flex min-w-0 flex-1 flex-col gap-space-2xs">
-          <span className="truncate text-sm font-medium text-text-primary">
+          <span className="truncate text-sm font-medium text-fg">
             {source.name}
           </span>
           {source.description ? (
             <span
               id={descriptionId}
-              className="line-clamp-2 text-xs text-text-tertiary"
+              className="line-clamp-2 text-xs text-fg-subtle"
             >
               {source.description}
             </span>
@@ -69,7 +69,7 @@ function ConnectorTile({
         </span>
         <Plus
           aria-hidden="true"
-          className="size-icon-sm shrink-0 text-text-tertiary transition-colors group-hover:text-text-primary"
+          className="size-icon-sm shrink-0 text-fg-subtle transition-colors group-hover:text-fg"
         />
       </button>
     </li>
@@ -98,7 +98,7 @@ export function ConnectorCatalog({
         const label = t(`datasource.groups.${group.key}`)
         return (
           <div key={group.key} className="flex flex-col gap-space-sm">
-            <h4 className="text-xs font-medium text-text-tertiary">
+            <h4 className="text-xs font-medium text-fg-subtle">
               {label}
               <span className="ms-space-xs tabular-nums">{items.length}</span>
             </h4>

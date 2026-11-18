@@ -24,16 +24,11 @@ export const ChannelRuntimeBanner = ({
   const { t } = useTranslation()
 
   return (
-    <div className="gap-space-xs rounded-radius-lg bg-surface-secondary p-space-base flex flex-col border border-border-subtle text-sm">
-      <div className="gap-space-sm flex items-center">
-        <RadioTower
-          className="size-icon-md text-text-secondary"
-          aria-hidden="true"
-        />
-        <span className="text-text-secondary">
-          {t('channel.runtime.label')}:
-        </span>
-        <span className="font-medium text-text-primary">
+    <div className="flex flex-col gap-space-xs rounded-radius-lg border border-line-subtle bg-sunken p-space-base text-sm">
+      <div className="flex items-center gap-space-sm">
+        <RadioTower className="size-icon-md text-fg-muted" aria-hidden="true" />
+        <span className="text-fg-muted">{t('channel.runtime.label')}:</span>
+        <span className="font-medium text-fg">
           {runtime?.state
             ? t(`channel.runtime.states.${runtime.state}`, {
                 defaultValue: runtime.state,
@@ -42,7 +37,7 @@ export const ChannelRuntimeBanner = ({
         </span>
       </div>
       {runtime?.last_error_code ? (
-        <output className="text-xs text-status-error">
+        <output className="text-xs text-danger-fg">
           {t('channel.runtime.errorCode', { code: runtime.last_error_code })}
         </output>
       ) : null}

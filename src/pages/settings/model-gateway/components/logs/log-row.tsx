@@ -66,7 +66,7 @@ export function LogRow({
             status: log.status_code,
           })}
           title={formatInstant(log.started_at) ?? undefined}
-          className="rounded-radius-sm font-mono text-xs text-text-secondary outline-hidden focus-visible:ring-2 focus-visible:ring-state-focus"
+          className="rounded-radius-sm font-mono text-xs text-fg-muted outline-hidden focus-visible:ring-2 focus-visible:ring-line-focus"
           onClick={(event) => {
             event.stopPropagation()
             onSelect()
@@ -78,24 +78,22 @@ export function LogRow({
       <TableCell>
         <StatusCode code={log.status_code} />
       </TableCell>
-      <TableCell className="max-w-40 truncate text-sm text-text-primary">
+      <TableCell className="max-w-40 truncate text-sm text-fg">
         {log.key_name}
       </TableCell>
       <TableCell className="max-w-56">
-        <div className="truncate font-mono text-sm text-text-primary">
+        <div className="truncate font-mono text-sm text-fg">
           {log.model ?? '-'}
         </div>
-        <div className="text-xs text-text-tertiary">
-          {endpointLabel(t, log)}
-        </div>
+        <div className="text-xs text-fg-subtle">{endpointLabel(t, log)}</div>
       </TableCell>
-      <TableCell className="text-sm whitespace-nowrap text-text-secondary tabular-nums">
+      <TableCell className="text-sm whitespace-nowrap text-fg-muted tabular-nums">
         {usageText(t, log)}
       </TableCell>
-      <TableCell className="text-right text-sm whitespace-nowrap text-text-secondary tabular-nums">
+      <TableCell className="text-right text-sm whitespace-nowrap text-fg-muted tabular-nums">
         {formatDuration(log.duration_ms)}
       </TableCell>
-      <TableCell className="w-8 text-text-tertiary">
+      <TableCell className="w-8 text-fg-subtle">
         <ChevronRight className="size-icon-sm" aria-hidden="true" />
       </TableCell>
     </TableRow>

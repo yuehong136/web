@@ -62,7 +62,7 @@ export function ConnectionCard({
         <ProviderLogo provider={connection.provider} size="md" />
         <div className="min-w-0 flex-[1_1_16rem]">
           <div className="flex flex-wrap items-center gap-space-xs">
-            <h3 className="text-sm font-semibold text-text-primary">
+            <h3 className="text-sm font-semibold text-fg">
               {connection.provider}
             </h3>
             <Badge variant="secondary">
@@ -78,7 +78,7 @@ export function ConnectionCard({
               {prefix}
             </Badge>
           </div>
-          <p className="mt-space-2xs text-xs text-text-tertiary">
+          <p className="mt-space-2xs text-xs text-fg-subtle">
             {t(`${PREFIX}.models.countOpen`, {
               open: allModels.filter(isCallable).length,
               total: allModels.length,
@@ -87,12 +87,12 @@ export function ConnectionCard({
         </div>
         <Link
           to={`/settings/model-providers?tab=providers&provider=${encodeURIComponent(connection.provider)}`}
-          className="text-sm text-text-accent hover:underline focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden"
+          className="text-sm text-accent-fg hover:underline focus-visible:ring-2 focus-visible:ring-line-focus focus-visible:outline-hidden"
         >
           {t(`${PREFIX}.models.manage`)}
         </Link>
         <div className="flex items-center gap-space-sm">
-          <span className="text-sm text-text-secondary" aria-hidden="true">
+          <span className="text-sm text-fg-muted" aria-hidden="true">
             {t(`${PREFIX}.models.openAll`)}
           </span>
           <Switch
@@ -104,8 +104,8 @@ export function ConnectionCard({
           />
         </div>
       </div>
-      <Table wrapperClassName="border-t border-border-subtle">
-        <TableHeader className="bg-background-subtle">
+      <Table wrapperClassName="border-t border-line-subtle">
+        <TableHeader className="bg-sunken">
           <TableRow>
             <TableHead>{t(`${PREFIX}.models.columns.callName`)}</TableHead>
             <TableHead>{t(`${PREFIX}.models.columns.capabilities`)}</TableHead>

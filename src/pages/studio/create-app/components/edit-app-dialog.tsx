@@ -87,7 +87,7 @@ export function EditAppDialog({ controller }: { controller: AppInfoBindings }) {
                 </Button>
               )}
             </div>
-            <p className="text-xs text-text-secondary">
+            <p className="text-xs text-fg-muted">
               {t('studio.editor.iconHint')}
             </p>
           </div>
@@ -104,7 +104,7 @@ export function EditAppDialog({ controller }: { controller: AppInfoBindings }) {
               }
               maxLength={50}
             />
-            <p className="text-right text-xs text-text-secondary">
+            <p className="text-right text-xs text-fg-muted">
               {tempConfig.name.length}/50
             </p>
           </div>
@@ -125,7 +125,7 @@ export function EditAppDialog({ controller }: { controller: AppInfoBindings }) {
               rows={4}
               maxLength={200}
             />
-            <p className="text-right text-xs text-text-secondary">
+            <p className="text-right text-xs text-fg-muted">
               {tempConfig.description.length}/200
             </p>
           </div>

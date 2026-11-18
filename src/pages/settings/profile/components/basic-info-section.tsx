@@ -77,7 +77,7 @@ export const BasicInfoSection = ({
           </div>
         ) : (
           <span
-            className="block max-w-64 min-w-0 truncate text-sm text-text-primary"
+            className="block max-w-64 min-w-0 truncate text-sm text-fg"
             title={profile.userName}
           >
             {profile.userName || '—'}
@@ -88,9 +88,7 @@ export const BasicInfoSection = ({
         label={t('settings.profile.email')}
         description={t('settings.profile.emailHint')}
       >
-        <span className="text-sm break-all text-text-primary">
-          {profile.email}
-        </span>
+        <span className="text-sm break-all text-fg">{profile.email}</span>
       </SettingRow>
       <SettingRow label={t('settings.profile.timeZone')}>
         {isEditing ? (
@@ -119,19 +117,19 @@ export const BasicInfoSection = ({
               </SelectContent>
             </Select>
             {errors.timeZone && (
-              <p className="mt-space-xs text-sm text-status-error">
+              <p className="mt-space-xs text-sm text-danger-fg">
                 {t(errors.timeZone)}
               </p>
             )}
           </div>
         ) : (
-          <span className="text-sm text-text-primary">
+          <span className="text-sm text-fg">
             {formatProfileTimezone(profile.timeZone) || '—'}
           </span>
         )}
       </SettingRow>
       {isEditing && (
-        <div className="flex flex-wrap justify-end gap-space-sm border-t border-border-subtle pt-space-sm">
+        <div className="flex flex-wrap justify-end gap-space-sm border-t border-line-subtle pt-space-sm">
           <Button
             variant="outline"
             size="sm"

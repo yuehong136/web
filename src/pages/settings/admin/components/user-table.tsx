@@ -74,12 +74,12 @@ function UserRow({
       }
       description={description || undefined}
     >
-      <span className="inline-flex items-center gap-space-xs text-sm text-text-secondary">
+      <span className="inline-flex items-center gap-space-xs text-sm text-fg-muted">
         <span
           aria-hidden="true"
           className={cn(
             'size-1.5 rounded-radius-full',
-            user.is_active ? 'bg-status-success' : 'bg-text-tertiary',
+            user.is_active ? 'bg-success-fg' : 'bg-fg-subtle',
           )}
         />
         {t(

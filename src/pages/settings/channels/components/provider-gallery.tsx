@@ -36,19 +36,16 @@ export const ProviderGallery = ({
       aria-labelledby="channel-available-heading"
     >
       <div>
-        <h3
-          id="channel-available-heading"
-          className="font-semibold text-text-primary"
-        >
+        <h3 id="channel-available-heading" className="font-semibold text-fg">
           {t('channel.gallery.title')}
         </h3>
-        <p className="mt-1 text-sm text-text-secondary">
+        <p className="mt-1 text-sm text-fg-muted">
           {t('channel.gallery.description')}
         </p>
       </div>
 
       {providers.length === 0 ? (
-        <p className="py-space-base text-sm text-text-secondary">
+        <p className="py-space-base text-sm text-fg-muted">
           {t('channel.filter.noMatchProvider')}
         </p>
       ) : null}
@@ -65,7 +62,7 @@ export const ProviderGallery = ({
                 type="button"
                 disabled={disabled}
                 onClick={() => onSelect(manifest.provider)}
-                className="group flex h-full w-full items-start gap-space-base rounded-radius-lg border border-border-subtle p-space-base text-left transition-colors hover:border-border-strong hover:bg-background-subtle focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-60"
+                className="group flex h-full w-full items-start gap-space-base rounded-radius-lg border border-line-subtle p-space-base text-left transition-colors hover:border-line-strong hover:bg-sunken focus-visible:ring-2 focus-visible:ring-line-focus focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-60"
               >
                 <ProviderLogo
                   provider={manifest.provider}
@@ -74,7 +71,7 @@ export const ProviderGallery = ({
                 />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-space-sm">
-                    <span className="truncate font-medium text-text-primary">
+                    <span className="truncate font-medium text-fg">
                       {/* Our translation wins, the server's English name is
                           the fallback — so a provider registered after the
                           last frontend release still gets a real title. */}
@@ -90,7 +87,7 @@ export const ProviderGallery = ({
                       </Badge>
                     ) : null}
                   </div>
-                  <p className="mt-1 line-clamp-2 text-sm text-text-secondary">
+                  <p className="mt-1 line-clamp-2 text-sm text-fg-muted">
                     {/* Server copy is the fallback, our translation wins when
                         we have one — so a provider added after the last
                         frontend release still reads as a real product. */}
@@ -102,7 +99,7 @@ export const ProviderGallery = ({
                   </p>
                 </div>
                 <span
-                  className="flex shrink-0 items-center gap-space-xs text-sm text-text-secondary group-hover:text-text-primary"
+                  className="flex shrink-0 items-center gap-space-xs text-sm text-fg-muted group-hover:text-fg"
                   aria-hidden="true"
                 >
                   <Plus className="size-icon-sm" />

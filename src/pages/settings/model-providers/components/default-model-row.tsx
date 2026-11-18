@@ -33,7 +33,7 @@ export function DefaultModelRow({
       className={cn(
         'flex min-w-0 flex-wrap items-center gap-x-space-md gap-y-space-sm rounded-radius-lg border px-space-sm py-space-sm',
         attention
-          ? 'border-status-warning-border bg-status-warning-subtle'
+          ? 'border-warning-line bg-warning-soft'
           : 'border-transparent',
       )}
     >
@@ -42,20 +42,20 @@ export function DefaultModelRow({
         className={cn(
           'flex size-8 shrink-0 items-center justify-center rounded-radius-md [&_svg]:size-icon-sm',
           attention
-            ? 'bg-status-warning-subtle-hover text-status-warning'
+            ? 'bg-warning-soft-hover text-warning-fg'
             : MODEL_CAPABILITY_TONES[kind],
         )}
       >
         <Icon strokeWidth={1.75} />
       </span>
       <div className="flex min-w-0 flex-1 basis-40 flex-col">
-        <span className="text-sm font-medium text-text-primary">{label}</span>
+        <span className="text-sm font-medium text-fg">{label}</span>
         <span
           title={hint}
           className={cn(
             'text-xs',
             // The reason a slot needs attention is never cut off.
-            attention ? 'text-status-warning' : 'truncate text-text-tertiary',
+            attention ? 'text-warning-fg' : 'truncate text-fg-subtle',
           )}
         >
           {hint}

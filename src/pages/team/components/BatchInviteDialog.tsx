@@ -122,7 +122,7 @@ export function BatchInviteDialog({
                 aria-invalid={error ? true : undefined}
                 className="min-h-32 font-mono text-sm"
               />
-              <p className="text-xs text-text-tertiary">
+              <p className="text-xs text-fg-subtle">
                 {parsedEmails.length
                   ? t('settings.team.inviteDialog.recognized', {
                       count: parsedEmails.length,
@@ -131,14 +131,14 @@ export function BatchInviteDialog({
                   : t('settings.team.inviteDialog.hint')}
               </p>
               {invalidEmails.length > 0 ? (
-                <p className="rounded-radius-md border border-status-warning-border bg-status-warning-subtle px-space-sm py-space-xs text-xs break-all text-status-warning">
+                <p className="rounded-radius-md border border-warning-line bg-warning-soft px-space-sm py-space-xs text-xs break-all text-warning-fg">
                   {t('settings.team.inviteDialog.invalidList', {
                     emails: invalidEmails.join(', '),
                   })}
                 </p>
               ) : null}
               {error ? (
-                <p role="alert" className="text-sm text-status-error">
+                <p role="alert" className="text-sm text-danger-fg">
                   {t(`settings.team.inviteDialog.errors.${error}`)}
                 </p>
               ) : null}

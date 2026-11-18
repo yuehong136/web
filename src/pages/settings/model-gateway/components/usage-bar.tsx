@@ -26,14 +26,14 @@ export function UsageBar({
       <div
         aria-hidden="true"
         className={cn(
-          'w-full overflow-hidden rounded-radius-full bg-components-progress-bg',
+          'w-full overflow-hidden rounded-radius-full bg-fill-pressed',
           size === 'sm' ? 'h-1.5' : 'h-2',
         )}
       >
         <div
           className={cn(
             'h-full rounded-radius-full',
-            value > 80 ? 'bg-status-warning' : 'bg-components-progress-fill',
+            value > 80 ? 'bg-warning-fg' : 'bg-accent-solid',
           )}
           style={{ width: `${value}%` }}
         />

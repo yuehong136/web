@@ -251,7 +251,7 @@ export function SkillSpacePage() {
                 />
               ) : null}
               {space.data && !writable && capabilities.data ? (
-                <p className="text-sm text-status-warning">
+                <p className="text-sm text-warning-fg">
                   {t(
                     capabilities.data.writable === false
                       ? 'skills.readOnly'
@@ -260,14 +260,14 @@ export function SkillSpacePage() {
                 </p>
               ) : null}
               {capabilities.data && !capabilities.data.storage_available ? (
-                <p className="text-sm text-status-warning">
+                <p className="text-sm text-warning-fg">
                   {t('skills.noStorage')}
                 </p>
               ) : null}
               {retrieving &&
               capabilities.data &&
               !capabilities.data.search_available ? (
-                <p className="text-sm text-status-warning">
+                <p className="text-sm text-warning-fg">
                   {t('skills.noSearch')}
                 </p>
               ) : null}
@@ -338,7 +338,7 @@ export function SkillSpacePage() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-status-error"
+                className="text-danger-fg"
                 disabled={!writable || action.isPending}
                 onClick={() => setDialog('delete')}
               >

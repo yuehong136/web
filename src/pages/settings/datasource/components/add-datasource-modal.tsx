@@ -83,15 +83,15 @@ export function AddDataSourceModal({
         size="md"
         className="flex max-h-[85vh] flex-col gap-0 overflow-clip p-0"
       >
-        <DialogHeader className="border-b border-border-subtle px-space-lg py-space-base">
+        <DialogHeader className="border-b border-line-subtle px-space-lg py-space-base">
           <div className="flex items-center gap-space-base">
             <ConnectorLogo icon={sourceData?.icon} size="xl" />
             <div className="flex min-w-0 flex-col gap-space-2xs">
-              <DialogTitle className="text-base font-semibold text-text-primary">
+              <DialogTitle className="text-base font-semibold text-fg">
                 {t('datasource.addModalTitle', { name: sourceData?.name })}
               </DialogTitle>
               {sourceData?.description ? (
-                <DialogDescription className="text-sm text-text-secondary">
+                <DialogDescription className="text-sm text-fg-muted">
                   {sourceData.description}
                 </DialogDescription>
               ) : null}
@@ -105,9 +105,9 @@ export function AddDataSourceModal({
               fields={fields}
               onSubmit={handleOk}
               defaultValues={defaultValues}
-              labelClassName="text-sm font-medium text-text-secondary"
+              labelClassName="text-sm font-medium text-fg-muted"
             >
-              <div className="sticky bottom-0 mt-space-lg flex items-center justify-end gap-space-sm border-t border-border-subtle bg-background-surface py-space-base">
+              <div className="sticky bottom-0 mt-space-lg flex items-center justify-end gap-space-sm border-t border-line-subtle bg-surface py-space-base">
                 <DynamicForm.CancelButton handleCancel={hideModal} />
                 <DynamicForm.SavingButton
                   submitLoading={loading}

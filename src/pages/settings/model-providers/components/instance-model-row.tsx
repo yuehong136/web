@@ -27,10 +27,7 @@ export function InstanceModelRow({
   return (
     <li className="flex items-center justify-between gap-space-base py-3">
       <div className="min-w-0 space-y-1.5">
-        <p
-          className="truncate text-sm font-medium text-text-primary"
-          title={model.name}
-        >
+        <p className="truncate text-sm font-medium text-fg" title={model.name}>
           {model.name}
         </p>
         <ModelCapabilities types={model.model_types} tools={model.is_tools} />
@@ -50,7 +47,7 @@ export function InstanceModelRow({
               type="button"
               size="icon"
               variant="ghost"
-              className="size-8 text-text-tertiary"
+              className="size-8 text-fg-subtle"
               aria-label={t('common.modelPicker.actions', { name: model.name })}
             >
               <MoreHorizontal aria-hidden className="size-4" />
@@ -61,7 +58,7 @@ export function InstanceModelRow({
             className="w-52 p-1"
             aria-label={t('common.modelPicker.actions', { name: model.name })}
           >
-            <p className="text-xs font-normal text-text-secondary">
+            <p className="text-xs font-normal text-fg-muted">
               {t('common.modelPicker.identity', { id: model.id })}
             </p>
             <Button
@@ -72,7 +69,7 @@ export function InstanceModelRow({
                 setOpen(false)
                 onRemove()
               }}
-              className="h-8 w-full justify-start text-status-error"
+              className="h-8 w-full justify-start text-danger-fg"
             >
               <Trash2 aria-hidden className="size-4" />
               {t('common.delete')}

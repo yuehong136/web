@@ -82,7 +82,7 @@ export function VariableDialog({
               }
             />
           </div>
-          <p className="text-xs leading-relaxed text-text-secondary">
+          <p className="text-xs leading-relaxed text-fg-muted">
             {t('studio.editor.variableLimit')}
           </p>
         </div>

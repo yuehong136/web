@@ -75,7 +75,7 @@ export function SkillDocument({
   return (
     <div className="flex min-h-0 flex-col gap-space-base">
       <div className="flex flex-wrap items-center justify-between gap-space-sm">
-        <span className="flex min-w-0 items-center gap-space-sm text-sm break-all text-text-secondary">
+        <span className="flex min-w-0 items-center gap-space-sm text-sm break-all text-fg-muted">
           <FileKindTile name={path} size="sm" />
           {path}
         </span>
@@ -94,9 +94,9 @@ export function SkillDocument({
         </div>
       </div>
       {content.text === null ? (
-        <p className="text-sm text-text-secondary">{t('skills.binary')}</p>
+        <p className="text-sm text-fg-muted">{t('skills.binary')}</p>
       ) : markdown && !source ? (
-        <article className="prose max-w-none break-words text-text-primary">
+        <article className="prose max-w-none break-words text-fg">
           <XMarkdown
             components={COMPONENTS}
             config={SKIP_HTML}
@@ -107,7 +107,7 @@ export function SkillDocument({
           </XMarkdown>
         </article>
       ) : (
-        <pre className="scroll-area max-h-[60vh] overflow-auto rounded-radius-lg bg-background-subtle p-space-base font-mono text-sm break-words whitespace-pre-wrap">
+        <pre className="scroll-area max-h-[60vh] overflow-auto rounded-radius-lg bg-sunken p-space-base font-mono text-sm break-words whitespace-pre-wrap">
           {content.text}
         </pre>
       )}

@@ -92,7 +92,7 @@ function ApiKeyModalForm(props: ApiKeyModalProps) {
           {actions.error && (
             <p
               role="alert"
-              className="rounded-radius-lg border border-status-error-border bg-status-error-subtle p-space-sm text-sm text-status-error"
+              className="rounded-radius-lg border border-danger-line bg-danger-soft p-space-sm text-sm text-danger-fg"
             >
               {actions.error}
             </p>
@@ -100,20 +100,20 @@ function ApiKeyModalForm(props: ApiKeyModalProps) {
           {actions.verified !== null && (
             <div
               role="status"
-              className="space-y-space-xs rounded-radius-lg border border-border-subtle bg-background-subtle p-space-sm"
+              className="space-y-space-xs rounded-radius-lg border border-line-subtle bg-sunken p-space-sm"
             >
               <p
                 className={
                   actions.verified
-                    ? 'text-sm text-status-success'
-                    : 'text-sm text-status-error'
+                    ? 'text-sm text-success-fg'
+                    : 'text-sm text-danger-fg'
                 }
               >
                 {t(
                   `settings.models.connection.${actions.verified ? 'valid' : 'invalid'}`,
                 )}
               </p>
-              <p className="text-xs text-text-secondary">
+              <p className="text-xs text-fg-muted">
                 {t('settings.models.connection.scope')}
               </p>
             </div>
@@ -126,7 +126,7 @@ function ApiKeyModalForm(props: ApiKeyModalProps) {
                 href={FACTORY_DOC_LINKS[provider]}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-space-xs text-sm text-text-accent hover:underline"
+                className="flex items-center gap-space-xs text-sm text-accent-fg hover:underline"
               >
                 {t('settings.models.paddleOCR.documentation')}
                 <ExternalLink className="size-icon-xs" />

@@ -201,13 +201,10 @@ function DefaultModelsForm({
       <section
         aria-labelledby={headingId}
         data-slot="default-models"
-        className="flex flex-col gap-space-sm rounded-radius-xl border border-border-subtle bg-components-card-bg p-space-md"
+        className="flex flex-col gap-space-sm rounded-radius-xl border border-line-subtle bg-raised p-space-md"
       >
         <div className="flex flex-wrap items-center gap-x-space-md gap-y-space-xs">
-          <h2
-            id={headingId}
-            className="text-sm font-semibold text-text-primary"
-          >
+          <h2 id={headingId} className="text-sm font-semibold text-fg">
             {t('settings.models.defaults')}
           </h2>
           {uncertain ? null : (
@@ -229,10 +226,7 @@ function DefaultModelsForm({
                   <>
                     {label}
                     {'required' in config && config.required ? (
-                      <span
-                        aria-hidden
-                        className="ml-space-2xs text-status-error"
-                      >
+                      <span aria-hidden className="ml-space-2xs text-danger-fg">
                         *
                       </span>
                     ) : null}
@@ -257,7 +251,7 @@ function DefaultModelsForm({
                   ariaLabel={label}
                   triggerClassName={cn(
                     'w-full',
-                    attention && 'border-status-warning-border',
+                    attention && 'border-warning-line',
                   )}
                   value={builtin ? '' : values[config.field]}
                   {...options[config.field]}
@@ -279,12 +273,12 @@ function DefaultModelsForm({
           })}
         </div>
         {modelsLoading ? (
-          <output className="border-t border-border-subtle pt-space-sm text-sm text-text-secondary">
+          <output className="border-t border-line-subtle pt-space-sm text-sm text-fg-muted">
             {t('common.modelPicker.loading')}
           </output>
         ) : null}
         {modelsFailed ? (
-          <div className="flex items-center justify-between gap-space-sm border-t border-border-subtle pt-space-sm text-sm text-text-secondary">
+          <div className="flex items-center justify-between gap-space-sm border-t border-line-subtle pt-space-sm text-sm text-fg-muted">
             <span>{t('settings.models.defaultsModelsFailed')}</span>
             <Button
               type="button"
@@ -299,13 +293,13 @@ function DefaultModelsForm({
         {saveFailed ? (
           <p
             role="alert"
-            className="border-t border-border-subtle pt-space-sm text-sm text-status-error"
+            className="border-t border-line-subtle pt-space-sm text-sm text-danger-fg"
           >
             {t('settings.models.defaultsSaveFailed')}
           </p>
         ) : null}
-        <div className="flex flex-wrap items-center justify-between gap-space-md border-t border-border-subtle pt-space-sm">
-          <output className="text-sm text-text-secondary">
+        <div className="flex flex-wrap items-center justify-between gap-space-md border-t border-line-subtle pt-space-sm">
+          <output className="text-sm text-fg-muted">
             {t(
               pending
                 ? 'common.saving'
@@ -347,13 +341,13 @@ function DefaultModelsForm({
 function DefaultsProgress({ set, total }: { set: number; total: number }) {
   const { t } = useTranslation()
   return (
-    <span className="flex items-center gap-space-sm text-xs text-text-secondary tabular-nums">
+    <span className="flex items-center gap-space-sm text-xs text-fg-muted tabular-nums">
       <span
         aria-hidden
-        className="h-1.5 w-24 overflow-hidden rounded-radius-full bg-background-subtle"
+        className="h-1.5 w-24 overflow-hidden rounded-radius-full bg-sunken"
       >
         <span
-          className="block h-full rounded-radius-full bg-status-success"
+          className="block h-full rounded-radius-full bg-success-fg"
           style={{ width: `${(set / total) * 100}%` }}
         />
       </span>

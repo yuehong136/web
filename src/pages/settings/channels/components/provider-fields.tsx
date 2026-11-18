@@ -61,8 +61,7 @@ const ProviderField = ({
   const copy = useFieldCopy(field)
   const key = fieldKey(field)
   const name = `${field.secret ? 'secrets' : 'config'}.${key}` as
-    | `secrets.${string}`
-    | `config.${string}`
+    `secrets.${string}` | `config.${string}`
 
   const isKnownKind = isRenderableKind(field.kind)
 
@@ -74,7 +73,7 @@ const ProviderField = ({
           <div className="flex items-center justify-between gap-space-sm">
             <FormLabel required={field.required}>{copy.label}</FormLabel>
             {field.secret && secretConfigured ? (
-              <span className="flex items-center gap-space-xs text-xs text-status-success">
+              <span className="flex items-center gap-space-xs text-xs text-success-fg">
                 <CheckCircle2 className="size-icon-sm" aria-hidden="true" />
                 {t('channel.secret.configured')}
               </span>

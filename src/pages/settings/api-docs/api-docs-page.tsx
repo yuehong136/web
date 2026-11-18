@@ -150,9 +150,7 @@ export function ApiDocsPage() {
         aria-label={tagLabel(group.tag)}
         className="mt-space-xl first:mt-0"
       >
-        <h2 className="text-sm font-semibold text-text-primary">
-          {tagLabel(group.tag)}
-        </h2>
+        <h2 className="text-sm font-semibold text-fg">{tagLabel(group.tag)}</h2>
         {group.endpoints.map((endpoint) => (
           <ApiEndpointSection
             key={endpoint.id}
@@ -168,7 +166,7 @@ export function ApiDocsPage() {
 
   return (
     <div className="flex h-full min-h-0 flex-col md:flex-row">
-      <aside className="scroll-area max-h-64 shrink-0 overflow-y-auto border-b border-border-subtle md:max-h-none md:w-64 md:border-r md:border-b-0">
+      <aside className="scroll-area max-h-64 shrink-0 overflow-y-auto border-b border-line-subtle md:max-h-none md:w-64 md:border-r md:border-b-0">
         <ApiDocsToc
           groups={groups}
           query={query}
@@ -187,10 +185,10 @@ export function ApiDocsPage() {
           <header className="mb-space-lg flex flex-col gap-space-sm">
             <div className="flex flex-wrap items-start gap-space-md">
               <div className="min-w-0 flex-1 basis-60">
-                <h2 className="text-base font-semibold text-text-primary">
+                <h2 className="text-base font-semibold text-fg">
                   {spec?.info.title || t('settings.apiDocs.title')}
                 </h2>
-                <p className="mt-space-2xs text-sm text-text-secondary">
+                <p className="mt-space-2xs text-sm text-fg-muted">
                   {t('settings.apiDocs.lead')}
                 </p>
               </div>

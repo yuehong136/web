@@ -45,23 +45,23 @@ export function ProviderInstance({ instance }: { instance: ModelInstance }) {
     (model) => model.instance_id === instance.id,
   )
   return (
-    <section className="flex min-w-0 flex-col gap-space-sm border-t border-border-subtle py-space-sm first:border-t-0">
+    <section className="flex min-w-0 flex-col gap-space-sm border-t border-line-subtle py-space-sm first:border-t-0">
       <div className="flex flex-wrap items-center justify-between gap-space-sm">
         <div className="min-w-0 space-y-space-xs">
-          <h4 className="flex items-center gap-space-xs text-sm font-medium text-text-primary">
-            <Plug aria-hidden className="size-icon-sm text-text-tertiary" />
+          <h4 className="flex items-center gap-space-xs text-sm font-medium text-fg">
+            <Plug aria-hidden className="size-icon-sm text-fg-subtle" />
             {instance.instance_name === 'default'
               ? t('common.modelPicker.defaultConnection')
               : instance.instance_name}
           </h4>
           <p
-            className="truncate text-xs text-text-secondary"
+            className="truncate text-xs text-fg-muted"
             title={instance.base_url}
           >
             {instance.base_url ||
               t('settings.models.instances.defaultEndpoint')}
           </p>
-          <div className="flex flex-wrap items-center gap-space-sm text-xs text-text-secondary">
+          <div className="flex flex-wrap items-center gap-space-sm text-xs text-fg-muted">
             {instance.region && (
               <span className="inline-flex items-center gap-space-2xs">
                 <MapPin aria-hidden className="size-icon-xs" />
@@ -197,11 +197,11 @@ export function ProviderInstance({ instance }: { instance: ModelInstance }) {
         </form>
       )}
       {models.isError ? (
-        <p role="alert" className="text-sm text-status-error">
+        <p role="alert" className="text-sm text-danger-fg">
           {t('settings.models.defaultsModelsFailed')}
         </p>
       ) : (
-        <ul className="divide-y divide-border-subtle border-t border-border-subtle">
+        <ul className="divide-y divide-line-subtle border-t border-line-subtle">
           {owned.map((model) => (
             <InstanceModelRow
               key={model.id}

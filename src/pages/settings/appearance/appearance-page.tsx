@@ -76,7 +76,7 @@ export function AppearancePage() {
       description={
         <>
           {t('appearance.description')}
-          <span className="ml-space-xs inline-flex items-center gap-space-2xs text-text-tertiary">
+          <span className="ml-space-xs inline-flex items-center gap-space-2xs text-fg-subtle">
             <Check className="size-icon-xs" aria-hidden="true" />
             {t('appearance.saved')}
           </span>

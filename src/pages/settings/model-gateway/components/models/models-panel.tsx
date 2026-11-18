@@ -116,7 +116,7 @@ export function ModelsPanel({ catalog }: { catalog: GatewayCatalog }) {
           }}
           onChange={setProviders}
         />
-        <p className="ml-auto text-sm text-text-tertiary" aria-live="polite">
+        <p className="ml-auto text-sm text-fg-subtle" aria-live="polite">
           {[
             t(`${PREFIX}.models.summary`, {
               open: counted.filter(isCallable).length,
@@ -174,7 +174,7 @@ function Intro({ catalog }: { catalog: GatewayCatalog }) {
   const { t } = useTranslation()
   return (
     <div className="flex flex-wrap items-start justify-between gap-space-md">
-      <p className="max-w-2xl min-w-0 flex-1 basis-80 text-sm text-text-secondary">
+      <p className="max-w-2xl min-w-0 flex-1 basis-80 text-sm text-fg-muted">
         {t(`${PREFIX}.models.intro`)}
       </p>
       <NewModelsDefault enabled={catalog.new_models_enabled} />

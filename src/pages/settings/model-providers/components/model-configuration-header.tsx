@@ -17,7 +17,7 @@ export function ModelConfigurationHeader({
   return (
     <DialogHeader>
       <div className="flex items-center gap-space-md">
-        <div className="flex size-icon-2xl shrink-0 items-center justify-center rounded-radius-lg border border-border-subtle bg-background-subtle">
+        <div className="flex size-icon-2xl shrink-0 items-center justify-center rounded-radius-lg border border-line-subtle bg-sunken">
           <ProviderIcon
             provider={provider}
             className="size-icon-lg"

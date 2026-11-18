@@ -95,7 +95,7 @@ export function CoreDetailPage() {
           <>
             <div className="flex flex-wrap items-center gap-space-base">
               {!!versions.length && (
-                <span className="text-sm text-text-secondary">
+                <span className="text-sm text-fg-muted">
                   {t('skills.core.defaultVersion', {
                     version: versions[0].name,
                   })}
@@ -185,7 +185,7 @@ export function CoreDetailPage() {
                 />
               </section>
             </div>
-            <details className="border-t border-border-default pt-space-base">
+            <details className="border-t border-line pt-space-base">
               <summary className="cursor-pointer text-sm font-medium">
                 {t('skills.advanced')}
               </summary>
@@ -222,7 +222,7 @@ export function CoreDetailPage() {
                   {t('skills.core.removeIndex')}
                 </Button>
                 {indexState && (
-                  <p aria-live="polite" className="text-sm text-text-secondary">
+                  <p aria-live="polite" className="text-sm text-fg-muted">
                     {t(
                       indexState === 'ready'
                         ? 'skills.core.indexReady'

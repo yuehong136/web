@@ -94,7 +94,7 @@ export function SyncOverview({ status, logs, refreshFreq }: SyncOverviewProps) {
           />
         </div>
 
-        <div className="flex items-start gap-space-sm rounded-radius-lg bg-status-info-subtle p-space-base text-status-info">
+        <div className="flex items-start gap-space-sm rounded-radius-lg bg-info-soft p-space-base text-info-fg">
           <Info
             className="mt-space-xs size-icon-sm shrink-0"
             aria-hidden="true"
@@ -121,16 +121,16 @@ function OverviewItem({
 }) {
   return (
     <div className="flex items-start gap-space-base">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-radius-lg bg-background-subtle text-text-secondary">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-radius-lg bg-sunken text-fg-muted">
         {icon}
       </div>
       <div className="min-w-0">
-        <p className="text-sm text-text-secondary">{label}</p>
-        <p className="mt-space-xs text-sm font-medium break-words text-text-primary">
+        <p className="text-sm text-fg-muted">{label}</p>
+        <p className="mt-space-xs text-sm font-medium break-words text-fg">
           {value}
         </p>
         {detail ? (
-          <p className="mt-space-xs text-xs text-text-tertiary">{detail}</p>
+          <p className="mt-space-xs text-xs text-fg-subtle">{detail}</p>
         ) : null}
       </div>
     </div>

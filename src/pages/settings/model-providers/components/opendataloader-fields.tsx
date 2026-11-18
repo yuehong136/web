@@ -28,7 +28,7 @@ export const OpenDataLoaderFields = ({
       <div>
         <label
           htmlFor="opendataloader-model-type"
-          className="mb-space-sm block text-sm font-medium text-text-primary"
+          className="mb-space-sm block text-sm font-medium text-fg"
         >
           {t('settings.models.form.modelType')}
         </label>
@@ -36,16 +36,16 @@ export const OpenDataLoaderFields = ({
           id="opendataloader-model-type"
           value="OCR"
           disabled
-          className="cursor-not-allowed bg-surface-secondary"
+          className="cursor-not-allowed bg-sunken"
         />
       </div>
       <div>
         <label
           htmlFor="opendataloader-model-name"
-          className="mb-space-sm block text-sm font-medium text-text-primary"
+          className="mb-space-sm block text-sm font-medium text-fg"
         >
           {t('settings.models.form.modelName')}{' '}
-          <span className="text-status-error">*</span>
+          <span className="text-danger-fg">*</span>
         </label>
         <Input
           id="opendataloader-model-name"
@@ -58,10 +58,10 @@ export const OpenDataLoaderFields = ({
       <div>
         <label
           htmlFor="opendataloader-api-server"
-          className="mb-space-sm block text-sm font-medium text-text-primary"
+          className="mb-space-sm block text-sm font-medium text-fg"
         >
           {t('settings.models.form.apiServer')}{' '}
-          <span className="text-status-error">*</span>
+          <span className="text-danger-fg">*</span>
         </label>
         <Input
           id="opendataloader-api-server"
@@ -74,10 +74,10 @@ export const OpenDataLoaderFields = ({
       <div>
         <label
           htmlFor="opendataloader-api-key"
-          className="mb-space-sm block text-sm font-medium text-text-primary"
+          className="mb-space-sm block text-sm font-medium text-fg"
         >
           {t('settings.models.form.apiKey')}{' '}
-          <span className="ml-space-xs font-normal text-text-tertiary">
+          <span className="ml-space-xs font-normal text-fg-subtle">
             {t('settings.models.form.optional')}
           </span>
         </label>
@@ -92,7 +92,7 @@ export const OpenDataLoaderFields = ({
       <div>
         <label
           htmlFor="opendataloader-timeout"
-          className="mb-space-sm block text-sm font-medium text-text-primary"
+          className="mb-space-sm block text-sm font-medium text-fg"
         >
           {t('settings.models.form.timeout')}
         </label>

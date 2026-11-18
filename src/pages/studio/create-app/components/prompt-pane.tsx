@@ -124,7 +124,7 @@ export function PromptPane({
                     onClick={() => insert(`{${parameter.key}}`)}
                     title={t('studio.editor.insertVariable')}
                   >{`{${parameter.key}}`}</Button>
-                  <span className="text-xs text-text-secondary">
+                  <span className="text-xs text-fg-muted">
                     {t(
                       `studio.editor.${parameter.key === 'knowledge' ? 'systemVariable' : parameter.optional ? 'optional' : 'required'}`,
                     )}
@@ -144,7 +144,7 @@ export function PromptPane({
                 </div>
               ))}
               {!config.prompt_config.parameters.length && (
-                <p className="text-xs text-text-secondary">
+                <p className="text-xs text-fg-muted">
                   {t('studio.editor.noVariables')}
                 </p>
               )}
@@ -159,7 +159,7 @@ export function PromptPane({
                 <Plus className="mr-space-xs size-icon-sm" />
                 {t('studio.editor.addVariable')}
               </Button>
-              <p className="text-xs leading-relaxed text-text-secondary">
+              <p className="text-xs leading-relaxed text-fg-muted">
                 {t('studio.editor.variableLimit')}
               </p>
             </PopoverContent>
@@ -286,7 +286,7 @@ export function PromptPane({
           </Button>
         </Alert>
       )}
-      <div className="flex shrink-0 items-center justify-between border-t border-border-subtle px-space-base py-space-sm text-xs text-text-secondary">
+      <div className="flex shrink-0 items-center justify-between border-t border-line-subtle px-space-base py-space-sm text-xs text-fg-muted">
         <span>Markdown</span>
         <span>
           {t('studio.editor.characters', { count: config.systemPrompt.length })}

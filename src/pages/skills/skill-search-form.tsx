@@ -71,14 +71,14 @@ export function SkillSearchForm({
               variant="ghost"
               size="sm"
               aria-label={`${t('skills.searchMode')}: ${t(`skills.${mode}`)}`}
-              className="text-xs font-normal text-text-secondary"
+              className="text-xs font-normal text-fg-muted"
             >
               {t(`skills.${mode}`)}
               <ChevronDown className="size-icon-xs" aria-hidden="true" />
             </Button>
           </ActionMenuTrigger>
           <ActionMenuContent align="start" className="min-w-40">
-            <ActionMenuLabel className="px-space-sm py-space-xs text-xs text-text-tertiary">
+            <ActionMenuLabel className="px-space-sm py-space-xs text-xs text-fg-subtle">
               {t('skills.searchMode')}
             </ActionMenuLabel>
             <ActionMenuRadioGroup

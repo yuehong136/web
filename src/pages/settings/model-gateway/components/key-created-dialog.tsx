@@ -101,7 +101,7 @@ export function KeyCreatedDialog({
           lose the only copy of the key. */}
       <DialogContent size="lg" closeOnOverlayClick={false}>
         <DialogHeader className="flex flex-row items-start gap-space-md">
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-radius-full bg-status-success-subtle text-status-success">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-radius-full bg-success-soft text-success-fg">
             <CircleCheck className="size-icon-md" aria-hidden="true" />
           </span>
           <div className="min-w-0">
@@ -115,7 +115,7 @@ export function KeyCreatedDialog({
         </DialogHeader>
         <DialogBody className="flex flex-col gap-space-lg">
           <div className="space-y-space-xs">
-            <span className="text-sm font-medium text-text-primary">
+            <span className="text-sm font-medium text-fg">
               {t(`${PREFIX}.created.key`)}
             </span>
             <CopyField
@@ -127,7 +127,7 @@ export function KeyCreatedDialog({
           </div>
           <div className="grid gap-space-md sm:grid-cols-2">
             <div className="min-w-0 space-y-space-xs">
-              <span className="text-sm font-medium text-text-primary">
+              <span className="text-sm font-medium text-fg">
                 {t(`${PREFIX}.created.baseUrl`)}
               </span>
               <CopyField
@@ -136,20 +136,18 @@ export function KeyCreatedDialog({
               />
             </div>
             <div className="min-w-0 space-y-space-xs">
-              <span className="text-sm font-medium text-text-primary">
-                {modelsTitle}
-              </span>
+              <span className="text-sm font-medium text-fg">{modelsTitle}</span>
               <ul className="flex flex-wrap gap-space-xs">
                 {models.slice(0, MAX_CHIPS).map((model) => (
                   <li
                     key={model.model_id}
-                    className="rounded-radius-sm bg-background-subtle px-space-xs font-mono text-xs text-text-primary"
+                    className="rounded-radius-sm bg-sunken px-space-xs font-mono text-xs text-fg"
                   >
                     {model.call_name}
                   </li>
                 ))}
                 {models.length > MAX_CHIPS ? (
-                  <li className="px-space-xs text-xs text-text-tertiary">
+                  <li className="px-space-xs text-xs text-fg-subtle">
                     {t(`${PREFIX}.keyForm.previewMore`, {
                       count: models.length - MAX_CHIPS,
                     })}
@@ -158,7 +156,7 @@ export function KeyCreatedDialog({
               </ul>
             </div>
           </div>
-          <div className="rounded-radius-lg border border-border-subtle p-space-md">
+          <div className="rounded-radius-lg border border-line-subtle p-space-md">
             <CodeSamples
               label={t(`${PREFIX}.created.methodLabel`)}
               copyLabel={t(`${PREFIX}.created.copySample`)}
@@ -183,14 +181,14 @@ export function KeyCreatedDialog({
             />
           </div>
           {rotatedFrom ? (
-            <div className="flex flex-wrap items-center gap-space-md rounded-radius-lg border border-status-warning-border bg-status-warning-subtle p-space-md">
+            <div className="flex flex-wrap items-center gap-space-md rounded-radius-lg border border-warning-line bg-warning-soft p-space-md">
               <div className="min-w-0 flex-1 text-sm">
-                <p className="font-medium text-text-primary">
+                <p className="font-medium text-fg">
                   {t(`${PREFIX}.created.rotateTitle`, {
                     name: rotatedFrom.name,
                   })}
                 </p>
-                <p className="text-text-secondary">
+                <p className="text-fg-muted">
                   {t(`${PREFIX}.created.rotateHint`)}
                 </p>
               </div>
@@ -220,7 +218,7 @@ export function KeyCreatedDialog({
             />
             <Label
               htmlFor="gateway-key-saved"
-              className="font-normal text-text-secondary"
+              className="font-normal text-fg-muted"
             >
               {t(`${PREFIX}.created.saved`)}
             </Label>

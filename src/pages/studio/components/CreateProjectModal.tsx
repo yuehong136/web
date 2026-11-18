@@ -60,19 +60,19 @@ export function CreateProjectModal({
               className={cn(
                 'flex cursor-pointer flex-col gap-space-base rounded-radius-lg border p-space-lg',
                 selected === type
-                  ? 'border-state-focus bg-state-selected-bg'
-                  : 'border-border-default bg-background-surface hover:border-border-strong',
+                  ? 'border-line-focus bg-accent-soft'
+                  : 'border-line bg-surface hover:border-line-strong',
               )}
             >
               <div className="flex items-center justify-between gap-space-sm">
                 {type === 'app' ? (
                   <AppWindow
-                    className="size-icon-lg text-text-secondary"
+                    className="size-icon-lg text-fg-muted"
                     aria-hidden="true"
                   />
                 ) : (
                   <Bot
-                    className="size-icon-lg text-text-secondary"
+                    className="size-icon-lg text-fg-muted"
                     aria-hidden="true"
                   />
                 )}
@@ -82,10 +82,10 @@ export function CreateProjectModal({
                   aria-label={t(`studio.projectType.${type}Title`)}
                 />
               </div>
-              <span className="text-base font-semibold text-text-primary">
+              <span className="text-base font-semibold text-fg">
                 {t(`studio.projectType.${type}Title`)}
               </span>
-              <span className="text-sm leading-relaxed text-text-secondary">
+              <span className="text-sm leading-relaxed text-fg-muted">
                 {t(`studio.projectType.${type}Description`)}
               </span>
             </Label>

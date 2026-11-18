@@ -122,7 +122,7 @@ export function ModelSettingsDialog({
               />
               <p
                 id="gateway-model-alias-hint"
-                className="text-xs text-text-tertiary"
+                className="text-xs text-fg-subtle"
               >
                 {t(`${PREFIX}.models.settings.aliasHint`)}
               </p>
@@ -141,7 +141,7 @@ export function ModelSettingsDialog({
                   <Label htmlFor="gateway-model-preferred">
                     {t(`${PREFIX}.models.settings.preferred`)}
                   </Label>
-                  <p className="text-xs text-text-tertiary">
+                  <p className="text-xs text-fg-subtle">
                     {t(`${PREFIX}.models.settings.preferredHint`)}
                   </p>
                 </div>
@@ -149,7 +149,7 @@ export function ModelSettingsDialog({
             ) : null}
 
             <section className="space-y-space-xs">
-              <h3 className="text-sm font-medium text-text-primary">
+              <h3 className="text-sm font-medium text-fg">
                 {t(`${PREFIX}.models.settings.names`)}
               </h3>
               <ul className="space-y-space-xs">
@@ -181,10 +181,10 @@ export function ModelSettingsDialog({
             </div>
 
             <fieldset className="space-y-space-xs">
-              <legend className="text-sm font-medium text-text-primary">
+              <legend className="text-sm font-medium text-fg">
                 {t(`${PREFIX}.models.settings.limitsTitle`)}
               </legend>
-              <p className="text-xs text-text-tertiary">
+              <p className="text-xs text-fg-subtle">
                 {t(`${PREFIX}.models.settings.limitsHint`)}
               </p>
               <LimitFields
@@ -199,11 +199,7 @@ export function ModelSettingsDialog({
             </fieldset>
 
             {errorKey ? (
-              <p
-                id={ERROR_ID}
-                role="alert"
-                className="text-sm text-status-error"
-              >
+              <p id={ERROR_ID} role="alert" className="text-sm text-danger-fg">
                 {t(errorKey)}
               </p>
             ) : null}

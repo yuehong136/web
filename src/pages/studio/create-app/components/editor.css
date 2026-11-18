@@ -1,6 +1,6 @@
 .studio-instruction-editor .w-md-editor {
-  background: var(--color-components-studio-surface);
-  color: var(--color-text-primary);
+  background: var(--color-surface);
+  color: var(--color-fg);
   border-radius: 0;
   box-shadow: none;
 }

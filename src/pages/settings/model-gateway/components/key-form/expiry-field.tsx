@@ -36,7 +36,7 @@ export function ExpiryField({ value, disabled, onChange }: ExpiryFieldProps) {
     <div className="flex flex-col gap-space-sm">
       <span
         id="gateway-key-expiry-label"
-        className="text-sm font-medium text-text-primary"
+        className="text-sm font-medium text-fg"
       >
         {t(`${PREFIX}.keyForm.expiry`)}
       </span>
@@ -68,7 +68,7 @@ export function ExpiryField({ value, disabled, onChange }: ExpiryFieldProps) {
           />
         </div>
       ) : null}
-      <p id="gateway-key-expiry-hint" className="text-xs text-text-tertiary">
+      <p id="gateway-key-expiry-hint" className="text-xs text-fg-subtle">
         {hint}
       </p>
     </div>

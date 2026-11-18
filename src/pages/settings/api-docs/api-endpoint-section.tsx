@@ -34,7 +34,7 @@ interface ApiEndpointSectionProps {
 function Block({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div className="flex flex-col gap-space-xs">
-      <h4 className="text-xs font-medium text-text-tertiary">{title}</h4>
+      <h4 className="text-xs font-medium text-fg-subtle">{title}</h4>
       {children}
     </div>
   )
@@ -52,8 +52,8 @@ function CodeBlock({
   onCopy: () => void
 }) {
   return (
-    <div className="relative rounded-radius-md border border-border-subtle bg-background-subtle">
-      <pre className="overflow-x-auto p-space-sm pr-space-2xl font-mono text-xs text-text-primary">
+    <div className="relative rounded-radius-md border border-line-subtle bg-sunken">
+      <pre className="overflow-x-auto p-space-sm pr-space-2xl font-mono text-xs text-fg">
         <code>{code}</code>
       </pre>
       <Button
@@ -64,10 +64,7 @@ function CodeBlock({
         onClick={onCopy}
       >
         {copied ? (
-          <Check
-            className="size-icon-sm text-status-success"
-            aria-hidden="true"
-          />
+          <Check className="size-icon-sm text-success-fg" aria-hidden="true" />
         ) : (
           <Copy className="size-icon-sm" aria-hidden="true" />
         )}
@@ -98,12 +95,12 @@ export const ApiEndpointSection = memo(function ApiEndpointSection({
       id={anchor}
       aria-labelledby={`${anchor}-title`}
       data-api-section
-      className="flex scroll-mt-space-md flex-col gap-space-base border-t border-border-subtle py-space-lg first:border-t-0"
+      className="flex scroll-mt-space-md flex-col gap-space-base border-t border-line-subtle py-space-lg first:border-t-0"
     >
       <div className="flex flex-col gap-space-xs">
         <h3
           id={`${anchor}-title`}
-          className="flex flex-wrap items-center gap-space-sm text-base font-semibold text-text-primary"
+          className="flex flex-wrap items-center gap-space-sm text-base font-semibold text-fg"
         >
           {endpoint.summary}
           {endpoint.deprecated ? (
@@ -112,7 +109,7 @@ export const ApiEndpointSection = memo(function ApiEndpointSection({
         </h3>
         <div className="flex min-w-0 items-center gap-space-sm">
           <MethodBadge method={endpoint.method} size="sm" />
-          <code className="min-w-0 font-mono text-xs break-all text-text-secondary">
+          <code className="min-w-0 font-mono text-xs break-all text-fg-muted">
             {url}
           </code>
           <Button
@@ -125,7 +122,7 @@ export const ApiEndpointSection = memo(function ApiEndpointSection({
           >
             {copiedStates[`${anchor}-url`] ? (
               <Check
-                className="size-icon-sm text-status-success"
+                className="size-icon-sm text-success-fg"
                 aria-hidden="true"
               />
             ) : (
@@ -141,7 +138,7 @@ export const ApiEndpointSection = memo(function ApiEndpointSection({
 
       <Block title={t('settings.apiDocs.parameters')}>
         {parameters.length === 0 && bodies.length === 0 ? (
-          <p className="text-sm text-text-tertiary">
+          <p className="text-sm text-fg-subtle">
             {t('settings.apiDocs.noParameters')}
           </p>
         ) : null}
@@ -158,10 +155,10 @@ export const ApiEndpointSection = memo(function ApiEndpointSection({
             <TableBody>
               {parameters.map((param) => (
                 <TableRow key={`${param.in}-${param.name}`}>
-                  <TableCell className="font-mono text-xs text-text-primary">
+                  <TableCell className="font-mono text-xs text-fg">
                     {param.name}
                     {param.required ? (
-                      <span className="ml-space-2xs text-status-error">
+                      <span className="ml-space-2xs text-danger-fg">
                         <span aria-hidden="true">*</span>
                         <span className="sr-only">
                           {t('settings.apiDocs.required')}
@@ -169,13 +166,13 @@ export const ApiEndpointSection = memo(function ApiEndpointSection({
                       </span>
                     ) : null}
                   </TableCell>
-                  <TableCell className="text-xs text-text-secondary">
+                  <TableCell className="text-xs text-fg-muted">
                     {param.in}
                   </TableCell>
-                  <TableCell className="font-mono text-xs text-text-secondary">
+                  <TableCell className="font-mono text-xs text-fg-muted">
                     {param.type ?? schemaType(spec, param.schema)}
                   </TableCell>
-                  <TableCell className="text-xs text-text-secondary">
+                  <TableCell className="text-xs text-fg-muted">
                     {param.description || '—'}
                     {param.example !== undefined ? (
                       <code className="mt-space-2xs block font-mono">
@@ -205,12 +202,12 @@ export const ApiEndpointSection = memo(function ApiEndpointSection({
             title={t('settings.apiDocs.requestBody', { type: mime })}
           >
             {endpoint.requestBody?.description ? (
-              <p className="text-sm text-text-secondary">
+              <p className="text-sm text-fg-muted">
                 {endpoint.requestBody.description}
               </p>
             ) : null}
             {schema?.type === 'array' ? (
-              <p className="text-sm text-text-secondary">
+              <p className="text-sm text-fg-muted">
                 {t('settings.apiDocs.arrayOf', {
                   type: schemaType(spec, schema.items),
                 })}
@@ -232,10 +229,10 @@ export const ApiEndpointSection = memo(function ApiEndpointSection({
                     const resolved = resolveSchemaRef(spec, property)
                     return (
                       <TableRow key={name}>
-                        <TableCell className="font-mono text-xs text-text-primary">
+                        <TableCell className="font-mono text-xs text-fg">
                           {name}
                           {required.includes(name) ? (
-                            <span className="ml-space-2xs text-status-error">
+                            <span className="ml-space-2xs text-danger-fg">
                               <span aria-hidden="true">*</span>
                               <span className="sr-only">
                                 {t('settings.apiDocs.required')}
@@ -243,10 +240,10 @@ export const ApiEndpointSection = memo(function ApiEndpointSection({
                             </span>
                           ) : null}
                         </TableCell>
-                        <TableCell className="font-mono text-xs text-text-secondary">
+                        <TableCell className="font-mono text-xs text-fg-muted">
                           {schemaType(spec, resolved)}
                         </TableCell>
-                        <TableCell className="text-xs text-text-secondary">
+                        <TableCell className="text-xs text-fg-muted">
                           {resolved?.description || '—'}
                         </TableCell>
                       </TableRow>
@@ -265,12 +262,12 @@ export const ApiEndpointSection = memo(function ApiEndpointSection({
             {endpoint.responses.map((response) => (
               <div
                 key={response.status}
-                className="flex gap-space-sm border-t border-border-subtle py-space-xs first:border-t-0"
+                className="flex gap-space-sm border-t border-line-subtle py-space-xs first:border-t-0"
               >
-                <dt className="w-12 shrink-0 font-mono text-xs text-text-primary tabular-nums">
+                <dt className="w-12 shrink-0 font-mono text-xs text-fg tabular-nums">
                   {Number.isNaN(response.status) ? '—' : response.status}
                 </dt>
-                <dd className="min-w-0 text-sm text-text-secondary">
+                <dd className="min-w-0 text-sm text-fg-muted">
                   {response.description || '—'}
                 </dd>
               </div>

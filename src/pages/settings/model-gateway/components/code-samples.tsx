@@ -67,13 +67,13 @@ export function CodeSamples({
         </Button>
       </div>
       <pre
-        className="min-w-0 overflow-x-auto rounded-radius-md bg-background-subtle p-space-md font-mono text-xs leading-relaxed [overflow-wrap:anywhere] whitespace-pre-wrap text-text-primary"
+        className="min-w-0 overflow-x-auto rounded-radius-md bg-sunken p-space-md font-mono text-xs leading-relaxed [overflow-wrap:anywhere] whitespace-pre-wrap text-fg"
         data-testid={`code-sample-${sample.id}`}
       >
         {sample.code}
       </pre>
       {sample.note ? (
-        <p className="text-xs text-text-tertiary">{sample.note}</p>
+        <p className="text-xs text-fg-subtle">{sample.note}</p>
       ) : null}
     </div>
   )

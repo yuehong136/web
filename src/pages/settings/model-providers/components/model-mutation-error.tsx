@@ -5,10 +5,7 @@ export function ModelMutationError({ error }: { error: unknown }) {
   const { t } = useTranslation()
   const references = modelDeletionReferences(error)
   return (
-    <div
-      role="alert"
-      className="block space-y-space-sm text-sm text-status-error"
-    >
+    <div role="alert" className="block space-y-space-sm text-sm text-danger-fg">
       <span className="block">
         {references
           ? t('settings.models.deletion.blocked', { count: references.length })
@@ -24,7 +21,7 @@ export function ModelMutationError({ error }: { error: unknown }) {
               {references.map((reference, index) => (
                 <li
                   key={index}
-                  className="block rounded-radius-md border border-border-default p-space-sm break-words text-text-primary"
+                  className="block rounded-radius-md border border-line p-space-sm break-words text-fg"
                 >
                   <span className="block font-medium">
                     {t(
@@ -37,13 +34,13 @@ export function ModelMutationError({ error }: { error: unknown }) {
                     <span className="block">{reference.resource_name}</span>
                   )}
                   {reference.resource_id && (
-                    <span className="block text-xs text-text-secondary">
+                    <span className="block text-xs text-fg-muted">
                       {t('settings.models.deletion.resourceId', {
                         id: reference.resource_id,
                       })}
                     </span>
                   )}
-                  <span className="block text-text-secondary">
+                  <span className="block text-fg-muted">
                     {t('settings.models.deletion.models', {
                       models: reference.model_names.join(', '),
                     })}
@@ -52,7 +49,7 @@ export function ModelMutationError({ error }: { error: unknown }) {
               ))}
             </ul>
           </section>
-          <span className="block text-text-secondary">
+          <span className="block text-fg-muted">
             {t('settings.models.deletion.resolve')}
           </span>
         </>

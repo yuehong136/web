@@ -255,7 +255,7 @@ export const ChannelFormSheet = ({
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetContent className="flex w-full flex-col gap-0 p-0 sm:max-w-2xl">
-        <SheetHeader className="p-space-lg pr-space-2xl border-b border-border-subtle">
+        <SheetHeader className="border-b border-line-subtle p-space-lg pr-space-2xl">
           <SheetTitle>
             {currentChannel
               ? t('channel.form.editTitle')
@@ -269,14 +269,14 @@ export const ChannelFormSheet = ({
             className="flex flex-1 items-center justify-center"
             aria-busy="true"
           >
-            <Loader2 className="size-icon-lg animate-spin text-text-secondary" />
+            <Loader2 className="size-icon-lg animate-spin text-fg-muted" />
             <span className="sr-only">{t('channel.states.loading')}</span>
           </div>
         ) : (
           <Form {...form}>
             <form
               id="channel-form"
-              className="scroll-area space-y-space-lg p-space-lg flex-1 overflow-y-auto"
+              className="scroll-area flex-1 space-y-space-lg overflow-y-auto p-space-lg"
               onSubmit={handleSubmit}
               noValidate
             >
@@ -290,7 +290,7 @@ export const ChannelFormSheet = ({
               >
                 <h3
                   id="channel-basic-heading"
-                  className="font-semibold text-text-primary"
+                  className="font-semibold text-fg"
                 >
                   {t('channel.form.basicSection')}
                 </h3>
@@ -350,7 +350,7 @@ export const ChannelFormSheet = ({
               >
                 <h3
                   id="channel-provider-heading"
-                  className="font-semibold text-text-primary"
+                  className="font-semibold text-fg"
                 >
                   {t('channel.form.connectionSection')}
                 </h3>
@@ -366,7 +366,7 @@ export const ChannelFormSheet = ({
               >
                 <h3
                   id="channel-binding-heading"
-                  className="font-semibold text-text-primary"
+                  className="font-semibold text-fg"
                 >
                   {t('channel.form.bindingSection')}
                 </h3>
@@ -376,7 +376,7 @@ export const ChannelFormSheet = ({
           </Form>
         )}
 
-        <SheetFooter className="p-space-lg border-t border-border-subtle">
+        <SheetFooter className="border-t border-line-subtle p-space-lg">
           {currentChannel ? (
             <Button
               type="button"

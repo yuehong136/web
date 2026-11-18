@@ -37,7 +37,7 @@ export const LocalModelFields = (props: LocalModelFieldsProps) => {
       <div>
         <label
           htmlFor="local-model-type"
-          className="mb-2 block text-sm font-medium text-text-primary"
+          className="mb-2 block text-sm font-medium text-fg"
         >
           {t(`${key}.type`)}
         </label>
@@ -68,7 +68,7 @@ export const LocalModelFields = (props: LocalModelFieldsProps) => {
       <div>
         <label
           htmlFor="local-model-name"
-          className="mb-2 block text-sm font-medium text-text-primary"
+          className="mb-2 block text-sm font-medium text-fg"
         >
           {t(`${key}.name`)}
         </label>
@@ -82,7 +82,7 @@ export const LocalModelFields = (props: LocalModelFieldsProps) => {
       <div>
         <label
           htmlFor="local-model-url"
-          className="mb-2 block text-sm font-medium text-text-primary"
+          className="mb-2 block text-sm font-medium text-fg"
         >
           {t('settings.models.form.baseUrl')}
         </label>
@@ -100,7 +100,7 @@ export const LocalModelFields = (props: LocalModelFieldsProps) => {
       <div>
         <label
           htmlFor="local-model-key"
-          className="mb-2 block text-sm font-medium text-text-primary"
+          className="mb-2 block text-sm font-medium text-fg"
         >
           {t('settings.models.form.apiKey')}
         </label>
@@ -123,7 +123,7 @@ export const LocalModelFields = (props: LocalModelFieldsProps) => {
                 : 'auth.login.showPassword',
             )}
             onClick={() => props.onShowApiKeyChange(!props.showApiKey)}
-            className="absolute top-1/2 right-3 -translate-y-1/2 text-text-tertiary hover:text-text-secondary"
+            className="absolute top-1/2 right-3 -translate-y-1/2 text-fg-subtle hover:text-fg-muted"
           >
             {props.showApiKey ? (
               <EyeOff className="size-icon-sm" />
@@ -136,7 +136,7 @@ export const LocalModelFields = (props: LocalModelFieldsProps) => {
       <div>
         <label
           htmlFor="local-model-tokens"
-          className="mb-2 block text-sm font-medium text-text-primary"
+          className="mb-2 block text-sm font-medium text-fg"
         >
           {t('settings.models.form.maxTokens')}
         </label>
@@ -156,7 +156,7 @@ export const LocalModelFields = (props: LocalModelFieldsProps) => {
         <div className="flex items-center justify-between">
           <label
             htmlFor="local-model-vision"
-            className="text-sm font-medium text-text-primary"
+            className="text-sm font-medium text-fg"
           >
             {t(`${key}.vision`)}
           </label>
@@ -172,7 +172,7 @@ export const LocalModelFields = (props: LocalModelFieldsProps) => {
           <div className="flex items-center justify-between">
             <label
               htmlFor="local-model-tools"
-              className="text-sm font-medium text-text-primary"
+              className="text-sm font-medium text-fg"
             >
               {t(`${key}.tools`)}
             </label>
@@ -183,10 +183,7 @@ export const LocalModelFields = (props: LocalModelFieldsProps) => {
               aria-describedby="local-model-tools-hint"
             />
           </div>
-          <p
-            id="local-model-tools-hint"
-            className="text-sm text-text-secondary"
-          >
+          <p id="local-model-tools-hint" className="text-sm text-fg-muted">
             {t(`${key}.toolsHint`)}
           </p>
         </div>

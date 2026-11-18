@@ -97,7 +97,7 @@ export default function DataSourcePage() {
               key: id,
               icon: dataSourceInfo[id].icon,
               iconClassName:
-                'bg-background-subtle text-text-primary ring-1 ring-border-subtle ring-inset [&_img]:size-icon-md',
+                'bg-sunken text-fg ring-1 ring-line-subtle ring-inset [&_img]:size-icon-md',
               title: dataSourceInfo[id].name,
               description: dataSourceInfo[id].description,
               cta: t('datasource.emptyStart.connect'),

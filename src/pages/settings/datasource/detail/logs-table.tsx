@@ -95,7 +95,7 @@ export function DataSourceLogsTable({ state }: DataSourceLogsTableProps) {
   if (isFetching && logs.length === 0) {
     return (
       <div className="flex items-center justify-center py-space-xl">
-        <Loader2 className="size-icon-lg animate-spin text-text-tertiary" />
+        <Loader2 className="size-icon-lg animate-spin text-fg-subtle" />
       </div>
     )
   }
@@ -103,13 +103,11 @@ export function DataSourceLogsTable({ state }: DataSourceLogsTableProps) {
   if (logs.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center gap-space-sm py-space-xl text-center">
-        <div className="flex h-12 w-12 items-center justify-center rounded-radius-full bg-components-page-state-icon-bg text-components-page-state-icon">
+        <div className="flex h-12 w-12 items-center justify-center rounded-radius-full bg-fill-muted text-fg-subtle">
           <Clock3 className="size-icon-lg" />
         </div>
-        <p className="text-sm font-medium text-text-primary">
-          {t('datasource.noLogs')}
-        </p>
-        <p className="text-sm text-text-secondary">
+        <p className="text-sm font-medium text-fg">{t('datasource.noLogs')}</p>
+        <p className="text-sm text-fg-muted">
           {t('datasource.noLogsDescription')}
         </p>
       </div>
@@ -118,8 +116,8 @@ export function DataSourceLogsTable({ state }: DataSourceLogsTableProps) {
 
   return (
     <div>
-      <Table wrapperClassName="rounded-radius-lg border border-border-subtle">
-        <TableHeader className="bg-surface-secondary">
+      <Table wrapperClassName="rounded-radius-lg border border-line-subtle">
+        <TableHeader className="bg-sunken">
           <TableRow>
             <TableHead>{t('datasource.logTask')}</TableHead>
             <TableHead>{t('datasource.logStartedAt')}</TableHead>
@@ -138,7 +136,7 @@ export function DataSourceLogsTable({ state }: DataSourceLogsTableProps) {
               key={log.id}
               className={
                 log.status === DataSourceStatus.FAILED
-                  ? 'bg-status-error-subtle'
+                  ? 'bg-danger-soft'
                   : undefined
               }
             >
@@ -149,10 +147,10 @@ export function DataSourceLogsTable({ state }: DataSourceLogsTableProps) {
                     : 'datasource.taskSync',
                 )}
               </TableCell>
-              <TableCell className="whitespace-nowrap text-text-secondary">
+              <TableCell className="whitespace-nowrap text-fg-muted">
                 {log.time_started ? formatDate(log.time_started) : '-'}
               </TableCell>
-              <TableCell className="whitespace-nowrap text-text-secondary">
+              <TableCell className="whitespace-nowrap text-fg-muted">
                 {log.update_date
                   ? formatDate(
                       Date.parse(log.update_date) < 1_000_000_000_000 &&
@@ -165,7 +163,7 @@ export function DataSourceLogsTable({ state }: DataSourceLogsTableProps) {
               <TableCell>
                 <div className="flex min-w-0 items-center gap-space-sm">
                   <DataSourceStatusIcon status={log.status} />
-                  <span className="truncate font-medium text-text-primary">
+                  <span className="truncate font-medium text-fg">
                     {log.kb_name}
                   </span>
                 </div>
@@ -173,10 +171,10 @@ export function DataSourceLogsTable({ state }: DataSourceLogsTableProps) {
               <TableCell>
                 <DataSourceStatusBadge status={log.status} />
               </TableCell>
-              <TableCell className="whitespace-normal text-text-primary">
+              <TableCell className="whitespace-normal text-fg">
                 {getLogSummary(t, log, now)}
               </TableCell>
-              <TableCell className="whitespace-nowrap text-text-secondary">
+              <TableCell className="whitespace-nowrap text-fg-muted">
                 {formatSyncCursor(log)}
               </TableCell>
             </TableRow>

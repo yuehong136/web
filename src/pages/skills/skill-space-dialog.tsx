@@ -99,7 +99,7 @@ export function SkillSpaceDialog({
           </Label>
           <SkillError error={action.error} />
           {unknownCreation && (
-            <output className="text-sm text-status-warning">
+            <output className="text-sm text-warning-fg">
               {t('skills.createUnknown')}
             </output>
           )}

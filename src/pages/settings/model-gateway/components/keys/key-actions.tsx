@@ -93,7 +93,7 @@ export function KeyActions({
         <Button
           size="sm"
           variant="outline"
-          className="text-status-error hover:text-status-error"
+          className="text-danger-fg hover:text-danger-fg"
           disabled={busy || revoked}
           onClick={() => setConfirming(true)}
         >
@@ -101,7 +101,7 @@ export function KeyActions({
         </Button>
       </div>
       {revoked ? null : (
-        <p className="text-xs text-text-tertiary">
+        <p className="text-xs text-fg-subtle">
           {t(`${PREFIX}.keys.detail.rotateHint`)}
         </p>
       )}

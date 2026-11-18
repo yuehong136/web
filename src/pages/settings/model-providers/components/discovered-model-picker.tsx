@@ -71,11 +71,11 @@ export function DiscoveredModelPicker({
         </Button>
       </div>
       {models.length ? (
-        <ul className="max-h-64 overflow-auto rounded-radius-md border border-border-default">
+        <ul className="max-h-64 overflow-auto rounded-radius-md border border-line">
           {models.map((model) => (
             <li
               key={model.model_name}
-              className="border-b border-border-subtle p-space-sm last:border-0"
+              className="border-b border-line-subtle p-space-sm last:border-0"
             >
               <label
                 htmlFor={`${id}-${encodeURIComponent(model.model_name)}`}
@@ -99,7 +99,7 @@ export function DiscoveredModelPicker({
                   <span className="block font-medium">
                     {model.display_name}
                   </span>
-                  <span className="block text-xs text-text-secondary">
+                  <span className="block text-xs text-fg-muted">
                     {model.model_name}
                   </span>
                   <ModelCapabilities
@@ -107,7 +107,7 @@ export function DiscoveredModelPicker({
                     tools={model.is_tools}
                   />
                   {model.features.includes('thinking') && (
-                    <span className="block text-xs text-text-secondary">
+                    <span className="block text-xs text-fg-muted">
                       {t('settings.models.discovery.thinking')}
                     </span>
                   )}
@@ -117,7 +117,7 @@ export function DiscoveredModelPicker({
           ))}
         </ul>
       ) : (
-        <output className="text-sm text-text-secondary">
+        <output className="text-sm text-fg-muted">
           {t('common.noResults')}
         </output>
       )}
@@ -135,7 +135,7 @@ export function DiscoveredModelPicker({
           >
             {t('settings.models.discovery.previous')}
           </Button>
-          <span className="text-sm text-text-secondary">
+          <span className="text-sm text-fg-muted">
             {page.page} / {Math.ceil(page.total / page.page_size)}
           </span>
           <Button

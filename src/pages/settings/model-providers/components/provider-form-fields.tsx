@@ -202,7 +202,7 @@ export function ProviderFormFields({
         )
       })}
       {provider === 'Bedrock' && d.bedrockAuthMode === 'assume_role' && (
-        <p className="text-sm text-text-secondary">
+        <p className="text-sm text-fg-muted">
           {t('settings.models.form.assumeRoleHint')}
         </p>
       )}

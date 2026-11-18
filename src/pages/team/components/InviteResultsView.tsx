@@ -29,37 +29,37 @@ const STATUS: Record<
 > = {
   [InviteResultStatus.Invited]: {
     icon: CheckCircle2,
-    tone: 'text-status-success',
+    tone: 'text-success-fg',
     key: 'invited',
   },
   [InviteResultStatus.AlreadyMember]: {
     icon: UserCheck,
-    tone: 'text-text-tertiary',
+    tone: 'text-fg-subtle',
     key: 'alreadyMember',
   },
   [InviteResultStatus.AlreadyAdmin]: {
     icon: Shield,
-    tone: 'text-text-tertiary',
+    tone: 'text-fg-subtle',
     key: 'alreadyAdmin',
   },
   [InviteResultStatus.AlreadyOwner]: {
     icon: Crown,
-    tone: 'text-text-tertiary',
+    tone: 'text-fg-subtle',
     key: 'alreadyOwner',
   },
   [InviteResultStatus.AlreadyInvited]: {
     icon: Clock,
-    tone: 'text-text-tertiary',
+    tone: 'text-fg-subtle',
     key: 'alreadyInvited',
   },
   [InviteResultStatus.UserNotFound]: {
     icon: XCircle,
-    tone: 'text-status-error',
+    tone: 'text-danger-fg',
     key: 'userNotFound',
   },
   [InviteResultStatus.InvalidEmail]: {
     icon: MailWarning,
-    tone: 'text-status-error',
+    tone: 'text-danger-fg',
     key: 'invalidEmail',
   },
 }
@@ -103,7 +103,7 @@ export function InviteResultsView({
   return (
     <div className="flex flex-col gap-space-md">
       <InlineStats items={counts} />
-      <ul className="flex max-h-72 flex-col overflow-y-auto rounded-radius-lg border border-border-subtle">
+      <ul className="flex max-h-72 flex-col overflow-y-auto rounded-radius-lg border border-line-subtle">
         {results.map((item, index) => {
           const config =
             STATUS[item.status] ?? STATUS[InviteResultStatus.UserNotFound]
@@ -111,14 +111,14 @@ export function InviteResultsView({
           return (
             <li
               key={`${item.email}-${index}`}
-              className="flex items-center gap-space-sm border-b border-border-subtle px-space-md py-space-xs last:border-b-0"
+              className="flex items-center gap-space-sm border-b border-line-subtle px-space-md py-space-xs last:border-b-0"
             >
               <Icon
                 className={cn('size-icon-sm shrink-0', config.tone)}
                 aria-hidden="true"
               />
               <span
-                className="min-w-0 flex-1 truncate text-sm text-text-primary"
+                className="min-w-0 flex-1 truncate text-sm text-fg"
                 title={item.email}
               >
                 {item.email}

@@ -48,7 +48,7 @@ export function ModelConfig({
   return (
     <div className="@container mx-auto w-full max-w-xl space-y-space-base p-space-base">
       <div className="space-y-space-sm">
-        <h2 className="text-base font-semibold text-text-primary">
+        <h2 className="text-base font-semibold text-fg">
           {t('studio.editor.modelChoice')}
         </h2>
         <ChatModelSelector
@@ -64,7 +64,7 @@ export function ModelConfig({
         />
       </div>
       <fieldset className="space-y-space-sm">
-        <legend className="mb-space-sm text-sm font-medium text-text-primary">
+        <legend className="mb-space-sm text-sm font-medium text-fg">
           {t('studio.editor.generationStyle')}
         </legend>
         <RadioGroup
@@ -84,7 +84,7 @@ export function ModelConfig({
         >
           <Label
             htmlFor={`${id}-default`}
-            className="col-span-2 flex cursor-pointer items-center gap-space-sm py-space-xs text-text-secondary @lg:col-span-4"
+            className="col-span-2 flex cursor-pointer items-center gap-space-sm py-space-xs text-fg-muted @lg:col-span-4"
           >
             <RadioGroupItem id={`${id}-default`} value={modelDefault} />
             {t('studio.editor.generationDefault')}
@@ -98,19 +98,19 @@ export function ModelConfig({
             <Label
               key={value}
               htmlFor={`${id}-${value}`}
-              className={`flex cursor-pointer items-center gap-space-sm rounded-radius-md px-space-sm py-space-xs ${count && preset === value ? 'bg-state-selected-bg text-state-selected-text' : 'text-text-secondary'}`}
+              className={`flex cursor-pointer items-center gap-space-sm rounded-radius-md px-space-sm py-space-xs ${count && preset === value ? 'bg-accent-soft text-accent-fg' : 'text-fg-muted'}`}
             >
               <RadioGroupItem id={`${id}-${value}`} value={value} />
               {t(`studio.editor.${value}`)}
             </Label>
           ))}
         </RadioGroup>
-        <p className="text-xs leading-relaxed text-text-secondary">
+        <p className="text-xs leading-relaxed text-fg-muted">
           {t('studio.editor.generationHint')}
         </p>
       </fieldset>
       {!!count && (
-        <p className="text-xs text-text-secondary">
+        <p className="text-xs text-fg-muted">
           {t('studio.editor.overrides', { count })}
         </p>
       )}

@@ -51,7 +51,7 @@ export function SkillModelSelect({
     }))
   return (
     <div className="min-w-0 space-y-2">
-      <div className="text-sm font-medium text-text-primary">{label}</div>
+      <div className="text-sm font-medium text-fg">{label}</div>
       <ModelSelect
         ariaLabel={label}
         value={value}

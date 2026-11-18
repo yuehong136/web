@@ -80,7 +80,7 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-space-sm">
             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/12">
-              <UserPlus className="h-4 w-4 text-text-accent" />
+              <UserPlus className="h-4 w-4 text-accent-fg" />
             </span>
             {t('settings.admin.actions.createUser')}
           </DialogTitle>
@@ -90,9 +90,9 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
           <div className="space-y-space-lg px-space-lg pt-space-sm pb-space-lg">
             {/* Email */}
             <div className="space-y-space-xs">
-              <label className="text-sm font-medium text-text-secondary">
+              <label className="text-sm font-medium text-fg-muted">
                 {t('settings.admin.form.email')}{' '}
-                <span className="text-status-error">*</span>
+                <span className="text-danger-fg">*</span>
               </label>
               <Input
                 type="email"
@@ -109,9 +109,9 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
 
             {/* Password */}
             <div className="space-y-space-xs">
-              <label className="text-sm font-medium text-text-secondary">
+              <label className="text-sm font-medium text-fg-muted">
                 {t('settings.admin.form.password')}{' '}
-                <span className="text-status-error">*</span>
+                <span className="text-danger-fg">*</span>
               </label>
               <Input
                 type={showPassword ? 'text' : 'password'}
@@ -127,7 +127,7 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
                   <button
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
-                    className="text-text-tertiary transition-colors hover:text-text-secondary"
+                    className="text-fg-subtle transition-colors hover:text-fg-muted"
                   >
                     {showPassword ? (
                       <EyeOff className="h-4 w-4" />
@@ -141,9 +141,9 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
 
             {/* Confirm Password */}
             <div className="space-y-space-xs">
-              <label className="text-sm font-medium text-text-secondary">
+              <label className="text-sm font-medium text-fg-muted">
                 {t('settings.admin.form.confirmPassword')}{' '}
-                <span className="text-status-error">*</span>
+                <span className="text-danger-fg">*</span>
               </label>
               <Input
                 type={showPassword ? 'text' : 'password'}
@@ -162,29 +162,27 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
 
             {/* Admin Toggle */}
             <label
-              className="flex cursor-pointer items-center gap-space-sm rounded-radius-xl border border-border-default bg-surface-secondary px-space-md py-space-base transition-colors hover:bg-surface-tertiary"
+              className="flex cursor-pointer items-center gap-space-sm rounded-radius-xl border border-line bg-sunken px-space-md py-space-base transition-colors hover:bg-canvas"
               onClick={() => setIsAdmin((v) => !v)}
             >
               <div
                 className={cn(
                   'relative h-5 w-9 shrink-0 rounded-full transition-colors',
-                  isAdmin
-                    ? 'bg-state-focus'
-                    : 'border border-border-default bg-background-default',
+                  isAdmin ? 'bg-line-focus' : 'border border-line bg-canvas',
                 )}
               >
                 <span
                   className={cn(
-                    'absolute top-0.5 h-4 w-4 rounded-full bg-background-surface shadow-xs transition-transform',
+                    'absolute top-0.5 h-4 w-4 rounded-full bg-surface shadow-xs transition-transform',
                     isAdmin ? 'translate-x-4' : 'translate-x-0.5',
                   )}
                 />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-text-primary">
+                <p className="text-sm font-medium text-fg">
                   {t('settings.admin.createUser.makeAdmin')}
                 </p>
-                <p className="text-xs text-text-tertiary">
+                <p className="text-xs text-fg-subtle">
                   {t('settings.admin.createUser.makeAdminHint')}
                 </p>
               </div>

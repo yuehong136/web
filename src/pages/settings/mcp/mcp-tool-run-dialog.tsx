@@ -91,16 +91,16 @@ export function MCPToolRunDialog({
         </DialogHeader>
         <DialogBody className="flex flex-col gap-space-base">
           {target?.tool.description ? (
-            <p className="text-sm whitespace-pre-wrap text-text-secondary">
+            <p className="text-sm whitespace-pre-wrap text-fg-muted">
               {target.tool.description}
             </p>
           ) : null}
           {target?.tool.inputSchema ? (
             <details className="text-sm">
-              <summary className="cursor-pointer text-text-secondary">
+              <summary className="cursor-pointer text-fg-muted">
                 {t('mcp.tools.schema')}
               </summary>
-              <pre className="mt-space-xs max-h-40 overflow-auto rounded-radius-md bg-background-subtle p-space-sm font-mono text-xs text-text-secondary">
+              <pre className="mt-space-xs max-h-40 overflow-auto rounded-radius-md bg-sunken p-space-sm font-mono text-xs text-fg-muted">
                 {JSON.stringify(target.tool.inputSchema, null, 2)}
               </pre>
             </details>
@@ -128,19 +128,19 @@ export function MCPToolRunDialog({
               <p
                 id={`${argsId}-error`}
                 role="alert"
-                className="text-xs text-status-error"
+                className="text-xs text-danger-fg"
               >
                 {t('mcp.tools.invalidArguments')}
               </p>
             ) : null}
           </div>
           {result ? (
-            <div className="flex flex-col gap-space-xs border-t border-border-subtle pt-space-sm">
+            <div className="flex flex-col gap-space-xs border-t border-line-subtle pt-space-sm">
               <output
                 className={
                   result.status === 'success'
-                    ? 'block text-sm font-medium text-status-success'
-                    : 'block text-sm font-medium text-status-error'
+                    ? 'block text-sm font-medium text-success-fg'
+                    : 'block text-sm font-medium text-danger-fg'
                 }
               >
                 {t(
@@ -149,13 +149,13 @@ export function MCPToolRunDialog({
                     : 'mcp.tools.runFailed',
                 )}
                 {result.duration !== undefined ? (
-                  <span className="ml-space-sm font-normal text-text-tertiary tabular-nums">
+                  <span className="ml-space-sm font-normal text-fg-subtle tabular-nums">
                     {t('mcp.common.milliseconds', { value: result.duration })}
                   </span>
                 ) : null}
               </output>
               {result.status === 'success' && result.content.length > 0 ? (
-                <pre className="max-h-48 overflow-auto rounded-radius-md bg-background-subtle p-space-sm font-mono text-xs text-text-secondary">
+                <pre className="max-h-48 overflow-auto rounded-radius-md bg-sunken p-space-sm font-mono text-xs text-fg-muted">
                   {JSON.stringify(result.content, null, 2)}
                 </pre>
               ) : null}

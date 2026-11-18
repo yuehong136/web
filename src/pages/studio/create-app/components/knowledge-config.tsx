@@ -44,9 +44,9 @@ export function KnowledgeConfig({
   return (
     <div className="mx-auto w-full max-w-xl space-y-space-base p-space-base">
       <div className="flex flex-wrap items-center justify-between gap-space-sm">
-        <h2 className="text-base font-semibold text-text-primary">
+        <h2 className="text-base font-semibold text-fg">
           {t('studio.editor.knowledge')}{' '}
-          <span className="text-sm font-normal text-text-secondary">
+          <span className="text-sm font-normal text-fg-muted">
             {knowledgeBases.length}
           </span>
         </h2>
@@ -60,7 +60,7 @@ export function KnowledgeConfig({
           {knowledgeBases.map((kb) => (
             <div
               key={kb.id}
-              className="flex min-w-0 items-center gap-space-sm border-b border-border-subtle py-space-sm"
+              className="flex min-w-0 items-center gap-space-sm border-b border-line-subtle py-space-sm"
             >
               <EntityAvatar
                 name={kb.name}
@@ -70,13 +70,13 @@ export function KnowledgeConfig({
               />
               <div className="min-w-0 flex-1">
                 <p
-                  className="truncate text-sm font-medium text-text-primary"
+                  className="truncate text-sm font-medium text-fg"
                   title={kb.name}
                 >
                   {kb.name}
                 </p>
                 <p
-                  className="truncate text-xs text-text-secondary"
+                  className="truncate text-xs text-fg-muted"
                   title={kb.description ?? undefined}
                 >
                   {kb.description || kb.embd_id}
@@ -91,17 +91,17 @@ export function KnowledgeConfig({
                 title={t('studio.editor.removeKnowledge', { name: kb.name })}
                 onClick={() => onRemove(kb.id)}
               >
-                <Trash2 className="size-icon-sm text-status-error" />
+                <Trash2 className="size-icon-sm text-danger-fg" />
               </Button>
             </div>
           ))}
         </div>
       ) : (
-        <div className="space-y-space-xs border-b border-border-subtle pb-space-lg">
-          <p className="text-sm font-medium text-text-primary">
+        <div className="space-y-space-xs border-b border-line-subtle pb-space-lg">
+          <p className="text-sm font-medium text-fg">
             {t('studio.editor.noKnowledge')}
           </p>
-          <p className="text-sm text-text-secondary">
+          <p className="text-sm text-fg-muted">
             {t('studio.editor.noKnowledgeHint')}
           </p>
         </div>
@@ -112,7 +112,7 @@ export function KnowledgeConfig({
         open={retrievalOpen}
         onOpenChange={setRetrievalOpen}
       >
-        <p className="text-xs text-text-secondary">
+        <p className="text-xs text-fg-muted">
           {t('studio.editor.retrievalHint')}
         </p>
         <div className="space-y-space-sm">
@@ -163,7 +163,7 @@ export function KnowledgeConfig({
                 })
               }
             />
-            <p className="text-xs text-text-secondary">
+            <p className="text-xs text-fg-muted">
               {t('studio.editor.sparseWeight')}:{' '}
               {(config.search_mode.weight_sparse ?? 0.3).toFixed(2)}
             </p>
@@ -202,10 +202,10 @@ export function KnowledgeConfig({
           error={modelsError}
         />
         <div className="space-y-space-xs">
-          <p className="text-sm font-medium text-text-primary">
+          <p className="text-sm font-medium text-fg">
             {t('studio.editor.topKFixed')}
           </p>
-          <p className="text-xs leading-relaxed text-text-secondary">
+          <p className="text-xs leading-relaxed text-fg-muted">
             {t('studio.editor.topKHint')}
           </p>
         </div>
@@ -224,7 +224,7 @@ export function KnowledgeConfig({
           />
         ))}
         <fieldset className="space-y-space-sm">
-          <legend className="mb-space-sm text-sm font-medium text-text-primary">
+          <legend className="mb-space-sm text-sm font-medium text-fg">
             {t('studio.editor.crossLanguages')}
           </legend>
           <div className="flex flex-wrap gap-space-xs">
@@ -270,7 +270,7 @@ export function KnowledgeConfig({
               })
             }
           />
-          <p className="text-xs text-text-secondary">
+          <p className="text-xs text-fg-muted">
             {t('studio.editor.webCredentialHint')}
           </p>
         </div>

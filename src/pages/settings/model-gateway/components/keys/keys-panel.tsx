@@ -108,9 +108,9 @@ export function KeysPanel({
       ) : (
         <Table
           aria-label={t(`${PREFIX}.keys.listLabel`)}
-          wrapperClassName="rounded-radius-lg border border-border-subtle"
+          wrapperClassName="rounded-radius-lg border border-line-subtle"
         >
-          <TableHeader className="bg-background-subtle">
+          <TableHeader className="bg-sunken">
             <TableRow>
               <TableHead>{t(`${PREFIX}.keys.columns.name`)}</TableHead>
               <TableHead>{t(`${PREFIX}.keys.columns.scope`)}</TableHead>
@@ -142,9 +142,7 @@ export function KeysPanel({
           </TableBody>
         </Table>
       )}
-      <p className="text-xs text-text-tertiary">
-        {t(`${PREFIX}.keys.selectHint`)}
-      </p>
+      <p className="text-xs text-fg-subtle">{t(`${PREFIX}.keys.selectHint`)}</p>
     </div>
   )
 }

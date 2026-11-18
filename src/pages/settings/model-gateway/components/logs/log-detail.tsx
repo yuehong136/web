@@ -22,8 +22,8 @@ export const logDetailTitle = (t: TFunction, log: GatewayLog): string =>
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <>
-      <dt className="text-text-tertiary">{label}</dt>
-      <dd className="min-w-0 break-words text-text-primary">{children}</dd>
+      <dt className="text-fg-subtle">{label}</dt>
+      <dd className="min-w-0 break-words text-fg">{children}</dd>
     </>
   )
 }
@@ -62,10 +62,7 @@ export function LogDetail({ log }: { log: GatewayLog }) {
       <div className="flex flex-wrap items-center gap-space-sm">
         <StatusCode code={log.status_code} />
         {log.started_at ? (
-          <time
-            dateTime={log.started_at}
-            className="text-sm text-text-secondary"
-          >
+          <time dateTime={log.started_at} className="text-sm text-fg-muted">
             {t(`${PREFIX}.logs.detail.time`, {
               value: formatInstant(log.started_at),
             })}
@@ -76,31 +73,29 @@ export function LogDetail({ log }: { log: GatewayLog }) {
       {failed && (code || explanation) ? (
         <div
           role="note"
-          className="rounded-radius-md border border-status-error-border bg-status-error-subtle p-space-md text-sm"
+          className="rounded-radius-md border border-danger-line bg-danger-soft p-space-md text-sm"
         >
-          {code ? (
-            <div className="font-mono text-status-error">{code}</div>
-          ) : null}
+          {code ? <div className="font-mono text-danger-fg">{code}</div> : null}
           {explanation ? (
-            <p className="mt-space-2xs text-text-primary">{explanation}</p>
+            <p className="mt-space-2xs text-fg">{explanation}</p>
           ) : null}
         </div>
       ) : null}
 
       <section aria-label={t(`${PREFIX}.logs.detail.durationLabel`)}>
-        <h3 className="mb-space-sm text-sm font-semibold text-text-primary">
+        <h3 className="mb-space-sm text-sm font-semibold text-fg">
           {t(`${PREFIX}.logs.detail.duration`)}
         </h3>
-        <div className="flex h-2.5 overflow-hidden rounded-radius-full bg-components-progress-bg">
+        <div className="flex h-2.5 overflow-hidden rounded-radius-full bg-fill-pressed">
           {firstShare > 0 ? (
             <div
-              className="h-full bg-status-info"
+              className="h-full bg-info-fg"
               style={{ width: `${firstShare}%` }}
             />
           ) : null}
-          <div className="h-full flex-1 bg-components-progress-fill" />
+          <div className="h-full flex-1 bg-accent-solid" />
         </div>
-        <div className="mt-space-xs flex justify-between text-xs text-text-secondary">
+        <div className="mt-space-xs flex justify-between text-xs text-fg-muted">
           <span>
             {log.first_token_ms !== null
               ? t(`${PREFIX}.logs.detail.firstToken`, {
@@ -143,7 +138,7 @@ export function LogDetail({ log }: { log: GatewayLog }) {
           <span className="font-mono">{log.client_ip ?? empty}</span>
         </Field>
       </dl>
-      <p className="text-xs text-text-tertiary">
+      <p className="text-xs text-fg-subtle">
         {t(`${PREFIX}.logs.detail.noBody`)}
       </p>
     </div>

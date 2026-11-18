@@ -40,9 +40,9 @@ import {
 import { useLatencyHistory } from './use-latency-history'
 
 const DOT: Record<Health, string> = {
-  green: 'bg-status-success',
-  yellow: 'bg-status-warning',
-  red: 'bg-status-error',
+  green: 'bg-success-fg',
+  yellow: 'bg-warning-fg',
+  red: 'bg-danger-fg',
 }
 
 const COMPONENT_ICON: Record<ComponentRow['id'], LucideIcon> = {
@@ -54,9 +54,9 @@ const COMPONENT_ICON: Record<ComponentRow['id'], LucideIcon> = {
 }
 
 const TILE: Record<Health, string> = {
-  green: 'bg-background-subtle text-text-secondary',
-  yellow: 'bg-status-warning-subtle text-status-warning',
-  red: 'bg-status-error-subtle text-status-error',
+  green: 'bg-sunken text-fg-muted',
+  yellow: 'bg-warning-soft text-warning-fg',
+  red: 'bg-danger-soft text-danger-fg',
 }
 
 /** The component's icon on a tile tinted by its health. */
@@ -83,7 +83,7 @@ function HealthTile({
 function HealthLabel({ status }: { status: Health }) {
   const { t } = useTranslation()
   return (
-    <span className="inline-flex items-center gap-space-xs text-sm text-text-secondary">
+    <span className="inline-flex items-center gap-space-xs text-sm text-fg-muted">
       <span
         aria-hidden="true"
         className={cn('size-1.5 shrink-0 rounded-radius-full', DOT[status])}
@@ -117,14 +117,12 @@ function ComponentStatusRow({
       tone={row.error ? 'error' : 'default'}
     >
       {row.version ? (
-        <span className="font-mono text-xs text-text-tertiary">
-          {row.version}
-        </span>
+        <span className="font-mono text-xs text-fg-subtle">{row.version}</span>
       ) : null}
       {trend ? (
         <Sparkline
           values={trend}
-          className="text-text-tertiary"
+          className="text-fg-subtle"
           label={t('settings.system.latencyTrend', {
             name,
             from: trend[0],
@@ -132,7 +130,7 @@ function ComponentStatusRow({
           })}
         />
       ) : null}
-      <span className="w-16 text-right text-sm text-text-secondary tabular-nums">
+      <span className="w-16 text-right text-sm text-fg-muted tabular-nums">
         {row.latency === null
           ? '—'
           : t('settings.system.milliseconds', { value: row.latency })}
@@ -170,7 +168,7 @@ function ExecutorStatusRow({ row }: { row: ExecutorRow }) {
       >
         <Sparkline
           values={row.pendingTrend}
-          className="text-text-tertiary"
+          className="text-fg-subtle"
           label={t('settings.system.executor.pendingTrend', {
             name: row.name,
           })}
@@ -179,14 +177,14 @@ function ExecutorStatusRow({ row }: { row: ExecutorRow }) {
       </SettingRow>
       {current.length ? (
         <details className="pb-space-sm text-xs">
-          <summary className="cursor-pointer text-text-secondary">
+          <summary className="cursor-pointer text-fg-muted">
             {t('settings.system.executor.current')}
           </summary>
           <dl className="mt-space-xs grid grid-cols-[auto_minmax(0,1fr)] gap-x-space-md gap-y-space-2xs">
             {current.map(([key, value]) => (
               <div key={key} className="contents">
-                <dt className="font-mono text-text-tertiary">{key}</dt>
-                <dd className="min-w-0 font-mono break-all text-text-secondary">
+                <dt className="font-mono text-fg-subtle">{key}</dt>
+                <dd className="min-w-0 font-mono break-all text-fg-muted">
                   {typeof value === 'string' ? value : JSON.stringify(value)}
                 </dd>
               </div>
@@ -321,7 +319,7 @@ export function SystemPage() {
             className={SETTINGS_CARD}
           >
             <SettingRow label={t('settings.system.version')}>
-              <span className="font-mono text-sm text-text-secondary">
+              <span className="font-mono text-sm text-fg-muted">
                 {version.version || '—'}
               </span>
             </SettingRow>
@@ -336,14 +334,14 @@ export function SystemPage() {
                     : undefined
                 }
               >
-                <span className="font-mono text-sm text-text-secondary">
+                <span className="font-mono text-sm text-fg-muted">
                   {version.commit}
                 </span>
               </SettingRow>
             ) : null}
             {version.build ? (
               <SettingRow label={t('settings.system.build')}>
-                <span className="font-mono text-sm text-text-secondary">
+                <span className="font-mono text-sm text-fg-muted">
                   {version.build}
                 </span>
               </SettingRow>
@@ -359,7 +357,7 @@ export function SystemPage() {
         <>
           {t('settings.system.description')}
           {updated ? (
-            <span className="ml-space-xs text-text-tertiary">
+            <span className="ml-space-xs text-fg-subtle">
               {isRefetching ? t('settings.system.updating') : updated}
             </span>
           ) : null}
