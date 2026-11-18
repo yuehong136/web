@@ -54,6 +54,23 @@ async function main() {
         ]),
       ),
     }
+    // Drop mapping shards left over from a larger registry, and keep the
+    // hand-written tailwind.css importing exactly the shards that exist.
+    const shards = Object.keys(generateTailwindThemeFiles())
+    for (const file of fs.readdirSync(THEMES_DIR))
+      if (
+        /^tailwind-tokens-\d+\.generated\.css$/.test(file) &&
+        !shards.includes(file)
+      )
+        fs.rmSync(path.join(THEMES_DIR, file))
+    const entry = fs.readFileSync(path.join(THEMES_DIR, 'tailwind.css'), 'utf8')
+    const imported = [
+      ...entry.matchAll(
+        /@import '\.\/(tailwind-tokens-\d+\.generated\.css)' reference;/g,
+      ),
+    ].map((match) => match[1])
+    if (imported.join() !== shards.join())
+      throw new Error(`tailwind.css must import exactly: ${shards.join(', ')}`)
     for (const [filepath, content] of Object.entries(outputs)) {
       fs.writeFileSync(
         filepath,

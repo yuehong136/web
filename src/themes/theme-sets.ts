@@ -14,7 +14,6 @@ import {
   type SchemeSeed,
 } from './color-schemes'
 import type { Mode } from './color-scales'
-import { LEGACY_TOKENS, type LegacyToken } from './legacy-tokens'
 import { jsColor } from './oklch'
 import {
   buildSchemeTokens,
@@ -54,16 +53,10 @@ export const schemeTokens = (
 export const jsValue = (value: RoleValue) =>
   value.color === 'transparent' ? 'transparent' : jsColor(value.color)
 
-/** Every semantic and legacy token resolved to a JavaScript color string. */
+/** Every semantic token resolved to a JavaScript color string. */
 export function resolveTokens(tokens: SchemeTokens): DesignTokens {
   const values = {} as Record<string, string>
   for (const name of SEMANTIC_TOKENS) values[name] = jsValue(tokens.roles[name])
-  for (const [legacy, role] of Object.entries(LEGACY_TOKENS) as [
-    LegacyToken,
-    string,
-  ][]) {
-    values[legacy] = role === 'transparent' ? 'transparent' : values[role]
-  }
   return values as DesignTokens
 }
 

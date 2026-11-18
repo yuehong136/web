@@ -1,14 +1,13 @@
 /**
  * Generated CSS: one block per scheme and mode with the scales, elevation and
  * semantic roles, then small override blocks for the high-contrast and
- * primary-action variants, and (once, in light.css) the legacy aliases.
+ * primary-action variants.
  *
  * Portal content (menus, dialogs) carries `data-theme` without `data-preset`;
  * the descendant selector gives it the preset of the nearest themed ancestor.
  */
 import { COLOR_SCHEMES, SCHEME_SEEDS, type ColorScheme } from './color-schemes'
 import type { Mode } from './color-scales'
-import { LEGACY_TOKENS } from './legacy-tokens'
 import { cssOklch } from './oklch'
 import {
   SCALE_NAMES,
@@ -93,20 +92,6 @@ export function generateThemeCSS(mode: Mode): string {
         ),
       )
     }
-  }
-  if (mode === 'light') {
-    // Mode-independent: re-declared on every themed element so a scope that
-    // changes the roles also changes what the aliases resolve to.
-    parts.push(
-      '/* ===== Legacy aliases (migrate to the role names) ===== */\n' +
-        block(
-          '[data-preset],\n[data-theme]',
-          Object.entries(LEGACY_TOKENS).map(([legacy, role]) => [
-            `--color-${legacy}`,
-            role === 'transparent' ? 'transparent' : `var(--color-${role})`,
-          ]),
-        ),
-    )
   }
   return parts.filter(Boolean).join('\n')
 }

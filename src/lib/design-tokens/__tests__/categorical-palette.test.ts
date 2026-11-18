@@ -99,13 +99,9 @@ test('getTokenValue: returns the value baked into the generated module', () => {
   )
 })
 
-test('legacy names resolve to the value of their role', () => {
-  for (const values of [lightTokenValues, darkTokenValues]) {
-    assert.equal(values['text-primary'], values.fg)
-    assert.equal(values['status-error-subtle'], values['danger-soft'])
-    assert.equal(values['data-viz-categorical-3'], values['viz-3'])
-    assert.equal(values['components-button-primary-bg'], values['action-bg'])
-  }
+test('only semantic roles are registered', () => {
+  for (const legacy of ['text-primary', 'status-error', 'components-card-bg'])
+    assert.ok(!(legacy in lightTokenValues), legacy)
 })
 
 test('generated JavaScript and committed CSS match the scheme seeds', async () => {

@@ -12,7 +12,6 @@ import { COLOR_SCHEMES, SCHEME_SEEDS } from '@/themes/color-schemes'
 import { generateThemeCSS } from '@/themes/theme-generator'
 import { schemeTokens } from '@/themes/theme-sets'
 import { SEMANTIC_TOKENS } from '@/themes/semantic-tokens'
-import { LEGACY_TOKENS } from '@/themes/legacy-tokens'
 
 test('every scheme is an appearance preset and Ink is the default', () => {
   assert.deepEqual([...APPEARANCE_PRESETS], [...COLOR_SCHEMES])
@@ -27,12 +26,6 @@ test('pre-2.0 presets migrate to their successors', () => {
   assert.equal(migrate('ocean'), 'celadon')
   assert.equal(migrate('mist'), 'mist')
   assert.equal(migrate('unknown'), 'ink')
-})
-
-test('every legacy alias names a semantic role', () => {
-  const roles = new Set<string>(SEMANTIC_TOKENS)
-  for (const [legacy, role] of Object.entries(LEGACY_TOKENS))
-    assert.ok(role === 'transparent' || roles.has(role), `${legacy} -> ${role}`)
 })
 
 for (const mode of ['light', 'dark'] as const) {
