@@ -22,7 +22,7 @@ export function ChatJumpToLatest({
       onClick={onJump}
       data-chat-jump-to-latest
       className={cn(
-        'absolute bottom-space-md left-1/2 z-10 flex -translate-x-1/2 items-center gap-space-xs rounded-radius-full border border-border-default bg-components-card-bg px-space-md py-space-xs text-sm text-text-secondary shadow-elevation-medium outline-hidden transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-focus',
+        'absolute bottom-space-md left-1/2 z-10 flex -translate-x-1/2 items-center gap-space-xs rounded-radius-full border border-line bg-raised px-space-md py-space-xs text-sm text-fg-muted shadow-elevation-medium outline-hidden transition-colors hover:text-fg focus-visible:ring-2 focus-visible:ring-line-focus',
         className,
       )}
     >

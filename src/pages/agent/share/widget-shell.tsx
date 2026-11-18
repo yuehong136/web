@@ -85,7 +85,7 @@ export function WidgetStandalonePreview({
   }
 
   return (
-    <div className="min-h-screen bg-background-body">
+    <div className="min-h-screen bg-surface">
       {hasOpened && (
         <div
           hidden={!open}
@@ -128,11 +128,11 @@ export function WidgetShell({
   return (
     <div
       className={cn(
-        'flex flex-col overflow-hidden rounded-radius-lg border border-border-default bg-background-surface shadow-elevation-high',
+        'flex flex-col overflow-hidden rounded-radius-lg border border-line bg-surface shadow-elevation-high',
         variant === 'iframe' ? 'h-screen w-screen' : 'h-full w-full',
       )}
     >
-      <header className="widget-header flex items-center gap-space-sm border-b border-border-subtle px-space-base py-space-sm">
+      <header className="widget-header flex items-center gap-space-sm border-b border-line-subtle px-space-base py-space-sm">
         {avatar ? (
           <EntityAvatar
             name={settings?.widgetTitle.trim() || title}
@@ -142,10 +142,10 @@ export function WidgetShell({
           />
         ) : null}
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-text-primary">
+          <p className="truncate text-sm font-semibold text-fg">
             {settings?.widgetTitle.trim() || title}
           </p>
-          <p className="text-xs text-text-secondary">
+          <p className="text-xs text-fg-muted">
             {settings?.widgetSubtitle ||
               t('agent.share.agentWidget', 'Agent Widget')}
           </p>

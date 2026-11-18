@@ -7,16 +7,16 @@
 
 // Full class names so Tailwind generates every one of them.
 const CATEGORICAL_DOTS = [
-  'bg-data-viz-categorical-1',
-  'bg-data-viz-categorical-2',
-  'bg-data-viz-categorical-3',
-  'bg-data-viz-categorical-4',
-  'bg-data-viz-categorical-5',
-  'bg-data-viz-categorical-6',
-  'bg-data-viz-categorical-7',
-  'bg-data-viz-categorical-8',
-  'bg-data-viz-categorical-9',
-  'bg-data-viz-categorical-10',
+  'bg-viz-1',
+  'bg-viz-2',
+  'bg-viz-3',
+  'bg-viz-4',
+  'bg-viz-5',
+  'bg-viz-6',
+  'bg-viz-7',
+  'bg-viz-8',
+  'bg-viz-9',
+  'bg-viz-10',
 ] as const
 
 /** Latin aliases match as whole words, so "product-api" is not production. */
@@ -28,10 +28,10 @@ const WELL_KNOWN: ReadonlyArray<readonly [RegExp, RegExp, string]> = [
   [
     word('staging|stage|stg|preprod|pre-prod|uat'),
     /预发|预生产/u,
-    'bg-status-warning',
+    'bg-warning-fg',
   ],
-  [word('production|prod|prd'), /生产|正式|线上/u, 'bg-status-error'],
-  [word('local|localhost'), /本地/u, 'bg-status-success'],
+  [word('production|prod|prd'), /生产|正式|线上/u, 'bg-danger-fg'],
+  [word('local|localhost'), /本地/u, 'bg-success-fg'],
 ]
 
 export function environmentDotClass(name: string, index: number): string {

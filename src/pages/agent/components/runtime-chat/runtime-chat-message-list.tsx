@@ -274,7 +274,7 @@ export function RuntimeChatMessageList({
                 />
                 {thinkContent ? (
                   <ThinkWrapper status={thinkingStatus} messageId={message.id}>
-                    <div className="text-sm whitespace-pre-wrap text-text-secondary">
+                    <div className="text-sm whitespace-pre-wrap text-fg-muted">
                       {thinkContent}
                     </div>
                   </ThinkWrapper>
@@ -322,7 +322,7 @@ export function RuntimeChatMessageList({
                   />
                 ) : null}
                 {message.awaitingInputs?.length && isLatest ? (
-                  <div className="mt-space-md rounded-radius-md border border-border-primary bg-surface-primary p-space-sm">
+                  <div className="mt-space-md rounded-radius-md border border-line bg-surface p-space-sm">
                     <DebugContent
                       canvasId={canvasId}
                       parameters={message.awaitingInputs}
@@ -339,7 +339,7 @@ export function RuntimeChatMessageList({
                 ) : null}
 
                 {message.error ? (
-                  <p className="text-xs text-status-error">{message.error}</p>
+                  <p className="text-xs text-danger-fg">{message.error}</p>
                 ) : null}
               </>
             )}

@@ -3,7 +3,7 @@
   margin-top: var(--space-xs);
   min-height: 1.5em;
   padding-inline: var(--space-xs);
-  color: var(--color-text-tertiary);
+  color: var(--color-fg-subtle);
   font-size: var(--text-xs);
   text-align: end;
 }

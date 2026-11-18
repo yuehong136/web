@@ -133,7 +133,7 @@ export function DocumentImageFeedback({
   return (
     <div
       className={cn(
-        'flex min-h-16 flex-col items-center justify-center gap-2 rounded bg-background-subtle p-2 text-sm text-text-tertiary',
+        'flex min-h-16 flex-col items-center justify-center gap-2 rounded bg-sunken p-2 text-sm text-fg-subtle',
         className,
       )}
       role={error ? 'status' : undefined}
@@ -147,7 +147,7 @@ export function DocumentImageFeedback({
           <button
             type="button"
             onClick={image.retry}
-            className="text-text-accent underline"
+            className="text-accent-fg underline"
           >
             {t('common.documentImage.retry')}
           </button>

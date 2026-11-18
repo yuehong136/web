@@ -101,8 +101,8 @@ const ImagePreviewInner: FC<{
   }
 
   return (
-    <div className="relative flex h-full w-full flex-col bg-background-subtle">
-      <div className="flex items-center justify-center gap-space-2xs border-b border-border-subtle bg-background-surface px-space-md py-space-xs">
+    <div className="relative flex h-full w-full flex-col bg-sunken">
+      <div className="flex items-center justify-center gap-space-2xs border-b border-line-subtle bg-surface px-space-md py-space-xs">
         <Tooltip content={t('knowledge.preview.zoomOut')}>
           <Button
             variant="ghost"
@@ -114,7 +114,7 @@ const ImagePreviewInner: FC<{
             <ZoomOut className="size-icon-sm" aria-hidden="true" />
           </Button>
         </Tooltip>
-        <span className="min-w-12 text-center font-mono text-xs text-text-secondary tabular-nums">
+        <span className="min-w-12 text-center font-mono text-xs text-fg-muted tabular-nums">
           {Math.round(scale * 100)}%
         </span>
         <Tooltip content={t('knowledge.preview.zoomIn')}>
@@ -128,10 +128,7 @@ const ImagePreviewInner: FC<{
             <ZoomIn className="size-icon-sm" aria-hidden="true" />
           </Button>
         </Tooltip>
-        <div
-          aria-hidden="true"
-          className="mx-space-xs h-4 w-px bg-border-default"
-        />
+        <div aria-hidden="true" className="mx-space-xs h-4 w-px bg-line" />
         <Tooltip content={t('knowledge.preview.rotate90')} asChild>
           <Button
             variant="ghost"
@@ -157,7 +154,7 @@ const ImagePreviewInner: FC<{
       <button
         type="button"
         className={cn(
-          'flex flex-1 items-center justify-center overflow-hidden p-space-base text-left outline-hidden focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:ring-inset',
+          'flex flex-1 items-center justify-center overflow-hidden p-space-base text-left outline-hidden focus-visible:ring-2 focus-visible:ring-line-focus focus-visible:ring-inset',
           scale > 1 && 'cursor-grab',
           isDragging && 'cursor-grabbing',
         )}

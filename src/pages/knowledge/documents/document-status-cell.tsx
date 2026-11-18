@@ -14,19 +14,19 @@ import { TaskStatus, TaskStatusConfig } from './constants'
 
 /** Dot colour per status; the label always names the state too. */
 const STATUS_DOT: Record<TaskStatus, string> = {
-  [TaskStatus.UNSTART]: 'bg-text-tertiary',
-  [TaskStatus.RUNNING]: 'bg-status-info',
-  [TaskStatus.CANCEL]: 'bg-status-warning',
-  [TaskStatus.DONE]: 'bg-status-success',
-  [TaskStatus.FAIL]: 'bg-status-error',
+  [TaskStatus.UNSTART]: 'bg-fg-subtle',
+  [TaskStatus.RUNNING]: 'bg-info-fg',
+  [TaskStatus.CANCEL]: 'bg-warning-fg',
+  [TaskStatus.DONE]: 'bg-success-fg',
+  [TaskStatus.FAIL]: 'bg-danger-fg',
 }
 
 const STATUS_TEXT: Record<TaskStatus, string> = {
-  [TaskStatus.UNSTART]: 'text-text-tertiary',
-  [TaskStatus.RUNNING]: 'text-text-secondary',
-  [TaskStatus.CANCEL]: 'text-text-secondary',
-  [TaskStatus.DONE]: 'text-text-secondary',
-  [TaskStatus.FAIL]: 'text-status-error',
+  [TaskStatus.UNSTART]: 'text-fg-subtle',
+  [TaskStatus.RUNNING]: 'text-fg-muted',
+  [TaskStatus.CANCEL]: 'text-fg-muted',
+  [TaskStatus.DONE]: 'text-fg-muted',
+  [TaskStatus.FAIL]: 'text-danger-fg',
 }
 
 const knownStatus = (run: string): TaskStatus =>
@@ -78,7 +78,7 @@ export const DocumentStatusBadge: FC<{
         </span>
         <span
           aria-hidden="true"
-          className="block h-0.5 w-full max-w-28 overflow-hidden rounded-radius-full bg-background-subtle"
+          className="block h-0.5 w-full max-w-28 overflow-hidden rounded-radius-full bg-sunken"
         >
           <span
             className="block h-full rounded-radius-full bg-ai-tide transition-[width] duration-500 motion-reduce:transition-none"

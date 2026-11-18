@@ -34,7 +34,7 @@ export const AppList: React.FC<AppListProps> = ({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <div className="h-5 w-5 animate-spin rounded-full border-2 border-text-tertiary border-t-transparent" />
+        <div className="h-5 w-5 animate-spin rounded-full border-2 border-fg-subtle border-t-transparent" />
       </div>
     )
   }
@@ -42,8 +42,8 @@ export const AppList: React.FC<AppListProps> = ({
   if (apps.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-8 text-center">
-        <MessageSquare className="mb-2 h-8 w-8 text-text-tertiary" />
-        <p className="text-sm text-text-secondary">
+        <MessageSquare className="mb-2 h-8 w-8 text-fg-subtle" />
+        <p className="text-sm text-fg-muted">
           {searchTerm
             ? t('home.skillPanel.noAppMatch', '没有找到匹配的应用')
             : t('home.skillPanel.noApps', '暂无可用应用')}
@@ -72,9 +72,7 @@ export const AppList: React.FC<AppListProps> = ({
               onClick={() => onSelectApp(app, null)}
               className={cn(
                 'flex w-full items-center gap-3 px-4 py-3 text-left transition-colors',
-                isSelected
-                  ? 'bg-state-focus-subtle'
-                  : 'hover:bg-background-subtle',
+                isSelected ? 'bg-accent-soft' : 'hover:bg-sunken',
               )}
             >
               <EntityAvatar
@@ -85,17 +83,17 @@ export const AppList: React.FC<AppListProps> = ({
                 size="md"
               />
               <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-medium text-text-primary">
+                <div className="truncate text-sm font-medium text-fg">
                   {app.name}
                 </div>
                 {app.description && (
-                  <div className="truncate text-xs text-text-tertiary">
+                  <div className="truncate text-xs text-fg-subtle">
                     {app.description}
                   </div>
                 )}
               </div>
               {/* 右箭头，表示有子菜单 */}
-              <ChevronRight className="h-4 w-4 shrink-0 text-text-tertiary" />
+              <ChevronRight className="h-4 w-4 shrink-0 text-fg-subtle" />
             </button>
 
             {/* 向右展开的历史面板 */}

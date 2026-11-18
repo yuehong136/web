@@ -100,10 +100,10 @@ export function RuntimeAttachmentList({
           <>
             <FileKindTile name={kindName} size="lg" />
             <span className="min-w-0 flex-1 text-start">
-              <span className="block truncate text-sm text-text-primary">
+              <span className="block truncate text-sm text-fg">
                 {file.name}
               </span>
-              <span className="block truncate text-xs text-text-tertiary">
+              <span className="block truncate text-xs text-fg-subtle">
                 {onDownloadAttachment
                   ? t('agent.explore.downloadAttachment')
                   : file.size
@@ -114,13 +114,13 @@ export function RuntimeAttachmentList({
           </>
         )
         const chip =
-          'flex w-60 max-w-full items-center gap-space-sm rounded-radius-md border border-border-subtle bg-components-input-bg p-space-sm'
+          'flex w-60 max-w-full items-center gap-space-sm rounded-radius-md border border-line-subtle bg-surface p-space-sm'
         return (
           <li key={`${file.id || file.name}-${index}`} className="max-w-full">
             {onDownloadAttachment ? (
               <button
                 type="button"
-                className={`${chip} outline-hidden transition-colors hover:bg-state-hover focus-visible:ring-2 focus-visible:ring-state-focus motion-reduce:transition-none`}
+                className={`${chip} outline-hidden transition-colors hover:bg-fill-hover focus-visible:ring-2 focus-visible:ring-line-focus motion-reduce:transition-none`}
                 onClick={() => {
                   void onDownloadAttachment(file)
                 }}
@@ -128,7 +128,7 @@ export function RuntimeAttachmentList({
                 {details}
                 <Download
                   aria-hidden="true"
-                  className="size-icon-sm shrink-0 text-text-tertiary"
+                  className="size-icon-sm shrink-0 text-fg-subtle"
                 />
               </button>
             ) : (

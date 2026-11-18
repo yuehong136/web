@@ -104,8 +104,8 @@ const SearchSummaryCard = ({
     <div
       data-summary-streaming={isStreaming || undefined}
       className={cn(
-        'relative min-w-0 overflow-hidden rounded-radius-xl border bg-background-surface transition-[border-color,box-shadow] duration-200 motion-reduce:transition-none',
-        isStreaming ? 'ai-glow' : 'border-border-subtle',
+        'relative min-w-0 overflow-hidden rounded-radius-xl border bg-surface transition-[border-color,box-shadow] duration-200 motion-reduce:transition-none',
+        isStreaming ? 'ai-glow' : 'border-line-subtle',
       )}
       aria-live="polite"
       aria-busy={isStreaming}
@@ -116,10 +116,10 @@ const SearchSummaryCard = ({
       />
       <div className="p-space-base">
         <div className="mb-space-sm flex items-center gap-space-sm">
-          <span className="flex size-6 shrink-0 items-center justify-center rounded-radius-md bg-ai-tide text-text-on-accent">
+          <span className="flex size-6 shrink-0 items-center justify-center rounded-radius-md bg-ai-tide text-accent-on-solid">
             <Sparkles className="size-icon-xs" aria-hidden="true" />
           </span>
-          <span className="text-sm font-semibold text-text-primary">
+          <span className="text-sm font-semibold text-fg">
             {t('searchPage.workspace.summary')}
           </span>
           {isStreaming ? (
@@ -129,11 +129,11 @@ const SearchSummaryCard = ({
           ) : null}
         </div>
 
-        <div className="space-y-space-sm text-text-primary">
+        <div className="space-y-space-sm text-fg">
           <RetrievalProgress result={parsedSummary} isStreaming={isStreaming} />
           {thinkContent ? (
             <ThinkWrapper status={thinkingStatus} messageId="search-summary">
-              <div className="text-sm leading-relaxed whitespace-pre-wrap text-text-secondary">
+              <div className="text-sm leading-relaxed whitespace-pre-wrap text-fg-muted">
                 {thinkContent}
               </div>
             </ThinkWrapper>
@@ -141,13 +141,14 @@ const SearchSummaryCard = ({
 
           {displaySummary ? (
             <>
-              <div className="bubble-copy-text search-summary-markdown max-w-none text-sm leading-7 text-text-primary [&_h1]:mt-space-sm [&_h1]:mb-space-sm [&_h1]:text-lg [&_h1]:font-semibold [&_h1]:text-text-primary [&_h2]:mt-space-sm [&_h2]:mb-space-sm [&_h2]:text-base [&_h2]:font-semibold [&_h2]:text-text-primary [&_h3]:mt-space-sm [&_h3]:mb-space-xs [&_h3]:text-base [&_h3]:font-semibold [&_h3]:text-text-primary [&_li]:my-space-xs [&_li]:leading-7 [&_li]:text-text-primary [&_ol]:my-space-sm [&_p]:my-space-sm [&_p]:leading-7 [&_p]:text-text-primary [&_strong]:font-semibold [&_strong]:text-text-primary [&_ul]:my-space-sm [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+              <div className="bubble-copy-text search-summary-markdown max-w-none text-sm leading-7 text-fg [&_h1]:mt-space-sm [&_h1]:mb-space-sm [&_h1]:text-lg [&_h1]:font-semibold [&_h1]:text-fg [&_h2]:mt-space-sm [&_h2]:mb-space-sm [&_h2]:text-base [&_h2]:font-semibold [&_h2]:text-fg [&_h3]:mt-space-sm [&_h3]:mb-space-xs [&_h3]:text-base [&_h3]:font-semibold [&_h3]:text-fg [&_li]:my-space-xs [&_li]:leading-7 [&_li]:text-fg [&_ol]:my-space-sm [&_p]:my-space-sm [&_p]:leading-7 [&_p]:text-fg [&_strong]:font-semibold [&_strong]:text-fg [&_ul]:my-space-sm [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+                {/* i18n-ignore: stylesheet text, not UI copy */}
                 <style>{`
                   .search-summary-markdown {
-                    color: var(--color-text-primary) !important;
+                    color: var(--color-fg) !important;
                   }
                   .search-summary-markdown a {
-                    color: var(--color-components-button-primary-bg) !important;
+                    color: var(--color-action-bg) !important;
                   }
                   .search-summary-markdown table:not(pre) {
                     border-collapse: collapse !important;
@@ -155,37 +156,37 @@ const SearchSummaryCard = ({
                     width: max-content !important;
                     max-width: 100% !important;
                     overflow: auto !important;
-                    border: 1px solid var(--color-border-default) !important;
+                    border: 1px solid var(--color-line) !important;
                     border-radius: 8px !important;
                     margin: 8px 0 16px 0 !important;
-                    background-color: var(--color-surface-primary) !important;
+                    background-color: var(--color-surface) !important;
                   }
                   .search-summary-markdown th,
                   .search-summary-markdown td {
-                    border: 1px solid var(--color-border-default) !important;
+                    border: 1px solid var(--color-line) !important;
                     padding: 8px 12px !important;
                     text-align: left !important;
                     vertical-align: top !important;
                   }
                   .search-summary-markdown th {
-                    color: var(--color-text-primary) !important;
-                    background-color: var(--color-surface-secondary) !important;
+                    color: var(--color-fg) !important;
+                    background-color: var(--color-sunken) !important;
                     font-weight: 600 !important;
                   }
                   .search-summary-markdown td {
-                    color: var(--color-text-primary) !important;
-                    background-color: var(--color-surface-primary) !important;
+                    color: var(--color-fg) !important;
+                    background-color: var(--color-surface) !important;
                   }
                   .search-summary-markdown code {
-                    background-color: var(--color-background-subtle) !important;
-                    color: var(--color-text-primary) !important;
+                    background-color: var(--color-sunken) !important;
+                    color: var(--color-fg) !important;
                   }
                   .search-summary-markdown pre {
-                    background-color: var(--color-components-pre-bg) !important;
-                    border-color: var(--color-components-pre-border) !important;
+                    background-color: var(--color-code-bg) !important;
+                    border-color: var(--color-line-subtle) !important;
                   }
                   .search-summary-markdown pre code {
-                    color: var(--color-components-pre-text) !important;
+                    color: var(--color-code-fg) !important;
                   }
                 `}</style>
                 <StreamingXMarkdown
@@ -215,7 +216,7 @@ const SearchSummaryCard = ({
               {isStreaming ? (
                 <span
                   aria-hidden="true"
-                  className="mt-space-2xs inline-block h-4 w-0.5 animate-pulse rounded-radius-full bg-text-accent motion-reduce:animate-none"
+                  className="mt-space-2xs inline-block h-4 w-0.5 animate-pulse rounded-radius-full bg-accent-fg motion-reduce:animate-none"
                 />
               ) : null}
             </>
@@ -223,9 +224,9 @@ const SearchSummaryCard = ({
             parsedSummary.retrievalStatus === 'none' &&
             isStreaming ? (
             <div className="space-y-space-xs" aria-hidden="true">
-              <div className="h-4 w-full animate-pulse rounded-radius-md bg-background-subtle motion-reduce:animate-none" />
-              <div className="h-4 w-4/5 animate-pulse rounded-radius-md bg-background-subtle motion-reduce:animate-none" />
-              <div className="h-4 w-3/5 animate-pulse rounded-radius-md bg-background-subtle motion-reduce:animate-none" />
+              <div className="h-4 w-full animate-pulse rounded-radius-md bg-sunken motion-reduce:animate-none" />
+              <div className="h-4 w-4/5 animate-pulse rounded-radius-md bg-sunken motion-reduce:animate-none" />
+              <div className="h-4 w-3/5 animate-pulse rounded-radius-md bg-sunken motion-reduce:animate-none" />
             </div>
           ) : null}
         </div>

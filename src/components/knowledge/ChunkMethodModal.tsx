@@ -122,7 +122,7 @@ function ParserDraftModal({
                 className="space-y-space-base"
               >
                 {(draftError || errorKey) && (
-                  <p role="alert" className="text-status-error">
+                  <p role="alert" className="text-danger-fg">
                     {t(draftError || errorKey!)}
                   </p>
                 )}

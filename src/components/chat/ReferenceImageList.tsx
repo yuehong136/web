@@ -73,18 +73,18 @@ export const ReferenceImageList = ({
                     source={{ kind: 'dataset', imageId: chunk.image_id! }}
                     alt={`Fig. ${(chunk.reference_index ?? idx) + 1}`}
                     preview
-                    className="h-40 w-full rounded-radius-md border border-border-subtle bg-background-subtle object-contain"
+                    className="h-40 w-full rounded-radius-md border border-line-subtle bg-sunken object-contain"
                   />
                   {onImageClick ? (
                     <button
                       type="button"
                       onClick={() => onImageClick(chunk, idx)}
-                      className="text-xs text-text-accent hover:underline"
+                      className="text-xs text-accent-fg hover:underline"
                     >
                       Fig. {(chunk.reference_index ?? idx) + 1}
                     </button>
                   ) : (
-                    <span className="text-xs text-text-accent">
+                    <span className="text-xs text-accent-fg">
                       Fig. {(chunk.reference_index ?? idx) + 1}
                     </span>
                   )}

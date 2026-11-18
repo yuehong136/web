@@ -5,7 +5,7 @@
  *  - Tailwind palette colours: `bg-blue-500`, `dark:text-gray-400`, `from-purple-100/50`
  *  - arbitrary colour values: `bg-[#123456]`, `text-[rgb(0,0,0)]`, `border-[hsl(…)]`
  *  - gradients outside AI moments: `bg-linear-to-r …` unless the same string uses
- *    the tide tokens (`components-ai-*`); prefer the `bg-ai-tide` utility
+ *    the AI gradient stops (`ai-from` / `ai-via` / `ai-to`); prefer the `bg-ai-tide` utility
  * and, in JSX text, emoji used as UI glyphs (icons come from lucide-react,
  * brand marks from ProviderLogo).
  *
@@ -20,16 +20,16 @@ const ARBITRARY_COLOR =
   /(?:bg|text|border(?:-[xytrblse])?|ring|outline|fill|stroke|from|via|to|decoration|shadow)-\[(?:#|rgba?\(|hsla?\(|oklch\()/
 const GRADIENT =
   /(?:^|[\s"'`:])(?:[a-z0-9-]+:)*bg-(?:linear|gradient|radial|conic)-/
-const AI_TOKENS = /components-ai-/
+const AI_TOKENS = /\bai-(?:from|via|to)\b/
 const EMOJI = /\p{Extended_Pictographic}/u
 
 const MESSAGES = {
   palette:
-    'Use design tokens (text-text-*, bg-background-*, status-*, components-*) instead of Tailwind palette colours.',
+    'Use semantic tokens (text-fg-*, bg-surface, border-line, {intent}-soft/-fg) instead of Tailwind palette colours.',
   arbitrary:
     'Use design tokens instead of arbitrary colour values such as bg-[#…] or text-[rgb(…)].',
   gradient:
-    'Gradients are reserved for AI moments: use bg-ai-tide, or build it from components-ai-* tokens.',
+    'Gradients are reserved for AI moments: use bg-ai-tide, or build it from the ai-from / ai-via / ai-to tokens.',
   emoji:
     'Do not use emoji as UI glyphs: use lucide-react icons, ProviderLogo for brands, and i18n for copy.',
 }

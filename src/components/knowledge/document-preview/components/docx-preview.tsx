@@ -101,9 +101,9 @@ const DocxPreviewInner: FC<{
     return <LoadingState message={t('knowledge.preview.loadingDocument')} />
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-col bg-background-surface">
-      <div className="flex shrink-0 items-center justify-between gap-space-sm border-b border-border-default px-space-md py-space-xs">
-        <span className="text-sm text-text-secondary" aria-live="polite">
+    <div className="flex h-full min-h-0 w-full flex-col bg-surface">
+      <div className="flex shrink-0 items-center justify-between gap-space-sm border-b border-line px-space-md py-space-xs">
+        <span className="text-sm text-fg-muted" aria-live="polite">
           {t('knowledge.preview.pageCount', { count: layout.pages })}
         </span>
         <div className="flex items-center gap-space-xs">
@@ -116,9 +116,7 @@ const DocxPreviewInner: FC<{
           >
             <ZoomOut className="size-icon-sm" />
           </Button>
-          <span className="text-sm text-text-primary tabular-nums">
-            {scale}%
-          </span>
+          <span className="text-sm text-fg tabular-nums">{scale}%</span>
           <Button
             variant="ghost"
             size="sm"
@@ -145,7 +143,7 @@ const DocxPreviewInner: FC<{
         referrerPolicy="no-referrer"
         srcDoc={result.html}
         onLoad={applyFrameStyle}
-        className="min-h-0 w-full flex-1 border-0 bg-background-subtle"
+        className="min-h-0 w-full flex-1 border-0 bg-sunken"
       />
     </div>
   )

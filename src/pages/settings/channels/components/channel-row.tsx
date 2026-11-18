@@ -60,7 +60,7 @@ export const ChannelRow = ({
   const errorCode = channel.runtime?.last_error_code
 
   return (
-    <li className="flex items-center gap-space-base border-t border-border-subtle px-space-base py-space-sm transition-colors first:border-t-0 hover:bg-surface-secondary">
+    <li className="flex items-center gap-space-base border-t border-line-subtle px-space-base py-space-sm transition-colors first:border-t-0 hover:bg-sunken">
       <span
         className={`size-2 shrink-0 rounded-full ${HEALTH_DOT[health]}`}
         aria-hidden="true"
@@ -68,14 +68,12 @@ export const ChannelRow = ({
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-space-sm">
-          <span className="truncate font-medium text-text-primary">
-            {channel.name}
-          </span>
+          <span className="truncate font-medium text-fg">{channel.name}</span>
           {/* Both warnings ride on the row instead of a full-width banner: at
               ten rows a banner per channel is taller than the list it explains. */}
           {stale ? (
             <span
-              className="inline-flex shrink-0 items-center gap-space-xs rounded-radius-sm bg-status-warning-subtle px-1.5 py-0.5 text-xs text-status-warning"
+              className="inline-flex shrink-0 items-center gap-space-xs rounded-radius-sm bg-warning-soft px-1.5 py-0.5 text-xs text-warning-fg"
               title={t('channel.binding.revisionStale')}
             >
               <TriangleAlert className="size-3" aria-hidden="true" />
@@ -84,14 +82,14 @@ export const ChannelRow = ({
           ) : null}
           {errorCode ? (
             <span
-              className="shrink-0 rounded-radius-sm bg-status-error-subtle px-1.5 py-0.5 font-mono text-xs text-status-error"
+              className="shrink-0 rounded-radius-sm bg-danger-soft px-1.5 py-0.5 font-mono text-xs text-danger-fg"
               title={t('channel.runtime.errorCode', { code: errorCode })}
             >
               {errorCode}
             </span>
           ) : null}
         </div>
-        <p className="truncate text-xs text-text-caption">
+        <p className="truncate text-xs text-fg-subtle">
           {targetType ? (
             <>
               {t(
@@ -113,7 +111,7 @@ export const ChannelRow = ({
       </div>
 
       <span
-        className="hidden w-28 shrink-0 text-right text-xs text-text-caption lg:block"
+        className="hidden w-28 shrink-0 text-right text-xs text-fg-subtle lg:block"
         title={
           channel.runtime?.heartbeat_at
             ? formatDate(channel.runtime.heartbeat_at)
@@ -157,7 +155,7 @@ export const ChannelRow = ({
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
-            className="text-status-error"
+            className="text-danger-fg"
             onClick={() => onDelete(channel)}
           >
             <Trash2 className="size-icon-sm" aria-hidden="true" />

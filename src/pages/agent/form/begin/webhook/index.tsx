@@ -58,13 +58,13 @@ function WebhookUrlCard() {
   }, [t, text])
 
   return (
-    <div className="rounded-radius-md border border-border-default bg-surface-secondary/40 p-space-base">
+    <div className="rounded-radius-md border border-line bg-sunken/40 p-space-base">
       <div className="flex items-center justify-between gap-space-sm">
         <div className="min-w-0">
-          <div className="text-sm font-medium text-text-primary">
+          <div className="text-sm font-medium text-fg">
             {t('flow.webhook.name', 'Webhook')}
           </div>
-          <div className="mt-space-xs text-sm break-all text-text-secondary">
+          <div className="mt-space-xs text-sm break-all text-fg-muted">
             {text}
           </div>
         </div>

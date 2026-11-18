@@ -1,459 +1,86 @@
-# 100% 语义化设计令牌系统开发规范
+# 设计令牌开发指南
 
-基于 Dify 项目的最佳实践，本项目建立了企业级的 100% 语义化设计令牌系统。本文档为开发团队提供详细的使用指南和开发规范。
+体系与角色清单见 [色彩令牌 2.0](./design-system.md)。本文只讲日常怎么用、怎么改。业务代码的强制约束以 [Frontend · UI](../../docs/agent-guidance/frontend.md#ui) 为准，这里不再维护第二份清单。
 
-## 🎯 核心原则
+## 在组件里用颜色
 
-### 1. 100% 设计令牌化
+Tailwind 工具类直接写语义角色，前缀即类别：
 
-- **禁止硬编码颜色**：项目中不允许任何硬编码的颜色值
-- **统一单一真实来源**：所有颜色通过设计令牌统一管理
-- **语义化命名**：使用具有语义含义的令牌名称，而非具体颜色值
-
-### 2. 自动化优先
-
-- **代码生成**：主题文件通过代码自动生成，确保一致性
-- **构建集成**：主题生成集成到构建流程中
-- **类型安全**：TypeScript 类型定义确保使用安全
-
-Studio 预设的交互色遵循浅绿／深紫的选中与焦点、浅黑／深蓝的主要操作两组配对；默认的 Mist 预设两组都是雾蓝，选中填充比主要操作亮一阶以便区分。统一入口和语义边界见 [设计系统的交互色配对](./design-system.md#明暗主题的交互色配对)。
-
-## 外观维度与局部预览
-
-外观偏好由 `@/themes` 的 `setAppearance`、`getAppearance`、`useAppearance` 管理：
-`preset`（mist / studio / paper / graphite / ocean，默认 mist）、`mode`（system / light / dark）、
-`density`（comfortable / compact）、`textScale`（1 / 1.125 / 1.25）、`motion`（system / reduced）独立更新。
-核心以 `appearance` 作为完整偏好的持久化来源；`theme` 保留模式镜像以兼容旧入口，旧 `ui-storage.state.theme` 仅用于首次迁移。
-`useResolvedAppearance` 额外给出 `resolvedMode` 与 `reducedMotion`，快照引用在值未变化时保持稳定。
-主题和字号切换不得给应用根节点加 `key` 或重挂 Provider。
-
-`preset-palettes.ts` 定义角色调色板，`preset-tokens.ts` 将历史 token key 映射到角色，
-`npm run build:themes` 同步生成各预设的明暗 CSS 与 typed JavaScript token。
-CSS 间距读 `--space-*`；控件读 `--control-height-sm` / `--control-height` / `--control-height-lg`
-和 `--control-padding-x-sm` / `--control-padding-x` / `--control-padding-x-lg`；
-Mist 采用 DreamJira 刻度：舒适密度控件 28 / 32 / 40px、紧凑 24 / 28 / 32px，圆角 4 / 6 / 8 / 12px，
-界面字体为随应用打包的 Geist（拉丁字形），中文回落系统字体；
-文字缩放由 `--text-scale` 与 Tailwind typography token 消费，组件不要重复乘缩放系数。
-
-`ScopedTheme` 可覆盖 `theme`、`preset`、`density`、`textScale`、`motion`，未覆盖项继承父 scope。
-`useThemeScope()` 提供实际 `container` 与解析后的 `appearance`；Portal 挂到该容器保留局部变量。
-静态图表取色支持显式 preset：`getTokenValue(name, resolvedMode, preset)`、
-`getCategoricalPalette(resolvedMode, count, preset)`；省略 preset 读取全局当前偏好。
-图表若缓存取色结果，须把 preset 和 resolvedMode 都列为依赖。
-
-## 📚 设计令牌分类
-
-### 基础令牌 (Foundation Tokens)
-
-```typescript
-// 文本系统 - 用于所有文本颜色
-'text-primary' // 主要文本 - 标题、重要内容
-'text-secondary' // 次要文本 - 描述、说明文字
-'text-tertiary' // 三级文本 - 辅助信息
-'text-muted' // 弱化文本 - 占位符、禁用状态提示
-'text-disabled' // 禁用文本 - 不可交互元素
-'text-accent' // 强调文本 - 链接、重要提示
-'text-inverted' // 反色文本 - 深色背景上的文字
-
-// 背景系统 - 用于所有背景颜色
-'background-body' // 页面主背景 - html/body
-'background-default' // 默认背景 - 容器、面板
-'background-subtle' // 微妙背景 - 输入框、卡片hover
-'background-section' // 区块背景 - 独立区域
-'background-overlay' // 遮罩背景 - 模态框遮罩
-'background-surface' // 表面背景 - 卡片、弹窗
+```tsx
+<section className="border border-line-subtle bg-surface text-fg">
+  <p className="text-fg-muted">次要说明</p>
+  <button className="bg-action-bg text-action-fg hover:bg-action-bg-hover">
+    保存
+  </button>
+  <span className="border border-danger-line bg-danger-soft text-danger-fg">
+    解析失败
+  </span>
+  <li className="hover:bg-fill-hover aria-selected:bg-accent-soft">…</li>
+</section>
 ```
 
-### 组件令牌 (Component Tokens)
+- 交互底优先用半透明的 `fill-*`，它们在任何表面上都成立；
+- 选中态用 `accent-soft` + `accent-fg`，中性选中用 `fill-selected`；
+- 焦点环一律 `ring-line-focus` / `outline-line-focus`；
+- 透明度修饰（`bg-accent-solid/15`）编译为 `color-mix()`，可以用于装饰，但浅色块请用 `-soft` 角色，它的对比度经过测试；
+- 独立 CSS 文件用 `var(--color-<角色>)`，需要 `@apply` 时 `@reference` 到 `src/index.css`。
 
-```typescript
-// 按钮组件 - 完整状态覆盖
-'components-button-primary-bg' // 主按钮背景
-'components-button-primary-bg-hover' // 主按钮悬停背景
-'components-button-primary-bg-active' // 主按钮激活背景
-'components-button-primary-bg-disabled' // 主按钮禁用背景
-'components-button-primary-text' // 主按钮文字
-'components-button-primary-text-disabled' // 主按钮禁用文字
-'components-button-primary-border' // 主按钮边框
-'components-button-primary-border-hover' // 主按钮悬停边框
+不要写 Tailwind 原色板、任意色值或 `dark:` 前缀（`design-guard/no-raw-visual-values` 会拦截），也不要在页面里按方案写分支。所有方案、明暗、对比度变化都由同一组角色承接。
 
-// 输入框组件 - 完整状态覆盖
-'components-input-bg' // 输入框背景
-'components-input-bg-hover' // 输入框悬停背景
-'components-input-bg-focus' // 输入框聚焦背景
-'components-input-border' // 输入框边框
-'components-input-border-hover' // 输入框悬停边框
-'components-input-border-focus' // 输入框聚焦边框
-'components-input-border-error' // 输入框错误边框
-'components-input-text' // 输入框文字
-'components-input-text-placeholder' // 输入框占位符
-```
-
-### 状态令牌：交互态 vs 反馈态 (State Tokens)
-
-两条独立语义轴，禁止混用（详细规范见 `design-system.md`）。
-
-```typescript
-// 交互状态 (Interaction) → state-*
-'state-hover' // 悬停状态 - 通用悬停效果
-'state-active' // 激活状态 - 按钮按下、选中
-'state-focus' // 聚焦状态 - 键盘导航、表单聚焦（含 -10 / -subtle）
-'state-disabled' // 禁用状态 - 不可交互元素
-'state-selected' // 选中状态 - 选中控件（含 -text / -bg）
-
-// 反馈/意图色 (Feedback) → status-{success,warning,error,info} + 角色后缀
-'status-error' // 文字、图标、指示点、进度条、图表标记
-'status-error-solid' // 实心按钮/徽标填充（悬停 -solid-hover）
-'status-error-on-solid' // 实心填充上的文字和图标
-'status-error-subtle' // 浅色提示条、标签、行高亮（悬停 -subtle-hover）
-'status-error-border' // 浅色块的描边
-```
-
-色阶在 `status-palette.ts` 中按 OKLCH 生成、按 WCAG AA 求解；改色只改意图的色相/彩度或曲线，然后跑 `npm run build:themes` 与 `npm run test:design-tokens`。组件状态族（alert、badge、task-status、system-\*、HTTP 方法、steps、画布节点、系统图表）由 `status-component-tokens.ts` 派生，不要在 `theme-generator.ts` 里给它们写 hex。
-
-> **强制**：反馈态一律用 `status-*`。历史 alias `state-success/warning/error/info`（含 `-10`/`-subtle`）已**物理删除**（全仓迁移 + alias 删除均完成）。ESLint 规则 `design-tokens/no-feedback-state-token`（`error` 级）拦截 class（含 `from-/via-/to-` 渐变档位）、`var(--color-state-*)` 及裸字符串 / `readCssVar()` / 拼接等任何复活形式，新写直接报错。交互态 `state-hover/active/focus/disabled/selected` 与中性 `state-neutral-10` 照常使用；分类/层级着色用 `data-viz-categorical-1..10`。
-
-### 分类/序列着色 `data-viz-categorical-*`
-
-多色、无单一语义的分类/序列色统一走 `data-viz-categorical-1..10`（色盲安全的 OKLCH 生成 scale，明暗各一套），消费者用 `@/lib/design-tokens` 共享工具，**不要硬编码 hex 调色板**。默认消费方式是**静态按主题** import（取代旧的运行期 getComputedStyle 读 CSS 变量）：
+## 在 JavaScript 里取色（canvas、图表、Monaco）
 
 ```ts
-import {
-  getCategoricalPalette, // 按主题取颜色数组，喂给 canvas/G6/recharts 等
-  getCategoricalIndex, // 分类 key → 确定性槽位（多处着色一致）
-  getTokenValue, // 按主题取任意 token 值（name 受 keyof DesignTokens 约束）
-} from '@/lib/design-tokens'
+import { getTokenValue, getCategoricalPalette } from '@/lib/design-tokens'
 import { useResolvedAppearance } from '@/themes'
 
 const { preset, resolvedMode } = useResolvedAppearance()
-const palette = getCategoricalPalette(resolvedMode, 10, preset) // mindmap 取前 6
-const color = palette[getCategoricalIndex(entityType)]
-const cardBg = getTokenValue('components-card-bg', resolvedMode, preset)
+const text = getTokenValue('fg', resolvedMode, preset) // hex
+const series = getCategoricalPalette(resolvedMode, 10, preset)
 ```
 
-颜色值来自单一来源的 typed JS 产物 `src/themes/token-values.generated.ts`（由 `npm run build:themes` 与 `light.css`/`dark.css` 一起生成，是构建产物，勿手改；改 token 后重跑 `build:themes`）。运行期 `readCssVar` / `getCategoricalColorVar` 仅保留给 scoped-theme / embed 子树。
+值来自生成的 `token-values.generated.ts`（hex / rgba，图表库与 canvas 都能解析）。缓存或 effect 必须同时依赖 `preset` 与 `resolvedMode`。JS 取值是方案的标准对比度、默认主操作值；需要跟随高对比或主操作覆盖的表面，请用 CSS 变量。`readCssVar` 只留给 scoped-theme / 嵌入子树。
 
-语义状态图表色（done/failed/pending 等）仍用 `components-system-chart-*`，不要混进 categorical。详见 `design-system.md` 同名章节。
+## 修改颜色
 
-## 🛠️ 使用方法
+| 想改什么                      | 改哪里                                                                                                                   |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| 某套方案的色调、强调色、AI 色 | `color-schemes.ts` 的种子                                                                                                |
+| 新增一套方案                  | `color-schemes.ts` 增加种子；`appearance` 与 `public/theme-init.js` 的方案列表；中英文案                                 |
+| 阶的明度曲线或求解目标        | `color-scales.ts`                                                                                                        |
+| 某个角色取哪一阶              | `semantic-tokens.ts`                                                                                                     |
+| 新增角色                      | `semantic-tokens.ts` 的 `SEMANTIC_TOKENS` 与赋值；和第一个消费方一起提交，`token-closure` 拒绝零引用角色（意图矩阵除外） |
 
-### 1. CSS 类名使用
-
-```css
-/* ✅ 正确做法 - 使用语义化设计令牌 */
-.my-component {
-  background-color: rgb(var(--color-components-card-bg));
-  color: rgb(var(--color-text-primary));
-  border: 1px solid rgb(var(--color-border-default));
-}
-
-.my-component:hover {
-  background-color: rgb(var(--color-components-card-bg-hover));
-}
-
-/* ❌ 错误做法 - 硬编码颜色 */
-.my-component {
-  background-color: #ffffff;
-  color: #1f2937;
-  border: 1px solid #e5e7eb;
-}
-```
-
-### 2. Tailwind CSS 类名使用（结合 --twc-\* 通道变量）
-
-Tailwind 4 配置在 `themes/tailwind.css`，语义颜色映射由 `npm run build:themes` 同步生成；独立 CSS 文件如需 `@apply`，使用 `@reference` 引用 `src/index.css`，避免重复输出主题。新增工具类优先使用 `@theme` / `@utility`，不恢复 JavaScript 配置。浏览器下限见 README 和 package.json。
-
-```tsx
-{
-  /* ✅ 推荐做法 - 使用语义颜色键与斜杠透明度 */
-}
-;<div className="border border-border bg-card text-foreground">
-  <button className="inline-flex items-center justify-center rounded-md border border-primary bg-primary px-4 py-2 text-sm font-medium text-primary-foreground ring-offset-background hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:opacity-50">
-    点击我
-  </button>
-</div>
-
-{
-  /* ❌ 错误做法 - 使用硬编码 Tailwind 颜色 */
-}
-;<div className="border border-gray-200 bg-white text-gray-900">
-  <button className="bg-blue-500 text-white hover:bg-blue-600">点击我</button>
-</div>
-```
-
-### 3. React 组件中使用预定义样式类
-
-```tsx
-// ✅ 推荐做法 - 使用预定义的组件样式类
-import React from 'react'
-
-const MyButton: React.FC = ({ children, ...props }) => {
-  return (
-    <button
-      className="btn-primary" // 使用预定义的按钮样式
-      {...props}
-    >
-      {children}
-    </button>
-  )
-}
-
-const MyCard: React.FC = ({ children }) => {
-  return (
-    <div className="card">
-      {' '}
-      {/* 使用预定义的卡片样式 */}
-      {children}
-    </div>
-  )
-}
-```
-
-## 📋 开发规范
-
-### 1. 禁止事项
-
-```tsx
-// ❌ 禁止：硬编码颜色值
-<div style={{ backgroundColor: '#ffffff', color: '#000000' }}>
-
-// ❌ 禁止：使用具体颜色的 Tailwind 类名
-<div className="bg-white text-black border-gray-200">
-
-// ❌ 禁止：在 CSS 中使用硬编码颜色
-.my-class {
-  background-color: #ffffff;
-  color: #000000;
-}
-
-// ❌ 禁止：手动修改生成的主题文件
-/* light.css 和 dark.css 文件头部有警告注释，禁止手动修改 */
-```
-
-### 2. 推荐做法
-
-```tsx
-// ✅ 推荐：使用语义化设计令牌
-<div className="bg-background-surface text-text-primary border-border-default">
-
-// ✅ 推荐：使用组件专用令牌
-<button className="bg-components-button-primary-bg text-components-button-primary-text">
-
-// ✅ 推荐：完整的状态支持
-<input
-  className="
-    bg-components-input-bg
-    hover:bg-components-input-bg-hover
-    focus:bg-components-input-bg-focus
-    border-components-input-border
-    hover:border-components-input-border-hover
-    focus:border-components-input-border-focus
-    aria-invalid:border-components-input-border-error
-    disabled:opacity-50
-  "
-/>
-
-// ✅ 推荐：使用预定义组件样式类
-<button className="btn-primary">主要按钮</button>
-<button className="btn-secondary">次要按钮</button>
-<button className="btn-ghost">幽灵按钮</button>
-<div className="card">卡片容器</div>
-<input className="input-field" />
-<div className="sidebar-item active">侧边栏项目</div>
-```
-
-### 3. 组件开发最佳实践
-
-#### 创建新组件时
-
-```tsx
-// 1. 确定组件所需的设计令牌
-// 2. 检查是否已有对应的组件令牌
-// 3. 如果没有，添加到 theme-generator.ts 中
-// 4. 重新生成主题文件
-// 5. 使用新的设计令牌
-
-// 示例：创建新的 Badge 组件
-const Badge: React.FC<{
-  variant?: 'default' | 'success' | 'warning' | 'error'
-}> = ({ children, variant = 'default' }) => {
-  const variantClasses = {
-    default:
-      'bg-components-badge-bg text-components-badge-text border-components-badge-border',
-    success:
-      'bg-components-badge-success-bg text-components-badge-success-text',
-    warning:
-      'bg-components-badge-warning-bg text-components-badge-warning-text',
-    error: 'bg-components-badge-error-bg text-components-badge-error-text',
-  }
-
-  return (
-    <span
-      className={`inline-flex items-center rounded-full border px-2 py-1 text-xs font-medium ${variantClasses[variant]}`}
-    >
-      {children}
-    </span>
-  )
-}
-```
-
-## 🔧 开发工具链
-
-### 1. 主题文件生成
+改完运行：
 
 ```bash
-# 生成主题文件（每次修改设计令牌后运行）
-npm run build:themes
-
-# 产物：light.css、dark.css、token-values.generated.ts
-# 以及 tailwind-tokens-*.generated.css；检查这些文件的 diff 并一起提交。
+npm run build:themes        # 重新生成 CSS / JS / Tailwind 映射，一起提交
+npm run test:design-tokens  # 合同测试：所有方案 × 明暗 × 对比度 × 主操作
 ```
 
-### 2. 添加新的设计令牌
+合同测试失败时调种子或求解目标，不要放宽阈值。
 
-**Step 1: 编辑令牌定义**
+## 自定义方案
 
-```typescript
-// src/themes/tokens.ts
-export interface DesignTokens {
-  // 添加新的设计令牌类型定义
-  'components-my-new-component-bg': string
-  'components-my-new-component-text': string
-  // ...
-}
+`setAppearance({ preset: 'custom', custom: { accentHue, accentChroma, neutralChroma } })` 选用品牌色方案。`appearance.ts` 在选中时调用 `installCustomScheme`，外观设置页挂载时也会装上，以便预览卡显示。生成规则见 `customSchemeSeed`（`color-schemes.ts`）；改动后 `semantic-contract.test.ts` 的品牌色网格必须仍然全部通过。
 
-// 更新 defaultTokens 对象
-export const defaultTokens: DesignTokens = {
-  // 添加新的令牌占位符
-  'components-my-new-component-bg': '',
-  'components-my-new-component-text': '',
-  // ...
-}
+## 作用域与嵌入
+
+`ScopedTheme` 可以覆盖 `theme`、`preset`、`density`、`textScale`、`motion`、`contrast`、`action`，未覆盖的维度继承父级（品牌种子全局只有一份，作用域里选 `custom` 时用的是同一个品牌色）。门户内容用 `usePortalContainer()` 挂到作用域容器里。嵌入组件（Agent 分享挂件）在 `pages/agent/share/widget-theme.css` 里把宿主颜色赋给语义角色，不新增令牌名。
+
+## 第三方样式
+
+- `@tailwindcss/forms` 给原生文本框、文本域、下拉框和选择控件的白底、灰边、灰色占位文字和 blue-600 焦点环，由 `styles/selection-controls.css` 在 base 层改为语义角色；组件自己的工具类仍然优先。
+- 第三方 CSS 如果也用 `--color-` 前缀（例如 Markdown 编辑器自带的 GitHub Primer 变量），在它的局部样式里桥接到语义角色，同名的角色写 `inherit`（见 `pages/studio/create-app/components/editor.css`）。`token-closure.test.ts` 会检查这类冲突是否都已处理。
+- 文档内容本身（PDF 页、PPT 幻灯片、Excel 表格页）保持纸面原色，外围的查看器界面走令牌。纸面上的标记（PDF 高亮、文字选区、框选）在两种模式下都落在白纸上，所以用 `accent-solid` 的半透明混色，不用 `accent-soft`、`highlight-bg` 这类暗色模式下变深的表面角色（见 `pdf-preview.css`）。
+- React Flow 自己绘制的颜色都先读 `--xy-<名称>`、再回退到 `--xy-<名称>-default`，在画布的 `overrides.css` 里给 `--xy-*` 赋语义角色即可（框选、拖出的连线已接入）。
+
+## 外观偏好 API
+
+```ts
+setAppearance({ preset: 'clay', contrast: 'high' }) // 只合并提供的维度
+getAppearance() // Readonly<Appearance>；值不变时引用不变
+useAppearance()
+useResolvedAppearance() // 额外给出 resolvedMode 与 reducedMotion
 ```
 
-**Step 2: 编辑主题生成器**
-
-```typescript
-// src/themes/theme-generator.ts
-export const lightTokens: DesignTokens = {
-  // 为亮色主题添加具体颜色值
-  'components-my-new-component-bg': '#ffffff',
-  'components-my-new-component-text': '#1f2937',
-  // ...
-}
-
-export const darkTokens: DesignTokens = {
-  // 为暗色主题添加具体颜色值
-  'components-my-new-component-bg': '#1e293b',
-  'components-my-new-component-text': '#ffffff',
-  // ...
-}
-```
-
-> 说明：生成器会自动在 `light.css`/`dark.css` 的选择器开头输出 `--twc-*` 通道变量（如 `--twc-primary`、`--twc-foreground` 等）。请勿手动编辑生成的 CSS 文件。
-
-**Step 3: 重新生成主题文件**
-
-```bash
-npm run build:themes
-```
-
-**Step 4: 使用新的设计令牌**
-
-```tsx
-// 现在可以在组件中使用新的设计令牌
-<div className="bg-components-my-new-component-bg text-components-my-new-component-text">
-  我的新组件
-</div>
-```
-
-**Step 5: 跑令牌测试**
-
-```bash
-npm run test:design-tokens
-```
-
-`token-closure.test.ts` 会拒绝三类问题：`--color-*` 里放了非颜色值（阴影用 `elevation.ts` 的 `shadow-elevation-*`，渐变和模糊直接写在组件里）、源码引用了未定义的令牌名（Tailwind 对未知类名静默生成空样式）、在主题生成器之外声明 `--color-*`。新令牌要在同一次改动里有消费方；先考虑能否复用语义令牌或状态角色，没有消费方的令牌按 ARCH-5 删除。
-
-### 3. 主题切换功能
-
-主题偏好由 `@/themes` 统一读写，账户菜单（`src/components/layout/sidebar-utilities.tsx`）是唯一的切换入口：
-
-```tsx
-import { getTheme, setTheme, subscribeTheme, Theme } from '@/themes'
-
-// 读取并订阅当前偏好（light / dark / system）
-const theme = React.useSyncExternalStore(
-  subscribeTheme,
-  getTheme,
-  () => Theme.SYSTEM,
-)
-
-// 切换偏好；system 跟随操作系统
-setTheme(Theme.DARK)
-```
-
-### 4. 输入框风格（现代浅色）建议
-
-- 背景：`#fff`，Hover：`#f9fafb`，Focus：`#fff`
-- 边框：默认 `#e2e8f0`，Hover `#cbd5e1`，Focus `#1e40af`
-- 占位符：`#9ca3af`
-- 以上已作为 `components-input-*` 令牌在生成器中配置
-
-## 🚨 注意事项
-
-### 1. 构建流程集成
-
-- 在每次发布前运行 `npm run build:themes` 确保主题文件是最新的
-- 考虑将主题生成集成到 CI/CD 流程中
-- 在 pre-commit 钩子中验证设计令牌的使用
-
-### 2. 设计令牌命名规范
-
-```typescript
-// 遵循命名规范：{类别}-{组件}-{属性}-{状态}
-'components-button-primary-bg' // 组件-按钮-主要-背景
-'components-input-border-focus' // 组件-输入框-边框-聚焦
-'text-primary' // 文本-主要
-'background-surface' // 背景-表面
-'state-hover' // 状态-悬停
-```
-
-### 3. 性能考虑
-
-- CSS 变量运行时性能优异，无需担心性能问题
-- 避免在 JavaScript 中频繁读取 CSS 变量值
-- 主题切换动画优化已内置在系统中
-
-### 4. 浏览器兼容性
-
-- 支持范围以 `package.json` 的 browserslist 为准：Chrome/Edge 111+、Firefox 128+、Safari 16.4+。
-- Tailwind 4 使用现代 CSS 能力；本仓不提供 IE11 兼容转换。
-
-## 📚 扩展阅读
-
-### 相关文档
-
-- [设计系统架构文档](./design-system.md)
-- [主题生成器源码](./theme-generator.ts)
-- [构建脚本源码](./build-themes.ts)
-
-### 最佳实践
-
-- 定期 Review 设计令牌的使用情况
-- 建立设计令牌的版本管理流程
-- 与设计师建立设计令牌的协作工作流
-- 定期清理未使用的设计令牌
-
----
-
-**🎯 目标：通过严格遵循这套开发规范，确保项目达到 100% 设计令牌覆盖，为项目的长期维护和品牌一致性奠定坚实基础。**
-
----
-
-**📞 技术支持**
-如果在使用过程中遇到问题，请参考：
-
-1. 本文档的常见问题解答
-2. 查看 theme-generator.ts 中的验证错误信息
-3. 联系前端架构团队获取支持
+`appearance` 是完整偏好的持久化来源；`theme` 键保留模式镜像以兼容旧入口。主题和字号切换不得给应用根节点加 `key` 或重挂 Provider。

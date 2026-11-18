@@ -47,11 +47,11 @@ function FileText({
 }) {
   return (
     <>
-      <span className="block truncate text-sm text-text-primary">{name}</span>
+      <span className="block truncate text-sm text-fg">{name}</span>
       <span
         className={cn(
           'block truncate text-xs',
-          failed ? 'text-status-error' : 'text-text-tertiary',
+          failed ? 'text-danger-fg' : 'text-fg-subtle',
         )}
       >
         {status}
@@ -87,14 +87,14 @@ export function PromptInputAttachments({
       data-prompt-attachments
       data-dragging={dragging || undefined}
       className={cn(
-        'rounded-radius-lg border border-border-subtle bg-background-subtle transition-colors duration-150 motion-reduce:transition-none',
-        dragging && 'border-state-focus bg-state-focus-10',
+        'rounded-radius-lg border border-line-subtle bg-sunken transition-colors duration-150 motion-reduce:transition-none',
+        dragging && 'border-line-focus bg-accent-soft',
         className,
       )}
     >
-      <header className="flex items-center gap-space-sm border-b border-border-subtle px-space-base py-space-xs">
-        <Upload aria-hidden="true" className="size-icon-sm text-text-accent" />
-        <span className="flex-1 text-sm font-medium text-text-primary">
+      <header className="flex items-center gap-space-sm border-b border-line-subtle px-space-base py-space-xs">
+        <Upload aria-hidden="true" className="size-icon-sm text-accent-fg" />
+        <span className="flex-1 text-sm font-medium text-fg">
           {labels.title}
         </span>
         <Button
@@ -115,7 +115,7 @@ export function PromptInputAttachments({
               <li
                 key={file.uid}
                 data-status={file.status}
-                className="relative flex w-64 shrink-0 items-center gap-space-sm rounded-radius-md border border-border-subtle bg-components-input-bg py-space-sm ps-space-sm pe-space-2xs"
+                className="relative flex w-64 shrink-0 items-center gap-space-sm rounded-radius-md border border-line-subtle bg-surface py-space-sm ps-space-sm pe-space-2xs"
               >
                 <FileKindTile
                   name={file.response?.name ?? file.name}
@@ -143,10 +143,10 @@ export function PromptInputAttachments({
                 {file.status === 'uploading' && (
                   <span
                     aria-hidden="true"
-                    className="absolute inset-x-space-sm bottom-0 h-0.5 overflow-hidden rounded-radius-full bg-border-subtle"
+                    className="absolute inset-x-space-sm bottom-0 h-0.5 overflow-hidden rounded-radius-full bg-line-subtle"
                   >
                     <span
-                      className="block h-full bg-state-focus transition-[width] duration-150 motion-reduce:transition-none"
+                      className="block h-full bg-line-focus transition-[width] duration-150 motion-reduce:transition-none"
                       style={{ width: `${Math.round(file.percent ?? 0)}%` }}
                     />
                   </span>
@@ -195,22 +195,22 @@ export function PromptInputAttachments({
         <button
           type="button"
           onClick={pick}
-          className="flex w-full flex-col items-center px-space-base py-space-lg text-center outline-hidden focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:ring-inset"
+          className="flex w-full flex-col items-center px-space-base py-space-lg text-center outline-hidden focus-visible:ring-2 focus-visible:ring-line-focus focus-visible:ring-inset"
         >
           <span
             className={cn(
               'mb-space-sm grid size-icon-2xl place-items-center rounded-radius-lg',
               dragging
-                ? 'bg-state-focus-10 text-state-focus'
-                : 'bg-background-surface text-text-tertiary',
+                ? 'bg-accent-soft text-line-focus'
+                : 'bg-surface text-fg-subtle',
             )}
           >
             <Upload aria-hidden="true" className="size-icon-md" />
           </span>
-          <span className="text-sm font-medium text-text-primary">
+          <span className="text-sm font-medium text-fg">
             {dragging ? labels.release : labels.pick}
           </span>
-          <span className="mt-space-xs block text-xs text-text-tertiary">
+          <span className="mt-space-xs block text-xs text-fg-subtle">
             {labels.limits}
           </span>
         </button>

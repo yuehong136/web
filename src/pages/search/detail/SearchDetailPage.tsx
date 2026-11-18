@@ -264,7 +264,7 @@ const SearchDetailContent: React.FC = () => {
     )
 
   return (
-    <div className="flex h-full flex-col bg-surface-primary">
+    <div className="flex h-full flex-col bg-surface">
       <SearchDetailHeader
         appName={searchApp.name}
         appId={searchApp.id}
@@ -288,9 +288,9 @@ const SearchDetailContent: React.FC = () => {
         onToggleSettings={handleToggleSettings}
       />
 
-      <div className="flex min-h-0 flex-1 bg-surface-primary">
+      <div className="flex min-h-0 flex-1 bg-surface">
         <div className="flex min-w-0 flex-1 flex-col">
-          <main className="relative min-h-0 flex-1 overflow-y-auto bg-surface-primary px-space-base py-space-lg">
+          <main className="relative min-h-0 flex-1 overflow-y-auto bg-surface px-space-base py-space-lg">
             {!hasTurns ? (
               <SearchStarterView
                 onSearch={handleSearch}
@@ -304,8 +304,8 @@ const SearchDetailContent: React.FC = () => {
               />
             ) : (
               <div className="mx-auto max-w-6xl space-y-space-base pb-space-base">
-                <div className="flex flex-wrap items-center justify-between gap-space-sm rounded-radius-lg border border-border-subtle bg-background-subtle px-space-base py-space-xs">
-                  <p className="text-xs text-text-secondary">
+                <div className="flex flex-wrap items-center justify-between gap-space-sm rounded-radius-lg border border-line-subtle bg-sunken px-space-base py-space-xs">
+                  <p className="text-xs text-fg-muted">
                     {t('searchPage.workspace.turnCount', {
                       count: turns.length,
                     })}
@@ -367,7 +367,7 @@ const SearchDetailContent: React.FC = () => {
           </main>
 
           {hasTurns ? (
-            <footer className="shrink-0 bg-surface-primary px-space-base py-space-sm">
+            <footer className="shrink-0 bg-surface px-space-base py-space-sm">
               <div className="mx-auto max-w-5xl">
                 <SearchComposer
                   onSearch={handleSearch}

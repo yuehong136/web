@@ -14,7 +14,5 @@ it('lets token utilities override component defaults', () => {
     'shadow-elevation-medium',
   )
   // Colour tokens still sit beside font sizes.
-  expect(cn('text-sm text-text-primary', 'text-text-secondary')).toBe(
-    'text-sm text-text-secondary',
-  )
+  expect(cn('text-sm text-fg', 'text-fg-muted')).toBe('text-sm text-fg-muted')
 })

@@ -69,7 +69,7 @@ export const MobileSidebarSheet = ({
             ? { height: viewportHeight }
             : undefined
         }
-        className="flex w-80 max-w-[calc(100%-2rem)] flex-col gap-0 overflow-hidden border-border-subtle bg-components-sidebar-bg p-0"
+        className="flex w-80 max-w-[calc(100%-2rem)] flex-col gap-0 overflow-hidden border-line-subtle bg-canvas p-0"
       >
         <header className="flex min-h-14 shrink-0 items-center gap-space-sm py-space-xs pr-space-xs pl-space-base">
           <BrandMark className="flex-1" />
@@ -91,7 +91,7 @@ export const MobileSidebarSheet = ({
           aria-label={t('layout.sidebar.primaryNavigation')}
           className="shrink-0 px-space-sm"
         >
-          <ul className="grid grid-cols-4 gap-space-2xs rounded-radius-md bg-background-subtle p-space-2xs">
+          <ul className="grid grid-cols-4 gap-space-2xs rounded-radius-md bg-sunken p-space-2xs">
             {primaryNavItems.map((item) => {
               const active = section === getWorkbenchSection(item.href)
               return (
@@ -101,10 +101,10 @@ export const MobileSidebarSheet = ({
                     onClick={() => onOpenChange(false)}
                     aria-current={active ? 'page' : undefined}
                     className={cn(
-                      'flex min-h-11 items-center justify-center rounded-radius-sm px-space-xs text-sm outline-hidden focus-visible:ring-2 focus-visible:ring-state-focus',
+                      'flex min-h-11 items-center justify-center rounded-radius-sm px-space-xs text-sm outline-hidden focus-visible:ring-2 focus-visible:ring-line-focus',
                       active
-                        ? 'bg-background-surface font-medium text-text-primary ring-1 ring-border-default'
-                        : 'text-text-secondary hover:text-text-primary',
+                        ? 'bg-surface font-medium text-fg ring-1 ring-line'
+                        : 'text-fg-muted hover:text-fg',
                     )}
                   >
                     <span className="truncate">{t(item.titleKey)}</span>
@@ -114,7 +114,7 @@ export const MobileSidebarSheet = ({
             })}
           </ul>
           <details className="group mt-space-2xs" open={moreActive}>
-            <summary className="flex min-h-11 cursor-pointer list-none items-center gap-space-sm rounded-radius-md px-space-sm text-sm text-text-secondary outline-hidden hover:bg-state-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-focus [&::-webkit-details-marker]:hidden">
+            <summary className="flex min-h-11 cursor-pointer list-none items-center gap-space-sm rounded-radius-md px-space-sm text-sm text-fg-muted outline-hidden hover:bg-fill-hover hover:text-fg focus-visible:ring-2 focus-visible:ring-line-focus [&::-webkit-details-marker]:hidden">
               <span className="flex-1">{t('layout.sidebar.more')}</span>
               <ChevronDown
                 className="size-icon-sm transition-transform group-open:rotate-180 motion-reduce:transition-none"
@@ -133,10 +133,10 @@ export const MobileSidebarSheet = ({
                       onClick={() => onOpenChange(false)}
                       aria-current={active ? 'page' : undefined}
                       className={cn(
-                        'flex min-h-11 items-center gap-space-sm rounded-radius-md px-space-sm text-sm outline-hidden focus-visible:ring-2 focus-visible:ring-state-focus',
+                        'flex min-h-11 items-center gap-space-sm rounded-radius-md px-space-sm text-sm outline-hidden focus-visible:ring-2 focus-visible:ring-line-focus',
                         active
-                          ? 'bg-state-selected-bg font-medium text-state-selected-text'
-                          : 'text-text-secondary hover:bg-state-hover hover:text-text-primary',
+                          ? 'bg-accent-soft font-medium text-accent-fg'
+                          : 'text-fg-muted hover:bg-fill-hover hover:text-fg',
                       )}
                     >
                       <Icon className="size-icon-sm" aria-hidden="true" />
@@ -168,7 +168,7 @@ export const MobileSidebarSheet = ({
             {navigation.content}
           </SecondaryNavigationContent>
         </div>
-        <footer className="flex shrink-0 items-center gap-space-xs border-t border-border-subtle p-space-sm [&_button]:min-h-11">
+        <footer className="flex shrink-0 items-center gap-space-xs border-t border-line-subtle p-space-sm [&_button]:min-h-11">
           <div className="min-w-0 flex-1">
             <SidebarUtilities />
           </div>

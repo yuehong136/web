@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils'
  * variant of Tabs so view switches and section tabs look the same.
  */
 export const segmentedListVariants = cva(
-  'inline-flex max-w-full items-center gap-space-2xs rounded-radius-md bg-background-subtle p-space-2xs',
+  'inline-flex max-w-full items-center gap-space-2xs rounded-radius-md bg-sunken p-space-2xs',
   {
     variants: {
       disabled: { true: 'cursor-not-allowed opacity-50', false: '' },
@@ -20,13 +20,13 @@ export const segmentedListVariants = cva(
 
 export const segmentedItemVariants = cva(
   [
-    'inline-flex min-w-0 shrink-0 items-center justify-center gap-space-xs rounded-radius-sm px-space-sm text-sm font-medium whitespace-nowrap text-text-secondary',
+    'inline-flex min-w-0 shrink-0 items-center justify-center gap-space-xs rounded-radius-sm px-space-sm text-sm font-medium whitespace-nowrap text-fg-muted',
     'transition-colors duration-150 outline-hidden motion-reduce:transition-none',
-    'hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-focus',
+    'hover:text-fg focus-visible:ring-2 focus-visible:ring-line-focus',
     'disabled:pointer-events-none disabled:opacity-50',
     // Radix RadioGroup marks the pick with data-state=checked, Tabs with active.
-    'data-[state=active]:bg-background-surface data-[state=active]:text-text-primary data-[state=active]:ring-1 data-[state=active]:ring-border-default',
-    'data-[state=checked]:bg-background-surface data-[state=checked]:text-text-primary data-[state=checked]:ring-1 data-[state=checked]:ring-border-default',
+    'data-[state=active]:bg-surface data-[state=active]:text-fg data-[state=active]:ring-1 data-[state=active]:ring-line',
+    'data-[state=checked]:bg-surface data-[state=checked]:text-fg data-[state=checked]:ring-1 data-[state=checked]:ring-line',
     "[&_svg:not([class*='size-'])]:size-icon-sm [&_svg]:shrink-0",
   ],
   {

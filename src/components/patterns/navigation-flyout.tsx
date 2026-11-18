@@ -86,7 +86,7 @@ export const NavigationFlyout = ({
             if (keyboard.current)
               anchor.current?.querySelector<HTMLElement>('a,button')?.focus()
           }}
-          className="z-40 flex max-h-[var(--radix-popover-content-available-height)] w-[calc(16rem*var(--text-scale,1))] flex-col overflow-hidden rounded-radius-xl border border-border-default bg-components-sidebar-bg text-text-primary shadow-elevation-high outline-hidden"
+          className="z-40 flex max-h-[var(--radix-popover-content-available-height)] w-[calc(16rem*var(--text-scale,1))] flex-col overflow-hidden rounded-radius-xl border border-line bg-canvas text-fg shadow-elevation-high outline-hidden"
         >
           {content}
         </Popover.Content>

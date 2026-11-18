@@ -54,7 +54,7 @@ export function KnowledgeNavigationPanel({
       <Link
         to={ROUTES.KNOWLEDGE}
         data-nav-row
-        className="flex min-h-[var(--control-height-sm)] items-center gap-space-xs self-start rounded-radius-md px-space-sm text-xs text-text-tertiary outline-hidden hover:bg-state-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-focus"
+        className="flex min-h-[var(--control-height-sm)] items-center gap-space-xs self-start rounded-radius-md px-space-sm text-xs text-fg-subtle outline-hidden hover:bg-fill-hover hover:text-fg focus-visible:ring-2 focus-visible:ring-line-focus"
       >
         <ChevronLeft className="size-icon-sm" aria-hidden="true" />
         {t('knowledge.nav.allKnowledge')}
@@ -67,10 +67,10 @@ export function KnowledgeNavigationPanel({
         >
           <KnowledgeAvatar knowledgeBase={knowledgeBase} size="xl" />
           <div className="flex min-w-0 flex-col gap-space-2xs">
-            <p className="text-base font-semibold break-words text-text-primary">
+            <p className="text-base font-semibold break-words text-fg">
               {knowledgeBase.name}
             </p>
-            <p className="line-clamp-3 text-xs text-text-tertiary">
+            <p className="line-clamp-3 text-xs text-fg-subtle">
               {knowledgeBase.description ||
                 t('knowledge.common.emptyDescription')}
             </p>
@@ -100,10 +100,10 @@ export function KnowledgeNavigationPanel({
                   data-nav-row
                   aria-current={active ? 'page' : undefined}
                   className={cn(
-                    'flex min-h-[var(--control-height-sm)] items-center gap-space-sm rounded-radius-md px-space-sm py-space-xs text-sm outline-hidden focus-visible:ring-2 focus-visible:ring-state-focus',
+                    'flex min-h-[var(--control-height-sm)] items-center gap-space-sm rounded-radius-md px-space-sm py-space-xs text-sm outline-hidden focus-visible:ring-2 focus-visible:ring-line-focus',
                     active
-                      ? 'bg-state-selected-bg font-medium text-state-selected-text'
-                      : 'text-text-secondary hover:bg-state-hover hover:text-text-primary',
+                      ? 'bg-accent-soft font-medium text-accent-fg'
+                      : 'text-fg-muted hover:bg-fill-hover hover:text-fg',
                   )}
                 >
                   <Icon className="size-icon-sm shrink-0" aria-hidden="true" />
@@ -114,7 +114,7 @@ export function KnowledgeNavigationPanel({
                     <>
                       <span
                         aria-hidden="true"
-                        className="text-xs text-text-tertiary tabular-nums"
+                        className="text-xs text-fg-subtle tabular-nums"
                       >
                         {documents.toLocaleString()}
                       </span>

@@ -114,12 +114,12 @@ export function DetailTemplate({
         <PageTitleBar {...titleBar} placement="workbench" />
       </WorkbenchHeaderSlot>
       {tabs ? (
-        <div className="flex min-h-[var(--control-height-lg)] shrink-0 items-stretch overflow-x-auto border-b border-border-subtle px-space-md">
+        <div className="flex min-h-[var(--control-height-lg)] shrink-0 items-stretch overflow-x-auto border-b border-line-subtle px-space-md">
           {tabs}
         </div>
       ) : null}
       {toolbar ? (
-        <div className="shrink-0 border-b border-border-subtle py-space-sm pr-space-sm pl-space-md">
+        <div className="shrink-0 border-b border-line-subtle py-space-sm pr-space-sm pl-space-md">
           {toolbar}
         </div>
       ) : null}

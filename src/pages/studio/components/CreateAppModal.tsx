@@ -140,7 +140,7 @@ export function CreateAppModal({
           <div className="space-y-space-sm">
             <Label htmlFor={`${id}-icon`}>{t('studio.createApp.icon')}</Label>
             <div className="flex items-center gap-space-md">
-              <span className="flex size-icon-2xl items-center justify-center overflow-hidden rounded-radius-lg border border-border-default bg-background-subtle">
+              <span className="flex size-icon-2xl items-center justify-center overflow-hidden rounded-radius-lg border border-line bg-sunken">
                 {form.icon ? (
                   <img
                     src={form.icon}
@@ -149,7 +149,7 @@ export function CreateAppModal({
                   />
                 ) : (
                   <AppWindow
-                    className="size-icon-lg text-text-secondary"
+                    className="size-icon-lg text-fg-muted"
                     aria-hidden="true"
                   />
                 )}
@@ -192,7 +192,7 @@ export function CreateAppModal({
                 </Button>
               )}
             </div>
-            <p className="text-xs text-text-tertiary">
+            <p className="text-xs text-fg-subtle">
               {t('studio.createApp.iconHint')}
             </p>
           </div>
@@ -211,7 +211,7 @@ export function CreateAppModal({
                 setForm((current) => ({ ...current, name: event.target.value }))
               }
             />
-            <p className="text-xs text-text-tertiary">
+            <p className="text-xs text-fg-subtle">
               {t('studio.createApp.nameHint')}
             </p>
           </div>
@@ -238,7 +238,7 @@ export function CreateAppModal({
                 }))
               }
             />
-            <p className="text-right text-xs text-text-tertiary">
+            <p className="text-right text-xs text-fg-subtle">
               {form.description.length} / 200
             </p>
           </div>
@@ -246,7 +246,7 @@ export function CreateAppModal({
             <p
               id={`${id}-error`}
               role="alert"
-              className="text-sm text-status-error"
+              className="text-sm text-danger-fg"
             >
               {t(`studio.createApp.validation.${issue}`)}
             </p>

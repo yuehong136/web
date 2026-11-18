@@ -28,7 +28,7 @@ export function ConfigPane({
     <Tabs
       value={tab}
       onValueChange={(value) => setTab(value as EditorTab)}
-      className="flex h-full min-h-0 flex-col bg-components-studio-surface"
+      className="flex h-full min-h-0 flex-col bg-surface"
     >
       <TabsList
         variant="segmented"

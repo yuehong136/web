@@ -147,7 +147,7 @@ export default function DataSourceDetailPage() {
   const sourceInfo = dataSourceInfo[detail.source]
 
   return (
-    <div className="h-full overflow-y-auto bg-components-settings-content-bg">
+    <div className="h-full overflow-y-auto bg-surface">
       <PageHeader
         compact
         align="center"
@@ -191,7 +191,7 @@ export default function DataSourceDetailPage() {
               }}
               labelClassName="font-normal"
             >
-              <div className="mt-space-lg flex flex-wrap items-center justify-end gap-space-sm border-t border-border-subtle pt-space-base">
+              <div className="mt-space-lg flex flex-wrap items-center justify-end gap-space-sm border-t border-line-subtle pt-space-base">
                 {source &&
                   [
                     DataSourceKey.REST_API,
@@ -200,7 +200,7 @@ export default function DataSourceDetailPage() {
                     DataSourceKey.OUTLOOK,
                   ].includes(source) && (
                     <>
-                      <p className="text-sm text-text-secondary">
+                      <p className="text-sm text-fg-muted">
                         {t('datasource.restApi.testSavedConfig')}
                       </p>
                       <Button

@@ -66,7 +66,7 @@ function CodeEditorFallback() {
 
   return (
     <output
-      className="flex h-80 items-center justify-center gap-space-sm rounded-radius-lg border border-border-default bg-surface-secondary text-sm text-text-secondary"
+      className="flex h-80 items-center justify-center gap-space-sm rounded-radius-lg border border-line bg-sunken text-sm text-fg-muted"
       aria-live="polite"
     >
       <Loader2 className="size-icon-md animate-spin" />
@@ -147,7 +147,7 @@ export function CodeForm({ node }: INextOperatorForm) {
             href="https://github.com/yuehong136/MultiRAG/blob/main/agent/sandbox/README.md"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-space-xs text-sm text-text-secondary underline underline-offset-4 hover:text-text-primary"
+            className="inline-flex items-center gap-space-xs text-sm text-fg-muted underline underline-offset-4 hover:text-fg"
           >
             {t('flow.codeSandboxQuickstart')}
             <ArrowUpRight className="size-4" aria-hidden="true" />

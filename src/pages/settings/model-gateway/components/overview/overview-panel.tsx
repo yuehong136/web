@@ -57,7 +57,7 @@ export function OverviewPanel({
         onViewModels={() => onNavigate('models')}
       />
       <div className="flex flex-wrap items-center justify-between gap-space-md">
-        <h2 className="text-base font-semibold text-text-primary">
+        <h2 className="text-base font-semibold text-fg">
           {t(`${PREFIX}.overview.usageTitle`)}
         </h2>
         <SegmentedControl

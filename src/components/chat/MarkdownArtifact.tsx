@@ -142,7 +142,7 @@ const ArtifactImageResource: FC<{
           src={objectUrl}
           alt={alt || ''}
           className={joinClassNames(
-            'block max-w-full rounded-radius-lg border border-border-subtle bg-surface-primary',
+            'block max-w-full rounded-radius-lg border border-line-subtle bg-surface',
             className,
           )}
         />
@@ -150,7 +150,7 @@ const ArtifactImageResource: FC<{
         <span
           role={hasError ? 'alert' : 'status'}
           className={joinClassNames(
-            'block rounded-radius-lg border border-border-subtle bg-surface-secondary p-space-lg text-sm text-text-secondary',
+            'block rounded-radius-lg border border-line-subtle bg-sunken p-space-lg text-sm text-fg-muted',
             className,
           )}
         >
@@ -169,7 +169,7 @@ const ArtifactImageResource: FC<{
       )}
       <button
         type="button"
-        className="mt-space-xs inline-flex items-center gap-space-xs rounded-radius-sm text-sm font-medium text-text-accent hover:text-text-accent/80 disabled:cursor-not-allowed disabled:text-text-tertiary"
+        className="mt-space-xs inline-flex items-center gap-space-xs rounded-radius-sm text-sm font-medium text-accent-fg hover:text-accent-fg/80 disabled:cursor-not-allowed disabled:text-fg-subtle"
         disabled={isDownloading}
         onClick={handleDownload}
       >
@@ -215,7 +215,7 @@ export const ArtifactLink: FC<{
     <a
       href={resolveArtifactUrl(href)}
       className={joinClassNames(
-        'inline-flex items-center gap-space-xs text-text-accent hover:text-text-accent/80',
+        'inline-flex items-center gap-space-xs text-accent-fg hover:text-accent-fg/80',
         className,
       )}
       onClick={handleClick}

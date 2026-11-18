@@ -39,8 +39,8 @@ export function EvidenceChunkRow({
       aria-current={selected || undefined}
       onClick={() => onSelect(chunk)}
       className={cn(
-        'flex w-full min-w-0 items-start gap-space-base rounded-radius-lg border border-transparent px-space-sm py-space-sm text-start transition-colors hover:border-border-subtle hover:bg-state-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-focus motion-reduce:transition-none',
-        selected && 'border-border-accent bg-state-selected-bg',
+        'flex w-full min-w-0 items-start gap-space-base rounded-radius-lg border border-transparent px-space-sm py-space-sm text-start transition-colors hover:border-line-subtle hover:bg-fill-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-line-focus motion-reduce:transition-none',
+        selected && 'border-line-focus bg-accent-soft',
       )}
     >
       <SourceTile chunk={chunk} size="md" className="mt-space-2xs" />
@@ -48,17 +48,17 @@ export function EvidenceChunkRow({
         <span
           className={cn(
             'block truncate text-sm',
-            cited ? 'text-text-primary' : 'text-text-secondary',
+            cited ? 'text-fg' : 'text-fg-muted',
           )}
         >
           {name}
         </span>
-        <span className="block truncate text-xs text-text-tertiary">
+        <span className="block truncate text-xs text-fg-subtle">
           {cited ? tw('sourceNumber', { number }) : tw('notCited')} ·{' '}
           {truncateText(toPlainText(chunk.content), 120)}
         </span>
         {detailed && scoreLine && (
-          <span className="mt-space-2xs block font-mono text-xs text-text-tertiary">
+          <span className="mt-space-2xs block font-mono text-xs text-fg-subtle">
             {scoreLine}
           </span>
         )}

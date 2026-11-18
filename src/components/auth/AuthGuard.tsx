@@ -28,7 +28,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
       <div
         aria-busy="true"
         data-auth-guard="loading"
-        className="flex min-h-dvh items-center justify-center bg-components-app-shell-bg"
+        className="flex min-h-dvh items-center justify-center bg-canvas"
       >
         <Spinner size="lg" />
       </div>

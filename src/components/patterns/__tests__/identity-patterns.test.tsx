@@ -44,7 +44,7 @@ it('labels a file tile with its extension and colors it by kind', async () => {
   )
   expect(sheet.textContent).toBe('XLSX')
   expect(sheet.getAttribute('data-kind')).toBe('sheet')
-  expect(sheet.className).toContain('bg-components-file-sheet-bg')
+  expect(sheet.className).toContain('bg-avatar-4-bg')
   expect(sheet.getAttribute('aria-hidden')).toBe('true')
   // Long or unknown extensions fall back to the kind name.
   expect(other.textContent).toBe('TEXT')
@@ -63,7 +63,7 @@ it('draws the kind glyph instead of a monogram and adds a kind badge', async () 
   // Kind glyph, kind tone (teal = tone 5).
   expect(avatars[0].querySelector('svg')).not.toBeNull()
   expect(avatars[0].textContent).toBe('')
-  expect(avatars[0].innerHTML).toContain('components-avatar-5-bg')
+  expect(avatars[0].innerHTML).toContain('avatar-5-bg')
   // Monogram plus a badge outside the clipped avatar.
   expect(avatars[1].textContent).toBe('小')
   const anchors = view.container.querySelectorAll(
@@ -71,9 +71,7 @@ it('draws the kind glyph instead of a monogram and adds a kind badge', async () 
   )
   expect(anchors).toHaveLength(1)
   expect(anchors[0].contains(avatars[1])).toBe(true)
-  expect(anchors[0].lastElementChild?.className).toContain(
-    'components-avatar-7-bg',
-  )
+  expect(anchors[0].lastElementChild?.className).toContain('avatar-7-bg')
   // Too small for a badge.
   expect(avatars[2].parentElement?.dataset.slot).not.toBe(
     'entity-avatar-badge-anchor',
@@ -90,7 +88,7 @@ it('seats a provider logo on a tile unless asked not to', async () => {
   const [tiled, bare] = view.container.querySelectorAll(
     '[data-slot="provider-logo"]',
   )
-  expect(tiled.className).toContain('bg-background-subtle')
-  expect(bare.className).not.toContain('bg-background-subtle')
+  expect(tiled.className).toContain('bg-sunken')
+  expect(bare.className).not.toContain('bg-sunken')
   expect(tiled.firstElementChild).not.toBeNull()
 })

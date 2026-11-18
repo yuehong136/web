@@ -73,7 +73,7 @@ const SearchDetailHeader: React.FC<SearchDetailHeaderProps> = ({
     : t('searchPage.workspace.openSettings')
 
   return (
-    <header className="shrink-0 border-b border-border-subtle bg-surface-primary px-space-base py-space-sm">
+    <header className="shrink-0 border-b border-line-subtle bg-surface px-space-base py-space-sm">
       <div className="flex flex-wrap items-center justify-between gap-space-sm">
         <div className="flex min-w-0 flex-1 items-center gap-space-sm">
           <Button
@@ -93,10 +93,10 @@ const SearchDetailHeader: React.FC<SearchDetailHeaderProps> = ({
             size="lg"
           />
           <div className="min-w-0">
-            <h2 className="truncate text-base font-semibold text-text-primary">
+            <h2 className="truncate text-base font-semibold text-fg">
               {appName}
             </h2>
-            <p className="flex min-w-0 flex-wrap items-center gap-x-space-sm gap-y-space-2xs text-xs text-text-tertiary">
+            <p className="flex min-w-0 flex-wrap items-center gap-x-space-sm gap-y-space-2xs text-xs text-fg-subtle">
               <StatusDot
                 tone={SEARCH_PHASE_TONE[phase]}
                 label={phaseLabel}

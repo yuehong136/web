@@ -10,18 +10,18 @@ export function cn(...inputs: ClassValue[]) {
 export function getTypeColor(type: SchemaType): string {
   switch (type) {
     case 'string':
-      return 'bg-components-badge-blue-bg text-components-badge-blue-text'
+      return 'bg-avatar-6-bg text-avatar-6-fg'
     case 'number':
     case 'integer':
-      return 'bg-components-badge-orange-bg text-components-badge-orange-text'
+      return 'bg-avatar-2-bg text-avatar-2-fg'
     case 'boolean':
-      return 'bg-components-badge-green-bg text-components-badge-green-text'
+      return 'bg-avatar-4-bg text-avatar-4-fg'
     case 'object':
-      return 'bg-surface-secondary text-text-secondary'
+      return 'bg-sunken text-fg-muted'
     case 'array':
-      return 'bg-surface-tertiary text-text-secondary'
+      return 'bg-canvas text-fg-muted'
     case 'null':
-      return 'bg-surface-secondary text-text-caption'
+      return 'bg-sunken text-fg-subtle'
   }
 }
 

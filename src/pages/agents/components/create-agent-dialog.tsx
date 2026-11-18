@@ -38,7 +38,7 @@ const kindCards = [
     descriptionKey: 'agent.center.createAgentDescription',
     description: 'Chat, tool calling, and multi-turn orchestration',
     icon: BrainCircuit,
-    tone: 'bg-status-info-subtle text-status-info',
+    tone: 'bg-info-soft text-info-fg',
   },
   {
     value: AgentCanvasType.PIPELINE,
@@ -47,7 +47,7 @@ const kindCards = [
     descriptionKey: 'agent.center.createPipelineDescription',
     description: 'File parsing, chunking, extraction, and indexing',
     icon: Route,
-    tone: 'bg-status-success-subtle text-status-success',
+    tone: 'bg-success-soft text-success-fg',
   },
 ]
 
@@ -110,8 +110,8 @@ export function CreateAgentDialog({
     >
       <DialogContent size="lg" modal>
         <DialogHeader>
-          <div className="mb-space-sm flex h-11 w-11 items-center justify-center rounded-radius-xl bg-components-studio-surface">
-            <Sparkles className="h-5 w-5 text-text-accent" />
+          <div className="mb-space-sm flex h-11 w-11 items-center justify-center rounded-radius-xl bg-surface">
+            <Sparkles className="h-5 w-5 text-accent-fg" />
           </div>
           <DialogTitle>
             {title ?? t('agent.center.createTitle', 'Create Agent asset')}
@@ -128,7 +128,7 @@ export function CreateAgentDialog({
         <div className="flex flex-col gap-space-lg px-space-lg pb-space-lg">
           {allowKindChange ? (
             <div className="space-y-space-sm">
-              <p className="text-sm font-medium text-text-primary">
+              <p className="text-sm font-medium text-fg">
                 {t('agent.center.chooseAgentType', '选择智能体类型')}
               </p>
               <RadioGroup
@@ -146,10 +146,10 @@ export function CreateAgentDialog({
                       key={item.value}
                       htmlFor={`${id}-${item.value}`}
                       className={cn(
-                        'flex cursor-pointer items-center gap-space-base rounded-radius-lg border bg-transparent p-space-md transition-colors focus-within:ring-1 focus-within:ring-state-focus focus-within:outline-hidden',
+                        'flex cursor-pointer items-center gap-space-base rounded-radius-lg border bg-transparent p-space-md transition-colors focus-within:ring-1 focus-within:ring-line-focus focus-within:outline-hidden',
                         active
-                          ? 'border-state-focus bg-state-focus-subtle text-text-primary shadow-elevation-low'
-                          : 'border-border-default text-text-secondary hover:border-border-strong hover:bg-surface-secondary',
+                          ? 'border-line-focus bg-accent-soft text-fg shadow-elevation-low'
+                          : 'border-line text-fg-muted hover:border-line-strong hover:bg-sunken',
                       )}
                     >
                       <div
@@ -161,10 +161,10 @@ export function CreateAgentDialog({
                         <Icon className="h-5 w-5" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-base leading-tight font-semibold text-text-primary">
+                        <p className="text-base leading-tight font-semibold text-fg">
                           {t(item.titleKey, item.title)}
                         </p>
-                        <p className="mt-space-xs text-sm leading-snug text-text-secondary">
+                        <p className="mt-space-xs text-sm leading-snug text-fg-muted">
                           {t(item.descriptionKey, item.description)}
                         </p>
                       </div>
@@ -183,7 +183,7 @@ export function CreateAgentDialog({
           <div className="space-y-space-sm">
             <Label
               htmlFor={`${id}-name`}
-              className="text-sm font-medium text-text-primary"
+              className="text-sm font-medium text-fg"
             >
               {t('common.name', '名称')}
             </Label>
@@ -201,7 +201,7 @@ export function CreateAgentDialog({
         </div>
 
         {failed && (
-          <p role="alert" className="px-space-lg text-sm text-status-error">
+          <p role="alert" className="px-space-lg text-sm text-danger-fg">
             {t('agents.createFailed')}
           </p>
         )}

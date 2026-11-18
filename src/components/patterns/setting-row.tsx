@@ -31,15 +31,12 @@ export function SettingSection({
         <div className="mb-space-xs flex items-end gap-space-sm">
           <div className="min-w-0 flex-1">
             {title ? (
-              <h3
-                id={headingId}
-                className="text-sm font-semibold text-text-primary"
-              >
+              <h3 id={headingId} className="text-sm font-semibold text-fg">
                 {title}
               </h3>
             ) : null}
             {description ? (
-              <p className="text-xs text-text-secondary">{description}</p>
+              <p className="text-xs text-fg-muted">{description}</p>
             ) : null}
           </div>
           {actions ? (
@@ -69,9 +66,9 @@ export interface SettingRowProps {
 }
 
 const TONES = {
-  default: 'text-text-secondary',
-  warning: 'text-status-warning',
-  error: 'text-status-error',
+  default: 'text-fg-muted',
+  warning: 'text-warning-fg',
+  error: 'text-danger-fg',
 } as const
 
 /**
@@ -87,12 +84,12 @@ export function SettingRow({
   children,
   className,
 }: SettingRowProps) {
-  const labelClass = 'block text-sm font-medium text-text-primary'
+  const labelClass = 'block text-sm font-medium text-fg'
   return (
     <div
       data-slot="setting-row"
       className={cn(
-        'flex min-h-14 flex-wrap items-center gap-x-space-md gap-y-space-sm border-t border-border-subtle py-space-sm',
+        'flex min-h-14 flex-wrap items-center gap-x-space-md gap-y-space-sm border-t border-line-subtle py-space-sm',
         className,
       )}
     >

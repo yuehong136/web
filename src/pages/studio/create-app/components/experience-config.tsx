@@ -18,10 +18,7 @@ export function ExperienceConfig({ config, onChange }: ConfigBindings) {
             <Label htmlFor={`${id}-${field}`}>
               {t(`studio.editor.${key}`)}
             </Label>
-            <p
-              id={`${id}-${field}-hint`}
-              className="text-xs text-text-secondary"
-            >
+            <p id={`${id}-${field}-hint`} className="text-xs text-fg-muted">
               {t(`studio.editor.${key}Hint`)}
             </p>
             <Textarea

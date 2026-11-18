@@ -1,136 +1,130 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { readFile } from 'node:fs/promises'
-import { getTokenValue, getCategoricalPalette } from '../index'
+import { getTokenValue } from '../index'
 import {
   APPEARANCE_PRESETS,
-  setAppearance,
   DEFAULT_APPEARANCE,
+  normalizeAppearance,
+  setAppearance,
 } from '@/themes/appearance'
 import { presetTokenValues } from '@/themes/token-values.generated'
-import {
-  lightTokens,
-  darkTokens,
-  validateTokens,
-} from '@/themes/theme-generator'
-import { createPresetTokenSets } from '@/themes/theme-artifact-generator'
+import { COLOR_SCHEMES, SCHEME_SEEDS } from '@/themes/color-schemes'
+import { generateThemeCSS } from '@/themes/theme-generator'
+import { schemeTokens } from '@/themes/theme-sets'
+import { SEMANTIC_TOKENS } from '@/themes/semantic-tokens'
+import { customSchemeCSS, customTokenValues } from '@/themes/custom-scheme'
 
-const normalizeCSS = (value: string) =>
-  value
-    .replace(/\s+/g, '')
-    .replace(/\d*\.\d+/g, (number) => String(Number(number)))
-    .toLowerCase()
-const canonical = createPresetTokenSets({
-  light: lightTokens,
-  dark: darkTokens,
+test('every scheme is an appearance preset and Ink is the default', () => {
+  assert.deepEqual([...APPEARANCE_PRESETS], [...COLOR_SCHEMES, 'custom'])
+  assert.equal(DEFAULT_APPEARANCE.preset, 'ink')
 })
-function luminance(hex: string) {
-  const c = [1, 3, 5].map((index) => {
-    const channel = Number.parseInt(hex.slice(index, index + 2), 16) / 255
-    return channel <= 0.04045
-      ? channel / 12.92
-      : ((channel + 0.055) / 1.055) ** 2.4
-  })
-  return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]
-}
-function contrast(a: string, b: string) {
-  const values = [luminance(a), luminance(b)].sort((a, b) => b - a)
-  return (values[0] + 0.05) / (values[1] + 0.05)
-}
-for (const preset of APPEARANCE_PRESETS) {
+
+test('the brand seed is clamped to the range the generator is tested on', () => {
+  assert.deepEqual(
+    normalizeAppearance({
+      custom: { accentHue: 725.4, accentChroma: 0.9, neutralChroma: -1 },
+    }).custom,
+    { accentHue: 0, accentChroma: 0.22, neutralChroma: 0 },
+  )
+  assert.deepEqual(normalizeAppearance({}).custom, DEFAULT_APPEARANCE.custom)
+})
+
+test('the brand scheme generates every role for both modes', () => {
+  const seed = { accentHue: 330, accentChroma: 0.15, neutralChroma: 0.01 }
+  const css = customSchemeCSS(seed)
   for (const mode of ['light', 'dark'] as const) {
-    test(`${preset}/${mode} generated values, static accessors and CSS cover the same complete token set`, async () => {
-      const values = presetTokenValues[preset][mode]
-      assert.deepEqual(values, canonical[preset][mode])
-      assert.deepEqual(
-        Object.keys(values).sort(),
-        Object.keys(lightTokens).sort(),
-      )
-      assert.deepEqual(validateTokens({ ...values }), [])
+    const start = css.indexOf(`[data-preset='custom'][data-theme='${mode}']`)
+    assert.ok(start >= 0, mode)
+    const body = css.slice(start, css.indexOf('}', start))
+    for (const token of SEMANTIC_TOKENS)
       assert.equal(
-        getTokenValue('components-system-chart-axis', mode, preset),
-        values['components-system-chart-axis'],
+        body.split(`--color-${token}:`).length - 1,
+        1,
+        `${mode} ${token}`,
       )
-      assert.deepEqual(
-        getCategoricalPalette(mode, 3, preset),
-        [1, 2, 3].map(
-          (n) => values[`data-viz-categorical-${n}` as keyof typeof values],
-        ),
-      )
-      const css = await readFile(
-        new URL(`../../../themes/${mode}.css`, import.meta.url),
-        'utf8',
-      )
-      const block = css.split(/\/\*\*/)[APPEARANCE_PRESETS.indexOf(preset) + 1]
-      const declarations = [...block.matchAll(/--color-([\w-]+):\s*([^;]+);/g)]
-      assert.equal(declarations.length, Object.keys(values).length)
-      for (const match of declarations) {
+  }
+  assert.ok(
+    css.includes(
+      "[data-preset='custom'][data-theme='dark'][data-contrast='high']",
+    ),
+  )
+  setAppearance({ preset: 'custom', custom: seed })
+  assert.equal(
+    getTokenValue('accent-solid', 'dark'),
+    customTokenValues(seed).dark['accent-solid'],
+  )
+  setAppearance({ ...DEFAULT_APPEARANCE })
+})
+
+test('pre-2.0 presets migrate to their successors', () => {
+  const migrate = (preset: string) => normalizeAppearance({ preset }).preset
+  assert.equal(migrate('studio'), 'ink')
+  assert.equal(migrate('graphite'), 'ink')
+  assert.equal(migrate('paper'), 'clay')
+  assert.equal(migrate('ocean'), 'celadon')
+  assert.equal(migrate('mist'), 'mist')
+  assert.equal(migrate('unknown'), 'ink')
+})
+
+for (const mode of ['light', 'dark'] as const) {
+  const css = generateThemeCSS(mode)
+  for (const scheme of COLOR_SCHEMES) {
+    test(`${scheme}/${mode} declares every role once in its base block`, () => {
+      const start = css.indexOf(`/* ===== ${scheme} ===== */`)
+      const body = css.slice(start, css.indexOf('}', start))
+      for (const token of SEMANTIC_TOKENS)
         assert.equal(
-          normalizeCSS(match[2]),
-          normalizeCSS(values[match[1] as keyof typeof values]),
-          match[1],
+          body.split(`--color-${token}:`).length - 1,
+          1,
+          `${scheme}/${mode} --color-${token}`,
         )
-      }
     })
-    test(`${preset}/${mode} text, focus, and primary action remain readable`, () => {
-      const values = presetTokenValues[preset][mode]
-      for (const text of [
-        'text-primary',
-        'text-secondary',
-        'text-tertiary',
-        'text-accent',
-      ] as const) {
-        for (const background of [
-          'background-body',
-          'background-surface',
-          'background-subtle',
-        ] as const) {
-          assert.ok(
-            contrast(values[text], values[background]) >= 4.5,
-            `${text} over ${background}: ${contrast(values[text], values[background])}`,
-          )
-        }
-      }
-      assert.ok(
-        contrast(
-          values['components-button-primary-text'],
-          values['components-button-primary-bg'],
-        ) >= 4.5,
-      )
-      assert.ok(
-        contrast(values['state-focus'], values['background-surface']) >= 3,
-      )
-      // Pages and the header inside the raised workbench share its surface,
-      // which stands apart from the shell tone the navigation sits on.
-      for (const ground of [
-        'components-nav-bg',
-        'components-console-bg',
-        'components-workspace-bg',
-        'components-settings-content-bg',
-      ] as const)
-        assert.equal(values[ground], values['background-surface'], ground)
-      assert.notEqual(
-        values['components-app-shell-bg'],
-        values['background-surface'],
-      )
+
+    test(`${scheme}/${mode} layers the workbench over a distinct shell tone`, () => {
+      const { roles } = schemeTokens(scheme, mode)
+      assert.notDeepEqual(roles.canvas.color, roles.surface.color)
+      // Light schemes lift work onto white or warm paper; dark ones step up.
+      if (mode === 'dark')
+        assert.notDeepEqual(roles.raised.color, roles.surface.color)
+    })
+
+    test(`${scheme}/${mode} follows the scheme's own primary action`, () => {
+      const { roles } = schemeTokens(scheme, mode)
+      const expected =
+        SCHEME_SEEDS[scheme].action === 'ink'
+          ? 'scale-gray-12'
+          : 'scale-accent-9'
+      assert.equal(roles['action-bg'].ref, expected)
     })
   }
 }
 
-test('static canvas reads switch preset even when the mode remains unchanged', () => {
-  setAppearance({ preset: 'paper' })
-  assert.equal(
-    getTokenValue('components-card-bg', 'light'),
-    presetTokenValues.paper.light['components-card-bg'],
+test('portal content without data-preset inherits the nearest preset', () => {
+  const css = generateThemeCSS('dark')
+  assert.match(
+    css,
+    /\[data-preset='mist'\] \[data-theme='dark'\]:not\(\[data-preset\]\)/,
   )
-  setAppearance({ preset: 'ocean' })
+  assert.match(
+    css,
+    /\[data-theme='dark'\]:not\(\[data-preset\], \[data-preset\] \*\)/,
+  )
+})
+
+test('static canvas reads switch preset even when the mode remains unchanged', () => {
+  setAppearance({ preset: 'clay' })
   assert.equal(
-    getTokenValue('components-card-bg', 'light'),
-    presetTokenValues.ocean.light['components-card-bg'],
+    getTokenValue('raised', 'light'),
+    presetTokenValues.clay.light.raised,
+  )
+  setAppearance({ preset: 'celadon' })
+  assert.equal(
+    getTokenValue('accent-solid', 'light'),
+    presetTokenValues.celadon.light['accent-solid'],
   )
   assert.notEqual(
-    presetTokenValues.paper.light['components-card-bg'],
-    presetTokenValues.ocean.light['components-card-bg'],
+    presetTokenValues.clay.light['accent-solid'],
+    presetTokenValues.celadon.light['accent-solid'],
   )
   setAppearance({ ...DEFAULT_APPEARANCE })
 })

@@ -82,7 +82,7 @@ const TextContent: FC<{
 
   if (kind === 'md') {
     return (
-      <div className="scroll-area h-full w-full overflow-auto bg-background-surface px-space-lg py-space-lg">
+      <div className="scroll-area h-full w-full overflow-auto bg-surface px-space-lg py-space-lg">
         <div className="mx-auto prose prose-sm max-w-3xl">
           {/* Raw HTML in the file is shown as text, never parsed. */}
           <XMarkdown
@@ -99,8 +99,8 @@ const TextContent: FC<{
   }
 
   return (
-    <div className="scroll-area h-full w-full overflow-auto bg-background-surface p-space-base">
-      <pre className="font-mono text-sm leading-relaxed break-words whitespace-pre-wrap text-text-secondary">
+    <div className="scroll-area h-full w-full overflow-auto bg-surface p-space-base">
+      <pre className="font-mono text-sm leading-relaxed break-words whitespace-pre-wrap text-fg-muted">
         {content}
       </pre>
     </div>

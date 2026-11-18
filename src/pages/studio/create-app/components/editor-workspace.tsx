@@ -57,7 +57,7 @@ export function EditorWorkspace({
     <div ref={containerRef} className="flex h-full min-h-0 min-w-0 flex-col">
       {!wide && focus === 'split' && (
         <fieldset
-          className="flex shrink-0 gap-space-xs border-b border-border-default bg-components-studio-surface px-space-base py-space-xs"
+          className="flex shrink-0 gap-space-xs border-b border-line bg-surface px-space-base py-space-xs"
           aria-label={t('studio.editor.workspaceViews')}
         >
           {(['edit', 'preview'] as const).map((value) => (

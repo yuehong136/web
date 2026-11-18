@@ -61,7 +61,7 @@ export function CompactRecordList<
           <div className="space-y-space-xs">
             {label && <FormLabel className="text-sm">{label}</FormLabel>}
             {description && (
-              <p className="text-xs text-text-secondary">{description}</p>
+              <p className="text-xs text-fg-muted">{description}</p>
             )}
           </div>
           {addLabel !== null && (
@@ -79,7 +79,7 @@ export function CompactRecordList<
       )}
 
       {fields.length === 0 ? (
-        <div className="rounded-radius-md border border-dashed border-border-default px-space-base py-space-sm text-center text-xs text-text-secondary">
+        <div className="rounded-radius-md border border-dashed border-line px-space-base py-space-sm text-center text-xs text-fg-muted">
           {emptyLabel ?? t('common.noData', 'No items yet')}
         </div>
       ) : (

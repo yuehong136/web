@@ -34,10 +34,7 @@ export const StudioPanelShell: React.FC<StudioPanelShellProps> = ({
   if (collapsed) {
     return (
       <div
-        className={cn(
-          'flex h-full min-h-0 flex-col bg-components-studio-surface',
-          className,
-        )}
+        className={cn('flex h-full min-h-0 flex-col bg-surface', className)}
         {...props}
       >
         <div className="flex h-full min-h-0 flex-col">{collapsedContent}</div>
@@ -47,22 +44,19 @@ export const StudioPanelShell: React.FC<StudioPanelShellProps> = ({
 
   return (
     <div
-      className={cn(
-        'flex h-full min-h-0 flex-col bg-components-studio-surface',
-        className,
-      )}
+      className={cn('flex h-full min-h-0 flex-col bg-surface', className)}
       {...props}
     >
       <div
         className={cn(
-          'flex shrink-0 items-center justify-between border-b border-components-studio-border bg-components-studio-surface px-space-base',
+          'flex shrink-0 items-center justify-between border-b border-line bg-surface px-space-base',
           density === 'compact' ? 'h-10' : 'h-14',
           headerClassName,
         )}
       >
         <div
           className={cn(
-            'min-w-0 flex-1 font-semibold text-components-page-toolbar-text',
+            'min-w-0 flex-1 font-semibold text-fg-muted',
             density === 'compact' ? 'text-sm' : 'text-base',
           )}
         >

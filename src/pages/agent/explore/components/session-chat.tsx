@@ -103,7 +103,7 @@ export function SessionChat({
     startPaths.push({
       key: 'new-chat',
       icon: <MessageSquarePlus />,
-      iconClassName: 'bg-components-avatar-6-bg text-components-avatar-6-text',
+      iconClassName: 'bg-avatar-6-bg text-avatar-6-fg',
       title: t('agent.explore.newChat'),
       description: t('agent.explore.start.newChatDescription'),
       cta: t('agent.explore.start.newChatCta'),
@@ -114,7 +114,7 @@ export function SessionChat({
     startPaths.push({
       key: 'edit-agent',
       icon: <Pencil />,
-      iconClassName: 'bg-components-avatar-7-bg text-components-avatar-7-text',
+      iconClassName: 'bg-avatar-7-bg text-avatar-7-fg',
       title: t('agent.explore.editAgent'),
       description: t('agent.explore.start.editDescription'),
       cta: t('agent.explore.start.editCta'),
@@ -125,14 +125,14 @@ export function SessionChat({
   return (
     <section
       className={cn(
-        'flex h-full min-h-0 flex-col bg-components-console-surface',
+        'flex h-full min-h-0 flex-col bg-surface',
         readyEmpty && 'overflow-auto',
       )}
     >
       {runError &&
       status === AgentRuntimeStatus.ERROR &&
       !messages.some((message) => message.error) ? (
-        <p role="alert" className="p-space-md text-sm text-status-error">
+        <p role="alert" className="p-space-md text-sm text-danger-fg">
           {runError}
         </p>
       ) : null}
@@ -178,7 +178,7 @@ export function SessionChat({
           />
         ) : messages.length === 0 ? (
           <header className="mx-auto w-full max-w-3xl px-space-lg pt-space-2xl pb-space-md text-center">
-            <h2 className="text-2xl font-semibold tracking-tight text-balance text-text-primary sm:text-3xl">
+            <h2 className="text-2xl font-semibold tracking-tight text-balance text-fg sm:text-3xl">
               {t(
                 isTaskMode
                   ? 'agent.explore.taskWelcome'
@@ -186,7 +186,7 @@ export function SessionChat({
                 { name: agentName || t('agent.agent') },
               )}
             </h2>
-            <p className="mx-auto mt-space-sm max-w-xl text-sm leading-relaxed text-text-secondary">
+            <p className="mx-auto mt-space-sm max-w-xl text-sm leading-relaxed text-fg-muted">
               {agentDescription || t('agent.explore.noMessagesDescription')}
             </p>
           </header>
@@ -231,7 +231,7 @@ export function SessionChat({
             onSend={onSend}
             onStop={onStop}
           />
-          <p className="px-space-md pb-space-base text-center text-xs text-text-secondary">
+          <p className="px-space-md pb-space-base text-center text-xs text-fg-muted">
             {t('agent.explore.composerHint')}
           </p>
         </div>

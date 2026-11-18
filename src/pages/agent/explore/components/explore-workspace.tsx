@@ -75,10 +75,10 @@ export function ExploreWorkspace({
   const [historyVisible, setHistoryVisible] = useState(true)
   return (
     <WorkspacePageTemplate
-      className="h-full overflow-hidden bg-components-console-surface"
+      className="h-full overflow-hidden bg-surface"
       header={
         <PageToolbar
-          className="min-h-16 border-border-subtle bg-components-console-surface px-space-base md:px-space-md"
+          className="min-h-16 border-line-subtle bg-surface px-space-base md:px-space-md"
           left={
             <div className="flex min-w-0 items-center gap-space-sm">
               <Button
@@ -114,7 +114,7 @@ export function ExploreWorkspace({
                 <SheetContent
                   side="left"
                   showCloseButton={false}
-                  className="flex w-full max-w-sm flex-col gap-space-sm bg-components-sidebar-bg p-space-base motion-reduce:animate-none motion-reduce:transition-none"
+                  className="flex w-full max-w-sm flex-col gap-space-sm bg-canvas p-space-base motion-reduce:animate-none motion-reduce:transition-none"
                 >
                   <SheetHeader className="flex-row items-center justify-between space-y-0 text-left">
                     <SheetTitle>{t('agent.explore.history')}</SheetTitle>
@@ -141,12 +141,12 @@ export function ExploreWorkspace({
                 badge="agent"
               />
               <div className="min-w-0">
-                <h1 className="truncate text-base font-semibold text-text-primary">
+                <h1 className="truncate text-base font-semibold text-fg">
                   {agentName}
                 </h1>
                 {sessionName ? (
                   <p
-                    className="max-w-xs truncate text-xs text-text-secondary"
+                    className="max-w-xs truncate text-xs text-fg-muted"
                     title={sessionName}
                   >
                     {sessionName}
@@ -190,7 +190,7 @@ export function ExploreWorkspace({
                       variant="ghost"
                       size="sm"
                       aria-label={t('agent.runtime.mode.label')}
-                      className="hidden gap-space-xs text-xs text-text-secondary sm:inline-flex"
+                      className="hidden gap-space-xs text-xs text-fg-muted sm:inline-flex"
                     >
                       {runModeLabel}
                       <ChevronDown className="size-icon-sm" />
@@ -199,7 +199,7 @@ export function ExploreWorkspace({
                   <PopoverContent
                     collisionPadding={8}
                     align="end"
-                    className="border-border-default bg-components-console-surface p-space-base motion-reduce:animate-none"
+                    className="border-line bg-surface p-space-base motion-reduce:animate-none"
                   >
                     {runMode}
                   </PopoverContent>
@@ -236,7 +236,7 @@ export function ExploreWorkspace({
                 </SheetTrigger>
                 <SheetContent
                   showCloseButton={false}
-                  className="flex w-full max-w-lg flex-col gap-space-md overflow-hidden bg-components-console-surface p-space-lg motion-reduce:animate-none motion-reduce:transition-none sm:max-w-lg"
+                  className="flex w-full max-w-lg flex-col gap-space-md overflow-hidden bg-surface p-space-lg motion-reduce:animate-none motion-reduce:transition-none sm:max-w-lg"
                 >
                   <SheetHeader className="flex-row items-center justify-between space-y-0 text-left">
                     <SheetTitle>{t('agent.explore.details')}</SheetTitle>
@@ -255,7 +255,7 @@ export function ExploreWorkspace({
                   </SheetDescription>
                   <div className="min-h-0 flex-1 overflow-auto">
                     {runMode ? (
-                      <div className="mb-space-lg border-b border-border-subtle pb-space-base">
+                      <div className="mb-space-lg border-b border-line-subtle pb-space-base">
                         {runMode}
                       </div>
                     ) : null}
@@ -283,7 +283,7 @@ export function ExploreWorkspace({
           <aside
             id="explore-history"
             aria-label={t('agent.explore.history')}
-            className="hidden w-64 shrink-0 border-r border-border-subtle bg-components-sidebar-bg md:block"
+            className="hidden w-64 shrink-0 border-r border-line-subtle bg-canvas md:block"
           >
             {history}
           </aside>

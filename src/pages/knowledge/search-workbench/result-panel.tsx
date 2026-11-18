@@ -86,14 +86,14 @@ export const ResultPanel: React.FC<ResultPanelProps> = ({
           <div className="min-w-0">
             <div className="flex items-center gap-space-sm">
               <FileText
-                className="size-icon-md text-text-secondary"
+                className="size-icon-md text-fg-muted"
                 aria-hidden="true"
               />
-              <h2 className="text-base font-semibold text-text-primary">
+              <h2 className="text-base font-semibold text-fg">
                 {t('knowledge.search.resultsTitle')}
               </h2>
             </div>
-            <div className="mt-space-xs flex flex-wrap items-center gap-space-sm text-sm text-text-secondary">
+            <div className="mt-space-xs flex flex-wrap items-center gap-space-sm text-sm text-fg-muted">
               <span className={isSearching ? 'text-shimmer' : undefined}>
                 {isSearching
                   ? t('knowledge.search.searching')
@@ -114,7 +114,7 @@ export const ResultPanel: React.FC<ResultPanelProps> = ({
               )}
               {docAggs.length > 0 && (
                 <>
-                  <span className="text-text-tertiary">
+                  <span className="text-fg-subtle">
                     {t('knowledge.search.source')}
                   </span>
                   {docAggs.slice(0, 3).map((doc) => (
@@ -122,7 +122,7 @@ export const ResultPanel: React.FC<ResultPanelProps> = ({
                       key={doc.doc_id}
                       content={`${doc.doc_name}: ${t('knowledge.search.chunksCount', { count: doc.count })}`}
                     >
-                      <span className="inline-flex h-5.5 max-w-40 min-w-0 items-center gap-space-xs rounded-radius-full border border-border-subtle bg-background-subtle pr-space-sm pl-space-2xs text-xs text-text-secondary">
+                      <span className="inline-flex h-5.5 max-w-40 min-w-0 items-center gap-space-xs rounded-radius-full border border-line-subtle bg-sunken pr-space-sm pl-space-2xs text-xs text-fg-muted">
                         <FileKindTile name={doc.doc_name} size="xs" />
                         <span className="truncate">{doc.doc_name}</span>
                       </span>
@@ -142,7 +142,7 @@ export const ResultPanel: React.FC<ResultPanelProps> = ({
         </div>
 
         <div className="mt-space-sm flex items-center gap-space-sm">
-          <span className="text-sm text-text-secondary">
+          <span className="text-sm text-fg-muted">
             {t('knowledge.search.topResults')}
           </span>
           <Select
@@ -216,7 +216,7 @@ export const ResultPanel: React.FC<ResultPanelProps> = ({
             description={t('knowledge.search.noResultsDescription')}
             icon={<Search className="size-icon-lg" />}
             action={
-              <span className="text-sm text-text-secondary">
+              <span className="text-sm text-fg-muted">
                 {t('knowledge.search.querySummary', {
                   query: requestScope?.question,
                 })}
@@ -227,7 +227,7 @@ export const ResultPanel: React.FC<ResultPanelProps> = ({
         ) : (
           <div className="space-y-space-base">
             {results.some(hasUnavailableScore) && (
-              <p className="text-xs text-text-secondary">
+              <p className="text-xs text-fg-muted">
                 {t('knowledge.search.scoreUnavailableNote')}
               </p>
             )}

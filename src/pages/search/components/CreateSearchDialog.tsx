@@ -130,9 +130,9 @@ const CreateSearchDialog: React.FC<CreateSearchDialogProps> = ({
               icon={name.trim() ? undefined : <Search />}
             />
             <div>
-              <DialogTitle>创建搜索应用</DialogTitle>
+              <DialogTitle>{t('searchPage.createDialog.title')}</DialogTitle>
               <DialogDescription>
-                配置知识库和检索参数，快速查找文档信息
+                {t('searchPage.createDialog.description')}
               </DialogDescription>
             </div>
           </div>
@@ -142,7 +142,8 @@ const CreateSearchDialog: React.FC<CreateSearchDialogProps> = ({
           {/* Name */}
           <div className="space-y-2">
             <Label>
-              名称 <span className="text-status-error">*</span>
+              {t('searchPage.createDialog.name')}{' '}
+              <span className="text-danger-fg">*</span>
             </Label>
             <Input
               value={name}
@@ -150,22 +151,20 @@ const CreateSearchDialog: React.FC<CreateSearchDialogProps> = ({
                 setName(e.target.value)
                 if (nameError) setNameError(null)
               }}
-              placeholder="输入搜索应用名称"
+              placeholder={t('searchPage.createDialog.namePlaceholder')}
               variant={nameError ? 'destructive' : 'default'}
               aria-invalid={!!nameError}
             />
-            {nameError && (
-              <p className="text-xs text-status-error">{nameError}</p>
-            )}
+            {nameError && <p className="text-xs text-danger-fg">{nameError}</p>}
           </div>
 
           {/* Description */}
           <div className="space-y-2">
-            <Label>描述</Label>
+            <Label>{t('searchPage.createDialog.descriptionLabel')}</Label>
             <Textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="简要描述搜索应用的用途"
+              placeholder={t('searchPage.createDialog.descriptionPlaceholder')}
               rows={3}
             />
           </div>
@@ -173,28 +172,34 @@ const CreateSearchDialog: React.FC<CreateSearchDialogProps> = ({
           {/* Knowledge Base Selection */}
           <div className="space-y-2">
             <Label>
-              知识库 <span className="text-status-error">*</span>
+              {t('searchPage.createDialog.knowledge')}{' '}
+              <span className="text-danger-fg">*</span>
             </Label>
             <MultiSelectWithSearch
-              options={[{ label: '知识库', options: kbOptions }]}
+              options={[
+                {
+                  label: t('searchPage.createDialog.knowledge'),
+                  options: kbOptions,
+                },
+              ]}
               value={kbIds}
               onChange={setKbIds}
-              placeholder="选择关联的知识库"
-              emptyText="暂无知识库"
+              placeholder={t('searchPage.createDialog.knowledgePlaceholder')}
+              emptyText={t('searchPage.createDialog.knowledgeEmpty')}
             />
-            <p className="text-xs text-text-tertiary">
-              选择要搜索的知识库，支持多选
+            <p className="text-xs text-fg-subtle">
+              {t('searchPage.createDialog.knowledgeHint')}
             </p>
           </div>
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={handleClose} disabled={isLoading}>
-            取消
+            {t('common.cancel')}
           </Button>
           <Button onClick={handleSubmit} disabled={isLoading || !name.trim()}>
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            创建
+            {t('searchPage.createDialog.submit')}
           </Button>
         </DialogFooter>
       </DialogContent>

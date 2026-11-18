@@ -82,8 +82,8 @@ const PptPreviewInner: FC<{
 
   return (
     <div className="ppt-previewer flex h-full w-full flex-col" ref={measureRef}>
-      <div className="flex shrink-0 items-center justify-between border-b border-border-subtle bg-background-surface px-space-md py-space-xs">
-        <div className="flex items-center gap-space-xs text-text-secondary">
+      <div className="flex shrink-0 items-center justify-between border-b border-line-subtle bg-surface px-space-md py-space-xs">
+        <div className="flex items-center gap-space-xs text-fg-muted">
           <Presentation className="size-icon-sm shrink-0" aria-hidden="true" />
           {!loading && slideCount > 0 && (
             <span className="text-sm">
@@ -104,7 +104,7 @@ const PptPreviewInner: FC<{
           >
             <ZoomOut className="size-icon-sm" aria-hidden="true" />
           </Button>
-          <span className="min-w-12 text-center text-sm text-text-secondary tabular-nums">
+          <span className="min-w-12 text-center text-sm text-fg-muted tabular-nums">
             {zoom}%
           </span>
           <Button

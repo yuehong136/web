@@ -60,9 +60,7 @@ const KnowledgeBaseOptionLabel: FC<{
     <div
       className={cn(
         'flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border',
-        isSelected
-          ? 'border-primary bg-primary'
-          : 'border-border-default opacity-50',
+        isSelected ? 'border-primary bg-primary' : 'border-line opacity-50',
         isDisabled && 'cursor-not-allowed',
       )}
     >
@@ -74,7 +72,7 @@ const KnowledgeBaseOptionLabel: FC<{
     <span
       className={cn(
         'flex-1 truncate text-sm',
-        isDisabled && 'text-text-disabled',
+        isDisabled && 'text-fg-disabled',
       )}
     >
       {kb.name}
@@ -84,8 +82,8 @@ const KnowledgeBaseOptionLabel: FC<{
       <div
         className={cn(
           'max-w-[120px] shrink-0 truncate rounded-md border px-2 py-0.5 text-xs',
-          'border-border-subtle bg-background-subtle text-text-secondary',
-          isDisabled && 'text-text-disabled',
+          'border-line-subtle bg-sunken text-fg-muted',
+          isDisabled && 'text-fg-disabled',
         )}
         title={kb.nickname}
       >
@@ -96,14 +94,11 @@ const KnowledgeBaseOptionLabel: FC<{
     {kb.embd_id && (
       <div
         className={cn(
-          'flex max-w-40 shrink-0 items-center rounded-radius-md border border-border-subtle bg-background-subtle px-space-sm py-space-2xs',
+          'flex max-w-40 shrink-0 items-center rounded-radius-md border border-line-subtle bg-sunken px-space-sm py-space-2xs',
           isDisabled && 'opacity-60',
         )}
       >
-        <EmbeddingModelLabel
-          modelId={kb.embd_id}
-          className="text-text-secondary"
-        />
+        <EmbeddingModelLabel modelId={kb.embd_id} className="text-fg-muted" />
       </div>
     )}
   </div>
@@ -115,7 +110,7 @@ const SelectedKnowledgeBaseBadge: FC<{
 }> = ({ kb, onRemove }) => (
   <Badge
     variant="secondary"
-    className="flex h-6 max-w-[240px] items-center gap-1 bg-components-badge-info-bg px-1.5 py-0.5 text-xs text-components-badge-info-text"
+    className="flex h-6 max-w-[240px] items-center gap-1 bg-info-soft px-1.5 py-0.5 text-xs text-info-fg"
   >
     <KnowledgeAvatar knowledgeBase={kb} size="2xs" />
     <span className="min-w-0 truncate">{kb.name}</span>
@@ -205,10 +200,7 @@ export const KnowledgeBaseSelector: FC<KnowledgeBaseSelectorProps> = ({
     <div className={cn('space-y-2', className)}>
       {showLabel && (
         <div className="flex items-center">
-          <span
-            className="block text-xs font-medium text-text-primary"
-            title={tooltip}
-          >
+          <span className="block text-xs font-medium text-fg" title={tooltip}>
             {labelText}
           </span>
         </div>
@@ -231,7 +223,7 @@ export const KnowledgeBaseSelector: FC<KnowledgeBaseSelectorProps> = ({
             aria-expanded={open}
             disabled={disabled}
             className={cn(
-              'group min-h-10 w-full justify-between border border-border bg-transparent px-3 font-normal outline-hidden outline-offset-0 hover:bg-state-hover focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary/30',
+              'group min-h-10 w-full justify-between border border-border bg-transparent px-3 font-normal outline-hidden outline-offset-0 hover:bg-fill-hover focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary/30',
               selectedIds.length > 0 ? 'h-auto py-1.5' : 'h-10',
             )}
           >
@@ -257,7 +249,7 @@ export const KnowledgeBaseSelector: FC<KnowledgeBaseSelectorProps> = ({
                 <div className="ml-2 flex shrink-0 items-center">
                   <XIcon
                     size={16}
-                    className="mr-2 hidden cursor-pointer text-text-tertiary group-hover:block hover:text-text-secondary"
+                    className="mr-2 hidden cursor-pointer text-fg-subtle group-hover:block hover:text-fg-muted"
                     onClick={(event) => {
                       event.stopPropagation()
                       handleClear()
@@ -269,20 +261,20 @@ export const KnowledgeBaseSelector: FC<KnowledgeBaseSelectorProps> = ({
                   />
                   <ChevronDownIcon
                     size={16}
-                    className="shrink-0 text-text-tertiary"
+                    className="shrink-0 text-fg-subtle"
                     aria-hidden="true"
                   />
                 </div>
               </div>
             ) : (
               <>
-                <span className="flex-1 text-left text-sm text-text-tertiary">
+                <span className="flex-1 text-left text-sm text-fg-subtle">
                   {placeholderText}
                 </span>
                 <div className="ml-2 flex shrink-0 items-center">
                   <ChevronDownIcon
                     size={16}
-                    className="shrink-0 text-text-tertiary"
+                    className="shrink-0 text-fg-subtle"
                     aria-hidden="true"
                   />
                 </div>
@@ -301,7 +293,7 @@ export const KnowledgeBaseSelector: FC<KnowledgeBaseSelectorProps> = ({
               )}
               value={searchValue}
               onValueChange={setSearchValue}
-              className="placeholder:text-text-tertiary"
+              className="placeholder:text-fg-subtle"
             />
             <CommandList className="mt-2 max-h-64 outline-hidden">
               {isError ? (
@@ -309,12 +301,12 @@ export const KnowledgeBaseSelector: FC<KnowledgeBaseSelectorProps> = ({
                   {t('common.retry')}
                 </Button>
               ) : isSearching ? (
-                <div className="py-6 text-center text-sm text-text-tertiary">
+                <div className="py-6 text-center text-sm text-fg-subtle">
                   {t('knowledge.shared.knowledgeBaseSelector.searching')}
                 </div>
               ) : displayKbs.length === 0 ? (
                 <CommandEmpty>
-                  <div className="py-4 text-text-tertiary">
+                  <div className="py-4 text-fg-subtle">
                     {searchValue.trim()
                       ? t('knowledge.shared.knowledgeBaseSelector.noResults')
                       : t('knowledge.shared.knowledgeBaseSelector.empty')}
@@ -332,7 +324,7 @@ export const KnowledgeBaseSelector: FC<KnowledgeBaseSelectorProps> = ({
                         onSelect={() => handleSelect(kb)}
                         className={cn(
                           'cursor-pointer',
-                          isSelected && 'bg-state-selected-bg',
+                          isSelected && 'bg-accent-soft',
                           disabledOption && 'cursor-not-allowed opacity-60',
                         )}
                         disabled={disabledOption}
@@ -355,7 +347,7 @@ export const KnowledgeBaseSelector: FC<KnowledgeBaseSelectorProps> = ({
             </CommandList>
 
             {displayKbs.length > 0 && (
-              <div className="absolute right-0 bottom-0 left-0 mx-4 flex items-center justify-between border-t border-border-subtle bg-background">
+              <div className="absolute right-0 bottom-0 left-0 mx-4 flex items-center justify-between border-t border-line-subtle bg-background">
                 <CommandSeparator />
                 {selectedIds.length > 0 && (
                   <>

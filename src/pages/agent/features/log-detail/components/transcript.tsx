@@ -14,7 +14,7 @@ export function Transcript({ messages }: TranscriptProps) {
 
   if (!messages.length) {
     return (
-      <p className="text-sm text-text-secondary">
+      <p className="text-sm text-fg-muted">
         {t('agent.runtimePanel.logDetail.noTranscript')}
       </p>
     )

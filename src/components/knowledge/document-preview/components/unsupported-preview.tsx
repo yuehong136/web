@@ -37,11 +37,11 @@ export const UnsupportedPreview: FC<{
   const tileName = filename?.includes('.') ? filename : kind
 
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center gap-space-md bg-background-subtle p-space-xl text-center">
+    <div className="flex h-full w-full flex-col items-center justify-center gap-space-md bg-sunken p-space-xl text-center">
       <PreviewFileMark name={tileName} icon={icon} />
       <div className="flex max-w-sm flex-col gap-space-xs">
-        <h3 className="text-base font-medium text-text-primary">{label}</h3>
-        <p className="text-sm text-text-secondary">
+        <h3 className="text-base font-medium text-fg">{label}</h3>
+        <p className="text-sm text-fg-muted">
           {canDownload
             ? t('knowledge.preview.unsupportedWithDownload')
             : t('knowledge.preview.unsupported')}

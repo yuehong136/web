@@ -5,7 +5,7 @@ export function CompatibilityFailure() {
   const { t } = useTranslation()
 
   return (
-    <main className="h-dvh bg-components-app-shell-bg">
+    <main className="h-dvh bg-canvas">
       <PageErrorState
         titleAs="h1"
         title={t('routeErrors.unexpected.title', '页面无法显示')}

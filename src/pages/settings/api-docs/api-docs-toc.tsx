@@ -39,13 +39,13 @@ export function ApiDocsToc({
         onChange={(event) => onQueryChange(event.target.value)}
       />
       {groups.length === 0 ? (
-        <p className="px-space-xs text-sm text-text-tertiary">
+        <p className="px-space-xs text-sm text-fg-subtle">
           {t('settings.apiDocs.noMatches')}
         </p>
       ) : (
         groups.map((group) => (
           <div key={group.tag} className="flex flex-col gap-space-2xs">
-            <p className="px-space-xs pt-space-xs text-xs font-medium text-text-tertiary">
+            <p className="px-space-xs pt-space-xs text-xs font-medium text-fg-subtle">
               {tagLabel(group.tag)}
             </p>
             <ul className="flex flex-col">
@@ -62,9 +62,8 @@ export function ApiDocsToc({
                         onNavigate(anchor)
                       }}
                       className={cn(
-                        'flex min-h-[var(--control-height-sm)] items-center gap-space-xs rounded-radius-sm px-space-xs text-sm text-text-secondary outline-hidden hover:bg-state-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-focus',
-                        active &&
-                          'bg-state-selected-bg font-medium text-text-primary',
+                        'flex min-h-[var(--control-height-sm)] items-center gap-space-xs rounded-radius-sm px-space-xs text-sm text-fg-muted outline-hidden hover:bg-fill-hover hover:text-fg focus-visible:ring-2 focus-visible:ring-line-focus',
+                        active && 'bg-accent-soft font-medium text-fg',
                       )}
                     >
                       <MethodBadge

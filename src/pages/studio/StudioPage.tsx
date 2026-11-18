@@ -218,7 +218,7 @@ export function StudioPage() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-status-error"
+                className="text-danger-fg"
                 disabled={deleteApps.isPending}
                 onClick={() => setDeletion({ ids: [...selectedIds] })}
               >

@@ -62,9 +62,9 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
                     ? () => onImageClick?.(chunk, idx)
                     : undefined
                 }
-                className="max-h-36 rounded-lg border border-border-subtle object-contain transition-transform hover:scale-105"
+                className="max-h-36 rounded-lg border border-line-subtle object-contain transition-transform hover:scale-105"
               />
-              <span className="text-xs font-medium text-text-accent">
+              <span className="text-xs font-medium text-accent-fg">
                 Fig. {Number(ref.id) + 1}
               </span>
             </div>

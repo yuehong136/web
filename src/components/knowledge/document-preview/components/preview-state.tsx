@@ -8,7 +8,7 @@ import { Spinner } from '@/components/ui/spinner'
 export const LoadingState: FC<{ message?: string }> = ({ message }) => {
   const { t } = useTranslation()
   return (
-    <div className="flex h-full w-full items-center justify-center bg-background-subtle">
+    <div className="flex h-full w-full items-center justify-center bg-sunken">
       <Spinner
         size="lg"
         stacked
@@ -35,7 +35,7 @@ export const PreviewFileMark: FC<{ name?: string; icon?: ReactNode }> = ({
   ) : (
     <span
       aria-hidden="true"
-      className="flex size-14 items-center justify-center rounded-radius-xl bg-components-page-state-icon-bg text-components-page-state-icon [&_svg]:size-icon-lg"
+      className="flex size-14 items-center justify-center rounded-radius-xl bg-fill-muted text-fg-subtle [&_svg]:size-icon-lg"
     >
       {icon ?? <FileText />}
     </span>
@@ -54,14 +54,14 @@ export const ErrorState: FC<{
   return (
     <div
       role="alert"
-      className="flex h-full w-full flex-col items-center justify-center gap-space-md bg-background-subtle p-space-xl text-center"
+      className="flex h-full w-full flex-col items-center justify-center gap-space-md bg-sunken p-space-xl text-center"
     >
       <PreviewFileMark name={fileKind ?? filename} icon={icon} />
       <div className="flex max-w-sm flex-col gap-space-xs">
-        <p className="text-base font-medium text-text-primary">
+        <p className="text-base font-medium text-fg">
           {title ?? t('knowledge.preview.loadFailed')}
         </p>
-        <p className="text-sm text-text-secondary">
+        <p className="text-sm text-fg-muted">
           {message ?? t('knowledge.preview.unknownError')}
         </p>
       </div>

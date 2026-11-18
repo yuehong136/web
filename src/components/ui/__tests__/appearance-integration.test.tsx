@@ -43,7 +43,7 @@ afterEach(() => {
 })
 
 it('keeps a mounted popup and draft inside its complete source scope while the preset changes', async () => {
-  function Surface({ preset }: { preset: 'paper' | 'ocean' }) {
+  function Surface({ preset }: { preset: 'clay' | 'celadon' }) {
     const [draft, setDraft] = useState('next question')
     return (
       <ScopedTheme
@@ -67,19 +67,19 @@ it('keeps a mounted popup and draft inside its complete source scope while the p
       </ScopedTheme>
     )
   }
-  await act(async () => root.render(<Surface preset="paper" />))
+  await act(async () => root.render(<Surface preset="clay" />))
   const input = container.querySelector('input')
   const popup = container.querySelector('[data-scope-probe]')
   expect(popup).not.toBeNull()
   expect(popup?.closest('[data-preset]')?.getAttribute('data-preset')).toBe(
-    'paper',
+    'clay',
   )
-  await act(async () => root.render(<Surface preset="ocean" />))
+  await act(async () => root.render(<Surface preset="celadon" />))
   expect(container.querySelector('input')).toBe(input)
   expect(input?.value).toBe('next question')
   expect(container.querySelector('[data-scope-probe]')).toBe(popup)
   const scope = popup?.closest('[data-preset]')
-  expect(scope?.getAttribute('data-preset')).toBe('ocean')
+  expect(scope?.getAttribute('data-preset')).toBe('celadon')
   expect(scope?.getAttribute('data-theme')).toBe('dark')
   expect(scope?.getAttribute('data-density')).toBe('compact')
   expect(scope?.getAttribute('data-text-scale')).toBe('1.25')
@@ -114,7 +114,7 @@ it('keeps dialogs in their full origin scope with unique names and localized clo
     await act(async () =>
       root.render(
         <ScopedTheme
-          preset="ocean"
+          preset="celadon"
           theme="dark"
           density="compact"
           textScale={1.25}
@@ -141,7 +141,7 @@ it('keeps dialogs in their full origin scope with unique names and localized clo
         index ? 'Second panel' : 'First panel',
       )
       expect(dialog.closest('[data-preset]')?.getAttribute('data-preset')).toBe(
-        'ocean',
+        'celadon',
       )
       expect(
         dialog.closest('[data-density]')?.getAttribute('data-density'),

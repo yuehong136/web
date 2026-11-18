@@ -62,19 +62,19 @@ export function DocumentDropHint({
         if (files.length) onUpload(files)
       }}
       className={cn(
-        'mx-space-md mb-space-sm hidden shrink-0 items-center gap-space-sm rounded-radius-lg border border-dashed px-space-base py-space-sm text-left text-sm text-text-secondary outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-state-focus disabled:pointer-events-none disabled:opacity-50 sm:flex',
+        'mx-space-md mb-space-sm hidden shrink-0 items-center gap-space-sm rounded-radius-lg border border-dashed px-space-base py-space-sm text-left text-sm text-fg-muted outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-line-focus disabled:pointer-events-none disabled:opacity-50 sm:flex',
         over
-          ? 'border-state-focus bg-state-focus-subtle'
-          : 'border-state-focus-subtle bg-state-focus-10 hover:border-state-focus',
+          ? 'border-line-focus bg-accent-soft'
+          : 'border-accent-soft bg-accent-soft hover:border-line-focus',
       )}
     >
-      <Upload className="size-icon-md shrink-0 text-text-accent" aria-hidden />
+      <Upload className="size-icon-md shrink-0 text-accent-fg" aria-hidden />
       <span className="min-w-0 truncate">
         {over
           ? t('knowledge.documents.dropHint.release')
           : t('knowledge.documents.dropHint.idle')}
       </span>
-      <span className="hidden min-w-0 truncate text-xs text-text-tertiary lg:inline">
+      <span className="hidden min-w-0 truncate text-xs text-fg-subtle lg:inline">
         {t('knowledge.documents.dropHint.formats')}
       </span>
     </button>

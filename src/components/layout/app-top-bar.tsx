@@ -57,7 +57,7 @@ export const AppTopBar = ({
   return (
     <header
       className={cn(
-        'flex min-h-[var(--workbench-header-height)] shrink-0 items-center gap-space-sm bg-components-nav-bg px-space-sm py-space-xs',
+        'flex min-h-[var(--workbench-header-height)] shrink-0 items-center gap-space-sm bg-surface px-space-sm py-space-xs',
         mobileOnly && 'md:hidden',
       )}
     >
@@ -117,7 +117,7 @@ export const AppTopBar = ({
         <div className="min-w-0 flex-1 md:pl-space-xs">
           {children ??
             (sectionLabel && (
-              <p className="truncate text-base font-semibold tracking-tight text-text-primary">
+              <p className="truncate text-base font-semibold tracking-tight text-fg">
                 {sectionLabel}
               </p>
             ))}

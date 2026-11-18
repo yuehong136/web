@@ -112,7 +112,7 @@ export const CreateApiKeyDialog: FC<CreateApiKeyDialogProps> = memo(
               <div className="space-y-space-xs">
                 <Label htmlFor="create-api-key-name">
                   {t('settings.apiKeys.create.nameLabel')}{' '}
-                  <span className="text-status-error" aria-hidden="true">
+                  <span className="text-danger-fg" aria-hidden="true">
                     *
                   </span>
                 </Label>
@@ -157,7 +157,7 @@ export const CreateApiKeyDialog: FC<CreateApiKeyDialogProps> = memo(
                 <p
                   id={ERROR_ID}
                   role="alert"
-                  className="text-sm text-status-error"
+                  className="text-sm text-danger-fg"
                 >
                   {t(submitErrorKeys[submitError])}
                 </p>

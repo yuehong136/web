@@ -124,9 +124,7 @@ export function DataTable<T>({
       wrapperClassName={cn('min-w-0', className)}
     >
       <TableHeader
-        className={cn(
-          stickyHeader && 'sticky top-0 z-10 bg-background-surface',
-        )}
+        className={cn(stickyHeader && 'sticky top-0 z-10 bg-surface')}
       >
         <TableRow className="hover:bg-transparent">
           {selection ? (
@@ -170,7 +168,7 @@ export function DataTable<T>({
           <TableRow className="hover:bg-transparent">
             <TableCell colSpan={span} className="p-0">
               {emptyState ?? (
-                <p className="px-space-md py-space-lg text-center text-sm text-text-tertiary">
+                <p className="px-space-md py-space-lg text-center text-sm text-fg-subtle">
                   {t('common.noData')}
                 </p>
               )}
@@ -189,7 +187,7 @@ export function DataTable<T>({
                 onClick={onRowClick ? rowClick(row) : undefined}
                 className={cn(
                   'group/row',
-                  isActive && 'bg-state-selected-bg',
+                  isActive && 'bg-accent-soft',
                   onRowClick && 'cursor-pointer',
                 )}
               >
@@ -209,7 +207,7 @@ export function DataTable<T>({
                     key={column.key}
                     className={cn(
                       cellPadding,
-                      'h-[calc(var(--control-height-sm)+2*var(--space-sm))] text-text-secondary tabular-nums',
+                      'h-[calc(var(--control-height-sm)+2*var(--space-sm))] text-fg-muted tabular-nums',
                       density === 'compact' &&
                         'h-[calc(var(--control-height-sm)+2*var(--space-xs))]',
                       columnIndex === 0 && !selection && 'pl-space-md',

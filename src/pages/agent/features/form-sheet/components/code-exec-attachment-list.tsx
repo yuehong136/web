@@ -14,16 +14,16 @@ export function CodeExecAttachmentList({
   if (attachments.length === 0) return null
 
   return (
-    <section className="rounded-radius-lg border border-border-subtle bg-surface-secondary p-space-base">
+    <section className="rounded-radius-lg border border-line-subtle bg-sunken p-space-base">
       <div className="mb-space-sm flex items-center gap-space-sm">
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-radius-md bg-components-system-accent-soft text-components-system-accent-text">
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-radius-md bg-accent-soft text-accent-fg">
           <Paperclip className="size-4" />
         </span>
         <div className="min-w-0">
-          <h5 className="text-sm font-semibold text-text-primary">
+          <h5 className="text-sm font-semibold text-fg">
             {t('flow.attachments', 'Attachments')}
           </h5>
-          <p className="text-xs leading-5 text-text-secondary">
+          <p className="text-xs leading-5 text-fg-muted">
             {t('flow.codeAttachmentsTip', 'Files produced by this code run.')}
           </p>
         </div>
@@ -33,12 +33,12 @@ export function CodeExecAttachmentList({
         {attachments.map((attachment, index) => {
           const link = parseCodeExecAttachmentLink(attachment)
           const linkClassName =
-            'gap-space-xs flex min-w-0 items-center text-components-system-accent-text hover:underline'
+            'gap-space-xs flex min-w-0 items-center text-accent-fg hover:underline'
 
           return (
             <div
               key={`${attachment}-${index}`}
-              className="rounded-radius-md border border-border-subtle bg-surface-primary px-space-sm py-space-xs text-sm"
+              className="rounded-radius-md border border-line-subtle bg-surface px-space-sm py-space-xs text-sm"
             >
               {link.href && isArtifactUrl(link.href) ? (
                 <ArtifactLink href={link.href} className={linkClassName}>
@@ -55,9 +55,7 @@ export function CodeExecAttachmentList({
                   <ExternalLink className="size-3.5 shrink-0" />
                 </a>
               ) : (
-                <span className="break-words text-text-primary">
-                  {link.label}
-                </span>
+                <span className="break-words text-fg">{link.label}</span>
               )}
             </div>
           )

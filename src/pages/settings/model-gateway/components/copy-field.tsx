@@ -31,13 +31,13 @@ export function CopyField({
       className={cn(
         'flex min-w-0 items-center gap-space-sm rounded-radius-md border py-space-2xs pr-space-2xs pl-space-sm',
         emphasis
-          ? 'border-status-info-border bg-status-info-subtle'
-          : 'border-border-subtle bg-background-subtle',
+          ? 'border-info-line bg-info-soft'
+          : 'border-line-subtle bg-sunken',
         className,
       )}
     >
       <code
-        className="min-w-0 flex-1 truncate font-mono text-sm text-text-primary"
+        className="min-w-0 flex-1 truncate font-mono text-sm text-fg"
         title={value}
         data-testid={testId}
       >

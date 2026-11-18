@@ -33,7 +33,7 @@ export function EnvironmentDetailHeader({
   const { t } = useTranslation()
   const id = useId()
   return (
-    <header className="flex flex-wrap items-start gap-space-base border-b border-border-subtle px-space-lg py-space-base">
+    <header className="flex flex-wrap items-start gap-space-base border-b border-line-subtle px-space-lg py-space-base">
       <div className="min-w-0 flex-1 basis-64 space-y-space-2xs">
         <div className="flex items-center gap-space-sm">
           <span
@@ -49,7 +49,7 @@ export function EnvironmentDetailHeader({
                 ? 'environment.detail.newNamePlaceholder'
                 : 'environment.detail.namePlaceholder',
             )}
-            className="min-h-0 border-transparent bg-transparent px-space-xs py-space-2xs text-lg font-semibold text-text-primary hover:border-border-subtle"
+            className="min-h-0 border-transparent bg-transparent px-space-xs py-space-2xs text-lg font-semibold text-fg hover:border-line-subtle"
           />
         </div>
         <Textarea
@@ -58,7 +58,7 @@ export function EnvironmentDetailHeader({
           aria-label={t('environment.detail.descriptionLabel')}
           placeholder={t('environment.detail.descriptionPlaceholder')}
           rows={2}
-          className="ml-space-base min-h-0 w-auto border-transparent bg-transparent px-space-xs py-space-2xs text-sm text-text-secondary hover:border-border-subtle"
+          className="ml-space-base min-h-0 w-auto border-transparent bg-transparent px-space-xs py-space-2xs text-sm text-fg-muted hover:border-line-subtle"
         />
       </div>
       <div className="flex shrink-0 items-center gap-space-base pt-space-xs">
@@ -103,12 +103,12 @@ export function EnvironmentSection({
     <section
       aria-labelledby={id}
       className={cn(
-        'rounded-radius-xl border border-border-subtle bg-components-card-bg',
+        'rounded-radius-xl border border-line-subtle bg-raised',
         className,
       )}
     >
       <div className="flex flex-wrap items-center justify-between gap-space-sm px-space-md pt-space-md pb-space-sm">
-        <h3 id={id} className="text-sm font-semibold text-text-primary">
+        <h3 id={id} className="text-sm font-semibold text-fg">
           {title}
         </h3>
         {actions ? (
@@ -207,14 +207,14 @@ export function VariablesSection({
 export function VariablesEmpty() {
   const { t } = useTranslation()
   return (
-    <div className="flex flex-col items-center gap-space-xs rounded-radius-lg border border-dashed border-border-default px-space-md py-space-xl text-center">
-      <span className="mb-space-xs flex size-10 items-center justify-center rounded-radius-full bg-components-page-state-icon-bg text-components-page-state-icon">
+    <div className="flex flex-col items-center gap-space-xs rounded-radius-lg border border-dashed border-line px-space-md py-space-xl text-center">
+      <span className="mb-space-xs flex size-10 items-center justify-center rounded-radius-full bg-fill-muted text-fg-subtle">
         <Plus className="size-icon-md" aria-hidden="true" />
       </span>
-      <p className="text-sm font-medium text-text-primary">
+      <p className="text-sm font-medium text-fg">
         {t('environment.variables.empty')}
       </p>
-      <p className="text-xs text-text-tertiary">
+      <p className="text-xs text-fg-subtle">
         {t('environment.variables.emptyHint')}
       </p>
     </div>

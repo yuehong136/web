@@ -142,10 +142,10 @@ export const SearchModeSection: React.FC<SearchModeSectionProps> = ({
   return (
     <section className="space-y-space-sm">
       <div>
-        <h4 className="text-sm font-semibold text-text-primary">
+        <h4 className="text-sm font-semibold text-fg">
           {t('knowledge.search.config.mode')}
         </h4>
-        <p className="mt-space-xs text-xs text-text-tertiary">
+        <p className="mt-space-xs text-xs text-fg-subtle">
           {t('knowledge.search.config.modeDescription')}
         </p>
       </div>
@@ -162,8 +162,8 @@ export const SearchModeSection: React.FC<SearchModeSectionProps> = ({
               <label
                 className={`flex items-start gap-space-sm rounded-radius-md border px-space-sm py-space-sm transition-colors ${
                   selected
-                    ? 'border-components-input-border-focus bg-components-input-bg-focus'
-                    : 'border-transparent hover:bg-background-default'
+                    ? 'border-line-focus bg-surface'
+                    : 'border-transparent hover:bg-canvas'
                 } ${disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
               >
                 <RadioGroupItem
@@ -174,7 +174,7 @@ export const SearchModeSection: React.FC<SearchModeSectionProps> = ({
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-space-xs">
                     {option.icon}
-                    <span className="text-sm font-medium text-text-primary">
+                    <span className="text-sm font-medium text-fg">
                       {option.label}
                     </span>
                     {disabled && (
@@ -183,16 +183,16 @@ export const SearchModeSection: React.FC<SearchModeSectionProps> = ({
                       </Badge>
                     )}
                   </div>
-                  <p className="mt-1 text-xs text-text-tertiary">
+                  <p className="mt-1 text-xs text-fg-subtle">
                     {option.description}
                   </p>
                 </div>
               </label>
 
               {searchMode.type === 'hybrid' && option.value === 'hybrid' && (
-                <div className="mt-space-sm ml-space-lg space-y-space-md border-l border-border-default pl-space-base">
+                <div className="mt-space-sm ml-space-lg space-y-space-md border-l border-line pl-space-base">
                   <div>
-                    <label className="mb-2 block text-xs text-text-secondary">
+                    <label className="mb-2 block text-xs text-fg-muted">
                       {t('knowledge.search.config.vectorWeight')}
                     </label>
                     <div className="flex items-center space-x-3">
@@ -228,9 +228,9 @@ export const SearchModeSection: React.FC<SearchModeSectionProps> = ({
               )}
 
               {searchMode.type === 'fusion' && option.value === 'fusion' && (
-                <div className="mt-space-sm ml-space-lg space-y-space-md border-l border-border-default pl-space-base">
+                <div className="mt-space-sm ml-space-lg space-y-space-md border-l border-line pl-space-base">
                   <div>
-                    <label className="mb-2 block text-xs text-text-secondary">
+                    <label className="mb-2 block text-xs text-fg-muted">
                       {t('knowledge.search.config.fusionTextWeight')}
                     </label>
                     <div className="flex items-center space-x-3">

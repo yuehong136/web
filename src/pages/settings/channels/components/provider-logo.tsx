@@ -33,7 +33,7 @@ export const ProviderLogo = ({
   if (!source) {
     return (
       <MessageCircleMore
-        className={cn('text-text-secondary', className)}
+        className={cn('text-fg-muted', className)}
         aria-hidden="true"
       />
     )

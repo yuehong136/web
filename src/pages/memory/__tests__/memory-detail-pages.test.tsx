@@ -143,7 +143,7 @@ it('heads the workspace with the memory identity and extraction model', async ()
   expect(head.querySelector('h1')?.textContent).toBe('Memory workspace')
   expect(head.textContent).toContain('Support memory')
   const avatar = head.querySelector('[data-slot="entity-avatar"] span')!
-  expect(avatar.className).toContain('bg-components-avatar-8-bg')
+  expect(avatar.className).toContain('bg-avatar-8-bg')
   expect(avatar.querySelector('svg')).toBeTruthy()
   const model = head.querySelector('[data-slot="memory-model"]')!
   expect(model.textContent).toBe('gpt-4o')

@@ -72,9 +72,9 @@ const deleteKeyCode = ['Delete', 'Backspace']
 // Utilities outrank xyflow's `@layer xyflow` rules (see
 // styles/application-reset.css), so the floating bar is styled here.
 const controlsClassName = cn(
-  'h-auto w-auto items-center gap-space-2xs rounded-radius-lg border border-border-subtle bg-components-canvas-node-bg p-space-2xs text-text-secondary shadow-elevation-medium',
+  'h-auto w-auto items-center gap-space-2xs rounded-radius-lg border border-line-subtle bg-raised p-space-2xs text-fg-muted shadow-elevation-medium',
   '[&>button]:size-7 [&>button]:rounded-radius-md [&>button]:border-0 [&>button]:bg-transparent [&>button]:p-0 [&>button]:text-inherit [&>button]:transition-colors motion-reduce:[&>button]:transition-none',
-  '[&>button:hover]:bg-state-hover [&>button:hover]:text-text-primary [&>button:focus-visible]:outline-2 [&>button:focus-visible]:outline-state-focus',
+  '[&>button:hover]:bg-fill-hover [&>button:hover]:text-fg [&>button:focus-visible]:outline-2 [&>button:focus-visible]:outline-line-focus',
   '[&>button>svg]:size-icon-xs',
 )
 
@@ -275,7 +275,7 @@ function AgentCanvasInner({
     : agentRuntimeController.nodeElapsedMap
 
   return (
-    <div className="h-full w-full bg-surface-secondary">
+    <div className="h-full w-full bg-sunken">
       {/* SVG 标记定义 - 仅用于声明 <defs>，不参与交互或布局 */}
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -286,7 +286,7 @@ function AgentCanvasInner({
       >
         <defs>
           <marker
-            fill="var(--color-components-canvas-edge-marker-selected)"
+            fill="var(--color-accent-solid)"
             id="selected-marker"
             viewBox="0 0 40 40"
             refX="8"
@@ -299,7 +299,7 @@ function AgentCanvasInner({
             <path d="M 0 0 L 10 5 L 0 10 z" />
           </marker>
           <marker
-            fill="var(--color-components-canvas-edge-marker)"
+            fill="var(--color-fg-disabled)"
             id="logo"
             viewBox="0 0 40 40"
             refX="8"

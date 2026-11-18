@@ -71,28 +71,26 @@ export const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
       <DialogContent size="md" showCloseButton>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-space-sm">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-status-warning-subtle">
-              <KeyRound className="h-4 w-4 text-status-warning" />
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-warning-soft">
+              <KeyRound className="h-4 w-4 text-warning-fg" />
             </span>
             {t('settings.admin.changePassword.title')}
           </DialogTitle>
         </DialogHeader>
 
         {user && (
-          <div className="mx-space-lg flex items-center gap-space-sm rounded-radius-xl bg-surface-secondary px-space-md py-space-base">
+          <div className="mx-space-lg flex items-center gap-space-sm rounded-radius-xl bg-sunken px-space-md py-space-base">
             <EntityAvatar
               name={user.nickname || user.email}
               seed={user.email}
               shape="circle"
             />
             <div className="min-w-0">
-              <p className="truncate text-sm font-medium text-text-primary">
+              <p className="truncate text-sm font-medium text-fg">
                 {user.nickname || user.email}
               </p>
               {user.nickname && (
-                <p className="truncate text-xs text-text-tertiary">
-                  {user.email}
-                </p>
+                <p className="truncate text-xs text-fg-subtle">{user.email}</p>
               )}
             </div>
           </div>
@@ -105,9 +103,9 @@ export const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
             className="space-y-space-lg"
           >
             <div className="space-y-space-xs">
-              <label className="text-sm font-medium text-text-secondary">
+              <label className="text-sm font-medium text-fg-muted">
                 {t('settings.admin.form.newPassword')}{' '}
-                <span className="text-status-error">*</span>
+                <span className="text-danger-fg">*</span>
               </label>
               <Input
                 type={showPassword ? 'text' : 'password'}
@@ -123,7 +121,7 @@ export const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
                   <button
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
-                    className="text-text-tertiary transition-colors hover:text-text-secondary"
+                    className="text-fg-subtle transition-colors hover:text-fg-muted"
                   >
                     {showPassword ? (
                       <EyeOff className="h-4 w-4" />
@@ -135,9 +133,9 @@ export const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
               />
             </div>
             <div className="space-y-space-xs">
-              <label className="text-sm font-medium text-text-secondary">
+              <label className="text-sm font-medium text-fg-muted">
                 {t('settings.admin.form.confirmPassword')}{' '}
-                <span className="text-status-error">*</span>
+                <span className="text-danger-fg">*</span>
               </label>
               <Input
                 type={showPassword ? 'text' : 'password'}

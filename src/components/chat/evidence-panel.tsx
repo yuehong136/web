@@ -69,15 +69,15 @@ export function EvidencePanel({
     <Tabs
       value={tab}
       onValueChange={(value) => onTabChange(value as EvidenceTab)}
-      className="flex h-full min-h-0 flex-col bg-background-surface"
+      className="flex h-full min-h-0 flex-col bg-surface"
       data-workspace-resources
     >
-      <div className="flex shrink-0 items-stretch gap-space-sm border-b border-border-default ps-space-md pe-space-sm">
+      <div className="flex shrink-0 items-stretch gap-space-sm border-b border-line ps-space-md pe-space-sm">
         <TabsList className="min-w-0 overflow-x-auto border-b-0">
           <TabsTrigger value="sources" disabled={!reference}>
             {t('sources')}
             {reference && (
-              <span className="font-mono text-xs font-normal text-text-tertiary">
+              <span className="font-mono text-xs font-normal text-fg-subtle">
                 {citedCount}
               </span>
             )}
@@ -85,7 +85,7 @@ export function EvidencePanel({
           <TabsTrigger value="chunks" disabled={!reference}>
             {t('chunks')}
             {reference && (
-              <span className="font-mono text-xs font-normal text-text-tertiary">
+              <span className="font-mono text-xs font-normal text-fg-subtle">
                 {count}
               </span>
             )}
@@ -148,7 +148,7 @@ export function EvidencePanel({
         {artifact && (
           <Suspense
             fallback={
-              <output className="block p-space-md text-sm text-text-secondary">
+              <output className="block p-space-md text-sm text-fg-muted">
                 {t('artifactLoading')}
               </output>
             }

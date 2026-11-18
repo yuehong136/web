@@ -61,7 +61,7 @@ export function RuntimeChatPanel({
   const isCompact = density === 'compact'
 
   return (
-    <section className="flex h-full min-h-0 flex-1 flex-col bg-surface-primary">
+    <section className="flex h-full min-h-0 flex-1 flex-col bg-surface">
       <div className="flex min-h-0 flex-1 flex-col">
         {messages.length === 0 ? (
           <div className="flex h-full min-h-[240px] items-center justify-center p-space-lg">

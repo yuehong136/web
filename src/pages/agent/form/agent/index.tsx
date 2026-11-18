@@ -197,7 +197,7 @@ export function AgentForm({ node }: INextOperatorForm) {
 
           <Output list={outputs}>
             <div className="flex items-center gap-space-sm">
-              <span className="text-sm text-text-secondary">
+              <span className="text-sm text-fg-muted">
                 {t(
                   'flow.structuredOutput.structuredOutput',
                   'Structured Output',

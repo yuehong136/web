@@ -3,21 +3,21 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  background: var(--color-background-surface);
-  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface);
+  border: 1px solid var(--color-line-strong);
   border-radius: var(--radius-xl);
   box-shadow: var(--elevation-low);
-  color: var(--color-text-primary);
+  color: var(--color-fg);
 }
 .prompt-input:focus-within {
-  border-color: var(--color-state-focus);
+  border-color: var(--color-line-focus);
   box-shadow:
-    0 0 0 1px var(--color-state-focus),
+    0 0 0 1px var(--color-line-focus),
     var(--elevation-low);
 }
 @media (forced-colors: active) {
   .prompt-input:focus-within {
-    outline: 2px solid var(--color-state-focus);
+    outline: 2px solid var(--color-line-focus);
     outline-offset: 0;
   }
 }
@@ -40,7 +40,7 @@
   outline: none;
   background: transparent;
   padding: var(--space-base) var(--space-md) var(--space-xs);
-  color: var(--color-text-primary);
+  color: var(--color-fg);
   font-family: var(--font-sans);
   font-size: var(--text-base);
   line-height: var(--reading-line-height, 1.65);
@@ -52,7 +52,7 @@
   box-shadow: none !important;
 }
 .prompt-input-textarea::placeholder {
-  color: var(--color-text-tertiary);
+  color: var(--color-fg-subtle);
 }
 .prompt-input-textarea:disabled {
   cursor: not-allowed;

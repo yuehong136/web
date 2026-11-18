@@ -10,10 +10,8 @@ export const AuthHeading = ({
   description: React.ReactNode
 }) => (
   <div className="mb-space-lg flex flex-col gap-space-xs">
-    <h1 className="text-xl font-semibold tracking-tight text-text-primary">
-      {title}
-    </h1>
-    <p className="text-sm text-text-secondary">{description}</p>
+    <h1 className="text-xl font-semibold tracking-tight text-fg">{title}</h1>
+    <p className="text-sm text-fg-muted">{description}</p>
   </div>
 )
 
@@ -32,12 +30,12 @@ export const LoginFrame: React.FC<LoginFrameProps> = ({
   children,
 }) => (
   <main
-    className="flex min-h-dvh flex-col items-center justify-center bg-components-app-shell-bg px-space-base py-space-2xl"
+    className="flex min-h-dvh flex-col items-center justify-center bg-canvas px-space-base py-space-2xl"
     data-auth-frame={desktop ? 'desktop' : 'web'}
   >
     <div className="flex w-full max-w-md flex-col gap-space-xl">
       <BrandMark className="self-center" />
-      <section className="rounded-radius-xl border border-components-main-workbench-border bg-components-main-workbench-surface p-space-lg shadow-elevation-low sm:p-space-xl">
+      <section className="rounded-radius-xl border border-line-subtle bg-surface p-space-lg shadow-elevation-low sm:p-space-xl">
         {children}
       </section>
     </div>

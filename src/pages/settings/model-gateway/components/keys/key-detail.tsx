@@ -23,7 +23,7 @@ const STATUS_TONE = {
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="flex flex-col gap-space-sm">
-      <h3 className="text-sm font-semibold text-text-primary">{title}</h3>
+      <h3 className="text-sm font-semibold text-fg">{title}</h3>
       {children}
     </section>
   )
@@ -42,10 +42,10 @@ function KeyScope({
   if (scope.allModels)
     return (
       <div className="text-sm">
-        <span className="font-medium text-text-primary">
+        <span className="font-medium text-fg">
           {t(`${PREFIX}.keys.scopeAll`)}
         </span>{' '}
-        <span className="text-text-tertiary">
+        <span className="text-fg-subtle">
           {t(`${PREFIX}.keys.detail.modeAll`)} ·{' '}
           {t(`${PREFIX}.keys.detail.currentCount`, {
             count: callableModels(catalog, scope).length,
@@ -57,9 +57,7 @@ function KeyScope({
   const stale = staleGrants(catalog, scope)
   if (grants.length === 0 && stale.count === 0)
     return (
-      <p className="text-sm text-text-tertiary">
-        {t(`${PREFIX}.keys.scopeNone`)}
-      </p>
+      <p className="text-sm text-fg-subtle">{t(`${PREFIX}.keys.scopeNone`)}</p>
     )
   return (
     <ul className="flex flex-col gap-space-sm">
@@ -69,10 +67,10 @@ function KeyScope({
             <ProviderLogo provider={grant.provider} size="sm" />
             <div className="min-w-0">
               <div>
-                <span className="font-medium text-text-primary">
+                <span className="font-medium text-fg">
                   {grant.provider} · {connection.instanceName}
                 </span>{' '}
-                <span className="text-text-tertiary">
+                <span className="text-fg-subtle">
                   {t(
                     connection.whole
                       ? `${PREFIX}.keys.detail.modeWhole`
@@ -80,14 +78,14 @@ function KeyScope({
                   )}
                 </span>
               </div>
-              <div className="font-mono text-xs break-all text-text-secondary">
+              <div className="font-mono text-xs break-all text-fg-muted">
                 {connection.models.length === 0
                   ? t(`${PREFIX}.keys.detail.noCallable`)
                   : connection.models.map(({ model, stale: gone }, index) => (
                       <span key={model.model_id}>
                         {index > 0 ? ', ' : null}
                         {gone ? (
-                          <del className="text-text-tertiary">
+                          <del className="text-fg-subtle">
                             {t(`${PREFIX}.keys.detail.staleModel`, {
                               name: model.call_name,
                             })}
@@ -125,8 +123,8 @@ function KeyScope({
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <>
-      <dt className="text-text-tertiary">{label}</dt>
-      <dd className="min-w-0 break-words text-text-primary">{children}</dd>
+      <dt className="text-fg-subtle">{label}</dt>
+      <dd className="min-w-0 break-words text-fg">{children}</dd>
     </>
   )
 }

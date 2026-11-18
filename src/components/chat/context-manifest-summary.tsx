@@ -18,20 +18,20 @@ export function ContextManifestSummary({
   if (!manifest.resources.length) return null
   return (
     <details
-      className={cn('group text-xs text-text-secondary', className)}
+      className={cn('group text-xs text-fg-muted', className)}
       data-context-stage={manifest.stage}
     >
-      <summary className="flex cursor-pointer list-none items-center gap-space-xs rounded-radius-sm py-space-xs focus-visible:outline focus-visible:outline-state-focus">
+      <summary className="flex cursor-pointer list-none items-center gap-space-xs rounded-radius-sm py-space-xs focus-visible:outline focus-visible:outline-line-focus">
         <Layers3 className="size-icon-sm shrink-0" aria-hidden="true" />
         <span>{t('context')}</span>
-        <span className="text-text-caption">{t(manifest.stage)}</span>
+        <span className="text-fg-subtle">{t(manifest.stage)}</span>
         <ChevronDown
           className="ml-auto size-icon-sm shrink-0 group-open:rotate-180"
           aria-hidden="true"
         />
       </summary>
       <div className="space-y-space-sm pt-space-sm">
-        <p className="max-w-prose leading-relaxed text-text-caption">
+        <p className="max-w-prose leading-relaxed text-fg-subtle">
           {t(
             manifest.stage === 'submitted'
               ? 'snapshotNotice'
@@ -47,7 +47,7 @@ export function ContextManifestSummary({
               data-context-availability={resource.availability}
             >
               <span>{t(resource.kind)}</span>
-              <span className="min-w-0 font-medium break-words text-text-primary">
+              <span className="min-w-0 font-medium break-words text-fg">
                 {resource.kind === 'model' ? (
                   <ModelIdentity
                     reference={resource.id}
@@ -58,7 +58,7 @@ export function ContextManifestSummary({
                   resource.label
                 )}
               </span>
-              <span className="text-text-caption">
+              <span className="text-fg-subtle">
                 {t(resource.origin)} · {t(resource.availability)}
               </span>
             </li>

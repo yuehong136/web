@@ -15,7 +15,7 @@ const TooltipTrigger = TooltipPrimitive.Trigger
 
 /** DreamJira tooltip: a small surface card, not an inverted bubble. */
 const tooltipContentClass =
-  'z-50 max-w-sm overflow-auto rounded-radius-md border border-border-default bg-components-popover-bg px-space-sm py-space-xs text-xs leading-4 whitespace-pre-wrap text-text-primary shadow-elevation-medium animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 motion-reduce:animate-none'
+  'z-50 max-w-sm overflow-auto rounded-radius-md border border-line bg-overlay px-space-sm py-space-xs text-xs leading-4 whitespace-pre-wrap text-fg shadow-elevation-medium animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 motion-reduce:animate-none'
 
 const TooltipContent = React.forwardRef<
   React.ElementRef<typeof TooltipPrimitive.Content>,
@@ -143,7 +143,7 @@ export const FormTooltip: React.FC<{ tooltip: React.ReactNode }> = ({
             }}
             className="inline-flex cursor-help"
           >
-            <CircleHelp className="ml-space-xs size-icon-xs text-text-tertiary transition-colors hover:text-text-secondary" />
+            <CircleHelp className="ml-space-xs size-icon-xs text-fg-subtle transition-colors hover:text-fg-muted" />
           </span>
         </TooltipTrigger>
         <TooltipContent>{tooltip}</TooltipContent>

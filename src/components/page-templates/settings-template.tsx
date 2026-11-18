@@ -63,7 +63,7 @@ export function SettingsTemplate({
         </WorkbenchHeaderSlot>
       ) : null}
       {tabs ? (
-        <div className="flex min-h-[var(--control-height-lg)] shrink-0 items-stretch overflow-x-auto border-b border-border-subtle px-space-md">
+        <div className="flex min-h-[var(--control-height-lg)] shrink-0 items-stretch overflow-x-auto border-b border-line-subtle px-space-md">
           {tabs}
         </div>
       ) : null}
@@ -76,12 +76,10 @@ export function SettingsTemplate({
             <div className="mb-space-lg flex flex-wrap items-start gap-space-md">
               <div className="min-w-0 flex-1 basis-60">
                 {title ? (
-                  <h2 className="text-base font-semibold text-text-primary">
-                    {title}
-                  </h2>
+                  <h2 className="text-base font-semibold text-fg">{title}</h2>
                 ) : null}
                 {description ? (
-                  <p className="mt-space-2xs text-sm text-text-secondary">
+                  <p className="mt-space-2xs text-sm text-fg-muted">
                     {description}
                   </p>
                 ) : null}

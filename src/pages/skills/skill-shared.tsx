@@ -23,7 +23,7 @@ export function SkillError({ error }: { error: unknown }) {
   const key = `skills.errors.${code}`
   const statusKey = `skills.errors.HTTP_${error instanceof APIError ? error.status : 0}`
   return (
-    <p role="alert" className="text-sm text-status-error">
+    <p role="alert" className="text-sm text-danger-fg">
       {i18n.exists(key)
         ? t(key)
         : i18n.exists(statusKey)
@@ -112,7 +112,7 @@ function SkillOperationCard({
   const operation = query.data
   return (
     <section
-      className="rounded-radius-lg border border-border-default bg-background-subtle p-space-base"
+      className="rounded-radius-lg border border-line bg-sunken p-space-base"
       aria-live="polite"
     >
       <div className="flex flex-wrap items-center justify-between gap-space-sm">
@@ -136,11 +136,9 @@ function SkillOperationCard({
             (['sealed', 'indexing'].includes(operation.phase) ||
               (operation.phase === 'done' &&
                 operation.state === 'succeeded')) && (
-              <p className="text-sm text-text-secondary">
-                {t('skills.filesStored')}
-              </p>
+              <p className="text-sm text-fg-muted">{t('skills.filesStored')}</p>
             )}
-          <p className="text-sm text-text-secondary">
+          <p className="text-sm text-fg-muted">
             {t('skills.progress', operation.progress)}
           </p>
           {operation.error && <SkillError error={operation.error.error_code} />}
@@ -180,7 +178,7 @@ function SkillOperationCard({
       ) : (
         !query.error && <p>{t('skills.loading')}</p>
       )}
-      <details className="pt-space-xs text-xs text-text-caption">
+      <details className="pt-space-xs text-xs text-fg-subtle">
         <summary className="cursor-pointer">{t('skills.taskDetails')}</summary>
         <span className="font-mono break-all">{id}</span>
       </details>

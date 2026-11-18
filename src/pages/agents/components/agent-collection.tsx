@@ -168,12 +168,7 @@ function AgentChips({ flow }: { flow: AgentFlow }) {
     <>
       {datasets ? (
         <ResourceChip
-          icon={
-            <BookOpen
-              aria-hidden="true"
-              className="text-components-avatar-5-text"
-            />
-          }
+          icon={<BookOpen aria-hidden="true" className="text-avatar-5-fg" />}
         >
           {t('agents.knowledgeLinked', { count: datasets })}
         </ResourceChip>

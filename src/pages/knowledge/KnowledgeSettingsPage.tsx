@@ -241,7 +241,7 @@ const KnowledgeSettingsPage: React.FC = () => {
       <KnowledgeSectionTemplate
         title={t('knowledge.settings.title')}
         subline={
-          <p className="text-xs text-text-tertiary">
+          <p className="text-xs text-fg-subtle">
             {t('knowledge.settings.description')}
           </p>
         }
@@ -294,7 +294,7 @@ const KnowledgeSettingsPage: React.FC = () => {
               >
                 <div className="space-y-space-lg">
                   <GraphRagFormFields />
-                  <div className="border-t border-border-subtle pt-space-md">
+                  <div className="border-t border-line-subtle pt-space-md">
                     <RaptorFormFields />
                   </div>
                 </div>
@@ -309,7 +309,7 @@ const KnowledgeSettingsPage: React.FC = () => {
                     name="parseType"
                     render={({ field }) => (
                       <FormItem className="flex items-center gap-space-xs space-y-0">
-                        <FormLabel className="w-1/4 shrink-0 text-sm text-text-secondary">
+                        <FormLabel className="w-1/4 shrink-0 text-sm text-fg-muted">
                           {t('knowledge.settings.fields.parseType')}
                         </FormLabel>
                         <div className="w-3/4">
@@ -327,7 +327,7 @@ const KnowledgeSettingsPage: React.FC = () => {
                                   className="flex cursor-pointer items-center gap-space-sm"
                                 >
                                   <RadioGroupItem value={String(opt.value)} />
-                                  <span className="text-sm text-text-secondary">
+                                  <span className="text-sm text-fg-muted">
                                     {t(
                                       opt.value === 1
                                         ? 'knowledge.settings.options.parseType.builtin'
@@ -356,7 +356,7 @@ const KnowledgeSettingsPage: React.FC = () => {
                               tooltip={t(
                                 'knowledge.settings.fields.chunkMethodTooltip',
                               )}
-                              className="w-1/4 shrink-0 text-sm text-text-secondary"
+                              className="w-1/4 shrink-0 text-sm text-fg-muted"
                             >
                               {t('knowledge.settings.fields.chunkMethod')}
                             </FormLabel>
@@ -380,8 +380,8 @@ const KnowledgeSettingsPage: React.FC = () => {
                       {parserDescription ? (
                         <div className="flex items-start gap-space-xs">
                           <div className="w-1/4" />
-                          <div className="w-3/4 rounded-radius-md border border-border-accent bg-status-info-subtle px-space-base py-space-sm">
-                            <p className="text-sm text-text-accent">
+                          <div className="w-3/4 rounded-radius-md border border-line-focus bg-info-soft px-space-base py-space-sm">
+                            <p className="text-sm text-accent-fg">
                               {parserDescription}
                             </p>
                           </div>
@@ -389,7 +389,7 @@ const KnowledgeSettingsPage: React.FC = () => {
                       ) : null}
 
                       {selectedParserId ? (
-                        <div className="space-y-space-md border-t border-border-subtle pt-space-md">
+                        <div className="space-y-space-md border-t border-line-subtle pt-space-md">
                           <ChunkMethodForm
                             onMetadataSettingsClick={() =>
                               setMetadataModalOpen(true)
@@ -423,7 +423,7 @@ const KnowledgeSettingsPage: React.FC = () => {
           </section>
           <aside
             aria-label={t('knowledge.settings.previewLabel')}
-            className="scroll-area hidden min-h-0 w-96 shrink-0 overflow-y-auto border-l border-border-subtle xl:block"
+            className="scroll-area hidden min-h-0 w-96 shrink-0 overflow-y-auto border-l border-line-subtle xl:block"
           >
             <section aria-label={t('knowledge.settings.previewLabel')}>
               {parseType === 1 ? (
@@ -440,13 +440,13 @@ const KnowledgeSettingsPage: React.FC = () => {
                 </React.Suspense>
               ) : (
                 <div className="space-y-space-sm p-space-lg">
-                  <h3 className="text-base font-medium text-text-primary">
+                  <h3 className="text-base font-medium text-fg">
                     {t('knowledge.settings.pipelinePreview.title')}
                   </h3>
-                  <p className="text-sm text-text-tertiary">
+                  <p className="text-sm text-fg-subtle">
                     {t('knowledge.settings.pipelinePreview.description')}
                   </p>
-                  <p className="text-sm text-text-tertiary">
+                  <p className="text-sm text-fg-subtle">
                     {t('knowledge.settings.pipelinePreview.createTip')}
                   </p>
                 </div>

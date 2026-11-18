@@ -67,7 +67,7 @@ export const ConfirmDialog = ({
           data-theme={theme}
           {...(props.description ? {} : { 'aria-describedby': undefined })}
           className={cn(
-            'fixed top-1/2 left-1/2 z-50 flex max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 flex-col overflow-y-auto rounded-radius-xl border border-border-default bg-components-dialog-bg text-text-primary shadow-elevation-high outline-hidden',
+            'fixed top-1/2 left-1/2 z-50 flex max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 flex-col overflow-y-auto rounded-radius-xl border border-line bg-overlay text-fg shadow-elevation-high outline-hidden',
             props.className,
           )}
           onOpenAutoFocus={(event) => {
@@ -129,20 +129,20 @@ const ConfirmDialogBody = ({
             className={cn(
               'flex size-[var(--control-height)] shrink-0 items-center justify-center rounded-radius-md [&_svg:not([class*=size-])]:size-icon-sm',
               variant === 'destructive'
-                ? 'bg-status-error-subtle text-status-error'
-                : 'bg-state-selected-bg text-state-selected-text',
+                ? 'bg-danger-soft text-danger-fg'
+                : 'bg-accent-soft text-accent-fg',
             )}
           >
             {icon}
           </span>
         ) : null}
         <div className="min-w-0 flex-1">
-          <Alert.Title className="text-lg leading-7 font-semibold text-text-primary">
+          <Alert.Title className="text-lg leading-7 font-semibold text-fg">
             {title}
           </Alert.Title>
           {description ? (
             <Alert.Description asChild>
-              <div className="mt-space-xs text-sm text-text-secondary">
+              <div className="mt-space-xs text-sm text-fg-muted">
                 {description}
               </div>
             </Alert.Description>
@@ -162,7 +162,7 @@ const ConfirmDialogBody = ({
         >
           <label
             htmlFor={inputId}
-            className="block text-sm font-medium text-text-primary"
+            className="block text-sm font-medium text-fg"
           >
             {t('common.confirmDialog.typeToConfirm', {
               text: confirmationText,
@@ -181,7 +181,7 @@ const ConfirmDialogBody = ({
           />
         </form>
       ) : null}
-      <div className="mt-space-lg flex items-center justify-end gap-space-sm border-t border-border-default px-space-lg py-space-base">
+      <div className="mt-space-lg flex items-center justify-end gap-space-sm border-t border-line px-space-lg py-space-base">
         <Alert.Cancel asChild>
           <Button variant="outline" disabled={pending}>
             {cancelLabel ?? t('common.cancel')}

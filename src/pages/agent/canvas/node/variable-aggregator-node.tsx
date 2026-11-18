@@ -36,14 +36,14 @@ function InnerVariableAggregatorNode({
             key={`${id}-group-${idx}`}
             className={cn(
               'space-y-space-sm',
-              withDivider && 'border-t border-border-subtle pt-space-sm',
+              withDivider && 'border-t border-line-subtle pt-space-sm',
             )}
           >
             <div className="flex items-center justify-between gap-2 text-xs">
               <span className="min-w-0 flex-1 truncate">
                 {group?.group_name}
               </span>
-              <span className="text-text-secondary">{group?.type}</span>
+              <span className="text-fg-muted">{group?.type}</span>
             </div>
             <div className="space-y-space-xs">
               {(group?.variables || []).map((variable, variableIdx) => (

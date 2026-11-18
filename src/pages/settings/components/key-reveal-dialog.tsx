@@ -53,9 +53,9 @@ export const KeyRevealDialog = ({
           <DialogDescription>{labels.description}</DialogDescription>
         </DialogHeader>
         <DialogBody className="space-y-space-sm">
-          <div className="flex items-center gap-space-sm rounded-radius-md border border-border-subtle bg-background-subtle p-space-sm">
+          <div className="flex items-center gap-space-sm rounded-radius-md border border-line-subtle bg-sunken p-space-sm">
             <code
-              className="min-w-0 flex-1 font-mono text-sm break-all text-text-primary"
+              className="min-w-0 flex-1 font-mono text-sm break-all text-fg"
               data-testid="revealed-key"
             >
               {plaintext}
@@ -78,7 +78,7 @@ export const KeyRevealDialog = ({
               {t(copied ? 'common.copied' : 'common.copy')}
             </Button>
           </div>
-          <p className="text-sm text-text-secondary">{labels.usage}</p>
+          <p className="text-sm text-fg-muted">{labels.usage}</p>
         </DialogBody>
         <DialogFooter>
           <Button type="button" onClick={onClose}>

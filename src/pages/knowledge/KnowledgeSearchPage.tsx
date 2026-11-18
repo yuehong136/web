@@ -163,7 +163,7 @@ const KnowledgeSearchWorkbench: React.FC<{ id?: string }> = ({ id }) => {
           />
         }
         rightPane={
-          <div className="relative h-full min-h-0 overflow-hidden bg-background-surface">
+          <div className="relative h-full min-h-0 overflow-hidden bg-surface">
             <ResultPanel
               hasSearched={execution.hasSearched}
               searchError={execution.searchError}

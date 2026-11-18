@@ -65,12 +65,12 @@ export const DesktopContextPanel: React.FC = () => {
   const items = desktopNavigationItems[activity]
 
   return (
-    <aside className="flex h-full min-w-0 flex-col bg-components-sidebar-bg">
-      <header className="border-b border-components-sidebar-border px-space-md py-space-base">
-        <p className="text-xs font-medium tracking-wide text-text-tertiary uppercase">
+    <aside className="flex h-full min-w-0 flex-col bg-canvas">
+      <header className="border-b border-line-subtle px-space-md py-space-base">
+        <p className="text-xs font-medium tracking-wide text-fg-subtle uppercase">
           {t('desktop.workbench.context')}
         </p>
-        <h2 className="mt-space-xs text-base font-semibold text-text-primary">
+        <h2 className="mt-space-xs text-base font-semibold text-fg">
           {t(`desktop.activities.${activity}`)}
         </h2>
       </header>
@@ -84,10 +84,10 @@ export const DesktopContextPanel: React.FC = () => {
               to={item.href}
               className={({ isActive }) =>
                 cn(
-                  'flex items-center gap-space-sm rounded-radius-lg px-space-sm py-space-sm text-sm outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-state-focus',
+                  'flex items-center gap-space-sm rounded-radius-lg px-space-sm py-space-sm text-sm outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-line-focus',
                   isActive
-                    ? 'bg-components-sidebar-item-bg-active text-components-sidebar-item-text-active'
-                    : 'text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover hover:text-text-primary',
+                    ? 'bg-fill-selected text-fg'
+                    : 'text-fg-muted hover:bg-fill-hover hover:text-fg',
                 )
               }
             >
@@ -100,7 +100,7 @@ export const DesktopContextPanel: React.FC = () => {
 
       {activity === DesktopActivity.WORK ? (
         <>
-          <div className="mx-space-sm border-t border-components-sidebar-border" />
+          <div className="mx-space-sm border-t border-line-subtle" />
           <div className="px-space-sm pt-space-sm">
             <Button
               size="sm"

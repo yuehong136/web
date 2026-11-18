@@ -51,7 +51,7 @@ export function ChatModelSelector({
       )}
     >
       {actualVariant === 'default' && (
-        <div className="flex items-center gap-1 text-xs font-medium text-text-primary">
+        <div className="flex items-center gap-1 text-xs font-medium text-fg">
           {t('chat.modelSelector.label')}
           <FormTooltip tooltip={t('chat.modelSelector.tooltip')} />
         </div>
@@ -62,7 +62,7 @@ export function ChatModelSelector({
           disabled={disabled}
           onClick={() => navigate('/settings/model-providers')}
           title={t('chat.modelSelector.configureAction')}
-          className="flex h-10 items-center gap-2 rounded-radius-md px-3 text-sm text-status-warning hover:bg-status-warning-subtle"
+          className="flex h-10 items-center gap-2 rounded-radius-md px-3 text-sm text-warning-fg hover:bg-warning-soft"
         >
           <Settings aria-hidden className="size-4" />
           {t('chat.modelSelector.configure')}

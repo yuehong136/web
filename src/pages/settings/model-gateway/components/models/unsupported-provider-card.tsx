@@ -18,19 +18,17 @@ export function UnsupportedProviderCard({ group }: { group: ProviderGroup }) {
   return (
     <section
       aria-label={group.provider}
-      className="flex flex-wrap items-center gap-space-md rounded-radius-xl border border-border-subtle bg-background-subtle px-space-lg py-space-md"
+      className="flex flex-wrap items-center gap-space-md rounded-radius-xl border border-line-subtle bg-sunken px-space-lg py-space-md"
     >
       <ProviderLogo provider={group.provider} size="md" />
       <div className="min-w-0 flex-[1_1_16rem]">
         <div className="flex flex-wrap items-center gap-space-xs">
-          <h3 className="text-sm font-semibold text-text-primary">
-            {group.provider}
-          </h3>
+          <h3 className="text-sm font-semibold text-fg">{group.provider}</h3>
           <Badge variant="outline">
             {t(`${PREFIX}.states.provider_not_supported`)}
           </Badge>
         </div>
-        <p className="mt-space-2xs text-xs text-text-tertiary">
+        <p className="mt-space-2xs text-xs text-fg-subtle">
           {t(`${PREFIX}.models.unsupportedDetail`, { models: list })}
         </p>
       </div>

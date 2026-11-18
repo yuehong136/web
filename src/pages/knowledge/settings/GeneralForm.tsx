@@ -76,7 +76,7 @@ export function GeneralForm({
         name="avatar"
         render={() => (
           <FormItem className="flex items-center gap-1 space-y-0">
-            <FormLabel className="w-1/4 shrink-0 text-sm text-text-secondary">
+            <FormLabel className="w-1/4 shrink-0 text-sm text-fg-muted">
               {t('knowledge.settings.fields.avatar')}
             </FormLabel>
             <div className="flex w-3/4 items-center gap-4">
@@ -107,7 +107,7 @@ export function GeneralForm({
                   <Upload className="h-4 w-4" />
                   {t('knowledge.settings.fields.uploadAvatar')}
                 </Button>
-                <p className="mt-1.5 text-xs text-text-tertiary">
+                <p className="mt-1.5 text-xs text-fg-subtle">
                   {t('knowledge.settings.fields.avatarTip')}
                 </p>
               </div>
@@ -124,7 +124,7 @@ export function GeneralForm({
           <FormItem className="flex items-center gap-1 space-y-0">
             <FormLabel
               required
-              className="w-1/4 shrink-0 text-sm text-text-secondary"
+              className="w-1/4 shrink-0 text-sm text-fg-muted"
             >
               {t('knowledge.settings.fields.name')}
             </FormLabel>
@@ -151,7 +151,7 @@ export function GeneralForm({
         name="description"
         render={({ field }) => (
           <FormItem className="flex items-start gap-1 space-y-0">
-            <FormLabel className="w-1/4 shrink-0 pt-2 text-sm text-text-secondary">
+            <FormLabel className="w-1/4 shrink-0 pt-2 text-sm text-fg-muted">
               {t('knowledge.settings.fields.description')}
             </FormLabel>
             <div className="w-3/4">

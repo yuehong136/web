@@ -33,7 +33,7 @@ export const MCPServerActions = ({
           ref={trigger}
           variant="ghost"
           size="icon-sm"
-          className="text-text-secondary"
+          className="text-fg-muted"
           aria-label={t('mcp.servers.actions.menu', { name: server.name })}
         >
           <MoreHorizontal className="size-icon-sm" />

@@ -28,9 +28,9 @@ export function TraceDebugActions({
   }
 
   return (
-    <div className="flex items-center justify-between gap-space-base border-t border-components-split-pane-border px-space-lg py-space-base">
-      <div className="min-w-0 text-xs text-text-tertiary">
-        <div className="font-medium text-text-secondary">
+    <div className="flex items-center justify-between gap-space-base border-t border-line px-space-lg py-space-base">
+      <div className="min-w-0 text-xs text-fg-subtle">
+        <div className="font-medium text-fg-muted">
           {t('agent.traceWorkbench.debug.title')}
         </div>
         <p className="mt-space-2xs truncate">
@@ -41,7 +41,7 @@ export function TraceDebugActions({
         type="button"
         variant="ghost"
         size="sm"
-        className="h-7 px-space-xs text-xs text-text-secondary hover:text-text-primary"
+        className="h-7 px-space-xs text-xs text-fg-muted hover:text-fg"
         onClick={handleCopy}
       >
         <Copy className="size-3.5" />

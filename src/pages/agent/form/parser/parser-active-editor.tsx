@@ -30,11 +30,11 @@ export function ParserActiveEditor({
   const summary = getParserSetupSummary(t, setup)
 
   return (
-    <section className="space-y-space-xl border-t border-border-subtle pt-space-xl">
+    <section className="space-y-space-xl border-t border-line-subtle pt-space-xl">
       <div className="flex items-start justify-between gap-space-lg">
         <div className="min-w-0 space-y-space-md">
           <div className="flex flex-wrap items-center gap-space-sm">
-            <h3 className="text-xl leading-none font-semibold text-text-primary">
+            <h3 className="text-xl leading-none font-semibold text-fg">
               {`Parser ${index + 1}`}
             </h3>
             <span
@@ -46,7 +46,7 @@ export function ParserActiveEditor({
               {parserMeta.label}
             </span>
           </div>
-          <div className="text-lg leading-7 text-text-secondary">{summary}</div>
+          <div className="text-lg leading-7 text-fg-muted">{summary}</div>
         </div>
 
         {showRemove ? (
@@ -54,7 +54,7 @@ export function ParserActiveEditor({
             type="button"
             variant="ghost"
             size="icon-sm"
-            className="text-text-secondary hover:text-text-primary"
+            className="text-fg-muted hover:text-fg"
             onClick={onRemove}
             aria-label={t('common.delete', 'Delete')}
           >

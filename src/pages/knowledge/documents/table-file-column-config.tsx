@@ -68,10 +68,10 @@ export function TableFileColumnConfig({
   return (
     <fieldset
       disabled={disabled}
-      className="space-y-space-sm rounded-radius-md border border-border-subtle p-space-md"
+      className="space-y-space-sm rounded-radius-md border border-line-subtle p-space-md"
     >
       <legend
-        className="max-w-full truncate px-space-xs text-sm font-medium text-text-primary"
+        className="max-w-full truncate px-space-xs text-sm font-medium text-fg"
         title={file.name}
       >
         {file.name}
@@ -94,7 +94,7 @@ export function TableFileColumnConfig({
             : []),
         ]}
       />
-      <output className="block text-sm text-text-secondary">
+      <output className="block text-sm text-fg-muted">
         {status === 'error'
           ? t('knowledge.documents.upload.tableHeadersFailed')
           : status === 'loading'
@@ -125,7 +125,7 @@ export function TableFileColumnConfig({
                 }
               >
                 <span
-                  className="min-w-0 flex-1 truncate text-sm text-text-primary"
+                  className="min-w-0 flex-1 truncate text-sm text-fg"
                   title={column}
                 >
                   {column}

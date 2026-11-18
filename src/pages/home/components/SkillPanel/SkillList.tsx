@@ -40,7 +40,7 @@ export const SkillList: React.FC<SkillListProps> = ({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <div className="h-5 w-5 animate-spin rounded-full border-2 border-text-tertiary border-t-transparent" />
+        <div className="h-5 w-5 animate-spin rounded-full border-2 border-fg-subtle border-t-transparent" />
       </div>
     )
   }
@@ -48,8 +48,8 @@ export const SkillList: React.FC<SkillListProps> = ({
   if (servers.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-8 text-center">
-        <Wrench className="mb-2 h-8 w-8 text-text-tertiary" />
-        <p className="text-sm text-text-secondary">
+        <Wrench className="mb-2 h-8 w-8 text-fg-subtle" />
+        <p className="text-sm text-fg-muted">
           {searchTerm
             ? t('home.skillPanel.noSkillMatch')
             : t('home.skillPanel.noSkills')}
@@ -57,7 +57,7 @@ export const SkillList: React.FC<SkillListProps> = ({
         {!searchTerm && (
           <Link
             to={MCP_PATH}
-            className="mt-space-xs text-xs text-text-accent underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-state-focus"
+            className="mt-space-xs text-xs text-accent-fg underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-line-focus"
           >
             {t('home.skillPanel.addInSettings')}
           </Link>
@@ -78,9 +78,7 @@ export const SkillList: React.FC<SkillListProps> = ({
             onClick={() => onSelectSkill(server)}
             className={cn(
               'flex w-full items-center gap-3 px-4 py-3 text-left transition-colors',
-              isSelected
-                ? 'bg-state-focus-subtle'
-                : 'hover:bg-background-subtle',
+              isSelected ? 'bg-accent-soft' : 'hover:bg-sunken',
             )}
           >
             <EntityAvatar
@@ -92,26 +90,26 @@ export const SkillList: React.FC<SkillListProps> = ({
             />
             <div className="min-w-0 flex-1">
               <div className="flex min-w-0 items-center gap-space-xs">
-                <span className="truncate text-sm font-medium text-text-primary">
+                <span className="truncate text-sm font-medium text-fg">
                   {server.name}
                 </span>
-                <span className="shrink-0 rounded-radius-sm bg-background-subtle px-space-xs font-mono text-xs text-text-tertiary">
+                <span className="shrink-0 rounded-radius-sm bg-sunken px-space-xs font-mono text-xs text-fg-subtle">
                   {server.server_type}
                 </span>
               </div>
               {server.description && (
-                <div className="truncate text-xs text-text-tertiary">
+                <div className="truncate text-xs text-fg-subtle">
                   {server.description}
                 </div>
               )}
               {server.url && (
-                <div className="truncate font-mono text-xs text-text-tertiary">
+                <div className="truncate font-mono text-xs text-fg-subtle">
                   {server.url}
                 </div>
               )}
             </div>
             {isSelected && (
-              <div className="h-2 w-2 shrink-0 rounded-full bg-state-focus" />
+              <div className="h-2 w-2 shrink-0 rounded-full bg-line-focus" />
             )}
           </button>
         )

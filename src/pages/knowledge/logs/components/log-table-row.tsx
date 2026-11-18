@@ -46,10 +46,10 @@ export function LogTableRow({
         if ((event.target as HTMLElement).closest('button, a')) return
         onViewDetail(item)
       }}
-      className={cn('cursor-pointer', active && 'bg-state-selected-bg')}
+      className={cn('cursor-pointer', active && 'bg-accent-soft')}
     >
       <TableCell className={cn(CELL, 'pl-space-md')}>
-        <span className="font-mono text-xs whitespace-nowrap text-text-tertiary">
+        <span className="font-mono text-xs whitespace-nowrap text-fg-subtle">
           {item.id || '-'}
         </span>
       </TableCell>
@@ -60,7 +60,7 @@ export function LogTableRow({
             <Tooltip content={<span>{item.document_name}</span>}>
               <div className="flex items-center gap-space-sm">
                 <LogFileIcon suffix={item.document_suffix} />
-                <span className="truncate text-sm text-text-primary">
+                <span className="truncate text-sm text-fg">
                   {item.document_name || '-'}
                 </span>
               </div>
@@ -70,15 +70,15 @@ export function LogTableRow({
             {!item.source_from ||
             item.source_from === 'local' ||
             item.source_from === '' ? (
-              <span className="inline-flex items-center gap-space-xs text-sm text-text-secondary">
+              <span className="inline-flex items-center gap-space-xs text-sm text-fg-muted">
                 <MonitorUp
-                  className="size-icon-sm text-text-tertiary"
+                  className="size-icon-sm text-fg-subtle"
                   aria-hidden="true"
                 />
                 {t('knowledge.logs.detail.localUpload')}
               </span>
             ) : (
-              <span className="text-sm text-text-secondary capitalize">
+              <span className="text-sm text-fg-muted capitalize">
                 {item.source_from}
               </span>
             )}
@@ -90,7 +90,7 @@ export function LogTableRow({
                 size="xs"
                 shape="circle"
               />
-              <span className="text-sm text-text-primary">
+              <span className="text-sm text-fg">
                 {item.pipeline_title === 'naive'
                   ? 'general'
                   : item.pipeline_title || '-'}
@@ -101,18 +101,18 @@ export function LogTableRow({
       )}
 
       <TableCell className={CELL}>
-        <span className="text-sm whitespace-nowrap text-text-secondary">
+        <span className="text-sm whitespace-nowrap text-fg-muted">
           {formatDate(item.process_begin_at || null)}
         </span>
       </TableCell>
       <TableCell className={CELL}>
-        <span className="inline-flex items-center gap-space-sm text-sm whitespace-nowrap text-text-primary">
+        <span className="inline-flex items-center gap-space-sm text-sm whitespace-nowrap text-fg">
           {!isFileLogs &&
             (item.task_type === ProcessingType.KNOWLEDGE_GRAPH ||
               item.task_type === ProcessingType.LEGACY_KNOWLEDGE_GRAPH) && (
               <Network
                 aria-hidden="true"
-                className="size-icon-sm shrink-0 text-text-secondary"
+                className="size-icon-sm shrink-0 text-fg-muted"
               />
             )}
           {isFileLogs

@@ -48,9 +48,7 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
           <span
             className={cn(
               'transition-colors',
-              isOpen
-                ? 'text-text-accent'
-                : 'text-text-secondary group-hover:text-text-primary',
+              isOpen ? 'text-accent-fg' : 'text-fg-muted group-hover:text-fg',
             )}
           >
             {isOpen ? (
@@ -63,7 +61,7 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
             <span
               className={cn(
                 'transition-colors',
-                isOpen ? 'text-text-accent' : 'text-text-secondary',
+                isOpen ? 'text-accent-fg' : 'text-fg-muted',
               )}
             >
               {icon}
@@ -72,9 +70,7 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
           <span
             className={cn(
               'text-base font-medium transition-colors',
-              isOpen
-                ? 'text-text-accent'
-                : 'text-text-secondary group-hover:text-text-primary',
+              isOpen ? 'text-accent-fg' : 'text-fg-muted group-hover:text-fg',
             )}
           >
             {title}

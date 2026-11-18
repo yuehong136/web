@@ -192,7 +192,7 @@ export const ChannelsPage = () => {
       />
 
       {providersUnavailable ? (
-        <output className="flex w-full shrink-0 items-center gap-space-sm border-b border-status-warning-subtle bg-status-warning-subtle px-space-lg py-space-sm text-sm text-status-warning">
+        <output className="flex w-full shrink-0 items-center gap-space-sm border-b border-warning-soft bg-warning-soft px-space-lg py-space-sm text-sm text-warning-fg">
           <TriangleAlert className="size-icon-sm shrink-0" aria-hidden="true" />
           <span>{t('channel.states.providersUnavailable')}</span>
           <Button
@@ -214,12 +214,12 @@ export const ChannelsPage = () => {
           <div className="flex items-center gap-space-sm">
             <h3
               id="channel-connected-heading"
-              className="font-semibold text-text-primary"
+              className="font-semibold text-fg"
             >
               {t('channel.connected.title', { count: channels.length })}
             </h3>
             {filtering && channels.length > 0 ? (
-              <span className="text-text-caption text-sm">
+              <span className="text-sm text-fg-subtle">
                 {t('channel.filter.matched', {
                   count: visibleChannels.length,
                 })}
@@ -252,7 +252,7 @@ export const ChannelsPage = () => {
               }
             />
           ) : visibleChannels.length === 0 ? (
-            <p className="py-space-lg text-center text-sm text-text-secondary">
+            <p className="py-space-lg text-center text-sm text-fg-muted">
               {t('channel.filter.noMatch')}
             </p>
           ) : (

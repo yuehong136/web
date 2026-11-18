@@ -132,11 +132,11 @@ export function RetrievalForm({ node }: INextOperatorForm) {
                   value={field.value ?? RetrievalFrom.Dataset}
                   onValueChange={field.onChange}
                 >
-                  <label className="flex items-center gap-space-sm rounded-radius-md border border-border-default px-space-sm py-space-sm">
+                  <label className="flex items-center gap-space-sm rounded-radius-md border border-line px-space-sm py-space-sm">
                     <RadioGroupItem value={RetrievalFrom.Dataset} />
                     <span>{t('flow.dataset', 'Dataset')}</span>
                   </label>
-                  <label className="flex items-center gap-space-sm rounded-radius-md border border-border-default px-space-sm py-space-sm">
+                  <label className="flex items-center gap-space-sm rounded-radius-md border border-line px-space-sm py-space-sm">
                     <RadioGroupItem value={RetrievalFrom.Memory} />
                     <span>{t('flow.memories', 'Memories')}</span>
                   </label>
@@ -168,7 +168,7 @@ export function RetrievalForm({ node }: INextOperatorForm) {
         )}
 
         <Collapsible defaultOpen>
-          <CollapsibleTrigger className="flex items-center gap-space-xs text-sm font-medium text-text-primary">
+          <CollapsibleTrigger className="flex items-center gap-space-xs text-sm font-medium text-fg">
             <ChevronDown className="size-4" />
             {t('flow.advancedSettings', 'Advanced Settings')}
           </CollapsibleTrigger>
@@ -182,7 +182,7 @@ export function RetrievalForm({ node }: INextOperatorForm) {
                     <FormLabel>
                       {t('flow.similarityThreshold', 'Similarity Threshold')}
                     </FormLabel>
-                    <span className="text-xs text-text-secondary">
+                    <span className="text-xs text-fg-muted">
                       {field.value ?? 0.2}
                     </span>
                   </div>
@@ -211,7 +211,7 @@ export function RetrievalForm({ node }: INextOperatorForm) {
                         'Keywords Similarity Weight',
                       )}
                     </FormLabel>
-                    <span className="text-xs text-text-secondary">
+                    <span className="text-xs text-fg-muted">
                       {field.value ?? 0.3}
                     </span>
                   </div>
@@ -304,7 +304,7 @@ export function RetrievalForm({ node }: INextOperatorForm) {
                   control={form.control}
                   name="use_kg"
                   render={({ field }) => (
-                    <FormItem className="flex items-center justify-between rounded-radius-md border border-border-default px-space-sm py-space-sm">
+                    <FormItem className="flex items-center justify-between rounded-radius-md border border-line px-space-sm py-space-sm">
                       <FormLabel>
                         {t('flow.useKnowledgeGraph', 'Use Knowledge Graph')}
                       </FormLabel>
@@ -322,7 +322,7 @@ export function RetrievalForm({ node }: INextOperatorForm) {
                   control={form.control}
                   name="toc_enhance"
                   render={({ field }) => (
-                    <FormItem className="flex items-center justify-between rounded-radius-md border border-border-default px-space-sm py-space-sm">
+                    <FormItem className="flex items-center justify-between rounded-radius-md border border-line px-space-sm py-space-sm">
                       <FormLabel>
                         {t('flow.tocEnhance', 'TOC Enhance')}
                       </FormLabel>

@@ -42,12 +42,11 @@ const STATUS_VARIANT_MAP: Record<
 }
 
 const STATUS_CLASS_MAP: Record<LogDetailViewModel['status'], string> = {
-  running: 'bg-status-info-subtle text-status-info border-status-info-border',
-  success:
-    'bg-status-success-subtle text-status-success border-status-success-border',
-  error: 'bg-status-error-subtle text-status-error border-status-error-border',
-  unknown: 'bg-background-subtle text-text-secondary border-border-subtle',
-  idle: 'bg-background-subtle text-text-secondary border-border-subtle',
+  running: 'bg-info-soft text-info-fg border-info-line',
+  success: 'bg-success-soft text-success-fg border-success-line',
+  error: 'bg-danger-soft text-danger-fg border-danger-line',
+  unknown: 'bg-sunken text-fg-muted border-line-subtle',
+  idle: 'bg-sunken text-fg-muted border-line-subtle',
 }
 
 function asSession(value: unknown): AgentSession | undefined {
@@ -90,14 +89,14 @@ function DetailTab({
       className={cn(
         'flex h-10 items-center gap-space-xs border-b-2 px-space-sm text-sm font-medium',
         active
-          ? 'border-state-focus text-text-primary'
-          : 'border-transparent text-text-tertiary',
+          ? 'border-line-focus text-fg'
+          : 'border-transparent text-fg-subtle',
       )}
     >
       <Icon className="h-3.5 w-3.5" />
       <span>{label}</span>
       {typeof count === 'number' ? (
-        <span className="font-mono text-xs text-text-caption">{count}</span>
+        <span className="font-mono text-xs text-fg-subtle">{count}</span>
       ) : null}
     </div>
   )
@@ -111,8 +110,8 @@ function DetailSection({
   children: ReactNode
 }) {
   return (
-    <section className="border-b border-border-subtle px-space-xl py-space-base last:border-b-0">
-      <h4 className="mb-space-sm text-xs font-semibold tracking-wide text-text-tertiary uppercase">
+    <section className="border-b border-line-subtle px-space-xl py-space-base last:border-b-0">
+      <h4 className="mb-space-sm text-xs font-semibold tracking-wide text-fg-subtle uppercase">
         {title}
       </h4>
       {children}
@@ -123,10 +122,8 @@ function DetailSection({
 function SummaryRow({ label, value }: { label: string; value: ReactNode }) {
   return (
     <>
-      <div className="text-xs text-text-tertiary">{label}</div>
-      <div className="min-w-0 text-xs break-words text-text-primary">
-        {value}
-      </div>
+      <div className="text-xs text-fg-subtle">{label}</div>
+      <div className="min-w-0 text-xs break-words text-fg">{value}</div>
     </>
   )
 }
@@ -140,15 +137,15 @@ function RuntimeSummary({
 }) {
   const { t } = useTranslation()
   return (
-    <aside className="hidden w-[300px] shrink-0 border-l border-components-split-pane-border bg-components-console-surface xl:flex xl:flex-col">
-      <div className="border-b border-border-subtle px-space-lg py-space-base">
-        <h4 className="text-sm font-semibold text-text-primary">
+    <aside className="hidden w-[300px] shrink-0 border-l border-line bg-surface xl:flex xl:flex-col">
+      <div className="border-b border-line-subtle px-space-lg py-space-base">
+        <h4 className="text-sm font-semibold text-fg">
           {t('agent.logDetail.runSummary')}
         </h4>
       </div>
       <div className="min-h-0 flex-1 overflow-auto">
-        <div className="border-b border-border-subtle px-space-lg py-space-base">
-          <h5 className="mb-space-sm text-xs font-semibold tracking-wide text-text-tertiary uppercase">
+        <div className="border-b border-line-subtle px-space-lg py-space-base">
+          <h5 className="mb-space-sm text-xs font-semibold tracking-wide text-fg-subtle uppercase">
             {t('agent.logDetail.basicInfo')}
           </h5>
           <div className="grid grid-cols-[72px_1fr] gap-x-space-sm gap-y-space-xs">
@@ -198,8 +195,8 @@ function RuntimeSummary({
         </div>
 
         {viewModel.errorMessage ? (
-          <div className="border-b border-border-subtle px-space-lg py-space-base">
-            <div className="rounded-radius-md border border-status-error-border bg-status-error-subtle p-space-sm text-xs text-status-error">
+          <div className="border-b border-line-subtle px-space-lg py-space-base">
+            <div className="rounded-radius-md border border-danger-line bg-danger-soft p-space-sm text-xs text-danger-fg">
               <div className="mb-space-xs flex items-center gap-space-xs font-semibold">
                 <AlertTriangle className="h-3.5 w-3.5" />
                 {t('agent.logDetail.errorSummary')}
@@ -211,10 +208,10 @@ function RuntimeSummary({
           </div>
         ) : null}
 
-        <div className="border-b border-border-subtle px-space-lg py-space-base">
-          <h5 className="mb-space-sm flex items-center gap-space-xs text-xs font-semibold tracking-wide text-text-tertiary uppercase">
+        <div className="border-b border-line-subtle px-space-lg py-space-base">
+          <h5 className="mb-space-sm flex items-center gap-space-xs text-xs font-semibold tracking-wide text-fg-subtle uppercase">
             {t('agent.logDetail.traceTimeline')}
-            <span className="ml-auto font-mono text-[11px] text-text-caption">
+            <span className="ml-auto font-mono text-[11px] text-fg-subtle">
               {viewModel.traceItems.length}
             </span>
           </h5>
@@ -225,7 +222,7 @@ function RuntimeSummary({
         </div>
 
         <div className="px-space-lg py-space-base">
-          <h5 className="mb-space-sm text-xs font-semibold tracking-wide text-text-tertiary uppercase">
+          <h5 className="mb-space-sm text-xs font-semibold tracking-wide text-fg-subtle uppercase">
             {t('agent.logDetail.identifiers')}
           </h5>
           <div className="grid grid-cols-[72px_1fr] gap-x-space-sm gap-y-space-xs">
@@ -256,7 +253,7 @@ export function LogDetail(props: LogDetailProps) {
 
   if (isLoading && props.mode === 'session' && !viewModel.sessionId) {
     return (
-      <div className="p-space-md text-sm text-text-secondary">
+      <div className="p-space-md text-sm text-fg-muted">
         {t('agent.logDetail.loading')}
       </div>
     )
@@ -264,7 +261,7 @@ export function LogDetail(props: LogDetailProps) {
 
   if (isError) {
     return (
-      <div className="p-space-md text-sm text-status-error">
+      <div className="p-space-md text-sm text-danger-fg">
         {error instanceof Error
           ? error.message
           : t('agent.logDetail.loadFailed')}
@@ -285,19 +282,19 @@ export function LogDetail(props: LogDetailProps) {
   }
 
   return (
-    <div className="flex h-full min-h-0 bg-components-split-pane-bg">
+    <div className="flex h-full min-h-0 bg-canvas">
       <div className="flex min-w-0 flex-1 flex-col">
-        <div className="flex min-h-[56px] items-center justify-between gap-space-sm border-b border-components-split-pane-border bg-components-console-surface px-space-lg">
+        <div className="flex min-h-[56px] items-center justify-between gap-space-sm border-b border-line bg-surface px-space-lg">
           <div className="min-w-0">
             <div className="flex min-w-0 items-center gap-space-xs">
               <Badge variant={STATUS_VARIANT_MAP[viewModel.status]}>
                 {t(STATUS_LABEL_KEYS[viewModel.status])}
               </Badge>
-              <h3 className="truncate text-sm font-semibold text-text-primary">
+              <h3 className="truncate text-sm font-semibold text-fg">
                 {viewModel.sessionName || t('agent.logDetail.defaultTitle')}
               </h3>
             </div>
-            <div className="mt-space-xs flex min-w-0 items-center gap-space-xs text-xs text-text-tertiary">
+            <div className="mt-space-xs flex min-w-0 items-center gap-space-xs text-xs text-fg-subtle">
               <span className="truncate font-mono">
                 {viewModel.sessionId || '-'}
               </span>
@@ -318,7 +315,7 @@ export function LogDetail(props: LogDetailProps) {
           />
         </div>
 
-        <div className="flex shrink-0 items-center border-b border-border-subtle bg-components-console-surface px-space-lg">
+        <div className="flex shrink-0 items-center border-b border-line-subtle bg-surface px-space-lg">
           <DetailTab
             active
             icon={MessageSquare}

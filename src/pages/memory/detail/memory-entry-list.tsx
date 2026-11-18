@@ -113,10 +113,10 @@ export function MemoryEntryList({
               <li key={message.message_id}>
                 <article
                   data-lifecycle={lifecycle}
-                  className="flex flex-col gap-space-xs rounded-radius-xl border border-border-subtle bg-background-surface px-space-base py-space-sm transition-colors hover:border-border-default motion-reduce:transition-none"
+                  className="flex flex-col gap-space-xs rounded-radius-xl border border-line-subtle bg-surface px-space-base py-space-sm transition-colors hover:border-line motion-reduce:transition-none"
                 >
                   <div className="flex flex-wrap items-center gap-x-space-sm gap-y-space-xs">
-                    <span className="font-mono text-xs text-text-secondary tabular-nums">
+                    <span className="font-mono text-xs text-fg-muted tabular-nums">
                       #{message.message_id}
                     </span>
                     <MemoryTypeBadge type={message.message_type} />
@@ -126,7 +126,7 @@ export function MemoryEntryList({
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="text-xs text-text-secondary"
+                        className="text-xs text-fg-muted"
                         onClick={() => onInspect(source)}
                       >
                         {t('memory.workspace.source')}
@@ -162,10 +162,8 @@ export function MemoryEntryList({
                   <button
                     type="button"
                     className={cn(
-                      'block w-full rounded-radius-sm text-left text-sm leading-relaxed outline-hidden focus-visible:ring-2 focus-visible:ring-state-focus',
-                      lifecycle === 'enabled'
-                        ? 'text-text-primary'
-                        : 'text-text-secondary',
+                      'block w-full rounded-radius-sm text-left text-sm leading-relaxed outline-hidden focus-visible:ring-2 focus-visible:ring-line-focus',
+                      lifecycle === 'enabled' ? 'text-fg' : 'text-fg-muted',
                     )}
                     onClick={() => onInspect(message)}
                   >
@@ -177,19 +175,19 @@ export function MemoryEntryList({
                       <span className="flex items-center gap-space-sm font-medium">
                         <MessageSquare
                           aria-hidden="true"
-                          className="size-icon-sm shrink-0 text-text-tertiary"
+                          className="size-icon-sm shrink-0 text-fg-subtle"
                         />
                         <span className="truncate font-mono text-xs">
                           {message.session_id}
                         </span>
                         <ArrowUpRight
                           aria-hidden="true"
-                          className="size-icon-xs shrink-0 text-text-tertiary"
+                          className="size-icon-xs shrink-0 text-fg-subtle"
                         />
                       </span>
                     )}
                   </button>
-                  <div className="flex flex-wrap items-center gap-x-space-sm gap-y-space-xs text-xs text-text-tertiary">
+                  <div className="flex flex-wrap items-center gap-x-space-sm gap-y-space-xs text-xs text-fg-subtle">
                     <span className="flex max-w-48 min-w-0 items-center gap-space-xs">
                       <Bot
                         aria-hidden="true"
@@ -207,8 +205,8 @@ export function MemoryEntryList({
                     )}
                   </div>
                   {view === 'sources' && !!message.extract?.length && (
-                    <details className="group text-xs text-text-secondary">
-                      <summary className="flex w-fit cursor-pointer list-none items-center gap-space-xs rounded-radius-sm py-space-2xs outline-hidden hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-focus [&::-webkit-details-marker]:hidden">
+                    <details className="group text-xs text-fg-muted">
+                      <summary className="flex w-fit cursor-pointer list-none items-center gap-space-xs rounded-radius-sm py-space-2xs outline-hidden hover:text-fg focus-visible:ring-2 focus-visible:ring-line-focus [&::-webkit-details-marker]:hidden">
                         <ChevronRight
                           aria-hidden="true"
                           className="size-icon-xs transition-transform group-open:rotate-90 motion-reduce:transition-none"
@@ -217,15 +215,15 @@ export function MemoryEntryList({
                           count: message.extract.length,
                         })}
                       </summary>
-                      <ul className="mt-space-xs flex flex-col gap-space-xs border-l border-border-default pl-space-base">
+                      <ul className="mt-space-xs flex flex-col gap-space-xs border-l border-line pl-space-base">
                         {message.extract.map((extract) => (
                           <li key={extract.message_id}>
                             <button
                               type="button"
                               onClick={() => onInspect(extract)}
-                              className="flex w-full items-start justify-between gap-space-sm rounded-radius-md bg-background-subtle p-space-sm text-left outline-hidden hover:bg-state-hover focus-visible:ring-2 focus-visible:ring-state-focus"
+                              className="flex w-full items-start justify-between gap-space-sm rounded-radius-md bg-sunken p-space-sm text-left outline-hidden hover:bg-fill-hover focus-visible:ring-2 focus-visible:ring-line-focus"
                             >
-                              <span className="line-clamp-2 break-words text-text-primary">
+                              <span className="line-clamp-2 break-words text-fg">
                                 {extract.content ||
                                   t('memory.workspace.noContent')}
                               </span>

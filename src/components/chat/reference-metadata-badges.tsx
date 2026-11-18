@@ -10,10 +10,10 @@ export function ReferenceMetadataBadges({
       {Object.entries(metadata).map(([key, value]) => (
         <div
           key={key}
-          className="max-w-full rounded-radius-sm bg-background-subtle px-space-xs py-space-xs text-xs break-words"
+          className="max-w-full rounded-radius-sm bg-sunken px-space-xs py-space-xs text-xs break-words"
         >
-          <dt className="inline text-text-secondary">{key}: </dt>
-          <dd className="inline text-text-primary">
+          <dt className="inline text-fg-muted">{key}: </dt>
+          <dd className="inline text-fg">
             {value == null
               ? ''
               : typeof value === 'object'

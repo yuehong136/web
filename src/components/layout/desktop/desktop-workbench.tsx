@@ -32,7 +32,7 @@ export const DesktopWorkbench: React.FC<React.PropsWithChildren> = ({
 
   return (
     <div
-      className="flex h-dvh overflow-hidden bg-components-app-shell-bg"
+      className="flex h-dvh overflow-hidden bg-canvas"
       data-client-runtime="desktop"
       data-desktop-workbench="true"
     >
@@ -56,10 +56,8 @@ export const DesktopWorkbench: React.FC<React.PropsWithChildren> = ({
         <Separator
           disabled={collapsed}
           className={cn(
-            'bg-components-split-pane-border transition-colors focus:outline-hidden',
-            collapsed
-              ? 'w-0'
-              : 'w-px hover:bg-state-focus focus:bg-state-focus',
+            'bg-line transition-colors focus:outline-hidden',
+            collapsed ? 'w-0' : 'w-px hover:bg-line-focus focus:bg-line-focus',
           )}
           aria-label={t('desktop.workbench.resizeContext')}
           aria-hidden={collapsed}
@@ -69,7 +67,7 @@ export const DesktopWorkbench: React.FC<React.PropsWithChildren> = ({
           minSize="60%"
           defaultSize={`${collapsed ? 100 : 100 - width}%`}
         >
-          <main className="flex h-full min-w-0 flex-col overflow-hidden bg-components-main-workbench-bg">
+          <main className="flex h-full min-w-0 flex-col overflow-hidden bg-canvas">
             <DesktopToolbar
               titleRef={header.titleRef}
               actionsRef={header.actionsRef}

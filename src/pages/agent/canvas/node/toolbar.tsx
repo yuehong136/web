@@ -22,7 +22,7 @@ function IconWrapper({ className, ...props }: ButtonProps) {
       variant="secondary"
       size="icon-sm"
       className={cn(
-        'size-7 bg-surface-primary p-0 text-text-secondary hover:text-text-primary',
+        'size-7 bg-surface p-0 text-fg-muted hover:text-fg',
         className,
       )}
       {...props}
@@ -72,7 +72,7 @@ export const ToolBar = memo(
         {label !== Operator.Begin && (
           <div
             className={cn(
-              'absolute -top-10 left-1/2 flex -translate-x-1/2 items-center gap-space-xs rounded-radius-md border border-border-primary bg-surface-primary px-space-xs py-space-xs shadow-elevation-low transition-opacity',
+              'absolute -top-10 left-1/2 flex -translate-x-1/2 items-center gap-space-xs rounded-radius-md border border-line bg-surface px-space-xs py-space-xs shadow-elevation-low transition-opacity',
               toolbarVisible
                 ? 'pointer-events-auto opacity-100'
                 : 'pointer-events-none opacity-0 group-hover:pointer-events-auto group-hover:opacity-100',
@@ -92,7 +92,7 @@ export const ToolBar = memo(
               </IconWrapper>
             )}
             <IconWrapper
-              className="hover:text-status-error"
+              className="hover:text-danger-fg"
               onClick={handleDelete}
               title={t('flow.deleteNode', 'Delete node')}
             >

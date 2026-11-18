@@ -75,7 +75,7 @@ export const UserInputSection: React.FC<UserInputSectionProps> = ({
       <div className="flex flex-wrap items-center justify-between gap-space-sm">
         <label
           htmlFor={userInputMode === 'manual' ? inputId : undefined}
-          className="text-sm font-medium text-text-primary"
+          className="text-sm font-medium text-fg"
         >
           {t('aiTools.autoFill.settings.userInput')}
         </label>
@@ -112,7 +112,7 @@ export const UserInputSection: React.FC<UserInputSectionProps> = ({
           <div
             {...getRootProps({
               className:
-                'flex flex-col items-center gap-space-sm rounded-radius-lg border border-dashed border-components-upload-border bg-components-upload-bg px-space-base py-space-lg text-center',
+                'flex flex-col items-center gap-space-sm rounded-radius-lg border border-dashed border-line-strong bg-transparent px-space-base py-space-lg text-center',
             })}
           >
             <input {...getInputProps()} />
@@ -120,13 +120,13 @@ export const UserInputSection: React.FC<UserInputSectionProps> = ({
               <FileUp aria-hidden="true" />
               {t('aiTools.autoFill.settings.upload')}
             </Button>
-            <p className="text-xs text-text-tertiary">
+            <p className="text-xs text-fg-subtle">
               {t('aiTools.autoFill.settings.uploadHint')}
             </p>
           </div>
           {uploadedFiles.length > 0 ? (
             <div className="flex flex-col gap-space-xs">
-              <p className="text-xs text-text-secondary">
+              <p className="text-xs text-fg-muted">
                 {t('aiTools.autoFill.settings.attached', {
                   count: uploadedFiles.length,
                 })}
@@ -135,13 +135,13 @@ export const UserInputSection: React.FC<UserInputSectionProps> = ({
                 {uploadedFiles.map((file) => (
                   <li
                     key={file.id}
-                    className="flex items-center gap-space-sm rounded-radius-md bg-background-subtle px-space-sm py-space-2xs"
+                    className="flex items-center gap-space-sm rounded-radius-md bg-sunken px-space-sm py-space-2xs"
                   >
                     <FileKindTile name={file.name} size="sm" />
                     <span className="min-w-0 flex-1 truncate text-sm">
                       {file.name}
                     </span>
-                    <span className="shrink-0 text-xs text-text-tertiary tabular-nums">
+                    <span className="shrink-0 text-xs text-fg-subtle tabular-nums">
                       {formatBytes(file.size, 1)}
                     </span>
                     <Button

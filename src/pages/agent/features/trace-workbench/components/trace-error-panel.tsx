@@ -8,10 +8,9 @@ import type {
 import { cn } from '@/lib/utils'
 
 const ISSUE_TONE_CLASSES: Record<TraceIssue['severity'], string> = {
-  error: 'border-status-error-border bg-status-error-subtle text-status-error',
-  warning:
-    'border-status-warning-border bg-status-warning-subtle text-status-warning',
-  info: 'border-border-subtle bg-surface-primary text-text-secondary',
+  error: 'border-danger-line bg-danger-soft text-danger-fg',
+  warning: 'border-warning-line bg-warning-soft text-warning-fg',
+  info: 'border-line-subtle bg-surface text-fg-muted',
 }
 
 interface TraceErrorPanelProps {
@@ -33,12 +32,12 @@ export function TraceErrorPanel({ viewModel, span }: TraceErrorPanelProps) {
   if (!spanError && issues.length === 0) {
     return (
       <div className="p-space-lg">
-        <div className="flex flex-col items-center justify-center rounded-radius-md bg-surface-primary px-space-lg py-space-xl text-center">
-          <CheckCircle2 className="size-8 text-status-success" />
-          <div className="mt-space-sm text-sm font-semibold text-text-primary">
+        <div className="flex flex-col items-center justify-center rounded-radius-md bg-surface px-space-lg py-space-xl text-center">
+          <CheckCircle2 className="size-8 text-success-fg" />
+          <div className="mt-space-sm text-sm font-semibold text-fg">
             {t('agent.traceWorkbench.errorPanel.empty')}
           </div>
-          <div className="mt-space-xs text-xs text-text-tertiary">
+          <div className="mt-space-xs text-xs text-fg-subtle">
             {t('agent.traceWorkbench.errorPanel.emptyHint')}
           </div>
         </div>
@@ -49,7 +48,7 @@ export function TraceErrorPanel({ viewModel, span }: TraceErrorPanelProps) {
   return (
     <div className="flex flex-col gap-space-base p-space-lg">
       {spanError ? (
-        <div className="rounded-radius-md border border-status-error-border bg-status-error-subtle p-space-base text-status-error">
+        <div className="rounded-radius-md border border-danger-line bg-danger-soft p-space-base text-danger-fg">
           <div className="flex items-center gap-space-xs text-sm font-semibold">
             <AlertTriangle className="size-3.5" />
             {t('agent.traceWorkbench.errorPanel.spanError')}

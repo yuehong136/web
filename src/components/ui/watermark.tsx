@@ -122,7 +122,7 @@ export function Watermark({
           data-watermark
           className="pointer-events-none absolute inset-0 z-10 select-none"
           style={{
-            backgroundColor: 'var(--color-text-primary)',
+            backgroundColor: 'var(--color-fg)',
             opacity: 0.1,
             maskImage: tile.image,
             WebkitMaskImage: tile.image,

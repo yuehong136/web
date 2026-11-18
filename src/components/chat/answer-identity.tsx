@@ -26,17 +26,17 @@ export function AnswerIdentity({ time, ...snapshot }: AnswerIdentityProps) {
     )
   return (
     <div
-      className="flex min-w-0 items-center gap-space-sm text-xs text-text-tertiary"
+      className="flex min-w-0 items-center gap-space-sm text-xs text-fg-subtle"
       data-answer-identity
     >
       <span
-        className="inline-flex h-7 min-w-0 items-center gap-space-xs rounded-radius-full border border-border-subtle bg-background-surface ps-0.5 pe-space-sm text-text-primary"
+        className="inline-flex h-7 min-w-0 items-center gap-space-xs rounded-radius-full border border-line-subtle bg-surface ps-0.5 pe-space-sm text-fg"
         data-model-identity
       >
         {identity.provider ? (
           <ProviderLogo provider={identity.provider} size="sm" />
         ) : (
-          <span className="inline-flex size-5.5 shrink-0 items-center justify-center rounded-radius-sm bg-background-subtle text-text-secondary ring-1 ring-border-subtle ring-inset">
+          <span className="inline-flex size-5.5 shrink-0 items-center justify-center rounded-radius-sm bg-sunken text-fg-muted ring-1 ring-line-subtle ring-inset">
             <Bot aria-hidden className="size-icon-xs" />
           </span>
         )}

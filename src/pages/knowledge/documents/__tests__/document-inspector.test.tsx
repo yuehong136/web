@@ -200,9 +200,8 @@ it('shows six default columns and opens a row in the Inspector without leaving t
   expect(panel()?.textContent).toContain('Ada')
   expect(panel()?.textContent).toContain('author')
   expect(
-    panel()?.querySelector(
-      '[data-slot="document-parse-log"] .text-status-error',
-    )?.textContent,
+    panel()?.querySelector('[data-slot="document-parse-log"] .text-danger-fg')
+      ?.textContent,
   ).toBe('[ERROR] Page 3 skipped')
   expect(row.getAttribute('aria-current')).toBe('true')
 })

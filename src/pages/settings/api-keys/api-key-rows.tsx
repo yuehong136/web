@@ -62,7 +62,7 @@ export const ApiKeyRows = ({
               label={apiKey.name}
               description={meta.length ? meta.join(' · ') : undefined}
             >
-              <code className="font-mono text-xs text-text-tertiary">
+              <code className="font-mono text-xs text-fg-subtle">
                 {maskToken(apiKey.token)}
               </code>
               {apiKeysCapabilities.copy.enabled ? (
@@ -76,7 +76,7 @@ export const ApiKeyRows = ({
                 >
                   {copiedStates[copyKey] ? (
                     <Check
-                      className="size-icon-sm text-status-success"
+                      className="size-icon-sm text-success-fg"
                       aria-hidden="true"
                     />
                   ) : (

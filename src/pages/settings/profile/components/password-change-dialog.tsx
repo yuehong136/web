@@ -74,12 +74,12 @@ const PasswordChangeForm = ({
       }}
     >
       <ModalContent className="max-w-md" returnFocus={returnFocus}>
-        <div className="flex items-start justify-between gap-space-base border-b border-border-subtle p-space-lg">
+        <div className="flex items-start justify-between gap-space-base border-b border-line-subtle p-space-lg">
           <div>
             <ModalTitle className="text-lg font-semibold">
               {t('settings.profile.changePassword')}
             </ModalTitle>
-            <ModalDescription className="mt-space-xs text-sm text-text-secondary">
+            <ModalDescription className="mt-space-xs text-sm text-fg-muted">
               {t('settings.profile.passwordDescription')}
             </ModalDescription>
           </div>
@@ -141,7 +141,7 @@ const PasswordChangeForm = ({
               />
             )
           })}
-          <div className="flex justify-end gap-space-sm border-t border-border-subtle pt-space-base">
+          <div className="flex justify-end gap-space-sm border-t border-line-subtle pt-space-base">
             <Button
               variant="outline"
               type="button"

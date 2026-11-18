@@ -21,8 +21,8 @@ export const MCPProtocolSelect = ({
   const { t } = useTranslation()
   return (
     <fieldset className="space-y-space-sm">
-      <legend className="text-sm font-medium text-text-primary">
-        {t('mcp.form.protocol')} <span className="text-status-error">*</span>
+      <legend className="text-sm font-medium text-fg">
+        {t('mcp.form.protocol')} <span className="text-danger-fg">*</span>
       </legend>
       <div className="grid grid-cols-1 gap-space-sm @md:grid-cols-3">
         {options.map((option) => (
@@ -32,17 +32,17 @@ export const MCPProtocolSelect = ({
             aria-pressed={value === option.value}
             onClick={() => onChange(option.value)}
             className={cn(
-              'flex min-w-0 flex-col items-start gap-space-xs rounded-radius-lg border p-space-base text-left focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden',
+              'flex min-w-0 flex-col items-start gap-space-xs rounded-radius-lg border p-space-base text-left focus-visible:ring-2 focus-visible:ring-line-focus focus-visible:outline-hidden',
               value === option.value
-                ? 'border-border-strong bg-state-active'
-                : 'border-border-default hover:bg-state-hover',
+                ? 'border-line-strong bg-fill-pressed'
+                : 'border-line hover:bg-fill-hover',
             )}
           >
-            <span className="flex items-center gap-space-xs text-sm font-medium text-text-primary">
-              <Globe className="size-icon-sm text-text-secondary" />
+            <span className="flex items-center gap-space-xs text-sm font-medium text-fg">
+              <Globe className="size-icon-sm text-fg-muted" />
               {option.label}
             </span>
-            <span className="text-xs text-text-secondary">
+            <span className="text-xs text-fg-muted">
               {t(option.descriptionKey)}
             </span>
           </button>

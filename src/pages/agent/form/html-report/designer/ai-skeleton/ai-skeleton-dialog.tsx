@@ -98,20 +98,20 @@ export function AiSkeletonDialog({
       className="absolute inset-0 z-20 m-0 flex h-full w-full max-w-none items-center justify-center border-0 bg-transparent p-space-lg"
     >
       {busy ? (
-        <div className="absolute inset-0 bg-background-overlay backdrop-blur-xs" />
+        <div className="absolute inset-0 bg-scrim backdrop-blur-xs" />
       ) : (
         <button
           type="button"
           aria-label={t('common.close', 'Close')}
-          className="absolute inset-0 bg-background-overlay backdrop-blur-xs"
+          className="absolute inset-0 bg-scrim backdrop-blur-xs"
           onClick={close}
         />
       )}
 
-      <div className="relative z-10 flex max-h-full w-full max-w-3xl flex-col overflow-hidden rounded-radius-lg border border-border-default bg-background-surface shadow-elevation-high">
+      <div className="relative z-10 flex max-h-full w-full max-w-3xl flex-col overflow-hidden rounded-radius-lg border border-line bg-surface shadow-elevation-high">
         <div className="shrink-0 px-space-lg pt-space-lg pb-space-sm">
           <div className="flex items-start justify-between gap-space-sm">
-            <h2 className="text-base font-semibold text-text-primary">
+            <h2 className="text-base font-semibold text-fg">
               {t('flow.htmlReportAiDialogTitle', 'Generate from report text')}
             </h2>
             <button
@@ -119,12 +119,12 @@ export function AiSkeletonDialog({
               onClick={close}
               disabled={busy}
               aria-label={t('common.close', 'Close')}
-              className="text-text-tertiary hover:text-text-primary disabled:opacity-50"
+              className="text-fg-subtle hover:text-fg disabled:opacity-50"
             >
               <X className="size-icon-sm" />
             </button>
           </div>
-          <p className="mt-space-2xs text-sm text-text-secondary">
+          <p className="mt-space-2xs text-sm text-fg-muted">
             {t(
               'flow.htmlReportAiDialogDesc',
               'Paste a complete report; the model builds a reusable template structure for you.',
@@ -134,7 +134,7 @@ export function AiSkeletonDialog({
 
         <div className="min-h-0 flex-1 space-y-space-md overflow-auto px-space-lg pb-space-md">
           <div className="space-y-space-xs">
-            <Label className="text-xs text-text-secondary">
+            <Label className="text-xs text-fg-muted">
               {t('flow.htmlReportAiModel', 'Model')}
             </Label>
             <ModelSelect
@@ -154,7 +154,7 @@ export function AiSkeletonDialog({
           </div>
 
           <div className="space-y-space-xs">
-            <Label id={modeLabelId} className="text-xs text-text-secondary">
+            <Label id={modeLabelId} className="text-xs text-fg-muted">
               {t('flow.htmlReportAiExtractionMode', 'Extraction mode')}
             </Label>
             <SegmentedControl
@@ -176,7 +176,7 @@ export function AiSkeletonDialog({
                 },
               ]}
             />
-            <p className="text-xs text-text-tertiary">
+            <p className="text-xs text-fg-subtle">
               {mode === 'layout'
                 ? t(
                     'flow.htmlReportAiModeLayoutHelp',
@@ -190,7 +190,7 @@ export function AiSkeletonDialog({
           </div>
 
           <div className="space-y-space-xs">
-            <Label className="text-xs text-text-secondary">
+            <Label className="text-xs text-fg-muted">
               {t('flow.htmlReportAiSource', 'Report text')}
             </Label>
             <Textarea
@@ -206,7 +206,7 @@ export function AiSkeletonDialog({
           </div>
 
           {hasContent && !busy && (
-            <p className="text-xs text-status-warning">
+            <p className="text-xs text-warning-fg">
               {t(
                 'flow.htmlReportAiReplaceWarn',
                 'Generating will replace the current canvas content',
@@ -216,7 +216,7 @@ export function AiSkeletonDialog({
 
           {busy && (
             <div
-              className="flex items-center gap-space-xs text-xs text-text-tertiary"
+              className="flex items-center gap-space-xs text-xs text-fg-subtle"
               aria-live="polite"
               aria-busy="true"
             >
@@ -234,7 +234,7 @@ export function AiSkeletonDialog({
           )}
 
           {status === 'error' && error && (
-            <p className="text-xs text-status-error" role="alert">
+            <p className="text-xs text-danger-fg" role="alert">
               {error === 'parse'
                 ? t(
                     'flow.htmlReportAiErrorParse',
@@ -245,7 +245,7 @@ export function AiSkeletonDialog({
           )}
         </div>
 
-        <div className="flex shrink-0 items-center justify-end gap-space-sm border-t border-border-subtle px-space-lg py-space-base">
+        <div className="flex shrink-0 items-center justify-end gap-space-sm border-t border-line-subtle px-space-lg py-space-base">
           {busy ? (
             <Button variant="outline" size="sm" onClick={cancel}>
               {t('flow.htmlReportAiCancel', 'Cancel')}

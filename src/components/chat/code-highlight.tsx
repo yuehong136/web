@@ -4,7 +4,7 @@ import {
   loadCodeHighlighter,
   type CodeHighlighter,
 } from '@/components/chat/code-highlighter'
-import { CODE_THEMES } from '@/components/chat/shiki-engine'
+import { CODE_THEME } from '@/components/chat/shiki-engine'
 
 interface CodeHighlightProps {
   code: string
@@ -14,7 +14,7 @@ interface CodeHighlightProps {
 function PlainCode({ code }: { code: string }) {
   return (
     <pre className="m-0 overflow-x-auto px-space-md py-space-base text-sm leading-relaxed">
-      <code className="font-mono text-text-primary">{code}</code>
+      <code className="font-mono text-fg">{code}</code>
     </pre>
   )
 }
@@ -25,8 +25,8 @@ function HighlightedCode({
   const highlighted = useShikiHighlighter(
     props.code,
     props.language,
-    CODE_THEMES,
-    { highlighter, defaultColor: 'light', delay: props.streaming ? 120 : 0 },
+    CODE_THEME,
+    { highlighter, delay: props.streaming ? 120 : 0 },
   )
   return highlighted ?? <PlainCode code={props.code} />
 }

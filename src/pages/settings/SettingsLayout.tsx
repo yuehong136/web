@@ -253,13 +253,13 @@ export const SettingsLayout: React.FC = () => {
       }
       header={
         !navigationManaged && (
-          <div className="flex h-12 shrink-0 items-center border-b border-border-subtle px-space-lg">
+          <div className="flex h-12 shrink-0 items-center border-b border-line-subtle px-space-lg">
             {breadcrumb}
           </div>
         )
       }
     >
-      <div className="h-full bg-components-settings-content-bg">
+      <div className="h-full bg-surface">
         <Outlet />
       </div>
     </ConsolePageTemplate>

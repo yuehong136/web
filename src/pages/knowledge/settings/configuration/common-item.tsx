@@ -36,7 +36,7 @@ export function LLMModelItem({
       render={({ field }) => (
         <FormItem className="space-y-space-sm">
           <div className="flex items-start gap-space-xs">
-            <FormLabel className="w-1/4 shrink-0 pt-space-sm text-sm text-text-secondary">
+            <FormLabel className="w-1/4 shrink-0 pt-space-sm text-sm text-fg-muted">
               {label}
             </FormLabel>
             <div className="min-w-0 flex-1 space-y-space-sm">
@@ -55,14 +55,14 @@ export function LLMModelItem({
                   )}
                 />
               </FormControl>
-              <p className="text-xs text-text-secondary">
+              <p className="text-xs text-fg-muted">
                 {t(
                   documentScope
                     ? 'knowledge.settings.fields.documentParserModelTip'
                     : 'knowledge.settings.fields.globalIndexModelTip',
                 )}
               </p>
-              <p className="text-xs text-text-secondary">
+              <p className="text-xs text-fg-muted">
                 {t('knowledge.settings.fields.parserModelSavedTip')}
               </p>
               <FormMessage />

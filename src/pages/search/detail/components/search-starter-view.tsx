@@ -20,17 +20,17 @@ const STARTERS = [
   {
     key: 'summarize',
     Icon: ListChecks,
-    tone: 'bg-components-avatar-5-bg text-components-avatar-5-text',
+    tone: 'bg-avatar-5-bg text-avatar-5-fg',
   },
   {
     key: 'locate',
     Icon: FileSearch,
-    tone: 'bg-components-avatar-6-bg text-components-avatar-6-text',
+    tone: 'bg-avatar-6-bg text-avatar-6-fg',
   },
   {
     key: 'compare',
     Icon: Files,
-    tone: 'bg-components-avatar-7-bg text-components-avatar-7-text',
+    tone: 'bg-avatar-7-bg text-avatar-7-fg',
   },
 ] as const
 
@@ -49,10 +49,10 @@ function SearchStarterView({
   return (
     <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col justify-center gap-space-xl py-space-xl">
       <div className="flex flex-col items-center gap-space-sm text-center">
-        <h1 className="text-2xl leading-tight font-semibold tracking-tight text-pretty text-text-primary sm:text-3xl">
+        <h1 className="text-2xl leading-tight font-semibold tracking-tight text-pretty text-fg sm:text-3xl">
           {t('searchPage.workspace.starterTitle')}
         </h1>
-        <p className="max-w-xl text-sm leading-relaxed text-pretty text-text-secondary sm:text-base">
+        <p className="max-w-xl text-sm leading-relaxed text-pretty text-fg-muted sm:text-base">
           {t('searchPage.workspace.starterDescription')}
         </p>
       </div>
@@ -74,7 +74,7 @@ function SearchStarterView({
               onClick={() =>
                 onPrefill(t(`searchPage.workspace.starters.${key}.query`))
               }
-              className="flex h-full w-full flex-col items-start gap-space-sm rounded-radius-xl border border-border-default bg-background-surface p-space-md text-left outline-hidden transition-[border-color,box-shadow,transform] duration-150 hover:border-border-strong hover:shadow-elevation-medium focus-visible:ring-2 focus-visible:ring-state-focus motion-safe:hover:-translate-y-0.5"
+              className="flex h-full w-full flex-col items-start gap-space-sm rounded-radius-xl border border-line bg-surface p-space-md text-left outline-hidden transition-[border-color,box-shadow,transform] duration-150 hover:border-line-strong hover:shadow-elevation-medium focus-visible:ring-2 focus-visible:ring-line-focus motion-safe:hover:-translate-y-0.5"
             >
               <span
                 className={cn(
@@ -85,14 +85,14 @@ function SearchStarterView({
                 <Icon className="size-icon-md" aria-hidden="true" />
               </span>
               <span className="flex flex-col gap-space-2xs">
-                <span className="text-sm font-semibold text-text-primary">
+                <span className="text-sm font-semibold text-fg">
                   {t(`searchPage.workspace.starters.${key}.title`)}
                 </span>
-                <span className="text-xs leading-relaxed text-text-tertiary">
+                <span className="text-xs leading-relaxed text-fg-subtle">
                   {t(`searchPage.workspace.starters.${key}.description`)}
                 </span>
               </span>
-              <span className="mt-auto flex items-center gap-space-2xs text-xs font-medium text-text-accent">
+              <span className="mt-auto flex items-center gap-space-2xs text-xs font-medium text-accent-fg">
                 {t('searchPage.workspace.starterCta')}
                 <ArrowRight aria-hidden="true" className="size-3.5" />
               </span>

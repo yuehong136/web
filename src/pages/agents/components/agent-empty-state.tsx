@@ -48,7 +48,7 @@ export function AgentEmptyState({
       key: 'create',
       primary: true,
       icon: <Bot />,
-      iconClassName: 'bg-components-avatar-7-bg text-components-avatar-7-text',
+      iconClassName: 'bg-avatar-7-bg text-avatar-7-fg',
       title: t('agents.createAsset'),
       description: t('agents.empty.createDescription'),
       cta: t('agents.empty.createCta'),
@@ -58,7 +58,7 @@ export function AgentEmptyState({
     paths.push({
       key: 'template',
       icon: <LayoutTemplate />,
-      iconClassName: 'bg-components-avatar-2-bg text-components-avatar-2-text',
+      iconClassName: 'bg-avatar-2-bg text-avatar-2-fg',
       title: t('agents.createFromTemplate'),
       description: t('agents.empty.templateDescription'),
       cta: t('agents.empty.templateCta'),
@@ -68,7 +68,7 @@ export function AgentEmptyState({
     paths.push({
       key: 'import',
       icon: <FileInput />,
-      iconClassName: 'bg-components-avatar-4-bg text-components-avatar-4-text',
+      iconClassName: 'bg-avatar-4-bg text-avatar-4-fg',
       title: t('agents.importJson'),
       description: t('agents.empty.importDescription'),
       cta: t('agents.empty.importCta'),

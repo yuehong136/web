@@ -29,7 +29,7 @@ const HighlightPopup = ({
   comment: { text: string; emoji: string }
 }) =>
   comment.text ? (
-    <div className="rounded-radius-sm bg-status-warning-subtle px-space-sm py-space-2xs text-xs text-status-warning shadow-elevation-medium">
+    <div className="rounded-radius-sm bg-warning-soft px-space-sm py-space-2xs text-xs text-warning-fg shadow-elevation-medium">
       {comment.emoji} {comment.text}
     </div>
   ) : null

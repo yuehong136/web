@@ -24,7 +24,7 @@ export const TideMark = ({
     aria-hidden="true"
     data-tide-mark
     className={cn(
-      'flex shrink-0 items-center justify-center bg-ai-tide text-text-on-accent',
+      'flex shrink-0 items-center justify-center bg-ai-tide text-accent-on-solid',
       TIDE_SIZES[size],
       className,
     )}
@@ -53,7 +53,7 @@ export const BrandMark = ({
     >
       <TideMark />
       {showName ? (
-        <span className="truncate text-base font-semibold tracking-tight text-text-primary">
+        <span className="truncate text-base font-semibold tracking-tight text-fg">
           {t('layout.brandName')}
         </span>
       ) : null}

@@ -45,7 +45,7 @@ export function AgentEditorHeader({
       align="center"
       surface="plain"
       wrapActions
-      className="min-h-13 border-b border-components-studio-border bg-components-studio-surface px-space-sm py-space-xs"
+      className="min-h-13 border-b border-line bg-surface px-space-sm py-space-xs"
       leading={
         <Button
           variant="ghost"

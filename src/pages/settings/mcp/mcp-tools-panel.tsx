@@ -118,9 +118,9 @@ export function MCPToolsPanel({
             tone="kind"
             size="sm"
           />
-          <h3 className="min-w-0 flex-1 truncate text-sm font-semibold text-text-primary">
+          <h3 className="min-w-0 flex-1 truncate text-sm font-semibold text-fg">
             {server.name}
-            <span className="ml-space-sm text-xs font-normal text-text-tertiary tabular-nums">
+            <span className="ml-space-sm text-xs font-normal text-fg-subtle tabular-nums">
               {t('mcp.servers.toolsCount', { count: tools.length })}
             </span>
           </h3>

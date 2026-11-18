@@ -64,10 +64,10 @@ export const AvailableModels: FC<AvailableModelsProps> = ({
 
   const chip = (pressed: boolean) =>
     cn(
-      'inline-flex min-h-[var(--control-height-sm)] items-center gap-space-xs rounded-radius-sm border px-space-sm text-xs outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-state-focus',
+      'inline-flex min-h-[var(--control-height-sm)] items-center gap-space-xs rounded-radius-sm border px-space-sm text-xs outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-line-focus',
       pressed
-        ? 'border-border-strong bg-state-selected-bg text-text-primary'
-        : 'border-border-default text-text-secondary hover:bg-state-hover',
+        ? 'border-line-strong bg-accent-soft text-fg'
+        : 'border-line text-fg-muted hover:bg-fill-hover',
     )
 
   return (
@@ -98,7 +98,7 @@ export const AvailableModels: FC<AvailableModelsProps> = ({
             className={chip(selectedTags.length === 0)}
           >
             {t('settings.models.allProviders')}{' '}
-            <span className="text-text-tertiary tabular-nums">
+            <span className="text-fg-subtle tabular-nums">
               {searched.length}
             </span>
           </button>
@@ -111,7 +111,7 @@ export const AvailableModels: FC<AvailableModelsProps> = ({
               className={chip(selectedTags.includes(tag))}
             >
               <ModelCapability type={tag} />{' '}
-              <span className="text-text-tertiary tabular-nums">
+              <span className="text-fg-subtle tabular-nums">
                 {counts.get(tag) ?? 0}
               </span>
             </button>
@@ -119,7 +119,7 @@ export const AvailableModels: FC<AvailableModelsProps> = ({
         </fieldset>
       </div>
       {filteredModels.length === 0 ? (
-        <p className="border-t border-border-subtle py-space-lg text-center text-sm text-text-tertiary">
+        <p className="border-t border-line-subtle py-space-lg text-center text-sm text-fg-subtle">
           {t('common.noResults')}
         </p>
       ) : (

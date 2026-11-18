@@ -102,7 +102,7 @@ export function CoreImportDialog({
                   <summary>
                     {t('skills.previewPackage', { count: files.length })}
                   </summary>
-                  <ul className="max-h-48 overflow-auto text-sm text-text-secondary">
+                  <ul className="max-h-48 overflow-auto text-sm text-fg-muted">
                     {files.slice(0, 100).map((file) => (
                       <li key={file.webkitRelativePath || file.name}>
                         {file.webkitRelativePath || file.name}
@@ -116,7 +116,7 @@ export function CoreImportDialog({
           {folder && (
             <div
               aria-live="polite"
-              className="flex flex-col gap-space-sm rounded-radius-lg bg-background-subtle p-space-base"
+              className="flex flex-col gap-space-sm rounded-radius-lg bg-sunken p-space-base"
             >
               <p>
                 {t(
@@ -126,11 +126,7 @@ export function CoreImportDialog({
                   { count: saved, total: files.length },
                 )}
               </p>
-              <p
-                className={
-                  indexed ? 'text-status-success' : 'text-text-secondary'
-                }
-              >
+              <p className={indexed ? 'text-success-fg' : 'text-fg-muted'}>
                 {t(
                   indexed
                     ? 'skills.core.indexReady'

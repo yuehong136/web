@@ -1,13 +1,14 @@
 import { getTokenValue, type ThemeMode } from './token-values'
+import { lightTokenValues } from '@/themes/token-values.generated'
 import type { AppearancePreset } from '@/themes/appearance'
 
 /**
- * 分类/序列调色板 `data-viz-categorical-*` 的单一消费入口。
+ * 分类/序列调色板 `viz-*` 的单一消费入口。
  *
  * 这是「分类/层级」着色（多色、无单一语义）的唯一来源 —— 图表、思维导图、知识图谱实体类型色都从此读取，
  * 不要再在页面/组件里硬编码 hex 数组。明暗两套色值来自单一来源的 typed JS target，
  * 调用方按当前主题(`useIsDarkTheme() ? 'dark' : 'light'` / `getResolvedTheme()`)传入 theme。
- * 语义状态色（done/failed/pending 等）请用 `components-system-chart-*`，不要混进 categorical。
+ * 语义状态色（done/failed/pending 等）请用 `success-fg` / `danger-fg` / `warning-fg` 等意图色或 `run-*`，不要混进 categorical。
  *
  * categorical 色不单独承载语义：分类识别仍需配合 label / tooltip / 文案（颜色非唯一信号）。
  */
@@ -16,16 +17,16 @@ export const CATEGORICAL_PALETTE_SIZE = 10
 
 /** 静态字面量数组，使完整 token 名可被 grep / lint 检索（不要运行期拼接构造 token 名）。 */
 export const DATA_VIZ_CATEGORICAL_TOKENS = [
-  'data-viz-categorical-1',
-  'data-viz-categorical-2',
-  'data-viz-categorical-3',
-  'data-viz-categorical-4',
-  'data-viz-categorical-5',
-  'data-viz-categorical-6',
-  'data-viz-categorical-7',
-  'data-viz-categorical-8',
-  'data-viz-categorical-9',
-  'data-viz-categorical-10',
+  'viz-1',
+  'viz-2',
+  'viz-3',
+  'viz-4',
+  'viz-5',
+  'viz-6',
+  'viz-7',
+  'viz-8',
+  'viz-9',
+  'viz-10',
 ] as const
 
 /**
@@ -33,18 +34,8 @@ export const DATA_VIZ_CATEGORICAL_TOKENS = [
  * 仅供 scoped-theme / embed 子树经 `readCssVar` 解析失败时使用；静态按主题路径
  * (`getCategoricalPalette(theme)`) 不再依赖该数组。
  */
-export const CATEGORICAL_FALLBACKS = [
-  '#c7585c',
-  '#009298',
-  '#9a7d03',
-  '#6378d4',
-  '#0a976c',
-  '#b95995',
-  '#be650f',
-  '#058ac2',
-  '#678f21',
-  '#9866c1',
-] as const
+export const CATEGORICAL_FALLBACKS: readonly string[] =
+  DATA_VIZ_CATEGORICAL_TOKENS.map((name) => lightTokenValues[name])
 
 /**
  * 按主题取分类调色板的颜色值（供 canvas / G6 等非 Tailwind 渲染器用）。
@@ -76,8 +67,8 @@ export function getCategoricalIndex(
   return hash % size
 }
 
-/** 返回 `var(--color-data-viz-categorical-N)`，供 DOM `style` 直接引用（随主题切换）。 */
+/** 返回 `var(--color-viz-N)`，供 DOM `style` 直接引用（随主题切换）。 */
 export function getCategoricalColorVar(index: number): string {
   const slot = (index % CATEGORICAL_PALETTE_SIZE) + 1
-  return `var(--color-data-viz-categorical-${slot})`
+  return `var(--color-viz-${slot})`
 }

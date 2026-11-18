@@ -171,14 +171,14 @@ export function MCPPage() {
           <div className="min-w-0">
             <button
               type="button"
-              className="max-w-full truncate rounded-radius-sm text-left font-medium text-text-primary outline-hidden hover:underline focus-visible:ring-2 focus-visible:ring-state-focus"
+              className="max-w-full truncate rounded-radius-sm text-left font-medium text-fg outline-hidden hover:underline focus-visible:ring-2 focus-visible:ring-line-focus"
               onClick={() => openPanel('tools', server)}
             >
               {server.name}
             </button>
             {server.description ? (
               <p
-                className="truncate text-xs text-text-tertiary"
+                className="truncate text-xs text-fg-subtle"
                 title={server.description}
               >
                 {server.description}
@@ -203,7 +203,7 @@ export function MCPPage() {
         <Button
           variant="ghost"
           size="sm"
-          className="max-w-full min-w-0 justify-start px-space-xs font-normal text-text-secondary"
+          className="max-w-full min-w-0 justify-start px-space-xs font-normal text-fg-muted"
           title={server.url}
           aria-label={t('mcp.servers.actions.copyAddress', {
             name: server.name,
@@ -215,7 +215,7 @@ export function MCPPage() {
           </span>
           {copiedId === server.id ? (
             <Check
-              className="size-icon-sm text-status-success"
+              className="size-icon-sm text-success-fg"
               aria-hidden="true"
             />
           ) : (
@@ -238,7 +238,7 @@ export function MCPPage() {
               aria-hidden="true"
               className={cn(
                 'size-1.5 rounded-radius-full',
-                count ? 'bg-status-success' : 'bg-text-tertiary',
+                count ? 'bg-success-fg' : 'bg-fg-subtle',
               )}
             />
             {count}
@@ -478,7 +478,7 @@ export function MCPPage() {
               <Button
                 variant="ghost"
                 size="icon-sm"
-                className="text-text-secondary"
+                className="text-fg-muted"
                 loading={testingId === server.id}
                 aria-label={t('mcp.servers.actions.testAddress', {
                   name: server.name,

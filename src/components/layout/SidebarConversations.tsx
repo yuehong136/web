@@ -55,11 +55,11 @@ export const SidebarConversations: React.FC<SidebarConversationsProps> = ({
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="flex min-h-[var(--control-height-sm)] shrink-0 items-center gap-space-sm px-space-base pt-space-xs">
         <EntityAvatar name={name} src={appIcon} seed={appId} size="2xs" />
-        <span className="min-w-0 flex-1 truncate text-sm font-medium text-text-primary">
+        <span className="min-w-0 flex-1 truncate text-sm font-medium text-fg">
           {name}
         </span>
         {conversations.length > 0 ? (
-          <span className="shrink-0 text-xs text-text-tertiary tabular-nums">
+          <span className="shrink-0 text-xs text-fg-subtle tabular-nums">
             {conversations.length}
           </span>
         ) : null}
@@ -84,7 +84,7 @@ export const SidebarConversations: React.FC<SidebarConversationsProps> = ({
             <Spinner size="sm" />
           </div>
         ) : conversations.length === 0 ? (
-          <p className="px-space-sm py-space-lg text-center text-xs text-text-tertiary">
+          <p className="px-space-sm py-space-lg text-center text-xs text-fg-subtle">
             {t('desktop.conversations.empty')}
           </p>
         ) : (
@@ -95,7 +95,7 @@ export const SidebarConversations: React.FC<SidebarConversationsProps> = ({
             >
               <p
                 aria-hidden="true"
-                className="sticky top-0 z-10 bg-components-sidebar-bg px-space-sm pt-space-sm pb-space-2xs text-xs font-medium text-text-tertiary"
+                className="sticky top-0 z-10 bg-canvas px-space-sm pt-space-sm pb-space-2xs text-xs font-medium text-fg-subtle"
               >
                 {t(`desktop.conversations.groups.${group}`)}
               </p>
@@ -110,10 +110,10 @@ export const SidebarConversations: React.FC<SidebarConversationsProps> = ({
                         onClick={() => onSelectConversation(conv.id)}
                         aria-current={active ? 'page' : undefined}
                         className={cn(
-                          'flex min-h-[var(--control-height-sm)] w-full items-center gap-space-sm rounded-radius-md px-space-sm text-left text-sm outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-state-focus motion-reduce:transition-none',
+                          'flex min-h-[var(--control-height-sm)] w-full items-center gap-space-sm rounded-radius-md px-space-sm text-left text-sm outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-line-focus motion-reduce:transition-none',
                           active
-                            ? 'bg-state-selected-bg font-medium text-state-selected-text'
-                            : 'text-text-secondary hover:bg-state-hover hover:text-text-primary',
+                            ? 'bg-accent-soft font-medium text-accent-fg'
+                            : 'text-fg-muted hover:bg-fill-hover hover:text-fg',
                         )}
                       >
                         {/* Whose conversation it is, at a glance. */}
@@ -128,7 +128,7 @@ export const SidebarConversations: React.FC<SidebarConversationsProps> = ({
                             conv.title ||
                             t('desktop.conversations.untitled')}
                         </span>
-                        <span className="shrink-0 text-xs font-normal text-text-tertiary tabular-nums">
+                        <span className="shrink-0 text-xs font-normal text-fg-subtle tabular-nums">
                           {formatRelativeTime(
                             conv.update_time || conv.update_date,
                             {

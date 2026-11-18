@@ -28,7 +28,7 @@
 }
 
 .prompt-editor-content {
-  caret-color: var(--color-components-system-accent-text, #00beb4);
+  caret-color: var(--color-accent-fg, #00beb4);
 }
 
 .prompt-editor-content .editor-paragraph {
@@ -43,7 +43,7 @@
 }
 
 .prompt-editor-content::-webkit-scrollbar-thumb {
-  background: var(--color-components-scrollbar-thumb, rgba(0, 0, 0, 0.12));
+  background: var(--color-line-strong, rgba(0, 0, 0, 0.12));
   border-radius: 999px;
 }
 

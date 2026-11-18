@@ -88,15 +88,15 @@ export function TurnRail({
               })}
               aria-current={active ? 'step' : undefined}
               onClick={() => jump(turn.id)}
-              className="group pointer-events-auto flex h-space-base w-space-lg shrink-0 items-center justify-end rounded-radius-sm focus-visible:outline-2 focus-visible:outline-state-focus"
+              className="group pointer-events-auto flex h-space-base w-space-lg shrink-0 items-center justify-end rounded-radius-sm focus-visible:outline-2 focus-visible:outline-line-focus"
             >
               <span
                 aria-hidden="true"
                 className={cn(
                   'h-space-2xs rounded-radius-full transition-all motion-reduce:transition-none',
                   active
-                    ? 'w-space-md bg-components-button-primary-bg'
-                    : 'w-space-base bg-border-strong group-hover:w-space-md group-hover:bg-text-secondary',
+                    ? 'w-space-md bg-action-bg'
+                    : 'w-space-base bg-line-strong group-hover:w-space-md group-hover:bg-fg-muted',
                 )}
               />
             </button>

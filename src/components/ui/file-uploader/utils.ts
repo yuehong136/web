@@ -1,3 +1,4 @@
+import { FILE_TONES } from '../file-tones'
 import {
   File as FileIcon,
   FileText,
@@ -69,56 +70,16 @@ export function getFileColor(fileName: string | undefined): {
   text: string
   accent: string
 } {
-  const defaultColor = {
-    bg: 'rgba(107, 114, 128, 0.1)',
-    text: 'var(--color-text-tertiary)',
-    accent: 'var(--color-text-tertiary)',
-  }
+  const defaultColor = FILE_TONES.gray
   if (!fileName) return defaultColor
 
   const ext = fileName.split('.').pop()?.toLowerCase() || ''
 
   const colors = {
-    red: { bg: 'rgba(239, 68, 68, 0.1)', text: '#ef4444', accent: '#ef4444' },
-    blue: { bg: 'rgba(59, 130, 246, 0.1)', text: '#3b82f6', accent: '#3b82f6' },
-    green: { bg: 'rgba(34, 197, 94, 0.1)', text: '#22c55e', accent: '#22c55e' },
-    gray: {
-      bg: 'rgba(107, 114, 128, 0.1)',
-      text: '#6b7280',
-      accent: '#6b7280',
-    },
-    purple: {
-      bg: 'rgba(139, 92, 246, 0.1)',
-      text: '#8b5cf6',
-      accent: '#8b5cf6',
-    },
-    orange: {
-      bg: 'rgba(249, 115, 22, 0.1)',
-      text: '#f97316',
-      accent: '#f97316',
-    },
-    pink: { bg: 'rgba(236, 72, 153, 0.1)', text: '#ec4899', accent: '#ec4899' },
-    violet: {
-      bg: 'rgba(168, 85, 247, 0.1)',
-      text: '#a855f7',
-      accent: '#a855f7',
-    },
-    teal: { bg: 'rgba(20, 184, 166, 0.1)', text: '#14b8a6', accent: '#14b8a6' },
-    yellow: {
-      bg: 'rgba(234, 179, 8, 0.1)',
-      text: '#eab308',
-      accent: '#eab308',
-    },
-    indigo: {
-      bg: 'rgba(99, 102, 241, 0.1)',
-      text: '#6366f1',
-      accent: '#6366f1',
-    },
-    amber: {
-      bg: 'rgba(245, 158, 11, 0.1)',
-      text: '#f59e0b',
-      accent: '#f59e0b',
-    },
+    ...FILE_TONES,
+    violet: FILE_TONES.purple,
+    indigo: FILE_TONES.blue,
+    amber: FILE_TONES.orange,
   }
 
   const colorMap: Record<string, { bg: string; text: string; accent: string }> =

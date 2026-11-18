@@ -186,8 +186,8 @@ export const SelectTrigger = React.forwardRef<
     <SelectPrimitive.Trigger
       ref={ref}
       className={cn(
-        'group flex min-h-[var(--control-height)] w-full min-w-0 items-center justify-between gap-space-sm rounded-radius-md border border-components-select-border bg-components-select-bg px-[var(--control-padding-x)] py-space-2xs text-left text-sm text-components-select-text outline-hidden transition-colors duration-150 hover:border-components-input-border-hover motion-reduce:transition-none',
-        'focus:border-components-select-border-focus focus-visible:ring-1 focus-visible:ring-state-focus data-[state=open]:border-components-select-border-focus',
+        'group flex min-h-[var(--control-height)] w-full min-w-0 items-center justify-between gap-space-sm rounded-radius-md border border-line bg-surface px-[var(--control-padding-x)] py-space-2xs text-left text-sm text-fg outline-hidden transition-colors duration-150 hover:border-line-strong motion-reduce:transition-none',
+        'focus:border-line-focus focus-visible:ring-1 focus-visible:ring-line-focus data-[state=open]:border-line-focus',
         'disabled:cursor-not-allowed disabled:opacity-50',
         className,
       )}
@@ -200,7 +200,7 @@ export const SelectTrigger = React.forwardRef<
     >
       {children}
       <SelectPrimitive.Icon asChild>
-        <ChevronDown className="size-icon-sm shrink-0 text-text-tertiary transition-transform group-data-[state=open]:rotate-180 motion-reduce:transition-none" />
+        <ChevronDown className="size-icon-sm shrink-0 text-fg-subtle transition-transform group-data-[state=open]:rotate-180 motion-reduce:transition-none" />
       </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>
   )
@@ -226,7 +226,7 @@ export const SelectValue: React.FC<SelectValueProps> = ({ placeholder }) => {
     <span className="min-w-0 flex-1 truncate">
       <SelectPrimitive.Value
         placeholder={
-          <span className="text-components-select-placeholder">
+          <span className="text-fg-subtle">
             {placeholder || selectPlaceholder || t('common.selectPlaceholder')}
           </span>
         }
@@ -261,7 +261,7 @@ export const SelectContent: React.FC<SelectContentProps> = ({
         sideOffset={4}
         data-theme={theme}
         className={cn(
-          'relative z-[1000] max-h-[min(15rem,var(--radix-select-content-available-height))] max-w-[var(--radix-select-content-available-width)] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-radius-xl border border-border-default bg-components-dropdown-bg text-sm text-components-dropdown-item-text shadow-elevation-medium',
+          'relative z-[1000] max-h-[min(15rem,var(--radix-select-content-available-height))] max-w-[var(--radix-select-content-available-width)] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-radius-xl border border-line bg-overlay text-sm text-fg shadow-elevation-medium',
           className,
         )}
         // Escape closes this list only. Legacy layers listen on document
@@ -299,16 +299,16 @@ export const SelectItem = React.forwardRef<HTMLDivElement, SelectItemProps>(
         ref={ref}
         value={value}
         className={cn(
-          'relative flex min-h-[var(--control-height)] w-full cursor-pointer items-center rounded-radius-md py-space-xs pr-space-sm pl-space-xl text-sm text-components-dropdown-item-text outline-hidden select-none',
+          'relative flex min-h-[var(--control-height)] w-full cursor-pointer items-center rounded-radius-md py-space-xs pr-space-sm pl-space-xl text-sm text-fg outline-hidden select-none',
           // The check mark carries the selection; colour only reinforces it.
-          'data-[state=checked]:font-medium data-[state=checked]:text-state-selected-text',
-          'data-[highlighted]:bg-state-hover',
+          'data-[state=checked]:font-medium data-[state=checked]:text-accent-fg',
+          'data-[highlighted]:bg-fill-hover',
           'data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50',
           className,
         )}
         {...props}
       >
-        <span className="absolute left-space-sm flex size-icon-sm items-center justify-center text-state-selected">
+        <span className="absolute left-space-sm flex size-icon-sm items-center justify-center text-accent-solid">
           <SelectPrimitive.ItemIndicator>
             <Check className="size-icon-sm" />
           </SelectPrimitive.ItemIndicator>
@@ -331,7 +331,7 @@ export const SelectLabel: React.FC<{
 }> = ({ children, className }) => (
   <SelectPrimitive.Label
     className={cn(
-      'pt-space-sm pr-space-sm pb-space-2xs pl-space-xl text-xs font-medium text-text-tertiary',
+      'pt-space-sm pr-space-sm pb-space-2xs pl-space-xl text-xs font-medium text-fg-subtle',
       className,
     )}
   >
@@ -343,6 +343,6 @@ export const SelectSeparator: React.FC<{ className?: string }> = ({
   className,
 }) => (
   <SelectPrimitive.Separator
-    className={cn('-mx-space-xs my-space-xs h-px bg-border-default', className)}
+    className={cn('-mx-space-xs my-space-xs h-px bg-line', className)}
   />
 )

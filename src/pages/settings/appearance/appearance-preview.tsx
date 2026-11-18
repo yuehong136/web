@@ -13,25 +13,22 @@ export function AppearancePreview() {
   return (
     <section
       aria-label={t('appearance.preview')}
-      className="overflow-hidden rounded-radius-xl border border-border-default bg-background-surface shadow-elevation-low"
+      className="overflow-hidden rounded-radius-xl border border-line bg-surface shadow-elevation-low"
     >
-      <div className="flex items-center gap-space-sm border-b border-border-subtle px-space-lg py-space-base">
-        <Sparkles className="size-icon-sm text-text-accent" />
+      <div className="flex items-center gap-space-sm border-b border-line-subtle px-space-lg py-space-base">
+        <Sparkles className="size-icon-sm text-accent-fg" />
         <h2 className="text-sm font-semibold">{t('appearance.preview')}</h2>
       </div>
       <div className="space-y-space-lg p-space-lg">
-        <p className="text-xs text-text-secondary">
+        <p className="text-xs text-fg-muted">
           {t('appearance.previewDescription')}
         </p>
-        <p className="ml-space-lg rounded-radius-lg bg-background-subtle p-space-base text-sm">
+        <p className="ml-space-lg rounded-radius-lg bg-sunken p-space-base text-sm">
           {t('appearance.previewQuestion')}
         </p>
         <div className="space-y-space-base">
-          <Sparkles
-            className="size-icon-md text-text-secondary"
-            aria-hidden="true"
-          />
-          <p className="text-sm leading-relaxed text-text-primary">
+          <Sparkles className="size-icon-md text-fg-muted" aria-hidden="true" />
+          <p className="text-sm leading-relaxed text-fg">
             {t('appearance.previewAnswer')}
           </p>
           <Popover>
@@ -44,23 +41,23 @@ export function AppearancePreview() {
                 {t('appearance.previewSource')}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="max-w-[calc(100vw-2rem)] border-border-default bg-background-surface p-space-base shadow-elevation-medium">
+            <PopoverContent className="max-w-[calc(100vw-2rem)] border-line bg-surface p-space-base shadow-elevation-medium">
               <p className="mb-space-xs text-sm font-semibold">
                 {t('appearance.previewDocument')}
               </p>
-              <p className="text-sm text-text-secondary">
+              <p className="text-sm text-fg-muted">
                 {t('appearance.previewSourceDetail')}
               </p>
             </PopoverContent>
           </Popover>
         </div>
-        <div className="flex items-center gap-space-base rounded-radius-lg border border-border-default bg-components-input-bg p-space-base">
-          <span className="min-w-0 flex-1 text-sm text-text-tertiary">
+        <div className="flex items-center gap-space-base rounded-radius-lg border border-line bg-surface p-space-base">
+          <span className="min-w-0 flex-1 text-sm text-fg-subtle">
             {t('appearance.previewComposer')}
           </span>
           <span
             aria-label={t('appearance.previewSend')}
-            className="flex size-8 shrink-0 items-center justify-center rounded-radius-full bg-components-button-primary-bg text-components-button-primary-text"
+            className="flex size-8 shrink-0 items-center justify-center rounded-radius-full bg-action-bg text-action-fg"
           >
             <ArrowUp className="size-icon-sm" />
           </span>

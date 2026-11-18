@@ -63,10 +63,10 @@ export function KeyUsage({
       className="flex flex-col gap-space-sm"
     >
       <div className="flex items-baseline justify-between gap-space-sm text-sm">
-        <h3 id="gateway-key-usage" className="font-semibold text-text-primary">
+        <h3 id="gateway-key-usage" className="font-semibold text-fg">
           {t(`${PREFIX}.keys.detail.usageTitle.${period}`)}
         </h3>
-        <span className="text-text-secondary tabular-nums">
+        <span className="text-fg-muted tabular-nums">
           {quota ?? t(`${PREFIX}.keys.noQuota`)}
         </span>
       </div>
@@ -76,7 +76,7 @@ export function KeyUsage({
       {usage.isPending ? (
         <Skeleton className="h-14 w-full" />
       ) : peak === 0 ? (
-        <p className="text-xs text-text-tertiary">
+        <p className="text-xs text-fg-subtle">
           {t(`${PREFIX}.keys.detail.sparklineEmpty`)}
         </p>
       ) : (
@@ -93,7 +93,7 @@ export function KeyUsage({
           </figcaption>
           <div
             aria-hidden="true"
-            className="flex h-14 items-end gap-0.5 border-b border-border-subtle"
+            className="flex h-14 items-end gap-0.5 border-b border-viz-axis"
           >
             {values.map((item) => (
               <div
@@ -105,7 +105,7 @@ export function KeyUsage({
                 className="flex h-full min-w-0 flex-1 items-end"
               >
                 <div
-                  className="w-full rounded-t-radius-sm bg-components-progress-fill"
+                  className="w-full rounded-t-radius-sm bg-accent-solid"
                   style={{
                     height: `${Math.max(item.value ? 4 : 0, (item.value / peak) * 100)}%`,
                   }}

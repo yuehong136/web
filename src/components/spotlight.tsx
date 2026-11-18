@@ -21,7 +21,7 @@ export default function Spotlight({
     <div
       className={cn('pointer-events-none absolute inset-0', className)}
       style={{
-        background: `radial-gradient(circle at ${X} ${Y}, color-mix(in srgb, var(--color-components-canvas-spotlight) ${opacityPercent}, transparent) 0%, transparent ${coverage}%)`,
+        background: `radial-gradient(circle at ${X} ${Y}, color-mix(in srgb, var(--color-accent-soft-hover) ${opacityPercent}, transparent) 0%, transparent ${coverage}%)`,
       }}
     />
   )

@@ -106,7 +106,7 @@ export function KnowledgeDialog({
                 return (
                   <div
                     key={kb.id}
-                    className="flex min-w-0 items-center gap-space-sm border-b border-border-subtle py-space-sm"
+                    className="flex min-w-0 items-center gap-space-sm border-b border-line-subtle py-space-sm"
                   >
                     <EntityAvatar
                       name={kb.name}
@@ -122,12 +122,12 @@ export function KnowledgeDialog({
                         {kb.name}
                       </p>
                       <p
-                        className="truncate text-xs text-text-secondary"
+                        className="truncate text-xs text-fg-muted"
                         title={kb.embd_id}
                       >
                         {kb.embd_id}
                       </p>
-                      <p className="text-xs text-text-secondary">
+                      <p className="text-xs text-fg-muted">
                         {t('studio.editor.documents')}: {kb.doc_num ?? 0} ·{' '}
                         {t('studio.editor.chunks')}: {kb.chunk_num ?? 0}
                       </p>

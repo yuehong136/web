@@ -73,8 +73,7 @@ const RailLinks = ({
         aria-label={group.label}
         className={cn(
           'flex flex-col gap-space-xs',
-          index > 0 &&
-            'mt-space-sm border-t border-components-settings-rail-border pt-space-sm',
+          index > 0 && 'mt-space-sm border-t border-line-subtle pt-space-sm',
         )}
       >
         {group.items.map((item) => {
@@ -102,12 +101,12 @@ const RailLinks = ({
                   aria-label={collapsed ? item.title : undefined}
                   aria-current={active ? 'page' : undefined}
                   className={cn(
-                    'flex min-h-8 items-center gap-space-sm rounded-radius-md px-space-sm py-space-xs text-sm transition-colors focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden focus-visible:ring-inset motion-reduce:transition-none',
+                    'flex min-h-8 items-center gap-space-sm rounded-radius-md px-space-sm py-space-xs text-sm transition-colors focus-visible:ring-2 focus-visible:ring-line-focus focus-visible:outline-hidden focus-visible:ring-inset motion-reduce:transition-none',
                     touch && 'min-h-[44px]',
                     collapsed && 'justify-center px-0',
                     active
-                      ? 'bg-components-sidebar-item-bg-active font-medium text-components-sidebar-item-text-active'
-                      : 'text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover hover:text-text-primary',
+                      ? 'bg-fill-selected font-medium text-fg'
+                      : 'text-fg-muted hover:bg-fill-hover hover:text-fg',
                   )}
                 >
                   {Icon ? (
@@ -121,7 +120,7 @@ const RailLinks = ({
                   {!collapsed && Boolean(item.badge) && (
                     <span
                       aria-label={item.badgeLabel}
-                      className="rounded-radius-sm bg-background-subtle px-space-xs text-xs text-text-secondary tabular-nums"
+                      className="rounded-radius-sm bg-sunken px-space-xs text-xs text-fg-muted tabular-nums"
                     >
                       {(item.badge ?? 0) > 99 ? '99+' : item.badge}
                     </span>
@@ -164,7 +163,7 @@ export const ContextRail = ({
 
   const renderFooter = (compact: boolean) =>
     footer ? (
-      <div className="shrink-0 border-t border-components-settings-rail-border p-space-sm">
+      <div className="shrink-0 border-t border-line-subtle p-space-sm">
         {typeof footer === 'function' ? footer(compact) : footer}
       </div>
     ) : null
@@ -176,7 +175,7 @@ export const ContextRail = ({
         id={desktopId}
         data-collapsed={collapsed}
         className={cn(
-          'hidden h-full min-h-0 shrink-0 flex-col border-r border-components-settings-rail-border bg-components-sidebar-bg md:flex',
+          'hidden h-full min-h-0 shrink-0 flex-col border-r border-line-subtle bg-canvas md:flex',
           collapsed ? 'w-[56px]' : 'w-[208px]',
           className,
         )}
@@ -197,7 +196,7 @@ export const ContextRail = ({
                 variant="ghost"
                 size="sm"
                 className={cn(
-                  'w-full justify-start px-space-sm text-text-secondary',
+                  'w-full justify-start px-space-sm text-fg-muted',
                   collapsed && 'justify-center px-0',
                 )}
               >
@@ -221,7 +220,7 @@ export const ContextRail = ({
             className={
               collapsed
                 ? 'sr-only'
-                : 'min-w-0 truncate pl-space-sm text-sm font-medium text-components-settings-rail-title'
+                : 'min-w-0 truncate pl-space-sm text-sm font-medium text-fg'
             }
           >
             {title}
@@ -259,7 +258,7 @@ export const ContextRail = ({
         {renderFooter(collapsed)}
       </aside>
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <div className="flex shrink-0 items-center border-b border-components-settings-rail-border bg-components-sidebar-bg px-space-sm py-space-xs md:hidden">
+        <div className="flex shrink-0 items-center border-b border-line-subtle bg-canvas px-space-sm py-space-xs md:hidden">
           <SheetTrigger asChild>
             <Button
               variant="ghost"
@@ -277,10 +276,10 @@ export const ContextRail = ({
           side="left"
           showCloseButton={false}
           aria-describedby={undefined}
-          className="flex w-[256px] flex-col gap-0 bg-components-sidebar-bg p-0 motion-reduce:animate-none sm:max-w-none"
+          className="flex w-[256px] flex-col gap-0 bg-canvas p-0 motion-reduce:animate-none sm:max-w-none"
         >
-          <div className="flex h-12 shrink-0 items-center justify-between gap-space-sm border-b border-components-settings-rail-border px-space-base">
-            <SheetTitle className="truncate text-sm font-medium text-components-settings-rail-title">
+          <div className="flex h-12 shrink-0 items-center justify-between gap-space-sm border-b border-line-subtle px-space-base">
+            <SheetTitle className="truncate text-sm font-medium text-fg">
               {title}
             </SheetTitle>
             <SheetClose asChild>
@@ -294,7 +293,7 @@ export const ContextRail = ({
               asChild
               variant="ghost"
               size="sm"
-              className="m-space-sm justify-start text-text-secondary"
+              className="m-space-sm justify-start text-fg-muted"
             >
               <Link to={backLink.href} onClick={() => setMobileOpen(false)}>
                 <ArrowLeft className="size-icon-sm" />

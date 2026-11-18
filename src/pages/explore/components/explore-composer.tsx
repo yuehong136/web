@@ -40,7 +40,7 @@ export function ExploreAppModel({ reference }: { reference: string }) {
       {identity.provider ? (
         <ProviderLogo provider={identity.provider} size="sm" />
       ) : null}
-      <span className="min-w-0 truncate text-text-primary">
+      <span className="min-w-0 truncate text-fg">
         {identity.label ?? t('common.modelPicker.savedModel')}
       </span>
       <span className="shrink-0">· {t('explore.sender.appModel')}</span>
@@ -195,7 +195,7 @@ export function ExploreComposer({
         ),
         configuration: (
           <span
-            className="flex min-w-0 items-center gap-space-sm text-xs text-text-tertiary"
+            className="flex min-w-0 items-center gap-space-sm text-xs text-fg-subtle"
             aria-live="polite"
           >
             {uploads.uploading ? (
@@ -204,7 +204,7 @@ export function ExploreComposer({
                 {t('explore.sender.uploading')}
               </span>
             ) : uploads.hasError ? (
-              <span className="text-status-error">
+              <span className="text-danger-fg">
                 {t('explore.sender.uploadErrorHint')}
               </span>
             ) : uploads.readyCount > 0 ? (

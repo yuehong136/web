@@ -224,8 +224,8 @@ export function ImageUploader(props: ImageUploaderProps) {
                 key={`${file.name}-${index}`}
                 className="group relative overflow-hidden rounded-lg"
                 style={{
-                  backgroundColor: 'var(--color-background-default)',
-                  border: '1px solid var(--color-border-subtle)',
+                  backgroundColor: 'var(--color-canvas)',
+                  border: '1px solid var(--color-line-subtle)',
                 }}
               >
                 {/* 图片预览 */}
@@ -245,14 +245,14 @@ export function ImageUploader(props: ImageUploaderProps) {
                     <Tooltip content={file.name}>
                       <p
                         className="truncate text-sm font-medium"
-                        style={{ color: 'var(--color-text-primary)' }}
+                        style={{ color: 'var(--color-fg)' }}
                       >
                         {file.name}
                       </p>
                     </Tooltip>
                     <p
                       className="text-xs"
-                      style={{ color: 'var(--color-text-tertiary)' }}
+                      style={{ color: 'var(--color-fg-subtle)' }}
                     >
                       {formatBytes(file.size)}
                     </p>
@@ -262,7 +262,7 @@ export function ImageUploader(props: ImageUploaderProps) {
                     variant="ghost"
                     size="sm"
                     onClick={() => onRemove(index)}
-                    className="text-status-error hover:bg-status-error-subtle hover:text-status-error"
+                    className="text-danger-fg hover:bg-danger-soft hover:text-danger-fg"
                   >
                     <Trash2 className="mr-1 h-4 w-4" />
                     移除
@@ -294,16 +294,16 @@ export function ImageUploader(props: ImageUploaderProps) {
               <div
                 {...getRootProps()}
                 className={cn(
-                  'group relative flex cursor-pointer items-center justify-center gap-3 rounded-lg border border-dashed px-4 py-3 transition focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:ring-offset-2 focus-visible:ring-offset-background-surface focus-visible:outline-hidden',
+                  'group relative flex cursor-pointer items-center justify-center gap-3 rounded-lg border border-dashed px-4 py-3 transition focus-visible:ring-2 focus-visible:ring-line-focus focus-visible:ring-offset-2 focus-visible:ring-offset-surface focus-visible:outline-hidden',
                   isDragActive
-                    ? 'border-state-selected bg-state-selected-bg'
-                    : 'border-border-default hover:border-state-focus hover:bg-state-hover',
+                    ? 'border-accent-solid bg-accent-soft'
+                    : 'border-line hover:border-line-focus hover:bg-fill-hover',
                   isDisabled && 'pointer-events-none opacity-60',
                   className,
                 )}
                 style={{
                   backgroundColor: isDragActive
-                    ? 'var(--color-state-selected-bg)'
+                    ? 'var(--color-accent-soft)'
                     : 'transparent',
                 }}
                 {...dropzoneProps}
@@ -313,19 +313,19 @@ export function ImageUploader(props: ImageUploaderProps) {
                   className="flex h-8 w-8 items-center justify-center rounded-full transition-colors"
                   style={{
                     backgroundColor: isDragActive
-                      ? 'var(--color-state-selected-bg)'
-                      : 'var(--color-background-subtle)',
+                      ? 'var(--color-accent-soft)'
+                      : 'var(--color-sunken)',
                   }}
                 >
                   {isDragActive ? (
                     <Upload
                       className="h-4 w-4"
-                      style={{ color: 'var(--color-state-selected-text)' }}
+                      style={{ color: 'var(--color-accent-fg)' }}
                     />
                   ) : (
                     <Replace
                       className="h-4 w-4"
-                      style={{ color: 'var(--color-text-tertiary)' }}
+                      style={{ color: 'var(--color-fg-subtle)' }}
                     />
                   )}
                 </div>
@@ -334,15 +334,15 @@ export function ImageUploader(props: ImageUploaderProps) {
                     className="text-sm font-medium"
                     style={{
                       color: isDragActive
-                        ? 'var(--color-state-selected-text)'
-                        : 'var(--color-text-secondary)',
+                        ? 'var(--color-accent-fg)'
+                        : 'var(--color-fg-muted)',
                     }}
                   >
                     {isDragActive ? '释放以上传' : title || '上传新图片替换'}
                   </p>
                   <p
                     className="text-xs"
-                    style={{ color: 'var(--color-text-tertiary)' }}
+                    style={{ color: 'var(--color-fg-subtle)' }}
                   >
                     {description || 'PNG、JPG、WebP、GIF，最大 10MB'}
                   </p>
@@ -366,14 +366,14 @@ export function ImageUploader(props: ImageUploaderProps) {
               key={`${file.name}-${index}`}
               className="group relative overflow-hidden rounded-lg"
               style={{
-                backgroundColor: 'var(--color-background-default)',
-                border: '1px solid var(--color-border-subtle)',
+                backgroundColor: 'var(--color-canvas)',
+                border: '1px solid var(--color-line-subtle)',
               }}
             >
               {/* 图片预览 */}
               <div
                 className="flex aspect-video items-center justify-center p-4"
-                style={{ backgroundColor: 'var(--color-background-subtle)' }}
+                style={{ backgroundColor: 'var(--color-sunken)' }}
               >
                 {isFileWithPreview(file) && (
                   <img
@@ -387,13 +387,13 @@ export function ImageUploader(props: ImageUploaderProps) {
               {/* 文件信息和操作 */}
               <div
                 className="flex items-center justify-between p-3"
-                style={{ borderTop: '1px solid var(--color-border-subtle)' }}
+                style={{ borderTop: '1px solid var(--color-line-subtle)' }}
               >
                 <div className="flex min-w-0 flex-1 items-center gap-3">
                   <div
                     className="h-10 w-10 shrink-0 overflow-hidden rounded-lg"
                     style={{
-                      backgroundColor: 'var(--color-background-subtle)',
+                      backgroundColor: 'var(--color-sunken)',
                     }}
                   >
                     {isFileWithPreview(file) && (
@@ -408,14 +408,14 @@ export function ImageUploader(props: ImageUploaderProps) {
                     <Tooltip content={file.name}>
                       <p
                         className="truncate text-sm font-medium"
-                        style={{ color: 'var(--color-text-primary)' }}
+                        style={{ color: 'var(--color-fg)' }}
                       >
                         {file.name}
                       </p>
                     </Tooltip>
                     <p
                       className="text-xs"
-                      style={{ color: 'var(--color-text-tertiary)' }}
+                      style={{ color: 'var(--color-fg-subtle)' }}
                     >
                       {formatBytes(file.size)}
                     </p>
@@ -426,7 +426,7 @@ export function ImageUploader(props: ImageUploaderProps) {
                   variant="ghost"
                   size="sm"
                   onClick={() => onRemove(index)}
-                  className="text-status-error hover:bg-status-error-subtle hover:text-status-error"
+                  className="text-danger-fg hover:bg-danger-soft hover:text-danger-fg"
                 >
                   <Trash2 className="mr-1 h-4 w-4" />
                   移除
@@ -458,18 +458,18 @@ export function ImageUploader(props: ImageUploaderProps) {
             <div
               {...getRootProps()}
               className={cn(
-                'group relative grid w-full cursor-pointer place-items-center rounded-lg border-2 border-dashed px-5 py-6 text-center transition-all duration-200 focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:ring-offset-2 focus-visible:ring-offset-background-surface focus-visible:outline-hidden',
+                'group relative grid w-full cursor-pointer place-items-center rounded-lg border-2 border-dashed px-5 py-6 text-center transition-all duration-200 focus-visible:ring-2 focus-visible:ring-line-focus focus-visible:ring-offset-2 focus-visible:ring-offset-surface focus-visible:outline-hidden',
                 dropzoneHeight,
                 isDragActive
-                  ? 'scale-[1.01] border-state-selected bg-state-selected-bg'
-                  : 'border-border-default hover:border-state-focus hover:bg-state-hover',
+                  ? 'scale-[1.01] border-accent-solid bg-accent-soft'
+                  : 'border-line hover:border-line-focus hover:bg-fill-hover',
                 isDisabled && 'pointer-events-none opacity-60',
                 className,
               )}
               style={{
                 backgroundColor: isDragActive
-                  ? 'var(--color-state-selected-bg)'
-                  : 'var(--color-background-subtle)',
+                  ? 'var(--color-accent-soft)'
+                  : 'var(--color-sunken)',
               }}
               {...dropzoneProps}
             >
@@ -483,19 +483,19 @@ export function ImageUploader(props: ImageUploaderProps) {
                   )}
                   style={{
                     backgroundColor: isDragActive
-                      ? 'var(--color-state-selected-bg)'
-                      : 'var(--color-background-default)',
+                      ? 'var(--color-accent-soft)'
+                      : 'var(--color-canvas)',
                     boxShadow: isDragActive
-                      ? '0 8px 24px var(--color-state-selected-bg)'
+                      ? '0 8px 24px var(--color-accent-soft)'
                       : '0 2px 8px rgba(0,0,0,0.06)',
                   }}
                 >
                   {isDragActive ? (
-                    <Upload className="h-6 w-6 text-state-selected-text" />
+                    <Upload className="h-6 w-6 text-accent-fg" />
                   ) : (
                     <ImageIcon
                       className="h-6 w-6"
-                      style={{ color: 'var(--color-text-tertiary)' }}
+                      style={{ color: 'var(--color-fg-subtle)' }}
                     />
                   )}
                 </div>
@@ -506,8 +506,8 @@ export function ImageUploader(props: ImageUploaderProps) {
                     className="text-sm font-medium transition-colors"
                     style={{
                       color: isDragActive
-                        ? 'var(--color-state-selected-text)'
-                        : 'var(--color-text-primary)',
+                        ? 'var(--color-accent-fg)'
+                        : 'var(--color-fg)',
                     }}
                   >
                     {isDragActive
@@ -516,7 +516,7 @@ export function ImageUploader(props: ImageUploaderProps) {
                   </p>
                   <p
                     className="text-xs"
-                    style={{ color: 'var(--color-text-tertiary)' }}
+                    style={{ color: 'var(--color-fg-subtle)' }}
                   >
                     {description ||
                       `支持 PNG、JPG、WebP、GIF，最大 ${formatBytes(maxSize)}`}

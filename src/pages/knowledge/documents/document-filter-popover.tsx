@@ -98,18 +98,18 @@ const FilterField: React.FC<FilterFieldProps> = ({
     return (
       <div className={`flex flex-col gap-2 ${level > 0 ? 'ml-1' : ''}`}>
         <div
-          className="flex cursor-pointer items-center justify-between rounded py-1 transition-colors hover:bg-surface-secondary"
+          className="flex cursor-pointer items-center justify-between rounded py-1 transition-colors hover:bg-sunken"
           onClick={() => setShowAll(!showAll)}
         >
-          <span className="text-sm text-text-secondary">{item.label}</span>
+          <span className="text-sm text-fg-muted">{item.label}</span>
           <div className="flex items-center gap-2">
             {item.count !== undefined && (
-              <span className="text-xs text-text-tertiary">{item.count}</span>
+              <span className="text-xs text-fg-subtle">{item.count}</span>
             )}
             {showAll ? (
-              <ChevronUp className="h-3 w-3 text-text-tertiary" />
+              <ChevronUp className="h-3 w-3 text-fg-subtle" />
             ) : (
-              <ChevronDown className="h-3 w-3 text-text-tertiary" />
+              <ChevronDown className="h-3 w-3 text-fg-subtle" />
             )}
           </div>
         </div>
@@ -156,7 +156,7 @@ const FilterField: React.FC<FilterFieldProps> = ({
       className={`group flex items-center justify-between text-xs ${level > 0 ? 'ml-4' : ''}`}
     >
       <div
-        className="-mx-1 flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded px-1 py-1.5 transition-colors hover:bg-surface-secondary"
+        className="-mx-1 flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded px-1 py-1.5 transition-colors hover:bg-sunken"
         onClick={() => handleCheckChange(!checked, isNestedChild, parentId)}
       >
         <Checkbox
@@ -168,15 +168,12 @@ const FilterField: React.FC<FilterFieldProps> = ({
           onClick={(e) => e.stopPropagation()}
           className="shrink-0"
         />
-        <span
-          className="truncate text-text-primary select-none"
-          title={item.label}
-        >
+        <span className="truncate text-fg select-none" title={item.label}>
           {item.label}
         </span>
       </div>
       {item.count !== undefined && (
-        <span className="ml-2 text-xs text-text-tertiary tabular-nums">
+        <span className="ml-2 text-xs text-fg-subtle tabular-nums">
           {item.count}
         </span>
       )}
@@ -337,17 +334,15 @@ export const FilterPopover: React.FC<FilterPopoverProps> = ({
               return (
                 <div
                   key={groupName}
-                  className="flex flex-col space-y-3 border-b border-border-default pb-4"
+                  className="flex flex-col space-y-3 border-b border-line pb-4"
                 >
                   {/* 组标题 */}
-                  <div className="text-sm font-medium text-text-primary">
-                    {groupName}
-                  </div>
+                  <div className="text-sm font-medium text-fg">{groupName}</div>
                   {/* 组内筛选器 - 直接渲染每个筛选器的选项列表 */}
                   <div className="flex flex-col space-y-3">
                     {groupFilters.map((collection) => (
                       <div key={collection.field} className="space-y-1">
-                        <div className="text-xs font-medium text-text-secondary">
+                        <div className="text-xs font-medium text-fg-muted">
                           {collection.label}
                         </div>
                         {collection.canSearch && (
@@ -385,7 +380,7 @@ export const FilterPopover: React.FC<FilterPopoverProps> = ({
           {/* 渲染未分组的筛选器 */}
           {ungroupedFilters.map((collection) => (
             <div key={collection.field} className="space-y-3">
-              <div className="text-sm font-medium text-text-primary">
+              <div className="text-sm font-medium text-fg">
                 {collection.label}
               </div>
               {collection.canSearch && (
@@ -415,7 +410,7 @@ export const FilterPopover: React.FC<FilterPopoverProps> = ({
             </div>
           ))}
         </div>
-        <div className="flex justify-end gap-3 border-t border-border-default px-4 py-3">
+        <div className="flex justify-end gap-3 border-t border-line px-4 py-3">
           <Button variant="outline" size="sm" onClick={handleReset}>
             {t('knowledge.documents.clear')}
           </Button>
@@ -463,14 +458,14 @@ export const FilterButton: React.FC<FilterButtonProps> = ({
         size="sm"
         className={
           filterCount > 0
-            ? 'border-state-focus bg-state-focus-10 text-state-focus'
+            ? 'border-line-focus bg-accent-soft text-line-focus'
             : undefined
         }
       >
         <Funnel className="mr-2 h-4 w-4" />
         {t('knowledge.documents.filter')}
         {filterCount > 0 && (
-          <span className="ml-1 inline-flex items-center justify-center rounded-full bg-state-focus px-2 py-1 text-xs leading-none font-bold text-text-inverted">
+          <span className="ml-1 inline-flex items-center justify-center rounded-full bg-line-focus px-2 py-1 text-xs leading-none font-bold text-fg-inverse">
             {filterCount}
           </span>
         )}

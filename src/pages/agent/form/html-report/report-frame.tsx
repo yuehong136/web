@@ -63,8 +63,8 @@ export function ReportFrame({ schema, title, className }: ReportFrameProps) {
 
   if (!ready) {
     return (
-      <div className="flex h-full w-full items-center justify-center bg-background-surface">
-        <Loader2 className="size-icon-md animate-spin text-text-caption" />
+      <div className="flex h-full w-full items-center justify-center bg-surface">
+        <Loader2 className="size-icon-md animate-spin text-fg-subtle" />
       </div>
     )
   }
@@ -74,7 +74,7 @@ export function ReportFrame({ schema, title, className }: ReportFrameProps) {
       title={title ?? 'report'}
       srcDoc={srcDoc}
       sandbox="allow-scripts"
-      className={className ?? 'h-full w-full border-0 bg-surface-primary'}
+      className={className ?? 'h-full w-full border-0 bg-surface'}
     />
   )
 }

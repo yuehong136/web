@@ -102,7 +102,7 @@ export function ParserSwitchField({
       control={control}
       name={name}
       render={({ field }) => (
-        <FormItem className="flex min-h-12 items-center justify-between gap-space-base rounded-radius-xl border border-border-default bg-surface-primary px-space-base py-space-sm">
+        <FormItem className="flex min-h-12 items-center justify-between gap-space-base rounded-radius-xl border border-line bg-surface px-space-base py-space-sm">
           <div className="min-w-0 space-y-space-xs">
             <ParserFieldLabel>{label}</ParserFieldLabel>
             {description ? (

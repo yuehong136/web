@@ -16,11 +16,11 @@ interface StatCardProps extends Omit<
 }
 
 const toneClasses: Record<StatTone, string> = {
-  neutral: 'bg-background-subtle text-text-secondary',
-  info: 'bg-status-info-subtle text-status-info',
-  success: 'bg-status-success-subtle text-status-success',
-  warning: 'bg-status-warning-subtle text-status-warning',
-  error: 'bg-status-error-subtle text-status-error',
+  neutral: 'bg-sunken text-fg-muted',
+  info: 'bg-info-soft text-info-fg',
+  success: 'bg-success-soft text-success-fg',
+  warning: 'bg-warning-soft text-warning-fg',
+  error: 'bg-danger-soft text-danger-fg',
 }
 
 export const StatCard: React.FC<StatCardProps> = ({
@@ -36,10 +36,10 @@ export const StatCard: React.FC<StatCardProps> = ({
     <SectionCard padding="default" className={className} {...props}>
       <div className="flex items-start justify-between gap-space-md">
         <div className="flex flex-col gap-space-xs">
-          <p className="text-sm text-text-secondary">{title}</p>
-          <p className="text-2xl font-semibold text-text-primary">{value}</p>
+          <p className="text-sm text-fg-muted">{title}</p>
+          <p className="text-2xl font-semibold text-fg">{value}</p>
           {description ? (
-            <p className="text-sm text-text-secondary">{description}</p>
+            <p className="text-sm text-fg-muted">{description}</p>
           ) : null}
         </div>
         {icon ? (

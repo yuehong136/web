@@ -71,7 +71,7 @@ export function KeyRow({
         <button
           type="button"
           aria-pressed={selected}
-          className="flex max-w-full min-w-0 flex-col items-start rounded-radius-sm text-left outline-hidden focus-visible:ring-2 focus-visible:ring-state-focus"
+          className="flex max-w-full min-w-0 flex-col items-start rounded-radius-sm text-left outline-hidden focus-visible:ring-2 focus-visible:ring-line-focus"
           onClick={(event) => {
             event.stopPropagation()
             onSelect()
@@ -83,11 +83,11 @@ export function KeyRow({
                 {t(`${PREFIX}.keyStatus.${key.status}`)}
               </span>
             </StatusDot>
-            <span className="truncate text-sm font-medium text-text-primary">
+            <span className="truncate text-sm font-medium text-fg">
               {key.name}
             </span>
           </span>
-          <span className="truncate pl-space-md font-mono text-xs text-text-tertiary">
+          <span className="truncate pl-space-md font-mono text-xs text-fg-subtle">
             {key.redacted_key}
           </span>
         </button>
@@ -98,13 +98,13 @@ export function KeyRow({
       <TableCell className="min-w-36">
         {quota && percent !== null ? (
           <div className="space-y-space-xs">
-            <div className="text-sm whitespace-nowrap text-text-primary tabular-nums">
+            <div className="text-sm whitespace-nowrap text-fg tabular-nums">
               {quota}
             </div>
             <UsageBar percent={percent} label={quota} className="max-w-40" />
           </div>
         ) : (
-          <span className="text-sm text-text-tertiary">
+          <span className="text-sm text-fg-subtle">
             {t(`${PREFIX}.keys.noQuota`)}
           </span>
         )}
@@ -112,21 +112,21 @@ export function KeyRow({
       <TableCell
         className={cn(
           'text-sm whitespace-nowrap',
-          expiry.tone === 'normal' && 'text-text-secondary',
-          expiry.tone === 'warning' && 'font-medium text-status-warning',
-          expiry.tone === 'error' && 'text-status-error',
+          expiry.tone === 'normal' && 'text-fg-muted',
+          expiry.tone === 'warning' && 'font-medium text-warning-fg',
+          expiry.tone === 'error' && 'text-danger-fg',
         )}
       >
         {expiry.text}
       </TableCell>
       {compact ? null : (
         <>
-          <TableCell className="text-sm whitespace-nowrap text-text-secondary">
+          <TableCell className="text-sm whitespace-nowrap text-fg-muted">
             {key.last_used_at
               ? formatRelativeTime(new Date(key.last_used_at).getTime())
               : t(`${PREFIX}.keys.neverUsed`)}
           </TableCell>
-          <TableCell className="w-8 text-text-tertiary">
+          <TableCell className="w-8 text-fg-subtle">
             <ChevronRight className="size-icon-sm" aria-hidden="true" />
           </TableCell>
         </>

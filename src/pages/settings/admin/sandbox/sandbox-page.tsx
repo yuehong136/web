@@ -70,7 +70,7 @@ export function SandboxPage() {
       description={
         <>
           {t('sandbox.description')}{' '}
-          <span className="text-text-tertiary">
+          <span className="text-fg-subtle">
             {t('sandbox.active', {
               provider: config.data.effective_provider_type,
             })}

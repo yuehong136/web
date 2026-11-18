@@ -27,21 +27,21 @@ export function RecentFailures({
       }
     >
       {errors.length === 0 ? (
-        <p className="px-space-lg py-space-xl text-center text-sm text-text-tertiary">
+        <p className="px-space-lg py-space-xl text-center text-sm text-fg-subtle">
           {t(`${PREFIX}.overview.recentEmpty`)}
         </p>
       ) : (
-        <ul className="divide-y divide-border-subtle">
+        <ul className="divide-y divide-line-subtle">
           {errors.map((log) => (
             <li
               key={log.id}
               className="flex flex-wrap items-center gap-x-space-md gap-y-space-xs px-space-lg py-space-sm"
             >
               <StatusCode code={log.status_code} />
-              <span className="min-w-36 font-mono text-sm text-text-primary">
+              <span className="min-w-36 font-mono text-sm text-fg">
                 {errorCodeOf(log) ?? t(`${PREFIX}.common.unknown`)}
               </span>
-              <span className="min-w-48 flex-1 text-sm text-text-secondary">
+              <span className="min-w-48 flex-1 text-sm text-fg-muted">
                 {[log.key_name, log.model, errorExplanation(t, log)]
                   .filter(Boolean)
                   .join(' · ')}
@@ -49,7 +49,7 @@ export function RecentFailures({
               {log.started_at ? (
                 <time
                   dateTime={log.started_at}
-                  className="text-xs text-text-tertiary"
+                  className="text-xs text-fg-subtle"
                 >
                   {formatRelativeTime(new Date(log.started_at).getTime())}
                 </time>

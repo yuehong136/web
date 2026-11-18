@@ -18,10 +18,10 @@ export interface InlineStatsProps extends HTMLAttributes<HTMLDListElement> {
 }
 
 const DOTS: Record<Exclude<InlineStatTone, 'default'>, string> = {
-  success: 'bg-status-success',
-  warning: 'bg-status-warning',
-  error: 'bg-status-error',
-  info: 'bg-status-info',
+  success: 'bg-success-fg',
+  warning: 'bg-warning-fg',
+  error: 'bg-danger-fg',
+  info: 'bg-info-fg',
 }
 
 /**
@@ -35,7 +35,7 @@ export function InlineStats({ items, className, ...props }: InlineStatsProps) {
     <dl
       data-slot="inline-stats"
       className={cn(
-        'flex min-w-0 flex-wrap items-center gap-x-space-md gap-y-space-2xs text-xs text-text-tertiary',
+        'flex min-w-0 flex-wrap items-center gap-x-space-md gap-y-space-2xs text-xs text-fg-subtle',
         className,
       )}
       {...props}
@@ -55,7 +55,7 @@ export function InlineStats({ items, className, ...props }: InlineStatsProps) {
             />
           ) : null}
           <dt className="truncate">{item.label}</dt>
-          <dd className="font-medium text-text-secondary tabular-nums">
+          <dd className="font-medium text-fg-muted tabular-nums">
             {item.value}
           </dd>
         </div>

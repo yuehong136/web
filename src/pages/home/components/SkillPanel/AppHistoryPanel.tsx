@@ -77,16 +77,16 @@ export const AppHistoryPanel: React.FC<AppHistoryPanelProps> = ({
     <div
       className={cn(
         'absolute top-0 left-full ml-1',
-        'w-72 rounded-xl bg-components-card-bg',
-        'border border-border-default shadow-lg',
+        'w-72 rounded-xl bg-raised',
+        'border border-line shadow-lg',
         'z-50',
       )}
       // 阻止鼠标离开事件冒泡，保持面板打开
       onMouseEnter={(e) => e.stopPropagation()}
     >
       {/* 标题 */}
-      <div className="border-b border-border-default px-4 py-3">
-        <h4 className="truncate text-sm font-medium text-text-primary">
+      <div className="border-b border-line px-4 py-3">
+        <h4 className="truncate text-sm font-medium text-fg">
           {t('home.skillPanel.historyTitle', '{{name}} 的对话历史', {
             name: app.name,
           })}
@@ -100,25 +100,25 @@ export const AppHistoryPanel: React.FC<AppHistoryPanelProps> = ({
             e.stopPropagation()
             onSelectNew()
           }}
-          className="flex w-full items-center gap-3 px-4 py-3 transition-colors hover:bg-background-subtle"
+          className="flex w-full items-center gap-3 px-4 py-3 transition-colors hover:bg-sunken"
         >
-          <Sparkles className="h-4 w-4 shrink-0 text-state-focus" />
-          <span className="text-sm font-medium text-text-primary">
+          <Sparkles className="h-4 w-4 shrink-0 text-line-focus" />
+          <span className="text-sm font-medium text-fg">
             {t('home.skillPanel.newConversation', '开启新对话')}
           </span>
         </button>
 
-        <div className="mx-4 h-px bg-border-subtle" />
+        <div className="mx-4 h-px bg-line-subtle" />
 
         {/* 历史对话列表 */}
         {isLoading ? (
           <div className="flex items-center justify-center py-6">
-            <div className="h-4 w-4 animate-spin rounded-full border-2 border-text-tertiary border-t-transparent" />
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-fg-subtle border-t-transparent" />
           </div>
         ) : conversations.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-6 text-center">
-            <MessageSquare className="mb-2 h-6 w-6 text-text-tertiary" />
-            <p className="text-xs text-text-tertiary">
+            <MessageSquare className="mb-2 h-6 w-6 text-fg-subtle" />
+            <p className="text-xs text-fg-subtle">
               {t('home.skillPanel.noHistory', '暂无历史对话')}
             </p>
           </div>
@@ -130,16 +130,16 @@ export const AppHistoryPanel: React.FC<AppHistoryPanelProps> = ({
                 e.stopPropagation()
                 onSelectConversation(conv.id)
               }}
-              className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-background-subtle"
+              className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-sunken"
             >
-              <MessageSquare className="h-4 w-4 shrink-0 text-text-tertiary" />
+              <MessageSquare className="h-4 w-4 shrink-0 text-fg-subtle" />
               <div className="min-w-0 flex-1">
-                <div className="truncate text-sm text-text-primary">
+                <div className="truncate text-sm text-fg">
                   {conv.name ||
                     conv.title ||
                     t('home.skillPanel.unnamedConversation', '未命名对话')}
                 </div>
-                <div className="text-xs text-text-tertiary">
+                <div className="text-xs text-fg-subtle">
                   {formatRelativeTime(conv.update_time || conv.update_date, t)}
                 </div>
               </div>

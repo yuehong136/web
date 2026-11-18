@@ -73,10 +73,10 @@ function StepDot({ status }: { status: StepStatus }) {
     <span
       className={cn(
         'grid size-4.5 shrink-0 place-items-center rounded-radius-full',
-        status === 'success' && 'bg-status-success-subtle text-status-success',
-        status === 'loading' && 'bg-state-selected-bg text-text-accent',
-        status === 'error' && 'bg-status-error-subtle text-status-error',
-        status === 'unconfirmed' && 'bg-background-subtle text-text-tertiary',
+        status === 'success' && 'bg-success-soft text-success-fg',
+        status === 'loading' && 'bg-ai-soft text-ai-fg',
+        status === 'error' && 'bg-danger-soft text-danger-fg',
+        status === 'unconfirmed' && 'bg-sunken text-fg-subtle',
       )}
     >
       {STATUS_ICON[status]}
@@ -114,7 +114,7 @@ function StepSummary({
       {duration && <span className="run-step-duration">{duration}</span>}
       <ChevronRight
         aria-hidden="true"
-        className="run-step-chevron size-icon-xs shrink-0 text-text-tertiary"
+        className="run-step-chevron size-icon-xs shrink-0 text-fg-subtle"
       />
     </summary>
   )
@@ -179,7 +179,7 @@ function ToolStep({
               className={cn(
                 'run-step-meta',
                 status === 'loading' && 'text-shimmer',
-                status === 'error' && 'text-status-error',
+                status === 'error' && 'text-danger-fg',
                 status === 'success' && count === null && 'sr-only',
               )}
             >
@@ -203,7 +203,7 @@ function ToolStep({
                 (key) =>
                   hasValue(payload[key]) && (
                     <div key={key} className="space-y-space-xs">
-                      <p className="text-xs font-medium text-text-tertiary">
+                      <p className="text-xs font-medium text-fg-subtle">
                         {t(`chat.runTimeline.${key}`)}
                       </p>
                       <CodeBlock
@@ -219,7 +219,7 @@ function ToolStep({
           ) : hasValue(node.content) ? (
             <p className="whitespace-pre-wrap">{stringify(node.content)}</p>
           ) : (
-            <p className="text-text-tertiary">
+            <p className="text-fg-subtle">
               {t(
                 status === 'loading'
                   ? 'chat.runTimeline.toolRunning'

@@ -29,7 +29,7 @@ function StatusLabel({ label, count }: { label: string; count?: number }) {
     <>
       {label}
       {count === undefined ? null : (
-        <span className="ml-space-xs text-xs text-text-tertiary tabular-nums">
+        <span className="ml-space-xs text-xs text-fg-subtle tabular-nums">
           {count.toLocaleString()}
         </span>
       )}
@@ -127,7 +127,7 @@ export const ChunkToolbar = ({
       />
       {knowledgeIds && <ChunkTagsPopover knowledgeIds={knowledgeIds} />}
       {isRefreshing ? (
-        <output className="text-xs text-text-tertiary">
+        <output className="text-xs text-fg-subtle">
           {t('knowledge.chunks.toolbar.updating')}
         </output>
       ) : null}

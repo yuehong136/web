@@ -113,8 +113,8 @@ export const AlertDialogContent: React.FC<
       {/* AlertDialog Container */}
       <div
         className={cn(
-          'relative z-10 w-full max-w-md rounded-radius-xl border border-border-default shadow-elevation-high',
-          'bg-components-dialog-bg text-text-primary',
+          'relative z-10 w-full max-w-md rounded-radius-xl border border-line shadow-elevation-high',
+          'bg-overlay text-fg',
           'animate-in fade-in-0 zoom-in-95 duration-200 motion-reduce:animate-none',
           'p-space-lg',
           className,
@@ -161,10 +161,7 @@ export const AlertDialogTitle: React.FC<AlertDialogTitleProps> = ({
   ...props
 }) => (
   <h2
-    className={cn(
-      'text-lg leading-7 font-semibold text-text-primary',
-      className,
-    )}
+    className={cn('text-lg leading-7 font-semibold text-fg', className)}
     {...props}
   />
 )
@@ -177,7 +174,7 @@ export const AlertDialogDescription: React.FC<AlertDialogDescriptionProps> = ({
   children,
   ...props
 }) => (
-  <div className={cn('text-sm text-text-secondary', className)} {...props}>
+  <div className={cn('text-sm text-fg-muted', className)} {...props}>
     {children}
   </div>
 )

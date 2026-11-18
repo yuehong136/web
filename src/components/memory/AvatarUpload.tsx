@@ -116,7 +116,7 @@ export function AvatarUpload({
           className={cn(
             'flex cursor-pointer rounded-radius-xl transition-transform',
             'group-hover:scale-105 disabled:cursor-not-allowed',
-            'focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden',
+            'focus-visible:ring-2 focus-visible:ring-line-focus focus-visible:outline-hidden',
           )}
         >
           <EntityAvatar
@@ -134,9 +134,9 @@ export function AvatarUpload({
             type="button"
             aria-label={t('memory.upload.changeAvatar')}
             className={cn(
-              'absolute -right-0.5 -bottom-0.5 border border-border-default bg-surface-primary',
+              'absolute -right-0.5 -bottom-0.5 border border-line bg-surface',
               'flex cursor-pointer items-center justify-center rounded-full',
-              'shadow-xs transition-colors hover:bg-surface-secondary',
+              'shadow-xs transition-colors hover:bg-sunken',
               editIconSizeClasses[size],
             )}
             onClick={(e) => {
@@ -145,7 +145,7 @@ export function AvatarUpload({
             }}
           >
             <PenLine
-              className={cn('text-text-secondary', editIconInnerClasses[size])}
+              className={cn('text-fg-muted', editIconInnerClasses[size])}
             />
           </button>
         )}
@@ -165,25 +165,22 @@ export function AvatarUpload({
             type="button"
             aria-label={t('memory.upload.removeAvatar')}
             className={cn(
-              'absolute -top-0.5 -right-0.5 border border-surface-primary bg-status-error-solid',
+              'absolute -top-0.5 -right-0.5 border border-surface bg-danger-solid',
               'flex cursor-pointer items-center justify-center rounded-full',
-              'shadow-xs transition-colors hover:bg-status-error-solid-hover',
+              'shadow-xs transition-colors hover:bg-danger-solid-hover',
               'opacity-0 group-hover:opacity-100',
               editIconSizeClasses[size],
             )}
             onClick={handleRemove}
           >
             <Trash2
-              className={cn(
-                'text-status-error-on-solid',
-                editIconInnerClasses[size],
-              )}
+              className={cn('text-danger-on-solid', editIconInnerClasses[size])}
             />
           </button>
         )}
       </div>
 
-      {tips && <span className="text-xs text-text-tertiary">{tips}</span>}
+      {tips && <span className="text-xs text-fg-subtle">{tips}</span>}
     </div>
   )
 }

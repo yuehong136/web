@@ -4,7 +4,7 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 const spinnerVariants = cva(
-  'shrink-0 animate-spin text-components-spinner-color motion-reduce:animate-none',
+  'shrink-0 animate-spin text-accent-solid motion-reduce:animate-none',
   {
     variants: {
       size: {
@@ -51,7 +51,7 @@ export const Spinner = React.forwardRef<HTMLSpanElement, SpinnerProps>(
         ref={ref}
         role="status"
         className={cn(
-          'inline-flex items-center gap-space-sm text-sm text-text-secondary',
+          'inline-flex items-center gap-space-sm text-sm text-fg-muted',
           stacked && 'flex-col',
           className,
         )}

@@ -31,7 +31,7 @@ export const ConsolePageTemplate: React.FC<ConsolePageTemplateProps> = ({
   return (
     <div
       className={cn(
-        'flex h-full min-h-0 flex-col overflow-hidden bg-components-console-bg md:flex-row',
+        'flex h-full min-h-0 flex-col overflow-hidden bg-surface md:flex-row',
         className,
       )}
       {...props}

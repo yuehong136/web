@@ -67,7 +67,7 @@ function InnerButtonEdge({
     return selected
       ? {
           strokeWidth: 2,
-          stroke: 'var(--color-components-canvas-edge-stroke-selected)',
+          stroke: 'var(--color-accent-solid)',
         }
       : {}
   }, [selected])
@@ -81,7 +81,7 @@ function InnerButtonEdge({
     return isHighlighted
       ? {
           strokeWidth: 2,
-          stroke: 'var(--color-components-canvas-edge-stroke-selected)',
+          stroke: 'var(--color-accent-solid)',
         }
       : {}
   }, [isTargetPlaceholder])
@@ -115,10 +115,7 @@ function InnerButtonEdge({
             ? style
             : { ...style, ...selectedStyle, ...placeholderHighlightStyle }
         }
-        className={cn(
-          'stroke-components-canvas-edge-marker',
-          isFlowing && 'canvas-edge-flowing',
-        )}
+        className={cn('stroke-fg-disabled', isFlowing && 'canvas-edge-flowing')}
       />
 
       <EdgeLabelRenderer>
@@ -134,7 +131,7 @@ function InnerButtonEdge({
         >
           <button
             className={cn(
-              'flex size-4 items-center justify-center rounded-radius-full border border-status-error-border bg-components-canvas-node-bg text-status-error shadow-elevation-low hover:bg-status-error-subtle',
+              'flex size-4 items-center justify-center rounded-radius-full border border-danger-line bg-raised text-danger-fg shadow-elevation-low hover:bg-danger-soft',
               'invisible',
               { visible },
             )}

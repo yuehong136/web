@@ -142,7 +142,7 @@ function MemoryWorkspace({ memoryId }: { memoryId: string }) {
             label: (
               <>
                 {t('memory.workspace.memories')}{' '}
-                <span className="text-xs text-text-tertiary tabular-nums">
+                <span className="text-xs text-fg-subtle tabular-nums">
                   {entries.length}
                 </span>
               </>
@@ -154,7 +154,7 @@ function MemoryWorkspace({ memoryId }: { memoryId: string }) {
             label: (
               <>
                 {t('memory.workspace.sources')}{' '}
-                <span className="text-xs text-text-tertiary tabular-nums">
+                <span className="text-xs text-fg-subtle tabular-nums">
                   {sources.length}
                 </span>
               </>
@@ -174,7 +174,7 @@ function MemoryWorkspace({ memoryId }: { memoryId: string }) {
             label: (
               <>
                 {t(`memory.workspace.${value}`)}{' '}
-                <span className="text-xs text-text-tertiary tabular-nums">
+                <span className="text-xs text-fg-subtle tabular-nums">
                   {stateCounts[value]}
                 </span>
               </>
@@ -189,7 +189,7 @@ function MemoryWorkspace({ memoryId }: { memoryId: string }) {
             <SlidersHorizontal aria-hidden="true" className="size-icon-sm" />
             {t('common.filter')}
             {filtered && (
-              <span className="font-mono text-xs text-text-secondary tabular-nums">
+              <span className="font-mono text-xs text-fg-muted tabular-nums">
                 {Number(!!sessionFilter) + Number(agent !== 'all')}
               </span>
             )}
@@ -271,8 +271,7 @@ function MemoryWorkspace({ memoryId }: { memoryId: string }) {
             key: 'agent',
             primary: true,
             icon: <Bot />,
-            iconClassName:
-              'bg-components-avatar-7-bg text-components-avatar-7-text',
+            iconClassName: 'bg-avatar-7-bg text-avatar-7-fg',
             title: t('memory.empty.agentTitle'),
             description: t('memory.empty.agentDescription'),
             cta: t('memory.empty.agentCta'),
@@ -281,8 +280,7 @@ function MemoryWorkspace({ memoryId }: { memoryId: string }) {
           {
             key: 'settings',
             icon: <Settings2 />,
-            iconClassName:
-              'bg-components-avatar-8-bg text-components-avatar-8-text',
+            iconClassName: 'bg-avatar-8-bg text-avatar-8-fg',
             title: t('memory.detail.settingsPathTitle'),
             description: t('memory.detail.settingsPathDescription'),
             cta: t('memory.detail.settingsPathCta'),
@@ -344,7 +342,7 @@ function MemoryWorkspace({ memoryId }: { memoryId: string }) {
           className="scroll-area min-h-0 flex-1 overflow-y-auto px-space-md py-space-sm sm:px-space-lg"
         >
           {sources.length > 0 && (
-            <div className="mb-space-sm flex flex-wrap items-center justify-between gap-space-sm text-xs text-text-tertiary">
+            <div className="mb-space-sm flex flex-wrap items-center justify-between gap-space-sm text-xs text-fg-subtle">
               <p className="tabular-nums">
                 {t('memory.workspace.pageOverview', {
                   sources: sources.length,

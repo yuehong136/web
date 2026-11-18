@@ -103,7 +103,7 @@ export function DelimiterFormField({
           <FormLabel
             required
             tooltip={t('knowledge.settings.fields.delimiterTooltip')}
-            className="w-1/4 shrink-0 text-sm text-text-secondary"
+            className="w-1/4 shrink-0 text-sm text-fg-muted"
           >
             {t('knowledge.settings.fields.delimiter')}
           </FormLabel>
@@ -207,7 +207,7 @@ export function ExcelToHtmlFormField({
         >
           <FormLabel
             tooltip={t('knowledge.settings.fields.html4excelTooltip')}
-            className="w-1/4 shrink-0 text-sm text-text-secondary"
+            className="w-1/4 shrink-0 text-sm text-fg-muted"
           >
             {t('knowledge.settings.fields.html4excel')}
           </FormLabel>
@@ -248,7 +248,7 @@ export function TocExtractionFormField({
         >
           <FormLabel
             tooltip={t('knowledge.settings.fields.tocExtractionTooltip')}
-            className="w-1/4 shrink-0 text-sm text-text-secondary"
+            className="w-1/4 shrink-0 text-sm text-fg-muted"
           >
             {t('knowledge.settings.fields.tocExtraction')}
           </FormLabel>
@@ -352,7 +352,7 @@ export function PermissionFormField({
         >
           <FormLabel
             tooltip={t('knowledge.settings.fields.permissionTooltip')}
-            className="w-1/4 shrink-0 text-sm text-text-secondary"
+            className="w-1/4 shrink-0 text-sm text-fg-muted"
           >
             {t('knowledge.settings.fields.permission')}
           </FormLabel>
@@ -414,11 +414,11 @@ export function MinerUOptionsFormField({
   return (
     <div
       className={cn(
-        'ml-2 space-y-4 border-l-2 border-border-accent pl-4',
+        'ml-2 space-y-4 border-l-2 border-line-focus pl-4',
         className,
       )}
     >
-      <div className="text-sm font-medium text-text-secondary">
+      <div className="text-sm font-medium text-fg-muted">
         {t('knowledge.settings.fields.mineruOptions')}
       </div>
 
@@ -430,7 +430,7 @@ export function MinerUOptionsFormField({
           <FormItem className="flex items-center gap-1 space-y-0">
             <FormLabel
               tooltip={t('knowledge.settings.fields.mineruParseMethodTooltip')}
-              className="w-1/4 shrink-0 text-sm text-text-secondary"
+              className="w-1/4 shrink-0 text-sm text-fg-muted"
             >
               {t('knowledge.settings.fields.mineruParseMethod')}
             </FormLabel>
@@ -458,7 +458,7 @@ export function MinerUOptionsFormField({
           <FormItem className="flex items-center gap-1 space-y-0">
             <FormLabel
               tooltip={t('knowledge.settings.fields.mineruLanguageTooltip')}
-              className="w-1/4 shrink-0 text-sm text-text-secondary"
+              className="w-1/4 shrink-0 text-sm text-fg-muted"
             >
               {t('knowledge.settings.fields.mineruLanguage')}
             </FormLabel>
@@ -487,7 +487,7 @@ export function MinerUOptionsFormField({
           <FormItem className="flex items-center gap-1 space-y-0">
             <FormLabel
               tooltip={t('knowledge.settings.fields.mineruFormulaTooltip')}
-              className="w-1/4 shrink-0 text-sm text-text-secondary"
+              className="w-1/4 shrink-0 text-sm text-fg-muted"
             >
               {t('knowledge.settings.fields.mineruFormula')}
             </FormLabel>
@@ -512,7 +512,7 @@ export function MinerUOptionsFormField({
           <FormItem className="flex items-center gap-1 space-y-0">
             <FormLabel
               tooltip={t('knowledge.settings.fields.mineruTableTooltip')}
-              className="w-1/4 shrink-0 text-sm text-text-secondary"
+              className="w-1/4 shrink-0 text-sm text-fg-muted"
             >
               {t('knowledge.settings.fields.mineruTable')}
             </FormLabel>
@@ -570,7 +570,7 @@ export function AutoMetadataFormField({
         >
           <FormLabel
             tooltip={t('knowledge.settings.fields.autoMetadataTooltip')}
-            className="w-1/4 shrink-0 text-sm text-text-secondary"
+            className="w-1/4 shrink-0 text-sm text-fg-muted"
           >
             {t('knowledge.settings.fields.autoMetadata')}
           </FormLabel>
@@ -580,7 +580,7 @@ export function AutoMetadataFormField({
               <button
                 type="button"
                 onClick={onSettingsClick}
-                className="inline-flex h-8 items-center rounded-md px-3 text-sm text-text-secondary transition-colors hover:bg-surface-secondary hover:text-text-primary"
+                className="inline-flex h-8 items-center rounded-md px-3 text-sm text-fg-muted transition-colors hover:bg-sunken hover:text-fg"
               >
                 <svg
                   className="mr-1.5 h-4 w-4"
@@ -594,7 +594,7 @@ export function AutoMetadataFormField({
                 </svg>
                 {t('knowledge.settings.fields.settings')}
                 {metadataCount > 0 && (
-                  <span className="ml-1.5 text-xs text-text-tertiary">
+                  <span className="ml-1.5 text-xs text-fg-subtle">
                     ({metadataCount})
                   </span>
                 )}
@@ -649,7 +649,7 @@ export function ChildrenDelimiterFormField({
           <FormItem className="flex items-center justify-between space-y-0">
             <FormLabel
               tooltip={t('knowledge.settings.fields.childrenChunksTooltip')}
-              className="text-sm text-text-secondary"
+              className="text-sm text-fg-muted"
             >
               {t('knowledge.settings.fields.childrenChunks')}
             </FormLabel>
@@ -681,7 +681,7 @@ export function ChildrenDelimiterFormField({
               <FormLabel
                 required
                 tooltip={t('knowledge.settings.fields.childDelimiterTooltip')}
-                className="w-[140px] shrink-0 text-sm text-text-secondary"
+                className="w-[140px] shrink-0 text-sm text-fg-muted"
               >
                 {t('knowledge.settings.fields.childDelimiter')}
               </FormLabel>

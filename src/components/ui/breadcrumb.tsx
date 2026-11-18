@@ -32,10 +32,7 @@ const BreadcrumbItem = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <li
     ref={ref}
-    className={cn(
-      'inline-flex items-center gap-1.5 text-text-secondary',
-      className,
-    )}
+    className={cn('inline-flex items-center gap-1.5 text-fg-muted', className)}
     {...props}
   />
 ))
@@ -81,7 +78,7 @@ const BreadcrumbLink = React.forwardRef<
           }
         }}
         className={cn(
-          'cursor-pointer rounded-radius-sm text-text-secondary transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden motion-reduce:transition-none',
+          'cursor-pointer rounded-radius-sm text-fg-muted transition-colors hover:text-fg focus-visible:ring-2 focus-visible:ring-line-focus focus-visible:outline-hidden motion-reduce:transition-none',
           className,
         )}
         {...props}
@@ -100,7 +97,7 @@ const BreadcrumbPage = React.forwardRef<
     role="link"
     aria-disabled="true"
     aria-current="page"
-    className={cn('font-normal text-text-primary', className)}
+    className={cn('font-normal text-fg', className)}
     {...props}
   />
 ))
@@ -114,7 +111,7 @@ const BreadcrumbSeparator = ({
   <li
     role="presentation"
     aria-hidden="true"
-    className={cn('text-text-tertiary [&>svg]:h-3.5 [&>svg]:w-3.5', className)}
+    className={cn('text-fg-subtle [&>svg]:h-3.5 [&>svg]:w-3.5', className)}
     {...props}
   >
     {children ?? <ChevronRight />}

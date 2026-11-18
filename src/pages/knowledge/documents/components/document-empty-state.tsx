@@ -58,8 +58,7 @@ export function DocumentEmptyState({
           key: 'upload',
           primary: true,
           icon: <Upload aria-hidden="true" />,
-          iconClassName:
-            'bg-components-avatar-6-bg text-components-avatar-6-text',
+          iconClassName: 'bg-avatar-6-bg text-avatar-6-fg',
           title: t('documentCreate.uploadFile'),
           description: t('knowledge.documents.emptyStart.uploadDescription'),
           cta: t('knowledge.documents.emptyStart.uploadCta'),
@@ -68,8 +67,7 @@ export function DocumentEmptyState({
         {
           key: 'web',
           icon: <Globe2 aria-hidden="true" />,
-          iconClassName:
-            'bg-components-avatar-8-bg text-components-avatar-8-text',
+          iconClassName: 'bg-avatar-8-bg text-avatar-8-fg',
           title: t('documentCreate.fromWeb'),
           description: t('knowledge.documents.emptyStart.webDescription'),
           cta: t('knowledge.documents.emptyStart.webCta'),
@@ -78,8 +76,7 @@ export function DocumentEmptyState({
         {
           key: 'source',
           icon: <Plug aria-hidden="true" />,
-          iconClassName:
-            'bg-components-avatar-7-bg text-components-avatar-7-text',
+          iconClassName: 'bg-avatar-7-bg text-avatar-7-fg',
           title: t('knowledge.documents.emptyStart.sourceTitle'),
           description: t('knowledge.documents.emptyStart.sourceDescription'),
           cta: t('knowledge.documents.emptyStart.sourceCta'),

@@ -75,10 +75,10 @@ export const FilledDocxPreview = ({
         )}
       >
         <FileKindTile name="docx" size="lg" className="mb-space-xs" />
-        <p className="text-sm text-text-secondary">
+        <p className="text-sm text-fg-muted">
           {t('aiTools.autoFill.preview.empty')}
         </p>
-        <p className="text-xs text-text-tertiary">
+        <p className="text-xs text-fg-subtle">
           {t('aiTools.autoFill.preview.emptyHint')}
         </p>
       </div>
@@ -86,8 +86,8 @@ export const FilledDocxPreview = ({
 
   return (
     <div className={cn('flex h-full min-h-0 flex-col', className)}>
-      <div className="flex min-h-[var(--control-height)] shrink-0 items-center justify-between gap-space-sm border-b border-border-subtle px-space-md">
-        <span className="text-sm text-text-secondary">
+      <div className="flex min-h-[var(--control-height)] shrink-0 items-center justify-between gap-space-sm border-b border-line-subtle px-space-md">
+        <span className="text-sm text-fg-muted">
           {t('aiTools.autoFill.preview.title')}
         </span>
         <div className="flex items-center gap-space-2xs">
@@ -100,7 +100,7 @@ export const FilledDocxPreview = ({
           >
             <ZoomOut aria-hidden="true" />
           </Button>
-          <span className="min-w-12 text-center text-xs text-text-secondary tabular-nums">
+          <span className="min-w-12 text-center text-xs text-fg-muted tabular-nums">
             {zoom}%
           </span>
           <Button
@@ -126,7 +126,7 @@ export const FilledDocxPreview = ({
       {failed ? (
         <p
           role="alert"
-          className="flex flex-1 items-center justify-center p-space-lg text-sm text-status-error"
+          className="flex flex-1 items-center justify-center p-space-lg text-sm text-danger-fg"
         >
           {t('aiTools.autoFill.preview.renderFailed')}
         </p>
@@ -138,7 +138,7 @@ export const FilledDocxPreview = ({
           referrerPolicy="no-referrer"
           srcDoc={result.html}
           onLoad={applyZoom}
-          className="min-h-0 w-full flex-1 border-0 bg-background-subtle"
+          className="min-h-0 w-full flex-1 border-0 bg-sunken"
         />
       ) : (
         <div className="flex flex-1 items-center justify-center">

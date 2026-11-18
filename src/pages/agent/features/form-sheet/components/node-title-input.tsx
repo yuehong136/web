@@ -71,7 +71,7 @@ export function NodeTitleInput({ node, titleEditable }: NodeTitleInputProps) {
   if (!titleEditable) {
     return (
       <div className="min-w-0 flex-1">
-        <div className="truncate text-base font-medium text-text-primary">
+        <div className="truncate text-base font-medium text-fg">
           {node?.data?.name ||
             node?.data?.label ||
             t('flow.unnamedNode', 'Untitled node')}
@@ -106,7 +106,7 @@ export function NodeTitleInput({ node, titleEditable }: NodeTitleInputProps) {
 
   return (
     <div className="flex min-w-0 flex-1 items-center gap-space-xs">
-      <div className="truncate text-base font-medium text-text-primary">
+      <div className="truncate text-base font-medium text-fg">
         {node?.data?.name ||
           node?.data?.label ||
           t('flow.unnamedNode', 'Untitled node')}
@@ -115,7 +115,7 @@ export function NodeTitleInput({ node, titleEditable }: NodeTitleInputProps) {
         type="button"
         variant="ghost"
         size="icon-sm"
-        className="shrink-0 text-text-secondary hover:text-text-primary"
+        className="shrink-0 text-fg-muted hover:text-fg"
         onClick={() => setIsEditing(true)}
       >
         <PenLine className="size-3.5" />

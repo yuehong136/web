@@ -78,7 +78,7 @@ function EntityTypesFormField({
           <FormLabel
             required
             tooltip={t('knowledge.settings.graphrag.entityTypesTooltip')}
-            className="w-1/4 shrink-0 pt-2 text-sm text-text-secondary"
+            className="w-1/4 shrink-0 pt-2 text-sm text-fg-muted"
           >
             {t('knowledge.settings.graphrag.entityTypes')}
           </FormLabel>
@@ -114,7 +114,7 @@ function EntityTypesFormField({
                     <button
                       type="button"
                       onClick={() => handleRemove(type)}
-                      className="transition-colors hover:text-status-error"
+                      className="transition-colors hover:text-danger-fg"
                     >
                       <X className="h-3 w-3" />
                     </button>
@@ -163,7 +163,7 @@ export function GraphRagFormFields({ className }: GraphRagFormFieldsProps) {
           <FormItem className="flex items-center gap-1 space-y-0">
             <FormLabel
               tooltip={t('knowledge.settings.graphrag.enableTooltip')}
-              className="w-1/4 shrink-0 text-sm text-text-secondary"
+              className="w-1/4 shrink-0 text-sm text-fg-muted"
             >
               {t('knowledge.settings.graphrag.enable')}
             </FormLabel>
@@ -207,7 +207,7 @@ export function GraphRagFormFields({ className }: GraphRagFormFieldsProps) {
                       </p>
                     </div>
                   }
-                  className="w-1/4 shrink-0 text-sm text-text-secondary"
+                  className="w-1/4 shrink-0 text-sm text-fg-muted"
                 >
                   {t('knowledge.settings.graphrag.method')}
                 </FormLabel>
@@ -248,7 +248,7 @@ export function GraphRagFormFields({ className }: GraphRagFormFieldsProps) {
               <FormItem className="flex items-center gap-1 space-y-0">
                 <FormLabel
                   tooltip={t('knowledge.settings.graphrag.resolutionTooltip')}
-                  className="w-1/4 shrink-0 text-sm text-text-secondary"
+                  className="w-1/4 shrink-0 text-sm text-fg-muted"
                 >
                   {t('knowledge.settings.graphrag.resolution')}
                 </FormLabel>
@@ -272,7 +272,7 @@ export function GraphRagFormFields({ className }: GraphRagFormFieldsProps) {
               <FormItem className="flex items-center gap-1 space-y-0">
                 <FormLabel
                   tooltip={t('knowledge.settings.graphrag.communityTooltip')}
-                  className="w-1/4 shrink-0 text-sm text-text-secondary"
+                  className="w-1/4 shrink-0 text-sm text-fg-muted"
                 >
                   {t('knowledge.settings.graphrag.community')}
                 </FormLabel>

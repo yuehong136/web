@@ -24,10 +24,10 @@ export const ReadonlyWeightBar: React.FC<ReadonlyWeightBarProps> = ({
 
   return (
     <div>
-      <label className="mb-1 block text-xs text-text-secondary">{label}</label>
+      <label className="mb-1 block text-xs text-fg-muted">{label}</label>
       <div className="flex items-center space-x-3">
         <div
-          className="relative h-2 flex-1 rounded-radius-full bg-components-slider-track"
+          className="relative h-2 flex-1 rounded-radius-full bg-fill-pressed"
           role="progressbar"
           aria-valuemin={0}
           aria-valuemax={1}
@@ -35,15 +35,15 @@ export const ReadonlyWeightBar: React.FC<ReadonlyWeightBarProps> = ({
           aria-label={label}
         >
           <div
-            className="h-full rounded-radius-full bg-components-slider-range"
+            className="h-full rounded-radius-full bg-accent-solid"
             style={{ width: percentWidth }}
           />
         </div>
-        <div className="w-16 rounded-radius-md border border-border-default px-space-xs py-space-xs text-center text-xs text-text-secondary">
+        <div className="w-16 rounded-radius-md border border-line px-space-xs py-space-xs text-center text-xs text-fg-muted">
           {percentLabel}
         </div>
       </div>
-      <div className="mt-1 text-xs text-text-tertiary">{hint}</div>
+      <div className="mt-1 text-xs text-fg-subtle">{hint}</div>
     </div>
   )
 }

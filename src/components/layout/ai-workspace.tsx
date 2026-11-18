@@ -155,7 +155,7 @@ export function AiWorkspace({
           <>
             <Separator
               aria-label={resizeLabel}
-              className="w-px bg-border-subtle hover:bg-state-focus focus-visible:bg-state-focus focus-visible:outline-hidden"
+              className="w-px bg-line-subtle hover:bg-line-focus focus-visible:bg-line-focus focus-visible:outline-hidden"
             />
             <Panel
               id="ai-workspace-detail"

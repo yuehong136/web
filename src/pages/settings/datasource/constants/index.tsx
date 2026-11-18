@@ -52,27 +52,27 @@ export const generateDataSourceInfo = (
   [DataSourceKey.AZURE_BLOB]: {
     name: t('datasource.azureBlob.name'),
     description: t('datasource.azureBlob.description'),
-    icon: <Database size={ICON_SIZE} className="text-text-primary" />,
+    icon: <Database size={ICON_SIZE} className="text-fg" />,
   },
   [DataSourceKey.SALESFORCE]: {
     name: t('datasource.salesforce.name'),
     description: t('datasource.salesforce.description'),
-    icon: <Cloud size={ICON_SIZE} className="text-text-primary" />,
+    icon: <Cloud size={ICON_SIZE} className="text-fg" />,
   },
   [DataSourceKey.OUTLOOK]: {
     name: 'Outlook',
     description: t('datasource.microsoft.outlookDescription'),
-    icon: <Mail size={ICON_SIZE} className="text-text-primary" />,
+    icon: <Mail size={ICON_SIZE} className="text-fg" />,
   },
   [DataSourceKey.TEAMS]: {
     name: 'Microsoft Teams',
     description: t('datasource.microsoft.teamsDescription'),
-    icon: <UsersRound size={ICON_SIZE} className="text-text-primary" />,
+    icon: <UsersRound size={ICON_SIZE} className="text-fg" />,
   },
   [DataSourceKey.ONEDRIVE]: {
     name: 'OneDrive',
     description: t('datasource.microsoft.onedriveDescription'),
-    icon: <Cloud size={ICON_SIZE} className="text-text-primary" />,
+    icon: <Cloud size={ICON_SIZE} className="text-fg" />,
   },
   [DataSourceKey.SHAREPOINT]: {
     name: 'SharePoint',
@@ -101,7 +101,7 @@ export const generateDataSourceInfo = (
   [DataSourceKey.REST_API]: {
     name: t('datasource.restApi.name'),
     description: t('datasource.restApi.description'),
-    icon: <Globe size={ICON_SIZE} className="text-text-primary" />,
+    icon: <Globe size={ICON_SIZE} className="text-fg" />,
   },
   [DataSourceKey.SEAFILE]: {
     name: 'SeaFile',
@@ -247,7 +247,7 @@ export const generateDataSourceInfo = (
   [DataSourceKey.GITHUB]: {
     name: 'GitHub',
     description: t('datasource.githubDescription'),
-    icon: <GithubMark className="h-7 w-7 text-text-primary" />,
+    icon: <GithubMark className="h-7 w-7 text-fg" />,
   },
   [DataSourceKey.GITLAB]: {
     name: 'GitLab',
@@ -276,17 +276,17 @@ export const generateDataSourceInfo = (
   [DataSourceKey.MYSQL]: {
     name: 'MySQL',
     description: t('datasource.mysqlDescription'),
-    icon: <Database className="size-icon-lg text-text-primary" />,
+    icon: <Database className="size-icon-lg text-fg" />,
   },
   [DataSourceKey.POSTGRESQL]: {
     name: 'PostgreSQL',
     description: t('datasource.postgresqlDescription'),
-    icon: <Server className="size-icon-lg text-text-primary" />,
+    icon: <Server className="size-icon-lg text-fg" />,
   },
   [DataSourceKey.MSSQL]: {
     name: 'Microsoft SQL Server',
     description: t('datasource.mssqlDescription'),
-    icon: <Database className="size-icon-lg text-text-primary" />,
+    icon: <Database className="size-icon-lg text-fg" />,
   },
   [DataSourceKey.GOOGLE_DRIVE]: {
     name: 'Google Drive',
@@ -339,17 +339,17 @@ export const generateDataSourceInfo = (
   [DataSourceKey.RSS]: {
     name: 'RSS',
     description: t('datasource.rssDescription'),
-    icon: <Rss size={ICON_SIZE} className="text-text-primary" />,
+    icon: <Rss size={ICON_SIZE} className="text-fg" />,
   },
   [DataSourceKey.DINGTALK_AI_TABLE]: {
     name: t('datasource.dingtalkName'),
     description: t('datasource.dingtalkDescription'),
-    icon: <Table size={ICON_SIZE} className="text-text-primary" />,
+    icon: <Table size={ICON_SIZE} className="text-fg" />,
   },
   [DataSourceKey.IMAP]: {
     name: 'IMAP',
     description: t('datasource.imapDescription'),
-    icon: <Mail className="h-7 w-7 text-text-secondary" />,
+    icon: <Mail className="h-7 w-7 text-fg-muted" />,
   },
 })
 

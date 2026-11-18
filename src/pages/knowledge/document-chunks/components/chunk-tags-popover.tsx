@@ -26,12 +26,12 @@ export function ChunkTagsPopover({ knowledgeIds }: { knowledgeIds: string[] }) {
         className="w-64 p-space-md"
         aria-label={t('knowledge.chunks.tags.title')}
       >
-        <h3 className="mb-space-sm text-sm font-medium text-text-primary">
+        <h3 className="mb-space-sm text-sm font-medium text-fg">
           {t('knowledge.chunks.tags.title')}
         </h3>
         <div className="max-h-64 overflow-y-auto" aria-busy={tags.isFetching}>
           {tags.isPending ? (
-            <p role="status" className="text-sm text-text-caption">
+            <p role="status" className="text-sm text-fg-subtle">
               {t('knowledge.chunks.tags.loading')}
             </p>
           ) : tags.isError ? (
@@ -43,7 +43,7 @@ export function ChunkTagsPopover({ knowledgeIds }: { knowledgeIds: string[] }) {
               {t('knowledge.chunks.tags.retry')}
             </Button>
           ) : !tags.data.length ? (
-            <p className="text-sm text-text-caption">
+            <p className="text-sm text-fg-subtle">
               {t('knowledge.chunks.tags.empty')}
             </p>
           ) : (
@@ -53,10 +53,8 @@ export function ChunkTagsPopover({ knowledgeIds }: { knowledgeIds: string[] }) {
                   key={value}
                   className="flex items-center justify-between gap-space-sm text-sm"
                 >
-                  <span className="min-w-0 break-words text-text-primary">
-                    {value}
-                  </span>
-                  <span className="shrink-0 text-text-caption">{count}</span>
+                  <span className="min-w-0 break-words text-fg">{value}</span>
+                  <span className="shrink-0 text-fg-subtle">{count}</span>
                 </li>
               ))}
             </ul>

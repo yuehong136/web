@@ -29,7 +29,7 @@ export function ChatModelSelector({
   return (
     <div className="space-y-2">
       {showLabel && (
-        <div className="flex items-center text-sm font-medium text-text-primary">
+        <div className="flex items-center text-sm font-medium text-fg">
           {label}
           <FormTooltip tooltip={tooltip} />
         </div>

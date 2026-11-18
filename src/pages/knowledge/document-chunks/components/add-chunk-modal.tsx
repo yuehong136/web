@@ -73,7 +73,7 @@ export const AddChunkModal = ({
             <div>
               <span
                 id="new-chunk-content-label"
-                className="mb-2 block text-sm font-medium text-text-primary"
+                className="mb-2 block text-sm font-medium text-fg"
               >
                 {t('knowledge.chunks.modal.content')}
               </span>
@@ -89,9 +89,9 @@ export const AddChunkModal = ({
 
             <div>
               <div className="mb-2 flex items-center gap-2">
-                <ImageIcon className="size-icon-sm text-text-accent" />
+                <ImageIcon className="size-icon-sm text-accent-fg" />
                 <FieldLabel>{t('knowledge.chunks.modal.image')}</FieldLabel>
-                <span className="text-xs text-text-tertiary">
+                <span className="text-xs text-fg-subtle">
                   {t('knowledge.chunks.modal.optional')}
                 </span>
               </div>
@@ -133,7 +133,7 @@ export const AddChunkModal = ({
             </div>
 
             <TagModalSection
-              icon={<Key className="h-4 w-4 text-text-accent" />}
+              icon={<Key className="h-4 w-4 text-accent-fg" />}
               label={t('knowledge.chunks.modal.keywords')}
               value={importantKwd}
               onChange={onImportantKwdChange}
@@ -143,7 +143,7 @@ export const AddChunkModal = ({
 
             <TagModalSection
               icon={
-                <MessageCircleQuestion className="h-4 w-4 text-status-warning" />
+                <MessageCircleQuestion className="h-4 w-4 text-warning-fg" />
               }
               label={t('knowledge.chunks.modal.questions')}
               value={questionKwd}
@@ -196,11 +196,11 @@ const TagModalSection = ({
       <div className="mb-2 flex items-center gap-2">
         {icon}
         <FieldLabel>{label}</FieldLabel>
-        <span className="text-xs text-text-tertiary">
+        <span className="text-xs text-fg-subtle">
           {t('knowledge.chunks.modal.optional')}
         </span>
       </div>
-      <div className="rounded-lg border border-border-default bg-background-subtle p-3">
+      <div className="rounded-lg border border-line bg-sunken p-3">
         <TagEditor
           value={value}
           onChange={onChange}
@@ -213,7 +213,5 @@ const TagModalSection = ({
 }
 
 const FieldLabel = ({ children }: { children: ReactNode }) => (
-  <span className="mb-2 block text-sm font-medium text-text-primary">
-    {children}
-  </span>
+  <span className="mb-2 block text-sm font-medium text-fg">{children}</span>
 )

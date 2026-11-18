@@ -19,7 +19,7 @@ export const Skeleton = React.forwardRef<HTMLDivElement, SkeletonProps>(
           ref={ref}
           aria-hidden="true"
           className={cn(
-            'h-icon-sm animate-pulse rounded-radius-sm bg-components-skeleton-bg motion-reduce:animate-none',
+            'h-icon-sm animate-pulse rounded-radius-sm bg-fill-muted motion-reduce:animate-none',
             className,
           )}
           {...props}
@@ -38,7 +38,7 @@ export const Skeleton = React.forwardRef<HTMLDivElement, SkeletonProps>(
           <div
             key={index}
             className={cn(
-              'h-icon-sm animate-pulse rounded-radius-sm bg-components-skeleton-bg motion-reduce:animate-none',
+              'h-icon-sm animate-pulse rounded-radius-sm bg-fill-muted motion-reduce:animate-none',
               index === lines - 1 ? 'w-3/4' : 'w-full',
             )}
           />

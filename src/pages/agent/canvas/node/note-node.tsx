@@ -12,21 +12,17 @@ function InnerNoteNode({ data, selected }: NodeProps) {
   return (
     <div
       className={cn(
-        'note-drag-handle min-h-[100px] min-w-[200px] cursor-move rounded-radius-lg border-2 bg-components-canvas-note-bg p-space-base shadow-elevation-low transition-[border-color,box-shadow] hover:shadow-elevation-medium motion-reduce:transition-none',
-        selected
-          ? 'border-components-canvas-note-border-selected'
-          : 'border-components-canvas-note-border',
+        'note-drag-handle min-h-[100px] min-w-[200px] cursor-move rounded-radius-lg border-2 bg-warning-soft p-space-base shadow-elevation-low transition-[border-color,box-shadow] hover:shadow-elevation-medium motion-reduce:transition-none',
+        selected ? 'border-warning-solid' : 'border-warning-line',
       )}
     >
-      <div className="mb-space-sm flex items-center gap-space-sm text-components-canvas-note-title">
+      <div className="mb-space-sm flex items-center gap-space-sm text-warning-fg">
         <StickyNote aria-hidden className="size-icon-sm shrink-0" />
         <div className="truncate text-sm font-semibold">
           {data.name as string}
         </div>
       </div>
-      <div className="text-xs whitespace-pre-wrap text-components-canvas-note-text">
-        {noteText}
-      </div>
+      <div className="text-xs whitespace-pre-wrap text-fg">{noteText}</div>
     </div>
   )
 }

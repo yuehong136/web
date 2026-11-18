@@ -161,13 +161,13 @@ export function TeamPage() {
           >
             <TabsTrigger value="my-team">
               {t('settings.team.tabs.members')}
-              <span className="text-xs font-normal text-text-tertiary tabular-nums">
+              <span className="text-xs font-normal text-fg-subtle tabular-nums">
                 {members.length}
               </span>
             </TabsTrigger>
             <TabsTrigger value="joined-teams">
               {t('settings.team.tabs.joined')}
-              <span className="text-xs font-normal text-text-tertiary tabular-nums">
+              <span className="text-xs font-normal text-fg-subtle tabular-nums">
                 {joinedTeams.length}
               </span>
             </TabsTrigger>

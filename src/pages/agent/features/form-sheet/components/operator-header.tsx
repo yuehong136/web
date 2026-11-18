@@ -31,7 +31,7 @@ export function OperatorHeader({
         type="button"
         variant="ghost"
         size="icon-sm"
-        className="shrink-0 text-text-secondary hover:text-text-primary"
+        className="shrink-0 text-fg-muted hover:text-fg"
         aria-label={t('common.close')}
         title={t('common.close')}
         onClick={onClose}

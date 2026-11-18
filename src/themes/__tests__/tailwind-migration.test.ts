@@ -13,7 +13,7 @@ const compiler = readFile(path.join(sourceRoot, 'index.css'), 'utf8').then(
   (css) => compile(css, { base: sourceRoot, onDependency() {} }),
 )
 
-test('interface and Paper reading fonts work offline with explicit Chinese fallbacks', async () => {
+test('interface and Clay reading fonts work offline with explicit Chinese fallbacks', async () => {
   const [entry, appearance] = await Promise.all([
     readFile(path.join(sourceRoot, 'index.css'), 'utf8'),
     readFile(path.join(themeRoot, 'appearance.css'), 'utf8'),
@@ -27,11 +27,11 @@ test('interface and Paper reading fonts work offline with explicit Chinese fallb
   )
   assert.match(
     appearance,
-    /\[data-preset='paper'\][^}]*--font-reading:[^;]*Georgia[^;]*Noto Serif CJK SC[^;]*Songti SC[^;]*SimSun/su,
+    /\[data-preset='clay'\][^}]*--font-reading:[^;]*Georgia[^;]*Noto Serif CJK SC[^;]*Songti SC[^;]*SimSun/su,
   )
   assert.match(
     appearance,
-    /\[data-preset='paper'\][^}]*--reading-line-height: 1\.8/u,
+    /\[data-preset='clay'\][^}]*--reading-line-height: 1\.8/u,
   )
   assert.match(appearance, /--font-code:[^;]*ui-monospace[^;]*Consolas/su)
   // Preset radii live on [data-preset]; a root-level --radius elsewhere would
@@ -42,14 +42,14 @@ test('interface and Paper reading fonts work offline with explicit Chinese fallb
     ),
   )
   for (const css of styles) assert.doesNotMatch(css, /--radius:/u)
-  // Mist's bundled Geist covers Latin; Chinese still falls back to system fonts.
+  // Bundled Geist covers Latin in every scheme; Chinese falls back to system fonts.
   assert.match(
     appearance,
-    /\[data-preset='mist'\][^}]*--font-interface:[^;]*'Geist Variable'[^;]*PingFang SC[^;]*Microsoft YaHei[^;]*Noto Sans CJK SC/su,
+    /\[data-preset\] \{[^}]*--font-interface:[^;]*'Geist Variable'[^;]*PingFang SC[^;]*Microsoft YaHei[^;]*Noto Sans CJK SC/su,
   )
   assert.match(
     appearance,
-    /\[data-preset='mist'\]\[data-density='comfortable'\][^}]*--control-height: calc\(2rem/u,
+    /\[data-density='comfortable'\] \{[^}]*--control-height: calc\(2rem/u,
   )
   const css = (await compiler).build(['font-sans', 'font-mono'])
   assert.match(css, /\.font-sans\s*\{\s*font-family: var\(--font-interface\)/u)
@@ -74,28 +74,34 @@ test('committed CSS token mappings reproduce from the canonical registry', async
 
 test('semantic utilities preserve scoped runtime tokens and opacity modifiers', async () => {
   const css = (await compiler).build([
-    'bg-background-surface',
-    'text-text-primary',
-    'border-border-default',
+    'bg-surface',
+    'text-fg',
+    'border-line',
+    'bg-accent-soft',
     'bg-primary/90',
     'ring-ring/50',
+    'bg-danger-solid/20',
   ])
-  assert.match(css, /background-color: var\(--color-background-surface\)/)
-  assert.match(css, /color: var\(--color-text-primary\)/)
-  assert.match(css, /border-color: var\(--color-border-default\)/)
+  assert.match(css, /background-color: var\(--color-surface\)/)
+  assert.match(css, /color: var\(--color-fg\)/)
+  assert.match(css, /border-color: var\(--color-line\)/)
+  assert.match(css, /background-color: var\(--color-accent-soft\)/)
   assert.doesNotMatch(css, /::placeholder::placeholder/)
-  assert.doesNotMatch(
+  assert.doesNotMatch(css, /--color-fg:\s*var\(--color-fg\)/)
+  // Opacity modifiers mix the role itself; no RGB channel variables remain.
+  assert.match(
     css,
-    /--color-text-primary:\s*var\(--color-text-primary\)/,
+    /color-mix\(in oklab, var\(--color-action-bg\) 90%, transparent\)/,
   )
   assert.match(
     css,
-    /color-mix\(in oklab, rgb\(var\(--twc-primary\)\) 90%, transparent\)/,
+    /color-mix\(in oklab, var\(--color-line-focus\) 50%, transparent\)/,
   )
   assert.match(
     css,
-    /color-mix\(in oklab, rgb\(var\(--twc-ring\)\) 50%, transparent\)/,
+    /color-mix\(in oklab, var\(--color-danger-solid\) 20%, transparent\)/,
   )
+  assert.doesNotMatch(css, /--twc-/)
 })
 
 test('native spacing, radius, elevation and responsive variants compile', async () => {
@@ -132,17 +138,14 @@ test('global base rules keep their cascade without a page stylesheet', async () 
   assert.doesNotMatch(css, /--font-size|mcp-chat-page/u)
   // Class-level specificity keeps token borders above the forms plugin's
   // base input borders (element-level selectors).
-  assert.match(
-    css,
-    /\*:not\(\.\\_\) \{\s*border-color: var\(--color-border-default\);/u,
-  )
+  assert.match(css, /\*:not\(\.\\_\) \{\s*border-color: var\(--color-line\);/u)
 })
 
 test('dark utilities recognize both scoped data-theme and class mode', async () => {
-  const css = (await compiler).build(['dark:bg-background-surface'])
+  const css = (await compiler).build(['dark:bg-surface'])
   assert.match(css, /\.dark/)
   assert.match(css, /\[data-theme='dark'\]/)
-  assert.match(css, /background-color: var\(--color-background-surface\)/)
+  assert.match(css, /background-color: var\(--color-surface\)/)
 })
 
 test('typography, forms, scrollbar plugins and native container queries compile', async () => {
@@ -162,41 +165,53 @@ test('typography, forms, scrollbar plugins and native container queries compile'
 
 test('native choice controls override forms defaults with scoped selection colors', async () => {
   const css = (await compiler).build(['form-checkbox', 'form-radio'])
-  assert.match(
-    css,
-    /accent-color: var\(--color-components-checkbox-bg-checked\)/,
-  )
-  assert.match(css, /accent-color: var\(--color-components-radio-dot\)/)
-  assert.match(css, /accent-color: var\(--color-components-slider-range\)/)
-  assert.match(
-    css,
-    /background-color: var\(--color-components-checkbox-bg-checked\)/,
-  )
-  assert.match(css, /background-color: var\(--color-components-radio-dot\)/)
-  assert.match(css, /--tw-ring-offset-color: var\(--color-background-body\)/)
+  assert.match(css, /accent-color: var\(--color-accent-solid\)/)
+  assert.match(css, /accent-color: var\(--color-accent-solid\)/)
+  assert.match(css, /accent-color: var\(--color-accent-solid\)/)
+  assert.match(css, /background-color: var\(--color-accent-solid\)/)
+  assert.match(css, /background-color: var\(--color-accent-solid\)/)
+  assert.match(css, /--tw-ring-offset-color: var\(--color-surface\)/)
   assert.ok(
-    css.lastIndexOf('--tw-ring-color: var(--color-state-focus)') >
+    css.lastIndexOf('--tw-ring-color: var(--color-line-focus)') >
       css.indexOf('.form-checkbox:focus'),
     'selection focus colors must override the forms plugin defaults',
   )
 })
 
-test('selected input text and options compile independently of action colors', async () => {
-  const css = (await compiler).build([
-    'selection:bg-state-selected',
-    'selection:text-text-on-accent',
-    'data-[state=checked]:bg-state-selected-bg',
-    'data-[state=checked]:text-state-selected-text',
-    'bg-components-button-primary-bg',
-  ])
-  assert.match(css, /background-color: var\(--color-state-selected\)/)
-  assert.match(css, /color: var\(--color-text-on-accent\)/)
-  assert.match(css, /background-color: var\(--color-state-selected-bg\)/)
-  assert.match(css, /color: var\(--color-state-selected-text\)/)
+test('text fields replace the forms plugin palette with roles', async () => {
+  const css = (await compiler).build([])
+  // The plugin's defaults stay in the output (its blue-600 ring among them).
+  // The overrides win on specificity, not order: :is([type='text'], …) is
+  // (0,1,0) against the plugin's input:where([type='text']) at (0,0,1).
+  assert.match(css, /--tw-ring-color: oklch\(54\.6% 0\.245 262\.881\)/)
   assert.match(
     css,
-    /background-color: var\(\s*--color-components-button-primary-bg\s*\)/,
+    /&:focus \{\s*--tw-ring-color: var\(--color-line-focus\);\s*--tw-ring-offset-color: var\(--color-surface\);\s*border-color: var\(--color-line-focus\)/,
   )
+  assert.match(css, /::placeholder \{\s*color: var\(--color-fg-subtle\)/)
+  assert.match(
+    css,
+    /:is\(\s*\[type='text'\][\s\S]*?\) \{\s*background-color: var\(--color-surface\);\s*border-color: var\(--color-line\)/,
+  )
+  assert.match(
+    css,
+    /\*,\s*::before,\s*::after \{\s*--tw-ring-offset-color: var\(--color-surface\)/,
+  )
+})
+
+test('selected input text and options compile independently of action colors', async () => {
+  const css = (await compiler).build([
+    'selection:bg-accent-solid',
+    'selection:text-accent-on-solid',
+    'data-[state=checked]:bg-accent-soft',
+    'data-[state=checked]:text-accent-fg',
+    'bg-action-bg',
+  ])
+  assert.match(css, /background-color: var\(--color-accent-solid\)/)
+  assert.match(css, /color: var\(--color-accent-on-solid\)/)
+  assert.match(css, /background-color: var\(--color-accent-soft\)/)
+  assert.match(css, /color: var\(--color-accent-fg\)/)
+  assert.match(css, /background-color: var\(\s*--color-action-bg\s*\)/)
 })
 
 test('independent component CSS can apply utilities without duplicating the theme', async () => {
@@ -222,11 +237,11 @@ test('application reset stays in a lower cascade layer than semantic button colo
     '@import "./styles/application-reset.css";\n@import "./index.css";',
     { base: sourceRoot, onDependency() {} },
   )
-  const css = result.build(['text-components-button-primary-text'])
+  const css = result.build(['text-action-fg'])
   assert.match(css, /@layer reset, theme, base, components, utilities;/)
   assert.match(css, /@layer reset \{[\s\S]*?input,[\s\S]*?color: inherit;/)
   assert.match(
     css,
-    /\.text-components-button-primary-text \{\s*color: var\(\s*--color-components-button-primary-text\s*\)/,
+    /\.text-action-fg \{\s*color: var\(\s*--color-action-fg\s*\)/,
   )
 })

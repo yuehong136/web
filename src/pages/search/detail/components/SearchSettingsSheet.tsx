@@ -239,7 +239,7 @@ const SearchSettingsSheet: FC<SearchSettingsSheetProps> = ({
       <SheetContent
         side="right"
         showCloseButton={false}
-        className="h-full w-full overflow-hidden bg-background-surface p-0 sm:max-w-lg"
+        className="h-full w-full overflow-hidden bg-surface p-0 sm:max-w-lg"
         {...returnFocus}
       >
         <ContextPanel
@@ -268,7 +268,7 @@ const SearchSettingsSheet: FC<SearchSettingsSheetProps> = ({
           }
         >
           {modelsFailed && (
-            <div className="mb-space-base text-sm text-text-secondary">
+            <div className="mb-space-base text-sm text-fg-muted">
               {t('searchPage.settings.modelsFailed')}{' '}
               <Button
                 variant="ghost"
@@ -294,7 +294,7 @@ const SearchSettingsSheet: FC<SearchSettingsSheetProps> = ({
 
             <div className="space-y-space-sm">
               <Label className="text-sm">
-                <span className="mr-1 text-status-error">*</span>
+                <span className="mr-1 text-danger-fg">*</span>
                 {t('searchPage.settings.name')}
               </Label>
               <Input
@@ -383,7 +383,7 @@ const SearchSettingsSheet: FC<SearchSettingsSheetProps> = ({
                 precision={2}
                 showSwitch={false}
               />
-              <div className="flex items-center justify-between px-space-xs text-xs text-text-secondary">
+              <div className="flex items-center justify-between px-space-xs text-xs text-fg-muted">
                 <span>vector {config.vector_similarity_weight.toFixed(2)}</span>
                 <span>
                   full-text {(1 - config.vector_similarity_weight).toFixed(2)}
@@ -575,7 +575,7 @@ const SearchSettingsSheet: FC<SearchSettingsSheetProps> = ({
               <Label className="text-sm">
                 {t('searchPage.settings.crossLanguage')}
                 {(config.cross_languages?.length || 0) > 0 ? (
-                  <span className="ml-space-xs rounded-radius-full bg-background-subtle px-space-sm py-0.5 text-xs text-text-secondary">
+                  <span className="ml-space-xs rounded-radius-full bg-sunken px-space-sm py-0.5 text-xs text-fg-muted">
                     {t('searchPage.settings.languageCount', {
                       count: config.cross_languages?.length ?? 0,
                     })}
@@ -592,9 +592,9 @@ const SearchSettingsSheet: FC<SearchSettingsSheetProps> = ({
                 emptyText={t('searchPage.settings.noLanguages')}
                 allowClear
                 maxDisplayItems={100}
-                triggerClassName="min-h-10 bg-components-input-bg hover:bg-components-input-bg-hover focus-visible:border-components-input-border-focus focus-visible:bg-components-input-bg-focus focus-visible:ring-state-focus-subtle"
+                triggerClassName="min-h-10 bg-surface hover:bg-surface focus-visible:border-line-focus focus-visible:bg-surface focus-visible:ring-accent-soft"
               />
-              <p className="text-xs text-text-tertiary">
+              <p className="text-xs text-fg-subtle">
                 {t('searchPage.settings.languageTip')}
               </p>
             </div>

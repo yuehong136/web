@@ -97,8 +97,8 @@ const FileUpload: React.FC<FileUploadProps> = ({
         className: cn(
           'flex flex-col items-center gap-space-md rounded-radius-xl border border-dashed px-space-lg py-space-2xl text-center transition-colors motion-reduce:transition-none',
           isDragActive
-            ? 'border-components-upload-border-dragover bg-components-upload-bg-dragover'
-            : 'border-components-upload-border bg-components-upload-bg hover:border-components-upload-border-hover',
+            ? 'border-accent-solid bg-accent-soft'
+            : 'border-line-strong bg-transparent hover:border-fg-disabled',
         ),
       })}
     >
@@ -115,13 +115,13 @@ const FileUpload: React.FC<FileUploadProps> = ({
           {selectedFile ? (
             <CheckCircle2
               aria-hidden="true"
-              className="absolute -right-space-xs -bottom-space-xs size-icon-sm rounded-radius-full bg-background-surface text-status-success"
+              className="absolute -right-space-xs -bottom-space-xs size-icon-sm rounded-radius-full bg-surface text-success-fg"
             />
           ) : null}
         </span>
       )}
       <div className="flex flex-col gap-space-2xs" aria-live="polite">
-        <p className="text-base font-medium text-text-primary">
+        <p className="text-base font-medium text-fg">
           {isLoading
             ? t('aiTools.autoFill.upload.parsing')
             : selectedFile
@@ -129,11 +129,11 @@ const FileUpload: React.FC<FileUploadProps> = ({
               : t('aiTools.autoFill.upload.dropTitle')}
         </p>
         {isLoading ? (
-          <p className="text-sm text-text-secondary">
+          <p className="text-sm text-fg-muted">
             {t('aiTools.autoFill.upload.parsingHint')}
           </p>
         ) : selectedFile ? (
-          <p className="text-sm text-text-secondary tabular-nums">
+          <p className="text-sm text-fg-muted tabular-nums">
             {formatBytes(selectedFile.size)}
           </p>
         ) : null}
@@ -149,7 +149,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
           ? t('aiTools.autoFill.upload.replace')
           : t('aiTools.autoFill.upload.choose')}
       </Button>
-      <div className="flex flex-col gap-space-2xs text-xs text-text-tertiary">
+      <div className="flex flex-col gap-space-2xs text-xs text-fg-subtle">
         <p>{t('aiTools.autoFill.upload.formatHelp')}</p>
         <p>{t('aiTools.autoFill.upload.placeholderHelp', { example })}</p>
       </div>

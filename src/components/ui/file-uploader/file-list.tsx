@@ -42,26 +42,26 @@ export const FileList = memo(function FileList({
         <div className="flex items-center gap-3">
           <h4
             className="text-sm font-medium"
-            style={{ color: 'var(--color-text-primary)' }}
+            style={{ color: 'var(--color-fg)' }}
           >
             {texts.selectedFiles(files.length, maxFileCount)}
           </h4>
           <div className="flex items-center gap-2 text-xs">
             {stats.uploadingCount > 0 && (
-              <span className="flex items-center gap-1 rounded-full bg-status-info-subtle px-2 py-0.5 text-text-primary">
-                <Loader2 className="h-3 w-3 animate-spin text-components-badge-info-text" />
+              <span className="flex items-center gap-1 rounded-full bg-info-soft px-2 py-0.5 text-fg">
+                <Loader2 className="h-3 w-3 animate-spin text-info-fg" />
                 {stats.uploadingCount}
               </span>
             )}
             {stats.successCount > 0 && (
-              <span className="flex items-center gap-1 rounded-full bg-status-success-subtle px-2 py-0.5 text-text-primary">
-                <CheckCircle2 className="h-3 w-3 text-components-badge-success-text" />
+              <span className="flex items-center gap-1 rounded-full bg-success-soft px-2 py-0.5 text-fg">
+                <CheckCircle2 className="h-3 w-3 text-success-fg" />
                 {stats.successCount}
               </span>
             )}
             {stats.errorCount > 0 && (
-              <span className="flex items-center gap-1 rounded-full bg-status-error-subtle px-2 py-0.5 text-text-primary">
-                <AlertCircle className="h-3 w-3 text-components-badge-error-text" />
+              <span className="flex items-center gap-1 rounded-full bg-danger-soft px-2 py-0.5 text-fg">
+                <AlertCircle className="h-3 w-3 text-danger-fg" />
                 {stats.errorCount}
               </span>
             )}
@@ -72,7 +72,7 @@ export const FileList = memo(function FileList({
           variant="ghost"
           size="sm"
           onClick={onClearAll}
-          className="text-xs text-text-tertiary transition-colors hover:text-text-primary"
+          className="text-xs text-fg-subtle transition-colors hover:text-fg"
         >
           <Trash2 className="mr-1 h-3.5 w-3.5" />
           {texts.clearAll}
@@ -85,7 +85,7 @@ export const FileList = memo(function FileList({
           listMaxHeight,
         )}
         style={{
-          scrollbarColor: 'var(--color-components-scrollbar-thumb) transparent',
+          scrollbarColor: 'var(--color-line-strong) transparent',
         }}
       >
         {files.map((file, index) => (
@@ -105,15 +105,15 @@ export const FileList = memo(function FileList({
       <div
         className="flex items-center justify-between px-1 pt-3 text-xs"
         style={{
-          color: 'var(--color-text-tertiary)',
-          borderTop: '1px solid var(--color-border-subtle)',
+          color: 'var(--color-fg-subtle)',
+          borderTop: '1px solid var(--color-line-subtle)',
         }}
       >
         <span className="flex items-center gap-1">
           <span>{texts.totalSize}</span>
           <span
             className="font-medium"
-            style={{ color: 'var(--color-text-secondary)' }}
+            style={{ color: 'var(--color-fg-muted)' }}
           >
             {formatBytes(stats.totalSize)}
           </span>

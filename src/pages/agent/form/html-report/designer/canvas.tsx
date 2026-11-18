@@ -28,22 +28,22 @@ export function Canvas({ sections, selection, dispatch }: CanvasProps) {
         className={cn(
           'flex w-full items-center gap-space-xs rounded-radius-lg border px-space-sm py-space-sm text-left',
           reportSelected
-            ? 'border-border-focus bg-surface-secondary'
-            : 'border-border-default hover:bg-state-hover',
+            ? 'border-line-focus bg-sunken'
+            : 'border-line hover:bg-fill-hover',
         )}
       >
-        <FileText className="size-icon-sm text-text-caption" />
-        <span className="text-xs font-medium text-text-secondary">
+        <FileText className="size-icon-sm text-fg-subtle" />
+        <span className="text-xs font-medium text-fg-muted">
           {t('flow.htmlReportReportSettings', 'Report settings')}
         </span>
       </button>
 
       {sections.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-space-sm p-space-lg text-center">
-          <div className="rounded-radius-lg bg-surface-secondary p-space-sm text-text-caption">
+          <div className="rounded-radius-lg bg-sunken p-space-sm text-fg-subtle">
             <LayoutGrid className="size-icon-lg" />
           </div>
-          <p className="text-sm text-text-secondary">
+          <p className="text-sm text-fg-muted">
             {t(
               'flow.htmlReportCanvasEmpty',
               'Add a section from the layout group on the left',

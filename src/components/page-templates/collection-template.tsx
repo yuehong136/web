@@ -158,7 +158,7 @@ export function CollectionTemplate({
           {footer || footerNote ? (
             <div
               data-slot="collection-footer"
-              className="flex min-h-[var(--control-height)] shrink-0 flex-wrap items-center gap-x-space-md border-t border-border-subtle py-space-2xs pr-space-sm pl-space-md text-xs text-text-tertiary"
+              className="flex min-h-[var(--control-height)] shrink-0 flex-wrap items-center gap-x-space-md border-t border-line-subtle py-space-2xs pr-space-sm pl-space-md text-xs text-fg-subtle"
             >
               {footerNote ? <div className="min-w-0">{footerNote}</div> : null}
               <span className="flex-1" aria-hidden="true" />
@@ -195,7 +195,7 @@ export function CollectionTemplate({
         </WorkbenchHeaderSlot>
       ) : null}
       {filterBar ? (
-        <div className="shrink-0 border-b border-border-subtle py-space-sm pr-space-sm pl-space-md">
+        <div className="shrink-0 border-b border-line-subtle py-space-sm pr-space-sm pl-space-md">
           {filterBar}
         </div>
       ) : null}

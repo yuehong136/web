@@ -64,19 +64,19 @@ const formatStepSummary = (
 function RuntimeStepGlyph({ node }: { node: RuntimeThoughtChainNode }) {
   if (node.status === 'loading') {
     return (
-      <Loader2 className="size-3 animate-spin text-status-warning motion-reduce:animate-none" />
+      <Loader2 className="size-3 animate-spin text-warning-fg motion-reduce:animate-none" />
     )
   }
 
   if (node.status === 'error') {
-    return <XCircle className="size-3 text-status-error" />
+    return <XCircle className="size-3 text-danger-fg" />
   }
 
   if (node.status === 'success') {
-    return <CheckCircle2 className="size-3 text-status-success" />
+    return <CheckCircle2 className="size-3 text-success-fg" />
   }
 
-  return <Circle className="size-3 text-text-tertiary" />
+  return <Circle className="size-3 text-fg-subtle" />
 }
 
 function RuntimeStepPreview({ nodes }: { nodes: RuntimeThoughtChainNode[] }) {
@@ -89,7 +89,7 @@ function RuntimeStepPreview({ nodes }: { nodes: RuntimeThoughtChainNode[] }) {
       {visibleNodes.map((node) => (
         <div
           key={node.key}
-          className="inline-flex max-w-48 items-center gap-space-xs rounded-radius-sm bg-surface-primary px-space-xs py-space-xs text-text-secondary"
+          className="inline-flex max-w-48 items-center gap-space-xs rounded-radius-sm bg-surface px-space-xs py-space-xs text-fg-muted"
         >
           <RuntimeStepGlyph node={node} />
           <span className="truncate">
@@ -98,7 +98,7 @@ function RuntimeStepPreview({ nodes }: { nodes: RuntimeThoughtChainNode[] }) {
         </div>
       ))}
       {hiddenCount > 0 ? (
-        <span className="text-text-tertiary">+{hiddenCount}</span>
+        <span className="text-fg-subtle">+{hiddenCount}</span>
       ) : null}
     </div>
   )
@@ -135,15 +135,15 @@ export function RuntimeTracePanel({
     <div
       className={cn(
         placement === 'message'
-          ? 'border-l border-border-subtle pl-space-sm'
-          : 'rounded-radius-md border border-border-subtle bg-surface-secondary px-space-sm py-space-xs',
+          ? 'border-l border-line-subtle pl-space-sm'
+          : 'rounded-radius-md border border-line-subtle bg-sunken px-space-sm py-space-xs',
       )}
     >
       <Button
         type="button"
         variant="ghost"
         size="sm"
-        className="h-auto w-full justify-start gap-space-sm px-0 py-space-xs text-text-secondary hover:bg-transparent hover:text-text-primary"
+        className="h-auto w-full justify-start gap-space-sm px-0 py-space-xs text-fg-muted hover:bg-transparent hover:text-fg"
         onClick={() => setOpen((previous) => !previous)}
       >
         {open ? (
@@ -151,33 +151,33 @@ export function RuntimeTracePanel({
         ) : (
           <ChevronRight className="size-4 shrink-0" />
         )}
-        <Activity className="size-4 shrink-0 text-text-accent" />
-        <span className="font-mono text-xs text-text-primary">
+        <Activity className="size-4 shrink-0 text-accent-fg" />
+        <span className="font-mono text-xs text-fg">
           {/* i18n-ignore: protocol span name */}
           agent.run
         </span>
-        <span className="text-xs text-text-secondary">
+        <span className="text-xs text-fg-muted">
           {t('agent.runtimePanel.tracePanel.stepCount', {
             count: summary.nodes.length,
           })}
         </span>
         {summary.tools ? (
-          <span className="text-xs text-text-secondary">
+          <span className="text-xs text-fg-muted">
             {t('agent.runtimePanel.tracePanel.toolCount', {
               count: summary.tools,
             })}
           </span>
         ) : null}
         {elapsedText ? (
-          <span className="text-xs text-text-secondary">{elapsedText}</span>
+          <span className="text-xs text-fg-muted">{elapsedText}</span>
         ) : null}
-        <span className="text-xs text-text-secondary">{statusText}</span>
+        <span className="text-xs text-fg-muted">{statusText}</span>
       </Button>
 
       {!open ? <RuntimeStepPreview nodes={summary.nodes} /> : null}
 
       {open ? (
-        <div className="max-h-80 overflow-auto border-t border-border-subtle pt-space-sm">
+        <div className="max-h-80 overflow-auto border-t border-line-subtle pt-space-sm">
           <RuntimeThoughtChain
             events={summary.events}
             loading={loading}
@@ -196,10 +196,7 @@ export function RuntimeTracePanel({
 
   return (
     <div
-      className={cn(
-        'w-full border-b border-border-subtle bg-surface-primary',
-        className,
-      )}
+      className={cn('w-full border-b border-line-subtle bg-surface', className)}
     >
       <div className="mx-auto w-full max-w-4xl px-space-lg py-space-sm">
         {content}

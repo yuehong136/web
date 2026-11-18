@@ -64,13 +64,13 @@ export function KeyScopeCell({
               key={provider}
               provider={provider}
               size="xs"
-              className="ring-2 ring-background-surface"
+              className="ring-2 ring-surface"
             />
           ))}
         </span>
       ) : null}
       <div className="min-w-0">
-        <div className="text-sm text-text-secondary">{summary.text}</div>
+        <div className="text-sm text-fg-muted">{summary.text}</div>
         {stale > 0 ? (
           <Badge variant="warning" className="mt-space-2xs">
             {t(`${PREFIX}.keys.stale`, { count: stale })}

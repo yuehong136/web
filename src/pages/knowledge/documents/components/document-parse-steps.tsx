@@ -49,9 +49,9 @@ function StepIcon({ state }: { state: ParseStep['state'] }) {
     return (
       <span
         aria-hidden="true"
-        className="flex size-4 shrink-0 items-center justify-center rounded-radius-full bg-status-info-subtle"
+        className="flex size-4 shrink-0 items-center justify-center rounded-radius-full bg-info-soft"
       >
-        <span className="size-1.5 rounded-radius-full bg-status-info motion-safe:animate-pulse" />
+        <span className="size-1.5 rounded-radius-full bg-info-fg motion-safe:animate-pulse" />
       </span>
     )
   const Icon = state === 'error' ? X : Check
@@ -61,8 +61,8 @@ function StepIcon({ state }: { state: ParseStep['state'] }) {
       className={cn(
         'flex size-4 shrink-0 items-center justify-center rounded-radius-full',
         state === 'error'
-          ? 'bg-status-error-subtle text-status-error'
-          : 'bg-status-success-subtle text-status-success',
+          ? 'bg-danger-soft text-danger-fg'
+          : 'bg-success-soft text-success-fg',
       )}
     >
       <Icon className="size-2.5" strokeWidth={3} />
@@ -84,7 +84,7 @@ export function DocumentParseSteps({
   const { t } = useTranslation()
   if (!message?.trim())
     return (
-      <p className="text-sm text-text-tertiary">
+      <p className="text-sm text-fg-subtle">
         {t('knowledge.documents.inspector.noLog')}
       </p>
     )
@@ -93,7 +93,7 @@ export function DocumentParseSteps({
   return (
     <div className="flex flex-col gap-space-sm">
       {steps.length > visible.length ? (
-        <p className="text-xs text-text-tertiary">
+        <p className="text-xs text-fg-subtle">
           {t('knowledge.documents.inspector.earlierSteps', {
             count: steps.length - visible.length,
           })}
@@ -101,7 +101,7 @@ export function DocumentParseSteps({
       ) : null}
       <ol
         data-slot="document-parse-steps"
-        className="ml-space-sm flex flex-col gap-space-2xs border-l border-border-subtle"
+        className="ml-space-sm flex flex-col gap-space-2xs border-l border-line-subtle"
       >
         {visible.map((step, index) => (
           <li
@@ -115,16 +115,16 @@ export function DocumentParseSteps({
               className={cn(
                 'min-w-0 flex-1 truncate',
                 step.state === 'error'
-                  ? 'text-status-error'
+                  ? 'text-danger-fg'
                   : step.state === 'running'
                     ? 'text-shimmer'
-                    : 'text-text-secondary',
+                    : 'text-fg-muted',
               )}
             >
               {step.text}
             </span>
             {step.duration || step.time ? (
-              <span className="shrink-0 font-mono text-text-tertiary">
+              <span className="shrink-0 font-mono text-fg-subtle">
                 {step.duration ?? step.time}
               </span>
             ) : null}
@@ -132,7 +132,7 @@ export function DocumentParseSteps({
         ))}
       </ol>
       <details className="group text-xs">
-        <summary className="cursor-pointer rounded-radius-sm text-text-tertiary outline-hidden select-none hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-focus">
+        <summary className="cursor-pointer rounded-radius-sm text-fg-subtle outline-hidden select-none hover:text-fg focus-visible:ring-2 focus-visible:ring-line-focus">
           {t('knowledge.documents.inspector.fullLog')}
         </summary>
         <div className="mt-space-sm">

@@ -11,8 +11,8 @@ import { getSourceBadge } from './citation-utils'
 // FileKindTile reads the kind from an extension; web pages and image chunks
 // without one keep their own tone and a short label.
 const TONES: Record<string, string> = {
-  WEB: 'bg-components-file-web-bg text-components-file-web-text',
-  IMG: 'bg-components-file-image-bg text-components-file-image-text',
+  WEB: 'bg-avatar-8-bg text-avatar-8-fg',
+  IMG: 'bg-avatar-7-bg text-avatar-7-fg',
 }
 
 /**

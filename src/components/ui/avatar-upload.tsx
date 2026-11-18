@@ -386,12 +386,12 @@ export const AvatarUpload = React.forwardRef<
           // 空状态：显示上传占位符
           <div
             className={cn(
-              'grid place-content-center rounded-lg border border-dashed border-border-default bg-surface-secondary',
+              'grid place-content-center rounded-lg border border-dashed border-line bg-sunken',
               disabled && 'opacity-50',
             )}
             style={{ width: size, height: size }}
           >
-            <div className="pointer-events-none flex flex-col items-center gap-1 text-text-tertiary">
+            <div className="pointer-events-none flex flex-col items-center gap-1 text-fg-subtle">
               {loading ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
               ) : (
@@ -422,12 +422,12 @@ export const AvatarUpload = React.forwardRef<
             <div
               className={cn(
                 'pointer-events-none absolute inset-0 rounded-lg bg-transparent',
-                'transition-colors group-hover:bg-state-neutral-10',
+                'transition-colors group-hover:bg-fill-muted',
               )}
             >
               <Pencil
                 size={16}
-                className="absolute right-1.5 bottom-1.5 text-text-inverted opacity-0 transition-opacity group-hover:opacity-100"
+                className="absolute right-1.5 bottom-1.5 text-fg-inverse opacity-0 transition-opacity group-hover:opacity-100"
               />
             </div>
             {/* 删除按钮 */}
@@ -465,9 +465,7 @@ export const AvatarUpload = React.forwardRef<
       </div>
 
       {tipText && (
-        <span className="self-center text-xs text-text-tertiary">
-          {tipText}
-        </span>
+        <span className="self-center text-xs text-fg-subtle">{tipText}</span>
       )}
 
       {/* 裁剪弹窗 */}
@@ -485,7 +483,7 @@ export const AvatarUpload = React.forwardRef<
               <div className="w-full">
                 <div
                   ref={containerRef}
-                  className="relative mx-auto overflow-hidden rounded-lg border border-border-default bg-surface-secondary"
+                  className="relative mx-auto overflow-hidden rounded-lg border border-line bg-sunken"
                   style={{
                     width: '300px',
                     height: '300px',
@@ -495,7 +493,7 @@ export const AvatarUpload = React.forwardRef<
                   {/* 加载提示 */}
                   {!imageLoaded && (
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <Loader2 className="h-8 w-8 animate-spin text-text-tertiary" />
+                      <Loader2 className="h-8 w-8 animate-spin text-fg-subtle" />
                     </div>
                   )}
                   {/* 图片 - 在加载完成前不可见，但需要在DOM中以便触发onLoad */}
@@ -533,7 +531,7 @@ export const AvatarUpload = React.forwardRef<
                     />
                   )}
                 </div>
-                <p className="mt-3 text-center text-sm text-text-secondary">
+                <p className="mt-3 text-center text-sm text-fg-muted">
                   {t('common.avatarUpload.cropHint')}
                 </p>
                 <canvas ref={canvasRef} className="hidden" />

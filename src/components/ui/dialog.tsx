@@ -39,11 +39,11 @@ export interface DialogTriggerProps extends React.ButtonHTMLAttributes<HTMLButto
 
 /** DreamJira overlay: a flat scrim, no blur. */
 export const dialogOverlayClass =
-  'animate-in fade-in-0 fixed inset-0 bg-components-dialog-overlay duration-200 motion-reduce:animate-none'
+  'animate-in fade-in-0 fixed inset-0 bg-scrim duration-200 motion-reduce:animate-none'
 
 /** The 32px ghost close button shared by Dialog, Sheet and ConfirmDialog. */
 export const dialogCloseClass =
-  'absolute top-space-md right-space-md z-10 inline-flex size-[var(--control-height)] items-center justify-center rounded-radius-md text-text-secondary transition-colors duration-150 outline-hidden hover:bg-state-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-focus motion-reduce:transition-none'
+  'absolute top-space-md right-space-md z-10 inline-flex size-[var(--control-height)] items-center justify-center rounded-radius-md text-fg-muted transition-colors duration-150 outline-hidden hover:bg-fill-hover hover:text-fg focus-visible:ring-2 focus-visible:ring-line-focus motion-reduce:transition-none'
 
 const sizeClasses = {
   sm: 'max-w-md',
@@ -306,9 +306,9 @@ export const DialogContent: React.FC<DialogContentProps> = ({
         ref={contentRef}
         tabIndex={modal ? -1 : undefined}
         className={cn(
-          'relative z-10 w-full rounded-radius-xl border border-border-default shadow-elevation-high',
+          'relative z-10 w-full rounded-radius-xl border border-line shadow-elevation-high',
           // Native <dialog> defaults to black text; inherit the theme instead.
-          'bg-components-dialog-bg text-text-primary',
+          'bg-overlay text-fg',
           'animate-in fade-in-0 zoom-in-95 duration-200 motion-reduce:animate-none',
           'flex max-h-[calc(100vh-2rem)] flex-col',
           sizeClasses[size],
@@ -365,7 +365,7 @@ export const DialogTitle: React.FC<DialogTitleProps> = ({
       ref={(node) => accessibility?.registerTitle(node)}
       id={id ?? accessibility?.titleId}
       className={cn(
-        'pr-space-2xl text-lg leading-7 font-semibold text-text-primary',
+        'pr-space-2xl text-lg leading-7 font-semibold text-fg',
         className,
       )}
       {...props}
@@ -388,7 +388,7 @@ export const DialogDescription: React.FC<DialogDescriptionProps> = ({
     <p
       ref={(node) => accessibility?.registerDescription(node)}
       id={id ?? accessibility?.descriptionId}
-      className={cn('mt-space-xs text-sm text-text-secondary', className)}
+      className={cn('mt-space-xs text-sm text-fg-muted', className)}
       {...props}
     />
   )
@@ -419,7 +419,7 @@ export const DialogFooter: React.FC<DialogFooterProps> = ({
 }) => (
   <div
     className={cn(
-      'flex shrink-0 items-center justify-end gap-space-sm border-t border-border-default px-space-lg py-space-base',
+      'flex shrink-0 items-center justify-end gap-space-sm border-t border-line px-space-lg py-space-base',
       className,
     )}
     {...props}

@@ -86,7 +86,7 @@ export function SwitchForm({ node }: INextOperatorForm) {
                       ? t('flow.switchBranchLabels.if', 'If')
                       : t('flow.switchBranchLabels.elseIf', 'Else if')}
                   </span>
-                  <div className="text-text-secondary">
+                  <div className="text-fg-muted">
                     {t('flow.switchBranchLabels.case', {
                       index: index + 1,
                       defaultValue: `Case ${index + 1}`,
@@ -98,7 +98,7 @@ export function SwitchForm({ node }: INextOperatorForm) {
                     type="button"
                     variant="ghost"
                     size="icon-sm"
-                    className="text-text-secondary hover:text-status-error"
+                    className="text-fg-muted hover:text-danger-fg"
                     onClick={() => remove(index)}
                     aria-label={t('common.remove')}
                   >
@@ -109,7 +109,7 @@ export function SwitchForm({ node }: INextOperatorForm) {
               <section className="relative flex gap-space-sm">
                 {conditionLength > 1 && (
                   <section className="flex w-[72px] shrink-0 flex-col items-center">
-                    <div className="relative w-1 flex-1 before:absolute before:top-20 before:bottom-0 before:left-10 before:w-px before:bg-border-default" />
+                    <div className="relative w-1 flex-1 before:absolute before:top-20 before:bottom-0 before:left-10 before:w-px before:bg-line" />
                     <FormField
                       control={form.control}
                       name={`${conditionKey}.${index}.logical_operator`}
@@ -120,7 +120,7 @@ export function SwitchForm({ node }: INextOperatorForm) {
                               value={logicField.value}
                               onValueChange={logicField.onChange}
                             >
-                              <SelectTrigger className="h-10 min-w-20 rounded-radius-md border border-border-default bg-surface-primary px-space-sm py-space-xs text-sm shadow-elevation-low">
+                              <SelectTrigger className="h-10 min-w-20 rounded-radius-md border border-line bg-surface px-space-sm py-space-xs text-sm shadow-elevation-low">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
@@ -139,7 +139,7 @@ export function SwitchForm({ node }: INextOperatorForm) {
                         </FormItem>
                       )}
                     />
-                    <div className="relative w-1 flex-1 before:absolute before:top-0 before:bottom-36 before:left-10 before:w-px before:bg-border-default" />
+                    <div className="relative w-1 flex-1 before:absolute before:top-0 before:bottom-36 before:left-10 before:w-px before:bg-line" />
                   </section>
                 )}
                 <ConditionCards
@@ -157,7 +157,7 @@ export function SwitchForm({ node }: INextOperatorForm) {
         <Button
           type="button"
           variant="outline"
-          className="w-full border-dashed border-border-default"
+          className="w-full border-dashed border-line"
           onClick={() =>
             append({
               logical_operator: SwitchLogicOperatorOptions[0],

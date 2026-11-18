@@ -26,7 +26,7 @@ function GraphSidePanelComponent({
   if (!selectedElement) return null
 
   return (
-    <div className="absolute top-space-sm right-space-sm bottom-space-sm z-10 flex overflow-hidden rounded-radius-xl border border-border-default shadow-elevation-high">
+    <div className="absolute top-space-sm right-space-sm bottom-space-sm z-10 flex overflow-hidden rounded-radius-xl border border-line shadow-elevation-high">
       <ContextPanel
         title={
           selectedElement.type === 'node'

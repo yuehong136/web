@@ -11,13 +11,13 @@ function Progress({ className, value, ...props }: ProgressProps) {
   return (
     <div
       className={cn(
-        'relative h-2 w-full overflow-hidden rounded-full bg-components-progress-bg',
+        'relative h-2 w-full overflow-hidden rounded-full bg-fill-pressed',
         className,
       )}
       {...props}
     >
       <div
-        className="h-full w-full bg-components-progress-fill transition-all duration-300 ease-in-out"
+        className="h-full w-full bg-accent-solid transition-all duration-300 ease-in-out"
         style={{ transform: `translateX(-${100 - normalizedValue}%)` }}
       />
     </div>

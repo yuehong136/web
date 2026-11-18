@@ -34,13 +34,13 @@ export function MemorySidebar({
     },
   ]
   return (
-    <div className="flex h-full min-h-0 flex-col bg-components-sidebar-bg">
-      <header className="flex h-12 shrink-0 items-center border-b border-border-subtle px-space-sm">
+    <div className="flex h-full min-h-0 flex-col bg-canvas">
+      <header className="flex h-12 shrink-0 items-center border-b border-line-subtle px-space-sm">
         <Button
           asChild
           variant="ghost"
           size="sm"
-          className="w-full justify-start text-text-secondary"
+          className="w-full justify-start text-fg-muted"
         >
           <Link to={ROUTES.MEMORY}>
             <ArrowLeft className="size-icon-sm" />
@@ -61,7 +61,7 @@ export function MemorySidebar({
           </p>
           {memory?.description && (
             <p
-              className="truncate text-xs text-text-secondary"
+              className="truncate text-xs text-fg-muted"
               title={memory.description}
             >
               {memory.description}
@@ -70,7 +70,7 @@ export function MemorySidebar({
         </div>
       </div>
       {isLoading ? (
-        <div className="mx-space-base h-16 animate-pulse rounded-radius-md bg-background-subtle" />
+        <div className="mx-space-base h-16 animate-pulse rounded-radius-md bg-sunken" />
       ) : (
         <nav
           aria-label={memory?.name || t('layout.nav.memory')}
@@ -83,10 +83,10 @@ export function MemorySidebar({
               end={end}
               className={({ isActive }) =>
                 cn(
-                  'flex min-h-9 items-center gap-space-sm rounded-radius-md px-space-sm text-sm focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden',
+                  'flex min-h-9 items-center gap-space-sm rounded-radius-md px-space-sm text-sm focus-visible:ring-2 focus-visible:ring-line-focus focus-visible:outline-hidden',
                   isActive
-                    ? 'bg-components-sidebar-item-bg-active font-medium text-text-primary'
-                    : 'text-text-secondary hover:bg-state-hover hover:text-text-primary',
+                    ? 'bg-fill-selected font-medium text-fg'
+                    : 'text-fg-muted hover:bg-fill-hover hover:text-fg',
                 )
               }
             >
@@ -97,7 +97,7 @@ export function MemorySidebar({
         </nav>
       )}
       {memory && (
-        <footer className="mt-auto space-y-space-xs border-t border-border-subtle px-space-base py-space-base text-xs text-text-tertiary">
+        <footer className="mt-auto space-y-space-xs border-t border-line-subtle px-space-base py-space-base text-xs text-fg-subtle">
           <p>
             {memory.storage_type === 'graph'
               ? t('memory.fields.graph')

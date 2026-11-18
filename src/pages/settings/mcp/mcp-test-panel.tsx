@@ -154,9 +154,9 @@ export function MCPTestPanel({ server }: { server: MCPServer | null }) {
       </div>
 
       <details className="flex flex-col gap-space-sm">
-        <summary className="cursor-pointer text-sm font-medium text-text-primary">
+        <summary className="cursor-pointer text-sm font-medium text-fg">
           {t('mcp.form.httpHeaders')}
-          <span className="ml-space-sm text-xs font-normal text-text-tertiary tabular-nums">
+          <span className="ml-space-sm text-xs font-normal text-fg-subtle tabular-nums">
             {headers.length}
           </span>
         </summary>
@@ -178,9 +178,9 @@ export function MCPTestPanel({ server }: { server: MCPServer | null }) {
         </div>
       </details>
       <details className="flex flex-col gap-space-sm">
-        <summary className="cursor-pointer text-sm font-medium text-text-primary">
+        <summary className="cursor-pointer text-sm font-medium text-fg">
           {t('mcp.form.variables')}
-          <span className="ml-space-sm text-xs font-normal text-text-tertiary tabular-nums">
+          <span className="ml-space-sm text-xs font-normal text-fg-subtle tabular-nums">
             {variables.length}
           </span>
         </summary>
@@ -212,7 +212,7 @@ export function MCPTestPanel({ server }: { server: MCPServer | null }) {
         >
           {t('mcp.form.startTest')}
         </Button>
-        <p className="mt-space-xs text-xs text-text-tertiary">
+        <p className="mt-space-xs text-xs text-fg-subtle">
           {t('mcp.test.hint')}
         </p>
       </div>
@@ -220,19 +220,19 @@ export function MCPTestPanel({ server }: { server: MCPServer | null }) {
       {latest ? (
         <section
           aria-label={t('mcp.test.result')}
-          className="flex flex-col gap-space-xs border-t border-border-subtle pt-space-sm"
+          className="flex flex-col gap-space-xs border-t border-line-subtle pt-space-sm"
         >
           <output
             className={
               latest.success
-                ? 'block text-sm font-medium text-status-success'
-                : 'block text-sm font-medium text-status-error'
+                ? 'block text-sm font-medium text-success-fg'
+                : 'block text-sm font-medium text-danger-fg'
             }
           >
             {latest.success
               ? t('mcp.test.succeeded', { count: latest.tools.length })
               : t('mcp.form.testFailed')}
-            <span className="ml-space-sm font-normal text-text-tertiary tabular-nums">
+            <span className="ml-space-sm font-normal text-fg-subtle tabular-nums">
               {t('mcp.common.milliseconds', { value: latest.duration })}
             </span>
           </output>
@@ -241,13 +241,11 @@ export function MCPTestPanel({ server }: { server: MCPServer | null }) {
               {latest.tools.map((tool) => (
                 <li
                   key={tool.name}
-                  className="border-t border-border-subtle py-space-xs first:border-t-0"
+                  className="border-t border-line-subtle py-space-xs first:border-t-0"
                 >
-                  <span className="font-mono text-xs text-text-primary">
-                    {tool.name}
-                  </span>
+                  <span className="font-mono text-xs text-fg">{tool.name}</span>
                   {tool.description ? (
-                    <p className="line-clamp-2 text-xs text-text-secondary">
+                    <p className="line-clamp-2 text-xs text-fg-muted">
                       {tool.description}
                     </p>
                   ) : null}
@@ -261,9 +259,9 @@ export function MCPTestPanel({ server }: { server: MCPServer | null }) {
       {history.length > 1 ? (
         <section
           aria-label={t('mcp.test.history')}
-          className="flex flex-col gap-space-xs border-t border-border-subtle pt-space-sm"
+          className="flex flex-col gap-space-xs border-t border-line-subtle pt-space-sm"
         >
-          <h3 className="text-xs font-medium text-text-tertiary">
+          <h3 className="text-xs font-medium text-fg-subtle">
             {t('mcp.test.history')}
           </h3>
           <ul className="flex flex-col">
@@ -276,8 +274,8 @@ export function MCPTestPanel({ server }: { server: MCPServer | null }) {
                   aria-hidden="true"
                   className={
                     attempt.success
-                      ? 'size-1.5 shrink-0 rounded-radius-full bg-status-success'
-                      : 'size-1.5 shrink-0 rounded-radius-full bg-status-error'
+                      ? 'size-1.5 shrink-0 rounded-radius-full bg-success-fg'
+                      : 'size-1.5 shrink-0 rounded-radius-full bg-danger-fg'
                   }
                 />
                 <span className="sr-only">
@@ -285,15 +283,15 @@ export function MCPTestPanel({ server }: { server: MCPServer | null }) {
                     attempt.success ? 'mcp.form.connected' : 'mcp.form.failed',
                   )}
                 </span>
-                <span className="min-w-0 flex-1 truncate font-mono text-text-secondary">
+                <span className="min-w-0 flex-1 truncate font-mono text-fg-muted">
                   {attempt.url}
                 </span>
-                <span className="text-text-tertiary tabular-nums">
+                <span className="text-fg-subtle tabular-nums">
                   {t('mcp.common.milliseconds', { value: attempt.duration })}
                 </span>
                 <time
                   dateTime={attempt.at.toISOString()}
-                  className="text-text-tertiary tabular-nums"
+                  className="text-fg-subtle tabular-nums"
                 >
                   {time.format(attempt.at)}
                 </time>

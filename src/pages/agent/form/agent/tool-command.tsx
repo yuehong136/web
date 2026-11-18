@@ -144,11 +144,9 @@ export function McpToolCommand({
             >
               <Checkbox checked={checked} className="pointer-events-none" />
               <div className="min-w-0 flex-1">
-                <div className="truncate text-sm text-text-primary">
-                  {server.name}
-                </div>
+                <div className="truncate text-sm text-fg">{server.name}</div>
                 {server.description && (
-                  <div className="truncate text-xs text-text-secondary">
+                  <div className="truncate text-xs text-fg-muted">
                     {server.description}
                   </div>
                 )}

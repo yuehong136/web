@@ -34,7 +34,7 @@ export function EditorHeader({
       surface="plain"
       align="center"
       wrapActions
-      className="min-h-13 border-b border-components-studio-border bg-components-studio-surface px-space-sm py-space-xs"
+      className="min-h-13 border-b border-line bg-surface px-space-sm py-space-xs"
       leading={
         <Button
           variant="ghost"
@@ -54,7 +54,7 @@ export function EditorHeader({
             seed={avatarSeed}
           />
           <span
-            className="min-w-0 truncate text-base font-semibold text-text-primary"
+            className="min-w-0 truncate text-base font-semibold text-fg"
             title={config.name}
           >
             {config.name}
@@ -74,7 +74,7 @@ export function EditorHeader({
       actions={
         <>
           <output
-            className={`max-w-48 text-xs ${status === 'failed' || status === 'unconfirmed' ? 'text-status-error' : 'text-text-secondary'}`}
+            className={`max-w-48 text-xs ${status === 'failed' || status === 'unconfirmed' ? 'text-danger-fg' : 'text-fg-muted'}`}
           >
             {t(`studio.editor.${status}`)}
           </output>

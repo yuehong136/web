@@ -95,16 +95,16 @@ export function DataSourceStatusDot({
 export function DataSourceStatusIcon({ status }: { status: DataSourceStatus }) {
   switch (status) {
     case DataSourceStatus.COMPLETED:
-      return <CheckCircle2 className="size-icon-sm text-status-success" />
+      return <CheckCircle2 className="size-icon-sm text-success-fg" />
     case DataSourceStatus.FAILED:
-      return <AlertCircle className="size-icon-sm text-status-error" />
+      return <AlertCircle className="size-icon-sm text-danger-fg" />
     case DataSourceStatus.RUNNING:
-      return <Loader2 className="size-icon-sm animate-spin text-status-info" />
+      return <Loader2 className="size-icon-sm animate-spin text-info-fg" />
     case DataSourceStatus.SCHEDULED:
-      return <CalendarClock className="size-icon-sm text-status-info" />
+      return <CalendarClock className="size-icon-sm text-info-fg" />
     case DataSourceStatus.PAUSED:
-      return <CirclePause className="size-icon-sm text-status-warning" />
+      return <CirclePause className="size-icon-sm text-warning-fg" />
     default:
-      return <Clock3 className="size-icon-sm text-text-tertiary" />
+      return <Clock3 className="size-icon-sm text-fg-subtle" />
   }
 }

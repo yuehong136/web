@@ -1,4 +1,4 @@
-import type { FileKind } from '@/themes/avatar-tokens'
+import type { FileKind } from '@/themes/identity'
 import { cn } from '@/lib/utils'
 
 const EXTENSIONS: Record<Exclude<FileKind, 'text'>, readonly string[]> = {
@@ -46,14 +46,14 @@ export function fileKindOf(nameOrExt: string): FileKind {
 
 // Static class strings so Tailwind can see every tone.
 const TONES: Record<FileKind, string> = {
-  pdf: 'bg-components-file-pdf-bg text-components-file-pdf-text',
-  doc: 'bg-components-file-doc-bg text-components-file-doc-text',
-  sheet: 'bg-components-file-sheet-bg text-components-file-sheet-text',
-  slide: 'bg-components-file-slide-bg text-components-file-slide-text',
-  text: 'bg-components-file-text-bg text-components-file-text-text',
-  web: 'bg-components-file-web-bg text-components-file-web-text',
-  image: 'bg-components-file-image-bg text-components-file-image-text',
-  media: 'bg-components-file-media-bg text-components-file-media-text',
+  pdf: 'bg-avatar-1-bg text-avatar-1-fg',
+  doc: 'bg-avatar-6-bg text-avatar-6-fg',
+  sheet: 'bg-avatar-4-bg text-avatar-4-fg',
+  slide: 'bg-avatar-2-bg text-avatar-2-fg',
+  text: 'bg-neutral-soft text-neutral-fg',
+  web: 'bg-avatar-8-bg text-avatar-8-fg',
+  image: 'bg-avatar-7-bg text-avatar-7-fg',
+  media: 'bg-avatar-5-bg text-avatar-5-fg',
 }
 
 const SIZES = {

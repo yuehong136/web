@@ -147,12 +147,12 @@ export function DocumentCreateModal({
               />
             )}
             {isWeb && (
-              <div className="flex items-center justify-between gap-space-base rounded-radius-lg bg-surface-secondary p-space-base">
+              <div className="flex items-center justify-between gap-space-base rounded-radius-lg bg-sunken p-space-base">
                 <div>
-                  <p className="text-sm font-medium text-text-primary">
+                  <p className="text-sm font-medium text-fg">
                     {t('documentCreate.parseAfterCreate')}
                   </p>
-                  <p className="text-xs text-text-caption">
+                  <p className="text-xs text-fg-subtle">
                     {t('documentCreate.parseAfterCreateDescription')}
                   </p>
                 </div>
@@ -164,7 +164,7 @@ export function DocumentCreateModal({
                 />
               </div>
             )}
-            <div className="flex justify-end gap-space-sm border-t border-border-subtle pt-space-base">
+            <div className="flex justify-end gap-space-sm border-t border-line-subtle pt-space-base">
               <Button
                 type="button"
                 variant="outline"

@@ -79,7 +79,7 @@ const ExcelPreviewInner: FC<{
   }
 
   return (
-    <div className="relative h-full w-full overflow-hidden bg-background-surface">
+    <div className="relative h-full w-full overflow-hidden bg-surface">
       {loading && (
         <div className="absolute inset-0 z-10">
           <LoadingState message={t('knowledge.preview.loadingExcel')} />
@@ -87,7 +87,7 @@ const ExcelPreviewInner: FC<{
       )}
       <div
         ref={containerRef}
-        className="excel-csv-previewer h-full w-full rounded-radius-md border border-border-default p-space-base"
+        className="excel-csv-previewer h-full w-full rounded-radius-md border border-line p-space-base"
       />
     </div>
   )

@@ -70,8 +70,8 @@ export function CanvasSection({
       ref={setNodeRef}
       style={style}
       className={cn(
-        'rounded-radius-lg border bg-surface-secondary p-space-sm',
-        sectionSelected ? 'border-border-focus' : 'border-border-default',
+        'rounded-radius-lg border bg-sunken p-space-sm',
+        sectionSelected ? 'border-line-focus' : 'border-line',
         isDragging && 'opacity-50',
       )}
     >
@@ -80,7 +80,7 @@ export function CanvasSection({
           type="button"
           {...attributes}
           {...listeners}
-          className="cursor-grab text-text-caption active:cursor-grabbing"
+          className="cursor-grab text-fg-subtle active:cursor-grabbing"
           aria-label={t(
             'flow.htmlReportDragSection',
             'Drag to reorder section',
@@ -93,17 +93,17 @@ export function CanvasSection({
           onClick={onSelectSection}
           className="flex flex-1 items-center gap-space-xs text-left"
         >
-          <span className="text-xs font-medium text-text-secondary">
+          <span className="text-xs font-medium text-fg-muted">
             {t('flow.htmlReportSection', 'Section')} {index + 1}
           </span>
-          <span className="rounded-radius-sm bg-state-hover px-space-2xs text-xs text-text-caption">
+          <span className="rounded-radius-sm bg-fill-hover px-space-2xs text-xs text-fg-subtle">
             {t(layoutLabel.labelKey, layoutLabel.fallback)}
           </span>
         </button>
         <button
           type="button"
           onClick={onRemoveSection}
-          className="text-text-caption hover:text-status-error"
+          className="text-fg-subtle hover:text-danger-fg"
           aria-label={t('flow.htmlReportDeleteSection', 'Delete section')}
         >
           <Trash2 className="size-icon-sm" />
@@ -114,13 +114,11 @@ export function CanvasSection({
         ref={setSlotRef}
         className={cn(
           'min-h-12 space-y-space-xs rounded-radius-md border border-dashed p-space-xs',
-          isOver
-            ? 'border-border-focus bg-state-hover'
-            : 'border-border-subtle',
+          isOver ? 'border-line-focus bg-fill-hover' : 'border-line-subtle',
         )}
       >
         {section.blocks.length === 0 ? (
-          <p className="py-space-sm text-center text-xs text-text-caption">
+          <p className="py-space-sm text-center text-xs text-fg-subtle">
             {t('flow.htmlReportDropHint', 'Drag blocks here')}
           </p>
         ) : (

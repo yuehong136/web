@@ -84,7 +84,7 @@ export const RegisterPage: React.FC = () => {
       />
 
       <div className="mb-space-lg">
-        <div className="mb-space-xs flex justify-between text-xs text-text-tertiary">
+        <div className="mb-space-xs flex justify-between text-xs text-fg-subtle">
           <span>
             {t('auth.register.stepOf', {
               current: currentStep + 1,
@@ -99,10 +99,10 @@ export const RegisterPage: React.FC = () => {
         </div>
         <Progress value={progress} />
         <div className="mt-space-sm">
-          <h2 className="text-sm font-medium text-text-primary">
+          <h2 className="text-sm font-medium text-fg">
             {t(`auth.register.steps.${step}.title`)}
           </h2>
-          <p className="text-xs text-text-secondary">
+          <p className="text-xs text-fg-muted">
             {t(`auth.register.steps.${step}.description`)}
           </p>
         </div>
@@ -150,7 +150,7 @@ export const RegisterPage: React.FC = () => {
                 onChange={(e) => handleInputChange('password', e.target.value)}
                 placeholder={t('auth.register.passwordPlaceholder')}
               />
-              <p className="mt-space-2xs text-xs text-text-tertiary">
+              <p className="mt-space-2xs text-xs text-fg-subtle">
                 {t('auth.register.passwordHint')}
               </p>
             </div>
@@ -229,11 +229,11 @@ export const RegisterPage: React.FC = () => {
         </div>
       </form>
 
-      <p className="mt-space-lg border-t border-border-subtle pt-space-base text-center text-sm text-text-secondary">
+      <p className="mt-space-lg border-t border-line-subtle pt-space-base text-center text-sm text-fg-muted">
         {t('auth.register.haveAccount')}{' '}
         <Link
           to={ROUTES.LOGIN}
-          className="rounded-radius-sm font-medium text-text-accent underline-offset-2 outline-hidden hover:underline focus-visible:ring-2 focus-visible:ring-state-focus"
+          className="rounded-radius-sm font-medium text-accent-fg underline-offset-2 outline-hidden hover:underline focus-visible:ring-2 focus-visible:ring-line-focus"
         >
           {t('auth.register.signIn')}
         </Link>

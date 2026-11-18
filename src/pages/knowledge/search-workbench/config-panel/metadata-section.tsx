@@ -37,14 +37,14 @@ export const MetadataSection: React.FC<MetadataSectionProps> = ({
   const { t } = useTranslation()
 
   return (
-    <div className="border-t border-border-default pt-space-base">
+    <div className="border-t border-line pt-space-base">
       {loading && (
-        <p role="status" className="mb-space-sm text-xs text-text-tertiary">
+        <p role="status" className="mb-space-sm text-xs text-fg-subtle">
           {t('knowledge.search.metadataFilter.loadingFields')}
         </p>
       )}
       {error && (
-        <div role="alert" className="mb-space-sm text-sm text-status-error">
+        <div role="alert" className="mb-space-sm text-sm text-danger-fg">
           <p>{t('knowledge.search.metadataFilter.fieldsError')}</p>
           <Button variant="ghost" size="sm" onClick={onRetry}>
             {t('knowledge.search.errors.retry')}
@@ -62,7 +62,7 @@ export const MetadataSection: React.FC<MetadataSectionProps> = ({
         enabledModes={['disabled', 'auto', 'semi_auto', 'manual']}
       />
       {metadataMode === 'manual' && metadataFields.length === 0 && (
-        <p className="mt-space-xs text-xs text-text-tertiary">
+        <p className="mt-space-xs text-xs text-fg-subtle">
           {t('knowledge.search.config.manualMetadataEmpty')}
         </p>
       )}

@@ -62,7 +62,7 @@ export function BlockFields({ block, sectionId, dispatch }: BlockFieldsProps) {
       )}
       {bulk && (
         <InspectorField label={t(bulk.labelKey, bulk.fallback)}>
-          <p className="text-xs leading-relaxed text-text-caption">
+          <p className="text-xs leading-relaxed text-fg-subtle">
             {t(
               'flow.htmlReportBulkModelFilled',
               'Filled by the model, guided by the annotation below.',
@@ -141,16 +141,16 @@ function ListEditor({
       {items.map((_, index) => (
         <div
           key={index}
-          className="space-y-space-sm rounded-radius-md border border-border-subtle bg-surface-secondary p-space-sm"
+          className="space-y-space-sm rounded-radius-md border border-line-subtle bg-sunken p-space-sm"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-text-secondary">
+            <span className="text-xs font-medium text-fg-muted">
               {t(group.itemLabelKey, group.itemFallback)} {index + 1}
             </span>
             <button
               type="button"
               onClick={() => setItems(items.filter((_, i) => i !== index))}
-              className="text-text-caption hover:text-status-error"
+              className="text-fg-subtle hover:text-danger-fg"
               aria-label={t('flow.htmlReportRemove', 'Remove')}
             >
               <X className="size-icon-sm" />
@@ -241,7 +241,7 @@ function StaticArrayEditor({
             <button
               type="button"
               onClick={() => setItems(items.filter((_, i) => i !== index))}
-              className="text-text-caption hover:text-status-error"
+              className="text-fg-subtle hover:text-danger-fg"
               aria-label={t('flow.htmlReportRemove', 'Remove')}
             >
               <X className="size-icon-sm" />

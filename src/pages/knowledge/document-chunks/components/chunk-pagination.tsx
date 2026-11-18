@@ -39,7 +39,7 @@ export const ChunkPagination = ({
         page,
         total: totalPages,
       })}
-      className="flex min-h-[var(--control-height)] shrink-0 flex-wrap items-center gap-x-space-sm gap-y-space-2xs border-t border-border-subtle px-space-md py-space-2xs text-xs text-text-tertiary"
+      className="flex min-h-[var(--control-height)] shrink-0 flex-wrap items-center gap-x-space-sm gap-y-space-2xs border-t border-line-subtle px-space-md py-space-2xs text-xs text-fg-subtle"
     >
       {summary ? <span className="min-w-0 truncate">{summary}</span> : null}
       <span className="flex-1" aria-hidden="true" />
@@ -84,7 +84,7 @@ export const ChunkPagination = ({
           >
             <ChevronLeft className="size-icon-sm" aria-hidden="true" />
           </Button>
-          <span className="text-xs whitespace-nowrap text-text-secondary tabular-nums">
+          <span className="text-xs whitespace-nowrap text-fg-muted tabular-nums">
             {t('knowledge.chunks.pagination.page', { page, total: totalPages })}
           </span>
           <Button

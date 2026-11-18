@@ -177,7 +177,7 @@ function PaletteChip({ item, onAdd }: { item: BlockItem; onAdd: () => void }) {
       {...attributes}
       {...listeners}
       className={cn(
-        'w-full cursor-grab rounded-radius-md border border-border-default bg-surface-primary px-space-sm py-space-xs text-left text-xs text-text-primary transition-colors hover:bg-state-hover active:cursor-grabbing',
+        'w-full cursor-grab rounded-radius-md border border-line bg-surface px-space-sm py-space-xs text-left text-xs text-fg transition-colors hover:bg-fill-hover active:cursor-grabbing',
         isDragging && 'opacity-50',
       )}
     >
@@ -197,7 +197,7 @@ function PaletteGroup({
 }) {
   return (
     <div className="space-y-space-xs">
-      <div className="flex items-center gap-space-xs text-text-caption">
+      <div className="flex items-center gap-space-xs text-fg-subtle">
         {icon}
         <span className="text-xs font-medium">{title}</span>
       </div>
@@ -271,7 +271,7 @@ export function Palette({ onAddBlock, onAddSection }: PaletteProps) {
             key={item.layout}
             type="button"
             onClick={() => onAddSection(item.layout)}
-            className="w-full rounded-radius-md border border-border-default bg-surface-primary px-space-sm py-space-xs text-left text-xs text-text-primary transition-colors hover:bg-state-hover"
+            className="w-full rounded-radius-md border border-line bg-surface px-space-sm py-space-xs text-left text-xs text-fg transition-colors hover:bg-fill-hover"
           >
             {t(item.labelKey, item.fallback)}
           </button>

@@ -83,8 +83,8 @@ export function ResourceCard({
         className={cn(
           'group/card relative flex h-full min-w-0 flex-col gap-space-sm rounded-radius-xl border p-space-md transition-[background-color,border-color,box-shadow,transform] duration-150',
           selected || current
-            ? 'border-state-focus bg-state-selected-bg'
-            : 'border-border-subtle bg-background-surface hover:border-border-strong hover:shadow-elevation-medium motion-safe:hover:-translate-y-px',
+            ? 'border-line-focus bg-accent-soft'
+            : 'border-line-subtle bg-surface hover:border-line-strong hover:shadow-elevation-medium motion-safe:hover:-translate-y-px',
           className,
         )}
       >
@@ -101,7 +101,7 @@ export function ResourceCard({
             size="lg"
           />
           <div className="flex min-w-0 flex-1 flex-col gap-space-2xs pt-space-2xs">
-            <h3 className="flex min-w-0 text-sm font-semibold text-text-primary">
+            <h3 className="flex min-w-0 text-sm font-semibold text-fg">
               <ResourceName
                 name={name}
                 onOpen={onOpen}
@@ -109,7 +109,7 @@ export function ResourceCard({
               />
             </h3>
             {eyebrow !== undefined || status !== undefined ? (
-              <div className="flex min-w-0 items-center gap-space-sm text-xs text-text-tertiary">
+              <div className="flex min-w-0 items-center gap-space-sm text-xs text-fg-subtle">
                 {eyebrow !== undefined ? (
                   <span className="truncate">{eyebrow}</span>
                 ) : null}
@@ -126,7 +126,7 @@ export function ResourceCard({
           ) : null}
         </div>
         {description ? (
-          <p className="line-clamp-2 min-h-[2lh] text-sm text-text-secondary">
+          <p className="line-clamp-2 min-h-[2lh] text-sm text-fg-muted">
             {description}
           </p>
         ) : null}
@@ -136,7 +136,7 @@ export function ResourceCard({
           </div>
         ) : null}
         {meta !== undefined ? (
-          <div className="mt-auto flex flex-wrap items-center gap-x-space-md gap-y-space-xs border-t border-border-subtle pt-space-sm text-xs text-text-tertiary tabular-nums">
+          <div className="mt-auto flex flex-wrap items-center gap-x-space-md gap-y-space-xs border-t border-line-subtle pt-space-sm text-xs text-fg-subtle tabular-nums">
             {meta}
           </div>
         ) : null}
@@ -159,7 +159,7 @@ export function ResourceChip({
     <span
       data-slot="resource-chip"
       className={cn(
-        'inline-flex h-5.5 max-w-full min-w-0 items-center gap-space-2xs rounded-full border border-border-subtle bg-background-subtle px-space-sm text-xs text-text-secondary',
+        'inline-flex h-5.5 max-w-full min-w-0 items-center gap-space-2xs rounded-full border border-line-subtle bg-sunken px-space-sm text-xs text-fg-muted',
         className,
       )}
     >
@@ -191,12 +191,12 @@ export function ResourceCreateCard({
       <button
         type="button"
         onClick={onClick}
-        className="flex h-full min-h-44 w-full flex-col items-center justify-center gap-space-sm rounded-radius-xl border border-dashed border-border-default p-space-md text-text-tertiary outline-hidden transition-colors hover:border-border-strong hover:bg-state-hover hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-focus"
+        className="flex h-full min-h-44 w-full flex-col items-center justify-center gap-space-sm rounded-radius-xl border border-dashed border-line p-space-md text-fg-subtle outline-hidden transition-colors hover:border-line-strong hover:bg-fill-hover hover:text-fg-muted focus-visible:ring-2 focus-visible:ring-line-focus"
       >
-        <span className="flex size-10 items-center justify-center rounded-radius-lg border border-dashed border-border-strong [&_svg]:size-icon-md">
+        <span className="flex size-10 items-center justify-center rounded-radius-lg border border-dashed border-line-strong [&_svg]:size-icon-md">
           {icon ?? <Plus aria-hidden />}
         </span>
-        <span className="text-sm font-medium text-text-primary">{label}</span>
+        <span className="text-sm font-medium text-fg">{label}</span>
         {description ? <span className="text-xs">{description}</span> : null}
       </button>
     </li>

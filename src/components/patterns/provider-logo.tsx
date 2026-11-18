@@ -50,7 +50,7 @@ export function ProviderLogo({
     <span
       data-slot="provider-logo"
       className={cn(
-        'inline-flex shrink-0 items-center justify-center bg-background-subtle text-text-primary ring-1 ring-border-subtle ring-inset',
+        'inline-flex shrink-0 items-center justify-center bg-sunken text-fg ring-1 ring-line-subtle ring-inset',
         spec.tile,
         className,
       )}

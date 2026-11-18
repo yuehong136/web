@@ -108,16 +108,16 @@ export function TraceJsonViewer({
   return (
     <section
       className={cn(
-        'min-h-0 overflow-hidden rounded-radius-md border border-border-subtle bg-surface-primary',
+        'min-h-0 overflow-hidden rounded-radius-md border border-line-subtle bg-surface',
         className,
       )}
     >
-      <div className="flex min-h-10 items-center gap-space-xs border-b border-border-subtle px-space-base py-space-xs">
-        {Icon ? <Icon className="size-3.5 text-text-tertiary" /> : null}
-        <h5 className="min-w-0 flex-1 truncate text-sm font-semibold text-text-primary">
+      <div className="flex min-h-10 items-center gap-space-xs border-b border-line-subtle px-space-base py-space-xs">
+        {Icon ? <Icon className="size-3.5 text-fg-subtle" /> : null}
+        <h5 className="min-w-0 flex-1 truncate text-sm font-semibold text-fg">
           {title}
         </h5>
-        <span className="rounded-radius-full bg-surface-secondary px-space-xs py-[1px] font-mono text-[11px] text-text-caption uppercase">
+        <span className="rounded-radius-full bg-sunken px-space-xs py-[1px] font-mono text-[11px] text-fg-subtle uppercase">
           {payload.language}
         </span>
         {canCollapse ? (
@@ -149,7 +149,7 @@ export function TraceJsonViewer({
           onClick={handleCopy}
         >
           {copied ? (
-            <Check className="size-3.5 text-status-success" />
+            <Check className="size-3.5 text-success-fg" />
           ) : (
             <Copy className="size-3.5" />
           )}
@@ -165,10 +165,10 @@ export function TraceJsonViewer({
         <pre className="grid grid-cols-[auto_minmax(0,1fr)] text-xs leading-6">
           {visibleLines.map((line, index) => (
             <span key={`${index}-${line.text}`} className="contents">
-              <span className="border-r border-border-subtle bg-surface-secondary px-space-sm text-right font-mono text-text-caption select-none">
+              <span className="border-r border-line-subtle bg-sunken px-space-sm text-right font-mono text-fg-subtle select-none">
                 {line.number || ''}
               </span>
-              <code className="px-space-base font-mono break-words whitespace-pre-wrap text-text-secondary">
+              <code className="px-space-base font-mono break-words whitespace-pre-wrap text-fg-muted">
                 {line.text || ' '}
               </code>
             </span>

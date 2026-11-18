@@ -2,10 +2,10 @@ import type { ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 
 const TONES = {
-  success: { dot: 'bg-status-success', text: 'text-status-success' },
-  error: { dot: 'bg-status-error', text: 'text-status-error' },
-  warning: { dot: 'bg-status-warning', text: 'text-status-warning' },
-  neutral: { dot: 'bg-text-tertiary', text: 'text-text-secondary' },
+  success: { dot: 'bg-success-fg', text: 'text-success-fg' },
+  error: { dot: 'bg-danger-fg', text: 'text-danger-fg' },
+  warning: { dot: 'bg-warning-fg', text: 'text-warning-fg' },
+  neutral: { dot: 'bg-fg-subtle', text: 'text-fg-muted' },
 } as const
 
 /** A state as a coloured dot and its label, lighter than a badge in tables. */

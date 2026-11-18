@@ -65,12 +65,12 @@ const FillModel = ({ reference }: { reference: string }) => {
   const identity = useModelIdentity({ reference: reference || undefined })
   if (!reference)
     return (
-      <span className="text-text-tertiary">
+      <span className="text-fg-subtle">
         {t('aiTools.autoFill.fill.noModel')}
       </span>
     )
   return (
-    <span className="inline-flex min-w-0 items-center gap-space-xs font-medium text-text-primary">
+    <span className="inline-flex min-w-0 items-center gap-space-xs font-medium text-fg">
       {identity.provider ? (
         <ProviderLogo provider={identity.provider} size="xs" />
       ) : null}
@@ -251,7 +251,7 @@ const DataInput: React.FC<DataInputProps> = ({
             <ArrowLeft aria-hidden="true" />
             {t('aiTools.autoFill.fill.back')}
           </Button>
-          <span className="text-sm text-text-secondary tabular-nums">
+          <span className="text-sm text-fg-muted tabular-nums">
             {t('aiTools.autoFill.fill.filled', {
               filled: filledCount,
               total: placeholderKeys.length,
@@ -284,7 +284,7 @@ const DataInput: React.FC<DataInputProps> = ({
             {aiFilling ? (
               <Spinner size="sm" />
             ) : (
-              <Sparkles aria-hidden="true" className="text-components-ai-to" />
+              <Sparkles aria-hidden="true" className="text-ai-to" />
             )}
             {t('aiTools.autoFill.fill.aiFill')}
           </Button>
@@ -293,13 +293,13 @@ const DataInput: React.FC<DataInputProps> = ({
 
       <div className="flex flex-wrap items-center gap-x-space-md gap-y-space-xs text-sm">
         <p className="flex min-w-0 items-center gap-space-xs">
-          <span className="text-text-secondary">
+          <span className="text-fg-muted">
             {t('aiTools.autoFill.fill.model')}
           </span>
           <FillModel reference={llmConfig.llm_name} />
         </p>
         {mcpConfig.mcp_ids.length > 0 ? (
-          <p className="flex items-center gap-space-xs text-text-secondary">
+          <p className="flex items-center gap-space-xs text-fg-muted">
             <PlugZap className="size-icon-xs" aria-hidden="true" />
             {t('aiTools.autoFill.fill.mcpCount', {
               count: mcpConfig.mcp_ids.length,
@@ -320,7 +320,7 @@ const DataInput: React.FC<DataInputProps> = ({
           <>
             <Sparkles
               aria-hidden="true"
-              className="size-icon-sm shrink-0 text-components-ai-to"
+              className="size-icon-sm shrink-0 text-ai-to"
             />
             <span className="text-shimmer">
               {t('aiTools.autoFill.fill.aiFilling', {
@@ -357,7 +357,7 @@ const DataInput: React.FC<DataInputProps> = ({
                 leftIcon={<Search className="size-icon-sm" />}
                 className="w-40"
               />
-              <label className="flex cursor-pointer items-center gap-space-xs text-sm text-text-secondary">
+              <label className="flex cursor-pointer items-center gap-space-xs text-sm text-fg-muted">
                 <Switch
                   checked={showOnlyEmpty}
                   onCheckedChange={setShowOnlyEmpty}
@@ -370,7 +370,7 @@ const DataInput: React.FC<DataInputProps> = ({
 
         <TabsContent value="form" className="mt-0">
           {placeholderKeys.length === 0 || filteredKeys.length === 0 ? (
-            <p className="py-space-2xl text-center text-sm text-text-secondary">
+            <p className="py-space-2xl text-center text-sm text-fg-muted">
               {placeholderKeys.length === 0
                 ? t('aiTools.autoFill.fill.noPlaceholders')
                 : t('aiTools.autoFill.fill.noMatches')}
@@ -420,10 +420,10 @@ const DataInput: React.FC<DataInputProps> = ({
             </Button>
           </div>
           {aiRawOutput ? (
-            <details className="group rounded-radius-lg border border-border-default">
-              <summary className="flex cursor-pointer list-none items-center gap-space-xs px-space-base py-space-sm text-sm font-medium text-text-primary hover:bg-state-hover [&::-webkit-details-marker]:hidden">
+            <details className="group rounded-radius-lg border border-line">
+              <summary className="flex cursor-pointer list-none items-center gap-space-xs px-space-base py-space-sm text-sm font-medium text-fg hover:bg-fill-hover [&::-webkit-details-marker]:hidden">
                 <Sparkles
-                  className="size-icon-sm text-components-ai-to"
+                  className="size-icon-sm text-ai-to"
                   aria-hidden="true"
                 />
                 <span className={aiFilling ? 'flex-1 text-shimmer' : 'flex-1'}>
@@ -434,7 +434,7 @@ const DataInput: React.FC<DataInputProps> = ({
                   aria-hidden="true"
                 />
               </summary>
-              <pre className="max-h-40 overflow-auto border-t border-border-subtle p-space-base text-xs whitespace-pre-wrap text-text-secondary">
+              <pre className="max-h-40 overflow-auto border-t border-line-subtle p-space-base text-xs whitespace-pre-wrap text-fg-muted">
                 {aiRawOutput}
               </pre>
             </details>
@@ -442,7 +442,7 @@ const DataInput: React.FC<DataInputProps> = ({
         </TabsContent>
       </Tabs>
 
-      <div className="flex justify-end border-t border-border-subtle pt-space-base">
+      <div className="flex justify-end border-t border-line-subtle pt-space-base">
         <Button
           onClick={fillDocument}
           disabled={isLoading || placeholderKeys.length === 0}

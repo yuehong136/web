@@ -48,7 +48,7 @@ export const ParserMethodCell: FC<ParserMethodCellProps> = ({
         parser: parserLabel,
       })}
       onClick={() => onShowChunkMethodModal(document)}
-      className="max-w-full truncate rounded-radius-sm text-left text-sm text-text-secondary outline-hidden hover:text-text-primary hover:underline focus-visible:ring-2 focus-visible:ring-state-focus"
+      className="max-w-full truncate rounded-radius-sm text-left text-sm text-fg-muted outline-hidden hover:text-fg hover:underline focus-visible:ring-2 focus-visible:ring-line-focus"
     >
       {parserLabel}
     </button>

@@ -43,7 +43,7 @@ function PreviewHeader({
       <header
         ref={bindRoot}
         data-preview-header
-        className="flex min-h-12 shrink-0 items-center gap-space-sm border-b border-border-subtle bg-background-surface px-space-md py-space-xs"
+        className="flex min-h-12 shrink-0 items-center gap-space-sm border-b border-line-subtle bg-surface px-space-md py-space-xs"
       >
         {heading}
         {actions}
@@ -145,7 +145,7 @@ const DocumentPreviewPage: React.FC = () => {
 
       {fileName ? <FileKindTile name={fileName} size="sm" /> : null}
       <h1
-        className="min-w-0 flex-1 truncate text-base font-semibold tracking-tight text-text-primary"
+        className="min-w-0 flex-1 truncate text-base font-semibold tracking-tight text-fg"
         title={docName}
       >
         {docName || t('knowledge.preview.documentPreview')}

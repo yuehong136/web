@@ -58,7 +58,7 @@ export function PageTitleBar({
         'flex shrink-0 flex-wrap items-center gap-x-space-sm gap-y-space-xs',
         workbench
           ? 'min-w-0 flex-1'
-          : 'min-h-[var(--workbench-header-height)] border-b border-border-subtle py-space-sm pr-space-sm pl-space-md',
+          : 'min-h-[var(--workbench-header-height)] border-b border-line-subtle py-space-sm pr-space-sm pl-space-md',
         className,
       )}
     >
@@ -80,7 +80,7 @@ export function PageTitleBar({
             <nav
               aria-label={t('common.patterns.breadcrumb')}
               className={cn(
-                'flex min-w-0 shrink items-center gap-space-xs text-sm text-text-secondary',
+                'flex min-w-0 shrink items-center gap-space-xs text-sm text-fg-muted',
                 workbench && 'max-md:hidden',
               )}
             >
@@ -89,25 +89,25 @@ export function PageTitleBar({
                   {crumb.to ? (
                     <Link
                       to={crumb.to}
-                      className="truncate rounded-radius-sm outline-hidden hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-focus"
+                      className="truncate rounded-radius-sm outline-hidden hover:text-fg focus-visible:ring-2 focus-visible:ring-line-focus"
                     >
                       {crumb.label}
                     </Link>
                   ) : (
                     <span className="truncate">{crumb.label}</span>
                   )}
-                  <span aria-hidden="true" className="text-text-tertiary">
+                  <span aria-hidden="true" className="text-fg-subtle">
                     /
                   </span>
                 </Fragment>
               ))}
             </nav>
           ) : null}
-          <h1 className="min-w-0 truncate text-base font-semibold tracking-tight text-text-primary">
+          <h1 className="min-w-0 truncate text-base font-semibold tracking-tight text-fg">
             {title}
           </h1>
           {count !== undefined && count !== null ? (
-            <span className="shrink-0 text-sm text-text-tertiary tabular-nums">
+            <span className="shrink-0 text-sm text-fg-subtle tabular-nums">
               {countLabel ? (
                 <span className="sr-only">{countLabel}</span>
               ) : null}

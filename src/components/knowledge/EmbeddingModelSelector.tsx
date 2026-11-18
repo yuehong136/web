@@ -29,7 +29,7 @@ export const EmbeddingModelSelector: FC<EmbeddingModelSelectorProps> = ({
   return (
     <div className="space-y-2">
       {showLabel && (
-        <div className="flex items-center text-sm font-medium text-text-primary">
+        <div className="flex items-center text-sm font-medium text-fg">
           {t('common.embeddingSelector.label')}
           <FormTooltip tooltip={t('common.embeddingSelector.tooltip')} />
         </div>

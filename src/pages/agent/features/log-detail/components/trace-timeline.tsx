@@ -68,10 +68,10 @@ function TraceMessages({ item }: { item: AgentTraceItem }) {
 
   return (
     <div>
-      <p className="mb-space-xs text-xs text-text-tertiary">
+      <p className="mb-space-xs text-xs text-fg-subtle">
         {t('agent.logDetail.timeline.traceMessage')}
       </p>
-      <pre className="max-h-[180px] overflow-auto rounded-radius-sm bg-surface-secondary p-space-sm text-xs text-text-secondary">
+      <pre className="max-h-[180px] overflow-auto rounded-radius-sm bg-sunken p-space-sm text-xs text-fg-muted">
         {messages.join('\n')}
       </pre>
     </div>
@@ -102,14 +102,14 @@ function TraceItem({
                 name={item.component_name || item.component_id || ''}
                 size="md"
               />
-              <span className="truncate text-sm font-medium text-text-primary">
+              <span className="truncate text-sm font-medium text-fg">
                 {item.component_name ||
                   item.component_id ||
                   t('agent.logDetail.timeline.unknownNode')}
               </span>
               <Badge variant={getStatusVariant(status)}>{status}</Badge>
               {typeof item.elapsed_time === 'number' ? (
-                <span className="text-xs text-text-tertiary">
+                <span className="text-xs text-fg-subtle">
                   {/* i18n-ignore: unit */}
                   {item.elapsed_time.toFixed(3)}s
                 </span>
@@ -120,7 +120,7 @@ function TraceItem({
             <div className="space-y-space-sm">
               {item.inputs ? (
                 <div>
-                  <p className="mb-space-xs text-xs text-text-tertiary">
+                  <p className="mb-space-xs text-xs text-fg-subtle">
                     {t('agent.logDetail.timeline.inputs')}
                   </p>
                   <JsonViewer data={item.inputs} />
@@ -128,7 +128,7 @@ function TraceItem({
               ) : null}
               {item.outputs ? (
                 <div>
-                  <p className="mb-space-xs text-xs text-text-tertiary">
+                  <p className="mb-space-xs text-xs text-fg-subtle">
                     {t('agent.logDetail.timeline.outputs')}
                   </p>
                   <JsonViewer data={item.outputs} />
@@ -136,12 +136,12 @@ function TraceItem({
               ) : null}
               <TraceMessages item={item} />
               {item.message ? (
-                <pre className="max-h-[180px] overflow-auto rounded-radius-sm bg-status-error-subtle p-space-sm text-xs text-status-error">
+                <pre className="max-h-[180px] overflow-auto rounded-radius-sm bg-danger-soft p-space-sm text-xs text-danger-fg">
                   {item.message}
                 </pre>
               ) : null}
               {children.length ? (
-                <div className="space-y-space-xs border-l border-border-primary pl-space-sm">
+                <div className="space-y-space-xs border-l border-line pl-space-sm">
                   {children.map((child, index) => (
                     <TraceItem
                       key={`${child.component_id || child.component_name}-${index}`}
@@ -166,7 +166,7 @@ export function TraceTimeline({
   const { t } = useTranslation()
   if (!items.length) {
     return (
-      <p className="text-sm text-text-secondary">
+      <p className="text-sm text-fg-muted">
         {t(UNAVAILABLE_MESSAGE_KEYS[unavailableReason ?? 'empty'])}
       </p>
     )

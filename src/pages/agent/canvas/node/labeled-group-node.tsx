@@ -13,7 +13,7 @@ export function GroupNodeLabel({
     <div className="h-full w-full" {...props}>
       <div
         className={cn(
-          'w-fit bg-surface-secondary px-space-sm py-space-xs text-xs text-text-primary',
+          'w-fit bg-sunken px-space-sm py-space-xs text-xs text-fg',
           className,
         )}
       >
@@ -64,9 +64,9 @@ export function LabeledGroupNode({
   return (
     <div
       className={cn(
-        'h-full w-full rounded-radius-sm border border-border-primary bg-surface-secondary opacity-70 transition-[border-color,outline-color] motion-reduce:transition-none',
+        'h-full w-full rounded-radius-sm border border-line bg-sunken opacity-70 transition-[border-color,outline-color] motion-reduce:transition-none',
         selected &&
-          'border-components-canvas-node-border-selected outline-2 -outline-offset-1 outline-components-canvas-node-border-selected',
+          'border-line-focus outline-2 -outline-offset-1 outline-line-focus',
         className,
       )}
       style={style}

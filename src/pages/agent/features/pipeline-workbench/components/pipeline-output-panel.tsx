@@ -51,15 +51,15 @@ export function PipelineOutputPanel({ controller }: PipelineOutputPanelProps) {
         }
       >
         {uploadedFile ? (
-          <div className="mb-space-md rounded-radius-md border border-border-subtle bg-surface-secondary p-space-sm text-sm text-text-secondary">
-            <div className="font-medium text-text-primary">
+          <div className="mb-space-md rounded-radius-md border border-line-subtle bg-sunken p-space-sm text-sm text-fg-muted">
+            <div className="font-medium text-fg">
               {String(
                 uploadedFile.name ||
                   uploadedFile.id ||
                   t('agent.runtime.unnamedDocument'),
               )}
             </div>
-            <div className="mt-space-xs text-xs text-text-tertiary">
+            <div className="mt-space-xs text-xs text-fg-subtle">
               {resultPath
                 ? t('agent.pipelineRun.outputPanel.resultReady')
                 : t('agent.pipelineRun.outputPanel.resultMissingDocId')}
@@ -67,11 +67,11 @@ export function PipelineOutputPanel({ controller }: PipelineOutputPanelProps) {
           </div>
         ) : null}
         {outputAvailable ? (
-          <pre className="max-h-[420px] overflow-auto rounded-radius-md bg-surface-secondary p-space-sm text-xs">
+          <pre className="max-h-[420px] overflow-auto rounded-radius-md bg-sunken p-space-sm text-xs">
             {JSON.stringify(endOutput, null, 2)}
           </pre>
         ) : (
-          <p className="text-sm text-text-secondary">
+          <p className="text-sm text-fg-muted">
             {t('agent.pipelineRun.outputPanel.empty')}
           </p>
         )}
@@ -82,7 +82,7 @@ export function PipelineOutputPanel({ controller }: PipelineOutputPanelProps) {
           title={t('agent.pipelineRun.outputPanel.errorTitle')}
           padding="default"
         >
-          <p className="text-sm text-status-error">{lastError}</p>
+          <p className="text-sm text-danger-fg">{lastError}</p>
         </SectionCard>
       ) : null}
     </div>

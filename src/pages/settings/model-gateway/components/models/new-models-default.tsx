@@ -34,7 +34,7 @@ export function NewModelsDefault({ enabled }: { enabled: boolean }) {
     <div className="flex shrink-0 items-center gap-space-sm">
       <Label
         htmlFor="gateway-new-models-default"
-        className="text-sm font-normal text-text-secondary"
+        className="text-sm font-normal text-fg-muted"
       >
         {t(`${PREFIX}.models.newDefault`)}
       </Label>

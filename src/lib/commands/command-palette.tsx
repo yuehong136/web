@@ -47,10 +47,10 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal container={container}>
-        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-components-dialog-overlay" />
+        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-scrim" />
         <DialogPrimitive.Content
           data-command-palette
-          className="fixed top-1/6 left-1/2 z-50 flex max-h-[calc(100dvh-var(--space-2xl))] w-[calc(100%-var(--space-xl))] max-w-2xl -translate-x-1/2 flex-col overflow-hidden rounded-radius-xl border border-components-dialog-border bg-components-dialog-bg text-text-primary shadow-elevation-high focus:outline-hidden"
+          className="fixed top-1/6 left-1/2 z-50 flex max-h-[calc(100dvh-var(--space-2xl))] w-[calc(100%-var(--space-xl))] max-w-2xl -translate-x-1/2 flex-col overflow-hidden rounded-radius-xl border border-line-subtle bg-overlay text-fg shadow-elevation-high focus:outline-hidden"
           onOpenAutoFocus={(event) => {
             event.preventDefault()
             const content = event.currentTarget
@@ -160,7 +160,7 @@ const PaletteResults = ({
       label={t('desktop.commands.paletteLabel')}
       className="min-h-0 flex-1 rounded-none bg-transparent"
     >
-      <div className="flex shrink-0 items-center gap-space-sm border-b border-border-subtle pr-space-sm [&>[data-cmdk-input-wrapper]]:min-w-0 [&>[data-cmdk-input-wrapper]]:flex-1">
+      <div className="flex shrink-0 items-center gap-space-sm border-b border-line-subtle pr-space-sm [&>[data-cmdk-input-wrapper]]:min-w-0 [&>[data-cmdk-input-wrapper]]:flex-1">
         <CommandInput
           value={query}
           onValueChange={setQuery}
@@ -220,12 +220,12 @@ const PaletteResults = ({
                       {highlightMatch(item.title, query)}
                     </span>
                     {item.subtitle ? (
-                      <span className="min-w-0 shrink-2 truncate text-xs text-text-tertiary">
+                      <span className="min-w-0 shrink-2 truncate text-xs text-fg-subtle">
                         {item.subtitle}
                       </span>
                     ) : null}
                     {item.meta || item.keys ? (
-                      <span className="ml-auto flex shrink-0 items-center gap-space-xs pl-space-sm text-xs text-text-tertiary">
+                      <span className="ml-auto flex shrink-0 items-center gap-space-xs pl-space-sm text-xs text-fg-subtle">
                         {item.meta}
                         {item.keys ? <KbdShortcut keys={item.keys} /> : null}
                       </span>
@@ -239,7 +239,7 @@ const PaletteResults = ({
       </CommandList>
       <footer
         id={hintsId}
-        className="flex min-h-[var(--control-height)] shrink-0 flex-wrap items-center gap-x-space-md gap-y-space-2xs border-t border-border-subtle bg-background-subtle px-space-md py-space-2xs text-xs text-text-tertiary"
+        className="flex min-h-[var(--control-height)] shrink-0 flex-wrap items-center gap-x-space-md gap-y-space-2xs border-t border-line-subtle bg-sunken px-space-md py-space-2xs text-xs text-fg-subtle"
       >
         <span className="inline-flex items-center gap-space-xs">
           <KbdShortcut keys={KEY_CAPS.select} />

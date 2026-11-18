@@ -45,7 +45,7 @@ function ToolRow({
       data-tool={toolId}
       onClick={onEdit}
       disabled={!onEdit}
-      className="size-4 rounded-radius-sm bg-transparent p-0 text-text-secondary hover:text-text-primary"
+      className="size-4 rounded-radius-sm bg-transparent p-0 text-fg-muted hover:text-fg"
     >
       <PencilLine className="pointer-events-none size-full" />
     </Button>
@@ -53,12 +53,12 @@ function ToolRow({
 
   return (
     <li>
-      <LabelCard className="flex items-center justify-between p-space-sm text-sm text-text-primary">
+      <LabelCard className="flex items-center justify-between p-space-sm text-sm text-fg">
         <div className="flex min-w-0 items-center gap-space-sm">
           {icon}
           <span className="truncate">{title}</span>
         </div>
-        <div className="flex items-center gap-space-md text-text-secondary">
+        <div className="flex items-center gap-space-md text-fg-muted">
           {editDisabledReason ? (
             <Tooltip content={<p>{editDisabledReason}</p>}>
               <span>{editButton}</span>
@@ -70,7 +70,7 @@ function ToolRow({
             type="button"
             variant="ghost"
             size="icon-sm"
-            className="size-4 rounded-radius-sm bg-transparent p-0 text-text-secondary hover:text-text-primary"
+            className="size-4 rounded-radius-sm bg-transparent p-0 text-fg-muted hover:text-fg"
             onClick={onRemove}
           >
             <X className="pointer-events-none size-full" />
@@ -82,7 +82,7 @@ function ToolRow({
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
-  return <span className="text-sm text-text-secondary">{children}</span>
+  return <span className="text-sm text-fg-muted">{children}</span>
 }
 
 function DashedActionButton({
@@ -96,7 +96,7 @@ function DashedActionButton({
     <Button
       type="button"
       variant="outline"
-      className="w-full border-dashed border-border-default"
+      className="w-full border-dashed border-line"
       onClick={onClick}
     >
       <Plus className="size-4" />
@@ -161,7 +161,7 @@ export function AgentTools({ node }: AgentToolsProps) {
               key={item.mcp_id}
               toolId={item.mcp_id}
               title={findMcpById(item.mcp_id)?.name || item.mcp_id}
-              icon={<Wrench className="size-4 text-text-secondary" />}
+              icon={<Wrench className="size-4 text-fg-muted" />}
               onEdit={handleEdit}
               onRemove={() => removeMcp(item.mcp_id)}
             />

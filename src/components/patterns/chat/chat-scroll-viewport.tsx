@@ -58,7 +58,7 @@ export function ChatScrollViewport({
         // 跳回最新消息后接住焦点，避免按钮消失时焦点落到 body
         tabIndex={-1}
         className={cn(
-          'min-h-0 flex-1 overflow-y-auto outline-hidden focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:ring-inset',
+          'min-h-0 flex-1 overflow-y-auto outline-hidden focus-visible:ring-2 focus-visible:ring-line-focus focus-visible:ring-inset',
           className,
         )}
       >

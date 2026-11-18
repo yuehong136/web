@@ -95,7 +95,7 @@ export function EmbeddingModelLabel({
     <span
       data-slot="embedding-model"
       className={cn(
-        'inline-flex min-w-0 items-center gap-space-xs text-xs text-text-tertiary',
+        'inline-flex min-w-0 items-center gap-space-xs text-xs text-fg-subtle',
         className,
       )}
     >

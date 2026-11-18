@@ -25,14 +25,10 @@ export const PageSection: React.FC<PageSectionProps> = ({
         <div className="flex items-start justify-between gap-space-md">
           <div className="min-w-0 flex-1">
             {title ? (
-              <h2 className="text-lg font-semibold text-text-primary">
-                {title}
-              </h2>
+              <h2 className="text-lg font-semibold text-fg">{title}</h2>
             ) : null}
             {description ? (
-              <p className="mt-space-xs text-sm text-text-secondary">
-                {description}
-              </p>
+              <p className="mt-space-xs text-sm text-fg-muted">{description}</p>
             ) : null}
           </div>
           {actions ? (

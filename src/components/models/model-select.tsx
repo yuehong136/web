@@ -115,7 +115,7 @@ export const ModelSelect = forwardRef<HTMLButtonElement, ModelSelectProps>(
         {showStatus && loading ? (
           <output
             aria-live="polite"
-            className="flex items-center gap-2 text-xs text-text-secondary"
+            className="flex items-center gap-2 text-xs text-fg-muted"
           >
             <LoaderCircle aria-hidden className="size-4 animate-spin" />
             {t('common.modelPicker.loading')}
@@ -123,7 +123,7 @@ export const ModelSelect = forwardRef<HTMLButtonElement, ModelSelectProps>(
         ) : showStatus && error ? (
           <div
             role="alert"
-            className="flex items-center gap-2 text-xs text-status-error"
+            className="flex items-center gap-2 text-xs text-danger-fg"
           >
             <AlertCircle aria-hidden className="size-4 shrink-0" />
             <span>{t('common.modelPicker.loadFailed')}</span>

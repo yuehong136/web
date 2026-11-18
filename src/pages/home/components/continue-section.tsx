@@ -14,7 +14,7 @@ export function ContinueSection({
   const id = useId()
   return (
     <section aria-labelledby={id} className="flex flex-col gap-space-sm">
-      <h2 id={id} className="text-sm font-semibold text-text-primary">
+      <h2 id={id} className="text-sm font-semibold text-fg">
         {title}
       </h2>
       <ul className="grid grid-cols-[repeat(auto-fill,minmax(min(13rem,100%),1fr))] gap-space-sm">

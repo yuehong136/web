@@ -122,7 +122,7 @@ export function ReferenceDetailPanel({
     >
       <div className="space-y-space-lg">
         {!originalLink && (
-          <p className="text-sm text-text-secondary">{tw('noOriginal')}</p>
+          <p className="text-sm text-fg-muted">{tw('noOriginal')}</p>
         )}
         <section className="space-y-space-base">
           <div className="flex flex-wrap items-center justify-between gap-space-sm">
@@ -144,20 +144,20 @@ export function ReferenceDetailPanel({
             </Button>
           </div>
           <Watermark content={watermarkContent} fontSize={12} gap={[80, 80]}>
-            <div className="rounded-radius-lg border border-border-subtle bg-background-subtle p-space-base">
+            <div className="rounded-radius-lg border border-line-subtle bg-sunken p-space-base">
               {content.includes('<') ? (
                 <SafeHtml
-                  className="prose prose-sm max-w-none break-words text-text-primary"
+                  className="prose prose-sm max-w-none break-words text-fg"
                   html={content}
                   options={CHUNK_CONTENT_PURIFY_OPTIONS}
                 />
               ) : marked ? (
                 <HighlightText
                   html={marked}
-                  className="text-sm leading-relaxed break-words text-text-primary"
+                  className="text-sm leading-relaxed break-words text-fg"
                 />
               ) : (
-                <p className="text-sm leading-relaxed break-words whitespace-pre-wrap text-text-primary">
+                <p className="text-sm leading-relaxed break-words whitespace-pre-wrap text-fg">
                   {content || t('sources.noContent')}
                 </p>
               )}
@@ -173,7 +173,7 @@ export function ReferenceDetailPanel({
             <ReferenceMetadataBadges metadata={chunk.document_metadata} />
           </section>
         )}
-        <details className="space-y-space-base rounded-radius-lg border border-border-subtle p-space-base">
+        <details className="space-y-space-base rounded-radius-lg border border-line-subtle p-space-base">
           <summary className="cursor-pointer text-sm font-medium">
             {tw('technicalDetails')}
           </summary>
@@ -201,7 +201,7 @@ export function ReferenceDetailPanel({
               ) : (
                 <p
                   key={item.id}
-                  className="line-clamp-3 rounded-radius-md border border-border-subtle bg-background-surface p-space-base text-sm leading-relaxed text-text-secondary"
+                  className="line-clamp-3 rounded-radius-md border border-line-subtle bg-surface p-space-base text-sm leading-relaxed text-fg-muted"
                 >
                   {toPlainText(item.content)}
                 </p>

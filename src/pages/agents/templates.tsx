@@ -41,9 +41,9 @@ function TemplateSection({
   const { t } = useTranslation()
   return (
     <section aria-label={title}>
-      <h2 className="flex items-baseline gap-space-sm px-space-md pt-space-md text-sm font-semibold text-text-primary">
+      <h2 className="flex items-baseline gap-space-sm px-space-md pt-space-md text-sm font-semibold text-fg">
         {title}
-        <span className="text-xs font-normal text-text-tertiary tabular-nums">
+        <span className="text-xs font-normal text-fg-subtle tabular-nums">
           {t('agents.templatesPage.count', { count: templates.length })}
         </span>
       </h2>

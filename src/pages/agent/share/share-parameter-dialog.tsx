@@ -84,7 +84,7 @@ export function ShareParameterDialog({
           ))}
 
           {error ? (
-            <div className="rounded-radius-md border border-status-error-border bg-status-error-subtle p-space-sm text-sm text-status-error">
+            <div className="rounded-radius-md border border-danger-line bg-danger-soft p-space-sm text-sm text-danger-fg">
               {error}
             </div>
           ) : null}

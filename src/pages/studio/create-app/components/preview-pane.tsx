@@ -93,7 +93,7 @@ export function PreviewPane(props: PreviewPaneProps) {
       title={
         <span className="flex flex-wrap items-center gap-space-sm">
           <span>{t('studio.editor.preview')}</span>
-          <span className="text-xs font-normal text-text-secondary">
+          <span className="text-xs font-normal text-fg-muted">
             {t(
               `studio.editor.${!savedConfig ? 'unsaved' : previewStale ? 'oldConfig' : 'savedConfig'}`,
             )}
@@ -176,12 +176,12 @@ export function PreviewPane(props: PreviewPaneProps) {
       </ChatScrollViewport>
       <div className="shrink-0 space-y-space-sm p-space-sm">
         {requiredVariables ? (
-          <output className="text-xs leading-relaxed text-status-warning">
+          <output className="text-xs leading-relaxed text-warning-fg">
             {t('studio.editor.requiredVariables')}
           </output>
         ) : isDirty || !savedConfig ? (
           <div className="space-y-space-sm">
-            <p className="text-xs leading-relaxed text-text-secondary">
+            <p className="text-xs leading-relaxed text-fg-muted">
               {t('studio.editor.dirtyNotice')} {t('studio.editor.saveEffect')}
             </p>
             <Button
@@ -199,7 +199,7 @@ export function PreviewPane(props: PreviewPaneProps) {
           </div>
         ) : previewStale ? (
           <div className="space-y-space-sm">
-            <p className="text-xs text-text-secondary">
+            <p className="text-xs text-fg-muted">
               {t('studio.editor.staleNotice')}
             </p>
             <Button
@@ -296,15 +296,13 @@ export function PreviewPane(props: PreviewPaneProps) {
                 ]),
               ].map(([label, value]) => (
                 <div key={String(label)} className="space-y-space-xs">
-                  <dt className="text-xs text-text-secondary">{label}</dt>
-                  <dd className="text-sm break-words text-text-primary">
-                    {value}
-                  </dd>
+                  <dt className="text-xs text-fg-muted">{label}</dt>
+                  <dd className="text-sm break-words text-fg">{value}</dd>
                 </div>
               ))}
             </dl>
           ) : (
-            <p className="py-space-lg text-sm text-text-secondary">
+            <p className="py-space-lg text-sm text-fg-muted">
               {t('studio.editor.noRun')}
             </p>
           )}

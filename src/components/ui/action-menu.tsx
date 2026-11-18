@@ -18,19 +18,18 @@ export const ActionMenuSub = Menu.Sub
  * ContextMenu: a 12px panel with 4px inset, 32px rows with 6px corners.
  */
 export const menuContentClass =
-  'z-50 min-w-48 overflow-y-auto rounded-radius-xl border border-border-default bg-components-dropdown-bg p-space-xs text-sm text-text-primary shadow-elevation-medium outline-hidden'
+  'z-50 min-w-48 overflow-y-auto rounded-radius-xl border border-line bg-overlay p-space-xs text-sm text-fg shadow-elevation-medium outline-hidden'
 
 export const menuItemClass =
-  'relative flex min-h-[var(--control-height)] cursor-default items-center gap-space-sm rounded-radius-md px-space-sm py-space-xs text-sm text-text-primary outline-hidden select-none data-[highlighted]:bg-state-hover data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:shrink-0'
+  'relative flex min-h-[var(--control-height)] cursor-default items-center gap-space-sm rounded-radius-md px-space-sm py-space-xs text-sm text-fg outline-hidden select-none data-[highlighted]:bg-fill-hover data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:shrink-0'
 
 export const menuLabelClass =
-  'px-space-sm pt-space-sm pb-space-2xs text-xs font-medium text-text-tertiary'
+  'px-space-sm pt-space-sm pb-space-2xs text-xs font-medium text-fg-subtle'
 
-export const menuSeparatorClass =
-  '-mx-space-xs my-space-xs h-px bg-border-default'
+export const menuSeparatorClass = '-mx-space-xs my-space-xs h-px bg-line'
 
 export const menuShortcutClass =
-  'ml-auto shrink-0 pl-space-md font-mono text-xs text-text-tertiary'
+  'ml-auto shrink-0 pl-space-md font-mono text-xs text-fg-subtle'
 
 export const ActionMenuContent = React.forwardRef<
   React.ElementRef<typeof Menu.Content>,
@@ -70,11 +69,11 @@ export const ActionMenuSubTrigger = React.forwardRef<
 >(({ className, children, ...props }, ref) => (
   <Menu.SubTrigger
     ref={ref}
-    className={cn(menuItemClass, 'data-[state=open]:bg-state-hover', className)}
+    className={cn(menuItemClass, 'data-[state=open]:bg-fill-hover', className)}
     {...props}
   >
     {children}
-    <ChevronRight className="ml-auto size-icon-sm shrink-0 text-text-tertiary" />
+    <ChevronRight className="ml-auto size-icon-sm shrink-0 text-fg-subtle" />
   </Menu.SubTrigger>
 ))
 ActionMenuSubTrigger.displayName = 'ActionMenuSubTrigger'
@@ -110,7 +109,7 @@ export const ActionMenuItem = React.forwardRef<
     ref={ref}
     className={cn(
       menuItemClass,
-      danger && 'text-status-error data-[highlighted]:bg-status-error-subtle',
+      danger && 'text-danger-fg data-[highlighted]:bg-danger-soft',
       className,
     )}
     {...props}
@@ -124,7 +123,7 @@ export const ActionMenuRadioItem = React.forwardRef<
 >(({ className, children, ...props }, ref) => (
   <Menu.RadioItem ref={ref} className={cn(menuItemClass, className)} {...props}>
     {children}
-    <span className="ml-auto flex size-icon-sm items-center justify-center text-state-selected">
+    <span className="ml-auto flex size-icon-sm items-center justify-center text-accent-solid">
       <Menu.ItemIndicator>
         <Check className="size-icon-sm" />
       </Menu.ItemIndicator>

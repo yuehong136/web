@@ -27,21 +27,21 @@ const SchemaVisualEditor: FC<SchemaVisualEditorProps & KeyInputProps> = ({
   ).length
 
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-radius-md border border-border-subtle bg-surface-primary">
-      <div className="flex shrink-0 items-center justify-between gap-space-sm border-b border-border-subtle px-space-md py-space-sm">
+    <div className="flex h-full flex-col overflow-hidden rounded-radius-md border border-line-subtle bg-surface">
+      <div className="flex shrink-0 items-center justify-between gap-space-sm border-b border-line-subtle px-space-md py-space-sm">
         <div className="min-w-0">
-          <p className="text-sm font-medium text-text-primary">
+          <p className="text-sm font-medium text-fg">
             {t.schemaEditorEditModeVisual}
           </p>
-          <p className="text-xs text-text-caption">
+          <p className="text-xs text-fg-subtle">
             {t.visualEditorNoFieldsHint2}
           </p>
         </div>
-        <div className="flex shrink-0 items-center gap-space-xs text-xs text-text-caption">
-          <span className="rounded-radius-full bg-surface-secondary px-space-sm py-space-xs">
+        <div className="flex shrink-0 items-center gap-space-xs text-xs text-fg-subtle">
+          <span className="rounded-radius-full bg-sunken px-space-sm py-space-xs">
             {t.visualEditorFieldsLabel}: {properties.length}
           </span>
-          <span className="rounded-radius-full bg-surface-secondary px-space-sm py-space-xs">
+          <span className="rounded-radius-full bg-sunken px-space-sm py-space-xs">
             {t.visualEditorRequiredLabel}: {requiredCount}
           </span>
         </div>

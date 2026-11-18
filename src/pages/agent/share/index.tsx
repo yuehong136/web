@@ -449,10 +449,10 @@ export default function AgentSharePage() {
           />
         }
       >
-        <div className="flex h-full min-h-0 bg-components-workspace-bg px-space-md sm:px-space-lg">
+        <div className="flex h-full min-h-0 bg-surface px-space-md sm:px-space-lg">
           <div className="mx-auto flex min-h-0 w-full max-w-4xl flex-col">
             {runner.lastError ? (
-              <div className="mt-space-base w-full rounded-radius-md border border-status-error bg-surface-secondary p-space-sm text-sm text-status-error">
+              <div className="mt-space-base w-full rounded-radius-md border border-danger-fg bg-sunken p-space-sm text-sm text-danger-fg">
                 {runner.lastError}
               </div>
             ) : null}
@@ -472,9 +472,9 @@ export default function AgentSharePage() {
             </div>
 
             {isTaskMode ? (
-              <div className="shrink-0 border-t border-border-subtle bg-components-workspace-bg py-space-base">
-                <div className="flex w-full flex-wrap items-center justify-between gap-space-sm rounded-radius-xl border border-border-default bg-surface-secondary p-space-sm shadow-elevation-low">
-                  <div className="flex items-center gap-space-sm text-sm text-text-secondary">
+              <div className="shrink-0 border-t border-line-subtle bg-surface py-space-base">
+                <div className="flex w-full flex-wrap items-center justify-between gap-space-sm rounded-radius-xl border border-line bg-sunken p-space-sm shadow-elevation-low">
+                  <div className="flex items-center gap-space-sm text-sm text-fg-muted">
                     <Badge variant="purple">{t('agent.share.task')}</Badge>
                     {runner.isRunning
                       ? t('agent.share.taskRunning', '任务运行中')
@@ -508,7 +508,7 @@ export default function AgentSharePage() {
                 hasParameters={inputEntries.length > 0}
                 attachmentInputRef={attachmentInputRef}
                 layout="inline"
-                className="shrink-0 border-t border-border-subtle bg-components-workspace-bg py-space-base"
+                className="shrink-0 border-t border-line-subtle bg-surface py-space-base"
                 onChange={setMessageValue}
                 onSubmit={(value) => {
                   void handleSendMessage(value)

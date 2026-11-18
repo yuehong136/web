@@ -64,13 +64,13 @@ export const ParserVisualizationPanel: React.FC<
     return (
       <div className="flex min-h-full flex-col items-center justify-center p-space-xl text-center">
         <FileText
-          className="mb-space-base size-icon-xl text-text-tertiary"
+          className="mb-space-base size-icon-xl text-fg-subtle"
           aria-hidden="true"
         />
-        <h3 className="mb-space-xs text-sm font-semibold text-text-primary">
+        <h3 className="mb-space-xs text-sm font-semibold text-fg">
           {t('knowledge.settings.parserDescription.fallbackTitle')}
         </h3>
-        <p className="max-w-xs text-sm text-text-tertiary">
+        <p className="max-w-xs text-sm text-fg-subtle">
           {t('knowledge.settings.parserDescription.fallbackDescription')}
         </p>
       </div>
@@ -98,11 +98,11 @@ export const ParserVisualizationPanel: React.FC<
   return (
     <div className="min-h-full">
       {/* 头部信息 */}
-      <div className="border-b border-border-subtle p-space-md">
-        <h2 className="mb-space-2xs text-sm font-semibold text-text-primary">
+      <div className="border-b border-line-subtle p-space-md">
+        <h2 className="mb-space-2xs text-sm font-semibold text-fg">
           {parserInfo.title}
         </h2>
-        <p className="text-xs text-text-secondary">
+        <p className="text-xs text-fg-muted">
           <span className="font-medium">
             {t('knowledge.settings.parserDescription.supportedFormats')}
           </span>
@@ -111,11 +111,11 @@ export const ParserVisualizationPanel: React.FC<
       </div>
 
       {/* 分块方法说明 */}
-      <div className="border-b border-border-subtle p-space-md">
-        <h3 className="mb-space-sm text-sm font-semibold text-text-primary">
+      <div className="border-b border-line-subtle p-space-md">
+        <h3 className="mb-space-sm text-sm font-semibold text-fg">
           {t('knowledge.settings.parserDescription.methodDescription')}
         </h3>
-        <div className="text-sm leading-relaxed whitespace-pre-line text-text-secondary">
+        <div className="text-sm leading-relaxed whitespace-pre-line text-fg-muted">
           {detailedInfo.description}
         </div>
       </div>
@@ -123,10 +123,10 @@ export const ParserVisualizationPanel: React.FC<
       {/* 使用示例 */}
       {images.length > 0 && (
         <div className="p-space-md">
-          <h3 className="mb-space-xs text-sm font-semibold text-text-primary">
+          <h3 className="mb-space-xs text-sm font-semibold text-fg">
             {t('knowledge.settings.parserDescription.examples')}
           </h3>
-          <p className="mb-space-base text-xs text-text-tertiary">
+          <p className="mb-space-base text-xs text-fg-subtle">
             {t('knowledge.settings.parserDescription.examplesDescription')}
           </p>
 
@@ -134,9 +134,9 @@ export const ParserVisualizationPanel: React.FC<
             {images.map((imageName, index) => (
               <figure
                 key={index}
-                className="rounded-radius-lg border border-border-subtle p-space-sm"
+                className="rounded-radius-lg border border-line-subtle p-space-sm"
               >
-                <div className="mb-space-xs aspect-4/3 overflow-hidden rounded-radius-md bg-background-subtle">
+                <div className="mb-space-xs aspect-4/3 overflow-hidden rounded-radius-md bg-sunken">
                   <img
                     src={imageName}
                     alt={t('knowledge.settings.parserDescription.exampleAlt', {
@@ -146,7 +146,7 @@ export const ParserVisualizationPanel: React.FC<
                     data-dark-enhance="true"
                   />
                 </div>
-                <figcaption className="text-center text-xs text-text-tertiary">
+                <figcaption className="text-center text-xs text-fg-subtle">
                   {t('knowledge.settings.parserDescription.exampleLabel', {
                     index: index + 1,
                   })}

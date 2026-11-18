@@ -1,114 +1,109 @@
-import type { DesignTokens } from './tokens'
-import { elevation } from './elevation'
-import { rgbChannels } from './interaction-palette'
-import type { AppearancePreset } from './appearance'
-
 /**
- * 生成主题 CSS 文件内容
+ * Generated CSS: one block per scheme and mode with the scales, elevation and
+ * semantic roles, then small override blocks for the high-contrast and
+ * primary-action variants.
+ *
+ * Portal content (menus, dialogs) carries `data-theme` without `data-preset`;
+ * the descendant selector gives it the preset of the nearest themed ancestor.
  */
-export function generateThemeCSS(
-  tokens: DesignTokens,
-  themeName: 'light' | 'dark',
-  preset?: AppearancePreset,
+import {
+  COLOR_SCHEMES,
+  SCHEME_SEEDS,
+  type ColorScheme,
+  type SchemeSeed,
+} from './color-schemes'
+import type { Mode } from './color-scales'
+import { cssOklch } from './oklch'
+import {
+  SCALE_NAMES,
+  SEMANTIC_TOKENS,
+  type RoleValue,
+  type SchemeTokens,
+} from './semantic-tokens'
+import { seedTokens } from './theme-sets'
+
+const DEFAULT_SCHEME: ColorScheme = 'ink'
+
+function selector(scheme: string, mode: Mode, modifiers = ''): string {
+  const own = `[data-preset='${scheme}'][data-theme='${mode}']${modifiers}`
+  const portal = `[data-preset='${scheme}']${modifiers} [data-theme='${mode}']:not([data-preset])`
+  const orphan =
+    scheme === DEFAULT_SCHEME && !modifiers
+      ? [`[data-theme='${mode}']:not([data-preset], [data-preset] *)`]
+      : []
+  return [own, portal, ...orphan].join(',\n')
+}
+
+function roleValue(value: RoleValue): string {
+  if (value.ref)
+    return `var(--${value.ref.startsWith('scale-') ? '' : 'color-'}${value.ref})`
+  return value.color === 'transparent' ? 'transparent' : cssOklch(value.color)
+}
+
+function declarations(tokens: SchemeTokens): Map<string, string> {
+  const out = new Map<string, string>()
+  for (const name of SCALE_NAMES)
+    tokens.scales[name].forEach((color, i) =>
+      out.set(`--scale-${name}-${i + 1}`, cssOklch(color)),
+    )
+  for (const [level, shadow] of Object.entries(tokens.elevation))
+    out.set(`--elevation-${level}`, shadow)
+  for (const name of SEMANTIC_TOKENS)
+    out.set(`--color-${name}`, roleValue(tokens.roles[name]))
+  return out
+}
+
+function block(rule: string, entries: Iterable<[string, string]>): string {
+  const lines = [...entries].map(([name, value]) => `  ${name}: ${value};`)
+  return lines.length ? `${rule} {\n${lines.join('\n')}\n}\n` : ''
+}
+
+function changed(next: Map<string, string>, base: Map<string, string>) {
+  return [...next].filter(([name, value]) => base.get(name) !== value)
+}
+
+/** All blocks of one scheme in one mode; also used for the runtime brand scheme. */
+export function generateSchemeCSS(
+  scheme: string,
+  seed: SchemeSeed,
+  mode: Mode,
 ): string {
-  // 同时输出 html 级与子树级选择器，便于分享页 / 嵌入场景在子树覆盖主题
-  const selector = preset
-    ? `[data-preset="${preset}"][data-theme="${themeName}"]`
-    : `html[data-theme="${themeName}"], [data-theme="${themeName}"]`
-
-  let css = `/**\n * ${themeName === 'light' ? '亮色' : '暗色'}主题 CSS 变量定义\n * 基于 Dify 项目的设计令牌系统\n *\n * ⚠️ 注意: 此文件由代码自动生成，请勿手动修改!\n * 如需修改主题，请编辑 theme-generator.ts 文件\n */\n\n${selector} {\n  /* ===== Tailwind 通道变量 (用于 /alpha 透明度支持) ===== */\n  --twc-primary: ${rgbChannels(tokens['components-button-primary-bg'])};\n  --twc-primary-foreground: 255 255 255;\n  --twc-foreground: ${rgbChannels(tokens['text-primary'])};\n  --twc-background: ${rgbChannels(tokens['background-body'])};\n  --twc-ring: ${rgbChannels(tokens['state-focus'])};\n  --twc-border: ${rgbChannels(tokens['components-input-border'])};\n\n`
-
-  css += `  /* ===== 阴影层级 (Tailwind shadow-elevation-*) ===== */\n`
-  for (const [level, shadow] of Object.entries(elevation[themeName]))
-    css += `  --elevation-${level}: ${shadow};\n`
-  css += '\n'
-
-  // 按分类组织令牌
-  const categories = {
-    文本系统: Object.keys(tokens).filter((key) => key.startsWith('text-')),
-    背景系统: Object.keys(tokens).filter((key) =>
-      key.startsWith('background-'),
-    ),
-    边框系统: Object.keys(tokens).filter((key) => key.startsWith('border-')),
-    按钮组件: Object.keys(tokens).filter((key) =>
-      key.startsWith('components-button-'),
-    ),
-    输入框组件: Object.keys(tokens).filter((key) =>
-      key.startsWith('components-input-'),
-    ),
-    卡片组件: Object.keys(tokens).filter((key) =>
-      key.startsWith('components-card-'),
-    ),
-    侧边栏组件: Object.keys(tokens).filter((key) =>
-      key.startsWith('components-sidebar-'),
-    ),
-    导航组件: Object.keys(tokens).filter((key) =>
-      key.startsWith('components-nav-'),
-    ),
-    下拉菜单组件: Object.keys(tokens).filter((key) =>
-      key.startsWith('components-dropdown-'),
-    ),
-    聊天系统: Object.keys(tokens).filter((key) => key.startsWith('chat-')),
-    表格组件: Object.keys(tokens).filter((key) =>
-      key.startsWith('components-table-'),
-    ),
-    交互状态: Object.keys(tokens).filter((key) => key.startsWith('state-')),
-    表单控件: Object.keys(tokens).filter(
-      (key) =>
-        key.includes('-checkbox-') ||
-        key.includes('-radio-') ||
-        key.includes('-select-') ||
-        key.includes('-switch-'),
-    ),
-    滚动条系统: Object.keys(tokens).filter((key) =>
-      key.startsWith('components-scrollbar-'),
-    ),
-    对话框和覆盖层: Object.keys(tokens).filter(
-      (key) =>
-        key.includes('-dialog-') ||
-        key.includes('-popover-') ||
-        key.includes('-tooltip-'),
-    ),
-    导航和标签: Object.keys(tokens).filter(
-      (key) => key.includes('-tabs-') || key.includes('-breadcrumb-'),
-    ),
-    状态和通知: Object.keys(tokens).filter((key) => key.includes('-alert-')),
-    加载和进度: Object.keys(tokens).filter(
-      (key) =>
-        key.includes('-skeleton-') ||
-        key.includes('-progress-') ||
-        key.includes('-spinner-') ||
-        key.includes('-loader-'),
-    ),
-    代码和预格式化文本: Object.keys(tokens).filter(
-      (key) => key.includes('-code-') || key.includes('-pre-'),
-    ),
-    图标按钮: Object.keys(tokens).filter((key) =>
-      key.startsWith('components-icon-button-'),
-    ),
-    画布系统: Object.keys(tokens).filter((key) =>
-      key.startsWith('components-canvas-'),
-    ),
+  const base = declarations(seedTokens(seed, mode))
+  const parts = [
+    `/* ===== ${scheme} ===== */\n` + block(selector(scheme, mode), base),
+  ]
+  const high = changed(declarations(seedTokens(seed, mode, 'high')), base)
+  parts.push(block(selector(scheme, mode, "[data-contrast='high']"), high))
+  for (const action of ['ink', 'accent'] as const) {
+    if (action === seed.action) continue
+    const styled = changed(
+      declarations(seedTokens(seed, mode, 'standard', action)),
+      base,
+    )
+    // Both attributes: the high-contrast and action blocks already apply
+    // (the action block wins, being later); restate only what still differs.
+    const cascaded = new Map([...base, ...high, ...styled])
+    parts.push(
+      block(selector(scheme, mode, `[data-action='${action}']`), styled),
+      block(
+        selector(
+          scheme,
+          mode,
+          `[data-contrast='high'][data-action='${action}']`,
+        ),
+        changed(declarations(seedTokens(seed, mode, 'high', action)), cascaded),
+      ),
+    )
   }
+  return parts.filter(Boolean).join('\n')
+}
 
-  const categorized = new Set(Object.values(categories).flat())
-  const remaining = Object.keys(tokens).filter((key) => !categorized.has(key))
-  const emitted = new Set<string>()
-  Object.entries({ ...categories, 其他组件: remaining }).forEach(
-    ([categoryName, keys]) => {
-      if (keys.length > 0) {
-        css += `  /* ===== ${categoryName} ===== */\n`
-        keys.forEach((key) => {
-          if (emitted.has(key)) return
-          emitted.add(key)
-          css += `  --color-${key}: ${tokens[key as keyof DesignTokens]};\n`
-        })
-        css += '\n'
-      }
-    },
-  )
-
-  css += '}\n'
-
-  return css
+export function generateThemeCSS(mode: Mode): string {
+  const header = `/**\n * ${mode === 'light' ? 'Light' : 'Dark'} color schemes. Generated by npm run build:themes from\n * color-schemes.ts and semantic-tokens.ts — do not edit by hand.\n */\n`
+  return [
+    header,
+    ...COLOR_SCHEMES.map((scheme) =>
+      generateSchemeCSS(scheme, SCHEME_SEEDS[scheme], mode),
+    ),
+  ].join('\n')
 }

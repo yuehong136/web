@@ -74,9 +74,9 @@ export function InnerIterationNode({
     >
       <section
         className={cn(
-          'group relative h-full w-full rounded-radius-lg border border-dashed border-border-default bg-background-subtle transition-[border-color,outline-color] motion-reduce:transition-none',
+          'group relative h-full w-full rounded-radius-lg border border-dashed border-line bg-sunken transition-[border-color,outline-color] motion-reduce:transition-none',
           selected &&
-            'border-solid border-components-canvas-node-border-selected outline-2 -outline-offset-1 outline-components-canvas-node-border-selected',
+            'border-solid border-line-focus outline-2 -outline-offset-1 outline-line-focus',
         )}
       >
         <NodeResizeControl
@@ -97,10 +97,10 @@ export function InnerIterationNode({
         />
 
         {/* 24px tall: content children start at y = 24 (iteration-layout). */}
-        <div className="absolute top-0 left-0 z-10 inline-flex h-6 max-w-[60%] items-center gap-space-xs rounded-tl-radius-lg rounded-br-radius-md border-r border-b border-components-canvas-node-border bg-components-canvas-node-bg pr-space-sm pl-0.5">
+        <div className="absolute top-0 left-0 z-10 inline-flex h-6 max-w-[60%] items-center gap-space-xs rounded-tl-radius-lg rounded-br-radius-md border-r border-b border-line bg-raised pr-space-sm pl-0.5">
           <OperatorTile name={data.label as Operator} />
           <span
-            className="truncate text-xs leading-none font-semibold text-text-primary"
+            className="truncate text-xs leading-none font-semibold text-fg"
             title={data.name}
           >
             {data.name}
@@ -109,14 +109,14 @@ export function InnerIterationNode({
 
         {!hasUserChildren && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-            <div className="flex flex-col items-center gap-space-xs rounded-radius-md border border-dashed border-border-subtle bg-components-canvas-node-bg px-space-md py-space-sm text-center">
-              <span className="text-xs text-text-secondary">
+            <div className="flex flex-col items-center gap-space-xs rounded-radius-md border border-dashed border-line-subtle bg-raised px-space-md py-space-sm text-center">
+              <span className="text-xs text-fg-muted">
                 {t(
                   'flow.iterationEmptyHint',
                   '拖入节点到此区域，或从右侧面板添加子节点',
                 )}
               </span>
-              <span className="text-xs text-text-tertiary">
+              <span className="text-xs text-fg-subtle">
                 {t(
                   'flow.iterationEmptySubHint',
                   '左侧 Start 锚点会作为每轮迭代的入口',

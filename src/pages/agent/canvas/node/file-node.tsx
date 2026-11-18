@@ -70,23 +70,21 @@ function InnerFileNode({ id, data, selected }: NodeProps) {
               key={`${input.key || input.name || 'input'}-${index}`}
               className={cn(
                 'flex items-center gap-space-sm px-space-sm py-space-sm',
-                withDivider && 'border-t border-border-subtle',
+                withDivider && 'border-t border-line-subtle',
               )}
             >
-              <Icon className="size-3.5 shrink-0 text-text-secondary" />
+              <Icon className="size-3.5 shrink-0 text-fg-muted" />
               <div className="min-w-0 flex-1">
-                <div className="truncate text-sm text-text-primary">
+                <div className="truncate text-sm text-fg">
                   {input.name ||
                     input.key ||
                     t('common.unassigned', 'Unassigned')}
                 </div>
                 {input.key && input.key !== input.name ? (
-                  <div className="truncate text-text-secondary">
-                    {input.key}
-                  </div>
+                  <div className="truncate text-fg-muted">{input.key}</div>
                 ) : null}
               </div>
-              <span className="shrink-0 text-text-tertiary">
+              <span className="shrink-0 text-fg-subtle">
                 {input.optional
                   ? t('flow.optional', 'Optional')
                   : t('common.required', 'Required')}

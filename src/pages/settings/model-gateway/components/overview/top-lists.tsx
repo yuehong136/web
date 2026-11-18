@@ -32,11 +32,11 @@ function TopList({
       }
     >
       {empty ? (
-        <p className="px-space-lg py-space-xl text-center text-sm text-text-tertiary">
+        <p className="px-space-lg py-space-xl text-center text-sm text-fg-subtle">
           {t(`${PREFIX}.overview.topEmpty`)}
         </p>
       ) : (
-        <ul className="divide-y divide-border-subtle">{children}</ul>
+        <ul className="divide-y divide-line-subtle">{children}</ul>
       )}
     </SectionCard>
   )
@@ -66,12 +66,12 @@ export function TopModels({
         >
           <ProviderLogo provider={model.provider} size="sm" />
           <div className="min-w-0 flex-1">
-            <div className="truncate font-mono text-sm text-text-primary">
+            <div className="truncate font-mono text-sm text-fg">
               {model.name}
             </div>
-            <div className="mt-space-xs h-1.5 overflow-hidden rounded-radius-full bg-components-progress-bg">
+            <div className="mt-space-xs h-1.5 overflow-hidden rounded-radius-full bg-fill-pressed">
               <div
-                className="h-full rounded-radius-full bg-components-progress-fill"
+                className="h-full rounded-radius-full bg-accent-solid"
                 style={{
                   width: `${top ? (model.total_tokens / top) * 100 : 0}%`,
                 }}
@@ -79,10 +79,10 @@ export function TopModels({
             </div>
           </div>
           <div className="w-24 shrink-0 text-right">
-            <div className="text-sm text-text-primary tabular-nums">
+            <div className="text-sm text-fg tabular-nums">
               {formatCompact(model.total_tokens)}
             </div>
-            <div className="text-xs text-text-tertiary tabular-nums">
+            <div className="text-xs text-fg-subtle tabular-nums">
               {t(`${PREFIX}.overview.requestsCount`, {
                 count: model.requests,
               })}
@@ -129,17 +129,17 @@ export function TopKeys({
             className="flex items-center gap-space-md px-space-lg py-space-sm"
           >
             <div className="min-w-0 flex-1">
-              <div className="truncate text-sm font-medium text-text-primary">
+              <div className="truncate text-sm font-medium text-fg">
                 {item.key_name}
               </div>
-              <div className="text-xs text-text-tertiary">{quota}</div>
+              <div className="text-xs text-fg-subtle">{quota}</div>
             </div>
             <div className="w-32 shrink-0">
               {percent !== null ? (
                 <UsageBar percent={percent} label={quota} />
               ) : null}
             </div>
-            <div className="w-16 shrink-0 text-right text-sm text-text-primary tabular-nums">
+            <div className="w-16 shrink-0 text-right text-sm text-fg tabular-nums">
               {formatCompact(item.total_tokens)}
             </div>
           </li>

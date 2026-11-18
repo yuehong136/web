@@ -12,7 +12,7 @@ const DesktopWorkbench = React.lazy(async () => {
 
 const DesktopWorkbenchFallback: React.FC = () => (
   <div
-    className="h-dvh bg-components-app-shell-bg"
+    className="h-dvh bg-canvas"
     aria-busy="true"
     data-desktop-workbench-loading="true"
   />

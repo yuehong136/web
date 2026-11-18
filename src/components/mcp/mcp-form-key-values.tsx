@@ -31,9 +31,9 @@ export const MCPFormKeyValues = ({
   return (
     <div className="space-y-space-base">
       {entries.length === 0 ? (
-        <div className="rounded-radius-lg border border-dashed border-border-default p-space-lg text-center">
-          <p className="text-sm text-text-primary">{emptyText}</p>
-          <p className="mt-space-xs text-sm text-text-secondary">
+        <div className="rounded-radius-lg border border-dashed border-line p-space-lg text-center">
+          <p className="text-sm text-fg">{emptyText}</p>
+          <p className="mt-space-xs text-sm text-fg-muted">
             {emptyDescription}
           </p>
         </div>
@@ -41,7 +41,7 @@ export const MCPFormKeyValues = ({
         entries.map((entry, index) => (
           <div
             key={index}
-            className="flex items-start gap-space-sm rounded-radius-lg border border-border-default bg-background-surface p-space-base"
+            className="flex items-start gap-space-sm rounded-radius-lg border border-line bg-surface p-space-base"
           >
             <div className="flex min-w-0 flex-1 flex-col gap-space-sm">
               <Input
@@ -53,7 +53,7 @@ export const MCPFormKeyValues = ({
                 onChange={(event) => onChange(index, 'key', event.target.value)}
               />
               <label
-                className="text-sm font-medium text-text-primary"
+                className="text-sm font-medium text-fg"
                 htmlFor={`${id}-${index}`}
               >
                 {t('mcp.form.value')}
@@ -75,7 +75,7 @@ export const MCPFormKeyValues = ({
               size="icon-sm"
               aria-label={t('mcp.form.removeRow', { index: index + 1 })}
               onClick={() => onRemove(index)}
-              className="text-text-secondary hover:text-status-error"
+              className="text-fg-muted hover:text-danger-fg"
             >
               <Trash2 className="size-icon-sm" />
             </Button>

@@ -56,7 +56,7 @@ export function MemoryMessageInspector({
         className="flex w-full flex-col gap-0 p-0 sm:max-w-xl"
         closeLabel={t('common.close')}
       >
-        <SheetHeader className="pr-space-3xl border-b border-border-subtle p-space-lg">
+        <SheetHeader className="pr-space-3xl border-b border-line-subtle p-space-lg">
           <SheetTitle>{t('memory.workspace.inspect')}</SheetTitle>
           <SheetDescription>
             {t('memory.workspace.inspectDescription')}
@@ -70,25 +70,25 @@ export function MemoryMessageInspector({
             </div>
             <dl className="grid grid-cols-2 gap-space-base text-xs">
               <div>
-                <dt className="text-text-tertiary">
+                <dt className="text-fg-subtle">
                   {t('memory.messages.validDate')}
                 </dt>
-                <dd className="mt-space-xs text-text-primary">
+                <dd className="mt-space-xs text-fg">
                   {message.valid_at || '—'}
                 </dd>
               </div>
               <div>
-                <dt className="text-text-tertiary">
+                <dt className="text-fg-subtle">
                   {t('memory.messages.forgetAt')}
                 </dt>
-                <dd className="mt-space-xs text-text-primary">
+                <dd className="mt-space-xs text-fg">
                   {message.forget_at && message.forget_at !== 'None'
                     ? message.forget_at
                     : '—'}
                 </dd>
               </div>
               <div className="col-span-2 min-w-0">
-                <dt className="text-text-tertiary">
+                <dt className="text-fg-subtle">
                   {t('memory.messages.sessionId')}
                 </dt>
                 <dd className="mt-space-xs flex items-center gap-space-sm font-mono break-all">
@@ -117,8 +117,8 @@ export function MemoryMessageInspector({
               <>
                 {message.message_type === 'raw' && parsed.user ? (
                   <div className="space-y-space-base">
-                    <section className="rounded-radius-lg bg-background-subtle p-space-base">
-                      <h3 className="mb-space-sm text-xs font-medium text-text-secondary">
+                    <section className="rounded-radius-lg bg-sunken p-space-base">
+                      <h3 className="mb-space-sm text-xs font-medium text-fg-muted">
                         {t('memory.messages.userInput')}
                       </h3>
                       <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">
@@ -126,7 +126,7 @@ export function MemoryMessageInspector({
                       </p>
                     </section>
                     <section>
-                      <h3 className="mb-space-sm flex items-center gap-space-sm text-xs font-medium text-text-secondary">
+                      <h3 className="mb-space-sm flex items-center gap-space-sm text-xs font-medium text-fg-muted">
                         <MessageSquare className="size-icon-sm" />
                         {t('memory.messages.agentResponse')}
                       </h3>
@@ -140,12 +140,12 @@ export function MemoryMessageInspector({
                     {content || t('memory.workspace.noContent')}
                   </p>
                 )}
-                <details className="rounded-radius-lg border border-border-subtle p-space-base">
-                  <summary className="cursor-pointer text-xs text-text-secondary">
+                <details className="rounded-radius-lg border border-line-subtle p-space-base">
+                  <summary className="cursor-pointer text-xs text-fg-muted">
                     {t('memory.workspace.technicalDetails')}
                   </summary>
                   <div className="mt-space-base space-y-space-base">
-                    <p className="text-xs text-text-tertiary">
+                    <p className="text-xs text-fg-subtle">
                       {t('memory.workspace.messageId')}: {message.message_id} ·{' '}
                       {message.source_id ?? '—'}
                     </p>
@@ -153,7 +153,7 @@ export function MemoryMessageInspector({
                       {content}
                     </pre>
                     {vector && (
-                      <div className="text-xs text-text-secondary">
+                      <div className="text-xs text-fg-muted">
                         <Braces className="mb-space-xs size-icon-sm" />
                         <pre className="max-h-32 overflow-auto break-all whitespace-pre-wrap">
                           {Array.isArray(vector)

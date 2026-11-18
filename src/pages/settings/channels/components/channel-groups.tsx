@@ -57,22 +57,22 @@ export const ChannelGroups = ({
                 of it. Deliberately no `overflow-hidden` on the Card: a
                 clipping ancestor silently disables position:sticky, and the
                 header carries its own top rounding instead. */}
-            <div className="gap-space-sm px-space-base py-space-sm bg-surface-secondary sticky top-0 z-10 flex items-center rounded-t-lg border-b border-border-subtle">
+            <div className="sticky top-0 z-10 flex items-center gap-space-sm rounded-t-lg border-b border-line-subtle bg-sunken px-space-base py-space-sm">
               <ProviderLogo
                 provider={provider}
                 displayName={provider}
                 className="size-icon-md shrink-0"
               />
-              <span className="font-medium text-text-primary">
+              <span className="font-medium text-fg">
                 {t(`channel.providers.${provider}.name`, {
                   defaultValue: provider,
                 })}
               </span>
-              <span className="text-text-caption text-sm">{rows.length}</span>
+              <span className="text-sm text-fg-subtle">{rows.length}</span>
               {/* Surfaced on the header so a fault is visible without reading
                   every row — the reason to look at this page at all. */}
               {faulted > 0 ? (
-                <span className="rounded-radius-sm bg-status-error-subtle px-1.5 py-0.5 text-xs text-status-error">
+                <span className="rounded-radius-sm bg-danger-soft px-1.5 py-0.5 text-xs text-danger-fg">
                   {t('channel.health.faultedCount', { count: faulted })}
                 </span>
               ) : null}

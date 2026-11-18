@@ -44,13 +44,13 @@ function DocumentNameCell({
         >
           <Link
             to={href}
-            className="min-w-0 truncate rounded-radius-sm font-medium text-text-primary underline-offset-2 outline-hidden hover:underline focus-visible:ring-2 focus-visible:ring-state-focus"
+            className="min-w-0 truncate rounded-radius-sm font-medium text-fg underline-offset-2 outline-hidden hover:underline focus-visible:ring-2 focus-visible:ring-line-focus"
           >
             {record.name}
           </Link>
         </Tooltip>
         {record.size ? (
-          <span className="truncate text-xs text-text-tertiary">
+          <span className="truncate text-xs text-fg-subtle">
             {formatDocumentFileSize(record.size)}
           </span>
         ) : null}
@@ -77,7 +77,7 @@ export function useDocumentTableColumns({
       {
         key: 'name',
         header: t('knowledge.documents.table.fileName'),
-        className: 'w-full max-w-0 text-text-primary',
+        className: 'w-full max-w-0 text-fg',
         cell: (record) => (
           <DocumentNameCell record={record} href={chunksHref(record)} />
         ),

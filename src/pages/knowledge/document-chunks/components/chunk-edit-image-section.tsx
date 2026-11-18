@@ -23,12 +23,12 @@ export const ChunkEditImageSection = ({
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
-        <ImageIcon className="h-4 w-4 text-text-accent" />
-        <span className="block text-sm font-medium text-text-secondary">
+        <ImageIcon className="h-4 w-4 text-accent-fg" />
+        <span className="block text-sm font-medium text-fg-muted">
           {t('knowledge.chunks.edit.image')}
         </span>
         <Tooltip content={t('knowledge.chunks.edit.imageTooltip')}>
-          <span className="flex h-4 w-4 cursor-help items-center justify-center rounded-full border border-border-default text-xs text-text-tertiary">
+          <span className="flex h-4 w-4 cursor-help items-center justify-center rounded-full border border-line text-xs text-fg-subtle">
             ?
           </span>
         </Tooltip>
@@ -39,10 +39,10 @@ export const ChunkEditImageSection = ({
           <button
             type="button"
             aria-label={t('knowledge.chunks.edit.viewLarge')}
-            className="group relative cursor-pointer overflow-hidden rounded-lg border border-border-subtle bg-background-default"
+            className="group relative cursor-pointer overflow-hidden rounded-lg border border-line-subtle bg-canvas"
             onClick={() => onPreviewImage(selectedChunk.img_id!)}
           >
-            <div className="flex aspect-video items-center justify-center bg-background-subtle p-4">
+            <div className="flex aspect-video items-center justify-center bg-sunken p-4">
               <DocumentImage
                 source={{ kind: 'dataset', imageId: selectedChunk.img_id }}
                 retryable={false}
@@ -52,19 +52,19 @@ export const ChunkEditImageSection = ({
             </div>
 
             <div className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all duration-200 group-hover:bg-black/40 group-hover:opacity-100">
-              <div className="flex items-center gap-2 rounded-full bg-components-card-bg/95 px-4 py-2 shadow-lg">
-                <ZoomIn className="h-4 w-4 text-text-accent" />
-                <span className="text-sm font-medium text-text-accent">
+              <div className="flex items-center gap-2 rounded-full bg-raised/95 px-4 py-2 shadow-lg">
+                <ZoomIn className="h-4 w-4 text-accent-fg" />
+                <span className="text-sm font-medium text-accent-fg">
                   {t('knowledge.chunks.edit.zoom')}
                 </span>
               </div>
             </div>
 
-            <div className="flex items-center justify-between border-t border-border-subtle bg-background-default px-3 py-2">
-              <span className="text-xs font-medium text-text-secondary">
+            <div className="flex items-center justify-between border-t border-line-subtle bg-canvas px-3 py-2">
+              <span className="text-xs font-medium text-fg-muted">
                 {t('knowledge.chunks.edit.currentImage')}
               </span>
-              <span className="text-xs text-text-tertiary">
+              <span className="text-xs text-fg-subtle">
                 {t('knowledge.chunks.edit.viewLarge')}
               </span>
             </div>

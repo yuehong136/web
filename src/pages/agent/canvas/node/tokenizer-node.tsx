@@ -39,8 +39,8 @@ function InnerTokenizerNode({ id, data, isConnectable, selected }: NodeProps) {
           label={data.label as string}
           icon={<Layers />}
         />
-        <LabelCard className="flex flex-col gap-space-xs text-text-primary">
-          <span className="text-text-secondary">
+        <LabelCard className="flex flex-col gap-space-xs text-fg">
+          <span className="text-fg-muted">
             {t('flow.searchMethod', 'Search Method')}
           </span>
           {searchMethods.length > 0 ? (

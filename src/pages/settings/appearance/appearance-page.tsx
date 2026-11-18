@@ -1,6 +1,6 @@
 import { Check, Monitor, Moon, RotateCcw, Sun } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import type { ReactNode } from 'react'
+import { useEffect, type ReactNode } from 'react'
 import { SettingsTemplate } from '@/components/page-templates/settings-template'
 import { SettingRow, SettingSection } from '@/components/patterns/setting-row'
 import { SETTINGS_CARD } from '@/pages/settings/components/settings-card'
@@ -11,7 +11,9 @@ import { SegmentedControl } from '@/components/ui/segmented-control'
 import { supportedLocales } from '@/locales/i18n'
 import { useUIStore } from '@/stores/ui'
 import {
+  ACTION_STYLES,
   APPEARANCE_PRESETS,
+  CONTRAST_LEVELS,
   DEFAULT_APPEARANCE,
   ScopedTheme,
   setAppearance,
@@ -19,23 +21,33 @@ import {
   useResolvedAppearance,
   type AppearancePreset,
 } from '@/themes'
+import { installCustomScheme } from '@/themes/custom-scheme'
 import { AppearancePreview } from './appearance-preview'
+import { BrandSchemeSection } from './brand-scheme-section'
 
+/** A miniature workbench: shell tone, work card, citation, AI composer, primary. */
 function PresetSwatch({ preset }: { preset: AppearancePreset }) {
   const { resolvedMode } = useResolvedAppearance()
   return (
     <ScopedTheme preset={preset} theme={resolvedMode} className="block">
-      <span className="flex h-24 overflow-hidden border-b border-border-subtle bg-background-body p-space-sm">
-        <span className="flex w-1/4 flex-col gap-space-xs border-r border-border-subtle bg-components-sidebar-bg p-space-sm">
-          <span className="h-2 w-3/4 rounded-radius-sm bg-text-accent" />
-          <span className="h-1 w-full rounded-radius-sm bg-border-default" />
-          <span className="h-1 w-3/4 rounded-radius-sm bg-border-default" />
+      <span className="flex h-24 overflow-hidden border-b border-line-subtle bg-canvas p-space-xs">
+        <span className="flex w-1/5 flex-col gap-space-xs p-space-xs">
+          <span className="h-2 w-full rounded-radius-sm bg-fill-pressed" />
+          <span className="h-2 w-full rounded-radius-sm bg-accent-solid" />
+          <span className="h-2 w-full rounded-radius-sm bg-fill-pressed" />
         </span>
-        <span className="flex min-w-0 flex-1 flex-col gap-space-sm bg-background-surface p-space-sm">
-          <span className="ml-auto h-3 w-3/4 rounded-radius-sm bg-state-selected-bg" />
-          <span className="h-1 w-full rounded-radius-sm bg-border-strong" />
-          <span className="h-1 w-4/5 rounded-radius-sm bg-border-default" />
-          <span className="mt-auto h-4 w-full rounded-radius-sm border border-border-default bg-background-subtle" />
+        <span className="flex min-w-0 flex-1 flex-col gap-space-xs rounded-radius-md border border-line-subtle bg-surface p-space-sm shadow-elevation-low">
+          <span className="h-1 w-4/5 rounded-radius-full bg-fg" />
+          <span className="flex items-center gap-space-2xs">
+            <span className="h-1 w-1/2 rounded-radius-full bg-fg-subtle" />
+            <span className="h-2 w-3 rounded-radius-sm bg-citation-bg" />
+            <span className="h-1.5 w-6 rounded-radius-sm bg-highlight-bg" />
+          </span>
+          <span className="mt-auto flex h-4 items-center justify-end rounded-radius-md border border-transparent bg-ai-tide p-px">
+            <span className="flex size-full items-center justify-end rounded-radius-sm bg-surface pr-px">
+              <span className="size-3 rounded-radius-full bg-action-bg" />
+            </span>
+          </span>
         </span>
       </span>
     </ScopedTheme>
@@ -47,6 +59,8 @@ export function AppearancePage() {
   const appearance = useAppearance()
   const language = useUIStore((state) => state.language)
   const setLanguage = useUIStore((state) => state.setLanguage)
+  // The brand swatch previews the stored seed even when another scheme is active.
+  useEffect(() => installCustomScheme(appearance.custom), [appearance.custom])
   const segmented = <T extends string>(
     label: string,
     value: T,
@@ -66,7 +80,7 @@ export function AppearancePage() {
       description={
         <>
           {t('appearance.description')}
-          <span className="ml-space-xs inline-flex items-center gap-space-2xs text-text-tertiary">
+          <span className="ml-space-xs inline-flex items-center gap-space-2xs text-fg-subtle">
             <Check className="size-icon-xs" aria-hidden="true" />
             {t('appearance.saved')}
           </span>
@@ -98,6 +112,12 @@ export function AppearancePage() {
           onChange={(preset) => setAppearance({ preset })}
         />
       </div>
+      {appearance.preset === 'custom' && (
+        <BrandSchemeSection
+          key={JSON.stringify(appearance.custom)}
+          seed={appearance.custom}
+        />
+      )}
       <SettingSection className={cn('mt-space-lg', SETTINGS_CARD)}>
         <SettingRow label={t('appearance.mode')}>
           {segmented(
@@ -153,6 +173,34 @@ export function AppearancePage() {
               label: t(`appearance.motions.${value}`),
             })),
             (motion) => setAppearance({ motion }),
+          )}
+        </SettingRow>
+        <SettingRow
+          label={t('appearance.contrast')}
+          description={t('appearance.contrastDescription')}
+        >
+          {segmented(
+            t('appearance.contrast'),
+            appearance.contrast,
+            CONTRAST_LEVELS.map((value) => ({
+              value,
+              label: t(`appearance.contrasts.${value}`),
+            })),
+            (contrast) => setAppearance({ contrast }),
+          )}
+        </SettingRow>
+        <SettingRow
+          label={t('appearance.action')}
+          description={t('appearance.actionDescription')}
+        >
+          {segmented(
+            t('appearance.action'),
+            appearance.action,
+            ACTION_STYLES.map((value) => ({
+              value,
+              label: t(`appearance.actions.${value}`),
+            })),
+            (action) => setAppearance({ action }),
           )}
         </SettingRow>
         <SettingRow

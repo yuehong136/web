@@ -47,7 +47,7 @@ export function ScopeField({
 
   return (
     <fieldset className="flex flex-col gap-space-sm">
-      <legend className="mb-space-sm text-sm font-medium text-text-primary">
+      <legend className="mb-space-sm text-sm font-medium text-fg">
         {t(`${PREFIX}.keyForm.scopeLegend`)}
       </legend>
       <RadioGroup
@@ -67,8 +67,8 @@ export function ScopeField({
               className={cn(
                 'relative flex cursor-pointer items-start gap-space-sm rounded-radius-lg border p-space-md transition-colors',
                 mode === option.value
-                  ? 'border-state-selected bg-state-selected-bg'
-                  : 'border-border-default hover:bg-state-hover',
+                  ? 'border-accent-solid bg-accent-soft'
+                  : 'border-line hover:bg-fill-hover',
               )}
             >
               <RadioGroupItem
@@ -81,13 +81,13 @@ export function ScopeField({
               <span className="min-w-0">
                 <span
                   id={`${id}-title`}
-                  className="block text-sm font-medium text-text-primary"
+                  className="block text-sm font-medium text-fg"
                 >
                   {option.title}
                 </span>
                 <span
                   id={`${id}-hint`}
-                  className="block text-xs text-text-tertiary"
+                  className="block text-xs text-fg-subtle"
                 >
                   {option.hint}
                 </span>
@@ -106,26 +106,26 @@ export function ScopeField({
       )}
       <div
         aria-live="polite"
-        className="flex gap-space-sm rounded-radius-md border border-status-info-border bg-status-info-subtle p-space-md"
+        className="flex gap-space-sm rounded-radius-md border border-info-line bg-info-soft p-space-md"
       >
         <Info
-          className="mt-space-2xs size-icon-sm shrink-0 text-status-info"
+          className="mt-space-2xs size-icon-sm shrink-0 text-info-fg"
           aria-hidden="true"
         />
         <div className="min-w-0 text-sm">
-          <p className="font-medium text-text-primary">{preview}</p>
+          <p className="font-medium text-fg">{preview}</p>
           {callable.length > 0 ? (
             <ul className="mt-space-xs flex flex-wrap gap-space-xs">
               {callable.slice(0, PREVIEW_LIMIT).map((model) => (
                 <li
                   key={model.model_id}
-                  className="rounded-radius-sm border border-border-subtle bg-background-surface px-space-xs font-mono text-xs text-text-primary"
+                  className="rounded-radius-sm border border-line-subtle bg-surface px-space-xs font-mono text-xs text-fg"
                 >
                   {model.call_name}
                 </li>
               ))}
               {callable.length > PREVIEW_LIMIT ? (
-                <li className="px-space-xs text-xs text-text-tertiary">
+                <li className="px-space-xs text-xs text-fg-subtle">
                   {t(`${PREFIX}.keyForm.previewMore`, {
                     count: callable.length - PREVIEW_LIMIT,
                   })}

@@ -157,7 +157,7 @@ export function ChartShapeFields({
       />
 
       <InspectorField label={t('flow.htmlReportFieldData', 'Data')}>
-        <p className="text-xs leading-relaxed text-text-caption">
+        <p className="text-xs leading-relaxed text-fg-subtle">
           {t(
             'flow.htmlReportBulkModelFilled',
             'Filled by the model, guided by the annotation below.',
@@ -167,7 +167,7 @@ export function ChartShapeFields({
 
       {/* 形状键是连接数据与图表轴的内部字段名,有默认值、报告里不显示;收进高级,默认收起。 */}
       <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
-        <CollapsibleTrigger className="flex items-center gap-space-2xs text-xs text-text-secondary hover:text-text-primary">
+        <CollapsibleTrigger className="flex items-center gap-space-2xs text-xs text-fg-muted hover:text-fg">
           {advancedOpen ? (
             <ChevronDown className="size-icon-sm" />
           ) : (
@@ -176,7 +176,7 @@ export function ChartShapeFields({
           {t('flow.htmlReportChartAdvanced', 'Advanced · data field keys')}
         </CollapsibleTrigger>
         <CollapsibleContent className="space-y-space-md pt-space-sm">
-          <p className="text-xs text-text-caption">
+          <p className="text-xs text-fg-subtle">
             {t(
               'flow.htmlReportChartShapeHint',
               'These keys name the data fields; the model fills the data using them.',

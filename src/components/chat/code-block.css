@@ -1,10 +1,39 @@
 /**
  * Shiki 代码块样式。
  *
- * react-shiki 多主题输出：默认色（light）以内联样式写在 `.shiki` 上，
- * dark 主题的颜色写入 `--shiki-dark*` CSS 变量。组件使用最近 appearance scope
- * 的 data-code-mode 切换，避免根 dark 覆盖嵌套 light scope。
+ * 高亮使用 CSS 变量主题（shiki-engine.ts 的 CODE_THEME），这里把 `--shiki-*`
+ * 映射到设计令牌，方案、明暗与对比度都随最近的 appearance scope 变化。
  */
+
+.code-block {
+  --shiki-foreground: var(--color-code-fg);
+  --shiki-background: var(--color-code-bg);
+  --shiki-token-keyword: var(--color-syntax-keyword);
+  --shiki-token-function: var(--color-syntax-function);
+  --shiki-token-parameter: var(--color-syntax-type);
+  --shiki-token-constant: var(--color-syntax-number);
+  --shiki-token-string: var(--color-syntax-string);
+  --shiki-token-string-expression: var(--color-syntax-string);
+  --shiki-token-comment: var(--color-syntax-comment);
+  --shiki-token-punctuation: var(--color-fg-muted);
+  --shiki-token-link: var(--color-accent-fg);
+  --shiki-ansi-black: var(--color-fg);
+  --shiki-ansi-red: var(--color-danger-fg);
+  --shiki-ansi-green: var(--color-success-fg);
+  --shiki-ansi-yellow: var(--color-warning-fg);
+  --shiki-ansi-blue: var(--color-info-fg);
+  --shiki-ansi-magenta: var(--color-syntax-keyword);
+  --shiki-ansi-cyan: var(--color-syntax-function);
+  --shiki-ansi-white: var(--color-fg-muted);
+  --shiki-ansi-bright-black: var(--color-fg-subtle);
+  --shiki-ansi-bright-red: var(--color-danger-fg);
+  --shiki-ansi-bright-green: var(--color-success-fg);
+  --shiki-ansi-bright-yellow: var(--color-warning-fg);
+  --shiki-ansi-bright-blue: var(--color-info-fg);
+  --shiki-ansi-bright-magenta: var(--color-syntax-keyword);
+  --shiki-ansi-bright-cyan: var(--color-syntax-function);
+  --shiki-ansi-bright-white: var(--color-fg);
+}
 
 .code-block .shiki {
   margin: 0;
@@ -25,13 +54,4 @@
     'Liberation Mono',
     monospace
   );
-}
-
-.code-block[data-code-mode='dark'] .shiki,
-.code-block[data-code-mode='dark'] .shiki span {
-  color: var(--shiki-dark) !important;
-  background-color: transparent !important;
-  font-style: var(--shiki-dark-font-style) !important;
-  font-weight: var(--shiki-dark-font-weight) !important;
-  text-decoration: var(--shiki-dark-text-decoration) !important;
 }

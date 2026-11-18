@@ -21,8 +21,7 @@ const diagnostics = () =>
     '[role="dialog"] section[aria-labelledby]',
   )
 const scoreValue = () => diagnostics()?.querySelector('dd')?.textContent
-const scoreBar = () =>
-  diagnostics()?.querySelector('.bg-components-progress-fill')
+const scoreBar = () => diagnostics()?.querySelector('.bg-accent-solid')
 
 async function renderSheet(
   chunk: ReferenceChunk,

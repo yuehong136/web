@@ -62,7 +62,7 @@ export function NumericField({
                   <Button
                     variant="ghost"
                     size="icon-sm"
-                    className="shrink-0 text-text-tertiary"
+                    className="shrink-0 text-fg-subtle"
                     aria-label={t('studio.editor.parameterHelp', {
                       name: label,
                     })}
@@ -93,7 +93,7 @@ export function NumericField({
               }}
             />
           ) : (
-            <span className="text-xs text-text-secondary">
+            <span className="text-xs text-fg-muted">
               {t('studio.editor.modelDefault')}
             </span>
           )}

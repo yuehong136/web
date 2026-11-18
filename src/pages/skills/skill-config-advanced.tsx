@@ -16,25 +16,25 @@ export function SkillConfigAdvanced({
 }) {
   const { t } = useTranslation()
   return (
-    <Collapsible className="rounded-radius-lg border border-border-default text-text-primary">
+    <Collapsible className="rounded-radius-lg border border-line text-fg">
       <CollapsibleTrigger
         type="button"
-        className="group flex w-full items-center justify-between gap-space-sm rounded-radius-lg px-space-md py-space-md text-sm font-medium text-text-primary transition-colors hover:bg-state-hover focus-visible:ring-2 focus-visible:ring-border-accent focus-visible:outline-none"
+        className="group flex w-full items-center justify-between gap-space-sm rounded-radius-lg px-space-md py-space-md text-sm font-medium text-fg transition-colors hover:bg-fill-hover focus-visible:ring-2 focus-visible:ring-line-focus focus-visible:outline-none"
       >
         {t('skills.advanced')}
-        <ChevronDown className="size-icon-sm shrink-0 text-text-secondary transition-transform group-data-[state=open]:rotate-180" />
+        <ChevronDown className="size-icon-sm shrink-0 text-fg-muted transition-transform group-data-[state=open]:rotate-180" />
       </CollapsibleTrigger>
       <CollapsibleContent>
-        <div className="flex flex-col gap-space-lg border-t border-border-subtle p-space-md">
+        <div className="flex flex-col gap-space-lg border-t border-line-subtle p-space-md">
           <div className="grid min-w-0 gap-space-md sm:grid-cols-3">
             {parameters}
           </div>
           <div>
-            <div className="flex items-center justify-between gap-space-md pb-space-sm text-xs font-medium text-text-secondary">
+            <div className="flex items-center justify-between gap-space-md pb-space-sm text-xs font-medium text-fg-muted">
               <span>{t('skills.field')}</span>
               <span className="w-24 text-right">{t('skills.weight')}</span>
             </div>
-            <div className="divide-y divide-border-subtle">{children}</div>
+            <div className="divide-y divide-line-subtle">{children}</div>
           </div>
         </div>
       </CollapsibleContent>

@@ -1295,7 +1295,7 @@ export default {
       documentPreviewFailed: 'Document preview failed',
       wordUnsupportedTitle: 'This Word document cannot be previewed',
       wordUnsupportedDescription:
-        'Mammoth only supports modern <code class="bg-background-subtle px-1 rounded">.docx</code> files.<br/>This file may be an older <code class="bg-background-subtle px-1 rounded">.doc</code> file.',
+        'Mammoth only supports modern <code class="bg-fill-muted px-1 rounded">.docx</code> files.<br/>This file may be an older <code class="bg-fill-muted px-1 rounded">.doc</code> file.',
       loadingExcel: 'Loading Excel...',
       excelPreviewFailed: 'Excel preview failed',
       excelLoadFailedWithStatus: 'Excel load failed: {{status}}',

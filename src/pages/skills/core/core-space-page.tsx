@@ -133,7 +133,7 @@ export function CoreSpacePage() {
             <SkillNotices>
               {space.error ? <SkillError error={space.error} /> : null}
               {space.data?.status && !active ? (
-                <p className="text-sm text-status-warning">
+                <p className="text-sm text-warning-fg">
                   {t(`skills.states.${space.data.status}`)}
                 </p>
               ) : null}

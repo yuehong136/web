@@ -55,7 +55,7 @@ export function CanvasSelector({
             <span className="min-w-0 truncate">{title}</span>
           </span>
           <ChevronsUpDown
-            className="size-icon-sm text-text-tertiary"
+            className="size-icon-sm text-fg-subtle"
             aria-hidden="true"
           />
         </Button>
@@ -70,7 +70,7 @@ export function CanvasSelector({
           onChange={(event) => picker.setKeyword(event.target.value)}
           leftIcon={<Search className="size-icon-sm" aria-hidden="true" />}
         />
-        <p className="mt-space-sm px-space-xs py-space-xs text-xs font-medium text-text-tertiary">
+        <p className="mt-space-sm px-space-xs py-space-xs text-xs font-medium text-fg-subtle">
           {picker.keyword
             ? t('agents.runLogs.searchResults')
             : t('agents.runLogs.recent')}
@@ -88,10 +88,10 @@ export function CanvasSelector({
                   type="button"
                   aria-current={active || undefined}
                   className={cn(
-                    'flex w-full items-center gap-space-sm rounded-radius-md px-space-sm py-space-xs text-left text-sm outline-hidden focus-visible:ring-2 focus-visible:ring-state-focus',
+                    'flex w-full items-center gap-space-sm rounded-radius-md px-space-sm py-space-xs text-left text-sm outline-hidden focus-visible:ring-2 focus-visible:ring-line-focus',
                     active
-                      ? 'bg-state-selected-bg text-text-primary'
-                      : 'text-text-secondary hover:bg-state-hover hover:text-text-primary',
+                      ? 'bg-accent-soft text-fg'
+                      : 'text-fg-muted hover:bg-fill-hover hover:text-fg',
                   )}
                   onClick={() => {
                     onSelect(agent.id)
@@ -109,7 +109,7 @@ export function CanvasSelector({
                     <span className="block truncate font-medium">
                       {agentTitle}
                     </span>
-                    <span className="block truncate font-mono text-xs text-text-tertiary">
+                    <span className="block truncate font-mono text-xs text-fg-subtle">
                       {agent.id}
                     </span>
                   </span>
@@ -122,7 +122,7 @@ export function CanvasSelector({
           })}
         </ul>
         {!picker.isLoading && agents.length === 0 ? (
-          <p className="px-space-sm py-space-lg text-center text-sm text-text-tertiary">
+          <p className="px-space-sm py-space-lg text-center text-sm text-fg-subtle">
             {t('agents.runLogs.noAgents')}
           </p>
         ) : null}

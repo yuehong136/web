@@ -32,13 +32,13 @@ export function RunResult({
   const { t } = useTranslation()
   const hasWarn = failedRegions > 0 || failedSections > 0
   return (
-    <div className="absolute inset-0 z-20 flex flex-col bg-background-surface">
-      <div className="flex items-center gap-space-sm border-b border-border-default px-space-base py-space-sm">
-        <span className="text-sm font-medium text-text-primary">
+    <div className="absolute inset-0 z-20 flex flex-col bg-surface">
+      <div className="flex items-center gap-space-sm border-b border-line px-space-base py-space-sm">
+        <span className="text-sm font-medium text-fg">
           {t('flow.htmlReportRunResult', 'Trial run result')}
         </span>
         {hasWarn && (
-          <span className="text-xs text-status-warning">
+          <span className="text-xs text-warning-fg">
             {failedRegions > 0 &&
               t('flow.htmlReportRunRegionFailed', {
                 count: failedRegions,

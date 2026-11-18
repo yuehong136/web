@@ -160,12 +160,12 @@ describe('route recovery', () => {
         'routeErrors.unavailable.appearance',
       )
       const preset = container.querySelector<HTMLInputElement>(
-        'input[value="ocean"]',
+        'input[value="celadon"]',
       )!
       await act(async () => preset.closest('label')!.click())
-      expect(document.documentElement.dataset.preset).toBe('ocean')
+      expect(document.documentElement.dataset.preset).toBe('celadon')
       expect(JSON.parse(localStorage.getItem('appearance')!).preset).toBe(
-        'ocean',
+        'celadon',
       )
     } finally {
       await act(async () => setAppearance(DEFAULT_APPEARANCE))

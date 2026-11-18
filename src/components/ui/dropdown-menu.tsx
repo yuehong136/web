@@ -118,7 +118,7 @@ export const DropdownMenuItem = React.forwardRef<
       disabled={disabled}
       className={cn(
         menuItemClass,
-        'w-full text-left [&_svg]:text-text-secondary [&_svg:not([class*=size-])]:size-icon-sm',
+        'w-full text-left [&_svg]:text-fg-muted [&_svg:not([class*=size-])]:size-icon-sm',
         className,
       )}
       {...props}

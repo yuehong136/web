@@ -54,8 +54,8 @@ export function ScopeTree({
   )
 
   return (
-    <div className="overflow-hidden rounded-radius-lg border border-border-subtle">
-      <div className="flex flex-wrap items-center gap-space-sm border-b border-border-subtle p-space-sm">
+    <div className="overflow-hidden rounded-radius-lg border border-line-subtle">
+      <div className="flex flex-wrap items-center gap-space-sm border-b border-line-subtle p-space-sm">
         <div className="min-w-48 flex-1">
           <Input
             type="search"
@@ -87,7 +87,7 @@ export function ScopeTree({
       </div>
       <div className="max-h-96 overflow-y-auto">
         {groups.length === 0 ? (
-          <p className="p-space-lg text-center text-sm text-text-tertiary">
+          <p className="p-space-lg text-center text-sm text-fg-subtle">
             {t(`${PREFIX}.keyForm.noModels`)}
           </p>
         ) : (
@@ -135,8 +135,8 @@ function ConnectionNode({
   // Toggling acts on every model of the connection, not just the shown ones.
   const whole = { ...connection, models: allModels }
   return (
-    <div className="border-b border-border-subtle last:border-b-0">
-      <div className="flex items-center gap-space-sm bg-background-subtle px-space-md py-space-sm">
+    <div className="border-b border-line-subtle last:border-b-0">
+      <div className="flex items-center gap-space-sm bg-sunken px-space-md py-space-sm">
         <Checkbox
           checked={state === 'checked'}
           indeterminate={state === 'mixed'}
@@ -145,13 +145,13 @@ function ConnectionNode({
           onCheckedChange={() => onChange(toggleConnection(scope, whole))}
         />
         <ProviderLogo provider={connection.provider} size="sm" />
-        <span className="min-w-0 truncate text-sm font-medium text-text-primary">
+        <span className="min-w-0 truncate text-sm font-medium text-fg">
           {name}
         </span>
         {state === 'checked' ? (
           <Badge variant="blue">{t(`${PREFIX}.keyForm.wholeConnection`)}</Badge>
         ) : null}
-        <span className="ml-auto shrink-0 text-xs text-text-tertiary">
+        <span className="ml-auto shrink-0 text-xs text-fg-subtle">
           {state === 'checked'
             ? t(`${PREFIX}.keyForm.countOpen`, { count: open.length })
             : t(`${PREFIX}.keyForm.countPicked`, {
@@ -169,7 +169,7 @@ function ConnectionNode({
               key={model.model_id}
               className={cn(
                 'flex items-center gap-space-sm py-space-xs pr-space-md pl-space-2xl',
-                !isCallable(model) && 'text-text-tertiary',
+                !isCallable(model) && 'text-fg-subtle',
               )}
             >
               <Checkbox

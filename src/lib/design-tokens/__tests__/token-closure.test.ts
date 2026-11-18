@@ -18,16 +18,6 @@ const themeDir = join(srcDir, 'themes')
 
 const tokens = new Set(Object.keys(lightTokenValues))
 const aliases = new Set(Object.keys(tailwindColors))
-// Runtime channels emitted next to the tokens by theme-css-generator.
-const channels = new Set([
-  'twc-primary',
-  'twc-primary-foreground',
-  'twc-foreground',
-  'twc-background',
-  'twc-ring',
-  'twc-border',
-])
-
 const COLOR_VALUE =
   /^(#[\da-f]{3,8}|rgba?\([^()]*\)|hsla?\([^()]*\)|oklch\([^()]*\)|transparent)$/i
 
@@ -35,7 +25,9 @@ const COLOR_VALUE =
 const COLOR_UTILITY =
   /(?<![\w-])(?:bg|text|border(?:-[xytrblse])?|ring(?:-offset)?|inset-ring|outline|fill|stroke|from|via|to|divide|placeholder|caret|accent|decoration|shadow|inset-shadow)-([a-z][\w-]*?)(?:\/\d+)?(?![\w-])/g
 const TOKEN_ROOT =
-  /^(components|text|background|border|status|state|surface|chat|data-viz|shadow)-/
+  /^(components|text|background|border|status|state|surface|chat|data-viz|shadow|canvas|raised|overlay|sunken|inverse|scrim|fill|fg|line|knob|action|accent|ai|neutral|success|warning|danger|info|reasoning|tool|citation|highlight|caret|diff|run|code|syntax|viz|avatar)(-|$)/
+// Custom utilities that share a token root but are not colors.
+const NON_COLOR_UTILITIES = new Set(['ai-tide', 'ai-glow', 'ai-halo'])
 const SHADCN_NAMES =
   /^(background|foreground|card|popover|primary|secondary|muted|accent|destructive|input|ring|border|sidebar|chart-\d)(-foreground)?$/
 
@@ -86,14 +78,12 @@ test('every --color-* token holds a color in both themes', () => {
   assert.equal(problems.length, 0, report(problems))
 })
 
-test('Tailwind aliases only point at runtime tokens and channels', () => {
+test('Tailwind aliases only point at runtime tokens', () => {
   const problems = Object.entries(tailwindColors).flatMap(([alias, value]) =>
     [...value.matchAll(/var\(--([\w-]+)\)/g)]
       .map((match) => match[1])
-      .filter((name) =>
-        name.startsWith('color-')
-          ? !tokens.has(name.slice(6))
-          : !channels.has(name),
+      .filter(
+        (name) => !name.startsWith('color-') || !tokens.has(name.slice(6)),
       )
       .map((name) => `${alias} -> --${name}`),
   )
@@ -103,14 +93,56 @@ test('Tailwind aliases only point at runtime tokens and channels', () => {
 // Embedded widgets apply the host's colors by re-pointing existing tokens inside
 // their own scope; they may not invent new token names.
 const SCOPED_OVERRIDES = /pages[\\/]agent[\\/]share[\\/]widget-theme\.css:/
+// The Markdown editor bridge maps the vendor's Primer palette (same --color-
+// prefix) to our roles; a vendor name that is also one of our roles may only
+// inherit the scheme's value.
+const VENDOR_BRIDGE =
+  /pages[\\/]studio[\\/]create-app[\\/]components[\\/]editor\.css:/
 
 test('only the theme generator declares --color-* variables', () => {
-  const problems = scan(/^\s*--color-([\w-]+)\s*:/gm, (match, where) =>
-    SCOPED_OVERRIDES.test(where) && tokens.has(match[1])
-      ? undefined
-      : `${where} declares --color-${match[1]}`,
+  const problems = scan(
+    /^\s*--color-([\w-]+)\s*:\s*([^;]+);/gm,
+    (match, where) => {
+      const [, name, value] = match
+      if (SCOPED_OVERRIDES.test(where) && tokens.has(name)) return undefined
+      if (
+        VENDOR_BRIDGE.test(where) &&
+        (!tokens.has(name) || value.trim() === 'inherit')
+      )
+        return undefined
+      return `${where} declares --color-${name}`
+    },
   )
   assert.equal(problems.length, 0, report(problems))
+})
+
+// Third-party CSS that reuses our prefix would silently replace a role inside
+// its subtree. Every such collision must be neutralized by the bridge.
+test('vendor palettes that share a role name inherit the scheme value', () => {
+  const root = fileURLToPath(new URL('../../../../', import.meta.url))
+  const bridge = readFileSync(
+    join(srcDir, 'pages/studio/create-app/components/editor.css'),
+    'utf8',
+  )
+  const vendorFiles = [
+    'node_modules/@uiw/react-md-editor/markdown-editor.css',
+    'node_modules/@uiw/react-markdown-preview/markdown.css',
+  ]
+  const collisions = new Set(
+    vendorFiles.flatMap((file) =>
+      [
+        ...readFileSync(join(root, file), 'utf8').matchAll(
+          /--color-([\w-]+)\s*:/g,
+        ),
+      ]
+        .map((match) => match[1])
+        .filter((name) => tokens.has(name)),
+    ),
+  )
+  const unresolved = [...collisions].filter(
+    (name) => !new RegExp(`--color-${name}\\s*:\\s*inherit;`).test(bridge),
+  )
+  assert.deepEqual(unresolved, [])
 })
 
 test('var(--color-*) references resolve to runtime tokens', () => {
@@ -126,7 +158,8 @@ test('color utilities name defined tokens or aliases', () => {
   const problems = scan(COLOR_UTILITY, (match, where) => {
     const name = match[1]
     if (!TOKEN_ROOT.test(name) && !SHADCN_NAMES.test(name)) return undefined
-    // A quoted bare token name is a token reference, e.g. getTokenValue('text-accent').
+    if (NON_COLOR_UTILITIES.has(name)) return undefined
+    // A quoted bare token name is a token reference, e.g. getTokenValue('accent-fg').
     if (
       tokens.has(match[0]) &&
       /^['"]/.test(match.input!.slice(match.index! - 1))
@@ -144,4 +177,21 @@ test('readCssVar reads defined tokens', () => {
     tokens.has(match[1]) ? undefined : `${where} readCssVar('${match[1]}')`,
   )
   assert.equal(problems.length, 0, report(problems))
+})
+
+// ARCH-5: a role without a consumer is dead weight. The intent × role matrix is
+// exempt as a whole: it is a complete grid by design, so a cell may wait for
+// its first consumer. `files` already leaves out the generator and its outputs
+// (only the hand-written tailwind.css utilities and scoped-theme.tsx count).
+const MATRIX_CELL =
+  /^(accent|ai|neutral|success|warning|danger|info)-(solid|solid-hover|on-solid|fg|soft|soft-hover|line)$/
+
+test('every semantic role outside the intent matrix has a consumer', () => {
+  const sources = files.map((file) => readFileSync(file, 'utf8')).join('\n')
+  const unused = [...tokens].filter(
+    (name) =>
+      !MATRIX_CELL.test(name) &&
+      !new RegExp(`(?:-|--color-|['"\`])${name}(?![\\w-])`).test(sources),
+  )
+  assert.deepEqual(unused, [])
 })

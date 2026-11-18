@@ -75,7 +75,7 @@ function VariableAggregatorGroupSection({
   const currentGroupType = form.watch(`groups.${groupIndex}.type`)
 
   return (
-    <div className="space-y-space-md rounded-radius-md border border-border-default p-space-base">
+    <div className="space-y-space-md rounded-radius-md border border-line p-space-base">
       <div className="flex items-center justify-between gap-space-sm">
         <div className="flex-1">
           <FormField
@@ -97,7 +97,7 @@ function VariableAggregatorGroupSection({
         </div>
 
         {currentGroupType && (
-          <span className="rounded-radius-sm border border-border-default px-space-sm py-space-xs text-xs text-text-secondary">
+          <span className="rounded-radius-sm border border-line px-space-sm py-space-xs text-xs text-fg-muted">
             {currentGroupType}
           </span>
         )}

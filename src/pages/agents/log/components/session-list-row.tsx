@@ -20,14 +20,14 @@ interface SessionListRowProps {
  * still in progress is an AI moment: tide dot and shimmering label.
  */
 const STATUS_DOT: Record<AgentLogStatus, string> = {
-  [AgentLogStatus.ALL]: 'bg-text-tertiary',
-  [AgentLogStatus.OK]: 'bg-status-success',
-  [AgentLogStatus.ERR]: 'bg-status-error',
+  [AgentLogStatus.ALL]: 'bg-fg-subtle',
+  [AgentLogStatus.OK]: 'bg-success-fg',
+  [AgentLogStatus.ERR]: 'bg-danger-fg',
   [AgentLogStatus.RUN]: 'bg-ai-tide',
-  [AgentLogStatus.WARN]: 'bg-status-warning',
+  [AgentLogStatus.WARN]: 'bg-warning-fg',
 }
 const STATUS_LABEL: Partial<Record<AgentLogStatus, string>> = {
-  [AgentLogStatus.ERR]: 'text-status-error',
+  [AgentLogStatus.ERR]: 'text-danger-fg',
   [AgentLogStatus.RUN]: 'text-shimmer',
 }
 
@@ -49,13 +49,13 @@ export function SessionListRow({
     : '-'
 
   return (
-    <li className="border-b border-border-subtle">
+    <li className="border-b border-line-subtle">
       <button
         type="button"
         aria-current={active || undefined}
         className={cn(
-          'flex w-full flex-col gap-space-xs px-space-md py-space-sm text-left outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:ring-inset',
-          active ? 'bg-state-selected-bg' : 'hover:bg-state-hover',
+          'flex w-full flex-col gap-space-xs px-space-md py-space-sm text-left outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-line-focus focus-visible:ring-inset',
+          active ? 'bg-accent-soft' : 'hover:bg-fill-hover',
         )}
         onClick={() => onSelect(session.id)}
       >
@@ -67,19 +67,19 @@ export function SessionListRow({
               STATUS_DOT[status],
             )}
           />
-          <span className="min-w-0 flex-1 truncate text-sm font-medium text-text-primary">
+          <span className="min-w-0 flex-1 truncate text-sm font-medium text-fg">
             {extractSessionTitle(session)}
           </span>
           <span
             className={cn(
               'shrink-0 text-xs',
-              STATUS_LABEL[status] ?? 'text-text-tertiary',
+              STATUS_LABEL[status] ?? 'text-fg-subtle',
             )}
           >
             {t(`agents.runLogs.statuses.${status}`)}
           </span>
         </span>
-        <span className="flex min-w-0 flex-wrap items-center gap-x-space-sm gap-y-space-2xs pl-space-base text-xs text-text-tertiary tabular-nums">
+        <span className="flex min-w-0 flex-wrap items-center gap-x-space-sm gap-y-space-2xs pl-space-base text-xs text-fg-subtle tabular-nums">
           <span className="font-mono">{updateTime}</span>
           <span aria-hidden="true">·</span>
           <span>
@@ -95,13 +95,13 @@ export function SessionListRow({
           </span>
         </span>
         {session.version_title ? (
-          <span className="flex min-w-0 items-center gap-space-xs pl-space-base text-xs text-text-tertiary">
+          <span className="flex min-w-0 items-center gap-space-xs pl-space-base text-xs text-fg-subtle">
             <span className="shrink-0">{t('agents.runLogs.version')}</span>
             <span className="truncate font-mono">{session.version_title}</span>
           </span>
         ) : null}
         {errorSummary ? (
-          <span className="ml-space-base flex min-w-0 items-center gap-space-xs rounded-radius-sm border border-status-error-border bg-status-error-subtle px-space-sm py-space-2xs text-xs text-status-error">
+          <span className="ml-space-base flex min-w-0 items-center gap-space-xs rounded-radius-sm border border-danger-line bg-danger-soft px-space-sm py-space-2xs text-xs text-danger-fg">
             <AlertTriangle
               className="size-icon-xs shrink-0"
               aria-hidden="true"

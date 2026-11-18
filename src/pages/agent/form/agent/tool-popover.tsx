@@ -44,7 +44,7 @@ export function AgentToolPopover({ node }: AgentToolPopoverProps) {
         <Button
           type="button"
           variant="outline"
-          className="w-full border-dashed border-border-default"
+          className="w-full border-dashed border-line"
         >
           <Plus className="size-4" />
           {t('flow.addTools', 'Add Tools')}

@@ -41,7 +41,7 @@ export const LeftEndHandle = memo(
         position={Position.Left}
         id={NodeHandleId.End}
         isConnectable={isConnectable}
-        className="!size-2 !border-none !bg-components-canvas-handle-bg"
+        className="!size-2 !border-none !bg-accent-solid"
         {...props}
       />
     )
@@ -100,7 +100,7 @@ export const CommonHandle = memo(
           {...props}
           isConnectable={isConnectable}
           className={cn(
-            'inline-flex items-center justify-center !border-none !bg-components-canvas-handle-bg group-hover:!size-4 group-hover:!rounded-sm',
+            'inline-flex items-center justify-center !border-none !bg-accent-solid group-hover:!size-4 group-hover:!rounded-sm',
             className,
           )}
           onClick={(e) => {
@@ -118,7 +118,7 @@ export const CommonHandle = memo(
             showModal()
           }}
         >
-          <Plus className="pointer-events-none hidden size-3 text-components-canvas-handle-icon group-hover:inline-block" />
+          <Plus className="pointer-events-none hidden size-3 text-accent-on-solid group-hover:inline-block" />
           {visible && (
             <NextStepDropdown
               nodeId={nodeId}

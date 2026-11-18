@@ -4,15 +4,15 @@ import { cn } from './utils'
 
 const cardVariants = cva(
   // DreamJira panel: 12px corners, a hairline border and the card shadow.
-  'rounded-radius-xl border bg-components-card-bg text-text-primary shadow-elevation-low transition-colors duration-150 motion-reduce:transition-none',
+  'rounded-radius-xl border bg-raised text-fg shadow-elevation-low transition-colors duration-150 motion-reduce:transition-none',
   {
     variants: {
       variant: {
-        default: 'border-components-card-border',
-        outline: 'border-border-strong shadow-none',
-        elevated: 'border-components-card-border shadow-elevation-medium',
+        default: 'border-line-subtle',
+        outline: 'border-line-strong shadow-none',
+        elevated: 'border-line-subtle shadow-elevation-medium',
         interactive:
-          'cursor-pointer border-components-card-border hover:border-border-strong hover:bg-components-card-bg-hover',
+          'cursor-pointer border-line-subtle hover:border-line-strong hover:bg-raised-hover',
       },
       padding: {
         none: '',
@@ -64,10 +64,7 @@ const CardTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <h3
     ref={ref}
-    className={cn(
-      'text-base leading-6 font-semibold text-text-primary',
-      className,
-    )}
+    className={cn('text-base leading-6 font-semibold text-fg', className)}
     {...props}
   />
 ))
@@ -78,11 +75,7 @@ const CardDescription = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, ...props }, ref) => (
-  <p
-    ref={ref}
-    className={cn('text-sm text-text-secondary', className)}
-    {...props}
-  />
+  <p ref={ref} className={cn('text-sm text-fg-muted', className)} {...props} />
 ))
 
 CardDescription.displayName = 'CardDescription'

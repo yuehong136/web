@@ -32,7 +32,7 @@ export interface EvidenceSourceDetailProps {
 }
 
 const PILL =
-  'h-[var(--control-height-sm)] rounded-radius-full border-border-default px-space-base text-xs'
+  'h-[var(--control-height-sm)] rounded-radius-full border-line px-space-base text-xs'
 
 /** The selected source: file, where it sits, its scores, the passage, then the rest of the turn. */
 export function EvidenceSourceDetail({
@@ -85,17 +85,15 @@ export function EvidenceSourceDetail({
     <div className="space-y-space-md" data-evidence-source={chunk.id}>
       <article
         className={cn(
-          'space-y-space-base rounded-radius-xl border bg-components-card-bg p-space-base',
-          isCited ? 'border-border-accent' : 'border-border-default',
+          'space-y-space-base rounded-radius-xl border bg-raised p-space-base',
+          isCited ? 'border-line-focus' : 'border-line',
         )}
       >
         <header className="flex min-w-0 items-center gap-space-base">
           <SourceTile chunk={chunk} size="md" />
           <div className="min-w-0 flex-1">
-            <h3 className="truncate text-sm font-medium text-text-primary">
-              {name}
-            </h3>
-            <p className="truncate text-xs text-text-tertiary">{where}</p>
+            <h3 className="truncate text-sm font-medium text-fg">{name}</h3>
+            <p className="truncate text-xs text-fg-subtle">{where}</p>
           </div>
         </header>
         <section aria-label={tw('scores')}>
@@ -104,17 +102,17 @@ export function EvidenceSourceDetail({
         <Watermark content={watermarkContent} fontSize={12} gap={[80, 80]}>
           {content.includes('<') ? (
             <SafeHtml
-              className="prose prose-sm max-w-none break-words text-text-secondary"
+              className="prose prose-sm max-w-none break-words text-fg-muted"
               html={content}
               options={CHUNK_CONTENT_PURIFY_OPTIONS}
             />
           ) : marked ? (
             <HighlightText
               html={marked}
-              className="text-sm leading-relaxed break-words text-text-secondary"
+              className="text-sm leading-relaxed break-words text-fg-muted"
             />
           ) : (
-            <p className="text-sm leading-relaxed break-words whitespace-pre-wrap text-text-secondary">
+            <p className="text-sm leading-relaxed break-words whitespace-pre-wrap text-fg-muted">
               {content || t('sources.noContent')}
             </p>
           )}
@@ -133,7 +131,7 @@ export function EvidenceSourceDetail({
               </a>
             </Button>
           ) : (
-            <p className="text-xs text-text-tertiary">{tw('noOriginal')}</p>
+            <p className="text-xs text-fg-subtle">{tw('noOriginal')}</p>
           )}
           <Button
             size="sm"
@@ -152,8 +150,8 @@ export function EvidenceSourceDetail({
         </div>
         <ReferenceMetadataBadges metadata={chunk.document_metadata} />
       </article>
-      <details className="group rounded-radius-lg border border-border-subtle px-space-base py-space-sm">
-        <summary className="cursor-pointer text-xs font-medium text-text-secondary">
+      <details className="group rounded-radius-lg border border-line-subtle px-space-base py-space-sm">
+        <summary className="cursor-pointer text-xs font-medium text-fg-muted">
           {tw('technicalDetails')}
         </summary>
         <div className="mt-space-base">
@@ -162,7 +160,7 @@ export function EvidenceSourceDetail({
       </details>
       {others.length > 0 && (
         <section className="space-y-space-xs">
-          <h3 className="px-space-2xs text-xs text-text-tertiary">
+          <h3 className="px-space-2xs text-xs text-fg-subtle">
             {tw('otherChunks')}
           </h3>
           <ul className="space-y-space-2xs">

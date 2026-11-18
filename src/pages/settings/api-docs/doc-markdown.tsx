@@ -14,7 +14,7 @@ const DocLink = ({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="text-text-accent underline underline-offset-2"
+      className="text-accent-fg underline underline-offset-2"
     >
       {children}
     </a>
@@ -38,7 +38,7 @@ export const DocMarkdown = memo(function DocMarkdown({
 }) {
   return (
     <XMarkdown
-      className={cn('text-sm text-text-secondary', className)}
+      className={cn('text-sm text-fg-muted', className)}
       components={COMPONENTS}
       streaming={STATIC}
       escapeRawHtml

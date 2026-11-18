@@ -68,7 +68,7 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
       () => [...new Set(data.nodes.map((n) => n.type).filter(Boolean))],
       [data.nodes],
     )
-    // theme 作为依赖触发重算：data-viz-categorical-* 的值按主题切换。
+    // theme 作为依赖触发重算：viz-* 的值按主题切换。
     const colorMap = useMemo(
       () => buildTypeColorMap(nodeTypes, theme, preset),
       [nodeTypes, theme, preset],

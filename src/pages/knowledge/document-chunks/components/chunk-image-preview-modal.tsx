@@ -73,7 +73,7 @@ export const ChunkImagePreviewModal = ({
                   <img
                     src={image.objectUrl}
                     alt={t('knowledge.chunks.modal.imagePreviewAlt')}
-                    className="max-h-[70vh] max-w-full rounded-radius-lg bg-background-subtle object-contain"
+                    className="max-h-[70vh] max-w-full rounded-radius-lg bg-sunken object-contain"
                   />
                 ) : (
                   <DocumentImageFeedback image={image} />

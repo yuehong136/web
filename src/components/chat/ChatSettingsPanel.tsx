@@ -152,14 +152,14 @@ export const ChatSettingsPanel: React.FC<ChatSettingsPanelProps> = ({
   // 如果正在加载设置，显示加载状态
   if (loading) {
     return (
-      <div className="flex h-full w-[420px] flex-col border-l border-border-default bg-background-surface">
+      <div className="flex h-full w-[420px] flex-col border-l border-line bg-surface">
         <ChatSettingsHeader onClose={onClose} />
 
         {/* 加载状态 */}
         <div className="flex flex-1 items-center justify-center">
           <div className="text-center">
             <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
-            <p className="text-sm text-text-tertiary">
+            <p className="text-sm text-fg-subtle">
               {t('chat.settings.loading')}
             </p>
           </div>
@@ -207,7 +207,7 @@ export const ChatSettingsPanel: React.FC<ChatSettingsPanelProps> = ({
   }
 
   return (
-    <div className="flex h-full w-[420px] flex-col border-l border-border-default bg-background-surface">
+    <div className="flex h-full w-[420px] flex-col border-l border-line bg-surface">
       <ChatSettingsHeader onClose={onClose} />
 
       {/* 内容区域 - 可滚动 */}
@@ -230,7 +230,7 @@ export const ChatSettingsPanel: React.FC<ChatSettingsPanelProps> = ({
           {/* 助理姓名 */}
           <div className="space-y-2">
             <SettingLabel>
-              <span className="mr-1 text-status-error">*</span>
+              <span className="mr-1 text-danger-fg">*</span>
               {t('chat.settings.name')}
             </SettingLabel>
             <Input
@@ -278,7 +278,7 @@ export const ChatSettingsPanel: React.FC<ChatSettingsPanelProps> = ({
           </div>
         </ChatSettingsSection>
 
-        <Separator className="bg-border-subtle" />
+        <Separator className="bg-line-subtle" />
 
         {/* ========== 模型设置 ========== */}
         <ChatSettingsSection
@@ -381,7 +381,7 @@ export const ChatSettingsPanel: React.FC<ChatSettingsPanelProps> = ({
           />
         </ChatSettingsSection>
 
-        <Separator className="bg-border-subtle" />
+        <Separator className="bg-line-subtle" />
 
         {/* ========== 基础设置 ========== */}
         <ChatSettingsSection
@@ -432,7 +432,7 @@ export const ChatSettingsPanel: React.FC<ChatSettingsPanelProps> = ({
             />
           </SettingRow>
 
-          <Separator className="bg-border-subtle" />
+          <Separator className="bg-line-subtle" />
 
           {/* Tavily API Key */}
           <div className="space-y-2">
@@ -444,7 +444,7 @@ export const ChatSettingsPanel: React.FC<ChatSettingsPanelProps> = ({
                 href="https://app.tavily.com/home"
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center gap-1 text-xs text-text-accent"
+                className="flex items-center gap-1 text-xs text-accent-fg"
               >
                 {t('chat.settings.tavilyHelp')}{' '}
                 <ExternalLink className="h-3 w-3" />
@@ -458,7 +458,7 @@ export const ChatSettingsPanel: React.FC<ChatSettingsPanelProps> = ({
             />
           </div>
 
-          <Separator className="bg-border-subtle" />
+          <Separator className="bg-line-subtle" />
 
           {/* 知识库选择 - 使用新的知识库选择器 */}
           <KnowledgeBaseSelector
@@ -480,7 +480,7 @@ export const ChatSettingsPanel: React.FC<ChatSettingsPanelProps> = ({
           />
         </ChatSettingsSection>
 
-        <Separator className="bg-border-subtle" />
+        <Separator className="bg-line-subtle" />
 
         {/* ========== 提示工程 ========== */}
         <ChatSettingsSection
@@ -505,7 +505,7 @@ export const ChatSettingsPanel: React.FC<ChatSettingsPanelProps> = ({
               <SettingLabel tooltip={t('chat.settings.similarityThresholdTip')}>
                 {t('chat.settings.similarityThreshold')}
               </SettingLabel>
-              <span className="text-sm text-text-secondary tabular-nums">
+              <span className="text-sm text-fg-muted tabular-nums">
                 {settings.similarityThreshold.toFixed(2)}
               </span>
             </div>
@@ -529,13 +529,13 @@ export const ChatSettingsPanel: React.FC<ChatSettingsPanelProps> = ({
                 {t('chat.settings.vectorSimilarityWeight')}
               </SettingLabel>
               <div className="flex items-center gap-2 text-xs">
-                <span className="text-text-secondary">
+                <span className="text-fg-muted">
                   {t('chat.settings.vectorWeight', {
                     value: settings.vectorSimilarityWeight.toFixed(2),
                   })}
                 </span>
-                <span className="text-text-tertiary">|</span>
-                <span className="text-text-secondary">
+                <span className="text-fg-subtle">|</span>
+                <span className="text-fg-muted">
                   {t('chat.settings.fullTextWeight', {
                     value: (1 - settings.vectorSimilarityWeight).toFixed(2),
                   })}
@@ -559,7 +559,7 @@ export const ChatSettingsPanel: React.FC<ChatSettingsPanelProps> = ({
               <SettingLabel tooltip={t('chat.settings.topNTip')}>
                 Top N
               </SettingLabel>
-              <span className="text-sm text-text-secondary tabular-nums">
+              <span className="text-sm text-fg-muted tabular-nums">
                 {settings.topN}
               </span>
             </div>
@@ -572,7 +572,7 @@ export const ChatSettingsPanel: React.FC<ChatSettingsPanelProps> = ({
             />
           </div>
 
-          <Separator className="bg-border-subtle" />
+          <Separator className="bg-line-subtle" />
 
           {/* 开关选项 */}
           <SettingRow
@@ -609,7 +609,7 @@ export const ChatSettingsPanel: React.FC<ChatSettingsPanelProps> = ({
             />
           </SettingRow>
 
-          <Separator className="bg-border-subtle" />
+          <Separator className="bg-line-subtle" />
 
           <RerankModelSelector
             models={rerankModels}
@@ -625,7 +625,7 @@ export const ChatSettingsPanel: React.FC<ChatSettingsPanelProps> = ({
                 <SettingLabel tooltip={t('chat.settings.topKTip')}>
                   Top K
                 </SettingLabel>
-                <span className="text-sm text-text-secondary tabular-nums">
+                <span className="text-sm text-fg-muted tabular-nums">
                   {settings.topK}
                 </span>
               </div>
@@ -639,7 +639,7 @@ export const ChatSettingsPanel: React.FC<ChatSettingsPanelProps> = ({
             </div>
           )}
 
-          <Separator className="bg-border-subtle" />
+          <Separator className="bg-line-subtle" />
 
           {/* 跨语言 */}
           <div className="space-y-2">
@@ -670,8 +670,8 @@ export const ChatSettingsPanel: React.FC<ChatSettingsPanelProps> = ({
                     aria-pressed={isSelected}
                     className={
                       isSelected
-                        ? 'rounded-radius-full border border-components-alert-info-border bg-components-badge-info-bg px-space-base py-space-xs text-xs text-components-badge-info-text transition-colors'
-                        : 'rounded-radius-full border border-components-tag-border bg-components-tag-bg px-space-base py-space-xs text-xs text-components-tag-text transition-colors'
+                        ? 'rounded-radius-full border border-info-line bg-info-soft px-space-base py-space-xs text-xs text-info-fg transition-colors'
+                        : 'rounded-radius-full border border-line bg-fill-muted px-space-base py-space-xs text-xs text-fg-muted transition-colors'
                     }
                   >
                     {t(lang.labelKey)}
@@ -681,7 +681,7 @@ export const ChatSettingsPanel: React.FC<ChatSettingsPanelProps> = ({
             </div>
           </div>
 
-          <Separator className="bg-border-subtle" />
+          <Separator className="bg-line-subtle" />
 
           {/* 动态变量 */}
           <div className="space-y-3">
@@ -701,7 +701,7 @@ export const ChatSettingsPanel: React.FC<ChatSettingsPanelProps> = ({
             </div>
             {settings.variables.length > 0 && (
               <div className="space-y-2">
-                <div className="flex gap-2 px-1 text-xs text-text-tertiary">
+                <div className="flex gap-2 px-1 text-xs text-fg-subtle">
                   <span className="flex-1">
                     {t('chat.settings.variableName')}
                   </span>
@@ -735,7 +735,7 @@ export const ChatSettingsPanel: React.FC<ChatSettingsPanelProps> = ({
                       className="h-8 w-8 p-0"
                       aria-label={t('chat.settings.removeVariable')}
                     >
-                      <Trash2 className="h-4 w-4 text-text-tertiary" />
+                      <Trash2 className="h-4 w-4 text-fg-subtle" />
                     </Button>
                   </div>
                 ))}
@@ -746,7 +746,7 @@ export const ChatSettingsPanel: React.FC<ChatSettingsPanelProps> = ({
       </div>
 
       {/* 底部按钮 */}
-      <div className="flex items-center justify-end gap-3 border-t border-border-subtle p-4">
+      <div className="flex items-center justify-end gap-3 border-t border-line-subtle p-4">
         <Button variant="outline" onClick={onClose}>
           {t('common.cancel')}
         </Button>

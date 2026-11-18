@@ -13,7 +13,7 @@ import { SourceTile } from './source-tile'
 
 const STACKED_TILES = 3
 const FOCUS =
-  'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-focus'
+  'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-line-focus'
 
 export interface SourceStripProps {
   /** Every chunk retrieved for this answer. */
@@ -56,7 +56,7 @@ export function SourceStrip({
           aria-controls={listId}
           onClick={() => setOpen((value) => !value)}
           className={cn(
-            'inline-flex h-[var(--control-height-sm)] shrink-0 items-center gap-space-sm rounded-radius-full border border-border-default ps-space-xs pe-space-base text-xs text-text-secondary transition-colors hover:bg-state-hover hover:text-text-primary motion-reduce:transition-none',
+            'inline-flex h-[var(--control-height-sm)] shrink-0 items-center gap-space-sm rounded-radius-full border border-line ps-space-xs pe-space-base text-xs text-fg-muted transition-colors hover:bg-fill-hover hover:text-fg motion-reduce:transition-none',
             FOCUS,
           )}
         >
@@ -68,7 +68,7 @@ export function SourceStrip({
                 chunk={chunk}
                 size="xs"
                 className={cn(
-                  'text-transparent ring-2 ring-components-main-workbench-surface',
+                  'text-transparent ring-2 ring-surface',
                   index > 0 && '-ms-space-xs',
                 )}
               />
@@ -78,7 +78,7 @@ export function SourceStrip({
           <ChevronDown
             aria-hidden="true"
             className={cn(
-              'size-icon-xs text-text-tertiary transition-transform motion-reduce:transition-none',
+              'size-icon-xs text-fg-subtle transition-transform motion-reduce:transition-none',
               open && 'rotate-180',
             )}
           />
@@ -88,7 +88,7 @@ export function SourceStrip({
           data-retrieval-summary
           onClick={onShowAll}
           className={cn(
-            'min-w-0 rounded-radius-sm text-start text-xs text-text-tertiary hover:text-text-primary',
+            'min-w-0 rounded-radius-sm text-start text-xs text-fg-subtle hover:text-fg',
             FOCUS,
           )}
         >
@@ -118,16 +118,16 @@ export function SourceStrip({
                     })}
                     onClick={() => onOpen(chunk)}
                     className={cn(
-                      'flex w-full min-w-0 items-center gap-space-sm rounded-radius-lg border border-transparent px-space-sm py-space-xs text-start transition-colors hover:border-border-subtle hover:bg-state-hover motion-reduce:transition-none',
+                      'flex w-full min-w-0 items-center gap-space-sm rounded-radius-lg border border-transparent px-space-sm py-space-xs text-start transition-colors hover:border-line-subtle hover:bg-fill-hover motion-reduce:transition-none',
                       FOCUS,
                     )}
                   >
                     <SourceTile chunk={chunk} size="md" />
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm text-text-primary">
+                      <span className="block truncate text-sm text-fg">
                         {name}
                       </span>
-                      <span className="block truncate text-xs text-text-tertiary">
+                      <span className="block truncate text-xs text-fg-subtle">
                         {score !== null
                           ? t('chat.thread.relevance', {
                               score: formatRetrievalScore(score, locale),
@@ -137,7 +137,7 @@ export function SourceStrip({
                     </span>
                     <span
                       aria-hidden="true"
-                      className="font-mono text-xs text-text-tertiary"
+                      className="font-mono text-xs text-fg-subtle"
                     >
                       {number}
                     </span>
@@ -152,7 +152,7 @@ export function SourceStrip({
           onClick={onShowAll}
           data-source-all
           className={cn(
-            'mt-space-2xs inline-flex items-center gap-space-xs rounded-radius-md px-space-sm py-space-xs text-xs text-text-secondary hover:bg-state-hover hover:text-text-primary',
+            'mt-space-2xs inline-flex items-center gap-space-xs rounded-radius-md px-space-sm py-space-xs text-xs text-fg-muted hover:bg-fill-hover hover:text-fg',
             FOCUS,
           )}
         >

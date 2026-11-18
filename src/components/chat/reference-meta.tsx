@@ -44,29 +44,27 @@ export function getDocTypeIcon(
   const iconClass = (color: string) => cn('shrink-0', color, className)
 
   if (docType === 'table') {
-    return <Table2 aria-hidden className={iconClass('text-text-accent')} />
+    return <Table2 aria-hidden className={iconClass('text-accent-fg')} />
   }
   if (docType === 'image') {
-    return <Image aria-hidden className={iconClass('text-status-success')} />
+    return <Image aria-hidden className={iconClass('text-success-fg')} />
   }
 
   switch (docName?.split('.').pop()?.toLowerCase()) {
     case 'pdf':
-      return <FileText aria-hidden className={iconClass('text-status-error')} />
+      return <FileText aria-hidden className={iconClass('text-danger-fg')} />
     case 'doc':
     case 'docx':
-      return <FileText aria-hidden className={iconClass('text-text-accent')} />
+      return <FileText aria-hidden className={iconClass('text-accent-fg')} />
     case 'xls':
     case 'xlsx':
-      return <Table2 aria-hidden className={iconClass('text-status-success')} />
+      return <Table2 aria-hidden className={iconClass('text-success-fg')} />
     case 'md':
     case 'mdx':
-      return (
-        <FileType aria-hidden className={iconClass('text-text-secondary')} />
-      )
+      return <FileType aria-hidden className={iconClass('text-fg-muted')} />
   }
 
-  return <FileText aria-hidden className={iconClass('text-text-tertiary')} />
+  return <FileText aria-hidden className={iconClass('text-fg-subtle')} />
 }
 
 /**

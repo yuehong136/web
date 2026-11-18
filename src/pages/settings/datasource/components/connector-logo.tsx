@@ -31,7 +31,7 @@ export function ConnectorLogo({
       aria-hidden="true"
       data-slot="connector-logo"
       className={cn(
-        'inline-flex shrink-0 items-center justify-center bg-background-subtle text-text-primary ring-1 ring-border-subtle ring-inset',
+        'inline-flex shrink-0 items-center justify-center bg-sunken text-fg ring-1 ring-line-subtle ring-inset',
         SIZES[size],
         className,
       )}
@@ -54,17 +54,17 @@ export function ConnectorStackIllustration({
       <ConnectorLogo
         icon={left}
         size="xl"
-        className="absolute top-6 left-4 -rotate-10 bg-background-surface"
+        className="absolute top-6 left-4 -rotate-10 bg-surface"
       />
       <ConnectorLogo
         icon={right}
         size="xl"
-        className="absolute top-6 right-4 rotate-10 bg-background-surface"
+        className="absolute top-6 right-4 rotate-10 bg-surface"
       />
       <ConnectorLogo
         icon={centre}
         size="xl"
-        className="absolute top-1 left-1/2 -translate-x-1/2 bg-background-surface shadow-elevation-medium"
+        className="absolute top-1 left-1/2 -translate-x-1/2 bg-surface shadow-elevation-medium"
       />
     </div>
   )

@@ -36,14 +36,14 @@ export function RouteTabs({ label, tabs, className }: RouteTabsProps) {
           end={tab.end}
           className={({ isActive }) =>
             cn(
-              '-mb-px inline-flex items-center gap-space-xs border-b-2 border-transparent text-sm whitespace-nowrap text-text-secondary outline-hidden transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-focus',
-              isActive && 'border-text-primary font-medium text-text-primary',
+              '-mb-px inline-flex items-center gap-space-xs border-b-2 border-transparent text-sm whitespace-nowrap text-fg-muted outline-hidden transition-colors hover:text-fg focus-visible:ring-2 focus-visible:ring-line-focus',
+              isActive && 'border-fg font-medium text-fg',
             )
           }
         >
           {tab.label}
           {tab.count !== undefined ? (
-            <span className="text-xs text-text-tertiary tabular-nums">
+            <span className="text-xs text-fg-subtle tabular-nums">
               {tab.count}
             </span>
           ) : null}

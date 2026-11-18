@@ -106,7 +106,7 @@ function DocumentUploadSession({
       <Trans
         i18nKey="knowledge.documents.upload.description"
         components={{
-          strong: <span className="font-medium text-text-primary" />,
+          strong: <span className="font-medium text-fg" />,
         }}
       />
     ),
@@ -118,7 +118,7 @@ function DocumentUploadSession({
     selectedFiles: (count, maxFileCount) => (
       <>
         {t('knowledge.documents.upload.selectedFiles', { count })}
-        <span className="text-text-tertiary"> / {maxFileCount}</span>
+        <span className="text-fg-subtle"> / {maxFileCount}</span>
       </>
     ),
     clearAll: t('knowledge.documents.upload.clearAll'),
@@ -373,17 +373,17 @@ function DocumentUploadSession({
             {notice && (
               <div
                 role="alert"
-                className="rounded-radius-md border border-status-warning/30 bg-status-warning-subtle p-space-md text-sm text-text-primary"
+                className="rounded-radius-md border border-warning-fg/30 bg-warning-soft p-space-md text-sm text-fg"
               >
                 {t(notice.key, notice.values ?? {})}
               </div>
             )}
-            <div className="flex items-center justify-between gap-space-md rounded-radius-lg bg-background-subtle p-space-md">
+            <div className="flex items-center justify-between gap-space-md rounded-radius-lg bg-sunken p-space-md">
               <div className="flex flex-col">
-                <span className="text-sm font-medium text-text-primary">
+                <span className="text-sm font-medium text-fg">
                   {t('knowledge.documents.upload.parseOnUpload')}
                 </span>
-                <span className="text-xs text-text-tertiary">
+                <span className="text-xs text-fg-subtle">
                   {t('knowledge.documents.upload.parseOnUploadDescription')}
                 </span>
               </div>
@@ -395,7 +395,7 @@ function DocumentUploadSession({
               />
             </div>
 
-            <div className="flex justify-end gap-space-sm border-t border-border-subtle pt-space-md">
+            <div className="flex justify-end gap-space-sm border-t border-line-subtle pt-space-md">
               <Button
                 variant={allSucceeded ? 'default' : 'outline'}
                 onClick={handleClose}

@@ -204,7 +204,7 @@ export function EnvironmentVariablesTable({
     <div className="space-y-space-sm">
       {!hideAddButton && (
         <div className="flex items-center justify-between gap-space-sm">
-          <p className="text-sm font-medium text-text-primary">
+          <p className="text-sm font-medium text-fg">
             {t('environment.variables.count', {
               count: editableVariables.length,
             })}
@@ -223,7 +223,7 @@ export function EnvironmentVariablesTable({
       {editableVariables.length === 0 ? (
         <VariablesEmpty />
       ) : (
-        <div className="overflow-hidden rounded-radius-lg border border-border-subtle">
+        <div className="overflow-hidden rounded-radius-lg border border-line-subtle">
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}

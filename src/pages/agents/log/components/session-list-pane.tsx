@@ -104,7 +104,7 @@ export function SessionListPane({
           />
         )}
       </div>
-      <div className="flex shrink-0 flex-col gap-space-2xs border-t border-border-subtle py-space-xs pr-space-sm pl-space-md text-xs text-text-tertiary">
+      <div className="flex shrink-0 flex-col gap-space-2xs border-t border-line-subtle py-space-xs pr-space-sm pl-space-md text-xs text-fg-subtle">
         <p className="tabular-nums">
           {t('agents.runLogs.pageSummary', summarizeSessionPage(pageSessions))}
           {isFiltered ? ` · ${t('agents.runLogs.pageScope')}` : null}

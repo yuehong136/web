@@ -6,10 +6,7 @@ export function ExploreRunNotice({ phase }: { phase?: RunPhase }) {
   const key = phase ? getRunPhaseNotice(phase) : null
   if (!key) return null
   return (
-    <output
-      className="block text-sm text-text-secondary"
-      data-run-notice={phase}
-    >
+    <output className="block text-sm text-fg-muted" data-run-notice={phase}>
       {t(key)}
     </output>
   )

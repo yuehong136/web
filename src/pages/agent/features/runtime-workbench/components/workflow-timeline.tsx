@@ -15,7 +15,7 @@ export const WorkFlowTimeline = ({
 
   if (currentEventListWithoutMessage.length === 0) {
     return (
-      <div className="py-space-xl text-center text-text-secondary">
+      <div className="py-space-xl text-center text-fg-muted">
         {t('flow.noLogs', '暂无日志')}
       </div>
     )

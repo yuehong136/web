@@ -50,6 +50,22 @@ export interface TranslationContracts {
     'workspace.skipToTask': undefined
   }
   appearance: {
+    action: undefined
+    actionDescription: undefined
+    'actions.accent': undefined
+    'actions.ink': undefined
+    'actions.scheme': undefined
+    'brand.chroma': undefined
+    'brand.color': undefined
+    'brand.colorDescription': undefined
+    'brand.description': undefined
+    'brand.neutral': undefined
+    'brand.neutralDescription': undefined
+    'brand.title': undefined
+    contrast: undefined
+    contrastDescription: undefined
+    'contrasts.high': undefined
+    'contrasts.standard': undefined
     'densities.comfortable': undefined
     'densities.compact': undefined
     density: undefined
@@ -65,16 +81,20 @@ export interface TranslationContracts {
     'motions.system': undefined
     preset: undefined
     presetDescription: undefined
-    'presets.graphite.description': undefined
-    'presets.graphite.name': undefined
+    'presets.amber.description': undefined
+    'presets.amber.name': undefined
+    'presets.celadon.description': undefined
+    'presets.celadon.name': undefined
+    'presets.clay.description': undefined
+    'presets.clay.name': undefined
+    'presets.custom.description': undefined
+    'presets.custom.name': undefined
+    'presets.ink.description': undefined
+    'presets.ink.name': undefined
+    'presets.iris.description': undefined
+    'presets.iris.name': undefined
     'presets.mist.description': undefined
     'presets.mist.name': undefined
-    'presets.ocean.description': undefined
-    'presets.ocean.name': undefined
-    'presets.paper.description': undefined
-    'presets.paper.name': undefined
-    'presets.studio.description': undefined
-    'presets.studio.name': undefined
     preview: undefined
     previewAnswer: undefined
     previewComposer: undefined

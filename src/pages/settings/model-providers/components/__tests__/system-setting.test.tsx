@@ -352,10 +352,10 @@ it('flags missing and unavailable defaults as default-model rows with a warning'
   expect(row('ocr').textContent).toContain(
     'Not set: text in scanned PDFs cannot be extracted.',
   )
-  expect(row('ocr').querySelector('.text-status-warning')).toBeTruthy()
+  expect(row('ocr').querySelector('.text-warning-fg')).toBeTruthy()
   await choose('ocr', '3')
   expect(row('ocr').textContent).toContain(
     i18n.t('settings.models.defaultFields.ocr.hint'),
   )
-  expect(row('ocr').querySelector('.text-status-warning')).toBeNull()
+  expect(row('ocr').querySelector('.text-warning-fg')).toBeNull()
 })

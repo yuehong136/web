@@ -143,12 +143,12 @@ export function RuntimeThoughtPayload({
   }
 
   return (
-    <div className="space-y-space-xs rounded-radius-md border border-border-subtle bg-surface-secondary p-space-sm">
+    <div className="space-y-space-xs rounded-radius-md border border-line-subtle bg-sunken p-space-sm">
       <div
         className={
           tone === 'error'
-            ? 'text-xs font-medium text-status-error'
-            : 'text-xs font-medium text-text-secondary'
+            ? 'text-xs font-medium text-danger-fg'
+            : 'text-xs font-medium text-fg-muted'
         }
       >
         {label}
@@ -158,16 +158,16 @@ export function RuntimeThoughtPayload({
           data={value}
           className={
             tone === 'error'
-              ? 'max-h-44 max-w-full bg-status-error-subtle break-words whitespace-pre-wrap text-status-error'
-              : 'max-h-44 max-w-full bg-surface-primary break-words whitespace-pre-wrap text-text-secondary'
+              ? 'max-h-44 max-w-full bg-danger-soft break-words whitespace-pre-wrap text-danger-fg'
+              : 'max-h-44 max-w-full bg-surface break-words whitespace-pre-wrap text-fg-muted'
           }
         />
       ) : (
         <pre
           className={
             tone === 'error'
-              ? 'max-h-44 max-w-full overflow-auto rounded-radius-sm bg-status-error-subtle p-space-sm text-xs break-words whitespace-pre-wrap text-status-error'
-              : 'max-h-44 max-w-full overflow-auto rounded-radius-sm bg-surface-primary p-space-sm text-xs break-words whitespace-pre-wrap text-text-secondary'
+              ? 'max-h-44 max-w-full overflow-auto rounded-radius-sm bg-danger-soft p-space-sm text-xs break-words whitespace-pre-wrap text-danger-fg'
+              : 'max-h-44 max-w-full overflow-auto rounded-radius-sm bg-surface p-space-sm text-xs break-words whitespace-pre-wrap text-fg-muted'
           }
         >
           {content}

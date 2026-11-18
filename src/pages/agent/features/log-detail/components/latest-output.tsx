@@ -14,7 +14,7 @@ export function LatestOutput({ output }: LatestOutputProps) {
 
   if (!output) {
     return (
-      <p className="text-sm text-text-secondary">
+      <p className="text-sm text-fg-muted">
         {t('agent.runtimePanel.logDetail.noLatestOutput')}
       </p>
     )
@@ -23,7 +23,7 @@ export function LatestOutput({ output }: LatestOutputProps) {
   return (
     <div className="space-y-space-sm">
       <div className="flex items-center justify-between gap-space-sm">
-        <p className="text-sm font-medium text-text-primary">
+        <p className="text-sm font-medium text-fg">
           {t('agent.runtimePanel.logDetail.latestOutput')}
         </p>
         {output.kind === 'json' ? (
@@ -41,7 +41,7 @@ export function LatestOutput({ output }: LatestOutputProps) {
       {output.kind === 'json' ? (
         <JsonViewer data={output.value} />
       ) : (
-        <pre className="max-h-[240px] overflow-auto rounded-radius-md bg-surface-secondary p-space-sm text-sm text-text-primary">
+        <pre className="max-h-[240px] overflow-auto rounded-radius-md bg-sunken p-space-sm text-sm text-fg">
           {String(output.value)}
         </pre>
       )}

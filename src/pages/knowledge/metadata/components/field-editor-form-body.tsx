@@ -43,8 +43,8 @@ export const FieldEditorFormBody: React.FC<FieldEditorFormBodyProps> = ({
   return (
     <div className="max-h-[50vh] space-y-5 overflow-y-auto px-6 py-4">
       {!isNew && !isSettingMode && (
-        <div className="rounded-lg border border-border-default bg-surface-secondary p-4">
-          <span className="text-base font-medium text-text-primary">
+        <div className="rounded-lg border border-line bg-sunken p-4">
+          <span className="text-base font-medium text-fg">
             {formData.field}
           </span>
         </div>
@@ -52,7 +52,7 @@ export const FieldEditorFormBody: React.FC<FieldEditorFormBodyProps> = ({
 
       {(isNew || isSettingMode) && (
         <div className="space-y-2">
-          <Label className="text-sm font-medium text-text-primary">
+          <Label className="text-sm font-medium text-fg">
             {t('knowledge.metadata.editor.fieldName')}
           </Label>
           <Input
@@ -62,7 +62,7 @@ export const FieldEditorFormBody: React.FC<FieldEditorFormBodyProps> = ({
             disabled={loading}
           />
           {errors.field && (
-            <p className="text-xs text-status-error">{errors.field}</p>
+            <p className="text-xs text-danger-fg">{errors.field}</p>
           )}
         </div>
       )}
@@ -99,13 +99,13 @@ export const FieldEditorFormBody: React.FC<FieldEditorFormBodyProps> = ({
       {isSettingMode && (
         <div className="space-y-2">
           <div className="flex items-center gap-1.5">
-            <Label className="text-sm font-medium text-text-primary">
+            <Label className="text-sm font-medium text-fg">
               {t('knowledge.metadata.editor.description')}
             </Label>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <HelpCircle className="h-3.5 w-3.5 cursor-help text-text-tertiary" />
+                  <HelpCircle className="h-3.5 w-3.5 cursor-help text-fg-subtle" />
                 </TooltipTrigger>
                 <TooltipContent>
                   <p className="max-w-[200px] text-xs">
@@ -128,13 +128,13 @@ export const FieldEditorFormBody: React.FC<FieldEditorFormBodyProps> = ({
       {isSettingMode && (
         <div className="flex items-center justify-between py-2">
           <div className="flex items-center gap-1.5">
-            <Label className="text-sm font-medium text-text-primary">
+            <Label className="text-sm font-medium text-fg">
               {t('knowledge.metadata.editor.restrictDefinedValues')}
             </Label>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <HelpCircle className="h-3.5 w-3.5 cursor-help text-text-tertiary" />
+                  <HelpCircle className="h-3.5 w-3.5 cursor-help text-fg-subtle" />
                 </TooltipTrigger>
                 <TooltipContent>
                   <p className="max-w-[200px] text-xs">
@@ -157,7 +157,7 @@ export const FieldEditorFormBody: React.FC<FieldEditorFormBodyProps> = ({
       {showValuesList && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <Label className="text-sm font-medium text-text-primary">
+            <Label className="text-sm font-medium text-fg">
               {isSettingMode
                 ? t('knowledge.metadata.editor.optionalValues')
                 : t('knowledge.metadata.editor.values')}
@@ -168,7 +168,7 @@ export const FieldEditorFormBody: React.FC<FieldEditorFormBodyProps> = ({
               size="sm"
               onClick={handlers.addValue}
               disabled={loading}
-              className="h-7 px-2 text-text-secondary hover:text-text-primary"
+              className="h-7 px-2 text-fg-muted hover:text-fg"
             >
               <Plus className="mr-1 h-4 w-4" />
               {t('knowledge.metadata.editor.add')}
@@ -177,7 +177,7 @@ export const FieldEditorFormBody: React.FC<FieldEditorFormBodyProps> = ({
 
           <div className="space-y-2">
             {tempValues.length === 0 ? (
-              <div className="py-4 text-center text-sm text-text-tertiary">
+              <div className="py-4 text-center text-sm text-fg-subtle">
                 {t('knowledge.metadata.editor.emptyValues')}
               </div>
             ) : (
@@ -197,7 +197,7 @@ export const FieldEditorFormBody: React.FC<FieldEditorFormBodyProps> = ({
           </div>
 
           {errors.values && (
-            <p className="text-xs text-status-error">{errors.values}</p>
+            <p className="text-xs text-danger-fg">{errors.values}</p>
           )}
         </div>
       )}

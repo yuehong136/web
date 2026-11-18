@@ -34,10 +34,7 @@ export const SplitDetailPageTemplate: React.FC<
   const card = paneVariant === 'card'
   return (
     <div
-      className={cn(
-        'flex h-full min-h-0 flex-col bg-components-split-pane-bg',
-        className,
-      )}
+      className={cn('flex h-full min-h-0 flex-col bg-canvas', className)}
       {...props}
     >
       {header}
@@ -48,8 +45,8 @@ export const SplitDetailPageTemplate: React.FC<
           className={cn(
             'min-h-0 shrink-0',
             card
-              ? 'flex flex-col overflow-hidden rounded-radius-lg border border-components-console-border bg-components-console-surface'
-              : 'scroll-area overflow-auto border-r border-components-split-pane-border',
+              ? 'flex flex-col overflow-hidden rounded-radius-lg border border-line bg-surface'
+              : 'scroll-area overflow-auto border-r border-line',
           )}
           style={{ width: leftWidth, minWidth: minLeft }}
         >
@@ -68,7 +65,7 @@ export const SplitDetailPageTemplate: React.FC<
           className={cn(
             'min-h-0 min-w-0 flex-1',
             card
-              ? 'flex flex-col overflow-hidden rounded-radius-lg border border-components-console-border bg-components-console-surface'
+              ? 'flex flex-col overflow-hidden rounded-radius-lg border border-line bg-surface'
               : 'scroll-area overflow-auto',
           )}
         >

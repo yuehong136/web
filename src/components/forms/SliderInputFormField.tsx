@@ -125,7 +125,7 @@ export function SliderInputFormField({
             <FormLabel
               tooltip={tooltip}
               className={cn(
-                'pt-1.5 text-sm text-text-secondary',
+                'pt-1.5 text-sm text-fg-muted',
                 isHorizontal && 'w-[140px] shrink-0',
               )}
             >
@@ -165,7 +165,7 @@ export function SliderInputFormField({
                   )}
                 />
                 {percentage && (
-                  <span className="ml-1 text-sm text-text-secondary">%</span>
+                  <span className="ml-1 text-sm text-fg-muted">%</span>
                 )}
               </div>
             </div>

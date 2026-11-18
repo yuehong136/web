@@ -356,17 +356,13 @@ const IndentedTree = forwardRef<IndentedTreeRef, IndentedTreeProps>(
         palette,
         // Count and collapse badges sit on a palette colour: white on the
         // light palette, dark ink on the lighter dark-mode palette.
-        badgeText: getTokenValue('text-inverted', mode, preset),
-        rootBackground: getTokenValue(
-          'components-button-primary-bg',
-          mode,
-          preset,
-        ),
-        rootText: getTokenValue('components-button-primary-text', mode, preset),
-        nodeBackground: getTokenValue('background-subtle', mode, preset),
-        nodeText: getTokenValue('text-primary', mode, preset),
-        selectedBackground: getTokenValue('state-selected-bg', mode, preset),
-        selectedText: getTokenValue('text-accent', mode, preset),
+        badgeText: getTokenValue('fg-inverse', mode, preset),
+        rootBackground: getTokenValue('action-bg', mode, preset),
+        rootText: getTokenValue('action-fg', mode, preset),
+        nodeBackground: getTokenValue('sunken', mode, preset),
+        nodeText: getTokenValue('fg', mode, preset),
+        selectedBackground: getTokenValue('accent-soft', mode, preset),
+        selectedText: getTokenValue('accent-fg', mode, preset),
       }
     }, [mode, preset])
     const renderKey = useMemo(
@@ -562,13 +558,13 @@ const IndentedTree = forwardRef<IndentedTreeRef, IndentedTreeProps>(
         <div ref={containerRef} className="h-full w-full" hidden={failed} />
         {failed && (
           <div className="flex h-full flex-col items-center justify-center gap-space-sm">
-            <output className="text-sm text-status-error">
+            <output className="text-sm text-danger-fg">
               {t('searchPage.workspace.mapRenderFailed')}
             </output>
             <button
               type="button"
               onClick={() => retry((value) => value + 1)}
-              className="rounded-radius-md border border-border-default px-space-sm py-space-xs text-sm text-text-secondary outline-hidden hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-focus"
+              className="rounded-radius-md border border-line px-space-sm py-space-xs text-sm text-fg-muted outline-hidden hover:text-fg focus-visible:ring-2 focus-visible:ring-line-focus"
             >
               {t('common.retry')}
             </button>

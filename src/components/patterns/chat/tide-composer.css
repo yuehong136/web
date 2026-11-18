@@ -4,18 +4,17 @@
  * draft has focus.
  */
 .tide-composer .prompt-input {
-  border-color: var(--color-border-default);
+  border-color: var(--color-line);
   border-radius: calc(var(--radius-xl) * 1.5);
   transition:
     border-color 160ms ease,
     box-shadow 160ms ease;
 }
 .tide-composer .prompt-input:focus-within {
-  border-color: var(--color-components-ai-ring);
+  border-color: var(--color-ai-line);
   box-shadow:
-    0 0 0 4px var(--color-components-ai-glow),
-    0 18px 48px -18px
-      color-mix(in oklab, var(--color-components-ai-from) 45%, transparent);
+    0 0 0 4px var(--color-ai-glow),
+    0 18px 48px -18px color-mix(in oklab, var(--color-ai-from) 45%, transparent);
 }
 /*
  * Send and stop are circles on the boards. The shared composer asks for

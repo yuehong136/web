@@ -40,10 +40,7 @@ export function ProviderRegionField({
               </SelectItem>
             </SelectContent>
           </Select>
-          <p
-            id={`${id}-hint`}
-            className="text-xs break-words text-text-secondary"
-          >
+          <p id={`${id}-hint`} className="text-xs break-words text-fg-muted">
             {t('settings.models.regions.endpointHint')}
             {urls?.[value || 'cn'] && (
               <span className="block">{urls[value || 'cn']}</span>

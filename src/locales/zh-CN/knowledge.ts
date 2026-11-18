@@ -1232,7 +1232,7 @@ export default {
       documentPreviewFailed: '文档预览失败',
       wordUnsupportedTitle: '该 Word 文档暂不支持预览',
       wordUnsupportedDescription:
-        'Mammoth 仅支持现代 <code class="bg-background-subtle px-1 rounded">.docx</code> 文件。<br/>该文件可能是旧版 <code class="bg-background-subtle px-1 rounded">.doc</code> 格式。',
+        'Mammoth 仅支持现代 <code class="bg-fill-muted px-1 rounded">.docx</code> 文件。<br/>该文件可能是旧版 <code class="bg-fill-muted px-1 rounded">.doc</code> 格式。',
       loadingExcel: '加载 Excel 中...',
       excelPreviewFailed: 'Excel 预览失败',
       excelLoadFailedWithStatus: 'Excel 加载失败：{{status}}',

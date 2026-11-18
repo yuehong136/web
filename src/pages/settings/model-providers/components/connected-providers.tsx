@@ -74,16 +74,14 @@ function ProviderCard({
       <article
         aria-label={name}
         data-slot="provider-card"
-        className="flex h-full flex-col gap-space-sm rounded-radius-xl border border-border-subtle bg-components-card-bg p-space-md transition-[border-color,box-shadow,transform] duration-150 hover:border-border-strong hover:shadow-elevation-medium motion-safe:hover:-translate-y-px"
+        className="flex h-full flex-col gap-space-sm rounded-radius-xl border border-line-subtle bg-raised p-space-md transition-[border-color,box-shadow,transform] duration-150 hover:border-line-strong hover:shadow-elevation-medium motion-safe:hover:-translate-y-px"
       >
         <div className="flex min-w-0 items-center gap-space-sm">
           <ProviderLogo provider={name} size="lg" />
           <div className="flex min-w-0 flex-1 flex-col">
-            <h3 className="truncate text-sm font-semibold text-text-primary">
-              {name}
-            </h3>
+            <h3 className="truncate text-sm font-semibold text-fg">{name}</h3>
             {facts.length ? (
-              <p className="truncate text-xs text-text-tertiary tabular-nums">
+              <p className="truncate text-xs text-fg-subtle tabular-nums">
                 {facts.join(' · ')}
               </p>
             ) : null}
@@ -92,14 +90,14 @@ function ProviderCard({
             <span
               className={cn(
                 'inline-flex shrink-0 items-center gap-space-xs text-xs',
-                active ? 'text-status-success' : 'text-text-tertiary',
+                active ? 'text-success-fg' : 'text-fg-subtle',
               )}
             >
               <span
                 aria-hidden="true"
                 className={cn(
                   'size-1.5 rounded-radius-full',
-                  active ? 'bg-status-success' : 'bg-text-tertiary',
+                  active ? 'bg-success-fg' : 'bg-fg-subtle',
                 )}
               />
               {t(
@@ -113,8 +111,8 @@ function ProviderCard({
         {capabilities.length || tools ? (
           <ModelCapabilities types={capabilities} tools={tools} />
         ) : null}
-        <div className="mt-auto flex min-w-0 items-center gap-space-sm border-t border-border-subtle pt-space-sm">
-          <p className="min-w-0 flex-1 truncate text-xs text-text-tertiary">
+        <div className="mt-auto flex min-w-0 items-center gap-space-sm border-t border-line-subtle pt-space-sm">
+          <p className="min-w-0 flex-1 truncate text-xs text-fg-subtle">
             {defaultFor.length
               ? t('settings.models.defaultFor', {
                   list: new Intl.ListFormat(getCurrentLanguage(), {
@@ -169,11 +167,11 @@ export function ConnectedProviders({
       className="mt-space-xl flex flex-col gap-space-sm"
     >
       <div className="flex flex-wrap items-baseline gap-x-space-sm gap-y-space-2xs">
-        <h2 id={headingId} className="text-sm font-semibold text-text-primary">
+        <h2 id={headingId} className="text-sm font-semibold text-fg">
           {t('settings.models.connected')}
         </h2>
         {providers.isSuccess && connected.length ? (
-          <span className="text-xs text-text-tertiary tabular-nums">
+          <span className="text-xs text-fg-subtle tabular-nums">
             {[
               t('settings.models.providerCount', { count: connected.length }),
               models.isSuccess
@@ -195,7 +193,7 @@ export function ConnectedProviders({
           onRetry={() => void providers.refetch()}
         />
       ) : providers.isSuccess && connected.length === 0 ? (
-        <p className="rounded-radius-xl border border-dashed border-border-default px-space-md py-space-lg text-center text-sm text-text-secondary">
+        <p className="rounded-radius-xl border border-dashed border-line px-space-md py-space-lg text-center text-sm text-fg-muted">
           {t('settings.models.noneConnected')}
         </p>
       ) : (

@@ -172,7 +172,7 @@ export function ApiKeysPage() {
           ) : null}
           {keysBody}
           {total > PAGE_SIZE ? (
-            <div className="flex justify-end border-t border-border-subtle pt-space-sm">
+            <div className="flex justify-end border-t border-line-subtle pt-space-sm">
               <Pager
                 page={currentPage}
                 pageSize={PAGE_SIZE}

@@ -163,10 +163,10 @@ it('opens the default environment and colours environments by name', async () =>
   ])
   expect(rows[0].getAttribute('aria-current')).toBe('true')
   expect(rows[0].querySelector('[aria-hidden="true"]')?.className).toContain(
-    'bg-status-error',
+    'bg-danger-fg',
   )
   expect(rows[1].querySelector('[aria-hidden="true"]')?.className).toContain(
-    'bg-data-viz-categorical-2',
+    'bg-viz-2',
   )
   // The default environment cannot be deleted.
   await click(button('More actions for Production'))
@@ -230,7 +230,7 @@ it('creates an environment with local variables, resolves them, then opens it', 
   // A staging name turns the dot to the warning colour while typing.
   expect(
     document.querySelector('header [aria-hidden="true"]')?.className,
-  ).toContain('bg-status-warning')
+  ).toContain('bg-warning-fg')
 
   await click(button('Add variable'))
   const dialog = () =>

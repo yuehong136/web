@@ -43,9 +43,7 @@ function InnerChunkerNode({ id, data, isConnectable, selected }: NodeProps) {
           label={data.label as string}
           icon={<ListTree />}
         />
-        <LabelCard className="text-text-primary">
-          {data.name as string}
-        </LabelCard>
+        <LabelCard className="text-fg">{data.name as string}</LabelCard>
       </NodeWrapper>
     </ToolBar>
   )

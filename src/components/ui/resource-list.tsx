@@ -90,10 +90,7 @@ export const ResourceListContainer: React.FC<ResourceListContainerProps> = ({
   className,
 }) => (
   <div
-    className={cn(
-      'w-full rounded-xl border border-border-default bg-surface-primary',
-      className,
-    )}
+    className={cn('w-full rounded-xl border border-line bg-surface', className)}
   >
     {children}
   </div>
@@ -113,12 +110,12 @@ export const ResourceListHeader: React.FC<ResourceListHeaderProps> = memo(
     <div
       className={cn(
         'grid h-12 items-center gap-4 px-6',
-        'border-b border-border-default bg-surface-secondary/30',
+        'border-b border-line bg-sunken/30',
         gridCols,
       )}
     >
       {/* 名称列（含选择框） */}
-      <div className="flex items-center gap-3 text-xs font-medium tracking-wider text-text-tertiary uppercase">
+      <div className="flex items-center gap-3 text-xs font-medium tracking-wider text-fg-subtle uppercase">
         {showSelect && onSelectAll && (
           <Checkbox checked={allSelected} onCheckedChange={onSelectAll} />
         )}
@@ -129,7 +126,7 @@ export const ResourceListHeader: React.FC<ResourceListHeaderProps> = memo(
         <div
           key={col.key}
           className={cn(
-            'text-xs font-medium tracking-wider text-text-tertiary uppercase',
+            'text-xs font-medium tracking-wider text-fg-subtle uppercase',
             col.align === 'center' && 'text-center',
             col.align === 'right' && 'text-right',
           )}
@@ -138,7 +135,7 @@ export const ResourceListHeader: React.FC<ResourceListHeaderProps> = memo(
         </div>
       ))}
       {/* 操作列 */}
-      <div className="text-right text-xs font-medium tracking-wider text-text-tertiary uppercase">
+      <div className="text-right text-xs font-medium tracking-wider text-fg-subtle uppercase">
         {columns[columns.length - 1]?.label || '操作'}
       </div>
     </div>
@@ -157,7 +154,7 @@ export const ResourceListBody: React.FC<{ children: React.ReactNode }> = ({
 /**
  * 资源列表行
  * 封装整行点击、悬停高亮、选中状态、名称列、操作列
- * 悬停效果：浅色模式绿色边框、深色模式紫色边框（使用 --color-state-focus）
+ * 悬停效果：浅色模式绿色边框、深色模式紫色边框（使用 --color-line-focus）
  */
 export const ResourceListRow: React.FC<ResourceListRowProps> = memo(
   ({
@@ -189,13 +186,9 @@ export const ResourceListRow: React.FC<ResourceListRowProps> = memo(
           'border border-transparent',
           'transition-all duration-200 ease-out',
           // 悬停效果：背景 + 主题色边框（浅色绿/深色紫）
-          'hover:border-state-focus hover:bg-surface-secondary/60 hover:shadow-xs',
+          'hover:border-line-focus hover:bg-sunken/60 hover:shadow-xs',
           // 选中效果
-          selected && [
-            'bg-state-selected-bg',
-            'border-state-focus',
-            'shadow-xs',
-          ],
+          selected && ['bg-accent-soft', 'border-line-focus', 'shadow-xs'],
           gridCols,
           className,
         )}
@@ -220,16 +213,16 @@ export const ResourceListRow: React.FC<ResourceListRowProps> = memo(
           <div className="flex h-11 min-w-0 flex-1 flex-col justify-center">
             <div className="flex items-center gap-1.5">
               <h3
-                className="truncate font-medium text-text-primary transition-colors duration-200 group-hover:text-text-accent"
+                className="truncate font-medium text-fg transition-colors duration-200 group-hover:text-accent-fg"
                 title={name}
               >
                 {name}
               </h3>
-              <ChevronRight className="h-4 w-4 shrink-0 text-text-tertiary opacity-0 transition-all duration-200 group-hover:translate-x-0.5 group-hover:opacity-100" />
+              <ChevronRight className="h-4 w-4 shrink-0 text-fg-subtle opacity-0 transition-all duration-200 group-hover:translate-x-0.5 group-hover:opacity-100" />
             </div>
             {description && (
               <p
-                className="mt-0.5 truncate text-sm text-text-tertiary"
+                className="mt-0.5 truncate text-sm text-fg-subtle"
                 title={description}
               >
                 {description}
@@ -292,17 +285,17 @@ export const ResourceListSkeletonRow: React.FC<
   >
     {/* 名称列骨架 */}
     <div className="flex items-center gap-4">
-      <div className="h-12 w-12 animate-pulse rounded-xl bg-surface-secondary" />
+      <div className="h-12 w-12 animate-pulse rounded-xl bg-sunken" />
       <div className="flex flex-col gap-2">
-        <div className="h-4 w-32 animate-pulse rounded bg-surface-secondary" />
-        <div className="h-3 w-48 animate-pulse rounded bg-surface-secondary" />
+        <div className="h-4 w-32 animate-pulse rounded bg-sunken" />
+        <div className="h-3 w-48 animate-pulse rounded bg-sunken" />
       </div>
     </div>
     {/* 中间列骨架 */}
     {columnWidths.map((width, i) => (
       <div
         key={i}
-        className={cn('h-4 animate-pulse rounded bg-surface-secondary', width)}
+        className={cn('h-4 animate-pulse rounded bg-sunken', width)}
       />
     ))}
     {/* 操作列留空 */}
@@ -316,5 +309,5 @@ ResourceListSkeletonRow.displayName = 'ResourceListSkeletonRow'
  */
 export const ResourceListEmpty: React.FC<{ text?: string }> = ({
   text = '暂无数据',
-}) => <div className="py-12 text-center text-text-tertiary">{text}</div>
+}) => <div className="py-12 text-center text-fg-subtle">{text}</div>
 ResourceListEmpty.displayName = 'ResourceListEmpty'

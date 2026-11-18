@@ -106,10 +106,10 @@ export function AgentTagEditor({
             onChange={(event) => setDraft(event.target.value)}
             onKeyDown={handleKeyDown}
           />
-          <p className="text-xs text-text-secondary">{t('agents.tagLimit')}</p>
+          <p className="text-xs text-fg-muted">{t('agents.tagLimit')}</p>
           {suggestions.length > 0 && (
             <div className="space-y-space-xs">
-              <p className="text-xs text-text-secondary">
+              <p className="text-xs text-fg-muted">
                 {t('agents.tagSuggestions')}
               </p>
               <div className="flex flex-wrap gap-space-xs">

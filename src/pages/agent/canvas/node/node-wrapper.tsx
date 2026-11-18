@@ -33,14 +33,14 @@ const formatElapsed = (seconds?: number) => {
 const STATUS_FRAME: Record<NodeRuntimeStatus, string> = {
   idle: '',
   running: 'ai-glow canvas-node-running',
-  success: 'border-components-canvas-node-status-success-border',
-  error: 'border-components-canvas-node-status-error-border',
+  success: 'border-success-line',
+  error: 'border-danger-line',
 }
 
 const STATUS_DOT: Record<Exclude<NodeRuntimeStatus, 'idle'>, string> = {
   running: 'bg-ai-tide motion-safe:animate-pulse',
-  success: 'bg-status-success',
-  error: 'bg-status-error',
+  success: 'bg-success-fg',
+  error: 'bg-danger-fg',
 }
 
 const STATUS_LABEL = {
@@ -90,10 +90,10 @@ export const NodeWrapper = forwardRef<HTMLDivElement, NodeWrapperProps>(
         ref={ref}
         data-status={status}
         className={cn(
-          'group relative w-[208px] rounded-radius-lg border border-components-canvas-node-border bg-components-canvas-node-bg px-space-base py-space-base text-xs shadow-elevation-low transition-[border-color,box-shadow,outline-color] hover:shadow-elevation-medium motion-reduce:transition-none',
+          'group relative w-[208px] rounded-radius-lg border border-line bg-raised px-space-base py-space-base text-xs shadow-elevation-low transition-[border-color,box-shadow,outline-color] hover:shadow-elevation-medium motion-reduce:transition-none',
           !selected && STATUS_FRAME[status],
           selected &&
-            'border-components-canvas-node-border-selected outline-2 -outline-offset-1 outline-components-canvas-node-border-selected',
+            'border-line-focus outline-2 -outline-offset-1 outline-line-focus',
           selected && status === 'running' && 'canvas-node-running ai-glow',
           className,
         )}
@@ -104,7 +104,7 @@ export const NodeWrapper = forwardRef<HTMLDivElement, NodeWrapperProps>(
             title={statusLabel}
             className={cn(
               'pointer-events-none absolute top-space-xs right-space-xs flex items-center gap-space-xs text-xs leading-none tabular-nums',
-              status === 'error' ? 'text-status-error' : 'text-text-tertiary',
+              status === 'error' ? 'text-danger-fg' : 'text-fg-subtle',
             )}
           >
             {elapsedLabel}

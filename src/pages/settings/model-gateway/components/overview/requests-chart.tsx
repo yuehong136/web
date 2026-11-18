@@ -45,18 +45,18 @@ export function RequestsChart({ overview }: { overview: GatewayOverview }) {
       padding="default"
       title={t(`${PREFIX}.overview.chartTitle.${bucket}`)}
       actions={
-        <div className="flex items-center gap-space-md text-xs text-text-secondary">
+        <div className="flex items-center gap-space-md text-xs text-fg-muted">
           <span className="inline-flex items-center gap-space-xs">
             <span
               aria-hidden="true"
-              className="size-2 rounded-radius-sm bg-components-progress-fill"
+              className="size-2 rounded-radius-sm bg-accent-solid"
             />
             {t(`${PREFIX}.overview.chartSuccess`)}
           </span>
           <span className="inline-flex items-center gap-space-xs">
             <span
               aria-hidden="true"
-              className="size-2 rounded-radius-sm bg-status-warning"
+              className="size-2 rounded-radius-sm bg-warning-fg"
             />
             {t(`${PREFIX}.overview.chartFailed`)}
           </span>
@@ -64,7 +64,7 @@ export function RequestsChart({ overview }: { overview: GatewayOverview }) {
       }
     >
       {peak === 0 ? (
-        <p className="py-space-xl text-center text-sm text-text-tertiary">
+        <p className="py-space-xl text-center text-sm text-fg-subtle">
           {t(`${PREFIX}.overview.chartEmpty`)}
         </p>
       ) : (
@@ -79,7 +79,7 @@ export function RequestsChart({ overview }: { overview: GatewayOverview }) {
           </figcaption>
           <div
             aria-hidden="true"
-            className="flex h-36 items-end gap-0.5 border-b border-border-subtle"
+            className="flex h-36 items-end gap-0.5 border-b border-viz-axis"
           >
             {rows.map((row) => {
               const ok = Math.max(0, row.requests - row.errors)
@@ -87,11 +87,11 @@ export function RequestsChart({ overview }: { overview: GatewayOverview }) {
                 <div
                   key={row.start}
                   title={row.detail}
-                  className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-0.5 rounded-t-radius-sm hover:bg-state-hover"
+                  className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-0.5 rounded-t-radius-sm hover:bg-fill-hover"
                 >
                   {row.errors > 0 ? (
                     <div
-                      className="min-h-0.5 w-full max-w-12 rounded-t-radius-sm bg-status-warning"
+                      className="min-h-0.5 w-full max-w-12 rounded-t-radius-sm bg-warning-fg"
                       style={{ height: `${(row.errors / peak) * 100}%` }}
                     />
                   ) : null}
@@ -99,8 +99,8 @@ export function RequestsChart({ overview }: { overview: GatewayOverview }) {
                     <div
                       className={
                         row.errors > 0
-                          ? 'w-full max-w-12 bg-components-progress-fill'
-                          : 'w-full max-w-12 rounded-t-radius-sm bg-components-progress-fill'
+                          ? 'w-full max-w-12 bg-accent-solid'
+                          : 'w-full max-w-12 rounded-t-radius-sm bg-accent-solid'
                       }
                       style={{ height: `${(ok / peak) * 100}%` }}
                     />
@@ -113,7 +113,7 @@ export function RequestsChart({ overview }: { overview: GatewayOverview }) {
             {rows.map((row, index) => (
               <span
                 key={row.start}
-                className="min-w-0 flex-1 overflow-visible text-center text-xs whitespace-nowrap text-text-tertiary"
+                className="min-w-0 flex-1 overflow-visible text-center text-xs whitespace-nowrap text-fg-subtle"
               >
                 {index % step === 0 ? row.label : ''}
               </span>

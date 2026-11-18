@@ -38,7 +38,7 @@ function InnerRewriteNode({
           position={Position.Left}
           isConnectable={isConnectable}
           style={LeftHandleStyle}
-          className="!size-2 !border-none !bg-components-canvas-handle-bg"
+          className="!size-2 !border-none !bg-accent-solid"
         />
         <CommonHandle
           id={RewriteQuestionHandleId.Right}

@@ -128,7 +128,7 @@ export function SchemaDialog({
               </TabsContent>
             </Tabs>
             {schemaError && (
-              <p className="text-xs text-status-error">{schemaError}</p>
+              <p className="text-xs text-danger-fg">{schemaError}</p>
             )}
           </section>
           <DialogFooter>

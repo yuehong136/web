@@ -116,7 +116,7 @@ export function KeyFormSheet({
       <SheetContent
         side="right"
         showCloseButton={false}
-        className="h-full w-full overflow-hidden bg-background-surface p-0 sm:max-w-2xl"
+        className="h-full w-full overflow-hidden bg-surface p-0 sm:max-w-2xl"
       >
         <form onSubmit={submit} className="h-full" noValidate>
           <ContextPanel
@@ -137,7 +137,7 @@ export function KeyFormSheet({
                   <p
                     id={ERROR_ID}
                     role="alert"
-                    className="text-sm text-status-error"
+                    className="text-sm text-danger-fg"
                   >
                     {t(errorKey)}
                   </p>
@@ -162,7 +162,7 @@ export function KeyFormSheet({
               <div className="space-y-space-xs">
                 <Label htmlFor="gateway-key-name">
                   {t(`${PREFIX}.common.name`)}{' '}
-                  <span className="text-status-error" aria-hidden="true">
+                  <span className="text-danger-fg" aria-hidden="true">
                     *
                   </span>
                 </Label>

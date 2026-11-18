@@ -1,341 +1,122 @@
-# 100% 语义化设计令牌系统规范
-
-基于 Dify 项目的最佳实践，建立企业级前端主题管理系统。
-
-## 🎯 核心理念
-
-### 1. 设计令牌驱动 (Design Token-Driven)
-
-- 所有颜色通过 CSS 自定义属性 (`--color-*`) 定义
-- 约 430 个颜色令牌覆盖组件、文本、背景、状态等场景；零引用令牌按 ARCH-5 删除，`token-closure.test.ts` 保证消费方只引用已定义的令牌
-- 语义化命名：`components-button-primary-bg`、`text-secondary`、`status-error-solid`
-
-### 2. 自动化代码生成
-
-- 所有主题文件通过代码生成，确保一致性
-- 防止手动修改导致的不一致问题
-- 支持主题文件热更新和验证
-
-### 3. 分层架构设计
-
-```
-设计令牌定义 (tokens.ts)
-       ↓
-主题生成器 (theme-generator.ts)
-       ↓
-生成主题变量 (light.css / dark.css):
-  - --color-* 语义变量
-  - --twc-* 通道变量 (RGB 三通道，供 Tailwind /alpha 使用)
-       ↓
-Tailwind 4 集成 (themes/tailwind.css + tailwind-tokens-*.generated.css):
-  - @theme inline 将语义工具类映射到运行时 --color-* / --twc-* 变量
-  - build:themes 从同一令牌注册表生成 CSS 映射，不手改生成物
-       ↓
-组件应用 (React / Tailwind 工具类)
-```
-
-## 📚 令牌分类系统
-
-### 明暗主题的交互色配对
-
-| 语义             | 浅色主题 | 深色主题 | 消费入口                                                                 |
-| ---------------- | -------- | -------- | ------------------------------------------------------------------------ |
-| 选中、优选、焦点 | 绿色     | 紫色     | checkbox/radio/switch/slider 的组件令牌、`state-focus`、选中背景与文字   |
-| 主要操作         | 黑色     | 蓝色     | `components-button-primary-*`、`primary`、主操作链接、步骤与分页的当前项 |
-
-两组颜色由 `interaction-palette.ts` 统一定义，`theme-generator.ts` 分发到组件令牌。通用选中填充、可读文字、弱底分别使用 `state-selected`、`state-selected-text`、`state-selected-bg`；焦点使用 `state-focus`。选中填充与白色勾选/日期文本保持可辨对比，焦点和选中文字可使用同一色系的不同明度。不要把表单选中态映射到主按钮色，也不要按页面分别写明暗颜色。
-
-Tailwind 的 `--twc-primary` 从主按钮背景生成，`--twc-ring` 从 `state-focus` 生成；Radix、Antd 与原生表单控件消费对应组件令牌。反馈状态继续按 `status-*` 表达成功、错误、警告和信息，分类/图表颜色使用各自令牌，不承担交互配对语义。
-
-### 背景与文字层次
-
-`surface-palette.ts` 统一中性灰阶：浅色使用白色内容面板与细微灰色工作区底，深色使用炭灰底、稍亮面板和弹层。Console、Workspace、Studio、Settings 与 System 等模板共享这些层次；边框承担结构分隔，品牌色承担选中与焦点，避免整块区域带无意义色偏。
-
-共享 UI 使用的 `surface-primary/secondary/tertiary`、`border-primary/hover/focus`、`text-caption/on-accent` 等简写也注册为真实令牌，由同一调色板生成，不依赖不存在的工具类或浏览器默认色。
-
-主文字、说明与辅助文字对常用背景保持阅读对比；placeholder 仍需要可读，不使用禁用色代替。CSS 与 JS 主题产物必须包含完整且相同的令牌集合，生成器分类后补齐剩余令牌，禁止手改生成物或给漏发令牌写页面兜底色。
-
-### 基础令牌 (Foundation Tokens)
-
-```typescript
-// 文本系统
-'text-primary' // 主要文本
-'text-secondary' // 次要文本
-'text-tertiary' // 三级文本
-'text-muted' // 弱化文本
-'text-disabled' // 禁用文本
-'text-accent' // 强调文本
-'text-inverted' // 反色文本
+# 色彩令牌 2.0
 
-// 背景系统
-'background-body' // 页面主背景
-'background-default' // 默认背景
-'background-subtle' // 微妙背景
-'background-section' // 区块背景
-'background-overlay' // 遮罩背景
-'background-surface' // 表面背景
+六套配色方案和一套由品牌色生成的自定义方案共用同一份语义令牌。组件只引用语义角色，颜色由种子在构建期生成，并在每种组合下通过 WCAG 2.2 AA 合同测试。用法细则见 [开发指南](./development-guide.md)，旧名迁移见 [迁移指南](./migration-guide.md)。
 
-// 边框系统
-'border-default' // 默认边框
-'border-subtle' // 微妙边框
-'border-strong' // 强调边框
-'border-accent' // 强调色边框
-```
+## 四层结构
 
-### 组件令牌 (Component Tokens)
+| 层          | 源文件               | 内容                                                                                                              |
+| ----------- | -------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| L0 种子     | `color-schemes.ts`   | 每套方案 5 个输入：中性色调 `{h, c}`、强调色、AI 渐变三色相、主操作风格（墨色或强调色）、浅色工作面（纯白或暖纸） |
+| L1 色阶     | `color-scales.ts`    | gray / accent / ai / success / warning / danger / info 各 12 阶 OKLCH，CSS 变量 `--scale-<名>-<阶>`               |
+| L2 语义角色 | `semantic-tokens.ts` | 128 个角色，CSS 变量 `--color-<角色>`，Tailwind 工具类 `bg-surface`、`text-fg`、`border-line` …                   |
+| L3 组件别名 | 按需，目前没有       | 组件直接用角色；确有偏离时才建别名，值只能是 `var(--color-<角色>)`。2.0 之前的 443 个组件令牌已全部收敛并删除     |
 
-```typescript
-// 按钮组件完整状态覆盖
-'components-button-primary-bg'
-'components-button-primary-bg-hover'
-'components-button-primary-bg-active'
-'components-button-primary-bg-disabled'
-'components-button-primary-text'
-'components-button-primary-text-disabled'
-'components-button-primary-border'
-'components-button-primary-border-hover'
+生成物：`light.css`、`dark.css`（每套方案一个基础块，加高对比与主操作覆盖块）、`token-values.generated.ts`（给 canvas、图表、Monaco 的 hex / rgba 值）、`tailwind-tokens-*.generated.css`（`@theme inline` 映射）。修改任何种子或角色后运行 `npm run build:themes` 并提交生成物。
 
-// 输入框组件完整状态覆盖
-'components-input-bg'
-'components-input-bg-hover'
-'components-input-bg-focus'
-'components-input-border'
-'components-input-border-hover'
-'components-input-border-focus'
-'components-input-border-error'
-'components-input-text'
-'components-input-text-placeholder'
-```
+### 色阶阶号
 
-### 状态令牌：两条语义轴 (State Tokens — Two Semantic Axes)
+沿用 Radix Colors：1–2 应用背景，3–5 组件底（静止 / 悬停 / 按下），6–8 边框，9–10 实色，11–12 文字。第 11 阶对第 4 阶求解（标准 ≥ 4.6:1，高对比 ≥ 7:1），所以强调色文字在浅底和悬停底上都达标；实色上的文字（`*-on-solid`）也是求解出来的，色相 55°–125° 的强调色（琥珀、黄）自动用深色字。
 
-主流现代化设计系统（Radix / shadcn、Ant Design、Material 3 等）都把「**交互状态**」与「**反馈/意图色**」当作两条独立语义轴。本项目同样拆成两个前缀，**禁止混用**：
+## 六套方案
 
-| 语义轴                          | 前缀           | 含义                          | 取值                                                                                 |
-| ------------------------------- | -------------- | ----------------------------- | ------------------------------------------------------------------------------------ |
-| 交互状态 (Interaction state)    | **`state-*`**  | 元素与指针/键盘交互时的瞬时态 | `state-hover` / `state-active` / `state-focus` / `state-disabled` / `state-selected` |
-| 反馈/意图色 (Feedback / intent) | **`status-*`** | 表达操作结果或语义意图        | `status-success` / `status-warning` / `status-error` / `status-info`                 |
+| 方案             | 中性 h / c  | 强调 h / c | 主操作 | 适用                                           |
+| ---------------- | ----------- | ---------- | ------ | ---------------------------------------------- |
+| `ink` 墨（默认） | 265 / 0.004 | 264 / 0.20 | 墨色   | 日常工作；强调色只出现在选中、焦点、链接与引用 |
+| `mist` 雾蓝      | 240 / 0.011 | 245 / 0.13 | 强调色 | 延续 2.0 之前的默认风格                        |
+| `celadon` 青瓷   | 185 / 0.007 | 190 / 0.10 | 强调色 | 检索与阅读                                     |
+| `clay` 陶土      | 70 / 0.010  | 48 / 0.13  | 墨色   | 写作与研究；暖纸工作面，长回答用衬线字体       |
+| `iris` 鸢尾      | 290 / 0.008 | 290 / 0.19 | 强调色 | Agent 编排与创作                               |
+| `amber` 琥珀     | 250 / 0.006 | 72 / 0.155 | 墨色   | 运维、数据与开发；实色用深色字                 |
 
-#### 1) 交互状态令牌 (Interaction Tokens) → `state-*`
+与强调色相近的状态色按方案挪开：陶土的 danger 移到 20°，琥珀的 warning 移到 52°。状态色仍不是唯一信号，配图标或文字。
 
-```typescript
-'state-hover' // 悬停状态 - 通用悬停效果
-'state-active' // 激活状态 - 按钮按下、选中
-'state-focus' // 聚焦状态 - 键盘导航、表单聚焦（含 state-focus-10 / state-focus-subtle）
-'state-disabled' // 禁用状态 - 不可交互元素
-'state-selected' // 选中状态 - 选中控件填充（含 state-selected-text / state-selected-bg）
-```
+### 自定义方案（品牌色）
 
-#### 2) 反馈/意图色令牌 (Feedback Tokens) → `status-*`（canonical）
+`custom` 方案从用户选的品牌色（OKLCH 色相与彩度）和底色色调生成，生成器在浏览器里运行，产出与内置方案相同的全部角色、高对比与主操作变体。CSS 以 constructable stylesheet 安装（严格 CSP 允许），并缓存给 `public/theme-init.js` 在首帧前装上；`getTokenValue(…, 'custom')` 返回生成值。与品牌色相差不足 25° 的状态色相自动挪开 30°。种子保存在本机的 `appearance.custom`，彩度 0.04–0.22、底色色调 0–0.03，超出范围会被夹回到测试覆盖的区间。
 
-每个意图（success / warning / error / info）在每套主题下有一条 12 阶 OKLCH 色阶（`status-palette.ts`，阶号沿用 Radix Colors：1–2 应用背景、3–5 组件背景、6–8 边框、9–10 实心填充、11–12 文字）。9–11 阶不是手挑的，而是按 WCAG AA 对产品表面求解出来的。消费方只用下面的角色：
+2.0 之前的偏好自动迁移：`studio`、`graphite` → `ink`，`paper` → `clay`，`ocean` → `celadon`（`appearance.ts` 与 `public/theme-init.js` 同一规则）。
 
-```typescript
-'status-error' // 文字、图标、指示点、进度条、图表标记、控件错误边框
-'status-error-solid' // 实心按钮、徽标、计数胶囊的填充
-'status-error-solid-hover' // 实心填充的悬停态
-'status-error-on-solid' // 实心填充上的文字与图标（警告用深琥珀色，其余为白色）
-'status-error-subtle' // 浅色提示条、标签、行高亮的底色（半透明）
-'status-error-subtle-hover' // 浅色底的悬停态
-'status-error-border' // 浅色提示条、标签、卡片的描边（半透明）
-```
+### 外观维度
 
-使用约定：
+`appearance` 偏好在原有的 `preset`、`mode`、`density`、`textScale`、`motion` 之外新增：
 
-- 文字/图标用 `text-status-error`；浅色块用 `bg-status-error-subtle border-status-error-border text-status-error`；
-- 实心块三件套：`bg-status-error-solid text-status-error-on-solid hover:bg-status-error-solid-hover`，不要给 `status-error` 配白字（暗色主题下前景是浅色）；
-- 不再使用 `-10` 变体或斜杠透明度（`bg-status-error/10`），也不要给状态文字降透明度；
-- 契约：`categorical-palette.test.ts` 检查前景对表面、浅色填充、悬停底、描边按钮静止与悬停态，前景对自身浅色底（含选中行），以及实心标签对实心底与悬停底，均 ≥ 4.5:1；旧的 500 色阶会被这条测试判失败。
+- `contrast`：`standard` | `high`。高对比加深次要文字、描边、焦点环与语法色，生成器直接产出，同样经过合同测试。
+- `action`：`scheme` | `ink` | `accent`。主按钮与发送按钮用墨色还是强调色，`scheme` 跟随方案默认。
 
-组件状态族（alert、badge 的四个状态、task-status 的完成/失败/取消、system-health/status、`components-api-status-error`、HTTP 方法 GET/PUT/DELETE、`components-steps-completed`、画布节点状态、`components-system-chart-*` 的 done/failed/pending）由 `status-component-tokens.ts` 从同一色阶派生；POST 的青色与 PATCH 的紫色是分类色，保持原值。
+根节点与 `ScopedTheme` 容器同时写 `data-preset`、`data-theme`、`data-contrast`、`data-action`。只带 `data-theme` 的门户内容（菜单、对话框）通过后代选择器继承最近的方案。
 
-#### 3) 历史 alias `state-{success,warning,error,info}` —— 已移除（强制）
+## 语义角色
 
-历史上反馈色曾写作 `state-success/warning/error/info`（含 `-10`/`-subtle`），并在迁移过渡期作为 `status-*` 的等值 legacy alias 保留。该 alias（12 个 key）现已**物理删除**，反馈态统一用 canonical `status-*`：
+### 表面 · 填充 · 文字 · 线
 
-- ✅ 反馈态**只写 `status-*`**（上面的角色后缀）；
-- ❌ **禁止以任何形式复活** `state-success/warning/error/info`：class（含 `from-/via-/to-` 渐变档位）、`var(--color-state-*)`、裸字符串 / `readCssVar()` / 拼接均被 ESLint 规则 `design-tokens/no-feedback-state-token`（`error` 级，覆盖 `src/**/*.{ts,tsx}`，排除 `src/themes/**`）拦截，新写会直接报错；
-- ✅ 交互态 `state-hover/active/focus/disabled/selected`（含 `state-focus-10`/`-subtle`）与中性 `state-neutral-10` 不受影响，继续使用。
+| 角色                                                           | 用途                                                       |
+| -------------------------------------------------------------- | ---------------------------------------------------------- |
+| `canvas`                                                       | 应用底色：导航轨、侧栏、工作卡外沿                         |
+| `surface`                                                      | 主工作面：对话、列表、编辑器、输入框                       |
+| `raised` / `raised-hover`                                      | 浮起的卡片、画布节点、证据卡及其悬停                       |
+| `overlay`                                                      | 菜单、Popover、对话框                                      |
+| `sunken`                                                       | 代码块、工具调用、分段控件底                               |
+| `inverse` · `fg-inverse`                                       | Tooltip、Toast                                             |
+| `scrim`                                                        | 模态遮罩                                                   |
+| `fill-hover` / `fill-pressed` / `fill-selected` / `fill-muted` | 半透明交互底，可叠在任何表面上；中性选中用 `fill-selected` |
+| `fg` / `fg-muted` / `fg-subtle` / `fg-disabled`                | 正文、次要说明、元信息与占位符（仍 ≥ 4.5:1）、禁用         |
+| `line-subtle` / `line` / `line-strong` / `line-focus`          | 分隔线、控件描边、强调描边、键盘焦点环（≥ 3:1）            |
+| `knob`                                                         | 开关与滑块的拨钮                                           |
+| `action-bg` / `action-bg-hover` / `action-fg`                  | 主按钮、发送按钮                                           |
 
-**全仓状态**：反馈态 `state-*` → `status-*` 迁移与 alias 删除均已完成（迁移见 `docs/design-tokens/2026-05-20-design-token-feedback-migration-summary.md`，alias 删除见 `docs/design-tokens/2026-05-20-feedback-state-alias-deprecate-summary.md`）。原先各自硬编码分类调色板的 mindmap 与知识图谱，已统一收敛到 `data-viz-categorical-1..10`（见下节）。
+浅色方案的工作面是纯白（陶土为暖纸），深色方案逐级提亮；侧栏所在的 `canvas` 始终退后于工作卡。深色阴影以顶部高光代替投影（`--elevation-*`，按方案中性色调着色）。
 
-> 注：早期的 `text-success/warning/error`、`border-success/warning/error` 与 `status-*-10` 已在状态色阶上线时删除，消费方迁到了上面的角色。
+### 意图 × 角色
 
-### 头像色调 `components-avatar-{1..8}-*`
+7 个意图共用 7 个后缀，共 49 个令牌：
 
-`EntityAvatar`（`components/patterns/entity-avatar.tsx`）的单字头像底色。8 个色相在 OKLCH 中均匀分布（`avatar-palette.ts`）：浅色主题是浅色不透明底 + 深色字，暗色主题是深色底 + 浅色字，字色按 AA 求解，`categorical-palette.test.ts` 覆盖。同一实体按 id 稳定取色，所以列表、详情、选择器和聊天里颜色一致。
+- 意图：`accent`、`ai`、`neutral`、`success`、`warning`、`danger`、`info`。
+- 后缀：`-solid`、`-solid-hover`、`-on-solid`、`-fg`、`-soft`、`-soft-hover`、`-line`。
 
-### 阴影层级 `elevation`
+| 用法             | 组合                                                                   |
+| ---------------- | ---------------------------------------------------------------------- |
+| 文字、图标、指示 | `text-danger-fg`                                                       |
+| 浅色块           | `bg-danger-soft border-danger-line text-danger-fg`，悬停 `-soft-hover` |
+| 实色块           | `bg-danger-solid text-danger-on-solid hover:bg-danger-solid-hover`     |
 
-阴影不属于颜色令牌。`elevation.ts` 为两套主题各定义 low / medium / high 三级，生成到 `light.css` / `dark.css` 的 `--elevation-*`，Tailwind 以 `shadow-elevation-*` 暴露（`@theme inline` 直接引用运行期变量，作用域主题的子树也会取到自己的阴影）。内联样式用 `var(--elevation-medium)` 等。
+- 不要给 `*-fg` 配白字（深色主题下它是浅色）；
+- 不要给角色加透明度来造浅色（`bg-danger-solid/10`），浅色用 `-soft`。
 
-### 数据可视化分类调色板 `data-viz-categorical-*`（强制）
+强调色的角色分工：
 
-「分类/序列」着色（多色、无单一语义）的**唯一来源**。明暗主题各一套值。
+- `accent-solid`：选中的控件；
+- `accent-soft` + `accent-fg`：选中行、选中标签；
+- `accent-fg`：链接与强调文字；
+- 主操作走 `action-*`，两者可以是同一色相，但语义不混用。
 
-- **单一来源 → 多 target**：`theme-generator.ts` 的 `lightTokens`/`darkTokens` 既产出 CSS 变量（`light.css`/`dark.css`，给 Tailwind / DOM / scoped-theme），又产出 typed JS 值（`src/themes/token-values.generated.ts`，给 canvas / G6）。两者由 `npm run build:themes` 同时生成；`*.generated.ts` 是构建产物，勿手改，改 token 后重跑 `build:themes`。
-- **档位**：`data-viz-categorical-1..10`，色盲安全 / 感知均匀的 **OKLCH 生成 scale**（light L≈0.60 C≈0.142，dark L≈0.74 C≈0.123，hue 环 36° 均匀）。色相顺序（light）：red / 青 / 黄 / 蓝 / 绿 / 品红 / 橙 / 天蓝 / 黄绿 / 紫。各档对该主题画布 ≥3:1，相邻档在 protan/deutan/tritan 模拟下仍可区分。provenance：`scripts/gen-categorical-oklch.mjs`。
-- **用途**：图表多序列、思维导图层级色、知识图谱实体类型色等。当前消费者：`src/pages/search/detail/mindmap`（用 1-6）、`src/pages/knowledge/graph`（用 1-10）。
-- **如何消费（默认 = 静态按主题）**：统一走 `@/lib/design-tokens`，**不要硬编码 hex、不要在页面里另起调色板**：
-  - `getCategoricalPalette(theme, count?)` —— 按主题取颜色数组（静态、类型安全、SSR 安全），喂给 canvas / G6 / recharts。theme 由 `useIsDarkTheme() ? 'dark' : 'light'`（组件）或 `getResolvedTheme()`（非 hook）得到；
-  - `getTokenValue(name, theme)` —— 按主题取任意 token 值（`name` 受 `keyof DesignTokens` 约束，编译期拒绝拼错）；
-  - `getCategoricalIndex(key, count?)` —— 把分类 key（如实体类型名）确定性映射到槽位，使同一类型在多处（如画布与侧栏）颜色一致；
-  - `getCategoricalColorVar(index)` —— 返回 `var(--color-data-viz-categorical-N)`，供 DOM `style` 引用（随 scoped-theme 切换）；
-  - `readCssVar(token, fallback, element?)` —— **仅限 scoped-theme / embed 子树**的运行期 CSS 变量读取（dev 下对解析为空按 token 去重告警）。根主题消费请用上面的静态访问器，不要走 getComputedStyle。
-- **与 `components-system-chart-*` 的分工**：`data-viz-categorical-*` 是**无语义的分类/序列**色；`components-system-chart-*`（done/failed/pending/lag + grid/axis/tooltip）是**语义状态图表**色（如 `task-executor-chart`）。语义状态色不要塞进 categorical，分类色也不要复用状态色。
-- **无障碍**：categorical 色不单独承载语义，分类识别仍须配合 label / tooltip / 文案（颜色非唯一信号）。
-- **约定**：分类 token 用静态字面量 / `enum → 静态 class map`，**不要字符串拼接构造 token classname**，使完整字面量可被 lint / grep 检索。
+### AI 内容
 
-## 🏗️ 实施架构
+| 角色                                                                | 用途                                                                                                                      |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `ai-from` / `ai-via` / `ai-to` / `ai-glow`                          | AI 时刻的渐变与光晕，只经由 `bg-ai-tide`、`ai-glow`、`ai-halo` 使用（输入框聚焦、思考与检索中、运行中的 Agent、首页问候） |
+| `ai-*`（意图矩阵）                                                  | 运行中的任务、深度研究开关、AI 生成标记                                                                                   |
+| `reasoning-fg` / `reasoning-line`                                   | 思考过程正文与引线                                                                                                        |
+| `tool-bg` / `tool-line`                                             | 工具调用卡                                                                                                                |
+| `citation-bg` / `citation-fg` / `citation-bg-hover`                 | 引用角标                                                                                                                  |
+| `highlight-bg` / `highlight-fg`                                     | 检索命中（`<em>` / `<mark>`）                                                                                             |
+| `caret`                                                             | 流式输出光标                                                                                                              |
+| `run-queued` / `-running` / `-succeeded` / `-failed` / `-cancelled` | 运行状态点、连线与进度；`-cancelled` 配删除线                                                                             |
 
-### 第一层：设计令牌定义 (tokens.ts)
+AI 感靠动效与结构（shimmer、可折叠思考、引用芯片）表达，不给普通内容上色；普通按钮、卡片、标签不使用 AI 渐变（`design-guard/no-raw-visual-values` 拦截不含 `ai-from/via/to` 的渐变）。
 
-- 完整的 TypeScript 类型定义
-- 500+ 设计令牌覆盖所有使用场景
-- 语义化命名规范
+### 代码 · 数据可视化 · 身份
 
-### 第二层：CSS 变量映射 (generated)
+- `code-bg`、`code-fg`、`syntax-keyword`（随强调色）、`syntax-function`、`syntax-type`、`syntax-string`、`syntax-number`、`syntax-comment`：Shiki 使用 CSS 变量主题直接读取，Monaco 主题由 `getTokenValue` 生成。
+- `viz-1..10`：分类色，身份稳定，不随方案换色相（知识图谱实体、思维导图层级、多序列图表），对表面 ≥ 3:1；`viz-axis` 是图表基线。分类色不能单独承载语义，配合标签或文案。
+- `avatar-1..8-bg` / `-fg`：头像、知识库、文件类型、模型供应商的身份色，同一实体按 id 稳定取色，字色对底色 ≥ 4.6:1。文件类型映射见 `identity.ts`。
 
-- 自动生成 `light.css` 和 `dark.css`
-- 通过代码生成确保一致性
-- 支持注释标记防止手动修改
+## 合同测试
 
-### 第三层：Tailwind 4 集成
+`npm run test:design-tokens` 覆盖：
 
-- 无缝集成到 Tailwind CSS
-- 支持所有设计令牌作为 Tailwind 类名
-- `tailwind-vars.ts` 定义语义颜色别名，`build:themes` 同步生成四份 `@theme inline` CSS；每份生成物小于 600 行
-- `themes/tailwind.css` 配置间距、圆角、阴影、动画和插件；Vite 使用 `@tailwindcss/vite`，不再使用 Tailwind JS 配置或旧 PostCSS 流程
-- 通过运行时变量和 Tailwind 4 的 `color-mix()` 获得斜杠透明度能力：
-  - 示例：`bg-primary/10`、`hover:bg-primary/90`、`ring-ring/50`、`border-border/30`
-- 暗黑模式使用 CSS `@custom-variant dark`，同时识别 `.dark` 与 `[data-theme="dark"]`，支持局部主题作用域
-- 间距和圆角使用原生主题命名空间，支持 `md:p-space-lg`、`hover:shadow-elevation-low` 等变体；容器查询使用 Tailwind 4 原生能力
+- 每套方案 × 明暗 × 对比度 × 主操作风格下，文字对五种表面、意图前景对 `-soft` / `-soft-hover` / 表面、`-on-solid` 对实色及悬停、引用、高亮、语法色、身份色达到 4.5:1；焦点环、运行状态、分类色达到 3:1；品牌色方案对 24 个色相 × 3 档彩度 × 2 档底色色调同样校验（`semantic-contract.test.ts`）；
+- 每个方案基础块声明全部角色、品牌种子的取值范围、偏好迁移规则（`appearance-presets.test.ts`）；
+- 提交的 CSS / JS 与生成器一致（`categorical-palette.test.ts`）；
+- 源码里的工具类与 `var(--color-*)` 只引用已定义的令牌，意图矩阵以外的每个角色都有消费方（`token-closure.test.ts`）。
 
-#### 通道变量规范
-
-- `--twc-primary`: 主色 RGB（不含透明度）
-- `--twc-primary-foreground`: 主色文字 RGB
-- `--twc-foreground` / `--twc-background` / `--twc-ring` / `--twc-border`
-- 以上变量由生成器自动写入 `light.css` / `dark.css`，禁止手改
-
-### 第四层：组件应用
-
-- React 组件使用标准化的设计令牌
-- 统一的组件样式类 (.btn-primary, .card, .input-field)
-- 完整的主题响应能力
-
-示例（推荐的 Tailwind 写法，搭配语义颜色键）：
-
-```tsx
-<button className="inline-flex items-center justify-center rounded-md border border-primary bg-primary px-4 py-2 text-sm font-medium text-primary-foreground ring-offset-background hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:opacity-50">
-  提交
-</button>
-```
-
-## 🚀 自动化工具链
-
-运行 `npm run build:themes`，由 [build-themes.ts](./build-themes.ts) 统一写入并格式化生成物：
-
-- [theme-generator.ts](./theme-generator.ts) 的 `generateThemeFiles()` 生成明暗 CSS 与 typed JS 值，并通过 `validateTokens()` 检查令牌。
-- [tailwind-theme-generator.ts](./tailwind-theme-generator.ts) 的 `generateTailwindThemeFiles()` 从共享颜色注册表生成 Tailwind CSS 映射。
-- 提交 `light.css`、`dark.css`、`token-values.generated.ts` 和 `tailwind-tokens-*.generated.css`，不手改生成物。
-
-生成器检查不代表所有组件的颜色对比度和交互已经验收。令牌及样式合同执行 `npm run test:design-tokens`，UI 仍按[验证规则](../../docs/agent-guidance/verification.md#scope)检查明暗主题、焦点和实际交互。
-
-## 📋 开发规范
-
-### 1. 禁止硬编码颜色
-
-```tsx
-// ❌ 错误做法
-<div className="bg-blue-500 text-white">
-
-// ✅ 正确做法
-<div className="bg-components-button-primary-bg text-components-button-primary-text">
-```
-
-### 2. 使用语义化令牌
-
-```tsx
-// ❌ 错误做法
-<div className="text-gray-600">
-
-// ✅ 正确做法
-<div className="text-text-secondary">
-```
-
-### 3. 组件状态令牌
-
-```tsx
-// ✅ 完整的状态支持
-<button className="
-  bg-components-button-primary-bg
-  hover:bg-components-button-primary-bg-hover
-  active:bg-components-button-primary-bg-active
-  disabled:bg-components-button-primary-bg-disabled
-">
-```
-
-## 🎨 扩展能力
-
-### 1. 多品牌主题
-
-- 支持不同品牌色系
-- 独立的令牌配置文件
-- 运行时主题切换
-
-### 2. 自定义组件令牌
-
-- 业务组件专用令牌
-- 复杂交互状态支持
-- 动画和过渡效果令牌
-
-### 3. 响应式设计令牌
-
-- 不同屏幕尺寸的令牌变体
-- 移动端优化令牌
-- 打印样式令牌
-
-## 📊 性能优化
-
-### 1. CSS 变量优化
-
-- 使用 `rgb()` 函数支持透明度
-- 避免重复计算
-- 最小化 CSS 文件体积
-
-### 2. 构建时优化
-
-- 未使用令牌的自动清理
-- CSS 压缩和合并
-- 关键路径 CSS 内联
-
-### 3. 运行时优化
-
-- 主题切换动画优化
-- 避免 FOUC (Flash of Unstyled Content)
-- 主题预加载机制
-
-## 🔄 迁移策略
-
-### Phase 1: 基础架构建立
-
-1. 完善设计令牌定义
-2. 实现自动化生成工具
-3. 建立开发规范
-
-### Phase 2: 组件系统升级
-
-1. 核心组件令牌化改造
-2. 页面级主题应用
-3. 兼容性测试
-
-### Phase 3: 高级特性实现
-
-1. 多品牌主题支持
-2. 动态主题能力
-3. 性能优化完善
-
----
-
-**目标：实现像 Dify 一样的企业级主题系统，确保 100% 设计令牌覆盖，为项目的长期发展奠定坚实基础。**
+门槛按 WCAG 2.2 AA 计算。APCA 目前不在 WCAG 3 草案中，只作参考。

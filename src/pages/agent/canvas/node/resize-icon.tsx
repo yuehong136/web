@@ -10,7 +10,7 @@ export function ResizeIcon() {
       fill="none"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="text-text-secondary transition-colors hover:text-components-system-accent-text"
+      className="text-fg-muted transition-colors hover:text-accent-fg"
       style={{
         position: 'absolute',
         right: 4,

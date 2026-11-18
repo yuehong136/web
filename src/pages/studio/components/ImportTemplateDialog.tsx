@@ -116,13 +116,13 @@ export function ImportTemplateDialog({
           <div
             onDrop={drop}
             onDragOver={(event) => event.preventDefault()}
-            className="flex flex-col items-center gap-space-sm rounded-radius-lg border border-dashed border-border-default bg-background-subtle p-space-lg text-center"
+            className="flex flex-col items-center gap-space-sm rounded-radius-lg border border-dashed border-line bg-sunken p-space-lg text-center"
           >
             <FileJson
-              className="size-icon-xl text-text-tertiary"
+              className="size-icon-xl text-fg-subtle"
               aria-hidden="true"
             />
-            <p className="text-sm text-text-secondary">
+            <p className="text-sm text-fg-muted">
               {t('studio.importDialog.dropHint')}
             </p>
             <Input
@@ -149,18 +149,18 @@ export function ImportTemplateDialog({
               {t('studio.importDialog.chooseFile')}
             </Button>
             {file && (
-              <p className="max-w-full truncate text-sm font-medium text-text-primary">
+              <p className="max-w-full truncate text-sm font-medium text-fg">
                 {file.name}
               </p>
             )}
           </div>
           {issue && (
-            <p role="alert" className="text-sm text-status-error">
+            <p role="alert" className="text-sm text-danger-fg">
               {t(`studio.importDialog.validation.${issue}`)}
             </p>
           )}
           {mutation.isError && !result && (
-            <p aria-live="polite" className="text-sm text-status-error">
+            <p aria-live="polite" className="text-sm text-danger-fg">
               {t('studio.importDialog.retryHint')}
             </p>
           )}
@@ -169,7 +169,7 @@ export function ImportTemplateDialog({
               <p className="text-sm font-medium">
                 {t('studio.importDialog.processed', { count: result.total })}
               </p>
-              <p className="text-sm text-text-secondary">
+              <p className="text-sm text-fg-muted">
                 {t('studio.importDialog.summary', {
                   imported: result.imported.length,
                   failed: result.failed.length,
@@ -180,16 +180,16 @@ export function ImportTemplateDialog({
                   {result.imported.map((item) => (
                     <li
                       key={item.id}
-                      className="flex items-start gap-space-sm rounded-radius-md border border-border-subtle p-space-sm"
+                      className="flex items-start gap-space-sm rounded-radius-md border border-line-subtle p-space-sm"
                     >
                       <CheckCircle2
-                        className="size-icon-sm shrink-0 text-status-success"
+                        className="size-icon-sm shrink-0 text-success-fg"
                         aria-hidden="true"
                       />
                       <div className="min-w-0">
                         <p className="text-sm break-words">{item.name}</p>
                         {item.warnings?.length > 0 && (
-                          <p className="text-xs text-text-secondary">
+                          <p className="text-xs text-fg-muted">
                             {t('studio.importDialog.warnings', {
                               count: item.warnings.length,
                             })}
@@ -206,22 +206,22 @@ export function ImportTemplateDialog({
                     {result.failed.map((item, index) => (
                       <li
                         key={`${item.name}-${index}`}
-                        className="flex items-start gap-space-sm rounded-radius-md border border-status-error-subtle p-space-sm"
+                        className="flex items-start gap-space-sm rounded-radius-md border border-danger-soft p-space-sm"
                       >
                         <XCircle
-                          className="size-icon-sm shrink-0 text-status-error"
+                          className="size-icon-sm shrink-0 text-danger-fg"
                           aria-hidden="true"
                         />
                         <div className="min-w-0">
                           <p className="text-sm break-words">{item.name}</p>
-                          <p className="text-xs text-status-error">
+                          <p className="text-xs text-danger-fg">
                             {t('studio.importDialog.failedItem')}
                           </p>
                         </div>
                       </li>
                     ))}
                   </ul>
-                  <p className="text-sm text-text-secondary">
+                  <p className="text-sm text-fg-muted">
                     {t('studio.importDialog.partialHint')}
                   </p>
                 </>

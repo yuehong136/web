@@ -163,14 +163,11 @@ const renderField = (
               <div className="flex items-center gap-1">
                 <Label
                   id={labelId}
-                  className={cn(
-                    'text-sm font-medium text-text-primary',
-                    labelClassName,
-                  )}
+                  className={cn('text-sm font-medium text-fg', labelClassName)}
                 >
                   {field.label}
                   {field.required && (
-                    <span className="ml-1 text-status-error">*</span>
+                    <span className="ml-1 text-danger-fg">*</span>
                   )}
                 </Label>
                 {field.tooltip && <FormTooltip tooltip={field.tooltip} />}
@@ -180,7 +177,7 @@ const renderField = (
               {field.render!(fieldProps)}
             </div>
             {fieldState.error && (
-              <p role="alert" className="text-sm text-status-error">
+              <p role="alert" className="text-sm text-danger-fg">
                 {fieldState.error.message}
               </p>
             )}
@@ -204,14 +201,11 @@ const renderField = (
               <Label
                 id={labelId}
                 htmlFor={id}
-                className={cn(
-                  'text-sm font-medium text-text-primary',
-                  labelClassName,
-                )}
+                className={cn('text-sm font-medium text-fg', labelClassName)}
               >
                 {field.label}
                 {field.required && (
-                  <span className="ml-1 text-status-error">*</span>
+                  <span className="ml-1 text-danger-fg">*</span>
                 )}
               </Label>
               {field.tooltip && <FormTooltip tooltip={field.tooltip} />}
@@ -314,7 +308,7 @@ const renderField = (
             <div
               role="group"
               aria-labelledby={labelId}
-              className="flex gap-1 rounded-lg bg-surface-secondary p-1"
+              className="flex gap-1 rounded-lg bg-sunken p-1"
             >
               {field.options?.map((option) => (
                 <button
@@ -325,8 +319,8 @@ const renderField = (
                   className={cn(
                     'flex-1 rounded-md px-3 py-1.5 text-sm transition-colors',
                     fieldProps.value === option.value
-                      ? 'bg-surface-primary text-text-primary shadow-xs'
-                      : 'text-text-secondary hover:text-text-primary',
+                      ? 'bg-surface text-fg shadow-xs'
+                      : 'text-fg-muted hover:text-fg',
                   )}
                 >
                   {option.label}
@@ -340,7 +334,7 @@ const renderField = (
               FormFieldType.Password,
               FormFieldType.Number,
             ].includes(field.type) && (
-              <p role="alert" className="text-sm text-status-error">
+              <p role="alert" className="text-sm text-danger-fg">
                 {fieldState.error.message}
               </p>
             )}

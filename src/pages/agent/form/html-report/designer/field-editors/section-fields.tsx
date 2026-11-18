@@ -64,7 +64,7 @@ export function SectionFields({ section, dispatch }: SectionFieldsProps) {
       </InspectorField>
       <div className="space-y-space-xs">
         <div className="flex items-center justify-between gap-space-sm">
-          <Label className="text-xs text-text-secondary">
+          <Label className="text-xs text-fg-muted">
             {t('flow.htmlReportSectionTitle', 'Section title')}
           </Label>
           <ModeSwitch

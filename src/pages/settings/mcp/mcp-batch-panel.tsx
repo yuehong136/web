@@ -31,11 +31,11 @@ function Group({
   children: React.ReactNode
 }) {
   return (
-    <section className="flex flex-col gap-space-sm border-t border-border-subtle pt-space-base first:border-t-0 first:pt-0">
+    <section className="flex flex-col gap-space-sm border-t border-line-subtle pt-space-base first:border-t-0 first:pt-0">
       <div>
-        <h3 className="text-sm font-semibold text-text-primary">{title}</h3>
+        <h3 className="text-sm font-semibold text-fg">{title}</h3>
         {description ? (
-          <p className="text-xs text-text-secondary">{description}</p>
+          <p className="text-xs text-fg-muted">{description}</p>
         ) : null}
       </div>
       {children}
@@ -158,7 +158,7 @@ export function MCPBatchPanel({
         {exported ? (
           <div className="flex flex-col gap-space-xs">
             <div className="flex items-center gap-space-xs">
-              <span className="flex-1 text-xs font-medium text-text-secondary">
+              <span className="flex-1 text-xs font-medium text-fg-muted">
                 {t('mcp.batch.exportResult')}
               </span>
               <Button
@@ -223,7 +223,7 @@ export function MCPBatchPanel({
           <p
             id={`${importId}-error`}
             role="alert"
-            className="text-xs text-status-error"
+            className="text-xs text-danger-fg"
           >
             {t('mcp.batch.importInvalid')}
           </p>
@@ -247,17 +247,17 @@ export function MCPBatchPanel({
             {history.map((operation, index) => (
               <li
                 key={`${operation.at.getTime()}-${index}`}
-                className="flex items-center gap-space-sm border-t border-border-subtle py-space-xs text-xs first:border-t-0"
+                className="flex items-center gap-space-sm border-t border-line-subtle py-space-xs text-xs first:border-t-0"
               >
                 <span
                   aria-hidden="true"
                   className={
                     operation.success
-                      ? 'size-1.5 shrink-0 rounded-radius-full bg-status-success'
-                      : 'size-1.5 shrink-0 rounded-radius-full bg-status-error'
+                      ? 'size-1.5 shrink-0 rounded-radius-full bg-success-fg'
+                      : 'size-1.5 shrink-0 rounded-radius-full bg-danger-fg'
                   }
                 />
-                <span className="min-w-0 flex-1 text-text-secondary">
+                <span className="min-w-0 flex-1 text-fg-muted">
                   {t(
                     `mcp.batch.operations.${operation.kind}.${
                       operation.success ? 'success' : 'failed'
@@ -267,7 +267,7 @@ export function MCPBatchPanel({
                 </span>
                 <time
                   dateTime={operation.at.toISOString()}
-                  className="text-text-tertiary tabular-nums"
+                  className="text-fg-subtle tabular-nums"
                 >
                   {time.format(operation.at)}
                 </time>

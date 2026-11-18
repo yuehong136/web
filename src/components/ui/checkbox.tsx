@@ -31,12 +31,12 @@ const Checkbox = React.forwardRef<
     ref={ref}
     className={cn(
       'peer size-icon-sm shrink-0 rounded-radius-sm border outline-0 transition-colors duration-150 motion-reduce:transition-none',
-      'border-components-checkbox-border bg-components-checkbox-bg',
-      'data-[state=unchecked]:hover:border-components-input-border-hover',
-      'focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:ring-offset-2 focus-visible:ring-offset-background-surface',
+      'border-line-strong bg-surface',
+      'data-[state=unchecked]:hover:border-line-strong',
+      'focus-visible:ring-2 focus-visible:ring-line-focus focus-visible:ring-offset-2 focus-visible:ring-offset-surface',
       'disabled:cursor-not-allowed disabled:opacity-50',
-      'data-[state=checked]:border-components-checkbox-border-checked data-[state=checked]:bg-components-checkbox-bg-checked data-[state=checked]:text-components-checkbox-icon',
-      'data-[state=indeterminate]:border-components-checkbox-border-checked data-[state=indeterminate]:bg-components-checkbox-bg-checked data-[state=indeterminate]:text-components-checkbox-icon',
+      'data-[state=checked]:border-accent-solid data-[state=checked]:bg-accent-solid data-[state=checked]:text-accent-on-solid',
+      'data-[state=indeterminate]:border-accent-solid data-[state=indeterminate]:bg-accent-solid data-[state=indeterminate]:text-accent-on-solid',
       className,
     )}
     checked={indeterminate ? 'indeterminate' : checked}

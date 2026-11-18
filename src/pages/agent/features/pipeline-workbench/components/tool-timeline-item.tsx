@@ -30,7 +30,7 @@ export function ToolTimelineItem({ item, depth = 0 }: ToolTimelineItemProps) {
   return (
     <div
       className={cn(
-        'rounded-radius-md border border-border-subtle bg-surface-secondary px-space-sm py-space-xs',
+        'rounded-radius-md border border-line-subtle bg-sunken px-space-sm py-space-xs',
         depth > 0 && 'mt-space-xs',
       )}
     >
@@ -44,17 +44,17 @@ export function ToolTimelineItem({ item, depth = 0 }: ToolTimelineItemProps) {
               <span
                 className={cn(
                   'size-2 rounded-full',
-                  failed ? 'bg-status-error' : 'bg-status-success',
+                  failed ? 'bg-danger-fg' : 'bg-success-fg',
                 )}
               />
-              <span className="font-medium text-text-primary">
+              <span className="font-medium text-fg">
                 {item.component_name ||
                   item.component_id ||
                   t('agent.pipelineRun.timeline.toolNode')}
               </span>
               {typeof item.elapsed_time === 'number' &&
               item.elapsed_time > 0 ? (
-                <span className="text-xs text-text-secondary">
+                <span className="text-xs text-fg-muted">
                   {/* i18n-ignore: seconds unit suffix */}
                   {item.elapsed_time.toFixed(3)}s
                 </span>
@@ -64,24 +64,24 @@ export function ToolTimelineItem({ item, depth = 0 }: ToolTimelineItemProps) {
           <AccordionContent>
             <div className="space-y-space-sm">
               <div>
-                <div className="mb-space-xs text-xs text-text-secondary">
+                <div className="mb-space-xs text-xs text-fg-muted">
                   {t('agent.runtime.input')}
                 </div>
-                <pre className="max-h-40 overflow-auto rounded-radius-sm bg-surface-primary p-space-sm text-xs">
+                <pre className="max-h-40 overflow-auto rounded-radius-sm bg-surface p-space-sm text-xs">
                   {JSON.stringify(inputs, null, 2)}
                 </pre>
               </div>
               <div>
-                <div className="mb-space-xs text-xs text-text-secondary">
+                <div className="mb-space-xs text-xs text-fg-muted">
                   {t('agent.runtime.output')}
                 </div>
-                <pre className="max-h-40 overflow-auto rounded-radius-sm bg-surface-primary p-space-sm text-xs">
+                <pre className="max-h-40 overflow-auto rounded-radius-sm bg-surface p-space-sm text-xs">
                   {JSON.stringify(outputs, null, 2)}
                 </pre>
               </div>
               {subTraces.length > 0 ? (
                 <div className="space-y-space-xs">
-                  <div className="text-xs text-text-secondary">
+                  <div className="text-xs text-fg-muted">
                     {t('agent.pipelineRun.timeline.subtasks')}
                   </div>
                   {subTraces.map((sub, index) => (

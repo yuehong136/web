@@ -192,7 +192,7 @@ export const BindingFields = () => {
                 {t('channel.binding.loadingTargets')}
               </FormDescription>
             ) : targetError ? (
-              <FormDescription className="text-status-error">
+              <FormDescription className="text-danger-fg">
                 {t('channel.binding.targetsLoadFailed')}
               </FormDescription>
             ) : (
@@ -271,7 +271,7 @@ export const BindingFields = () => {
       <FormField<ChannelFormValues, 'privateChatOnly'>
         name="privateChatOnly"
         render={({ field }) => (
-          <FormItem className="rounded-radius-lg border border-border-subtle bg-surface-secondary p-space-base">
+          <FormItem className="rounded-radius-lg border border-line-subtle bg-sunken p-space-base">
             <div className="flex items-center justify-between gap-space-md">
               <div className="space-y-space-xs">
                 <FormLabel>{t('channel.policy.privateChatOnly')}</FormLabel>

@@ -67,19 +67,19 @@ export const CodeBlock = memo(function CodeBlock({
       data-code-mode={appearance.resolvedMode}
       data-code-preset={appearance.preset}
       className={cn(
-        'code-block group relative my-2 overflow-hidden rounded-lg border border-border-default bg-surface-primary',
+        'code-block group relative my-2 overflow-hidden rounded-lg border border-line-subtle bg-code-bg text-code-fg',
         className,
       )}
     >
       {showHeader && (
-        <div className="flex items-center justify-between border-b border-border-default bg-surface-secondary px-3 py-1.5">
-          <span className="font-mono text-xs text-text-tertiary lowercase">
+        <div className="flex items-center justify-between border-b border-line-subtle bg-fill-muted px-3 py-1.5">
+          <span className="font-mono text-xs text-fg-subtle lowercase">
             {normalizedLanguage}
           </span>
           <button
             type="button"
             onClick={handleCopy}
-            className="flex items-center gap-1 rounded px-1.5 py-0.5 text-xs text-text-tertiary transition-colors hover:bg-surface-primary hover:text-text-secondary"
+            className="flex items-center gap-1 rounded px-1.5 py-0.5 text-xs text-fg-subtle transition-colors hover:bg-fill-hover hover:text-fg-muted"
             aria-label={t('common.copy', '复制')}
           >
             {copied ? (

@@ -56,7 +56,7 @@ export function CoreDeletion({
   }, [client, deleted])
   return (
     <section
-      className="flex flex-wrap items-center justify-between gap-space-sm rounded-radius-lg bg-background-subtle p-space-base"
+      className="flex flex-wrap items-center justify-between gap-space-sm rounded-radius-lg bg-sunken p-space-base"
       aria-live="polite"
     >
       <div>

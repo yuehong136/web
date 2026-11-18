@@ -47,7 +47,7 @@ function CoreConfigForm({
   })
   return (
     <form
-      className="flex flex-col gap-space-base px-space-lg pb-space-lg text-text-primary"
+      className="flex flex-col gap-space-base px-space-lg pb-space-lg text-fg"
       onSubmit={form.handleSubmit((data) =>
         action.mutate(async () => {
           const result = await skillCoreAPI.updateConfig(space, data)
@@ -80,7 +80,7 @@ function CoreConfigForm({
         />
       ))}
       {capabilities?.rerank === false && (
-        <p className="text-sm text-text-secondary">
+        <p className="text-sm text-fg-muted">
           {t('skills.core.rerankNotApplied')}
         </p>
       )}
@@ -104,7 +104,7 @@ function CoreConfigForm({
                 valueAsNumber: true,
               })}
             />
-            <p className="text-sm text-text-secondary sm:order-last sm:col-span-3">
+            <p className="text-sm text-fg-muted sm:order-last sm:col-span-3">
               {t('skills.core.strategyHint')}
             </p>
             <Input
@@ -163,11 +163,11 @@ function CoreConfigForm({
       </SkillConfigAdvanced>
       <SkillError error={action.error} />
       {(saved || indexed) && (
-        <p aria-live="polite" className="text-sm text-status-info">
+        <p aria-live="polite" className="text-sm text-info-fg">
           {t(indexed ? 'skills.core.indexReady' : 'skills.requiresReindex')}
         </p>
       )}
-      <div className="flex flex-wrap justify-end gap-space-sm border-t border-border-subtle pt-space-base">
+      <div className="flex flex-wrap justify-end gap-space-sm border-t border-line-subtle pt-space-base">
         <Button
           type="button"
           variant="outline"
@@ -210,7 +210,7 @@ export function CoreConfigDialog({
         if (!open) onClose()
       }}
     >
-      <DialogContent className="overflow-y-auto text-text-primary">
+      <DialogContent className="overflow-y-auto text-fg">
         <DialogHeader>
           <DialogTitle>{t('skills.configuration')}</DialogTitle>
           <DialogDescription>

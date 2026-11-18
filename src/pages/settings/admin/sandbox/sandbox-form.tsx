@@ -115,15 +115,15 @@ export function SandboxForm({
       }}
     >
       {provider === 'local' ? (
-        <p className="rounded-radius-lg bg-status-warning-subtle p-space-base text-sm text-text-secondary">
+        <p className="rounded-radius-lg bg-warning-soft p-space-base text-sm text-fg-muted">
           {t('sandbox.localWarning')}
         </p>
       ) : null}
       {provider === 'ssh' ? (
-        <p className="text-sm text-text-secondary">{t('sandbox.sshHint')}</p>
+        <p className="text-sm text-fg-muted">{t('sandbox.sshHint')}</p>
       ) : null}
       {saved.environment_overrides.length > 0 ? (
-        <p className="text-sm text-text-secondary">
+        <p className="text-sm text-fg-muted">
           {t('sandbox.overrides', {
             fields: saved.environment_overrides.join(', '),
           })}
@@ -142,7 +142,7 @@ export function SandboxForm({
             .map(renderField)}
         </div>
         {provider === 'ssh' ? (
-          <div className="space-y-space-md rounded-radius-lg border border-border-subtle p-space-base">
+          <div className="space-y-space-md rounded-radius-lg border border-line-subtle p-space-base">
             <h3 className="text-sm font-medium">
               {t('sandbox.authentication')}
             </h3>
@@ -189,43 +189,39 @@ export function SandboxForm({
         </div>
       </fieldset>
       {!available ? (
-        <p aria-live="polite" className="text-sm text-status-warning">
+        <p aria-live="polite" className="text-sm text-warning-fg">
           {t('sandbox.localDisabled')}
         </p>
       ) : null}
       {error ? (
-        <p role="alert" className="text-sm text-status-error">
+        <p role="alert" className="text-sm text-danger-fg">
           {error.message}
         </p>
       ) : null}
       {test.data ? (
         <div
           aria-live="polite"
-          className="space-y-space-sm rounded-radius-lg border border-border-subtle p-space-base"
+          className="space-y-space-sm rounded-radius-lg border border-line-subtle p-space-base"
         >
           <p
-            className={
-              test.data.success ? 'text-status-success' : 'text-status-error'
-            }
+            className={test.data.success ? 'text-success-fg' : 'text-danger-fg'}
           >
             {test.data.success
               ? t('sandbox.testPassed')
               : t('sandbox.testFailed')}
           </p>
-          <pre className="max-w-full overflow-auto text-xs break-words whitespace-pre-wrap text-text-secondary">
+          <pre className="max-w-full overflow-auto text-xs break-words whitespace-pre-wrap text-fg-muted">
             {test.data.details.stdout}
             {test.data.details.stderr}
           </pre>
         </div>
       ) : null}
       {deployment.length > 0 ? (
-        <details className="space-y-space-md rounded-radius-lg border border-border-subtle p-space-base">
+        <details className="space-y-space-md rounded-radius-lg border border-line-subtle p-space-base">
           <summary className="cursor-pointer font-medium">
             {t('sandbox.deployment')}
           </summary>
-          <p className="text-sm text-text-secondary">
-            {t('sandbox.deploymentHint')}
-          </p>
+          <p className="text-sm text-fg-muted">{t('sandbox.deploymentHint')}</p>
           <div className="grid gap-space-md md:grid-cols-2">
             {deployment.map(renderField)}
           </div>

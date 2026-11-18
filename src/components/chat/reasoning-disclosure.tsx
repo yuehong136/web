@@ -91,12 +91,12 @@ export const ReasoningDisclosure = memo(function ReasoningDisclosure({
       open={open}
       onOpenChange={setOpen}
       data-reasoning={thinking ? 'thinking' : 'complete'}
-      className="text-sm text-text-secondary"
+      className="text-sm text-reasoning-fg"
     >
-      <CollapsibleTrigger className="group inline-flex min-h-[var(--control-height-sm)] max-w-full items-center gap-space-xs rounded-radius-sm text-start hover:text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-focus">
+      <CollapsibleTrigger className="group inline-flex min-h-[var(--control-height-sm)] max-w-full items-center gap-space-xs rounded-radius-sm text-start hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-line-focus">
         <Sparkles
           aria-hidden="true"
-          className="size-icon-sm shrink-0 text-components-ai-to"
+          className="size-icon-sm shrink-0 text-ai-to"
         />
         {thinking ? (
           <span aria-live="polite" className="text-shimmer">
@@ -110,20 +110,20 @@ export const ReasoningDisclosure = memo(function ReasoningDisclosure({
           </span>
         )}
         {thinking && elapsed && (
-          <span className="font-mono text-xs text-text-tertiary">
+          <span className="font-mono text-xs text-fg-subtle">
             {t('chat.thread.seconds', { count: elapsed })}
           </span>
         )}
         <ChevronRight
           aria-hidden="true"
-          className="size-icon-xs shrink-0 text-text-tertiary transition-transform group-data-[state=open]:rotate-90 motion-reduce:transition-none"
+          className="size-icon-xs shrink-0 text-fg-subtle transition-transform group-data-[state=open]:rotate-90 motion-reduce:transition-none"
         />
       </CollapsibleTrigger>
-      <CollapsibleContent className="ms-[calc(var(--spacing-icon-sm)/2)] mt-space-xs border-s border-border-default ps-space-md text-text-secondary">
+      <CollapsibleContent className="ms-[calc(var(--spacing-icon-sm)/2)] mt-space-xs border-s border-reasoning-line ps-space-md text-reasoning-fg">
         <div
           ref={body}
           className={cn(
-            'reasoning-markdown prose prose-sm max-w-none text-text-secondary',
+            'reasoning-markdown prose prose-sm max-w-none text-fg-muted',
             thinking && 'max-h-48 overflow-y-auto overscroll-contain',
           )}
         >

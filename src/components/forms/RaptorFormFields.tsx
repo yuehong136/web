@@ -52,7 +52,7 @@ export function RaptorFormFields({ className }: RaptorFormFieldsProps) {
           <FormItem className="flex items-center gap-1 space-y-0">
             <FormLabel
               tooltip={t('knowledge.settings.raptor.enableTooltip')}
-              className="w-1/4 shrink-0 text-sm text-text-secondary"
+              className="w-1/4 shrink-0 text-sm text-fg-muted"
             >
               {t('knowledge.settings.raptor.enable')}
             </FormLabel>
@@ -76,7 +76,7 @@ export function RaptorFormFields({ className }: RaptorFormFieldsProps) {
           <FormItem className="flex items-start gap-1 space-y-0">
             <FormLabel
               tooltip={t('knowledge.settings.raptor.scopeTooltip')}
-              className="w-1/4 shrink-0 pt-2 text-sm text-text-secondary"
+              className="w-1/4 shrink-0 pt-2 text-sm text-fg-muted"
             >
               {t('knowledge.settings.raptor.scope')}
             </FormLabel>
@@ -93,7 +93,7 @@ export function RaptorFormFields({ className }: RaptorFormFieldsProps) {
                       className="flex cursor-pointer items-center gap-2"
                     >
                       <RadioGroupItem value={opt.value} />
-                      <span className="text-sm text-text-secondary">
+                      <span className="text-sm text-fg-muted">
                         {t(
                           `knowledge.settings.options.raptorScope.${opt.value}`,
                         )}
@@ -117,7 +117,7 @@ export function RaptorFormFields({ className }: RaptorFormFieldsProps) {
               <FormItem className="flex items-start gap-1 space-y-0">
                 <FormLabel
                   tooltip={t('knowledge.settings.raptor.promptTooltip')}
-                  className="w-1/4 shrink-0 pt-2 text-sm text-text-secondary"
+                  className="w-1/4 shrink-0 pt-2 text-sm text-fg-muted"
                 >
                   {t('knowledge.settings.raptor.prompt')}
                 </FormLabel>
@@ -174,7 +174,7 @@ export function RaptorFormFields({ className }: RaptorFormFieldsProps) {
             render={({ field }) => (
               <FormItem className="flex items-center gap-1 space-y-0">
                 <FormLabel
-                  className="w-1/4 shrink-0 text-sm text-text-secondary"
+                  className="w-1/4 shrink-0 text-sm text-fg-muted"
                   tooltip={t(
                     'knowledge.settings.raptor.clusteringMethodTooltip',
                   )}
@@ -191,7 +191,7 @@ export function RaptorFormFields({ className }: RaptorFormFieldsProps) {
                       <label
                         key={method}
                         htmlFor={`raptor-clustering-${method}`}
-                        className="flex cursor-pointer items-center gap-2 text-sm text-text-secondary"
+                        className="flex cursor-pointer items-center gap-2 text-sm text-fg-muted"
                       >
                         <RadioGroupItem
                           id={`raptor-clustering-${method}`}
@@ -224,7 +224,7 @@ export function RaptorFormFields({ className }: RaptorFormFieldsProps) {
             name="parser_config.raptor.random_seed"
             render={({ field }) => (
               <FormItem className="flex items-center gap-1 space-y-0">
-                <FormLabel className="w-1/4 shrink-0 text-sm text-text-secondary">
+                <FormLabel className="w-1/4 shrink-0 text-sm text-fg-muted">
                   {t('knowledge.settings.raptor.randomSeed')}
                 </FormLabel>
                 <div className="flex w-3/4 items-center gap-2">

@@ -54,12 +54,12 @@ export function McpForm({
   return (
     <Form {...form}>
       <FormWrapper>
-        <div className="text-sm text-text-secondary">
+        <div className="text-sm text-fg-muted">
           {t('flow.mcpSelect', 'Select MCP tools')}
         </div>
         <div className="space-y-2">
           {isLoading && (
-            <div className="text-sm text-text-secondary">
+            <div className="text-sm text-fg-muted">
               {t('flow.loading', 'Loading...')}
             </div>
           )}

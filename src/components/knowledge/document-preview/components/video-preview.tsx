@@ -64,7 +64,7 @@ const VideoPreviewInner: FC<{
   }
 
   return (
-    <div className="relative flex h-full w-full flex-col bg-background-subtle">
+    <div className="relative flex h-full w-full flex-col bg-sunken">
       <div className="flex flex-1 items-center justify-center overflow-hidden">
         {/* User-uploaded preview files do not expose caption tracks. */}
         {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
@@ -79,7 +79,7 @@ const VideoPreviewInner: FC<{
           onEnded={() => setIsPlaying(false)}
         />
       </div>
-      <div className="shrink-0 border-t border-border-subtle bg-background-surface px-space-md py-space-sm">
+      <div className="shrink-0 border-t border-line-subtle bg-surface px-space-md py-space-sm">
         <div className="flex items-center gap-space-sm">
           <Button
             variant="ghost"
@@ -97,7 +97,7 @@ const VideoPreviewInner: FC<{
               <Play className="size-icon-md" aria-hidden="true" />
             )}
           </Button>
-          <span className="min-w-10 text-xs text-text-secondary tabular-nums">
+          <span className="min-w-10 text-xs text-fg-muted tabular-nums">
             {formatMediaTime((progress / 100) * duration)}
           </span>
           <input
@@ -107,9 +107,9 @@ const VideoPreviewInner: FC<{
             value={progress}
             onChange={handleSeek}
             aria-label={t('knowledge.preview.videoProgress')}
-            className="h-1 flex-1 cursor-pointer appearance-none rounded-full bg-border-default outline-hidden focus-visible:ring-2 focus-visible:ring-state-focus [&::-webkit-slider-thumb]:size-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-state-focus"
+            className="h-1 flex-1 cursor-pointer appearance-none rounded-full bg-line outline-hidden focus-visible:ring-2 focus-visible:ring-line-focus [&::-webkit-slider-thumb]:size-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-line-focus"
           />
-          <span className="min-w-10 text-xs text-text-secondary tabular-nums">
+          <span className="min-w-10 text-xs text-fg-muted tabular-nums">
             {formatMediaTime(duration)}
           </span>
           <Button

@@ -63,10 +63,10 @@ export function UsedModels({
       className="flex flex-col gap-space-sm"
     >
       <div>
-        <h2 id={headingId} className="text-sm font-semibold text-text-primary">
+        <h2 id={headingId} className="text-sm font-semibold text-fg">
           {t('settings.models.configured')}
         </h2>
-        <p className="text-xs text-text-secondary">
+        <p className="text-xs text-fg-muted">
           {t('settings.models.configuredHint')}
         </p>
       </div>
@@ -106,7 +106,7 @@ function ConfiguredProvider({ name, add }: { name: string; add: () => void }) {
       tabIndex={-1}
       aria-label={name}
       data-slot="configured-provider"
-      className="flex scroll-mt-space-md flex-col rounded-radius-xl border border-border-subtle bg-components-card-bg px-space-md pb-space-xs outline-hidden focus-visible:ring-2 focus-visible:ring-state-focus"
+      className="flex scroll-mt-space-md flex-col rounded-radius-xl border border-line-subtle bg-raised px-space-md pb-space-xs outline-hidden focus-visible:ring-2 focus-visible:ring-line-focus"
     >
       <SettingRow
         className="border-t-0"
@@ -134,7 +134,7 @@ function ConfiguredProvider({ name, add }: { name: string; add: () => void }) {
           {t('common.delete')}
         </Button>
       </SettingRow>
-      <div className="flex flex-col border-t border-border-subtle sm:pl-space-2xl">
+      <div className="flex flex-col border-t border-line-subtle sm:pl-space-2xl">
         {instances.isPending ? (
           <PageLoadingState
             title={t('common.loading')}

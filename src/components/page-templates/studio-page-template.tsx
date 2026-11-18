@@ -16,17 +16,14 @@ export const StudioPageTemplate: React.FC<StudioPageTemplateProps> = ({
 }) => {
   return (
     <div
-      className={cn(
-        'flex h-full min-h-0 flex-col bg-components-studio-bg',
-        className,
-      )}
+      className={cn('flex h-full min-h-0 flex-col bg-canvas', className)}
       {...props}
     >
       {toolbar}
       <div className="flex min-h-0 flex-1">
         <div className="min-w-0 flex-1 overflow-hidden">{children}</div>
         {sidePanel ? (
-          <aside className="flex min-h-0 w-80 shrink-0 flex-col border-l border-components-studio-border">
+          <aside className="flex min-h-0 w-80 shrink-0 flex-col border-l border-line">
             {sidePanel}
           </aside>
         ) : null}

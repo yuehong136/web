@@ -92,3 +92,85 @@ export function alphaFor(target: Rgb, base: Rgb): { rgb: Rgb; alpha: number } {
 
 export const rgba = ({ rgb, alpha }: { rgb: Rgb; alpha: number }) =>
   `rgba(${rgb.join(', ')}, ${alpha})`
+
+/** 8-bit sRGB to OKLCH (inverse of `oklchToRgb`), for brand colors given as hex. */
+export function rgbToOklch(rgb: Rgb): { l: number; c: number; h: number } {
+  const linear = rgb.map((v) => {
+    const c = v / 255
+    return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
+  })
+  const l = Math.cbrt(
+    0.4122214708 * linear[0] +
+      0.5363325363 * linear[1] +
+      0.0514459929 * linear[2],
+  )
+  const m = Math.cbrt(
+    0.2119034982 * linear[0] +
+      0.6806995451 * linear[1] +
+      0.1073969566 * linear[2],
+  )
+  const s = Math.cbrt(
+    0.0883024619 * linear[0] +
+      0.2817188376 * linear[1] +
+      0.6299787005 * linear[2],
+  )
+  const L = 0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s
+  const a = 1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s
+  const b = 0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s
+  const hue = (Math.atan2(b, a) * 180) / Math.PI
+  return { l: L, c: Math.hypot(a, b), h: (hue + 360) % 360 }
+}
+
+/** An OKLCH color whose chroma already fits sRGB, so CSS and hex agree. */
+export interface Oklch {
+  readonly l: number
+  readonly c: number
+  readonly h: number
+  readonly alpha: number
+}
+
+const inGamut = (L: number, C: number, hue: number) =>
+  oklchToLinear(L, C, hue).every((v) => v >= -1e-4 && v <= 1 + 1e-4)
+
+/** Lowers chroma with the same rule as `oklchToRgb`, then keeps the result. */
+export function oklch(L: number, C: number, hue: number, alpha = 1): Oklch {
+  const l = Math.min(1, Math.max(0, L))
+  let c = Math.max(0, C)
+  while (!inGamut(l, c, hue) && c > 0) c = Math.max(0, c - 0.001)
+  return { l, c, h: ((hue % 360) + 360) % 360, alpha }
+}
+
+export const withAlpha = (color: Oklch, alpha: number): Oklch => ({
+  ...color,
+  alpha,
+})
+
+export const rgbOf = (color: Oklch): Rgb =>
+  oklchToRgb(color.l, color.c, color.h)
+
+const round = (value: number, digits: number) =>
+  String(Number(value.toFixed(digits)))
+
+/** CSS value: `oklch(L C H)` or `oklch(L C H / A)`. */
+export function cssOklch(color: Oklch): string {
+  const body = `${round(color.l, 4)} ${round(color.c, 4)} ${round(color.h, 2)}`
+  return color.alpha < 1
+    ? `oklch(${body} / ${round(color.alpha, 3)})`
+    : `oklch(${body})`
+}
+
+/** JavaScript value for canvas renderers that do not parse OKLCH. */
+export function jsColor(color: Oklch): string {
+  const rgb = rgbOf(color)
+  return color.alpha < 1
+    ? `rgba(${rgb.join(', ')}, ${round(color.alpha, 3)})`
+    : rgbToHex(rgb)
+}
+
+/** Contrast of `fg` over `bg`, compositing translucent colors over `base`. */
+export function contrastOver(fg: Oklch, bg: Oklch, base: Oklch): number {
+  const ground =
+    bg.alpha < 1 ? over(rgbOf(bg), bg.alpha, rgbOf(base)) : rgbOf(bg)
+  const text = fg.alpha < 1 ? over(rgbOf(fg), fg.alpha, ground) : rgbOf(fg)
+  return contrast(text, ground)
+}

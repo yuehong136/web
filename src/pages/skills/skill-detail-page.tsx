@@ -113,11 +113,9 @@ export function SkillDetailPage() {
         ) : (
           skill && (
             <>
-              <p className="text-sm text-text-secondary">
-                {t('skills.immutable')}
-              </p>
+              <p className="text-sm text-fg-muted">{t('skills.immutable')}</p>
               {!writable && capabilities.data && (
-                <p className="text-sm text-status-warning">
+                <p className="text-sm text-warning-fg">
                   {t(
                     capabilities.data?.writable === false
                       ? 'skills.readOnly'

@@ -178,7 +178,7 @@ export function TokenChunkerForm({ node }: INextOperatorForm) {
                     <FormLabel>
                       {t('flow.chunkTokenSize', 'Chunk Token Size')}
                     </FormLabel>
-                    <span className="text-xs text-text-secondary">
+                    <span className="text-xs text-fg-muted">
                       {field.value ?? 512}
                     </span>
                   </div>
@@ -204,7 +204,7 @@ export function TokenChunkerForm({ node }: INextOperatorForm) {
                     <FormLabel>
                       {t('flow.overlappedPercent', 'Overlapped Percent')}
                     </FormLabel>
-                    <span className="text-xs text-text-secondary">
+                    <span className="text-xs text-fg-muted">
                       {field.value ?? 0}
                     </span>
                   </div>
@@ -233,7 +233,7 @@ export function TokenChunkerForm({ node }: INextOperatorForm) {
                         'Image & Table Context Window',
                       )}
                     </FormLabel>
-                    <span className="text-xs text-text-secondary">
+                    <span className="text-xs text-fg-muted">
                       {field.value ?? 0}
                     </span>
                   </div>
@@ -261,13 +261,13 @@ export function TokenChunkerForm({ node }: INextOperatorForm) {
         )}
 
         {delimiterMode === TokenChunkerDelimiterMode.One && (
-          <div className="flex items-start gap-space-sm rounded-radius-md border border-border-default bg-surface-secondary px-space-md py-space-sm">
-            <Info className="mt-0.5 size-4 shrink-0 text-text-secondary" />
+          <div className="flex items-start gap-space-sm rounded-radius-md border border-line bg-sunken px-space-md py-space-sm">
+            <Info className="mt-0.5 size-4 shrink-0 text-fg-muted" />
             <div className="space-y-space-2xs">
-              <div className="text-sm font-medium text-text-primary">
+              <div className="text-sm font-medium text-fg">
                 {t('flow.oneChunkTitle', 'One chunk')}
               </div>
-              <p className="text-sm text-text-secondary">
+              <p className="text-sm text-fg-muted">
                 {t(
                   'flow.oneChunkDescription',
                   'Keep the upstream document content as one chunk.',
@@ -283,7 +283,7 @@ export function TokenChunkerForm({ node }: INextOperatorForm) {
               control={form.control}
               name="enable_children"
               render={({ field }) => (
-                <FormItem className="flex items-center justify-between rounded-radius-md border border-border-default px-space-sm py-space-sm">
+                <FormItem className="flex items-center justify-between rounded-radius-md border border-line px-space-sm py-space-sm">
                   <FormLabel>
                     {t(
                       'flow.enableChildrenDelimiters',

@@ -67,7 +67,7 @@ export function TeamSelector({
             <span className="truncate">{current.name}</span>
           </span>
           <ChevronsUpDown
-            className="size-icon-sm text-text-tertiary"
+            className="size-icon-sm text-fg-subtle"
             aria-hidden="true"
           />
         </Button>
@@ -79,7 +79,7 @@ export function TeamSelector({
         >
           {ownTenant ? (
             <>
-              <ActionMenuLabel className="px-space-sm py-space-xs text-xs text-text-tertiary">
+              <ActionMenuLabel className="px-space-sm py-space-xs text-xs text-fg-subtle">
                 {t('settings.team.selector.own')}
               </ActionMenuLabel>
               <ActionMenuRadioItem value={ownTenant.tenant_id}>
@@ -89,7 +89,7 @@ export function TeamSelector({
               <ActionMenuSeparator />
             </>
           ) : null}
-          <ActionMenuLabel className="px-space-sm py-space-xs text-xs text-text-tertiary">
+          <ActionMenuLabel className="px-space-sm py-space-xs text-xs text-fg-subtle">
             {t('settings.team.selector.managed')}
           </ActionMenuLabel>
           {manageableTeams.map((team) => (

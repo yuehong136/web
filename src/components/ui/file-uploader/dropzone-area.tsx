@@ -73,31 +73,29 @@ export const DropzoneArea = memo(function DropzoneArea({
               : undefined,
           )}
           className={cn(
-            'relative flex cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed transition-all duration-500 focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:ring-offset-2 focus-visible:ring-offset-background-surface focus-visible:outline-hidden',
+            'relative flex cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed transition-all duration-500 focus-visible:ring-2 focus-visible:ring-line-focus focus-visible:ring-offset-2 focus-visible:ring-offset-surface focus-visible:outline-hidden',
             dropzoneHeight,
             !isFolderMode &&
               isDragActive &&
               !isDragReject &&
               'scale-[1.01] border-transparent',
-            !isFolderMode &&
-              isDragReject &&
-              'border-status-error bg-status-error-subtle',
+            !isFolderMode && isDragReject && 'border-danger-fg bg-danger-soft',
             isDisabled && 'pointer-events-none cursor-not-allowed opacity-50',
             className,
           )}
           style={{
             backgroundColor:
               !isFolderMode && isDragReject
-                ? 'var(--color-status-error-subtle)'
+                ? 'var(--color-danger-soft)'
                 : !isFolderMode && isDragActive
-                  ? 'var(--color-state-selected-bg)'
-                  : 'var(--color-components-upload-bg)',
+                  ? 'var(--color-accent-soft)'
+                  : 'transparent)',
             borderColor:
               !isFolderMode && isDragReject
-                ? 'var(--color-status-error)'
+                ? 'var(--color-danger-fg)'
                 : !isFolderMode && isDragActive
-                  ? 'var(--color-state-selected)'
-                  : 'var(--color-components-upload-border)',
+                  ? 'var(--color-accent-solid)'
+                  : 'var(--color-line-strong)',
           }}
         >
           {!isFolderMode && <input {...getInputProps()} />}
@@ -108,13 +106,13 @@ export const DropzoneArea = memo(function DropzoneArea({
                 className="pointer-events-none absolute inset-0 animate-pulse"
                 style={{
                   background:
-                    'radial-gradient(ellipse at center, var(--color-state-selected-bg) 0%, transparent 70%)',
+                    'radial-gradient(ellipse at center, var(--color-accent-soft) 0%, transparent 70%)',
                 }}
               />
               <div
                 className="pointer-events-none absolute inset-0 rounded-2xl"
                 style={{
-                  background: `linear-gradient(90deg, transparent 0%, var(--color-state-selected) 25%, var(--color-state-selected) 75%, transparent 100%)`,
+                  background: `linear-gradient(90deg, transparent 0%, var(--color-accent-solid) 25%, var(--color-accent-solid) 75%, transparent 100%)`,
                   backgroundSize: '200% 100%',
                   animation: 'shimmer 2s infinite linear',
                   mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
@@ -130,7 +128,7 @@ export const DropzoneArea = memo(function DropzoneArea({
                     key={i}
                     className="absolute animate-bounce opacity-30"
                     style={{
-                      color: 'var(--color-state-selected-text)',
+                      color: 'var(--color-accent-fg)',
                       width: '16px',
                       height: '16px',
                       left: `${15 + i * 15}%`,
@@ -156,13 +154,13 @@ export const DropzoneArea = memo(function DropzoneArea({
               style={{
                 backgroundColor:
                   !isFolderMode && isDragReject
-                    ? 'var(--color-status-error-subtle)'
+                    ? 'var(--color-danger-soft)'
                     : !isFolderMode && isDragActive
-                      ? 'var(--color-state-selected-bg)'
-                      : 'var(--color-background-default)',
+                      ? 'var(--color-accent-soft)'
+                      : 'var(--color-canvas)',
                 boxShadow:
                   !isFolderMode && isDragActive && !isDragReject
-                    ? '0 16px 48px -8px var(--color-state-selected-bg)'
+                    ? '0 16px 48px -8px var(--color-accent-soft)'
                     : '0 4px 16px -2px rgba(0,0,0,0.08)',
               }}
             >
@@ -170,20 +168,18 @@ export const DropzoneArea = memo(function DropzoneArea({
                 <CloudUpload
                   className={cn(
                     'h-8 w-8 animate-bounce',
-                    isDragReject
-                      ? 'text-status-error'
-                      : 'text-state-selected-text',
+                    isDragReject ? 'text-danger-fg' : 'text-accent-fg',
                   )}
                 />
               ) : isFolderMode ? (
                 <FolderUp
                   className="h-7 w-7 transition-all duration-300"
-                  style={{ color: 'var(--color-components-upload-icon)' }}
+                  style={{ color: 'var(--color-fg-disabled)' }}
                 />
               ) : (
                 <Upload
                   className="h-7 w-7 transition-all duration-300 group-hover:scale-110"
-                  style={{ color: 'var(--color-components-upload-icon)' }}
+                  style={{ color: 'var(--color-fg-disabled)' }}
                 />
               )}
             </div>
@@ -199,10 +195,10 @@ export const DropzoneArea = memo(function DropzoneArea({
                 style={{
                   color:
                     !isFolderMode && isDragReject
-                      ? 'var(--color-components-badge-error-text)'
+                      ? 'var(--color-danger-fg)'
                       : !isFolderMode && isDragActive
-                        ? 'var(--color-state-selected-text)'
-                        : 'var(--color-components-upload-text)',
+                        ? 'var(--color-accent-fg)'
+                        : 'var(--color-fg-muted)',
                 }}
               >
                 {!isFolderMode && isDragActive && !isDragReject
@@ -212,7 +208,7 @@ export const DropzoneArea = memo(function DropzoneArea({
               <p
                 className="max-w-md text-sm leading-relaxed"
                 style={{
-                  color: 'var(--color-components-upload-text-secondary)',
+                  color: 'var(--color-fg-subtle)',
                 }}
               >
                 {resolvedDescription || (
@@ -220,14 +216,14 @@ export const DropzoneArea = memo(function DropzoneArea({
                     Upload up to{' '}
                     <span
                       className="font-medium"
-                      style={{ color: 'var(--color-text-primary)' }}
+                      style={{ color: 'var(--color-fg)' }}
                     >
                       {formatBytes(maxSize)}
                     </span>{' '}
                     and{' '}
                     <span
                       className="font-medium"
-                      style={{ color: 'var(--color-text-primary)' }}
+                      style={{ color: 'var(--color-fg)' }}
                     >
                       {maxFileCount}
                     </span>{' '}

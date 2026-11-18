@@ -10,8 +10,8 @@ export function AgentBackground({ className }: AgentBackgroundProps) {
       variant={BackgroundVariant.Dots}
       gap={20}
       size={1}
-      color="var(--color-components-canvas-grid)"
-      bgColor="var(--color-components-canvas-bg)"
+      color="var(--color-line-strong)"
+      bgColor="var(--color-sunken)"
       className={className}
     />
   )

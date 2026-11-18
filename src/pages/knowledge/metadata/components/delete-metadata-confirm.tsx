@@ -41,17 +41,15 @@ export const DeleteMetadataConfirm: React.FC<DeleteMetadataConfirmProps> = ({
       }}
     >
       <div className="space-y-space-sm">
-        <div className="inline-flex max-w-full items-center rounded-radius-md border border-border-default bg-background-subtle px-space-sm py-space-xs">
-          <span className="truncate font-medium text-text-primary">{name}</span>
+        <div className="inline-flex max-w-full items-center rounded-radius-md border border-line bg-sunken px-space-sm py-space-xs">
+          <span className="truncate font-medium text-fg">{name}</span>
         </div>
         <div
           role="note"
-          className="flex items-start gap-space-sm rounded-radius-md border border-status-warning-border bg-status-warning-subtle p-space-sm"
+          className="flex items-start gap-space-sm rounded-radius-md border border-warning-line bg-warning-soft p-space-sm"
         >
-          <AlertCircle className="mt-space-2xs size-icon-sm shrink-0 text-status-warning" />
-          <p className="text-xs leading-relaxed text-text-secondary">
-            {warnText}
-          </p>
+          <AlertCircle className="mt-space-2xs size-icon-sm shrink-0 text-warning-fg" />
+          <p className="text-xs leading-relaxed text-fg-muted">{warnText}</p>
         </div>
       </div>
     </ConfirmDialog>

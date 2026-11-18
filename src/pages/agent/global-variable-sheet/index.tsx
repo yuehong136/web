@@ -74,27 +74,27 @@ export function GlobalVariableSheet({ hideModal }: GlobalVariableSheetProps) {
 
           <div className="flex flex-col gap-space-sm px-space-lg pb-space-lg">
             {entries.length === 0 ? (
-              <div className="py-space-xl text-center text-text-secondary">
+              <div className="py-space-xl text-center text-fg-muted">
                 {t('flow.noVariables', '暂无变量')}
               </div>
             ) : (
               entries.map(([key, item]) => (
                 <div
                   key={key}
-                  className="group flex min-h-14 cursor-pointer items-center justify-between gap-space-sm rounded-radius-lg border border-border-default px-space-lg py-space-sm hover:bg-surface-secondary"
+                  className="group flex min-h-14 cursor-pointer items-center justify-between gap-space-sm rounded-radius-lg border border-line px-space-lg py-space-sm hover:bg-sunken"
                   onClick={() => showEditModal(key)}
                 >
                   <div className="flex min-w-0 flex-col">
                     <div className="flex min-w-0 items-center gap-space-sm">
-                      <span className="truncate font-medium text-text-primary">
+                      <span className="truncate font-medium text-fg">
                         {item.name || key}
                       </span>
-                      <span className="shrink-0 text-sm font-medium text-text-secondary">
+                      <span className="shrink-0 text-sm font-medium text-fg-muted">
                         {item.type}
                       </span>
                     </div>
                     {isPreviewableValue(item.value) ? (
-                      <span className="truncate text-sm text-text-secondary">
+                      <span className="truncate text-sm text-fg-muted">
                         {String(item.value)}
                       </span>
                     ) : null}

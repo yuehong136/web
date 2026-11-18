@@ -97,17 +97,17 @@ export function ReferenceDiagnostics({
 
   return (
     <section aria-labelledby={headingId}>
-      <h3 id={headingId} className="mb-2 text-sm font-medium text-text-primary">
+      <h3 id={headingId} className="mb-2 text-sm font-medium text-fg">
         {t('reference.diagnostics.title')}
       </h3>
-      <div className="rounded-lg border border-border-subtle bg-background-subtle">
+      <div className="rounded-lg border border-line-subtle bg-sunken">
         <div className="p-3">
           <dl>
             <div className="flex items-baseline justify-between gap-space-sm">
-              <dt className="text-sm text-text-secondary">
+              <dt className="text-sm text-fg-muted">
                 {t('reference.diagnostics.score')}
               </dt>
-              <dd className="text-sm font-semibold text-text-primary tabular-nums">
+              <dd className="text-sm font-semibold text-fg tabular-nums">
                 {score === null
                   ? t('reference.diagnostics.unavailable')
                   : formatRetrievalScore(score, locale)}
@@ -119,7 +119,7 @@ export function ReferenceDiagnostics({
             <Progress aria-hidden value={score * 100} className="mt-2 h-1.5" />
           )}
           {rawScore !== null && (
-            <p className="mt-1 text-xs text-text-secondary">
+            <p className="mt-1 text-xs text-fg-muted">
               {t('reference.diagnostics.outOfRange', {
                 value: new Intl.NumberFormat(locale, {
                   maximumFractionDigits: 3,
@@ -131,20 +131,20 @@ export function ReferenceDiagnostics({
             <dl className="mt-2 flex flex-wrap gap-x-space-md gap-y-space-xs text-xs">
               {subScores.map((item) => (
                 <div key={item.key} className="flex gap-space-xs">
-                  <dt className="text-text-tertiary">{item.label}</dt>
-                  <dd className="font-medium text-text-secondary tabular-nums">
+                  <dt className="text-fg-subtle">{item.label}</dt>
+                  <dd className="font-medium text-fg-muted tabular-nums">
                     {formatRetrievalScore(item.value, locale)}
                   </dd>
                 </div>
               ))}
             </dl>
           )}
-          <p className="mt-2 text-xs text-text-tertiary">
+          <p className="mt-2 text-xs text-fg-subtle">
             {t('reference.diagnostics.scoreHint')}
           </p>
         </div>
 
-        <dl className="divide-y divide-border-subtle border-t border-border-subtle px-3">
+        <dl className="divide-y divide-line-subtle border-t border-line-subtle px-3">
           <DiagnosticItem
             icon={<MapPin aria-hidden className="size-icon-xs" />}
             label={t('sources.positions')}
@@ -204,7 +204,7 @@ function DiagnosticItem({
 
   return (
     <div className="py-2">
-      <dt className="mb-0.5 flex items-center gap-1.5 text-xs text-text-tertiary">
+      <dt className="mb-0.5 flex items-center gap-1.5 text-xs text-fg-subtle">
         {icon}
         {label}
       </dt>
@@ -212,7 +212,7 @@ function DiagnosticItem({
         {copyable ? (
           <>
             <span
-              className="truncate font-mono text-sm text-text-secondary"
+              className="truncate font-mono text-sm text-fg-muted"
               title={value}
             >
               {truncateId(value, 24)}
@@ -221,8 +221,8 @@ function DiagnosticItem({
               type="button"
               className={cn(
                 'shrink-0 rounded p-1 transition-colors',
-                'focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:outline-hidden',
-                copied ? 'text-status-success' : 'text-text-tertiary',
+                'focus-visible:ring-2 focus-visible:ring-line-focus focus-visible:outline-hidden',
+                copied ? 'text-success-fg' : 'text-fg-subtle',
               )}
               onClick={handleCopy}
               aria-label={t('reference.diagnostics.copyValue', { label })}
@@ -236,7 +236,7 @@ function DiagnosticItem({
             </button>
           </>
         ) : (
-          <span className="text-sm text-text-secondary">{value}</span>
+          <span className="text-sm text-fg-muted">{value}</span>
         )}
       </dd>
     </div>

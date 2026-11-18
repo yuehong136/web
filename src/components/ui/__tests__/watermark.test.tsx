@@ -39,7 +39,7 @@ it('repeats each line over the content without catching the pointer', () => {
   expect(layer().className).toContain('pointer-events-none')
   expect(layer().getAttribute('aria-hidden')).toBe('true')
   // The text colour comes from the theme, not a fixed value.
-  expect(layer().style.backgroundColor).toBe('var(--color-text-primary)')
+  expect(layer().style.backgroundColor).toBe('var(--color-fg)')
 })
 
 it('puts the layer back when it is removed or restyled', async () => {

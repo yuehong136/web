@@ -1,28 +1,28 @@
 /**
- * Tailwind CSS 设计令牌变量扩展
- * 基于语义化设计令牌系统
+ * Tailwind color names: every token, plus the shadcn-style aliases that
+ * vendored components expect, each pointing at a semantic role. Opacity
+ * modifiers (`bg-primary/90`) compile to `color-mix()`, so no RGB channel
+ * variables are needed.
  */
-
 import { cssVariables } from './tokens'
 
-// 生成 Tailwind 兼容的变量映射
-export const tailwindColors = {
-  // 直接映射所有设计令牌
-  ...cssVariables,
+const role = (name: string) => `var(--color-${name})`
 
-  background: 'rgb(var(--twc-background))',
-  foreground: 'rgb(var(--twc-foreground))',
-  card: 'var(--color-components-card-bg)',
-  'card-foreground': 'var(--color-text-primary)',
-  popover: 'var(--color-components-dropdown-bg)',
-  'popover-foreground': 'var(--color-text-primary)',
-  primary: 'rgb(var(--twc-primary))',
-  'primary-foreground': 'rgb(var(--twc-primary-foreground))',
-  secondary: 'var(--color-components-button-secondary-bg)',
-  'secondary-foreground': 'var(--color-components-button-secondary-text)',
-  muted: 'var(--color-background-subtle)',
-  'muted-foreground': 'var(--color-text-secondary)',
-  border: 'rgb(var(--twc-border))',
-  input: 'var(--color-components-input-border)',
-  ring: 'rgb(var(--twc-ring))',
+export const tailwindColors = {
+  ...cssVariables,
+  background: role('surface'),
+  foreground: role('fg'),
+  card: role('raised'),
+  'card-foreground': role('fg'),
+  popover: role('overlay'),
+  'popover-foreground': role('fg'),
+  primary: role('action-bg'),
+  'primary-foreground': role('action-fg'),
+  secondary: role('fill-muted'),
+  'secondary-foreground': role('fg'),
+  muted: role('sunken'),
+  'muted-foreground': role('fg-muted'),
+  border: role('line'),
+  input: role('line'),
+  ring: role('line-focus'),
 }

@@ -42,7 +42,7 @@ function InnerMessageNode({ id, data, selected }: NodeProps<IMessageNode>) {
             <section
               key={`${id}-message-${index}`}
               className={cn(
-                withDivider && 'border-t border-border-subtle pt-space-sm',
+                withDivider && 'border-t border-line-subtle pt-space-sm',
               )}
             >
               <LabelCard>

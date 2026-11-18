@@ -45,29 +45,18 @@ const parserFileTypeFallbackLabelMap: Record<ParserFileTypeValue, string> = {
 }
 
 const parserFileTypeBadgeClassNameMap: Record<ParserFileTypeValue, string> = {
-  [ParserFileType.Html]:
-    'bg-components-badge-purple-bg text-components-badge-purple-text',
-  [ParserFileType.PDF]:
-    'bg-components-badge-blue-bg text-components-badge-blue-text',
-  [ParserFileType.Spreadsheet]:
-    'bg-components-badge-green-bg text-components-badge-green-text',
-  [ParserFileType.Image]:
-    'bg-components-badge-purple-bg text-components-badge-purple-text',
-  [ParserFileType.Email]:
-    'bg-components-badge-orange-bg text-components-badge-orange-text',
-  [ParserFileType.TextMarkdown]:
-    'bg-components-badge-purple-bg text-components-badge-purple-text',
-  [ParserFileType.TextCode]:
-    'bg-components-badge-purple-bg text-components-badge-purple-text',
-  [ParserFileType.Doc]:
-    'bg-components-badge-blue-bg text-components-badge-blue-text',
-  [ParserFileType.Docx]:
-    'bg-components-badge-blue-bg text-components-badge-blue-text',
-  [ParserFileType.Slides]:
-    'bg-components-badge-orange-bg text-components-badge-orange-text',
-  [ParserFileType.Audio]:
-    'bg-components-badge-orange-bg text-components-badge-orange-text',
-  [ParserFileType.Video]: 'bg-text-primary text-text-inverted',
+  [ParserFileType.Html]: 'bg-avatar-7-bg text-avatar-7-fg',
+  [ParserFileType.PDF]: 'bg-avatar-6-bg text-avatar-6-fg',
+  [ParserFileType.Spreadsheet]: 'bg-avatar-4-bg text-avatar-4-fg',
+  [ParserFileType.Image]: 'bg-avatar-7-bg text-avatar-7-fg',
+  [ParserFileType.Email]: 'bg-avatar-2-bg text-avatar-2-fg',
+  [ParserFileType.TextMarkdown]: 'bg-avatar-7-bg text-avatar-7-fg',
+  [ParserFileType.TextCode]: 'bg-avatar-7-bg text-avatar-7-fg',
+  [ParserFileType.Doc]: 'bg-avatar-6-bg text-avatar-6-fg',
+  [ParserFileType.Docx]: 'bg-avatar-6-bg text-avatar-6-fg',
+  [ParserFileType.Slides]: 'bg-avatar-2-bg text-avatar-2-fg',
+  [ParserFileType.Audio]: 'bg-avatar-2-bg text-avatar-2-fg',
+  [ParserFileType.Video]: 'bg-fg text-fg-inverse',
 }
 
 const parserParseMethodLabelMap: Record<string, string> = {
@@ -139,13 +128,13 @@ export const emailFieldOptions = Object.values(ParserEmailField).map(
 )
 
 export const FIELD_LABEL_CLASSNAME =
-  'text-base font-medium leading-7 text-text-secondary'
+  'text-base font-medium leading-7 text-fg-muted'
 
 export const SELECT_TRIGGER_CLASSNAME =
-  'h-12 rounded-radius-xl border-border-default bg-surface-primary px-space-base py-space-sm text-base shadow-none'
+  'h-12 rounded-radius-xl border-line bg-surface px-space-base py-space-sm text-base shadow-none'
 
 export const INPUT_CLASSNAME =
-  'h-12 rounded-radius-xl border-border-default bg-surface-primary px-space-base py-space-sm text-base shadow-none'
+  'h-12 rounded-radius-xl border-line bg-surface px-space-base py-space-sm text-base shadow-none'
 
 export type ParserFileMeta = {
   label: string
@@ -171,7 +160,7 @@ export function getParserMeta(
   if (!fileFormat || !(fileFormat in parserFileTypeBadgeClassNameMap)) {
     return {
       label: getParserFileTypeLabel(t, fileFormat),
-      badgeClassName: 'bg-background-subtle text-text-secondary',
+      badgeClassName: 'bg-sunken text-fg-muted',
     }
   }
 
@@ -254,12 +243,12 @@ export function getParserSetupSummary(
 }
 
 export function getParserControlClassName() {
-  return 'border-border-default bg-surface-primary'
+  return 'border-line bg-surface'
 }
 
 export function getParserControlStyle() {
   return {
-    backgroundColor: 'var(--color-surface-primary)',
-    borderColor: 'var(--color-border-default)',
+    backgroundColor: 'var(--color-surface)',
+    borderColor: 'var(--color-line)',
   }
 }

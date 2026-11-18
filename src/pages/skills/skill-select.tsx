@@ -51,7 +51,7 @@ export function SkillSelect({
             data-theme={theme}
             position="popper"
             sideOffset={4}
-            className="z-[1000] max-h-60 max-w-[calc(100vw-2rem)] min-w-[var(--radix-select-trigger-width)] overflow-auto rounded-radius-lg border border-border-default bg-background-surface p-space-xs text-text-primary shadow-lg"
+            className="z-[1000] max-h-60 max-w-[calc(100vw-2rem)] min-w-[var(--radix-select-trigger-width)] overflow-auto rounded-radius-lg border border-line bg-surface p-space-xs text-fg shadow-lg"
             onEscapeKeyDown={(event) => event.stopPropagation()}
           >
             <Select.Viewport>
@@ -60,7 +60,7 @@ export function SkillSelect({
                   key={option.value}
                   value={option.value}
                   disabled={option.disabled}
-                  className="relative cursor-pointer rounded-radius-sm py-space-sm pr-space-base pl-space-lg text-sm break-words whitespace-normal outline-none data-[disabled]:opacity-50 data-[highlighted]:bg-background-subtle"
+                  className="relative cursor-pointer rounded-radius-sm py-space-sm pr-space-base pl-space-lg text-sm break-words whitespace-normal outline-none data-[disabled]:opacity-50 data-[highlighted]:bg-sunken"
                 >
                   <Select.ItemIndicator className="absolute left-space-xs">
                     <Check className="size-icon-sm" />

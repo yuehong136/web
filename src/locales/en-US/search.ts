@@ -5,6 +5,20 @@ export default {
   searchPage: {
     ...searchWorkspaceResource,
     ...searchSettingsResource,
+    createDialog: {
+      title: 'Create a search app',
+      description:
+        'Choose knowledge bases and retrieval settings to find information in your documents.',
+      name: 'Name',
+      namePlaceholder: 'Name this search app',
+      descriptionLabel: 'Description',
+      descriptionPlaceholder: 'Briefly describe what this search app is for',
+      knowledge: 'Knowledge bases',
+      knowledgePlaceholder: 'Select knowledge bases',
+      knowledgeEmpty: 'No knowledge bases yet',
+      knowledgeHint: 'Select one or more knowledge bases to search.',
+      submit: 'Create',
+    },
     feedback: {
       knowledgeRequired: 'Select at least one knowledge base.',
       nameRequired: 'Enter a search app name.',

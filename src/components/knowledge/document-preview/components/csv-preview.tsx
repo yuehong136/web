@@ -46,14 +46,14 @@ const CsvPreviewInner: FC<{
   }
 
   return (
-    <div className="scroll-area h-full w-full overflow-auto bg-background-surface p-space-base">
-      <table className="min-w-full divide-y divide-border-default overflow-hidden rounded-radius-lg border border-border-default">
-        <thead className="bg-background-surface">
+    <div className="scroll-area h-full w-full overflow-auto bg-surface p-space-base">
+      <table className="min-w-full divide-y divide-line overflow-hidden rounded-radius-lg border border-line">
+        <thead className="bg-surface">
           <tr>
             {data.headers.map((header, index) => (
               <th
                 key={`header-${index}`}
-                className="border-b border-border-default bg-background-subtle px-space-base py-space-sm text-left text-xs font-semibold tracking-wider text-text-primary uppercase"
+                className="border-b border-line bg-sunken px-space-base py-space-sm text-left text-xs font-semibold tracking-wider text-fg uppercase"
               >
                 {header ||
                   t('knowledge.preview.columnLabel', { no: index + 1 })}
@@ -61,16 +61,16 @@ const CsvPreviewInner: FC<{
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-border-default">
+        <tbody className="divide-y divide-line">
           {data.rows.map((row, rowIndex) => (
             <tr
               key={`row-${rowIndex}`}
-              className="transition-colors hover:bg-state-hover"
+              className="transition-colors hover:bg-fill-hover"
             >
               {row.map((cell, cellIndex) => (
                 <td
                   key={`cell-${rowIndex}-${cellIndex}`}
-                  className="px-space-base py-space-sm text-sm whitespace-nowrap text-text-secondary"
+                  className="px-space-base py-space-sm text-sm whitespace-nowrap text-fg-muted"
                 >
                   {cell || '-'}
                 </td>

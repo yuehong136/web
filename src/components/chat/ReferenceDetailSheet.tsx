@@ -40,7 +40,7 @@ export function ReferenceDetailSheet({
       <SheetContent
         side="right"
         showCloseButton={false}
-        className="h-full w-full overflow-hidden bg-background-body p-0 sm:max-w-xl"
+        className="h-full w-full overflow-hidden bg-surface p-0 sm:max-w-xl"
         {...returnFocus}
       >
         <SheetTitle asChild>

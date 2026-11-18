@@ -74,7 +74,7 @@ export function InlineFieldForm({
 
   return (
     <form
-      className="space-y-space-md rounded-radius-md border border-border-subtle bg-surface-secondary p-space-md"
+      className="space-y-space-md rounded-radius-md border border-line-subtle bg-sunken p-space-md"
       onSubmit={handleSubmit}
     >
       <div className="grid gap-space-md lg:grid-cols-2">
@@ -91,9 +91,7 @@ export function InlineFieldForm({
             placeholder={t.fieldNamePlaceholder}
             aria-invalid={Boolean(nameError)}
           />
-          {nameError && (
-            <p className="text-xs text-status-error">{nameError}</p>
-          )}
+          {nameError && <p className="text-xs text-danger-fg">{nameError}</p>}
         </div>
         <div className="space-y-space-xs">
           <label className="text-sm font-medium" htmlFor={typeId}>
@@ -130,7 +128,7 @@ export function InlineFieldForm({
       </div>
       <div className="flex flex-wrap items-center justify-between gap-space-md">
         <label
-          className="flex items-center gap-space-sm text-sm text-text-secondary"
+          className="flex items-center gap-space-sm text-sm text-fg-muted"
           htmlFor={requiredId}
         >
           <Checkbox

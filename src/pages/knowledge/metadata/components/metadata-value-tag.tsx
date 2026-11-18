@@ -39,18 +39,18 @@ export const MetadataValueTag: FC<MetadataValueTagProps> = ({
 
   const variantStyles = {
     default: cn(
-      'bg-surface-secondary border border-border-default',
-      'hover:bg-surface-tertiary hover:border-border-subtle',
+      'bg-sunken border border-line',
+      'hover:bg-canvas hover:border-line-subtle',
       'transition-colors duration-150',
     ),
     outline: cn(
-      'bg-transparent border border-border-default',
-      'hover:bg-surface-secondary',
+      'bg-transparent border border-line',
+      'hover:bg-sunken',
       'transition-colors duration-150',
     ),
     ghost: cn(
-      'bg-surface-accent/10 border border-transparent',
-      'hover:bg-surface-accent/20',
+      'bg-accent-solid/10 border border-transparent',
+      'hover:bg-accent-solid/20',
       'transition-colors duration-150',
     ),
   }
@@ -61,7 +61,7 @@ export const MetadataValueTag: FC<MetadataValueTagProps> = ({
     <span
       className={cn(
         'inline-flex items-center rounded-md',
-        'font-normal text-text-primary',
+        'font-normal text-fg',
         'group/tag select-none',
         sizeStyles[size],
         variantStyles[variant],
@@ -72,7 +72,7 @@ export const MetadataValueTag: FC<MetadataValueTagProps> = ({
       <span className="max-w-[120px] truncate">{value}</span>
 
       {count !== undefined && count > 0 && (
-        <span className="shrink-0 font-medium text-text-tertiary tabular-nums">
+        <span className="shrink-0 font-medium text-fg-subtle tabular-nums">
           {count}
         </span>
       )}
@@ -88,9 +88,9 @@ export const MetadataValueTag: FC<MetadataValueTagProps> = ({
           }}
           className={cn(
             '-mr-0.5 ml-1 h-4 w-4 shrink-0 rounded-sm p-0',
-            'text-text-tertiary',
+            'text-fg-subtle',
             'opacity-0 group-hover/tag:opacity-100',
-            'hover:bg-status-error-subtle hover:text-status-error',
+            'hover:bg-danger-soft hover:text-danger-fg',
             'transition-all duration-150',
           )}
           aria-label={t('knowledge.metadata.editor.removeValueAria', {

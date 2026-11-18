@@ -62,7 +62,7 @@ export function MemoryRecallPanel({
         className="flex w-full flex-col gap-0 p-0 sm:max-w-xl"
         closeLabel={t('common.close')}
       >
-        <SheetHeader className="pr-space-3xl border-b border-border-subtle p-space-lg">
+        <SheetHeader className="pr-space-3xl border-b border-line-subtle p-space-lg">
           <SheetTitle>{t('memory.workspace.testRecall')}</SheetTitle>
           <SheetDescription>
             {t('memory.workspace.recallDescription')}
@@ -106,7 +106,7 @@ export function MemoryRecallPanel({
                 {t('memory.workspace.recall')}
               </Button>
             </div>
-            <details className="text-xs text-text-secondary">
+            <details className="text-xs text-fg-muted">
               <summary className="cursor-pointer">
                 <SlidersHorizontal className="mr-space-xs inline size-icon-xs" />
                 {t('memory.workspace.recallOptions')}
@@ -152,7 +152,7 @@ export function MemoryRecallPanel({
               />
             ) : (
               <>
-                <p className="mb-space-base text-xs text-text-secondary">
+                <p className="mb-space-base text-xs text-fg-muted">
                   {t('memory.workspace.recallResults', {
                     count: result.data?.length ?? 0,
                     query: submitted.query,
@@ -172,16 +172,16 @@ export function MemoryRecallPanel({
                           onOpenChange(false)
                           onInspect(message)
                         }}
-                        className="block w-full space-y-space-sm rounded-radius-xl border border-border-subtle bg-background-surface p-space-base text-left hover:border-border-default focus-visible:ring-2 focus-visible:ring-state-focus"
+                        className="block w-full space-y-space-sm rounded-radius-xl border border-line-subtle bg-surface p-space-base text-left hover:border-line focus-visible:ring-2 focus-visible:ring-line-focus"
                       >
                         <div className="flex items-center justify-between gap-space-sm">
                           <div className="flex items-center gap-space-sm">
-                            <span className="text-xs text-text-tertiary">
+                            <span className="text-xs text-fg-subtle">
                               {index + 1}
                             </span>
                             <MemoryTypeBadge type={message.message_type} />
                           </div>
-                          <ArrowUpRight className="size-icon-sm text-text-tertiary" />
+                          <ArrowUpRight className="size-icon-sm text-fg-subtle" />
                         </div>
                         <p className="line-clamp-5 text-sm leading-relaxed break-words whitespace-pre-wrap">
                           {message.content}
@@ -190,7 +190,7 @@ export function MemoryRecallPanel({
                     ))}
                   </div>
                 )}
-                <p className="mt-space-lg text-xs leading-relaxed text-text-tertiary">
+                <p className="mt-space-lg text-xs leading-relaxed text-fg-subtle">
                   {t('memory.workspace.recallBoundary')}
                 </p>
               </>

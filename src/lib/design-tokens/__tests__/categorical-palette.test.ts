@@ -15,15 +15,14 @@ import {
   presetTokenValues,
 } from '@/themes/token-values.generated'
 import { DEFAULT_APPEARANCE } from '@/themes/appearance'
-import { interactionPalette } from '@/themes/interaction-palette'
-import { AVATAR_TONE_COUNT } from '@/themes/avatar-tokens'
+import { COLOR_SCHEMES } from '@/themes/color-schemes'
 import {
-  generateThemeCSS,
   generateThemeFiles,
+  generateTokenValuesModule,
   lightTokens,
   darkTokens,
 } from '@/themes/theme-generator'
-import type { DesignTokens } from '@/themes/tokens'
+import { schemeTokenSets } from '@/themes/theme-sets'
 
 test('getCategoricalIndex: same key is deterministic', () => {
   assert.equal(getCategoricalIndex('Person'), getCategoricalIndex('Person'))
@@ -65,679 +64,88 @@ test('getCategoricalPalette: count > 10 clamps to 10', () => {
 })
 
 test('getCategoricalPalette: light and dark differ on a known slot', () => {
-  const light = getCategoricalPalette('light')
-  const dark = getCategoricalPalette('dark')
-  // slot 1 (data-viz-categorical-1) is intentionally distinct per theme
-  assert.notEqual(light[0], dark[0])
+  assert.notEqual(
+    getCategoricalPalette('light')[0],
+    getCategoricalPalette('dark')[0],
+  )
 })
 
-test('getCategoricalPalette: every entry is a non-empty string', () => {
-  for (const theme of ['light', 'dark'] as const) {
-    for (const color of getCategoricalPalette(theme)) {
-      assert.equal(typeof color, 'string')
-      assert.ok(color.length > 0)
-    }
-  }
+test('getCategoricalPalette: categorical identities do not follow the scheme', () => {
+  for (const scheme of COLOR_SCHEMES)
+    for (const mode of ['light', 'dark'] as const)
+      assert.deepEqual(
+        getCategoricalPalette(mode, CATEGORICAL_PALETTE_SIZE, scheme),
+        getCategoricalPalette(mode, CATEGORICAL_PALETTE_SIZE, 'ink'),
+        `${scheme}/${mode}`,
+      )
 })
 
 test('getTokenValue: a known token differs between light and dark', () => {
-  assert.notEqual(
-    getTokenValue('text-primary', 'light'),
-    getTokenValue('text-primary', 'dark'),
-  )
+  assert.notEqual(getTokenValue('fg', 'light'), getTokenValue('fg', 'dark'))
 })
 
 test('getTokenValue: returns the value baked into the generated module', () => {
-  // Without a preset the current appearance (the default Mist) is read.
+  // Without a preset the current appearance (the default Ink) is read.
   const preset = DEFAULT_APPEARANCE.preset
-  assert.equal(
-    getTokenValue('text-primary', 'light'),
-    presetTokenValues[preset].light['text-primary'],
-  )
-  assert.equal(
-    getTokenValue('text-primary', 'dark'),
-    presetTokenValues[preset].dark['text-primary'],
-  )
-  // The canonical exports stay the Studio values whatever the preset order.
-  assert.equal(
-    getTokenValue('text-primary', 'light', 'studio'),
-    lightTokenValues['text-primary'],
-  )
-  assert.equal(
-    getTokenValue('text-primary', 'dark', 'studio'),
-    darkTokenValues['text-primary'],
-  )
+  assert.equal(preset, 'ink')
+  assert.equal(getTokenValue('fg', 'light'), presetTokenValues[preset].light.fg)
+  assert.equal(getTokenValue('fg', 'dark'), presetTokenValues[preset].dark.fg)
+  // The default exports are the Ink values.
+  assert.equal(getTokenValue('fg', 'light', 'ink'), lightTokenValues.fg)
+  assert.equal(getTokenValue('fg', 'dark', 'ink'), darkTokenValues.fg)
   assert.notEqual(
-    lightTokenValues['text-primary'],
-    presetTokenValues.mist.light['text-primary'],
+    lightTokenValues['accent-solid'],
+    presetTokenValues.mist.light['accent-solid'],
   )
 })
 
-// Compile-time-only note: `getTokenValue('not-a-real-token', 'light')` does not
-// type-check because the `name` parameter is `keyof DesignTokens`. There is no
-// runtime guard for invalid names — type safety is the guard.
-
-test('artifact guard: data-viz-categorical-1..10 present and non-empty in both themes', () => {
-  for (let n = 1; n <= CATEGORICAL_PALETTE_SIZE; n += 1) {
-    const key = `data-viz-categorical-${n}` as keyof typeof lightTokenValues
-    for (const values of [lightTokenValues, darkTokenValues]) {
-      assert.ok(key in values, `${key} missing from generated token values`)
-      assert.ok(
-        typeof values[key] === 'string' && values[key].length > 0,
-        `${key} is empty in generated token values`,
-      )
-    }
-  }
+test('only semantic roles are registered', () => {
+  for (const legacy of ['text-primary', 'status-error', 'components-card-bg'])
+    assert.ok(!(legacy in lightTokenValues), legacy)
 })
 
-const selectedFillTokens = [
-  'surface-accent',
-  'state-selected',
-  'components-checkbox-bg-checked',
-  'components-checkbox-border-checked',
-  'components-radio-border-checked',
-  'components-radio-dot',
-  'components-switch-bg-checked',
-  'components-slider-range',
-  'components-slider-thumb-border',
-  'components-system-accent-border',
-] as const satisfies readonly (keyof DesignTokens)[]
+test('generated JavaScript and committed CSS match the scheme seeds', async () => {
+  assert.deepEqual(lightTokenValues, lightTokens)
+  assert.deepEqual(darkTokenValues, darkTokens)
+  const sets = schemeTokenSets()
+  for (const scheme of COLOR_SCHEMES)
+    for (const mode of ['light', 'dark'] as const)
+      assert.deepEqual(
+        presetTokenValues[scheme][mode],
+        sets[scheme][mode],
+        `${scheme}/${mode}`,
+      )
 
-const selectedTextTokens = [
-  'state-selected-text',
-  'components-system-accent-text',
-] as const satisfies readonly (keyof DesignTokens)[]
-
-const selectedBackgroundTokens = [
-  'surface-accent-subtle',
-  'state-selected-bg',
-  'state-focus-10',
-  'state-focus-subtle',
-] as const satisfies readonly (keyof DesignTokens)[]
-
-const focusTokens = [
-  'border-focus',
-  'state-focus',
-  'components-input-border-focus',
-  'components-select-border-focus',
-] as const satisfies readonly (keyof DesignTokens)[]
-
-const themeContracts = {
-  light: {
-    selection: '#00857e',
-    selectionText: '#026f6a',
-    focus: '#00857e',
-    action: '#18181b',
-  },
-  dark: {
-    selection: '#8452f4',
-    selectionText: '#c4b5fd',
-    focus: '#a78bfa',
-    action: '#2563eb',
-  },
-} as const
-
-function luminance(hex: string): number {
-  assert.match(hex, /^#[\da-f]{6}$/i)
-  const channels = [1, 3, 5].map((start) => {
-    const value = Number.parseInt(hex.slice(start, start + 2), 16) / 255
-    return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4
-  })
-  return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722
-}
-
-function contrast(foreground: string, background: string): number {
-  const values = [luminance(foreground), luminance(background)].sort(
-    (a, b) => b - a,
+  const modulePath = fileURLToPath(
+    new URL('../../../themes/token-values.generated.ts', import.meta.url),
   )
-  return (values[0] + 0.05) / (values[1] + 0.05)
-}
-
-function compositeBackground(color: string, surface: string): string {
-  if (color.startsWith('#')) return color
-  const match = /^rgba\(\s*(\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\s*\)$/.exec(
-    color,
-  )
-  assert.ok(match, `Expected an opaque hex or rgba background: ${color}`)
-  const alpha = Number(match[4])
-  return `#${[1, 2, 3]
-    .map((channel) => {
-      const base = Number.parseInt(
-        surface.slice(channel * 2 - 1, channel * 2 + 1),
-        16,
-      )
-      return Math.round(Number(match[channel]) * alpha + base * (1 - alpha))
-        .toString(16)
-        .padStart(2, '0')
-    })
-    .join('')}`
-}
-
-const statusIntents = ['success', 'warning', 'error', 'info'] as const
-type StatusIntent = (typeof statusIntents)[number]
-type StatusRoleValues = Record<
-  `status-${StatusIntent}${'' | '-solid' | '-solid-hover' | '-on-solid' | '-subtle' | '-subtle-hover'}`,
-  string
->
-
-/**
- * Status role contract: the foreground reads on every fill it meets in
- * product UI, on its own tints, and on-solid labels read on both solid fills.
- * Returns the failing pairs so the legacy palette can be checked too.
- */
-function statusRoleViolations(
-  values: Record<string, string>,
-  roles: StatusRoleValues,
-): string[] {
-  const surface = values['background-surface']
-  const over = (fill: string, base = surface) => compositeBackground(fill, base)
-  const selectedRow = over(values['state-selected-bg'])
-  const failures: string[] = []
-  const check = (label: string, foreground: string, background: string) => {
-    const ratio = contrast(foreground, background)
-    if (ratio < 4.5) failures.push(`${label} is ${ratio.toFixed(2)}:1`)
+  const files = {
+    ...generateThemeFiles(),
+    tokenValues: generateTokenValuesModule(),
   }
-  for (const intent of statusIntents) {
-    const fg = roles[`status-${intent}`]
-    const fills = {
-      'background-body': values['background-body'],
-      'background-default': values['background-default'],
-      'background-surface': surface,
-      'background-subtle': over(values['background-subtle']),
-      'state-hover': over(values['state-hover']),
-      'components-button-secondary-bg': over(
-        values['components-button-secondary-bg'],
-      ),
-      'components-button-secondary-bg-hover': over(
-        values['components-button-secondary-bg-hover'],
-      ),
-    }
-    for (const [name, fill] of Object.entries(fills))
-      check(`status-${intent} on ${name}`, fg, fill)
-    const tintBases = {
-      'background-body': values['background-body'],
-      'background-default': values['background-default'],
-      'background-surface': surface,
-      'background-subtle': over(values['background-subtle']),
-      'selected row': selectedRow,
-    }
-    for (const [name, base] of Object.entries(tintBases))
-      check(
-        `status-${intent} on its subtle tint over ${name}`,
-        fg,
-        over(roles[`status-${intent}-subtle`], base),
-      )
-    for (const name of [
-      'background-body',
-      'background-default',
-      'background-surface',
-    ] as const)
-      check(
-        `status-${intent} on its subtle-hover tint over ${name}`,
-        fg,
-        over(roles[`status-${intent}-subtle-hover`], values[name]),
-      )
-    for (const solid of ['-solid', '-solid-hover'] as const)
-      check(
-        `status-${intent}-on-solid on status-${intent}${solid}`,
-        roles[`status-${intent}-on-solid`],
-        roles[`status-${intent}${solid}`],
-      )
-  }
-  return failures
-}
-
-// The 500-level palette the scale replaced: one color served text, fills and
-// borders, with white labels on top.
-const legacyStatus = {
-  light: {
-    success: ['#10b981', 'rgba(16, 185, 129, 0.1)'],
-    warning: ['#f59e0b', 'rgba(245, 158, 11, 0.1)'],
-    error: ['#ef4444', 'rgba(239, 68, 68, 0.1)'],
-    info: ['#0ea5e9', 'rgba(14, 165, 233, 0.1)'],
-  },
-  dark: {
-    success: ['#22c55e', 'rgba(34, 197, 94, 0.12)'],
-    warning: ['#f59e0b', 'rgba(245, 158, 11, 0.12)'],
-    error: ['#ef4444', 'rgba(239, 68, 68, 0.12)'],
-    info: ['#38bdf8', 'rgba(56, 189, 248, 0.12)'],
-  },
-} as const
-
-for (const mode of ['light', 'dark'] as const) {
-  test(`${mode} status roles keep text, tints and solid labels readable`, () => {
-    const values = mode === 'light' ? lightTokenValues : darkTokenValues
-    assert.deepEqual(statusRoleViolations(values, values), [])
-  })
-
-  test(`${mode} avatar monograms read on their tint`, () => {
-    const values = mode === 'light' ? lightTokenValues : darkTokenValues
-    for (let slot = 1; slot <= AVATAR_TONE_COUNT; slot += 1) {
-      const tone = `components-avatar-${slot}` as const
-      const ratio = contrast(
-        values[`${tone}-text` as keyof DesignTokens],
-        values[`${tone}-bg` as keyof DesignTokens],
-      )
-      assert.ok(
-        ratio >= 4.5,
-        `${mode} ${tone} monograms are ${ratio.toFixed(2)}:1; expected at least 4.5:1`,
-      )
-    }
-  })
-
-  test(`${mode} legacy 500-level status colors fail the status role contract`, () => {
-    const values = mode === 'light' ? lightTokenValues : darkTokenValues
-    const roles = Object.fromEntries(
-      statusIntents.flatMap((intent) => {
-        const [color, tint] = legacyStatus[mode][intent]
-        return [
-          [`status-${intent}`, color],
-          [`status-${intent}-solid`, color],
-          [`status-${intent}-solid-hover`, color],
-          [`status-${intent}-on-solid`, '#ffffff'],
-          [`status-${intent}-subtle`, tint],
-          [`status-${intent}-subtle-hover`, tint],
-        ]
-      }),
-    ) as StatusRoleValues
-    const failures = statusRoleViolations(values, roles)
-    for (const intent of statusIntents)
-      assert.ok(
-        failures.some((failure) => failure.startsWith(`status-${intent}`)),
-        `${mode} legacy ${intent} unexpectedly passes the contract`,
-      )
-  })
-
-  test(`${mode} controls use the selection family while main actions retain their own family`, () => {
-    const values = mode === 'light' ? lightTokenValues : darkTokenValues
-    const contract = themeContracts[mode]
-    const palette = interactionPalette[mode]
-    for (const [role, value] of Object.entries(contract)) {
-      assert.equal(
-        palette[role as keyof typeof contract],
-        value,
-        `${mode} ${role}`,
-      )
-    }
-    for (const key of selectedFillTokens)
-      assert.equal(values[key], contract.selection, key)
-    for (const key of selectedTextTokens)
-      assert.equal(values[key], contract.selectionText, key)
-    for (const key of selectedBackgroundTokens)
-      assert.equal(values[key], palette.selectionTint, key)
-    for (const key of focusTokens)
-      assert.equal(values[key], contract.focus, key)
-    assert.equal(values['components-select-bg'], values['components-radio-bg'])
-    assert.notEqual(values['components-select-bg'], contract.selection)
-    assert.equal(values['surface-primary'], values['background-surface'])
-    assert.equal(values['surface-secondary'], values['background-subtle'])
-    assert.equal(values['surface-tertiary'], values['background-default'])
-    assert.equal(values['text-caption'], values['text-tertiary'])
-    assert.equal(values['components-button-primary-bg'], contract.action)
-    assert.equal(values['components-button-primary-border'], contract.action)
-    assert.equal(
-      values['components-button-primary-bg-hover'],
-      palette.actionHover,
-    )
-    assert.equal(
-      values['components-button-primary-bg-active'],
-      palette.actionActive,
-    )
-    assert.notEqual(
-      values['components-button-primary-bg'],
-      values['components-checkbox-bg-checked'],
-    )
-  })
-
-  test(`${mode} selected controls and action labels retain readable contrast`, () => {
-    const values = mode === 'light' ? lightTokenValues : darkTokenValues
-    const indicators = [
-      ['components-checkbox-icon', 'components-checkbox-bg-checked'],
-      ['components-slider-thumb', 'components-slider-thumb-border'],
-    ] as const
-    for (const [foreground, background] of indicators) {
-      assert.equal(values[foreground], '#ffffff', foreground)
-      assert.ok(
-        contrast(values[foreground], values[background]) >= 3,
-        `${mode} ${foreground} against ${background} must reach 3:1`,
-      )
-    }
-    for (const filled of [
-      'components-checkbox-bg-checked',
-      'components-switch-bg-checked',
-      'components-slider-range',
-      'components-radio-dot',
-    ] as const) {
-      assert.ok(
-        contrast(values[filled], values['background-surface']) >= 3,
-        `${mode} ${filled} against background-surface must reach 3:1`,
-      )
-    }
-    assert.equal(values['components-button-primary-text'], '#ffffff')
-    for (const background of [
-      'components-button-primary-bg',
-      'components-button-primary-bg-hover',
-      'components-button-primary-bg-active',
-    ] as const) {
-      assert.ok(
-        contrast(
-          values['components-button-primary-text'],
-          values[background],
-        ) >= 4.5,
-        `${mode} primary button labels against ${background} must reach 4.5:1`,
-      )
-    }
-    // Selected labels sit on the selection tint, which lies over product
-    // surfaces and over the tab and segmented control tracks.
-    for (const background of [
-      'background-body',
-      'background-default',
-      'background-surface',
-      'components-tabs-bg',
-      'components-segmented-bg',
-    ] as const) {
-      const track = compositeBackground(
-        values[background],
-        values['background-surface'],
-      )
-      const ratio = contrast(
-        values['state-selected-text'],
-        compositeBackground(values['state-selected-bg'], track),
-      )
-      assert.ok(
-        ratio >= 4.5,
-        `${mode} selected labels on the selection tint over ${background} are ${ratio.toFixed(2)}:1; expected at least 4.5:1`,
-      )
-    }
-  })
-
-  test(`${mode} primary, secondary and tertiary text stays readable on product surfaces`, () => {
-    const values = mode === 'light' ? lightTokenValues : darkTokenValues
-    const textTokens = [
-      'text-primary',
-      'text-secondary',
-      'text-tertiary',
-      'text-muted',
-    ] as const
-    const surfaces = [
-      'background-body',
-      'background-default',
-      'background-surface',
-      'background-section',
-      'components-card-bg',
-    ] as const
-    for (const foreground of textTokens) {
-      for (const background of surfaces) {
-        const ratio = contrast(values[foreground], values[background])
-        assert.ok(
-          ratio >= 4.5,
-          `${mode} ${foreground} against ${background} is ${ratio.toFixed(2)}:1; expected at least 4.5:1`,
-        )
-      }
-      // Lists, menus and chips also put body text on the subtle, hover, tag
-      // and outline button fills.
-      for (const background of [
-        'background-subtle',
-        'state-hover',
-        'components-tag-bg',
-        'components-button-secondary-bg',
-      ] as const) {
-        const ratio = contrast(
-          values[foreground],
-          compositeBackground(values[background], values['background-surface']),
-        )
-        assert.ok(
-          ratio >= 4.5,
-          `${mode} ${foreground} over ${background} is ${ratio.toFixed(2)}:1; expected at least 4.5:1`,
-        )
-      }
-    }
-    const tagRatio = contrast(
-      values['components-tag-text'],
-      compositeBackground(
-        values['components-tag-bg'],
-        values['background-surface'],
-      ),
-    )
-    assert.ok(
-      tagRatio >= 4.5,
-      `${mode} tag labels are ${tagRatio.toFixed(2)}:1; expected at least 4.5:1`,
-    )
-    for (const badge of [
-      'components-badge',
-      'components-badge-neutral',
-      'components-badge-success',
-      'components-badge-warning',
-      'components-badge-error',
-      'components-badge-info',
-      'components-badge-blue',
-      'components-badge-orange',
-      'components-badge-purple',
-      'components-badge-green',
-    ] as const) {
-      const ratio = contrast(
-        values[`${badge}-text`],
-        compositeBackground(
-          values[`${badge}-bg`],
-          values['background-surface'],
-        ),
-      )
-      assert.ok(
-        ratio >= 4.5,
-        `${mode} ${badge} labels are ${ratio.toFixed(2)}:1; expected at least 4.5:1`,
-      )
-    }
-    for (const status of ['success', 'warning', 'error', 'info'] as const) {
-      for (const background of surfaces) {
-        const ratio = contrast(
-          values[`components-alert-${status}-text`],
-          compositeBackground(
-            values[`components-alert-${status}-bg`],
-            values[background],
-          ),
-        )
-        assert.ok(
-          ratio >= 4.5,
-          `${mode} ${status} alert text over ${background} is ${ratio.toFixed(2)}:1; expected at least 4.5:1`,
-        )
-      }
-    }
-    // Search highlights mark matches with the warning tint, deeper on hover,
-    // inside result cards that lighten on hover.
-    for (const tint of [
-      'status-warning-subtle',
-      'status-warning-subtle-hover',
-    ] as const) {
-      for (const background of [
-        'background-surface',
-        'components-card-bg-hover',
-      ] as const) {
-        const ratio = contrast(
-          values['text-primary'],
-          compositeBackground(values[tint], values[background]),
-        )
-        assert.ok(
-          ratio >= 4.5,
-          `${mode} search highlights on ${tint} over ${background} are ${ratio.toFixed(2)}:1; expected at least 4.5:1`,
-        )
-      }
-    }
-    // Published apps keep their success chip in selected list rows, where
-    // the selection tint lies under the success tint.
-    const selectedChipRatio = contrast(
-      values['status-success'],
-      compositeBackground(
-        values['status-success-subtle'],
-        compositeBackground(
-          values['state-selected-bg'],
-          values['background-surface'],
-        ),
-      ),
-    )
-    assert.ok(
-      selectedChipRatio >= 4.5,
-      `${mode} success chips in selected rows are ${selectedChipRatio.toFixed(2)}:1; expected at least 4.5:1`,
-    )
-    // Method, task, API and system status labels sit on their own tint.
-    for (const label of [
-      'components-method-get',
-      'components-method-post',
-      'components-method-put',
-      'components-method-delete',
-      'components-method-patch',
-      'components-api-status-error',
-      'components-task-status-cancelled',
-      'components-task-status-completed',
-      'components-task-status-failed',
-      'components-system-health-warning',
-      'components-system-health-error',
-      'components-system-status-warning',
-      'components-system-status-error',
-    ] as const) {
-      for (const background of surfaces) {
-        const ratio = contrast(
-          values[`${label}-text`],
-          compositeBackground(values[`${label}-bg`], values[background]),
-        )
-        assert.ok(
-          ratio >= 4.5,
-          `${mode} ${label} text over ${background} is ${ratio.toFixed(2)}:1; expected at least 4.5:1`,
-        )
-      }
-    }
-    // Inactive tab and segmented labels sit on their track, and on the hover
-    // fill laid over the track.
-    for (const [label, track, hover] of [
-      ['components-tabs-inactive-text', 'components-tabs-bg', 'state-hover'],
-      [
-        'components-segmented-item-text',
-        'components-segmented-bg',
-        'components-segmented-item-bg-hover',
-      ],
-    ] as const) {
-      const rest = compositeBackground(
-        values[track],
-        values['background-surface'],
-      )
-      for (const [state, background] of [
-        ['rest', rest],
-        ['hover', compositeBackground(values[hover], rest)],
-      ] as const) {
-        const ratio = contrast(values[label], background)
-        assert.ok(
-          ratio >= 4.5,
-          `${mode} ${label} on its ${state} track is ${ratio.toFixed(2)}:1; expected at least 4.5:1`,
-        )
-      }
-    }
-    // Inline code and step pills put their text on their own fill.
-    for (const label of [
-      'components-code',
-      'components-steps-completed',
-      'components-steps-active',
-      'components-steps-inactive',
-    ] as const) {
-      const ratio = contrast(
-        values[`${label}-text`],
-        compositeBackground(
-          values[`${label}-bg`],
-          values['background-surface'],
-        ),
-      )
-      assert.ok(
-        ratio >= 4.5,
-        `${mode} ${label} labels are ${ratio.toFixed(2)}:1; expected at least 4.5:1`,
-      )
-    }
-    // The running canvas node spinner is an icon, so it needs 3:1.
-    const spinnerRatio = contrast(
-      values['components-canvas-node-status-running-icon'],
-      compositeBackground(
-        values['components-canvas-node-bg'],
-        values['background-surface'],
-      ),
-    )
-    assert.ok(
-      spinnerRatio >= 3,
-      `${mode} running node spinner is ${spinnerRatio.toFixed(2)}:1; expected at least 3:1`,
-    )
-    // Info chips put text-accent on the info tint.
-    for (const background of surfaces) {
-      const ratio = contrast(
-        values['text-accent'],
-        compositeBackground(values['status-info-subtle'], values[background]),
-      )
-      assert.ok(
-        ratio >= 4.5,
-        `${mode} info chips over ${background} are ${ratio.toFixed(2)}:1; expected at least 4.5:1`,
-      )
-    }
-  })
-
-  test(`${mode} generated JavaScript and committed CSS match the canonical theme tokens`, async () => {
-    const canonical = mode === 'light' ? lightTokens : darkTokens
-    const generated = mode === 'light' ? lightTokenValues : darkTokenValues
-    assert.deepEqual(generated, canonical)
-    const filepath = fileURLToPath(
-      new URL(`../../../themes/${mode}.css`, import.meta.url),
-    )
-    const css = await readFile(filepath, 'utf8')
+  assert.deepEqual(files.errors, [])
+  for (const [name, filepath] of [
+    [
+      'light',
+      fileURLToPath(new URL('../../../themes/light.css', import.meta.url)),
+    ],
+    [
+      'dark',
+      fileURLToPath(new URL('../../../themes/dark.css', import.meta.url)),
+    ],
+    ['tokenValues', modulePath],
+  ] as const) {
+    const committed = await readFile(filepath, 'utf8')
     const options = await resolveConfig(filepath)
-    const expectedCSS = await format(generateThemeFiles()[mode], {
+    const expected = await format(files[name], {
       ...options,
       plugins: [],
       filepath,
     })
     assert.equal(
-      css,
-      expectedCSS,
-      `${mode} committed CSS drifts from canonical tokens`,
+      committed,
+      expected,
+      `${name} drifts from the generator; run npm run build:themes`,
     )
-    const studioCSS = css.split(/\/\*\*/)[1]
-    const declarations = [
-      ...studioCSS.matchAll(/--color-([\w-]+):\s*([^;]+);/g),
-    ]
-    const emitted = new Map(
-      declarations.map((match) => [
-        match[1],
-        match[2].trim().replace(/\s+/g, ' '),
-      ]),
-    )
-    assert.equal(
-      declarations.length,
-      emitted.size,
-      `${mode} CSS emits a token more than once`,
-    )
-    assert.deepEqual(
-      [...emitted.keys()].sort(),
-      Object.keys(generated).sort(),
-      `${mode} CSS must cover every generated JavaScript token`,
-    )
-    for (const key of [
-      ...selectedFillTokens,
-      ...selectedTextTokens,
-      ...selectedBackgroundTokens,
-      ...focusTokens,
-      'components-button-primary-bg',
-    ]) {
-      assert.ok(emitted.has(key), `${mode} CSS omits interaction token ${key}`)
-    }
-  })
-
-  test(`${mode} Tailwind action and focus channels follow the supplied token values`, () => {
-    const tokens = {
-      ...(mode === 'light' ? lightTokens : darkTokens),
-      'components-button-primary-bg': '#123456',
-      'state-focus': '#fedcba',
-      'text-primary': '#abcdef',
-      'background-body': '#13579b',
-    }
-    const css = generateThemeCSS(tokens, mode)
-    assert.match(css, /--twc-primary: 18 52 86;/)
-    assert.match(css, /--twc-ring: 254 220 186;/)
-    assert.match(css, /--twc-foreground: 171 205 239;/)
-    assert.match(css, /--twc-background: 19 87 155;/)
-    assert.match(css, /--color-components-button-primary-bg: #123456;/)
-    assert.match(css, /--color-state-focus: #fedcba;/)
-  })
-}
+  }
+})

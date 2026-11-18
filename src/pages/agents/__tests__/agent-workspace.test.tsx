@@ -143,7 +143,7 @@ it('retains search and list preferences across theme and locale updates without 
       'button[aria-label="List view"]',
     )!,
   )
-  await act(async () => setAppearance({ preset: 'graphite', mode: 'dark' }))
+  await act(async () => setAppearance({ preset: 'iris', mode: 'dark' }))
   await act(async () => changeLanguage('zh-CN'))
   expect(container.querySelector('input[type=search]')).toBe(search)
   expect(search.value).toBe('Research')
@@ -171,7 +171,7 @@ it('keeps a failed create draft and its type while theme and locale change, usin
   expect(name.value).toBe('Draft workflow')
   expect(mock.setOptions).toHaveBeenCalledWith({ showToast: false })
   expect(toast.success).not.toHaveBeenCalled()
-  await act(async () => setAppearance({ preset: 'ocean' }))
+  await act(async () => setAppearance({ preset: 'celadon' }))
   await act(async () => changeLanguage('zh-CN'))
   expect(document.querySelector('input[id$="-name"]')).toBe(name)
   expect(name.value).toBe('Draft workflow')

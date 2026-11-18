@@ -26,12 +26,12 @@ export function CenterConfigSection({
     <Collapsible
       open={open}
       onOpenChange={onOpenChange}
-      className="border-t border-border-subtle"
+      className="border-t border-line-subtle"
     >
       <div className="flex items-center gap-space-sm">
         <CollapsibleTrigger
           id={id}
-          className="flex min-w-0 flex-1 items-center justify-between gap-space-sm py-space-base text-left text-sm font-semibold text-text-primary focus-visible:ring-2 focus-visible:ring-border-accent focus-visible:outline-hidden"
+          className="flex min-w-0 flex-1 items-center justify-between gap-space-sm py-space-base text-left text-sm font-semibold text-fg focus-visible:ring-2 focus-visible:ring-line-focus focus-visible:outline-hidden"
         >
           {title}
           <ChevronDown

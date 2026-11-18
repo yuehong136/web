@@ -36,20 +36,20 @@ export function LimitsSection({
     <Collapsible
       open={open}
       onOpenChange={setOpen}
-      className="rounded-radius-lg border border-border-subtle"
+      className="rounded-radius-lg border border-line-subtle"
     >
-      <CollapsibleTrigger className="flex w-full items-center gap-space-sm rounded-radius-lg px-space-md py-space-sm text-left outline-hidden hover:bg-state-hover focus-visible:ring-2 focus-visible:ring-state-focus">
+      <CollapsibleTrigger className="flex w-full items-center gap-space-sm rounded-radius-lg px-space-md py-space-sm text-left outline-hidden hover:bg-fill-hover focus-visible:ring-2 focus-visible:ring-line-focus">
         <ChevronRight
           className={cn(
-            'size-icon-sm text-text-secondary transition-transform motion-reduce:transition-none',
+            'size-icon-sm text-fg-muted transition-transform motion-reduce:transition-none',
             open && 'rotate-90',
           )}
           aria-hidden="true"
         />
-        <span className="text-sm font-medium text-text-primary">
+        <span className="text-sm font-medium text-fg">
           {t(`${PREFIX}.keyForm.limitsTitle`)}
         </span>
-        <span className="text-xs text-text-tertiary">
+        <span className="text-xs text-fg-subtle">
           {t(`${PREFIX}.keyForm.limitsHint`)}
         </span>
       </CollapsibleTrigger>
@@ -66,7 +66,7 @@ export function LimitsSection({
           disabled={disabled}
           onChange={onQuotaChange}
         />
-        <p className="text-xs text-text-tertiary">
+        <p className="text-xs text-fg-subtle">
           {t(`${PREFIX}.keyForm.quotaHint`)}
         </p>
       </CollapsibleContent>

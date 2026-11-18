@@ -31,17 +31,17 @@ export function FormRenderer({
   if (!FormComponent) {
     return (
       <div className="space-y-space-md p-space-base">
-        <div className="rounded-radius-md border border-border-primary bg-surface-secondary p-space-base">
-          <div className="text-sm font-medium text-text-primary">
+        <div className="rounded-radius-md border border-line bg-sunken p-space-base">
+          <div className="text-sm font-medium text-fg">
             {t('agent.runtimePanel.formSheet.unsupportedTitle')}
           </div>
-          <p className="mt-space-xs text-sm text-text-secondary">
+          <p className="mt-space-xs text-sm text-fg-muted">
             {t('agent.runtimePanel.formSheet.unsupportedDescription', {
               type: operatorType || 'unknown',
             })}
           </p>
         </div>
-        <pre className="max-h-[24rem] overflow-auto rounded-radius-md border border-border-primary bg-surface-secondary p-space-base text-xs text-text-secondary">
+        <pre className="max-h-[24rem] overflow-auto rounded-radius-md border border-line bg-sunken p-space-base text-xs text-fg-muted">
           {JSON.stringify(node.data?.form || {}, null, 2)}
         </pre>
       </div>
@@ -52,7 +52,7 @@ export function FormRenderer({
     <Suspense
       fallback={
         <output
-          className="flex items-center justify-center gap-space-sm p-space-lg text-sm text-text-secondary"
+          className="flex items-center justify-center gap-space-sm p-space-lg text-sm text-fg-muted"
           aria-live="polite"
         >
           <Spinner size="sm" />

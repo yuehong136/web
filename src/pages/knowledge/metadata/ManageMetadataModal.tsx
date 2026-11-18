@@ -53,13 +53,11 @@ export const ManageMetadataModal: React.FC<ManageMetadataModalProps> = ({
 
   const { title, subtitle } = getModalConfig(mode, t)
   const headerIcon = editor.isSettingMode ? (
-    <Sparkles className="h-5 w-5 text-status-info" />
+    <Sparkles className="h-5 w-5 text-info-fg" />
   ) : (
-    <Database className="h-5 w-5 text-text-secondary" />
+    <Database className="h-5 w-5 text-fg-muted" />
   )
-  const headerIconClass = editor.isSettingMode
-    ? 'bg-status-info-subtle'
-    : 'bg-surface-secondary'
+  const headerIconClass = editor.isSettingMode ? 'bg-info-soft' : 'bg-sunken'
 
   const allowRemoveValue =
     editor.isManageMode || mode === MetadataManageType.UPDATE_SINGLE
@@ -82,11 +80,11 @@ export const ManageMetadataModal: React.FC<ManageMetadataModalProps> = ({
           <div className="scrollbar-thin flex-1 overflow-y-auto px-6 pb-4">
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-text-primary">
+                <span className="text-sm font-medium text-fg">
                   {t('knowledge.metadata.modal.fieldList')}
                 </span>
                 {editor.tableData.length > 0 && (
-                  <span className="inline-flex items-center justify-center rounded bg-surface-secondary px-1.5 py-0.5 text-xs font-medium text-text-tertiary">
+                  <span className="inline-flex items-center justify-center rounded bg-sunken px-1.5 py-0.5 text-xs font-medium text-fg-subtle">
                     {editor.tableData.length}
                   </span>
                 )}
@@ -96,7 +94,7 @@ export const ManageMetadataModal: React.FC<ManageMetadataModalProps> = ({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-text-secondary hover:text-text-accent"
+                    className="text-fg-muted hover:text-accent-fg"
                     onClick={() => {
                       onClose()
                       onNavigateToSettings()
@@ -111,7 +109,7 @@ export const ManageMetadataModal: React.FC<ManageMetadataModalProps> = ({
                   size="sm"
                   onClick={editor.handlers.addField}
                   disabled={editor.isSaving}
-                  className="hover:border-surface-accent hover:text-surface-accent"
+                  className="hover:border-accent-solid hover:text-accent-solid"
                 >
                   <Plus className="mr-1 h-4 w-4" />
                   {t('knowledge.metadata.modal.addField')}

@@ -88,7 +88,7 @@ export function AdminLoginForm({ onSuccess }: { onSuccess: () => void }) {
                         : 'settings.admin.login.showPassword',
                     )}
                     onClick={() => setShowPassword((value) => !value)}
-                    className="rounded-radius-sm text-text-tertiary outline-hidden hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-focus"
+                    className="rounded-radius-sm text-fg-subtle outline-hidden hover:text-fg-muted focus-visible:ring-2 focus-visible:ring-line-focus"
                   >
                     {showPassword ? (
                       <EyeOff className="size-icon-sm" aria-hidden="true" />
@@ -100,9 +100,9 @@ export function AdminLoginForm({ onSuccess }: { onSuccess: () => void }) {
               />
             </div>
           </SettingRow>
-          <div className="flex flex-wrap items-center justify-end gap-space-sm border-t border-border-subtle pt-space-sm">
+          <div className="flex flex-wrap items-center justify-end gap-space-sm border-t border-line-subtle pt-space-sm">
             {error ? (
-              <p role="alert" className="mr-auto text-sm text-status-error">
+              <p role="alert" className="mr-auto text-sm text-danger-fg">
                 {t(
                   error === 'required'
                     ? 'settings.admin.login.required'

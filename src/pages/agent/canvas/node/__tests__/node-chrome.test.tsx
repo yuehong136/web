@@ -73,9 +73,7 @@ it('marks finished nodes with a status dot, label and elapsed time', async () =>
     nodeElapsedMap: { 'node-1': 1.5 },
   })
   expect(card.dataset.status).toBe('success')
-  expect(card.className).toContain(
-    'border-components-canvas-node-status-success-border',
-  )
+  expect(card.className).toContain('border-success-line')
   expect(host.querySelector('[data-slot="node-status"]')?.textContent).toBe(
     '1.50sSucceeded',
   )
@@ -92,19 +90,15 @@ it('marks finished nodes with a status dot, label and elapsed time', async () =>
 
 it('keeps the selection outline instead of the finished border when selected', async () => {
   const card = await renderNode({ successNodeIds: ['node-1'] }, true)
-  expect(card.className).toContain(
-    'outline-components-canvas-node-border-selected',
-  )
-  expect(card.className).not.toContain(
-    'border-components-canvas-node-status-success-border',
-  )
+  expect(card.className).toContain('outline-line-focus')
+  expect(card.className).not.toContain('border-success-line')
 })
 
 it('puts the operator glyph on its family tile next to the node name', async () => {
   await renderNode({})
   const tile = host.querySelector<HTMLElement>('[data-slot="operator-tile"]')!
   expect(tile.dataset.category).toBe('ai')
-  expect(tile.className).toContain('bg-components-avatar-7-bg')
+  expect(tile.className).toContain('bg-avatar-7-bg')
   expect(tile.getAttribute('aria-hidden')).toBe('true')
   expect(host.querySelector('[title="Answer"]')?.textContent).toBe('Answer')
 })

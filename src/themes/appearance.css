@@ -10,51 +10,30 @@ html[data-preset] {
   color-scheme: dark;
 }
 [data-preset] {
-  /* Local fonts only: Web and offline Desktop share the same fallback order. */
+  /* Geist for Latin over system CJK; bundled, so Web and offline Desktop match. */
   --font-interface:
-    system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
-    'Hiragino Sans GB', 'Microsoft YaHei UI', 'Microsoft YaHei',
+    'Geist Variable', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei UI', 'Microsoft YaHei',
     'Noto Sans CJK SC', 'Noto Sans SC', sans-serif;
   --font-reading: var(--font-interface);
   --font-code:
-    ui-monospace, 'SFMono-Regular', Menlo, Monaco, Consolas, 'Liberation Mono',
-    'PingFang SC', 'Microsoft YaHei', monospace;
+    'Geist Mono Variable', ui-monospace, 'SFMono-Regular', Menlo, Monaco,
+    Consolas, 'Liberation Mono', 'PingFang SC', 'Microsoft YaHei', monospace;
   --reading-line-height: 1.65;
-  --radius: 0.625rem;
+  /* DreamJira radii 4/6/8/12. */
+  --radius: 0.5rem;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
   --radius-full: 9999px;
-  /* Workbench chrome follows the control scale unless a preset sets its own. */
-  --nav-rail-item: var(--control-height);
-  --workbench-header-height: calc(var(--control-height) + var(--space-sm));
 }
-/* DreamJira scale: Geist for Latin over system CJK, radii 4/6/8/12. */
-[data-preset='mist'] {
-  --font-interface:
-    'Geist Variable', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
-    'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei UI', 'Microsoft YaHei',
-    'Noto Sans CJK SC', 'Noto Sans SC', sans-serif;
-  --font-code:
-    'Geist Mono Variable', ui-monospace, 'SFMono-Regular', Menlo, Monaco,
-    Consolas, 'Liberation Mono', 'PingFang SC', 'Microsoft YaHei', monospace;
-  --radius: 0.5rem;
-}
-[data-preset='paper'] {
+/* Clay is the reading scheme: long answers and reports set in a serif. */
+[data-preset='clay'] {
   --font-reading:
     Georgia, 'Times New Roman', 'Noto Serif CJK SC', 'Noto Serif SC',
     'Songti SC', STSong, SimSun, serif;
   --reading-line-height: 1.8;
-  --radius: 0.5rem;
-}
-[data-preset='graphite'] {
-  --reading-line-height: 1.55;
-  --radius: 0.375rem;
-}
-[data-preset='ocean'] {
-  --reading-line-height: 1.7;
-  --radius: 0.75rem;
 }
 [data-density='comfortable'] {
   --space-2xs: 2px;
@@ -65,13 +44,16 @@ html[data-preset] {
   --space-lg: 24px;
   --space-xl: 32px;
   --space-2xl: 40px;
-  --control-height-sm: calc(2rem * var(--text-scale, 1));
-  --control-height: calc(2.5rem * var(--text-scale, 1));
-  --control-height-lg: calc(3rem * var(--text-scale, 1));
-  --control-padding-x-sm: 12px;
-  --control-padding-x: 16px;
-  --control-padding-x-lg: 24px;
+  --control-height-sm: calc(1.75rem * var(--text-scale, 1));
+  --control-height: calc(2rem * var(--text-scale, 1));
+  --control-height-lg: calc(2.5rem * var(--text-scale, 1));
+  --control-padding-x-sm: 8px;
+  --control-padding-x: 12px;
+  --control-padding-x-lg: 16px;
   --control-gap: 8px;
+  /* DreamJira: 36px rail items and a 48px workbench header. */
+  --nav-rail-item: calc(2.25rem * var(--text-scale, 1));
+  --workbench-header-height: calc(3rem * var(--text-scale, 1));
 }
 [data-density='compact'] {
   --space-2xs: 2px;
@@ -82,35 +64,15 @@ html[data-preset] {
   --space-lg: 18px;
   --space-xl: 24px;
   --space-2xl: 32px;
-  --control-height-sm: calc(1.75rem * var(--text-scale, 1));
-  --control-height: calc(2rem * var(--text-scale, 1));
-  --control-height-lg: calc(2.5rem * var(--text-scale, 1));
-  --control-padding-x-sm: 8px;
-  --control-padding-x: 12px;
-  --control-padding-x-lg: 16px;
-  --control-gap: 6px;
-}
-/* Mist uses DreamJira's 32px controls, 36px rail items and a 48px workbench
-   header; compact steps down once more. */
-[data-preset='mist'][data-density='comfortable'] {
-  --nav-rail-item: calc(2.25rem * var(--text-scale, 1));
-  --workbench-header-height: calc(3rem * var(--text-scale, 1));
-  --control-height-sm: calc(1.75rem * var(--text-scale, 1));
-  --control-height: calc(2rem * var(--text-scale, 1));
-  --control-height-lg: calc(2.5rem * var(--text-scale, 1));
-  --control-padding-x-sm: 8px;
-  --control-padding-x: 12px;
-  --control-padding-x-lg: 16px;
-}
-[data-preset='mist'][data-density='compact'] {
-  --nav-rail-item: calc(2rem * var(--text-scale, 1));
-  --workbench-header-height: calc(2.5rem * var(--text-scale, 1));
   --control-height-sm: calc(1.5rem * var(--text-scale, 1));
   --control-height: calc(1.75rem * var(--text-scale, 1));
   --control-height-lg: calc(2rem * var(--text-scale, 1));
   --control-padding-x-sm: 6px;
   --control-padding-x: 10px;
   --control-padding-x-lg: 12px;
+  --control-gap: 6px;
+  --nav-rail-item: calc(2rem * var(--text-scale, 1));
+  --workbench-header-height: calc(2.5rem * var(--text-scale, 1));
 }
 [data-text-scale='1'] {
   --text-scale: 1;
