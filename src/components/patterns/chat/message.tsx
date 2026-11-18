@@ -10,7 +10,12 @@
  * bubble, user turns as a compact bubble) comes from design tokens in
  * app-chat-message.css.
  */
-import type { ButtonHTMLAttributes, HTMLAttributes, ReactNode } from 'react'
+import type {
+  ButtonHTMLAttributes,
+  HTMLAttributes,
+  ReactNode,
+  Ref,
+} from 'react'
 import { Button } from '@/components/ui/button'
 import { Tooltip } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
@@ -84,6 +89,7 @@ export function MessageActions({
 export type MessageActionProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   /** The accessible name, also shown as a tooltip. */
   label: string
+  ref?: Ref<HTMLButtonElement>
 }
 
 /** An icon button in a message's actions, named for assistive tech. */

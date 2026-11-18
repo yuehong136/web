@@ -2,8 +2,7 @@
   overflow-wrap: anywhere;
   color: var(--color-text-primary);
 }
-.app-chat-area .markdown-content pre,
-.app-chat-area .markdown-content table {
+.app-chat-area .markdown-content pre {
   max-width: 100%;
   overflow-x: auto;
 }
@@ -22,31 +21,6 @@
 .app-chat-area .markdown-content pre code {
   color: var(--color-components-pre-text);
 }
-.app-chat-area .markdown-content table {
-  display: block;
-  width: max-content;
-  max-width: 100%;
-  overflow: auto;
-  border: 0;
-  border-radius: 0;
-  border-collapse: collapse;
-  margin: var(--space-sm) 0 var(--space-base);
-  background: transparent;
-}
-.app-chat-area .markdown-content th,
-.app-chat-area .markdown-content td {
-  border: 0;
-  border-bottom: 1px solid var(--color-border-subtle);
-  padding: var(--space-sm) var(--space-base);
-  text-align: left;
-  vertical-align: top;
-  color: var(--color-text-primary);
-  background: transparent;
-}
-.app-chat-area .markdown-content th {
-  font-weight: 600;
-}
-
 /* Thread: one reading column, answers without a bubble under a model
    identity line, user turns as a compact subtle bubble. Turns are set apart
    by space, not rules. */
@@ -55,10 +29,18 @@
      own), rather than inheriting the page theme's colour. */
   color: var(--color-text-primary);
   display: grid;
+  /* One column that content can never widen: an implicit `auto` track grows
+     to the widest table or code line and pushes the thread off screen. */
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-lg);
   margin: 0;
   padding: var(--space-lg) 0;
   list-style: none;
+}
+/* Wide blocks (tables) may use the free space beside a centred column. The
+   viewport supplies the room; beside an avatar the column is not centred. */
+.chat-transcript-message[data-has-avatar] {
+  --chat-wide-room: 0px;
 }
 .chat-transcript > li[data-message-role='user']:not(:first-child) {
   margin-top: var(--space-sm);
@@ -156,7 +138,7 @@
   line-height: var(--reading-line-height, 1.65);
   overflow-wrap: anywhere;
 }
-.message-parts .markdown-content :is(pre, table) {
+.message-parts .markdown-content pre {
   max-width: 100%;
   overflow-x: auto;
 }
@@ -309,32 +291,6 @@ details[open] > .run-step-heading .run-step-chevron {
   font-weight: 600;
   color: var(--color-text-primary);
 }
-.message-parts .markdown-content table {
-  display: block;
-  width: max-content;
-  max-width: 100%;
-  overflow: auto;
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-lg);
-  font-size: var(--text-sm);
-  font-variant-numeric: tabular-nums;
-  background: transparent;
-}
-.message-parts .markdown-content :is(th, td) {
-  border: 0;
-  border-top: 1px solid var(--color-border-subtle);
-  text-align: start;
-  vertical-align: top;
-  color: var(--color-text-primary);
-  background: transparent;
-}
-.message-parts .markdown-content thead :is(th, td) {
-  border-top: 0;
-  background: var(--color-background-surface);
-  color: var(--color-text-tertiary);
-  font-size: var(--text-xs);
-}
-
 /* Inline citations: a chip on the text baseline, not a raised superscript. */
 .citation-chip-anchor {
   font-size: inherit;
