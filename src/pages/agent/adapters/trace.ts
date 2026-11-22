@@ -225,6 +225,7 @@ export function buildTraceSpansFromTraceItems(
         id: spanId,
         parentId,
         componentId,
+        componentType: asString(item.component_type),
         name: item.component_name || componentId,
         kind: resolveTraceKind(item.component_name || componentId),
         status,
@@ -312,6 +313,7 @@ export function buildTraceSpansFromRuntimeEvents(
         componentId ? toStableId(componentId) : group.firstIndex
       }`,
       componentId,
+      componentType,
       name,
       kind:
         options.source === 'webhook'

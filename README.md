@@ -180,6 +180,7 @@ For local builds and platform limitations, follow [`desktop/README.md`](./deskto
 | [Engineering roadmap](./docs/engineering-modernization-roadmap.md)                                                    | Current engineering work and its delivery status                    |
 | [Agent instructions](./AGENTS.md)                                                                                     | The single entry point for repository rules; `CLAUDE.md` imports it |
 | [Frontend guidance](./docs/agent-guidance/frontend.md)                                                                | Organization, UI and internationalization                           |
+| [Memory corrections](./docs/memory-revisions.md)                                                                      | Revision previews, source withdrawal and operation acceptance       |
 | [Runtime guidance](./docs/agent-guidance/runtime.md)                                                                  | Data, streaming, embedding, security and client boundaries          |
 | [Verification & builds](./docs/agent-guidance/verification.md)                                                        | Checks selected by change scope and CI commands                     |
 | [Theme development](./src/themes/development-guide.md)                                                                | Design tokens, generated styles and component theming               |

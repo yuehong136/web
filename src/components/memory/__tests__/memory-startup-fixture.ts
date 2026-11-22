@@ -1,0 +1,125 @@
+import type {
+  MemoryStartupCapabilities,
+  MemoryStartupPackage,
+  MemoryBoundSourceExcerpt,
+} from '@/types/memory-startup'
+export const startupCapability: MemoryStartupCapabilities = {
+  supported: true,
+  request_generated: true,
+  persistent_cache: false,
+  model_calls: false,
+  requires_human_confirmed: true,
+  scope_is_exact: true,
+  budget_tokens_min: 1024,
+  budget_tokens_max: 32768,
+  max_items: 16,
+  max_entry_ids: 32,
+  max_inventory_limit: 128,
+  physical_read_limit: 256,
+  version_bound_sources: true,
+  source_offset_unit: 'unicode_codepoint',
+}
+export function startupPackage(): MemoryStartupPackage {
+  return {
+    memory_id: 'bank',
+    scope: { user_id: ' alpha ', agent_id: '', session_id: null },
+    items: [
+      {
+        entry_id: 'e'.repeat(32),
+        revision: '9007199254740993',
+        message_id: '9007199254740995',
+        generation: '1',
+        content_sha256: 'a'.repeat(64),
+        message_type: 'semantic',
+        content: '<script>window.startupInjected=true</script> 有条件偏好🧭',
+        scope: { user_id: ' alpha ', agent_id: '', session_id: 'new' },
+        valid_at: null,
+        invalid_at: null,
+        assessment: { kind: 'hypothesis', verification_status: 'unverified' },
+        verification: {
+          verification_id: 'v'.repeat(32),
+          head_version: '1',
+          record_version: '1',
+          result: 'human_confirmed',
+          applicability:
+            'Only when an external screen is connected. 仅在连接外屏时。',
+          method: 'source_comparison',
+          checked_at: '2026-11-16T08:30:00Z',
+          checked_at_is_user_reported: false,
+          recorded_at: '2026-11-16T08:30:00Z',
+          actor_id: 'actor',
+          binding_sha256: 'b'.repeat(64),
+          locator: { memory_id: 'bank', verification_id: 'v'.repeat(32) },
+          snapshot_only: true,
+        },
+        sources: [
+          {
+            source_id: '9007199254741001',
+            source_revision: '9007199254741003',
+            source_generation: '1',
+            content_sha256: 'c'.repeat(64),
+            projection_sha256: 'd'.repeat(64),
+            scope: { user_id: ' alpha ', agent_id: '', session_id: '' },
+            locator: {
+              kind: 'memory_message',
+              memory_id: 'bank',
+              message_id: '9007199254741001',
+            },
+          },
+        ],
+      },
+    ],
+    startup_text:
+      '<script>window.startupInjected=true</script> 有条件偏好🧭\nOnly when an external screen is connected. 仅在连接外屏时。',
+    package_sha256: 'f'.repeat(64),
+    usage: {
+      budget_tokens: 4096,
+      estimated_tokens: 1000,
+      token_count_is_estimate: true,
+      includes: 'entire_json_with_startup_text',
+    },
+    selection: {
+      mode: 'explicit',
+      order: 'entry_id_asc',
+      inventory_limit: 64,
+      scanned_count: 4,
+      inventory_truncated: true,
+      physical_read_limit: 256,
+      read_limited: false,
+      selection_complete: false,
+    },
+    omitted: {
+      counts: { unverified: 2, budget: 1 },
+      entries: [{ entry_id: 'd'.repeat(32), reason: 'budget' }],
+      details_truncated: true,
+    },
+    snapshot_only: true,
+    mutates_memory: false,
+    model_calls: false,
+    data_only: true,
+  }
+}
+export function sourceExcerpt(offset = 0): MemoryBoundSourceExcerpt {
+  const source = startupPackage().items[0].sources[0],
+    text = '原文🧭外屏条件，请逐段查看。'.repeat(70),
+    chars = [...text],
+    excerpt = chars.slice(offset, offset + 512).join(''),
+    end = offset + [...excerpt].length
+  return {
+    state: 'available',
+    verification: 'provenance_only',
+    snapshot_only: true,
+    locator: source.locator,
+    content_sha256: source.content_sha256,
+    excerpt,
+    offset,
+    next_offset: end < chars.length ? end : null,
+    total_chars: chars.length,
+    truncated: end < chars.length,
+    continuation_requires_authorization: true,
+    source_revision: source.source_revision,
+    source_generation: source.source_generation,
+    scope: source.scope,
+    offset_unit: 'unicode_codepoint',
+  }
+}

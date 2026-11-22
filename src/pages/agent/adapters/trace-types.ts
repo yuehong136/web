@@ -41,6 +41,7 @@ export interface TraceRunSummary {
 }
 
 export interface TraceSpanViewModel {
+  componentType?: string
   id: string
   parentId?: string
   componentId?: string

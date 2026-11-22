@@ -1,0 +1,32 @@
+export const memorySourceEntryMessages = {
+  title: '记录结构化来源',
+  resume: '恢复来源提交',
+  description: '将声明的分段保存为 RAW，再查看实际记录的来源。',
+  boundary:
+    '角色与事件时间由客户端声明。保存不会自动提取、批准候选、核验事实或发布记忆。',
+  subject: '服务端根据当前认证会话确定用户主体，本表单不能修改认证提交者。',
+  agent: '精确 Agent ID',
+  session: '精确会话 ID',
+  exactScope: '空字符串是精确空值；空格会保留，不表示全部 Agent 或会话。',
+  eventTime: '事件时间声明',
+  unknownTime: '事件时间未知',
+  declaredTime: '声明带时区的时间',
+  timestamp: '带时区的 RFC3339 时间',
+  timestampExample: '2026-11-16T14:30:00+08:00',
+  segment: '片段 {{count}}',
+  role: '声明角色',
+  content: '来源正文',
+  remove: '移除片段 {{count}}',
+  add: '添加片段',
+  limits:
+    '最多 {{count}} 个片段；服务端按完整 JSON 检查 {{bytes}} 个 UTF-8 字节和 {{tokens}} 个估算 token 上限。',
+  invalid: '请检查片段正文、范围长度及带明确时区的时间格式。',
+  submit: '仅记录来源',
+  recovery:
+    'URL 仅保存此操作 ID，不保存正文；浏览器存储也不保存草稿。待定或未知结果须查看原操作，刷新不会再次提交。',
+  recorded: 'RAW 来源已记录，未启动自动提取任务；请查看来源，再明确准备候选。',
+  prepare: '进入显式整理',
+  new: '开始新的提交',
+  operations: '在待办中查看原操作',
+  closeDraft: '关闭会丢弃未提交正文；已提交的操作仍可通过 URL 恢复。',
+}

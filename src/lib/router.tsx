@@ -1,4 +1,4 @@
-import { Suspense, lazy, type ComponentType } from 'react'
+import { lazy } from 'react'
 import {
   createBrowserRouter,
   Navigate,
@@ -7,52 +7,19 @@ import {
   useParams,
 } from 'react-router-dom'
 import { Layout } from '@/components/layout/Layout'
-import { AppScene, PageLoadingState } from '@/components/patterns'
 import { ROUTES } from '@/constants'
 import { ErrorFallback, NotFoundPage } from '@/pages/error'
 import { skillRoutes } from '@/pages/skills/skill-routes'
 import { RouteLocaleBoundary } from '@/locales/locale-boundary'
 import { API_KEYS_PATH, MCP_PATH } from '@/pages/settings/settings-routes'
-import { useTranslation } from 'react-i18next'
+import { memoryRoutes } from '@/pages/memory/memory-routes'
+import { lazyNamed, withLoading } from './route-loading'
 
 // ---------------------------------------------------------------------------
 // Static imports — critical path for first paint
 // ---------------------------------------------------------------------------
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { HomePage } from '@/pages/home'
-
-// ---------------------------------------------------------------------------
-// Suspense loading fallback
-// ---------------------------------------------------------------------------
-function RouteLoadingFallback() {
-  const { t } = useTranslation()
-  return (
-    <PageLoadingState
-      scene={AppScene.CONSOLE}
-      compact
-      title={t('common.loading')}
-    />
-  )
-}
-
-/** Wrap a lazy component with Suspense */
-function withLoading(LazyComponent: React.LazyExoticComponent<ComponentType>) {
-  return (
-    <Suspense fallback={<RouteLoadingFallback />}>
-      <LazyComponent />
-    </Suspense>
-  )
-}
-
-// ---------------------------------------------------------------------------
-// Helper for lazy-loading named exports
-// ---------------------------------------------------------------------------
-function lazyNamed<K extends string>(
-  factory: () => Promise<Record<K, ComponentType>>,
-  name: K,
-) {
-  return lazy(() => factory().then((m) => ({ default: m[name] })))
-}
 
 // ---------------------------------------------------------------------------
 // Lazy imports — code-split per route
@@ -104,24 +71,6 @@ const DocumentChunksPage = lazyNamed(
 const KnowledgeLogsPage = lazyNamed(
   () => import('@/pages/knowledge/logs'),
   'KnowledgeLogsPage',
-)
-
-// Memory
-const MemoryListPage = lazyNamed(
-  () => import('@/pages/memory'),
-  'MemoryListPage',
-)
-const MemoryDetailLayout = lazyNamed(
-  () => import('@/pages/memory'),
-  'MemoryDetailLayout',
-)
-const MemoryMessagesPage = lazyNamed(
-  () => import('@/pages/memory'),
-  'MemoryMessagesPage',
-)
-const MemorySettingsPage = lazyNamed(
-  () => import('@/pages/memory'),
-  'MemorySettingsPage',
 )
 
 // Explore & Search
@@ -332,24 +281,7 @@ const topLevelRoutes: RouteObject[] = [
         element: withLoading(KnowledgeListPage),
       },
       ...skillRoutes,
-      {
-        path: ROUTES.MEMORY,
-        element: withLoading(MemoryListPage),
-      },
-      {
-        path: '/memory/:id',
-        element: withLoading(MemoryDetailLayout),
-        children: [
-          {
-            index: true,
-            element: withLoading(MemoryMessagesPage),
-          },
-          {
-            path: 'settings',
-            element: withLoading(MemorySettingsPage),
-          },
-        ],
-      },
+      ...memoryRoutes,
       {
         path: ROUTES.EXPLORE,
         element: withLoading(ExplorePage),

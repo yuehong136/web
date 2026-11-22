@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
   Bot,
@@ -33,6 +33,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
+import { useMemoryCapabilities } from '@/hooks/use-memory-revisions'
+import { MemoryManagedNotice } from '@/components/memory/memory-managed-notice'
+import { MemorySourceEntry } from '@/components/memory/memory-source-entry'
 import { MemorySourcePagination } from '@/components/memory/memory-source-pagination'
 import { MemoryMessageInspector } from '@/components/memory/memory-message-inspector'
 import { MemoryRecallPanel } from '@/components/memory/memory-recall-panel'
@@ -78,7 +81,10 @@ function MemoryWorkspace({ memoryId }: { memoryId: string }) {
   const [sessionFilter, setSessionFilter] = useState('')
   const [agent, setAgent] = useState('all')
   const [filterOpen, setFilterOpen] = useState(false)
-  const [view, setView] = useState<MemoryView>('memories')
+  const [params] = useSearchParams()
+  const [view, setView] = useState<MemoryView>(
+    params.has('source_operation') ? 'sources' : 'memories',
+  )
   const [state, setState] = useState<MemoryStateFilter>('all')
   const [inspecting, setInspecting] = useState<MemoryMessage | null>(null)
   const [recallOpen, setRecallOpen] = useState(false)
@@ -120,6 +126,8 @@ function MemoryWorkspace({ memoryId }: { memoryId: string }) {
       ),
     [sources],
   )
+  const { data: capabilities } = useMemoryCapabilities(memoryId)
+  const managed = capabilities?.revisions?.managed === true
   const update = useUpdateMessageState()
   const forget = useForgetMessage()
   const filtered = !!sessionFilter || agent !== 'all'
@@ -162,6 +170,7 @@ function MemoryWorkspace({ memoryId }: { memoryId: string }) {
           },
         ]}
       />
+      {view === 'sources' && <MemorySourceEntry memoryId={memoryId} />}
       {/* Four states with counts outgrow a phone row; scroll them, not the page. */}
       <div className="max-w-full overflow-x-auto">
         <SegmentedControl
@@ -372,6 +381,7 @@ function MemoryWorkspace({ memoryId }: { memoryId: string }) {
               </Popover>
             </div>
           )}
+          {managed && <MemoryManagedNotice capabilities={capabilities} />}
           {!sources.length ? (
             empty
           ) : (
@@ -379,6 +389,11 @@ function MemoryWorkspace({ memoryId }: { memoryId: string }) {
               sources={sources}
               view={view}
               state={state}
+              managed={managed}
+              readOnly={
+                managed &&
+                capabilities.revisions?.coordinated_state_changes !== true
+              }
               busy={update.isPending || forget.isPending || query.isFetching}
               onInspect={inspect}
               onStatusChange={(messageId, status) =>
