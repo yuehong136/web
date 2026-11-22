@@ -1,3 +1,4 @@
+import { v4 as uuid } from 'uuid'
 import { useLayoutEffect, useRef, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { APIError } from '@/api/client'
@@ -20,7 +21,7 @@ export function useMemoryCompactionRetention(
   current: MemoryCompactionResult | undefined,
   onFence: (value: MemoryCompactionResult) => void,
 ) {
-  const [readScope] = useState(() => crypto.randomUUID())
+  const [readScope] = useState(() => uuid())
   const mounted = useRef(false),
     selected = useRef(current?.artifact.artifact_id)
   const confirmation = useRef<string | undefined>(undefined),

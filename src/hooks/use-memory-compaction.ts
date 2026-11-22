@@ -1,3 +1,4 @@
+import { v4 as uuid } from 'uuid'
 import { useLayoutEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { memoryAPI } from '@/api/memory'
@@ -17,7 +18,7 @@ import { protectMemoryCompaction } from './memory-compaction-fence'
 
 export function useMemoryCompaction(memoryId: string, operationId: string) {
   const cache = useQueryClient(),
-    [readScope] = useState(() => crypto.randomUUID())
+    [readScope] = useState(() => uuid())
   const mounted = useRef(false),
     selected = useRef(operationId),
     bodyEpoch = useRef(0),
