@@ -48,10 +48,10 @@ try {
     assert.ok(name && expectedReference)
     const defaults = await createModelProvidersAPI(base).defaults()
     const reference = defaults.find(
-      (row) => row.model_type === 'embedding',
-    )?.reference
+      (row) => row.model_type === 'embedding' && row.enable,
+    )?.model_id
     assert.equal(reference, expectedReference)
-    assert.match(reference!, /^[1-9]\d*$/)
+    assert.match(reference!, /^[0-9a-f]{32}$/)
     record('reserve-web-default-model-dataset', {
       name,
       embeddingModelReference: reference,
@@ -66,7 +66,7 @@ try {
     assert.ok(created.kb_id)
     record('created-web-default-model-dataset', { id: created.kb_id, name })
     const fetched = await knowledgeAPI.knowledgeBase.get(created.kb_id)
-    assert.equal(String(fetched.embd_id), reference)
+    assert.equal(fetched.embd_id, reference)
     assert.equal(fetched.name, name)
     console.log(
       JSON.stringify({
