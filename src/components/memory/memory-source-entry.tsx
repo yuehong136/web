@@ -1,3 +1,4 @@
+import { v4 as uuid } from 'uuid'
 import { useCallback, useLayoutEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -46,7 +47,7 @@ export function MemorySourceEntry({
 }
 function SourceEntryOwner({
   memoryId,
-  operationIdFactory = () => `source-${crypto.randomUUID()}`,
+  operationIdFactory = () => `source-${uuid()}`,
 }: {
   memoryId: string
   operationIdFactory?: () => string

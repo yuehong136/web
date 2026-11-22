@@ -351,9 +351,11 @@ test('streaming native LLM chunks do not become receipts; only the final canonic
 test('recovery consumer rejects noncanonical upstream or mismatched wrappers before issuing any HTTP request', async () => {
   const previous = globalThis.fetch
   let requests = 0
-  globalThis.fetch = async () => {
+  globalThis.fetch = () => {
     requests++
-    throw new Error('No request is permitted for invalid trace metadata')
+    return Promise.reject(
+      new Error('No request is permitted for invalid trace metadata'),
+    )
   }
   try {
     for (const [outerId, innerId, type, output] of [

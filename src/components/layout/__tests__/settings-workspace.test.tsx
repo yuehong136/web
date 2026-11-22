@@ -32,6 +32,9 @@ vi.mock('@/hooks/use-pending-team-invitations', () => ({
 vi.mock('@/components/layout/SidebarConversations', () => ({
   SidebarConversations: () => null,
 }))
+vi.mock('@/components/memory/memory-recovery-notice', () => ({
+  MemoryRecoveryNotice: () => null,
+}))
 vi.mock('@/hooks/use-memory', () => ({
   useMemoryDetail: () => ({
     data: { id: 'memory-one', name: 'Session memory', storage_type: 'table' },

@@ -1,3 +1,4 @@
+import { v4 as uuid } from 'uuid'
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -20,7 +21,7 @@ export function MemoryCompactionRecent({
   onSelect: (operationId: string) => void
 }) {
   const { t } = useTranslation(),
-    [readScope] = useState(() => crypto.randomUUID()),
+    [readScope] = useState(() => uuid()),
     [cursors, setCursors] = useState<string[]>([])
   const query = useQuery({
     queryKey: memoryCompactionKeys.list(memoryId, readScope, cursors.at(-1)),

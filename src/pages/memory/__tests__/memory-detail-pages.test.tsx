@@ -12,6 +12,7 @@ const mock = vi.hoisted(() => ({
   update: vi.fn(),
   forget: vi.fn(),
   save: vi.fn(),
+  capabilities: vi.fn(),
   inspected: [] as unknown[],
 }))
 vi.mock('@/hooks/use-memory', () => ({
@@ -29,6 +30,10 @@ vi.mock('@/hooks/use-memory', () => ({
   useUpdateMessageState: () => ({ mutate: mock.update, isPending: false }),
   useForgetMessage: () => ({ mutateAsync: mock.forget, isPending: false }),
   useUpdateMemory: () => ({ mutateAsync: mock.save, isPending: false }),
+}))
+vi.mock('@/hooks/use-memory-revisions', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/hooks/use-memory-revisions')>()),
+  useMemoryCapabilities: () => ({ data: mock.capabilities() }),
 }))
 vi.mock('@/hooks/use-llm-request', () => ({
   useFetchMyLLMs: () => ({ myLLMs: {}, isPending: false, isError: false }),
@@ -191,6 +196,16 @@ it('keeps every record action on the entry cards', async () => {
   await act(async () => disabledFilter.click())
   expect(container.querySelectorAll('article')).toHaveLength(1)
   expect(container.textContent).toContain('Lives in Hangzhou')
+})
+
+it('disables entry state changes in a managed bank without coordinated writes', async () => {
+  mock.capabilities.mockReturnValueOnce({
+    revisions: { managed: true, coordinated_state_changes: false },
+  })
+  listMessages([source])
+  await render('/memory/m1')
+  expect(byLabel('Toggle message 11')?.disabled).toBe(true)
+  expect(byLabel('Forget record #12')?.disabled).toBe(true)
 })
 
 it('offers start paths when the memory has no messages yet', async () => {

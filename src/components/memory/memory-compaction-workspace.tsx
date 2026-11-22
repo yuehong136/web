@@ -1,3 +1,4 @@
+import { v4 as uuid } from 'uuid'
 import { useLayoutEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -37,7 +38,7 @@ export function MemoryCompactionWorkspace({
 }
 function CompactionOwner({
   memoryId,
-  operationIdFactory = () => 'compaction-' + crypto.randomUUID(),
+  operationIdFactory = () => 'compaction-' + uuid(),
 }: {
   memoryId: string
   operationIdFactory?: () => string
