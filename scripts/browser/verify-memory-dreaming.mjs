@@ -248,6 +248,14 @@ await withOwnedMemoryBrowser(async ({ browser, baseURL, output, event }) => {
             candidate = { ...candidate, state: 'published' }
             data = status()
           }
+        } else if (path.endsWith('/operations') && request.method() === 'GET') {
+          data = {
+            operations: [],
+            next_cursor: null,
+            limit: 20,
+            view: 'pending',
+            memory_state: 'active',
+          }
         } else if (path.includes('/operations/')) {
           const op = path.split('/operations/')[1]
           data =
@@ -310,13 +318,17 @@ await withOwnedMemoryBrowser(async ({ browser, baseURL, output, event }) => {
           exact: true,
         })
         .click()
-      const register = page.getByRole('button', {
+      const selectedSource = page.getByRole('region', {
+        name: `${en ? 'Source' : '来源'} ${sourceId}`,
+        exact: true,
+      })
+      const register = selectedSource.getByRole('button', {
         name: en ? 'Register source for withdrawal' : '登记来源以便撤回',
         exact: true,
       })
       await register.waitFor()
       assert.equal(await register.isDisabled(), true)
-      await page
+      await selectedSource
         .getByRole('checkbox', {
           name: en
             ? 'I understand this applies to the entire memory bank.'

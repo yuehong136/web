@@ -45,11 +45,13 @@ await withOwnedMemoryBrowser(async ({ browser, baseURL, output, event }) => {
       }
       const other = { ...bank, id: 'other-memory', name: 'Other memory' }
       let deleted = false,
+        writersSettled = false,
         posts = 0,
         reconciliations = 0,
         gets = 0,
         operationId = ''
       const status = () => ({
+        memory_id: bank.id,
         operation_id: operationId,
         kind: 'delete_memory',
         status: deleted ? 'ready' : 'published',
@@ -61,13 +63,18 @@ await withOwnedMemoryBrowser(async ({ browser, baseURL, output, event }) => {
         physical_cleanup_complete: false,
         untraceable_copies: true,
         writer_drain: {
-          active_attempts: deleted ? 0 : 1,
-          unknown_attempts: deleted ? 0 : 1,
-          pending_appends: deleted ? 0 : 2,
+          active_attempts: writersSettled ? 0 : 1,
+          unknown_attempts: writersSettled ? 0 : 1,
+          pending_appends: writersSettled ? 0 : 2,
           untracked_tasks: 0,
         },
-        blocked_by: deleted ? [] : ['active_writers', 'unknown_writer_outcome'],
-        needs_operator_reconciliation: !deleted,
+        blocked_by: writersSettled
+          ? []
+          : ['active_writers', 'unknown_writer_outcome'],
+        needs_operator_reconciliation: !writersSettled,
+        can_reconcile: writersSettled && !deleted,
+        created_at: '2026-11-15T09:00:00Z',
+        updated_at: '2026-11-15T09:00:00Z',
       })
       await context.route('**/api/v1/memories**', async (route) => {
         const request = route.request(),
@@ -109,6 +116,7 @@ await withOwnedMemoryBrowser(async ({ browser, baseURL, output, event }) => {
           code = 202
           data = status()
         } else if (path.endsWith('/reconciliations')) {
+          assert.ok(writersSettled)
           reconciliations++
           if (reconciliations === 1) {
             code = 409
@@ -119,6 +127,23 @@ await withOwnedMemoryBrowser(async ({ browser, baseURL, output, event }) => {
           } else {
             deleted = true
             data = status()
+          }
+        } else if (path.endsWith('/operations') && request.method() === 'GET') {
+          const view =
+            new URL(request.url()).searchParams.get('view') ?? 'pending'
+          const ownsDeletion =
+            path.endsWith(`/${bank.id}/operations`) && !!operationId
+          data = {
+            operations:
+              ownsDeletion && (!deleted || view === 'all') ? [status()] : [],
+            next_cursor: null,
+            limit: 20,
+            view,
+            memory_state: ownsDeletion
+              ? deleted
+                ? 'deleted'
+                : 'deleting'
+              : 'active',
           }
         } else if (path.includes('/operations/')) {
           gets++
@@ -152,7 +177,7 @@ await withOwnedMemoryBrowser(async ({ browser, baseURL, output, event }) => {
       page.setDefaultTimeout(10000)
       await page.goto(`${baseURL}/memory`)
       await page
-        .getByRole('link', { name: 'Owned memory', exact: true })
+        .getByRole('button', { name: 'Owned memory', exact: true })
         .waitFor()
       const en = locale === 'en-US'
       await page
@@ -168,7 +193,18 @@ await withOwnedMemoryBrowser(async ({ browser, baseURL, output, event }) => {
         exact: true,
       })
       await deleteButton.click()
-      await dialog
+      const recoveryRoute = `/memory/${bank.id}/operations`
+      await page.waitForURL(
+        (url) =>
+          url.pathname === recoveryRoute && url.searchParams.has('operation'),
+      )
+      const operation = page.locator('section[aria-live="polite"]').filter({
+        has: page.getByRole('heading', {
+          name: en ? 'Operation status' : '操作状态',
+          exact: true,
+        }),
+      })
+      await operation
         .getByText(
           en
             ? 'Deletion accepted. Waiting for writers and tracked cleanup.'
@@ -178,29 +214,26 @@ await withOwnedMemoryBrowser(async ({ browser, baseURL, output, event }) => {
         .waitFor()
       assert.equal(posts, 1)
       assert.equal(
-        await page
-          .getByRole('link', { name: 'Owned memory', exact: true })
-          .count(),
-        1,
+        new URL(page.url()).searchParams.get('operation'),
+        operationId,
       )
-      assert.equal(
-        await dialog
-          .getByRole('button', { name: en ? 'Cancel' : '取消', exact: true })
-          .isDisabled(),
-        true,
-      )
+      await dialog.waitFor({ state: 'hidden' })
+      const reconcile = operation.getByRole('button', {
+        name: en ? 'Reconcile this operation' : '对账此操作',
+        exact: true,
+      })
+      assert.equal(await reconcile.count(), 0)
       await page.keyboard.press('Escape')
       assert.equal(
-        await dialog.count(),
-        1,
-        'Pending operation retains its handle',
+        new URL(page.url()).searchParams.get('operation'),
+        operationId,
       )
-      await dialog
+      await operation
         .getByText(en ? 'Not certified complete' : '未确认全部完成', {
           exact: true,
         })
         .waitFor()
-      const capture = async (surface, route = '/memory') => {
+      const capture = async (surface, route = recoveryRoute) => {
         const file = `${surface}-${mode}-${locale}.png`
         await page.screenshot({ path: `${output}/${file}` })
         captures.push({
@@ -212,20 +245,20 @@ await withOwnedMemoryBrowser(async ({ browser, baseURL, output, event }) => {
       }
       await capture('draining')
       const getBefore = gets
-      await dialog
-        .getByRole('button', {
-          name: en ? 'Read latest status' : '读取最新状态',
-          exact: true,
-        })
-        .click()
-      assert.ok(gets > getBefore)
-      assert.equal(reconciliations, 0, 'GET status must not advance deletion')
-      const reconcile = dialog.getByRole('button', {
-        name: en ? 'Reconcile this operation' : '对账此操作',
+      await page.reload()
+      const readStatus = operation.getByRole('button', {
+        name: en ? 'Read latest status' : '读取最新状态',
         exact: true,
       })
+      await readStatus.waitFor()
+      assert.ok(gets > getBefore)
+      assert.equal(posts, 1, 'Reopening must not submit another deletion')
+      assert.equal(reconciliations, 0, 'GET status must not advance deletion')
+      assert.equal(await reconcile.count(), 0)
+      writersSettled = true
+      await readStatus.click()
       await reconcile.click()
-      await dialog
+      await operation
         .getByText(
           en
             ? 'A previous attempt may still be running. Keep this operation ID, wait and inspect its status. Manual verification may be needed before reconciliation can proceed.'
@@ -234,25 +267,29 @@ await withOwnedMemoryBrowser(async ({ browser, baseURL, output, event }) => {
         )
         .waitFor()
       assert.equal(posts, 1)
-      assert.ok((await dialog.innerText()).includes(operationId))
+      assert.ok((await operation.innerText()).includes(operationId))
       await capture('blocked')
       await reconcile.click()
-      await page
+      await operation
         .getByText(en ? 'Memory bank deletion confirmed' : '记忆库删除已确认', {
           exact: true,
         })
         .waitFor()
-      assert.equal(await dialog.count(), 0)
+      assert.equal(
+        new URL(page.url()).searchParams.get('operation'),
+        operationId,
+      )
+      await capture('deleted')
+      await page.goto(`${baseURL}/memory`)
+      await page
+        .getByRole('button', { name: 'Other memory', exact: true })
+        .waitFor()
       assert.equal(
         await page
-          .getByRole('link', { name: 'Owned memory', exact: true })
+          .getByRole('button', { name: 'Owned memory', exact: true })
           .count(),
         0,
       )
-      await page
-        .getByRole('link', { name: 'Other memory', exact: true })
-        .waitFor()
-      await capture('deleted')
       await page.goto(`${baseURL}/memory/other-memory`)
       await page
         .getByText(en ? 'New conversations: Supported' : '新增对话: 已支持', {
