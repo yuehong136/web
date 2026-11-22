@@ -4,6 +4,7 @@ import {
   getLLMModelValue,
   type MyLLMProvider,
 } from '@/stores/model'
+import { modelIdSchema } from '@/api/llm-provider-types'
 
 /** Resolve only configured, enabled chat models; never guess from a model name. */
 export function chatModelSetting(
@@ -18,7 +19,7 @@ export function chatModelSetting(
         (model.type === 'chat' || model.type === 'image2text') &&
         isLLMModelEnabled(model) &&
         (getLLMModelValue(model, provider) === value ||
-          (!/^[1-9]\d*$/.test(value) &&
+          (!modelIdSchema.safeParse(value).success &&
             provider === resolved.providerName &&
             model.name === resolved.modelName)),
     ),

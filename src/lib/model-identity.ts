@@ -4,9 +4,14 @@ import {
   parseLLMValue,
   type MyLLMProvider,
 } from '@/stores/model'
+import { modelIdSchema } from '@/api/llm-provider-types'
 
 const readable = (value?: string) =>
-  value && !/^#?\d+$/.test(value.trim()) ? value : undefined
+  value &&
+  !/^#?\d+$/.test(value.trim()) &&
+  !modelIdSchema.safeParse(value.trim()).success
+    ? value
+    : undefined
 
 /** Resolve identity only; disabled models still have a name and provider. */
 export function resolveModelIdentity(

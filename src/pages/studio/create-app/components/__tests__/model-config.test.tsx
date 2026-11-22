@@ -66,12 +66,13 @@ const render = () =>
       </MemoryRouter>,
     ),
   )
+const fixtureId = (index: number) => index.toString(16).padStart(32, 'a')
+
 describe('selected model presentation', () => {
   let models: TenantModel[]
   beforeEach(() => {
     models = [102, 103].map((id) => ({
-      id,
-      reference: String(id),
+      id: fixtureId(id),
       name: 'gpt-test',
       provider_id: 'openai',
       provider_name: 'OpenAI',
@@ -86,8 +87,8 @@ describe('selected model presentation', () => {
     props.models = projectTenantModels(models)
   })
 
-  it('displays the model and instance label for a numeric ID and keeps IDs on selection', async () => {
-    props.config.llm_id = '102'
+  it('displays the model and instance label for an opaque ID and keeps IDs on selection', async () => {
+    props.config.llm_id = fixtureId(102)
     await render()
     const trigger = container.querySelector<HTMLButtonElement>(
       '[aria-haspopup="dialog"]',
@@ -96,10 +97,10 @@ describe('selected model presentation', () => {
     await act(async () => trigger.click())
     const option = Array.from(
       document.querySelectorAll<HTMLElement>('[cmdk-item]'),
-    ).find((item) => item.getAttribute('data-value') === '103')!
+    ).find((item) => item.getAttribute('data-value') === fixtureId(103))!
     await act(async () => option.click())
-    expect(props.onChange).toHaveBeenCalledWith('llm_id', '103')
-    props.config.llm_id = '103'
+    expect(props.onChange).toHaveBeenCalledWith('llm_id', fixtureId(103))
+    props.config.llm_id = fixtureId(103)
     await render()
     expect(trigger.textContent).toBe('gpt-test · backup')
   })
@@ -114,7 +115,7 @@ describe('selected model presentation', () => {
     expect(trigger.textContent).toBe('gpt-test')
     await act(async () => trigger.click())
     const option = document.querySelector<HTMLElement>(
-      '[cmdk-item][data-value="102"]',
+      `[cmdk-item][data-value="${fixtureId(102)}"]`,
     )!
     expect(option.querySelector('svg.lucide-check')).not.toBeNull()
   })
@@ -123,7 +124,7 @@ describe('selected model presentation', () => {
     models[0].instance_name = 'default'
     models[1].effective_status = 'inactive'
     props.models = projectTenantModels(models)
-    props.config.llm_id = '102'
+    props.config.llm_id = fixtureId(102)
     await render()
     const trigger = container.querySelector<HTMLButtonElement>(
       '[aria-haspopup="dialog"]',
@@ -131,9 +132,12 @@ describe('selected model presentation', () => {
     expect(trigger.textContent).toBe('gpt-test')
     await act(async () => trigger.click())
     expect(
-      document.querySelector('[cmdk-item][data-value="102"]')?.textContent,
+      document.querySelector(`[cmdk-item][data-value="${fixtureId(102)}"]`)
+        ?.textContent,
     ).toBe('gpt-testChat')
-    expect(document.querySelector('[cmdk-item][data-value="103"]')).toBeNull()
+    expect(
+      document.querySelector(`[cmdk-item][data-value="${fixtureId(103)}"]`),
+    ).toBeNull()
     expect(props.onChange).not.toHaveBeenCalled()
   })
 

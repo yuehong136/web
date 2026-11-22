@@ -1,8 +1,7 @@
+import { modelIdSchema } from '@/api/llm-provider-types'
 import {
-  buildLLMValue,
   getLLMModelLabel,
   isLLMModelEnabled,
-  type LLMCatalog,
   type MyLLMProvider,
 } from '@/stores/model'
 import { LayoutRecognizeOptions } from '@/types/knowledge-form'
@@ -14,12 +13,8 @@ export interface PDFParserOption {
   provider?: string
 }
 
-/** MultiRAG 10c2f922: only these OCR suffixes route to named PDF parsers. */
-const namedOCRProviders = new Set(['MinerU', 'PaddleOCR'])
-
 export function buildPDFParserOptions(
   configured: MyLLMProvider,
-  catalog: LLMCatalog,
 ): PDFParserOption[] {
   const options: PDFParserOption[] = LayoutRecognizeOptions.map((option) => ({
     ...option,
@@ -27,80 +22,22 @@ export function buildPDFParserOptions(
   }))
   const seen = new Set(options.map((option) => option.value))
   for (const [provider, data] of Object.entries(configured)) {
-    for (const model of data.llm ?? []) {
-      if (model.reference) {
-        if (
-          isLLMModelEnabled(model) &&
-          ['ocr', 'image2text'].includes(model.type) &&
-          !seen.has(model.reference)
-        ) {
-          seen.add(model.reference)
-          options.push({
-            value: model.reference,
-            label: getLLMModelLabel(model),
-            provider,
-            kind: model.type === 'ocr' ? 'ocr' : 'vision',
-          })
-        }
-        continue
-      }
-      // /list can reintroduce disabled rows; tenant status is authoritative.
-      if (model.status !== '1' || !model.name || !isLLMModelEnabled(model))
-        continue
-      const kind =
-        model.type === 'ocr' && namedOCRProviders.has(provider)
-          ? 'ocr'
-          : model.type === 'image2text' && !namedOCRProviders.has(provider)
-            ? 'vision'
-            : null
-      if (!kind) continue
-      const available = (catalog[provider] ?? []).some(
-        (entry) =>
-          entry.fid === provider &&
-          entry.llm_name === model.name &&
-          entry.available === true &&
-          entry.mdl_type
-            .split(',')
-            .map((type) => type.trim())
-            .includes(model.type),
+    for (const model of data.llm) {
+      if (
+        !isLLMModelEnabled(model) ||
+        (model.type !== 'ocr' && model.type !== 'image2text')
       )
-      if (!available) continue
-      // Keep the full stored name, including custom deployment suffixes and @.
-      const qualifiedModel = buildLLMValue(model.name, provider)
-      // The OCR route consumes one suffix before looking up the tenant model.
-      // Retain a second qualifier to disambiguate factories and names containing @.
-      const value =
-        kind === 'ocr' ? `${qualifiedModel}@${provider}` : qualifiedModel
-      if (seen.has(value)) continue
-      seen.add(value)
-      options.push({ value, label: model.name, provider, kind })
+        continue
+      const id = modelIdSchema.safeParse(model.id)
+      if (!id.success || seen.has(id.data)) continue
+      seen.add(id.data)
+      options.push({
+        value: id.data,
+        label: getLLMModelLabel(model),
+        provider,
+        kind: model.type === 'ocr' ? 'ocr' : 'vision',
+      })
     }
   }
   return options
-}
-
-/** Resolve the displayed choice while leaving the persisted parser value untouched. */
-export function resolvePDFParserSelection(
-  value: string,
-  models: MyLLMProvider,
-): string {
-  const matches: string[] = []
-  for (const [provider, data] of Object.entries(models))
-    for (const model of data.llm) {
-      if (
-        !model.reference ||
-        !isLLMModelEnabled(model) ||
-        !['ocr', 'image2text'].includes(model.type)
-      )
-        continue
-      const qualified = `${model.name}@${provider}`
-      if (
-        value === model.reference ||
-        value === qualified ||
-        (model.type === 'ocr' && value === `${qualified}@${provider}`)
-      )
-        matches.push(model.reference)
-    }
-  const unique = [...new Set(matches)]
-  return unique.length === 1 ? unique[0] : value
 }

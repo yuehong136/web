@@ -170,35 +170,42 @@ export function createModelProvidersAPI(origin = API_BASE_URL) {
       provider: string,
       instance: string,
       input: InstanceUpdate,
-    ) => apiClient.patch(instancePath(provider, instance), input, rest),
+    ) => apiClient.put(instancePath(provider, instance), input, rest),
     deleteInstance: (provider: string, instance: string) =>
-      apiClient.delete(instancePath(provider, instance), rest),
+      apiClient.delete(`${providerPath(provider)}/instances`, {
+        ...rest,
+        data: { instances: [instance] },
+      }),
     models: (signal?: AbortSignal) =>
-      inventory(
-        '/v1/models',
-        tenantModelSchema,
-        (row) => String(row.id),
-        {},
-        signal,
-      ),
+      inventory('/v1/models', tenantModelSchema, (row) => row.id, {}, signal),
     addModel: (provider: string, instance: string, input: InstanceModelInput) =>
-      apiClient.post(`${instancePath(provider, instance)}/models`, input, rest),
+      apiClient.post(
+        `${instancePath(provider, instance)}/models`,
+        {
+          model_name: input.model_name,
+          model_type: input.model_types,
+          max_tokens: input.max_tokens,
+          extra: { is_tools: input.is_tools },
+        },
+        rest,
+      ),
     setModelStatus: (
       provider: string,
       instance: string,
-      id: number,
+      name: string,
+      id: string,
       active: boolean,
     ) =>
       apiClient.patch(
-        `${instancePath(provider, instance)}/models/${id}`,
-        { status: active ? 'active' : 'inactive' },
+        `${instancePath(provider, instance)}/models/${encodeURIComponent(name)}`,
+        { model_id: id, status: active ? 'active' : 'inactive' },
         rest,
       ),
-    deleteModel: (provider: string, instance: string, id: number) =>
-      apiClient.delete(
-        `${instancePath(provider, instance)}/models/${id}`,
-        rest,
-      ),
+    deleteModel: (provider: string, instance: string, name: string) =>
+      apiClient.delete(`${instancePath(provider, instance)}/models`, {
+        ...rest,
+        data: { model_name: [name] },
+      }),
     defaults: async (signal?: AbortSignal) => {
       const response: unknown = await apiClient.get('/v1/models/default', {
         ...rest,
@@ -212,7 +219,7 @@ export function createModelProvidersAPI(origin = API_BASE_URL) {
       if (new Set(types).size !== types.length) invalid()
       return decoded.data.models
     },
-    setDefault: (type: ModelType, modelId: number | null) =>
+    setDefault: (type: ModelType, modelId: string) =>
       apiClient.patch(
         '/v1/models/default',
         { model_type: type, model_id: modelId },

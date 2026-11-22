@@ -40,7 +40,7 @@ interface FormInput {
 interface FormReadback {
   provider: string
   instanceName: string
-  modelIds: number[]
+  modelIds: string[]
   credentialSHA256: string
   candidate: {
     base_url: string
@@ -50,7 +50,7 @@ interface FormReadback {
 }
 interface OwnerReadback {
   forms: FormReadback[]
-  defaults: { model_type: ModelType; model_id: number }[]
+  defaults: { model_type: ModelType; model_id: string }[]
   emptyCandidateStatuses: number[]
 }
 
@@ -283,7 +283,11 @@ async function foreign() {
       ),
       await denied(
         () =>
-          api.deleteModel(form.provider, form.instanceName, form.modelIds[0]!),
+          api.deleteModel(
+            form.provider,
+            form.instanceName,
+            form.candidate.custom_model.model_name,
+          ),
         404,
       ),
       await denied(
@@ -306,7 +310,7 @@ async function cleanup() {
   apiClient.setAuthToken(token(descriptor.ownerTokenFile))
   const providers = new Set(own.forms.map((form) => form.provider))
   record('reserve-web-form-cleanup', { providers: [...providers] })
-  for (const item of own.defaults) await api.setDefault(item.model_type, null)
+  for (const item of own.defaults) await api.setDefault(item.model_type, '')
   for (const provider of providers) await api.deleteProvider(provider)
   assert.ok(
     (await api.providers()).every((provider) => !providers.has(provider.name)),

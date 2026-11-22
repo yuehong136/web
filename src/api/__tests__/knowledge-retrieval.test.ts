@@ -37,7 +37,7 @@ test('both retrieval consumers use one REST query with the complete dataset sele
     vector_similarity_weight: 0.6,
     use_kg: true,
     rerank_id: 'rerank',
-    tenant_rerank_id: 42,
+    tenant_rerank_id: 'a'.repeat(32),
     search_id: 'search',
     highlight: true,
     keyword: true,

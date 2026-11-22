@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { APIError } from '@/api/client'
 import { modelProvidersAPI } from '@/api/llm-providers'
-import type { ModelType } from '@/api/llm-provider-types'
+import { modelIdSchema, type ModelType } from '@/api/llm-provider-types'
 import type { TenantModelSettings } from '@/api/auth'
 import { useFetchTenantInfo } from '@/hooks/use-team-request'
 import {
@@ -27,8 +27,7 @@ export function useDefaultModelRequest() {
       Object.fromEntries(
         Object.entries(modelDefaultFields).map(([field, type]) => [
           field,
-          defaults.data?.find((row) => row.model_type === type)?.reference ??
-            '',
+          defaults.data?.find((row) => row.model_type === type)?.model_id ?? '',
         ]),
       ),
     [defaults.data],
@@ -47,8 +46,7 @@ export function useDefaultModelRequest() {
         if (value === undefined || value === dictionary[field]) continue
         if (
           typeof value !== 'string' ||
-          (value &&
-            (!/^[1-9]\d*$/.test(value) || !Number.isSafeInteger(Number(value))))
+          (value !== '' && !modelIdSchema.safeParse(value).success)
         )
           throw new APIError(
             422,
@@ -57,7 +55,7 @@ export function useDefaultModelRequest() {
           )
         if (!isCurrent())
           throw new DOMException('Request superseded', 'AbortError')
-        await modelProvidersAPI.setDefault(type, value ? Number(value) : null)
+        await modelProvidersAPI.setDefault(type, value)
       }
     })
   return {

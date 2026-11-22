@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { modelIdSchema } from './llm-provider-types'
 
 const id = z.string().regex(/^[a-f0-9]{32}$/)
 const integer = z.number().int().nonnegative()
@@ -70,14 +71,8 @@ const field = z.object({
 })
 export const skillConfigSchema = z.object({
   revision,
-  embedding_model_id: z
-    .string()
-    .regex(/^[1-9][0-9]*$/)
-    .nullable(),
-  rerank_model_id: z
-    .string()
-    .regex(/^[1-9][0-9]*$/)
-    .nullable(),
+  embedding_model_id: modelIdSchema.nullable(),
+  rerank_model_id: modelIdSchema.nullable(),
   top_k: z.number().int().min(1).max(100),
   vector_weight: z.number().min(0).max(1),
   similarity_threshold: z.number().min(0).max(1),
@@ -89,7 +84,7 @@ export const skillConfigSchema = z.object({
   }),
 })
 export const skillModelSchema = z.object({
-  id: z.string().regex(/^[1-9][0-9]*$/),
+  id: modelIdSchema,
   name: z.string(),
   provider: z.string(),
   type: z.enum(['embedding', 'rerank']),

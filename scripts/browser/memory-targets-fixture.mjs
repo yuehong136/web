@@ -58,7 +58,7 @@ export async function installMemoryTargetsFixture(context, onError) {
     inputs: [source(input)],
     targets: targets.map(({ content: _, reasons: __, ...rest }) => rest),
     model_binding: {
-      tenant_model_id: 56,
+      tenant_model_id: 'b'.repeat(32),
       model_reference: 'controlled-embedding@fixture',
       dimension: 8,
       config_reference: 'f'.repeat(64),

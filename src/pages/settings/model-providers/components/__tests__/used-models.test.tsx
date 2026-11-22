@@ -221,7 +221,7 @@ it.each(['instance', 'model'])(
     ])
     mocks.models.mockResolvedValue([
       {
-        id: 1,
+        id: 'a'.repeat(32),
         instance_id: 'instance-a',
         name: 'Referenced model',
         model_types: ['chat'],
@@ -276,7 +276,7 @@ it.each(['instance', 'model'])(
     expect(operation).toHaveBeenCalledWith(
       'OpenAI',
       'default',
-      ...(scope === 'model' ? [1] : []),
+      ...(scope === 'model' ? ['Referenced model'] : []),
     )
     expect(dialog.querySelector('[role="alert"]')?.textContent).toContain(
       'Historical agent',

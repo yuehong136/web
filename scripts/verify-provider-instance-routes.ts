@@ -36,12 +36,12 @@ interface OwnerReadback {
   providerName: string
   survivingInstanceName: string
   deletedInstanceName: string
-  modelIds: { surviving: number; deleted: number }
+  modelIds: { surviving: string; deleted: string }
   expected: {
     base_url: string
     region: string
     has_api_key: boolean
-    chat_model_id: number
+    chat_model_id: string
     ocr_model_id: null
   }
 }
@@ -98,11 +98,7 @@ async function owner(): Promise<object> {
     false,
   )
   const before = await api.defaults()
-  assert.ok(
-    before
-      .filter((row) => ['chat', 'ocr'].includes(row.model_type))
-      .every((row) => row.model_id === null && row.reference === ''),
-  )
+  assert.ok(before.every((row) => !['chat', 'ocr'].includes(row.model_type)))
   record('reserve-web-provider-rows', {
     scratchDatabase: descriptor.scratchDatabase,
     ownerId: owners.ownerId,
@@ -181,16 +177,13 @@ async function owner(): Promise<object> {
   assert.notEqual(first.id, second.id)
   assert.equal(first.max_tokens, 0)
   const projected = projectTenantModels(models)
-  assert.equal(
-    chatModelSetting(projected, first.reference).model_type,
-    'image2text',
-  )
+  assert.equal(chatModelSetting(projected, first.id).model_type, 'image2text')
   assert.throws(() =>
     chatModelSetting(projected, `${modelName}@${providerName}`),
   )
   assert.ok(
-    buildPDFParserOptions(projected, {}).some(
-      (row) => row.value === second.reference && row.kind === 'ocr',
+    buildPDFParserOptions(projected).some(
+      (row) => row.value === second.id && row.kind === 'ocr',
     ),
   )
   const instances = await api.instances(providerName)
@@ -210,22 +203,47 @@ async function owner(): Promise<object> {
   await api.setDefault('chat', first.id)
   await api.setDefault('ocr', second.id)
   assert.equal(
-    (await api.defaults()).find((row) => row.model_type === 'ocr')?.reference,
-    second.reference,
+    (await api.defaults()).find((row) => row.model_type === 'ocr')?.model_id,
+    second.id,
   )
   const dependencyStatus = await denied(
     () => api.deleteProvider(providerName),
     409,
   )
   assert.equal(dependencyStatus, 409)
-  await api.setModelStatus(providerName, instanceNames[0], first.id, false)
+  await api.setModelStatus(
+    providerName,
+    instanceNames[0],
+    first.name,
+    first.id,
+    false,
+  )
   assert.equal(
     (await api.models()).find((row) => row.id === first.id)?.effective_status,
     'inactive',
   )
   await denied(() => api.setDefault('chat', first.id), 400)
-  await api.setModelStatus(providerName, instanceNames[0], first.id, true)
-  await api.setDefault('ocr', null)
+  await api.setModelStatus(
+    providerName,
+    instanceNames[0],
+    first.name,
+    first.id,
+    true,
+  )
+  const directModelName = `${modelName}/direct`
+  await api.addModel(providerName, instanceNames[0], {
+    model_name: directModelName,
+    model_types: ['chat'],
+    max_tokens: 0,
+    is_tools: true,
+  })
+  const direct = (await api.models()).find(
+    (row) => row.name === directModelName,
+  )
+  assert.ok(direct?.is_tools)
+  await api.deleteModel(providerName, instanceNames[0], directModelName)
+  assert.ok((await api.models()).every((row) => row.id !== direct.id))
+  await api.setDefault('ocr', '')
   await api.deleteInstance(providerName, instanceNames[1])
   assert.equal(
     (await api.instances(providerName)).some(
@@ -253,14 +271,15 @@ async function owner(): Promise<object> {
     checks: [
       'read-only connection verification inventory',
       'atomic instance and custom model creation',
-      'same-name numeric instance isolation',
-      'numeric chat and OCR consumers',
+      'same-name opaque instance isolation',
+      'opaque model IDs in chat and OCR consumers',
       'legal zero',
       'secret-free inventory',
       'blank credential retention',
       'empty region',
       'default dependency denial',
       'disable and reenable',
+      'direct model registration and deletion by name',
       'unreferenced instance deletion',
     ],
   }
@@ -292,11 +311,7 @@ async function foreign(): Promise<object> {
     ),
     modelDelete: await denied(
       () =>
-        api.deleteModel(
-          providerName,
-          state.survivingInstanceName,
-          state.modelIds.surviving,
-        ),
+        api.deleteModel(providerName, state.survivingInstanceName, modelName),
       404,
     ),
     providerDelete: await denied(() => api.deleteProvider(providerName), 404),
@@ -318,8 +333,8 @@ async function cleanup(): Promise<object> {
     providerName,
     modelIds: state.modelIds,
   })
-  await api.setDefault('chat', null)
-  await api.setDefault('ocr', null)
+  await api.setDefault('chat', '')
+  await api.setDefault('ocr', '')
   await api.deleteProvider(providerName)
   assert.equal(
     (await api.providers()).some((row) => row.name === providerName),
@@ -332,9 +347,9 @@ async function cleanup(): Promise<object> {
     false,
   )
   assert.ok(
-    (await api.defaults())
-      .filter((row) => ['chat', 'ocr'].includes(row.model_type))
-      .every((row) => row.model_id === null && row.reference === ''),
+    (await api.defaults()).every(
+      (row) => !['chat', 'ocr'].includes(row.model_type),
+    ),
   )
   return { providerAbsent: true, modelsAbsent: true, defaultsCleared: true }
 }
