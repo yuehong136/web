@@ -17,7 +17,7 @@ export interface MemoryTargetPrecondition {
   source_versions: MemoryTargetSourceVersion[]
 }
 export interface MemoryTargetModelBinding {
-  tenant_model_id: number
+  tenant_model_id: string
   model_reference: string
   dimension: number
   config_reference: string

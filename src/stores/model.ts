@@ -1,3 +1,5 @@
+import { modelIdSchema } from '@/api/llm-provider-types'
+
 // LLM 模型相关的纯类型、常量与助手函数。
 // 服务器态（my_llms / factories / CRUD）统一走 React Query，见 src/hooks/use-llm-request.ts。
 
@@ -45,16 +47,6 @@ export interface MyLLMProvider {
   }
 }
 
-/** Public /llm/list availability fields; never request credential details. */
-export interface LLMCatalogModel {
-  llm_name: string
-  fid: string
-  mdl_type: string
-  available: boolean
-}
-
-export type LLMCatalog = Record<string, LLMCatalogModel[]>
-
 export type LLMValueMode = 'name' | 'nameWithProvider'
 
 export interface ParsedLLMValue {
@@ -92,7 +84,7 @@ export const parseLLMValue = (
   }
 }
 
-/** Numeric tenant IDs identify new selections independently of names and instances. */
+/** Tenant model IDs identify new selections independently of names and instances. */
 export const getLLMModelValue = (
   model: MyLLMModel,
   provider: string,
@@ -131,6 +123,7 @@ export const resolveLLMValue = (
     }
   }
 
+  const isModelId = modelIdSchema.safeParse(modelName).success && !providerName
   const matches = Object.entries(providers).flatMap(
     ([currentProviderName, provider]) =>
       provider.llm
@@ -141,6 +134,7 @@ export const resolveLLMValue = (
             (model.id !== undefined && String(model.id) === value)
           )
             return true
+          if (isModelId) return false
           return (
             (!providerName || currentProviderName === providerName) &&
             model.name === modelName

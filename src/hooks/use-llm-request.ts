@@ -22,7 +22,6 @@ import {
 export const llmKeys = {
   all: ['llm'] as const,
   myLLMs: () => [...llmKeys.all, 'myLLMs'] as const,
-  catalog: () => [...llmKeys.all, 'catalog'] as const,
   factories: () => [...llmKeys.all, 'factories'] as const,
   available: () => [...llmKeys.all, 'available'] as const,
   rerank: () => [...llmKeys.all, 'knowledge-rerank'] as const,

@@ -21,7 +21,7 @@ test('discovery cleanup rejects mismatched ownership receipts and current resour
     providerAbsentBefore: true,
     providerId: 'created-provider',
     instanceId: 'created-instance',
-    modelIds: [123],
+    modelIds: ['a'.repeat(32)],
   }
   const writes: string[] = []
   const snapshot: DiscoverySnapshot = {
@@ -35,7 +35,7 @@ test('discovery cleanup rejects mismatched ownership receipts and current resour
     ],
     models: [
       {
-        id: 123,
+        id: 'a'.repeat(32),
         provider_name: 'Ollama',
         instance_id: 'created-instance',
         instance_name: 'fixture-instance',
@@ -69,15 +69,15 @@ test('discovery cleanup rejects mismatched ownership receipts and current resour
     { ...receipt, instanceId: '' },
     { ...receipt, providerId: '' },
     { ...receipt, modelIds: [] },
-    { ...receipt, modelIds: [123, 123] },
+    { ...receipt, modelIds: ['a'.repeat(32), 'a'.repeat(32)] },
     { ...receipt, modelIds: [0] },
     { ...receipt, modelIds: [1.5] },
     { ...receipt, providerId: 'replacement-provider' },
     { ...receipt, instanceId: 'replacement-instance' },
-    { ...receipt, modelIds: [999] },
+    { ...receipt, modelIds: ['b'.repeat(32)] },
   ])
     await assert.rejects(cleanupDiscoveryFixture(scope, bad, api))
-  snapshot.models.push({ ...snapshot.models[0], id: 124 })
+  snapshot.models.push({ ...snapshot.models[0], id: 'c'.repeat(32) })
   await assert.rejects(cleanupDiscoveryFixture(scope, receipt, api))
   assert.deepEqual(writes, [])
 })
@@ -96,7 +96,7 @@ test('discovery cleanup deletes the exact owned instance and preserves another i
     providerAbsentBefore: true,
     providerId: 'created-provider',
     instanceId: 'created-instance',
-    modelIds: [123],
+    modelIds: ['a'.repeat(32)],
   }
   const other = {
     id: 'borrowed-instance',
@@ -104,7 +104,7 @@ test('discovery cleanup deletes the exact owned instance and preserves another i
     provider_name: 'Ollama',
   }
   const otherModel = {
-    id: 999,
+    id: 'b'.repeat(32),
     provider_name: 'Ollama',
     instance_id: other.id,
     instance_name: other.instance_name,
@@ -121,7 +121,7 @@ test('discovery cleanup deletes the exact owned instance and preserves another i
     ],
     models: [
       {
-        id: 123,
+        id: 'a'.repeat(32),
         provider_name: scope.providerName,
         instance_id: receipt.instanceId,
         instance_name: scope.instanceName,
@@ -165,7 +165,7 @@ test('discovery cleanup retains the provider even when its owned instance and mo
     providerAbsentBefore: true,
     providerId: 'created-provider',
     instanceId: 'created-instance',
-    modelIds: [123],
+    modelIds: ['a'.repeat(32)],
   }
   const snapshot: DiscoverySnapshot = {
     providers: [{ name: 'Ollama', id: 'created-provider' }],
@@ -178,7 +178,7 @@ test('discovery cleanup retains the provider even when its owned instance and mo
     ],
     models: [
       {
-        id: 123,
+        id: 'a'.repeat(32),
         provider_name: scope.providerName,
         instance_id: receipt.instanceId,
         instance_name: scope.instanceName,

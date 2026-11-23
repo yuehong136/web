@@ -8,6 +8,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { ProviderIcon } from '@/components/ui/provider-icon'
 import { parseLLMValue } from '@/stores/model'
+import { modelIdSchema } from '@/api/llm-provider-types'
 import type { ModelOption } from './model-select-options'
 
 export interface ModelSelectProps extends SelectWithSearchProps {
@@ -45,22 +46,26 @@ export const ModelSelect = forwardRef<HTMLButtonElement, ModelSelectProps>(
     )
     const metadata = [...choices, ...knownOptions]
     const matches = metadata.filter((option) => option.value === value)
-    const aliases = [
-      ...new Map(
-        metadata
-          .filter((option) => option.aliases?.includes(value))
-          .map((option) => [option.value, option]),
-      ).values(),
-    ]
+    const isModelId = modelIdSchema.safeParse(value).success
+    const aliases = isModelId
+      ? []
+      : [
+          ...new Map(
+            metadata
+              .filter((option) => option.aliases?.includes(value))
+              .map((option) => [option.value, option]),
+          ).values(),
+        ]
     const saved = matches[0] ?? (aliases.length === 1 ? aliases[0] : undefined)
     const available =
       saved &&
       choices.some((option) => option.value === saved.value && !option.disabled)
     const uncertain = !!loading || !!error
     const { modelName, providerName } = parseLLMValue(value)
-    const readableName = /^#?\d+$/.test(modelName)
-      ? t('common.modelPicker.savedModel')
-      : modelName
+    const readableName =
+      isModelId || /^#?\d+$/.test(modelName)
+        ? t('common.modelPicker.savedModel')
+        : modelName
     const unavailable = !uncertain && !available
     const current = value
       ? {

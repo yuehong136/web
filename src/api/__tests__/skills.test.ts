@@ -84,10 +84,10 @@ test('Skills non-2xx preserves stable nested error code without exposing raw mes
   )
 })
 
-test('Skills model IDs retain BIGINT precision and reject JSON numbers', async () => {
+test('Skills model IDs preserve canonical string identities and reject numeric IDs', async () => {
   const read = skillResponse(z.object({ models: z.array(skillModelSchema) }))
   const model = {
-    id: '9007199254740993',
+    id: 'f'.repeat(32),
     name: 'same-name',
     provider: 'instance-2',
     type: 'embedding',
@@ -101,6 +101,9 @@ test('Skills model IDs retain BIGINT precision and reject JSON numbers', async (
   )
   await assert.rejects(
     read(success(200, { models: [{ ...model, id: 9007199254740992 }] })),
+  )
+  await assert.rejects(
+    read(success(200, { models: [{ ...model, id: '9007199254740993' }] })),
   )
 })
 

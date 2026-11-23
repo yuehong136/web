@@ -59,7 +59,7 @@ export function compactionResult(
       model_binding: {
         model_reference: 'owned-model@Provider',
         config_reference: 'c'.repeat(64),
-        tenant_model_id: '42',
+        tenant_model_id: 'a'.repeat(32),
       },
       sources,
       usage: {

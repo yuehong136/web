@@ -26,7 +26,7 @@ export const knowledgeRetrievalAPI = {
       use_kg?: boolean
       top_k?: number
       rerank_id?: string | null
-      tenant_rerank_id?: number | null
+      tenant_rerank_id?: string | null
       search_id?: string | null
       highlight?: boolean
       keyword?: boolean

@@ -11,7 +11,7 @@ export const modelTypeSchema = z.enum([
 ])
 export type ModelType = z.infer<typeof modelTypeSchema>
 export const modelStatusSchema = z.enum(['active', 'inactive'])
-const id = z.number().int().positive().safe()
+export const modelIdSchema = z.string().regex(/^[0-9a-f]{32}$/)
 const capabilities = z
   .array(modelTypeSchema)
   .nonempty()
@@ -39,7 +39,7 @@ export const instanceSchema = z
   .passthrough()
 export const tenantModelSchema = z
   .object({
-    id,
+    id: modelIdSchema,
     name: z.string().min(1),
     provider_id: z.string().min(1),
     provider_name: z.string().min(1),
@@ -50,18 +50,16 @@ export const tenantModelSchema = z
     effective_status: modelStatusSchema,
     max_tokens: z.number().int().nonnegative().safe(),
     is_tools: z.boolean(),
-    reference: z.string().regex(/^[1-9]\d*$/),
   })
   .passthrough()
-  .refine((model) => model.reference === String(model.id))
 export const modelDefaultSchema = z
   .object({
     model_type: modelTypeSchema,
-    model_id: id.nullable(),
-    reference: z.string(),
-    model_provider: z.string(),
-    model_instance: z.string(),
-    model_name: z.string(),
+    model_id: z.union([modelIdSchema, z.literal('')]),
+    model_provider: z.string().nullable(),
+    model_instance: z.string().nullable(),
+    model_name: z.string().nullable(),
+    enable: z.boolean(),
   })
   .passthrough()
 export type ModelProvider = z.infer<typeof providerSchema>

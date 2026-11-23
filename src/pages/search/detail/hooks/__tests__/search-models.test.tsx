@@ -17,6 +17,7 @@ import { normalizeSearchModels, useSearchModels } from '../use-search-models'
 let root: Root
 let container: HTMLDivElement
 let client: QueryClient
+const fixtureId = (index: number) => index.toString(16).padStart(32, 'a')
 beforeEach(() => {
   vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true)
   container = document.createElement('div')
@@ -37,7 +38,7 @@ it('refreshes cached search model choices after disabling a model while settings
   const list = vi.spyOn(llmAPI, 'list').mockImplementation(async () => ({
     Fixture: [
       {
-        id: 'model@Fixture',
+        id: fixtureId(1),
         fid: 'Fixture',
         llm_name: 'model',
         mdl_type: 'chat',
@@ -74,7 +75,13 @@ it('refreshes cached search model choices after disabling a model while settings
   await render(false)
   await act(async () => {
     await mutation.mutateAsync(() =>
-      modelProvidersAPI.setModelStatus('Fixture', 'instance', 1, false),
+      modelProvidersAPI.setModelStatus(
+        'Fixture',
+        'instance',
+        'model',
+        fixtureId(1),
+        false,
+      ),
     )
   })
   await render(true)
@@ -91,7 +98,7 @@ it('invalidates the knowledge retrieval reranker inventory after a model mutatio
     Fixture: active
       ? [
           {
-            id: '17',
+            id: fixtureId(17),
             llm_name: 'reranker',
             fid: 'Fixture',
             mdl_type: 'rerank',
@@ -123,7 +130,13 @@ it('invalidates the knowledge retrieval reranker inventory after a model mutatio
   expect(client.getQueryData(rerankLLMsQueryKey)).toHaveLength(1)
   await act(async () => {
     await mutation.mutateAsync(() =>
-      modelProvidersAPI.setModelStatus('Fixture', 'instance', 17, false),
+      modelProvidersAPI.setModelStatus(
+        'Fixture',
+        'instance',
+        'reranker',
+        fixtureId(17),
+        false,
+      ),
     )
   })
   await act(async () => new Promise((resolve) => setTimeout(resolve, 10)))
@@ -135,8 +148,7 @@ it('refreshes warm chat choices after adding and removing a connection and isola
   let rows: Awaited<ReturnType<typeof modelProvidersAPI.models>> = []
   vi.spyOn(modelProvidersAPI, 'models').mockImplementation(async () => rows)
   const model = {
-    id: 27,
-    reference: '27',
+    id: fixtureId(27),
     provider_name: 'Ollama',
     provider_id: 'provider-owned',
     instance_id: 'owned',
@@ -173,7 +185,7 @@ it('refreshes warm chat choices after adding and removing a connection and isola
   })
   await flush()
   expect(choices.options[0]?.options).toMatchObject([
-    { value: '27', label: 'vision-fixture' },
+    { value: fixtureId(27), label: 'vision-fixture' },
   ])
   await act(async () => {
     await mutation.mutateAsync(async () => {
@@ -205,21 +217,24 @@ it('keeps exact references and connection labels separate in Search model adapte
   const result = normalizeSearchModels({
     Fixture: [
       {
-        id: '56',
+        id: fixtureId(56),
+        fid: 'Fixture',
         name: 'same-model',
         llm_name: 'same-model · production',
         mdl_type: 'chat',
         available: true,
       },
       {
-        id: '57',
+        id: fixtureId(57),
+        fid: 'Fixture',
         name: 'same-model',
         llm_name: 'same-model · testing',
         mdl_type: 'chat',
         available: true,
       },
       {
-        id: '58',
+        id: fixtureId(58),
+        fid: 'Fixture',
         name: 'rerank-v3',
         llm_name: 'rerank-v3 · production',
         mdl_type: 'rerank',
@@ -230,11 +245,11 @@ it('keeps exact references and connection labels separate in Search model adapte
   expect(
     modelOptions(result.chatModelProviders, ['chat']).options[0].options,
   ).toMatchObject([
-    { value: '56', label: 'same-model · production' },
-    { value: '57', label: 'same-model · testing' },
+    { value: fixtureId(56), label: 'same-model · production' },
+    { value: fixtureId(57), label: 'same-model · testing' },
   ])
   expect(result.rerankModels[0]).toMatchObject({
-    id: '58',
+    id: fixtureId(58),
     llm_name: 'rerank-v3',
     display_name: 'rerank-v3 · production',
   })

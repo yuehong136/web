@@ -25,9 +25,9 @@ import { IconMap } from '@/stores/model'
 import { readFileSync, existsSync } from 'node:fs'
 import path from 'node:path'
 
-const tenantModel = (id: number, instance: string): TenantModel => ({
-  id,
-  reference: String(id),
+const fixtureId = (index: number) => index.toString(16).padStart(32, 'a')
+const tenantModel = (index: number, instance: string): TenantModel => ({
+  id: fixtureId(index),
   name: 'same-model',
   provider_id: 'p',
   provider_name: 'DeepSeek',
@@ -163,7 +163,7 @@ it('keeps an explicit fallback on image failure and recovers when the resource c
   expect(container.querySelector('img')?.getAttribute('alt')).toBe('FuturMix')
 })
 async function renderPicker(
-  value = '102',
+  value = fixtureId(102),
   onSelect = vi.fn(),
   variant: 'default' | 'compact' | 'minimal' = 'compact',
 ) {
@@ -205,7 +205,7 @@ async function search(query: string) {
 it.each(['default', 'compact', 'minimal'] as const)(
   'keeps provider logos and readable model identities in the %s trigger and menu',
   async (variant) => {
-    const { onSelect } = await renderPicker('102', vi.fn(), variant)
+    const { onSelect } = await renderPicker(fixtureId(102), vi.fn(), variant)
     const trigger = container.querySelector<HTMLButtonElement>(
       '[aria-haspopup="dialog"]',
     )!
@@ -218,7 +218,7 @@ it.each(['default', 'compact', 'minimal'] as const)(
     expect(candidates[0].textContent).toContain('Tool calling')
     expect(candidates[0].querySelector('svg use')).not.toBeNull()
     await act(async () => (candidates[1] as HTMLElement).click())
-    expect(onSelect).toHaveBeenCalledExactlyOnceWith('103')
+    expect(onSelect).toHaveBeenCalledExactlyOnceWith(fixtureId(103))
   },
 )
 it('searches model names, providers and connection names without submitting presentation text', async () => {
@@ -231,9 +231,9 @@ it('searches model names, providers and connection names without submitting pres
   await search('backup')
   const candidates = document.querySelectorAll('[cmdk-item]')
   expect(candidates).toHaveLength(1)
-  expect(candidates[0].getAttribute('data-value')).toBe('103')
+  expect(candidates[0].getAttribute('data-value')).toBe(fixtureId(103))
   await act(async () => (candidates[0] as HTMLElement).click())
-  expect(onSelect).toHaveBeenCalledExactlyOnceWith('103')
+  expect(onSelect).toHaveBeenCalledExactlyOnceWith(fixtureId(103))
 })
 it('keeps unavailable references visible and disabled without choosing a fallback', async () => {
   const { onSelect } = await renderPicker('missing@DeepSeek')
@@ -249,7 +249,7 @@ it('offers a keyboard-focusable clear action outside the model trigger', async (
   await act(async () =>
     root.render(
       <SelectWithSearch
-        value="102"
+        value={fixtureId(102)}
         options={[
           {
             label: 'DeepSeek',
@@ -289,7 +289,7 @@ it('localizes capabilities, moves IDs into details and preserves toggle/removal 
   expect(container.textContent).toContain('对话')
   expect(container.textContent).toContain('视觉理解')
   expect(container.textContent).toContain('工具调用')
-  expect(container.textContent).not.toContain('#42')
+  expect(container.textContent).not.toContain(fixtureId(42))
   await act(async () =>
     container.querySelector<HTMLButtonElement>('[role="switch"]')!.click(),
   )
@@ -299,7 +299,7 @@ it('localizes capabilities, moves IDs into details and preserves toggle/removal 
       .querySelector<HTMLButtonElement>('button[aria-haspopup="dialog"]')!
       .click(),
   )
-  expect(document.body.textContent).toContain('模型 ID：42')
+  expect(document.body.textContent).toContain(`模型 ID：${fixtureId(42)}`)
   const remove = Array.from(
     document.querySelectorAll<HTMLButtonElement>('[role="dialog"] button'),
   ).find((el) => el.textContent === '删除')!
@@ -307,15 +307,15 @@ it('localizes capabilities, moves IDs into details and preserves toggle/removal 
   expect(onRemove).toHaveBeenCalledOnce()
 })
 
-it('distinguishes loading, failed inventory and a confirmed missing numeric reference', async () => {
+it('distinguishes loading, failed inventory and a confirmed missing opaque reference', async () => {
   const onChange = vi.fn(),
     retry = vi.fn()
-  const props = { value: '56', options: [], onChange, onRetry: retry }
+  const props = { value: fixtureId(56), options: [], onChange, onRetry: retry }
   await act(async () => root.render(<ModelSelect {...props} loading />))
   expect(
     container.querySelector('output[aria-live=polite]')?.textContent,
   ).toContain('Loading models')
-  expect(container.textContent).not.toContain('56')
+  expect(container.textContent).not.toContain(fixtureId(56))
   expect(container.textContent).not.toContain('Unavailable')
   await act(async () => root.render(<ModelSelect {...props} error />))
   expect(container.querySelector('[role=alert]')?.textContent).toContain(
@@ -333,14 +333,14 @@ it('distinguishes loading, failed inventory and a confirmed missing numeric refe
   expect(retry).toHaveBeenCalledOnce()
   await act(async () => root.render(<ModelSelect {...props} />))
   expect(container.textContent).toContain('Saved model · Unavailable')
-  expect(container.textContent).not.toContain('56')
+  expect(container.textContent).not.toContain(fixtureId(56))
   expect(onChange).not.toHaveBeenCalled()
 })
 it('keeps identity and the provider logo through failure, retry and successful recovery', async () => {
   const data = projectTenantModels([tenantModel(56, 'default')])
   const props = {
     ...modelOptions(data, ['chat']),
-    value: '56',
+    value: fixtureId(56),
     onChange: vi.fn(),
   }
   await act(async () => root.render(<ModelSelect {...props} error />))
@@ -368,17 +368,19 @@ it('shows disabled saved models by name and logo without enabling them', async (
     root.render(
       <ModelSelect
         {...modelOptions(data, ['chat'])}
-        value="56"
+        value={fixtureId(56)}
         onChange={onChange}
       />,
     ),
   )
   expect(container.textContent).toContain('same-model · Unavailable')
-  expect(container.textContent).not.toContain('56')
+  expect(container.textContent).not.toContain(fixtureId(56))
   expect(container.querySelector('[role=combobox] use')).not.toBeNull()
   await open()
   expect(
-    document.querySelector('[data-value="56"]')?.getAttribute('data-disabled'),
+    document
+      .querySelector(`[data-value="${fixtureId(56)}"]`)
+      ?.getAttribute('data-disabled'),
   ).toBe('true')
   expect(onChange).not.toHaveBeenCalled()
 })
@@ -389,14 +391,14 @@ it('uses tenant IDs as rerank values while showing names and provider logos', as
       <RerankModelSelector
         models={[
           {
-            id: '56',
+            id: fixtureId(56),
             llm_name: 'rerank-v3',
             fid: 'DeepSeek',
             mdl_type: 'rerank',
             available: true,
           },
         ]}
-        selectedModelId="56"
+        selectedModelId={fixtureId(56)}
         onSelect={onSelect}
       />,
     ),
@@ -429,7 +431,7 @@ it('does not mislabel failed Skill model inventory as unavailable and preserves 
         <QueryClientProvider client={client}>
           <SkillModelSelect
             label="Embedding"
-            value="56"
+            value={fixtureId(56)}
             type="embedding"
             query={{
               isError: failed,
@@ -440,7 +442,7 @@ it('does not mislabel failed Skill model inventory as unavailable and preserves 
                 : {
                     models: [
                       {
-                        id: '56',
+                        id: fixtureId(56),
                         name: 'embedding-3',
                         provider: 'DeepSeek',
                         type: 'embedding',
@@ -462,7 +464,7 @@ it('does not mislabel failed Skill model inventory as unavailable and preserves 
   )
   expect(container.querySelector('[role=combobox] use')).not.toBeNull()
   expect(container.textContent).not.toContain('Unavailable')
-  expect(container.textContent).not.toContain('#56')
+  expect(container.textContent).not.toContain(fixtureId(56))
   await render(false)
   expect(container.textContent).toContain('embedding-3 · Unavailable')
   expect(onChange).not.toHaveBeenCalled()

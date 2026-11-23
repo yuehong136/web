@@ -6,26 +6,26 @@ import { APIError, apiClient } from '@/api/client'
 import { llmAPI } from '@/api/llm'
 import { modelProvidersAPI } from '@/api/llm-providers'
 
-const model = (id: number) => ({
-  id,
+const fixtureId = (index: number) => index.toString(16).padStart(32, 'a')
+const model = (index: number) => ({
+  id: fixtureId(index),
   name: 'same',
   provider_id: 'p',
   provider_name: 'Provider',
-  instance_id: `i${id}`,
-  instance_name: `instance-${id}`,
+  instance_id: `i${index}`,
+  instance_name: `instance-${index}`,
   model_types: ['chat', 'image2text'],
   status: 'active',
   effective_status: 'active',
   max_tokens: 0,
   is_tools: false,
-  reference: String(id),
 })
 const response = (data: unknown) =>
   new Response(JSON.stringify({ code: 0, message: 'success', data }), {
     status: 200,
     headers: { 'content-type': 'application/json' },
   })
-test('projects exact numeric identities and a single connection name without querying legacy credentials', async (t) => {
+test('projects exact opaque identities and a single connection name without querying legacy credentials', async (t) => {
   const calls: { url: URL; init?: RequestInit }[] = []
   t.mock.method(
     globalThis,
@@ -36,13 +36,13 @@ test('projects exact numeric identities and a single connection name without que
     },
   )
   const configured = await llmAPI.getMyLLMs()
-  assert.equal(configured.Provider.llm[0].id, '17')
+  assert.equal(configured.Provider.llm[0].id, fixtureId(17))
   assert.equal(configured.Provider.llm[0].label, 'same')
   assert.equal(configured.Provider.llm[0].max_tokens, 0)
   const listed = (await llmAPI.list({ available: true })).Provider[0]
-  assert.equal(listed.id, '17')
+  assert.equal(listed.id, fixtureId(17))
   assert.equal(listed.llm_name, 'same')
-  assert.equal((await llmAPI.getModelCatalog()).Provider[0].available, true)
+  assert.equal(listed.available, true)
   for (const { url, init } of calls) {
     assert.equal(url.pathname, '/api/v1/models')
     assert.equal(url.searchParams.get('page'), '1')
@@ -67,14 +67,14 @@ test('adds instance names only for same-name models on distinct usable connectio
   assert.deepEqual(
     configured.Provider.llm.map((row) => [row.id, row.label]),
     [
-      ['1', 'same · instance-1'],
-      ['1', 'same · instance-1'],
-      ['2', 'same · instance-2'],
-      ['2', 'same · instance-2'],
-      ['3', 'unique'],
-      ['3', 'unique'],
-      ['4', 'unique'],
-      ['4', 'unique'],
+      [fixtureId(1), 'same · instance-1'],
+      [fixtureId(1), 'same · instance-1'],
+      [fixtureId(2), 'same · instance-2'],
+      [fixtureId(2), 'same · instance-2'],
+      [fixtureId(3), 'unique'],
+      [fixtureId(3), 'unique'],
+      [fixtureId(4), 'unique'],
+      [fixtureId(4), 'unique'],
     ],
   )
   assert.equal(configured.Other.llm[0].label, 'same')
@@ -95,7 +95,7 @@ test('counts connections rather than capabilities or model rows', () => {
   assert.ok(rows.Provider.llm.every((row) => row.label === 'same'))
   assert.deepEqual(
     rows.Provider.llm.map((row) => row.reference),
-    ['1', '1', '2', '2'],
+    [1, 1, 2, 2].map(fixtureId),
   )
 })
 test('requires complete stable pagination and rejects duplicates, missing totals, malformed IDs and partial inventories', async (t) => {
@@ -108,7 +108,7 @@ test('requires complete stable pagination and rejects duplicates, missing totals
     { items: [model(1)], total: 2, page: 1, page_size: 100 },
     { items: [{ ...model(1), id: '1' }], total: 1, page: 1, page_size: 100 },
     {
-      items: [{ ...model(1), reference: '2' }],
+      items: [{ ...model(1), id: 1 }],
       total: 1,
       page: 1,
       page_size: 100,
@@ -186,10 +186,7 @@ test('preserves business failures through the real APIClient for both supported 
     { code: 109, message: 'access denied', data: {} },
     { retcode: 109, retmsg: 'access denied', data: {} },
   ])
-    for (const read of [
-      () => llmAPI.getMyLLMs(),
-      () => llmAPI.getModelCatalog(),
-    ])
+    for (const read of [() => llmAPI.getMyLLMs(), () => llmAPI.list()])
       await assert.rejects(
         read(),
         (error: unknown) =>
@@ -219,7 +216,7 @@ test('encodes management identities, preserves empty instance catalogs, and send
     api_key: '',
     region: '',
   })
-  await modelProvidersAPI.setDefault('ocr', null)
+  await modelProvidersAPI.setDefault('ocr', '')
   assert.equal(calls[0].url.pathname, '/api/v1/providers/a%2Fb/instances')
   assert.deepEqual(JSON.parse(String(calls[0].init?.body)).model_ids, [])
   assert.equal(
@@ -230,10 +227,84 @@ test('encodes management identities, preserves empty instance catalogs, and send
     api_key: '',
     region: '',
   })
+  assert.equal(calls[1].init?.method, 'PUT')
   assert.deepEqual(JSON.parse(String(calls[2].init?.body)), {
     model_type: 'ocr',
-    model_id: null,
+    model_id: '',
   })
+})
+
+test('writes RAGFlow model and instance lifecycle requests with an opaque ID and encoded model name', async (t) => {
+  const calls: { method: string | undefined; path: string; body: unknown }[] =
+    []
+  t.mock.method(
+    globalThis,
+    'fetch',
+    async (input: string | URL | Request, init?: RequestInit) => {
+      calls.push({
+        method: init?.method,
+        path: new URL(String(input)).pathname,
+        body: JSON.parse(String(init?.body)),
+      })
+      return response(true)
+    },
+  )
+  const id = fixtureId(17)
+  const name = 'org/model name'
+  const instances = '/api/v1/providers/Fixture/instances'
+  const models = `${instances}/primary/models`
+  await modelProvidersAPI.addModel('Fixture', 'primary', {
+    model_name: name,
+    model_types: ['chat', 'image2text'],
+    max_tokens: 0,
+    is_tools: true,
+  })
+  await modelProvidersAPI.setModelStatus('Fixture', 'primary', name, id, false)
+  await modelProvidersAPI.deleteModel('Fixture', 'primary', name)
+  await modelProvidersAPI.deleteInstance('Fixture', 'primary')
+  await modelProvidersAPI.setDefault('chat', id)
+  assert.deepEqual(calls, [
+    {
+      method: 'POST',
+      path: models,
+      body: {
+        model_name: name,
+        model_type: ['chat', 'image2text'],
+        max_tokens: 0,
+        extra: { is_tools: true },
+      },
+    },
+    {
+      method: 'PATCH',
+      path: `${models}/org%2Fmodel%20name`,
+      body: { model_id: id, status: 'inactive' },
+    },
+    { method: 'DELETE', path: models, body: { model_name: [name] } },
+    { method: 'DELETE', path: instances, body: { instances: ['primary'] } },
+    {
+      method: 'PATCH',
+      path: '/api/v1/models/default',
+      body: { model_id: id, model_type: 'chat' },
+    },
+  ])
+})
+
+test('reads configured defaults with the upstream enable flag and omits unset slots', async (t) => {
+  const configured = {
+    model_type: 'chat',
+    model_id: fixtureId(18),
+    model_provider: 'Fixture',
+    model_instance: 'primary',
+    model_name: 'owned-model',
+    enable: false,
+  }
+  let models: unknown[] = [configured]
+  t.mock.method(globalThis, 'fetch', async () => response({ models }))
+  assert.deepEqual(await modelProvidersAPI.defaults(), models)
+  models = []
+  assert.deepEqual(await modelProvidersAPI.defaults(), [])
+  models = [{ ...configured, model_id: 18 }]
+  await assert.rejects(modelProvidersAPI.defaults(), APIError)
 })
 
 test('Agent image input follows the selected model rather than provider tags', () => {
@@ -242,9 +313,18 @@ test('Agent image input follows the selected model rather than provider tags', (
     { ...model(2), model_types: ['chat', 'image2text'] },
     { ...model(3), model_types: ['image2text'], effective_status: 'inactive' },
   ] as Parameters<typeof projectTenantModels>[0])
-  assert.equal(hasSelectedModelCapability(rows, '1', 'image2text'), false)
-  assert.equal(hasSelectedModelCapability(rows, '2', 'image2text'), true)
-  assert.equal(hasSelectedModelCapability(rows, '3', 'image2text'), false)
+  assert.equal(
+    hasSelectedModelCapability(rows, fixtureId(1), 'image2text'),
+    false,
+  )
+  assert.equal(
+    hasSelectedModelCapability(rows, fixtureId(2), 'image2text'),
+    true,
+  )
+  assert.equal(
+    hasSelectedModelCapability(rows, fixtureId(3), 'image2text'),
+    false,
+  )
   assert.equal(
     hasSelectedModelCapability(rows, 'same@Provider', 'image2text'),
     false,

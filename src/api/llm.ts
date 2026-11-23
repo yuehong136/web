@@ -1,6 +1,6 @@
 import { modelProvidersAPI } from './llm-providers'
 import type { TenantModel } from './llm-provider-types'
-import { type LLMCatalog, type MyLLMProvider } from '@/stores/model'
+import { type MyLLMProvider } from '@/stores/model'
 import type { LLMModel, LLMType } from '@/types/api'
 
 /** Only distinguish connections when the same provider/model has multiple usable instances. */
@@ -16,7 +16,7 @@ function tenantModelLabels(rows: TenantModel[]): Map<string, string> {
   }
   return new Map(
     rows.map((row) => [
-      row.reference,
+      row.id,
       (instances.get(key(row))?.size ?? 0) > 1
         ? `${row.name} · ${row.instance_name}`
         : row.name,
@@ -25,20 +25,6 @@ function tenantModelLabels(rows: TenantModel[]): Map<string, string> {
 }
 
 export const llmAPI = {
-  // Catalog availability must be intersected with configured tenant rows.
-  getModelCatalog: async (signal?: AbortSignal): Promise<LLMCatalog> => {
-    const rows = await modelProvidersAPI.models(signal)
-    const catalog: LLMCatalog = {}
-    for (const row of rows)
-      (catalog[row.provider_name] ??= []).push({
-        llm_name: row.name,
-        fid: row.provider_name,
-        mdl_type: row.model_types.join(','),
-        available: row.effective_status === 'active',
-      })
-    return catalog
-  },
-
   // 获取模型列表
   list: async (
     params?: {
@@ -55,8 +41,8 @@ export const llmAPI = {
         if (params?.mdl_type && params.mdl_type !== type) continue
         if (params?.available && row.effective_status !== 'active') continue
         ;(providers[row.provider_name] ??= []).push({
-          id: row.reference,
-          llm_name: labels.get(row.reference)!,
+          id: row.id,
+          llm_name: labels.get(row.id)!,
           name: row.name,
           fid: row.provider_name,
           mdl_type: type,
@@ -103,11 +89,11 @@ export function projectTenantModels(rows: TenantModel[]): MyLLMProvider {
     const provider = (providers[row.provider_name] ??= { tags: '', llm: [] })
     for (const type of row.model_types)
       provider.llm.push({
-        id: row.reference,
-        reference: row.reference,
+        id: row.id,
+        reference: row.id,
         instance_name: row.instance_name,
         model_types: row.model_types,
-        label: labels.get(row.reference)!,
+        label: labels.get(row.id)!,
         name: row.name,
         type,
         status: row.effective_status === 'active' ? '1' : '0',
