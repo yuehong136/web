@@ -6,7 +6,7 @@ import { ChunkMethodModal } from '../ChunkMethodModal'
 import { useDocumentParserModal } from '@/hooks/use-document-parser-modal'
 import { documentKeys } from '@/hooks/use-document-request'
 import { knowledgeKeys } from '@/hooks/use-knowledge-request'
-import { llmAPI } from '@/api/llm'
+import type { TenantModel } from '@/api/llm-provider-types'
 import { useAuthStore } from '@/stores/auth'
 import { apiClient } from '@/api/client'
 import { setProductLanguage } from '@/locales/i18n'
@@ -20,6 +20,7 @@ let modal: ReturnType<typeof useDocumentParserModal>
 let datasetId: string
 let wire: ReturnType<typeof canonical>
 let calls: { method: string; url: URL; body: any }[]
+let tenantModels: TenantModel[]
 let respond: (url: URL, init?: RequestInit) => Promise<Response>
 const originalScrollIntoView = Element.prototype.scrollIntoView
 
@@ -178,6 +179,7 @@ beforeEach(async () => {
   await setProductLanguage('en-US')
   useAuthStore.setState({ token: 'actor-one', user: { id: 'owner' } as never })
   apiClient.setAuthToken('actor-one')
+  tenantModels = []
   datasetId = 'kb-1'
   wire = canonical()
   calls = []
@@ -215,7 +217,12 @@ beforeEach(async () => {
       return response({
         code: 0,
         message: 'success',
-        data: { items: [], total: 0, page: 1, page_size: 100 },
+        data: {
+          items: tenantModels,
+          total: tenantModels.length,
+          page: 1,
+          page_size: 100,
+        },
       })
     calls.push({
       method,
@@ -256,20 +263,22 @@ it('opens actual nested children and percent units; no-op mounts no defaults int
 })
 
 it('shows a legacy model and replaces only the document model through the canonical PATCH', async () => {
-  vi.spyOn(llmAPI, 'getMyLLMs').mockResolvedValue({
-    OpenAI: {
-      tags: 'CHAT',
-      llm: [
-        {
-          id: '54',
-          name: 'replacement',
-          type: 'chat',
-          status: '1',
-          used_token: 0,
-        },
-      ],
+  const modelId = '5'.repeat(32)
+  tenantModels = [
+    {
+      id: modelId,
+      name: 'replacement',
+      provider_id: 'provider',
+      provider_name: 'OpenAI',
+      instance_id: 'instance',
+      instance_name: 'default',
+      model_types: ['chat'],
+      status: 'active',
+      effective_status: 'active',
+      max_tokens: 8192,
+      is_tools: false,
     },
-  })
+  ]
   wire.parser_config = {
     llm_id: 'glm-5-turbo@ZHIPU-AI',
     opaque: { keep: true },
@@ -281,6 +290,7 @@ it('shows a legacy model and replaces only the document model through the canoni
     (item) => item.textContent === 'Document parsing model',
   )!
   expect(label.parentElement!.textContent).toContain('glm-5-turbo')
+  await waitForCatalog()
   await act(async () =>
     label
       .parentElement!.querySelector<HTMLButtonElement>('[role=combobox]')!
@@ -291,18 +301,21 @@ it('shows a legacy model and replaces only the document model through the canoni
       [...document.querySelectorAll('[role=option]')].map((item) =>
         item.getAttribute('data-value'),
       ),
-    ).toContain('54'),
+    ).toContain(modelId),
   )
   const option = [
     ...document.querySelectorAll<HTMLElement>('[role=option]'),
-  ].find((item) => item.getAttribute('data-value') === '54')!
+  ].find((item) => item.getAttribute('data-value') === modelId)!
   expect(option).toBeDefined()
   await act(async () => option.click())
   await save()
   await waitForSaveSettled()
   expect(writes()).toHaveLength(1)
-  expect(writes()[0].body).toEqual({ parser_config: { llm_id: '54' } })
-  expect(wire.parser_config).toEqual({ llm_id: '54', opaque: { keep: true } })
+  expect(writes()[0].body).toEqual({ parser_config: { llm_id: modelId } })
+  expect(wire.parser_config).toEqual({
+    llm_id: modelId,
+    opaque: { keep: true },
+  })
   await open(wire)
   expect(document.body.textContent).toContain('replacement')
   await save()
