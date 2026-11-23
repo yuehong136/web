@@ -193,3 +193,20 @@ test('no-raw-motion allows motion tokens, named easing and other media queries',
     [],
   )
 })
+
+test('no-raw-visual-values asks for focus-ring instead of a lone 1px focus ring', () => {
+  assert.equal(
+    verify(
+      "const a = 'rounded focus-visible:ring-1 focus-visible:ring-line-focus'",
+    ).length,
+    1,
+  )
+  // Fields pair the thin ring with a focus border on purpose.
+  assert.deepEqual(
+    verify(
+      "const b = 'border focus:border-line-focus focus-visible:ring-1 focus-visible:ring-line-focus'",
+    ),
+    [],
+  )
+  assert.deepEqual(verify("const c = 'focus-ring focus-ring-inset'"), [])
+})

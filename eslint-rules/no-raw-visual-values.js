@@ -22,6 +22,10 @@ const GRADIENT =
   /(?:^|[\s"'`:])(?:[a-z0-9-]+:)*bg-(?:linear|gradient|radial|conic)-/
 const AI_TOKENS = /\bai-(?:from|via|to)\b/
 const EMOJI = /\p{Extended_Pictographic}/u
+// A lone 1px ring is a faint focus mark; fields that pair it with a focus
+// border (the border-plus-ring field style) are the deliberate exception.
+const THIN_FOCUS_RING = /(?:^|\s)focus-visible:ring-1(?![\w-])/
+const FIELD_FOCUS_BORDER = /(?:^|\s)focus(?:-visible)?:border-/
 
 const MESSAGES = {
   palette:
@@ -32,6 +36,8 @@ const MESSAGES = {
     'Gradients are reserved for AI moments: use bg-ai-tide, or build it from the ai-from / ai-via / ai-to tokens.',
   emoji:
     'Do not use emoji as UI glyphs: use lucide-react icons, ProviderLogo for brands, and i18n for copy.',
+  focus:
+    'Use the focus-ring (or focus-ring-inset) utility instead of a 1px focus ring.',
 }
 
 function checkClasses(context, raw, node) {
@@ -41,6 +47,8 @@ function checkClasses(context, raw, node) {
     context.report({ node, message: MESSAGES.arbitrary })
   else if (GRADIENT.test(raw) && !AI_TOKENS.test(raw))
     context.report({ node, message: MESSAGES.gradient })
+  else if (THIN_FOCUS_RING.test(raw) && !FIELD_FOCUS_BORDER.test(raw))
+    context.report({ node, message: MESSAGES.focus })
 }
 
 /** @type {import('eslint').Rule.RuleModule} */

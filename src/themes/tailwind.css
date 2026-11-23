@@ -225,3 +225,21 @@
     background-position: -50% 0;
   }
 }
+
+/* DreamJira focus: a 2px solid outline in the focus colour, 2px outside the
+ * control. An outline has no offset band of a fixed colour (rings painted it
+ * in surface, a wrong-coloured edge on canvas and raised grounds) and stays
+ * visible in forced-colors mode. focus-ring-inset draws it inside, for dense
+ * rows, tabs and controls in clipped lists. */
+@utility focus-ring {
+  &:focus-visible {
+    outline: 2px solid var(--color-line-focus);
+    outline-offset: 2px;
+  }
+}
+@utility focus-ring-inset {
+  &:focus-visible {
+    outline: 2px solid var(--color-line-focus);
+    outline-offset: -2px;
+  }
+}

@@ -136,7 +136,7 @@ export const ExploreSidebar: FC<ExploreSidebarProps> = ({
                     }
                     className={cn(
                       'min-w-0 rounded-radius-md px-space-xs py-space-xs text-center text-sm font-medium text-fg-muted transition-colors',
-                      'hover:bg-fill-hover hover:text-fg focus-visible:ring-1 focus-visible:ring-line-focus focus-visible:outline-hidden',
+                      'focus-ring-inset hover:bg-fill-hover hover:text-fg',
                       selected && 'bg-fill-selected text-fg',
                       disabled && 'cursor-not-allowed opacity-50',
                     )}
@@ -159,7 +159,7 @@ export const ExploreSidebar: FC<ExploreSidebarProps> = ({
                     onClick={onDiscoverClick}
                     className={cn(
                       'flex min-h-[var(--control-height-sm)] w-full items-center gap-space-sm rounded-radius-md px-space-sm py-space-xs text-left text-sm font-medium text-fg-muted transition-colors',
-                      'hover:bg-fill-hover hover:text-fg focus-visible:ring-1 focus-visible:ring-line-focus focus-visible:outline-hidden',
+                      'focus-ring-inset hover:bg-fill-hover hover:text-fg',
                       mode === 'market' && 'bg-fill-selected text-fg',
                     )}
                   >
@@ -199,7 +199,7 @@ export const ExploreSidebar: FC<ExploreSidebarProps> = ({
                             title={app.name}
                             className={cn(
                               'flex min-h-[var(--control-height-sm)] w-full items-center gap-space-sm rounded-radius-md px-space-sm py-space-xs text-left text-sm text-fg-muted transition-colors',
-                              'hover:bg-fill-hover hover:text-fg focus-visible:ring-1 focus-visible:ring-line-focus focus-visible:outline-hidden',
+                              'focus-ring-inset hover:bg-fill-hover hover:text-fg',
                               selected && 'bg-fill-selected text-fg',
                             )}
                           >

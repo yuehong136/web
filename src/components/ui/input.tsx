@@ -5,7 +5,9 @@ import { CircleAlert } from 'lucide-react'
 
 const inputVariants = cva(
   // DreamJira input: the border turns to the focus colour and a one-pixel
-  // ring doubles it, so focus never depends on a hairline alone.
+  // ring doubles it, so focus never depends on a hairline alone. The
+  // variants below set the focus border colour.
+  // eslint-disable-next-line design-guard/no-raw-visual-values -- field focus: border plus ring
   'flex w-full min-w-0 rounded-radius-md border bg-surface px-[var(--control-padding-x)] py-space-xs text-sm text-fg transition-colors duration-(--motion-fast) placeholder:text-fg-subtle file:border-0 file:bg-transparent file:text-sm file:font-medium focus:bg-surface focus-visible:ring-1 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none',
   {
     variants: {

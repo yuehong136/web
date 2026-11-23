@@ -49,7 +49,7 @@ export const ActivityRail: React.FC = () => {
               <button
                 type="button"
                 className={cn(
-                  'flex size-10 items-center justify-center rounded-radius-lg outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-line-focus',
+                  'flex size-10 items-center justify-center rounded-radius-lg focus-ring-inset transition-colors',
                   selected
                     ? 'bg-fill-selected text-fg'
                     : 'text-fg-muted hover:bg-fill-hover hover:text-fg',

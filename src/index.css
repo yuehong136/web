@@ -168,6 +168,25 @@
   }
 }
 
+/* Focus fallback for interactive elements without a focus style of their
+ * own: the focus-ring outline instead of the browser default. :where keeps it
+ * at zero specificity, so any component style wins. */
+@layer base {
+  :where(
+    a[href],
+    button,
+    summary,
+    input,
+    select,
+    textarea,
+    [role='button'],
+    [tabindex]:not([tabindex='-1'])
+  ):focus-visible {
+    outline: 2px solid var(--color-line-focus);
+    outline-offset: 2px;
+  }
+}
+
 /* The route announcer focuses the new page's h1 so screen readers start
  * there; a heading is not a control, so it shows no focus ring. */
 [data-route-focus]:focus {
