@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { agentAPI } from '@/api/agent'
-import { Badge } from '@/components/ui/badge'
+import { Badge, badgeLook } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -201,15 +201,15 @@ export function WebhookSheet({
           <SheetTitle className="flex items-center gap-space-sm">
             {t('agent.delivery.webhook.title')}
             <Badge
-              variant={
+              {...badgeLook(
                 status === 'success'
                   ? 'success'
                   : status === 'error'
                     ? 'destructive'
                     : status === 'running'
                       ? 'warning'
-                      : 'secondary'
-              }
+                      : 'secondary',
+              )}
             >
               {status}
             </Badge>

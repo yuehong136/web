@@ -5,7 +5,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion'
-import { Badge } from '@/components/ui/badge'
+import { Badge, badgeLook } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import type { AgentTraceItem } from '@/types/agent'
 import { OperatorTile } from '../../../operator-icon'
@@ -107,7 +107,7 @@ function TraceItem({
                   item.component_id ||
                   t('agent.logDetail.timeline.unknownNode')}
               </span>
-              <Badge variant={getStatusVariant(status)}>{status}</Badge>
+              <Badge {...badgeLook(getStatusVariant(status))}>{status}</Badge>
               {typeof item.elapsed_time === 'number' ? (
                 <span className="text-xs text-fg-subtle">
                   {/* i18n-ignore: unit */}

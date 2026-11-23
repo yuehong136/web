@@ -132,9 +132,7 @@ export function SortableRow({
             </SelectContent>
           </Select>
         ) : (
-          <Badge variant="secondary" className="font-mono">
-            {variable.variable_type}
-          </Badge>
+          <Badge className="font-mono">{variable.variable_type}</Badge>
         )}
       </TableCell>
 

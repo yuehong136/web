@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { Clock, Crown, Shield, UserCheck } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import { Badge, badgeLook } from '@/components/ui/badge'
 import { TenantRole } from '@/types/team'
 
 const ROLES = {
@@ -26,7 +26,7 @@ export function RoleBadge({
   const Icon = config.icon
   return (
     <Badge
-      variant={role === TenantRole.Invite ? 'warning' : 'secondary'}
+      {...badgeLook(role === TenantRole.Invite ? 'warning' : 'secondary')}
       className={className}
     >
       <Icon className="size-icon-xs" aria-hidden="true" />

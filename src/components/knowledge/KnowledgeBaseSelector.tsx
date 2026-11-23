@@ -108,10 +108,7 @@ const SelectedKnowledgeBaseBadge: FC<{
   kb: KnowledgeBase
   onRemove: () => void
 }> = ({ kb, onRemove }) => (
-  <Badge
-    variant="secondary"
-    className="flex h-6 max-w-[240px] items-center gap-1 bg-info-soft px-1.5 py-0.5 text-xs text-info-fg"
-  >
+  <Badge className="flex h-6 max-w-[240px] items-center gap-1 bg-info-soft px-1.5 py-0.5 text-xs text-info-fg">
     <KnowledgeAvatar knowledgeBase={kb} size="2xs" />
     <span className="min-w-0 truncate">{kb.name}</span>
     {kb.nickname && (

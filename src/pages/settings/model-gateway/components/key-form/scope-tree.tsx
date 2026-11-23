@@ -149,7 +149,7 @@ function ConnectionNode({
           {name}
         </span>
         {state === 'checked' ? (
-          <Badge variant="blue">{t(`${PREFIX}.keyForm.wholeConnection`)}</Badge>
+          <Badge identity={6}>{t(`${PREFIX}.keyForm.wholeConnection`)}</Badge>
         ) : null}
         <span className="ml-auto shrink-0 text-xs text-fg-subtle">
           {state === 'checked'
@@ -187,9 +187,7 @@ function ConnectionNode({
               </span>
               {reason ? <Badge variant="outline">{reason}</Badge> : null}
               {model.model_types.slice(0, 2).map((type) => (
-                <Badge key={type} variant="secondary">
-                  {capabilityLabel(t, type)}
-                </Badge>
+                <Badge key={type}>{capabilityLabel(t, type)}</Badge>
               ))}
             </li>
           )

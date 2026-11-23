@@ -111,7 +111,7 @@ export function ReturnValueEditor({
           'Expose one business output from main(). System outputs stay available for logs and diagnostics.',
         )}
         badge={
-          <Badge variant="blue">
+          <Badge identity={6}>
             {t('flow.codeSingleOutputBadge', 'Single output')}
           </Badge>
         }

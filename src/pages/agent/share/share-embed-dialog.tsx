@@ -3,7 +3,7 @@ import { useForm, useWatch } from 'react-hook-form'
 import { WidgetCustomization } from './widget-customization'
 import { normalizeWidgetSettings, type WidgetSettings } from './widget-settings'
 import { useTranslation } from 'react-i18next'
-import { Badge } from '@/components/ui/badge'
+import { Badge, badgeLook } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -229,7 +229,7 @@ export function ShareEmbedDialog({
                         {title || agentId}
                       </h3>
                     </div>
-                    <Badge variant={betaToken ? 'secondary' : 'warning'}>
+                    <Badge {...badgeLook(betaToken ? 'secondary' : 'warning')}>
                       {t(
                         betaToken
                           ? 'agent.shareEmbed.tokenReady'

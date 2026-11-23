@@ -1,13 +1,13 @@
 import { CircleCheck, CirclePause, History } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Badge } from '@/components/ui/badge'
+import { Badge, badgeLook } from '@/components/ui/badge'
 import type { MemoryMessage, MemoryType } from '@/types/memory'
 import { getMemoryLifecycle } from './memory-lifecycle'
 
 /** Memory type is a category, not a state, so it stays neutral. */
 export function MemoryTypeBadge({ type }: { type: MemoryType }) {
   const { t } = useTranslation()
-  return <Badge variant="secondary">{t(`memory.filters.${type}`, type)}</Badge>
+  return <Badge>{t(`memory.filters.${type}`, type)}</Badge>
 }
 
 export function MemoryStatusBadge({ message }: { message: MemoryMessage }) {
@@ -21,7 +21,7 @@ export function MemoryStatusBadge({ message }: { message: MemoryMessage }) {
         : CircleCheck
   return (
     <Badge
-      variant={state === 'enabled' ? 'success' : 'secondary'}
+      {...badgeLook(state === 'enabled' ? 'success' : 'secondary')}
       className="gap-space-xs"
     >
       <Icon className="size-icon-xs" aria-hidden="true" />

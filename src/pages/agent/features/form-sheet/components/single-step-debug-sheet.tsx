@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
-import { Badge } from '@/components/ui/badge'
+import { Badge, badgeLook } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   Sheet,
@@ -271,7 +271,7 @@ function CodeExecDebugInspector({
               </p>
             </div>
           </div>
-          <Badge variant={hasError ? 'destructive' : 'success'}>
+          <Badge {...badgeLook(hasError ? 'destructive' : 'success')}>
             {hasError
               ? t('flow.failed', 'Failed')
               : hasPayload

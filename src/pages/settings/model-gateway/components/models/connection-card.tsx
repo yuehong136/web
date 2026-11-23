@@ -65,7 +65,7 @@ export function ConnectionCard({
             <h3 className="text-sm font-semibold text-fg">
               {connection.provider}
             </h3>
-            <Badge variant="secondary">
+            <Badge>
               {t(`${PREFIX}.models.connection`, {
                 name: connection.instance_name,
               })}

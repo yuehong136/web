@@ -73,7 +73,7 @@ export function EnvironmentDetailHeader({
           </Label>
         </div>
         {isNew ? (
-          <Badge variant="blue">{t('environment.detail.newBadge')}</Badge>
+          <Badge identity={6}>{t('environment.detail.newBadge')}</Badge>
         ) : null}
         {isGlobal ? (
           <Badge variant="outline">

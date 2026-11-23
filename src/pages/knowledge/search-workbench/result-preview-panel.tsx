@@ -59,7 +59,7 @@ export const ResultPreview: React.FC<ResultPreviewProps> = ({
             { value: 'raw', label: t('knowledge.search.raw') },
           ]}
         />
-        <Badge variant="warning">{t('knowledge.search.beta')}</Badge>
+        <Badge tone="warning">{t('knowledge.search.beta')}</Badge>
       </div>
 
       {isMarkdownPreview ? (

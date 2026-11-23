@@ -7,7 +7,7 @@ import {
 } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Badge } from '@/components/ui/badge'
+import { Badge, badgeLook } from '@/components/ui/badge'
 import { cn, formatTimestampDetailed } from '@/lib/utils'
 import type { AgentSession } from '@/types/agent'
 import type { LogDetailSource, LogDetailViewModel } from './types'
@@ -287,7 +287,7 @@ export function LogDetail(props: LogDetailProps) {
         <div className="flex min-h-[56px] items-center justify-between gap-space-sm border-b border-line bg-surface px-space-lg">
           <div className="min-w-0">
             <div className="flex min-w-0 items-center gap-space-xs">
-              <Badge variant={STATUS_VARIANT_MAP[viewModel.status]}>
+              <Badge {...badgeLook(STATUS_VARIANT_MAP[viewModel.status])}>
                 {t(STATUS_LABEL_KEYS[viewModel.status])}
               </Badge>
               <h3 className="truncate text-sm font-semibold text-fg">

@@ -215,10 +215,7 @@ export function EnvironmentList({
                         {env.is_default && (
                           <span
                             id={`${rowId}-default`}
-                            className={cn(
-                              badgeVariants({ variant: 'secondary' }),
-                              'px-space-xs',
-                            )}
+                            className={cn(badgeVariants(), 'px-space-xs')}
                           >
                             {t('environment.list.default')}
                           </span>

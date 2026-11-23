@@ -104,6 +104,12 @@
 
 AI 感靠动效与结构（shimmer、可折叠思考、引用芯片）表达，不给普通内容上色；普通按钮、卡片、标签不使用 AI 渐变（`design-guard/no-raw-visual-values` 拦截不含 `ai-from/via/to` 的渐变）。
 
+### 标签、状态点与焦点
+
+- `Badge` 按含义取色：`tone`（neutral、accent、ai、info、success、warning、danger）× `variant`（soft、outline、solid），类别型标签用 `identity={1..8}` 取身份色，不再用 blue / orange / purple / green 这类色名。旧状态映射经 `badgeLook()` 过渡，新代码直接写 tone。Badge 渲染为 `span`。
+- 圆点状态只用 `patterns/status-dot` 的 `StatusDot`（成功、失败、排队读 `run-*`，运行中是 `bg-ai-tide` 加 shimmer），Badge 不再造圆点变体。
+- 键盘焦点用 `focus-ring`（2px 实线 `line-focus`，外偏 2px）或 `focus-ring-inset`（密集行、标签页、裁切列表内）。用 outline 而不是 box-shadow ring：没有固定底色的偏移带，强制颜色模式下仍可见；base 层对没有焦点样式的交互元素兜底。`design-guard/no-raw-visual-values` 拦截单独的 `focus-visible:ring-1`（输入框“边框变色加 1px 环”的组合除外）。
+
 ### 代码 · 数据可视化 · 身份
 
 - `code-bg`、`code-fg`、`syntax-keyword`（随强调色）、`syntax-function`、`syntax-type`、`syntax-string`、`syntax-number`、`syntax-comment`：Shiki 使用 CSS 变量主题直接读取，Monaco 主题由 `getTokenValue` 生成。

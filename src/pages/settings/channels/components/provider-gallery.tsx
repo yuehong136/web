@@ -80,7 +80,7 @@ export const ProviderGallery = ({
                       })}
                     </span>
                     {connected > 0 ? (
-                      <Badge variant="secondary" className="shrink-0">
+                      <Badge className="shrink-0">
                         {t('channel.gallery.connectedCount', {
                           count: connected,
                         })}

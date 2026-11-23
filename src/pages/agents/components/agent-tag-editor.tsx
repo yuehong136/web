@@ -83,7 +83,7 @@ export function AgentTagEditor({
             {tags.map((tag) => (
               <Badge
                 key={tag}
-                variant="secondary"
+
                 className="gap-space-xs font-normal"
               >
                 {tag}

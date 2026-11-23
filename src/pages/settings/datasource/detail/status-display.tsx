@@ -8,14 +8,14 @@ import {
 } from 'lucide-react'
 import type { TFunction } from 'i18next'
 import { useTranslation } from 'react-i18next'
-import { Badge, type BadgeProps } from '@/components/ui/badge'
+import { Badge, badgeLook, type BadgeLook } from '@/components/ui/badge'
 import {
   StatusDot,
   type StatusDotTone,
 } from '@/components/studio/collection-identity'
 import { DataSourceStatus } from '../types'
 
-const STATUS_VARIANTS: Record<DataSourceStatus, BadgeProps['variant']> = {
+const STATUS_VARIANTS: Record<DataSourceStatus, BadgeLook> = {
   [DataSourceStatus.PENDING]: 'secondary',
   [DataSourceStatus.RUNNING]: 'default',
   [DataSourceStatus.SCHEDULED]: 'blue',
@@ -68,7 +68,7 @@ export function DataSourceStatusBadge({
   const { t } = useTranslation()
 
   return (
-    <Badge variant={STATUS_VARIANTS[status]}>
+    <Badge {...badgeLook(STATUS_VARIANTS[status])}>
       {getDataSourceStatusLabel(t, status)}
     </Badge>
   )

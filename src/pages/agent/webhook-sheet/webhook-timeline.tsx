@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { Badge } from '@/components/ui/badge'
+import { Badge, badgeLook } from '@/components/ui/badge'
 import { JsonViewer } from '../form/components/json-viewer'
 import { formatTimestampDetailed } from '@/lib/utils'
 import type { AgentWebhookTraceEvent } from '@/types/agent'
@@ -57,7 +57,7 @@ export function WebhookTimeline({ events }: WebhookTimelineProps) {
                   </p>
                 ) : null}
               </div>
-              <Badge variant={failed ? 'destructive' : 'secondary'}>
+              <Badge {...badgeLook(failed ? 'destructive' : 'secondary')}>
                 {failed ? 'error' : event.event || 'event'}
               </Badge>
             </div>

@@ -1,6 +1,6 @@
 import type { TFunction } from 'i18next'
 import { useTranslation } from 'react-i18next'
-import { Badge } from '@/components/ui/badge'
+import { Badge, badgeLook } from '@/components/ui/badge'
 import { JsonViewer } from '../../../form/components/json-viewer'
 import {
   Bot,
@@ -183,7 +183,7 @@ export function RuntimeStatusBadge({ status }: { status: string }) {
   const StatusIcon = STATUS_ICONS[status] || XCircle
 
   return (
-    <Badge variant={STATUS_BADGE_MAP[status]} className="gap-space-xs">
+    <Badge {...badgeLook(STATUS_BADGE_MAP[status])} className="gap-space-xs">
       <StatusIcon
         className={
           status === 'loading'

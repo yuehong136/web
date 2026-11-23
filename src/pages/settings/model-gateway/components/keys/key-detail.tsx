@@ -102,14 +102,14 @@ function KeyScope({
       )}
       {stale.deletedInstanceIds.map((id) => (
         <li key={id}>
-          <Badge variant="warning">
+          <Badge tone="warning">
             {t(`${PREFIX}.keys.detail.deletedConnection`)}
           </Badge>
         </li>
       ))}
       {stale.deletedModelIds.length > 0 ? (
         <li>
-          <Badge variant="warning">
+          <Badge tone="warning">
             {t(`${PREFIX}.keys.detail.deletedModels`, {
               count: stale.deletedModelIds.length,
             })}

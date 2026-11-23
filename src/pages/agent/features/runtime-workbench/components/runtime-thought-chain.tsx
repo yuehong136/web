@@ -1,4 +1,4 @@
-import { Badge } from '@/components/ui/badge'
+import { Badge, badgeLook } from '@/components/ui/badge'
 import { RuntimeTimeline, type RuntimeTimelineItem } from './runtime-timeline'
 import type { INodeEvent } from '../../../hooks/use-node-loading'
 import {
@@ -98,7 +98,7 @@ export function RuntimeThoughtChain({
       title: (
         <div className="flex min-w-0 items-center gap-space-xs">
           <Badge
-            variant={ACTION_BADGE_MAP[node.actionKind]}
+            {...badgeLook(ACTION_BADGE_MAP[node.actionKind])}
             className="shrink-0"
           >
             {t(node.actionLabelKey)}

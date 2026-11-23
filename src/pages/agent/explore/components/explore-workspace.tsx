@@ -15,7 +15,7 @@ import {
 import { WorkspacePageTemplate } from '@/components/page-templates'
 import { PageToolbar } from '@/components/patterns'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { Badge, badgeLook } from '@/components/ui/badge'
 import {
   Popover,
   PopoverContent,
@@ -160,11 +160,11 @@ export function ExploreWorkspace({
               {status !== AgentRuntimeStatus.IDLE ? (
                 <Badge
                   className="hidden sm:inline-flex"
-                  variant={
+                  {...badgeLook(
                     status === AgentRuntimeStatus.ERROR
                       ? 'destructive'
-                      : 'outline'
-                  }
+                      : 'outline',
+                  )}
                   aria-live="polite"
                 >
                   {t(

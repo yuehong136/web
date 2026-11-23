@@ -22,7 +22,7 @@ export const CrossLanguageSection: React.FC<CrossLanguageSectionProps> = ({
       <label className="mb-2 block text-xs font-medium text-fg-muted">
         {t('knowledge.search.config.crossLanguage')}
         {selectedLanguages.length > 0 && (
-          <Badge variant="secondary" className="ml-2 text-xs">
+          <Badge className="ml-2 text-xs">
             {t('knowledge.search.config.languageCount', {
               count: selectedLanguages.length,
             })}

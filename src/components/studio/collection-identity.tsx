@@ -1,4 +1,3 @@
-import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Cpu } from 'lucide-react'
 import { EntityAvatar } from '@/components/patterns/entity-avatar'
@@ -14,61 +13,8 @@ import { cn } from '@/lib/utils'
  * kind tiles used as first-use art.
  */
 
-export type StatusDotTone =
-  | 'success'
-  | 'warning'
-  | 'error'
-  | 'info'
-  | 'neutral'
-  /** An agent at work: the one AI moment a list shows. */
-  | 'running'
-
-const DOT: Record<StatusDotTone, string> = {
-  success: 'bg-success-fg',
-  warning: 'bg-warning-fg',
-  error: 'bg-danger-fg',
-  info: 'bg-info-fg',
-  neutral: 'bg-fg-subtle',
-  running: 'bg-ai-tide',
-}
-
-const LABEL: Record<StatusDotTone, string> = {
-  success: 'text-success-fg',
-  warning: 'text-warning-fg',
-  error: 'text-danger-fg',
-  info: 'text-info-fg',
-  neutral: 'text-fg-subtle',
-  running: 'text-shimmer',
-}
-
-/** A 6px status dot with its label; colour is never the only signal. */
-export function StatusDot({
-  tone,
-  label,
-  className,
-}: {
-  tone: StatusDotTone
-  label: ReactNode
-  className?: string
-}) {
-  return (
-    <span
-      data-slot="status-dot"
-      data-tone={tone}
-      className={cn(
-        'inline-flex min-w-0 items-center gap-space-xs text-xs',
-        LABEL[tone],
-        className,
-      )}
-    >
-      <span
-        aria-hidden="true"
-        className={cn('size-1.5 shrink-0 rounded-radius-full', DOT[tone])}
-      />
-      <span className="truncate">{label}</span>
-    </span>
-  )
-}
+// The status dot is a shared pattern now; kept here for existing imports.
+export { StatusDot, type StatusDotTone } from '@/components/patterns/status-dot'
 
 /**
  * Provider logo plus model name for a stored model reference

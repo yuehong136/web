@@ -1,4 +1,4 @@
-import { Badge } from '@/components/ui/badge'
+import { Badge, badgeLook } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   Popover,
@@ -127,7 +127,7 @@ export function SessionPicker({
                         </p>
                       </div>
                       <div className="flex shrink-0 items-center gap-space-xs">
-                        <Badge variant={STATUS_VARIANT_MAP[status]}>
+                        <Badge {...badgeLook(STATUS_VARIANT_MAP[status])}>
                           {t(STATUS_LABEL_KEY_MAP[status])}
                         </Badge>
                         <span className="rounded-radius-full bg-sunken px-space-sm py-[2px] text-xs text-fg-muted">

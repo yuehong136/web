@@ -72,7 +72,7 @@ export function KeyScopeCell({
       <div className="min-w-0">
         <div className="text-sm text-fg-muted">{summary.text}</div>
         {stale > 0 ? (
-          <Badge variant="warning" className="mt-space-2xs">
+          <Badge tone="warning" className="mt-space-2xs">
             {t(`${PREFIX}.keys.stale`, { count: stale })}
           </Badge>
         ) : null}

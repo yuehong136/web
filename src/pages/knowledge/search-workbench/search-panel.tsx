@@ -118,7 +118,7 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
             {activeConfigBadges.map((badge) => (
               <Badge
                 key={badge}
-                variant="secondary"
+
                 className="text-xs font-normal"
               >
                 {badge}

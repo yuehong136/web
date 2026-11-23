@@ -138,7 +138,7 @@ export function AgentFilterBar({
 function AgentKindBadge({ flow }: { flow: AgentFlow }) {
   const { t } = useTranslation()
   return (
-    <Badge variant="secondary">
+    <Badge>
       {t(isPipelineFlow(flow) ? 'agents.kindPipeline' : 'agents.kindAgent')}
     </Badge>
   )

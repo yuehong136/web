@@ -7,7 +7,7 @@ import { useMemo, useState, type MouseEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Check, ChevronsUpDown, Lock, X, Search, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { Badge, badgeLook } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import {
   Command,
@@ -175,7 +175,7 @@ export function MemoryTypeSelect({
                 return (
                   <Badge
                     key={type}
-                    variant={getVariantForType(type)}
+                    {...badgeLook(getVariantForType(type))}
                     className="gap-1 text-xs"
                   >
                     {getLabelForType(type)}

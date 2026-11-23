@@ -1,5 +1,5 @@
 import { AppScene, PageEmptyState } from '@/components/patterns'
-import { Badge, type BadgeProps } from '@/components/ui/badge'
+import { Badge, badgeLook, type BadgeLook } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import {
@@ -168,7 +168,7 @@ export function ChunkCard({
       <div className="flex flex-wrap items-center justify-between gap-space-sm">
         <div className="flex min-w-0 items-center gap-space-sm">
           <ChunkTypeIcon type={chunkType} />
-          <Badge variant={getTypeBadgeVariant(chunkType)}>
+          <Badge {...badgeLook(getTypeBadgeVariant(chunkType))}>
             {getTypeLabel(chunkType, t)}
           </Badge>
           <span className="text-xs text-fg-subtle">
@@ -201,14 +201,14 @@ export function ChunkCard({
           </Badge>
         ) : null}
         {vectorDimensions ? (
-          <Badge variant="blue">
+          <Badge identity={6}>
             {t('flow.pipelineResult.vectorBadge', {
               dimensions: formatNumber.format(vectorDimensions),
             })}
           </Badge>
         ) : null}
         {typeof chunk.img_id === 'string' && chunk.img_id ? (
-          <Badge variant="purple">{t('flow.pipelineResult.imageBadge')}</Badge>
+          <Badge identity={7}>{t('flow.pipelineResult.imageBadge')}</Badge>
         ) : null}
       </div>
     </button>
@@ -258,7 +258,7 @@ export function ChunkDetail({
           {t('flow.pipelineResult.detailTitle')}
         </h4>
         <div className="flex flex-wrap items-center gap-space-sm">
-          <Badge variant={getTypeBadgeVariant(chunkType)}>
+          <Badge {...badgeLook(getTypeBadgeVariant(chunkType))}>
             {getTypeLabel(chunkType, t)}
           </Badge>
           <Badge variant="outline">
@@ -357,9 +357,7 @@ function ChunkTypeIcon({ type }: { type: PipelineResultChunkType }) {
   return <FileText className={className} />
 }
 
-function getTypeBadgeVariant(
-  type: PipelineResultChunkType,
-): BadgeProps['variant'] {
+function getTypeBadgeVariant(type: PipelineResultChunkType): BadgeLook {
   if (type === PipelineResultChunkType.Image) {
     return 'purple'
   }

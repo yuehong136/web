@@ -1,6 +1,6 @@
 import { AlertTriangle, RefreshCw } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Badge } from '@/components/ui/badge'
+import { Badge, badgeLook } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import type { TraceRunViewModel } from '@/pages/agent/adapters/trace'
 import {
@@ -53,7 +53,7 @@ export function TraceHeader({
     <header className="flex min-h-[64px] items-center justify-between gap-space-base border-b border-line bg-surface px-space-lg py-space-base">
       <div className="min-w-0">
         <div className="flex min-w-0 items-center gap-space-sm">
-          <Badge variant={STATUS_VARIANT_MAP[viewModel.status]}>
+          <Badge {...badgeLook(STATUS_VARIANT_MAP[viewModel.status])}>
             {t(TRACE_RUN_STATUS_LABEL_KEYS[viewModel.status])}
           </Badge>
           <h3 className="truncate text-sm font-semibold text-fg">

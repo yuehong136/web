@@ -69,16 +69,11 @@ export function ModelRow({
             {model.call_name}
           </span>
           {model.shares_name ? (
-            <Badge
-              variant="warning"
-              title={t(`${PREFIX}.models.sharesNameHint`)}
-            >
+            <Badge tone="warning" title={t(`${PREFIX}.models.sharesNameHint`)}>
               {t(`${PREFIX}.models.sharesName`)}
             </Badge>
           ) : null}
-          {model.alias ? (
-            <Badge variant="secondary">{t(`${PREFIX}.models.alias`)}</Badge>
-          ) : null}
+          {model.alias ? <Badge>{t(`${PREFIX}.models.alias`)}</Badge> : null}
         </div>
         {note ? (
           <p className="mt-space-2xs text-xs text-fg-subtle">{note}</p>
@@ -87,9 +82,7 @@ export function ModelRow({
       <TableCell>
         <div className="flex flex-wrap gap-space-xs">
           {model.model_types.map((type) => (
-            <Badge key={type} variant="secondary">
-              {capabilityLabel(t, type)}
-            </Badge>
+            <Badge key={type}>{capabilityLabel(t, type)}</Badge>
           ))}
         </div>
       </TableCell>

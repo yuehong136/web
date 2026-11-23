@@ -287,10 +287,10 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
                   <Icon className="size-icon-sm" />
                   {t(tab.labelKey)}
                   {tab.id === 'headers' && headerEntries.length > 0 && (
-                    <Badge variant="secondary">{headerEntries.length}</Badge>
+                    <Badge>{headerEntries.length}</Badge>
                   )}
                   {tab.id === 'variables' && variableEntries.length > 0 && (
-                    <Badge variant="secondary">{variableEntries.length}</Badge>
+                    <Badge>{variableEntries.length}</Badge>
                   )}
                 </TabsTrigger>
               )
@@ -490,10 +490,7 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
                         <span className="text-sm font-medium text-fg">
                           {t('mcp.form.availableTools')}
                         </span>
-                        <Badge
-                          variant="secondary"
-                          className="h-5 min-w-5 justify-center text-xs"
-                        >
+                        <Badge className="h-5 min-w-5 justify-center text-xs">
                           {testResult.tools?.length || 0}
                         </Badge>
                       </div>

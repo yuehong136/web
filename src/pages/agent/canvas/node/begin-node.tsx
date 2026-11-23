@@ -11,7 +11,7 @@ import {
   Type,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Badge } from '@/components/ui/badge'
+import { Badge, badgeLook } from '@/components/ui/badge'
 import type { IBeginNode } from '../../types'
 import { AgentDialogueMode, BeginQueryType, NodeHandleId } from '../../constant'
 import { normalizeBeginInputsForEditor } from '../../form/begin/utils'
@@ -109,7 +109,7 @@ function InnerBeginNode({ id, data, selected }: NodeProps<IBeginNode>) {
       <section className="flex flex-col gap-space-sm">
         {!isPipeline && (
           <div>
-            <Badge variant={getBeginModeVariant(mode)}>
+            <Badge {...badgeLook(getBeginModeVariant(mode))}>
               {getBeginModeLabel(t, mode)}
             </Badge>
           </div>

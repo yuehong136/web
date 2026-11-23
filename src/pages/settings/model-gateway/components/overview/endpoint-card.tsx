@@ -70,13 +70,7 @@ export function EndpointCard({
           />
           <ul className="flex flex-wrap gap-space-xs">
             {ENDPOINTS.map((endpoint) => (
-              <li
-                key={endpoint}
-                className={cn(
-                  badgeVariants({ variant: 'secondary' }),
-                  'font-mono',
-                )}
-              >
+              <li key={endpoint} className={cn(badgeVariants(), 'font-mono')}>
                 {endpoint}
               </li>
             ))}

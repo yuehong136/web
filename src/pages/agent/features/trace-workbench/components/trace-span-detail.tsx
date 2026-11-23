@@ -1,7 +1,7 @@
 import { AlertTriangle } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Badge } from '@/components/ui/badge'
+import { Badge, badgeLook } from '@/components/ui/badge'
 import type { TraceSpanViewModel } from '@/pages/agent/adapters/trace'
 import {
   TRACE_SPAN_KIND_LABEL_KEYS,
@@ -58,7 +58,7 @@ export function TraceSpanDetail({ span }: { span?: TraceSpanViewModel }) {
               <h4 className="truncate text-base font-semibold text-fg">
                 {span.name}
               </h4>
-              <Badge variant={STATUS_VARIANT_MAP[span.status]}>
+              <Badge {...badgeLook(STATUS_VARIANT_MAP[span.status])}>
                 {t(TRACE_SPAN_STATUS_LABEL_KEYS[span.status])}
               </Badge>
             </div>

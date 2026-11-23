@@ -106,7 +106,7 @@ export const ResultPanel: React.FC<ResultPanelProps> = ({
                         })}
               </span>
               {!searchError && selectedDocIds.length > 0 && (
-                <Badge variant="blue" className="text-xs">
+                <Badge identity={6} className="text-xs">
                   {t('knowledge.search.filteredDocs', {
                     count: selectedDocIds.length,
                   })}

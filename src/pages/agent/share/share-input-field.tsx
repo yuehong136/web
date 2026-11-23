@@ -1,4 +1,4 @@
-import { Badge } from '@/components/ui/badge'
+import { Badge, badgeLook } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
@@ -61,7 +61,7 @@ export function ShareInputField({
           <Label className="text-sm font-medium text-fg">{label}</Label>
           <p className="mt-space-xs text-xs text-fg-muted">{description}</p>
         </div>
-        <Badge variant={required ? 'warning' : 'secondary'}>
+        <Badge {...badgeLook(required ? 'warning' : 'secondary')}>
           {required
             ? t('agent.share.required', 'Required')
             : t('agent.share.optional', 'Optional')}

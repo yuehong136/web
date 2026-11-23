@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { Badge } from '@/components/ui/badge'
+import { Badge, badgeLook } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { SectionCard } from '@/components/patterns'
 import { formatTimestampDetailed } from '@/lib/utils'
@@ -60,7 +60,7 @@ export function EmbedRuntimeCard({
             </p>
           </div>
           <Badge
-            variant={EMBED_STATUS_VARIANT_MAP[runtimeSummary.status]}
+            {...badgeLook(EMBED_STATUS_VARIANT_MAP[runtimeSummary.status])}
             className="shrink-0"
           >
             {statusLabel}

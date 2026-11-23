@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { Badge, badgeLook } from '@/components/ui/badge'
 import {
   Dialog,
   DialogContent,
@@ -105,7 +105,7 @@ export function VersionDialog({
                     {title}
                   </p>
                 </div>
-                <Badge variant={isPublished ? 'success' : 'secondary'}>
+                <Badge {...badgeLook(isPublished ? 'success' : 'secondary')}>
                   {isPublished
                     ? t('agent.delivery.version.published')
                     : t('agent.delivery.version.unpublished')}
@@ -205,7 +205,7 @@ export function VersionDialog({
                         </p>
                       </div>
                       {version.release ? (
-                        <Badge variant="success">
+                        <Badge tone="success">
                           {t('agent.delivery.version.releasedBadge')}
                         </Badge>
                       ) : null}

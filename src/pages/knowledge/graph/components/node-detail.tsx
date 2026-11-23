@@ -34,7 +34,7 @@ export function NodeDetail({ element, onNodeNavigate }: NodeDetailProps) {
             {data.label}
           </h3>
         </div>
-        {data.type && <Badge variant="secondary">{data.type}</Badge>}
+        {data.type && <Badge>{data.type}</Badge>}
       </div>
 
       {data.properties?.description && (

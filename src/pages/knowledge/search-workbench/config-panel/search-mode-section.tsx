@@ -178,7 +178,7 @@ export const SearchModeSection: React.FC<SearchModeSectionProps> = ({
                       {option.label}
                     </span>
                     {disabled && (
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge className="text-xs">
                         {t('knowledge.search.config.unavailable')}
                       </Badge>
                     )}

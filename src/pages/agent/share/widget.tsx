@@ -413,7 +413,7 @@ function WidgetChatWindow({
       {isWebhookMode ? null : isTaskMode ? (
         <div className="border-t border-line-subtle p-space-base">
           <div className="flex items-center justify-between gap-space-sm">
-            <Badge variant="purple">{t('agent.share.task', 'Task')}</Badge>
+            <Badge identity={7}>{t('agent.share.task', 'Task')}</Badge>
             <Button
               size="sm"
               variant="outline"

@@ -37,9 +37,7 @@ export function DocFilterPanel({
         >
           <FileText className="size-icon-sm" />
           <span>{t('knowledge.search.docFilter')}</span>
-          {selectedDocIds.length > 0 && (
-            <Badge variant="secondary">{selectedDocIds.length}</Badge>
-          )}
+          {selectedDocIds.length > 0 && <Badge>{selectedDocIds.length}</Badge>}
           {open ? (
             <ChevronUp className="size-icon-sm" />
           ) : (

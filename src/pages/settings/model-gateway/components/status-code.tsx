@@ -1,4 +1,4 @@
-import { badgeVariants } from '@/components/ui/badge'
+import { badgeLook, badgeVariants } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { statusTone } from '../utils'
 
@@ -20,7 +20,7 @@ export function StatusCode({
   return (
     <span
       className={cn(
-        badgeVariants({ variant: VARIANTS[statusTone(code)] }),
+        badgeVariants(badgeLook(VARIANTS[statusTone(code)])),
         'font-mono tabular-nums',
         className,
       )}

@@ -11,7 +11,7 @@ import {
   PageLoadingState,
 } from '@/components/patterns'
 import { EntityAvatar } from '@/components/patterns/entity-avatar'
-import { Badge } from '@/components/ui/badge'
+import { Badge, badgeLook } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   useFetchExternalAgentInputs,
@@ -427,7 +427,7 @@ export default function AgentSharePage() {
             }
             actions={
               <>
-                <Badge variant={isTaskMode ? 'purple' : 'blue'}>
+                <Badge {...badgeLook(isTaskMode ? 'purple' : 'blue')}>
                   {isTaskMode
                     ? t('agent.share.task', 'Task')
                     : t('agent.share.conversation', 'Conversation')}
@@ -475,7 +475,7 @@ export default function AgentSharePage() {
               <div className="shrink-0 border-t border-line-subtle bg-surface py-space-base">
                 <div className="flex w-full flex-wrap items-center justify-between gap-space-sm rounded-radius-xl border border-line bg-sunken p-space-sm shadow-elevation-low">
                   <div className="flex items-center gap-space-sm text-sm text-fg-muted">
-                    <Badge variant="purple">{t('agent.share.task')}</Badge>
+                    <Badge identity={7}>{t('agent.share.task')}</Badge>
                     {runner.isRunning
                       ? t('agent.share.taskRunning', '任务运行中')
                       : t(

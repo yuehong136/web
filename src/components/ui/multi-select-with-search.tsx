@@ -148,7 +148,7 @@ export const MultiSelectWithSearch = forwardRef<
                 {selectedLabels
                   .slice(0, maxDisplayItems)
                   .map(({ value, label }) => (
-                    <Badge key={value} variant="secondary">
+                    <Badge key={value}>
                       {label}
                       <XIcon
                         className="ml-1 h-3 w-3 cursor-pointer hover:text-danger-fg"
@@ -157,9 +157,7 @@ export const MultiSelectWithSearch = forwardRef<
                     </Badge>
                   ))}
                 {values.length > maxDisplayItems && (
-                  <Badge variant="secondary">
-                    +{values.length - maxDisplayItems}
-                  </Badge>
+                  <Badge>+{values.length - maxDisplayItems}</Badge>
                 )}
               </div>
             ) : (

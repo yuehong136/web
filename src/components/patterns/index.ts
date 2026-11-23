@@ -13,6 +13,7 @@ export { EntityAvatar } from './entity-avatar'
 export type { EntityAvatarProps, EntityAvatarSize } from './entity-avatar'
 export type { ContextRailGroup, ContextRailItem } from './context-rail'
 export { PageLoadingState, PageEmptyState, PageErrorState } from './page-states'
+export { StatusDot, type StatusDotTone } from './status-dot'
 export { CollectionSkeleton, ResourceCardSkeleton } from './collection-skeleton'
 export { InlineStats } from './inline-stats'
 export type {

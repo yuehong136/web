@@ -35,7 +35,7 @@ export function KnowledgeVisibilityBadge({
 }) {
   const { t } = useTranslation()
   return (
-    <Badge variant="secondary">
+    <Badge>
       {t(`knowledge.list.groups.${getKnowledgeVisibility(knowledgeBase)}`)}
     </Badge>
   )

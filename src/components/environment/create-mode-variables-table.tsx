@@ -79,9 +79,7 @@ export function CreateModeVariablesTable({
                   <code className="font-mono text-sm text-fg">{name}</code>
                 </TableCell>
                 <TableCell>
-                  <Badge variant="secondary" className="font-mono">
-                    {variable.variable_type}
-                  </Badge>
+                  <Badge className="font-mono">{variable.variable_type}</Badge>
                 </TableCell>
                 <TableCell className="max-w-xs">
                   <div className="flex items-center gap-space-xs">
@@ -122,7 +120,7 @@ export function CreateModeVariablesTable({
                 </TableCell>
                 <TableCell className="text-center">
                   {variable.is_secret && (
-                    <Badge variant="warning">
+                    <Badge tone="warning">
                       <KeyRound className="size-icon-xs" aria-hidden="true" />
                       {t('environment.variables.secret')}
                     </Badge>

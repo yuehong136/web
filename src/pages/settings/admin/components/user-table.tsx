@@ -67,9 +67,7 @@ function UserRow({
       label={
         <span className="flex min-w-0 items-center gap-space-xs">
           <span className="truncate">{name}</span>
-          {isSelf ? (
-            <Badge variant="secondary">{t('settings.admin.users.you')}</Badge>
-          ) : null}
+          {isSelf ? <Badge>{t('settings.admin.users.you')}</Badge> : null}
         </span>
       }
       description={description || undefined}

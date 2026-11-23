@@ -23,7 +23,7 @@ export function ResolvedVariablesSummary({
           <ul className="flex flex-wrap gap-space-xs">
             {variablesUsed.map((variable) => (
               <li key={variable}>
-                <Badge variant="success" className="font-mono">
+                <Badge tone="success" className="font-mono">
                   {variable}
                 </Badge>
               </li>
@@ -40,7 +40,7 @@ export function ResolvedVariablesSummary({
           <ul className="flex flex-wrap gap-space-xs">
             {missingVariables.map((variable) => (
               <li key={variable}>
-                <Badge variant="destructive" className="font-mono">
+                <Badge tone="danger" className="font-mono">
                   {variable}
                 </Badge>
               </li>

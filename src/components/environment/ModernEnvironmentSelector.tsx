@@ -143,12 +143,7 @@ export function ModernEnvironmentSelector({
                 <span className="flex min-w-0 items-center gap-space-xs">
                   <span className="truncate font-medium">{env.name}</span>
                   {env.is_default && (
-                    <span
-                      className={cn(
-                        badgeVariants({ variant: 'secondary' }),
-                        'px-space-xs',
-                      )}
-                    >
+                    <span className={cn(badgeVariants(), 'px-space-xs')}>
                       {t('environment.selector.default')}
                     </span>
                   )}

@@ -104,7 +104,7 @@ export const ApiEndpointSection = memo(function ApiEndpointSection({
         >
           {endpoint.summary}
           {endpoint.deprecated ? (
-            <Badge variant="warning">{t('settings.apiDocs.deprecated')}</Badge>
+            <Badge tone="warning">{t('settings.apiDocs.deprecated')}</Badge>
           ) : null}
         </h3>
         <div className="flex min-w-0 items-center gap-space-sm">

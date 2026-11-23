@@ -97,7 +97,7 @@ it('shows memory types as neutral badges on cards', async () => {
     'Raw',
     'Semantic',
   ])
-  expect(badges[0].className).toContain('bg-sunken')
+  expect((badges[0] as HTMLElement).dataset.tone).toBe('neutral')
 })
 
 it('moves the create action into the empty state', async () => {

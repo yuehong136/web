@@ -113,7 +113,7 @@ export function TagSetItem({
                             return (
                               <Badge
                                 key={value}
-                                variant="secondary"
+
                                 className="mr-1"
                               >
                                 {option?.label || value}
