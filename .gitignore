@@ -41,6 +41,7 @@ docs/acceptance/*
 docs/design-reviews/*
 !docs/design-reviews/document-chunks-workspace.md
 !docs/design-reviews/ui-ux-modernization-audit-2026-10-05.md
+!docs/design-reviews/ai-workbench-ui-plan-2026-11-23.md
 !docs/engineering-modernization-roadmap.md
 !docs/workbench-interaction-follow-up.md
 !docs/streaming-runtime-design.md
