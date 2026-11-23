@@ -188,10 +188,12 @@ export default {
       replace: '替换',
     },
     code: {
+      lines_one: '{{count}} 行',
       lines_other: '{{count}} 行',
       wrap: '自动换行',
       download: '下载代码',
       expand: '放大查看',
+      showRest_one: '展开其余 {{count}} 行',
       showRest_other: '展开其余 {{count}} 行',
       fold: '收起',
       filename: '代码片段.{{ext}}',
