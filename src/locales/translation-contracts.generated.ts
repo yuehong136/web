@@ -16,6 +16,54 @@ export interface TranslationContracts {
     'nav.skills': undefined
     'nav.studio': undefined
     'nav.tools': undefined
+    'pageTitles.agentEditor': undefined
+    'pageTitles.agentExplore': undefined
+    'pageTitles.agentLogs': undefined
+    'pageTitles.agents': undefined
+    'pageTitles.agentTemplates': undefined
+    'pageTitles.apiDocs': undefined
+    'pageTitles.apiKeys': undefined
+    'pageTitles.appearance': undefined
+    'pageTitles.autoFill': undefined
+    'pageTitles.channels': undefined
+    'pageTitles.datasource': undefined
+    'pageTitles.datasourceDetail': undefined
+    'pageTitles.documentChunks': undefined
+    'pageTitles.documentPreview': undefined
+    'pageTitles.error': undefined
+    'pageTitles.explore': undefined
+    'pageTitles.home': undefined
+    'pageTitles.knowledge': undefined
+    'pageTitles.knowledgeCreate': undefined
+    'pageTitles.knowledgeDocuments': undefined
+    'pageTitles.knowledgeGraph': undefined
+    'pageTitles.knowledgeLogs': undefined
+    'pageTitles.knowledgeRetrieval': undefined
+    'pageTitles.knowledgeSettings': undefined
+    'pageTitles.login': undefined
+    'pageTitles.mcp': undefined
+    'pageTitles.memory': undefined
+    'pageTitles.memoryMessages': undefined
+    'pageTitles.memorySettings': undefined
+    'pageTitles.modelGateway': undefined
+    'pageTitles.modelProviders': undefined
+    'pageTitles.notFound': undefined
+    'pageTitles.pipelineResult': undefined
+    'pageTitles.profile': undefined
+    'pageTitles.register': undefined
+    'pageTitles.sandbox': undefined
+    'pageTitles.search': undefined
+    'pageTitles.searchApp': undefined
+    'pageTitles.settings': undefined
+    'pageTitles.skillDetail': undefined
+    'pageTitles.skills': undefined
+    'pageTitles.skillSpace': undefined
+    'pageTitles.studio': undefined
+    'pageTitles.studioEditor': undefined
+    'pageTitles.systemStatus': undefined
+    'pageTitles.team': undefined
+    'pageTitles.userManagement': undefined
+    routeAnnouncement: { title: string | number }
     'sidebar.accountMenu': { name: string | number }
     'sidebar.backToWorkspace': undefined
     'sidebar.browseApps': undefined

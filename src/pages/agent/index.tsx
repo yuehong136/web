@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { usePageEntityTitle } from '@/components/layout/route-document'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ReactFlowProvider } from '@xyflow/react'
@@ -61,6 +62,7 @@ export default function AgentEditorPage() {
   const webhookUrl = useBuildWebhookUrl()
 
   const [title, setTitle] = useState('')
+  usePageEntityTitle(title)
   const [titleDirty, setTitleDirty] = useState(false)
   const { saveWidgetSettings, savingWidgetSettings } = useWidgetSettings(
     id,

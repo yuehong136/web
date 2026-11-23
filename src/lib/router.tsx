@@ -3,13 +3,13 @@ import {
   createBrowserRouter,
   Navigate,
   type RouteObject,
-  useLocation,
-  useParams,
 } from 'react-router-dom'
 import { Layout } from '@/components/layout/Layout'
+import { RouteDocument } from '@/components/layout/route-document'
+import { routeMeta, type PageTitleKey } from '@/components/layout/route-meta'
 import { AppScene, PageLoadingState } from '@/components/patterns'
 import { ROUTES } from '@/constants'
-import { ErrorFallback, NotFoundPage } from '@/pages/error'
+import { ErrorFallback, NotFoundPage, PageErrorFallback } from '@/pages/error'
 import { skillRoutes } from '@/pages/skills/skill-routes'
 import { RouteLocaleBoundary } from '@/locales/locale-boundary'
 import { API_KEYS_PATH, MCP_PATH } from '@/pages/settings/settings-routes'
@@ -20,6 +20,13 @@ import { useTranslation } from 'react-i18next'
 // ---------------------------------------------------------------------------
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { HomePage } from '@/pages/home'
+import * as Page from './route-pages'
+import {
+  AgentLogRedirect,
+  MCPChatRedirect,
+  PromptEditorRedirect,
+  SearchRedirect,
+} from './route-redirects'
 
 // ---------------------------------------------------------------------------
 // Suspense loading fallback
@@ -45,232 +52,12 @@ function withLoading(LazyComponent: React.LazyExoticComponent<ComponentType>) {
 }
 
 // ---------------------------------------------------------------------------
-// Helper for lazy-loading named exports
-// ---------------------------------------------------------------------------
-function lazyNamed<K extends string>(
-  factory: () => Promise<Record<K, ComponentType>>,
-  name: K,
-) {
-  return lazy(() => factory().then((m) => ({ default: m[name] })))
-}
-
-// ---------------------------------------------------------------------------
-// Lazy imports — code-split per route
-// ---------------------------------------------------------------------------
-
-const RegisterPage = lazyNamed(
-  () => import('@/pages/auth/RegisterPage'),
-  'RegisterPage',
-)
-
-// Knowledge
-const KnowledgeListPage = lazyNamed(
-  () => import('@/pages/knowledge/KnowledgeListPage'),
-  'KnowledgeListPage',
-)
-const KnowledgeDetailLayout = lazyNamed(
-  () => import('@/pages/knowledge/KnowledgeDetailLayout'),
-  'KnowledgeDetailLayout',
-)
-const KnowledgeChunksLayout = lazyNamed(
-  () => import('@/pages/knowledge'),
-  'KnowledgeChunksLayout',
-)
-const KnowledgeDocumentsPage = lazyNamed(
-  () => import('@/pages/knowledge/documents'),
-  'KnowledgeDocumentsPage',
-)
-const KnowledgeSearchPage = lazyNamed(
-  () => import('@/pages/knowledge/KnowledgeSearchPage'),
-  'KnowledgeSearchPage',
-)
-const KnowledgeGraphPage = lazyNamed(
-  () => import('@/pages/knowledge/graph'),
-  'KnowledgeGraphPage',
-)
-const KnowledgeSettingsPage = lazyNamed(
-  () => import('@/pages/knowledge/KnowledgeSettingsPage'),
-  'KnowledgeSettingsPage',
-)
-const KnowledgeCreatePage = lazyNamed(
-  () => import('@/pages/knowledge/KnowledgeCreatePage'),
-  'KnowledgeCreatePage',
-)
-
-const DocumentChunksPage = lazyNamed(
-  () => import('@/pages/knowledge/DocumentChunksPage'),
-  'DocumentChunksPage',
-)
-const KnowledgeLogsPage = lazyNamed(
-  () => import('@/pages/knowledge/logs'),
-  'KnowledgeLogsPage',
-)
-
-// Memory
-const MemoryListPage = lazyNamed(
-  () => import('@/pages/memory'),
-  'MemoryListPage',
-)
-const MemoryDetailLayout = lazyNamed(
-  () => import('@/pages/memory'),
-  'MemoryDetailLayout',
-)
-const MemoryMessagesPage = lazyNamed(
-  () => import('@/pages/memory'),
-  'MemoryMessagesPage',
-)
-const MemorySettingsPage = lazyNamed(
-  () => import('@/pages/memory'),
-  'MemorySettingsPage',
-)
-
-// Explore & Search
-const ExplorePage = lazyNamed(() => import('@/pages/explore'), 'ExplorePage')
-const SearchListPage = lazyNamed(
-  () => import('@/pages/search'),
-  'SearchListPage',
-)
-const SearchDetailPage = lazyNamed(
-  () => import('@/pages/search/detail/SearchDetailPage'),
-  'SearchDetailPage',
-)
-
-// Agent
-const AgentListPage = lazy(() => import('@/pages/agents'))
-const AgentLogsPage = lazy(() => import('@/pages/agents/log'))
-const AgentTemplatesPage = lazy(() => import('@/pages/agents/templates'))
-const AgentEditorPage = lazy(() => import('@/pages/agent'))
-const AgentExplorePage = lazy(() => import('@/pages/agent/explore'))
-const AgentSharePage = lazy(() => import('@/pages/agent/share'))
-const AgentWidgetPage = lazy(() => import('@/pages/agent/share/widget'))
-const PipelineResultPage = lazy(() => import('@/pages/agent/pipeline-result'))
-
-// Studio
-const StudioPage = lazyNamed(() => import('@/pages/studio'), 'StudioPage')
-const CreateAppPage = lazyNamed(
-  () => import('@/pages/studio/CreateAppPage'),
-  'CreateAppPage',
-)
-
-// AI Tools
-const AutoFillWorkbenchPage = lazyNamed(
-  () => import('@/pages/ai-tools'),
-  'AutoFillWorkbenchPage',
-)
-
-// Settings
-const SettingsLayout = lazyNamed(
-  () => import('@/pages/settings/SettingsLayout'),
-  'SettingsLayout',
-)
-const ProfilePage = lazyNamed(
-  () => import('@/pages/settings/profile'),
-  'ProfilePage',
-)
-const AppearancePage = lazyNamed(
-  () => import('@/pages/settings/appearance/appearance-page'),
-  'AppearancePage',
-)
-const SettingsIndexRedirect = lazyNamed(
-  () => import('@/pages/settings/SettingsLayout'),
-  'SettingsIndexRedirect',
-)
-const ModelProvidersPage = lazyNamed(
-  () => import('@/pages/settings/model-providers'),
-  'ModelProvidersPage',
-)
-const ModelGatewayPage = lazyNamed(
-  () => import('@/pages/settings/model-gateway'),
-  'ModelGatewayPage',
-)
-const MCPPage = lazyNamed(
-  () => import('@/pages/settings/mcp/mcp-page'),
-  'MCPPage',
-)
-const ApiKeysPage = lazyNamed(
-  () => import('@/pages/settings/api-keys/api-keys-page'),
-  'ApiKeysPage',
-)
-const ApiDocsPage = lazyNamed(
-  () => import('@/pages/settings/api-docs/api-docs-page'),
-  'ApiDocsPage',
-)
-const SystemPage = lazyNamed(() => import('@/pages/system'), 'SystemPage')
-const TeamPage = lazyNamed(() => import('@/pages/team'), 'TeamPage')
-const DataSourcePage = lazy(() => import('@/pages/settings/datasource'))
-const DataSourceDetailPage = lazy(
-  () => import('@/pages/settings/datasource/detail'),
-)
-const SandboxPage = lazyNamed(
-  () => import('@/pages/settings/admin/sandbox/sandbox-page'),
-  'SandboxPage',
-)
-const AdminUsersPage = lazyNamed(
-  () => import('@/pages/settings/admin'),
-  'AdminUsersPage',
-)
-const ChannelsPage = lazyNamed(
-  () => import('@/pages/settings/channels'),
-  'ChannelsPage',
-)
-
-// Document Preview
-const DocumentPreviewPage = lazy(() => import('@/pages/document-preview'))
-
-// ---------------------------------------------------------------------------
-/** Redirects a retired route, keeping its query and optionally opening a tab. */
-function SearchRedirect({ to, tab }: { to: string; tab?: string }) {
-  const { search } = useLocation()
-  const params = new URLSearchParams(search)
-  const legacyServer = params.get('serverId')
-  if (legacyServer && !params.has('server')) params.set('server', legacyServer)
-  params.delete('serverId')
-  if (tab) params.set('tab', tab)
-  const query = params.toString()
-  return (
-    <Navigate to={{ pathname: to, search: query ? `?${query}` : '' }} replace />
-  )
-}
-
-// ---------------------------------------------------------------------------
-// The MCP playground became Home's model and MCP chat; keep any query on the way.
-function MCPChatRedirect() {
-  const { search, hash } = useLocation()
-  return <Navigate to={{ pathname: ROUTES.HOME, search, hash }} replace />
-}
-
-// ---------------------------------------------------------------------------
-// The retired prompt editor edited the same dialog the Studio editor opens.
-function PromptEditorRedirect() {
-  const { id } = useParams<{ id: string }>()
-  return (
-    <Navigate
-      to={
-        id
-          ? `${ROUTES.STUDIO_CREATE_APP}?dialog_id=${encodeURIComponent(id)}`
-          : ROUTES.STUDIO
-      }
-      replace
-    />
-  )
-}
-
-function AgentLogRedirect() {
-  const { id } = useParams<{ id: string }>()
-  return (
-    <Navigate
-      to={`/agents/log${id ? `?canvas=${encodeURIComponent(id)}` : ''}`}
-      replace
-    />
-  )
-}
-
-// ---------------------------------------------------------------------------
 // Route configuration
 // ---------------------------------------------------------------------------
-const authRoutes: { path: string; element: React.ReactElement }[] = [
+const authRoutes: RouteObject[] = [
   {
     path: ROUTES.LOGIN,
+    handle: routeMeta(undefined, 'login'),
     element: <LoginPage />,
   },
 ]
@@ -278,7 +65,8 @@ const authRoutes: { path: string; element: React.ReactElement }[] = [
 if (import.meta.env.VITE_ENABLE_REGISTRATION === 'true') {
   authRoutes.push({
     path: ROUTES.REGISTER,
-    element: withLoading(RegisterPage),
+    handle: routeMeta(undefined, 'register'),
+    element: withLoading(Page.RegisterPage),
   })
 }
 
@@ -301,12 +89,12 @@ const topLevelRoutes: RouteObject[] = [
 
   {
     path: ROUTES.AGENT_SHARE,
-    element: withLoading(AgentSharePage),
+    element: withLoading(Page.AgentSharePage),
   },
 
   {
     path: ROUTES.CHAT_WIDGET,
-    element: withLoading(AgentWidgetPage),
+    element: withLoading(Page.AgentWidgetPage),
   },
 
   ...embedRoutes,
@@ -316,270 +104,301 @@ const topLevelRoutes: RouteObject[] = [
     element: <Layout />,
     children: [
       {
-        index: true,
-        element: <Navigate to={ROUTES.HOME} replace />,
-      },
-      {
-        path: ROUTES.HOME,
-        element: <HomePage />,
-      },
-      {
-        path: '/mcp-chat',
-        element: <MCPChatRedirect />,
-      },
-      {
-        path: ROUTES.KNOWLEDGE,
-        element: withLoading(KnowledgeListPage),
-      },
-      ...skillRoutes,
-      {
-        path: ROUTES.MEMORY,
-        element: withLoading(MemoryListPage),
-      },
-      {
-        path: '/memory/:id',
-        element: withLoading(MemoryDetailLayout),
-        children: [
-          {
-            index: true,
-            element: withLoading(MemoryMessagesPage),
-          },
-          {
-            path: 'settings',
-            element: withLoading(MemorySettingsPage),
-          },
-        ],
-      },
-      {
-        path: ROUTES.EXPLORE,
-        element: withLoading(ExplorePage),
-      },
-      {
-        path: ROUTES.SEARCH,
-        element: withLoading(SearchListPage),
-      },
-      {
-        path: '/search/:id',
-        element: withLoading(SearchDetailPage),
-      },
-      {
-        path: '/document/:docId/preview',
-        element: withLoading(DocumentPreviewPage),
-      },
-      {
-        path: '/knowledge/create',
-        element: withLoading(KnowledgeCreatePage),
-      },
-      {
-        // Keeps `import` from being read as a knowledge base id.
-        path: '/knowledge/import',
-        element: <Navigate to={ROUTES.KNOWLEDGE} replace />,
-      },
-      {
-        path: '/knowledge/:id',
-        element: withLoading(KnowledgeDetailLayout),
-        children: [
-          {
-            index: true,
-            element: <Navigate to="documents" replace />,
-          },
-          {
-            path: 'documents',
-            element: withLoading(KnowledgeDocumentsPage),
-          },
-          {
-            path: 'search',
-            element: withLoading(KnowledgeSearchPage),
-          },
-          {
-            path: 'graph',
-            element: withLoading(KnowledgeGraphPage),
-          },
-          {
-            path: 'logs',
-            element: withLoading(KnowledgeLogsPage),
-          },
-          {
-            path: 'settings',
-            element: withLoading(KnowledgeSettingsPage),
-          },
-        ],
-      },
-      {
-        path: '/knowledge/:id/documents/:docId/chunks',
-        element: withLoading(KnowledgeChunksLayout),
-        children: [
-          {
-            index: true,
-            element: withLoading(DocumentChunksPage),
-          },
-        ],
-      },
-      // Retired entries keep old links working.
-      {
-        path: '/documents',
-        element: <Navigate to={ROUTES.KNOWLEDGE} replace />,
-      },
-      {
-        path: '/workflow',
-        element: <Navigate to={ROUTES.AGENTS} replace />,
-      },
-      {
-        path: '/ai-tools',
-        element: <Navigate to={ROUTES.AUTO_FILL} replace />,
-      },
-      {
-        path: ROUTES.TOOLS,
-        element: <Navigate to={ROUTES.AUTO_FILL} replace />,
-      },
-      {
-        path: ROUTES.AUTO_FILL,
-        element: withLoading(AutoFillWorkbenchPage),
-      },
-      {
-        path: ROUTES.AGENTS,
-        element: withLoading(AgentListPage),
-      },
-      {
-        path: ROUTES.AGENT_LOGS,
-        element: withLoading(AgentLogsPage),
-      },
-      {
-        path: ROUTES.AGENT_TEMPLATES,
-        element: withLoading(AgentTemplatesPage),
-      },
-      {
-        path: ROUTES.AGENT_LOG_REDIRECT,
-        element: <AgentLogRedirect />,
-      },
-      {
-        path: '/agent/:id',
-        element: withLoading(AgentEditorPage),
-      },
-      {
-        path: ROUTES.AGENT_EXPLORE,
-        element: withLoading(AgentExplorePage),
-      },
-      {
-        path: ROUTES.DATAFLOW_RESULT,
-        element: withLoading(PipelineResultPage),
-      },
-      {
-        path: ROUTES.MCP_SERVERS,
-        element: <Navigate to={MCP_PATH} replace />,
-      },
-      {
-        path: ROUTES.STUDIO,
-        element: withLoading(StudioPage),
-      },
-      {
-        path: ROUTES.STUDIO_CREATE_APP,
-        element: withLoading(CreateAppPage),
-      },
-      {
-        path: ROUTES.SYSTEM,
-        element: <Navigate to="/settings/system" replace />,
-      },
-      {
-        path: '/dialogs',
-        element: <Navigate to={ROUTES.STUDIO} replace />,
-      },
-      {
-        path: '/dialog/:id/prompt-editor',
-        element: <PromptEditorRedirect />,
-      },
-      {
-        path: '/settings',
-        element: withLoading(SettingsLayout),
-        children: [
-          {
-            index: true,
-            element: withLoading(SettingsIndexRedirect),
-          },
-          {
-            path: 'datasource',
-            element: withLoading(DataSourcePage),
-          },
-          {
-            path: 'datasource-detail',
-            element: withLoading(DataSourceDetailPage),
-          },
-          {
-            path: 'profile',
-            element: withLoading(ProfilePage),
-          },
-          {
-            path: 'team',
-            element: withLoading(TeamPage),
-          },
-          {
-            path: 'appearance',
-            element: withLoading(AppearancePage),
-          },
-          {
-            path: 'model-providers',
-            element: withLoading(ModelProvidersPage),
-          },
-          {
-            path: 'model-gateway',
-            element: withLoading(ModelGatewayPage),
-          },
-          { path: 'mcp', element: withLoading(MCPPage) },
-          { path: 'mcp-servers', element: <SearchRedirect to={MCP_PATH} /> },
-          {
-            path: 'mcp-tools',
-            element: <SearchRedirect to={MCP_PATH} tab="tools" />,
-          },
-          {
-            path: 'mcp-test',
-            element: <SearchRedirect to={MCP_PATH} tab="test" />,
-          },
-          {
-            path: 'mcp-batch',
-            element: <SearchRedirect to={MCP_PATH} tab="batch" />,
-          },
-          {
-            path: 'channels',
-            element: withLoading(ChannelsPage),
-          },
-          {
-            path: 'api-keys',
-            element: <Navigate to={API_KEYS_PATH} replace />,
-          },
-          {
-            path: 'api',
-            children: [
-              {
-                index: true,
-                element: <Navigate to={API_KEYS_PATH} replace />,
-              },
-              { path: 'keys', element: withLoading(ApiKeysPage) },
-              { path: 'docs', element: withLoading(ApiDocsPage) },
-            ],
-          },
-          {
-            path: 'system',
-            element: withLoading(SystemPage),
-          },
-          {
-            path: 'admin',
-            element: withLoading(AdminUsersPage),
-          },
-          {
-            path: 'sandbox',
-            element: withLoading(SandboxPage),
-          },
-        ],
+        // A page that fails recovers inside the workbench: the rail and the
+        // secondary panel stay, and the next navigation clears the error.
+        errorElement: <PageErrorFallback />,
+        children: workbenchRoutes(),
       },
     ],
   },
 ]
 
+function workbenchRoutes(): RouteObject[] {
+  return [
+    {
+      index: true,
+      element: <Navigate to={ROUTES.HOME} replace />,
+    },
+    {
+      path: ROUTES.HOME,
+      handle: routeMeta('home', 'home'),
+      element: <HomePage />,
+    },
+    {
+      path: '/mcp-chat',
+      element: <MCPChatRedirect />,
+    },
+    {
+      path: ROUTES.KNOWLEDGE,
+      handle: routeMeta('knowledge', 'knowledge'),
+      element: withLoading(Page.KnowledgeListPage),
+    },
+    ...skillRoutes,
+    {
+      path: ROUTES.MEMORY,
+      handle: routeMeta('knowledge', 'memory'),
+      element: withLoading(Page.MemoryListPage),
+    },
+    {
+      path: '/memory/:id',
+      handle: routeMeta('knowledge', 'memory'),
+      element: withLoading(Page.MemoryDetailLayout),
+      children: [
+        {
+          index: true,
+          handle: routeMeta(undefined, 'memoryMessages'),
+          element: withLoading(Page.MemoryMessagesPage),
+        },
+        {
+          path: 'settings',
+          handle: routeMeta(undefined, 'memorySettings'),
+          element: withLoading(Page.MemorySettingsPage),
+        },
+      ],
+    },
+    {
+      path: ROUTES.EXPLORE,
+      handle: routeMeta('explore', 'explore'),
+      element: withLoading(Page.ExplorePage),
+    },
+    {
+      path: ROUTES.SEARCH,
+      handle: routeMeta('explore', 'search'),
+      element: withLoading(Page.SearchListPage),
+    },
+    {
+      path: '/search/:id',
+      handle: routeMeta('explore', 'searchApp'),
+      element: withLoading(Page.SearchDetailPage),
+    },
+    {
+      // Previewing a document belongs to the knowledge it came from.
+      path: '/document/:docId/preview',
+      handle: routeMeta('knowledge', 'documentPreview'),
+      element: withLoading(Page.DocumentPreviewPage),
+    },
+    {
+      path: '/knowledge/create',
+      handle: routeMeta('knowledge', 'knowledgeCreate'),
+      element: withLoading(Page.KnowledgeCreatePage),
+    },
+    {
+      // Keeps `import` from being read as a knowledge base id.
+      path: '/knowledge/import',
+      element: <Navigate to={ROUTES.KNOWLEDGE} replace />,
+    },
+    {
+      path: '/knowledge/:id',
+      handle: routeMeta('knowledge', 'knowledge'),
+      element: withLoading(Page.KnowledgeDetailLayout),
+      children: [
+        {
+          index: true,
+          element: <Navigate to="documents" replace />,
+        },
+        {
+          path: 'documents',
+          handle: routeMeta(undefined, 'knowledgeDocuments'),
+          element: withLoading(Page.KnowledgeDocumentsPage),
+        },
+        {
+          path: 'search',
+          handle: routeMeta(undefined, 'knowledgeRetrieval'),
+          element: withLoading(Page.KnowledgeSearchPage),
+        },
+        {
+          path: 'graph',
+          handle: routeMeta(undefined, 'knowledgeGraph'),
+          element: withLoading(Page.KnowledgeGraphPage),
+        },
+        {
+          path: 'logs',
+          handle: routeMeta(undefined, 'knowledgeLogs'),
+          element: withLoading(Page.KnowledgeLogsPage),
+        },
+        {
+          path: 'settings',
+          handle: routeMeta(undefined, 'knowledgeSettings'),
+          element: withLoading(Page.KnowledgeSettingsPage),
+        },
+      ],
+    },
+    {
+      path: '/knowledge/:id/documents/:docId/chunks',
+      handle: routeMeta('knowledge', 'documentChunks'),
+      element: withLoading(Page.KnowledgeChunksLayout),
+      children: [
+        {
+          index: true,
+          element: withLoading(Page.DocumentChunksPage),
+        },
+      ],
+    },
+    // Retired entries keep old links working.
+    {
+      path: '/documents',
+      element: <Navigate to={ROUTES.KNOWLEDGE} replace />,
+    },
+    {
+      path: '/workflow',
+      element: <Navigate to={ROUTES.AGENTS} replace />,
+    },
+    {
+      path: '/ai-tools',
+      element: <Navigate to={ROUTES.AUTO_FILL} replace />,
+    },
+    {
+      path: ROUTES.TOOLS,
+      element: <Navigate to={ROUTES.AUTO_FILL} replace />,
+    },
+    {
+      path: ROUTES.AUTO_FILL,
+      handle: routeMeta('tools', 'autoFill'),
+      element: withLoading(Page.AutoFillWorkbenchPage),
+    },
+    {
+      path: ROUTES.AGENTS,
+      handle: routeMeta('agents', 'agents'),
+      element: withLoading(Page.AgentListPage),
+    },
+    {
+      path: ROUTES.AGENT_LOGS,
+      handle: routeMeta('agents', 'agentLogs'),
+      element: withLoading(Page.AgentLogsPage),
+    },
+    {
+      path: ROUTES.AGENT_TEMPLATES,
+      handle: routeMeta('agents', 'agentTemplates'),
+      element: withLoading(Page.AgentTemplatesPage),
+    },
+    {
+      path: ROUTES.AGENT_LOG_REDIRECT,
+      element: <AgentLogRedirect />,
+    },
+    {
+      path: '/agent/:id',
+      handle: routeMeta('agents', 'agentEditor'),
+      element: withLoading(Page.AgentEditorPage),
+    },
+    {
+      path: ROUTES.AGENT_EXPLORE,
+      handle: routeMeta('agents', 'agentExplore'),
+      element: withLoading(Page.AgentExplorePage),
+    },
+    {
+      path: ROUTES.DATAFLOW_RESULT,
+      handle: routeMeta('agents', 'pipelineResult'),
+      element: withLoading(Page.PipelineResultPage),
+    },
+    {
+      path: ROUTES.MCP_SERVERS,
+      element: <Navigate to={MCP_PATH} replace />,
+    },
+    {
+      path: ROUTES.STUDIO,
+      handle: routeMeta('agents', 'studio'),
+      element: withLoading(Page.StudioPage),
+    },
+    {
+      path: ROUTES.STUDIO_CREATE_APP,
+      handle: routeMeta('agents', 'studioEditor'),
+      element: withLoading(Page.CreateAppPage),
+    },
+    {
+      path: ROUTES.SYSTEM,
+      element: <Navigate to="/settings/system" replace />,
+    },
+    {
+      path: '/dialogs',
+      element: <Navigate to={ROUTES.STUDIO} replace />,
+    },
+    {
+      path: '/dialog/:id/prompt-editor',
+      element: <PromptEditorRedirect />,
+    },
+    settingsRoutes(),
+    {
+      path: '*',
+      handle: routeMeta(undefined, 'notFound'),
+      element: <NotFoundPage placement="surface" />,
+    },
+  ]
+}
+
+function settingsRoutes(): RouteObject {
+  const page = (
+    path: string,
+    title: PageTitleKey,
+    Component: React.LazyExoticComponent<ComponentType>,
+  ): RouteObject => ({
+    path,
+    handle: routeMeta(undefined, title),
+    element: withLoading(Component),
+  })
+  return {
+    path: '/settings',
+    handle: routeMeta('settings', 'settings'),
+    element: withLoading(Page.SettingsLayout),
+    children: [
+      {
+        index: true,
+        element: withLoading(Page.SettingsIndexRedirect),
+      },
+      page('datasource', 'datasource', Page.DataSourcePage),
+      page('datasource-detail', 'datasourceDetail', Page.DataSourceDetailPage),
+      page('profile', 'profile', Page.ProfilePage),
+      page('team', 'team', Page.TeamPage),
+      page('appearance', 'appearance', Page.AppearancePage),
+      page('model-providers', 'modelProviders', Page.ModelProvidersPage),
+      page('model-gateway', 'modelGateway', Page.ModelGatewayPage),
+      page('mcp', 'mcp', Page.MCPPage),
+      { path: 'mcp-servers', element: <SearchRedirect to={MCP_PATH} /> },
+      {
+        path: 'mcp-tools',
+        element: <SearchRedirect to={MCP_PATH} tab="tools" />,
+      },
+      {
+        path: 'mcp-test',
+        element: <SearchRedirect to={MCP_PATH} tab="test" />,
+      },
+      {
+        path: 'mcp-batch',
+        element: <SearchRedirect to={MCP_PATH} tab="batch" />,
+      },
+      page('channels', 'channels', Page.ChannelsPage),
+      {
+        path: 'api-keys',
+        element: <Navigate to={API_KEYS_PATH} replace />,
+      },
+      {
+        path: 'api',
+        children: [
+          {
+            index: true,
+            element: <Navigate to={API_KEYS_PATH} replace />,
+          },
+          page('keys', 'apiKeys', Page.ApiKeysPage),
+          page('docs', 'apiDocs', Page.ApiDocsPage),
+        ],
+      },
+      page('system', 'systemStatus', Page.SystemPage),
+      page('admin', 'userManagement', Page.AdminUsersPage),
+      page('sandbox', 'sandbox', Page.SandboxPage),
+    ],
+  }
+}
+
 export const appRoutes: RouteObject[] = [
   {
     errorElement: <ErrorFallback />,
-    element: <RouteLocaleBoundary />,
-    children: [...topLevelRoutes, { path: '*', element: <NotFoundPage /> }],
+    element: (
+      <RouteDocument>
+        <RouteLocaleBoundary />
+      </RouteDocument>
+    ),
+    // Unknown addresses fall to the workbench's `*` route: a product 404 in
+    // the shell once signed in, the login page (with the address kept) before.
+    children: topLevelRoutes,
   },
 ]
 

@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react'
+import { usePageEntityTitle } from '@/components/layout/route-document'
 import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
@@ -52,6 +53,7 @@ const SearchDetailContent: React.FC = () => {
   const location = useLocation()
   const { settingsOpen, setSettingsOpen } = useSearchStore()
   const { searchApp, isLoading, isError, refetch } = useFetchSearchAppDetail()
+  usePageEntityTitle(searchApp?.name)
   const {
     basicInfo,
     config,

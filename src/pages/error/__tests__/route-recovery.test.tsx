@@ -25,6 +25,17 @@ vi.mock('@/pages/home', () => ({
   HomePage: () => <div>Home</div>,
 }))
 
+// The real shell needs auth, queries and the platform; these tests only need
+// to know which recovery renders inside it and which replaces it.
+vi.mock('@/components/layout/Layout', () => ({
+  Layout: () => (
+    <div data-workbench-shell>
+      <nav>Workbench rail</nav>
+      <Outlet />
+    </div>
+  ),
+}))
+
 const translations: Record<string, string> = {
   'routeErrors.notFound.title': 'Page not found',
   'routeErrors.notFound.description': 'The requested page does not exist.',
@@ -173,13 +184,57 @@ describe('route recovery', () => {
     }
   })
 
-  it('uses the real appRoutes catch-all for an unknown address', async () => {
+  it('uses the real appRoutes catch-all for an unknown address, inside the workbench', async () => {
     const router = await renderRoutes(appRoutes, '/missing/product/page')
 
     expect(container.querySelector('h1')?.textContent).toBe('Page not found')
-    expect(
-      container.querySelector('[data-route-error-kind="not-found"]'),
-    ).not.toBeNull()
+    const recovery = container.querySelector(
+      '[data-route-error-kind="not-found"]',
+    )
+    expect(recovery?.getAttribute('data-route-error-placement')).toBe('surface')
+    expect(recovery?.closest('[data-workbench-shell]')).not.toBeNull()
+    router.dispose()
+  })
+
+  it('recovers a failed page inside the workbench and clears it on navigation', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    const secret = 'secret-page-crash-detail'
+    const layout = appRoutes[0].children!.find((route) => route.path === '/')!
+    const boundary = layout.children![0]
+    const ThrowingPage = () => {
+      throw new Error(secret)
+    }
+    const router = await renderRoutes(
+      [
+        {
+          path: '/',
+          element: layout.element,
+          children: [
+            {
+              errorElement: boundary.errorElement,
+              children: [
+                { path: 'broken', element: <ThrowingPage /> },
+                { path: 'home', element: <h1>Home page</h1> },
+              ],
+            },
+          ],
+        },
+      ],
+      '/broken',
+    )
+
+    const recovery = container.querySelector(
+      '[data-route-error-kind="unexpected"]',
+    )
+    // The rail stays; only the main area shows the recovery.
+    expect(container.textContent).toContain('Workbench rail')
+    expect(recovery?.getAttribute('data-route-error-placement')).toBe('surface')
+    expect(recovery?.tagName).toBe('SECTION')
+    expect(container.textContent).not.toContain(secret)
+
+    await act(async () => router.navigate('/home'))
+    expect(container.querySelector('[data-route-error-kind]')).toBeNull()
+    expect(container.textContent).toContain('Home page')
     router.dispose()
   })
 

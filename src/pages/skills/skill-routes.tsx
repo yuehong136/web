@@ -3,6 +3,7 @@ import { useParams, type RouteObject } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { PageLoadingState } from '@/components/patterns'
 import { SKILL_PROTOCOL } from '@/api/skill-protocol'
+import { routeMeta } from '@/components/layout/route-meta'
 
 const Spaces = lazy(() =>
   import('./skill-spaces-page').then((module) => ({
@@ -49,14 +50,17 @@ function SkillRoute({ page: Page }: { page: typeof Spaces }) {
 export const skillRoutes: RouteObject[] = [
   {
     path: '/skills',
+    handle: routeMeta('knowledge', 'skills'),
     element: <SkillRoute page={core ? CoreSpaces : Spaces} />,
   },
   {
     path: '/skills/:spaceId',
+    handle: routeMeta('knowledge', 'skillSpace'),
     element: <SkillRoute page={core ? CoreSpace : Space} />,
   },
   {
     path: '/skills/:spaceId/skills/:skillId',
+    handle: routeMeta('knowledge', 'skillDetail'),
     element: <SkillRoute page={core ? CoreDetail : Detail} />,
   },
 ]

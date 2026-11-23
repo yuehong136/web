@@ -12,7 +12,7 @@ import {
 
 // An opt-in pilot, kept separate from i18next's global type graph.
 export const translationScopes = {
-  layout: { dynamicFamilies: ['nav'] },
+  layout: { dynamicFamilies: ['nav', 'pageTitles'] },
   appearance: {
     dynamicFamilies: ['presets', 'modes', 'densities', 'scales', 'motions'],
   },

@@ -168,6 +168,12 @@
   }
 }
 
+/* The route announcer focuses the new page's h1 so screen readers start
+ * there; a heading is not a control, so it shows no focus ring. */
+[data-route-focus]:focus {
+  outline: none;
+}
+
 /* 加载动画 */
 @keyframes spin {
   from {

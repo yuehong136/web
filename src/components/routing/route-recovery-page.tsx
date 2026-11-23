@@ -24,6 +24,11 @@ export enum RouteErrorKind {
 interface RouteRecoveryPageProps {
   kind: RouteErrorKind
   onRetry?: () => void
+  /**
+   * `screen` stands alone (root errors, signed-out pages); `surface` fills the
+   * workbench's main area, so the rail and panels stay usable around it.
+   */
+  placement?: 'screen' | 'surface'
 }
 
 const copyKeys = {
@@ -42,11 +47,17 @@ const recoveryIcons = {
   [RouteErrorKind.UNEXPECTED]: CircleOff,
 } as const
 
-export function RouteRecoveryPage({ kind, onRetry }: RouteRecoveryPageProps) {
+export function RouteRecoveryPage({
+  kind,
+  onRetry,
+  placement = 'screen',
+}: RouteRecoveryPageProps) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
   const mainRef = useRef<HTMLElement>(null)
+  const inSurface = placement === 'surface'
+  const Landmark = inSurface ? 'section' : 'main'
   const copyKey = copyKeys[kind]
   const RecoveryIcon = recoveryIcons[kind]
 
@@ -114,16 +125,23 @@ export function RouteRecoveryPage({ kind, onRetry }: RouteRecoveryPageProps) {
   }
 
   return (
-    <main
+    <Landmark
       ref={mainRef}
       tabIndex={-1}
       data-route-error-kind={kind}
+      data-route-error-placement={placement}
       aria-label={t(`routeErrors.${copyKey}.title`)}
       role={kind === RouteErrorKind.NOT_FOUND ? undefined : 'alert'}
-      className="flex min-h-dvh flex-col bg-canvas outline-hidden"
+      className={
+        inSurface
+          ? 'flex h-full min-h-0 flex-col overflow-y-auto bg-surface outline-hidden'
+          : 'flex min-h-dvh flex-col bg-canvas outline-hidden'
+      }
     >
-      {/* Recovery pages stand outside the shell; the wordmark keeps them ours. */}
-      <BrandMark className="self-start px-space-lg pt-space-lg" />
+      {/* Standalone recovery pages keep the wordmark; in the shell the rail has it. */}
+      {inSurface ? null : (
+        <BrandMark className="self-start px-space-lg pt-space-lg" />
+      )}
       <PageErrorState
         className="flex-1"
         titleAs="h1"
@@ -132,6 +150,6 @@ export function RouteRecoveryPage({ kind, onRetry }: RouteRecoveryPageProps) {
         icon={<RecoveryIcon className="size-icon-lg" aria-hidden="true" />}
         action={action}
       />
-    </main>
+    </Landmark>
   )
 }

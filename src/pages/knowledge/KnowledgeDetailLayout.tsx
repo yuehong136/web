@@ -4,6 +4,7 @@ import { Outlet, useParams } from 'react-router-dom'
 import { useFetchKnowledgeDetail } from '@/hooks/use-knowledge-request'
 import { PageErrorState, PageLoadingState } from '@/components/patterns'
 import { useRegisterSecondaryNavigation } from '@/components/layout/workbench-navigation'
+import { usePageEntityTitle } from '@/components/layout/route-document'
 import type { KnowledgeDetailOutletContext } from './components/knowledge-section-template'
 import { KnowledgeNavigationPanel } from './components/knowledge-navigation-panel'
 
@@ -21,6 +22,7 @@ const KnowledgeDetailLayout: FC = () => {
     isError,
     refetch,
   } = useFetchKnowledgeDetail(id)
+  usePageEntityTitle(currentKnowledgeBase?.name)
 
   const navigationManaged = useRegisterSecondaryNavigation(
     useMemo(

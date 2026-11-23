@@ -27,17 +27,32 @@ Zustand selector 卫生（React 19）：**禁止 selector 返回新对象字面�
 
 ### 错误处理
 
-路由树必须由一个无 `path` 的顶层分支统一声明共享 `ErrorFallback`。后代路由继承该边界，嵌套 render / loader / lazy import 错误向上冒泡；不要在每个叶子路由重复声明。顶层分支还必须有显式 `*` catch-all，呈现产品化 404：
+路由树由两层无 `path` 的边界兜底，叶子路由不重复声明：
+
+- 根分支声明共享 `ErrorFallback`，只负责工作台外壳之外的失败（Layout 自身、登录页、分享页与浮窗），渲染全屏恢复页。
+- `Layout` 下的全部工作台页面再包一层无 `path` 的分支，声明 `PageErrorFallback`：页面的 render / loader / lazy import 错误在主任务区内恢复，导航轨和二级面板保留；下一次导航清除错误。产品化 404 也放在这一层的 `*`，登录后在外壳内显示，未登录时由 `AuthGuard` 带着原地址转去登录。
 
 ```tsx
 {
   errorElement: <ErrorFallback />,
+  element: <RouteDocument><RouteLocaleBoundary /></RouteDocument>,
   children: [
-    ...topLevelRoutes,
-    { path: '*', element: <NotFoundPage /> },
+    ...publicRoutes,
+    {
+      path: '/',
+      element: <Layout />,
+      children: [
+        {
+          errorElement: <PageErrorFallback />,
+          children: [...workbenchRoutes, { path: '*', element: <NotFoundPage placement="surface" /> }],
+        },
+      ],
+    },
   ],
 }
 ```
+
+路由元数据写在 `handle`：`routeMeta(section, title)`（`components/layout/route-meta.ts`），子路由继承父路由未写的字段。`useRouteMeta()` 据此给出工作台分区（导航高亮与二级面板，未声明时回退到路径前缀规则）；`RouteDocument` 用 React 19 的 `<title>` 输出“<实体> · <页面> · {brandName}”，页面用 `usePageEntityTitle(name)` 提供实体名；切换页面（不含查询参数变化、不含首次加载）时由 sr-only 的 `aria-live` 区域播报页面名，并在页面没有自行放置焦点时把焦点移到 h1。页面标题文案集中在常驻加载的 `layout.pageTitles`，新增路由要同时补中英文。
 
 应用根节点必须保留共享 `ErrorBoundary`，覆盖路由 provider 之外的渲染失败。React / Router 捕获回调在 ENG-10 脱敏遥测落地前不得输出原始 Error；接入遥测后也只允许固定分类、route、release 与 trace ID。
 

@@ -9,8 +9,8 @@ import {
   WorkbenchNavigationProvider,
   useWorkbenchNavigation,
   useDefaultSecondaryNavigation,
-  getWorkbenchSection,
 } from '@/components/layout/workbench-navigation'
+import { useRouteMeta } from '@/components/layout/route-meta'
 import { useWorkbenchViewport } from '@/components/layout/use-workbench-viewport'
 import {
   WorkbenchHeaderProvider,
@@ -41,7 +41,7 @@ const WorkbenchFrame = ({ children }: React.PropsWithChildren) => {
     setMobileNavigation({ scope, open: false })
   const mobileOpen = mobileNavigation.scope === scope && mobileNavigation.open
   const setMobileOpen = (open: boolean) => setMobileNavigation({ scope, open })
-  const section = getWorkbenchSection(pathname)
+  const { section } = useRouteMeta()
   const defaults = useDefaultSecondaryNavigation()
   const context = useWorkbenchNavigation()
   const definition =

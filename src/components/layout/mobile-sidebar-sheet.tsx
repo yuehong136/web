@@ -18,6 +18,7 @@ import {
   getWorkbenchSection,
   type SecondaryNavigation,
 } from '@/components/layout/workbench-navigation'
+import { useRouteMeta } from '@/components/layout/route-meta'
 import { cn } from '@/lib/utils'
 
 interface MobileSidebarSheetProps {
@@ -46,7 +47,7 @@ export const MobileSidebarSheet = ({
 }: MobileSidebarSheetProps) => {
   const { t } = useTranslation()
   const { pathname } = useLocation()
-  const section = getWorkbenchSection(pathname)
+  const { section } = useRouteMeta()
   const moreActive = moreNavItems.some(
     (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),
   )
