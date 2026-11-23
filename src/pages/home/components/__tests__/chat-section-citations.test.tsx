@@ -275,7 +275,9 @@ it('resolves an old numeric message title and provider independently from the cu
     const identity = container.querySelector('[data-thread-identity]')
     expect(identity?.textContent).toBe('gpt-test')
     expect(
-      identity?.querySelector('use')?.getAttribute('xlink:href'),
+      identity
+        ?.querySelector('[data-slot="provider-logo-mask"] [aria-hidden]')
+        ?.getAttribute('style'),
     ).toContain('openai')
   } finally {
     useHomeStore.setState({ selectedModelId: previous })
