@@ -1,18 +1,13 @@
 import * as React from 'react'
-import { useTranslation } from 'react-i18next'
 import { UNSAFE_DataRouterStateContext, useLocation } from 'react-router-dom'
-import { createTypedTranslator } from '@/locales/typed-translation'
+import { useTypedTranslation } from '@/locales/use-typed-translation'
 import { useRouteMeta } from './route-meta'
 
 /**
- * Layout strings, re-rendered when resource bundles arrive: the title and the
- * announcer sit above the route locale boundary, which loads them after the
- * first render.
+ * The title and the announcer sit above the route locale boundary, which
+ * loads bundles after the first render: re-render when they arrive.
  */
-function useLayoutStrings() {
-  const { t } = useTranslation(undefined, { bindI18nStore: 'added' })
-  return React.useMemo(() => createTypedTranslator('layout', t), [t])
-}
+const REBIND_ON_LOAD = { bindI18nStore: 'added' } as const
 
 const PageEntityContext = React.createContext<
   React.Dispatch<React.SetStateAction<string | null>>
@@ -50,7 +45,7 @@ export function RouteDocument({ children }: React.PropsWithChildren) {
 }
 
 function RouteTitle({ entity }: { entity: string | null }) {
-  const t = useLayoutStrings()
+  const { t } = useTypedTranslation('layout', REBIND_ON_LOAD)
   const state = React.useContext(UNSAFE_DataRouterStateContext)
   const { title } = useRouteMeta()
   const failed = Boolean(state?.errors)
@@ -95,7 +90,7 @@ function focusPageHeading(): boolean {
 function RouteAnnouncer() {
   const { pathname } = useLocation()
   const { title } = useRouteMeta()
-  const t = useLayoutStrings()
+  const { t } = useTypedTranslation('layout', REBIND_ON_LOAD)
   const [message, setMessage] = React.useState('')
   const previous = React.useRef(pathname)
   // Strings can arrive after the navigation; read the latest ones when the
