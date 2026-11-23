@@ -94,13 +94,13 @@ describe('route document', () => {
 
   it('titles the tab from the deepest route handle, the entity and the brand', async () => {
     const router = await render('/home')
-    expect(document.title).toBe('首页 · 沧溟 AI')
+    expect(document.title).toBe('首页 · Cairvo')
     expect(
       container.querySelector('[data-section]')?.getAttribute('data-section'),
     ).toBe('home')
 
     await act(async () => router.navigate('/knowledge/kb-1/documents'))
-    expect(document.title).toBe('Research library · 文档 · 沧溟 AI')
+    expect(document.title).toBe('Research library · 文档 · Cairvo')
     // The child names no section; it inherits its layout route's.
     expect(
       container.querySelector('[data-section]')?.getAttribute('data-section'),
@@ -138,7 +138,7 @@ describe('route document', () => {
     expect(
       container.querySelector('[data-section]')?.getAttribute('data-section'),
     ).toBe('home')
-    expect(document.title).toBe('沧溟 AI')
+    expect(document.title).toBe('Cairvo')
     router.dispose()
   })
 })

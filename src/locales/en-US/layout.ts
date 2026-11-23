@@ -1,6 +1,6 @@
 export default {
   layout: {
-    brandName: 'Cangming AI',
+    brandName: 'Cairvo',
     workspace: {
       skipToTask: 'Skip to main workspace',
       mainTask: 'Main workspace',

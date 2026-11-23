@@ -15,7 +15,7 @@ import { Tooltip } from '@/components/ui/tooltip'
 import { NavigationFlyout } from '@/components/patterns/navigation-flyout'
 import { SecondaryNavigationContent } from '@/components/patterns/secondary-navigation-content'
 import { WorkbenchQuickActions } from '@/components/layout/workbench-quick-actions'
-import { TideMark } from '@/components/layout/brand-mark'
+import { BrandGlyph } from '@/components/layout/brand-glyph'
 import { Button } from '@/components/ui/button'
 import {
   getCommandShortcutKeys,
@@ -78,7 +78,7 @@ export const Sidebar = ({
       )}
     >
       <div className="flex shrink-0 justify-center pt-space-2xs pb-space-base">
-        <TideMark size="md" />
+        <BrandGlyph className="text-fg" />
       </div>
       <RailNewChat />
       <nav

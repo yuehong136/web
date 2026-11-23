@@ -137,6 +137,8 @@ function ChatSectionContent({
               message.modelIdentity,
             ),
             time: message.timestamp,
+            // An app speaks as itself; only the direct model chat is the product.
+            speaker: selectedApp ? undefined : ('brand' as const),
           }
       return {
         id: message.id,
@@ -208,6 +210,7 @@ function ChatSectionContent({
     streamingContent,
     streamingThinking,
     onRetry,
+    selectedApp,
   ])
   const turns = useMemo<ThreadTurn[]>(
     () =>

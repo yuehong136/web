@@ -113,9 +113,7 @@ it('lays out brand, sections, actions, section content and account like the boar
     selectedApps: [{ id: 'app', name: 'Research' } as never],
   })
   const { sheet } = await openSheet('/home')
-  expect(sheet.querySelector('[data-brand-mark]')?.textContent).toBe(
-    'Cangming AI',
-  )
+  expect(sheet.querySelector('[data-brand-mark]')?.textContent).toBe('Cairvo')
   const sections = Array.from(
     sheet.querySelectorAll<HTMLAnchorElement>(
       'nav[aria-label="Workspace navigation"] > ul a',

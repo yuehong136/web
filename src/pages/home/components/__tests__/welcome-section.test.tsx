@@ -116,7 +116,7 @@ it('greets with the page heading once and only the counts that loaded', async ()
   const headings = [...host.querySelectorAll('h1')].map((h) => h.textContent)
   expect(headings).toEqual(['What can AI help you with today?'])
   const chip = host.querySelector('[data-home-greeting]')!
-  expect(chip.querySelector('[data-tide-mark]')).not.toBeNull()
+  expect(chip.querySelector('[data-brand-glyph]')).not.toBeNull()
   expect(chip.textContent).toMatch(
     /Good (morning|afternoon|evening) · 3 knowledge bases and 2 connectors available/,
   )

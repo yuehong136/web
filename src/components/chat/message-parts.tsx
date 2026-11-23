@@ -10,6 +10,7 @@ import { SourceStrip } from './source-strip'
 import { StreamingXMarkdown } from './streaming-x-markdown'
 import { RunTimeline, type RetrievalStepData } from './run-timeline'
 import { AnswerIdentity, type AnswerIdentityProps } from './answer-identity'
+import { useBrandGlyphRunState } from '@/components/layout/brand-glyph'
 import { getCitedChunks, groupAdjacentCitations } from './citation-utils'
 import type { EvidenceOptions } from './chat-workspace-context'
 import { ArtifactMessageContext } from '@/components/chat/artifact-message-context'
@@ -79,6 +80,7 @@ export const MessageParts = memo(function MessageParts({
   const mainContent = isStreaming
     ? withoutPartialCitation(fallback.mainContent)
     : fallback.mainContent
+  const glyphState = useBrandGlyphRunState(isStreaming, Boolean(mainContent))
   // Stable while streaming text grows, so the citation chips keep their identity.
   const citedKey = getCitedChunks(mainContent, references)
     .map((chunk) => references.indexOf(chunk))
@@ -170,7 +172,13 @@ export const MessageParts = memo(function MessageParts({
         className="message-parts space-y-space-sm"
         data-run-phase={run.phase}
       >
-        {identity && <AnswerIdentity {...identity} />}
+        {identity && (
+          <AnswerIdentity
+            {...identity}
+            glyphState={glyphState}
+            glyphPulse={mainContent.length}
+          />
+        )}
         {contextManifest && (
           <ContextManifestSummary manifest={contextManifest} />
         )}
@@ -200,7 +208,9 @@ export const MessageParts = memo(function MessageParts({
           !mainContent &&
           !thinkContent &&
           !nodes.length &&
-          fallback.retrievalStatus === 'none' && <ChatBubbleLoading />}
+          fallback.retrievalStatus === 'none' && (
+            <ChatBubbleLoading showGlyph={identity?.speaker !== 'brand'} />
+          )}
         {notice}
         {showSources && (
           <>

@@ -1,41 +1,10 @@
-import { Waves } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
-
-const TIDE_SIZES = {
-  xs: 'size-5 rounded-radius-full [&_svg]:size-3',
-  sm: 'size-7 rounded-radius-lg [&_svg]:size-icon-sm',
-  md: 'size-8 rounded-radius-lg [&_svg]:size-icon-md',
-} as const
+import { BrandGlyph } from './brand-glyph'
 
 /**
- * The tide mark: the wave glyph on the tide gradient. It is the brand tile and
- * the home greeting's mark, so it may carry the AI gradient; it is always
- * decorative.
- */
-export const TideMark = ({
-  size = 'sm',
-  className,
-}: {
-  size?: keyof typeof TIDE_SIZES
-  className?: string
-}) => (
-  <span
-    aria-hidden="true"
-    data-tide-mark
-    className={cn(
-      'flex shrink-0 items-center justify-center bg-ai-tide text-accent-on-solid',
-      TIDE_SIZES[size],
-      className,
-    )}
-  >
-    <Waves />
-  </span>
-)
-
-/**
- * The product wordmark: the brand tile and name. The tile is decorative; the
- * name is the readable part, or pass `showName={false}` where a label sits
+ * The product wordmark: the 承 glyph and the name. The glyph is decorative;
+ * the name is the readable part, or pass `showName={false}` where a label sits
  * elsewhere.
  */
 export const BrandMark = ({
@@ -49,11 +18,14 @@ export const BrandMark = ({
   return (
     <span
       data-brand-mark
-      className={cn('inline-flex min-w-0 items-center gap-space-sm', className)}
+      className={cn(
+        'inline-flex min-w-0 items-center gap-[0.36em] text-base text-fg',
+        className,
+      )}
     >
-      <TideMark />
+      <BrandGlyph className="size-[1.15em]" />
       {showName ? (
-        <span className="truncate text-base font-semibold tracking-tight text-fg">
+        <span className="truncate font-semibold tracking-tight">
           {t('layout.brandName')}
         </span>
       ) : null}

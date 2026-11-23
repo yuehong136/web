@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils'
 import { ProductCommandId, useApplicationCommands } from '@/lib/commands'
 import { DesktopActivity, useUIStore } from '@/stores/ui'
 import { desktopActivityIcons } from './desktop-navigation'
-import { TideMark } from '../brand-mark'
+import { BrandGlyph } from '../brand-glyph'
 
 const activities = Object.values(DesktopActivity)
 
@@ -36,7 +36,7 @@ export const ActivityRail: React.FC = () => {
         onClick={() => void execute(ProductCommandId.NAVIGATE_HOME)}
         aria-label={t('desktop.activityRail.home')}
       >
-        <TideMark size="md" />
+        <BrandGlyph className="text-fg" />
       </button>
 
       <nav className="flex flex-1 flex-col gap-space-xs">

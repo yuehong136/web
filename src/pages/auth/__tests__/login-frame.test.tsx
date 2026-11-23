@@ -47,7 +47,7 @@ describe('LoginFrame', () => {
         `data-auth-frame="${desktop ? 'desktop' : 'web'}"`,
       )
       expect(markup).toContain('data-brand-mark')
-      expect(markup).toContain('Cangming AI')
+      expect(markup).toContain('Cairvo')
       expect(markup).toContain('shared-login-form')
       expect(markup).not.toContain('<img')
       expect(markup).not.toMatch(/bg-linear|from-|to-black/)

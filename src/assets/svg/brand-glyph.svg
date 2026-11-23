@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+  <!-- Cairvo 承: ink holder, core in the ink 潮汐 AI gradient (204→234→264).
+       Follows the browser's light or dark UI, not the in-app theme. -->
+  <style>
+    .holder { stroke: #1f2023 }
+    .from { stop-color: #019faa } .via { stop-color: #038ec3 } .to { stop-color: #5686f2 }
+    @media (prefers-color-scheme: dark) {
+      .holder { stroke: #ecedee }
+      .from { stop-color: #07bac8 } .via { stop-color: #03a8e6 } .to { stop-color: #76a2fe }
+    }
+  </style>
+  <defs>
+    <linearGradient id="core" gradientUnits="userSpaceOnUse" x1="10" y1="14" x2="18.6" y2="5.4">
+      <stop class="from" offset="0"/>
+      <stop class="via" offset=".55"/>
+      <stop class="to" offset="1"/>
+    </linearGradient>
+  </defs>
+  <path class="holder" d="M8.56 3.7L3.7 8.56V15.44L8.56 20.3H15.44L20.3 15.44" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path fill="url(#core)" d="M13.35 5.13A1.2 1.2 0 0 1 15.05 5.13L18.87 8.95A1.2 1.2 0 0 1 18.87 10.65L15.05 14.47A1.2 1.2 0 0 1 13.35 14.47L9.53 10.65A1.2 1.2 0 0 1 9.53 8.95Z"/>
+</svg>

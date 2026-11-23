@@ -62,7 +62,7 @@ export const SCHEME_SEEDS: Record<ColorScheme, SchemeSeed> = {
   ink: {
     neutral: { h: 265, c: 0.004 },
     accent: { h: 264, c: 0.2, solid: { light: 0.54, dark: 0.6 } },
-    ai: { hues: [255, 290, 330], c: 0.17 },
+    ai: { hues: [204, 234, 264], c: 0.17 },
     action: 'ink',
     surface: 'white',
   },
@@ -70,7 +70,7 @@ export const SCHEME_SEEDS: Record<ColorScheme, SchemeSeed> = {
   mist: {
     neutral: { h: 240, c: 0.011 },
     accent: { h: 245, c: 0.13, solid: { light: 0.5, dark: 0.56 } },
-    ai: { hues: [205, 240, 275], c: 0.15 },
+    ai: { hues: [185, 215, 245], c: 0.15 },
     action: 'accent',
     surface: 'white',
   },
@@ -93,7 +93,7 @@ export const SCHEME_SEEDS: Record<ColorScheme, SchemeSeed> = {
   iris: {
     neutral: { h: 290, c: 0.008 },
     accent: { h: 290, c: 0.19, solid: { light: 0.52, dark: 0.58 } },
-    ai: { hues: [275, 315, 355], c: 0.18 },
+    ai: { hues: [230, 260, 290], c: 0.18 },
     action: 'accent',
     surface: 'white',
   },
@@ -180,6 +180,20 @@ const hueGap = (a: number, b: number) => {
   return d > 180 ? 360 - d : d
 }
 
+/**
+ * The AI gradient for a custom accent: one-sided and ending at the accent,
+ * starting from the side nearer the 200° tide, so it never sweeps past the
+ * accent into a blue-purple-pink arc. Warm accents (15–110°) step 20°, the
+ * rest 30°. Ink, mist and iris follow the same rule.
+ */
+export function singleSidedAiHues(h: number): [number, number, number] {
+  const step = h >= 15 && h <= 110 ? 20 : 30
+  const below = (h - 2 * step + 360) % 360
+  const above = (h + 2 * step) % 360
+  const dir = hueGap(above, 200) < hueGap(below, 200) ? 1 : -1
+  return [(h + dir * 2 * step + 360) % 360, (h + dir * step + 360) % 360, h]
+}
+
 export function customSchemeSeed(custom: CustomSchemeSeed): SchemeSeed {
   const h = custom.accentHue
   // Status hues the accent would be mistaken for step 30° away from it.
@@ -195,7 +209,7 @@ export function customSchemeSeed(custom: CustomSchemeSeed): SchemeSeed {
     neutral: { h, c: custom.neutralChroma },
     accent: { h, c: custom.accentChroma },
     ai: {
-      hues: [(h + 325) % 360, h, (h + 35) % 360],
+      hues: singleSidedAiHues(h),
       c: Math.min(0.18, custom.accentChroma + 0.03),
     },
     action: 'accent',

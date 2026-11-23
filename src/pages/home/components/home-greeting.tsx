@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { TideMark } from '@/components/layout/brand-mark'
+import { BrandGlyph } from '@/components/layout/brand-glyph'
 
 const partOfDay = (hour: number) =>
   hour >= 5 && hour < 12
@@ -34,7 +34,7 @@ export function HomeGreeting({
         data-home-greeting
         className="inline-flex max-w-full items-center gap-space-sm rounded-radius-full border border-ai-line bg-ai-glow py-space-xs ps-space-xs pe-space-base text-xs text-accent-fg"
       >
-        <TideMark size="xs" />
+        <BrandGlyph className="size-4 text-fg" />
         <span className="min-w-0 truncate">
           {t(`home.greeting.${partOfDay(hour)}`)}
           {resources.length > 0 &&
