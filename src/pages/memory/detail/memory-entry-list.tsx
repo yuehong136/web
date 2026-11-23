@@ -20,6 +20,7 @@ import {
   type MemoryLifecycle,
 } from '@/components/memory/memory-lifecycle'
 import { cn } from '@/lib/utils'
+import { editableMemoryId } from '@/hooks/use-memory-revisions'
 import type { MemoryMessage } from '@/types/memory'
 
 export type MemoryView = 'memories' | 'sources'
@@ -64,6 +65,8 @@ export interface MemoryEntryListProps {
   sources: MemoryMessage[]
   view: MemoryView
   state: MemoryStateFilter
+  managed?: boolean
+  readOnly?: boolean
   busy: boolean
   onInspect: (message: MemoryMessage) => void
   onStatusChange: (id: number, status: boolean) => void
@@ -79,6 +82,8 @@ export function MemoryEntryList({
   sources,
   view,
   state,
+  managed = false,
+  readOnly = false,
   busy,
   onInspect,
   onStatusChange,
@@ -109,6 +114,11 @@ export function MemoryEntryList({
           {entries.map(({ message, source }) => {
             const lifecycle = getMemoryLifecycle(message)
             const forgotten = lifecycle === 'forgotten'
+            const controlsDisabled =
+              forgotten ||
+              busy ||
+              readOnly ||
+              !editableMemoryId(message.message_id)
             return (
               <li key={message.message_id}>
                 <article
@@ -143,14 +153,14 @@ export function MemoryEntryList({
                         id: message.message_id,
                       })}
                       title={t('memory.messages.forget')}
-                      disabled={forgotten || busy}
+                      disabled={controlsDisabled}
                       onClick={() => setForgetting(message)}
                     >
                       <History aria-hidden="true" className="size-icon-sm" />
                     </Button>
                     <Switch
                       checked={message.status}
-                      disabled={forgotten || busy}
+                      disabled={controlsDisabled}
                       aria-label={t('memory.workspace.toggleMessage', {
                         id: message.message_id,
                       })}
@@ -250,7 +260,13 @@ export function MemoryEntryList({
         variant="destructive"
         pending={busy}
         title={t('memory.messages.forgetTitle')}
-        description={t('memory.workspace.forgetExplanation')}
+        description={t(
+          managed
+            ? forgetting?.message_type === 'raw'
+              ? 'memory.revisions.withdrawScope'
+              : 'memory.revisions.managedForgetScope'
+            : 'memory.revisions.legacyForgetScope',
+        )}
         cancelLabel={t('common.cancel')}
         confirmLabel={busy ? t('common.loading') : t('memory.messages.forget')}
         onConfirm={async () => {

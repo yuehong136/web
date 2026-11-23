@@ -10,6 +10,7 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from '@/components/ui/resizable'
+import { MemoryRecoveryNotice } from '@/components/memory/memory-recovery-notice'
 import { MemorySidebar } from '@/components/memory'
 import { useMemoryDetail } from '@/hooks/use-memory'
 import { useTranslation } from 'react-i18next'
@@ -47,8 +48,12 @@ export const MemoryDetailLayout: FC = () => {
 
   if (managed)
     return (
-      <div className="h-full overflow-hidden bg-components-console-bg">
-        <Outlet context={context} />
+      <div className="flex h-full min-h-0 flex-col overflow-hidden bg-components-console-bg">
+        {id && <MemoryRecoveryNotice memoryId={id} />}{' '}
+        <div className="min-h-0 flex-1 overflow-auto">
+          {' '}
+          <Outlet context={context} />{' '}
+        </div>
       </div>
     )
 
@@ -73,8 +78,12 @@ export const MemoryDetailLayout: FC = () => {
 
         {/* 主内容区 */}
         <ResizablePanel defaultSize="80%">
-          <div className="h-full overflow-hidden">
-            <Outlet context={context} />
+          <div className="flex h-full min-h-0 flex-col overflow-hidden">
+            {id && <MemoryRecoveryNotice memoryId={id} />}{' '}
+            <div className="min-h-0 flex-1 overflow-auto">
+              {' '}
+              <Outlet context={context} />{' '}
+            </div>
           </div>
         </ResizablePanel>
       </ResizablePanelGroup>

@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import type { TraceSpanViewModel } from '@/pages/agent/adapters/trace'
 import { TraceJsonViewer } from './trace-json-viewer'
+import { MessageMemoryOperations } from './message-memory-operations'
 
 interface TraceIoPanelProps {
   span?: TraceSpanViewModel
@@ -25,14 +26,26 @@ export function TraceIoPanel({ span, mode = 'both' }: TraceIoPanelProps) {
         />
       ) : null}
       {showOutput ? (
-        <TraceJsonViewer
-          title={t('agent.traceWorkbench.io.output')}
-          value={span?.output}
-          emptyLabel={t('agent.traceWorkbench.io.outputEmpty')}
-          height="min(520px, calc(100vh - 430px))"
-          dedupeArrays
-          className={mode === 'output' ? '2xl:col-span-2' : undefined}
-        />
+        <div
+          className={
+            mode === 'output'
+              ? 'min-w-0 space-y-space-base 2xl:col-span-2'
+              : 'min-w-0 space-y-space-base'
+          }
+        >
+          <MessageMemoryOperations
+            output={span?.output}
+            componentType={span?.componentType}
+          />
+          <TraceJsonViewer
+            title={t('agent.traceWorkbench.io.output')}
+            value={span?.output}
+            emptyLabel={t('agent.traceWorkbench.io.outputEmpty')}
+            height="min(520px, calc(100vh - 430px))"
+            dedupeArrays
+            className={mode === 'output' ? '2xl:col-span-2' : undefined}
+          />
+        </div>
       ) : null}
     </div>
   )

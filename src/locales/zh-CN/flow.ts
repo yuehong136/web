@@ -3,6 +3,28 @@ import { listOperationsMessages } from './flow-list-operations'
 
 export default {
   flow: {
+    traceInput: '输入',
+    traceInputEmpty: '未记录输入',
+    traceOutput: '输出',
+    traceOutputEmpty: '未记录输出',
+    memoryTrace: {
+      title: '记忆写入操作',
+      description:
+        '这是 Message 的历史输出，各记忆库分别显示结果。RAW 回执不代表事实已核实或来源当前仍有效，也不等于已提炼、人工核验、审核或发布派生记忆。打开原操作查看当前状态；打开与刷新只读取数据，对账需在该页显式操作。',
+      error:
+        'Message 报告了记忆写入问题。请保留原操作身份，先查看当前状态再决定下一步。',
+      invalid:
+        '部分操作元数据无法安全识别，未为这些记录生成恢复链接；下方仍保留原始输出。',
+      noHandle: '未记录可用的操作身份，请勿自动重新提交。',
+      rawReady: 'RAW 已发布（历史快照）',
+      pending: '写入尚未确认（历史快照）',
+      unknown: '结果未知或需要对账',
+      failed: '写入停止或失败（历史快照）',
+      bank: '记忆库 ID',
+      operation: '原操作 ID',
+      source: 'RAW 来源 ID',
+      open: '查看原操作',
+    },
     ...browserMessages,
     copy: '复制',
     copyAgentPrompt: '复制智能体提示词',
@@ -1279,6 +1301,9 @@ Tokenizer 会根据所选方式将内容存储为对应的数据结构。`,
       agentStatus: '智能体状态：',
     },
     saveToMemory: '保存到Memory',
+    structuredMemory: '仅保存结构化 RAW',
+    structuredMemoryDescription:
+      '仅影响所选记忆库。结构化模式使用当前认证用户；用户 ID 仅影响旧模式。user/assistant 角色为声明，事件时间未知。不自动提取、接管记忆库、整理候选、审核或发布。关闭时保留现有行为。',
     retrievalFrom: '检索来源',
     addExpression: '添加表达式',
     addGroup: '添加分组',

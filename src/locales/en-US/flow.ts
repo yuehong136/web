@@ -3,6 +3,29 @@ import { listOperationsMessages } from './flow-list-operations'
 
 export default {
   flow: {
+    traceInput: 'Input',
+    traceInputEmpty: 'No input recorded',
+    traceOutput: 'Output',
+    traceOutputEmpty: 'No output recorded',
+    memoryTrace: {
+      title: 'Memory write operations',
+      description:
+        'Historical Message output, one result per memory. A RAW receipt does not confirm facts or current source validity. Extraction, human verification, review and publication of derived memories are separate. Open the original operation for current status; opening and refreshing only read data. Reconciliation requires an explicit action there.',
+      error:
+        'The Message reported a memory write problem. Preserve the original operation identity and check its current status before taking action.',
+      invalid:
+        'Some operation metadata could not be safely interpreted. No recovery link was created for those rows; the original output remains below.',
+      noHandle:
+        'No usable operation identity was recorded. Do not resubmit automatically.',
+      rawReady: 'RAW published (trace snapshot)',
+      pending: 'Write not yet confirmed (trace snapshot)',
+      unknown: 'Unknown or reconciliation required',
+      failed: 'Write stopped or failed (trace snapshot)',
+      bank: 'Memory ID',
+      operation: 'Original operation ID',
+      source: 'RAW source ID',
+      open: 'View original operation',
+    },
     ...browserMessages,
     ...listOperationsMessages,
     switchPrompt: 'Switch prompt preset',
@@ -454,6 +477,9 @@ export default {
     retrievalFrom: 'Retrieval from',
     run: 'Run',
     saveToMemory: 'Save to memory',
+    structuredMemory: 'Structured RAW only',
+    structuredMemoryDescription:
+      'Only affects the selected memories. Uses the current authenticated user; User ID applies only to the legacy mode. Saves user/assistant role declarations with unknown event time. No automatic extraction, managed activation, candidate preparation, review or publication. Off keeps the existing behaviour.',
     script: 'Script',
     searchDepth: 'Search depth',
     searxngUrl: 'SearXNG URL',

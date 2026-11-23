@@ -300,6 +300,7 @@ export function mergeTraceAndRuntimeSpans(
 
     return {
       ...span,
+      componentType: span.componentType ?? runtimeSpan.componentType,
       status: span.status === 'unknown' ? runtimeSpan.status : span.status,
       duration: span.duration ?? runtimeSpan.duration,
       input: span.input ?? runtimeSpan.input,
