@@ -28,6 +28,7 @@ import theme from './theme'
 import type { VariableOptionGroup } from './types'
 import { extractMissingVariableReferences } from './utils'
 import { ValueSyncPlugin } from './value-sync-plugin'
+import { PromptAssist } from '@/components/patterns/prompt-assist'
 import { VariableNode } from './variable-node'
 import { VariableOnChangePlugin } from './variable-on-change-plugin'
 import VariablePickerMenuPlugin from './variable-picker-plugin'
@@ -83,6 +84,8 @@ type PromptContentProps = {
   placeholder?: ReactNode
   pathAutoMergeEnabled?: boolean
   onPathAutoMergeChange?: (checked: boolean) => void
+  /** Toolbar control after "insert variable", e.g. PromptAssist. */
+  toolbarAction?: ReactNode
 }
 
 type IProps = {
@@ -105,6 +108,7 @@ function PromptContent({
   pathAutoMergeEnabled = true,
   onPathAutoMergeChange,
   accessibilityProps,
+  toolbarAction,
 }: PromptContentProps) {
   const [editor] = useLexicalComposerContext()
   const [isFocused, setIsFocused] = useState(false)
@@ -171,19 +175,22 @@ function PromptContent({
               </span>
             </label>
           </Tooltip>
-          <Tooltip content={<p>{t('flow.insertVariableTip')}</p>}>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              className="shrink-0"
-              aria-label={t('flow.insertVariable', 'Insert Variable')}
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={handleVariableIconClick}
-            >
-              <Variable size={16} />
-            </Button>
-          </Tooltip>
+          <span className="flex shrink-0 items-center gap-space-2xs">
+            {toolbarAction}
+            <Tooltip content={<p>{t('flow.insertVariableTip')}</p>}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                className="shrink-0"
+                aria-label={t('flow.insertVariable', 'Insert Variable')}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={handleVariableIconClick}
+              >
+                <Variable size={16} />
+              </Button>
+            </Tooltip>
+          </span>
         </div>
       )}
       <div className="relative">
@@ -304,6 +311,14 @@ export function PromptEditor({
               placeholder={placeholder}
               pathAutoMergeEnabled={pathAutoMergeEnabled}
               onPathAutoMergeChange={setPathAutoMergeEnabled}
+              toolbarAction={
+                multiLine && onChange ? (
+                  <PromptAssist
+                    value={value ?? ''}
+                    onApply={(next) => onChange(next)}
+                  />
+                ) : null
+              }
             ></PromptContent>
           }
           placeholder={null}

@@ -1,3 +1,4 @@
+import { apiClient } from './client'
 import { modelProvidersAPI } from './llm-providers'
 import type { TenantModel } from './llm-provider-types'
 import { type LLMCatalog, type MyLLMProvider } from '@/stores/model'
@@ -24,7 +25,37 @@ function tenantModelLabels(rows: TenantModel[]): Map<string, string> {
   )
 }
 
+/**
+ * Strips what reasoning models put around the prompt they return: a <think>
+ * block (closed, or left open by a truncated reply) and a wrapping code fence.
+ */
+export function cleanGeneratedPrompt(raw: string): string {
+  return raw
+    .replace(/<think>[\s\S]*?<\/think>/gi, '')
+    .replace(/^[\s\S]*<\/think>/i, '')
+    .trim()
+    .replace(/^```[\w-]*\n([\s\S]*?)\n```$/, '$1')
+    .trim()
+}
+
 export const llmAPI = {
+  /**
+   * POST /v1/llm/fine_prompt: a system prompt written from a task
+   * description, or a refined version of an existing prompt. Synchronous;
+   * the backend's meta prompt keeps placeholders and variables.
+   */
+  finePrompt: async (
+    { prompt, model }: { prompt: string; model: string },
+    signal?: AbortSignal,
+  ): Promise<string> => {
+    const data = await apiClient.post<unknown>(
+      '/v1/llm/fine_prompt',
+      { prompt, llm_name: model, gen_conf: {} },
+      { signal },
+    )
+    return cleanGeneratedPrompt(typeof data === 'string' ? data : '')
+  },
+
   // Catalog availability must be intersected with configured tenant rows.
   getModelCatalog: async (signal?: AbortSignal): Promise<LLMCatalog> => {
     const rows = await modelProvidersAPI.models(signal)

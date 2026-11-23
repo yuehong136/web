@@ -169,6 +169,32 @@ export default {
       reset: 'Reset view',
       download: 'Download SVG',
     },
+    promptAssist: {
+      trigger: 'AI refine',
+      title: 'Write or refine the prompt with AI',
+      description:
+        'Describe the task and AI writes a prompt, or leave it empty to refine the current one. The result shows beside yours and is applied only when you choose.',
+      taskLabel: 'Task (optional)',
+      taskPlaceholder:
+        'For example: answer product questions from the retrieved sources, cite them, and say when the sources are not enough.',
+      model: 'Model',
+      modelsFailed: 'Could not load models',
+      needInput: 'Write some prompt first, or describe the task.',
+      currentPromptHeading: 'Current prompt:',
+      generate: 'Generate',
+      optimize: 'Refine current prompt',
+      generating: 'Writing the prompt…',
+      failed:
+        'Could not generate a prompt. Try again later or pick another model.',
+      current: 'Current',
+      noCurrent: 'No prompt yet',
+      suggestion: 'AI suggestion',
+      missingVariables:
+        'The suggestion drops these variables: {{names}}. Check before replacing, or generate again.',
+      regenerate: 'Generate again',
+      append: 'Append',
+      replace: 'Replace',
+    },
     code: {
       lines_one: '{{count}} line',
       lines_other: '{{count}} lines',

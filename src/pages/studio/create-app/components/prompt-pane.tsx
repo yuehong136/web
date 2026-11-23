@@ -1,4 +1,5 @@
 import { lazy, Suspense, useRef, useState } from 'react'
+import { PromptAssist } from '@/components/patterns/prompt-assist'
 import { useTranslation } from 'react-i18next'
 import type { RefMDEditor } from '@uiw/react-md-editor/nohighlight'
 import {
@@ -88,6 +89,11 @@ export function PromptPane({
       bodyClassName="flex min-h-0 flex-col"
       actions={
         <>
+          <PromptAssist
+            value={config.systemPrompt}
+            defaultModel={config.llm_id || null}
+            onApply={(next) => onChange('systemPrompt', next)}
+          />
           <Popover
             open={variablesOpen}
             onOpenChange={(open) => {

@@ -162,6 +162,31 @@ export default {
       reset: '复位',
       download: '下载 SVG',
     },
+    promptAssist: {
+      trigger: 'AI 优化',
+      title: 'AI 生成或优化提示词',
+      description:
+        '描述任务，AI 写一版提示词；留空则在当前提示词的基础上优化。结果先放在旁边对比，确认后才会写入。',
+      taskLabel: '任务描述（可选）',
+      taskPlaceholder:
+        '例如：根据检索到的资料回答产品问题，引用来源，资料不足时说明。',
+      model: '使用的模型',
+      modelsFailed: '模型列表加载失败',
+      needInput: '先写一点提示词，或描述你要完成的任务。',
+      currentPromptHeading: '当前提示词：',
+      generate: '生成',
+      optimize: '优化当前提示词',
+      generating: '正在生成提示词…',
+      failed: '生成失败，请稍后重试或换一个模型。',
+      current: '当前',
+      noCurrent: '还没有提示词',
+      suggestion: 'AI 建议',
+      missingVariables:
+        '建议里缺少这些变量：{{names}}。替换前请确认，或再生成一次。',
+      regenerate: '再生成',
+      append: '追加到末尾',
+      replace: '替换',
+    },
     code: {
       lines_other: '{{count}} 行',
       wrap: '自动换行',
