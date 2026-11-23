@@ -3,50 +3,13 @@ import { Boxes } from 'lucide-react'
 import { LLMFactory, IconMap } from '@/stores/model'
 import { useIsDarkTheme } from '@/themes'
 import { cn } from '@/lib/utils'
-import { IconFontFill } from './icon-font'
-import openDataLoaderLogoUrl from '@/assets/images/opendataloader.webp?url'
-// Brand marks for providers we have no logo of our own for; imported one by
-// one so only these reach the bundle.
-import alibabaCloudLogo from '@lobehub/icons-static-svg/icons/alibabacloud-color.svg?url'
-import anyscaleLogo from '@lobehub/icons-static-svg/icons/anyscale-color.svg?url'
-import awsLogo from '@lobehub/icons-static-svg/icons/aws.svg?url'
-import baiduCloudLogo from '@lobehub/icons-static-svg/icons/baiducloud-color.svg?url'
-import bailianLogo from '@lobehub/icons-static-svg/icons/bailian-color.svg?url'
-import byteDanceLogo from '@lobehub/icons-static-svg/icons/bytedance-color.svg?url'
-import cerebrasLogo from '@lobehub/icons-static-svg/icons/cerebras.svg?url'
-import chatGlmLogo from '@lobehub/icons-static-svg/icons/chatglm-color.svg?url'
-import claudeLogo from '@lobehub/icons-static-svg/icons/claude-color.svg?url'
-import cloudflareLogo from '@lobehub/icons-static-svg/icons/cloudflare-color.svg?url'
-import doubaoLogo from '@lobehub/icons-static-svg/icons/doubao-color.svg?url'
-import falLogo from '@lobehub/icons-static-svg/icons/fal-color.svg?url'
-import fireworksLogo from '@lobehub/icons-static-svg/icons/fireworks-color.svg?url'
-import githubLogo from '@lobehub/icons-static-svg/icons/github.svg?url'
-import googleLogo from '@lobehub/icons-static-svg/icons/google-color.svg?url'
-import huaweiLogo from '@lobehub/icons-static-svg/icons/huawei-color.svg?url'
-import hyperbolicLogo from '@lobehub/icons-static-svg/icons/hyperbolic-color.svg?url'
-import iflytekLogo from '@lobehub/icons-static-svg/icons/iflytekcloud-color.svg?url'
-import infinigenceLogo from '@lobehub/icons-static-svg/icons/infinigence-color.svg?url'
-import kimiLogo from '@lobehub/icons-static-svg/icons/kimi.svg?url'
-import metaLogo from '@lobehub/icons-static-svg/icons/meta.svg?url'
-import microsoftLogo from '@lobehub/icons-static-svg/icons/microsoft-color.svg?url'
-import qwenLogo from '@lobehub/icons-static-svg/icons/qwen-color.svg?url'
-import sambaNovaLogo from '@lobehub/icons-static-svg/icons/sambanova-color.svg?url'
-import senseNovaLogo from '@lobehub/icons-static-svg/icons/sensenova-color.svg?url'
-import siliconCloudLogo from '@lobehub/icons-static-svg/icons/siliconcloud-color.svg?url'
-import tencentLogo from '@lobehub/icons-static-svg/icons/tencent-color.svg?url'
-import vertexAiLogo from '@lobehub/icons-static-svg/icons/vertexai-color.svg?url'
-import zhipuLogo from '@lobehub/icons-static-svg/icons/zhipu-color.svg?url'
-
-// Let Vite publish SVG URLs; source-directory paths do not exist in production.
-const providerLogoUrls = import.meta.glob<string>(
-  '/src/assets/svg/llm/{local-ai,gemini,stepfun,wenxin,yi,youdao,baai,nomic-ai,sentence-transformers,aimlapi,astraflow,fastembed,funasr,futurmix,greenpt,grok,huaweicloud,mws,new-api,orcarouter,qiniu,somark,tokenhub,xiaomi,mineru-bright,mineru-dark,paddleocr,n1n,jiekouai-bright,jiekouai-dark,avian,ragcon,perplexity-bright,perplexity-dark}.svg',
-  { eager: true, query: '?url', import: 'default' },
-)
-
-const providerLogoUrl = (iconName: string) =>
-  iconName === 'opendataloader'
-    ? openDataLoaderLogoUrl
-    : providerLogoUrls[`/src/assets/svg/llm/${iconName}.svg`]
+import {
+  LOBE_ALIASES,
+  LOBE_LOGOS,
+  localProviderLogo,
+  SPRITE_SUCCESSORS,
+  type LogoFile,
+} from './provider-logo-sources'
 
 /**
  * 需要根据主题切换图标的厂商（有 -dark/-bright 版本的图标）
@@ -63,78 +26,6 @@ const THEME_AWARE_FACTORIES = [
   LLMFactory.JiekouAI,
 ]
 
-/**
- * @lobehub/icons marks by icon key. Color marks render as images; single-color
- * marks render as masks so they follow the text color like the sprite logos.
- */
-const LOBE_LOGOS: Record<string, { url: string; mono?: true }> = {
-  alibabacloud: { url: alibabaCloudLogo },
-  anyscale: { url: anyscaleLogo },
-  aws: { url: awsLogo, mono: true },
-  baiducloud: { url: baiduCloudLogo },
-  bailian: { url: bailianLogo },
-  bytedance: { url: byteDanceLogo },
-  cerebras: { url: cerebrasLogo, mono: true },
-  chatglm: { url: chatGlmLogo },
-  claude: { url: claudeLogo },
-  cloudflare: { url: cloudflareLogo },
-  doubao: { url: doubaoLogo },
-  fal: { url: falLogo },
-  fireworks: { url: fireworksLogo },
-  github: { url: githubLogo, mono: true },
-  google: { url: googleLogo },
-  huawei: { url: huaweiLogo },
-  hyperbolic: { url: hyperbolicLogo },
-  iflytekcloud: { url: iflytekLogo },
-  infinigence: { url: infinigenceLogo },
-  kimi: { url: kimiLogo, mono: true },
-  meta: { url: metaLogo, mono: true },
-  microsoft: { url: microsoftLogo },
-  qwen: { url: qwenLogo },
-  sambanova: { url: sambaNovaLogo },
-  sensenova: { url: senseNovaLogo },
-  siliconcloud: { url: siliconCloudLogo },
-  tencent: { url: tencentLogo },
-  vertexai: { url: vertexAiLogo },
-  zhipu: { url: zhipuLogo },
-}
-
-/**
- * Other spellings of a provider (lowercase letters and digits only) and the
- * @lobehub icon key that draws it. Names matching a key directly need no entry.
- */
-const LOBE_ALIASES: Record<string, string> = {
-  alibaba: 'alibabacloud',
-  aliyun: 'alibabacloud',
-  amazon: 'aws',
-  baidu: 'baiducloud',
-  bigmodel: 'zhipu',
-  dashscope: 'bailian',
-  ernie: 'baiducloud',
-  fireworksai: 'fireworks',
-  falai: 'fal',
-  glm: 'chatglm',
-  githubmodels: 'github',
-  googleai: 'google',
-  googleaistudio: 'google',
-  iflytek: 'iflytekcloud',
-  llama: 'meta',
-  metaai: 'meta',
-  moonshot: 'kimi',
-  moonshotai: 'kimi',
-  qianfan: 'baiducloud',
-  qianwen: 'qwen',
-  sensetime: 'sensenova',
-  siliconflow: 'siliconcloud',
-  tongyi: 'qwen',
-  vertex: 'vertexai',
-  googlevertexai: 'vertexai',
-  volcark: 'doubao',
-  workersai: 'cloudflare',
-  xfyun: 'iflytekcloud',
-  zhipuai: 'zhipu',
-}
-
 const normalizeProviderKey = (provider: string) =>
   provider.toLowerCase().replace(/[^a-z0-9]/g, '')
 
@@ -147,15 +38,26 @@ export function getLobeProviderIconKey(provider: string): string | null {
 }
 
 export type ProviderLogoSource =
-  | { kind: 'image'; url: string }
-  | { kind: 'mask'; url: string }
-  | { kind: 'sprite'; name: string }
+  { kind: 'image'; url: string } | { kind: 'mask'; url: string }
+
+const sourceOf = (logo: LogoFile): ProviderLogoSource => ({
+  kind: logo.mono ? 'mask' : 'image',
+  url: logo.url,
+})
+
+/** The file that draws an IconMap icon name: ours, else its @lobehub successor. */
+function iconNameLogo(name: string): LogoFile | undefined {
+  const local = localProviderLogo(name)
+  if (local) return local
+  const successor = SPRITE_SUCCESSORS[name.replace(/-(?:bright|dark)$/, '')]
+  return successor ? LOBE_LOGOS[successor] : undefined
+}
 
 /**
- * Where a provider's logo comes from. Known providers keep our own SVG or
- * sprite; other names try an exact @lobehub alias before the loose substring
- * match, so "Vertex AI" is not drawn as xAI and "SiliconCloud" or "Kimi" get
- * their brand marks.
+ * Where a provider's logo comes from. Known providers keep our own SVG (or the
+ * @lobehub mark that replaced their sprite symbol); other names try an exact
+ * @lobehub alias before the loose substring match, so "Vertex AI" is not
+ * drawn as xAI and "SiliconCloud" or "Kimi" get their brand marks.
  */
 export function resolveProviderLogo(
   provider: string,
@@ -164,14 +66,10 @@ export function resolveProviderLogo(
   const lobeKey = Object.hasOwn(IconMap, provider)
     ? null
     : getLobeProviderIconKey(provider)
-  if (lobeKey) {
-    const logo = LOBE_LOGOS[lobeKey]
-    return { kind: logo.mono ? 'mask' : 'image', url: logo.url }
-  }
+  if (lobeKey) return sourceOf(LOBE_LOGOS[lobeKey])
   const name = getProviderIconName(provider, isDark)
-  if (!name) return null
-  const url = providerLogoUrl(name)
-  return url ? { kind: 'image', url } : { kind: 'sprite', name }
+  const logo = name ? iconNameLogo(name) : undefined
+  return logo ? sourceOf(logo) : null
 }
 
 interface ProviderIconProps {
@@ -194,7 +92,10 @@ function ProviderLogoMask({
 }) {
   const mask = `url("${url}") center / contain no-repeat`
   return (
+    // Named like the image logos (alt text), without adding visible text.
     <span
+      role="img"
+      aria-label={provider}
       data-slot="provider-logo-mask"
       className={cn(className, 'relative inline-block shrink-0')}
       style={size === undefined ? undefined : { width: size, height: size }}
@@ -204,8 +105,6 @@ function ProviderLogoMask({
         className="absolute inset-0 bg-current"
         style={{ mask, WebkitMask: mask }}
       />
-      {/* Named like the image logos (alt text) for screen readers. */}
-      <span className="sr-only">{provider}</span>
     </span>
   )
 }
@@ -245,10 +144,8 @@ function ProviderLogoImage({
 }
 
 /**
- * LLM 供应商图标组件
- * 参考 ragflow 的 LlmIcon 组件实现
- * 优先使用已注册的 SVG 资源，其他已知厂商使用 iconfont；
- * 都没有时用 @lobehub/icons 的品牌标识（见 resolveProviderLogo）。
+ * LLM 供应商图标组件：自有 SVG 优先，其余用 @lobehub/icons 的品牌标识
+ * （见 resolveProviderLogo）；单色标识按文字颜色绘制，找不到时显示通用图标。
  */
 export const ProviderIcon: React.FC<ProviderIconProps> = ({
   provider,
@@ -280,16 +177,6 @@ export const ProviderIcon: React.FC<ProviderIconProps> = ({
         size={size}
       />
     )
-
-  // 使用 iconfont
-  if (source?.kind === 'sprite') {
-    return (
-      <IconFontFill
-        name={source.name}
-        className={cn('flex items-center justify-center', className)}
-      />
-    )
-  }
 
   // 默认图标（未找到匹配的厂商）
   return (
@@ -341,7 +228,7 @@ export const getProviderIconName = (
 export const usesSvgFile = (provider: string): boolean => {
   return [false, true].some((dark) => {
     const name = getProviderIconName(provider, dark)
-    return name ? !!providerLogoUrls[`/src/assets/svg/llm/${name}.svg`] : false
+    return name ? Boolean(localProviderLogo(name)) : false
   })
 }
 
@@ -356,18 +243,18 @@ export const getProviderIconPath = (
   const iconName = getProviderIconName(provider, isDark)
   if (!iconName) return null
 
-  return providerLogoUrl(iconName) ?? null
+  return iconNameLogo(iconName)?.url ?? null
 }
 
 /**
  * 判断给定厂商是否需要在暗黑模式下反色
- * @deprecated iconfont 方式不需要此函数，保留仅为兼容性
+ * @deprecated 单色标识按文字颜色绘制，不需要反色；保留仅为兼容性
  */
 export const needsInvertFilter = (
   _provider: string,
   _isDark: boolean,
 ): boolean => {
-  // iconfont 方式自动支持主题切换，不需要反色滤镜
+  // 单色标识用遮罩按文字颜色绘制，不需要反色滤镜
   return false
 }
 
@@ -376,17 +263,8 @@ export const needsInvertFilter = (
  * 用于在非组件上下文中获取图标（如消息列表等）
  */
 export const getProviderIcon = (modelName: string | null): React.ReactNode => {
-  if (!modelName) {
-    return (
-      <IconFontFill
-        name="moxing-default"
-        className="flex h-full w-full items-center justify-center"
-      />
-    )
-  }
-
-  const source = resolveProviderLogo(modelName, false)
-  if (source?.kind === 'image')
+  const source = modelName ? resolveProviderLogo(modelName, false) : null
+  if (modelName && source?.kind === 'image')
     return (
       <ProviderLogoImage
         key={source.url}
@@ -395,7 +273,7 @@ export const getProviderIcon = (modelName: string | null): React.ReactNode => {
         className="h-full w-full"
       />
     )
-  if (source?.kind === 'mask')
+  if (modelName && source?.kind === 'mask')
     return (
       <ProviderLogoMask
         url={source.url}
@@ -403,21 +281,9 @@ export const getProviderIcon = (modelName: string | null): React.ReactNode => {
         className="h-full w-full"
       />
     )
-  if (source?.kind === 'sprite')
-    return (
-      <IconFontFill
-        name={source.name}
-        className="flex h-full w-full items-center justify-center"
-      />
-    )
 
-  // 默认图标
-  return (
-    <IconFontFill
-      name="moxing-default"
-      className="flex h-full w-full items-center justify-center"
-    />
-  )
+  // 默认图标：与 ProviderIcon 找不到厂商时一致
+  return <Boxes aria-hidden className="h-full w-full text-fg-muted" />
 }
 
 /**

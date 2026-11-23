@@ -1,7 +1,6 @@
 import path from 'node:path'
 
 export const REQUIRED_RENDERER_ROOT_FILES = Object.freeze([
-  'iconfont.js',
   'index.html',
   'openapi.json',
   'theme-init.js',

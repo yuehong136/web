@@ -164,9 +164,11 @@ describe('Studio test chat composer', () => {
     const sheet = document.querySelector('[role="dialog"]')!
     expect(sheet.textContent).toContain('recorded-model')
     expect(sheet.textContent).not.toContain('117')
-    expect(sheet.querySelector('use')?.getAttribute('xlink:href')).toBe(
-      '#icon-openai',
-    )
+    expect(
+      sheet
+        .querySelector('[data-slot="provider-logo-mask"] [aria-hidden]')
+        ?.getAttribute('style'),
+    ).toContain('openai.svg')
     expect(sheet.textContent).toContain('Use model default')
     expect(sheet.textContent).not.toContain('4096')
   })

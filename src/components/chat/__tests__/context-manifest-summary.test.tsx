@@ -139,9 +139,12 @@ it('resolves old numeric context cards and application titles with the matching 
   expect(container.querySelector('li [data-model-identity]')?.textContent).toBe(
     'gpt-test',
   )
-  expect(container.querySelector('li use')?.getAttribute('xlink:href')).toBe(
-    '#icon-openai',
-  )
+  // OpenAI's single-colour mark is drawn as a mask in the text colour.
+  expect(
+    container
+      .querySelector('li [data-slot="provider-logo-mask"] [aria-hidden]')
+      ?.getAttribute('style'),
+  ).toContain('openai.svg')
   expect(container.querySelector('[data-app-title]')?.textContent).toBe(
     'gpt-test',
   )
@@ -180,9 +183,11 @@ it('keeps a message snapshot when a connection disappears and when current defau
   )
   expect(container.textContent).toBe('Original model')
   expect(
-    [...container.querySelectorAll('use')].filter(
-      (el) => el.getAttribute('xlink:href') === '#icon-openai',
-    ),
+    [
+      ...container.querySelectorAll(
+        '[data-slot="provider-logo-mask"] [aria-hidden]',
+      ),
+    ].filter((el) => el.getAttribute('style')?.includes('openai.svg')),
   ).toHaveLength(1)
   expect(
     getAppChatMessageParts('user', { name: 'App', llm_id: '117' }).header,
@@ -220,9 +225,11 @@ it('fills old identities after metadata loads and retains the last known identit
       .catch(() => undefined)
   })
   expect(container.textContent).toBe('Loaded model')
-  expect(container.querySelector('use')?.getAttribute('xlink:href')).toBe(
-    '#icon-openai',
-  )
+  expect(
+    container
+      .querySelector('[data-slot="provider-logo-mask"] [aria-hidden]')
+      ?.getAttribute('style'),
+  ).toContain('openai.svg')
   await act(async () => root.render(null))
   client.clear()
 })

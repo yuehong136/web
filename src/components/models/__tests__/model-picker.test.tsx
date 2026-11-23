@@ -14,6 +14,7 @@ import {
   getProviderIconName,
   getProviderIconPath,
   getProviderIcon,
+  resolveProviderLogo,
 } from '@/components/ui/provider-icon'
 import { ModelSelect } from '../model-select'
 import { RerankModelSelector } from '@/components/knowledge/RerankModelSelector'
@@ -24,6 +25,9 @@ import { llmKeys } from '@/hooks/use-llm-request'
 import { IconMap } from '@/stores/model'
 import { readFileSync, existsSync } from 'node:fs'
 import path from 'node:path'
+
+/** A provider logo: our image, or a single-colour mark drawn as a mask. */
+const LOGO = '[data-slot="provider-logo-mask"], img'
 
 const tenantModel = (id: number, instance: string): TenantModel => ({
   id,
@@ -67,48 +71,41 @@ afterEach(async () => {
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
 })
-it('renders bundled provider logos when their symbols are absent from iconfont', async () => {
+it('renders bundled provider logos as images', async () => {
   await act(async () => root.render(<ProviderIcon provider="BAAI" />))
   const logo = container.querySelector<HTMLImageElement>('img[alt="BAAI"]')
   expect(logo?.getAttribute('src')).toContain('baai.svg')
   expect(container.querySelector('use')).toBeNull()
 })
-it('resolves every mapped provider to an existing image or sprite symbol in both themes', () => {
-  const sprite = readFileSync(path.resolve('public/iconfont.js'), 'utf8')
-  const symbols = new Set(
-    [...sprite.matchAll(/<symbol\b[^>]*\bid=["']([^"']+)["']/g)].map(
-      (match) => match[1],
-    ),
-  )
+it('resolves every mapped provider to an existing logo file in both themes', () => {
+  // The iconfont sprite is gone: each IconMap entry must reach our own SVG or
+  // an @lobehub mark, never the generic fallback.
+  expect(existsSync(path.resolve('public/iconfont.js'))).toBe(false)
   for (const provider of Object.keys(IconMap)) {
     for (const dark of [false, true]) {
-      const url = getProviderIconPath(provider, dark)
-      if (url) {
-        if (provider === 'OpenDataLoader') {
-          const file = readFileSync('src/assets/images/opendataloader.webp')
-          expect(file.subarray(0, 4).toString()).toBe('RIFF')
-          expect(file.subarray(8, 12).toString()).toBe('WEBP')
-          continue
-        }
-        const filename = `src/assets/svg/llm/${getProviderIconName(provider, dark)}.svg`
-        expect(existsSync(path.resolve(filename)), `${provider} SVG`).toBe(true)
-        const separator = url.indexOf(',')
-        const source = url.startsWith('data:')
-          ? url.slice(0, separator).endsWith(';base64')
-            ? Buffer.from(url.slice(separator + 1), 'base64').toString('utf8')
-            : decodeURIComponent(url.slice(separator + 1))
-          : readFileSync(path.resolve(filename), 'utf8')
-        const xml = new DOMParser().parseFromString(source, 'image/svg+xml')
-        expect(
-          xml.querySelector('parsererror'),
-          `${provider} SVG syntax`,
-        ).toBeNull()
-      } else {
-        expect(
-          symbols.has(`icon-${getProviderIconName(provider, dark)}`),
-          `${provider} sprite, dark=${dark}`,
-        ).toBe(true)
+      const label = `${provider}, dark=${dark}`
+      const source = resolveProviderLogo(provider, dark)
+      expect(source, label).not.toBeNull()
+      expect(['image', 'mask'], label).toContain(source!.kind)
+      if (provider === 'OpenDataLoader') {
+        const file = readFileSync('src/assets/images/opendataloader.webp')
+        expect(file.subarray(0, 4).toString()).toBe('RIFF')
+        expect(file.subarray(8, 12).toString()).toBe('WEBP')
+        continue
       }
+      const url = source!.url
+      const separator = url.indexOf(',')
+      const file = url.startsWith('data:')
+        ? null
+        : path.resolve(`.${url.replace(/[?#].*$/, '')}`)
+      if (file) expect(existsSync(file), `${label}: ${url}`).toBe(true)
+      const xml = file
+        ? readFileSync(file, 'utf8')
+        : url.slice(0, separator).endsWith(';base64')
+          ? Buffer.from(url.slice(separator + 1), 'base64').toString('utf8')
+          : decodeURIComponent(url.slice(separator + 1))
+      const doc = new DOMParser().parseFromString(xml, 'image/svg+xml')
+      expect(doc.querySelector('parsererror'), `${label} SVG syntax`).toBeNull()
     }
   }
 })
@@ -210,13 +207,13 @@ it.each(['default', 'compact', 'minimal'] as const)(
       '[aria-haspopup="dialog"]',
     )!
     expect(trigger.textContent).toBe('same-model · primary')
-    expect(trigger.querySelector('svg use')).not.toBeNull()
+    expect(trigger.querySelector(LOGO)).not.toBeNull()
     await open()
     const candidates = document.querySelectorAll('[cmdk-item]')
     expect(candidates).toHaveLength(2)
     expect(candidates[0].textContent).toContain('Vision')
     expect(candidates[0].textContent).toContain('Tool calling')
-    expect(candidates[0].querySelector('svg use')).not.toBeNull()
+    expect(candidates[0].querySelector(LOGO)).not.toBeNull()
     await act(async () => (candidates[1] as HTMLElement).click())
     expect(onSelect).toHaveBeenCalledExactlyOnceWith('103')
   },
@@ -347,7 +344,7 @@ it('keeps identity and the provider logo through failure, retry and successful r
   expect(container.querySelector('[role=combobox]')?.textContent).toBe(
     'same-model',
   )
-  expect(container.querySelector('[role=combobox] use')).not.toBeNull()
+  expect(container.querySelector(`[role=combobox] :is(${LOGO})`)).not.toBeNull()
   expect(container.textContent).not.toContain('Unavailable')
   await act(async () => root.render(<ModelSelect {...props} loading />))
   expect(container.querySelector('[role=combobox]')?.textContent).toBe(
@@ -375,7 +372,7 @@ it('shows disabled saved models by name and logo without enabling them', async (
   )
   expect(container.textContent).toContain('same-model · Unavailable')
   expect(container.textContent).not.toContain('56')
-  expect(container.querySelector('[role=combobox] use')).not.toBeNull()
+  expect(container.querySelector(`[role=combobox] :is(${LOGO})`)).not.toBeNull()
   await open()
   expect(
     document.querySelector('[data-value="56"]')?.getAttribute('data-disabled'),
@@ -404,7 +401,7 @@ it('uses tenant IDs as rerank values while showing names and provider logos', as
   expect(container.querySelector('[role=combobox]')?.textContent).toBe(
     'rerank-v3',
   )
-  expect(container.querySelector('[role=combobox] use')).not.toBeNull()
+  expect(container.querySelector(`[role=combobox] :is(${LOGO})`)).not.toBeNull()
   expect(onSelect).not.toHaveBeenCalled()
 })
 it('does not mislabel failed Skill model inventory as unavailable and preserves its reference', async () => {
@@ -460,7 +457,7 @@ it('does not mislabel failed Skill model inventory as unavailable and preserves 
   expect(container.querySelector('[role=combobox]')?.textContent).toBe(
     'embedding-3',
   )
-  expect(container.querySelector('[role=combobox] use')).not.toBeNull()
+  expect(container.querySelector(`[role=combobox] :is(${LOGO})`)).not.toBeNull()
   expect(container.textContent).not.toContain('Unavailable')
   expect(container.textContent).not.toContain('#56')
   await render(false)

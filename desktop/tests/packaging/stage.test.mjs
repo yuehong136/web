@@ -52,7 +52,6 @@ async function createFixture(context) {
       path.join(rendererDirectory, 'index.html'),
       '<main>fixture</main>\n',
     ),
-    fs.writeFile(path.join(rendererDirectory, 'iconfont.js'), 'void 0\n'),
     fs.writeFile(path.join(rendererDirectory, 'openapi.json'), '{}\n'),
     fs.writeFile(path.join(rendererDirectory, 'theme-init.js'), 'void 0\n'),
     fs.writeFile(
@@ -147,7 +146,6 @@ test('staging is deterministic, minimal, and has a sorted SHA-256 manifest', asy
     'package.json',
     'preload/index.cjs',
     'renderer/assets/app.css',
-    'renderer/iconfont.js',
     'renderer/index.html',
     'renderer/js/app.js',
     'renderer/openapi.json',

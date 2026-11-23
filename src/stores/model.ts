@@ -341,7 +341,7 @@ export const LLMFactory = {
   GreenPT: 'GreenPT',
 } as const
 
-// IconMap - 与 ragflow iconfont.js 中的图标名称匹配
+// IconMap - 厂商对应的图标名；由 provider-logo-sources 解析为自有 SVG 或 @lobehub 标识
 export const IconMap: Record<string, string> = {
   [LLMFactory.TongYiQianWen]: 'tongyi-qianwen',
   [LLMFactory.Moonshot]: 'moonshot',

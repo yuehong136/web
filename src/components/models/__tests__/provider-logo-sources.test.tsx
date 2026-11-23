@@ -6,9 +6,11 @@ import {
   getLobeProviderIconKey,
   resolveProviderLogo,
 } from '@/components/ui/provider-icon'
-import kimiLogo from '@lobehub/icons-static-svg/icons/kimi.svg?url'
-import siliconCloudLogo from '@lobehub/icons-static-svg/icons/siliconcloud-color.svg?url'
-import vertexAiLogo from '@lobehub/icons-static-svg/icons/vertexai-color.svg?url'
+import deepSeekLogo from '@lobehub/icons-static-svg/icons/deepseek-color.svg?url&no-inline'
+import kimiLogo from '@lobehub/icons-static-svg/icons/kimi.svg?url&no-inline'
+import moonshotLogo from '@lobehub/icons-static-svg/icons/moonshot.svg?url&no-inline'
+import siliconCloudLogo from '@lobehub/icons-static-svg/icons/siliconcloud-color.svg?url&no-inline'
+import vertexAiLogo from '@lobehub/icons-static-svg/icons/vertexai-color.svg?url&no-inline'
 
 let root: Root, container: HTMLDivElement
 beforeEach(() => {
@@ -37,18 +39,19 @@ it('maps provider spellings to @lobehub icon keys', () => {
 })
 
 it('keeps our own logos first and falls back to @lobehub marks', () => {
-  // Our SVG and sprite logos win for known providers, aliases or not.
+  // Our SVGs win for known providers, aliases or not; the providers the
+  // retired sprite drew now reach their @lobehub successor.
   expect(resolveProviderLogo('BAAI')).toMatchObject({ kind: 'image' })
   expect((resolveProviderLogo('BAAI') as { url: string }).url).toContain(
     'baai.svg',
   )
   expect(resolveProviderLogo('SILICONFLOW')).toEqual({
-    kind: 'sprite',
-    name: 'siliconflow',
+    kind: 'image',
+    url: siliconCloudLogo,
   })
   expect(resolveProviderLogo('Moonshot')).toEqual({
-    kind: 'sprite',
-    name: 'moonshot',
+    kind: 'mask',
+    url: moonshotLogo,
   })
   // Names we lack resolve through the alias before any substring guess.
   expect(resolveProviderLogo('SiliconCloud')).toEqual({
@@ -62,8 +65,8 @@ it('keeps our own logos first and falls back to @lobehub marks', () => {
   })
   // Loose matching still covers variants of known providers.
   expect(resolveProviderLogo('deepseek-chat')).toEqual({
-    kind: 'sprite',
-    name: 'deepseek',
+    kind: 'image',
+    url: deepSeekLogo,
   })
   expect(resolveProviderLogo('Unknown Corp')).toBeNull()
 })
@@ -71,7 +74,8 @@ it('keeps our own logos first and falls back to @lobehub marks', () => {
 it('renders single-color marks as a labelled mask in the text color', async () => {
   await act(async () => root.render(<ProviderIcon provider="Kimi" />))
   const logo = container.querySelector('[data-slot="provider-logo-mask"]')!
-  expect(logo.textContent).toBe('Kimi')
+  expect(logo.getAttribute('role')).toBe('img')
+  expect(logo.getAttribute('aria-label')).toBe('Kimi')
   const mark = logo.querySelector<HTMLElement>('[aria-hidden]')!
   expect(mark.className).toContain('bg-current')
   expect(mark.style.getPropertyValue('mask')).toContain(kimiLogo)

@@ -1,13 +1,11 @@
-import { IconFontFill } from '@/components/ui/icon-font'
 import { cn } from '@/lib/utils'
 import { HousePlus } from 'lucide-react'
-import { Component, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { Operator } from './constant'
 import {
   getOperatorCategory,
   LucideIconMap,
   OPERATOR_CATEGORY_TONE,
-  OperatorIconFontMap,
 } from './operator-icon.constants'
 
 interface IProps {
@@ -15,60 +13,10 @@ interface IProps {
   className?: string
 }
 
-const Empty = () => {
-  return <div className="hidden"></div>
-}
-
-class IconErrorBoundary extends Component<{
-  children: ReactNode
-  fallback?: ReactNode
-}> {
-  override state = { hasError: false }
-
-  static getDerivedStateFromError() {
-    return { hasError: true }
-  }
-
-  override render() {
-    if (this.state.hasError) {
-      return this.props.fallback || <Empty />
-    }
-
-    return this.props.children
-  }
-}
-
-/** The operator's glyph alone: the icon font first, Lucide as fallback. */
+/** The operator's glyph alone; unknown operators render nothing. */
 function OperatorGlyph({ name, className }: IProps) {
-  const iconFontName =
-    OperatorIconFontMap[name as keyof typeof OperatorIconFontMap]
   const LucideIcon = LucideIconMap[name as keyof typeof LucideIconMap]
-
-  if (iconFontName) {
-    return (
-      <IconErrorBoundary
-        fallback={
-          LucideIcon ? (
-            <LucideIcon className={cn('size-5', className)} />
-          ) : (
-            <Empty />
-          )
-        }
-      >
-        <IconFontFill name={iconFontName} className={cn('size-5', className)} />
-      </IconErrorBoundary>
-    )
-  }
-
-  if (LucideIcon) {
-    return (
-      <IconErrorBoundary fallback={<Empty />}>
-        <LucideIcon className={cn('size-5', className)} />
-      </IconErrorBoundary>
-    )
-  }
-
-  return <Empty />
+  return LucideIcon ? <LucideIcon className={cn('size-5', className)} /> : null
 }
 
 const OperatorIcon = ({ name, className }: IProps) => {
