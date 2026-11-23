@@ -158,3 +158,46 @@ test('brand schemes meet WCAG 2.2 AA across hues, chroma and neutral tints', () 
       }
   assert.deepEqual(failures.slice(0, 20), [], `${failures.length} failures`)
 })
+
+// The floor above is not the target: dark mode solves text and syntax colours
+// to about 7:1 so they read bright on near-black. Guard against sliding back
+// to the floor, for the presets and the whole brand-colour range alike.
+test('dark mode keeps accent text, status words and syntax well above the AA floor', () => {
+  const failures: string[] = []
+  const seeds = [
+    ...COLOR_SCHEMES.map((scheme) => ({
+      label: scheme,
+      values: resolveTokens(schemeTokens(scheme, 'dark')),
+    })),
+    ...[0, 60, 120, 180, 240, 300].map((accentHue) => ({
+      label: `brand h${accentHue}`,
+      values: resolveTokens(
+        seedTokens(
+          customSchemeSeed({
+            accentHue,
+            accentChroma: 0.16,
+            neutralChroma: 0.01,
+          }),
+          'dark',
+        ),
+      ),
+    })),
+  ]
+  for (const { label, values } of seeds) {
+    for (const intent of INTENTS.filter((intent) => intent !== 'neutral'))
+      if (ratio(values, `${intent}-fg`, 'surface') < 6.5)
+        failures.push(`${label} ${intent}-fg on surface`)
+    if (ratio(values, 'citation-fg', 'surface') < 6.5)
+      failures.push(`${label} citation-fg on surface`)
+    for (const kind of [
+      'keyword',
+      'function',
+      'type',
+      'string',
+      'number',
+    ] as const)
+      if (ratio(values, `syntax-${kind}`, 'code-bg') < 7)
+        failures.push(`${label} syntax-${kind} on code-bg`)
+  }
+  assert.deepEqual(failures, [])
+})

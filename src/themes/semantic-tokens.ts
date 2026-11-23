@@ -9,6 +9,7 @@ import {
   hueScale,
   neutralScale,
   solveLightness,
+  SYNTAX_TARGET,
   WHITE,
   type Mode,
   type Scale,
@@ -369,7 +370,7 @@ export function buildSchemeTokens(
   set('code-bg', same('sunken'))
   set('code-fg', step('gray', 12))
   const codeBg = rgbOf(colorOf('code-bg'))
-  const syntaxTarget = high ? 7 : 4.6
+  const syntaxTarget = SYNTAX_TARGET[mode][high ? 'high' : 'standard']
   const keyword = seed.accent.h
   const used = [keyword]
   const pickHue = (base: number) => {

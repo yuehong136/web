@@ -27,9 +27,27 @@ const NEUTRAL_C: Record<Mode, readonly number[]> = {
   light: [0.3, 0.5, 0.8, 0.9, 1, 1.05, 1.1, 1.2, 1.5, 1.5, 1.4, 1.2],
   dark: [0.9, 1, 1.1, 1.15, 1.2, 1.25, 1.3, 1.35, 1.3, 1.3, 1, 0.5],
 }
+// Dark text (step 11) keeps more chroma: solved brighter, it would otherwise
+// wash out towards grey.
 const HUE_C: Record<Mode, readonly number[]> = {
   light: [0.09, 0.18, 0.34, 0.48, 0.6, 0.68, 0.77, 0.88, 1, 1, 0.88, 0.5],
-  dark: [0.2, 0.26, 0.4, 0.5, 0.58, 0.64, 0.72, 0.82, 1, 1, 0.78, 0.35],
+  dark: [0.2, 0.26, 0.4, 0.5, 0.58, 0.64, 0.72, 0.82, 1, 1, 0.86, 0.35],
+}
+
+/**
+ * What the solver aims for, as opposed to the WCAG floor (4.5:1) the
+ * contract tests hold. Solving to the floor left dark-mode links, citations,
+ * status words and code dim on near-black; dark aims for about 7:1, the way
+ * GitHub Dark and Radix dark scales sit well above the minimum.
+ */
+export const TEXT_TARGET: Record<Mode, { standard: number; high: number }> = {
+  light: { standard: 4.6, high: 7 },
+  dark: { standard: 7, high: 9.5 },
+}
+/** Syntax colours on the code background, against the same floor. */
+export const SYNTAX_TARGET: Record<Mode, { standard: number; high: number }> = {
+  light: { standard: 4.6, high: 7 },
+  dark: { standard: 7.5, high: 9.5 },
 }
 
 export const WHITE = oklch(1, 0, 0)
@@ -129,7 +147,7 @@ export function hueScale(seed: HueSeed, mode: Mode, high: boolean): Scale {
       seed.h,
       seed.c * weight[10],
       rgbOf(steps[3]),
-      high ? 7 : 4.6,
+      TEXT_TARGET[mode][high ? 'high' : 'standard'],
       mode,
     ),
   )

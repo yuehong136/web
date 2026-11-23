@@ -57,7 +57,7 @@ npm run build:themes        # 重新生成 CSS / JS / Tailwind 映射，一起�
 npm run test:design-tokens  # 合同测试：所有方案 × 明暗 × 对比度 × 主操作
 ```
 
-合同测试失败时调种子或求解目标，不要放宽阈值。
+合同测试失败时调种子或求解目标，不要放宽阈值。阈值（文字 4.5:1、图形 3:1）是底线，求解目标在 `color-scales.ts` 的 `TEXT_TARGET`、`SYNTAX_TARGET`：深色模式的强调文字取 7:1、语法色取 7.5:1，避免链接、引用和代码在近黑底上贴着底线发闷；`semantic-contract` 另有一条深色回归，强调文字与状态文字对 surface 不低于 6.5:1，语法色对 code-bg 不低于 7:1。
 
 ## 自定义方案
 
