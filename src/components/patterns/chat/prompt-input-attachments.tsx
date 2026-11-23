@@ -87,7 +87,7 @@ export function PromptInputAttachments({
       data-prompt-attachments
       data-dragging={dragging || undefined}
       className={cn(
-        'rounded-radius-lg border border-line-subtle bg-sunken transition-colors duration-150 motion-reduce:transition-none',
+        'rounded-radius-lg border border-line-subtle bg-sunken transition-colors duration-(--motion-fast) motion-reduce:transition-none',
         dragging && 'border-line-focus bg-accent-soft',
         className,
       )}
@@ -146,7 +146,7 @@ export function PromptInputAttachments({
                     className="absolute inset-x-space-sm bottom-0 h-0.5 overflow-hidden rounded-radius-full bg-line-subtle"
                   >
                     <span
-                      className="block h-full bg-line-focus transition-[width] duration-150 motion-reduce:transition-none"
+                      className="block h-full bg-line-focus transition-[width] duration-(--motion-fast) motion-reduce:transition-none"
                       style={{ width: `${Math.round(file.percent ?? 0)}%` }}
                     />
                   </span>

@@ -4,7 +4,8 @@ import {
   type PropsWithChildren,
   type RefObject,
 } from 'react'
-import { LazyMotion, m, useReducedMotion, useSpring } from 'motion/react'
+import { LazyMotion, m, useSpring } from 'motion/react'
+import { useReducedMotionPreference } from '@/themes'
 
 const loadFeatures = () =>
   import('../motion-features').then((module) => module.default)
@@ -56,7 +57,7 @@ export function ComposerEntrance({
 }>) {
   const element = useRef<HTMLDivElement>(null)
   const consumed = useRef(false)
-  const reduced = useReducedMotion()
+  const reduced = useReducedMotionPreference()
   const y = useSpring(0, DOCK_SPRING)
   useLayoutEffect(() => {
     if (!origin || consumed.current || !element.current) return

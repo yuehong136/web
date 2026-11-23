@@ -5,6 +5,7 @@ import { X } from 'lucide-react'
 import { Slot } from '@radix-ui/react-slot'
 import { cn } from '@/lib/utils'
 import { useActivePortalTheme, usePortalContainer } from './portal-theme'
+import { dialogPanelMotionClass, scrimMotionClass } from './overlay-motion'
 
 export interface DialogProps {
   open: boolean
@@ -38,12 +39,11 @@ export interface DialogTriggerProps extends React.ButtonHTMLAttributes<HTMLButto
 }
 
 /** DreamJira overlay: a flat scrim, no blur. */
-export const dialogOverlayClass =
-  'animate-in fade-in-0 fixed inset-0 bg-scrim duration-200 motion-reduce:animate-none'
+export const dialogOverlayClass = `fixed inset-0 bg-scrim ${scrimMotionClass}`
 
 /** The 32px ghost close button shared by Dialog, Sheet and ConfirmDialog. */
 export const dialogCloseClass =
-  'absolute top-space-md right-space-md z-10 inline-flex size-[var(--control-height)] items-center justify-center rounded-radius-md text-fg-muted transition-colors duration-150 outline-hidden hover:bg-fill-hover hover:text-fg focus-visible:ring-2 focus-visible:ring-line-focus motion-reduce:transition-none'
+  'absolute top-space-md right-space-md z-10 inline-flex size-[var(--control-height)] items-center justify-center rounded-radius-md text-fg-muted transition-colors duration-(--motion-fast) outline-hidden hover:bg-fill-hover hover:text-fg focus-visible:ring-2 focus-visible:ring-line-focus motion-reduce:transition-none'
 
 const sizeClasses = {
   sm: 'max-w-md',
@@ -309,7 +309,7 @@ export const DialogContent: React.FC<DialogContentProps> = ({
           'relative z-10 w-full rounded-radius-xl border border-line shadow-elevation-high',
           // Native <dialog> defaults to black text; inherit the theme instead.
           'bg-overlay text-fg',
-          'animate-in fade-in-0 zoom-in-95 duration-200 motion-reduce:animate-none',
+          dialogPanelMotionClass,
           'flex max-h-[calc(100vh-2rem)] flex-col',
           sizeClasses[size],
           className,

@@ -10,3 +10,4 @@ export {
   useResolvedAppearance,
   useIsDarkTheme,
 } from './use-appearance'
+export { useReducedMotionPreference } from './use-reduced-motion'

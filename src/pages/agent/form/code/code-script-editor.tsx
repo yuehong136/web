@@ -12,6 +12,11 @@ import MonacoEditor, {
   type OnMount,
 } from '@monaco-editor/react'
 import * as DialogPrimitive from '@radix-ui/react-dialog'
+import { cn } from '@/lib/utils'
+import {
+  dialogPanelMotionClass,
+  scrimMotionClass,
+} from '@/components/ui/overlay-motion'
 import * as TooltipPrimitive from '@radix-ui/react-tooltip'
 import { Code2, Loader2, Maximize2, Minimize2 } from 'lucide-react'
 import {
@@ -193,11 +198,19 @@ export function CodeScriptEditor({
         </div>
 
         <DialogPrimitive.Portal>
-          <DialogPrimitive.Overlay className="data-[state=closed]:animate-out data-[state=open]:animate-in data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-[70] bg-background/80 backdrop-blur-xs" />
+          <DialogPrimitive.Overlay
+            className={cn(
+              'fixed inset-0 z-[70] bg-background/80 backdrop-blur-xs',
+              scrimMotionClass,
+            )}
+          />
           <DialogPrimitive.Content
             ref={expandedContentRef}
             tabIndex={-1}
-            className="fixed top-1/2 left-1/2 z-[71] flex h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[1600px] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-radius-lg border border-line bg-surface shadow-elevation-high focus:outline-hidden xl:h-[90vh] xl:w-[90vw]"
+            className={cn(
+              'fixed top-1/2 left-1/2 z-[71] flex h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[1600px] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-radius-lg border border-line bg-surface shadow-elevation-high focus:outline-hidden xl:h-[90vh] xl:w-[90vw]',
+              dialogPanelMotionClass,
+            )}
             onOpenAutoFocus={(event) => {
               event.preventDefault()
               expandedContentRef.current?.focus()

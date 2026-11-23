@@ -28,6 +28,15 @@ html[data-preset] {
   --radius-xl: calc(var(--radius) + 4px);
   --radius-full: 9999px;
 }
+/* DreamJira motion: hover and colour 120ms, menus 160ms, panels 200ms, page
+ * changes 280ms. Components read these through duration-(--motion-*); reduced
+ * motion sets them all to 0 below. Easing curves live in tailwind.css. */
+:root {
+  --motion-fast: 120ms;
+  --motion-menu: 160ms;
+  --motion-panel: 200ms;
+  --motion-page: 280ms;
+}
 /* Clay is the reading scheme: long answers and reports set in a serif. */
 [data-preset='clay'] {
   --font-reading:
@@ -94,6 +103,12 @@ body,
 }
 [data-preset] :is(code, pre, kbd, samp) {
   font-family: var(--font-code);
+}
+[data-motion='reduced'] {
+  --motion-fast: 0ms;
+  --motion-menu: 0ms;
+  --motion-panel: 0ms;
+  --motion-page: 0ms;
 }
 [data-motion='reduced'],
 [data-motion='reduced'] *,

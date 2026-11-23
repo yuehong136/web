@@ -73,7 +73,7 @@ export function ProviderCatalog({
                 name: factory.name,
               })}
               onClick={() => onConnect(factory.name)}
-              className="group flex h-full w-full min-w-0 items-center gap-space-sm rounded-radius-lg border border-line-subtle bg-raised px-space-sm py-space-sm text-left outline-hidden transition-[border-color,box-shadow] duration-150 hover:border-line-strong hover:shadow-elevation-low focus-visible:ring-2 focus-visible:ring-line-focus"
+              className="group flex h-full w-full min-w-0 items-center gap-space-sm rounded-radius-lg border border-line-subtle bg-raised px-space-sm py-space-sm text-left outline-hidden transition-[border-color,box-shadow] duration-(--motion-fast) hover:border-line-strong hover:shadow-elevation-low focus-visible:ring-2 focus-visible:ring-line-focus"
             >
               <ProviderLogo provider={factory.name} size="md" />
               <span className="min-w-0 flex-1 truncate text-sm text-fg">

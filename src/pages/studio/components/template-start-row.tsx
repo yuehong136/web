@@ -70,7 +70,7 @@ export function TemplateStartRow() {
                 aria-label={t('studio.templates.useNamed', { name })}
                 aria-describedby={descriptionId}
                 onClick={() => setSelected(template)}
-                className="group/template flex h-full w-full min-w-0 items-center gap-space-sm rounded-radius-xl border border-line-subtle bg-surface p-space-sm text-left outline-hidden transition-[border-color,box-shadow,transform] duration-150 hover:border-line-strong hover:shadow-elevation-medium focus-visible:ring-2 focus-visible:ring-line-focus motion-safe:hover:-translate-y-px"
+                className="group/template flex h-full w-full min-w-0 items-center gap-space-sm rounded-radius-xl border border-line-subtle bg-surface p-space-sm text-left outline-hidden transition-[border-color,box-shadow,transform] duration-(--motion-fast) hover:border-line-strong hover:shadow-elevation-medium focus-visible:ring-2 focus-visible:ring-line-focus motion-safe:hover:-translate-y-px"
               >
                 <TemplateTile template={template} size="md" />
                 <span className="flex min-w-0 flex-1 flex-col gap-space-2xs">

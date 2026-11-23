@@ -51,7 +51,7 @@ function ConnectorTile({
         aria-label={t('datasource.addNamed', { name: source.name })}
         aria-describedby={source.description ? descriptionId : undefined}
         onClick={onAdd}
-        className="group flex h-full w-full min-w-0 items-center gap-space-sm rounded-radius-lg border border-line-subtle bg-surface p-space-sm text-left outline-hidden transition-[border-color,box-shadow,transform] duration-150 hover:border-line-strong hover:shadow-elevation-medium focus-visible:ring-2 focus-visible:ring-line-focus motion-safe:hover:-translate-y-px"
+        className="group flex h-full w-full min-w-0 items-center gap-space-sm rounded-radius-lg border border-line-subtle bg-surface p-space-sm text-left outline-hidden transition-[border-color,box-shadow,transform] duration-(--motion-fast) hover:border-line-strong hover:shadow-elevation-medium focus-visible:ring-2 focus-visible:ring-line-focus motion-safe:hover:-translate-y-px"
       >
         <ConnectorLogo icon={source.icon} size="lg" />
         <span className="flex min-w-0 flex-1 flex-col gap-space-2xs">

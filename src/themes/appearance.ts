@@ -171,6 +171,15 @@ export function getResolvedAppearance(): Readonly<ResolvedAppearance> {
   return resolved
 }
 
+/**
+ * The reduced-motion decision outside React (event handlers, scroll helpers):
+ * the in-app setting or the system preference. Components use
+ * useReducedMotionPreference so they also follow a ScopedTheme override.
+ */
+export function prefersReducedMotion(): boolean {
+  return getResolvedAppearance().reducedMotion
+}
+
 function applyToDocument() {
   if (typeof document === 'undefined') return
   const current = getResolvedAppearance()

@@ -73,7 +73,7 @@ export const DropzoneArea = memo(function DropzoneArea({
               : undefined,
           )}
           className={cn(
-            'relative flex cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed transition-all duration-500 focus-visible:ring-2 focus-visible:ring-line-focus focus-visible:ring-offset-2 focus-visible:ring-offset-surface focus-visible:outline-hidden',
+            'relative flex cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed transition-all duration-(--motion-page) focus-visible:ring-2 focus-visible:ring-line-focus focus-visible:ring-offset-2 focus-visible:ring-offset-surface focus-visible:outline-hidden',
             dropzoneHeight,
             !isFolderMode &&
               isDragActive &&
@@ -145,7 +145,7 @@ export const DropzoneArea = memo(function DropzoneArea({
           <div className="z-10 flex flex-col items-center justify-center gap-4 px-6 py-8 text-center">
             <div
               className={cn(
-                'flex h-16 w-16 items-center justify-center rounded-2xl transition-all duration-500',
+                'flex h-16 w-16 items-center justify-center rounded-2xl transition-all duration-(--motion-page)',
                 !isFolderMode &&
                   isDragActive &&
                   !isDragReject &&
@@ -173,12 +173,12 @@ export const DropzoneArea = memo(function DropzoneArea({
                 />
               ) : isFolderMode ? (
                 <FolderUp
-                  className="h-7 w-7 transition-all duration-300"
+                  className="h-7 w-7 transition-all duration-(--motion-page)"
                   style={{ color: 'var(--color-fg-disabled)' }}
                 />
               ) : (
                 <Upload
-                  className="h-7 w-7 transition-all duration-300 group-hover:scale-110"
+                  className="h-7 w-7 transition-all duration-(--motion-page) group-hover:scale-110"
                   style={{ color: 'var(--color-fg-disabled)' }}
                 />
               )}
@@ -187,7 +187,7 @@ export const DropzoneArea = memo(function DropzoneArea({
             <div className="flex flex-col gap-2">
               <p
                 className={cn(
-                  'font-semibold transition-all duration-300',
+                  'font-semibold transition-all duration-(--motion-page)',
                   !isFolderMode && isDragActive && !isDragReject
                     ? 'text-lg'
                     : 'text-base',
@@ -238,7 +238,7 @@ export const DropzoneArea = memo(function DropzoneArea({
                 type="button"
                 variant="outline"
                 size="sm"
-                className="mt-2 transition-all duration-300 hover:scale-105 hover:shadow-md"
+                className="mt-2 transition-all duration-(--motion-page) hover:scale-105 hover:shadow-md"
                 disabled={isDisabled}
               >
                 {isFolderMode ? (

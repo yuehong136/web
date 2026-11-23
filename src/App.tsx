@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect } from 'react'
 import { RouterProvider } from 'react-router-dom'
 import { QueryClientProvider } from '@tanstack/react-query'
+import { MotionConfig } from 'motion/react'
 import { Toaster } from 'sonner'
 import { handleCaughtApplicationError } from '@/components/ui/error-boundary'
 import { queryClient } from './lib/query-client'
@@ -58,7 +59,10 @@ export function Application({ composition }: ApplicationProps) {
   return (
     <PlatformProvider composition={composition}>
       <QueryClientProvider client={queryClient}>
-        <>
+        {/* JS-driven motion follows the in-app setting, not only the system's. */}
+        <MotionConfig
+          reducedMotion={appearance.reducedMotion ? 'always' : 'user'}
+        >
           <RouterProvider
             router={router}
             onError={handleCaughtApplicationError}
@@ -74,7 +78,7 @@ export function Application({ composition }: ApplicationProps) {
               <QueryDevtools initialIsOpen={false} />
             </Suspense>
           ) : null}
-        </>
+        </MotionConfig>
       </QueryClientProvider>
     </PlatformProvider>
   )

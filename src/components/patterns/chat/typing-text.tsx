@@ -1,13 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
+import { useReducedMotionPreference } from '@/themes'
 
 /** Characters revealed per step, and the pause between steps. */
 const STEP = 4
 const INTERVAL_MS = 35
-
-const prefersReducedMotion = () =>
-  typeof window !== 'undefined' &&
-  typeof window.matchMedia === 'function' &&
-  window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 /**
  * Reveals a short plain-text message a few characters at a time, e.g. an
@@ -21,9 +17,8 @@ export function TypingText({
   text: string
   onComplete?: () => void
 }) {
-  const [shown, setShown] = useState(() =>
-    prefersReducedMotion() ? text.length : 0,
-  )
+  const reduced = useReducedMotionPreference()
+  const [shown, setShown] = useState(() => (reduced ? text.length : 0))
   const [source, setSource] = useState(text)
   const completed = useRef(false)
   const done = useRef(onComplete)

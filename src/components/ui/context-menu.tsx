@@ -4,6 +4,7 @@ import * as React from 'react'
 import * as ContextMenuPrimitive from '@radix-ui/react-context-menu'
 import { cn } from '@/lib/utils'
 import { useActivePortalTheme, usePortalContainer } from './portal-theme'
+import { contextMenuMotionClass } from './overlay-motion'
 import {
   menuContentClass,
   menuItemClass,
@@ -32,6 +33,7 @@ const ContextMenuContent = React.forwardRef<
         data-theme={theme}
         className={cn(
           menuContentClass,
+          contextMenuMotionClass,
           'max-h-[var(--radix-context-menu-content-available-height)]',
           className,
         )}

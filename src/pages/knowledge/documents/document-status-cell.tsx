@@ -81,7 +81,7 @@ export const DocumentStatusBadge: FC<{
           className="block h-0.5 w-full max-w-28 overflow-hidden rounded-radius-full bg-sunken"
         >
           <span
-            className="block h-full rounded-radius-full bg-ai-tide transition-[width] duration-500 motion-reduce:transition-none"
+            className="block h-full rounded-radius-full bg-ai-tide transition-[width] duration-(--motion-page) motion-reduce:transition-none"
             style={{ width: `${percent}%` }}
           />
         </span>

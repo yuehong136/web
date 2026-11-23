@@ -249,7 +249,7 @@ const OptionCard: FC<OptionCardProps> = ({
   return (
     <div
       className={cn(
-        'relative rounded-lg border transition-all duration-200',
+        'relative rounded-lg border transition-all duration-(--motion-panel)',
         disabled
           ? 'border-line-subtle bg-sunken/50 opacity-60'
           : checked

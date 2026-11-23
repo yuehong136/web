@@ -81,7 +81,7 @@ export function RuntimeTimeline({
                   <ChevronRight
                     aria-hidden="true"
                     className={cn(
-                      'size-icon-sm shrink-0 text-fg-subtle transition-transform duration-150 motion-reduce:transition-none',
+                      'size-icon-sm shrink-0 text-fg-subtle transition-transform duration-(--motion-fast) motion-reduce:transition-none',
                       open && 'rotate-90',
                     )}
                   />

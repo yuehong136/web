@@ -37,7 +37,7 @@ export const FileList = memo(function FileList({
   }, [files])
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-2 space-y-3 duration-300">
+    <div className="animate-in space-y-3 duration-(--motion-page) fade-in slide-in-from-bottom-2">
       <div className="flex items-center justify-between px-1">
         <div className="flex items-center gap-3">
           <h4

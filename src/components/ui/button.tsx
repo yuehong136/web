@@ -5,7 +5,7 @@ import { cn } from './utils'
 import { LoaderCircle } from 'lucide-react'
 
 const buttonVariants = cva(
-  "inline-flex shrink-0 items-center justify-center gap-[var(--control-gap)] whitespace-nowrap rounded-radius-md border border-transparent text-sm font-medium transition-colors duration-150 disabled:pointer-events-none disabled:opacity-50 motion-reduce:transition-none [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-icon-sm [&_svg]:shrink-0 outline-hidden focus-visible:ring-2 focus-visible:ring-line-focus focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
+  "inline-flex shrink-0 items-center justify-center gap-[var(--control-gap)] whitespace-nowrap rounded-radius-md border border-transparent text-sm font-medium transition-colors duration-(--motion-fast) disabled:pointer-events-none disabled:opacity-50 motion-reduce:transition-none [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-icon-sm [&_svg]:shrink-0 outline-hidden focus-visible:ring-2 focus-visible:ring-line-focus focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
   {
     variants: {
       variant: {

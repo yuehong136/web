@@ -184,7 +184,7 @@ export const ResourceListRow: React.FC<ResourceListRowProps> = memo(
           'group relative grid items-center gap-4',
           'h-[68px] cursor-pointer rounded-xl px-4',
           'border border-transparent',
-          'transition-all duration-200 ease-out',
+          'transition-all duration-(--motion-panel) ease-out',
           // 悬停效果：背景 + 主题色边框（浅色绿/深色紫）
           'hover:border-line-focus hover:bg-sunken/60 hover:shadow-xs',
           // 选中效果
@@ -201,24 +201,24 @@ export const ResourceListRow: React.FC<ResourceListRowProps> = memo(
               <Checkbox
                 checked={selected}
                 onCheckedChange={onSelect}
-                className="transition-transform duration-150 hover:scale-110"
+                className="transition-transform duration-(--motion-fast) hover:scale-110"
               />
             </div>
           )}
           {/* 头像 */}
-          <div className="shrink-0 transition-transform duration-200 group-hover:scale-105">
+          <div className="shrink-0 transition-transform duration-(--motion-panel) group-hover:scale-105">
             {avatar}
           </div>
           {/* 名称和描述 */}
           <div className="flex h-11 min-w-0 flex-1 flex-col justify-center">
             <div className="flex items-center gap-1.5">
               <h3
-                className="truncate font-medium text-fg transition-colors duration-200 group-hover:text-accent-fg"
+                className="truncate font-medium text-fg transition-colors duration-(--motion-panel) group-hover:text-accent-fg"
                 title={name}
               >
                 {name}
               </h3>
-              <ChevronRight className="h-4 w-4 shrink-0 text-fg-subtle opacity-0 transition-all duration-200 group-hover:translate-x-0.5 group-hover:opacity-100" />
+              <ChevronRight className="h-4 w-4 shrink-0 text-fg-subtle opacity-0 transition-all duration-(--motion-panel) group-hover:translate-x-0.5 group-hover:opacity-100" />
             </div>
             {description && (
               <p

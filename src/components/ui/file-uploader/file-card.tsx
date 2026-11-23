@@ -36,7 +36,7 @@ export const FileCard = memo(function FileCard({
   return (
     <div
       className={cn(
-        'group relative flex items-center gap-3 rounded-xl transition-all duration-300',
+        'group relative flex items-center gap-3 rounded-xl transition-all duration-(--motion-page)',
         'border border-transparent hover:shadow-md',
         compact ? 'p-2' : 'p-3',
         file.status === 'error' && 'bg-danger-soft ring-1 ring-danger-line',
@@ -55,7 +55,7 @@ export const FileCard = memo(function FileCard({
     >
       <div
         className={cn(
-          'relative flex shrink-0 items-center justify-center overflow-hidden rounded-lg transition-transform duration-200 group-hover:scale-105',
+          'relative flex shrink-0 items-center justify-center overflow-hidden rounded-lg transition-transform duration-(--motion-panel) group-hover:scale-105',
           compact ? 'h-10 w-10' : 'h-12 w-12',
         )}
         style={{ backgroundColor: colors.bg }}
@@ -109,7 +109,7 @@ export const FileCard = memo(function FileCard({
             {formatBytes(file.size)}
           </span>
           {file.status === 'success' && (
-            <span className="animate-in fade-in slide-in-from-left-1 flex items-center gap-1 text-xs text-fg duration-300">
+            <span className="flex animate-in items-center gap-1 text-xs text-fg duration-(--motion-page) fade-in slide-in-from-left-1">
               <CheckCircle2 className="h-3 w-3 text-success-fg" />
               <span className={compact ? 'hidden' : ''}>
                 {texts.uploadSuccess}
@@ -117,7 +117,7 @@ export const FileCard = memo(function FileCard({
             </span>
           )}
           {file.status === 'error' && (
-            <span className="animate-in fade-in slide-in-from-left-1 flex items-center gap-1 text-xs text-fg duration-300">
+            <span className="flex animate-in items-center gap-1 text-xs text-fg duration-(--motion-page) fade-in slide-in-from-left-1">
               <AlertCircle className="h-3 w-3 text-danger-fg" />
               <span className={compact ? 'hidden' : ''}>
                 {file.error || texts.uploadFailed}
@@ -125,7 +125,7 @@ export const FileCard = memo(function FileCard({
             </span>
           )}
           {file.status === 'uploading' && (
-            <span className="animate-in fade-in slide-in-from-left-1 flex items-center gap-1 text-xs text-fg duration-300">
+            <span className="flex animate-in items-center gap-1 text-xs text-fg duration-(--motion-page) fade-in slide-in-from-left-1">
               <Loader2 className="h-3 w-3 animate-spin text-info-fg" />
               <span className={compact ? 'hidden' : ''}>
                 {typeof file.progress === 'number'
@@ -138,7 +138,7 @@ export const FileCard = memo(function FileCard({
         {showProgress &&
           file.status === 'uploading' &&
           typeof file.progress === 'number' && (
-            <div className="animate-in fade-in slide-in-from-bottom-1 pt-1 duration-300">
+            <div className="animate-in pt-1 duration-(--motion-page) fade-in slide-in-from-bottom-1">
               <Progress
                 value={file.progress}
                 className="h-1.5 [&>div]:bg-info-fg"
@@ -147,7 +147,7 @@ export const FileCard = memo(function FileCard({
           )}
       </div>
 
-      <div className="flex items-center gap-1 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+      <div className="flex items-center gap-1 opacity-0 transition-opacity duration-(--motion-panel) group-hover:opacity-100">
         {file.status === 'error' && onRetry && (
           <Tooltip content={texts.retryUpload}>
             <Button
@@ -176,7 +176,7 @@ export const FileCard = memo(function FileCard({
       </div>
 
       <div
-        className="pointer-events-none absolute inset-0 rounded-xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+        className="pointer-events-none absolute inset-0 rounded-xl opacity-0 transition-opacity duration-(--motion-page) group-hover:opacity-100"
         style={{
           background: `radial-gradient(circle at 50% 50%, ${colors.bg} 0%, transparent 70%)`,
         }}

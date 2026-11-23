@@ -5,6 +5,7 @@ import { X } from 'lucide-react'
 
 import { cn } from './utils'
 import { useActivePortalTheme, usePortalContainer } from './portal-theme'
+import { scrimMotionClass, sheetMotionClass } from './overlay-motion'
 
 const Sheet = SheetPrimitive.Root
 
@@ -15,7 +16,10 @@ const SheetClose = SheetPrimitive.Close
 const SheetPortal = SheetPrimitive.Portal
 
 const sheetVariants = cva(
-  'fixed z-50 gap-space-md border-line bg-surface p-space-lg text-fg shadow-elevation-high transition ease-in-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-200 data-[state=open]:duration-200 motion-reduce:animate-none',
+  [
+    'fixed z-50 gap-space-md border-line bg-surface p-space-lg text-fg shadow-elevation-high',
+    sheetMotionClass,
+  ],
   {
     variants: {
       side: {
@@ -89,10 +93,7 @@ const SheetOverlay = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof SheetPrimitive.Overlay>
 >(({ className, ...props }, ref) => (
   <SheetPrimitive.Overlay
-    className={cn(
-      'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-scrim motion-reduce:animate-none',
-      className,
-    )}
+    className={cn('fixed inset-0 z-50 bg-scrim', scrimMotionClass, className)}
     {...props}
     ref={ref}
   />

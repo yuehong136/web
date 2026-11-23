@@ -100,7 +100,7 @@ export function ExploreEmpty({
                     type="button"
                     title={label}
                     onClick={() => onSuggestion(label)}
-                    className="flex h-full w-full items-center gap-space-sm rounded-radius-xl border border-line-subtle bg-surface p-space-sm text-left text-sm font-medium text-fg outline-hidden transition-[border-color,box-shadow,transform] duration-150 hover:border-line-strong hover:shadow-elevation-medium focus-visible:ring-2 focus-visible:ring-line-focus motion-safe:hover:-translate-y-px"
+                    className="flex h-full w-full items-center gap-space-sm rounded-radius-xl border border-line-subtle bg-surface p-space-sm text-left text-sm font-medium text-fg outline-hidden transition-[border-color,box-shadow,transform] duration-(--motion-fast) hover:border-line-strong hover:shadow-elevation-medium focus-visible:ring-2 focus-visible:ring-line-focus motion-safe:hover:-translate-y-px"
                   >
                     <span
                       className={cn(

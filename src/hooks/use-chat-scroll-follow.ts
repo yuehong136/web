@@ -1,4 +1,5 @@
 import { useCallback, useLayoutEffect, useRef, useState } from 'react'
+import { prefersReducedMotion } from '@/themes/appearance'
 
 /** Distance from the end of the content, in px, that still counts as "at the latest". */
 const LATEST_THRESHOLD_PX = 48
@@ -51,10 +52,6 @@ export interface ChatScrollFollow {
   hasNewContent: boolean
   scrollToLatest: (behavior?: ScrollBehavior) => void
 }
-
-const prefersReducedMotion = () =>
-  typeof window.matchMedia === 'function' &&
-  window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 /**
  * Single scroll owner for a chat log, in the way current chat products work:

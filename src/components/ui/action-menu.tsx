@@ -6,6 +6,7 @@ import {
   useActivePortalTheme,
   usePortalContainer,
 } from '@/components/ui/portal-theme'
+import { dropdownMotionClass } from './overlay-motion'
 
 export const ActionMenu = Menu.Root
 export const ActionMenuTrigger = Menu.Trigger
@@ -45,6 +46,7 @@ export const ActionMenuContent = React.forwardRef<
         sideOffset={sideOffset}
         className={cn(
           menuContentClass,
+          dropdownMotionClass,
           'max-h-[var(--radix-dropdown-menu-content-available-height)]',
           className,
         )}
@@ -91,6 +93,7 @@ export const ActionMenuSubContent = React.forwardRef<
         data-theme={theme}
         className={cn(
           menuContentClass,
+          dropdownMotionClass,
           'max-h-[var(--radix-dropdown-menu-content-available-height)]',
           className,
         )}

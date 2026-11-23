@@ -1,6 +1,7 @@
 import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
+import { setAppearance } from '@/themes/appearance'
 import { TypingText } from '../chat/typing-text'
 
 let root: Root
@@ -17,6 +18,7 @@ afterEach(async () => {
   host.remove()
   vi.useRealTimers()
   vi.unstubAllGlobals()
+  setAppearance({ motion: 'system' })
 })
 
 it('reveals the text a few characters at a time and reports completion once', async () => {
@@ -36,11 +38,9 @@ it('reveals the text a few characters at a time and reports completion once', as
   expect(done).toHaveBeenCalledOnce()
 })
 
-it('shows the whole text at once with reduced motion', async () => {
-  vi.stubGlobal(
-    'matchMedia',
-    vi.fn(() => ({ matches: true }) as unknown as MediaQueryList),
-  )
+it('shows the whole text at once when the app setting reduces motion', async () => {
+  // The in-app setting, not only the system query, turns typing off.
+  setAppearance({ motion: 'reduced' })
   const done = vi.fn()
   await act(async () =>
     root.render(<TypingText text="Hello there" onComplete={done} />),

@@ -4,6 +4,7 @@ import { Check, ChevronDown, ChevronUp } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { useNearestPortalTheme, usePortalContainer } from './portal-theme'
+import { selectMotionClass } from './overlay-motion'
 
 export interface SelectProps {
   value?: string
@@ -186,7 +187,7 @@ export const SelectTrigger = React.forwardRef<
     <SelectPrimitive.Trigger
       ref={ref}
       className={cn(
-        'group flex min-h-[var(--control-height)] w-full min-w-0 items-center justify-between gap-space-sm rounded-radius-md border border-line bg-surface px-[var(--control-padding-x)] py-space-2xs text-left text-sm text-fg outline-hidden transition-colors duration-150 hover:border-line-strong motion-reduce:transition-none',
+        'group flex min-h-[var(--control-height)] w-full min-w-0 items-center justify-between gap-space-sm rounded-radius-md border border-line bg-surface px-[var(--control-padding-x)] py-space-2xs text-left text-sm text-fg outline-hidden transition-colors duration-(--motion-fast) hover:border-line-strong motion-reduce:transition-none',
         'focus:border-line-focus focus-visible:ring-1 focus-visible:ring-line-focus data-[state=open]:border-line-focus',
         'disabled:cursor-not-allowed disabled:opacity-50',
         className,
@@ -262,6 +263,7 @@ export const SelectContent: React.FC<SelectContentProps> = ({
         data-theme={theme}
         className={cn(
           'relative z-[1000] max-h-[min(15rem,var(--radix-select-content-available-height))] max-w-[var(--radix-select-content-available-width)] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-radius-xl border border-line bg-overlay text-sm text-fg shadow-elevation-medium',
+          selectMotionClass,
           className,
         )}
         // Escape closes this list only. Legacy layers listen on document

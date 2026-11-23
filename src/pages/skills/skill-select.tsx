@@ -4,6 +4,8 @@ import { Check, ChevronDown } from 'lucide-react'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { useActivePortalTheme } from '@/components/ui/portal-theme'
+import { selectMotionClass } from '@/components/ui/overlay-motion'
+import { cn } from '@/lib/utils'
 
 /** Local accessible adapter: the legacy shared select has no arrow-key support. */
 export function SkillSelect({
@@ -51,7 +53,10 @@ export function SkillSelect({
             data-theme={theme}
             position="popper"
             sideOffset={4}
-            className="z-[1000] max-h-60 max-w-[calc(100vw-2rem)] min-w-[var(--radix-select-trigger-width)] overflow-auto rounded-radius-lg border border-line bg-surface p-space-xs text-fg shadow-lg"
+            className={cn(
+              'z-[1000] max-h-60 max-w-[calc(100vw-2rem)] min-w-[var(--radix-select-trigger-width)] overflow-auto rounded-radius-lg border border-line bg-surface p-space-xs text-fg shadow-lg',
+              selectMotionClass,
+            )}
             onEscapeKeyDown={(event) => event.stopPropagation()}
           >
             <Select.Viewport>

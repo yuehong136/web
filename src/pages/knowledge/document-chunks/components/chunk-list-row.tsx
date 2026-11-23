@@ -107,7 +107,7 @@ export const ChunkListRow = ({
       data-chunk-id={chunk.chunk_id}
       data-active={isActive || undefined}
       className={cn(
-        'flex flex-col gap-space-sm rounded-radius-xl border px-space-base py-space-sm transition-[border-color,background-color,box-shadow] duration-150',
+        'flex flex-col gap-space-sm rounded-radius-xl border px-space-base py-space-sm transition-[border-color,background-color,box-shadow] duration-(--motion-fast)',
         isActive
           ? 'border-line-focus bg-accent-soft shadow-elevation-low'
           : isSelected

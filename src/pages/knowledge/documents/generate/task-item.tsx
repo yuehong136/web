@@ -270,7 +270,7 @@ const TaskItemComponent: React.FC<TaskItemProps> = ({
             <div>
               <div
                 className={cn(
-                  'overflow-hidden text-xs leading-relaxed whitespace-pre-line text-fg-subtle transition-all duration-200',
+                  'overflow-hidden text-xs leading-relaxed whitespace-pre-line text-fg-subtle transition-all duration-(--motion-panel)',
                   logExpanded
                     ? 'scrollbar-thin max-h-[200px] overflow-y-auto'
                     : 'max-h-[3.6em]',

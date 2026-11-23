@@ -82,7 +82,7 @@ export const GenerationPresetSelector: React.FC<
               onClick={() => onChange(option.value)}
               title={t(option.descriptionKey)}
               className={cn(
-                'flex-1 rounded-radius-md px-space-base py-space-xs text-xs font-medium transition-colors duration-200',
+                'flex-1 rounded-radius-md px-space-base py-space-xs text-xs font-medium transition-colors duration-(--motion-panel)',
                 'focus:outline-hidden focus-visible:ring-2 focus-visible:ring-line-focus',
                 isActive
                   ? 'bg-overlay text-fg shadow-elevation-low'

@@ -2,6 +2,7 @@ import { useEffect, useState, type RefObject } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Tooltip } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
+import { useReducedMotionPreference } from '@/themes'
 
 export interface ThreadTurn {
   /** Matches the `data-turn-id` attribute on the turn's question. */
@@ -28,6 +29,7 @@ export function TurnRail({
   rootRef: RefObject<HTMLElement | null>
 }) {
   const { t } = useTranslation()
+  const reduced = useReducedMotionPreference()
   const [current, setCurrent] = useState<string | null>(null)
   const enabled = turns.length >= MIN_TURNS
   useEffect(() => {
@@ -57,12 +59,9 @@ export function TurnRail({
   }, [enabled, turns, rootRef])
   if (!enabled) return null
   const jump = (id: string) => {
-    const reduce =
-      typeof matchMedia === 'function' &&
-      matchMedia('(prefers-reduced-motion: reduce)').matches
     findTurn(rootRef.current, id)?.scrollIntoView?.({
       block: 'start',
-      behavior: reduce ? 'auto' : 'smooth',
+      behavior: reduced ? 'auto' : 'smooth',
     })
     setCurrent(id)
   }

@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils'
 import { Button, type ButtonProps } from './button'
 import { useActivePortalTheme, usePortalContainer } from './portal-theme'
 import { dialogOverlayClass } from './dialog'
+import { dialogPanelMotionClass } from './overlay-motion'
 
 export interface AlertDialogProps {
   open: boolean
@@ -115,7 +116,7 @@ export const AlertDialogContent: React.FC<
         className={cn(
           'relative z-10 w-full max-w-md rounded-radius-xl border border-line shadow-elevation-high',
           'bg-overlay text-fg',
-          'animate-in fade-in-0 zoom-in-95 duration-200 motion-reduce:animate-none',
+          dialogPanelMotionClass,
           'p-space-lg',
           className,
         )}

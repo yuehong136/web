@@ -51,7 +51,7 @@ export const ChunkEditImageSection = ({
               />
             </div>
 
-            <div className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all duration-200 group-hover:bg-black/40 group-hover:opacity-100">
+            <div className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all duration-(--motion-panel) group-hover:bg-black/40 group-hover:opacity-100">
               <div className="flex items-center gap-2 rounded-full bg-raised/95 px-4 py-2 shadow-lg">
                 <ZoomIn className="h-4 w-4 text-accent-fg" />
                 <span className="text-sm font-medium text-accent-fg">

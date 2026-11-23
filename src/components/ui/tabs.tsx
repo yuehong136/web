@@ -78,7 +78,7 @@ export const TabsTrigger = React.forwardRef<
           : [
               // The 2px indicator overlaps the bar's hairline.
               '-mb-px inline-flex shrink-0 items-center justify-center gap-space-xs border-b-2 border-transparent px-space-2xs text-sm font-medium whitespace-nowrap text-fg-muted',
-              'outline-hidden transition-colors duration-150 motion-reduce:transition-none',
+              'outline-hidden transition-colors duration-(--motion-fast) motion-reduce:transition-none',
               'hover:text-fg focus-visible:rounded-radius-sm focus-visible:ring-2 focus-visible:ring-line-focus focus-visible:ring-inset',
               'disabled:pointer-events-none disabled:opacity-50',
               'data-[state=active]:border-fg data-[state=active]:text-fg',

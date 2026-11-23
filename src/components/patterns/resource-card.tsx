@@ -81,7 +81,7 @@ export function ResourceCard({
     >
       <article
         className={cn(
-          'group/card relative flex h-full min-w-0 flex-col gap-space-sm rounded-radius-xl border p-space-md transition-[background-color,border-color,box-shadow,transform] duration-150',
+          'group/card relative flex h-full min-w-0 flex-col gap-space-sm rounded-radius-xl border p-space-md transition-[background-color,border-color,box-shadow,transform] duration-(--motion-fast)',
           selected || current
             ? 'border-line-focus bg-accent-soft'
             : 'border-line-subtle bg-surface hover:border-line-strong hover:shadow-elevation-medium motion-safe:hover:-translate-y-px',

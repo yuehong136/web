@@ -74,7 +74,7 @@ function ProviderCard({
       <article
         aria-label={name}
         data-slot="provider-card"
-        className="flex h-full flex-col gap-space-sm rounded-radius-xl border border-line-subtle bg-raised p-space-md transition-[border-color,box-shadow,transform] duration-150 hover:border-line-strong hover:shadow-elevation-medium motion-safe:hover:-translate-y-px"
+        className="flex h-full flex-col gap-space-sm rounded-radius-xl border border-line-subtle bg-raised p-space-md transition-[border-color,box-shadow,transform] duration-(--motion-fast) hover:border-line-strong hover:shadow-elevation-medium motion-safe:hover:-translate-y-px"
       >
         <div className="flex min-w-0 items-center gap-space-sm">
           <ProviderLogo provider={name} size="lg" />

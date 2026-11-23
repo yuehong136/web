@@ -30,7 +30,7 @@ const RadioGroupItem = React.forwardRef<
     <RadioGroupPrimitive.Item
       ref={ref}
       className={cn(
-        'aspect-square size-icon-sm shrink-0 rounded-radius-full border transition-colors duration-150 motion-reduce:transition-none',
+        'aspect-square size-icon-sm shrink-0 rounded-radius-full border transition-colors duration-(--motion-fast) motion-reduce:transition-none',
         'border-line-strong bg-surface data-[state=unchecked]:hover:border-line-strong',
         'ring-offset-surface',
         'focus:outline-hidden focus-visible:ring-2 focus-visible:ring-line-focus focus-visible:ring-offset-2',

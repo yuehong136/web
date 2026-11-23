@@ -3,6 +3,7 @@ import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { setProductLanguage } from '@/locales/i18n'
 import { CHAT_ANCHOR_SPACE_VAR } from '@/hooks/use-chat-scroll-follow'
+import { setAppearance } from '@/themes/appearance'
 import { ChatScrollViewport } from '../chat/chat-scroll-viewport'
 
 class TestResizeObserver {
@@ -299,16 +300,17 @@ describe('a sent question', () => {
     expect(jumpButton()).toBeNull()
   })
 
-  it('jumps instantly when the reader prefers reduced motion', async () => {
-    vi.stubGlobal(
-      'matchMedia',
-      vi.fn(() => ({ matches: true }) as unknown as MediaQueryList),
-    )
-    await loadHistory(1000)
-    await send('q2')
+  it('jumps instantly when the app setting reduces motion', async () => {
+    setAppearance({ motion: 'reduced' })
+    try {
+      await loadHistory(1000)
+      await send('q2')
 
-    expect(behaviors.at(-1)).toBe('auto')
-    expect(questionInView()).toBe(16)
+      expect(behaviors.at(-1)).toBe('auto')
+      expect(questionInView()).toBe(16)
+    } finally {
+      setAppearance({ motion: 'system' })
+    }
   })
 })
 

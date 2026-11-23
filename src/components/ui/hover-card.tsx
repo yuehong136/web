@@ -3,6 +3,7 @@
 import * as React from 'react'
 import * as HoverCardPrimitive from '@radix-ui/react-hover-card'
 import { cn } from '@/lib/utils'
+import { hoverCardMotionClass } from './overlay-motion'
 
 const HoverCard = HoverCardPrimitive.Root
 
@@ -18,6 +19,7 @@ const HoverCardContent = React.forwardRef<
     sideOffset={sideOffset}
     className={cn(
       'z-50 w-64 rounded-radius-xl border border-line bg-overlay p-space-base text-fg shadow-elevation-medium outline-hidden',
+      hoverCardMotionClass,
       className,
     )}
     {...props}

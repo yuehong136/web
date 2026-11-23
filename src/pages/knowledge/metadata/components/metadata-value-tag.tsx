@@ -41,17 +41,17 @@ export const MetadataValueTag: FC<MetadataValueTagProps> = ({
     default: cn(
       'bg-sunken border border-line',
       'hover:bg-canvas hover:border-line-subtle',
-      'transition-colors duration-150',
+      'transition-colors duration-(--motion-fast)',
     ),
     outline: cn(
       'bg-transparent border border-line',
       'hover:bg-sunken',
-      'transition-colors duration-150',
+      'transition-colors duration-(--motion-fast)',
     ),
     ghost: cn(
       'bg-accent-solid/10 border border-transparent',
       'hover:bg-accent-solid/20',
-      'transition-colors duration-150',
+      'transition-colors duration-(--motion-fast)',
     ),
   }
 
@@ -91,7 +91,7 @@ export const MetadataValueTag: FC<MetadataValueTagProps> = ({
             'text-fg-subtle',
             'opacity-0 group-hover/tag:opacity-100',
             'hover:bg-danger-soft hover:text-danger-fg',
-            'transition-all duration-150',
+            'transition-all duration-(--motion-fast)',
           )}
           aria-label={t('knowledge.metadata.editor.removeValueAria', {
             value,

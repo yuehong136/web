@@ -19,7 +19,7 @@ export function HomeStarters({ onPick }: { onPick: (prompt: string) => void }) {
               type="button"
               title={prompt}
               onClick={() => onPick(prompt)}
-              className="flex h-full w-full flex-col items-start gap-space-sm rounded-radius-xl border border-line-subtle bg-surface p-space-base text-left outline-hidden transition-[border-color,box-shadow,transform] duration-150 hover:border-line-strong hover:shadow-elevation-medium focus-visible:ring-2 focus-visible:ring-line-focus motion-safe:hover:-translate-y-px"
+              className="flex h-full w-full flex-col items-start gap-space-sm rounded-radius-xl border border-line-subtle bg-surface p-space-base text-left outline-hidden transition-[border-color,box-shadow,transform] duration-(--motion-fast) hover:border-line-strong hover:shadow-elevation-medium focus-visible:ring-2 focus-visible:ring-line-focus motion-safe:hover:-translate-y-px"
             >
               <span
                 className={cn(

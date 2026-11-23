@@ -5,11 +5,13 @@ import tseslint from 'typescript-eslint'
 import noDirectAntdImport from '../no-direct-antd-import.js'
 import noLetterAvatar from '../no-letter-avatar.js'
 import noRawVisualValues from '../no-raw-visual-values.js'
+import noRawMotion from '../no-raw-motion.js'
 
 const rules = {
   'no-raw-visual-values': noRawVisualValues,
   'no-direct-antd-import': noDirectAntdImport,
   'no-letter-avatar': noLetterAvatar,
+  'no-raw-motion': noRawMotion,
 }
 
 function lint(code, rule = 'no-raw-visual-values', options = []) {
@@ -158,6 +160,35 @@ test('no-letter-avatar allows whole-string casing and other indexes', () => {
         'const i = <EntityAvatar name={name} />',
       ].join('\n'),
       'no-letter-avatar',
+    ),
+    [],
+  )
+})
+
+test('no-raw-motion rejects bare durations, raw easing and reduced-motion checks that skip the app setting', () => {
+  for (const code of [
+    'const a = <div className="transition-colors duration-150" />',
+    "const b = cn('hover:duration-300 opacity-0')",
+    "const c = 'transition ease-[cubic-bezier(0.2,0,0,1)]'",
+    "const d = window.matchMedia('(prefers-reduced-motion: reduce)').matches",
+    'const e = matchMedia(`(prefers-reduced-motion: reduce)`)',
+    "import { useReducedMotion } from 'motion/react'",
+  ]) {
+    assert.equal(lint(code, 'no-raw-motion').length, 1, code)
+  }
+})
+
+test('no-raw-motion allows motion tokens, named easing and other media queries', () => {
+  assert.deepEqual(
+    lint(
+      [
+        "const a = 'transition-colors duration-(--motion-fast) ease-(--ease-out)'",
+        "const b = 'data-[state=open]:animate-in ease-out delay-150'",
+        "const c = { duration: 150, label: 'duration-picker' }",
+        "const d = window.matchMedia('(prefers-color-scheme: dark)')",
+        "import { useSpring, MotionConfig } from 'motion/react'",
+      ].join('\n'),
+      'no-raw-motion',
     ),
     [],
   )

@@ -168,7 +168,7 @@ const ImagePreviewInner: FC<{
         <img
           src={objectUrl}
           alt={alt || t('knowledge.preview.imagePreview')}
-          className="max-h-full max-w-full object-contain transition-transform duration-200 select-none"
+          className="max-h-full max-w-full object-contain transition-transform duration-(--motion-panel) select-none"
           style={{
             transform: `scale(${scale}) rotate(${rotation}deg) translate(${position.x / scale}px, ${position.y / scale}px)`,
           }}

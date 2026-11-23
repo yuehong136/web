@@ -84,3 +84,11 @@ useResolvedAppearance() // 额外给出 resolvedMode 与 reducedMotion
 ```
 
 `appearance` 是完整偏好的持久化来源；`theme` 键保留模式镜像以兼容旧入口。主题和字号切换不得给应用根节点加 `key` 或重挂 Provider。
+
+## 动效
+
+时长令牌在 `appearance.css`：`--motion-fast`（120ms，悬停与颜色）、`--motion-menu`（160ms，菜单、下拉、气泡）、`--motion-panel`（200ms，对话框、侧滑面板）、`--motion-page`（280ms，页面与大块内容），`[data-motion='reduced']` 下全部为 0。缓动在 `tailwind.css` 的 `@theme static`：`--ease-out`（进入）、`--ease-in`（离开）、`--ease-in-out`、`--ease-spring`（停靠）。类名写 `duration-(--motion-panel) ease-(--ease-out)`；`design-guard/no-raw-motion` 拦截裸写的 `duration-150` 和 `cubic-bezier(`。
+
+浮层出入场用 tw-animate-css 的 `animate-in`/`animate-out` 类，统一取自 `components/ui/overlay-motion.ts`（菜单、Select、Popover、Tooltip、Sheet、对话框各一组，带 Radix 的 transform-origin）。原生 `<dialog>` 的 Dialog、AlertDialog 关闭即卸载，只有入场动画。
+
+JS 驱动的动效（motion 弹簧、逐字打出、平滑滚动）读 `useReducedMotionPreference()`（组件内，含 ScopedTheme 覆盖）或 `prefersReducedMotion()`（事件处理与工具函数），不要自己查询 `prefers-reduced-motion`，也不要用 motion 的 `useReducedMotion`：它们只看系统设置，管不住外观里的“减少动效”。App 根部的 `MotionConfig` 已按同一个值设置 `reducedMotion`。

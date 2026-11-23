@@ -104,7 +104,7 @@ const SearchSummaryCard = ({
     <div
       data-summary-streaming={isStreaming || undefined}
       className={cn(
-        'relative min-w-0 overflow-hidden rounded-radius-xl border bg-surface transition-[border-color,box-shadow] duration-200 motion-reduce:transition-none',
+        'relative min-w-0 overflow-hidden rounded-radius-xl border bg-surface transition-[border-color,box-shadow] duration-(--motion-panel) motion-reduce:transition-none',
         isStreaming ? 'ai-glow' : 'border-line-subtle',
       )}
       aria-live="polite"

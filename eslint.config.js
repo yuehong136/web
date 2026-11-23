@@ -18,6 +18,7 @@ import noRestrictedDynamicImport from './eslint-rules/no-restricted-dynamic-impo
 import noRawVisualValues from './eslint-rules/no-raw-visual-values.js'
 import noDirectAntdImport from './eslint-rules/no-direct-antd-import.js'
 import noLetterAvatar from './eslint-rules/no-letter-avatar.js'
+import noRawMotion from './eslint-rules/no-raw-motion.js'
 
 const typedLint = process.env.ESLINT_TYPED === 'true'
 // One plugin object: flat config refuses to redefine a plugin name with a
@@ -27,6 +28,7 @@ const designGuardPlugin = {
     'no-raw-visual-values': noRawVisualValues,
     'no-direct-antd-import': noDirectAntdImport,
     'no-letter-avatar': noLetterAvatar,
+    'no-raw-motion': noRawMotion,
   },
 }
 const restrictedNodeImportPaths = builtinModules
@@ -492,6 +494,19 @@ export default tseslint.config([
     },
     rules: {
       'design-guard/no-letter-avatar': 'error',
+    },
+  },
+  {
+    // Tide guard: durations and easing come from the motion tokens
+    // (themes/appearance.css, tailwind.css) so reduced motion zeroes them, and
+    // JS motion reads the app's reduced-motion setting, not the media query.
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/themes/**', '**/__tests__/**', '**/*.test.{ts,tsx}'],
+    plugins: {
+      'design-guard': designGuardPlugin,
+    },
+    rules: {
+      'design-guard/no-raw-motion': 'error',
     },
   },
   {

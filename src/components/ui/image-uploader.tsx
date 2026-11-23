@@ -458,7 +458,7 @@ export function ImageUploader(props: ImageUploaderProps) {
             <div
               {...getRootProps()}
               className={cn(
-                'group relative grid w-full cursor-pointer place-items-center rounded-lg border-2 border-dashed px-5 py-6 text-center transition-all duration-200 focus-visible:ring-2 focus-visible:ring-line-focus focus-visible:ring-offset-2 focus-visible:ring-offset-surface focus-visible:outline-hidden',
+                'group relative grid w-full cursor-pointer place-items-center rounded-lg border-2 border-dashed px-5 py-6 text-center transition-all duration-(--motion-panel) focus-visible:ring-2 focus-visible:ring-line-focus focus-visible:ring-offset-2 focus-visible:ring-offset-surface focus-visible:outline-hidden',
                 dropzoneHeight,
                 isDragActive
                   ? 'scale-[1.01] border-accent-solid bg-accent-soft'
@@ -478,7 +478,7 @@ export function ImageUploader(props: ImageUploaderProps) {
                 {/* 图标容器 */}
                 <div
                   className={cn(
-                    'flex h-14 w-14 items-center justify-center rounded-full transition-all duration-200',
+                    'flex h-14 w-14 items-center justify-center rounded-full transition-all duration-(--motion-panel)',
                     isDragActive ? 'scale-110' : 'group-hover:scale-105',
                   )}
                   style={{

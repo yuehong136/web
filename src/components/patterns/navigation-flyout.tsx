@@ -1,6 +1,8 @@
 import * as React from 'react'
 import * as Popover from '@radix-ui/react-popover'
 import { useActivePortalTheme } from '@/components/ui/portal-theme'
+import { popoverMotionClass } from '@/components/ui/overlay-motion'
+import { cn } from '@/lib/utils'
 
 interface NavigationFlyoutProps {
   open: boolean
@@ -86,7 +88,10 @@ export const NavigationFlyout = ({
             if (keyboard.current)
               anchor.current?.querySelector<HTMLElement>('a,button')?.focus()
           }}
-          className="z-40 flex max-h-[var(--radix-popover-content-available-height)] w-[calc(16rem*var(--text-scale,1))] flex-col overflow-hidden rounded-radius-xl border border-line bg-canvas text-fg shadow-elevation-high outline-hidden"
+          className={cn(
+            'z-40 flex max-h-[var(--radix-popover-content-available-height)] w-[calc(16rem*var(--text-scale,1))] flex-col overflow-hidden rounded-radius-xl border border-line bg-canvas text-fg shadow-elevation-high outline-hidden',
+            popoverMotionClass,
+          )}
         >
           {content}
         </Popover.Content>

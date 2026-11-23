@@ -4,7 +4,7 @@ import { cn } from './utils'
 
 const cardVariants = cva(
   // DreamJira panel: 12px corners, a hairline border and the card shadow.
-  'rounded-radius-xl border bg-raised text-fg shadow-elevation-low transition-colors duration-150 motion-reduce:transition-none',
+  'rounded-radius-xl border bg-raised text-fg shadow-elevation-low transition-colors duration-(--motion-fast) motion-reduce:transition-none',
   {
     variants: {
       variant: {

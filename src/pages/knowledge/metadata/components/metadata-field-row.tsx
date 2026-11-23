@@ -48,7 +48,7 @@ export const MetadataFieldRow: FC<MetadataFieldRowProps> = ({
         'group flex items-center',
         'border-b border-line/60 last:border-b-0',
         'bg-surface hover:bg-sunken/40',
-        'transition-all duration-200 ease-out',
+        'transition-all duration-(--motion-panel) ease-out',
         disabled && 'opacity-60',
         className,
       )}
@@ -132,7 +132,7 @@ export const MetadataFieldRow: FC<MetadataFieldRowProps> = ({
           className={cn(
             'flex items-center gap-0.5',
             'opacity-0 group-hover:opacity-100',
-            'transition-all duration-200',
+            'transition-all duration-(--motion-panel)',
           )}
         >
           {onEdit && (
@@ -147,7 +147,7 @@ export const MetadataFieldRow: FC<MetadataFieldRowProps> = ({
                     className={cn(
                       'h-7 w-7 p-0',
                       'hover:bg-accent-solid/10 hover:text-accent-fg',
-                      'transition-colors duration-150',
+                      'transition-colors duration-(--motion-fast)',
                     )}
                   >
                     <Settings className="h-4 w-4" />
@@ -171,7 +171,7 @@ export const MetadataFieldRow: FC<MetadataFieldRowProps> = ({
                     className={cn(
                       'h-7 w-7 p-0',
                       'hover:bg-danger-soft hover:text-danger-fg',
-                      'transition-colors duration-150',
+                      'transition-colors duration-(--motion-fast)',
                     )}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -189,7 +189,7 @@ export const MetadataFieldRow: FC<MetadataFieldRowProps> = ({
             className={cn(
               'h-4 w-4 text-fg-subtle',
               'opacity-0 group-hover:opacity-60',
-              'transition-opacity duration-200',
+              'transition-opacity duration-(--motion-panel)',
               'ml-1',
             )}
           />

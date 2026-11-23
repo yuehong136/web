@@ -17,7 +17,7 @@ function Progress({ className, value, ...props }: ProgressProps) {
       {...props}
     >
       <div
-        className="h-full w-full bg-accent-solid transition-all duration-300 ease-in-out"
+        className="h-full w-full bg-accent-solid transition-all duration-(--motion-page) ease-in-out"
         style={{ transform: `translateX(-${100 - normalizedValue}%)` }}
       />
     </div>

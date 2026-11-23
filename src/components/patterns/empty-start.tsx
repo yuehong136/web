@@ -68,7 +68,7 @@ export function EmptyStart({
                 type="button"
                 onClick={path.onSelect}
                 className={cn(
-                  'flex h-full w-full flex-col items-start gap-space-sm rounded-radius-xl border bg-surface p-space-md text-left outline-hidden transition-[border-color,box-shadow,transform] duration-150 hover:border-line-strong hover:shadow-elevation-medium focus-visible:ring-2 focus-visible:ring-line-focus motion-safe:hover:-translate-y-0.5',
+                  'flex h-full w-full flex-col items-start gap-space-sm rounded-radius-xl border bg-surface p-space-md text-left outline-hidden transition-[border-color,box-shadow,transform] duration-(--motion-fast) hover:border-line-strong hover:shadow-elevation-medium focus-visible:ring-2 focus-visible:ring-line-focus motion-safe:hover:-translate-y-0.5',
                   path.primary ? 'border-line-focus' : 'border-line',
                 )}
               >

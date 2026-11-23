@@ -1,6 +1,10 @@
 @import './appearance.css';
 @import './tailwind-tokens-1.generated.css' reference;
 
+/* Enter/exit utilities (animate-in, fade-in-0, zoom-in-96, slide-in-from-*)
+ * for floating layers; durations come from the motion tokens. */
+@import 'tw-animate-css';
+
 @plugin '@tailwindcss/forms';
 @plugin '@tailwindcss/typography';
 @plugin 'tailwind-scrollbar' {
@@ -45,6 +49,28 @@
   --shadow-elevation-low: var(--elevation-low);
   --shadow-elevation-medium: var(--elevation-medium);
   --shadow-elevation-high: var(--elevation-high);
+  /* Bare `transition` utilities follow the motion tokens. */
+  --default-transition-duration: var(--motion-fast);
+  --default-transition-timing-function: var(--ease-out);
+}
+
+/* DreamJira easing: decelerate into place, accelerate out of view, and a
+ * light settle for docking motion. Always emitted so duration and ease
+ * utilities can read them as variables. */
+@theme static {
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: linear(
+    0,
+    0.3 8%,
+    0.64 18%,
+    0.88 30%,
+    1.01 44%,
+    1.03 54%,
+    1.01 70%,
+    1
+  );
 }
 
 @theme {

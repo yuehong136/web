@@ -21,7 +21,7 @@ export const segmentedListVariants = cva(
 export const segmentedItemVariants = cva(
   [
     'inline-flex min-w-0 shrink-0 items-center justify-center gap-space-xs rounded-radius-sm px-space-sm text-sm font-medium whitespace-nowrap text-fg-muted',
-    'transition-colors duration-150 outline-hidden motion-reduce:transition-none',
+    'transition-colors duration-(--motion-fast) outline-hidden motion-reduce:transition-none',
     'hover:text-fg focus-visible:ring-2 focus-visible:ring-line-focus',
     'disabled:pointer-events-none disabled:opacity-50',
     // Radix RadioGroup marks the pick with data-state=checked, Tabs with active.

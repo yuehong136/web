@@ -65,7 +65,7 @@ const StatusCard: React.FC<StatusCardProps> = memo(
       <div
         className={cn(
           'relative rounded-xl border border-line bg-raised shadow-elevation-low',
-          'border-l-[3px] transition-all duration-200',
+          'border-l-[3px] transition-all duration-(--motion-panel)',
           'hover:border-line-strong hover:bg-accent-soft',
           config.border,
           className,
