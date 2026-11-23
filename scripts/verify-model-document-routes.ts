@@ -74,19 +74,32 @@ if (mode === 'model') {
     assert.equal(model.is_tools, enabled)
     assert.equal(selection.is_tools, enabled)
     assert.equal(
-      instances.find((item) => item.instance_name === instanceName)?.has_api_key,
+      instances.find((item) => item.instance_name === instanceName)
+        ?.has_api_key,
       true,
     )
-    assert.ok(!JSON.stringify({ providers, models, instances }).includes('fixture-key'))
+    assert.ok(
+      !JSON.stringify({ providers, models, instances }).includes('fixture-key'),
+    )
     flags.push(model.is_tools)
-    saved.push({ id: model.id, instance: instanceName, is_tools: model.is_tools })
+    saved.push({
+      id: model.id,
+      instance: instanceName,
+      is_tools: model.is_tools,
+    })
   }
   const ids = saved.map((item) => item.id)
   assert.equal(new Set(ids).size, 3)
   apiClient.setAuthToken(null)
   await assert.rejects(modelsAPI.models())
   console.log(
-    JSON.stringify({ flags, ids, models: saved, paths, anonymous_denied: true }),
+    JSON.stringify({
+      flags,
+      ids,
+      models: saved,
+      paths,
+      anonymous_denied: true,
+    }),
   )
 } else if (mode === 'document-save') {
   const dsl = {

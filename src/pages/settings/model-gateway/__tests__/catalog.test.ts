@@ -21,11 +21,13 @@ import {
 } from '../catalog'
 import { buildKeyInput, initialDraft } from '../components/key-form/key-draft'
 
+const modelId = (value: number) => value.toString(16).padStart(32, '0')
+
 const model = (
   overrides: Partial<GatewayCatalogModel> &
     Pick<GatewayCatalogModel, 'model_id'>,
 ): GatewayCatalogModel => ({
-  model_name: `m${overrides.model_id}`,
+  model_name: `m${Number.parseInt(overrides.model_id, 16)}`,
   provider: 'Tongyi-Qianwen',
   instance_id: 'tq',
   instance_name: 'default',
@@ -35,8 +37,8 @@ const model = (
   reason: null,
   enabled: true,
   enabled_by_default: true,
-  call_name: `m${overrides.model_id}`,
-  names: [`m${overrides.model_id}`],
+  call_name: `m${Number.parseInt(overrides.model_id, 16)}`,
+  names: [`m${Number.parseInt(overrides.model_id, 16)}`],
   alias: null,
   preferred: false,
   shares_name: false,
@@ -57,30 +59,30 @@ const catalog: GatewayCatalog = {
     { instance_id: 'zp', instance_name: 'default', provider: 'ZHIPU-AI' },
   ],
   models: [
-    model({ model_id: 1 }),
-    model({ model_id: 2, state: 'closed', enabled: false }),
+    model({ model_id: modelId(1) }),
+    model({ model_id: modelId(2), state: 'closed', enabled: false }),
     model({
-      model_id: 3,
+      model_id: modelId(3),
       model_types: ['rerank'],
       servable_types: [],
       state: 'unavailable',
       reason: 'endpoint_not_supported',
     }),
     model({
-      model_id: 11,
+      model_id: modelId(11),
       provider: 'VLLM',
       instance_id: 'vl',
       instance_name: 'gpu-a',
     }),
     model({
-      model_id: 12,
+      model_id: modelId(12),
       provider: 'VLLM',
       instance_id: 'vl',
       instance_name: 'gpu-a',
       model_types: ['embedding'],
     }),
     model({
-      model_id: 21,
+      model_id: modelId(21),
       provider: 'ZHIPU-AI',
       instance_id: 'zp',
       state: 'unavailable',
@@ -109,7 +111,7 @@ describe('catalog grouping', () => {
     ])
     expect(
       groups[0].connections[0].models.map((item) => item.model_id),
-    ).toEqual([1, 2, 3])
+    ).toEqual([modelId(1), modelId(2), modelId(3)])
   })
 
   it('marks a provider unsupported only when every model is not relayed', () => {
@@ -124,24 +126,32 @@ describe('catalog grouping', () => {
 
 describe('key scope', () => {
   it('reaches whole connections and picked models, callable ones only', () => {
-    const picked = scope({ instanceIds: ['vl'], modelIds: [1, 2] })
+    const picked = scope({
+      instanceIds: ['vl'],
+      modelIds: [modelId(1), modelId(2)],
+    })
     expect(
       callableModels(catalog, picked).map((item) => item.model_id),
-    ).toEqual([1, 11, 12])
+    ).toEqual([modelId(1), modelId(11), modelId(12)])
     expect(
       callableModels(catalog, scope({ allModels: true })).map(
         (item) => item.model_id,
       ),
-    ).toEqual([1, 11, 12])
+    ).toEqual([modelId(1), modelId(11), modelId(12)])
   })
 
   it('counts deleted and uncallable grants and deleted connections as stale', () => {
     const stale = staleGrants(
       catalog,
-      scope({ instanceIds: ['vl', 'gone'], modelIds: [1, 2, 99] }),
+      scope({
+        instanceIds: ['vl', 'gone'],
+        modelIds: [modelId(1), modelId(2), modelId(99)],
+      }),
     )
-    expect(stale.deletedModelIds).toEqual([99])
-    expect(stale.unavailableModels.map((item) => item.model_id)).toEqual([2])
+    expect(stale.deletedModelIds).toEqual([modelId(99)])
+    expect(stale.unavailableModels.map((item) => item.model_id)).toEqual([
+      modelId(2),
+    ])
     // A connection without models still exists; only an unknown id is gone.
     expect(stale.deletedInstanceIds).toEqual(['gone'])
     expect(stale.count).toBe(3)
@@ -149,13 +159,17 @@ describe('key scope', () => {
       0,
     )
     expect(
-      staleGrants(catalog, scope({ allModels: true, modelIds: [99] })).count,
+      staleGrants(catalog, scope({ allModels: true, modelIds: [modelId(99)] }))
+        .count,
     ).toBe(0)
   })
 
   it('summarises a custom scope per provider', () => {
     expect(
-      scopeByProvider(catalog, scope({ instanceIds: ['tq'], modelIds: [11] })),
+      scopeByProvider(
+        catalog,
+        scope({ instanceIds: ['tq'], modelIds: [modelId(11)] }),
+      ),
     ).toEqual([
       { provider: 'Tongyi-Qianwen', whole: true, count: 3 },
       { provider: 'VLLM', whole: false, count: 1 },
@@ -169,7 +183,7 @@ describe('key scope', () => {
   it('lists grants by connection and strikes out uncallable picks', () => {
     const grants = scopeGrants(
       catalog,
-      scope({ instanceIds: ['empty'], modelIds: [1, 2] }),
+      scope({ instanceIds: ['empty'], modelIds: [modelId(1), modelId(2)] }),
     )
     expect(grants).toEqual([
       {
@@ -206,7 +220,9 @@ describe('scope picker', () => {
     expect(connectionCheck(scope({ instanceIds: ['tq'] }), tq())).toBe(
       'checked',
     )
-    expect(connectionCheck(scope({ modelIds: [1] }), tq())).toBe('mixed')
+    expect(connectionCheck(scope({ modelIds: [modelId(1)] }), tq())).toBe(
+      'mixed',
+    )
     expect(connectionCheck(emptyScope(), tq())).toBe('unchecked')
     // In a whole connection only callable models read as checked.
     const whole = scope({ instanceIds: ['tq'] })
@@ -216,9 +232,16 @@ describe('scope picker', () => {
   })
 
   it('checks a connection as a whole, folding its picks in', () => {
-    const next = toggleConnection(scope({ modelIds: [1, 11] }), tq())
-    expect(next).toEqual(scope({ instanceIds: ['tq'], modelIds: [11] }))
-    expect(toggleConnection(next, tq())).toEqual(scope({ modelIds: [11] }))
+    const next = toggleConnection(
+      scope({ modelIds: [modelId(1), modelId(11)] }),
+      tq(),
+    )
+    expect(next).toEqual(
+      scope({ instanceIds: ['tq'], modelIds: [modelId(11)] }),
+    )
+    expect(toggleConnection(next, tq())).toEqual(
+      scope({ modelIds: [modelId(11)] }),
+    )
   })
 
   it('turns a whole connection into explicit picks when one model is unchecked', () => {
@@ -227,9 +250,9 @@ describe('scope picker', () => {
       vl(),
       catalog.models[3],
     )
-    expect(next).toEqual(scope({ modelIds: [12] }))
+    expect(next).toEqual(scope({ modelIds: [modelId(12)] }))
     expect(toggleModel(next, vl(), catalog.models[3])).toEqual(
-      scope({ modelIds: [12, 11] }),
+      scope({ modelIds: [modelId(12), modelId(11)] }),
     )
   })
 
@@ -237,15 +260,18 @@ describe('scope picker', () => {
     expect(
       scopePayload(
         catalog,
-        scope({ instanceIds: ['vl', 'gone'], modelIds: [1, 99] }),
+        scope({
+          instanceIds: ['vl', 'gone'],
+          modelIds: [modelId(1), modelId(99)],
+        }),
       ),
     ).toEqual({
       allow_all_models: false,
       allowed_instance_ids: ['vl'],
-      allowed_model_ids: [1],
+      allowed_model_ids: [modelId(1)],
     })
     expect(
-      scopePayload(catalog, scope({ allModels: true, modelIds: [1] })),
+      scopePayload(catalog, scope({ allModels: true, modelIds: [modelId(1)] })),
     ).toEqual({
       allow_all_models: true,
       allowed_instance_ids: [],
@@ -265,7 +291,7 @@ describe('key draft', () => {
     expires_at: '2026-01-01T00:00:00.000Z',
     allow_all_models: false,
     allowed_instance_ids: ['tq'],
-    allowed_model_ids: [11],
+    allowed_model_ids: [modelId(11)],
     rpm_limit: 60,
     tpm_limit: null,
     max_parallel_requests: null,
@@ -293,7 +319,7 @@ describe('key draft', () => {
         description: null,
         allow_all_models: false,
         allowed_instance_ids: ['tq'],
-        allowed_model_ids: [11],
+        allowed_model_ids: [modelId(11)],
         rpm_limit: 60,
         tpm_limit: null,
         max_parallel_requests: null,

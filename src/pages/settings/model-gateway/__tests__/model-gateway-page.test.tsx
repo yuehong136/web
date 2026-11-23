@@ -16,6 +16,8 @@ import { createQueryClient } from '@/lib/query-client'
 import { setProductLanguage } from '@/locales/i18n'
 import { ModelGatewayPage } from '@/pages/settings/model-gateway'
 
+const modelId = (value: number) => value.toString(16).padStart(32, '0')
+
 const mocks = vi.hoisted(() => ({
   getCatalog: vi.fn(),
   updateCatalogModel: vi.fn(),
@@ -91,28 +93,32 @@ const catalog: GatewayCatalog = {
     { instance_id: 'zp', instance_name: 'default', provider: 'ZHIPU-AI' },
   ],
   models: [
-    model({ model_id: 11, model_name: 'qwen-flash', requests_7d: 9812 }),
     model({
-      model_id: 12,
+      model_id: modelId(11),
+      model_name: 'qwen-flash',
+      requests_7d: 9812,
+    }),
+    model({
+      model_id: modelId(12),
       model_name: 'qwen-max',
       state: 'closed',
       enabled: false,
     }),
     model({
-      model_id: 13,
+      model_id: modelId(13),
       model_name: 'qwen-plus',
       shares_name: true,
       rpm_limit: 600,
     }),
     model({
-      model_id: 21,
+      model_id: modelId(21),
       model_name: 'Qwen3-32B',
       provider: 'VLLM',
       instance_id: 'vl',
       instance_name: 'gpu-a',
     }),
     model({
-      model_id: 31,
+      model_id: modelId(31),
       model_name: 'glm-4-plus',
       provider: 'ZHIPU-AI',
       instance_id: 'zp',
@@ -132,7 +138,7 @@ const gatewayKey = (overrides: Partial<GatewayKey> = {}): GatewayKey => ({
   expires_at: null,
   allow_all_models: false,
   allowed_instance_ids: ['tq'],
-  allowed_model_ids: [21, 99],
+  allowed_model_ids: [modelId(21), modelId(99)],
   rpm_limit: 120,
   tpm_limit: null,
   max_parallel_requests: null,
@@ -151,7 +157,7 @@ const log: GatewayLog = {
   key_name: 'support-bot',
   model: 'qwen-plus',
   gateway_model_id: null,
-  upstream_model_id: 13,
+  upstream_model_id: modelId(13),
   upstream_model_name: null,
   endpoint: 'chat.completions',
   stream: false,
@@ -341,7 +347,9 @@ it('groups the catalog by connection and opens a model with its id', async () =>
   expect(pageText()).toContain('3 / 4 models open on the gateway')
 
   await click(labelled('Open qwen-max on the gateway')!)
-  expect(mocks.updateCatalogModel).toHaveBeenCalledWith(12, { enabled: true })
+  expect(mocks.updateCatalogModel).toHaveBeenCalledWith(modelId(12), {
+    enabled: true,
+  })
 
   const openAll = labelled('Open all models of Tongyi-Qianwen · default')!
   expect(openAll.getAttribute('aria-checked')).toBe('false')
@@ -369,7 +377,7 @@ it('turns a checked connection into picked models when one is unchecked', async 
       id: 'k2',
       name: 'indexer',
       allowed_instance_ids: ['vl'],
-      allowed_model_ids: [13],
+      allowed_model_ids: [modelId(13)],
     }),
     key: PLAINTEXT,
   })
@@ -400,7 +408,7 @@ it('turns a checked connection into picked models when one is unchecked', async 
     description: null,
     allow_all_models: false,
     allowed_instance_ids: ['vl'],
-    allowed_model_ids: [13],
+    allowed_model_ids: [modelId(13)],
     rpm_limit: null,
     tpm_limit: null,
     max_parallel_requests: null,

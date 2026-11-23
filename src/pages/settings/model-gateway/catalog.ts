@@ -90,7 +90,7 @@ export interface KeyScope {
   /** Whole connections, including models opened there later. */
   instanceIds: string[]
   /** A snapshot of registered model ids. */
-  modelIds: number[]
+  modelIds: string[]
 }
 
 export const scopeOfKey = (key: GatewayKey): KeyScope => ({
@@ -122,7 +122,7 @@ export const callableModels = (
 
 export interface StaleGrants {
   /** Granted model ids no longer in the catalog. */
-  deletedModelIds: number[]
+  deletedModelIds: string[]
   /** Granted models that exist but cannot be called. */
   unavailableModels: GatewayCatalogModel[]
   /** Granted connections that no longer exist. */
@@ -361,7 +361,7 @@ export function scopePayload(catalog: GatewayCatalog, scope: KeyScope) {
     return {
       allow_all_models: true,
       allowed_instance_ids: [] as string[],
-      allowed_model_ids: [] as number[],
+      allowed_model_ids: [] as string[],
     }
   const connections = new Set(
     catalog.connections.map((connection) => connection.instance_id),
