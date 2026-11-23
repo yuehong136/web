@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
-import { MoreHorizontal } from 'lucide-react'
+import { MoreHorizontal, SquarePen } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { ROUTES } from '@/constants'
@@ -17,6 +17,11 @@ import { SecondaryNavigationContent } from '@/components/patterns/secondary-navi
 import { WorkbenchQuickActions } from '@/components/layout/workbench-quick-actions'
 import { TideMark } from '@/components/layout/brand-mark'
 import { Button } from '@/components/ui/button'
+import {
+  getCommandShortcutKeys,
+  ProductCommandId,
+  useOptionalApplicationCommands,
+} from '@/lib/commands'
 import {
   ActionMenu,
   ActionMenuTrigger,
@@ -75,6 +80,7 @@ export const Sidebar = ({
       <div className="flex shrink-0 justify-center pt-space-2xs pb-space-base">
         <TideMark size="md" />
       </div>
+      <RailNewChat />
       <nav
         aria-label={t('layout.sidebar.primaryNavigation')}
         className="flex min-h-0 flex-col gap-space-xs overflow-y-auto overscroll-contain px-space-sm"
@@ -208,5 +214,44 @@ export const Sidebar = ({
         <SidebarUtilities collapsed />
       </div>
     </aside>
+  )
+}
+
+/**
+ * "New chat" stays on the rail in every section and with the panel collapsed,
+ * as in ChatGPT and Codex; it runs the same command as the shortcut.
+ */
+function RailNewChat() {
+  const { t } = useTranslation()
+  const commands = useOptionalApplicationCommands()
+  if (!commands) return null
+  const keys = getCommandShortcutKeys(ProductCommandId.NEW_CONVERSATION)
+  return (
+    <div className="flex shrink-0 justify-center px-space-sm pb-space-sm">
+      <Tooltip
+        content={t('layout.sidebar.newChat')}
+        shortcut={keys}
+        side="right"
+        asChild
+        portal
+      >
+        <button
+          type="button"
+          data-rail-new-chat
+          aria-label={t('layout.sidebar.newChat')}
+          aria-keyshortcuts={keys
+            ?.map((key) =>
+              key === '⌘' ? 'Meta' : key === 'Ctrl' ? 'Control' : key,
+            )
+            .join('+')}
+          onClick={() =>
+            void commands.execute(ProductCommandId.NEW_CONVERSATION)
+          }
+          className="flex min-h-[var(--nav-rail-item)] w-full items-center justify-center rounded-radius-lg text-fg-muted transition-colors hover:bg-fill-hover hover:text-fg focus-visible:ring-2 focus-visible:ring-line-focus focus-visible:outline-hidden focus-visible:ring-inset motion-reduce:transition-none"
+        >
+          <SquarePen className="size-icon-md" aria-hidden="true" />
+        </button>
+      </Tooltip>
+    </div>
   )
 }

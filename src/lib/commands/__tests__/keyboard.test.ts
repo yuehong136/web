@@ -59,6 +59,13 @@ describe('desktop command shortcuts', () => {
     expect(isShortcutAllowedInEditable(ProductCommandId.OPEN_PALETTE)).toBe(
       true,
     )
+    // Starting a new chat from inside the composer is the common case.
+    expect(isShortcutAllowedInEditable(ProductCommandId.NEW_CONVERSATION)).toBe(
+      true,
+    )
+    expect(
+      getKeyboardCommand(keyboard('O', { ctrlKey: true, shiftKey: true })),
+    ).toBe(ProductCommandId.NEW_CONVERSATION)
     expect(isShortcutAllowedInEditable(ProductCommandId.TOGGLE_SIDEBAR)).toBe(
       false,
     )
@@ -74,9 +81,19 @@ describe('desktop command shortcuts', () => {
         'K',
       ])
       vi.stubGlobal('navigator', { platform: 'MacIntel', userAgent: '' })
+      // Browsers keep ⌘/Ctrl+N for a window: the Web shows ⌘/Ctrl+Shift+O,
+      // the desktop app its menu accelerator.
       expect(getCommandShortcutKeys(ProductCommandId.NEW_CONVERSATION)).toEqual(
-        ['⌘', 'N'],
+        ['⌘', 'Shift', 'O'],
       )
+      document.documentElement.dataset.clientRuntime = 'desktop'
+      try {
+        expect(
+          getCommandShortcutKeys(ProductCommandId.NEW_CONVERSATION),
+        ).toEqual(['⌘', 'N'])
+      } finally {
+        delete document.documentElement.dataset.clientRuntime
+      }
       expect(
         getCommandShortcutKeys(ProductCommandId.NAVIGATE_HOME),
       ).toBeUndefined()

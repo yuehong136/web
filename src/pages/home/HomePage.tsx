@@ -9,7 +9,7 @@
  * - 模型/MCP 对话：附件、MCP 调用选项、本次访问内的对话列表
  */
 
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useAuthStore } from '@/stores/auth'
 import { useHomeStore } from '@/stores/home'
 import { WelcomeSection, ChatSection } from './components'
@@ -37,6 +37,7 @@ export const HomePage = () => {
     selectedApps,
     selectedConversationId,
     selectConversation,
+    newChatRequest,
   } = useHomeStore()
 
   // 当前选中的应用（单选）
@@ -85,6 +86,22 @@ export const HomePage = () => {
     identity,
     onConversationIdChange: handleConversationIdChange,
   })
+
+  // "New chat" from the shortcut, palette, rail or panel: a model or MCP chat
+  // is set aside like the thread header's button does (an app conversation
+  // already cleared with its id), and the composer takes focus.
+  const handledNewChat = useRef(newChatRequest)
+  useEffect(() => {
+    if (handledNewChat.current === newChatRequest) return
+    handledNewChat.current = newChatRequest
+    if (!selectedApp) startNewChat()
+    const frame = requestAnimationFrame(() =>
+      document
+        .querySelector<HTMLElement>('[data-home-composer] textarea')
+        ?.focus(),
+    )
+    return () => cancelAnimationFrame(frame)
+  }, [newChatRequest, selectedApp, startNewChat])
 
   // 模型/MCP 回合的附件；应用对话没有附件合同
   // 拖入文件的范围是整个首页；元素放在 state 里，监听随它挂载

@@ -22,12 +22,27 @@ const modifierShortcuts: Partial<Record<ProductCommandId, string>> = {
 }
 
 /**
+ * ⌘/Ctrl + Shift + key shortcuts. Browsers keep ⌘/Ctrl+N for a new window,
+ * so on the Web a new conversation is ⌘/Ctrl+Shift+O, as in ChatGPT; the
+ * desktop app keeps ⌘/Ctrl+N (its menu accelerator) and both work there.
+ */
+const shiftModifierShortcuts: Partial<Record<ProductCommandId, string>> = {
+  [ProductCommandId.NEW_CONVERSATION]: 'o',
+}
+
+const isDesktopRuntime = () =>
+  typeof document !== 'undefined' &&
+  document.documentElement.dataset.clientRuntime === 'desktop'
+
+/**
  * Commands that still run while typing in a field. Opening the palette is
- * the way out of an input; editors that bind the same keys handle the event
- * first and mark it default-prevented.
+ * the way out of an input, and a new conversation is what the composer
+ * starts from; editors that bind the same keys handle the event first and
+ * mark it default-prevented.
  */
 const editableShortcuts = new Set<ProductCommandId>([
   ProductCommandId.OPEN_PALETTE,
+  ProductCommandId.NEW_CONVERSATION,
 ])
 
 export const isShortcutAllowedInEditable = (id: ProductCommandId) =>
@@ -46,6 +61,13 @@ export const getKeyboardCommand = (
 
   if (commandModifier && !event.altKey && !event.shiftKey) {
     const match = Object.entries(modifierShortcuts).find(
+      ([, shortcut]) => shortcut === key,
+    )
+    if (match) return match[0] as ProductCommandId
+  }
+
+  if (commandModifier && event.shiftKey && !event.altKey) {
+    const match = Object.entries(shiftModifierShortcuts).find(
       ([, shortcut]) => shortcut === key,
     )
     if (match) return match[0] as ProductCommandId
@@ -79,6 +101,11 @@ export const isApplePlatform = () => {
 export const getCommandShortcutKeys = (
   id: ProductCommandId,
 ): string[] | undefined => {
+  const modifier = isApplePlatform() ? '⌘' : 'Ctrl'
+  const shifted = shiftModifierShortcuts[id]
+  // The Web shows the chord the browser lets through; the desktop app its own.
+  if (shifted && !isDesktopRuntime())
+    return [modifier, 'Shift', shifted.toUpperCase()]
   const key = modifierShortcuts[id]
-  return key ? [isApplePlatform() ? '⌘' : 'Ctrl', key.toUpperCase()] : undefined
+  return key ? [modifier, key.toUpperCase()] : undefined
 }

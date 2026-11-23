@@ -17,6 +17,7 @@ let section: SectionProps
 let chatOptions: Parameters<typeof useHomeChat>[0]
 const sendMessage =
   vi.fn<(input: string, files?: string[]) => Promise<void> | false>()
+const startNewChat = vi.fn()
 
 vi.mock('../hooks', () => ({
   useHomeChat: (options: Parameters<typeof useHomeChat>[0]) => {
@@ -31,6 +32,7 @@ vi.mock('../hooks', () => ({
       isSendPending: false,
       sendMessage,
       stopStreaming: () => undefined,
+      startNewChat,
     }
   },
 }))
@@ -52,6 +54,7 @@ const send = () => act(async () => section.onSend())
 beforeEach(async () => {
   vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true)
   sendMessage.mockReset()
+  startNewChat.mockReset()
   useHomeStore.getState().reset()
   useAuthStore.setState({
     user: { id: 'user-a', tenant_id: 'tenant-a' } as UserInfo,
@@ -108,4 +111,14 @@ it('shows each conversation its own draft', async () => {
   await act(async () => useHomeStore.getState().selectConversation(null))
 
   expect(section.inputValue).toBe('写给新会话')
+})
+
+it('starts a new model chat on every "new chat" request, not on mount', async () => {
+  // A model chat has no conversation id to clear, so the request count is
+  // what reaches Home (shortcut, palette, rail and panel button alike).
+  expect(startNewChat).not.toHaveBeenCalled()
+  await act(async () => useHomeStore.getState().startNewConversation())
+  expect(startNewChat).toHaveBeenCalledOnce()
+  await act(async () => useHomeStore.getState().startNewConversation())
+  expect(startNewChat).toHaveBeenCalledTimes(2)
 })

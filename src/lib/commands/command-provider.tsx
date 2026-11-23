@@ -91,8 +91,13 @@ export const ApplicationCommandProvider: React.FC<React.PropsWithChildren> = ({
         fallbackTitle: 'New conversation',
         category: CommandCategory.CONVERSATION,
         scope: CommandScope.GLOBAL,
-        shortcut: '⌘/Ctrl N',
+        shortcut:
+          platform.kind === PlatformKind.DESKTOP
+            ? '⌘/Ctrl N'
+            : '⌘/Ctrl Shift O',
         run: () => {
+          // Home clears the current chat (free or app mode) and focuses its
+          // composer on the request, also when it is already showing.
           useHomeStore.getState().startNewConversation()
           navigate(ROUTES.HOME)
         },

@@ -29,6 +29,10 @@ export interface HomeState {
 
   // 当前选中的模型 ID
   selectedModelId: string
+
+  // Counts "new chat" requests (shortcut, palette, rail, panel); Home clears
+  // its current chat and focuses the composer on each, in either mode.
+  newChatRequest: number
 }
 
 export interface HomeActions {
@@ -68,6 +72,7 @@ const initialState: HomeState = {
   selectedConversationId: null,
   previousModelId: '',
   selectedModelId: '',
+  newChatRequest: 0,
 }
 
 export const useHomeStore = create<HomeState & HomeActions>((set, get) => ({
@@ -124,8 +129,11 @@ export const useHomeStore = create<HomeState & HomeActions>((set, get) => ({
   },
 
   startNewConversation: () => {
-    // 保持当前应用选择，只清空对话 ID
-    set({ selectedConversationId: null })
+    // 保持当前应用选择，只清空对话 ID；模型/MCP 对话没有 ID，由计数通知首页
+    set((state) => ({
+      selectedConversationId: null,
+      newChatRequest: state.newChatRequest + 1,
+    }))
   },
 
   selectSkill: (server) => {
