@@ -40,7 +40,7 @@ Multi-RAG Frontend 是企业级 AI 前端，覆盖：
 | 原子组件        | Radix UI                                                                      |
 | 表单            | react-hook-form + zod                                                         |
 | 图标            | 界面图标 lucide-react；品牌标识自有 SVG + @lobehub/icons-static-svg           |
-| 聊天 UI         | @ant-design/x 套件（x、x-card、x-markdown、x-sdk）                            |
+| 聊天 UI         | 自有 chat 组件（components/chat、patterns/chat）+ @ant-design/x-card（A2UI）  |
 | 画布            | @xyflow/react、@antv/g6                                                       |
 | 编辑器          | @monaco-editor/react、@lexical/react                                          |
 | Markdown        | @ant-design/x-markdown（聊天、预览、文档统一渲染）                            |

@@ -472,8 +472,8 @@ export default tseslint.config([
   {
     // Tide guard: antd is no longer a dependency; UI primitives come from
     // src/components/ui/**. The rule keeps it from coming back. The kept
-    // `@ant-design/x-markdown`, `x-card` and `x-sdk` are separate packages
-    // and stay allowed.
+    // `@ant-design/x-markdown` and `x-card` are separate packages and stay
+    // allowed.
     files: ['src/**/*.{ts,tsx}'],
     ignores: ['**/__tests__/**', '**/*.test.{ts,tsx}'],
     plugins: {

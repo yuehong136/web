@@ -111,7 +111,7 @@
 
 #### 对话界面（强制）
 
-- 首页、探索、应用预览、Agent 运行与分享对话、搜索共用一套：消息列表 `components/chat/chat-transcript.tsx`（基于 `patterns/chat/message.tsx`），输入框 `components/chat/chat-composer.tsx`（基于 `patterns/chat/prompt-input.tsx`，附件托盘 `prompt-input-attachments.tsx`），滚动 `patterns/chat/chat-scroll-viewport.tsx`（发送后锚定新问题、流式期间不追底），会话列表 `patterns/conversation-list.tsx`。`@ant-design/x` 已移除，不要再引入；保留的是 `@ant-design/x-markdown`、`x-card`、`x-sdk`。
+- 首页、探索、应用预览、Agent 运行与分享对话、搜索共用一套：消息列表 `components/chat/chat-transcript.tsx`（基于 `patterns/chat/message.tsx`），输入框 `components/chat/chat-composer.tsx`（基于 `patterns/chat/prompt-input.tsx`，附件托盘 `prompt-input-attachments.tsx`），滚动 `patterns/chat/chat-scroll-viewport.tsx`（发送后锚定新问题、流式期间不追底），会话列表 `patterns/conversation-list.tsx`。`@ant-design/x` 与 `x-sdk` 已移除，不要再引入；保留的是 `@ant-design/x-markdown`（经 `StreamingXMarkdown` 门面）与 `x-card`（A2UI）。
 - `message.tsx`、`prompt-input.tsx` 改编自 Vercel AI Elements（Apache-2.0），保留文件头的来源、许可证与修改说明；不引入 AI SDK 运行时。
 - 回答正文继续用 XMarkdown；Mermaid 用 `components/chat/mermaid-diagram.tsx`，代码高亮统一走 Shiki（`CodeBlock`）。
 
@@ -183,7 +183,7 @@
 - ❌ 用 `style={{ color, backgroundColor, … }}` 表达普通视觉语义（仅允许动画、进度比例等动态计算值）
 - ❌ 第二套全屏页壳、独立白卡容器、备用根布局
 - ✅ 优先级：`@/components/ui/*` → `@/components/patterns/*` → `@/components/page-templates/*`
-- ❌ 引入 `antd`（含 `antd/*` 子路径）：antd 已从依赖中移除，控件用 `src/components/ui/**`（水印用 `ui/watermark`）；`@ant-design/x-markdown`、`x-card`、`x-sdk` 不受限。由 `design-guard/no-direct-antd-import`（error，全 `src`）把关，防止重新引入。
+- ❌ 引入 `antd`（含 `antd/*` 子路径）：antd 已从依赖中移除，控件用 `src/components/ui/**`（水印用 `ui/watermark`）；`@ant-design/x-markdown`、`x-card` 不受限。由 `design-guard/no-direct-antd-import`（error，全 `src`）把关，防止重新引入。
 
 #### 作用域主题
 

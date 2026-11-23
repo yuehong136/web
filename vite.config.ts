@@ -309,14 +309,13 @@ export default defineConfig(({ mode }) => {
                   ]),
               },
               {
-                // Answer Markdown, A2UI cards, the chat SDK and their icons.
+                // Answer Markdown, A2UI cards and their icons.
                 name: 'vendor-x-render',
                 priority: 95,
                 test: (id: string) =>
                   isAnyPackage(id, [
                     '@ant-design/x-card',
                     '@ant-design/x-markdown',
-                    '@ant-design/x-sdk',
                   ]) || isPackagePrefix(id, '@ant-design/'),
               },
               {
