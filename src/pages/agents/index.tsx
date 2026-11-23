@@ -5,7 +5,11 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { CollectionTemplate } from '@/components/page-templates'
-import { PageErrorState, PageLoadingState, Pager } from '@/components/patterns'
+import {
+  PageErrorState,
+  CollectionSkeleton,
+  Pager,
+} from '@/components/patterns'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { toast } from '@/lib/toast'
@@ -259,10 +263,11 @@ export default function AgentsPage() {
           )
         }
         state={pageState}
+        refreshing={listQuery.isFetching && !listQuery.isLoading}
         loadingState={
-          <PageLoadingState
-            title={t('agents.loadingTitle')}
-            description={t('agents.loadingDescription')}
+          <CollectionSkeleton
+            view={viewMode === 'list' ? 'list' : 'grid'}
+            label={t('agents.loadingTitle')}
           />
         }
         errorState={

@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { useParams } from 'react-router-dom'
 import { agentAPI } from '@/api/agent'
 import {
@@ -16,7 +16,6 @@ import type {
   AgentExternalInputs,
   AgentInputFormSchema,
   AgentListParams,
-  AgentListResponse,
   AgentSessionListParams,
   AgentSessionListResponse,
   AgentTemplate,
@@ -112,15 +111,17 @@ export const useFetchAgentList = (params: AgentListParams = {}) => {
     queryKey: agentQueryKeys.list(queryParams),
     queryFn: async () =>
       adaptAgentListResponse(await agentAPI.listAgents(queryParams)),
-    placeholderData: () =>
-      ({ canvas: [], total: 0 }) satisfies AgentListResponse,
+    // Keep the current page while the next page or search loads.
+    placeholderData: keepPreviousData,
   })
 
   return {
     agents: query.data?.canvas || [],
     data: query.data,
     total: query.data?.total || 0,
-    isLoading: query.isFetching,
+    /** Nothing to show yet (first load); see isFetching for refreshes. */
+    isLoading: query.isLoading,
+    isFetching: query.isFetching,
     isError: query.isError,
     error: query.error,
     refetch: query.refetch,

@@ -71,10 +71,10 @@ export interface ResourceListContainerProps {
 }
 
 export interface ResourceListSkeletonRowProps {
-  /** 骨架屏列配置：宽度数组 */
+  /** 名称之后各列占位条的宽度 */
   columnWidths?: string[]
-  /** 自定义 grid 列布局 */
-  gridCols?: string
+  /** 第几行，决定图标块的身份色 */
+  index?: number
 }
 
 // ============================================================================
@@ -271,35 +271,42 @@ export const ResourceListRow: React.FC<ResourceListRowProps> = memo(
 )
 ResourceListRow.displayName = 'ResourceListRow'
 
+/** Identity tints the placeholder tiles cycle through, as real items do. */
+const SKELETON_TILE_TONES = [
+  'bg-avatar-1-bg',
+  'bg-avatar-5-bg',
+  'bg-avatar-7-bg',
+  'bg-avatar-3-bg',
+  'bg-avatar-6-bg',
+  'bg-avatar-2-bg',
+] as const
+
 /**
- * 资源列表骨架屏行
+ * 资源列表骨架屏行：DreamJira 行高（44px，紧凑 36px）、6px 圆角，保留彩色
+ * 图标块的位置。`columnWidths` 是名称之后各列占位条的宽度。
  */
 export const ResourceListSkeletonRow: React.FC<
   ResourceListSkeletonRowProps
-> = ({
-  columnWidths = ['w-14', 'w-8', 'w-8', 'w-12', 'w-28'],
-  gridCols = 'grid-cols-[2fr_repeat(5,1fr)_60px]',
-}) => (
+> = ({ columnWidths = ['w-16', 'w-24'], index = 0 }) => (
   <div
-    className={cn('grid h-[68px] items-center gap-4 rounded-xl px-4', gridCols)}
+    aria-hidden="true"
+    data-slot="resource-row-skeleton"
+    className="flex h-[var(--row-height)] items-center gap-space-base rounded-radius-md px-space-sm"
   >
-    {/* 名称列骨架 */}
-    <div className="flex items-center gap-4">
-      <div className="h-12 w-12 animate-pulse rounded-xl bg-sunken" />
-      <div className="flex flex-col gap-2">
-        <div className="h-4 w-32 animate-pulse rounded bg-sunken" />
-        <div className="h-3 w-48 animate-pulse rounded bg-sunken" />
-      </div>
-    </div>
-    {/* 中间列骨架 */}
+    <div
+      className={cn(
+        'size-7 shrink-0 rounded-radius-md opacity-70',
+        SKELETON_TILE_TONES[index % SKELETON_TILE_TONES.length],
+      )}
+    />
+    <div className="h-3 w-40 max-w-[40%] skeleton-shimmer rounded-radius-sm" />
+    <span className="flex-1" />
     {columnWidths.map((width, i) => (
       <div
         key={i}
-        className={cn('h-4 animate-pulse rounded bg-sunken', width)}
+        className={cn('h-3 skeleton-shimmer rounded-radius-sm', width)}
       />
     ))}
-    {/* 操作列留空 */}
-    <div />
   </div>
 )
 ResourceListSkeletonRow.displayName = 'ResourceListSkeletonRow'

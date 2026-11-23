@@ -67,9 +67,10 @@ export const PageLoadingState: React.FC<PageLoadingStateProps> = ({
 }) => {
   const { t } = useTranslation()
   return (
-    <PageStateShell {...props}>
+    // Announced once, politely, like the list skeletons.
+    <PageStateShell role="status" aria-live="polite" aria-busy {...props}>
       <div className="flex h-12 w-12 items-center justify-center rounded-radius-full bg-fill-muted text-fg-subtle">
-        <Loader2 className="h-6 w-6 animate-spin" />
+        <Loader2 className="h-6 w-6 animate-spin" aria-hidden="true" />
       </div>
       <div className="flex flex-col gap-space-xs">
         <h2 className="text-lg font-semibold text-fg">

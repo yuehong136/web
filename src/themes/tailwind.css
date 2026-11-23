@@ -85,6 +85,18 @@
   --animate-slide-down: slideDown 0.3s ease-out;
   --animate-fade-up: fadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   --animate-pulse-slow: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  /* A thin bar that sweeps while a list refreshes behind its current page. */
+  --animate-indeterminate: indeterminate 1.2s cubic-bezier(0.4, 0, 0.2, 1)
+    infinite;
+
+  @keyframes indeterminate {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(300%);
+    }
+  }
 
   @keyframes fadeIn {
     from {
@@ -186,5 +198,30 @@
   }
   to {
     background-position: -200% 0;
+  }
+}
+
+/* Skeletons sweep a soft highlight across the placeholder, the same motion
+ * as the AI text shimmer, instead of blinking the whole block. Reduced motion
+ * stops it on the first frame (appearance.css). */
+@utility skeleton-shimmer {
+  background-color: var(--color-fill-muted);
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--color-fill-hover) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+  animation: skeleton-sweep 1.6s var(--ease-in-out) infinite;
+}
+
+@keyframes skeleton-sweep {
+  from {
+    background-position: 150% 0;
+  }
+  to {
+    background-position: -50% 0;
   }
 }

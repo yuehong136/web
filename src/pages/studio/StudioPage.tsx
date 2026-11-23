@@ -8,7 +8,7 @@ import { CollectionTemplate } from '@/components/page-templates'
 import {
   BulkActionBar,
   PageErrorState,
-  PageLoadingState,
+  CollectionSkeleton,
   Pager,
 } from '@/components/patterns'
 import { AppEmptyState } from '@/components/studio'
@@ -45,6 +45,7 @@ export function StudioPage() {
   const {
     data,
     loading,
+    fetching,
     isError,
     refetch,
     searchString,
@@ -157,10 +158,11 @@ export function StudioPage() {
           )
         }
         state={state}
+        refreshing={fetching && !loading}
         loadingState={
-          <PageLoadingState
-            title={t('studio.page.loadingTitle')}
-            description={t('studio.page.loadingDescription')}
+          <CollectionSkeleton
+            view={view === 'list' ? 'list' : 'grid'}
+            label={t('studio.page.loadingTitle')}
           />
         }
         errorState={

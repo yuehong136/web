@@ -49,6 +49,11 @@ export interface CollectionTemplateProps {
   /** Opens a right-hand Inspector beside the body. */
   inspector?: InspectorPanelProps
   /**
+   * The next page or search is loading behind the current one (React Query
+   * keepPreviousData): a thin bar sweeps over the body, which stays put.
+   */
+  refreshing?: boolean
+  /**
    * @deprecated `inset` keeps the padded `ListPageTemplate` look for pages not
    * yet migrated. New pages use the default `flush` layout.
    */
@@ -84,6 +89,7 @@ export function CollectionTemplate({
   footerNote,
   bulkActions,
   inspector,
+  refreshing = false,
   appearance = 'flush',
   className,
   children,
@@ -143,7 +149,9 @@ export function CollectionTemplate({
       ) : (
         <>
           <div className="relative flex min-h-0 flex-1 flex-col">
+            {refreshing ? <RefreshBar /> : null}
             <div
+              aria-busy={refreshing || undefined}
               data-scroll-root="collection-body"
               className={cn(
                 'scroll-area min-h-0 flex-1 overflow-y-auto',
@@ -200,6 +208,19 @@ export function CollectionTemplate({
         </div>
       ) : null}
       {inspector ? <Inspector {...inspector}>{body}</Inspector> : body}
+    </div>
+  )
+}
+
+/** Indeterminate 2px bar; decorative, the body carries aria-busy. */
+function RefreshBar() {
+  return (
+    <div
+      aria-hidden="true"
+      data-slot="collection-refresh"
+      className="pointer-events-none absolute inset-x-0 top-0 z-10 h-0.5 overflow-hidden"
+    >
+      <div className="h-full w-1/3 animate-indeterminate rounded-radius-full bg-accent-solid motion-reduce:hidden" />
     </div>
   )
 }

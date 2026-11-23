@@ -55,7 +55,7 @@ export const useKnowledgeListPage = () => {
   const keywords = useDebouncedValue(searchQuery, SEARCH_DEBOUNCE_MS)
 
   // Paging, sort and keywords are part of the query key, so changes refetch.
-  const { knowledgeBases, total, isLoading, isError, refetch } =
+  const { knowledgeBases, total, isLoading, isFetching, isError, refetch } =
     useFetchKnowledgeList({
       page: currentPage,
       page_size: pageSize,
@@ -170,6 +170,7 @@ export const useKnowledgeListPage = () => {
     knowledgeBases,
     total,
     isLoading,
+    isFetching,
     isError,
     refetch,
     viewMode,

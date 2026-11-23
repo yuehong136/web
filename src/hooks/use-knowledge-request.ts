@@ -10,7 +10,12 @@
  * - 支持缓存失效和自动刷新
  */
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  keepPreviousData,
+} from '@tanstack/react-query'
 import { useParams } from 'react-router-dom'
 import { knowledgeAPI } from '@/api/knowledge'
 import { MutationErrorFeedback } from '@/lib/mutation-error-feedback'
@@ -64,7 +69,7 @@ export const useFetchKnowledgeList = (
     owner_ids,
   } = params
 
-  const { data, isFetching, isError, error, refetch } = useQuery({
+  const { data, isLoading, isFetching, isError, error, refetch } = useQuery({
     queryKey: knowledgeKeys.list({
       page,
       page_size,
@@ -90,12 +95,17 @@ export const useFetchKnowledgeList = (
     gcTime: 10 * 60 * 1000,
     // 窗口聚焦时不自动刷新（可选）
     refetchOnWindowFocus: false,
+    // Paging and searching keep the current page on screen until the next
+    // arrives, instead of swapping the whole list for a loading state.
+    placeholderData: keepPreviousData,
   })
 
   return {
     knowledgeBases: data?.kbs ?? [],
     total: data?.total ?? 0,
-    isLoading: isFetching,
+    /** Nothing to show yet (first load); see isFetching for refreshes. */
+    isLoading,
+    isFetching,
     isError,
     error,
     refetch,

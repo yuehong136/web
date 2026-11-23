@@ -56,6 +56,8 @@ html[data-preset] {
   --control-height-sm: calc(1.75rem * var(--text-scale, 1));
   --control-height: calc(2rem * var(--text-scale, 1));
   --control-height-lg: calc(2.5rem * var(--text-scale, 1));
+  /* DreamJira list rows: 44px, 36px compact. */
+  --row-height: calc(2.75rem * var(--text-scale, 1));
   --control-padding-x-sm: 8px;
   --control-padding-x: 12px;
   --control-padding-x-lg: 16px;
@@ -76,6 +78,7 @@ html[data-preset] {
   --control-height-sm: calc(1.5rem * var(--text-scale, 1));
   --control-height: calc(1.75rem * var(--text-scale, 1));
   --control-height-lg: calc(2rem * var(--text-scale, 1));
+  --row-height: calc(2.25rem * var(--text-scale, 1));
   --control-padding-x-sm: 6px;
   --control-padding-x: 10px;
   --control-padding-x-lg: 12px;

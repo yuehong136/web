@@ -8,7 +8,7 @@ import {
   InlineStats,
   PageEmptyState,
   PageErrorState,
-  PageLoadingState,
+  CollectionSkeleton,
   Pager,
 } from '@/components/patterns'
 import { PAGE_SIZE_OPTIONS } from './list/constants'
@@ -66,10 +66,11 @@ export const KnowledgeListPage: FC = () => {
           )
         }
         state={state}
+        refreshing={page.isFetching && !page.isLoading}
         loadingState={
-          <PageLoadingState
-            title={t('knowledge.list.loadingTitle')}
-            description={t('knowledge.common.preparing')}
+          <CollectionSkeleton
+            view={page.viewMode === 'list' ? 'list' : 'grid'}
+            label={t('knowledge.list.loadingTitle')}
           />
         }
         errorState={

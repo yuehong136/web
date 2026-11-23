@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  keepPreviousData,
+} from '@tanstack/react-query'
 import { useState, useCallback } from 'react'
 import { dialogAPI, type DialogListResponse } from '@/api/dialog'
 import { toast } from '@/lib/toast'
@@ -43,7 +48,7 @@ export const useFetchDialogList = (
     setPagination((prev) => ({ ...prev, current: 1 }))
   }, [])
 
-  const { data, isFetching, isError, error, refetch } =
+  const { data, isLoading, isFetching, isError, error, refetch } =
     useQuery<DialogListResponse>({
       queryKey: dialogKeys.list({
         keywords: debouncedSearchString,
@@ -56,8 +61,8 @@ export const useFetchDialogList = (
           page: pagination.current,
           page_size: pagination.pageSize,
         }),
-      // 使用 placeholderData 而不是 initialData，确保触发真实的 API 请求
-      placeholderData: { dialogs: [], total: 0 },
+      // Keep the current page while the next page or search loads.
+      placeholderData: keepPreviousData,
       staleTime: 0,
       gcTime: 5 * 60 * 1000, // 5 分钟
       refetchOnWindowFocus: false,
@@ -66,7 +71,9 @@ export const useFetchDialogList = (
 
   return {
     data: data ?? { dialogs: [], total: 0 },
-    loading: isFetching,
+    /** Nothing to show yet (first load); see fetching for refreshes. */
+    loading: isLoading,
+    fetching: isFetching,
     isError,
     error,
     refetch,
