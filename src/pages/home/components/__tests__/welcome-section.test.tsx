@@ -118,12 +118,12 @@ it('greets with the page heading once and only the counts that loaded', async ()
   const chip = host.querySelector('[data-home-greeting]')!
   expect(chip.querySelector('[data-tide-mark]')).not.toBeNull()
   expect(chip.textContent).toMatch(
-    /Good (morning|afternoon|evening) · 3 knowledge bases and 2 MCP services available/,
+    /Good (morning|afternoon|evening) · 3 knowledge bases and 2 connectors available/,
   )
 
   overview.current = { ...overview.current, knowledgeTotal: null, mcpTotal: 1 }
   await render()
-  expect(chip.textContent).toMatch(/· 1 MCP service available$/)
+  expect(chip.textContent).toMatch(/· 1 connector available$/)
 
   overview.current = { ...overview.current, mcpTotal: null }
   await render()

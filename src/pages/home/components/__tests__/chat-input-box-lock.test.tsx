@@ -90,7 +90,7 @@ it('locks the request scope and send while a send is being prepared', async () =
 
   expect(host.querySelector('textarea')?.disabled).toBe(false)
   expect(byLabel('提交')?.disabled).toBe(true)
-  expect(byLabel('选择技能或应用')?.disabled).toBe(true)
+  expect(byLabel('选择连接器或应用')?.disabled).toBe(true)
   expect(byLabel('移除 流式引用验证')?.disabled).toBe(true)
   expect(
     host
@@ -105,7 +105,7 @@ it('blocks only send while the selected history loads', async () => {
 
   expect(host.querySelector('textarea')?.disabled).toBe(false)
   expect(byLabel('提交')?.disabled).toBe(true)
-  expect(byLabel('选择技能或应用')?.disabled).toBe(false)
+  expect(byLabel('选择连接器或应用')?.disabled).toBe(false)
   expect(byLabel('移除 流式引用验证')?.disabled).toBe(false)
   expect(
     host

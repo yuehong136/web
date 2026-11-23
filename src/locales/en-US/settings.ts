@@ -768,7 +768,7 @@ export default {
       datasource: 'Data sources',
       modelProviders: 'Model providers',
       modelGateway: 'Model gateway',
-      mcp: 'MCP',
+      mcp: 'Connectors · MCP',
       mcpTools: 'MCP tools',
       mcpTest: 'MCP test',
       mcpBatch: 'MCP batch',

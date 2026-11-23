@@ -243,7 +243,7 @@ const menuItem = (text: string) =>
   )!
 const rowNames = () =>
   Array.from(
-    container.querySelectorAll('table[aria-label="MCP servers"] tbody tr'),
+    container.querySelectorAll('table[aria-label="Connectors"] tbody tr'),
   ).map(
     (row) => row.querySelector('td button:not([role="checkbox"])')?.textContent,
   )

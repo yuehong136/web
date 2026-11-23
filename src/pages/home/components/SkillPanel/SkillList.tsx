@@ -1,7 +1,7 @@
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
-import { Globe, Server, Wrench } from 'lucide-react'
+import { Globe, Plug, Server, Wrench } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { MCPServer } from '@/types/mcp'
 import { EntityAvatar } from '@/components/patterns/entity-avatar'
@@ -48,7 +48,7 @@ export const SkillList: React.FC<SkillListProps> = ({
   if (servers.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-8 text-center">
-        <Wrench className="mb-2 h-8 w-8 text-fg-subtle" />
+        <Plug className="mb-2 h-8 w-8 text-fg-subtle" aria-hidden="true" />
         <p className="text-sm text-fg-muted">
           {searchTerm
             ? t('home.skillPanel.noSkillMatch')

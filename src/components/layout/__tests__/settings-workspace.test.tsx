@@ -231,7 +231,7 @@ it('defaults Settings to Profile, preserves its return location, and orders acco
     'Appearance',
     'Model providers',
     'Model gateway',
-    'MCP',
+    'Connectors · MCP',
     'Data sources',
     'Channels',
     'RAG API keys',
@@ -335,7 +335,14 @@ it('keeps secondary destinations in More and routes feature navigation into the 
     Array.from(document.querySelectorAll('[role="menuitem"]')).map(
       (item) => item.textContent,
     ),
-  ).toEqual(['Search', 'Skill library', 'Memory', 'Studio', 'Tools', 'MCP'])
+  ).toEqual([
+    'Search',
+    'Skill library',
+    'Memory',
+    'Studio',
+    'Tools',
+    'Connectors',
+  ])
   await act(async () => {
     document.dispatchEvent(
       new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }),

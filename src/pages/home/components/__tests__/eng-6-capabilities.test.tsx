@@ -54,7 +54,7 @@ describe('Home capability affordances', () => {
 
     expect(container.querySelectorAll('button')).toHaveLength(1)
     expect(
-      container.querySelector('[aria-label="选择技能或应用"]'),
+      container.querySelector('[aria-label="选择连接器或应用"]'),
     ).not.toBeNull()
     expect(container.querySelector('[aria-label="添加附件"]')).toBeNull()
     expect(container.querySelector('[aria-label="获取灵感"]')).toBeNull()

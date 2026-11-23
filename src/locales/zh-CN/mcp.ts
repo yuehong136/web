@@ -149,7 +149,7 @@ export default {
       cancel: '取消',
     },
     servers: {
-      title: 'MCP 服务器',
+      title: '连接器',
       description: '连接外部工具，管理工作区可用的 MCP 服务器。',
       create: '创建服务器',
       playgroundTitle: 'MCP 实验场',

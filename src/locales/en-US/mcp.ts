@@ -152,7 +152,7 @@ export default {
       cancel: 'Cancel',
     },
     servers: {
-      title: 'MCP servers',
+      title: 'Connectors',
       description:
         'Connect external tools and manage the servers available to your workspace.',
       create: 'Create server',

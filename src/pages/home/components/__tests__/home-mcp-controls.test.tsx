@@ -122,7 +122,7 @@ it('offers attachments and MCP call options on model and MCP turns', async () =>
   const paperclip = byLabel('Add attachment')!
   expect(paperclip).toBeTruthy()
   // MCP options appear once an MCP service is in scope.
-  expect(byLabel('MCP tool settings')).toBeNull()
+  expect(byLabel('Connector call settings')).toBeNull()
   await act(async () =>
     useHomeStore.getState().selectSkill({
       id: 'server-a',
@@ -131,7 +131,7 @@ it('offers attachments and MCP call options on model and MCP turns', async () =>
       url: 'https://fixture.invalid',
     }),
   )
-  expect(byLabel('MCP tool settings')).toBeTruthy()
+  expect(byLabel('Connector call settings')).toBeTruthy()
 
   await act(async () => paperclip.click())
   expect(paperclip.getAttribute('aria-pressed')).toBe('true')
@@ -151,7 +151,7 @@ it('hides attachments while an app answers', async () => {
   )
   await render(<Composer enabled={false} />)
   expect(byLabel('Add attachment')).toBeNull()
-  expect(byLabel('MCP tool settings')).toBeNull()
+  expect(byLabel('Connector call settings')).toBeNull()
 })
 
 it('refuses files over the size limit before uploading', async () => {

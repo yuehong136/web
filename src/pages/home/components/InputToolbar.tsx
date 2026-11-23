@@ -38,9 +38,9 @@ export const InputToolbar: FC<InputToolbarProps> = ({
         ref={atButtonRef}
         onClick={onAtClick}
         disabled={disabled}
-        aria-label={t('home.input.selectSkills', '选择技能或应用')}
+        aria-label={t('home.input.selectSkills', '选择连接器或应用')}
         aria-pressed={isSkillPanelOpen}
-        title={t('home.input.selectSkills', '选择技能或应用')}
+        title={t('home.input.selectSkills', '选择连接器或应用')}
         className={cn(
           COMPOSER_PILL,
           isSkillPanelOpen || hasSelectedItems

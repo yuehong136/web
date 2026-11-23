@@ -3,7 +3,7 @@ export default {
     empty: {
       title: 'What can AI help you with today?',
       description:
-        'Ask directly and the model answers; @ an app to search its knowledge bases, or @ an MCP service to use its tools.',
+        'Ask directly and the model answers; @ an app to search its knowledge bases, or @ a connector (MCP service) to use its tools.',
       suggestions: 'Ways to start',
     },
     starters: {
@@ -30,8 +30,8 @@ export default {
       evening: 'Good evening',
       knowledge_one: '{{count}} knowledge base',
       knowledge_other: '{{count}} knowledge bases',
-      mcp_one: '{{count}} MCP service',
-      mcp_other: '{{count}} MCP services',
+      mcp_one: '{{count}} connector',
+      mcp_other: '{{count}} connectors',
       availableOne: '{{item}} available',
       availableBoth: '{{first}} and {{second}} available',
     },
@@ -48,11 +48,11 @@ export default {
     },
     input: {
       welcomePlaceholder:
-        'Message me or assign a task — type @ to add an app or skill',
+        'Message me or assign a task — type @ to add an app or connector',
       chatPlaceholder: 'Type a message, press Enter to send',
       loadingHistory: 'Loading conversation history...',
       stop: 'Stop receiving',
-      selectSkills: 'Select skills or apps',
+      selectSkills: 'Select connectors or apps',
       addAttachment: 'Add attachment',
       inspiration: 'Get inspiration',
       selectModelFirst: 'Select a chat model first.',
@@ -87,12 +87,12 @@ export default {
       chart: 'Charts',
     },
     skillPanel: {
-      loadFailed: 'Failed to load skills',
-      searchPlaceholder: 'Search skills or apps',
-      skills: 'Skills',
+      loadFailed: 'Failed to load connectors',
+      searchPlaceholder: 'Search connectors or apps',
+      skills: 'Connectors',
       apps: 'Apps',
-      noSkillMatch: 'No matching skills',
-      noSkills: 'No skills available',
+      noSkillMatch: 'No matching connectors',
+      noSkills: 'No connectors available',
       noAppMatch: 'No matching apps',
       noApps: 'No apps available',
       historyTitle: '{{name}} conversation history',
@@ -102,7 +102,7 @@ export default {
       minutesAgo: '{{count}} minutes ago',
       hoursAgo: '{{count}} hours ago',
       daysAgo: '{{count}} days ago',
-      addInSettings: 'Add MCP services in Settings',
+      addInSettings: 'Add connectors in Settings',
       selectedCount: '{{count}} selected',
     },
     attachments: {
@@ -129,8 +129,9 @@ export default {
       dropDescription: 'Images, documents and more are supported',
     },
     mcpOptions: {
-      title: 'MCP tool settings',
-      description: 'How the selected MCP services are called in this chat.',
+      title: 'Connector call settings',
+      description:
+        'How the selected connectors (MCP services) are called in this chat.',
       timeout: 'Timeout (ms)',
       timeoutHint: 'Longest wait for one tool call, {{min}}–{{max}} ms',
       verbose: 'Detailed tool calls',

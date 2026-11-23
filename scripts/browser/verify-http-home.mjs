@@ -39,7 +39,7 @@ export async function verifyHttpHome(browser, { baseURL, output }) {
     const input = page.locator('textarea[aria-label]').first()
     await input.waitFor()
     await page
-      .getByRole('button', { name: 'Select skills or apps', exact: true })
+      .getByRole('button', { name: 'Select connectors or apps', exact: true })
       .click()
     await page.getByRole('button', { name: 'Apps', exact: true }).click()
     await page

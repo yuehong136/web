@@ -718,7 +718,7 @@ export default {
       datasource: '数据源',
       modelProviders: '模型提供商',
       modelGateway: '模型网关',
-      mcp: 'MCP',
+      mcp: '连接器 · MCP',
       mcpTools: 'MCP 工具',
       mcpTest: 'MCP 测试',
       mcpBatch: 'MCP 批处理',

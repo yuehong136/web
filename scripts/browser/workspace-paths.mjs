@@ -53,7 +53,7 @@ async function colorMode(page, value) {
 
 async function selectFixtureApp(page) {
   await page
-    .getByRole('button', { name: 'Select skills or apps', exact: true })
+    .getByRole('button', { name: 'Select connectors or apps', exact: true })
     .click()
   await page.getByRole('button', { name: 'Apps', exact: true }).click()
   await page
@@ -368,7 +368,7 @@ export async function verifyWorkspacePaths(page, { baseURL, output, state }) {
   networks.Home = await network(page)
 
   await page
-    .getByRole('button', { name: 'Select skills or apps', exact: true })
+    .getByRole('button', { name: 'Select connectors or apps', exact: true })
     .click()
   await page.getByRole('button', { name: 'Apps', exact: true }).click()
   await page

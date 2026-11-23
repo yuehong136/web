@@ -235,7 +235,7 @@ async function measurePhase(page, name, phases, action) {
 
 async function selectApp(page) {
   await page
-    .getByRole('button', { name: 'Select skills or apps', exact: true })
+    .getByRole('button', { name: 'Select connectors or apps', exact: true })
     .click()
   await page.getByRole('button', { name: 'Apps', exact: true }).click()
   await page
