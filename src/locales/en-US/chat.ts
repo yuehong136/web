@@ -169,6 +169,17 @@ export default {
       reset: 'Reset view',
       download: 'Download SVG',
     },
+    code: {
+      lines_one: '{{count}} line',
+      lines_other: '{{count}} lines',
+      wrap: 'Wrap lines',
+      download: 'Download code',
+      expand: 'View full size',
+      showRest_one: 'Show {{count}} more line',
+      showRest_other: 'Show {{count}} more lines',
+      fold: 'Collapse',
+      filename: 'snippet.{{ext}}',
+    },
     table: {
       region: 'Table',
       copy: 'Copy table',

@@ -55,3 +55,27 @@
     monospace
   );
 }
+
+/* Code keeps its lines and scrolls sideways; the wrap toggle opts in. The
+ * doubled class outranks x-markdown's `.x-markdown pre` pre-wrap rules,
+ * which it injects after this sheet. */
+.code-block.code-block :is(pre, code) {
+  white-space: pre;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+.code-block.code-block[data-wrap] :is(pre, code) {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* A folded block shows its first lines and fades into the "show the rest"
+ * control; the fold size comes from the component (--code-fold-lines). */
+.code-block[data-folded] .code-block-body {
+  max-height: calc(
+    var(--code-fold-lines, 30) * 1.65 * 0.875rem * var(--text-scale, 1) +
+      var(--space-base) * 2
+  );
+  overflow: hidden;
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 3rem), transparent);
+}

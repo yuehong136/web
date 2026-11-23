@@ -162,6 +162,15 @@ export default {
       reset: '复位',
       download: '下载 SVG',
     },
+    code: {
+      lines_other: '{{count}} 行',
+      wrap: '自动换行',
+      download: '下载代码',
+      expand: '放大查看',
+      showRest_other: '展开其余 {{count}} 行',
+      fold: '收起',
+      filename: '代码片段.{{ext}}',
+    },
     table: {
       region: '表格',
       copy: '复制表格',
