@@ -197,7 +197,7 @@ const ChunkSidePanel = ({
       <div className="flex shrink-0 items-end gap-space-sm border-b border-line-subtle pr-space-sm pl-space-md">
         <TabsList
           aria-label={t('knowledge.chunks.workspace.panelLabel')}
-          className="min-w-0 flex-1 overflow-x-auto border-b-0"
+          className="scrollbar-none min-w-0 flex-1 overflow-x-auto border-b-0"
         >
           {tabs.map((item) => (
             <TabsTrigger key={item.value} value={item.value}>

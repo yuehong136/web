@@ -73,7 +73,7 @@ export function EvidencePanel({
       data-workspace-resources
     >
       <div className="flex shrink-0 items-stretch gap-space-sm border-b border-line ps-space-md pe-space-sm">
-        <TabsList className="min-w-0 overflow-x-auto border-b-0">
+        <TabsList className="scrollbar-none min-w-0 overflow-x-auto border-b-0">
           <TabsTrigger value="sources" disabled={!reference}>
             {t('sources')}
             {reference && (

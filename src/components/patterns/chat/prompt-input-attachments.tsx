@@ -108,7 +108,7 @@ export function PromptInputAttachments({
         </Button>
       </header>
       {files.length > 0 ? (
-        <ul className="flex items-center gap-space-md overflow-x-auto px-space-base py-space-base">
+        <ul className="scrollbar-none flex items-center gap-space-md overflow-x-auto px-space-base py-space-base">
           {files.map((file) => {
             const failed = file.status === 'error'
             return (

@@ -62,7 +62,7 @@ export function ChatEmptyState({
         {suggestions.length > 0 && (
           <ul
             aria-label={suggestionsLabel}
-            className="flex min-w-0 gap-space-sm overflow-x-auto pb-space-2xs"
+            className="scrollbar-none flex min-w-0 gap-space-sm overflow-x-auto pb-space-2xs"
           >
             {suggestions.map((suggestion) => (
               <li key={suggestion.id} className="shrink-0">

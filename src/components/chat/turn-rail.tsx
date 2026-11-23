@@ -68,7 +68,7 @@ export function TurnRail({
   return (
     <nav
       aria-label={t('chat.thread.turns')}
-      className="pointer-events-none absolute inset-y-space-lg end-space-md z-10 hidden flex-col items-end overflow-y-auto lg:flex"
+      className="pointer-events-none absolute inset-y-space-lg end-space-md z-10 scrollbar-none hidden flex-col items-end overflow-y-auto lg:flex"
       data-turn-rail
     >
       {turns.map((turn, index) => {

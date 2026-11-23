@@ -114,7 +114,7 @@ export function DetailTemplate({
         <PageTitleBar {...titleBar} placement="workbench" />
       </WorkbenchHeaderSlot>
       {tabs ? (
-        <div className="flex min-h-[var(--control-height-lg)] shrink-0 items-stretch overflow-x-auto border-b border-line-subtle px-space-md">
+        <div className="scrollbar-none flex min-h-[var(--control-height-lg)] shrink-0 items-stretch overflow-x-auto border-b border-line-subtle px-space-md">
           {tabs}
         </div>
       ) : null}
