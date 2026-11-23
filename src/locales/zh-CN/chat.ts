@@ -148,6 +148,10 @@ export default {
       aiFillInvalid: '完整回复未能解析为表单 JSON，请调整提示词后重试。',
       aiFillComplete: 'AI 填写完成',
       stop: '停止接收',
+      retry: '重试',
+      retryLater: '稍后重试',
+      rateLimitedHint: '请求过于频繁，稍等片刻再试。',
+      signInAgain: '重新登录',
     },
     diagram: {
       view: '图表视图',

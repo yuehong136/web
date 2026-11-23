@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
+import { useHomeRetry, type HomeSendOptions } from './use-home-retry'
 import { modelIdentityPayload } from '@/lib/model-identity'
 import { useQueryClient } from '@tanstack/react-query'
 import { llmKeys } from '@/hooks/use-llm-request'
@@ -222,7 +223,7 @@ export const useHomeChat = ({
   // 核心思路：在流式开始时先添加空的 AI 消息，然后在流式过程中直接更新这条消息
   // 这样就不会出现重复渲染的问题
   const sendAppMessage = useCallback(
-    async (inputValue: string) => {
+    async (inputValue: string, regenerate = false) => {
       if (!inputValue.trim() || !selectedApp) return
 
       const owner = claimRequest()
@@ -274,6 +275,8 @@ export const useHomeChat = ({
           (msg) => ({
             role: msg.role,
             content: msg.content,
+            // A regenerated turn sends its branch; ids keep stored references.
+            ...(regenerate ? { id: msg.id } : {}),
             ...modelIdentityPayload(msg.modelIdentity),
           }),
         )
@@ -283,6 +286,7 @@ export const useHomeChat = ({
             chat_id: selectedApp.id,
             session_id: conversationId,
             messages: requestMessages,
+            ...(regenerate ? { regenerate } : {}),
             quote: true,
           },
           { signal },
@@ -503,7 +507,11 @@ export const useHomeChat = ({
   // 附件 id 只随模型/MCP 回合发送
   const { isPending: isSendPending, run: runSend } = useSubmitGate()
   const sendMessage = useCallback(
-    (inputValue: string, files: string[] = []): Promise<void> | false => {
+    (
+      inputValue: string,
+      files: string[] = [],
+      options: HomeSendOptions = {},
+    ): Promise<void> | false => {
       if (!inputValue.trim() || isLoadingHistoryRef.current) return false
       if (!isAppMode && !selectedModelId) {
         toast.error(t('home.input.selectModelFirst'))
@@ -520,7 +528,7 @@ export const useHomeChat = ({
       }
       return runSend(() =>
         isAppMode
-          ? sendAppMessage(inputValue)
+          ? sendAppMessage(inputValue, options.regenerate)
           : sendMCPMessage(inputValue, files),
       )
     },
@@ -537,6 +545,12 @@ export const useHomeChat = ({
       t,
     ],
   )
+
+  const retryAnswer = useHomeRetry({
+    messagesRef,
+    updateMessages,
+    send: sendMessage,
+  })
 
   // 清空对话
   const clearMessages = useCallback(() => {
@@ -567,6 +581,7 @@ export const useHomeChat = ({
     isAppMode,
     currentConversationId,
     sendMessage,
+    retryAnswer,
     stopStreaming,
     clearMessages,
     localThreads: localThreads.threads,

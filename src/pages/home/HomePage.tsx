@@ -71,6 +71,7 @@ export const HomePage = () => {
     isLoadingHistory,
     isSendPending,
     sendMessage,
+    retryAnswer,
     stopStreaming,
     localThreads,
     startNewChat,
@@ -150,6 +151,7 @@ export const HomePage = () => {
               localThreads={selectedApp ? [] : localThreads}
               onOpenLocalThread={openLocalThread}
               onNewChat={selectedApp ? undefined : startNewChat}
+              onRetry={retryAnswer}
             />
           )}
         </div>

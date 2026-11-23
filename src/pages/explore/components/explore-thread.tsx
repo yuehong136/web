@@ -70,7 +70,16 @@ export function ExploreThread({
               references={message.references}
               isStreaming={streaming}
               runPhase={message.runPhase}
-              notice={<ExploreRunNotice phase={message.runPhase} />}
+              notice={
+                <ExploreRunNotice
+                  phase={message.runPhase}
+                  onRetry={
+                    !isStreaming && index === lastAnswer
+                      ? () => onRegenerate(index)
+                      : undefined
+                  }
+                />
+              }
               identity={message.modelIdentity ?? {}}
             />
           ),

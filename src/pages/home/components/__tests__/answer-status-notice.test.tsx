@@ -1,5 +1,6 @@
 import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import i18n, { setProductLanguage } from '@/locales/i18n'
 import type { AnswerStatus } from '../../types'
@@ -58,4 +59,49 @@ it('follows the product language', async () => {
   await render({ kind: 'stopped', partial: false })
 
   expect(notice()?.textContent).toBe('Stopped receiving the reply.')
+})
+
+const renderWithRetry = (status: AnswerStatus, onRetry: () => void) =>
+  act(async () =>
+    root.render(
+      <MemoryRouter initialEntries={['/home']}>
+        <Routes>
+          <Route
+            path="/home"
+            element={<AnswerStatusNotice status={status} onRetry={onRetry} />}
+          />
+          <Route path="/auth/login" element={<p>Login page</p>} />
+        </Routes>
+      </MemoryRouter>,
+    ),
+  )
+const recovery = () =>
+  host.querySelector<HTMLButtonElement>('[data-answer-recovery]')
+
+it('offers an inline retry for a failed answer, even with no text', async () => {
+  const onRetry = vi.fn()
+  await renderWithRetry({ kind: 'server_error', partial: false }, onRetry)
+
+  expect(recovery()?.dataset.answerRecovery).toBe('retry')
+  expect(recovery()?.textContent).toBe(i18n.t('chat.stream.retry'))
+  await act(async () => recovery()!.click())
+  expect(onRetry).toHaveBeenCalledOnce()
+})
+
+it('asks to retry later on a rate limit, without inventing a countdown', async () => {
+  await renderWithRetry({ kind: 'rate_limited', partial: false }, vi.fn())
+
+  expect(recovery()?.dataset.answerRecovery).toBe('retryLater')
+  expect(notice()?.textContent).toContain(i18n.t('chat.stream.rateLimitedHint'))
+  expect(notice()?.textContent).not.toMatch(/\d+\s*(s|秒)/)
+})
+
+it('sends an expired session to sign in instead of retrying', async () => {
+  const onRetry = vi.fn()
+  await renderWithRetry({ kind: 'unauthorized', partial: false }, onRetry)
+
+  expect(recovery()?.dataset.answerRecovery).toBe('signIn')
+  await act(async () => recovery()!.click())
+  expect(onRetry).not.toHaveBeenCalled()
+  expect(host.textContent).toBe('Login page')
 })

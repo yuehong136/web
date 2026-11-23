@@ -143,6 +143,10 @@ export default {
       dislike: 'Bad answer',
     },
     stream: {
+      retry: 'Retry',
+      retryLater: 'Retry later',
+      rateLimitedHint: 'Too many requests. Wait a moment, then try again.',
+      signInAgain: 'Sign in again',
       failed: 'Generation failed. Please try again.',
       interrupted:
         'Generation did not finish. The content generated so far has been kept.',

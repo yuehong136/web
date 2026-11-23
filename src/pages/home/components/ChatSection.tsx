@@ -53,6 +53,8 @@ interface ChatSectionProps {
   onOpenLocalThread?: (id: string) => void
   /** Model and MCP chats only; app conversations start from the shell panel. */
   onNewChat?: () => void
+  /** Asks again in place of the newest answer when it failed or was cut off. */
+  onRetry?: (assistantId: string) => void
 }
 
 export function ChatSection(props: ChatSectionProps) {
@@ -83,6 +85,7 @@ function ChatSectionContent({
   localThreads = [],
   onOpenLocalThread = () => {},
   onNewChat,
+  onRetry,
 }: ChatSectionProps) {
   const { t } = useTranslation()
   const composer = useRef<ChatComposerRef>(null)
@@ -154,7 +157,16 @@ function ChatSectionContent({
             references={message.references}
             contextManifest={message.contextManifest}
             run={{ phase, steps }}
-            notice={<AnswerStatusNotice status={message.status} />}
+            notice={
+              <AnswerStatusNotice
+                status={message.status}
+                onRetry={
+                  onRetry && !isStreaming && index === messages.length - 1
+                    ? () => onRetry(message.id)
+                    : undefined
+                }
+              />
+            }
             onViewReference={openEvidence}
             identity={identity}
           />
@@ -195,6 +207,7 @@ function ChatSectionContent({
     copy,
     streamingContent,
     streamingThinking,
+    onRetry,
   ])
   const turns = useMemo<ThreadTurn[]>(
     () =>

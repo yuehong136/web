@@ -42,6 +42,20 @@ export type AnswerStatusTone = 'neutral' | 'warning' | 'error'
 export const answerStatusTone = (kind: AnswerStatusKind): AnswerStatusTone =>
   kind === 'stopped' ? 'neutral' : kind === 'unconfirmed' ? 'warning' : 'error'
 
+/**
+ * What an unfinished answer offers next: ask again, ask again once a rate
+ * limit has passed (no countdown: nothing reports Retry-After yet), or sign
+ * in again when the session ended.
+ */
+export type AnswerRecovery = 'retry' | 'retryLater' | 'signIn'
+
+export const answerRecovery = (kind: AnswerStatusKind): AnswerRecovery =>
+  kind === 'unauthorized'
+    ? 'signIn'
+    : kind === 'rate_limited'
+      ? 'retryLater'
+      : 'retry'
+
 const hasErrorName = (error: unknown, name: string) =>
   typeof error === 'object' &&
   error !== null &&
