@@ -1,18 +1,11 @@
-import type { Config } from 'dompurify'
 import { Copy, Edit2, Maximize2, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import { DocumentImage } from '@/components/knowledge/document-image'
 import { Button, Checkbox, Switch, Tooltip } from '@/components/ui'
-import { SafeHtml } from '@/components/ui/safe-html'
+import { ChunkContent } from '@/components/knowledge/chunk-content'
 import { cn, copyToClipboard } from '@/lib/utils'
 import type { ChunkData, TextMode } from '../types'
-
-// 文档解析内容是不可信输入；阅读区只允许高亮和强调标签。
-const CHUNK_CONTENT_PURIFY_OPTIONS: Config = {
-  ALLOWED_TAGS: ['em', 'strong', 'b', 'i', 'br'],
-  ALLOWED_ATTR: [],
-}
 
 interface ChunkListRowProps {
   chunk: ChunkData
@@ -220,13 +213,9 @@ export const ChunkListRow = ({
             if (!isMutationPending) onEditChunk(chunk)
           }}
         >
-          <SafeHtml
-            className={cn(
-              'wrap-anywhere whitespace-pre-wrap',
-              !expanded && 'line-clamp-3',
-            )}
+          <ChunkContent
             html={chunk.content_with_weight}
-            options={CHUNK_CONTENT_PURIFY_OPTIONS}
+            clamp={expanded ? undefined : chunkType === 'table' ? 8 : 3}
           />
         </button>
       </div>

@@ -1,7 +1,7 @@
 import { ReferenceMetadataBadges } from '@/components/chat/reference-metadata-badges'
+import { CHUNK_CONTENT_PURIFY } from '@/components/knowledge/chunk-content'
 import { useTranslation } from 'react-i18next'
 import { memo, useState, type FC } from 'react'
-import type { Config } from 'dompurify'
 import { ChevronDown, ChevronUp, Layers, PanelRight } from 'lucide-react'
 import { FileKindTile } from '@/components/patterns/file-kind-tile'
 import { Button } from '@/components/ui/button'
@@ -14,23 +14,6 @@ interface SearchChunkListProps {
   chunks: ChunkResult[]
   isLoading: boolean
   onViewDetail: (chunk: ChunkResult, allChunks: ChunkResult[]) => void
-}
-
-// Highlights and passage text come from document parsing: untrusted input.
-const CHUNK_HIGHLIGHT_PURIFY_OPTIONS: Config = {
-  ALLOWED_TAGS: [
-    'mark',
-    'b',
-    'strong',
-    'i',
-    'em',
-    'p',
-    'br',
-    'span',
-    'code',
-    'pre',
-  ],
-  ALLOWED_ATTR: ['class'],
 }
 
 // Retrieval hits arrive as <em>/<mark>; render them as highlighter marks.
@@ -80,7 +63,7 @@ const SearchChunkCard: FC<{
             : cn('text-sm leading-relaxed text-fg-muted', HIT_MARKS)
         }
         html={rawContent}
-        options={CHUNK_HIGHLIGHT_PURIFY_OPTIONS}
+        options={CHUNK_CONTENT_PURIFY}
       />
 
       <ReferenceMetadataBadges metadata={chunk.document_metadata} />

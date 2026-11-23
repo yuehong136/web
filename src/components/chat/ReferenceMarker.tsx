@@ -5,8 +5,8 @@
  * 展示组件原则：只接收 props，不包含业务逻辑
  */
 import { useRef, type FC, type ReactNode } from 'react'
+import { CHUNK_CONTENT_PURIFY } from '@/components/knowledge/chunk-content'
 import { Copy, ChevronRight, ExternalLink } from 'lucide-react'
-import type { Config } from 'dompurify'
 import { useTranslation } from 'react-i18next'
 import { ReferenceMetadataBadges } from '@/components/chat/reference-metadata-badges'
 import {
@@ -38,12 +38,6 @@ export interface ReferenceMarkerProps {
   onCopy?: (content: string) => void
   /** XMarkdown 组件传入的 children */
   children?: ReactNode
-}
-
-// 表格预览白名单（chunk 内容来自文档解析，按不可信输入对待）
-const TABLE_PREVIEW_PURIFY_OPTIONS: Config = {
-  ALLOWED_TAGS: ['table', 'thead', 'tbody', 'tr', 'th', 'td', 'caption', 'br'],
-  ALLOWED_ATTR: ['rowspan', 'colspan', 'class'],
 }
 
 const FOOTER_BUTTON_CLASS = cn(
@@ -149,9 +143,9 @@ export const ReferenceMarker: FC<ReferenceMarkerProps> = ({
           <div className="px-space-base py-space-base">
             {isTableContent ? (
               <SafeHtml
-                className="max-h-32 overflow-auto rounded-radius-md bg-sunken p-space-sm text-sm text-fg"
+                className="chunk-content max-h-32 overflow-auto rounded-radius-md bg-sunken p-space-sm text-sm text-fg"
                 html={chunk.content || ''}
-                options={TABLE_PREVIEW_PURIFY_OPTIONS}
+                options={CHUNK_CONTENT_PURIFY}
               />
             ) : (
               <ChunkExcerpt

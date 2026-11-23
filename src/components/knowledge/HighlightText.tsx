@@ -1,13 +1,7 @@
 import React from 'react'
-import type { Config } from 'dompurify'
+import { CHUNK_CONTENT_PURIFY } from './chunk-content'
 import { SafeHtml } from '@/components/ui/safe-html'
 import './HighlightText.css'
-
-// 检索高亮 HTML 来自后端（文档派生内容，按不可信输入对待），只允许 em 标签
-const HIGHLIGHT_PURIFY_OPTIONS: Config = {
-  ALLOWED_TAGS: ['em'],
-  ALLOWED_ATTR: [],
-}
 
 interface HighlightTextProps {
   /**
@@ -125,9 +119,9 @@ export const HighlightText: React.FC<HighlightTextProps> = ({
 
   return (
     <SafeHtml
-      className={`highlight-text ${className}`}
+      className={`highlight-text chunk-content chunk-content-hits ${className}`}
       html={content}
-      options={HIGHLIGHT_PURIFY_OPTIONS}
+      options={CHUNK_CONTENT_PURIFY}
     />
   )
 }

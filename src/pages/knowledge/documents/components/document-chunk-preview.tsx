@@ -1,14 +1,7 @@
-import type { Config } from 'dompurify'
 import { useTranslation } from 'react-i18next'
-import { SafeHtml } from '@/components/ui/safe-html'
+import { ChunkContent } from '@/components/knowledge/chunk-content'
 import type { Document } from '@/types/api'
 import { useDocumentChunkPreview } from '../hooks/use-document-chunk-preview'
-
-// Parsed content is untrusted; the preview keeps emphasis only.
-const PREVIEW_PURIFY: Config = {
-  ALLOWED_TAGS: ['em', 'strong', 'b', 'i', 'br'],
-  ALLOWED_ATTR: [],
-}
 
 const plainLength = (html: string) => html.replace(/<[^>]*>/g, '').length
 
@@ -56,10 +49,10 @@ export function DocumentChunkPreview({
                 .filter(Boolean)
                 .join(' · ')}
             </span>
-            <SafeHtml
-              className="line-clamp-3 text-xs leading-relaxed break-words text-fg-muted"
+            <ChunkContent
+              className="text-xs leading-relaxed text-fg-muted"
               html={chunk.content_with_weight}
-              options={PREVIEW_PURIFY}
+              clamp={3}
             />
           </li>
         )

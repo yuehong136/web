@@ -4,34 +4,12 @@
  * 维护一份重复实现）。纯函数/纯展示，无业务状态。
  */
 import { FileText, FileType, Image, Table2 } from 'lucide-react'
-import type { Config } from 'dompurify'
+import { CHUNK_CONTENT_PURIFY } from '@/components/knowledge/chunk-content'
 import { cn } from '@/lib/utils'
 import type { ReferenceChunk } from '@/utils/reference-replacer'
 
-// 引用内容白名单（chunk 内容来自文档解析，按不可信输入对待）
-export const CHUNK_CONTENT_PURIFY_OPTIONS: Config = {
-  ALLOWED_TAGS: [
-    'table',
-    'thead',
-    'tbody',
-    'tr',
-    'th',
-    'td',
-    'caption',
-    'br',
-    'p',
-    'div',
-    'span',
-    'strong',
-    'em',
-    'b',
-    'i',
-    'ul',
-    'ol',
-    'li',
-  ],
-  ALLOWED_ATTR: ['rowspan', 'colspan', 'class'],
-}
+/** The shared chunk policy (components/knowledge/chunk-content). */
+export const CHUNK_CONTENT_PURIFY_OPTIONS = CHUNK_CONTENT_PURIFY
 
 /**
  * 文档类型图标。仅作装饰：文档名和类型标签另以文字给出。

@@ -1,6 +1,6 @@
 import { useRef, useState, type ReactNode } from 'react'
+import { CHUNK_CONTENT_PURIFY } from '@/components/knowledge/chunk-content'
 import { ChevronLeft, ChevronRight, Copy, ExternalLink } from 'lucide-react'
-import type { Config } from 'dompurify'
 import { useTranslation } from 'react-i18next'
 import {
   Popover,
@@ -30,11 +30,6 @@ import { SourceTile } from './source-tile'
 import { useHoverPopover } from './use-hover-popover'
 import { ChunkExcerpt } from '@/components/chat/chunk-excerpt'
 
-// Table chunks preview as a small table (parsed document content: untrusted).
-const TABLE_PREVIEW_PURIFY_OPTIONS: Config = {
-  ALLOWED_TAGS: ['table', 'thead', 'tbody', 'tr', 'th', 'td', 'caption', 'br'],
-  ALLOWED_ATTR: ['rowspan', 'colspan', 'class'],
-}
 const ICON_BUTTON =
   'inline-flex size-7 shrink-0 items-center justify-center rounded-radius-md text-fg-subtle transition-colors hover:bg-fill-hover hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-line-focus disabled:pointer-events-none disabled:opacity-40 motion-reduce:transition-none'
 
@@ -102,9 +97,9 @@ function CitationCard({
       </div>
       {isTable ? (
         <SafeHtml
-          className="max-h-32 overflow-auto rounded-radius-md bg-sunken p-space-sm text-xs text-fg"
+          className="chunk-content max-h-32 overflow-auto rounded-radius-md bg-sunken p-space-sm text-xs text-fg"
           html={chunk.content || ''}
-          options={TABLE_PREVIEW_PURIFY_OPTIONS}
+          options={CHUNK_CONTENT_PURIFY}
         />
       ) : (
         <ChunkExcerpt
