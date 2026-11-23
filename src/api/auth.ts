@@ -93,18 +93,18 @@ export interface ResetPasswordRequest {
 
 export const authAPI = {
   // 用户登录 —— 后端字段名是 username（值仍然是邮箱）
-  login: (data: LoginRequest): Promise<AuthEnvelope> =>
+  login: async (data: LoginRequest): Promise<AuthEnvelope> =>
     apiClient.post(
       '/auth/login',
-      { username: data.email, password: encryptPassword(data.password) },
+      { username: data.email, password: await encryptPassword(data.password) },
       { ...sdkBase, skipAuth: true },
     ),
 
   // 用户注册
-  register: (data: RegisterRequest): Promise<AuthEnvelope> =>
+  register: async (data: RegisterRequest): Promise<AuthEnvelope> =>
     apiClient.post(
       '/users',
-      { ...data, password: encryptPassword(data.password) },
+      { ...data, password: await encryptPassword(data.password) },
       { ...sdkBase, skipAuth: true },
     ),
 

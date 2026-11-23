@@ -1,6 +1,11 @@
-import { memo, useEffect, useRef, useState } from 'react'
+import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import XMarkdown, { type XMarkdownProps } from '@ant-design/x-markdown'
 import { getMarkdownStreamingOptions } from './MarkdownCodeBlock'
+import { MATH_FORMULA_TAG } from './latex-extension'
+import { MathFormula } from './math-formula'
+
+type Components = NonNullable<XMarkdownProps['components']>
+const MATH_COMPONENTS: Components = { [MATH_FORMULA_TAG]: MathFormula }
 
 export interface StreamingXMarkdownProps extends Omit<
   XMarkdownProps,
@@ -43,12 +48,19 @@ function useFrameThrottledContent(
 }
 
 export const StreamingXMarkdown = memo(
-  ({ content, isStreaming, ...props }: StreamingXMarkdownProps) => {
+  ({ content, isStreaming, components, ...props }: StreamingXMarkdownProps) => {
     const renderedContent = useFrameThrottledContent(content, isStreaming)
+    // Every surface renders the TeX placeholders the chat config writes.
+    const withMath = useMemo(
+      () =>
+        components ? { ...MATH_COMPONENTS, ...components } : MATH_COMPONENTS,
+      [components],
+    )
 
     return (
       <XMarkdown
         {...props}
+        components={withMath}
         streaming={getMarkdownStreamingOptions(isStreaming)}
       >
         {renderedContent}

@@ -1,7 +1,10 @@
+import { readFileSync } from 'node:fs'
 import { act } from 'react'
+import { Marked } from 'marked'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { markdownConfig } from '../MarkdownCodeBlock'
+import { createChatLatexExtensions } from '../latex-extension'
 import { StreamingXMarkdown } from '../streaming-x-markdown'
 
 // Code highlighting is unrelated; keep XMarkdown and its LaTeX plugin real.
@@ -13,6 +16,26 @@ vi.mock('../MarkdownArtifact', () => ({
   MemoizedMarkdownArtifactImage: () => null,
   MemoizedMarkdownArtifactLink: () => null,
 }))
+
+describe('LaTeX placeholders', () => {
+  it('writes placeholders and leaves KaTeX to load with the first formula', () => {
+    // KaTeX (~600 KB) must not reach the first page through the Markdown config.
+    const source = readFileSync(
+      'src/components/chat/latex-extension.ts',
+      'utf8',
+    )
+    expect(source).not.toMatch(/from 'katex'|plugins\/Latex/)
+    const marked = new Marked({ extensions: createChatLatexExtensions() })
+    expect(marked.parse('cost $x<y$ here')).toContain(
+      '<math-formula data-display="inline">x&lt;y</math-formula>',
+    )
+    expect(marked.parse('$$\na^2\n$$')).toContain(
+      '<math-formula data-display="block">a^2</math-formula>',
+    )
+    // Currency stays text.
+    expect(marked.parse('costs $5 and $6')).not.toContain('math-formula')
+  })
+})
 
 describe('shared chat LaTeX renderer', () => {
   let container: HTMLDivElement

@@ -3,10 +3,12 @@
 /**
  * Bundle 体积预算门禁（零依赖）。在 `npm run build` 之后运行。
  *
- * 三道闸（预算在 bundle-size-budget.json，基于实测值 +5% 余量，只许下调不许上调）：
- *  - totalJsBytes      dist/js 全部 .js（不含 sourcemap）原始字节总量
- *  - entryGzipBytes    入口 chunk（dist/js/index-*.js）gzip 后字节数 —— 首屏成本
- *  - maxChunkGzipBytes 最大单 chunk gzip 后字节数 —— 防止懒加载边界塌掉
+ * 四道闸（预算在 bundle-size-budget.json，基于实测值 +5% 余量，只许下调不许上调）：
+ *  - totalJsBytes       dist/js 全部 .js（不含 sourcemap）原始字节总量
+ *  - entryGzipBytes     入口 chunk（dist/js/index-*.js）gzip 后字节数
+ *  - firstLoadGzipBytes 入口的静态闭包（JS + CSS，按 manifest 遍历）gzip 合计 ——
+ *                       登录页、首页与浮窗首次访问都要下载的真实首屏成本
+ *  - maxChunkGzipBytes  最大单 chunk gzip 后字节数 —— 防止懒加载边界塌掉
  *
  * 优化产物后请手动下调预算并在 docs/engineering-modernization-roadmap.md（ENG-4）记录。
  */
@@ -14,6 +16,7 @@
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs'
 import { gzipSync } from 'node:zlib'
 import path from 'node:path'
+import { profileRouteBundles } from './profile-route-bundles.mjs'
 
 const DIST_JS = path.join('dist', 'js')
 const BUDGET_PATH = path.join('scripts', 'bundle-size-budget.json')
@@ -60,6 +63,9 @@ if (!entry) {
   process.exit(1)
 }
 
+// Login, Home and the chat widget all load the entry's static closure first.
+const firstLoad = profileRouteBundles().entry
+
 const mb = (n) => `${(n / 1048576).toFixed(2)} MB`
 const kb = (n) => `${(n / 1024).toFixed(0)} KB`
 
@@ -77,6 +83,13 @@ const checks = [
     limit: budget.entryGzipBytes,
     fmt: kb,
     detail: entry.file,
+  },
+  {
+    name: '首屏静态闭包 gzip',
+    actual: firstLoad.gzipBytes,
+    limit: budget.firstLoadGzipBytes,
+    fmt: kb,
+    detail: `${firstLoad.files} 个 JS/CSS 文件`,
   },
   {
     name: '最大 chunk gzip',

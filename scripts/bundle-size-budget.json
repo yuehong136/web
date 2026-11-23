@@ -1,6 +1,7 @@
 {
-  "_doc": "Bundle 体积预算（check-bundle-size.mjs 消费）。预算=实测+5%，只许下调不许上调；调整须在 docs/engineering-modernization-roadmap.md ENG-4 记录。实测基线：2026-06-10 total 26,059,624 B / entry gzip 116,721 B；2026-11-17 max chunk gzip 624,714 B (html-report，按需加载)。",
+  "_doc": "Bundle 体积预算（check-bundle-size.mjs 消费）。预算=实测+5%，只许下调不许上调；调整须在 docs/engineering-modernization-roadmap.md ENG-4 记录。实测基线：2026-06-10 total 26,059,624 B / entry gzip 116,721 B；2026-11-17 max chunk gzip 624,714 B (html-report，按需加载)；2026-11-23 首屏静态闭包 gzip 707,301 B（KaTeX、jsencrypt 改为按需后，原 810,306 B；预算见 ENG-11）。",
   "totalJsBytes": 27400000,
   "entryGzipBytes": 123000,
+  "firstLoadGzipBytes": 743000,
   "maxChunkGzipBytes": 656000
 }

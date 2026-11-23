@@ -29,13 +29,20 @@ export interface SafeHtmlProps extends Omit<
   html: string
   /** DOMPurify 配置（标签/属性白名单等）；缺省为 USE_PROFILES: { html: true } */
   options?: Config
+  /** 行内内容（如段落里的公式）用 span，避免 div 落进 p */
+  as?: 'div' | 'span'
 }
 
-export function SafeHtml({ html, options, ...rest }: SafeHtmlProps) {
+export function SafeHtml({
+  html,
+  options,
+  as: Element = 'div',
+  ...rest
+}: SafeHtmlProps) {
   const sanitized = useMemo(
     () => DOMPurify.sanitize(html, options ?? DEFAULT_OPTIONS),
     [html, options],
   )
 
-  return <div {...rest} dangerouslySetInnerHTML={{ __html: sanitized }} />
+  return <Element {...rest} dangerouslySetInnerHTML={{ __html: sanitized }} />
 }

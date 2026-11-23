@@ -129,7 +129,7 @@ export const adminAPI = {
     email: string,
     password: string,
   ): Promise<AdminLoginResponse> => {
-    const encryptedPassword = encryptPassword(password)
+    const encryptedPassword = await encryptPassword(password)
     let res: Response
     try {
       res = await fetch(`${ADMIN_API_BASE_URL}/login`, {

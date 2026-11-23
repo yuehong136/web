@@ -3,9 +3,10 @@
  *
  * 加密流程: plaintext → base64 → RSA(PKCS1_v1_5) → base64
  * 后端解密: api/utils/crypt.py decrypt()
+ *
+ * jsencrypt（约 200 KB 源码）只在提交登录、注册或管理员验证时按需加载，
+ * 不进入登录页和工作台的首屏闭包。
  */
-
-import JSEncrypt from 'jsencrypt'
 
 const RSA_PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArq9XTUSeYr2+N1h3Afl/
@@ -26,7 +27,8 @@ function utf8ToBase64(value: string): string {
   return btoa(binary)
 }
 
-export function encryptPassword(password: string): string {
+export async function encryptPassword(password: string): Promise<string> {
+  const { default: JSEncrypt } = await import('jsencrypt')
   const encryptor = new JSEncrypt()
   encryptor.setPublicKey(RSA_PUBLIC_KEY)
   const encrypted = encryptor.encrypt(utf8ToBase64(password))
