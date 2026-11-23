@@ -6,6 +6,7 @@ import {
   ComposerSendButton,
   type ComposerSendButtonProps,
 } from '../composer-send-button'
+import { splitMotionRules } from '@/themes/__tests__/motion-css-test-utils'
 
 const stylesheet = readFileSync(
   'src/components/chat/composer-send-button.css',
@@ -120,18 +121,8 @@ it('ignores the second click of a double-click that started the reply', async ()
 
 it('animates only opacity when motion is reduced', () => {
   const css = stylesheet.replace(/\/\*[\s\S]*?\*\//g, '')
-  const noPreference = '@media (prefers-reduced-motion: no-preference)'
-  const start = css.indexOf(noPreference)
-  expect(start).toBeGreaterThan(-1)
-  let depth = 0
-  let end = css.indexOf('{', start)
-  do {
-    if (css[end] === '{') depth += 1
-    if (css[end] === '}') depth -= 1
-    end += 1
-  } while (depth > 0)
-  const motionBlock = css.slice(start, end)
-  const reducedRules = css.slice(0, start) + css.slice(end)
+  const { motionRules: motionBlock, otherRules: reducedRules } =
+    splitMotionRules(css)
   expect(motionBlock).toMatch(/scale:\s*0\.6/)
   expect(reducedRules).toMatch(/transition:\s*opacity 160ms/)
   expect(reducedRules).not.toMatch(/scale|translate|transform|rotate/)

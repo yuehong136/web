@@ -52,7 +52,13 @@ export const appearanceResource = {
     textScale: 'Reading size',
     scales: { standard: 'Standard', larger: 'Larger', largest: 'Largest' },
     motion: 'Motion',
-    motions: { system: 'Follow system', reduced: 'Reduce motion' },
+    motionDescription:
+      'Follow system reduces motion when the system turns animations off; Full motion always plays the thinking shimmer and glyph animations.',
+    motions: {
+      system: 'Follow system',
+      reduced: 'Reduce motion',
+      full: 'Full motion',
+    },
     contrast: 'Contrast',
     contrastDescription:
       'High contrast darkens secondary text, borders and focus rings for bright rooms or when you need crisper text.',

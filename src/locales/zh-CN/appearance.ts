@@ -44,7 +44,9 @@ export const appearanceResource = {
     textScale: '阅读字号',
     scales: { standard: '标准', larger: '较大', largest: '最大' },
     motion: '动效',
-    motions: { system: '跟随系统', reduced: '减少动效' },
+    motionDescription:
+      '跟随系统时，系统关闭了动画效果就会减少动效；完整动效会始终播放思考流光和图形动画。',
+    motions: { system: '跟随系统', reduced: '减少动效', full: '完整动效' },
     contrast: '对比度',
     contrastDescription:
       '高对比会加深次要文字、描边和焦点环，适合强光环境或需要更清晰的文字时使用。',

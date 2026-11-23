@@ -131,6 +131,24 @@ it('follows reduced motion and removes the media listener for an explicit reduce
   expect(document.documentElement.dataset.motion).toBe('system')
 })
 
+it('keeps full motion on when the system reduces motion', () => {
+  cleanup = appearance.initTheme()
+  motion.change(true)
+  expect(document.documentElement.dataset.motion).toBe('reduced')
+  appearance.setAppearance({ motion: 'full' })
+  expect(appearance.getResolvedAppearance().reducedMotion).toBe(false)
+  expect(document.documentElement.dataset.motion).toBe('system')
+  expect(
+    appearance.resolveAppearance(
+      { ...appearance.DEFAULT_APPEARANCE, motion: 'full' },
+      false,
+      true,
+    ).reducedMotion,
+  ).toBe(false)
+  appearance.setAppearance({ motion: 'system' })
+  expect(document.documentElement.dataset.motion).toBe('reduced')
+})
+
 it('uses persisted appearance ahead of both legacy preferences', () => {
   localStorage.setItem(
     'appearance',

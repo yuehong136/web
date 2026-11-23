@@ -33,7 +33,12 @@ const LEGACY_PRESETS: Readonly<Record<string, AppearancePreset>> = {
 }
 export type AppearanceDensity = 'comfortable' | 'compact'
 export type AppearanceTextScale = 1 | 1.125 | 1.25
-export type AppearanceMotion = 'system' | 'reduced'
+/**
+ * `system` follows the OS (Windows "animation effects", macOS "reduce
+ * motion"); `reduced` always reduces; `full` always animates, for machines
+ * where animations are switched off by policy.
+ */
+export type AppearanceMotion = 'system' | 'reduced' | 'full'
 export interface Appearance {
   preset: AppearancePreset
   mode: Theme
@@ -85,7 +90,10 @@ export function normalizeAppearance(
       source.textScale === 1.125 || source.textScale === 1.25
         ? source.textScale
         : 1,
-    motion: source.motion === 'reduced' ? 'reduced' : 'system',
+    motion:
+      source.motion === 'reduced' || source.motion === 'full'
+        ? source.motion
+        : 'system',
     contrast: source.contrast === 'high' ? 'high' : 'standard',
     action:
       source.action === 'ink' || source.action === 'accent'
@@ -157,7 +165,9 @@ export function resolveAppearance(
           ? 'dark'
           : 'light'
         : preferences.mode,
-    reducedMotion: preferences.motion === 'reduced' || systemReducedMotion,
+    reducedMotion:
+      preferences.motion === 'reduced' ||
+      (preferences.motion === 'system' && systemReducedMotion),
   })
 }
 

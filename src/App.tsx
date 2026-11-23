@@ -59,9 +59,10 @@ export function Application({ composition }: ApplicationProps) {
   return (
     <PlatformProvider composition={composition}>
       <QueryClientProvider client={queryClient}>
-        {/* JS-driven motion follows the in-app setting, not only the system's. */}
+        {/* JS-driven motion follows the in-app setting, which already folds in
+            the system's unless the user chose full motion. */}
         <MotionConfig
-          reducedMotion={appearance.reducedMotion ? 'always' : 'user'}
+          reducedMotion={appearance.reducedMotion ? 'always' : 'never'}
         >
           <RouterProvider
             router={router}

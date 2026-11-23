@@ -130,10 +130,9 @@
     opacity: 1;
   }
 }
-@media (prefers-reduced-motion: reduce) {
-  .chat-table-actions {
-    transition: none;
-  }
+/* Reduced motion follows the app setting (data-motion), not only the system. */
+:where([data-motion='reduced']) .chat-table-actions {
+  transition: none;
 }
 
 /* Full size: both directions scroll under a header that stays in view. */

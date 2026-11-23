@@ -43,7 +43,10 @@
     preferences.textScale === 1.125 || preferences.textScale === 1.25
       ? preferences.textScale
       : 1
-  var motion = preferences.motion === 'reduced' ? 'reduced' : 'system'
+  var motion =
+    preferences.motion === 'reduced' || preferences.motion === 'full'
+      ? preferences.motion
+      : 'system'
   var contrast = preferences.contrast === 'high' ? 'high' : 'standard'
   var action =
     preferences.action === 'ink' || preferences.action === 'accent'
@@ -74,7 +77,8 @@
         : 'light'
       : mode
   var reducedMotion =
-    motion === 'reduced' || matches('(prefers-reduced-motion: reduce)')
+    motion === 'reduced' ||
+    (motion === 'system' && matches('(prefers-reduced-motion: reduce)'))
   var root = document.documentElement
   root.setAttribute('data-theme', resolvedMode)
   root.setAttribute('data-preset', preset)

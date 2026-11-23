@@ -42,10 +42,9 @@
   border-color: var(--color-run-failed);
   color: var(--color-danger-fg);
 }
-@media (prefers-reduced-motion: no-preference) {
-  .runtime-timeline-icon[data-blink] {
-    animation: runtime-timeline-blink 1.2s ease-in-out infinite;
-  }
+/* Motion plays unless the app reduces it (data-motion), so "Full motion" works. */
+.runtime-timeline-icon[data-blink]:where(:not([data-motion='reduced'] *)) {
+  animation: runtime-timeline-blink 1.2s ease-in-out infinite;
 }
 @keyframes runtime-timeline-blink {
   50% {

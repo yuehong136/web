@@ -125,6 +125,8 @@ export interface TranslationContracts {
     'modes.light': undefined
     'modes.system': undefined
     motion: undefined
+    motionDescription: undefined
+    'motions.full': undefined
     'motions.reduced': undefined
     'motions.system': undefined
     preset: undefined

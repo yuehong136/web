@@ -123,10 +123,9 @@
     opacity: 1;
   }
 }
-@media (prefers-reduced-motion: reduce) {
-  .chat-message-actions {
-    transition: none;
-  }
+/* Reduced motion follows the app setting (data-motion), not only the system. */
+:where([data-motion='reduced']) .chat-message-actions {
+  transition: none;
 }
 .message-parts {
   min-width: 0;
@@ -271,10 +270,9 @@ details[open] > .run-step-heading .run-step-chevron {
   color: var(--color-fg-muted);
   overflow-wrap: anywhere;
 }
-@media (prefers-reduced-motion: reduce) {
-  .run-step-chevron {
-    transition: none;
-  }
+/* Reduced motion follows the app setting (data-motion), not only the system. */
+:where([data-motion='reduced']) .run-step-chevron {
+  transition: none;
 }
 
 /* Answer Markdown: lists, tables and emphasis in the reading column.
@@ -312,10 +310,9 @@ details[open] > .run-step-heading .run-step-chevron {
   background: var(--color-caret);
   vertical-align: text-bottom;
 }
-@media (prefers-reduced-motion: no-preference) {
-  .chat-stream-caret {
-    animation: chat-stream-caret 1s steps(2, jump-none) infinite;
-  }
+/* Motion plays unless the app reduces it (data-motion), so "Full motion" works. */
+.chat-stream-caret:where(:not([data-motion='reduced'] *)) {
+  animation: chat-stream-caret 1s steps(2, jump-none) infinite;
 }
 @keyframes chat-stream-caret {
   from {

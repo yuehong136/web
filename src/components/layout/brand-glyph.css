@@ -78,22 +78,9 @@
   }
 }
 
-/* Reduced motion (system or the in-app setting): static stand-ins. Thinking
- * shows a hollow core so it still reads differently from idle. */
-@media (prefers-reduced-motion: reduce) {
-  .brand-glyph * {
-    animation: none !important;
-  }
-  .brand-glyph[data-state='done'] .brand-glyph-fade {
-    opacity: 0;
-  }
-  .brand-glyph[data-state='thinking'] .brand-glyph-core {
-    fill: none;
-    stroke: var(--brand-glyph-core);
-    stroke-width: 1.4;
-  }
-}
-
+/* Reduced motion (the app's data-motion, which follows the system unless the
+ * user chose full motion): static stand-ins. Thinking shows a hollow core so
+ * it still reads differently from idle. */
 [data-motion='reduced'] .brand-glyph * {
   animation: none !important;
 }

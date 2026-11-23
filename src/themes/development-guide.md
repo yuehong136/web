@@ -91,4 +91,8 @@ useResolvedAppearance() // 额外给出 resolvedMode 与 reducedMotion
 
 浮层出入场用 tw-animate-css 的 `animate-in`/`animate-out` 类，统一取自 `components/ui/overlay-motion.ts`（菜单、Select、Popover、Tooltip、Sheet、对话框各一组，带 Radix 的 transform-origin）。原生 `<dialog>` 的 Dialog、AlertDialog 关闭即卸载，只有入场动画。
 
-JS 驱动的动效（motion 弹簧、逐字打出、平滑滚动）读 `useReducedMotionPreference()`（组件内，含 ScopedTheme 覆盖）或 `prefersReducedMotion()`（事件处理与工具函数），不要自己查询 `prefers-reduced-motion`，也不要用 motion 的 `useReducedMotion`：它们只看系统设置，管不住外观里的“减少动效”。App 根部的 `MotionConfig` 已按同一个值设置 `reducedMotion`。
+外观的“动效”有三档：跟随系统、减少动效、完整动效。完整动效在系统关闭了动画效果时也照常播放，所以动效的开关只看根元素的 `data-motion`（`reduced` 表示减少），不看系统的 `prefers-reduced-motion`。
+
+JS 驱动的动效（motion 弹簧、逐字打出、平滑滚动）读 `useReducedMotionPreference()`（组件内，含 ScopedTheme 覆盖）或 `prefersReducedMotion()`（事件处理与工具函数），不要自己查询 `prefers-reduced-motion`，也不要用 motion 的 `useReducedMotion`：它们只看系统设置，管不住外观里的“减少动效”和“完整动效”。App 根部的 `MotionConfig` 已按同一个值设置 `reducedMotion`。
+
+CSS 同理：Tailwind 的 `motion-safe:`、`motion-reduce:` 已在 `tailwind.css` 里重定义为读 `data-motion`，直接用即可。手写 CSS 不要写 `@media (prefers-reduced-motion: …)`：只在允许动效时播放的规则加 `:where(:not([data-motion='reduced'] *))`，减少动效时的替代规则写在 `:where([data-motion='reduced'])` 之下。

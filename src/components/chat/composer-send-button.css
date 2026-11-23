@@ -17,19 +17,20 @@
 .composer-send-button[data-state='stop'] > [data-icon='send'] {
   opacity: 0;
 }
-@media (prefers-reduced-motion: no-preference) {
-  .composer-send-button {
-    transition-property: color, background-color, border-color, box-shadow;
-    transition-duration: 160ms;
-    transition-timing-function: ease-out;
-  }
-  .composer-send-button > svg {
-    transition:
-      opacity 160ms ease-out,
-      scale 160ms cubic-bezier(0.2, 0, 0, 1);
-  }
-  .composer-send-button[data-state='send'] > [data-icon='stop'],
-  .composer-send-button[data-state='stop'] > [data-icon='send'] {
-    scale: 0.6;
-  }
+/* Motion plays unless the app reduces it (data-motion), so "Full motion" works. */
+.composer-send-button:where(:not([data-motion='reduced'] *)) {
+  transition-property: color, background-color, border-color, box-shadow;
+  transition-duration: 160ms;
+  transition-timing-function: ease-out;
+}
+.composer-send-button > svg:where(:not([data-motion='reduced'] *)) {
+  transition:
+    opacity 160ms ease-out,
+    scale 160ms cubic-bezier(0.2, 0, 0, 1);
+}
+.composer-send-button[data-state='send']
+  > [data-icon='stop']:where(:not([data-motion='reduced'] *)),
+.composer-send-button[data-state='stop']
+  > [data-icon='send']:where(:not([data-motion='reduced'] *)) {
+  scale: 0.6;
 }

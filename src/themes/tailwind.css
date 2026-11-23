@@ -12,6 +12,11 @@
 }
 
 @custom-variant dark (&:where(.dark, .dark *, [data-theme='dark'], [data-theme='dark'] *));
+/* Motion variants follow the app's data-motion (the in-app setting, which
+ * folds in the system's unless the user chose full motion), not the bare
+ * prefers-reduced-motion query. */
+@custom-variant motion-safe (&:where(:not([data-motion='reduced'], [data-motion='reduced'] *)));
+@custom-variant motion-reduce (&:where([data-motion='reduced'], [data-motion='reduced'] *));
 
 @theme inline {
   --font-sans: var(--font-interface);
@@ -169,7 +174,7 @@
 
 @utility text-shimmer {
   color: var(--color-fg-subtle);
-  @media (prefers-reduced-motion: no-preference) {
+  &:where(:not([data-motion='reduced'] *)) {
     background: linear-gradient(
         90deg,
         var(--color-fg-subtle) 0%,

@@ -24,10 +24,9 @@
 .tide-composer [data-composer-send] {
   border-radius: var(--radius-full);
 }
-@media (prefers-reduced-motion: reduce) {
-  .tide-composer .prompt-input {
-    transition: none;
-  }
+/* Reduced motion follows the app setting (data-motion), not only the system. */
+:where([data-motion='reduced']) .tide-composer .prompt-input {
+  transition: none;
 }
 @media (forced-colors: active) {
   .tide-composer .prompt-input:focus-within {

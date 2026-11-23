@@ -89,7 +89,7 @@ test('bootstrap and runtime reject the same invalid dimensions', () => {
     preset: 'other',
     density: 'dense',
     textScale: '1.25',
-    motion: 'full',
+    motion: 'always',
     contrast: 'max',
     action: 'brand',
   }
@@ -119,6 +119,17 @@ test('bootstrap falls back through legacy keys and system preferences', () => {
   )
   assert.equal(bootstrap({}, { dark: true })['data-theme'], 'dark')
   assert.equal(bootstrap({}, { reduced: true })['data-motion'], 'reduced')
+})
+test('full motion keeps animations on when the system reduces them', () => {
+  const stored = (motion: string) => ({
+    appearance: JSON.stringify({ motion }),
+  })
+  assert.equal(
+    bootstrap(stored('full'), { reduced: true })['data-motion'],
+    'system',
+  )
+  assert.equal(bootstrap(stored('reduced'))['data-motion'], 'reduced')
+  assert.equal(normalizeAppearance({ motion: 'full' }).motion, 'full')
 })
 test('bootstrap remains usable with denied storage and explicit share/widget themes', () => {
   const values = bootstrap({}, { denied: true, dark: true })

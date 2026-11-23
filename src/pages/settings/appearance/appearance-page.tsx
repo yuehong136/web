@@ -164,11 +164,14 @@ export function AppearancePage() {
               }),
           )}
         </SettingRow>
-        <SettingRow label={t('appearance.motion')}>
+        <SettingRow
+          label={t('appearance.motion')}
+          description={t('appearance.motionDescription')}
+        >
           {segmented(
             t('appearance.motion'),
             appearance.motion,
-            (['system', 'reduced'] as const).map((value) => ({
+            (['system', 'reduced', 'full'] as const).map((value) => ({
               value,
               label: t(`appearance.motions.${value}`),
             })),

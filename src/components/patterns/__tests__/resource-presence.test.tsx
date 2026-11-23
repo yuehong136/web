@@ -4,6 +4,7 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { ResourceCard, ResourceGrid } from '../resource-card'
 import { ResourceList, ResourceRow } from '../resource-row'
 import { ENTER_LIMIT } from '../resource-presence'
+import { splitMotionRules } from '@/themes/__tests__/motion-css-test-utils'
 import { click, mount } from './collection-test-utils'
 
 const stylesheet = readFileSync(
@@ -110,18 +111,8 @@ it('swaps pages and large filter changes without motion', async () => {
 
 it('keeps the rise and stagger out of reduced motion', () => {
   const css = stylesheet.replace(/\/\*[\s\S]*?\*\//g, '')
-  const noPreference = '@media (prefers-reduced-motion: no-preference)'
-  const start = css.indexOf(noPreference)
-  expect(start).toBeGreaterThan(-1)
-  let depth = 0
-  let end = css.indexOf('{', start)
-  do {
-    if (css[end] === '{') depth += 1
-    if (css[end] === '}') depth -= 1
-    end += 1
-  } while (depth > 0)
-  const motionBlock = css.slice(start, end)
-  const reducedRules = css.slice(0, start) + css.slice(end)
+  const { motionRules: motionBlock, otherRules: reducedRules } =
+    splitMotionRules(css)
   const keyframes = (name: string) =>
     css.match(new RegExp(`@keyframes ${name} \\{[^@]*`))?.[0] ?? ''
   const usedOutside = [...reducedRules.matchAll(/animation:\s*([\w-]+)/g)].map(
@@ -132,7 +123,7 @@ it('keeps the rise and stagger out of reduced motion', () => {
   // Twelve stagger steps, the rest sharing the last one.
   expect(motionBlock.match(/:nth-child\(\d+\)/g)).toHaveLength(11)
   expect(motionBlock).toMatch(
-    /:nth-child\(n \+ 13\)\s*\{\s*animation-delay: 288ms/,
+    /:nth-child\(n \+ 13\)[^{]*\{\s*animation-delay: 288ms/,
   )
   expect(keyframes('resource-enter')).toContain('translate')
   expect(usedOutside).toEqual(['resource-fade-in', 'resource-fade-out'])
