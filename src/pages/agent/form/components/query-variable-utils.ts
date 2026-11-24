@@ -1,4 +1,4 @@
-import type { VariableOptionGroup } from '@/components/prompt-editor'
+import type { VariableOptionGroup } from '@/components/prompt-editor/types'
 import { AgentStructuredOutputField, Operator } from '../../constant'
 
 export type QueryVariableOptionGroup = VariableOptionGroup
