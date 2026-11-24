@@ -43,8 +43,14 @@ export interface TranslationContracts {
     'pageTitles.login': undefined
     'pageTitles.mcp': undefined
     'pageTitles.memory': undefined
+    'pageTitles.memoryBatches': undefined
+    'pageTitles.memoryCompaction': undefined
+    'pageTitles.memoryMaintenance': undefined
     'pageTitles.memoryMessages': undefined
+    'pageTitles.memoryOperations': undefined
     'pageTitles.memorySettings': undefined
+    'pageTitles.memoryStartup': undefined
+    'pageTitles.memoryVerification': undefined
     'pageTitles.modelGateway': undefined
     'pageTitles.modelProviders': undefined
     'pageTitles.notFound': undefined

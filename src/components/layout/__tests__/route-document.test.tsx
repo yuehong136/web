@@ -186,6 +186,15 @@ describe('app route metadata', () => {
       title: 'apiKeys',
     })
     expect(sections.get('/skills/:spaceId')?.section).toBe('knowledge')
+    // Memory routes live in their own module and still carry metadata.
+    expect(sections.get('/memory/:id/operations')).toEqual({
+      section: 'knowledge',
+      title: 'memoryOperations',
+    })
+    expect(sections.get('/memory/:id/maintenance/batches')).toEqual({
+      section: 'knowledge',
+      title: 'memoryBatches',
+    })
   })
 
   it('keeps the not-found route and a page error boundary inside the workbench', () => {

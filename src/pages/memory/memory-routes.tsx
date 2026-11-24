@@ -52,7 +52,7 @@ export const memoryRoutes: RouteObject[] = [
   },
   {
     path: '/memory/:id/operations',
-    handle: routeMeta('knowledge', 'memory'),
+    handle: routeMeta('knowledge', 'memoryOperations'),
     element: withLoading(MemoryOperationsPage),
   },
   {
@@ -72,19 +72,27 @@ export const memoryRoutes: RouteObject[] = [
       },
       {
         path: 'maintenance/batches',
+        handle: routeMeta(undefined, 'memoryBatches'),
         element: withLoading(MemoryIncrementalPage),
       },
       {
         path: 'startup',
+        handle: routeMeta(undefined, 'memoryStartup'),
         element: withLoading(MemoryStartupPage),
       },
-      { path: 'compaction', element: withLoading(MemoryCompactionPage) },
+      {
+        path: 'compaction',
+        handle: routeMeta(undefined, 'memoryCompaction'),
+        element: withLoading(MemoryCompactionPage),
+      },
       {
         path: 'verification',
+        handle: routeMeta(undefined, 'memoryVerification'),
         element: withLoading(MemoryVerificationPage),
       },
       {
         path: 'maintenance',
+        handle: routeMeta(undefined, 'memoryMaintenance'),
         element: withLoading(MemoryMaintenancePage),
       },
     ],
