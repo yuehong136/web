@@ -131,12 +131,11 @@ function DefaultModelsForm({
   const builtinEmbedding = defaultModels.find(
     (model) =>
       model.model_type === 'embedding' &&
-      model.model_id === null &&
+      model.model_id === '' &&
       model.model_provider === 'Builtin' &&
       model.model_instance === 'default' &&
-      model.model_name !== '' &&
-      model.reference !== '' &&
-      model.reference === values.embd_id,
+      Boolean(model.model_name) &&
+      values.embd_id === '',
   )
   const dirty = form.formState.isDirty
   const [saveFailed, setSaveFailed] = useState(false)

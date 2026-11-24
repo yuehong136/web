@@ -5,12 +5,15 @@ import { createRequire } from 'node:module'
 import { apiClient } from '../src/api/client'
 import { agentAPI } from '../src/api/agent'
 import { llmAPI } from '../src/api/llm'
+import { createModelProvidersAPI } from '../src/api/llm-providers'
 import { buildLocalModelParams } from '../src/pages/settings/model-providers/components/api-key-modal-utils'
+import { buildInstancePayload } from '../src/pages/settings/model-providers/components/instance-payload'
 
 const base = process.env.DOMAIN_ACCEPTANCE_BASE
 const token = process.env.DOMAIN_ACCEPTANCE_TOKEN
 const mode = process.env.DOMAIN_ACCEPTANCE_MODE
 assert.ok(base && token && mode)
+assert.ok(['127.0.0.1', 'localhost', '[::1]'].includes(new URL(base).hostname))
 apiClient.setAuthToken(token)
 const realFetch = globalThis.fetch
 const paths: string[] = []
@@ -23,8 +26,16 @@ globalThis.fetch = ((url, init) => {
 if (mode === 'model') {
   const providerBase = process.env.DOMAIN_ACCEPTANCE_PROVIDER
   assert.ok(providerBase)
+  assert.ok(
+    ['127.0.0.1', 'localhost', '[::1]'].includes(
+      new URL(providerBase).hostname,
+    ),
+  )
+  const modelsAPI = createModelProvidersAPI(base)
   const flags: boolean[] = []
-  for (const enabled of [false, true, false]) {
+  const saved: Array<{ id: string; instance: string; is_tools: boolean }> = []
+  for (const [index, enabled] of [false, true, false].entries()) {
+    const instanceName = `combined-${index + 1}`
     const params = buildLocalModelParams({
       providerName: 'Ollama',
       modelName: 'combined-fixture',
@@ -36,16 +47,60 @@ if (mode === 'model') {
       isTools: enabled,
       includeTools: true,
     })
-    await llmAPI.addLLM(params)
-    const providers = await llmAPI.getMyLLMs({ include_details: true })
-    const model = providers.Ollama.llm.find(
-      (item) => item.name === 'combined-fixture',
+    const { instance } = buildInstancePayload(
+      'Ollama',
+      instanceName,
+      'fixture-key',
+      providerBase,
+      params,
+      '',
     )
-    assert.equal(model?.is_tools, enabled)
-    assert.ok(!JSON.stringify(providers).includes('fixture-key'))
-    flags.push(enabled)
+    await modelsAPI.createInstance('Ollama', instance)
+    const [providers, models, instances] = await Promise.all([
+      llmAPI.getMyLLMs(),
+      modelsAPI.models(),
+      modelsAPI.instances('Ollama'),
+    ])
+    const selection = providers.Ollama.llm.find(
+      (item) =>
+        item.name === 'combined-fixture' && item.instance_name === instanceName,
+    )
+    const model = models.find((item) => item.id === selection?.id)
+    assert.ok(selection && model)
+    assert.match(model.id, /^[0-9a-f]{32}$/)
+    assert.equal(model.reference, model.id)
+    assert.equal(selection.reference, model.id)
+    assert.deepEqual(model.model_types, ['chat'])
+    assert.equal(model.is_tools, enabled)
+    assert.equal(selection.is_tools, enabled)
+    assert.equal(
+      instances.find((item) => item.instance_name === instanceName)
+        ?.has_api_key,
+      true,
+    )
+    assert.ok(
+      !JSON.stringify({ providers, models, instances }).includes('fixture-key'),
+    )
+    flags.push(model.is_tools)
+    saved.push({
+      id: model.id,
+      instance: instanceName,
+      is_tools: model.is_tools,
+    })
   }
-  console.log(JSON.stringify({ flags, paths }))
+  const ids = saved.map((item) => item.id)
+  assert.equal(new Set(ids).size, 3)
+  apiClient.setAuthToken(null)
+  await assert.rejects(modelsAPI.models())
+  console.log(
+    JSON.stringify({
+      flags,
+      ids,
+      models: saved,
+      paths,
+      anonymous_denied: true,
+    }),
+  )
 } else if (mode === 'document-save') {
   const dsl = {
     components: {

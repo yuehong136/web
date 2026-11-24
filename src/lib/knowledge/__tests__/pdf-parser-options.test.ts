@@ -1,41 +1,27 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { buildPDFParserOptions } from '@/lib/knowledge/pdf-parser-options'
-import type {
-  LLMCatalog,
-  LLMCatalogModel,
-  MyLLMModel,
-  MyLLMProvider,
-} from '@/stores/model'
+import type { MyLLMModel, MyLLMProvider } from '@/stores/model'
 
-const configuredModel = (
+const fixtureId = (index: number) => index.toString(16).padStart(32, 'a')
+const model = (
+  index: number,
   name: string,
   type: MyLLMModel['type'],
   extra: Partial<MyLLMModel> = {},
 ): MyLLMModel => ({
-  id: 42,
+  id: fixtureId(index),
   name,
   type,
   used_token: 0,
   status: '1',
   ...extra,
 })
-
 const provider = (...llm: MyLLMModel[]) => ({ tags: '', llm })
-
-const catalogModel = (
-  llm_name: string,
-  fid: string,
-  mdl_type: string,
-  extra: Partial<LLMCatalogModel> = {},
-): LLMCatalogModel => ({ llm_name, fid, mdl_type, available: true, ...extra })
-
-const values = (configured: MyLLMProvider, catalog: LLMCatalog) =>
-  buildPDFParserOptions(configured, catalog).map((option) => option.value)
 
 test('the baseline contains only the two supported built-in PDF parsers', () => {
   assert.deepEqual(
-    buildPDFParserOptions({}, {}).map(({ value, kind }) => ({ value, kind })),
+    buildPDFParserOptions({}).map(({ value, kind }) => ({ value, kind })),
     [
       { value: 'DeepDOC', kind: 'builtin' },
       { value: 'Plain Text', kind: 'builtin' },
@@ -43,262 +29,68 @@ test('the baseline contains only the two supported built-in PDF parsers', () => 
   )
 })
 
-test('multiple OCR models in each factory retain exact names instead of sharing a factory value or row ID', () => {
+test('preserves opaque per-instance IDs across providers and model names with delimiters', () => {
   const configured: MyLLMProvider = {
     PaddleOCR: provider(
-      configuredModel('PaddleOCR-VL', 'ocr'),
-      configuredModel('PP-OCRv5', 'ocr'),
+      model(1, 'scan@east', 'ocr', { instance_name: 'first' }),
+      model(2, 'scan@east', 'ocr', { instance_name: 'second' }),
     ),
-    MinerU: provider(
-      configuredModel('scan@east', 'ocr'),
-      configuredModel('scan@west', 'ocr'),
-    ),
+    MinerU: provider(model(3, 'scan@east', 'ocr')),
+    LocalAI: provider(model(4, 'vision@east___LocalAI', 'image2text')),
+    OpenDataLoader: provider(model(5, 'vendor/model', 'ocr')),
   }
-  const catalog: LLMCatalog = {
-    PaddleOCR: [
-      catalogModel('PaddleOCR-VL', 'PaddleOCR', 'ocr'),
-      catalogModel('PP-OCRv5', 'PaddleOCR', 'ocr'),
-    ],
-    MinerU: [
-      catalogModel('scan@east', 'MinerU', 'ocr'),
-      catalogModel('scan@west', 'MinerU', 'ocr'),
-    ],
-  }
-
-  assert.deepEqual(buildPDFParserOptions(configured, catalog).slice(2), [
+  assert.deepEqual(buildPDFParserOptions(configured).slice(2), [
     {
-      value: 'PaddleOCR-VL@PaddleOCR@PaddleOCR',
-      label: 'PaddleOCR-VL',
+      value: fixtureId(1),
+      label: 'scan@east · first',
       provider: 'PaddleOCR',
       kind: 'ocr',
     },
     {
-      value: 'PP-OCRv5@PaddleOCR@PaddleOCR',
-      label: 'PP-OCRv5',
+      value: fixtureId(2),
+      label: 'scan@east · second',
       provider: 'PaddleOCR',
       kind: 'ocr',
     },
     {
-      value: 'scan@east@MinerU@MinerU',
+      value: fixtureId(3),
       label: 'scan@east',
       provider: 'MinerU',
       kind: 'ocr',
     },
     {
-      value: 'scan@west@MinerU@MinerU',
-      label: 'scan@west',
-      provider: 'MinerU',
+      value: fixtureId(4),
+      label: 'vision@east___LocalAI',
+      provider: 'LocalAI',
+      kind: 'vision',
+    },
+    {
+      value: fixtureId(5),
+      label: 'vendor/model',
+      provider: 'OpenDataLoader',
       kind: 'ocr',
     },
   ])
 })
 
-test('vision model identities preserve embedded @ names and deployment suffixes across providers', () => {
-  const configured: MyLLMProvider = {
-    LocalAI: provider(configuredModel('vision@east___LocalAI', 'image2text')),
-    'OpenAI-API-Compatible': provider(
-      configuredModel('vision@east___OpenAI-API', 'image2text'),
-    ),
-    OpenAI: provider(configuredModel('same-name', 'image2text')),
-    Ollama: provider(configuredModel('same-name', 'image2text')),
-  }
-  const catalog: LLMCatalog = {
-    LocalAI: [catalogModel('vision@east___LocalAI', 'LocalAI', 'image2text')],
-    'OpenAI-API-Compatible': [
-      catalogModel(
-        'vision@east___OpenAI-API',
-        'OpenAI-API-Compatible',
-        'image2text',
-      ),
-    ],
-    OpenAI: [catalogModel('same-name', 'OpenAI', 'image2text')],
-    Ollama: [catalogModel('same-name', 'Ollama', 'image2text')],
-  }
-  const options = buildPDFParserOptions(configured, catalog).slice(2)
-
-  assert.deepEqual(
-    options.map((option) => option.value),
-    [
-      'vision@east___LocalAI@LocalAI',
-      'vision@east___OpenAI-API@OpenAI-API-Compatible',
-      'same-name@OpenAI',
-      'same-name@Ollama',
-    ],
-  )
-  assert.ok(options.every((option) => option.kind === 'vision'))
-})
-
-test('OCR routing preserves factory qualification for cross-factory same names and names ending in a recognized factory', () => {
-  const configured: MyLLMProvider = {
-    MinerU: provider(configuredModel('shared-name', 'ocr')),
-    PaddleOCR: provider(
-      configuredModel('shared-name', 'ocr'),
-      configuredModel('custom@LocalAI', 'ocr'),
-      configuredModel('custom@PaddleOCR', 'ocr'),
-    ),
-  }
-  const catalog: LLMCatalog = {
-    MinerU: [catalogModel('shared-name', 'MinerU', 'ocr')],
-    PaddleOCR: [
-      catalogModel('shared-name', 'PaddleOCR', 'ocr'),
-      catalogModel('custom@LocalAI', 'PaddleOCR', 'ocr'),
-      catalogModel('custom@PaddleOCR', 'PaddleOCR', 'ocr'),
-    ],
-  }
-  // Outer suffix selects the parser; inner suffix binds the exact tenant factory.
-  assert.deepEqual(values(configured, catalog), [
-    'DeepDOC',
-    'Plain Text',
-    'shared-name@MinerU@MinerU',
-    'shared-name@PaddleOCR@PaddleOCR',
-    'custom@LocalAI@PaddleOCR@PaddleOCR',
-    'custom@PaddleOCR@PaddleOCR@PaddleOCR',
-  ])
-})
-
-test('catalog availability cannot reintroduce disabled or unconfirmed tenant model rows', () => {
+test('filters ineligible, disabled and legacy IDs, and deduplicates only the same registration', () => {
   const configured: MyLLMProvider = {
     PaddleOCR: provider(
-      configuredModel('disabled', 'ocr', { status: '0' }),
-      configuredModel('not-available', 'ocr', { available: false }),
-      configuredModel('unconfirmed', 'ocr', { status: undefined }),
-      configuredModel('enabled', 'ocr'),
+      model(1, 'disabled', 'ocr', { status: '0' }),
+      model(2, 'unavailable', 'ocr', { available: false }),
+      model(3, 'chat-only', 'chat'),
+      model(4, 'legacy', 'ocr', { id: 4 }),
+      model(5, 'legacy-string', 'ocr', { id: '5' }),
+      model(6, 'unregistered', 'ocr', { id: undefined }),
+      model(7, 'same', 'ocr'),
+      model(7, 'same', 'image2text'),
+      model(8, 'same', 'ocr'),
     ),
   }
-  // MultiRAG /list can re-add disabled custom rows as available; my_llms wins.
-  const catalog: LLMCatalog = {
-    PaddleOCR: configured.PaddleOCR.llm.map((model) =>
-      catalogModel(model.name, 'PaddleOCR', 'ocr'),
-    ),
-  }
-  assert.deepEqual(values(configured, catalog), [
-    'DeepDOC',
-    'Plain Text',
-    'enabled@PaddleOCR@PaddleOCR',
-  ])
-})
-
-test('availability requires matching configured provider, exact name, type, and an affirmative catalog flag', () => {
-  const configured: MyLLMProvider = {
-    OpenAI: provider(configuredModel('vision', 'image2text')),
-  }
-  const cases: LLMCatalog[] = [
-    {},
-    { Ollama: [catalogModel('vision', 'Ollama', 'image2text')] },
-    { OpenAI: [catalogModel('vision', 'Ollama', 'image2text')] },
-    { OpenAI: [catalogModel('vision-other', 'OpenAI', 'image2text')] },
-    { OpenAI: [catalogModel('vision', 'OpenAI', 'chat')] },
-    { OpenAI: [catalogModel('vision', 'OpenAI', 'notimage2text')] },
-    {
-      OpenAI: [
-        catalogModel('vision', 'OpenAI', 'image2text', { available: false }),
-      ],
-    },
-    {
-      OpenAI: [
-        catalogModel('vision', 'OpenAI', 'image2text', {
-          available: undefined,
-        }),
-      ],
-    },
-  ]
-  for (const catalog of cases) {
-    assert.deepEqual(values(configured, catalog), ['DeepDOC', 'Plain Text'])
-  }
+  const snapshot = structuredClone(configured)
   assert.deepEqual(
-    values(configured, {
-      OpenAI: [catalogModel('vision', 'OpenAI', 'chat, image2text')],
-    }),
-    ['DeepDOC', 'Plain Text', 'vision@OpenAI'],
+    buildPDFParserOptions(configured).map((option) => option.value),
+    ['DeepDOC', 'Plain Text', fixtureId(7), fixtureId(8)],
   )
-  assert.deepEqual(
-    values({}, { OpenAI: [catalogModel('vision', 'OpenAI', 'image2text')] }),
-    ['DeepDOC', 'Plain Text'],
-  )
-})
-
-test('wrong model types and OCR providers without a supported named PDF route are excluded', () => {
-  const configured: MyLLMProvider = {
-    OpenAI: provider(
-      ...(
-        ['chat', 'embedding', 'rerank', 'tts', 'speech2text', 'ocr'] as const
-      ).map((type) => configuredModel(type, type)),
-    ),
-    MinerU: provider(configuredModel('not-an-ocr-model', 'image2text')),
-    PaddleOCR: provider(configuredModel('not-an-ocr-model', 'image2text')),
-    OpenDataLoader: provider(configuredModel('configured-loader', 'ocr')),
-  }
-  const catalog = Object.fromEntries(
-    Object.entries(configured).map(([fid, data]) => [
-      fid,
-      data.llm.map((model) => catalogModel(model.name, fid, model.type)),
-    ]),
-  )
-  assert.deepEqual(values(configured, catalog), ['DeepDOC', 'Plain Text'])
-})
-
-test('duplicate rows collapse only the same qualified identity without modifying API data', () => {
-  const configured: MyLLMProvider = {
-    PaddleOCR: provider(
-      configuredModel('same', 'ocr'),
-      configuredModel('same', 'ocr'),
-      configuredModel('other', 'ocr'),
-    ),
-  }
-  const catalog: LLMCatalog = {
-    PaddleOCR: [
-      catalogModel('same', 'PaddleOCR', 'ocr'),
-      catalogModel('other', 'PaddleOCR', 'ocr'),
-    ],
-  }
-  const snapshot = structuredClone({ configured, catalog })
-  assert.deepEqual(values(configured, catalog), [
-    'DeepDOC',
-    'Plain Text',
-    'same@PaddleOCR@PaddleOCR',
-    'other@PaddleOCR@PaddleOCR',
-  ])
-  assert.deepEqual({ configured, catalog }, snapshot)
-})
-
-test('numeric OCR identities do not acquire provider suffixes and retain instance labels', () => {
-  const rows: MyLLMProvider = {
-    PaddleOCR: {
-      tags: 'ocr',
-      llm: [
-        {
-          id: '71',
-          reference: '71',
-          name: 'same',
-          instance_name: 'one',
-          type: 'ocr',
-          status: '1',
-          used_token: 0,
-        },
-        {
-          id: '72',
-          reference: '72',
-          name: 'same',
-          instance_name: 'two',
-          type: 'ocr',
-          status: '1',
-          used_token: 0,
-        },
-        {
-          id: '73',
-          reference: '73',
-          name: 'disabled',
-          type: 'ocr',
-          status: '0',
-          used_token: 0,
-        },
-      ],
-    },
-  }
-  const options = buildPDFParserOptions(rows, {})
-  assert.deepEqual(
-    options.filter((item) => item.kind === 'ocr').map((item) => item.value),
-    ['71', '72'],
-  )
-  assert.equal(options.find((item) => item.value === '72')?.label, 'same · two')
+  assert.deepEqual(configured, snapshot)
 })

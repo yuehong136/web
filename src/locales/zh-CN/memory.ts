@@ -1,5 +1,261 @@
+import { memorySourceEntryMessages } from './memory-source-entry'
+import { memoryCompactionMessages } from './memory-compaction'
+import { memorySourceMessages } from './memory-sources'
+import { memoryStartupMessages } from './memory-startup'
+import { memoryVerificationMessages } from './memory-verification'
+import { memoryTargetMessages } from './memory-targets'
+import { memoryIncrementalMessages } from './memory-incremental'
+import { memoryRecoveryMessages } from './memory-recovery'
+import { memorySegmentMessages } from './memory-segments'
+
 export default {
   memory: {
+    compaction: memoryCompactionMessages,
+    sourceEntry: memorySourceEntryMessages,
+    sources: memorySourceMessages,
+    startup: memoryStartupMessages,
+    verification: memoryVerificationMessages,
+    incremental: memoryIncrementalMessages,
+    segments: memorySegmentMessages,
+    targets: memoryTargetMessages,
+    recovery: memoryRecoveryMessages,
+    dreaming: {
+      title: '整理与审核',
+      description: '生成记忆候选，核对来源，再审核并发布。',
+      boundary:
+        '模型生成的候选与正常记忆分开保存。请核对并批准候选后，再显式发布；任务完成不代表事实已经核实。',
+      unsupported: '当前后端不支持记忆候选整理与审核，已有记忆控件仍可使用。',
+      newJob: '准备整理任务',
+      sourceIds: 'RAW 来源 ID',
+      sourcePlaceholder: '输入精确十进制 ID，每行一个或用逗号分隔',
+      explicitScope:
+        '显式选择 1–{{count}} 个 RAW 来源 ID，空范围不会解释为整个记忆库。',
+      invalidSources:
+        '请输入 1–{{count}} 个不重复的正 int64 十进制来源 ID，不可使用舍入后的数值。',
+      invalidEntries:
+        '最多选择 32 个不重复的条目 ID，每个为 32 位小写十六进制字符。',
+      invalidBudget: '请输入整数 token：输入 1,024–32,768，输出 256–8,192。',
+      entryIds: '目标条目 ID（可选）',
+      entryScope: '只允许为这些当前条目提出局部修订；不选条目时只能新增记忆。',
+      inspectSources: '检查／登记所选来源',
+      sourceRegistration: '所选来源管理',
+      registrationBoundary:
+        '请先逐条显式登记来源，再创建任务。来源登记可能为整个记忆库启用受管模式；来源撤回不可恢复，另有独立确认。',
+      policy: '整理策略',
+      policies: {
+        general: '一般事实',
+        preferences: '偏好',
+        decisions: '决定',
+        procedures: '操作经验',
+      },
+      inputBudget: '输入 token 预算',
+      outputBudget: '输出 token 预算',
+      budgetBoundary:
+        '这里使用宿主估算预算。过大的来源整条延后，不截断正文；模型用量与估算 token 分开计算。',
+      requiresManaged:
+        '任务需要受管记忆库和已登记的有效来源，请先使用显式来源登记控件。',
+      create: '创建输入快照',
+      createUnknown:
+        '创建结果尚未确认。请保留此操作 ID，读取任务列表，或显式重试原来的完整请求。',
+      findCreatedJob: '查找原任务',
+      retryCreate: '重试原创建请求',
+      jobs: '任务与分析',
+      job: '任务 ID',
+      jobState: '任务状态',
+      selectJob: '选择任务',
+      resumeJob: '打开已有任务 ID',
+      resumePublication: '读取发布操作 ID',
+      open: '打开',
+      run: '显式运行分析',
+      cancel: '取消任务',
+      explicitRun:
+        '读取或刷新任务不会运行模型。失败或中断后的分析继续使用原分析操作 ID。',
+      analysisOperation: '分析操作',
+      estimatedInput: '估算输入 token／预算',
+      coverage:
+        '所选 {{selected}} · 纳入 {{included}} · 已分析 {{analyzed}} · 延后 {{deferred}}',
+      deferred:
+        '部分来源已整条延后，尚未分析，不可把本次结果当作覆盖了全部所选来源。',
+      analysisReady: '分析已结束，候选仍需审核并显式发布，事实仍未经过核实。',
+      runningBoundary:
+        '在途模型请求可能仍在结束中。刷新只读取状态；只有服务端确认后，取消才算完成。',
+      inputManifest: '输入版本与覆盖范围',
+      sourceVersion: '版本 {{revision}} · 代次 {{generation}}',
+      inputDeferred: '此输入已延后，正文尚未分析。',
+      analysisModel: '分析模型',
+      usage: '模型报告用量（与估算分开）',
+      jobStates: {
+        pending: '输入快照已准备',
+        running: '正在分析',
+        ready: '分析已结束',
+        failed: '分析失败／待恢复',
+        cancel_requested: '已请求取消',
+        canceled: '已取消',
+        stale: '输入已变更',
+        redacted: '证据不可用',
+      },
+      coverageStates: {
+        included: '已纳入',
+        deferred: '已延后',
+        analyzed: '已分析',
+        stale: '来源已变更，快照正文不可用',
+        redacted: '来源已撤回，快照正文已隐藏',
+      },
+      candidates: '审核候选',
+      noCandidates: '暂无可审核候选',
+      noCandidatesDescription:
+        '请先准备并显式运行任务；分析成功也可能没有可发布的变更。',
+      actions: {
+        add: '新增记忆',
+        patch: '局部修订当前条目',
+        noop: '无需变更',
+      },
+      candidateStates: {
+        pending: '等待审核',
+        approved: '已批准，未发布',
+        rejected: '已拒绝',
+        publishing: '正在发布',
+        published: '已发布',
+        stale: '已过期',
+        redacted: '正文已隐藏',
+      },
+      candidateRevision: '候选版本 {{revision}}',
+      targetEntry: '目标条目',
+      targetRevision: '预期条目版本 {{revision}}',
+      selectPublication: '选择发布',
+      assessment: '评估',
+      old_text: '原内容',
+      new_text: '建议结果',
+      provenance: '证据来源（{{count}}）',
+      redacted: '证据不可用或已经变更，候选正文已隐藏，不可批准或发布。',
+      approve: '批准候选',
+      reject: '拒绝候选',
+      reviewUnknown: '审核结果尚未确认。请读取当前状态，或显式重试原审核操作。',
+      retryReview: '重试原审核',
+      conflict:
+        '范围或版本已变更。请刷新并核对最新来源与候选差异后，再创建新命令；结果未知的发布仍保留原操作 ID。',
+      publishBoundary:
+        '只发布已批准且仍为当前版本的候选，每批最多 {{count}} 条。所选批次使用同一个发布决定，索引同步仍可能未完成。',
+      publishSelected: '发布已选批准候选（{{count}}）',
+      anotherBatch: '准备另一批已审核候选',
+      refreshRejected: '先核对被拒操作，再重新审核选择',
+    },
+    writers: {
+      rawPublished: '原始对话发布已确认。',
+      queueUnconfirmed: '原始对话已入索引，但提取队列的受理结果仍未确认。',
+      appendPending: '原始对话正在等待发布。',
+      queueState: '提取队列',
+      rawSource: '原始来源 ID',
+      extractionTask: '提取任务 ID',
+      noExtraction: '此记忆库无需创建提取任务。',
+      extractionBoundary:
+        '任务已入队不代表提取已完成。请单独查看工作任务；此回执不确认事实已被提取。',
+
+      activation: '此操作为整个记忆库启用受管模式，既有未接管记录仍可读取。',
+      managed: '本库使用受管发布流程。',
+      append: '新增对话',
+      automatic_extraction: '自动提取',
+      fifo: 'FIFO 容量保留',
+      supported: '已支持',
+      unavailable: '当前服务不可用',
+      operationBoundary:
+        '工作已受理时仍可能等待发布，请查看操作状态后再确认生效。',
+      legacyDrain:
+        '部署前须由运维排空旧写入进程并核验未跟踪任务；结果未知的写入在对账前可能阻塞删除。',
+    },
+    deletion: {
+      description:
+        '先停止新增写入与检索，等待已受理写入排空，再删除记忆库及已跟踪数据。不认证备份和无法追踪的副本已被抹除。',
+      completed: '记忆库删除已确认',
+      pending: '删除已受理，正在等待写入排空与已跟踪数据清理。',
+      lifecycle: '记忆库状态',
+      notConfirmed: '尚未确认',
+      blockedBy: '等待项目',
+      operatorRequired:
+        '存在结果未确认的写入，需要人工核验。请保留此操作号；创建新操作不会解除阻塞。',
+      keepOperation:
+        '请保留此操作号直至删除确认。读取状态不会推进清理；刷新页面后不会自动恢复此操作。',
+      unavailable: '当前服务尚不支持协调删除受管记忆库。',
+      drain: {
+        active_attempts: '进行中的写入尝试',
+        unknown_attempts: '结果未知的写入尝试',
+        pending_appends: '待处理追加',
+        untracked_tasks: '未跟踪任务',
+      },
+    },
+    revisions: {
+      notCertified: '未确认全部完成',
+      trackedCleanup: '已追踪索引清理',
+      retainedCopies:
+        '此回执仅覆盖已追踪投影，不代表未追踪副本或备份已被删除。',
+
+      managedForgetScope:
+        '停止正常供给此派生记忆，并隐去其已追踪受管版本的历史正文。原始来源、其他派生记忆、无关副本和备份仍保留，物理清理单独记录状态。',
+      inflight:
+        '先前尝试可能仍在运行。请保留此操作 ID，等待并查询状态；继续对账前可能需要人工核验。',
+      title: '修订记忆',
+      adoptDescription:
+        '编辑前需明确接管这条派生记忆。查看历史不会自动接管或发布。',
+      activationImpact:
+        '此操作将为整个记忆库启用受管模式。普通自动写入与整库删除暂时受限，既有未接管记录仍可读取。',
+      managedImpact:
+        '本库已受管。普通自动写入与整库删除暂时受限，未接管记录仍可读取。',
+      activationConfirm: '我理解此影响适用于整个记忆库。',
+      adopt: '启用受管编辑',
+      userAsserted:
+        '人工修订属于用户声明。来源引用表示出处，不代表内容已被事实验证。',
+      version: '第 {{revision}} 版',
+      refresh: '刷新当前版本',
+      replace: '替换全文',
+      exactPatch: '精确文本补丁',
+      content: '修订后内容',
+      oldText: '待替换原文（须唯一匹配）',
+      newText: '替换文本',
+      reason: '原因',
+      preview: '预览修订',
+      submit: '提交已预览的修订',
+      previewTitle: '修订预览',
+      estimatedTokens: '估算 token：{{count}}',
+      before: '修订前',
+      after: '修订后',
+      history: '修订历史与来源',
+      redacted: '此历史视图中的正文已移除。',
+      firstHistory: '最新版本',
+      source: '来源',
+      scope: '来源范围',
+      sourceManaged: '已登记来源',
+      sourceUnmanaged: '未登记来源',
+      adoptSource: '登记来源以便撤回',
+      withdraw: '撤回来源',
+      withdrawScope:
+        '永久停止向正常读取提供此来源及其已追踪派生记忆。历史正文将隐去，物理索引清理单独记录状态；不会删除备份或无关副本。',
+      withdrawConfirm: '我确认撤回此来源及其已追踪派生记忆。',
+      withdrawn: '此来源已停止正常供给，物理清理状态请查看操作记录。',
+      operation: '操作状态',
+      publication: '发布状态',
+      indexSync: '索引同步',
+      supply: '正常供给',
+      cleanup: '物理清理',
+      complete: '已完成',
+      pendingShort: '待处理或尚未确认',
+      ready: '此操作已确认就绪。',
+      pending: '尚未确认完成。可读取最新状态，或明确发起对账以继续待处理工作。',
+      refreshStatus: '读取最新状态',
+      reconcile: '对账此操作',
+      statusFailed:
+        '暂时无法确认状态。请保留此操作 ID 并刷新，不要新建命令重发。',
+      conflict: '记录已变化。请刷新后重新预览，再提交修订。',
+      unknown: '结果尚未确认。请查询原操作并明确发起对账，不要重发命令。',
+      failed: '请求未能完成。请刷新记录或查询操作状态。',
+      unsupported: '当前存储后端不支持受管修订。',
+      unsafeId: '此旧版标识符无法精确表示。为保护原记录，已禁用编辑。',
+      capabilitiesFailed: '无法加载记忆编辑能力。',
+      readOnly: '此版本暂不可编辑，请刷新状态。',
+      managedNotice:
+        '受管模式已启用。普通自动写入与整库删除暂时受限，既有记录仍可读取。',
+      legacyForgetScope:
+        '此遗忘操作仅停止正常检索所选记录，不会删除原始来源、其他派生记忆、历史或备份。来源撤回是来源详情中的独立操作。',
+    },
     page: {
       title: '记忆库',
       results: '记忆库：{{count}}',

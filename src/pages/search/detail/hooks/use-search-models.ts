@@ -4,96 +4,36 @@ import { llmKeys } from '@/hooks/use-llm-request'
 import type { LLMModel } from '@/types/api'
 import type { MyLLMProvider } from '@/stores/model'
 
-interface RawModelItem {
-  id?: string
-  name?: string
-  llm_name?: string
-  label?: string
-  display_name?: string
-  type?: string
-  mdl_type?: string
-  available?: boolean
-  status?: string
-  used_token?: number
-}
-
-interface RawProviderPayload {
-  tags?: string
-  llm?: RawModelItem[]
-}
-
-const isEnabledRawModel = (model: RawModelItem) =>
-  model.available !== false && model.status !== '0'
-
-export function normalizeSearchModels(response: Record<string, unknown>) {
-  const providers = Object.entries(
-    response as Record<string, unknown>,
-  ).reduce<MyLLMProvider>((acc, [providerName, providerValue]) => {
-    const payload = providerValue as RawProviderPayload | RawModelItem[]
-    const llmList = Array.isArray(payload) ? payload : payload?.llm || []
-    const llm = llmList
-      .filter((model) => {
-        const modelType = model.mdl_type || model.type
-        return (
-          (modelType === 'chat' || modelType === 'image2text') &&
-          !!(model.llm_name || model.name || model.id)
-        )
-      })
-      .map((model) => ({
-        id: model.id,
-        reference:
-          model.id && /^[1-9]\d*$/.test(model.id) ? model.id : undefined,
-        label: model.label ?? model.display_name ?? model.llm_name,
-        type: (model.mdl_type || model.type) as 'chat' | 'image2text',
-        name: model.name || model.llm_name || '',
-        used_token: model.used_token || 0,
-        status: model.status as '0' | '1' | undefined,
-        available: model.available,
-      }))
-
-    if (llm.length) {
-      acc[providerName] = {
-        tags: Array.isArray(payload) ? '' : payload.tags || '',
-        llm,
-      }
-    }
-
-    return acc
-  }, {})
-
-  const allModels = Object.entries(response as Record<string, unknown>).flatMap(
-    ([providerName, providerValue]) => {
-      const payload = providerValue as RawProviderPayload | RawModelItem[]
-      const llmList = Array.isArray(payload) ? payload : payload?.llm || []
-      return llmList.map((model): LLMModel => ({
-        id:
-          model.id ||
-          `${model.llm_name || model.name || 'model'}@${providerName}`,
-        llm_name: model.name || model.llm_name || '',
-        display_name: model.label ?? model.display_name ?? model.llm_name,
-        fid: providerName,
-        mdl_type: (model.mdl_type ||
-          model.type ||
-          'chat') as LLMModel['mdl_type'],
-        available: isEnabledRawModel(model),
-        status: model.status,
-        name: model.name,
-      }))
-    },
-  )
-
+export function normalizeSearchModels(response: Record<string, LLMModel[]>) {
+  const providers: MyLLMProvider = {}
   const idToNameMap: Record<string, string> = {}
-  allModels.forEach((model) => {
-    if (model.mdl_type !== 'chat' && model.mdl_type !== 'image2text') return
-    const modelName = model.llm_name || model.name || model.id
-    if (!modelName) return
-    idToNameMap[model.id || modelName] = modelName
-  })
+  const rerankModels: LLMModel[] = []
+  for (const [providerName, models] of Object.entries(response)) {
+    for (const model of models) {
+      const name = model.name || model.llm_name
+      const label = model.display_name ?? model.llm_name
+      if (model.mdl_type === 'rerank') {
+        rerankModels.push({ ...model, llm_name: name, display_name: label })
+      }
+      if (model.mdl_type !== 'chat' && model.mdl_type !== 'image2text') continue
+      ;(providers[providerName] ??= { tags: '', llm: [] }).llm.push({
+        id: model.id,
+        reference: model.id,
+        name,
+        label,
+        type: model.mdl_type,
+        available: model.available,
+        status: model.status === '0' ? '0' : '1',
+        used_token: 0,
+      })
+      idToNameMap[model.id] = name
+    }
+  }
 
   return {
     chatModelProviders: providers,
     chatModelNameById: idToNameMap,
-    rerankModels: allModels.filter((model) => model.mdl_type === 'rerank'),
+    rerankModels,
   }
 }
 const EMPTY = normalizeSearchModels({})
@@ -102,9 +42,7 @@ export function useSearchModels(enabled: boolean) {
     queryKey: llmKeys.available(),
     enabled,
     queryFn: async ({ signal }) =>
-      normalizeSearchModels(
-        (await llmAPI.list(undefined, signal)) as Record<string, unknown>,
-      ),
+      normalizeSearchModels(await llmAPI.list(undefined, signal)),
     staleTime: 5 * 60 * 1000,
   })
   return { ...query, ...(query.data ?? EMPTY) }

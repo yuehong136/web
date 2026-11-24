@@ -1,15 +1,11 @@
-import { lazy, type ComponentType } from 'react'
+import { lazy } from 'react'
+import { lazyNamed } from './route-loading'
 
 /**
  * Route-level code split: every page the router mounts lazily. The router
  * reads them as `Page.<Name>`; LoginPage and HomePage stay static there.
+ * Feature route modules (skills, memory) declare their own pages.
  */
-function lazyNamed<K extends string>(
-  factory: () => Promise<Record<K, ComponentType>>,
-  name: K,
-) {
-  return lazy(() => factory().then((m) => ({ default: m[name] })))
-}
 
 export const RegisterPage = lazyNamed(
   () => import('@/pages/auth/RegisterPage'),
@@ -57,24 +53,6 @@ export const DocumentChunksPage = lazyNamed(
 export const KnowledgeLogsPage = lazyNamed(
   () => import('@/pages/knowledge/logs'),
   'KnowledgeLogsPage',
-)
-
-// Memory
-export const MemoryListPage = lazyNamed(
-  () => import('@/pages/memory'),
-  'MemoryListPage',
-)
-export const MemoryDetailLayout = lazyNamed(
-  () => import('@/pages/memory'),
-  'MemoryDetailLayout',
-)
-export const MemoryMessagesPage = lazyNamed(
-  () => import('@/pages/memory'),
-  'MemoryMessagesPage',
-)
-export const MemorySettingsPage = lazyNamed(
-  () => import('@/pages/memory'),
-  'MemorySettingsPage',
 )
 
 // Explore & Search

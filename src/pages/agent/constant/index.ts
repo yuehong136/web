@@ -287,14 +287,7 @@ export const initialLlmBaseValues = {
   max_tokens: 512,
 }
 
-export const initialMessageValues = {
-  content: [''],
-  output_format: '',
-  auto_play: false,
-  status: 200,
-  memory_ids: [] as string[],
-  user_id: '',
-}
+export { initialMessageValues } from './message-defaults'
 
 export const A2UIBasicCatalogId =
   'https://a2ui.org/specification/v0_9/basic_catalog.json'

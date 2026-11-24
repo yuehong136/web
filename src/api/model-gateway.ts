@@ -40,7 +40,7 @@ export interface GatewayRateLimits {
 
 /** A registered model as the gateway sees it; there is no publish step. */
 export interface GatewayCatalogModel extends GatewayRateLimits {
-  model_id: number
+  model_id: string
   model_name: string
   provider: string
   instance_id: string
@@ -98,7 +98,7 @@ export interface GatewayKey extends GatewayRateLimits {
   /** Whole connections, including models opened there later. */
   allowed_instance_ids: string[]
   /** Registered model ids: a snapshot, later models are not included. */
-  allowed_model_ids: number[]
+  allowed_model_ids: string[]
   token_quota: number | null
   quota_period: GatewayQuotaPeriod | null
   /** Tokens used in the current period; `null` for keys without a quota. */
@@ -122,7 +122,7 @@ export interface GatewayKeyLimitsInput extends Partial<GatewayRateLimits> {
 export interface GatewayKeyScopeInput {
   allow_all_models?: boolean
   allowed_instance_ids?: string[]
-  allowed_model_ids?: number[]
+  allowed_model_ids?: string[]
 }
 
 export interface GatewayKeyCreateInput
@@ -148,7 +148,7 @@ export interface GatewayLog {
   model: string | null
   gateway_model_id: string | null
   /** The registered model that served the call. */
-  upstream_model_id: number | null
+  upstream_model_id: string | null
   upstream_model_name: string | null
   endpoint: string
   stream: boolean
@@ -249,7 +249,7 @@ export interface GatewayOverview {
   bucket: 'hour' | 'day'
   series: GatewayOverviewBucket[]
   top_models: Array<{
-    model_id: number
+    model_id: string
     name: string
     provider: string
     requests: number
@@ -270,7 +270,7 @@ export const modelGatewayAPI = {
   },
 
   updateCatalogModel(
-    modelId: number,
+    modelId: string,
     input: GatewayCatalogModelUpdate,
   ): Promise<GatewayCatalogModel> {
     return apiClient.patch(path('catalog/models', modelId), input, rest)

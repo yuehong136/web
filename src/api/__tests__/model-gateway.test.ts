@@ -3,6 +3,8 @@ import test from 'node:test'
 import { apiClient, type RequestConfig } from '../client'
 import { modelGatewayAPI } from '../model-gateway'
 
+const modelId = (value: number) => value.toString(16).padStart(32, '0')
+
 type Verb = 'get' | 'post' | 'patch' | 'delete'
 type Call = {
   verb: Verb
@@ -48,7 +50,7 @@ test('every route targets the RESTful model-gateway prefix', async () => {
   const { calls, restore } = recordCalls()
   try {
     await modelGatewayAPI.getCatalog()
-    await modelGatewayAPI.updateCatalogModel(11, { enabled: false })
+    await modelGatewayAPI.updateCatalogModel(modelId(11), { enabled: false })
     await modelGatewayAPI.updateCatalogInstance('8c1f/a', { enabled: true })
     await modelGatewayAPI.updateSettings({ new_models_enabled: false })
     await modelGatewayAPI.getOverview(30)
@@ -63,7 +65,7 @@ test('every route targets the RESTful model-gateway prefix', async () => {
     calls.map((call) => `${call.verb} ${call.endpoint}`),
     [
       'get /v1/model-gateway/catalog',
-      'patch /v1/model-gateway/catalog/models/11',
+      `patch /v1/model-gateway/catalog/models/${modelId(11)}`,
       'patch /v1/model-gateway/catalog/instances/8c1f%2Fa',
       'patch /v1/model-gateway/settings',
       'get /v1/model-gateway/overview',
@@ -89,7 +91,7 @@ test('createKey sends the scope as connection and model ids and returns the one-
     name: 'runner',
     allow_all_models: false,
     allowed_instance_ids: ['8c1f'],
-    allowed_model_ids: [21],
+    allowed_model_ids: [modelId(21)],
     rpm_limit: 60,
     token_quota: 1000,
     quota_period: 'month' as const,

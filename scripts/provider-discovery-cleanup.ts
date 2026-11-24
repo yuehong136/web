@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { modelIdSchema } from '../src/api/llm-provider-types'
 
 export interface DiscoveryScope {
   ownerId: string
@@ -12,19 +13,19 @@ export interface DiscoveryReceipt extends DiscoveryScope {
   providerAbsentBefore: true
   providerId: string
   instanceId: string
-  modelIds: number[]
+  modelIds: string[]
 }
 export interface DiscoverySnapshot {
   providers: { name: string; id?: string }[]
   instances: { id: string; instance_name: string; provider_name: string }[]
   models: {
-    id: number
+    id: string
     provider_name: string
     instance_id: string
     instance_name: string
   }[]
 }
-const sorted = (ids: number[]) => [...ids].sort((a, b) => a - b)
+const sorted = (ids: string[]) => [...ids].sort()
 
 /** Owner mode must refuse a borrowed provider before discovery or any mutation. */
 export function assertDiscoveryProviderAbsent(
@@ -86,7 +87,7 @@ export function validateDiscoveryReceipt(
   assert.ok(typeof receipt.providerId === 'string' && receipt.providerId.trim())
   assert.ok(typeof receipt.instanceId === 'string' && receipt.instanceId.trim())
   assert.ok(Array.isArray(receipt.modelIds) && receipt.modelIds.length > 0)
-  assert.ok(receipt.modelIds.every((id) => Number.isSafeInteger(id) && id > 0))
+  assert.ok(receipt.modelIds.every((id) => modelIdSchema.safeParse(id).success))
   assert.equal(new Set(receipt.modelIds).size, receipt.modelIds.length)
   return receipt as DiscoveryReceipt
 }

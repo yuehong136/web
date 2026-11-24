@@ -212,6 +212,7 @@ export function ProviderInstance({ instance }: { instance: ModelInstance }) {
                   modelProvidersAPI.setModelStatus(
                     instance.provider_name,
                     instance.instance_name,
+                    model.name,
                     model.id,
                     active,
                   ),
@@ -224,7 +225,7 @@ export function ProviderInstance({ instance }: { instance: ModelInstance }) {
                     modelProvidersAPI.deleteModel(
                       instance.provider_name,
                       instance.instance_name,
-                      model.id,
+                      model.name,
                     ),
                 })
               }

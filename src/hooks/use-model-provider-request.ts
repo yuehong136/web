@@ -73,7 +73,8 @@ export function useDefaultModelReference(
   const query = useModelDefaults()
   return {
     reference:
-      query.data?.find((model) => model.model_type === type)?.reference ?? '',
+      query.data?.find((model) => model.model_type === type && model.enable)
+        ?.model_id ?? '',
     isPending: query.isPending,
     isError: query.isError,
   }

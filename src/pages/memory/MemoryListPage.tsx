@@ -7,7 +7,7 @@ import { PageEmptyState, PageErrorState, Pager } from '@/components/patterns'
 import { EmptyStart } from '@/components/patterns/empty-start'
 import { KindStackIllustration } from '@/components/studio'
 import { Button } from '@/components/ui/button'
-import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { MemoryDeletionDialog } from '@/components/memory/memory-deletion-dialog'
 import { CreateMemoryDialog } from '@/components/memory'
 import {
   MemoryCollection,
@@ -19,7 +19,6 @@ import {
   useMemoryList,
   useCreateMemory,
   useUpdateMemory,
-  useDeleteMemory,
   useDebouncedSearch,
 } from '@/hooks/use-memory'
 import { ROUTES } from '@/constants'
@@ -60,7 +59,6 @@ export function MemoryListPage() {
   })
   const create = useCreateMemory()
   const update = useUpdateMemory()
-  const remove = useDeleteMemory()
   const memories = query.data?.memory_list ?? []
   const total = query.data?.total_count ?? 0
   const filtered =
@@ -208,29 +206,18 @@ export function MemoryListPage() {
         onUpdate={(id, data) => update.mutate({ id, data })}
         isLoading={create.isPending || update.isPending}
       />
-      <ConfirmDialog
-        open={!!deleting}
-        onOpenChange={(open) => {
-          if (!open && !remove.isPending) setDeleting(null)
-        }}
-        variant="destructive"
-        pending={remove.isPending}
-        title={t('memory.deleteDialog.title')}
-        description={t('memory.deleteDialog.description')}
-        cancelLabel={t('common.cancel')}
-        confirmLabel={t('common.delete')}
-        onConfirm={async () => {
-          if (!deleting) return
-          try {
-            await remove.mutateAsync(deleting.id)
-            setDeleting(null)
-          } catch {
-            /* Mutation owns error feedback. */
+      {deleting && (
+        <MemoryDeletionDialog
+          key={deleting.id}
+          memory={deleting}
+          onOperationStarted={(operationId) =>
+            navigate(
+              `/memory/${encodeURIComponent(deleting.id)}/operations?${new URLSearchParams({ operation: operationId })}`,
+            )
           }
-        }}
-      >
-        <p className="font-medium break-words text-fg">{deleting?.name}</p>
-      </ConfirmDialog>
+          onClose={() => setDeleting(null)}
+        />
+      )}
     </>
   )
 }

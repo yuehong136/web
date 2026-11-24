@@ -37,7 +37,7 @@ export function ModelsPanel({ catalog }: { catalog: GatewayCatalog }) {
   const [search, setSearch] = useState('')
   const [capability, setCapability] = useState<CapabilityFilter>('all')
   const [providers, setProviders] = useState<string[]>([])
-  const [editingId, setEditingId] = useState<number | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const editing = catalog.models.find((model) => model.model_id === editingId)
 
   const query = search.trim().toLowerCase()

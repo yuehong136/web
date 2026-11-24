@@ -31,8 +31,9 @@ export const memoryKeys = {
     [...memoryKeys.messages(memoryId), params] as const,
   // 独立根，刻意不挂 messages(memoryId) 前缀：消息状态/删除 mutation 失效
   // messages 前缀时不应连带重取消息原文（形状沿用原内联 key，不变）
+  messageContents: (memoryId: string) => ['message-content', memoryId] as const,
   messageContent: (memoryId: string, messageId: string) =>
-    ['message-content', memoryId, messageId] as const,
+    [...memoryKeys.messageContents(memoryId), messageId] as const,
 }
 
 // ============ 记忆库列表 ============

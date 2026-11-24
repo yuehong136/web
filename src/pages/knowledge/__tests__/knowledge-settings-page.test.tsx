@@ -8,7 +8,7 @@ import { APIError, apiClient } from '@/api/client'
 import { knowledgeAPI } from '@/api/knowledge'
 import { llmKeys } from '@/hooks/use-llm-request'
 import { setProductLanguage } from '@/locales/i18n'
-import type { LLMCatalog, MyLLMProvider } from '@/stores/model'
+import type { MyLLMProvider } from '@/stores/model'
 import type { DatasetDTO } from '@/types/api'
 import { KnowledgeSettingsPage } from '../KnowledgeSettingsPage'
 
@@ -215,7 +215,6 @@ beforeEach(async () => {
   }
   writes = []
   vi.spyOn(llmAPI, 'getMyLLMs').mockResolvedValue({})
-  vi.spyOn(llmAPI, 'getModelCatalog').mockResolvedValue({})
   vi.spyOn(apiClient, 'get').mockImplementation(async (path) => {
     if (path === '/v1/datasets/kb-1') return structuredClone(stored) as never
     if (path === '/agents') return { total: 0, canvas: [] } as never
@@ -428,7 +427,8 @@ it('saves distinct OCR models and a full vision deployment ID, reads them back, 
   let models: MyLLMProvider = {
     PaddleOCR: {
       tags: 'OCR',
-      llm: ['PaddleOCR-VL', 'PP-OCRv5'].map((name) => ({
+      llm: ['PaddleOCR-VL', 'PP-OCRv5'].map((name, index) => ({
+        id: ['a', 'b'][index].repeat(32),
         type: 'ocr',
         name,
         used_token: 0,
@@ -439,6 +439,7 @@ it('saves distinct OCR models and a full vision deployment ID, reads them back, 
       tags: 'IMAGE2TEXT',
       llm: [
         {
+          id: 'c'.repeat(32),
           type: 'image2text',
           name: 'vision@deployment___LocalAI',
           used_token: 0,
@@ -447,35 +448,18 @@ it('saves distinct OCR models and a full vision deployment ID, reads them back, 
       ],
     },
   }
-  const catalog: LLMCatalog = {
-    PaddleOCR: ['PaddleOCR-VL', 'PP-OCRv5'].map((llm_name) => ({
-      fid: 'PaddleOCR',
-      llm_name,
-      mdl_type: 'ocr',
-      available: true,
-    })),
-    LocalAI: [
-      {
-        fid: 'LocalAI',
-        llm_name: 'vision@deployment___LocalAI',
-        mdl_type: 'image2text',
-        available: true,
-      },
-    ],
-  }
   vi.mocked(llmAPI.getMyLLMs).mockImplementation(async () =>
     structuredClone(models),
   )
-  vi.mocked(llmAPI.getModelCatalog).mockResolvedValue(catalog)
   await reload()
   const selections = [
     {
-      value: 'PaddleOCR-VL@PaddleOCR@PaddleOCR',
+      value: 'a'.repeat(32),
       label: 'PaddleOCR / PaddleOCR-VL',
     },
-    { value: 'PP-OCRv5@PaddleOCR@PaddleOCR', label: 'PaddleOCR / PP-OCRv5' },
+    { value: 'b'.repeat(32), label: 'PaddleOCR / PP-OCRv5' },
     {
-      value: 'vision@deployment___LocalAI@LocalAI',
+      value: 'c'.repeat(32),
       label: 'LocalAI / vision@deployment___LocalAI',
     },
   ]
@@ -511,7 +495,7 @@ it('saves distinct OCR models and a full vision deployment ID, reads them back, 
   )
   expect(
     field('PDF parser').querySelector('[role=combobox]')?.textContent,
-  ).toContain(savedValue.slice(0, savedValue.lastIndexOf('@')))
+  ).toContain('Saved model · Unavailable')
   await input('Knowledge base name', 'Keep removed parser')
   await save()
   expect(writes.at(-1)).toMatchObject({
@@ -523,9 +507,11 @@ it('saves distinct OCR models and a full vision deployment ID, reads them back, 
       ?.layout_recognize,
   ).toBe(savedValue)
   await reload()
-  expect(
-    field('PDF parser').querySelector('[role=combobox]')?.textContent,
-  ).toContain(savedValue.slice(0, savedValue.lastIndexOf('@')))
+  await waitForPage(() =>
+    expect(
+      field('PDF parser').querySelector('[role=combobox]')?.textContent,
+    ).toContain('Saved model · Unavailable'),
+  )
 })
 
 it('does not expose PDF layout models for the Picture chunk method', async () => {

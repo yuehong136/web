@@ -1,4 +1,4 @@
-import { Suspense, lazy, type ComponentType } from 'react'
+import { lazy, type ComponentType } from 'react'
 import {
   createBrowserRouter,
   Navigate,
@@ -7,13 +7,13 @@ import {
 import { Layout } from '@/components/layout/Layout'
 import { RouteDocument } from '@/components/layout/route-document'
 import { routeMeta, type PageTitleKey } from '@/components/layout/route-meta'
-import { AppScene, PageLoadingState } from '@/components/patterns'
 import { ROUTES } from '@/constants'
 import { ErrorFallback, NotFoundPage, PageErrorFallback } from '@/pages/error'
 import { skillRoutes } from '@/pages/skills/skill-routes'
 import { RouteLocaleBoundary } from '@/locales/locale-boundary'
 import { API_KEYS_PATH, MCP_PATH } from '@/pages/settings/settings-routes'
-import { useTranslation } from 'react-i18next'
+import { memoryRoutes } from '@/pages/memory/memory-routes'
+import { withLoading } from './route-loading'
 
 // ---------------------------------------------------------------------------
 // Static imports — critical path for first paint
@@ -27,29 +27,6 @@ import {
   PromptEditorRedirect,
   SearchRedirect,
 } from './route-redirects'
-
-// ---------------------------------------------------------------------------
-// Suspense loading fallback
-// ---------------------------------------------------------------------------
-function RouteLoadingFallback() {
-  const { t } = useTranslation()
-  return (
-    <PageLoadingState
-      scene={AppScene.CONSOLE}
-      compact
-      title={t('common.loading')}
-    />
-  )
-}
-
-/** Wrap a lazy component with Suspense */
-function withLoading(LazyComponent: React.LazyExoticComponent<ComponentType>) {
-  return (
-    <Suspense fallback={<RouteLoadingFallback />}>
-      <LazyComponent />
-    </Suspense>
-  )
-}
 
 // ---------------------------------------------------------------------------
 // Route configuration
@@ -134,28 +111,7 @@ function workbenchRoutes(): RouteObject[] {
       element: withLoading(Page.KnowledgeListPage),
     },
     ...skillRoutes,
-    {
-      path: ROUTES.MEMORY,
-      handle: routeMeta('knowledge', 'memory'),
-      element: withLoading(Page.MemoryListPage),
-    },
-    {
-      path: '/memory/:id',
-      handle: routeMeta('knowledge', 'memory'),
-      element: withLoading(Page.MemoryDetailLayout),
-      children: [
-        {
-          index: true,
-          handle: routeMeta(undefined, 'memoryMessages'),
-          element: withLoading(Page.MemoryMessagesPage),
-        },
-        {
-          path: 'settings',
-          handle: routeMeta(undefined, 'memorySettings'),
-          element: withLoading(Page.MemorySettingsPage),
-        },
-      ],
-    },
+    ...memoryRoutes,
     {
       path: ROUTES.EXPLORE,
       handle: routeMeta('explore', 'explore'),

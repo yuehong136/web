@@ -2,6 +2,7 @@ import { PromptEditor } from '@/components/prompt-editor'
 import { Button } from '@/components/ui/button'
 import {
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -161,6 +162,27 @@ export function MessageAudienceFields() {
       <MemorySelectField
         name="memory_ids"
         label={t('flow.saveToMemory', 'Save to memory')}
+      />
+
+      <FormField
+        control={form.control}
+        name="structured_memory"
+        render={({ field }) => (
+          <FormItem>
+            <div className="flex items-center justify-between gap-space-sm">
+              <FormLabel>{t('flow.structuredMemory')}</FormLabel>
+              <FormControl>
+                <Switch
+                  checked={field.value === true}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+            </div>
+            <FormDescription>
+              {t('flow.structuredMemoryDescription')}
+            </FormDescription>
+          </FormItem>
+        )}
       />
 
       <FormField

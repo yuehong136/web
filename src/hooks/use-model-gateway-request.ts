@@ -113,7 +113,7 @@ export const useUpdateCatalogModel = () => {
       modelId,
       input,
     }: {
-      modelId: number
+      modelId: string
       input: GatewayCatalogModelUpdate
     }) => modelGatewayAPI.updateCatalogModel(modelId, input),
     onSuccess: (model: GatewayCatalogModel) => {

@@ -4,10 +4,7 @@ import { AlertTriangle, ExternalLink } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ROUTES } from '@/constants'
 import { usePDFParserOptions } from '@/hooks/use-pdf-parser-options'
-import {
-  resolvePDFParserSelection,
-  type PDFParserOption,
-} from '@/lib/knowledge/pdf-parser-options'
+import type { PDFParserOption } from '@/lib/knowledge/pdf-parser-options'
 import { Button } from '@/components/ui/button'
 import { ProviderIcon } from '@/components/ui/provider-icon'
 import { ModelSelect } from '@/components/models/model-select'
@@ -79,10 +76,9 @@ export function LayoutRecognizeFormField({
       control={form.control}
       name={name}
       render={({ field }) => {
-        const selectedValue = resolvePDFParserSelection(field.value, models)
         const savedOnly =
           !!field.value &&
-          !options.some((option) => option.value === selectedValue)
+          !options.some((option) => option.value === field.value)
         return (
           <FormItem className={cn('space-y-space-sm', className)}>
             <div
@@ -108,7 +104,7 @@ export function LayoutRecognizeFormField({
               >
                 <FormControl>
                   <ModelSelect
-                    value={selectedValue}
+                    value={field.value}
                     onChange={field.onChange}
                     options={groups}
                     allowPartialOptions

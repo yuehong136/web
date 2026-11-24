@@ -3,6 +3,7 @@ import { createRoot, type Root } from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { memoryAPI } from '@/api/memory'
+import { MemoryEntryList } from '@/pages/memory/detail/memory-entry-list'
 import { getMemoryEntries, getMemoryLifecycle } from '../memory-lifecycle'
 import { getMemorySettingsValues } from '../memory-settings-form'
 import { MemorySourcePagination } from '../memory-source-pagination'
@@ -104,4 +105,38 @@ it('finds a next source using the next offset without trusting a window-sized to
     get.mockRestore()
     client.clear()
   }
+})
+
+it('keeps temporary managed source inactivity reversible and permanent source tombstones disabled', async () => {
+  const inactive = {
+    ...source,
+    forget_at: 'None',
+    managed_source_state: 'inactive' as const,
+  }
+  const withdrawn = {
+    ...inactive,
+    message_id: 12,
+    managed_source_state: 'forgotten' as const,
+  }
+  expect(getMemoryLifecycle(inactive)).toBe('disabled')
+  expect(getMemoryLifecycle(withdrawn)).toBe('forgotten')
+  expect(
+    getMemoryLifecycle({ ...withdrawn, managed_source_state: 'deleted' }),
+  ).toBe('forgotten')
+  await act(async () =>
+    root.render(
+      <MemoryEntryList
+        sources={[inactive, withdrawn]}
+        view="sources"
+        state="all"
+        busy={false}
+        onInspect={vi.fn()}
+        onStatusChange={vi.fn()}
+        onForget={vi.fn()}
+      />,
+    ),
+  )
+  const toggles = host.querySelectorAll<HTMLButtonElement>('[role="switch"]')
+  expect(toggles[0].disabled).toBe(false)
+  expect(toggles[1].disabled).toBe(true)
 })

@@ -140,6 +140,7 @@ export interface IRetrievalForm {
 
 // Message节点表单
 export interface IMessageForm {
+  structured_memory?: boolean
   content: string[]
   output_format?: string
   auto_play?: boolean

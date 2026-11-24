@@ -22,6 +22,7 @@ const messageSchema = z.object({
   auto_play: z.boolean().optional(),
   status: z.coerce.number().optional(),
   memory_ids: z.array(z.string()).optional(),
+  structured_memory: z.boolean().optional(),
   user_id: z.string().optional(),
 })
 

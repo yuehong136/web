@@ -13,6 +13,7 @@ import { LayoutRecognizeFormField } from '../layout-recognize-form-field'
 import { llmKeys } from '@/hooks/use-llm-request'
 
 Reflect.set(globalThis, 'IS_REACT_ACT_ENVIRONMENT', true)
+const fixtureId = (index: number) => index.toString(16).padStart(32, 'a')
 let root: Root
 let container: HTMLDivElement
 let client: QueryClient
@@ -108,8 +109,7 @@ beforeEach(async () => {
           ).llm.map((model) => ({ provider, model })),
         )
         .map(({ provider, model }, index) => ({
-          id: index + 1,
-          reference: String(index + 1),
+          id: fixtureId(index + 1),
           name: model.name,
           provider_id: provider,
           provider_name: provider,
@@ -172,7 +172,7 @@ it('withholds stale model choices after a failed refresh and retains the selecte
     },
   }
 
-  await render('vision___LocalAI@LocalAI')
+  await render(fixtureId(1))
   await ready()
   expect(document.body.textContent).toContain('LocalAI / vision___LocalAI')
   code = 102
@@ -183,12 +183,14 @@ it('withholds stale model choices after a failed refresh and retains the selecte
   )
   await open()
   expect(
-    document.querySelector('[data-value="1"]')?.getAttribute('aria-disabled'),
+    document
+      .querySelector(`[data-value="${fixtureId(1)}"]`)
+      ?.getAttribute('aria-disabled'),
   ).toBe('true')
   expect(document.body.textContent).not.toContain('Configured vision models')
   expect(
     document.querySelector('output:not([aria-live=polite])')?.textContent,
-  ).toBe('vision___LocalAI@LocalAI')
+  ).toBe(fixtureId(1))
 })
 
 it('groups configured models and changes only the selected exact value, with translated search and configuration link', async () => {
@@ -213,18 +215,18 @@ it('groups configured models and changes only the selected exact value, with tra
   expect(
     document.querySelector('[placeholder="Search PDF parsers…"]'),
   ).not.toBeNull()
-  await choose('2')
+  await choose(fixtureId(2))
   expect(
     document.querySelector('output:not([aria-live=polite])')?.textContent,
-  ).toBe('2')
+  ).toBe(fixtureId(2))
   expect(
     document.querySelector('[aria-label="PDF parser"] img[alt="PaddleOCR"]'),
   ).not.toBeNull()
   await open()
-  await choose('3')
+  await choose(fixtureId(3))
   expect(
     document.querySelector('output:not([aria-live=polite])')?.textContent,
-  ).toBe('3')
+  ).toBe(fixtureId(3))
   expect(
     document.querySelector('[aria-label="PDF parser"] img[alt="LocalAI"]'),
   ).not.toBeNull()
@@ -245,7 +247,7 @@ it('groups configured models and changes only the selected exact value, with tra
   ).not.toBeNull()
   expect(
     document.querySelector('output:not([aria-live=polite])')?.textContent,
-  ).toBe('3')
+  ).toBe(fixtureId(3))
 })
 
 it('shows loading and then the empty state while core parsers remain usable', async () => {

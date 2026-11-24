@@ -13,7 +13,10 @@ import {
 } from 'node:fs'
 import { apiClient, APIError } from '../src/api/client'
 import { createModelProvidersAPI } from '../src/api/llm-providers'
-import type { ConnectionCandidate } from '../src/api/llm-provider-types'
+import {
+  modelIdSchema,
+  type ConnectionCandidate,
+} from '../src/api/llm-provider-types'
 import {
   assertDiscoveryProviderAbsent,
   cleanupDiscoveryFixture,
@@ -323,8 +326,7 @@ try {
     for (const model of models) {
       const expected = selected.find((item) => item.model_name === model.name)
       assert.ok(expected)
-      assert.ok(Number.isSafeInteger(model.id) && model.id > 0)
-      assert.equal(model.reference, String(model.id))
+      assert.ok(modelIdSchema.safeParse(model.id).success)
       assert.deepEqual(model.model_types, expected.model_types)
       assert.equal(model.max_tokens, expected.max_tokens)
       assert.equal(model.is_tools, expected.is_tools)
@@ -367,7 +369,7 @@ try {
         'discovery-no-write',
         'verification-no-write',
         'atomic-create',
-        'numeric-model-readback',
+        'opaque-model-readback',
       ],
     })
     console.log(
