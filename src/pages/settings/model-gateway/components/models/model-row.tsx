@@ -26,7 +26,17 @@ import {
   modelStateLabel,
 } from '../../utils'
 
-/** "Healthy · 420 ms · checked 3 minutes ago" or what the last probe ran into. */
+const FAILURE_CLASSES = [
+  'rate_limit',
+  'credential',
+  'quota',
+  'model_gone',
+  'transient',
+  'timeout',
+  'unreachable',
+] as const
+
+/** "Healthy · 420 ms · checked 3 minutes ago", or what is wrong and what to do. */
 export function healthLabel(
   t: ReturnType<typeof useTranslation>['t'],
   health: GatewayModelHealth,
@@ -35,16 +45,30 @@ export function healthLabel(
     ? formatRelativeTime(new Date(health.checked_at).getTime())
     : ''
   if (health.status === 'healthy')
-    return t(`${PREFIX}.models.health.healthy`, {
-      duration: formatDuration(health.response_time_ms),
-      checked,
-    })
-  return t(
-    health.status_code === null
-      ? `${PREFIX}.models.health.unreachable`
-      : `${PREFIX}.models.health.unhealthy`,
-    { status: health.status_code ?? '', checked },
-  )
+    return health.source === 'traffic'
+      ? t(`${PREFIX}.models.health.healthyTraffic`, { checked })
+      : t(`${PREFIX}.models.health.healthy`, {
+          duration: formatDuration(health.response_time_ms),
+          checked,
+        })
+  const known = FAILURE_CLASSES.find((item) => item === health.failure_class)
+  // Servers before failure classes only said which status came back.
+  const reason =
+    known ??
+    (health.status === 'rate_limited'
+      ? 'rate_limit'
+      : health.status_code === null
+        ? 'unreachable'
+        : 'transient')
+  return t(`${PREFIX}.models.health.reasons.${reason}`, {
+    status: health.status_code ?? '',
+    checked,
+  })
+}
+
+const HEALTH_DOT: Record<string, string> = {
+  healthy: 'bg-success-fg',
+  rate_limited: 'bg-warning-fg',
 }
 
 /** A note under the call name: why the model is off, or how it is routed. */
@@ -144,9 +168,7 @@ export function ModelRow({
               title={healthLabel(t, model.health)}
               className={cn(
                 'size-2 shrink-0 rounded-radius-full',
-                model.health.status === 'healthy'
-                  ? 'bg-success-fg'
-                  : 'bg-danger-fg',
+                HEALTH_DOT[model.health.status] ?? 'bg-danger-fg',
               )}
             >
               <span className="sr-only">{healthLabel(t, model.health)}</span>
@@ -156,8 +178,15 @@ export function ModelRow({
         {note ? (
           <p className="mt-space-2xs text-xs text-fg-subtle">{note}</p>
         ) : null}
-        {callable && model.health?.status === 'unhealthy' ? (
-          <p className="mt-space-2xs text-xs text-danger-fg">
+        {callable && model.health && model.health.status !== 'healthy' ? (
+          <p
+            className={cn(
+              'mt-space-2xs text-xs',
+              model.health.status === 'rate_limited'
+                ? 'text-warning-fg'
+                : 'text-danger-fg',
+            )}
+          >
             {healthLabel(t, model.health)}
           </p>
         ) : null}

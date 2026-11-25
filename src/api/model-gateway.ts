@@ -94,9 +94,23 @@ export interface GatewayCatalogModel extends GatewayRateLimits {
   max_output_tokens?: number | null
 }
 
+export type GatewayFailureClass =
+  | 'rate_limit'
+  | 'credential'
+  | 'quota'
+  | 'model_gone'
+  | 'transient'
+  | 'timeout'
+  | 'unreachable'
+
 /** What the last background health check of a model found. */
 export interface GatewayModelHealth {
-  status: 'healthy' | 'unhealthy' | (string & {})
+  /** Rate limited is a state of its own: it passes without anyone fixing anything. */
+  status: 'healthy' | 'rate_limited' | 'unhealthy' | (string & {})
+  /** Why it is not healthy; absent on older servers. */
+  failure_class?: GatewayFailureClass | (string & {}) | null
+  /** A probe, or real calls that succeeded since the last check. */
+  source?: 'probe' | 'traffic' | (string & {})
   /** The upstream's answer; `null` when it could not be reached in time. */
   status_code: number | null
   error_message: string | null

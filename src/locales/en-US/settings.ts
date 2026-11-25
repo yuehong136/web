@@ -449,10 +449,24 @@ export default {
         },
         health: {
           healthy: 'Healthy · {{duration}} · checked {{checked}}',
-          unhealthy:
-            'Health check failed: upstream answered {{status}} · checked {{checked}}',
-          unreachable:
-            'Health check failed: upstream unreachable or too slow · checked {{checked}}',
+          healthyTraffic:
+            'Healthy · real calls succeeded recently · confirmed {{checked}}',
+          reasons: {
+            rate_limit:
+              'Rate limited upstream (429): this account is at its request rate or allowance and usually recovers by itself. Calls are still forwarded · checked {{checked}}',
+            credential:
+              'The upstream rejected the key ({{status}}): check the API key of this connection under model providers · checked {{checked}}',
+            quota:
+              'The upstream account is out of balance or quota ({{status}}): top it up or raise the quota · checked {{checked}}',
+            model_gone:
+              'The upstream has no such model (404): check the registered model name, or remove the model · checked {{checked}}',
+            transient:
+              'The upstream service failed ({{status}}) · checked {{checked}}',
+            timeout:
+              'The upstream did not answer in time · checked {{checked}}',
+            unreachable:
+              'The upstream cannot be reached: check the address and the network · checked {{checked}}',
+          },
         },
         priceHint: 'US dollars per million tokens',
         priceHintTiered:

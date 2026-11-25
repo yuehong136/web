@@ -425,8 +425,20 @@ export default {
         },
         health: {
           healthy: '健康 · {{duration}} · {{checked}}检查',
-          unhealthy: '健康检查失败：上游返回 {{status}} · {{checked}}检查',
-          unreachable: '健康检查失败：上游连不上或超时 · {{checked}}检查',
+          healthyTraffic: '健康 · 近期有真实调用成功 · {{checked}}确认',
+          reasons: {
+            rate_limit:
+              '被上游限流（429）：这个账号的请求频率或配额到了上限，通常稍后自行恢复。调用仍会照常转发 · {{checked}}检查',
+            credential:
+              '上游拒绝了密钥（{{status}}）：请到模型提供商里检查这个连接的 API Key · {{checked}}检查',
+            quota:
+              '上游账号余额或额度已用完（{{status}}）：需要充值或提升额度 · {{checked}}检查',
+            model_gone:
+              '上游没有这个模型（404）：请核对登记的模型名，或删除这个模型 · {{checked}}检查',
+            transient: '上游服务出错（{{status}}） · {{checked}}检查',
+            timeout: '上游没有在限定时间内响应 · {{checked}}检查',
+            unreachable: '连不上上游：请检查接入地址和网络 · {{checked}}检查',
+          },
         },
         priceHint: '每百万 Token 的美元价格',
         priceHintTiered: '每百万 Token 的美元价格；更长的提示词按更高一档计价',
