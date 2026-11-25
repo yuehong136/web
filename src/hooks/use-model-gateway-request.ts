@@ -197,6 +197,21 @@ export const useUpdateGatewayKey = () => {
   })
 }
 
+export const useRotateGatewayKey = () => {
+  const changed = useKeysChanged()
+  return useMutation({
+    meta: local,
+    mutationFn: ({
+      id,
+      gracePeriodSeconds,
+    }: {
+      id: string
+      gracePeriodSeconds: number
+    }) => modelGatewayAPI.rotateKey(id, gracePeriodSeconds),
+    onSuccess: changed,
+  })
+}
+
 export const useRevokeGatewayKey = () => {
   const changed = useKeysChanged()
   return useMutation({

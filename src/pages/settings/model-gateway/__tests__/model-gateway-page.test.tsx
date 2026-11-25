@@ -28,6 +28,7 @@ const mocks = vi.hoisted(() => ({
   createKey: vi.fn(),
   updateKey: vi.fn(),
   revokeKey: vi.fn(),
+  rotateKey: vi.fn(),
   queryLogs: vi.fn(),
   usage: vi.fn(),
   success: vi.fn(),
@@ -46,6 +47,7 @@ vi.mock('@/api/model-gateway', async (original) => ({
     createKey: mocks.createKey,
     updateKey: mocks.updateKey,
     revokeKey: mocks.revokeKey,
+    rotateKey: mocks.rotateKey,
     queryLogs: mocks.queryLogs,
     usage: mocks.usage,
   },
@@ -527,7 +529,7 @@ it('explains a failed call in its detail panel', async () => {
   )
 })
 
-it('opens a key in the detail panel and rotates it under a new name', async () => {
+it('opens a key in the detail panel and rotates its secret with a grace period', async () => {
   await renderPage('/settings/model-gateway?tab=keys')
   const row = await waitFor(() =>
     document.querySelector<HTMLButtonElement>('button[aria-pressed="false"]'),
@@ -545,12 +547,27 @@ it('opens a key in the detail panel and rotates it under a new name', async () =
     expect.anything(),
   )
 
+  mocks.rotateKey.mockResolvedValue({
+    ...gatewayKey({
+      id: 'k1',
+      name: 'support-bot',
+      rotated_at: '2026-11-25T10:00:00Z',
+      previous_key_expires_at: '2026-11-26T10:00:00Z',
+    }),
+    key: PLAINTEXT,
+  })
   await click(button('Rotate')!)
-  const name = await waitFor(() =>
-    document.querySelector<HTMLInputElement>('#gateway-key-name'),
-  )
-  expect(name.value).toMatch(/^support-bot \(.+\)$/)
-  expect(pageText()).toContain(
-    'Issues a new key with the settings of "support-bot"',
-  )
+  await waitFor(() => pageText().includes('Rotate "support-bot"'))
+  expect(pageText()).toContain('Keep the old secret for')
+  // The dialog has its own Rotate button; it is the last one on the page.
+  const confirm = [...document.querySelectorAll('button')]
+    .filter((item) => item.textContent?.trim() === 'Rotate')
+    .at(-1)
+  await click(confirm!)
+  await waitFor(() => mocks.rotateKey.mock.calls.length > 0)
+
+  // The same key, a new secret, and a day for callers to switch.
+  expect(mocks.rotateKey).toHaveBeenCalledWith('k1', 86_400)
+  await waitFor(() => pageText().includes('The old secret works until'))
+  expect(pageText()).toContain(PLAINTEXT)
 })

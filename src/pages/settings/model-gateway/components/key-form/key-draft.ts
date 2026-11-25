@@ -34,18 +34,10 @@ export interface KeyDraft {
   quota: QuotaDraft
 }
 
-const MAX_NAME = 128
-
 /**
- * The form's starting point. Editing starts from the key; rotating copies
- * its settings under a new name (names of live keys are unique) and keeps
- * its expiry only while that is still ahead.
+ * The form's starting point: empty for a new key, the key itself when editing.
  */
-export function initialDraft(
-  request: KeyFormRequest,
-  rotatedName: (name: string) => string,
-  now: number = Date.now(),
-): KeyDraft {
+export function initialDraft(request: KeyFormRequest): KeyDraft {
   if (request.mode === 'create')
     return {
       name: '',
@@ -56,17 +48,11 @@ export function initialDraft(
       quota: quotaDraftOf(null, null),
     }
   const key = request.key
-  const rotating = request.mode === 'rotate'
-  const expiresAhead =
-    key.expires_at !== null && new Date(key.expires_at).getTime() > now
   return {
-    name: rotating ? rotatedName(key.name).slice(0, MAX_NAME) : key.name,
+    name: key.name,
     description: key.description ?? '',
     scope: scopeOfKey(key),
-    expiry:
-      rotating && !expiresAhead
-        ? { preset: 'never', custom: '' }
-        : expiryDraftOf(key.expires_at),
+    expiry: expiryDraftOf(key.expires_at),
     limits: limitDraftOf(key),
     quota: quotaDraftOf(key.token_quota, key.quota_period),
   }

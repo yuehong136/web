@@ -21,6 +21,7 @@ import {
 import { KeyCreatedDialog } from './components/key-created-dialog'
 import { KeyFormSheet } from './components/key-form/key-form-sheet'
 import { KeyActions } from './components/keys/key-actions'
+import { RotateKeyDialog } from './components/keys/rotate-key-dialog'
 import { KeyDetail } from './components/keys/key-detail'
 import { KeysPanel } from './components/keys/keys-panel'
 import { LogDetail, logDetailTitle } from './components/logs/log-detail'
@@ -64,8 +65,9 @@ export const ModelGatewayPage = () => {
   // The one-time plaintext stays in this state until the dialog closes.
   const [created, setCreated] = useState<{
     key: GatewayKeyCreated
-    rotatedFrom: GatewayKey | null
+    rotated: boolean
   } | null>(null)
+  const [rotating, setRotating] = useState<GatewayKey | null>(null)
   const [selection, setSelection] = useState<GatewaySelection | null>(null)
 
   const navigate: GatewayNavigate = (next, extra = {}) => {
@@ -132,7 +134,7 @@ export const ModelGatewayPage = () => {
         <KeyActions
           gatewayKey={selectedKey}
           onEdit={() => setForm({ mode: 'edit', key: selectedKey })}
-          onRotate={() => setForm({ mode: 'rotate', key: selectedKey })}
+          onRotate={() => setRotating(selectedKey)}
         />
       ),
     }
@@ -223,18 +225,20 @@ export const ModelGatewayPage = () => {
           request={form}
           catalog={catalog}
           onClose={() => setForm(null)}
-          onCreated={(key) =>
-            setCreated({
-              key,
-              rotatedFrom: form.mode === 'rotate' ? form.key : null,
-            })
-          }
+          onCreated={(key) => setCreated({ key, rotated: false })}
+        />
+      ) : null}
+      {rotating ? (
+        <RotateKeyDialog
+          gatewayKey={rotating}
+          onClose={() => setRotating(null)}
+          onRotated={(key) => setCreated({ key, rotated: true })}
         />
       ) : null}
       {created && catalog ? (
         <KeyCreatedDialog
           created={created.key}
-          rotatedFrom={created.rotatedFrom}
+          rotated={created.rotated}
           catalog={catalog}
           onClose={() => {
             setCreated(null)

@@ -181,6 +181,16 @@ export function KeyDetail({
               ? formatRelativeTime(new Date(key.last_used_at).getTime())
               : t(`${PREFIX}.keys.neverUsed`)}
           </Field>
+          {key.rotated_at ? (
+            <Field label={t(`${PREFIX}.keys.detail.rotated`)}>
+              {formatRelativeTime(new Date(key.rotated_at).getTime())}
+              {key.previous_key_expires_at
+                ? ` · ${t(`${PREFIX}.keys.detail.previousKeyUntil`, {
+                    time: formatInstant(key.previous_key_expires_at) ?? '',
+                  })}`
+                : ''}
+            </Field>
+          ) : null}
           <Field label={t(`${PREFIX}.keys.detail.created`)}>
             {key.create_time
               ? formatTimestamp(key.create_time)

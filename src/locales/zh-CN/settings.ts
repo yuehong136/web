@@ -323,6 +323,7 @@ export default {
       endpoints: {
         chat: '对话',
         embeddings: '向量',
+        messages: '对话（Anthropic 协议）',
         stream: '流式',
       },
       overview: {
@@ -421,6 +422,11 @@ export default {
           limits: '模型限额',
           requests7d: '近 7 天',
           open: '开放',
+        },
+        health: {
+          healthy: '健康 · {{duration}} · {{checked}}检查',
+          unhealthy: '健康检查失败：上游返回 {{status}} · {{checked}}检查',
+          unreachable: '健康检查失败：上游连不上或超时 · {{checked}}检查',
         },
         priceHint: '每百万 Token 的美元价格',
         priceHintTiered: '每百万 Token 的美元价格；更长的提示词按更高一档计价',
@@ -534,8 +540,26 @@ export default {
           lastUsed: '最近使用',
           rotate: '轮换',
           rotateHint:
-            '轮换：用相同设置签发新 Key，旧 Key 可立即撤销，也可保留到你确认切换完成。',
+            '轮换：给这把 Key 换一个新密钥，名称、范围、限额和用量都不变；旧密钥可以保留一段宽限期。',
+          rotated: '上次轮换',
+          previousKeyUntil: '旧密钥可用到 {{time}}',
           revoke: '撤销',
+        },
+        rotate: {
+          title: '轮换“{{name}}”',
+          description:
+            '换一个新密钥。Key 的名称、可调用的模型、限额、用量和调用记录都保持不变，新密钥只显示一次。',
+          graceTitle: '旧密钥保留多久',
+          grace: {
+            none: '立即失效',
+            hour: '1 小时',
+            day: '24 小时',
+            week: '7 天',
+          },
+          graceHint:
+            '宽限期内新旧密钥都能用，留出时间让调用方切换。再次轮换会让更早的密钥立即失效。',
+          graceNoneHint: '旧密钥马上被拒绝，仍在使用它的调用方会立即报错。',
+          confirm: '轮换',
         },
         revokeTitle: '撤销这把 Key？',
         revokeDescription:
@@ -544,11 +568,7 @@ export default {
       keyForm: {
         createTitle: '创建 Key',
         editTitle: '编辑 Key',
-        rotateTitle: '轮换 Key',
         description: '选好能调用的模型就能用。其余设置都可以以后再改。',
-        rotateDescription:
-          '按“{{name}}”的设置签发一把新 Key。旧 Key 在你撤销之前继续可用。',
-        rotateName: '{{name}}（{{date}}）',
         namePlaceholder: '例如：客服机器人',
         descriptionPlaceholder: '给谁用、用来做什么（可选）',
         scopeLegend: '可调用的模型',
@@ -592,7 +612,6 @@ export default {
         quotaHint:
           '按 UTC 自然日或自然月重置。越过额度的那次调用会完成，下一次被拒绝。留空表示不设配额。',
         submitCreate: '创建 Key',
-        submitRotate: '签发新 Key',
       },
       created: {
         title: '“{{name}}”已创建',
@@ -615,10 +634,10 @@ export default {
         saved: '我已保存这把 Key',
         download: '下载 .env',
         done: '完成',
-        rotateTitle: '旧 Key“{{name}}”仍可使用',
-        rotateHint: '调用方切换到新 Key 后，撤销旧 Key。',
-        revokeOld: '撤销旧 Key',
-        oldRevoked: '旧 Key 已撤销',
+        rotatedTitle: '“{{name}}”已换新密钥',
+        rotatedGrace: '旧密钥可用到 {{time}}',
+        rotatedNow: '旧密钥已经失效',
+        rotatedHint: '这是同一把 Key 的新密钥，请把它交给调用方替换旧的。',
       },
       logs: {
         range: '时间',

@@ -1,11 +1,7 @@
 import { useState } from 'react'
 import { CircleCheck, Download } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import type {
-  GatewayCatalog,
-  GatewayKey,
-  GatewayKeyCreated,
-} from '@/api/model-gateway'
+import type { GatewayCatalog, GatewayKeyCreated } from '@/api/model-gateway'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
@@ -18,13 +14,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
-import {
-  useFetchGatewayOverview,
-  useRevokeGatewayKey,
-} from '@/hooks/use-model-gateway-request'
+import { useFetchGatewayOverview } from '@/hooks/use-model-gateway-request'
 import { downloadTextFile } from '@/lib/download'
-import { getMutationErrorNotice } from '@/lib/mutation-error-feedback'
-import { toast } from '@/lib/toast'
 import { callableModels, scopeOfKey } from '../catalog'
 import {
   curlModelsSample,
@@ -32,7 +23,7 @@ import {
   pythonSample,
   sampleModel,
 } from '../samples'
-import { PREFIX, gatewayErrorKey, resolveBaseUrl } from '../utils'
+import { PREFIX, formatInstant, resolveBaseUrl } from '../utils'
 import { CodeSamples } from './code-samples'
 import { CopyField } from './copy-field'
 
@@ -41,8 +32,8 @@ const MAX_CHIPS = 12
 interface KeyCreatedDialogProps {
   /** Carries the one-time plaintext; it is never cached or stored. */
   created: GatewayKeyCreated
-  /** The key this one replaces, when it was issued by rotation. */
-  rotatedFrom: GatewayKey | null
+  /** The key was rotated: this is its new secret, not a new key. */
+  rotated?: boolean
   catalog: GatewayCatalog
   onClose: () => void
 }
@@ -53,15 +44,13 @@ interface KeyCreatedDialogProps {
  */
 export function KeyCreatedDialog({
   created,
-  rotatedFrom,
+  rotated = false,
   catalog,
   onClose,
 }: KeyCreatedDialogProps) {
   const { t } = useTranslation()
   const overview = useFetchGatewayOverview(7)
-  const revokeMutation = useRevokeGatewayKey()
   const [saved, setSaved] = useState(false)
-  const [oldRevoked, setOldRevoked] = useState(false)
   const baseUrl = resolveBaseUrl(overview.data) ?? ''
   const scope = scopeOfKey(created)
   const models = callableModels(catalog, scope)
@@ -71,18 +60,6 @@ export function KeyCreatedDialog({
     // A chat model this key can call, else any name from the catalog.
     model: sampleModel(models.length > 0 ? { models } : catalog),
     prompt: t(`${PREFIX}.overview.samplePrompt`),
-  }
-
-  const revokeOld = async () => {
-    if (!rotatedFrom) return
-    try {
-      await revokeMutation.mutateAsync(rotatedFrom.id)
-      setOldRevoked(true)
-      toast.success(t(`${PREFIX}.created.oldRevoked`))
-    } catch (error) {
-      if (getMutationErrorNotice(error))
-        toast.error(t(gatewayErrorKey(error, 'key')))
-    }
   }
 
   let modelsTitle: string
@@ -106,7 +83,9 @@ export function KeyCreatedDialog({
           </span>
           <div className="min-w-0">
             <DialogTitle>
-              {t(`${PREFIX}.created.title`, { name: created.name })}
+              {t(`${PREFIX}.created.${rotated ? 'rotatedTitle' : 'title'}`, {
+                name: created.name,
+              })}
             </DialogTitle>
             <DialogDescription>
               {t(`${PREFIX}.created.description`)}
@@ -180,32 +159,26 @@ export function KeyCreatedDialog({
               ]}
             />
           </div>
-          {rotatedFrom ? (
-            <div className="flex flex-wrap items-center gap-space-md rounded-radius-lg border border-warning-line bg-warning-soft p-space-md">
-              <div className="min-w-0 flex-1 text-sm">
-                <p className="font-medium text-fg">
-                  {t(`${PREFIX}.created.rotateTitle`, {
-                    name: rotatedFrom.name,
-                  })}
-                </p>
-                <p className="text-fg-muted">
-                  {t(`${PREFIX}.created.rotateHint`)}
-                </p>
-              </div>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                loading={revokeMutation.isPending}
-                disabled={oldRevoked || revokeMutation.isPending}
-                onClick={() => void revokeOld()}
-              >
+          {rotated ? (
+            <div
+              role="note"
+              className="rounded-radius-lg border border-warning-line bg-warning-soft p-space-md text-sm"
+            >
+              <p className="font-medium text-fg">
                 {t(
-                  oldRevoked
-                    ? `${PREFIX}.created.oldRevoked`
-                    : `${PREFIX}.created.revokeOld`,
+                  created.previous_key_expires_at
+                    ? `${PREFIX}.created.rotatedGrace`
+                    : `${PREFIX}.created.rotatedNow`,
+                  {
+                    time:
+                      formatInstant(created.previous_key_expires_at ?? null) ??
+                      '',
+                  },
                 )}
-              </Button>
+              </p>
+              <p className="text-fg-muted">
+                {t(`${PREFIX}.created.rotatedHint`)}
+              </p>
             </div>
           ) : null}
         </DialogBody>

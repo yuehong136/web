@@ -306,12 +306,7 @@ describe('key draft', () => {
 
   it('does not resend an unchanged expiry, even one in the past', () => {
     const request = { mode: 'edit' as const, key }
-    const result = buildKeyInput(
-      initialDraft(request, (name) => name, now),
-      request,
-      catalog,
-      now,
-    )
+    const result = buildKeyInput(initialDraft(request), request, catalog, now)
     expect(result).toEqual({
       ok: true,
       input: {
@@ -329,24 +324,9 @@ describe('key draft', () => {
     })
   })
 
-  it('rotates under a new name and drops an expiry already passed', () => {
-    const request = { mode: 'rotate' as const, key }
-    const draft = initialDraft(request, (name) => `${name} (2)`, now)
-    expect(draft.name).toBe('support-bot (2)')
-    expect(draft.expiry).toEqual({ preset: 'never', custom: '' })
-    const result = buildKeyInput(draft, request, catalog, now)
-    expect(result.ok && result.input.expires_at).toBeNull()
-  })
-
   it('requires a name', () => {
     const request = { mode: 'create' as const }
-    expect(
-      buildKeyInput(
-        initialDraft(request, (name) => name),
-        request,
-        catalog,
-      ),
-    ).toEqual({
+    expect(buildKeyInput(initialDraft(request), request, catalog)).toEqual({
       ok: false,
       errorKey: 'settings.modelGateway.errors.nameRequired',
     })

@@ -25,9 +25,7 @@ export type GatewayNavigate = (
 
 /** What the key form sheet was opened for. */
 export type KeyFormRequest =
-  | { mode: 'create' }
-  | { mode: 'edit'; key: GatewayKey }
-  | { mode: 'rotate'; key: GatewayKey }
+  { mode: 'create' } | { mode: 'edit'; key: GatewayKey }
 
 /** The row shown in the right-hand detail panel. */
 export type GatewaySelection =

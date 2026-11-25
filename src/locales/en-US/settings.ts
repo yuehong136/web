@@ -344,6 +344,7 @@ export default {
       endpoints: {
         chat: 'Chat',
         embeddings: 'Embeddings',
+        messages: 'Chat (Anthropic protocol)',
         stream: 'Streamed',
       },
       overview: {
@@ -445,6 +446,13 @@ export default {
           limits: 'Model limits',
           requests7d: 'Last 7 days',
           open: 'Open',
+        },
+        health: {
+          healthy: 'Healthy · {{duration}} · checked {{checked}}',
+          unhealthy:
+            'Health check failed: upstream answered {{status}} · checked {{checked}}',
+          unreachable:
+            'Health check failed: upstream unreachable or too slow · checked {{checked}}',
         },
         priceHint: 'US dollars per million tokens',
         priceHintTiered:
@@ -573,8 +581,27 @@ export default {
           lastUsed: 'Last used',
           rotate: 'Rotate',
           rotateHint:
-            'Rotate issues a new key with the same settings. Revoke the old one at once, or once callers have switched.',
+            'Rotate gives this key a new secret; its name, scope, limits and usage stay. The old secret can keep working for a grace period.',
+          rotated: 'Last rotated',
+          previousKeyUntil: 'old secret works until {{time}}',
           revoke: 'Revoke',
+        },
+        rotate: {
+          title: 'Rotate "{{name}}"',
+          description:
+            'Replaces the secret. The key keeps its name, models, limits, usage and request logs. The new secret is shown once.',
+          graceTitle: 'Keep the old secret for',
+          grace: {
+            none: 'No time',
+            hour: '1 hour',
+            day: '24 hours',
+            week: '7 days',
+          },
+          graceHint:
+            'During the grace period both secrets work, so callers have time to switch. Rotating again ends any earlier secret at once.',
+          graceNoneHint:
+            'The old secret is rejected at once; callers still using it start failing.',
+          confirm: 'Rotate',
         },
         revokeTitle: 'Revoke this key?',
         revokeDescription:
@@ -583,12 +610,8 @@ export default {
       keyForm: {
         createTitle: 'Create key',
         editTitle: 'Edit key',
-        rotateTitle: 'Rotate key',
         description:
           'Choose which models it may call and it is ready. Everything else can be changed later.',
-        rotateDescription:
-          'Issues a new key with the settings of "{{name}}". The old key keeps working until you revoke it.',
-        rotateName: '{{name}} ({{date}})',
         namePlaceholder: 'e.g. support-bot',
         descriptionPlaceholder: 'Who uses it and for what (optional)',
         scopeLegend: 'Models it may call',
@@ -634,7 +657,6 @@ export default {
         quotaHint:
           'Resets each UTC day or month. The call that crosses the quota completes; the next one is rejected. Leave empty for no quota.',
         submitCreate: 'Create key',
-        submitRotate: 'Issue new key',
       },
       created: {
         title: '"{{name}}" is created',
@@ -657,10 +679,11 @@ export default {
         saved: 'I have saved this key',
         download: 'Download .env',
         done: 'Done',
-        rotateTitle: 'The old key "{{name}}" still works',
-        rotateHint: 'Revoke it once callers have switched to the new key.',
-        revokeOld: 'Revoke old key',
-        oldRevoked: 'Old key revoked',
+        rotatedTitle: '"{{name}}" has a new secret',
+        rotatedGrace: 'The old secret works until {{time}}',
+        rotatedNow: 'The old secret no longer works',
+        rotatedHint:
+          'This is a new secret for the same key. Hand it to callers in place of the old one.',
       },
       logs: {
         range: 'Time',

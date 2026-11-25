@@ -127,6 +127,7 @@ export function resolveBaseUrl(
 const ENDPOINTS: Record<string, { path: string; label: string }> = {
   'chat.completions': { path: 'POST /v1/chat/completions', label: 'chat' },
   embeddings: { path: 'POST /v1/embeddings', label: 'embeddings' },
+  messages: { path: 'POST /v1/messages', label: 'messages' },
 }
 
 export const endpointPath = (endpoint: string): string =>

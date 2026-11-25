@@ -82,6 +82,8 @@ export interface GatewayCatalogModel extends GatewayRateLimits {
   order?: number | null
   /** Names this model serves together with other callable models. */
   pools?: GatewayPool[]
+  /** The latest background health check; `null` while checks are off. */
+  health?: GatewayModelHealth | null
   description: string | null
   requests_7d: number
   /** `null` when nobody priced the model; absent on older servers. */
@@ -90,6 +92,16 @@ export interface GatewayCatalogModel extends GatewayRateLimits {
   custom_pricing?: GatewayPriceRates | null
   max_input_tokens?: number | null
   max_output_tokens?: number | null
+}
+
+/** What the last background health check of a model found. */
+export interface GatewayModelHealth {
+  status: 'healthy' | 'unhealthy' | (string & {})
+  /** The upstream's answer; `null` when it could not be reached in time. */
+  status_code: number | null
+  error_message: string | null
+  response_time_ms: number
+  checked_at: string | null
 }
 
 /** A name several callable models serve; each is a deployment of it. */
@@ -157,6 +169,10 @@ export interface GatewayKey extends GatewayRateLimits {
   /** Tokens used in the current period; `null` for keys without a quota. */
   quota_used: number | null
   last_used_at: string | null
+  /** When the secret was last replaced; absent on older servers. */
+  rotated_at?: string | null
+  /** Until when the secret replaced by the last rotation still works. */
+  previous_key_expires_at?: string | null
   create_time: number | null
   update_time: number | null
 }
@@ -380,6 +396,18 @@ export const modelGatewayAPI = {
 
   updateKey(id: string, input: GatewayKeyUpdateInput): Promise<GatewayKey> {
     return apiClient.patch(path('keys', id), input, rest)
+  },
+
+  /** A new secret for the same key; the old one works for the grace period. */
+  rotateKey(
+    id: string,
+    gracePeriodSeconds: number,
+  ): Promise<GatewayKeyCreated> {
+    return apiClient.post(
+      `${path('keys', id)}/rotate`,
+      { grace_period_seconds: gracePeriodSeconds },
+      rest,
+    )
   },
 
   revokeKey(id: string): Promise<GatewayKey> {

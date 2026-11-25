@@ -17,7 +17,6 @@ import {
 } from '@/hooks/use-model-gateway-request'
 import { getMutationErrorNotice } from '@/lib/mutation-error-feedback'
 import { toast } from '@/lib/toast'
-import { getCurrentLanguage } from '@/locales/i18n'
 import type { KeyFormRequest } from '../../constants'
 import { hasLimits } from '../../form-model'
 import { PREFIX, gatewayErrorKey } from '../../utils'
@@ -52,18 +51,7 @@ export function KeyFormSheet({
   const createMutation = useCreateGatewayKey()
   const updateMutation = useUpdateGatewayKey()
   const pending = createMutation.isPending || updateMutation.isPending
-  const [draft, setDraft] = useState<KeyDraft>(() =>
-    initialDraft(request, (name) =>
-      t(`${PREFIX}.keyForm.rotateName`, {
-        name,
-        date: new Intl.DateTimeFormat(getCurrentLanguage(), {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-        }).format(new Date()),
-      }),
-    ),
-  )
+  const [draft, setDraft] = useState<KeyDraft>(() => initialDraft(request))
   // Which fixed message to show; never the request's own error text.
   const [errorKey, setErrorKey] = useState<string | null>(null)
   const update = (patch: Partial<KeyDraft>) => {
@@ -101,14 +89,10 @@ export function KeyFormSheet({
   }
 
   const title = t(`${PREFIX}.keyForm.${request.mode}Title`)
-  const description =
-    request.mode === 'rotate'
-      ? t(`${PREFIX}.keyForm.rotateDescription`, { name: request.key.name })
-      : t(`${PREFIX}.keyForm.description`)
+  const description = t(`${PREFIX}.keyForm.description`)
   const submitLabel = {
     create: t(`${PREFIX}.keyForm.submitCreate`),
     edit: t(`${PREFIX}.common.save`),
-    rotate: t(`${PREFIX}.keyForm.submitRotate`),
   }[request.mode]
 
   return (
